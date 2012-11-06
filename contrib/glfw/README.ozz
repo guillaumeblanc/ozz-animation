@@ -1,0 +1,15 @@
+URL: http://www.glfw.org/
+Version: 2.7.0
+         (Downloaded glfw-2.7.zip 
+          from http://www.glfw.org/download.html)
+License: zlib/libpng license
+License File: COPYING
+Description: GLFW is a free, open source, portable library for OpenGL
+             application development.
+
+Local Modifications:
+- Extracted include and source files from glfw package.
+- Striped from unsued files.
+- Added CMakeLists.txt build file.
+- Fix w4 and wall warnings.
+- 

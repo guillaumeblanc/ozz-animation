@@ -1,0 +1,15 @@
+URL: http://www.grinninglizard.com/tinyxml
+Version: 2.6.2
+         (tinyxml_2_6_2.zip 
+          from http://www.sourceforge.net/projects/tinyxml)
+License: zlib/libpng license
+License File: readme.txt
+Description: TinyXML is a simple, small, C++ XML parser that can be easily
+             integrated into other programs.
+
+Local Modifications:
+- Extracted include and source files from tinyxml package.
+- Striped from unsued files.
+- Added CMakeLists.txt build file.
+- Fix w4 and wall warnings.
+- 
