@@ -196,7 +196,7 @@ TEST(Build, SkeletonBuilder) {
     Skeleton* skeleton = builder(raw_skeleton);
     ASSERT_TRUE(skeleton != NULL);
     EXPECT_EQ(skeleton->num_joints(), 1);
-    EXPECT_EQ(skeleton->joint_properties()[0].parent, -1);
+    EXPECT_EQ(skeleton->joint_properties()[0].parent, Skeleton::kRootIndex);
     EXPECT_EQ(skeleton->joint_properties()[0].is_leaf, 1u);
 
     ozz::memory::default_allocator().Delete(skeleton);
@@ -229,7 +229,7 @@ TEST(Build, SkeletonBuilder) {
     for (int i = 0; i < skeleton->num_joints(); i++) {
       const int parent_index = skeleton->joint_properties()[i].parent;
       if (std::strcmp(skeleton->joint_names()[i], "root") == 0) {
-        EXPECT_EQ(parent_index, -1);
+        EXPECT_EQ(parent_index, Skeleton::kRootIndex);
         EXPECT_EQ(skeleton->joint_properties()[i].is_leaf, 0u);
       } else if (std::strcmp(skeleton->joint_names()[i], "j0") == 0) {
         EXPECT_TRUE(std::strcmp(skeleton->joint_names()[parent_index], "root") == 0);
@@ -270,7 +270,7 @@ TEST(Build, SkeletonBuilder) {
     for (int i = 0; i < skeleton->num_joints(); i++) {
       const int parent_index = skeleton->joint_properties()[i].parent;
       if (std::strcmp(skeleton->joint_names()[i], "root") == 0) {
-        EXPECT_EQ(parent_index, -1);
+        EXPECT_EQ(parent_index, Skeleton::kRootIndex);
         EXPECT_EQ(skeleton->joint_properties()[i].is_leaf, 0u);
       } else if (std::strcmp(skeleton->joint_names()[i], "j0") == 0) {
         EXPECT_STREQ(skeleton->joint_names()[parent_index], "root");
@@ -319,7 +319,7 @@ TEST(Build, SkeletonBuilder) {
     for (int i = 0; i < skeleton->num_joints(); i++) {
       const int parent_index = skeleton->joint_properties()[i].parent;
       if (std::strcmp(skeleton->joint_names()[i], "root") == 0) {
-        EXPECT_EQ(parent_index, -1);
+        EXPECT_EQ(parent_index, Skeleton::kRootIndex);
         EXPECT_EQ(skeleton->joint_properties()[i].is_leaf, 0u);
       } else if (std::strcmp(skeleton->joint_names()[i], "j0") == 0) {
         EXPECT_STREQ(skeleton->joint_names()[parent_index], "root");
@@ -371,7 +371,7 @@ TEST(Build, SkeletonBuilder) {
     for (int i = 0; i < skeleton->num_joints(); i++) {
       const int parent_index = skeleton->joint_properties()[i].parent;
       if (std::strcmp(skeleton->joint_names()[i], "root") == 0) {
-        EXPECT_EQ(parent_index, -1);
+        EXPECT_EQ(parent_index, Skeleton::kRootIndex);
         EXPECT_EQ(skeleton->joint_properties()[i].is_leaf, 0u);
       } else if (std::strcmp(skeleton->joint_names()[i], "j0") == 0) {
         EXPECT_STREQ(skeleton->joint_names()[parent_index], "root");
@@ -424,7 +424,7 @@ TEST(Build, SkeletonBuilder) {
     for (int i = 0; i < skeleton->num_joints(); i++) {
       const int parent_index = skeleton->joint_properties()[i].parent;
       if (std::strcmp(skeleton->joint_names()[i], "root") == 0) {
-        EXPECT_EQ(parent_index, -1);
+        EXPECT_EQ(parent_index, Skeleton::kRootIndex);
         EXPECT_EQ(skeleton->joint_properties()[i].is_leaf, 0u);
       } else if (std::strcmp(skeleton->joint_names()[i], "j0") == 0) {
         EXPECT_STREQ(skeleton->joint_names()[parent_index], "root");
@@ -483,7 +483,7 @@ TEST(Build, SkeletonBuilder) {
     for (int i = 0; i < skeleton->num_joints(); i++) {
       const int parent_index = skeleton->joint_properties()[i].parent;
       if (std::strcmp(skeleton->joint_names()[i], "root") == 0) {
-        EXPECT_EQ(parent_index, -1);
+        EXPECT_EQ(parent_index, Skeleton::kRootIndex);
         EXPECT_EQ(skeleton->joint_properties()[i].is_leaf, 0u);
       } else if (std::strcmp(skeleton->joint_names()[i], "j0") == 0) {
         EXPECT_STREQ(skeleton->joint_names()[parent_index], "root");
@@ -507,7 +507,7 @@ TEST(Build, SkeletonBuilder) {
 
     // Skeleton joins should be sorted "per parent" and maintain original
     // children joint order.
-    EXPECT_EQ(skeleton->joint_properties()[0].parent, -1);
+    EXPECT_EQ(skeleton->joint_properties()[0].parent, Skeleton::kRootIndex);
     EXPECT_STREQ(skeleton->joint_names()[0], "root");
     EXPECT_EQ(skeleton->joint_properties()[1].parent, 0);
     EXPECT_STREQ(skeleton->joint_names()[1], "j0");
@@ -565,7 +565,7 @@ TEST(JointOrder, SkeletonBuilder) {
 
   // Skeleton joints should be sorted "per parent" and maintain original
   // children joint order.
-  EXPECT_EQ(skeleton->joint_properties()[0].parent, -1);
+  EXPECT_EQ(skeleton->joint_properties()[0].parent, Skeleton::kRootIndex);
   EXPECT_STREQ(skeleton->joint_names()[0], "root");
   EXPECT_EQ(skeleton->joint_properties()[1].parent, 0);
   EXPECT_STREQ(skeleton->joint_names()[1], "j0");
@@ -636,7 +636,7 @@ TEST(InterateFlags, SkeletonBuilder) {
     const ozz::String& name = skeleton->joint_names()[i];
     switch (i) {
       case 0: {
-        EXPECT_EQ(parent, -1);
+        EXPECT_EQ(parent, Skeleton::kRootIndex);
         EXPECT_TRUE(name == "root");
         break;
       }
@@ -727,10 +727,10 @@ TEST(MultiRoots, SkeletonBuilder) {
   for (int i = 0; i < skeleton->num_joints(); i++) {
     const int parent_index = skeleton->joint_properties()[i].parent;
     if (std::strcmp(skeleton->joint_names()[i], "r0") == 0) {
-      EXPECT_EQ(parent_index, -1);
+      EXPECT_EQ(parent_index, Skeleton::kRootIndex);
       EXPECT_EQ(skeleton->joint_properties()[i].is_leaf, 0u);
     } else if (std::strcmp(skeleton->joint_names()[i], "r1") == 0) {
-      EXPECT_EQ(parent_index, -1);
+      EXPECT_EQ(parent_index, Skeleton::kRootIndex);
       EXPECT_EQ(skeleton->joint_properties()[i].is_leaf, 0u);
     } else if (std::strcmp(skeleton->joint_names()[i], "j0") == 0) {
       EXPECT_STREQ(skeleton->joint_names()[parent_index], "r0");
@@ -827,13 +827,12 @@ TEST(TPose, SkeletonBuilder) {
   ozz::memory::default_allocator().Delete(skeleton);
 }
 
-
 TEST(MaxJoints, SkeletonBuilder) {
 
   // Instantiates a builder objects with default parameters.
   SkeletonBuilder builder;
 
-  { // Inside the domain
+  { // Inside the domain.
     RawSkeleton raw_skeleton;
     raw_skeleton.roots.resize(Skeleton::kMaxJoints);
 
@@ -845,7 +844,7 @@ TEST(MaxJoints, SkeletonBuilder) {
     ozz::memory::default_allocator().Delete(skeleton);
   }
 
-  { // Outside of the domain
+  { // Outside of the domain.
     RawSkeleton raw_skeleton;
     raw_skeleton.roots.resize(Skeleton::kMaxJoints + 1);
 

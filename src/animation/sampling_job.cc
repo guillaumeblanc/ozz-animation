@@ -48,7 +48,7 @@ struct InterpSoaScale {
 };
 }  // internal
 bool SamplingJob::Validate() const {
-  // Don't need any early out, as hobs are valid in most of the performance
+  // Don't need any early out, as jobs are valid in most of the performance
   // critical cases.
   // Tests are written in multiple lines in order to avoid branches.
   bool valid = true;
@@ -305,6 +305,8 @@ void Interpolates(float _anim_time,
         math::RcpEst(_scales[i].time[1] - _scales[i].time[0]);
 
       // Processes interpolations.
+      // The lerp of the rotation uses the shortest path, because opposed
+      // quaternions were negated during animation build stage (AnimationBuilder).
       _output[i].translation = Lerp(
         _translations[i].value[0], _translations[i].value[1], interp_t_time);
       _output[i].rotation = NLerpEst(

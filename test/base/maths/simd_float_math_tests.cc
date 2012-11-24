@@ -302,6 +302,9 @@ TEST(ArithmeticFloat, ozz_simd_math) {
 
   const ozz::math::SimdFloat4 abs = ozz::math::Abs(b);
   EXPECT_SIMDFLOAT_EQ(abs, 4.f, 5.f, 6.f, 7.f);
+
+  const SimdInt4 sign = ozz::math::Sign(b);
+  EXPECT_SIMDINT_EQ(sign, 0, 0, 0x80000000, 0);
 }
 
 TEST(LengthFloat, ozz_simd_math) {

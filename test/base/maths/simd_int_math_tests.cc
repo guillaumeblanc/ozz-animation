@@ -298,6 +298,9 @@ TEST(ArithmeticInt, ozz_simd_math) {
 
   const SimdInt4 abs = ozz::math::Abs(b);
   EXPECT_SIMDINT_EQ(abs, 4, 5, 6, 7);
+
+  const SimdInt4 sign = ozz::math::Sign(b);
+  EXPECT_SIMDINT_EQ(sign, 0, 0, 0x80000000, 0);
 }
 
 TEST(CompareInt, ozz_simd_math) {
@@ -407,4 +410,17 @@ TEST(LogicalInt, ozz_simd_math) {
 
   const SimdInt4 select = ozz::math::Select(a, b, c);
   EXPECT_SIMDINT_EQ(select, 0x80000001, 0x89abcdef, 0x01234567, 0x80000000);
+}
+
+TEST(ShiftInt, ozz_simd_math) {
+  const SimdInt4 a = ozz::math::simd_int4::Load(0xffffffff, 0x00000000, 0x80000001, 0x7fffffff);
+
+  const SimdInt4 shift_l = ozz::math::ShiftL(a, 3);
+  EXPECT_SIMDINT_EQ(shift_l, 0xfffffff8, 0x00000000, 0x00000008, 0xfffffff8);
+
+  const SimdInt4 shift_r = ozz::math::ShiftR(a, 3);
+  EXPECT_SIMDINT_EQ(shift_r, 0xffffffff, 0x00000000, 0xf0000000, 0x0fffffff);
+
+  const SimdInt4 shift_ru = ozz::math::ShiftRu(a, 3);
+  EXPECT_SIMDINT_EQ(shift_ru, 0x1fffffff, 0x00000000, 0x10000000, 0x0fffffff);
 }

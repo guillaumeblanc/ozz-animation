@@ -325,7 +325,7 @@ void RendererImpl::DrawPosture_Impl(const ozz::animation::Skeleton& _skeleton,
     // If there's a parent, renders it.
     const int parent_id = properties[i].parent;
     math::SimdFloat4 parent_right = x_axis;
-    if (parent_id != -1) {
+    if (parent_id != ozz::animation::Skeleton::kRootIndex) {
       const math::Float4x4& parent = _matrices[parent_id];
 
       parent_right = current.cols[3] - parent.cols[3];
@@ -420,7 +420,7 @@ void RendererImpl::DrawPosture_InstancedImpl(
     // If there's a parent, renders it.
     const int parent_id = properties[i].parent;
     math::SimdFloat4 parent_right = x_axis;
-    if (parent_id != -1) {
+    if (parent_id != ozz::animation::Skeleton::kRootIndex) {
       const math::Float4x4& parent = _matrices[parent_id];
       parent_right = current.cols[3] - parent.cols[3];
 

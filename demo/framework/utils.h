@@ -37,16 +37,23 @@ class Skeleton;
 namespace demo {
 class ImGui;
 
+// Utility class that helps with controlling animation playback time. Time is
+// computed every update according to the dt given by the caller, playback speed
+// and "play" state. OnGui function allows to tweak controller parameters
+// through the application Gui.
 class PlaybackController {
  public:
+  // Constructor.
   PlaybackController();
 
-  ~PlaybackController();
-
+  // Gets animation current time.
   float time() const { return time_; }
 
+  // Updates animation time if in "play" state, according to playback speed and
+  // given frame time _dt.
   void Update(const animation::Animation& _animation, float _dt);
 
+  // Do controller Gui.
   void OnGui(const animation::Animation& _animation, ImGui* _im_gui);
 
  private:

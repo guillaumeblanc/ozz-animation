@@ -386,6 +386,9 @@ OZZ_INLINE SimdFloat4 RSqrtEstX(_SimdFloat4 _v);
 // Returns the per element absolute value of _v.
 OZZ_INLINE SimdFloat4 Abs(_SimdFloat4 _v);
 
+// Returns the sign bit of _v.
+OZZ_INLINE SimdInt4 Sign(_SimdFloat4 _v);
+
 // Returns the per component minimum of _a and _b.
 OZZ_INLINE SimdFloat4 Min(_SimdFloat4 _a, _SimdFloat4 _b);
 
@@ -915,6 +918,9 @@ OZZ_INLINE SimdInt4 HAdd4(_SimdInt4 _v);
 // Returns the per element absolute value of _v.
 OZZ_INLINE SimdInt4 Abs(_SimdInt4 _v);
 
+// Returns the sign bit of _v.
+OZZ_INLINE SimdInt4 Sign(_SimdInt4 _v);
+
 // Returns the per component minimum of _a and _b.
 OZZ_INLINE SimdInt4 Min(_SimdInt4 _a, _SimdInt4 _b);
 
@@ -944,6 +950,18 @@ OZZ_INLINE SimdInt4 Xor(_SimdInt4 _a, _SimdInt4 _b);
 // Returns per element binary complement of _v.
 // _v[0...127] = ~_b[0...127]
 OZZ_INLINE SimdInt4 Not(_SimdInt4 _v);
+
+// Shifts the 4 signed or unsigned 32-bit integers in a left by count _bits
+// while shifting in zeros.
+OZZ_INLINE SimdInt4 ShiftL(_SimdInt4 _v, int _bits);
+
+// Shifts the 4 signed 32-bit integers in a right by count bits while shifting
+// in the sign bit.
+OZZ_INLINE SimdInt4 ShiftR(_SimdInt4 _v, int _bits);
+
+// Shifts the 4 signed or unsigned 32-bit integers in a right by count bits
+// while shifting in zeros.
+OZZ_INLINE SimdInt4 ShiftRu(_SimdInt4 _v, int _bits);
 
 // Per element "equal" comparison of _a and _b.
 OZZ_INLINE SimdInt4 CmpEq(_SimdInt4 _a, _SimdInt4 _b);

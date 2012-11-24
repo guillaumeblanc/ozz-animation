@@ -45,20 +45,20 @@
 // Skeleton archive can be specified as an option.
 OZZ_OPTIONS_DECLARE_STRING(
   skeleton,
-  "Path to the skeleton ozz archive",
+  "Path to the skeleton (ozz archive format).",
   "media/skeleton.ozz",
   false)
 
 // Animation archive can be specified as an option.
 OZZ_OPTIONS_DECLARE_STRING(
   animation,
-  "Path to the animation ozz archive",
+  "Path to the animation (ozz archive format).",
   "media/animation.ozz",
   false)
 
-class LoadAnimationAplication : public ozz::demo::Application {
+class LoadDemoAplication : public ozz::demo::Application {
  public:
-  LoadAnimationAplication()
+  LoadDemoAplication()
     : skeleton_(NULL),
       animation_(NULL),
       cache_(NULL),
@@ -73,10 +73,6 @@ class LoadAnimationAplication : public ozz::demo::Application {
  protected:
   // Updates current animation time.
   virtual bool OnUpdate(float _dt) {
-    if (!animation_ || !skeleton_) {
-      return true;
-    }
-
     // Updates current animation time.
     controller_.Update(*animation_, _dt);
 
@@ -107,10 +103,7 @@ class LoadAnimationAplication : public ozz::demo::Application {
 
   // Samples animation, transforms to model space and renders.
   virtual bool OnDisplay(ozz::demo::Renderer* _renderer) {
-    if (animation_) {
-      return _renderer->DrawPosture(*skeleton_, models_, models_end_, true);
-    }
-    return true;
+    return _renderer->DrawPosture(*skeleton_, models_, models_end_, true);
   }
 
   virtual bool OnInitialize() {
@@ -177,13 +170,10 @@ class LoadAnimationAplication : public ozz::demo::Application {
   }
 
   virtual bool OnGui(ozz::demo::ImGui* _im_gui) {
-    if (!animation_) {
-      return true;
-    }
     // Exposes animation runtime playback controls.
     {
       static bool open = true;
-      ozz::demo::ImGui::OpenClose occ(_im_gui, "Animation control", &open);
+      ozz::demo::ImGui::OpenClose oc(_im_gui, "Animation control", &open);
       if (open) {
         controller_.OnGui(*animation_, _im_gui);
       }
@@ -239,8 +229,9 @@ class LoadAnimationAplication : public ozz::demo::Application {
 };
 
 int main(int _argc, const char** _argv) {
-  return LoadAnimationAplication().Run(
+  return LoadDemoAplication().Run(
     _argc, _argv,
     "1.0",
-    "Loads a skeleton and an animation from ozz binary archives.\n");
+    "Loads a skeleton and an animation from ozz binary archives.\n"
+    "Animation time and playback speed can be tweaked.\n");
 }

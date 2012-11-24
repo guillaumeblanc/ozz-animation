@@ -47,17 +47,19 @@
 // Collada skeleton and animation file can be specified as an option.
 OZZ_OPTIONS_DECLARE_STRING(
   skeleton,
-  "Path to the Collada skeleton file",
+  "Path to the Collada skeleton file.",
   "media/skeleton_yup.dae",
   false)
+
 OZZ_OPTIONS_DECLARE_STRING(
   animation,
-  "Path to the Collada animation file",
+  "Path to the Collada animation file.",
   "media/animation.dae",
   false)
-class ColladaAnimationAplication : public ozz::demo::Application {
+
+class ColladaDemoAplication : public ozz::demo::Application {
  public:
-  ColladaAnimationAplication()
+  ColladaDemoAplication()
     : selected_display_(eOptimized),
       skeleton_(NULL),
       cache_(NULL),
@@ -76,10 +78,6 @@ class ColladaAnimationAplication : public ozz::demo::Application {
  protected:
   // Updates current animation time.
   virtual bool OnUpdate(float _dt) {
-    if (!animation_non_opt_ || !animation_opt_ || !skeleton_) {
-      return true;
-    }
-
     // Updates current animation time.
     controller_.Update(*animation_opt_, _dt);
 
@@ -148,10 +146,7 @@ class ColladaAnimationAplication : public ozz::demo::Application {
 
   // Samples animation, transforms to model space and renders.
   virtual bool OnDisplay(ozz::demo::Renderer* _renderer) {
-    if (animation_opt_) {
-      return _renderer->DrawPosture(*skeleton_, models_, models_end_, true);
-    }
-    return true;
+    return _renderer->DrawPosture(*skeleton_, models_, models_end_, true);
   }
 
   virtual bool OnInitialize() {
@@ -176,7 +171,9 @@ class ColladaAnimationAplication : public ozz::demo::Application {
     }
 
     // Builds the runtime animation from the raw one imported from Collada.
-    BuildAnimations();
+    if (!BuildAnimations()) {
+      return false;
+    }
 
     // Allocates runtime buffers.
     ozz::memory::Allocator& allocator = ozz::memory::default_allocator();
@@ -204,9 +201,6 @@ class ColladaAnimationAplication : public ozz::demo::Application {
   }
 
   virtual bool OnGui(ozz::demo::ImGui* _im_gui) {
-    if (!animation_opt_) {
-      return true;
-    }
     // Exposes animation runtime playback controls.
     {
       static bool open = true;
@@ -377,7 +371,7 @@ class ColladaAnimationAplication : public ozz::demo::Application {
 };
 
 int main(int _argc, const char** _argv) {
-  return ColladaAnimationAplication().Run(
+  return ColladaDemoAplication().Run(
     _argc, _argv,
     "1.0",
     "Imports a skeleton and an animation from a Collada document.\n"

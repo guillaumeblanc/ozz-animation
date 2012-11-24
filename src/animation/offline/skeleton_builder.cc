@@ -74,7 +74,7 @@ struct JointLister {
   void operator()(const RawSkeleton::Joint& _current,
                   const RawSkeleton::Joint* _parent) {
     // Looks for the "lister" parent.
-    int parent = -1;
+    int parent = Skeleton::kRootIndex;
     if (_parent) {
       // Start searching from the last joint.
       int j = static_cast<int>(linear_joints.size()) - 1;

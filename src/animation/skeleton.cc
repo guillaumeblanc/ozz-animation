@@ -68,8 +68,6 @@ void Load(IArchive& _archive,
 
 namespace animation {
 
-const int Skeleton::kMaxJoints = 1<<14;
-
 Skeleton::Skeleton()
     : joint_properties_(NULL),
       bind_pose_(NULL),

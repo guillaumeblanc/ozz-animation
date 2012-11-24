@@ -59,10 +59,6 @@ Application::Application()
     : freeze_(false),
       exit_(false),
       time_factor_(1.f),
-
-
-
-
       last_idle_time_(0.),
       camera_(NULL),
       auto_framing_(false),

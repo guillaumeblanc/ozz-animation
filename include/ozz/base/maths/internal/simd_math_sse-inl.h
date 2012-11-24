@@ -476,6 +476,10 @@ OZZ_INLINE ozz::math::SimdFloat4 Abs(_SimdFloat4 _v) {
   return _mm_and_ps(_mm_castsi128_ps(simd_int4::mask_not_sign()), _v);
 }
 
+OZZ_INLINE SimdInt4 Sign(_SimdFloat4 _v) {
+  return _mm_slli_epi32(_mm_srli_epi32(_mm_castps_si128(_v), 31), 31);
+}
+
 OZZ_INLINE ozz::math::SimdFloat4 Length2(_SimdFloat4 _v) {
   __m128 sq_len;
   OZZ_SSE_DOT2_F(_v, _v, sq_len);
@@ -1184,6 +1188,10 @@ OZZ_INLINE ozz::math::SimdInt4 Abs(_SimdInt4 _v) {
     _mm_cmplt_epi32(_v, zero), _mm_sub_epi32(zero, _v), _v);
 }
 
+OZZ_INLINE SimdInt4 Sign(_SimdInt4 _v) {
+  return _mm_slli_epi32(_mm_srli_epi32(_v, 31), 31);
+}
+
 OZZ_INLINE ozz::math::SimdInt4 Min(_SimdInt4 _a, _SimdInt4 _b) {
   // SSE4 _mm_min_epi32
   return OZZ_SSE_SELECT_I(_mm_cmplt_epi32(_a, _b), _a, _b);
@@ -1220,6 +1228,18 @@ OZZ_INLINE SimdInt4 Xor(_SimdInt4 _a, _SimdInt4 _b) {
 OZZ_INLINE SimdInt4 Not(_SimdInt4 _v) {
   return _mm_andnot_si128(
     _v, _mm_cmpeq_epi32(_mm_setzero_si128(), _mm_setzero_si128()));
+}
+
+OZZ_INLINE SimdInt4 ShiftL(_SimdInt4 _v, int _bits){
+  return _mm_slli_epi32(_v, _bits);
+}
+
+OZZ_INLINE SimdInt4 ShiftR(_SimdInt4 _v, int _bits) {
+  return _mm_srai_epi32(_v, _bits);
+}
+
+OZZ_INLINE SimdInt4 ShiftRu(_SimdInt4 _v, int _bits) {
+  return _mm_srli_epi32(_v, _bits);
 }
 
 OZZ_INLINE SimdInt4 CmpEq(_SimdInt4 _a, _SimdInt4 _b) {

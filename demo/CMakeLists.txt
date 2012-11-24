@@ -13,5 +13,6 @@ include_directories(./)
 # Adds demos and helper libraries.
 add_subdirectory(framework)
 add_subdirectory(millipede)
-add_subdirectory(collada_animation)
-add_subdirectory(load_animation)
+add_subdirectory(collada)
+add_subdirectory(load)
+add_subdirectory(blend)

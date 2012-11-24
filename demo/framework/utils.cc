@@ -45,9 +45,6 @@ PlaybackController::PlaybackController()
     play_(true) {
 }
 
-PlaybackController::~PlaybackController() {
-}
-
 void PlaybackController::Update(const animation::Animation& _animation,
                                 float _dt) {
   if (!play_) {

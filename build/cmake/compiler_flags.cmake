@@ -82,22 +82,31 @@ if(MSVC)
   endif()
 
   # Removes any exception mode
-  string(REGEX REPLACE "/EH.*[ ]?" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+  string(REGEX REPLACE " /EH.*" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+  string(REGEX REPLACE " /EH.*" "" CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
 
   # Disables STL exceptions also
   if(NOT ${CMAKE_CXX_FLAGS} MATCHES "/D _HAS_EXCEPTIONS=0")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /D _HAS_EXCEPTIONS=0")
   endif()
+  if(NOT ${CMAKE_C_FLAGS} MATCHES "/D _HAS_EXCEPTIONS=0")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /D _HAS_EXCEPTIONS=0")
+  endif()
   
   # Adds support for SSE instructions
-  string(REGEX REPLACE "/arch:SSE[0-9]?[ ]?" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-  if(${ozz_build_sse2} AND CMAKE_CL_64) # x64 implicitly supports SSE2.
+  string(REGEX REPLACE " /arch:SSE[0-9]?" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+  string(REGEX REPLACE " /arch:SSE[0-9]?" "" CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
+  if(${ozz_build_sse2} AND NOT CMAKE_CL_64) # x64 implicitly supports SSE2.
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:SSE2")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /arch:SSE2")
   endif()
 
   # Adds support for multiple processes builds
   if(NOT ${CMAKE_CXX_FLAGS} MATCHES "/MP")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
+  endif()
+  if(NOT ${CMAKE_C_FLAGS} MATCHES "/MP")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /MP")
   endif()
 
   #---------------
@@ -134,9 +143,15 @@ else()
   if(NOT CMAKE_CXX_FLAGS MATCHES "-Wall")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
   endif()
+  if(NOT CMAKE_C_FLAGS MATCHES "-Wall")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
+  endif()
 
   # Automatically selects native architecture optimizations (sse...)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
+  if(NOT CMAKE_CXX_FLAGS MATCHES "-march=native")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=native")
+  endif()
 
   #----------------------
   # For all builds but the default one

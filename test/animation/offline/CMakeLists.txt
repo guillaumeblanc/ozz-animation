@@ -8,7 +8,8 @@ target_link_libraries(test_animation_builder
 set_target_properties(test_animation_builder PROPERTIES FOLDER "ozz/tests/animation_offline")
 add_test(NAME test_animation_builder COMMAND test_animation_builder)
 
-add_executable(test_animation_optimizer animation_optimizer_tests.cc)
+add_executable(test_animation_optimizer
+  animation_optimizer_tests.cc)
 target_link_libraries(test_animation_optimizer
   ozz_animation_offline
   ozz_animation

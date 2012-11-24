@@ -508,6 +508,16 @@ OZZ_INLINE SimdFloat4 Abs(_SimdFloat4 _v) {
   return ret;
 }
 
+OZZ_INLINE SimdInt4 Sign(_SimdFloat4 _v) {
+  internal::SimdFI4 fi = {_v};
+  const SimdInt4 ret = {
+    fi.i.x & 0x80000000,
+    fi.i.y & 0x80000000,
+    fi.i.z & 0x80000000,
+    fi.i.w & 0x80000000};
+  return ret;
+}
+
 OZZ_INLINE SimdFloat4 Length2(_SimdFloat4 _v) {
   const float sq_len = _v.x * _v.x + _v.y * _v.y;
   const SimdFloat4 ret = {std::sqrt(sq_len), _v.y, _v.z, _v.w};
@@ -1280,6 +1290,14 @@ OZZ_INLINE SimdInt4 Abs(_SimdInt4 _v) {
   return ret;
 }
 
+OZZ_INLINE SimdInt4 Sign(_SimdInt4 _v) {
+  const SimdInt4 ret = { _v.x & 0x80000000,
+                         _v.y & 0x80000000,
+                         _v.z & 0x80000000,
+                         _v.w & 0x80000000};
+  return ret;
+}
+
 OZZ_INLINE SimdInt4 Min(_SimdInt4 _a, _SimdInt4 _b) {
   const SimdInt4 ret = {_a.x < _b.x ? _a.x:_b.x,
                         _a.y < _b.y ? _a.y:_b.y,
@@ -1333,6 +1351,27 @@ OZZ_INLINE SimdInt4 Xor(_SimdInt4 _a, _SimdInt4 _b) {
 
 OZZ_INLINE SimdInt4 Not(_SimdInt4 _v) {
   const SimdInt4 ret = {~_v.x, ~_v.y, ~_v.z, ~_v.w};
+  return ret;
+}
+
+OZZ_INLINE SimdInt4 ShiftL(_SimdInt4 _v, int _bits){
+  const SimdInt4 ret = {
+    _v.x << _bits, _v.y << _bits, _v.z << _bits, _v.w << _bits};
+  return ret;
+}
+
+OZZ_INLINE SimdInt4 ShiftR(_SimdInt4 _v, int _bits) {
+  const SimdInt4 ret = {
+    _v.x >> _bits, _v.y >> _bits, _v.z >> _bits, _v.w >> _bits};
+  return ret;
+}
+
+OZZ_INLINE SimdInt4 ShiftRu(_SimdInt4 _v, int _bits) {
+  const union IU { int i[4]; unsigned int u[4]; } iu = {{
+    _v.x, _v.y, _v.z, _v.w}};
+  const union UI { unsigned int u[4]; int i[4]; } ui = {{
+    iu.u[0] >> _bits, iu.u[1] >> _bits, iu.u[2] >> _bits, iu.u[3] >> _bits}};
+  const SimdInt4 ret = {ui.i[0], ui.i[1], ui.i[2], ui.i[3]};
   return ret;
 }
 

@@ -36,8 +36,19 @@ namespace offline { class SkeletonBuilder; }
 class Skeleton {
  public:
 
-  // Defines the maximum number of joints, fixed by JointProperties.
-  static const int kMaxJoints;
+  // Defines Skeleton constant values.
+  enum {
+    // Limits the number of joints in order to control the number of bits
+    // required to store a joint index.
+    kMaxJointsNumBits = 10,
+
+    // Defines the maximum number of joints.
+    // Reserves one index(the last) for the root.
+    kMaxJoints = (1<<kMaxJointsNumBits) - 1,
+
+    // Defines the index of the root joint.
+    kRootIndex = kMaxJoints,
+  };
 
   // Builds a default skeleton.
   Skeleton();
@@ -52,8 +63,7 @@ class Skeleton {
 
   // Per joint properties.
   struct JointProperties {
-    short parent:15;  // Parent's index. Roots (joints with no parent) have an
-                      // index of -1.
+    unsigned short parent:Skeleton::kMaxJointsNumBits;  // Parent's index.
     unsigned short is_leaf:1;  // Set to 1 for a leaf, 0 for a branch.
   };
 

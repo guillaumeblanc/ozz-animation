@@ -45,12 +45,10 @@
 #include "framework/imgui.h"
 #include "framework/utils.h"
 
-class MillipedeAplication : public ozz::demo::Application {
+class MillipedeDemoAplication : public ozz::demo::Application {
  public:
-  MillipedeAplication()
-    : animation_time_(0.f),
-      playback_speed_(1.f),
-      slice_count_(27),
+  MillipedeDemoAplication()
+    : slice_count_(26),
       skeleton_(NULL),
       animation_(NULL),
       cache_(NULL),
@@ -63,15 +61,13 @@ class MillipedeAplication : public ozz::demo::Application {
  protected:
   virtual bool OnUpdate(float _dt) {
     // Updates current animation time
-    const float new_time = animation_time_ + _dt * playback_speed_;
-    const float loops = new_time / animation_->duration();
-    animation_time_ = new_time - floorf(loops) * animation_->duration();
+    controller_.Update(*animation_, _dt);
 
     // Samples animation at t = animation_time_.
     ozz::animation::SamplingJob sampling_job;
     sampling_job.animation = animation_;
     sampling_job.cache = cache_;
-    sampling_job.time = animation_time_;
+    sampling_job.time = controller_.time();
     sampling_job.output_begin = locals_;
     sampling_job.output_end = locals_end_;
     if (!sampling_job.Run()) {
@@ -104,18 +100,19 @@ class MillipedeAplication : public ozz::demo::Application {
   virtual bool OnGui(ozz::demo::ImGui* _im_gui) {
     // Rebuilds all if the number of joints has changed.
     const float joints = slice_count_ * 5 + 1.f;
-    char szJoints[64];
-    std::sprintf(szJoints, "Joints count: %.0f", joints);
+    char label[64];
+    std::sprintf(label, "Joints count: %.0f", joints);
 
     // Uses an exponential scale in the slider to maintain enough precision in
     // the lowest values.
     const float max = static_cast<float>(ozz::animation::Skeleton::kMaxJoints);
     float new_joints = joints;
-    if (_im_gui->DoSlider(szJoints,
+    if (_im_gui->DoSlider(label,
                           6.f, max, &new_joints, .3f,
                           true)) {
       const int new_slice_count = (static_cast<int>(new_joints) - 1) / 5;
-      if (new_slice_count != slice_count_) {  // Slider use floats !
+      // Slider use floats, we need to check if it has really changed.
+      if (new_slice_count != slice_count_) {
         slice_count_ = new_slice_count;
         Destroy();
         if (!Build()) {
@@ -124,14 +121,13 @@ class MillipedeAplication : public ozz::demo::Application {
       }
     }
 
-    // Sets playback speed.
-    char szSpeed[64];
-    std::sprintf(szSpeed, "Playback speed: %.2f", playback_speed_);
-    _im_gui->DoSlider(szSpeed, -2.f, 2.f, &playback_speed_);
+    // Updates controller Gui.
+    controller_.OnGui(*animation_, _im_gui);
 
     return true;
   }
 
+  // Proceduraly builds millipede skeleton and walk wanimation
   bool Build() {
     using ozz::math::Float3;
     using ozz::math::Float4;
@@ -419,11 +415,10 @@ class MillipedeAplication : public ozz::demo::Application {
   }
 
  private:
-  // Current animation time.
-  float animation_time_;
 
-  // Playback speed, can be negative in order to play the animation backward.
-  float playback_speed_;
+  // Playback animation controller. This is a utility class that helps with
+  // controlling animation playback time.
+  ozz::demo::PlaybackController controller_;
 
   // Millipede skeleton number of slices. 5 joints per slice.
   int slice_count_;
@@ -448,7 +443,7 @@ class MillipedeAplication : public ozz::demo::Application {
 };
 
 int main(int _argc, const char** _argv) {
-  return MillipedeAplication().Run(
+  return MillipedeDemoAplication().Run(
     _argc, _argv,
     "1.0",
     "Procedurally generates a millipede skeleton and walk animation. "

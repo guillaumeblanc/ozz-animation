@@ -36,7 +36,7 @@ namespace ozz {
 namespace animation {
 
 bool LocalToModelJob::Validate() const {
-  // Don't need any early out, as hobs are valid in most of the performance
+  // Don't need any early out, as jobs are valid in most of the performance
   // critical cases.
   // Tests are written in multiple lines in order to avoid branches.
   bool valid = true;
@@ -102,7 +102,8 @@ bool LocalToModelJob::Run() const {
     for (; joint < proceed_up_to; joint++, local_aos_matrix += 4) {
       const int parent = properties[joint].parent;
       const Float4x4* parent_matrix =
-        math::Select(parent == -1, &identity, &model_matrices[parent]);
+        math::Select(parent ==
+          Skeleton::kRootIndex, &identity, &model_matrices[parent]);
       const Float4x4 local_matrix = {{
         local_aos_matrix[0],
         local_aos_matrix[1],
