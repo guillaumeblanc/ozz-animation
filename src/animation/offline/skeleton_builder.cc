@@ -1,5 +1,11 @@
 //============================================================================//
-// Copyright (c) <2012> <Guillaume Blanc>                                     //
+//                                                                            //
+// ozz-animation, 3d skeletal animation libraries and tools.                  //
+// https://code.google.com/p/ozz-animation/                                   //
+//                                                                            //
+//----------------------------------------------------------------------------//
+//                                                                            //
+// Copyright (c) 2012-2014 Guillaume Blanc                                    //
 //                                                                            //
 // This software is provided 'as-is', without any express or implied          //
 // warranty. In no event will the authors be held liable for any damages      //
@@ -19,6 +25,7 @@
 //                                                                            //
 // 3. This notice may not be removed or altered from any source               //
 // distribution.                                                              //
+//                                                                            //
 //============================================================================//
 
 #include "ozz/animation/offline/skeleton_builder.h"
@@ -29,7 +36,7 @@
 #include "ozz/base/containers/vector.h"
 #include "ozz/base/maths/soa_transform.h"
 #include "ozz/base/memory/allocator.h"
-#include "ozz/animation/skeleton.h"
+#include "ozz/animation/runtime/skeleton.h"
 
 namespace ozz {
 namespace animation {
@@ -74,7 +81,7 @@ struct JointLister {
   void operator()(const RawSkeleton::Joint& _current,
                   const RawSkeleton::Joint* _parent) {
     // Looks for the "lister" parent.
-    int parent = Skeleton::kRootIndex;
+    int parent = Skeleton::kNoParentIndex;
     if (_parent) {
       // Start searching from the last joint.
       int j = static_cast<int>(linear_joints.size()) - 1;
@@ -110,9 +117,10 @@ Skeleton* SkeletonBuilder::operator()(const RawSkeleton& _raw_skeleton) const {
 
   // Everything is fine, allocates and fills the skeleton.
   // Will not fail.
-  Skeleton* skeleton = memory::default_allocator().New<Skeleton>();
+  Skeleton* skeleton = memory::default_allocator()->New<Skeleton>();
   const int num_joints = _raw_skeleton.num_joints();
   skeleton->num_joints_ = num_joints;
+  const int num_soa_joints = skeleton->num_soa_joints();
 
   // Iterates through all the joint of the raw skeleton and fills a sorted joint
   // list.
@@ -122,7 +130,7 @@ Skeleton* SkeletonBuilder::operator()(const RawSkeleton& _raw_skeleton) const {
 
   // Transfers sorted joints hierarchy to the new skeleton.
   skeleton->joint_properties_ =
-    memory::default_allocator().Allocate<Skeleton::JointProperties>(num_joints);
+    memory::default_allocator()->Allocate<Skeleton::JointProperties>(num_joints);
   for (int i = 0; i < num_joints; i++) {
     skeleton->joint_properties_[i].parent = lister.linear_joints[i].parent;
     skeleton->joint_properties_[i].is_leaf =
@@ -136,7 +144,7 @@ Skeleton* SkeletonBuilder::operator()(const RawSkeleton& _raw_skeleton) const {
     buffer_size += (current.name.size() + 1) * sizeof(char);
   }
   skeleton->joint_names_ =
-    memory::default_allocator().Allocate<char*>(buffer_size);
+    memory::default_allocator()->Allocate<char*>(buffer_size);
   char* cursor = reinterpret_cast<char*>(skeleton->joint_names_ + num_joints);
   for (int i = 0; i < num_joints; i++) {
     const RawSkeleton::Joint& current = *lister.linear_joints[i].joint;
@@ -146,9 +154,8 @@ Skeleton* SkeletonBuilder::operator()(const RawSkeleton& _raw_skeleton) const {
   }
 
   // Transfers t-poses.
-  const int num_soa_joints = (num_joints + 3) / 4;
   skeleton->bind_pose_ =
-    memory::default_allocator().Allocate<math::SoaTransform>(num_soa_joints);
+    memory::default_allocator()->Allocate<math::SoaTransform>(num_soa_joints);
 
   const math::SimdFloat4 w_axis = math::simd_float4::w_axis();
   const math::SimdFloat4 zero = math::simd_float4::zero();

@@ -29,7 +29,33 @@
 
 #include "internal.h"
 
+#include <mach/mach_time.h>
 #include <sys/time.h>
+
+
+//========================================================================
+// Return raw time
+//========================================================================
+
+static uint64_t getRawTime( void )
+{
+    return mach_absolute_time();
+}
+
+
+//========================================================================
+// Initialise timer
+//========================================================================
+
+void _glfwInitTimer( void )
+{
+    mach_timebase_info_data_t info;
+    mach_timebase_info( &info );
+
+    _glfwLibrary.timer.resolution = (double) info.numer / ( info.denom * 1.0e9 );
+    _glfwLibrary.timer.base = getRawTime();
+}
+
 
 //************************************************************************
 //****               Platform implementation functions                ****
@@ -41,8 +67,10 @@
 
 double _glfwPlatformGetTime( void )
 {
-    return [NSDate timeIntervalSinceReferenceDate] - _glfwLibrary.Timer.t0;
+    return (double) ( getRawTime() - _glfwLibrary.timer.base ) *
+        _glfwLibrary.timer.resolution;
 }
+
 
 //========================================================================
 // Set timer value in seconds
@@ -50,8 +78,10 @@ double _glfwPlatformGetTime( void )
 
 void _glfwPlatformSetTime( double time )
 {
-    _glfwLibrary.Timer.t0 = [NSDate timeIntervalSinceReferenceDate] - time;
+    _glfwLibrary.timer.base = getRawTime() -
+        (uint64_t) ( time / _glfwLibrary.timer.resolution );
 }
+
 
 //========================================================================
 // Put a thread to sleep for a specified amount of time

@@ -1,5 +1,11 @@
 //============================================================================//
-// Copyright (c) <2012> <Guillaume Blanc>                                     //
+//                                                                            //
+// ozz-animation, 3d skeletal animation libraries and tools.                  //
+// https://code.google.com/p/ozz-animation/                                   //
+//                                                                            //
+//----------------------------------------------------------------------------//
+//                                                                            //
+// Copyright (c) 2012-2014 Guillaume Blanc                                    //
 //                                                                            //
 // This software is provided 'as-is', without any express or implied          //
 // warranty. In no event will the authors be held liable for any damages      //
@@ -19,13 +25,13 @@
 //                                                                            //
 // 3. This notice may not be removed or altered from any source               //
 // distribution.                                                              //
+//                                                                            //
 //============================================================================//
 
 #include "ozz/base/memory/allocator.h"
 
 #include <cstdlib>
 #include <cassert>
-#include <malloc.h>
 #include <memory.h>
 
 #include "ozz/base/maths/math_ex.h"
@@ -40,7 +46,7 @@ struct Header {
 };
 }
 
-// Implements the basic heap allocator.
+// Implements the basic heap allocator->
 // Will trace allocation count and assert in case of a memory leak.
 class HeapAllocator : public Allocator {
  public:
@@ -102,13 +108,17 @@ class HeapAllocator : public Allocator {
   int allocation_count_;
 };
 
-// Instantiates the default heap allocator.
-// TODO(gblanc) Move this to an initialization function.
-static HeapAllocator heap_allocator;
+namespace {
+// Instantiates the default heap allocator->
+HeapAllocator g_heap_allocator;
+
+// Instantiates the default heap allocator pointer.
+Allocator* g_default_allocator = &g_heap_allocator;
+}  // namespace
 
 // Implements default allocator accessor.
-Allocator& default_allocator() {
-  return heap_allocator;
+Allocator* default_allocator() {
+  return g_default_allocator;
 }
 }  // memory
 }  // ozz

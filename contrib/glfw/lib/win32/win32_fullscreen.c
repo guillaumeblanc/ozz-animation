@@ -206,7 +206,7 @@ void _glfwSetVideoModeMODE( int mode )
 
 
 //========================================================================
-// _glfwSetVideoMode() - Change the current video mode
+// Change the current video mode
 //========================================================================
 
 void _glfwSetVideoMode( int *w, int *h, int r, int g, int b, int refresh )
@@ -226,13 +226,13 @@ void _glfwSetVideoMode( int *w, int *h, int r, int g, int b, int refresh )
 //************************************************************************
 
 //========================================================================
-// _glfwPlatformGetVideoModes() - Get a list of available video modes
+// Get a list of available video modes
 //========================================================================
 
 int _glfwPlatformGetVideoModes( GLFWvidmode *list, int maxcount )
 {
     int count, success, mode, i, j;
-    int m1, m2 = 0, bpp, r, g, b;
+    int m1 = 0, m2 = 0, bpp, r, g, b;
     DEVMODE dm;
 
     // Loop through all video modes and extract all the UNIQUE modes
@@ -313,7 +313,7 @@ void _glfwPlatformGetDesktopMode( GLFWvidmode *mode )
     (void) EnumDisplaySettings( NULL, ENUM_REGISTRY_SETTINGS, &dm );
 
     // Return desktop mode parameters
-    mode->Width  = dm.dmPelsWidth;
+    mode->Width = dm.dmPelsWidth;
     mode->Height = dm.dmPelsHeight;
     bpp2rgb( dm.dmBitsPerPel, &mode->RedBits, &mode->GreenBits, &mode->BlueBits );
 }

@@ -16,7 +16,7 @@ set(specific_file_list
   lib/win32/win32_window.c)
 endif()
 
-# Demo requires X11 package.
+# Samples requires X11 package.
 find_package(X11)
 if(X11_FOUND)
 set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS _GLFW_HAS_GLXGETPROCADDRESSARB=)

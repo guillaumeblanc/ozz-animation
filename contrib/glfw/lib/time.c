@@ -36,7 +36,7 @@
 //************************************************************************
 
 //========================================================================
-// glfwGetTime() - Return timer value in seconds
+// Return timer value in seconds
 //========================================================================
 
 GLFWAPI double GLFWAPIENTRY glfwGetTime( void )
@@ -52,7 +52,7 @@ GLFWAPI double GLFWAPIENTRY glfwGetTime( void )
 
 
 //========================================================================
-// glfwSetTime() - Set timer value in seconds
+// Set timer value in seconds
 //========================================================================
 
 GLFWAPI void GLFWAPIENTRY glfwSetTime( double time )
@@ -68,7 +68,7 @@ GLFWAPI void GLFWAPIENTRY glfwSetTime( double time )
 
 
 //========================================================================
-// glfwSleep() - Put a thread to sleep for a specified amount of time
+// Put a thread to sleep for a specified amount of time
 //========================================================================
 
 GLFWAPI void GLFWAPIENTRY glfwSleep( double time )
@@ -81,3 +81,4 @@ GLFWAPI void GLFWAPIENTRY glfwSleep( double time )
 
     _glfwPlatformSleep( time );
 }
+

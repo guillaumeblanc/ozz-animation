@@ -1,5 +1,11 @@
 //============================================================================//
-// Copyright (c) <2012> <Guillaume Blanc>                                     //
+//                                                                            //
+// ozz-animation, 3d skeletal animation libraries and tools.                  //
+// https://code.google.com/p/ozz-animation/                                   //
+//                                                                            //
+//----------------------------------------------------------------------------//
+//                                                                            //
+// Copyright (c) 2012-2014 Guillaume Blanc                                    //
 //                                                                            //
 // This software is provided 'as-is', without any express or implied          //
 // warranty. In no event will the authors be held liable for any damages      //
@@ -19,6 +25,7 @@
 //                                                                            //
 // 3. This notice may not be removed or altered from any source               //
 // distribution.                                                              //
+//                                                                            //
 //============================================================================//
 
 #include "ozz/options/options.h"
@@ -57,7 +64,6 @@ static class GlobalRegistrer {
     }
     return parser_;
   }
-
 
   static Parser* parser() {
     return parser_;
@@ -340,7 +346,7 @@ Option::Option(const char* _name, const char* _help, bool _required,
     : name_(_name ? _name : ""),
       help_(_help ? _help : "..."),
       required_(_required),
-      satisfied_(!_required),
+      parsed_(false),
       validate_(_validate) {
 }
 
@@ -355,15 +361,15 @@ bool Option::Validate(int _argc) {
 }
 
 bool Option::Parse(const char* _argv) {
-  if (ParseImpl(_argv)) {
-    satisfied_ = true;
+  if (ParseImpl(_argv) && !parsed_) {  // Fails if argument's already specified.
+    parsed_ = true;
     return true;
   }
   return false;
 }
 
 void Option::RestoreDefault() {
-  satisfied_ = !required_;  // Restores satisfaction flag.
+  parsed_ = false;
   RestoreDefaultImpl();  // Restores actual value.
 }
 
@@ -454,15 +460,15 @@ ParseResult Parser::Parse(int _argc, const char* _argv[]) {
 
   // Iterates all arguments and all options.
   ParseResult result = kSuccess;
-  for (std::size_t i = 0; i < static_cast<std::size_t>(argc_trunc); i++) {
+  for (int i = 0; i < argc_trunc; i++) {
     const char* argv = _argv[i];
     int j = 0;
     for (; j < options_count_; j++) {
       if (options_[j]->Parse(argv)) {
-        break;
+        break;  // Also breaks if argument is duplicated.
       }
     }
-    // An invalid command line argument is a fatal failure.
+    // An invalid (or duplicated) command line argument is a fatal failure.
     if (j == options_count_) {
       std::cout << "Invalid command line argument:\"" << argv << "\"."
         << std::endl;

@@ -1,5 +1,11 @@
 //============================================================================//
-// Copyright (c) <2012> <Guillaume Blanc>                                     //
+//                                                                            //
+// ozz-animation, 3d skeletal animation libraries and tools.                  //
+// https://code.google.com/p/ozz-animation/                                   //
+//                                                                            //
+//----------------------------------------------------------------------------//
+//                                                                            //
+// Copyright (c) 2012-2014 Guillaume Blanc                                    //
 //                                                                            //
 // This software is provided 'as-is', without any express or implied          //
 // warranty. In no event will the authors be held liable for any damages      //
@@ -19,6 +25,7 @@
 //                                                                            //
 // 3. This notice may not be removed or altered from any source               //
 // distribution.                                                              //
+//                                                                            //
 //============================================================================//
 
 #ifndef OZZ_OZZ_BASE_MATHS_GTEST_MATH_HELPER_H_
@@ -91,16 +98,22 @@ do {\
 } while(void(0), 0)
 
 #define IMPL_EXPECT_SIMDFLOAT_EQ(_expected, _x, _y, _z, _w)\
-  ExpectFloatNear(ozz::math::GetX(_expected), _x);\
-  ExpectFloatNear(ozz::math::GetY(_expected), _y);\
-  ExpectFloatNear(ozz::math::GetZ(_expected), _z);\
-  ExpectFloatNear(ozz::math::GetW(_expected), _w)
+do {\
+  union {ozz::math::SimdFloat4 ret; float af[4];} u = {_expected};\
+  ExpectFloatNear(u.af[0], _x);\
+  ExpectFloatNear(u.af[1], _y);\
+  ExpectFloatNear(u.af[2], _z);\
+  ExpectFloatNear(u.af[3], _w);\
+} while(void(0), 0)
 
 #define IMPL_EXPECT_SIMDFLOAT_EQ_EST(_expected, _x, _y, _z, _w)\
-  ExpectFloatNearEst(ozz::math::GetX(_expected), _x);\
-  ExpectFloatNearEst(ozz::math::GetY(_expected), _y);\
-  ExpectFloatNearEst(ozz::math::GetZ(_expected), _z);\
-  ExpectFloatNearEst(ozz::math::GetW(_expected), _w)
+do {\
+  union {ozz::math::SimdFloat4 ret; float af[4];} u = {_expected};\
+  ExpectFloatNearEst(u.af[0], _x);\
+  ExpectFloatNearEst(u.af[1], _y);\
+  ExpectFloatNearEst(u.af[2], _z);\
+  ExpectFloatNearEst(u.af[3], _w);\
+} while(void(0), 0)
 
 // Macro for testing ozz::math::simd::SimdFloat members with x, y, z, w values.
 #define EXPECT_SIMDFLOAT_EQ(_expected, _x, _y, _z, _w)\
@@ -123,11 +136,11 @@ do {\
 #define EXPECT_SIMDINT_EQ(_expected, _x, _y, _z, _w)\
 do {\
   SCOPED_TRACE("");\
-  const ozz::math::SimdInt4 expected(_expected);\
-  ExpectTrue(ozz::math::GetX(expected) == static_cast<int>(_x));\
-  ExpectTrue(ozz::math::GetY(expected) == static_cast<int>(_y));\
-  ExpectTrue(ozz::math::GetZ(expected) == static_cast<int>(_z));\
-  ExpectTrue(ozz::math::GetW(expected) == static_cast<int>(_w));\
+  union {ozz::math::SimdInt4 ret; int ai[4];} u = {_expected};\
+  ExpectTrue(u.ai[0] == static_cast<int>(_x));\
+  ExpectTrue(u.ai[1] == static_cast<int>(_y));\
+  ExpectTrue(u.ai[2] == static_cast<int>(_z));\
+  ExpectTrue(u.ai[3] == static_cast<int>(_w));\
 } while(void(0), 0)
 
 // Macro for testing ozz::math::SoaFloat4 members with x, y, z, w float values.

@@ -1,5 +1,11 @@
 //============================================================================//
-// Copyright (c) <2012> <Guillaume Blanc>                                     //
+//                                                                            //
+// ozz-animation, 3d skeletal animation libraries and tools.                  //
+// https://code.google.com/p/ozz-animation/                                   //
+//                                                                            //
+//----------------------------------------------------------------------------//
+//                                                                            //
+// Copyright (c) 2012-2014 Guillaume Blanc                                    //
 //                                                                            //
 // This software is provided 'as-is', without any express or implied          //
 // warranty. In no event will the authors be held liable for any damages      //
@@ -19,6 +25,7 @@
 //                                                                            //
 // 3. This notice may not be removed or altered from any source               //
 // distribution.                                                              //
+//                                                                            //
 //============================================================================//
 
 #include "ozz/base/log.h"
@@ -65,12 +72,12 @@ namespace internal {
 
 Logger::Logger(std::ostream& _stream, Level _level)
     : stream_(_level <= GetLevel() ?
-        _stream : *ozz::memory::default_allocator().New<std::ostringstream>()),
+        _stream : *ozz::memory::default_allocator()->New<std::ostringstream>()),
       local_stream_(&stream_ != &_stream) {
 }
 Logger::~Logger() {
   if (local_stream_) {
-    ozz::memory::default_allocator().Delete(&stream_);
+    ozz::memory::default_allocator()->Delete(&stream_);
   }
 }
 }  // internal

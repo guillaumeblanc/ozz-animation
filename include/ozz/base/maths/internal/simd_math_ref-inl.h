@@ -1,5 +1,11 @@
 //============================================================================//
-// Copyright (c) <2012> <Guillaume Blanc>                                     //
+//                                                                            //
+// ozz-animation, 3d skeletal animation libraries and tools.                  //
+// https://code.google.com/p/ozz-animation/                                   //
+//                                                                            //
+//----------------------------------------------------------------------------//
+//                                                                            //
+// Copyright (c) 2012-2014 Guillaume Blanc                                    //
 //                                                                            //
 // This software is provided 'as-is', without any express or implied          //
 // warranty. In no event will the authors be held liable for any damages      //
@@ -19,6 +25,7 @@
 //                                                                            //
 // 3. This notice may not be removed or altered from any source               //
 // distribution.                                                              //
+//                                                                            //
 //============================================================================//
 
 #ifndef OZZ_OZZ_BASE_MATHS_INTERNAL_SIMD_MATH_REF_INL_H_
@@ -115,34 +122,10 @@ OZZ_INLINE SimdFloat4 LoadPtr(const float* _f) {
   return ret;
 }
 
-OZZ_INLINE SimdFloat4 LoadXPtr(const float* _f) {
-  assert(!(uintptr_t(_f) & 0xf) && "Invalid alignment");
-  const SimdFloat4 ret = {*_f, 0.f, 0.f, 0.f};
-  return ret;
-}
-
-OZZ_INLINE SimdFloat4 Load1Ptr(const float* _f) {
-  assert(!(uintptr_t(_f) & 0xf) && "Invalid alignment");
-  const SimdFloat4 ret = {*_f, *_f, *_f, *_f};
-  return ret;
-}
-
-OZZ_INLINE SimdFloat4 Load2Ptr(const float* _f) {
-  assert(!(uintptr_t(_f) & 0xf) && "Invalid alignment");
-  const SimdFloat4 ret = {_f[0], _f[1], 0.f, 0.f};
-  return ret;
-}
-
-OZZ_INLINE SimdFloat4 Load3Ptr(const float* _f) {
-  assert(!(uintptr_t(_f) & 0xf) && "Invalid alignment");
-  const SimdFloat4 ret = {_f[0], _f[1], _f[2]};
-  return ret;
-}
-
 OZZ_INLINE SimdFloat4 LoadPtrU(const float* _f) {
-  assert(!(uintptr_t(_f) & 0x3) && "Invalid alignment");
-  const SimdFloat4 ret = {_f[0], _f[1], _f[2], _f[3]};
-  return ret;
+    assert(!(uintptr_t(_f) & 0x3) && "Invalid alignment");
+    const SimdFloat4 ret = {_f[0], _f[1], _f[2], _f[3]};
+    return ret;
 }
 
 OZZ_INLINE SimdFloat4 LoadXPtrU(const float* _f) {
@@ -165,7 +148,7 @@ OZZ_INLINE SimdFloat4 Load2PtrU(const float* _f) {
 
 OZZ_INLINE SimdFloat4 Load3PtrU(const float* _f) {
   assert(!(uintptr_t(_f) & 0x3) && "Invalid alignment");
-  const SimdFloat4 ret = {_f[0], _f[1], _f[2], 0.f};
+  const SimdFloat4 ret = {_f[0], _f[1], _f[2]};
   return ret;
 }
 }  // simd_float4
@@ -203,6 +186,13 @@ OZZ_INLINE SimdFloat4 SetZ(_SimdFloat4 _v, float _f) {
 
 OZZ_INLINE SimdFloat4 SetW(_SimdFloat4 _v, float _f) {
   const SimdFloat4 ret = {_v.x, _v.y, _v.z, _f};
+  return ret;
+}
+
+OZZ_INLINE SimdFloat4 SetI(_SimdFloat4 _v, int _ith, float _f) {
+  assert(_ith >= 0 && _ith <= 3 && "Invalid index ranges");
+  SimdFloat4 ret = _v;
+  (&ret.x)[_ith] = _f;
   return ret;
 }
 
@@ -737,6 +727,22 @@ OZZ_INLINE SimdFloat4 Max(_SimdFloat4 _a, _SimdFloat4 _b) {
   return ret;
 }
 
+OZZ_INLINE SimdFloat4 Min0(_SimdFloat4 _v) {
+  const SimdFloat4 ret = {_v.x < 0.f ? _v.x : 0.f,
+                          _v.y < 0.f ? _v.y : 0.f,
+                          _v.z < 0.f ? _v.z : 0.f,
+                          _v.w < 0.f ? _v.w : 0.f};
+  return ret;
+}
+
+OZZ_INLINE SimdFloat4 Max0(_SimdFloat4 _v) {
+  const SimdFloat4 ret = {_v.x > 0.f ? _v.x : 0.f,
+                          _v.y > 0.f ? _v.y : 0.f,
+                          _v.z > 0.f ? _v.z : 0.f,
+                          _v.w > 0.f ? _v.w : 0.f};
+  return ret;
+}
+
 OZZ_INLINE SimdFloat4 Clamp(_SimdFloat4 _a, _SimdFloat4 _v, _SimdFloat4 _b) {
   const SimdFloat4 min = {_v.x < _b.x? _v.x : _b.x,
                           _v.y < _b.y? _v.y : _b.y,
@@ -1122,6 +1128,13 @@ OZZ_INLINE SimdInt4 SetW(_SimdInt4 _v, int _i) {
   return ret;
 }
 
+OZZ_INLINE SimdInt4 SetI(_SimdInt4 _v, int _ith, int _i) {
+  assert(_ith >= 0 && _ith <= 3 && "Invalid index ranges");
+  SimdInt4 ret = _v;
+  (&ret.x)[_ith] = _i;
+  return ret;
+}
+
 OZZ_INLINE void StorePtr(_SimdInt4 _v, int* _i) {
   assert(!(uintptr_t(_i) & 0xf) && "Invalid alignment");
   _i[0] = _v.x;
@@ -1311,6 +1324,22 @@ OZZ_INLINE SimdInt4 Max(_SimdInt4 _a, _SimdInt4 _b) {
                         _a.y > _b.y ? _a.y:_b.y,
                         _a.z > _b.z ? _a.z:_b.z,
                         _a.w > _b.w ? _a.w:_b.w};
+  return ret;
+}
+
+OZZ_INLINE SimdInt4 Min0(_SimdInt4 _v) {
+  const SimdInt4 ret = {_v.x < 0 ? _v.x : 0,
+                        _v.y < 0 ? _v.y : 0,
+                        _v.z < 0 ? _v.z : 0,
+                        _v.w < 0 ? _v.w : 0};
+  return ret;
+}
+
+OZZ_INLINE SimdInt4 Max0(_SimdInt4 _v) {
+  const SimdInt4 ret = {_v.x > 0 ? _v.x : 0,
+                        _v.y > 0 ? _v.y : 0,
+                        _v.z > 0 ? _v.z : 0,
+                        _v.w > 0 ? _v.w : 0};
   return ret;
 }
 

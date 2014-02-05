@@ -1,5 +1,11 @@
 //============================================================================//
-// Copyright (c) <2012> <Guillaume Blanc>                                     //
+//                                                                            //
+// ozz-animation, 3d skeletal animation libraries and tools.                  //
+// https://code.google.com/p/ozz-animation/                                   //
+//                                                                            //
+//----------------------------------------------------------------------------//
+//                                                                            //
+// Copyright (c) 2012-2014 Guillaume Blanc                                    //
 //                                                                            //
 // This software is provided 'as-is', without any express or implied          //
 // warranty. In no event will the authors be held liable for any damages      //
@@ -19,6 +25,7 @@
 //                                                                            //
 // 3. This notice may not be removed or altered from any source               //
 // distribution.                                                              //
+//                                                                            //
 //============================================================================//
 
 #include <cstdlib>
@@ -28,8 +35,8 @@
 #include "ozz/animation/offline/animation_builder.h"
 #include "ozz/animation/offline/animation_optimizer.h"
 
-#include "ozz/animation/skeleton_serialize.h"
-#include "ozz/animation/animation_serialize.h"
+#include "ozz/animation/runtime/skeleton_serialize.h"
+#include "ozz/animation/runtime/animation_serialize.h"
 
 #include "ozz/base/io/archive.h"
 #include "ozz/base/io/stream.h"
@@ -134,11 +141,11 @@ int main(int _argc, const char** _argv) {
   // Reads the skeleton from the binary ozz stream.
   ozz::animation::Skeleton skeleton;
   {
-    ozz::log::Log() << "Opens input skeleton ozz binary file : " << OPTIONS_skeleton <<
+    ozz::log::Log() << "Opens input skeleton ozz binary file: " << OPTIONS_skeleton <<
       std::endl;
     ozz::io::File file(OPTIONS_skeleton, "rb");
     if (!file.opened()) {
-      ozz::log::Err() << "Failed to open input skeleton ozz binary file : " <<
+      ozz::log::Err() << "Failed to open input skeleton ozz binary file: " <<
         OPTIONS_skeleton << std::endl;
       return EXIT_FAILURE;
     }
@@ -147,7 +154,7 @@ int main(int _argc, const char** _argv) {
 
     // Ensures the file contains a valid skeleton object.
     if (!archive.TestTag<ozz::animation::Skeleton>()) {
-      ozz::log::Err() << "Failed to read input skeleton from binary file : " <<
+      ozz::log::Err() << "Failed to read input skeleton from binary file: " <<
         OPTIONS_skeleton << std::endl;
       return EXIT_FAILURE;
     }
@@ -191,11 +198,11 @@ int main(int _argc, const char** _argv) {
     // the end of this scope.
     // Once the file is opened, nothing should fail as it would leave an invalid
     // file on the disk.
-    ozz::log::Log() << "Opens output file : " << OPTIONS_animation << std::endl;
+    ozz::log::Log() << "Opens output file: " << OPTIONS_animation << std::endl;
     ozz::io::File file(OPTIONS_animation, "wb");
     if (!file.opened()) {
-      ozz::log::Err() << "Failed to open output file : " << OPTIONS_animation << std::endl;
-      ozz::memory::default_allocator().Delete(animation);
+      ozz::log::Err() << "Failed to open output file: " << OPTIONS_animation << std::endl;
+      ozz::memory::default_allocator()->Delete(animation);
       return EXIT_FAILURE;
     }
 
@@ -219,7 +226,7 @@ int main(int _argc, const char** _argv) {
   ozz::log::Log() << "Animation binary archive successfully outputed." << std::endl;
 
   // Delete local objects.
-  ozz::memory::default_allocator().Delete(animation);
+  ozz::memory::default_allocator()->Delete(animation);
 
   return EXIT_SUCCESS;
 }

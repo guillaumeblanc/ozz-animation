@@ -86,10 +86,6 @@ static void disableMouseCursor( void )
     // Hide mouse cursor
     _glfwPlatformHideMouseCursor();
 
-    // Move cursor to the middle of the window
-    _glfwPlatformSetMouseCursorPos( _glfwWin.width >> 1,
-                                    _glfwWin.height >> 1 );
-
     // From now on the mouse is locked
     _glfwWin.mouseLock = GL_TRUE;
 }

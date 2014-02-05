@@ -270,7 +270,7 @@ static int RescaleImage( GLFWimage* image )
 //************************************************************************
 
 //========================================================================
-// glfwReadImage() - Read an image from a named file
+// Read an image from a named file
 //========================================================================
 
 GLFWAPI int GLFWAPIENTRY glfwReadImage( const char *name, GLFWimage *img,
@@ -342,7 +342,7 @@ GLFWAPI int GLFWAPIENTRY glfwReadImage( const char *name, GLFWimage *img,
 
 
 //========================================================================
-// glfwReadMemoryImage() - Read an image file from a memory buffer
+// Read an image file from a memory buffer
 //========================================================================
 
 GLFWAPI int GLFWAPIENTRY glfwReadMemoryImage( const void *data, long size, GLFWimage *img, int flags )
@@ -413,7 +413,7 @@ GLFWAPI int GLFWAPIENTRY glfwReadMemoryImage( const void *data, long size, GLFWi
 
 
 //========================================================================
-// glfwFreeImage() - Free allocated memory for an image
+// Free allocated memory for an image
 //========================================================================
 
 GLFWAPI void GLFWAPIENTRY glfwFreeImage( GLFWimage *img )
@@ -440,8 +440,7 @@ GLFWAPI void GLFWAPIENTRY glfwFreeImage( GLFWimage *img )
 
 
 //========================================================================
-// glfwLoadTexture2D() - Read an image from a file, and upload it to
-// texture memory
+// Read an image from a file, and upload it to texture memory
 //========================================================================
 
 GLFWAPI int GLFWAPIENTRY glfwLoadTexture2D( const char *name, int flags )
@@ -479,8 +478,7 @@ GLFWAPI int GLFWAPIENTRY glfwLoadTexture2D( const char *name, int flags )
 
 
 //========================================================================
-// glfwLoadMemoryTexture2D() - Read an image from a buffer, and upload it to
-// texture memory
+// Read an image from a buffer, and upload it to texture memory
 //========================================================================
 
 GLFWAPI int  GLFWAPIENTRY glfwLoadMemoryTexture2D( const void *data, long size, int flags )
@@ -518,7 +516,7 @@ GLFWAPI int  GLFWAPIENTRY glfwLoadMemoryTexture2D( const void *data, long size, 
 
 
 //========================================================================
-// glfwLoadTextureImage2D() - Upload an image object to texture memory
+// Upload an image object to texture memory
 //========================================================================
 
 GLFWAPI int  GLFWAPIENTRY glfwLoadTextureImage2D( GLFWimage *img, int flags )

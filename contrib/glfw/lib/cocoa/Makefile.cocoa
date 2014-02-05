@@ -21,7 +21,8 @@ all: libglfw.a libglfw.dylib
 # Compiler settings
 ##########################################################################
 CC     ?= cc
-CFLAGS = -c -I. -I.. -Wall -O2 -fno-common -g
+CFLAGS ?= -O2 -g
+CFLAGS += -c -I. -I.. -Wall -fno-common
 
 
 ##########################################################################
@@ -32,7 +33,7 @@ SED         = sed
 INSTALL     = install
 ARFLAGS     = -rcs
 RANLIB      = ranlib
-DYLIBFLAGS  = -framework Cocoa -framework OpenGL \
+DYLIBFLAGS  = -framework Cocoa -framework OpenGL -framework IOKit \
               -dynamiclib -Wl,-single_module -compatibility_version 1 \
               -current_version 1 -install_name @executable_path/libglfw.dylib
 HEADERS     = ../../include/GL/glfw.h ../internal.h platform.h
@@ -49,6 +50,13 @@ install: libglfw.a libglfw.pc
 	$(INSTALL) -c -m 644 ../../include/GL/glfw.h $(PREFIX)/include/GL/glfw.h
 	$(INSTALL) -d $(PREFIX)/lib/pkgconfig
 	$(INSTALL) -c -m 644 libglfw.pc $(PREFIX)/lib/pkgconfig/libglfw.pc
+
+
+##########################################################################
+# Install GLFW header and static and dynamic libraries
+##########################################################################
+dist-install: libglfw.dylib install
+	$(INSTALL) -c -m 644 libglfw.dylib $(PREFIX)/lib/libglfw.dylib
 
 
 ##########################################################################

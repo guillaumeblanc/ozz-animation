@@ -1,5 +1,11 @@
 //============================================================================//
-// Copyright (c) <2012> <Guillaume Blanc>                                     //
+//                                                                            //
+// ozz-animation, 3d skeletal animation libraries and tools.                  //
+// https://code.google.com/p/ozz-animation/                                   //
+//                                                                            //
+//----------------------------------------------------------------------------//
+//                                                                            //
+// Copyright (c) 2012-2014 Guillaume Blanc                                    //
 //                                                                            //
 // This software is provided 'as-is', without any express or implied          //
 // warranty. In no event will the authors be held liable for any damages      //
@@ -19,6 +25,7 @@
 //                                                                            //
 // 3. This notice may not be removed or altered from any source               //
 // distribution.                                                              //
+//                                                                            //
 //============================================================================//
 
 #include <cstdlib>
@@ -27,7 +34,7 @@
 #include "ozz/animation/offline/collada/collada.h"
 #include "ozz/animation/offline/skeleton_builder.h"
 
-#include "ozz/animation/skeleton_serialize.h"
+#include "ozz/animation/runtime/skeleton_serialize.h"
 
 #include "ozz/base/io/archive.h"
 #include "ozz/base/io/stream.h"
@@ -136,11 +143,11 @@ int main(int _argc, const char** _argv) {
     // the end of this scope.
     // Once the file is opened, nothing should fail as it would leave an invalid
     // file on the disk.
-    ozz::log::Log() << "Opens output file : " << OPTIONS_skeleton << std::endl;
+    ozz::log::Log() << "Opens output file: " << OPTIONS_skeleton << std::endl;
     ozz::io::File file(OPTIONS_skeleton, "wb");
     if (!file.opened()) {
-      ozz::log::Err() << "Failed to open output file : " << OPTIONS_skeleton << std::endl;
-      ozz::memory::default_allocator().Delete(skeleton);
+      ozz::log::Err() << "Failed to open output file: " << OPTIONS_skeleton << std::endl;
+      ozz::memory::default_allocator()->Delete(skeleton);
       return EXIT_FAILURE;
     }
 
@@ -164,7 +171,7 @@ int main(int _argc, const char** _argv) {
   ozz::log::Log() << "Skeleton binary archive successfully outputed." << std::endl;
 
   // Delete local objects.
-  ozz::memory::default_allocator().Delete(skeleton);
+  ozz::memory::default_allocator()->Delete(skeleton);
 
   return EXIT_SUCCESS;
 }

@@ -154,7 +154,7 @@ static int getPixelFormatAttrib(int pixelFormat, int attrib)
 
 static _GLFWfbconfig *getFBConfigs( unsigned int *found )
 {
-    _GLFWfbconfig *result;
+    _GLFWfbconfig *fbconfigs;
     PIXELFORMATDESCRIPTOR pfd;
     int i, count;
 
@@ -175,8 +175,8 @@ static _GLFWfbconfig *getFBConfigs( unsigned int *found )
         return NULL;
     }
 
-    result = (_GLFWfbconfig*) malloc( sizeof( _GLFWfbconfig ) * count );
-    if( !result )
+    fbconfigs = (_GLFWfbconfig*) malloc( sizeof( _GLFWfbconfig ) * count );
+    if( !fbconfigs )
     {
         fprintf(stderr, "Out of memory");
         return NULL;
@@ -184,13 +184,15 @@ static _GLFWfbconfig *getFBConfigs( unsigned int *found )
 
     for( i = 1;  i <= count;  i++ )
     {
+        _GLFWfbconfig *fbconfig = fbconfigs + *found;
+
         if( _glfwWin.has_WGL_ARB_pixel_format )
         {
             // Get pixel format attributes through WGL_ARB_pixel_format
 
             if( !getPixelFormatAttrib( i, WGL_SUPPORT_OPENGL_ARB ) ||
                 !getPixelFormatAttrib( i, WGL_DRAW_TO_WINDOW_ARB ) ||
-                !getPixelFormatAttrib( i, WGL_DOUBLE_BUFFER_ARB ))
+                !getPixelFormatAttrib( i, WGL_DOUBLE_BUFFER_ARB ) )
             {
                 // Only consider doublebuffered OpenGL pixel formats for windows
                 continue;
@@ -202,29 +204,36 @@ static _GLFWfbconfig *getFBConfigs( unsigned int *found )
                 continue;
             }
 
-            result[*found].redBits = getPixelFormatAttrib( i, WGL_RED_BITS_ARB );
-            result[*found].greenBits = getPixelFormatAttrib( i, WGL_GREEN_BITS_ARB );
-            result[*found].blueBits = getPixelFormatAttrib( i, WGL_BLUE_BITS_ARB );
-            result[*found].alphaBits = getPixelFormatAttrib( i, WGL_ALPHA_BITS_ARB );
+            // Only consider "hardware-accelerated" pixel formats
+            if( getPixelFormatAttrib( i, WGL_ACCELERATION_ARB ) ==
+                WGL_NO_ACCELERATION_ARB )
+            {
+                continue;
+            }
 
-            result[*found].depthBits = getPixelFormatAttrib( i, WGL_DEPTH_BITS_ARB );
-            result[*found].stencilBits = getPixelFormatAttrib( i, WGL_STENCIL_BITS_ARB );
+            fbconfig->redBits = getPixelFormatAttrib( i, WGL_RED_BITS_ARB );
+            fbconfig->greenBits = getPixelFormatAttrib( i, WGL_GREEN_BITS_ARB );
+            fbconfig->blueBits = getPixelFormatAttrib( i, WGL_BLUE_BITS_ARB );
+            fbconfig->alphaBits = getPixelFormatAttrib( i, WGL_ALPHA_BITS_ARB );
 
-            result[*found].accumRedBits = getPixelFormatAttrib( i, WGL_ACCUM_RED_BITS_ARB );
-            result[*found].accumGreenBits = getPixelFormatAttrib( i, WGL_ACCUM_GREEN_BITS_ARB );
-            result[*found].accumBlueBits = getPixelFormatAttrib( i, WGL_ACCUM_BLUE_BITS_ARB );
-            result[*found].accumAlphaBits = getPixelFormatAttrib( i, WGL_ACCUM_ALPHA_BITS_ARB );
+            fbconfig->depthBits = getPixelFormatAttrib( i, WGL_DEPTH_BITS_ARB );
+            fbconfig->stencilBits = getPixelFormatAttrib( i, WGL_STENCIL_BITS_ARB );
 
-            result[*found].auxBuffers = getPixelFormatAttrib( i, WGL_AUX_BUFFERS_ARB );
-            result[*found].stereo = getPixelFormatAttrib( i, WGL_STEREO_ARB );
+            fbconfig->accumRedBits = getPixelFormatAttrib( i, WGL_ACCUM_RED_BITS_ARB );
+            fbconfig->accumGreenBits = getPixelFormatAttrib( i, WGL_ACCUM_GREEN_BITS_ARB );
+            fbconfig->accumBlueBits = getPixelFormatAttrib( i, WGL_ACCUM_BLUE_BITS_ARB );
+            fbconfig->accumAlphaBits = getPixelFormatAttrib( i, WGL_ACCUM_ALPHA_BITS_ARB );
+
+            fbconfig->auxBuffers = getPixelFormatAttrib( i, WGL_AUX_BUFFERS_ARB );
+            fbconfig->stereo = getPixelFormatAttrib( i, WGL_STEREO_ARB );
 
             if( _glfwWin.has_WGL_ARB_multisample )
             {
-                result[*found].samples = getPixelFormatAttrib( i, WGL_SAMPLES_ARB );
+                fbconfig->samples = getPixelFormatAttrib( i, WGL_SAMPLES_ARB );
             }
             else
             {
-                result[*found].samples = 0;
+                fbconfig->samples = 0;
             }
         }
         else
@@ -247,6 +256,8 @@ static _GLFWfbconfig *getFBConfigs( unsigned int *found )
             if( !( pfd.dwFlags & PFD_GENERIC_ACCELERATED ) &&
                 ( pfd.dwFlags & PFD_GENERIC_FORMAT ) )
             {
+                // If this is true, this pixel format is only supported by the
+                // generic software implementation
                 continue;
             }
 
@@ -256,32 +267,38 @@ static _GLFWfbconfig *getFBConfigs( unsigned int *found )
                 continue;
             }
 
-            result[*found].redBits = pfd.cRedBits;
-            result[*found].greenBits = pfd.cGreenBits;
-            result[*found].blueBits = pfd.cBlueBits;
-            result[*found].alphaBits = pfd.cAlphaBits;
+            fbconfig->redBits = pfd.cRedBits;
+            fbconfig->greenBits = pfd.cGreenBits;
+            fbconfig->blueBits = pfd.cBlueBits;
+            fbconfig->alphaBits = pfd.cAlphaBits;
 
-            result[*found].depthBits = pfd.cDepthBits;
-            result[*found].stencilBits = pfd.cStencilBits;
+            fbconfig->depthBits = pfd.cDepthBits;
+            fbconfig->stencilBits = pfd.cStencilBits;
 
-            result[*found].accumRedBits = pfd.cAccumRedBits;
-            result[*found].accumGreenBits = pfd.cAccumGreenBits;
-            result[*found].accumBlueBits = pfd.cAccumBlueBits;
-            result[*found].accumAlphaBits = pfd.cAccumAlphaBits;
+            fbconfig->accumRedBits = pfd.cAccumRedBits;
+            fbconfig->accumGreenBits = pfd.cAccumGreenBits;
+            fbconfig->accumBlueBits = pfd.cAccumBlueBits;
+            fbconfig->accumAlphaBits = pfd.cAccumAlphaBits;
 
-            result[*found].auxBuffers = pfd.cAuxBuffers;
-            result[*found].stereo = ( pfd.dwFlags & PFD_STEREO ) ? GL_TRUE : GL_FALSE;
+            fbconfig->auxBuffers = pfd.cAuxBuffers;
+            fbconfig->stereo = ( pfd.dwFlags & PFD_STEREO ) ? GL_TRUE : GL_FALSE;
 
             // PFD pixel formats do not support FSAA
-            result[*found].samples = 0;
+            fbconfig->samples = 0;
         }
 
-        result[*found].platformID = i;
+        fbconfig->platformID = i;
 
         (*found)++;
     }
 
-    return result;
+    if( *found == 0 )
+    {
+        free( fbconfigs );
+        return NULL;
+    }
+
+    return fbconfigs;
 }
 
 
@@ -289,19 +306,19 @@ static _GLFWfbconfig *getFBConfigs( unsigned int *found )
 // Creates an OpenGL context on the specified device context
 //========================================================================
 
-static HGLRC createContext( HDC dc, const _GLFWwndconfig* wndconfig, int pixelFormat )
+static GLboolean createContext( HDC dc, const _GLFWwndconfig* wndconfig, int pixelFormat )
 {
     PIXELFORMATDESCRIPTOR pfd;
-    int flags, i = 0, attribs[7];
+    int flags, i = 0, attribs[40];
 
     if( !_glfw_DescribePixelFormat( dc, pixelFormat, sizeof(pfd), &pfd ) )
     {
-        return NULL;
+        return GL_FALSE;
     }
 
     if( !_glfw_SetPixelFormat( dc, pixelFormat, &pfd ) )
     {
-        return NULL;
+        return GL_FALSE;
     }
 
     if( _glfwWin.has_WGL_ARB_create_context )
@@ -338,6 +355,11 @@ static HGLRC createContext( HDC dc, const _GLFWwndconfig* wndconfig, int pixelFo
 
         if( wndconfig->glProfile )
         {
+            if( !_glfwWin.has_WGL_ARB_create_context_profile )
+            {
+                return GL_FALSE;
+            }
+
             if( wndconfig->glProfile == GLFW_OPENGL_CORE_PROFILE )
             {
                 flags = WGL_CONTEXT_CORE_PROFILE_BIT_ARB;
@@ -353,10 +375,27 @@ static HGLRC createContext( HDC dc, const _GLFWwndconfig* wndconfig, int pixelFo
 
         attribs[i++] = 0;
 
-        return _glfwWin.CreateContextAttribsARB( dc, NULL, attribs );
+        _glfwWin.context = _glfwWin.CreateContextAttribsARB( dc, NULL, attribs );
+        if( !_glfwWin.context )
+        {
+            return GL_FALSE;
+        }
+
+        // Copy the debug context hint as there's no way of verifying it
+        // This is the only code path capable of creating a debug context,
+        // so leave it as false (from the earlier memset) otherwise
+        _glfwWin.glDebug = wndconfig->glDebug;
+    }
+    else
+    {
+        _glfwWin.context = wglCreateContext( dc );
+        if( !_glfwWin.context )
+        {
+            return GL_FALSE;
+        }
     }
 
-    return wglCreateContext( dc );
+    return GL_TRUE;
 }
 
 
@@ -368,6 +407,7 @@ static int translateKey( WPARAM wParam, LPARAM lParam )
 {
     MSG next_msg;
     DWORD msg_time;
+    DWORD scan_code;
 
     // Check for numeric keypad keys
     // Note: This way we always force "NumLock = ON", which at least
@@ -402,13 +442,11 @@ static int translateKey( WPARAM wParam, LPARAM lParam )
         // The SHIFT keys require special handling
         case VK_SHIFT:
         {
-            LONG_PTR scan_code;
-
             // Compare scan code for this key with that of VK_RSHIFT in
             // order to determine which shift key was pressed (left or
             // right)
             scan_code = MapVirtualKey( VK_RSHIFT, 0 );
-            if( ((lParam & 0x01ff0000) >> 16) == scan_code )
+            if( ((lParam & 0x01ff0000) >> 16) == (LONG_PTR)scan_code )
             {
                 return GLFW_KEY_RSHIFT;
             }
@@ -659,7 +697,7 @@ static LRESULT CALLBACK windowProc( HWND hWnd, UINT uMsg,
                     if( !iconified )
                     {
                         // Minimize window
-                        CloseWindow( _glfwWin.window );
+                        ShowWindow( _glfwWin.window, SW_MINIMIZE );
                         iconified = GL_TRUE;
                     }
 
@@ -687,7 +725,7 @@ static LRESULT CALLBACK windowProc( HWND hWnd, UINT uMsg,
                     if( iconified )
                     {
                         // Restore window
-                        OpenIcon( _glfwWin.window );
+                        ShowWindow( _glfwWin.window, SW_RESTORE );
                         iconified = GL_FALSE;
 
                         // Activate window
@@ -752,7 +790,7 @@ static LRESULT CALLBACK windowProc( HWND hWnd, UINT uMsg,
             {
                 translateChar( (DWORD) wParam, (DWORD) lParam, GLFW_PRESS );
             }
-            return 0;
+            break;
           }
 
         case WM_KEYUP:
@@ -774,7 +812,7 @@ static LRESULT CALLBACK windowProc( HWND hWnd, UINT uMsg,
                 translateChar( (DWORD) wParam, (DWORD) lParam, GLFW_RELEASE );
             }
 
-            return 0;
+            break;
         }
 
         case WM_LBUTTONDOWN:
@@ -968,33 +1006,31 @@ static void getFullWindowSize( int clientWidth, int clientHeight,
 
 //========================================================================
 // Initialize WGL-specific extensions
-// This function is called once before initial context creation, i.e. before
-// any WGL extensions could be present.  This is done in order to have both
-// extension variable clearing and loading in the same place, hopefully
-// decreasing the possibility of forgetting to add one without the other.
 //========================================================================
 
 static void initWGLExtensions( void )
 {
-    // This needs to include every function pointer loaded below
+    // This needs to include every function pointer loaded below, because
+    // context re-creation means we cannot assume the struct has been cleared
     _glfwWin.SwapIntervalEXT = NULL;
     _glfwWin.GetPixelFormatAttribivARB = NULL;
     _glfwWin.GetExtensionsStringARB = NULL;
     _glfwWin.GetExtensionsStringEXT = NULL;
     _glfwWin.CreateContextAttribsARB = NULL;
 
-    // This needs to include every extension used below except for
-    // WGL_ARB_extensions_string and WGL_EXT_extensions_string
+    // This needs to include every extension boolean used below, because context
+    // re-creation means we cannot assume the struct has been cleared
     _glfwWin.has_WGL_EXT_swap_control = GL_FALSE;
     _glfwWin.has_WGL_ARB_pixel_format = GL_FALSE;
     _glfwWin.has_WGL_ARB_multisample = GL_FALSE;
     _glfwWin.has_WGL_ARB_create_context = GL_FALSE;
+    _glfwWin.has_WGL_ARB_create_context_profile = GL_FALSE;
 
-    _glfwWin.GetExtensionsStringEXT = (WGLGETEXTENSIONSSTRINGEXT_T)
+    _glfwWin.GetExtensionsStringEXT = (PFNWGLGETEXTENSIONSSTRINGEXTPROC)
         wglGetProcAddress( "wglGetExtensionsStringEXT" );
     if( !_glfwWin.GetExtensionsStringEXT )
     {
-        _glfwWin.GetExtensionsStringARB = (WGLGETEXTENSIONSSTRINGARB_T)
+        _glfwWin.GetExtensionsStringARB = (PFNWGLGETEXTENSIONSSTRINGARBPROC)
             wglGetProcAddress( "wglGetExtensionsStringARB" );
         if( !_glfwWin.GetExtensionsStringARB )
         {
@@ -1014,17 +1050,25 @@ static void initWGLExtensions( void )
             wglGetProcAddress( "wglCreateContextAttribsARB" );
     }
 
+    if( _glfwWin.has_WGL_ARB_create_context )
+    {
+        if( _glfwPlatformExtensionSupported( "WGL_ARB_create_context_profile" ) )
+        {
+            _glfwWin.has_WGL_ARB_create_context_profile = GL_TRUE;
+        }
+    }
+
     if( _glfwPlatformExtensionSupported( "WGL_EXT_swap_control" ) )
     {
         _glfwWin.has_WGL_EXT_swap_control = GL_TRUE;
-        _glfwWin.SwapIntervalEXT = (WGLSWAPINTERVALEXT_T)
+        _glfwWin.SwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC)
             wglGetProcAddress( "wglSwapIntervalEXT" );
     }
 
     if( _glfwPlatformExtensionSupported( "WGL_ARB_pixel_format" ) )
     {
         _glfwWin.has_WGL_ARB_pixel_format = GL_TRUE;
-        _glfwWin.GetPixelFormatAttribivARB = (WGLGETPIXELFORMATATTRIBIVARB_T)
+        _glfwWin.GetPixelFormatAttribivARB = (PFNWGLGETPIXELFORMATATTRIBIVARBPROC)
             wglGetProcAddress( "wglGetPixelFormatAttribivARB" );
     }
 }
@@ -1037,16 +1081,13 @@ static void initWGLExtensions( void )
 static ATOM registerWindowClass( void )
 {
     WNDCLASS wc;
+    ZeroMemory( &wc, sizeof( wc ) );
 
     // Set window class parameters
     wc.style         = CS_HREDRAW | CS_VREDRAW | CS_OWNDC; // Redraw on...
-    wc.lpfnWndProc   = (WNDPROC)windowProc;           // Message handler
-    wc.cbClsExtra    = 0;                             // No extra class data
-    wc.cbWndExtra    = 0;                             // No extra window data
+    wc.lpfnWndProc   = (WNDPROC) windowProc;          // Message handler
     wc.hInstance     = _glfwLibrary.instance;         // Set instance
     wc.hCursor       = LoadCursor( NULL, IDC_ARROW ); // Load arrow pointer
-    wc.hbrBackground = NULL;                          // No background
-    wc.lpszMenuName  = NULL;                          // No menu
     wc.lpszClassName = _GLFW_WNDCLASSNAME;            // Set class name
 
     // Load user-provided icon if available
@@ -1114,7 +1155,7 @@ static int createWindow( const _GLFWwndconfig *wndconfig,
     _glfwWin.window = NULL;
 
     // Set common window styles
-    dwStyle   = WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_VISIBLE;
+    dwStyle   = WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
     dwExStyle = WS_EX_APPWINDOW;
 
     // Set window style, depending on fullscreen mode
@@ -1196,8 +1237,7 @@ static int createWindow( const _GLFWwndconfig *wndconfig,
         return GL_FALSE;
     }
 
-    _glfwWin.context = createContext( _glfwWin.DC, wndconfig, pixelFormat );
-    if( !_glfwWin.context )
+    if( !createContext( _glfwWin.DC, wndconfig, pixelFormat ) )
     {
         fprintf( stderr, "Unable to create OpenGL context\n" );
         return GL_FALSE;
@@ -1273,17 +1313,13 @@ int _glfwPlatformOpenWindow( int width, int height,
     (void)width;
     (void)height;
 
-    // Clear platform specific GLFW window state
-    _glfwWin.classAtom         = 0;
-    _glfwWin.oldMouseLockValid = GL_FALSE;
-
     _glfwWin.desiredRefreshRate = wndconfig->refreshRate;
+    _glfwWin.windowNoResize     = wndconfig->windowNoResize;
 
     _glfwWin.classAtom = registerWindowClass();
     if( !_glfwWin.classAtom )
     {
         fprintf( stderr, "Failed to register GLFW window class\n" );
-        _glfwPlatformCloseWindow();
         return GL_FALSE;
     }
 
@@ -1294,26 +1330,13 @@ int _glfwPlatformOpenWindow( int width, int height,
                            wndconfig->refreshRate );
     }
 
-    initWGLExtensions();
-
     if( !createWindow( wndconfig, fbconfig ) )
     {
         fprintf( stderr, "Failed to create GLFW window\n" );
-        _glfwPlatformCloseWindow();
         return GL_FALSE;
     }
 
-    if( wndconfig->glMajor > 2 )
-    {
-        if( !_glfwWin.has_WGL_ARB_create_context )
-        {
-            fprintf( stderr, "OpenGL 3.0+ is not supported\n" );
-            _glfwPlatformCloseWindow();
-            return GL_FALSE;
-        }
-
-        recreateContext = GL_TRUE;
-    }
+    _glfwRefreshContextParams();
 
     if( fbconfig->samples > 0 )
     {
@@ -1323,6 +1346,56 @@ int _glfwPlatformOpenWindow( int width, int height,
         if( _glfwWin.has_WGL_ARB_multisample && _glfwWin.has_WGL_ARB_pixel_format )
         {
             // We appear to have both the FSAA extension and the means to ask for it
+            recreateContext = GL_TRUE;
+        }
+    }
+
+    if( wndconfig->glDebug )
+    {
+        // Debug contexts are not a hard constraint, so we don't fail here if
+        // the extension isn't available
+
+        if( _glfwWin.has_WGL_ARB_create_context )
+        {
+            recreateContext = GL_TRUE;
+        }
+    }
+
+    if( wndconfig->glMajor > 2 )
+    {
+        if ( wndconfig->glMajor != _glfwWin.glMajor ||
+             wndconfig->glMinor != _glfwWin.glMinor )
+        {
+            // We want a different OpenGL version, but can we get it?
+            // Otherwise, if we got a version greater than required, that's fine,
+            // whereas if we got a version lesser than required, it will be dealt
+            // with in glfwOpenWindow
+
+            if( _glfwWin.has_WGL_ARB_create_context )
+            {
+                recreateContext = GL_TRUE;
+            }
+        }
+
+        if( wndconfig->glForward )
+        {
+            if( !_glfwWin.has_WGL_ARB_create_context )
+            {
+                // Forward-compatibility is a hard constraint
+                return GL_FALSE;
+            }
+
+            recreateContext = GL_TRUE;
+        }
+
+        if( wndconfig->glProfile )
+        {
+            if( !_glfwWin.has_WGL_ARB_create_context_profile )
+            {
+                // Context profile is a hard constraint
+                return GL_FALSE;
+            }
+
             recreateContext = GL_TRUE;
         }
     }
@@ -1349,7 +1422,6 @@ int _glfwPlatformOpenWindow( int width, int height,
         if( !createWindow( wndconfig, fbconfig ) )
         {
             fprintf( stderr, "Unable to re-create GLFW window\n" );
-            _glfwPlatformCloseWindow();
             return GL_FALSE;
         }
     }
@@ -1357,10 +1429,12 @@ int _glfwPlatformOpenWindow( int width, int height,
     if( _glfwWin.fullscreen )
     {
         // Place the window above all topmost windows
-        SetWindowPos( _glfwWin.window, HWND_TOPMOST, 0,0,0,0,
+        INT_PTR top_most = -1;
+        SetWindowPos( _glfwWin.window, /*HWND_TOPMOST*/(HWND)top_most, 0,0,0,0,
                       SWP_NOMOVE | SWP_NOSIZE );
     }
 
+    ShowWindow( _glfwWin.window, SW_SHOWNORMAL );
     setForegroundWindow( _glfwWin.window );
     SetFocus( _glfwWin.window );
 
@@ -1495,7 +1569,7 @@ void _glfwPlatformSetWindowPos( int x, int y )
 void _glfwPlatformIconifyWindow( void )
 {
     // Iconify window
-    CloseWindow( _glfwWin.window );
+    ShowWindow( _glfwWin.window, SW_MINIMIZE );
     _glfwWin.iconified = GL_TRUE;
 
     // If we are in fullscreen mode we need to change video modes
@@ -1529,7 +1603,7 @@ void _glfwPlatformRestoreWindow( void )
     }
 
     // Un-iconify window
-    OpenIcon( _glfwWin.window );
+    ShowWindow( _glfwWin.window, SW_RESTORE );
 
     // Make sure that our window ends up on top of things
     ShowWindow( _glfwWin.window, SW_SHOW );
@@ -1681,16 +1755,6 @@ void _glfwPlatformPollEvents( void )
     // Flag: mouse was not moved (will be changed by _glfwGetNextEvent if
     // there was a mouse move event)
     _glfwInput.MouseMoved = GL_FALSE;
-    if( _glfwWin.mouseLock )
-    {
-        _glfwInput.OldMouseX = _glfwWin.width/2;
-        _glfwInput.OldMouseY = _glfwWin.height/2;
-    }
-    else
-    {
-        _glfwInput.OldMouseX = _glfwInput.MousePosX;
-        _glfwInput.OldMouseY = _glfwInput.MousePosY;
-    }
 
     // Check for new window messages
     while( PeekMessage( &msg, NULL, 0, 0, PM_REMOVE ) )
@@ -1754,7 +1818,7 @@ void _glfwPlatformPollEvents( void )
 
 
 //========================================================================
-// _glfwPlatformWaitEvents() - Wait for new window and input events
+// Wait for new window and input events
 //========================================================================
 
 void _glfwPlatformWaitEvents( void )
@@ -1783,6 +1847,9 @@ void _glfwPlatformHideMouseCursor( void )
 
     // Capture cursor to user window
     SetCapture( _glfwWin.window );
+
+    // Move cursor to the middle of the window
+    _glfwPlatformSetMouseCursorPos( _glfwWin.width / 2, _glfwWin.height / 2 );
 }
 
 
@@ -1814,6 +1881,9 @@ void _glfwPlatformSetMouseCursorPos( int x, int y )
     pos.x = x;
     pos.y = y;
     ClientToScreen( _glfwWin.window, &pos );
+
+    _glfwInput.OldMouseX = x;
+    _glfwInput.OldMouseY = y;
 
     SetCursorPos( pos.x, pos.y );
 }

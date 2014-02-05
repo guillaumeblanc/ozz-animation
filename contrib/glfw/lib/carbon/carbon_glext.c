@@ -31,11 +31,23 @@
 
 #include "internal.h"
 
+//************************************************************************
+//****               Platform implementation functions                ****
+//************************************************************************
+
+//========================================================================
+// Check if an OpenGL extension is available at runtime
+//========================================================================
+
 int _glfwPlatformExtensionSupported( const char *extension )
 {
     // There are no AGL, CGL or NSGL extensions.
     return GL_FALSE;
 }
+
+//========================================================================
+// Get the function pointer to an OpenGL function
+//========================================================================
 
 void * _glfwPlatformGetProcAddress( const char *procname )
 {

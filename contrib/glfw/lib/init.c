@@ -37,7 +37,7 @@
 //************************************************************************
 
 //========================================================================
-// glfwInit() - Initialize various GLFW state
+// Initialize various GLFW state
 //========================================================================
 
 GLFWAPI int GLFWAPIENTRY glfwInit( void )
@@ -75,11 +75,11 @@ GLFWAPI int GLFWAPIENTRY glfwInit( void )
 
 
 //========================================================================
-// glfwTerminate() - Close window and kill all threads.
+// Close window and kill all threads.
 //========================================================================
 
 GLFWAPI void GLFWAPIENTRY glfwTerminate( void )
-{       
+{
     // Is GLFW initialized?
     if( !_glfwInitialized )
     {
@@ -98,11 +98,10 @@ GLFWAPI void GLFWAPIENTRY glfwTerminate( void )
 
 
 //========================================================================
-// glfwGetVersion() - Get GLFW version
+// Get GLFW version
 //========================================================================
 
-GLFWAPI void GLFWAPIENTRY glfwGetVersion( int *major, int *minor,
-    int *rev )
+GLFWAPI void GLFWAPIENTRY glfwGetVersion( int *major, int *minor, int *rev )
 {
     if( major != NULL ) *major = GLFW_VERSION_MAJOR;
     if( minor != NULL ) *minor = GLFW_VERSION_MINOR;

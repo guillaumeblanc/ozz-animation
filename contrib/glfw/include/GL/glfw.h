@@ -160,12 +160,21 @@ extern "C" {
  * (which is not a nice solution for portable programs).
  */
 #if defined(__APPLE_CC__)
- #include <OpenGL/gl.h>
+ #if defined(GLFW_INCLUDE_GL3)
+  #include <OpenGL/gl3.h>
+ #else
+  #define GL_GLEXT_LEGACY
+  #include <OpenGL/gl.h>
+ #endif
  #ifndef GLFW_NO_GLU
   #include <OpenGL/glu.h>
  #endif
 #else
- #include <GL/gl.h>
+ #if defined(GLFW_INCLUDE_GL3)
+  #include <GL3/gl3.h>
+ #else
+  #include <GL/gl.h>
+ #endif
  #ifndef GLFW_NO_GLU
   #include <GL/glu.h>
  #endif
@@ -178,7 +187,7 @@ extern "C" {
 
 #define GLFW_VERSION_MAJOR    2
 #define GLFW_VERSION_MINOR    7
-#define GLFW_VERSION_REVISION 0
+#define GLFW_VERSION_REVISION 8
 
 
 /*************************************************************************

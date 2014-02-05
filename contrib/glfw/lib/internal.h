@@ -244,6 +244,7 @@ void _glfwRemoveThread( _GLFWthread * t );
 // OpenGL extensions (glext.c)
 void _glfwParseGLVersion( int *major, int *minor, int *rev );
 int _glfwStringInExtensionString( const char *string, const GLubyte *extensions );
+void _glfwRefreshContextParams( void );
 
 // Abstracted data streams (stream.c)
 int _glfwOpenFileStream( _GLFWstream *stream, const char *name, const char *mode );

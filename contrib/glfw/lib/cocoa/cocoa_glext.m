@@ -43,6 +43,7 @@ int _glfwPlatformExtensionSupported( const char *extension )
     return GL_FALSE;
 }
 
+
 //========================================================================
 // Get the function pointer to an OpenGL function
 //========================================================================

@@ -72,7 +72,7 @@ long _glfwReadStream( _GLFWstream *stream, void *data, long size )
 {
     if( stream->file != NULL )
     {
-        return (long)fread( data, 1, size, stream->file );
+        return (long) fread( data, 1, size, stream->file );
     }
 
     if( stream->data != NULL )

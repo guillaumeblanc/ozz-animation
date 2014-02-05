@@ -1,4 +1,5 @@
 add_library(ozz_base
+  ../../include/ozz/base/endianness.h
   ../../include/ozz/base/gtest_helper.h
   ../../include/ozz/base/memory/allocator.h
   memory/allocator.cc

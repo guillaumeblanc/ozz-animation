@@ -1,5 +1,11 @@
 //============================================================================//
-// Copyright (c) <2012> <Guillaume Blanc>                                     //
+//                                                                            //
+// ozz-animation, 3d skeletal animation libraries and tools.                  //
+// https://code.google.com/p/ozz-animation/                                   //
+//                                                                            //
+//----------------------------------------------------------------------------//
+//                                                                            //
+// Copyright (c) 2012-2014 Guillaume Blanc                                    //
 //                                                                            //
 // This software is provided 'as-is', without any express or implied          //
 // warranty. In no event will the authors be held liable for any damages      //
@@ -19,12 +25,14 @@
 //                                                                            //
 // 3. This notice may not be removed or altered from any source               //
 // distribution.                                                              //
+//                                                                            //
 //============================================================================//
 
 #ifndef OZZ_OZZ_BASE_PLATFORM_H_
 #define OZZ_OZZ_BASE_PLATFORM_H_
 
 #include <cstddef>
+#include <cassert>
 
 namespace ozz {
 
@@ -118,5 +126,60 @@ struct AlignOf {
 #define OZZ_IF_DEBUG(...) __VA_ARGS__
 #define OZZ_IF_NDEBUG(...)
 #endif  // NDEBUG
+
+// Defines a range [begin,end[ of objects ot type _Ty.
+template <typename _Ty>
+struct Range {
+  // Default constructor initializes range to empty.
+  Range()
+    : begin(NULL),
+      end(NULL) {
+  }
+  // Constructs a range from its extreme values.
+  Range(_Ty* _begin, _Ty* _end)
+    : begin(_begin),
+      end(_end) {
+  }
+  // Construct a range from a pointer to a buffer and its size, ie its number of elements.
+  Range(_Ty* _begin, std::ptrdiff_t _size)
+    : begin(_begin),
+      end(_begin + _size) {
+  }
+  // Construct a range from an array, its size is automatically deduced.
+  template <std::size_t _size>
+  explicit Range(_Ty (&_array)[_size])
+    : begin(_array),
+      end(_array + _size) {
+  }
+
+  // Implement cast operator to allow conversions to Range<const _Ty>.
+  operator Range<const _Ty> () const {
+    return Range<const _Ty>(begin, end);
+  }
+
+  // Returns a const reference to element _i of range [begin,end[.
+  const _Ty& operator[](std::size_t _i) const {
+    assert(begin && &begin[_i] < end && "Index out of range");
+    return begin[_i];
+  }
+
+  // Returns a const reference to element _i of range [begin,end[.
+  _Ty& operator[](std::size_t _i) {
+    assert(begin && &begin[_i] < end && "Index out of range");
+    return begin[_i];
+  }
+
+  // Gets the number of elements of the range.
+  // This size isn't stored but computed from begin and end pointers.
+  std::ptrdiff_t Size() const {
+    return end - begin;
+  }
+
+  // Range begin pointer.
+  _Ty* begin;
+
+  // Range end pointer, declared as const as it should never be dereferenced.
+  const _Ty* end;
+};
 }  // ozz
 #endif  // OZZ_OZZ_BASE_PLATFORM_H_

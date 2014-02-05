@@ -1,5 +1,11 @@
 //============================================================================//
-// Copyright (c) <2012> <Guillaume Blanc>                                     //
+//                                                                            //
+// ozz-animation, 3d skeletal animation libraries and tools.                  //
+// https://code.google.com/p/ozz-animation/                                   //
+//                                                                            //
+//----------------------------------------------------------------------------//
+//                                                                            //
+// Copyright (c) 2012-2014 Guillaume Blanc                                    //
 //                                                                            //
 // This software is provided 'as-is', without any express or implied          //
 // warranty. In no event will the authors be held liable for any damages      //
@@ -19,6 +25,7 @@
 //                                                                            //
 // 3. This notice may not be removed or altered from any source               //
 // distribution.                                                              //
+//                                                                            //
 //============================================================================//
 
 #include "ozz/base/io/stream.h"
@@ -56,6 +63,10 @@ void TestSeek(ozz::io::Stream* _stream) {
   EXPECT_NE(_stream->Seek(-1, ozz::io::Stream::kCurrent), 0);
   EXPECT_EQ(_stream->Tell(), 0);
   EXPECT_NE(_stream->Seek(-1, ozz::io::Stream::kEnd), 0);
+  EXPECT_EQ(_stream->Tell(), 0);
+
+  // Bad seek argument.
+  EXPECT_EQ(_stream->Seek(46, ozz::io::Stream::Origin(27)), -1);
   EXPECT_EQ(_stream->Tell(), 0);
 
   typedef int Type;

@@ -1,5 +1,11 @@
 //============================================================================//
-// Copyright (c) <2012> <Guillaume Blanc>                                     //
+//                                                                            //
+// ozz-animation, 3d skeletal animation libraries and tools.                  //
+// https://code.google.com/p/ozz-animation/                                   //
+//                                                                            //
+//----------------------------------------------------------------------------//
+//                                                                            //
+// Copyright (c) 2012-2014 Guillaume Blanc                                    //
 //                                                                            //
 // This software is provided 'as-is', without any express or implied          //
 // warranty. In no event will the authors be held liable for any damages      //
@@ -19,6 +25,7 @@
 //                                                                            //
 // 3. This notice may not be removed or altered from any source               //
 // distribution.                                                              //
+//                                                                            //
 //============================================================================//
 
 #include "ozz/options/options.h"
@@ -204,10 +211,13 @@ TEST(OptionDefault, Options) {
     EXPECT_TRUE(boption);
     EXPECT_FALSE(parser.UnregisterOption(&boption));
     EXPECT_EQ(ioption, 46);
+    EXPECT_EQ(ioption, ioption.default_value());
     EXPECT_FALSE(parser.UnregisterOption(&ioption));
     EXPECT_FLOAT_EQ(foption, 46.f);
+    EXPECT_EQ(foption, foption.default_value());
     EXPECT_FALSE(parser.UnregisterOption(&foption));
     EXPECT_STREQ(soption, "forty six");
+    EXPECT_EQ(soption, soption.default_value());
     EXPECT_TRUE(parser.UnregisterOption(&soption));
   }
 }
@@ -464,6 +474,27 @@ TEST(RequiredOption, Options) {
 
   EXPECT_FALSE(parser.UnregisterOption(&bool_option));
   EXPECT_TRUE(parser.UnregisterOption(&int_required_option));
+}
+
+TEST(DuplicatedOption, Options) {
+  ozz::options::BoolOption bool_option("bool", "", false, false);
+  EXPECT_FALSE(bool_option);
+  ozz::options::IntOption int_option("int", "", 27, false);
+  EXPECT_EQ(int_option, 27);
+
+  ozz::options::Parser parser;
+  EXPECT_TRUE(parser.RegisterOption(&bool_option));
+  EXPECT_TRUE(parser.RegisterOption(&int_option));
+
+  { // Duplicated flags.
+    const char* duplicated_argv[] = {"c:/a path/test.exe", "--int=46", "--int=47"};
+    const int duplicated_argc = OZZ_ARRAY_SIZE(duplicated_argv);
+    EXPECT_EQ(parser.Parse(duplicated_argc, duplicated_argv),
+              ozz::options::kExitFailure);
+  }
+
+  EXPECT_FALSE(parser.UnregisterOption(&bool_option));
+  EXPECT_TRUE(parser.UnregisterOption(&int_option));
 }
 
 namespace {

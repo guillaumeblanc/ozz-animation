@@ -1,5 +1,11 @@
 //============================================================================//
-// Copyright (c) <2012> <Guillaume Blanc>                                     //
+//                                                                            //
+// ozz-animation, 3d skeletal animation libraries and tools.                  //
+// https://code.google.com/p/ozz-animation/                                   //
+//                                                                            //
+//----------------------------------------------------------------------------//
+//                                                                            //
+// Copyright (c) 2012-2014 Guillaume Blanc                                    //
 //                                                                            //
 // This software is provided 'as-is', without any express or implied          //
 // warranty. In no event will the authors be held liable for any damages      //
@@ -19,15 +25,18 @@
 //                                                                            //
 // 3. This notice may not be removed or altered from any source               //
 // distribution.                                                              //
+//                                                                            //
 //============================================================================//
 
 #include "ozz/animation/offline/animation_builder.h"
 
 #include "gtest/gtest.h"
+#include "ozz/base/maths/gtest_math_helper.h"
 
 #include "ozz/base/memory/allocator.h"
-#include "ozz/animation/animation.h"
-#include "ozz/animation/key_frame.h"
+#include "ozz/base/maths/soa_transform.h"
+#include "ozz/animation/runtime/animation.h"
+#include "ozz/animation/runtime/sampling_job.h"
 
 using ozz::animation::Animation;
 using ozz::animation::offline::RawAnimation;
@@ -65,7 +74,7 @@ TEST(Error, AnimationBuilder) {
     // Builds animation
     Animation* anim = builder(raw_animation);
     EXPECT_TRUE(anim != NULL);
-    ozz::memory::default_allocator().Delete(anim);
+    ozz::memory::default_allocator()->Delete(anim);
   }
 }
 
@@ -139,7 +148,7 @@ TEST(Build, AnimationBuilder) {
     Animation* anim = builder(raw_animation);
     EXPECT_TRUE(anim != NULL);
     EXPECT_EQ(anim->num_tracks(), 46);
-    ozz::memory::default_allocator().Delete(anim);
+    ozz::memory::default_allocator()->Delete(anim);
   }
 
   { // Building a valid Animation with 1 track succeeds.
@@ -154,7 +163,7 @@ TEST(Build, AnimationBuilder) {
     Animation* anim = builder(raw_animation);
     EXPECT_TRUE(anim != NULL);
     EXPECT_EQ(anim->num_tracks(), 1);
-    ozz::memory::default_allocator().Delete(anim);
+    ozz::memory::default_allocator()->Delete(anim);
   }
 }
 
@@ -183,21 +192,6 @@ TEST(Sort, AnimationBuilder) {
     // 2 - B2 C6  D8 E10    F11
     // 3 - 3  G7     H9      12
 
-    struct {int track; float time; float x;} results[] = {
-      {0, 0.f, 0.f},
-      {1, 0.f, 0.f},
-      {2, 0.f, 2.f},
-      {3, 0.f, 7.f},
-      {0, 1.f, 0.f},
-      {1, 1.f, 0.f},
-      {2, .2f, 6.f},
-      {3, .2f, 7.f},
-      {2, .4f, 8.f},
-      {3, .6f, 9.f},
-      {2, .6f, 12.f},
-      {2, 1.f, 11.f},
-      {3, 1.f, 9.f}};
-
     RawAnimation::TranslationKey a = {.2f, ozz::math::Float3(0.f, 0.f, 0.f)};
     raw_animation.tracks[0].translations.push_back(a);
 
@@ -218,17 +212,55 @@ TEST(Sort, AnimationBuilder) {
     raw_animation.tracks[3].translations.push_back(h);
 
     // Builds animation
-    Animation* anim = builder(raw_animation);
-    EXPECT_TRUE(anim != NULL);
+    Animation* animation = builder(raw_animation);
+    EXPECT_TRUE(animation != NULL);
 
-    const std::size_t key_count = anim->translations_end() - anim->translations();
-    EXPECT_EQ(key_count, 13u);
-    for(std::size_t i = 0; i < key_count; i++) {
-      EXPECT_EQ(anim->translations()[i].track, results[i].track);
-      EXPECT_FLOAT_EQ(anim->translations()[i].time, results[i].time);
-      EXPECT_FLOAT_EQ(anim->translations()[i].value.x, results[i].x);
+    // Needs to sample to test the animation.
+    ozz::animation::SamplingJob job;
+    ozz::animation::SamplingCache cache(1);
+    ozz::math::SoaTransform output[1];
+    job.animation = animation;
+    job.cache = &cache;
+    job.output.begin = output;
+    job.output.end = output + 1;
+
+    // Samples and compares the two animations
+    { // Samples at t = 0
+      job.time = 0.f;
+      job.Run();
+      EXPECT_SOAFLOAT3_EQ_EST(output[0].translation, 0.f, 0.f, 2.f, 7.f,
+                                                     0.f, 0.f, 0.f, 0.f,
+                                                     0.f, 0.f, 0.f, 0.f);
+    }
+    { // Samples at t = .2
+      job.time = .2f;
+      job.Run();
+      EXPECT_SOAFLOAT3_EQ_EST(output[0].translation, 0.f, 0.f, 6.f, 7.f,
+                                                     0.f, 0.f, 0.f, 0.f,
+                                                     0.f, 0.f, 0.f, 0.f);
+    }
+    { // Samples at t = .4
+      job.time = .4f;
+      job.Run();
+      EXPECT_SOAFLOAT3_EQ_EST(output[0].translation, 0.f, 0.f, 8.f, 8.f,
+                                                     0.f, 0.f, 0.f, 0.f,
+                                                     0.f, 0.f, 0.f, 0.f);
+    }
+    { // Samples at t = .6
+      job.time = .6f;
+      job.Run();
+      EXPECT_SOAFLOAT3_EQ_EST(output[0].translation, 0.f, 0.f, 12.f, 9.f,
+                                                     0.f, 0.f, 0.f, 0.f,
+                                                     0.f, 0.f, 0.f, 0.f);
+    }
+    { // Samples at t = 1
+      job.time = 1.f;
+      job.Run();
+      EXPECT_SOAFLOAT3_EQ_EST(output[0].translation, 0.f, 0.f, 11.f, 9.f,
+                                                     0.f, 0.f, 0.f, 0.f,
+                                                     0.f, 0.f, 0.f, 0.f);
     }
 
-    ozz::memory::default_allocator().Delete(anim);
+    ozz::memory::default_allocator()->Delete(animation);
   }
 }

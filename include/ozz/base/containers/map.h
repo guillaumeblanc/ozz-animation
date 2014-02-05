@@ -1,5 +1,11 @@
 //============================================================================//
-// Copyright (c) <2012> <Guillaume Blanc>                                     //
+//                                                                            //
+// ozz-animation, 3d skeletal animation libraries and tools.                  //
+// https://code.google.com/p/ozz-animation/                                   //
+//                                                                            //
+//----------------------------------------------------------------------------//
+//                                                                            //
+// Copyright (c) 2012-2014 Guillaume Blanc                                    //
 //                                                                            //
 // This software is provided 'as-is', without any express or implied          //
 // warranty. In no event will the authors be held liable for any damages      //
@@ -19,12 +25,22 @@
 //                                                                            //
 // 3. This notice may not be removed or altered from any source               //
 // distribution.                                                              //
+//                                                                            //
 //============================================================================//
 
 #ifndef OZZ_OZZ_BASE_CONTAINERS_MAP_H_
 #define OZZ_OZZ_BASE_CONTAINERS_MAP_H_
 
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable:4702)  // warning C4702: unreachable code 
+#endif  // _MSC_VER
+
 #include <map>
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif  // _MSC_VER
 
 #include "ozz/base/containers/std_allocator.h"
 

@@ -74,7 +74,7 @@ struct js_event {
 
 
 //========================================================================
-// _glfwInitJoysticks() - Initialize joystick interface
+// Initialize joystick interface
 //========================================================================
 
 void _glfwInitJoysticks( void )
@@ -181,7 +181,7 @@ void _glfwInitJoysticks( void )
 
 
 //========================================================================
-// _glfwTerminateJoysticks() - Close all opened joystick handles
+// Close all opened joystick handles
 //========================================================================
 
 void _glfwTerminateJoysticks( void )
@@ -269,7 +269,7 @@ static void pollJoystickEvents( void )
 //************************************************************************
 
 //========================================================================
-// _glfwPlatformGetJoystickParam() - Determine joystick capabilities
+// Determine joystick capabilities
 //========================================================================
 
 int _glfwPlatformGetJoystickParam( int joy, int param )
@@ -300,7 +300,7 @@ int _glfwPlatformGetJoystickParam( int joy, int param )
 
 
 //========================================================================
-// _glfwPlatformGetJoystickPos() - Get joystick axis positions
+// Get joystick axis positions
 //========================================================================
 
 int _glfwPlatformGetJoystickPos( int joy, float *pos, int numaxes )
@@ -333,7 +333,7 @@ int _glfwPlatformGetJoystickPos( int joy, float *pos, int numaxes )
 
 
 //========================================================================
-// _glfwPlatformGetJoystickButtons() - Get joystick button states
+// Get joystick button states
 //========================================================================
 
 int _glfwPlatformGetJoystickButtons( int joy, unsigned char *buttons,

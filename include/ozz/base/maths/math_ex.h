@@ -1,5 +1,11 @@
 //============================================================================//
-// Copyright (c) <2012> <Guillaume Blanc>                                     //
+//                                                                            //
+// ozz-animation, 3d skeletal animation libraries and tools.                  //
+// https://code.google.com/p/ozz-animation/                                   //
+//                                                                            //
+//----------------------------------------------------------------------------//
+//                                                                            //
+// Copyright (c) 2012-2014 Guillaume Blanc                                    //
 //                                                                            //
 // This software is provided 'as-is', without any express or implied          //
 // warranty. In no event will the authors be held liable for any damages      //
@@ -19,6 +25,7 @@
 //                                                                            //
 // 3. This notice may not be removed or altered from any source               //
 // distribution.                                                              //
+//                                                                            //
 //============================================================================//
 
 #ifndef OZZ_OZZ_BASE_MATHS_MATH_EX_H_
@@ -54,7 +61,7 @@ OZZ_INLINE _Ty Max(_Ty _a, _Ty _b) {
 // Result is unknown if _a is not less or equal to _b.
 template<typename _Ty>
 OZZ_INLINE _Ty Clamp(_Ty _a, _Ty _x, _Ty _b) {
-  const float min = _x < _b? _x : _b;
+  const _Ty min = _x < _b? _x : _b;
   return min < _a? _a : min;
 }
 

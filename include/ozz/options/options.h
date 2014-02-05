@@ -1,5 +1,11 @@
 //============================================================================//
-// Copyright (c) <2012> <Guillaume Blanc>                                     //
+//                                                                            //
+// ozz-animation, 3d skeletal animation libraries and tools.                  //
+// https://code.google.com/p/ozz-animation/                                   //
+//                                                                            //
+//----------------------------------------------------------------------------//
+//                                                                            //
+// Copyright (c) 2012-2014 Guillaume Blanc                                    //
 //                                                                            //
 // This software is provided 'as-is', without any express or implied          //
 // warranty. In no event will the authors be held liable for any damages      //
@@ -19,6 +25,7 @@
 //                                                                            //
 // 3. This notice may not be removed or altered from any source               //
 // distribution.                                                              //
+//                                                                            //
 //============================================================================//
 
 #ifndef OZZ_OZZ_OPTIONS_OPTIONS_H_
@@ -102,6 +109,8 @@ enum ParseResult {
 // ParseCommandLine expects that _argc >= 1 and _argv[0] is the executable path.
 // _version and _usage are used to respectively set the executable version and
 // usage string in case that the help/usage screen is displayed (--help).
+// _version and _usage are not copied, ParseCommandLine caller is in charge of
+// maintaining their allocation during application lifetime.
 // See ParseResult for more details about returned values.
 ParseResult ParseCommandLine(int _argc, const char** _argv,
                              const char* _version, const char* _usage);
@@ -177,7 +186,7 @@ class Option {
   // A required option is satisfied if it was successfully parsed from the
   // command line. Non required option are always satisfied.
   bool statisfied() const {
-    return satisfied_;
+    return parsed_ || !required_;
   }
 
   // Returns true if the option is required.
@@ -189,7 +198,9 @@ class Option {
   // Returns true if no function is set, or the function returns true.
   bool Validate(int _argc);
 
-  // Parse the command line and set the option value.
+  // Parse the command line and set the option's value.
+  // Returns true if argument parsing succeeds, false if argument doesn't match
+  // or was already parsed (in case of an argument specified more than once).
   bool Parse(const char* _argv);
 
   // Restores default value.
@@ -239,10 +250,8 @@ class Option {
   // Is this option required?
   bool required_;
 
-  // Is this option satisfied? A required option is satisfied if it was
-  // successfully parsed from the command line. Non required option are always
-  // satisfied.
-  bool satisfied_;
+  // Was this option successfully parsed from the command line.
+  bool parsed_;
 
   // Validate function. NULL if no function is set.
   ValidateFn validate_;

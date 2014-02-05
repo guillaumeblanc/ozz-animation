@@ -46,6 +46,7 @@ static BOOL modeIsGood( NSDictionary *mode )
            [mode objectForKey:(id)kCGDisplayModeIsStretched] == nil;
 }
 
+
 //========================================================================
 // Convert Core Graphics display mode to GLFW video mode
 //========================================================================
@@ -79,7 +80,7 @@ int _glfwPlatformGetVideoModes( GLFWvidmode *list, int maxcount )
     NSArray *modes = (NSArray *)CGDisplayAvailableModes( CGMainDisplayID() );
 
     unsigned int i, j = 0, n = [modes count];
-    for( i = 0; i < n && i < (unsigned)maxcount; i++ )
+    for( i = 0; i < n && j < (unsigned)maxcount; i++ )
     {
         NSDictionary *mode = [modes objectAtIndex:i];
         if( modeIsGood( mode ) )
@@ -91,12 +92,13 @@ int _glfwPlatformGetVideoModes( GLFWvidmode *list, int maxcount )
     return j;
 }
 
+
 //========================================================================
 // Get the desktop video mode
 //========================================================================
 
 void _glfwPlatformGetDesktopMode( GLFWvidmode *mode )
 {
-    *mode = vidmodeFromCGDisplayMode( _glfwLibrary.DesktopMode );
+    *mode = vidmodeFromCGDisplayMode( CGDisplayCurrentMode( CGMainDisplayID() ) );
 }
 

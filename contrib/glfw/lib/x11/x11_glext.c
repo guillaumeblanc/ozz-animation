@@ -45,8 +45,7 @@ void (*glXGetProcAddressEXT(const GLubyte *procName))();
 #elif defined( _GLFW_HAS_GLXGETPROCADDRESSEXT )
  #define _glfw_glXGetProcAddress(x) glXGetProcAddressEXT(x)
 #elif defined( _GLFW_HAS_DLOPEN )
- #define _glfw_glXGetProcAddress(x) dlsym(_glfwLibs.libGL,x)
- #define _GLFW_DLOPEN_LIBGL
+ #define _glfw_glXGetProcAddress(x) dlsym(_glfwLibrary.Libs.libGL,x)
 #else
 #define _glfw_glXGetProcAddress(x) NULL
 #endif

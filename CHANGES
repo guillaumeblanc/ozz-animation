@@ -1,0 +1,61 @@
+Release version 0.3.0.----------------------------------------------------------
+
+ # Library
+  - [animation] Adds partial animation blending and masking, through per-joint-weight blending coefficients.
+  - [animation] Switches all explicit [begin,end[ ranges (sequence of objects) to ozz::Range structure.
+  - [animation] Moves runtime files (.h and .cc) to a separate runtime folder (ozz/animation/runtime).
+  - [animation] Removes ozz/animation/utils.h and .cc
+  - [options] Detects duplicated command line arguments and reports failure. 
+  - [base] Adds helper functions to ozz::memory::Allocator to support allocation/reallocation/deallocation of ranges of objects through ozz::Range structure.
+
+ # Samples
+  - Adds partial animation blending sample.
+  - Adds multi-threading sample, using OpenMp to distribute workload.
+  - Adds a sample that demonstrates how to attach an object to animated skeleton joints.
+  - Improves skeleton rendering sample utility feature: includes joint rendering.
+  - Adds screen-shot and video capture options from samples ui.
+  - Adds a command line option (--render/--norender) to enable/disable rendering of sample, used for dashboard unit-tests.
+  - Adds time management options, to dissociate (fix) update delta time from the real application time.
+  - Improves camera manipulations: disables auto-framing when zooming/panning, adds mouse wheel support for zooming.
+  - Fixes sample camera framing to match rendering field of view.
+
+ # Build pipeline
+  - Adds CMake python helper tools (build-helper.py). Removes helper .bat files (setup, build, pack...).
+  - Adds CDash support to generate nightly build reports. Default CDash server is http://my.cdash.org/index.php?project=Ozz.
+  - Adds code coverage testing support using gcov.
+
+Release version 0.2.0.----------------------------------------------------------
+
+ # Library
+  - [animation] Adds animation blending support.
+  - [animation] Sets maximum skeleton joints to 1023 (Skeleton::kMaxJointsNumBits) to
+ improve packing and allow stack allocations.
+  - [animation] Adds Skeleton::kRootIndex enum for parent index of a root joint.
+  - [base] Adds signed/unsigned bit shift functions to simd library.
+  - [base] Fixes SSE build flags for Visual Studio 64b builds.
+
+ # Samples
+  - Adds blending sample.
+  - Adds playback controller utility class to the sample framework.
+
+Release version 0.1.0, initial open source release.-----------------------------
+
+  # Library
+  - [animation] Support for run-time animation sampling.
+  - [offline] Support for building run-time animation and skeleton from a raw (aka offline/user friendly) format.
+  - [offline] Full import Collada pipeline (lib and tools).
+  - [offline]  Support for animation key-frame optimizations.
+  - [base] Memory management redirection.
+  - [base] Containers definition.
+  - [base] Serialization and IO utilities implementation.
+  - [base] scalar and vector maths, SIMD (SSE) and SoA implementation.
+  - [options] Command line parsing utility.
+
+ # Samples
+  - Playback sample, loads and samples an animation.
+  - Millipede sample, offline pipeline usage.
+  - Optimize sample, offline optimization pipeline.
+
+ # Build pipeline
+  - CMake based build pipeline.
+  - CTest/GTest based unit test framework.

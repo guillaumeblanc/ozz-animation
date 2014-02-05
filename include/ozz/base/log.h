@@ -1,5 +1,11 @@
 //============================================================================//
-// Copyright (c) <2012> <Guillaume Blanc>                                     //
+//                                                                            //
+// ozz-animation, 3d skeletal animation libraries and tools.                  //
+// https://code.google.com/p/ozz-animation/                                   //
+//                                                                            //
+//----------------------------------------------------------------------------//
+//                                                                            //
+// Copyright (c) 2012-2014 Guillaume Blanc                                    //
 //                                                                            //
 // This software is provided 'as-is', without any express or implied          //
 // warranty. In no event will the authors be held liable for any damages      //
@@ -19,6 +25,7 @@
 //                                                                            //
 // 3. This notice may not be removed or altered from any source               //
 // distribution.                                                              //
+//                                                                            //
 //============================================================================//
 
 #ifndef OZZ_OZZ_BASE_LOG_H_
@@ -26,8 +33,12 @@
 
 #include <iostream>
 
+// MSVC includes <cstring> from <iostream> but not gcc.
+// So it is included here to ensure a portable behavior.
+#include <cstring>
+
 // Proposes a logging interface that redirects logs to std::cout, clog and cerr
-// output streams. This interface adds a logging level functionnality (Silent,
+// output streams. This interface adds a logging level functionality (Silent,
 // Standard, Verbose) to the std API, which can be set using
 // ozz::log::GetLevel function.
 // Usage conforms to std stream usage: ozz::log::OUT() << "something to log."...

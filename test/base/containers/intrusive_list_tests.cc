@@ -1,5 +1,11 @@
 //============================================================================//
-// Copyright (c) <2012> <Guillaume Blanc>                                     //
+//                                                                            //
+// ozz-animation, 3d skeletal animation libraries and tools.                  //
+// https://code.google.com/p/ozz-animation/                                   //
+//                                                                            //
+//----------------------------------------------------------------------------//
+//                                                                            //
+// Copyright (c) 2012-2014 Guillaume Blanc                                    //
 //                                                                            //
 // This software is provided 'as-is', without any express or implied          //
 // warranty. In no event will the authors be held liable for any damages      //
@@ -19,6 +25,7 @@
 //                                                                            //
 // 3. This notice may not be removed or altered from any source               //
 // distribution.                                                              //
+//                                                                            //
 //============================================================================//
 
 #include "ozz/base/containers/intrusive_list.h"
@@ -44,6 +51,29 @@
 // using-declaration of IntrusiveList type and its options
 using ozz::containers::IntrusiveList;
 using ozz::containers::Option;
+
+// Test whether assertion compliance tests can be ran on the container specified
+// as template argument.
+// The default implementation allows to run all tests.
+template <typename _Ty>
+struct TestAssertCompliance {
+  enum {kValue = 1};
+};
+
+// Check compiler settings for std/crt debug level availability.
+#if defined(_MSC_VER)
+#define HAS_STD_ASSERTION 1  // Win32 std lib has debug option.
+#elif defined(__GNUC__) && defined(_GLIBCXX_DEBUG)
+#define HAS_STD_ASSERTION 1  // _GLIBCXX_DEBUG enables GCC Libc debug option.
+#else
+#define HAS_STD_ASSERTION 0  // Disabled by default.
+#endif
+
+// Specializes for std::list,  according to compilation settings.
+template <typename _Ty>
+struct TestAssertCompliance<std::list<_Ty> > {
+  enum { kValue = HAS_STD_ASSERTION};
+};
 
 // Defines a test object that inherits from IntrusiveList::Hook in order to be
 // listed by an IntrusiveList.
@@ -136,11 +166,12 @@ struct CompliancePushPopFront {
     _List l;
     const _List& r_const_l = l;
 
-    EXPECT_ASSERTION(l.front(), "");
-    EXPECT_ASSERTION(r_const_l.front(), "");
-    EXPECT_ASSERTION(l.back(), "");
-    EXPECT_ASSERTION(r_const_l.back(), "");
-
+    if (void(0), TestAssertCompliance<_List>::kValue) {
+      EXPECT_ASSERTION(l.front(), "");
+      EXPECT_ASSERTION(r_const_l.front(), "");
+      EXPECT_ASSERTION(l.back(), "");
+      EXPECT_ASSERTION(r_const_l.back(), "");
+    }
     l.push_front(first);
     EXPECT_TRUE(l.size() == 1 && l.front() == first && l.back() == first);
     EXPECT_TRUE(r_const_l.size() == 1 &&
@@ -398,8 +429,10 @@ struct ComplianceIterator {
 
     // Test operators
     EXPECT_TRUE(l1.begin() != l1.end());
+    EXPECT_TRUE(l1.begin()++ == l1.begin());
     EXPECT_TRUE(++l1.begin() == l1.end());
     EXPECT_TRUE(rcosnt_l1.begin() != rcosnt_l1.end());
+    EXPECT_TRUE(rcosnt_l1.begin()++ == rcosnt_l1.begin());
     EXPECT_TRUE(++rcosnt_l1.begin() == rcosnt_l1.end());
     EXPECT_TRUE(l1.begin() != rcosnt_l1.end());
     EXPECT_TRUE(++l1.begin() == rcosnt_l1.end());
@@ -423,35 +456,36 @@ struct ComplianceIterator {
       EXPECT_TRUE(copy_it == it);
     }
 
-    // Test comparing iterators of different lists
-    EXPECT_ASSERTION(typename _List::iterator() == l1.begin(), "");
-    EXPECT_ASSERTION(typename _List::const_iterator() == l1.begin(), "");
-    EXPECT_ASSERTION(l1.begin() != static_cast<const _List&>(l2).begin(), "");
-    EXPECT_ASSERTION(l1.end() != static_cast<const _List&>(l2).end(), "");
-    EXPECT_ASSERTION(rcosnt_l1.begin() != l2.begin(), "");
-    EXPECT_ASSERTION(rcosnt_l1.end() != l2.end(), "");
+    if (void(0), TestAssertCompliance<_List>::kValue) {
+      // Test comparing iterators of different lists
+      EXPECT_ASSERTION(void(typename _List::iterator() == l1.begin()), "");
+      EXPECT_ASSERTION(void(typename _List::const_iterator() == l1.begin()), "");
+      EXPECT_ASSERTION(void(l1.begin() != static_cast<const _List&>(l2).begin()), "");
+      EXPECT_ASSERTION(void(l1.end() != static_cast<const _List&>(l2).end()), "");
+      EXPECT_ASSERTION(void(rcosnt_l1.begin() != l2.begin()), "");
+      EXPECT_ASSERTION(void(rcosnt_l1.end() != l2.end()), "");
 
-    // Test iterators bound cases
-    EXPECT_ASSERTION(--l1.begin(), "");
-    EXPECT_ASSERTION(l1.begin()--, "");
-    EXPECT_ASSERTION(--rcosnt_l1.begin(), "");
-    EXPECT_ASSERTION(rcosnt_l1.begin()--, "");
+      // Test iterators bound cases
+      EXPECT_ASSERTION(--l1.begin(), "");
+      EXPECT_ASSERTION(l1.begin()--, "");
+      EXPECT_ASSERTION(--rcosnt_l1.begin(), "");
+      EXPECT_ASSERTION(rcosnt_l1.begin()--, "");
 
-    EXPECT_ASSERTION(++rcosnt_l1.end(), "");
-    EXPECT_ASSERTION(rcosnt_l1.end()++, "");
-    EXPECT_ASSERTION(++rcosnt_l1.end(), "");
-    EXPECT_ASSERTION(rcosnt_l1.end()++, "");
+      EXPECT_ASSERTION(++rcosnt_l1.end(), "");
+      EXPECT_ASSERTION(rcosnt_l1.end()++, "");
+      EXPECT_ASSERTION(++rcosnt_l1.end(), "");
+      EXPECT_ASSERTION(rcosnt_l1.end()++, "");
 
-    // Dereferencing an invalid iterator
-    EXPECT_ASSERTION(*typename _List::iterator(), "");
-    EXPECT_ASSERTION(*typename _List::const_iterator(), "");
-    EXPECT_ASSERTION(*typename _List::reverse_iterator(), "");
-    EXPECT_ASSERTION(*typename _List::const_reverse_iterator(), "");
-    EXPECT_ASSERTION(*l1.end(), "");
-    EXPECT_ASSERTION(*rcosnt_l1.end(), "");
-    EXPECT_ASSERTION(*l1.rend(), "");
-    EXPECT_ASSERTION(*rcosnt_l1.rend(), "");
-
+      // Dereferencing an invalid iterator
+      EXPECT_ASSERTION(*typename _List::iterator(), "");
+      EXPECT_ASSERTION(*typename _List::const_iterator(), "");
+      EXPECT_ASSERTION(*typename _List::reverse_iterator(), "");
+      EXPECT_ASSERTION(*typename _List::const_reverse_iterator(), "");
+      EXPECT_ASSERTION(*l1.end(), "");
+      EXPECT_ASSERTION(*rcosnt_l1.end(), "");
+      EXPECT_ASSERTION(*l1.rend(), "");
+      EXPECT_ASSERTION(*rcosnt_l1.rend(), "");
+    }
     // Test iterator std functions
     {
       typename _List::iterator it = l1.begin();
@@ -459,9 +493,10 @@ struct ComplianceIterator {
       EXPECT_TRUE(it == l1.end());
       std::advance(it, -1);
       EXPECT_TRUE(it == l1.begin());
-      EXPECT_ASSERTION(std::advance(it, 2), "");
+      if (void(0), TestAssertCompliance<_List>::kValue) {
+        EXPECT_ASSERTION(std::advance(it, 2), "");
+      }
     }
-
     {
       EXPECT_EQ(std::distance(l1.begin(), l1.end()), 1);
     }
@@ -508,7 +543,9 @@ struct ComplianceRBegin {
       EXPECT_TRUE(*const_rev_iter == first);
       ++const_rev_iter;
       EXPECT_TRUE(const_rev_iter == rcosnt_l.rend());
-      EXPECT_ASSERTION(++const_rev_iter, "");  // Cannot increment beyond rend
+      if (void(0), TestAssertCompliance<_List>::kValue) {
+        EXPECT_ASSERTION(++const_rev_iter, "");  // Cannot increment beyond rend
+      }
     }
     l.clear();
   }
@@ -538,7 +575,9 @@ struct ComplianceREnd {
     // rend should be at the front of the list
     {
       typename _List::reverse_iterator rev_iter = l.rend();
-      EXPECT_ASSERTION(*rev_iter, "");
+      if (void(0), TestAssertCompliance<_List>::kValue) {
+        EXPECT_ASSERTION(*rev_iter, "");
+      }
       --rev_iter;
       EXPECT_TRUE(*rev_iter == first);
     }
@@ -554,7 +593,9 @@ struct ComplianceREnd {
       EXPECT_TRUE(*const_rev_iter == third);
       EXPECT_TRUE(const_rev_iter == rcosnt_l.rbegin());
       // Cannot increment below rbegin
-      EXPECT_ASSERTION(--const_rev_iter, "");
+      if (void(0), TestAssertCompliance<_List>::kValue) {
+        EXPECT_ASSERTION(--const_rev_iter, "");
+      }
     }
     l.clear();
   }
@@ -679,7 +720,7 @@ struct ComplianceErase {
     l.push_back(sixth);
 
     // Bad range
-    {
+    if (void(0), TestAssertCompliance<_List>::kValue) {
       _List l2;
       EXPECT_ASSERTION(l.erase(l2.begin(), l.begin()), "");
       EXPECT_ASSERTION(l.erase(++l.begin(), l.begin()), "");
@@ -830,7 +871,7 @@ struct ComplianceSplice {
     _List l_empty;
 
     // Bad range
-    {
+    if (void(0), TestAssertCompliance<_List>::kValue) {
       EXPECT_ASSERTION(l4.splice(l4.begin(), l5, l4.begin()), "");
       EXPECT_ASSERTION(l4.splice(l4.begin(), l5, l4.begin(), l5.end()), "");
       EXPECT_ASSERTION(l4.splice(l4.begin(), l5, l5.end(), --l5.end()), "");
@@ -1328,16 +1369,20 @@ struct ComplianceMerge {
       }
 
       // l2 and l3 are not sorted "greater"
-      EXPECT_ASSERTION(l2.merge(
-        l3, std::greater<typename _List::value_type>()), "");
-
+      if (void(0), TestAssertCompliance<_List>::kValue) {
+        EXPECT_ASSERTION(l2.merge(
+          l3, std::greater<typename _List::value_type>()), "");
+      }
+      
       // So sort l2
       l2.sort(std::greater<typename _List::value_type>());
 
       // l3 is still not sorted  "greater"
-      EXPECT_ASSERTION(l2.merge(
-        l3, std::greater<typename _List::value_type>()), "");
-
+      if (void(0), TestAssertCompliance<_List>::kValue) {
+        EXPECT_ASSERTION(l2.merge(
+          l3, std::greater<typename _List::value_type>()), "");
+      }
+      
       // So sort l3
       l3.sort(std::greater<typename _List::value_type>());
 
@@ -1513,7 +1558,7 @@ TEST(SafeLink, IntrusiveList) {
   EXPECT_FALSE(obj.is_linked());
 
   { // Test link state
-    List l;
+    List l, other;
 
 #ifndef NDEBUG
     EXPECT_FALSE(obj.debug_is_linked_in(l));
@@ -1524,7 +1569,7 @@ TEST(SafeLink, IntrusiveList) {
 
 #ifndef NDEBUG
     EXPECT_TRUE(obj.debug_is_linked_in(l));
-    EXPECT_FALSE(obj.debug_is_linked_in(List()));
+    EXPECT_FALSE(obj.debug_is_linked_in(other));
 #endif  // NDEBUG
 
     // Cannot be pushed twice
@@ -1538,17 +1583,11 @@ TEST(SafeLink, IntrusiveList) {
   }
 
   // Destroy the list before the hook
-  EXPECT_ASSERTION({
-    List l;
-    l.push_front(obj);
-  }, "");
+  EXPECT_ASSERTION({List l; l.push_front(obj); }, "");
 
   { // Destroy the hook before the list
     List l;
-    EXPECT_ASSERTION({
-      LocalTestObj obj2;
-      l.push_front(obj2);
-    }, "");
+    EXPECT_ASSERTION({LocalTestObj obj2; l.push_front(obj2); }, "");
   }
 }
 
@@ -1562,7 +1601,7 @@ TEST(AutoLink, IntrusiveList) {
   EXPECT_TRUE(!obj.is_linked());
 
   { // Test link state
-    List l;
+    List l, other;
 
 #ifndef NDEBUG
     EXPECT_TRUE(!obj.debug_is_linked_in(l));
@@ -1573,7 +1612,7 @@ TEST(AutoLink, IntrusiveList) {
 
 #ifndef NDEBUG
     EXPECT_TRUE(obj.debug_is_linked_in(l));
-    EXPECT_TRUE(!obj.debug_is_linked_in(List()));
+    EXPECT_TRUE(!obj.debug_is_linked_in(other));
 #endif  // NDEBUG
 
     // Cannot be pushed twice
@@ -1612,7 +1651,7 @@ TEST(UnsafeLink, IntrusiveList) {
   EXPECT_TRUE(!obj.is_linked());
 
   { // Test link state
-    List l;
+    List l, other;
 
 #ifndef NDEBUG
     EXPECT_TRUE(!obj.debug_is_linked_in(l));
@@ -1623,7 +1662,7 @@ TEST(UnsafeLink, IntrusiveList) {
 
 #ifndef NDEBUG
     EXPECT_TRUE(obj.debug_is_linked_in(l));
-    EXPECT_TRUE(!obj.debug_is_linked_in(List()));
+    EXPECT_TRUE(!obj.debug_is_linked_in(other));
 #endif  // NDEBUG
 
     // Cannot be pushed twice

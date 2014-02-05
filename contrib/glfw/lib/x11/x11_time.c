@@ -30,6 +30,33 @@
 
 #include "internal.h"
 
+#include <time.h>
+
+
+//========================================================================
+// Return raw time
+//========================================================================
+
+static uint64_t getRawTime(void)
+{
+#if defined( CLOCK_MONOTONIC )
+    if( _glfwLibrary.Timer.monotonic )
+    {
+        struct timespec ts;
+
+        clock_gettime( CLOCK_MONOTONIC, &ts );
+        return (uint64_t) ts.tv_sec * (uint64_t) 1000000000 + (uint64_t) ts.tv_nsec;
+    }
+    else
+#endif
+    {
+        struct timeval tv;
+
+        gettimeofday( &tv, NULL );
+        return (uint64_t) tv.tv_sec * (uint64_t) 1000000 + (uint64_t) tv.tv_usec;
+    }
+}
+
 
 //========================================================================
 // Initialise timer
@@ -37,15 +64,21 @@
 
 void _glfwInitTimer( void )
 {
-    struct timeval  tv;
+#if defined( CLOCK_MONOTONIC )
+    struct timespec ts;
 
-    // "Resolution" is 1 us
-    _glfwLibrary.Timer.resolution = 1e-6;
+    if( clock_gettime( CLOCK_MONOTONIC, &ts ) == 0 )
+    {
+        _glfwLibrary.Timer.monotonic = GL_TRUE;
+        _glfwLibrary.Timer.resolution = 1e-9;
+    }
+    else
+#endif
+    {
+        _glfwLibrary.Timer.resolution = 1e-6;
+    }
 
-    // Set start-time for timer
-    gettimeofday( &tv, NULL );
-    _glfwLibrary.Timer.t0 = (long long) tv.tv_sec * (long long) 1000000 +
-		            (long long) tv.tv_usec;
+    _glfwLibrary.Timer.base = getRawTime();
 }
 
 
@@ -59,14 +92,8 @@ void _glfwInitTimer( void )
 
 double _glfwPlatformGetTime( void )
 {
-    long long t;
-    struct timeval  tv;
-
-    gettimeofday( &tv, NULL );
-    t = (long long) tv.tv_sec * (long long) 1000000 +
-	(long long) tv.tv_usec;
-
-    return (double)(t - _glfwLibrary.Timer.t0) * _glfwLibrary.Timer.resolution;
+    return (double) (getRawTime() - _glfwLibrary.Timer.base) *
+        _glfwLibrary.Timer.resolution;
 }
 
 
@@ -74,17 +101,10 @@ double _glfwPlatformGetTime( void )
 // Set timer value in seconds
 //========================================================================
 
-void _glfwPlatformSetTime( double t )
+void _glfwPlatformSetTime( double time )
 {
-    long long t0;
-    struct timeval  tv;
-
-    gettimeofday( &tv, NULL );
-    t0 = (long long) tv.tv_sec * (long long) 1000000 +
-	 (long long) tv.tv_usec;
-
-    // Calulate new starting time
-    _glfwLibrary.Timer.t0 = t0 - (long long)(t/_glfwLibrary.Timer.resolution);
+    _glfwLibrary.Timer.base = getRawTime() -
+        (uint64_t) (time / _glfwLibrary.Timer.resolution);
 }
 
 

@@ -36,6 +36,11 @@
 
 // This line ensures that gtest.h can be compiled on its own, even
 // when it's fused.
+
+#ifdef _MSC_VER
+#pragma warning(disable:4702)  // Disables "unreachable code warning"
+#endif //  _MSC_VER
+
 #include <gtest/gtest.h>
 
 // The following lines pull in the real gtest *.cc files.
@@ -108,7 +113,6 @@
 
 #ifndef GTEST_INCLUDE_GTEST_GTEST_SPI_H_
 #define GTEST_INCLUDE_GTEST_GTEST_SPI_H_
-
 
 namespace testing {
 
@@ -594,7 +598,6 @@ class GTestFlagSaver {
   bool list_tests_;
   String output_;
   bool print_time_;
-  bool pretty_;
   internal::Int32 random_seed_;
   internal::Int32 repeat_;
   bool shuffle_;
@@ -4942,7 +4945,7 @@ void UnitTest::AddTestPartResult(TestPartResult::Type result_type,
       // the --gtest_catch_exceptions flags are specified.
       DebugBreak();
 #else
-      *static_cast<int*>(NULL) = 1;
+      *static_cast<volatile int*>(NULL) = 1;
 #endif  // GTEST_OS_WINDOWS
     } else if (GTEST_FLAG(throw_on_failure)) {
 #if GTEST_HAS_EXCEPTIONS

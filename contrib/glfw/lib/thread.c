@@ -37,7 +37,7 @@
 //************************************************************************
 
 //========================================================================
-// _glfwGetThreadPointer() - Find pointer to thread with a matching ID
+// Find pointer to thread with a matching ID
 //========================================================================
 
 _GLFWthread * _glfwGetThreadPointer( int ID )
@@ -57,7 +57,7 @@ _GLFWthread * _glfwGetThreadPointer( int ID )
 
 
 //========================================================================
-// _glfwAppendThread() - Append thread to thread list
+// Append thread to thread list
 //========================================================================
 
 void _glfwAppendThread( _GLFWthread * t )
@@ -76,7 +76,7 @@ void _glfwAppendThread( _GLFWthread * t )
 
 
 //========================================================================
-// _glfwRemoveThread() - Remove thread from thread list
+// Remove thread from thread list
 //========================================================================
 
 void _glfwRemoveThread( _GLFWthread * t )
@@ -99,11 +99,11 @@ void _glfwRemoveThread( _GLFWthread * t )
 //************************************************************************
 
 //========================================================================
-// glfwCreateThread() - Create a new thread
+// Create a new thread
 //========================================================================
 
 GLFWAPI GLFWthread GLFWAPIENTRY glfwCreateThread( GLFWthreadfun fun,
-    void *arg )
+                                                  void *arg )
 {
     // Is GLFW initialized?
     if( !_glfwInitialized )
@@ -117,8 +117,8 @@ GLFWAPI GLFWthread GLFWAPIENTRY glfwCreateThread( GLFWthreadfun fun,
 
 
 //========================================================================
-// glfwDestroyThread() - Kill a thread. NOTE: THIS IS A VERY DANGEROUS
-// OPERATION, AND SHOULD NOT BE USED EXCEPT IN EXTREME SITUATIONS!
+// Kill a thread. NOTE: THIS IS A VERY DANGEROUS OPERATION, AND SHOULD NOT
+// BE USED EXCEPT IN EXTREME SITUATIONS!
 //========================================================================
 
 GLFWAPI void GLFWAPIENTRY glfwDestroyThread( GLFWthread ID )
@@ -140,7 +140,7 @@ GLFWAPI void GLFWAPIENTRY glfwDestroyThread( GLFWthread ID )
 
 
 //========================================================================
-// glfwWaitThread() - Wait for a thread to die
+// Wait for a thread to die
 //========================================================================
 
 GLFWAPI int GLFWAPIENTRY glfwWaitThread( GLFWthread ID, int waitmode )
@@ -162,7 +162,7 @@ GLFWAPI int GLFWAPIENTRY glfwWaitThread( GLFWthread ID, int waitmode )
 
 
 //========================================================================
-// glfwGetThreadID() - Return the thread ID for the current thread
+// Return the thread ID for the current thread
 //========================================================================
 
 GLFWAPI GLFWthread GLFWAPIENTRY glfwGetThreadID( void )
@@ -178,7 +178,7 @@ GLFWAPI GLFWthread GLFWAPIENTRY glfwGetThreadID( void )
 
 
 //========================================================================
-// glfwCreateMutex() - Create a mutual exclusion object
+// Create a mutual exclusion object
 //========================================================================
 
 GLFWAPI GLFWmutex GLFWAPIENTRY glfwCreateMutex( void )
@@ -194,7 +194,7 @@ GLFWAPI GLFWmutex GLFWAPIENTRY glfwCreateMutex( void )
 
 
 //========================================================================
-// glfwDestroyMutex() - Destroy a mutual exclusion object
+// Destroy a mutual exclusion object
 //========================================================================
 
 GLFWAPI void GLFWAPIENTRY glfwDestroyMutex( GLFWmutex mutex )
@@ -210,7 +210,7 @@ GLFWAPI void GLFWAPIENTRY glfwDestroyMutex( GLFWmutex mutex )
 
 
 //========================================================================
-// glfwLockMutex() - Request access to a mutex
+// Request access to a mutex
 //========================================================================
 
 GLFWAPI void GLFWAPIENTRY glfwLockMutex( GLFWmutex mutex )
@@ -226,7 +226,7 @@ GLFWAPI void GLFWAPIENTRY glfwLockMutex( GLFWmutex mutex )
 
 
 //========================================================================
-// glfwUnlockMutex() - Release a mutex
+// Release a mutex
 //========================================================================
 
 GLFWAPI void GLFWAPIENTRY glfwUnlockMutex( GLFWmutex mutex )
@@ -242,7 +242,7 @@ GLFWAPI void GLFWAPIENTRY glfwUnlockMutex( GLFWmutex mutex )
 
 
 //========================================================================
-// glfwCreateCond() - Create a new condition variable object
+// Create a new condition variable object
 //========================================================================
 
 GLFWAPI GLFWcond GLFWAPIENTRY glfwCreateCond( void )
@@ -258,7 +258,7 @@ GLFWAPI GLFWcond GLFWAPIENTRY glfwCreateCond( void )
 
 
 //========================================================================
-// glfwDestroyCond() - Destroy a condition variable object
+// Destroy a condition variable object
 //========================================================================
 
 GLFWAPI void GLFWAPIENTRY glfwDestroyCond( GLFWcond cond )
@@ -274,11 +274,11 @@ GLFWAPI void GLFWAPIENTRY glfwDestroyCond( GLFWcond cond )
 
 
 //========================================================================
-// glfwWaitCond() - Wait for a condition to be raised
+// Wait for a condition to be raised
 //========================================================================
 
 GLFWAPI void GLFWAPIENTRY glfwWaitCond( GLFWcond cond, GLFWmutex mutex,
-    double timeout )
+                                        double timeout )
 {
     // Initialized & valid condition variable and mutex?
     if( !_glfwInitialized || !cond || !mutex )
@@ -291,7 +291,7 @@ GLFWAPI void GLFWAPIENTRY glfwWaitCond( GLFWcond cond, GLFWmutex mutex,
 
 
 //========================================================================
-// glfwSignalCond() - Signal a condition to one waiting thread
+// Signal a condition to one waiting thread
 //========================================================================
 
 GLFWAPI void GLFWAPIENTRY glfwSignalCond( GLFWcond cond )
@@ -307,7 +307,7 @@ GLFWAPI void GLFWAPIENTRY glfwSignalCond( GLFWcond cond )
 
 
 //========================================================================
-// glfwBroadcastCond() - Broadcast a condition to all waiting threads
+// Broadcast a condition to all waiting threads
 //========================================================================
 
 GLFWAPI void GLFWAPIENTRY glfwBroadcastCond( GLFWcond cond )
@@ -323,9 +323,9 @@ GLFWAPI void GLFWAPIENTRY glfwBroadcastCond( GLFWcond cond )
 
 
 //========================================================================
-// glfwGetNumberOfProcessors() - Return the number of processors in the
-// system. This information can be useful for determining the optimal
-// number of threads to use for performing a certain task.
+// Return the number of processors in the system. This information can be
+// useful for determining the optimal number of threads to use for
+// performing a certain task.
 //========================================================================
 
 GLFWAPI int GLFWAPIENTRY glfwGetNumberOfProcessors( void )
@@ -338,3 +338,4 @@ GLFWAPI int GLFWAPIENTRY glfwGetNumberOfProcessors( void )
 
     return _glfwPlatformGetNumberOfProcessors();
 }
+

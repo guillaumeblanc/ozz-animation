@@ -7,5 +7,5 @@ Name: GLFW
 Description: A portable framework for OpenGL development
 Version: 2.7
 URL: http://www.glfw.org/
-Libs: -L${libdir} -lglfw -framework Cocoa -framework OpenGL
+Libs: -L${libdir} -lglfw -framework Cocoa -framework OpenGL -framework IOKit
 Cflags: -I${includedir}

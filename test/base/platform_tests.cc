@@ -1,5 +1,11 @@
 //============================================================================//
-// Copyright (c) <2012> <Guillaume Blanc>                                     //
+//                                                                            //
+// ozz-animation, 3d skeletal animation libraries and tools.                  //
+// https://code.google.com/p/ozz-animation/                                   //
+//                                                                            //
+//----------------------------------------------------------------------------//
+//                                                                            //
+// Copyright (c) 2012-2014 Guillaume Blanc                                    //
 //                                                                            //
 // This software is provided 'as-is', without any express or implied          //
 // warranty. In no event will the authors be held liable for any damages      //
@@ -19,6 +25,7 @@
 //                                                                            //
 // 3. This notice may not be removed or altered from any source               //
 // distribution.                                                              //
+//                                                                            //
 //============================================================================//
 
 #include "ozz/base/platform.h"
@@ -27,6 +34,7 @@
 #include <climits>
 
 #include "gtest/gtest.h"
+#include "ozz/base/gtest_helper.h"
 
 TEST(StaticAssertion, Platform) {
   OZZ_STATIC_ASSERT(2 == 2);
@@ -76,10 +84,6 @@ TEST(TypeSize, Platform) {
   OZZ_STATIC_ASSERT((ozz::uint32(-1) >> 1) == 0x7fffffff);
   OZZ_STATIC_ASSERT((ozz::uint64(-1) >> 1) == 0x7fffffffffffffffLL);
 
-  
-#if __WORDSIZE == 8
-#endif 
-
   // Assumes that an "int" is at least 32 bits.
   OZZ_STATIC_ASSERT(sizeof(int) >= 4);
 
@@ -101,4 +105,48 @@ TEST(ArraySize, Platform) {
   char ac[] = "forty six";
   (void)ac;
   OZZ_STATIC_ASSERT(OZZ_ARRAY_SIZE(ac) == 10);
+}
+
+TEST(Range, Memory) {
+  int ai[46];
+  const int array_size = OZZ_ARRAY_SIZE(ai);
+
+  ozz::Range<int> empty;
+  EXPECT_TRUE(empty.begin == NULL);
+  EXPECT_TRUE(empty.end == NULL);
+  EXPECT_EQ(empty.Size(), 0);
+
+  EXPECT_ASSERTION(empty[46], "Index out of range");
+
+  ozz::Range<int> cs1(ai, ai + array_size);
+  EXPECT_EQ(cs1.begin, ai);
+  EXPECT_EQ(cs1.end, ai + array_size);
+  EXPECT_EQ(cs1.Size(), array_size);
+
+  cs1[12] = 46;
+  EXPECT_EQ(cs1[12], 46);
+  EXPECT_ASSERTION(cs1[46], "Index out of range");
+
+  ozz::Range<int> cs2(ai, array_size);
+  EXPECT_EQ(cs2.begin, ai);
+  EXPECT_EQ(cs2.end, ai + array_size);
+  EXPECT_EQ(cs2.Size(), array_size);
+
+  ozz::Range<int> carray(ai);
+  EXPECT_EQ(carray.begin, ai);
+  EXPECT_EQ(carray.end, ai + array_size);
+  EXPECT_EQ(carray.Size(), array_size);
+
+  ozz::Range<int> copy(cs2);
+  EXPECT_EQ(cs2.begin, copy.begin);
+  EXPECT_EQ(cs2.end, copy.end);
+  EXPECT_EQ(cs2.Size(), copy.Size());
+
+  ozz::Range<const int> const_copy(cs2);
+  EXPECT_EQ(cs2.begin, const_copy.begin);
+  EXPECT_EQ(cs2.end, const_copy.end);
+  EXPECT_EQ(cs2.Size(), const_copy.Size());
+
+  EXPECT_EQ(cs2[12], 46);
+  EXPECT_ASSERTION(cs2[46], "Index out of range");
 }

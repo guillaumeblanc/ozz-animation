@@ -37,14 +37,8 @@ install: libglfw.a libglfw.pc
 ##########################################################################
 # Install GLFW static and shared libraries
 ##########################################################################
-dist-install: libglfw.a libglfw.so libglfw.pc
-	$(INSTALL) -d $(PREFIX)/lib
-	$(INSTALL) -c -m 644 libglfw.a $(PREFIX)/lib/libglfw.a
+dist-install: libglfw.so install
 	$(INSTALL) -c -m 644 libglfw.so $(PREFIX)/lib/libglfw.so
-	$(INSTALL) -d $(PREFIX)/include/GL
-	$(INSTALL) -c -m 644 ../../include/GL/glfw.h $(PREFIX)/include/GL/glfw.h
-	$(INSTALL) -d $(PREFIX)/lib/pkgconfig
-	$(INSTALL) -c -m 644 libglfw.pc $(PREFIX)/lib/pkgconfig/libglfw.pc
 
 
 ##########################################################################

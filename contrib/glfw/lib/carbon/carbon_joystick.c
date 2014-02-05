@@ -33,16 +33,32 @@
 
 // TO DO: use HID manager to implement joystick support.
 
+//************************************************************************
+//****               Platform implementation functions                ****
+//************************************************************************
+
+//========================================================================
+// Determine joystick capabilities
+//========================================================================
+
 int _glfwPlatformGetJoystickParam( int joy, int param )
 {
     // GL_FALSE == 0
     return 0;
 }
 
+//========================================================================
+// Get joystick axis positions
+//========================================================================
+
 int _glfwPlatformGetJoystickPos( int joy, float *pos, int numaxes )
 {
     return 0;
 }
+
+//========================================================================
+// Get joystick button states
+//========================================================================
 
 int _glfwPlatformGetJoystickButtons( int joy, unsigned char *buttons, int numbuttons )
 {

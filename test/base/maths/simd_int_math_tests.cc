@@ -1,5 +1,11 @@
 //============================================================================//
-// Copyright (c) <2012> <Guillaume Blanc>                                     //
+//                                                                            //
+// ozz-animation, 3d skeletal animation libraries and tools.                  //
+// https://code.google.com/p/ozz-animation/                                   //
+//                                                                            //
+//----------------------------------------------------------------------------//
+//                                                                            //
+// Copyright (c) 2012-2014 Guillaume Blanc                                    //
 //                                                                            //
 // This software is provided 'as-is', without any express or implied          //
 // warranty. In no event will the authors be held liable for any damages      //
@@ -19,6 +25,7 @@
 //                                                                            //
 // 3. This notice may not be removed or altered from any source               //
 // distribution.                                                              //
+//                                                                            //
 //============================================================================//
 
 #include "ozz/base/maths/simd_math.h"
@@ -121,6 +128,10 @@ TEST(SetInt, ozz_simd_math) {
 
   const SimdInt4 m = ozz::math::SetW(i, -31);
   EXPECT_SIMDINT_EQ(m, 1, -1, 2, -31);
+
+  EXPECT_ASSERTION(ozz::math::SetI(i, 7, 46), "range");
+  const SimdInt4 i3 = ozz::math::SetI(i, 2, 46);
+  EXPECT_SIMDINT_EQ(i3, 1, -1, 46, -3);
 }
 
 TEST(StoreIntPtr, ozz_simd_math) {
@@ -313,6 +324,12 @@ TEST(CompareInt, ozz_simd_math) {
 
   const SimdInt4 max = ozz::math::Max(a, b);
   EXPECT_SIMDINT_EQ(max, 4, 1, 2, 7);
+
+  const SimdInt4 min0 = ozz::math::Min0(b);
+  EXPECT_SIMDINT_EQ(min0, 0, 0, -6, 0);
+
+  const SimdInt4 max0 = ozz::math::Max0(b);
+  EXPECT_SIMDINT_EQ(max0, 4, 1, 0, 7);
 
   EXPECT_SIMDINT_EQ(ozz::math::Clamp(a, ozz::math::simd_int4::Load(-12, 2, 9, 3), c), 0, 2, 6, 3);
 

@@ -1,5 +1,11 @@
 //============================================================================//
-// Copyright (c) <2012> <Guillaume Blanc>                                     //
+//                                                                            //
+// ozz-animation, 3d skeletal animation libraries and tools.                  //
+// https://code.google.com/p/ozz-animation/                                   //
+//                                                                            //
+//----------------------------------------------------------------------------//
+//                                                                            //
+// Copyright (c) 2012-2014 Guillaume Blanc                                    //
 //                                                                            //
 // This software is provided 'as-is', without any express or implied          //
 // warranty. In no event will the authors be held liable for any damages      //
@@ -19,6 +25,7 @@
 //                                                                            //
 // 3. This notice may not be removed or altered from any source               //
 // distribution.                                                              //
+//                                                                            //
 //============================================================================//
 
 #include "ozz/base/maths/soa_float.h"
@@ -142,18 +149,18 @@ TEST(Constant2, SoaFloat) {
 }
 
 TEST(Arithmetic4, SoaFloat) {
-  const SoaFloat4 a = SoaFloat4::Load(ozz::math::simd_float4::Load(.5f, 1.f, 2.f, 3.f),
-                                      ozz::math::simd_float4::Load(4.f, 5.f, 6.f, 7.f),
-                                      ozz::math::simd_float4::Load(8.f, 9.f, 10.f, 11.f),
-                                      ozz::math::simd_float4::Load(12.f, 13.f, 14.f, 15.f));
-  const SoaFloat4 b = SoaFloat4::Load(ozz::math::simd_float4::Load(-.5f, -1.f, -2.f, -3.f),
-                                      ozz::math::simd_float4::Load(-4.f, -5.f, -6.f, -7.f),
-                                      ozz::math::simd_float4::Load(-8.f, -9.f, -10.f, -11.f),
-                                      ozz::math::simd_float4::Load(-12.f, -13.f, -14.f, -15.f));
-  const SoaFloat4 c = SoaFloat4::Load(ozz::math::simd_float4::Load(.05f, .1f, .2f, .3f),
-                                      ozz::math::simd_float4::Load(.4f, .5f, .6f, .7f),
-                                      ozz::math::simd_float4::Load(.8f, .9f, 1.f, 1.1f),
-                                      ozz::math::simd_float4::Load(1.2f, 1.3f, 1.4f, 1.5f));
+  const SoaFloat4 a = {ozz::math::simd_float4::Load(.5f, 1.f, 2.f, 3.f),
+                       ozz::math::simd_float4::Load(4.f, 5.f, 6.f, 7.f),
+                       ozz::math::simd_float4::Load(8.f, 9.f, 10.f, 11.f),
+                       ozz::math::simd_float4::Load(12.f, 13.f, 14.f, 15.f)};
+  const SoaFloat4 b = {ozz::math::simd_float4::Load(-.5f, -1.f, -2.f, -3.f),
+                       ozz::math::simd_float4::Load(-4.f, -5.f, -6.f, -7.f),
+                       ozz::math::simd_float4::Load(-8.f, -9.f, -10.f, -11.f),
+                       ozz::math::simd_float4::Load(-12.f, -13.f, -14.f, -15.f)};
+  const SoaFloat4 c = {ozz::math::simd_float4::Load(.05f, .1f, .2f, .3f),
+                       ozz::math::simd_float4::Load(.4f, .5f, .6f, .7f),
+                       ozz::math::simd_float4::Load(.8f, .9f, 1.f, 1.1f),
+                       ozz::math::simd_float4::Load(1.2f, 1.3f, 1.4f, 1.5f)};
 
   const SoaFloat4 add = a + b;
   EXPECT_SOAFLOAT4_EQ(add, 0.f, 0.f, 0.f, 0.f,
@@ -261,15 +268,15 @@ TEST(Arithmetic4, SoaFloat) {
 }
 
 TEST(Arithmetic3, SoaFloat) {
-  const SoaFloat3 a = SoaFloat3::Load(ozz::math::simd_float4::Load(.5f, 1.f, 2.f, 3.f),
-                                      ozz::math::simd_float4::Load(4.f, 5.f, 6.f, 7.f),
-                                      ozz::math::simd_float4::Load(8.f, 9.f, 10.f, 11.f));
-  const SoaFloat3 b = SoaFloat3::Load(ozz::math::simd_float4::Load(-.5f, -1.f, -2.f, -3.f),
-                                      ozz::math::simd_float4::Load(-4.f, -5.f, -6.f, -7.f),
-                                      ozz::math::simd_float4::Load(-8.f, -9.f, -10.f, -11.f));
-  const SoaFloat3 c = SoaFloat3::Load(ozz::math::simd_float4::Load(.05f, .1f, .2f, .3f),
-                                      ozz::math::simd_float4::Load(.4f, .5f, .6f, .7f),
-                                      ozz::math::simd_float4::Load(.8f, .9f, 1.f, 1.1f));
+  const SoaFloat3 a = {ozz::math::simd_float4::Load(.5f, 1.f, 2.f, 3.f),
+                       ozz::math::simd_float4::Load(4.f, 5.f, 6.f, 7.f),
+                       ozz::math::simd_float4::Load(8.f, 9.f, 10.f, 11.f)};
+  const SoaFloat3 b = {ozz::math::simd_float4::Load(-.5f, -1.f, -2.f, -3.f),
+                       ozz::math::simd_float4::Load(-4.f, -5.f, -6.f, -7.f),
+                       ozz::math::simd_float4::Load(-8.f, -9.f, -10.f, -11.f)};
+  const SoaFloat3 c = {ozz::math::simd_float4::Load(.05f, .1f, .2f, .3f),
+                       ozz::math::simd_float4::Load(.4f, .5f, .6f, .7f),
+                       ozz::math::simd_float4::Load(.8f, .9f, 1.f, 1.1f)};
 
   const SoaFloat3 add = a + b;
   EXPECT_SOAFLOAT3_EQ(add, 0.f, 0.f, 0.f, 0.f,
@@ -368,12 +375,12 @@ TEST(Arithmetic3, SoaFloat) {
 }
 
 TEST(Arithmetic2, SoaFloat) {
-  const SoaFloat2 a = SoaFloat2::Load(ozz::math::simd_float4::Load(.5f, 1.f, 2.f, 3.f),
-                                      ozz::math::simd_float4::Load(4.f, 5.f, 6.f, 7.f));
-  const SoaFloat2 b = SoaFloat2::Load(ozz::math::simd_float4::Load(-.5f, -1.f, -2.f, -3.f),
-                                      ozz::math::simd_float4::Load(-4.f, -5.f, -6.f, -7.f));
-  const SoaFloat2 c = SoaFloat2::Load(ozz::math::simd_float4::Load(.05f, .1f, .2f, .3f),
-                                      ozz::math::simd_float4::Load(.4f, .5f, .6f, .7f));
+  const SoaFloat2 a = {ozz::math::simd_float4::Load(.5f, 1.f, 2.f, 3.f),
+                       ozz::math::simd_float4::Load(4.f, 5.f, 6.f, 7.f)};
+  const SoaFloat2 b = {ozz::math::simd_float4::Load(-.5f, -1.f, -2.f, -3.f),
+                       ozz::math::simd_float4::Load(-4.f, -5.f, -6.f, -7.f)};
+  const SoaFloat2 c = {ozz::math::simd_float4::Load(.05f, .1f, .2f, .3f),
+                       ozz::math::simd_float4::Load(.4f, .5f, .6f, .7f)};
 
   const SoaFloat2 add = a + b;
   EXPECT_SOAFLOAT2_EQ(add, 0.f, 0.f, 0.f, 0.f,
@@ -453,18 +460,18 @@ TEST(Arithmetic2, SoaFloat) {
 }
 
 TEST(Comparison4, SoaFloat) {
-  const SoaFloat4 a = SoaFloat4::Load(ozz::math::simd_float4::Load(.5f, 1.f, 2.f, 3.f),
-                                      ozz::math::simd_float4::Load(1.f, 5.f, 6.f, 7.f),
-                                      ozz::math::simd_float4::Load(2.f, 9.f, 10.f, 11.f),
-                                      ozz::math::simd_float4::Load(3.f, 13.f, 14.f, 15.f));
-  const SoaFloat4 b = SoaFloat4::Load(ozz::math::simd_float4::Load(4.f, 3.f, 7.f, 3.f),
-                                      ozz::math::simd_float4::Load(2.f, -5.f, 6.f, 5.f),
-                                      ozz::math::simd_float4::Load(-6.f, 9.f, -10.f, 2.f),
-                                      ozz::math::simd_float4::Load(7.f, -8.f, 1.f, 5.f));
-  const SoaFloat4 c = SoaFloat4::Load(ozz::math::simd_float4::Load(7.5f, 12.f, 46.f, 31.f),
-                                      ozz::math::simd_float4::Load(1.f, 58.f, 16.f, 78.f),
-                                      ozz::math::simd_float4::Load(2.5f, 9.f, 111.f, 22.f),
-                                      ozz::math::simd_float4::Load(8.f, 23.f, 41.f, 18.f));
+  const SoaFloat4 a = {ozz::math::simd_float4::Load(.5f, 1.f, 2.f, 3.f),
+                       ozz::math::simd_float4::Load(1.f, 5.f, 6.f, 7.f),
+                       ozz::math::simd_float4::Load(2.f, 9.f, 10.f, 11.f),
+                       ozz::math::simd_float4::Load(3.f, 13.f, 14.f, 15.f)};
+  const SoaFloat4 b = {ozz::math::simd_float4::Load(4.f, 3.f, 7.f, 3.f),
+                       ozz::math::simd_float4::Load(2.f, -5.f, 6.f, 5.f),
+                       ozz::math::simd_float4::Load(-6.f, 9.f, -10.f, 2.f),
+                       ozz::math::simd_float4::Load(7.f, -8.f, 1.f, 5.f)};
+  const SoaFloat4 c = {ozz::math::simd_float4::Load(7.5f, 12.f, 46.f, 31.f),
+                       ozz::math::simd_float4::Load(1.f, 58.f, 16.f, 78.f),
+                       ozz::math::simd_float4::Load(2.5f, 9.f, 111.f, 22.f),
+                       ozz::math::simd_float4::Load(8.f, 23.f, 41.f, 18.f)};
   const SoaFloat4 min = Min(a, b);
   EXPECT_SOAFLOAT4_EQ(min, .5f, 1.f, 2.f, 3.f,
                            1.f, -5.f, 6.f, 5.f,
@@ -502,15 +509,15 @@ TEST(Comparison4, SoaFloat) {
 }
 
 TEST(Comparison3, SoaFloat) {
-  const SoaFloat3 a = SoaFloat3::Load(ozz::math::simd_float4::Load(.5f, 1.f, 2.f, 3.f),
-                                      ozz::math::simd_float4::Load(1.f, 5.f, 6.f, 7.f),
-                                      ozz::math::simd_float4::Load(2.f, 9.f, 10.f, 11.f));
-  const SoaFloat3 b = SoaFloat3::Load(ozz::math::simd_float4::Load(4.f, 3.f, 7.f, 3.f),
-                                      ozz::math::simd_float4::Load(2.f, -5.f, 6.f, 5.f),
-                                      ozz::math::simd_float4::Load(-6.f, 9.f, -10.f, 2.f));
-  const SoaFloat3 c = SoaFloat3::Load(ozz::math::simd_float4::Load(7.5f, 12.f, 46.f, 31.f),
-                                      ozz::math::simd_float4::Load(1.f, 58.f, 16.f, 78.f),
-                                      ozz::math::simd_float4::Load(2.5f, 9.f, 111.f, 22.f));
+  const SoaFloat3 a = {ozz::math::simd_float4::Load(.5f, 1.f, 2.f, 3.f),
+                       ozz::math::simd_float4::Load(1.f, 5.f, 6.f, 7.f),
+                       ozz::math::simd_float4::Load(2.f, 9.f, 10.f, 11.f)};
+  const SoaFloat3 b = {ozz::math::simd_float4::Load(4.f, 3.f, 7.f, 3.f),
+                       ozz::math::simd_float4::Load(2.f, -5.f, 6.f, 5.f),
+                       ozz::math::simd_float4::Load(-6.f, 9.f, -10.f, 2.f)};
+  const SoaFloat3 c = {ozz::math::simd_float4::Load(7.5f, 12.f, 46.f, 31.f),
+                       ozz::math::simd_float4::Load(1.f, 58.f, 16.f, 78.f),
+                       ozz::math::simd_float4::Load(2.5f, 9.f, 111.f, 22.f)};
   const SoaFloat3 min = Min(a, b);
   EXPECT_SOAFLOAT3_EQ(min, .5f, 1.f, 2.f, 3.f,
                            1.f, -5.f, 6.f, 5.f,
@@ -544,12 +551,12 @@ TEST(Comparison3, SoaFloat) {
 }
 
 TEST(Comparison2, SoaFloat) {
-  const SoaFloat2 a = SoaFloat2::Load(ozz::math::simd_float4::Load(.5f, 1.f, 2.f, 3.f),
-                                      ozz::math::simd_float4::Load(1.f, 5.f, 6.f, 7.f));
-  const SoaFloat2 b = SoaFloat2::Load(ozz::math::simd_float4::Load(4.f, 3.f, 7.f, 3.f),
-                                      ozz::math::simd_float4::Load(2.f, -5.f, 6.f, 5.f));
-  const SoaFloat2 c = SoaFloat2::Load(ozz::math::simd_float4::Load(7.5f, 12.f, 46.f, 31.f),
-                                      ozz::math::simd_float4::Load(1.f, 58.f, 16.f, 78.f));
+  const SoaFloat2 a = {ozz::math::simd_float4::Load(.5f, 1.f, 2.f, 3.f),
+                       ozz::math::simd_float4::Load(1.f, 5.f, 6.f, 7.f)};
+  const SoaFloat2 b = {ozz::math::simd_float4::Load(4.f, 3.f, 7.f, 3.f),
+                       ozz::math::simd_float4::Load(2.f, -5.f, 6.f, 5.f)};
+  const SoaFloat2 c = {ozz::math::simd_float4::Load(7.5f, 12.f, 46.f, 31.f),
+                       ozz::math::simd_float4::Load(1.f, 58.f, 16.f, 78.f)};
   const SoaFloat2 min = Min(a, b);
   EXPECT_SOAFLOAT2_EQ(min, .5f, 1.f, 2.f, 3.f,
                            1.f, -5.f, 6.f, 5.f);

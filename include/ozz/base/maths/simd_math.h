@@ -1,5 +1,11 @@
 //============================================================================//
-// Copyright (c) <2012> <Guillaume Blanc>                                     //
+//                                                                            //
+// ozz-animation, 3d skeletal animation libraries and tools.                  //
+// https://code.google.com/p/ozz-animation/                                   //
+//                                                                            //
+//----------------------------------------------------------------------------//
+//                                                                            //
+// Copyright (c) 2012-2014 Guillaume Blanc                                    //
 //                                                                            //
 // This software is provided 'as-is', without any express or implied          //
 // warranty. In no event will the authors be held liable for any damages      //
@@ -19,6 +25,7 @@
 //                                                                            //
 // 3. This notice may not be removed or altered from any source               //
 // distribution.                                                              //
+//                                                                            //
 //============================================================================//
 
 #ifndef OZZ_OZZ_BASE_MATHS_SIMD_MATH_H_
@@ -82,41 +89,6 @@ OZZ_INLINE SimdFloat4 Load1(float _x);
 // r.w = _f[3]
 OZZ_INLINE SimdFloat4 LoadPtr(const float* _f);
 
-// Loads _f[0] to the x component of the returned vector, and sets y, z and w
-// to 0.
-// _f must be aligned to 16 bytes.
-// r.x = _f[0]
-// r.y = 0
-// r.z = 0
-// r.w = 0
-OZZ_INLINE SimdFloat4 LoadXPtr(const float* _f);
-
-// Loads _f[0] to all the components of the returned vector.
-// _f must be aligned to 16 bytes.
-// r.x = _f[0]
-// r.y = _f[0]
-// r.z = _f[0]
-// r.w = _f[0]
-OZZ_INLINE SimdFloat4 Load1Ptr(const float* _f);
-
-// Loads the 2 first value of _f to the x and y components of the returned
-// vector. The remaining components are set to 0.
-// _f must be aligned to 16 bytes.
-// r.x = _f[0]
-// r.y = _f[1]
-// r.z = 0
-// r.w = 0
-OZZ_INLINE SimdFloat4 Load2Ptr(const float* _f);
-
-// Loads the 3 first value of _f to the x, y and z components of the returned
-// vector. The remaining components are set to 0.
-// _f must be aligned to 16 bytes.
-// r.x = _f[0]
-// r.y = _f[1]
-// r.z = _f[2]
-// r.w = 0
-OZZ_INLINE SimdFloat4 Load3Ptr(const float* _f);
-
 // Loads the 4 values of _f to the returned vector.
 // _f must be aligned to 4 bytes.
 // r.x = _f[0]
@@ -134,7 +106,7 @@ OZZ_INLINE SimdFloat4 LoadPtrU(const float* _f);
 // r.w = 0
 OZZ_INLINE SimdFloat4 LoadXPtrU(const float* _f);
 
-// Loads the 4 values of _f to the returned vector.
+// Loads _f[0] to all the components of the returned vector.
 // _f must be aligned to 4 bytes.
 // r.x = _f[0]
 // r.y = _f[0]
@@ -184,6 +156,10 @@ OZZ_INLINE SimdFloat4 SetZ(_SimdFloat4 _v, float _f);
 
 // Returns _v with the w component set to _f.
 OZZ_INLINE SimdFloat4 SetW(_SimdFloat4 _v, float _f);
+
+// Returns _v with the _i th component set to _f.
+// _i must be in range [0,3]
+OZZ_INLINE SimdFloat4 SetI(_SimdFloat4 _v, int _i, float _f);
 
 // Stores the 4 components of _v to the four first floats of _f.
 // _f must be aligned to 16 bytes.
@@ -394,6 +370,12 @@ OZZ_INLINE SimdFloat4 Min(_SimdFloat4 _a, _SimdFloat4 _b);
 
 // Returns the per component maximum of _a and _b.
 OZZ_INLINE SimdFloat4 Max(_SimdFloat4 _a, _SimdFloat4 _b);
+
+// Returns the per component minimum of _v and 0.
+OZZ_INLINE SimdFloat4 Min(_SimdFloat4 _v);
+
+// Returns the per component maximum of _v and 0.
+OZZ_INLINE SimdFloat4 Max0(_SimdFloat4 _v);
 
 // Clamps each element of _x between _a and _b.
 // Result is unknown if _a is not less or equal to _b.
@@ -796,6 +778,10 @@ OZZ_INLINE SimdInt4 SetZ(_SimdInt4 _v, int _i);
 // Returns _v with the w component set to _i.
 OZZ_INLINE SimdInt4 SetW(_SimdInt4 _v, int _i);
 
+// Returns _v with the _ith component set to _i.
+// _i must be in range [0,3]
+OZZ_INLINE SimdInt4 SetI(_SimdInt4 _v, int _ith, int _i);
+
 // Stores the 4 components of _v to the four first integers of _i.
 // _i must be aligned to 16 bytes.
 // _i[0] = _v.x
@@ -926,6 +912,12 @@ OZZ_INLINE SimdInt4 Min(_SimdInt4 _a, _SimdInt4 _b);
 
 // Returns the per component maximum of _a and _b.
 OZZ_INLINE SimdInt4 Max(_SimdInt4 _a, _SimdInt4 _b);
+
+// Returns the per component minimum of _v and 0.
+OZZ_INLINE SimdInt4 Min0(_SimdInt4 _v);
+
+// Returns the per component maximum of _v and 0.
+OZZ_INLINE SimdInt4 Max0(_SimdInt4 _v);
 
 // Clamps each element of _x between _a and _b.
 // Result is unknown if _a is not less or equal to _b.

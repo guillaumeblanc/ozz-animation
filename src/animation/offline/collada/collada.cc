@@ -1,5 +1,11 @@
 //============================================================================//
-// Copyright (c) <2012> <Guillaume Blanc>                                     //
+//                                                                            //
+// ozz-animation, 3d skeletal animation libraries and tools.                  //
+// https://code.google.com/p/ozz-animation/                                   //
+//                                                                            //
+//----------------------------------------------------------------------------//
+//                                                                            //
+// Copyright (c) 2012-2014 Guillaume Blanc                                    //
 //                                                                            //
 // This software is provided 'as-is', without any express or implied          //
 // warranty. In no event will the authors be held liable for any damages      //
@@ -19,10 +25,10 @@
 //                                                                            //
 // 3. This notice may not be removed or altered from any source               //
 // distribution.                                                              //
+//                                                                            //
 //============================================================================//
 
-// This file is allowed to include private headers.
-#define OZZ_INCLUDE_PRIVATE_HEADER
+#define OZZ_INCLUDE_PRIVATE_HEADER  // Allows to include private headers.
 
 #include "ozz/animation/offline/collada/collada.h"
 
@@ -35,7 +41,7 @@
 #include "ozz/base/memory/allocator.h"
 #include "ozz/base/io/stream.h"
 
-#include "ozz/animation/skeleton.h"
+#include "ozz/animation/runtime/skeleton.h"
 #include "ozz/animation/offline/animation_builder.h"
 #include "ozz/animation/offline/skeleton_builder.h"
 
@@ -67,11 +73,11 @@ char* LoadFileToString(const char* _filename) {
     file.Seek(0, io::Stream::kSet);
 
     // Allocates and read file.
-    content = memory::default_allocator().Allocate<char>(file_length + 1);
+    content = memory::default_allocator()->Allocate<char>(file_length + 1);
     content[file_length] = '\0';
     if (file.Read(content, file_length) != file_length) {
       log::Err() << "Failed to read file " << _filename << "." << std::endl;
-      memory::default_allocator().Deallocate(content);
+      memory::default_allocator()->Deallocate(content);
       content = NULL;
     }
   } else {
@@ -87,7 +93,7 @@ bool ImportFromFile(const char* _filename, RawSkeleton* _skeleton) {
   // Import xml from memory even if load from file has failed. ImportFromMemory
   // supports NULL argument and will fill output.
   bool success = ImportFromMemory(xml, _skeleton);
-  memory::default_allocator().Deallocate(xml);
+  memory::default_allocator()->Deallocate(xml);
   return success;
 }
 
@@ -146,7 +152,7 @@ bool ImportFromFile(const char* _filename, const Skeleton& _skeleton,
   // Import xml from memory even if load from file has failed. ImportFromMemory
   // supports NULL argument and will fill output.
   bool success = ImportFromMemory(xml, _skeleton, _animation);
-  memory::default_allocator().Deallocate(xml);
+  memory::default_allocator()->Deallocate(xml);
   return success;
 }
 

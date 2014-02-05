@@ -856,7 +856,7 @@ static struct codepair {
 //************************************************************************
 
 //========================================================================
-// _glfwKeySym2Unicode() - Convert X11 KeySym to Unicode
+// Convert X11 KeySym to Unicode
 //========================================================================
 
 long _glfwKeySym2Unicode( KeySym keysym )

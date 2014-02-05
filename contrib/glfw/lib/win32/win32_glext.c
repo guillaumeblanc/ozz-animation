@@ -30,6 +30,9 @@
 
 #include "internal.h"
 
+#ifdef _MSC_VER
+    #pragma warning(disable:4054)  // A function pointer is cast to a data pointer.
+#endif // _MSC8VER
 
 //************************************************************************
 //****               Platform implementation functions                ****

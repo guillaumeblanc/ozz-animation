@@ -90,8 +90,7 @@ typedef struct {
 
 
 //========================================================================
-// _glfwReadTGAHeader() - Read TGA file header (and check that it is
-// valid)
+// Read TGA file header (and check that it is valid)
 //========================================================================
 
 static int ReadTGAHeader( _GLFWstream *s, _tga_header_t *h )
@@ -151,7 +150,7 @@ static int ReadTGAHeader( _GLFWstream *s, _tga_header_t *h )
 //========================================================================
 
 static void ReadTGA_RLE( unsigned char *buf, int size, int bpp,
-    _GLFWstream *s )
+                         _GLFWstream *s )
 {
     int repcount, bytes, k, n;
     unsigned char pixel[ 4 ];
@@ -199,7 +198,7 @@ static void ReadTGA_RLE( unsigned char *buf, int size, int bpp,
 
 
 //========================================================================
-// _glfwReadTGA() - Read a TGA image from a file
+// Read a TGA image from a file
 //========================================================================
 
 int _glfwReadTGA( _GLFWstream *s, GLFWimage *img, int flags )

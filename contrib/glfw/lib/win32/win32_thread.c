@@ -60,8 +60,7 @@ typedef struct {
 //************************************************************************
 
 //========================================================================
-// _glfwNewThread() - This is simply a "wrapper" for calling the user
-// thread function.
+// This is simply a "wrapper" for calling the user thread function.
 //========================================================================
 
 DWORD WINAPI _glfwNewThread( LPVOID lpParam )
@@ -98,7 +97,7 @@ DWORD WINAPI _glfwNewThread( LPVOID lpParam )
 //************************************************************************
 
 //========================================================================
-// _glfwPlatformCreateThread() - Create a new thread
+// Create a new thread
 //========================================================================
 
 GLFWthread _glfwPlatformCreateThread( GLFWthreadfun fun, void *arg )
@@ -168,9 +167,8 @@ GLFWthread _glfwPlatformCreateThread( GLFWthreadfun fun, void *arg )
 
 
 //========================================================================
-// _glfwPlatformDestroyThread() - Kill a thread. NOTE: THIS IS A VERY
-// DANGEROUS OPERATION, AND SHOULD NOT BE USED EXCEPT IN EXTREME
-// SITUATIONS!
+// Kill a thread. NOTE: THIS IS A VERY DANGEROUS OPERATION, AND SHOULD NOT
+// BE USED EXCEPT IN EXTREME SITUATIONS!
 //========================================================================
 
 void _glfwPlatformDestroyThread( GLFWthread ID )
@@ -204,7 +202,7 @@ void _glfwPlatformDestroyThread( GLFWthread ID )
 
 
 //========================================================================
-// _glfwPlatformWaitThread() - Wait for a thread to die
+// Wait for a thread to die
 //========================================================================
 
 int _glfwPlatformWaitThread( GLFWthread ID, int waitmode )
@@ -256,8 +254,7 @@ int _glfwPlatformWaitThread( GLFWthread ID, int waitmode )
 
 
 //========================================================================
-// _glfwPlatformGetThreadID() - Return the thread ID for the current
-// thread
+// Return the thread ID for the current thread
 //========================================================================
 
 GLFWthread _glfwPlatformGetThreadID( void )
@@ -292,7 +289,7 @@ GLFWthread _glfwPlatformGetThreadID( void )
 
 
 //========================================================================
-// _glfwPlatformCreateMutex() - Create a mutual exclusion object
+// Create a mutual exclusion object
 //========================================================================
 
 GLFWmutex _glfwPlatformCreateMutex( void )
@@ -315,7 +312,7 @@ GLFWmutex _glfwPlatformCreateMutex( void )
 
 
 //========================================================================
-// glfwDestroyMutex() - Destroy a mutual exclusion object
+// Destroy a mutual exclusion object
 //========================================================================
 
 void _glfwPlatformDestroyMutex( GLFWmutex mutex )
@@ -327,7 +324,7 @@ void _glfwPlatformDestroyMutex( GLFWmutex mutex )
 
 
 //========================================================================
-// _glfwPlatformLockMutex() - Request access to a mutex
+// Request access to a mutex
 //========================================================================
 
 void _glfwPlatformLockMutex( GLFWmutex mutex )
@@ -338,7 +335,7 @@ void _glfwPlatformLockMutex( GLFWmutex mutex )
 
 
 //========================================================================
-// _glfwPlatformUnlockMutex() - Release a mutex
+// Release a mutex
 //========================================================================
 
 void _glfwPlatformUnlockMutex( GLFWmutex mutex )
@@ -349,7 +346,7 @@ void _glfwPlatformUnlockMutex( GLFWmutex mutex )
 
 
 //========================================================================
-// _glfwPlatformCreateCond() - Create a new condition variable object
+// Create a new condition variable object
 //========================================================================
 
 GLFWcond _glfwPlatformCreateCond( void )
@@ -377,7 +374,7 @@ GLFWcond _glfwPlatformCreateCond( void )
 
 
 //========================================================================
-// _glfwPlatformDestroyCond() - Destroy a condition variable object
+// Destroy a condition variable object
 //========================================================================
 
 void _glfwPlatformDestroyCond( GLFWcond cond )
@@ -395,11 +392,10 @@ void _glfwPlatformDestroyCond( GLFWcond cond )
 
 
 //========================================================================
-// _glfwPlatformWaitCond() - Wait for a condition to be raised
+// Wait for a condition to be raised
 //========================================================================
 
-void _glfwPlatformWaitCond( GLFWcond cond, GLFWmutex mutex,
-    double timeout )
+void _glfwPlatformWaitCond( GLFWcond cond, GLFWmutex mutex, double timeout )
 {
     _GLFWcond *cv = (_GLFWcond *) cond;
     int       result, last_waiter;
@@ -453,7 +449,7 @@ void _glfwPlatformWaitCond( GLFWcond cond, GLFWmutex mutex,
 
 
 //========================================================================
-// _glfwPlatformSignalCond() - Signal a condition to one waiting thread
+// Signal a condition to one waiting thread
 //========================================================================
 
 void _glfwPlatformSignalCond( GLFWcond cond )
@@ -474,8 +470,7 @@ void _glfwPlatformSignalCond( GLFWcond cond )
 
 
 //========================================================================
-// _glfwPlatformBroadcastCond() - Broadcast a condition to all waiting
-// threads
+// Broadcast a condition to all waiting threads
 //========================================================================
 
 void _glfwPlatformBroadcastCond( GLFWcond cond )
@@ -496,8 +491,7 @@ void _glfwPlatformBroadcastCond( GLFWcond cond )
 
 
 //========================================================================
-// _glfwPlatformGetNumberOfProcessors() - Return the number of processors
-// in the system.
+// Return the number of processors in the system.
 //========================================================================
 
 int _glfwPlatformGetNumberOfProcessors( void )
@@ -509,3 +503,4 @@ int _glfwPlatformGetNumberOfProcessors( void )
 
     return (int) si.dwNumberOfProcessors;
 }
+

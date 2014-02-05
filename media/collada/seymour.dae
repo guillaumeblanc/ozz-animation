@@ -1739,6 +1739,7 @@ dereferenceXRefs=0;cameraXFov=0;cameraYFov=1</comments>
           <rotate sid="jointOrientZ">0 0 1.000000 0</rotate>
           <rotate sid="jointOrientY">0 1.000000 0 0</rotate>
           <rotate sid="jointOrientX">1.000000 0 0 0</rotate>
+          <scale sid="scale">1.000000 1.000000 1.000000</scale>
           <node id="l_hip" name="l_hip" sid="l_hip" type="JOINT">
             <translate sid="translate">0.450181 0.049889 0.340342</translate>
             <rotate sid="jointOrientZ">0 0 1.000000 -81.926788</rotate>

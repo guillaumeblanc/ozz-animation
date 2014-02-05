@@ -18,7 +18,7 @@ VERMINOR = 7
 ##########################################################################
 CC         = gcc
 CFLAGS     = -c -I. -I.. -Wall -O2
-CFLAGS_DLL = $(CFLAGS) -mdll -DGLFW_BUILD_DLL
+CFLAGS_DLL = $(CFLAGS) -mdll -DGLFW_BUILD_DLL -D_GLFW_NO_DLOAD_GDI32 -D_GLFW_NO_DLOAD_WINMM
 
 HEADERS = ../../include/GL/glfw.h ../internal.h platform.h
 
@@ -30,9 +30,8 @@ MKLIB     = ar
 LIBFLAGS  = -rcs
 
 # DLL
-LINK      = dllwrap
 LINKFLAGS = -s -Wl,--major-image-version,$(VERMAJOR),--minor-image-version,$(VERMINOR)
-LINKLIBS  = -lopengl32
+LINKLIBS  = -lopengl32 -lwinmm -lgdi32
 
 DLLTOOL   = dlltool
 
@@ -124,11 +123,12 @@ libglfw.a: $(OBJS)
 	$(TARGET)$(MKLIB) $(LIBFLAGS) $@ $(OBJS) $(SYSOBJS)
 
 ##########################################################################
-# Rule for building dynamic library
+# Rules for building dynamic library
 ##########################################################################
 glfw.dll: $(DLLOBJS)
-	$(TARGET)$(LINK) --dllname $@ --def glfwdll_mgw1.def $(DLLOBJS) $(LINKFLAGS) $(LINKLIBS)
-	$(TARGET)$(DLLTOOL) --kill-at --output-lib libglfwdll.a --def glfwdll_mgw2.def
+	$(TARGET)$(CC) -shared -o $@ -Wl,--output-def,libglfwdll.def $(DLLOBJS) $(LINKLIBS)
+	$(TARGET)$(CC) -shared -o $@ -Wl,--kill-at $(DLLOBJS) $(LINKFLAGS) $(LINKLIBS)
+	$(TARGET)$(DLLTOOL) --kill-at --output-lib libglfwdll.a --dllname $@ --def libglfwdll.def
 
 libglfw.pc: libglfw.pc.in
 	$(SED) -e 's,\@PREFIX\@,$(PREFIX),' libglfw.pc.in > libglfw.pc

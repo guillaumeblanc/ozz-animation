@@ -1,5 +1,11 @@
 //============================================================================//
-// Copyright (c) <2012> <Guillaume Blanc>                                     //
+//                                                                            //
+// ozz-animation, 3d skeletal animation libraries and tools.                  //
+// https://code.google.com/p/ozz-animation/                                   //
+//                                                                            //
+//----------------------------------------------------------------------------//
+//                                                                            //
+// Copyright (c) 2012-2014 Guillaume Blanc                                    //
 //                                                                            //
 // This software is provided 'as-is', without any express or implied          //
 // warranty. In no event will the authors be held liable for any damages      //
@@ -19,6 +25,7 @@
 //                                                                            //
 // 3. This notice may not be removed or altered from any source               //
 // distribution.                                                              //
+//                                                                            //
 //============================================================================//
 
 #include "ozz/base/memory/allocator.h"
@@ -28,39 +35,60 @@
 #include "ozz/base/maths/math_ex.h"
 
 TEST(Malloc, Memory) {
-  void* p = ozz::memory::default_allocator().Allocate(12, 1024);
+  void* p = ozz::memory::default_allocator()->Allocate(12, 1024);
   EXPECT_TRUE(p != NULL);
   EXPECT_TRUE(ozz::math::IsAligned(p, 1024));
 
-  //memset(p, 0, 12);
+  // Fills allocated memory.
+  memset(p, 0, 12);
 
-  p = ozz::memory::default_allocator().Reallocate(p, 46, 4096);
+  p = ozz::memory::default_allocator()->Reallocate(p, 46, 4096);
   EXPECT_TRUE(p != NULL);
   EXPECT_TRUE(ozz::math::IsAligned(p, 4096));
 
+  // Fills allocated memory.
   memset(p, 0, 46);
 
-  ozz::memory::default_allocator().Deallocate(p);
+  ozz::memory::default_allocator()->Deallocate(p);
+}
+
+TEST(Range, Memory) {
+  ozz::Range<int> range = ozz::memory::default_allocator()->AllocateRange<int>(12);
+  EXPECT_TRUE(range.begin != NULL);
+  EXPECT_EQ(range.end, range.begin + 12);
+
+  // Fills allocated memory.
+  memset(range.begin, 0, sizeof(int) * 12);
+
+  range = ozz::memory::default_allocator()->Reallocate(range, 46);
+  EXPECT_TRUE(range.begin != NULL);
+  EXPECT_EQ(range.end, range.begin + 46);
+
+  // Fills allocated memory.
+  memset(range.begin, 0, sizeof(int) * 46);
+
+  ozz::memory::default_allocator()->Deallocate(range);
 }
 
 TEST(MallocCompliance, Memory) {
   { // Allocating 0 byte gives a valid pointer.
-    void* p = ozz::memory::default_allocator().Allocate(0, 1024);
+    void* p = ozz::memory::default_allocator()->Allocate(0, 1024);
     EXPECT_TRUE(p != NULL);
-    ozz::memory::default_allocator().Deallocate(p);
+    ozz::memory::default_allocator()->Deallocate(p);
   }
 
   { // Freeing of a NULL pointer is valid.
-    ozz::memory::default_allocator().Deallocate(NULL);
+    ozz::memory::default_allocator()->Deallocate(NULL);
   }
 
   { // Reallocating NULL pointer is valid
-    void* p = ozz::memory::default_allocator().Reallocate(NULL, 12, 1024);
+    void* p = ozz::memory::default_allocator()->Reallocate(NULL, 12, 1024);
     EXPECT_TRUE(p != NULL);
 
+  // Fills allocated memory.
     memset(p, 0, 12);
 
-    ozz::memory::default_allocator().Deallocate(p);
+    ozz::memory::default_allocator()->Deallocate(p);
   }
 }
 
@@ -100,48 +128,48 @@ struct AlignedInts {
 };
 
 TEST(TypedMalloc, Memory) {
-  AlignedInts* p = ozz::memory::default_allocator().Allocate<AlignedInts>(3);
+  AlignedInts* p = ozz::memory::default_allocator()->Allocate<AlignedInts>(3);
   EXPECT_TRUE(p != NULL);
   EXPECT_TRUE(ozz::math::IsAligned(p, ozz::AlignOf<AlignedInts>::value));
 
   memset(p, 0, sizeof(AlignedInts) * 3);
 
-  p = ozz::memory::default_allocator().Reallocate<AlignedInts>(p, 46);
+  p = ozz::memory::default_allocator()->Reallocate<AlignedInts>(p, 46);
   EXPECT_TRUE(p != NULL);
   EXPECT_TRUE(ozz::math::IsAligned(p, ozz::AlignOf<AlignedInts>::value));
 
   memset(p, 0, sizeof(AlignedInts) * 46);
 
-  ozz::memory::default_allocator().Deallocate(p);
+  ozz::memory::default_allocator()->Deallocate(p);
 }
 
-TEST(NeqwDelete, Memory) {
-  AlignedInts* ai0 = ozz::memory::default_allocator().New<AlignedInts>();
+TEST(NewDelete, Memory) {
+  AlignedInts* ai0 = ozz::memory::default_allocator()->New<AlignedInts>();
   ASSERT_TRUE(ai0 != NULL);
   for (int i = 0; i < ai0->array_size; i++) {
     EXPECT_EQ(ai0->array[i], i);
   }
-  ozz::memory::default_allocator().Delete(ai0);
+  ozz::memory::default_allocator()->Delete(ai0);
 
-  AlignedInts* ai1 = ozz::memory::default_allocator().New<AlignedInts>(46);
+  AlignedInts* ai1 = ozz::memory::default_allocator()->New<AlignedInts>(46);
   ASSERT_TRUE(ai1 != NULL);
   EXPECT_EQ(ai1->array[0], 46);
   for (int i = 1; i < ai1->array_size; i++) {
     EXPECT_EQ(ai1->array[i], i);
   }
-  ozz::memory::default_allocator().Delete(ai1);
+  ozz::memory::default_allocator()->Delete(ai1);
 
-  AlignedInts* ai2 = ozz::memory::default_allocator().New<AlignedInts>(46, 69);
+  AlignedInts* ai2 = ozz::memory::default_allocator()->New<AlignedInts>(46, 69);
   ASSERT_TRUE(ai2 != NULL);
   EXPECT_EQ(ai2->array[0], 46);
   EXPECT_EQ(ai2->array[1], 69);
   for (int i = 2; i < ai2->array_size; i++) {
     EXPECT_EQ(ai2->array[i], i);
   }
-  ozz::memory::default_allocator().Delete(ai2);
+  ozz::memory::default_allocator()->Delete(ai2);
 
 
-  AlignedInts* ai3 = ozz::memory::default_allocator().New<AlignedInts>(46, 69, 58);
+  AlignedInts* ai3 = ozz::memory::default_allocator()->New<AlignedInts>(46, 69, 58);
   ASSERT_TRUE(ai3 != NULL);
   EXPECT_EQ(ai3->array[0], 46);
   EXPECT_EQ(ai3->array[1], 69);
@@ -149,5 +177,5 @@ TEST(NeqwDelete, Memory) {
   for (int i = 3; i < ai3->array_size; i++) {
     EXPECT_EQ(ai3->array[i], i);
   }
-  ozz::memory::default_allocator().Delete(ai3);
+  ozz::memory::default_allocator()->Delete(ai3);
 }

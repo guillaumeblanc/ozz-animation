@@ -177,7 +177,9 @@ static int initDisplay( void )
 
     // Fullscreen & screen saver settings
     // Check if GLX is supported on this display
-    if( !glXQueryExtension( _glfwLibrary.display, NULL, NULL ) )
+    if( !glXQueryExtension( _glfwLibrary.display,
+                            &_glfwLibrary.GLX.errorBase,
+                            &_glfwLibrary.GLX.eventBase))
     {
         fprintf(stderr, "GLX not supported\n");
         return GL_FALSE;
@@ -185,8 +187,8 @@ static int initDisplay( void )
 
     // Retrieve GLX version
     if( !glXQueryVersion( _glfwLibrary.display,
-                          &_glfwLibrary.glxMajor,
-                          &_glfwLibrary.glxMinor ) )
+                          &_glfwLibrary.GLX.versionMajor,
+                          &_glfwLibrary.GLX.versionMinor ) )
     {
         fprintf(stderr, "Unable to query GLX version\n");
         return GL_FALSE;
@@ -232,6 +234,8 @@ int _glfwPlatformInit( void )
 
     // Try to load libGL.so if necessary
     initLibraries();
+
+    _glfwPlatformGetDesktopMode( &_glfwLibrary.desktopMode );
 
     // Install atexit() routine
     atexit( glfw_atexit );

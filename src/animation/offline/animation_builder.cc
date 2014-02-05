@@ -1,5 +1,11 @@
 //============================================================================//
-// Copyright (c) <2012> <Guillaume Blanc>                                     //
+//                                                                            //
+// ozz-animation, 3d skeletal animation libraries and tools.                  //
+// https://code.google.com/p/ozz-animation/                                   //
+//                                                                            //
+//----------------------------------------------------------------------------//
+//                                                                            //
+// Copyright (c) 2012-2014 Guillaume Blanc                                    //
 //                                                                            //
 // This software is provided 'as-is', without any express or implied          //
 // warranty. In no event will the authors be held liable for any damages      //
@@ -19,6 +25,7 @@
 //                                                                            //
 // 3. This notice may not be removed or altered from any source               //
 // distribution.                                                              //
+//                                                                            //
 //============================================================================//
 
 #include "ozz/animation/offline/animation_builder.h"
@@ -28,8 +35,11 @@
 
 #include "ozz/base/containers/vector.h"
 #include "ozz/base/memory/allocator.h"
-#include "ozz/animation/animation.h"
-#include "ozz/animation/key_frame.h"
+#include "ozz/animation/runtime/animation.h"
+
+// Internal include file
+#define OZZ_INCLUDE_PRIVATE_HEADER  // Allows to include private headers.
+#include "../runtime/key_frame.h"
 
 namespace ozz {
 namespace animation {
@@ -146,54 +156,53 @@ void CopyRaw(const _SrcTrack& _src, unsigned int _track, float _duration,
 }
 
 template<typename _SrcKey, typename _DestKey>
-void CopyToAnimation(typename ozz::Vector<_SrcKey>::Std* _src,
-                     _DestKey*& _dest, const _DestKey*& _dest_end) {
+ozz::Range<_DestKey> CopyToAnimation(typename ozz::Vector<_SrcKey>::Std* _src) {
   const std::size_t src_count = _src->size();
   if (!src_count) {
-    _dest = NULL;
-    _dest_end = NULL;
-    return;
+    return ozz::Range<_DestKey>();
   }
 
   // Sort animation keys to favor cache coherency.
   std::sort(&_src->front(), (&_src->back()) + 1, &SortingKeyLess<_SrcKey>);
 
   // Fills output.
-  _dest = memory::default_allocator().Allocate<_DestKey>(src_count);
-  _dest_end = _dest + src_count;
+  ozz::Range<_DestKey> dest =
+    memory::default_allocator()->AllocateRange<_DestKey>(src_count);
   const _SrcKey* src = &_src->front();
   for (std::size_t i = 0; i < src_count; i++) {
-    _dest[i].track = src[i].track;
-    _dest[i].time = src[i].key.time;
-    _dest[i].value = src[i].key.value;
+    dest.begin[i].track = src[i].track;
+    dest.begin[i].time = src[i].key.time;
+    dest.begin[i].value = src[i].key.value;
   }
+  return dest;
 }
 
 // Specialize for rotations in order to normalize quaternions.
 // Consecutive opposite quatenions are also fixed up in order to avoid checking
 // for the smallest path during the NLerp runtime algorithm .
 template<>
-void CopyToAnimation<SortingRotationKey, RotationKey>(
-  ozz::Vector<SortingRotationKey>::Std* _src,
-  RotationKey*& _dest,
-  const RotationKey*& _dest_end) {
+ozz::Range<RotationKey> CopyToAnimation<SortingRotationKey, RotationKey>(
+  ozz::Vector<SortingRotationKey>::Std* _src) {
   const std::size_t src_count = _src->size();
   if (!src_count) {
-    _dest = NULL;
-    _dest_end = NULL;
-    return;
+    return ozz::Range<RotationKey>();
   }
 
   // Normalize quaternions.
-  // Also fixes-up opposite quaternions that would fail to take the shortest
-  // path during the normalized-lerp.
+  // Also fixes-up successive opposite quaternions that would fail to take the
+  // shortest path during the normalized-lerp.
+  // Note that keys are still sorted per-track at that point, which allows this
+  // algorithm to process all consecutive keys.
   std::size_t track = std::numeric_limits<std::size_t>::max();
   const math::Quaternion identity = math::Quaternion::identity();
   SortingRotationKey* src = &_src->front();
   for (std::size_t i = 0; i < src_count; i++) {
     math::Quaternion normalized = NormalizeSafe(src[i].key.value, identity);
-    if (track == src[i].track) {
-      // Still on the same track: so fixes-up quaternion.
+    if (track != src[i].track) {  // First key of the track.
+      if (normalized.w < 0.f) {  // .w eq to a dot with identity quaternion.
+        normalized = -normalized;  // Q an -Q are the same rotation.
+      }
+    } else {  // Still on the same track: so fixes-up quaternion.
       const math::Float4 prev(src[i - 1].key.value.x, src[i - 1].key.value.y,
                               src[i - 1].key.value.z, src[i - 1].key.value.w);
       const math::Float4 curr(normalized.x, normalized.y,
@@ -208,18 +217,19 @@ void CopyToAnimation<SortingRotationKey, RotationKey>(
   }
 
   // Sort.
-  std::sort(&_src->front(),
-            (&_src->back()) + 1,
+  std::sort(array_begin(*_src),
+            array_end(*_src),
             &SortingKeyLess<SortingRotationKey>);
 
   // Fills output.
-  _dest = memory::default_allocator().Allocate<RotationKey>(src_count);
-  _dest_end = _dest + src_count;
+  ozz::Range<RotationKey> dest =
+    memory::default_allocator()->AllocateRange<RotationKey>(src_count);
   for (size_t i = 0; i < src_count; i++) {
-    _dest[i].track = src[i].track;
-    _dest[i].time = src[i].key.time;
-    _dest[i].value = src[i].key.value;
+    dest.begin[i].track = src[i].track;
+    dest.begin[i].time = src[i].key.time;
+    dest.begin[i].value = src[i].key.value;
   }
+  return dest;
 }
 }  // namespace
 
@@ -253,7 +263,7 @@ Animation* AnimationBuilder::operator()(const RawAnimation& _input) const {
 
   // Everything is fine, allocates and fills the animation.
   // Nothing can fail now.
-  Animation* animation = memory::default_allocator().New<Animation>();
+  Animation* animation = memory::default_allocator()->New<Animation>();
 
   // Sets duration.
   const float duration = _input.duration;
@@ -307,15 +317,13 @@ Animation* AnimationBuilder::operator()(const RawAnimation& _input) const {
   }
 
   // Copy sorted keys to final animation.
-  CopyToAnimation<SortingTranslationKey, TranslationKey>(
-    &sorting_translations,
-    animation->translations_, animation->translations_end_);
-  CopyToAnimation<SortingRotationKey, RotationKey>(
-    &sorting_rotations,
-    animation->rotations_, animation->rotations_end_);
-  CopyToAnimation<SortingScaleKey, ScaleKey>(
-    &sorting_scales,
-    animation->scales_, animation->scales_end_);
+  animation->translations_ =
+    CopyToAnimation<SortingTranslationKey, TranslationKey>(
+      &sorting_translations);
+  animation->rotations_ = CopyToAnimation<SortingRotationKey, RotationKey>(
+    &sorting_rotations);
+  animation->scales_ = CopyToAnimation<SortingScaleKey, ScaleKey>(
+    &sorting_scales);
 
   return animation;  // Success.
 }

@@ -1,5 +1,11 @@
 //============================================================================//
-// Copyright (c) <2012> <Guillaume Blanc>                                     //
+//                                                                            //
+// ozz-animation, 3d skeletal animation libraries and tools.                  //
+// https://code.google.com/p/ozz-animation/                                   //
+//                                                                            //
+//----------------------------------------------------------------------------//
+//                                                                            //
+// Copyright (c) 2012-2014 Guillaume Blanc                                    //
 //                                                                            //
 // This software is provided 'as-is', without any express or implied          //
 // warranty. In no event will the authors be held liable for any damages      //
@@ -19,6 +25,7 @@
 //                                                                            //
 // 3. This notice may not be removed or altered from any source               //
 // distribution.                                                              //
+//                                                                            //
 //============================================================================//
 
 #ifndef OZZ_OZZ_BASE_GTEST_HELPER_H_
@@ -36,12 +43,12 @@
 // Expands to nothing if asserts aren't enabled (ie: NDEBUG is defined)
 #define EXPECT_ASSERTION(_statement, _regex) do {} while (void(0), false);
 #else  // NDEBUG
-#ifndef _WIN32
-#define EXPECT_ASSERTION(_statement, _regex) EXPECT_DEATH(_statement, _regex)
-#else  // !_WIN32
+#ifdef _WIN32
 #include <crtdbg.h>
+#include <cstdlib>
 namespace internal {
-inline int ReportHook(int, char*, int*) {
+// Provides a hook during abort to ensure EXIT_FAILURE is returned.
+inline int AbortHook(int, char*, int*) {
   exit(EXIT_FAILURE);
 }
 } // internal
@@ -52,7 +59,7 @@ inline int ReportHook(int, char*, int*) {
   _CRT_REPORT_HOOK old_hook = NULL;\
   if (testing::internal::GTEST_FLAG(internal_run_death_test).length() > 0) {\
     old_mode = _CrtSetReportMode(_CRT_ASSERT, _CRTDBG_MODE_DEBUG);\
-    old_hook = _CrtSetReportHook(&internal::ReportHook);\
+    old_hook = _CrtSetReportHook(&internal::AbortHook);\
   }\
   EXPECT_DEATH(_statement, _regex);\
   if (testing::internal::GTEST_FLAG(internal_run_death_test).length() > 0) {\
@@ -60,7 +67,9 @@ inline int ReportHook(int, char*, int*) {
     _CrtSetReportHook(old_hook);\
   }\
 } while (void(0), 0)
-#endif  // !_WIN32
+#else  // _WIN32
+#define EXPECT_ASSERTION(_statement, _regex) EXPECT_DEATH(_statement, _regex)
+#endif  // _WIN32
 #endif  // NDEBUG
 
 // EXPECT_EQ_LOG* executes _expression and compares its result with _eq.

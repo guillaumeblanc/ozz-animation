@@ -1,5 +1,11 @@
 //============================================================================//
-// Copyright (c) <2012> <Guillaume Blanc>                                     //
+//                                                                            //
+// ozz-animation, 3d skeletal animation libraries and tools.                  //
+// https://code.google.com/p/ozz-animation/                                   //
+//                                                                            //
+//----------------------------------------------------------------------------//
+//                                                                            //
+// Copyright (c) 2012-2014 Guillaume Blanc                                    //
 //                                                                            //
 // This software is provided 'as-is', without any express or implied          //
 // warranty. In no event will the authors be held liable for any damages      //
@@ -19,6 +25,7 @@
 //                                                                            //
 // 3. This notice may not be removed or altered from any source               //
 // distribution.                                                              //
+//                                                                            //
 //============================================================================//
 
 #ifndef OZZ_OZZ_BASE_IO_ARCHIVE_H_
@@ -213,7 +220,7 @@ class IArchive {
 
   template <typename _Ty>
   bool TestTag() {
-    // Only tagged types can be tested. If compilations fails here, it can also
+    // Only tagged types can be tested. If compilations fails here, it can
     // mean the file containing tag declaration is not included.
     OZZ_STATIC_ASSERT(internal::Tag<const _Ty>::kTagLength != 0);
 

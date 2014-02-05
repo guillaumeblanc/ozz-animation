@@ -1,5 +1,11 @@
 //============================================================================//
-// Copyright (c) <2012> <Guillaume Blanc>                                     //
+//                                                                            //
+// ozz-animation, 3d skeletal animation libraries and tools.                  //
+// https://code.google.com/p/ozz-animation/                                   //
+//                                                                            //
+//----------------------------------------------------------------------------//
+//                                                                            //
+// Copyright (c) 2012-2014 Guillaume Blanc                                    //
 //                                                                            //
 // This software is provided 'as-is', without any express or implied          //
 // warranty. In no event will the authors be held liable for any damages      //
@@ -19,6 +25,7 @@
 //                                                                            //
 // 3. This notice may not be removed or altered from any source               //
 // distribution.                                                              //
+//                                                                            //
 //============================================================================//
 
 #include "ozz/animation/offline/skeleton_builder.h"
@@ -30,7 +37,7 @@
 #include "ozz/base/memory/allocator.h"
 #include "ozz/base/maths/simd_math.h"
 #include "ozz/base/maths/soa_transform.h"
-#include "ozz/animation/skeleton.h"
+#include "ozz/animation/runtime/skeleton.h"
 
 #include "ozz/base/maths/gtest_math_helper.h"
 
@@ -52,7 +59,7 @@ TEST(Error, SkeletonBuilder) {
     ASSERT_TRUE(skeleton != NULL);
     EXPECT_EQ(skeleton->num_joints(), 0);
 
-    ozz::memory::default_allocator().Delete(skeleton);
+    ozz::memory::default_allocator()->Delete(skeleton);
   }
 }
 
@@ -196,10 +203,11 @@ TEST(Build, SkeletonBuilder) {
     Skeleton* skeleton = builder(raw_skeleton);
     ASSERT_TRUE(skeleton != NULL);
     EXPECT_EQ(skeleton->num_joints(), 1);
-    EXPECT_EQ(skeleton->joint_properties()[0].parent, Skeleton::kRootIndex);
+    EXPECT_EQ(skeleton->joint_properties()[0].parent,
+              Skeleton::kNoParentIndex);
     EXPECT_EQ(skeleton->joint_properties()[0].is_leaf, 1u);
 
-    ozz::memory::default_allocator().Delete(skeleton);
+    ozz::memory::default_allocator()->Delete(skeleton);
   }
 
   /*
@@ -229,7 +237,7 @@ TEST(Build, SkeletonBuilder) {
     for (int i = 0; i < skeleton->num_joints(); i++) {
       const int parent_index = skeleton->joint_properties()[i].parent;
       if (std::strcmp(skeleton->joint_names()[i], "root") == 0) {
-        EXPECT_EQ(parent_index, Skeleton::kRootIndex);
+        EXPECT_EQ(parent_index, Skeleton::kNoParentIndex);
         EXPECT_EQ(skeleton->joint_properties()[i].is_leaf, 0u);
       } else if (std::strcmp(skeleton->joint_names()[i], "j0") == 0) {
         EXPECT_TRUE(std::strcmp(skeleton->joint_names()[parent_index], "root") == 0);
@@ -239,7 +247,7 @@ TEST(Build, SkeletonBuilder) {
       }
     }
 
-    ozz::memory::default_allocator().Delete(skeleton);
+    ozz::memory::default_allocator()->Delete(skeleton);
   }
 
   /*
@@ -270,7 +278,7 @@ TEST(Build, SkeletonBuilder) {
     for (int i = 0; i < skeleton->num_joints(); i++) {
       const int parent_index = skeleton->joint_properties()[i].parent;
       if (std::strcmp(skeleton->joint_names()[i], "root") == 0) {
-        EXPECT_EQ(parent_index, Skeleton::kRootIndex);
+        EXPECT_EQ(parent_index, Skeleton::kNoParentIndex);
         EXPECT_EQ(skeleton->joint_properties()[i].is_leaf, 0u);
       } else if (std::strcmp(skeleton->joint_names()[i], "j0") == 0) {
         EXPECT_STREQ(skeleton->joint_names()[parent_index], "root");
@@ -283,7 +291,7 @@ TEST(Build, SkeletonBuilder) {
       }
     }
 
-    ozz::memory::default_allocator().Delete(skeleton);
+    ozz::memory::default_allocator()->Delete(skeleton);
   }
 
   /*
@@ -319,7 +327,7 @@ TEST(Build, SkeletonBuilder) {
     for (int i = 0; i < skeleton->num_joints(); i++) {
       const int parent_index = skeleton->joint_properties()[i].parent;
       if (std::strcmp(skeleton->joint_names()[i], "root") == 0) {
-        EXPECT_EQ(parent_index, Skeleton::kRootIndex);
+        EXPECT_EQ(parent_index, Skeleton::kNoParentIndex);
         EXPECT_EQ(skeleton->joint_properties()[i].is_leaf, 0u);
       } else if (std::strcmp(skeleton->joint_names()[i], "j0") == 0) {
         EXPECT_STREQ(skeleton->joint_names()[parent_index], "root");
@@ -335,7 +343,7 @@ TEST(Build, SkeletonBuilder) {
       }
     }
 
-    ozz::memory::default_allocator().Delete(skeleton);
+    ozz::memory::default_allocator()->Delete(skeleton);
   }
 
   /*
@@ -371,7 +379,7 @@ TEST(Build, SkeletonBuilder) {
     for (int i = 0; i < skeleton->num_joints(); i++) {
       const int parent_index = skeleton->joint_properties()[i].parent;
       if (std::strcmp(skeleton->joint_names()[i], "root") == 0) {
-        EXPECT_EQ(parent_index, Skeleton::kRootIndex);
+        EXPECT_EQ(parent_index, Skeleton::kNoParentIndex);
         EXPECT_EQ(skeleton->joint_properties()[i].is_leaf, 0u);
       } else if (std::strcmp(skeleton->joint_names()[i], "j0") == 0) {
         EXPECT_STREQ(skeleton->joint_names()[parent_index], "root");
@@ -387,7 +395,7 @@ TEST(Build, SkeletonBuilder) {
       }
     }
 
-    ozz::memory::default_allocator().Delete(skeleton);
+    ozz::memory::default_allocator()->Delete(skeleton);
   }
 
   /*
@@ -424,7 +432,7 @@ TEST(Build, SkeletonBuilder) {
     for (int i = 0; i < skeleton->num_joints(); i++) {
       const int parent_index = skeleton->joint_properties()[i].parent;
       if (std::strcmp(skeleton->joint_names()[i], "root") == 0) {
-        EXPECT_EQ(parent_index, Skeleton::kRootIndex);
+        EXPECT_EQ(parent_index, Skeleton::kNoParentIndex);
         EXPECT_EQ(skeleton->joint_properties()[i].is_leaf, 0u);
       } else if (std::strcmp(skeleton->joint_names()[i], "j0") == 0) {
         EXPECT_STREQ(skeleton->joint_names()[parent_index], "root");
@@ -443,7 +451,7 @@ TEST(Build, SkeletonBuilder) {
       }
     }
 
-    ozz::memory::default_allocator().Delete(skeleton);
+    ozz::memory::default_allocator()->Delete(skeleton);
   }
 
   /*
@@ -483,7 +491,7 @@ TEST(Build, SkeletonBuilder) {
     for (int i = 0; i < skeleton->num_joints(); i++) {
       const int parent_index = skeleton->joint_properties()[i].parent;
       if (std::strcmp(skeleton->joint_names()[i], "root") == 0) {
-        EXPECT_EQ(parent_index, Skeleton::kRootIndex);
+        EXPECT_EQ(parent_index, Skeleton::kNoParentIndex);
         EXPECT_EQ(skeleton->joint_properties()[i].is_leaf, 0u);
       } else if (std::strcmp(skeleton->joint_names()[i], "j0") == 0) {
         EXPECT_STREQ(skeleton->joint_names()[parent_index], "root");
@@ -507,7 +515,7 @@ TEST(Build, SkeletonBuilder) {
 
     // Skeleton joins should be sorted "per parent" and maintain original
     // children joint order.
-    EXPECT_EQ(skeleton->joint_properties()[0].parent, Skeleton::kRootIndex);
+    EXPECT_EQ(skeleton->joint_properties()[0].parent, Skeleton::kNoParentIndex);
     EXPECT_STREQ(skeleton->joint_names()[0], "root");
     EXPECT_EQ(skeleton->joint_properties()[1].parent, 0);
     EXPECT_STREQ(skeleton->joint_names()[1], "j0");
@@ -520,7 +528,7 @@ TEST(Build, SkeletonBuilder) {
     EXPECT_EQ(skeleton->joint_properties()[5].parent, 2);
     EXPECT_STREQ(skeleton->joint_names()[5], "j4");
 
-    ozz::memory::default_allocator().Delete(skeleton);
+    ozz::memory::default_allocator()->Delete(skeleton);
   }
 }
 
@@ -565,7 +573,7 @@ TEST(JointOrder, SkeletonBuilder) {
 
   // Skeleton joints should be sorted "per parent" and maintain original
   // children joint order.
-  EXPECT_EQ(skeleton->joint_properties()[0].parent, Skeleton::kRootIndex);
+  EXPECT_EQ(skeleton->joint_properties()[0].parent, Skeleton::kNoParentIndex);
   EXPECT_STREQ(skeleton->joint_names()[0], "root");
   EXPECT_EQ(skeleton->joint_properties()[1].parent, 0);
   EXPECT_STREQ(skeleton->joint_names()[1], "j0");
@@ -580,10 +588,10 @@ TEST(JointOrder, SkeletonBuilder) {
   EXPECT_EQ(skeleton->joint_properties()[6].parent, 2);
   EXPECT_STREQ(skeleton->joint_names()[6], "j4");
 
-  ozz::memory::default_allocator().Delete(skeleton);
+  ozz::memory::default_allocator()->Delete(skeleton);
 }
 
-TEST(InterateFlags, SkeletonBuilder) {
+TEST(InterateProperties, SkeletonBuilder) {
   // Instantiates a builder objects with default parameters.
   SkeletonBuilder builder;
 
@@ -636,7 +644,7 @@ TEST(InterateFlags, SkeletonBuilder) {
     const ozz::String& name = skeleton->joint_names()[i];
     switch (i) {
       case 0: {
-        EXPECT_EQ(parent, Skeleton::kRootIndex);
+        EXPECT_EQ(parent, Skeleton::kNoParentIndex);
         EXPECT_TRUE(name == "root");
         break;
       }
@@ -686,7 +694,7 @@ TEST(InterateFlags, SkeletonBuilder) {
     }
   }
 
-  ozz::memory::default_allocator().Delete(skeleton);
+  ozz::memory::default_allocator()->Delete(skeleton);
 }
 
 TEST(MultiRoots, SkeletonBuilder) {
@@ -727,10 +735,10 @@ TEST(MultiRoots, SkeletonBuilder) {
   for (int i = 0; i < skeleton->num_joints(); i++) {
     const int parent_index = skeleton->joint_properties()[i].parent;
     if (std::strcmp(skeleton->joint_names()[i], "r0") == 0) {
-      EXPECT_EQ(parent_index, Skeleton::kRootIndex);
+      EXPECT_EQ(parent_index, Skeleton::kNoParentIndex);
       EXPECT_EQ(skeleton->joint_properties()[i].is_leaf, 0u);
     } else if (std::strcmp(skeleton->joint_names()[i], "r1") == 0) {
-      EXPECT_EQ(parent_index, Skeleton::kRootIndex);
+      EXPECT_EQ(parent_index, Skeleton::kNoParentIndex);
       EXPECT_EQ(skeleton->joint_properties()[i].is_leaf, 0u);
     } else if (std::strcmp(skeleton->joint_names()[i], "j0") == 0) {
       EXPECT_STREQ(skeleton->joint_names()[parent_index], "r0");
@@ -749,7 +757,7 @@ TEST(MultiRoots, SkeletonBuilder) {
     }
   }
 
-  ozz::memory::default_allocator().Delete(skeleton);
+  ozz::memory::default_allocator()->Delete(skeleton);
 }
 
 TEST(TPose, SkeletonBuilder) {
@@ -799,9 +807,10 @@ TEST(TPose, SkeletonBuilder) {
   ozz::math::SimdFloat4 translations[4];
   ozz::math::SimdFloat4 scales[4];
   ozz::math::SimdFloat4 rotations[4];
-  ozz::math::Transpose3x4(&skeleton->bind_pose()[0].translation.x, translations);
-  ozz::math::Transpose4x4(&skeleton->bind_pose()[0].rotation.x, rotations);
-  ozz::math::Transpose3x4(&skeleton->bind_pose()[0].scale.x, scales);
+  const ozz::math::SoaTransform& bind_pose = skeleton->bind_pose()[0];
+  ozz::math::Transpose3x4(&bind_pose.translation.x, translations);
+  ozz::math::Transpose4x4(&bind_pose.rotation.x, rotations);
+  ozz::math::Transpose3x4(&bind_pose.scale.x, scales);
 
   for (int i = 0; i < skeleton->num_joints(); i++) {
     if (std::strcmp(skeleton->joint_names()[i], "root") == 0) {
@@ -824,7 +833,7 @@ TEST(TPose, SkeletonBuilder) {
   EXPECT_SIMDFLOAT_EQ(rotations[3], 0.f, 0.f, 0.f, 1.f);
   EXPECT_SIMDFLOAT_EQ(scales[3], 1.f, 1.f, 1.f, 0.f);
 
-  ozz::memory::default_allocator().Delete(skeleton);
+  ozz::memory::default_allocator()->Delete(skeleton);
 }
 
 TEST(MaxJoints, SkeletonBuilder) {
@@ -841,7 +850,7 @@ TEST(MaxJoints, SkeletonBuilder) {
 
     Skeleton* skeleton = builder(raw_skeleton);
     EXPECT_TRUE(skeleton != NULL);
-    ozz::memory::default_allocator().Delete(skeleton);
+    ozz::memory::default_allocator()->Delete(skeleton);
   }
 
   { // Outside of the domain.

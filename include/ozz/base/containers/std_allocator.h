@@ -1,5 +1,11 @@
 //============================================================================//
-// Copyright (c) <2012> <Guillaume Blanc>                                     //
+//                                                                            //
+// ozz-animation, 3d skeletal animation libraries and tools.                  //
+// https://code.google.com/p/ozz-animation/                                   //
+//                                                                            //
+//----------------------------------------------------------------------------//
+//                                                                            //
+// Copyright (c) 2012-2014 Guillaume Blanc                                    //
 //                                                                            //
 // This software is provided 'as-is', without any express or implied          //
 // warranty. In no event will the authors be held liable for any damages      //
@@ -19,6 +25,7 @@
 //                                                                            //
 // 3. This notice may not be removed or altered from any source               //
 // distribution.                                                              //
+//                                                                            //
 //============================================================================//
 
 #ifndef OZZ_OZZ_BASE_CONTAINERS_STD_ALLOCATOR_H_
@@ -29,7 +36,7 @@
 #include "ozz/base/memory/allocator.h"
 
 namespace ozz {
-// Define a STL allocator compliant allocator.
+// Define a STL allocator compliant allocator->
 template<typename _Ty>
 class StdAllocator {
 public:
@@ -78,12 +85,12 @@ public:
 
   // Deallocates object at _Ptr, ignores size.
   void deallocate(pointer _ptr, size_type) {
-    memory::default_allocator().Deallocate(_ptr);
+    memory::default_allocator()->Deallocate(_ptr);
   }
 
   // Allocates array of _Count elements.
   pointer allocate(size_type _count) {
-    return memory::default_allocator().Allocate<_Ty>(_count);
+    return memory::default_allocator()->Allocate<_Ty>(_count);
   }
 
   // Allocates array of _Count elements, ignores hint.
