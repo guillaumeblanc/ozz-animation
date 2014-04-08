@@ -904,11 +904,8 @@ inline bool Node::redebug_check_integrity() const {
 
 // Iterates through all elements to unlink them from the list.
 inline void IntrusiveNodeList::clear() {
-  Node* node = end_.next_;
-  while (node != &end_) {
-    Node* next_node = node->next_;
-    node->unlink();
-    node = next_node;
+  while (end_.next_ != &end_) {
+    end_.next_->unlink();
   }
 }
 
@@ -939,10 +936,9 @@ inline void IntrusiveNodeList::reverse() {
 // Loops and counts the number of elements, excluding the end_ node.
 inline std::size_t IntrusiveNodeList::size() const {
   std::size_t size = 0;
-  const Node* node = end_.next_;
-  while (node != &end_) {
-    node = node->next_;
-    size++;
+  for (const Node* node = end_.next_;
+       node != &end_;
+       node = node->next_, ++size) {
   }
   return size;
 }

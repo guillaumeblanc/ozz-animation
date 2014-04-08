@@ -297,7 +297,7 @@ void RendererImpl::DrawGrid(int _cell_count, float _cell_size) {
   // Renders lines along X axis.
   ozz::math::Float3 x_line_begin = corner;
   ozz::math::Float3 x_line_end(corner.x + extent, corner.y, corner.z);
-  for (int i = 0; i < _cell_count + 1; i++) {
+  for (int i = 0; i < _cell_count + 1; ++i) {
     glVertex3fv(&x_line_begin.x);
     glVertex3fv(&x_line_end.x);
     x_line_begin.z += _cell_size;
@@ -306,7 +306,7 @@ void RendererImpl::DrawGrid(int _cell_count, float _cell_size) {
   // Renders lines along Z axis.
   ozz::math::Float3 z_line_begin = corner;
   ozz::math::Float3 z_line_end(corner.x, corner.y, corner.z + extent);
-  for (int i = 0; i < _cell_count + 1; i++) {
+  for (int i = 0; i < _cell_count + 1; ++i) {
     glVertex3fv(&z_line_begin.x);
     glVertex3fv(&z_line_end.x);
     z_line_begin.x += _cell_size;
@@ -414,7 +414,7 @@ bool RendererImpl::InitPostureRendering() {
 
     // Fills vertices.
     int index = 0;
-    for (int j = 0; j < kNumPointsYZ; j++) { // YZ plan.
+    for (int j = 0; j < kNumPointsYZ; ++j) { // YZ plan.
       float angle = j * math::k2Pi / kNumSlices;
       float s = sinf(angle), c = cosf(angle);
       VertexPNC& vertex = joints[index++];
@@ -422,7 +422,7 @@ bool RendererImpl::InitPostureRendering() {
       vertex.normal = math::Float3(0.f, c, s);
       vertex.color = red;
     }
-    for (int j = 0; j < kNumPointsXY; j++) { // XY plan.
+    for (int j = 0; j < kNumPointsXY; ++j) { // XY plan.
       float angle = j * math::k2Pi / kNumSlices;
       float s = sinf(angle), c = cosf(angle);
       VertexPNC& vertex = joints[index++];
@@ -430,7 +430,7 @@ bool RendererImpl::InitPostureRendering() {
       vertex.normal = math::Float3(s, c, 0.f);
       vertex.color = blue;
     }
-    for (int j = 0; j < kNumPointsXZ; j++) { // XZ plan.
+    for (int j = 0; j < kNumPointsXZ; ++j) { // XZ plan.
         float angle = j * math::k2Pi / kNumSlices;
         float s = sinf(angle), c = cosf(angle);
         VertexPNC& vertex = joints[index++];
@@ -472,7 +472,7 @@ int DrawPosture_FillUniforms(const ozz::animation::Skeleton& _skeleton,
       _skeleton.joint_properties().begin;
 
     int instances = 0;
-    for (int i = 0; i < num_joints && instances < _max_instances; i++) {
+    for (int i = 0; i < num_joints && instances < _max_instances; ++i) {
 
       // Selects parent matrix, which is identity in case of a root.
       const int parent_id = properties[i].parent;
@@ -503,7 +503,7 @@ int DrawPosture_FillUniforms(const ozz::animation::Skeleton& _skeleton,
         uniform[7] = bone_dir[1];
         uniform[11] = bone_dir[2];
         uniform[15] = 1.f;  // Enables bone rendering.
-        instances++;
+        ++instances;
       }
 
       // Only the joint is rendered for leaves, the bone model isn't.
@@ -521,7 +521,7 @@ int DrawPosture_FillUniforms(const ozz::animation::Skeleton& _skeleton,
         uniform[7] = bone_dir[1];
         uniform[11] = bone_dir[2];
         uniform[15] = 0.f;  // Disables bone rendering.
-        instances++;
+        ++instances;
       }
     }
 
@@ -532,7 +532,7 @@ int DrawPosture_FillUniforms(const ozz::animation::Skeleton& _skeleton,
 // Draw posture internal non-instanced rendering fall back implementation.
 void RendererImpl::DrawPosture_Impl(int _instance_count, bool _draw_joints) {
   // Loops through models and instances.
-  for (int i = 0; i < (_draw_joints ? 2 : 1); i++) {
+  for (int i = 0; i < (_draw_joints ? 2 : 1); ++i) {
     const Model& model = models_[i];
 
     // Switches to model's shader.
@@ -543,13 +543,13 @@ void RendererImpl::DrawPosture_Impl(int _instance_count, bool _draw_joints) {
     GL(EnableClientState(GL_VERTEX_ARRAY));
     GL(VertexPointer(3, GL_FLOAT, sizeof(VertexPNC), 0));
     GL(EnableClientState(GL_NORMAL_ARRAY));
-    GL(NormalPointer(GL_FLOAT, sizeof(VertexPNC), GL_OFFSET(12)));
+    GL(NormalPointer(GL_FLOAT, sizeof(VertexPNC), GL_PTR_OFFSET(12)));
     GL(EnableClientState(GL_COLOR_ARRAY));
-    GL(ColorPointer(4, GL_UNSIGNED_BYTE, sizeof(VertexPNC), GL_OFFSET(24)));
+    GL(ColorPointer(4, GL_UNSIGNED_BYTE, sizeof(VertexPNC), GL_PTR_OFFSET(24)));
     GL(BindBuffer(GL_ARRAY_BUFFER, 0));
 
     const GLint uniform_slot = model.shader->uniform(0);
-    for (int i = 0; i < _instance_count; i++) {
+    for (int i = 0; i < _instance_count; ++i) {
       GL(UniformMatrix4fv(uniform_slot, 1, false, prealloc_uniforms_ + 16 * i));
       GL(DrawArrays(model.mode, 0, model.count));
     }
@@ -573,7 +573,7 @@ void RendererImpl::DrawPosture_InstancedImpl(int _instance_count,
   GL(BindBuffer(GL_ARRAY_BUFFER, 0));
 
   // Renders models.
-  for (int i = 0; i < (_draw_joints ? 2 : 1); i++) {
+  for (int i = 0; i < (_draw_joints ? 2 : 1); ++i) {
     const Model& model = models_[i];
 
     // Setup model vertex data.
@@ -581,9 +581,9 @@ void RendererImpl::DrawPosture_InstancedImpl(int _instance_count,
     GL(EnableClientState(GL_VERTEX_ARRAY));
     GL(VertexPointer(3, GL_FLOAT, sizeof(VertexPNC), 0));
     GL(EnableClientState(GL_NORMAL_ARRAY));
-    GL(NormalPointer(GL_FLOAT, sizeof(VertexPNC), GL_OFFSET(12)));
+    GL(NormalPointer(GL_FLOAT, sizeof(VertexPNC), GL_PTR_OFFSET(12)));
     GL(EnableClientState(GL_COLOR_ARRAY));
-    GL(ColorPointer(4, GL_UNSIGNED_BYTE, sizeof(VertexPNC), GL_OFFSET(24)));
+    GL(ColorPointer(4, GL_UNSIGNED_BYTE, sizeof(VertexPNC), GL_PTR_OFFSET(24)));
     GL(BindBuffer(GL_ARRAY_BUFFER, 0));
 
     // Switches to model's shader.
@@ -601,13 +601,13 @@ void RendererImpl::DrawPosture_InstancedImpl(int _instance_count,
     GL(VertexAttribDivisorARB(joint_attrib + 2, 1));
     GL(VertexAttribDivisorARB(joint_attrib + 3, 1));
     GL(VertexAttribPointer(joint_attrib + 0, 4, GL_FLOAT, GL_FALSE,
-                           sizeof(math::Float4x4), GL_OFFSET(0)));
+                           sizeof(math::Float4x4), GL_PTR_OFFSET(0)));
     GL(VertexAttribPointer(joint_attrib + 1, 4, GL_FLOAT, GL_FALSE,
-                           sizeof(math::Float4x4), GL_OFFSET(16)));
+                           sizeof(math::Float4x4), GL_PTR_OFFSET(16)));
     GL(VertexAttribPointer(joint_attrib + 2, 4, GL_FLOAT, GL_FALSE,
-                           sizeof(math::Float4x4), GL_OFFSET(32)));
+                           sizeof(math::Float4x4), GL_PTR_OFFSET(32)));
     GL(VertexAttribPointer(joint_attrib + 3, 4, GL_FLOAT, GL_FALSE,
-                           sizeof(math::Float4x4), GL_OFFSET(48)));
+                           sizeof(math::Float4x4), GL_PTR_OFFSET(48)));
     GL(BindBuffer(GL_ARRAY_BUFFER, 0));
 
     GL(DrawArraysInstancedARB(model.mode, 0, model.count, _instance_count));
@@ -681,7 +681,7 @@ bool RendererImpl::DrawBox(const ozz::math::Box& _box,
 
   GL(PushAttrib(GL_POLYGON_BIT));
   GL(PolygonMode(GL_FRONT, GL_FILL));
-  for (int i = 0; i < 2; i++) {
+  for (int i = 0; i < 2; ++i) {
     glBegin(GL_QUADS);
       glColor4f(_colors[i].r, _colors[i].g, _colors[i].b, _colors[i].a);
       glVertex3f(_box.min.x, _box.min.y, _box.min.z);
@@ -730,6 +730,7 @@ do {\
 
 bool RendererImpl::InitOpenGLExtensions() {
   bool success = true;
+#ifdef OZZ_GL_VERSION_1_5_EXT
   OZZ_INIT_GL_EXT(glBindBuffer, PFNGLBINDBUFFERPROC, success);
   OZZ_INIT_GL_EXT(glDeleteBuffers, PFNGLDELETEBUFFERSPROC, success);
   OZZ_INIT_GL_EXT(glGenBuffers, PFNGLGENBUFFERSPROC, success);
@@ -742,7 +743,9 @@ bool RendererImpl::InitOpenGLExtensions() {
   OZZ_INIT_GL_EXT(
     glGetBufferParameteriv, PFNGLGETBUFFERPARAMETERIVPROC, success);
   OZZ_INIT_GL_EXT(glGetBufferPointerv, PFNGLGETBUFFERPOINTERVPROC, success);
+#endif  // OZZ_GL_VERSION_1_5_EXT
 
+#ifdef OZZ_GL_VERSION_2_0_EXT
   OZZ_INIT_GL_EXT(glAttachShader, PFNGLATTACHSHADERPROC, success);
   OZZ_INIT_GL_EXT(glBindAttribLocation, PFNGLBINDATTRIBLOCATIONPROC, success);
   OZZ_INIT_GL_EXT(glCompileShader, PFNGLCOMPILESHADERPROC, success);
@@ -798,6 +801,7 @@ bool RendererImpl::InitOpenGLExtensions() {
   OZZ_INIT_GL_EXT(glVertexAttrib4f, PFNGLVERTEXATTRIB4FPROC, success);
   OZZ_INIT_GL_EXT(glVertexAttrib4fv, PFNGLVERTEXATTRIB4FVPROC, success);
   OZZ_INIT_GL_EXT(glVertexAttribPointer, PFNGLVERTEXATTRIBPOINTERPROC, success);
+#endif  // OZZ_GL_VERSION_2_0_EXT
   if (!success) {
     log::Err() << "Failed to initialize mandatory GL extensions." << std::endl;
     return false;
@@ -943,6 +947,7 @@ bool Shader::BindAttrib(const char* _semantic) {
 // Helper macro used to declare extension function pointer.
 #define OZZ_DECL_GL_EXT(_fct, _fct_type) _fct_type _fct = NULL
 
+#ifdef OZZ_GL_VERSION_1_5_EXT
 OZZ_DECL_GL_EXT(glBindBuffer, PFNGLBINDBUFFERPROC);
 OZZ_DECL_GL_EXT(glDeleteBuffers, PFNGLDELETEBUFFERSPROC);
 OZZ_DECL_GL_EXT(glGenBuffers, PFNGLGENBUFFERSPROC);
@@ -954,7 +959,9 @@ OZZ_DECL_GL_EXT(glMapBuffer, PFNGLMAPBUFFERPROC);
 OZZ_DECL_GL_EXT(glUnmapBuffer, PFNGLUNMAPBUFFERPROC);
 OZZ_DECL_GL_EXT(glGetBufferParameteriv, PFNGLGETBUFFERPARAMETERIVPROC);
 OZZ_DECL_GL_EXT(glGetBufferPointerv, PFNGLGETBUFFERPOINTERVPROC);
+#endif  // OZZ_GL_VERSION_1_5_EXT
 
+#ifdef OZZ_GL_VERSION_2_0_EXT
 OZZ_DECL_GL_EXT(glAttachShader, PFNGLATTACHSHADERPROC);
 OZZ_DECL_GL_EXT(glBindAttribLocation, PFNGLBINDATTRIBLOCATIONPROC);
 OZZ_DECL_GL_EXT(glCompileShader, PFNGLCOMPILESHADERPROC);
@@ -1007,6 +1014,7 @@ OZZ_DECL_GL_EXT(glVertexAttrib3fv, PFNGLVERTEXATTRIB3FVPROC);
 OZZ_DECL_GL_EXT(glVertexAttrib4f, PFNGLVERTEXATTRIB4FPROC);
 OZZ_DECL_GL_EXT(glVertexAttrib4fv, PFNGLVERTEXATTRIB4FVPROC);
 OZZ_DECL_GL_EXT(glVertexAttribPointer, PFNGLVERTEXATTRIBPOINTERPROC);
+#endif  // OZZ_GL_VERSION_2_0_EXT
 
 bool GL_ARB_instanced_arrays = false;
 OZZ_DECL_GL_EXT(glVertexAttribDivisorARB, PFNGLVERTEXATTRIBDIVISORARBPROC);

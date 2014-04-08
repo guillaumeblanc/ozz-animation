@@ -94,14 +94,14 @@ TEST(MallocCompliance, Memory) {
 
 struct AlignedInts {
   AlignedInts() {
-    for (int i = 0; i < array_size; i++) {
+    for (int i = 0; i < array_size; ++i) {
       array[i] = i;
     }
   }
 
   AlignedInts(int _i0) {
     array[0] = _i0;
-    for (int i = 1; i < array_size; i++) {
+    for (int i = 1; i < array_size; ++i) {
       array[i] = i;
     }
   }
@@ -109,7 +109,7 @@ struct AlignedInts {
   AlignedInts(int _i0, int _i1) {
     array[0] = _i0;
     array[1] = _i1;
-    for (int i = 2; i < array_size; i++) {
+    for (int i = 2; i < array_size; ++i) {
       array[i] = i;
     }
   }
@@ -118,7 +118,7 @@ struct AlignedInts {
     array[0] = _i0;
     array[1] = _i1;
     array[2] = _i2;
-    for (int i = 3; i < array_size; i++) {
+    for (int i = 3; i < array_size; ++i) {
       array[i] = i;
     }
   }
@@ -146,7 +146,7 @@ TEST(TypedMalloc, Memory) {
 TEST(NewDelete, Memory) {
   AlignedInts* ai0 = ozz::memory::default_allocator()->New<AlignedInts>();
   ASSERT_TRUE(ai0 != NULL);
-  for (int i = 0; i < ai0->array_size; i++) {
+  for (int i = 0; i < ai0->array_size; ++i) {
     EXPECT_EQ(ai0->array[i], i);
   }
   ozz::memory::default_allocator()->Delete(ai0);
@@ -154,7 +154,7 @@ TEST(NewDelete, Memory) {
   AlignedInts* ai1 = ozz::memory::default_allocator()->New<AlignedInts>(46);
   ASSERT_TRUE(ai1 != NULL);
   EXPECT_EQ(ai1->array[0], 46);
-  for (int i = 1; i < ai1->array_size; i++) {
+  for (int i = 1; i < ai1->array_size; ++i) {
     EXPECT_EQ(ai1->array[i], i);
   }
   ozz::memory::default_allocator()->Delete(ai1);
@@ -163,7 +163,7 @@ TEST(NewDelete, Memory) {
   ASSERT_TRUE(ai2 != NULL);
   EXPECT_EQ(ai2->array[0], 46);
   EXPECT_EQ(ai2->array[1], 69);
-  for (int i = 2; i < ai2->array_size; i++) {
+  for (int i = 2; i < ai2->array_size; ++i) {
     EXPECT_EQ(ai2->array[i], i);
   }
   ozz::memory::default_allocator()->Delete(ai2);
@@ -174,8 +174,52 @@ TEST(NewDelete, Memory) {
   EXPECT_EQ(ai3->array[0], 46);
   EXPECT_EQ(ai3->array[1], 69);
   EXPECT_EQ(ai3->array[2], 58);
-  for (int i = 3; i < ai3->array_size; i++) {
+  for (int i = 3; i < ai3->array_size; ++i) {
     EXPECT_EQ(ai3->array[i], i);
   }
   ozz::memory::default_allocator()->Delete(ai3);
+}
+
+class TestAllocator : public ozz::memory::Allocator {
+ public:
+  TestAllocator()
+    : hard_coded_address_(&hard_coded_address_) {
+  }
+
+  void* hard_coded_address() const {
+    return hard_coded_address_;
+  } 
+ 
+ private:
+  virtual void* Allocate(std::size_t _size, std::size_t _alignment) {
+    (void)_size;
+    (void)_alignment;
+    return hard_coded_address_;
+  }
+  virtual void Deallocate(void* _block) {
+    (void)_block;
+  }
+  virtual void* Reallocate(void* _block,
+                           std::size_t _size,
+                           std::size_t _alignment) {
+    (void)_block;
+    (void)_size;
+    (void)_alignment;
+    return NULL;
+  }
+
+  void* hard_coded_address_;
+};
+
+TEST(AllocatorOverride, Memory) {
+  TestAllocator test_allocator;
+  ozz::memory::Allocator* previous =
+    ozz::memory::SetDefaulAllocator(&test_allocator);
+  ozz::memory::Allocator* current = ozz::memory::default_allocator();
+
+  void* alloc = current->Allocate(1, 1);
+  EXPECT_EQ(alloc, test_allocator.hard_coded_address());
+  current->Deallocate(alloc);
+
+  EXPECT_EQ(ozz::memory::SetDefaulAllocator(previous), current);
 }

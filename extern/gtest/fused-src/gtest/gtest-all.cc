@@ -4292,7 +4292,7 @@ void TestEventRepeater::Name(const Type& parameter) { \
 #define GTEST_REVERSE_REPEATER_METHOD_(Name, Type) \
 void TestEventRepeater::Name(const Type& parameter) { \
   if (forwarding_enabled_) { \
-    for (int i = static_cast<int>(listeners_.size()) - 1; i >= 0; i--) { \
+    for (int i = static_cast<int>(listeners_.size()) - 1; i >= 0; --i) { \
       listeners_[i]->Name(parameter); \
     } \
   } \
@@ -4325,7 +4325,7 @@ void TestEventRepeater::OnTestIterationStart(const UnitTest& unit_test,
 void TestEventRepeater::OnTestIterationEnd(const UnitTest& unit_test,
                                            int iteration) {
   if (forwarding_enabled_) {
-    for (int i = static_cast<int>(listeners_.size()) - 1; i >= 0; i--) {
+    for (int i = static_cast<int>(listeners_.size()) - 1; i >= 0; --i) {
       listeners_[i]->OnTestIterationEnd(unit_test, iteration);
     }
   }
@@ -5966,11 +5966,11 @@ void ParseGoogleTestFlagsOnlyImpl(int* argc, CharType** argv) {
       }
 
       // Decrements the argument count.
-      (*argc)--;
+      --(*argc);
 
       // We also need to decrement the iterator as we just removed
       // an element.
-      i--;
+      --i;
     } else if (arg_string == "--help" || arg_string == "-h" ||
                arg_string == "-?" || arg_string == "/?" ||
                HasGoogleTestFlagPrefix(arg)) {
@@ -7280,7 +7280,6 @@ namespace internal {
 // of them.
 const char kPathSeparator = '\\';
 const char kAlternatePathSeparator = '/';
-const char kPathSeparatorString[] = "\\";
 const char kAlternatePathSeparatorString[] = "/";
 #if GTEST_OS_WINDOWS_MOBILE
 // Windows CE doesn't have a current directory. You should not use
@@ -7294,7 +7293,6 @@ const char kCurrentDirectoryString[] = ".\\";
 #endif  // GTEST_OS_WINDOWS_MOBILE
 #else
 const char kPathSeparator = '/';
-const char kPathSeparatorString[] = "/";
 const char kCurrentDirectoryString[] = "./";
 #endif  // GTEST_OS_WINDOWS
 

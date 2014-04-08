@@ -38,7 +38,7 @@
 #include "ozz/base/maths/simd_math.h"
 
 TEST(SimdMaths, Archive) {
-  for (int e = 0; e < 2; e++) {
+  for (int e = 0; e < 2; ++e) {
     ozz::Endianness endianess = e == 0 ? ozz::kBigEndian : ozz::kLittleEndian;
 
     ozz::io::MemoryStream stream;

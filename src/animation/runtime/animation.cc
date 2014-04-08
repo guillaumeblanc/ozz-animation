@@ -68,7 +68,7 @@ void Animation::Save(ozz::io::OArchive& _archive) const {
 
   const std::ptrdiff_t translation_count = translations_.Size();
   _archive << static_cast<int32>(translation_count);
-  for (std::ptrdiff_t i = 0; i < translation_count; i++) {
+  for (std::ptrdiff_t i = 0; i < translation_count; ++i) {
     const TranslationKey& key = translations_.begin[i];
     _archive << static_cast<int32>(key.track);
     _archive << key.time;
@@ -76,7 +76,7 @@ void Animation::Save(ozz::io::OArchive& _archive) const {
   }
   const std::ptrdiff_t rotation_count = rotations_.Size();
   _archive << static_cast<int32>(rotation_count);
-  for (std::ptrdiff_t i = 0; i < rotation_count; i++) {
+  for (std::ptrdiff_t i = 0; i < rotation_count; ++i) {
     const RotationKey& key = rotations_.begin[i];
     _archive << static_cast<int32>(key.track);
     _archive << key.time;
@@ -84,7 +84,7 @@ void Animation::Save(ozz::io::OArchive& _archive) const {
   }
   const std::ptrdiff_t scale_count = scales_.Size();
   _archive << static_cast<int32>(scale_count);
-  for (std::ptrdiff_t i = 0; i < scale_count; i++) {
+  for (std::ptrdiff_t i = 0; i < scale_count; ++i) {
     const ScaleKey& key = scales_.begin[i];
     _archive << static_cast<int32>(key.track);
     _archive << key.time;
@@ -103,7 +103,7 @@ void Animation::Load(ozz::io::IArchive& _archive, ozz::uint32 /*_version*/) {
   int32 translation_count;
   _archive >> translation_count;
   translations_ = allocator->AllocateRange<TranslationKey>(translation_count);
-  for (int i = 0; i < translation_count; i++) {
+  for (int i = 0; i < translation_count; ++i) {
     TranslationKey& key = translations_.begin[i];
     int32 track;
     _archive >> track;
@@ -114,7 +114,7 @@ void Animation::Load(ozz::io::IArchive& _archive, ozz::uint32 /*_version*/) {
   int32 rotation_count;
   _archive >> rotation_count;
   rotations_ = allocator->AllocateRange<RotationKey>(rotation_count);
-  for (int i = 0; i < rotation_count; i++) {
+  for (int i = 0; i < rotation_count; ++i) {
     RotationKey& key = rotations_.begin[i];
     int32 track;
     _archive >> track;
@@ -125,7 +125,7 @@ void Animation::Load(ozz::io::IArchive& _archive, ozz::uint32 /*_version*/) {
   int32 scale_count;
   _archive >> scale_count;
   scales_ = allocator->AllocateRange<ScaleKey>(scale_count);
-  for (int i = 0; i < scale_count; i++) {
+  for (int i = 0; i < scale_count; ++i) {
     ScaleKey& key = scales_.begin[i];
     int32 track;
     _archive >> track;

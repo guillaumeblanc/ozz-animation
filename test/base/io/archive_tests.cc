@@ -53,7 +53,7 @@ TEST(Error, Archive) {
 }
 
 TEST(Primitives, Archive) {
-  for (int e = 0; e < 2; e++) {
+  for (int e = 0; e < 2; ++e) {
     ozz::Endianness endianess = e == 0 ? ozz::kBigEndian : ozz::kLittleEndian;
 
     ozz::io::MemoryStream stream;
@@ -119,7 +119,7 @@ TEST(Primitives, Archive) {
 }
 
 TEST(PrimitiveArrays, Archive) {
-  for (int e = 0; e < 2; e++) {
+  for (int e = 0; e < 2; ++e) {
     ozz::Endianness endianess = e == 0 ? ozz::kBigEndian : ozz::kLittleEndian;
 
     ozz::io::MemoryStream stream;
@@ -189,7 +189,7 @@ TEST(PrimitiveArrays, Archive) {
 }
 
 TEST(Class, Archive) {
-  for (int e = 0; e < 2; e++) {
+  for (int e = 0; e < 2; ++e) {
     ozz::Endianness endianess = e == 0 ? ozz::kBigEndian : ozz::kLittleEndian;
 
     ozz::io::MemoryStream stream;
@@ -225,7 +225,7 @@ TEST(Class, Archive) {
 }
 
 TEST(ClassArrays, Archive) {
-  for (int e = 0; e < 2; e++) {
+  for (int e = 0; e < 2; ++e) {
     ozz::Endianness endianess = e == 0 ? ozz::kBigEndian : ozz::kLittleEndian;
 
     ozz::io::MemoryStream stream;

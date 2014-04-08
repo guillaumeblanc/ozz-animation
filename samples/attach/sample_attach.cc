@@ -154,7 +154,7 @@ class LoadAttachApplication : public ozz::sample::Application {
     cache_ = allocator->New<ozz::animation::SamplingCache>(num_joints);
 
     // Finds the joint where the object should be attached.
-    for (int i = 0; i < num_joints; i++) {
+    for (int i = 0; i < num_joints; ++i) {
       if (std::strstr(skeleton_.joint_names()[i], "Hand")) {
         attachment_ = i;
         break;

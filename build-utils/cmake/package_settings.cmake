@@ -2,11 +2,8 @@
 install(DIRECTORY "${CMAKE_SOURCE_DIR}/include" DESTINATION ".")
 
 # Prepares packing
-set(CPACK_PACKAGE_VERSION_MAJOR 0)
-set(CPACK_PACKAGE_VERSION_MINOR 3)
-set(CPACK_PACKAGE_VERSION_PATCH 0)
 set(CPACK_PACKAGE_VENDOR "Guillaume Blanc")
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Ozz run-time animation library and tools")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Ozz run-time animation library and tools. http://code.google.com/p/ozz-animation/")
 #set(CPACK_PACKAGE_ICON )
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/LICENSE")
 set(CPACK_SOURCE_IGNORE_FILES

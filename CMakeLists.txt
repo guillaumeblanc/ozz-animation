@@ -3,11 +3,18 @@ cmake_minimum_required (VERSION 2.8)
 # Defines the project's name
 project(ozz)
 
+# Current version
+set(CPACK_PACKAGE_VERSION_MAJOR 0)
+set(CPACK_PACKAGE_VERSION_MINOR 3)
+set(CPACK_PACKAGE_VERSION_PATCH 1)
+
 # Add project build options
 set(ozz_build_samples ON CACHE BOOL "Build samples")
 set(ozz_build_tests ON CACHE BOOL "Build unit tests")
 set(ozz_build_sse2 ON CACHE BOOL "Enable SSE2 instructions set")
-set(ozz_redebug_all OFF CACHE BOOL "Enable all REDEBUGing features")
+set(ozz_build_redebug_all OFF CACHE BOOL "Enable all REDEBUGing features")
+
+# Internal variables.
 set(ozz_enable_cdash OFF CACHE BOOL "Enable CDash")
 set(ozz_enable_coverage OFF CACHE BOOL "Enable coverage tests")
 

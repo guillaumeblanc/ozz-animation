@@ -1,3 +1,13 @@
+Release version 0.3.1.----------------------------------------------------------
+
+ # Samples
+  - Adds keyboard camera controls.
+
+ # Build pipeline
+  - Adds Mac OSX support, full offline and runtime pipeline, samples, dashboard...
+  - Improves dashboard configuration, using json configuration files available there: http://ozz.qualipilote.fr/dashboard/config/.
+  - Moves dashboard to http://ozz.qualipilote.fr/dashboard/cdash/
+
 Release version 0.3.0.----------------------------------------------------------
 
  # Library
@@ -59,3 +69,5 @@ Release version 0.1.0, initial open source release.-----------------------------
  # Build pipeline
   - CMake based build pipeline.
   - CTest/GTest based unit test framework.
+
+--------------------------------------------------------------------------------

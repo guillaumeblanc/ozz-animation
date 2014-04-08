@@ -73,7 +73,7 @@ inline _Fct IterateJointsDF(const Skeleton& _skeleton, int _from, _Fct _fct) {
   // Consumes iterator and call _fct.
   Range<const Skeleton::JointProperties> properties =
     _skeleton.joint_properties();
-  for (int i = 0; i < iterator.num_joints; i++) {
+  for (int i = 0; i < iterator.num_joints; ++i) {
     const int joint = iterator.joints[i];
     _fct(joint, properties.begin[joint].parent);
   }

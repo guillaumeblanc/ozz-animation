@@ -106,7 +106,7 @@ bool LocalToModelJob::Run() const {
     // Applies hierarchical transformation.
     const int proceed_up_to = joint + math::Min(4, num_joints - joint);
     const math::SimdFloat4* local_aos_matrix = local_aos_matrices;
-    for (; joint < proceed_up_to; joint++, local_aos_matrix += 4) {
+    for (; joint < proceed_up_to; ++joint, local_aos_matrix += 4) {
       const int parent = properties.begin[joint].parent;
       const Float4x4* parent_matrix =
         math::Select(parent == Skeleton::kNoParentIndex,

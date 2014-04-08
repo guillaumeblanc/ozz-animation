@@ -6,5 +6,5 @@ add_library(tinyxml
   tinyxmlerror.cpp
   tinyxmlparser.cpp)
 
-set_target_properties(tinyxml PROPERTIES FOLDER "contrib")
+set_target_properties(tinyxml PROPERTIES FOLDER "extern")
 

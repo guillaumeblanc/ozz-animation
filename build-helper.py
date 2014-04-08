@@ -41,18 +41,18 @@ from functools import partial
 
 
 # Build global path variables.
-root = os.path.abspath(os.path.join(os.getcwd(), "."))
-build_dir = os.path.join(root, "build")
-cmake_cache_file = os.path.join(build_dir, "CMakeCache.txt")
-config = "Release"
-generators = {0: "default"}
+root = os.path.abspath(os.path.join(os.getcwd(), '.'))
+build_dir = os.path.join(root, 'build')
+cmake_cache_file = os.path.join(build_dir, 'CMakeCache.txt')
+config = 'Release'
+generators = {0: 'default'}
 generator = generators[0]
 
 
 def ValidateCMake():
   try:
     # Test that cmake can be executed, silently...
-    pipe = subprocess.Popen(["cmake"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    pipe = subprocess.Popen(['cmake'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = pipe.communicate()
   except OSError as e:
     print("CMake is not installed or properly setup. Please visit www.cmake.org.")
@@ -76,10 +76,10 @@ def CleanBuildDir():
 def Configure():
   # Configure build process.
   print("Configuring build project.")
-  options = ["cmake"]
+  options = ['cmake']
   global generator
-  if(generator != "default"):
-    options += ["-G" + generator]
+  if(generator != 'default'):
+    options += ['-G', generator]
   options += [root]
   config_process = subprocess.Popen(options, cwd=build_dir)
   config_process.wait()
@@ -96,10 +96,10 @@ def Configure():
 def Build():
   # Configure build process.
   print("Building project.")
-  options = ["cmake", "--build", build_dir, "--config", config, "--use-stderr"];
+  options = ['cmake', '--build', build_dir, '--config', config, '--use-stderr'];
   # Appends parallel build option if supported by the generator.
   if "Unix Makefiles" in generator:
-    options += ["--", "-j" + str(multiprocessing.cpu_count())]
+    options += ['--', '-j' + str(multiprocessing.cpu_count())]
   config_process = subprocess.Popen(options, cwd=build_dir)
   config_process.wait()
   if(config_process.returncode != 0):
@@ -111,7 +111,7 @@ def Build():
 def Test():
   # Configure Test process.
   print("Running unit tests.")
-  options = ["ctest" ,"--output-on-failure", "-j" + str(multiprocessing.cpu_count()), "--build-config", config]
+  options = ['ctest' ,'--output-on-failure', '-j' + str(multiprocessing.cpu_count()), '--build-config', config]
   config_process = subprocess.Popen(options, cwd=build_dir)
   config_process.wait()
   if(config_process.returncode != 0):
@@ -122,7 +122,7 @@ def Test():
 
 def PackSources(_type):
   print("Packing sources.")
-  options = ["cpack", "-G", _type, "--config", "CPackSourceConfig.cmake"]
+  options = ['cpack', '-G', _type, '--config', 'CPackSourceConfig.cmake']
   config_process = subprocess.Popen(options, cwd=build_dir)
   config_process.wait()
   if(config_process.returncode != 0):
@@ -133,7 +133,7 @@ def PackSources(_type):
 
 def PackBinaries(_type):
   print("Packing binaries.")
-  options = ["cpack", "-G", _type, "-C", config]
+  options = ['cpack', '-G', _type, '-C', config]
   config_process = subprocess.Popen(options, cwd=build_dir)
   config_process.wait()
   if(config_process.returncode != 0):
@@ -144,10 +144,10 @@ def PackBinaries(_type):
 
 def SelecConfig():
   configs = {
-    1: "Debug",
-    2: "Release",
-    3: "RelWithDebInfo",
-    4: "MinSizeRel"}
+    1: 'Debug',
+    2: 'Release',
+    3: 'RelWithDebInfo',
+    4: 'MinSizeRel'}
 
   while True:
     print("Select build configuration:")
@@ -169,9 +169,9 @@ def SelecConfig():
 
 def FindGenerators():
   # Finds all generators outputted from cmake usage 
-  process = subprocess.Popen(["cmake"], stdout=subprocess.PIPE)
+  process = subprocess.Popen(['cmake'], stdout=subprocess.PIPE)
   stdout = process.communicate()[0]
-  sub_stdout = stdout[stdout.rfind("Generators"):]
+  sub_stdout = stdout[stdout.rfind('Generators'):]
   matches = re.findall(r"\s*(.+)\s*=.+", sub_stdout, re.MULTILINE)
   # Fills generators list
   global generators  
@@ -197,7 +197,7 @@ def DetectGenerator():
     for num, message in sorted(generators.iteritems()):
       if match.group(1) == message:
         return message
-  return "default"
+  return 'default'
 
 def SelecGenerator():
   global generators
@@ -216,7 +216,7 @@ def SelecGenerator():
     
     # Check if this is the current generator
     current_generator = DetectGenerator()
-    if current_generator == "default":
+    if current_generator == 'default':
       global generator
       generator = generators[answer]
       return True

@@ -43,8 +43,6 @@
 
 #include "framework/internal/renderer_impl.h"
 
-#include "GL/glfw.h"
-
 namespace ozz {
 namespace sample {
 namespace internal {
@@ -71,7 +69,6 @@ const GLubyte widget_disabled_text_color[4] = {0x50, 0x50, 0x50, 0xff};
 
 const GLubyte graph_background_color[4] = {0x30, 0x40, 0x9a, 0xff};
 const GLubyte graph_plot_color[4] = {0, 0xe0, 0, 0xff};
-const GLubyte graph_text_color[4] = {0xff, 0xff, 0xff, 0xff};
 
 const GLubyte slider_background_color[4] = {0xb0, 0xb0, 0xb0, 0xff};
 const GLubyte slider_cursor_color[4] = {0x90, 0x90, 0x90, 0xff};
@@ -318,7 +315,7 @@ void ImGuiImpl::BeginContainer(const char* _title,
     return;
   }
 
-  auto_gen_id_++;
+  ++auto_gen_id_;
 
   // Inserts header.
   container.offset_y -= header_height;
@@ -418,7 +415,7 @@ bool ImGuiImpl::DoButton(const char* _label, bool _enabled, bool* _state) {
     return false;
   }
 
-  auto_gen_id_++;
+  ++auto_gen_id_;
 
   // Do button logic.
   bool hot = false, active = false, clicked = false;
@@ -485,7 +482,7 @@ bool ImGuiImpl::DoCheckBox(const char* _label,
                            widget_height,  // The check box is square.
                            widget_rect.height);
 
-  auto_gen_id_++;
+  ++auto_gen_id_;
 
   // Do button logic.
   bool hot = false, active = false, clicked = false;
@@ -576,7 +573,7 @@ bool ImGuiImpl::DoRadioButton(int _ref,
                            widget_height,  // The check box is square.
                            widget_rect.height);
 
-  auto_gen_id_++;
+  ++auto_gen_id_;
 
   // Do button logic.
   bool hot = false, active = false, clicked = false;
@@ -735,7 +732,7 @@ void ImGuiImpl::DoGraph(const char* _label,
       glVertex2f(ordinate_current, clamped_abscissa);
       ordinate_current += ordinate_inc;
 
-      current++;
+      ++current;
       if (current == _value_end) {  // Looping...
         end = _value_cursor;
         current = _value_begin;
@@ -989,19 +986,19 @@ void ImGuiImpl::StrokeRect(const math::RectInt& _rect, int _radius) const {
     const int h = _rect.height - _radius * 2;
 
     glBegin(GL_LINE_LOOP);
-    for (int i = 0; i <= kCircleSegments / 4; i++) {
+    for (int i = 0; i <= kCircleSegments / 4; ++i) {
       glVertex2i(x + w + circle_[i][0] * _radius / kCircleRadius,
                  y + h + circle_[i][1] * _radius / kCircleRadius);
     }
-    for (int i = kCircleSegments / 4; i <= 2 * kCircleSegments / 4; i++) {
+    for (int i = kCircleSegments / 4; i <= 2 * kCircleSegments / 4; ++i) {
       glVertex2i(x + circle_[i][0] * _radius / kCircleRadius,
                  y + h + circle_[i][1] * _radius / kCircleRadius);
     }
-    for (int i = 2 * kCircleSegments / 4; i <= 3 * kCircleSegments / 4; i++) {
+    for (int i = 2 * kCircleSegments / 4; i <= 3 * kCircleSegments / 4; ++i) {
       glVertex2i(x + circle_[i][0] * _radius / kCircleRadius,
                  y + circle_[i][1] * _radius / kCircleRadius);
     }
-    for (int i = 3 * kCircleSegments / 4; i < 4 * kCircleSegments / 4; i++) {
+    for (int i = 3 * kCircleSegments / 4; i < 4 * kCircleSegments / 4; ++i) {
       glVertex2i(x + w + circle_[i][0] * _radius / kCircleRadius,
                  y + circle_[i][1] * _radius / kCircleRadius);
     }
@@ -1015,7 +1012,7 @@ void ImGuiImpl::StrokeRect(const math::RectInt& _rect, int _radius) const {
 void ImGuiImpl::InitializeCircle() {
   assert((kCircleSegments & 3) == 0);  // kCircleSegments must be multiple of 4.
 
-  for (int i = 0; i < kCircleSegments; i++) {
+  for (int i = 0; i < kCircleSegments; ++i) {
     const float angle = i * math::k2Pi / kCircleSegments;
     const float cos = std::cos(angle) * kCircleRadius;
     const float sin = std::sin(angle) * kCircleRadius;
@@ -1122,7 +1119,7 @@ void ImGuiImpl::InitalizeFont() {
 
   // Unpack font data font 1 bit per pixel to 8.
   for (int i = 0; i < font_.image_width * font_.image_height; i += 8) {
-    for (int j = 0; j < 8; j++) {
+    for (int j = 0; j < 8; ++j) {
       const int pixel = (i + j) / font_.image_width * font_.texture_width +
                         (i + j) % font_.image_width;
       const int bit = 7 - j;
@@ -1154,7 +1151,7 @@ void ImGuiImpl::InitalizeFont() {
                                 font_.texture_height;
 
   glyph_displaylist_base_ = glGenLists(256);
-  for (int i = 0; i < 256; i++) {
+  for (int i = 0; i < 256; ++i) {
     GL(NewList(glyph_displaylist_base_ + i, GL_COMPILE));
     if (i >= font_.glyph_start && i < font_.glyph_start + font_.glyph_count) {
       const int index = i - font_.glyph_start;
@@ -1216,7 +1213,7 @@ int ImGuiImpl::Print(const char* _text,
       if (IsDivisible(*spec.end)) {  // Found a divisible character.
         last_div = spec.end;
       }
-      spec.end++;
+      ++spec.end;
 
       // Is this the last character of the line.
       if (*spec.end == '\n' || spec.end + 1 > spec.begin + chars_per_line) {
@@ -1228,7 +1225,7 @@ int ImGuiImpl::Print(const char* _text,
 
         // Trims ' ' left if it is the end of the new line.
         while ((spec.end - 1) >= spec.begin && IsDivisible(*(spec.end - 1))) {
-          spec.end--;
+          --spec.end;
         }
 
         // Pushes the new line specs.
@@ -1242,11 +1239,11 @@ int ImGuiImpl::Print(const char* _text,
 
         // Trims ' ' right if it is the beginning of a new line.
         while (IsDivisible(*spec.begin)) {
-          spec.begin++;
+          ++spec.begin;
         }
         // Trims '\n' right if this line was stopped because of a cr.
         if (*spec.begin == '\n') {
-          spec.begin++;
+          ++spec.begin;
         }
 
         spec.end = spec.begin;
@@ -1256,7 +1253,7 @@ int ImGuiImpl::Print(const char* _text,
     if (line_count < max_lines) {
       // Trims ' ' left as it is the end of the new line.
       while ((spec.end - 1) >= spec.begin && IsDivisible(*(spec.end - 1))) {
-        spec.end--;
+        --spec.end;
       }
       // Pushes the remaining text.
       if (spec.begin != spec.end) {
@@ -1299,7 +1296,7 @@ int ImGuiImpl::Print(const char* _text,
   GL(Enable(GL_TEXTURE_2D));
   GL(BindTexture(GL_TEXTURE_2D, glyph_texture_));
 
-  for (int l = 0; l < line_count; l++) {
+  for (int l = 0; l < line_count; ++l) {
     const int line_char_count =
       static_cast<int>(line_specs[l].end - line_specs[l].begin);
     int lx = _rect.left;  // Default value is kWest*.

@@ -60,7 +60,7 @@ template <typename _Key>
 static bool ValidateTrack(const typename ozz::Vector<_Key>::Std& _track,
                           float _duration) {
   float previous_time = -1.f;
-  for (std::size_t k = 0; k < _track.size(); k++) {
+  for (std::size_t k = 0; k < _track.size(); ++k) {
     const float frame_time = _track[k].time;
     // Tests frame's time is in range [0:duration].
     if (frame_time < 0.f || frame_time > _duration) {
@@ -88,19 +88,17 @@ struct SortingRotationKey {
 };
 
 struct SortingScaleKey {
-  unsigned int  track;
+  unsigned int track;
   float prev_key_time;
   RawAnimation::ScaleKey key;
 };
 
+// Keyframe sorting. Stores first by time and then track number.
 template<typename _Key>
 bool SortingKeyLess(const _Key& _left, const _Key& _right) {
-  if (_left.prev_key_time < _right.prev_key_time) {
-    return true;
-  } else if (_left.prev_key_time == _right.prev_key_time) {
-    return _left.track < _right.track;
-  }
-  return false;
+  return _left.prev_key_time < _right.prev_key_time
+         || (_left.prev_key_time == _right.prev_key_time
+             && _left.track < _right.track);
 }
 
 template<typename _SrcKey, typename _DestTrack>
@@ -135,11 +133,11 @@ void CopyRaw(const _SrcTrack& _src, unsigned int _track, float _duration,
   } else {  // Copies all keys, and fixes up first and last keys.
     float prev_time = -1.f;
     if (_src.front().time != 0.f) {  // Needs a key at t = 0.f.
-      const DestKey first = {_track, -1.f, {0.f, _src.front().value}};
+      const DestKey first = {_track, prev_time, {0.f, _src.front().value}};
       _dest->push_back(first);
       prev_time = 0.f;
     }
-    for (std::size_t k = 0; k < _src.size(); k++) {  // Copies all keys.
+    for (std::size_t k = 0; k < _src.size(); ++k) {  // Copies all keys.
       const SrcKey& raw_key = _src[k];
       assert(raw_key.time >= 0 && raw_key.time <= _duration);
       const DestKey key = {_track, prev_time, {raw_key.time, raw_key.value}};
@@ -169,7 +167,7 @@ ozz::Range<_DestKey> CopyToAnimation(typename ozz::Vector<_SrcKey>::Std* _src) {
   ozz::Range<_DestKey> dest =
     memory::default_allocator()->AllocateRange<_DestKey>(src_count);
   const _SrcKey* src = &_src->front();
-  for (std::size_t i = 0; i < src_count; i++) {
+  for (std::size_t i = 0; i < src_count; ++i) {
     dest.begin[i].track = src[i].track;
     dest.begin[i].time = src[i].key.time;
     dest.begin[i].value = src[i].key.value;
@@ -196,7 +194,7 @@ ozz::Range<RotationKey> CopyToAnimation<SortingRotationKey, RotationKey>(
   std::size_t track = std::numeric_limits<std::size_t>::max();
   const math::Quaternion identity = math::Quaternion::identity();
   SortingRotationKey* src = &_src->front();
-  for (std::size_t i = 0; i < src_count; i++) {
+  for (std::size_t i = 0; i < src_count; ++i) {
     math::Quaternion normalized = NormalizeSafe(src[i].key.value, identity);
     if (track != src[i].track) {  // First key of the track.
       if (normalized.w < 0.f) {  // .w eq to a dot with identity quaternion.
@@ -224,7 +222,7 @@ ozz::Range<RotationKey> CopyToAnimation<SortingRotationKey, RotationKey>(
   // Fills output.
   ozz::Range<RotationKey> dest =
     memory::default_allocator()->AllocateRange<RotationKey>(src_count);
-  for (size_t i = 0; i < src_count; i++) {
+  for (size_t i = 0; i < src_count; ++i) {
     dest.begin[i].track = src[i].track;
     dest.begin[i].time = src[i].key.time;
     dest.begin[i].value = src[i].key.value;
@@ -239,7 +237,7 @@ bool RawAnimation::Validate() const {
   }
   // Ensures that all key frames' time are valid, ie: in a strict ascending
   // order and within range [0,duration].
-  for (std::size_t j = 0; j < tracks.size(); j++) {
+  for (std::size_t j = 0; j < tracks.size(); ++j) {
     const RawAnimation::JointTrack& track = tracks[j];
     if (!ValidateTrack<TranslationKey>(track.translations, duration) ||
         !ValidateTrack<RotationKey>(track.rotations, duration) || 
@@ -280,7 +278,7 @@ Animation* AnimationBuilder::operator()(const RawAnimation& _input) const {
 
   // Declares and preallocates tracks to sort.
   std::size_t translations = 0, rotations = 0, scales = 0;
-  for (int i = 0; i < num_tracks; i++) {
+  for (int i = 0; i < num_tracks; ++i) {
     const RawAnimation::JointTrack& raw_track =  _input.tracks[i];
     translations += raw_track.translations.size() + 2;  // +2 because worst case
     rotations += raw_track.rotations.size() + 2;        // needs to add the
@@ -294,7 +292,7 @@ Animation* AnimationBuilder::operator()(const RawAnimation& _input) const {
   sorting_scales.reserve(scales);
 
   // Filters RawAnimation keys and copies them to the output sorting structure.
-  for (int i = 0; i < num_tracks; i++) {
+  for (int i = 0; i < num_tracks; ++i) {
     const RawAnimation::JointTrack& raw_track = _input.tracks[i];
     CopyRaw(raw_track.translations, i, duration, &sorting_translations);
     CopyRaw(raw_track.rotations, i, duration, &sorting_rotations);
@@ -302,7 +300,7 @@ Animation* AnimationBuilder::operator()(const RawAnimation& _input) const {
   }
 
   // Add enough identity keys to match soa requirements.
-  for (int i = num_tracks; i < num_soa_tracks; i++) {
+  for (int i = num_tracks; i < num_soa_tracks; ++i) {
     typedef RawAnimation::TranslationKey SrcTKey;
     PushBackIdentityKey<SrcTKey>(i, 0.f, &sorting_translations);
     PushBackIdentityKey<SrcTKey>(i, duration, &sorting_translations);

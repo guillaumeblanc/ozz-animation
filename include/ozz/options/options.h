@@ -60,10 +60,9 @@
 // As in getopt() and gflags, -- by itself terminates flags processing. So in:
 // "foo -f1=1 -- -f2=2", f1 is considered but -f2 is not.
 //
-// Parsing is invoked on the global parser using ozz::options::ParseCommandLine
-// function. ozz::options::ExecutablePath and ozz::options::ExecutableName give
-// an wrong result (ie: empty string) until ozz::options::ParseCommandLine is
-// called.
+// Parsing is invoked through ozz::options::ParseCommandLine function, providing
+// argc and argv arguments of the main function. This function also takes as
+// argument two strings to specify the version and usage message.
 //
 // To declare/register a new option, use OZZ_OPTIONS_DECLARE_* like macros.
 // Supported options types are bool, int, float and string (c string).

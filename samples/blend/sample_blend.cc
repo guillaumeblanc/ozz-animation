@@ -97,7 +97,7 @@ class BlendSampleApplication : public ozz::sample::Application {
 
     // Updates and samples all animations to their respective local space
     // transform buffers.
-    for (int i = 0; i < kNumLayers; i++) {
+    for (int i = 0; i < kNumLayers; ++i) {
       Sampler& sampler = samplers_[i];
 
       // Updates animations time.
@@ -123,7 +123,7 @@ class BlendSampleApplication : public ozz::sample::Application {
 
     // Prepares blending layers.
     ozz::animation::BlendingJob::Layer layers[kNumLayers];
-    for (int i = 0; i < kNumLayers; i++) {
+    for (int i = 0; i < kNumLayers; ++i) {
       layers[i].transform = samplers_[i].locals;
       layers[i].weight = samplers_[i].weight;
     }
@@ -164,7 +164,7 @@ class BlendSampleApplication : public ozz::sample::Application {
     // Computes weight parameters for all samplers.
     const float kNumIntervals = kNumLayers - 1;
     const float kInterval = 1.f / kNumIntervals;
-    for (int i = 0; i < kNumLayers; i++) {
+    for (int i = 0; i < kNumLayers; ++i) {
       const float med = i * kInterval;
       const float x = blend_ratio_ - med;
       const float y = ((x < 0.f ? x : -x) + kInterval) * kNumIntervals;
@@ -190,7 +190,7 @@ class BlendSampleApplication : public ozz::sample::Application {
 
     // Finally finds the speed coefficient for all samplers.
     const float inv_loop_duration = 1.f / loop_duration;
-    for (int i = 0; i < kNumLayers; i++) {
+    for (int i = 0; i < kNumLayers; ++i) {
       Sampler& sampler = samplers_[i];
       const float speed = sampler.animation.duration() * inv_loop_duration;
       sampler.controller.set_playback_speed(speed);
@@ -220,7 +220,7 @@ class BlendSampleApplication : public ozz::sample::Application {
     const char* filenames[] = {
       OPTIONS_animation1, OPTIONS_animation2, OPTIONS_animation3};
     OZZ_STATIC_ASSERT(OZZ_ARRAY_SIZE(filenames) == kNumLayers);
-    for (int i = 0; i < kNumLayers; i++) {
+    for (int i = 0; i < kNumLayers; ++i) {
       Sampler& sampler = samplers_[i];
 
       if (!ozz::sample::LoadAnimation(filenames[i], &sampler.animation)) {
@@ -247,7 +247,7 @@ class BlendSampleApplication : public ozz::sample::Application {
 
   virtual void OnDestroy() {
     ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
-    for (int i = 0; i < kNumLayers; i++) {
+    for (int i = 0; i < kNumLayers; ++i) {
       Sampler& sampler = samplers_[i];
       allocator->Deallocate(sampler.locals);
       allocator->Delete(sampler.cache);
@@ -264,7 +264,7 @@ class BlendSampleApplication : public ozz::sample::Application {
       if (open) {
         if (_im_gui->DoCheckBox("Manual settings", &manual_) && !manual_) {
           // Check-box state was changed, reset parameters.
-          for (int i = 0; i < kNumLayers; i++) {
+          for (int i = 0; i < kNumLayers; ++i) {
             Sampler& sampler = samplers_[i];
             sampler.controller.Reset();
           }
@@ -274,7 +274,7 @@ class BlendSampleApplication : public ozz::sample::Application {
         std::sprintf(label, "Blend ratio: %.2f", blend_ratio_);
         _im_gui->DoSlider(label, 0.f, 1.f, &blend_ratio_, 1.f, !manual_);
 
-        for (int i = 0; i < kNumLayers; i++) {
+        for (int i = 0; i < kNumLayers; ++i) {
           Sampler& sampler = samplers_[i];
           std::sprintf(label, "Weight %d: %.2f", i, sampler.weight);
           _im_gui->DoSlider(label, 0.f, 1.f, &sampler.weight, 1.f, manual_);
@@ -293,7 +293,7 @@ class BlendSampleApplication : public ozz::sample::Application {
         OZZ_STATIC_ASSERT(OZZ_ARRAY_SIZE(open) == kNumLayers);
         const char* oc_names[] = {"Animation 1", "Animation 2", "Animation 3"};
         OZZ_STATIC_ASSERT(OZZ_ARRAY_SIZE(oc_names) == kNumLayers);
-        for (int i = 0; i < kNumLayers; i++) {
+        for (int i = 0; i < kNumLayers; ++i) {
           Sampler& sampler = samplers_[i];
           ozz::sample::ImGui::OpenClose oc(_im_gui, oc_names[i], NULL);
           if (open[i]) {

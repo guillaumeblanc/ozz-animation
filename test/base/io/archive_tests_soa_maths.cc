@@ -41,7 +41,7 @@
 #include "ozz/base/maths/soa_transform.h"
 
 TEST(SoaMaths, Archive) {
-  for (int e = 0; e < 2; e++) {
+  for (int e = 0; e < 2; ++e) {
     ozz::Endianness endianess = e == 0 ? ozz::kBigEndian : ozz::kLittleEndian;
 
     ozz::io::MemoryStream stream;

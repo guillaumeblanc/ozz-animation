@@ -1424,7 +1424,7 @@ class Count {
  public:
   Count() : num_(0) {}
   void operator()(typename _List::const_reference) {
-    num_++;
+    ++num_;
   }
   int num_;
 };

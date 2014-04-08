@@ -57,7 +57,7 @@ void Filter(const _RawTrack& _src,
 
   // Only copies the key that cannot be interpolated from the others.
   std::size_t last_src_pushed = 0;  // Index (in src) of the last pushed key.
-  for (std::size_t i = 0; i < _src.size(); i++) {
+  for (std::size_t i = 0; i < _src.size(); ++i) {
     // First and last keys are always pushed.
     if (i == 0 || i == _src.size() - 1) {
       _dest->push_back(_src[i]);
@@ -67,7 +67,7 @@ void Filter(const _RawTrack& _src,
       // interpolated from keys last_src_pushed and i + 1.
       typename _RawTrack::const_reference left = _src[last_src_pushed];
       typename _RawTrack::const_reference right = _src[i + 1];
-      for (size_t j = last_src_pushed + 1; j <= i; j++) {
+      for (size_t j = last_src_pushed + 1; j <= i; ++j) {
         typename _RawTrack::const_reference test = _src[j];
         const float alpha = (test.time - left.time) / (right.time - left.time);
         assert(alpha >= 0.f && alpha <= 1.f);
@@ -147,7 +147,7 @@ bool AnimationOptimizer::operator()(const RawAnimation& _input,
   _output->duration = _input.duration;
   int num_tracks = _input.num_tracks();
   _output->tracks.resize(num_tracks);
-  for (int i = 0; i < num_tracks; i++) {
+  for (int i = 0; i < num_tracks; ++i) {
     Filter(_input.tracks[i].translations,
            CompareTranslation, LerpTranslation, translation_tolerance,
            &_output->tracks[i].translations);

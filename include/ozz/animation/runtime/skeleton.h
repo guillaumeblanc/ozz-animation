@@ -41,6 +41,17 @@ namespace animation {
 // Forward declaration of SkeletonBuilder, used to instantiate a skeleton.
 namespace offline { class SkeletonBuilder; }
 
+// This runtime skeleton data structure provides a const-only access to joint
+// hierarchy, joint names and bind-pose. This structure is filled by the
+// SkeletonBuilder and can be serialised/deserialized.
+// Joint names, bind-poses and hierarchy information are all stored in separate
+// arrays of data (as opposed to joint structures for the RawSkeleton), in order
+// to closely match with the way runtime algorithms use them. Joint hierarchy is
+// packed as an array of 16 bits element (JointProperties) per joint, stored in
+// breadth-first order. JointProperties::parent member is enough to traverse the
+// whole joint hierarchy in breadth-first order. JointProperties::is_leaf is a
+// helper that is used to speed-up some algorithms: See IterateJointsDF() from
+// skeleton_utils.h that implements a depth-first traversal utility.
 class Skeleton {
  public:
 

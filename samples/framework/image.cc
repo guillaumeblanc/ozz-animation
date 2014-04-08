@@ -47,17 +47,19 @@ int Stride(Format::Value _format) {
 }
 
 #define PUSH_PIXEL_RGB(_buffer, _size, _repetition, _pixel, _mapping) \
-  _buffer[_size++] = 0x80 | ((_repetition - 1) & 0xff); \
-  _buffer[_size++] = _pixel.c[_mapping[0]]; \
-  _buffer[_size++] = _pixel.c[_mapping[1]]; \
-  _buffer[_size++] = _pixel.c[_mapping[2]];
+  _buffer[_size + 0] = 0x80 | ((_repetition - 1) & 0xff); \
+  _buffer[_size + 1] = _pixel.c[_mapping[0]]; \
+  _buffer[_size + 2] = _pixel.c[_mapping[1]]; \
+  _buffer[_size + 3] = _pixel.c[_mapping[2]]; \
+  _size += 4;
 
 #define PUSH_PIXEL_RGBA(_buffer, _size, _repetition, _pixel, _mapping) \
-  _buffer[_size++] = 0x80 | ((_repetition - 1) & 0xff); \
-  _buffer[_size++] = _pixel.c[_mapping[0]]; \
-  _buffer[_size++] = _pixel.c[_mapping[1]]; \
-  _buffer[_size++] = _pixel.c[_mapping[2]]; \
-  _buffer[_size++] = _pixel.c[_mapping[3]];
+  _buffer[_size + 0] = 0x80 | ((_repetition - 1) & 0xff); \
+  _buffer[_size + 1] = _pixel.c[_mapping[0]]; \
+  _buffer[_size + 2] = _pixel.c[_mapping[1]]; \
+  _buffer[_size + 3] = _pixel.c[_mapping[2]]; \
+  _buffer[_size + 4] = _pixel.c[_mapping[3]]; \
+  _size += 5;
 
 bool WriteTGA(const char* _filename,
               int _width, int _height,

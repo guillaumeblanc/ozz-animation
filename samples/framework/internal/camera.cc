@@ -33,13 +33,12 @@
 #include "framework/internal/camera.h"
 
 #include "ozz/base/platform.h"
+#include "ozz/base/log.h"
 #include "ozz/base/maths/box.h"
 #include "ozz/base/maths/math_ex.h"
 #include "ozz/base/maths/math_constant.h"
 
 #include "framework/internal/renderer_impl.h"
-
-#include "GL/glfw.h"
 
 using ozz::math::Float2;
 using ozz::math::Float3;
@@ -58,8 +57,11 @@ static const float kAngleFactor = .002f;
 static const float kDistanceFactor = .1f;
 static const float kScrollFactor = .02f;
 static const float kPanFactor = .01f;
+static const float kKeyboardFactor = 500.f;
 static const float kAnimationTime = .15f;
-static const float kFovy = ozz::math::kPi / 3.f;
+static const float kNear = .01f;
+static const float kFar = 1000.f;
+static const float kFovY = ozz::math::kPi / 3.f;
 static const float kFrameAllZoomOut = 1.1f;  // 10% bigger than the scene.
 
 // Setups initial values.
@@ -85,15 +87,7 @@ Camera::~Camera() {
 Camera::Actions Camera::Update(float _delta_time) {
   Actions actions = {};  // Default to false.
 
-  // Fetches current mouse position and compute its movement since last frame.
-  int x, y;
-  glfwGetMousePos(&x, &y);
-  const int dx = x - mouse_last_x_;
-  const int dy = y - mouse_last_y_;
-  mouse_last_x_ = x;
-  mouse_last_y_ = y;
-
-  // Mouse wheel activates Zoom.
+    // Mouse wheel activates Zoom.
   const int w = glfwGetMouseWheel();
   const int dw = w - mouse_last_wheel_;
   mouse_last_wheel_ = w;
@@ -103,8 +97,29 @@ Camera::Actions Camera::Update(float _delta_time) {
     remaining_animation_time_= 0.f;
   }
 
+  // Fetches current mouse position and compute its movement since last frame.
+  int x, y;
+  glfwGetMousePos(&x, &y);
+  const int mdx = x - mouse_last_x_;
+  const int mdy = y - mouse_last_y_;
+  mouse_last_x_ = x;
+  mouse_last_y_ = y;
+
+  // Finds keyboard relative dx and dy commmands.
+  const int timed_factor =
+    ozz::math::Max(1, static_cast<int>(kKeyboardFactor * _delta_time));
+  const int kdx =
+    timed_factor * (glfwGetKey(GLFW_KEY_RIGHT) - glfwGetKey(GLFW_KEY_LEFT));
+  const int kdy =
+    timed_factor * (glfwGetKey(GLFW_KEY_DOWN) - glfwGetKey(GLFW_KEY_UP));
+  const bool keyboard_interact = kdx || kdy;
+
+  // Computes composed keyboard and mouse dx and dy.
+  const int dx = mdx + kdx;
+  const int dy = mdy + kdy;
+
   // Mouse right button activates Zoom, Pan and Orbit modes.
-  if (glfwGetMouseButton(GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
+  if (keyboard_interact || glfwGetMouseButton(GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
     if (glfwGetKey(GLFW_KEY_LCTRL) == GLFW_PRESS) {  // Zoom mode.
       actions.zoomed = true;  // Camera zoomed manually.
       distance_ += dy * kDistanceFactor;
@@ -184,10 +199,8 @@ Camera::Actions Camera::Update(float _delta_time) {
 
   // Build the model view matrix components.
   const Float4x4 center = Float4x4::Translation(
-    math::simd_float4::Load(animated_center_.x,
-                            animated_center_.y,
-                            animated_center_.z,
-                            1.f));
+    math::simd_float4::Load(
+      animated_center_.x, animated_center_.y, animated_center_.z, 1.f));
   const Float4x4 y_rotation = Float4x4::FromAxisAngle(
     math::simd_float4::Load(0.f, 1.f, 0.f, animated_angles_.y));
   const Float4x4 x_rotation = Float4x4::FromAxisAngle(
@@ -222,28 +235,20 @@ void Camera::Bind() {
 }
 
 void Camera::Resize(int _width, int _height) {
-  // Don't pollute the stack.
-  int matrix_mode;
-  GL(GetIntegerv(GL_MATRIX_MODE, &matrix_mode));
-  GL(MatrixMode(GL_PROJECTION));
 
   // Compute the projection matrix.
-  GL(PushMatrix());
-  GL(LoadIdentity());
   const float ratio = _height != 0 ? 1.f * _width / _height : 1.f;
-  gluPerspective(kFovy * 180.f / ozz::math::kPi, ratio, .01f, 1000.f);
+  const float h = tan( (kFovY * .5f)) * kNear;
+  const float w = h * ratio;
 
-  // Gets the matrix back.
-  OZZ_ALIGN(16) float values[16];
-  GL(GetFloatv(GL_PROJECTION_MATRIX, values));
-  projection_.cols[0] = math::simd_float4::LoadPtr(values + 0);
-  projection_.cols[1] = math::simd_float4::LoadPtr(values + 4);
-  projection_.cols[2] = math::simd_float4::LoadPtr(values + 8);
-  projection_.cols[3] = math::simd_float4::LoadPtr(values + 12);
-
-  // Restore stack.
-  GL(PopMatrix());
-  GL(MatrixMode(matrix_mode));
+  projection_.cols[0] = math::simd_float4::Load(
+    kNear / w, 0.f, 0.f, 0.f); 
+  projection_.cols[1] = math::simd_float4::Load(
+    0.f, kNear / h, 0.f, 0.f);
+  projection_.cols[2] = math::simd_float4::Load(
+    0.f, 0.f, -(kFar + kNear) / (kFar - kNear), -1.f);
+  projection_.cols[3] = math::simd_float4::Load(
+    0.f, 0.f, -(2.f * kFar * kNear) / (kFar - kNear), 0.f);
 }
 
 bool Camera::FrameAll(const math::Box& _box, bool _immediate) {
@@ -253,7 +258,7 @@ bool Camera::FrameAll(const math::Box& _box, bool _immediate) {
 
   center_ = (_box.max + _box.min) * .5f;
   const float radius = Length(_box.max - _box.min) * .5f;
-  distance_ = (radius * kFrameAllZoomOut) / tanf(kFovy * .5f);
+  distance_ = (radius * kFrameAllZoomOut) / tanf(kFovY * .5f);
   remaining_animation_time_ = _immediate? 0.f : kAnimationTime;
 
   return true;

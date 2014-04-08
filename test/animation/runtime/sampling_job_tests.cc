@@ -259,7 +259,7 @@ TEST(Sampling, SamplingJob) {
   job.output.begin = output;
   job.output.end = output + 1;
 
-  for (std::size_t i = 0; i < OZZ_ARRAY_SIZE(result); i++) {
+  for (std::size_t i = 0; i < OZZ_ARRAY_SIZE(result); ++i) {
     memset(output, 0xde, sizeof(output));
     job.time = result[i].sample_time;
     EXPECT_TRUE(job.Validate());

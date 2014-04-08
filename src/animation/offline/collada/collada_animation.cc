@@ -216,7 +216,7 @@ bool AnimationVisitor::HandleAccessor(const TiXmlElement& _element) {
     if (child->ToElement()->Attribute("name")) {
       source_->binding |= 1 << param_index;
     }
-    param_index++;
+    ++param_index;
   }
 
   // No need to go deeper.
@@ -316,8 +316,8 @@ bool AnimationVisitor::HandleNameArray(const TiXmlElement& _element) {
       8,  // "CARDINAL
       4};  // "STEP"
     OZZ_STATIC_ASSERT(OZZ_ARRAY_SIZE(semantic_len) == kInterpolationCount);
-    for (std::size_t i = 0; i < num_elements && i == source.values.size(); i++) {
-      for (int j = 0; j < kInterpolationCount; j++) {
+    for (std::size_t i = 0; i < num_elements && i == source.values.size(); ++i) {
+      for (int j = 0; j < kInterpolationCount; ++j) {
         if (strncmp(semantics[j], text, semantic_len[j]) == 0) {
           source.values.push_back(Interpolation(j));
           text += semantic_len[j] + 1;  // Skips space also.
@@ -367,7 +367,7 @@ bool AnimationVisitor::HandleSampler(const TiXmlElement& _element) {
   const char* pre = _element.Attribute("pre_behavior");
   if (pre) {
     int i = 0;
-    for (; i < kBehaviorCount; i++) {
+    for (; i < kBehaviorCount; ++i) {
       if (std::strcmp(pre, behaviors[i]) == 0) {
         sampler.pre_behavior = Behavior(i);
         break;
@@ -383,7 +383,7 @@ bool AnimationVisitor::HandleSampler(const TiXmlElement& _element) {
   const char* post = _element.Attribute("post_behavior");
   if (post) {
     int i = 0;
-    for (; i < kBehaviorCount; i++) {
+    for (; i < kBehaviorCount; ++i) {
       if (std::strcmp(post, behaviors[i]) == 0) {
         sampler.post_behavior = Behavior(i);
         break;
@@ -428,7 +428,7 @@ bool AnimationVisitor::HandleInput(const TiXmlElement& _element) {
 
   Semantic semantic;
   int i = 0;
-  for (; i < kSemanticCount; i++) {
+  for (; i < kSemanticCount; ++i) {
     if (!std::strcmp(semantics[i], semantic_name)) {
       semantic = Semantic(i);
       break;
@@ -446,7 +446,7 @@ bool AnimationVisitor::HandleInput(const TiXmlElement& _element) {
     set_error();
     return false;
   }
-  source++;  // Skip # url character.
+  ++source;  // Skip # url character.
 
   // Fills the sampler.
   Sampler& sampler = samplers_[sampler_id];
@@ -462,7 +462,7 @@ bool AnimationVisitor::HandleChannel(const TiXmlElement& _element) {
     set_error();
     return false;
   }
-  source++;  // Skip # url character.
+  ++source;  // Skip # url character.
 
   const char* target = _element.Attribute("target");
   if (!target || *target == '\0') {
@@ -501,7 +501,7 @@ bool MapJointsByName(const ColladaJoint& _src, JointsByName* _joints) {
   (*_joints)[_src.name.c_str()] = &_src;
 
   // Now maps children.
-  for (std::size_t i = 0; i < _src.children.size(); i++) {
+  for (std::size_t i = 0; i < _src.children.size(); ++i) {
     if (!MapJointsByName(_src.children[i], _joints)) {
       return false;
     }
@@ -563,7 +563,7 @@ bool FindSamplers(const AnimationVisitor& _visitor,
         "\"." << std::endl;
       return false;
     }
-    transform_sid++;  // Skip '/' character.
+    ++transform_sid;  // Skip '/' character.
 
     // Looks for a member definition.
     const char* member = NULL;
@@ -581,7 +581,7 @@ bool FindSamplers(const AnimationVisitor& _visitor,
 
     // Finds matching transform.
     std::size_t transform_index = 0;
-    for (; transform_index < _joint.transforms.size(); transform_index++) {
+    for (; transform_index < _joint.transforms.size(); ++transform_index) {
       const NodeTransform& transform = _joint.transforms[transform_index];
       if (!strncmp(transform.sid(), transform_sid, cmp_count)) {
         break;
@@ -651,7 +651,7 @@ bool FindSampleKeysUnion(const Samplers& _samplers,
                          ozz::Vector<float>::Std* _times,
                          float _start_time, float _end_time) {
   // Find inputs key-frame's time union.
-  for (std::size_t i = 0; i < _samplers.size(); i++) {
+  for (std::size_t i = 0; i < _samplers.size(); ++i) {
     // Preallocates times vector.
     const ozz::Vector<float>::Std& values = _samplers[i].input->values;
     _times->reserve(_times->size() + values.size());
@@ -659,7 +659,7 @@ bool FindSampleKeysUnion(const Samplers& _samplers,
     // Compares "values" key with "times" ones and insert non existing ones.
     // Cares to maintain key frame order.
     std::size_t v = 0;
-    for (std::size_t s = 0; s < _times->size() && v < values.size(); s++) {
+    for (std::size_t s = 0; s < _times->size() && v < values.size(); ++s) {
       const float v_value = values[v];
       // Ensure key-frames are strictly ordered.
       if (v > 0 && v_value <= values[v - 1]) {
@@ -667,10 +667,10 @@ bool FindSampleKeysUnion(const Samplers& _samplers,
       }
       const float s_value = (*_times)[s];
       if (v_value == s_value) {  // Existing key.
-        v++;
+        ++v;
       } else if (v_value < s_value) {  // new key to insert.
         _times->insert(_times->begin() + s, v_value);
-        v++;
+        ++v;
       } else {  // Will see later if this key's needed.
       }
       // Output keys should be ordered.
@@ -678,7 +678,7 @@ bool FindSampleKeysUnion(const Samplers& _samplers,
     }
 
     // Pushes all remaining values.
-    for (; v < values.size(); v++) {
+    for (; v < values.size(); ++v) {
       const float v_value = values[v];
       // Ensure key-frames are strictly ordered.
       if (v > 0 && v_value <= values[v - 1]) {
@@ -729,7 +729,7 @@ typedef ozz::Vector<EvaluationCache>::Std Caches;
 bool SetupCaches(const Samplers& _samplers, Caches* _caches) {
   _caches->resize(_samplers.size());
 
-  for (std::size_t j = 0; j < _samplers.size(); j++) {
+  for (std::size_t j = 0; j < _samplers.size(); ++j) {
     const Sampler& sampler = _samplers[j];
 
     // Validates sampler.
@@ -833,7 +833,7 @@ float ApproximateAlpha(const math::Float4 _m[4], const math::Float4& _c,
   float end = 1.f;
   float alpha = 0.f;
   const int kMaxIterations = 16;  // 16 loops = 1 / (1<<16) = 1e-5f.
-  for (int i = 0; i < kMaxIterations; i++) {
+  for (int i = 0; i < kMaxIterations; ++i) {
     alpha = (begin + end) * .5f;  // Dichotomy.
     float output = EvaluateCubicCurve(_m, _c, alpha);
     if (fabs(output - _time) < kTolerance) {
@@ -998,7 +998,7 @@ bool Evaluate(const Sampler& _sampler,
 
   // Evaluate all outputs. Uses a local cache in order to freely increment
   // outputs and tangents.
-  for (std::size_t i = 0; i < _sampler.output->stride; i++) {
+  for (std::size_t i = 0; i < _sampler.output->stride; ++i) {
     bool subsample;
     if (!Evaluate(_time, *_cache, i, outputs, &subsample)) {
       return false;
@@ -1084,7 +1084,7 @@ bool ExtractAnimation(const AnimationVisitor& _animation_visitor,
                       RawAnimation* _animation) {
   // Build a joint-name mapping
   JointsByName joints;
-  for (std::size_t i = 0; i < _skeleton_visitor.roots().size(); i++) {
+  for (std::size_t i = 0; i < _skeleton_visitor.roots().size(); ++i) {
     if (!MapJointsByName(_skeleton_visitor.roots()[i], &joints)) {
       log::Err() << "Failed to build joint-name mapping." << std::endl;
       return false;
@@ -1096,7 +1096,7 @@ bool ExtractAnimation(const AnimationVisitor& _animation_visitor,
   tracks.resize(_skeleton.num_joints());
   float start_time = std::numeric_limits<float>::max();
   float end_time = -std::numeric_limits<float>::max();
-  for (int i = 0; i < _skeleton.num_joints(); i++) {
+  for (int i = 0; i < _skeleton.num_joints(); ++i) {
     const char* joint_name = _skeleton.joint_names()[i];
 
     // Find the id of the imported joint that has the same name as the run-time
@@ -1118,7 +1118,7 @@ bool ExtractAnimation(const AnimationVisitor& _animation_visitor,
     }
 
     // Accumulates animation min and max times.
-    for (std::size_t j = 0; j < tracks[i].samplers.size(); j++) {
+    for (std::size_t j = 0; j < tracks[i].samplers.size(); ++j) {
       const Sampler& sampler = tracks[i].samplers[j];
       if (!sampler.input->values.empty()) {
         start_time = math::Min(sampler.input->values.front(), start_time);
@@ -1134,7 +1134,7 @@ bool ExtractAnimation(const AnimationVisitor& _animation_visitor,
 
   // Fills animation tracks.
   _animation->tracks.resize(_skeleton.num_joints());
-  for (int i = 0; i < _skeleton.num_joints(); i++) {
+  for (int i = 0; i < _skeleton.num_joints(); ++i) {
     const Track& track = tracks[i];
 
     // Get the union of all the key-frame's time.
@@ -1171,7 +1171,7 @@ bool ExtractAnimation(const AnimationVisitor& _animation_visitor,
         return false;
       }
 
-      for (std::size_t j = 0; j < times.size(); j++) {  // For all the key-frames.
+      for (std::size_t j = 0; j < times.size(); ++j) {  // For all the key-frames.
         float time = times[j];
 
         // Does evaluation requires to subsample between keys? This is the case
@@ -1181,7 +1181,7 @@ bool ExtractAnimation(const AnimationVisitor& _animation_visitor,
           subsample = false;
 
           transforms = track.joint->transforms;  // Reset output transforms.
-          for (std::size_t k = 0; k < track.samplers.size(); k++) {
+          for (std::size_t k = 0; k < track.samplers.size(); ++k) {
             const Sampler& sampler = track.samplers[k];
             if (!Evaluate(sampler, time, &caches[k],
                           &transforms[sampler.transform], &subsample)) {
@@ -1191,7 +1191,7 @@ bool ExtractAnimation(const AnimationVisitor& _animation_visitor,
 
           // Concatenates all transforms.
           TransformBuilder builder;
-          for (std::size_t t = 0; t < transforms.size(); t++) {
+          for (std::size_t t = 0; t < transforms.size(); ++t) {
             if (!transforms[t].Build(&builder)) {
               return false;
             }

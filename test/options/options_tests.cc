@@ -88,7 +88,7 @@ TEST(Registration, Options) {
     names.reserve(parser.max_options());
 
     // Registers the maximum allowed options.
-    for (int i = 0; i < parser.max_options(); i++) {
+    for (int i = 0; i < parser.max_options(); ++i) {
       std::stringstream str;
       str << "option " << i << std::ends;
       names.push_back(str.str().c_str());
@@ -102,7 +102,7 @@ TEST(Registration, Options) {
     EXPECT_FALSE(parser.RegisterOption(&options.back()));
 
     // Unregisters all options.
-    for (int i = parser.max_options(); i > 0; i--) {
+    for (int i = parser.max_options(); i > 0; --i) {
       EXPECT_EQ(parser.UnregisterOption(&options[i]), i == 0);
     }
   }

@@ -102,7 +102,7 @@ class RawSkeletonIterateDFTester {
         break;
       }
     }
-    num_joint_++;
+    ++num_joint_;
   }
  private:
   int num_joint_;
@@ -146,7 +146,7 @@ class RawSkeletonIterateBFTester {
         break;
       }
     }
-    num_joint_++;
+    ++num_joint_;
   }
  private:
   int num_joint_;
@@ -234,7 +234,7 @@ TEST(Build, SkeletonBuilder) {
     Skeleton* skeleton = builder(raw_skeleton);
     ASSERT_TRUE(skeleton != NULL);
     EXPECT_EQ(skeleton->num_joints(), 2);
-    for (int i = 0; i < skeleton->num_joints(); i++) {
+    for (int i = 0; i < skeleton->num_joints(); ++i) {
       const int parent_index = skeleton->joint_properties()[i].parent;
       if (std::strcmp(skeleton->joint_names()[i], "root") == 0) {
         EXPECT_EQ(parent_index, Skeleton::kNoParentIndex);
@@ -275,7 +275,7 @@ TEST(Build, SkeletonBuilder) {
     Skeleton* skeleton = builder(raw_skeleton);
     ASSERT_TRUE(skeleton != NULL);
     EXPECT_EQ(skeleton->num_joints(), 3);
-    for (int i = 0; i < skeleton->num_joints(); i++) {
+    for (int i = 0; i < skeleton->num_joints(); ++i) {
       const int parent_index = skeleton->joint_properties()[i].parent;
       if (std::strcmp(skeleton->joint_names()[i], "root") == 0) {
         EXPECT_EQ(parent_index, Skeleton::kNoParentIndex);
@@ -324,7 +324,7 @@ TEST(Build, SkeletonBuilder) {
     Skeleton* skeleton = builder(raw_skeleton);
     ASSERT_TRUE(skeleton != NULL);
     EXPECT_EQ(skeleton->num_joints(), 4);
-    for (int i = 0; i < skeleton->num_joints(); i++) {
+    for (int i = 0; i < skeleton->num_joints(); ++i) {
       const int parent_index = skeleton->joint_properties()[i].parent;
       if (std::strcmp(skeleton->joint_names()[i], "root") == 0) {
         EXPECT_EQ(parent_index, Skeleton::kNoParentIndex);
@@ -376,7 +376,7 @@ TEST(Build, SkeletonBuilder) {
     Skeleton* skeleton = builder(raw_skeleton);
     ASSERT_TRUE(skeleton != NULL);
     EXPECT_EQ(skeleton->num_joints(), 4);
-    for (int i = 0; i < skeleton->num_joints(); i++) {
+    for (int i = 0; i < skeleton->num_joints(); ++i) {
       const int parent_index = skeleton->joint_properties()[i].parent;
       if (std::strcmp(skeleton->joint_names()[i], "root") == 0) {
         EXPECT_EQ(parent_index, Skeleton::kNoParentIndex);
@@ -429,7 +429,7 @@ TEST(Build, SkeletonBuilder) {
     Skeleton* skeleton = builder(raw_skeleton);
     ASSERT_TRUE(skeleton != NULL);
     EXPECT_EQ(skeleton->num_joints(), 5);
-    for (int i = 0; i < skeleton->num_joints(); i++) {
+    for (int i = 0; i < skeleton->num_joints(); ++i) {
       const int parent_index = skeleton->joint_properties()[i].parent;
       if (std::strcmp(skeleton->joint_names()[i], "root") == 0) {
         EXPECT_EQ(parent_index, Skeleton::kNoParentIndex);
@@ -488,7 +488,7 @@ TEST(Build, SkeletonBuilder) {
     Skeleton* skeleton = builder(raw_skeleton);
     ASSERT_TRUE(skeleton != NULL);
     EXPECT_EQ(skeleton->num_joints(), 6);
-    for (int i = 0; i < skeleton->num_joints(); i++) {
+    for (int i = 0; i < skeleton->num_joints(); ++i) {
       const int parent_index = skeleton->joint_properties()[i].parent;
       if (std::strcmp(skeleton->joint_names()[i], "root") == 0) {
         EXPECT_EQ(parent_index, Skeleton::kNoParentIndex);
@@ -639,7 +639,7 @@ TEST(InterateProperties, SkeletonBuilder) {
   EXPECT_EQ(skeleton->num_joints(), 9);
 
   // Iterate through all joints and test their flags.
-  for (int i = 0; i < skeleton->num_joints(); i++) {
+  for (int i = 0; i < skeleton->num_joints(); ++i) {
     const int parent = skeleton->joint_properties()[i].parent;
     const ozz::String& name = skeleton->joint_names()[i];
     switch (i) {
@@ -812,7 +812,7 @@ TEST(TPose, SkeletonBuilder) {
   ozz::math::Transpose4x4(&bind_pose.rotation.x, rotations);
   ozz::math::Transpose3x4(&bind_pose.scale.x, scales);
 
-  for (int i = 0; i < skeleton->num_joints(); i++) {
+  for (int i = 0; i < skeleton->num_joints(); ++i) {
     if (std::strcmp(skeleton->joint_names()[i], "root") == 0) {
       EXPECT_SIMDFLOAT_EQ(translations[i], 1.f, 2.f, 3.f, 0.f);
       EXPECT_SIMDFLOAT_EQ(rotations[i], 1.f, 0.f, 0.f, 0.f);

@@ -1,4 +1,4 @@
-include_directories(${CMAKE_SOURCE_DIR}/contrib/glfw/include)
+include_directories(${CMAKE_SOURCE_DIR}/extern/glfw/include)
 
 add_library(sample_framework
   application.h

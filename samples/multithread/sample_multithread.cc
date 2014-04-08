@@ -110,7 +110,7 @@ class MultithreadSampleApplication : public ozz::sample::Application {
         }
         // Updates all animations.
         #pragma omp for
-        for (int i = 0; i < num_characters_; i++) {
+        for (int i = 0; i < num_characters_; ++i) {
           UpdateCharacter(&characters_[i], _dt);
         }
     }
@@ -151,7 +151,7 @@ class MultithreadSampleApplication : public ozz::sample::Application {
   virtual bool OnDisplay(ozz::sample::Renderer* _renderer) {
 
     bool success = true;
-    for (int c = 0; success && c < num_characters_; c++) {
+    for (int c = 0; success && c < num_characters_; ++c) {
       ozz::math::Float4 position(
         ((c % kWidth) - kWidth / 2) * kInterval,
         ((c / kWidth) / kDepth) * kInterval,
@@ -243,7 +243,7 @@ class MultithreadSampleApplication : public ozz::sample::Application {
 
     // Reallocate all characters.
     ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
-    for (std::size_t c = 0; c < kMaxCharacters; c++) {
+    for (std::size_t c = 0; c < kMaxCharacters; ++c) {
       Character& character = characters_[c];
       character.cache = allocator->
         New<ozz::animation::SamplingCache>(animation_.num_tracks());
@@ -262,7 +262,7 @@ class MultithreadSampleApplication : public ozz::sample::Application {
 
   void DeallocateCharaters() {
     ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
-    for (std::size_t c = 0; c < kMaxCharacters; c++) {
+    for (std::size_t c = 0; c < kMaxCharacters; ++c) {
       Character& character = characters_[c];
       allocator->Delete(character.cache);
       allocator->Deallocate(character.locals);

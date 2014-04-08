@@ -73,7 +73,7 @@ class HeapAllocator : public Allocator {
     header->unaligned = unaligned;
     header->size = _size;
     // Allocation's succeeded.
-    allocation_count_++;
+    ++allocation_count_;
     return aligned;
   }
 
@@ -87,7 +87,7 @@ class HeapAllocator : public Allocator {
       free(old_header->unaligned);
 
       // Deallocation completed.
-      allocation_count_--;
+      --allocation_count_;
     }
     return new_block;
   }
@@ -98,7 +98,7 @@ class HeapAllocator : public Allocator {
         reinterpret_cast<char*>(_block) - sizeof(Header));
       free(header->unaligned);
       // Deallocation completed.
-      allocation_count_--;
+      --allocation_count_;
     }
   }
 
@@ -119,6 +119,13 @@ Allocator* g_default_allocator = &g_heap_allocator;
 // Implements default allocator accessor.
 Allocator* default_allocator() {
   return g_default_allocator;
+}
+
+// Implements default allocator setter.
+Allocator* SetDefaulAllocator(Allocator* _allocator) {
+  Allocator* previous = g_default_allocator;
+  g_default_allocator = _allocator;
+  return previous;
 }
 }  // memory
 }  // ozz

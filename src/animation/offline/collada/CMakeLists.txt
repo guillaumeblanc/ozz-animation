@@ -1,5 +1,5 @@
-add_subdirectory(${CMAKE_SOURCE_DIR}/contrib/tinyxml tinyxml)
-include_directories(${CMAKE_SOURCE_DIR}/contrib/tinyxml)
+add_subdirectory(${CMAKE_SOURCE_DIR}/extern/tinyxml tinyxml)
+include_directories(${CMAKE_SOURCE_DIR}/extern/tinyxml)
 
 add_library(ozz_animation_collada
   ${CMAKE_SOURCE_DIR}/include/ozz/animation/offline/collada/collada.h
@@ -29,6 +29,9 @@ target_link_libraries(dae2skel
   ozz_options)
 set_target_properties(dae2skel
   PROPERTIES FOLDER "ozz/tools")
+
+set_target_properties(dae2skel
+  PROPERTIES RUNTIME_OUTPUT_DIRECTORY "")
 
 install(TARGETS dae2skel
   DESTINATION bin/tools)

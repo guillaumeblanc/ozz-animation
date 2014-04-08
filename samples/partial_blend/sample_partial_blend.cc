@@ -87,7 +87,7 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
   virtual bool OnUpdate(float _dt) {
     // Updates and samples both animations to their respective local space
     // transform buffers.
-    for (int i = 0; i < kNumLayers; i++) {
+    for (int i = 0; i < kNumLayers; ++i) {
       Sampler& sampler = samplers_[i];
 
       // Updates animations time.
@@ -113,7 +113,7 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
 
     // Prepares blending layers.
     ozz::animation::BlendingJob::Layer layers[kNumLayers];
-    for (int i = 0; i < kNumLayers; i++) {
+    for (int i = 0; i < kNumLayers; ++i) {
       layers[i].transform = samplers_[i].locals;
       layers[i].weight = samplers_[i].weight_setting;
 
@@ -171,7 +171,7 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
     // Reading animations.
     const char* filenames[] = {
       OPTIONS_lower_body_animation, OPTIONS_upper_body_animation};
-    for (int i = 0; i < kNumLayers; i++) {
+    for (int i = 0; i < kNumLayers; ++i) {
       Sampler& sampler = samplers_[i];
 
       if (!ozz::sample::LoadAnimation(filenames[i], &sampler.animation)) {
@@ -208,7 +208,7 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
     models_ = allocator->AllocateRange<ozz::math::Float4x4>(num_joints);
 
     // Finds the "Spine1" joint in the joint hierarchy.
-    for (int i = 0; i < num_joints; i++) {
+    for (int i = 0; i < num_joints; ++i) {
       if (std::strstr(skeleton_.joint_names()[i], "Spine1")) {
         upper_body_root_ = i;
         break;
@@ -230,7 +230,7 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
     Sampler& upper_body_sampler = samplers_[kUpperBody];
 
     // Disables all joints: set all weights to 0.
-    for (int i = 0; i < skeleton_.num_soa_joints(); i++) {
+    for (int i = 0; i < skeleton_.num_soa_joints(); ++i) {
       lower_body_sampler.joint_weights[i] = ozz::math::simd_float4::one();
       upper_body_sampler.joint_weights[i] = ozz::math::simd_float4::zero();
     }
@@ -241,7 +241,7 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
 
     // Sets the weight_setting of all the joints children of the arm to 1. Note
     // that weights are stored in SoA format.
-    for (int i = 0; i < it.num_joints; i++) {
+    for (int i = 0; i < it.num_joints; ++i) {
       const int joint_id = it.joints[i];
       {  // Updates lower body animation sampler joint weights.
         ozz::math::SimdFloat4& weight_setting =
@@ -260,7 +260,7 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
 
   virtual void OnDestroy() {
     ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
-    for (int i = 0; i < kNumLayers; i++) {
+    for (int i = 0; i < kNumLayers; ++i) {
       Sampler& sampler = samplers_[i];
       allocator->Deallocate(sampler.locals);
       allocator->Deallocate(sampler.joint_weights);
@@ -348,7 +348,7 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
         static bool open[kNumLayers] = {true, true};
         const char* oc_names[kNumLayers] = {
           "Lower body animation", "Upper body animation"};
-        for (int i = 0; i < kNumLayers; i++) {
+        for (int i = 0; i < kNumLayers; ++i) {
           Sampler& sampler = samplers_[i];
           ozz::sample::ImGui::OpenClose oc(_im_gui, oc_names[i], NULL);
           if (open[i]) {

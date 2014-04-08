@@ -44,9 +44,22 @@ class Animation;
 namespace offline {
 
 // Offline animation type.
-// This animation type is not intended to be used in run time. Its format is
-// dedicated to ease initialization and analysis, rather than reduce memory
-// footprint and optimize sampling performance.
+// This animation type is not intended to be used in run time. It is used to
+// define the offline animation object that can be converted to the runtime
+// animation using the AnimationBuilder.
+// This animation structure exposes tracks of keyframes. Keyframes are defined
+// with a time and a value which can either be a translation (3 float x, y, z),
+// a rotation (a quaternion) or scale coefficient (3 floats x, y, z). Tracks are
+// defined as a set of three different std::vectors (translation, rotation and
+// scales). Animation structure is then a vector of tracks, along with a
+// duration value.
+// Finally the RawAnimation structure exposes Validate() function to check that
+// it is valid, meaning that all the following rules are respected:
+//  1. Animation duration is greater than 0.
+//  2. Keyframes' time are sorted in a strict ascending order.
+//  3. Keyframes' time are all within [0,animation duration] range.
+// Animations that would fail this validation will fail to be converted by the
+// AnimationBuilder.
 struct RawAnimation {
   // Constructs an invalid RawAnimation (duration must be set).
   RawAnimation();
@@ -55,11 +68,10 @@ struct RawAnimation {
   ~RawAnimation();
 
   // Tests for *this validity.
-  // Returns true on success or false on failure:
-  // - if duration is <= 0.
-  // - if key frames time are not sorted in a strict
-  // ascending order.
-  // - if a key frame time is not within [0,duration].
+  // Returns true if animation data (duration, tracks) is valid:
+  //  1. Animation duration is greater than 0.
+  //  2. Keyframes' time are sorted in a strict ascending order.
+  //  3. Keyframes' time are all within [0,animation duration] range.
   bool Validate() const;
 
   // Defines a raw translation key frame.

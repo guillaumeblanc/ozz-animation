@@ -126,7 +126,7 @@ bool NodeTransform::PushAnimation(const char* _member,
         << std::endl;
       return false;
     }
-    for (std::size_t i = 0; i < num_values; i++) {
+    for (std::size_t i = 0; i < num_values; ++i) {
       values_[i] = _values[i];
     }
     return true;
@@ -159,7 +159,7 @@ bool NodeTransform::PushAnimation(const char* _member,
       {".Z", 2},
       {".W", 3},
       {".ANGLE", 3}};
-    for (std::size_t i = 0; i < OZZ_ARRAY_SIZE(member_to_index); i++) {
+    for (std::size_t i = 0; i < OZZ_ARRAY_SIZE(member_to_index); ++i) {
       if (std::strcmp(_member, member_to_index[i].semantic) == 0) {
         index = member_to_index[i].index;
         break;

@@ -35,8 +35,6 @@
 
 #include "framework/image.h"
 
-#include "GL/glfw.h"
-
 namespace ozz {
 namespace sample {
 namespace internal {
@@ -67,7 +65,7 @@ class Shooter {
 
   // Defines shot buffer (pbo) and data.
   struct Shot {
-    GLuint pbo;
+    unsigned int pbo;
     int width;
     int height;
     int cooldown;  // Shot is processed when cooldown falls to 0.
@@ -82,7 +80,7 @@ class Shooter {
   Shot shots_[kNumShots];
 
   // Format of pixels to use to glReadPixels calls.
-  GLint gl_shot_format_;
+  int gl_shot_format_;
 
   // Image format that matches GL format.
   image::Format::Value image_format_;

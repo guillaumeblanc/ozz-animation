@@ -85,8 +85,8 @@ class IterateDFTester {
     EXPECT_EQ(joints_df[current_df_], _current);
     EXPECT_EQ(skeleton_->joint_properties().begin[_current].parent, _parent);
 
-    current_df_++;
-    num_iterations_++;
+    ++current_df_;
+    ++num_iterations_;
   }
 
   int num_iterations() const {
@@ -214,7 +214,7 @@ TEST(InterateWorstBreadthDF, SkeletonBuilder) {
   ozz::animation::IterateJointsDF(*skeleton, Skeleton::kNoParentIndex, &it);
   EXPECT_EQ(it.num_joints, Skeleton::kMaxJoints);
 
-  for (int i = 0; i < Skeleton::kMaxJoints; i++) {
+  for (int i = 0; i < Skeleton::kMaxJoints; ++i) {
     EXPECT_EQ(it.joints[i], i);
   }
   ozz::memory::default_allocator()->Delete(skeleton);
@@ -226,7 +226,7 @@ TEST(InterateWorstDepthDF, SkeletonBuilder) {
 
   RawSkeleton raw_skeleton;
   RawSkeleton::Joint::Children* child = &raw_skeleton.roots;
-  for (int i = 0; i < Skeleton::kMaxJoints; i++) {
+  for (int i = 0; i < Skeleton::kMaxJoints; ++i) {
     child->resize(1);
     child = &child->at(0).children;
   }
@@ -242,7 +242,7 @@ TEST(InterateWorstDepthDF, SkeletonBuilder) {
   ozz::animation::IterateJointsDF(*skeleton, Skeleton::kNoParentIndex, &it);
   EXPECT_EQ(it.num_joints, Skeleton::kMaxJoints);
 
-  for (int i = 0; i < Skeleton::kMaxJoints; i++) {
+  for (int i = 0; i < Skeleton::kMaxJoints; ++i) {
     EXPECT_EQ(it.joints[i], i);
   }
   ozz::memory::default_allocator()->Delete(skeleton);

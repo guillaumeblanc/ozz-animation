@@ -2,10 +2,10 @@
 set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS GTEST_HAS_EXCEPTIONS=0)
 
 # Set the gtest include directory
-include_directories(../contrib/gtest/fused-src/)
+include_directories(../extern/gtest/fused-src/)
 
 # Adds GTest library
-add_subdirectory(../contrib/gtest ./gtest)
+add_subdirectory(../extern/gtest ./gtest)
 
 # Adds test file directories
 add_subdirectory(base)

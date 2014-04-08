@@ -49,7 +49,7 @@ template <>
 void Save(OArchive& _archive,
           const animation::Skeleton::JointProperties* _properties,
           std::size_t _count) {
-  for (std::size_t i = 0; i < _count; i++) {
+  for (std::size_t i = 0; i < _count; ++i) {
     uint16 parent = _properties[i].parent;
     _archive << parent;
     bool is_leaf = _properties[i].is_leaf != 0;
@@ -62,7 +62,7 @@ void Load(IArchive& _archive,
           animation::Skeleton::JointProperties* _properties,
           std::size_t _count,
           uint32 /*_version*/) {
-  for (std::size_t i = 0; i < _count; i++) {
+  for (std::size_t i = 0; i < _count; ++i) {
     uint16 parent;
     _archive >> parent;
     _properties[i].parent = parent;
@@ -105,7 +105,7 @@ void Skeleton::Save(ozz::io::OArchive& _archive) const {
   // Stores names. They are all concatenated in the same buffer, starting at
   // joint_names_[0].
   std::size_t chars_count = 0;
-  for (int i = 0; i < num_joints_; i++) {
+  for (int i = 0; i < num_joints_; ++i) {
     chars_count += (std::strlen(joint_names_[i]) + 1) * sizeof(char);
   }
   _archive << static_cast<int32>(chars_count);
@@ -142,7 +142,7 @@ void Skeleton::Load(ozz::io::IArchive& _archive, ozz::uint32 /*_version*/) {
   _archive >> ozz::io::MakeArray(cursor, chars_count);
 
   // Fixes up array of pointers.
-  for (int i = 0; i < num_joints_; i++) {
+  for (int i = 0; i < num_joints_; ++i) {
     joint_names_[i] = cursor;
     cursor += std::strlen(joint_names_[i]) + 1;
   }

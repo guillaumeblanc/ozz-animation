@@ -248,7 +248,7 @@ class MillipedeSampleApplication : public ozz::sample::Application {
     root->transform.scale = Float3::one();
 
     char buf[16];
-    for (int i = 0; i < slice_count_; i++) {
+    for (int i = 0; i < slice_count_; ++i) {
       // Format joint number.
       std::sprintf(buf, "%d", i);
 
@@ -318,7 +318,7 @@ class MillipedeSampleApplication : public ozz::sample::Application {
     _animation->duration = kDuration;
     _animation->tracks.resize(skeleton_->num_joints());
 
-    for (int i = 0; i < _animation->num_tracks(); i++) {
+    for (int i = 0; i < _animation->num_tracks(); ++i) {
       RawAnimation::JointTrack& track = _animation->tracks[i];
       const char* joint_name = skeleton_->joint_names()[i];
 
@@ -340,7 +340,7 @@ class MillipedeSampleApplication : public ozz::sample::Application {
 
         // Push key with their corrected time.
         track.translations.reserve(kPrecomputedKeyCount);
-        for (int j = i_offset; j < i_offset + kPrecomputedKeyCount; j++) {
+        for (int j = i_offset; j < i_offset + kPrecomputedKeyCount; ++j) {
           const RawAnimation::TranslationKey& rkey = kPrecomputedKeys[j % kPrecomputedKeyCount];
           float new_time = rkey.time - phase;
           if (new_time < 0.f) {

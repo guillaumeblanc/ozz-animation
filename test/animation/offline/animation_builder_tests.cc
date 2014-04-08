@@ -177,39 +177,52 @@ TEST(Sort, AnimationBuilder) {
     raw_animation.tracks.resize(4);
 
     // Raw animation inputs.
-    //     0                 1
-    // -----------------------
-    // 0 - |  A              |
-    // 1 - |                 |
-    // 2 - B  C   D   E      F
-    // 3 - |  G       H      |
+    //     0              1
+    // --------------------
+    // 0 - A     B        |
+    // 1 - C  D  E        |
+    // 2 - F  G     H  I  J
+    // 3 - K  L  M  N     |
 
     // Final animation.
-    //     0                 1
-    // -----------------------
-    // 0 - A0                4
-    // 1 - 1                 5
-    // 2 - B2 C6  D8 E10    F11
-    // 3 - 3  G7     H9      12
+    //     0              1
+    // --------------------
+    // 0 - 0     4       11
+    // 1 - 1  5  8       12
+    // 2 - 2  6     9 14 16
+    // 3 - 3  7 10 13    15
 
-    RawAnimation::TranslationKey a = {.2f, ozz::math::Float3(0.f, 0.f, 0.f)};
+    RawAnimation::TranslationKey a = {0.f, ozz::math::Float3(1.f, 0.f, 0.f)};
     raw_animation.tracks[0].translations.push_back(a);
+    RawAnimation::TranslationKey b = {.4f, ozz::math::Float3(3.f, 0.f, 0.f)};
+    raw_animation.tracks[0].translations.push_back(b);
 
-    RawAnimation::TranslationKey b = {0.f, ozz::math::Float3(2.f, 0.f, 0.f)};
-    raw_animation.tracks[2].translations.push_back(b);
-    RawAnimation::TranslationKey c = {0.2f, ozz::math::Float3(6.f, 0.f, 0.f)};
-    raw_animation.tracks[2].translations.push_back(c);
-    RawAnimation::TranslationKey d = {0.4f, ozz::math::Float3(8.f, 0.f, 0.f)};
-    raw_animation.tracks[2].translations.push_back(d);
-    RawAnimation::TranslationKey e = {0.6f, ozz::math::Float3(12.f, 0.f, 0.f)};
-    raw_animation.tracks[2].translations.push_back(e);
-    RawAnimation::TranslationKey f = {1.f, ozz::math::Float3(11.f, 0.f, 0.f)};
+    RawAnimation::TranslationKey c = {0.f, ozz::math::Float3(2.f, 0.f, 0.f)};
+    raw_animation.tracks[1].translations.push_back(c);
+    RawAnimation::TranslationKey d = {0.2f, ozz::math::Float3(6.f, 0.f, 0.f)};
+    raw_animation.tracks[1].translations.push_back(d);
+    RawAnimation::TranslationKey e = {0.4f, ozz::math::Float3(8.f, 0.f, 0.f)};
+    raw_animation.tracks[1].translations.push_back(e);
+
+    RawAnimation::TranslationKey f = {0.f, ozz::math::Float3(12.f, 0.f, 0.f)};
     raw_animation.tracks[2].translations.push_back(f);
+    RawAnimation::TranslationKey g = {.2f, ozz::math::Float3(11.f, 0.f, 0.f)};
+    raw_animation.tracks[2].translations.push_back(g);
+    RawAnimation::TranslationKey h = {.6f, ozz::math::Float3(9.f, 0.f, 0.f)};
+    raw_animation.tracks[2].translations.push_back(h);
+    RawAnimation::TranslationKey i = {.8f, ozz::math::Float3(7.f, 0.f, 0.f)};
+    raw_animation.tracks[2].translations.push_back(i);
+    RawAnimation::TranslationKey j = {1.f, ozz::math::Float3(5.f, 0.f, 0.f)};
+    raw_animation.tracks[2].translations.push_back(j);
 
-    RawAnimation::TranslationKey g = {0.2f, ozz::math::Float3(7.f, 0.f, 0.f)};
-    raw_animation.tracks[3].translations.push_back(g);
-    RawAnimation::TranslationKey h = {0.6f, ozz::math::Float3(9.f, 0.f, 0.f)};
-    raw_animation.tracks[3].translations.push_back(h);
+    RawAnimation::TranslationKey k = {0.f, ozz::math::Float3(1.f, 0.f, 0.f)};
+    raw_animation.tracks[3].translations.push_back(k);
+    RawAnimation::TranslationKey l = {.2f, ozz::math::Float3(2.f, 0.f, 0.f)};
+    raw_animation.tracks[3].translations.push_back(l);
+    RawAnimation::TranslationKey m = {.4f, ozz::math::Float3(3.f, 0.f, 0.f)};
+    raw_animation.tracks[3].translations.push_back(m);
+    RawAnimation::TranslationKey n = {.6f, ozz::math::Float3(4.f, 0.f, 0.f)};
+    raw_animation.tracks[3].translations.push_back(n);
 
     // Builds animation
     Animation* animation = builder(raw_animation);
@@ -228,35 +241,42 @@ TEST(Sort, AnimationBuilder) {
     { // Samples at t = 0
       job.time = 0.f;
       job.Run();
-      EXPECT_SOAFLOAT3_EQ_EST(output[0].translation, 0.f, 0.f, 2.f, 7.f,
+      EXPECT_SOAFLOAT3_EQ_EST(output[0].translation, 1.f, 2.f, 12.f, 1.f,
                                                      0.f, 0.f, 0.f, 0.f,
                                                      0.f, 0.f, 0.f, 0.f);
     }
     { // Samples at t = .2
       job.time = .2f;
       job.Run();
-      EXPECT_SOAFLOAT3_EQ_EST(output[0].translation, 0.f, 0.f, 6.f, 7.f,
+      EXPECT_SOAFLOAT3_EQ_EST(output[0].translation, 2.f, 6.f, 11.f, 2.f,
                                                      0.f, 0.f, 0.f, 0.f,
                                                      0.f, 0.f, 0.f, 0.f);
     }
     { // Samples at t = .4
       job.time = .4f;
       job.Run();
-      EXPECT_SOAFLOAT3_EQ_EST(output[0].translation, 0.f, 0.f, 8.f, 8.f,
+      EXPECT_SOAFLOAT3_EQ_EST(output[0].translation, 3.f, 8.f, 10.f, 3.f,
                                                      0.f, 0.f, 0.f, 0.f,
                                                      0.f, 0.f, 0.f, 0.f);
     }
     { // Samples at t = .6
       job.time = .6f;
       job.Run();
-      EXPECT_SOAFLOAT3_EQ_EST(output[0].translation, 0.f, 0.f, 12.f, 9.f,
+      EXPECT_SOAFLOAT3_EQ_EST(output[0].translation, 3.f, 8.f, 9.f, 4.f,
+                                                     0.f, 0.f, 0.f, 0.f,
+                                                     0.f, 0.f, 0.f, 0.f);
+    }
+    { // Samples at t = .8
+      job.time = .8f;
+      job.Run();
+      EXPECT_SOAFLOAT3_EQ_EST(output[0].translation, 3.f, 8.f, 7.f, 4.f,
                                                      0.f, 0.f, 0.f, 0.f,
                                                      0.f, 0.f, 0.f, 0.f);
     }
     { // Samples at t = 1
       job.time = 1.f;
       job.Run();
-      EXPECT_SOAFLOAT3_EQ_EST(output[0].translation, 0.f, 0.f, 11.f, 9.f,
+      EXPECT_SOAFLOAT3_EQ_EST(output[0].translation, 3.f, 8.f, 5.f, 4.f,
                                                      0.f, 0.f, 0.f, 0.f,
                                                      0.f, 0.f, 0.f, 0.f);
     }

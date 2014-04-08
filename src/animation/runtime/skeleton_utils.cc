@@ -96,7 +96,7 @@ void IterateJointsDF(const Skeleton& _skeleton,
       for (;
            next_joint < num_joints &&
            top.joint != properties.begin[next_joint].parent;
-           next_joint++) {
+           ++next_joint) {
       }
       if (next_joint < num_joints) {
         const Context next = {
@@ -108,7 +108,7 @@ void IterateJointsDF(const Skeleton& _skeleton,
     }
 
     // Rewind the stack while there's no brother to process.
-    for (;stack_size != 0 && !stack[stack_size - 1].has_brother; stack_size--) {
+    for (;stack_size != 0 && !stack[stack_size - 1].has_brother; --stack_size) {
     }
 
     // Replace top joint by its brother.
@@ -116,7 +116,7 @@ void IterateJointsDF(const Skeleton& _skeleton,
       Context& next = stack[stack_size - 1];
       assert(next.has_brother && next.joint + 1 < num_joints);
 
-      next.joint++;  // The brother is the next joint in breadth-first order.
+      ++next.joint;  // The brother is the next joint in breadth-first order.
       next.has_brother = _HAS_BROTHER(next.joint, num_joints, properties.begin);
     }
   }

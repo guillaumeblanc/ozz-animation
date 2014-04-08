@@ -61,7 +61,7 @@ struct JointCounter {
     num_joints(0) {
   }
   void operator()(const RawSkeleton::Joint&, const RawSkeleton::Joint*) {
-    num_joints++;
+    ++num_joints;
   }
   int num_joints;
 };
@@ -85,7 +85,7 @@ struct JointLister {
     if (_parent) {
       // Start searching from the last joint.
       int j = static_cast<int>(linear_joints.size()) - 1;
-      for (; j >= 0; j--) {
+      for (; j >= 0; --j) {
         if (linear_joints[j].joint == _parent) {
           parent = j;
           break;
@@ -131,7 +131,7 @@ Skeleton* SkeletonBuilder::operator()(const RawSkeleton& _raw_skeleton) const {
   // Transfers sorted joints hierarchy to the new skeleton.
   skeleton->joint_properties_ =
     memory::default_allocator()->Allocate<Skeleton::JointProperties>(num_joints);
-  for (int i = 0; i < num_joints; i++) {
+  for (int i = 0; i < num_joints; ++i) {
     skeleton->joint_properties_[i].parent = lister.linear_joints[i].parent;
     skeleton->joint_properties_[i].is_leaf =
       lister.linear_joints[i].joint->children.empty();
@@ -139,14 +139,14 @@ Skeleton* SkeletonBuilder::operator()(const RawSkeleton& _raw_skeleton) const {
   // Transfers joint's names: First computes name's buffer size, then allocate
   // and do the copy.
   std::size_t buffer_size = num_joints * sizeof(char*);
-  for (int i = 0; i < num_joints; i++) {
+  for (int i = 0; i < num_joints; ++i) {
     const RawSkeleton::Joint& current = *lister.linear_joints[i].joint;
     buffer_size += (current.name.size() + 1) * sizeof(char);
   }
   skeleton->joint_names_ =
     memory::default_allocator()->Allocate<char*>(buffer_size);
   char* cursor = reinterpret_cast<char*>(skeleton->joint_names_ + num_joints);
-  for (int i = 0; i < num_joints; i++) {
+  for (int i = 0; i < num_joints; ++i) {
     const RawSkeleton::Joint& current = *lister.linear_joints[i].joint;
     skeleton->joint_names_[i] = cursor;
     strcpy(cursor, current.name.c_str());
@@ -161,11 +161,11 @@ Skeleton* SkeletonBuilder::operator()(const RawSkeleton& _raw_skeleton) const {
   const math::SimdFloat4 zero = math::simd_float4::zero();
   const math::SimdFloat4 one = math::simd_float4::one();
 
-  for (int i = 0; i < num_soa_joints; i++) {
+  for (int i = 0; i < num_soa_joints; ++i) {
     math::SimdFloat4 translations[4];
     math::SimdFloat4 scales[4];
     math::SimdFloat4 rotations[4];
-    for (int j = 0; j < 4; j++) {
+    for (int j = 0; j < 4; ++j) {
       if (i * 4 + j < num_joints) {
         const RawSkeleton::Joint& src_joint =
           *lister.linear_joints[i * 4 + j].joint;

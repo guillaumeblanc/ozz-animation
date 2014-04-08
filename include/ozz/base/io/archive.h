@@ -267,7 +267,7 @@ OZZ_IO_TYPE_NOT_VERSIONABLE(float)
 // Default loading and saving external implementation.
 template <typename _Ty>
 inline void Save(OArchive& _archive, const _Ty* _ty, std::size_t _count) {
-  for (std::size_t i = 0; i < _count; i++) {
+  for (std::size_t i = 0; i < _count; ++i) {
     _ty[i].Save(_archive);
   }
 }
@@ -276,7 +276,7 @@ inline void Load(IArchive& _archive,
                  _Ty* _ty,
                  std::size_t _count,
                  uint32 _version) {
-  for (std::size_t i = 0; i < _count; i++) {
+  for (std::size_t i = 0; i < _count; ++i) {
     _ty[i].Load(_archive, _version);
   }
 }
@@ -309,7 +309,7 @@ inline void Array<const _type>::Save(OArchive& _archive) const {\
   if (_archive.endian_swap()) {\
     /* Save element by element as swapping in place the whole buffer is not*/\
     /* possible.*/\
-    for (std::size_t i = 0; i < count; i++) {\
+    for (std::size_t i = 0; i < count; ++i) {\
       _archive << array[i];\
     }\
   } else {\
@@ -321,7 +321,7 @@ inline void Array<_type>::Save(OArchive& _archive) const {\
   if (_archive.endian_swap()) {\
     /* Save element by element as swapping in place the whole buffer is not*/\
     /* possible.*/\
-    for (std::size_t i = 0; i < count; i++) {\
+    for (std::size_t i = 0; i < count; ++i) {\
       _archive << array[i];\
     }\
   } else {\
@@ -388,7 +388,7 @@ struct Tagger<_Ty, true> {
     _archive >> ozz::io::MakeArray(buf, Tag::kTagLength);
     const char* tag = Tag::Get();
     std::size_t i = 0;
-    for (; i < Tag::kTagLength && buf[i] == tag[i]; i++) {
+    for (; i < Tag::kTagLength && buf[i] == tag[i]; ++i) {
     }
     return i == Tag::kTagLength;
   }

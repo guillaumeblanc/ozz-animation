@@ -16,7 +16,7 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 # Available build options
 
 # Redebug all
-if(ozz_redebug_all)
+if(ozz_build_redebug_all)
   message("OZZ_HAS_REDEBUG_ALL is enabled")
   set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS_DEBUG OZZ_HAS_REDEBUG_ALL=1)
 else()
@@ -72,7 +72,7 @@ if(MSVC)
   set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS _CRT_SECURE_NO_WARNINGS)
 
   # sse2
-  if(ozz_build_sse2)
+  if(ozz_build_sse2 OR CMAKE_CL_64) # x64 implicitly supports SSE2.
     message("OZZ_HAS_SSE2 is enabled")
     set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS OZZ_HAS_SSE2=1)
   else()
@@ -86,8 +86,6 @@ if(MSVC)
   # Disables STL exceptions also
   if(NOT ${CMAKE_CXX_FLAGS} MATCHES "/D _HAS_EXCEPTIONS=0")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /D _HAS_EXCEPTIONS=0")
-  endif()
-  if(NOT ${CMAKE_C_FLAGS} MATCHES "/D _HAS_EXCEPTIONS=0")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /D _HAS_EXCEPTIONS=0")
   endif()
   
@@ -102,9 +100,13 @@ if(MSVC)
   # Adds support for multiple processes builds
   if(NOT ${CMAKE_CXX_FLAGS} MATCHES "/MP")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
-  endif()
-  if(NOT ${CMAKE_C_FLAGS} MATCHES "/MP")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /MP")
+  endif()
+
+  # Treats warnings as error on non dashboard builds
+  if(NOT ozz_enable_cdash AND NOT ${CMAKE_CXX_FLAGS} MATCHES "/WX")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /WX")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /WX")
   endif()
 
   #---------------
@@ -140,9 +142,13 @@ else()
   # Set the warning level to Wall
   if(NOT CMAKE_CXX_FLAGS MATCHES "-Wall")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
-  endif()
-  if(NOT CMAKE_C_FLAGS MATCHES "-Wall")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
+  endif()
+
+  # Treats warnings as error on not dashboard buids
+  if(NOT ozz_enable_cdash AND NOT CMAKE_CXX_FLAGS MATCHES "-Werror")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror")
   endif()
 
   # Automatically selects native architecture optimizations (sse...)
@@ -202,10 +208,11 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}" CACHE STRING "Flags use
 
 #----------------------------------------------
 # Modifies output directory for all executables
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG "")
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "")
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO "")
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ".")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ".")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ".")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL ".")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ".")
 
 #-------------------------------
 # Set a postfix for output files

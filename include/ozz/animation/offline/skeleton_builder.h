@@ -45,9 +45,15 @@ class Skeleton;
 namespace offline {
 
 // Off-line skeleton type.
-// This skeleton type is not intended to be used in run time. Its format is
-// dedicated to ease initialization and analysis, rather than reduce memory
-// footprint and optimize sampling performance.
+// This skeleton type is not intended to be used in run time. It is used to
+// define the offline skeleton object that can be converted to the runtime
+// skeleton using the SkeletonBuilder. This skeleton structure exposes joints'
+// hierarchy. A joint is defined with a name, a transformation (its bind pose),
+// and its children. Children are exposed as a public std::vector of joints.
+// This same type is used for skeleton roots, also exposed from the public API.
+// The public API exposed through std:vector's of joints can be used freely with
+// the only restriction that the total number of joints does not exceed
+// Skeleton::kMaxJoints.
 struct RawSkeleton {
   // Construct an empty skeleton.
   RawSkeleton();
@@ -109,7 +115,7 @@ struct RawSkeleton {
   static void IterHierarchyDF(const RawSkeleton::Joint::Children& _children,
                               const RawSkeleton::Joint* _parent,
                               _Fct& _fct) {
-    for (std::size_t i = 0; i < _children.size(); i++) {
+    for (std::size_t i = 0; i < _children.size(); ++i) {
       const RawSkeleton::Joint& current = _children[i];
       _fct(current, _parent);
       IterHierarchyDF(current.children, &current, _fct);
@@ -121,7 +127,7 @@ struct RawSkeleton {
   static void IterHierarchyBF(const RawSkeleton::Joint::Children& _children,
                               const RawSkeleton::Joint* _parent,
                               _Fct& _fct) {
-    for (std::size_t i = 0; i < _children.size(); i++) {
+    for (std::size_t i = 0; i < _children.size(); ++i) {
       const RawSkeleton::Joint& current = _children[i];
       _fct(current, _parent);
     }

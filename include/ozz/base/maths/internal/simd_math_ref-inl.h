@@ -366,7 +366,7 @@ OZZ_INLINE void Transpose4x4(const SimdFloat4 _in[4], SimdFloat4 _out[4]) {
 }
 
 OZZ_INLINE void Transpose16x16(const SimdFloat4 _in[16], SimdFloat4 _out[16]) {
-  for (int i = 0; i < 4; i++) {
+  for (int i = 0; i < 4; ++i) {
     const int i4 = i * 4;
     _out[i4 + 0].x = *(&_in[0].x + i);
     _out[i4 + 0].y = *(&_in[1].x + i);

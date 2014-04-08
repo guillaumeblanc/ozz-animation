@@ -113,7 +113,7 @@ class OptimizeSampleApplication : public ozz::sample::Application {
       const ozz::math::SoaTransform* bind_pose = bind_poses.begin;
       for (;
            locals < locals_scratch_.end;
-           locals++, locals_opt++, bind_pose++) {
+           ++locals, ++locals_opt, ++bind_pose) {
         assert(locals_opt < locals_opt_.end &&
                bind_pose < bind_poses.end);
 

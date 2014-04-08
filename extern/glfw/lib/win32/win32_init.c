@@ -234,7 +234,13 @@ int _glfwPlatformInit( void )
 
     // Check which OS version we are running
     osi.dwOSVersionInfoSize = sizeof( OSVERSIONINFO );
+
+// OZZ, temprorary disable warning 4996
+#pragma warning(push)
+#pragma warning(disable:4996)
     GetVersionEx( &osi );
+#pragma warning(pop)
+
     _glfwLibrary.Sys.winVer = _GLFW_WIN_UNKNOWN;
     if( osi.dwPlatformId == VER_PLATFORM_WIN32_WINDOWS )
     {

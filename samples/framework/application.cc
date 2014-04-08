@@ -32,12 +32,13 @@
 
 #include "framework/application.h"
 
-#include <GL/glfw.h>
-#include <GL/glext.h>
-
 #include <cstdlib>
 #include <cassert>
 #include <cstring>
+
+#ifdef __APPLE__
+#include <unistd.h>
+#endif  // __APPLE__
 
 #include "ozz/base/log.h"
 #include "ozz/base/maths/box.h"
@@ -103,14 +104,11 @@ Application::Application()
       resolution_(default_resolution) {
 #ifndef NDEBUG
   // Assert presets are correctly sorted.
-  for (int i = 1; i < kNumPresets; i++) {
+  for (int i = 1; i < kNumPresets; ++i) {
     assert(presets[i].width > presets[i-1].width ||
            presets[i].height > presets[i-1].height);
   }
 #endif //  NDEBUG
-
-  // Initialize help.
-  ParseReadme();
 }
 
 Application::~Application() {
@@ -136,6 +134,20 @@ int Application::Run(int _argc, const char** _argv,
     exit_ = true;
     return result == ozz::options::kExitSuccess ? EXIT_SUCCESS : EXIT_FAILURE;
   }
+
+#ifdef __APPLE__
+  // On OSX, when run from Finder, working path is the root path. This does not
+  // allow to load resources from relative path.
+  // The workaround is to change the working directory to application directory.
+  // The proper solution would probably be to use bundles and load data from
+  // resource folder.
+  chdir(ozz::options::ParsedExecutablePath().c_str());
+#endif  // __APPLE__
+
+  // ( resourcesPath );
+
+  // Initialize help.
+  ParseReadme();
 
   // Open an OpenGL window
   bool success = true;
@@ -219,7 +231,7 @@ bool Application::Loop() {
   bool success = OnInitialize();
 
   // Loops.
-  for (int loops = 0; success; loops++) {
+  for (int loops = 0; success; ++loops) {
     Profiler profile(fps_);  // Profiles frame.
 
     // Tests for a manual exit request.
@@ -558,7 +570,7 @@ bool Application::FrameworkGui() {
 
     // Searches for matching resolution settings.
     int preset_lookup = 0;
-    for (; preset_lookup < kNumPresets - 1; preset_lookup++) {
+    for (; preset_lookup < kNumPresets - 1; ++preset_lookup) {
       const Resolution& preset = presets[preset_lookup];
       if (preset.width > resolution_.width) {
         break;

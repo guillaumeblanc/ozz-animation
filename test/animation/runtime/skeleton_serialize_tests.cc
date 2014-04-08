@@ -90,7 +90,7 @@ TEST(Filled, SkeletonSerialize) {
     ASSERT_TRUE(o_skeleton != NULL);
   }
 
-  for (int e = 0; e < 2; e++) {
+  for (int e = 0; e < 2; ++e) {
     ozz::Endianness endianess = e == 0 ? ozz::kBigEndian : ozz::kLittleEndian;
     ozz::io::MemoryStream stream;
 
@@ -107,7 +107,7 @@ TEST(Filled, SkeletonSerialize) {
 
     // Compares skeletons.
     EXPECT_EQ(o_skeleton->num_joints(), i_skeleton.num_joints());
-    for (int i = 0; i < i_skeleton.num_joints(); i++) {
+    for (int i = 0; i < i_skeleton.num_joints(); ++i) {
       EXPECT_EQ(i_skeleton.joint_properties().begin[i].parent,
                 o_skeleton->joint_properties().begin[i].parent);
       EXPECT_EQ(i_skeleton.joint_properties().begin[i].is_leaf,
@@ -115,7 +115,7 @@ TEST(Filled, SkeletonSerialize) {
       EXPECT_STREQ(i_skeleton.joint_names()[i],
                    o_skeleton->joint_names()[i]);
     }
-    for (int i = 0; i < (i_skeleton.num_joints() + 3) / 4; i++) {
+    for (int i = 0; i < (i_skeleton.num_joints() + 3) / 4; ++i) {
       EXPECT_TRUE(ozz::math::AreAllTrue(
         i_skeleton.bind_pose().begin[i].translation ==
         o_skeleton->bind_pose().begin[i].translation));

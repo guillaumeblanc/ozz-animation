@@ -230,8 +230,7 @@ bool Parse(const char* _argv, const char* _option, bool* _value) {
   } else if (*option_end == '=') {
     // Explicit options values are set after the '=' character.
     // Using StrICmp function ensures an exact match, ie no trailing characters.
-    option_end++;
-    for (; std::isspace(*option_end); ++option_end) {  // Trims spaces.
+    for (++option_end; std::isspace(*option_end); ++option_end) {  // Trims spaces.
     }
     const char* true_options[] = {"yes", "true", "1", "t", "y"};
     for (std::size_t i = 0;
@@ -245,7 +244,7 @@ bool Parse(const char* _argv, const char* _option, bool* _value) {
     const char* false_options[] = {"no", "false", "0", "f", "n"};
     for (std::size_t i = 0;
          i < sizeof(false_options) / sizeof(false_options[0]);
-         i++) {
+         ++i) {
       if (!StrICmp(option_end, false_options[i])) {
         *_value = false;
         return true;
@@ -260,8 +259,7 @@ bool Parse(const char* _argv, const char* _option, float* _value) {
 
   const char* option_end = ParseOption(_argv, "--", _option);
   if (option_end && *option_end == '=') {
-    option_end++;
-    for (; std::isspace(*option_end); ++option_end) {  // Trims spaces.
+    for (++option_end; std::isspace(*option_end); ++option_end) {  // Trims spaces.
     }
     char* found;
     double double_value = std::strtod(option_end, &found);
@@ -279,8 +277,7 @@ bool Parse(const char* _argv, const char* _option, int* _value) {
 
   const char* option_end = ParseOption(_argv, "--", _option);
   if (option_end && *option_end == '=') {
-    option_end++;
-    for (; std::isspace(*option_end); ++option_end) {  // Trims spaces.
+    for (++option_end; std::isspace(*option_end); ++option_end) {  // Trims spaces.
     }
     char* found;
     long long_value = std::strtol(option_end, &found, 10);
@@ -298,8 +295,7 @@ bool Parse(const char* _argv, const char* _option, const char** _value) {
 
   const char* option_end = ParseOption(_argv, "--", _option);
   if (option_end && *option_end == '=') {
-    option_end++;
-    for (; std::isspace(*option_end); ++option_end) {  // Trims spaces.
+    for (++option_end; std::isspace(*option_end); ++option_end) {  // Trims spaces.
     }
     *_value = option_end;
     return true;
@@ -431,7 +427,7 @@ ParseResult Parser::Parse(int _argc, const char* _argv[]) {
   const char* path_end =
     std::max(std::strrchr(_argv[0], '/'), strrchr(_argv[0], '\\'));
   if (path_end) {
-    path_end++;  // Includes the last separator.
+    ++path_end;  // Includes the last separator.
     executable_path_begin_ = _argv[0];
     executable_path_end_ = path_end;
     executable_name_ = path_end;
@@ -442,28 +438,28 @@ ParseResult Parser::Parse(int _argc, const char* _argv[]) {
   }
 
   // The first argument is skipped because it is the program path.
-  _argv++;
-  _argc--;
+  ++_argv;
+  --_argc;
 
   // Hides all arguments after a "--" argument, substitutes argc to argc_trunc.
   int argc_trunc = 0;
   for (;
        argc_trunc < _argc && std::strcmp(_argv[argc_trunc], "--") != 0;
-       argc_trunc++) {
+       ++argc_trunc) {
   }
 
   // Restores built-in options to their default value in case parsing in done
   // multiple times.
-  for (int i = 0; i < options_count_; i++) {
+  for (int i = 0; i < options_count_; ++i) {
     options_[i]->RestoreDefault();
   }
 
   // Iterates all arguments and all options.
   ParseResult result = kSuccess;
-  for (int i = 0; i < argc_trunc; i++) {
+  for (int i = 0; i < argc_trunc; ++i) {
     const char* argv = _argv[i];
     int j = 0;
-    for (; j < options_count_; j++) {
+    for (; j < options_count_; ++j) {
       if (options_[j]->Parse(argv)) {
         break;  // Also breaks if argument is duplicated.
       }
@@ -478,7 +474,7 @@ ParseResult Parser::Parse(int _argc, const char* _argv[]) {
   }
 
   // Ensures all required options were specified in the command line.
-  for (int i = 0; i < options_count_; i++) {
+  for (int i = 0; i < options_count_; ++i) {
     if (!options_[i]->statisfied()) {
       std::cout << "Required option \"" << options_[i]->name() <<
         "\" is not specified." << std::endl;
@@ -488,7 +484,7 @@ ParseResult Parser::Parse(int _argc, const char* _argv[]) {
   }
 
   // Validates all options.
-  for (int i = 0; i < options_count_; i++) {
+  for (int i = 0; i < options_count_; ++i) {
     if (!options_[i]->Validate(argc_trunc)) {
       result = kExitFailure;
       break;
@@ -524,7 +520,7 @@ void Parser::Help() {
   // Displays usage line.
   std::cout << "Usage:" << std::endl;
   std::cout << executable_name();
-  for (int i = 0; i < options_count_; i++) {
+  for (int i = 0; i < options_count_; ++i) {
     const Option& option = *options_[i];
     std::cout << ' ';
     if (option.required()) {
@@ -539,7 +535,7 @@ void Parser::Help() {
 
   // Displays option details.
   std::cout << "\nWhere:" << std::endl;
-  for (int i = 0; i < options_count_; i++) {
+  for (int i = 0; i < options_count_; ++i) {
     const Option& option = *options_[i];
     const std::string option_str =
       std::string(" --") + option.name() + "=<" + option.FormatType() + ">";
@@ -598,7 +594,7 @@ bool Parser::RegisterOption(Option* _option) {
   }
 
   // Test for duplicate options' name.
-  for (int i = 0; i < options_count_; i++) {
+  for (int i = 0; i < options_count_; ++i) {
     if (StrICmp(options_[i]->name(), _option->name()) == 0) {
       std::cerr << "Option name:\"" << _option->name() <<
         "\" already registered." << std::endl;

@@ -94,7 +94,7 @@ TEST(Filled, AnimationSerialize) {
     ASSERT_TRUE(o_animation != NULL);
   }
 
-  for (int e = 0; e < 2; e++) {
+  for (int e = 0; e < 2; ++e) {
     ozz::Endianness endianess = e == 0 ? ozz::kBigEndian : ozz::kLittleEndian;
     ozz::io::MemoryStream stream;
 

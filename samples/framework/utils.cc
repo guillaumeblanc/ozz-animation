@@ -151,7 +151,7 @@ bool ComputePostureBounds(ozz::Range<const ozz::math::Float4x4> _matrices,
   while (current < _matrices.end) {
     min = math::Min(min, current->cols[3]);
     max = math::Max(max, current->cols[3]);
-    current++;
+    ++current;
   }
 
   math::Store3PtrU(min, &_bound->min.x);

@@ -81,7 +81,6 @@ bool SamplingJob::Validate() const {
 
 namespace {
 // Loops through the sorted key frames and update cache structure.
-// This function uses the fact that all key frame types have a "time" member.
 template<typename _Key>
 void UpdateKeys(float _time, int _num_soa_tracks,
                 ozz::Range<const _Key> _keys,
@@ -96,7 +95,7 @@ void UpdateKeys(float _time, int _num_soa_tracks,
       // Initializes interpolated entries with the first 2 sets of key frames.
       // The sorting algorithm ensures that the first 2 key frames of a track
       // are consecutive.
-      for (int i = 0; i < _num_soa_tracks; i++) {
+      for (int i = 0; i < _num_soa_tracks; ++i) {
         const int in_index0 = i * 4;  // * soa size
         const int in_index1 = in_index0 + num_tracks;  // 2nd row.
         const int out_index = i * 4 * 2;  // * soa size * 2 keys
@@ -114,7 +113,7 @@ void UpdateKeys(float _time, int _num_soa_tracks,
       // All entries are outdated. It cares to only flag valid soa entries as
       // this is the exit condition of other algorithms.
       const int num_outdated_flags = (_num_soa_tracks + 7) / 8;
-      for (int i = 0; i < num_outdated_flags - 1; i++) {
+      for (int i = 0; i < num_outdated_flags - 1; ++i) {
         _outdated[i] = 0xff;
       }
       _outdated[num_outdated_flags - 1] =
@@ -124,14 +123,21 @@ void UpdateKeys(float _time, int _num_soa_tracks,
     }
 
     // Search for the keys that matches _time.
+    // Iterates while the cache is not updated with left and right keys required
+    // for interpolation at time _time, for all tracks. Thanks to the keyframe
+    // sorting, the loop can end as soon as it finds a key greater that _time.
+    // It will mean that all the keys lower than _time have been processed,
+    // meaning all cache entries are updated. 
     while (cursor < _keys.end &&
            _keys.begin[_cache[cursor->track * 2 + 1]].time <= _time) {
       // Flag this soa entry as outdated.
       _outdated[cursor->track / 32] |= 1 << ((cursor->track & 0x1f) / 4);
-      // Updates keys.
+      // Updates cache.
       const int base = cursor->track * 2;
       _cache[base] = _cache[base + 1];
-      _cache[base + 1] = static_cast<int>(cursor++ - _keys.begin);
+      _cache[base + 1] = static_cast<int>(cursor - _keys.begin);
+      // Process next key.
+      ++cursor;
     }
     assert(cursor <= _keys.end);
 
@@ -145,10 +151,10 @@ void UpdateSoaTranslations(int _num_soa_tracks,
                            unsigned char* _outdated,
                            internal::InterpSoaTranslation* soa_translations_) {
   const int num_outdated_flags = (_num_soa_tracks + 7) / 8;
-  for (int j = 0; j < num_outdated_flags; j++) {
+  for (int j = 0; j < num_outdated_flags; ++j) {
     unsigned char outdated = _outdated[j];
     _outdated[j] = 0;  // Reset outdated entries as all will be processed.
-    for (int i = j * 8; outdated; i++, outdated >>= 1) {
+    for (int i = j * 8; outdated; ++i, outdated >>= 1) {
       if (!(outdated & 1)) {
         continue;
       }
@@ -197,10 +203,10 @@ void UpdateSoaRotations(int _num_soa_tracks,
                         unsigned char* _outdated,
                         internal::InterpSoaRotation* soa_rotations_) {
   const int num_outdated_flags = (_num_soa_tracks + 7) / 8;
-  for (int j = 0; j < num_outdated_flags; j++) {
+  for (int j = 0; j < num_outdated_flags; ++j) {
     unsigned char outdated = _outdated[j];
     _outdated[j] = 0;  // Reset outdated entries as all will be processed.
-    for (int i = j * 8; outdated; i++, outdated >>= 1) {
+    for (int i = j * 8; outdated; ++i, outdated >>= 1) {
       if (!(outdated & 1)) {
         continue;
       }
@@ -249,10 +255,10 @@ void UpdateSoaScales(int _num_soa_tracks,
                      unsigned char* _outdated,
                      internal::InterpSoaScale* soa_scales_) {
   const int num_outdated_flags = (_num_soa_tracks + 7) / 8;
-  for (int j = 0; j < num_outdated_flags; j++) {
+  for (int j = 0; j < num_outdated_flags; ++j) {
     unsigned char outdated = _outdated[j];
     _outdated[j] = 0;  // Reset outdated entries as all will be processed.
-    for (int i = j * 8; outdated; i++, outdated >>= 1) {
+    for (int i = j * 8; outdated; ++i, outdated >>= 1) {
       if (!(outdated & 1)) {
         continue;
       }
@@ -302,7 +308,7 @@ void Interpolates(float _anim_time,
                   const internal::InterpSoaScale* _scales,
                   math::SoaTransform* _output) {
     const math::SimdFloat4 anim_time = math::simd_float4::Load1(_anim_time);
-    for (int i = 0; i < _num_soa_tracks; i++) {
+    for (int i = 0; i < _num_soa_tracks; ++i) {
       // Prepares interpolation coefficients.
       const math::SimdFloat4 interp_t_time =
         (anim_time - _translations[i].time[0]) *

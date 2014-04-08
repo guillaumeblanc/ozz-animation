@@ -10,7 +10,7 @@ if(ozz_enable_cdash)
 endif()
 
 # Adds glfw.
-add_subdirectory(${CMAKE_SOURCE_DIR}/contrib/glfw glfw)
+add_subdirectory(${CMAKE_SOURCE_DIR}/extern/glfw glfw)
 
 # Adds the sample framework to the include path.
 include_directories(./)

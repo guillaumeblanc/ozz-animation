@@ -34,7 +34,6 @@
 
 #include <cassert>
 #include <cstdio>
-#include <GL/glext.h>
 
 #include "framework/internal/renderer_impl.h"
 
@@ -49,7 +48,7 @@ Shooter::Shooter()
   // Initializes shots
   GLuint pbos[kNumShots];
   GL(GenBuffers(kNumShots, pbos));
-  for (int i = 0; i < kNumShots; i++) {
+  for (int i = 0; i < kNumShots; ++i) {
     Shot& shot = shots_[i];
     shot.pbo = pbos[i];
     shot.width = 0;
@@ -61,9 +60,9 @@ Shooter::Shooter()
   // format and type.
   if (glfwExtensionSupported("GL_ARB_ES2_compatibility") != 0) {
     GLint format;
-    GL(GetIntegerv(GL_IMPLEMENTATION_COLOR_READ_FORMAT, &format));
+    GL(GetIntegerv(GL_IMPLEMENTATION_COLOR_READ_FORMAT_OES, &format));
     GLint type;
-    GL(GetIntegerv(GL_IMPLEMENTATION_COLOR_READ_TYPE, &type));
+    GL(GetIntegerv(GL_IMPLEMENTATION_COLOR_READ_TYPE_OES, &type));
 
     // Only support GL_UNSIGNED_BYTE.
     if (type == GL_UNSIGNED_BYTE) {
@@ -86,6 +85,10 @@ Shooter::Shooter()
           break;
       }
     }
+  } else {
+    // Default fail safe format and types.
+    gl_shot_format_ = GL_RGBA;
+    image_format_ = image::Format::kRGBA;
   }
 }
 
@@ -94,7 +97,7 @@ Shooter::~Shooter() {
   ProcessAll();
 
   // Clean shot pbos.
-  for (int i = 0; i < kNumShots; i++) {
+  for (int i = 0; i < kNumShots; ++i) {
     Shot& shot = shots_[i];
     GL(DeleteBuffers(1, &shot.pbo));
 
@@ -107,7 +110,7 @@ void Shooter::Resize(int _width, int _height) {
   ProcessAll();
 
   // Resizes all pbos.
-  for (int i = 0; i < kNumShots; i++) {
+  for (int i = 0; i < kNumShots; ++i) {
     Shot& shot = shots_[i];
     GL(BindBuffer(GL_PIXEL_PACK_BUFFER, shot.pbo));
     GL(BufferData(GL_PIXEL_PACK_BUFFER, _width * _height * 4, 0, GL_STREAM_READ));
@@ -124,7 +127,7 @@ bool Shooter::Update() {
 
 bool Shooter::Process() {
   // Eraly out if process stack is empty.
-  for (int i = 0; i < kNumShots; i++) {
+  for (int i = 0; i < kNumShots; ++i) {
     Shot& shot = shots_[i];
 
     // Early out for already processed, or empty shots.
@@ -159,7 +162,7 @@ bool Shooter::Process() {
 
 bool Shooter::ProcessAll() {
   // Reset cooldow to 1 for all "unprocessed" shots, so they will be "processed".
-  for (int i = 0; i < kNumShots; i++) {
+  for (int i = 0; i < kNumShots; ++i) {
     Shot& shot = shots_[i];
     shot.cooldown = shot.cooldown > 0 ? 1 : 0;
   }
@@ -174,7 +177,7 @@ bool Shooter::Capture(int _buffer) {
   Shot* shot;
   for (shot = shots_;
        shot < shots_ + kNumShots && shot->cooldown != 0;
-       shot++) {
+       ++shot) {
   }
   assert(shot != shots_ + kNumShots);
 

@@ -28,14 +28,15 @@
 //                                                                            //
 //============================================================================//
 
+#define OZZ_INCLUDE_PRIVATE_HEADER  // Allows to include private headers.
+
 #include "framework/profile.h"
+#include "framework/internal/renderer_impl.h"
 
 #include <cfloat>
 #include <cmath>
 
 #include "ozz/base/memory/allocator.h"
-
-#include <GL/glfw.h>
 
 namespace ozz {
 namespace sample {
@@ -96,7 +97,7 @@ Record::Statistics Record::GetStatistics() {
        statistics.max = *current;
     }
     sum += *current;
-    current++;
+    ++current;
 
     if (current == records_end_) {  // Looping...
       end = cursor_;

@@ -35,35 +35,27 @@
 #error "This header is private, it cannot be included from public headers."
 #endif  // OZZ_INCLUDE_PRIVATE_HEADER
 
+// GL and GL ext requires that ptrdif_t is defined on APPLE platforms.
+#include <cstddef>
+
+// Don't allow gl.h to automatically include glext.h
+#define GL_GLEXT_LEGACY
+
+// Including glfw includes gl.h
+#include "GL/glfw.h"
+
+// Detects already defined GL_VERSION and deduces required extensions.
+#ifndef GL_VERSION_1_5
+#define OZZ_GL_VERSION_1_5_EXT
+#endif  // GL_VERSION_1_5
+#ifndef GL_VERSION_2_0
+#define OZZ_GL_VERSION_2_0_EXT
+#endif  // GL_VERSION_2_0
+
+#include "GL/glext.h"
+
 #include "framework/renderer.h"
-
 #include "ozz/base/containers/vector.h"
-
-#include <GL/glfw.h>
-
-// Reject unssuported OpenGL versions
-#ifndef GL_VERSION_2_1
-#define GL_VERSION_2_1 0
-#endif  // GL_VERSION_2_1
-#ifndef GL_VERSION_3_0
-#define GL_VERSION_3_0 0
-#endif  // GL_VERSION_3_0
-#ifndef GL_VERSION_3_1
-#define GL_VERSION_3_1 0
-#endif  // GL_VERSION_3_1
-#ifndef GL_VERSION_3_2
-#define GL_VERSION_3_2 0
-#endif  // GL_VERSION_3_2
-#ifndef GL_VERSION_4_0
-#define GL_VERSION_4_0 0
-#endif  // GL_VERSION_4_0
-#ifndef GL_VERSION_4_1
-#define GL_VERSION_4_1 0
-#endif  // GL_VERSION_4_1
-#ifndef GL_VERSION_4_2
-#define GL_VERSION_4_2 0
-#endif  // GL_VERSION_4_2
-#include <GL/glext.h>
 
 // Provides helper macro to test for glGetError on a gl call.
 #ifndef NDEBUG
@@ -77,7 +69,7 @@
 #endif // NDEBUG
 
 // Convenient macro definition for specifying buffer offsets.
-#define GL_OFFSET(i) reinterpret_cast<void*>(i)
+#define GL_PTR_OFFSET(i) reinterpret_cast<void*>(i)
 
 namespace ozz {
 namespace animation { class Skeleton; }
@@ -223,6 +215,7 @@ class RendererImpl : public Renderer {
 }  // ozz
 
 // OpenGL 1.5 buffer object management functions, mandatory.
+#ifdef OZZ_GL_VERSION_1_5_EXT
 extern PFNGLBINDBUFFERPROC glBindBuffer;
 extern PFNGLDELETEBUFFERSPROC glDeleteBuffers;
 extern PFNGLGENBUFFERSPROC glGenBuffers;
@@ -234,8 +227,10 @@ extern PFNGLMAPBUFFERPROC glMapBuffer;
 extern PFNGLUNMAPBUFFERPROC glUnmapBuffer;
 extern PFNGLGETBUFFERPARAMETERIVPROC glGetBufferParameteriv;
 extern PFNGLGETBUFFERPOINTERVPROC glGetBufferPointerv;
+#endif  // OZZ_GL_VERSION_1_5_EXT
 
 // OpenGL 2.0 shader management functions, mandatory.
+#ifdef OZZ_GL_VERSION_2_0_EXT
 extern PFNGLATTACHSHADERPROC glAttachShader;
 extern PFNGLBINDATTRIBLOCATIONPROC glBindAttribLocation;
 extern PFNGLCOMPILESHADERPROC glCompileShader;
@@ -288,6 +283,7 @@ extern PFNGLVERTEXATTRIB3FVPROC glVertexAttrib3fv;
 extern PFNGLVERTEXATTRIB4FPROC glVertexAttrib4f;
 extern PFNGLVERTEXATTRIB4FVPROC glVertexAttrib4fv;
 extern PFNGLVERTEXATTRIBPOINTERPROC glVertexAttribPointer;
+#endif  // OZZ_GL_VERSION_2_0_EXT
 
 // OpenGL ARB_instanced_arrays extension, optional.
 #undef GL_ARB_instanced_arrays
