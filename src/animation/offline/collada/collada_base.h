@@ -140,6 +140,8 @@ class BaseVisitor : public TiXmlVisitor {
 
   virtual bool VisitExit(const TiXmlElement& _element);
 
+  virtual bool VisitExit(const TiXmlDocument& _element);
+
   void set_error();
 
  private:

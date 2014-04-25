@@ -44,7 +44,7 @@ def recurse_files(_folder, _filter):
     for i in glob.iglob(os.path.join(_folder, '*/')):
         #... and recurse them.
         for j in recurse_files(i, _filter):
-            if j.find('\\extern\\') == -1 and j.find('\\build\\') == -1:
+            if j.find('\\extern\\') == -1 and j.find('/extern/') == -1 and j.find('\\build\\') == -1 and j.find('/build/') == -1:
                 yield j
 
 license_text = "\

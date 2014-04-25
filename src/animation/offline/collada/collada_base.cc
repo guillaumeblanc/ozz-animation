@@ -179,6 +179,11 @@ bool BaseVisitor::VisitExit(const TiXmlElement& _element) {
   return !error_;
 }
 
+bool BaseVisitor::VisitExit(const TiXmlDocument& _element) {
+  (void)_element;
+  return !error_;
+}
+
 bool BaseVisitor::HandleCollada(const TiXmlElement& _element) {
   if (valid_collada_document_ == false) {
     valid_collada_document_ = true;  // This is a Collada file.

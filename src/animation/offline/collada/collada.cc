@@ -145,19 +145,25 @@ bool ImportFromMemory(const char* _xml, RawSkeleton* _skeleton) {
   return true;
 }
 
-bool ImportFromFile(const char* _filename, const Skeleton& _skeleton,
-                   RawAnimation* _animation) {
+bool ImportFromFile(const char* _filename,
+                    const Skeleton& _skeleton,
+                    float _sampling_rate,
+                    RawAnimation* _animation) {
   char* xml = LoadFileToString(_filename);
 
   // Import xml from memory even if load from file has failed. ImportFromMemory
   // supports NULL argument and will fill output.
-  bool success = ImportFromMemory(xml, _skeleton, _animation);
+  bool success = ImportFromMemory(xml, _skeleton, _sampling_rate, _animation);
   memory::default_allocator()->Deallocate(xml);
   return success;
 }
 
-bool ImportFromMemory(const char* _xml, const Skeleton& _skeleton,
-                     RawAnimation* _animation) {
+bool ImportFromMemory(const char* _xml,
+                      const Skeleton& _skeleton,
+                      float _sampling_rate,
+                      RawAnimation* _animation) {
+  (void)_sampling_rate;
+  
   if (!_animation) {
     return false;
   }
@@ -186,7 +192,8 @@ bool ImportFromMemory(const char* _xml, const Skeleton& _skeleton,
 
   // Allocates RawAnimation.
   if (!ExtractAnimation(animation_visitor,
-                        skeleton_visitor, _skeleton,
+                        skeleton_visitor,
+                        _skeleton,
                         _animation)) {
     log::Err() << "Collada animation extraction failed." << std::endl;
     return false;

@@ -29,3 +29,5 @@ set_target_properties(test_skeleton_builder PROPERTIES FOLDER "ozz/tests/animati
 add_test(NAME test_skeleton_builder COMMAND test_skeleton_builder)
 
 add_subdirectory(collada)
+add_subdirectory(fbx)
+add_subdirectory(tools)

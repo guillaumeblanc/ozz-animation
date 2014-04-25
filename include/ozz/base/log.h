@@ -81,6 +81,11 @@ public:
     return stream_;
   }
 
+  // Cast operator.
+  std::ostream& stream() {
+    return stream_;
+  }
+
 protected:
   // Specifies the global stream and the output level.
   // Logging levels allows to select _stream or a "silent" stream according to

@@ -98,8 +98,11 @@ class Skeleton {
 
   // Per joint properties.
   struct JointProperties {
-    uint16 parent:Skeleton::kMaxJointsNumBits;  // Parent's index.
-    uint16 is_leaf:1;  // Set to 1 for a leaf, 0 for a branch.
+    // Parent's index, kNoParentIndex for the root.
+    uint16 parent: Skeleton::kMaxJointsNumBits;
+    
+    // Set to 1 for a leaf, 0 for a branch.
+    uint16 is_leaf: 1;
   };
 
   // Returns joint's parent indices range.

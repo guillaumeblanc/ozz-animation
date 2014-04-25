@@ -165,7 +165,7 @@ class OptimizeSampleApplication : public ozz::sample::Application {
 
     // Imports offline animation from a collada file.
     if (!ozz::animation::offline::collada::ImportFromFile(
-        OPTIONS_animation, *skeleton_, &raw_animation_)) {
+        OPTIONS_animation, *skeleton_, 30.f, &raw_animation_)) {
       return false;
     }
 

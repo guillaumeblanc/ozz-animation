@@ -149,9 +149,9 @@ const char* ParsedExecutableUsage();
 #define OZZ_OPTIONS_DECLARE_FLOAT(_name, _help, _default, _required)\
   OZZ_OPTIONS_DECLARE_VARIABLE(\
     ozz::options::FloatOption, _name, _help, _default, _required)
-#define OZZ_OPTIONS_DECLARE_FLOAT_FN(_name, _help, _default, _fn)\
+#define OZZ_OPTIONS_DECLARE_FLOAT_FN(_name, _help, _default, _required, _fn)\
   OZZ_OPTIONS_DECLARE_VARIABLE_FN(\
-    ozz::options::FloatOption, _name, _help, _default, _fn)
+    ozz::options::FloatOption, _name, _help, _default, _required, _fn)
 
 #define OZZ_OPTIONS_DECLARE_STRING(_name, _help, _default, _required)\
   OZZ_OPTIONS_DECLARE_VARIABLE(\

@@ -19,8 +19,6 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 if(ozz_build_redebug_all)
   message("OZZ_HAS_REDEBUG_ALL is enabled")
   set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS_DEBUG OZZ_HAS_REDEBUG_ALL=1)
-else()
-  message("OZZ_HAS_REDEBUG_ALL is disabled")
 endif()
 
 #------------------------
@@ -75,8 +73,6 @@ if(MSVC)
   if(ozz_build_sse2 OR CMAKE_CL_64) # x64 implicitly supports SSE2.
     message("OZZ_HAS_SSE2 is enabled")
     set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS OZZ_HAS_SSE2=1)
-  else()
-    message("OZZ_HAS_SSE2 is disabled")
   endif()
 
   # Removes any exception mode
@@ -170,6 +166,9 @@ else()
   #----------------------
   # Handles coverage options
   if(ozz_enable_coverage)
+    # Extern libraries and samples are not included in the coverage, as not covered by automatic dashboard tests.
+    set(CTEST_CUSTOM_COVERAGE_EXCLUDE ${CTEST_CUSTOM_COVERAGE_EXCLUDE} "extern/" "samples/")
+
     # Linker options
     if(NOT ${CMAKE_SHARED_LINKER_FLAGS_DEBUG} MATCHES "-fprofile-arcs -ftest-coverage")
       set(CMAKE_SHARED_LINKER_FLAGS_DEBUG "${CMAKE_SHARED_LINKER_FLAGS_DEBUG} -fprofile-arcs -ftest-coverage")

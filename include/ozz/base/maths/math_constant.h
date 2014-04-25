@@ -46,6 +46,10 @@ static const float kSqrt3_2 = 0.86602540378443864676372317075294f;
 static const float kSqrt2 = 1.4142135623730950488016887242097f;
 static const float kSqrt2_2 = 0.70710678118654752440084436210485f;
 
+// Angle unit conversion constants.
+static const float kDegreeToRadian = kPi / 180.f;
+static const float kRadianToDegree = 180.f / kPi;
+
 // Defines the square normalization tolerance value.
 static const float kNormalizationTolerance = 1e-6f;
 static const float kNormalizationToleranceEst = 5e-3f;

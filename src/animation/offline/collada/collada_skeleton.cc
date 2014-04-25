@@ -65,7 +65,7 @@ bool SkeletonVisitor::VisitEnter(const TiXmlElement& _element,
     return HandleNodeEnter(_element);
   }
 
-  // Dectect a transformation.
+  // Detects a transformation.
   if (!joint_stack_.empty()) {
     const char* transforms[] = {
       "matrix", "rotate", "scale", "translate", "lookat", "skew"};

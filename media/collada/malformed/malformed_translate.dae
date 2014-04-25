@@ -1168,7 +1168,7 @@ dereferenceXRefs=0;cameraXFov=0;cameraYFov=1</comments>
         <rotate sid="rotateY">0 1.000000 0 0</rotate>
         <rotate sid="rotateX">1.000000 0 0 0</rotate>
         <node id="root" name="root" sid="root" type="JOINT">
-          <translate sid="translate">93 0 4.363676 -1.020067</translate>
+          <translate sid="translate">93 0</translate>
           <rotate sid="jointOrientZ">0 0 1.000000 0</rotate>
           <rotate sid="jointOrientY">0 1.000000 0 0</rotate>
           <rotate sid="jointOrientX">1.000000 0 0 0</rotate>

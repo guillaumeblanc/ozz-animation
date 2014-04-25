@@ -1,3 +1,14 @@
+Release version 0.4.0.----------------------------------------------------------
+
+ # Library
+  - [offline] Adds Fbx import pipeline, through fbx2skel and fbx2anim command line tools.
+  - [offline] Adds Fbx import and conversion library, through ozz_animation_offline_fbx. Building fbx related libraries requires fbx sdk to be installed.
+  - [offline] Adds ozz_animation_offline_tools library to share the common work for Collada and Fbx import tools. This could be use to implement custom conversion command line tools.
+
+ # Samples
+  - Adds Fbx resources to media path.
+  - Makes use of Fbx resources with existing samples.
+
 Release version 0.3.1.----------------------------------------------------------
 
  # Samples
@@ -5,8 +16,8 @@ Release version 0.3.1.----------------------------------------------------------
 
  # Build pipeline
   - Adds Mac OSX support, full offline and runtime pipeline, samples, dashboard...
-  - Improves dashboard configuration, using json configuration files available there: http://ozz.qualipilote.fr/dashboard/config/.
   - Moves dashboard to http://ozz.qualipilote.fr/dashboard/cdash/
+  - Improves dashboard configuration, using json configuration files available there: http://ozz.qualipilote.fr/dashboard/config/.
 
 Release version 0.3.0.----------------------------------------------------------
 
@@ -53,7 +64,7 @@ Release version 0.1.0, initial open source release.-----------------------------
   # Library
   - [animation] Support for run-time animation sampling.
   - [offline] Support for building run-time animation and skeleton from a raw (aka offline/user friendly) format.
-  - [offline] Full import Collada pipeline (lib and tools).
+  - [offline] Full Collada import pipeline (lib and tools).
   - [offline]  Support for animation key-frame optimizations.
   - [base] Memory management redirection.
   - [base] Containers definition.

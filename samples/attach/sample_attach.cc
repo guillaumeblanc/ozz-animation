@@ -68,7 +68,7 @@ class LoadAttachApplication : public ozz::sample::Application {
   LoadAttachApplication()
     : cache_(NULL),
       attachment_(0),
-      offset_(.12f, .01f, -.445f) {
+      offset_(-.02f, .03f, .05f) {
     set_auto_framing(true);
   }
 
@@ -123,8 +123,8 @@ class LoadAttachApplication : public ozz::sample::Application {
     // Prepare rendering.
     const float thickness = .01f;
     const float length = .5f;
-    const ozz::math::Box box(ozz::math::Float3(-thickness, -thickness, 0.f),
-                             ozz::math::Float3(thickness, thickness, length));
+    const ozz::math::Box box(ozz::math::Float3(-thickness, -thickness, -length),
+                             ozz::math::Float3(thickness, thickness, 0.f));
     const ozz::sample::Renderer::Color colors[2] = {
       {0xff, 0, 0, 0xff}, {0, 0xff, 0, 0xff}};
 
@@ -154,8 +154,8 @@ class LoadAttachApplication : public ozz::sample::Application {
     cache_ = allocator->New<ozz::animation::SamplingCache>(num_joints);
 
     // Finds the joint where the object should be attached.
-    for (int i = 0; i < num_joints; ++i) {
-      if (std::strstr(skeleton_.joint_names()[i], "Hand")) {
+    for (int i = 0; i < num_joints; i++) {
+      if (std::strstr(skeleton_.joint_names()[i], "LeftHandMiddle")) {
         attachment_ = i;
         break;
       }

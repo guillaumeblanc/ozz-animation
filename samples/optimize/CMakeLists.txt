@@ -17,12 +17,9 @@ add_custom_command(TARGET sample_optimize POST_BUILD
 set_target_properties(sample_optimize
   PROPERTIES FOLDER "samples")
 
-install(TARGETS sample_optimize
-  DESTINATION bin/samples/optimize)
-install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/media
-  DESTINATION bin/samples/optimize)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/README
-  DESTINATION bin/samples/optimize)
+install(TARGETS sample_optimize DESTINATION bin/samples/optimize)
+install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/media DESTINATION bin/samples/optimize)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/README DESTINATION bin/samples/optimize)
 
 add_test(NAME sample_optimize_default COMMAND sample_optimize "--max_idle_loops=${SAMPLE_TESTING_LOOPS}" ${SAMPLE_RENDER_ARGUMENT})
 add_test(NAME sample_optimize_path1 COMMAND sample_optimize "--skeleton=${ozz_media_directory}/collada/alain/skeleton.dae" "--animation=${ozz_media_directory}/collada/alain/atlas.dae" "--max_idle_loops=${SAMPLE_TESTING_LOOPS}" ${SAMPLE_RENDER_ARGUMENT})

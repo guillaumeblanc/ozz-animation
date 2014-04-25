@@ -58,11 +58,15 @@ bool ImportFromMemory(const char* _xml, RawSkeleton* _skeleton);
 // and filled with animation data extracted from the Collada document.
 // _skeleton is a run-time Skeleton object used to select and sort animation
 // tracks.
-bool ImportFromFile(const char* _filename, const Skeleton& _skeleton,
+bool ImportFromFile(const char* _filename,
+                    const Skeleton& _skeleton,
+                    float _sampling_rate,
                     RawAnimation* _animation);
 
 // Same as ImportFromFile, but imports form a _xml located in memory.
-bool ImportFromMemory(const char* _xml, const Skeleton& _skeleton,
+bool ImportFromMemory(const char* _xml,
+                      const Skeleton& _skeleton,
+                      float _sampling_rate,
                       RawAnimation* _animation);
 }  // collada
 }  // offline

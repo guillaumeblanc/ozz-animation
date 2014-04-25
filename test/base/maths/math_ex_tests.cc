@@ -29,12 +29,16 @@
 //============================================================================//
 
 #include "ozz/base/maths/math_ex.h"
+#include "ozz/base/maths/math_constant.h"
 
 #include "gtest/gtest.h"
 
 #include "ozz/base/gtest_helper.h"
 
 TEST(Trigonometry, MathEx) {
+  EXPECT_FLOAT_EQ(ozz::math::kPi, 3.1415926535897932384626433832795f);
+  EXPECT_FLOAT_EQ(ozz::math::kPi * ozz::math::kRadianToDegree, 180.f);
+  EXPECT_FLOAT_EQ(180.f * ozz::math::kDegreeToRadian, ozz::math::kPi);
 }
 
 TEST(FloatArithmetic, MathEx) {

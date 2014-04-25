@@ -22,30 +22,27 @@ install(TARGETS ozz_animation_collada DESTINATION lib)
 add_executable(dae2skel
   dae2skel.cc)
 target_link_libraries(dae2skel
+  ozz_animation_offline_tools
   ozz_animation_collada
   ozz_animation_offline
   ozz_animation
-  ozz_base
-  ozz_options)
+  ozz_options
+  ozz_base)
 set_target_properties(dae2skel
   PROPERTIES FOLDER "ozz/tools")
 
-set_target_properties(dae2skel
-  PROPERTIES RUNTIME_OUTPUT_DIRECTORY "")
-
-install(TARGETS dae2skel
-  DESTINATION bin/tools)
+install(TARGETS dae2skel DESTINATION bin/tools)
   
 add_executable(dae2anim
   dae2anim.cc)
 target_link_libraries(dae2anim
+  ozz_animation_offline_tools
   ozz_animation_collada
   ozz_animation_offline
   ozz_animation
-  ozz_base
-  ozz_options)
+  ozz_options
+  ozz_base)
 set_target_properties(dae2anim
   PROPERTIES FOLDER "ozz/tools")
 
-install(TARGETS dae2anim
-  DESTINATION bin/tools)
+install(TARGETS dae2anim DESTINATION bin/tools)
