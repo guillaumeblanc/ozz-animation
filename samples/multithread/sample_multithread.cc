@@ -80,10 +80,8 @@ class MultithreadSampleApplication : public ozz::sample::Application {
   MultithreadSampleApplication()
     : num_characters_(kWidth * kDepth),
       enable_openmp_(true),
-      num_threads_(1) {
-    // Enables auto-framing by default.
-    set_auto_framing(true);
-
+      num_threads_(1),
+      openmp_statistics() {
     // Do not allocate all threads to OpenMp by default, as it is too intensive.
     const int max_threads = omp_get_max_threads();
     num_threads_ = (max_threads > 2) ? max_threads - 1 : max_threads;
@@ -224,7 +222,7 @@ class MultithreadSampleApplication : public ozz::sample::Application {
     return true;
   }
 
-  virtual bool GetSceneBounds(ozz::math::Box* _bound) const {
+  virtual void GetSceneBounds(ozz::math::Box* _bound) const {
     _bound->min.x = -(kWidth / 2) * kInterval;
     _bound->max.x =
       _bound->min.x + ozz::math::Min(num_characters_, kWidth) * kInterval;
@@ -234,7 +232,6 @@ class MultithreadSampleApplication : public ozz::sample::Application {
     _bound->max.z =
       _bound->min.z +
       ozz::math::Min(num_characters_ / kWidth, kDepth) * kInterval;
-    return true;
   }
 
  private:
@@ -243,7 +240,7 @@ class MultithreadSampleApplication : public ozz::sample::Application {
 
     // Reallocate all characters.
     ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
-    for (std::size_t c = 0; c < kMaxCharacters; ++c) {
+    for (size_t c = 0; c < kMaxCharacters; ++c) {
       Character& character = characters_[c];
       character.cache = allocator->
         New<ozz::animation::SamplingCache>(animation_.num_tracks());
@@ -262,7 +259,7 @@ class MultithreadSampleApplication : public ozz::sample::Application {
 
   void DeallocateCharaters() {
     ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
-    for (std::size_t c = 0; c < kMaxCharacters; ++c) {
+    for (size_t c = 0; c < kMaxCharacters; ++c) {
       Character& character = characters_[c];
       allocator->Delete(character.cache);
       allocator->Deallocate(character.locals);

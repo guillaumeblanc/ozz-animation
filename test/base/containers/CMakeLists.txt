@@ -10,3 +10,11 @@ target_link_libraries(test_std_containers
   gtest)
 add_test(NAME test_std_containers COMMAND test_std_containers)
 set_target_properties(test_std_containers PROPERTIES FOLDER "ozz/tests/base")
+
+add_executable(test_std_containers_archive
+  std_containers_archive_tests.cc)
+target_link_libraries(test_std_containers_archive
+  ozz_base
+  gtest)
+add_test(NAME test_std_containers_archive COMMAND test_std_containers_archive)
+set_target_properties(test_std_containers_archive PROPERTIES FOLDER "ozz/tests/base")

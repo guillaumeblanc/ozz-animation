@@ -33,13 +33,13 @@
 #include <cstring>
 
 #include "ozz/base/io/archive.h"
-#include "ozz/base/io/archive_soa_maths.h"
+#include "ozz/base/maths/soa_math_archive.h"
 #include "ozz/base/maths/soa_transform.h"
 #include "ozz/base/memory/allocator.h"
 
 namespace ozz {
 namespace io {
-// JointProperties' version can be declared localy as it will be saved from this
+// JointProperties' version can be declared locally as it will be saved from this
 // cpp file only.
 OZZ_IO_TYPE_VERSION(1, animation::Skeleton::JointProperties)
 
@@ -48,9 +48,9 @@ OZZ_IO_TYPE_VERSION(1, animation::Skeleton::JointProperties)
 template <>
 void Save(OArchive& _archive,
           const animation::Skeleton::JointProperties* _properties,
-          std::size_t _count) {
-  for (std::size_t i = 0; i < _count; ++i) {
-    uint16 parent = _properties[i].parent;
+          size_t _count) {
+  for (size_t i = 0; i < _count; ++i) {
+    uint16_t parent = _properties[i].parent;
     _archive << parent;
     bool is_leaf = _properties[i].is_leaf != 0;
     _archive << is_leaf;
@@ -60,10 +60,11 @@ void Save(OArchive& _archive,
 template <>
 void Load(IArchive& _archive,
           animation::Skeleton::JointProperties* _properties,
-          std::size_t _count,
-          uint32 /*_version*/) {
-  for (std::size_t i = 0; i < _count; ++i) {
-    uint16 parent;
+          size_t _count,
+          uint32_t _version) {
+  (void)_version;
+  for (size_t i = 0; i < _count; ++i) {
+    uint16_t parent;
     _archive >> parent;
     _properties[i].parent = parent;
     bool is_leaf;
@@ -83,9 +84,19 @@ Skeleton::Skeleton()
 }
 
 Skeleton::~Skeleton() {
-  memory::default_allocator()->Deallocate(joint_properties_);
-  memory::default_allocator()->Deallocate(bind_pose_);
-  memory::default_allocator()->Deallocate(joint_names_);
+  Destroy();
+}
+
+void Skeleton::Destroy() {
+  memory::Allocator* allocator = memory::default_allocator();
+  allocator->Deallocate(joint_properties_);
+  joint_properties_ = NULL;
+  allocator->Deallocate(bind_pose_);
+  bind_pose_ = NULL;
+  allocator->Deallocate(joint_names_);
+  joint_names_ = NULL;
+
+  num_joints_ = 0;
 }
 
 // This function is not inlined in order to avoid the inclusion of SoaTransform.
@@ -95,20 +106,20 @@ Range<const math::SoaTransform> Skeleton::bind_pose() const {
 }
 
 void Skeleton::Save(ozz::io::OArchive& _archive) const {
-  _archive << static_cast<int32>(num_joints_);
 
   // Early out if skeleton's empty.
+  _archive << static_cast<int32_t>(num_joints_);
   if (!num_joints_) {
     return;
   }
 
   // Stores names. They are all concatenated in the same buffer, starting at
   // joint_names_[0].
-  std::size_t chars_count = 0;
+  size_t chars_count = 0;
   for (int i = 0; i < num_joints_; ++i) {
     chars_count += (std::strlen(joint_names_[i]) + 1) * sizeof(char);
   }
-  _archive << static_cast<int32>(chars_count);
+  _archive << static_cast<int32_t>(chars_count);
   _archive << ozz::io::MakeArray(joint_names_[0], chars_count);
 
   // Stores joint's properties.
@@ -118,10 +129,13 @@ void Skeleton::Save(ozz::io::OArchive& _archive) const {
   _archive << ozz::io::MakeArray(bind_pose_, num_soa_joints());
 }
 
-void Skeleton::Load(ozz::io::IArchive& _archive, ozz::uint32 /*_version*/) {
-  assert(!num_joints_ && !joint_names_ && !joint_properties_ && !bind_pose_);
+void Skeleton::Load(ozz::io::IArchive& _archive, uint32_t _version) {
+  (void)_version;
 
-  int32 num_joints;
+  // Destroy skeleton in case it was already used before.
+  Destroy();
+
+  int32_t num_joints;
   _archive >> num_joints;
   num_joints_ = num_joints;
 
@@ -131,12 +145,12 @@ void Skeleton::Load(ozz::io::IArchive& _archive, ozz::uint32 /*_version*/) {
   }
 
   // Read names.
-  ozz::int32 chars_count;
+  int32_t chars_count;
   _archive >> chars_count;
 
   // Allocates and reads name's buffer. Names are stored at the end off the
   // array of pointers.
-  const std::size_t buffer_size = num_joints_ * sizeof(char*) + chars_count;
+  const size_t buffer_size = num_joints_ * sizeof(char*) + chars_count;
   joint_names_ = memory::default_allocator()->Allocate<char*>(buffer_size);
   char* cursor = reinterpret_cast<char*>(joint_names_ + num_joints_);
   _archive >> ozz::io::MakeArray(cursor, chars_count);

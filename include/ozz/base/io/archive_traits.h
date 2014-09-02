@@ -31,8 +31,10 @@
 #ifndef OZZ_OZZ_BASE_IO_ARCHIVE_TRAITS_H_
 #define OZZ_OZZ_BASE_IO_ARCHIVE_TRAITS_H_
 
-// Provides traits for customizing archive serialization propoerties: version,
+// Provides traits for customizing archive serialization properties: version,
 // tag... See archive.h for more details.
+
+#include <stdint.h>
 
 namespace ozz {
 namespace io {
@@ -45,7 +47,7 @@ class IArchive;
 // Those template implementations aim to be specialized at compilation time by
 // non-member Load and save functions. For example the specialization of the
 // Save() function for a type Type is:
-// void Save(OArchive& _archive, const Extrusive* _test, std::size_t _count) {
+// void Save(OArchive& _archive, const Extrusive* _test, size_t _count) {
 // }
 // The Load() function receives the version _version of type _Ty at the time the
 // archive was saved.
@@ -54,12 +56,12 @@ class IArchive;
 //
 // This default function call member _Ty::Load/Save function.
 template <typename _Ty>
-inline void Save(OArchive& _archive, const _Ty* _ty, std::size_t _count) ;
+inline void Save(OArchive& _archive, const _Ty* _ty, size_t _count) ;
 template <typename _Ty>
 inline void Load(IArchive& _archive,
                  _Ty* _ty,
-                 std::size_t _count,
-                 uint32 _version);
+                 size_t _count,
+                 uint32_t _version);
 
 // Declares the current (compile time) version of _type.
 // This macro must be used inside namespace ozz::io.
@@ -201,10 +203,10 @@ template <> struct Tag<const _type> {\
 }  // internal
 
 namespace internal {
-// Definition of version specializable template struct. There's no default
-// implementation in order to force user to define it, which in turn forces
-// those who want to serialize an object to include the file that defines it's
-// version. This helps with detecting issues at compile time.
+// Definition of version specializable template struct.
+// There's no default implementation in order to force user to define it, which
+// in turn forces those who want to serialize an object to include the file that
+// defines it's version. This helps with detecting issues at compile time.
 template <typename _Ty> struct Version;
 
 // Defines default tag value, which is disabled.

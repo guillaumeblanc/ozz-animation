@@ -28,7 +28,7 @@
 //                                                                            //
 //============================================================================//
 
-#include "ozz/base/io/archive_soa_maths.h"
+#include "ozz/base/maths/soa_math_archive.h"
 
 #include "gtest/gtest.h"
 

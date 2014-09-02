@@ -31,32 +31,66 @@
 #ifndef OZZ_OZZ_BASE_CONTAINERS_INTRUSIVE_LIST_H_
 #define OZZ_OZZ_BASE_CONTAINERS_INTRUSIVE_LIST_H_
 
-#include "ozz/base/platform.h"
-
 #include <cstddef>
 #include <cassert>
 #include <iterator>
 
-// REDEBUG should be used to test IntrusiveList internal integrity.
-// It can slow down performance significantly.
-
-// Automatically enables REDEBUGing if OZZ_HAS_REDEBUG_ALL is defined.
-#if OZZ_HAS_REDEBUG_ALL
-#define OZZ_HAS_CONTAINER_LIST_REDEBUG 1
-#endif  // OZZ_HAS_REDEBUG_ALL
-
-#if OZZ_HAS_CONTAINER_LIST_REDEBUG
-#define OZZ_IF_HAS_LIST_REDEBUG(...) __VA_ARGS__
-#else  // OZZ_HAS_CONTAINER_LIST_REDEBUG
-#define OZZ_IF_HAS_LIST_REDEBUG(...)
-#endif  // OZZ_HAS_CONTAINER_LIST_REDEBUG
-
 namespace ozz {
 namespace containers {
 
-// Forward declares the IntrusiveList. See class definition for the detailed
-// documentation.
-template<typename, typename> class IntrusiveList;
+// Enumerate all the link modes that can be used.
+struct LinkMode {
+  enum Value {
+    kSafe,  // RECOMMENDED default mode.
+            // Hooks and lists can not be deleted while they are linked.
+            // Programming errors that can corrupt the list are detected:
+            // - pushing a hook twice in a list.
+            // - popping an unlinked hook.
+            // - deleting a linked hook.
+            // - deleting a list that still contains hooks.
+            // This is the default and preferred mode as the rules above
+            // give a lot of guarantees to the user, often even about its own
+            // algorithm consistency.
+    kAuto,  // Does the same checks as kSafe, but automatically unlink all hooks
+            // when the list is destroyed. It automatically unlinks a hook when
+            // it is destroyed also. BE CAREFUL that the containers can silently
+            // be modified (without any container's function call), which can
+            // easily lead to thread-unsafe code.
+    kUnsafe,  // NOT RECOMMENDED.
+              // Behaves exactly as kSafe mode, but does not assert for
+              // deletion of a linked hook or a non empty list.
+              // This mode is unsafe as deleting a linked hook or a non empty
+              // list leads to corrupt data (dangling pointers). This is useful
+              // when the user knows that all the data (hooks + list) are going
+              // to be erased and that neither the list or any hook of the list
+              // will be accessed. This mode is NOT RECOMMENDED, but still
+              // allows to remove a O(n) algorithm (release all hooks) in some
+              // rare cases where a list is not by nature empty (or relatively
+              // small) at destruction time: .
+  };
+};
+
+// Holds the options for the IntrusiveList containers.
+// _Unique is never used in the code, but differentiates the type of multiple
+// IntrusiveList at compile time. This is useful in order to store the same
+// hook in more than one list (differentiated by their _Unique identifier thus)
+// at the same time.
+// _LinkMode is a value of LinkMode enumeration.
+template<LinkMode::Value _LinkMode = LinkMode::kSafe, int _Unique = 0>
+struct Option {
+  static const LinkMode::Value kLinkMode = _LinkMode;
+};
+
+// Defines the intrusive list container class.
+// In order to use a type _Ty within the IntrusiveList, _Ty elements must
+// inherit from IntrusiveList<...>::Hook objects. This Hook type is the
+// "intrusive" part of the intrusive list implementation, defining pointers of
+// the linked list.
+// The IntrusiveList implements all std::list functions, taking advantage of the
+// O(1) capabilities of the intrusive list. The size() function is NOT constant
+// time though, but linear O(n). If you wish to test whether a list is empty,
+// you should use empty() rather than size() == 0.
+template <typename _Ty, typename _Option = Option<> > class IntrusiveList;
 
 // Enters the internal namespace that encloses private implementation details.
 namespace internal {
@@ -77,7 +111,6 @@ class Node {
   // Test if *this node is linked in a list.
   // This function is not able to test for a particular list.
   bool is_linked() const {
-    OZZ_IF_HAS_LIST_REDEBUG(assert(redebug_check_integrity());)
     return prev_ != this;
   }
 
@@ -88,7 +121,6 @@ class Node {
   // which particular list links *this node. Will return false if the node is
   // linked in another list.
   bool debug_is_linked_in(const IntrusiveNodeList& _list) const {
-    OZZ_IF_HAS_LIST_REDEBUG(assert(redebug_check_integrity());)
     return &_list == list_;
   }
 #endif  // NDEBUG
@@ -97,7 +129,10 @@ class Node {
 
   // Constructs an unlinked node.
   Node()
-    OZZ_IF_DEBUG(: list_(NULL)) {
+#ifndef NDEBUG
+  : list_(NULL)
+#endif  // NDEBUG
+   {
     prev_ = this;
     next_ = this;
   }
@@ -116,11 +151,6 @@ class Node {
   // *this node must be unlinked and _node must be linked.
   void insert(Node* _where);
 
-#if OZZ_HAS_CONTAINER_LIST_REDEBUG
-  // Internal function that tests for node integrity.
-  bool redebug_check_integrity() const;
-#endif  // OZZ_HAS_CONTAINER_LIST_REDEBUG
-
 #ifndef NDEBUG
   // Tests if *this node is the end node of a list.
   // This function is only available for debug purpose.
@@ -131,7 +161,7 @@ class Node {
   }
 #endif  // NDEBUG
 
-  // Disallow copy and assignation
+  // Disallow Node copy and assignation
   Node(const Node&);
   void operator = (const Node&);
 
@@ -139,8 +169,10 @@ class Node {
   Node* prev_;  // Pointer to the previous node in the list.
   Node* next_;  // Pointer to the next node in the list.
 
+#ifndef NDEBUG
   // Pointer to the list_ that references this node, used for debugging only.
-  OZZ_IF_DEBUG(IntrusiveNodeList* list_;)
+  IntrusiveNodeList* list_;
+#endif  // NDEBUG
 };
 
 // Implements non template algorithms of the IntrusiveList class.
@@ -151,7 +183,10 @@ class IntrusiveNodeList {
 
   // Constructs an empty list.
   IntrusiveNodeList() {
-    OZZ_IF_DEBUG(end_.list_ = this;)
+
+#ifndef NDEBUG
+    end_.list_ = this;
+#endif // NDEBUG
   }
 
   // Destructs a list. Assertions are done in the templates class as they
@@ -168,7 +203,7 @@ class IntrusiveNodeList {
 
   // Reverses the order of elements in the list.
   // All iterators remain valid and continue to point to the same elements.
-  // This function is linear time.
+  // This function is linear time O(n).
   void reverse();
 
   // Swaps the contents of two lists.
@@ -180,12 +215,12 @@ class IntrusiveNodeList {
   // This function is NOT constant time but linear O(n). If you wish to test
   // whether a list is empty, you should write l.empty() rather than
   // l.size() == 0.
-  std::size_t size() const;
+  size_t size() const;
 
  protected:
 
   // The type used to counts the number of elements in a list.
-  typedef std::size_t size_type;
+  typedef size_t size_type;
 
   // Returns the first node of the list if it is not empty, end node otherwise.
   Node& begin_node() { return *end_.next_; }
@@ -206,7 +241,7 @@ class IntrusiveNodeList {
   void link_back(Node* _node) { _node->insert(&end_); }
 
   // Inserts _node before _where.
-  void insert_(Node* _node, Node* _where) { _node->insert(_where); }
+  void _insert(Node* _node, Node* _where) { _node->insert(_where); }
 
 #ifndef NDEBUG
   // Tests if the range [_begin, end_[ is valid, ie: _begin <= _end.
@@ -229,40 +264,34 @@ class IntrusiveNodeList {
 #endif  // NDEBUG
 
   // Implements splice algorithm.
-  void splice_(Node* _where, Node* _first, Node* _end);
+  void _splice(Node* _where, Node* _first, Node* _end);
 
   // Implements erase algorithm.
-  void erase_(Node* _begin, Node* _end);
+  void _erase(Node* _begin, Node* _end);
 
   // Implements equality test using _pred functor.
   template<typename _Pred>
-  bool is_equal_(IntrusiveNodeList const& _list, _Pred _pred) const;
+  bool _is_equal(IntrusiveNodeList const& _list, _Pred _pred) const;
 
   // Implements "less than" test using _pred functor.
   template<typename _Pred>
-  bool is_less_(IntrusiveNodeList const& _list, _Pred _pred) const;
+  bool _is_less(IntrusiveNodeList const& _list, _Pred _pred) const;
 
   // Implements merge algorithm using _pred functor.
   template<typename _Pred>
-  void merge_(IntrusiveNodeList* _list, _Pred _pred);
+  void _merge(IntrusiveNodeList* _list, _Pred _pred);
 
   // Implements sort algorithm using _pred functor.
   template<typename _Pred>
-  void sort_(_Pred _pred);
+  void _sort(_Pred _pred);
 
   // Implements merge algorithm using _pred functor.
   template<typename _Pred>
-  bool is_ordered_(_Pred _pred) const;
+  bool _is_ordered(_Pred _pred) const;
 
   // Implements remove_if algorithm using _pred functor.
   template<typename _Pred>
-  void remove_if_(_Pred _pred);
-
-#if OZZ_HAS_CONTAINER_LIST_REDEBUG
-  // Internal function that tests for list integrity.
-  // Iterates through all nodes and test their integrity as well.
-  bool redebug_check_integrity() const;
-#endif  // OZZ_HAS_CONTAINER_LIST_REDEBUG
+  void _remove_if(_Pred _pred);
 
  private:
 
@@ -441,50 +470,8 @@ class IntrusiveListIterator {
 };
 }  // internal
 
-// Enumerate all the link modes that can be used.
-struct LinkMode {
-  enum Value {
-    kSafe,  // RECOMMENDED default mode.
-            // Hooks and lists can not be deleted while they are linked.
-            // Programming errors that can corrupt the list are detected:
-            // - pushing a hook twice in a list.
-            // - popping an unlinked hook.
-            // - deleting a linked hook.
-            // - deleting a list that still contains hooks.
-            // This is the default and preferred mode as the rules above
-            // give a lot of guarantees to the user, often even about its own
-            // algorithm consistency.
-    kAuto,  // Does the same checks as kSafe. Automatically unlink all hooks
-            // when the list is destroyed. Automatically unlink a hook when it
-            // is destroyed also. BE CAREFUL that the containers can silently
-            // be modified (without any containers function call), which can
-            // easily lead to thread unsafe code.
-    kUnsafe,  // NOT RECOMMENDED.
-              // Behaves exactly as kSafe mode, but does not assert for
-              // deletion of a linked hook or a non empty list.
-              // This mode is unsafe as deleting a linked hook or a non empty
-              // list leads to corrupt data (dangling pointers). This is useful
-              // when the user knows that all the data (hooks + list) are going
-              // to be erased and that neither the list or any hook of the list
-              // will be accessed. This mode is NOT RECOMMENDED, but still
-              // allows to remove a O(n) algorithm (release all hooks) in some
-              // rare cases where a list is not by nature empty (or relatively
-              // small) at destruction time: .
-  };
-};
-
-// Holds the options for the IntrusiveList containers.
-// _Unique is never used in the code, but differentiates the type of multiple
-// IntrusiveList at compile time. This is useful in order to store the same
-// hook in more than one list (differentiated by their type thus) at the same
-// time.
-// _LinkMode is a value of LinkMode enumeration.
-template<LinkMode::Value _LinkMode = LinkMode::kSafe, int _Unique = 0>
-struct Option {
-  static const LinkMode::Value kLinkMode = _LinkMode;
-};
-
-template <typename _Ty, typename _Option = Option<> >
+// IntrusiveList implementation.
+template <typename _Ty, typename _Option>
 class IntrusiveList : public internal::IntrusiveNodeList {
  public:
 
@@ -504,30 +491,42 @@ class IntrusiveList : public internal::IntrusiveNodeList {
     void operator = (const Hook&);
   };
 
-  typedef _Ty value_type;  // The type of object, T, stored in the list.
-  typedef _Ty* pointer;  // Pointer to T.
-  typedef _Ty const* const_pointer;  // Const pointer to T.
-  typedef _Ty& reference;  // Reference to T.
-  typedef _Ty const& const_reference;  // Const reference to T.
-  typedef internal::IntrusiveNodeList::size_type size_type;  // A type that
-                                // counts the number of elements in a list.
-  typedef std::ptrdiff_t difference_type;  // A type that provides the
-                                           // difference between two iterators.
+  // The type of te object T (aka the walue) stored in the list.
+  typedef _Ty value_type;
 
-  typedef internal::IntrusiveListIterator< IntrusiveList,
-                                  internal::MutableCfg<IntrusiveList> >
-            iterator;  // Iterator used to iterate through a list;
-  typedef internal::IntrusiveListIterator< IntrusiveList,
-                                  internal::ConstCfg<IntrusiveList> >
-            const_iterator;  // Const iterator used to iterate through a list.
-  typedef internal::IntrusiveListIterator< IntrusiveList,
-                                  internal::MutableReverseCfg<IntrusiveList> >
-            reverse_iterator;  // Iterator used to iterate backwards through
-                               // a list.
-  typedef internal::IntrusiveListIterator< IntrusiveList,
-                                  internal::ConstReverseCfg<IntrusiveList> >
-            const_reverse_iterator;  // Const iterator used to iterate
-                                     // backwards through a list.
+  // Pointer to T.
+  typedef _Ty* pointer;
+
+  // Const pointer to T.
+  typedef _Ty const* const_pointer;
+
+  // Reference to T.
+  typedef _Ty& reference;
+
+  // Const reference to T.
+  typedef _Ty const& const_reference;
+
+  // A type that counts the number of elements in a list.
+  typedef internal::IntrusiveNodeList::size_type size_type;
+
+  // A type that provides the difference between two iterators.
+  typedef ptrdiff_t difference_type;
+
+  // Iterator used to iterate through a list;
+  typedef internal::IntrusiveListIterator<
+    IntrusiveList, internal::MutableCfg<IntrusiveList> > iterator;
+
+  // Const iterator used to iterate through a list.
+  typedef internal::IntrusiveListIterator<
+    IntrusiveList, internal::ConstCfg<IntrusiveList> > const_iterator;
+
+  // Iterator used to iterate backwards through a list.
+  typedef internal::IntrusiveListIterator<
+    IntrusiveList, internal::MutableReverseCfg<IntrusiveList> > reverse_iterator;
+
+  // Const iterator used to iterate backwards through a list.
+  typedef internal::IntrusiveListIterator<
+    IntrusiveList, internal::ConstReverseCfg<IntrusiveList> > const_reverse_iterator;
 
   // Constructs an empty list.
   IntrusiveList() {
@@ -560,7 +559,6 @@ class IntrusiveList : public internal::IntrusiveNodeList {
     assert(!empty() && "Invalid function on an empty list");
     internal::Node& node = begin_node();
     node.unlink();
-    OZZ_IF_HAS_LIST_REDEBUG(assert(redebug_check_integrity());)
     return static_cast<reference>(static_cast<Hook&>(node));
   }
 
@@ -572,7 +570,6 @@ class IntrusiveList : public internal::IntrusiveNodeList {
     assert(!empty() && "Invalid function on an empty list");
     internal::Node& node = last_node();
     node.unlink();
-    OZZ_IF_HAS_LIST_REDEBUG(assert(redebug_check_integrity());)
     return static_cast<reference>(static_cast<Hook&>(node));
   }
 
@@ -645,7 +642,6 @@ class IntrusiveList : public internal::IntrusiveNodeList {
     Hook& hook = static_cast<Hook&>(_val);
     assert(hook.debug_is_linked_in(*this) && "The node is linked by this list");
     hook.unlink();
-    OZZ_IF_HAS_LIST_REDEBUG(assert(redebug_check_integrity());)
   }
 
   // Removes all elements such that _pred() is true, with an O(n) complexity.
@@ -653,7 +649,7 @@ class IntrusiveList : public internal::IntrusiveNodeList {
   // Iterators to elements that are not removed remain valid.
   template <typename _Pred>
   void remove_if(_Pred _pred) {
-    remove_if_(UnnaryPredFw<_Pred>(_pred));
+    _remove_if(UnnaryPredFw<_Pred>(_pred));
   }
 
   // Erases element at _where and returns an iterator that designates the first
@@ -676,7 +672,7 @@ class IntrusiveList : public internal::IntrusiveNodeList {
   iterator erase(iterator const& _begin, iterator const& _end) {
     internal::Node& begin_node = _begin.node();
     internal::Node& end_node = _end.node();
-    erase_(&begin_node, &end_node);
+    _erase(&begin_node, &end_node);
     return _end;  // _end is still a valid iterator
   }
 
@@ -685,8 +681,7 @@ class IntrusiveList : public internal::IntrusiveNodeList {
   // IntrusiveLisrt iterators can be constructed in O(1) directly from _val.
   void insert(iterator const& _where, reference _val) {
     // Dereference iterator to ensure its validity
-    insert_(static_cast<Hook*>(&_val), &_where.node());
-    OZZ_IF_HAS_LIST_REDEBUG(assert(redebug_check_integrity());)
+    _insert(static_cast<Hook*>(&_val), &_where.node());
   }
 
   // All of the elements of _list are inserted before _where and removed from
@@ -694,7 +689,7 @@ class IntrusiveList : public internal::IntrusiveNodeList {
   // This function is constant time.
   void splice(iterator _where, IntrusiveList& _list) {  // NOLINT conforms with std::list API
     if (this != &_list && !_list.empty()) {
-      splice_(&_where.node(), &_list.begin_node(), &_list.end_node());
+      _splice(&_where.node(), &_list.begin_node(), &_list.end_node());
     }
   }
 
@@ -717,7 +712,7 @@ class IntrusiveList : public internal::IntrusiveNodeList {
     internal::Node* begin_node = &_begin.node();
     internal::Node* end_node = &_end.node();
     if (begin_node != end_node && (this != &_list || where_node != end_node)) {
-      splice_(where_node, begin_node, end_node);
+      _splice(where_node, begin_node, end_node);
     }
   }
 
@@ -731,7 +726,7 @@ class IntrusiveList : public internal::IntrusiveNodeList {
   // size() + _list.size() - 1 applications of _Pred.
   template<typename _Pred>
   void merge(IntrusiveList& _list, _Pred _pred) {  // NOLINT conforms with std::list API
-    merge_(&_list, BinaryPredFw<_Pred>(_pred));
+    _merge(&_list, BinaryPredFw<_Pred>(_pred));
   }
 
   // Removes all of _list's elements and inserts them in order into *this.
@@ -742,7 +737,7 @@ class IntrusiveList : public internal::IntrusiveNodeList {
   // This function is linear time and performs at most
   // size() + _list.size() - 1 comparisons.
   void merge(IntrusiveList& _list) {  // NOLINT conforms with std::list API
-    merge_(&_list, LessTester());
+    _merge(&_list, LessTester());
   }
 
   // Sorts the list *this according to Comp.
@@ -752,17 +747,17 @@ class IntrusiveList : public internal::IntrusiveNodeList {
   // preserved.
   // The number of comparisons is approximately n.log(n).
   template<class _Pred>
-  void sort(_Pred _pred) { sort_(BinaryPredFw<_Pred>(_pred)); }
+  void sort(_Pred _pred) { _sort(BinaryPredFw<_Pred>(_pred)); }
 
   // Sorts *this according to operator<.
   // The sort is stable, that is, the relative order of equivalent elements is
   // preserved.
   // The number of comparisons is approximately n.log(n).
-  void sort() { sort_(LessTester()); }
+  void sort() { _sort(LessTester()); }
 
   // Tests two lists for equality according to operator==.
   bool operator == (IntrusiveList const& _list) const {
-    return is_equal_(_list, EqualTester());
+    return _is_equal(_list, EqualTester());
   }
 
   // Tests two lists for inequality according to operator==.
@@ -772,7 +767,7 @@ class IntrusiveList : public internal::IntrusiveNodeList {
 
   // Lexicographical "less" comparison according to operator<.
   bool operator < (IntrusiveList const& _list) const {
-    return is_less_(_list, LessTester());
+    return _is_less(_list, LessTester());
   }
 
   // Lexicographical "less or equal" comparison according to operator<.
@@ -795,7 +790,7 @@ class IntrusiveList : public internal::IntrusiveNodeList {
   // Internal function that tests the order of the list according to _Pred.
   template<typename _Pred>
   bool is_ordered(_Pred _pred) const {
-    return is_ordered_(BinaryPredFw<_Pred>(_pred));
+    return _is_ordered(BinaryPredFw<_Pred>(_pred));
   }
 
   // Helper binary functor that converts the nodes in argument to
@@ -858,6 +853,7 @@ class IntrusiveList : public internal::IntrusiveNodeList {
   void operator =(const IntrusiveList&);
 };
 
+// Enters the internal namespace that encloses private implementation details.
 namespace internal {
 
 // Connect the next and previous nodes together, resets internal linked state.
@@ -871,9 +867,10 @@ inline void Node::unlink() {
   // Reset this node to the NOT linked state
   prev_ = this;
   next_ = this;
-
-  OZZ_IF_DEBUG(list_ = NULL;)
-  OZZ_IF_HAS_LIST_REDEBUG(assert(redebug_check_integrity());)
+  
+#ifndef NDEBUG
+  list_ = NULL;
+#endif  // NDEBUG
 }
 
 inline void Node::insert(Node* _where) {
@@ -888,19 +885,10 @@ inline void Node::insert(Node* _where) {
   next_ = _where;  // Connect the next of *this node
   _where->prev_ = this;
 
-  OZZ_IF_DEBUG(list_ = _where->list_;)
-  OZZ_IF_HAS_LIST_REDEBUG(assert(redebug_check_integrity());)
+#ifndef NDEBUG
+  list_ = _where->list_;
+#endif  // NDEBUG
 }
-
-#if OZZ_HAS_CONTAINER_LIST_REDEBUG
-// Internal function that tests for node integrity.
-inline bool Node::redebug_check_integrity() const {
-  // Both should be equal to this, or none.
-  // If the node is linked, then list_ member must NOT be NULL.
-  return  (prev_ != this && next_ != this OZZ_IF_DEBUG(&& list_ != NULL)) ||
-          (prev_ == this && next_ == this OZZ_IF_DEBUG(&& list_ == NULL));
-}
-#endif  // OZZ_HAS_CONTAINER_LIST_REDEBUG
 
 // Iterates through all elements to unlink them from the list.
 inline void IntrusiveNodeList::clear() {
@@ -911,14 +899,13 @@ inline void IntrusiveNodeList::clear() {
 
 // Iterates through all elements in range [_begin, _end[ to unlink them from
 // the list.
-inline void IntrusiveNodeList::erase_(Node* _begin, Node* _end) {
+inline void IntrusiveNodeList::_erase(Node* _begin, Node* _end) {
   assert(debug_is_range_valid(*_begin, *_end) && "Invalid iterator range");
   while (_begin != _end) {
     internal::Node* next_node = _begin->next_;
     _begin->unlink();
     _begin = next_node;
   }
-  OZZ_IF_HAS_LIST_REDEBUG(assert(redebug_check_integrity());)
 }
 
 // Loops and inserts the first element in front of the original last one,
@@ -930,12 +917,11 @@ inline void IntrusiveNodeList::reverse() {
     node->unlink();
     node->insert(last->next_);
   }
-  OZZ_IF_HAS_LIST_REDEBUG(assert(redebug_check_integrity());)
 }
 
 // Loops and counts the number of elements, excluding the end_ node.
-inline std::size_t IntrusiveNodeList::size() const {
-  std::size_t size = 0;
+inline size_t IntrusiveNodeList::size() const {
+  size_t size = 0;
   for (const Node* node = end_.next_;
        node != &end_;
        node = node->next_, ++size) {
@@ -951,17 +937,17 @@ inline std::size_t IntrusiveNodeList::size() const {
 inline void IntrusiveNodeList::swap(IntrusiveNodeList& _list) {
   // Don't use std::swap to avoid including <algorithm> in a h file.
   // Also std::swap does a branch for nothing when dealing with pointers.
-#define SWAP_PTR_(_a, _b) {\
+#define _SWAP_PTR(_a, _b) {\
   Node* temp = _a;\
   _a = _b;\
   _b = temp;\
   }
 
-  SWAP_PTR_(_list.end_.prev_->next_, end_.prev_->next_);
-  SWAP_PTR_(_list.end_.prev_, end_.prev_);
-  SWAP_PTR_(_list.end_.next_->prev_, end_.next_->prev_);
-  SWAP_PTR_(_list.end_.next_, end_.next_);
-#undef SWAP_PTR_
+  _SWAP_PTR(_list.end_.prev_->next_, end_.prev_->next_);
+  _SWAP_PTR(_list.end_.prev_, end_.prev_);
+  _SWAP_PTR(_list.end_.next_->prev_, end_.next_->prev_);
+  _SWAP_PTR(_list.end_.next_, end_.next_);
+#undef _SWAP_PTR
 
 #ifndef NDEBUG
   // Reset node internal list_ pointer
@@ -976,31 +962,13 @@ inline void IntrusiveNodeList::swap(IntrusiveNodeList& _list) {
     node = node->next_;
 }
 #endif  // NDEBUG
-
-  OZZ_IF_HAS_LIST_REDEBUG(assert(redebug_check_integrity());)
-  OZZ_IF_HAS_LIST_REDEBUG(assert(_list.redebug_check_integrity());)
 }
-
-#if OZZ_HAS_CONTAINER_LIST_REDEBUG
-// Walk through the list to check that its a finite loop.
-// Also tests every node's integrity.
-inline bool IntrusiveNodeList::redebug_check_integrity() const {
-  const Node* node = end_.next_;
-  while (node != &end_) {
-    if (!node->redebug_check_integrity()) {
-      return false;
-    }
-    node = node->next_;
-  }
-  return true;
-}
-#endif  // OZZ_HAS_CONTAINER_LIST_REDEBUG
 
 // Takes advantage of the intrusive property to splice nodes without iterating.
 // This makes this implementation O(1) rather than O(n).
 // In debug build though, every node between _first and _end must be traversed
 // to reset their list_ member.
-inline void IntrusiveNodeList::splice_(Node* _where,
+inline void IntrusiveNodeList::_splice(Node* _where,
                                        Node* _first, Node* _end) {
   assert(_where->list_ == this && "_where is not a member of *this list");
   assert(_first->list_ &&
@@ -1031,13 +999,10 @@ inline void IntrusiveNodeList::splice_(Node* _where,
     node = node->next_;
   }
 #endif  // NDEBUG
-
-  OZZ_IF_HAS_LIST_REDEBUG(assert(redebug_check_integrity());)
-  OZZ_IF_HAS_LIST_REDEBUG(assert(_end->list_->redebug_check_integrity());)
 }
 
 template<typename _Pred>
-inline bool IntrusiveNodeList::is_equal_(IntrusiveNodeList const& _list,
+inline bool IntrusiveNodeList::_is_equal(IntrusiveNodeList const& _list,
                                          _Pred _pred) const {
   const internal::Node* left_node = end_.next_;
   const internal::Node* right_node = _list.end_.next_;
@@ -1053,7 +1018,7 @@ inline bool IntrusiveNodeList::is_equal_(IntrusiveNodeList const& _list,
 }
 
 template<typename _Pred>
-inline bool IntrusiveNodeList::is_less_(IntrusiveNodeList const& _list,
+inline bool IntrusiveNodeList::_is_less(IntrusiveNodeList const& _list,
                                         _Pred _pred) const {
   const internal::Node* left_node = end_.next_;
   const internal::Node* right_node = _list.end_.next_;
@@ -1073,46 +1038,41 @@ inline bool IntrusiveNodeList::is_less_(IntrusiveNodeList const& _list,
 // Tries to splice more than one element at a time, as the intrusive policy
 // allow splicing of n consecutive nodes in O(1) complexity.
 template<typename _Pred>
-inline void IntrusiveNodeList::merge_(IntrusiveNodeList* _list,
+inline void IntrusiveNodeList::_merge(IntrusiveNodeList* _list,
                                       _Pred _pred) {
-  assert(is_ordered_(_pred) && "This list must be ordered");
+  assert(_is_ordered(_pred) && "This list must be ordered");
   if (this == _list) {
     return;
   }
-  assert(_list->is_ordered_(_pred) && "The list in argument must be ordered");
+  assert(_list->_is_ordered(_pred) && "The list in argument must be ordered");
 
   internal::Node* node = end_.next_;
-  internal::Node* to_insert_begin = _list->end_.next_;
+  internal::Node* to__insertbegin = _list->end_.next_;
 
-  while (node != &end_ && to_insert_begin != &_list->end_) {
-    if (_pred(*node, *to_insert_begin)) {
+  while (node != &end_ && to__insertbegin != &_list->end_) {
+    if (_pred(*node, *to__insertbegin)) {
       node = node->next_;
     } else {  // Try to find consecutive nodes satisfying _pred
-      internal::Node* to_insert_end = to_insert_begin->next_;
-      while (to_insert_end != &_list->end_) {
-        if (_pred(*node, *to_insert_end)) {
+      internal::Node* to__insertend = to__insertbegin->next_;
+      while (to__insertend != &_list->end_) {
+        if (_pred(*node, *to__insertend)) {
           break;
         }
-        to_insert_end = to_insert_end->next_;
+        to__insertend = to__insertend->next_;
       }
-      splice_(node, to_insert_begin, to_insert_end);
-      to_insert_begin = to_insert_end;
+      _splice(node, to__insertbegin, to__insertend);
+      to__insertbegin = to__insertend;
     }
   }
 
-  if (to_insert_begin != &_list->end_) {  // Appends the rest of _list
-    OZZ_IF_HAS_LIST_REDEBUG(assert(node == &end_);)
-    splice_(&end_, to_insert_begin, &_list->end_);
+  if (to__insertbegin != &_list->end_) {  // Appends the rest of _list
+    _splice(&end_, to__insertbegin, &_list->end_);
   }
-
-  OZZ_IF_HAS_LIST_REDEBUG(assert(_list->empty() &&
-                                 redebug_check_integrity() &&
-                                 is_ordered_(_pred));)
 }
 
 // Iterate and test predicate _pred for every node.
 template<typename _Pred>
-inline void IntrusiveNodeList::remove_if_(_Pred _pred) {
+inline void IntrusiveNodeList::_remove_if(_Pred _pred) {
   internal::Node* node = end_.next_;
   while (node != &end_) {
     internal::Node* next_node = node->next_;
@@ -1121,12 +1081,11 @@ inline void IntrusiveNodeList::remove_if_(_Pred _pred) {
     }
     node = next_node;
   }
-  OZZ_IF_HAS_LIST_REDEBUG(assert(redebug_check_integrity());)
 }
 
 // Bin sort algorithm, takes advantage of O(1) complexity of swap and splice.
 template<typename _Pred>
-inline void IntrusiveNodeList::sort_(_Pred _pred) {
+inline void IntrusiveNodeList::_sort(_Pred _pred) {
   // It's worth sorting if there is more than one element
   if (end_.next_->next_ == &end_) {
     return;
@@ -1144,12 +1103,12 @@ inline void IntrusiveNodeList::sort_(_Pred _pred) {
     int bin = 0;
     for (; bin < used_bins && !bin_lists[bin].empty(); ++bin) {
       // Merges into ever larger bins
-      bin_lists[bin].merge_(&temp_list, _pred);
+      bin_lists[bin]._merge(&temp_list, _pred);
       bin_lists[bin].swap(temp_list);
     }
 
     if (bin == kMaxBins) {  // No more bin, merge in the last one
-      bin_lists[kMaxBins - 1].merge_(&temp_list, _pred);
+      bin_lists[kMaxBins - 1]._merge(&temp_list, _pred);
     } else {  // Spills to new bin, while they last
       bin_lists[bin].swap(temp_list);
       if (bin == used_bins) {
@@ -1159,20 +1118,18 @@ inline void IntrusiveNodeList::sort_(_Pred _pred) {
   }
 
   for (int bin = 1; bin < used_bins; ++bin) {  // Merge up every bin
-    bin_lists[bin].merge_(&bin_lists[bin - 1], _pred);
+    bin_lists[bin]._merge(&bin_lists[bin - 1], _pred);
   }
 
   if (used_bins != 0) {  // Result is in last bin
     IntrusiveNodeList& last_bin = bin_lists[used_bins - 1];
-    splice_(end_.next_, last_bin.end_.next_, &last_bin.end_);
+    _splice(end_.next_, last_bin.end_.next_, &last_bin.end_);
   }
-
-  OZZ_IF_HAS_LIST_REDEBUG(assert(is_ordered_(_pred));)
 }
 
 // Loops and tests if _Pred is true for all nodes
 template<typename _Pred>
-inline bool IntrusiveNodeList::is_ordered_(_Pred _pred) const {
+inline bool IntrusiveNodeList::_is_ordered(_Pred _pred) const {
   const internal::Node* next_node = end_.next_->next_;
   while (next_node != &end_) {
     if (!_pred(*next_node->prev_, *next_node)) {
@@ -1195,8 +1152,4 @@ inline void swap(ozz::containers::IntrusiveList<_Ty, _Option>& _left, // NOLINT 
 }
 
 // Undefines local macros
-#undef OZZ_IF_DEBUG
-#undef OZZ_IF_NDEBUG
-#undef OZZ_HAS_CONTAINER_LIST_REDEBUG
-#undef OZZ_IF_HAS_LIST_REDEBUG
 #endif  // OZZ_OZZ_BASE_CONTAINERS_INTRUSIVE_LIST_H_

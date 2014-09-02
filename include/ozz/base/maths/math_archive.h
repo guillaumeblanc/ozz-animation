@@ -28,112 +28,111 @@
 //                                                                            //
 //============================================================================//
 
-#include "ozz/base/io/archive_maths.h"
+#ifndef OZZ_OZZ_BASE_MATHS_MATH_ARCHIVE_H_
+#define OZZ_OZZ_BASE_MATHS_MATH_ARCHIVE_H_
 
-#include <cassert>
-
-#include "ozz/base/io/archive.h"
-#include "ozz/base/maths/soa_float.h"
-#include "ozz/base/maths/soa_quaternion.h"
-#include "ozz/base/maths/soa_float4x4.h"
-#include "ozz/base/maths/soa_transform.h"
+#include "ozz/base/platform.h"
+#include "ozz/base/io/archive_traits.h"
 
 namespace ozz {
+namespace math {
+struct Float2;
+struct Float3;
+struct Float4;
+struct Quaternion;
+struct Transform;
+struct Box;
+struct RectFloat;
+struct RectInt;
+}  // math
 namespace io {
+OZZ_IO_TYPE_NOT_VERSIONABLE(math::Float2)
 template <>
 void Save(OArchive& _archive,
-          const math::SoaFloat2* _values,
-          std::size_t _count) {
-  _archive << MakeArray(reinterpret_cast<const float*>(&_values->x),
-                        2 * 4 * _count);
-}
+          const math::Float2* _values,
+          size_t _count);
 template <>
 void Load(IArchive& _archive,
-          math::SoaFloat2* _values,
-          std::size_t _count,
-          uint32 /*_version*/) {
-  _archive >> MakeArray(reinterpret_cast<float*>(&_values->x),
-                        2 * 4 * _count);
-}
+          math::Float2* _values,
+          size_t _count,
+          uint32_t _version);
 
+OZZ_IO_TYPE_NOT_VERSIONABLE(math::Float3)
 template <>
 void Save(OArchive& _archive,
-          const math::SoaFloat3* _values,
-          std::size_t _count) {
-  _archive << MakeArray(reinterpret_cast<const float*>(&_values->x),
-                        3 * 4 * _count);
-}
+          const math::Float3* _values,
+          size_t _count);
 template <>
 void Load(IArchive& _archive,
-          math::SoaFloat3* _values,
-          std::size_t _count,
-          uint32 /*_version*/) {
-  _archive >> MakeArray(reinterpret_cast<float*>(&_values->x),
-                        3 * 4 * _count);
-}
+          math::Float3* _values,
+          size_t _count,
+          uint32_t _version);
 
+OZZ_IO_TYPE_NOT_VERSIONABLE(math::Float4)
 template <>
 void Save(OArchive& _archive,
-          const math::SoaFloat4* _values,
-          std::size_t _count) {
-  _archive << MakeArray(reinterpret_cast<const float*>(&_values->x),
-                        4 * 4 *_count);
-}
+          const math::Float4* _values,
+          size_t _count);
 template <>
 void Load(IArchive& _archive,
-          math::SoaFloat4* _values,
-          std::size_t _count,
-          uint32 /*_version*/) {
-  _archive >> MakeArray(reinterpret_cast<float*>(&_values->x),
-                        4 * 4 * _count);
-}
+          math::Float4* _values,
+          size_t _count,
+          uint32_t _version);
 
+OZZ_IO_TYPE_NOT_VERSIONABLE(math::Quaternion)
 template <>
 void Save(OArchive& _archive,
-          const math::SoaQuaternion* _values,
-          std::size_t _count) {
-  _archive << MakeArray(reinterpret_cast<const float*>(&_values->x),
-                        4 * 4 * _count);
-}
+          const math::Quaternion* _values,
+          size_t _count);
 template <>
 void Load(IArchive& _archive,
-          math::SoaQuaternion* _values,
-          std::size_t _count,
-          uint32 /*_version*/) {
-  _archive >> MakeArray(reinterpret_cast<float*>(&_values->x),
-                        4 * 4 * _count);
-}
+          math::Quaternion* _values,
+          size_t _count,
+          uint32_t _version);
 
+OZZ_IO_TYPE_NOT_VERSIONABLE(math::Transform)
 template <>
 void Save(OArchive& _archive,
-          const math::SoaFloat4x4* _values,
-          std::size_t _count) {
-  _archive << MakeArray(reinterpret_cast<const float*>(&_values->cols[0].x),
-                        4 * 4 * 4 *_count);
-}
+          const math::Transform* _values,
+          size_t _count);
 template <>
 void Load(IArchive& _archive,
-          math::SoaFloat4x4* _values,
-          std::size_t _count,
-          uint32 /*_version*/) {
-  _archive >> MakeArray(reinterpret_cast<float*>(&_values->cols[0].x),
-                        4 * 4 * 4 * _count);
-}
+          math::Transform* _values,
+          size_t _count,
+          uint32_t _version);
 
+OZZ_IO_TYPE_NOT_VERSIONABLE(math::Box)
 template <>
 void Save(OArchive& _archive,
-          const math::SoaTransform* _values,
-          std::size_t _count) {
-  _archive << MakeArray(reinterpret_cast<const float*>(&_values->translation.x),
-                        10 * 4 *_count);
-}
+          const math::Box* _values,
+          size_t _count);
 template <>
 void Load(IArchive& _archive,
-          math::SoaTransform* _values,
-          std::size_t _count,
-          uint32 /*_version*/) {
-  _archive >> MakeArray(reinterpret_cast<float*>(&_values->translation.x),
-                        10 * 4 * _count);
-}
+          math::Box* _values,
+          size_t _count,
+          uint32_t _version);
+
+OZZ_IO_TYPE_NOT_VERSIONABLE(math::RectFloat)
+template <>
+void Save(OArchive& _archive,
+          const math::RectFloat* _values,
+          size_t _count);
+template <>
+void Load(IArchive& _archive,
+          math::RectFloat* _values,
+          size_t _count,
+          uint32_t _version);
+
+OZZ_IO_TYPE_NOT_VERSIONABLE(math::RectInt)
+template <>
+void Save(OArchive& _archive,
+          const math::RectInt* _values,
+          size_t _count);
+template <>
+void Load(IArchive& _archive,
+          math::RectInt* _values,
+          size_t _count,
+          uint32_t _version);
 }  // io
 }  // ozz
+#endif  // OZZ_OZZ_BASE_MATHS_MATH_ARCHIVE_H_

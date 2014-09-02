@@ -30,12 +30,12 @@
 
 #define OZZ_INCLUDE_PRIVATE_HEADER  // Allows to include private headers.
 
-#include "framework/internal/shooter.h"
+#include "shooter.h"
 
 #include <cassert>
 #include <cstdio>
 
-#include "framework/internal/renderer_impl.h"
+#include "renderer_impl.h"
 
 namespace ozz {
 namespace sample {
@@ -45,15 +45,15 @@ Shooter::Shooter()
     : gl_shot_format_(GL_RGBA),  // Default fail safe format and types.
       image_format_(image::Format::kRGBA),
       shot_number_(0) {
+  // Test required extension (optional for the framework).
+  supported_ = glMapBuffer != NULL && glUnmapBuffer != NULL;
+
   // Initializes shots
   GLuint pbos[kNumShots];
   GL(GenBuffers(kNumShots, pbos));
   for (int i = 0; i < kNumShots; ++i) {
     Shot& shot = shots_[i];
     shot.pbo = pbos[i];
-    shot.width = 0;
-    shot.height = 0;
-    shot.cooldown = 0;
   }
 
   // OpenGL ES2 compatibility extension allows to query for implementation best
@@ -106,6 +106,11 @@ Shooter::~Shooter() {
 }
 
 void Shooter::Resize(int _width, int _height) {
+  // Early out if not supported.
+  if (!supported_) {
+    return;
+  }
+
   // Process all remaining shots.
   ProcessAll();
 
@@ -126,7 +131,12 @@ bool Shooter::Update() {
 }
 
 bool Shooter::Process() {
-  // Eraly out if process stack is empty.
+  // Early out if not supported.
+  if (!supported_) {
+    return true;
+  }
+
+  // Early out if process stack is empty.
   for (int i = 0; i < kNumShots; ++i) {
     Shot& shot = shots_[i];
 
@@ -151,7 +161,7 @@ bool Shooter::Process() {
                                    shot.width,
                                    shot.height,
                                    image_format_,
-                                   reinterpret_cast<const ozz::uint8*>(pixels),
+                                   reinterpret_cast<const uint8_t*>(pixels),
                                    false);
       GL(UnmapBuffer(GL_PIXEL_PACK_BUFFER));
     }
@@ -161,7 +171,7 @@ bool Shooter::Process() {
 }
 
 bool Shooter::ProcessAll() {
-  // Reset cooldow to 1 for all "unprocessed" shots, so they will be "processed".
+  // Reset cooldown to 1 for all "unprocessed" shots, so they will be "processed".
   for (int i = 0; i < kNumShots; ++i) {
     Shot& shot = shots_[i];
     shot.cooldown = shot.cooldown > 0 ? 1 : 0;
@@ -172,6 +182,11 @@ bool Shooter::ProcessAll() {
 
 bool Shooter::Capture(int _buffer) {
   assert(_buffer == GL_FRONT || _buffer == GL_BACK);
+  
+  // Early out if not supported.
+  if (!supported_) {
+    return true;
+  }
 
   // Finds the shot to use for this capture.
   Shot* shot;

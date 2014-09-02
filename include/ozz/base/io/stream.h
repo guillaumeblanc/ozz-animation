@@ -52,12 +52,12 @@ class Stream {
   // enough to store _size bytes. The position indicator of the stream is
   // advanced by the total amount of bytes read.
   // Returns the number of bytes actually read, which may be less than _size.
-  virtual std::size_t Read(void* _buffer, std::size_t _size) = 0;
+  virtual size_t Read(void* _buffer, size_t _size) = 0;
 
   // Writes _size bytes of data from _buffer to the stream. The position
   // indicator of the stream is advanced by the total number of bytes written.
   // Returns the number of bytes actually written, which may be less than _size.
-  virtual std::size_t Write(const void* _buffer, std::size_t _size) = 0;
+  virtual size_t Write(const void* _buffer, size_t _size) = 0;
 
   // Declares seeking origin enumeration.
   enum Origin {
@@ -103,10 +103,10 @@ class File : public Stream {
   virtual bool opened() const;
 
   // See Stream::Read for details.
-  virtual std::size_t Read(void* _buffer, std::size_t _size);
+  virtual size_t Read(void* _buffer, size_t _size);
 
   // See Stream::Write for details.
-  virtual std::size_t Write(const void* _buffer, std::size_t _size);
+  virtual size_t Write(const void* _buffer, size_t _size);
 
   // See Stream::Seek for details.
   virtual int Seek(int _offset, Origin _origin);
@@ -133,10 +133,10 @@ class MemoryStream : public Stream {
   virtual bool opened() const;
 
   // See Stream::Read for details.
-  virtual std::size_t Read(void* _buffer, std::size_t _size);
+  virtual size_t Read(void* _buffer, size_t _size);
 
   // See Stream::Write for details.
-  virtual std::size_t Write(const void* _buffer, std::size_t _size);
+  virtual size_t Write(const void* _buffer, size_t _size);
 
   // See Stream::Seek for details.
   virtual int Seek(int _offset, Origin _origin);
@@ -149,20 +149,20 @@ class MemoryStream : public Stream {
   // Resizes buffers size to _size bytes. If _size is less than the actual
   // buffer size, then it remains unchanged.
   // Returns true if the buffer can contains _size bytes.
-  bool Resize(std::size_t _size);
+  bool Resize(size_t _size);
 
   // Size of the buffer increment.
-  static const std::size_t kBufferSizeIncrement;
+  static const size_t kBufferSizeIncrement;
 
   // Maximum stream size.
-  static const std::size_t kMaxSize;
+  static const size_t kMaxSize;
 
   // Buffer of data.
   char* buffer_;
 
   // The size of the buffer, which is greater or equal to the size of the data
   // it contains (end_).
-  std::size_t alloc_size_;
+  size_t alloc_size_;
 
   // The effective size of the data in the buffer.
   int end_;

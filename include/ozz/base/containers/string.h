@@ -36,9 +36,11 @@
 #include "ozz/base/containers/std_allocator.h"
 
 namespace ozz {
-// Redirects std::string to ozz::String in order to replace std default
+// Redirects std::string to ozz::String::Std in order to replace std default
 // allocator by ozz::StdAllocator.
-typedef std::basic_string<
-    char, std::char_traits<char>, ozz::StdAllocator<char> > String;
+struct String {
+  typedef std::basic_string<
+    char, std::char_traits<char>, ozz::StdAllocator<char> > Std;
+};
 }  // ozz
 #endif  // OZZ_OZZ_BASE_CONTAINERS_STRING_H_

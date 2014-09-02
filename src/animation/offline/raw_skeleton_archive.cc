@@ -28,111 +28,67 @@
 //                                                                            //
 //============================================================================//
 
-#ifndef OZZ_OZZ_BASE_IO_ARCHIVE_MATHS_H_
-#define OZZ_OZZ_BASE_IO_ARCHIVE_MATHS_H_
+#include "ozz/animation/offline/raw_skeleton_archive.h"
 
-#include "ozz/base/platform.h"
-#include "ozz/base/io/archive_traits.h"
+#include "ozz/base/io/archive.h"
+#include "ozz/base/maths/math_archive.h"
+
+#include "ozz/base/containers/string_archive.h"
+#include "ozz/base/containers/vector_archive.h"
 
 namespace ozz {
-namespace math {
-struct Float2;
-struct Float3;
-struct Float4;
-struct Quaternion;
-struct Transform;
-struct Box;
-struct RectFloat;
-struct RectInt;
-}  // math
 namespace io {
-OZZ_IO_TYPE_NOT_VERSIONABLE(math::Float2)
-template <>
-void Save(OArchive& _archive,
-          const math::Float2* _values,
-          std::size_t _count);
-template <>
-void Load(IArchive& _archive,
-          math::Float2* _values,
-          std::size_t _count,
-          uint32 /*_version*/);
 
-OZZ_IO_TYPE_NOT_VERSIONABLE(math::Float3)
 template <>
 void Save(OArchive& _archive,
-          const math::Float3* _values,
-          std::size_t _count);
-template <>
-void Load(IArchive& _archive,
-          math::Float3* _values,
-          std::size_t _count,
-          uint32 /*_version*/);
+          const animation::offline::RawSkeleton* _skeletons,
+          size_t _count) {
+  for (size_t i = 0; i < _count; ++i) {
+    const animation::offline::RawSkeleton& skeleton = _skeletons[i];
+    _archive << skeleton.roots;
+  }
+}
 
-OZZ_IO_TYPE_NOT_VERSIONABLE(math::Float4)
-template <>
-void Save(OArchive& _archive,
-          const math::Float4* _values,
-          std::size_t _count);
 template <>
 void Load(IArchive& _archive,
-          math::Float4* _values,
-          std::size_t _count,
-          uint32 /*_version*/);
+          animation::offline::RawSkeleton* _skeletons,
+          size_t _count,
+          uint32_t _version) {
+  (void)_version;
+  for (size_t i = 0; i < _count; ++i) {
+    animation::offline::RawSkeleton& skeleton = _skeletons[i];
+    _archive >> skeleton.roots;
+  }
+}
 
-OZZ_IO_TYPE_NOT_VERSIONABLE(math::Quaternion)
-template <>
-void Save(OArchive& _archive,
-          const math::Quaternion* _values,
-          std::size_t _count);
-template <>
-void Load(IArchive& _archive,
-          math::Quaternion* _values,
-          std::size_t _count,
-          uint32 /*_version*/);
+// RawSkeleton::Joint' version can be declared locally as it will be saved from
+// this cpp file only.
+OZZ_IO_TYPE_VERSION(1, animation::offline::RawSkeleton::Joint)
 
-OZZ_IO_TYPE_NOT_VERSIONABLE(math::Transform)
 template <>
 void Save(OArchive& _archive,
-          const math::Transform* _values,
-          std::size_t _count);
-template <>
-void Load(IArchive& _archive,
-          math::Transform* _values,
-          std::size_t _count,
-          uint32 /*_version*/);
+          const animation::offline::RawSkeleton::Joint* _joints,
+          size_t _count) {
+  for (size_t i = 0; i < _count; ++i) {
+    const animation::offline::RawSkeleton::Joint& joint = _joints[i];
+    _archive << joint.name;
+    _archive << joint.transform;
+    _archive << joint.children;
+  }
+}
 
-OZZ_IO_TYPE_NOT_VERSIONABLE(math::Box)
-template <>
-void Save(OArchive& _archive,
-          const math::Box* _values,
-          std::size_t _count);
 template <>
 void Load(IArchive& _archive,
-          math::Box* _values,
-          std::size_t _count,
-          uint32 /*_version*/);
-
-OZZ_IO_TYPE_NOT_VERSIONABLE(math::RectFloat)
-template <>
-void Save(OArchive& _archive,
-          const math::RectFloat* _values,
-          std::size_t _count);
-template <>
-void Load(IArchive& _archive,
-          math::RectFloat* _values,
-          std::size_t _count,
-          uint32 /*_version*/);
-
-OZZ_IO_TYPE_NOT_VERSIONABLE(math::RectInt)
-template <>
-void Save(OArchive& _archive,
-          const math::RectInt* _values,
-          std::size_t _count);
-template <>
-void Load(IArchive& _archive,
-          math::RectInt* _values,
-          std::size_t _count,
-          uint32 /*_version*/);
+          animation::offline::RawSkeleton::Joint* _joints,
+          size_t _count,
+          uint32_t _version) {
+  (void)_version;
+  for (size_t i = 0; i < _count; ++i) {
+    animation::offline::RawSkeleton::Joint& joint = _joints[i];
+    _archive >> joint.name;
+    _archive >> joint.transform;
+    _archive >> joint.children;
+  }
+}
 }  // io
 }  // ozz
-#endif  // OZZ_OZZ_BASE_IO_ARCHIVE_MATHS_H_

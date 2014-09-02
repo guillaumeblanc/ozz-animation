@@ -670,7 +670,7 @@ class is_to_be_removed {
     return which_-- == 0;
   }
  private:
-  void operator = (const is_to_be_removed&) {}
+  void operator = (const is_to_be_removed&);
 
   int which_;
 };

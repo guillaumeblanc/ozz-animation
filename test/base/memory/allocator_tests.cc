@@ -191,7 +191,7 @@ class TestAllocator : public ozz::memory::Allocator {
   } 
  
  private:
-  virtual void* Allocate(std::size_t _size, std::size_t _alignment) {
+  virtual void* Allocate(size_t _size, size_t _alignment) {
     (void)_size;
     (void)_alignment;
     return hard_coded_address_;
@@ -200,8 +200,8 @@ class TestAllocator : public ozz::memory::Allocator {
     (void)_block;
   }
   virtual void* Reallocate(void* _block,
-                           std::size_t _size,
-                           std::size_t _alignment) {
+                           size_t _size,
+                           size_t _alignment) {
     (void)_block;
     (void)_size;
     (void)_alignment;

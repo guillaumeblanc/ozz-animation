@@ -41,6 +41,7 @@
 namespace ozz {
 namespace math { struct Box; }
 namespace sample {
+class ImGui;
 namespace internal {
 
 // Framework internal implementation of an OpenGL/glfw camera system that can be
@@ -54,35 +55,58 @@ class Camera {
   // Destructor.
   ~Camera();
 
-  // Defines actions that the user can apply to the camera.
-  struct Actions {
-    bool rotated;
-    bool zoomed;
-    bool panned;
-    bool centered;
-  };
-
   // Updates camera framing: mouse manipulation, timed transitions...
   // Returns actions that the user applied to the camera during the frame.
-  Actions Update(float _delta_time);
+  void Update(const math::Box& _box, float _delta_time, bool _first_frame);
 
-  // Binds projection and model-view matrices to OpenGL.
-  void Bind();
+  // Provides immediate mode gui display event.
+  void OnGui(ImGui* _im_gui);
+
+  // Binds 3d projection and view matrices to the current matrix.
+  void Bind3D();
+
+  // Binds 2d projection and view matrices to the current matrix.
+  void Bind2D();
 
   // Resize notification, used to rebuild projection matrix.
   void Resize(int _width, int _height);
 
-  // Frame all _box, while maintaining camera orientation.
-  // If _animate is true, the framing is animated/smoothed.
-  // Returns true on success.
-  bool FrameAll(const math::Box& _box, bool _animate);
+  // Get the current projection matrix.
+  const math::Float4x4& projection() {
+    return projection_;
+  }
+
+  // Get the current model-view matrix.
+  const math::Float4x4& view() {
+    return view_;
+  }
+
+  // Get the current model-view-projection matrix.
+  const math::Float4x4& view_proj() {
+    return view_proj_;
+  }
+
+  // Set to true to automatically frame the camera on the whole scene.
+  void set_auto_framing(bool _auto) {
+    auto_framing_ = _auto;
+  }
+  // Get auto framing state.
+  bool auto_framing() const {
+    return auto_framing_;
+  }
 
  private:
   // The current projection matrix.
   math::Float4x4 projection_;
 
+  // The current projection matrix.
+  math::Float4x4 projection_2d_;
+
   // The current model-view matrix.
-  math::Float4x4 model_view_;
+  math::Float4x4 view_;
+
+  // The current model-view-projection matrix.
+  math::Float4x4 view_proj_;
 
   // The angles in degree of the camera rotation around x and y axes.
   math::Float2 angles_;
@@ -96,11 +120,23 @@ class Camera {
   // The current animated angles.
   math::Float2 animated_angles_;
 
+  // True if angles should be animated.
+  bool smooth_angles_;
+
   // The current animated center position.
   math::Float3 animated_center_;
 
+  // True if angles should be animated.
+  bool smooth_center_;
+
   // The current animated distance for the center.
   float animated_distance_;
+
+  // True if angles should be animated.
+  bool smooth_distance_;
+
+  // Fix (don't animate) camera distance to the target.
+  bool fix_distance_;
 
   // The remaining time for the  animated center to reach the center.
   float remaining_animation_time_;
@@ -110,6 +146,9 @@ class Camera {
   int mouse_last_y_;
   int mouse_last_mb_;
   int mouse_last_wheel_;
+
+  // Set to true to automatically frame the camera on the whole scene.
+  bool auto_framing_;
 };
 }  // internal
 }  // sample

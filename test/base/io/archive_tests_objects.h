@@ -42,16 +42,16 @@ class IArchive;
 }  // ozz
 
 struct Intrusive {
-  explicit Intrusive(ozz::int32 _i = 12) :
+  explicit Intrusive(int32_t _i = 12) :
     i(_i) {
   }
   void Save(ozz::io::OArchive& _archive) const;
-  void Load(ozz::io::IArchive& _archive, ozz::uint32 _version);
-  ozz::int32 i;
+  void Load(ozz::io::IArchive& _archive, uint32_t _version);
+  int32_t i;
 };
 
 struct Extrusive {
-  ozz::uint64 i;
+  uint64_t i;
 };
 
 namespace ozz {
@@ -64,25 +64,25 @@ OZZ_IO_TYPE_NOT_VERSIONABLE(Extrusive)
 
 // Specializes Extrusive type external Save and Load functions.
 template <>
-void Save(OArchive& _archive, const Extrusive* _test, std::size_t _count);
+void Save(OArchive& _archive, const Extrusive* _test, size_t _count);
 template <>
 void Load(IArchive& _archive,
           Extrusive* _test,
-          std::size_t _count,
-          uint32 _version);
+          size_t _count,
+          uint32_t _version);
 }  // ozz
 }  // io
 
 class Tagged1 {
  public:
   void Save(ozz::io::OArchive& _archive) const;
-  void Load(ozz::io::IArchive& _archive, ozz::uint32 _version);
+  void Load(ozz::io::IArchive& _archive, uint32_t _version);
 };
 
 class Tagged2 {
  public:
   void Save(ozz::io::OArchive& _archive) const;
-  void Load(ozz::io::IArchive& _archive, ozz::uint32 _version);
+  void Load(ozz::io::IArchive& _archive, uint32_t _version);
 };
 
 namespace ozz {

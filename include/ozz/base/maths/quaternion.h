@@ -88,7 +88,7 @@ OZZ_INLINE bool Compare(const math::Quaternion& _a,
                         const math::Quaternion& _b,
                         float _tolerance) {
   const float dot = _a.x * _b.x + _a.y * _b.y + _a.z * _b.z + _a.w * _b.w;
-  return fabs(std::acos(dot)) < _tolerance * .5f;
+  return fabs(std::acos(dot)) <= _tolerance * .5f;
 }
 
 // Returns the conjugate of _q. This is the same as the inverse if _q is

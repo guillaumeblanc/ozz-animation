@@ -413,15 +413,15 @@ OZZ_INLINE Float2 Lerp(const Float2& _a, const Float2& _b, float _f) {
 // Returns true if the distance between _a and _b is less than _tolerance.
 OZZ_INLINE bool Compare(const Float4& _a, const Float4& _b, float _tolerance) {
   const math::Float4 diff = _a - _b;
-  return Dot(diff, diff) < _tolerance * _tolerance;
+  return Dot(diff, diff) <= _tolerance * _tolerance;
 }
 OZZ_INLINE bool Compare(const Float3& _a, const Float3& _b, float _tolerance) {
   const math::Float3 diff = _a - _b;
-  return Dot(diff, diff) < _tolerance * _tolerance;
+  return Dot(diff, diff) <= _tolerance * _tolerance;
 }
 OZZ_INLINE bool Compare(const Float2& _a, const Float2& _b, float _tolerance) {
   const math::Float2 diff = _a - _b;
-  return Dot(diff, diff) < _tolerance * _tolerance;
+  return Dot(diff, diff) <= _tolerance * _tolerance;
 }
 
 // Returns true if each element of a is less than each element of _b.

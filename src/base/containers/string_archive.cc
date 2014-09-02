@@ -28,87 +28,55 @@
 //                                                                            //
 //============================================================================//
 
-#ifndef OZZ_OZZ_BASE_IO_ARCHIVE_SOA_MATHS_H_
-#define OZZ_OZZ_BASE_IO_ARCHIVE_SOA_MATHS_H_
+#include "ozz/base/containers/string_archive.h"
 
-#include "ozz/base/platform.h"
-#include "ozz/base/io/archive_traits.h"
+#include "ozz/base/io/archive.h"
+#include "ozz/base/maths/math_ex.h"
 
 namespace ozz {
-namespace math {
-struct SoaFloat2;
-struct SoaFloat3;
-struct SoaFloat4;
-struct SoaQuaternion;
-struct SoaFloat4x4;
-struct SoaTransform;
-}  // math
 namespace io {
-OZZ_IO_TYPE_NOT_VERSIONABLE(math::SoaFloat2)
 template <>
 void Save(OArchive& _archive,
-          const math::SoaFloat2* _values,
-          std::size_t _count);
-template <>
-void Load(IArchive& _archive,
-          math::SoaFloat2* _values,
-          std::size_t _count,
-          uint32 /*_version*/);
+          const String::Std* _values,
+          size_t _count) {
+ for (size_t i = 0; i < _count; i++) {
+   const ozz::String::Std& string = _values[i];
 
-OZZ_IO_TYPE_NOT_VERSIONABLE(math::SoaFloat3)
-template <>
-void Save(OArchive& _archive,
-          const math::SoaFloat3* _values,
-          std::size_t _count);
-template <>
-void Load(IArchive& _archive,
-          math::SoaFloat3* _values,
-          std::size_t _count,
-          uint32 /*_version*/);
+   // Get size excluding null terminating character.
+   uint32_t size = static_cast<uint32_t>(string.size());
+   _archive << size;
+   _archive << ozz::io::MakeArray(string.c_str(), size);
+ }
+}
 
-OZZ_IO_TYPE_NOT_VERSIONABLE(math::SoaFloat4)
-template <>
-void Save(OArchive& _archive,
-          const math::SoaFloat4* _values,
-          std::size_t _count);
 template <>
 void Load(IArchive& _archive,
-          math::SoaFloat4* _values,
-          std::size_t _count,
-          uint32 /*_version*/);
+          String::Std* _values,
+          size_t _count,
+          uint32_t _version) {
+  (void)_version;
+  for (size_t i = 0; i < _count; i++) {
+    ozz::String::Std& string = _values[i];
 
-OZZ_IO_TYPE_NOT_VERSIONABLE(math::SoaQuaternion)
-template <>
-void Save(OArchive& _archive,
-          const math::SoaQuaternion* _values,
-          std::size_t _count);
-template <>
-void Load(IArchive& _archive,
-          math::SoaQuaternion* _values,
-          std::size_t _count,
-          uint32 /*_version*/);
+    // Ensure an existing string is reseted.
+    string.clear();
 
-OZZ_IO_TYPE_NOT_VERSIONABLE(math::SoaFloat4x4)
-template <>
-void Save(OArchive& _archive,
-          const math::SoaFloat4x4* _values,
-          std::size_t _count);
-template <>
-void Load(IArchive& _archive,
-          math::SoaFloat4x4* _values,
-          std::size_t _count,
-          uint32 /*_version*/);
+    uint32_t size;
+    _archive >> size;
+    string.reserve(size);
 
-OZZ_IO_TYPE_NOT_VERSIONABLE(math::SoaTransform)
-template <>
-void Save(OArchive& _archive,
-          const math::SoaTransform* _values,
-          std::size_t _count);
-template <>
-void Load(IArchive& _archive,
-          math::SoaTransform* _values,
-          std::size_t _count,
-          uint32 /*_version*/);
+    // Prepares temporary buffer used for reading.
+    char buffer[128];
+    for (size_t to_read = size; to_read != 0;) {
+      // Read from the archive to the local temporary buffer.
+      const size_t to_read_this_loop = math::Min(to_read, OZZ_ARRAY_SIZE(buffer));
+      _archive >> ozz::io::MakeArray(buffer, to_read_this_loop);
+      to_read -= to_read_this_loop;
+
+      // Append to the string.
+      string.append(buffer, to_read_this_loop);
+    }
+  }
+}
 }  // io
 }  // ozz
-#endif  // OZZ_OZZ_BASE_IO_ARCHIVE_SOA_MATHS_H_

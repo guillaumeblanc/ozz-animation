@@ -45,8 +45,8 @@ public:
   typedef value_type& reference;  // Reference to element.
   typedef const value_type* const_pointer;  // Constant pointer to element.
   typedef const value_type& const_reference;  // Constant reference to element.
-  typedef std::size_t size_type;  // Quantities of elements.
-  typedef std::ptrdiff_t difference_type;  // Difference between two pointers.
+  typedef size_t size_type;  // Quantities of elements.
+  typedef ptrdiff_t difference_type;  // Difference between two pointers.
 
   // Converts an StdAllocator<_Ty> to an StdAllocator<_Other>.
   template<class _Other>
@@ -112,8 +112,8 @@ public:
   }
 
   // Estimates maximum array size.
-  std::size_t max_size() const {
-    std::size_t count = static_cast<std::size_t>(-1) / sizeof (_Ty);
+  size_t max_size() const {
+    size_t count = static_cast<size_t>(-1) / sizeof (_Ty);
     return (count > 0 ? count : 1);
   }
 };

@@ -200,7 +200,7 @@ TEST(Map, Containers) {
 }
 
 TEST(String, Containers) {
-  typedef ozz::String String;
+  typedef ozz::String::Std String;
   String str;
   EXPECT_EQ(str.size(), 0u);
   str += "a string";

@@ -28,47 +28,18 @@
 //                                                                            //
 //============================================================================//
 
-#ifndef OZZ_OZZ_BASE_IO_ARCHIVE_SIMD_MATHS_H_
-#define OZZ_OZZ_BASE_IO_ARCHIVE_SIMD_MATHS_H_
+#ifndef OZZ_OZZ_ANIMATION_RUNTIME_SKELETON_ARCHIVE_H_
+#define OZZ_OZZ_ANIMATION_RUNTIME_SKELETON_ARCHIVE_H_
 
 #include "ozz/base/platform.h"
 #include "ozz/base/io/archive_traits.h"
-#include "ozz/base/maths/simd_math.h"
+
+#include "ozz/animation/runtime/skeleton.h"
 
 namespace ozz {
 namespace io {
-OZZ_IO_TYPE_NOT_VERSIONABLE(math::SimdFloat4)
-template <>
-void Save(OArchive& _archive,
-          const math::SimdFloat4* _values,
-          std::size_t _count);
-template <>
-void Load(IArchive& _archive,
-          math::SimdFloat4* _values,
-          std::size_t _count,
-          uint32 /*_version*/);
-
-OZZ_IO_TYPE_NOT_VERSIONABLE(math::SimdInt4)
-template <>
-void Save(OArchive& _archive,
-          const math::SimdInt4* _values,
-          std::size_t _count);
-template <>
-void Load(IArchive& _archive,
-          math::SimdInt4* _values,
-          std::size_t _count,
-          uint32 /*_version*/);
-
-OZZ_IO_TYPE_NOT_VERSIONABLE(math::Float4x4)
-template <>
-void Save(OArchive& _archive,
-          const math::Float4x4* _values,
-          std::size_t _count);
-template <>
-void Load(IArchive& _archive,
-          math::Float4x4* _values,
-          std::size_t _count,
-          uint32 /*_version*/);
+OZZ_IO_TYPE_VERSION(1, animation::Skeleton)
+OZZ_IO_TYPE_TAG("ozz-skeleton", animation::Skeleton)
 }  // io
 }  // ozz
-#endif  // OZZ_OZZ_BASE_IO_ARCHIVE_SIMD_MATHS_H_
+#endif  // OZZ_OZZ_ANIMATION_RUNTIME_SKELETON_ARCHIVE_H_

@@ -111,7 +111,7 @@ enum ParseResult {
 // _version and _usage are not copied, ParseCommandLine caller is in charge of
 // maintaining their allocation during application lifetime.
 // See ParseResult for more details about returned values.
-ParseResult ParseCommandLine(int _argc, const char** _argv,
+ParseResult ParseCommandLine(int _argc, const char* const* _argv,
                              const char* _version, const char* _usage);
 
 // Get the executable path that was extracted from the last call to
@@ -337,7 +337,7 @@ class Parser {
   // life of parser, as some arguments like string options or executable path
   // and name will be pointed by the parser (ie: not copied).
   // See ParseResult for more details about returned values.
-  ParseResult Parse(int _argc, const char* _argv[]);
+  ParseResult Parse(int _argc, const char* const *_argv);
 
   // Displays the help screen that is automatically built from all registered
   // options. Executable name is only available if ::Parse() was called with a

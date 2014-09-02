@@ -28,54 +28,50 @@
 //                                                                            //
 //============================================================================//
 
-#include "ozz/base/io/archive_simd_maths.h"
+#include "ozz/animation/offline/raw_animation_archive.h"
 
-#include <cassert>
+#include "gtest/gtest.h"
 
 #include "ozz/base/io/archive.h"
+#include "ozz/base/io/stream.h"
 
-namespace ozz {
-namespace io {
-template <>
-void Save(OArchive& _archive,
-          const math::SimdFloat4* _values,
-          std::size_t _count) {
-  _archive << MakeArray(reinterpret_cast<const float*>(_values), 4 * _count);
-}
-template <>
-void Load(IArchive& _archive,
-          math::SimdFloat4* _values,
-          std::size_t _count,
-          uint32 /*_version*/) {
-  _archive >> MakeArray(reinterpret_cast<float*>(_values), 4 * _count);
-}
+#include "ozz/options/options.h"
+#include "ozz/base/log.h"
 
-template <>
-void Save(OArchive& _archive,
-          const math::SimdInt4* _values,
-          std::size_t _count) {
-  _archive << MakeArray(reinterpret_cast<const int*>(_values), 4 * _count);
-}
-template <>
-void Load(IArchive& _archive,
-          math::SimdInt4* _values,
-          std::size_t _count,
-          uint32 /*_version*/) {
-  _archive >> MakeArray(reinterpret_cast<int*>(_values), 4 * _count);
+OZZ_OPTIONS_DECLARE_STRING(file, "Specifies input file", "", true)
+OZZ_OPTIONS_DECLARE_INT(tracks, "Number of tracks", 0, true)
+OZZ_OPTIONS_DECLARE_FLOAT(duration, "Duration", 0.f, true)
+
+int main(int _argc, char** _argv) {
+  // Parses arguments.
+  testing::InitGoogleTest(&_argc, _argv);
+  ozz::options::ParseResult parse_result = ozz::options::ParseCommandLine(
+    _argc, _argv,
+    "1.0",
+    "Test RawAnimation archive versioning retrocompatibility");
+  if (parse_result != ozz::options::kSuccess) {
+    return parse_result == ozz::options::kExitSuccess ?
+      EXIT_SUCCESS : EXIT_FAILURE;
+  }
+
+  return RUN_ALL_TESTS();
 }
 
-template <>
-void Save(OArchive& _archive,
-          const math::Float4x4* _values,
-          std::size_t _count) {
-  _archive << MakeArray(reinterpret_cast<const float*>(_values), 16 * _count);
+TEST(Versioning, RawAnimationSerialize) {
+  // Open the file.
+  const char* filename = OPTIONS_file;
+  ozz::io::File file(filename, "rb");
+  ASSERT_TRUE(file.opened());
+
+  // Open archive and test object tag.
+  ozz::io::IArchive archive(&file);
+  ASSERT_TRUE(archive.TestTag<ozz::animation::offline::RawAnimation>());
+
+  // Read the object.
+  ozz::animation::offline::RawAnimation animation;
+  archive >> animation;
+
+  // More testing
+  EXPECT_EQ(animation.num_tracks(), OPTIONS_tracks);
+  EXPECT_FLOAT_EQ(animation.duration, OPTIONS_duration);
 }
-template <>
-void Load(IArchive& _archive,
-          math::Float4x4* _values,
-          std::size_t _count,
-          uint32 /*_version*/) {
-  _archive >> MakeArray(reinterpret_cast<float*>(_values), 16 * _count);
-}
-}  // io
-}  // ozz

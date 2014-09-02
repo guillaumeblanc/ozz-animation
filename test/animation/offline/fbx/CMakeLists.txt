@@ -11,6 +11,7 @@ file(WRITE "${ozz_temp_directory}/content.bad" "bad content")
 
 # Run fbx2skel passing tests
 add_test(NAME fbx2skel_simple COMMAND fbx2skel "--file=${ozz_media_directory}/fbx/alain/skeleton.fbx" "--skeleton=${ozz_temp_directory}/skeleton.ozz")
+add_test(NAME fbx2skel_simple_raw COMMAND fbx2skel "--raw" "--file=${ozz_media_directory}/fbx/alain/skeleton.fbx" "--skeleton=${ozz_temp_directory}/raw_skeleton.ozz")
 add_test(NAME fbx2skel_native COMMAND fbx2skel "--file=${ozz_media_directory}/fbx/alain/skeleton.fbx" "--skeleton=${ozz_temp_directory}/skeleton_native.ozz" "--endian=native")
 add_test(NAME fbx2skel_little COMMAND fbx2skel "--file=${ozz_media_directory}/fbx/alain/skeleton.fbx" "--skeleton=${ozz_temp_directory}/skeleton_little.ozz" "--endian=little")
 add_test(NAME fbx2skel_big COMMAND fbx2skel "--file=${ozz_media_directory}/fbx/alain/skeleton.fbx" "--skeleton=${ozz_temp_directory}/skeleton_big.ozz" "--endian=big")
@@ -18,6 +19,12 @@ add_test(NAME fbx2skel_big COMMAND fbx2skel "--file=${ozz_media_directory}/fbx/a
 # Run fbx2anim passing tests
 add_test(NAME fbx2anim_simple COMMAND fbx2anim "--file=${ozz_media_directory}/fbx/alain/walk.fbx" "--skeleton=${ozz_temp_directory}/skeleton.ozz" "--animation=${ozz_temp_directory}/animation.ozz")
 set_tests_properties(fbx2anim_simple PROPERTIES DEPENDS fbx2skel_simple)
+add_test(NAME fbx2anim_simple_raw COMMAND fbx2anim "--raw" "--file=${ozz_media_directory}/fbx/alain/walk.fbx" "--skeleton=${ozz_temp_directory}/skeleton.ozz" "--animation=${ozz_temp_directory}/raw_animation.ozz")
+set_tests_properties(fbx2anim_simple_raw PROPERTIES DEPENDS fbx2skel_simple)
+add_test(NAME fbx2anim_simple_from_raw COMMAND fbx2anim "--file=${ozz_media_directory}/fbx/alain/walk.fbx" "--skeleton=${ozz_temp_directory}/raw_skeleton.ozz" "--animation=${ozz_temp_directory}/animation.ozz")
+set_tests_properties(fbx2anim_simple_from_raw PROPERTIES DEPENDS fbx2skel_simple_raw)
+add_test(NAME fbx2anim_simple_raw_from_raw COMMAND fbx2anim "--raw" "--file=${ozz_media_directory}/fbx/alain/walk.fbx" "--skeleton=${ozz_temp_directory}/raw_skeleton.ozz" "--animation=${ozz_temp_directory}/raw_animation.ozz")
+set_tests_properties(fbx2anim_simple_raw_from_raw PROPERTIES DEPENDS fbx2skel_simple_raw)
 add_test(NAME fbx2anim_native COMMAND fbx2anim "--file=${ozz_media_directory}/fbx/alain/walk.fbx" "--skeleton=${ozz_temp_directory}/skeleton.ozz" "--animation=${ozz_temp_directory}/animation_native.ozz" "--endian=native")
 set_tests_properties(fbx2anim_native PROPERTIES DEPENDS fbx2skel_simple)
 add_test(NAME fbx2anim_little COMMAND fbx2anim "--file=${ozz_media_directory}/fbx/alain/walk.fbx" "--skeleton=${ozz_temp_directory}/skeleton.ozz" "--animation=${ozz_temp_directory}/animation_little.ozz" "--endian=little")

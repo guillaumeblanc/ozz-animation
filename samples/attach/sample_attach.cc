@@ -69,7 +69,6 @@ class LoadAttachApplication : public ozz::sample::Application {
     : cache_(NULL),
       attachment_(0),
       offset_(-.02f, .03f, .05f) {
-    set_auto_framing(true);
   }
 
  protected:
@@ -208,8 +207,8 @@ class LoadAttachApplication : public ozz::sample::Application {
     return true;
   }
 
-  virtual bool GetSceneBounds(ozz::math::Box* _bound) const {
-    return ozz::sample::ComputePostureBounds(models_, _bound);
+  virtual void GetSceneBounds(ozz::math::Box* _bound) const {
+    ozz::sample::ComputePostureBounds(models_, _bound);
   }
 
  private:

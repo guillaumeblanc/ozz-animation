@@ -32,6 +32,7 @@
 #define OZZ_OZZ_BASE_MATHS_INTERNAL_SIMD_MATH_SSE_INL_H_
 
 #include <cassert>
+#include <stdint.h>
 
 // Temporarly needed while trigonometric functions aren't implemented.
 #include <cmath>
@@ -146,34 +147,35 @@ OZZ_INLINE SimdFloat4 Load1(float _x) {
 }
 
 OZZ_INLINE SimdFloat4 LoadPtr(const float* _f) {
-  assert(!(uintptr(_f) & 0xf) && "Invalid alignment");
+  assert(!(reinterpret_cast<uintptr_t>(_f) & 0xf) && "Invalid alignment");
   return _mm_load_ps(_f);
 }
 
 OZZ_INLINE SimdFloat4 LoadPtrU(const float* _f) {
-    assert(!(uintptr(_f) & 0x3) && "Invalid alignment");
+    assert(!(reinterpret_cast<uintptr_t>(_f) & 0x3) && "Invalid alignment");
     return _mm_loadu_ps(_f);
 }
 
 OZZ_INLINE SimdFloat4 LoadXPtrU(const float* _f) {
-  assert(!(uintptr(_f) & 0x3) && "Invalid alignment");
+  assert(!(reinterpret_cast<uintptr_t>(_f) & 0x3) && "Invalid alignment");
   return _mm_load_ss(_f);
 }
 
 OZZ_INLINE SimdFloat4 Load1PtrU(const float* _f) {
-  assert(!(uintptr(_f) & 0x3) && "Invalid alignment");
+  assert(!(reinterpret_cast<uintptr_t>(_f) & 0x3) && "Invalid alignment");
   return _mm_load_ps1(_f);
 }
 
 OZZ_INLINE SimdFloat4 Load2PtrU(const float* _f) {
-  assert(!(uintptr(_f) & 0x3) && "Invalid alignment");
+  assert(!(reinterpret_cast<uintptr_t>(_f) & 0x3) && "Invalid alignment");
   return _mm_unpacklo_ps(_mm_load_ss(_f + 0), _mm_load_ss(_f + 1));
 }
 
 OZZ_INLINE SimdFloat4 Load3PtrU(const float* _f) {
-  assert(!(uintptr(_f) & 0x3) && "Invalid alignment");
-  const __m128 xyzw =_mm_loadu_ps(_f);
-  return _mm_movelh_ps(xyzw, _mm_unpackhi_ps(xyzw, _mm_setzero_ps()));
+  assert(!(reinterpret_cast<uintptr_t>(_f) & 0x3) && "Invalid alignment");
+  return _mm_movelh_ps(
+           _mm_unpacklo_ps(_mm_load_ss(_f + 0), _mm_load_ss(_f + 1)),
+           _mm_load_ss(_f + 2));
 }
 }  // ozz::math::simd_float4
 
@@ -226,44 +228,44 @@ OZZ_INLINE SimdFloat4 SetI(_SimdFloat4 _v, int _ith, float _f) {
 }
 
 OZZ_INLINE void StorePtr(_SimdFloat4 _v, float* _f) {
-  assert(!(uintptr(_f) & 0xf) && "Invalid alignment");
+  assert(!(reinterpret_cast<uintptr_t>(_f) & 0xf) && "Invalid alignment");
   _mm_store_ps(_f, _v);
 }
 
 OZZ_INLINE void Store1Ptr(_SimdFloat4 _v, float* _f) {
-  assert(!(uintptr(_f) & 0xf) && "Invalid alignment");
+  assert(!(reinterpret_cast<uintptr_t>(_f) & 0xf) && "Invalid alignment");
   _mm_store_ss(_f, _v);
 }
 
 OZZ_INLINE void Store2Ptr(_SimdFloat4 _v, float* _f) {
-  assert(!(uintptr(_f) & 0xf) && "Invalid alignment");
+  assert(!(reinterpret_cast<uintptr_t>(_f) & 0xf) && "Invalid alignment");
   _mm_storel_pi(reinterpret_cast<__m64*>(_f), _v);
 }
 
 OZZ_INLINE void Store3Ptr(_SimdFloat4 _v, float* _f) {
-  assert(!(uintptr(_f) & 0xf) && "Invalid alignment");
+  assert(!(reinterpret_cast<uintptr_t>(_f) & 0xf) && "Invalid alignment");
   _mm_storel_epi64(reinterpret_cast<__m128i*>(_f), _mm_castps_si128(_v));
   _mm_store_ss(_f + 2, _mm_movehl_ps(_v, _v));
 }
 
 OZZ_INLINE void StorePtrU(_SimdFloat4 _v, float* _f) {
-  assert(!(uintptr(_f) & 0x3) && "Invalid alignment");
+  assert(!(reinterpret_cast<uintptr_t>(_f) & 0x3) && "Invalid alignment");
   _mm_storeu_ps(_f, _v);
 }
 
 OZZ_INLINE void Store1PtrU(_SimdFloat4 _v, float* _f) {
-  assert(!(uintptr(_f) & 0x3) && "Invalid alignment");
+  assert(!(reinterpret_cast<uintptr_t>(_f) & 0x3) && "Invalid alignment");
   _mm_store_ss(_f, _v);
 }
 
 OZZ_INLINE void Store2PtrU(_SimdFloat4 _v, float* _f) {
-  assert(!(uintptr(_f) & 0x3) && "Invalid alignment");
+  assert(!(reinterpret_cast<uintptr_t>(_f) & 0x3) && "Invalid alignment");
   _mm_store_ss(_f + 0, _v);
   _mm_store_ss(_f + 1, OZZ_SSE_SPLAT_F(_v, 1));
 }
 
 OZZ_INLINE void Store3PtrU(_SimdFloat4 _v, float* _f) {
-  assert(!(uintptr(_f) & 0x3) && "Invalid alignment");
+  assert(!(reinterpret_cast<uintptr_t>(_f) & 0x3) && "Invalid alignment");
   _mm_store_ss(_f + 0, _v);
   _mm_store_ss(_f + 1, OZZ_SSE_SPLAT_F(_v, 1));
   _mm_store_ss(_f + 2, _mm_movehl_ps(_v, _v));
@@ -953,54 +955,54 @@ OZZ_INLINE SimdInt4 Load1(bool _x) {
 }
 
 OZZ_INLINE SimdInt4 LoadPtr(const int* _i) {
-  assert(!(uintptr(_i) & 0xf) && "Invalid alignment");
+  assert(!(uintptr_t(_i) & 0xf) && "Invalid alignment");
   return _mm_load_si128(reinterpret_cast<const __m128i*>(_i));
 }
 
 OZZ_INLINE SimdInt4 LoadXPtr(const int* _i) {
-  assert(!(uintptr(_i) & 0xf) && "Invalid alignment");
+  assert(!(uintptr_t(_i) & 0xf) && "Invalid alignment");
   return _mm_cvtsi32_si128(*_i);
 }
 
 OZZ_INLINE SimdInt4 Load1Ptr(const int* _i) {
-  assert(!(uintptr(_i) & 0xf) && "Invalid alignment");
+  assert(!(uintptr_t(_i) & 0xf) && "Invalid alignment");
   return _mm_shuffle_epi32(
     _mm_loadl_epi64(reinterpret_cast<const __m128i*>(_i)),
     _MM_SHUFFLE(0, 0, 0, 0));
 }
 
 OZZ_INLINE SimdInt4 Load2Ptr(const int* _i) {
-  assert(!(uintptr(_i) & 0xf) && "Invalid alignment");
+  assert(!(uintptr_t(_i) & 0xf) && "Invalid alignment");
   return _mm_loadl_epi64(reinterpret_cast<const __m128i*>(_i));
 }
 
 OZZ_INLINE SimdInt4 Load3Ptr(const int* _i) {
-  assert(!(uintptr(_i) & 0xf) && "Invalid alignment");
+  assert(!(uintptr_t(_i) & 0xf) && "Invalid alignment");
   return _mm_set_epi32(0, _i[2], _i[1], _i[0]);
 }
 
 OZZ_INLINE SimdInt4 LoadPtrU(const int* _i) {
-  assert(!(uintptr(_i) & 0x3) && "Invalid alignment");
+  assert(!(uintptr_t(_i) & 0x3) && "Invalid alignment");
   return _mm_loadu_si128(reinterpret_cast<const __m128i*>(_i));
 }
 
 OZZ_INLINE SimdInt4 LoadXPtrU(const int* _i) {
-  assert(!(uintptr(_i) & 0x3) && "Invalid alignment");
+  assert(!(uintptr_t(_i) & 0x3) && "Invalid alignment");
   return _mm_cvtsi32_si128(*_i);
 }
 
 OZZ_INLINE SimdInt4 Load1PtrU(const int* _i) {
-  assert(!(uintptr(_i) & 0x3) && "Invalid alignment");
+  assert(!(uintptr_t(_i) & 0x3) && "Invalid alignment");
   return _mm_set1_epi32(*_i);
 }
 
 OZZ_INLINE SimdInt4 Load2PtrU(const int* _i) {
-  assert(!(uintptr(_i) & 0x3) && "Invalid alignment");
+  assert(!(uintptr_t(_i) & 0x3) && "Invalid alignment");
   return _mm_set_epi32(0, 0, _i[1], _i[0]);
 }
 
 OZZ_INLINE SimdInt4 Load3PtrU(const int* _i) {
-  assert(!(uintptr(_i) & 0x3) && "Invalid alignment");
+  assert(!(uintptr_t(_i) & 0x3) && "Invalid alignment");
   return _mm_set_epi32(0, _i[2], _i[1], _i[0]);
 }
 }  // ozz::math::simd_int4
@@ -1062,46 +1064,46 @@ OZZ_INLINE SimdInt4 SetI(_SimdInt4 _v, int _ith, int _i) {
 }
 
 OZZ_INLINE void StorePtr(_SimdInt4 _v, int* _i) {
-  assert(!(uintptr(_i) & 0xf) && "Invalid alignment");
+  assert(!(uintptr_t(_i) & 0xf) && "Invalid alignment");
   _mm_store_si128(reinterpret_cast<__m128i*>(_i), _v);
 }
 
 OZZ_INLINE void Store1Ptr(_SimdInt4 _v, int* _i) {
-  assert(!(uintptr(_i) & 0xf) && "Invalid alignment");
+  assert(!(uintptr_t(_i) & 0xf) && "Invalid alignment");
   *_i = _mm_cvtsi128_si32(_v);
 }
 
 OZZ_INLINE void Store2Ptr(_SimdInt4 _v, int* _i) {
-  assert(!(uintptr(_i) & 0xf) && "Invalid alignment");
+  assert(!(uintptr_t(_i) & 0xf) && "Invalid alignment");
   _i[0] = _mm_cvtsi128_si32(_v);
   _i[1] = _mm_cvtsi128_si32(OZZ_SSE_SPLAT_I(_v, 1));
 }
 
 OZZ_INLINE void Store3Ptr(_SimdInt4 _v, int* _i) {
-  assert(!(uintptr(_i) & 0xf) && "Invalid alignment");
+  assert(!(uintptr_t(_i) & 0xf) && "Invalid alignment");
   _i[0] = _mm_cvtsi128_si32(_v);
   _i[1] = _mm_cvtsi128_si32(OZZ_SSE_SPLAT_I(_v, 1));
   _i[2] = _mm_cvtsi128_si32(_mm_unpackhi_epi32(_v, _v));
 }
 
 OZZ_INLINE void StorePtrU(_SimdInt4 _v, int* _i) {
-  assert(!(uintptr(_i) & 0x3) && "Invalid alignment");
+  assert(!(uintptr_t(_i) & 0x3) && "Invalid alignment");
   _mm_storeu_si128(reinterpret_cast<__m128i*>(_i), _v);
 }
 
 OZZ_INLINE void Store1PtrU(_SimdInt4 _v, int* _i) {
-  assert(!(uintptr(_i) & 0x3) && "Invalid alignment");
+  assert(!(uintptr_t(_i) & 0x3) && "Invalid alignment");
   *_i = _mm_cvtsi128_si32(_v);
 }
 
 OZZ_INLINE void Store2PtrU(_SimdInt4 _v, int* _i) {
-  assert(!(uintptr(_i) & 0x3) && "Invalid alignment");
+  assert(!(uintptr_t(_i) & 0x3) && "Invalid alignment");
   _i[0] = _mm_cvtsi128_si32(_v);
   _i[1] = _mm_cvtsi128_si32(OZZ_SSE_SPLAT_I(_v, 1));
 }
 
 OZZ_INLINE void Store3PtrU(_SimdInt4 _v, int* _i) {
-  assert(!(uintptr(_i) & 0x3) && "Invalid alignment");
+  assert(!(uintptr_t(_i) & 0x3) && "Invalid alignment");
   _i[0] = _mm_cvtsi128_si32(_v);
   _i[1] = _mm_cvtsi128_si32(OZZ_SSE_SPLAT_I(_v, 1));
   _i[2] = _mm_cvtsi128_si32(_mm_unpackhi_epi32(_v, _v));

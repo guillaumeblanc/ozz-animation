@@ -87,7 +87,7 @@ Parser* GlobalRegistrer::parser_;
 
 // Compute placeholder_ array size and performs default initialization only.
 // See placeholder_ member document above.
-static const std::size_t kParserPlaceholerSize =
+static const size_t kParserPlaceholerSize =
   (sizeof(Parser) + sizeof(void*) - 1) / sizeof(void*);
 void* GlobalRegistrer::placeholder_[kParserPlaceholerSize];
 }  // namespace
@@ -124,7 +124,7 @@ template class Registrer<TypedOption<const char*> >;
 // This local parser will be deleted automatically. This allows to query the
 // executable path and name, as well as the usage and version strings even if
 // no option is registered.
-ParseResult ParseCommandLine(int _argc, const char** _argv,
+ParseResult ParseCommandLine(int _argc, const char* const* _argv,
                              const char* _version, const char* _usage) {
   // Need to instantiate a local parser if no option is registered.
   Parser* parser = internal::g_global_registrer.Construct();
@@ -176,7 +176,7 @@ int StrICmp(const char* _left, const char* _right) {
   return l - r;
 }
 
-int StrNICmp(const char* _left, const char* _right, std::size_t _count) {
+int StrNICmp(const char* _left, const char* _right, size_t _count) {
   if (_count) {
     int l, r;
     do {
@@ -193,8 +193,8 @@ int StrNICmp(const char* _left, const char* _right, std::size_t _count) {
 const char* ParseOption(const char* _argv,
                         const char* _prefix,
                         const char* _option) {
-  const std::size_t prefix_len = std::strlen(_prefix);
-  const std::size_t option_len = std::strlen(_option);
+  const size_t prefix_len = std::strlen(_prefix);
+  const size_t option_len = std::strlen(_option);
 
   // All options start with --.
   if (StrNICmp(_argv, _prefix, prefix_len) != 0) {
@@ -233,7 +233,7 @@ bool Parse(const char* _argv, const char* _option, bool* _value) {
     for (++option_end; std::isspace(*option_end); ++option_end) {  // Trims spaces.
     }
     const char* true_options[] = {"yes", "true", "1", "t", "y"};
-    for (std::size_t i = 0;
+    for (size_t i = 0;
          i < sizeof(true_options) / sizeof(true_options[0]);
          i++) {
       if (!StrICmp(option_end, true_options[i])) {
@@ -242,7 +242,7 @@ bool Parse(const char* _argv, const char* _option, bool* _value) {
       }
     }
     const char* false_options[] = {"no", "false", "0", "f", "n"};
-    for (std::size_t i = 0;
+    for (size_t i = 0;
          i < sizeof(false_options) / sizeof(false_options[0]);
          ++i) {
       if (!StrICmp(option_end, false_options[i])) {
@@ -418,7 +418,7 @@ Parser::~Parser() {
   UnregisterOption(&builtin_help_);
 }
 
-ParseResult Parser::Parse(int _argc, const char* _argv[]) {
+ParseResult Parser::Parse(int _argc, const char* const* _argv) {
   if (_argc < 1 || !_argv) {
     return kExitFailure;
   }
@@ -631,7 +631,7 @@ void Parser::set_usage(const char* _usage) {
 }
 
 void Parser::set_version(const char* _version) {
-  version_ = _version ? _version : "unspecified usage";
+  version_ = _version ? _version : "unspecified version";
 }
 
 const char* Parser::usage() const {

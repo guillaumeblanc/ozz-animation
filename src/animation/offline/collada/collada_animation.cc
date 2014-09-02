@@ -38,6 +38,8 @@
 
 #include "ozz/base/log.h"
 
+#include "ozz/animation/offline/raw_animation.h"
+
 #include "ozz/animation/runtime/skeleton.h"
 
 #include "animation/offline/collada/collada_skeleton.h"
@@ -261,7 +263,7 @@ bool AnimationVisitor::HandleFloatArray(const TiXmlElement& _element) {
       text = end;
     }
   }
-  if (source.values.size() != static_cast<std::size_t>(num_elements)) {
+  if (source.values.size() != static_cast<size_t>(num_elements)) {
     log::Err() << "Failed to read all float_array values." << std::endl;
     set_error();
     return false;
@@ -295,7 +297,7 @@ bool AnimationVisitor::HandleNameArray(const TiXmlElement& _element) {
     set_error();
     return false;
   }
-  std::size_t num_elements = count;
+  size_t num_elements = count;
 
   source.values.reserve(num_elements);
   const char* text = _element.GetText();
@@ -316,7 +318,7 @@ bool AnimationVisitor::HandleNameArray(const TiXmlElement& _element) {
       8,  // "CARDINAL
       4};  // "STEP"
     OZZ_STATIC_ASSERT(OZZ_ARRAY_SIZE(semantic_len) == kInterpolationCount);
-    for (std::size_t i = 0; i < num_elements && i == source.values.size(); ++i) {
+    for (size_t i = 0; i < num_elements && i == source.values.size(); ++i) {
       for (int j = 0; j < kInterpolationCount; ++j) {
         if (strncmp(semantics[j], text, semantic_len[j]) == 0) {
           source.values.push_back(Interpolation(j));
@@ -326,7 +328,7 @@ bool AnimationVisitor::HandleNameArray(const TiXmlElement& _element) {
       }
     }
   }
-  if (source.values.size() != static_cast<std::size_t>(num_elements)) {
+  if (source.values.size() != static_cast<size_t>(num_elements)) {
     log::Err() << "Failed to read all Name_array values." << std::endl;
     set_error();
     return false;
@@ -501,7 +503,7 @@ bool MapJointsByName(const ColladaJoint& _src, JointsByName* _joints) {
   (*_joints)[_src.name.c_str()] = &_src;
 
   // Now maps children.
-  for (std::size_t i = 0; i < _src.children.size(); ++i) {
+  for (size_t i = 0; i < _src.children.size(); ++i) {
     if (!MapJointsByName(_src.children[i], _joints)) {
       return false;
     }
@@ -510,7 +512,7 @@ bool MapJointsByName(const ColladaJoint& _src, JointsByName* _joints) {
 }
 
 struct Sampler {
-  std::size_t transform;
+  size_t transform;
   const char* member;
   AnimationVisitor::Behavior pre_behavior;
   AnimationVisitor::Behavior post_behavior;
@@ -536,7 +538,7 @@ bool FindSamplers(const AnimationVisitor& _visitor,
   assert(_samplers->empty());
 
   // Find the first channel that animates this joint.
-  const ozz::String target_id = ozz::String(_joint.id) + '/';
+  const ozz::String::Std target_id = ozz::String::Std(_joint.id) + '/';
   AnimationVisitor::Channels::const_iterator it_channel =
     _visitor.channels().lower_bound(target_id.c_str());
 
@@ -567,7 +569,7 @@ bool FindSamplers(const AnimationVisitor& _visitor,
 
     // Looks for a member definition.
     const char* member = NULL;
-    std::size_t cmp_count = strlen(transform_sid);
+    size_t cmp_count = strlen(transform_sid);
     const char* dot = strchr(transform_sid, '.');
     if (dot) {
       member = dot;
@@ -580,7 +582,7 @@ bool FindSamplers(const AnimationVisitor& _visitor,
     }
 
     // Finds matching transform.
-    std::size_t transform_index = 0;
+    size_t transform_index = 0;
     for (; transform_index < _joint.transforms.size(); ++transform_index) {
       const NodeTransform& transform = _joint.transforms[transform_index];
       if (!strncmp(transform.sid(), transform_sid, cmp_count)) {
@@ -651,15 +653,15 @@ bool FindSampleKeysUnion(const Samplers& _samplers,
                          ozz::Vector<float>::Std* _times,
                          float _start_time, float _end_time) {
   // Find inputs key-frame's time union.
-  for (std::size_t i = 0; i < _samplers.size(); ++i) {
+  for (size_t i = 0; i < _samplers.size(); ++i) {
     // Preallocates times vector.
     const ozz::Vector<float>::Std& values = _samplers[i].input->values;
     _times->reserve(_times->size() + values.size());
 
     // Compares "values" key with "times" ones and insert non existing ones.
     // Cares to maintain key frame order.
-    std::size_t v = 0;
-    for (std::size_t s = 0; s < _times->size() && v < values.size(); ++s) {
+    size_t v = 0;
+    for (size_t s = 0; s < _times->size() && v < values.size(); ++s) {
       const float v_value = values[v];
       // Ensure key-frames are strictly ordered.
       if (v > 0 && v_value <= values[v - 1]) {
@@ -713,15 +715,15 @@ struct EvaluationCache {
   AnimationVisitor::Behavior post_behavior;
   const float* inputs;
   const float* inputs_end;
-  std::size_t input_stride;
+  size_t input_stride;
   const float* outputs;
-  std::size_t output_stride;
+  size_t output_stride;
   const AnimationVisitor::Interpolation* interpolations;
-  std::size_t interpolation_stride;
+  size_t interpolation_stride;
   const float* in_tangents;
-  std::size_t in_tangent_stride;
+  size_t in_tangent_stride;
   const float* out_tangents;
-  std::size_t out_tangent_stride;
+  size_t out_tangent_stride;
 };
 
 typedef ozz::Vector<EvaluationCache>::Std Caches;
@@ -729,7 +731,7 @@ typedef ozz::Vector<EvaluationCache>::Std Caches;
 bool SetupCaches(const Samplers& _samplers, Caches* _caches) {
   _caches->resize(_samplers.size());
 
-  for (std::size_t j = 0; j < _samplers.size(); ++j) {
+  for (size_t j = 0; j < _samplers.size(); ++j) {
     const Sampler& sampler = _samplers[j];
 
     // Validates sampler.
@@ -849,7 +851,7 @@ float ApproximateAlpha(const math::Float4 _m[4], const math::Float4& _c,
 
 // Evaluate a single float at t = _time.
 bool Evaluate(float _time, const EvaluationCache& _cache,
-              std::size_t _param_index, float* _output, bool* _subsample) {
+              size_t _param_index, float* _output, bool* _subsample) {
   // Does not require sub-sampling by default.
   *_subsample = false;
 
@@ -998,7 +1000,7 @@ bool Evaluate(const Sampler& _sampler,
 
   // Evaluate all outputs. Uses a local cache in order to freely increment
   // outputs and tangents.
-  for (std::size_t i = 0; i < _sampler.output->stride; ++i) {
+  for (size_t i = 0; i < _sampler.output->stride; ++i) {
     bool subsample;
     if (!Evaluate(_time, *_cache, i, outputs, &subsample)) {
       return false;
@@ -1084,7 +1086,7 @@ bool ExtractAnimation(const AnimationVisitor& _animation_visitor,
                       RawAnimation* _animation) {
   // Build a joint-name mapping
   JointsByName joints;
-  for (std::size_t i = 0; i < _skeleton_visitor.roots().size(); ++i) {
+  for (size_t i = 0; i < _skeleton_visitor.roots().size(); ++i) {
     if (!MapJointsByName(_skeleton_visitor.roots()[i], &joints)) {
       log::Err() << "Failed to build joint-name mapping." << std::endl;
       return false;
@@ -1118,7 +1120,7 @@ bool ExtractAnimation(const AnimationVisitor& _animation_visitor,
     }
 
     // Accumulates animation min and max times.
-    for (std::size_t j = 0; j < tracks[i].samplers.size(); ++j) {
+    for (size_t j = 0; j < tracks[i].samplers.size(); ++j) {
       const Sampler& sampler = tracks[i].samplers[j];
       if (!sampler.input->values.empty()) {
         start_time = math::Min(sampler.input->values.front(), start_time);
@@ -1171,7 +1173,7 @@ bool ExtractAnimation(const AnimationVisitor& _animation_visitor,
         return false;
       }
 
-      for (std::size_t j = 0; j < times.size(); ++j) {  // For all the key-frames.
+      for (size_t j = 0; j < times.size(); ++j) {  // For all the key-frames.
         float time = times[j];
 
         // Does evaluation requires to subsample between keys? This is the case
@@ -1181,7 +1183,7 @@ bool ExtractAnimation(const AnimationVisitor& _animation_visitor,
           subsample = false;
 
           transforms = track.joint->transforms;  // Reset output transforms.
-          for (std::size_t k = 0; k < track.samplers.size(); ++k) {
+          for (size_t k = 0; k < track.samplers.size(); ++k) {
             const Sampler& sampler = track.samplers[k];
             if (!Evaluate(sampler, time, &caches[k],
                           &transforms[sampler.transform], &subsample)) {
@@ -1191,7 +1193,7 @@ bool ExtractAnimation(const AnimationVisitor& _animation_visitor,
 
           // Concatenates all transforms.
           TransformBuilder builder;
-          for (std::size_t t = 0; t < transforms.size(); ++t) {
+          for (size_t t = 0; t < transforms.size(); ++t) {
             if (!transforms[t].Build(&builder)) {
               return false;
             }

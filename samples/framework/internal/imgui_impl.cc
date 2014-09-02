@@ -30,7 +30,7 @@
 
 #define OZZ_INCLUDE_PRIVATE_HEADER  // Allows to include private headers.
 
-#include "framework/internal/imgui_impl.h"
+#include "imgui_impl.h"
 
 #include <cassert>
 #include <cmath>
@@ -41,69 +41,69 @@
 #include "ozz/base/maths/math_ex.h"
 #include "ozz/base/memory/allocator.h"
 
-#include "framework/internal/renderer_impl.h"
+#include "renderer_impl.h"
+#include "immediate.h"
 
 namespace ozz {
 namespace sample {
 namespace internal {
 
-const GLubyte panel_background_color[4] = {0xa0, 0xa0, 0xa0, 0xc0};
-const GLubyte panel_border_color[4] = {0x30, 0x30, 0x30, 0xff};
-const GLubyte panel_title_color[4] = {0x30, 0x30, 0x30, 0xd0};
-const GLubyte panel_title_text_color[4] = {0x80, 0x80, 0x80, 0xff};
+const GLubyte kPanelBackgroundColor[4] = {0xa0, 0xa0, 0xa0, 0xc0};
+const GLubyte kPanelBorderColor[4] = {0x30, 0x30, 0x30, 0xff};
+const GLubyte kPanelTitleColor[4] = {0x30, 0x30, 0x30, 0xd0};
+const GLubyte kPanelTitleTextColor[4] = {0x80, 0x80, 0x80, 0xff};
 
-const GLubyte widget_background_color[4] = {0xb0, 0xb0, 0xb0, 0xff};
-const GLubyte widget_border_color[4] = {0x30, 0x30, 0x30, 0xff};
+const GLubyte kWidgetBackgroundColor[4] = {0xb0, 0xb0, 0xb0, 0xff};
+const GLubyte kWidgetBorderColor[4] = {0x30, 0x30, 0x30, 0xff};
 
-const GLubyte widget_disabled_background_color[4] = {0xb0, 0xb0, 0xb0, 0xff};
-const GLubyte widget_disabled_border_color[4] = {0x90, 0x90, 0x90, 0xff};
+const GLubyte kWidgetDisabledBackgroundColor[4] = {0xb0, 0xb0, 0xb0, 0xff};
+const GLubyte kWidgetDisabledBorderColor[4] = {0x90, 0x90, 0x90, 0xff};
 
-const GLubyte widget_hot_background_color[4] = {0xb0, 0xb0, 0xb0, 0xff};
-const GLubyte widget_hot_border_color[4] = {0xc7, 0x9a, 0x40, 0xff};
+const GLubyte kWidgetHotBackgroundColor[4] = {0xb0, 0xb0, 0xb0, 0xff};
+const GLubyte kWidgetHotBorderColor[4] = {0xc7, 0x9a, 0x40, 0xff};
 
-const GLubyte widget_active_background_color[4] = {0xc7, 0x9a, 0x40, 0xff};
-const GLubyte widget_active_border_color[4] = {0x30, 0x30, 0x30, 0xff};
+const GLubyte kWidgetActiveBackgroundColor[4] = {0xc7, 0x9a, 0x40, 0xff};
+const GLubyte kWidgetActiveBorderColor[4] = {0x30, 0x30, 0x30, 0xff};
 
-const GLubyte widget_text_color[4] = {0x20, 0x20, 0x20, 0xff};
-const GLubyte widget_disabled_text_color[4] = {0x50, 0x50, 0x50, 0xff};
+const GLubyte kWidgetTextColor[4] = {0x20, 0x20, 0x20, 0xff};
+const GLubyte kWidgetDisabledTextColor[4] = {0x50, 0x50, 0x50, 0xff};
 
-const GLubyte graph_background_color[4] = {0x30, 0x40, 0x9a, 0xff};
-const GLubyte graph_plot_color[4] = {0, 0xe0, 0, 0xff};
+const GLubyte kGraphBackgroundColor[4] = {0x30, 0x40, 0x9a, 0xff};
+const GLubyte kGraphPlotColor[4] = {0, 0xe0, 0, 0xff};
 
-const GLubyte slider_background_color[4] = {0xb0, 0xb0, 0xb0, 0xff};
-const GLubyte slider_cursor_color[4] = {0x90, 0x90, 0x90, 0xff};
-const GLubyte slider_cursor_hot_color[4] = {0x80, 0x80, 0x80, 0xff};
-const GLubyte slider_disabled_cursor_color[4] = {0x80, 0x80, 0x80, 0xff};
+const GLubyte kSliderBackgroundColor[4] = {0xb0, 0xb0, 0xb0, 0xff};
+const GLubyte kSliderCursorColor[4] = {0x90, 0x90, 0x90, 0xff};
+const GLubyte kSliderCursorHotColor[4] = {0x80, 0x80, 0x80, 0xff};
+const GLubyte kSliderDisabledCursorColor[4] = {0x80, 0x80, 0x80, 0xff};
 
-const GLubyte cursor_color[4] = {0xf0, 0xf0, 0xf0, 0xff};
-const int cursor_size = 16;
+const GLubyte kCursorColor[4] = {0xf0, 0xf0, 0xf0, 0xff};
+const float kCursorSize = 16.f;
 
-const int graph_height_factor = 3;
-const int graph_label_digits = 5;
+const float kGraphHeightFactor = 3.f;
+const int kGraphLabelDigits = 5;
 
-const int text_margin_x = 2;
+const float kTextMarginX = 2.f;
+const float kWidgetRoundRectRadius = 2.f;
+const float kWidgetCursorWidth = 8.f;
+const float kWidgetHeight = 13.f;
+const float kWidgetMarginX = 6.f;
+const float kWidgetMarginY = 4.f;
+const float kSliderRoundRectRadius = 1.f;
+const float kButtonRoundRectRadius = 4.f;
+const float kPanelRoundRectRadius = 1.f;
+const float kPanelMarginX = 2.f;
+const float kPanelTitleMarginY = 1.f;
 
-const int widget_round_rect_radius = 2;
-const int widget_cursor_width = 8;
-const int widget_height = 12;
-const int widget_margin_x = 6;
-const int widget_margin_y = 4;
-
-const int slider_round_rect_radius = 1;
-
-const int button_round_rect_radius = widget_height / 3;
-
-const int panel_round_rect_radius = 1;
-const int panel_margin_x = 2;
-const int panel_title_margin_y = 1;
+// The radius of the precomputed circle.
+const float kCircleRadius = 32.f;
 
 bool FormatFloat(float _value, char* _string, const char* _string_end) {
   // Requires 8 fixed characters count + digits of precision + \0.
-  static const int precision = 3;
+  static const int precision = 2;
   if (!_string || _string_end - _string < 8 + precision + 1) {
     return false;
   }
-  std::sprintf(_string, "%.3g\n", _value);
+  std::sprintf(_string, "%.2g\n", _value);
 
   // Removes unnecessary '0' digits in the exponent.
   char* exponent = strchr(_string, 'e');
@@ -120,8 +120,8 @@ ImGuiImpl::ImGuiImpl()
     : hot_item_(0),
       active_item_(0),
       auto_gen_id_(0),
-      glyph_displaylist_base_(0),
-      glyph_texture_(0) {
+      glyph_texture_(0),
+      renderer_(NULL) {
   InitializeCircle();
   InitalizeFont();
 }
@@ -130,10 +130,14 @@ ImGuiImpl::~ImGuiImpl() {
   DestroyFont();
 }
 
-void ImGuiImpl::BeginFrame(const Inputs& _inputs, const math::RectInt& _rect) {
+void ImGuiImpl::BeginFrame(const Inputs& _inputs, const math::RectInt& _rect,
+                           RendererImpl* _renderer) {
   if (!containers_.empty()) {
     return;
   }
+
+  // Stores renderer
+  renderer_ = _renderer;
 
   // Store inputs.
   inputs_ = _inputs;
@@ -145,20 +149,16 @@ void ImGuiImpl::BeginFrame(const Inputs& _inputs, const math::RectInt& _rect) {
   auto_gen_id_ = 0;
 
   // Reset container stack info.
-  Container container = {_rect, _rect.height - widget_height};
+  const math::RectFloat rect(
+    static_cast<float>(_rect.left),
+    static_cast<float>(_rect.bottom),
+    static_cast<float>(_rect.width),
+    static_cast<float>(_rect.height));
+  Container container = {rect, rect.height - kWidgetHeight};
   containers_.push_back(container);
 
   // Setup GL context in order to render layered the widgets.
   GL(Clear(GL_DEPTH_BUFFER_BIT));
-
-  // Setup orthographic projection.
-  GL(MatrixMode(GL_PROJECTION));
-  GL(PushMatrix());
-  GL(LoadIdentity());
-  GL(Ortho(0, math::Max(_rect.width, 1), 0, math::Max(_rect.height, 1), -1, 1));
-  GL(MatrixMode(GL_MODELVIEW));
-  GL(PushMatrix());
-  GL(LoadIdentity());
 
   // Enables blending
   GL(Enable(GL_BLEND));
@@ -182,28 +182,37 @@ void ImGuiImpl::EndFrame() {
   }
 
   // Renders mouse cursor.
-  GL(Color4ubv(cursor_color));
-  glBegin(GL_LINE_LOOP);
-    glVertex2i(inputs_.mouse_x, inputs_.mouse_y);
-    glVertex2i(inputs_.mouse_x + cursor_size,
-               inputs_.mouse_y - cursor_size / 2);
-    glVertex2i(inputs_.mouse_x + cursor_size / 2,
-               inputs_.mouse_y - cursor_size / 2);
-    glVertex2i(inputs_.mouse_x + cursor_size / 2,
-               inputs_.mouse_y - cursor_size);
-  GL(End());
+  {
+    GlImmediatePC im(renderer_->immediate_renderer(),
+                     GL_LINE_LOOP,
+                     ozz::math::Float4x4::identity());
+    GlImmediatePC::Vertex v = {
+      {0.f, 0.f, 0.f},
+      {kCursorColor[0], kCursorColor[1], kCursorColor[2], kCursorColor[3]}
+    };
 
-  // Restores projection.
-  GL(MatrixMode(GL_PROJECTION));
-  GL(PopMatrix());
-  GL(MatrixMode(GL_MODELVIEW));
-  GL(PopMatrix());
+    v.pos[0] = static_cast<float>(inputs_.mouse_x);
+    v.pos[1] = static_cast<float>(inputs_.mouse_y);
+    im.PushVertex(v);
+    v.pos[0] = static_cast<float>(inputs_.mouse_x) + kCursorSize;
+    v.pos[1] = static_cast<float>(inputs_.mouse_y) - kCursorSize / 2.f;
+    im.PushVertex(v);
+    v.pos[0] = static_cast<float>(inputs_.mouse_x) + kCursorSize / 2.f;
+    v.pos[1] = static_cast<float>(inputs_.mouse_y) - kCursorSize / 2.f;
+    im.PushVertex(v);
+    v.pos[0] = static_cast<float>(inputs_.mouse_x) + kCursorSize / 2.f;
+    v.pos[1] = static_cast<float>(inputs_.mouse_y) - kCursorSize;
+    im.PushVertex(v);
+  }
 
   // Restores blending
   GL(Disable(GL_BLEND));
+
+  // Release renderer.
+  renderer_ = NULL;
 }
 
-bool ImGuiImpl::AddWidget(int _height, math::RectInt* _rect) {
+bool ImGuiImpl::AddWidget(float _height, math::RectFloat* _rect) {
   if (containers_.empty()) {
     return false;
   }
@@ -213,28 +222,29 @@ bool ImGuiImpl::AddWidget(int _height, math::RectInt* _rect) {
 
   // Early out if outside of the container.
   // But don't modify current container's state.
-  if (container.offset_y < widget_margin_y + _height) {
+  if (container.offset_y < kWidgetMarginY + _height) {
     return false;
   }
 
   // Computes widget rect and update internal offset in the container.
   container.offset_y -= _height;
 
-  _rect->left = container.rect.left + widget_margin_x;
+  _rect->left = container.rect.left + kWidgetMarginX;
   _rect->bottom = container.rect.bottom + container.offset_y;
-  _rect->width = container.rect.width - widget_margin_x * 2;
+  _rect->width = container.rect.width - kWidgetMarginX * 2.f;
   _rect->height = _height;
 
   // Includes margin for the next widget.
-  container.offset_y -= widget_margin_y;
+  container.offset_y -= kWidgetMarginY;
 
   return true;
 }
 
-bool ImGuiImpl::ButtonLogic(const math::RectInt& _rect, int _id,
+bool ImGuiImpl::ButtonLogic(const math::RectFloat& _rect, int _id,
                             bool* _hot, bool* _active) {
   // Checks whether the button should be hot.
-  if (_rect.is_inside(inputs_.mouse_x, inputs_.mouse_y)) {
+  if (_rect.is_inside(static_cast<float>(inputs_.mouse_x),
+                      static_cast<float>(inputs_.mouse_y))) {
     // Becomes hot if no other item is active.
     hot_item_ = active_item_ <= 0 || active_item_ == _id ? _id : 0;
 
@@ -258,7 +268,7 @@ bool ImGuiImpl::ButtonLogic(const math::RectInt& _rect, int _id,
 }
 
 void ImGuiImpl::BeginContainer(const char* _title,
-                               const math::RectInt* _rect,
+                               const math::RectFloat* _rect,
                                bool* _open,
                                bool _constrain) {
   if (containers_.empty()) {
@@ -272,28 +282,29 @@ void ImGuiImpl::BeginContainer(const char* _title,
 
   // Does the container have a header to render ?
   const bool header = _title || _open;
-  const int header_height = header ? widget_height + panel_title_margin_y : 0;
+  const float header_height =
+    header ? kWidgetHeight + kPanelTitleMarginY : 0.f;
 
   if (_rect) {
     // Crops _rect in parent's rect.
     container.rect.left = parent.rect.left + _rect->left;
     container.rect.bottom = parent.rect.bottom + _rect->bottom;
     container.rect.width = math::Max(
-      0, math::Min(parent.rect.width -  _rect->left, _rect->width));
+      0.f, math::Min(parent.rect.width -  _rect->left, _rect->width));
     container.rect.height = math::Max(
-      0, math::Min(parent.rect.height - _rect->bottom, _rect->height));
+      0.f, math::Min(parent.rect.height - _rect->bottom, _rect->height));
   } else {
     // Concatenate to the parent's rect.
-    container.rect.left = parent.rect.left + panel_margin_x;
+    container.rect.left = parent.rect.left + kPanelMarginX;
     container.rect.bottom = parent.rect.bottom;
     container.rect.width =
-      math::Max(0, parent.rect.width - panel_margin_x * 2);
+      math::Max(0.f, parent.rect.width - kPanelMarginX * 2.f);
     container.rect.height = parent.offset_y;
   }
 
   // Shrinks rect if the container is closed.
   if (_open && !*_open) {
-    const int closed_height = header_height;
+    const float closed_height = header_height;
     container.rect.bottom = container.rect.top() - closed_height;
     container.rect.height = closed_height;
   }
@@ -311,7 +322,7 @@ void ImGuiImpl::BeginContainer(const char* _title,
   // Early out if there's no container title.
   if (!header) {
     // Adds margin before the new widget.
-    container.offset_y -= widget_margin_y;
+    container.offset_y -= kWidgetMarginY;
     return;
   }
 
@@ -320,34 +331,31 @@ void ImGuiImpl::BeginContainer(const char* _title,
   // Inserts header.
   container.offset_y -= header_height;
 
-  const math::RectInt title_rect(container.rect.left ,
-                                 container.rect.bottom + container.offset_y,
-                                 container.rect.width,
-                                 header_height);
+  const math::RectFloat title_rect(container.rect.left ,
+                                   container.rect.bottom + container.offset_y,
+                                   container.rect.width,
+                                   header_height);
 
-  const math::RectInt open_close_rect(title_rect.left,
-                                      title_rect.bottom,
-                                      widget_height,
-                                      widget_height);
+  const math::RectFloat open_close_rect(title_rect.left,
+                                        title_rect.bottom,
+                                        kWidgetHeight,
+                                        kWidgetHeight);
 
-  const math::RectInt label_rect(
-    title_rect.left + widget_height + text_margin_x,
+  const math::RectFloat label_rect(
+    title_rect.left + kWidgetHeight + kTextMarginX,
     title_rect.bottom,
-    title_rect.width - widget_height - text_margin_x,
-    widget_height);
+    title_rect.width - kWidgetHeight - kTextMarginX,
+    kWidgetHeight);
 
   // Adds a margin before the next widget only if it is opened.
   if (!_open || *_open) {
-    container.offset_y -= widget_margin_y;
+    container.offset_y -= kWidgetMarginY;
   }
 
   // Renders title background.
-  GL(Color4ubv(panel_title_color));
-  FillRect(title_rect, panel_round_rect_radius);
-
-  GL(Color4ubv(panel_title_text_color));
+  FillRect(title_rect, kPanelRoundRectRadius, kPanelTitleColor);
   if (_title) {
-    Print(_title, label_rect, kWest);
+    Print(_title, label_rect, kWest, kPanelTitleTextColor);
   }
 
   // Handles open close button.
@@ -358,24 +366,39 @@ void ImGuiImpl::BeginContainer(const char* _title,
       *_open = !*_open;
     }
 
-    GL(Color4ubv(panel_title_text_color));
-    glBegin(GL_TRIANGLES);
-    if (*_open) {
-      glVertex2i(open_close_rect.left + open_close_rect.width / 8,
-                 open_close_rect.top() - open_close_rect.height / 4);
-      glVertex2i(open_close_rect.left + open_close_rect.width / 2,
-                 open_close_rect.bottom + open_close_rect.height / 4);
-      glVertex2i(open_close_rect.right() - open_close_rect.width / 8,
-                 open_close_rect.top() - open_close_rect.height / 4);
-    } else {
-      glVertex2i(open_close_rect.left + open_close_rect.width / 4,
-                 open_close_rect.top() - open_close_rect.height / 8);
-      glVertex2i(open_close_rect.left + open_close_rect.width / 4,
-                 open_close_rect.bottom + open_close_rect.height / 8);
-      glVertex2i(open_close_rect.right() - open_close_rect.width / 4,
-                 open_close_rect.bottom + open_close_rect.height / 2);
+    // Renders arrow.
+    {
+      GlImmediatePC im(renderer_->immediate_renderer(),
+                       GL_TRIANGLES,
+                       ozz::math::Float4x4::identity());
+      GlImmediatePC::Vertex v = {
+        {0.f, 0.f, 0.f},
+        {kPanelTitleTextColor[0], kPanelTitleTextColor[1],
+         kPanelTitleTextColor[2], kPanelTitleTextColor[3]}
+      };
+
+      if (*_open) {
+        v.pos[0] = open_close_rect.left + 3.f;
+        v.pos[1] = open_close_rect.bottom + 3.f;
+        im.PushVertex(v);
+        v.pos[0] = open_close_rect.left + 11.f;
+        v.pos[1] = open_close_rect.bottom + 7.f;
+        im.PushVertex(v);
+        v.pos[0] = open_close_rect.left + 3.f;
+        v.pos[1] = open_close_rect.bottom + 11.f;
+        im.PushVertex(v);
+      } else {
+        v.pos[0] = open_close_rect.left + 3.f;
+        v.pos[1] = open_close_rect.bottom + 11.f;
+        im.PushVertex(v);
+        v.pos[0] = open_close_rect.left + 7.f;
+        v.pos[1] = open_close_rect.bottom + 3.f;
+        im.PushVertex(v);
+        v.pos[0] = open_close_rect.left + 11.f;
+        v.pos[1] = open_close_rect.bottom + 11.f;
+        im.PushVertex(v);
+      }
     }
-    GL(End());
   }
 }
 
@@ -387,31 +410,29 @@ void ImGuiImpl::EndContainer() {
 
   // Shrinks container rect.
   if (container.constrain) {
-    int final_height =
-      math::Max(0, container.rect.height - container.offset_y);
+    float final_height =
+      math::Max(0.f, container.rect.height - container.offset_y);
     container.rect.bottom += container.offset_y;
     container.rect.height = final_height;
   }
 
   // Renders container background.
-  if (container.rect.height > 0) {
-    glPushMatrix();
-    glTranslatef(0, 0, -.1f);  // Renders the background in the depth.
-    GL(Color4ubv(panel_background_color));
-    FillRect(container.rect, panel_round_rect_radius);
-    glPopMatrix();
-
-    GL(Color4ubv(panel_border_color));
-    StrokeRect(container.rect, panel_round_rect_radius);
+  if (container.rect.height > 0.f) {
+    const ozz::math::SimdFloat4 translation =
+      ozz::math::simd_float4::Load(0.f, 0.f, -.1f, 0.f);
+    const ozz::math::Float4x4 transform =
+      ozz::math::Float4x4::Translation(translation);
+    FillRect(container.rect, kPanelRoundRectRadius, kPanelBackgroundColor, transform);
+    StrokeRect(container.rect, kPanelRoundRectRadius, kPanelBorderColor);
   }
 
   // Applies changes to the parent container.
-  parent.offset_y -= container.rect.height + widget_margin_y;
+  parent.offset_y -= container.rect.height + kWidgetMarginY;
 }
 
 bool ImGuiImpl::DoButton(const char* _label, bool _enabled, bool* _state) {
-  math::RectInt rect;
-  if (!AddWidget(widget_height, &rect)) {
+  math::RectFloat rect;
+  if (!AddWidget(kWidgetHeight, &rect)) {
     return false;
   }
 
@@ -432,39 +453,36 @@ bool ImGuiImpl::DoButton(const char* _label, bool _enabled, bool* _state) {
   }
 
   // Renders the button.
-  const GLubyte* background_color = widget_background_color;
-  const GLubyte* border_color = widget_border_color;
-  const GLubyte* text_color = widget_text_color;
+  const GLubyte* background_color = kWidgetBackgroundColor;
+  const GLubyte* border_color = kWidgetBorderColor;
+  const GLubyte* text_color = kWidgetTextColor;
 
-  int active_offset = 0;
+  float active_offset = 0.f;
   if (!_enabled) {
-    background_color = widget_disabled_background_color;
-    border_color = widget_disabled_border_color;
-    text_color = widget_disabled_text_color;
+    background_color = kWidgetDisabledBackgroundColor;
+    border_color = kWidgetDisabledBorderColor;
+    text_color = kWidgetDisabledTextColor;
   } else if (active) {  // Button is 'active'.
-    background_color = widget_active_background_color;
-    border_color = widget_active_border_color;
-    active_offset = 1;
+    background_color = kWidgetActiveBackgroundColor;
+    border_color = kWidgetActiveBorderColor;
+    active_offset = 1.f;
   } else if (hot) {  // Hot but not 'active'.
       // Button is merely 'hot'.
-      background_color = widget_hot_background_color;
-      border_color = widget_hot_border_color;
+      background_color = kWidgetHotBackgroundColor;
+      border_color = kWidgetHotBorderColor;
   } else {
     // button is not hot, but it may be active. Use default colors.
   }
 
-  GL(Color4ubv(background_color));
-  FillRect(rect, button_round_rect_radius);
-  GL(Color4ubv(border_color));
-  StrokeRect(rect, button_round_rect_radius);
+  FillRect(rect, kButtonRoundRectRadius, background_color);
+  StrokeRect(rect, kButtonRoundRectRadius, border_color);
 
   // Renders button label.
-  const math::RectInt text_rect(rect.left + button_round_rect_radius,
-                                rect.bottom - active_offset,
-                                rect.width - button_round_rect_radius * 2,
-                                rect.height - active_offset);
-  GL(Color4ubv(text_color));
-  Print(_label, text_rect, kMiddle);
+  const math::RectFloat text_rect(rect.left + kButtonRoundRectRadius,
+                                  rect.bottom - active_offset,
+                                  rect.width - kButtonRoundRectRadius * 2.f,
+                                  rect.height - active_offset);
+  Print(_label, text_rect, kMiddle, text_color);
 
   return clicked;
 }
@@ -472,15 +490,15 @@ bool ImGuiImpl::DoButton(const char* _label, bool _enabled, bool* _state) {
 bool ImGuiImpl::DoCheckBox(const char* _label,
                            bool* _state,
                            bool _enabled) {
-  math::RectInt widget_rect;
-  if (!AddWidget(widget_height, &widget_rect)) {
+  math::RectFloat widget_rect;
+  if (!AddWidget(kWidgetHeight, &widget_rect)) {
     return false;
   }
 
-  math::RectInt check_rect(widget_rect.left,
-                           widget_rect.bottom,
-                           widget_height,  // The check box is square.
-                           widget_rect.height);
+  math::RectFloat check_rect(widget_rect.left,
+                             widget_rect.bottom,
+                             kWidgetHeight,  // The check box is square.
+                             widget_rect.height);
 
   ++auto_gen_id_;
 
@@ -496,65 +514,72 @@ bool ImGuiImpl::DoCheckBox(const char* _label,
   }
 
   // Renders the check box.
-  const GLubyte* background_color = widget_background_color;
-  const GLubyte* border_color = widget_border_color;
-  const GLubyte* check_color = widget_border_color;
-  const GLubyte* text_color = widget_text_color;
+  const GLubyte* background_color = kWidgetBackgroundColor;
+  const GLubyte* border_color = kWidgetBorderColor;
+  const GLubyte* check_color = kWidgetBorderColor;
+  const GLubyte* text_color = kWidgetTextColor;
 
   if (!_enabled) {
-    background_color = widget_disabled_background_color;
-    border_color = widget_disabled_border_color;
-    check_color = widget_disabled_border_color;
-    text_color = widget_disabled_text_color;
+    background_color = kWidgetDisabledBackgroundColor;
+    border_color = kWidgetDisabledBorderColor;
+    check_color = kWidgetDisabledBorderColor;
+    text_color = kWidgetDisabledTextColor;
   } else if (hot) {
     if (active) {
       // Button is both 'hot' and 'active'.
-      background_color = widget_active_background_color;
-      border_color = widget_active_border_color;
-      check_color = widget_active_border_color;
+      background_color = kWidgetActiveBackgroundColor;
+      border_color = kWidgetActiveBorderColor;
+      check_color = kWidgetActiveBorderColor;
     } else {
       // Button is merely 'hot'.
-      background_color = widget_hot_background_color;
-      border_color = widget_hot_border_color;
-      check_color = widget_hot_border_color;
+      background_color = kWidgetHotBackgroundColor;
+      border_color = kWidgetHotBorderColor;
+      check_color = kWidgetHotBorderColor;
     }
   } else {
     // button is not hot, but it may be active. Use default colors.
   }
 
-  GL(Color4ubv(background_color));
-  FillRect(check_rect, 0);
-  GL(Color4ubv(border_color));
-  StrokeRect(check_rect, 0);
+  FillRect(check_rect, 0, background_color);
+  StrokeRect(check_rect, 0, border_color);
 
   // Renders the "check" mark.
   if (*_state) {
-    glBegin(GL_TRIANGLES);
-    glColor4ubv(check_color);
-    glVertex2i(check_rect.left + check_rect.width / 8,
-               check_rect.bottom + check_rect.height / 2);
-    glVertex2i(check_rect.left + check_rect.width / 2,
-               check_rect.bottom + check_rect.height / 8);
-    glVertex2i(check_rect.left + check_rect.width / 2,
-               check_rect.bottom + check_rect.height / 2);
+    GlImmediatePC im(renderer_->immediate_renderer(),
+                     GL_TRIANGLES,
+                     ozz::math::Float4x4::identity());
+    GlImmediatePC::Vertex v = {
+      {0.f, 0.f, 0.f},
+      {check_color[0], check_color[1], check_color[2], check_color[3]}
+    };
+    v.pos[0] = check_rect.left + check_rect.width / 8.f;
+    v.pos[1] = check_rect.bottom + check_rect.height / 2.f;
+    im.PushVertex(v);
+    v.pos[0] = check_rect.left + check_rect.width / 2.f;
+    v.pos[1] = check_rect.bottom + check_rect.height / 8.f;
+    im.PushVertex(v);
+    v.pos[0] = check_rect.left + check_rect.width / 2.f;
+    v.pos[1] = check_rect.bottom + check_rect.height / 2.f;
+    im.PushVertex(v);
 
-    glVertex2i(check_rect.left + check_rect.width / 3,
-               check_rect.bottom + check_rect.height / 2);
-    glVertex2i(check_rect.left + check_rect.width / 2,
-               check_rect.bottom + check_rect.height / 8);
-    glVertex2i(check_rect.right() - check_rect.width / 6,
-               check_rect.top() - check_rect.height / 6);
-    GL(End());
+    v.pos[0] = check_rect.left + check_rect.width / 3.f;
+    v.pos[1] = check_rect.bottom + check_rect.height / 2.f;
+    im.PushVertex(v);
+    v.pos[0] = check_rect.left + check_rect.width / 2.f;
+    v.pos[1] = check_rect.bottom + check_rect.height / 8.f;
+    im.PushVertex(v);
+    v.pos[0] = check_rect.right() - check_rect.width / 6.f;
+    v.pos[1] = check_rect.top() - check_rect.height / 6.f;
+    im.PushVertex(v);
   }
 
   // Renders button label.
-  const math::RectInt text_rect(
-    check_rect.right() + text_margin_x,
+  const math::RectFloat text_rect(
+    check_rect.right() + kTextMarginX,
     widget_rect.bottom,
-    widget_rect.width - check_rect.width - text_margin_x,
+    widget_rect.width - check_rect.width - kTextMarginX,
     widget_rect.height);
-  GL(Color4ubv(text_color));
-  Print(_label, text_rect, kWest);
+  Print(_label, text_rect, kWest, text_color);
 
   return clicked;
 }
@@ -563,15 +588,15 @@ bool ImGuiImpl::DoRadioButton(int _ref,
                               const char* _label,
                               int* _value,
                               bool _enabled) {
-  math::RectInt widget_rect;
-  if (!AddWidget(widget_height, &widget_rect)) {
+  math::RectFloat widget_rect;
+  if (!AddWidget(kWidgetHeight, &widget_rect)) {
     return false;
   }
 
-  math::RectInt radio_rect(widget_rect.left,
-                           widget_rect.bottom,
-                           widget_height,  // The check box is square.
-                           widget_rect.height);
+  math::RectFloat radio_rect(widget_rect.left,
+                             widget_rect.bottom,
+                             kWidgetHeight,  // The check box is square.
+                             widget_rect.height);
 
   ++auto_gen_id_;
 
@@ -587,55 +612,51 @@ bool ImGuiImpl::DoRadioButton(int _ref,
   }
 
   // Renders the check box.
-  const GLubyte* background_color = widget_background_color;
-  const GLubyte* border_color = widget_border_color;
-  const GLubyte* check_color = widget_border_color;
-  const GLubyte* text_color = widget_text_color;
+  const GLubyte* background_color = kWidgetBackgroundColor;
+  const GLubyte* border_color = kWidgetBorderColor;
+  const GLubyte* check_color = kWidgetBorderColor;
+  const GLubyte* text_color = kWidgetTextColor;
 
   if (!_enabled) {
-    background_color = widget_disabled_background_color;
-    border_color = widget_disabled_border_color;
-    check_color = widget_disabled_border_color;
-    text_color = widget_disabled_background_color;
+    background_color = kWidgetDisabledBackgroundColor;
+    border_color = kWidgetDisabledBorderColor;
+    check_color = kWidgetDisabledBorderColor;
+    text_color = kWidgetDisabledBackgroundColor;
   } else if (hot) {
     if (active) {
       // Button is both 'hot' and 'active'.
-      background_color = widget_active_background_color;
-      border_color = widget_active_border_color;
-      check_color = widget_active_border_color;
+      background_color = kWidgetActiveBackgroundColor;
+      border_color = kWidgetActiveBorderColor;
+      check_color = kWidgetActiveBorderColor;
     } else {
       // Button is merely 'hot'.
-      background_color = widget_hot_background_color;
-      border_color = widget_hot_border_color;
-      check_color = widget_hot_border_color;
+      background_color = kWidgetHotBackgroundColor;
+      border_color = kWidgetHotBorderColor;
+      check_color = kWidgetHotBorderColor;
     }
   } else {
     // button is not hot, but it may be active. Use default colors.
   }
 
-  GL(Color4ubv(background_color));
-  FillRect(radio_rect, widget_round_rect_radius);
-  GL(Color4ubv(border_color));
-  StrokeRect(radio_rect, widget_round_rect_radius);
+  FillRect(radio_rect, kWidgetRoundRectRadius, background_color);
+  StrokeRect(radio_rect, kWidgetRoundRectRadius, border_color);
 
   // Renders the "checked" button.
   if (*_value == _ref) {
-    GL(Color4ubv(check_color));
-    const math::RectInt checked_rect(radio_rect.left + 1,
-                                     radio_rect.bottom + 1,
-                                     radio_rect.width - 3,
-                                     radio_rect.height - 3);
-    FillRect(checked_rect, widget_round_rect_radius);
+    const math::RectFloat checked_rect(radio_rect.left + 1.f,
+                                       radio_rect.bottom + 1.f,
+                                       radio_rect.width - 3.f,
+                                       radio_rect.height - 3.f);
+    FillRect(checked_rect, kWidgetRoundRectRadius, check_color);
   }
 
   // Renders button label.
-  const math::RectInt text_rect(
-    radio_rect.right() + text_margin_x,
+  const math::RectFloat text_rect(
+    radio_rect.right() + kTextMarginX,
     widget_rect.bottom,
-    widget_rect.width - radio_rect.width - text_margin_x,
+    widget_rect.width - radio_rect.width - kTextMarginX,
     widget_rect.height);
-  GL(Color4ubv(text_color));
-  Print(_label, text_rect, kWest);
+  Print(_label, text_rect, kWest, text_color);
 
   return clicked;
 }
@@ -645,82 +666,97 @@ void ImGuiImpl::DoGraph(const char* _label,
                         const float* _value_cursor,
                         const float* _value_begin, const float* _value_end) {
   // Computes widget rect.
-  math::RectInt widget_rect;
-  const int label_height = _label ? (widget_margin_y + font_.glyph_height) : 0;
-  const int height = widget_height * graph_height_factor + label_height;
+  math::RectFloat widget_rect;
+  const float label_height = _label ? (kWidgetMarginY + font_.glyph_height) : 0.f;
+  const float height = kWidgetHeight * kGraphHeightFactor + label_height;
   if (!AddWidget(height, &widget_rect)) {
     return;
   }
 
-  const int label_width = graph_label_digits * font_.glyph_width;
+  const float label_width =
+    static_cast<float>(kGraphLabelDigits * font_.glyph_width);
 
-  const math::RectInt graph_rect(
+  const math::RectFloat graph_rect(
     widget_rect.left,
     widget_rect.bottom,
-    widget_rect.width - label_width - text_margin_x,
-    widget_height * graph_height_factor);
+    widget_rect.width - label_width - kTextMarginX,
+    kWidgetHeight * kGraphHeightFactor);
 
   // Renders background and borders.
-  GL(Color4ubv(graph_background_color));
-  FillRect(graph_rect, 0);
-
-  GL(Color4ubv(widget_text_color));
-  StrokeRect(graph_rect, 0);
-
-  glBegin(GL_LINES);
-  glVertex2i(graph_rect.left, graph_rect.bottom + graph_rect.height / 2);
-  glVertex2i(graph_rect.right(), graph_rect.bottom + graph_rect.height / 2);
-  GL(End());
+  FillRect(graph_rect, 0, kGraphBackgroundColor);
+  StrokeRect(graph_rect, 0, kWidgetTextColor);
+  {
+    GlImmediatePC im(renderer_->immediate_renderer(),
+                     GL_LINES,
+                     ozz::math::Float4x4::identity());
+    GlImmediatePC::Vertex v = {
+      {0.f, 0.f, 0.f},
+      {kWidgetTextColor[0], kWidgetTextColor[1],
+       kWidgetTextColor[2], kWidgetTextColor[3]}
+    };
+    v.pos[0] = graph_rect.left;
+    v.pos[1] = graph_rect.bottom + graph_rect.height / 2.f;
+    im.PushVertex(v);
+    v.pos[0] = graph_rect.right();
+    v.pos[1] = graph_rect.bottom + graph_rect.height / 2.f;
+    im.PushVertex(v);
+  }
 
   // Render labels.
   char sz[16];
   const char* sz_end = sz + OZZ_ARRAY_SIZE(sz);
-  GL(Color4ubv(widget_text_color));
-  const math::RectInt max_rect(widget_rect.left,
-                               graph_rect.top() - font_.glyph_height,
-                               widget_rect.width,
-                               font_.glyph_height);
+  const math::RectFloat max_rect(widget_rect.left,
+                                 graph_rect.top() - font_.glyph_height,
+                                 widget_rect.width,
+                                 static_cast<float>(font_.glyph_height));
   if (FormatFloat(_max, sz, sz_end)) {
-    Print(sz, max_rect, kEst);
+    Print(sz, max_rect, kEst, kWidgetTextColor);
   }
 
-  const math::RectInt mean_rect(
+  const math::RectFloat mean_rect(
     widget_rect.left,
-    graph_rect.bottom + graph_rect.height / 2 - font_.glyph_height / 2,
+    graph_rect.bottom + graph_rect.height / 2.f - font_.glyph_height / 2.f,
     widget_rect.width,
-    font_.glyph_height);
+    static_cast<float>(font_.glyph_height));
   if (FormatFloat(_mean, sz, sz_end)) {
-    Print(sz, mean_rect, kEst);
+    Print(sz, mean_rect, kEst, kWidgetTextColor);
   }
 
-  const math::RectInt min_rect(widget_rect.left,
-                               graph_rect.bottom,
-                               widget_rect.width,
-                               font_.glyph_height);
+  const math::RectFloat min_rect(widget_rect.left,
+                                 graph_rect.bottom,
+                                 widget_rect.width,
+                                 static_cast<float>(font_.glyph_height));
   if (FormatFloat(_min, sz, sz_end)) {
-    Print(sz, min_rect, kEst);
+    Print(sz, min_rect, kEst, kWidgetTextColor);
   }
 
   // Prints title on the left.
   if (_label) {
-    const math::RectInt label_rect(widget_rect.left,
-                                   widget_rect.top() - font_.glyph_height,
-                                   widget_rect.width,
-                                   font_.glyph_height);
-    Print(_label, label_rect, kNorthWest);
+    const math::RectFloat label_rect(widget_rect.left,
+                                     widget_rect.top() - font_.glyph_height,
+                                     widget_rect.width,
+                                     static_cast<float>(font_.glyph_height));
+    Print(_label, label_rect, kNorthWest, kWidgetTextColor);
   }
 
   // Renders the graph.
   if (_value_end - _value_begin >= 2) {  // Reject invalid or to small inputs.
-    const float abscissa_min = static_cast<float>(graph_rect.bottom + 1);
-    const float abscissa_max = static_cast<float>(graph_rect.top() - 1);
+    const float abscissa_min = graph_rect.bottom + 1.f;
+    const float abscissa_max = graph_rect.top() - 1.f;
     const float abscissa_scale = (abscissa_max - abscissa_min) / (_max - _min);
-    const float abscissa_begin = static_cast<float>(graph_rect.bottom + 1);
-    const float ordinate_inc = -static_cast<float>(graph_rect.width - 2) /
-      (_value_end - _value_begin - 1);
-    float ordinate_current = static_cast<float>(graph_rect.right() - 1);
-    GL(Color4ubv(graph_plot_color));
-    glBegin(GL_LINE_STRIP);
+    const float abscissa_begin = graph_rect.bottom + 1.f;
+    const float ordinate_inc =
+      -(graph_rect.width - 2.f) / (_value_end - _value_begin - 1.f);
+    float ordinate_current = graph_rect.right() - 1.f;
+
+    GlImmediatePC im(renderer_->immediate_renderer(),
+                     GL_LINE_STRIP,
+                     ozz::math::Float4x4::identity());
+    GlImmediatePC::Vertex v = {
+      {0.f, 0.f, 0.f},
+      {kGraphPlotColor[0], kGraphPlotColor[1],
+       kGraphPlotColor[2], kGraphPlotColor[3]}
+    };
 
     const float* current = _value_cursor;
     const float* end = _value_end;
@@ -729,7 +765,9 @@ void ImGuiImpl::DoGraph(const char* _label,
         abscissa_begin + abscissa_scale * (*current - _min);
       const float clamped_abscissa =
         math::Clamp(abscissa_min, abscissa, abscissa_max);
-      glVertex2f(ordinate_current, clamped_abscissa);
+
+      v.pos[0] = ordinate_current; v.pos[1] = clamped_abscissa;
+      im.PushVertex(v);
       ordinate_current += ordinate_inc;
 
       ++current;
@@ -738,7 +776,6 @@ void ImGuiImpl::DoGraph(const char* _label,
         current = _value_begin;
       }
     }
-    GL(End());
   }
 }
 
@@ -746,8 +783,8 @@ bool ImGuiImpl::DoSlider(const char* _label,
                          float _min, float _max, float* _value,
                          float _pow,
                          bool _enabled) {
-  math::RectInt rect;
-  if (!AddWidget(widget_height, &rect)) {
+  math::RectFloat rect;
+  if (!AddWidget(kWidgetHeight, &rect)) {
     return false;
   }
 
@@ -761,34 +798,34 @@ bool ImGuiImpl::DoSlider(const char* _label,
   bool hot = false, active = false;
   if (_enabled) {
     // Includes the cursor size in the pick region.
-    math::RectInt pick_rect = rect;
-    pick_rect.left -= widget_cursor_width / 2;
-    pick_rect.width += widget_cursor_width;
+    math::RectFloat pick_rect = rect;
+    pick_rect.left -= kWidgetCursorWidth / 2.f;
+    pick_rect.width += kWidgetCursorWidth;
     ButtonLogic(pick_rect, auto_gen_id_, &hot, &active);
   }
 
   // Render the scrollbar
-  const GLubyte* background_color = slider_background_color;
-  const GLubyte* border_color = widget_border_color;
-  const GLubyte* slider_color = slider_cursor_color;
-  const GLubyte* slider_border_color = widget_border_color;
-  const GLubyte* text_color = widget_text_color;
+  const GLubyte* background_color = kSliderBackgroundColor;
+  const GLubyte* border_color = kWidgetBorderColor;
+  const GLubyte* slider_color = kSliderCursorColor;
+  const GLubyte* slider_border_color = kWidgetBorderColor;
+  const GLubyte* text_color = kWidgetTextColor;
 
   if (!_enabled) {
-    background_color = widget_disabled_background_color;
-    border_color = widget_disabled_border_color;
-    slider_color = slider_disabled_cursor_color;
-    slider_border_color = widget_disabled_border_color;
-    text_color = widget_disabled_text_color;
+    background_color = kWidgetDisabledBackgroundColor;
+    border_color = kWidgetDisabledBorderColor;
+    slider_color = kSliderDisabledCursorColor;
+    slider_border_color = kWidgetDisabledBorderColor;
+    text_color = kWidgetDisabledTextColor;
   } else if (hot) {
     if (active) {
       // Button is both 'hot' and 'active'.
-      slider_color = widget_active_background_color;
-      slider_border_color = widget_active_border_color;
+      slider_color = kWidgetActiveBackgroundColor;
+      slider_border_color = kWidgetActiveBorderColor;
     } else {
       // Button is merely 'hot'.
-      slider_color = slider_cursor_hot_color;
-      slider_border_color = widget_hot_border_color;
+      slider_color = kSliderCursorHotColor;
+      slider_border_color = kWidgetHotBorderColor;
     }
   } else {
     // button is not hot, but it may be active. Use default colors.
@@ -800,12 +837,12 @@ bool ImGuiImpl::DoSlider(const char* _label,
   float pow_value = powf(clamped_value, _pow);
   if (_enabled) {
     if (active) {
-      int mousepos = inputs_.mouse_x - rect.left;
+      int mousepos = inputs_.mouse_x - static_cast<int>(rect.left);
       if (mousepos < 0) {
         mousepos = 0;
       }
       if (mousepos > rect.width) {
-        mousepos = rect.width;
+        mousepos = static_cast<int>(rect.width);
       }
       pow_value = (mousepos * (pow_max - pow_min)) / rect.width + pow_min;
       *_value = ozz::math::Clamp(_min, powf(pow_value, 1.f / _pow), _max);
@@ -816,33 +853,28 @@ bool ImGuiImpl::DoSlider(const char* _label,
   }
 
   // Renders slider's rail.
-  const math::RectInt rail_rect(rect.left,
-                                rect.bottom,
-                                rect.width,
-                                rect.height);
-  GL(Color4ubv(background_color));
-  FillRect(rail_rect, slider_round_rect_radius);
-  GL(Color4ubv(border_color));
-  StrokeRect(rail_rect, slider_round_rect_radius);
+  const math::RectFloat rail_rect(rect.left,
+                                  rect.bottom,
+                                  rect.width,
+                                  rect.height);
+  FillRect(rail_rect, kSliderRoundRectRadius, background_color);
+  StrokeRect(rail_rect, kSliderRoundRectRadius, border_color);
 
   // Finds cursor position and rect.
-  const int cursor = static_cast<int>(
+  const float cursor = floorf(
     (rect.width * (pow_value - pow_min)) / (pow_max - pow_min));
-  const math::RectInt cursor_rect(rect.left + cursor - widget_cursor_width / 2,
-                                  rect.bottom - 1,
-                                  widget_cursor_width,
-                                  rect.height + 2);
-  GL(Color4ubv(slider_color));
-  FillRect(cursor_rect, slider_round_rect_radius);
-  GL(Color4ubv(slider_border_color));
-  StrokeRect(cursor_rect, slider_round_rect_radius);
+  const math::RectFloat cursor_rect(rect.left + cursor - kWidgetCursorWidth / 2.f,
+                                    rect.bottom - 1.f,
+                                    kWidgetCursorWidth,
+                                    rect.height + 2.f);
+  FillRect(cursor_rect, kSliderRoundRectRadius, slider_color);
+  StrokeRect(cursor_rect, kSliderRoundRectRadius, slider_border_color);
 
-  const math::RectInt text_rect(rail_rect.left + slider_round_rect_radius,
-                                rail_rect.bottom,
-                                rail_rect.width - slider_round_rect_radius * 2,
-                                rail_rect.height);
-  GL(Color4ubv(text_color));
-  Print(_label, text_rect, kMiddle);
+  const math::RectFloat text_rect(rail_rect.left + kSliderRoundRectRadius,
+                                  rail_rect.bottom,
+                                  rail_rect.width - kSliderRoundRectRadius * 2.f,
+                                  rail_rect.height);
+  Print(_label, text_rect, kMiddle, text_color);
 
   // Returns true if the value has changed or if it was clamped in _min / _max
   // bounds.
@@ -870,143 +902,220 @@ void ImGuiImpl::DoLabel(const char* _label, Justification _justification,
   Container& container = containers_.back();
 
   // Computes widget rect and update internal offset in the panel.
-  math::RectInt rect;
+  math::RectFloat rect;
   if (!AddWidget(
     _single_line ?
       font_.glyph_height :
-      math::Max(0, container.offset_y - widget_margin_y),
+      math::Max(0.f, container.offset_y - kWidgetMarginY),
     &rect)) {
     return;
   }
 
-  GL(Color4ubv(widget_text_color));
   PrintLayout layout[] = {kNorthWest, kNorth, kNorthEst};
-  const int offset = Print(_label, rect, layout[_justification]);
+  const float offset =
+    Print(_label, rect, layout[_justification], kWidgetTextColor);
 
   if (!_single_line) {  // Resume following widgets below the label.
-    container.offset_y = offset - widget_margin_y;
+    container.offset_y = offset - kWidgetMarginY;
   }
 }
 
-void ImGuiImpl::FillRect(const math::RectInt& _rect, int _radius) const {
-  if (_radius <= 0) {
-    glBegin(GL_QUADS);
-    glVertex2i(_rect.left, _rect.bottom);
-    glVertex2i(_rect.left + _rect.width, _rect.bottom);
-    glVertex2i(_rect.left + _rect.width, _rect.top());
-    glVertex2i(_rect.left, _rect.top());
-    GL(End());
-  } else {
-    const int x = _rect.left + _radius;
-    const int y = _rect.bottom + _radius;
-    const int w = _rect.width - _radius * 2;
-    const int h = _rect.height - _radius * 2;
+void ImGuiImpl::FillRect(const math::RectFloat& _rect,
+                         float _radius,
+                         const GLubyte _rgba[4]) const {
+  FillRect(_rect, _radius, _rgba, ozz::math::Float4x4::identity());
+}
 
-    glBegin(GL_TRIANGLES);
-    if (_radius > 0) {
-      for (int i = 1, j = i - 1; i <= kCircleSegments / 4; j = i++) {
-        glVertex2i(x + w, y + h);
-        glVertex2i(x + w + circle_[j][0] * _radius / kCircleRadius,
-                   y + h + circle_[j][1] * _radius / kCircleRadius);
-        glVertex2i(x + w + circle_[i][0] * _radius / kCircleRadius,
-                   y + h + circle_[i][1] * _radius / kCircleRadius);
-      }
-      for (int i = 1 + kCircleSegments / 4, j = i - 1;
-           i <= 2 * kCircleSegments / 4;
-           j = i++) {
-        glVertex2i(x, y + h);
-        glVertex2i(x + circle_[j][0] * _radius / kCircleRadius,
-                   y + h + circle_[j][1] * _radius / kCircleRadius);
-        glVertex2i(x + circle_[i][0] * _radius / kCircleRadius,
-                   y + h + circle_[i][1] * _radius / kCircleRadius);
-      }
-      for (int i = 1 + 2 * kCircleSegments / 4, j = i - 1;
-           i <= 3 * kCircleSegments / 4;
-           j = i++) {
-        glVertex2i(x, y);
-        glVertex2i(x + circle_[j][0] * _radius / kCircleRadius,
-                   y + circle_[j][1] * _radius / kCircleRadius);
-        glVertex2i(x + circle_[i][0] * _radius / kCircleRadius,
-                   y + circle_[i][1] * _radius / kCircleRadius);
-      }
-      for (int i = 1 + 3 * kCircleSegments / 4, j = i - 1;
-           i <= 4 * kCircleSegments / 4;
-           j = i++) {
-        const int index = i % kCircleSegments;
-        glVertex2i(x + w, y);
-        glVertex2i(x + w + circle_[j][0] * _radius / kCircleRadius,
-                   y + circle_[j][1] * _radius / kCircleRadius);
-        glVertex2i(x + w + circle_[index][0] * _radius / kCircleRadius,
-                   y + circle_[index][1] * _radius / kCircleRadius);
-      }
+void ImGuiImpl::FillRect(const math::RectFloat& _rect,
+                         float _radius,
+                         const GLubyte _rgba[4],
+                         const ozz::math::Float4x4& _transform) const {
+  if (_radius <= 0.f) {
+    GlImmediatePC im(renderer_->immediate_renderer(),
+                     GL_TRIANGLE_STRIP,
+                     _transform);
+    GlImmediatePC::Vertex v = {
+      {0.f, 0.f, 0.f}, {_rgba[0], _rgba[1], _rgba[2], _rgba[3]}
+    };
+    v.pos[0] = _rect.left; v.pos[1] = _rect.top();
+    im.PushVertex(v);
+    v.pos[1] = _rect.bottom;
+    im.PushVertex(v);
+    v.pos[0] = _rect.left + _rect.width; v.pos[1] = _rect.top();
+    im.PushVertex(v);
+    v.pos[1] = _rect.bottom;
+    im.PushVertex(v);
+  } else {
+    const float x = _rect.left + _radius;
+    const float y = _rect.bottom + _radius;
+    const float w = _rect.width - _radius * 2.f;
+    const float h = _rect.height - _radius * 2.f;
+    const float radius = _radius / kCircleRadius;
+
+    GlImmediatePC im(renderer_->immediate_renderer(), GL_TRIANGLES, _transform);
+    GlImmediatePC::Vertex v = {
+      {0.f, 0.f, 0.f}, {_rgba[0], _rgba[1], _rgba[2], _rgba[3]}
+    };
+    for (int i = 1, j = i - 1; i <= kCircleSegments / 4; j = i++) {
+      v.pos[0] = x + w;
+      v.pos[1] = y + h;
+      im.PushVertex(v);
+      v.pos[0] = x + w + circle_[j][0] * radius;
+      v.pos[1] = y + h + circle_[j][1] * radius;
+      im.PushVertex(v);
+      v.pos[0] = x + w + circle_[i][0] * radius;
+      v.pos[1] = y + h + circle_[i][1] * radius;
+      im.PushVertex(v);
     }
-    glVertex2i(_rect.left, y);
-    glVertex2i(_rect.right(), y);
-    glVertex2i(_rect.right(), y + h);
+    for (int i = 1 + kCircleSegments / 4, j = i - 1;
+         i <= 2 * kCircleSegments / 4;
+         j = i++) {
+      v.pos[0] = x;
+      v.pos[1] = y + h;
+      im.PushVertex(v);
+      v.pos[0] = x + circle_[j][0] * radius;
+      v.pos[1] = y + h + circle_[j][1] * radius;
+      im.PushVertex(v);
+      v.pos[0] = x + circle_[i][0] * radius;
+      v.pos[1] = y + h + circle_[i][1] * radius;
+      im.PushVertex(v);
+    }
+    for (int i = 1 + 2 * kCircleSegments / 4, j = i - 1;
+         i <= 3 * kCircleSegments / 4;
+         j = i++) {
+      v.pos[0] = x;
+      v.pos[1] = y;
+      im.PushVertex(v);
+      v.pos[0] = x + circle_[j][0] * radius;
+      v.pos[1] = y + circle_[j][1] * radius;
+      im.PushVertex(v);
+      v.pos[0] = x + circle_[i][0] * radius;
+      v.pos[1] = y + circle_[i][1] * radius;
+      im.PushVertex(v);
+    }
+    for (int i = 1 + 3 * kCircleSegments / 4, j = i - 1;
+         i <= 4 * kCircleSegments / 4;
+         j = i++) {
+      const int index = i % kCircleSegments;
+      v.pos[0] = x + w;
+      v.pos[1] = y;
+      im.PushVertex(v);
+      v.pos[0] = x + w + circle_[j][0] * radius;
+      v.pos[1] = y + circle_[j][1] * radius;
+      im.PushVertex(v);
+      v.pos[0] = x + w + circle_[index][0] * radius;
+      v.pos[1] = y + circle_[index][1] * radius;
+      im.PushVertex(v);
+    }
 
-    glVertex2i(_rect.right(), y + h);
-    glVertex2i(_rect.left, y + h);
-    glVertex2i(_rect.left, y);
+    v.pos[0] = _rect.left; v.pos[1] = y;
+    im.PushVertex(v);
+    v.pos[0] = _rect.right(); v.pos[1] = y;
+    im.PushVertex(v);
+    v.pos[0] = _rect.right(); v.pos[1] = y + h;
+    im.PushVertex(v);
 
-    glVertex2i(x, _rect.bottom);
-    glVertex2i(x + w, _rect.bottom);
-    glVertex2i(x + w, y);
+    v.pos[0] = _rect.right(); v.pos[1] = y + h;
+    im.PushVertex(v);
+    v.pos[0] = _rect.left; v.pos[1] = y + h;
+    im.PushVertex(v);
+    v.pos[0] = _rect.left; v.pos[1] = y;
+    im.PushVertex(v);
 
-    glVertex2i(x + w, y);
-    glVertex2i(x, y);
-    glVertex2i(x, _rect.bottom);
+    v.pos[0] = x; v.pos[1] = _rect.bottom;
+    im.PushVertex(v);
+    v.pos[0] = x + w; v.pos[1] = _rect.bottom;
+    im.PushVertex(v);
+    v.pos[0] = x + w; v.pos[1] = y;
+    im.PushVertex(v);
 
-    glVertex2i(x, _rect.top() - _radius);
-    glVertex2i(x + w, _rect.top() - _radius);
-    glVertex2i(x + w, _rect.top());
+    v.pos[0] = x + w; v.pos[1] = y;
+    im.PushVertex(v);
+    v.pos[0] = x; v.pos[1] = y;
+    im.PushVertex(v);
+    v.pos[0] = x; v.pos[1] = _rect.bottom;
+    im.PushVertex(v);
 
-    glVertex2i(x + w, _rect.top());
-    glVertex2i(x, _rect.top());
-    glVertex2i(x, _rect.top() - _radius);
-    GL(End());
+    v.pos[0] = x; v.pos[1] = _rect.top() - _radius;
+    im.PushVertex(v);
+    v.pos[0] = x + w; v.pos[1] = _rect.top() - _radius;
+    im.PushVertex(v);
+    v.pos[0] = x + w; v.pos[1] = _rect.top();
+    im.PushVertex(v);
+
+    v.pos[0] = x + w; v.pos[1] = _rect.top();
+    im.PushVertex(v);
+    v.pos[0] = x; v.pos[1] = _rect.top();
+    im.PushVertex(v);
+    v.pos[0] = x; v.pos[1] = _rect.top() - _radius;
+    im.PushVertex(v);
   }
 }
 
-void ImGuiImpl::StrokeRect(const math::RectInt& _rect, int _radius) const {
-  // OpenGL line rendering requires
-  GL(PushMatrix());
-  GL(Translatef(-.5f, -.5f, 0.f));
+void ImGuiImpl::StrokeRect(const math::RectFloat& _rect,
+                           float _radius,
+                           const GLubyte _rgba[4]) const {
+  StrokeRect(_rect, _radius, _rgba, ozz::math::Float4x4::identity());
+}
 
-  if (_radius <= 0) {
-    glBegin(GL_LINE_LOOP);
-    glVertex2i(_rect.left, _rect.bottom);
-    glVertex2i(_rect.left + _rect.width, _rect.bottom);
-    glVertex2i(_rect.left + _rect.width, _rect.top());
-    glVertex2i(_rect.left, _rect.top());
-    GL(End());
+void ImGuiImpl::StrokeRect(const math::RectFloat& _rect,
+                           float _radius,
+                           const GLubyte _rgba[4],
+                           const ozz::math::Float4x4& _transform) const {
+
+  // Lines rendering requires to coordinate to be in the pixel center.
+  const ozz::math::SimdFloat4 translation =
+      ozz::math::simd_float4::Load(-.5f, -.5f, 0.f, 0.f);
+  const ozz::math::Float4x4 transform = Translate(_transform, translation);
+
+  if (_radius <= 0.f) {
+    GlImmediatePC im(renderer_->immediate_renderer(), GL_LINE_LOOP, transform);
+    GlImmediatePC::Vertex v = {
+      {0.f, 0.f, 0.f}, {_rgba[0], _rgba[1], _rgba[2], _rgba[3]}
+    };
+    v.pos[0] = _rect.left; v.pos[1] = _rect.bottom;
+    im.PushVertex(v);
+    v.pos[0] = _rect.left + _rect.width;
+    im.PushVertex(v);
+    v.pos[1] = _rect.top();
+    im.PushVertex(v);
+    v.pos[0] = _rect.left;
+    im.PushVertex(v);
   } else {
-    const int x = _rect.left + _radius;
-    const int y = _rect.bottom + _radius;
-    const int w = _rect.width - _radius * 2;
-    const int h = _rect.height - _radius * 2;
+    const float x = _rect.left + _radius;
+    const float y = _rect.bottom + _radius;
+    const float w = _rect.width - _radius * 2;
+    const float h = _rect.height - _radius * 2;
+    const float radius = _radius / kCircleRadius;
 
-    glBegin(GL_LINE_LOOP);
+    GlImmediatePC im(renderer_->immediate_renderer(), GL_LINE_LOOP, transform);
+    GlImmediatePC::Vertex v = {
+      {0.f, 0.f, 0.f}, {_rgba[0], _rgba[1], _rgba[2], _rgba[3]}
+    };
     for (int i = 0; i <= kCircleSegments / 4; ++i) {
-      glVertex2i(x + w + circle_[i][0] * _radius / kCircleRadius,
-                 y + h + circle_[i][1] * _radius / kCircleRadius);
+      v.pos[0] = x + w + circle_[i][0] * radius;
+      v.pos[1] = y + h + circle_[i][1] * radius;
+      im.PushVertex(v);
     }
     for (int i = kCircleSegments / 4; i <= 2 * kCircleSegments / 4; ++i) {
-      glVertex2i(x + circle_[i][0] * _radius / kCircleRadius,
-                 y + h + circle_[i][1] * _radius / kCircleRadius);
+      v.pos[0] = x + circle_[i][0] * radius;
+      v.pos[1] = y + h + circle_[i][1] * radius;
+      im.PushVertex(v);
     }
     for (int i = 2 * kCircleSegments / 4; i <= 3 * kCircleSegments / 4; ++i) {
-      glVertex2i(x + circle_[i][0] * _radius / kCircleRadius,
-                 y + circle_[i][1] * _radius / kCircleRadius);
+      v.pos[0] = x + circle_[i][0] * radius;
+      v.pos[1] = y + circle_[i][1] * radius;
+      im.PushVertex(v);
     }
     for (int i = 3 * kCircleSegments / 4; i < 4 * kCircleSegments / 4; ++i) {
-      glVertex2i(x + w + circle_[i][0] * _radius / kCircleRadius,
-                 y + circle_[i][1] * _radius / kCircleRadius);
+      v.pos[0] = x + w + circle_[i][0] * radius;
+      v.pos[1] = y + circle_[i][1] * radius;
+      im.PushVertex(v);
     }
-    glVertex2i(x + w + circle_[0][0] * _radius / kCircleRadius,
-               y + circle_[0][1] * _radius / kCircleRadius);
-    GL(End());
+    v.pos[0] = x + w + circle_[0][0] * radius;
+    v.pos[1] = y + circle_[0][1] * radius;
+    im.PushVertex(v);
   }
-  GL(PopMatrix());
 }
 
 void ImGuiImpl::InitializeCircle() {
@@ -1016,8 +1125,8 @@ void ImGuiImpl::InitializeCircle() {
     const float angle = i * math::k2Pi / kCircleSegments;
     const float cos = std::cos(angle) * kCircleRadius;
     const float sin = std::sin(angle) * kCircleRadius;
-    circle_[i][0] = static_cast<int>(cos + (cos >= 0.f?0.5f:-0.5f));
-    circle_[i][1] = static_cast<int>(sin + (sin >= 0.f?0.5f:-0.5f));
+    circle_[i][0] = cos + (cos >= 0.f?0.5f:-0.5f);
+    circle_[i][1] = sin + (sin >= 0.f?0.5f:-0.5f);
   }
 }
 
@@ -1109,13 +1218,13 @@ const ImGuiImpl::Font ImGuiImpl::font_ = {
 
 void ImGuiImpl::InitalizeFont() {
   // Builds font texture.
-  assert(static_cast<std::size_t>(font_.texture_width * font_.texture_height) >=
+  assert(static_cast<size_t>(font_.texture_width * font_.texture_height) >=
          font_.pixels_size * 8);
 
-  const std::size_t pixel_count = font_.texture_width * font_.texture_height;
+  const size_t buffer_size = 4 * font_.texture_width * font_.texture_height;
   unsigned char* pixels =
-    memory::default_allocator()->Allocate<unsigned char>(pixel_count);
-  memset(pixels, 0, pixel_count);
+    memory::default_allocator()->Allocate<unsigned char>(buffer_size);
+  memset(pixels, 0, buffer_size);
 
   // Unpack font data font 1 bit per pixel to 8.
   for (int i = 0; i < font_.image_width * font_.image_height; i += 8) {
@@ -1123,7 +1232,11 @@ void ImGuiImpl::InitalizeFont() {
       const int pixel = (i + j) / font_.image_width * font_.texture_width +
                         (i + j) % font_.image_width;
       const int bit = 7 - j;
-      pixels[pixel] = ((font_.pixels[i / 8] >> bit) & 1) * 255;
+      const char cpnt = ((font_.pixels[i / 8] >> bit) & 1) * 255;
+      pixels[4 * pixel + 0] = cpnt;
+      pixels[4 * pixel + 1] = cpnt;
+      pixels[4 * pixel + 2] = cpnt;
+      pixels[4 * pixel + 3] = cpnt;
     }
   }
 
@@ -1133,48 +1246,55 @@ void ImGuiImpl::InitalizeFont() {
   GL(TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
   GL(TexImage2D(GL_TEXTURE_2D,
                 0,
-                GL_ALPHA8,
+                GL_RGBA,
                 font_.texture_width,
                 font_.texture_height,
                 0,
-                GL_ALPHA,
+                GL_RGBA,
                 GL_UNSIGNED_BYTE,
                 pixels));
   GL(PixelStorei(GL_UNPACK_ALIGNMENT, 1));
   GL(BindTexture(GL_TEXTURE_2D, 0));
   memory::default_allocator()->Deallocate(pixels);
 
-  // Builds glyph display lists.
+  // Pre-computes glyphes texture and vertex coordinates.
   const float glyph_uv_width = static_cast<float>(font_.glyph_width) /
                                font_.texture_width;
   const float glyph_uv_height = static_cast<float>(font_.glyph_height) /
                                 font_.texture_height;
 
-  glyph_displaylist_base_ = glGenLists(256);
-  for (int i = 0; i < 256; ++i) {
-    GL(NewList(glyph_displaylist_base_ + i, GL_COMPILE));
+  const int num_glyphes = static_cast<int>(OZZ_ARRAY_SIZE(glyphes_));
+  assert(num_glyphes >= font_.glyph_start + font_.glyph_count);
+  for (int i = 0; i < num_glyphes; ++i) {
     if (i >= font_.glyph_start && i < font_.glyph_start + font_.glyph_count) {
+      Glyph& glyph = glyphes_[i];
       const int index = i - font_.glyph_start;
-      glBegin(GL_TRIANGLE_STRIP);
-      glTexCoord2f(index * glyph_uv_width, 0);
-      glVertex2i(0, font_.glyph_height);
-      glTexCoord2f(index * glyph_uv_width, glyph_uv_height);
-      glVertex2i(0, 0);
-      glTexCoord2f((index + 1) * glyph_uv_width, 0);
-      glVertex2i(font_.glyph_width, font_.glyph_height);
-      glTexCoord2f((index + 1) * glyph_uv_width, glyph_uv_height);
-      glVertex2i(font_.glyph_width, 0);
-      GL(End());
+      glyph.uv[0][0] = index * glyph_uv_width;
+      glyph.uv[0][1] = 0.f;
+      glyph.pos[0][0] = 0.f;
+      glyph.pos[0][1] = static_cast<float>(font_.glyph_height);
+
+      glyph.uv[1][0] = index * glyph_uv_width;
+      glyph.uv[1][1] = glyph_uv_height;
+      glyph.pos[1][0] = 0.f;
+      glyph.pos[1][1] = 0.f;
+
+      glyph.uv[2][0] = (index + 1) * glyph_uv_width;
+      glyph.uv[2][1] = 0.f;
+      glyph.pos[2][0] = static_cast<float>(font_.glyph_width);
+      glyph.pos[2][1] = static_cast<float>(font_.glyph_height);
+
+      glyph.uv[3][0] = (index + 1) * glyph_uv_width;
+      glyph.uv[3][1] = glyph_uv_height;
+      glyph.pos[3][0] = static_cast<float>(font_.glyph_width);
+      glyph.pos[3][1] = 0.f;
+    } else {
+      memset(&glyphes_[i], 0, sizeof(glyphes_[i]));
     }
-    // Move to the right of the character inside the display list.
-    glTranslatef(static_cast<float>(font_.glyph_width), 0, 0);
-    GL(EndList());
   }
 }
 
 void ImGuiImpl::DestroyFont() {
-  GL(DeleteLists(glyph_displaylist_base_, 256));
-  glyph_displaylist_base_ = 0;
   GL(DeleteTextures(1, &glyph_texture_));
   glyph_texture_ = 0;
 }
@@ -1190,12 +1310,14 @@ struct LineSpec {
 };
 }
 
-int ImGuiImpl::Print(const char* _text,
-                     const math::RectInt& _rect,
-                     PrintLayout _layout) const {
+float ImGuiImpl::Print(const char* _text,
+                       const math::RectFloat& _rect,
+                       PrintLayout _layout,
+                       const GLubyte _rgba[4]) const {
   LineSpec line_specs[64];
   int interlign = font_.glyph_height / 4;
-  int max_lines = (_rect.height + interlign) / (font_.glyph_height + interlign);
+  int max_lines = (static_cast<int>(_rect.height) + interlign) /
+    (font_.glyph_height + interlign);
   if (max_lines == 0) {
     return _rect.height;  // No offset from the bottom.
   }
@@ -1205,7 +1327,7 @@ int ImGuiImpl::Print(const char* _text,
   }
   int line_count = 0;
 
-  const int chars_per_line = _rect.width / font_.glyph_width;
+  const int chars_per_line = static_cast<int>(_rect.width) / font_.glyph_width;
   {
     const char* last_div = NULL;
     LineSpec spec = {_text, _text};
@@ -1267,7 +1389,7 @@ int ImGuiImpl::Print(const char* _text,
   }
 
   // Default is kNorth*.
-  int ly = _rect.bottom + _rect.height - font_.glyph_height;
+  float ly = _rect.bottom + _rect.height - font_.glyph_height;
   switch (_layout) {
     case kWest:
     case kMiddle:
@@ -1275,7 +1397,8 @@ int ImGuiImpl::Print(const char* _text,
       ly = _rect.bottom - font_.glyph_height
            + (_rect.height - 1 +  // -1 rounds on the pixel below.
               line_count * font_.glyph_height +
-              (line_count - 1) * interlign) / 2;
+              (line_count - 1) * interlign) / 2.f;
+      ly = floorf(ly);
       break;
     }
     case kSouthWest:
@@ -1289,23 +1412,19 @@ int ImGuiImpl::Print(const char* _text,
     }
   }
 
-  GL(PushMatrix());
-  GL(ListBase(glyph_displaylist_base_));
-  GL(Enable(GL_ALPHA_TEST));
-  GL(AlphaFunc(GL_GREATER, .5f));
-  GL(Enable(GL_TEXTURE_2D));
   GL(BindTexture(GL_TEXTURE_2D, glyph_texture_));
 
   for (int l = 0; l < line_count; ++l) {
     const int line_char_count =
       static_cast<int>(line_specs[l].end - line_specs[l].begin);
-    int lx = _rect.left;  // Default value is kWest*.
+    float lx = _rect.left;  // Default value is kWest*.
     switch (_layout) {
       case kNorth:
       case kMiddle:
       case kSouth: {
         lx = _rect.left +
-             ((_rect.width - (line_char_count * font_.glyph_width)) / 2);
+             ((_rect.width - (line_char_count * font_.glyph_width)) / 2.f);
+        lx = floorf(lx);
         break;
       }
       case kNorthEst:
@@ -1319,19 +1438,38 @@ int ImGuiImpl::Print(const char* _text,
       }
     }
 
-    glPushMatrix();
-    glTranslatef(static_cast<float>(lx), static_cast<float>(ly), 0.f);
-    GL(CallLists(line_char_count, GL_UNSIGNED_BYTE, line_specs[l].begin));
-    glPopMatrix();
+    // Loops through all characters of the current line, and renders them using
+    // precomputed texture and vertex coordinates.
+    {
+      GlImmediatePTC im(renderer_->immediate_renderer(),
+                        GL_TRIANGLES,
+                        ozz::math::Float4x4::identity());
+      GlImmediatePTC::Vertex v = {
+        {0.f, 0.f, 0.f}, {0.f, 0.f}, {_rgba[0], _rgba[1], _rgba[2], _rgba[3]}
+      };
+
+      float offset = 0.f;
+      for (int i = 0; i < line_char_count; i++, offset += font_.glyph_width) {
+        const int char_index = line_specs[l].begin[i];
+        const int num_glyphes = static_cast<int>(OZZ_ARRAY_SIZE(glyphes_));
+        if (char_index >= 0 && char_index < num_glyphes) {
+          const Glyph& glyph = glyphes_[char_index];
+          const int indices[] = {0, 1, 2, 2, 1, 3};
+          for (size_t j = 0; j < OZZ_ARRAY_SIZE(indices); j++) {
+            const int index = indices[j];
+            v.uv[0] = glyph.uv[index][0]; v.uv[1] = glyph.uv[index][1];
+            v.pos[0] = lx + glyph.pos[index][0] + offset;
+            v.pos[1] = ly + glyph.pos[index][1];
+            im.PushVertex(v);
+          }
+        }
+      }
+    }
 
     // Computes next line height.
     ly -= font_.glyph_height + interlign;
   }
-  GL(Disable(GL_TEXTURE_2D));
   GL(BindTexture(GL_TEXTURE_2D, 0));
-  GL(Disable(GL_ALPHA_TEST));
-  GL(ListBase(0));
-  GL(PopMatrix());
 
   // Returns the bottom of the last line.
   return ly + font_.glyph_height + interlign - _rect.bottom;

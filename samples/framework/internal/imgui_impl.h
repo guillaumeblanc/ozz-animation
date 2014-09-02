@@ -43,9 +43,13 @@
 #include "ozz/base/containers/vector.h"
 #include "ozz/base/maths/rect.h"
 
+#include "renderer_impl.h"
+
 namespace ozz {
 namespace sample {
 namespace internal {
+
+class RendererImpl;
 
 // Immediate mode gui implementation.
 class ImGuiImpl : public ImGui {
@@ -74,7 +78,8 @@ class ImGuiImpl : public ImGui {
   // Starts an imgui frame.
   // _inputs describes next frame inputs. It is internally copied.
   // _rect is the windows size.
-  void BeginFrame(const Inputs& _inputs, const math::RectInt& _rect);
+  void BeginFrame(const Inputs& _inputs, const math::RectInt& _rect,
+                  RendererImpl* _renderer);
 
   // Ends the current imgui frame.
   void EndFrame();
@@ -85,7 +90,7 @@ class ImGuiImpl : public ImGui {
   // See imgui.h for virtual function specifications.
 
   virtual void BeginContainer(const char* _title,
-                              const math::RectInt* _rect,
+                              const math::RectFloat* _rect,
                               bool* _open,
                               bool _constrain);
 
@@ -122,21 +127,33 @@ class ImGuiImpl : public ImGui {
 
   // Computes the rect of a new widget to add.
   // Returns true if there is enough space for a new widget.
-  bool AddWidget(int _height, math::RectInt* _rect);
+  bool AddWidget(float _height, math::RectFloat* _rect);
 
   // Implements button logic.
   // Returns true if the button was clicked.
-  bool ButtonLogic(const math::RectInt& _rect, int _id, bool* _hot, bool* _active);
+  bool ButtonLogic(const math::RectFloat& _rect, int _id, bool* _hot, bool* _active);
 
   // Fills a rectangle with _rect coordinates. Draws rounded angles if _radius
   // is greater than 0.
   // If _texture id is not 0, then texture with id _texture is mapped using a
   // planar projection to the rect.
-  void FillRect(const math::RectInt& _rect, int _radius) const;
+  void FillRect(const math::RectFloat& _rect,
+                float _radius,
+                const GLubyte _rgba[4]) const;
+  void FillRect(const math::RectFloat& _rect,
+                float _radius,
+                const GLubyte _rgba[4],
+                const ozz::math::Float4x4& _transform) const;
 
   // Strokes a rectangle with _rect coordinates. Draws rounded angles if _radius
   // is greater than 0.
-  void StrokeRect(const math::RectInt& _rect, int _radius) const;
+  void StrokeRect(const math::RectFloat& _rect,
+                  float _radius,
+                  const GLubyte _rgba[4]) const;
+  void StrokeRect(const math::RectFloat& _rect,
+                  float _radius,
+                  const GLubyte _rgba[4],
+                  const ozz::math::Float4x4& _transform) const;
 
   enum PrintLayout {
     kNorthWest,
@@ -151,9 +168,10 @@ class ImGuiImpl : public ImGui {
   };
 
   // Print _text in _rect.
-  int Print(const char* _text,
-            const math::RectInt& _rect,
-            PrintLayout _layout) const;
+  float Print(const char* _text,
+              const math::RectFloat& _rect,
+              PrintLayout _layout,
+              const GLubyte _rgba[4]) const;
 
   // Initialize circle vertices.
   void InitializeCircle();
@@ -179,10 +197,10 @@ class ImGuiImpl : public ImGui {
 
   struct Container {
     // The current rect.
-    math::RectInt rect;
+    math::RectFloat rect;
 
     // The y offset of the top of the next widget in the current container.
-    int offset_y;
+    float offset_y;
 
     // Constrains container height to the size used by controls in the container.
     bool constrain;
@@ -195,14 +213,10 @@ class ImGuiImpl : public ImGui {
 
   // Defines the number of segments used by the precomputed circle.
   // Must be multiple of 4.
-  static const int kCircleSegments = 20;
-
-  // The radius of the precomputed circle.
-  // Uses a power of 2 value in order for the compiler to optimize the division.
-  static const int kCircleRadius = 32;
+  static const int kCircleSegments = 8;
 
   // Circle vertices coordinates (cosine/sinus)
-  int circle_[kCircleSegments][2];
+  float circle_[kCircleSegments][2];
 
   // Font rendering.
 
@@ -217,17 +231,24 @@ class ImGuiImpl : public ImGui {
     int glyph_count;
     unsigned char glyph_start;  // ascii code of the first character.
     const unsigned char* pixels;
-    std::size_t pixels_size;
+    size_t pixels_size;
   };
 
   // Declares the font instance.
   static const Font font_;
 
-  // The base index of the glyph GL display list.
-  unsigned int glyph_displaylist_base_;
+  // Pre-cooked glyphes uv and vertex coordinates.
+  struct Glyph {
+    float uv[4][2];
+    float pos[4][2];
+  };
+  Glyph glyphes_[256];
 
   // Glyph GL texture
   unsigned int glyph_texture_;
+
+  // Renderer, available between Begin/EndFrame
+  RendererImpl* renderer_;
 };
 }  // internal
 }  // sample

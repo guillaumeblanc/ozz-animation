@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Module>
+  <ModulePrefs title="ozz web sample"/>
+  <Content type="html">
+  <![CDATA[
+    <div class="emscripten_border" id="emscripten_border">
+      <div class="emscripten" id="status">Initializing sample...</div>
+      <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()"></canvas>
+    </div>
+    <script type='text/javascript'>
+      var borderElement = document.getElementById('emscripten_border');
+      if (!window.WebGLRenderingContext) {
+        borderElement.innerHTML='Your browser doesn\'t support WebGL. Visit <a href="http://get.webgl.org" target="_blank">http://get.webgl.org</a> for more information.';
+      }
+      var canvas = document.getElementById('canvas');
+      gl = canvas.getContext("webgl");
+      if (!gl) {
+        borderElement.innerHTML='Your browser supports WebGL but could not properly initialize it. Visit <a href="http://get.webgl.org/troubleshooting" target="_blank">http://get.webgl.org/troubleshooting</a> for more information.';
+      }
+      var Module = {
+        arguments: ['--resolution=2'],
+        preRun: [],
+        postRun: [],
+        print: (function() {
+          return function(text) {
+            text = Array.prototype.slice.call(arguments).join(' ');
+            console.log(text);
+          };
+        })(),
+        printErr: function(text) {
+          text = Array.prototype.slice.call(arguments).join(' ');
+          console.error(text);
+        },
+        canvas: document.getElementById('canvas'),
+        setStatus: function(text) {
+          var status = document.getElementById('status');
+          status.innerHTML = text;
+          // Hides status bar when sample is initialized
+          if(text === 'Running...') {
+            status.style.display="none";
+          }
+          console.log('Status: ' + text);
+        },
+        totalDependencies: 0
+      };
+    </script>
+    <script>
+${OZZ_SAMPLE_JS}
+    </script>
+  ]]>
+  </Content>
+</Module>  

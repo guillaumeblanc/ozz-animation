@@ -63,42 +63,43 @@ TEST(NativeEndianness, Endianness) {
 }
 
 TEST(Swap, Endianness) {
+
   {  // 1 byte swapping.
-    ozz::uint8 uo = 0x46;
+    uint8_t uo = 0x46;
     EXPECT_EQ(ozz::EndianSwap(uo), 0x46);
   }
   {  // 1 byte array swapping.
-    ozz::uint8 uo[] = {0x46, 0x58};
+    uint8_t uo[] = {0x46, 0x58};
     ozz::EndianSwap(uo, OZZ_ARRAY_SIZE(uo));
     EXPECT_EQ(uo[0], 0x46);
     EXPECT_EQ(uo[1], 0x58);
   }
   {  // 2 bytes swapping.
-    ozz::uint16 uo = 0x4699;
+    uint16_t uo = 0x4699;
     EXPECT_EQ(ozz::EndianSwap(uo), 0x9946);
   }
   {  // 2 bytes array swapping.
-    ozz::uint16 uo[] = {0x4699, 0x5814};
+    uint16_t uo[] = {0x4699, 0x5814};
     ozz::EndianSwap(uo, OZZ_ARRAY_SIZE(uo));
     EXPECT_EQ(uo[0], 0x9946);
     EXPECT_EQ(uo[1], 0x1458);
   }
   {  // 4 bytes swapping.
-    ozz::uint32 uo = 0x46992715;
+    uint32_t uo = 0x46992715;
     EXPECT_EQ(ozz::EndianSwap(uo), 0x15279946u);
   }
   {  // 2 bytes array swapping.
-    ozz::uint32 uo[] = {0x46992715, 0x58142611};
+    uint32_t uo[] = {0x46992715, 0x58142611};
     ozz::EndianSwap(uo, OZZ_ARRAY_SIZE(uo));
     EXPECT_EQ(uo[0], 0x15279946u);
     EXPECT_EQ(uo[1], 0x11261458u);
   }
   {  // 8 bytes swapping.
-    ozz::uint64 uo = 0x4699271511190417ull;
+    uint64_t uo = 0x4699271511190417ull;
     EXPECT_EQ(ozz::EndianSwap(uo), 0x1704191115279946ull);
   }
   {  // 8 bytes array swapping.
-    ozz::uint64 uo[] = {0x4699271511190417ull, 0x5814264669080735ull};
+    uint64_t uo[] = {0x4699271511190417ull, 0x5814264669080735ull};
     ozz::EndianSwap(uo, OZZ_ARRAY_SIZE(uo));
     EXPECT_EQ(uo[0], 0x1704191115279946ull);
     EXPECT_EQ(uo[1], 0x3507086946261458ull);

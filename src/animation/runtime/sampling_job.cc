@@ -70,7 +70,7 @@ bool SamplingJob::Validate() const {
   valid &= output.begin != NULL;
 
   // Tests output range, implicitly tests output.end != NULL.
-  const std::ptrdiff_t num_soa_tracks = animation->num_soa_tracks();
+  const ptrdiff_t num_soa_tracks = animation->num_soa_tracks();
   valid &= output.end - output.begin >= num_soa_tracks;
 
   // Tests cache size.
@@ -428,9 +428,9 @@ SamplingCache::SamplingCache(int _max_tracks)
   // flag: unsigned char).
 
   // Computes allocation size.
-  const std::size_t max_tracks = max_soa_tracks_ * 4;
-  const std::size_t num_outdated = (max_soa_tracks_ + 7) / 8;
-  const std::size_t size =
+  const size_t max_tracks = max_soa_tracks_ * 4;
+  const size_t num_outdated = (max_soa_tracks_ + 7) / 8;
+  const size_t size =
     sizeof(InterpSoaTranslation) * max_soa_tracks_  +
     sizeof(InterpSoaRotation) * max_soa_tracks_ +
     sizeof(InterpSoaScale) *max_soa_tracks_ +

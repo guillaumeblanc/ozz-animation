@@ -102,14 +102,14 @@ bool NodeTransform::PushElement(const TiXmlElement& _element) {
 }
 
 bool NodeTransform::PushAnimation(const char* _member,
-                                  const float* _values, std::size_t num_values) {
+                                  const float* _values, size_t num_values) {
   if (type_ >= kUnknow) {
     log::Err() << "Unsupported transformation type" << std::endl;
     return false;
   }
 
   const struct {
-    std::size_t num_values;
+    size_t num_values;
     int dim1;
     int dim2;
   } type_specs[] = {
@@ -126,7 +126,7 @@ bool NodeTransform::PushAnimation(const char* _member,
         << std::endl;
       return false;
     }
-    for (std::size_t i = 0; i < num_values; ++i) {
+    for (size_t i = 0; i < num_values; ++i) {
       values_[i] = _values[i];
     }
     return true;
@@ -159,14 +159,14 @@ bool NodeTransform::PushAnimation(const char* _member,
       {".Z", 2},
       {".W", 3},
       {".ANGLE", 3}};
-    for (std::size_t i = 0; i < OZZ_ARRAY_SIZE(member_to_index); ++i) {
+    for (size_t i = 0; i < OZZ_ARRAY_SIZE(member_to_index); ++i) {
       if (std::strcmp(_member, member_to_index[i].semantic) == 0) {
         index = member_to_index[i].index;
         break;
       }
     }
   }
-  if (index < 0 || static_cast<std::size_t>(index) > type_specs[type_].num_values) {
+  if (index < 0 || static_cast<size_t>(index) > type_specs[type_].num_values) {
     log::Err() << "Invalid member selection \"" << _member <<
       "\" for the transformation." << std::endl;
     return false;

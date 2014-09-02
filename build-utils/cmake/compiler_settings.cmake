@@ -99,12 +99,6 @@ if(MSVC)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /MP")
   endif()
 
-  # Treats warnings as error on non dashboard builds
-  if(NOT ozz_enable_cdash AND NOT ${CMAKE_CXX_FLAGS} MATCHES "/WX")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /WX")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /WX")
-  endif()
-
   #---------------
   # For all builds
   foreach(flag ${cxx_all_flags})
@@ -135,23 +129,22 @@ else()
   #---------------------------
   # For the common build flags
 
+  # Enable c++11
+  #if(NOT CMAKE_CXX_FLAGS MATCHES "-std=c\\+\\+11")
+  #  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+  #endif()
+
   # Set the warning level to Wall
   if(NOT CMAKE_CXX_FLAGS MATCHES "-Wall")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
   endif()
 
-  # Treats warnings as error on not dashboard buids
-  if(NOT ozz_enable_cdash AND NOT CMAKE_CXX_FLAGS MATCHES "-Werror")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror")
-  endif()
-
   # Automatically selects native architecture optimizations (sse...)
-  if(NOT CMAKE_CXX_FLAGS MATCHES "-march=native")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=native")
-  endif()
+  #if(NOT CMAKE_CXX_FLAGS MATCHES "-march")
+  #  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
+  #  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=native")
+  #endif()
 
   #----------------------
   # Enables debug glibcxx if NDebug isn't defined, not supported by APPLE
@@ -164,8 +157,28 @@ else()
   endif()
 
   #----------------------
+  # Sets emscripten output
+  if(EMSCRIPTEN)
+    SET(CMAKE_EXECUTABLE_SUFFIX ".html")
+
+    #----------------------
+    # Disable emscripten absolute-paths warning
+    if(NOT CMAKE_CXX_FLAGS MATCHES "-Wno-warn-absolute-paths")
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-warn-absolute-paths")
+      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-warn-absolute-paths")
+    endif()
+
+    #----------------------
+    # Sets emscripten output
+    if(NOT CMAKE_CXX_FLAGS MATCHES "-s DISABLE_GL_EMULATION=1")
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s DISABLE_GL_EMULATION=1")
+      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -s DISABLE_GL_EMULATION=1")
+    endif()
+  endif()
+
+  #----------------------
   # Handles coverage options
-  if(ozz_enable_coverage)
+  if(ozz_build_coverage)
     # Extern libraries and samples are not included in the coverage, as not covered by automatic dashboard tests.
     set(CTEST_CUSTOM_COVERAGE_EXCLUDE ${CTEST_CUSTOM_COVERAGE_EXCLUDE} "extern/" "samples/")
 

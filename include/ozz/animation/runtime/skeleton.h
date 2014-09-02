@@ -43,7 +43,8 @@ namespace offline { class SkeletonBuilder; }
 
 // This runtime skeleton data structure provides a const-only access to joint
 // hierarchy, joint names and bind-pose. This structure is filled by the
-// SkeletonBuilder and can be serialised/deserialized.
+// SkeletonBuilder and can be serialize/deserialized (requires inclusion of
+// skeleton_archive.h).
 // Joint names, bind-poses and hierarchy information are all stored in separate
 // arrays of data (as opposed to joint structures for the RawSkeleton), in order
 // to closely match with the way runtime algorithms use them. Joint hierarchy is
@@ -99,10 +100,10 @@ class Skeleton {
   // Per joint properties.
   struct JointProperties {
     // Parent's index, kNoParentIndex for the root.
-    uint16 parent: Skeleton::kMaxJointsNumBits;
+    uint16_t parent: Skeleton::kMaxJointsNumBits;
     
     // Set to 1 for a leaf, 0 for a branch.
-    uint16 is_leaf: 1;
+    uint16_t is_leaf: 1;
   };
 
   // Returns joint's parent indices range.
@@ -119,14 +120,18 @@ class Skeleton {
   }
 
   // Serialization functions.
+  // Should not be called directly but through io::Archive << and >> operators.
   void Save(ozz::io::OArchive& _archive) const;
-  void Load(ozz::io::IArchive& _archive, ozz::uint32 _version);
+  void Load(ozz::io::IArchive& _archive, uint32_t _version);
 
  private:
 
   // Disables copy and assignation.
   Skeleton(Skeleton const&);
   void operator=(Skeleton const&);
+
+  // Internal destruction function.
+  void Destroy();
 
   // SkeletonBuilder class is allowed to instantiate an Skeleton.
   friend class offline::SkeletonBuilder;

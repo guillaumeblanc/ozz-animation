@@ -59,7 +59,7 @@ int Stride(Format::Value _format);
 bool WriteTGA(const char* _filename,
               int _width, int _height,
               Format::Value _src_format,
-              const ozz::uint8* _src_buffer,
+              const uint8_t* _src_buffer,
               bool _write_alpha);
 
 }  // image

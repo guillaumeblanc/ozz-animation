@@ -38,8 +38,8 @@
 
 #include "ozz/base/log.h"
 
-#include "ozz/animation/offline/animation_builder.h"
-#include "ozz/animation/offline/skeleton_builder.h"
+#include "ozz/animation/offline/raw_animation.h"
+#include "ozz/animation/offline/raw_skeleton.h"
 
 namespace ozz {
 namespace animation {

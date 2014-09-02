@@ -39,7 +39,7 @@ namespace animation {
 // Defines the iterator structure used by IterateJointsDF to traverse joint
 // hierarchy.
 struct JointsIterator {
-  uint16 joints[Skeleton::kMaxJoints];
+  uint16_t joints[Skeleton::kMaxJoints];
   int num_joints;
 };
 

@@ -33,18 +33,20 @@
 #include "ozz/animation/runtime/sampling_job.h"
 #include "ozz/animation/runtime/local_to_model_job.h"
 
-#include "ozz/animation/offline/collada/collada.h"
 #include "ozz/animation/offline/animation_builder.h"
 #include "ozz/animation/offline/animation_optimizer.h"
-#include "ozz/animation/offline/skeleton_builder.h"
+#include "ozz/animation/offline/raw_animation.h"
+#include "ozz/animation/offline/raw_animation_archive.h"
 
 #include "ozz/base/memory/allocator.h"
+
+#include "ozz/base/io/archive.h"
+#include "ozz/base/io/stream.h"
+#include "ozz/base/log.h"
 
 #include "ozz/base/maths/vec_float.h"
 #include "ozz/base/maths/simd_math.h"
 #include "ozz/base/maths/soa_transform.h"
-
-#include "ozz/base/log.h"
 
 #include "ozz/options/options.h"
 
@@ -56,25 +58,49 @@
 // Collada skeleton and animation file can be specified as an option.
 OZZ_OPTIONS_DECLARE_STRING(
   skeleton,
-  "Path to the Collada skeleton file.",
-  "media/skeleton.dae",
+  "Path to the runtime skeleton file.",
+  "media/skeleton.ozz",
   false)
 
 OZZ_OPTIONS_DECLARE_STRING(
   animation,
-  "Path to the Collada animation file.",
-  "media/animation.dae",
+  "Path to the raw animation file.",
+  "media/raw_animation.ozz",
   false)
+
+namespace {
+bool LoadAnimation(const char* _filename,
+                   ozz::animation::offline::RawAnimation* _animation) {
+  assert(_filename && _animation);
+  ozz::log::Out() << "Loading raw animation archive: " << _filename <<
+    "." << std::endl;
+  ozz::io::File file(_filename, "rb");
+  if (!file.opened()) {
+    ozz::log::Err() << "Failed to open animation file " << _filename <<
+      "." << std::endl;
+    return false;
+  }
+  ozz::io::IArchive archive(&file);
+  if (!archive.TestTag<ozz::animation::offline::RawAnimation>()) {
+    ozz::log::Err() << "Failed to load rawvanimation instance from file " <<
+      _filename << "." << std::endl;
+    return false;
+  }
+
+  // Once the tag is validated, reading cannot fail.
+  archive >> *_animation;
+
+  return true;
+}
+}  // namespace
 
 class OptimizeSampleApplication : public ozz::sample::Application {
  public:
   OptimizeSampleApplication()
     : selected_display_(eOptimized),
-      skeleton_(NULL),
       cache_(NULL),
       animation_opt_(NULL),
       animation_non_opt_(NULL) {
-    set_auto_framing(true);
   }
 
  protected:
@@ -109,7 +135,7 @@ class OptimizeSampleApplication : public ozz::sample::Application {
       ozz::math::SoaTransform* locals = locals_scratch_.begin;
       const ozz::math::SoaTransform* locals_opt = locals_opt_.begin;
       ozz::Range<const ozz::math::SoaTransform> bind_poses =
-        skeleton_->bind_pose();
+        skeleton_.bind_pose();
       const ozz::math::SoaTransform* bind_pose = bind_poses.begin;
       for (;
            locals < locals_scratch_.end;
@@ -132,7 +158,7 @@ class OptimizeSampleApplication : public ozz::sample::Application {
 
     // Converts from local space to model space matrices.
     ozz::animation::LocalToModelJob ltm_job;
-    ltm_job.skeleton = skeleton_;
+    ltm_job.skeleton = &skeleton_;
     ltm_job.input =
       selected_display_ == eOptimized ? locals_opt_ : locals_scratch_;
     ltm_job.output = models_;
@@ -145,27 +171,18 @@ class OptimizeSampleApplication : public ozz::sample::Application {
 
   // Samples animation, transforms to model space and renders.
   virtual bool OnDisplay(ozz::sample::Renderer* _renderer) {
-    return _renderer->DrawPosture(*skeleton_, models_, ozz::math::Float4x4::identity());
+    return _renderer->
+      DrawPosture(skeleton_, models_, ozz::math::Float4x4::identity());
   }
 
   virtual bool OnInitialize() {
-    // Imports offline skeleton from a collada file.
-    ozz::animation::offline::RawSkeleton raw_skeleton;
-    if (!ozz::animation::offline::collada::ImportFromFile(
-        OPTIONS_skeleton, &raw_skeleton)) {
+    // Imports offline skeleton from a binary file.
+    if (!ozz::sample::LoadSkeleton(OPTIONS_skeleton, &skeleton_)) {
       return false;
     }
 
-    // Builds the runtime skeleton from the offline one.
-    ozz::animation::offline::SkeletonBuilder skeleton_builder;
-    skeleton_ = skeleton_builder(raw_skeleton);
-    if (!skeleton_) {
-      return false;
-    }
-
-    // Imports offline animation from a collada file.
-    if (!ozz::animation::offline::collada::ImportFromFile(
-        OPTIONS_animation, *skeleton_, 30.f, &raw_animation_)) {
+    // Imports offline animation from a binary file.
+    if (!LoadAnimation(OPTIONS_animation, &raw_animation_)) {
       return false;
     }
 
@@ -176,8 +193,8 @@ class OptimizeSampleApplication : public ozz::sample::Application {
 
     // Allocates runtime buffers.
     ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
-    const int num_joints = skeleton_->num_joints();
-    const int num_soa_joints = skeleton_->num_soa_joints();
+    const int num_joints = skeleton_.num_joints();
+    const int num_soa_joints = skeleton_.num_soa_joints();
 
     locals_opt_ =
       allocator->AllocateRange<ozz::math::SoaTransform>(num_soa_joints);
@@ -228,7 +245,8 @@ class OptimizeSampleApplication : public ozz::sample::Application {
         rebuild |= _im_gui->DoSlider(
           label, 0.f, .1f, &optimizer_.scale_tolerance, .5f);
 
-        std::sprintf(label, "Animation size : %zuKB", animation_opt_->size()>>10);
+        std::sprintf(label, "Animation size : %dKB",
+          static_cast<int>(animation_opt_->size()>>10));
 
         _im_gui->DoLabel(label);
 
@@ -264,7 +282,6 @@ class OptimizeSampleApplication : public ozz::sample::Application {
 
   virtual void OnDestroy() {
     ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
-    allocator->Delete(skeleton_);
     allocator->Delete(animation_opt_);
     allocator->Delete(animation_non_opt_);
     allocator->Deallocate(locals_opt_);
@@ -299,8 +316,8 @@ class OptimizeSampleApplication : public ozz::sample::Application {
     return true;
   }
 
-  virtual bool GetSceneBounds(ozz::math::Box* _bound) const {
-    return ozz::sample::ComputePostureBounds(models_, _bound);
+  virtual void GetSceneBounds(ozz::math::Box* _bound) const {
+    ozz::sample::ComputePostureBounds(models_, _bound);
   }
 
  private:
@@ -324,7 +341,7 @@ class OptimizeSampleApplication : public ozz::sample::Application {
   ozz::sample::PlaybackController controller_;
 
   // Runtime skeleton.
-  ozz::animation::Skeleton* skeleton_;
+  ozz::animation::Skeleton skeleton_;
 
   // Sampling cache, shared accros optimized and non-optimized animations. This
   // is not optimal, but it's not an issue either.

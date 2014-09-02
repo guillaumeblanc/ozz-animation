@@ -31,6 +31,7 @@
 #include "ozz/base/io/archive.h"
 
 #include <cstring>
+#include <stdint.h>
 
 #include "gtest/gtest.h"
 
@@ -61,21 +62,21 @@ TEST(Primitives, Archive) {
 
     // Write primitive types.
     ozz::io::OArchive o(&stream, endianess);
-    const ozz::int8 i8o = 46;
+    const int8_t i8o = 46;
     o << i8o;
-    const ozz::uint8 ui8o = 46;
+    const uint8_t ui8o = 46;
     o << ui8o;
-    const ozz::int16 i16o = 46;
+    const int16_t i16o = 46;
     o << i16o;
-    const ozz::uint16 ui16o = 46;
+    const uint16_t ui16o = 46;
     o << ui16o;
-    const ozz::int32 i32o = 46;
+    const int32_t i32o = 46;
     o << i32o;
-    const ozz::uint32 ui32o = 46;
+    const uint32_t ui32o = 46;
     o << ui32o;
-    const ozz::int64 i64o = 46;
+    const int64_t i64o = 46;
     o << i64o;
-    const ozz::uint64 ui64o = 46;
+    const uint64_t ui64o = 46;
     o << ui64o;
     const bool bo = true;
     o << bo;
@@ -85,28 +86,28 @@ TEST(Primitives, Archive) {
     // Read primitive types.
     stream.Seek(0, ozz::io::Stream::kSet);
     ozz::io::IArchive i(&stream);
-    ozz::int8 i8i;
+    int8_t i8i;
     i >> i8i;
     EXPECT_EQ(i8i, i8o);
-    ozz::uint8 ui8i;
+    uint8_t ui8i;
     i >> ui8i;
     EXPECT_EQ(ui8i, ui8o);
-    ozz::int16 i16i;
+    int16_t i16i;
     i >> i16i;
     EXPECT_EQ(i16i, i16o);
-    ozz::uint16 ui16i;
+    uint16_t ui16i;
     i >> ui16i;
     EXPECT_EQ(ui16i, ui16o);
-    ozz::int32 i32i;
+    int32_t i32i;
     i >> i32i;
     EXPECT_EQ(i32i, i32o);
-    ozz::uint32 ui32i;
+    uint32_t ui32i;
     i >> ui32i;
     EXPECT_EQ(ui32i, ui32o);
-    ozz::int64 i64i;
+    int64_t i64i;
     i >> i64i;
     EXPECT_EQ(i64i, i64o);
-    ozz::uint64 ui64i;
+    uint64_t ui64i;
     i >> ui64i;
     EXPECT_EQ(ui64i, ui64o);
     bool bi;
@@ -127,54 +128,54 @@ TEST(PrimitiveArrays, Archive) {
 
     // Write primitive types.
     ozz::io::OArchive o(&stream, endianess);
-    const ozz::int8 i8o[] = {46, 26, 14, 58, 99, 27};
+    const int8_t i8o[] = {46, 26, 14, 58, 99, 27};
     o << ozz::io::MakeArray(i8o);
-    const ozz::uint8 ui8o[] = {46, 26, 14, 58, 99, 27};
+    const uint8_t ui8o[] = {46, 26, 14, 58, 99, 27};
     o << ozz::io::MakeArray(ui8o);
-    const ozz::int16 i16o[] = {46, 26, 14, 58, 99, 27};
+    const int16_t i16o[] = {46, 26, 14, 58, 99, 27};
     o << ozz::io::MakeArray(i16o);
-    const ozz::uint16 ui16o[] = {46, 26, 14, 58, 99, 27};
+    const uint16_t ui16o[] = {46, 26, 14, 58, 99, 27};
     o << ozz::io::MakeArray(ui16o);
-    const ozz::int32 i32o[] = {46, 26, 14, 58, 99, 27};
+    const int32_t i32o[] = {46, 26, 14, 58, 99, 27};
     o << ozz::io::MakeArray(i32o);
-    const ozz::uint32 ui32o[] = {46, 26, 14, 58, 99, 27};
+    const uint32_t ui32o[] = {46, 26, 14, 58, 99, 27};
     o << ozz::io::MakeArray(ui32o);
-    const ozz::int64 i64o[] = {46, 26, 14, 58, 99, 27};
+    const int64_t i64o[] = {46, 26, 14, 58, 99, 27};
     o << ozz::io::MakeArray(i64o);
-    const ozz::uint64 ui64o[] = {46, 26, 14, 58, 99, 27};
+    const uint64_t ui64o[] = {46, 26, 14, 58, 99, 27};
     o << ozz::io::MakeArray(ui64o);
     const bool bo[] = {true, false, true};
     o << ozz::io::MakeArray(bo);
     const float fo[] = {46.f, 26.f, 14.f, 58.f, 99.f, 27.f};
     o << ozz::io::MakeArray(fo);
-    const ozz::uint32* po_null = NULL;
+    const uint32_t* po_null = NULL;
     o << ozz::io::MakeArray(po_null, 0);
 
     // Read primitive types.
     stream.Seek(0, ozz::io::Stream::kSet);
     ozz::io::IArchive i(&stream);
-    ozz::int8 i8i[OZZ_ARRAY_SIZE(i8o)];
+    int8_t i8i[OZZ_ARRAY_SIZE(i8o)];
     i >> ozz::io::MakeArray(i8i);
     EXPECT_EQ(std::memcmp(i8i, i8o, sizeof(i8o)), 0);
-    ozz::uint8 ui8i[OZZ_ARRAY_SIZE(ui8o)];
+    uint8_t ui8i[OZZ_ARRAY_SIZE(ui8o)];
     i >> ozz::io::MakeArray(ui8i);
     EXPECT_EQ(std::memcmp(ui8i, ui8o, sizeof(ui8o)), 0);
-    ozz::int16 i16i[OZZ_ARRAY_SIZE(i16o)];
+    int16_t i16i[OZZ_ARRAY_SIZE(i16o)];
     i >> ozz::io::MakeArray(i16i);
     EXPECT_EQ(std::memcmp(i16i, i16o, sizeof(i16o)), 0);
-    ozz::uint16 ui16i[OZZ_ARRAY_SIZE(ui16o)];
+    uint16_t ui16i[OZZ_ARRAY_SIZE(ui16o)];
     i >> ozz::io::MakeArray(ui16i);
     EXPECT_EQ(std::memcmp(ui16i, ui16o, sizeof(ui16o)), 0);
-    ozz::int32 i32i[OZZ_ARRAY_SIZE(i32o)];
+    int32_t i32i[OZZ_ARRAY_SIZE(i32o)];
     i >> ozz::io::MakeArray(i32i);
     EXPECT_EQ(std::memcmp(i32i, i32o, sizeof(i32o)), 0);
-    ozz::uint32 ui32i[OZZ_ARRAY_SIZE(ui32o)];
+    uint32_t ui32i[OZZ_ARRAY_SIZE(ui32o)];
     i >> ozz::io::MakeArray(ui32i);
     EXPECT_EQ(std::memcmp(ui32i, ui32o, sizeof(ui32o)), 0);
-    ozz::int64 i64i[OZZ_ARRAY_SIZE(i64o)];
+    int64_t i64i[OZZ_ARRAY_SIZE(i64o)];
     i >> ozz::io::MakeArray(i64i);
     EXPECT_EQ(std::memcmp(i64i, i64o, sizeof(i64o)), 0);
-    ozz::uint64 ui64i[OZZ_ARRAY_SIZE(ui64o)];
+    uint64_t ui64i[OZZ_ARRAY_SIZE(ui64o)];
     i >> ozz::io::MakeArray(ui64i);
     EXPECT_EQ(std::memcmp(ui64i, ui64o, sizeof(ui64o)), 0);
     bool bi[OZZ_ARRAY_SIZE(bo)];
@@ -183,7 +184,7 @@ TEST(PrimitiveArrays, Archive) {
     float fi[OZZ_ARRAY_SIZE(fo)];
     i >> ozz::io::MakeArray(fi);
     EXPECT_EQ(std::memcmp(fi, fo, sizeof(fo)), 0);
-    ozz::uint32* pi_null = NULL;
+    uint32_t* pi_null = NULL;
     i >> ozz::io::MakeArray(pi_null, 0);
   }
 }

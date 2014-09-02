@@ -112,7 +112,7 @@ function(FindFbxLibrariesGeneric _FBX_ROOT_DIR _OUT_FBX_LIBRARIES _OUT_FBX_LIBRA
     set(${_OUT_FBX_LIBRARIES} ${FBX_LIB} PARENT_SCOPE)
     set(${_OUT_FBX_LIBRARIES_DEBUG} ${FBX_LIB_DEBUG} PARENT_SCOPE)
   else()
-    message ("A Fbx SDK was found, but doesn't match you compiler settings.")
+    message ("A Fbx SDK was found, but doesn't match your compiler settings.")
   endif()
 
 endfunction()

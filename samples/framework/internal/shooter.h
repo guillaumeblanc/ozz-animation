@@ -69,6 +69,7 @@ class Shooter {
     int width;
     int height;
     int cooldown;  // Shot is processed when cooldown falls to 0.
+    Shot() : pbo(0), width(0), height(0), cooldown(0) {}
   };
 
   // Array of pre-allocated shots, used to allow asynchronous dma transfers of
@@ -87,6 +88,9 @@ class Shooter {
 
   // Shot number, used to name images.
   int shot_number_;
+
+  // Is the shooter functionality supported.
+  bool supported_;
 };
 }  // internal
 }  // sample

@@ -31,46 +31,16 @@
 #include "ozz/animation/offline/skeleton_builder.h"
 
 #include <cstring>
-#include <algorithm>
 
 #include "ozz/base/containers/vector.h"
 #include "ozz/base/maths/soa_transform.h"
 #include "ozz/base/memory/allocator.h"
+#include "ozz/animation/offline/raw_skeleton.h"
 #include "ozz/animation/runtime/skeleton.h"
 
 namespace ozz {
 namespace animation {
 namespace offline {
-
-RawSkeleton::RawSkeleton() {
-}
-
-RawSkeleton::~RawSkeleton() {
-}
-
-bool RawSkeleton::Validate() const {
-  if (num_joints() > Skeleton::kMaxJoints) {
-    return false;
-  }
-  return true;
-}
-
-namespace {
-struct JointCounter {
-  JointCounter() :
-    num_joints(0) {
-  }
-  void operator()(const RawSkeleton::Joint&, const RawSkeleton::Joint*) {
-    ++num_joints;
-  }
-  int num_joints;
-};
-}  // namespace
-
-// Iterates through all the root children and count them.
-int RawSkeleton::num_joints() const {
-  return IterateJointsDF(JointCounter()).num_joints;
-}
 
 namespace {
 // Stores each traversed joint to a vector.
@@ -138,7 +108,7 @@ Skeleton* SkeletonBuilder::operator()(const RawSkeleton& _raw_skeleton) const {
   }
   // Transfers joint's names: First computes name's buffer size, then allocate
   // and do the copy.
-  std::size_t buffer_size = num_joints * sizeof(char*);
+  size_t buffer_size = num_joints * sizeof(char*);
   for (int i = 0; i < num_joints; ++i) {
     const RawSkeleton::Joint& current = *lister.linear_joints[i].joint;
     buffer_size += (current.name.size() + 1) * sizeof(char);

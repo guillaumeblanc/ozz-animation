@@ -38,11 +38,15 @@ namespace ozz {
 namespace math {
 struct Box;
 struct Float4x4;
-}
+}  // math
 namespace animation {
 class Animation;
 class Skeleton;
-} // animation
+namespace offline {
+struct RawAnimation;
+struct RawSkeleton; 
+}  // offline
+}  // animation
 namespace sample {
 class ImGui;
 
@@ -101,15 +105,12 @@ class PlaybackController {
 // Computes the bounding box of _skeleton. This is the box that encloses all
 // skeleton's joints in model space.
 // _bound must be a valid math::Box instance.
-// Return true on success and fills _bound.
-bool ComputeSkeletonBounds(const animation::Skeleton& _skeleton,
+void ComputeSkeletonBounds(const animation::Skeleton& _skeleton,
                            math::Box* _bound);
 
 // Computes the bounding box of posture defines be _matrices range.
 // _bound must be a valid math::Box instance.
-// Return true on success and fills _bound. Returns false if any pointer
-// is NULL, or if _matrices doesn't define a valid range.
-bool ComputePostureBounds(ozz::Range<const ozz::math::Float4x4> _matrices,
+void ComputePostureBounds(ozz::Range<const ozz::math::Float4x4> _matrices,
                           math::Box* _bound);
 
 // Loads a skeleton from an ozz archive file named _filename.

@@ -76,74 +76,16 @@ namespace animation { class Skeleton; }
 namespace math { struct Float4x4; }
 namespace sample {
 namespace internal {
-
-// Declares a shader program.
-class Shader {
- public:
-  // Constructs a shader from _vertex and _fragment glsl sources.
-  // Mutliple source files can be specified using the *count argument.
-  // Returns NULL if shader compilation failed or a valid Shader pointer on
-  // success. The shader must then be deleted using default allocator Delete
-  // function.
-  static Shader* Build(int _vertex_count, const char** _vertex,
-                       int _fragment_count, const char** _fragment);
-
-  // Construct a fixed function pipeline shader. Use Shader::Build to specify
-  // shader sources.
-  Shader();
-
-  // Destruct a shader.
-  ~Shader();
-
-  // Returns the shader program that can be bound to the OpenGL context.
-  GLuint program() const {
-    return program_;
-  }
-
-  // Request an uniform location and pushes it to the uniform stack.
-  // The uniform location is then accessible thought uniform().
-  bool BindUniform(const char* _semantic);
-
-  // Get an uniform location from the stack at index _index.
-  GLint uniform(int _index) const {
-    return uniforms_[_index];
-  }
-
-  // Request an attribute location and pushes it to the uniform stack.
-  // The varying location is then accessible thought uniform().
-  bool BindAttrib(const char* _semantic);
-
-  // Get an varying location from the stack at index _index.
-  GLint attrib(int _index) const {
-    return attribs_[_index];
-  }
-
- private:
-
-  // Compiles a shader from string.
-  // Returns a valid shader handle on success. Dumps compiler output on error
-  // and return 0.
-  static GLuint CompileShader(GLenum _type, int _count, const char** _src);
-
-  // Shader program
-  GLuint program_;
-
-  // Vertex and fragment shaders
-  GLuint vertex_;
-  GLuint fragment_;
-
-  // Uniform locations, in the order they were requested.
-  ozz::Vector<GLint>::Std uniforms_;
-
-  // Varying locations, in the order they were requested.
-  ozz::Vector<GLint>::Std attribs_;
-};
+class Camera;
+class Shader;
+class SkeletonShader;
+class GlImmediateRenderer;
 
 // Implements Renderer interface.
 class RendererImpl : public Renderer {
  public:
 
-  RendererImpl();
+  RendererImpl(Camera* _camera);
   virtual ~RendererImpl();
 
   // See Renderer for all the details about the API.
@@ -166,6 +108,16 @@ class RendererImpl : public Renderer {
                        const ozz::math::Float4x4& _transform,
                        const Color _colors[2]);
 
+  // Get GL immediate renderer implementation;
+  GlImmediateRenderer* immediate_renderer() const {
+    return immediate_;
+  }
+
+  // Get application camera that provides rendering matrices.
+  Camera* camera() const {
+    return camera_;
+  }
+
  private:
 
   // Defines the internal structure used to define a model.
@@ -176,7 +128,7 @@ class RendererImpl : public Renderer {
     GLuint vbo;
     GLenum mode;
     GLsizei count;
-    Shader* shader;
+    SkeletonShader* shader;
   };
 
   // Detects and initializes all OpenGL extension.
@@ -188,14 +140,19 @@ class RendererImpl : public Renderer {
   bool InitPostureRendering();
 
   // Draw posture internal non-instanced rendering fall back implementation.
-  void DrawPosture_Impl(int _instance_count, bool _draw_joints);
+  void DrawPosture_Impl(const ozz::math::Float4x4& _transform,
+                        int _instance_count, bool _draw_joints);
 
   // Draw posture internal instanced rendering implementation.
-  void DrawPosture_InstancedImpl(int _instance_count, bool _draw_joints);
+  void DrawPosture_InstancedImpl(const ozz::math::Float4x4& _transform,
+                                 int _instance_count, bool _draw_joints);
 
   // Array of matrices used to store model space matrices during DrawSkeleton
   // execution.
   ozz::Range<ozz::math::Float4x4> prealloc_models_;
+
+  // Application camera that provides rendering matrices.
+  Camera* camera_;
 
   // The maximum number of pieces needed to render a skeleton.
   int max_skeleton_pieces_;
@@ -209,6 +166,9 @@ class RendererImpl : public Renderer {
 
   // Dynamic vbo used for joint's pre-instance data.
   GLuint joint_instance_vbo_;
+
+  // Immediate renderer implementation;
+  GlImmediateRenderer* immediate_;
 };
 }  // internal
 }  // sample
@@ -266,6 +226,10 @@ extern PFNGLUNIFORM1FPROC glUniform1f;
 extern PFNGLUNIFORM2FPROC glUniform2f;
 extern PFNGLUNIFORM3FPROC glUniform3f;
 extern PFNGLUNIFORM4FPROC glUniform4f;
+extern PFNGLUNIFORM1IPROC glUniform1i;
+extern PFNGLUNIFORM2IPROC glUniform2i;
+extern PFNGLUNIFORM3IPROC glUniform3i;
+extern PFNGLUNIFORM4IPROC glUniform4i;
 extern PFNGLUNIFORM1FVPROC glUniform1fv;
 extern PFNGLUNIFORM2FVPROC glUniform2fv;
 extern PFNGLUNIFORM3FVPROC glUniform3fv;

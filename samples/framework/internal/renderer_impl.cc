@@ -30,7 +30,7 @@
 
 #define OZZ_INCLUDE_PRIVATE_HEADER  // Allows to include private headers.
 
-#include "framework/internal/renderer_impl.h"
+#include "renderer_impl.h"
 
 #include "ozz/animation/runtime/local_to_model_job.h"
 #include "ozz/animation/runtime/skeleton.h"
@@ -45,6 +45,10 @@
 #include "ozz/base/maths/box.h"
 
 #include "ozz/base/memory/allocator.h"
+
+#include "camera.h"
+#include "immediate.h"
+#include "shader.h"
 
 namespace ozz {
 namespace sample {
@@ -77,10 +81,12 @@ RendererImpl::Model::~Model() {
   }
 }
 
-RendererImpl::RendererImpl()
-    : max_skeleton_pieces_(animation::Skeleton::kMaxJoints * 2),
+RendererImpl::RendererImpl(Camera* _camera)
+    : camera_(_camera),
+      max_skeleton_pieces_(animation::Skeleton::kMaxJoints * 2),
       prealloc_uniforms_(NULL),
-      joint_instance_vbo_(0) {
+      joint_instance_vbo_(0),
+      immediate_(NULL) {
   prealloc_uniforms_ = reinterpret_cast<float*>(
     memory::default_allocator()->Allocate(
       max_skeleton_pieces_ * 16 * sizeof(float),
@@ -90,11 +96,16 @@ RendererImpl::RendererImpl()
 RendererImpl::~RendererImpl() {
   memory::default_allocator()->Deallocate(prealloc_models_);
 
-  GL(DeleteBuffers(1, &joint_instance_vbo_));
-  joint_instance_vbo_ = 0;
+  if(joint_instance_vbo_) {
+    GL(DeleteBuffers(1, &joint_instance_vbo_));
+    joint_instance_vbo_ = 0;
+  }
 
   memory::default_allocator()->Deallocate(prealloc_uniforms_);
   prealloc_uniforms_ = NULL;
+
+  memory::default_allocator()->Delete(immediate_);
+  immediate_ = NULL;
 }
 
 bool RendererImpl::Initialize() {
@@ -108,170 +119,40 @@ bool RendererImpl::Initialize() {
   // Builds the dynamic vbo
   GL(GenBuffers(1, &joint_instance_vbo_));
 
+  // Allocate immediate mode renderer;
+  immediate_ = memory::default_allocator()->New<GlImmediateRenderer>(this);
+  if (!immediate_->Initialize()) {
+    return false;
+  }
+
   return true;
 }
 
-namespace {
-
-const char* shader_uber_vs =
-  "varying vec3 world_normal;\n"
-  "varying vec4 vertex_color;\n"
-  "void main() {\n"
-  "  mat4 world_matrix = GetWorldMatrix();\n"
-  "  vec4 vertex = vec4(gl_Vertex.xyz, 1.);\n"
-  "  gl_Position = gl_ModelViewProjectionMatrix * world_matrix * vertex;\n"
-  "  mat3 cross_matrix = mat3(\n"
-  "    cross(world_matrix[1].xyz, world_matrix[2].xyz),\n"
-  "    cross(world_matrix[2].xyz, world_matrix[0].xyz),\n"
-  "    cross(world_matrix[0].xyz, world_matrix[1].xyz));\n"
-  "  float invdet = 1.0 / dot(cross_matrix[2], world_matrix[2].xyz);\n"
-  "  mat3 normal_matrix = cross_matrix * invdet;\n"
-  "  world_normal = normal_matrix * gl_Normal;\n"
-  "  vertex_color = gl_Color;\n"
-  "}\n";
-const char* shader_ambient_fs =
-  "vec3 lerp(in vec3 alpha, in vec3 a, in vec3 b) {\n"
-  "  return a + alpha * (b - a);\n"
-  "}\n"
-  "vec4 lerp(in vec4 alpha, in vec4 a, in vec4 b) {\n"
-  "  return a + alpha * (b - a);\n"
-  "}\n"
-  "varying vec3 world_normal;\n"
-  "varying vec4 vertex_color;\n"
-  "void main() {\n"
-  "  vec3 normal = normalize(world_normal);\n"
-  "  vec3 alpha = (normal + 1.) * .5;\n"
-  "  vec4 bt = lerp(\n"
-  "    alpha.xzxz, vec4(.3, .3, .7, .7), vec4(.4, .4, .8, .8));\n"
-  "  gl_FragColor = vec4(\n"
-  "     lerp(alpha.yyy, vec3(bt.x, .3, bt.y), vec3(bt.z, .8, bt.w)), 1.);\n"
-  "  gl_FragColor *= vertex_color;\n"
-  "}\n";
-
-Shader* InitJointShading() {
-  // Builds a world matrix from joint uniforms, a joint matrix scaled by bone
-  // length.
-  const char* vs_joint_to_world_matrix =
-    "mat4 GetWorldMatrix() {\n"
-    "  // Rebuilds joint matrix.\n"
-    "  mat4 joint_matrix;\n"
-    "  joint_matrix[0] = vec4(normalize(joint[0].xyz), 0.);\n"
-    "  joint_matrix[1] = vec4(normalize(joint[1].xyz), 0.);\n"
-    "  joint_matrix[2] = vec4(normalize(joint[2].xyz), 0.);\n"
-    "  joint_matrix[3] = vec4(joint[3].xyz, 1.);\n"
-
-    "  // Rebuilds bone properties.\n"
-    "  vec3 bone_dir = vec3(joint[0].w, joint[1].w, joint[2].w);\n"
-    "  float bone_len = length(bone_dir);\n"
-
-    "  // Setup rendering world matrix.\n"
-    "  mat4 world_matrix;\n"
-    "  world_matrix[0] = joint_matrix[0] * bone_len;\n"
-    "  world_matrix[1] = joint_matrix[1] * bone_len;\n"
-    "  world_matrix[2] = joint_matrix[2] * bone_len;\n"
-    "  world_matrix[3] = joint_matrix[3];\n"
-    "  return world_matrix;\n"
-    "}\n";
-  const char* vs[] = {
-    "#version 110\n",
-    GL_ARB_instanced_arrays ?
-      "attribute mat4 joint;\n" :
-      "uniform mat4 joint;\n",  // Simplest fall back.
-    vs_joint_to_world_matrix,
-    shader_uber_vs};
-  const char* fs[] = {
-    "#version 110\n",
-    shader_ambient_fs};
-
-  Shader* shader = Shader::Build(OZZ_ARRAY_SIZE(vs), vs,
-                                 OZZ_ARRAY_SIZE(fs), fs);
-  if (!shader) {
-    return NULL;
-  }
-  if (GL_ARB_instanced_arrays &&
-      !shader->BindAttrib("joint")) {
-    return NULL;
-  } else if (!GL_ARB_instanced_arrays &&
-             !shader->BindUniform("joint")) {
-    return NULL;
-  }
-  return shader;
-}
-
-Shader* InitBoneShading() {
-  // Builds a world matrix from joint uniforms, sticking bone model between
-  // parent and child joints.
-  const char* vs_joint_to_world_matrix =
-    "mat4 GetWorldMatrix() {\n"
-    "  // Rebuilds bone properties.\n"
-    "  // Bone length is set to zero to disable leaf rendering.\n"
-    "  float is_bone = joint[3].w;\n"
-    "  vec3 bone_dir = vec3(joint[0].w, joint[1].w, joint[2].w) * is_bone;\n"
-    "  float bone_len = length(bone_dir);\n"
-
-    "  // Setup rendering world matrix.\n"
-    "  float dot = dot(joint[2].xyz, bone_dir);\n"
-    "  vec3 binormal = abs(dot) < .01 ? joint[2].xyz : joint[1].xyz;\n"
-
-    "  mat4 world_matrix;\n"
-    "  world_matrix[0] = vec4(bone_dir, 0.);\n"
-    "  world_matrix[1] = \n"
-    "    vec4(bone_len * normalize(cross(binormal, bone_dir)), 0.);\n"
-    "  world_matrix[2] =\n"
-    "    vec4(bone_len * normalize(cross(bone_dir, world_matrix[1].xyz)), 0.);\n"
-    "  world_matrix[3] = vec4(joint[3].xyz, 1.);\n"
-    "  return world_matrix;\n"
-    "}\n";
-  const char* vs[] = {
-    "#version 110\n",
-    GL_ARB_instanced_arrays ?
-      "attribute mat4 joint;\n" :
-      "uniform mat4 joint;\n",  // Simplest fall back.
-    vs_joint_to_world_matrix,
-    shader_uber_vs};
-  const char* fs[] = {
-    "#version 110\n",
-    shader_ambient_fs};
-
-  Shader* shader = Shader::Build(OZZ_ARRAY_SIZE(vs), vs,
-                                 OZZ_ARRAY_SIZE(fs), fs);
-  if (!shader) {
-    return NULL;
-  }
-  if (GL_ARB_instanced_arrays &&
-      !shader->BindAttrib("joint")) {
-    return NULL;
-  } else if (!GL_ARB_instanced_arrays &&
-             !shader->BindUniform("joint")) {
-    return NULL;
-  }
-  return shader;
-}
-}  // namespace
-
 void RendererImpl::DrawAxes(const ozz::math::Float4x4& _transform) {
 
-  glPushMatrix();
-  OZZ_ALIGN(16) float matrix[16];
-  ozz::math::StorePtr(_transform.cols[0], matrix + 0);
-  ozz::math::StorePtr(_transform.cols[1], matrix + 4);
-  ozz::math::StorePtr(_transform.cols[2], matrix + 8);
-  ozz::math::StorePtr(_transform.cols[3], matrix + 12);
-  glMultMatrixf(matrix);
+  GlImmediatePC im(immediate_renderer(), GL_LINES,_transform);
+  GlImmediatePC::Vertex v = {{0.f, 0.f, 0.f}, {0, 0, 0, 0xff}};
 
-  glBegin(GL_LINES);
-    glColor4ub(0xff, 0, 0, 0xff);  // X axis (red).
-    glVertex3f(0.f, 0.f, 0.f);
-    glVertex3f(1.f, 0.f, 0.f);
-    glColor4ub(0, 0xff, 0, 0xff);  // Y axis (green).
-    glVertex3f(0.f, 0.f, 0.f);
-    glVertex3f(0.f, 1.f, 0.f);
-    glColor4ub(0, 0, 0xff, 0xff);  // Z axis (blue).
-    glVertex3f(0.f, 0.f, 0.f);
-    glVertex3f(0.f, 0.f, 1.f);
-  GL(End());
+  // X axis (green).
+  v.pos[0] = 0.f; v.pos[1] = 0.f; v.pos[2] = 0.f;
+  v.rgba[0] = 0xff; v.rgba[1] = 0; v.rgba[2] = 0;
+  im.PushVertex(v);
+  v.pos[0] = 1.f;
+  im.PushVertex(v);
 
-  glPopMatrix();
+  // Y axis (green).
+  v.pos[0] = 0.f; v.pos[1] = 0.f; v.pos[2] = 0.f;
+  v.rgba[0] = 0; v.rgba[1] = 0xff; v.rgba[2] = 0;
+  im.PushVertex(v);
+  v.pos[1] = 1.f;
+  im.PushVertex(v);
+
+  // Z axis (green).
+  v.pos[0] = 0.f; v.pos[1] = 0.f; v.pos[2] = 0.f;
+  v.rgba[0] = 0; v.rgba[1] = 0; v.rgba[2] = 0xff;
+  im.PushVertex(v);
+  v.pos[2] = 1.f;
+  im.PushVertex(v);
 }
 
 void RendererImpl::DrawGrid(int _cell_count, float _cell_size) {
@@ -282,37 +163,48 @@ void RendererImpl::DrawGrid(int _cell_count, float _cell_size) {
   GL(Enable(GL_BLEND));
   GL(BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
   GL(Disable(GL_CULL_FACE));
-  glBegin(GL_QUADS);
-  glColor4ub(0x80, 0xc0, 0xd0, 0xb0);
-  glVertex3f(corner.x, corner.y, corner.z);
-  glVertex3f(corner.x, corner.y, corner.z + extent);
-  glVertex3f(corner.x + extent, corner.y, corner.z + extent);
-  glVertex3f(corner.x + extent, corner.y, corner.z);
-  GL(End());
+  {
+    GlImmediatePC im(immediate_renderer(),
+                     GL_TRIANGLE_STRIP,
+                     ozz::math::Float4x4::identity());
+    GlImmediatePC::Vertex v = {{0.f, 0.f, 0.f}, {0x80, 0xc0, 0xd0, 0xb0}};
+
+    v.pos[0] = corner.x; v.pos[1] = corner.y; v.pos[2] = corner.z;
+    im.PushVertex(v);
+    v.pos[2] = corner.z + extent;
+    im.PushVertex(v);
+    v.pos[0] = corner.x + extent; v.pos[2] = corner.z;
+    im.PushVertex(v);
+    v.pos[2] = corner.z + extent;
+    im.PushVertex(v);
+  }
   GL(Disable(GL_BLEND));
   GL(Enable(GL_CULL_FACE));
 
-  glBegin(GL_LINES);
-  glColor4ub(0xb0, 0xb0, 0xb0, 0xff);
-  // Renders lines along X axis.
-  ozz::math::Float3 x_line_begin = corner;
-  ozz::math::Float3 x_line_end(corner.x + extent, corner.y, corner.z);
-  for (int i = 0; i < _cell_count + 1; ++i) {
-    glVertex3fv(&x_line_begin.x);
-    glVertex3fv(&x_line_end.x);
-    x_line_begin.z += _cell_size;
-    x_line_end.z += _cell_size;
+  {
+    GlImmediatePC im(immediate_renderer(),
+                     GL_LINES,
+                     ozz::math::Float4x4::identity());
+
+    // Renders lines along X axis.
+    GlImmediatePC::Vertex begin = {{corner.x, corner.y, corner.z}, {0xb0, 0xb0, 0xb0, 0xff}};
+    GlImmediatePC::Vertex end = begin; end.pos[0] += extent;
+    for (int i = 0; i < _cell_count + 1; ++i) {
+      im.PushVertex(begin);
+      im.PushVertex(end);
+      begin.pos[2] += _cell_size;
+      end.pos[2] += _cell_size;
+    }
+    // Renders lines along Z axis.
+    begin.pos[0] = corner.x; begin.pos[1] = corner.y; begin.pos[2] = corner.z;
+    end = begin; end.pos[2] += extent;
+    for (int i = 0; i < _cell_count + 1; ++i) {
+      im.PushVertex(begin);
+      im.PushVertex(end);
+      begin.pos[0] += _cell_size;
+      end.pos[0] += _cell_size;
+    }
   }
-  // Renders lines along Z axis.
-  ozz::math::Float3 z_line_begin = corner;
-  ozz::math::Float3 z_line_end(corner.x, corner.y, corner.z + extent);
-  for (int i = 0; i < _cell_count + 1; ++i) {
-    glVertex3fv(&z_line_begin.x);
-    glVertex3fv(&z_line_end.x);
-    z_line_begin.x += _cell_size;
-    z_line_end.x += _cell_size;
-  }
-  GL(End());
 }
 
 // Computes the model space bind pose and renders it.
@@ -350,7 +242,7 @@ bool RendererImpl::DrawSkeleton(const ozz::animation::Skeleton& _skeleton,
 }
 
 bool RendererImpl::InitPostureRendering() {
-  const float kInter = .15f;
+  const float kInter = .2f;
   {  // Prepares bone mesh.
     const math::Float3 pos[6] = {
       math::Float3(1.f, 0.f, 0.f),
@@ -393,7 +285,7 @@ bool RendererImpl::InitPostureRendering() {
     GL(BindBuffer(GL_ARRAY_BUFFER, 0));  // Unbinds.
 
     // Init bone shader.
-    bone.shader = InitBoneShading();
+    bone.shader = BoneShader::Build();
     if (!bone.shader) {
       return false;
     }
@@ -450,7 +342,7 @@ bool RendererImpl::InitPostureRendering() {
     GL(BindBuffer(GL_ARRAY_BUFFER, 0));  // Unbinds.
 
     // Init joint shader.
-    joint.shader = InitJointShading();
+    joint.shader = JointShader::Build();
     if (!joint.shader) {
       return false;
     }
@@ -484,27 +376,28 @@ int DrawPosture_FillUniforms(const ozz::animation::Skeleton& _skeleton,
       const math::Float4x4& parent = _matrices.begin[parent_id];
       const math::Float4x4& current = _matrices.begin[i];
 
-      OZZ_ALIGN(16) float bone_dir[4];
-      {
-        // Copy parent joint's raw matrix, to render a bone between the parent
-        // and current matrix.
-        float* uniform = _uniforms + instances * 16;
-        math::StorePtr(parent.cols[0], uniform + 0);
-        math::StorePtr(parent.cols[1], uniform + 4);
-        math::StorePtr(parent.cols[2], uniform + 8);
-        math::StorePtr(parent.cols[3], uniform + 12);
+      // Copy parent joint's raw matrix, to render a bone between the parent
+      // and current matrix.
+      float* uniform = _uniforms + instances * 16;
+      math::StorePtr(parent.cols[0], uniform + 0);
+      math::StorePtr(parent.cols[1], uniform + 4);
+      math::StorePtr(parent.cols[2], uniform + 8);
+      math::StorePtr(parent.cols[3], uniform + 12);
 
-        // Set bone direction (bone_dir). The shader expects to find it at index
-        // [3,7,11] of the matrix.
-        // Index 15 is used to store whether a bone should be rendered,
-        // otherwise it's a leaf.
-        math::StorePtr(current.cols[3] - parent.cols[3], bone_dir);
-        uniform[3] = bone_dir[0];
-        uniform[7] = bone_dir[1];
-        uniform[11] = bone_dir[2];
-        uniform[15] = 1.f;  // Enables bone rendering.
-        ++instances;
-      }
+      // Set bone direction (bone_dir). The shader expects to find it at index
+      // [3,7,11] of the matrix.
+      // Index 15 is used to store whether a bone should be rendered,
+      // otherwise it's a leaf.
+      float bone_dir[4];
+      math::StorePtrU(current.cols[3] - parent.cols[3], bone_dir);
+      uniform[3] = bone_dir[0];
+      uniform[7] = bone_dir[1];
+      uniform[11] = bone_dir[2];
+      uniform[15] = 1.f;  // Enables bone rendering.
+
+      // Next instance.
+      ++instances;
+      uniform += 16;
 
       // Only the joint is rendered for leaves, the bone model isn't.
       if (properties[i].is_leaf) {
@@ -530,45 +423,41 @@ int DrawPosture_FillUniforms(const ozz::animation::Skeleton& _skeleton,
 }  // namespace
 
 // Draw posture internal non-instanced rendering fall back implementation.
-void RendererImpl::DrawPosture_Impl(int _instance_count, bool _draw_joints) {
+void RendererImpl::DrawPosture_Impl(const ozz::math::Float4x4& _transform,
+                                    int _instance_count, bool _draw_joints) {
   // Loops through models and instances.
   for (int i = 0; i < (_draw_joints ? 2 : 1); ++i) {
     const Model& model = models_[i];
 
-    // Switches to model's shader.
-    GL(UseProgram(model.shader->program()));
-
     // Setup model vertex data.
     GL(BindBuffer(GL_ARRAY_BUFFER, model.vbo));
-    GL(EnableClientState(GL_VERTEX_ARRAY));
-    GL(VertexPointer(3, GL_FLOAT, sizeof(VertexPNC), 0));
-    GL(EnableClientState(GL_NORMAL_ARRAY));
-    GL(NormalPointer(GL_FLOAT, sizeof(VertexPNC), GL_PTR_OFFSET(12)));
-    GL(EnableClientState(GL_COLOR_ARRAY));
-    GL(ColorPointer(4, GL_UNSIGNED_BYTE, sizeof(VertexPNC), GL_PTR_OFFSET(24)));
+
+    // Bind shader
+    model.shader->Bind(_transform, camera_->view_proj(),
+                       sizeof(VertexPNC), 0,
+                       sizeof(VertexPNC), 12,
+                       sizeof(VertexPNC), 24);
+
     GL(BindBuffer(GL_ARRAY_BUFFER, 0));
 
-    const GLint uniform_slot = model.shader->uniform(0);
+    // Draw loop.
+    const GLint joint_uniform = model.shader->joint_uniform();
     for (int i = 0; i < _instance_count; ++i) {
-      GL(UniformMatrix4fv(uniform_slot, 1, false, prealloc_uniforms_ + 16 * i));
+      GL(UniformMatrix4fv(joint_uniform, 1, false, prealloc_uniforms_ + 16 * i));
       GL(DrawArrays(model.mode, 0, model.count));
     }
+
+    model.shader->Unbind();
   }
-
-  GL(DisableClientState(GL_VERTEX_ARRAY));
-  GL(DisableClientState(GL_NORMAL_ARRAY));
-  GL(DisableClientState(GL_COLOR_ARRAY));
-
-  // Restores fixed pipeline.
-  GL(UseProgram(0));
 }
 
 // "Draw posture" internal instanced rendering implementation.
-void RendererImpl::DrawPosture_InstancedImpl(int _instance_count,
+void RendererImpl::DrawPosture_InstancedImpl(const ozz::math::Float4x4& _transform,
+                                             int _instance_count,
                                              bool _draw_joints) {
   // Maps the dynamic buffer and update it.
   GL(BindBuffer(GL_ARRAY_BUFFER, joint_instance_vbo_));
-  const std::size_t vbo_size = _instance_count * 16 * sizeof(float);
+  const size_t vbo_size = _instance_count * 16 * sizeof(float);
   GL(BufferData(GL_ARRAY_BUFFER, vbo_size, prealloc_uniforms_, GL_STREAM_DRAW));
   GL(BindBuffer(GL_ARRAY_BUFFER, 0));
 
@@ -578,19 +467,17 @@ void RendererImpl::DrawPosture_InstancedImpl(int _instance_count,
 
     // Setup model vertex data.
     GL(BindBuffer(GL_ARRAY_BUFFER, model.vbo));
-    GL(EnableClientState(GL_VERTEX_ARRAY));
-    GL(VertexPointer(3, GL_FLOAT, sizeof(VertexPNC), 0));
-    GL(EnableClientState(GL_NORMAL_ARRAY));
-    GL(NormalPointer(GL_FLOAT, sizeof(VertexPNC), GL_PTR_OFFSET(12)));
-    GL(EnableClientState(GL_COLOR_ARRAY));
-    GL(ColorPointer(4, GL_UNSIGNED_BYTE, sizeof(VertexPNC), GL_PTR_OFFSET(24)));
+
+    // Bind shader
+    model.shader->Bind(_transform, camera_->view_proj(),
+                       sizeof(VertexPNC), 0,
+                       sizeof(VertexPNC), 12,
+                       sizeof(VertexPNC), 24);
+
     GL(BindBuffer(GL_ARRAY_BUFFER, 0));
 
-    // Switches to model's shader.
-    GL(UseProgram(model.shader->program()));
-
     // Setup instanced GL context.
-    const GLint joint_attrib = model.shader->attrib(0);
+    const GLint joint_attrib = model.shader->joint_instanced_attrib();
     GL(BindBuffer(GL_ARRAY_BUFFER, joint_instance_vbo_));
     GL(EnableVertexAttribArray(joint_attrib + 0));
     GL(EnableVertexAttribArray(joint_attrib + 1));
@@ -620,14 +507,9 @@ void RendererImpl::DrawPosture_InstancedImpl(int _instance_count,
     GL(VertexAttribDivisorARB(joint_attrib + 1, 0));
     GL(VertexAttribDivisorARB(joint_attrib + 2, 0));
     GL(VertexAttribDivisorARB(joint_attrib + 3, 0));
+
+    model.shader->Unbind();
   }
-
-  GL(DisableClientState(GL_VERTEX_ARRAY));
-  GL(DisableClientState(GL_NORMAL_ARRAY));
-  GL(DisableClientState(GL_COLOR_ARRAY));
-
-  // Restores fixed pipeline.
-  GL(UseProgram(0));
 }
 
 // Uses GL_ARB_instanced_arrays as a first choice to render the whole skeleton
@@ -646,24 +528,14 @@ bool RendererImpl::DrawPosture(const ozz::animation::Skeleton& _skeleton,
 
   // Convert matrices to uniforms.
   const int instance_count = DrawPosture_FillUniforms(
-      _skeleton, _matrices, prealloc_uniforms_, max_skeleton_pieces_);
+    _skeleton, _matrices, prealloc_uniforms_, max_skeleton_pieces_);
   assert(instance_count <= max_skeleton_pieces_);
 
-  glPushMatrix();
-  OZZ_ALIGN(16) float matrix[16];
-  ozz::math::StorePtr(_transform.cols[0], matrix + 0);
-  ozz::math::StorePtr(_transform.cols[1], matrix + 4);
-  ozz::math::StorePtr(_transform.cols[2], matrix + 8);
-  ozz::math::StorePtr(_transform.cols[3], matrix + 12);
-  glMultMatrixf(matrix);
-
   if (GL_ARB_instanced_arrays) {
-    DrawPosture_InstancedImpl(instance_count, _draw_joints);
+    DrawPosture_InstancedImpl(_transform, instance_count, _draw_joints);
   } else {
-    DrawPosture_Impl(instance_count, _draw_joints);
+    DrawPosture_Impl(_transform, instance_count, _draw_joints);
   }
-
-  glPopMatrix();
 
   return true;
 }
@@ -671,49 +543,65 @@ bool RendererImpl::DrawPosture(const ozz::animation::Skeleton& _skeleton,
 bool RendererImpl::DrawBox(const ozz::math::Box& _box,
                            const ozz::math::Float4x4& _transform,
                            const Color _colors[2]) {
-  glPushMatrix();
-  OZZ_ALIGN(16) float matrix[16];
-  ozz::math::StorePtr(_transform.cols[0], matrix + 0);
-  ozz::math::StorePtr(_transform.cols[1], matrix + 4);
-  ozz::math::StorePtr(_transform.cols[2], matrix + 8);
-  ozz::math::StorePtr(_transform.cols[3], matrix + 12);
-  glMultMatrixf(matrix);
 
-  GL(PushAttrib(GL_POLYGON_BIT));
-  GL(PolygonMode(GL_FRONT, GL_FILL));
-  for (int i = 0; i < 2; ++i) {
-    glBegin(GL_QUADS);
-      glColor4f(_colors[i].r, _colors[i].g, _colors[i].b, _colors[i].a);
-      glVertex3f(_box.min.x, _box.min.y, _box.min.z);
-      glVertex3f(_box.min.x, _box.max.y, _box.min.z);
-      glVertex3f(_box.max.x, _box.max.y, _box.min.z);
-      glVertex3f(_box.max.x, _box.min.y, _box.min.z);
-      glVertex3f(_box.max.x, _box.min.y, _box.min.z);
-      glVertex3f(_box.max.x, _box.max.y, _box.min.z);
-      glVertex3f(_box.max.x, _box.max.y, _box.max.z);
-      glVertex3f(_box.max.x, _box.min.y, _box.max.z);
-      glVertex3f(_box.min.x, _box.max.y, _box.min.z);
-      glVertex3f(_box.min.x, _box.max.y, _box.max.z);
-      glVertex3f(_box.max.x, _box.max.y, _box.max.z);
-      glVertex3f(_box.max.x, _box.max.y, _box.min.z);
-      glVertex3f(_box.min.x, _box.min.y, _box.max.z);
-      glVertex3f(_box.max.x, _box.min.y, _box.max.z);
-      glVertex3f(_box.max.x, _box.max.y, _box.max.z);
-      glVertex3f(_box.min.x, _box.max.y, _box.max.z);
-      glVertex3f(_box.min.x, _box.min.y, _box.min.z);
-      glVertex3f(_box.min.x, _box.min.y, _box.max.z);
-      glVertex3f(_box.min.x, _box.max.y, _box.max.z);
-      glVertex3f(_box.min.x, _box.max.y, _box.min.z);
-      glVertex3f(_box.min.x, _box.min.y, _box.min.z);
-      glVertex3f(_box.max.x, _box.min.y, _box.min.z);
-      glVertex3f(_box.max.x, _box.min.y, _box.max.z);
-      glVertex3f(_box.min.x, _box.min.y, _box.max.z);
-    GL(End());
-    GL(PolygonMode(GL_FRONT, GL_LINE)); // Next loop will be with lines.
+  { // Filled boxed
+    GlImmediatePC im(immediate_renderer(), GL_TRIANGLE_STRIP, _transform);
+    GlImmediatePC::Vertex v = {
+      {0, 0, 0},
+      {_colors[0].r, _colors[0].g, _colors[0].b, _colors[0].a}
+    };
+    // First 3 cube faces
+    v.pos[0] = _box.max.x; v.pos[1] = _box.min.y; v.pos[2] = _box.min.z;
+    im.PushVertex(v);
+    v.pos[0] = _box.min.x; im.PushVertex(v);
+    v.pos[0] = _box.max.x; v.pos[1] = _box.max.y; im.PushVertex(v);
+    v.pos[0] = _box.min.x; im.PushVertex(v);
+    v.pos[0] = _box.max.x; v.pos[2] = _box.max.z; im.PushVertex(v);
+    v.pos[0] = _box.min.x; im.PushVertex(v);
+    v.pos[0] = _box.max.x; v.pos[1] = _box.min.y; im.PushVertex(v);
+    v.pos[0] = _box.min.x; im.PushVertex(v);
+    // Link next 3 cube faces with degenerated triangles.
+    im.PushVertex(v);
+    v.pos[0] = _box.min.x; v.pos[1] = _box.max.y; im.PushVertex(v);
+    im.PushVertex(v);
+    // Last 3 cube faces.
+    v.pos[2] = _box.min.z; im.PushVertex(v);
+    v.pos[1] = _box.min.y; v.pos[2] = _box.max.z; im.PushVertex(v);
+    v.pos[2] = _box.min.z; im.PushVertex(v);
+    v.pos[0] = _box.max.x; v.pos[2] = _box.max.z; im.PushVertex(v);
+    v.pos[2] = _box.min.z; im.PushVertex(v);
+    v.pos[1] = _box.max.y; v.pos[2] = _box.max.z; im.PushVertex(v);
+    v.pos[2] = _box.min.z; im.PushVertex(v);
   }
-  GL(PopAttrib());
 
-  glPopMatrix();
+  { // Wireframe boxed
+    GlImmediatePC im(immediate_renderer(), GL_LINES, _transform);
+    GlImmediatePC::Vertex v = {
+      {0, 0, 0},
+      {_colors[1].r, _colors[1].g, _colors[1].b, _colors[1].a}
+    };
+    // First face.
+    v.pos[0] = _box.min.x; v.pos[1] = _box.min.y; v.pos[2] = _box.min.z;
+    im.PushVertex(v);
+    v.pos[1] = _box.max.y; im.PushVertex(v);
+    im.PushVertex(v); v.pos[0] = _box.max.x; im.PushVertex(v);
+    im.PushVertex(v); v.pos[1] = _box.min.y; im.PushVertex(v);
+    im.PushVertex(v); v.pos[0] = _box.min.x; im.PushVertex(v);
+    // Second face.
+    v.pos[2] = _box.max.z; im.PushVertex(v);
+    v.pos[1] = _box.max.y; im.PushVertex(v);
+    im.PushVertex(v); v.pos[0] = _box.max.x; im.PushVertex(v);
+    im.PushVertex(v); v.pos[1] = _box.min.y; im.PushVertex(v);
+    im.PushVertex(v); v.pos[0] = _box.min.x; im.PushVertex(v);
+    // Link faces.
+    im.PushVertex(v); v.pos[2] = _box.min.z; im.PushVertex(v);
+    v.pos[1] = _box.max.y; im.PushVertex(v);
+    v.pos[2] = _box.max.z; im.PushVertex(v);    
+    v.pos[0] = _box.max.x; im.PushVertex(v);
+    v.pos[2] = _box.min.z; im.PushVertex(v);
+    v.pos[1] = _box.min.y; im.PushVertex(v);
+    v.pos[2] = _box.max.z; im.PushVertex(v);
+  }
 
   return true;
 }
@@ -729,7 +617,8 @@ do {\
 } while (void(0), 0)
 
 bool RendererImpl::InitOpenGLExtensions() {
-  bool success = true;
+  bool optional_success = true;
+  bool success = true;  // aka mandatory extentions
 #ifdef OZZ_GL_VERSION_1_5_EXT
   OZZ_INIT_GL_EXT(glBindBuffer, PFNGLBINDBUFFERPROC, success);
   OZZ_INIT_GL_EXT(glDeleteBuffers, PFNGLDELETEBUFFERSPROC, success);
@@ -737,12 +626,10 @@ bool RendererImpl::InitOpenGLExtensions() {
   OZZ_INIT_GL_EXT(glIsBuffer, PFNGLISBUFFERPROC, success);
   OZZ_INIT_GL_EXT(glBufferData, PFNGLBUFFERDATAPROC, success);
   OZZ_INIT_GL_EXT(glBufferSubData, PFNGLBUFFERSUBDATAPROC, success);
-  OZZ_INIT_GL_EXT(glGetBufferSubData, PFNGLGETBUFFERSUBDATAPROC, success);
-  OZZ_INIT_GL_EXT(glMapBuffer, PFNGLMAPBUFFERPROC, success);
-  OZZ_INIT_GL_EXT(glUnmapBuffer, PFNGLUNMAPBUFFERPROC, success);
+  OZZ_INIT_GL_EXT(glMapBuffer, PFNGLMAPBUFFERPROC, optional_success);
+  OZZ_INIT_GL_EXT(glUnmapBuffer, PFNGLUNMAPBUFFERPROC, optional_success);
   OZZ_INIT_GL_EXT(
     glGetBufferParameteriv, PFNGLGETBUFFERPARAMETERIVPROC, success);
-  OZZ_INIT_GL_EXT(glGetBufferPointerv, PFNGLGETBUFFERPOINTERVPROC, success);
 #endif  // OZZ_GL_VERSION_1_5_EXT
 
 #ifdef OZZ_GL_VERSION_2_0_EXT
@@ -770,7 +657,6 @@ bool RendererImpl::InitOpenGLExtensions() {
   OZZ_INIT_GL_EXT(glGetUniformLocation, PFNGLGETUNIFORMLOCATIONPROC, success);
   OZZ_INIT_GL_EXT(glGetUniformfv, PFNGLGETUNIFORMFVPROC, success);
   OZZ_INIT_GL_EXT(glGetUniformiv, PFNGLGETUNIFORMIVPROC, success);
-  OZZ_INIT_GL_EXT(glGetVertexAttribdv, PFNGLGETVERTEXATTRIBDVPROC, success);
   OZZ_INIT_GL_EXT(glGetVertexAttribfv, PFNGLGETVERTEXATTRIBFVPROC, success);
   OZZ_INIT_GL_EXT(glGetVertexAttribiv, PFNGLGETVERTEXATTRIBIVPROC, success);
   OZZ_INIT_GL_EXT(
@@ -784,6 +670,10 @@ bool RendererImpl::InitOpenGLExtensions() {
   OZZ_INIT_GL_EXT(glUniform2f, PFNGLUNIFORM2FPROC, success);
   OZZ_INIT_GL_EXT(glUniform3f, PFNGLUNIFORM3FPROC, success);
   OZZ_INIT_GL_EXT(glUniform4f, PFNGLUNIFORM4FPROC, success);
+  OZZ_INIT_GL_EXT(glUniform1i, PFNGLUNIFORM1IPROC, success);
+  OZZ_INIT_GL_EXT(glUniform2i, PFNGLUNIFORM2IPROC, success);
+  OZZ_INIT_GL_EXT(glUniform3i, PFNGLUNIFORM3IPROC, success);
+  OZZ_INIT_GL_EXT(glUniform4i, PFNGLUNIFORM4IPROC, success);
   OZZ_INIT_GL_EXT(glUniform1fv, PFNGLUNIFORM1FVPROC, success);
   OZZ_INIT_GL_EXT(glUniform2fv, PFNGLUNIFORM2FVPROC, success);
   OZZ_INIT_GL_EXT(glUniform3fv, PFNGLUNIFORM3FVPROC, success);
@@ -803,11 +693,16 @@ bool RendererImpl::InitOpenGLExtensions() {
   OZZ_INIT_GL_EXT(glVertexAttribPointer, PFNGLVERTEXATTRIBPOINTERPROC, success);
 #endif  // OZZ_GL_VERSION_2_0_EXT
   if (!success) {
-    log::Err() << "Failed to initialize mandatory GL extensions." << std::endl;
+    log::Err() << "Failed to initialize all mandatory GL extensions." <<
+      std::endl;
     return false;
   }
+  if (!optional_success) {
+    log::Err() << "Failed to initialize some optional GL extensions." <<
+      std::endl;
+  }
 
-  GL_ARB_instanced_arrays =
+  GL_ARB_instanced_arrays = 
     glfwExtensionSupported("GL_ARB_instanced_arrays") != 0;
   if (GL_ARB_instanced_arrays) {
     log::Log() << "Optional GL_ARB_instanced_arrays extensions found." <<
@@ -829,115 +724,6 @@ bool RendererImpl::InitOpenGLExtensions() {
     log::Log() << "Optional GL_ARB_instanced_arrays extensions not found." <<
       std::endl;
   }
-  return true;
-}
-
-Shader::Shader()
-    : program_(0),
-      vertex_(0),
-      fragment_(0) {
-}
-
-Shader::~Shader() {
-  if (vertex_) {
-    GL(DetachShader(program_, vertex_));
-    GL(DeleteShader(vertex_));
-  }
-  if (fragment_) {
-    GL(DetachShader(program_, fragment_));
-    GL(DeleteShader(fragment_));
-  }
-  if (program_) {
-    GL(DeleteProgram(program_));
-  }
-}
-
-Shader* Shader::Build(int _vertex_count, const char** _vertex,
-                      int _fragment_count, const char** _fragment) {
-  // Tries to compile shaders.
-  GLuint vertex_shader = 0;
-  if (_vertex) {
-    vertex_shader =
-      CompileShader(GL_VERTEX_SHADER, _vertex_count, _vertex);
-    if (!vertex_shader) {
-      return NULL;
-    }
-  }
-  GLuint fragment_shader = 0;
-  if (_fragment) {
-    fragment_shader =
-      CompileShader(GL_FRAGMENT_SHADER, _fragment_count, _fragment);
-    if (!fragment_shader) {
-      if (vertex_shader) {
-        GL(DeleteShader(vertex_shader));
-      }
-      return NULL;
-    }
-  }
-
-  // Shaders are compiled, builds program.
-  Shader* shader = memory::default_allocator()->New<Shader>();
-  shader->program_ = glCreateProgram();
-  shader->vertex_ = vertex_shader;
-  shader->fragment_ = fragment_shader;
-  GL(AttachShader(shader->program_, vertex_shader));
-  GL(AttachShader(shader->program_, fragment_shader));
-  GL(LinkProgram(shader->program_));
-
-  int infolog_length = 0;
-  GL(GetProgramiv(shader->program_, GL_INFO_LOG_LENGTH, &infolog_length));
-  if (infolog_length > 0) {
-    char* info_log = memory::default_allocator()->Allocate<char>(infolog_length);
-    int chars_written  = 0;
-    glGetProgramInfoLog(
-      shader->program_, infolog_length, &chars_written, info_log);
-    log::Err() << info_log << std::endl;
-    memory::default_allocator()->Deallocate(info_log);
-  }
-
-  return shader;
-}
-
-GLuint Shader::CompileShader(GLenum _type, int _count, const char** _src) {
-  GLuint shader = glCreateShader(_type);
-  GL(ShaderSource(shader, _count, _src, NULL));
-  GL(CompileShader(shader));
-
-  int infolog_length = 0;
-  GL(GetShaderiv(shader, GL_INFO_LOG_LENGTH, &infolog_length));
-  if (infolog_length > 0) {
-    char* info_log = memory::default_allocator()->Allocate<char>(infolog_length);
-    int chars_written  = 0;
-    glGetShaderInfoLog(shader, infolog_length, &chars_written, info_log);
-    log::Err() << info_log << std::endl;
-    memory::default_allocator()->Deallocate(info_log);
-  }
-
-  int status;
-  GL(GetShaderiv(shader, GL_COMPILE_STATUS, &status));
-  if (status) {
-    return shader;
-  }
-
-  GL(DeleteShader(shader));
-  return 0;
-}
-
-bool Shader::BindUniform(const char* _semantic) {
-  GLint location = glGetUniformLocation(program_, _semantic);
-  if (location == -1) {  // _semantic not found.
-    return false;
-  }
-  uniforms_.push_back(location);
-  return true;
-}
-
-bool Shader::BindAttrib(const char* _semantic) {
-  GLint location = glGetAttribLocation(program_, _semantic);
-  if (location == -1) {  // _semantic not found.
-    return false;
-  }
-  attribs_.push_back(location);
   return true;
 }
 }  // internal
@@ -997,6 +783,10 @@ OZZ_DECL_GL_EXT(glUniform1f, PFNGLUNIFORM1FPROC);
 OZZ_DECL_GL_EXT(glUniform2f, PFNGLUNIFORM2FPROC);
 OZZ_DECL_GL_EXT(glUniform3f, PFNGLUNIFORM3FPROC);
 OZZ_DECL_GL_EXT(glUniform4f, PFNGLUNIFORM4FPROC);
+OZZ_DECL_GL_EXT(glUniform1i, PFNGLUNIFORM1IPROC);
+OZZ_DECL_GL_EXT(glUniform2i, PFNGLUNIFORM2IPROC);
+OZZ_DECL_GL_EXT(glUniform3i, PFNGLUNIFORM3IPROC);
+OZZ_DECL_GL_EXT(glUniform4i, PFNGLUNIFORM4IPROC);
 OZZ_DECL_GL_EXT(glUniform1fv, PFNGLUNIFORM1FVPROC);
 OZZ_DECL_GL_EXT(glUniform2fv, PFNGLUNIFORM2FVPROC);
 OZZ_DECL_GL_EXT(glUniform3fv, PFNGLUNIFORM3FVPROC);

@@ -33,6 +33,8 @@
 #include "gtest/gtest.h"
 
 #include "ozz/base/maths/math_constant.h"
+
+#include "ozz/animation/offline/raw_animation.h"
 #include "ozz/animation/offline/animation_builder.h"
 
 using ozz::animation::offline::RawAnimation;

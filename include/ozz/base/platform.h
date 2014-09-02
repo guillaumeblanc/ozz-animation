@@ -33,38 +33,9 @@
 
 #include <cstddef>
 #include <cassert>
+#include <stdint.h>
 
 namespace ozz {
-
-// Defines fixed size integer types. Serialization, bit patterns and some other
-// cases requires to use fixed size integers.
-// "int" is the default runtime integer type. Assumes that an "int" is at least
-// 32 bits.
-// Ozz do not use <stdint.h> as this header is not available with all compilers.
-typedef char int8;
-typedef unsigned char uint8;
-typedef short int16;
-typedef unsigned short uint16;
-typedef int int32;
-typedef unsigned int uint32;
-typedef long long int64;
-typedef unsigned long long uint64;
-
-namespace internal {
-// Declares a template helper to help selecting intptr and uintptr types
-// according to pointers size.
-template <bool _B = (sizeof(int32*) == 4)> struct IntPtrSel{
-  typedef int32 type;
-};
-template <> struct IntPtrSel<false> { typedef int64 type; };
-template <bool _B = (sizeof(uint32*) == 4)> struct UIntPtrSel{
-  typedef uint32 type;
-};
-template <> struct UIntPtrSel<false> { typedef uint64 type; };
-} // internal
-
-typedef internal::IntPtrSel<>::type intptr;
-typedef internal::UIntPtrSel<>::type uintptr;
 
 // Compile time string concatenation.
 #define OZZ_JOIN(_a, _b) _OZZ_JOIN(_a, _b)
@@ -76,7 +47,7 @@ typedef internal::UIntPtrSel<>::type uintptr;
 // Defines an array with a negative number of elements if _condition is false,
 // which generates a compiler error.
 #define OZZ_STATIC_ASSERT(_condition)\
-  struct OZZ_JOIN(_StaticAssert, __LINE__) { char x[(_condition) ? 1 : -1]; }
+  struct OZZ_JOIN(_StaticAssert, __COUNTER__) { char x[(_condition) ? 1 : -1]; }
 
 // Gets alignment in bytes required for any instance of the given type.
 // Usage is AlignOf<MyStruct>::value.
@@ -141,12 +112,12 @@ struct Range {
       end(_end) {
   }
   // Construct a range from a pointer to a buffer and its size, ie its number of elements.
-  Range(_Ty* _begin, std::ptrdiff_t _size)
+  Range(_Ty* _begin, ptrdiff_t _size)
     : begin(_begin),
       end(_begin + _size) {
   }
   // Construct a range from an array, its size is automatically deduced.
-  template <std::size_t _size>
+  template <size_t _size>
   explicit Range(_Ty (&_array)[_size])
     : begin(_array),
       end(_array + _size) {
@@ -158,20 +129,20 @@ struct Range {
   }
 
   // Returns a const reference to element _i of range [begin,end[.
-  const _Ty& operator[](std::size_t _i) const {
+  const _Ty& operator[](size_t _i) const {
     assert(begin && &begin[_i] < end && "Index out of range");
     return begin[_i];
   }
 
-  // Returns a const reference to element _i of range [begin,end[.
-  _Ty& operator[](std::size_t _i) {
+  // Returns a reference to element _i of range [begin,end[.
+  _Ty& operator[](size_t _i) {
     assert(begin && &begin[_i] < end && "Index out of range");
     return begin[_i];
   }
 
   // Gets the number of elements of the range.
   // This size isn't stored but computed from begin and end pointers.
-  std::ptrdiff_t Size() const {
+  ptrdiff_t Size() const {
     return end - begin;
   }
 

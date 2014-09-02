@@ -42,7 +42,7 @@ Box::Box()
     max(-std::numeric_limits<float>::max()) {
 }
 
-Box::Box(const Float3* _points, std::size_t _stride, std::size_t _count) {
+Box::Box(const Float3* _points, size_t _stride, size_t _count) {
   Float3 local_min(std::numeric_limits<float>::max());
   Float3 local_max(-std::numeric_limits<float>::max());
 

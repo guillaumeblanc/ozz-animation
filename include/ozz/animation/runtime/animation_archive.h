@@ -28,8 +28,8 @@
 //                                                                            //
 //============================================================================//
 
-#ifndef OZZ_OZZ_ANIMATION_RUNTIME_ANIMATION_SERIALIZE_H_
-#define OZZ_OZZ_ANIMATION_RUNTIME_ANIMATION_SERIALIZE_H_
+#ifndef OZZ_OZZ_ANIMATION_RUNTIME_ANIMATION_ARCHIVE_H_
+#define OZZ_OZZ_ANIMATION_RUNTIME_ANIMATION_ARCHIVE_H_
 
 #include "ozz/base/platform.h"
 #include "ozz/base/io/archive_traits.h"
@@ -43,4 +43,4 @@ OZZ_IO_TYPE_VERSION(1, animation::Animation)
 OZZ_IO_TYPE_TAG("ozz-animation", animation::Animation)
 }  // io
 }  // ozz
-#endif  // OZZ_OZZ_ANIMATION_RUNTIME_ANIMATION_SERIALIZE_H_
+#endif  // OZZ_OZZ_ANIMATION_RUNTIME_ANIMATION_ARCHIVE_H_

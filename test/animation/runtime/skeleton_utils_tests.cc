@@ -28,6 +28,7 @@
 //                                                                            //
 //============================================================================//
 
+#include "ozz/animation/offline/raw_skeleton.h"
 #include "ozz/animation/offline/skeleton_builder.h"
 
 #include <cstring>
@@ -65,7 +66,7 @@ class IterateDFFailTester {
    j2    j6
 */
 
-static const ozz::uint16 joints_df[] = {0, 2, 5, 6, 3, 7, 8, 9, 4, 1};
+static const uint16_t joints_df[] = {0, 2, 5, 6, 3, 7, 8, 9, 4, 1};
 
 class IterateDFTester {
  public:
@@ -153,7 +154,7 @@ TEST(InterateDF, SkeletonBuilder) {
   ozz::animation::IterateJointsDF(
     *skeleton, ozz::animation::Skeleton::kNoParentIndex, &it);
   EXPECT_EQ(it.num_joints, 10);
-  EXPECT_EQ(std::memcmp(joints_df, it.joints, 10 * sizeof(ozz::uint16)), 0);
+  EXPECT_EQ(std::memcmp(joints_df, it.joints, 10 * sizeof(uint16_t)), 0);
 
   IterateDFTester fct_all = ozz::animation::IterateJointsDF(
     *skeleton,
@@ -163,7 +164,7 @@ TEST(InterateDF, SkeletonBuilder) {
 
   ozz::animation::IterateJointsDF(*skeleton, 1, &it);
   EXPECT_EQ(it.num_joints, 1);
-  EXPECT_EQ(std::memcmp(joints_df + 9, it.joints, 1 * sizeof(ozz::uint16)), 0);
+  EXPECT_EQ(std::memcmp(joints_df + 9, it.joints, 1 * sizeof(uint16_t)), 0);
 
   IterateDFTester fct1 = ozz::animation::IterateJointsDF(
     *skeleton, 1, IterateDFTester(skeleton, 9));
@@ -171,7 +172,7 @@ TEST(InterateDF, SkeletonBuilder) {
 
   ozz::animation::IterateJointsDF(*skeleton, 2, &it);
   EXPECT_EQ(it.num_joints, 3);
-  EXPECT_EQ(std::memcmp(joints_df + 1, it.joints, 1 * sizeof(ozz::uint16)), 0);
+  EXPECT_EQ(std::memcmp(joints_df + 1, it.joints, 1 * sizeof(uint16_t)), 0);
 
   IterateDFTester fct2 = ozz::animation::IterateJointsDF(
     *skeleton, 2, IterateDFTester(skeleton, 1));
@@ -179,7 +180,7 @@ TEST(InterateDF, SkeletonBuilder) {
 
   ozz::animation::IterateJointsDF(*skeleton, 3, &it);
   EXPECT_EQ(it.num_joints, 4);
-  EXPECT_EQ(std::memcmp(joints_df + 4, it.joints, 4 * sizeof(ozz::uint16)), 0);
+  EXPECT_EQ(std::memcmp(joints_df + 4, it.joints, 4 * sizeof(uint16_t)), 0);
 
   IterateDFTester fct3 = ozz::animation::IterateJointsDF(
     *skeleton, 3, IterateDFTester(skeleton, 4));
@@ -187,7 +188,7 @@ TEST(InterateDF, SkeletonBuilder) {
 
   ozz::animation::IterateJointsDF(*skeleton, 9, &it);
   EXPECT_EQ(it.num_joints, 1);
-  EXPECT_EQ(std::memcmp(joints_df + 7, it.joints, 1 * sizeof(ozz::uint16)), 0);
+  EXPECT_EQ(std::memcmp(joints_df + 7, it.joints, 1 * sizeof(uint16_t)), 0);
 
   IterateDFTester fct4 = ozz::animation::IterateJointsDF(
     *skeleton, 9, IterateDFTester(skeleton, 7));

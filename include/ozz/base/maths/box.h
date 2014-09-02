@@ -52,7 +52,7 @@ struct Box {
 
   // Constructs the smallest box that contains the _count points _points.
   // _stride is the number of bytes points.
-  Box(const Float3* _points, std::size_t _stride, std::size_t _count);
+  Box(const Float3* _points, size_t _stride, size_t _count);
 
   // Tests whether *this is a valid box.
   bool is_valid() const {

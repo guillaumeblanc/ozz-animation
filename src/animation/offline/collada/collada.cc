@@ -42,8 +42,8 @@
 #include "ozz/base/io/stream.h"
 
 #include "ozz/animation/runtime/skeleton.h"
-#include "ozz/animation/offline/animation_builder.h"
-#include "ozz/animation/offline/skeleton_builder.h"
+#include "ozz/animation/offline/raw_animation.h"
+#include "ozz/animation/offline/raw_skeleton.h"
 
 #include "animation/offline/collada/collada_skeleton.h"
 #include "animation/offline/collada/collada_animation.h"
@@ -69,7 +69,7 @@ char* LoadFileToString(const char* _filename) {
   if (file.opened()) {
     // Gets file size.
     file.Seek(0, io::Stream::kEnd);
-    std::size_t file_length = file.Tell();
+    size_t file_length = file.Tell();
     file.Seek(0, io::Stream::kSet);
 
     // Allocates and read file.

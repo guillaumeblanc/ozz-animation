@@ -40,6 +40,10 @@
 #include <unistd.h>
 #endif  // __APPLE__
 
+#if EMSCRIPTEN
+#include "emscripten.h"
+#endif // EMSCRIPTEN
+
 #include "ozz/base/log.h"
 #include "ozz/base/maths/box.h"
 #include "ozz/base/memory/allocator.h"
@@ -67,20 +71,34 @@ OZZ_OPTIONS_DECLARE_BOOL(
   true,
   false);
 
-namespace ozz {
-namespace sample {
 namespace {
-
 // Screen resolution presets.
-const Resolution presets[] = {
+const ozz::sample::Resolution resolution_presets[] = {
   {640, 360}, {640, 480}, {800, 450}, {800, 600}, {1024, 576},
   {1024, 768}, {1280, 720}, {1280, 800}, {1280, 960}, {1280, 1024},
   {1400, 1050}, {1440, 900}, {1600, 900}, {1600, 1200}, {1680, 1050},
   {1920, 1080}, {1920, 1200}
 };
-const int kNumPresets = OZZ_ARRAY_SIZE(presets);
-const Resolution& default_resolution = presets[5];
+const int kNumPresets = OZZ_ARRAY_SIZE(resolution_presets);
 }
+
+// Check resolution argument is within 0 - kNumPresets
+static bool ResolutionCheck(const ozz::options::Option& _option,
+                            int /*_argc*/) {
+  const ozz::options::IntOption& option =
+    static_cast<const ozz::options::IntOption&>(_option);
+  return option >=0 && option < kNumPresets;
+}
+
+OZZ_OPTIONS_DECLARE_INT_FN(
+  resolution,
+  "Resolution index (0 to 17).",
+  5,
+  false,
+  &ResolutionCheck);
+
+namespace ozz {
+namespace sample {
 Application* Application::application_ = NULL;
 
 Application::Application()
@@ -92,7 +110,6 @@ Application::Application()
       last_idle_time_(0.),
       camera_(NULL),
       shooter_(NULL),
-      auto_framing_(false),
       show_help_(false),
       capture_video_(false),
       capture_screenshot_(false),
@@ -101,12 +118,14 @@ Application::Application()
       fps_(memory::default_allocator()->New<Record>(128)),
       update_time_(memory::default_allocator()->New<Record>(128)),
       render_time_(memory::default_allocator()->New<Record>(128)),
-      resolution_(default_resolution) {
+      resolution_(resolution_presets[0]) {
 #ifndef NDEBUG
   // Assert presets are correctly sorted.
   for (int i = 1; i < kNumPresets; ++i) {
-    assert(presets[i].width > presets[i-1].width ||
-           presets[i].height > presets[i-1].height);
+    const Resolution& preset_m1 = resolution_presets[i - 1];
+    const Resolution& preset = resolution_presets[i];
+    assert(preset.width > preset_m1.width ||
+           preset.height > preset_m1.height);
   }
 #endif //  NDEBUG
 }
@@ -134,6 +153,9 @@ int Application::Run(int _argc, const char** _argv,
     exit_ = true;
     return result == ozz::options::kExitSuccess ? EXIT_SUCCESS : EXIT_FAILURE;
   }
+
+  // Fetch initial resolution.
+  resolution_ = resolution_presets[OPTIONS_resolution];
 
 #ifdef __APPLE__
   // On OSX, when run from Finder, working path is the root path. This does not
@@ -179,11 +201,11 @@ int Application::Run(int _argc, const char** _argv,
         glGetString(GL_VERSION) << "\"." << std::endl;
 
       // Allocates and initializes internal objects.
-      renderer_ = memory::default_allocator()->New<internal::RendererImpl>();
+      camera_ = memory::default_allocator()->New<internal::Camera>();
+      renderer_ = memory::default_allocator()->New<internal::RendererImpl>(camera_);
       success = renderer_->Initialize();
 
       if (success) {
-        camera_ = memory::default_allocator()->New<internal::Camera>();
         shooter_ = memory::default_allocator()->New<internal::Shooter>();
         im_gui_ = memory::default_allocator()->New<internal::ImGuiImpl>();
 
@@ -196,8 +218,6 @@ int Application::Run(int _argc, const char** _argv,
         // Loop the sample.
         success = Loop();
 
-        memory::default_allocator()->Delete(camera_);
-        camera_ = NULL;
         memory::default_allocator()->Delete(shooter_);
         shooter_ = NULL;
         memory::default_allocator()->Delete(im_gui_);
@@ -205,6 +225,8 @@ int Application::Run(int _argc, const char** _argv,
       }
       memory::default_allocator()->Delete(renderer_);
       renderer_ = NULL;
+      memory::default_allocator()->Delete(camera_);
+      camera_ = NULL;
     }
 
     // Closes window and terminates GLFW.
@@ -226,73 +248,93 @@ int Application::Run(int _argc, const char** _argv,
   return success ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
+void OneLoopCbk(void* _arg) {
+  Application* app = reinterpret_cast<Application*>(_arg);
+  static int loops = 0;
+  app->OneLoop(loops++);
+}
+
+Application::LoopStatus Application::OneLoop(int _loops) {
+
+  Profiler profile(fps_);  // Profiles frame.
+
+  // Tests for a manual exit request.
+  if (exit_ || glfwGetKey(GLFW_KEY_ESC) == GLFW_PRESS) {
+    return kBreak;
+  }
+
+  // Test for an exit request.
+  if (OPTIONS_max_idle_loops > 0 && _loops > OPTIONS_max_idle_loops) {
+    return kBreak;
+  }
+
+  // Don't overload the cpu if the window is not active.
+  if (OPTIONS_render && !glfwGetWindowParam(GLFW_ACTIVE)) {
+    glfwWaitEvents();  // Wait...
+
+    // Reset last update time in order to stop the time while the app isn't
+    // active.
+    last_idle_time_ = glfwGetTime();
+
+    return kContinue;  // ...but don't do anything.
+  }
+
+  // Updates resolution if required.
+  if (OPTIONS_render) {
+    int width, height;
+    glfwGetWindowSize(&width, &height);
+    if (resolution_.width != width || resolution_.height !=height) {
+      glfwSetWindowSize(resolution_.width, resolution_.height);
+    }
+  }
+
+  // Enable/disable help on F1 key.
+  static int previous_f1 = glfwGetKey(GLFW_KEY_F1);
+  const int f1 = glfwGetKey(GLFW_KEY_F1);
+  if (previous_f1 == GLFW_RELEASE && f1 == GLFW_PRESS) {
+    show_help_ = !show_help_;
+  }
+  previous_f1 = f1;
+
+  // Do the main loop.
+  if (!Idle(_loops == 0)) {
+    return kBreakFailure;
+  }
+
+  // Skips display if "no_render" option is enabled.
+  if (OPTIONS_render) {
+    if (!Display()) {
+      return kBreakFailure;
+    }
+  }
+
+  return kContinue;
+}
+
 bool Application::Loop() {
   // Initialize sample.
   bool success = OnInitialize();
 
+  // Emscripten requires to manage the main loop on their own, as browsers don't
+  // like infinite blocking functions.
+#ifdef EMSCRIPTEN
+  emscripten_set_main_loop_arg(OneLoopCbk, this, 0, 1);
+#else // EMSCRIPTEN
   // Loops.
   for (int loops = 0; success; ++loops) {
-    Profiler profile(fps_);  // Profiles frame.
-
-    // Tests for a manual exit request.
-    if (exit_ || glfwGetKey(GLFW_KEY_ESC) == GLFW_PRESS) {
+    const LoopStatus status = OneLoop(loops);
+    success = status != kBreakFailure;
+    if (status != kContinue) {
       break;
-    }
-
-    // Test for an exit request.
-    if (OPTIONS_max_idle_loops > 0 && loops > OPTIONS_max_idle_loops) {
-      break;
-    }
-
-    // Don't overload the cpu if the window is not active.
-    if (OPTIONS_render && !glfwGetWindowParam(GLFW_ACTIVE)) {
-      glfwWaitEvents();  // Wait...
-
-      // Reset last update time in order to stop the time while the app isn't
-      // active.
-      last_idle_time_ = glfwGetTime();
-
-      continue;  // ...but don't do anything.
-    }
-
-    // Updates resolution if required.
-    if (OPTIONS_render) {
-      int width, height;
-      glfwGetWindowSize(&width, &height);
-      if (resolution_.width != width || resolution_.height !=height) {
-        glfwSetWindowSize(resolution_.width, resolution_.height);
-      }
-    }
-
-    // Enable/disable help on F1 key.
-    static int previous_f1 = glfwGetKey(GLFW_KEY_F1);
-    const int f1 = glfwGetKey(GLFW_KEY_F1);
-    if (previous_f1 == GLFW_RELEASE && f1 == GLFW_PRESS) {
-      show_help_ = !show_help_;
-    }
-    previous_f1 = f1;
-
-    // Do the main loop.
-    success = Idle(loops == 0);
-    if (!success) {
-      break;
-    }
-
-    // Skips display if "no_render" option is enabled.
-    if (OPTIONS_render) {
-      success = Display();
-      if (!success) {
-        break;
-      }
     }
   }
+#endif // EMSCRIPTEN
 
   // De-initialize sample, even in case of initialization failure.
   OnDestroy();
 
   return success;
 }
-
 
 bool Application::Display() {
   assert(OPTIONS_render);
@@ -306,15 +348,14 @@ bool Application::Display() {
     GL(Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
     // Setup default states
-    GL(ShadeModel(GL_SMOOTH));
     GL(Enable(GL_CULL_FACE));
     GL(CullFace(GL_BACK));
     GL(Enable(GL_DEPTH_TEST));
     GL(DepthMask(GL_TRUE));
     GL(DepthFunc(GL_LEQUAL));
 
-    // Bind camera modelview matrix.
-    camera_->Bind();
+    // Bind 3D camera matrices.
+    camera_->Bind3D();
 
     // Forwards display event to the inheriting application.
     if (success) {
@@ -327,6 +368,9 @@ bool Application::Display() {
   renderer_->DrawGrid(10, 1.f);
   GL(DepthMask(GL_TRUE));
   renderer_->DrawAxes(ozz::math::Float4x4::identity());
+
+  // Bind 2D camera matrices.
+  camera_->Bind2D();
 
   // Forwards gui event to the inheriting application.
   if (success) {
@@ -386,23 +430,13 @@ bool Application::Idle(bool _first_frame) {
     update_result = OnUpdate(update_delta);
   }
 
-  // Test for camera framing requests, forced on the first loop
-  if (_first_frame || auto_framing_ || glfwGetKey('F') == GLFW_PRESS) {
-   // Note the GetSceneBounds must not be called before the first update.
-   math::Box scene_bounds;
-    if (GetSceneBounds(&scene_bounds)) {
-      if (camera_) {
-        camera_->FrameAll(scene_bounds, _first_frame);
-      }
-    }
-  }
-
   // Update camera model-view matrix and disables auto-framing if the camera is
   // moved manually.
   // Update camera model-view matrix.
   if (camera_) {
-    internal::Camera::Actions actions = camera_->Update(delta);
-    auto_framing_ &= !actions.centered && !actions.zoomed && !actions.panned;
+    math::Box scene_bounds;
+    GetSceneBounds(&scene_bounds);
+    camera_->Update(scene_bounds, delta, _first_frame);
   }
 
   return update_result;
@@ -410,11 +444,11 @@ bool Application::Idle(bool _first_frame) {
 
 bool Application::Gui() {
   bool success = true;
-  const int kFormWidth = 200;
-  const int kHelpMargin = 16;
+  const float kFormWidth = 200.f;
+  const float kHelpMargin = 16.f;
 
   // Finds gui area.
-  const int kGuiMargin = 2;
+  const float kGuiMargin = 2.f;
   ozz::math::RectInt window_rect(0, 0, resolution_.width, resolution_.height);
 
   // Fills ImGui's input structure.
@@ -425,14 +459,15 @@ bool Application::Gui() {
   input.lmb_pressed = glfwGetMouseButton(GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
 
   // Starts frame
-  static_cast<internal::ImGuiImpl*>(im_gui_)->BeginFrame(input, window_rect);
+  static_cast<internal::ImGuiImpl*>(im_gui_)->BeginFrame(input, window_rect,
+                                                         renderer_);
 
   // Help gui.
   {
-    math::RectInt rect(kGuiMargin,
-                       kGuiMargin,
-                       window_rect.width - kGuiMargin * 2,
-                       window_rect.height - kGuiMargin * 2);
+    math::RectFloat rect(kGuiMargin,
+                         kGuiMargin,
+                         window_rect.width - kGuiMargin * 2.f,
+                         window_rect.height - kGuiMargin * 2.f);
     ImGui::Form form(im_gui_, "Show help", rect, &show_help_, false);
     if (show_help_) {
       im_gui_->DoLabel(help_.c_str(), ImGui::kLeft, false);
@@ -442,12 +477,12 @@ bool Application::Gui() {
   // Do framework gui.
   if (!show_help_ &&
       success &&
-      window_rect.width > (kGuiMargin + kFormWidth) * 2) {
+      window_rect.width > (kGuiMargin + kFormWidth) * 2.f) {
     static bool open = true;
-    math::RectInt rect(kGuiMargin,
-                       kGuiMargin,
-                       kFormWidth,
-                       window_rect.height - kGuiMargin * 2 - kHelpMargin);
+    math::RectFloat rect(kGuiMargin,
+                         kGuiMargin,
+                         kFormWidth,
+                         window_rect.height - kGuiMargin * 2.f - kHelpMargin);
     ImGui::Form form(im_gui_, "Framework", rect, &open, true);
     if (open) {
       success = FrameworkGui();
@@ -459,10 +494,10 @@ bool Application::Gui() {
       success &&
       window_rect.width > kGuiMargin + kFormWidth) {
     static bool open = true;
-    math::RectInt rect(window_rect.width - kFormWidth - kGuiMargin,
-                       kGuiMargin,
-                       kFormWidth,
-                       window_rect.height - kGuiMargin * 2 - kHelpMargin);
+    math::RectFloat rect(window_rect.width - kFormWidth - kGuiMargin,
+                         kGuiMargin,
+                         kFormWidth,
+                         window_rect.height - kGuiMargin * 2 - kHelpMargin);
     ImGui::Form form(im_gui_, "Sample", rect, &open, true);
     if (open) {
       // Forwards event to the inherited application.
@@ -548,7 +583,7 @@ bool Application::FrameworkGui() {
   }
 
   { // Rendering options
-    static bool open = true;
+    static bool open = false;
     ImGui::OpenClose options(im_gui_, "Options", &open);
     if (open) {
       // Multi-sampling.
@@ -571,7 +606,7 @@ bool Application::FrameworkGui() {
     // Searches for matching resolution settings.
     int preset_lookup = 0;
     for (; preset_lookup < kNumPresets - 1; ++preset_lookup) {
-      const Resolution& preset = presets[preset_lookup];
+      const Resolution& preset = resolution_presets[preset_lookup];
       if (preset.width > resolution_.width) {
         break;
       } else if (preset.width == resolution_.width) {
@@ -586,32 +621,25 @@ bool Application::FrameworkGui() {
                  resolution_.width, resolution_.height);
     if (im_gui_->DoSlider(szResolution, 0, kNumPresets - 1, &preset_lookup)) {
       // Resolution changed.
-      resolution_ = presets[preset_lookup];
+      resolution_ = resolution_presets[preset_lookup];
     }
   }
 
   { // Capture
-      static bool open = false;
-      ImGui::OpenClose controls(im_gui_, "Capture", &open);
-      if (open) {
-        im_gui_->DoButton("Capture video", true, &capture_video_);
-        capture_screenshot_ =
-          im_gui_->DoButton("Capture screenshot", !capture_video_);
-      }
+    static bool open = false;
+    ImGui::OpenClose controls(im_gui_, "Capture", &open);
+    if (open) {
+      im_gui_->DoButton("Capture video", true, &capture_video_);
+      capture_screenshot_ =
+        im_gui_->DoButton("Capture screenshot", !capture_video_);
+    }
   }
 
   { // Controls
-    static bool open = true;
+    static bool open = false;
     ImGui::OpenClose controls(im_gui_, "Camera controls", &open);
     if (open) {
-      im_gui_->DoCheckBox("Automatic framing", &auto_framing_);
-      const char* controls_label =
-        "-F: Frame all\n"
-        "-MMB: Center\n"
-        "-RMB: Rotate\n"
-        "-Ctrl + RMB: Zoom\n"
-        "-Shift + RMB: Pan\n";
-      im_gui_->DoLabel(controls_label, ImGui::kLeft, false);
+      camera_->OnGui(im_gui_);
     }
   }
   return true;
@@ -645,7 +673,7 @@ void Application::ParseReadme() {
 
   // Get file length.
   file.Seek(0, ozz::io::Stream::kEnd);
-  std::size_t length = file.Tell();
+  size_t length = file.Tell();
   file.Seek(0, ozz::io::Stream::kSet);
 
   // Allocate enough space to store the whole file.
@@ -654,7 +682,7 @@ void Application::ParseReadme() {
 
   // Read the content
   if(file.Read(content, length) == length) {
-    help_ = ozz::String(content, content + length);
+    help_ = ozz::String::Std(content, content + length);
   } else {
     help_ = "Unable to find README help file.";
   }

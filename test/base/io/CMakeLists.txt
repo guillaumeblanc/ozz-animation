@@ -8,16 +8,6 @@ target_link_libraries(test_archive
 add_test(NAME test_archive COMMAND test_archive)
 set_target_properties(test_archive PROPERTIES FOLDER "ozz/tests/base")
 
-add_executable(test_archive_maths
-  archive_tests_maths.cc
-  archive_tests_simd_maths.cc
-  archive_tests_soa_maths.cc)
-target_link_libraries(test_archive_maths
-  ozz_base
-  gtest)
-add_test(NAME test_archive_maths COMMAND test_archive_maths)
-set_target_properties(test_archive_maths PROPERTIES FOLDER "ozz/tests/base")
-
 add_executable(test_stream
   stream_tests.cc)
 target_link_libraries(test_stream

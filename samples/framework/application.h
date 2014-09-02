@@ -43,6 +43,7 @@ class Renderer;
 class Record;
 
 namespace internal {
+class RendererImpl;
 class Camera;
 class Shooter;
 }  // internal
@@ -72,23 +73,6 @@ class Application {
   // returned.
   int Run(int _argc, const char** _argv,
           const char* _version, const char* _title);
-
-  enum KeyState {
-    kRelease,  // Key is released, ie not pressed.
-    kPress,  // Key is pressed.
-    kReleased,  // Key has been released since last update.
-  };
-
- protected:
-
-  // Set to true to automatically frame the camera on the whole scene.
-  void set_auto_framing(bool _auto) {
-    auto_framing_ = _auto;
-  }
-  // Get auto framing state.
-  bool auto_framing() const {
-    return auto_framing_;
-  }
 
  private:
   // Provides initialization event to the inheriting application. Called while
@@ -123,10 +107,21 @@ class Application {
   // Requires the inheriting application to provide scene bounds. It is used by
   // the camera to frame all the scene.
   // This function is never called before a first OnUpdate.
-  virtual bool GetSceneBounds(math::Box* _bound) const = 0;
+  virtual void GetSceneBounds(math::Box* _bound) const = 0;
 
   // Implements framework internal loop function.
   bool Loop();
+
+  // This callback has to forward loop call to OneLoop private function.
+  friend void OneLoopCbk(void*);
+
+  // Implements framework internal one iteration loop function.
+  enum LoopStatus {
+    kContinue,  // Can continue with next loop.
+    kBreak,  // Should stop looping (ex: exit).
+    kBreakFailure,  // // Should stop looping beacause something went wrong.
+  };
+  LoopStatus OneLoop(int _loops);
 
   // Implements framework internal idle function.
   // Returns the value returned by OnIdle or from an internal issue.
@@ -168,7 +163,7 @@ class Application {
   // Fixes update rat to a fixed value, instead of real_time.
   bool fix_update_rate;
 
-  // Fixed update rate, only aplies to application update dt, not the real fps.
+  // Fixed update rate, only applies to application update dt, not the real fps.
   float fixed_update_rate;
 
   // Update time scale factor.
@@ -185,9 +180,6 @@ class Application {
   // The screen shooter object used by the application.
   internal::Shooter* shooter_;
 
-  // Set to true to automatically frame the camera on the whole scene.
-  bool auto_framing_;
-
   // Set to true to display help.
   bool show_help_;
 
@@ -196,7 +188,7 @@ class Application {
   bool capture_screenshot_;
 
   // The renderer utility object used by the application.
-  Renderer* renderer_;
+  internal::RendererImpl* renderer_;
 
   // Immediate mode gui interface.
   ImGui* im_gui_;
@@ -210,7 +202,7 @@ class Application {
   Resolution resolution_;
 
   // Help message.
-  ozz::String help_;
+  ozz::String::Std help_;
 };
 }  // sample
 }  // ozz

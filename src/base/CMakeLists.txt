@@ -14,16 +14,13 @@ add_library(ozz_base
   ../../include/ozz/base/containers/set.h
   ../../include/ozz/base/containers/stack.h
   ../../include/ozz/base/containers/string.h
+  ../../include/ozz/base/containers/string_archive.h
+  containers/string_archive.cc
   ../../include/ozz/base/containers/vector.h
+  ../../include/ozz/base/containers/vector_archive.h
   ../../include/ozz/base/containers/std_allocator.h
   ../../include/ozz/base/io/archive.h
   io/archive.cc
-  ../../include/ozz/base/io/archive_maths.h
-  io/archive_maths.cc
-  ../../include/ozz/base/io/archive_soa_maths.h
-  io/archive_soa_maths.cc
-  ../../include/ozz/base/io/archive_simd_maths.h
-  io/archive_simd_maths.cc
     ../../include/ozz/base/io/archive_traits.h
   ../../include/ozz/base/io/stream.h
   io/stream.cc
@@ -43,7 +40,13 @@ add_library(ozz_base
   ../../include/ozz/base/maths/soa_transform.h
   ../../include/ozz/base/maths/soa_float4x4.h
   ../../include/ozz/base/maths/transform.h
-  ../../include/ozz/base/maths/vec_float.h)
+  ../../include/ozz/base/maths/vec_float.h
+  ../../include/ozz/base/maths/math_archive.h
+  maths/math_archive.cc
+  ../../include/ozz/base/maths/soa_math_archive.h
+  maths/soa_math_archive.cc
+  ../../include/ozz/base/maths/simd_math_archive.h
+  maths/simd_math_archive.cc)
 set_target_properties(ozz_base PROPERTIES FOLDER "ozz")
 
 install(TARGETS ozz_base DESTINATION lib)

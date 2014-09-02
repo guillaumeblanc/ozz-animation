@@ -31,9 +31,6 @@
 #ifndef OZZ_OZZ_BASE_MATHS_GTEST_MATH_HELPER_H_
 #define OZZ_OZZ_BASE_MATHS_GTEST_MATH_HELPER_H_
 
-#ifndef INCLUDE_OZZ__GTEST_MATH_HELPER_UITLS_H_
-#define INCLUDE_OZZ__GTEST_MATH_HELPER_UITLS_H_
-
 // Implements "float near" test as a function. Avoids overloading compiler
 // optimizer when too much EXPECT_NEAR are used in a single compilation unit.
 inline void ExpectFloatNear(float _a, float _b) {
@@ -306,6 +303,4 @@ do {\
   IMPL_EXPECT_SIMDFLOAT_EQ(expected.cols[3].z, col3zx, col3zy, col3zz, col3zw);\
   IMPL_EXPECT_SIMDFLOAT_EQ(expected.cols[3].w, col3wx, col3wy, col3wz, col3ww);\
 } while(void(0), 0)
-
-#endif  // INCLUDE_OZZ_MATHS_GTEST_MATH_HELPER_UITLS_H_
 #endif  // OZZ_OZZ_BASE_MATHS_GTEST_MATH_HELPER_H_

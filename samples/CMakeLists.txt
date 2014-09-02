@@ -1,16 +1,20 @@
-# Samples requires OpenGL package.
-find_package(OpenGL REQUIRED)
-
-# Default time for testing samples.
-set(SAMPLE_TESTING_LOOPS "12")
-
-# Disables sample rending if testing from the dashboard.
-if(ozz_enable_cdash)
-  set(SAMPLE_RENDER_ARGUMENT "--norender")
+if(NOT ozz_build_samples)
+  return()
 endif()
 
-# Adds glfw.
-add_subdirectory(${CMAKE_SOURCE_DIR}/extern/glfw glfw)
+# dae2skel and dae2anim are cross compiled.
+if(CMAKE_CROSSCOMPILING)
+  find_package(dae2skel)
+  find_package(dae2anim)
+endif()
+
+# Default time for testing samples.
+set(SAMPLE_TESTING_LOOPS "4")
+
+# Disables sample rending if testing from the dashboard.
+if(ozz_run_tests_headless)
+  set(SAMPLE_RENDER_ARGUMENT "--norender")
+endif()
 
 # Adds the sample framework to the include path.
 include_directories(./)
@@ -24,4 +28,3 @@ add_subdirectory(blend)
 add_subdirectory(partial_blend)
 add_subdirectory(multithread)
 add_subdirectory(playback)
-

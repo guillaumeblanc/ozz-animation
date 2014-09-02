@@ -46,6 +46,16 @@ struct RotationKey;
 struct ScaleKey;
 
 // Defines a runtime skeletal animation clip.
+// The runtime animation data structure stores animation keyframes, for all the
+// joints of a skeleton. This structure is usually filled by the
+// AnimationBuilder and deserialized/loaded at runtime  (requires inclusion of
+// animation_archive.h).
+// For each transformation type (translation, rotation and scale), Animation
+// structure stores a single array of keyframes that contains all the tracks
+// required to animate all the joints of a skeleton, matching breadth-first
+// joints order of the runtime skeleton structure. In order to optimize cache
+// coherency when sampling the animation, Keyframes in this array are sorted by
+// time, then by track number.
 class Animation {
  public:
 
@@ -87,11 +97,12 @@ class Animation {
   }
 
   // Get the estimated animation's size in bytes.
-  std::size_t size() const;
+  size_t size() const;
 
   // Serialization functions.
+  // Should not be called directly but through io::Archive << and >> operators.
   void Save(ozz::io::OArchive& _archive) const;
-  void Load(ozz::io::IArchive& _archive, ozz::uint32 _version);
+  void Load(ozz::io::IArchive& _archive, uint32_t _version);
 
  protected:
  private:
@@ -102,6 +113,9 @@ class Animation {
 
   // AnimationBuilder class is allowed to instantiate an Animation.
   friend class offline::AnimationBuilder;
+
+  // Internal destruction function.
+  void Destroy();
 
   // Stores all translation/rotation/scale keys begin and end of buffers.
   ozz::Range<TranslationKey> translations_;

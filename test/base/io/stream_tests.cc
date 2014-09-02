@@ -31,6 +31,7 @@
 #include "ozz/base/io/stream.h"
 
 #include <limits>
+#include <stdint.h>
 
 #include "gtest/gtest.h"
 
@@ -74,7 +75,7 @@ void TestSeek(ozz::io::Stream* _stream) {
   EXPECT_EQ(_stream->Write(&to_write, sizeof(Type)), sizeof(Type));
   EXPECT_EQ(_stream->Tell(), static_cast<int>(sizeof(Type)));
 
-  const ozz::int64 kEnd = 465827;
+  const int64_t kEnd = 465827;
   // Force file length to kEnd but do not write to the stream.
   EXPECT_EQ(_stream->Seek(kEnd - _stream->Tell(),
                           ozz::io::Stream::kCurrent), 0);

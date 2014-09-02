@@ -28,7 +28,7 @@
 //                                                                            //
 //============================================================================//
 
-#include "ozz/animation/runtime/animation_serialize.h"
+#include "ozz/animation/runtime/animation_archive.h"
 
 #include "gtest/gtest.h"
 #include "ozz/base/maths/gtest_math_helper.h"
@@ -36,8 +36,12 @@
 #include "ozz/base/io/archive.h"
 #include "ozz/base/io/stream.h"
 #include "ozz/base/memory/allocator.h"
+
 #include "ozz/base/maths/soa_transform.h"
+
 #include "ozz/animation/runtime/sampling_job.h"
+
+#include "ozz/animation/offline/raw_animation.h"
 #include "ozz/animation/offline/animation_builder.h"
 
 using ozz::animation::Animation;
@@ -153,4 +157,47 @@ TEST(Filled, AnimationSerialize) {
     }
   }
   ozz::memory::default_allocator()->Delete(o_animation);
+}
+
+TEST(AlreadyInitialized, AnimationSerialize) {
+
+  ozz::io::MemoryStream stream;
+
+  {
+    ozz::io::OArchive o(&stream);
+
+    RawAnimation raw_animation;
+    raw_animation.duration = 1.f;
+    raw_animation.tracks.resize(1);
+
+    AnimationBuilder builder;
+    Animation* o_animation = builder(raw_animation);
+    ASSERT_TRUE(o_animation != NULL);
+    o << *o_animation;
+    ozz::memory::default_allocator()->Delete(o_animation);
+
+    raw_animation.duration = 2.f;
+    raw_animation.tracks.resize(2);
+    o_animation = builder(raw_animation);
+    ASSERT_TRUE(o_animation != NULL);
+    o << *o_animation;
+    ozz::memory::default_allocator()->Delete(o_animation);
+  }
+
+  {
+    // Streams in.
+    stream.Seek(0, ozz::io::Stream::kSet);
+    ozz::io::IArchive i(&stream);
+
+    // Reads and check the first animation.
+    Animation i_animation;
+    i >> i_animation;
+    EXPECT_FLOAT_EQ(i_animation.duration(), 1.f);
+    EXPECT_EQ(i_animation.num_tracks(), 1);
+
+    // Reuse the animation a second time.
+    i >> i_animation;
+    EXPECT_FLOAT_EQ(i_animation.duration(), 2.f);
+    ASSERT_EQ(i_animation.num_tracks(), 2);
+  }
 }

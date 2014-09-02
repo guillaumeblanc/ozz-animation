@@ -42,13 +42,13 @@
 #include "ozz/base/containers/string.h"
 #include "ozz/base/containers/map.h"
 #include "ozz/base/containers/vector.h"
-#include "ozz/animation/offline/animation_builder.h"
 
 namespace ozz {
 namespace animation {
 // Forward declares the runtime skeleton.
 class Skeleton;
 namespace offline {
+struct RawAnimation;
 namespace collada {
 // Forward declares Collada visitors.
 class AnimationVisitor;
@@ -124,9 +124,9 @@ class AnimationVisitor : public BaseVisitor {
   }
 
   struct Source {
-    std::size_t count;
-    std::size_t offset;
-    std::size_t stride;
+    size_t count;
+    size_t offset;
+    size_t stride;
     unsigned int binding;
   };
 

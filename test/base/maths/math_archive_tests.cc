@@ -28,7 +28,7 @@
 //                                                                            //
 //============================================================================//
 
-#include "ozz/base/io/archive_maths.h"
+#include "ozz/base/maths/math_archive.h"
 
 #include "gtest/gtest.h"
 

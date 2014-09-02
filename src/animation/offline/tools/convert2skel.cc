@@ -33,9 +33,10 @@
 #include <cstdlib>
 #include <cstring>
 
+#include "ozz/animation/offline/raw_skeleton_archive.h"
 #include "ozz/animation/offline/skeleton_builder.h"
 
-#include "ozz/animation/runtime/skeleton_serialize.h"
+#include "ozz/animation/runtime/skeleton_archive.h"
 
 #include "ozz/base/io/archive.h"
 #include "ozz/base/io/stream.h"
@@ -46,7 +47,7 @@
 
 // Declares command line options.
 OZZ_OPTIONS_DECLARE_STRING(file, "Specifies input file", "", true)
-OZZ_OPTIONS_DECLARE_STRING(skeleton, "Specifies Ozz skeleton ouput file", "", true)
+OZZ_OPTIONS_DECLARE_STRING(skeleton, "Specifies ozz skeleton ouput file", "", true)
 
 static bool ValidateEndianness(const ozz::options::Option& _option,
                                int /*_argc*/) {
@@ -89,6 +90,12 @@ OZZ_OPTIONS_DECLARE_STRING_FN(
   false,
   &ValidateLogLevel)
 
+OZZ_OPTIONS_DECLARE_BOOL(
+  raw,
+  "Outputs raw skeleton, instead of runtime skeleton.",
+  false,
+  false)
+
 namespace ozz {
 namespace animation {
 namespace offline {
@@ -97,9 +104,9 @@ int SkeletonConverter::operator()(int _argc, const char** _argv) {
   // Parses arguments.
   ozz::options::ParseResult parse_result = ozz::options::ParseCommandLine(
     _argc, _argv,
-    "1.0",
-    "Imports a skeleton from a file and converts it to ozz binary/run-time "
-    "skeleton format");
+    "1.1",
+    "Imports a skeleton from a file and converts it to ozz binary raw or "
+    "runtime skeleton format");
   if (parse_result != ozz::options::kSuccess) {
     return parse_result == ozz::options::kExitSuccess ?
       EXIT_SUCCESS : EXIT_FAILURE;
@@ -126,24 +133,30 @@ int SkeletonConverter::operator()(int _argc, const char** _argv) {
     return EXIT_FAILURE;
   }
 
-  // Builds runtime skeleton.
-  ozz::log::Log() << "Builds runtime skeleton." << std::endl;
-  ozz::animation::offline::SkeletonBuilder builder;
-  ozz::animation::Skeleton* skeleton = builder(raw_skeleton);
-  if (!skeleton) {
-    ozz::log::Err() << "Failed to build runtime skeleton." << std::endl;
-    return EXIT_FAILURE;
+  // Needs to be done before opening the output file, so that if it fails then
+  // there's no invalid file outputted.
+  ozz::animation::Skeleton* skeleton = NULL;
+  if (!OPTIONS_raw) {
+    // Builds runtime skeleton.
+    ozz::log::Log() << "Builds runtime skeleton." << std::endl;
+    ozz::animation::offline::SkeletonBuilder builder;
+    skeleton = builder(raw_skeleton);
+    if (!skeleton) {
+      ozz::log::Err() << "Failed to build runtime skeleton." << std::endl;
+      return EXIT_FAILURE;
+    }
   }
 
+  // Prepares output stream. File is a RAII so it will close automatically at
+  // the end of this scope.
+  // Once the file is opened, nothing should fail as it would leave an invalid
+  // file on the disk.
   {
-    // Prepares output stream. File is a RAII so it will close automatically at
-    // the end of this scope.
-    // Once the file is opened, nothing should fail as it would leave an invalid
-    // file on the disk.
     ozz::log::Log() << "Opens output file: " << OPTIONS_skeleton << std::endl;
     ozz::io::File file(OPTIONS_skeleton, "wb");
     if (!file.opened()) {
-      ozz::log::Err() << "Failed to open output file: " << OPTIONS_skeleton << std::endl;
+      ozz::log::Err() << "Failed to open output file: " << OPTIONS_skeleton <<
+        std::endl;
       ozz::memory::default_allocator()->Delete(skeleton);
       return EXIT_FAILURE;
     }
@@ -159,14 +172,20 @@ int SkeletonConverter::operator()(int _argc, const char** _argv) {
       " Endian output binary format selected." << std::endl;
 
     // Initializes output archive.
-    ozz::log::Log() << "Outputs to binary archive." << std::endl;
     ozz::io::OArchive archive(&file, endianness);
 
     // Fills output archive with the skeleton.
-    archive << *skeleton;
+    if (OPTIONS_raw) {
+      ozz::log::Log() << "Outputs RawSkeleton to binary archive." << std::endl;
+      archive << raw_skeleton;
+    } else {
+      ozz::log::Log() << "Outputs Skeleton to binary archive." << std::endl;
+      archive << *skeleton;    
+    }
+    ozz::log::Log() << "Skeleton binary archive successfully outputed." <<
+      std::endl;
   }
-  ozz::log::Log() << "Skeleton binary archive successfully outputed." << std::endl;
-
+  
   // Delete local objects.
   ozz::memory::default_allocator()->Delete(skeleton);
 

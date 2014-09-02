@@ -38,7 +38,7 @@ void Intrusive::Save(ozz::io::OArchive& _archive) const {
   _archive << i;
 }
 
-void Intrusive::Load(ozz::io::IArchive& _archive, ozz::uint32 _version) {
+void Intrusive::Load(ozz::io::IArchive& _archive, uint32_t _version) {
   EXPECT_EQ(_version, 46u);
   _archive >> i;
 }
@@ -48,14 +48,14 @@ namespace io {
 
 // Specializes Extrusive type external Save and Load functions.
 template <>
-void Save(OArchive& _archive, const Extrusive* _test, std::size_t _count) {
+void Save(OArchive& _archive, const Extrusive* _test, size_t _count) {
   _archive << ozz::io::MakeArray(&_test->i, _count);
 }
 template <>
 void Load(IArchive& _archive,
           Extrusive* _test,
-          std::size_t _count,
-          uint32 _version) {
+          size_t _count,
+          uint32_t _version) {
   EXPECT_EQ(_version, 0u);
   _archive >> ozz::io::MakeArray(&_test->i, _count);
 }
@@ -64,9 +64,9 @@ void Load(IArchive& _archive,
 
 void Tagged1::Save(ozz::io::OArchive& /*_archive*/) const {
 }
-void Tagged1::Load(ozz::io::IArchive& /*_archive*/, ozz::uint32 /*_version*/) {
+void Tagged1::Load(ozz::io::IArchive& /*_archive*/, uint32_t /*_version*/) {
 }
 void Tagged2::Save(ozz::io::OArchive& /*_archive*/) const {
 }
-void Tagged2::Load(ozz::io::IArchive& /*_archive*/, ozz::uint32 /*_version*/) {
+void Tagged2::Load(ozz::io::IArchive& /*_archive*/, uint32_t /*_version*/) {
 }

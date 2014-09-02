@@ -19,30 +19,57 @@ set_target_properties(ozz_animation_collada
 
 install(TARGETS ozz_animation_collada DESTINATION lib)
 
-add_executable(dae2skel
-  dae2skel.cc)
-target_link_libraries(dae2skel
-  ozz_animation_offline_tools
-  ozz_animation_collada
-  ozz_animation_offline
-  ozz_animation
-  ozz_options
-  ozz_base)
-set_target_properties(dae2skel
-  PROPERTIES FOLDER "ozz/tools")
+if(CMAKE_CROSSCOMPILING)
+  find_package(dae2skel)
+else()
+  add_executable(dae2skel
+    dae2skel.cc)
+  target_link_libraries(dae2skel
+    ozz_animation_offline_tools
+    ozz_animation_collada
+    ozz_animation_offline
+    ozz_animation
+    ozz_options
+    ozz_base)
+  set_target_properties(dae2skel
+    PROPERTIES FOLDER "ozz/tools")
 
-install(TARGETS dae2skel DESTINATION bin/tools)
+  install(TARGETS dae2skel DESTINATION bin/tools)
+
+  export(TARGETS dae2skel FILE "${CMAKE_BINARY_DIR}/dae2skelConfig.cmake")
+endif()
+
+if(CMAKE_CROSSCOMPILING)
+  find_package(dae2anim)
+else()
+  add_executable(dae2anim
+    dae2anim.cc)
+  target_link_libraries(dae2anim
+    ozz_animation_offline_tools
+    ozz_animation_collada
+    ozz_animation_offline
+    ozz_animation
+    ozz_options
+    ozz_base)
+  set_target_properties(dae2anim
+    PROPERTIES FOLDER "ozz/tools")
+
+  install(TARGETS dae2anim DESTINATION bin/tools)
   
-add_executable(dae2anim
-  dae2anim.cc)
-target_link_libraries(dae2anim
-  ozz_animation_offline_tools
-  ozz_animation_collada
-  ozz_animation_offline
-  ozz_animation
-  ozz_options
-  ozz_base)
-set_target_properties(dae2anim
-  PROPERTIES FOLDER "ozz/tools")
+  export(TARGETS dae2anim FILE "${CMAKE_BINARY_DIR}/dae2animConfig.cmake")
 
-install(TARGETS dae2anim DESTINATION bin/tools)
+  # Uses the tools to archive a skeleton and an animation with the current object format.
+  add_custom_command(TARGET dae2anim POST_BUILD
+    DEPENDS
+      "${ozz_media_directory}/collada/alain/skeleton.dae"
+      "${ozz_media_directory}/collada/alain/walk.dae"
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${ozz_media_directory}/bin"
+    COMMAND dae2skel "--file=${ozz_media_directory}/collada/alain/skeleton.dae" "--skeleton=${ozz_media_directory}/bin/skeleton_v1_le.ozz" "--endian=little"
+    COMMAND dae2skel "--file=${ozz_media_directory}/collada/alain/skeleton.dae" "--skeleton=${ozz_media_directory}/bin/skeleton_v1_be.ozz" "--endian=big"
+    COMMAND dae2skel "--raw" "--file=${ozz_media_directory}/collada/alain/skeleton.dae" "--skeleton=${ozz_media_directory}/bin/raw_skeleton_v1_le.ozz" "--endian=little"
+    COMMAND dae2skel "--raw" "--file=${ozz_media_directory}/collada/alain/skeleton.dae" "--skeleton=${ozz_media_directory}/bin/raw_skeleton_v1_be.ozz" "--endian=big"
+    COMMAND dae2anim "--file=${ozz_media_directory}/collada/alain/run.dae" "--skeleton=${ozz_media_directory}/bin/skeleton_v1_le.ozz" "--animation=${ozz_media_directory}/bin/animation_v1_le.ozz" "--endian=little"
+    COMMAND dae2anim "--file=${ozz_media_directory}/collada/alain/run.dae" "--skeleton=${ozz_media_directory}/bin/skeleton_v1_le.ozz" "--animation=${ozz_media_directory}/bin/animation_v1_be.ozz" "--endian=big"
+    COMMAND dae2anim "--raw" "--file=${ozz_media_directory}/collada/alain/run.dae" "--skeleton=${ozz_media_directory}/bin/skeleton_v1_le.ozz" "--animation=${ozz_media_directory}/bin/raw_animation_v1_le.ozz" "--endian=little"
+    COMMAND dae2anim "--raw" "--file=${ozz_media_directory}/collada/alain/run.dae" "--skeleton=${ozz_media_directory}/bin/skeleton_v1_le.ozz" "--animation=${ozz_media_directory}/bin/raw_animation_v1_be.ozz" "--endian=big")
+endif()

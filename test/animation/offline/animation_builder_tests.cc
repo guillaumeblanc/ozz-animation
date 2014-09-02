@@ -35,6 +35,9 @@
 
 #include "ozz/base/memory/allocator.h"
 #include "ozz/base/maths/soa_transform.h"
+
+#include "ozz/animation/offline/raw_animation.h"
+
 #include "ozz/animation/runtime/animation.h"
 #include "ozz/animation/runtime/sampling_job.h"
 

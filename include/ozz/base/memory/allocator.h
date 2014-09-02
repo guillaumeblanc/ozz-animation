@@ -43,7 +43,7 @@ namespace memory {
 class Allocator;
 
 // Declares a default alignment value.
-static const std::size_t kDefaultAlignment = 16;
+static const size_t kDefaultAlignment = 16;
 
 // Defines the default allocator accessor.
 Allocator* default_allocator();
@@ -68,7 +68,7 @@ class Allocator {
 
   // Allocates _size bytes on the specified _alignment boundaries.
   // Allocate function conforms with standard malloc function specifications.
-  virtual void* Allocate(std::size_t _size, std::size_t _alignment) = 0;
+  virtual void* Allocate(size_t _size, size_t _alignment) = 0;
 
   // Frees a block that was allocated with Allocate or Reallocate.
   // Argument _block can be NULL.
@@ -79,8 +79,8 @@ class Allocator {
   // Argument _block can be NULL.
   // Reallocate function conforms with standard realloc function specifications.
   virtual void* Reallocate(void* _block,
-                           std::size_t _size,
-                           std::size_t _alignment) = 0;
+                           size_t _size,
+                           size_t _alignment) = 0;
 
   // Next functions are helper functions used to provide typed and ranged
   // allocations.
@@ -89,7 +89,7 @@ class Allocator {
   // automatically deduced from _Ty type.
   // Allocate function conforms with standard malloc function specifications.
   template<typename _Ty>
-  _Ty* Allocate(std::size_t _count) {
+  _Ty* Allocate(size_t _count) {
     return reinterpret_cast<_Ty*>(
       Allocate(_count * sizeof(_Ty), AlignOf<_Ty>::value));
   }
@@ -99,7 +99,7 @@ class Allocator {
   // AllocateRange function conforms with standard malloc function
   // specifications.
   template<typename _Ty>
-  Range<_Ty> AllocateRange(std::size_t _count) {
+  Range<_Ty> AllocateRange(size_t _count) {
     _Ty* alloc = reinterpret_cast<_Ty*>(
       Allocate(_count * sizeof(_Ty), AlignOf<_Ty>::value));
     return Range<_Ty>(alloc, alloc ? _count : 0);
@@ -120,7 +120,7 @@ class Allocator {
   // Reallocate function conforms with standard realloc function specifications.
   template<typename _Ty>
   _Ty* Reallocate(_Ty* _block,
-                  std::size_t _count) {
+                  size_t _count) {
     return reinterpret_cast<_Ty*>(
       Reallocate(_block, _count * sizeof(_Ty), AlignOf<_Ty>::value));
   }
@@ -131,7 +131,7 @@ class Allocator {
   // Reallocate function conforms with standard realloc function specifications.
   template<typename _Ty>
   Range<_Ty> Reallocate(const Range<_Ty>& _range,
-                        std::size_t _count) {
+                        size_t _count) {
     _Ty* alloc = reinterpret_cast<_Ty*>(
       Reallocate(_range.begin, _count * sizeof(_Ty), AlignOf<_Ty>::value));
     return Range<_Ty>(alloc, alloc ? _count : 0);

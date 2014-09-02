@@ -64,9 +64,9 @@ int Stride(Format::Value _format) {
 bool WriteTGA(const char* _filename,
               int _width, int _height,
               Format::Value _src_format,
-              const ozz::uint8* _src_buffer,
+              const uint8_t* _src_buffer,
               bool _write_alpha) {
-  union Pixel { ozz::uint8 c[4]; ozz::uint32 p;};
+  union Pixel { uint8_t c[4]; uint32_t p;};
 
   assert(_filename && _src_buffer);
 
@@ -82,18 +82,18 @@ bool WriteTGA(const char* _filename,
   }
 
   // Builds and writes tga header.
-  const ozz::uint8 header[] = {
+  const uint8_t header[] = {
     0,  // ID length
     0,  // Color map type
     10,  // Image type (RLE true-color)
     0, 0, 0, 0, 0,  // Color map specification (no color map)
     0, 0,  // X-origin (2 bytes little-endian)
     0, 0,  // Y-origin (2 bytes little-endian)
-    static_cast<ozz::uint8>(_width & 0xff),  // Width (2 bytes little-endian)
-    static_cast<ozz::uint8>((_width >> 8) & 0xff),
-    static_cast<ozz::uint8>(_height & 0xff),  // Height (2 bytes little-endian)
-    static_cast<ozz::uint8>((_height >> 8) & 0xff),
-    static_cast<ozz::uint8>(_write_alpha ? 32 : 24),  // Pixel depth
+    static_cast<uint8_t>(_width & 0xff),  // Width (2 bytes little-endian)
+    static_cast<uint8_t>((_width >> 8) & 0xff),
+    static_cast<uint8_t>(_height & 0xff),  // Height (2 bytes little-endian)
+    static_cast<uint8_t>((_height >> 8) & 0xff),
+    static_cast<uint8_t>(_write_alpha ? 32 : 24),  // Pixel depth
     0};  // Image descriptor
   OZZ_STATIC_ASSERT(sizeof(header) == 18);
   file.Write(header, sizeof(header));
@@ -106,14 +106,15 @@ bool WriteTGA(const char* _filename,
   // Writes pixels, with RLE compression.
 
   // Prepares component mappings from src to TARGA format.
-  const ozz::uint8 mappings[4][4] = {
+  const uint8_t mappings[4][4] = {
     {2, 1, 0, 0}, {0, 1, 2, 0}, {2, 1, 0, 3}, {0, 1, 2, 3}};
-  const ozz::uint8* mapping = mappings[_src_format];
-  // Allocates enough space to store RLE packets for the worst case scenario.
-  ozz::uint8* dest_buffer = ozz::memory::default_allocator()->
-    Allocate<ozz::uint8>((1 + (_write_alpha ? 4 : 3)) * _width * _height);
-  std::size_t dest_size = 0;
+  const uint8_t* mapping = mappings[_src_format];
 
+  // Allocates enough space to store RLE packets for the worst case scenario.
+  uint8_t* dest_buffer = ozz::memory::default_allocator()->
+    Allocate<uint8_t>((1 + (_write_alpha ? 4 : 3)) * _width * _height);
+
+  size_t dest_size = 0;
   if (HasAlpha(_src_format)) {
     assert(Stride(_src_format) == 4);
     const int src_pitch = _width * 4;

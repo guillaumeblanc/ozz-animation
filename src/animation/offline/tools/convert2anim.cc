@@ -35,9 +35,12 @@
 
 #include "ozz/animation/offline/animation_builder.h"
 #include "ozz/animation/offline/animation_optimizer.h"
+#include "ozz/animation/offline/skeleton_builder.h"
+#include "ozz/animation/offline/raw_animation_archive.h"
+#include "ozz/animation/offline/raw_skeleton_archive.h"
 
-#include "ozz/animation/runtime/skeleton_serialize.h"
-#include "ozz/animation/runtime/animation_serialize.h"
+#include "ozz/animation/runtime/skeleton_archive.h"
+#include "ozz/animation/runtime/animation_archive.h"
 
 #include "ozz/base/io/archive.h"
 #include "ozz/base/io/stream.h"
@@ -48,8 +51,8 @@
 
 // Declares command line options.
 OZZ_OPTIONS_DECLARE_STRING(file, "Specifies input file", "", true)
-OZZ_OPTIONS_DECLARE_STRING(skeleton, "Specifies Ozz skeleton input file", "", true)
-OZZ_OPTIONS_DECLARE_STRING(animation, "Specifies Ozz animation ouput file", "", true)
+OZZ_OPTIONS_DECLARE_STRING(skeleton, "Specifies ozz skeleton (raw or runtime) input file", "", true)
+OZZ_OPTIONS_DECLARE_STRING(animation, "Specifies ozz animation output file", "", true)
 
 OZZ_OPTIONS_DECLARE_FLOAT(
   rotation,
@@ -123,6 +126,12 @@ OZZ_OPTIONS_DECLARE_FLOAT_FN(
   false,
   &ValidateSamplingRate)
 
+OZZ_OPTIONS_DECLARE_BOOL(
+  raw,
+  "Outputs raw animation, instead of runtime animation.",
+  false,
+  false)
+
 namespace ozz {
 namespace animation {
 namespace offline {
@@ -130,15 +139,15 @@ namespace offline {
 namespace {
 void DisplaysOptimizationstatistics(const RawAnimation& _non_optimized,
                                     const RawAnimation& _optimized) {
-  std::size_t opt_translations = 0, opt_rotations = 0, opt_scales = 0;
-  for (std::size_t i =0; i < _optimized.tracks.size(); i++) {
+  size_t opt_translations = 0, opt_rotations = 0, opt_scales = 0;
+  for (size_t i =0; i < _optimized.tracks.size(); i++) {
     const RawAnimation::JointTrack& track = _optimized.tracks[i];
     opt_translations += track.translations.size();
     opt_rotations += track.rotations.size();
     opt_scales += track.scales.size();
   }
-  std::size_t non_opt_translations = 0, non_opt_rotations = 0, non_opt_scales = 0;
-  for (std::size_t i =0; i < _non_optimized.tracks.size(); i++) {
+  size_t non_opt_translations = 0, non_opt_rotations = 0, non_opt_scales = 0;
+  for (size_t i =0; i < _non_optimized.tracks.size(); i++) {
     const RawAnimation::JointTrack& track = _non_optimized.tracks[i];
     non_opt_translations += track.translations.size();
     non_opt_rotations += track.rotations.size();
@@ -167,9 +176,9 @@ int AnimationConverter::operator()(int _argc, const char** _argv) {
   // Parses arguments.
   ozz::options::ParseResult parse_result = ozz::options::ParseCommandLine(
     _argc, _argv,
-    "1.0",
-    "Imports an animation from a file and converts it to ozz binary/run-time "
-    "animation format");
+    "1.1",
+    "Imports a animation from a file and converts it to ozz binary raw or "
+    "runtime animation format");
   if (parse_result != ozz::options::kSuccess) {
     return parse_result == ozz::options::kExitSuccess ?
       EXIT_SUCCESS : EXIT_FAILURE;
@@ -187,36 +196,57 @@ int AnimationConverter::operator()(int _argc, const char** _argv) {
   ozz::log::SetLevel(log_level);
 
   // Reads the skeleton from the binary ozz stream.
-  ozz::animation::Skeleton skeleton;
+  ozz::animation::Skeleton* skeleton = NULL;
   {
-    ozz::log::Log() << "Opens input skeleton ozz binary file: " << OPTIONS_skeleton <<
-      std::endl;
+    ozz::log::Log() << "Opens input skeleton ozz binary file: " <<
+      OPTIONS_skeleton << std::endl;
     ozz::io::File file(OPTIONS_skeleton, "rb");
     if (!file.opened()) {
       ozz::log::Err() << "Failed to open input skeleton ozz binary file: " <<
         OPTIONS_skeleton << std::endl;
       return EXIT_FAILURE;
     }
-    ozz::log::Log() << "Reads from binary archive." << std::endl;
     ozz::io::IArchive archive(&file);
 
-    // Ensures the file contains a valid skeleton object.
-    if (!archive.TestTag<ozz::animation::Skeleton>()) {
+    // File could contain a RawSkeleton or a Skeleton.
+    if (archive.TestTag<ozz::animation::offline::RawSkeleton>()) {
+      ozz::log::Log() << "Reading RawSkeleton from file." << std::endl;
+
+      // Reading the skeleton cannot file.
+      ozz::animation::offline::RawSkeleton raw_skeleton;
+      archive >> raw_skeleton;
+
+      // Builds runtime skeleton.
+      ozz::log::Log() << "Builds runtime skeleton." << std::endl;
+      ozz::animation::offline::SkeletonBuilder builder;
+      skeleton = builder(raw_skeleton);
+      if (!skeleton) {
+        ozz::log::Err() << "Failed to build runtime skeleton." << std::endl;
+        return EXIT_FAILURE;
+      }
+    } else if (archive.TestTag<ozz::animation::Skeleton>()) {
+      // Reads input archive to the runtime skeleton.
+      // This operation cannot fail.
+      skeleton =
+        ozz::memory::default_allocator()->New<ozz::animation::Skeleton>();
+      archive >> *skeleton;
+    } else {
       ozz::log::Err() << "Failed to read input skeleton from binary file: " <<
         OPTIONS_skeleton << std::endl;
       return EXIT_FAILURE;
     }
-
-    // Reads input archive to the runtime skeleton.
-    // This operation cannot fail.
-    archive >> skeleton;
   }
 
   // Imports animation from the document.
   ozz::log::Log() << "Importing file \"" << OPTIONS_file << "\"" <<
     std::endl;
   ozz::animation::offline::RawAnimation raw_animation;
-  if (!Import(OPTIONS_file, skeleton, OPTIONS_sampling_rate, &raw_animation)) {
+  bool imported =
+    Import(OPTIONS_file, *skeleton, OPTIONS_sampling_rate, &raw_animation);
+
+  // No need for the skeleton anymore.
+  ozz::memory::default_allocator()->Delete(skeleton);
+  if (!imported) {
     ozz::log::Err() << "Failed to import file \"" << OPTIONS_file << "\"" <<
       std::endl;
     return EXIT_FAILURE;
@@ -238,12 +268,15 @@ int AnimationConverter::operator()(int _argc, const char** _argv) {
   DisplaysOptimizationstatistics(raw_animation, raw_optimized_animation);
 
   // Builds runtime animation.
-  ozz::log::Log() << "Builds runtime animation." << std::endl;
-  ozz::animation::offline::AnimationBuilder builder;
-  ozz::animation::Animation* animation = builder(raw_optimized_animation);
-  if (!animation) {
-    ozz::log::Err() << "Failed to build runtime animation." << std::endl;
-    return EXIT_FAILURE;
+  ozz::animation::Animation* animation = NULL;
+  if (!OPTIONS_raw) {
+    ozz::log::Log() << "Builds runtime animation." << std::endl;
+    ozz::animation::offline::AnimationBuilder builder;
+    animation = builder(raw_optimized_animation);
+    if (!animation) {
+      ozz::log::Err() << "Failed to build runtime animation." << std::endl;
+      return EXIT_FAILURE;
+    }
   }
 
   {
@@ -270,11 +303,16 @@ int AnimationConverter::operator()(int _argc, const char** _argv) {
       " Endian output binary format selected." << std::endl;
 
     // Initializes output archive.
-    ozz::log::Log() << "Outputs to binary archive." << std::endl;
     ozz::io::OArchive archive(&file, endianness);
 
     // Fills output archive with the animation.
-    archive << *animation;
+    if (OPTIONS_raw) {
+      ozz::log::Log() << "Outputs RawAnimation to binary archive." << std::endl;
+      archive << raw_optimized_animation;
+    } else {
+      ozz::log::Log() << "Outputs Animation to binary archive." << std::endl;
+      archive << *animation;      
+    }
   }
 
   ozz::log::Log() << "Animation binary archive successfully outputted." <<

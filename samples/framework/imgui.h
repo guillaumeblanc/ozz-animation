@@ -34,7 +34,7 @@
 #include <cstdio>
 
 namespace ozz {
-namespace math { struct RectInt; }
+namespace math { struct RectFloat; }
 namespace sample {
 
 // Interface for immediate mode graphical user interface rendering.
@@ -63,7 +63,7 @@ class ImGui {
    public:
     Form(ImGui* _im_gui,
          const char* _title,
-         const math::RectInt& _rect,
+         const math::RectFloat& _rect,
          bool* _open,
          bool _constrain)
       : im_gui_(_im_gui){
@@ -193,7 +193,7 @@ class ImGui {
   // parent size.
   // Providing a non NULL _open argument enables the open/close mechanism.
   virtual void BeginContainer(const char* _title,
-                              const math::RectInt* _rect,
+                              const math::RectFloat* _rect,
                               bool* _open,
                               bool _constrain) = 0;
 

@@ -36,6 +36,8 @@
 #include <cstring>
 #include <sstream>
 
+#include "ozz/animation/offline/raw_skeleton.h"
+
 #include "ozz/base/containers/set.h"
 
 #include "ozz/base/log.h"
@@ -47,7 +49,7 @@ namespace collada {
 
 bool ColladaJoint::GetTransform(math::Transform* _transform) const {
   TransformBuilder builder;
-  for (std::size_t i = 0; i < transforms.size(); ++i) {
+  for (size_t i = 0; i < transforms.size(); ++i) {
     if (!transforms[i].Build(&builder)) {
       return false;
     }
@@ -69,7 +71,7 @@ bool SkeletonVisitor::VisitEnter(const TiXmlElement& _element,
   if (!joint_stack_.empty()) {
     const char* transforms[] = {
       "matrix", "rotate", "scale", "translate", "lookat", "skew"};
-    for (std::size_t i = 0; i < OZZ_ARRAY_SIZE(transforms); ++i) {
+    for (size_t i = 0; i < OZZ_ARRAY_SIZE(transforms); ++i) {
       if (std::strcmp(_element.Value(), transforms[i]) == 0) {
         if (HandleTransform(_element)) {
           return true;
@@ -162,7 +164,7 @@ bool MakeUniqueNames(ColladaJoint& _src, JointNames* _joints) {
   _joints->insert(_src.name.c_str());
 
   // Now maps children.
-  for (std::size_t i = 0; i < _src.children.size(); ++i) {
+  for (size_t i = 0; i < _src.children.size(); ++i) {
     if (!MakeUniqueNames(_src.children[i], _joints)) {
       return false;
     }
@@ -178,7 +180,7 @@ bool SkeletonVisitor::HandleNodeExit(const TiXmlElement& _element) {
     // The last joint was poped, makes joint names unique.
     if (joint_stack_.empty()) {
       JointNames joint_names;
-      for (std::size_t i = 0; i < roots_.size(); ++i) {
+      for (size_t i = 0; i < roots_.size(); ++i) {
         MakeUniqueNames(roots_[i], &joint_names);
       }
     }
@@ -198,7 +200,7 @@ bool SkeletonVisitor::HandleTransform(const TiXmlElement& _element) {
   }
 
   // Ensure sid is unique.
-  for (std::size_t i = 0; i < joint->transforms.size(); ++i) {
+  for (size_t i = 0; i < joint->transforms.size(); ++i) {
     if (!std::strcmp(joint->transforms[i].sid(), transform.sid())) {
       log::Err() << "Multiple tranforms with the same <sid> \"" <<*
         transform.sid() << "\" for node \"" << joint->name << "\"." <<
@@ -228,7 +230,7 @@ bool CopyHierachy(const ColladaJoint& _src,
 
   // Adds and fills children.
   _dest->children.resize(_src.children.size());
-  for (std::size_t i = 0; i < _src.children.size(); ++i) {
+  for (size_t i = 0; i < _src.children.size(); ++i) {
     if (!CopyHierachy(_src.children[i], &_dest->children[i], _asset)) {
       return false;
     }
@@ -240,7 +242,7 @@ bool CopyHierachy(const ColladaJoint& _src,
 bool ExtractSkeleton(const SkeletonVisitor& _skeleton_visitor,
                      RawSkeleton* _skeleton) {
   _skeleton->roots.resize(_skeleton_visitor.roots().size());
-  for (std::size_t i = 0; i < _skeleton_visitor.roots().size(); ++i) {
+  for (size_t i = 0; i < _skeleton_visitor.roots().size(); ++i) {
     if (!CopyHierachy(_skeleton_visitor.roots()[i],
                       &_skeleton->roots[i],
                       _skeleton_visitor.asset())) {

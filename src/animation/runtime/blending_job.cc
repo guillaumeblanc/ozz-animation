@@ -70,7 +70,7 @@ bool BlendingJob::Validate() const {
 
   // The bind pose size defines the ranges of transforms to blend, so all
   // other buffers should be bigger.
-  const std::ptrdiff_t min_range = bind_pose.end - bind_pose.begin;
+  const ptrdiff_t min_range = bind_pose.end - bind_pose.begin;
   valid &= output.end - output.begin >= min_range;
 
   // Validates layers.
@@ -150,7 +150,7 @@ struct ProcessArgs {
   const BlendingJob& job;
 
   // The number of transforms to process as defind by the size of the bind pose.
-  std::size_t num_soa_joints;
+  size_t num_soa_joints;
 
   // Number of processed blended passes (excluding passes with a weight <= 0.f),
   // including partial passes.
@@ -198,7 +198,7 @@ void BlendLayers(ProcessArgs* _args) {
       ++_args->num_partial_passes;
 
       if (_args->num_passes == 0) {
-        for (std::size_t i = 0; i < _args->num_soa_joints; ++i) {
+        for (size_t i = 0; i < _args->num_soa_joints; ++i) {
           const math::SoaTransform& src = layer->transform.begin[i];
           math::SoaTransform* dest = _args->job.output.begin + i;
           const math::SimdFloat4 weight =
@@ -207,7 +207,7 @@ void BlendLayers(ProcessArgs* _args) {
           OZZ_BLEND_1ST_PASS(src, weight, dest);
         }
       } else {
-        for (std::size_t i = 0; i < _args->num_soa_joints; ++i) {
+        for (size_t i = 0; i < _args->num_soa_joints; ++i) {
           const math::SoaTransform& src = layer->transform.begin[i];
           math::SoaTransform* dest = _args->job.output.begin + i;
           const math::SimdFloat4 weight =
@@ -220,14 +220,14 @@ void BlendLayers(ProcessArgs* _args) {
     } else {
       // This is a full layer.
       if (_args->num_passes == 0) {
-        for (std::size_t i = 0; i < _args->num_soa_joints; ++i) {
+        for (size_t i = 0; i < _args->num_soa_joints; ++i) {
           const math::SoaTransform& src = layer->transform.begin[i];
           math::SoaTransform* dest = _args->job.output.begin + i;
           _args->accumulated_weights[i] = layer_weight;
           OZZ_BLEND_1ST_PASS(src, layer_weight, dest);
         }
       } else {
-        for (std::size_t i = 0; i < _args->num_soa_joints; ++i) {
+        for (size_t i = 0; i < _args->num_soa_joints; ++i) {
           const math::SoaTransform& src = layer->transform.begin[i];
           math::SoaTransform* dest = _args->job.output.begin + i;
           _args->accumulated_weights[i] =
@@ -263,13 +263,13 @@ void BlendBindPose(ProcessArgs* _args) {
       // because normalization stage will be global also.
       _args->accumulated_weight = _args->job.threshold;
       if (_args->num_passes == 0) {
-        for (std::size_t i = 0; i < _args->num_soa_joints; ++i) {
+        for (size_t i = 0; i < _args->num_soa_joints; ++i) {
           const math::SoaTransform& src = _args->job.bind_pose.begin[i];
           math::SoaTransform* dest = _args->job.output.begin + i;
           OZZ_BLEND_1ST_PASS(src, simd_bp_weight, dest);
         }
       } else {
-        for (std::size_t i = 0; i < _args->num_soa_joints; ++i) {
+        for (size_t i = 0; i < _args->num_soa_joints; ++i) {
           const math::SoaTransform& src = _args->job.bind_pose.begin[i];
           math::SoaTransform* dest = _args->job.output.begin + i;
           OZZ_BLEND_N_PASS(src, simd_bp_weight, dest);
@@ -285,7 +285,7 @@ void BlendBindPose(ProcessArgs* _args) {
     // There's been at least 1 pass as num_partial_passes != 0.
     assert(_args->num_passes != 0);
 
-    for (std::size_t i = 0; i < _args->num_soa_joints; ++i) {
+    for (size_t i = 0; i < _args->num_soa_joints; ++i) {
       const math::SoaTransform& src = _args->job.bind_pose.begin[i];
       math::SoaTransform* dest = _args->job.output.begin + i;
       const math::SimdFloat4 bp_weight =
@@ -309,7 +309,7 @@ void Normalize(ProcessArgs* _args) {
     // division to all joints.
     const math::SimdFloat4 ratio =
       math::simd_float4::Load1(1.f / _args->accumulated_weight);
-    for (std::size_t i = 0; i < _args->num_soa_joints; ++i) {
+    for (size_t i = 0; i < _args->num_soa_joints; ++i) {
       math::SoaTransform& dest = _args->job.output.begin[i];
       dest.translation = dest.translation * ratio;
       dest.rotation = NormalizeEst(dest.rotation);
@@ -318,7 +318,7 @@ void Normalize(ProcessArgs* _args) {
   } else {
     // Partial blending normalization requires to compute the divider per-joint.
     const math::SimdFloat4 one = math::simd_float4::one();
-    for (std::size_t i = 0; i < _args->num_soa_joints; ++i) {
+    for (size_t i = 0; i < _args->num_soa_joints; ++i) {
       const math::SimdFloat4 ratio = one / _args->accumulated_weights[i];
       math::SoaTransform& dest = _args->job.output.begin[i];
       dest.translation = dest.translation * ratio;

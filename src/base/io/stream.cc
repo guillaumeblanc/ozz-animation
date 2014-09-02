@@ -67,12 +67,12 @@ bool File::opened() const {
   return file_ != NULL;
 }
 
-std::size_t File::Read(void* _buffer, std::size_t _size) {
+size_t File::Read(void* _buffer, size_t _size) {
   std::FILE* file = reinterpret_cast<std::FILE*>(file_);
   return std::fread(_buffer, 1, _size, file);
 }
 
-std::size_t File::Write(const void* _buffer, std::size_t _size) {
+size_t File::Write(const void* _buffer, size_t _size) {
   std::FILE* file = reinterpret_cast<std::FILE*>(file_);
   return std::fwrite(_buffer, 1, _size, file);
 }
@@ -92,8 +92,8 @@ int File::Tell() const {
 }
 
 // Starts MemoryStream implementation.
-const std::size_t MemoryStream::kBufferSizeIncrement = 16<<10;
-const std::size_t MemoryStream::kMaxSize = std::numeric_limits<int>::max();
+const size_t MemoryStream::kBufferSizeIncrement = 16<<10;
+const size_t MemoryStream::kMaxSize = std::numeric_limits<int>::max();
 
 MemoryStream::MemoryStream()
     : buffer_(NULL),
@@ -111,7 +111,7 @@ bool MemoryStream::opened() const {
   return true;
 }
 
-std::size_t MemoryStream::Read(void* _buffer, std::size_t _size) {
+size_t MemoryStream::Read(void* _buffer, size_t _size) {
   // A read cannot set file position beyond the end of the file.
   // A read cannot exceed the maximum Stream size.
   if (tell_ > end_ || _size > kMaxSize) {
@@ -124,7 +124,7 @@ std::size_t MemoryStream::Read(void* _buffer, std::size_t _size) {
   return read_size;
 }
 
-std::size_t MemoryStream::Write(const void* _buffer, std::size_t _size) {
+size_t MemoryStream::Write(const void* _buffer, size_t _size) {
   if (_size > kMaxSize ||
       tell_ > static_cast<int>(kMaxSize - _size)) {
     // A write cannot exceed the maximum Stream size.
@@ -139,7 +139,7 @@ std::size_t MemoryStream::Write(const void* _buffer, std::size_t _size) {
       return 0;
     }
     // Fills the gap with 0's.
-    const std::size_t gap = tell_ - end_;
+    const size_t gap = tell_ - end_;
     std::memset(buffer_ + end_, 0, gap);
     end_ = tell_;
   }
@@ -180,7 +180,7 @@ int MemoryStream::Tell() const {
   return tell_;
 }
 
-bool MemoryStream::Resize(std::size_t _size) {
+bool MemoryStream::Resize(size_t _size) {
   if (_size > alloc_size_) {
     // Resize to the next multiple of kBufferSizeIncrement, requires
     // kBufferSizeIncrement to be a power of 2.

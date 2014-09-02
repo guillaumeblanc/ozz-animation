@@ -41,11 +41,13 @@
 #include "ozz/base/containers/string.h"
 #include "ozz/base/containers/map.h"
 #include "ozz/base/containers/vector.h"
-#include "ozz/animation/offline/skeleton_builder.h"
 
 namespace ozz {
 namespace animation {
 namespace offline {
+
+struct RawSkeleton;
+
 namespace collada {
 
 class SkeletonVisitor;
@@ -59,7 +61,7 @@ struct ColladaJoint {
   bool GetTransform(math::Transform* _transform) const;
 
   // Joint's name. Cannot be a c string as the name can be built.
-  ozz::String name;
+  ozz::String::Std name;
 
   // Joint's id.
   const char* id;

@@ -30,8 +30,12 @@
 
 #include "ozz/animation/offline/animation_optimizer.h"
 
+#include <cstddef>
+#include <cassert>
+
 #include "ozz/base/maths/math_constant.h"
-#include "ozz/animation/offline/animation_builder.h"
+
+#include "ozz/animation/offline/raw_animation.h"
 
 namespace ozz {
 namespace animation {
@@ -56,8 +60,8 @@ void Filter(const _RawTrack& _src,
   _dest->reserve(_src.size());
 
   // Only copies the key that cannot be interpolated from the others.
-  std::size_t last_src_pushed = 0;  // Index (in src) of the last pushed key.
-  for (std::size_t i = 0; i < _src.size(); ++i) {
+  size_t last_src_pushed = 0;  // Index (in src) of the last pushed key.
+  for (size_t i = 0; i < _src.size(); ++i) {
     // First and last keys are always pushed.
     if (i == 0 || i == _src.size() - 1) {
       _dest->push_back(_src[i]);

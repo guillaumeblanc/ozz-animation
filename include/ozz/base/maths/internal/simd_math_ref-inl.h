@@ -34,6 +34,7 @@
 #include <cstddef>
 #include <cmath>
 #include <cassert>
+#include <stdint.h>
 
 #include "ozz/base/maths/math_constant.h"
 
@@ -117,37 +118,37 @@ OZZ_INLINE SimdFloat4 Load1(float _x) {
 }
 
 OZZ_INLINE SimdFloat4 LoadPtr(const float* _f) {
-  assert(!(uintptr_t(_f) & 0xf) && "Invalid alignment");
+  assert(!(reinterpret_cast<uintptr_t>(_f) & 0xf) && "Invalid alignment");
   const SimdFloat4 ret = {_f[0], _f[1], _f[2], _f[3]};
   return ret;
 }
 
 OZZ_INLINE SimdFloat4 LoadPtrU(const float* _f) {
-    assert(!(uintptr_t(_f) & 0x3) && "Invalid alignment");
+    assert(!(reinterpret_cast<uintptr_t>(_f) & 0x3) && "Invalid alignment");
     const SimdFloat4 ret = {_f[0], _f[1], _f[2], _f[3]};
     return ret;
 }
 
 OZZ_INLINE SimdFloat4 LoadXPtrU(const float* _f) {
-  assert(!(uintptr_t(_f) & 0x3) && "Invalid alignment");
+  assert(!(reinterpret_cast<uintptr_t>(_f) & 0x3) && "Invalid alignment");
   const SimdFloat4 ret = {*_f, 0.f, 0.f, 0.f};
   return ret;
 }
 
 OZZ_INLINE SimdFloat4 Load1PtrU(const float* _f) {
-  assert(!(uintptr_t(_f) & 0x3) && "Invalid alignment");
+  assert(!(reinterpret_cast<uintptr_t>(_f) & 0x3) && "Invalid alignment");
   const SimdFloat4 ret = {*_f, *_f, *_f, *_f};
   return ret;
 }
 
 OZZ_INLINE SimdFloat4 Load2PtrU(const float* _f) {
-  assert(!(uintptr_t(_f) & 0x3) && "Invalid alignment");
+  assert(!(reinterpret_cast<uintptr_t>(_f) & 0x3) && "Invalid alignment");
   const SimdFloat4 ret = {_f[0], _f[1], 0.f, 0.f};
   return ret;
 }
 
 OZZ_INLINE SimdFloat4 Load3PtrU(const float* _f) {
-  assert(!(uintptr_t(_f) & 0x3) && "Invalid alignment");
+  assert(!(reinterpret_cast<uintptr_t>(_f) & 0x3) && "Invalid alignment");
   const SimdFloat4 ret = {_f[0], _f[1], _f[2]};
   return ret;
 }
@@ -197,7 +198,7 @@ OZZ_INLINE SimdFloat4 SetI(_SimdFloat4 _v, int _ith, float _f) {
 }
 
 OZZ_INLINE void StorePtr(_SimdFloat4 _v, float* _f) {
-  assert(!(uintptr_t(_f) & 0xf) && "Invalid alignment");
+  assert(!(reinterpret_cast<uintptr_t>(_f) & 0xf) && "Invalid alignment");
   _f[0] = _v.x;
   _f[1] = _v.y;
   _f[2] = _v.z;
@@ -205,25 +206,25 @@ OZZ_INLINE void StorePtr(_SimdFloat4 _v, float* _f) {
 }
 
 OZZ_INLINE void Store1Ptr(_SimdFloat4 _v, float* _f) {
-  assert(!(uintptr_t(_f) & 0xf) && "Invalid alignment");
+  assert(!(reinterpret_cast<uintptr_t>(_f) & 0xf) && "Invalid alignment");
   _f[0] = _v.x;
 }
 
 OZZ_INLINE void Store2Ptr(_SimdFloat4 _v, float* _f) {
-  assert(!(uintptr_t(_f) & 0xf) && "Invalid alignment");
+  assert(!(reinterpret_cast<uintptr_t>(_f) & 0xf) && "Invalid alignment");
   _f[0] = _v.x;
   _f[1] = _v.y;
 }
 
 OZZ_INLINE void Store3Ptr(_SimdFloat4 _v, float* _f) {
-  assert(!(uintptr_t(_f) & 0xf) && "Invalid alignment");
+  assert(!(reinterpret_cast<uintptr_t>(_f) & 0xf) && "Invalid alignment");
   _f[0] = _v.x;
   _f[1] = _v.y;
   _f[2] = _v.z;
 }
 
 OZZ_INLINE void StorePtrU(_SimdFloat4 _v, float* _f) {
-  assert(!(uintptr_t(_f) & 0x3) && "Invalid alignment");
+  assert(!(reinterpret_cast<uintptr_t>(_f) & 0x3) && "Invalid alignment");
   _f[0] = _v.x;
   _f[1] = _v.y;
   _f[2] = _v.z;
@@ -231,18 +232,18 @@ OZZ_INLINE void StorePtrU(_SimdFloat4 _v, float* _f) {
 }
 
 OZZ_INLINE void Store1PtrU(_SimdFloat4 _v, float* _f) {
-  assert(!(uintptr_t(_f) & 0x3) && "Invalid alignment");
+  assert(!(reinterpret_cast<uintptr_t>(_f) & 0x3) && "Invalid alignment");
   _f[0] = _v.x;
 }
 
 OZZ_INLINE void Store2PtrU(_SimdFloat4 _v, float* _f) {
-  assert(!(uintptr_t(_f) & 0x3) && "Invalid alignment");
+  assert(!(reinterpret_cast<uintptr_t>(_f) & 0x3) && "Invalid alignment");
   _f[0] = _v.x;
   _f[1] = _v.y;
 }
 
 OZZ_INLINE void Store3PtrU(_SimdFloat4 _v, float* _f) {
-  assert(!(uintptr_t(_f) & 0x3) && "Invalid alignment");
+  assert(!(reinterpret_cast<uintptr_t>(_f) & 0x3) && "Invalid alignment");
   _f[0] = _v.x;
   _f[1] = _v.y;
   _f[2] = _v.z;

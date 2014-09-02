@@ -32,3 +32,13 @@ target_link_libraries(test_soa_math
   gtest)
 add_test(NAME test_soa_math COMMAND test_soa_math)
 set_target_properties(test_soa_math PROPERTIES FOLDER "ozz/tests/base")
+
+add_executable(test_archive_maths
+  math_archive_tests.cc
+  simd_math_archive_tests.cc
+  soa_math_archive_tests.cc)
+target_link_libraries(test_archive_maths
+  ozz_base
+  gtest)
+add_test(NAME test_archive_maths COMMAND test_archive_maths)
+set_target_properties(test_archive_maths PROPERTIES FOLDER "ozz/tests/base")

@@ -41,8 +41,8 @@
 // and "void Load(ozz::io::IArchive*)".
 // - The non-intrusive functions allow to work on arrays of objects. They must
 // be implemented in ozz::io namespace with these prototypes:
-// "void Save(OArchive& _archive, const _Ty* _ty, std::size_t _count) and
-// "void Load(IArchive& _archive, _Ty* _ty, std::size_t _count).
+// "void Save(OArchive& _archive, const _Ty* _ty, size_t _count) and
+// "void Load(IArchive& _archive, _Ty* _ty, size_t _count).
 //
 // Arrays of struct/class or primitive types can be saved/loaded with the
 // helper function ozz::io::MakeArray() that is then streamed in or out using
@@ -80,6 +80,7 @@
 #include "ozz/base/io/stream.h"
 
 #include <cassert>
+#include <stdint.h>
 
 #include "ozz/base/io/archive_traits.h"
 
@@ -102,7 +103,8 @@ class OArchive {
 
   // Constructs an output archive from the Stream _stream that must be valid
   // and opened for writing.
-  explicit OArchive(Stream* _stream, Endianness _endianness);
+  explicit OArchive(Stream* _stream, 
+                    Endianness _endianness = GetNativeEndianness());
 
   // Returns true if an endian swap is required while writing.
   bool endian_swap() const {
@@ -110,7 +112,7 @@ class OArchive {
   }
 
   // Saves _size bytes of binary data from _data.
-  void SaveBinary(const void* _data, std::size_t _size) {
+  void SaveBinary(const void* _data, size_t _size) {
     stream_->Write(_data, _size);
   }
 
@@ -129,14 +131,15 @@ class OArchive {
     stream_->Write(&v, sizeof(v));\
   }
 
-  _OZZ_IO_PRIMITIVE_TYPE(int8)
-  _OZZ_IO_PRIMITIVE_TYPE(uint8)
-  _OZZ_IO_PRIMITIVE_TYPE(int16)
-  _OZZ_IO_PRIMITIVE_TYPE(uint16)
-  _OZZ_IO_PRIMITIVE_TYPE(int32)
-  _OZZ_IO_PRIMITIVE_TYPE(uint32)
-  _OZZ_IO_PRIMITIVE_TYPE(int64)
-  _OZZ_IO_PRIMITIVE_TYPE(uint64)
+  _OZZ_IO_PRIMITIVE_TYPE(char)
+  _OZZ_IO_PRIMITIVE_TYPE(int8_t)
+  _OZZ_IO_PRIMITIVE_TYPE(uint8_t)
+  _OZZ_IO_PRIMITIVE_TYPE(int16_t)
+  _OZZ_IO_PRIMITIVE_TYPE(uint16_t)
+  _OZZ_IO_PRIMITIVE_TYPE(int32_t)
+  _OZZ_IO_PRIMITIVE_TYPE(uint32_t)
+  _OZZ_IO_PRIMITIVE_TYPE(int64_t)
+  _OZZ_IO_PRIMITIVE_TYPE(uint64_t)
   _OZZ_IO_PRIMITIVE_TYPE(bool)
   _OZZ_IO_PRIMITIVE_TYPE(float)
 #undef _OZZ_IO_PRIMITIVE_TYPE
@@ -153,7 +156,7 @@ class OArchive {
     // the .h file containing its definition is not included by the caller of
     // this function.
     if (void(0), internal::Version<const _Ty>::kValue != 0) {
-      uint32 version = internal::Version<const _Ty>::kValue;
+      uint32_t version = internal::Version<const _Ty>::kValue;
       *this << version;
     }
   }
@@ -182,7 +185,7 @@ class IArchive {
   }
 
   // Loads _size bytes of binary data to _data.
-  void LoadBinary(void* _data, std::size_t _size) {
+  void LoadBinary(void* _data, size_t _size) {
     stream_->Read(_data, _size);
   }
 
@@ -194,7 +197,7 @@ class IArchive {
     assert(valid && "Type tag does not match archive content.");
 
     // Loads instance.
-    uint32 version = LoadVersion<_Ty>();
+    uint32_t version = LoadVersion<_Ty>();
     Load(*this, &_ty, 1, version);
   }
 
@@ -206,14 +209,15 @@ class IArchive {
     _v = endian_swap_ ? EndianSwapper<_type>::Swap(v) : v;\
   }
 
-  _OZZ_IO_PRIMITIVE_TYPE(int8)
-  _OZZ_IO_PRIMITIVE_TYPE(uint8)
-  _OZZ_IO_PRIMITIVE_TYPE(int16)
-  _OZZ_IO_PRIMITIVE_TYPE(uint16)
-  _OZZ_IO_PRIMITIVE_TYPE(int32)
-  _OZZ_IO_PRIMITIVE_TYPE(uint32)
-  _OZZ_IO_PRIMITIVE_TYPE(int64)
-  _OZZ_IO_PRIMITIVE_TYPE(uint64)
+  _OZZ_IO_PRIMITIVE_TYPE(char)
+  _OZZ_IO_PRIMITIVE_TYPE(int8_t)
+  _OZZ_IO_PRIMITIVE_TYPE(uint8_t)
+  _OZZ_IO_PRIMITIVE_TYPE(int16_t)
+  _OZZ_IO_PRIMITIVE_TYPE(uint16_t)
+  _OZZ_IO_PRIMITIVE_TYPE(int32_t)
+  _OZZ_IO_PRIMITIVE_TYPE(uint32_t)
+  _OZZ_IO_PRIMITIVE_TYPE(int64_t)
+  _OZZ_IO_PRIMITIVE_TYPE(uint64_t)
   _OZZ_IO_PRIMITIVE_TYPE(bool)
   _OZZ_IO_PRIMITIVE_TYPE(float)
 #undef _OZZ_IO_PRIMITIVE_TYPE
@@ -237,8 +241,8 @@ class IArchive {
 
  private:
   template <typename _Ty>
-  uint32 LoadVersion() {
-    uint32 version = 0;
+  uint32_t LoadVersion() {
+    uint32_t version = 0;
     if (void(0), internal::Version<const _Ty>::kValue != 0) {
       *this >> version;
     }
@@ -253,30 +257,31 @@ class IArchive {
 };
 
 // Primitive type are not versionable.
-OZZ_IO_TYPE_NOT_VERSIONABLE(int8)
-OZZ_IO_TYPE_NOT_VERSIONABLE(uint8)
-OZZ_IO_TYPE_NOT_VERSIONABLE(int16)
-OZZ_IO_TYPE_NOT_VERSIONABLE(uint16)
-OZZ_IO_TYPE_NOT_VERSIONABLE(int32)
-OZZ_IO_TYPE_NOT_VERSIONABLE(uint32)
-OZZ_IO_TYPE_NOT_VERSIONABLE(int64)
-OZZ_IO_TYPE_NOT_VERSIONABLE(uint64)
+OZZ_IO_TYPE_NOT_VERSIONABLE(char)
+OZZ_IO_TYPE_NOT_VERSIONABLE(int8_t)
+OZZ_IO_TYPE_NOT_VERSIONABLE(uint8_t)
+OZZ_IO_TYPE_NOT_VERSIONABLE(int16_t)
+OZZ_IO_TYPE_NOT_VERSIONABLE(uint16_t)
+OZZ_IO_TYPE_NOT_VERSIONABLE(int32_t)
+OZZ_IO_TYPE_NOT_VERSIONABLE(uint32_t)
+OZZ_IO_TYPE_NOT_VERSIONABLE(int64_t)
+OZZ_IO_TYPE_NOT_VERSIONABLE(uint64_t)
 OZZ_IO_TYPE_NOT_VERSIONABLE(bool)
 OZZ_IO_TYPE_NOT_VERSIONABLE(float)
 
 // Default loading and saving external implementation.
 template <typename _Ty>
-inline void Save(OArchive& _archive, const _Ty* _ty, std::size_t _count) {
-  for (std::size_t i = 0; i < _count; ++i) {
+inline void Save(OArchive& _archive, const _Ty* _ty, size_t _count) {
+  for (size_t i = 0; i < _count; ++i) {
     _ty[i].Save(_archive);
   }
 }
 template <typename _Ty>
 inline void Load(IArchive& _archive,
                  _Ty* _ty,
-                 std::size_t _count,
-                 uint32 _version) {
-  for (std::size_t i = 0; i < _count; ++i) {
+                 size_t _count,
+                 uint32_t _version) {
+  for (size_t i = 0; i < _count; ++i) {
     _ty[i].Load(_archive, _version);
   }
 }
@@ -289,11 +294,11 @@ struct Array {
   OZZ_INLINE void Save(OArchive& _archive) const {
     ozz::io::Save(_archive, array, count);
   }
-  OZZ_INLINE void Load(IArchive& _archive, uint32 _version) const {
+  OZZ_INLINE void Load(IArchive& _archive, uint32_t _version) const {
     ozz::io::Load(_archive, array, count, _version);
   }
   _Ty* array;
-  std::size_t count;
+  size_t count;
 };
 
 // Array copies version from the type it contains.
@@ -309,7 +314,7 @@ inline void Array<const _type>::Save(OArchive& _archive) const {\
   if (_archive.endian_swap()) {\
     /* Save element by element as swapping in place the whole buffer is not*/\
     /* possible.*/\
-    for (std::size_t i = 0; i < count; ++i) {\
+    for (size_t i = 0; i < count; ++i) {\
       _archive << array[i];\
     }\
   } else {\
@@ -321,7 +326,7 @@ inline void Array<_type>::Save(OArchive& _archive) const {\
   if (_archive.endian_swap()) {\
     /* Save element by element as swapping in place the whole buffer is not*/\
     /* possible.*/\
-    for (std::size_t i = 0; i < count; ++i) {\
+    for (size_t i = 0; i < count; ++i) {\
       _archive << array[i];\
     }\
   } else {\
@@ -329,21 +334,22 @@ inline void Array<_type>::Save(OArchive& _archive) const {\
   }\
 }\
 template <>\
-inline void Array<_type>::Load(IArchive& _archive, uint32 /*_version*/) const {\
+inline void Array<_type>::Load(IArchive& _archive, uint32_t /*_version*/) const {\
   _archive.LoadBinary(array, count * sizeof(_type));\
   if (_archive.endian_swap()) { /*Can swap in-place.*/\
     EndianSwapper<_type>::Swap(array, count);\
   }\
 }
 
-_OZZ_IO_PRIMITIVE_TYPE(int8)
-_OZZ_IO_PRIMITIVE_TYPE(uint8)
-_OZZ_IO_PRIMITIVE_TYPE(int16)
-_OZZ_IO_PRIMITIVE_TYPE(uint16)
-_OZZ_IO_PRIMITIVE_TYPE(int32)
-_OZZ_IO_PRIMITIVE_TYPE(uint32)
-_OZZ_IO_PRIMITIVE_TYPE(int64)
-_OZZ_IO_PRIMITIVE_TYPE(uint64)
+_OZZ_IO_PRIMITIVE_TYPE(char)
+_OZZ_IO_PRIMITIVE_TYPE(int8_t)
+_OZZ_IO_PRIMITIVE_TYPE(uint8_t)
+_OZZ_IO_PRIMITIVE_TYPE(int16_t)
+_OZZ_IO_PRIMITIVE_TYPE(uint16_t)
+_OZZ_IO_PRIMITIVE_TYPE(int32_t)
+_OZZ_IO_PRIMITIVE_TYPE(uint32_t)
+_OZZ_IO_PRIMITIVE_TYPE(int64_t)
+_OZZ_IO_PRIMITIVE_TYPE(uint64_t)
 _OZZ_IO_PRIMITIVE_TYPE(bool)
 _OZZ_IO_PRIMITIVE_TYPE(float)
 #undef _OZZ_IO_PRIMITIVE_TYPE
@@ -352,22 +358,22 @@ _OZZ_IO_PRIMITIVE_TYPE(float)
 // Utility function that instantiates Array wrapper.
 template <typename _Ty>
 OZZ_INLINE const internal::Array<_Ty> MakeArray(_Ty* _array,
-                                                std::size_t _count) {
+                                                size_t _count) {
   const internal::Array<_Ty> array = {_array, _count};
   return array;
 }
 template <typename _Ty>
 OZZ_INLINE const internal::Array<const _Ty> MakeArray(const _Ty* _array,
-                                                      std::size_t _count) {
+                                                      size_t _count) {
   const internal::Array<const _Ty> array = {_array, _count};
   return array;
 }
-template <typename _Ty, std::size_t _count>
+template <typename _Ty, size_t _count>
 OZZ_INLINE const internal::Array<_Ty> MakeArray(_Ty (&_array)[_count]) {
   const internal::Array<_Ty> array = {_array, _count};
   return array;
 }
-template <typename _Ty, std::size_t _count>
+template <typename _Ty, size_t _count>
 OZZ_INLINE const internal::Array<const _Ty> MakeArray(
   const _Ty (&_array)[_count]) {
   const internal::Array<const _Ty> array = {_array, _count};
@@ -387,7 +393,7 @@ struct Tagger<_Ty, true> {
     char buf[Tag::kTagLength];
     _archive >> ozz::io::MakeArray(buf, Tag::kTagLength);
     const char* tag = Tag::Get();
-    std::size_t i = 0;
+    size_t i = 0;
     for (; i < Tag::kTagLength && buf[i] == tag[i]; ++i) {
     }
     return i == Tag::kTagLength;

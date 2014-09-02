@@ -28,6 +28,7 @@
 //                                                                            //
 //============================================================================//
 
+#include "ozz/animation/offline/raw_skeleton.h"
 #include "ozz/animation/offline/skeleton_builder.h"
 
 #include <cstring>
@@ -641,7 +642,7 @@ TEST(InterateProperties, SkeletonBuilder) {
   // Iterate through all joints and test their flags.
   for (int i = 0; i < skeleton->num_joints(); ++i) {
     const int parent = skeleton->joint_properties()[i].parent;
-    const ozz::String& name = skeleton->joint_names()[i];
+    const ozz::String::Std& name = skeleton->joint_names()[i];
     switch (i) {
       case 0: {
         EXPECT_EQ(parent, Skeleton::kNoParentIndex);

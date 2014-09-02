@@ -42,7 +42,7 @@ namespace memory {
 namespace {
 struct Header {
   void* unaligned;
-  std::size_t size;
+  size_t size;
 };
 }
 
@@ -58,9 +58,9 @@ class HeapAllocator : public Allocator {
   }
 
  protected:
-  void* Allocate(std::size_t _size, std::size_t _alignment) {
+  void* Allocate(size_t _size, size_t _alignment) {
     // Allocates enough memory to store the header + required alignment space.
-    const std::size_t to_allocate = _size + sizeof(Header) + _alignment - 1;
+    const size_t to_allocate = _size + sizeof(Header) + _alignment - 1;
     char* unaligned = reinterpret_cast<char*>(malloc(to_allocate));
     if (!unaligned) {
       return NULL;
@@ -77,7 +77,7 @@ class HeapAllocator : public Allocator {
     return aligned;
   }
 
-  void* Reallocate(void* _block, std::size_t _size, std::size_t _alignment) {
+  void* Reallocate(void* _block, size_t _size, size_t _alignment) {
     void* new_block = Allocate(_size, _alignment);
     // Copies and deallocate the old memory block.
     if (_block) {

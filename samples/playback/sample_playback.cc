@@ -66,7 +66,6 @@ class LoadSampleApplication : public ozz::sample::Application {
  public:
   LoadSampleApplication()
     : cache_(NULL) {
-    set_auto_framing(true);
   }
 
  protected:
@@ -148,8 +147,8 @@ class LoadSampleApplication : public ozz::sample::Application {
     return true;
   }
 
-  virtual bool GetSceneBounds(ozz::math::Box* _bound) const {
-    return ozz::sample::ComputePostureBounds(models_, _bound);
+  virtual void GetSceneBounds(ozz::math::Box* _bound) const {
+    ozz::sample::ComputePostureBounds(models_, _bound);
   }
 
  private:

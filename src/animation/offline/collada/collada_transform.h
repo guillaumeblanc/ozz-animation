@@ -63,7 +63,7 @@ class NodeTransform {
   // _member argument specifies the sid structure memeber selection. It can be
   // NULL or empty if all members are targeted.
   bool PushAnimation(const char* _member,
-                     const float* _values, std::size_t num_values);
+                     const float* _values, size_t num_values);
 
   // Fill _builder with curren transform data.
   bool Build(TransformBuilder* _builder) const;

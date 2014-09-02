@@ -49,7 +49,7 @@ struct Vector {
 // vector's empty.
 template <class _Ty, class _Allocator>
 inline _Ty* array_begin(std::vector<_Ty, _Allocator>& _vector) {
-  std::size_t size = _vector.size();
+  size_t size = _vector.size();
   return size != 0 ? &_vector[0] : NULL;
 }
 
@@ -57,7 +57,7 @@ inline _Ty* array_begin(std::vector<_Ty, _Allocator>& _vector) {
 // vector's empty.
 template <class _Ty, class _Allocator>
 inline const _Ty* array_begin(const std::vector<_Ty, _Allocator>& _vector) {
-  std::size_t size = _vector.size();
+  size_t size = _vector.size();
   return size != 0 ? &_vector[0] : NULL;
 }
 
@@ -66,7 +66,7 @@ inline const _Ty* array_begin(const std::vector<_Ty, _Allocator>& _vector) {
 // array. It cannot be dereferenced.
 template <class _Ty, class _Allocator>
 inline _Ty* array_end(std::vector<_Ty, _Allocator>& _vector) {
-  std::size_t size = _vector.size();
+  size_t size = _vector.size();
   return size != 0 ? (&_vector[size - 1]) + 1 : NULL;
 }
 
@@ -75,7 +75,7 @@ inline _Ty* array_end(std::vector<_Ty, _Allocator>& _vector) {
 // array. It cannot be dereferenced.
 template <class _Ty, class _Allocator>
 inline const _Ty* array_end(const std::vector<_Ty, _Allocator>& _vector) {
-  std::size_t size = _vector.size();
+  size_t size = _vector.size();
   return size != 0 ? (&_vector[size - 1]) + 1 : NULL;
 }
 }  // ozz

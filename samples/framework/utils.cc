@@ -36,8 +36,9 @@
 #include "ozz/base/maths/box.h"
 #include "ozz/base/maths/simd_math.h"
 #include "ozz/base/memory/allocator.h"
-#include "ozz/animation/runtime/animation_serialize.h"
-#include "ozz/animation/runtime/skeleton_serialize.h"
+
+#include "ozz/animation/runtime/animation_archive.h"
+#include "ozz/animation/runtime/skeleton_archive.h"
 #include "ozz/animation/runtime/local_to_model_job.h"
 
 #include "ozz/base/io/archive.h"
@@ -96,18 +97,18 @@ void PlaybackController::OnGui(const animation::Animation& _animation,
 
 // Uses LocalToModelJob to compute skeleton model space posture, then forwards
 // to ComputePostureBounds
-bool ComputeSkeletonBounds(const animation::Skeleton& _skeleton,
+void ComputeSkeletonBounds(const animation::Skeleton& _skeleton,
                            math::Box* _bound) {
   using ozz::math::Float4x4;
 
-  if (!_bound) {
-    return false;
-  }
+  assert(_bound);
+
+  // Set a default box.
+  *_bound = ozz::math::Box();
 
   const int num_joints = _skeleton.num_joints();
   if (!num_joints) {
-    *_bound = math::Box();
-    return true;
+    return;
   }
 
   // Allocate matrix array, out of memory is handled by the LocalToModelJob.
@@ -115,7 +116,7 @@ bool ComputeSkeletonBounds(const animation::Skeleton& _skeleton,
   ozz::Range<ozz::math::Float4x4> models =
     allocator->AllocateRange<ozz::math::Float4x4>(num_joints);
   if (!models.begin) {
-    return false;
+    return;
   }
 
   // Compute model space bind pose.
@@ -123,25 +124,27 @@ bool ComputeSkeletonBounds(const animation::Skeleton& _skeleton,
   job.input = _skeleton.bind_pose();
   job.output = models;
   job.skeleton = &_skeleton;
-  bool success = false;
   if (job.Run()) {
     // Forwards to posture function.
-    success = ComputePostureBounds(models, _bound);
+    ComputePostureBounds(models, _bound);
   }
 
   allocator->Deallocate(models);
-
-  return success;
 }
 
 // Loop through matrices and collect min and max bounds.
-bool ComputePostureBounds(ozz::Range<const ozz::math::Float4x4> _matrices,
+void ComputePostureBounds(ozz::Range<const ozz::math::Float4x4> _matrices,
                           math::Box* _bound) {
-  if (!_bound || !_matrices.begin || !_matrices.end) {
-    return false;
+  assert(_bound);
+
+  // Set a default box.
+  *_bound = ozz::math::Box();
+
+  if (!_matrices.begin || !_matrices.end) {
+    return;
   }
   if (_matrices.begin > _matrices.end) {
-    return false;
+    return;
   }
 
   math::SimdFloat4 min =
@@ -157,7 +160,7 @@ bool ComputePostureBounds(ozz::Range<const ozz::math::Float4x4> _matrices,
   math::Store3PtrU(min, &_bound->min.x);
   math::Store3PtrU(max, &_bound->max.x);
 
-  return true;
+  return;
 }
 
 bool LoadSkeleton(const char* _filename,

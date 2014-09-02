@@ -39,6 +39,8 @@
 #include "ozz/animation/runtime/local_to_model_job.h"
 
 #include "ozz/animation/offline/animation_builder.h"
+#include "ozz/animation/offline/raw_animation.h"
+#include "ozz/animation/offline/raw_skeleton.h"
 #include "ozz/animation/offline/skeleton_builder.h"
 
 #include "ozz/base/maths/vec_float.h"
@@ -431,8 +433,8 @@ class MillipedeSampleApplication : public ozz::sample::Application {
     }
   }
 
-  virtual bool GetSceneBounds(ozz::math::Box* _bound) const {
-    return ozz::sample::ComputePostureBounds(models_, _bound);
+  virtual void GetSceneBounds(ozz::math::Box* _bound) const {
+    ozz::sample::ComputePostureBounds(models_, _bound);
   }
 
  private:

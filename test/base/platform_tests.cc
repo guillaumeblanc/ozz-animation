@@ -32,6 +32,7 @@
 
 #include <cassert>
 #include <climits>
+#include <stdint.h>
 
 #include "gtest/gtest.h"
 #include "ozz/base/gtest_helper.h"
@@ -56,33 +57,33 @@ TEST(Alignment, Platform) {
   OZZ_STATIC_ASSERT(ozz::AlignOf<Aligned>::value >= 128);
 
   Aligned alined;
-  EXPECT_EQ(reinterpret_cast<ozz::uintptr>(&alined) & (128 - 1), 0u);
+  EXPECT_EQ(reinterpret_cast<uintptr_t>(&alined) & (128 - 1), 0u);
 }
 
 TEST(TypeSize, Platform) {
   // Checks sizes.
   OZZ_STATIC_ASSERT(CHAR_BIT == 8);
-  OZZ_STATIC_ASSERT(sizeof(ozz::int8) == 1);
-  OZZ_STATIC_ASSERT(sizeof(ozz::uint8) == 1);
-  OZZ_STATIC_ASSERT(sizeof(ozz::int16) == 2);
-  OZZ_STATIC_ASSERT(sizeof(ozz::uint16) == 2);
-  OZZ_STATIC_ASSERT(sizeof(ozz::int32) == 4);
-  OZZ_STATIC_ASSERT(sizeof(ozz::uint32) == 4);
-  OZZ_STATIC_ASSERT(sizeof(ozz::int64) == 8);
-  OZZ_STATIC_ASSERT(sizeof(ozz::uint64) == 8);
-  OZZ_STATIC_ASSERT(sizeof(ozz::intptr) == sizeof(int*));
-  OZZ_STATIC_ASSERT(sizeof(ozz::uintptr) == sizeof(unsigned int*));
+  OZZ_STATIC_ASSERT(sizeof(int8_t) == 1);
+  OZZ_STATIC_ASSERT(sizeof(uint8_t) == 1);
+  OZZ_STATIC_ASSERT(sizeof(int16_t) == 2);
+  OZZ_STATIC_ASSERT(sizeof(uint16_t) == 2);
+  OZZ_STATIC_ASSERT(sizeof(int32_t) == 4);
+  OZZ_STATIC_ASSERT(sizeof(uint32_t) == 4);
+  OZZ_STATIC_ASSERT(sizeof(int64_t) == 8);
+  OZZ_STATIC_ASSERT(sizeof(uint64_t) == 8);
+  OZZ_STATIC_ASSERT(sizeof(intptr_t) == sizeof(int*));
+  OZZ_STATIC_ASSERT(sizeof(uintptr_t) == sizeof(unsigned int*));
 
   // Checks signs. Right shift maintains sign bit for signed types, and fills
   // with 0 for unsigned types.
-  OZZ_STATIC_ASSERT((ozz::int8(-1) >> 1) == -1);
-  OZZ_STATIC_ASSERT((ozz::int16(-1) >> 1) == -1);
-  OZZ_STATIC_ASSERT((ozz::int32(-1) >> 1) == -1);
-  OZZ_STATIC_ASSERT((ozz::int64(-1) >> 1) == -1);
-  OZZ_STATIC_ASSERT((ozz::uint8(-1) >> 1) == 0x7f);
-  OZZ_STATIC_ASSERT((ozz::uint16(-1) >> 1) == 0x7fff);
-  OZZ_STATIC_ASSERT((ozz::uint32(-1) >> 1) == 0x7fffffff);
-  OZZ_STATIC_ASSERT((ozz::uint64(-1) >> 1) == 0x7fffffffffffffffLL);
+  OZZ_STATIC_ASSERT((int8_t(-1) >> 1) == -1);
+  OZZ_STATIC_ASSERT((int16_t(-1) >> 1) == -1);
+  OZZ_STATIC_ASSERT((int32_t(-1) >> 1) == -1);
+  OZZ_STATIC_ASSERT((int64_t(-1) >> 1) == -1);
+  OZZ_STATIC_ASSERT((uint8_t(-1) >> 1) == 0x7f);
+  OZZ_STATIC_ASSERT((uint16_t(-1) >> 1) == 0x7fff);
+  OZZ_STATIC_ASSERT((uint32_t(-1) >> 1) == 0x7fffffff);
+  OZZ_STATIC_ASSERT((uint64_t(-1) >> 1) == 0x7fffffffffffffffLL);
 
   // Assumes that an "int" is at least 32 bits.
   OZZ_STATIC_ASSERT(sizeof(int) >= 4);

@@ -300,7 +300,7 @@ TEST(Comparison4, Vector) {
   EXPECT_TRUE(a == a);
   EXPECT_TRUE(a != b);
 
-  EXPECT_TRUE(Compare(a, a, 1e-3f));
+  EXPECT_TRUE(Compare(a, a, 0.f));
   EXPECT_TRUE(Compare(c, d, .2f));
   EXPECT_FALSE(Compare(c, d, .05f));
 }

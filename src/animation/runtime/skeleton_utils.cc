@@ -66,8 +66,8 @@ void IterateJointsDF(const Skeleton& _skeleton,
 
   // Simulate a stack to unroll usual recursive implementation.
   struct Context {
-    uint16 joint:15;
-    uint16 has_brother:1;
+    uint16_t joint:15;
+    uint16_t has_brother:1;
   };
   Context stack[Skeleton::kMaxJoints];
   int stack_size = 0;
@@ -92,7 +92,7 @@ void IterateJointsDF(const Skeleton& _skeleton,
 
     // Skip all the joints until the first child is found.
     if (!properties.begin[top.joint].is_leaf) {  // A leaf has no child anyway.
-      uint16 next_joint = top.joint + 1;
+      uint16_t next_joint = top.joint + 1;
       for (;
            next_joint < num_joints &&
            top.joint != properties.begin[next_joint].parent;

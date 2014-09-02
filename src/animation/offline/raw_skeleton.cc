@@ -28,18 +28,43 @@
 //                                                                            //
 //============================================================================//
 
-#ifndef OZZ_OZZ_ANIMATION_RUNTIME_SKELETON_SERIALIZE_H_
-#define OZZ_OZZ_ANIMATION_RUNTIME_SKELETON_SERIALIZE_H_
-
-#include "ozz/base/platform.h"
-#include "ozz/base/io/archive_traits.h"
+#include "ozz/animation/offline/raw_skeleton.h"
 
 #include "ozz/animation/runtime/skeleton.h"
 
 namespace ozz {
-namespace io {
-OZZ_IO_TYPE_VERSION(1, animation::Skeleton)
-OZZ_IO_TYPE_TAG("ozz-skeleton", animation::Skeleton)
-}  // io
+namespace animation {
+namespace offline {
+
+RawSkeleton::RawSkeleton() {
+}
+
+RawSkeleton::~RawSkeleton() {
+}
+
+bool RawSkeleton::Validate() const {
+  if (num_joints() > Skeleton::kMaxJoints) {
+    return false;
+  }
+  return true;
+}
+
+namespace {
+struct JointCounter {
+  JointCounter() :
+    num_joints(0) {
+  }
+  void operator()(const RawSkeleton::Joint&, const RawSkeleton::Joint*) {
+    ++num_joints;
+  }
+  int num_joints;
+};
+}  // namespace
+
+// Iterates through all the root children and count them.
+int RawSkeleton::num_joints() const {
+  return IterateJointsDF(JointCounter()).num_joints;
+}
+}  // offline
+}  // animation
 }  // ozz
-#endif  // OZZ_OZZ_ANIMATION_RUNTIME_SKELETON_SERIALIZE_H_

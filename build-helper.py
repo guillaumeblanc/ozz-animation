@@ -43,11 +43,12 @@ from functools import partial
 # Build global path variables.
 root = os.path.abspath(os.path.join(os.getcwd(), '.'))
 build_dir = os.path.join(root, 'build')
+build_dir_cc = os.path.join(root, 'build-cc')
 cmake_cache_file = os.path.join(build_dir, 'CMakeCache.txt')
 config = 'Release'
 generators = {0: 'default'}
 generator = generators[0]
-
+emscripten_path = os.environ.get('EMSCRIPTEN')
 
 def ValidateCMake():
   try:
@@ -61,22 +62,41 @@ def ValidateCMake():
   print("CMake is installed and setup properly.")
   return True
 
-def MakeBuildDir():
-  print("Creating out-of-source build directory: \"" + build_dir + "\".")
-  if not os.path.exists(build_dir):
-    os.makedirs(build_dir)
+def CheckEmscripten():
+  if(emscripten_path == None):
+    return False
+
+  try:
+    # Test that cmake can be executed, silently...
+    pipe = subprocess.Popen(['emcc'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    out, err = pipe.communicate()
+  except OSError as e:
+    print("Emscripten is not installed or properly setup.")
+    return False
+
+  print("Emscripten is installed and setup properly.")
+  return True
+
+def MakeBuildDir(_build_dir = build_dir):
+  print("Creating out-of-source build directory: \"" + _build_dir + "\".")
+  if not os.path.exists(_build_dir):
+    os.makedirs(_build_dir)
   return True
 
 def CleanBuildDir():
   print("Deleting out-of-source build directory: \"" + build_dir + "\".")
   if os.path.exists(build_dir):
     shutil.rmtree(build_dir)
+  print("Deleting out-of-source cross compilation build directory: \"" + build_dir_cc + "\".")
+  if os.path.exists(build_dir_cc):
+    shutil.rmtree(build_dir_cc)
   return True
 
 def Configure():
   # Configure build process.
   print("Configuring build project.")
   options = ['cmake']
+  options += ['-D', 'CMAKE_BUILD_TYPE=' + config]
   global generator
   if(generator != 'default'):
     options += ['-G', generator]
@@ -93,14 +113,38 @@ def Configure():
 
   return True
 
-def Build():
+def ConfigureCC():
+  # Configure build process.
+  print("Configuring cross compilation build project.")
+  options = ['cmake']
+
+  options += ['-D', 'CMAKE_BUILD_TYPE=' + config]
+  options += ['-D', 'CMAKE_TOOLCHAIN_FILE=' + emscripten_path + '/cmake/Platform/Emscripten.cmake']
+  options += ['-D', 'dae2anim_DIR=' + build_dir]
+  options += ['-D', 'dae2skel_DIR=' + build_dir]
+
+  options += ['-G', 'MinGW Makefiles']
+  options += [root]
+  config_process = subprocess.Popen(options, cwd=build_dir_cc)
+  config_process.wait()
+  if(config_process.returncode != 0):
+    print("Configuration failed.")
+    return False
+  print("Configuration succeeded.")
+
+  # Updates generator once configuration is complete
+  generator = DetectGenerator()
+
+  return True
+
+def Build(_build_dir = build_dir):
   # Configure build process.
   print("Building project.")
-  options = ['cmake', '--build', build_dir, '--config', config, '--use-stderr'];
+  options = ['cmake', '--build', _build_dir, '--config', config, '--use-stderr'];
   # Appends parallel build option if supported by the generator.
   if "Unix Makefiles" in generator:
     options += ['--', '-j' + str(multiprocessing.cpu_count())]
-  config_process = subprocess.Popen(options, cwd=build_dir)
+  config_process = subprocess.Popen(options, cwd=_build_dir)
   config_process.wait()
   if(config_process.returncode != 0):
     print("Build failed.")
@@ -131,10 +175,10 @@ def PackSources(_type):
   print("Packing sources of type " + _type + " succeeded.")
   return True
 
-def PackBinaries(_type):
+def PackBinaries(_type, _build_dir = build_dir):
   print("Packing binaries.")
   options = ['cpack', '-G', _type, '-C', config]
-  config_process = subprocess.Popen(options, cwd=build_dir)
+  config_process = subprocess.Popen(options, cwd=_build_dir)
   config_process.wait()
   if(config_process.returncode != 0):
     print("Packing binaries of type " + _type + " failed.")
@@ -241,6 +285,9 @@ def main():
   if not ValidateCMake():
     return
 
+  # Emscripten is optional
+  CheckEmscripten()
+
   # Detects available generators
   FindGenerators()
 
@@ -250,15 +297,21 @@ def main():
   generator = DetectGenerator()
 
   options = {
-    1: ["Build", [MakeBuildDir, Configure, Build]],
-    2: ["Run unit tests", [MakeBuildDir, Configure, Build, Test]],
-    3: ["Execute CMake generation step (don't build)", [MakeBuildDir, Configure]],
-    4: ["Clean out-of-source build directory\n  ------------------", [CleanBuildDir]],
-    5: ["Pack sources", [MakeBuildDir, Configure, partial(PackSources, "ZIP"), partial(PackSources, "TBZ2")]],
-    6: ["Pack binaries\n  ------------------", [MakeBuildDir, Configure, Build, partial(PackBinaries, "ZIP"), partial(PackBinaries, "TBZ2")]],
-    7: ["Select build configuration", [SelecConfig]],
-    8: ["Select cmake generator\n  ------------------", [SelecGenerator]],
-    9: ["Exit\n------------------", [Exit]]}
+    '1': ["Build", [MakeBuildDir, Configure, Build]],
+    '2': ["Run unit tests", [MakeBuildDir, Configure, Build, Test]],
+    '3': ["Execute CMake generation step (don't build)", [MakeBuildDir, Configure]],
+    '4': ["Clean out-of-source build directory\n  ------------------", [CleanBuildDir]],
+    '5': ["Pack binaries", [MakeBuildDir, Configure, Build, partial(PackBinaries, "ZIP"), partial(PackBinaries, "TBZ2")]],
+    '6': ["Pack sources\n  ------------------", [MakeBuildDir, Configure, partial(PackSources, "ZIP"), partial(PackSources, "TBZ2")]],
+    '7': ["Select build configuration", [SelecConfig]],
+    '8': ["Select cmake generator\n  ------------------", [SelecGenerator]],
+    '9': ["Exit\n------------------", [Exit]]}
+
+  # Adds emscripten
+  global emscripten_path
+  if emscripten_path != None:
+    options['1a'] = ["Build emscripten", [MakeBuildDir, Configure, Build, partial(MakeBuildDir, build_dir_cc), ConfigureCC, partial(Build, build_dir_cc)]]
+    options['5a'] = ["Pack emscripten binaries", [MakeBuildDir, Configure, Build, partial(MakeBuildDir, build_dir_cc), ConfigureCC, partial(Build, build_dir_cc), partial(PackBinaries, "ZIP", build_dir_cc)]]
 
   while True:
     # Displays options
@@ -270,14 +323,11 @@ def main():
     print("")
     print("Choose an option:")
     print("------------------")
-    for num, message in sorted(options.iteritems()):
-      print("  %d: %s") % (num, message[0])
+    for key, message in sorted(options.iteritems()):
+      print("  %s: %s") % (key, message[0])
 
     # Get input and check validity
-    try:
-      answer = int(raw_input("Enter a value: "))
-    except:
-      continue
+    answer = raw_input("Enter a value: ")
     if not answer in options:
       continue
 

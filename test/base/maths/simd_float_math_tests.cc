@@ -30,6 +30,8 @@
 
 #include "ozz/base/maths/simd_math.h"
 
+#include <stdint.h>
+
 #include "gtest/gtest.h"
 
 #include "ozz/base/gtest_helper.h"
@@ -55,13 +57,13 @@ TEST(LoadFloat, ozz_simd_math) {
 
 TEST(LoadFloatPtr, ozz_simd_math) {
   union Data {
-    float f[4 + 4];  // The 2nd float isn't aligned to a SimdFloat4.
-    char c[(4 + 4) * sizeof(float)];  // The 2nd char isn't aligned to a float.
+    float f[4 + 5];
+    char c[(4 + 5) * sizeof(float)];  // The 2nd char isn't aligned to a float.
   };
-  const Data d_in = {{-1.f, 1.f, 2.f, 3.f, 4.f, 5.f, 6.f, 7.f}};
+  const Data d_in = {{-1.f, 1.f, 2.f, 3.f, 4.f, 5.f, 6.f, 7.f, 8.f}};
   const int aligned_offset =
-    ((16 - reinterpret_cast<ozz::intptr>(d_in.f)) & 0xf) / sizeof(float);
-  assert(aligned_offset >= 0 && aligned_offset <= 4);
+    (16 - (reinterpret_cast<intptr_t>(d_in.f) & 0xf)) / sizeof(float);
+  assert(aligned_offset > 0 && aligned_offset <= 4);
 
   EXPECT_SIMDFLOAT_EQ(ozz::math::simd_float4::LoadPtr(d_in.f + aligned_offset),
                                                       d_in.f[aligned_offset + 0],
@@ -70,15 +72,15 @@ TEST(LoadFloatPtr, ozz_simd_math) {
                                                       d_in.f[aligned_offset + 3]);
   EXPECT_ASSERTION(ozz::math::simd_float4::LoadPtr(d_in.f + aligned_offset - 1), "alignment");
 
-  EXPECT_SIMDFLOAT_EQ(ozz::math::simd_float4::LoadPtrU(d_in.f + 1), 1.f, 2.f, 3.f, 4.f);
+  EXPECT_SIMDFLOAT_EQ(ozz::math::simd_float4::LoadPtrU(d_in.f + aligned_offset + 1), d_in.f[aligned_offset + 1], d_in.f[aligned_offset + 2], d_in.f[aligned_offset + 3], d_in.f[aligned_offset + 4]);
   EXPECT_ASSERTION(ozz::math::simd_float4::LoadPtrU(reinterpret_cast<const float*>(d_in.c + 1)), "alignment");
-  EXPECT_SIMDFLOAT_EQ(ozz::math::simd_float4::LoadXPtrU(d_in.f + 1), 1.f, 0.f, 0.f, 0.f);
+  EXPECT_SIMDFLOAT_EQ(ozz::math::simd_float4::LoadXPtrU(d_in.f + aligned_offset + 1), d_in.f[aligned_offset + 1], 0.f, 0.f, 0.f);
   EXPECT_ASSERTION(ozz::math::simd_float4::LoadXPtrU(reinterpret_cast<const float*>(d_in.c + 1)), "alignment");
-  EXPECT_SIMDFLOAT_EQ(ozz::math::simd_float4::Load1PtrU(d_in.f + 1), 1.f, 1.f, 1.f, 1.f);
+  EXPECT_SIMDFLOAT_EQ(ozz::math::simd_float4::Load1PtrU(d_in.f + aligned_offset + 1), d_in.f[aligned_offset + 1], d_in.f[aligned_offset + 1], d_in.f[aligned_offset + 1], d_in.f[aligned_offset + 1]);
   EXPECT_ASSERTION(ozz::math::simd_float4::Load1PtrU(reinterpret_cast<const float*>(d_in.c + 1)), "alignment");
-  EXPECT_SIMDFLOAT_EQ(ozz::math::simd_float4::Load2PtrU(d_in.f + 1), 1.f, 2.f, 0.f, 0.f);
+  EXPECT_SIMDFLOAT_EQ(ozz::math::simd_float4::Load2PtrU(d_in.f + aligned_offset + 1), d_in.f[aligned_offset + 1], d_in.f[aligned_offset + 2], 0.f, 0.f);
   EXPECT_ASSERTION(ozz::math::simd_float4::Load2PtrU(reinterpret_cast<const float*>(d_in.c + 1)), "alignment");
-  EXPECT_SIMDFLOAT_EQ(ozz::math::simd_float4::Load3PtrU(d_in.f + 1), 1.f, 2.f, 3.f, 0.f);
+  EXPECT_SIMDFLOAT_EQ(ozz::math::simd_float4::Load3PtrU(d_in.f + aligned_offset + 1), d_in.f[aligned_offset + 1], d_in.f[aligned_offset + 2], d_in.f[aligned_offset + 3], 0.f);
   EXPECT_ASSERTION(ozz::math::simd_float4::Load3PtrU(reinterpret_cast<const float*>(d_in.c + 1)), "alignment");
 }
 

@@ -49,8 +49,8 @@ enum Endianness {
 // definition exists. It is rather implemented as a portable runtime function.
 inline Endianness GetNativeEndianness() {
   const union {
-    ozz::uint16 s;
-    ozz::uint8 c[2];
+    uint16_t s;
+    uint8_t c[2];
   } u = {1};  // Initializes u.s -> then read u.c.
   return Endianness(u.c[0]);
 }
@@ -58,18 +58,18 @@ inline Endianness GetNativeEndianness() {
 // Declare the endian swapper struct that is aimed to be specialized (template
 // meaning) for every type sizes.
 // The swapper provides two functions:
-// - void Swap(_Ty* _ty, std::size_t _count) swaps the array _ty of _count
+// - void Swap(_Ty* _ty, size_t _count) swaps the array _ty of _count
 // elements in-place.
 // - _Ty Swap(_Ty _ty) returns a swapped copy of _ty.
 // It can be used directly if _Ty is known or through EndianSwap function.
 // The default value of template attribute _size enables automatic
 // specialization selection.
-template <typename _Ty, std::size_t _size = sizeof(_Ty)>
+template <typename _Ty, size_t _size = sizeof(_Ty)>
 struct EndianSwapper;
 
 // Internal macro used to swap two bytes.
 #define _OZZ_BYTE_SWAP(_a, _b) {\
-  const ozz::uint8 temp = _a;\
+  const uint8_t temp = _a;\
   _a = _b;\
   _b = temp;\
 }
@@ -77,7 +77,7 @@ struct EndianSwapper;
 // EndianSwapper specialization for 1 byte types.
 template <typename _Ty>
 struct EndianSwapper<_Ty, 1> {
-  OZZ_INLINE static void Swap(_Ty* /*_ty*/, std::size_t /*_count*/) {
+  OZZ_INLINE static void Swap(_Ty* /*_ty*/, size_t /*_count*/) {
   }
   OZZ_INLINE static _Ty Swap(_Ty _ty) {
     return _ty;
@@ -87,9 +87,9 @@ struct EndianSwapper<_Ty, 1> {
 // EndianSwapper specialization for 2 bytes types.
 template <typename _Ty>
 struct EndianSwapper<_Ty, 2> {
-  OZZ_INLINE static void Swap(_Ty* _ty, std::size_t _count) {
+  OZZ_INLINE static void Swap(_Ty* _ty, size_t _count) {
     char* alias = reinterpret_cast<char*>(_ty);
-    for (std::size_t i = 0; i < _count * 2; i += 2) {
+    for (size_t i = 0; i < _count * 2; i += 2) {
       _OZZ_BYTE_SWAP(alias[i + 0], alias[i + 1]);
     }
   }
@@ -103,9 +103,9 @@ struct EndianSwapper<_Ty, 2> {
 // EndianSwapper specialization for 4 bytes types.
 template <typename _Ty>
 struct EndianSwapper<_Ty, 4> {
-  OZZ_INLINE static void Swap(_Ty* _ty, std::size_t _count) {
+  OZZ_INLINE static void Swap(_Ty* _ty, size_t _count) {
     char* alias = reinterpret_cast<char*>(_ty);
-    for (std::size_t i = 0; i < _count * 4; i += 4) {
+    for (size_t i = 0; i < _count * 4; i += 4) {
       _OZZ_BYTE_SWAP(alias[i + 0], alias[i + 3]);
       _OZZ_BYTE_SWAP(alias[i + 1], alias[i + 2]);
     }
@@ -121,9 +121,9 @@ struct EndianSwapper<_Ty, 4> {
 // EndianSwapper specialization for 8 bytes types.
 template <typename _Ty>
 struct EndianSwapper<_Ty, 8> {
-  OZZ_INLINE static void Swap(_Ty* _ty, std::size_t _count) {
+  OZZ_INLINE static void Swap(_Ty* _ty, size_t _count) {
     char* alias = reinterpret_cast<char*>(_ty);
-    for (std::size_t i = 0; i < _count * 8; i += 8) {
+    for (size_t i = 0; i < _count * 8; i += 8) {
       _OZZ_BYTE_SWAP(alias[i + 0], alias[i + 7]);
       _OZZ_BYTE_SWAP(alias[i + 1], alias[i + 6]);
       _OZZ_BYTE_SWAP(alias[i + 2], alias[i + 5]);
@@ -145,7 +145,7 @@ struct EndianSwapper<_Ty, 8> {
 
 // Helper function that swaps _count elements of the array _ty in place.
 template<typename _Ty>
-OZZ_INLINE void EndianSwap(_Ty* _ty, std::size_t _count) {
+OZZ_INLINE void EndianSwap(_Ty* _ty, size_t _count) {
   EndianSwapper<_Ty>::Swap(_ty, _count);
 }
 

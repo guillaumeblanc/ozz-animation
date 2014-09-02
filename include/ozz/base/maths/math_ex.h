@@ -72,59 +72,59 @@ OZZ_INLINE int Select(bool _b, int _true, int _false) {
 
 // Implements float selection, avoiding branching.
 OZZ_INLINE float Select(bool _b, float _true, float _false) {
-  union {float f; int32 i;} t = {_true};
-  union {float f; int32 i;} f = {_false};
-  union {int32 i; float f;} r = {f.i^ (-static_cast<int32>(_b) & (t.i ^ f.i))};
+  union {float f; int32_t i;} t = {_true};
+  union {float f; int32_t i;} f = {_false};
+  union {int32_t i; float f;} r = {f.i^ (-static_cast<int32_t>(_b) & (t.i ^ f.i))};
   return r.f;
 }
 
 // Implements pointer selection, avoiding branching.
 template<typename _Ty>
 OZZ_INLINE _Ty* Select(bool _b, _Ty* _true, _Ty* _false) {
-  union {_Ty* p; intptr i;} t = {_true};
-  union {_Ty* p; intptr i;} f = {_false};
-  union {intptr i; _Ty* p;} r =
-    {f.i ^ (-static_cast<intptr>(_b) & (t.i ^ f.i))};
+  union {_Ty* p; intptr_t i;} t = {_true};
+  union {_Ty* p; intptr_t i;} f = {_false};
+  union {intptr_t i; _Ty* p;} r =
+    {f.i ^ (-static_cast<intptr_t>(_b) & (t.i ^ f.i))};
   return r.p;
 }
 
 // Implements const pointer selection, avoiding branching.
 template<typename _Ty>
 OZZ_INLINE const _Ty* Select(bool _b, const _Ty* _true, const _Ty* _false) {
-  union {const _Ty* p; intptr i;} t = {_true};
-  union {const _Ty* p; intptr i;} f = {_false};
-  union {intptr i; const _Ty* p;} r =
-    {f.i ^ (-static_cast<intptr>(_b) & (t.i ^ f.i))};
+  union {const _Ty* p; intptr_t i;} t = {_true};
+  union {const _Ty* p; intptr_t i;} f = {_false};
+  union {intptr_t i; const _Ty* p;} r =
+    {f.i ^ (-static_cast<intptr_t>(_b) & (t.i ^ f.i))};
   return r.p;
 }
 
 // Tests whether _block is aligned to _alignment boundary.
 template<typename _Ty>
-OZZ_INLINE bool IsAligned(_Ty _value, std::size_t _alignment) {
+OZZ_INLINE bool IsAligned(_Ty _value, size_t _alignment) {
   return (_value & (_alignment - 1)) == 0;
 }
 template<typename _Ty>
-OZZ_INLINE bool IsAligned(_Ty* _address, std::size_t _alignment) {
-  return (reinterpret_cast<intptr>(_address) & (_alignment - 1)) == 0;
+OZZ_INLINE bool IsAligned(_Ty* _address, size_t _alignment) {
+  return (reinterpret_cast<uintptr_t>(_address) & (_alignment - 1)) == 0;
 }
 
 // Aligns _block address to the first greater address that is aligned to
 // _alignment boundaries.
 template<typename _Ty>
-OZZ_INLINE _Ty Align(_Ty _value, std::size_t _alignment) {
+OZZ_INLINE _Ty Align(_Ty _value, size_t _alignment) {
   return static_cast<_Ty>(_value + (_alignment - 1)) & (0 - _alignment);
 }
 template<typename _Ty>
-OZZ_INLINE _Ty* Align(_Ty* _address, std::size_t _alignment) {
+OZZ_INLINE _Ty* Align(_Ty* _address, size_t _alignment) {
   return reinterpret_cast<_Ty*>(
-    (reinterpret_cast<intptr>(_address) + (_alignment - 1)) & (0 - _alignment));
+    (reinterpret_cast<uintptr_t>(_address) + (_alignment - 1)) & (0 - _alignment));
 }
 
 // Strides a pointer of _stride bytes.
 template<typename _Ty>
-OZZ_INLINE _Ty* Stride(_Ty* _value, intptr _stride) {
+OZZ_INLINE _Ty* Stride(_Ty* _value, intptr_t _stride) {
   return reinterpret_cast<const _Ty*>(
-         reinterpret_cast<intptr>(_value) + _stride);
+         reinterpret_cast<uintptr_t>(_value) + _stride);
 }
 }  // math
 }  // ozz

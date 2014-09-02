@@ -84,7 +84,7 @@ TEST(Registration, Options) {
     // Needs to pre-allocate vectors to avoid objects to move in memory.
     ozz::Vector<ozz::options::BoolOption>::Std options;
     options.reserve(parser.max_options() + 1);
-    ozz::Vector<ozz::String>::Std names;
+    ozz::Vector<ozz::String::Std>::Std names;
     names.reserve(parser.max_options());
 
     // Registers the maximum allowed options.

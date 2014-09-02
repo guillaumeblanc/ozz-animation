@@ -1,9 +1,47 @@
+Release version 0.5.0.----------------------------------------------------------
+ # Library
+  - [offline] Adds --raw option to *2skel and *2anim command line tools. Allows
+  to export raw skeleton/animation object format instead of runtime objects.
+  - [offline] Moves RawAnimation and RawSkeleton from the builder files to
+  raw_animation.h and raw_skeleton.h files.
+  - [offline] Renames skeleton_serialize.h and animation_serialize.h to
+  skeleton_archive.h and animation_archive.h for consistency.
+  - [offline] Adds RawAnimation and RawSkeleton serialization support with ozz
+  archives.
+  - [options] Changes parser command line arguments type from "const char**" to
+  "const char* const*" in order to support implicit casting from arguments of
+  type "char**".
+  - [base] Change ozz::String std redirection from typedef to struct to be
+  coherent with all other std containers redirection.
+  - [base] Moves maths archiving file from ozz/base/io to ozz/base/maths for
+  consistency.
+  - [base] Adds containers serialization support with ozz archives.
+  - [base] Removes ozz fixed size integers in favor of standard types available
+  with <stdint.h> file.
+
+ # Samples
+  - Adds Emscripten support to all supported samples.
+  - Changes OpenGL rendering to comply with Gles2/WebGL.
+
+ # Build pipeline
+  - Adds Emscripten and cross-compilation support to the builder helper python
+  script.
+  - Support for CMake 3.x.
+  - Adds support for Microsoft Visual Studio 2013.
+  - Drops support fot Microsoft Visual Studio 2008 and olders, as a consequence
+  of using <stdint.h>.
+
 Release version 0.4.0.----------------------------------------------------------
 
  # Library
-  - [offline] Adds Fbx import pipeline, through fbx2skel and fbx2anim command line tools.
-  - [offline] Adds Fbx import and conversion library, through ozz_animation_offline_fbx. Building fbx related libraries requires fbx sdk to be installed.
-  - [offline] Adds ozz_animation_offline_tools library to share the common work for Collada and Fbx import tools. This could be use to implement custom conversion command line tools.
+  - [offline] Adds Fbx import pipeline, through fbx2skel and fbx2anim command
+  line tools.
+  - [offline] Adds Fbx import and conversion library, through
+  ozz_animation_offline_fbx. Building fbx related libraries requires fbx sdk to
+  be installed.
+  - [offline] Adds ozz_animation_offline_tools library to share the common work
+  for Collada and Fbx import tools. This could be use to implement custom
+  conversion command line tools.
 
  # Samples
   - Adds Fbx resources to media path.
@@ -15,42 +53,56 @@ Release version 0.3.1.----------------------------------------------------------
   - Adds keyboard camera controls.
 
  # Build pipeline
-  - Adds Mac OSX support, full offline and runtime pipeline, samples, dashboard...
+  - Adds Mac OSX support, full offline and runtime pipeline, samples,
+  dashboard...
   - Moves dashboard to http://ozz.qualipilote.fr/dashboard/cdash/
-  - Improves dashboard configuration, using json configuration files available there: http://ozz.qualipilote.fr/dashboard/config/.
+  - Improves dashboard configuration, using json configuration files available
+  there: http://ozz.qualipilote.fr/dashboard/config/.
 
 Release version 0.3.0.----------------------------------------------------------
 
  # Library
-  - [animation] Adds partial animation blending and masking, through per-joint-weight blending coefficients.
-  - [animation] Switches all explicit [begin,end[ ranges (sequence of objects) to ozz::Range structure.
-  - [animation] Moves runtime files (.h and .cc) to a separate runtime folder (ozz/animation/runtime).
+  - [animation] Adds partial animation blending and masking, through
+  per-joint-weight blending coefficients.
+  - [animation] Switches all explicit [begin,end[ ranges (sequence of objects)
+  to ozz::Range structure.
+  - [animation] Moves runtime files (.h and .cc) to a separate runtime folder
+  (ozz/animation/runtime).
   - [animation] Removes ozz/animation/utils.h and .cc
   - [options] Detects duplicated command line arguments and reports failure. 
-  - [base] Adds helper functions to ozz::memory::Allocator to support allocation/reallocation/deallocation of ranges of objects through ozz::Range structure.
+  - [base] Adds helper functions to ozz::memory::Allocator to support
+  allocation/reallocation/deallocation of ranges of objects through ozz::Range
+  structure.
 
  # Samples
   - Adds partial animation blending sample.
   - Adds multi-threading sample, using OpenMp to distribute workload.
-  - Adds a sample that demonstrates how to attach an object to animated skeleton joints.
-  - Improves skeleton rendering sample utility feature: includes joint rendering.
+  - Adds a sample that demonstrates how to attach an object to animated skeleton
+  joints.
+  - Improves skeleton rendering sample utility feature: includes joint
+  rendering.
   - Adds screen-shot and video capture options from samples ui.
-  - Adds a command line option (--render/--norender) to enable/disable rendering of sample, used for dashboard unit-tests.
-  - Adds time management options, to dissociate (fix) update delta time from the real application time.
-  - Improves camera manipulations: disables auto-framing when zooming/panning, adds mouse wheel support for zooming.
+  - Adds a command line option (--render/--norender) to enable/disable rendering
+  of sample, used for dashboard unit-tests.
+  - Adds time management options, to dissociate (fix) update delta time from the
+  real application time.
+  - Improves camera manipulations: disables auto-framing when zooming/panning,
+  adds mouse wheel support for zooming.
   - Fixes sample camera framing to match rendering field of view.
 
  # Build pipeline
-  - Adds CMake python helper tools (build-helper.py). Removes helper .bat files (setup, build, pack...).
-  - Adds CDash support to generate nightly build reports. Default CDash server is http://my.cdash.org/index.php?project=Ozz.
+  - Adds CMake python helper tools (build-helper.py). Removes helper .bat files
+  (setup, build, pack...).
+  - Adds CDash support to generate nightly build reports. Default CDash server
+  is http://my.cdash.org/index.php?project=Ozz.
   - Adds code coverage testing support using gcov.
 
 Release version 0.2.0.----------------------------------------------------------
 
  # Library
   - [animation] Adds animation blending support.
-  - [animation] Sets maximum skeleton joints to 1023 (Skeleton::kMaxJointsNumBits) to
- improve packing and allow stack allocations.
+  - [animation] Sets maximum skeleton joints to 1023 (aka
+  Skeleton::kMaxJointsNumBits) to improve packing and allow stack allocations.
   - [animation] Adds Skeleton::kRootIndex enum for parent index of a root joint.
   - [base] Adds signed/unsigned bit shift functions to simd library.
   - [base] Fixes SSE build flags for Visual Studio 64b builds.
@@ -63,7 +115,8 @@ Release version 0.1.0, initial open source release.-----------------------------
 
   # Library
   - [animation] Support for run-time animation sampling.
-  - [offline] Support for building run-time animation and skeleton from a raw (aka offline/user friendly) format.
+  - [offline] Support for building run-time animation and skeleton from a raw
+  (aka offline/user friendly) format.
   - [offline] Full Collada import pipeline (lib and tools).
   - [offline]  Support for animation key-frame optimizations.
   - [base] Memory management redirection.

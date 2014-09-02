@@ -33,7 +33,7 @@
 #include "animation/offline/fbx/fbx_animation.h"
 
 #include "ozz/animation/runtime/skeleton.h"
-#include "ozz/animation/offline/animation_builder.h"
+#include "ozz/animation/offline/raw_animation.h"
 
 #include "ozz/base/log.h"
 
