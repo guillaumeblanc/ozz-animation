@@ -177,6 +177,10 @@ OZZ_INLINE SimdFloat4 Load3PtrU(const float* _f) {
            _mm_unpacklo_ps(_mm_load_ss(_f + 0), _mm_load_ss(_f + 1)),
            _mm_load_ss(_f + 2));
 }
+
+OZZ_INLINE SimdFloat4 FromInt(_SimdInt4 _i) {
+  return _mm_cvtepi32_ps(_i);
+}
 }  // ozz::math::simd_float4
 
 OZZ_INLINE float GetX(_SimdFloat4 _v) {
@@ -287,8 +291,7 @@ OZZ_INLINE SimdFloat4 SplatW(_SimdFloat4 _v) {
   return OZZ_SSE_SPLAT_F(_v, 3);
 }
 
-OZZ_INLINE void Transpose4x1(
-  const SimdFloat4 _in[4], SimdFloat4 _out[1]) {
+OZZ_INLINE void Transpose4x1(const SimdFloat4 _in[4], SimdFloat4 _out[1]) {
   const __m128 xz = _mm_unpacklo_ps(_in[0], _in[2]);
   const __m128 yw = _mm_unpacklo_ps(_in[1], _in[3]);
   _out[0] = _mm_unpacklo_ps(xz, yw);
@@ -1004,6 +1007,14 @@ OZZ_INLINE SimdInt4 Load2PtrU(const int* _i) {
 OZZ_INLINE SimdInt4 Load3PtrU(const int* _i) {
   assert(!(uintptr_t(_i) & 0x3) && "Invalid alignment");
   return _mm_set_epi32(0, _i[2], _i[1], _i[0]);
+}
+
+OZZ_INLINE SimdInt4 FromFloatRound(_SimdFloat4 _f) {
+  return _mm_cvtps_epi32(_f);
+}
+
+OZZ_INLINE SimdInt4 FromFloatTrunc(_SimdFloat4 _f) {
+  return _mm_cvttps_epi32(_f);
 }
 }  // ozz::math::simd_int4
 
@@ -1935,6 +1946,70 @@ OZZ_INLINE ozz::math::Float4x4 operator-(
                                     _mm_sub_ps(_a.cols[3], _b.cols[3])}};
   return ret;
 }
+
+namespace ozz {
+namespace math {
+OZZ_INLINE uint16_t FloatToHalf(float _f) {
+  const int h = _mm_cvtsi128_si32(FloatToHalf(_mm_set1_ps(_f)));
+  return static_cast<uint16_t>(h);
+}
+
+OZZ_INLINE float HalfToFloat(uint16_t _h) {
+  return _mm_cvtss_f32(HalfToFloat(_mm_set1_epi32(_h)));
+}
+
+// Half <-> Float implementation is based on:
+// http://fgiesen.wordpress.com/2012/03/28/half-to-float-done-quic/.
+OZZ_INLINE SimdInt4 FloatToHalf(_SimdFloat4 _f) {
+  const __m128i mask_sign = _mm_set1_epi32(0x80000000u);
+  const __m128i mask_round = _mm_set1_epi32(~0xfffu);
+  const __m128i f32infty = _mm_set1_epi32(255 << 23);
+  const __m128 magic = _mm_castsi128_ps(_mm_set1_epi32(15 << 23));
+  const __m128i nanbit = _mm_set1_epi32(0x200);
+  const __m128i infty_as_fp16 = _mm_set1_epi32(0x7c00);
+  const __m128 clamp = _mm_castsi128_ps(_mm_set1_epi32((31 << 23) - 0x1000));
+
+  const __m128 msign = _mm_castsi128_ps(mask_sign);
+  const __m128 justsign = _mm_and_ps(msign, _f);
+  const __m128 absf = _mm_xor_ps(_f, justsign);
+  const __m128 mround = _mm_castsi128_ps(mask_round);
+  const __m128i absf_int = _mm_castps_si128(absf);
+  const __m128i b_isnan = _mm_cmpgt_epi32(absf_int, f32infty);
+  const __m128i b_isnormal = _mm_cmpgt_epi32(f32infty, _mm_castps_si128(absf));
+  const __m128i inf_or_nan = _mm_or_si128(_mm_and_si128(b_isnan, nanbit),
+                                          infty_as_fp16);
+  const __m128  fnosticky  = _mm_and_ps(absf, mround);
+  const __m128  scaled = _mm_mul_ps(fnosticky, magic);
+  // Logically, we want PMINSD on "biased", but this should gen better code
+  const __m128  clamped = _mm_min_ps(scaled, clamp);
+  const __m128i biased = _mm_sub_epi32(_mm_castps_si128(clamped),
+                                       _mm_castps_si128(mround));
+  const __m128i shifted = _mm_srli_epi32(biased, 13);
+  const __m128i normal = _mm_and_si128(shifted, b_isnormal);
+  const __m128i not_normal = _mm_andnot_si128(b_isnormal, inf_or_nan);
+  const __m128i joined = _mm_or_si128(normal, not_normal);
+
+  const __m128i sign_shift = _mm_srli_epi32(_mm_castps_si128(justsign), 16);
+  return _mm_or_si128(joined, sign_shift);
+}
+
+OZZ_INLINE SimdFloat4 HalfToFloat(_SimdInt4 _h) {
+  const __m128i mask_nosign = _mm_set1_epi32(0x7fff);
+  const __m128 magic = _mm_castsi128_ps(_mm_set1_epi32((254 - 15) << 23));
+  const __m128i was_infnan = _mm_set1_epi32(0x7bff);
+  const __m128 exp_infnan = _mm_castsi128_ps(_mm_set1_epi32(255 << 23));
+
+  const __m128i expmant = _mm_and_si128(mask_nosign, _h);
+  const __m128i shifted = _mm_slli_epi32(expmant, 13);
+  const __m128 scaled = _mm_mul_ps(_mm_castsi128_ps(shifted), magic);
+  const __m128i b_wasinfnan = _mm_cmpgt_epi32(expmant, was_infnan);
+  const __m128i sign = _mm_slli_epi32(_mm_xor_si128(_h, expmant), 16);
+  const __m128  infnanexp = _mm_and_ps(_mm_castsi128_ps(b_wasinfnan), exp_infnan);
+  const __m128  sign_inf = _mm_or_ps(_mm_castsi128_ps(sign), infnanexp);
+  return _mm_or_ps(scaled, sign_inf);
+}
+}  // math
+}  // ozz
 
 #undef OZZ_SSE_SPLAT_F
 #undef OZZ_SSE_HADD2_F

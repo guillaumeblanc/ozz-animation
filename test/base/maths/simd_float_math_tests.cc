@@ -31,6 +31,8 @@
 #include "ozz/base/maths/simd_math.h"
 
 #include <stdint.h>
+#include <limits>
+#include <cmath>
 
 #include "gtest/gtest.h"
 
@@ -238,6 +240,12 @@ TEST(SplatFloat, ozz_simd_math) {
 
   const SimdFloat4 w = ozz::math::SplatW(f);
   EXPECT_SIMDFLOAT_EQ(w, -3.f, -3.f, -3.f, -3.f);
+}
+
+TEST(FromInt, ozz_simd_math) {
+  const ozz::math::SimdInt4 i = ozz::math::simd_int4::Load(0, 46, -93, 9926429);
+  EXPECT_SIMDFLOAT_EQ(ozz::math::simd_float4::FromInt(i),
+                      0.f, 46.f, -93.f, 9926429.f);
 }
 
 TEST(ArithmeticFloat, ozz_simd_math) {
@@ -539,4 +547,125 @@ TEST(LogicalFloat, ozz_simd_math) {
   EXPECT_FLOAT_EQ(ozz::math::GetZ(xorm), -2.f);
   union {float f; unsigned int i;} xorw = {ozz::math::GetW(xorm)};
   EXPECT_TRUE(xorw.i == 0x3fbfffff);
+}
+
+TEST(Half, ozz_simd_math) {
+  // 0
+  EXPECT_EQ(ozz::math::FloatToHalf(0.f), 0);
+  EXPECT_FLOAT_EQ(ozz::math::HalfToFloat(0), 0.f);
+  EXPECT_EQ(ozz::math::FloatToHalf(-0.f), 0x8000);
+  EXPECT_FLOAT_EQ(ozz::math::HalfToFloat(0x8000), -0.f);
+  EXPECT_EQ(ozz::math::FloatToHalf(std::numeric_limits<float>::min()), 0);
+  EXPECT_EQ(ozz::math::FloatToHalf(std::numeric_limits<float>::denorm_min()), 0);
+  EXPECT_EQ(ozz::math::FloatToHalf(std::numeric_limits<float>::denorm_min() / 10.f), 0);
+
+  // 1
+  EXPECT_EQ(ozz::math::FloatToHalf(1.f), 0x3c00);
+  EXPECT_FLOAT_EQ(ozz::math::HalfToFloat(0x3c00), 1.f);
+  EXPECT_EQ(ozz::math::FloatToHalf(-1.f), 0xbc00);
+  EXPECT_FLOAT_EQ(ozz::math::HalfToFloat(0xbc00), -1.f);
+
+  // Bounds
+  EXPECT_EQ(ozz::math::FloatToHalf(65504.f), 0x7bff);
+  EXPECT_EQ(ozz::math::FloatToHalf(-65504.f), 0xfbff);
+
+  // Min, Max, Infinity
+  EXPECT_EQ(ozz::math::FloatToHalf(10e-16f), 0);
+  EXPECT_EQ(ozz::math::FloatToHalf(10e+16f), 0x7c00);
+  EXPECT_FLOAT_EQ(ozz::math::HalfToFloat(0x7c00), std::numeric_limits<float>::infinity());
+  EXPECT_EQ(ozz::math::FloatToHalf(std::numeric_limits<float>::max()), 0x7c00);
+  EXPECT_EQ(ozz::math::FloatToHalf(std::numeric_limits<float>::infinity()), 0x7c00);
+  EXPECT_EQ(ozz::math::FloatToHalf(-10e+16f), 0xfc00);
+  EXPECT_EQ(ozz::math::FloatToHalf(-std::numeric_limits<float>::infinity()), 0xfc00);
+  EXPECT_EQ(ozz::math::FloatToHalf(-std::numeric_limits<float>::max()), 0xfc00);
+  EXPECT_FLOAT_EQ(ozz::math::HalfToFloat(0xfc00), -std::numeric_limits<float>::infinity());
+
+  // Nan
+  EXPECT_EQ(ozz::math::FloatToHalf(std::numeric_limits<float>::quiet_NaN()), 0x7e00);
+  EXPECT_EQ(ozz::math::FloatToHalf(std::numeric_limits<float>::signaling_NaN()), 0x7e00);
+  // According to the IEEE standard, NaN values have the odd property that comparisons involving them are always false
+  EXPECT_FALSE(ozz::math::HalfToFloat(0x7e00) == ozz::math::HalfToFloat(0x7e00));
+
+  // Random tries in range [10e-4,10e4].
+  srand(0);
+  for (float pow = -4.f; pow <= 4.f; pow += 1.f) {
+    const float max = powf(10.f, pow);
+    // Expect a 1/1000 precision over floats.
+    const float precision = max / 1000.f;
+
+    const int n = 1000;
+    for (int i = 0; i < n; ++i) {
+      const float frand_m1_1 =
+        static_cast <float>(rand()) / static_cast <float>(RAND_MAX / 2) - 1.f;
+      const float frand = frand_m1_1 * max;
+      const uint16_t h = ozz::math::FloatToHalf(frand);
+      const float f = ozz::math::HalfToFloat(h);
+      EXPECT_NEAR(frand, f, precision);
+    }
+  }
+}
+
+TEST(SimdHalf, ozz_simd_math) {
+  // 0
+  EXPECT_SIMDINT_EQ(ozz::math::FloatToHalf(
+    ozz::math::simd_float4::Load(0.f, -0.f, std::numeric_limits<float>::min(), std::numeric_limits<float>::denorm_min())),
+    0, 0x00008000, 0, 0);
+  EXPECT_SIMDFLOAT_EQ(ozz::math::HalfToFloat(ozz::math::simd_int4::Load(0, 0x00008000, 0, 0)),
+    0.f, -0.f, 0.f, 0.f);
+
+  // 1
+  EXPECT_SIMDINT_EQ(ozz::math::FloatToHalf(
+    ozz::math::simd_float4::Load(1.f, -1.f, 0.f, -0.f)),
+    0x00003c00, 0x0000bc00, 0, 0x00008000);
+  EXPECT_SIMDFLOAT_EQ(ozz::math::HalfToFloat(ozz::math::simd_int4::Load(0x3c00, 0xbc00, 0, 0x00008000)),
+    1.f, -1.f, 0.f, -0.f);
+
+  // Bounds
+  EXPECT_SIMDINT_EQ(ozz::math::FloatToHalf(
+  ozz::math::simd_float4::Load(65504.f, -65504.f, 65604.f, -65604.f)),
+    0x00007bff, 0x0000fbff, 0x00007c00, 0x0000fc00);
+
+  // Min, Max, Infinity
+  EXPECT_SIMDINT_EQ(ozz::math::FloatToHalf(
+    ozz::math::simd_float4::Load(10e-16f, 10e+16f, std::numeric_limits<float>::max(), std::numeric_limits<float>::infinity())),
+    0, 0x00007c00, 0x00007c00, 0x00007c00);
+  EXPECT_SIMDINT_EQ(ozz::math::FloatToHalf(
+  ozz::math::simd_float4::Load(-10e-16f, -10e+16f, -std::numeric_limits<float>::max(), -std::numeric_limits<float>::max())),
+    0x00008000, 0x0000fc00, 0x0000fc00, 0x0000fc00);
+
+  // Nan
+  EXPECT_SIMDINT_EQ(ozz::math::FloatToHalf(
+    ozz::math::simd_float4::Load(std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::signaling_NaN(), 0, 0)),
+    0x00007e00, 0x00007e00, 0, 0);
+
+  // Inf and NAN
+  const SimdFloat4 infnan = ozz::math::HalfToFloat(ozz::math::simd_int4::Load(0x00007c00, 0x0000fc00, 0x00007e00, 0));
+  EXPECT_FLOAT_EQ(ozz::math::GetX(infnan), std::numeric_limits<float>::infinity());
+  EXPECT_FLOAT_EQ(ozz::math::GetY(infnan), -std::numeric_limits<float>::infinity());
+  EXPECT_FALSE(ozz::math::GetZ(infnan) == ozz::math::GetZ(infnan));
+
+  // Random tries in range [10e-4,10e4].
+  srand(0);
+  for (float pow = -4.f; pow <= 4.f; pow += 1.f) {
+    const float max = powf(10.f, pow);
+    // Expect a 1/1000 precision over floats.
+    const float precision = max / 1000.f;
+
+    const int n = 1000;
+    for (int i = 0; i < n; ++i) {
+      const SimdFloat4 frand_m1_1 = ozz::math::simd_float4::Load(
+        static_cast <float>(rand()) / static_cast <float>(RAND_MAX / 2) - 1.f,
+        static_cast <float>(rand()) / static_cast <float>(RAND_MAX / 2) - 1.f,
+        static_cast <float>(rand()) / static_cast <float>(RAND_MAX / 2) - 1.f,
+        static_cast <float>(rand()) / static_cast <float>(RAND_MAX / 2) - 1.f);
+      const SimdFloat4 frand = frand_m1_1 * ozz::math::simd_float4::LoadX(max);
+      const SimdInt4 h = ozz::math::FloatToHalf(frand);
+      const SimdFloat4 f = ozz::math::HalfToFloat(h);
+
+      EXPECT_NEAR(ozz::math::GetX(frand), ozz::math::GetX(f), precision);
+      EXPECT_NEAR(ozz::math::GetY(frand), ozz::math::GetY(f), precision);
+      EXPECT_NEAR(ozz::math::GetZ(frand), ozz::math::GetZ(f), precision);
+      EXPECT_NEAR(ozz::math::GetW(frand), ozz::math::GetW(f), precision);
+    }
+  }
 }

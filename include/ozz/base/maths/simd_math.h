@@ -131,6 +131,9 @@ OZZ_INLINE SimdFloat4 Load2PtrU(const float* _f);
 // r.z = _f[2]
 // r.w = 0
 OZZ_INLINE SimdFloat4 Load3PtrU(const float* _f);
+
+// Convert from integer to float.
+OZZ_INLINE SimdFloat4 FromInt(_SimdInt4 _i);
 }  // simd_float4
 
 // Returns the x component of _v as a float.
@@ -752,6 +755,12 @@ OZZ_INLINE SimdInt4 Load2PtrU(const int* _i);
 // r.z = _i[2]
 // r.w = 0
 OZZ_INLINE SimdInt4 Load3PtrU(const int* _i);
+
+// Convert from float to integer by rounding the nearest value.
+OZZ_INLINE SimdInt4 FromFloatRound(_SimdFloat4 _f);
+
+// Convert from float to integer by truncating.
+OZZ_INLINE SimdInt4 FromFloatTrunc(_SimdFloat4 _f);
 }  // simd_float4
 
 // Returns the x component of _v as an integer.
@@ -1098,6 +1107,23 @@ OZZ_INLINE ozz::math::Float4x4 operator+(
 // Computes the per element subtraction of two matrices _a and _b.
 OZZ_INLINE ozz::math::Float4x4 operator-(
   const ozz::math::Float4x4& _a, const ozz::math::Float4x4& _b);
+
+// Implement format conversions.
+namespace ozz {
+namespace math {
+// Converts from a float to a half.
+OZZ_INLINE uint16_t FloatToHalf(float _f);
+
+// Converts from a half to a float.
+OZZ_INLINE float HalfToFloat(uint16_t _h);
+
+// Converts from a float to a half.
+OZZ_INLINE SimdInt4 FloatToHalf(_SimdFloat4 _f);
+
+// Converts from a half to a float.
+OZZ_INLINE SimdFloat4 HalfToFloat(_SimdInt4 _h);
+}  // math
+}  // ozz
 
 #if defined(OZZ_HAS_SSEx)
 #include "ozz/base/maths/internal/simd_math_sse-inl.h"

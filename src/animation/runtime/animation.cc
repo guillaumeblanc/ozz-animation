@@ -36,7 +36,7 @@
 
 // Internal include file
 #define OZZ_INCLUDE_PRIVATE_HEADER  // Allows to include private headers.
-#include "../runtime/key_frame.h"
+#include "../runtime/animation_keyframe.h"
 
 namespace ozz {
 namespace animation {
@@ -80,35 +80,42 @@ void Animation::Save(ozz::io::OArchive& _archive) const {
   _archive << static_cast<int32_t>(translation_count);
   for (ptrdiff_t i = 0; i < translation_count; ++i) {
     const TranslationKey& key = translations_.begin[i];
-    _archive << static_cast<int32_t>(key.track);
     _archive << key.time;
-    _archive << key.value;
+    _archive << key.track;
+    _archive << ozz::io::MakeArray(key.value);
   }
 
   const ptrdiff_t rotation_count = rotations_.Size();
   _archive << static_cast<int32_t>(rotation_count);
   for (ptrdiff_t i = 0; i < rotation_count; ++i) {
     const RotationKey& key = rotations_.begin[i];
-    _archive << static_cast<int32_t>(key.track);
     _archive << key.time;
-    _archive << key.value;
+    uint16_t track = key.track;
+    _archive << track;
+    bool wsign = key.wsign;
+    _archive << wsign;
+    _archive << ozz::io::MakeArray(key.value);
   }
 
   const ptrdiff_t scale_count = scales_.Size();
   _archive << static_cast<int32_t>(scale_count);
   for (ptrdiff_t i = 0; i < scale_count; ++i) {
     const ScaleKey& key = scales_.begin[i];
-    _archive << static_cast<int32_t>(key.track);
     _archive << key.time;
-    _archive << key.value;
+    _archive << key.track;
+    _archive << ozz::io::MakeArray(key.value);
   }
 }
 
 void Animation::Load(ozz::io::IArchive& _archive, uint32_t _version) {
-  (void)_version;
 
   // Destroy animation in case it was already used before.
   Destroy();
+
+  // No retro-compatibility with anterior versions.
+  if (_version != 2) {
+    return;
+  }
 
   memory::Allocator* allocator = memory::default_allocator();
 
@@ -123,33 +130,32 @@ void Animation::Load(ozz::io::IArchive& _archive, uint32_t _version) {
   translations_ = allocator->AllocateRange<TranslationKey>(translation_count);
   for (int i = 0; i < translation_count; ++i) {
     TranslationKey& key = translations_.begin[i];
-    int32_t track;
-    _archive >> track;
-    key.track = track;
     _archive >> key.time;
-    _archive >> key.value;
+    _archive >> key.track;
+    _archive >> ozz::io::MakeArray(key.value);
   }
   int32_t rotation_count;
   _archive >> rotation_count;
   rotations_ = allocator->AllocateRange<RotationKey>(rotation_count);
   for (int i = 0; i < rotation_count; ++i) {
     RotationKey& key = rotations_.begin[i];
-    int32_t track;
+    _archive >> key.time;
+    uint16_t track;
     _archive >> track;
     key.track = track;
-    _archive >> key.time;
-    _archive >> key.value;
+    bool wsign;
+    _archive >> wsign;
+    key.wsign = wsign;
+    _archive >> ozz::io::MakeArray(key.value);
   }
   int32_t scale_count;
   _archive >> scale_count;
   scales_ = allocator->AllocateRange<ScaleKey>(scale_count);
   for (int i = 0; i < scale_count; ++i) {
     ScaleKey& key = scales_.begin[i];
-    int32_t track;
-    _archive >> track;
-    key.track = track;
     _archive >> key.time;
-    _archive >> key.value;
+    _archive >> key.track;
+    _archive >> ozz::io::MakeArray(key.value);
   }
 }
 }  // animation

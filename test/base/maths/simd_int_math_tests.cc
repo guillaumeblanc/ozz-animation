@@ -297,6 +297,15 @@ TEST(SplatInt, ozz_simd_math) {
   EXPECT_SIMDINT_EQ(w, -3, -3, -3, -3);
 }
 
+TEST(FromFloat, ozz_simd_math) {
+  const ozz::math::SimdFloat4 f =
+    ozz::math::simd_float4::Load(0.f, 46.93f, 46.26f, -93.99f);
+  EXPECT_SIMDINT_EQ(ozz::math::simd_int4::FromFloatRound(f),
+                    0, 47, 46, -94);
+  EXPECT_SIMDINT_EQ(ozz::math::simd_int4::FromFloatTrunc(f),
+                    0, 46, 46, -93);
+}
+
 TEST(ArithmeticInt, ozz_simd_math) {
   const SimdInt4 a = ozz::math::simd_int4::Load(0, 1, 2, 3);
   const SimdInt4 b = ozz::math::simd_int4::Load(4, 5, -6, 7);

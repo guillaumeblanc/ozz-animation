@@ -29,6 +29,7 @@
 //============================================================================//
 
 #include "ozz/animation/offline/raw_animation.h"
+#include "ozz/animation/runtime/skeleton.h"
 
 namespace ozz {
 namespace animation {
@@ -67,6 +68,9 @@ static bool ValidateTrack(const typename ozz::Vector<_Key>::Std& _track,
 
 bool RawAnimation::Validate() const {
   if (duration <= 0.f) {  // Tests duration is valid.
+    return false;
+  }
+  if (tracks.size() > Skeleton::kMaxJoints) {  // Tests number of tracks.
     return false;
   }
   // Ensures that all key frames' time are valid, ie: in a strict ascending

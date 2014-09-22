@@ -34,6 +34,14 @@
 #include "ozz/base/platform.h"
 
 // Try to match a SSE version
+#if defined(__AVX__)  || defined(OZZ_HAS_AVX)
+#include <immintrin.h>
+#ifndef OZZ_HAS_AVX
+#define OZZ_HAS_AVX
+#endif  // OZZ_HAS_AVX
+#define OZZ_HAS_SSE4_2
+#endif
+
 #if defined(__SSE4_2__) || defined(OZZ_HAS_SSE4_2)
 #include <nmmintrin.h>
 #ifndef OZZ_HAS_SSE4_2
@@ -130,8 +138,10 @@ typedef SimdInt4Def SimdInt4;
 
 // Argument type for SimdInt4.
 typedef const SimdInt4& _SimdInt4;
+
 }  // math
 }  // ozz
 
 #endif  // OZZ_HAS_x
+
 #endif  // OZZ_OZZ_BASE_MATHS_INTERNAL_SIMD_MATH_CONFIG_H_

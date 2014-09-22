@@ -137,8 +137,8 @@ add_test(NAME sample_playback_zup COMMAND sample_playback  "--skeleton=media/ske
 add_test(NAME sample_playback_seymour COMMAND sample_playback  "--skeleton=media/skeleton_seymour.ozz" "--animation=media/animation_seymour.ozz" "--max_idle_loops=${SAMPLE_TESTING_LOOPS}" ${SAMPLE_RENDER_ARGUMENT})
 add_test(NAME sample_playback_astro_max COMMAND sample_playback  "--skeleton=media/skeleton_astro_max.ozz" "--animation=media/animation_astro_max.ozz" "--max_idle_loops=${SAMPLE_TESTING_LOOPS}" ${SAMPLE_RENDER_ARGUMENT})
 add_test(NAME sample_playback_astro_maya COMMAND sample_playback  "--skeleton=media/skeleton_astro_maya.ozz" "--animation=media/animation_astro_maya.ozz" "--max_idle_loops=${SAMPLE_TESTING_LOOPS}" ${SAMPLE_RENDER_ARGUMENT})
-add_test(NAME sample_playback_v1_le COMMAND sample_playback  "--skeleton=${ozz_media_directory}/bin/skeleton_v1_le.ozz" "--animation=${ozz_media_directory}/bin/animation_v1_le.ozz" "--max_idle_loops=${SAMPLE_TESTING_LOOPS}" ${SAMPLE_RENDER_ARGUMENT})
-add_test(NAME sample_playback_v1_be COMMAND sample_playback  "--skeleton=${ozz_media_directory}/bin/skeleton_v1_be.ozz" "--animation=${ozz_media_directory}/bin/animation_v1_be.ozz" "--max_idle_loops=${SAMPLE_TESTING_LOOPS}" ${SAMPLE_RENDER_ARGUMENT})
+add_test(NAME sample_playback_v2_le COMMAND sample_playback  "--skeleton=${ozz_media_directory}/bin/skeleton_v1_le.ozz" "--animation=${ozz_media_directory}/bin/animation_v2_le.ozz" "--max_idle_loops=${SAMPLE_TESTING_LOOPS}" ${SAMPLE_RENDER_ARGUMENT})
+add_test(NAME sample_playback_v2_be COMMAND sample_playback  "--skeleton=${ozz_media_directory}/bin/skeleton_v1_be.ozz" "--animation=${ozz_media_directory}/bin/animation_v2_be.ozz" "--max_idle_loops=${SAMPLE_TESTING_LOOPS}" ${SAMPLE_RENDER_ARGUMENT})
 
 add_test(NAME sample_playback_invalid_skeleton_path COMMAND sample_playback "--skeleton=media/bad_skeleton.ozz" ${SAMPLE_RENDER_ARGUMENT})
 set_tests_properties(sample_playback_invalid_skeleton_path PROPERTIES WILL_FAIL true)

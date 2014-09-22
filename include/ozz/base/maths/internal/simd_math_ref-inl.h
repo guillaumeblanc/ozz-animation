@@ -152,6 +152,15 @@ OZZ_INLINE SimdFloat4 Load3PtrU(const float* _f) {
   const SimdFloat4 ret = {_f[0], _f[1], _f[2]};
   return ret;
 }
+
+OZZ_INLINE SimdFloat4 FromInt(_SimdInt4 _i) {
+  const SimdFloat4 ret = {
+    static_cast<float>(_i.x),
+    static_cast<float>(_i.y),
+    static_cast<float>(_i.z),
+    static_cast<float>(_i.w)};
+  return ret;
+}
 }  // simd_float4
 
 OZZ_INLINE float GetX(_SimdFloat4 _v) {
@@ -1091,6 +1100,24 @@ OZZ_INLINE SimdInt4 Load3PtrU(const int* _i) {
   const SimdInt4 ret = {_i[0], _i[1], _i[2], 0};
   return ret;
 }
+
+OZZ_INLINE SimdInt4 FromFloatRound(_SimdFloat4 _f) {
+  const SimdInt4 ret = {
+    static_cast<int>(floor(_f.x + .5f)),
+    static_cast<int>(floor(_f.y + .5f)),
+    static_cast<int>(floor(_f.z + .5f)),
+    static_cast<int>(floor(_f.w + .5f))};
+  return ret;
+}
+
+OZZ_INLINE SimdInt4 FromFloatTrunc(_SimdFloat4 _f) {
+  const SimdInt4 ret = {
+    static_cast<int>(_f.x),
+    static_cast<int>(_f.y),
+    static_cast<int>(_f.z),
+    static_cast<int>(_f.w)};
+  return ret;
+}
 }  // simd_int4
 
 OZZ_INLINE int GetX(_SimdInt4 _v) {
@@ -1735,154 +1762,6 @@ OZZ_INLINE bool ToAffine(const Float4x4& _m,
   return true;
 }
 
-/*
-
-
-#define XMRANKDECOMPOSE(a, b, c, x, y, z)      \
-    if((x) < (y))                   \
-    {                               \
-        if((y) < (z))               \
-        {                           \
-            (a) = 2;                \
-            (b) = 1;                \
-            (c) = 0;                \
-        }                           \
-        else                        \
-        {                           \
-            (a) = 1;                \
-                                    \
-            if((x) < (z))           \
-            {                       \
-                (b) = 2;            \
-                (c) = 0;            \
-            }                       \
-            else                    \
-            {                       \
-                (b) = 0;            \
-                (c) = 2;            \
-            }                       \
-        }                           \
-    }                               \
-    else                            \
-    {                               \
-        if((x) < (z))               \
-        {                           \
-            (a) = 2;                \
-            (b) = 0;                \
-            (c) = 1;                \
-        }                           \
-        else                        \
-        {                           \
-            (a) = 0;                \
-                                    \
-            if((y) < (z))           \
-            {                       \
-                (b) = 2;            \
-                (c) = 1;            \
-            }                       \
-            else                    \
-            {                       \
-                (b) = 1;            \
-                (c) = 2;            \
-            }                       \
-        }                           \
-    }
-                                    
-#define XM_DECOMP_EPSILON 0.0001f
-
-OZZ_INLINE bool ToAffine(const Float4x4& _m,
-                         SimdFloat4* _translation,
-                         SimdFloat4* _quaternion,
-                         SimdFloat4* _scale) {
-  float fDet;
-  float *pfScales;
-
-  SimdFloat4 *ppvBasis[3];
-  Float4x4 matTemp;
-  unsigned int a, b, c;
-  const SimdFloat4 pvCanonicalBasis[3] = {
-    simd_float4::x_axis(),
-    simd_float4::y_axis(),
-    simd_float4::z_axis()};
-
-  // Get the translation
-  _translation[0].x = _m.cols[3].x;
-  _translation[0].y = _m.cols[3].y;
-  _translation[0].z = _m.cols[3].z;
-  _translation[0].w = 1.f;
-
-  ppvBasis[0] = &matTemp.cols[0];
-  ppvBasis[1] = &matTemp.cols[1];
-  ppvBasis[2] = &matTemp.cols[2];
-
-  matTemp.r[0] = _m.cols[0];
-  matTemp.r[1] = _m.cols[1];
-  matTemp.r[2] = _m.cols[2];
-  matTemp.r[3] = simd_float4::w_axis();
-
-  pfScales = &_scale->x;
-
-  scales->x = Length3(*ppvBasis[0]);
-  scales->y = Length3(*ppvBasis[1]);
-  scales->z = Length3(*ppvBasis[2]);
-
-  XMRANKDECOMPOSE(a, b, c, pfScales[0], pfScales[1], pfScales[2])
-
-  if(pfScales[a] < XM_DECOMP_EPSILON)
-  {
-    *ppvBasis[a] = pvCanonicalBasis[a];
-  }
-  *ppvBasis[a] = Normalize3(*ppvBasis[a]);
-
-  if(pfScales[b] < XM_DECOMP_EPSILON)
-  {
-    UINT aa, bb, cc;
-    FLOAT fAbsX, fAbsY, fAbsZ;
-
-    fAbsX = std::absf(ppvBasis[a]->x);
-    fAbsY = std::absf(ppvBasis[a]->y);
-    fAbsZ = std::absf(ppvBasis[a]->z);
-
-    XMRANKDECOMPOSE(aa, bb, cc, fAbsX, fAbsY, fAbsZ)
-
-    *ppvBasis[b] = Cross3(*ppvBasis[a], pvCanonicalBasis[cc]);
-  }
-
-  *ppvBasis[b] = Normalize3(*ppvBasis[b]);
-
-  if(pfScales[c] < XM_DECOMP_EPSILON)
-  {
-    *ppvBasis[c] = Cross3(*ppvBasis[a], *ppvBasis[b]);
-  }
-    
-  *ppvBasis[c] = Normalize3(ppvBasis[c]);
-
-  fDet = XMVectorGetX(XMMatrixDeterminant(matTemp));
-
-  // use Kramer's rule to check for handedness of coordinate system
-  if(fDet < 0.0f)
-  {
-    // switch coordinate system by negating the scale and inverting the basis vector on the x-axis
-    pfScales[a] = -pfScales[a];
-    ppvBasis[a][0] = XMVectorNegate(ppvBasis[a][0]);
-
-    fDet = -fDet;
-  }
-
-  fDet -= 1.0f;
-  fDet *= fDet;
-
-  if(XM_DECOMP_EPSILON < fDet)
-  {
-//    Non-SRT matrix encountered
-    return FALSE;
-  }
-
-  // generate the quaternion from the matrix
-  outRotQuat[0] = XMQuaternionRotationMatrix(matTemp);
-    return TRUE;
-}
-*/
 OZZ_INLINE Float4x4 Float4x4::FromEuler(_SimdFloat4 _v) {
   const float ch = std::cos(_v.x);
   const float sh = std::sin(_v.x);
@@ -2103,6 +1982,70 @@ OZZ_INLINE ozz::math::Float4x4 operator-(
                                      _a.cols[3].w - _b.cols[3].w}}};
   return ret;
 }
+
+namespace ozz {
+namespace math {
+// Half <-> Float implementation is based on:
+// http://fgiesen.wordpress.com/2012/03/28/half-to-float-done-quic/.
+OZZ_INLINE uint16_t FloatToHalf(float _f) {
+  const uint32_t f32infty = 255 << 23;
+  const uint32_t f16infty = 31 << 23;
+  const union {uint32_t u; float f;} magic = {15 << 23};
+  const uint32_t sign_mask = 0x80000000u;
+  const uint32_t round_mask = ~0x00000fffu;
+
+  const union {float f; uint32_t u;} f = {_f};
+  const uint32_t sign = f.u & sign_mask;
+  const uint32_t f_nosign = f.u & ~sign_mask;
+
+  if (f_nosign >= f32infty) {  // Inf or NaN (all exponent bits set)
+    // NaN->qNaN and Inf->Inf
+    const uint32_t result =
+      ((f_nosign > f32infty) ? 0x7e00 : 0x7c00) | (sign >> 16);
+    return static_cast<uint16_t>(result);
+  } else {  // (De)normalized number or zero
+    const union {uint32_t u; float f;} rounded = {f_nosign & round_mask};
+    const union {float f; uint32_t u;} exp = {rounded.f * magic.f};
+    const uint32_t re_rounded = exp.u - round_mask;
+    // Clamp to signed infinity if overflowed
+    const uint32_t result =
+      ((re_rounded > f16infty ? f16infty : re_rounded) >> 13) | (sign >> 16);
+    return static_cast<uint16_t>(result);
+  }
+}
+
+OZZ_INLINE float HalfToFloat(uint16_t _h) {
+  const union {uint32_t u; float f;} magic = {(254 - 15) << 23};
+  const union {uint32_t u; float f;} infnan = {(127 + 16) << 23};
+
+  const uint32_t sign = _h & 0x8000;
+  const union {uint32_t u; float f;} exp_mant = {(_h & 0x7fff) << 13};
+  const union {float f; uint32_t u;} adjust = {exp_mant.f * magic.f};
+  // Make sure Inf/NaN survive
+  const union {uint32_t u; float f;} result =
+    {(adjust.f >= infnan.f ? (adjust.u | 255 << 23) : adjust.u) | (sign << 16)};
+  return result.f;
+}
+
+OZZ_INLINE SimdInt4 FloatToHalf(_SimdFloat4 _f) {
+  const ozz::math::SimdInt4 ret = {
+    FloatToHalf(_f.x),
+    FloatToHalf(_f.y),
+    FloatToHalf(_f.z),
+    FloatToHalf(_f.w)};
+  return ret;
+}
+
+OZZ_INLINE SimdFloat4 HalfToFloat(_SimdInt4 _h) {
+  const ozz::math::SimdFloat4 ret = {
+    HalfToFloat(_h.x & 0x0000ffff),
+    HalfToFloat(_h.y & 0x0000ffff),
+    HalfToFloat(_h.z & 0x0000ffff),
+    HalfToFloat(_h.w & 0x0000ffff)};
+  return ret;
+}
+}  // math
+}  // ozz
 
 #undef OZZ_RCP_EST
 #undef OZZ_RSQRT_EST

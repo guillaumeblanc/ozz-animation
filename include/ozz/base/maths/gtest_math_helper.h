@@ -46,6 +46,12 @@ inline void ExpectFloatNearEst(float _a, float _b) {
 
 // Implements "int equality" test as a function. Avoids overloading compiler
 // optimizer when too much EXPECT_TRUE are used in a single compilation unit.
+inline void ExpectIntEq(int _a, int _b) {
+  EXPECT_EQ(_a, _b);
+}
+
+// Implements "bool equality" test as a function. Avoids overloading compiler
+// optimizer when too much EXPECT_TRUE are used in a single compilation unit.
 inline void ExpectTrue(bool _b) {
   EXPECT_TRUE(_b);
 }
@@ -134,10 +140,10 @@ do {\
 do {\
   SCOPED_TRACE("");\
   union {ozz::math::SimdInt4 ret; int ai[4];} u = {_expected};\
-  ExpectTrue(u.ai[0] == static_cast<int>(_x));\
-  ExpectTrue(u.ai[1] == static_cast<int>(_y));\
-  ExpectTrue(u.ai[2] == static_cast<int>(_z));\
-  ExpectTrue(u.ai[3] == static_cast<int>(_w));\
+  ExpectIntEq(u.ai[0], static_cast<int>(_x));\
+  ExpectIntEq(u.ai[1], static_cast<int>(_y));\
+  ExpectIntEq(u.ai[2], static_cast<int>(_z));\
+  ExpectIntEq(u.ai[3], static_cast<int>(_w));\
 } while(void(0), 0)
 
 // Macro for testing ozz::math::SoaFloat4 members with x, y, z, w float values.

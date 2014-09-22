@@ -29,6 +29,7 @@
 //============================================================================//
 
 #include <omp.h>
+#include <cstdlib>
 
 #include "ozz/animation/runtime/animation.h"
 #include "ozz/animation/runtime/skeleton.h"

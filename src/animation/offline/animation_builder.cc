@@ -38,13 +38,15 @@
 #include "ozz/base/containers/vector.h"
 #include "ozz/base/memory/allocator.h"
 
+#include "ozz/base/maths/simd_math.h"
+
 #include "ozz/animation/offline/raw_animation.h"
 
 #include "ozz/animation/runtime/animation.h"
 
 // Internal include file
 #define OZZ_INCLUDE_PRIVATE_HEADER  // Allows to include private headers.
-#include "../runtime/key_frame.h"
+#include "../runtime/animation_keyframe.h"
 
 namespace ozz {
 namespace animation {
@@ -52,19 +54,19 @@ namespace offline {
 namespace {
 
 struct SortingTranslationKey {
-  unsigned int track;
+  uint16_t track;
   float prev_key_time;
   RawAnimation::TranslationKey key;
 };
 
 struct SortingRotationKey {
-  unsigned int track;
+  uint16_t track;
   float prev_key_time;
   RawAnimation::RotationKey key;
 };
 
 struct SortingScaleKey {
-  unsigned int track;
+  uint16_t track;
   float prev_key_time;
   RawAnimation::ScaleKey key;
 };
@@ -78,7 +80,7 @@ bool SortingKeyLess(const _Key& _left, const _Key& _right) {
 }
 
 template<typename _SrcKey, typename _DestTrack>
-void PushBackIdentityKey(unsigned int _track, float _time, _DestTrack* _dest) {
+void PushBackIdentityKey(uint16_t _track, float _time, _DestTrack* _dest) {
   typedef typename _DestTrack::value_type DestKey;
   float prev_time = -1.f;
   if (!_dest->empty() && _dest->back().track == _track) {
@@ -91,7 +93,7 @@ void PushBackIdentityKey(unsigned int _track, float _time, _DestTrack* _dest) {
 // Copies a track from a RawAnimation to an Animation.
 // Also fixes up the front (t = 0) and back keys (t = duration).
 template<typename _SrcTrack, typename _DestTrack>
-void CopyRaw(const _SrcTrack& _src, unsigned int _track, float _duration,
+void CopyRaw(const _SrcTrack& _src, uint16_t _track, float _duration,
              _DestTrack* _dest) {
   typedef typename _SrcTrack::value_type SrcKey;
   typedef typename _DestTrack::value_type DestKey;
@@ -129,33 +131,60 @@ void CopyRaw(const _SrcTrack& _src, unsigned int _track, float _duration,
   assert(_dest->front().key.time == 0.f && _dest->back().key.time == _duration);
 }
 
-template<typename _SrcKey, typename _DestKey>
-ozz::Range<_DestKey> CopyToAnimation(typename ozz::Vector<_SrcKey>::Std* _src) {
+ozz::Range<TranslationKey> CopyToAnimation(
+  ozz::Vector<SortingTranslationKey>::Std* _src) {
   const size_t src_count = _src->size();
   if (!src_count) {
-    return ozz::Range<_DestKey>();
+    return ozz::Range<TranslationKey>();
   }
 
   // Sort animation keys to favor cache coherency.
-  std::sort(&_src->front(), (&_src->back()) + 1, &SortingKeyLess<_SrcKey>);
+  std::sort(&_src->front(), (&_src->back()) + 1, &SortingKeyLess<SortingTranslationKey>);
 
   // Fills output.
-  ozz::Range<_DestKey> dest =
-    memory::default_allocator()->AllocateRange<_DestKey>(src_count);
-  const _SrcKey* src = &_src->front();
+  ozz::Range<TranslationKey> dest =
+    memory::default_allocator()->AllocateRange<TranslationKey>(src_count);
+  const SortingTranslationKey* src = &_src->front();
   for (size_t i = 0; i < src_count; ++i) {
-    dest.begin[i].track = src[i].track;
-    dest.begin[i].time = src[i].key.time;
-    dest.begin[i].value = src[i].key.value;
+    TranslationKey& key = dest.begin[i];
+    key.time = src[i].key.time;
+    key.track = src[i].track;
+    key.value[0] = ozz::math::FloatToHalf(src[i].key.value.x);
+    key.value[1] = ozz::math::FloatToHalf(src[i].key.value.y);
+    key.value[2] = ozz::math::FloatToHalf(src[i].key.value.z);
+  }
+  return dest;
+}
+
+ozz::Range<ScaleKey> CopyToAnimation(
+  ozz::Vector<SortingScaleKey>::Std* _src) {
+  const size_t src_count = _src->size();
+  if (!src_count) {
+    return ozz::Range<ScaleKey>();
+  }
+
+  // Sort animation keys to favor cache coherency.
+  std::sort(&_src->front(), (&_src->back()) + 1, &SortingKeyLess<SortingScaleKey>);
+
+  // Fills output.
+  ozz::Range<ScaleKey> dest =
+    memory::default_allocator()->AllocateRange<ScaleKey>(src_count);
+  const SortingScaleKey* src = &_src->front();
+  for (size_t i = 0; i < src_count; ++i) {
+    ScaleKey& key = dest.begin[i];
+    key.time = src[i].key.time;
+    key.track = src[i].track;
+    key.value[0] = ozz::math::FloatToHalf(src[i].key.value.x);
+    key.value[1] = ozz::math::FloatToHalf(src[i].key.value.y);
+    key.value[2] = ozz::math::FloatToHalf(src[i].key.value.z);
   }
   return dest;
 }
 
 // Specialize for rotations in order to normalize quaternions.
-// Consecutive opposite quatenions are also fixed up in order to avoid checking
-// for the smallest path during the NLerp runtime algorithm .
-template<>
-ozz::Range<RotationKey> CopyToAnimation<SortingRotationKey, RotationKey>(
+// Consecutive opposite quaternions are also fixed up in order to avoid checking
+// for the smallest path during the NLerp runtime algorithm.
+ozz::Range<RotationKey> CopyToAnimation(
   ozz::Vector<SortingRotationKey>::Std* _src) {
   const size_t src_count = _src->size();
   if (!src_count) {
@@ -199,9 +228,19 @@ ozz::Range<RotationKey> CopyToAnimation<SortingRotationKey, RotationKey>(
   ozz::Range<RotationKey> dest =
     memory::default_allocator()->AllocateRange<RotationKey>(src_count);
   for (size_t i = 0; i < src_count; ++i) {
-    dest.begin[i].track = src[i].track;
-    dest.begin[i].time = src[i].key.time;
-    dest.begin[i].value = src[i].key.value;
+    RotationKey& dkey = dest.begin[i];
+    dkey.time = src[i].key.time;
+    dkey.track = src[i].track;
+    // Stores the sign of the 4th component.
+    const math::Quaternion& squat = src[i].key.value;
+    dkey.wsign = squat.w >= 0.f;
+    // Quantize x, y, z components on 16 bits signed integers.
+    const int x = static_cast<int>(floor(squat.x * 32767.f + .5f));
+    const int y = static_cast<int>(floor(squat.y * 32767.f + .5f));
+    const int z = static_cast<int>(floor(squat.z * 32767.f + .5f));
+    dkey.value[0] = math::Clamp(-32767, x, 32767) & 0xffff;
+    dkey.value[1] = math::Clamp(-32767, y, 32767) & 0xffff;
+    dkey.value[2] = math::Clamp(-32767, z, 32767) & 0xffff;
   }
   return dest;
 }
@@ -227,12 +266,13 @@ Animation* AnimationBuilder::operator()(const RawAnimation& _input) const {
   // A _duration == 0 would create some division by 0 during sampling.
   // Also we need at least to keys with different times, which cannot be done
   // if duration is 0.
-  assert(duration > 0.f);  // This cas must be handled by Validate().
+  assert(duration > 0.f);  // This case is handled by Validate().
 
-  // Sets tracks count.
-  const int num_tracks = _input.num_tracks();
+  // Sets tracks count. Can be safely casted to uint16_t as number of tracks as
+  // already been validated.
+  const uint16_t num_tracks = static_cast<uint16_t>(_input.num_tracks());
   animation->num_tracks_ = num_tracks;
-  const int num_soa_tracks = math::Align(num_tracks, 4);
+  const uint16_t num_soa_tracks = math::Align(num_tracks, 4);
 
   // Declares and preallocates tracks to sort.
   size_t translations = 0, rotations = 0, scales = 0;
@@ -250,7 +290,8 @@ Animation* AnimationBuilder::operator()(const RawAnimation& _input) const {
   sorting_scales.reserve(scales);
 
   // Filters RawAnimation keys and copies them to the output sorting structure.
-  for (int i = 0; i < num_tracks; ++i) {
+  uint16_t i = 0;
+  for (; i < num_tracks; ++i) {
     const RawAnimation::JointTrack& raw_track = _input.tracks[i];
     CopyRaw(raw_track.translations, i, duration, &sorting_translations);
     CopyRaw(raw_track.rotations, i, duration, &sorting_rotations);
@@ -258,7 +299,7 @@ Animation* AnimationBuilder::operator()(const RawAnimation& _input) const {
   }
 
   // Add enough identity keys to match soa requirements.
-  for (int i = num_tracks; i < num_soa_tracks; ++i) {
+  for (; i < num_soa_tracks; ++i) {
     typedef RawAnimation::TranslationKey SrcTKey;
     PushBackIdentityKey<SrcTKey>(i, 0.f, &sorting_translations);
     PushBackIdentityKey<SrcTKey>(i, duration, &sorting_translations);
@@ -273,13 +314,9 @@ Animation* AnimationBuilder::operator()(const RawAnimation& _input) const {
   }
 
   // Copy sorted keys to final animation.
-  animation->translations_ =
-    CopyToAnimation<SortingTranslationKey, TranslationKey>(
-      &sorting_translations);
-  animation->rotations_ = CopyToAnimation<SortingRotationKey, RotationKey>(
-    &sorting_rotations);
-  animation->scales_ = CopyToAnimation<SortingScaleKey, ScaleKey>(
-    &sorting_scales);
+  animation->translations_ = CopyToAnimation(&sorting_translations);
+  animation->rotations_ = CopyToAnimation(&sorting_rotations);
+  animation->scales_ = CopyToAnimation(&sorting_scales);
 
   return animation;  // Success.
 }

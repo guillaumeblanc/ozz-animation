@@ -1,4 +1,21 @@
+Release version 0.6.0.----------------------------------------------------------
+
+ # Library
+  - [animation] Compresses animation key frames memory footprint. Rotation key
+  frames are compressed from 24B to 12B (50%). 3 of the 4 components of the
+  quaternion are quantized to 2B each, while the 4th is restored during
+  sampling. Translation and scale components are compressed to half float,
+  reducing their size from 20B to 12B (40%).
+  - [animation] Changes runtime::Animation class serialization format to support
+  compression. Serialization retro-compatibility for this class has not been
+  implemented, meaning that all runtime::Animation must be rebuilt and
+  serialized using usual dae2anim, fbx2anim or using offline::AnimationBuilder
+  utility.
+  - [base] Adds float-to-half and half-to-float conversion functions to simd
+  math library.
+
 Release version 0.5.0.----------------------------------------------------------
+
  # Library
   - [offline] Adds --raw option to *2skel and *2anim command line tools. Allows
   to export raw skeleton/animation object format instead of runtime objects.

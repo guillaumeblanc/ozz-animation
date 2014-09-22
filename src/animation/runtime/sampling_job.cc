@@ -32,13 +32,14 @@
 
 #include <cassert>
 
+#include "ozz/base/maths/math_ex.h"
 #include "ozz/base/maths/soa_transform.h"
 #include "ozz/base/memory/allocator.h"
 #include "ozz/animation/runtime/animation.h"
 
 // Internal include file
 #define OZZ_INCLUDE_PRIVATE_HEADER  // Allows to include private headers.
-#include "../runtime/key_frame.h"
+#include "../runtime/animation_keyframe.h"
 
 namespace ozz {
 namespace animation {
@@ -98,7 +99,7 @@ void UpdateKeys(float _time, int _num_soa_tracks,
       for (int i = 0; i < _num_soa_tracks; ++i) {
         const int in_index0 = i * 4;  // * soa size
         const int in_index1 = in_index0 + num_tracks;  // 2nd row.
-        const int out_index = i * 4 * 2;  // * soa size * 2 keys
+        const int out_index = i * 4 * 2;   
         _cache[out_index + 0] = in_index0 + 0;
         _cache[out_index + 1] = in_index1 + 0;
         _cache[out_index + 2] = in_index0 + 1;
@@ -131,7 +132,7 @@ void UpdateKeys(float _time, int _num_soa_tracks,
     while (cursor < _keys.end &&
            _keys.begin[_cache[cursor->track * 2 + 1]].time <= _time) {
       // Flag this soa entry as outdated.
-      _outdated[cursor->track / 32] |= 1 << ((cursor->track & 0x1f) / 4);
+      _outdated[cursor->track / 32] |= (1 << ((cursor->track & 0x1f) / 4));
       // Updates cache.
       const int base = cursor->track * 2;
       _cache[base] = _cache[base + 1];
@@ -158,41 +159,35 @@ void UpdateSoaTranslations(int _num_soa_tracks,
       if (!(outdated & 1)) {
         continue;
       }
-      const int base = i * 4 * 2;
-      const int interp00 = _interp[base + 0];
-      const int interp01 = _interp[base + 1];
-      const int interp10 = _interp[base + 2];
-      const int interp11 = _interp[base + 3];
-      const int interp20 = _interp[base + 4];
-      const int interp21 = _interp[base + 5];
-      const int interp30 = _interp[base + 6];
-      const int interp31 = _interp[base + 7];
+      const int base = i * 4 * 2;  // * soa size * 2 keys
 
-      math::SimdFloat4 time0[4];
-      math::SimdFloat4 value0[4];
-      time0[0] = math::simd_float4::LoadXPtrU(&_keys.begin[interp00].time);
-      value0[0] = math::simd_float4::Load3PtrU(&_keys.begin[interp00].value.x);
-      time0[1] = math::simd_float4::LoadXPtrU(&_keys.begin[interp10].time);
-      value0[1] = math::simd_float4::Load3PtrU(&_keys.begin[interp10].value.x);
-      time0[2] = math::simd_float4::LoadXPtrU(&_keys.begin[interp20].time);
-      value0[2] = math::simd_float4::Load3PtrU(&_keys.begin[interp20].value.x);
-      time0[3] = math::simd_float4::LoadXPtrU(&_keys.begin[interp30].time);
-      value0[3] = math::simd_float4::Load3PtrU(&_keys.begin[interp30].value.x);
-      math::Transpose4x1(time0, &soa_translations_[i].time[0]);
-      math::Transpose4x3(value0, &soa_translations_[i].value[0].x);
+      // Decompress left side keyframes and store them in soa structures.
+      const TranslationKey& k00 = _keys.begin[_interp[base + 0]];
+      const TranslationKey& k10 = _keys.begin[_interp[base + 2]];
+      const TranslationKey& k20 = _keys.begin[_interp[base + 4]];
+      const TranslationKey& k30 = _keys.begin[_interp[base + 6]];
+      soa_translations_[i].time[0] = math::simd_float4::Load(
+        k00.time, k10.time, k20.time, k30.time);
+      soa_translations_[i].value[0].x = math::HalfToFloat(math::simd_int4::Load(
+        k00.value[0],k10.value[0], k20.value[0], k30.value[0]));
+      soa_translations_[i].value[0].y = math::HalfToFloat(math::simd_int4::Load(
+        k00.value[1], k10.value[1], k20.value[1], k30.value[1]));
+      soa_translations_[i].value[0].z = math::HalfToFloat(math::simd_int4::Load(
+        k00.value[2], k10.value[2], k20.value[2], k30.value[2]));
 
-      math::SimdFloat4 time1[4];
-      math::SimdFloat4 value1[4];
-      time1[0] = math::simd_float4::LoadXPtrU(&_keys.begin[interp01].time);
-      value1[0] = math::simd_float4::Load3PtrU(&_keys.begin[interp01].value.x);
-      time1[1] = math::simd_float4::LoadXPtrU(&_keys.begin[interp11].time);
-      value1[1] = math::simd_float4::Load3PtrU(&_keys.begin[interp11].value.x);
-      time1[2] = math::simd_float4::LoadXPtrU(&_keys.begin[interp21].time);
-      value1[2] = math::simd_float4::Load3PtrU(&_keys.begin[interp21].value.x);
-      time1[3] = math::simd_float4::LoadXPtrU(&_keys.begin[interp31].time);
-      value1[3] = math::simd_float4::Load3PtrU(&_keys.begin[interp31].value.x);
-      math::Transpose4x1(time1, &soa_translations_[i].time[1]);
-      math::Transpose4x3(value1, &soa_translations_[i].value[1].x);
+      // Decompress right side keyframes and store them in soa structures.
+      const TranslationKey& k01 = _keys.begin[_interp[base + 1]];
+      const TranslationKey& k11 = _keys.begin[_interp[base + 3]];
+      const TranslationKey& k21 = _keys.begin[_interp[base + 5]];
+      const TranslationKey& k31 = _keys.begin[_interp[base + 7]];
+      soa_translations_[i].time[1] = math::simd_float4::Load(
+        k01.time, k11.time, k21.time, k31.time);
+      soa_translations_[i].value[1].x = math::HalfToFloat(math::simd_int4::Load(
+        k01.value[0], k11.value[0], k21.value[0], k31.value[0]));
+      soa_translations_[i].value[1].y = math::HalfToFloat(math::simd_int4::Load(
+        k01.value[1], k11.value[1], k21.value[1], k31.value[1]));
+      soa_translations_[i].value[1].z = math::HalfToFloat(math::simd_int4::Load(
+        k01.value[2], k11.value[2], k21.value[2], k31.value[2]));
     }
   }
 }
@@ -202,6 +197,10 @@ void UpdateSoaRotations(int _num_soa_tracks,
                         const int* _interp,
                         unsigned char* _outdated,
                         internal::InterpSoaRotation* soa_rotations_) {
+  const math::SimdFloat4 one = math::simd_float4::one();
+  const math::SimdFloat4 eps = math::simd_float4::Load1(1e-16f);
+  const math::SimdFloat4 int_to_float = math::simd_float4::Load1(1.f / 32767.f);
+
   const int num_outdated_flags = (_num_soa_tracks + 7) / 8;
   for (int j = 0; j < num_outdated_flags; ++j) {
     unsigned char outdated = _outdated[j];
@@ -210,41 +209,59 @@ void UpdateSoaRotations(int _num_soa_tracks,
       if (!(outdated & 1)) {
         continue;
       }
-      const int base = i * 4 * 2;
-      const int interp00 = _interp[base + 0];
-      const int interp01 = _interp[base + 1];
-      const int interp10 = _interp[base + 2];
-      const int interp11 = _interp[base + 3];
-      const int interp20 = _interp[base + 4];
-      const int interp21 = _interp[base + 5];
-      const int interp30 = _interp[base + 6];
-      const int interp31 = _interp[base + 7];
 
-      math::SimdFloat4 time0[4];
-      math::SimdFloat4 value0[4];
-      time0[0] = math::simd_float4::LoadXPtrU(&_keys.begin[interp00].time);
-      value0[0] = math::simd_float4::LoadPtrU(&_keys.begin[interp00].value.x);
-      time0[1] = math::simd_float4::LoadXPtrU(&_keys.begin[interp10].time);
-      value0[1] = math::simd_float4::LoadPtrU(&_keys.begin[interp10].value.x);
-      time0[2] = math::simd_float4::LoadXPtrU(&_keys.begin[interp20].time);
-      value0[2] = math::simd_float4::LoadPtrU(&_keys.begin[interp20].value.x);
-      time0[3] = math::simd_float4::LoadXPtrU(&_keys.begin[interp30].time);
-      value0[3] = math::simd_float4::LoadPtrU(&_keys.begin[interp30].value.x);
-      math::Transpose4x1(time0, &soa_rotations_[i].time[0]);
-      math::Transpose4x4(value0, &soa_rotations_[i].value[0].x);
+      const int base = i * 4 * 2;  // * soa size * 2 keys
 
-      math::SimdFloat4 time1[4];
-      math::SimdFloat4 value1[4];
-      time1[0] = math::simd_float4::LoadXPtrU(&_keys.begin[interp01].time);
-      value1[0] = math::simd_float4::LoadPtrU(&_keys.begin[interp01].value.x);
-      time1[1] = math::simd_float4::LoadXPtrU(&_keys.begin[interp11].time);
-      value1[1] = math::simd_float4::LoadPtrU(&_keys.begin[interp11].value.x);
-      time1[2] = math::simd_float4::LoadXPtrU(&_keys.begin[interp21].time);
-      value1[2] = math::simd_float4::LoadPtrU(&_keys.begin[interp21].value.x);
-      time1[3] = math::simd_float4::LoadXPtrU(&_keys.begin[interp31].time);
-      value1[3] = math::simd_float4::LoadPtrU(&_keys.begin[interp31].value.x);
-      math::Transpose4x1(time1, &soa_rotations_[i].time[1]);
-      math::Transpose4x4(value1, &soa_rotations_[i].value[1].x);
+      // Decompress left side keyframes and store them in soa structures.
+      const RotationKey& k00 = _keys.begin[_interp[base + 0]];
+      const RotationKey& k10 = _keys.begin[_interp[base + 2]];
+      const RotationKey& k20 = _keys.begin[_interp[base + 4]];
+      const RotationKey& k30 = _keys.begin[_interp[base + 6]];
+      soa_rotations_[i].time[0] = math::simd_float4::Load(
+        k00.time, k10.time, k20.time, k30.time);
+      math::SoaQuaternion& quat0 = soa_rotations_[i].value[0];
+      quat0.x = int_to_float * math::simd_float4::FromInt(math::simd_int4::Load(
+        k00.value[0], k10.value[0], k20.value[0], k30.value[0]));
+      quat0.y = int_to_float * math::simd_float4::FromInt(math::simd_int4::Load(
+        k00.value[1], k10.value[1], k20.value[1], k30.value[1]));
+      quat0.z = int_to_float * math::simd_float4::FromInt(math::simd_int4::Load(
+        k00.value[2], k10.value[2], k20.value[2], k30.value[2]));
+
+      // Get back sign of w component.
+      const math::SimdInt4 wsign0 = math::simd_int4::Load(
+        k00.wsign, k10.wsign, k20.wsign, k30.wsign);
+      // Get back length of w component. Favors performance over accuracy by
+      // using x * RSqrtEst(x) instead of Sqrt(x).
+      const math::SimdFloat4 ww0 = math::Max(eps,
+        one - (quat0.x * quat0.x + quat0.y * quat0.y + quat0.z * quat0.z));
+      const math::SimdFloat4 w0 = ww0 * math::RSqrtEst(ww0);
+      // Reapply w's sign.
+      quat0.w = math::Select(wsign0, w0, -w0);
+
+      // Decompress right side keyframes and store them in soa structures.
+      const RotationKey& k01 = _keys.begin[_interp[base + 1]];
+      const RotationKey& k11 = _keys.begin[_interp[base + 3]];
+      const RotationKey& k21 = _keys.begin[_interp[base + 5]];
+      const RotationKey& k31 = _keys.begin[_interp[base + 7]];
+      soa_rotations_[i].time[1] = math::simd_float4::Load(
+        k01.time, k11.time, k21.time, k31.time);
+      math::SoaQuaternion& quat1 = soa_rotations_[i].value[1];
+      quat1.x = int_to_float * math::simd_float4::FromInt(math::simd_int4::Load(
+        k01.value[0], k11.value[0], k21.value[0], k31.value[0]));
+      quat1.y = int_to_float * math::simd_float4::FromInt(math::simd_int4::Load(
+        k01.value[1], k11.value[1], k21.value[1], k31.value[1]));
+      quat1.z = int_to_float * math::simd_float4::FromInt(math::simd_int4::Load(
+        k01.value[2], k11.value[2], k21.value[2], k31.value[2]));
+      // Get back sign of w component.
+      const math::SimdInt4 wsign1 = math::simd_int4::Load(
+        k01.wsign, k11.wsign, k21.wsign, k31.wsign);
+      // Get back length of w component. Favors performance over accuracy by
+      // using x * RSqrtEst(x) instead of Sqrt(x).
+      const math::SimdFloat4 ww1 = math::Max(eps,
+        one - (quat1.x * quat1.x + quat1.y * quat1.y + quat1.z * quat1.z));
+      const math::SimdFloat4 w1 = ww1 * math::RSqrtEst(ww1);
+      // Reapply w's sign.
+      quat1.w = math::Select(wsign1, w1, -w1);
     }
   }
 }
@@ -262,41 +279,35 @@ void UpdateSoaScales(int _num_soa_tracks,
       if (!(outdated & 1)) {
         continue;
       }
-      const int base = i * 4 * 2;
-      const int interp00 = _interp[base + 0];
-      const int interp01 = _interp[base + 1];
-      const int interp10 = _interp[base + 2];
-      const int interp11 = _interp[base + 3];
-      const int interp20 = _interp[base + 4];
-      const int interp21 = _interp[base + 5];
-      const int interp30 = _interp[base + 6];
-      const int interp31 = _interp[base + 7];
+      const int base = i * 4 * 2;  // * soa size * 2 keys
 
-      math::SimdFloat4 time0[4];
-      math::SimdFloat4 value0[4];
-      time0[0] = math::simd_float4::LoadXPtrU(&_keys.begin[interp00].time);
-      value0[0] = math::simd_float4::Load3PtrU(&_keys.begin[interp00].value.x);
-      time0[1] = math::simd_float4::LoadXPtrU(&_keys.begin[interp10].time);
-      value0[1] = math::simd_float4::Load3PtrU(&_keys.begin[interp10].value.x);
-      time0[2] = math::simd_float4::LoadXPtrU(&_keys.begin[interp20].time);
-      value0[2] = math::simd_float4::Load3PtrU(&_keys.begin[interp20].value.x);
-      time0[3] = math::simd_float4::LoadXPtrU(&_keys.begin[interp30].time);
-      value0[3] = math::simd_float4::Load3PtrU(&_keys.begin[interp30].value.x);
-      math::Transpose4x1(time0, &soa_scales_[i].time[0]);
-      math::Transpose4x3(value0, &soa_scales_[i].value[0].x);
+      // Decompress left side keyframes and store them in soa structures.
+      const ScaleKey& k00 = _keys.begin[_interp[base + 0]];
+      const ScaleKey& k10 = _keys.begin[_interp[base + 2]];
+      const ScaleKey& k20 = _keys.begin[_interp[base + 4]];
+      const ScaleKey& k30 = _keys.begin[_interp[base + 6]];
+      soa_scales_[i].time[0] = math::simd_float4::Load(
+        k00.time, k10.time, k20.time, k30.time);
+      soa_scales_[i].value[0].x = math::HalfToFloat(math::simd_int4::Load(
+        k00.value[0],k10.value[0], k20.value[0], k30.value[0]));
+      soa_scales_[i].value[0].y = math::HalfToFloat(math::simd_int4::Load(
+        k00.value[1], k10.value[1], k20.value[1], k30.value[1]));
+      soa_scales_[i].value[0].z = math::HalfToFloat(math::simd_int4::Load(
+        k00.value[2], k10.value[2], k20.value[2], k30.value[2]));
 
-      math::SimdFloat4 time1[4];
-      math::SimdFloat4 value1[4];
-      time1[0] = math::simd_float4::LoadXPtrU(&_keys.begin[interp01].time);
-      value1[0] = math::simd_float4::Load3PtrU(&_keys.begin[interp01].value.x);
-      time1[1] = math::simd_float4::LoadXPtrU(&_keys.begin[interp11].time);
-      value1[1] = math::simd_float4::Load3PtrU(&_keys.begin[interp11].value.x);
-      time1[2] = math::simd_float4::LoadXPtrU(&_keys.begin[interp21].time);
-      value1[2] = math::simd_float4::Load3PtrU(&_keys.begin[interp21].value.x);
-      time1[3] = math::simd_float4::LoadXPtrU(&_keys.begin[interp31].time);
-      value1[3] = math::simd_float4::Load3PtrU(&_keys.begin[interp31].value.x);
-      math::Transpose4x1(time1, &soa_scales_[i].time[1]);
-      math::Transpose4x3(value1, &soa_scales_[i].value[1].x);
+      // Decompress right side keyframes and store them in soa structures.
+      const ScaleKey& k01 = _keys.begin[_interp[base + 1]];
+      const ScaleKey& k11 = _keys.begin[_interp[base + 3]];
+      const ScaleKey& k21 = _keys.begin[_interp[base + 5]];
+      const ScaleKey& k31 = _keys.begin[_interp[base + 7]];
+      soa_scales_[i].time[1] = math::simd_float4::Load(
+        k01.time, k11.time, k21.time, k31.time);
+      soa_scales_[i].value[1].x = math::HalfToFloat(math::simd_int4::Load(
+        k01.value[0], k11.value[0], k21.value[0], k31.value[0]));
+      soa_scales_[i].value[1].y = math::HalfToFloat(math::simd_int4::Load(
+        k01.value[1], k11.value[1], k21.value[1], k31.value[1]));
+      soa_scales_[i].value[1].z = math::HalfToFloat(math::simd_int4::Load(
+        k01.value[2], k11.value[2], k21.value[2], k31.value[2]));
     }
   }
 }

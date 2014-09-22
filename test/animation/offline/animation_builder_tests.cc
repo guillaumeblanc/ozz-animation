@@ -39,6 +39,7 @@
 #include "ozz/animation/offline/raw_animation.h"
 
 #include "ozz/animation/runtime/animation.h"
+#include "ozz/animation/runtime/skeleton.h"
 #include "ozz/animation/runtime/sampling_job.h"
 
 using ozz::animation::Animation;
@@ -69,9 +70,31 @@ TEST(Error, AnimationBuilder) {
     EXPECT_TRUE(!builder(raw_animation));
   }
 
-  { // Building default animation of 1' succeeds.
+  { // Building an animation with too much tracks fails.
+    RawAnimation raw_animation;
+    raw_animation.duration = 1.f;
+    raw_animation.tracks.resize(ozz::animation::Skeleton::kMaxJoints + 1);
+    EXPECT_FALSE(raw_animation.Validate());
+
+    // Builds animation
+    EXPECT_TRUE(!builder(raw_animation));
+  }
+
+  { // Building default animation succeeds.
     RawAnimation raw_animation;
     EXPECT_EQ(raw_animation.duration, 1.f);
+    EXPECT_TRUE(raw_animation.Validate());
+
+    // Builds animation
+    Animation* anim = builder(raw_animation);
+    EXPECT_TRUE(anim != NULL);
+    ozz::memory::default_allocator()->Delete(anim);
+  }
+
+  { // Building an animation with max joints succeeds.
+    RawAnimation raw_animation;
+    raw_animation.tracks.resize(ozz::animation::Skeleton::kMaxJoints);
+    EXPECT_EQ(raw_animation.tracks.size(), ozz::animation::Skeleton::kMaxJoints);
     EXPECT_TRUE(raw_animation.Validate());
 
     // Builds animation

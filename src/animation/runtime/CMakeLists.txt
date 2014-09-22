@@ -2,9 +2,9 @@ add_library(ozz_animation
   ../../../include/ozz/animation/runtime/animation.h
   ../../../include/ozz/animation/runtime/animation_archive.h
   animation.cc
+  animation_keyframe.h
   ../../../include/ozz/animation/runtime/blending_job.h
   blending_job.cc
-  key_frame.h
   ../../../include/ozz/animation/runtime/local_to_model_job.h
   local_to_model_job.cc
   ../../../include/ozz/animation/runtime/sampling_job.h

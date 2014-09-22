@@ -43,9 +43,9 @@ namespace offline {
 
 // Setup default values (favoring quality).
 AnimationOptimizer::AnimationOptimizer()
-  : translation_tolerance(.1e-2f),  // 1 mm.
+  : translation_tolerance(1e-3f),  // 1 mm.
     rotation_tolerance(.1f * math::kPi / 180.f),  // 0.1 degree.
-    scale_tolerance(.1e-2f) {  // 0.1%.
+    scale_tolerance(1e-3f) {  // 0.1%.
 }
 
 namespace {
