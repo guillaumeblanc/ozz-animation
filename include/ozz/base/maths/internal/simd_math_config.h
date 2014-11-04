@@ -143,5 +143,4 @@ typedef const SimdInt4& _SimdInt4;
 }  // ozz
 
 #endif  // OZZ_HAS_x
-
 #endif  // OZZ_OZZ_BASE_MATHS_INTERNAL_SIMD_MATH_CONFIG_H_

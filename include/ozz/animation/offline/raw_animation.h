@@ -34,6 +34,7 @@
 #include "ozz/base/containers/vector.h"
 #include "ozz/base/maths/vec_float.h"
 #include "ozz/base/maths/quaternion.h"
+#include "ozz/base/io/archive_traits.h"
 
 namespace ozz {
 namespace animation {
@@ -129,5 +130,21 @@ struct RawAnimation {
 };
 }  // offline
 }  // animation
+namespace io {
+OZZ_IO_TYPE_VERSION(1, animation::offline::RawAnimation)
+OZZ_IO_TYPE_TAG("ozz-raw_animation", animation::offline::RawAnimation)
+
+// Should not be called directly but through io::Archive << and >> operators.
+template <>
+void Save(OArchive& _archive,
+          const animation::offline::RawAnimation* _animations,
+          size_t _count);
+
+template <>
+void Load(IArchive& _archive,
+          animation::offline::RawAnimation* _animations,
+          size_t _count,
+          uint32_t _version);
+}  // io
 }  // ozz
 #endif  // OZZ_OZZ_ANIMATION_OFFLINE_RAW_ANIMATION_H_

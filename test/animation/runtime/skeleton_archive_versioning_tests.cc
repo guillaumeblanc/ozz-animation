@@ -28,7 +28,7 @@
 //                                                                            //
 //============================================================================//
 
-#include "ozz/animation/runtime/skeleton_archive.h"
+#include "ozz/animation/runtime/skeleton.h"
 
 #include "gtest/gtest.h"
 

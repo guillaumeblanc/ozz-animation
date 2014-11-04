@@ -79,6 +79,7 @@ namespace internal {
 class Camera;
 class Shader;
 class SkeletonShader;
+class AmbientShader;
 class GlImmediateRenderer;
 
 // Implements Renderer interface.
@@ -107,6 +108,9 @@ class RendererImpl : public Renderer {
   virtual bool DrawBox(const ozz::math::Box& _box,
                        const ozz::math::Float4x4& _transform,
                        const Color _colors[2]);
+
+  virtual bool DrawMesh(const ozz::math::Float4x4& _transform,
+                        const Mesh& _mesh);
 
   // Get GL immediate renderer implementation;
   GlImmediateRenderer* immediate_renderer() const {
@@ -164,11 +168,17 @@ class RendererImpl : public Renderer {
   // Bone and joint model objects.
   Model models_[2];
 
-  // Dynamic vbo used for joint's pre-instance data.
-  GLuint joint_instance_vbo_;
+  // Dynamic vbo used for arrays.
+  GLuint dynamic_array_vbo_;
 
-  // Immediate renderer implementation;
+  // Dynamic vbo used for indices.
+  GLuint dynamic_index_vbo_;
+
+  // Immediate renderer implementation.
   GlImmediateRenderer* immediate_;
+
+  // Mesh rendering shader.
+  AmbientShader* mesh_shader_;
 };
 }  // internal
 }  // sample

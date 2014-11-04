@@ -14,4 +14,5 @@ add_subdirectory(../extern/gtest ./gtest)
 # Adds test file directories
 add_subdirectory(base)
 add_subdirectory(animation)
+add_subdirectory(geometry)
 add_subdirectory(options)

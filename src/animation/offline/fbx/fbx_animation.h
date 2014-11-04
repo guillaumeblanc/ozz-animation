@@ -35,7 +35,7 @@
 #error "This header is private, it cannot be included from public headers."
 #endif  // OZZ_INCLUDE_PRIVATE_HEADER
 
-#include "animation/offline/fbx/fbx_base.h"
+#include "ozz/animation/offline/fbx/fbx_base.h"
 
 namespace ozz {
 namespace animation {

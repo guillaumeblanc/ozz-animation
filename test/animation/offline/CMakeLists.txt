@@ -69,8 +69,8 @@ target_link_libraries(test_raw_animation_archive_versioning
   ozz_base
   gtest)
 set_target_properties(test_raw_animation_archive_versioning PROPERTIES FOLDER "ozz/tests/animation_offline")
-add_test(NAME test_raw_animation_archive_versioning_le COMMAND test_raw_animation_archive_versioning "--file=${ozz_media_directory}/bin/raw_animation_v1_le.ozz" "--tracks=67" "--duration=.66666698")
-add_test(NAME test_raw_animation_archive_versioning_be COMMAND test_raw_animation_archive_versioning "--file=${ozz_media_directory}/bin/raw_animation_v1_be.ozz" "--tracks=67" "--duration=.66666698")
+add_test(NAME test_raw_animation_archive_versioning_le COMMAND test_raw_animation_archive_versioning "--file=${ozz_media_directory}/bin/raw_animation_v1_le.ozz" "--tracks=67" "--duration=1.3333333")
+add_test(NAME test_raw_animation_archive_versioning_be COMMAND test_raw_animation_archive_versioning "--file=${ozz_media_directory}/bin/raw_animation_v1_be.ozz" "--tracks=67" "--duration=1.3333333")
 
 add_subdirectory(collada)
 add_subdirectory(fbx)

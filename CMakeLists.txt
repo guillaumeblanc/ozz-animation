@@ -5,7 +5,7 @@ project(ozz)
 
 # Current version
 set(CPACK_PACKAGE_VERSION_MAJOR 0)
-set(CPACK_PACKAGE_VERSION_MINOR 6)
+set(CPACK_PACKAGE_VERSION_MINOR 7)
 set(CPACK_PACKAGE_VERSION_PATCH 0)
 
 # Add project build options
@@ -45,6 +45,10 @@ endif()
 
 # Locates media directory.
 set(ozz_media_directory "${CMAKE_SOURCE_DIR}/media")
+
+# Creates temporary directory for tests inputs/outputs.
+set(ozz_temp_directory ${CMAKE_BINARY_DIR}/temp)
+file(MAKE_DIRECTORY ${ozz_temp_directory})
 
 # Includes the root of ozz includes
 include_directories(include)

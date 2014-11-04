@@ -28,8 +28,8 @@
 //                                                                            //
 //============================================================================//
 
-#ifndef OZZ_ANIMATION_RUNTIME_KEY_FRAME_H_
-#define OZZ_ANIMATION_RUNTIME_KEY_FRAME_H_
+#ifndef OZZ_ANIMATION_RUNTIME_ANIMATION_KEYFRAME_H_
+#define OZZ_ANIMATION_RUNTIME_ANIMATION_KEYFRAME_H_
 
 #ifndef OZZ_INCLUDE_PRIVATE_HEADER
 #error "This header is private, it cannot be included from public headers."
@@ -86,4 +86,4 @@ struct ScaleKey {
 };
 }  // animation
 }  // ozz
-#endif  // OZZ_ANIMATION_RUNTIME_KEY_FRAME_H_
+#endif  // OZZ_ANIMATION_RUNTIME_ANIMATION_KEYFRAME_H_

@@ -1,21 +1,23 @@
-# Creates temporary directory for tests inputs/outputs.
-set(ozz_temp_directory ${CMAKE_BINARY_DIR}/temp)
-file(MAKE_DIRECTORY ${ozz_temp_directory})
-
 # Creates a file with an invalid content.
 file(WRITE "${ozz_temp_directory}/content.bad" "bad content")
 
 # Run dae2skel failing tests
-add_test(NAME dae2skel_malformed_matrix COMMAND dae2skel "--file=${ozz_media_directory}/collada/malformed/malformed_matrix.dae" "--skeleton=${ozz_temp_directory}/malformed_matrix.ozz")
+add_test(NAME dae2skel_no_skeleton COMMAND dae2skel "--file=${ozz_media_directory}/collada/cube.dae" "--skeleton=${ozz_temp_directory}/should_not_exist.ozz")
+set_tests_properties(dae2skel_no_skeleton PROPERTIES WILL_FAIL true)
+add_test(NAME dae2skel_malformed_matrix COMMAND dae2skel "--file=${ozz_media_directory}/collada/malformed/malformed_matrix.dae" "--skeleton=${ozz_temp_directory}/should_not_exist.ozz")
 set_tests_properties(dae2skel_malformed_matrix PROPERTIES WILL_FAIL true)
-add_test(NAME dae2skel_malformed_translate COMMAND dae2skel "--file=${ozz_media_directory}/collada/malformed/malformed_translate.dae" "--skeleton=${ozz_temp_directory}/malformed_translate.ozz")
+add_test(NAME dae2skel_malformed_translate COMMAND dae2skel "--file=${ozz_media_directory}/collada/malformed/malformed_translate.dae" "--skeleton=${ozz_temp_directory}/should_not_exist.ozz")
 set_tests_properties(dae2skel_malformed_translate PROPERTIES WILL_FAIL true)
-add_test(NAME dae2skel_malformed_rotate COMMAND dae2skel "--file=${ozz_media_directory}/collada/malformed/malformed_rotate.dae" "--skeleton=${ozz_temp_directory}/malformed_rotate.ozz")
+add_test(NAME dae2skel_malformed_rotate COMMAND dae2skel "--file=${ozz_media_directory}/collada/malformed/malformed_rotate.dae" "--skeleton=${ozz_temp_directory}/should_not_exist.ozz")
 set_tests_properties(dae2skel_malformed_rotate PROPERTIES WILL_FAIL true)
-add_test(NAME dae2skel_malformed_scale COMMAND dae2skel "--file=${ozz_media_directory}/collada/malformed/malformed_scale.dae" "--skeleton=${ozz_temp_directory}/malformed_scale.ozz")
+add_test(NAME dae2skel_malformed_scale COMMAND dae2skel "--file=${ozz_media_directory}/collada/malformed/malformed_scale.dae" "--skeleton=${ozz_temp_directory}/should_not_exist.ozz")
 set_tests_properties(dae2skel_malformed_scale PROPERTIES WILL_FAIL true)
-add_test(NAME dae2skel_unsupported_skew COMMAND dae2skel "--file=${ozz_media_directory}/collada/malformed/unsupported_skew.dae" "--skeleton=${ozz_temp_directory}/unsupported_skew.ozz")
-set_tests_properties(dae2skel_unsupported_skew PROPERTIES WILL_FAIL true )
+add_test(NAME dae2skel_unsupported_skew COMMAND dae2skel "--file=${ozz_media_directory}/collada/malformed/unsupported_skew.dae" "--skeleton=${ozz_temp_directory}/should_not_exist.ozz")
+set_tests_properties(dae2skel_unsupported_skew PROPERTIES WILL_FAIL true)
+
+# Ensures nothing was outputted. Unfortunately there's no way to ensure this test is ran last
+add_test(NAME dae2skel_ouput COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/should_not_exist.ozz" "${ozz_temp_directory}/should_not_exist_too.ozz")
+set_tests_properties(dae2skel_ouput PROPERTIES WILL_FAIL true)
 
 # Run dae2skel passing tests
 add_test(NAME dae2skel_simple COMMAND dae2skel "--file=${ozz_media_directory}/collada/alain/skeleton.dae" "--skeleton=${ozz_temp_directory}/skeleton.ozz")
@@ -23,6 +25,16 @@ add_test(NAME dae2skel_simple_raw COMMAND dae2skel "--raw" "--file=${ozz_media_d
 add_test(NAME dae2skel_native COMMAND dae2skel "--file=${ozz_media_directory}/collada/alain/skeleton.dae" "--skeleton=${ozz_temp_directory}/skeleton_native.ozz" "--endian=native")
 add_test(NAME dae2skel_little COMMAND dae2skel "--file=${ozz_media_directory}/collada/alain/skeleton.dae" "--skeleton=${ozz_temp_directory}/skeleton_little.ozz" "--endian=little")
 add_test(NAME dae2skel_big COMMAND dae2skel "--file=${ozz_media_directory}/collada/alain/skeleton.dae" "--skeleton=${ozz_temp_directory}/skeleton_big.ozz" "--endian=big")
+
+
+# Run fbx2anim failing tests
+add_test(NAME dae2anim_badcontent COMMAND dae2anim "--file=${ozz_temp_directory}/content.bad" "--skeleton=${ozz_temp_directory}/skeleton.ozz" "--animation=${ozz_temp_directory}/should_not_exist.ozz")
+set_tests_properties(dae2anim_badcontent PROPERTIES DEPENDS dae2skel_simple)
+set_tests_properties(dae2anim_badcontent PROPERTIES WILL_FAIL true)
+
+# Ensures nothing was outputted. Unfortunately there's no way to ensure this test is ran last
+add_test(NAME dae2anim_ouput COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/should_not_exist.ozz" "${ozz_temp_directory}/should_not_exist_too.ozz")
+set_tests_properties(dae2anim_ouput PROPERTIES WILL_FAIL true)
 
 # Run dae2anim passing tests
 add_test(NAME dae2anim_simple COMMAND dae2anim "--file=${ozz_media_directory}/collada/alain/atlas.dae" "--skeleton=${ozz_temp_directory}/skeleton.ozz" "--animation=${ozz_temp_directory}/animation.ozz")

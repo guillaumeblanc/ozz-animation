@@ -97,30 +97,30 @@ bool BlendingJob::Validate() const {
 namespace {
 
 // Macro that defines the process of blending the 1st pass.
-#define OZZ_BLEND_1ST_PASS(_in, _simd_weight, _out) {\
-  _out->translation = _in.translation * _simd_weight;\
-  _out->rotation = _in.rotation * _simd_weight;\
-  _out->scale = _in.scale * _simd_weight;\
+#define OZZ_BLEND_1ST_PASS(_in, _simd_weight, _out) { \
+  _out->translation = _in.translation * _simd_weight; \
+  _out->rotation = _in.rotation * _simd_weight; \
+  _out->scale = _in.scale * _simd_weight; \
 }
 
 // Macro that defines the process of blending any pass but the first.
-#define OZZ_BLEND_N_PASS(_in, _simd_weight, _out) {\
-  /* Blends translation. */\
-  _out->translation = _out->translation + _in.translation * _simd_weight;\
-  /* Blends rotations, negates opposed quaternions to be sure to choose*/\
-  /* the shortest path between the two.*/\
-  const math::SimdFloat4 dot = _out->rotation.x * _in.rotation.x +\
-                               _out->rotation.y * _in.rotation.y +\
-                               _out->rotation.z * _in.rotation.z +\
-                               _out->rotation.w * _in.rotation.w;\
-  const math::SimdInt4 sign = math::Sign(dot);\
-  const math::SoaQuaternion rotation = {math::Xor(_in.rotation.x, sign),\
-                                        math::Xor(_in.rotation.y, sign),\
-                                        math::Xor(_in.rotation.z, sign),\
-                                        math::Xor(_in.rotation.w, sign)};\
-  _out->rotation = _out->rotation + rotation * _simd_weight;\
-  /* Blends scales.*/\
-  _out->scale = _out->scale + _in.scale * _simd_weight;\
+#define OZZ_BLEND_N_PASS(_in, _simd_weight, _out) { \
+  /* Blends translation. */ \
+  _out->translation = _out->translation + _in.translation * _simd_weight; \
+  /* Blends rotations, negates opposed quaternions to be sure to choose*/ \
+  /* the shortest path between the two.*/ \
+  const math::SimdFloat4 dot = _out->rotation.x * _in.rotation.x + \
+                               _out->rotation.y * _in.rotation.y + \
+                               _out->rotation.z * _in.rotation.z + \
+                               _out->rotation.w * _in.rotation.w; \
+  const math::SimdInt4 sign = math::Sign(dot); \
+  const math::SoaQuaternion rotation = {math::Xor(_in.rotation.x, sign), \
+                                        math::Xor(_in.rotation.y, sign), \
+                                        math::Xor(_in.rotation.z, sign), \
+                                        math::Xor(_in.rotation.w, sign)}; \
+  _out->rotation = _out->rotation + rotation * _simd_weight; \
+  /* Blends scales.*/ \
+  _out->scale = _out->scale + _in.scale * _simd_weight; \
 }
 
 // Defines parameters that are exchanged accross blending stages.
@@ -297,7 +297,7 @@ void BlendBindPose(ProcessArgs* _args) {
   }
 }
 
-// Normalizes output rotations. Quanternion length can not be zero as opposed
+// Normalizes output rotations. Quaternion length cannot be zero as opposed
 // quaternions have been fixed up during blending passes.
 // Translations and scales are already normalized because weights were
 // pre-multiplied by the normalization ratio.
@@ -311,8 +311,8 @@ void Normalize(ProcessArgs* _args) {
       math::simd_float4::Load1(1.f / _args->accumulated_weight);
     for (size_t i = 0; i < _args->num_soa_joints; ++i) {
       math::SoaTransform& dest = _args->job.output.begin[i];
-      dest.translation = dest.translation * ratio;
       dest.rotation = NormalizeEst(dest.rotation);
+      dest.translation = dest.translation * ratio;
       dest.scale = dest.scale * ratio;
     }
   } else {
@@ -321,8 +321,8 @@ void Normalize(ProcessArgs* _args) {
     for (size_t i = 0; i < _args->num_soa_joints; ++i) {
       const math::SimdFloat4 ratio = one / _args->accumulated_weights[i];
       math::SoaTransform& dest = _args->job.output.begin[i];
-      dest.translation = dest.translation * ratio;
       dest.rotation = NormalizeEst(dest.rotation);
+      dest.translation = dest.translation * ratio;
       dest.scale = dest.scale * ratio;
     }
   }

@@ -32,6 +32,7 @@
 #define OZZ_OZZ_ANIMATION_RUNTIME_SKELETON_H_
 
 #include "ozz/base/platform.h"
+#include "ozz/base/io/archive_traits.h"
 
 namespace ozz {
 namespace io { class IArchive; class OArchive; }
@@ -43,8 +44,7 @@ namespace offline { class SkeletonBuilder; }
 
 // This runtime skeleton data structure provides a const-only access to joint
 // hierarchy, joint names and bind-pose. This structure is filled by the
-// SkeletonBuilder and can be serialize/deserialized (requires inclusion of
-// skeleton_archive.h).
+// SkeletonBuilder and can be serialize/deserialized.
 // Joint names, bind-poses and hierarchy information are all stored in separate
 // arrays of data (as opposed to joint structures for the RawSkeleton), in order
 // to closely match with the way runtime algorithms use them. Joint hierarchy is
@@ -153,5 +153,10 @@ class Skeleton {
   int num_joints_;
 };
 }  // animation
+
+namespace io {
+OZZ_IO_TYPE_VERSION(1, animation::Skeleton)
+OZZ_IO_TYPE_TAG("ozz-skeleton", animation::Skeleton)
+}  // io
 }  // ozz
 #endif  // OZZ_OZZ_ANIMATION_RUNTIME_SKELETON_H_

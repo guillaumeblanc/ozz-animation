@@ -28,7 +28,7 @@
 //                                                                            //
 //============================================================================//
 
-#include "ozz/animation/runtime/animation_archive.h"
+#include "ozz/animation/runtime/animation.h"
 
 #include "gtest/gtest.h"
 

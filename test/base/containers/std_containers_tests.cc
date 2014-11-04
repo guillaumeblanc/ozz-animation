@@ -72,6 +72,14 @@ TEST(VectorExtensions, Containers) {
   EXPECT_EQ(*(array_end(container) - 2), 1);
   EXPECT_EQ(array_end(container) - array_begin(container), 2);
 
+  const Container::Std const_container(container);
+  EXPECT_EQ(*array_begin(const_container), 1);
+  EXPECT_EQ(*(array_begin(const_container) + 1), 2);
+  EXPECT_EQ(array_begin(const_container) + 2, array_end(const_container));
+  EXPECT_NE(array_end(const_container), null);
+  EXPECT_EQ(*(array_end(const_container) - 2), 1);
+  EXPECT_EQ(array_end(const_container) - array_begin(const_container), 2);
+
   // Mutable access.
   *array_begin(container) = 0;
   EXPECT_EQ(*array_begin(container), 0);

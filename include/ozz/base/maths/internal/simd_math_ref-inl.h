@@ -1621,6 +1621,26 @@ OZZ_INLINE Float4x4 Scale(const Float4x4& _m, _SimdFloat4 _v) {
   return ret;
 }
 
+OZZ_INLINE Float4x4 ColumnMultiply(const Float4x4& _m, _SimdFloat4 _v) {
+  const Float4x4 ret = {{{_m.cols[0].x * _v.x,
+                          _m.cols[0].y * _v.y,
+                          _m.cols[0].z * _v.z,
+                          _m.cols[0].w * _v.w},
+                         {_m.cols[1].x * _v.x,
+                          _m.cols[1].y * _v.y,
+                          _m.cols[1].z * _v.z,
+                          _m.cols[1].w * _v.w},
+                         {_m.cols[2].x * _v.x,
+                          _m.cols[2].y * _v.y,
+                          _m.cols[2].z * _v.z,
+                          _m.cols[2].w * _v.w},
+                         {_m.cols[3].x * _v.x,
+                          _m.cols[3].y * _v.y,
+                          _m.cols[3].z * _v.z,
+                          _m.cols[3].w * _v.w}}};
+  return ret;  
+}
+
 OZZ_INLINE SimdInt4 IsNormalized(const Float4x4& _m) {
   const SimdInt4 ret = {IsNormalized3(_m.cols[0]).x,
                         IsNormalized3(_m.cols[1]).x,
@@ -1873,6 +1893,44 @@ OZZ_INLINE Float4x4 Float4x4::FromAffine(_SimdFloat4 _translation,
                           _translation.y,
                           _translation.z,
                           1.f}}};
+  return ret;
+}
+
+OZZ_INLINE ozz::math::SimdFloat4 TransformPoint(
+  const ozz::math::Float4x4& _m, ozz::math::_SimdFloat4 _v) {
+  const ozz::math::SimdFloat4 ret = {_m.cols[0].x * _v.x +
+                                     _m.cols[1].x * _v.y +
+                                     _m.cols[2].x * _v.z +
+                                     _m.cols[3].x,
+                                     _m.cols[0].y * _v.x +
+                                     _m.cols[1].y * _v.y +
+                                     _m.cols[2].y * _v.z +
+                                     _m.cols[3].y,
+                                     _m.cols[0].z * _v.x +
+                                     _m.cols[1].z * _v.y +
+                                     _m.cols[2].z * _v.z +
+                                     _m.cols[3].z,
+                                     _m.cols[0].w * _v.x +
+                                     _m.cols[1].w * _v.y +
+                                     _m.cols[2].w * _v.z +
+                                     _m.cols[3].w};
+  return ret;
+}
+
+OZZ_INLINE ozz::math::SimdFloat4 TransformVector(
+  const ozz::math::Float4x4& _m, ozz::math::_SimdFloat4 _v) {
+  const ozz::math::SimdFloat4 ret = {_m.cols[0].x * _v.x +
+                                     _m.cols[1].x * _v.y +
+                                     _m.cols[2].x * _v.z,
+                                     _m.cols[0].y * _v.x +
+                                     _m.cols[1].y * _v.y +
+                                     _m.cols[2].y * _v.z,
+                                     _m.cols[0].z * _v.x +
+                                     _m.cols[1].z * _v.y +
+                                     _m.cols[2].z * _v.z,
+                                     _m.cols[0].w * _v.x +
+                                     _m.cols[1].w * _v.y +
+                                     _m.cols[2].w * _v.z};
   return ret;
 }
 }  // math

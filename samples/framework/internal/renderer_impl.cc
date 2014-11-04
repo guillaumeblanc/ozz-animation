@@ -52,6 +52,58 @@
 
 namespace ozz {
 namespace sample {
+
+Renderer::Mesh::Mesh(int _vertex_count, int _index_count) {
+  // 3 positions + 3 normals + 1 color
+  vertices_ =
+    memory::default_allocator()->AllocateRange<char>(
+      sizeof(uint32_t) * _vertex_count * 7);
+  indices_ =
+    memory::default_allocator()->AllocateRange<uint16_t>(_index_count);
+}
+
+Renderer::Mesh::~Mesh() {
+  memory::default_allocator()->Deallocate(vertices_);
+  memory::default_allocator()->Deallocate(indices_);
+}
+
+Renderer::Mesh::Vertices Renderer::Mesh::vertices() const {
+  const Vertices buffer = {vertices_, 7 * sizeof(uint32_t)};
+  return buffer;
+}
+
+Renderer::Mesh::Positions Renderer::Mesh::positions() const {
+  const Positions buffer = {
+    Positions::DataRange(
+      reinterpret_cast<float*>(vertices_.begin + 0),
+      reinterpret_cast<const float*>(vertices_.end - sizeof(uint32_t) * 4)),
+    7 * sizeof(uint32_t)};
+  return buffer;
+}
+
+Renderer::Mesh::Normals Renderer::Mesh::normals() const {
+  const Normals buffer = {
+    Normals::DataRange(
+      reinterpret_cast<float*>(vertices_.begin + sizeof(uint32_t) * 3),
+      reinterpret_cast<const float*>(vertices_.end - sizeof(uint32_t) * 1)),
+    7 * sizeof(uint32_t)};
+  return buffer;
+}
+
+Renderer::Mesh::Colors Renderer::Mesh::colors() const {
+  const Colors buffer = {
+    Colors::DataRange(
+      reinterpret_cast<Color*>(vertices_.begin + sizeof(uint32_t) * 6),
+      reinterpret_cast<const Color*>(vertices_.end - 0)),
+    7 * sizeof(uint32_t)};
+  return buffer;  
+}
+
+Renderer::Mesh::Indices Renderer::Mesh::indices() const {
+  Mesh::Indices buffer = {indices_, 1 * sizeof(uint16_t)};
+  return buffer;
+}
+
 namespace internal {
 
 namespace {
@@ -85,8 +137,10 @@ RendererImpl::RendererImpl(Camera* _camera)
     : camera_(_camera),
       max_skeleton_pieces_(animation::Skeleton::kMaxJoints * 2),
       prealloc_uniforms_(NULL),
-      joint_instance_vbo_(0),
-      immediate_(NULL) {
+      dynamic_array_vbo_(0),
+      dynamic_index_vbo_(0),
+      immediate_(NULL),
+      mesh_shader_(NULL) {
   prealloc_uniforms_ = reinterpret_cast<float*>(
     memory::default_allocator()->Allocate(
       max_skeleton_pieces_ * 16 * sizeof(float),
@@ -96,9 +150,14 @@ RendererImpl::RendererImpl(Camera* _camera)
 RendererImpl::~RendererImpl() {
   memory::default_allocator()->Deallocate(prealloc_models_);
 
-  if(joint_instance_vbo_) {
-    GL(DeleteBuffers(1, &joint_instance_vbo_));
-    joint_instance_vbo_ = 0;
+  if(dynamic_array_vbo_) {
+    GL(DeleteBuffers(1, &dynamic_array_vbo_));
+    dynamic_array_vbo_ = 0;
+  }
+
+  if(dynamic_index_vbo_) {
+    GL(DeleteBuffers(1, &dynamic_index_vbo_));
+    dynamic_index_vbo_ = 0;
   }
 
   memory::default_allocator()->Deallocate(prealloc_uniforms_);
@@ -106,6 +165,9 @@ RendererImpl::~RendererImpl() {
 
   memory::default_allocator()->Delete(immediate_);
   immediate_ = NULL;
+
+  memory::default_allocator()->Delete(mesh_shader_);
+  mesh_shader_ = NULL;
 }
 
 bool RendererImpl::Initialize() {
@@ -117,11 +179,18 @@ bool RendererImpl::Initialize() {
   }
 
   // Builds the dynamic vbo
-  GL(GenBuffers(1, &joint_instance_vbo_));
+  GL(GenBuffers(1, &dynamic_array_vbo_));
+  GL(GenBuffers(1, &dynamic_index_vbo_));
 
   // Allocate immediate mode renderer;
   immediate_ = memory::default_allocator()->New<GlImmediateRenderer>(this);
   if (!immediate_->Initialize()) {
+    return false;
+  }
+
+  // Instantiate mesh rendering shader.
+  mesh_shader_ = AmbientShader::Build();
+  if (!mesh_shader_) {
     return false;
   }
 
@@ -219,7 +288,7 @@ bool RendererImpl::DrawSkeleton(const ozz::animation::Skeleton& _skeleton,
   }
 
   // Reallocate matrix array if necessary.
-  if (prealloc_models_.Size() < num_joints) {
+  if (prealloc_models_.Size() < num_joints * sizeof(ozz::math::Float4x4)) {
     ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
     prealloc_models_ =
       allocator->AllocateRange<ozz::math::Float4x4>(_skeleton.num_joints());
@@ -456,7 +525,7 @@ void RendererImpl::DrawPosture_InstancedImpl(const ozz::math::Float4x4& _transfo
                                              int _instance_count,
                                              bool _draw_joints) {
   // Maps the dynamic buffer and update it.
-  GL(BindBuffer(GL_ARRAY_BUFFER, joint_instance_vbo_));
+  GL(BindBuffer(GL_ARRAY_BUFFER, dynamic_array_vbo_));
   const size_t vbo_size = _instance_count * 16 * sizeof(float);
   GL(BufferData(GL_ARRAY_BUFFER, vbo_size, prealloc_uniforms_, GL_STREAM_DRAW));
   GL(BindBuffer(GL_ARRAY_BUFFER, 0));
@@ -478,7 +547,7 @@ void RendererImpl::DrawPosture_InstancedImpl(const ozz::math::Float4x4& _transfo
 
     // Setup instanced GL context.
     const GLint joint_attrib = model.shader->joint_instanced_attrib();
-    GL(BindBuffer(GL_ARRAY_BUFFER, joint_instance_vbo_));
+    GL(BindBuffer(GL_ARRAY_BUFFER, dynamic_array_vbo_));
     GL(EnableVertexAttribArray(joint_attrib + 0));
     GL(EnableVertexAttribArray(joint_attrib + 1));
     GL(EnableVertexAttribArray(joint_attrib + 2));
@@ -596,12 +665,56 @@ bool RendererImpl::DrawBox(const ozz::math::Box& _box,
     // Link faces.
     im.PushVertex(v); v.pos[2] = _box.min.z; im.PushVertex(v);
     v.pos[1] = _box.max.y; im.PushVertex(v);
-    v.pos[2] = _box.max.z; im.PushVertex(v);    
+    v.pos[2] = _box.max.z; im.PushVertex(v);
     v.pos[0] = _box.max.x; im.PushVertex(v);
     v.pos[2] = _box.min.z; im.PushVertex(v);
     v.pos[1] = _box.min.y; im.PushVertex(v);
     v.pos[2] = _box.max.z; im.PushVertex(v);
   }
+
+  return true;
+}
+
+bool RendererImpl::DrawMesh(const ozz::math::Float4x4& _transform,
+                            const Mesh& _mesh) {
+  // Maps the vertex dynamic buffer and update it.
+  GL(BindBuffer(GL_ARRAY_BUFFER, dynamic_array_vbo_));
+  ozz::sample::Renderer::Mesh::Vertices vertices_buffer = _mesh.vertices();
+  const size_t array_vbo_size = vertices_buffer.data.Size();
+  GL(BufferData(GL_ARRAY_BUFFER,
+                array_vbo_size,
+                vertices_buffer.data.begin,
+                GL_STREAM_DRAW));
+  
+  // Binds shader with this array buffer.
+  const GLsizei stride = static_cast<GLsizei>(vertices_buffer.stride);
+  mesh_shader_->Bind(_transform,
+                     camera()->view_proj(),
+                     stride, sizeof(float) * 0,
+                     stride, sizeof(float) * 3,
+                     stride, sizeof(float) * 6);
+
+  GL(BindBuffer(GL_ARRAY_BUFFER, 0));
+
+  // Maps the index dynamic buffer and update it.
+  GL(BindBuffer(GL_ELEMENT_ARRAY_BUFFER, dynamic_index_vbo_));
+  ozz::sample::Renderer::Mesh::Indices indices_buffer = _mesh.indices();
+  const GLsizei index_vbo_size =
+    static_cast<GLsizei>(indices_buffer.data.Size());
+  GL(BufferData(GL_ELEMENT_ARRAY_BUFFER,
+                index_vbo_size,
+                indices_buffer.data.begin,
+                GL_STREAM_DRAW));
+
+  // Draws the mesh.
+  GL(DrawElements(GL_TRIANGLES,
+                  index_vbo_size / sizeof(uint16_t),
+                  GL_UNSIGNED_SHORT,
+                  0));
+
+  // Unbinds.
+  GL(BindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+  mesh_shader_->Unbind();
 
   return true;
 }
@@ -618,7 +731,7 @@ do {\
 
 bool RendererImpl::InitOpenGLExtensions() {
   bool optional_success = true;
-  bool success = true;  // aka mandatory extentions
+  bool success = true;  // aka mandatory extensions
 #ifdef OZZ_GL_VERSION_1_5_EXT
   OZZ_INIT_GL_EXT(glBindBuffer, PFNGLBINDBUFFERPROC, success);
   OZZ_INIT_GL_EXT(glDeleteBuffers, PFNGLDELETEBUFFERSPROC, success);

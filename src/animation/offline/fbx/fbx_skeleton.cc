@@ -47,6 +47,7 @@ bool RecurseNode(FbxNode* _node,
                  RawSkeleton::Joint*
                  _parent,
                  int _depth) {
+  bool skeleton_found = false;
   RawSkeleton::Joint* this_joint = NULL;
 
   // Push this node as a new joint if it has eSkeleton attribute.
@@ -55,6 +56,7 @@ bool RecurseNode(FbxNode* _node,
     FbxNodeAttribute::EType node_type = node_attribute->GetAttributeType();
     switch (node_type) {
       case FbxNodeAttribute::eSkeleton: {
+        skeleton_found = true;
         RawSkeleton::Joint::Children* children = NULL;
         if (_parent) {
           children = &_parent->children;
@@ -74,7 +76,7 @@ bool RecurseNode(FbxNode* _node,
         ozz::log::LogV() << this_joint->name.c_str() << std::endl;
 
         // Extract bind pose.
-        EvaluateDefaultLocalTransform(_node, &this_joint->transform);
+        EvaluateDefaultLocalTransform(_node, !_parent, &this_joint->transform);
 
         // One level deeper in the hierarchy.
         _depth++;
@@ -83,7 +85,7 @@ bool RecurseNode(FbxNode* _node,
         // Ends recursion if this is not a joint, but part of a skeleton
         // hierarchy.
         if (_parent) {
-          return true;
+          return skeleton_found;
         }
       }break;
     }
@@ -93,16 +95,19 @@ bool RecurseNode(FbxNode* _node,
   for (int i = 0; i < _node->GetChildCount(); i++)
   {
     FbxNode* child = _node->GetChild(i);
-    RecurseNode(child, _skeleton, this_joint, _depth);
+    skeleton_found |= RecurseNode(child, _skeleton, this_joint, _depth);
   }
-  return true;
+  return skeleton_found;
 }
 }
 
 bool ExtractSkeleton(FbxScene* _scene, RawSkeleton* _skeleton) {
-  return RecurseNode(_scene->GetRootNode(), _skeleton, NULL, 0);
+  if (!RecurseNode(_scene->GetRootNode(), _skeleton, NULL, 0)) {
+    ozz::log::Err() << "No skeleton found in Fbx scene." << std::endl;
+    return false;
+  }
+  return true;
 }
-
 }  // fbx
 }  // ozz
 }  // offline

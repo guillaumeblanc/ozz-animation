@@ -121,7 +121,7 @@ class GlImmediateRenderer {
   ImmediatePCShader* immediate_pc_shader;
   ImmediatePTCShader* immediate_ptc_shader;
 
-  // The renderer obbject.
+  // The renderer object.
   RendererImpl* renderer_;
 };
 
@@ -167,81 +167,6 @@ class GlImmediate {
   // Draw array mode GL_POINTS, GL_LINE_STRIP, ...
   GLenum mode_;
 };
-/*
-class GlImmediate {
- public:
-  GlImmediate(GlImmediateRenderer* _renderer);
-  ~GlImmediate();
-
-  // Immediate vertex formats.
-  // Like with gl immediate mode, calling Vertex* will push a new vertex with
-  // the current values for all components (uv, colors).
-  OZZ_INLINE void Vertex3f(float _x, float _y, float _z) {
-    vertex_.pos[0] = _x;
-    vertex_.pos[1] = _y;
-    vertex_.pos[2] = _z;
-    renderer_->PushVertex(vertex_);
-  }
-
-  OZZ_INLINE void Vertex2f(float _x, float _y) {
-    vertex_.pos[0] = _x;
-    vertex_.pos[1] = _y;
-    vertex_.pos[2] = 0.f;
-    renderer_->PushVertex(vertex_);
-  }
-
-  OZZ_INLINE void Vertex2i(int _x, int _y) {
-    vertex_.pos[0] = static_cast<float>(_x);
-    vertex_.pos[1] = static_cast<float>(_y);
-    vertex_.pos[2] = 0.f;
-    renderer_->PushVertex(vertex_);
-  }
-
-  OZZ_INLINE void Color4ub(GLubyte _r, GLubyte _g, GLubyte _b, GLubyte _a) {
-    vertex_.color[0] = _r;
-    vertex_.color[1] = _g;
-    vertex_.color[2] = _b;
-    vertex_.color[3] = _a;
-  }
-
-  OZZ_INLINE void Color3ub(GLubyte _r, GLubyte _g, GLubyte _b) {
-    vertex_.color[0] = _r;
-    vertex_.color[1] = _g;
-    vertex_.color[2] = _b;
-    vertex_.color[3] = 0xff;
-  }
-
-  OZZ_INLINE void Color4f(float _r, float _g, float _b, float _a) {
-    vertex_.color[0] = static_cast<GLubyte>(math::Clamp(0.f, _r, 1.f) * 255.f);
-    vertex_.color[1] = static_cast<GLubyte>(math::Clamp(0.f, _g, 1.f) * 255.f);
-    vertex_.color[2] = static_cast<GLubyte>(math::Clamp(0.f, _b, 1.f) * 255.f);
-    vertex_.color[3] = static_cast<GLubyte>(math::Clamp(0.f, _a, 1.f) * 255.f);
-  }
-
-  OZZ_INLINE void Color3f(float _r, float _g, float _b) {
-    vertex_.color[0] = static_cast<GLubyte>(math::Clamp(0.f, _r, 1.f) * 255.f);
-    vertex_.color[1] = static_cast<GLubyte>(math::Clamp(0.f, _g, 1.f) * 255.f);
-    vertex_.color[2] = static_cast<GLubyte>(math::Clamp(0.f, _b, 1.f) * 255.f);
-    vertex_.color[3] = 0xff;
-  }
-
-  OZZ_INLINE void TexCoord2f(float _u, float _v) {
-    vertex_.uv[0] = _u;
-    vertex_.uv[1] = _v;
-  }
-
- private:
-  // Non copyable.
-  GlImmediate(const GlImmediate&);
-  void operator=(const GlImmediate&);
-
-  // Shared renderer.
-  GlImmediateRenderer* renderer_;
-
-  // Current immediate mode vertex.
-  GlImmediateRenderer::Vertex vertex_;
-};
-*/
 }  // internal
 }  // sample
 }  // ozz

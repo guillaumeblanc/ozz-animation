@@ -36,11 +36,11 @@
 #include "ozz/animation/offline/animation_builder.h"
 #include "ozz/animation/offline/animation_optimizer.h"
 #include "ozz/animation/offline/skeleton_builder.h"
-#include "ozz/animation/offline/raw_animation_archive.h"
-#include "ozz/animation/offline/raw_skeleton_archive.h"
+#include "ozz/animation/offline/raw_animation.h"
+#include "ozz/animation/offline/raw_skeleton.h"
 
-#include "ozz/animation/runtime/skeleton_archive.h"
-#include "ozz/animation/runtime/animation_archive.h"
+#include "ozz/animation/runtime/skeleton.h"
+#include "ozz/animation/runtime/animation.h"
 
 #include "ozz/base/io/archive.h"
 #include "ozz/base/io/stream.h"
@@ -284,10 +284,12 @@ int AnimationConverter::operator()(int _argc, const char** _argv) {
     // the end of this scope.
     // Once the file is opened, nothing should fail as it would leave an invalid
     // file on the disk.
-    ozz::log::Log() << "Opens output file: " << OPTIONS_animation << std::endl;
+    ozz::log::Log() << "Opens output file: " <<
+      OPTIONS_animation.value() << std::endl;
     ozz::io::File file(OPTIONS_animation, "wb");
     if (!file.opened()) {
-      ozz::log::Err() << "Failed to open output file: " << OPTIONS_animation << std::endl;
+      ozz::log::Err() << "Failed to open output file: " <<
+        OPTIONS_animation.value() << std::endl;
       ozz::memory::default_allocator()->Delete(animation);
       return EXIT_FAILURE;
     }

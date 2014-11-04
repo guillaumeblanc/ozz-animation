@@ -28,18 +28,13 @@
 //                                                                            //
 //============================================================================//
 
-#ifndef OZZ_ANIMATION_OFFLINE_FBX_FBX_BASE_H_
-#define OZZ_ANIMATION_OFFLINE_FBX_FBX_BASE_H_
-
-#ifndef OZZ_INCLUDE_PRIVATE_HEADER
-#error "This header is private, it cannot be included from public headers."
-#endif  // OZZ_INCLUDE_PRIVATE_HEADER
+#ifndef OZZ_OZZ_ANIMATION_OFFLINE_FBX_FBX_BASE_H_
+#define OZZ_OZZ_ANIMATION_OFFLINE_FBX_FBX_BASE_H_
 
 #include <fbxsdk.h>
 
 namespace ozz {
 namespace math {
-struct Quaternion;
 struct Transform;
 }  // math
 namespace animation {
@@ -113,14 +108,29 @@ class FbxSceneLoader {
     return scene_;
   }
 
+  FbxAxisSystem ozz_axis_system() const;
+  FbxSystemUnit ozz_system_unit() const;
+
+  FbxAxisSystem original_axis_system() const {
+    return original_axis_system_;
+  }
+  FbxSystemUnit original_system_unit() const {
+    return original_system_unit_;
+  }
+
 private:
 
   // Scene instance that was loaded from the file.
   FbxScene* scene_;
+
+  // Original axis and unit systems.
+  FbxAxisSystem original_axis_system_;
+  FbxSystemUnit original_system_unit_;
 };
 
 // Evaluates default local transformation from a FbxNode
 bool EvaluateDefaultLocalTransform(FbxNode* _node,
+                                   bool _root,
                                    ozz::math::Transform* _transform);
 
 // Convert a FbxAMatrix to ozz Transform object.
@@ -130,4 +140,4 @@ bool FbxAMatrixToTransform(const FbxAMatrix& _matrix,
 }  // offline
 }  // animation
 }  // ozz
-#endif  // OZZ_ANIMATION_OFFLINE_FBX_FBX_BASE_H_
+#endif  // OZZ_OZZ_ANIMATION_OFFLINE_FBX_FBX_BASE_H_

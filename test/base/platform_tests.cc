@@ -110,19 +110,29 @@ TEST(ArraySize, Platform) {
 
 TEST(Range, Memory) {
   int ai[46];
-  const int array_size = OZZ_ARRAY_SIZE(ai);
+  const size_t array_size = OZZ_ARRAY_SIZE(ai);
 
   ozz::Range<int> empty;
   EXPECT_TRUE(empty.begin == NULL);
   EXPECT_TRUE(empty.end == NULL);
-  EXPECT_EQ(empty.Size(), 0);
+  EXPECT_EQ(empty.Count(), 0u);
+  EXPECT_EQ(empty.Size(), 0u);
 
   EXPECT_ASSERTION(empty[46], "Index out of range");
 
   ozz::Range<int> cs1(ai, ai + array_size);
   EXPECT_EQ(cs1.begin, ai);
   EXPECT_EQ(cs1.end, ai + array_size);
-  EXPECT_EQ(cs1.Size(), array_size);
+  EXPECT_EQ(cs1.Count(), array_size);
+  EXPECT_EQ(cs1.Size(), sizeof(ai));
+
+  // Re-inint
+  ozz::Range<int> reinit;
+  reinit = ai;
+  EXPECT_EQ(reinit.begin, ai);
+  EXPECT_EQ(reinit.end, ai + array_size);
+  EXPECT_EQ(reinit.Count(), array_size);
+  EXPECT_EQ(reinit.Size(), sizeof(ai));
 
   cs1[12] = 46;
   EXPECT_EQ(cs1[12], 46);
@@ -131,12 +141,14 @@ TEST(Range, Memory) {
   ozz::Range<int> cs2(ai, array_size);
   EXPECT_EQ(cs2.begin, ai);
   EXPECT_EQ(cs2.end, ai + array_size);
-  EXPECT_EQ(cs2.Size(), array_size);
+  EXPECT_EQ(cs2.Count(), array_size);
+  EXPECT_EQ(cs2.Size(), sizeof(ai));
 
   ozz::Range<int> carray(ai);
   EXPECT_EQ(carray.begin, ai);
   EXPECT_EQ(carray.end, ai + array_size);
-  EXPECT_EQ(carray.Size(), array_size);
+  EXPECT_EQ(carray.Count(), array_size);
+  EXPECT_EQ(carray.Size(), sizeof(ai));
 
   ozz::Range<int> copy(cs2);
   EXPECT_EQ(cs2.begin, copy.begin);

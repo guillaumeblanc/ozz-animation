@@ -31,8 +31,8 @@
 #define OZZ_INCLUDE_PRIVATE_HEADER  // Allows to include private headers.
 
 #include "ozz/animation/offline/fbx/fbx.h"
+#include "ozz/animation/offline/fbx/fbx_base.h"
 
-#include "fbx_base.h"
 #include "fbx_skeleton.h"
 #include "fbx_animation.h"
 

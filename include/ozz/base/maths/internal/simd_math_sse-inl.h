@@ -248,7 +248,7 @@ OZZ_INLINE void Store2Ptr(_SimdFloat4 _v, float* _f) {
 
 OZZ_INLINE void Store3Ptr(_SimdFloat4 _v, float* _f) {
   assert(!(reinterpret_cast<uintptr_t>(_f) & 0xf) && "Invalid alignment");
-  _mm_storel_epi64(reinterpret_cast<__m128i*>(_f), _mm_castps_si128(_v));
+  _mm_storel_pi(reinterpret_cast<__m64*>(_f), _v);
   _mm_store_ss(_f + 2, _mm_movehl_ps(_v, _v));
 }
 
@@ -1453,6 +1453,14 @@ OZZ_INLINE Float4x4 Scale(const Float4x4& _m, _SimdFloat4 _v) {
   return ret;
 }
 
+OZZ_INLINE Float4x4 ColumnMultiply(const Float4x4& _m, _SimdFloat4 _v) {
+  const Float4x4 ret = {{_mm_mul_ps(_m.cols[0], _v),
+                         _mm_mul_ps(_m.cols[1], _v),
+                         _mm_mul_ps(_m.cols[2], _v),
+                         _mm_mul_ps(_m.cols[3], _v)}};
+  return ret;  
+}
+
 OZZ_INLINE SimdInt4 IsNormalized(const Float4x4& _m) {
   const __m128 max = _mm_set_ps1(1.f + kNormalizationTolerance);
   const __m128 min = _mm_set_ps1(1.f - kNormalizationTolerance);
@@ -1827,6 +1835,31 @@ OZZ_INLINE Float4x4 Float4x4::FromAffine(_SimdFloat4 _translation,
     _mm_movelh_ps(_translation, _mm_unpackhi_ps(_translation, c1110))}};
   return ret;
 }
+
+OZZ_INLINE ozz::math::SimdFloat4 TransformPoint(
+  const ozz::math::Float4x4& _m, ozz::math::_SimdFloat4 _v) {
+  const __m128 vxxxx = OZZ_SSE_SPLAT_F(_v, 0);
+  const __m128 vyyyy = OZZ_SSE_SPLAT_F(_v, 1);
+  const __m128 vzzzz = OZZ_SSE_SPLAT_F(_v, 2);
+  const __m128 m0 = _mm_mul_ps(_m.cols[0], vxxxx);
+  const __m128 m1 = _mm_mul_ps(_m.cols[1], vyyyy);
+  const __m128 m2 = _mm_mul_ps(_m.cols[2], vzzzz);
+  const __m128 a01 = _mm_add_ps(m0, m1);
+  const __m128 a23 = _mm_add_ps(m2, _m.cols[3]);
+  return _mm_add_ps(a01, a23);
+}
+
+OZZ_INLINE ozz::math::SimdFloat4 TransformVector(
+  const ozz::math::Float4x4& _m, ozz::math::_SimdFloat4 _v) {
+  const __m128 vxxxx = OZZ_SSE_SPLAT_F(_v, 0);
+  const __m128 vyyyy = OZZ_SSE_SPLAT_F(_v, 1);
+  const __m128 vzzzz = OZZ_SSE_SPLAT_F(_v, 2);
+  const __m128 m0 = _mm_mul_ps(_m.cols[0], vxxxx);
+  const __m128 m1 = _mm_mul_ps(_m.cols[1], vyyyy);
+  const __m128 m2 = _mm_mul_ps(_m.cols[2], vzzzz);
+  const __m128 a01 = _mm_add_ps(m0, m1);
+  return _mm_add_ps(a01, m2);
+}
 }  // math
 }  // ozz
 
@@ -1867,8 +1900,8 @@ OZZ_INLINE ozz::math::SimdFloat4 operator*(
   const __m128 a01 = _mm_add_ps(m0, m1);
   const __m128 m2 = _mm_mul_ps(_m.cols[2], vzzzz);
   const __m128 m3 = _mm_mul_ps(_m.cols[3], vwwww);
-  const __m128 a23 = _mm_add_ps(m2, m3);
-  return _mm_add_ps(a01, a23);
+  const __m128 a012 = _mm_add_ps(a01, m2);
+  return _mm_add_ps(a012, m3);
 }
 
 OZZ_INLINE ozz::math::Float4x4 operator*(
@@ -1884,8 +1917,8 @@ OZZ_INLINE ozz::math::Float4x4 operator*(
     const __m128 a01 = _mm_add_ps(m0, m1);
     const __m128 m2 = _mm_mul_ps(_a.cols[2], vzzzz);
     const __m128 m3 = _mm_mul_ps(_a.cols[3], vwwww);
-    const __m128 a23 = _mm_add_ps(m2, m3);
-    ret.cols[0] = _mm_add_ps(a01, a23);
+    const __m128 a012 = _mm_add_ps(a01, m2);
+    ret.cols[0] = _mm_add_ps(a012, m3);
   }
   {
     const __m128 vxxxx = OZZ_SSE_SPLAT_F(_b.cols[1], 0);
@@ -1897,8 +1930,8 @@ OZZ_INLINE ozz::math::Float4x4 operator*(
     const __m128 a01 = _mm_add_ps(m0, m1);
     const __m128 m2 = _mm_mul_ps(_a.cols[2], vzzzz);
     const __m128 m3 = _mm_mul_ps(_a.cols[3], vwwww);
-    const __m128 a23 = _mm_add_ps(m2, m3);
-    ret.cols[1] = _mm_add_ps(a01, a23);
+    const __m128 a012 = _mm_add_ps(a01, m2);
+    ret.cols[1] = _mm_add_ps(a012, m3);
   }
   {
     const __m128 vxxxx = OZZ_SSE_SPLAT_F(_b.cols[2], 0);
@@ -1910,8 +1943,8 @@ OZZ_INLINE ozz::math::Float4x4 operator*(
     const __m128 a01 = _mm_add_ps(m0, m1);
     const __m128 m2 = _mm_mul_ps(_a.cols[2], vzzzz);
     const __m128 m3 = _mm_mul_ps(_a.cols[3], vwwww);
-    const __m128 a23 = _mm_add_ps(m2, m3);
-    ret.cols[2] = _mm_add_ps(a01, a23);
+    const __m128 a012 = _mm_add_ps(a01, m2);
+    ret.cols[2] = _mm_add_ps(a012, m3);
   }
   {
     const __m128 vxxxx = OZZ_SSE_SPLAT_F(_b.cols[3], 0);
@@ -1923,8 +1956,8 @@ OZZ_INLINE ozz::math::Float4x4 operator*(
     const __m128 a01 = _mm_add_ps(m0, m1);
     const __m128 m2 = _mm_mul_ps(_a.cols[2], vzzzz);
     const __m128 m3 = _mm_mul_ps(_a.cols[3], vwwww);
-    const __m128 a23 = _mm_add_ps(m2, m3);
-    ret.cols[3] = _mm_add_ps(a01, a23);
+    const __m128 a012 = _mm_add_ps(a01, m2);
+    ret.cols[3] = _mm_add_ps(a012, m3);
   }
   return ret;
 }

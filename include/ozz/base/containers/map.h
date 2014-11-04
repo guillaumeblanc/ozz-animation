@@ -37,6 +37,7 @@
 #endif  // _MSC_VER
 
 #include <map>
+#include <cstring>
 
 #ifdef _MSC_VER
 #pragma warning(pop)
@@ -53,6 +54,21 @@ template <class _Key,
           class _Allocator = ozz::StdAllocator<std::pair<const _Key, _Ty> > >
 struct Map {
   typedef std::map<_Key, _Ty, _Pred, _Allocator> Std;
+};
+
+// Implements a string comparator that can be used by std algorithm like maps.
+struct str_less {
+  bool operator()(const char* const& _left, const char* const& _right) const {
+    return strcmp(_left, _right) < 0;
+  }
+};
+
+// Specializes std::map to use c-string as a key.
+template <
+  class _Ty,
+  class _Allocator = ozz::StdAllocator<std::pair<const char*, _Ty> > >
+struct CStringMap {
+  typedef std::map<const char*, _Ty, str_less, _Allocator> Std;
 };
 
 // Redirects std::multimap to ozz::MultiMap in order to replace std default

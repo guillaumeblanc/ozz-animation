@@ -141,8 +141,7 @@ TEST(JobValidity, LocalToModel) {
     job.skeleton = skeleton;
     job.input.begin = input;
     job.input.end = input;
-    job.output.begin = output;
-    job.output.end = output + 4;
+    job.output = output;
     EXPECT_FALSE(job.Validate());
     EXPECT_FALSE(job.Run());
   }
@@ -150,8 +149,7 @@ TEST(JobValidity, LocalToModel) {
   {
     LocalToModelJob job;
     job.skeleton = skeleton;
-    job.input.begin = input;
-    job.input.end = input + 1;
+    job.input = input;
     job.output.begin = output;
     job.output.end = output + 2;
     EXPECT_TRUE(job.Validate());
@@ -173,10 +171,8 @@ TEST(JobValidity, LocalToModel) {
   {
     LocalToModelJob job;
     job.skeleton = skeleton;
-    job.input.begin = input;
-    job.input.end = input + 2;
-    job.output.begin = output;
-    job.output.end = output + 5;
+    job.input = input;
+    job.output = output;
     EXPECT_TRUE(job.Validate());
     EXPECT_TRUE(job.Run());
   }

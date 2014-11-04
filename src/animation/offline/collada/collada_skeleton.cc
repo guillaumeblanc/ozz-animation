@@ -241,6 +241,13 @@ bool CopyHierachy(const ColladaJoint& _src,
 
 bool ExtractSkeleton(const SkeletonVisitor& _skeleton_visitor,
                      RawSkeleton* _skeleton) {
+  // Fails if no skeleton found.
+  if (_skeleton_visitor.roots().size() == 0) {
+    ozz::log::Err() << "No skeleton found in Collada document." << std::endl;
+    return false;
+  }
+
+  // Fills skeleton structure.
   _skeleton->roots.resize(_skeleton_visitor.roots().size());
   for (size_t i = 0; i < _skeleton_visitor.roots().size(); ++i) {
     if (!CopyHierachy(_skeleton_visitor.roots()[i],

@@ -30,7 +30,7 @@
 
 #define OZZ_INCLUDE_PRIVATE_HEADER  // Allows to include private headers.
 
-#include "animation/offline/fbx/fbx_base.h"
+#include "ozz/animation/offline/fbx/fbx_base.h"
 
 #include "ozz/base/log.h"
 
@@ -60,12 +60,6 @@ FbxManagerInstance::~FbxManagerInstance() {
 FbxDefaultIOSettings::FbxDefaultIOSettings(const FbxManagerInstance& _manager)
     : io_settings_(NULL) {
   io_settings_ = FbxIOSettings::Create(_manager, IOSROOT);
-  io_settings_->SetBoolProp(IMP_FBX_MATERIAL, false);
-  io_settings_->SetBoolProp(EXP_FBX_TEXTURE, false);
-  io_settings_->SetBoolProp(EXP_FBX_MODEL, false);
-  io_settings_->SetBoolProp(EXP_FBX_SHAPE, false);
-  io_settings_->SetBoolProp(IMP_FBX_LINK, false);
-  io_settings_->SetBoolProp(IMP_FBX_GOBO, false);
 }
 
 FbxDefaultIOSettings::~FbxDefaultIOSettings() {
@@ -75,10 +69,22 @@ FbxDefaultIOSettings::~FbxDefaultIOSettings() {
 
 FbxAnimationIOSettings::FbxAnimationIOSettings(const FbxManagerInstance& _manager)
     : FbxDefaultIOSettings(_manager) {
+  settings()->SetBoolProp(IMP_FBX_MATERIAL, false);
+  settings()->SetBoolProp(EXP_FBX_TEXTURE, false);
+  settings()->SetBoolProp(EXP_FBX_MODEL, false);
+  settings()->SetBoolProp(EXP_FBX_SHAPE, false);
+  settings()->SetBoolProp(IMP_FBX_LINK, false);
+  settings()->SetBoolProp(IMP_FBX_GOBO, false);
 }
 
 FbxSkeletonIOSettings::FbxSkeletonIOSettings(const FbxManagerInstance& _manager)
     : FbxDefaultIOSettings(_manager) {
+  settings()->SetBoolProp(IMP_FBX_MATERIAL, false);
+  settings()->SetBoolProp(EXP_FBX_TEXTURE, false);
+  settings()->SetBoolProp(EXP_FBX_MODEL, false);
+  settings()->SetBoolProp(EXP_FBX_SHAPE, false);
+  settings()->SetBoolProp(IMP_FBX_LINK, false);
+  settings()->SetBoolProp(IMP_FBX_GOBO, false);
   settings()->SetBoolProp(IMP_FBX_ANIMATION, false);
 }
 
@@ -86,7 +92,9 @@ FbxSceneLoader::FbxSceneLoader(const char* _filename,
                                const char* _password,
                                const FbxManagerInstance& _manager,
                                const FbxDefaultIOSettings& _io_settings)
-    : scene_(NULL) {
+    : scene_(NULL),
+    original_axis_system_(),
+    original_system_unit_() {
   // Create an importer.
   FbxImporter* importer = FbxImporter::Create(_manager,"ozz importer");
 
@@ -135,28 +143,28 @@ FbxSceneLoader::FbxSceneLoader(const char* _filename,
         ozz::log::Err() << "Incorrect password." << std::endl;
       }
     }
+    
+    // Get original axis and unit systems before doing the conversion.
+    FbxGlobalSettings& settings = scene_->GetGlobalSettings();
+    original_axis_system_ = settings.GetAxisSystem();
+    original_system_unit_ = settings.GetSystemUnit();
+
+    // Convert scene to ozz axis system (Right-handed, Y-up).
+    const FbxAxisSystem ozz_axis = ozz_axis_system();
+    if (ozz_axis != original_axis_system_) {
+      ozz_axis.ConvertScene(scene_);
+    }
+
+    // Convert scene to ozz unit system (meters).
+    const FbxSystemUnit ozz_unit  = ozz_system_unit();
+    if (ozz_unit != original_system_unit_) {
+      ozz_unit.ConvertScene(scene_);
+    }
 
     // Clear the scene if import failed.
     if (!imported) {
       scene_->Destroy();
       scene_ = NULL;
-    }
-
-    // Convert scene to ozz axis system (Right-handed, Y-up).
-    FbxGlobalSettings& settings = scene_->GetGlobalSettings();
-    const FbxAxisSystem scene_axis = settings.GetAxisSystem();
-    const FbxAxisSystem ozz_axis(FbxAxisSystem::eYAxis,
-                                 FbxAxisSystem::eParityOdd,
-                                 FbxAxisSystem::eRightHanded);
-    if (ozz_axis != scene_axis) {
-      ozz_axis.ConvertScene(scene_);
-    }
-
-    // Convert scene to ozz unit system (meters).
-    const FbxSystemUnit scene_unit = settings.GetSystemUnit();
-    const FbxSystemUnit ozz_unit  = FbxSystemUnit::m;
-    if (ozz_unit != scene_unit) {
-      ozz_unit.ConvertScene(scene_);
     }
   }
 
@@ -171,9 +179,28 @@ FbxSceneLoader::~FbxSceneLoader() {
   }
 }
 
+FbxAxisSystem FbxSceneLoader::ozz_axis_system() const {
+  const FbxAxisSystem ozz_axis(FbxAxisSystem::eYAxis,
+                               FbxAxisSystem::eParityOdd,
+                               FbxAxisSystem::eRightHanded);
+  return ozz_axis;
+}
+
+FbxSystemUnit FbxSceneLoader::ozz_system_unit() const {
+  return FbxSystemUnit::m;
+}
+
 bool EvaluateDefaultLocalTransform(FbxNode* _node,
+                                   bool _root,
                                    ozz::math::Transform* _transform) {
-  return FbxAMatrixToTransform(_node->EvaluateLocalTransform(), _transform);
+  FbxAMatrix matrix;
+  if (_root) {
+    matrix = _node->EvaluateGlobalTransform();
+  } else {
+    matrix = _node->EvaluateLocalTransform();
+  }
+
+  return FbxAMatrixToTransform(matrix, _transform);
 }
 
 bool FbxAMatrixToTransform(const FbxAMatrix& _matrix,

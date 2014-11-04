@@ -64,11 +64,8 @@ void Animation::Destroy() {
 }
 
 size_t Animation::size() const {
-  const ptrdiff_t size =
-    sizeof(*this) +
-    (translations_.Size()) * sizeof(TranslationKey) +
-    (rotations_.Size()) * sizeof(RotationKey) +
-    (scales_.Size()) * sizeof(ScaleKey);
+  const size_t size =
+    sizeof(*this) + translations_.Size() + rotations_.Size() + scales_.Size();
   return size;
 }
 
@@ -76,7 +73,7 @@ void Animation::Save(ozz::io::OArchive& _archive) const {
   _archive << duration_;
   _archive << static_cast<int32_t>(num_tracks_);
 
-  const ptrdiff_t translation_count = translations_.Size();
+  const ptrdiff_t translation_count = translations_.Count();
   _archive << static_cast<int32_t>(translation_count);
   for (ptrdiff_t i = 0; i < translation_count; ++i) {
     const TranslationKey& key = translations_.begin[i];
@@ -85,7 +82,7 @@ void Animation::Save(ozz::io::OArchive& _archive) const {
     _archive << ozz::io::MakeArray(key.value);
   }
 
-  const ptrdiff_t rotation_count = rotations_.Size();
+  const ptrdiff_t rotation_count = rotations_.Count();
   _archive << static_cast<int32_t>(rotation_count);
   for (ptrdiff_t i = 0; i < rotation_count; ++i) {
     const RotationKey& key = rotations_.begin[i];
@@ -97,7 +94,7 @@ void Animation::Save(ozz::io::OArchive& _archive) const {
     _archive << ozz::io::MakeArray(key.value);
   }
 
-  const ptrdiff_t scale_count = scales_.Size();
+  const ptrdiff_t scale_count = scales_.Count();
   _archive << static_cast<int32_t>(scale_count);
   for (ptrdiff_t i = 0; i < scale_count; ++i) {
     const ScaleKey& key = scales_.begin[i];

@@ -9,7 +9,7 @@ if(CMAKE_CROSSCOMPILING)
 endif()
 
 # Default time for testing samples.
-set(SAMPLE_TESTING_LOOPS "4")
+set(SAMPLE_TESTING_LOOPS "20")
 
 # Disables sample rending if testing from the dashboard.
 if(ozz_run_tests_headless)
@@ -20,11 +20,12 @@ endif()
 include_directories(./)
 
 # Adds samples and helper libraries.
-add_subdirectory(framework)
-add_subdirectory(millipede)
-add_subdirectory(optimize)
 add_subdirectory(attach)
 add_subdirectory(blend)
-add_subdirectory(partial_blend)
+add_subdirectory(framework)
+add_subdirectory(millipede)
 add_subdirectory(multithread)
+add_subdirectory(optimize)
+add_subdirectory(partial_blend)
 add_subdirectory(playback)
+add_subdirectory(skin)

@@ -28,7 +28,7 @@
 //                                                                            //
 //============================================================================//
 
-#include "ozz/animation/offline/raw_animation_archive.h"
+#include "ozz/animation/offline/raw_animation.h"
 
 #include "gtest/gtest.h"
 

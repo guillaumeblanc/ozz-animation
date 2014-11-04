@@ -1,6 +1,5 @@
 add_library(ozz_animation
   ../../../include/ozz/animation/runtime/animation.h
-  ../../../include/ozz/animation/runtime/animation_archive.h
   animation.cc
   animation_keyframe.h
   ../../../include/ozz/animation/runtime/blending_job.h
@@ -10,7 +9,6 @@ add_library(ozz_animation
   ../../../include/ozz/animation/runtime/sampling_job.h
   sampling_job.cc
   ../../../include/ozz/animation/runtime/skeleton.h
-  ../../../include/ozz/animation/runtime/skeleton_archive.h
   ../../../include/ozz/animation/runtime/skeleton_utils.h
   skeleton.cc
   skeleton_utils.cc)

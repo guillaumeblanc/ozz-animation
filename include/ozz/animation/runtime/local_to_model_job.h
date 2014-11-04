@@ -1,4 +1,4 @@
-//============================================================================//
+  //============================================================================//
 //                                                                            //
 // ozz-animation, 3d skeletal animation libraries and tools.                  //
 // https://code.google.com/p/ozz-animation/                                   //
@@ -45,6 +45,14 @@ namespace animation {
 class Skeleton;
 
 // Computes model-space joint matrices from local-space SoaTransform.
+// This job uses the skeleton to define joints parent-child hierarchy. The job
+// iterates through all joints to compute their transform relatively to the
+// skeleton root.
+// Job inputs is an array of SoaTransform objects (in local-space), ordered like
+// skeleton's joints. Job output is an array of matrices (in model-space),
+// ordered like skeleton's joints. Output are matrices, because the combination
+// of affine transformations can contain shearing or complex transformation
+// that cannot be represented as Transform object.
 struct LocalToModelJob {
   // Default constructor, initializes default values.
   LocalToModelJob() :

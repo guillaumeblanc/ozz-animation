@@ -65,7 +65,7 @@ if(ozz_build_fbx)
 
   add_custom_command(
     DEPENDS "${ozz_media_directory}/fbx/alain/skeleton.fbx"
-            "${ozz_media_directory}/fbx/alain/run.fbx"
+            "${ozz_media_directory}/fbx/alain/walk.fbx"
             "${ozz_media_directory}/fbx/alain/jog.fbx"
             "${ozz_media_directory}/collada/alain/skeleton.dae"
           fbx2skel
@@ -76,7 +76,7 @@ if(ozz_build_fbx)
       "--file=${ozz_media_directory}/fbx/alain/skeleton.fbx"
       "--skeleton=${CMAKE_CURRENT_BINARY_DIR}/media/skeleton_fbx.ozz"
     COMMAND fbx2anim
-      "--file=${ozz_media_directory}/fbx/alain/run.fbx"
+      "--file=${ozz_media_directory}/fbx/alain/walk.fbx"
       "--skeleton=${CMAKE_CURRENT_BINARY_DIR}/media/skeleton_fbx.ozz"
       "--animation=${CMAKE_CURRENT_BINARY_DIR}/media/animation_fbx.ozz"
     COMMAND dae2skel

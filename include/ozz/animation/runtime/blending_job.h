@@ -41,9 +41,9 @@ namespace math { struct SoaTransform; }
 namespace animation {
 
 // Blends multiple input layer/postures to a single output. The number of
-// transforms/joints blended by the job is defined by the number of transforms of
-// the bind pose (note that this is a SoA format). This means that all buffers
-// must be at least as big as the bind pose buffer.
+// transforms/joints blended by the job is defined by the number of transforms
+// of the bind pose (note that this is a SoA format). This means that all
+// buffers must be at least as big as the bind pose buffer.
 // Partial animation blending is supported through optional joint weights that
 // can be specified with layers joint_weights buffer. Unspecified joint weights
 // are considered as a unit weight of 1.f.
@@ -63,7 +63,7 @@ struct BlendingJob {
   // -if the threshold value is less than or equal to 0.f.
   bool Validate() const;
 
-  // Runs job's sampling task.
+  // Runs job's blending task.
   // The job is validated before any operation is performed, see Validate() for
   // more details.
   // Returns false if *this job is not valid.

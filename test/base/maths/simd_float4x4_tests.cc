@@ -66,6 +66,12 @@ TEST(Arithmetic, Float4x4) {
   const SimdFloat4 mul_vector = m0 * v;
   EXPECT_SIMDFLOAT_EQ(mul_vector, -56.f, -62.f, -68.f, -74.f);
 
+  const SimdFloat4 transform_point = TransformPoint(m0, v);
+  EXPECT_SIMDFLOAT_EQ(transform_point, -8.f, -10.f, -12.f, -14.f);
+
+  const SimdFloat4 transform_vector = TransformVector(m0, v);
+  EXPECT_SIMDFLOAT_EQ(transform_vector, -20.f, -23.f, -26.f, -29.f);
+
   const Float4x4 mul_mat = m0 * m1;
   EXPECT_FLOAT4x4_EQ(mul_mat, -56.f, -62.f, -68.f, -74.f,
                               -152.f, -174.f, -196.f, -218.f,
@@ -220,6 +226,20 @@ TEST(Scale, Float4x4) {
                             4.f, 5.f, 6.f, 7.f,
                             16.f, 18.f, 20.f, 22.f,
                             12.f, 13.f, 14.f, 15.f);
+}
+
+TEST(ColumnMultiply, Float4x4) {
+  const SimdFloat4 v = ozz::math::simd_float4::Load(-1.f, -2.f, -3.f, -4.f);
+  const Float4x4 m0 = {{ozz::math::simd_float4::Load(0.f, 1.f, 2.f, 3.f),
+                        ozz::math::simd_float4::Load(4.f, 5.f, 6.f, 7.f),
+                        ozz::math::simd_float4::Load(8.f, 9.f, 10.f, 11.f),
+                        ozz::math::simd_float4::Load(12.f, 13.f, 14.f, 15.f)}};
+
+  const Float4x4 column_multiply = ozz::math::ColumnMultiply(m0, v);
+  EXPECT_FLOAT4x4_EQ(column_multiply, 0.f, -2.f, -6.f, -12.f,
+                                      -4.f, -10.f, -18.f, -28.f,
+                                      -8.f, -18.f, -30.f, -44.f,
+                                      -12.f, -26.f, -42.f, -60.f);
 }
 
 TEST(Rotate, Float4x4) {

@@ -21,10 +21,6 @@ target_link_libraries(test2anim
 set_target_properties(test2anim
   PROPERTIES FOLDER "ozz/tests/animation_offline")
 
-# Creates temporary directory for tests inputs/outputs.
-set(ozz_temp_directory ${CMAKE_BINARY_DIR}/temp)
-file(MAKE_DIRECTORY ${ozz_temp_directory})
-
 # Creates a file with an invalid content.
 file(WRITE "${ozz_temp_directory}/bad.content" "bad content")
 file(WRITE "${ozz_temp_directory}/good.content" "good content")

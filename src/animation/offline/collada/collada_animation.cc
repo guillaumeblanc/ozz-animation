@@ -95,7 +95,6 @@ bool AnimationVisitor::Visit(const TiXmlText& _text) {
   return BaseVisitor::Visit(_text);
 }
 
-
 const AnimationVisitor::FloatSource* AnimationVisitor::GetFloatSource(
   const AnimationVisitor::Sampler& _sampler,
   AnimationVisitor::Semantic _semantic) const {
@@ -488,7 +487,7 @@ bool AnimationVisitor::HandleChannel(const TiXmlElement& _element) {
 
 namespace {
 
-typedef ozz::Map<const char*, const ColladaJoint*, internal::str_less>::Std
+typedef ozz::CStringMap<const ColladaJoint*>::Std
   JointsByName;
 
 bool MapJointsByName(const ColladaJoint& _src, JointsByName* _joints) {
@@ -1148,6 +1147,9 @@ bool ExtractAnimation(const AnimationVisitor& _animation_visitor,
     // Evaluates all samplers for all sampler keys.
     RawAnimation::JointTrack& output_track = _animation->tracks[i];
     if (track.samplers.empty() || times.empty()) {
+      ozz::log::Err() << "No animation track found for joint \"" <<
+        _skeleton.joint_names()[i] << "\"." << std::endl;
+
       // No sampler found, uses bind pose transformation.
       math::Transform bind_pose;
       if (!track.joint) {

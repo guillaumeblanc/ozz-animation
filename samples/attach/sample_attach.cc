@@ -63,9 +63,9 @@ OZZ_OPTIONS_DECLARE_STRING(
   "media/animation.ozz",
   false)
 
-class LoadAttachApplication : public ozz::sample::Application {
+class AttachSampleApplication : public ozz::sample::Application {
  public:
-  LoadAttachApplication()
+  AttachSampleApplication()
     : cache_(NULL),
       attachment_(0),
       offset_(-.02f, .03f, .05f) {
@@ -242,5 +242,5 @@ class LoadAttachApplication : public ozz::sample::Application {
 int main(int _argc, const char** _argv) {
   const char* title =
     "Ozz-animation sample: Attachment to animated skeleton joints";
-  return LoadAttachApplication().Run(_argc, _argv, "1.0", title);
+  return AttachSampleApplication().Run(_argc, _argv, "1.0", title);
 }

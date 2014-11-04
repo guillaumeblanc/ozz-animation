@@ -117,9 +117,9 @@ class LoadSampleApplication : public ozz::sample::Application {
     }
 
     // Allocates runtime buffers.
-    const int num_joints = skeleton_.num_joints();
     const int num_soa_joints = skeleton_.num_soa_joints();
     locals_ = allocator->AllocateRange<ozz::math::SoaTransform>(num_soa_joints);
+    const int num_joints = skeleton_.num_joints();
     models_ = allocator->AllocateRange<ozz::math::Float4x4>(num_joints);
 
     // Allocates a cache that matches animation requirements.

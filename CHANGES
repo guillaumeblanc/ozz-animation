@@ -1,3 +1,23 @@
+Release version 0.7.0.----------------------------------------------------------
+
+# Library
+  - [geometry] Adds support for matrix palette skinning transformation in a new
+  ozz_geometry library.
+  - [offline] Returns EXIT_FAILURE from dae2skel and fbx2skel when no skeleton
+  found in the source file.
+  - [offline] Fixes fbx axis and unit system conversions.
+  - [offline] Removes raw_skeleton_archive.h and raw_animation_archive.h files,
+  moving serialization definitions back to raw_skeleton.h and raw_animation.h
+  to simplify understanding.
+  - [offline] Removes skeleton_archive.h and animation_archive.h files, moving
+  serialization definitions back to skeleton.h and animation.h.
+  - [base] Changes Range<>::Size() definition, returning range's size in bytes
+  instead of element count.
+
+# Samples
+  - Adds a skinning sample which demonstrates new ozz_geometry SkinningJob
+  feature and usage.
+
 Release version 0.6.0.----------------------------------------------------------
 
  # Library

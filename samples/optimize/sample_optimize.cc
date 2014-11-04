@@ -36,7 +36,7 @@
 #include "ozz/animation/offline/animation_builder.h"
 #include "ozz/animation/offline/animation_optimizer.h"
 #include "ozz/animation/offline/raw_animation.h"
-#include "ozz/animation/offline/raw_animation_archive.h"
+#include "ozz/animation/offline/raw_animation.h"
 
 #include "ozz/base/memory/allocator.h"
 

@@ -58,6 +58,7 @@ struct InterpSoaScale {
   math::SoaFloat3 value[2];
 };
 }  // internal
+
 bool SamplingJob::Validate() const {
   // Don't need any early out, as jobs are valid in most of the performance
   // critical cases.
@@ -169,7 +170,7 @@ void UpdateSoaTranslations(int _num_soa_tracks,
       soa_translations_[i].time[0] = math::simd_float4::Load(
         k00.time, k10.time, k20.time, k30.time);
       soa_translations_[i].value[0].x = math::HalfToFloat(math::simd_int4::Load(
-        k00.value[0],k10.value[0], k20.value[0], k30.value[0]));
+        k00.value[0], k10.value[0], k20.value[0], k30.value[0]));
       soa_translations_[i].value[0].y = math::HalfToFloat(math::simd_int4::Load(
         k00.value[1], k10.value[1], k20.value[1], k30.value[1]));
       soa_translations_[i].value[0].z = math::HalfToFloat(math::simd_int4::Load(

@@ -1033,9 +1033,12 @@ OZZ_INLINE Float4x4 Invert(const Float4x4& _m);
 // _v.w is ignored.
 OZZ_INLINE Float4x4 Translate(const Float4x4& _m, _SimdFloat4 _v);
 
-// Scales matrix _m along the axis defined by _v components.
+// Scales matrix _m along each axis with x, y, z components of _v.
 // _v.w is ignored.
 OZZ_INLINE Float4x4 Scale(const Float4x4& _m, _SimdFloat4 _v);
+
+// Multiply each column of matrix _m with vector _v.
+OZZ_INLINE Float4x4 ColumnMultiply(const Float4x4& _m, _SimdFloat4 _v);
 
 // Tests if each 3 column of upper 3x3 matrix of _m is a normal matrix.
 // Returns the result in the x, y and z component of the returned vector. w is
@@ -1067,6 +1070,18 @@ OZZ_INLINE bool ToAffine(const Float4x4& _m,
                          SimdFloat4* _translation,
                          SimdFloat4* _quaternion,
                          SimdFloat4* _scale);
+
+// Computes the transformation of a Float4x4 matrix and a point _p.
+// This is equivalent to multiplying a matrix by a SimdFloat4 with a w component
+// of 1.
+OZZ_INLINE ozz::math::SimdFloat4 TransformPoint(
+  const ozz::math::Float4x4& _m, ozz::math::_SimdFloat4 _v);
+
+// Computes the transformation of a Float4x4 matrix and a vector _v.
+// This is equivalent to multiplying a matrix by a SimdFloat4 with a w component
+// of 0.
+OZZ_INLINE ozz::math::SimdFloat4 TransformVector(
+  const ozz::math::Float4x4& _m, ozz::math::_SimdFloat4 _v);
 }  // math
 }  // ozz
 
@@ -1092,7 +1107,7 @@ OZZ_INLINE ozz::math::SimdFloat4 operator/(
   ozz::math::_SimdFloat4 _a, ozz::math::_SimdFloat4 _b);
 #endif  // !defined(__GNUC__) || defined(OZZ_HAS_REF)
 
-// Computes the multiplication of matrix Float4x4 and vector  _v.
+// Computes the multiplication of matrix Float4x4 and vector _v.
 OZZ_INLINE ozz::math::SimdFloat4 operator*(
   const ozz::math::Float4x4& _m, ozz::math::_SimdFloat4 _v);
 

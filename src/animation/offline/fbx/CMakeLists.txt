@@ -9,7 +9,7 @@ add_library(ozz_animation_fbx
   fbx.cc
   fbx_animation.h
   fbx_animation.cc
-  fbx_base.h
+  ${CMAKE_SOURCE_DIR}/include/ozz/animation/offline/fbx/fbx_base.h
   fbx_base.cc
   fbx_skeleton.h
   fbx_skeleton.cc)

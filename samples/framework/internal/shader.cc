@@ -546,6 +546,89 @@ BoneShader* BoneShader::Build() {  // Builds a world matrix from joint uniforms,
 
   return shader;
 }
+
+AmbientShader* AmbientShader::Build() {
+  bool success = true;
+
+  const char* simple_pc_vs =
+    "uniform mat4 u_mvp;\n"
+    "attribute vec3 a_position;\n"
+    "attribute vec3 a_normal;\n"
+    "attribute vec4 a_color;\n"
+    "varying vec3 v_world_normal;\n"
+    "varying vec4 v_vertex_color;\n"
+    "void main() {\n"
+    "  vec4 vertex = vec4(a_position.xyz, 1.);\n"
+    "  gl_Position = u_mvp * vertex;\n"
+    "  v_world_normal = a_normal;\n"
+    "  v_vertex_color = a_color;\n"
+    "}\n";
+
+  const char* vs[] = {
+    kPlatformSpecivicVSHeader,
+    simple_pc_vs};
+  const char* fs[] = {
+    kPlatformSpecivicFSHeader,
+    shader_ambient_fs};
+
+  AmbientShader* shader =
+    memory::default_allocator()->New<AmbientShader>();
+  success &= shader->BuildFromSource(OZZ_ARRAY_SIZE(vs), vs,
+                                     OZZ_ARRAY_SIZE(fs), fs);
+
+  // Binds default attributes
+  success &= shader->FindAttrib("a_position");
+  success &= shader->FindAttrib("a_normal");
+  success &= shader->FindAttrib("a_color");
+
+  // Binds default uniforms
+  success &= shader->BindUniform("u_mvp");
+
+  if (!success) {
+    memory::default_allocator()->Delete(shader);
+    shader = NULL;
+  }
+
+  return shader;
+}
+
+void AmbientShader::Bind(const math::Float4x4& _model,
+                         const math::Float4x4& _view_proj,
+                         GLsizei _pos_stride, GLsizei _pos_offset,
+                         GLsizei _normal_stride, GLsizei _normal_offset,
+                         GLsizei _color_stride, GLsizei _color_offset) {
+  GL(UseProgram(program()));
+
+  const GLint position_attrib = attrib(0);
+  GL(EnableVertexAttribArray(position_attrib));
+  GL(VertexAttribPointer(position_attrib, 3, GL_FLOAT, GL_FALSE,
+    _pos_stride, GL_PTR_OFFSET(_pos_offset)));
+
+  const GLint normal_attrib = attrib(1);
+  GL(EnableVertexAttribArray(normal_attrib));
+  GL(VertexAttribPointer(normal_attrib, 3, GL_FLOAT, GL_TRUE,
+    _normal_stride, GL_PTR_OFFSET(_normal_offset)));
+
+  const GLint color_attrib = attrib(2);
+  GL(EnableVertexAttribArray(color_attrib));
+  GL(VertexAttribPointer(color_attrib, 4, GL_UNSIGNED_BYTE, GL_TRUE,
+    _color_stride, GL_PTR_OFFSET(_color_offset)));
+
+  // Binds mvp uniform
+  const GLint mvp_uniform = uniform(0);
+  const ozz::math::Float4x4 mvp = _view_proj * _model;
+  float values[16];
+  math::StorePtrU(mvp.cols[0], values + 0);
+  math::StorePtrU(mvp.cols[1], values + 4);
+  math::StorePtrU(mvp.cols[2], values + 8);
+  math::StorePtrU(mvp.cols[3], values + 12);
+  GL(UniformMatrix4fv(mvp_uniform, 1, false, values));
+}
+
+void AmbientShader::Unbind() {
+  UnbindAttribs();
+  GL(UseProgram(0));
+}
 }  // internal
 }  // sample
 }  // ozz

@@ -48,7 +48,7 @@ namespace offline {
 namespace collada {
 
 namespace internal {
-// Implements a string comparator that can be used by std algorythm like maps.
+// Implements a string comparator that can be used by std algorithm like maps.
 struct str_less {
   bool operator()(const char* const& _left, const char* const& _right) const;
 };

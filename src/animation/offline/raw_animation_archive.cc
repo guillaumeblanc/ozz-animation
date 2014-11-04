@@ -28,7 +28,7 @@
 //                                                                            //
 //============================================================================//
 
-#include "ozz/animation/offline/raw_animation_archive.h"
+#include "ozz/animation/offline/raw_animation.h"
 
 #include "ozz/base/io/archive.h"
 #include "ozz/base/maths/math_archive.h"

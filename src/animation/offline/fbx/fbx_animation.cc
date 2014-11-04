@@ -82,7 +82,7 @@ bool ExtractAnimation(FbxScene* _scene,
 
     if (!node) {
       // Empty joint track.
-      ozz::log::LogV() << "No animation track found for joint \"" << joint_name
+      ozz::log::Err() << "No animation track found for joint \"" << joint_name
         << "\"." << std::endl;
       continue;
     }
@@ -106,8 +106,13 @@ bool ExtractAnimation(FbxScene* _scene,
       }
 
       // Evaluate local transform at fbx_time.
-      const FbxAMatrix matrix =
-        evaluator->GetNodeLocalTransform(node, FbxTimeSeconds(t));
+      FbxAMatrix matrix;
+      bool root = _skeleton.joint_properties()[i].parent == Skeleton::kNoParentIndex;
+      if (root) {
+        matrix = evaluator->GetNodeGlobalTransform(node, FbxTimeSeconds(t));
+      } else {
+        matrix = evaluator->GetNodeLocalTransform(node, FbxTimeSeconds(t));
+      }
       ozz::math::Transform transform;
 
       // Converts to ozz transformation format.
@@ -139,14 +144,13 @@ bool ExtractAnimation(FbxScene* _scene,
 
   // Early out if no animation's found.
   if(anim_stacks_count == 0) {
-    ozz::log::Log() << "No animation found." << std::endl;
+    ozz::log::Err() << "No animation found." << std::endl;
     return false;
   }
   
   if (anim_stacks_count > 1) {
     ozz::log::Log() << anim_stacks_count <<
       " animations found. Only the first one will be exported." << std::endl;
-    return false;
   }
 
   // Arbitrarily take the first animation of the stack.

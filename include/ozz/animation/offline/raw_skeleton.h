@@ -34,6 +34,7 @@
 #include "ozz/base/containers/vector.h"
 #include "ozz/base/containers/string.h"
 #include "ozz/base/maths/transform.h"
+#include "ozz/base/io/archive_traits.h"
 
 namespace ozz {
 namespace animation {
@@ -135,5 +136,21 @@ struct RawSkeleton {
 };
 }  // offline
 }  // animation
+namespace io {
+OZZ_IO_TYPE_VERSION(1, animation::offline::RawSkeleton)
+OZZ_IO_TYPE_TAG("ozz-raw_skeleton", animation::offline::RawSkeleton)
+
+// Should not be called directly but through io::Archive << and >> operators.
+template <>
+void Save(OArchive& _archive,
+          const animation::offline::RawSkeleton* _skeletons,
+          size_t _count);
+
+template <>
+void Load(IArchive& _archive,
+          animation::offline::RawSkeleton* _skeletons,
+          size_t _count,
+          uint32_t _version);
+}  // io
 }  // ozz
 #endif  // OZZ_OZZ_ANIMATION_OFFLINE_RAW_SKELETON_H_

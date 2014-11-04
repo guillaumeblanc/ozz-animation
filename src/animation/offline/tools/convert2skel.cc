@@ -33,10 +33,10 @@
 #include <cstdlib>
 #include <cstring>
 
-#include "ozz/animation/offline/raw_skeleton_archive.h"
+#include "ozz/animation/offline/raw_skeleton.h"
 #include "ozz/animation/offline/skeleton_builder.h"
 
-#include "ozz/animation/runtime/skeleton_archive.h"
+#include "ozz/animation/runtime/skeleton.h"
 
 #include "ozz/base/io/archive.h"
 #include "ozz/base/io/stream.h"

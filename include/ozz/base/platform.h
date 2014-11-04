@@ -98,6 +98,12 @@ struct AlignOf {
 #define OZZ_IF_NDEBUG(...)
 #endif  // NDEBUG
 
+// Offset a pointer from a given number of bytes.
+template <typename _Ty>
+_Ty* PointerStride(_Ty* _ty, size_t _stride) {
+  return reinterpret_cast<_Ty*>(reinterpret_cast<uintptr_t>(_ty) + _stride);
+}
+
 // Defines a range [begin,end[ of objects ot type _Ty.
 template <typename _Ty>
 struct Range {
@@ -107,7 +113,7 @@ struct Range {
       end(NULL) {
   }
   // Constructs a range from its extreme values.
-  Range(_Ty* _begin, _Ty* _end)
+  Range(_Ty* _begin, const _Ty* _end)
     : begin(_begin),
       end(_end) {
   }
@@ -121,6 +127,13 @@ struct Range {
   explicit Range(_Ty (&_array)[_size])
     : begin(_array),
       end(_array + _size) {
+  }
+
+  // Reinitialized from an array, its size is automatically deduced.
+  template <size_t _size>
+  void operator = (_Ty (&_array)[_size]) {
+    begin = _array;
+    end = _array + _size;
   }
 
   // Implement cast operator to allow conversions to Range<const _Ty>.
@@ -142,8 +155,16 @@ struct Range {
 
   // Gets the number of elements of the range.
   // This size isn't stored but computed from begin and end pointers.
-  ptrdiff_t Size() const {
-    return end - begin;
+  size_t Count() const {
+    const ptrdiff_t count = end - begin;
+    return count > 0 ? count : 0;
+  }
+
+  // Gets the size in byte of the range.
+  size_t Size() const {
+    const ptrdiff_t size =
+      reinterpret_cast<uintptr_t>(end) - reinterpret_cast<uintptr_t>(begin);
+    return size > 0 ? size : 0;
   }
 
   // Range begin pointer.

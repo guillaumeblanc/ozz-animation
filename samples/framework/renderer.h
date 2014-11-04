@@ -82,6 +82,51 @@ class Renderer {
   virtual bool DrawBox(const ozz::math::Box& _box,
                        const ozz::math::Float4x4& _transform,
                        const Color _colors[2]) = 0;
+
+  class Mesh {
+   public:
+    Mesh(int _vertex_count, int _index_count);
+    ~Mesh();
+
+    template<typename _Ty>
+    struct Buffer {
+      typedef Range<_Ty> DataRange;
+      DataRange data;
+      size_t stride;
+    };
+
+    // Vertices are a buffered positions and normals.
+    typedef Buffer<char> Vertices;
+    Vertices vertices() const;
+
+    // Positions are a buffer of 3 consecutive floats per vertex.
+    typedef Buffer<float> Positions;
+    Positions positions() const;
+
+    // Normals are a buffer of 3 float per vertex.
+    typedef Buffer<float> Normals;
+    Normals normals() const;
+
+    // Normals are a buffer of 4 unsigned byte per vertex.
+    struct Color {uint8_t red, green, blue, alpha;};
+    typedef Buffer<Color> Colors;
+    Colors colors() const;
+
+    // Indices are a buffer of 3 consecutive uint16_t per triangle.
+    typedef Buffer<uint16_t> Indices;
+    Indices indices() const;
+
+   private:
+     Mesh(const Mesh&);
+     void operator=(const Mesh&);
+
+     Vertices::DataRange vertices_;
+     Indices::DataRange indices_;
+  };
+
+  // Renders a mesh at a specified location.
+  virtual bool DrawMesh(const ozz::math::Float4x4& _transform,
+                        const Mesh& _mesh) = 0;
 };
 }  // sample
 }  // ozz

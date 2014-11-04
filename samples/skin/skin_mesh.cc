@@ -28,19 +28,76 @@
 //                                                                            //
 //============================================================================//
 
-#ifndef OZZ_OZZ_ANIMATION_RUNTIME_ANIMATION_ARCHIVE_H_
-#define OZZ_OZZ_ANIMATION_RUNTIME_ANIMATION_ARCHIVE_H_
+#include "skin_mesh.h"
 
-#include "ozz/base/platform.h"
-#include "ozz/base/io/archive_traits.h"
+#include "ozz/base/memory/allocator.h"
+#include "ozz/base/containers/vector_archive.h"
 
-#include "ozz/animation/runtime/animation.h"
-
+#include "ozz/base/io/archive.h"
 
 namespace ozz {
+namespace sample {
+SkinnedMesh::SkinnedMesh() {
+}
+
+SkinnedMesh::~SkinnedMesh() {
+}
+}  // sample
+
 namespace io {
-OZZ_IO_TYPE_VERSION(2, animation::Animation)
-OZZ_IO_TYPE_TAG("ozz-animation", animation::Animation)
+
+OZZ_IO_TYPE_NOT_VERSIONABLE(sample::SkinnedMesh::Part)
+
+template <>
+void Save(OArchive& _archive,
+          const sample::SkinnedMesh::Part* _parts,
+          size_t _count) {
+  for (size_t i = 0; i < _count; ++i) {
+    const sample::SkinnedMesh::Part& part = _parts[i];
+    _archive << part.positions;
+    _archive << part.normals;
+    _archive << part.joint_indices;
+    _archive << part.joint_weights;
+  }
+}
+
+template <>
+void Load(IArchive& _archive,
+          sample::SkinnedMesh::Part* _parts,
+          size_t _count,
+          uint32_t _version) {
+  (void)_version;
+  for (size_t i = 0; i < _count; ++i) {
+    sample::SkinnedMesh::Part& part = _parts[i];
+    _archive >> part.positions;
+    _archive >> part.normals;
+    _archive >> part.joint_indices;
+    _archive >> part.joint_weights;
+  }
+}
+
+template <>
+void Save(OArchive& _archive,
+          const sample::SkinnedMesh* _meshes,
+          size_t _count) {
+  for (size_t i = 0; i < _count; ++i) {
+    const sample::SkinnedMesh& mesh = _meshes[i];
+    _archive << mesh.parts;
+    _archive << mesh.triangle_indices;
+  }
+}
+
+template <>
+void Load(IArchive& _archive,
+          sample::SkinnedMesh* _meshes,
+          size_t _count,
+          uint32_t _version) {
+  (void)_version;
+  for (size_t i = 0; i < _count; ++i) {
+    sample::SkinnedMesh& mesh = _meshes[i];
+    _archive >> mesh.parts;
+    _archive >> mesh.triangle_indices;
+  }
+}
 }  // io
 }  // ozz
-#endif  // OZZ_OZZ_ANIMATION_RUNTIME_ANIMATION_ARCHIVE_H_

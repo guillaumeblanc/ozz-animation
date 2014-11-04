@@ -32,6 +32,7 @@
 #define OZZ_OZZ_ANIMATION_RUNTIME_ANIMATION_H_
 
 #include "ozz/base/platform.h"
+#include "ozz/base/io/archive_traits.h"
 
 namespace ozz {
 namespace io { class IArchive; class OArchive; }
@@ -48,8 +49,7 @@ struct ScaleKey;
 // Defines a runtime skeletal animation clip.
 // The runtime animation data structure stores animation keyframes, for all the
 // joints of a skeleton. This structure is usually filled by the
-// AnimationBuilder and deserialized/loaded at runtime  (requires inclusion of
-// animation_archive.h).
+// AnimationBuilder and deserialized/loaded at runtime.
 // For each transformation type (translation, rotation and scale), Animation
 // structure stores a single array of keyframes that contains all the tracks
 // required to animate all the joints of a skeleton, matching breadth-first
@@ -130,5 +130,10 @@ class Animation {
   int num_tracks_;
 };
 }  // animation
+
+namespace io {
+OZZ_IO_TYPE_VERSION(2, animation::Animation)
+OZZ_IO_TYPE_TAG("ozz-animation", animation::Animation)
+}  // io
 }  // ozz
 #endif  // OZZ_OZZ_ANIMATION_RUNTIME_ANIMATION_H_

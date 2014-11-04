@@ -43,6 +43,52 @@ namespace animation {
 // Forward declares the animation type to sample.
 class Animation;
 
+// Forward declares the cache object used by the SamplingJob.
+class SamplingCache;
+
+// Samples an animation at a given time, to output the corresponding posture in
+// local-space.
+// SamplingJob uses a cache (aka SamplingCache) to store intermediate values
+// (decompressed animation keyframes...) while sampling. This cache also stores
+// pre-computed values that allows drastic optimization while playing/sampling
+// the animation forward. Backward sampling works, but isn't optimized through
+// the cache.
+// The job does not owned the buffers (in/output) and will thus not delete them
+// during job's destruction.
+struct SamplingJob {
+  // Default constructor, initializes default values.
+  SamplingJob();
+
+  // Validates job parameters. Returns true for a valid job, or false otherwise:
+  // -if any input pointer is NULL
+  // -if output range is invalid.
+  bool Validate() const;
+
+  // Runs job's sampling task.
+  // The job is validated before any operation is performed, see Validate() for
+  // more details.
+  // Returns false if *this job is not valid.
+  bool Run() const;
+
+  // Time used to sample animation, clamped in range [0,duration] before
+  // job execution. This resolves approximations issues on range bounds.
+  float time;
+
+  // The animation to sample.
+  const Animation* animation;
+
+  // A cache object that must be big enough to sample *this animation.
+  SamplingCache* cache;
+
+  // Job output.
+  // The output range to be filled with sampled joints during job execution.
+  // If there are less joints in the animation compared to the output range,
+  // then remaining SoaTransform are left unchanged.
+  // If there are more joints in the animation, then the last joints are not
+  // sampled.
+  Range<ozz::math::SoaTransform> output;
+};
+
 namespace internal {
   // Soa hot data to interpolate.
   struct InterpSoaTranslation;
@@ -118,43 +164,6 @@ class SamplingCache {
   unsigned char* outdated_translations_;
   unsigned char* outdated_rotations_;
   unsigned char* outdated_scales_;
-};
-
-// Samples animation to output postures in local space.
-// The job does not owned the buffers (in/output) and will thus not delete them
-// during job's destruction.
-struct SamplingJob {
-  // Default constructor, initializes default values.
-  SamplingJob();
-
-  // Validates job parameters. Returns true for a valid job, or false otherwise:
-  // -if any input pointer is NULL
-  // -if output range is invalid.
-  bool Validate() const;
-
-  // Runs job's sampling task.
-  // The job is validated before any operation is performed, see Validate() for
-  // more details.
-  // Returns false if *this job is not valid.
-  bool Run() const;
-
-  // Time used to sample animation, clamped in range [0,duration] before
-  // job execution. This resolves approximations issues on range bounds.
-  float time;
-
-  // The animation to sample.
-  const Animation* animation;
-
-  // A cache object that must be big enough to sample *this animation.
-  SamplingCache* cache;
-
-  // Job output.
-  // The output range to be filled with sampled joints during job execution.
-  // If there are less joints in the animation compared to the output range,
-  // then remaining SoaTransform are left unchanged.
-  // If there are more joints in the animation, then the last joints are not
-  // sampled.
-  Range<ozz::math::SoaTransform> output;
 };
 }  // animation
 }  // ozz
