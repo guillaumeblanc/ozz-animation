@@ -21,6 +21,8 @@ if(ozz_build_fbx)
 
   set(ozz_mesh_generation_dependency sample_skin_fbx2skin)
 
+  install(TARGETS sample_skin_fbx2skin DESTINATION bin/samples/skin)
+
   add_test(NAME sample_skin_fbx2skin COMMAND sample_skin_fbx2skin "--file=${ozz_media_directory}/fbx/alain/skeleton.fbx" "--skeleton=${ozz_media_directory}/bin/skeleton_v1_le.ozz" "--skin=${ozz_temp_directory}/mesh.ozz")
 
   add_test(NAME sample_skin_fbx2skin_invalid_file COMMAND sample_skin_fbx2skin "--file=${ozz_temp_directory}/dont_exist.fbx" "--skeleton=${ozz_media_directory}/bin/skeleton_v1_le.ozz" "--skin=${ozz_temp_directory}/should_not_exist.ozz")

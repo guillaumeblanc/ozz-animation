@@ -1,6 +1,14 @@
+Release version 0.7.1.----------------------------------------------------------
+
+ # Library
+  - [offline] Updates to fbx sdk 2015.1 with vs2013 support.
+  
+ # Samples
+  - Adds sample_skin_fbx2skin to binary packages.
+
 Release version 0.7.0.----------------------------------------------------------
 
-# Library
+ # Library
   - [geometry] Adds support for matrix palette skinning transformation in a new
   ozz_geometry library.
   - [offline] Returns EXIT_FAILURE from dae2skel and fbx2skel when no skeleton
@@ -14,7 +22,7 @@ Release version 0.7.0.----------------------------------------------------------
   - [base] Changes Range<>::Size() definition, returning range's size in bytes
   instead of element count.
 
-# Samples
+ # Samples
   - Adds a skinning sample which demonstrates new ozz_geometry SkinningJob
   feature and usage.
 
