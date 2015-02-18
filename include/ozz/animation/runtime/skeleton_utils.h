@@ -5,7 +5,7 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 //                                                                            //
-// Copyright (c) 2012-2014 Guillaume Blanc                                    //
+// Copyright (c) 2012-2015 Guillaume Blanc                                    //
 //                                                                            //
 // This software is provided 'as-is', without any express or implied          //
 // warranty. In no event will the authors be held liable for any damages      //
@@ -33,8 +33,13 @@
 
 #include "skeleton.h"
 
+#include "ozz/base/maths/transform.h"
+
 namespace ozz {
 namespace animation {
+
+// Get bind-pose of a skeleton joint.
+ozz::math::Transform GetJointBindPose(const Skeleton& _skeleton, int _joint);
 
 // Defines the iterator structure used by IterateJointsDF to traverse joint
 // hierarchy.

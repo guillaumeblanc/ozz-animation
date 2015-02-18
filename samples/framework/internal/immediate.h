@@ -5,7 +5,7 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 //                                                                            //
-// Copyright (c) 2012-2014 Guillaume Blanc                                    //
+// Copyright (c) 2012-2015 Guillaume Blanc                                    //
 //                                                                            //
 // This software is provided 'as-is', without any express or implied          //
 // warranty. In no event will the authors be held liable for any damages      //
@@ -97,15 +97,16 @@ class GlImmediateRenderer {
     // Resize buffer if needed.
     const size_t new_size = size_ + sizeof(_Ty);
     if (new_size > max_size_) {
-      max_size_ *= 2;
-      assert(new_size <= max_size_);
-      buffer_ = ozz::memory::default_allocator()->Reallocate(
-        buffer_, max_size_);
+      ResizeVbo(new_size);
     }
     // Copy this last vertex.
     *reinterpret_cast<_Ty*>(&buffer_[size_]) = _vertex;
     size_ = new_size;
   }
+
+  // Resize vertex buffer to at least _new_size. This function can only grow
+  // vbo size.
+  void ResizeVbo(size_t _new_size);
 
   // The vertex object used by the renderer.
   GLuint vbo_;

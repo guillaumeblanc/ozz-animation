@@ -5,7 +5,7 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 //                                                                            //
-// Copyright (c) 2012-2014 Guillaume Blanc                                    //
+// Copyright (c) 2012-2015 Guillaume Blanc                                    //
 //                                                                            //
 // This software is provided 'as-is', without any express or implied          //
 // warranty. In no event will the authors be held liable for any damages      //
@@ -447,6 +447,12 @@ OZZ_INLINE SimdFloat4 RcpEst(_SimdFloat4 _v) {
   return _mm_rcp_ps(_v);
 }
 
+OZZ_INLINE SimdFloat4 RcpEstNR(_SimdFloat4 _v) {
+  const __m128 nr = _mm_rcp_ps(_v);
+  // Do one more Newton-Raphson step to improve precision.
+  return _mm_sub_ps(_mm_add_ps(nr, nr), _mm_mul_ps(_mm_mul_ps(nr, nr), _v));
+}
+
 OZZ_INLINE SimdFloat4 RcpEstX(_SimdFloat4 _v) {
   return _mm_rcp_ss(_v);
 }
@@ -461,6 +467,14 @@ OZZ_INLINE SimdFloat4 SqrtX(_SimdFloat4 _v) {
 
 OZZ_INLINE SimdFloat4 RSqrtEst(_SimdFloat4 _v) {
   return _mm_rsqrt_ps(_v);
+}
+
+OZZ_INLINE SimdFloat4 RSqrtEstNR(_SimdFloat4 _v) {
+  const __m128 nr = _mm_rsqrt_ps(_v);
+  // Do one more Newton-Raphson step to improve precision.
+  const __m128 muls = _mm_mul_ps(_mm_mul_ps(_v, nr), nr);
+  return _mm_mul_ps(_mm_mul_ps(_mm_set_ps1(.5f), nr),
+                    _mm_sub_ps(_mm_set_ps1(3.f), muls));
 }
 
 OZZ_INLINE SimdFloat4 RSqrtEstX(_SimdFloat4 _v) {

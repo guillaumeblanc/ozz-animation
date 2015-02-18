@@ -5,7 +5,7 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 //                                                                            //
-// Copyright (c) 2012-2014 Guillaume Blanc                                    //
+// Copyright (c) 2012-2015 Guillaume Blanc                                    //
 //                                                                            //
 // This software is provided 'as-is', without any express or implied          //
 // warranty. In no event will the authors be held liable for any damages      //
@@ -341,6 +341,10 @@ OZZ_INLINE SimdFloat4 Cross3(_SimdFloat4 _a, _SimdFloat4 _b);
 // Returns the per component estimated reciprocal of _v.
 OZZ_INLINE SimdFloat4 RcpEst(_SimdFloat4 _v);
 
+// Returns the per component estimated reciprocal of _v, where approximation is
+// improved with one more new Newton-Raphson step.
+OZZ_INLINE SimdFloat4 RcpEstNR(_SimdFloat4 _v);
+
 // Returns the estimated reciprocal of the x component of _v and stores it in
 // the x component of the returned vector. y, z, w of the returned vector are
 // the same as their respective components in _v.
@@ -356,6 +360,10 @@ OZZ_INLINE SimdFloat4 SqrtX(_SimdFloat4 _v);
 
 // Returns the per component estimated reciprocal square root of _v.
 OZZ_INLINE SimdFloat4 RSqrtEst(_SimdFloat4 _v);
+
+// Returns the per component estimated reciprocal square root of _v, where
+// approximation is improved with one more new Newton-Raphson step.
+OZZ_INLINE SimdFloat4 RSqrtEstNR(_SimdFloat4 _v);
 
 // Returns the estimated reciprocal square root of the x component of _v and
 // stores it in the x component of the returned vector. y, z, w of the returned

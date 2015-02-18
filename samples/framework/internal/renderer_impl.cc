@@ -5,7 +5,7 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 //                                                                            //
-// Copyright (c) 2012-2014 Guillaume Blanc                                    //
+// Copyright (c) 2012-2015 Guillaume Blanc                                    //
 //                                                                            //
 // This software is provided 'as-is', without any express or implied          //
 // warranty. In no event will the authors be held liable for any damages      //
@@ -527,7 +527,7 @@ void RendererImpl::DrawPosture_InstancedImpl(const ozz::math::Float4x4& _transfo
   // Maps the dynamic buffer and update it.
   GL(BindBuffer(GL_ARRAY_BUFFER, dynamic_array_vbo_));
   const size_t vbo_size = _instance_count * 16 * sizeof(float);
-  GL(BufferData(GL_ARRAY_BUFFER, vbo_size, prealloc_uniforms_, GL_STREAM_DRAW));
+  GL(BufferData(GL_ARRAY_BUFFER, vbo_size, prealloc_uniforms_, GL_DYNAMIC_DRAW));
   GL(BindBuffer(GL_ARRAY_BUFFER, 0));
 
   // Renders models.
@@ -684,7 +684,7 @@ bool RendererImpl::DrawMesh(const ozz::math::Float4x4& _transform,
   GL(BufferData(GL_ARRAY_BUFFER,
                 array_vbo_size,
                 vertices_buffer.data.begin,
-                GL_STREAM_DRAW));
+                GL_DYNAMIC_DRAW));
   
   // Binds shader with this array buffer.
   const GLsizei stride = static_cast<GLsizei>(vertices_buffer.stride);
@@ -704,7 +704,7 @@ bool RendererImpl::DrawMesh(const ozz::math::Float4x4& _transform,
   GL(BufferData(GL_ELEMENT_ARRAY_BUFFER,
                 index_vbo_size,
                 indices_buffer.data.begin,
-                GL_STREAM_DRAW));
+                GL_DYNAMIC_DRAW));
 
   // Draws the mesh.
   GL(DrawElements(GL_TRIANGLES,

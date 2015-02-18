@@ -5,7 +5,7 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 //                                                                            //
-// Copyright (c) 2012-2014 Guillaume Blanc                                    //
+// Copyright (c) 2012-2015 Guillaume Blanc                                    //
 //                                                                            //
 // This software is provided 'as-is', without any express or implied          //
 // warranty. In no event will the authors be held liable for any damages      //
@@ -144,7 +144,6 @@ class Camera {
   // The position of the mouse, the last time it has been seen.
   int mouse_last_x_;
   int mouse_last_y_;
-  int mouse_last_mb_;
   int mouse_last_wheel_;
 
   // Set to true to automatically frame the camera on the whole scene.

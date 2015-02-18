@@ -1,3 +1,38 @@
+Release version 0.7.2.----------------------------------------------------------
+
+ # Library
+  - [animation] Improves rotations accuracy during animation sampling and
+  blending. Quaternion normalization now uses one more Newton-Raphson step when
+  computing inverse square root.
+  - [offline] Fixes fbx animation duration when take duration is different to
+  timeline length.
+  - [offline] Bakes fbx axis/unit systems to all transformations, vertices,
+  animations (and so on...), instead of using fbx sdk ConvertScene strategy
+  which only transform scene root. This allows to mix skeleton, animation and
+  meshes imported from any axis/unit system.
+  - [offline][issue 6] Uses bind-pose transformation, instead of identity, for
+  skeleton joints that are not animated in a fbx file.
+  - [offline] Adds support to ozz fbx tools (fbx2skel and fbx2anim) for other
+  formats: Autodesk AutoCAD DXF (.dxf), Collada DAE (.dae), 3D Studio 3DS (.3ds)
+  and Alias OBJ (.obj). This toolchain based on fbx sdk will replace dae
+  toolchain (dae2skel and dae2anim) which is now deprecated.
+
+ # HowTos
+  - Adds file loading how-to, which demonstrates how to open a file and
+  deserialize an object with ozz archive library.
+  - Adds custom skeleton importer how-to, which demonstrates RawSkeleton setup
+  and conversion to runtime skleton.
+  - Adds custom animation importer how-to, which demonstrates RawAnimation setup
+  and conversion to runtime animation.
+
+ # Samples
+  - [skin][issue 5] Skin sample now uses the inverse bind-pose matrices imported
+  from the mesh file, instead of the one computed from the skeleton. This is a
+  more robust solution, which furthermore allow to share the skeleton with
+  meshes using different bind-poses.
+  - [skin] Fixes joints weight normalization when importing fbx skin meshes.
+  - [framework] Optimizes dynamic vertex buffer object re-allocation strategy.
+
 Release version 0.7.1.----------------------------------------------------------
 
  # Library

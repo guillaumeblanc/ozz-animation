@@ -5,7 +5,7 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 //                                                                            //
-// Copyright (c) 2012-2014 Guillaume Blanc                                    //
+// Copyright (c) 2012-2015 Guillaume Blanc                                    //
 //                                                                            //
 // This software is provided 'as-is', without any express or implied          //
 // warranty. In no event will the authors be held liable for any damages      //
@@ -211,7 +211,7 @@ void UpdateSoaRotations(int _num_soa_tracks,
         continue;
       }
 
-      const int base = i * 4 * 2;  // * soa size * 2 keys
+      const int base = i * 4 * 2;  // * soa size * 2 keys per track
 
       // Decompress left side keyframes and store them in soa structures.
       const RotationKey& k00 = _keys.begin[_interp[base + 0]];

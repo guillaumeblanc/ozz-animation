@@ -5,7 +5,7 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 //                                                                            //
-// Copyright (c) 2012-2014 Guillaume Blanc                                    //
+// Copyright (c) 2012-2015 Guillaume Blanc                                    //
 //                                                                            //
 // This software is provided 'as-is', without any express or implied          //
 // warranty. In no event will the authors be held liable for any damages      //
@@ -62,12 +62,24 @@ union SimdIF4 {
   _out = fp * (2.f - in * fp);\
 } while (void(0), 0)
 
+#define OZZ_RCP_EST_NR(_in, _out) do {\
+  float fp2;\
+  OZZ_RCP_EST(_in, fp2);\
+  _out = fp2 * (2.f - _in * fp2);\
+} while (void(0), 0)
+
 #define OZZ_RSQRT_EST(_in, _out) do {\
   const float in = _in;\
   union {float f; int i;} uf = {in};\
   union {int i; float f;} ui = {0x5f3759df - (uf.i / 2)};\
   const float fp = ui.f * (1.5f - (in * .5f * ui.f * ui.f));\
   _out = fp * (1.5f - (in * .5f * fp * fp));\
+} while (void(0), 0)
+
+#define OZZ_RSQRT_EST_NR(_in, _out) do {\
+  float fp2;\
+  OZZ_RSQRT_EST(_in, fp2);\
+  _out = fp2 * (1.5f - (_in * .5f * fp2 * fp2));\
 } while (void(0), 0)
 
 namespace simd_float4 {
@@ -464,6 +476,15 @@ OZZ_INLINE SimdFloat4 RcpEst(_SimdFloat4 _v) {
   return ret;
 }
 
+OZZ_INLINE SimdFloat4 RcpEstNR(_SimdFloat4 _v) {
+  SimdFloat4 ret;
+  OZZ_RCP_EST_NR(_v.x, ret.x);
+  OZZ_RCP_EST_NR(_v.y, ret.y);
+  OZZ_RCP_EST_NR(_v.z, ret.z);
+  OZZ_RCP_EST_NR(_v.w, ret.w);
+  return ret;
+}
+
 OZZ_INLINE SimdFloat4 RcpEstX(_SimdFloat4 _v) {
   SimdFloat4 ret;
   OZZ_RCP_EST(_v.x, ret.x);
@@ -490,6 +511,15 @@ OZZ_INLINE SimdFloat4 RSqrtEst(_SimdFloat4 _v) {
   OZZ_RSQRT_EST(_v.y, ret.y);
   OZZ_RSQRT_EST(_v.z, ret.z);
   OZZ_RSQRT_EST(_v.w, ret.w);
+  return ret;
+}
+
+OZZ_INLINE SimdFloat4 RSqrtEstNR(_SimdFloat4 _v) {
+  SimdFloat4 ret;
+  OZZ_RSQRT_EST_NR(_v.x, ret.x);
+  OZZ_RSQRT_EST_NR(_v.y, ret.y);
+  OZZ_RSQRT_EST_NR(_v.z, ret.z);
+  OZZ_RSQRT_EST_NR(_v.w, ret.w);
   return ret;
 }
 

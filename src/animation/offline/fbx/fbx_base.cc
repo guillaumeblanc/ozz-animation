@@ -5,7 +5,7 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 //                                                                            //
-// Copyright (c) 2012-2014 Guillaume Blanc                                    //
+// Copyright (c) 2012-2015 Guillaume Blanc                                    //
 //                                                                            //
 // This software is provided 'as-is', without any express or implied          //
 // warranty. In no event will the authors be held liable for any damages      //
@@ -33,6 +33,8 @@
 #include "ozz/animation/offline/fbx/fbx_base.h"
 
 #include "ozz/base/log.h"
+
+#include "ozz/base/memory/allocator.h"
 
 #include "ozz/base/maths/transform.h"
 
@@ -70,9 +72,9 @@ FbxDefaultIOSettings::~FbxDefaultIOSettings() {
 FbxAnimationIOSettings::FbxAnimationIOSettings(const FbxManagerInstance& _manager)
     : FbxDefaultIOSettings(_manager) {
   settings()->SetBoolProp(IMP_FBX_MATERIAL, false);
-  settings()->SetBoolProp(EXP_FBX_TEXTURE, false);
-  settings()->SetBoolProp(EXP_FBX_MODEL, false);
-  settings()->SetBoolProp(EXP_FBX_SHAPE, false);
+  settings()->SetBoolProp(IMP_FBX_TEXTURE, false);
+  settings()->SetBoolProp(IMP_FBX_MODEL, false);
+  settings()->SetBoolProp(IMP_FBX_SHAPE, false);
   settings()->SetBoolProp(IMP_FBX_LINK, false);
   settings()->SetBoolProp(IMP_FBX_GOBO, false);
 }
@@ -80,9 +82,9 @@ FbxAnimationIOSettings::FbxAnimationIOSettings(const FbxManagerInstance& _manage
 FbxSkeletonIOSettings::FbxSkeletonIOSettings(const FbxManagerInstance& _manager)
     : FbxDefaultIOSettings(_manager) {
   settings()->SetBoolProp(IMP_FBX_MATERIAL, false);
-  settings()->SetBoolProp(EXP_FBX_TEXTURE, false);
-  settings()->SetBoolProp(EXP_FBX_MODEL, false);
-  settings()->SetBoolProp(EXP_FBX_SHAPE, false);
+  settings()->SetBoolProp(IMP_FBX_TEXTURE, false);
+  settings()->SetBoolProp(IMP_FBX_MODEL, false);
+  settings()->SetBoolProp(IMP_FBX_SHAPE, false);
   settings()->SetBoolProp(IMP_FBX_LINK, false);
   settings()->SetBoolProp(IMP_FBX_GOBO, false);
   settings()->SetBoolProp(IMP_FBX_ANIMATION, false);
@@ -93,8 +95,7 @@ FbxSceneLoader::FbxSceneLoader(const char* _filename,
                                const FbxManagerInstance& _manager,
                                const FbxDefaultIOSettings& _io_settings)
     : scene_(NULL),
-    original_axis_system_(),
-    original_system_unit_() {
+      converter_(NULL) {
   // Create an importer.
   FbxImporter* importer = FbxImporter::Create(_manager,"ozz importer");
 
@@ -118,11 +119,11 @@ FbxSceneLoader::FbxSceneLoader(const char* _filename,
     }
   }
 
-  if (initialized &&
-      importer->IsFBX())
-  {
-    ozz::log::Log() << "FBX version number for " << _filename << " is " <<
-      major << "." << minor<< "." << revision << "." << std::endl;
+  if (initialized) {
+    if ( importer->IsFBX()) {
+      ozz::log::Log() << "FBX version number for " << _filename << " is " <<
+        major << "." << minor<< "." << revision << "." << std::endl;
+    }
 
     // Load the scene.
     scene_ = FbxScene::Create(_manager,"ozz scene");
@@ -141,24 +142,17 @@ FbxSceneLoader::FbxSceneLoader(const char* _filename,
          importer->GetStatus().GetCode() == FbxStatus::ePasswordError)
       {
         ozz::log::Err() << "Incorrect password." << std::endl;
+
+        // scene_ will be destroyed because imported is false.
       }
     }
-    
-    // Get original axis and unit systems before doing the conversion.
-    FbxGlobalSettings& settings = scene_->GetGlobalSettings();
-    original_axis_system_ = settings.GetAxisSystem();
-    original_system_unit_ = settings.GetSystemUnit();
 
-    // Convert scene to ozz axis system (Right-handed, Y-up).
-    const FbxAxisSystem ozz_axis = ozz_axis_system();
-    if (ozz_axis != original_axis_system_) {
-      ozz_axis.ConvertScene(scene_);
-    }
-
-    // Convert scene to ozz unit system (meters).
-    const FbxSystemUnit ozz_unit  = ozz_system_unit();
-    if (ozz_unit != original_system_unit_) {
-      ozz_unit.ConvertScene(scene_);
+    // Setup axis and system converter.
+    if (imported) {
+      FbxGlobalSettings& settings = scene_->GetGlobalSettings();
+      converter_ = ozz::memory::default_allocator()->
+        New<FbxSystemConverter>(settings.GetAxisSystem(),
+                                settings.GetSystemUnit());
     }
 
     // Clear the scene if import failed.
@@ -177,55 +171,158 @@ FbxSceneLoader::~FbxSceneLoader() {
     scene_->Destroy();
     scene_ = NULL;
   }
+
+  if (converter_) {
+    ozz::memory::default_allocator()->Delete(converter_);
+    converter_ = NULL;
+  }
 }
 
-FbxAxisSystem FbxSceneLoader::ozz_axis_system() const {
-  const FbxAxisSystem ozz_axis(FbxAxisSystem::eYAxis,
-                               FbxAxisSystem::eParityOdd,
-                               FbxAxisSystem::eRightHanded);
-  return ozz_axis;
-}
+namespace {
+ozz::math::Float4x4 BuildAxisSystemMatrix(const FbxAxisSystem& _system) {
 
-FbxSystemUnit FbxSceneLoader::ozz_system_unit() const {
-  return FbxSystemUnit::m;
-}
+  int sign;
+  ozz::math::SimdFloat4 up = ozz::math::simd_float4::y_axis();
+  ozz::math::SimdFloat4 at = ozz::math::simd_float4::z_axis();
 
-bool EvaluateDefaultLocalTransform(FbxNode* _node,
-                                   bool _root,
-                                   ozz::math::Transform* _transform) {
-  FbxAMatrix matrix;
-  if (_root) {
-    matrix = _node->EvaluateGlobalTransform();
-  } else {
-    matrix = _node->EvaluateLocalTransform();
+  // The EUpVector specifies which axis has the up and down direction in the
+  // system (typically this is the Y or Z axis). The sign of the EUpVector is
+  // applied to represent the direction (1 is up and -1 is down relative to the
+  // observer).
+  const FbxAxisSystem::EUpVector eup = _system.GetUpVector(sign);
+  switch (eup) {
+    case FbxAxisSystem::eXAxis: {
+      up = math::simd_float4::Load(1.f * sign, 0.f, 0.f, 0.f);
+      // If the up axis is X, the remain two axes will be Y And Z, so the
+      // ParityEven is Y, and the ParityOdd is Z
+      if (_system.GetFrontVector(sign) == FbxAxisSystem::eParityEven) {
+        at = math::simd_float4::Load(0.f, 1.f * sign, 0.f, 0.f);
+      } else {
+        at = math::simd_float4::Load(0.f, 0.f, 1.f * sign, 0.f);
+      }
+      break;
+    }
+    case FbxAxisSystem::eYAxis: {
+      up = math::simd_float4::Load(0.f, 1.f * sign, 0.f, 0.f);
+      // If the up axis is Y, the remain two axes will X And Z, so the
+      // ParityEven is X, and the ParityOdd is Z
+      if (_system.GetFrontVector(sign) == FbxAxisSystem::eParityEven) {
+        at = math::simd_float4::Load(1.f * sign, 0.f, 0.f, 0.f);
+      } else {
+        at = math::simd_float4::Load(0.f, 0.f, 1.f * sign, 0.f);
+      }
+      break;
+    }
+    case FbxAxisSystem::eZAxis: {
+      up = math::simd_float4::Load(0.f, 0.f, 1.f * sign, 0.f);
+      // If the up axis is Z, the remain two axes will X And Y, so the
+      // ParityEven is X, and the ParityOdd is Y
+      if (_system.GetFrontVector(sign) == FbxAxisSystem::eParityEven) {
+        at = math::simd_float4::Load(1.f * sign, 0.f, 0.f, 0.f);
+      } else {
+        at = math::simd_float4::Load(0.f, 1.f * sign, 0.f, 0.f);
+      }
+      break;
+    }
+    default: {
+      assert(false && "Invalid FbxAxisSystem");
+      break;
+    }
   }
 
-  return FbxAMatrixToTransform(matrix, _transform);
+  // If the front axis and the up axis are determined, the third axis will be
+  // automatically determined as the left one. The ECoordSystem enum is a
+  // parameter to determine the direction of the third axis just as the
+  // EUpVector sign. It determines if the axis system is right-handed or
+  // left-handed just as the enum values.
+  ozz::math::SimdFloat4 right;
+  if (_system.GetCoorSystem() == FbxAxisSystem::eRightHanded) {
+    right = math::Cross3(up, at);
+  } else {
+    right = math::Cross3(at, up);
+  }
+
+  const ozz::math::Float4x4 matrix = {{
+    right, up, at, ozz::math::simd_float4::w_axis()}};
+
+  return matrix;
+}
 }
 
-bool FbxAMatrixToTransform(const FbxAMatrix& _matrix,
-                           ozz::math::Transform* _transform) {
+FbxSystemConverter::FbxSystemConverter(const FbxAxisSystem& _from_axis,
+                                       const FbxSystemUnit& _from_unit) {
+  // Build axis system conversion matrix.
+  const math::Float4x4 from_matrix = BuildAxisSystemMatrix(_from_axis);
 
-  const FbxVector4 translation = _matrix.GetT();
-  _transform->translation = ozz::math::Float3(
-    static_cast<float>(translation.mData[0]),
-    static_cast<float>(translation.mData[1]),
-    static_cast<float>(translation.mData[2]));
+  // Finds unit conversion ratio to meters, where GetScaleFactor() is in cm.
+  const float to_meters =
+    static_cast<float>(_from_unit.GetScaleFactor()) * .01f;
 
-  const FbxQuaternion quaternion = _matrix.GetQ();
-  _transform->rotation = ozz::math::Quaternion(
-    static_cast<float>(quaternion.Buffer()[0]),
-    static_cast<float>(quaternion.Buffer()[1]),
-    static_cast<float>(quaternion.Buffer()[2]),
-    static_cast<float>(quaternion.Buffer()[3]));
+  // Builds conversion matrices.
+  convert_ = Invert(from_matrix) *
+             math::Float4x4::Scaling(math::simd_float4::Load1(to_meters));
+  inverse_convert_ = Invert(convert_);
+  inverse_transpose_convert_ = Transpose(inverse_convert_);
+}
 
-  const FbxVector4 scale = _matrix.GetS();
-  _transform->scale = ozz::math::Float3(
-    static_cast<float>(scale.mData[0]),
-    static_cast<float>(scale.mData[1]),
-    static_cast<float>(scale.mData[2]));
+math::Float4x4 FbxSystemConverter::ConvertMatrix(const FbxAMatrix& _m) const {
+  const ozz::math::Float4x4 m = {{
+    ozz::math::simd_float4::Load(static_cast<float>(_m[0][0]),
+                                 static_cast<float>(_m[0][1]),
+                                 static_cast<float>(_m[0][2]),
+                                 static_cast<float>(_m[0][3])),
+    ozz::math::simd_float4::Load(static_cast<float>(_m[1][0]),
+                                 static_cast<float>(_m[1][1]),
+                                 static_cast<float>(_m[1][2]),
+                                 static_cast<float>(_m[1][3])),
+    ozz::math::simd_float4::Load(static_cast<float>(_m[2][0]),
+                                 static_cast<float>(_m[2][1]),
+                                 static_cast<float>(_m[2][2]),
+                                 static_cast<float>(_m[2][3])),
+    ozz::math::simd_float4::Load(static_cast<float>(_m[3][0]),
+                                 static_cast<float>(_m[3][1]),
+                                 static_cast<float>(_m[3][2]),
+                                 static_cast<float>(_m[3][3])),
+  }};
+  return convert_ * m * inverse_convert_;
+}
 
-  return true;
+math::Float3 FbxSystemConverter::ConvertPoint(const FbxVector4& _p) const {
+  const math::SimdFloat4 p_in =
+    math::simd_float4::Load(static_cast<float>(_p[0]),
+                            static_cast<float>(_p[1]),
+                            static_cast<float>(_p[2]),
+                            1.f);
+  const math::SimdFloat4 p_out = convert_ * p_in;
+  math::Float3 ret;
+  math::Store3PtrU(p_out, &ret.x);
+  return ret;
+}
+
+math::Float3 FbxSystemConverter::ConvertNormal(const FbxVector4& _p) const {
+  const math::SimdFloat4 p_in =
+    math::simd_float4::Load(static_cast<float>(_p[0]),
+                            static_cast<float>(_p[1]),
+                            static_cast<float>(_p[2]),
+                            0.f);
+  const math::SimdFloat4 p_out = inverse_transpose_convert_ * p_in;
+  math::Float3 ret;
+  math::Store3PtrU(p_out, &ret.x);
+  return ret;
+}
+
+math::Transform FbxSystemConverter::ConvertTransform(const FbxAMatrix& _m) const {
+  const math::Float4x4 matrix = ConvertMatrix(_m);
+
+  math::SimdFloat4 translation, rotation, scale;
+  if (ToAffine(matrix, &translation, &rotation, &scale)) {
+    ozz::math::Transform transform;
+    math::Store3PtrU(translation, &transform.translation.x);
+    math::StorePtrU(math::Normalize4(rotation), &transform.rotation.x);
+    math::Store3PtrU(scale, &transform.scale.x);
+    return transform;
+  }
+  return ozz::math::Transform::identity();
 }
 }  // fbx
 }  // ozz

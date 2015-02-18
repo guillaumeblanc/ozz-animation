@@ -5,7 +5,7 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 //                                                                            //
-// Copyright (c) 2012-2014 Guillaume Blanc                                    //
+// Copyright (c) 2012-2015 Guillaume Blanc                                    //
 //                                                                            //
 // This software is provided 'as-is', without any express or implied          //
 // warranty. In no event will the authors be held liable for any damages      //
@@ -34,6 +34,8 @@
 #include <cstring>
 
 #include "gtest/gtest.h"
+#include "ozz/base/gtest_helper.h"
+#include "ozz/base/maths/gtest_math_helper.h"
 
 #include "ozz/base/memory/allocator.h"
 #include "ozz/animation/runtime/skeleton.h"
@@ -42,6 +44,62 @@
 using ozz::animation::Skeleton;
 using ozz::animation::offline::RawSkeleton;
 using ozz::animation::offline::SkeletonBuilder;
+
+TEST(JointBindPose, SkeletonUtils) {
+  // Instantiates a builder objects with default parameters.
+  SkeletonBuilder builder;
+
+  RawSkeleton raw_skeleton;
+  raw_skeleton.roots.resize(1);
+  RawSkeleton::Joint& r = raw_skeleton.roots[0];
+  r.name = "r0";
+  r.transform.translation = ozz::math::Float3::x_axis();
+  r.transform.rotation = ozz::math::Quaternion::identity();
+  r.transform.scale = ozz::math::Float3::zero();
+
+  r.children.resize(2);
+  RawSkeleton::Joint& c0 = r.children[0];
+  c0.name = "j0";
+  c0.transform.translation = ozz::math::Float3::y_axis();
+  c0.transform.rotation = -ozz::math::Quaternion::identity();
+  c0.transform.scale = -ozz::math::Float3::one();
+
+  RawSkeleton::Joint& c1 = r.children[1];
+  c1.name = "j1";
+  c1.transform.translation = ozz::math::Float3::z_axis();
+  c1.transform.rotation = Conjugate(ozz::math::Quaternion::identity());
+  c1.transform.scale = ozz::math::Float3::one();
+  
+  EXPECT_TRUE(raw_skeleton.Validate());
+  EXPECT_EQ(raw_skeleton.num_joints(), 3);
+
+  Skeleton* skeleton = builder(raw_skeleton);
+  ASSERT_TRUE(skeleton != NULL);
+  EXPECT_EQ(skeleton->num_joints(), 3);
+
+  // Out of range.
+  EXPECT_ASSERTION(GetJointBindPose(*skeleton, 3), "Joint index out of range.");
+  
+  const ozz::math::Transform bind_pose0 =
+    ozz::animation::GetJointBindPose(*skeleton, 0);
+  EXPECT_FLOAT3_EQ(bind_pose0.translation, 1.f, 0.f, 0.f);
+  EXPECT_QUATERNION_EQ(bind_pose0.rotation, 0.f, 0.f, 0.f, 1.f);
+  EXPECT_FLOAT3_EQ(bind_pose0.scale, 0.f, 0.f, 0.f);
+
+  const ozz::math::Transform bind_pose1 =
+    ozz::animation::GetJointBindPose(*skeleton, 1);
+  EXPECT_FLOAT3_EQ(bind_pose1.translation, 0.f, 1.f, 0.f);
+  EXPECT_QUATERNION_EQ(bind_pose1.rotation, 0.f, 0.f, 0.f, -1.f);
+  EXPECT_FLOAT3_EQ(bind_pose1.scale, -1.f, -1.f, -1.f);
+
+  const ozz::math::Transform bind_pose2 =
+    ozz::animation::GetJointBindPose(*skeleton, 2);
+  EXPECT_FLOAT3_EQ(bind_pose2.translation, 0.f, 0.f, 1.f);
+  EXPECT_QUATERNION_EQ(bind_pose2.rotation, -0.f, -0.f, -0.f, 1.f);
+  EXPECT_FLOAT3_EQ(bind_pose2.scale, 1.f, 1.f, 1.f);
+
+  ozz::memory::default_allocator()->Delete(skeleton);
+}
 
 namespace {
 
@@ -106,7 +164,7 @@ class IterateDFTester {
 };
 }
 
-TEST(InterateDF, SkeletonBuilder) {
+TEST(InterateDF, SkeletonUtils) {
   // Instantiates a builder objects with default parameters.
   SkeletonBuilder builder;
 
@@ -197,7 +255,7 @@ TEST(InterateDF, SkeletonBuilder) {
   ozz::memory::default_allocator()->Delete(skeleton);
 }
 
-TEST(InterateWorstBreadthDF, SkeletonBuilder) {
+TEST(InterateWorstBreadthDF, SkeletonUtils) {
   // Instantiates a builder objects with default parameters.
   SkeletonBuilder builder;
 
@@ -221,7 +279,7 @@ TEST(InterateWorstBreadthDF, SkeletonBuilder) {
   ozz::memory::default_allocator()->Delete(skeleton);
 }
 
-TEST(InterateWorstDepthDF, SkeletonBuilder) {
+TEST(InterateWorstDepthDF, SkeletonUtils) {
   // Instantiates a builder objects with default parameters.
   SkeletonBuilder builder;
 

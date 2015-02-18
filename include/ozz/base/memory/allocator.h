@@ -5,7 +5,7 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 //                                                                            //
-// Copyright (c) 2012-2014 Guillaume Blanc                                    //
+// Copyright (c) 2012-2015 Guillaume Blanc                                    //
 //                                                                            //
 // This software is provided 'as-is', without any express or implied          //
 // warranty. In no event will the authors be held liable for any damages      //
@@ -163,6 +163,13 @@ class Allocator {
   template<typename _Ty, typename _Arg0, typename _Arg1, typename _Arg2>
   _Ty* New(const _Arg0& _arg0, const _Arg1& _arg1, const _Arg2& _arg2) {
     return new(Allocate<_Ty>(1))_Ty(_arg0, _arg1, _arg2);
+  }
+
+  // Replaces operator new with four arguments.
+  // New function conforms with standard operator new specifications.
+  template<typename _Ty, typename _Arg0, typename _Arg1, typename _Arg2, typename _Arg3>
+  _Ty* New(const _Arg0& _arg0, const _Arg1& _arg1, const _Arg2& _arg2, const _Arg3& _arg3) {
+    return new(Allocate<_Ty>(1))_Ty(_arg0, _arg1, _arg2, _arg3);
   }
 
   // Replaces operator delete for objects allocated using one of the New

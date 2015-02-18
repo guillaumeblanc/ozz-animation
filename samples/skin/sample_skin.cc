@@ -5,7 +5,7 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 //                                                                            //
-// Copyright (c) 2012-2014 Guillaume Blanc                                    //
+// Copyright (c) 2012-2015 Guillaume Blanc                                    //
 //                                                                            //
 // This software is provided 'as-is', without any express or implied          //
 // warranty. In no event will the authors be held liable for any damages      //
@@ -120,7 +120,7 @@ class SkinSampleApplication : public ozz::sample::Application {
 
     // Builds skinning matrices, based on the output of the animation stage.
     for (int i = 0; i < skeleton_.num_joints(); ++i) {
-      skinning_matrices_[i] = models_[i] * inverse_bind_pose_[i];
+      skinning_matrices_[i] = models_[i] * mesh_.inverse_bind_poses[i];
     }
 
     // Prepares rendering mesh, which allocates the buffers that are filled as
@@ -170,9 +170,9 @@ class SkinSampleApplication : public ozz::sample::Application {
       }
 
       // Setup input positions, coming from the loaded mesh.
-      skinning_job.in_positions.begin = array_begin(part.positions);
-      skinning_job.in_positions.end = array_end(part.positions);
-      skinning_job.in_positions_stride = sizeof(float) * 3;
+      skinning_job.in_positions.begin = &array_begin(part.positions)->x;
+      skinning_job.in_positions.end = &array_end(part.positions)->x;
+      skinning_job.in_positions_stride = sizeof(ozz::math::Float3);
 
       // Setup output positions, coming from the rendering output mesh buffers.
       // We need to offset the buffer every loop.
@@ -186,9 +186,9 @@ class SkinSampleApplication : public ozz::sample::Application {
       skinning_job.out_positions_stride = pbuffer.stride;
 
       // Setup input normals, coming from the loaded mesh.
-      skinning_job.in_normals.begin = array_begin(part.normals);
-      skinning_job.in_normals.end = array_end(part.normals);
-      skinning_job.in_normals_stride = sizeof(float) * 3;
+      skinning_job.in_normals.begin = &array_begin(part.normals)->x;
+      skinning_job.in_normals.end = &array_end(part.normals)->x;
+      skinning_job.in_normals_stride = sizeof(ozz::math::Float3);
 
       // Setup output normals, coming from the rendering output mesh buffers.
       // We need to offset the buffer every loop.
@@ -235,7 +235,7 @@ class SkinSampleApplication : public ozz::sample::Application {
       uint16_t* indices = buffer.data.begin;
       for (int i = 0; i < index_count; ++i) {
         *indices = mesh_.triangle_indices[i];
-        indices = ozz::PointerStride(indices, + buffer.stride);
+        indices = ozz::PointerStride(indices, buffer.stride);
       }
     }
 
@@ -272,38 +272,15 @@ class SkinSampleApplication : public ozz::sample::Application {
       return false;
     }
 
+    // The number of joints of the mesh needs to match skeleton.
+    if (mesh_.num_joints() != num_joints) {
+      ozz::log::Err() << "The provided mesh doesn't match skeleton "
+        "(joint count mismatch)." << std::endl;
+      return false;
+    }
+
     // Init default value for influences count limitation option.
     limit_influences_count_ = mesh_.max_influences_count();
-
-    if (!BuildInverseBindPose()) {
-      return false;
-    }
-
-    return true;
-  }
-
-  bool BuildInverseBindPose() {
-    const int num_joints = skeleton_.num_joints();
-
-    // Build inverse bind-pose matrices, based on the input skeleton.
-    inverse_bind_pose_ = ozz::memory::default_allocator()->
-      AllocateRange<ozz::math::Float4x4>(num_joints);
-
-    // Convert skeleton bind-pose in local space to model-space matrices using
-    // the LocalToModelJob. Output is stored directly inside inverse_bind_pose_
-    // which will then be inverted in-place.
-    ozz::animation::LocalToModelJob ltm_job;
-    ltm_job.skeleton = &skeleton_;
-    ltm_job.input = skeleton_.bind_pose();
-    ltm_job.output = inverse_bind_pose_;
-    if (!ltm_job.Run()) {
-      return false;
-    }
-
-    // Invert matrices in-place.
-    for (int i = 0; i < num_joints; ++i) {
-      inverse_bind_pose_[i] = Invert(inverse_bind_pose_[i]);
-    }
 
     return true;
   }
@@ -313,7 +290,6 @@ class SkinSampleApplication : public ozz::sample::Application {
     allocator->Deallocate(locals_);
     allocator->Deallocate(models_);
     allocator->Deallocate(skinning_matrices_);
-    allocator->Deallocate(inverse_bind_pose_);
     allocator->Delete(cache_);
   }
 
@@ -399,10 +375,6 @@ class SkinSampleApplication : public ozz::sample::Application {
 
   // Buffer of skinning matrices.
   ozz::Range<ozz::math::Float4x4> skinning_matrices_;
-
-  // Buffer of inverse bind-pose matrices. They are used during skinning to
-  // convert vertices to joints local-space.
-  ozz::Range<ozz::math::Float4x4> inverse_bind_pose_;
 
   // The input mesh containing skinning information (joint indices, weights...).
   // This mesh is loaded from a file.

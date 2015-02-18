@@ -5,7 +5,7 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 //                                                                            //
-// Copyright (c) 2012-2014 Guillaume Blanc                                    //
+// Copyright (c) 2012-2015 Guillaume Blanc                                    //
 //                                                                            //
 // This software is provided 'as-is', without any express or implied          //
 // warranty. In no event will the authors be held liable for any damages      //
@@ -73,7 +73,7 @@ struct RotationKey {
   float time;
   uint16_t track:15;
   bool wsign:1;
-  int16_t value[3];  
+  int16_t value[3];
 };
 
 // Defines the scale key frame type.

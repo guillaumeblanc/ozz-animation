@@ -5,7 +5,7 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 //                                                                            //
-// Copyright (c) 2012-2014 Guillaume Blanc                                    //
+// Copyright (c) 2012-2015 Guillaume Blanc                                    //
 //                                                                            //
 // This software is provided 'as-is', without any express or implied          //
 // warranty. In no event will the authors be held liable for any damages      //
@@ -35,12 +35,15 @@
 #include "ozz/base/containers/vector.h"
 #include "ozz/base/io/archive_traits.h"
 
+#include "ozz/base/maths/vec_float.h"
+#include "ozz/base/maths/simd_math.h"
+
 namespace ozz {
 namespace sample {
 
 // Defines a mesh with skinning information (joint indices and weights).
 // The mesh is subdivided into parts that group vertices according to their
-// number of influencing joints. Triangle indices are shared across mesh parts. 
+// number of influencing joints. Triangle indices are shared across mesh parts.
 struct SkinnedMesh {
   SkinnedMesh();
   ~SkinnedMesh();
@@ -70,11 +73,26 @@ struct SkinnedMesh {
     return max_influences_count;
   }
 
+  // Test if the mesh has skinning informations.
+  bool skinned() const {
+    for (size_t i = 0; i < parts.size(); ++i) {
+      if (parts[i].influences_count() != 0) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // Returns the number of joints used to skin the mesh.
+  int num_joints() {
+    return static_cast<int>(inverse_bind_poses.size());
+  }
+
   // Defines a portion of the mesh. A mesh is subdivided in sets of vertices
   // with the same number of joint influences.
   struct Part {
     int vertex_count() const {
-      return static_cast<int>(positions.size()) / 3;
+      return static_cast<int>(positions.size());
     }
 
     int influences_count() const {
@@ -85,8 +103,8 @@ struct SkinnedMesh {
       return static_cast<int>(joint_indices.size()) / _vertex_count;
     }
 
-    ozz::Vector<float>::Std positions;
-    ozz::Vector<float>::Std normals;
+    ozz::Vector<ozz::math::Float3>::Std positions;
+    ozz::Vector<ozz::math::Float3>::Std normals;
     ozz::Vector<uint16_t>::Std joint_indices;
     ozz::Vector<float>::Std joint_weights;
   };
@@ -94,6 +112,9 @@ struct SkinnedMesh {
 
   // Triangles indices. Indexed vertex are shared across all parts.
   ozz::Vector<uint16_t>::Std triangle_indices;
+
+  // Inverse bind-pose matrices. These are only available for skinned meshes.
+  ozz::Vector<ozz::math::Float4x4>::Std inverse_bind_poses;
 };
 }  // sample
 
@@ -113,5 +134,4 @@ void Load(IArchive& _archive,
           uint32_t _version);
 }  // io
 }  // ozz
-
 #endif  // OZZ_SAMPLES_SKIN_SKIN_MESH_H_

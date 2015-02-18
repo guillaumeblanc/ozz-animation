@@ -6,7 +6,7 @@
 #                                                                              #
 #------------------------------------------------------------------------------#
 #                                                                              #
-#  Copyright (c) 2012-2014 Guillaume Blanc                                     #
+#  Copyright (c) 2012-2015 Guillaume Blanc                                     #
 #                                                                              #
 #  This software is provided 'as-is', without any express or implied           #
 #  warranty. In no event will the authors be held liable for any damages       #
@@ -55,7 +55,7 @@ license_text = "\
 //                                                                            //\n\
 //----------------------------------------------------------------------------//\n\
 //                                                                            //\n\
-// Copyright (c) 2012-2014 Guillaume Blanc                                    //\n\
+// Copyright (c) 2012-2015 Guillaume Blanc                                    //\n\
 //                                                                            //\n\
 // This software is provided 'as-is', without any express or implied          //\n\
 // warranty. In no event will the authors be held liable for any damages      //\n\

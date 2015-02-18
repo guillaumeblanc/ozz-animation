@@ -5,7 +5,7 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 //                                                                            //
-// Copyright (c) 2012-2014 Guillaume Blanc                                    //
+// Copyright (c) 2012-2015 Guillaume Blanc                                    //
 //                                                                            //
 // This software is provided 'as-is', without any express or implied          //
 // warranty. In no event will the authors be held liable for any damages      //
@@ -33,6 +33,7 @@
 #include "animation/offline/fbx/fbx_animation.h"
 
 #include "ozz/animation/runtime/skeleton.h"
+#include "ozz/animation/runtime/skeleton_utils.h"
 #include "ozz/animation/offline/raw_animation.h"
 
 #include "ozz/base/log.h"
@@ -45,45 +46,76 @@ namespace offline {
 namespace fbx {
 
 namespace {
-bool ExtractAnimation(FbxScene* _scene,
+bool ExtractAnimation(FbxSceneLoader* _scene_loader,
                       FbxAnimStack* anim_stack,
                       const Skeleton& _skeleton,
                       float _sampling_rate,
                       RawAnimation* _animation) {
+  FbxScene* scene = _scene_loader->scene();
+  assert(scene);
+
   // Setup Fbx animation evaluator.
-  _scene->SetCurrentAnimationStack(anim_stack);
-  FbxAnimEvaluator* evaluator = _scene->GetAnimationEvaluator();
+  scene->SetCurrentAnimationStack(anim_stack);
 
-  // Initialize animation duration.
-  const float start = static_cast<float>(
-    anim_stack->GetLocalTimeSpan().GetStart().GetSecondDouble());
-  const float end = static_cast<float>(
-    anim_stack->GetLocalTimeSpan().GetStop().GetSecondDouble());
-  _animation->duration = end - start;
+  // Extract animation duration.
+  float start, end;
+  const FbxTakeInfo* take_info = scene->GetTakeInfo(anim_stack->GetName());
+  if (take_info)
+  {
+    start = static_cast<float>(
+      take_info->mLocalTimeSpan.GetStart().GetSecondDouble());
+    end = static_cast<float>(
+      take_info->mLocalTimeSpan.GetStop().GetSecondDouble());
+  }
+  else
+  {
+    // Take the time line value.
+    FbxTimeSpan lTimeLineTimeSpan;
+    scene->GetGlobalSettings().GetTimelineDefaultTimeSpan(lTimeLineTimeSpan);
+    start = static_cast<float>(lTimeLineTimeSpan.GetStart().GetSecondDouble());
+    end = static_cast<float>(lTimeLineTimeSpan.GetStop().GetSecondDouble());
+  }
 
-  // Allocates all tracks with the same number of tracks as the skeleton.
-  // Tracks that would not be found will remain empty (identity transformation).
+  // Animation duration could be 0 if it's just a pose. In this case we'll set a
+  // default 1s duration.
+  if (end > start) {
+    _animation->duration = end - start;
+  } else {
+    _animation->duration = 1.f;
+  }
+
+  // Allocates all tracks with the same number of joints as the skeleton.
+  // Tracks that would not be found will be set to skeleton bind-pose
+  // transformation.
   _animation->tracks.resize(_skeleton.num_joints());
 
   // Iterate all skeleton joints and fills there track with key frames.
+  FbxAnimEvaluator* evaluator = scene->GetAnimationEvaluator();
   for (int i = 0; i < _skeleton.num_joints(); i++) {
     RawAnimation::JointTrack& track = _animation->tracks[i];
 
     // Find a node that matches skeleton joint.
-    FbxNode* node = NULL;
     const char* joint_name = _skeleton.joint_names()[i];
-    for (int j = 0; j < _scene->GetNodeCount(); j++) {
-      FbxNode* node_j = _scene->GetNode(j);
-      if (strcmp(node_j->GetName(), joint_name) == 0) {
-        node = node_j;
-        break;
-      }
-    }
+    FbxNode* node = scene->FindNodeByName(joint_name);
 
     if (!node) {
       // Empty joint track.
       ozz::log::Err() << "No animation track found for joint \"" << joint_name
-        << "\"." << std::endl;
+        << "\". Using skeleton bind pose instead." << std::endl;
+
+      // Get joint's bind pose.
+      const ozz::math::Transform& bind_pose =
+        ozz::animation::GetJointBindPose(_skeleton, i);
+
+      const RawAnimation::TranslationKey tkey = {0.f, bind_pose.translation};
+      track.translations.push_back(tkey);
+
+      const RawAnimation::RotationKey rkey = {0.f, bind_pose.rotation};
+      track.rotations.push_back(rkey);
+
+      const RawAnimation::ScaleKey skey = {0.f, bind_pose.scale};
+      track.scales.push_back(skey);
+
       continue;
     }
 
@@ -91,13 +123,13 @@ bool ExtractAnimation(FbxScene* _scene,
     // purpose).
     const float sampling_period = 1.f / _sampling_rate;
     const int max_keys =
-      static_cast<int>(1.f + (end - start) / sampling_period);
+      static_cast<int>(3.f + (end - start) / sampling_period);
     track.translations.reserve(max_keys);
     track.rotations.reserve(max_keys);
     track.scales.reserve(max_keys);
 
     // Evaluate joint transformation at the specified time.
-    // Make sure to include "end" time.
+    // Make sure to include "end" time, and enter the loop once at least.
     bool loop_again = true;
     for (float t = start; loop_again; t += sampling_period) {
       if (t >= end) {
@@ -106,17 +138,11 @@ bool ExtractAnimation(FbxScene* _scene,
       }
 
       // Evaluate local transform at fbx_time.
-      FbxAMatrix matrix;
-      bool root = _skeleton.joint_properties()[i].parent == Skeleton::kNoParentIndex;
-      if (root) {
-        matrix = evaluator->GetNodeGlobalTransform(node, FbxTimeSeconds(t));
-      } else {
-        matrix = evaluator->GetNodeLocalTransform(node, FbxTimeSeconds(t));
-      }
-      ozz::math::Transform transform;
-
-      // Converts to ozz transformation format.
-      FbxAMatrixToTransform(matrix, &transform);
+      const ozz::math::Transform transform =
+        _scene_loader->converter()->ConvertTransform(
+          _skeleton.joint_properties()[i].parent == Skeleton::kNoParentIndex?
+            evaluator->GetNodeGlobalTransform(node, FbxTimeSeconds(t)):
+            evaluator->GetNodeLocalTransform(node, FbxTimeSeconds(t)));
 
       // Fills corresponding track.
       const float local_time = t - start;
@@ -132,15 +158,21 @@ bool ExtractAnimation(FbxScene* _scene,
     }
   }
 
+  // Output animation must be valid at that point.
+  assert(_animation->Validate());
+
   return true;
 }
 }
 
-bool ExtractAnimation(FbxScene* _scene,
+bool ExtractAnimation(FbxSceneLoader* _scene_loader,
                       const Skeleton& _skeleton,
                       float _sampling_rate,
                       RawAnimation* _animation) {
-  int anim_stacks_count = _scene->GetSrcObjectCount<FbxAnimStack>();
+  FbxScene* scene = _scene_loader->scene();
+  assert(scene);
+
+  int anim_stacks_count = scene->GetSrcObjectCount<FbxAnimStack>();
 
   // Early out if no animation's found.
   if(anim_stacks_count == 0) {
@@ -154,10 +186,10 @@ bool ExtractAnimation(FbxScene* _scene,
   }
 
   // Arbitrarily take the first animation of the stack.
-  FbxAnimStack* anim_stack = _scene->GetSrcObject<FbxAnimStack>(0);
+  FbxAnimStack* anim_stack = scene->GetSrcObject<FbxAnimStack>(0);
   ozz::log::Log() << "Extracting animation \"" << anim_stack->GetName() << "\""
     << std::endl;
-  return ExtractAnimation(_scene,
+  return ExtractAnimation(_scene_loader,
                           anim_stack,
                           _skeleton,
                           _sampling_rate,

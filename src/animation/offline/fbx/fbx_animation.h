@@ -5,7 +5,7 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 //                                                                            //
-// Copyright (c) 2012-2014 Guillaume Blanc                                    //
+// Copyright (c) 2012-2015 Guillaume Blanc                                    //
 //                                                                            //
 // This software is provided 'as-is', without any express or implied          //
 // warranty. In no event will the authors be held liable for any damages      //
@@ -48,7 +48,7 @@ struct RawAnimation;
 
 namespace fbx {
 
-bool ExtractAnimation(FbxScene* _scene,
+bool ExtractAnimation(FbxSceneLoader* _scene_loader,
                       const Skeleton& _skeleton,
                       float _sampling_rate,
                       RawAnimation* _animation);

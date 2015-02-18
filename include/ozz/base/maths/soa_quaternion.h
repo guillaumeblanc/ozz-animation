@@ -5,7 +5,7 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 //                                                                            //
-// Copyright (c) 2012-2014 Guillaume Blanc                                    //
+// Copyright (c) 2012-2015 Guillaume Blanc                                    //
 //                                                                            //
 // This software is provided 'as-is', without any express or implied          //
 // warranty. In no event will the authors be held liable for any damages      //
@@ -82,7 +82,9 @@ OZZ_INLINE SoaQuaternion Normalize(const SoaQuaternion& _q) {
 // Returns the estimated normalized SoaQuaternion _q.
 OZZ_INLINE SoaQuaternion NormalizeEst(const SoaQuaternion& _q) {
   const SimdFloat4 len2 = _q.x * _q.x + _q.y * _q.y + _q.z * _q.z + _q.w * _q.w;
-  const SimdFloat4 inv_len = RSqrtEst(len2);
+  // Uses RSqrtEstNR (with one more Newton-Raphson step) as quaternions loose
+  // much precision due to normalization.
+  const SimdFloat4 inv_len = RSqrtEstNR(len2);
   const SoaQuaternion r = {_q.x * inv_len, _q.y * inv_len, _q.z * inv_len, _q.w * inv_len};
   return r;
 }
@@ -129,7 +131,9 @@ OZZ_INLINE SoaQuaternion NLerpEst(const SoaQuaternion& _a, const SoaQuaternion& 
                           (_b.z - _a.z) * _f + _a.z,
                           (_b.w - _a.w) * _f + _a.w};
   const SimdFloat4 len2 = lerp.x * lerp.x + lerp.y * lerp.y + lerp.z * lerp.z + lerp.w * lerp.w;
-  const SimdFloat4 inv_len = RSqrtEst(len2);
+  // Uses RSqrtEstNR (with one more Newton-Raphson step) as quaternions loose
+  // much precision due to normalization.
+  const SimdFloat4 inv_len = RSqrtEstNR(len2);
   const SoaQuaternion r = {lerp.x * inv_len, lerp.y * inv_len, lerp.z * inv_len, lerp.w * inv_len};
   return r;
 }

@@ -5,7 +5,7 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 //                                                                            //
-// Copyright (c) 2012-2014 Guillaume Blanc                                    //
+// Copyright (c) 2012-2015 Guillaume Blanc                                    //
 //                                                                            //
 // This software is provided 'as-is', without any express or implied          //
 // warranty. In no event will the authors be held liable for any damages      //
@@ -300,6 +300,9 @@ TEST(ArithmeticFloat, ozz_simd_math) {
   const ozz::math::SimdFloat4 rcp = ozz::math::RcpEst(b);
   EXPECT_SIMDFLOAT_EQ_EST(rcp, 1.f/4.f, 1.f/5.f, -1.f/6.f, 1.f/7.f);
 
+  const ozz::math::SimdFloat4 rcpnr = ozz::math::RcpEstNR(b);
+  EXPECT_SIMDFLOAT_EQ(rcpnr, 1.f/4.f, 1.f/5.f, -1.f/6.f, 1.f/7.f);
+
   const ozz::math::SimdFloat4 rcpx = ozz::math::RcpEstX(b);
   EXPECT_SIMDFLOAT_EQ_EST(rcpx, 1.f/4.f, 5.f, -6.f, 7.f);
   
@@ -311,6 +314,9 @@ TEST(ArithmeticFloat, ozz_simd_math) {
   
   const ozz::math::SimdFloat4 rsqrt = ozz::math::RSqrtEst(a);
   EXPECT_SIMDFLOAT_EQ_EST(rsqrt, 1.f/.7071068f, 1.f, 1.f/1.4142135f, 1.f/1.7320508f);
+
+  const ozz::math::SimdFloat4 rsqrtnr = ozz::math::RSqrtEstNR(a);
+  EXPECT_SIMDFLOAT_EQ(rsqrtnr, 1.f/.7071068f, 1.f, 1.f/1.4142135f, 1.f/1.7320508f);
 
   const ozz::math::SimdFloat4 rsqrtx = ozz::math::RSqrtEstX(a);
   EXPECT_SIMDFLOAT_EQ_EST(rsqrtx, 1.f/.7071068f, 1.f, 2.f, 3.f);

@@ -5,7 +5,7 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 //                                                                            //
-// Copyright (c) 2012-2014 Guillaume Blanc                                    //
+// Copyright (c) 2012-2015 Guillaume Blanc                                    //
 //                                                                            //
 // This software is provided 'as-is', without any express or implied          //
 // warranty. In no event will the authors be held liable for any damages      //
@@ -85,7 +85,6 @@ Camera::Camera()
       remaining_animation_time_(0.f),
       mouse_last_x_(0),
       mouse_last_y_(0),
-      mouse_last_mb_(GLFW_RELEASE),
       mouse_last_wheel_(0),
       auto_framing_(true) {
 }
@@ -113,6 +112,7 @@ void Camera::Update(const math::Box& _box, float _delta_time, bool _first_frame)
   }
 
   // Mouse wheel activates Zoom.
+#ifndef EMSCRIPTEN
   const int w = glfwGetMouseWheel();
   const int dw = w - mouse_last_wheel_;
   mouse_last_wheel_ = w;
@@ -121,6 +121,7 @@ void Camera::Update(const math::Box& _box, float _delta_time, bool _first_frame)
     distance_ += -dw * kScrollFactor * distance_;
     remaining_animation_time_= 0.f;
   }
+#endif  // EMSCRIPTEN
 
   // Fetches current mouse position and compute its movement since last frame.
   int x, y;
@@ -169,46 +170,6 @@ void Camera::Update(const math::Box& _box, float _delta_time, bool _first_frame)
       angles_.y = fmodf(angles_.y - dx * kAngleFactor, ozz::math::k2Pi);
       remaining_animation_time_= 0.f;
     }
-  }
-
-  // The middle button set view center.
-  const int mouse_mb = glfwGetMouseButton(GLFW_MOUSE_BUTTON_MIDDLE);
-  const int mouse_mb_released = mouse_last_mb_ == GLFW_PRESS &&
-                                mouse_mb == GLFW_RELEASE;
-  mouse_last_mb_ = mouse_mb;
-  if (mouse_mb_released) {
-    panning = true;
-
-    // Find picking ray: un-project mouse position on the near and far planes.
-    int viewport[4];
-    GL(GetIntegerv(GL_VIEWPORT, viewport));
-
-    const Float2 mouse_norm(
-      (x - viewport[0]) / static_cast<float>(viewport[2]) * 2.f - 1.f,
-      (viewport[3] - y - viewport[1]) / static_cast<float>(viewport[3]) * 2.f - 1.f);
-
-    const math::SimdFloat4 in_near =
-      math::simd_float4::Load(mouse_norm.x, mouse_norm.y, -1.f, 1.f);
-    const math::SimdFloat4 in_far =
-      math::simd_float4::Load(mouse_norm.x, mouse_norm.y, 1.f, 1.f);
-
-    const Float4x4 inv_mvp = Invert(projection_ * view_);
-    const math::SimdFloat4 proj_near = inv_mvp * in_near;
-    const math::SimdFloat4 proj_far = inv_mvp * in_far;
-    const math::SimdFloat4 near = proj_near / math::SplatW(proj_near);
-    const math::SimdFloat4 far =  proj_far / math::SplatW(proj_far);
-
-    // The new center is at the intersection of the ray and the floor plane.
-    const math::SimdFloat4 ray = math::Normalize3(far - near);
-    const math::SimdFloat4 ray_y = math::SplatY(ray);
-    const math::SimdFloat4 center =
-      math::Select(math::CmpNe(ray_y, math::simd_float4::zero()),
-                   near + ray * (-math::SplatY(near) / ray_y),
-                   math::simd_float4::zero());
-    math::Store3PtrU(center, &center_.x);
-
-    // Starts animation.
-    remaining_animation_time_ = kAnimationTime;
   }
 
   // An animation (to the new center position) is in progress.
@@ -260,7 +221,6 @@ void Camera::OnGui(ImGui* _im_gui) {
 
   const char* controls_label =
     "-F: Frame all\n"
-    "-MMB: Center\n"
     "-RMB: Rotate\n"
     "-Ctrl + RMB: Zoom\n"
     "-Shift + RMB: Pan\n";

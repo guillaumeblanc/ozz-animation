@@ -5,7 +5,7 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 //                                                                            //
-// Copyright (c) 2012-2014 Guillaume Blanc                                    //
+// Copyright (c) 2012-2015 Guillaume Blanc                                    //
 //                                                                            //
 // This software is provided 'as-is', without any express or implied          //
 // warranty. In no event will the authors be held liable for any damages      //
@@ -47,7 +47,7 @@ namespace internal {
 GlImmediateRenderer::GlImmediateRenderer(RendererImpl* _renderer)
     : vbo_(0),
       buffer_(NULL),
-      max_size_(1024),
+      max_size_(0),
       size_(0),
       immediate_pc_shader(NULL),
       immediate_ptc_shader(NULL),
@@ -74,7 +74,8 @@ GlImmediateRenderer::~GlImmediateRenderer() {
 
 bool GlImmediateRenderer::Initialize() {
   GL(GenBuffers(1, &vbo_));
-  buffer_ = ozz::memory::default_allocator()->Allocate<char>(max_size_);
+  const size_t kDefaultVboSize = 2<<10;
+  ResizeVbo(kDefaultVboSize);
 
   immediate_pc_shader = ImmediatePCShader::Build();
   if (!immediate_pc_shader) {
@@ -96,7 +97,7 @@ template<>
 void GlImmediateRenderer::End<VertexPC>(GLenum _mode,
                                         const ozz::math::Float4x4& _transform) {
   GL(BindBuffer(GL_ARRAY_BUFFER, vbo_));
-  GL(BufferData(GL_ARRAY_BUFFER, size_, buffer_, GL_STREAM_DRAW));
+  GL(BufferSubData(GL_ARRAY_BUFFER, 0, size_, buffer_));
 
   immediate_pc_shader->Bind(_transform,
                             renderer_->camera()->view_proj(),
@@ -118,7 +119,7 @@ template<>
 void GlImmediateRenderer::End<VertexPTC>(GLenum _mode,
                                          const ozz::math::Float4x4& _transform) {
   GL(BindBuffer(GL_ARRAY_BUFFER, vbo_));
-  GL(BufferData(GL_ARRAY_BUFFER, size_, buffer_, GL_STREAM_DRAW));
+  GL(BufferSubData(GL_ARRAY_BUFFER, 0, size_, buffer_));
 
   immediate_ptc_shader->Bind(_transform,
                              renderer_->camera()->view_proj(),
@@ -135,6 +136,18 @@ void GlImmediateRenderer::End<VertexPTC>(GLenum _mode,
 
   // Reset vertex count for the next call
   size_ = 0;
+}
+
+void GlImmediateRenderer::ResizeVbo(size_t _new_size) {
+  if (_new_size > max_size_) {
+    max_size_ = ozz::math::Max(max_size_ * 2, _new_size);
+    buffer_ = ozz::memory::default_allocator()->Reallocate(
+      buffer_, max_size_);
+
+    GL(BindBuffer(GL_ARRAY_BUFFER, vbo_));
+    GL(BufferData(GL_ARRAY_BUFFER, max_size_, NULL, GL_DYNAMIC_DRAW));
+    GL(BindBuffer(GL_ARRAY_BUFFER, 0));
+  }
 }
 }  // internal
 }  // sample

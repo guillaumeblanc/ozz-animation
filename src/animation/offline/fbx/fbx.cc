@@ -5,7 +5,7 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 //                                                                            //
-// Copyright (c) 2012-2014 Guillaume Blanc                                    //
+// Copyright (c) 2012-2015 Guillaume Blanc                                    //
 //                                                                            //
 // This software is provided 'as-is', without any express or implied          //
 // warranty. In no event will the authors be held liable for any damages      //
@@ -63,7 +63,7 @@ bool ImportFromFile(const char* _filename, RawSkeleton* _skeleton) {
     return false;
   }
 
-  if (!ExtractSkeleton(scene_loader.scene(), _skeleton)) {
+  if (!ExtractSkeleton(scene_loader, _skeleton)) {
     log::Err() << "Fbx skeleton extraction failed." << std::endl;
     return false;
   }
@@ -91,7 +91,10 @@ bool ImportFromFile(const char* _filename,
     return false;
   }
 
-  if (!ExtractAnimation(scene_loader.scene(), _skeleton, _sampling_rate, _animation)) {
+  if (!ExtractAnimation(&scene_loader,
+                        _skeleton,
+                        _sampling_rate,
+                        _animation)) {
     log::Err() << "Fbx animation extraction failed." << std::endl;
     return false;
   }

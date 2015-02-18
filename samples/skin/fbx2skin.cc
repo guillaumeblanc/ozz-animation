@@ -5,7 +5,7 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 //                                                                            //
-// Copyright (c) 2012-2014 Guillaume Blanc                                    //
+// Copyright (c) 2012-2015 Guillaume Blanc                                    //
 //                                                                            //
 // This software is provided 'as-is', without any express or implied          //
 // warranty. In no event will the authors be held liable for any damages      //
@@ -49,86 +49,140 @@
 #include "ozz/options/options.h"
 
 #include <algorithm>
+#include <limits>
 
 // Declares command line options.
 OZZ_OPTIONS_DECLARE_STRING(file, "Specifies input file.", "", true)
 OZZ_OPTIONS_DECLARE_STRING(skeleton, "Specifies the skeleton that the skin is bound to.", "", true)
 OZZ_OPTIONS_DECLARE_STRING(skin, "Specifies ozz skin ouput file.", "", true)
 
-bool BuildVertices(FbxMesh* _mesh, ozz::sample::SkinnedMesh::Part* _skinned_mesh_part) {
+namespace {
 
-  // Get the matrices required to transform mesh in the right unit/axis system.
-  const FbxAMatrix fbx_point_transform = _mesh->GetNode()->EvaluateGlobalTransform();
-  const ozz::math::Float4x4 point_transform = {{
-    ozz::math::simd_float4::Load(static_cast<float>(fbx_point_transform[0][0]),
-      static_cast<float>(fbx_point_transform[0][1]),
-      static_cast<float>(fbx_point_transform[0][2]),
-      static_cast<float>(fbx_point_transform[0][3])),
-      ozz::math::simd_float4::Load(static_cast<float>(fbx_point_transform[1][0]),
-      static_cast<float>(fbx_point_transform[1][1]),
-      static_cast<float>(fbx_point_transform[1][2]),
-      static_cast<float>(fbx_point_transform[1][3])),
-      ozz::math::simd_float4::Load(static_cast<float>(fbx_point_transform[2][0]),
-      static_cast<float>(fbx_point_transform[2][1]),
-      static_cast<float>(fbx_point_transform[2][2]),
-      static_cast<float>(fbx_point_transform[2][3])),
-      ozz::math::simd_float4::Load(static_cast<float>(fbx_point_transform[3][0]),
-      static_cast<float>(fbx_point_transform[3][1]),
-      static_cast<float>(fbx_point_transform[3][2]),
-      static_cast<float>(fbx_point_transform[3][3])),
-  }};
-  ozz::math::Float4x4 vector_transform =
-    ozz::math::Transpose(ozz::math::Invert(point_transform));
+// Control point to vertex buffer remapping.
+typedef ozz::Vector<uint16_t>::Std ControlPointRemap;
+typedef ozz::Vector<ControlPointRemap>::Std ControlPointsRemap;
 
-  const int vertex_count = _mesh->GetControlPointsCount();
-  _skinned_mesh_part->positions.resize(vertex_count * 3);
-  _skinned_mesh_part->normals.resize(vertex_count * 3);
+// Triangle indices sort function.
+int SortTriangles(const void* _left, const void* _right) {
+  const uint16_t* left = static_cast<const uint16_t*>(_left);
+  const uint16_t* right = static_cast<const uint16_t*>(_right);
+  return (left[0] + left[1] + left[2]) - (right[0] + right[1] + right[2]);
+}
+}  // namespace
 
-  // Iterate through all vertices and stores position.
-  const FbxVector4* control_points = _mesh->GetControlPoints();
-  for (int v = 0; v < vertex_count; ++v) {
-    const FbxVector4 in = control_points[v];
-    const ozz::math::SimdFloat4 simd_in = ozz::math::simd_float4::Load(
-      static_cast<float>(in[0]),
-      static_cast<float>(in[1]),
-      static_cast<float>(in[2]),
-      1.f);
-    const ozz::math::SimdFloat4 transformed = point_transform * simd_in;
-    ozz::math::Store3PtrU(transformed, &_skinned_mesh_part->positions[v * 3]);
+bool BuildVertices(FbxMesh* _fbx_mesh,
+                   ozz::animation::offline::fbx::FbxSystemConverter* _converter,
+                   ControlPointsRemap* _remap,
+                   ozz::sample::SkinnedMesh* _output_mesh) {
+
+  // This function treat all layers like if they were using mapping mode
+  // eByPolygonVertex. This allow to use a single code path for all mapping
+  // modes. It requires one more pass (compare to eByControlPoint mode), which
+  // is to weld vertices with identical positions, normals, uvs...
+
+  // Allocates control point to polygon remapping.
+  const int ctrl_point_count = _fbx_mesh->GetControlPointsCount();
+  _remap->resize(ctrl_point_count);
+
+  // Checks normals availability.
+  bool has_normals =
+    _fbx_mesh->GetElementNormalCount() > 0 &&
+    _fbx_mesh->GetElementNormal(0)->GetMappingMode() != FbxLayerElement::eNone;
+
+  // Regenerate normals if they're not available or not in the right format.
+  if (!_fbx_mesh->GenerateNormals(!has_normals, // overwrite
+                                  false,  // by ctrl point
+                                  false)) {  // clockwise
+    return false;
   }
 
-  // Normals could be flipped.
-  float ccw_multiplier = _mesh->CheckIfVertexNormalsCCW() ? 1.f : -1.f;
+  // Computes worst vertex count case. Needs to allocate 3 vertices per polygon,
+  // as they should all be triangles.
+  const int polygon_count = _fbx_mesh->GetPolygonCount();
+  int vertex_count = _fbx_mesh->GetPolygonCount() * 3;
 
-  // If mesh has normals
-  if (_mesh->GetElementNormalCount() > 0) {
-    const FbxGeometryElementNormal* normal_element = _mesh->GetElementNormal(0);
-    const bool indirect =
-      normal_element->GetReferenceMode() != FbxLayerElement::eDirect;
-    for (int v = 0; v < vertex_count; ++v) {
-      const int lv = indirect ? normal_element->GetIndexArray().GetAt(v) : v;
-      const FbxVector4 in = normal_element->GetDirectArray().GetAt(lv);
-      const ozz::math::SimdFloat4 simd_in = ozz::math::simd_float4::Load(
-        static_cast<float>(in[0]) * ccw_multiplier,
-        static_cast<float>(in[1]) * ccw_multiplier,
-        static_cast<float>(in[2]) * ccw_multiplier,
-        0.f);
-      const ozz::math::SimdFloat4 transformed =
-        ozz::math::Normalize3(vector_transform * simd_in);
-      ozz::math::Store3PtrU(transformed, &_skinned_mesh_part->normals[v * 3]);
-    }
-  } else {
-    // Set a default value.
-    for (int v = 0; v < vertex_count; ++v) {
-      float* out = &_skinned_mesh_part->normals[v * 3];
-      out[0] = 0.f;
-      out[1] = 1.f;
-      out[2] = 0.f;
+  // Reserve vertex buffers. Real size is unknown as redundant vertices will be
+  // rejected.
+  ozz::sample::SkinnedMesh::Part& part = _output_mesh->parts[0];
+  part.positions.reserve(vertex_count);
+  part.normals.reserve(vertex_count);
+
+  // Resize triangle indices, as their size is known.
+  _output_mesh->triangle_indices.resize(vertex_count);
+
+  // Iterate all polygons and stores ctrl point to polygon mappings.
+  for (int p = 0; p < polygon_count; ++p) {
+    assert(_fbx_mesh->GetPolygonSize(p) == 3 &&
+           "Mesh must have been triangulated.");
+
+    for (int v = 0; v < 3; ++v) {
+
+      // Get control point.
+      const int ctrl_point = _fbx_mesh->GetPolygonVertex(p, v);
+      ControlPointRemap& remap = _remap->at(ctrl_point);
+
+      // Get vertex position.
+      const ozz::math::Float3 position =
+        _converter->ConvertPoint(_fbx_mesh->GetControlPoints()[ctrl_point]);
+
+      // Get vertex normal.
+      FbxVector4 src_normal(0.f, 1.f, 0.f, 0.f);
+      _fbx_mesh->GetPolygonVertexNormal(p, v, src_normal);
+      const ozz::math::Float3 normal = NormalizeSafe(
+        _converter->ConvertNormal(src_normal), ozz::math::Float3::y_axis());
+
+      // Check for vertex redundancy, only with other points that share the same
+      // control point.
+      int redundant_with = -1;
+      for (size_t r = 0; r < remap.size(); ++r) {
+        int to_test = remap[r];
+
+        // Check for identical normals.
+        if (normal == part.normals[to_test]) {
+          redundant_with = to_test;
+          break;
+        }
+      }
+
+      if (redundant_with >= 0) {
+        assert(redundant_with <= std::numeric_limits<uint16_t>::max());
+
+        // Reuse existing vertex.
+        _output_mesh->triangle_indices[p * 3 + v] =
+          static_cast<uint16_t>(redundant_with);
+      } else {
+
+        // Detect triangle indices overflow.
+        if (part.positions.size() > std::numeric_limits<uint16_t>::max()) {
+          ozz::log::Err() << "Mesh uses too many vertices (> " <<
+            std::numeric_limits<uint16_t>::max() << ") to fit in the index "
+            "buffer." << std::endl;
+          return false;
+        }
+
+        // Deduce this vertex offset in the output vertex buffer.
+        uint16_t vertex_index = static_cast<uint16_t>(part.positions.size());
+
+        // Build triangle indices.
+        _output_mesh->triangle_indices[p * 3 + v] = vertex_index;
+
+        // Stores vertex offset in the output vertex buffer.
+        _remap->at(ctrl_point).push_back(vertex_index);
+
+        // Push vertex data.
+        part.positions.push_back(position);
+        part.normals.push_back(normal);
+      }
     }
   }
 
-  // Fails if no vertex in the mesh.
-  return _skinned_mesh_part->vertex_count() != 0;
+  // Sort triangle indices to optimize vertex cache.
+  std::qsort(array_begin(_output_mesh->triangle_indices),
+             _output_mesh->triangle_indices.size() / 3,
+             sizeof(uint16_t) * 3,
+             &SortTriangles);
+
+  return true;
 }
 
 namespace {
@@ -148,25 +202,28 @@ bool SortInfluenceWeights(const SkinMapping& _left, const SkinMapping& _right) {
 }
 }  // namespace
 
-bool BuildSkin(FbxMesh* _mesh,
+bool BuildSkin(FbxMesh* _fbx_mesh,
+               ozz::animation::offline::fbx::FbxSystemConverter* _converter,
+               const ControlPointsRemap& _remap,
                const ozz::animation::Skeleton& _skeleton,
-               ozz::sample::SkinnedMesh::Part* _skinned_mesh_part) {
-  assert(_skinned_mesh_part->vertex_count() != 0);
+               ozz::sample::SkinnedMesh* _output_mesh) {
+  assert(_output_mesh->parts.size() == 1 &&
+         _output_mesh->parts[0].vertex_count() != 0);
+  ozz::sample::SkinnedMesh::Part& part = _output_mesh->parts[0];
 
-  const int skin_count = _mesh->GetDeformerCount(FbxDeformer::eSkin);
+  const int skin_count = _fbx_mesh->GetDeformerCount(FbxDeformer::eSkin);
   if (skin_count == 0) {
     ozz::log::Err() << "No skin found." << std::endl;
     return false;
   }
   if (skin_count > 1) {
-    ozz::log::Err() <<
+    ozz::log::Log() <<
       "More than one skin found, only the first one will be processed." <<
       std::endl;
-    return false;
   }
 
   // Get skinning indices and weights.
-  FbxSkin* deformer = static_cast<FbxSkin*>(_mesh->GetDeformer(0, FbxDeformer::eSkin));
+  FbxSkin* deformer = static_cast<FbxSkin*>(_fbx_mesh->GetDeformer(0, FbxDeformer::eSkin));
   FbxSkin::EType skinning_type = deformer->GetSkinningType();
   if (skinning_type != FbxSkin::eRigid &&
       skinning_type != FbxSkin::eLinear) {
@@ -181,44 +238,86 @@ bool BuildSkin(FbxMesh* _mesh,
     joints_map[_skeleton.joint_names()[i]] = static_cast<uint16_t>(i);
   }
 
+  // Resize inverse bind pose matrices and set all to identity.
+  _output_mesh->inverse_bind_poses.resize(_skeleton.num_joints());
+  for (int i = 0; i < _skeleton.num_joints(); ++i) {
+    _output_mesh->inverse_bind_poses[i] = ozz::math::Float4x4::identity();
+  }
+
   // Resize to the number of vertices
-  const size_t vertex_count = _skinned_mesh_part->vertex_count();
+  const size_t vertex_count = part.vertex_count();
   VertexSkinMappings vertex_skin_mappings;
   vertex_skin_mappings.resize(vertex_count);
 
-  int cluster_count = deformer->GetClusterCount();
+  // Computes geometry matrix.
+  const FbxAMatrix geometry_matrix(
+    _fbx_mesh->GetNode()->GetGeometricTranslation(FbxNode::eSourcePivot),
+    _fbx_mesh->GetNode()->GetGeometricRotation(FbxNode::eSourcePivot),
+    _fbx_mesh->GetNode()->GetGeometricScaling(FbxNode::eSourcePivot));
+
+  const int cluster_count = deformer->GetClusterCount();
   for (int c = 0; c < cluster_count; ++c)
   {
     const FbxCluster* cluster = deformer->GetCluster(c);
     const FbxNode* node = cluster->GetLink();
     if (!node) {
+      ozz::log::Log() << "No node linked to cluster " << cluster->GetName() <<
+        "." << std::endl;
       continue;
+    }
+
+    const FbxCluster::ELinkMode mode = cluster->GetLinkMode();
+    if (mode != FbxCluster::eNormalize) {
+      ozz::log::Err() << "Unsupported link mode for joint " << node->GetName() <<
+        "." << std::endl;
+      return false;
     }
 
     // Get corresponding joint index;
     JointsMap::const_iterator it = joints_map.find(node->GetName());
     if (it == joints_map.end()) {
       ozz::log::Err() << "Required joint " << node->GetName() <<
-        " not found in skeleton." << std::endl;
+        " not found in provided skeleton." << std::endl;
       return false;
     }
     const uint16_t joint = it->second;
 
+    // Computes joint's inverse bind-pose matrix.
+    FbxAMatrix transform_matrix;
+    cluster->GetTransformMatrix(transform_matrix);
+    transform_matrix *= geometry_matrix;
+
+    FbxAMatrix transform_link_matrix;
+    cluster->GetTransformLinkMatrix(transform_link_matrix);
+
+    const FbxAMatrix inverse_bind_pose =
+      transform_link_matrix.Inverse() * transform_matrix;
+
+    // Stores inverse transformation.
+    _output_mesh->inverse_bind_poses[joint] =
+      _converter->ConvertMatrix(inverse_bind_pose);
+
     // Affect joint to all vertices of the cluster.
     const int ctrl_point_index_count = cluster->GetControlPointIndicesCount();
+
     const int* ctrl_point_indices = cluster->GetControlPointIndices();
     const double* ctrl_point_weights = cluster->GetControlPointWeights();
-    for (int v = 0; v < ctrl_point_index_count; ++v) {
+    for (int c = 0; c < ctrl_point_index_count; ++c) {
       const SkinMapping mapping = {
-        joint, static_cast<float>(ctrl_point_weights[v])
+        joint, static_cast<float>(ctrl_point_weights[c])
       };
 
       // Sometimes, the mesh can have less points than at the time of the
       // skinning because a smooth operator was active when skinning but has
       // been deactivated during export.
-      const size_t vertex_index = ctrl_point_indices[v];
-      if (vertex_index < vertex_count && mapping.weight != 0.f) {
-        vertex_skin_mappings[vertex_index].push_back(mapping);
+      const int ctrl_point = ctrl_point_indices[c];
+      if (ctrl_point < _fbx_mesh->GetControlPointsCount() &&
+          mapping.weight > 0.f) {
+        const ControlPointRemap& remap = _remap[ctrl_point];
+        assert(remap.size() >= 1);  // At least a 1-1 mapping.
+        for (size_t v = 0; v < remap.size(); ++v) {
+          vertex_skin_mappings[remap[v]].push_back(mapping);
+        }
       }
     }
   }
@@ -228,20 +327,34 @@ bool BuildSkin(FbxMesh* _mesh,
   size_t max_influences = 0;
   for (size_t i = 0; i < vertex_count; ++i) {
     VertexSkinMappings::reference inv = vertex_skin_mappings[i];
+
+    // Updates max_influences.
     max_influences = ozz::math::Max(max_influences, inv.size());
+
+    // Normalize weights.
+    float sum = 0.f;
+    for (size_t j = 0; j < inv.size(); ++j) {
+      sum += inv[j].weight;
+    }
+    const float inv_sum = 1.f / (sum != 0.f ? sum : 1.f);
+    for (size_t j = 0; j < inv.size(); ++j) {
+      inv[j].weight *= inv_sum;
+    }
+
+    // Sort weights, bigger ones first, so that lowest one can be filtered out.
     std::sort(inv.begin(), inv.end(), &SortInfluenceWeights);
   }
 
   // Allocates indices and weights.
-  _skinned_mesh_part->joint_indices.resize(vertex_count * max_influences);
-  _skinned_mesh_part->joint_weights.resize(vertex_count * max_influences);
+  part.joint_indices.resize(vertex_count * max_influences);
+  part.joint_weights.resize(vertex_count * max_influences);
 
   // Build output vertices data.
   bool vertex_isnt_influenced = false;
   for (size_t i = 0; i < vertex_count; ++i) {
     VertexSkinMappings::const_reference inv = vertex_skin_mappings[i];
-    uint16_t* indices = &_skinned_mesh_part->joint_indices[i * max_influences];
-    float* weights = &_skinned_mesh_part->joint_weights[i * max_influences];
+    uint16_t* indices = &part.joint_indices[i * max_influences];
+    float* weights = &part.joint_weights[i * max_influences];
 
     // Stores joint's indices and weights.
     size_t influence_count = inv.size();
@@ -271,29 +384,17 @@ bool BuildSkin(FbxMesh* _mesh,
   return !vertex_isnt_influenced;
 }
 
-bool BuildTriangleIndices(FbxMesh* _mesh,
-                          ozz::sample::SkinnedMesh* _skinned_mesh) {
-  //  Builds triangle indices.
-  const int index_count = _mesh->GetPolygonVertexCount();
-  _skinned_mesh->triangle_indices.resize(index_count);
-
-  const int* indices = _mesh->GetPolygonVertices();
-  for(int p = 0; p < index_count; ++p) {
-    _skinned_mesh->triangle_indices[p] = static_cast<uint16_t>(indices[p]);
-  }
-  return true;
-}
-
-bool SplitParts(const ozz::sample::SkinnedMesh& _skinned_mesh,
+bool SplitParts(const ozz::sample::SkinnedMesh& _output_mesh,
                 ozz::sample::SkinnedMesh* _partitionned_mesh) {
-  assert(_skinned_mesh.parts.size() == 1);
+  assert(_output_mesh.parts.size() == 1);
   assert(_partitionned_mesh->parts.size() == 0);
 
-  const ozz::sample::SkinnedMesh::Part& in_part = _skinned_mesh.parts.front();
+  const ozz::sample::SkinnedMesh::Part& in_part = _output_mesh.parts.front();
   const size_t vertex_count = in_part.vertex_count();
 
   // Creates one mesh part per influence.
   const int max_influences = in_part.influences_count();
+  assert(max_influences > 0);
 
   // Bucket-sort vertices per influence count.
   typedef ozz::Vector<ozz::Vector<size_t>::Std>::Std BuckedVertices;
@@ -316,7 +417,7 @@ bool SplitParts(const ozz::sample::SkinnedMesh& _skinned_mesh,
 
   // Group vertices if there's not enough of them for a given part. This allows to
   // limit SkinningJob fix cost overhead.
-  const size_t kMinBucketSize = 10;
+  const size_t kMinBucketSize = 16;
 
   for (size_t i = 0; i < bucked_vertices.size() - 1; ++i) {
     BuckedVertices::reference bucket = bucked_vertices[i];
@@ -348,8 +449,8 @@ bool SplitParts(const ozz::sample::SkinnedMesh& _skinned_mesh,
 
     // Resize output part.
     const int influences = i + 1;
-    out_part.positions.resize(bucket_vertex_count * 3);
-    out_part.normals.resize(bucket_vertex_count * 3);
+    out_part.positions.resize(bucket_vertex_count);
+    out_part.normals.resize(bucket_vertex_count);
     out_part.joint_indices.resize(bucket_vertex_count * influences);
     out_part.joint_weights.resize(bucket_vertex_count * influences);
 
@@ -357,17 +458,9 @@ bool SplitParts(const ozz::sample::SkinnedMesh& _skinned_mesh,
     for (size_t j = 0; j < bucket_vertex_count; ++j) {
       // Fills positions.
       const size_t bucket_vertex_index = bucket[j];
-      const float* in_pos = &in_part.positions[bucket_vertex_index * 3];
-      float* out_pos = &out_part.positions[j * 3];
-      out_pos[0] = in_pos[0];
-      out_pos[1] = in_pos[1];
-      out_pos[2] = in_pos[2];
+      out_part.positions[j] = in_part.positions[bucket_vertex_index];
       // Fills normals.
-      const float* in_normal = &in_part.normals[bucket_vertex_index * 3];
-      float* out_normal = &out_part.normals[j * 3];
-      out_normal[0] = in_normal[0];
-      out_normal[1] = in_normal[1];
-      out_normal[2] = in_normal[2];
+      out_part.normals[j] = in_part.normals[bucket_vertex_index];
       // Fills joints indices.
       const uint16_t* in_indices =
         &in_part.joint_indices[bucket_vertex_index * max_influences];
@@ -404,12 +497,15 @@ bool SplitParts(const ozz::sample::SkinnedMesh& _skinned_mesh,
   }
 
   // Remaps triangle indices, using vertex mapping table.
-  const size_t index_count = _skinned_mesh.triangle_indices.size();
+  const size_t index_count = _output_mesh.triangle_indices.size();
   _partitionned_mesh->triangle_indices.resize(index_count);
   for (size_t i = 0; i < index_count; ++i) {
     _partitionned_mesh->triangle_indices[i] =
-      vertices_remap[_skinned_mesh.triangle_indices[i]];
+      vertices_remap[_output_mesh.triangle_indices[i]];
   }
+
+  // Copy bind pose matrices
+  _partitionned_mesh->inverse_bind_poses = _output_mesh.inverse_bind_poses;
 
   return true;
 }
@@ -419,12 +515,17 @@ bool StripWeights(ozz::sample::SkinnedMesh* _mesh) {
     ozz::sample::SkinnedMesh::Part& part = _mesh->parts[i];
     const int influence_count = part.influences_count();
     const int vertex_count = part.vertex_count();
-    if (influence_count == 1) {
+    if (influence_count <= 1) {
       part.joint_weights.clear();
     } else {
-      for (int j = vertex_count - 1; j >= 0; --j) {
-        part.joint_weights.erase(
-          part.joint_weights.begin() + (j + 1) * influence_count - 1);
+      const ozz::Vector<float>::Std copy = part.joint_weights;
+      part.joint_weights.clear();
+      part.joint_weights.reserve(vertex_count * (influence_count - 1));
+
+      for (int j = 0; j < vertex_count; ++j) {
+        for (int k = 0; k < influence_count - 1; ++k) {
+          part.joint_weights.push_back(copy[j * influence_count + k]);
+        }
       }
     }
     assert(static_cast<int>(part.joint_weights.size()) ==
@@ -487,7 +588,8 @@ int main(int _argc, const char** _argv) {
       std::endl;
   }
 
-  { // Triangulate the scene.
+  { // Triangulates the scene.
+    ozz::log::LogV() << "Triangulating scene." << std::endl;
     FbxGeometryConverter converter(fbx_manager);
     if (!converter.Triangulate(scene_loader.scene(), true)) {
       ozz::log::Err() << "Failed to triangulating meshes." << std::endl;
@@ -495,30 +597,43 @@ int main(int _argc, const char** _argv) {
     }
   }
 
+  // Take the first mesh
   FbxMesh* mesh = scene_loader.scene()->GetSrcObject<FbxMesh>(0);
+  mesh->RemoveBadPolygons();
 
-  ozz::sample::SkinnedMesh skinned_mesh;
-  skinned_mesh.parts.resize(1);
-  ozz::sample::SkinnedMesh::Part& skinned_mesh_part = skinned_mesh.parts[0];
-  if (!BuildVertices(mesh, &skinned_mesh_part)) {
+  ozz::sample::SkinnedMesh output_mesh;
+  output_mesh.parts.resize(1);
+
+  ControlPointsRemap remap;
+
+  ozz::log::LogV() << "Reading vertices." << std::endl;
+  if (!BuildVertices(mesh, scene_loader.converter(), &remap, &output_mesh)) {
+    ozz::log::Err() << "Failed to read vertices." << std::endl;
     return EXIT_FAILURE;
   }
 
-  if (!BuildSkin(mesh, skeleton, &skinned_mesh_part)) {
-    return EXIT_FAILURE;
-  }
+  if (mesh->GetDeformerCount(FbxDeformer::eSkin) > 0) {
+    ozz::log::LogV() << "Reading skinning data." << std::endl;
+    if (!BuildSkin(mesh, scene_loader.converter(), remap, skeleton, &output_mesh)) {
+      ozz::log::Err() << "Failed to read skinning data." << std::endl;
+      return EXIT_FAILURE;
+    }
 
-  if (!BuildTriangleIndices(mesh, &skinned_mesh)) {
-    return EXIT_FAILURE;
-  }
+    ozz::log::LogV() << "Partitioning meshes." << std::endl;
+    ozz::sample::SkinnedMesh partitioned_meshes;
+    if (!SplitParts(output_mesh, &partitioned_meshes)) {
+      ozz::log::Err() << "Failed to partitioned meshes." << std::endl;
+      return EXIT_FAILURE;
+    }
 
-  ozz::sample::SkinnedMesh partitioned_meshes;
-  if (!SplitParts(skinned_mesh, &partitioned_meshes)) {
-    return EXIT_FAILURE;
-  }
+    ozz::log::LogV() << "Stripping skinning weights." << std::endl;
+    if (!StripWeights(&partitioned_meshes)) {
+      ozz::log::Err() << "Failed to strip weights." << std::endl;
+      return EXIT_FAILURE;
+    }
 
-  if (!StripWeights(&partitioned_meshes)) {
-    return EXIT_FAILURE;
+    // Copy partitioned mesh back to the output mesh.
+    output_mesh = partitioned_meshes;
   }
 
   // Opens output file.
@@ -531,8 +646,11 @@ int main(int _argc, const char** _argv) {
 
   { // Serialize the partitioned mesh.
     ozz::io::OArchive archive(&skin_file);
-    archive << partitioned_meshes;
+    archive << output_mesh;
   }
+
+  ozz::log::Log() << "Mesh binary archive successfully outputted for file " <<
+    OPTIONS_file.value() << "." << std::endl;
 
   return EXIT_SUCCESS;
 }

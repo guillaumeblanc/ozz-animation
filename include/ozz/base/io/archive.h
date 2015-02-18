@@ -5,7 +5,7 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 //                                                                            //
-// Copyright (c) 2012-2014 Guillaume Blanc                                    //
+// Copyright (c) 2012-2015 Guillaume Blanc                                    //
 //                                                                            //
 // This software is provided 'as-is', without any express or implied          //
 // warranty. In no event will the authors be held liable for any damages      //
@@ -112,8 +112,8 @@ class OArchive {
   }
 
   // Saves _size bytes of binary data from _data.
-  void SaveBinary(const void* _data, size_t _size) {
-    stream_->Write(_data, _size);
+  size_t SaveBinary(const void* _data, size_t _size) {
+    return stream_->Write(_data, _size);
   }
 
   // Class type saving.
@@ -128,7 +128,8 @@ class OArchive {
 #define _OZZ_IO_PRIMITIVE_TYPE(_type)\
   void operator<<(_type _v) {\
     _type v = endian_swap_ ? EndianSwapper<_type>::Swap(_v) : _v;\
-    stream_->Write(&v, sizeof(v));\
+    OZZ_IF_DEBUG(size_t size =) stream_->Write(&v, sizeof(v));\
+    assert(size == sizeof(v));\
   }
 
   _OZZ_IO_PRIMITIVE_TYPE(char)
@@ -185,8 +186,8 @@ class IArchive {
   }
 
   // Loads _size bytes of binary data to _data.
-  void LoadBinary(void* _data, size_t _size) {
-    stream_->Read(_data, _size);
+  size_t LoadBinary(void* _data, size_t _size) {
+    return stream_->Read(_data, _size);
   }
 
   // Class type loading.
@@ -205,7 +206,8 @@ class IArchive {
 #define _OZZ_IO_PRIMITIVE_TYPE(_type)\
   void operator>>(_type& _v) {\
     _type v;\
-    stream_->Read(&v, sizeof(v));\
+    OZZ_IF_DEBUG(size_t size =) stream_->Read(&v, sizeof(v));\
+    assert(size == sizeof(v));\
     _v = endian_swap_ ? EndianSwapper<_type>::Swap(v) : v;\
   }
 
@@ -318,7 +320,8 @@ inline void Array<const _type>::Save(OArchive& _archive) const {\
       _archive << array[i];\
     }\
   } else {\
-    _archive.SaveBinary(array, count * sizeof(_type));\
+    OZZ_IF_DEBUG(size_t size =) _archive.SaveBinary(array, count * sizeof(_type));\
+    assert(size == count * sizeof(_type));\
   }\
 }\
 template <>\
@@ -330,12 +333,14 @@ inline void Array<_type>::Save(OArchive& _archive) const {\
       _archive << array[i];\
     }\
   } else {\
-    _archive.SaveBinary(array, count * sizeof(_type));\
+    OZZ_IF_DEBUG(size_t size =) _archive.SaveBinary(array, count * sizeof(_type));\
+    assert(size == count * sizeof(_type));\
   }\
 }\
 template <>\
 inline void Array<_type>::Load(IArchive& _archive, uint32_t /*_version*/) const {\
-  _archive.LoadBinary(array, count * sizeof(_type));\
+  OZZ_IF_DEBUG(size_t size =) _archive.LoadBinary(array, count * sizeof(_type));\
+  assert(size == count * sizeof(_type));\
   if (_archive.endian_swap()) { /*Can swap in-place.*/\
     EndianSwapper<_type>::Swap(array, count);\
   }\
@@ -386,12 +391,15 @@ template<typename _Ty>
 struct Tagger<_Ty, true> {
   static void Write(OArchive& _archive) {
     typedef internal::Tag<const _Ty> Tag;
-    _archive << ozz::io::MakeArray(Tag::Get(), Tag::kTagLength);
+    OZZ_IF_DEBUG(size_t size =) _archive.SaveBinary(Tag::Get(), Tag::kTagLength);
+    assert(size == Tag::kTagLength);
   }
   static bool Validate(IArchive& _archive) {
     typedef internal::Tag<const _Ty> Tag;
     char buf[Tag::kTagLength];
-    _archive >> ozz::io::MakeArray(buf, Tag::kTagLength);
+    if (Tag::kTagLength != _archive.LoadBinary(buf, Tag::kTagLength)) {
+      return false;
+    }
     const char* tag = Tag::Get();
     size_t i = 0;
     for (; i < Tag::kTagLength && buf[i] == tag[i]; ++i) {
