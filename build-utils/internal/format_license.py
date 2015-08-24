@@ -1,33 +1,30 @@
 #!/usr/bin/python
-#*******************************************************************************
-#                                                                              #
-#  ozz-animation, 3d skeletal animation libraries and tools.                   #
-#  https://code.google.com/p/ozz-animation/                                    #
-#                                                                              #
-#------------------------------------------------------------------------------#
-#                                                                              #
-#  Copyright (c) 2012-2015 Guillaume Blanc                                     #
-#                                                                              #
-#  This software is provided 'as-is', without any express or implied           #
-#  warranty. In no event will the authors be held liable for any damages       #
-#  arising from the use of this software.                                      #
-#                                                                              #
-#  Permission is granted to anyone to use this software for any purpose,       #
-#  including commercial applications, and to alter it and redistribute it      #
-#  freely, subject to the following restrictions:                              #
-#                                                                              #
-#  1. The origin of this software must not be misrepresented; you must not     #
-#  claim that you wrote the original software. If you use this software        #
-#  in a product, an acknowledgment in the product documentation would be       #
-#  appreciated but is not required.                                            #
-#                                                                              #
-#  2. Altered source versions must be plainly marked as such, and must not be  #
-#  misrepresented as being the original software.                              #
-#                                                                              #
-#  3. This notice may not be removed or altered from any source                #
-#  distribution.                                                               #
-#                                                                              #
-#******************************************************************************#
+#----------------------------------------------------------------------------#
+#                                                                            #
+# ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  #
+# and distributed under the MIT License (MIT).                               #
+#                                                                            #
+# Copyright (c) 2015 Guillaume Blanc                                         #
+#                                                                            #
+# Permission is hereby granted, free of charge, to any person obtaining a    #
+# copy of this software and associated documentation files (the "Software"), #
+# to deal in the Software without restriction, including without limitation  #
+# the rights to use, copy, modify, merge, publish, distribute, sublicense,   #
+# and/or sell copies of the Software, and to permit persons to whom the      #
+# Software is furnished to do so, subject to the following conditions:       #
+#                                                                            #
+# The above copyright notice and this permission notice shall be included in #
+# all copies or substantial portions of the Software.                        #
+#                                                                            #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR #
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,   #
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL    #
+# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER #
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING    #
+# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER        #
+# DEALINGS IN THE SOFTWARE.                                                  #
+#                                                                            #
+#----------------------------------------------------------------------------#
 
 import os, glob
 import sys
@@ -48,35 +45,32 @@ def recurse_files(_folder, _filter):
                 yield j
 
 license_text = "\
-//============================================================================//\n\
-//                                                                            //\n\
-// ozz-animation, 3d skeletal animation libraries and tools.                  //\n\
-// https://code.google.com/p/ozz-animation/                                   //\n\
-//                                                                            //\n\
 //----------------------------------------------------------------------------//\n\
 //                                                                            //\n\
-// Copyright (c) 2012-2015 Guillaume Blanc                                    //\n\
+// ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //\n\
+// and distributed under the MIT License (MIT).                               //\n\
 //                                                                            //\n\
-// This software is provided 'as-is', without any express or implied          //\n\
-// warranty. In no event will the authors be held liable for any damages      //\n\
-// arising from the use of this software.                                     //\n\
+// Copyright (c) 2015 Guillaume Blanc                                         //\n\
 //                                                                            //\n\
-// Permission is granted to anyone to use this software for any purpose,      //\n\
-// including commercial applications, and to alter it and redistribute it     //\n\
-// freely, subject to the following restrictions:                             //\n\
+// Permission is hereby granted, free of charge, to any person obtaining a    //\n\
+// copy of this software and associated documentation files (the \"Software\"), //\n\
+// to deal in the Software without restriction, including without limitation  //\n\
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,   //\n\
+// and/or sell copies of the Software, and to permit persons to whom the      //\n\
+// Software is furnished to do so, subject to the following conditions:       //\n\
 //                                                                            //\n\
-// 1. The origin of this software must not be misrepresented; you must not    //\n\
-// claim that you wrote the original software. If you use this software       //\n\
-// in a product, an acknowledgment in the product documentation would be      //\n\
-// appreciated but is not required.                                           //\n\
+// The above copyright notice and this permission notice shall be included in //\n\
+// all copies or substantial portions of the Software.                        //\n\
 //                                                                            //\n\
-// 2. Altered source versions must be plainly marked as such, and must not be //\n\
-// misrepresented as being the original software.                             //\n\
+// THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR //\n\
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,   //\n\
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL    //\n\
+// THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER //\n\
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING    //\n\
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER        //\n\
+// DEALINGS IN THE SOFTWARE.                                                  //\n\
 //                                                                            //\n\
-// 3. This notice may not be removed or altered from any source               //\n\
-// distribution.                                                              //\n\
-//                                                                            //\n\
-//============================================================================//\n\
+//----------------------------------------------------------------------------//\n\
 \n\
 #"
 

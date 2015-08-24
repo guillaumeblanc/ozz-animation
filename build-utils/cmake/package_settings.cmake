@@ -3,10 +3,10 @@ install(DIRECTORY "${CMAKE_SOURCE_DIR}/include" DESTINATION ".")
 
 # Prepares packing
 set(CPACK_PACKAGE_VENDOR "Guillaume Blanc")
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Ozz run-time animation library and tools. http://code.google.com/p/ozz-animation/")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Ozz run-time animation library and tools. http://github.com/guillaumeblanc/ozz-animation")
 #set(CPACK_PACKAGE_ICON )
 set(CPACK_INCLUDE_TOPLEVEL_DIRECTORY 0)
-set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/LICENSE")
+set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/LICENSE.md")
 set(CPACK_SOURCE_IGNORE_FILES
   "/build/"  # Out-of-source build directory.
   "/Testing/"  # CDash generated files.
@@ -14,7 +14,7 @@ set(CPACK_SOURCE_IGNORE_FILES
   ".*\\\\.kdev4"
   ".*~")
 set(CPACK_NSIS_MENU_LINKS
-  "http://code.google.com/p/ozz-animation/;Ozz home"
+  "http://github.com/guillaumeblanc/ozz-animation;Ozz home"
   "bin/samples;Samples"
   "bin/tools;Tools")
 
