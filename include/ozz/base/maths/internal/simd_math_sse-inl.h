@@ -755,6 +755,18 @@ OZZ_INLINE SimdInt4 CmpGe(_SimdFloat4 _a, _SimdFloat4 _b) {
   return _mm_castps_si128(_mm_cmpge_ps(_a, _b));
 }
 
+OZZ_INLINE SimdFloat4 And(_SimdFloat4 _a, _SimdFloat4 _b) {
+  return _mm_and_ps(_a, _b);
+}
+
+OZZ_INLINE SimdFloat4 Or(_SimdFloat4 _a, _SimdFloat4 _b) {
+  return _mm_or_ps(_a, _b);
+}
+
+OZZ_INLINE SimdFloat4 Xor(_SimdFloat4 _a, _SimdFloat4 _b) {
+  return _mm_xor_ps(_a, _b);
+}
+
 OZZ_INLINE SimdFloat4 And(_SimdFloat4 _a, _SimdInt4 _b) {
   return _mm_and_ps(_a, _mm_castsi128_ps(_b));
 }

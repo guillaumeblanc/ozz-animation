@@ -1,3 +1,20 @@
+Release version 0.8.0
+---------------------
+ 
+* Library
+
+!!! sample/optimize/cmakelists -> change fbx2anim back to dae2anim
+ - [animation] Improves quaternion compression scheme by quantizing the 3 smallest components of the quaternion, instead of the firsts 3. This improves numerical accuracy when the restored component (4th) was small. It also allows to pre-multiply each of the 3 smallest components by sqrt(2), maximizing quantization range (from 32767 to 46339, which wins over 41%).
+
+ - [offline] Hierarchical optimization.
+
+* Build pipeline
+  - Support for -wextra option on gcc/clang.
+
+* Samples
+  - [skin] Removes sample skin, as from now on some other samples are using skinned rendering. See addtive sample.
+
+
 Release version 0.7.3
 ---------------------
 

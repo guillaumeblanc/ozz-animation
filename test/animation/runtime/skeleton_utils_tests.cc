@@ -75,22 +75,22 @@ TEST(JointBindPose, SkeletonUtils) {
   EXPECT_EQ(skeleton->num_joints(), 3);
 
   // Out of range.
-  EXPECT_ASSERTION(GetJointBindPose(*skeleton, 3), "Joint index out of range.");
+  EXPECT_ASSERTION(GetJointLocalBindPose(*skeleton, 3), "Joint index out of range.");
   
   const ozz::math::Transform bind_pose0 =
-    ozz::animation::GetJointBindPose(*skeleton, 0);
+    ozz::animation::GetJointLocalBindPose(*skeleton, 0);
   EXPECT_FLOAT3_EQ(bind_pose0.translation, 1.f, 0.f, 0.f);
   EXPECT_QUATERNION_EQ(bind_pose0.rotation, 0.f, 0.f, 0.f, 1.f);
   EXPECT_FLOAT3_EQ(bind_pose0.scale, 0.f, 0.f, 0.f);
 
   const ozz::math::Transform bind_pose1 =
-    ozz::animation::GetJointBindPose(*skeleton, 1);
+    ozz::animation::GetJointLocalBindPose(*skeleton, 1);
   EXPECT_FLOAT3_EQ(bind_pose1.translation, 0.f, 1.f, 0.f);
   EXPECT_QUATERNION_EQ(bind_pose1.rotation, 0.f, 0.f, 0.f, -1.f);
   EXPECT_FLOAT3_EQ(bind_pose1.scale, -1.f, -1.f, -1.f);
 
   const ozz::math::Transform bind_pose2 =
-    ozz::animation::GetJointBindPose(*skeleton, 2);
+    ozz::animation::GetJointLocalBindPose(*skeleton, 2);
   EXPECT_FLOAT3_EQ(bind_pose2.translation, 0.f, 0.f, 1.f);
   EXPECT_QUATERNION_EQ(bind_pose2.rotation, -0.f, -0.f, -0.f, 1.f);
   EXPECT_FLOAT3_EQ(bind_pose2.scale, 1.f, 1.f, 1.f);

@@ -15,9 +15,7 @@ add_custom_command(
     "--skeleton=${CMAKE_CURRENT_BINARY_DIR}/media/skeleton.ozz"
   COMMAND dae2anim
     "--raw"
-    "--translation=0"
-    "--rotation=0"
-    "--scale=0"
+    "--nooptimize"
     "--file=${ozz_media_directory}/collada/alain/atlas.dae"
     "--skeleton=${CMAKE_CURRENT_BINARY_DIR}/media/skeleton.ozz"
     "--animation=${CMAKE_CURRENT_BINARY_DIR}/media/raw_animation.ozz")
@@ -29,11 +27,8 @@ add_executable(sample_optimize
   "${CMAKE_CURRENT_BINARY_DIR}/media/raw_animation.ozz")
 
 target_link_libraries(sample_optimize
-  sample_framework
   ozz_animation_offline
-  ozz_animation
-  ozz_options
-  ozz_base)
+  sample_framework)
 
 set_target_properties(sample_optimize
   PROPERTIES FOLDER "samples")

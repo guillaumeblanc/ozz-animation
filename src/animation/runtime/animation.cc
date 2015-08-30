@@ -33,7 +33,7 @@
 
 // Internal include file
 #define OZZ_INCLUDE_PRIVATE_HEADER  // Allows to include private headers.
-#include "../runtime/animation_keyframe.h"
+#include "animation/runtime/animation_keyframe.h"
 
 namespace ozz {
 namespace animation {
@@ -50,11 +50,8 @@ Animation::~Animation() {
 void Animation::Destroy() {
   memory::Allocator* allocator = memory::default_allocator();
   allocator->Deallocate(translations_);
-  translations_.begin = NULL; translations_.end = NULL;
   allocator->Deallocate(rotations_);
-  rotations_.begin = NULL; rotations_.end = NULL;
   allocator->Deallocate(scales_);
-  scales_.begin = NULL; scales_.end = NULL;
 
   duration_ = 0.f;
   num_tracks_ = 0;
@@ -86,8 +83,10 @@ void Animation::Save(ozz::io::OArchive& _archive) const {
     _archive << key.time;
     uint16_t track = key.track;
     _archive << track;
-    bool wsign = key.wsign;
-    _archive << wsign;
+    uint8_t largest = key.largest;
+    _archive << largest;
+    bool sign = key.sign;
+    _archive << sign;
     _archive << ozz::io::MakeArray(key.value);
   }
 
@@ -107,7 +106,7 @@ void Animation::Load(ozz::io::IArchive& _archive, uint32_t _version) {
   Destroy();
 
   // No retro-compatibility with anterior versions.
-  if (_version != 2) {
+  if (_version != 3) {
     return;
   }
 
@@ -137,9 +136,12 @@ void Animation::Load(ozz::io::IArchive& _archive, uint32_t _version) {
     uint16_t track;
     _archive >> track;
     key.track = track;
-    bool wsign;
-    _archive >> wsign;
-    key.wsign = wsign;
+    uint8_t largest;
+    _archive >> largest;
+    key.largest = largest & 3;
+    bool sign;
+    _archive >> sign;
+    key.sign = sign & 1;
     _archive >> ozz::io::MakeArray(key.value);
   }
   int32_t scale_count;

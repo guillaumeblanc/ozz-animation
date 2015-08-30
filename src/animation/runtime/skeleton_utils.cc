@@ -35,7 +35,8 @@ namespace ozz {
 namespace animation {
 
 // Unpacks skeleton bind pose stored in soa format by the skeleton.
-ozz::math::Transform GetJointBindPose(const Skeleton& _skeleton, int _joint) {
+ozz::math::Transform GetJointLocalBindPose(const Skeleton& _skeleton,
+                                           int _joint) {
   assert(_joint >= 0 && _joint < _skeleton.num_joints() &&
          "Joint index out of range.");
 

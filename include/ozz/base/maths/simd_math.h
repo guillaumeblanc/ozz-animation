@@ -573,6 +573,18 @@ OZZ_INLINE SimdInt4 CmpGe(_SimdFloat4 _a, _SimdFloat4 _b);
 
 // Returns per element binary and operation of _a and _b.
 // _v[0...127] = _a[0...127] & _b[0...127]
+OZZ_INLINE SimdFloat4 And(_SimdFloat4 _a, _SimdFloat4 _b);
+
+// Returns per element binary or operation of _a and _b.
+// _v[0...127] = _a[0...127] | _b[0...127]
+OZZ_INLINE SimdFloat4 Or(_SimdFloat4 _a, _SimdFloat4 _b);
+
+// Returns per element binary logical xor operation of _a and _b.
+// _v[0...127] = _a[0...127] ^ _b[0...127]
+OZZ_INLINE SimdFloat4 Xor(_SimdFloat4 _a, _SimdFloat4 _b);
+
+// Returns per element binary and operation of _a and _b.
+// _v[0...127] = _a[0...127] & _b[0...127]
 OZZ_INLINE SimdFloat4 And(_SimdFloat4 _a, _SimdInt4 _b);
 
 // Returns per element binary or operation of _a and _b.

@@ -142,7 +142,7 @@ void GlImmediateRenderer::ResizeVbo(size_t _new_size) {
       buffer_, max_size_);
 
     GL(BindBuffer(GL_ARRAY_BUFFER, vbo_));
-    GL(BufferData(GL_ARRAY_BUFFER, max_size_, NULL, GL_DYNAMIC_DRAW));
+    GL(BufferData(GL_ARRAY_BUFFER, max_size_, NULL, GL_STREAM_DRAW));
     GL(BindBuffer(GL_ARRAY_BUFFER, 0));
   }
 }

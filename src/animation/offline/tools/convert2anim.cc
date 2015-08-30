@@ -32,6 +32,7 @@
 
 #include "ozz/animation/offline/animation_builder.h"
 #include "ozz/animation/offline/animation_optimizer.h"
+#include "ozz/animation/offline/additive_animation_builder.h"
 #include "ozz/animation/offline/skeleton_builder.h"
 #include "ozz/animation/offline/raw_animation.h"
 #include "ozz/animation/offline/raw_skeleton.h"
@@ -50,6 +51,11 @@
 OZZ_OPTIONS_DECLARE_STRING(file, "Specifies input file", "", true)
 OZZ_OPTIONS_DECLARE_STRING(skeleton, "Specifies ozz skeleton (raw or runtime) input file", "", true)
 OZZ_OPTIONS_DECLARE_STRING(animation, "Specifies ozz animation output file", "", true)
+OZZ_OPTIONS_DECLARE_BOOL(additive, "Creates a delta animation that can be used for additive blending.", false, false)
+
+OZZ_OPTIONS_DECLARE_BOOL(
+  optimize,
+  "Activate keyframes optimization stage.", true, false)
 
 OZZ_OPTIONS_DECLARE_FLOAT(
   rotation,
@@ -63,6 +69,10 @@ OZZ_OPTIONS_DECLARE_FLOAT(
   scale,
   "Optimizer scale tolerance in percents",
   ozz::animation::offline::AnimationOptimizer().scale_tolerance, false)
+OZZ_OPTIONS_DECLARE_FLOAT(
+  hierarchical,
+  "Optimizer hierarchical tolerance in meters",
+  ozz::animation::offline::AnimationOptimizer().hierarchical_tolerance, false)
 
 static bool ValidateEndianness(const ozz::options::Option& _option,
                                int /*_argc*/) {
@@ -241,35 +251,57 @@ int AnimationConverter::operator()(int _argc, const char** _argv) {
   bool imported =
     Import(OPTIONS_file, *skeleton, OPTIONS_sampling_rate, &raw_animation);
 
-  // No need for the skeleton anymore.
-  ozz::memory::default_allocator()->Delete(skeleton);
   if (!imported) {
     ozz::log::Err() << "Failed to import file \"" << OPTIONS_file << "\"" <<
       std::endl;
+    // No need for the skeleton anymore.
+    ozz::memory::default_allocator()->Delete(skeleton);
     return EXIT_FAILURE;
   }
 
-  // Optimizes animation.
-  ozz::log::Log() << "Optimizing animation." << std::endl;
-  ozz::animation::offline::AnimationOptimizer optimizer;
-  optimizer.rotation_tolerance = OPTIONS_rotation;
-  optimizer.translation_tolerance = OPTIONS_translation;
-  optimizer.scale_tolerance = OPTIONS_scale;
-  ozz::animation::offline::RawAnimation raw_optimized_animation;
-  if (!optimizer(raw_animation, &raw_optimized_animation)) {
-    ozz::log::Err() << "Failed to optimize animation." << std::endl;
-    return EXIT_FAILURE;
+  // Make delta animation if requested.
+  if (OPTIONS_additive) {
+    ozz::log::Log() << "Makes additive animation." << std::endl;
+    ozz::animation::offline::AdditiveAnimationBuilder additive_builder;
+    RawAnimation raw_additive;
+    if (!additive_builder(raw_animation, &raw_additive)) {
+      ozz::log::Err() << "Failed to make additive animation." << std::endl;
+      return EXIT_FAILURE;
+    }
+    // Copy animation.
+    raw_animation = raw_additive;
   }
 
-  // Displays optimization statistics.
-  DisplaysOptimizationstatistics(raw_animation, raw_optimized_animation);
+  // Optimizes animation if option is enabled.
+  if (OPTIONS_optimize) {
+    ozz::log::Log() << "Optimizing animation." << std::endl;
+    ozz::animation::offline::AnimationOptimizer optimizer;
+    optimizer.rotation_tolerance = OPTIONS_rotation;
+    optimizer.translation_tolerance = OPTIONS_translation;
+    optimizer.scale_tolerance = OPTIONS_scale;
+    optimizer.hierarchical_tolerance = OPTIONS_hierarchical;
+    ozz::animation::offline::RawAnimation raw_optimized_animation;
+    if (!optimizer(raw_animation, *skeleton, &raw_optimized_animation)) {
+      ozz::log::Err() << "Failed to optimize animation." << std::endl;
+      return EXIT_FAILURE;
+    }
+
+    // Displays optimization statistics.
+    DisplaysOptimizationstatistics(raw_animation, raw_optimized_animation);
+
+    // Brings data back to the raw animation.
+    raw_animation = raw_optimized_animation;
+  }
+
+  // No need for the skeleton anymore.
+  ozz::memory::default_allocator()->Delete(skeleton);
 
   // Builds runtime animation.
   ozz::animation::Animation* animation = NULL;
   if (!OPTIONS_raw) {
     ozz::log::Log() << "Builds runtime animation." << std::endl;
     ozz::animation::offline::AnimationBuilder builder;
-    animation = builder(raw_optimized_animation);
+    animation = builder(raw_animation);
     if (!animation) {
       ozz::log::Err() << "Failed to build runtime animation." << std::endl;
       return EXIT_FAILURE;
@@ -307,7 +339,7 @@ int AnimationConverter::operator()(int _argc, const char** _argv) {
     // Fills output archive with the animation.
     if (OPTIONS_raw) {
       ozz::log::Log() << "Outputs RawAnimation to binary archive." << std::endl;
-      archive << raw_optimized_animation;
+      archive << raw_animation;
     } else {
       ozz::log::Log() << "Outputs Animation to binary archive." << std::endl;
       archive << *animation;      

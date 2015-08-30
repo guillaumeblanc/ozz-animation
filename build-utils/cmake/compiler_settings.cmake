@@ -79,6 +79,29 @@ if(MSVC)
   string(REGEX REPLACE " /EH.*" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
   string(REGEX REPLACE " /EH.*" "" CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
 
+  # Would be interesting to add this warnings
+  # 4061 // enumerator 'identifier' in a switch of enum 'enumeration' is not explicitly handled by a case label
+  # 4062 // enumerator 'identifier' in a switch of enum 'enumeration' is not handled
+  # 4242 // identifier': conversion from 'type1' to 'type2', possible loss of data
+  # 4254 // 'operator': conversion from 'type1' to 'type2', possible loss of data
+  # 4263 // 'function': member function does not override any base class virtual member function
+  # 4265 // 'class': class has virtual functions, but destructor is not virtual
+  # 4266 // 'function': no override available for virtual member function from base 'type'; function is hidden
+  # 4287 // 'operator': unsigned/negative constant mismatch
+  # 4289 // nonstandard extension used : 'var' : loop control variable declared in the for-loop is used outside the for-loop scope
+  # 4302 // 'conversion': truncation from 'type1' to 'type2'
+  # 4311 // 'variable' : pointer truncation from 'type' to 'type'
+  # 4355 // 'this' : used in base member initializer list
+  # 4365 // 'action': conversion from 'type_1' to 'type_2', signed/unsigned mismatch
+  # 4388 // signed/unsigned mismatch
+  # 4738 // storing 32-bit float result in memory, possible loss of performance
+  # 4623 // 'derived class': default constructor could not be generated because a base class default constructor is inaccessible
+  # 4625 // 'derived class': copy constructor could not be generated because a base class copy constructor is inaccessible
+  # 4626 // 'derived class': assignment operator could not be generated because a base class assignment operator is inaccessible
+  # 4826 // conversion from 'type1' to 'type2' is sign-extended. This may cause unexpected runtime behavior
+  # 4928 // illegal copy-initialization; more than one user-defined conversion has been implicitly applied
+  # 4946 // reinterpret_cast used between related classes: 'class1' and 'class2'
+
   # Disables STL exceptions also
   if(NOT ${CMAKE_CXX_FLAGS} MATCHES "/D _HAS_EXCEPTIONS=0")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /D _HAS_EXCEPTIONS=0")
@@ -134,10 +157,14 @@ else()
   #  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
   #endif()
 
+  # Enable extra level of warning
+  if(NOT CMAKE_CXX_FLAGS MATCHES "-Wextra")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra")
+  endif()
+
   # Set the warning level to Wall
   if(NOT CMAKE_CXX_FLAGS MATCHES "-Wall")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
   endif()
 
   # Automatically selects native architecture optimizations (sse...)

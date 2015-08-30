@@ -30,6 +30,7 @@
 #include "animation/offline/collada/collada_animation.h"
 
 #include <cstdlib>
+#include <cmath>
 #include <cstring>
 #include <limits>
 
@@ -834,7 +835,7 @@ float ApproximateAlpha(const math::Float4 _m[4], const math::Float4& _c,
   for (int i = 0; i < kMaxIterations; ++i) {
     alpha = (begin + end) * .5f;  // Dichotomy.
     float output = EvaluateCubicCurve(_m, _c, alpha);
-    if (fabs(output - _time) < kTolerance) {
+    if (std::abs(output - _time) < kTolerance) {
       break;
     } else if (output > _time) {
       end = alpha;  // Selects [begin,alpha] range.
@@ -1150,7 +1151,7 @@ bool ExtractAnimation(const AnimationVisitor& _animation_visitor,
       
       // Get joint's bind pose.
       const ozz::math::Transform& bind_pose =
-        ozz::animation::GetJointBindPose(_skeleton, i);
+        ozz::animation::GetJointLocalBindPose(_skeleton, i);
 
       PushKeys(bind_pose, 0.f, &output_track);
     } else {  // Uses animated transformations.

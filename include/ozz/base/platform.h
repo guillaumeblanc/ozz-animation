@@ -115,13 +115,14 @@ struct Range {
       end(_end) {
   }
   // Construct a range from a pointer to a buffer and its size, ie its number of elements.
-  Range(_Ty* _begin, ptrdiff_t _size)
+  Range(_Ty* _begin, size_t _size)
     : begin(_begin),
       end(_begin + _size) {
   }
   // Construct a range from an array, its size is automatically deduced.
+  // It isn't declared explicit as conversion is free and safe.
   template <size_t _size>
-  explicit Range(_Ty (&_array)[_size])
+  Range(_Ty (&_array)[_size])
     : begin(_array),
       end(_array + _size) {
   }

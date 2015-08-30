@@ -196,6 +196,7 @@ bool Shooter::Capture(int _buffer) {
   // Initializes cooldown.
   shot->cooldown = kInitialCountDown;
 
+#ifndef EMSCRIPTEN
   // Copy pixels to shot's pbo.
   GL(ReadBuffer(_buffer));
   GL(BindBuffer(GL_PIXEL_PACK_BUFFER, shot->pbo));
@@ -204,7 +205,8 @@ bool Shooter::Capture(int _buffer) {
                 shot->width, shot->height,
                 gl_shot_format_, GL_UNSIGNED_BYTE, 0));
   GL(BindBuffer(GL_PIXEL_PACK_BUFFER, 0));
-
+#endif  // EMSCRIPTEN
+  
   return true;
 }
 }  // internal

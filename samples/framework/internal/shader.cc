@@ -468,7 +468,7 @@ JointShader* JointShader::Build() {
   // Binds default uniforms
   success &= shader->BindUniform("u_mvp");
 
-  if (GL_ARB_instanced_arrays) {
+  if (GL_ARB_instanced_arrays_available) {
     success &= shader->FindAttrib("joint");
   } else {
     success &= shader->BindUniform("joint");
@@ -530,7 +530,7 @@ BoneShader* BoneShader::Build() {  // Builds a world matrix from joint uniforms,
   // Binds default uniforms
   success &= shader->BindUniform("u_mvp");
 
-  if (GL_ARB_instanced_arrays) {
+  if (GL_ARB_instanced_arrays_available) {
     success &= shader->FindAttrib("joint");
   } else {
     success &= shader->BindUniform("joint");

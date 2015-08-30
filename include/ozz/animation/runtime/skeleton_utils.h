@@ -36,7 +36,8 @@ namespace ozz {
 namespace animation {
 
 // Get bind-pose of a skeleton joint.
-ozz::math::Transform GetJointBindPose(const Skeleton& _skeleton, int _joint);
+ozz::math::Transform GetJointLocalBindPose(const Skeleton& _skeleton,
+                                           int _joint);
 
 // Defines the iterator structure used by IterateJointsDF to traverse joint
 // hierarchy.
@@ -49,7 +50,7 @@ struct JointsIterator {
 // first order.
 // _from indicates the join from which the joint hierarchy traversal begins. Use
 // Skeleton::kNoParentIndex to traverse the whole hierarchy, even if there are
-// multiple joints.
+// multiple roots.
 // This function does not use a recursive implementation, to enforce a
 // predictable stack usage, independent off the data (joint hierarchy) being
 // processed.
