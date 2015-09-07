@@ -203,18 +203,12 @@ void Camera::Update(const math::Box& _box, float _delta_time, bool _first_frame)
   view_ = Invert(center * y_rotation * x_rotation * distance);
 
   // Auto-framing is disabled based on user actions.
-  auto_framing_ &= !zooming && !panning;
+  auto_framing_ &= !panning;
 
   // Unused rotating variable.
   (void)rotating;
-  
-  // Zooming with the mouse wheel doesn't affect auto-framing in web browser as
-  // it's so commonly used to scroll web pages.
-#ifdef EMSCRIPTEN
   (void)zooming_wheel;
-#else
-  auto_framing_ &= !zooming_wheel;
-#endif
+  (void)zooming;
 }
 
 void Camera::OnGui(ImGui* _im_gui) {
