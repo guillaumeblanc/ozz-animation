@@ -79,7 +79,7 @@ if(MSVC)
   string(REGEX REPLACE " /EH.*" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
   string(REGEX REPLACE " /EH.*" "" CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
 
-  # Would be interesting to add this warnings
+  # Would be interesting to add these warnings
   # 4061 // enumerator 'identifier' in a switch of enum 'enumeration' is not explicitly handled by a case label
   # 4062 // enumerator 'identifier' in a switch of enum 'enumeration' is not handled
   # 4242 // identifier': conversion from 'type1' to 'type2', possible loss of data
@@ -165,6 +165,12 @@ else()
   # Set the warning level to Wall
   if(NOT CMAKE_CXX_FLAGS MATCHES "-Wall")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+  endif()
+
+  # but disables deprecated declaration warnings
+  if(NOT CMAKE_CXX_FLAGS MATCHES "-Wno-deprecated-declarations")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-declarations")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-deprecated-declarations")
   endif()
 
   # Automatically selects native architecture optimizations (sse...)
