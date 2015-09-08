@@ -32,6 +32,10 @@ target_link_libraries(fbx2skel
   ozz_base)
 set_target_properties(fbx2skel
   PROPERTIES FOLDER "ozz/tools")
+if(NOT MSVC)
+  set_target_properties(fbx2skel
+    PROPERTIES LINK_FLAGS "-Wno-deprecated-declarations")
+endif()
 
 install(TARGETS fbx2skel DESTINATION bin/tools)
   
@@ -46,5 +50,8 @@ target_link_libraries(fbx2anim
   ozz_base)
 set_target_properties(fbx2anim
   PROPERTIES FOLDER "ozz/tools")
-
+if(NOT MSVC)
+  set_target_properties(fbx2anim
+    PROPERTIES LINK_FLAGS "-Wno-deprecated-declarations")
+endif()
 install(TARGETS fbx2anim DESTINATION bin/tools)

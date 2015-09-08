@@ -13,6 +13,10 @@ if(ozz_build_fbx)
     ozz_base)
   set_target_properties(sample_fbx2mesh
     PROPERTIES FOLDER "samples/tools")
+  if(NOT MSVC)
+    set_target_properties(sample_fbx2mesh
+      PROPERTIES LINK_FLAGS "-Wno-deprecated-declarations")
+  endif()
   
   install(TARGETS sample_fbx2mesh DESTINATION bin/samples/tools)
 
