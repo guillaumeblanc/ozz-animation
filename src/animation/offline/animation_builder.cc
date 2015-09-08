@@ -181,7 +181,7 @@ ozz::Range<ScaleKey> CopyToAnimation(
 namespace {
 // Compares float absolute values.
 bool LessAbs(float _left, float _right) {
-  return abs(_left) < abs(_right);
+  return std::abs(_left) < std::abs(_right);
 }
 
 // Compresses quaternion to ozz::animation::RotationKey format.

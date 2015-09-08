@@ -8,6 +8,8 @@ Release version 0.8.0
 
  - [offline] Hierarchical optimization.
 
+ - fbx20161_1
+
 * Build pipeline
   - Support for -wextra option on gcc/clang.
 
