@@ -86,8 +86,8 @@ RendererImpl::RendererImpl(Camera* _camera)
     : camera_(_camera),
       max_skeleton_pieces_(animation::Skeleton::kMaxJoints * 2),
       prealloc_uniforms_(NULL),
-      dynamic_array_vbo_(GL_ARRAY_BUFFER),
-      dynamic_index_vbo_(GL_ELEMENT_ARRAY_BUFFER),
+      dynamic_array_vbo_(0),
+      dynamic_index_vbo_(0),
       immediate_(NULL),
       mesh_shader_(NULL) {
   prealloc_uniforms_ = reinterpret_cast<float*>(
@@ -98,6 +98,16 @@ RendererImpl::RendererImpl(Camera* _camera)
 
 RendererImpl::~RendererImpl() {
   memory::default_allocator()->Deallocate(prealloc_models_);
+
+  if(dynamic_array_vbo_) {
+    GL(DeleteBuffers(1, &dynamic_array_vbo_));
+    dynamic_array_vbo_ = 0;
+  }
+
+  if(dynamic_index_vbo_) {
+    GL(DeleteBuffers(1, &dynamic_index_vbo_));
+    dynamic_index_vbo_ = 0;
+  }
 
   memory::default_allocator()->Deallocate(prealloc_uniforms_);
   prealloc_uniforms_ = NULL;
@@ -116,6 +126,10 @@ bool RendererImpl::Initialize() {
   if (!InitPostureRendering()) {
     return false;
   }
+
+  // Builds the dynamic vbo
+  GL(GenBuffers(1, &dynamic_array_vbo_));
+  GL(GenBuffers(1, &dynamic_index_vbo_));
 
   // Allocate immediate mode renderer;
   immediate_ = memory::default_allocator()->New<GlImmediateRenderer>(this);
@@ -460,8 +474,10 @@ void RendererImpl::DrawPosture_InstancedImpl(const ozz::math::Float4x4& _transfo
                                              int _instance_count,
                                              bool _draw_joints) {
   // Maps the dynamic buffer and update it.
+  GL(BindBuffer(GL_ARRAY_BUFFER, dynamic_array_vbo_));
   const size_t vbo_size = _instance_count * 16 * sizeof(float);
-  dynamic_array_vbo_.Resize(vbo_size, prealloc_uniforms_);
+  GL(BufferData(GL_ARRAY_BUFFER, vbo_size, prealloc_uniforms_, GL_DYNAMIC_DRAW));
+  GL(BindBuffer(GL_ARRAY_BUFFER, 0));
 
   // Renders models.
   for (int i = 0; i < (_draw_joints ? 2 : 1); ++i) {
@@ -480,7 +496,7 @@ void RendererImpl::DrawPosture_InstancedImpl(const ozz::math::Float4x4& _transfo
 
     // Setup instanced GL context.
     const GLint joint_attrib = model.shader->joint_instanced_attrib();
-    GL(BindBuffer(GL_ARRAY_BUFFER, dynamic_array_vbo_.id()));
+    GL(BindBuffer(GL_ARRAY_BUFFER, dynamic_array_vbo_));
     GL(EnableVertexAttribArray(joint_attrib + 0));
     GL(EnableVertexAttribArray(joint_attrib + 1));
     GL(EnableVertexAttribArray(joint_attrib + 2));
@@ -670,7 +686,8 @@ bool RendererImpl::DrawMesh(const Mesh& _mesh,
 
   // Reallocate vertex buffer.
   const GLsizei vbo_size = positions_size + normals_size + colors_size;
-  dynamic_array_vbo_.Resize(vbo_size, NULL);
+  GL(BindBuffer(GL_ARRAY_BUFFER, dynamic_array_vbo_));
+  GL(BufferData(GL_ARRAY_BUFFER, vbo_size, NULL, GL_DYNAMIC_DRAW));
 
   // Iterate mesh parts and fills vbo.
   size_t vertex_offset = 0;
@@ -679,17 +696,19 @@ bool RendererImpl::DrawMesh(const Mesh& _mesh,
     const size_t part_vertex_count = part.positions.size() / 3;
 
     // Handles positions.
-    dynamic_array_vbo_.Copy(positions_offset + vertex_offset * positions_stride,
-                            part_vertex_count * positions_stride,
-                            array_begin(part.positions));
+    GL(BufferSubData(GL_ARRAY_BUFFER,
+                     positions_offset + vertex_offset * positions_stride,
+                     part_vertex_count * positions_stride,
+                     array_begin(part.positions)));
 
     // Handles normals.
     const size_t part_normal_count = part.normals.size() / 3;
     if (part_vertex_count == part_normal_count) {
       // Optimal path used when the right number of normals is provided.
-      dynamic_array_vbo_.Copy(normals_offset + vertex_offset * normals_stride,
-                              part_normal_count * normals_stride,
-                              array_begin(part.normals));
+      GL(BufferSubData(GL_ARRAY_BUFFER,
+                       normals_offset + vertex_offset * normals_stride,
+                       part_normal_count * normals_stride,
+                       array_begin(part.normals)));
     } else {
       // Un-optimal path used when the right number of normals is not provided.
       OZZ_STATIC_ASSERT(sizeof(kDefaultNormalArray[0]) == normals_stride);
@@ -698,9 +717,10 @@ bool RendererImpl::DrawMesh(const Mesh& _mesh,
            j += OZZ_ARRAY_SIZE(kDefaultNormalArray)) {
         const size_t this_loop_count =
           math::Min(OZZ_ARRAY_SIZE(kDefaultNormalArray), part_vertex_count - j);
-        dynamic_array_vbo_.Copy(normals_offset + (vertex_offset + j) * normals_stride,
-                                normals_stride * this_loop_count,
-                                kDefaultNormalArray);
+        GL(BufferSubData(GL_ARRAY_BUFFER,
+                         normals_offset + (vertex_offset + j) * normals_stride,
+                         normals_stride * this_loop_count,
+                         kDefaultNormalArray));
       }
     }
 
@@ -708,9 +728,10 @@ bool RendererImpl::DrawMesh(const Mesh& _mesh,
     const size_t part_color_count = part.colors.size() / 4;
     if (part_vertex_count == part_color_count) {
       // Optimal path used when the right number of colors is provided.
-      dynamic_array_vbo_.Copy(colors_offset + vertex_offset * colors_stride,
-                              part_color_count * colors_stride,
-                              array_begin(part.colors));
+      GL(BufferSubData(GL_ARRAY_BUFFER,
+                       colors_offset + vertex_offset * colors_stride,
+                       part_color_count * colors_stride,
+                       array_begin(part.colors)));
     } else {
       // Un-optimal path used when the right number of colors is not provided.
       OZZ_STATIC_ASSERT(sizeof(kDefaultColorArray[0]) == colors_stride);
@@ -719,9 +740,10 @@ bool RendererImpl::DrawMesh(const Mesh& _mesh,
            j += OZZ_ARRAY_SIZE(kDefaultColorArray)) {
         const size_t this_loop_count =
           math::Min(OZZ_ARRAY_SIZE(kDefaultColorArray), part_vertex_count - j);
-        dynamic_array_vbo_.Copy(colors_offset + (vertex_offset + j) * colors_stride,
-                               colors_stride * this_loop_count,
-                               kDefaultColorArray);
+        GL(BufferSubData(GL_ARRAY_BUFFER,
+                         colors_offset + (vertex_offset + j) * colors_stride,
+                         colors_stride * this_loop_count,
+                         kDefaultColorArray));
       }
     }
 
@@ -730,26 +752,29 @@ bool RendererImpl::DrawMesh(const Mesh& _mesh,
   }
   
   // Binds shader with this array buffer.
-  GL(BindBuffer(GL_ARRAY_BUFFER, dynamic_array_vbo_.id()));
   mesh_shader_->Bind(_transform,
                      camera()->view_proj(),
                      positions_stride, positions_offset,
                      normals_stride, normals_offset,
                      colors_stride, colors_offset);
+
   GL(BindBuffer(GL_ARRAY_BUFFER, 0));
 
-  // Build index buffer.
+  // Maps the index dynamic buffer and update it.
+  GL(BindBuffer(GL_ELEMENT_ARRAY_BUFFER, dynamic_index_vbo_));
   const Mesh::TriangleIndices& indices = _mesh.triangle_indices;
-  dynamic_index_vbo_.Resize(indices.size() * sizeof(Mesh::TriangleIndices::value_type),
-                            array_begin(indices));
+  GL(BufferData(GL_ELEMENT_ARRAY_BUFFER,
+                indices.size() * sizeof(Mesh::TriangleIndices::value_type),
+                array_begin(indices),
+                GL_DYNAMIC_DRAW));
 
   // Draws the mesh.
-  GL(BindBuffer(GL_ELEMENT_ARRAY_BUFFER, dynamic_index_vbo_.id()));
   OZZ_STATIC_ASSERT(sizeof(Mesh::TriangleIndices::value_type) == 2);
   GL(DrawElements(GL_TRIANGLES,
                   static_cast<GLsizei>(indices.size()),
                   GL_UNSIGNED_SHORT,
                   0));
+
   // Unbinds.
   GL(BindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
   mesh_shader_->Unbind();
@@ -779,136 +804,136 @@ bool RendererImpl::DrawSkinnedMesh(const Mesh& _mesh,
 
   // Reallocate vertex buffer.
   const GLsizei vbo_size = skinned_data_size + colors_size;
-  dynamic_array_vbo_.Resize(vbo_size, NULL);
+  GL(BindBuffer(GL_ARRAY_BUFFER, dynamic_array_vbo_));
+  GL(BufferData(GL_ARRAY_BUFFER, vbo_size, NULL, GL_DYNAMIC_DRAW));
+  void* vbo_map = ozz::memory::default_allocator()->Allocate(vbo_size, 16);
 
-  {
-    GLBuffer::Map map_buffer(dynamic_array_vbo_, 0, vbo_size);
+  // Iterate mesh parts and fills vbo.
+  // Runs a skinning job per mesh part. Triangle indices are shared
+  // across parts.
+  int processed_vertex_count = 0;
+  for (size_t i = 0; i < _mesh.parts.size(); ++i) {
+    const ozz::sample::Mesh::Part& part = _mesh.parts[i];
 
-
-    // Iterate mesh parts and fills vbo.
-    // Runs a skinning job per mesh part. Triangle indices are shared
-    // across parts.
-    int processed_vertex_count = 0;
-    for (size_t i = 0; i < _mesh.parts.size(); ++i) {
-      const ozz::sample::Mesh::Part& part = _mesh.parts[i];
-
-      // Skip this iteration if no vertex.
-      const size_t part_vertex_count = part.positions.size() / 3;
-      if (part_vertex_count == 0) {
-        continue;
-      }
-
-      // Fills the job.
-      ozz::geometry::SkinningJob skinning_job;
-      skinning_job.vertex_count = part_vertex_count;
-      const int part_influences_count = part.influences_count();
-
-      // Clamps joints influence count according to the option.
-      skinning_job.influences_count = part_influences_count;
-
-      // Setup skinning matrices, that came from the animation stage before being
-      // multiplied by inverse model-space bind-pose.
-      skinning_job.joint_matrices = _skinning_matrices;
-
-      // Setup joint's indices.
-      skinning_job.joint_indices = make_range(part.joint_indices);
-      skinning_job.joint_indices_stride = sizeof(uint16_t) * part_influences_count;
-
-      // Setup joint's weights.
-      if (part_influences_count > 1) {
-        skinning_job.joint_weights = make_range(part.joint_weights);
-        skinning_job.joint_weights_stride = sizeof(float) * (part_influences_count - 1);
-      }
-
-      // Setup input positions, coming from the loaded mesh.
-      skinning_job.in_positions = make_range(part.positions);
-      skinning_job.in_positions_stride = sizeof(float) * 3;
-
-      // Setup output positions, coming from the rendering output mesh buffers.
-      // We need to offset the buffer every loop.
-      skinning_job.out_positions.begin = reinterpret_cast<float*>(
-        ozz::PointerStride(
-          map_buffer.data(), positions_offset + processed_vertex_count * positions_stride));
-      skinning_job.out_positions.end = ozz::PointerStride(
-        skinning_job.out_positions.begin, part_vertex_count * positions_stride);
-      skinning_job.out_positions_stride = positions_stride;
-
-      // Setup normals if input are provided.
-      float* out_normal_begin = reinterpret_cast<float*>(ozz::PointerStride(
-        map_buffer.data(), normals_offset + processed_vertex_count * normals_stride));
-      const float* out_normal_end = ozz::PointerStride(
-        out_normal_begin, part_vertex_count * normals_stride);
-
-      if (part.normals.size() == part.positions.size()) {
-        // Setup input normals, coming from the loaded mesh.
-        skinning_job.in_normals = make_range(part.normals);
-        skinning_job.in_normals_stride = sizeof(float) * 3;
-
-        // Setup output normals, coming from the rendering output mesh buffers.
-        // We need to offset the buffer every loop.
-        skinning_job.out_normals.begin = out_normal_begin;
-        skinning_job.out_normals.end = out_normal_end;
-        skinning_job.out_normals_stride = normals_stride;
-      } else {
-        // Fills output with default normals.
-        for (float* normal = out_normal_begin;
-             normal < out_normal_end;
-             normal = ozz::PointerStride(normal, normals_stride)) {
-          normal[0] = 0.f;
-          normal[1] = 1.f;
-          normal[2] = 0.f;
-        }
-      }
-
-      // Execute the job, which should succeed unless a parameter is invalid.
-      if (!skinning_job.Run()) {
-        return false;
-      }
-
-      // Handles colors which aren't affected by skinning.
-      if (part_vertex_count == part.colors.size() / 4) {
-        // Optimal path used when the right number of colors is provided.
-        memcpy(ozz::PointerStride(map_buffer.data(), colors_offset + processed_vertex_count * colors_stride),
-               ozz::PointerStride(array_begin(part.colors), colors_offset + processed_vertex_count * colors_stride),
-               part_vertex_count * colors_stride);
-      } else {
-        // Un-optimal path used when the right number of colors is not provided.
-        OZZ_STATIC_ASSERT(sizeof(kDefaultColorArray[0]) == colors_stride);
-        for (size_t j = 0;
-             j < part_vertex_count;
-             j += OZZ_ARRAY_SIZE(kDefaultColorArray)) {
-          const size_t this_loop_count =
-            math::Min(OZZ_ARRAY_SIZE(kDefaultColorArray), part_vertex_count - j);
-          memcpy(ozz::PointerStride(map_buffer.data(), colors_offset + (processed_vertex_count + j) * colors_stride),
-                 kDefaultColorArray,
-                 colors_stride * this_loop_count);
-        }
-      }
-
-      // Some more vertices were processed.
-      processed_vertex_count += part_vertex_count;
+    // Skip this iteration if no vertex.
+    const size_t part_vertex_count = part.positions.size() / 3;
+    if (part_vertex_count == 0) {
+      continue;
     }
+
+    // Fills the job.
+    ozz::geometry::SkinningJob skinning_job;
+    skinning_job.vertex_count = part_vertex_count;
+    const int part_influences_count = part.influences_count();
+
+    // Clamps joints influence count according to the option.
+    skinning_job.influences_count = part_influences_count;
+
+    // Setup skinning matrices, that came from the animation stage before being
+    // multiplied by inverse model-space bind-pose.
+    skinning_job.joint_matrices = _skinning_matrices;
+
+    // Setup joint's indices.
+    skinning_job.joint_indices = make_range(part.joint_indices);
+    skinning_job.joint_indices_stride = sizeof(uint16_t) * part_influences_count;
+
+    // Setup joint's weights.
+    if (part_influences_count > 1) {
+      skinning_job.joint_weights = make_range(part.joint_weights);
+      skinning_job.joint_weights_stride = sizeof(float) * (part_influences_count - 1);
+    }
+
+    // Setup input positions, coming from the loaded mesh.
+    skinning_job.in_positions = make_range(part.positions);
+    skinning_job.in_positions_stride = sizeof(float) * 3;
+
+    // Setup output positions, coming from the rendering output mesh buffers.
+    // We need to offset the buffer every loop.
+    skinning_job.out_positions.begin = reinterpret_cast<float*>(
+      ozz::PointerStride(
+        vbo_map, positions_offset + processed_vertex_count * positions_stride));
+    skinning_job.out_positions.end = ozz::PointerStride(
+      skinning_job.out_positions.begin, part_vertex_count * positions_stride);
+    skinning_job.out_positions_stride = positions_stride;
+
+    // Setup normals if input are provided.
+    float* out_normal_begin = reinterpret_cast<float*>(ozz::PointerStride(
+      vbo_map, normals_offset + processed_vertex_count * normals_stride));
+    const float* out_normal_end = ozz::PointerStride(
+      out_normal_begin, part_vertex_count * normals_stride);
+
+    if (part.normals.size() == part.positions.size()) {
+      // Setup input normals, coming from the loaded mesh.
+      skinning_job.in_normals = make_range(part.normals);
+      skinning_job.in_normals_stride = sizeof(float) * 3;
+
+      // Setup output normals, coming from the rendering output mesh buffers.
+      // We need to offset the buffer every loop.
+      skinning_job.out_normals.begin = out_normal_begin;
+      skinning_job.out_normals.end = out_normal_end;
+      skinning_job.out_normals_stride = normals_stride;
+    } else {
+      // Fills output with default normals.
+      for (float* normal = out_normal_begin;
+           normal < out_normal_end;
+           normal = ozz::PointerStride(normal, normals_stride)) {
+        normal[0] = 0.f;
+        normal[1] = 1.f;
+        normal[2] = 0.f;
+      }
+    }
+
+    // Execute the job, which should succeed unless a parameter is invalid.
+    if (!skinning_job.Run()) {
+      return false;
+    }
+
+    // Handles colors which aren't affected by skinning.
+    if (part_vertex_count == part.colors.size() / 4) {
+      // Optimal path used when the right number of colors is provided.
+      memcpy(ozz::PointerStride(vbo_map, colors_offset + processed_vertex_count * colors_stride),
+             ozz::PointerStride(array_begin(part.colors), colors_offset + processed_vertex_count * colors_stride),
+             part_vertex_count * colors_stride);
+    } else {
+      // Un-optimal path used when the right number of colors is not provided.
+      OZZ_STATIC_ASSERT(sizeof(kDefaultColorArray[0]) == colors_stride);
+      for (size_t j = 0;
+           j < part_vertex_count;
+           j += OZZ_ARRAY_SIZE(kDefaultColorArray)) {
+        const size_t this_loop_count =
+          math::Min(OZZ_ARRAY_SIZE(kDefaultColorArray), part_vertex_count - j);
+        memcpy(ozz::PointerStride(vbo_map, colors_offset + (processed_vertex_count + j) * colors_stride),
+               kDefaultColorArray,
+               colors_stride * this_loop_count);
+      }
+    }
+
+    // Some more vertices were processed.
+    processed_vertex_count += part_vertex_count;
   }
 
-  // Binds shader with this array buffer.
+  // Updates dynamic vertex buffer with skinned data.
+  GL(BufferSubData(GL_ARRAY_BUFFER, 0, vbo_size, vbo_map));
 
-  GL(BindBuffer(GL_ARRAY_BUFFER, dynamic_array_vbo_.id()));
+  // Binds shader with this array buffer.
   mesh_shader_->Bind(_transform,
                      camera()->view_proj(),
                      positions_stride, positions_offset,
                      normals_stride, normals_offset,
                      colors_stride, colors_offset);
+
   GL(BindBuffer(GL_ARRAY_BUFFER, 0));
+  ozz::memory::default_allocator()->Deallocate(vbo_map);
 
   // Maps the index dynamic buffer and update it.
-
-
+  GL(BindBuffer(GL_ELEMENT_ARRAY_BUFFER, dynamic_index_vbo_));
   const Mesh::TriangleIndices& indices = _mesh.triangle_indices;
-  dynamic_index_vbo_.Resize(indices.size() * sizeof(Mesh::TriangleIndices::value_type),
-                            array_begin(indices));
+  GL(BufferData(GL_ELEMENT_ARRAY_BUFFER,
+                indices.size() * sizeof(Mesh::TriangleIndices::value_type),
+                array_begin(indices),
+                GL_DYNAMIC_DRAW));
 
   // Draws the mesh.
-  GL(BindBuffer(GL_ELEMENT_ARRAY_BUFFER, dynamic_index_vbo_.id()));
   OZZ_STATIC_ASSERT(sizeof(Mesh::TriangleIndices::value_type) == 2);
   GL(DrawElements(GL_TRIANGLES,
                   static_cast<GLsizei>(indices.size()),
@@ -1041,72 +1066,6 @@ bool RendererImpl::InitOpenGLExtensions() {
       std::endl;
   }
   return true;
-}
-
-RendererImpl::GLBuffer::GLBuffer(GLenum _target)
-  : target_(_target),
-    id_(0),
-    data_(NULL),
-    size_(0) {
-}
-
-RendererImpl::GLBuffer::~GLBuffer() {
-  if(id_) {
-    GL(DeleteBuffers(1, &id_));
-    id_ = 0;
-  }
-  ozz::memory::default_allocator()->Deallocate(data_);
-  data_ = NULL;
-}
-
-void RendererImpl::GLBuffer::Copy(size_t _offset, size_t _size, const void* _data) {
-  assert(_offset + _size <= size_ && "GL buffer is too small. Call Resize.");
-  assert(_data && "Data must not be NULL");
-
-  // Maps the dynamic buffer and update it.
-  GL(BindBuffer(target_, id_));
-  GL(BufferSubData(target_, _offset, _size, _data));
-  GL(BindBuffer(target_, 0));
-}
-
-void RendererImpl::GLBuffer::Resize(size_t _size, const void* _data) {
-
-  // Generate buffer if it's the first use.
-  if (!id_) {
-    GL(GenBuffers(1, &id_));
-  }
-
-  // Resize if it's too small.
-  if (_size > size_) {
-    // Reallocate mapped data.
-    data_ = ozz::memory::default_allocator()->Reallocate(data_, _size, 16);
-    size_ = _size;
-
-    // Reallocate buffer.
-    GL(BindBuffer(target_, id_));
-    GL(BufferData(target_, _size, _data, GL_DYNAMIC_DRAW));
-    GL(BindBuffer(target_, 0));
-  } else {
-    // Maps the dynamic buffer and update it.
-    GL(BindBuffer(target_, id_));
-    GL(BufferSubData(target_, 0, _size, _data));
-    GL(BindBuffer(target_, 0));
-  }
-}
-
-RendererImpl::GLBuffer::Map::Map(GLBuffer& _buffer, size_t _offset, size_t _size)
-  : buffer_(_buffer),
-    offset_(_offset),
-    size_(_size),
-    data_(_buffer.data_) {
-  assert(_size <= _buffer.size_);
-}
-
-RendererImpl::GLBuffer::Map::~Map() {
-  // Maps the dynamic buffer and update it.
-  GL(BindBuffer(buffer_.target_, buffer_.id_));
-  GL(BufferSubData(buffer_.target_, offset_, size_, ozz::PointerStride(buffer_.data_, offset_)));
-  GL(BindBuffer(buffer_.target_, 0));
 }
 }  // internal
 }  // sample

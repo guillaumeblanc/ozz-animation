@@ -169,66 +169,11 @@ class RendererImpl : public Renderer {
   // Bone and joint model objects.
   Model models_[2];
 
-  // Dynamic GL buffer object abstraction.
-  class GLBuffer {
-   public:
-    // Initialize a buffer for a target GL_ARRAY_BUFFER, GL_ELEMENT_ARRAY_BUFFER...
-    GLBuffer(GLenum _target);
-
-    // Deallocate buffer object.
-    ~GLBuffer();
-
-    // Resizes a buffer object. This function must always be called before
-    // mapping or copying to the buffer.
-    // If _data is not NULL, the content of data is used to initialize buffer
-    // content. Otherwise, all the content is discarded.
-    void Resize(size_t _size, const void* _data);
-
-    // Copy the content of data to the buffer object.
-    void Copy(size_t _offset, size_t _size, const void* _data);
-
-    // Get GL buffer object id.
-    GLuint id() const {
-      assert(id_);
-      return id_;
-    }
-
-    // Map vertex object to memory. Mapped address can be obtained with data().
-    class Map {
-     public:
-      // Maps part of the buffer object to memory.
-      Map(GLBuffer& _buffer, size_t _offset, size_t _size);
-
-      // Unmaps from memory.
-      ~Map();
-
-      // Get access to mapped memory.
-      void* data() {
-        return data_;
-      }
-
-     private:
-      Map(const Map&);
-      void operator=(const Map&);
-
-      GLBuffer& buffer_;
-      size_t offset_;
-      size_t size_;
-      void* data_;
-    };
-
-  private:
-    GLenum target_;
-    GLuint id_;
-    void* data_;
-    size_t size_;
-  };
-
   // Dynamic vbo used for arrays.
-  GLBuffer dynamic_array_vbo_;
+  GLuint dynamic_array_vbo_;
 
   // Dynamic vbo used for indices.
-  GLBuffer dynamic_index_vbo_;
+  GLuint dynamic_index_vbo_;
 
   // Immediate renderer implementation.
   GlImmediateRenderer* immediate_;
