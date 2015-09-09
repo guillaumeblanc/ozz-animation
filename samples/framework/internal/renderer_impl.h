@@ -146,10 +146,12 @@ class RendererImpl : public Renderer {
 
   // Draw posture internal non-instanced rendering fall back implementation.
   void DrawPosture_Impl(const ozz::math::Float4x4& _transform,
+                        const float* _uniforms,
                         int _instance_count, bool _draw_joints);
 
   // Draw posture internal instanced rendering implementation.
   void DrawPosture_InstancedImpl(const ozz::math::Float4x4& _transform,
+                                 const float* _uniforms,
                                  int _instance_count, bool _draw_joints);
 
   // Array of matrices used to store model space matrices during DrawSkeleton
@@ -159,21 +161,29 @@ class RendererImpl : public Renderer {
   // Application camera that provides rendering matrices.
   Camera* camera_;
 
-  // The maximum number of pieces needed to render a skeleton.
-  int max_skeleton_pieces_;
-
-  // Array of floats used to store shader uniforms while rendering a skeleton
-  // without gl instancing extension.
-  float* prealloc_uniforms_;
-
   // Bone and joint model objects.
   Model models_[2];
 
   // Dynamic vbo used for arrays.
-  GLuint dynamic_array_vbo_;
+  GLuint dynamic_array_bo_;
 
   // Dynamic vbo used for indices.
-  GLuint dynamic_index_vbo_;
+  GLuint dynamic_index_bo_;
+
+  // Volatile memory buffer that can be used within function scope.
+  class ScratchBuffer {
+   public:
+    ScratchBuffer();
+    ~ScratchBuffer();
+
+    // Resizes the buffer to the new size and return the memory address.
+    void* Resize(size_t _size);
+
+   private:
+    void* buffer_;
+    size_t size_;
+  };
+  ScratchBuffer scratch_buffer_;
 
   // Immediate renderer implementation.
   GlImmediateRenderer* immediate_;

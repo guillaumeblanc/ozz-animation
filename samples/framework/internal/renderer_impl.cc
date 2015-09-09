@@ -84,38 +84,31 @@ RendererImpl::Model::~Model() {
 
 RendererImpl::RendererImpl(Camera* _camera)
     : camera_(_camera),
-      max_skeleton_pieces_(animation::Skeleton::kMaxJoints * 2),
-      prealloc_uniforms_(NULL),
-      dynamic_array_vbo_(0),
-      dynamic_index_vbo_(0),
+      dynamic_array_bo_(0),
+      dynamic_index_bo_(0),
       immediate_(NULL),
       mesh_shader_(NULL) {
-  prealloc_uniforms_ = reinterpret_cast<float*>(
-    memory::default_allocator()->Allocate(
-      max_skeleton_pieces_ * 16 * sizeof(float),
-      AlignOf<math::SimdFloat4>::value));
 }
 
 RendererImpl::~RendererImpl() {
-  memory::default_allocator()->Deallocate(prealloc_models_);
+  memory::Allocator* allocator = memory::default_allocator();
 
-  if(dynamic_array_vbo_) {
-    GL(DeleteBuffers(1, &dynamic_array_vbo_));
-    dynamic_array_vbo_ = 0;
+  allocator->Deallocate(prealloc_models_);
+
+  if(dynamic_array_bo_) {
+    GL(DeleteBuffers(1, &dynamic_array_bo_));
+    dynamic_array_bo_ = 0;
   }
 
-  if(dynamic_index_vbo_) {
-    GL(DeleteBuffers(1, &dynamic_index_vbo_));
-    dynamic_index_vbo_ = 0;
+  if(dynamic_index_bo_) {
+    GL(DeleteBuffers(1, &dynamic_index_bo_));
+    dynamic_index_bo_ = 0;
   }
 
-  memory::default_allocator()->Deallocate(prealloc_uniforms_);
-  prealloc_uniforms_ = NULL;
-
-  memory::default_allocator()->Delete(immediate_);
+  allocator->Delete(immediate_);
   immediate_ = NULL;
 
-  memory::default_allocator()->Delete(mesh_shader_);
+  allocator->Delete(mesh_shader_);
   mesh_shader_ = NULL;
 }
 
@@ -128,8 +121,8 @@ bool RendererImpl::Initialize() {
   }
 
   // Builds the dynamic vbo
-  GL(GenBuffers(1, &dynamic_array_vbo_));
-  GL(GenBuffers(1, &dynamic_index_vbo_));
+  GL(GenBuffers(1, &dynamic_array_bo_));
+  GL(GenBuffers(1, &dynamic_index_bo_));
 
   // Allocate immediate mode renderer;
   immediate_ = memory::default_allocator()->New<GlImmediateRenderer>(this);
@@ -442,6 +435,7 @@ int DrawPosture_FillUniforms(const ozz::animation::Skeleton& _skeleton,
 
 // Draw posture internal non-instanced rendering fall back implementation.
 void RendererImpl::DrawPosture_Impl(const ozz::math::Float4x4& _transform,
+                                    const float* _uniforms,
                                     int _instance_count, bool _draw_joints) {
   // Loops through models and instances.
   for (int i = 0; i < (_draw_joints ? 2 : 1); ++i) {
@@ -461,7 +455,7 @@ void RendererImpl::DrawPosture_Impl(const ozz::math::Float4x4& _transform,
     // Draw loop.
     const GLint joint_uniform = model.shader->joint_uniform();
     for (int i = 0; i < _instance_count; ++i) {
-      GL(UniformMatrix4fv(joint_uniform, 1, false, prealloc_uniforms_ + 16 * i));
+      GL(UniformMatrix4fv(joint_uniform, 1, false, _uniforms + 16 * i));
       GL(DrawArrays(model.mode, 0, model.count));
     }
 
@@ -471,12 +465,13 @@ void RendererImpl::DrawPosture_Impl(const ozz::math::Float4x4& _transform,
 
 // "Draw posture" internal instanced rendering implementation.
 void RendererImpl::DrawPosture_InstancedImpl(const ozz::math::Float4x4& _transform,
+                                             const float* _uniforms,
                                              int _instance_count,
                                              bool _draw_joints) {
   // Maps the dynamic buffer and update it.
-  GL(BindBuffer(GL_ARRAY_BUFFER, dynamic_array_vbo_));
+  GL(BindBuffer(GL_ARRAY_BUFFER, dynamic_array_bo_));
   const size_t vbo_size = _instance_count * 16 * sizeof(float);
-  GL(BufferData(GL_ARRAY_BUFFER, vbo_size, prealloc_uniforms_, GL_DYNAMIC_DRAW));
+  GL(BufferData(GL_ARRAY_BUFFER, vbo_size, _uniforms, GL_STREAM_DRAW));
   GL(BindBuffer(GL_ARRAY_BUFFER, 0));
 
   // Renders models.
@@ -496,7 +491,7 @@ void RendererImpl::DrawPosture_InstancedImpl(const ozz::math::Float4x4& _transfo
 
     // Setup instanced GL context.
     const GLint joint_attrib = model.shader->joint_instanced_attrib();
-    GL(BindBuffer(GL_ARRAY_BUFFER, dynamic_array_vbo_));
+    GL(BindBuffer(GL_ARRAY_BUFFER, dynamic_array_bo_));
     GL(EnableVertexAttribArray(joint_attrib + 0));
     GL(EnableVertexAttribArray(joint_attrib + 1));
     GL(EnableVertexAttribArray(joint_attrib + 2));
@@ -545,14 +540,19 @@ bool RendererImpl::DrawPosture(const ozz::animation::Skeleton& _skeleton,
   }
 
   // Convert matrices to uniforms.
+  const int max_skeleton_pieces = animation::Skeleton::kMaxJoints * 2;
+  const size_t max_uniforms_size = max_skeleton_pieces * 2 * 16 * sizeof(float);
+  float* uniforms = static_cast<float*>(
+    scratch_buffer_.Resize(max_uniforms_size));
+
   const int instance_count = DrawPosture_FillUniforms(
-    _skeleton, _matrices, prealloc_uniforms_, max_skeleton_pieces_);
-  assert(instance_count <= max_skeleton_pieces_);
+    _skeleton, _matrices, uniforms, max_skeleton_pieces);
+  assert(instance_count <= max_skeleton_pieces);
 
   if (GL_ARB_instanced_arrays) {
-    DrawPosture_InstancedImpl(_transform, instance_count, _draw_joints);
+    DrawPosture_InstancedImpl(_transform, uniforms, instance_count, _draw_joints);
   } else {
-    DrawPosture_Impl(_transform, instance_count, _draw_joints);
+    DrawPosture_Impl(_transform, uniforms, instance_count, _draw_joints);
   }
 
   return true;
@@ -686,8 +686,8 @@ bool RendererImpl::DrawMesh(const Mesh& _mesh,
 
   // Reallocate vertex buffer.
   const GLsizei vbo_size = positions_size + normals_size + colors_size;
-  GL(BindBuffer(GL_ARRAY_BUFFER, dynamic_array_vbo_));
-  GL(BufferData(GL_ARRAY_BUFFER, vbo_size, NULL, GL_DYNAMIC_DRAW));
+  GL(BindBuffer(GL_ARRAY_BUFFER, dynamic_array_bo_));
+  GL(BufferData(GL_ARRAY_BUFFER, vbo_size, NULL, GL_STREAM_DRAW));
 
   // Iterate mesh parts and fills vbo.
   size_t vertex_offset = 0;
@@ -761,12 +761,12 @@ bool RendererImpl::DrawMesh(const Mesh& _mesh,
   GL(BindBuffer(GL_ARRAY_BUFFER, 0));
 
   // Maps the index dynamic buffer and update it.
-  GL(BindBuffer(GL_ELEMENT_ARRAY_BUFFER, dynamic_index_vbo_));
+  GL(BindBuffer(GL_ELEMENT_ARRAY_BUFFER, dynamic_index_bo_));
   const Mesh::TriangleIndices& indices = _mesh.triangle_indices;
   GL(BufferData(GL_ELEMENT_ARRAY_BUFFER,
                 indices.size() * sizeof(Mesh::TriangleIndices::value_type),
                 array_begin(indices),
-                GL_DYNAMIC_DRAW));
+                GL_STREAM_DRAW));
 
   // Draws the mesh.
   OZZ_STATIC_ASSERT(sizeof(Mesh::TriangleIndices::value_type) == 2);
@@ -804,9 +804,9 @@ bool RendererImpl::DrawSkinnedMesh(const Mesh& _mesh,
 
   // Reallocate vertex buffer.
   const GLsizei vbo_size = skinned_data_size + colors_size;
-  GL(BindBuffer(GL_ARRAY_BUFFER, dynamic_array_vbo_));
-  GL(BufferData(GL_ARRAY_BUFFER, vbo_size, NULL, GL_DYNAMIC_DRAW));
-  void* vbo_map = ozz::memory::default_allocator()->Allocate(vbo_size, 16);
+  GL(BindBuffer(GL_ARRAY_BUFFER, dynamic_array_bo_));
+  GL(BufferData(GL_ARRAY_BUFFER, vbo_size, NULL, GL_STREAM_DRAW));
+  void* vbo_map = scratch_buffer_.Resize(vbo_size);
 
   // Iterate mesh parts and fills vbo.
   // Runs a skinning job per mesh part. Triangle indices are shared
@@ -816,7 +816,7 @@ bool RendererImpl::DrawSkinnedMesh(const Mesh& _mesh,
     const ozz::sample::Mesh::Part& part = _mesh.parts[i];
 
     // Skip this iteration if no vertex.
-    const size_t part_vertex_count = part.positions.size() / 3;
+    const int part_vertex_count = static_cast<int>(part.positions.size() / 3);
     if (part_vertex_count == 0) {
       continue;
     }
@@ -923,15 +923,14 @@ bool RendererImpl::DrawSkinnedMesh(const Mesh& _mesh,
                      colors_stride, colors_offset);
 
   GL(BindBuffer(GL_ARRAY_BUFFER, 0));
-  ozz::memory::default_allocator()->Deallocate(vbo_map);
 
   // Maps the index dynamic buffer and update it.
-  GL(BindBuffer(GL_ELEMENT_ARRAY_BUFFER, dynamic_index_vbo_));
+  GL(BindBuffer(GL_ELEMENT_ARRAY_BUFFER, dynamic_index_bo_));
   const Mesh::TriangleIndices& indices = _mesh.triangle_indices;
   GL(BufferData(GL_ELEMENT_ARRAY_BUFFER,
                 indices.size() * sizeof(Mesh::TriangleIndices::value_type),
                 array_begin(indices),
-                GL_DYNAMIC_DRAW));
+                GL_STREAM_DRAW));
 
   // Draws the mesh.
   OZZ_STATIC_ASSERT(sizeof(Mesh::TriangleIndices::value_type) == 2);
@@ -1043,7 +1042,7 @@ bool RendererImpl::InitOpenGLExtensions() {
       std::endl;
   }
 
-  GL_ARB_instanced_arrays = 
+  GL_ARB_instanced_arrays =
     glfwExtensionSupported("GL_ARB_instanced_arrays") != 0;
   if (GL_ARB_instanced_arrays) {
     log::Log() << "Optional GL_ARB_instanced_arrays extensions found." <<
@@ -1066,6 +1065,24 @@ bool RendererImpl::InitOpenGLExtensions() {
       std::endl;
   }
   return true;
+}
+
+
+RendererImpl::ScratchBuffer::ScratchBuffer()
+    : buffer_(NULL),
+      size_(0) {
+}
+
+RendererImpl::ScratchBuffer::~ScratchBuffer() {
+  memory::default_allocator()->Deallocate(buffer_);
+}
+
+void* RendererImpl::ScratchBuffer::Resize(size_t _size) {
+  if (_size > size_) {
+    size_ = _size;
+    buffer_ = memory::default_allocator()->Reallocate(buffer_, _size, 16);
+  }
+  return buffer_;
 }
 }  // internal
 }  // sample
