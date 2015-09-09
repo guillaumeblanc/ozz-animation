@@ -459,7 +459,7 @@ void RendererImpl::DrawPosture_Impl(const ozz::math::Float4x4& _transform,
 void RendererImpl::DrawPosture_InstancedImpl(const ozz::math::Float4x4& _transform,
                                              int _instance_count,
                                              bool _draw_joints) {
-  // Updates dynamic_array_vbo_ with instanced matrices.
+  // Maps the dynamic buffer and update it.
   const size_t vbo_size = _instance_count * 16 * sizeof(float);
   dynamic_array_vbo_.Resize(vbo_size, prealloc_uniforms_);
 
@@ -533,7 +533,7 @@ bool RendererImpl::DrawPosture(const ozz::animation::Skeleton& _skeleton,
     _skeleton, _matrices, prealloc_uniforms_, max_skeleton_pieces_);
   assert(instance_count <= max_skeleton_pieces_);
 
-  if (GL_ARB_instanced_arrays_available) {
+  if (GL_ARB_instanced_arrays) {
     DrawPosture_InstancedImpl(_transform, instance_count, _draw_joints);
   } else {
     DrawPosture_Impl(_transform, instance_count, _draw_joints);
@@ -783,7 +783,7 @@ bool RendererImpl::DrawSkinnedMesh(const Mesh& _mesh,
 
   {
     // Map dynamic buffer to memory.
-    GLBuffer::Map map_buffer(dynamic_array_vbo_, vbo_size);
+    GLBuffer::Map map_buffer(dynamic_array_vbo_, 0, vbo_size);
 
     // Iterate mesh parts and fills vbo.
     // Runs a skinning job per mesh part. Triangle indices are shared
@@ -1015,12 +1015,9 @@ bool RendererImpl::InitOpenGLExtensions() {
       std::endl;
   }
 
-  success = true;
-  OZZ_INIT_GL_EXT(glMapBufferRange, PFNGLMAPBUFFERRANGEPROC, success);
-
-  GL_ARB_instanced_arrays_available = 
+  GL_ARB_instanced_arrays = 
     glfwExtensionSupported("GL_ARB_instanced_arrays") != 0;
-  if (GL_ARB_instanced_arrays_available) {
+  if (GL_ARB_instanced_arrays) {
     log::Log() << "Optional GL_ARB_instanced_arrays extensions found." <<
       std::endl;
     success = true;
@@ -1034,7 +1031,7 @@ bool RendererImpl::InitOpenGLExtensions() {
       log::Err() <<
         "Failed to setup GL_ARB_instanced_arrays, feature is disabled."
         << std::endl;
-      GL_ARB_instanced_arrays_available = false;
+      GL_ARB_instanced_arrays = false;
     }
   } else {
     log::Log() << "Optional GL_ARB_instanced_arrays extensions not found." <<
@@ -1063,7 +1060,7 @@ void RendererImpl::GLBuffer::Copy(size_t _offset, size_t _size, const void* _dat
   assert(_offset + _size <= size_ && "GL buffer is too small. Call Resize.");
   assert(_data && "Data must not be NULL");
 
-  // Binds the dynamic buffer and update it.
+  // Maps the dynamic buffer and update it.
   GL(BindBuffer(target_, id_));
   GL(BufferSubData(target_, _offset, _size, _data));
   GL(BindBuffer(target_, 0));
@@ -1079,54 +1076,36 @@ void RendererImpl::GLBuffer::Resize(size_t _size, const void* _data) {
   GL(BindBuffer(target_, id_));
 
   // Resize if it's too small.
-  /*if (_size > size_)*/ {
+  if (_size > size_) {
     // Reallocate mapped data.
-    size_ = _size;// ozz::math::Max(size_ * 2, _size);
-
-    // Allocate client size memory in case glMapBufferRange isn't available.
-    if (!glMapBufferRange) {
-      data_ = ozz::memory::default_allocator()->Reallocate(data_, size_, 16);
-    }
+    const size_t new_size = ozz::math::Max(size_ * 2, _size);
+    data_ = ozz::memory::default_allocator()->Reallocate(data_, new_size, 16);
+    size_ = new_size;
 
     // Reallocate buffer.
-    GL(BufferData(target_, size_, NULL, GL_STREAM_DRAW));
+    GL(BufferData(target_, new_size, NULL, GL_DYNAMIC_DRAW));
   }
 
-  if (_data) {
-    // Updates buffer.
-    GL(BufferSubData(target_, 0, _size, _data));
-  }
-
+  // Maps the dynamic buffer and update it.
+  GL(BufferSubData(target_, 0, _size, _data));
   GL(BindBuffer(target_, 0));
 }
 
-RendererImpl::GLBuffer::Map::Map(GLBuffer& _buffer, size_t _size)
-    : buffer_(_buffer),
-      size_(_size),
-      data_(NULL) {
-  assert(_size <= _buffer.size_);
-
-  if (glMapBufferRange) {
-    GL(BindBuffer(buffer_.target_, buffer_.id_));
-    data_ = glMapBufferRange(buffer_.target_,
-                             0,
-                             size_,
-                             GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT);
-    GL(BindBuffer(buffer_.target_, 0));
-  } else {
-    data_ = _buffer.data_;
-  }
+RendererImpl::GLBuffer::Map::Map(GLBuffer& _buffer, size_t _offset, size_t _size)
+  : buffer_(_buffer),
+    offset_(_offset),
+    size_(_size),
+    data_(_buffer.data_) {
+  assert(_offset + _size <= _buffer.size_);
 }
 
 RendererImpl::GLBuffer::Map::~Map() {
+  // Maps the dynamic buffer and update it.
   GL(BindBuffer(buffer_.target_, buffer_.id_));
-  if (glMapBufferRange) {
-    // Unmaps buffer.
-    GL(UnmapBuffer(buffer_.target_));
-  } else {
-    // Copy memory to buffer.
-    GL(BufferSubData(buffer_.target_, 0, size_, buffer_.data_));
-  }
+  GL(BufferSubData(buffer_.target_,
+                   offset_,
+                   size_,
+                   ozz::PointerStride(buffer_.data_, offset_)));
   GL(BindBuffer(buffer_.target_, 0));
 }
 }  // internal
@@ -1209,9 +1188,7 @@ OZZ_DECL_GL_EXT(glVertexAttrib4fv, PFNGLVERTEXATTRIB4FVPROC);
 OZZ_DECL_GL_EXT(glVertexAttribPointer, PFNGLVERTEXATTRIBPOINTERPROC);
 #endif  // OZZ_GL_VERSION_2_0_EXT
 
-OZZ_DECL_GL_EXT(glMapBufferRange, PFNGLMAPBUFFERRANGEPROC);
-
-bool GL_ARB_instanced_arrays_available = false;
+bool GL_ARB_instanced_arrays = false;
 OZZ_DECL_GL_EXT(glVertexAttribDivisorARB, PFNGLVERTEXATTRIBDIVISORARBPROC);
 OZZ_DECL_GL_EXT(glDrawArraysInstancedARB, PFNGLDRAWARRAYSINSTANCEDARBPROC);
 OZZ_DECL_GL_EXT(glDrawElementsInstancedARB, PFNGLDRAWELEMENTSINSTANCEDARBPROC);
