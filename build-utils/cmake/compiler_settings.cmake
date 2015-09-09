@@ -158,9 +158,9 @@ else()
   #endif()
 
   # Enable extra level of warning
-  if(NOT CMAKE_CXX_FLAGS MATCHES "-Wextra")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra")
-  endif()
+  #if(NOT CMAKE_CXX_FLAGS MATCHES "-Wextra")
+  #  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra")
+  #endif()
 
   # Set the warning level to Wall
   if(NOT CMAKE_CXX_FLAGS MATCHES "-Wall")
