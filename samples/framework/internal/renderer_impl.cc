@@ -738,7 +738,7 @@ bool RendererImpl::DrawMesh(const Mesh& _mesh,
                      colors_stride, colors_offset);
   GL(BindBuffer(GL_ARRAY_BUFFER, 0));
 
-  // Updates dynamic index buffer.
+  // Build index buffer.
   const Mesh::TriangleIndices& indices = _mesh.triangle_indices;
   dynamic_index_vbo_.Resize(indices.size() * sizeof(Mesh::TriangleIndices::value_type),
                             array_begin(indices));
@@ -782,8 +782,8 @@ bool RendererImpl::DrawSkinnedMesh(const Mesh& _mesh,
   dynamic_array_vbo_.Resize(vbo_size, NULL);
 
   {
-    // Map dynamic buffer to memory.
     GLBuffer::Map map_buffer(dynamic_array_vbo_, 0, vbo_size);
+
 
     // Iterate mesh parts and fills vbo.
     // Runs a skinning job per mesh part. Triangle indices are shared
@@ -891,6 +891,7 @@ bool RendererImpl::DrawSkinnedMesh(const Mesh& _mesh,
   }
 
   // Binds shader with this array buffer.
+
   GL(BindBuffer(GL_ARRAY_BUFFER, dynamic_array_vbo_.id()));
   mesh_shader_->Bind(_transform,
                      camera()->view_proj(),
@@ -899,7 +900,9 @@ bool RendererImpl::DrawSkinnedMesh(const Mesh& _mesh,
                      colors_stride, colors_offset);
   GL(BindBuffer(GL_ARRAY_BUFFER, 0));
 
-  // Updates dynamic index buffer.
+  // Maps the index dynamic buffer and update it.
+
+
   const Mesh::TriangleIndices& indices = _mesh.triangle_indices;
   dynamic_index_vbo_.Resize(indices.size() * sizeof(Mesh::TriangleIndices::value_type),
                             array_begin(indices));
@@ -1073,22 +1076,22 @@ void RendererImpl::GLBuffer::Resize(size_t _size, const void* _data) {
     GL(GenBuffers(1, &id_));
   }
 
-  GL(BindBuffer(target_, id_));
-
   // Resize if it's too small.
   if (_size > size_) {
     // Reallocate mapped data.
-    const size_t new_size = ozz::math::Max(size_ * 2, _size);
-    data_ = ozz::memory::default_allocator()->Reallocate(data_, new_size, 16);
-    size_ = new_size;
+    data_ = ozz::memory::default_allocator()->Reallocate(data_, _size, 16);
+    size_ = _size;
 
     // Reallocate buffer.
-    GL(BufferData(target_, new_size, NULL, GL_DYNAMIC_DRAW));
+    GL(BindBuffer(target_, id_));
+    GL(BufferData(target_, _size, _data, GL_DYNAMIC_DRAW));
+    GL(BindBuffer(target_, 0));
+  } else {
+    // Maps the dynamic buffer and update it.
+    GL(BindBuffer(target_, id_));
+    GL(BufferSubData(target_, 0, _size, _data));
+    GL(BindBuffer(target_, 0));
   }
-
-  // Maps the dynamic buffer and update it.
-  GL(BufferSubData(target_, 0, _size, _data));
-  GL(BindBuffer(target_, 0));
 }
 
 RendererImpl::GLBuffer::Map::Map(GLBuffer& _buffer, size_t _offset, size_t _size)
@@ -1096,16 +1099,13 @@ RendererImpl::GLBuffer::Map::Map(GLBuffer& _buffer, size_t _offset, size_t _size
     offset_(_offset),
     size_(_size),
     data_(_buffer.data_) {
-  assert(_offset + _size <= _buffer.size_);
+  assert(_size <= _buffer.size_);
 }
 
 RendererImpl::GLBuffer::Map::~Map() {
   // Maps the dynamic buffer and update it.
   GL(BindBuffer(buffer_.target_, buffer_.id_));
-  GL(BufferSubData(buffer_.target_,
-                   offset_,
-                   size_,
-                   ozz::PointerStride(buffer_.data_, offset_)));
+  GL(BufferSubData(buffer_.target_, offset_, size_, ozz::PointerStride(buffer_.data_, offset_)));
   GL(BindBuffer(buffer_.target_, 0));
 }
 }  // internal

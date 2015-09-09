@@ -203,7 +203,9 @@ class RendererImpl : public Renderer {
       ~Map();
 
       // Get access to mapped memory.
-      void* data() { return data_; }
+      void* data() {
+        return data_;
+      }
 
      private:
       Map(const Map&);
