@@ -5,8 +5,8 @@ project(ozz)
 
 # Current version
 set(CPACK_PACKAGE_VERSION_MAJOR 0)
-set(CPACK_PACKAGE_VERSION_MINOR 7)
-set(CPACK_PACKAGE_VERSION_PATCH 3)
+set(CPACK_PACKAGE_VERSION_MINOR 8)
+set(CPACK_PACKAGE_VERSION_PATCH 0)
 
 # Add project build options
 set(ozz_build_fbx ON CACHE BOOL "Buils Fbx pipeline (Requires Fbx SDK)")

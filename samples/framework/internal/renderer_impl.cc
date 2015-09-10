@@ -811,19 +811,19 @@ bool RendererImpl::DrawSkinnedMesh(const Mesh& _mesh,
   // Iterate mesh parts and fills vbo.
   // Runs a skinning job per mesh part. Triangle indices are shared
   // across parts.
-  int processed_vertex_count = 0;
+  size_t processed_vertex_count = 0;
   for (size_t i = 0; i < _mesh.parts.size(); ++i) {
     const ozz::sample::Mesh::Part& part = _mesh.parts[i];
 
     // Skip this iteration if no vertex.
-    const int part_vertex_count = static_cast<int>(part.positions.size() / 3);
+    const size_t part_vertex_count = part.positions.size() / 3;
     if (part_vertex_count == 0) {
       continue;
     }
 
     // Fills the job.
     ozz::geometry::SkinningJob skinning_job;
-    skinning_job.vertex_count = part_vertex_count;
+    skinning_job.vertex_count = static_cast<int>(part_vertex_count);
     const int part_influences_count = part.influences_count();
 
     // Clamps joints influence count according to the option.
