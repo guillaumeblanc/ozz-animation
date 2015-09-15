@@ -18,7 +18,7 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 # Redebug all
 if(ozz_build_redebug_all)
   message("OZZ_HAS_REDEBUG_ALL is enabled")
-  set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS_DEBUG OZZ_HAS_REDEBUG_ALL=1)
+  set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS_$<$<CONFIG:Debug>:OZZ_HAS_REDEBUG_ALL=1)
 endif()
 
 #------------------------
