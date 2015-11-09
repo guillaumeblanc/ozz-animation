@@ -35,7 +35,7 @@ namespace offline {
 // Forward declare offline animation type.
 struct RawAnimation;
 
-// Defines the class responsible of building a delta animation from an offline
+// Defines the class responsible for building a delta animation from an offline
 // raw animation. This is used to create animations compatible with additive
 // blending.
 class AdditiveAnimationBuilder {
