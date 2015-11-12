@@ -59,21 +59,21 @@ OZZ_OPTIONS_DECLARE_STRING(
   "media/skeleton.ozz",
   false)
 
-// Lower body animation archive can be specified as an option.
+// MAin animation archive can be specified as an option.
 OZZ_OPTIONS_DECLARE_STRING(
   animation,
-  "Path to the lower body animation(ozz archive format).",
+  "Path to the main animation(ozz archive format).",
   "media/walk.ozz",
   false)
 
 // Additive animation archive can be specified as an option.
 OZZ_OPTIONS_DECLARE_STRING(
   additive_animation,
-  "Path to the upper body additive animation (ozz archive format).",
+  "Path to the additive animation (ozz archive format).",
   "media/additive.ozz",
   false)
 
-// Additive animation archive can be specified as an option.
+// Mesh archive can be specified as an option.
 OZZ_OPTIONS_DECLARE_STRING(
   mesh,
   "Path to the skinned mesh (ozz archive format).",
@@ -118,7 +118,7 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
     // (1st stage just above), and outputs the result to the local space
     // transform buffer blended_locals_
 
-    // Prepares blending layers.
+    // Prepares standard blending layers.
     ozz::animation::BlendingJob::Layer layers[1];
     layers[0].transform = samplers_[kMainAnimation].locals;
     layers[0].weight = samplers_[kMainAnimation].weight_setting;
@@ -320,13 +320,16 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
       ozz::sample::ImGui::OpenClose oc(_im_gui, "Upper body masking", &open);
 
       if (open) {
-        _im_gui->DoCheckBox("Enable mask", &upper_body_mask_enable_);
+        bool rebuild_joint_weights = false;
+        rebuild_joint_weights |=
+          _im_gui->DoCheckBox("Enable mask", &upper_body_mask_enable_);
 
         std::sprintf(label, "Joints weight: %.2f",
                      upper_body_joint_weight_setting_);
-        _im_gui->DoSlider(label, 0.f, 1.f,
-                          &upper_body_joint_weight_setting_, 1.f,
-                          upper_body_mask_enable_);
+        rebuild_joint_weights |=
+          _im_gui->DoSlider(label, 0.f, 1.f,
+                            &upper_body_joint_weight_setting_, 1.f,
+                            upper_body_mask_enable_);
 
         if (skeleton_.num_joints() != 0) {
           _im_gui->DoLabel("Root of the upper body hierarchy:",
@@ -334,11 +337,17 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
           std::sprintf(label, "%s (%d)",
                        skeleton_.joint_names()[upper_body_root_],
                        upper_body_root_);
-          _im_gui->DoSlider(label,
-                            0, skeleton_.num_joints() - 1,
-                            &upper_body_root_, 1.f, upper_body_mask_enable_);
+
+          rebuild_joint_weights |= 
+            _im_gui->DoSlider(label,
+                              0, skeleton_.num_joints() - 1,
+                              &upper_body_root_, 1.f, upper_body_mask_enable_);
         }
-        SetupPerJointWeights();
+
+        // Rebuilds per-joint weights if something has changed.
+        if (rebuild_joint_weights) {
+          SetupPerJointWeights();
+        }
       }
     }
     // Exposes animations runtime playback controls.
