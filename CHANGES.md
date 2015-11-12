@@ -3,8 +3,10 @@ Release version 0.8.0
  
 * Library
 
-!!! sample/optimize/cmakelists -> change fbx2anim back to dae2anim
- - [animation] Improves quaternion compression scheme by quantizing the 3 smallest components of the quaternion, instead of the firsts 3. This improves numerical accuracy when the restored component (4th) was small. It also allows to pre-multiply each of the 3 smallest components by sqrt(2), maximizing quantization range (from 32767 to 46339, which wins over 41%).
+ - [offline] Adds AdditiveAnimationBuilder, allowing to build a delta animation from a raw animation, suitable for additive blending.
+ - [offline] Adds --additive option to dae2anim and fbx2anim, allowing to output a delta animation suitable for additive blending.
+ - [animation] Adds additive blending support to BlendingJob, through new additive layers.
+ - [animation] Improves quaternion compression scheme by quantizing the 3 smallest components of the quaternion, instead of the firsts 3. This improves numerical accuracy when the restored component (4th) is small. It also allows to pre-multiply each of the 3 smallest components by sqrt(2), maximizing quantization range (over 41%).
 
  - [offline] Hierarchical optimization.
 
@@ -14,8 +16,8 @@ Release version 0.8.0
   - Support for -wextra option on gcc/clang.
 
 * Samples
-  - [skin] Removes sample skin, as from now on some other samples are using skinned rendering. See addtive sample.
-
+ - [skin] Removes sample skin, as from now on some other samples are using skinned rendering. See addtive sample.
+ - [additive] Adds an additive blending sample which demonstrates the new additive layers available through BlendingJob.
 
 Release version 0.7.3
 ---------------------
@@ -34,7 +36,7 @@ Release version 0.7.2
 
 * HowTos
   - Adds file loading how-to, which demonstrates how to open a file and deserialize an object with ozz archive library.
-  - Adds custom skeleton importer how-to, which demonstrates RawSkeleton setup and conversion to runtime skleton.
+  - Adds custom skeleton importer how-to, which demonstrates RawSkeleton setup and conversion to runtime skeleton.
   - Adds custom animation importer how-to, which demonstrates RawAnimation setup and conversion to runtime animation.
 
 * Samples

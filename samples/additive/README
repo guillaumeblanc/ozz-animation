@@ -1,9 +1,21 @@
-Ozz-animation sample: Additive animations blending
+Ozz-animation sample: Additive animation blending
 
 1. Description
+Additive blending is a key concept in run-time animation. By superimposing a movement on top of a playing animation, it allows to add variety while lessening animation count and complexity.
+In this sample, a "cracking head" animation is added to a "walk" cycle. Note that no synchronization is required between the two animations.
 
 2. Concept
+An additive (or delta) animation is created by subtracting a reference pose from a source animation. ozz proposes a ozz::animation::offline::AdditiveAnimationBuilder utility to build additive animations. It uses the first frame of the animation as the reference pose. dae2anim and fbx2anim support --additive option to export delta animations from a source file.
+
+Additive blending is performed by ozz::animation::BlendingJob. ozz::animation::BlendingJob exposes additive layers with the same input as normal blending layers: per joint local transforms, a global layer weight and optional per-joint weights. The main differences are that additive blending is done at the end of the normal blending pass, with a different equation.
 
 3. Sample usage
+The sample proposes to modify main and additive layers weights. It also allows to control per-joint weights for the additive layer.
+Both main and additive animation playback parameters are exposed.
 
 4. Implementation
+  a. Loads main and additive animations, and their skeleton. See "playback" sample for more details.
+  b. Samples each animation to get local-space transformations. Sampling an additive animation is not different from a standard one.
+  c. Setups ozz::animation::BlendingJob object. BlendingJob object takes as input two arrays of BlendingJob::Layer, one for standard blending, the other for additive blendings. Each layer is setup with its weights and the local-space transforms outputted from the sampling stage.
+  d. Convert local-space transformations to model-space matrices using ozz::animation::LocalToModelJob. It takes as input the skeleton (to know about joint's hierarchy) and local-space transforms outputted from the blending pass. Output is model-space matrices array.
+  e. Model-space matrices array is then used for rendering the skinned mesh.

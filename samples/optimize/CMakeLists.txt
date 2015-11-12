@@ -35,7 +35,6 @@ set_target_properties(sample_optimize
 
 if(EMSCRIPTEN)
   # Resource files are embedded to the output file with emscripten.
-  # Also this sample needs more memory to parse the xml.
   set_target_properties(sample_optimize
     PROPERTIES LINK_FLAGS "--embed-file media --embed-file README")
     
