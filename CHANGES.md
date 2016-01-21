@@ -1,3 +1,8 @@
+Release version 0.8.0
+---------------------
+* Build pipeline
+  - Adds c++11 build option for gcc/clang compilers. Use cmake ozz_build_cpp11 option.
+
 Release version 0.7.3
 ---------------------
 

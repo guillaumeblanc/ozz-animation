@@ -9,12 +9,13 @@ set(CPACK_PACKAGE_VERSION_MINOR 7)
 set(CPACK_PACKAGE_VERSION_PATCH 3)
 
 # Add project build options
-set(ozz_build_fbx ON CACHE BOOL "Buils Fbx pipeline (Requires Fbx SDK)")
+set(ozz_build_fbx ON CACHE BOOL "Build Fbx pipeline (Requires Fbx SDK)")
 set(ozz_build_samples ON CACHE BOOL "Build samples")
 set(ozz_build_howtos ON CACHE BOOL "Build howtos")
 set(ozz_build_tests ON CACHE BOOL "Build unit tests")
 set(ozz_build_sse2 ON CACHE BOOL "Enable SSE2 instructions set")
 set(ozz_build_redebug_all OFF CACHE BOOL "Enable all REDEBUGing features")
+set(ozz_build_cpp11 OFF CACHE BOOL "Enable c++11")
 set(ozz_build_coverage OFF CACHE BOOL "Enable coverage tests")
 
 # Add project execution options

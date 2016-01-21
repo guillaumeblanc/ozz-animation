@@ -69,10 +69,18 @@ if(MSVC)
   # Disables crt secure warnings
   set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS _CRT_SECURE_NO_WARNINGS)
 
-  # sse2
+  # SSE detection
   if(ozz_build_sse2 OR CMAKE_CL_64) # x64 implicitly supports SSE2.
     message("OZZ_HAS_SSE2 is enabled")
     set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS OZZ_HAS_SSE2=1)
+  endif()
+
+  # Adds support for SSE instructions
+  string(REGEX REPLACE " /arch:SSE[0-9]?" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+  string(REGEX REPLACE " /arch:SSE[0-9]?" "" CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
+  if(ozz_build_sse2 AND NOT CMAKE_CL_64) # x64 implicitly supports SSE2.
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:SSE2")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /arch:SSE2")
   endif()
 
   # Removes any exception mode
@@ -85,13 +93,6 @@ if(MSVC)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /D _HAS_EXCEPTIONS=0")
   endif()
   
-  # Adds support for SSE instructions
-  string(REGEX REPLACE " /arch:SSE[0-9]?" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-  string(REGEX REPLACE " /arch:SSE[0-9]?" "" CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
-  if(${ozz_build_sse2} AND NOT CMAKE_CL_64) # x64 implicitly supports SSE2.
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:SSE2")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /arch:SSE2")
-  endif()
 
   # Adds support for multiple processes builds
   if(NOT ${CMAKE_CXX_FLAGS} MATCHES "/MP")
@@ -130,9 +131,11 @@ else()
   # For the common build flags
 
   # Enable c++11
-  #if(NOT CMAKE_CXX_FLAGS MATCHES "-std=c\\+\\+11")
-  #  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-  #endif()
+  if(ozz_build_cpp11)
+    if(NOT CMAKE_CXX_FLAGS MATCHES "-std=c\\+\\+11")
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+    endif()
+  endif()
 
   # Set the warning level to Wall
   if(NOT CMAKE_CXX_FLAGS MATCHES "-Wall")
