@@ -538,10 +538,10 @@ OZZ_INLINE SimdFloat4 Abs(_SimdFloat4 _v) {
 OZZ_INLINE SimdInt4 Sign(_SimdFloat4 _v) {
   internal::SimdFI4 fi = {_v};
   const SimdInt4 ret = {
-    fi.i.x & 0x80000000,
-    fi.i.y & 0x80000000,
-    fi.i.z & 0x80000000,
-    fi.i.w & 0x80000000};
+    fi.i.x & static_cast<int>(0x80000000),
+    fi.i.y & static_cast<int>(0x80000000),
+    fi.i.z & static_cast<int>(0x80000000),
+    fi.i.w & static_cast<int>(0x80000000)};
   return ret;
 }
 
@@ -980,7 +980,7 @@ OZZ_INLINE SimdInt4 w_axis() {
 }
 
 OZZ_INLINE SimdInt4 all_true() {
-  const SimdInt4 ret = {0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff};
+  const SimdInt4 ret = {~0, ~0, ~0, ~0};
   return ret;
 }
 
@@ -990,22 +990,32 @@ OZZ_INLINE SimdInt4 all_false() {
 }
 
 OZZ_INLINE SimdInt4 mask_sign() {
-  const SimdInt4 ret = {0x80000000, 0x80000000, 0x80000000, 0x80000000};
+  const SimdInt4 ret = {
+    static_cast<int>(0x80000000),
+    static_cast<int>(0x80000000),
+    static_cast<int>(0x80000000),
+    static_cast<int>(0x80000000)
+  };
   return ret;
 }
 
 OZZ_INLINE SimdInt4 mask_not_sign() {
-  const SimdInt4 ret = {0x7fffffff, 0x7fffffff, 0x7fffffff, 0x7fffffff};
+  const SimdInt4 ret = {
+    static_cast<int>(0x7fffffff),
+    static_cast<int>(0x7fffffff),
+    static_cast<int>(0x7fffffff),
+    static_cast<int>(0x7fffffff)
+  };
   return ret;
 }
 
 OZZ_INLINE SimdInt4 mask_ffff() {
-  const SimdInt4 ret = {0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff};
+  const SimdInt4 ret = {~0, ~0, ~0, ~0};
   return ret;
 }
 
 OZZ_INLINE SimdInt4 mask_fff0() {
-  const SimdInt4 ret = {0xffffffff, 0xffffffff, 0xffffffff, 0};
+  const SimdInt4 ret = {~0, ~0, ~0, 0};
   return ret;
 }
 
@@ -1015,22 +1025,22 @@ OZZ_INLINE SimdInt4 mask_0000() {
 }
 
 OZZ_INLINE SimdInt4 mask_f000() {
-  const SimdInt4 ret = {0xffffffff, 0, 0, 0};
+  const SimdInt4 ret = {~0, 0, 0, 0};
   return ret;
 }
 
 OZZ_INLINE SimdInt4 mask_0f00() {
-  const SimdInt4 ret = {0, 0xffffffff, 0, 0};
+  const SimdInt4 ret = {0, ~0, 0, 0};
   return ret;
 }
 
 OZZ_INLINE SimdInt4 mask_00f0() {
-  const SimdInt4 ret = {0, 0, 0xffffffff, 0};
+  const SimdInt4 ret = {0, 0, ~0, 0};
   return ret;
 }
 
 OZZ_INLINE SimdInt4 mask_000f() {
-  const SimdInt4 ret = {0, 0, 0, 0xffffffff};
+  const SimdInt4 ret = {0, 0, 0, ~0};
   return ret;
 }
 
@@ -1359,10 +1369,10 @@ OZZ_INLINE SimdInt4 Abs(_SimdInt4 _v) {
 }
 
 OZZ_INLINE SimdInt4 Sign(_SimdInt4 _v) {
-  const SimdInt4 ret = { _v.x & 0x80000000,
-                         _v.y & 0x80000000,
-                         _v.z & 0x80000000,
-                         _v.w & 0x80000000};
+  const SimdInt4 ret = { _v.x & static_cast<int>(0x80000000),
+                         _v.y & static_cast<int>(0x80000000),
+                         _v.z & static_cast<int>(0x80000000),
+                         _v.w & static_cast<int>(0x80000000)};
   return ret;
 }
 
@@ -2104,7 +2114,7 @@ OZZ_INLINE float HalfToFloat(uint16_t _h) {
   const union {uint32_t u; float f;} infnan = {(127 + 16) << 23};
 
   const uint32_t sign = _h & 0x8000;
-  const union {uint32_t u; float f;} exp_mant = {(_h & 0x7fff) << 13};
+  const union {int32_t u; float f;} exp_mant = {(_h & 0x7fff) << 13};
   const union {float f; uint32_t u;} adjust = {exp_mant.f * magic.f};
   // Make sure Inf/NaN survive
   const union {uint32_t u; float f;} result =
