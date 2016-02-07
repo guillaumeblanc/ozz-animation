@@ -28,6 +28,8 @@
 #ifndef OZZ_OZZ_BASE_MATHS_INTERNAL_SIMD_MATH_REF_INL_H_
 #define OZZ_OZZ_BASE_MATHS_INTERNAL_SIMD_MATH_REF_INL_H_
 
+// SIMD refence implementation, based on scalar floats.
+
 #include <cstddef>
 #include <cmath>
 #include <cassert>

@@ -43,6 +43,10 @@ using ozz::math::SimdInt4;
 
 OZZ_STATIC_ASSERT(sizeof(SimdFloat4) == 4 * sizeof(float));
 
+TEST(Name, ozz_simd_math) {
+  EXPECT_TRUE(ozz::math::SimdImplementationName() != NULL);
+}
+
 TEST(LoadFloat, ozz_simd_math) {
   const SimdFloat4 fX = ozz::math::simd_float4::LoadX(15.f);
   EXPECT_SIMDFLOAT_EQ(fX, 15.f, 0.f, 0.f, 0.f);

@@ -34,6 +34,9 @@
 namespace ozz {
 namespace math {
 
+// Returns SIMDimplementation name has decided at library build time.
+const char* SimdImplementationName();
+
 namespace simd_float4 {
 // Returns a SimdFloat4 vector with all components set to 0.
 OZZ_INLINE SimdFloat4 zero();
@@ -1090,7 +1093,7 @@ OZZ_INLINE ozz::math::SimdFloat4 TransformVector(
 }  // math
 }  // ozz
 
-#if !defined(__GNUC__) || defined(OZZ_HAS_REF)
+#if !defined(__GNUC__) || defined(OZZ_SIMD_REF)
 // Returns per element addition of _a and _b.
 OZZ_INLINE ozz::math::SimdFloat4 operator+(
   ozz::math::_SimdFloat4 _a, ozz::math::_SimdFloat4 _b);
@@ -1110,7 +1113,7 @@ OZZ_INLINE ozz::math::SimdFloat4 operator*(
 // Returns per element division of _a and _b.
 OZZ_INLINE ozz::math::SimdFloat4 operator/(
   ozz::math::_SimdFloat4 _a, ozz::math::_SimdFloat4 _b);
-#endif  // !defined(__GNUC__) || defined(OZZ_HAS_REF)
+#endif  // !defined(__GNUC__) || defined(OZZ_SIMD_REF)
 
 // Computes the multiplication of matrix Float4x4 and vector _v.
 OZZ_INLINE ozz::math::SimdFloat4 operator*(
@@ -1145,9 +1148,9 @@ OZZ_INLINE SimdFloat4 HalfToFloat(_SimdInt4 _h);
 }  // math
 }  // ozz
 
-#if defined(OZZ_HAS_SSEx)
+#if defined(OZZ_SIMD_SSEx)
 #include "ozz/base/maths/internal/simd_math_sse-inl.h"
-#elif defined(OZZ_HAS_REF)
+#elif defined(OZZ_SIMD_REF)
 #include "ozz/base/maths/internal/simd_math_ref-inl.h"
 #else
 #error No simd_math implementation detected

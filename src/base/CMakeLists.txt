@@ -35,6 +35,7 @@ add_library(ozz_base
   ../../include/ozz/base/maths/quaternion.h
   ../../include/ozz/base/maths/rect.h
   ../../include/ozz/base/maths/simd_math.h
+  maths/simd_math.cc
   ../../include/ozz/base/maths/soa_float.h
   ../../include/ozz/base/maths/soa_quaternion.h
   ../../include/ozz/base/maths/soa_transform.h

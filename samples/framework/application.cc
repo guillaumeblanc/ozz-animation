@@ -142,6 +142,13 @@ int Application::Run(int _argc, const char** _argv,
   }
   application_ = this;
 
+  // Starting application
+  log::Log() << "Starting sample \"" << _title << "\" version \"" << _version <<
+    "\"" << std::endl;
+  log::Log() << "Ozz libraries were built with \"" <<
+    math::SimdImplementationName() << "\" SIMD math implementation." <<
+    std::endl;
+
   // Parse command line arguments.
   const char* usage = "Ozz animation sample. See README file for more details.";
   ozz::options::ParseResult result =

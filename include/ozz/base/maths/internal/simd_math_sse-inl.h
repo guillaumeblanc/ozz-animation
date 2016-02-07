@@ -28,6 +28,8 @@
 #ifndef OZZ_OZZ_BASE_MATHS_INTERNAL_SIMD_MATH_SSE_INL_H_
 #define OZZ_OZZ_BASE_MATHS_INTERNAL_SIMD_MATH_SSE_INL_H_
 
+// SIMD SSE2+ implementation, based on scalar floats.
+
 #include <cassert>
 #include <stdint.h>
 

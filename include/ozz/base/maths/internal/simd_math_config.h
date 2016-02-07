@@ -30,55 +30,60 @@
 
 #include "ozz/base/platform.h"
 
-// Try to match a SSE version
-#if defined(__AVX__)  || defined(OZZ_HAS_AVX)
-#include <immintrin.h>
-#ifndef OZZ_HAS_AVX
-#define OZZ_HAS_AVX
-#endif  // OZZ_HAS_AVX
-#define OZZ_HAS_SSE4_2
+// Detected deprecated behavior
+#if defined(OZZ_HAS_SSE2) || defined(OZZ_HAS_SSEx) || defined(OZZ_HAS_REF)
+#error Deprecated build option. SIMD options are automatically detected by\
+ this file and should not be part of comipler definitions.
 #endif
 
-#if defined(__SSE4_2__) || defined(OZZ_HAS_SSE4_2)
+// Avoid SIMD instruction detection if reference (aka scalar) implementation is
+// forced.
+#if !defined(OZZ_FORCE_SIMD_REF)
+
+// Try to match a SSE2+ version.
+#if defined(__AVX__) || defined(OZZ_SIMD_AVX)
+#include <immintrin.h> 
+#define OZZ_SIMD_AVX
+#define OZZ_SIMD_SSE4_2  // SSE4.2 is available if avx is.
+#endif
+
+#if defined(__SSE4_2__) || defined(OZZ_SIMD_SSE4_2)
 #include <nmmintrin.h>
-#ifndef OZZ_HAS_SSE4_2
-#define OZZ_HAS_SSE4_2
-#endif  // OZZ_HAS_SSE4_2
-#define OZZ_HAS_SSE4_1
+#define OZZ_SIMD_SSE4_2
+#define OZZ_SIMD_SSE4_1  // SSE4.1 is available if SSE4.2 is.
 #endif
 
-#if defined(__SSE4_1__) || defined(OZZ_HAS_SSE4_1)
+#if defined(__SSE4_1__) || defined(OZZ_SIMD_SSE4_1)
 #include <smmintrin.h>
-#ifndef OZZ_HAS_SSE4_1
-#define OZZ_HAS_SSE4_1
-#endif  // OZZ_HAS_SSE4_1
-#define OZZ_HAS_SSSE3
+#define OZZ_SIMD_SSE4_1
+#define OZZ_SIMD_SSSE3  // SSSE3 is available if SSE4.1 is.
 #endif
 
-#if defined(__SSSE3__) || defined(OZZ_HAS_SSSE3)
+#if defined(__SSSE3__) || defined(OZZ_SIMD_SSSE3)
 #include <tmmintrin.h>
-#ifndef OZZ_HAS_SSSE3
-#define OZZ_HAS_SSSE3
-#endif  // OZZ_HAS_SSSE3
-#define OZZ_HAS_SSE3
+#define OZZ_SIMD_SSSE3
+#define OZZ_SIMD_SSE3  // SSE3 is available if SSSE3 is.
 #endif
 
-#if defined(__SSE3__) || defined(OZZ_HAS_SSE3)
+#if defined(__SSE3__) || defined(OZZ_SIMD_SSE3)
 #include <pmmintrin.h>
-#ifndef OZZ_HAS_SSE3
-#define OZZ_HAS_SSE3
-#endif  // OZZ_HAS_SSE3
-#define OZZ_HAS_SSE2
+#define OZZ_SIMD_SSE3
+#define OZZ_SIMD_SSE2  // SSE2 is available if SSE3 is.
 #endif
 
-#if defined(__SSE2__) || defined(OZZ_HAS_SSE2)
+// x64/amd64 have SSE2 instructions
+// _M_IX86_FP is 2 if /arch:SSE2, /arch:AVX or /arch:AVX2 was used.
+#if defined(__SSE2__) || defined(_M_AMD64) || defined(_M_X64) || (_M_IX86_FP>=2) || defined(OZZ_SIMD_SSE2)
 #include <emmintrin.h>
-#ifndef OZZ_HAS_SSE2
-#define OZZ_HAS_SSE2
-#endif  // OZZ_HAS_SSE2
+#define OZZ_SIMD_SSE2
+#define OZZ_SIMD_SSEx  // OZZ_SIMD_SSEx is the generic flag for SSE support
+#endif
 
-// SSE detected
-#define OZZ_HAS_SSEx
+// End of SIMD instruction detection
+#endif  // !OZZ_FORCE_SIMD_REF
+
+// SEE* intrinsics available
+#if defined(OZZ_SIMD_SSEx)
 
 namespace ozz {
 namespace math {
@@ -97,10 +102,11 @@ typedef const __m128i _SimdInt4;
 }  // math
 }  // ozz
 
-#else  // OZZ_HAS_x
+#else  // No builtin simd available
 
 // No simd instruction set detected, switch back to reference implementation.
-#define OZZ_HAS_REF
+// OZZ_SIMD_REF is the generic flag for SIMD reference implementation.
+#define OZZ_SIMD_REF
 
 // Declares reference simd float and integer vectors outside of ozz::math, in
 // order to match non-reference implementation details.
@@ -139,5 +145,5 @@ typedef const SimdInt4& _SimdInt4;
 }  // math
 }  // ozz
 
-#endif  // OZZ_HAS_x
+#endif  // OZZ_SIMD_x
 #endif  // OZZ_OZZ_BASE_MATHS_INTERNAL_SIMD_MATH_CONFIG_H_
