@@ -80,14 +80,6 @@ OZZ_INLINE bool operator!=(const Quaternion& _a, const Quaternion& _b) {
   return _a.x != _b.x || _a.y != _b.y || _a.z != _b.z || _a.w != _b.w;
 }
 
-// Returns true if the angle between _a and _b is less than _tolerance.
-OZZ_INLINE bool Compare(const math::Quaternion& _a,
-                        const math::Quaternion& _b,
-                        float _tolerance) {
-  const float dot = _a.x * _b.x + _a.y * _b.y + _a.z * _b.z + _a.w * _b.w;
-  return fabs(std::acos(dot)) <= _tolerance * .5f;
-}
-
 // Returns the conjugate of _q. This is the same as the inverse if _q is
 // normalized. Otherwise the magnitude of the inverse is 1.f/|_q|.
 OZZ_INLINE Quaternion Conjugate(const Quaternion& _q) {
@@ -116,6 +108,17 @@ OZZ_INLINE Quaternion operator*(const Quaternion& _a, const Quaternion& _b) {
 // Returns the negate of _q. This represent the same rotation as q.
 OZZ_INLINE Quaternion operator-(const Quaternion& _q) {
   return Quaternion(-_q.x, -_q.y, -_q.z, -_q.w);
+}
+
+// Returns true if the angle between _a and _b is less than _tolerance.
+OZZ_INLINE bool Compare(const math::Quaternion& _a,
+                        const math::Quaternion& _b,
+                        float _tolerance) {
+  // Computes w component of a-1 * b.
+  const float diff_w = _a.x * _b.x + _a.y * _b.y + _a.z * _b.z + _a.w * _b.w;
+  // Converts w back to an angle.
+  const float angle = 2.f * std::acos(Min(std::abs(diff_w), 1.f));
+  return std::abs(angle) <= _tolerance;
 }
 
 // Returns true if _q is a normalized quaternion.
@@ -258,7 +261,7 @@ OZZ_INLINE Quaternion SLerp(const Quaternion& _a,
   float cos_half_theta = _a.x * _b.x + _a.y * _b.y + _a.z * _b.z + _a.w * _b.w;
 
   // If _a=_b or _a=-_b then theta = 0 and we can return _a.
-  if (fabs(cos_half_theta) >= .999f) {
+  if (std::abs(cos_half_theta) >= .999f) {
     return _a;
   }
 

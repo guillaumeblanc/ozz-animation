@@ -25,14 +25,12 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
+#include "framework/mesh.h"
+
 #include "ozz/animation/offline/fbx/fbx.h"
 #include "ozz/animation/offline/fbx/fbx_base.h"
 
 #include "ozz/animation/runtime/skeleton.h"
-
-#include "fbxsdk/utils/fbxgeometryconverter.h"
-
-#include "skin_mesh.h"
 
 #include "ozz/base/io/archive.h"
 #include "ozz/base/io/stream.h"
@@ -48,10 +46,12 @@
 #include <algorithm>
 #include <limits>
 
+#include "fbxsdk/utils/fbxgeometryconverter.h"
+
 // Declares command line options.
 OZZ_OPTIONS_DECLARE_STRING(file, "Specifies input file.", "", true)
 OZZ_OPTIONS_DECLARE_STRING(skeleton, "Specifies the skeleton that the skin is bound to.", "", true)
-OZZ_OPTIONS_DECLARE_STRING(skin, "Specifies ozz skin ouput file.", "", true)
+OZZ_OPTIONS_DECLARE_STRING(mesh, "Specifies ozz mesh ouput file.", "", true)
 
 namespace {
 
@@ -70,7 +70,7 @@ int SortTriangles(const void* _left, const void* _right) {
 bool BuildVertices(FbxMesh* _fbx_mesh,
                    ozz::animation::offline::fbx::FbxSystemConverter* _converter,
                    ControlPointsRemap* _remap,
-                   ozz::sample::SkinnedMesh* _output_mesh) {
+                   ozz::sample::Mesh* _output_mesh) {
 
   // This function treat all layers like if they were using mapping mode
   // eByPolygonVertex. This allow to use a single code path for all mapping
@@ -100,9 +100,9 @@ bool BuildVertices(FbxMesh* _fbx_mesh,
 
   // Reserve vertex buffers. Real size is unknown as redundant vertices will be
   // rejected.
-  ozz::sample::SkinnedMesh::Part& part = _output_mesh->parts[0];
-  part.positions.reserve(vertex_count);
-  part.normals.reserve(vertex_count);
+  ozz::sample::Mesh::Part& part = _output_mesh->parts[0];
+  part.positions.reserve(vertex_count * 3);  // x,y,z components.
+  part.normals.reserve(vertex_count * 3);
 
   // Resize triangle indices, as their size is known.
   _output_mesh->triangle_indices.resize(vertex_count);
@@ -135,7 +135,9 @@ bool BuildVertices(FbxMesh* _fbx_mesh,
         int to_test = remap[r];
 
         // Check for identical normals.
-        if (normal == part.normals[to_test]) {
+        if (normal.x == part.normals[to_test + 0] &&
+            normal.y == part.normals[to_test + 1] &&
+            normal.z == part.normals[to_test + 2]) {
           redundant_with = to_test;
           break;
         }
@@ -158,7 +160,7 @@ bool BuildVertices(FbxMesh* _fbx_mesh,
         }
 
         // Deduce this vertex offset in the output vertex buffer.
-        uint16_t vertex_index = static_cast<uint16_t>(part.positions.size());
+        uint16_t vertex_index = static_cast<uint16_t>(part.positions.size()) / 3;
 
         // Build triangle indices.
         _output_mesh->triangle_indices[p * 3 + v] = vertex_index;
@@ -167,8 +169,12 @@ bool BuildVertices(FbxMesh* _fbx_mesh,
         _remap->at(ctrl_point).push_back(vertex_index);
 
         // Push vertex data.
-        part.positions.push_back(position);
-        part.normals.push_back(normal);
+        part.positions.push_back(position.x);
+        part.positions.push_back(position.y);
+        part.positions.push_back(position.z);
+        part.normals.push_back(normal.x);
+        part.normals.push_back(normal.y);
+        part.normals.push_back(normal.z);
       }
     }
   }
@@ -203,10 +209,10 @@ bool BuildSkin(FbxMesh* _fbx_mesh,
                ozz::animation::offline::fbx::FbxSystemConverter* _converter,
                const ControlPointsRemap& _remap,
                const ozz::animation::Skeleton& _skeleton,
-               ozz::sample::SkinnedMesh* _output_mesh) {
+               ozz::sample::Mesh* _output_mesh) {
   assert(_output_mesh->parts.size() == 1 &&
          _output_mesh->parts[0].vertex_count() != 0);
-  ozz::sample::SkinnedMesh::Part& part = _output_mesh->parts[0];
+  ozz::sample::Mesh::Part& part = _output_mesh->parts[0];
 
   const int skin_count = _fbx_mesh->GetDeformerCount(FbxDeformer::eSkin);
   if (skin_count == 0) {
@@ -381,12 +387,12 @@ bool BuildSkin(FbxMesh* _fbx_mesh,
   return !vertex_isnt_influenced;
 }
 
-bool SplitParts(const ozz::sample::SkinnedMesh& _output_mesh,
-                ozz::sample::SkinnedMesh* _partitionned_mesh) {
-  assert(_output_mesh.parts.size() == 1);
+bool SplitParts(const ozz::sample::Mesh& _skinned_mesh,
+                ozz::sample::Mesh* _partitionned_mesh) {
+  assert(_skinned_mesh.parts.size() == 1);
   assert(_partitionned_mesh->parts.size() == 0);
 
-  const ozz::sample::SkinnedMesh::Part& in_part = _output_mesh.parts.front();
+  const ozz::sample::Mesh::Part& in_part = _skinned_mesh.parts.front();
   const size_t vertex_count = in_part.vertex_count();
 
   // Creates one mesh part per influence.
@@ -442,12 +448,12 @@ bool SplitParts(const ozz::sample::SkinnedMesh& _output_mesh,
 
     // Adds a new part.
     _partitionned_mesh->parts.resize(_partitionned_mesh->parts.size() + 1);
-    ozz::sample::SkinnedMesh::Part& out_part = _partitionned_mesh->parts.back();
+    ozz::sample::Mesh::Part& out_part = _partitionned_mesh->parts.back();
 
     // Resize output part.
     const int influences = i + 1;
-    out_part.positions.resize(bucket_vertex_count);
-    out_part.normals.resize(bucket_vertex_count);
+    out_part.positions.resize(bucket_vertex_count * 3);  // x, y, z components.
+    out_part.normals.resize(bucket_vertex_count * 3);
     out_part.joint_indices.resize(bucket_vertex_count * influences);
     out_part.joint_weights.resize(bucket_vertex_count * influences);
 
@@ -455,9 +461,15 @@ bool SplitParts(const ozz::sample::SkinnedMesh& _output_mesh,
     for (size_t j = 0; j < bucket_vertex_count; ++j) {
       // Fills positions.
       const size_t bucket_vertex_index = bucket[j];
-      out_part.positions[j] = in_part.positions[bucket_vertex_index];
+      out_part.positions[j * 3 + 0] = in_part.positions[bucket_vertex_index * 3 + 0];
+      out_part.positions[j * 3 + 1] = in_part.positions[bucket_vertex_index * 3 + 1];
+      out_part.positions[j * 3 + 2] = in_part.positions[bucket_vertex_index * 3 + 2];
+
       // Fills normals.
-      out_part.normals[j] = in_part.normals[bucket_vertex_index];
+      out_part.normals[j * 3 + 0] = in_part.normals[bucket_vertex_index * 3 + 0];
+      out_part.normals[j * 3 + 1] = in_part.normals[bucket_vertex_index * 3 + 1];
+      out_part.normals[j * 3 + 2] = in_part.normals[bucket_vertex_index * 3 + 2];
+
       // Fills joints indices.
       const uint16_t* in_indices =
         &in_part.joint_indices[bucket_vertex_index * max_influences];
@@ -466,6 +478,7 @@ bool SplitParts(const ozz::sample::SkinnedMesh& _output_mesh,
       for (int k = 0; k < influences; ++k) {
         out_indices[k] = in_indices[k];
       }
+
       // Fills weights. Note that there's no weight if there's only one joint
       // influencing a vertex.
       if (influences > 1) {
@@ -494,22 +507,22 @@ bool SplitParts(const ozz::sample::SkinnedMesh& _output_mesh,
   }
 
   // Remaps triangle indices, using vertex mapping table.
-  const size_t index_count = _output_mesh.triangle_indices.size();
+  const size_t index_count = _skinned_mesh.triangle_indices.size();
   _partitionned_mesh->triangle_indices.resize(index_count);
   for (size_t i = 0; i < index_count; ++i) {
     _partitionned_mesh->triangle_indices[i] =
-      vertices_remap[_output_mesh.triangle_indices[i]];
+      vertices_remap[_skinned_mesh.triangle_indices[i]];
   }
 
   // Copy bind pose matrices
-  _partitionned_mesh->inverse_bind_poses = _output_mesh.inverse_bind_poses;
+  _partitionned_mesh->inverse_bind_poses = _skinned_mesh.inverse_bind_poses;
 
   return true;
 }
 
-bool StripWeights(ozz::sample::SkinnedMesh* _mesh) {
+bool StripWeights(ozz::sample::Mesh* _mesh) {
   for (size_t i = 0; i < _mesh->parts.size(); ++i) {
-    ozz::sample::SkinnedMesh::Part& part = _mesh->parts[i];
+    ozz::sample::Mesh::Part& part = _mesh->parts[i];
     const int influence_count = part.influences_count();
     const int vertex_count = part.vertex_count();
     if (influence_count <= 1) {
@@ -598,12 +611,12 @@ int main(int _argc, const char** _argv) {
   FbxMesh* mesh = scene_loader.scene()->GetSrcObject<FbxMesh>(0);
   mesh->RemoveBadPolygons();
 
-  ozz::sample::SkinnedMesh output_mesh;
+  // Allocates output mesh.
+  ozz::sample::Mesh output_mesh;
   output_mesh.parts.resize(1);
 
-  ControlPointsRemap remap;
-
   ozz::log::LogV() << "Reading vertices." << std::endl;
+  ControlPointsRemap remap;
   if (!BuildVertices(mesh, scene_loader.converter(), &remap, &output_mesh)) {
     ozz::log::Err() << "Failed to read vertices." << std::endl;
     return EXIT_FAILURE;
@@ -617,7 +630,7 @@ int main(int _argc, const char** _argv) {
     }
 
     ozz::log::LogV() << "Partitioning meshes." << std::endl;
-    ozz::sample::SkinnedMesh partitioned_meshes;
+    ozz::sample::Mesh partitioned_meshes;
     if (!SplitParts(output_mesh, &partitioned_meshes)) {
       ozz::log::Err() << "Failed to partitioned meshes." << std::endl;
       return EXIT_FAILURE;
@@ -634,15 +647,15 @@ int main(int _argc, const char** _argv) {
   }
 
   // Opens output file.
-  ozz::io::File skin_file(OPTIONS_skin, "wb");
-  if (!skin_file.opened()) {
-    ozz::log::Err() << "Failed to open output file: " << OPTIONS_skin.value() <<
+  ozz::io::File mesh_file(OPTIONS_mesh, "wb");
+  if (!mesh_file.opened()) {
+    ozz::log::Err() << "Failed to open output file: " << OPTIONS_mesh.value() <<
       std::endl;
     return EXIT_FAILURE;
   }
 
   { // Serialize the partitioned mesh.
-    ozz::io::OArchive archive(&skin_file);
+    ozz::io::OArchive archive(&mesh_file);
     archive << output_mesh;
   }
 

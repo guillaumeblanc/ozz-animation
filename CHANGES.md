@@ -1,9 +1,25 @@
 Release version 0.8.0
 ---------------------
+ 
+* Library
+
+ - [offline] Adds AdditiveAnimationBuilder, allowing to build a delta animation from a raw animation, suitable for additive blending.
+ - [offline] Adds --additive option to dae2anim and fbx2anim, allowing to output a delta animation suitable for additive blending.
+ - [animation] Adds additive blending support to BlendingJob, through new additive layers.
+ - [animation] Improves quaternion compression scheme by quantizing the 3 smallest components of the quaternion, instead of the firsts 3. This improves numerical accuracy when the restored component (4th) is small. It also allows to pre-multiply each of the 3 smallest components by sqrt(2), maximizing quantization range (over 41%).
+
+ - [offline] Hierarchical optimization.
+
+ - fbx20161_1
 
 * Build pipeline
+  - Support for -wextra option on gcc/clang.
   - Adds c++11 build option for gcc/clang compilers. Use cmake ozz_build_cpp11 option.
   - Automatically detects SIMD implementation based on compiler settings. SSE2 implementation is automatically enabled on x64/amd64 targets, or if /arch:SSE2 is selected on MSVC/x86 builds. One could use OZZ_FORCE_SIMD_REF to bypass detection and force reference (aka scalar) implementation. OZZ_HAS_SSE2 is now deprecated. 
+
+* Samples
+ - [skin] Removes sample skin, as from now on some other samples are using skinned rendering. See addtive sample.
+ - [additive] Adds an additive blending sample which demonstrates the new additive layers available through BlendingJob.
 
 Release version 0.7.3
 ---------------------
@@ -22,7 +38,7 @@ Release version 0.7.2
 
 * HowTos
   - Adds file loading how-to, which demonstrates how to open a file and deserialize an object with ozz archive library.
-  - Adds custom skeleton importer how-to, which demonstrates RawSkeleton setup and conversion to runtime skleton.
+  - Adds custom skeleton importer how-to, which demonstrates RawSkeleton setup and conversion to runtime skeleton.
   - Adds custom animation importer how-to, which demonstrates RawAnimation setup and conversion to runtime animation.
 
 * Samples

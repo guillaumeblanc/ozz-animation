@@ -11,6 +11,8 @@ add_library(sample_framework
   renderer.h
   utils.h
   utils.cc
+  mesh.h
+  mesh.cc
   internal/camera.h
   internal/camera.cc
   internal/immediate.h
@@ -30,8 +32,14 @@ if(NOT EMSCRIPTEN)
   add_subdirectory(${CMAKE_SOURCE_DIR}/extern/glfw glfw)
 
   target_link_libraries(sample_framework
-    glfw)
+    glfw
+    ozz_geometry
+    ozz_animation
+    ozz_options
+    ozz_base)
 endif()
 
 set_target_properties(sample_framework
   PROPERTIES FOLDER "samples")
+  
+add_subdirectory(tools)

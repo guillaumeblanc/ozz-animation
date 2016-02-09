@@ -128,8 +128,7 @@ class BlendSampleApplication : public ozz::sample::Application {
     // Setups blending job.
     ozz::animation::BlendingJob blend_job;
     blend_job.threshold = threshold_;
-    blend_job.layers.begin = layers;
-    blend_job.layers.end = layers + kNumLayers;
+    blend_job.layers = layers;
     blend_job.bind_pose = skeleton_.bind_pose();
     blend_job.output = blended_locals_;
 

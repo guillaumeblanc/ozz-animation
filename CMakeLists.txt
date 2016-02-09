@@ -1,12 +1,12 @@
-cmake_minimum_required (VERSION 2.8)
+cmake_minimum_required (VERSION 3.0)
 
 # Defines the project's name
 project(ozz)
 
 # Current version
 set(CPACK_PACKAGE_VERSION_MAJOR 0)
-set(CPACK_PACKAGE_VERSION_MINOR 7)
-set(CPACK_PACKAGE_VERSION_PATCH 3)
+set(CPACK_PACKAGE_VERSION_MINOR 8)
+set(CPACK_PACKAGE_VERSION_PATCH 0)
 
 # Add project build options
 set(ozz_build_fbx ON CACHE BOOL "Build Fbx pipeline (Requires Fbx SDK)")
@@ -14,7 +14,6 @@ set(ozz_build_samples ON CACHE BOOL "Build samples")
 set(ozz_build_howtos ON CACHE BOOL "Build howtos")
 set(ozz_build_tests ON CACHE BOOL "Build unit tests")
 set(ozz_build_simd_ref OFF CACHE BOOL "Forces SIMD math reference implementation")
-set(ozz_build_redebug_all OFF CACHE BOOL "Enable all REDEBUGing features")
 set(ozz_build_cpp11 OFF CACHE BOOL "Enable c++11")
 set(ozz_build_coverage OFF CACHE BOOL "Enable coverage tests")
 

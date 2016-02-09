@@ -4,6 +4,6 @@ add_library(ozz_animation_offline_tools
   convert2anim.cc
   convert2skel.cc)
 set_target_properties(ozz_animation_offline_tools
-  PROPERTIES FOLDER "ozz")
+  PROPERTIES FOLDER "ozz/tools")
 
 install(TARGETS ozz_animation_offline_tools DESTINATION lib)

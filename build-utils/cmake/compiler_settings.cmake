@@ -15,12 +15,6 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 #------------------------
 # Available build options
 
-# Redebug all
-if(ozz_build_redebug_all)
-  message("OZZ_HAS_REDEBUG_ALL is enabled")
-  set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS_DEBUG OZZ_HAS_REDEBUG_ALL=1)
-endif()
-
 #------------------------
 # Lists all the cxx flags
 set(cxx_all_flags
@@ -121,6 +115,11 @@ else()
   if(ozz_build_cpp11)
     set_property(DIRECTORY APPEND PROPERTY COMPILE_OPTIONS "$<$<STREQUAL:$<TARGET_PROPERTY:LINKER_LANGUAGE>,CXX>:-std=c++11>")
   endif()
+
+  # Enable extra level of warning
+  #if(NOT CMAKE_CXX_FLAGS MATCHES "-Wextra")
+  #  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra")
+  #endif()
 
   # Set the warning level to Wall
   set_property(DIRECTORY APPEND PROPERTY COMPILE_OPTIONS "-Wall")

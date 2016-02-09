@@ -35,6 +35,9 @@ namespace animation { class Skeleton; }
 namespace math { struct Float4x4; struct Float3; struct Box; }
 namespace sample {
 
+// Sample framework mesh type.
+struct Mesh;
+
 // Defines renderer abstract interface.
 class Renderer {
  public:
@@ -80,50 +83,14 @@ class Renderer {
                        const ozz::math::Float4x4& _transform,
                        const Color _colors[2]) = 0;
 
-  class Mesh {
-   public:
-    Mesh(int _vertex_count, int _index_count);
-    ~Mesh();
-
-    template<typename _Ty>
-    struct Buffer {
-      typedef Range<_Ty> DataRange;
-      DataRange data;
-      size_t stride;
-    };
-
-    // Vertices are a buffered positions and normals.
-    typedef Buffer<char> Vertices;
-    Vertices vertices() const;
-
-    // Positions are a buffer of 3 consecutive floats per vertex.
-    typedef Buffer<float> Positions;
-    Positions positions() const;
-
-    // Normals are a buffer of 3 float per vertex.
-    typedef Buffer<float> Normals;
-    Normals normals() const;
-
-    // Normals are a buffer of 4 unsigned byte per vertex.
-    struct Color {uint8_t red, green, blue, alpha;};
-    typedef Buffer<Color> Colors;
-    Colors colors() const;
-
-    // Indices are a buffer of 3 consecutive uint16_t per triangle.
-    typedef Buffer<uint16_t> Indices;
-    Indices indices() const;
-
-   private:
-     Mesh(const Mesh&);
-     void operator=(const Mesh&);
-
-     Vertices::DataRange vertices_;
-     Indices::DataRange indices_;
-  };
+  // Renders a skinned mesh at a specified location.
+  virtual bool DrawSkinnedMesh(const Mesh& _mesh,
+                               const Range<math::Float4x4> _skinning_matrices,
+                               const ozz::math::Float4x4& _transform) = 0;
 
   // Renders a mesh at a specified location.
-  virtual bool DrawMesh(const ozz::math::Float4x4& _transform,
-                        const Mesh& _mesh) = 0;
+  virtual bool DrawMesh(const Mesh& _mesh,
+                        const ozz::math::Float4x4& _transform) = 0;
 };
 }  // sample
 }  // ozz

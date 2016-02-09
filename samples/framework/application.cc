@@ -434,8 +434,6 @@ bool Application::Idle(bool _first_frame) {
     update_result = OnUpdate(update_delta);
   }
 
-  // Update camera model-view matrix and disables auto-framing if the camera is
-  // moved manually.
   // Update camera model-view matrix.
   if (camera_) {
     math::Box scene_bounds;

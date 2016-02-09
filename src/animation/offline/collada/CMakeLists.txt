@@ -68,8 +68,8 @@ else()
     COMMAND dae2skel "--file=${ozz_media_directory}/collada/alain/skeleton.dae" "--skeleton=${ozz_media_directory}/bin/skeleton_v1_be.ozz" "--endian=big"
     COMMAND dae2skel "--raw" "--file=${ozz_media_directory}/collada/alain/skeleton.dae" "--skeleton=${ozz_media_directory}/bin/raw_skeleton_v1_le.ozz" "--endian=little"
     COMMAND dae2skel "--raw" "--file=${ozz_media_directory}/collada/alain/skeleton.dae" "--skeleton=${ozz_media_directory}/bin/raw_skeleton_v1_be.ozz" "--endian=big"
-    COMMAND dae2anim "--file=${ozz_media_directory}/collada/alain/walk.dae" "--skeleton=${ozz_media_directory}/bin/skeleton_v1_le.ozz" "--animation=${ozz_media_directory}/bin/animation_v2_le.ozz" "--endian=little"
-    COMMAND dae2anim "--file=${ozz_media_directory}/collada/alain/walk.dae" "--skeleton=${ozz_media_directory}/bin/skeleton_v1_le.ozz" "--animation=${ozz_media_directory}/bin/animation_v2_be.ozz" "--endian=big"
+    COMMAND dae2anim "--file=${ozz_media_directory}/collada/alain/walk.dae" "--skeleton=${ozz_media_directory}/bin/skeleton_v1_le.ozz" "--animation=${ozz_media_directory}/bin/animation_v3_le.ozz" "--endian=little"
+    COMMAND dae2anim "--file=${ozz_media_directory}/collada/alain/walk.dae" "--skeleton=${ozz_media_directory}/bin/skeleton_v1_le.ozz" "--animation=${ozz_media_directory}/bin/animation_v3_be.ozz" "--endian=big"
     COMMAND dae2anim "--raw" "--file=${ozz_media_directory}/collada/alain/walk.dae" "--skeleton=${ozz_media_directory}/bin/skeleton_v1_le.ozz" "--animation=${ozz_media_directory}/bin/raw_animation_v1_le.ozz" "--endian=little"
     COMMAND dae2anim "--raw" "--file=${ozz_media_directory}/collada/alain/walk.dae" "--skeleton=${ozz_media_directory}/bin/skeleton_v1_le.ozz" "--animation=${ozz_media_directory}/bin/raw_animation_v1_be.ozz" "--endian=big")
 endif()

@@ -57,7 +57,7 @@ TEST(Range, Memory) {
   // Fills allocated memory.
   memset(range.begin, 0, sizeof(int) * 12);
 
-  range = ozz::memory::default_allocator()->Reallocate(range, 46);
+  ozz::memory::default_allocator()->Reallocate(range, 46);
   EXPECT_TRUE(range.begin != NULL);
   EXPECT_EQ(range.end, range.begin + 46);
 
@@ -65,6 +65,9 @@ TEST(Range, Memory) {
   memset(range.begin, 0, sizeof(int) * 46);
 
   ozz::memory::default_allocator()->Deallocate(range);
+
+  EXPECT_TRUE(range.begin == NULL);
+  EXPECT_TRUE(range.end == NULL);
 }
 
 TEST(MallocCompliance, Memory) {

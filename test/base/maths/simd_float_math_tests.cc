@@ -532,12 +532,16 @@ TEST(LogicalFloat, ozz_simd_math) {
   const SimdFloat4 a = ozz::math::simd_float4::Load(0.f, 1.f, 2.f, 3.f);
   const SimdFloat4 b = ozz::math::simd_float4::Load(1.f, -1.f, -3.f, -4.f);
   const SimdInt4 m = ozz::math::simd_int4::Load(0xffffffff, 0, 0x80000000, 0x7fffffff);
+  const SimdFloat4 mf = ozz::math::simd_float4::Load(1.f, 0.f, -0.f, 3.f);
 
   const SimdFloat4 select = ozz::math::Select(m, a , b);
   EXPECT_SIMDFLOAT_EQ(select, 0.f, -1.f, 3.f, -3.f);
 
   const SimdFloat4 andm = ozz::math::And(b, m);
   EXPECT_SIMDFLOAT_EQ(andm, 1.f, 0.f, 0.f, 4.f);
+
+  const SimdFloat4 andf = ozz::math::And(b, mf);
+  EXPECT_SIMDFLOAT_EQ(andf, 1.f, 0.f, -0.f, 2.f);
 
   const SimdFloat4 orm = ozz::math::Or(a, m);
   union {float f; unsigned int i;} orx = {ozz::math::GetX(orm)};
@@ -547,6 +551,9 @@ TEST(LogicalFloat, ozz_simd_math) {
   union {float f; int i;} orw = {ozz::math::GetW(orm)};
   EXPECT_TRUE(orw.i == 0x7fffffff);
 
+  const SimdFloat4 ormf = ozz::math::Or(a, mf);
+  EXPECT_SIMDFLOAT_EQ(ormf, 1.f, 1.f, -2.f, 3.f);
+
   const SimdFloat4 xorm = ozz::math::Xor(a, m);
   union {float f; unsigned int i;} xorx = {ozz::math::GetX(xorm)};
   EXPECT_TRUE(xorx.i == 0xffffffff);
@@ -554,6 +561,9 @@ TEST(LogicalFloat, ozz_simd_math) {
   EXPECT_FLOAT_EQ(ozz::math::GetZ(xorm), -2.f);
   union {float f; unsigned int i;} xorw = {ozz::math::GetW(xorm)};
   EXPECT_TRUE(xorw.i == 0x3fbfffff);
+
+  const SimdFloat4 xormf = ozz::math::Xor(a, mf);
+  EXPECT_SIMDFLOAT_EQ(xormf, 1.f, 1.f, -2.f, 0.f);
 }
 
 TEST(Half, ozz_simd_math) {

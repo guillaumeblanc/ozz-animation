@@ -107,13 +107,13 @@ class Allocator {
   // Argument _range can be an empty (NULL) range.
   // Deallocate function conforms with standard free function specifications.
   template<typename _Ty>
-  void Deallocate(const Range<_Ty>& _range) {
+  void Deallocate(Range<_Ty>& _range) {
     Deallocate(_range.begin);
+    _range = Range<_Ty>();
   }
 
   // Changes the size of a block that was allocated with Allocate,
-  // AllocateRange, Reallocate of *this allocator.
-  // automatically deduced from _Ty type.
+  // AllocateRange and Reallocate of *this allocator.
   // Reallocate function conforms with standard realloc function specifications.
   template<typename _Ty>
   _Ty* Reallocate(_Ty* _block,
@@ -123,15 +123,12 @@ class Allocator {
   }
 
   // Changes the size of a range that was allocated with Allocate,
-  // AllocateRange, Reallocate of *this allocator.
-  // automatically deduced from _Ty type.
-  // Reallocate function conforms with standard realloc function specifications.
+  // AllocateRange and Reallocate of *this allocator.
   template<typename _Ty>
-  Range<_Ty> Reallocate(const Range<_Ty>& _range,
-                        size_t _count) {
+  void Reallocate(Range<_Ty>& _range, size_t _count) {
     _Ty* alloc = reinterpret_cast<_Ty*>(
       Reallocate(_range.begin, _count * sizeof(_Ty), AlignOf<_Ty>::value));
-    return Range<_Ty>(alloc, alloc ? _count : 0);
+    _range = Range<_Ty>(alloc, alloc ? _count : 0);
   }
 
   // Replaces operator new with no argument.

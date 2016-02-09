@@ -30,10 +30,7 @@ add_executable(sample_partial_blend
   "${CMAKE_CURRENT_BINARY_DIR}/media/walk.ozz"
   "${CMAKE_CURRENT_BINARY_DIR}/media/crossarms.ozz")
 target_link_libraries(sample_partial_blend
-  sample_framework
-  ozz_animation
-  ozz_options
-  ozz_base)
+  sample_framework)
 
 set_target_properties(sample_partial_blend
   PROPERTIES FOLDER "samples")

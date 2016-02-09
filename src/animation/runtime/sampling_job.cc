@@ -30,13 +30,14 @@
 #include <cassert>
 
 #include "ozz/base/maths/math_ex.h"
+#include "ozz/base/maths/math_constant.h"
 #include "ozz/base/maths/soa_transform.h"
 #include "ozz/base/memory/allocator.h"
 #include "ozz/animation/runtime/animation.h"
 
 // Internal include file
 #define OZZ_INCLUDE_PRIVATE_HEADER  // Allows to include private headers.
-#include "../runtime/animation_keyframe.h"
+#include "animation/runtime/animation_keyframe.h"
 
 namespace ozz {
 namespace animation {
@@ -190,14 +191,78 @@ void UpdateSoaTranslations(int _num_soa_tracks,
   }
 }
 
+#define DECOMPRESS_SOA_QUAT(_k0, _k1, _k2, _k3, _quat) {\
+  /* Selects proper mapping for each key.*/\
+  const int* m0 = kCpntMapping[_k0.largest];\
+  const int* m1 = kCpntMapping[_k1.largest];\
+  const int* m2 = kCpntMapping[_k2.largest];\
+  const int* m3 = kCpntMapping[_k3.largest];\
+\
+  /* Prepares an array of input values, according to the mapping required to*/\
+  /* restore quaternion largest component.*/\
+  OZZ_ALIGN(16) int cmp_keys[4][4] = {\
+    {_k0.value[m0[0]], _k1.value[m1[0]], _k2.value[m2[0]], _k3.value[m3[0]]},\
+    {_k0.value[m0[1]], _k1.value[m1[1]], _k2.value[m2[1]], _k3.value[m3[1]]},\
+    {_k0.value[m0[2]], _k1.value[m1[2]], _k2.value[m2[2]], _k3.value[m3[2]]},\
+    {_k0.value[m0[3]], _k1.value[m1[3]], _k2.value[m2[3]], _k3.value[m3[3]]},\
+  };\
+\
+  /* Resets largest component to 0.*/\
+  cmp_keys[_k0.largest][0] = 0;\
+  cmp_keys[_k1.largest][1] = 0;\
+  cmp_keys[_k2.largest][2] = 0;\
+  cmp_keys[_k3.largest][3] = 0;\
+\
+  /* Rebuilds quaternion from quantized values.*/\
+  math::SimdFloat4 cpnt[4] = {\
+    kInt2Float * math::simd_float4::FromInt(math::simd_int4::LoadPtr(cmp_keys[0])),\
+    kInt2Float * math::simd_float4::FromInt(math::simd_int4::LoadPtr(cmp_keys[1])),\
+    kInt2Float * math::simd_float4::FromInt(math::simd_int4::LoadPtr(cmp_keys[2])),\
+    kInt2Float * math::simd_float4::FromInt(math::simd_int4::LoadPtr(cmp_keys[3])),\
+  };\
+\
+  /* Get back length of 4th component. Favors performance over accuracy by*/\
+  /* using x * RSqrtEst(x) instead of Sqrt(x).*/\
+  const math::SimdFloat4 dot =\
+    cpnt[0] * cpnt[0] + cpnt[1] * cpnt[1] + cpnt[2] * cpnt[2] + cpnt[3] * cpnt[3];\
+  const math::SimdFloat4 ww0 = math::Max(eps, one - dot);\
+  const math::SimdFloat4 w0 = ww0 * math::RSqrtEst(ww0);\
+  /* Re-applies 4th component's sign.*/\
+  const math::SimdInt4 sign = math::ShiftL(\
+    math::simd_int4::Load(_k0.sign, _k1.sign, _k2.sign, _k3.sign), 31);\
+  const math::SimdFloat4 restored = math::Or(w0, sign);\
+\
+  /* Re-injects the largest component inside the SoA structure.*/\
+  cpnt[_k0.largest] = math::Or(cpnt[_k0.largest], math::And(restored, mf000));\
+  cpnt[_k1.largest] = math::Or(cpnt[_k1.largest], math::And(restored, m0f00));\
+  cpnt[_k2.largest] = math::Or(cpnt[_k2.largest], math::And(restored, m00f0));\
+  cpnt[_k3.largest] = math::Or(cpnt[_k3.largest], math::And(restored, m000f));\
+\
+  /* Stores result.*/\
+  _quat.x = cpnt[0]; _quat.y = cpnt[1]; _quat.z = cpnt[2]; _quat.w = cpnt[3];\
+}
+
 void UpdateSoaRotations(int _num_soa_tracks,
                         ozz::Range<const RotationKey> _keys,
                         const int* _interp,
                         unsigned char* _outdated,
-                        internal::InterpSoaRotation* soa_rotations_) {
+                        internal::InterpSoaRotation* _soa_rotations) {
+
+  // Prepares constants.
   const math::SimdFloat4 one = math::simd_float4::one();
   const math::SimdFloat4 eps = math::simd_float4::Load1(1e-16f);
-  const math::SimdFloat4 int_to_float = math::simd_float4::Load1(1.f / 32767.f);
+  const math::SimdFloat4 kInt2Float =
+    math::simd_float4::Load1(1.f / (32767.f * math::kSqrt2));
+  const math::SimdInt4 mf000 = math::simd_int4::mask_f000();
+  const math::SimdInt4 m0f00 = math::simd_int4::mask_0f00();
+  const math::SimdInt4 m00f0 = math::simd_int4::mask_00f0();
+  const math::SimdInt4 m000f = math::simd_int4::mask_000f();
+
+  // Defines a mapping table that defines components assignation in the output
+  // quaternion.
+  const int kCpntMapping[4][4] = {
+    {0, 0, 1, 2}, {0, 0, 1, 2}, {0, 1, 0, 2}, {0, 1, 2, 0}
+  };
 
   const int num_outdated_flags = (_num_soa_tracks + 7) / 8;
   for (int j = 0; j < num_outdated_flags; ++j) {
@@ -208,61 +273,42 @@ void UpdateSoaRotations(int _num_soa_tracks,
         continue;
       }
 
+      //IACA_VC64_START
+
       const int base = i * 4 * 2;  // * soa size * 2 keys per track
 
       // Decompress left side keyframes and store them in soa structures.
-      const RotationKey& k00 = _keys.begin[_interp[base + 0]];
-      const RotationKey& k10 = _keys.begin[_interp[base + 2]];
-      const RotationKey& k20 = _keys.begin[_interp[base + 4]];
-      const RotationKey& k30 = _keys.begin[_interp[base + 6]];
-      soa_rotations_[i].time[0] = math::simd_float4::Load(
-        k00.time, k10.time, k20.time, k30.time);
-      math::SoaQuaternion& quat0 = soa_rotations_[i].value[0];
-      quat0.x = int_to_float * math::simd_float4::FromInt(math::simd_int4::Load(
-        k00.value[0], k10.value[0], k20.value[0], k30.value[0]));
-      quat0.y = int_to_float * math::simd_float4::FromInt(math::simd_int4::Load(
-        k00.value[1], k10.value[1], k20.value[1], k30.value[1]));
-      quat0.z = int_to_float * math::simd_float4::FromInt(math::simd_int4::Load(
-        k00.value[2], k10.value[2], k20.value[2], k30.value[2]));
+      {
+        const RotationKey& k0 = _keys.begin[_interp[base + 0]];
+        const RotationKey& k1 = _keys.begin[_interp[base + 2]];
+        const RotationKey& k2 = _keys.begin[_interp[base + 4]];
+        const RotationKey& k3 = _keys.begin[_interp[base + 6]];
 
-      // Get back sign of w component.
-      const math::SimdInt4 wsign0 = math::simd_int4::Load(
-        k00.wsign, k10.wsign, k20.wsign, k30.wsign);
-      // Get back length of w component. Favors performance over accuracy by
-      // using x * RSqrtEst(x) instead of Sqrt(x).
-      const math::SimdFloat4 ww0 = math::Max(eps,
-        one - (quat0.x * quat0.x + quat0.y * quat0.y + quat0.z * quat0.z));
-      const math::SimdFloat4 w0 = ww0 * math::RSqrtEst(ww0);
-      // Reapply w's sign.
-      quat0.w = math::Select(wsign0, w0, -w0);
+        _soa_rotations[i].time[0] =
+          math::simd_float4::Load(k0.time, k1.time, k2.time, k3.time);
+        math::SoaQuaternion& quat = _soa_rotations[i].value[0];
+        DECOMPRESS_SOA_QUAT(k0, k1, k2, k3, quat);
+      }
 
       // Decompress right side keyframes and store them in soa structures.
-      const RotationKey& k01 = _keys.begin[_interp[base + 1]];
-      const RotationKey& k11 = _keys.begin[_interp[base + 3]];
-      const RotationKey& k21 = _keys.begin[_interp[base + 5]];
-      const RotationKey& k31 = _keys.begin[_interp[base + 7]];
-      soa_rotations_[i].time[1] = math::simd_float4::Load(
-        k01.time, k11.time, k21.time, k31.time);
-      math::SoaQuaternion& quat1 = soa_rotations_[i].value[1];
-      quat1.x = int_to_float * math::simd_float4::FromInt(math::simd_int4::Load(
-        k01.value[0], k11.value[0], k21.value[0], k31.value[0]));
-      quat1.y = int_to_float * math::simd_float4::FromInt(math::simd_int4::Load(
-        k01.value[1], k11.value[1], k21.value[1], k31.value[1]));
-      quat1.z = int_to_float * math::simd_float4::FromInt(math::simd_int4::Load(
-        k01.value[2], k11.value[2], k21.value[2], k31.value[2]));
-      // Get back sign of w component.
-      const math::SimdInt4 wsign1 = math::simd_int4::Load(
-        k01.wsign, k11.wsign, k21.wsign, k31.wsign);
-      // Get back length of w component. Favors performance over accuracy by
-      // using x * RSqrtEst(x) instead of Sqrt(x).
-      const math::SimdFloat4 ww1 = math::Max(eps,
-        one - (quat1.x * quat1.x + quat1.y * quat1.y + quat1.z * quat1.z));
-      const math::SimdFloat4 w1 = ww1 * math::RSqrtEst(ww1);
-      // Reapply w's sign.
-      quat1.w = math::Select(wsign1, w1, -w1);
+      {
+        const RotationKey& k0 = _keys.begin[_interp[base + 1]];
+        const RotationKey& k1 = _keys.begin[_interp[base + 3]];
+        const RotationKey& k2 = _keys.begin[_interp[base + 5]];
+        const RotationKey& k3 = _keys.begin[_interp[base + 7]];
+
+        _soa_rotations[i].time[1] =
+          math::simd_float4::Load(k0.time, k1.time, k2.time, k3.time);
+        math::SoaQuaternion& quat = _soa_rotations[i].value[1];
+        DECOMPRESS_SOA_QUAT(k0, k1, k2, k3, quat);
+      }
+
+      //IACA_VC64_END
     }
   }
 }
+
+#undef DECOMPRESS_SOA_QUAT
 
 void UpdateSoaScales(int _num_soa_tracks,
                      ozz::Range<const ScaleKey> _keys,

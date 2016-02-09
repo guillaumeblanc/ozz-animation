@@ -35,10 +35,7 @@ add_executable(sample_multithread
   "${CMAKE_CURRENT_BINARY_DIR}/media/animation.ozz")
 
 target_link_libraries(sample_multithread
-  sample_framework
-  ozz_animation
-  ozz_options
-  ozz_base)
+  sample_framework)
 
 set_target_properties(sample_multithread
   PROPERTIES FOLDER "samples")

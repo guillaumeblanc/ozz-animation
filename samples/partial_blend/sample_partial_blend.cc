@@ -121,8 +121,7 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
     // Setups blending job.
     ozz::animation::BlendingJob blend_job;
     blend_job.threshold = threshold_; 
-    blend_job.layers.begin = layers;
-    blend_job.layers.end = layers + kNumLayers;
+    blend_job.layers = layers;
     blend_job.bind_pose = skeleton_.bind_pose();
     blend_job.output = blended_locals_;
 
@@ -296,23 +295,23 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
         _im_gui->DoLabel("Manual settings:");
         _im_gui->DoLabel("Lower body layer:");
         std::sprintf(label, "Layer weight: %.2f",
-          lower_body_sampler.weight_setting);
-        _im_gui->DoSlider(label, 0.f, 1.f,
-          &lower_body_sampler.weight_setting, 1.f, !automatic);
+                     lower_body_sampler.weight_setting);
+                     _im_gui->DoSlider(label, 0.f, 1.f,
+                     &lower_body_sampler.weight_setting, 1.f, !automatic);
         std::sprintf(label, "Joints weight: %.2f",
-          lower_body_sampler.joint_weight_setting);
+                     lower_body_sampler.joint_weight_setting);
         _im_gui->DoSlider(label, 0.f, 1.f,
-          &lower_body_sampler.joint_weight_setting, 1.f, !automatic);
-        _im_gui->DoLabel("Upper body layer:");
+                          &lower_body_sampler.joint_weight_setting, 1.f, !automatic);
+                          _im_gui->DoLabel("Upper body layer:");
         std::sprintf(label, "Layer weight: %.2f",
-          upper_body_sampler.weight_setting);
-        _im_gui->DoSlider(label, 0.f, 1.f,
-          &upper_body_sampler.weight_setting, 1.f, !automatic);
+                     upper_body_sampler.weight_setting);
+                     _im_gui->DoSlider(label, 0.f, 1.f,
+                     &upper_body_sampler.weight_setting, 1.f, !automatic);
         std::sprintf(label, "Joints weight: %.2f",
-          upper_body_sampler.joint_weight_setting);
+                     upper_body_sampler.joint_weight_setting);
         _im_gui->DoSlider(label, 0.f, 1.f,
-          &upper_body_sampler.joint_weight_setting, 1.f, !automatic);
-
+                          &upper_body_sampler.joint_weight_setting, 1.f, !automatic);
+        _im_gui->DoLabel("Global settings:");
         std::sprintf(label, "Threshold: %.2f", threshold_);
         _im_gui->DoSlider(label, .01f, 1.f, &threshold_);
 
@@ -328,11 +327,11 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
           ozz::sample::ImGui::kLeft, false);
         char label[64];
         std::sprintf(label, "%s (%d)",
-          skeleton_.joint_names()[upper_body_root_],
-          upper_body_root_);
+                     skeleton_.joint_names()[upper_body_root_],
+                     upper_body_root_);
         if (_im_gui->DoSlider(label,
-          0, skeleton_.num_joints() - 1,
-          &upper_body_root_)) {
+                              0, skeleton_.num_joints() - 1,
+                              &upper_body_root_)) {
             SetupPerJointWeights();
         }
       }

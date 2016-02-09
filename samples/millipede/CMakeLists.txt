@@ -8,11 +8,8 @@ add_executable(sample_millipede
   ${CMAKE_CURRENT_BINARY_DIR}/README)
 
 target_link_libraries(sample_millipede
-  sample_framework
   ozz_animation_offline
-  ozz_animation
-  ozz_options
-  ozz_base)
+  sample_framework)
 
 set_target_properties(sample_millipede
   PROPERTIES FOLDER "samples")

@@ -856,6 +856,39 @@ OZZ_INLINE SimdInt4 CmpGe(_SimdFloat4 _a, _SimdFloat4 _b) {
   return ret;
 }
 
+OZZ_INLINE SimdFloat4 And(_SimdFloat4 _a, _SimdFloat4 _b) {
+  using internal::SimdFI4;
+  using internal::SimdIF4;
+
+  const SimdFI4 a = {_a};
+  const SimdFI4 b = {_b};
+  const SimdIF4 ret = {{
+    a.i.x & b.i.x, a.i.y & b.i.y, a.i.z & b.i.z, a.i.w & b.i.w}};
+  return ret.f;
+}
+
+OZZ_INLINE SimdFloat4 Or(_SimdFloat4 _a, _SimdFloat4 _b) {
+  using internal::SimdFI4;
+  using internal::SimdIF4;
+
+  const SimdFI4 a = {_a};
+  const SimdFI4 b = {_b};
+  const SimdIF4 ret = {{
+    a.i.x | b.i.x, a.i.y | b.i.y, a.i.z | b.i.z, a.i.w | b.i.w}};
+  return ret.f;
+}
+
+OZZ_INLINE SimdFloat4 Xor(_SimdFloat4 _a, _SimdFloat4 _b) {
+  using internal::SimdFI4;
+  using internal::SimdIF4;
+
+  const SimdFI4 a = {_a};
+  const SimdFI4 b = {_b};
+  const SimdIF4 ret = {{
+    a.i.x ^ b.i.x, a.i.y ^ b.i.y, a.i.z ^ b.i.z, a.i.w ^ b.i.w}};
+  return ret.f;
+}
+
 OZZ_INLINE SimdFloat4 And(_SimdFloat4 _a, _SimdInt4 _b) {
   using internal::SimdFI4;
   using internal::SimdIF4;

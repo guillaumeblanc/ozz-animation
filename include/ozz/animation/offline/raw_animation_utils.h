@@ -25,81 +25,52 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "skin_mesh.h"
+#ifndef OZZ_OZZ_ANIMATION_OFFLINE_RAW_ANIMATION_UTILS_H_
+#define OZZ_OZZ_ANIMATION_OFFLINE_RAW_ANIMATION_UTILS_H_
 
-#include "ozz/base/memory/allocator.h"
-#include "ozz/base/containers/vector_archive.h"
+#include "ozz/animation/offline/raw_animation.h"
 
-#include "ozz/base/io/archive.h"
-
-#include "ozz/base/maths/math_archive.h"
-#include "ozz/base/maths/simd_math_archive.h"
+#include "ozz/base/maths/transform.h"
 
 namespace ozz {
-namespace sample {
-SkinnedMesh::SkinnedMesh() {
-}
+namespace animation {
+namespace offline {
 
-SkinnedMesh::~SkinnedMesh() {
-}
-}  // sample
+// Translation interpolation method.
+math::Float3 LerpTranslation(const math::Float3& _a,
+                             const math::Float3& _b,
+                             float _alpha);
 
-namespace io {
+// Rotation interpolation method.
+math::Quaternion LerpRotation(const math::Quaternion& _a,
+                              const math::Quaternion& _b,
+                              float _alpha);
 
-OZZ_IO_TYPE_NOT_VERSIONABLE(sample::SkinnedMesh::Part)
+// Scale interpolation method.
+math::Float3 LerpScale(const math::Float3& _a,
+                       const math::Float3& _b,
+                       float _alpha);
 
-template <>
-void Save(OArchive& _archive,
-          const sample::SkinnedMesh::Part* _parts,
-          size_t _count) {
-  for (size_t i = 0; i < _count; ++i) {
-    const sample::SkinnedMesh::Part& part = _parts[i];
-    _archive << part.positions;
-    _archive << part.normals;
-    _archive << part.joint_indices;
-    _archive << part.joint_weights;
-  }
-}
+// Utility function that samples one animation track at t = _time.
+// This function is not intended to be used at runtime, but for rather as a
+// helper for offline tools. Use ozz::animation::SamplingJob to sample
+// runtime animations instead.
+// Return false if animation is invalid, or if track is out of range.
+bool SampleTrack(const RawAnimation& animation,
+                 int _track,
+                 float _time,
+                 math::Transform* _transform);
 
-template <>
-void Load(IArchive& _archive,
-          sample::SkinnedMesh::Part* _parts,
-          size_t _count,
-          uint32_t _version) {
-  (void)_version;
-  for (size_t i = 0; i < _count; ++i) {
-    sample::SkinnedMesh::Part& part = _parts[i];
-    _archive >> part.positions;
-    _archive >> part.normals;
-    _archive >> part.joint_indices;
-    _archive >> part.joint_weights;
-  }
-}
-
-template <>
-void Save(OArchive& _archive,
-          const sample::SkinnedMesh* _meshes,
-          size_t _count) {
-  for (size_t i = 0; i < _count; ++i) {
-    const sample::SkinnedMesh& mesh = _meshes[i];
-    _archive << mesh.parts;
-    _archive << mesh.triangle_indices;
-    _archive << mesh.inverse_bind_poses;
-  }
-}
-
-template <>
-void Load(IArchive& _archive,
-          sample::SkinnedMesh* _meshes,
-          size_t _count,
-          uint32_t _version) {
-  (void)_version;
-  for (size_t i = 0; i < _count; ++i) {
-    sample::SkinnedMesh& mesh = _meshes[i];
-    _archive >> mesh.parts;
-    _archive >> mesh.triangle_indices;
-    _archive >> mesh.inverse_bind_poses;
-  }
-}
-}  // io
+// Utility function that samples all animation tracks at t = _time.
+// This function is not intended to be used at runtime, but for rather as a
+// helper for offline tools. Use ozz::animation::SamplingJob to sample
+// runtime animations instead.
+// Return false if animation is invalid, or if _transforms size is smaller that
+// the number of tracks.
+bool Sample(const RawAnimation& animation,
+            float _time,
+            Range<math::Transform> _transforms);
+}  // offline
+}  // animation
 }  // ozz
+#endif  // OZZ_OZZ_ANIMATION_OFFLINE_RAW_ANIMATION_UTILS_H_
