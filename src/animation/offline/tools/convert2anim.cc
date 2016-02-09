@@ -51,7 +51,6 @@
 OZZ_OPTIONS_DECLARE_STRING(file, "Specifies input file", "", true)
 OZZ_OPTIONS_DECLARE_STRING(skeleton, "Specifies ozz skeleton (raw or runtime) input file", "", true)
 OZZ_OPTIONS_DECLARE_STRING(animation, "Specifies ozz animation output file", "", true)
-OZZ_OPTIONS_DECLARE_BOOL(additive, "Creates a delta animation that can be used for additive blending.", false, false)
 
 OZZ_OPTIONS_DECLARE_BOOL(
   optimize,
@@ -73,6 +72,8 @@ OZZ_OPTIONS_DECLARE_FLOAT(
   hierarchical,
   "Optimizer hierarchical tolerance in meters",
   ozz::animation::offline::AnimationOptimizer().hierarchical_tolerance, false)
+
+OZZ_OPTIONS_DECLARE_BOOL(additive, "Creates a delta animation that can be used for additive blending.", false, false)
 
 static bool ValidateEndianness(const ozz::options::Option& _option,
                                int /*_argc*/) {

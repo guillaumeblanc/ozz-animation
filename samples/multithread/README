@@ -1,4 +1,4 @@
-Ozz-animation sample: Multi-threaded sampling with OpenMp
+Ozz-animation sample: Distributed animation update with OpenMp
 
 Note for windows users: On Windows, this sample requires "VC++ Redistribuable Packages" to be installed. OpenMp runtime libraries are only available as Dlls (vcomp1*.dll) indeed. Latest packages are available here: https://support.microsoft.com/kb/2019667
 
@@ -14,9 +14,6 @@ As a proof of concept, this sample uses a naive strategy: All characters' update
 The sample allows to switch OpenMp multi-threading on/off and set the number of threads used to distribute characters' update. The number of characters can also be set from the GUI.
 
 4. Implementation
-  a. This sample extends "playback" sample, and uses the same procedure to load skeleton and animation objects:
-    1. Open a ozz::io::OArchive object with a valid ozz::io::Stream as argument. The stream can be a ozz::io::File, or your custom io read capable object that inherits from ozz::io::Stream.
-    2. Check that the stream stores the expected object type using ozz::io::OArchive::TestTag() function. Object type is specified as a template argument.
-    3. De-serialize the object with >> operator.
-  b. For each character, allocates runtime buffers (local-space transforms of type ozz::math::SoaTransform, model-space matrices of type ozz::math::Float4x4) with the number of elements required for your skeleton, and a sampling cache (ozz::animation::SamplingCache). Only the skeleton and the animation are shared amongst all characters, as they are read only objects, not modified during jobs execution.
-  c. Update function uses an OpenMp parallel-for loop to split up characters' update loop amongst OpenMp threads (sampling and local-to-model jobs execution), allowing all characters' update to be executed concurrently. See "playback" sample for more details about each character update function.
+  1. This sample extends "playback" sample, and uses the same procedure to load skeleton and animation objects.
+  2. For each character, allocates runtime buffers (local-space transforms of type ozz::math::SoaTransform, model-space matrices of type ozz::math::Float4x4) with the number of elements required for your skeleton, and a sampling cache (ozz::animation::SamplingCache). Only the skeleton and the animation are shared amongst all characters, as they are read only objects, not modified during jobs execution.
+  3. Update function uses an OpenMp parallel-for loop to split up characters' update loop amongst OpenMp threads (sampling and local-to-model jobs execution), allowing all characters' update to be executed concurrently. See "playback" sample for more details about each character update function.

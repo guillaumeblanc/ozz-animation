@@ -2,18 +2,14 @@ Release version 0.8.0
 ---------------------
  
 * Library
-
- - [offline] Adds AdditiveAnimationBuilder, allowing to build a delta animation from a raw animation, suitable for additive blending.
- - [offline] Adds --additive option to dae2anim and fbx2anim, allowing to output a delta animation suitable for additive blending.
- - [animation] Adds additive blending support to BlendingJob, through new additive layers.
+ - [animation] Adds additive blending support to ozz::animation::BlendingJob. Animations used for additive blending should be delta animations (relative to the first frame). Use ozz::animation::offline::AdditiveAnimationBuilder to prepare such animations.
  - [animation] Improves quaternion compression scheme by quantizing the 3 smallest components of the quaternion, instead of the firsts 3. This improves numerical accuracy when the restored component (4th) is small. It also allows to pre-multiply each of the 3 smallest components by sqrt(2), maximizing quantization range (over 41%).
-
+ - [offline] Adds ozz::animation::offline::AdditiveAnimationBuilder utility to build delta animations that can be used for additive blending. This utility processes a raw animation to calculate the delta transformation from the first key to all subsequent ones, for all tracks.
+ - [offline] Adds --additive option to dae2anim and fbx2anim, allowing to output a delta animation suitable for additive blending.
  - [offline] Hierarchical optimization.
-
- - fbx20161_1
+ - [offline] Adds fbx 20161.* sdk support.
 
 * Build pipeline
-  - Support for -wextra option on gcc/clang.
   - Adds c++11 build option for gcc/clang compilers. Use cmake ozz_build_cpp11 option.
   - Automatically detects SIMD implementation based on compiler settings. SSE2 implementation is automatically enabled on x64/amd64 targets, or if /arch:SSE2 is selected on MSVC/x86 builds. One could use OZZ_FORCE_SIMD_REF to bypass detection and force reference (aka scalar) implementation. OZZ_HAS_SSE2 is now deprecated. 
 

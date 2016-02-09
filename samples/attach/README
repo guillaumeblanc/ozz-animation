@@ -13,6 +13,6 @@ Some parameters can be tuned from sample UI to move the attached object from a j
   - Offset of the attached object from the joint: "Attachment offset" x/y/z sliders.
 
 4. Implementation
-  a. Load animation and skeleton, sample animation to get local-space transformations, optionally blend with other animations, and finally convert local-space transformations to model-space matrices. See Playback sample for more details about these steps.
-  b. Concatenate object offset transformation (offset relative to the joint) with joint model-space matrix to compute final model-space transformation of the "attached object".  
-  c. Use resulting transformation matrix to render "attached object" or update the scene graph.
+  1. Load animation and skeleton, sample animation to get local-space transformations, optionally blend with other animations, and finally convert local-space transformations to model-space matrices. See Playback sample for more details about these steps.
+  2. Concatenate object offset transformation (offset relative to the joint) with joint model-space matrix to compute final model-space transformation of the "attached object".  
+  3. Use resulting transformation matrix to render "attached object" or update the scene graph.
