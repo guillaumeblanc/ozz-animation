@@ -44,24 +44,11 @@ set_target_properties(sample_additive
 if(EMSCRIPTEN)
   # Resource files are embedded to the output file with emscripten
   set_target_properties(sample_additive
-    PROPERTIES LINK_FLAGS "--embed-file media --embed-file README")
-    
-  # Builds the google gadget file
-  add_custom_target(sample_additive_gadget ALL
-    DEPENDS
-      "${CMAKE_SOURCE_DIR}/samples/framework/gadget.cmake"
-      "${CMAKE_SOURCE_DIR}/samples/framework/gadget.xml.in"
-      "${CMAKE_CURRENT_BINARY_DIR}/sample_additive.js"
-    COMMAND ${CMAKE_COMMAND}
-      -DOZZ_INPUT_JS="${CMAKE_CURRENT_BINARY_DIR}/sample_additive.js"
-      -DOZZ_OUTPUT_XML="${CMAKE_CURRENT_BINARY_DIR}/sample_additive.xml"
-      -P "${CMAKE_SOURCE_DIR}/samples/framework/gadget.cmake"
-    DEPENDS sample_additive)
+    PROPERTIES LINK_FLAGS "--embed-file media --embed-file README --memory-init-file 0")
 
   install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/sample_additive.html
     ${CMAKE_CURRENT_BINARY_DIR}/sample_additive.js
-    ${CMAKE_CURRENT_BINARY_DIR}/sample_additive.xml
     DESTINATION bin/samples/additive)
 else()
   install(TARGETS sample_additive DESTINATION bin/samples/additive)

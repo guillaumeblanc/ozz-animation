@@ -1,4 +1,4 @@
-if(NOT ozz_build_howtos)
+if(NOT ozz_build_howtos OR EMSCRIPTEN)
   return()
 endif()
 

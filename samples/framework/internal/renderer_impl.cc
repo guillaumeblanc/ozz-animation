@@ -1038,7 +1038,7 @@ bool RendererImpl::InitOpenGLExtensions() {
     return false;
   }
   if (!optional_success) {
-    log::Err() << "Failed to initialize some optional GL extensions." <<
+    log::Log() << "Failed to initialize some optional GL extensions." <<
       std::endl;
   }
 
@@ -1066,7 +1066,6 @@ bool RendererImpl::InitOpenGLExtensions() {
   }
   return true;
 }
-
 
 RendererImpl::ScratchBuffer::ScratchBuffer()
     : buffer_(NULL),

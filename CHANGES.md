@@ -12,6 +12,7 @@ Release version 0.8.0
 * Build pipeline
   - Adds c++11 build option for gcc/clang compilers. Use cmake ozz_build_cpp11 option.
   - Automatically detects SIMD implementation based on compiler settings. SSE2 implementation is automatically enabled on x64/amd64 targets, or if /arch:SSE2 is selected on MSVC/x86 builds. One could use OZZ_FORCE_SIMD_REF to bypass detection and force reference (aka scalar) implementation. OZZ_HAS_SSE2 is now deprecated. 
+  - Adds emscripten 1.35 sdk support.
 
 * Samples
  - [skin] Removes sample skin, as from now on some other samples are using skinned rendering. See addtive sample.

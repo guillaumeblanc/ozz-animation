@@ -103,24 +103,11 @@ set_target_properties(sample_playback
 if(EMSCRIPTEN)
   # Resource files are embedded to the output file with emscripten
   set_target_properties(sample_playback
-    PROPERTIES LINK_FLAGS "--embed-file media --embed-file README")
-    
-  # Builds the google gadget file
-  add_custom_target(sample_playback_gadget ALL
-    DEPENDS
-      "${CMAKE_SOURCE_DIR}/samples/framework/gadget.cmake"
-      "${CMAKE_SOURCE_DIR}/samples/framework/gadget.xml.in"
-      "${CMAKE_CURRENT_BINARY_DIR}/sample_playback.js"
-    COMMAND ${CMAKE_COMMAND}
-      -DOZZ_INPUT_JS="${CMAKE_CURRENT_BINARY_DIR}/sample_playback.js"
-      -DOZZ_OUTPUT_XML="${CMAKE_CURRENT_BINARY_DIR}/sample_playback.xml"
-      -P "${CMAKE_SOURCE_DIR}/samples/framework/gadget.cmake"
-    DEPENDS sample_playback)
+    PROPERTIES LINK_FLAGS "--embed-file media --embed-file README --memory-init-file 0")
 
   install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/sample_playback.html
     ${CMAKE_CURRENT_BINARY_DIR}/sample_playback.js
-    ${CMAKE_CURRENT_BINARY_DIR}/sample_playback.xml
     DESTINATION bin/samples/playback)
 else()
   install(TARGETS sample_playback DESTINATION bin/samples/playback)

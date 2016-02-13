@@ -138,13 +138,9 @@ else()
   if(EMSCRIPTEN)
     SET(CMAKE_EXECUTABLE_SUFFIX ".html")
 
-    #----------------------
-    # Disable emscripten absolute-paths warning
-    set_property(DIRECTORY APPEND PROPERTY COMPILE_OPTIONS "-Wno-warn-absolute-paths")
-
-    #----------------------
-    # Sets emscripten output
-    set_property(DIRECTORY APPEND PROPERTY COMPILE_OPTIONS "-s DISABLE_GL_EMULATION=1")
+    #if(NOT ozz_build_simd_ref)
+    #  set_property(DIRECTORY APPEND PROPERTY COMPILE_OPTIONS "-msse2")
+    #endif()
   endif()
 
   #----------------------

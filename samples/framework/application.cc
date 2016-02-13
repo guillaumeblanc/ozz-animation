@@ -143,9 +143,9 @@ int Application::Run(int _argc, const char** _argv,
   application_ = this;
 
   // Starting application
-  log::Log() << "Starting sample \"" << _title << "\" version \"" << _version <<
+  log::Out() << "Starting sample \"" << _title << "\" version \"" << _version <<
     "\"" << std::endl;
-  log::Log() << "Ozz libraries were built with \"" <<
+  log::Out() << "Ozz libraries were built with \"" <<
     math::SimdImplementationName() << "\" SIMD math implementation." <<
     std::endl;
 
@@ -169,8 +169,6 @@ int Application::Run(int _argc, const char** _argv,
   // resource folder.
   chdir(ozz::options::ParsedExecutablePath().c_str());
 #endif  // __APPLE__
-
-  // ( resourcesPath );
 
   // Initialize help.
   ParseReadme();
@@ -273,6 +271,7 @@ Application::LoopStatus Application::OneLoop(int _loops) {
   }
 
   // Don't overload the cpu if the window is not active.
+#ifndef EMSCRIPTEN  
   if (OPTIONS_render && !glfwGetWindowParam(GLFW_ACTIVE)) {
     glfwWaitEvents();  // Wait...
 
@@ -282,12 +281,13 @@ Application::LoopStatus Application::OneLoop(int _loops) {
 
     return kContinue;  // ...but don't do anything.
   }
-
+#endif  // EMSCRIPTEN
+  
   // Updates resolution if required.
   if (OPTIONS_render) {
     int width, height;
     glfwGetWindowSize(&width, &height);
-    if (resolution_.width != width || resolution_.height !=height) {
+    if (resolution_.width != width || resolution_.height != height) {
       glfwSetWindowSize(resolution_.width, resolution_.height);
     }
   }
@@ -348,6 +348,7 @@ bool Application::Display() {
   { // Profiles rendering excluding GUI.
     Profiler profile(render_time_);
 
+    GL(ClearDepth(1.f));
     GL(ClearColor(.33f, .333f, .315f, 0.f));
     GL(Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
