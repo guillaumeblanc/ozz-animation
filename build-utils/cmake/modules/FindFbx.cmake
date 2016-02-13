@@ -59,7 +59,7 @@ function(FindFbxLibrariesGeneric _FBX_ROOT_DIR _OUT_FBX_LIBRARIES _OUT_FBX_LIBRA
     set(FBX_CP_PATH "vs2012")
   elseif(MSVC12)
     set(FBX_CP_PATH "vs2013")
-  elseif(MSVC13)
+  elseif(MSVC14)
     set(FBX_CP_PATH "vs2015")
   elseif(APPLE)
     set(FBX_CP_PATH "*")

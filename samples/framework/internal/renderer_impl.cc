@@ -413,7 +413,7 @@ int DrawPosture_FillUniforms(const ozz::animation::Skeleton& _skeleton,
       // Only the joint is rendered for leaves, the bone model isn't.
       if (properties[i].is_leaf) {
         // Copy current joint's raw matrix.
-        float* uniform = _uniforms + instances * 16;
+        uniform = _uniforms + instances * 16;
         math::StorePtr(current.cols[0], uniform + 0);
         math::StorePtr(current.cols[1], uniform + 4);
         math::StorePtr(current.cols[2], uniform + 8);
@@ -454,8 +454,8 @@ void RendererImpl::DrawPosture_Impl(const ozz::math::Float4x4& _transform,
 
     // Draw loop.
     const GLint joint_uniform = model.shader->joint_uniform();
-    for (int i = 0; i < _instance_count; ++i) {
-      GL(UniformMatrix4fv(joint_uniform, 1, false, _uniforms + 16 * i));
+    for (int j = 0; j < _instance_count; ++j) {
+      GL(UniformMatrix4fv(joint_uniform, 1, false, _uniforms + 16 * j));
       GL(DrawArrays(model.mode, 0, model.count));
     }
 

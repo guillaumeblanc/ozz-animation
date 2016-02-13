@@ -259,9 +259,9 @@ bool BuildSkin(FbxMesh* _fbx_mesh,
     _fbx_mesh->GetNode()->GetGeometricScaling(FbxNode::eSourcePivot));
 
   const int cluster_count = deformer->GetClusterCount();
-  for (int c = 0; c < cluster_count; ++c)
+  for (int cl = 0; cl < cluster_count; ++cl)
   {
-    const FbxCluster* cluster = deformer->GetCluster(c);
+    const FbxCluster* cluster = deformer->GetCluster(cl);
     const FbxNode* node = cluster->GetLink();
     if (!node) {
       ozz::log::Log() << "No node linked to cluster " << cluster->GetName() <<
@@ -305,15 +305,15 @@ bool BuildSkin(FbxMesh* _fbx_mesh,
 
     const int* ctrl_point_indices = cluster->GetControlPointIndices();
     const double* ctrl_point_weights = cluster->GetControlPointWeights();
-    for (int c = 0; c < ctrl_point_index_count; ++c) {
+    for (int cpi = 0; cpi < ctrl_point_index_count; ++cpi) {
       const SkinMapping mapping = {
-        joint, static_cast<float>(ctrl_point_weights[c])
+        joint, static_cast<float>(ctrl_point_weights[cpi])
       };
 
       // Sometimes, the mesh can have less points than at the time of the
       // skinning because a smooth operator was active when skinning but has
       // been deactivated during export.
-      const int ctrl_point = ctrl_point_indices[c];
+      const int ctrl_point = ctrl_point_indices[cpi];
       if (ctrl_point < _fbx_mesh->GetControlPointsCount() &&
           mapping.weight > 0.f) {
         const ControlPointRemap& remap = _remap[ctrl_point];

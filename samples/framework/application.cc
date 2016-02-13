@@ -517,7 +517,7 @@ bool Application::Gui() {
 bool Application::FrameworkGui() {
   { // Render statistics
     static bool open = true;
-    ImGui::OpenClose stats(im_gui_, "Statistics", &open);
+    ImGui::OpenClose stat_oc(im_gui_, "Statistics", &open);
     if (open) {
       char szLabel[64];
       { // FPS

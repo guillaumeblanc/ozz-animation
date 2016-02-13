@@ -66,7 +66,7 @@
 #endif // NDEBUG
 
 // Convenient macro definition for specifying buffer offsets.
-#define GL_PTR_OFFSET(i) reinterpret_cast<void*>(i)
+#define GL_PTR_OFFSET(i) reinterpret_cast<void*>(static_cast<intptr_t>(i))
 
 namespace ozz {
 namespace animation { class Skeleton; }

@@ -79,10 +79,10 @@ TEST(Filled, RawAnimationSerialize) {
 
     // Streams in.
     stream.Seek(0, ozz::io::Stream::kSet);
-    ozz::io::IArchive i(&stream);
+    ozz::io::IArchive ia(&stream);
 
     RawAnimation i_animation;
-    i >> i_animation;
+    ia >> i_animation;
 
     EXPECT_TRUE(i_animation.Validate());
     EXPECT_FLOAT_EQ(o_animation.duration, i_animation.duration);

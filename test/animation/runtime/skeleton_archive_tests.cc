@@ -98,10 +98,10 @@ TEST(Filled, SkeletonSerialize) {
 
     // Streams in.
     stream.Seek(0, ozz::io::Stream::kSet);
-    ozz::io::IArchive i(&stream);
+    ozz::io::IArchive ia(&stream);
 
     Skeleton i_skeleton;
-    i >> i_skeleton;
+    ia >> i_skeleton;
 
     // Compares skeletons.
     EXPECT_EQ(o_skeleton->num_joints(), i_skeleton.num_joints());

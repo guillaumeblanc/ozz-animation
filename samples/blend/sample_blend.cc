@@ -291,7 +291,7 @@ class BlendSampleApplication : public ozz::sample::Application {
         OZZ_STATIC_ASSERT(OZZ_ARRAY_SIZE(oc_names) == kNumLayers);
         for (int i = 0; i < kNumLayers; ++i) {
           Sampler& sampler = samplers_[i];
-          ozz::sample::ImGui::OpenClose oc(_im_gui, oc_names[i], NULL);
+          ozz::sample::ImGui::OpenClose loc(_im_gui, oc_names[i], NULL);
           if (open[i]) {
             sampler.controller.OnGui(sampler.animation, _im_gui, manual_);
           }
