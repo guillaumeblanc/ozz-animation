@@ -3,10 +3,10 @@ Release version 0.8.0
  
 * Library
  - [animation] Adds additive blending support to ozz::animation::BlendingJob. Animations used for additive blending should be delta animations (relative to the first frame). Use ozz::animation::offline::AdditiveAnimationBuilder to prepare such animations.
- - [animation] Improves quaternion compression scheme by quantizing the 3 smallest components of the quaternion, instead of the firsts 3. This improves numerical accuracy when the restored component (4th) is small. It also allows to pre-multiply each of the 3 smallest components by sqrt(2), maximizing quantization range (over 41%).
- - [offline] Adds ozz::animation::offline::AdditiveAnimationBuilder utility to build delta animations that can be used for additive blending. This utility processes a raw animation to calculate the delta transformation from the first key to all subsequent ones, for all tracks.
+ - [animation] Improves quaternion compression scheme by quantizing the 3 smallest components of the quaternion, instead of the firsts 3. This improves numerical accuracy when the restored component (4th) is small. It also allows to pre-multiply each of the 3 smallest components by sqrt(2), maximizing quantization range by over 41%.
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! - [offline] Hierarchical optimization.
+  - [offline] Adds ozz::animation::offline::AdditiveAnimationBuilder utility to build delta animations that can be used for additive blending. This utility processes a raw animation to calculate the delta transformation from the first key to all subsequent ones, for all tracks.
  - [offline] Adds --additive option to dae2anim and fbx2anim, allowing to output a delta animation suitable for additive blending.
- - [offline] Hierarchical optimization.
  - [offline] Adds fbx 20161.* sdk support.
 
 * Build pipeline
@@ -16,8 +16,9 @@ Release version 0.8.0
   - Adds emscripten 1.35 sdk support.
 
 * Samples
- - [skin] Removes sample skin, as from now on some other samples are using skinned rendering. See addtive sample.
  - [additive] Adds an additive blending sample which demonstrates the new additive layers available through BlendingJob.
+ - [optimize] !!!!!!!!!!!! hierarchical
+ - [skin] Removes sample skin, as from now on some other samples are using skinned rendering. See addtive sample.
 
 Release version 0.7.3
 ---------------------
