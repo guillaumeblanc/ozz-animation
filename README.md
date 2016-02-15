@@ -6,7 +6,7 @@ ozz-animation comes with Collada and Fbx toolchains to convert from major Digita
 
 ---
 
-Documentation is available at http://code.google.com/p/ozz-animation/ while migration to github is in progress.
+Documentation is available [online](http://guillaumeblanc.github.io/ozz-animation/).
 
 ---
 
@@ -20,4 +20,4 @@ ozz branching strategy follows [gitflow model](http://nvie.com/posts/a-successfu
 
 ---
 
-ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation and distributed under the **MIT License** (MIT).
+ozz-animation is hosted on [github](http://github.com/guillaumeblanc/ozz-animation/) and distributed under the **MIT License** (MIT).
