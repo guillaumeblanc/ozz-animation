@@ -216,6 +216,9 @@ TEST(Arithmetic4, SoaFloat) {
   const SimdFloat4 length = Length(a);
   EXPECT_SOAFLOAT1_EQ(length, 14.974979f, 16.613247f, 18.3303f, 20.09975f);
 
+  const SimdFloat4 length2 = LengthSqr(a);
+  EXPECT_SOAFLOAT1_EQ(length2, 224.25f, 276.f, 336.f, 404.f);
+
   EXPECT_ASSERTION(Normalize(SoaFloat4::zero()), "_v is not normalizable");
   EXPECT_TRUE(ozz::math::AreAllFalse(IsNormalized(a)));
   EXPECT_TRUE(ozz::math::AreAllFalse(IsNormalizedEst(a)));
@@ -324,6 +327,9 @@ TEST(Arithmetic3, SoaFloat) {
   const SimdFloat4 length = Length(a);
   EXPECT_SOAFLOAT1_EQ(length, 8.958236f, 10.34408f, 11.83216f, 13.37909f);
 
+  const SimdFloat4 length2 = LengthSqr(a);
+  EXPECT_SOAFLOAT1_EQ(length2, 80.25f, 107.f, 140.f, 179.f);
+
   const SoaFloat3 cross = CrossProduct(a, b);
   EXPECT_SOAFLOAT3_EQ(cross, 0.f, 0.f, 0.f, 0.f,
                              0.f, 0.f, 0.f, 0.f,
@@ -419,6 +425,9 @@ TEST(Arithmetic2, SoaFloat) {
 
   const SimdFloat4 length = Length(a);
   EXPECT_SOAFLOAT1_EQ(length, 4.031129f, 5.09902f, 6.324555f, 7.615773f);
+
+  const SimdFloat4 length2 = LengthSqr(a);
+  EXPECT_SOAFLOAT1_EQ(length2, 16.25f, 26.f, 40.f, 58.f);
 
   EXPECT_ASSERTION(Normalize(SoaFloat2::zero()), "_v is not normalizable");
   EXPECT_TRUE(ozz::math::AreAllFalse(IsNormalized(a)));

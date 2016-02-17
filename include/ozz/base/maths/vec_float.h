@@ -325,6 +325,17 @@ OZZ_INLINE float Length(const Float2& _v) {
   return std::sqrt(len2);
 }
 
+// Returns the square length |_v|² of _v.
+OZZ_INLINE float LengthSqr(const Float4& _v) {
+  return _v.x * _v.x + _v.y * _v.y + _v.z * _v.z + _v.w * _v.w;
+}
+OZZ_INLINE float LengthSqr(const Float3& _v) {
+  return _v.x * _v.x + _v.y * _v.y + _v.z * _v.z;
+}
+OZZ_INLINE float LengthSqr(const Float2& _v) {
+  return _v.x * _v.x + _v.y * _v.y;
+}
+
 // Returns the normalized vector _v.
 OZZ_INLINE Float4 Normalize(const Float4& _v) {
   const float len2 = _v.x * _v.x + _v.y * _v.y + _v.z * _v.z + _v.w * _v.w;

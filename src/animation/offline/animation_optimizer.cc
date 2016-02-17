@@ -138,9 +138,9 @@ void BuildHierarchicalSpecs(const RawAnimation& _animation,
 
     float max_length = 0.f;
     for (size_t j = 0; j < track.translations.size(); ++j) {
-      max_length = math::Max(max_length, Length(track.translations[j].value));
+      max_length = math::Max(max_length, LengthSqr(track.translations[j].value));
     }
-    local_joint_specs[i].length = max_length;
+    local_joint_specs[i].length = std::sqrt(max_length);
 
     float max_scale = 0.f;
     if (track.scales.size() != 0) {

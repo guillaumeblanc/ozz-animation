@@ -115,6 +115,9 @@ TEST(Arithmetic4, Vector) {
   const float length = Length(a);
   EXPECT_FLOAT_EQ(length, std::sqrt(14.25f));
 
+  const float length2 = LengthSqr(a);
+  EXPECT_FLOAT_EQ(length2, 14.25f);
+
   EXPECT_ASSERTION(Normalize(Float4::zero()), "is not normalizable");
   EXPECT_FALSE(IsNormalized(a));
   const Float4 normalize = Normalize(a);
@@ -181,6 +184,9 @@ TEST(Arithmetic3, Vector) {
   const float length = Length(a);
   EXPECT_FLOAT_EQ(length, std::sqrt(5.25f));
 
+  const float length2 = LengthSqr(a);
+  EXPECT_FLOAT_EQ(length2, 5.25f);
+
   EXPECT_ASSERTION(Normalize(Float3::zero()), "is not normalizable");
   EXPECT_FALSE(IsNormalized(a));
   const Float3 normalize = Normalize(a);
@@ -242,6 +248,9 @@ TEST(Arithmetic2, Vector) {
 
   const float length = Length(a);
   EXPECT_FLOAT_EQ(length, std::sqrt(1.25f));
+
+  const float length2 = LengthSqr(a);
+  EXPECT_FLOAT_EQ(length2, 1.25f);
 
   EXPECT_ASSERTION(Normalize(Float2::zero()), "is not normalizable");
   EXPECT_FALSE(IsNormalized(a));

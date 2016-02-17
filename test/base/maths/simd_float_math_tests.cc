@@ -340,6 +340,15 @@ TEST(LengthFloat, ozz_simd_math) {
 
   const SimdFloat4 len4 = ozz::math::Length4(f);
   EXPECT_SIMDFLOAT_EQ(len4, 9.2195444f, 2.f, 4.f, 8.f);
+
+  const SimdFloat4 len2sqr = ozz::math::Length2Sqr(f);
+  EXPECT_SIMDFLOAT_EQ(len2sqr, 5.f, 2.f, 4.f, 8.f);
+
+  const SimdFloat4 len3sqr = ozz::math::Length3Sqr(f);
+  EXPECT_SIMDFLOAT_EQ(len3sqr, 21.f, 2.f, 4.f, 8.f);
+
+  const SimdFloat4 len4sqr = ozz::math::Length4Sqr(f);
+  EXPECT_SIMDFLOAT_EQ(len4sqr, 85.f, 2.f, 4.f, 8.f);
 }
 
 TEST(NormalizeFloat, Float4x4) {

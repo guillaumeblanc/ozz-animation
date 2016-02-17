@@ -565,6 +565,24 @@ OZZ_INLINE SimdFloat4 Length4(_SimdFloat4 _v) {
   return ret;
 }
 
+OZZ_INLINE SimdFloat4 Length2Sqr(_SimdFloat4 _v) {
+  const float sq_len = _v.x * _v.x + _v.y * _v.y;
+  const SimdFloat4 ret = {sq_len, _v.y, _v.z, _v.w};
+  return ret;
+}
+
+OZZ_INLINE SimdFloat4 Length3Sqr(_SimdFloat4 _v) {
+  const float sq_len = _v.x * _v.x + _v.y * _v.y + _v.z * _v.z;
+  const SimdFloat4 ret = {sq_len, _v.y, _v.z, _v.w};
+  return ret;
+}
+
+OZZ_INLINE SimdFloat4 Length4Sqr(_SimdFloat4 _v) {
+  const float sq_len = _v.x * _v.x + _v.y * _v.y + _v.z * _v.z + _v.w * _v.w;
+  const SimdFloat4 ret = {sq_len, _v.y, _v.z, _v.w};
+  return ret;
+}
+
 OZZ_INLINE SimdFloat4 Normalize2(_SimdFloat4 _v) {
   const float sq_len = _v.x * _v.x + _v.y * _v.y;
   assert(sq_len != 0.f && "_v is not normalizable");

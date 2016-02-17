@@ -407,6 +407,21 @@ OZZ_INLINE SimdFloat4 Length3(_SimdFloat4 _v);
 // components in _v.
 OZZ_INLINE SimdFloat4 Length4(_SimdFloat4 _v);
 
+// Computes the square length of the components x and y of _v, and stores it
+// in the x component of the returned vector. y, z, w of the returned vector are
+// the same as their respective components in _v.
+OZZ_INLINE SimdFloat4 Length2Sqr(_SimdFloat4 _v);
+
+// Computes the square length of the components x, y and z of _v, and stores it
+// in the x component of the returned vector. y, z, w of the returned vector are
+// the same as their respective components in _v.
+OZZ_INLINE SimdFloat4 Length3Sqr(_SimdFloat4 _v);
+
+// Computes the square length of the components x, y, z and w of _v, and stores
+// it in the x component of the returned vector. y, z, w of the returned vector
+// are the same as their respective components in _v.
+OZZ_INLINE SimdFloat4 Length4Sqr(_SimdFloat4 _v);
+
 // Returns the normalized vector of the components x and y of _v, and stores
 // it in the x and y components of the returned vector. z and w of the returned
 // vector are the same as their respective components in _v.
