@@ -4,19 +4,19 @@ Release version 0.8.0
 * Library
   - [animation] Adds additive blending support to ozz::animation::BlendingJob. Animations used for additive blending should be delta animations (relative to the first frame). Use ozz::animation::offline::AdditiveAnimationBuilder to prepare such animations.
   - [animation] Improves quaternion compression scheme by quantizing the 3 smallest components of the quaternion, instead of the firsts 3. This improves numerical accuracy when the restored component (4th) is small. It also allows to pre-multiply each of the 3 smallest components by sqrt(2), maximizing quantization range by over 41%.
-  - [offline] Improves animation optimizer process (ozz::animation::offline::AnimationOptimizer) with a new hierarchical translation tolerance. The optimizer now computes the error (a distance) generated from the optimization a joint on its whole child hierarchy. It allows to consider the effect of an optimization of a joint on all its hierarchy (like the whole arm length when optimizing the shoulder). This allows a better optimization in both quality and quantity.
+  - [offline] Improves animation optimizer process (ozz::animation::offline::AnimationOptimizer) with a new hierarchical translation tolerance. The optimizer now computes the error (a distance) generated from the optimization of a joint on its whole child hierarchy (like the whole arm length and hand when optimizing the shoulder). This provides a better optimization in both quality and quantity.
   - [offline] Adds ozz::animation::offline::AdditiveAnimationBuilder utility to build delta animations that can be used for additive blending. This utility processes a raw animation to calculate the delta transformation from the first key to all subsequent ones, for all tracks.
   - [offline] Adds --additive option to dae2anim and fbx2anim, allowing to output a delta animation suitable for additive blending.
   - [offline] Adds fbx 20161.* sdk support.
 
 * Build pipeline
   - Adds c++11 build option for gcc/clang compilers. Use cmake ozz_build_cpp11 option.
-  - Automatically detects SIMD implementation based on compiler settings. SSE2 implementation is automatically enabled on x64/amd64 targets, or if /arch:SSE2 is selected on MSVC/x86 builds. One could use OZZ_FORCE_SIMD_REF to bypass detection and force reference (aka scalar) implementation. OZZ_HAS_SSE2 is now deprecated. 
+  - Automatically detects SIMD implementation based on compiler settings. SSE2 implementation is automatically enabled on x64/amd64 targets, or if /arch:SSE2 is selected on MSVC/x86 builds. One could use ozz_build_simd_ref cmake option (OZZ_BUILD_SIMD_REF preprocessor directive) to bypass detection and force reference (aka scalar) implementation. OZZ_HAS_SSE2 is now deprecated. 
   - Adds Microsoft Visual Studio 14 2015 support.
   - Adds emscripten 1.35 support.
 
 * Samples
-  - [additive] Adds an additive blending sample which demonstrates the new additive layers available through the BlendingJob.
+  - [additive] Adds an additive blending sample which demonstrates the new additive layers available through the ozz::animation::BlendingJob.
   - [optimize] Adds hierarchical translation tolerance parameter to the optimize sample.
   - [skin] Removes sample skin, as from now on skinning is part of the sample framework and used by other samples. See additive sample.
 

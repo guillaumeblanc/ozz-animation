@@ -38,7 +38,7 @@
 
 // Avoid SIMD instruction detection if reference (aka scalar) implementation is
 // forced.
-#if !defined(OZZ_FORCE_SIMD_REF)
+#if !defined(OZZ_BUILD_SIMD_REF)
 
 // Try to match a SSE2+ version.
 #if defined(__AVX__) || defined(OZZ_SIMD_AVX)
@@ -80,7 +80,7 @@
 #endif
 
 // End of SIMD instruction detection
-#endif  // !OZZ_FORCE_SIMD_REF
+#endif  // !OZZ_BUILD_SIMD_REF
 
 // SEE* intrinsics available
 #if defined(OZZ_SIMD_SSEx)

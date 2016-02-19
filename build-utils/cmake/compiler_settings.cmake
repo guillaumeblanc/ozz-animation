@@ -58,7 +58,7 @@ set(cxx_release_flags
 
 # Simd math force ref
 if(ozz_build_simd_ref)
-  set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS OZZ_FORCE_SIMD_REF)
+  set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS OZZ_BUILD_SIMD_REF)
 endif()
 
 #--------------------------------------
