@@ -36,7 +36,82 @@
 
 <hr>
 
-<p>Documentation is temporarily unavailable while migration to github is in progress.</p>
+<p>The sample below demonstrates animation blending. It blends three animations (walk, jog and run) according to a single "speed" coefficient. This coefficient is used by the sample to compute all three animations blend weights.</p>
+
+<div id="sample_border">
+<div><canvas id="sample_canvas" width="640" height="480"></canvas></div>
+</div>
+<script>
+  var sample_border = document.getElementById("sample_border");
+  var sample_canvas = document.getElementById("sample_canvas");
+
+  function CheckWebGLSupport(canvas) {
+    if (!window.WebGLRenderingContext) {
+      // The browser doesn't even know what WebGL is.
+      return [false, 'Your browser doesn\'t support WebGL. Visit <a href="http://get.webgl.org" target="_blank">http://get.webgl.org</a> for more information.'];
+    } else {
+      //  If the browser supports WebGL and canvas.getContext("webgl") returns null then WebGL failed for some reason other than user's browser (no GPU, out of memory, etc...)
+      var gl_context = canvas.getContext("webgl");
+      if (!gl_context) {
+        gl_context = canvas.getContext("experimental-webgl");      
+      }
+      if (!gl_context) {
+        return [false, 'Your browser supports WebGL but could not properly initialize it. Visit <a href="http://get.webgl.org/troubleshooting" target="_blank">http://get.webgl.org/troubleshooting</a> for more information.'];
+      }
+    }
+    // Success.
+    return [true, 'WebGL is supported by your browser.'];
+  }
+
+  function OnSampleSuccess() {
+  }
+
+  function OnSampleFailure(text) {
+    sample_border.style.display = "none";  // Disable the whole sample display.
+  }
+
+  function OnSampleProgress(text) {
+  }
+  
+  var webgl_support = CheckWebGLSupport(sample_canvas);
+
+  if(!webgl_support[0]) {
+    OnSampleFailure(webgl_support[1]);
+  } else {
+    var Module = {
+      arguments: ['--resolution=1'],
+      preRun: [],
+      postRun: [],
+      print: (function() {
+        return function(text) {
+          text = Array.prototype.slice.call(arguments).join(' ');
+          console.log(text);
+        };
+      })(),
+      printErr: function(text) {
+        text = Array.prototype.slice.call(arguments).join(' ');
+        console.error(text);
+      },
+      canvas: sample_canvas,
+      setStatus: function(text) {
+        if(text == '') {
+          // This signals sample initialization success.
+          OnSampleSuccess();
+        } else {
+          OnSampleProgress(text);
+        }
+      },
+    };
+    Module.setStatus('Downloading...');
+  }
+</script>
+<script async type="text/javascript" src="samples/sample_blend.js"></script>
+
+<p>More samples are available from the sources.</p>
+
+<hr>
+
+<p><strong>Documentation is temporarily unavailable</strong> while migration to github is in progress.</p>
 
 <hr>
 
