@@ -24,10 +24,7 @@ add_executable(sample_attach
   "${CMAKE_CURRENT_BINARY_DIR}/media/animation.ozz")
 
 target_link_libraries(sample_attach
-  sample_framework
-  ozz_animation
-  ozz_options
-  ozz_base)
+  sample_framework)
 
 set_target_properties(sample_attach
   PROPERTIES FOLDER "samples")
@@ -35,24 +32,11 @@ set_target_properties(sample_attach
 if(EMSCRIPTEN)
   # Resource files are embedded to the output file with emscripten
   set_target_properties(sample_attach
-    PROPERTIES LINK_FLAGS "--embed-file media --embed-file README")
-
-  # Builds the google gadget file
-  add_custom_target(sample_attach_gadget ALL
-    DEPENDS
-      "${CMAKE_SOURCE_DIR}/samples/framework/gadget.cmake"
-      "${CMAKE_SOURCE_DIR}/samples/framework/gadget.xml.in"
-      "${CMAKE_CURRENT_BINARY_DIR}/sample_attach.js"
-    COMMAND ${CMAKE_COMMAND}
-      -DOZZ_INPUT_JS="${CMAKE_CURRENT_BINARY_DIR}/sample_attach.js"
-      -DOZZ_OUTPUT_XML="${CMAKE_CURRENT_BINARY_DIR}/sample_attach.xml"
-      -P "${CMAKE_SOURCE_DIR}/samples/framework/gadget.cmake"
-    DEPENDS sample_attach)
+    PROPERTIES LINK_FLAGS "--embed-file media --embed-file README --memory-init-file 0")
 
   install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/sample_attach.html
     ${CMAKE_CURRENT_BINARY_DIR}/sample_attach.js
-    ${CMAKE_CURRENT_BINARY_DIR}/sample_attach.xml
     DESTINATION bin/samples/attach)
 else()
   install(TARGETS sample_attach DESTINATION bin/samples/attach)

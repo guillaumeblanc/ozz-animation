@@ -25,8 +25,8 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#ifndef OZZ_SAMPLES_SKIN_SKIN_MESH_H_
-#define OZZ_SAMPLES_SKIN_SKIN_MESH_H_
+#ifndef OZZ_SAMPLES_FRAMEWORK_MESH_H_
+#define OZZ_SAMPLES_FRAMEWORK_MESH_H_
 
 #include "ozz/base/platform.h"
 #include "ozz/base/containers/vector.h"
@@ -41,9 +41,9 @@ namespace sample {
 // Defines a mesh with skinning information (joint indices and weights).
 // The mesh is subdivided into parts that group vertices according to their
 // number of influencing joints. Triangle indices are shared across mesh parts.
-struct SkinnedMesh {
-  SkinnedMesh();
-  ~SkinnedMesh();
+struct Mesh {
+  Mesh();
+  ~Mesh();
 
   // Number of triangle indices for the mesh.
   int triangle_index_count() const {
@@ -89,7 +89,7 @@ struct SkinnedMesh {
   // with the same number of joint influences.
   struct Part {
     int vertex_count() const {
-      return static_cast<int>(positions.size());
+      return static_cast<int>(positions.size()) / 3;
     }
 
     int influences_count() const {
@@ -100,35 +100,48 @@ struct SkinnedMesh {
       return static_cast<int>(joint_indices.size()) / _vertex_count;
     }
 
-    ozz::Vector<ozz::math::Float3>::Std positions;
-    ozz::Vector<ozz::math::Float3>::Std normals;
-    ozz::Vector<uint16_t>::Std joint_indices;
-    ozz::Vector<float>::Std joint_weights;
-  };
-  ozz::Vector<Part>::Std parts;
+    typedef ozz::Vector<float>::Std Positions;
+    Positions positions;
 
-  // Triangles indices. Indexed vertex are shared across all parts.
-  ozz::Vector<uint16_t>::Std triangle_indices;
+    typedef ozz::Vector<float>::Std Normals;
+    Normals normals;
+
+    typedef ozz::Vector<uint8_t>::Std Colors;
+    Colors colors;
+
+    typedef ozz::Vector<uint16_t>::Std JointIndices;
+    JointIndices joint_indices;
+
+    typedef ozz::Vector<float>::Std JointWeights;
+    JointWeights joint_weights;
+  };
+  typedef ozz::Vector<Part>::Std Parts;
+  Parts parts;
+
+  // Triangles indices. Indices are shared across all parts.
+  typedef ozz::Vector<uint16_t>::Std TriangleIndices;
+  TriangleIndices triangle_indices;
 
   // Inverse bind-pose matrices. These are only available for skinned meshes.
-  ozz::Vector<ozz::math::Float4x4>::Std inverse_bind_poses;
+  typedef ozz::Vector<ozz::math::Float4x4>::Std InversBindPoses;
+  InversBindPoses inverse_bind_poses;
 };
 }  // sample
 
 namespace io {
-OZZ_IO_TYPE_TAG("ozz-sample-SkinnedMesh", sample::SkinnedMesh)
-OZZ_IO_TYPE_NOT_VERSIONABLE(sample::SkinnedMesh)
+OZZ_IO_TYPE_TAG("ozz-sample-Mesh", sample::Mesh)
+OZZ_IO_TYPE_NOT_VERSIONABLE(sample::Mesh)
 
 template <>
 void Save(OArchive& _archive,
-          const sample::SkinnedMesh* _meshes,
+          const sample::Mesh* _meshes,
           size_t _count);
 
 template <>
 void Load(IArchive& _archive,
-          sample::SkinnedMesh* _meshes,
+          sample::Mesh* _meshes,
           size_t _count,
           uint32_t _version);
 }  // io
 }  // ozz
-#endif  // OZZ_SAMPLES_SKIN_SKIN_MESH_H_
+#endif  // OZZ_SAMPLES_FRAMEWORK_MESH_H_

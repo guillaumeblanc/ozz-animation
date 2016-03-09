@@ -35,10 +35,7 @@ add_executable(sample_multithread
   "${CMAKE_CURRENT_BINARY_DIR}/media/animation.ozz")
 
 target_link_libraries(sample_multithread
-  sample_framework
-  ozz_animation
-  ozz_options
-  ozz_base)
+  sample_framework)
 
 set_target_properties(sample_multithread
   PROPERTIES FOLDER "samples")
@@ -46,24 +43,11 @@ set_target_properties(sample_multithread
 if(EMSCRIPTEN)
   # Resource files are embedded to the output file with emscripten
   set_target_properties(sample_multithread
-    PROPERTIES LINK_FLAGS "--embed-file media --embed-file README")
-
-  # Builds the google gadget file
-  add_custom_target(sample_multithread_gadget ALL
-    DEPENDS
-      "${CMAKE_SOURCE_DIR}/samples/framework/gadget.cmake"
-      "${CMAKE_SOURCE_DIR}/samples/framework/gadget.xml.in"
-      "${CMAKE_CURRENT_BINARY_DIR}/sample_multithread.js"
-    COMMAND ${CMAKE_COMMAND}
-      -DOZZ_INPUT_JS="${CMAKE_CURRENT_BINARY_DIR}/sample_multithread.js"
-      -DOZZ_OUTPUT_XML="${CMAKE_CURRENT_BINARY_DIR}/sample_multithread.xml"
-      -P "${CMAKE_SOURCE_DIR}/samples/framework/gadget.cmake"
-    DEPENDS sample_multithread)
+    PROPERTIES LINK_FLAGS "--embed-file media --embed-file README --memory-init-file 0")
 
   install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/sample_multithread.html
     ${CMAKE_CURRENT_BINARY_DIR}/sample_multithread.js
-    ${CMAKE_CURRENT_BINARY_DIR}/sample_multithread.xml
     DESTINATION bin/samples/multithread)
 else()
   install(TARGETS sample_multithread DESTINATION bin/samples/multithread)

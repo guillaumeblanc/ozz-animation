@@ -511,29 +511,41 @@ OZZ_INLINE SimdFloat4 Length(const SoaFloat2& _v) {
   return Sqrt(len2);
 }
 
+// Returns the square length |_v|^2 of _v.
+OZZ_INLINE SimdFloat4 LengthSqr(const SoaFloat4& _v) {
+  return _v.x * _v.x + _v.y * _v.y + _v.z * _v.z + _v.w * _v.w;
+}
+OZZ_INLINE SimdFloat4 LengthSqr(const SoaFloat3& _v) {
+  return _v.x * _v.x + _v.y * _v.y + _v.z * _v.z;
+}
+OZZ_INLINE SimdFloat4 LengthSqr(const SoaFloat2& _v) {
+  return _v.x * _v.x + _v.y * _v.y;
+}
+
 // Returns the normalized vector _v.
 OZZ_INLINE SoaFloat4 Normalize(const SoaFloat4& _v) {
   const SimdFloat4 len2 = _v.x * _v.x + _v.y * _v.y + _v.z * _v.z + _v.w * _v.w;
   assert(AreAllTrue(CmpNe(len2, simd_float4::zero())) &&
          "_v is not normalizable");
-  const SimdFloat4 len = Sqrt(len2);
-  const SoaFloat4 r = {_v.x / len, _v.y / len, _v.z / len, _v.w / len};
+  const SimdFloat4 inv_len = math::simd_float4::one() / Sqrt(len2);
+  const SoaFloat4 r = {
+    _v.x * inv_len, _v.y * inv_len, _v.z * inv_len, _v.w * inv_len };
   return r;
 }
 OZZ_INLINE SoaFloat3 Normalize(const SoaFloat3& _v) {
   const SimdFloat4 len2 = _v.x * _v.x + _v.y * _v.y + _v.z * _v.z;
   assert(AreAllTrue(CmpNe(len2, simd_float4::zero())) &&
          "_v is not normalizable");
-  const SimdFloat4 len = Sqrt(len2);
-  const SoaFloat3 r = {_v.x / len, _v.y / len, _v.z / len};
+  const SimdFloat4 inv_len = math::simd_float4::one() / Sqrt(len2);
+  const SoaFloat3 r = {_v.x * inv_len, _v.y * inv_len, _v.z * inv_len };
   return r;
 }
 OZZ_INLINE SoaFloat2 Normalize(const SoaFloat2& _v) {
   const SimdFloat4 len2 = _v.x * _v.x + _v.y * _v.y;
   assert(AreAllTrue(CmpNe(len2, simd_float4::zero())) &&
          "_v is not normalizable");
-  const SimdFloat4 len = Sqrt(len2);
-  const SoaFloat2 r = {_v.x / len, _v.y / len};
+  const SimdFloat4 inv_len = math::simd_float4::one() / Sqrt(len2);
+  const SoaFloat2 r = {_v.x * inv_len, _v.y * inv_len };
   return r;
 }
 
@@ -578,11 +590,11 @@ OZZ_INLINE SoaFloat4 NormalizeSafe(const SoaFloat4& _v,
   assert(AreAllTrue(IsNormalizedEst(_safer)) && "_safer is not normalized");
   const SimdFloat4 len2 = _v.x * _v.x + _v.y * _v.y + _v.z * _v.z + _v.w * _v.w;
   const math::SimdInt4 b = CmpNe(len2, math::simd_float4::zero());
-  const SimdFloat4 len = Sqrt(len2);
-  const SoaFloat4 r = {Select(b, _v.x / len, _safer.x),
-                       Select(b, _v.y / len, _safer.y),
-                       Select(b, _v.z / len, _safer.z),
-                       Select(b, _v.w / len, _safer.w)};
+  const SimdFloat4 inv_len = math::simd_float4::one() / Sqrt(len2);
+  const SoaFloat4 r = {Select(b, _v.x * inv_len, _safer.x),
+                       Select(b, _v.y * inv_len, _safer.y),
+                       Select(b, _v.z * inv_len, _safer.z),
+                       Select(b, _v.w * inv_len, _safer.w)};
   return r;
 }
 OZZ_INLINE SoaFloat3 NormalizeSafe(const SoaFloat3& _v,
@@ -590,10 +602,10 @@ OZZ_INLINE SoaFloat3 NormalizeSafe(const SoaFloat3& _v,
   assert(AreAllTrue(IsNormalizedEst(_safer)) && "_safer is not normalized");
   const SimdFloat4 len2 = _v.x * _v.x + _v.y * _v.y + _v.z * _v.z;
   const math::SimdInt4 b = CmpNe(len2, math::simd_float4::zero());
-  const SimdFloat4 len = Sqrt(len2);
-  const SoaFloat3 r = {Select(b, _v.x / len, _safer.x),
-                       Select(b, _v.y / len, _safer.y),
-                       Select(b, _v.z / len, _safer.z)};
+  const SimdFloat4 inv_len = math::simd_float4::one() / Sqrt(len2);
+  const SoaFloat3 r = {Select(b, _v.x * inv_len, _safer.x),
+                       Select(b, _v.y * inv_len, _safer.y),
+                       Select(b, _v.z * inv_len, _safer.z)};
   return r;
 }
 OZZ_INLINE SoaFloat2 NormalizeSafe(const SoaFloat2& _v,
@@ -601,9 +613,9 @@ OZZ_INLINE SoaFloat2 NormalizeSafe(const SoaFloat2& _v,
   assert(AreAllTrue(IsNormalizedEst(_safer)) && "_safer is not normalized");
   const SimdFloat4 len2 = _v.x * _v.x + _v.y * _v.y;
   const math::SimdInt4 b = CmpNe(len2, math::simd_float4::zero());
-  const SimdFloat4 len = Sqrt(len2);
-  const SoaFloat2 r = {Select(b, _v.x / len, _safer.x),
-                       Select(b, _v.y / len, _safer.y)};
+  const SimdFloat4 inv_len = math::simd_float4::one() / Sqrt(len2);
+  const SoaFloat2 r = {Select(b, _v.x * inv_len, _safer.x),
+                       Select(b, _v.y * inv_len, _safer.y)};
   return r;
 }
 

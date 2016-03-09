@@ -30,6 +30,7 @@
 #include "animation/offline/collada/collada_animation.h"
 
 #include <cstdlib>
+#include <cmath>
 #include <cstring>
 #include <limits>
 
@@ -740,15 +741,15 @@ bool SetupCaches(const Samplers& _samplers, Caches* _caches) {
     bool valid_interpolation = !sampler.interpolation ||
       ((sampler.interpolation->count * sampler.interpolation->stride ==
         sampler.interpolation->values.size()) &&
-      (sampler.interpolation->count == sampler.input->count));
+      (sampler.input && sampler.interpolation->count == sampler.input->count));
     bool valid_in_tangent = !sampler.in_tangent ||
       ((sampler.in_tangent->count * sampler.in_tangent->stride ==
         sampler.in_tangent->values.size()) &&
-      (sampler.in_tangent->count == sampler.output->count));
+      (sampler.output && sampler.in_tangent->count == sampler.output->count));
     bool valid_out_tangent = !sampler.out_tangent ||
       ((sampler.out_tangent->count * sampler.out_tangent->stride ==
         sampler.out_tangent->values.size()) &&
-      (sampler.out_tangent->count == sampler.output->count));
+      (sampler.output && sampler.out_tangent->count == sampler.output->count));
 
     if (!valid_input || !valid_output || !valid_interpolation ||
         !valid_out_tangent || !valid_in_tangent) {
@@ -834,7 +835,7 @@ float ApproximateAlpha(const math::Float4 _m[4], const math::Float4& _c,
   for (int i = 0; i < kMaxIterations; ++i) {
     alpha = (begin + end) * .5f;  // Dichotomy.
     float output = EvaluateCubicCurve(_m, _c, alpha);
-    if (fabs(output - _time) < kTolerance) {
+    if (std::abs(output - _time) < kTolerance) {
       break;
     } else if (output > _time) {
       end = alpha;  // Selects [begin,alpha] range.
@@ -1150,7 +1151,7 @@ bool ExtractAnimation(const AnimationVisitor& _animation_visitor,
       
       // Get joint's bind pose.
       const ozz::math::Transform& bind_pose =
-        ozz::animation::GetJointBindPose(_skeleton, i);
+        ozz::animation::GetJointLocalBindPose(_skeleton, i);
 
       PushKeys(bind_pose, 0.f, &output_track);
     } else {  // Uses animated transformations.

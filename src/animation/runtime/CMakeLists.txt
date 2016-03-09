@@ -9,8 +9,8 @@ add_library(ozz_animation
   ../../../include/ozz/animation/runtime/sampling_job.h
   sampling_job.cc
   ../../../include/ozz/animation/runtime/skeleton.h
-  ../../../include/ozz/animation/runtime/skeleton_utils.h
   skeleton.cc
+  ../../../include/ozz/animation/runtime/skeleton_utils.h
   skeleton_utils.cc)
 set_target_properties(ozz_animation
   PROPERTIES FOLDER "ozz")

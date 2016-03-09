@@ -42,8 +42,7 @@ namespace {
 bool RecurseNode(FbxNode* _node,
                  FbxSystemConverter* _converter,
                  RawSkeleton* _skeleton,
-                 RawSkeleton::Joint*
-                 _parent,
+                 RawSkeleton::Joint* _parent,
                  int _depth) {
   bool skeleton_found = false;
   RawSkeleton::Joint* this_joint = NULL;
@@ -87,10 +86,6 @@ bool RecurseNode(FbxNode* _node,
 
     // One level deeper in the hierarchy.
     _depth++;
-  } else if (_parent) {
-    // Ends recursion if this is not a joint, and part of a skeleton
-    // hierarchy.
-    return false;
   }
 
   // Iterate node's children.

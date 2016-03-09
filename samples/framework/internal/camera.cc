@@ -203,15 +203,12 @@ void Camera::Update(const math::Box& _box, float _delta_time, bool _first_frame)
   view_ = Invert(center * y_rotation * x_rotation * distance);
 
   // Auto-framing is disabled based on user actions.
-  auto_framing_ &= !zooming && !rotating && !panning;
+  auto_framing_ &= !panning;
 
-  // Zooming with the mouse wheel doesn't affect autoframing in web browser as
-  // it's so commonly used to scroll web pages.
-#ifdef EMSCRIPTEN
+  // Unused rotating variable.
+  (void)rotating;
   (void)zooming_wheel;
-#else
-  auto_framing_ &= !zooming_wheel;
-#endif
+  (void)zooming;
 }
 
 void Camera::OnGui(ImGui* _im_gui) {
@@ -248,8 +245,15 @@ void Camera::Bind2D() {
 
 void Camera::Resize(int _width, int _height) {
 
+  // Handle empty windows.
+  if (_width <= 0 || _height <= 0) {
+    projection_ = ozz::math::Float4x4::identity();
+    projection_2d_ = ozz::math::Float4x4::identity();
+    return;
+  }
+
   // Compute the 3D projection matrix.
-  const float ratio = _height != 0 ? 1.f * _width / _height : 1.f;
+  const float ratio = 1.f * _width / _height;
   const float h = tan( (kFovY * .5f)) * kNear;
   const float w = h * ratio;
 

@@ -20,6 +20,7 @@ endif()
 include_directories(./)
 
 # Adds samples and helper libraries.
+add_subdirectory(additive)
 add_subdirectory(attach)
 add_subdirectory(blend)
 add_subdirectory(framework)
@@ -28,4 +29,3 @@ add_subdirectory(multithread)
 add_subdirectory(optimize)
 add_subdirectory(partial_blend)
 add_subdirectory(playback)
-add_subdirectory(skin)

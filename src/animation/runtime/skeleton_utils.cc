@@ -35,7 +35,8 @@ namespace ozz {
 namespace animation {
 
 // Unpacks skeleton bind pose stored in soa format by the skeleton.
-ozz::math::Transform GetJointBindPose(const Skeleton& _skeleton, int _joint) {
+ozz::math::Transform GetJointLocalBindPose(const Skeleton& _skeleton,
+                                           int _joint) {
   assert(_joint >= 0 && _joint < _skeleton.num_joints() &&
          "Joint index out of range.");
 
@@ -124,10 +125,10 @@ void IterateJointsDF(const Skeleton& _skeleton,
            ++next_joint) {
       }
       if (next_joint < num_joints) {
-        const Context next = {
-          next_joint,
-          _HAS_SIBLING(next_joint, num_joints, properties.begin)};
-        stack[stack_size++] = next;  // Push child and process it.
+        Context& next = stack[stack_size++];  // Push child and process it.
+        next.joint = next_joint;
+        next.has_brother =
+          _HAS_SIBLING(next_joint, num_joints, properties.begin);
         continue;
       }
     }

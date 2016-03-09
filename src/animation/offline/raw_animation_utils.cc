@@ -25,81 +25,42 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "skin_mesh.h"
-
-#include "ozz/base/memory/allocator.h"
-#include "ozz/base/containers/vector_archive.h"
-
-#include "ozz/base/io/archive.h"
-
-#include "ozz/base/maths/math_archive.h"
-#include "ozz/base/maths/simd_math_archive.h"
+#include "ozz/animation/offline/raw_animation_utils.h"
 
 namespace ozz {
-namespace sample {
-SkinnedMesh::SkinnedMesh() {
+namespace animation {
+namespace offline {
+
+// Translation interpolation method.
+// This must be the same Lerp as the one used by the sampling job.
+math::Float3 LerpTranslation(const math::Float3& _a,
+                             const math::Float3& _b,
+                             float _alpha) {
+  return math::Lerp(_a, _b, _alpha);
 }
 
-SkinnedMesh::~SkinnedMesh() {
-}
-}  // sample
-
-namespace io {
-
-OZZ_IO_TYPE_NOT_VERSIONABLE(sample::SkinnedMesh::Part)
-
-template <>
-void Save(OArchive& _archive,
-          const sample::SkinnedMesh::Part* _parts,
-          size_t _count) {
-  for (size_t i = 0; i < _count; ++i) {
-    const sample::SkinnedMesh::Part& part = _parts[i];
-    _archive << part.positions;
-    _archive << part.normals;
-    _archive << part.joint_indices;
-    _archive << part.joint_weights;
-  }
+// Rotation interpolation method.
+// This must be the same Lerp as the one used by the sampling job.
+// The goal is to take the shortest path between _a and _b. This code replicates
+// this behavior that is actually not done at runtime, but when building the
+// animation.
+math::Quaternion LerpRotation(const math::Quaternion& _a,
+                              const math::Quaternion& _b,
+                              float _alpha) {
+  // Finds the shortest path. This is done by the AnimationBuilder for runtime
+  // animations.
+  const float dot = _a.x * _b.x + _a.y * _b.y + _a.z * _b.z + _a.w * _b.w;
+  return math::NLerp(_a, dot < 0.f ? -_b : _b, _alpha); // _b an -_b are the
+                                                        // same rotation.
 }
 
-template <>
-void Load(IArchive& _archive,
-          sample::SkinnedMesh::Part* _parts,
-          size_t _count,
-          uint32_t _version) {
-  (void)_version;
-  for (size_t i = 0; i < _count; ++i) {
-    sample::SkinnedMesh::Part& part = _parts[i];
-    _archive >> part.positions;
-    _archive >> part.normals;
-    _archive >> part.joint_indices;
-    _archive >> part.joint_weights;
-  }
+// Scale interpolation method.
+// This must be the same Lerp as the one used by the sampling job.
+math::Float3 LerpScale(const math::Float3& _a,
+                       const math::Float3& _b,
+                       float _alpha) {
+  return math::Lerp(_a, _b, _alpha);
 }
-
-template <>
-void Save(OArchive& _archive,
-          const sample::SkinnedMesh* _meshes,
-          size_t _count) {
-  for (size_t i = 0; i < _count; ++i) {
-    const sample::SkinnedMesh& mesh = _meshes[i];
-    _archive << mesh.parts;
-    _archive << mesh.triangle_indices;
-    _archive << mesh.inverse_bind_poses;
-  }
-}
-
-template <>
-void Load(IArchive& _archive,
-          sample::SkinnedMesh* _meshes,
-          size_t _count,
-          uint32_t _version) {
-  (void)_version;
-  for (size_t i = 0; i < _count; ++i) {
-    sample::SkinnedMesh& mesh = _meshes[i];
-    _archive >> mesh.parts;
-    _archive >> mesh.triangle_indices;
-    _archive >> mesh.inverse_bind_poses;
-  }
-}
-}  // io
+}  // offline
+}  // animation
 }  // ozz

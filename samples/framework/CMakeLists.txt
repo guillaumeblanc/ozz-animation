@@ -11,6 +11,8 @@ add_library(sample_framework
   renderer.h
   utils.h
   utils.cc
+  mesh.h
+  mesh.cc
   internal/camera.h
   internal/camera.cc
   internal/immediate.h
@@ -27,11 +29,23 @@ add_library(sample_framework
 # Samples requires OpenGL package.
 if(NOT EMSCRIPTEN)
   find_package(OpenGL REQUIRED)
+
+  include_directories(${OPENGL_INCLUDE_DIR})
+  
   add_subdirectory(${CMAKE_SOURCE_DIR}/extern/glfw glfw)
 
   target_link_libraries(sample_framework
+    ${OPENGL_LIBRARIES}
     glfw)
 endif()
 
+target_link_libraries(sample_framework
+  ozz_geometry
+  ozz_animation
+  ozz_options
+  ozz_base)
+
 set_target_properties(sample_framework
   PROPERTIES FOLDER "samples")
+  
+add_subdirectory(tools)

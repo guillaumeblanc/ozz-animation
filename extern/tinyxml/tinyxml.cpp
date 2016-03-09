@@ -667,7 +667,7 @@ int TiXmlElement::QueryIntAttribute( const char* name, int* ival ) const
 }
 
 
-int TiXmlElement::QueryUnsignedAttribute( const char* name, unsigned* value ) const
+int TiXmlElement::QueryUnsignedAttribute( const char* name, unsigned* uval ) const
 {
 	const TiXmlAttribute* node = attributeSet.Find( name );
 	if ( !node )
@@ -675,7 +675,7 @@ int TiXmlElement::QueryUnsignedAttribute( const char* name, unsigned* value ) co
 
 	int ival = 0;
 	int result = node->QueryIntValue( &ival );
-	*value = (unsigned)ival;
+	*uval = (unsigned)ival;
 	return result;
 }
 

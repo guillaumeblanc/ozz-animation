@@ -87,11 +87,8 @@ Skeleton::~Skeleton() {
 void Skeleton::Destroy() {
   memory::Allocator* allocator = memory::default_allocator();
   allocator->Deallocate(joint_properties_);
-  joint_properties_ = NULL;
   allocator->Deallocate(bind_pose_);
-  bind_pose_ = NULL;
   allocator->Deallocate(joint_names_);
-  joint_names_ = NULL;
 
   num_joints_ = 0;
 }

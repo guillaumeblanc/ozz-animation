@@ -84,7 +84,10 @@ class TestObj1 : public IntrusiveList<TestObj1<_Options0>, _Options0>::Hook {
   TestObj1() : instance_(s_instance_counter_++) {}
 
   // Does not copy the Node itself, just maintains the assigned instance number.
-  TestObj1(TestObj1 const& _r) : instance_(_r.instance_) {}  // NOLINT cannot be explicit as used by std::list
+  TestObj1(TestObj1 const& _r)  // NOLINT cannot be explicit as used by std::list
+    : IntrusiveList<TestObj1<_Options0>, _Options0>::Hook(),
+      instance_(_r.instance_) { 
+  }
 
   // Implements comparison operators.
   bool operator == (TestObj1 const& _r) const {
@@ -122,7 +125,10 @@ class TestObj2 : public TestObj1<_Options1>,
   TestObj2() {}
 
   // Does not copy the Node itself, just maintains the assigned instance number.
-  explicit TestObj2(TestObj2 const& _r) : TestObj1<_Options1>(_r) {}
+  explicit TestObj2(TestObj2 const& _r)
+    : TestObj1<_Options1>(_r),
+      IntrusiveList<TestObj2<_Options1, _Options2>, _Options2>::Hook() {
+  }
 };
 
 // Applies the _Test function to some std::list<> and Intrusive<> types.
@@ -292,7 +298,7 @@ struct ComplianceBegin {
       ++it;
       EXPECT_TRUE(*it == third);
       ++it;
-      EXPECT_TRUE(it == l.end());
+      EXPECT_TRUE(it == r_const_l.end());
     }
 
     l.clear();
@@ -355,7 +361,7 @@ struct ComplianceEnd {
       it--;
       EXPECT_TRUE(*it == second);
       it--;
-      EXPECT_TRUE(*it == first && it == l.begin());
+      EXPECT_TRUE(*it == first && it == r_const_l.begin());
     }
 
     l.clear();
@@ -432,9 +438,9 @@ struct ComplianceIterator {
     EXPECT_TRUE(rcosnt_l1.begin()++ == rcosnt_l1.begin());
     EXPECT_TRUE(++rcosnt_l1.begin() == rcosnt_l1.end());
     EXPECT_TRUE(l1.begin() != rcosnt_l1.end());
-    EXPECT_TRUE(++l1.begin() == rcosnt_l1.end());
-    EXPECT_TRUE(rcosnt_l1.begin() != l1.end());
-    EXPECT_TRUE(++rcosnt_l1.begin() == l1.end());
+    EXPECT_TRUE(++l1.begin() == l1.end());
+    EXPECT_TRUE(l1.begin() != l1.end());
+    EXPECT_TRUE(++l1.begin() == l1.end());
 
     // Dereference iterator
     {

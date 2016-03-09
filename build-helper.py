@@ -116,7 +116,7 @@ def ConfigureCC():
   options = ['cmake']
 
   options += ['-D', 'CMAKE_BUILD_TYPE=' + config]
-  options += ['-D', 'CMAKE_TOOLCHAIN_FILE=' + emscripten_path + '/cmake/Platform/Emscripten.cmake']
+  options += ['-D', 'CMAKE_TOOLCHAIN_FILE=' + emscripten_path + '/cmake/Modules/Platform/Emscripten.cmake']
   options += ['-D', 'dae2anim_DIR=' + build_dir]
   options += ['-D', 'dae2skel_DIR=' + build_dir]
 
@@ -210,7 +210,7 @@ def SelecConfig():
 
 def FindGenerators():
   # Finds all generators outputted from cmake usage 
-  process = subprocess.Popen(['cmake'], stdout=subprocess.PIPE)
+  process = subprocess.Popen(['cmake', '--help'], stdout=subprocess.PIPE)
   stdout = process.communicate()[0]
   sub_stdout = stdout[stdout.rfind('Generators'):]
   matches = re.findall(r"\s*(.+)\s*=.+", sub_stdout, re.MULTILINE)
@@ -218,10 +218,14 @@ def FindGenerators():
   global generators  
   for match in matches:
     generator_name = match.strip()
-    generators[len(generators)] = generator_name
-    # Appends also Win64 option if generator is VS
-    if "Visual Studio" in generator_name:
-      generators[len(generators)] = generator_name + " Win64"
+    # Appends also Win64/ARM option if generator is VS
+    if " [arch]" in generator_name:
+      gen_name = generator_name[0:len(generator_name) - 7]
+      generators[len(generators)] = gen_name
+      generators[len(generators)] = gen_name + " Win64"
+      generators[len(generators)] = gen_name + " ARM"
+    else:
+      generators[len(generators)] = generator_name
 
 def FindInCache(_regex):
   try:

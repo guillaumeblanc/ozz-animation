@@ -46,5 +46,5 @@ target_link_libraries(fbx2anim
   ozz_base)
 set_target_properties(fbx2anim
   PROPERTIES FOLDER "ozz/tools")
-
+  
 install(TARGETS fbx2anim DESTINATION bin/tools)

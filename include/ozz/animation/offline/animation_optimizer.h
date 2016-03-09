@@ -30,6 +30,9 @@
 
 namespace ozz {
 namespace animation {
+
+// Forward declare runtime skeleton type.
+class Skeleton;
 namespace offline {
 
 // Forward declare offline animation type.
@@ -43,13 +46,16 @@ class AnimationOptimizer {
   // Initializes the optimizer with default tolerances (favoring quality).
   AnimationOptimizer();
 
-  // Optimizes _input using *this parameters.
+  // Optimizes _input using *this parameters. _skeleton is required to evaluate
+  // optimization error along joint hierarchy (see hierarchical_tolerance).
   // Returns true on success and fills _output_animation with the optimized
   // version of _input animation.
   // *_output must be a valid RawAnimation instance.
   // Returns false on failure and resets _output to an empty animation.
   // See RawAnimation::Validate() for more details about failure reasons.
-  bool operator()(const RawAnimation& _input, RawAnimation* _output) const;
+  bool operator()(const RawAnimation& _input,
+                  const Skeleton& _skeleton,
+                  RawAnimation* _output) const;
 
   // Translation optimization tolerance, defined as the distance between two
   // translation values in meters.
@@ -61,6 +67,11 @@ class AnimationOptimizer {
 
   // Scale optimization tolerance, ie: the norm of the difference of two scales.
   float scale_tolerance;
+
+  // Hierarchical translation optimization tolerance, ie: the maximum error
+  // (distance) that an optimization on a joint is allowed to generate on its
+  // whole child hierarchy.
+  float hierarchical_tolerance;
 };
 }  // offline
 }  // animation

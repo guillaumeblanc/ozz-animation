@@ -30,10 +30,7 @@ add_executable(sample_partial_blend
   "${CMAKE_CURRENT_BINARY_DIR}/media/walk.ozz"
   "${CMAKE_CURRENT_BINARY_DIR}/media/crossarms.ozz")
 target_link_libraries(sample_partial_blend
-  sample_framework
-  ozz_animation
-  ozz_options
-  ozz_base)
+  sample_framework)
 
 set_target_properties(sample_partial_blend
   PROPERTIES FOLDER "samples")
@@ -41,24 +38,11 @@ set_target_properties(sample_partial_blend
 if(EMSCRIPTEN)
   # Resource files are embedded to the output file with emscripten
   set_target_properties(sample_partial_blend
-    PROPERTIES LINK_FLAGS "--embed-file media --embed-file README")
-    
-  # Builds the google gadget file
-  add_custom_target(sample_partial_blend_gadget ALL
-    DEPENDS
-      "${CMAKE_SOURCE_DIR}/samples/framework/gadget.cmake"
-      "${CMAKE_SOURCE_DIR}/samples/framework/gadget.xml.in"
-      "${CMAKE_CURRENT_BINARY_DIR}/sample_partial_blend.js"
-    COMMAND ${CMAKE_COMMAND}
-      -DOZZ_INPUT_JS="${CMAKE_CURRENT_BINARY_DIR}/sample_partial_blend.js"
-      -DOZZ_OUTPUT_XML="${CMAKE_CURRENT_BINARY_DIR}/sample_partial_blend.xml"
-      -P "${CMAKE_SOURCE_DIR}/samples/framework/gadget.cmake"
-    DEPENDS sample_partial_blend)
+    PROPERTIES LINK_FLAGS "--embed-file media --embed-file README --memory-init-file 0")
 
   install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/sample_partial_blend.html
     ${CMAKE_CURRENT_BINARY_DIR}/sample_partial_blend.js
-    ${CMAKE_CURRENT_BINARY_DIR}/sample_partial_blend.xml
     DESTINATION bin/samples/partial_blend)
 else()
   install(TARGETS sample_partial_blend DESTINATION bin/samples/partial_blend)

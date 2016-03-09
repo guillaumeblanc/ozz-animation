@@ -142,6 +142,13 @@ int Application::Run(int _argc, const char** _argv,
   }
   application_ = this;
 
+  // Starting application
+  log::Out() << "Starting sample \"" << _title << "\" version \"" << _version <<
+    "\"" << std::endl;
+  log::Out() << "Ozz libraries were built with \"" <<
+    math::SimdImplementationName() << "\" SIMD math implementation." <<
+    std::endl;
+
   // Parse command line arguments.
   const char* usage = "Ozz animation sample. See README file for more details.";
   ozz::options::ParseResult result =
@@ -162,8 +169,6 @@ int Application::Run(int _argc, const char** _argv,
   // resource folder.
   chdir(ozz::options::ParsedExecutablePath().c_str());
 #endif  // __APPLE__
-
-  // ( resourcesPath );
 
   // Initialize help.
   ParseReadme();
@@ -266,6 +271,7 @@ Application::LoopStatus Application::OneLoop(int _loops) {
   }
 
   // Don't overload the cpu if the window is not active.
+#ifndef EMSCRIPTEN  
   if (OPTIONS_render && !glfwGetWindowParam(GLFW_ACTIVE)) {
     glfwWaitEvents();  // Wait...
 
@@ -275,12 +281,13 @@ Application::LoopStatus Application::OneLoop(int _loops) {
 
     return kContinue;  // ...but don't do anything.
   }
-
+#endif  // EMSCRIPTEN
+  
   // Updates resolution if required.
   if (OPTIONS_render) {
     int width, height;
     glfwGetWindowSize(&width, &height);
-    if (resolution_.width != width || resolution_.height !=height) {
+    if (resolution_.width != width || resolution_.height != height) {
       glfwSetWindowSize(resolution_.width, resolution_.height);
     }
   }
@@ -341,6 +348,7 @@ bool Application::Display() {
   { // Profiles rendering excluding GUI.
     Profiler profile(render_time_);
 
+    GL(ClearDepth(1.f));
     GL(ClearColor(.33f, .333f, .315f, 0.f));
     GL(Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
@@ -361,9 +369,7 @@ bool Application::Display() {
   }  // Ends profiling.
 
   // Renders grid and axes at the end as they are transparent.
-  GL(DepthMask(GL_FALSE));
-  renderer_->DrawGrid(10, 1.f);
-  GL(DepthMask(GL_TRUE));
+  renderer_->DrawGrid(20, 1.f);
   renderer_->DrawAxes(ozz::math::Float4x4::identity());
 
   // Bind 2D camera matrices.
@@ -427,8 +433,6 @@ bool Application::Idle(bool _first_frame) {
     update_result = OnUpdate(update_delta);
   }
 
-  // Update camera model-view matrix and disables auto-framing if the camera is
-  // moved manually.
   // Update camera model-view matrix.
   if (camera_) {
     math::Box scene_bounds;
@@ -511,7 +515,7 @@ bool Application::Gui() {
 bool Application::FrameworkGui() {
   { // Render statistics
     static bool open = true;
-    ImGui::OpenClose stats(im_gui_, "Statistics", &open);
+    ImGui::OpenClose stat_oc(im_gui_, "Statistics", &open);
     if (open) {
       char szLabel[64];
       { // FPS
@@ -661,27 +665,25 @@ int Application::CloseCbk() {
 }
 
 void Application::ParseReadme() {
+  const char* error_message = "Unable to find README help file.";
+
   // Get README file
   ozz::io::File file("README", "rb");  // Opens as binary to avoid conversions.
   if (!file.opened()) {
-    help_ = "Unable to find README help file.";
+    help_ = error_message;
     return;
   }
 
-  // Get file length.
-  file.Seek(0, ozz::io::Stream::kEnd);
-  size_t length = file.Tell();
-  file.Seek(0, ozz::io::Stream::kSet);
-
   // Allocate enough space to store the whole file.
+  const size_t read_length = file.Size();
   ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
-  char* content = allocator->Allocate<char>(length);
+  char* content = allocator->Allocate<char>(read_length);
 
   // Read the content
-  if(file.Read(content, length) == length) {
-    help_ = ozz::String::Std(content, content + length);
+  if (file.Read(content, read_length) == read_length) {
+    help_ = ozz::String::Std(content, content + read_length);
   } else {
-    help_ = "Unable to find README help file.";
+    help_ = error_message;
   }
 
   // Deallocate temporary buffer;

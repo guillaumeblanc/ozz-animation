@@ -28,6 +28,8 @@
 #ifndef OZZ_OZZ_BASE_MATHS_INTERNAL_SIMD_MATH_SSE_INL_H_
 #define OZZ_OZZ_BASE_MATHS_INTERNAL_SIMD_MATH_SSE_INL_H_
 
+// SIMD SSE2+ implementation, based on scalar floats.
+
 #include <cassert>
 #include <stdint.h>
 
@@ -504,6 +506,24 @@ OZZ_INLINE SimdFloat4 Length4(_SimdFloat4 _v) {
   return _mm_move_ss(_v, _mm_sqrt_ss(sq_len));
 }
 
+OZZ_INLINE SimdFloat4 Length2Sqr(_SimdFloat4 _v) {
+  __m128 sq_len;
+  OZZ_SSE_DOT2_F(_v, _v, sq_len);
+  return _mm_move_ss(_v, sq_len);
+}
+
+OZZ_INLINE SimdFloat4 Length3Sqr(_SimdFloat4 _v) {
+  __m128 sq_len;
+  OZZ_SSE_DOT3_F(_v, _v, sq_len);
+  return _mm_move_ss(_v, sq_len);
+}
+
+OZZ_INLINE SimdFloat4 Length4Sqr(_SimdFloat4 _v) {
+  __m128 sq_len;
+  OZZ_SSE_DOT4_F(_v, _v, sq_len);
+  return _mm_move_ss(_v, sq_len);
+}
+
 OZZ_INLINE SimdFloat4 Normalize2(_SimdFloat4 _v) {
   __m128 sq_len;
   OZZ_SSE_DOT2_F(_v, _v, sq_len);
@@ -753,6 +773,18 @@ OZZ_INLINE SimdInt4 CmpGt(_SimdFloat4 _a, _SimdFloat4 _b) {
 
 OZZ_INLINE SimdInt4 CmpGe(_SimdFloat4 _a, _SimdFloat4 _b) {
   return _mm_castps_si128(_mm_cmpge_ps(_a, _b));
+}
+
+OZZ_INLINE SimdFloat4 And(_SimdFloat4 _a, _SimdFloat4 _b) {
+  return _mm_and_ps(_a, _b);
+}
+
+OZZ_INLINE SimdFloat4 Or(_SimdFloat4 _a, _SimdFloat4 _b) {
+  return _mm_or_ps(_a, _b);
+}
+
+OZZ_INLINE SimdFloat4 Xor(_SimdFloat4 _a, _SimdFloat4 _b) {
+  return _mm_xor_ps(_a, _b);
 }
 
 OZZ_INLINE SimdFloat4 And(_SimdFloat4 _a, _SimdInt4 _b) {

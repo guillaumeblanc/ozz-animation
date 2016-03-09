@@ -36,6 +36,7 @@
 
 void TestStream(ozz::io::Stream* _stream) {
   ASSERT_TRUE(_stream->opened());
+  EXPECT_EQ(_stream->Size(), 0u);
   EXPECT_EQ(_stream->Seek(0, ozz::io::Stream::kSet), 0);
   EXPECT_EQ(_stream->Tell(), 0);
   typedef int Type;
@@ -44,16 +45,19 @@ void TestStream(ozz::io::Stream* _stream) {
   EXPECT_EQ(_stream->Tell(), static_cast<int>(sizeof(Type)));
   EXPECT_EQ(_stream->Seek(0, ozz::io::Stream::kSet), 0);
   EXPECT_EQ(_stream->Tell(), 0);
+  EXPECT_EQ(_stream->Size(), sizeof(Type));
   Type to_read = 0;
   EXPECT_EQ(_stream->Read(&to_read, sizeof(Type)), sizeof(Type));
   EXPECT_EQ(to_read, to_write);
   EXPECT_EQ(_stream->Tell(), static_cast<int>(sizeof(Type)));
+  EXPECT_EQ(_stream->Size(), sizeof(Type));
 }
 
 void TestSeek(ozz::io::Stream* _stream) {
   ASSERT_TRUE(_stream->opened());
   EXPECT_EQ(_stream->Seek(0, ozz::io::Stream::kSet), 0);
   EXPECT_EQ(_stream->Tell(), 0);
+  EXPECT_EQ(_stream->Size(), 0u);
 
   // Seeking before file's begin.
   EXPECT_NE(_stream->Seek(-1, ozz::io::Stream::kSet), 0);
@@ -62,29 +66,35 @@ void TestSeek(ozz::io::Stream* _stream) {
   EXPECT_EQ(_stream->Tell(), 0);
   EXPECT_NE(_stream->Seek(-1, ozz::io::Stream::kEnd), 0);
   EXPECT_EQ(_stream->Tell(), 0);
+  EXPECT_EQ(_stream->Size(), 0u);
 
   // Bad seek argument.
   EXPECT_EQ(_stream->Seek(46, ozz::io::Stream::Origin(27)), -1);
   EXPECT_EQ(_stream->Tell(), 0);
+  EXPECT_EQ(_stream->Size(), 0u);
 
   typedef int Type;
   const Type to_write = 46;
   EXPECT_EQ(_stream->Write(&to_write, sizeof(Type)), sizeof(Type));
   EXPECT_EQ(_stream->Tell(), static_cast<int>(sizeof(Type)));
+  EXPECT_EQ(_stream->Size(), sizeof(Type));
 
   const int64_t kEnd = 465827;
   // Force file length to kEnd but do not write to the stream.
   EXPECT_EQ(_stream->Seek(kEnd - _stream->Tell(),
                           ozz::io::Stream::kCurrent), 0);
   EXPECT_EQ(_stream->Tell(), kEnd);
+  EXPECT_EQ(_stream->Size(), sizeof(Type));
 
   Type to_read = 0;
   EXPECT_EQ(_stream->Seek(0, ozz::io::Stream::kSet), 0);
+  EXPECT_EQ(_stream->Size(), sizeof(Type));
   EXPECT_EQ(_stream->Read(&to_read, sizeof(Type)), sizeof(Type));
   EXPECT_EQ(to_read, to_write);
   EXPECT_EQ(_stream->Tell(), static_cast<int>(sizeof(Type)));
   EXPECT_EQ(_stream->Read(&to_read, sizeof(Type)), 0u);
   EXPECT_EQ(_stream->Tell(), static_cast<int>(sizeof(Type)));
+  EXPECT_EQ(_stream->Size(), sizeof(Type));
 
   // Force file length to kEnd + sizeof(Type) and write to the stream.
   EXPECT_EQ(_stream->Seek(
@@ -119,6 +129,7 @@ void TestSeek(ozz::io::Stream* _stream) {
   EXPECT_EQ(_stream->Tell(), kEnd + 4);
   EXPECT_EQ(_stream->Read(&to_read, sizeof(Type)), 0u);
   EXPECT_EQ(_stream->Tell(), kEnd + 4);
+  EXPECT_EQ(_stream->Size(), static_cast<size_t>(kEnd));
 }
 
 void TestTooBigStream(ozz::io::Stream* _stream) {
@@ -130,8 +141,10 @@ void TestTooBigStream(ozz::io::Stream* _stream) {
   // Seeks outside of Stream valid range.
   EXPECT_EQ(_stream->Seek(max_size, ozz::io::Stream::kCurrent), 0);
   EXPECT_EQ(_stream->Tell(), max_size);
+  EXPECT_EQ(_stream->Size(), 0u);
   EXPECT_NE(_stream->Seek(max_size, ozz::io::Stream::kCurrent), 0);
   EXPECT_EQ(_stream->Tell(), max_size);
+  EXPECT_EQ(_stream->Size(), 0u);
 
   // Writes/Reads outside of Stream valid range.
   EXPECT_EQ(_stream->Seek(1, ozz::io::Stream::kSet), 0);
@@ -139,21 +152,7 @@ void TestTooBigStream(ozz::io::Stream* _stream) {
   char c;
   EXPECT_EQ(_stream->Write(&c, max_size), 0u);
   EXPECT_EQ(_stream->Read(&c, max_size), 0u);
-}
-
-TEST(MemoryStream, Stream) {
-  {
-    ozz::io::MemoryStream stream;
-    TestStream(&stream);
-  }
-  {
-    ozz::io::MemoryStream stream;
-    TestSeek(&stream);
-  }
-  {
-    ozz::io::MemoryStream stream;
-    TestTooBigStream(&stream);
-  }
+  EXPECT_EQ(_stream->Size(), 0u);
 }
 
 TEST(File, Stream) {
@@ -164,5 +163,20 @@ TEST(File, Stream) {
   {
     ozz::io::File file("test.bin", "w+t");
     TestSeek(&file);
+  }
+}
+
+TEST(MemoryStream, Stream) {
+    {
+      ozz::io::MemoryStream stream;
+      TestStream(&stream);
+    }
+  {
+    ozz::io::MemoryStream stream;
+    TestSeek(&stream);
+  }
+  {
+    ozz::io::MemoryStream stream;
+    TestTooBigStream(&stream);
   }
 }

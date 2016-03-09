@@ -1,7 +1,7 @@
 URL: http://code.google.com/p/googletest/
-Version: 1.5.0
-         (Downloaded gtest-1.5.0.zip 
-          from http://code.google.com/p/googletest/downloads/list)
+Version: 1.7.0
+         (Downloaded gtest-1.7.0.zip 
+          from https://github.com/google/googletest)
 License: BSD
          Note: gtest was developed by Google, and Google holds the
          copyright.  Any contributions accepted from non-Google employees were
@@ -12,8 +12,9 @@ License File: COPYING (but see above)
 Description: gtest is an open-source unit test framework.
 
 Local Modifications:
-- Extracted include and source files from glfw package.
-- Striped from unsued files and only kept the "fused-src" files.
+- Extracted include and source files from gtest package.
+- Striped from unsued files and only kept the fused files.
 - Added CMakeLists.txt build file.
-- Removed std::cout trace for gtest main.
-- Disables tr1/tuple if GTEST_HAS_TR1_TUPLE is not already specified.
+- Removed printf trace for gtest main.
+- Disables tr1/tuple with GTEST_HAS_TR1_TUPLE macro definition.
+- Fixes build warnings.

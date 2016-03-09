@@ -52,7 +52,8 @@ struct BlendingJob {
 
   // Validates job parameters.
   // Returns true for a valid job, false otherwise:
-  // -if layer range is not valid.
+  // -if layer range is not valid (can be empty though).
+  // -if additive layer range is not valid (can be empty though).
   // -if any layer is not valid.
   // -if output range is not valid.
   // -if any buffer (including layers' content : transform, joint weights...) is
@@ -106,9 +107,13 @@ struct BlendingJob {
   // Must be greater than 0.f.
   float threshold;
 
-  // Job input layers.
+  // Job input layers, can be empty or NULL.
   // The range of layers that must be blended.
   Range<const Layer> layers;
+
+  // Job input additive layers, can be empty or NULL.
+  // The range of layers that must be added to the output.
+  Range<const Layer> additive_layers;
 
   // The skeleton bind pose. The size of this buffer defines the number of
   // transforms to blend. This is the reference because this buffer is defined

@@ -15,9 +15,7 @@ add_custom_command(
     "--skeleton=${CMAKE_CURRENT_BINARY_DIR}/media/skeleton.ozz"
   COMMAND dae2anim
     "--raw"
-    "--translation=0"
-    "--rotation=0"
-    "--scale=0"
+    "--nooptimize"
     "--file=${ozz_media_directory}/collada/alain/atlas.dae"
     "--skeleton=${CMAKE_CURRENT_BINARY_DIR}/media/skeleton.ozz"
     "--animation=${CMAKE_CURRENT_BINARY_DIR}/media/raw_animation.ozz")
@@ -29,37 +27,20 @@ add_executable(sample_optimize
   "${CMAKE_CURRENT_BINARY_DIR}/media/raw_animation.ozz")
 
 target_link_libraries(sample_optimize
-  sample_framework
   ozz_animation_offline
-  ozz_animation
-  ozz_options
-  ozz_base)
+  sample_framework)
 
 set_target_properties(sample_optimize
   PROPERTIES FOLDER "samples")
 
 if(EMSCRIPTEN)
   # Resource files are embedded to the output file with emscripten.
-  # Also this sample needs more memory to parse the xml.
   set_target_properties(sample_optimize
-    PROPERTIES LINK_FLAGS "--embed-file media --embed-file README")
-    
-  # Builds the google gadget file
-  add_custom_target(sample_optimize_gadget ALL
-    DEPENDS
-      "${CMAKE_SOURCE_DIR}/samples/framework/gadget.cmake"
-      "${CMAKE_SOURCE_DIR}/samples/framework/gadget.xml.in"
-      "${CMAKE_CURRENT_BINARY_DIR}/sample_optimize.js"
-    COMMAND ${CMAKE_COMMAND}
-      -DOZZ_INPUT_JS="${CMAKE_CURRENT_BINARY_DIR}/sample_optimize.js"
-      -DOZZ_OUTPUT_XML="${CMAKE_CURRENT_BINARY_DIR}/sample_optimize.xml"
-      -P "${CMAKE_SOURCE_DIR}/samples/framework/gadget.cmake"
-    DEPENDS sample_optimize)
+    PROPERTIES LINK_FLAGS "--embed-file media --embed-file README --memory-init-file 0")
 
   install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/sample_optimize.html
     ${CMAKE_CURRENT_BINARY_DIR}/sample_optimize.js
-    ${CMAKE_CURRENT_BINARY_DIR}/sample_optimize.xml
     DESTINATION bin/samples/optimize)
 else()
   install(TARGETS sample_optimize DESTINATION bin/samples/optimize)

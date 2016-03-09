@@ -55,23 +55,17 @@ bool ExtractAnimation(FbxSceneLoader* _scene_loader,
   scene->SetCurrentAnimationStack(anim_stack);
 
   // Extract animation duration.
-  float start, end;
+  FbxTimeSpan time_spawn;
   const FbxTakeInfo* take_info = scene->GetTakeInfo(anim_stack->GetName());
   if (take_info)
   {
-    start = static_cast<float>(
-      take_info->mLocalTimeSpan.GetStart().GetSecondDouble());
-    end = static_cast<float>(
-      take_info->mLocalTimeSpan.GetStop().GetSecondDouble());
+    time_spawn = take_info->mLocalTimeSpan;
+  } else {
+    scene->GetGlobalSettings().GetTimelineDefaultTimeSpan(time_spawn);
   }
-  else
-  {
-    // Take the time line value.
-    FbxTimeSpan lTimeLineTimeSpan;
-    scene->GetGlobalSettings().GetTimelineDefaultTimeSpan(lTimeLineTimeSpan);
-    start = static_cast<float>(lTimeLineTimeSpan.GetStart().GetSecondDouble());
-    end = static_cast<float>(lTimeLineTimeSpan.GetStop().GetSecondDouble());
-  }
+
+  float start = static_cast<float>(time_spawn.GetStart().GetSecondDouble());
+  float end = static_cast<float>(time_spawn.GetStop().GetSecondDouble());
 
   // Animation duration could be 0 if it's just a pose. In this case we'll set a
   // default 1s duration.
@@ -102,7 +96,7 @@ bool ExtractAnimation(FbxSceneLoader* _scene_loader,
 
       // Get joint's bind pose.
       const ozz::math::Transform& bind_pose =
-        ozz::animation::GetJointBindPose(_skeleton, i);
+        ozz::animation::GetJointLocalBindPose(_skeleton, i);
 
       const RawAnimation::TranslationKey tkey = {0.f, bind_pose.translation};
       track.translations.push_back(tkey);

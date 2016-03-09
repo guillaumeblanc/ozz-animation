@@ -124,6 +124,10 @@ TEST(Compare, Quaternion) {
     Quaternion::identity(),
     Quaternion::FromEuler(Float3(0.f, 0.f, ozz::math::kPi / 100.f)),
     ozz::math::kPi / 50.f));
+  EXPECT_TRUE(Compare(
+    Quaternion::identity(),
+    -Quaternion::FromEuler(Float3(0.f, 0.f, ozz::math::kPi / 100.f)),
+    ozz::math::kPi / 50.f));
   EXPECT_FALSE(Compare(
     Quaternion::identity(),
     Quaternion::FromEuler(Float3(0.f, 0.f, ozz::math::kPi / 100.f)),

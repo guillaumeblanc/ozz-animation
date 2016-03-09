@@ -42,8 +42,8 @@ private:
     if (file.opened()) {
       char buffer[256];
       const char good_content[] = "good content";
-      file.Read(buffer, sizeof(buffer));
-      if (memcmp(buffer, good_content, sizeof(good_content) - 1) == 0) {
+      if (file.Read(buffer, sizeof(buffer)) >= sizeof(good_content) - 1 &&
+          memcmp(buffer, good_content, sizeof(good_content) - 1) == 0) {
         return true;
       }
     }
