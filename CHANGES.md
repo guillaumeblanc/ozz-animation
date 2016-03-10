@@ -11,9 +11,12 @@ Release version 0.8.0
 
 * Build pipeline
   - Adds c++11 build option for gcc/clang compilers. Use cmake ozz_build_cpp11 option.
-  - Automatically detects SIMD implementation based on compiler settings. SSE2 implementation is automatically enabled on x64/amd64 targets, or if /arch:SSE2 is selected on MSVC/x86 builds. One could use ozz_build_simd_ref cmake option (OZZ_BUILD_SIMD_REF preprocessor directive) to bypass detection and force reference (aka scalar) implementation. OZZ_HAS_SSE2 is now deprecated. 
+  - Automatically detects SIMD implementation based on compiler settings. SSE2 implementation is automatically enabled on x64/amd64 targets, or if /arch:SSE2 is selected on MSVC/x86 builds. One could use ozz_build_simd_ref cmake option (OZZ_BUILD_SIMD_REF preprocessor directive) to bypass detection and force reference (aka scalar) implementation. OZZ_HAS_SSE2 is now deprecated.
+  - Fixes #3 gcc5 warnings with simd math reference implementation.
+  - Fixes #6 by updating to gtest 1.70 to support new platforms (FreeBSD...).
   - Adds Microsoft Visual Studio 14 2015 support.
   - Adds emscripten 1.35 support.
+  - Integrate Coverity static analysis (https://scan.coverity.com/projects/guillaumeblanc-ozz-animation).
 
 * Samples
   - [additive] Adds an additive blending sample which demonstrates the new additive layers available through the ozz::animation::BlendingJob.
@@ -84,7 +87,7 @@ Release version 0.5.0
   - [offline] Moves RawAnimation and RawSkeleton from the builder files to raw_animation.h and raw_skeleton.h files.
   - [offline] Renames skeleton_serialize.h and animation_serialize.h to skeleton_archive.h and animation_archive.h for consistency.
   - [offline] Adds RawAnimation and RawSkeleton serialization support with ozz archives.
-  - [options] Changes parser command line arguments type from "const char**" to "const char* const*" in order to support implicit casting from arguments of type "char**".
+  - [options] Changes parser command line arguments type to "const char* const*" in order to support implicit casting from arguments of type "char**".
   - [base] Change ozz::String std redirection from typedef to struct to be coherent with all other std containers redirection.
   - [base] Moves maths archiving file from ozz/base/io to ozz/base/maths for consistency.
   - [base] Adds containers serialization support with ozz archives.

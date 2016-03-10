@@ -194,7 +194,7 @@ namespace {
   _out.scale = _out.scale * rcp_scale; \
 }
 
-// Defines parameters that are exchanged across blending stages.
+// Defines parameters that are passed through blending stages.
 struct ProcessArgs {
   ProcessArgs(const BlendingJob& _job)
     : job(_job),

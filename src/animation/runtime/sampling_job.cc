@@ -272,9 +272,7 @@ void UpdateSoaRotations(int _num_soa_tracks,
       if (!(outdated & 1)) {
         continue;
       }
-
-      //IACA_VC64_START
-
+      
       const int base = i * 4 * 2;  // * soa size * 2 keys per track
 
       // Decompress left side keyframes and store them in soa structures.
@@ -302,8 +300,6 @@ void UpdateSoaRotations(int _num_soa_tracks,
         math::SoaQuaternion& quat = _soa_rotations[i].value[1];
         DECOMPRESS_SOA_QUAT(k0, k1, k2, k3, quat);
       }
-
-      //IACA_VC64_END
     }
   }
 }

@@ -613,7 +613,6 @@ TEST(Half, ozz_simd_math) {
   EXPECT_FALSE(ozz::math::HalfToFloat(0x7e00) == ozz::math::HalfToFloat(0x7e00));
 
   // Random tries in range [10e-4,10e4].
-  srand(0);
   for (float pow = -4.f; pow <= 4.f; pow += 1.f) {
     const float max = powf(10.f, pow);
     // Expect a 1/1000 precision over floats.
@@ -621,9 +620,8 @@ TEST(Half, ozz_simd_math) {
 
     const int n = 1000;
     for (int i = 0; i < n; ++i) {
-      const float frand_m1_1 =
-        static_cast <float>(rand()) / static_cast <float>(RAND_MAX / 2) - 1.f;
-      const float frand = frand_m1_1 * max;
+      const float frand = max * (2.f * i / n - 1.f);
+
       const uint16_t h = ozz::math::FloatToHalf(frand);
       const float f = ozz::math::HalfToFloat(h);
       EXPECT_NEAR(frand, f, precision);
@@ -679,12 +677,12 @@ TEST(SimdHalf, ozz_simd_math) {
 
     const int n = 1000;
     for (int i = 0; i < n; ++i) {
-      const SimdFloat4 frand_m1_1 = ozz::math::simd_float4::Load(
-        static_cast <float>(rand()) / static_cast <float>(RAND_MAX / 2) - 1.f,
-        static_cast <float>(rand()) / static_cast <float>(RAND_MAX / 2) - 1.f,
-        static_cast <float>(rand()) / static_cast <float>(RAND_MAX / 2) - 1.f,
-        static_cast <float>(rand()) / static_cast <float>(RAND_MAX / 2) - 1.f);
-      const SimdFloat4 frand = frand_m1_1 * ozz::math::simd_float4::LoadX(max);
+      const SimdFloat4 frand = ozz::math::simd_float4::Load(
+        max * (.5f * i / n - .25f),
+        max * (1.f * i / n - .5f),
+        max * (1.5f * i / n - .75f),
+        max * (2.f * i / n - 1.f));
+
       const SimdInt4 h = ozz::math::FloatToHalf(frand);
       const SimdFloat4 f = ozz::math::HalfToFloat(h);
 

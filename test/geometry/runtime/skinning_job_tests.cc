@@ -1148,15 +1148,17 @@ TEST(Benchmark, SkinningJob) {
   for (int i = 0; i < vertex_count; ++i) {
     BenchVertexIn& vertex = in_vertices[i];
     for (size_t j = 0; j < OZZ_ARRAY_SIZE(vertex.indices); ++j) {
-      vertex.indices[j] = rand() % joint_count;
+      vertex.indices[j] = j % joint_count;
     }
     for (size_t j = 0; j < OZZ_ARRAY_SIZE(vertex.weights); ++j) {
-      vertex.weights[j] = static_cast<float>(rand()) / RAND_MAX;
+      vertex.weights[j] = 1.f;
     }
+
+    const float cpnt = std::sqrt(1.f / 3.f);
     for (int j = 0; j < 3; ++j) {
-      vertex.pos[j] = static_cast<float>(rand()) / RAND_MAX;
-      vertex.normals[j] = static_cast<float>(rand()) / RAND_MAX;
-      vertex.tangents[j] = static_cast<float>(rand()) / RAND_MAX;
+      vertex.pos[j] = 2.f * j * i;
+      vertex.normals[j] = cpnt;
+      vertex.tangents[j] = cpnt;
     }
   }
   ozz::Range<BenchVertexOut> out_vertices =

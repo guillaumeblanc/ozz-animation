@@ -211,7 +211,7 @@ TEST(OptionDefault, Options) {
     EXPECT_EQ(ioption, ioption.default_value());
     EXPECT_FALSE(parser.UnregisterOption(&ioption));
     EXPECT_FLOAT_EQ(foption, 46.f);
-    EXPECT_EQ(foption, foption.default_value());
+    EXPECT_FLOAT_EQ(foption, foption.default_value());
     EXPECT_FALSE(parser.UnregisterOption(&foption));
     EXPECT_STREQ(soption, "forty six");
     EXPECT_EQ(soption, soption.default_value());
@@ -297,6 +297,15 @@ TEST(BuiltPath, Options) {
 
     EXPECT_EQ(parser.Parse(argc, argv), ozz::options::kSuccess);
     EXPECT_STREQ(parser.executable_path().c_str(), "dir1/dir2/");
+    EXPECT_STREQ(parser.executable_name(), "test.exe");
+  }
+
+  { // Full path strting with /.
+    const char* argv[] = { "/dir1/dir2/test.exe" };
+    const int argc = OZZ_ARRAY_SIZE(argv);
+
+    EXPECT_EQ(parser.Parse(argc, argv), ozz::options::kSuccess);
+    EXPECT_STREQ(parser.executable_path().c_str(), "/dir1/dir2/");
     EXPECT_STREQ(parser.executable_name(), "test.exe");
   }
 

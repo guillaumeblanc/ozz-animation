@@ -158,7 +158,12 @@ else()
     endif()
 
     # Compiler options
-    set_property(DIRECTORY APPEND PROPERTY COMPILE_OPTIONS "-fprofile-arcs -ftest-coverage")
+    foreach(flag ${cxx_debug_flags})
+      if(NOT ${flag} MATCHES "-fprofile-arcs -ftest-coverage")
+        set(${flag} "${${flag}} -fprofile-arcs -ftest-coverage")
+      endif()
+    endforeach()
+    #set_property(DIRECTORY APPEND PROPERTY COMPILE_OPTIONS "-fprofile-arcs -ftest-coverage")
   endif()
 
 endif()

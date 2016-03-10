@@ -243,8 +243,9 @@ class MultithreadSampleApplication : public ozz::sample::Application {
       character.cache = allocator->
         New<ozz::animation::SamplingCache>(animation_.num_tracks());
 
-      // Initializes controller start time to a random value.
-      character.controller.set_time(animation_.duration() * rand() / RAND_MAX);
+      // Initializes each controller start time to a different value.
+      character.controller.set_time(
+        animation_.duration() * kWidth * c / kMaxCharacters);
 
       character.locals = allocator->
           AllocateRange<ozz::math::SoaTransform>(skeleton_.num_soa_joints());

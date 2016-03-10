@@ -298,7 +298,7 @@ struct ComplianceBegin {
       ++it;
       EXPECT_TRUE(*it == third);
       ++it;
-      EXPECT_TRUE(it == l.end());
+      EXPECT_TRUE(it == r_const_l.end());
     }
 
     l.clear();
@@ -361,7 +361,7 @@ struct ComplianceEnd {
       it--;
       EXPECT_TRUE(*it == second);
       it--;
-      EXPECT_TRUE(*it == first && it == l.begin());
+      EXPECT_TRUE(*it == first && it == r_const_l.begin());
     }
 
     l.clear();
@@ -438,9 +438,9 @@ struct ComplianceIterator {
     EXPECT_TRUE(rcosnt_l1.begin()++ == rcosnt_l1.begin());
     EXPECT_TRUE(++rcosnt_l1.begin() == rcosnt_l1.end());
     EXPECT_TRUE(l1.begin() != rcosnt_l1.end());
-    EXPECT_TRUE(++l1.begin() == rcosnt_l1.end());
-    EXPECT_TRUE(rcosnt_l1.begin() != l1.end());
-    EXPECT_TRUE(++rcosnt_l1.begin() == l1.end());
+    EXPECT_TRUE(++l1.begin() == l1.end());
+    EXPECT_TRUE(l1.begin() != l1.end());
+    EXPECT_TRUE(++l1.begin() == l1.end());
 
     // Dereference iterator
     {

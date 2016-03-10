@@ -64,15 +64,11 @@ char* LoadFileToString(const char* _filename) {
   char* content = NULL;
   io::File file(_filename, "rb");
   if (file.opened()) {
-    // Gets file size.
-    file.Seek(0, io::Stream::kEnd);
-    size_t file_length = file.Tell();
-    file.Seek(0, io::Stream::kSet);
-
     // Allocates and read file.
-    content = memory::default_allocator()->Allocate<char>(file_length + 1);
-    content[file_length] = '\0';
-    if (file.Read(content, file_length) != file_length) {
+    const size_t read_length = file.Size();
+    content = memory::default_allocator()->Allocate<char>(read_length + 1);
+    content[read_length] = '\0';
+    if (file.Read(content, read_length) != read_length) {
       log::Err() << "Failed to read file " << _filename << "." << std::endl;
       memory::default_allocator()->Deallocate(content);
       content = NULL;

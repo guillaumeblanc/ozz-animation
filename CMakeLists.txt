@@ -15,7 +15,7 @@ set(ozz_build_howtos ON CACHE BOOL "Build howtos")
 set(ozz_build_tests ON CACHE BOOL "Build unit tests")
 set(ozz_build_simd_ref OFF CACHE BOOL "Forces SIMD math reference implementation")
 set(ozz_build_cpp11 OFF CACHE BOOL "Enable c++11")
-set(ozz_build_coverage OFF CACHE BOOL "Enable coverage tests")
+set(ozz_build_coverage OFF CACHE BOOL "Enable gcov code coverage")
 
 # Add project execution options
 set(ozz_run_tests_headless ON CACHE BOOL "Run unit tests without rendering")

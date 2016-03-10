@@ -112,7 +112,7 @@ struct BlendingJob {
   Range<const Layer> layers;
 
   // Job input additive layers, can be empty or NULL.
-  // The range of layers that must be added to blended output.
+  // The range of layers that must be added to the output.
   Range<const Layer> additive_layers;
 
   // The skeleton bind pose. The size of this buffer defines the number of

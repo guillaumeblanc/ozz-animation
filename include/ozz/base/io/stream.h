@@ -71,6 +71,9 @@ class Stream {
   // Returns -1 if an error occurs.
   virtual int Tell() const = 0;
 
+  // Returns the current size of the stream.
+  virtual size_t Size() const = 0;
+
  protected:
 
   // Required virtual destructor.
@@ -111,6 +114,9 @@ class File : public Stream {
   // See Stream::Tell for details.
   virtual int Tell() const;
 
+  // See Stream::Tell for details.
+  virtual size_t Size() const;
+
  private:
   // The CRT file pointer.
   void* file_;
@@ -140,6 +146,9 @@ class MemoryStream : public Stream {
 
   // See Stream::Tell for details.
   virtual int Tell() const;
+
+  // See Stream::Tell for details.
+  virtual size_t Size() const;
 
  private:
 

@@ -741,15 +741,15 @@ bool SetupCaches(const Samplers& _samplers, Caches* _caches) {
     bool valid_interpolation = !sampler.interpolation ||
       ((sampler.interpolation->count * sampler.interpolation->stride ==
         sampler.interpolation->values.size()) &&
-      (sampler.interpolation->count == sampler.input->count));
+      (sampler.input && sampler.interpolation->count == sampler.input->count));
     bool valid_in_tangent = !sampler.in_tangent ||
       ((sampler.in_tangent->count * sampler.in_tangent->stride ==
         sampler.in_tangent->values.size()) &&
-      (sampler.in_tangent->count == sampler.output->count));
+      (sampler.output && sampler.in_tangent->count == sampler.output->count));
     bool valid_out_tangent = !sampler.out_tangent ||
       ((sampler.out_tangent->count * sampler.out_tangent->stride ==
         sampler.out_tangent->values.size()) &&
-      (sampler.out_tangent->count == sampler.output->count));
+      (sampler.output && sampler.out_tangent->count == sampler.output->count));
 
     if (!valid_input || !valid_output || !valid_interpolation ||
         !valid_out_tangent || !valid_in_tangent) {

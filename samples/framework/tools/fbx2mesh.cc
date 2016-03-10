@@ -116,6 +116,7 @@ bool BuildVertices(FbxMesh* _fbx_mesh,
 
       // Get control point.
       const int ctrl_point = _fbx_mesh->GetPolygonVertex(p, v);
+      assert(ctrl_point >= 0);
       ControlPointRemap& remap = _remap->at(ctrl_point);
 
       // Get vertex position.

@@ -34,7 +34,7 @@
 
 TEST(EmptyRegistration, Options) {
   { // No argument is specified.
-    const char* argv[] = {testing::internal::GetArgvs()[0].c_str()};
+    const char* argv[] = { "test.exe" };
     const int argc = OZZ_ARRAY_SIZE(argv);
 
     EXPECT_EQ(ozz::options::ParseCommandLine(
@@ -42,8 +42,7 @@ TEST(EmptyRegistration, Options) {
   }
 
   { // An invalid argument is specified.
-    const char* argv[] = {
-      testing::internal::GetArgvs()[0].c_str(), "--something"};
+    const char* argv[] = {"test.exe", "--something"};
     const int argc = OZZ_ARRAY_SIZE(argv);
 
     EXPECT_EQ_LOG(
@@ -55,8 +54,7 @@ TEST(EmptyRegistration, Options) {
 
 TEST(BuiltInEmptyRegistration, Options) {
   { // Built-in version.
-    const char* argv[] = {
-      testing::internal::GetArgvs()[0].c_str(), "--version"};
+    const char* argv[] = { "test.exe", "--version"};
     const int argc = OZZ_ARRAY_SIZE(argv);
 
     EXPECT_EQ_LOG(
@@ -65,7 +63,7 @@ TEST(BuiltInEmptyRegistration, Options) {
       ozz::options::kExitSuccess, std::cout, "1.046");
   }
   { // Built-in help.
-    const char* argv[] = {testing::internal::GetArgvs()[0].c_str(), "--help"};
+    const char* argv[] = { "test.exe", "--help"};
     const int argc = OZZ_ARRAY_SIZE(argv);
 
     EXPECT_EQ_LOG(

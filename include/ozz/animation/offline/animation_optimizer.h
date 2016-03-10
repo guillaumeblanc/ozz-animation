@@ -46,7 +46,8 @@ class AnimationOptimizer {
   // Initializes the optimizer with default tolerances (favoring quality).
   AnimationOptimizer();
 
-  // Optimizes _input using *this parameters.
+  // Optimizes _input using *this parameters. _skeleton is required to evaluate
+  // optimization error along joint hierarchy (see hierarchical_tolerance).
   // Returns true on success and fills _output_animation with the optimized
   // version of _input animation.
   // *_output must be a valid RawAnimation instance.

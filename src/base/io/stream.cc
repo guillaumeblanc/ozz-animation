@@ -88,6 +88,21 @@ int File::Tell() const {
   return std::ftell(file);
 }
 
+size_t File::Size() const {
+  std::FILE* file = reinterpret_cast<std::FILE*>(file_);
+
+  const int current = std::ftell(file);
+  assert(current >= 0);
+  int seek = std::fseek(file, 0, SEEK_END);
+  assert(seek == 0); (void)seek;
+  const int end = std::ftell(file);
+  assert(end >= 0);
+  seek = std::fseek(file, current, SEEK_SET);
+  assert(seek == 0);
+
+  return static_cast<size_t>(end);
+}
+
 // Starts MemoryStream implementation.
 const size_t MemoryStream::kBufferSizeIncrement = 16<<10;
 const size_t MemoryStream::kMaxSize = std::numeric_limits<int>::max();
@@ -175,6 +190,10 @@ int MemoryStream::Seek(int _offset, Origin _origin) {
 
 int MemoryStream::Tell() const {
   return tell_;
+}
+
+size_t MemoryStream::Size() const {
+  return static_cast<size_t>(end_);
 }
 
 bool MemoryStream::Resize(size_t _size) {

@@ -50,26 +50,6 @@ math::Quaternion LerpRotation(const math::Quaternion& _a,
 math::Float3 LerpScale(const math::Float3& _a,
                        const math::Float3& _b,
                        float _alpha);
-
-// Utility function that samples one animation track at t = _time.
-// This function is not intended to be used at runtime, but for rather as a
-// helper for offline tools. Use ozz::animation::SamplingJob to sample
-// runtime animations instead.
-// Return false if animation is invalid, or if track is out of range.
-bool SampleTrack(const RawAnimation& animation,
-                 int _track,
-                 float _time,
-                 math::Transform* _transform);
-
-// Utility function that samples all animation tracks at t = _time.
-// This function is not intended to be used at runtime, but for rather as a
-// helper for offline tools. Use ozz::animation::SamplingJob to sample
-// runtime animations instead.
-// Return false if animation is invalid, or if _transforms size is smaller that
-// the number of tracks.
-bool Sample(const RawAnimation& animation,
-            float _time,
-            Range<math::Transform> _transforms);
 }  // offline
 }  // animation
 }  // ozz

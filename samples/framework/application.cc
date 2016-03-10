@@ -369,9 +369,7 @@ bool Application::Display() {
   }  // Ends profiling.
 
   // Renders grid and axes at the end as they are transparent.
-  GL(DepthMask(GL_FALSE));
-  renderer_->DrawGrid(10, 1.f);
-  GL(DepthMask(GL_TRUE));
+  renderer_->DrawGrid(20, 1.f);
   renderer_->DrawAxes(ozz::math::Float4x4::identity());
 
   // Bind 2D camera matrices.
@@ -667,27 +665,25 @@ int Application::CloseCbk() {
 }
 
 void Application::ParseReadme() {
+  const char* error_message = "Unable to find README help file.";
+
   // Get README file
   ozz::io::File file("README", "rb");  // Opens as binary to avoid conversions.
   if (!file.opened()) {
-    help_ = "Unable to find README help file.";
+    help_ = error_message;
     return;
   }
 
-  // Get file length.
-  file.Seek(0, ozz::io::Stream::kEnd);
-  size_t length = file.Tell();
-  file.Seek(0, ozz::io::Stream::kSet);
-
   // Allocate enough space to store the whole file.
+  const size_t read_length = file.Size();
   ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
-  char* content = allocator->Allocate<char>(length);
+  char* content = allocator->Allocate<char>(read_length);
 
   // Read the content
-  if(file.Read(content, length) == length) {
-    help_ = ozz::String::Std(content, content + length);
+  if (file.Read(content, read_length) == read_length) {
+    help_ = ozz::String::Std(content, content + read_length);
   } else {
-    help_ = "Unable to find README help file.";
+    help_ = error_message;
   }
 
   // Deallocate temporary buffer;
