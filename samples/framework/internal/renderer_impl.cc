@@ -171,16 +171,36 @@ void RendererImpl::DrawGrid(int _cell_count, float _cell_size) {
   const float half_extent = extent * 0.5f;
   const ozz::math::Float3 corner(-half_extent, 0, -half_extent);
 
+  GL(DepthMask(GL_FALSE));
   GL(Enable(GL_BLEND));
   GL(BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
-
-  { // Draws lines as masks in the z buffer.
+  GL(Disable(GL_CULL_FACE));
+  {
     GlImmediatePC im(immediate_renderer(),
-      GL_LINES,
-      ozz::math::Float4x4::identity());
+                     GL_TRIANGLE_STRIP,
+                     ozz::math::Float4x4::identity());
+    GlImmediatePC::Vertex v = {{0.f, 0.f, 0.f}, {0x80, 0xc0, 0xd0, 0xb0}};
+
+    v.pos[0] = corner.x; v.pos[1] = corner.y; v.pos[2] = corner.z;
+    im.PushVertex(v);
+    v.pos[2] = corner.z + extent;
+    im.PushVertex(v);
+    v.pos[0] = corner.x + extent; v.pos[2] = corner.z;
+    im.PushVertex(v);
+    v.pos[2] = corner.z + extent;
+    im.PushVertex(v);
+  }
+
+  GL(Disable(GL_BLEND));
+  GL(Enable(GL_CULL_FACE));
+
+  {
+    GlImmediatePC im(immediate_renderer(),
+                     GL_LINES,
+                     ozz::math::Float4x4::identity());
 
     // Renders lines along X axis.
-    GlImmediatePC::Vertex begin = {{corner.x, corner.y, corner.z}, {0x00, 0x00, 0x00, 0x00}};
+    GlImmediatePC::Vertex begin = {{corner.x, corner.y, corner.z}, {0x54, 0x55, 0x50, 0xff}};
     GlImmediatePC::Vertex end = begin; end.pos[0] += extent;
     for (int i = 0; i < _cell_count + 1; ++i) {
       im.PushVertex(begin);
@@ -199,27 +219,7 @@ void RendererImpl::DrawGrid(int _cell_count, float _cell_size) {
     }
   }
 
-  GL(DepthMask(GL_FALSE));
-  GL(Disable(GL_CULL_FACE));
-
-  { // Draws floor
-    GlImmediatePC im(immediate_renderer(),
-                     GL_TRIANGLE_STRIP,
-                     ozz::math::Float4x4::identity());
-    GlImmediatePC::Vertex v = {{0.f, 0.f, 0.f}, {0x80, 0xc0, 0xd0, 0xb0}};
-
-    v.pos[0] = corner.x; v.pos[1] = corner.y; v.pos[2] = corner.z;
-    im.PushVertex(v);
-    v.pos[2] = corner.z + extent;
-    im.PushVertex(v);
-    v.pos[0] = corner.x + extent; v.pos[2] = corner.z;
-    im.PushVertex(v);
-    v.pos[2] = corner.z + extent;
-    im.PushVertex(v);
-  }
   GL(DepthMask(GL_TRUE));
-  GL(Disable(GL_BLEND));
-  GL(Enable(GL_CULL_FACE));
 }
 
 // Computes the model space bind pose and renders it.
