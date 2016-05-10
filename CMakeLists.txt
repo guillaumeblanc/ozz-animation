@@ -10,7 +10,7 @@ set(CPACK_PACKAGE_VERSION_PATCH 0)
 
 # Add project build options
 set(ozz_build_fbx ON CACHE BOOL "Build Fbx pipeline (Requires Fbx SDK)")
-set(ozz_build_samples ON CACHE BOOL "Build samples")
+set(ozz_build_samples OFF CACHE BOOL "Build samples")
 set(ozz_build_howtos ON CACHE BOOL "Build howtos")
 set(ozz_build_tests ON CACHE BOOL "Build unit tests")
 set(ozz_build_simd_ref OFF CACHE BOOL "Forces SIMD math reference implementation")

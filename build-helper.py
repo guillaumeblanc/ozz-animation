@@ -117,8 +117,6 @@ def ConfigureCC():
 
   options += ['-D', 'CMAKE_BUILD_TYPE=' + config]
   options += ['-D', 'CMAKE_TOOLCHAIN_FILE=' + emscripten_path + '/cmake/Modules/Platform/Emscripten.cmake']
-  options += ['-D', 'dae2anim_DIR=' + build_dir]
-  options += ['-D', 'dae2skel_DIR=' + build_dir]
 
   options += ['-G', 'MinGW Makefiles']
   options += [root]
