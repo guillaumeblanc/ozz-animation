@@ -18,7 +18,7 @@ set(ozz_build_cpp11 OFF CACHE BOOL "Enable c++11")
 set(ozz_build_coverage OFF CACHE BOOL "Enable gcov code coverage")
 
 # Add project execution options
-set(ozz_run_tests_headless ON CACHE BOOL "Run unit tests without rendering")
+set(ozz_run_tests_headless ON CACHE BOOL "Run samples without rendering (used for unit tests)")
 
 # Set compiler flags and options
 include(build-utils/cmake/compiler_settings.cmake)
