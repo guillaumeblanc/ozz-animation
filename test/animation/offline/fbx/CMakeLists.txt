@@ -11,6 +11,10 @@ set_tests_properties(fbx2skel_badcontent PROPERTIES WILL_FAIL true)
 add_test(NAME fbx2skel_no_skeleton COMMAND fbx2skel "--file=${ozz_media_directory}/fbx/cube.fbx" "--skeleton=${ozz_temp_directory}/fbx_should_not_exist.ozz")
 set_tests_properties(fbx2skel_no_skeleton PROPERTIES WILL_FAIL true)
 
+# Run fbx2skel collada failing tests
+add_test(NAME fbx2skel_no_skeleton_dae COMMAND fbx2skel "--file=${ozz_media_directory}/collada/cube.dae" "--skeleton=${ozz_temp_directory}/fbx_should_not_exist.ozz")
+set_tests_properties(fbx2skel_no_skeleton_dae PROPERTIES WILL_FAIL true)
+
 # Ensures nothing was outputted. Unfortunately there's no way to ensure this test is ran last
 add_test(NAME fbx2skel_ouput COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/fbx_should_not_exist.ozz" "${ozz_temp_directory}/fbx_should_not_exist_too.ozz")
 set_tests_properties(fbx2skel_ouput PROPERTIES WILL_FAIL true)
@@ -21,6 +25,11 @@ add_test(NAME fbx2skel_simple_raw COMMAND fbx2skel "--raw" "--file=${ozz_media_d
 add_test(NAME fbx2skel_native COMMAND fbx2skel "--file=${ozz_media_directory}/fbx/alain/skeleton.fbx" "--skeleton=${ozz_temp_directory}/skeleton_native.ozz" "--endian=native")
 add_test(NAME fbx2skel_little COMMAND fbx2skel "--file=${ozz_media_directory}/fbx/alain/skeleton.fbx" "--skeleton=${ozz_temp_directory}/skeleton_little.ozz" "--endian=little")
 add_test(NAME fbx2skel_big COMMAND fbx2skel "--file=${ozz_media_directory}/fbx/alain/skeleton.fbx" "--skeleton=${ozz_temp_directory}/skeleton_big.ozz" "--endian=big")
+
+# Run fbx2skel collada passing tests
+add_test(NAME fbx2skel_simple_dae_astro_max COMMAND fbx2skel "--file=${ozz_media_directory}/collada/astro_max.dae" "--skeleton=${ozz_temp_directory}/astro_max_skeleton.ozz")
+add_test(NAME fbx2skel_simple_dae_astro_maya COMMAND fbx2skel "--file=${ozz_media_directory}/collada/astro_maya.dae" "--skeleton=${ozz_temp_directory}/astro_maya_skeleton.ozz")
+add_test(NAME fbx2skel_simple_dae_seymour COMMAND fbx2skel "--file=${ozz_media_directory}/collada/seymour.dae" "--skeleton=${ozz_temp_directory}/seymour_skeleton.ozz")
 
 # Run fbx2anim failing tests
 add_test(NAME fbx2anim_badcontent COMMAND fbx2anim "--file=${ozz_temp_directory}/content.bad" "--skeleton=${ozz_temp_directory}/fbx_skeleton.ozz" "--animation=${ozz_temp_directory}/fbx_should_not_exist.ozz")
@@ -46,3 +55,11 @@ add_test(NAME fbx2anim_little COMMAND fbx2anim "--file=${ozz_media_directory}/fb
 set_tests_properties(fbx2anim_little PROPERTIES DEPENDS fbx2skel_simple)
 add_test(NAME fbx2anim_big COMMAND fbx2anim "--file=${ozz_media_directory}/fbx/alain/walk.fbx" "--skeleton=${ozz_temp_directory}/fbx_skeleton.ozz" "--animation=${ozz_temp_directory}/fbx_animation_big_${CMAKE_CURRENT_LIST_LINE}.ozz" "--endian=big")
 set_tests_properties(fbx2anim_big PROPERTIES DEPENDS fbx2skel_simple)
+
+# Run fbx2anim collada passing tests
+add_test(NAME fbx2anim_simple_dae_astro_max COMMAND fbx2anim "--file=${ozz_media_directory}/collada/astro_max.dae" "--skeleton=${ozz_temp_directory}/astro_max_skeleton.ozz" "--animation=${ozz_temp_directory}/dae_animation_${CMAKE_CURRENT_LIST_LINE}.ozz")
+set_tests_properties(fbx2anim_simple_dae_astro_max PROPERTIES DEPENDS fbx2skel_simple_dae_astro_max)
+add_test(NAME fbx2anim_simple_dae_astro_maya COMMAND fbx2anim "--file=${ozz_media_directory}/collada/astro_maya.dae" "--skeleton=${ozz_temp_directory}/astro_maya_skeleton.ozz" "--animation=${ozz_temp_directory}/dae_animation_${CMAKE_CURRENT_LIST_LINE}.ozz")
+set_tests_properties(fbx2anim_simple_dae_astro_maya PROPERTIES DEPENDS fbx2skel_simple_dae_astro_maya)
+add_test(NAME fbx2anim_simple_dae_seymour COMMAND fbx2anim "--file=${ozz_media_directory}/collada/seymour.dae" "--skeleton=${ozz_temp_directory}/seymour_skeleton.ozz" "--animation=${ozz_temp_directory}/dae_animation_${CMAKE_CURRENT_LIST_LINE}.ozz")
+set_tests_properties(fbx2anim_simple_dae_seymour PROPERTIES DEPENDS fbx2skel_simple_dae_seymour)
