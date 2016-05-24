@@ -455,6 +455,12 @@ ParseResult Parser::Parse(int _argc, const char* const* _argv) {
   ParseResult result = kSuccess;
   for (int i = 0; i < argc_trunc; ++i) {
     const char* argv = _argv[i];
+    
+    // Empty arguments aren't consider invalid.
+    if (*argv == 0) {
+      continue;
+    }
+    
     int j = 0;
     for (; j < options_count_; ++j) {
       if (options_[j]->Parse(argv)) {
