@@ -45,25 +45,34 @@ namespace internal {
 
 class RendererImpl;
 class ImmediatePCShader;
+class ImmediatePNShader;
 class ImmediatePTCShader;
 
 // Declares supported vertex formats.
 // Position + Color.
 struct VertexPC {
-    float pos[3];
-    GLubyte rgba[4];
+  float pos[3];
+  GLubyte rgba[4];
+};
+
+// Declares supported vertex formats.
+// Position + Normal.
+struct VertexPN {
+  float pos[3];
+  float normal[3];
 };
 
 // Position + Texture coordinate + Color.
 struct VertexPTC {
-    float pos[3];
-    float uv[2];
-    GLubyte rgba[4];
+  float pos[3];
+  float uv[2];
+  GLubyte rgba[4];
 };
 
 // Declares Immediate mode types.
 template<typename _Ty> class GlImmediate;
 typedef GlImmediate<VertexPC> GlImmediatePC;
+typedef GlImmediate<VertexPN> GlImmediatePN;
 typedef GlImmediate<VertexPTC> GlImmediatePTC;
 
 // GL immedialte mode renderer.

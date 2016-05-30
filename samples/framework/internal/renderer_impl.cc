@@ -87,7 +87,8 @@ RendererImpl::RendererImpl(Camera* _camera)
       dynamic_array_bo_(0),
       dynamic_index_bo_(0),
       immediate_(NULL),
-      mesh_shader_(NULL) {
+      ambient_shader(NULL),
+      ambient_shader_instanced(NULL) {
 }
 
 RendererImpl::~RendererImpl() {
@@ -108,9 +109,11 @@ RendererImpl::~RendererImpl() {
   allocator->Delete(immediate_);
   immediate_ = NULL;
 
-  allocator->Delete(mesh_shader_);
-  mesh_shader_ = NULL;
-}
+  allocator->Delete(ambient_shader);
+  ambient_shader = NULL;
+
+  allocator->Delete(ambient_shader_instanced);
+  ambient_shader_instanced = NULL;}
 
 bool RendererImpl::Initialize() {
   if (!InitOpenGLExtensions()) {
@@ -130,10 +133,18 @@ bool RendererImpl::Initialize() {
     return false;
   }
 
-  // Instantiate mesh rendering shader.
-  mesh_shader_ = AmbientShader::Build();
-  if (!mesh_shader_) {
+  // Instantiate ambient rendering shader.
+  ambient_shader = AmbientShader::Build();
+  if (!ambient_shader) {
     return false;
+  }
+
+  // Instantiate instanced ambient rendering shader.
+  if (GL_ARB_instanced_arrays) {
+    ambient_shader_instanced = AmbientShaderInstanced::Build();
+    if (!ambient_shader_instanced) {
+      return false;
+    }
   }
 
   return true;
@@ -562,9 +573,9 @@ bool RendererImpl::DrawPosture(const ozz::animation::Skeleton& _skeleton,
   return true;
 }
 
-bool RendererImpl::DrawBox(const ozz::math::Box& _box,
-                           const ozz::math::Float4x4& _transform,
-                           const Color _colors[2]) {
+bool RendererImpl::DrawBoxIm(const ozz::math::Box& _box,
+                             const ozz::math::Float4x4& _transform,
+                             const Color _colors[2]) {
 
   { // Filled boxed
     GlImmediatePC im(immediate_renderer(), GL_TRIANGLE_STRIP, _transform);
@@ -628,6 +639,105 @@ bool RendererImpl::DrawBox(const ozz::math::Box& _box,
   return true;
 }
 
+bool RendererImpl::DrawBoxShaded(const ozz::math::Box& _box,
+                                 ozz::Range<const ozz::math::Float4x4> _transforms) {
+  // Early out if no instance to render.
+  if (_transforms.Size() == 0) {
+    return true;
+  }
+
+  const math::Float3 pos[8] = {
+    math::Float3(_box.min.x, _box.min.y, _box.min.z),
+    math::Float3(_box.max.x, _box.min.y, _box.min.z),
+    math::Float3(_box.max.x, _box.max.y, _box.min.z),
+    math::Float3(_box.min.x, _box.max.y, _box.min.z),
+    math::Float3(_box.min.x, _box.min.y, _box.max.z),
+    math::Float3(_box.max.x, _box.min.y, _box.max.z),
+    math::Float3(_box.max.x, _box.max.y, _box.max.z),
+    math::Float3(_box.min.x, _box.max.y, _box.max.z)
+  };
+  const math::Float3 normals[6] = {
+    math::Float3(-1,0,0), math::Float3(1,0,0), math::Float3(0,-1,0),
+    math::Float3(0,1,0), math::Float3(0,0,-1), math::Float3(0,0,1)
+  };
+  const Color white = {0xff, 0xff, 0xff, 0xff};
+  const VertexPNC vertices[36] = {
+    {pos[0], normals[4], white}, {pos[3], normals[4], white},
+    {pos[1], normals[4], white}, {pos[3], normals[4], white},
+    {pos[2], normals[4], white}, {pos[1], normals[4], white},
+    {pos[2], normals[3], white}, {pos[3], normals[3], white},
+    {pos[7], normals[3], white}, {pos[7], normals[3], white},
+    {pos[6], normals[3], white}, {pos[2], normals[3], white},
+    {pos[5], normals[5], white}, {pos[6], normals[5], white},
+    {pos[7], normals[5], white}, {pos[5], normals[5], white},
+    {pos[7], normals[5], white}, {pos[4], normals[5], white},
+    {pos[0], normals[2], white}, {pos[1], normals[2], white},
+    {pos[4], normals[2], white}, {pos[4], normals[2], white},
+    {pos[1], normals[2], white}, {pos[5], normals[2], white},
+    {pos[0], normals[0], white}, {pos[4], normals[0], white},
+    {pos[3], normals[0], white}, {pos[4], normals[0], white},
+    {pos[7], normals[0], white}, {pos[3], normals[0], white},
+    {pos[5], normals[1], white}, {pos[1], normals[1], white},
+    {pos[2], normals[1], white}, {pos[5], normals[1], white},
+    {pos[2], normals[1], white}, {pos[6], normals[1], white}
+  };
+
+  const GLsizei stride = sizeof(VertexPNC);
+  const GLsizei positions_offset = 0;
+  const GLsizei normals_offset = positions_offset + sizeof(float) * 3;
+  const GLsizei colors_offset = normals_offset + sizeof(float) * 3;
+
+  if (GL_ARB_instanced_arrays) {
+    // Buffer object will contain vertices and model matrices.
+    const size_t bo_size = sizeof(vertices) + _transforms.Size();
+    GL(BindBuffer(GL_ARRAY_BUFFER, dynamic_array_bo_));
+    GL(BufferData(GL_ARRAY_BUFFER, bo_size, NULL, GL_STREAM_DRAW));
+
+    // Pushes vertices
+    GL(BufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices));
+    // Pushes matrices
+    const size_t models_offset = sizeof(vertices);
+    GL(BufferSubData(GL_ARRAY_BUFFER, models_offset, _transforms.Size(), _transforms.begin));
+
+    ambient_shader_instanced->Bind(models_offset,
+                                   camera()->view_proj(),
+                                   stride, positions_offset,
+                                   stride, normals_offset,
+                                   stride, colors_offset);
+    GL(BindBuffer(GL_ARRAY_BUFFER, 0));
+
+    GL(DrawArraysInstancedARB(GL_TRIANGLES,
+                              0,
+                              OZZ_ARRAY_SIZE(vertices),
+                              static_cast<GLsizei>(_transforms.Count())));
+
+    // Unbinds.
+    ambient_shader_instanced->Unbind();
+  } else {
+    // Reallocate vertex buffer.
+    GL(BindBuffer(GL_ARRAY_BUFFER, dynamic_array_bo_));
+    GL(BufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STREAM_DRAW));
+
+    for (size_t  i = 0; i < _transforms.Count(); i++) {
+      const ozz::math::Float4x4& transform = _transforms[i];
+
+       ambient_shader->Bind(transform,
+                            camera()->view_proj(),
+                            stride, positions_offset,
+                            stride, normals_offset,
+                            stride, colors_offset);
+
+      // Draws the mesh.
+      GL(DrawArrays(GL_TRIANGLES, 0, OZZ_ARRAY_SIZE(vertices)));
+
+      // Unbinds.
+      ambient_shader->Unbind();
+    }
+    GL(BindBuffer(GL_ARRAY_BUFFER, 0));
+  }
+
+  return true;
+}
 namespace {
 const uint8_t kDefaultColorArray[][4] = {
   {255, 255, 255, 255}, {255, 255, 255, 255}, {255, 255, 255, 255},
@@ -756,11 +866,11 @@ bool RendererImpl::DrawMesh(const Mesh& _mesh,
   }
   
   // Binds shader with this array buffer.
-  mesh_shader_->Bind(_transform,
-                     camera()->view_proj(),
-                     positions_stride, positions_offset,
-                     normals_stride, normals_offset,
-                     colors_stride, colors_offset);
+  ambient_shader->Bind(_transform,
+                       camera()->view_proj(),
+                       positions_stride, positions_offset,
+                       normals_stride, normals_offset,
+                       colors_stride, colors_offset);
 
   GL(BindBuffer(GL_ARRAY_BUFFER, 0));
 
@@ -781,7 +891,7 @@ bool RendererImpl::DrawMesh(const Mesh& _mesh,
 
   // Unbinds.
   GL(BindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
-  mesh_shader_->Unbind();
+  ambient_shader->Unbind();
 
   return true;
 }
@@ -920,7 +1030,7 @@ bool RendererImpl::DrawSkinnedMesh(const Mesh& _mesh,
   GL(BufferSubData(GL_ARRAY_BUFFER, 0, vbo_size, vbo_map));
 
   // Binds shader with this array buffer.
-  mesh_shader_->Bind(_transform,
+  ambient_shader->Bind(_transform,
                      camera()->view_proj(),
                      positions_stride, positions_offset,
                      normals_stride, normals_offset,
@@ -945,7 +1055,7 @@ bool RendererImpl::DrawSkinnedMesh(const Mesh& _mesh,
 
   // Unbinds.
   GL(BindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
-  mesh_shader_->Unbind();
+  ambient_shader->Unbind();
 
   return true;
 }

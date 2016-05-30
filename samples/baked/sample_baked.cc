@@ -50,22 +50,20 @@
 OZZ_OPTIONS_DECLARE_STRING(
   skeleton,
   "Path to the skeleton (ozz archive format).",
-  "media/skeleton.ozz",
+  "media/domino_skeleton.ozz",
   false)
 
 // Animation archive can be specified as an option.
 OZZ_OPTIONS_DECLARE_STRING(
   animation,
   "Path to the animation (ozz archive format).",
-  "media/animation.ozz",
+  "media/domino_animation.ozz",
   false)
 
-class AttachSampleApplication : public ozz::sample::Application {
+class BakedSampleApplication : public ozz::sample::Application {
  public:
-  AttachSampleApplication()
-    : cache_(NULL),
-      attachment_(0),
-      offset_(-.02f, .03f, .05f) {
+  BakedSampleApplication()
+    : cache_(NULL) {
   }
 
  protected:
@@ -98,33 +96,15 @@ class AttachSampleApplication : public ozz::sample::Application {
 
   // Samples animation, transforms to model space and renders.
   virtual bool OnDisplay(ozz::sample::Renderer* _renderer) {
-    if (!_renderer->DrawPosture(skeleton_,
-                                models_,
-                                ozz::math::Float4x4::identity())) {
-      return false;
-    }
-
-    // Prepares attached object transformation.
-    // Gets model space transformation of the joint.
-    const ozz::math::Float4x4& joint = models_[attachment_];
-
-    // Builds offset transformation matrix.
-    const ozz::math::SimdFloat4 translation =
-      ozz::math::simd_float4::Load3PtrU(&offset_.x);
-
-    // Concatenates joint and offset transformations.
-    const ozz::math::Float4x4 transform =
-      joint * ozz::math::Float4x4::Translation(translation);
 
     // Prepare rendering.
-    const float thickness = .01f;
-    const float length = .5f;
-    const ozz::math::Box box(ozz::math::Float3(-thickness, -thickness, -length),
-                             ozz::math::Float3(thickness, thickness, 0.f));
-    const ozz::sample::Renderer::Color colors[2] = {
-      {0xff, 0, 0, 0xff}, {0, 0xff, 0, 0xff}};
+    const float x = .5f;
+    const float y = .5f;
+    const float z = .5f;
+    const ozz::math::Box box(ozz::math::Float3(-x, -y, -z),
+                              ozz::math::Float3(x, y, z));
 
-    return _renderer->DrawBoxIm(box, transform, colors);
+    return _renderer->DrawBoxShaded(box, models_);
   }
 
   virtual bool OnInitialize() {
@@ -149,14 +129,6 @@ class AttachSampleApplication : public ozz::sample::Application {
     // Allocates a cache that matches animation requirements.
     cache_ = allocator->New<ozz::animation::SamplingCache>(num_joints);
 
-    // Finds the joint where the object should be attached.
-    for (int i = 0; i < num_joints; i++) {
-      if (std::strstr(skeleton_.joint_names()[i], "LeftHandMiddle")) {
-        attachment_ = i;
-        break;
-      }
-    }
-
     return true;
   }
 
@@ -174,30 +146,6 @@ class AttachSampleApplication : public ozz::sample::Application {
       ozz::sample::ImGui::OpenClose oc(_im_gui, "Animation control", &open);
       if (open) {
         controller_.OnGui(animation_, _im_gui);
-      }
-    }
-
-    // Exposes selection of the attachment joint.
-    {
-      static bool open = true;
-      ozz::sample::ImGui::OpenClose oc(_im_gui, "Attachment joint", &open);
-      if (open && skeleton_.num_joints() != 0) {
-        _im_gui->DoLabel("Select joint:");
-        char label[64];
-        std::sprintf(label, "%s (%d)",
-                     skeleton_.joint_names()[attachment_],
-                     attachment_);
-        _im_gui->DoSlider(label,
-                          0, skeleton_.num_joints() - 1,
-                          &attachment_);
-
-        _im_gui->DoLabel("Attachment offset:");
-        sprintf(label, "x: %02f", offset_.x);
-        _im_gui->DoSlider(label, -1.f, 1.f, &offset_.x);
-        sprintf(label, "y: %02f", offset_.y);
-        _im_gui->DoSlider(label, -1.f, 1.f, &offset_.y);
-        sprintf(label, "z: %02f", offset_.z);
-        _im_gui->DoSlider(label, -1.f, 1.f, &offset_.z);
       }
     }
 
@@ -228,16 +176,10 @@ class AttachSampleApplication : public ozz::sample::Application {
 
   // Buffer of model space matrices.
   ozz::Range<ozz::math::Float4x4> models_;
-
-  // Joint where the object is attached.
-  int attachment_;
-
-  // Offset, translation of the attached object from the joint.
-  ozz::math::Float3 offset_;
 };
 
 int main(int _argc, const char** _argv) {
   const char* title =
-    "Ozz-animation sample: Attachment to animated skeleton joints";
-  return AttachSampleApplication().Run(_argc, _argv, "1.0", title);
+    "Ozz-animation sample: Attachment 2";
+  return BakedSampleApplication().Run(_argc, _argv, "1.0", title);
 }

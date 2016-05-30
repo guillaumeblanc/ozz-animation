@@ -203,6 +203,27 @@ public:
 
   void Unbind();
 };
+
+class AmbientShaderInstanced : public Shader{
+public:
+  AmbientShaderInstanced() {}
+  virtual ~AmbientShaderInstanced() {}
+
+  // Constructs the shader.
+  // Returns NULL if shader compilation failed or a valid Shader pointer on
+  // success. The shader must then be deleted using default allocator Delete
+  // function.
+  static AmbientShaderInstanced* Build();
+
+  // Binds the shader.
+  void Bind(GLsizei _models_offset,
+            const math::Float4x4& _view_proj,
+            GLsizei _pos_stride, GLsizei _pos_offset,
+            GLsizei _normal_stride, GLsizei _normal_offset,
+            GLsizei _color_stride, GLsizei _color_offset);
+
+  void Unbind();
+};
 }  // internal
 }  // sample
 }  // ozz

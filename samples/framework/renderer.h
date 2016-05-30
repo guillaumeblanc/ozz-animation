@@ -79,9 +79,13 @@ class Renderer {
   // Renders a box at a specified location.
   // The 2 slots of _colors array respectively defines color of the filled
   // faces and color of the box outlines.
-  virtual bool DrawBox(const ozz::math::Box& _box,
+  virtual bool DrawBoxIm(const ozz::math::Box& _box,
                        const ozz::math::Float4x4& _transform,
                        const Color _colors[2]) = 0;
+
+  // Renders shaded boxes at specified locations.
+  virtual bool DrawBoxShaded(const ozz::math::Box& _box,
+                             ozz::Range<const ozz::math::Float4x4> _transforms) = 0;
 
   // Renders a skinned mesh at a specified location.
   virtual bool DrawSkinnedMesh(const Mesh& _mesh,

@@ -77,6 +77,7 @@ class Camera;
 class Shader;
 class SkeletonShader;
 class AmbientShader;
+class AmbientShaderInstanced;
 class GlImmediateRenderer;
 
 // Implements Renderer interface.
@@ -102,9 +103,12 @@ class RendererImpl : public Renderer {
                            const ozz::math::Float4x4& _transform,
                            bool _draw_joints);
 
-  virtual bool DrawBox(const ozz::math::Box& _box,
-                       const ozz::math::Float4x4& _transform,
-                       const Color _colors[2]);
+  virtual bool DrawBoxIm(const ozz::math::Box& _box,
+                         const ozz::math::Float4x4& _transform,
+                         const Color _colors[2]);
+
+  virtual bool DrawBoxShaded(const ozz::math::Box& _box,
+                             ozz::Range<const ozz::math::Float4x4> _transforms);
 
   virtual bool DrawSkinnedMesh(const Mesh& _mesh,
                                const Range<math::Float4x4> _skinning_matrices,
@@ -188,8 +192,9 @@ class RendererImpl : public Renderer {
   // Immediate renderer implementation.
   GlImmediateRenderer* immediate_;
 
-  // Mesh rendering shader.
-  AmbientShader* mesh_shader_;
+  // Ambient rendering shader.
+  AmbientShader* ambient_shader;
+  AmbientShaderInstanced* ambient_shader_instanced;
 };
 }  // internal
 }  // sample
