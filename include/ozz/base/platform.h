@@ -119,6 +119,11 @@ struct Range {
     : begin(_begin),
       end(_begin + _size) {
   }
+  // Construct a range from a single element.
+  explicit Range(_Ty& _element)
+    : begin(&_element),
+      end((&_element) + 1) {
+  }
   // Construct a range from an array, its size is automatically deduced.
   // It isn't declared explicit as conversion is free and safe.
   template <size_t _size>

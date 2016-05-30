@@ -106,6 +106,7 @@ TEST(ArraySize, Platform) {
 }
 
 TEST(Range, Memory) {
+  int i = 46;
   int ai[46];
   const size_t array_size = OZZ_ARRAY_SIZE(ai);
 
@@ -116,6 +117,14 @@ TEST(Range, Memory) {
   EXPECT_EQ(empty.Size(), 0u);
 
   EXPECT_ASSERTION(empty[46], "Index out of range");
+
+  ozz::Range<int> single(i);
+  EXPECT_TRUE(single.begin == &i);
+  EXPECT_TRUE(single.end == (&i) + 1);
+  EXPECT_EQ(single.Count(), 1u);
+  EXPECT_EQ(single.Size(), sizeof(i));
+
+  EXPECT_ASSERTION(single[46], "Index out of range");
 
   ozz::Range<int> cs1(ai, ai + array_size);
   EXPECT_EQ(cs1.begin, ai);
