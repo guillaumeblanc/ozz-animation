@@ -56,14 +56,14 @@
 OZZ_OPTIONS_DECLARE_STRING(
   skeleton,
   "Path to the skeleton (ozz archive format).",
-  "media/skeleton.ozz",
+  "media/alain_skeleton.ozz",
   false)
 
 // First animation archive can be specified as an option.
 OZZ_OPTIONS_DECLARE_STRING(
   animation,
   "Path to the first animation (ozz archive format).",
-  "media/animation.ozz",
+  "media/alain_walk.ozz",
   false)
 
 // Interval between each character.

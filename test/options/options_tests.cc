@@ -243,8 +243,10 @@ TEST(Parsing, Options) {
     "--bool",
     "",  // empty argument isn't a error
     "--float=46.00000",
+    "",  // empty argument isn't a error
     "--string=forty six",
     "--int=46",
+    "",  // empty argument isn't a error
     "--",  // "--" hides all further options.
     "--sic=0"};
   const int argc = OZZ_ARRAY_SIZE(argv);

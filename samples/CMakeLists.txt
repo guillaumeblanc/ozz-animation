@@ -2,20 +2,6 @@ if(NOT ozz_build_samples)
   return()
 endif()
 
-# dae2skel and dae2anim are cross compiled.
-if(CMAKE_CROSSCOMPILING)
-  find_package(dae2skel)
-  find_package(dae2anim)
-endif()
-
-# Default time for testing samples.
-set(SAMPLE_TESTING_LOOPS "20")
-
-# Disables sample rending if testing from the dashboard.
-if(ozz_run_tests_headless)
-  set(SAMPLE_RENDER_ARGUMENT "--norender")
-endif()
-
 # Adds the sample framework to the include path.
 include_directories(./)
 

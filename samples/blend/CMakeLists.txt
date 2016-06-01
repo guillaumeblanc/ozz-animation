@@ -1,43 +1,31 @@
 # Generates sample data
+
 add_custom_command(
   DEPENDS "${CMAKE_CURRENT_LIST_DIR}/README"
-          "${ozz_media_directory}/collada/alain/skeleton.dae"
-          "${ozz_media_directory}/collada/alain/walk.dae"
-          "${ozz_media_directory}/collada/alain/jog.dae"
-          "${ozz_media_directory}/collada/alain/run.dae"
-          dae2skel
-          dae2anim
-  OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/README"
-         "${CMAKE_CURRENT_BINARY_DIR}/media/skeleton.ozz"
-         "${CMAKE_CURRENT_BINARY_DIR}/media/walk.ozz"
-         "${CMAKE_CURRENT_BINARY_DIR}/media/jog.ozz"
-         "${CMAKE_CURRENT_BINARY_DIR}/media/run.ozz"
+          "${ozz_media_directory}/bin/alain_skeleton.ozz"
+          "${ozz_media_directory}/bin/alain_walk.ozz"
+          "${ozz_media_directory}/bin/alain_jog.ozz"
+          "${ozz_media_directory}/bin/alain_run.ozz"
+  OUTPUT  "${CMAKE_CURRENT_BINARY_DIR}/README"
+          "${CMAKE_CURRENT_BINARY_DIR}/media/alain_skeleton.ozz"
+          "${CMAKE_CURRENT_BINARY_DIR}/media/alain_walk.ozz"
+          "${CMAKE_CURRENT_BINARY_DIR}/media/alain_jog.ozz"
+          "${CMAKE_CURRENT_BINARY_DIR}/media/alain_run.ozz"
   COMMAND ${CMAKE_COMMAND} -E make_directory media
-  COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_LIST_DIR}/README .
-  COMMAND dae2skel
-    "--file=${ozz_media_directory}/collada/alain/skeleton.dae"
-    "--skeleton=${CMAKE_CURRENT_BINARY_DIR}/media/skeleton.ozz"
-  COMMAND dae2anim
-    "--file=${ozz_media_directory}/collada/alain/walk.dae"
-    "--skeleton=${CMAKE_CURRENT_BINARY_DIR}/media/skeleton.ozz"
-    "--animation=${CMAKE_CURRENT_BINARY_DIR}/media/walk.ozz"
-  COMMAND dae2anim
-    "--file=${ozz_media_directory}/collada/alain/jog.dae"
-    "--skeleton=${CMAKE_CURRENT_BINARY_DIR}/media/skeleton.ozz"
-    "--animation=${CMAKE_CURRENT_BINARY_DIR}/media/jog.ozz"
-  COMMAND dae2anim
-    "--file=${ozz_media_directory}/collada/alain/run.dae"
-    "--skeleton=${CMAKE_CURRENT_BINARY_DIR}/media/skeleton.ozz"
-    "--animation=${CMAKE_CURRENT_BINARY_DIR}/media/run.ozz")
+  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_LIST_DIR}/README" .
+  COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/alain_skeleton.ozz" "./media"
+  COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/alain_walk.ozz" "./media"
+  COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/alain_jog.ozz" "./media"
+  COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/alain_run.ozz" "./media")
 
 # Adds sample executable
 add_executable(sample_blend
   sample_blend.cc
   "${CMAKE_CURRENT_BINARY_DIR}/README"
-  "${CMAKE_CURRENT_BINARY_DIR}/media/skeleton.ozz"
-  "${CMAKE_CURRENT_BINARY_DIR}/media/walk.ozz"
-  "${CMAKE_CURRENT_BINARY_DIR}/media/jog.ozz"
-  "${CMAKE_CURRENT_BINARY_DIR}/media/run.ozz")
+  "${CMAKE_CURRENT_BINARY_DIR}/media/alain_skeleton.ozz"
+  "${CMAKE_CURRENT_BINARY_DIR}/media/alain_walk.ozz"
+  "${CMAKE_CURRENT_BINARY_DIR}/media/alain_jog.ozz"
+  "${CMAKE_CURRENT_BINARY_DIR}/media/alain_run.ozz")
   
 target_link_libraries(sample_blend
   sample_framework)
@@ -60,13 +48,13 @@ else()
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/README DESTINATION bin/samples/blend)
 endif(EMSCRIPTEN)
 
-add_test(NAME sample_blend COMMAND sample_blend "--max_idle_loops=${SAMPLE_TESTING_LOOPS}" ${SAMPLE_RENDER_ARGUMENT})
-add_test(NAME sample_blend_path COMMAND sample_blend "--skeleton=media/skeleton.ozz" "--animation1=media/walk.ozz" "--animation2=media/jog.ozz"  "--animation3=media/run.ozz" "--max_idle_loops=${SAMPLE_TESTING_LOOPS}" ${SAMPLE_RENDER_ARGUMENT})
-add_test(NAME sample_blend_invalid_skeleton_path COMMAND sample_blend "--skeleton=media/bad_skeleton.ozz" ${SAMPLE_RENDER_ARGUMENT})
+add_test(NAME sample_blend COMMAND sample_blend "--max_idle_loops=${ozz_sample_testing_loops}" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)
+add_test(NAME sample_blend_path COMMAND sample_blend "--skeleton=media/alain_skeleton.ozz" "--animation1=media/alain_walk.ozz" "--animation2=media/alain_jog.ozz"  "--animation3=media/alain_run.ozz" "--max_idle_loops=${ozz_sample_testing_loops}" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)
+add_test(NAME sample_blend_invalid_skeleton_path COMMAND sample_blend "--skeleton=media/bad_skeleton.ozz" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)
 set_tests_properties(sample_blend_invalid_skeleton_path PROPERTIES WILL_FAIL true)
-add_test(NAME sample_blend_invalid_animation_path1 COMMAND sample_blend "--animation1=media/bad_animation.ozz" ${SAMPLE_RENDER_ARGUMENT})
+add_test(NAME sample_blend_invalid_animation_path1 COMMAND sample_blend "--animation1=media/bad_animation.ozz" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)
 set_tests_properties(sample_blend_invalid_animation_path1 PROPERTIES WILL_FAIL true)
-add_test(NAME sample_blend_invalid_animation_path2 COMMAND sample_blend "--animation2=media/bad_animation.ozz" ${SAMPLE_RENDER_ARGUMENT})
+add_test(NAME sample_blend_invalid_animation_path2 COMMAND sample_blend "--animation2=media/bad_animation.ozz" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)
 set_tests_properties(sample_blend_invalid_animation_path2 PROPERTIES WILL_FAIL true)
-add_test(NAME sample_blend_invalid_animation_path3 COMMAND sample_blend "--animation3=media/bad_animation.ozz" ${SAMPLE_RENDER_ARGUMENT})
+add_test(NAME sample_blend_invalid_animation_path3 COMMAND sample_blend "--animation3=media/bad_animation.ozz" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)
 set_tests_properties(sample_blend_invalid_animation_path3 PROPERTIES WILL_FAIL true)

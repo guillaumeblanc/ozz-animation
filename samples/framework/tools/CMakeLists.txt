@@ -19,16 +19,16 @@ if(ozz_build_fbx)
   add_custom_command(TARGET sample_fbx2mesh POST_BUILD
     DEPENDS
       "${ozz_media_directory}/fbx/alain/arnaud.fbx"
-    COMMAND sample_fbx2mesh "--file=${ozz_media_directory}/fbx/alain/arnaud.fbx" "--skeleton=${ozz_media_directory}/bin/skeleton_v1_le.ozz" "--mesh=${ozz_media_directory}/bin/mesh.ozz")
+    COMMAND sample_fbx2mesh "--file=${ozz_media_directory}/fbx/alain/arnaud.fbx" "--skeleton=${ozz_media_directory}/bin/alain_skeleton.ozz" "--mesh=${ozz_media_directory}/bin/mesh.ozz")
 
   set(ozz_mesh_generation_dependency sample_fbx2mesh)
 
-  add_test(NAME sample_fbx2mesh COMMAND sample_fbx2mesh "--file=${ozz_media_directory}/fbx/alain/skeleton.fbx" "--skeleton=${ozz_media_directory}/bin/skeleton_v1_le.ozz" "--mesh=${ozz_temp_directory}/mesh.ozz")
+  add_test(NAME sample_fbx2mesh COMMAND sample_fbx2mesh "--file=${ozz_media_directory}/fbx/alain/skeleton.fbx" "--skeleton=${ozz_media_directory}/bin/alain_skeleton.ozz" "--mesh=${ozz_temp_directory}/mesh.ozz")
 
-  add_test(NAME sample_fbx2mesh_invalid_file COMMAND sample_fbx2mesh "--file=${ozz_temp_directory}/dont_exist.fbx" "--skeleton=${ozz_media_directory}/bin/skeleton_v1_le.ozz" "--mesh=${ozz_temp_directory}/should_not_exist.ozz")
+  add_test(NAME sample_fbx2mesh_invalid_file COMMAND sample_fbx2mesh "--file=${ozz_temp_directory}/dont_exist.fbx" "--skeleton=${ozz_media_directory}/bin/alain_skeleton.ozz" "--mesh=${ozz_temp_directory}/should_not_exist.ozz")
   set_tests_properties(sample_fbx2mesh_invalid_file PROPERTIES WILL_FAIL true)
 
-  add_test(NAME sample_fbx2mesh_invalid_skeleton COMMAND sample_fbx2mesh "--file=${ozz_media_directory}/fbx/alain/skeleton.fbx" "--skeleton=${ozz_media_directory}/bin/animation.ozz" "--mesh=${ozz_temp_directory}/should_not_exist.ozz")
+  add_test(NAME sample_fbx2mesh_invalid_skeleton COMMAND sample_fbx2mesh "--file=${ozz_media_directory}/fbx/alain/skeleton.fbx" "--skeleton=${ozz_media_directory}/bin/alain_walk.ozz" "--mesh=${ozz_temp_directory}/should_not_exist.ozz")
   set_tests_properties(sample_fbx2mesh_invalid_skeleton PROPERTIES WILL_FAIL true)
 
   # Ensures nothing was outputted. Unfortunately there's no way to ensure this test is ran last
