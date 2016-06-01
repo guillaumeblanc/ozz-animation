@@ -27,4 +27,4 @@ else()
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/README DESTINATION bin/samples/millipede)
 endif(EMSCRIPTEN)
 
-add_test(NAME sample_millipede COMMAND sample_millipede "--max_idle_loops=${SAMPLE_TESTING_LOOPS}" ${SAMPLE_RENDER_ARGUMENT})
+add_test(NAME sample_millipede COMMAND sample_millipede "--max_idle_loops=${ozz_sample_testing_loops}" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)

@@ -56,21 +56,21 @@
 OZZ_OPTIONS_DECLARE_STRING(
   skeleton,
   "Path to the skeleton (ozz archive format).",
-  "media/skeleton.ozz",
+  "media/alain_skeleton.ozz",
   false)
 
 // MAin animation archive can be specified as an option.
 OZZ_OPTIONS_DECLARE_STRING(
   animation,
   "Path to the main animation(ozz archive format).",
-  "media/walk.ozz",
+  "media/alain_walk.ozz",
   false)
 
 // Additive animation archive can be specified as an option.
 OZZ_OPTIONS_DECLARE_STRING(
   additive_animation,
   "Path to the additive animation (ozz archive format).",
-  "media/additive.ozz",
+  "media/alain_crackhead_additive.ozz",
   false)
 
 // Mesh archive can be specified as an option.

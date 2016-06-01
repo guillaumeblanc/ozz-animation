@@ -56,17 +56,17 @@
 #include "framework/imgui.h"
 #include "framework/utils.h"
 
-// Collada skeleton and animation file can be specified as an option.
+// Skeleton and animation file can be specified as an option.
 OZZ_OPTIONS_DECLARE_STRING(
   skeleton,
   "Path to the runtime skeleton file.",
-  "media/skeleton.ozz",
+  "media/alain_skeleton.ozz",
   false)
 
 OZZ_OPTIONS_DECLARE_STRING(
   animation,
   "Path to the raw animation file.",
-  "media/raw_animation.ozz",
+  "media/alain_atlas_raw.ozz",
   false)
 
 namespace {
@@ -353,7 +353,7 @@ class OptimizeSampleApplication : public ozz::sample::Application {
       return false;
     }
 
-    // Builds the runtime animation from the raw one imported from Collada.
+    // Builds the runtime animation from the raw one.
     if (!BuildAnimations()) {
       return false;
     }
