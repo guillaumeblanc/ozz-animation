@@ -40,6 +40,15 @@ namespace io {
 
 // Starts File implementation.
 
+bool File::Exist(const char* _filename) {
+  FILE* file = std::fopen(_filename, "r");
+  if (file) {
+    std::fclose(file);
+    return true;
+  }
+  return false;
+}
+
 File::File(const char* _filename, const char* _mode)
     : file_(std::fopen(_filename, _mode)) {
 }

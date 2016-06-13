@@ -84,7 +84,12 @@ class Stream {
 // Implements Stream of type File.
 class File : public Stream {
  public:
-  // Open a file at path _filename with mode * _mode, in confromance with fopen
+  // Test if a file at path _filename exists.
+  // Note that this function is costly. If you aim to open the file right after,
+  // then open it and use File::opened() to test if it's actually existing.
+  static bool Exist(const char* _filename);
+
+  // Open a file at path _filename with mode * _mode, in conformance with fopen
   // specifications.
   // Use opened() function to test opening result.
   File(const char* _filename, const char* _mode);

@@ -158,11 +158,18 @@ void TestTooBigStream(ozz::io::Stream* _stream) {
 TEST(File, Stream) {
   {
     ozz::io::File file(NULL);
-    ASSERT_TRUE(!file.opened());
+    EXPECT_FALSE(file.opened());
+  }
+  {
+    EXPECT_FALSE(ozz::io::File::Exist("unexisting.file"));
   }
   {
     ozz::io::File file("test.bin", "w+t");
+    EXPECT_TRUE(file.opened());
     TestSeek(&file);
+  }
+  {
+    EXPECT_TRUE(ozz::io::File::Exist("test.bin"));
   }
 }
 
