@@ -77,7 +77,7 @@ OZZ_OPTIONS_DECLARE_STRING(
 OZZ_OPTIONS_DECLARE_STRING(
   mesh,
   "Path to the skinned mesh (ozz archive format).",
-  "media/mesh.ozz",
+  "media/arnaud_mesh.ozz",
   false)
 
 class AdditiveBlendSampleApplication : public ozz::sample::Application {

@@ -15,9 +15,14 @@ set_tests_properties(fbx2skel_no_skeleton PROPERTIES WILL_FAIL true)
 add_test(NAME fbx2skel_no_skeleton_dae COMMAND fbx2skel "--file=${ozz_media_directory}/collada/cube.dae" "--skeleton=${ozz_temp_directory}/fbx_should_not_exist.ozz")
 set_tests_properties(fbx2skel_no_skeleton_dae PROPERTIES WILL_FAIL true)
 
-# Ensures nothing was outputted. Unfortunately there's no way to ensure this test is ran last
+# Ensures nothing was outputted.
 add_test(NAME fbx2skel_ouput COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/fbx_should_not_exist.ozz" "${ozz_temp_directory}/fbx_should_not_exist_too.ozz")
 set_tests_properties(fbx2skel_ouput PROPERTIES WILL_FAIL true)
+set_tests_properties(fbx2skel_ouput PROPERTIES
+  DEPENDS "test2anim_ouput
+           fbx2skel_badcontent
+           fbx2skel_no_skeleton
+           fbx2skel_no_skeleton_dae")
 
 # Run fbx2skel passing tests
 add_test(NAME fbx2skel_simple COMMAND fbx2skel "--file=${ozz_media_directory}/fbx/alain/skeleton.fbx" "--skeleton=${ozz_temp_directory}/fbx_skeleton.ozz")
@@ -35,10 +40,6 @@ add_test(NAME fbx2skel_simple_dae_seymour COMMAND fbx2skel "--file=${ozz_media_d
 add_test(NAME fbx2anim_badcontent COMMAND fbx2anim "--file=${ozz_temp_directory}/content.bad" "--skeleton=${ozz_temp_directory}/fbx_skeleton.ozz" "--animation=${ozz_temp_directory}/fbx_should_not_exist.ozz")
 set_tests_properties(fbx2anim_badcontent PROPERTIES DEPENDS fbx2skel_simple)
 set_tests_properties(fbx2anim_badcontent PROPERTIES WILL_FAIL true)
-
-# Ensures nothing was outputted. Unfortunately there's no way to ensure this test is ran last
-add_test(NAME fbx2anim_ouput COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/fbx_should_not_exist.ozz" "${ozz_temp_directory}/fbx_should_not_exist_too.ozz")
-set_tests_properties(fbx2anim_ouput PROPERTIES WILL_FAIL true)
 
 # Run fbx2anim passing tests
 add_test(NAME fbx2anim_simple COMMAND fbx2anim "--file=${ozz_media_directory}/fbx/alain/walk.fbx" "--skeleton=${ozz_temp_directory}/fbx_skeleton.ozz" "--animation=${ozz_temp_directory}/fbx_animation_${CMAKE_CURRENT_LIST_LINE}.ozz")
@@ -68,12 +69,12 @@ set_tests_properties(fbx2anim_simple_dae_seymour PROPERTIES DEPENDS fbx2skel_sim
 if(TARGET sample_playback)
 
   add_custom_command(
-    DEPENDS "${CMAKE_CURRENT_LIST_DIR}/README"
+    DEPENDS fbx2skel
+            fbx2anim
+            "${CMAKE_CURRENT_LIST_DIR}/README"
             "${ozz_media_directory}/collada/alain/skeleton.dae"
             "${ozz_media_directory}/collada/alain/skeleton_zup.dae"
             "${ozz_media_directory}/collada/alain/walk.dae"
-            fbx2skel
-            fbx2anim
     OUTPUT  "${ozz_temp_directory}/alain_skeleton_dae.ozz"
             "${ozz_temp_directory}/alain_skeleton_dae_zup.ozz"
             "${ozz_temp_directory}/alain_walk_dae.ozz"

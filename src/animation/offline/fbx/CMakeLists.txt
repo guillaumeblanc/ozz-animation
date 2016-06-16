@@ -110,7 +110,8 @@ foreach(line ${animations})
   list(APPEND bin_animations ${ozz_media_directory}${dest})
   
   add_custom_command(
-    DEPENDS "${ozz_media_directory}${src}" "${ozz_media_directory}${skel}"
+    DEPENDS "${ozz_media_directory}${src}"
+            "${ozz_media_directory}${skel}"
             fbx2anim
     OUTPUT ${ozz_media_directory}${dest}
     COMMAND fbx2anim
@@ -123,4 +124,6 @@ foreach(line ${animations})
 endforeach()
 
 # Creates a target to build data
-add_custom_target(BUILD_DATA ALL DEPENDS ${bin_animations} ${bin_skeletons})
+add_custom_target(BUILD_DATA ALL
+  DEPENDS ${bin_animations}
+          ${bin_skeletons})
