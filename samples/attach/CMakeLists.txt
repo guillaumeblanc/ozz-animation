@@ -1,8 +1,7 @@
 
 add_custom_command(
-  DEPENDS "${CMAKE_CURRENT_LIST_DIR}/README"
-          "${ozz_media_directory}/bin/alain_skeleton.ozz"
-          "${ozz_media_directory}/bin/alain_walk.ozz"
+  DEPENDS BUILD_DATA
+          "${CMAKE_CURRENT_LIST_DIR}/README"
   OUTPUT  "${CMAKE_CURRENT_BINARY_DIR}/README"
           "${CMAKE_CURRENT_BINARY_DIR}/media/alain_skeleton.ozz"
           "${CMAKE_CURRENT_BINARY_DIR}/media/alain_walk.ozz"

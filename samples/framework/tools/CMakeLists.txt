@@ -2,10 +2,12 @@
 if(ozz_build_fbx)
   include_directories(${FBX_INCLUDE_DIRS})
 
+  # share meshes with thte sample framework
   add_executable(sample_fbx2mesh
-    fbx2mesh.cc)
+    fbx2mesh.cc
+    ${CMAKE_SOURCE_DIR}/samples/framework/mesh.cc
+    ${CMAKE_SOURCE_DIR}/samples/framework/mesh.h)
   target_link_libraries(sample_fbx2mesh
-    sample_framework
     ozz_animation_fbx
     ozz_animation_offline
     ozz_animation
@@ -16,14 +18,18 @@ if(ozz_build_fbx)
   
   install(TARGETS sample_fbx2mesh DESTINATION bin/samples/tools)
 
-  add_custom_command(TARGET sample_fbx2mesh POST_BUILD
-    DEPENDS
-      "${ozz_media_directory}/fbx/alain/arnaud.fbx"
-    COMMAND sample_fbx2mesh "--file=${ozz_media_directory}/fbx/alain/arnaud.fbx" "--skeleton=${ozz_media_directory}/bin/alain_skeleton.ozz" "--mesh=${ozz_media_directory}/bin/mesh.ozz")
-
-  set(ozz_mesh_generation_dependency sample_fbx2mesh)
+  add_custom_command(
+    DEPENDS BUILD_DATA
+            sample_fbx2mesh
+            "${ozz_media_directory}/bin/alain_skeleton.ozz"
+            "${ozz_media_directory}/fbx/alain/arnaud.fbx"
+    OUTPUT "${ozz_media_directory}/bin/arnaud_mesh.ozz"
+    COMMAND sample_fbx2mesh "--file=${ozz_media_directory}/fbx/alain/arnaud.fbx" "--skeleton=${ozz_media_directory}/bin/alain_skeleton.ozz" "--mesh=${ozz_media_directory}/bin/arnaud_mesh.ozz")
 
   add_test(NAME sample_fbx2mesh COMMAND sample_fbx2mesh "--file=${ozz_media_directory}/fbx/alain/skeleton.fbx" "--skeleton=${ozz_media_directory}/bin/alain_skeleton.ozz" "--mesh=${ozz_temp_directory}/mesh.ozz")
+
+  # Creates a target to build sample data
+  add_custom_target(BUILD_SAMPLE_DATA ALL DEPENDS "${ozz_media_directory}/bin/arnaud_mesh.ozz")
 
   add_test(NAME sample_fbx2mesh_invalid_file COMMAND sample_fbx2mesh "--file=${ozz_temp_directory}/dont_exist.fbx" "--skeleton=${ozz_media_directory}/bin/alain_skeleton.ozz" "--mesh=${ozz_temp_directory}/should_not_exist.ozz")
   set_tests_properties(sample_fbx2mesh_invalid_file PROPERTIES WILL_FAIL true)
@@ -31,7 +37,11 @@ if(ozz_build_fbx)
   add_test(NAME sample_fbx2mesh_invalid_skeleton COMMAND sample_fbx2mesh "--file=${ozz_media_directory}/fbx/alain/skeleton.fbx" "--skeleton=${ozz_media_directory}/bin/alain_walk.ozz" "--mesh=${ozz_temp_directory}/should_not_exist.ozz")
   set_tests_properties(sample_fbx2mesh_invalid_skeleton PROPERTIES WILL_FAIL true)
 
-  # Ensures nothing was outputted. Unfortunately there's no way to ensure this test is ran last
+  # Ensures nothing was outputted.
   add_test(NAME sample_fbx2mesh_output COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/should_not_exist.ozz" "${ozz_temp_directory}/should_not_exist_too.ozz")
   set_tests_properties(sample_fbx2mesh_output PROPERTIES WILL_FAIL true)
+  set_tests_properties(sample_fbx2mesh_output PROPERTIES
+    DEPENDS "sample_fbx2mesh_invalid_file
+             sample_fbx2mesh_invalid_skeleton")
+
 endif()

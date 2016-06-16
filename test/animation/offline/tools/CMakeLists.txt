@@ -58,9 +58,20 @@ set_tests_properties(test2skel_bad_log_level PROPERTIES WILL_FAIL true)
 add_test(NAME test2skel_bad_log_level_raw COMMAND test2skel "--raw" "--file=${ozz_temp_directory}/good.content" "--skeleton=${ozz_temp_directory}/should_not_exist.ozz" "--log_level=no_log")
 set_tests_properties(test2skel_bad_log_level_raw PROPERTIES WILL_FAIL true)
 
-# Ensures nothing was outputted. Unfortunately there's no way to ensure this test is ran last
+# Ensures nothing was outputted.
 add_test(NAME test2skel_ouput COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/should_not_exist.ozz" "${ozz_temp_directory}/should_not_exist_too.ozz")
 set_tests_properties(test2skel_ouput PROPERTIES WILL_FAIL true)
+set_tests_properties(test2skel_ouput PROPERTIES
+  DEPENDS "test2skel_bad_argument
+           test2skel_missing_test
+           test2skel_missing_ozz
+           test2skel_missing_ozz_raw
+           test2skel_bad_endian_raw
+           test2skel_bad_content
+           test2skel_bad_content_raw
+           test2skel_unexisting_test
+           test2skel_unexisting_test_raw
+           test2skel_invalid_output_path")
 
 # Run test2skel passing tests
 #----------------------------
@@ -116,10 +127,33 @@ add_test(NAME test2anim_bad_log_level_raw COMMAND test2anim "--raw" "--file=${oz
 set_tests_properties(test2anim_bad_log_level_raw PROPERTIES WILL_FAIL true DEPENDS test2skel_simple_raw)
 add_test(NAME test2anim_wrongoptimize COMMAND test2anim "--file=${ozz_temp_directory}/good.content" "--skeleton=${ozz_temp_directory}/skeleton.ozz" "--animation=${ozz_temp_directory}/should_not_exist.ozz" --optimize=99)
 set_tests_properties(test2anim_wrongoptimize PROPERTIES WILL_FAIL true DEPENDS test2skel_simple)
-# Ensures nothing was outputted. Unfortunately there's no way to ensure this test is ran last
+
+# Ensures nothing was outputted.
 add_test(NAME test2anim_ouput COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/should_not_exist.ozz" "${ozz_temp_directory}/should_not_exist_too.ozz")
 set_tests_properties(test2anim_ouput PROPERTIES WILL_FAIL true)
-
+set_tests_properties(test2skel_ouput PROPERTIES
+  DEPENDS "test2anim_ouput
+           test2anim_missing_test
+           test2anim_missing_test_raw
+           test2anim_missing_skeleton
+           test2anim_missing_skeleton_raw
+           test2anim_missing_ozz
+           test2anim_missing_ozz_raw
+           test2anim_bad_test
+           test2anim_bad_test_raw
+           test2anim_bad_skeleton
+           test2anim_bad_skeleton_raw
+           test2anim_unexisting_test
+           test2anim_unexisting_test_raw
+           test2anim_unexisting_skeleton
+           test2anim_unexisting_skeleton_raw
+           test2anim_invalid_output_path
+           test2anim_invalid_output_path_raw
+           test2anim_bad_sampling_rate
+           test2anim_bad_sampling_rate_raw
+           test2anim_bad_log_level
+           test2anim_bad_log_level_raw")
+           
 # Run test2anim passing tests
 #----------------------------
 add_test(NAME test2anim_simple COMMAND test2anim "--file=${ozz_temp_directory}/good.content" "--skeleton=${ozz_temp_directory}/skeleton.ozz" "--animation=${ozz_temp_directory}/animation_${CMAKE_CURRENT_LIST_LINE}.ozz")
