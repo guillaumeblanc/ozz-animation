@@ -26,10 +26,10 @@ if(ozz_build_fbx)
     OUTPUT "${ozz_media_directory}/bin/arnaud_mesh.ozz"
     COMMAND sample_fbx2mesh "--file=${ozz_media_directory}/fbx/alain/arnaud.fbx" "--skeleton=${ozz_media_directory}/bin/alain_skeleton.ozz" "--mesh=${ozz_media_directory}/bin/arnaud_mesh.ozz")
 
-  add_test(NAME sample_fbx2mesh COMMAND sample_fbx2mesh "--file=${ozz_media_directory}/fbx/alain/skeleton.fbx" "--skeleton=${ozz_media_directory}/bin/alain_skeleton.ozz" "--mesh=${ozz_temp_directory}/mesh.ozz")
-
   # Creates a target to build sample data
   add_custom_target(BUILD_SAMPLE_DATA ALL DEPENDS "${ozz_media_directory}/bin/arnaud_mesh.ozz")
+
+  add_test(NAME sample_fbx2mesh COMMAND sample_fbx2mesh "--file=${ozz_media_directory}/fbx/alain/skeleton.fbx" "--skeleton=${ozz_media_directory}/bin/alain_skeleton.ozz" "--mesh=${ozz_temp_directory}/mesh.ozz")
 
   add_test(NAME sample_fbx2mesh_invalid_file COMMAND sample_fbx2mesh "--file=${ozz_temp_directory}/dont_exist.fbx" "--skeleton=${ozz_media_directory}/bin/alain_skeleton.ozz" "--mesh=${ozz_temp_directory}/should_not_exist.ozz")
   set_tests_properties(sample_fbx2mesh_invalid_file PROPERTIES WILL_FAIL true)
