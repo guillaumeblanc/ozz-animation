@@ -120,7 +120,7 @@ struct Range {
       end(_begin + _size) {
   }
   // Construct a range from a single element.
-  explicit Range(_Ty& _element)
+  Range(_Ty& _element)
     : begin(&_element),
       end((&_element) + 1) {
   }
