@@ -100,6 +100,11 @@ class BlendSampleApplication : public ozz::sample::Application {
       // Updates animations time.
       sampler.controller.Update(sampler.animation, _dt);
 
+      // Early out if this sampler weight makes it irrelevant during blending.
+      if (samplers_[i].weight <= 0.f) {
+        continue;
+      }
+
       // Setup sampling job.
       ozz::animation::SamplingJob sampling_job;
       sampling_job.animation = &sampler.animation;
