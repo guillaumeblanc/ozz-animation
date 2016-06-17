@@ -45,33 +45,33 @@ namespace ozz {
 namespace sample {
 namespace internal {
 
-const GLubyte kPanelBackgroundColor[4] = {0xa0, 0xa0, 0xa0, 0xc0};
-const GLubyte kPanelBorderColor[4] = {0x30, 0x30, 0x30, 0xff};
-const GLubyte kPanelTitleColor[4] = {0x30, 0x30, 0x30, 0xd0};
-const GLubyte kPanelTitleTextColor[4] = {0x80, 0x80, 0x80, 0xff};
+const GLubyte kPanelBackgroundColor[4] = {0x30, 0x30, 0x30, 0x80};
+const GLubyte kPanelBorderColor[4] = {0x20, 0x20, 0x20, 0xff};
+const GLubyte kPanelTitleColor[4] = {0x20, 0x20, 0x20, 0xf0};
+const GLubyte kPanelTitleTextColor[4] = {0xa0, 0xa0, 0xa0, 0xff};
 
-const GLubyte kWidgetBackgroundColor[4] = {0xb0, 0xb0, 0xb0, 0xff};
-const GLubyte kWidgetBorderColor[4] = {0x30, 0x30, 0x30, 0xff};
+const GLubyte kWidgetBackgroundColor[4] = {0x20, 0x20, 0x20, 0xff};
+const GLubyte kWidgetBorderColor[4] = {0x70, 0x70, 0x70, 0xff};
 
-const GLubyte kWidgetDisabledBackgroundColor[4] = {0xb0, 0xb0, 0xb0, 0xff};
-const GLubyte kWidgetDisabledBorderColor[4] = {0x90, 0x90, 0x90, 0xff};
+const GLubyte kWidgetDisabledBackgroundColor[4] = {0x30, 0x30, 0x30, 0xff};
+const GLubyte kWidgetDisabledBorderColor[4] = {0x50, 0x50, 0x50, 0xff};
 
-const GLubyte kWidgetHotBackgroundColor[4] = {0xb0, 0xb0, 0xb0, 0xff};
+const GLubyte kWidgetHotBackgroundColor[4] = {0x40, 0x40, 0x40, 0xff};
 const GLubyte kWidgetHotBorderColor[4] = {0xc7, 0x9a, 0x40, 0xff};
 
 const GLubyte kWidgetActiveBackgroundColor[4] = {0xc7, 0x9a, 0x40, 0xff};
 const GLubyte kWidgetActiveBorderColor[4] = {0x30, 0x30, 0x30, 0xff};
 
-const GLubyte kWidgetTextColor[4] = {0x20, 0x20, 0x20, 0xff};
-const GLubyte kWidgetDisabledTextColor[4] = {0x50, 0x50, 0x50, 0xff};
+const GLubyte kWidgetTextColor[4] = {0xa0, 0xa0, 0xa0, 0xff};
+const GLubyte kWidgetDisabledTextColor[4] = {0x60, 0x60, 0x60, 0xff};
 
-const GLubyte kGraphBackgroundColor[4] = {0x30, 0x40, 0x9a, 0xff};
-const GLubyte kGraphPlotColor[4] = {0, 0xe0, 0, 0xff};
+const GLubyte kGraphBackgroundColor[4] = {0x20, 0x20, 0x20, 0xff};
+const GLubyte kGraphPlotColor[4] = {0xc7, 0x9a, 0x40, 0xff};
 
-const GLubyte kSliderBackgroundColor[4] = {0xb0, 0xb0, 0xb0, 0xff};
-const GLubyte kSliderCursorColor[4] = {0x90, 0x90, 0x90, 0xff};
+const GLubyte kSliderBackgroundColor[4] = {0x20, 0x20, 0x20, 0xff};
+const GLubyte kSliderCursorColor[4] = {0x70, 0x70, 0x70, 0xff};
 const GLubyte kSliderCursorHotColor[4] = {0x80, 0x80, 0x80, 0xff};
-const GLubyte kSliderDisabledCursorColor[4] = {0x80, 0x80, 0x80, 0xff};
+const GLubyte kSliderDisabledCursorColor[4] = {0x70, 0x70, 0x70, 0xff};
 
 const GLubyte kCursorColor[4] = {0xf0, 0xf0, 0xf0, 0xff};
 const float kCursorSize = 16.f;
@@ -513,7 +513,7 @@ bool ImGuiImpl::DoCheckBox(const char* _label,
   // Renders the check box.
   const GLubyte* background_color = kWidgetBackgroundColor;
   const GLubyte* border_color = kWidgetBorderColor;
-  const GLubyte* check_color = kWidgetBorderColor;
+  const GLubyte* check_color = kWidgetTextColor;
   const GLubyte* text_color = kWidgetTextColor;
 
   if (!_enabled) {
@@ -681,7 +681,7 @@ void ImGuiImpl::DoGraph(const char* _label,
 
   // Renders background and borders.
   FillRect(graph_rect, 0, kGraphBackgroundColor);
-  StrokeRect(graph_rect, 0, kWidgetTextColor);
+  StrokeRect(graph_rect, 0, kWidgetBorderColor);
   {
     GlImmediatePC im(renderer_->immediate_renderer(),
                      GL_LINES,
