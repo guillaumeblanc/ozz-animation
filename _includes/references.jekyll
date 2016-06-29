@@ -1,0 +1,50 @@
+[link_attach_sample]: {{site.baseurl}}/samples/attach/
+[link_blend_sample]: {{site.baseurl}}/samples/blend/
+[link_millipede_sample]: {{site.baseurl}}/samples/millipede/
+[link_optimize_sample]: {{site.baseurl}}/samples/optimize/
+[link_partial_blend_sample]: {{site.baseurl}}/samples/partial_blend/
+[link_playback_sample]: {{site.baseurl}}/samples/playback/
+[link_multithread_sample]: {{site.baseurl}}/samples/multithread/
+
+[link_how_to_load]: {{site.baseurl}}/howto/#howtoloadfromfile
+[link_howto_custom_skeleton_importer]: {{site.baseurl}}/howto/#howtowriteacustomskeletonimporter
+[link_howto_custom_animation_importer]: {{site.baseurl}}/howto/#howtowriteacustomanimationimporter
+
+[link_offline_pipeline]: {{site.baseurl}}/documentation/offline_pipeline/
+[link_standard_pipeline]: {{site.baseurl}}/documentation/offline_pipeline/#standard-pipeline
+[link_offline_pipeline_utilities]: {{site.baseurl}}/documentation/offline_pipeline/#ozz-animationofflineutilities
+
+[link_raw_skeleton]: {{site.baseurl}}/documentation/offline_pipeline/#ozzanimationofflinerawskeleton
+[link_raw_animation]: {{site.baseurl}}/documentation/offline_pipeline/#ozzanimationofflinerawanimation
+[link_skeleton_builder]: {{site.baseurl}}/documentation/offline_pipeline/#ozzanimationofflineskeletonbuilder
+[link_animation_builder]: {{site.baseurl}}/documentation/offline_pipeline/#ozzanimationofflineanimationbuilder
+[link_animation_optimizer]: {{site.baseurl}}/documentation/offline_pipeline/#ozzanimationofflineanimationoptimizer
+[link_runtime_pipeline]: {{site.baseurl}}/documentation/runtime_pipeline/
+[link_coordinate_system]: {{site.baseurl}}/documentation/runtime_pipeline/#local-space-and-model-space-coordinate-systems
+[link_skeleton]: {{site.baseurl}}/documentation/runtime_pipeline/#ozzanimationskeleton
+[link_animation]: {{site.baseurl}}/documentation/runtime_pipeline/#ozzanimationanimation
+[link_sampling_job]: {{site.baseurl}}/documentation/runtime_pipeline/#ozzanimationsamplingjob
+[link_blending_job]: {{site.baseurl}}/documentation/runtime_pipeline/#ozzanimationblendingjob
+[link_local_to_model_job]: {{site.baseurl}}/documentation/runtime_pipeline/#ozzanimationlocaltomodeljob
+
+[link_skinning_job]: {{site.baseurl}}/documentation/runtime_pipeline/#ozzanimationsklinningjob
+
+[link_features_map]: {{site.baseurl}}/documentation/features_map/
+
+[link_io]: {{site.baseurl}}/documentation/advanced/#fileiomanagement
+[link_serialize]: {{site.baseurl}}/documentation/advanced/#serializationmechanics
+
+[link_maths]: {{site.baseurl}}/documentation/advanced/#maths
+
+[link_downloads]: {{site.baseurl}}/documentation/downloads/
+
+[link_dashboard]: http://ozz.qualipilote.fr/dashboard/cdash/
+
+[link_latest_changes]: todo
+
+[link_src_convert2skel]: todo/include/ozz/animation/offline/tools/convert2skel.h
+[link_src_convert2anim]: todo/include/ozz/animation/offline/tools/convert2anim.h
+
+[link_src_how_to_load]: todo
+[link_src_howto_custom_skeleton_importer]: todo
+[link_src_howto_custom_animation_importer]: todo

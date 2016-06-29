@@ -1,0 +1,6 @@
+
+    <script src="http://www.w3schools.com/lib/w3codecolors.js"></script>
+
+    {% include tracking.jekyll %}
+  </body>
+</html>

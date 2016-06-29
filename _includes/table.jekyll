@@ -1,0 +1,15 @@
+<table>
+{% for item in {{include.data}} %}
+  <tr>
+    {% if forloop.first %}
+      {% for col in item %}
+        <th>{{col[1]}}</th>
+      {% endfor %}
+    {% else %}  	
+      {% for col in item %}
+        <td>{{col[1]}}</td>
+      {% endfor %}
+    {% endif %}  	
+  </tr>
+{% endfor %}
+</table>

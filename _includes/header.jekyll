@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en-US">
+  <head>
+    <title>ozz-animation - {{page.title}}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8">
+    <meta name="description" content="{{page.title}}">
+    <meta name="keywords" content="{{site.keywords}}, {{page.keywords}}">
+    <meta name="author" content="Guillaume Blanc">
+    <link rel="stylesheet" href="http://www.w3schools.com/lib/w3.css">
+    <link rel="stylesheet" href="http://www.w3schools.com/lib/w3-theme-dark-grey.css">
+    <style>
+      /*.w3-theme {color:#fff !important;background-color:#4CAF50 !important}
+      .w3-btn {background-color:#4CAF50;margin-bottom:4px}
+      .w3-code{border-left:4px solid #4CAF50}
+      .myMenu {margin-bottom:150px}*/
+    </style>
+  </head>
+  <body>

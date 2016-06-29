@@ -1,0 +1,81 @@
+<div id="sample_border">
+<p id="sample_status">Initializing WebGL</p>
+<div><canvas id="sample_canvas" width="800" height="0"></canvas></div>
+<textarea id="sample_output" rows="8"></textarea>
+</div>
+<script>
+  var sample_border = document.getElementById("sample_border");
+  var sample_canvas = document.getElementById("sample_canvas");
+  var sample_status = document.getElementById("sample_status");
+  var sample_output = document.getElementById("sample_output");
+
+  function CheckWebGLSupport(canvas) {
+    if (!window.WebGLRenderingContext) {
+      // The browser doesn't even know what WebGL is.
+      return [false, 'Your browser doesn\'t support WebGL. Visit <a href="http://get.webgl.org" target="_blank">http://get.webgl.org</a> for more information.'];
+    } else {
+      //  If the browser supports WebGL and canvas.getContext("webgl") returns null then WebGL failed for some reason other than user's browser (no GPU, out of memory, etc...)
+      var gl_context = canvas.getContext("webgl");
+      if (!gl_context) {
+        gl_context = canvas.getContext("experimental-webgl");      
+      }
+      if (!gl_context) {
+        return [false, 'Your browser supports WebGL but could not properly initialize it. Visit <a href="http://get.webgl.org/troubleshooting" target="_blank">http://get.webgl.org/troubleshooting</a> for more information.'];
+      }
+    }
+    // Success.
+    return [true, 'WebGL is supported by your browser.'];
+  }
+
+  function OnSampleSuccess() {
+    sample_canvas.style.height = '450px';
+    sample_status.innerHTML = "ozz-animation sample compiled from c++ with emscripten and running WebGL.";
+  }
+
+  function OnSampleFailure(text) {
+    sample_border.style.display = "none";  // Disable the whole sample display.
+    sample_status.innerHTML = text;
+  }
+
+  function OnSampleProgress(text) {
+    sample_status.innerHTML = text;
+  }
+  
+  var webgl_support = CheckWebGLSupport(sample_canvas);
+
+  if(!webgl_support[0]) {
+    OnSampleFailure(webgl_support[1]);
+  } else {
+    var Module = {
+      arguments: ['--resolution=2'],
+      preRun: [],
+      postRun: [],
+      print: (function() {
+        if (sample_output) sample_output.value = ''; // Clears browser cache
+        return function(text) {
+          text = Array.prototype.slice.call(arguments).join(' ');
+          console.log(text);
+          if (sample_output) {
+            sample_output.value += text + "\n";
+            sample_output.scrollTop = sample_output.scrollHeight; // Focus on bottom
+          }
+        };
+      })(),
+      printErr: function(text) {
+        text = Array.prototype.slice.call(arguments).join(' ');
+        console.error(text);
+      },
+      canvas: sample_canvas,
+      setStatus: function(text) {
+        if(text == '') {
+          // This signals sample initialization success.
+          OnSampleSuccess();
+        } else {
+          OnSampleProgress(text);
+        }
+      },
+    };
+    Module.setStatus('Downloading...');
+  }
+</script>
+<script async type="text/javascript" src="{{site.baseurl}}/{{include.emscripten_path}}"></script>
