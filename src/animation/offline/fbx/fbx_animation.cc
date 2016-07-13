@@ -91,7 +91,7 @@ bool ExtractAnimation(FbxSceneLoader* _scene_loader,
 
     if (!node) {
       // Empty joint track.
-      ozz::log::Log() << "No animation track found for joint \"" << joint_name
+      ozz::log::LogV() << "No animation track found for joint \"" << joint_name
         << "\". Using skeleton bind pose instead." << std::endl;
 
       // Get joint's bind pose.
