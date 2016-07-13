@@ -2,6 +2,7 @@
 title: "open source c++ skeletal animation engine and tools"
 layout: full
 keywords: home
+collection: home
 ---
 
 Current version is {{site.data.versions[0].version}}

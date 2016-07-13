@@ -2,7 +2,7 @@
 <div class="w3-top">
   <ul class="w3-navbar w3-theme w3-large" style="z-index:4;">
     <li class="w3-opennav w3-left w3-hide-large">
-      <a class="w3-hover-white w3-large w3-theme w3-padding-16" href="javascript:void(0)" onclick="w3_open()">&#9776;</a>
+      <i class="fa fa-bars w3-hover-white fa-lg w3-theme w3-padding-16" href="javascript:void(0)" onclick="w3_open()"></i>
     </li>
     <li class="w3-hide-medium w3-hide-small"><a class="w3-hover-white w3-padding-16" href="{{site.baseurl}}/">Home</a></li>
     {% for collection in site.collections %}
@@ -13,28 +13,28 @@
 
 <!-- Sidenav -->
 <nav class="w3-sidenav w3-collapse w3-white" style="z-index:3;width:270px" id="mySidenav">
+  <i class="fa fa-times w3-right w3-xlarge w3-padding-large w3-hide-large" href="javascript:void(0)" onclick="w3_close()"></i>
+
   <div class="w3-hide-large">
-    <a href="{{site.baseurl}}/" class="w3-left w3-theme w3-hover-white w3-padding-16 w3-large" style="width:50%">Home</a>
-    {% for collection in site.collections %}
-      <a href="{{site.baseurl}}/{{collection[1].label}}/" onclick="w3_show_nav('{{collection[1].label}}')" class="w3-left w3-theme w3-hover-white w3-padding-16 w3-large" style="width:50%">{{collection[1].display_name}}</a>
-    {% endfor %}
+    <a href="{{site.baseurl}}/" class="w3-left w3-theme w3-hover-white w3-padding-16 w3-large" style="width:100%">Home</a>
   </div>
 
   <div class="w3-clear"></div>
-  <a href="javascript:void(0)" onclick="w3_close()" class="w3-right w3-xlarge w3-padding-large w3-hide-large" title="close menu">&times;</a>
+    {% for collection in site.collections %}
+      <div class="myMenu w3-padding-top">
+        <a href="{{site.baseurl}}/{{collection[1].label}}/" onclick="w3_show_nav('{{collection[1].label}}')" class="w3-left w3-theme w3-hover-white w3-padding-16 w3-large w3-hide-large" style="width:100%">{{collection[1].display_name}}</a>
+        <div class="w3-container">
 
-  {% for collection in site.collections %}
-    <div id="{{collection[1].label}}" class="myMenu w3-padding-top">
-      <div class="w3-container">
-        <h3>{{collection[1].display_name}}</h3>
+        {% assign collection_id = collection[1].label %}
+        {% if {{collection_id}} == {{page.collection}} %}
+          {% for page in site[{{collection_id}}] %}
+            {% capture text %}[{{page.title}}]({{site.baseurl}}{{page.url}}){% endcapture %}
+            {{text | markdownify}}
+          {% endfor %}
+        {% endif %}
       </div>
-      {% assign collection_id = collection[1].label %}
-      {% for sample in site[{{collection_id}}] %}
-        {% capture text %}[{{sample.title}}]({{site.baseurl}}{{sample.url}}){% endcapture %}
-        {{text | markdownify}}
-      {% endfor %}
-    </div>
-  {% endfor %}
+    {% endfor %}
+  </div>
 
 </nav>
 

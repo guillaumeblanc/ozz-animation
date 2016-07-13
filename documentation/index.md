@@ -7,10 +7,6 @@ keywords: documentation, doc, help, howto, license, pipeline, tools, primer, int
 
 {% include references.jekyll %}
 
-{% for doc in site.documentation %}
-- [{{doc.title}}]({{site.baseurl}}{{doc.url}})
-{% endfor %}
-
 What ozz-animation is
 =====================
 ozz-animation is an open source *c++ 3d skeletal animation engine*. It provides runtime *character animation playback* fonctionnalities (loading, sampling, blending...), with full support for *Collada* and *Fbx* import formats. It proposes a low-level *renderer agnostic* and *game-engine agnostic* implementation, focusing on performance and memory constraints with a data-oriented design.
