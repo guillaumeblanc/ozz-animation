@@ -147,16 +147,19 @@ void ComputePostureBounds(ozz::Range<const ozz::math::Float4x4> _matrices,
     return;
   }
 
-  math::SimdFloat4 min =
-    math::simd_float4::Load1(std::numeric_limits<float>::max());
-  math::SimdFloat4 max = -min;
+  // Loops through matrices and stores min/max.
+  // Matrices array cannot be empty, it was checked at the beginning of the function.
   const ozz::math::Float4x4* current = _matrices.begin;
+  math::SimdFloat4 min = current->cols[3];
+  math::SimdFloat4 max = current->cols[3];
+  ++current;
   while (current < _matrices.end) {
     min = math::Min(min, current->cols[3]);
     max = math::Max(max, current->cols[3]);
     ++current;
   }
 
+  // Stores in math::Box structure.
   math::Store3PtrU(min, &_bound->min.x);
   math::Store3PtrU(max, &_bound->max.x);
 
