@@ -27,7 +27,7 @@ if(ozz_build_fbx)
     COMMAND sample_fbx2mesh "--file=${ozz_media_directory}/fbx/alain/arnaud.fbx" "--skeleton=${ozz_media_directory}/bin/alain_skeleton.ozz" "--mesh=${ozz_media_directory}/bin/arnaud_mesh.ozz")
 
   # Creates a target to build sample data
-  add_custom_target(BUILD_SAMPLE_DATA ALL DEPENDS "${ozz_media_directory}/bin/arnaud_mesh.ozz")
+  add_custom_target(BUILD_DATA_SAMPLE ALL DEPENDS "${ozz_media_directory}/bin/arnaud_mesh.ozz")
 
   add_test(NAME sample_fbx2mesh COMMAND sample_fbx2mesh "--file=${ozz_media_directory}/fbx/alain/skeleton.fbx" "--skeleton=${ozz_media_directory}/bin/alain_skeleton.ozz" "--mesh=${ozz_temp_directory}/mesh.ozz")
 
