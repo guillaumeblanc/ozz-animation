@@ -3,6 +3,7 @@
   <ul class="w3-navbar w3-theme w3-large" style="z-index:4;">
     <li class="w3-opennav w3-left w3-hide-large">
       <i class="fa fa-bars w3-hover-white fa-lg w3-theme w3-padding-16" href="javascript:void(0)" onclick="w3_open()"></i>
+      {{page.title}}
     </li>
     <li class="w3-hide-medium w3-hide-small"><a class="w3-hover-white w3-padding-16" href="{{site.baseurl}}/">Home</a></li>
     {% for collection in site.collections %}
@@ -20,21 +21,21 @@
   </div>
 
   <div class="w3-clear"></div>
-    {% for collection in site.collections %}
-      <div class="myMenu w3-padding-top">
-        <a href="{{site.baseurl}}/{{collection[1].label}}/" onclick="w3_show_nav('{{collection[1].label}}')" class="w3-left w3-theme w3-hover-white w3-padding-16 w3-large w3-hide-large" style="width:100%">{{collection[1].display_name}}</a>
-        <div class="w3-container">
 
+  {% for collection in site.collections %}
+    <div class="myMenu w3-padding-top">
+      <a href="{{site.baseurl}}/{{collection[1].label}}/" onclick="w3_show_nav('{{collection[1].label}}')" class="w3-left w3-theme w3-hover-white w3-padding-16 w3-large w3-hide-large" style="width:100%">{{collection[1].display_name}}</a>
+      <div class="w3-container">
         {% assign collection_id = collection[1].label %}
         {% if {{collection_id}} == {{page.collection}} %}
-          {% for page in site[{{collection_id}}] %}
+         {% for page in site[{{collection_id}}] %}
             {% capture text %}[{{page.title}}]({{site.baseurl}}{{page.url}}){% endcapture %}
             {{text | markdownify}}
-          {% endfor %}
+         {% endfor %}
         {% endif %}
       </div>
-    {% endfor %}
-  </div>
+    </div>
+  {% endfor %}
 
 </nav>
 
