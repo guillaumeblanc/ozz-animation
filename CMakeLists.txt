@@ -18,7 +18,8 @@ set(ozz_build_cpp11 OFF CACHE BOOL "Enable c++11")
 set(ozz_build_coverage OFF CACHE BOOL "Enable gcov code coverage")
 
 # Add project execution options
-set(ozz_run_tests_headless ON CACHE BOOL "Run unit tests without rendering")
+set(ozz_run_tests_headless ON CACHE BOOL "Run samples without rendering (used for unit tests)")
+set(ozz_sample_testing_loops "20" CACHE INT "Number of loops while running sample tests (used for unit tests)")
 
 # Set compiler flags and options
 include(build-utils/cmake/compiler_settings.cmake)
@@ -57,11 +58,11 @@ include_directories(include)
 # Starts building the sources tree
 add_subdirectory(src)
 
-# Continues with the tests tree
-add_subdirectory(test)
+# Continues with howtos
+add_subdirectory(howtos)
 
 # Continues with samples
 add_subdirectory(samples)
 
-# Continues with howtos
-add_subdirectory(howtos)
+# Continues with the tests tree
+add_subdirectory(test)

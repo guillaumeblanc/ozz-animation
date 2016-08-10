@@ -238,10 +238,17 @@ TEST(Parsing, Options) {
   EXPECT_TRUE(parser.RegisterOption(&float_option));
   EXPECT_TRUE(parser.RegisterOption(&string_option));
 
-  const char* argv[] = {  // "--" hides all further options.
+  const char* argv[] = {
     "c:/a path/test.exe",
-    "--bool", "--float=46.00000", "--string=forty six", "--int=46",
-    "--", "--sic=0"};
+    "--bool",
+    "",  // empty argument isn't a error
+    "--float=46.00000",
+    "",  // empty argument isn't a error
+    "--string=forty six",
+    "--int=46",
+    "",  // empty argument isn't a error
+    "--",  // "--" hides all further options.
+    "--sic=0"};
   const int argc = OZZ_ARRAY_SIZE(argv);
   EXPECT_EQ(parser.Parse(argc, argv), ozz::options::kSuccess);
   EXPECT_TRUE(bool_option);

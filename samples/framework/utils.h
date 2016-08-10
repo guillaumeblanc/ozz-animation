@@ -114,7 +114,7 @@ void ComputePostureBounds(ozz::Range<const ozz::math::Float4x4> _matrices,
 // Loads a skeleton from an ozz archive file named _filename.
 // This function will fail and return false if the file cannot be opened or if
 // it is not a valid ozz skeleton archive. A valid skeleton archive can be
-// produced with ozz tools (dae2skel) or using ozz skeleton serialization API.
+// produced with ozz tools (fbx2skel) or using ozz skeleton serialization API.
 // _filename and _skeleton must be non-NULL.
 bool LoadSkeleton(const char* _filename,
                   ozz::animation::Skeleton* _skeleton);
@@ -122,7 +122,7 @@ bool LoadSkeleton(const char* _filename,
 // Loads an animation from an ozz archive file named _filename.
 // This function will fail and return false if the file cannot be opened or if
 // it is not a valid ozz animation archive. A valid animation archive can be
-// produced with ozz tools (dae2anim) or using ozz animation serialization API.
+// produced with ozz tools (fbx2anim) or using ozz animation serialization API.
 // _filename and _animation must be non-NULL.
 bool LoadAnimation(const char* _filename,
                    ozz::animation::Animation* _animation);

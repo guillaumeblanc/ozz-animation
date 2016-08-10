@@ -134,7 +134,7 @@ void Skeleton::Load(ozz::io::IArchive& _archive, uint32_t _version) {
   num_joints_ = num_joints;
 
   // Early out if skeleton's empty.
-  if (!num_joints_) {
+  if (!num_joints) {
     return;
   }
 
@@ -144,21 +144,24 @@ void Skeleton::Load(ozz::io::IArchive& _archive, uint32_t _version) {
 
   // Allocates and reads name's buffer. Names are stored at the end off the
   // array of pointers.
-  const size_t buffer_size = num_joints_ * sizeof(char*) + chars_count;
+  const size_t buffer_size = num_joints * sizeof(char*) + chars_count;
   joint_names_ = memory::default_allocator()->Allocate<char*>(buffer_size);
-  char* cursor = reinterpret_cast<char*>(joint_names_ + num_joints_);
+  char* cursor = reinterpret_cast<char*>(joint_names_ + num_joints);
   _archive >> ozz::io::MakeArray(cursor, chars_count);
 
-  // Fixes up array of pointers.
-  for (int i = 0; i < num_joints_; ++i) {
+  // Fixes up array of pointers. Stops at num_joints - 1, so that it doesn't
+  // read memory past the end of the buffer.
+  for (int i = 0; i < num_joints - 1; ++i) {
     joint_names_[i] = cursor;
     cursor += std::strlen(joint_names_[i]) + 1;
   }
+  // num_joints is > 0, as this was tested at the beginning of the function.
+  joint_names_[num_joints - 1] = cursor;
 
   // Reads joint's properties.
   joint_properties_ = 
-    memory::default_allocator()->Allocate<Skeleton::JointProperties>(num_joints_);
-  _archive >> ozz::io::MakeArray(joint_properties_, num_joints_);
+    memory::default_allocator()->Allocate<Skeleton::JointProperties>(num_joints);
+  _archive >> ozz::io::MakeArray(joint_properties_, num_joints);
 
   // Reads bind pose.
   bind_pose_ =

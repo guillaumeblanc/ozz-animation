@@ -51,28 +51,28 @@
 OZZ_OPTIONS_DECLARE_STRING(
   skeleton,
   "Path to the skeleton (ozz archive format).",
-  "media/skeleton.ozz",
+  "media/alain_skeleton.ozz",
   false)
 
 // First animation archive can be specified as an option.
 OZZ_OPTIONS_DECLARE_STRING(
   animation1,
   "Path to the first animation (ozz archive format).",
-  "media/walk.ozz",
+  "media/alain_walk.ozz",
   false)
 
 // Second animation archive can be specified as an option.
 OZZ_OPTIONS_DECLARE_STRING(
   animation2,
   "Path to the second animation (ozz archive format).",
-  "media/jog.ozz",
+  "media/alain_jog.ozz",
   false)
 
 // Third animation archive can be specified as an option.
 OZZ_OPTIONS_DECLARE_STRING(
   animation3,
   "Path to the second animation (ozz archive format).",
-  "media/run.ozz",
+  "media/alain_run.ozz",
   false)
 
 class BlendSampleApplication : public ozz::sample::Application {
@@ -99,6 +99,11 @@ class BlendSampleApplication : public ozz::sample::Application {
 
       // Updates animations time.
       sampler.controller.Update(sampler.animation, _dt);
+
+      // Early out if this sampler weight makes it irrelevant during blending.
+      if (samplers_[i].weight <= 0.f) {
+        continue;
+      }
 
       // Setup sampling job.
       ozz::animation::SamplingJob sampling_job;

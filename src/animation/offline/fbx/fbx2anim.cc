@@ -32,12 +32,12 @@
 // fbx2anim is a command line tool that converts an animation imported from a
 // fbx document to ozz runtime format.
 //
-// dae2anim extracts animated joints from a fbx document. Only the animated
+// fbx2anim extracts animated joints from a fbx document. Only the animated
 // joints whose names match those of the ozz runtime skeleton given as argument
 // are selected. Keyframes are then optimized, based on command line settings,
 // and serialized as a runtime animation to an ozz binary archive.
 //
-// Use dae2anim integrated help command (fbx2anim --help) for more details
+// Use fbx2anim integrated help command (fbx2anim --help) for more details
 // about available arguments.
 
 class FbxAnimationConverter :

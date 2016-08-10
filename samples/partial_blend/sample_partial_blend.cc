@@ -55,21 +55,21 @@
 OZZ_OPTIONS_DECLARE_STRING(
   skeleton,
   "Path to the skeleton (ozz archive format).",
-  "media/skeleton.ozz",
+  "media/alain_skeleton.ozz",
   false)
 
 // Lower body animation archive can be specified as an option.
 OZZ_OPTIONS_DECLARE_STRING(
   lower_body_animation,
   "Path to the lower body animation(ozz archive format).",
-  "media/walk.ozz",
+  "media/alain_walk.ozz",
   false)
 
 // Upper body animation archive can be specified as an option.
 OZZ_OPTIONS_DECLARE_STRING(
   upper_body_animation,
   "Path to the upper body animation (ozz archive format).",
-  "media/crossarms.ozz",
+  "media/alain_crossarms.ozz",
   false)
 
 class PartialBlendSampleApplication : public ozz::sample::Application {

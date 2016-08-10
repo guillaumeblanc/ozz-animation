@@ -220,7 +220,7 @@ struct ProcessArgs {
   // The job to process.
   const BlendingJob& job;
 
-  // The number of transforms to process as defind by the size of the bind pose.
+  // The number of transforms to process as defined by the size of the bind pose.
   size_t num_soa_joints;
 
   // Number of processed blended passes (excluding passes with a weight <= 0.f),

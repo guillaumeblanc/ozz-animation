@@ -45,6 +45,10 @@ target_link_libraries(sample_framework
   ozz_options
   ozz_base)
 
+if(TARGET BUILD_DATA_SAMPLE)
+  add_dependencies(sample_framework BUILD_DATA_SAMPLE)
+endif()
+
 set_target_properties(sample_framework
   PROPERTIES FOLDER "samples")
   

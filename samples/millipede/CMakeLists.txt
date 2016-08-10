@@ -1,6 +1,6 @@
 add_custom_command(
-  OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/README"
   DEPENDS "${CMAKE_CURRENT_LIST_DIR}/README"
+  OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/README"
   COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_LIST_DIR}/README .)
 
 add_executable(sample_millipede
@@ -27,4 +27,4 @@ else()
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/README DESTINATION bin/samples/millipede)
 endif(EMSCRIPTEN)
 
-add_test(NAME sample_millipede COMMAND sample_millipede "--max_idle_loops=${SAMPLE_TESTING_LOOPS}" ${SAMPLE_RENDER_ARGUMENT})
+add_test(NAME sample_millipede COMMAND sample_millipede "--max_idle_loops=${ozz_sample_testing_loops}" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)
