@@ -546,7 +546,7 @@ AmbientShader* AmbientShader::Build() {
 
   const char* vs[] = {
     kPlatformSpecivicVSHeader,
-    "uniform mat4 u_mw;\n mat4 GetWorldMatrix() {return u_mw;};\n",
+    "uniform mat4 u_mw;\n mat4 GetWorldMatrix() {return u_mw;}\n",
     kShaderUberVS};
   const char* fs[] = {
     kPlatformSpecivicFSHeader,
@@ -624,7 +624,7 @@ AmbientShaderInstanced* AmbientShaderInstanced::Build() {
 
   const char* vs[] = {
     kPlatformSpecivicVSHeader,
-    "attribute mat4 a_mw;\n mat4 GetWorldMatrix() {return a_mw;};\n",
+    "attribute mat4 a_mw;\n mat4 GetWorldMatrix() {return a_mw;}\n",
     kShaderUberVS};
   const char* fs[] = {
     kPlatformSpecivicFSHeader,
