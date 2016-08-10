@@ -1,3 +1,7 @@
+Release version 0.9.0
+---------------------
+* [offline] Removes dae tools, offline libraries and dependencies.
+
 Release version 0.8.0
 ---------------------
  
