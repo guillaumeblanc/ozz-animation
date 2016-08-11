@@ -19,8 +19,7 @@ set_tests_properties(fbx2skel_no_skeleton_dae PROPERTIES WILL_FAIL true)
 add_test(NAME fbx2skel_ouput COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/fbx_should_not_exist.ozz" "${ozz_temp_directory}/fbx_should_not_exist_too.ozz")
 set_tests_properties(fbx2skel_ouput PROPERTIES WILL_FAIL true)
 set_tests_properties(fbx2skel_ouput PROPERTIES
-  DEPENDS "test2anim_ouput
-           fbx2skel_badcontent
+  DEPENDS "fbx2skel_badcontent
            fbx2skel_no_skeleton
            fbx2skel_no_skeleton_dae")
 
@@ -71,7 +70,6 @@ if(TARGET sample_playback)
   add_custom_command(
     DEPENDS fbx2skel
             fbx2anim
-            "${CMAKE_CURRENT_LIST_DIR}/README"
             "${ozz_media_directory}/collada/alain/skeleton.dae"
             "${ozz_media_directory}/collada/alain/skeleton_zup.dae"
             "${ozz_media_directory}/collada/alain/walk.dae"
