@@ -32,4 +32,4 @@ add_executable(test_fuse_base
 target_link_libraries(test_fuse_base
   gtest)
 add_test(NAME test_fuse_base COMMAND test_fuse_base)
-set_target_properties(test_platform PROPERTIES FOLDER "ozz/tests/fused")
+set_target_properties(test_fuse_base PROPERTIES FOLDER "ozz/tests/fused")
