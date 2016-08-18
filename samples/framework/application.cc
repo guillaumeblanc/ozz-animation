@@ -271,7 +271,7 @@ Application::LoopStatus Application::OneLoop(int _loops) {
   }
 
   // Don't overload the cpu if the window is not active.
-#ifndef EMSCRIPTEN  
+#ifndef EMSCRIPTEN 
   if (OPTIONS_render && !glfwGetWindowParam(GLFW_ACTIVE)) {
     glfwWaitEvents();  // Wait...
 
@@ -281,6 +281,8 @@ Application::LoopStatus Application::OneLoop(int _loops) {
 
     return kContinue;  // ...but don't do anything.
   }
+#else  // EMSCRIPTEN
+  emscripten_set_main_loop_timing(EM_TIMING_RAF, 1);
 #endif  // EMSCRIPTEN
   
   // Updates resolution if required.
