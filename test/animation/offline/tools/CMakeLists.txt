@@ -1,7 +1,7 @@
 add_executable(test2skel
   test2skel.cc)
 target_link_libraries(test2skel
-  ozz_animation_offline_tools
+  ozz_animation_offline_skel_tools
   ozz_animation_offline
   ozz_animation
   ozz_options
@@ -12,7 +12,7 @@ set_target_properties(test2skel
 add_executable(test2anim
   test2anim.cc)
 target_link_libraries(test2anim
-  ozz_animation_offline_tools
+  ozz_animation_offline_anim_tools
   ozz_animation_offline
   ozz_animation
   ozz_options
@@ -184,3 +184,34 @@ add_test(NAME test2anim_sampling_rate COMMAND test2anim "--file=${ozz_temp_direc
 set_tests_properties(test2anim_sampling_rate PROPERTIES DEPENDS test2skel_simple)
 add_test(NAME test2anim_log_verbose COMMAND test2anim "--file=${ozz_temp_directory}/good.content" "--skeleton=${ozz_temp_directory}/skeleton.ozz" "--animation=${ozz_temp_directory}/animation_${CMAKE_CURRENT_LIST_LINE}.ozz" "--log_level=verbose")
 set_tests_properties(test2anim_log_verbose PROPERTIES DEPENDS test2skel_simple)
+
+# ozz_animation_offline_skel_tools fuse tests
+add_executable(test_fuse_animation_offline_skel_tools
+  test2skel.cc
+  ${CMAKE_SOURCE_DIR}/src_fused/ozz_animation_offline_skel_tools.cc)
+target_link_libraries(test_fuse_animation_offline_skel_tools
+  ozz_animation_offline
+  ozz_animation
+  ozz_options
+  ozz_base
+  gtest)
+set_target_properties(test_fuse_animation_offline_skel_tools PROPERTIES FOLDER "ozz/tests/fused")
+
+add_test(NAME test_fuse_animation_offline_skel_tools_no_arg COMMAND test_fuse_animation_offline_skel_tools)
+set_tests_properties(test_fuse_animation_offline_skel_tools_no_arg PROPERTIES WILL_FAIL true)
+
+# ozz_animation_offline_anim_tools fuse tests
+add_executable(test_fuse_animation_offline_anim_tools
+  test2anim.cc
+  ${CMAKE_SOURCE_DIR}/src_fused/ozz_animation_offline_anim_tools.cc)
+target_link_libraries(test_fuse_animation_offline_anim_tools
+  ozz_animation_offline
+  ozz_animation
+  ozz_options
+  ozz_base
+  gtest)
+
+set_target_properties(test_fuse_animation_offline_anim_tools PROPERTIES FOLDER "ozz/tests/fused")
+
+add_test(NAME test_fuse_animation_offline_anim_tools_no_arg COMMAND test_fuse_animation_offline_anim_tools)
+set_tests_properties(test_fuse_animation_offline_anim_tools_no_arg PROPERTIES WILL_FAIL true)

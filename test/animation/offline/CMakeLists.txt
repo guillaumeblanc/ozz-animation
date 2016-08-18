@@ -82,5 +82,16 @@ set_target_properties(test_raw_animation_archive_versioning PROPERTIES FOLDER "o
 add_test(NAME test_raw_animation_archive_versioning_le COMMAND test_raw_animation_archive_versioning "--file=${ozz_media_directory}/bin/versioning/raw_animation_v1_le.ozz" "--tracks=67" "--duration=1.3333333")
 add_test(NAME test_raw_animation_archive_versioning_be COMMAND test_raw_animation_archive_versioning "--file=${ozz_media_directory}/bin/versioning/raw_animation_v1_be.ozz" "--tracks=67" "--duration=1.3333333")
 
+# ozz_animation_offline fuse tests
+add_executable(test_fuse_animation_offline
+  animation_builder_tests.cc
+  ${CMAKE_SOURCE_DIR}/src_fused/ozz_animation_offline.cc)
+target_link_libraries(test_fuse_animation_offline
+  ozz_animation
+  ozz_base
+  gtest)
+add_test(NAME test_fuse_animation_offline COMMAND test_fuse_animation_offline)
+set_target_properties(test_fuse_animation_offline PROPERTIES FOLDER "ozz/tests/fused")
+
 add_subdirectory(fbx)
 add_subdirectory(tools)

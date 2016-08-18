@@ -19,3 +19,13 @@ target_link_libraries(test_options_registration_empty
   gtest)
 add_test(NAME test_options_registration_empty COMMAND test_options_registration_empty)
 set_target_properties(test_options_registration_empty PROPERTIES FOLDER "ozz/tests/options")
+
+# ozz_options fuse tests
+add_executable(test_fuse_options
+  options_registration_tests.cc
+  ${CMAKE_SOURCE_DIR}/src_fused/ozz_options.cc)
+target_link_libraries(test_fuse_options
+  gtest)
+add_test(NAME test_fuse_options COMMAND test_fuse_options)
+set_target_properties(test_fuse_options PROPERTIES FOLDER "ozz/tests/fused")
+

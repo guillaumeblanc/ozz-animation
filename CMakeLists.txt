@@ -21,11 +21,10 @@ set(ozz_build_coverage OFF CACHE BOOL "Enable gcov code coverage")
 set(ozz_run_tests_headless ON CACHE BOOL "Run samples without rendering (used for unit tests)")
 set(ozz_sample_testing_loops "20" CACHE INT "Number of loops while running sample tests (used for unit tests)")
 
-# Set compiler flags and options
+# Include ozz cmake parameters and scripts
 include(build-utils/cmake/compiler_settings.cmake)
-
-# Set cpack flags and options
 include(build-utils/cmake/package_settings.cmake)
+include(build-utils/cmake/fuse_target.cmake)
 
 # Enables unit tests only
 if(ozz_build_tests)

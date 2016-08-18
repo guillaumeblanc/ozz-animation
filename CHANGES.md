@@ -1,6 +1,11 @@
 Release version 0.9.0
 ---------------------
-* [offline] Removes dae tools, offline libraries and dependencies.
+* Library
+  - [offline] Removes dae tools, offline libraries and dependencies.
+  - [offline] split offline tools in skel + anim to avoid command line options "issue".
+
+* Build pipeline
+  - Fuse
 
 Release version 0.8.0
 ---------------------

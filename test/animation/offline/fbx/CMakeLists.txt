@@ -101,3 +101,18 @@ if(TARGET sample_playback)
   add_test(NAME sample_playback_mixed_df COMMAND sample_playback "--skeleton=${ozz_temp_directory}/alain_skeleton_dae.ozz" "--animation=${ozz_media_directory}/bin/alain_walk.ozz" "--max_idle_loops=${ozz_sample_testing_loops}" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)
   add_test(NAME sample_playback_mixed_fd COMMAND sample_playback "--skeleton=${ozz_media_directory}/bin/alain_skeleton.ozz" "--animation=${ozz_temp_directory}/alain_walk_dae.ozz" "--max_idle_loops=${ozz_sample_testing_loops}" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)
 endif()
+
+# ozz_animation_offline_fbx fuse tests
+add_executable(test_fuse_ozz_animation_fbx
+  ${CMAKE_SOURCE_DIR}/src/animation/offline/fbx/fbx2skel.cc
+  ${CMAKE_SOURCE_DIR}/src_fused/ozz_animation_fbx.cc)
+target_link_libraries(test_fuse_ozz_animation_fbx
+  ozz_animation_offline_skel_tools
+  ozz_animation_offline
+  ozz_animation
+  ozz_options
+  ozz_base)
+set_target_properties(test_fuse_ozz_animation_fbx PROPERTIES FOLDER "ozz/tests/fused")
+
+add_test(NAME test_fuse_ozz_animation_fbx_no_arg COMMAND test_fuse_ozz_animation_offline_fbx)
+set_tests_properties(test_fuse_ozz_animation_fbx_no_arg PROPERTIES WILL_FAIL true)

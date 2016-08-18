@@ -21,10 +21,12 @@ set_target_properties(ozz_animation_fbx
 
 install(TARGETS ozz_animation_fbx DESTINATION lib)
 
+fuse_target("ozz_animation_fbx")
+
 add_executable(fbx2skel
   fbx2skel.cc)
 target_link_libraries(fbx2skel
-  ozz_animation_offline_tools
+  ozz_animation_offline_skel_tools
   ozz_animation_fbx
   ozz_animation_offline
   ozz_animation
@@ -38,7 +40,7 @@ install(TARGETS fbx2skel DESTINATION bin/tools)
 add_executable(fbx2anim
   fbx2anim.cc)
 target_link_libraries(fbx2anim
-  ozz_animation_offline_tools
+  ozz_animation_offline_anim_tools
   ozz_animation_fbx
   ozz_animation_offline
   ozz_animation

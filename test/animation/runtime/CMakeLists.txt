@@ -92,3 +92,13 @@ target_link_libraries(test_skeleton_utils
 set_target_properties(test_skeleton_utils PROPERTIES FOLDER "ozz/tests/animation")
 add_test(NAME test_skeleton_utils COMMAND test_skeleton_utils)
 
+# ozz_animation fuse tests
+add_executable(test_fuse_animation
+  sampling_job_tests.cc
+  ${CMAKE_SOURCE_DIR}/src_fused/ozz_animation.cc)
+target_link_libraries(test_fuse_animation
+  ozz_animation_offline
+  ozz_base
+  gtest)
+add_test(NAME test_fuse_animation COMMAND test_fuse_animation)
+set_target_properties(test_fuse_animation PROPERTIES FOLDER "ozz/tests/fused")

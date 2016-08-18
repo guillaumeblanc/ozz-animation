@@ -5,3 +5,5 @@ set_target_properties(ozz_geometry
   PROPERTIES FOLDER "ozz")
 
 install(TARGETS ozz_geometry DESTINATION lib)
+
+fuse_target("ozz_geometry")
