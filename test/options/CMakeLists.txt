@@ -27,5 +27,5 @@ add_executable(test_fuse_options
 target_link_libraries(test_fuse_options
   gtest)
 add_test(NAME test_fuse_options COMMAND test_fuse_options)
-set_target_properties(test_fuse_options PROPERTIES FOLDER "ozz/tests/fused")
+set_target_properties(test_fuse_options PROPERTIES FOLDER "ozz/tests/options")
 

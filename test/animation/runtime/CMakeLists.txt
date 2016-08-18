@@ -101,4 +101,4 @@ target_link_libraries(test_fuse_animation
   ozz_base
   gtest)
 add_test(NAME test_fuse_animation COMMAND test_fuse_animation)
-set_target_properties(test_fuse_animation PROPERTIES FOLDER "ozz/tests/fused")
+set_target_properties(test_fuse_animation PROPERTIES FOLDER "ozz/tests/animation")

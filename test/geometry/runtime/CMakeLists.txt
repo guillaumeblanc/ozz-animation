@@ -16,4 +16,4 @@ target_link_libraries(test_fuse_geometry
   ozz_base
   gtest)
 add_test(NAME test_fuse_geometry COMMAND test_fuse_geometry)
-set_target_properties(test_fuse_geometry PROPERTIES FOLDER "ozz/tests/fused")
+set_target_properties(test_fuse_geometry PROPERTIES FOLDER "ozz/tests/geometry")

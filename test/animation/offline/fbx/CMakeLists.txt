@@ -112,7 +112,7 @@ target_link_libraries(test_fuse_ozz_animation_fbx
   ozz_animation
   ozz_options
   ozz_base)
-set_target_properties(test_fuse_ozz_animation_fbx PROPERTIES FOLDER "ozz/tests/fused")
+set_target_properties(test_fuse_ozz_animation_fbx PROPERTIES FOLDER "ozz/tests/animation_offline")
 
 add_test(NAME test_fuse_ozz_animation_fbx_no_arg COMMAND test_fuse_ozz_animation_offline_fbx)
 set_tests_properties(test_fuse_ozz_animation_fbx_no_arg PROPERTIES WILL_FAIL true)

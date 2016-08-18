@@ -195,7 +195,7 @@ target_link_libraries(test_fuse_animation_offline_skel_tools
   ozz_options
   ozz_base
   gtest)
-set_target_properties(test_fuse_animation_offline_skel_tools PROPERTIES FOLDER "ozz/tests/fused")
+set_target_properties(test_fuse_animation_offline_skel_tools PROPERTIES FOLDER "ozz/tests/animation_offline")
 
 add_test(NAME test_fuse_animation_offline_skel_tools_no_arg COMMAND test_fuse_animation_offline_skel_tools)
 set_tests_properties(test_fuse_animation_offline_skel_tools_no_arg PROPERTIES WILL_FAIL true)
@@ -211,7 +211,7 @@ target_link_libraries(test_fuse_animation_offline_anim_tools
   ozz_base
   gtest)
 
-set_target_properties(test_fuse_animation_offline_anim_tools PROPERTIES FOLDER "ozz/tests/fused")
+set_target_properties(test_fuse_animation_offline_anim_tools PROPERTIES FOLDER "ozz/tests/animation_offline")
 
 add_test(NAME test_fuse_animation_offline_anim_tools_no_arg COMMAND test_fuse_animation_offline_anim_tools)
 set_tests_properties(test_fuse_animation_offline_anim_tools_no_arg PROPERTIES WILL_FAIL true)
