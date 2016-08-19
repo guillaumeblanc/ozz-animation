@@ -28,10 +28,11 @@
       <div class="w3-container">
         {% assign collection_id = collection[1].label %}
         {% if {{collection_id}} == {{page.collection}} %}
-         {% for page in site[{{collection_id}}] %}
+          {% assign pages = site[{{collection_id}}] | sort:"order" %}
+          {% for page in pages %}
             {% capture text %}[{{page.title}}]({{site.baseurl}}{{page.url}}){% endcapture %}
             {{text | markdownify}}
-         {% endfor %}
+          {% endfor %}
         {% endif %}
       </div>
     </div>

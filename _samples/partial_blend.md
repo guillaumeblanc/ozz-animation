@@ -2,6 +2,8 @@
 title: Partial animations blending
 layout: full
 keywords: animation,blending,partial,lower,upper,body,arm,head,character,skeleton,additive
+order: 30
+level: 2
 ---
 
 {% include references.jekyll %}

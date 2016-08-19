@@ -1,6 +1,6 @@
 <div id="sample_border">
 <p id="sample_status">Initializing WebGL</p>
-<div><canvas id="sample_canvas" width="800" height="0"></canvas></div>
+<div><canvas id="sample_canvas"></canvas></div>
 <textarea id="sample_output" rows="8"></textarea>
 </div>
 <script>
@@ -28,7 +28,6 @@
   }
 
   function OnSampleSuccess() {
-    sample_canvas.style.height = '450px';
     sample_status.innerHTML = "ozz-animation sample compiled from c++ with emscripten and running WebGL.";
   }
 

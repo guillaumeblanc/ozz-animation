@@ -2,11 +2,13 @@
 title: Multi-threaded sampling with OpenMp
 layout: full
 keywords: animation,sampling,blending,playback,optimize,multithreads,threading,job,openmp,intel,tbb,thread
+order: 70
+level: 3
 ---
 
 {% include references.jekyll %}
 
-> Note for windows users: On Windows, this sample requires "VC++ Redistribuable Packages" to be installed. OpenMp runtime libraries are only available as Dlls (vcomp`*`.dll) indeed. Latest packages are available here: https://support.microsoft.com/kb/2019667
+> Note for windows users: On Windows, this sample requires "VC++ Redistribuable Packages" to be installed. OpenMp runtime libraries are only available as Dlls (vcomp`*`.dll) indeed. Latest packages are available from [Microsoft](http://support.microsoft.com/kb/2019667).
 
 Description
 ===========
@@ -14,7 +16,7 @@ Description
 The sample takes advantage of ozz jobs thread-safety to distribute sampling and local-to-model jobs across multiple threads, using OpenMp.
 User can tweak the number of characters and the number of threads. Animation control is automatically handled by the sample for all characters.
 
-![multithread sample screenshot]({{site.baseurl}}/images/multithread.jpg)
+![multithread sample screenshot]({{site.baseurl}}/images/samples/multithread.jpg)
 
 Concept
 =======

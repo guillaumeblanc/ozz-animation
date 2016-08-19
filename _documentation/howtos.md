@@ -2,6 +2,7 @@
 title: HowTos
 layout: full
 keywords: documentation,doc,help,howto,how to,custom,import,animation,skeleton,fbx,load,file,serialize
+order: 90
 ---
 
 {% include references.jekyll %}

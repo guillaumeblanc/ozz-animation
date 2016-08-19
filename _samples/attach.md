@@ -2,6 +2,8 @@
 title: Attachment to animated skeleton joints 
 layout: full
 keywords: sample, tutorial, attach, offset, local, model, space, trasformation, matrix, concatenate
+order: 50
+level: 1
 ---
 
 Description

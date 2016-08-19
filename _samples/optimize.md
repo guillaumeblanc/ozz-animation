@@ -2,6 +2,8 @@
 title: Animation keyframe optimization
 layout: full
 keywords: sample,optimize,quantize,compress,animation,keyframe,offline
+order: 60
+level: 2
 ---
 
 {% include references.jekyll %}

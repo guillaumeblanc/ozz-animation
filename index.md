@@ -5,17 +5,15 @@ keywords: home
 collection: home
 ---
 
-Current version is {{site.data.versions[0].version}}
+{% include references.jekyll %}
 
-![logo]({{site.baseurl}}/images/ozz-grey-128.png)
+![logo]({{site.baseurl}}/images/logo/ozz-grey-128.png)
 
-ozz-animation is an **open source c++ 3d skeletal animation engine**. It provides runtime character animation playback functionalities (loading, sampling, blending...), with full support for Collada and Fbx import formats. It proposes a low-level renderer agnostic and game-engine agnostic implementation, focusing on performance and memory constraints with a data-oriented design.
-
-ozz-animation comes with Collada and Fbx toolchains to convert from major Digital Content Creation formats to ozz optimized runtime structures. Offline libraries are also provided to implement the conversion from any other animation and skeleton format.
+ozz-animation is an **open source c++ 3d skeletal animation engine**. It provides runtime character animation functionalities (loading, sampling, blending...), with the toolchain to import from major DCC formats (Collada, Fbx, ...). It proposes a low-level renderer agnostic and game-engine agnostic implementation, focusing on performance and memory constraints with a data-oriented design.
 
 ---
 
-Below is a runtime blending sample, part of ozz package.
+Below is a [runtime blending sample][link_blend_sample], part of ozz package.
 
 {% include emscripten.jekyll emscripten_path="samples/emscripten/sample_blend.js" %}
 
@@ -32,4 +30,4 @@ ozz branching strategy follows [gitflow model](http://nvie.com/posts/a-successfu
 
 ---
 
-ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation and distributed under the MIT License (MIT).
+ozz-animation is hosted at [github][link_github] and distributed under the MIT License (MIT).

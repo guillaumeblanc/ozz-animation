@@ -1,7 +1,8 @@
 ---
 title: Advanced
 layout: full
-keywords: multi-threading,IO,memory,management,serialization,openmp
+keywords: advanced,multi-threading,io,memory,management,serialization,openmp
+order: 70
 ---
 
 {% include references.jekyll %}
@@ -191,25 +192,29 @@ This library relies on these following files to provides SoA structures similar 
 - ozz/base/maths/soa_float.h: Math 2, 3 or 4 components SoA vectors (ozz::math::SoAFloat2, ozz::math::SoAFloat3, ozz::math::SoAFloat4), with usual geometric operations. 
 - ozz/base/maths/soa_float4x4.h: A Soa 4 by 4 matrix implementation ozz::math::SoaFloat4x4.
 - ozz/base/maths/soa_quaternion.h: A Soa quaternion implementation ozz::math::SoaQuaternion.
-- ozz/base/maths/soa_transform.h: A Soa affine tranformation  ozz::math::SoaTransform.
+- ozz/base/maths/soa_transform.h: A Soa affine transformation  ozz::math::SoaTransform.
 
 The library is implemented over the SIMD math library and takes all the benefits of SSE or other SIMD implementations.
 ozz-animation make an heavy use of SoA data structures (see ozz::animation::BlendingJob for example), which could be used as examples. Data oriented programming is very important to maximize benefits of SoA structures, allowing to arrange the data according to the processing that's operating on them.
 
 Containers
 ==========
-TODO
 
 Standard containers
 -------------------
-TODO
+
+ozz base library remaps stl standard containers ([vectors, maps..][link_src_containers]) to ozz memory allocators. The purpose is to track memory allocations and avoid leaks.
+
+> Note that this containers are not used by the runtime libraries.
 
 Custom containers
 -----------------
-TODO
+
+Base library implement an linked node list ([`ozz::container::IntrusiveList`][link_src_intrusive_list]), with the benefit of many O1 algorithms and a different memory scheme compared to std::list. It's templatized for easier reuse and compatible with std::list API and stl algorithms.
 
 Options
 =======
+
 This library implements a command line option processing utility. It helps with command line parsing by converting arguments to c++ objects of type bool, int, float or c-string.
 Unlike `getogt()`, program options can be scattered in the source files (a la google-gflags). Options are collected by a parser which then automatically generate the help/usage screen based on registered options.
 This library is made of a single .h and .cc with no other dependency, to make it simple to be reused.
