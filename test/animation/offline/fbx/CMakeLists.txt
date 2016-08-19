@@ -2,6 +2,8 @@ if(NOT ozz_build_fbx)
   return()
 endif()
 
+include_directories(${FBX_INCLUDE_DIRS})
+
 # Creates a file with an invalid content.
 file(WRITE "${ozz_temp_directory}/content.bad" "bad content")
 
@@ -107,6 +109,8 @@ add_executable(test_fuse_ozz_animation_fbx
   ${CMAKE_SOURCE_DIR}/src/animation/offline/fbx/fbx2skel.cc
   ${CMAKE_SOURCE_DIR}/src_fused/ozz_animation_fbx.cc)
 target_link_libraries(test_fuse_ozz_animation_fbx
+  debug ${FBX_LIBRARIES_DEBUG}
+  optimized ${FBX_LIBRARIES}
   ozz_animation_offline_skel_tools
   ozz_animation_offline
   ozz_animation
@@ -114,5 +118,5 @@ target_link_libraries(test_fuse_ozz_animation_fbx
   ozz_base)
 set_target_properties(test_fuse_ozz_animation_fbx PROPERTIES FOLDER "ozz/tests/animation_offline")
 
-add_test(NAME test_fuse_ozz_animation_fbx_no_arg COMMAND test_fuse_ozz_animation_offline_fbx)
+add_test(NAME test_fuse_ozz_animation_fbx_no_arg COMMAND test_fuse_ozz_animation_fbx)
 set_tests_properties(test_fuse_ozz_animation_fbx_no_arg PROPERTIES WILL_FAIL true)

@@ -30,8 +30,8 @@
 #include "ozz/animation/offline/fbx/fbx.h"
 #include "ozz/animation/offline/fbx/fbx_base.h"
 
-#include "fbx_skeleton.h"
-#include "fbx_animation.h"
+#include "animation/offline/fbx/fbx_skeleton.h"
+#include "animation/offline/fbx/fbx_animation.h"
 
 #include "ozz/base/log.h"
 
