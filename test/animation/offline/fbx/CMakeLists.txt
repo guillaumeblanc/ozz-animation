@@ -108,6 +108,7 @@ endif()
 add_executable(test_fuse_ozz_animation_fbx
   ${CMAKE_SOURCE_DIR}/src/animation/offline/fbx/fbx2skel.cc
   ${CMAKE_SOURCE_DIR}/src_fused/ozz_animation_fbx.cc)
+add_dependencies(test_fuse_ozz_animation_fbx BUILD_FUSE_ozz_animation_fbx)
 target_link_libraries(test_fuse_ozz_animation_fbx
   debug ${FBX_LIBRARIES_DEBUG}
   optimized ${FBX_LIBRARIES}

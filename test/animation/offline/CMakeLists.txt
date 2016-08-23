@@ -86,6 +86,7 @@ add_test(NAME test_raw_animation_archive_versioning_be COMMAND test_raw_animatio
 add_executable(test_fuse_animation_offline
   animation_builder_tests.cc
   ${CMAKE_SOURCE_DIR}/src_fused/ozz_animation_offline.cc)
+add_dependencies(test_fuse_animation_offline BUILD_FUSE_ozz_animation_offline)
 target_link_libraries(test_fuse_animation_offline
   ozz_animation
   ozz_base

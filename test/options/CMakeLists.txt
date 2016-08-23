@@ -24,6 +24,7 @@ set_target_properties(test_options_registration_empty PROPERTIES FOLDER "ozz/tes
 add_executable(test_fuse_options
   options_registration_tests.cc
   ${CMAKE_SOURCE_DIR}/src_fused/ozz_options.cc)
+add_dependencies(test_fuse_options BUILD_FUSE_ozz_options)
 target_link_libraries(test_fuse_options
   gtest)
 add_test(NAME test_fuse_options COMMAND test_fuse_options)
