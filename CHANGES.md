@@ -4,6 +4,10 @@ Release version 0.9.0
   - [offline] Removes dae tools, offline libraries and dependencies.
   - [offline] split offline tools in skel + anim to avoid command line options "issue".
 
+* Samples
+  - [sample_fbx2mesh] Fixes welding of redundant vertices. Reimported meshes now have significantly less vertices.
+  - mesh serialization format has changed. Meshes need to be re-exported.
+
 * Build pipeline
   - Fuse
 

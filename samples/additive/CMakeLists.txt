@@ -1,7 +1,12 @@
 
 add_custom_command(
   DEPENDS BUILD_DATA
+          BUILD_DATA_SAMPLE
           "${CMAKE_CURRENT_LIST_DIR}/README"
+          "${ozz_media_directory}/bin/arnaud_mesh.ozz"
+          "${ozz_media_directory}/bin/alain_skeleton.ozz"
+          "${ozz_media_directory}/bin/alain_walk.ozz"
+          "${ozz_media_directory}/bin/alain_crackhead_additive.ozz"
   OUTPUT  "${CMAKE_CURRENT_BINARY_DIR}/README"
           "${CMAKE_CURRENT_BINARY_DIR}/media/arnaud_mesh.ozz"
           "${CMAKE_CURRENT_BINARY_DIR}/media/alain_skeleton.ozz"
@@ -23,6 +28,8 @@ add_executable(sample_additive
   "${CMAKE_CURRENT_BINARY_DIR}/media/alain_crackhead_additive.ozz")
 target_link_libraries(sample_additive
   sample_framework)
+
+add_dependencies(sample_additive BUILD_DATA_SAMPLE BUILD_DATA)
 
 set_target_properties(sample_additive
   PROPERTIES FOLDER "samples")
