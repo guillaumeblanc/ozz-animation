@@ -133,12 +133,13 @@ bool BuildVertices(FbxMesh* _fbx_mesh,
       // control point.
       int redundant_with = -1;
       for (size_t r = 0; r < remap.size(); ++r) {
-        int to_test = remap[r];
+        const int to_test = remap[r];
 
         // Check for identical normals.
-        if (normal.x == part.normals[to_test + 0] &&
-            normal.y == part.normals[to_test + 1] &&
-            normal.z == part.normals[to_test + 2]) {
+        const int normal_offset = to_test * 3;
+        if (normal.x == part.normals[normal_offset + 0] &&
+            normal.y == part.normals[normal_offset + 1] &&
+            normal.z == part.normals[normal_offset + 2]) {
           redundant_with = to_test;
           break;
         }
