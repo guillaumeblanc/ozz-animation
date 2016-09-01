@@ -17,10 +17,10 @@ function(fuse_target _target_name)
   add_custom_target(BUILD_FUSE_${_target_name} ALL DEPENDS "${output_file}")
   set_target_properties(BUILD_FUSE_${_target_name} PROPERTIES FOLDER "ozz/fuse")
 
-  if (NOT TARGET BUILD_FUSE)
-    add_custom_target(BUILD_FUSE ALL})
+  if (NOT TARGET BUILD_FUSE_ALL)
+    add_custom_target(BUILD_FUSE_ALL ALL})
   endif()
 
-  add_dependencies(BUILD_FUSE BUILD_FUSE_${_target_name})
+  add_dependencies(BUILD_FUSE_ALL BUILD_FUSE_${_target_name})
 
 endfunction()
