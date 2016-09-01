@@ -154,7 +154,7 @@ bool BuildVertices(FbxMesh* _fbx_mesh,
       } else {
 
         // Detect triangle indices overflow.
-        if (part.positions.size() > std::numeric_limits<uint16_t>::max()) {
+        if ((part.positions.size() / 3) > std::numeric_limits<uint16_t>::max()) {
           ozz::log::Err() << "Mesh uses too many vertices (> " <<
             std::numeric_limits<uint16_t>::max() << ") to fit in the index "
             "buffer." << std::endl;
@@ -162,7 +162,7 @@ bool BuildVertices(FbxMesh* _fbx_mesh,
         }
 
         // Deduce this vertex offset in the output vertex buffer.
-        uint16_t vertex_index = static_cast<uint16_t>(part.positions.size()) / 3;
+        uint16_t vertex_index = static_cast<uint16_t>(part.positions.size() / 3);
 
         // Build triangle indices.
         _output_mesh->triangle_indices[p * 3 + v] = vertex_index;
