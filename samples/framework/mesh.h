@@ -106,6 +106,9 @@ struct Mesh {
     typedef ozz::Vector<float>::Std Normals;
     Normals normals;
 
+    typedef ozz::Vector<float>::Std UVs;
+    UVs uvs;
+
     typedef ozz::Vector<uint8_t>::Std Colors;
     Colors colors;
 
@@ -129,8 +132,12 @@ struct Mesh {
 }  // sample
 
 namespace io {
+
+OZZ_IO_TYPE_TAG("ozz-sample-Mesh-Part", sample::Mesh::Part)
+OZZ_IO_TYPE_VERSION(1, sample::Mesh::Part)
+
 OZZ_IO_TYPE_TAG("ozz-sample-Mesh", sample::Mesh)
-OZZ_IO_TYPE_NOT_VERSIONABLE(sample::Mesh)
+OZZ_IO_TYPE_VERSION(1, sample::Mesh)
 
 template <>
 void Save(OArchive& _archive,

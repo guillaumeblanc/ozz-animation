@@ -46,8 +46,6 @@ Mesh::~Mesh() {
 
 namespace io {
 
-OZZ_IO_TYPE_NOT_VERSIONABLE(sample::Mesh::Part)
-
 template <>
 void Save(OArchive& _archive,
           const sample::Mesh::Part* _parts,
@@ -56,6 +54,7 @@ void Save(OArchive& _archive,
     const sample::Mesh::Part& part = _parts[i];
     _archive << part.positions;
     _archive << part.normals;
+    _archive << part.uvs;
     _archive << part.colors;
     _archive << part.joint_indices;
     _archive << part.joint_weights;
@@ -72,6 +71,7 @@ void Load(IArchive& _archive,
     sample::Mesh::Part& part = _parts[i];
     _archive >> part.positions;
     _archive >> part.normals;
+    _archive >> part.uvs;
     _archive >> part.colors;
     _archive >> part.joint_indices;
     _archive >> part.joint_weights;

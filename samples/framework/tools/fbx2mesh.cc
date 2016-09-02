@@ -93,6 +93,16 @@ bool BuildVertices(FbxMesh* _fbx_mesh,
     return false;
   }
 
+  // Checks uvs availability.
+  bool has_uvs =
+    _fbx_mesh->GetElementUVCount() > 0 &&
+    _fbx_mesh->GetElementUV(0)->GetMappingMode() != FbxLayerElement::eNone;
+
+  const char* uv_set_name = NULL;
+  if (has_uvs) {
+    uv_set_name = _fbx_mesh->GetElementUV(0)->GetName();
+  }
+
   // Computes worst vertex count case. Needs to allocate 3 vertices per polygon,
   // as they should all be triangles.
   const int polygon_count = _fbx_mesh->GetPolygonCount();
@@ -102,7 +112,11 @@ bool BuildVertices(FbxMesh* _fbx_mesh,
   // rejected.
   ozz::sample::Mesh::Part& part = _output_mesh->parts[0];
   part.positions.reserve(vertex_count * 3);  // x,y,z components.
-  part.normals.reserve(vertex_count * 3);
+  part.normals.reserve(vertex_count * 3);  // x,y,z components.
+
+  if (has_uvs) {
+    part.uvs.reserve(vertex_count * 2);  // u,v components.
+  }
 
   // Resize triangle indices, as their size is known.
   _output_mesh->triangle_indices.resize(vertex_count);
@@ -124,10 +138,25 @@ bool BuildVertices(FbxMesh* _fbx_mesh,
         _converter->ConvertPoint(_fbx_mesh->GetControlPoints()[ctrl_point]);
 
       // Get vertex normal.
-      FbxVector4 src_normal(0.f, 1.f, 0.f, 0.f);
+        FbxVector4 src_normal(0.f, 1.f, 0.f, 0.f);
       _fbx_mesh->GetPolygonVertexNormal(p, v, src_normal);
       const ozz::math::Float3 normal = NormalizeSafe(
         _converter->ConvertNormal(src_normal), ozz::math::Float3::y_axis());
+
+      FbxVector2 src_uv;
+      bool unmapped = true;
+      if (has_uvs) {
+        if (!_fbx_mesh->GetPolygonVertexUV(p, v, uv_set_name, src_uv, unmapped)) {
+          unmapped = true;
+        }
+      }
+      // Set src_uv to default value if vertex has no uv.
+      if (unmapped) {
+        src_uv = FbxVector2(0., 0.);
+      }
+
+      const ozz::math::Float2 uv(static_cast<float>(src_uv[0]),
+                                 static_cast<float>(src_uv[1]));
 
       // Check for vertex redundancy, only with other points that share the same
       // control point.
@@ -136,13 +165,29 @@ bool BuildVertices(FbxMesh* _fbx_mesh,
         const int to_test = remap[r];
 
         // Check for identical normals.
-        const int normal_offset = to_test * 3;
+        const int normal_offset = to_test * 3;  // x, y, z
         if (normal.x == part.normals[normal_offset + 0] &&
             normal.y == part.normals[normal_offset + 1] &&
             normal.z == part.normals[normal_offset + 2]) {
-          redundant_with = to_test;
-          break;
+          // Redundant normal.
+        } else {
+          continue;  // Next vertex.
         }
+
+        // Check for identical uvs.
+        if (has_uvs) {
+          const int uv_offset = to_test * 2;  // u, v
+          if (uv.x == part.uvs[uv_offset + 0] &&
+              uv.y == part.uvs[uv_offset + 1]) {
+              // Redundant uv also.
+          } else {
+            continue;  // Next vertex.
+          }
+        }
+
+        // This vertex is redundant to an existing one.
+        redundant_with = to_test;
+        break;
       }
 
       if (redundant_with >= 0) {
@@ -177,6 +222,10 @@ bool BuildVertices(FbxMesh* _fbx_mesh,
         part.normals.push_back(normal.x);
         part.normals.push_back(normal.y);
         part.normals.push_back(normal.z);
+        if (has_uvs) {
+          part.uvs.push_back(uv.x);
+          part.uvs.push_back(uv.y);
+        }
       }
     }
   }

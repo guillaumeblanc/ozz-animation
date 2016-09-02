@@ -6,10 +6,10 @@ Release version 0.9.0
 
 * Samples
   - [sample_fbx2mesh] Fixes welding of redundant vertices. Reimported meshes now have significantly less vertices.
-  - mesh serialization format has changed. Meshes need to be re-exported.
+  - [sample_fbx2mesh] oss::sample::Mesh serialization format has changed. Meshes generated with a previous version need to be re-exported.
 
 * Build pipeline
-  - Fuse
+  - A Fused version of the sources for all libraries can be found in src_fused forlder. It is automatically generated when any library source file changes.
 
 Release version 0.8.0
 ---------------------
