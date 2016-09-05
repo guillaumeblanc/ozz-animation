@@ -138,7 +138,7 @@ bool BuildVertices(FbxMesh* _fbx_mesh,
         _converter->ConvertPoint(_fbx_mesh->GetControlPoints()[ctrl_point]);
 
       // Get vertex normal.
-        FbxVector4 src_normal(0.f, 1.f, 0.f, 0.f);
+      FbxVector4 src_normal(0.f, 1.f, 0.f, 0.f);
       _fbx_mesh->GetPolygonVertexNormal(p, v, src_normal);
       const ozz::math::Float3 normal = NormalizeSafe(
         _converter->ConvertNormal(src_normal), ozz::math::Float3::y_axis());
@@ -504,7 +504,8 @@ bool SplitParts(const ozz::sample::Mesh& _skinned_mesh,
     // Resize output part.
     const int influences = i + 1;
     out_part.positions.resize(bucket_vertex_count * 3);  // x, y, z components.
-    out_part.normals.resize(bucket_vertex_count * 3);
+    out_part.normals.resize(bucket_vertex_count * 3);  // x, y, z components.
+    out_part.uvs.resize(bucket_vertex_count * 2);  // u, v components.
     out_part.joint_indices.resize(bucket_vertex_count * influences);
     out_part.joint_weights.resize(bucket_vertex_count * influences);
 
@@ -520,6 +521,10 @@ bool SplitParts(const ozz::sample::Mesh& _skinned_mesh,
       out_part.normals[j * 3 + 0] = in_part.normals[bucket_vertex_index * 3 + 0];
       out_part.normals[j * 3 + 1] = in_part.normals[bucket_vertex_index * 3 + 1];
       out_part.normals[j * 3 + 2] = in_part.normals[bucket_vertex_index * 3 + 2];
+
+      // Fills normals.
+      out_part.uvs[j * 2 + 0] = in_part.uvs[bucket_vertex_index * 2 + 0];
+      out_part.uvs[j * 2 + 1] = in_part.uvs[bucket_vertex_index * 2 + 1];
 
       // Fills joints indices.
       const uint16_t* in_indices =
