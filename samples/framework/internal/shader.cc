@@ -347,8 +347,10 @@ const char* kShaderUberVS =
   "attribute vec3 a_position;\n"
   "attribute vec3 a_normal;\n"
   "attribute vec4 a_color;\n"
+  "attribute vec2 a_uv;\n"
   "varying vec3 v_world_normal;\n"
   "varying vec4 v_vertex_color;\n"
+  "varying vec2 v_vertex_uv;\n"
   "void main() {\n"
   "  mat4 world_matrix = GetWorldMatrix();\n"
   "  vec4 vertex = vec4(a_position.xyz, 1.);\n"
@@ -361,6 +363,7 @@ const char* kShaderUberVS =
   "  mat3 normal_matrix = cross_matrix * invdet;\n"
   "  v_world_normal = normal_matrix * a_normal;\n"
   "  v_vertex_color = a_color;\n"
+  "  v_vertex_uv = a_uv;\n"
   "}\n";
 const char* kShaderAmbientFS =
   "vec3 lerp(in vec3 alpha, in vec3 a, in vec3 b) {\n"
@@ -369,8 +372,10 @@ const char* kShaderAmbientFS =
   "vec4 lerp(in vec4 alpha, in vec4 a, in vec4 b) {\n"
   "  return a + alpha * (b - a);\n"
   "}\n"
+  "uniform sampler2D u_texture;\n"
   "varying vec3 v_world_normal;\n"
   "varying vec4 v_vertex_color;\n"
+  "varying vec2 v_vertex_uv;\n"
   "void main() {\n"
   "  vec3 normal = normalize(v_world_normal);\n"
   "  vec3 alpha = (normal + 1.) * .5;\n"
@@ -379,6 +384,7 @@ const char* kShaderAmbientFS =
   "  gl_FragColor = vec4(\n"
   "     lerp(alpha.yyy, vec3(bt.x, .3, bt.y), vec3(bt.z, .8, bt.w)), 1.);\n"
   "  gl_FragColor *= v_vertex_color;\n"
+  "  gl_FragColor *= texture2D(u_texture, v_vertex_uv);\n"
   "}\n";
 }
 
@@ -517,7 +523,7 @@ BoneShader* BoneShader::Build() {  // Builds a world matrix from joint uniforms,
 
   BoneShader* shader = memory::default_allocator()->New<BoneShader>();
   success &= shader->BuildFromSource(OZZ_ARRAY_SIZE(vs), vs,
-    OZZ_ARRAY_SIZE(fs), fs);
+                                     OZZ_ARRAY_SIZE(fs), fs);
 
   // Binds default attributes
   success &= shader->FindAttrib("a_position");
@@ -561,6 +567,7 @@ AmbientShader* AmbientShader::Build() {
   success &= shader->FindAttrib("a_position");
   success &= shader->FindAttrib("a_normal");
   success &= shader->FindAttrib("a_color");
+  success &= shader->FindAttrib("a_uv");
 
   // Binds default uniforms
   success &= shader->BindUniform("u_mw");
@@ -578,23 +585,29 @@ void AmbientShader::Bind(const math::Float4x4& _model,
                          const math::Float4x4& _view_proj,
                          GLsizei _pos_stride, GLsizei _pos_offset,
                          GLsizei _normal_stride, GLsizei _normal_offset,
-                         GLsizei _color_stride, GLsizei _color_offset) {
+                         GLsizei _color_stride, GLsizei _color_offset,
+                         GLsizei _uv_stride, GLsizei _uv_offset) {
   GL(UseProgram(program()));
 
   const GLint position_attrib = attrib(0);
   GL(EnableVertexAttribArray(position_attrib));
   GL(VertexAttribPointer(position_attrib, 3, GL_FLOAT, GL_FALSE,
-    _pos_stride, GL_PTR_OFFSET(_pos_offset)));
+     _pos_stride, GL_PTR_OFFSET(_pos_offset)));
 
   const GLint normal_attrib = attrib(1);
   GL(EnableVertexAttribArray(normal_attrib));
   GL(VertexAttribPointer(normal_attrib, 3, GL_FLOAT, GL_TRUE,
-    _normal_stride, GL_PTR_OFFSET(_normal_offset)));
+     _normal_stride, GL_PTR_OFFSET(_normal_offset)));
 
   const GLint color_attrib = attrib(2);
   GL(EnableVertexAttribArray(color_attrib));
   GL(VertexAttribPointer(color_attrib, 4, GL_UNSIGNED_BYTE, GL_TRUE,
-    _color_stride, GL_PTR_OFFSET(_color_offset)));
+     _color_stride, GL_PTR_OFFSET(_color_offset)));
+
+  const GLint uv_attrib = attrib(3);
+  GL(EnableVertexAttribArray(uv_attrib));
+  GL(VertexAttribPointer(uv_attrib, 2, GL_FLOAT, GL_FALSE,
+     _uv_stride, GL_PTR_OFFSET(_uv_offset)));
 
   // Binds mw uniform
   float values[16];
@@ -639,6 +652,7 @@ AmbientShaderInstanced* AmbientShaderInstanced::Build() {
   success &= shader->FindAttrib("a_position");
   success &= shader->FindAttrib("a_normal");
   success &= shader->FindAttrib("a_color");
+  success &= shader->FindAttrib("a_uv");
   success &= shader->FindAttrib("a_mw");
 
   // Binds default uniforms
@@ -656,26 +670,32 @@ void AmbientShaderInstanced::Bind(GLsizei _models_offset,
                                   const math::Float4x4& _view_proj,
                                   GLsizei _pos_stride, GLsizei _pos_offset,
                                   GLsizei _normal_stride, GLsizei _normal_offset,
-                                  GLsizei _color_stride, GLsizei _color_offset) {
+                                  GLsizei _color_stride, GLsizei _color_offset,
+                                  GLsizei _uv_stride, GLsizei _uv_offset) {
   GL(UseProgram(program()));
 
   const GLint position_attrib = attrib(0);
   GL(EnableVertexAttribArray(position_attrib));
   GL(VertexAttribPointer(position_attrib, 3, GL_FLOAT, GL_FALSE,
-    _pos_stride, GL_PTR_OFFSET(_pos_offset)));
+     _pos_stride, GL_PTR_OFFSET(_pos_offset)));
 
   const GLint normal_attrib = attrib(1);
   GL(EnableVertexAttribArray(normal_attrib));
   GL(VertexAttribPointer(normal_attrib, 3, GL_FLOAT, GL_TRUE,
-    _normal_stride, GL_PTR_OFFSET(_normal_offset)));
+     _normal_stride, GL_PTR_OFFSET(_normal_offset)));
 
   const GLint color_attrib = attrib(2);
   GL(EnableVertexAttribArray(color_attrib));
   GL(VertexAttribPointer(color_attrib, 4, GL_UNSIGNED_BYTE, GL_TRUE,
-    _color_stride, GL_PTR_OFFSET(_color_offset)));
+     _color_stride, GL_PTR_OFFSET(_color_offset)));
+
+  const GLint uv_attrib = attrib(3);
+  GL(EnableVertexAttribArray(uv_attrib));
+  GL(VertexAttribPointer(uv_attrib, 2, GL_FLOAT, GL_FALSE,
+     _uv_stride, GL_PTR_OFFSET(_uv_offset)));
 
   // Binds mw uniform
-  const GLint models_attrib = attrib(3);
+  const GLint models_attrib = attrib(4);
   GL(EnableVertexAttribArray(models_attrib + 0));
   GL(EnableVertexAttribArray(models_attrib + 1));
   GL(EnableVertexAttribArray(models_attrib + 2));
@@ -705,7 +725,7 @@ void AmbientShaderInstanced::Bind(GLsizei _models_offset,
 
 void AmbientShaderInstanced::Unbind() {
   UnbindAttribs();
-  const GLint models_attrib = attrib(3);
+  const GLint models_attrib = attrib(4);
   GL(DisableVertexAttribArray(models_attrib + 0));
   GL(DisableVertexAttribArray(models_attrib + 1));
   GL(DisableVertexAttribArray(models_attrib + 2));

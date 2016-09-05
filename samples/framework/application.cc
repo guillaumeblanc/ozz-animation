@@ -351,7 +351,7 @@ bool Application::Display() {
     Profiler profile(render_time_);
 
     GL(ClearDepth(1.f));
-    GL(ClearColor(.2f, .21f, .19f, 0.f));
+    GL(ClearColor(.4f, .42f, .38f, 0.f));
     GL(Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
     // Setup default states

@@ -88,7 +88,8 @@ RendererImpl::RendererImpl(Camera* _camera)
       dynamic_index_bo_(0),
       immediate_(NULL),
       ambient_shader(NULL),
-      ambient_shader_instanced(NULL) {
+      ambient_shader_instanced(NULL),
+      checkered_texture_(0) {
 }
 
 RendererImpl::~RendererImpl() {
@@ -113,13 +114,22 @@ RendererImpl::~RendererImpl() {
   ambient_shader = NULL;
 
   allocator->Delete(ambient_shader_instanced);
-  ambient_shader_instanced = NULL;}
+  ambient_shader_instanced = NULL;
+
+  if(checkered_texture_) {
+    GL(DeleteTextures(1, &checkered_texture_));
+    checkered_texture_ = 0;
+  }
+}
 
 bool RendererImpl::Initialize() {
   if (!InitOpenGLExtensions()) {
     return false;
   }
   if (!InitPostureRendering()) {
+    return false;
+  }
+  if (!InitCheckeredTexture()) {
     return false;
   }
 
@@ -373,6 +383,48 @@ bool RendererImpl::InitPostureRendering() {
       return false;
     }
   }
+
+  return true;
+}
+
+bool RendererImpl::InitCheckeredTexture() {
+  const size_t kWidth = 256;
+  const size_t kLevels = 1;
+  const size_t kCases = 64;
+
+  const size_t buffer_size = 3 * kWidth * kWidth;
+  uint8_t* pixels =
+    memory::default_allocator()->Allocate<uint8_t>(buffer_size);
+  memset(pixels, 0, buffer_size);
+
+  for (size_t j = 0; j < kWidth; j++) {
+    for (size_t i = 0; i < kWidth; i++) {
+      const size_t pixel = (j * kWidth + i);
+      const size_t cpnti = (i / (kWidth / kCases)) & 1;
+      const size_t cpntj = (j / (kWidth / kCases)) & 1;
+      const uint8_t cpnt = (cpnti ^ cpntj) ? 0 : 0xff;
+      pixels[3 * pixel + 0] = cpnt;
+      pixels[3 * pixel + 1] = cpnt;
+      pixels[3 * pixel + 2] = cpnt;
+    }
+  }
+
+  GL(GenTextures(1, &checkered_texture_));
+  GL(BindTexture(GL_TEXTURE_2D, checkered_texture_));
+  GL(TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
+  GL(TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+  GL(TexImage2D(GL_TEXTURE_2D,
+                0,
+                GL_RGB,
+                kWidth,
+                kWidth,
+                0,
+                GL_RGB,
+                GL_UNSIGNED_BYTE,
+                pixels));
+  GL(PixelStorei(GL_UNPACK_ALIGNMENT, 1));
+  GL(BindTexture(GL_TEXTURE_2D, 0));
+  memory::default_allocator()->Deallocate(pixels);
 
   return true;
 }
@@ -703,7 +755,8 @@ bool RendererImpl::DrawBoxShaded(const ozz::math::Box& _box,
                                    camera()->view_proj(),
                                    stride, positions_offset,
                                    stride, normals_offset,
-                                   stride, colors_offset);
+                                   stride, colors_offset,
+                                   0, 0);
     GL(BindBuffer(GL_ARRAY_BUFFER, 0));
 
     GL(DrawArraysInstancedARB(GL_TRIANGLES,
@@ -725,7 +778,8 @@ bool RendererImpl::DrawBoxShaded(const ozz::math::Box& _box,
                             camera()->view_proj(),
                             stride, positions_offset,
                             stride, normals_offset,
-                            stride, colors_offset);
+                            stride, colors_offset,
+                            0, 0);
 
       // Draws the mesh.
       GL(DrawArrays(GL_TRIANGLES, 0, OZZ_ARRAY_SIZE(vertices)));
@@ -739,7 +793,7 @@ bool RendererImpl::DrawBoxShaded(const ozz::math::Box& _box,
   return true;
 }
 namespace {
-const uint8_t kDefaultColorArray[][4] = {
+const uint8_t kDefaultColorsArray[][4] = {
   {255, 255, 255, 255}, {255, 255, 255, 255}, {255, 255, 255, 255},
   {255, 255, 255, 255}, {255, 255, 255, 255}, {255, 255, 255, 255},
   {255, 255, 255, 255}, {255, 255, 255, 255}, {255, 255, 255, 255},
@@ -765,7 +819,7 @@ const uint8_t kDefaultColorArray[][4] = {
   {255, 255, 255, 255}, {255, 255, 255, 255}, {255, 255, 255, 255},
   {255, 255, 255, 255}, {255, 255, 255, 255}, {255, 255, 255, 255}};
 
-const float kDefaultNormalArray[][3] = {
+const float kDefaultNormalsArray[][3] = {
   {0.f, 1.f, 0.f}, {0.f, 1.f, 0.f}, {0.f, 1.f, 0.f}, {0.f, 1.f, 0.f},
   {0.f, 1.f, 0.f}, {0.f, 1.f, 0.f}, {0.f, 1.f, 0.f}, {0.f, 1.f, 0.f},
   {0.f, 1.f, 0.f}, {0.f, 1.f, 0.f}, {0.f, 1.f, 0.f}, {0.f, 1.f, 0.f},
@@ -782,6 +836,24 @@ const float kDefaultNormalArray[][3] = {
   {0.f, 1.f, 0.f}, {0.f, 1.f, 0.f}, {0.f, 1.f, 0.f}, {0.f, 1.f, 0.f},
   {0.f, 1.f, 0.f}, {0.f, 1.f, 0.f}, {0.f, 1.f, 0.f}, {0.f, 1.f, 0.f},
   {0.f, 1.f, 0.f}, {0.f, 1.f, 0.f}, {0.f, 1.f, 0.f}, {0.f, 1.f, 0.f}};
+
+const float kDefaultUVsArray[][2] = {
+  { 0.f, 0.f },{ 0.f, 0.f },{ 0.f, 0.f },{ 0.f, 0.f },
+  { 0.f, 0.f },{ 0.f, 0.f },{ 0.f, 0.f },{ 0.f, 0.f },
+  { 0.f, 0.f },{ 0.f, 0.f },{ 0.f, 0.f },{ 0.f, 0.f },
+  { 0.f, 0.f },{ 0.f, 0.f },{ 0.f, 0.f },{ 0.f, 0.f },
+  { 0.f, 0.f },{ 0.f, 0.f },{ 0.f, 0.f },{ 0.f, 0.f },
+  { 0.f, 0.f },{ 0.f, 0.f },{ 0.f, 0.f },{ 0.f, 0.f },
+  { 0.f, 0.f },{ 0.f, 0.f },{ 0.f, 0.f },{ 0.f, 0.f },
+  { 0.f, 0.f },{ 0.f, 0.f },{ 0.f, 0.f },{ 0.f, 0.f },
+  { 0.f, 0.f },{ 0.f, 0.f },{ 0.f, 0.f },{ 0.f, 0.f },
+  { 0.f, 0.f },{ 0.f, 0.f },{ 0.f, 0.f },{ 0.f, 0.f },
+  { 0.f, 0.f },{ 0.f, 0.f },{ 0.f, 0.f },{ 0.f, 0.f },
+  { 0.f, 0.f },{ 0.f, 0.f },{ 0.f, 0.f },{ 0.f, 0.f },
+  { 0.f, 0.f },{ 0.f, 0.f },{ 0.f, 0.f },{ 0.f, 0.f },
+  { 0.f, 0.f },{ 0.f, 0.f },{ 0.f, 0.f },{ 0.f, 0.f },
+  { 0.f, 0.f },{ 0.f, 0.f },{ 0.f, 0.f },{ 0.f, 0.f },
+  { 0.f, 0.f },{ 0.f, 0.f },{ 0.f, 0.f },{ 0.f, 0.f } };
 }  // namespace
 
 bool RendererImpl::DrawMesh(const Mesh& _mesh,
@@ -797,9 +869,15 @@ bool RendererImpl::DrawMesh(const Mesh& _mesh,
   const GLsizei colors_offset = normals_offset + normals_size;
   const GLsizei colors_stride = sizeof(uint8_t) * 4;
   const GLsizei colors_size = vertex_count * colors_stride;
+  const GLsizei uvs_offset = colors_offset + colors_size;
+  const GLsizei uvs_stride = sizeof(float) * 2;
+  const GLsizei uvs_size = vertex_count * uvs_stride;
 
   // Reallocate vertex buffer.
-  const GLsizei vbo_size = positions_size + normals_size + colors_size;
+  const GLsizei vbo_size = positions_size +
+                           normals_size +
+                           colors_size +
+                           uvs_size;
   GL(BindBuffer(GL_ARRAY_BUFFER, dynamic_array_bo_));
   GL(BufferData(GL_ARRAY_BUFFER, vbo_size, NULL, GL_STREAM_DRAW));
 
@@ -825,16 +903,16 @@ bool RendererImpl::DrawMesh(const Mesh& _mesh,
                        array_begin(part.normals)));
     } else {
       // Un-optimal path used when the right number of normals is not provided.
-      OZZ_STATIC_ASSERT(sizeof(kDefaultNormalArray[0]) == normals_stride);
+      OZZ_STATIC_ASSERT(sizeof(kDefaultNormalsArray[0]) == normals_stride);
       for (size_t j = 0;
            j < part_vertex_count;
-           j += OZZ_ARRAY_SIZE(kDefaultNormalArray)) {
+           j += OZZ_ARRAY_SIZE(kDefaultNormalsArray)) {
         const size_t this_loop_count =
-          math::Min(OZZ_ARRAY_SIZE(kDefaultNormalArray), part_vertex_count - j);
+          math::Min(OZZ_ARRAY_SIZE(kDefaultNormalsArray), part_vertex_count - j);
         GL(BufferSubData(GL_ARRAY_BUFFER,
                          normals_offset + (vertex_offset + j) * normals_stride,
                          normals_stride * this_loop_count,
-                         kDefaultNormalArray));
+                         kDefaultNormalsArray));
       }
     }
 
@@ -848,16 +926,40 @@ bool RendererImpl::DrawMesh(const Mesh& _mesh,
                        array_begin(part.colors)));
     } else {
       // Un-optimal path used when the right number of colors is not provided.
-      OZZ_STATIC_ASSERT(sizeof(kDefaultColorArray[0]) == colors_stride);
+      OZZ_STATIC_ASSERT(sizeof(kDefaultColorsArray[0]) == colors_stride);
       for (size_t j = 0;
            j < part_vertex_count;
-           j += OZZ_ARRAY_SIZE(kDefaultColorArray)) {
+           j += OZZ_ARRAY_SIZE(kDefaultColorsArray)) {
         const size_t this_loop_count =
-          math::Min(OZZ_ARRAY_SIZE(kDefaultColorArray), part_vertex_count - j);
+          math::Min(OZZ_ARRAY_SIZE(kDefaultColorsArray), part_vertex_count - j);
         GL(BufferSubData(GL_ARRAY_BUFFER,
                          colors_offset + (vertex_offset + j) * colors_stride,
                          colors_stride * this_loop_count,
-                         kDefaultColorArray));
+                         kDefaultColorsArray));
+      }
+    }
+
+    // Handles uvs.
+    const size_t part_uvs_count = part.uvs.size() / 2;
+    if (part_vertex_count == part_uvs_count) {
+      // Optimal path used when the right number of uvs is provided.
+      GL(BufferSubData(GL_ARRAY_BUFFER,
+                       uvs_offset + vertex_offset * uvs_stride,
+                       part_uvs_count * uvs_stride,
+                       array_begin(part.uvs)));
+    }
+    else {
+      // Un-optimal path used when the right number of uvs is not provided.
+      OZZ_STATIC_ASSERT(sizeof(kDefaultUVsArray[0]) == uvs_stride);
+      for (size_t j = 0;
+      j < part_vertex_count;
+        j += OZZ_ARRAY_SIZE(kDefaultUVsArray)) {
+        const size_t this_loop_count =
+          math::Min(OZZ_ARRAY_SIZE(kDefaultUVsArray), part_vertex_count - j);
+        GL(BufferSubData(GL_ARRAY_BUFFER,
+                         uvs_offset + (vertex_offset + j) * uvs_stride,
+                         uvs_stride * this_loop_count,
+                         kDefaultUVsArray));
       }
     }
 
@@ -870,7 +972,8 @@ bool RendererImpl::DrawMesh(const Mesh& _mesh,
                        camera()->view_proj(),
                        positions_stride, positions_offset,
                        normals_stride, normals_offset,
-                       colors_stride, colors_offset);
+                       colors_stride, colors_offset,
+                       uvs_stride, uvs_offset);
 
   GL(BindBuffer(GL_ARRAY_BUFFER, 0));
 
@@ -882,6 +985,9 @@ bool RendererImpl::DrawMesh(const Mesh& _mesh,
                 array_begin(indices),
                 GL_STREAM_DRAW));
 
+  // Binds default texture
+  GL(BindTexture(GL_TEXTURE_2D, checkered_texture_));
+
   // Draws the mesh.
   OZZ_STATIC_ASSERT(sizeof(Mesh::TriangleIndices::value_type) == 2);
   GL(DrawElements(GL_TRIANGLES,
@@ -890,6 +996,7 @@ bool RendererImpl::DrawMesh(const Mesh& _mesh,
                   0));
 
   // Unbinds.
+  GL(BindTexture(GL_TEXTURE_2D, 0));
   GL(BindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
   ambient_shader->Unbind();
 
@@ -910,14 +1017,18 @@ bool RendererImpl::DrawSkinnedMesh(const Mesh& _mesh,
   const GLsizei normals_stride = positions_stride;
   const GLsizei skinned_data_size = vertex_count * positions_stride;
 
-  // Colors are contiguous. They aren't transformed, so they can be directly
-  // copied from source mesh which is non-interleaved as-well.
+  // Colors and uvs are contiguous. They aren't transformed, so they can be
+  // directly copied from source mesh which is non-interleaved as-well.
   const GLsizei colors_offset = skinned_data_size;
   const GLsizei colors_stride = sizeof(uint8_t) * 4;
   const GLsizei colors_size = vertex_count * colors_stride;
+  const GLsizei uvs_offset = colors_offset + colors_size;
+  const GLsizei uvs_stride = sizeof(float) * 2;
+  const GLsizei uvs_size = vertex_count * uvs_stride;
+  const GLsizei fixed_data_size = colors_size + uvs_size;
 
   // Reallocate vertex buffer.
-  const GLsizei vbo_size = skinned_data_size + colors_size;
+  const GLsizei vbo_size = skinned_data_size + fixed_data_size;
   GL(BindBuffer(GL_ARRAY_BUFFER, dynamic_array_bo_));
   GL(BufferData(GL_ARRAY_BUFFER, vbo_size, NULL, GL_STREAM_DRAW));
   void* vbo_map = scratch_buffer_.Resize(vbo_size);
@@ -1006,19 +1117,39 @@ bool RendererImpl::DrawSkinnedMesh(const Mesh& _mesh,
     if (part_vertex_count == part.colors.size() / 4) {
       // Optimal path used when the right number of colors is provided.
       memcpy(ozz::PointerStride(vbo_map, colors_offset + processed_vertex_count * colors_stride),
-             ozz::PointerStride(array_begin(part.colors), colors_offset + processed_vertex_count * colors_stride),
+             array_begin(part.colors),
              part_vertex_count * colors_stride);
     } else {
       // Un-optimal path used when the right number of colors is not provided.
-      OZZ_STATIC_ASSERT(sizeof(kDefaultColorArray[0]) == colors_stride);
+      OZZ_STATIC_ASSERT(sizeof(kDefaultColorsArray[0]) == colors_stride);
       for (size_t j = 0;
            j < part_vertex_count;
-           j += OZZ_ARRAY_SIZE(kDefaultColorArray)) {
+           j += OZZ_ARRAY_SIZE(kDefaultColorsArray)) {
         const size_t this_loop_count =
-          math::Min(OZZ_ARRAY_SIZE(kDefaultColorArray), part_vertex_count - j);
+          math::Min(OZZ_ARRAY_SIZE(kDefaultColorsArray), part_vertex_count - j);
         memcpy(ozz::PointerStride(vbo_map, colors_offset + (processed_vertex_count + j) * colors_stride),
-               kDefaultColorArray,
+               kDefaultColorsArray,
                colors_stride * this_loop_count);
+      }
+    }
+
+    // Handles uvs which aren't affected by skinning.
+    if (part_vertex_count == part.uvs.size() / 2) {
+      // Optimal path used when the right number of uvs is provided.
+      memcpy(ozz::PointerStride(vbo_map, uvs_offset + processed_vertex_count * uvs_stride),
+             array_begin(part.uvs),
+             part_vertex_count * uvs_stride);
+    } else {
+      // Un-optimal path used when the right number of uvs is not provided.
+      OZZ_STATIC_ASSERT(sizeof(kDefaultUVsArray[0]) == uvs_stride);
+      for (size_t j = 0;
+           j < part_vertex_count;
+           j += OZZ_ARRAY_SIZE(kDefaultUVsArray)) {
+        const size_t this_loop_count =
+          math::Min(OZZ_ARRAY_SIZE(kDefaultUVsArray), part_vertex_count - j);
+        memcpy(ozz::PointerStride(vbo_map, uvs_offset + (processed_vertex_count + j) * uvs_stride),
+               kDefaultUVsArray,
+               uvs_stride * this_loop_count);
       }
     }
 
@@ -1034,7 +1165,8 @@ bool RendererImpl::DrawSkinnedMesh(const Mesh& _mesh,
                      camera()->view_proj(),
                      positions_stride, positions_offset,
                      normals_stride, normals_offset,
-                     colors_stride, colors_offset);
+                     colors_stride, colors_offset,
+                     uvs_stride, uvs_offset);
 
   GL(BindBuffer(GL_ARRAY_BUFFER, 0));
 
@@ -1046,6 +1178,9 @@ bool RendererImpl::DrawSkinnedMesh(const Mesh& _mesh,
                 array_begin(indices),
                 GL_STREAM_DRAW));
 
+  // Binds default texture
+  GL(BindTexture(GL_TEXTURE_2D, checkered_texture_));
+
   // Draws the mesh.
   OZZ_STATIC_ASSERT(sizeof(Mesh::TriangleIndices::value_type) == 2);
   GL(DrawElements(GL_TRIANGLES,
@@ -1054,6 +1189,7 @@ bool RendererImpl::DrawSkinnedMesh(const Mesh& _mesh,
                   0));
 
   // Unbinds.
+  GL(BindTexture(GL_TEXTURE_2D, 0));
   GL(BindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
   ambient_shader->Unbind();
 

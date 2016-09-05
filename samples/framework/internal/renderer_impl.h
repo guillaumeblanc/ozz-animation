@@ -148,6 +148,10 @@ class RendererImpl : public Renderer {
   // Return true if initialization succeeded.
   bool InitPostureRendering();
 
+  // Initializes the checkered texture.
+  // Return true if initialization succeeded.
+  bool InitCheckeredTexture();
+
   // Draw posture internal non-instanced rendering fall back implementation.
   void DrawPosture_Impl(const ozz::math::Float4x4& _transform,
                         const float* _uniforms,
@@ -195,6 +199,9 @@ class RendererImpl : public Renderer {
   // Ambient rendering shader.
   AmbientShader* ambient_shader;
   AmbientShaderInstanced* ambient_shader_instanced;
+
+  // Checkered texture
+  unsigned int checkered_texture_;
 };
 }  // internal
 }  // sample
