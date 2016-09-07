@@ -388,41 +388,56 @@ bool RendererImpl::InitPostureRendering() {
 }
 
 bool RendererImpl::InitCheckeredTexture() {
-  const size_t kWidth = 256;
-  const size_t kLevels = 1;
+  const size_t kWidth = 1024;
   const size_t kCases = 64;
-
-  const size_t buffer_size = 3 * kWidth * kWidth;
-  uint8_t* pixels =
-    memory::default_allocator()->Allocate<uint8_t>(buffer_size);
-  memset(pixels, 0, buffer_size);
-
-  for (size_t j = 0; j < kWidth; j++) {
-    for (size_t i = 0; i < kWidth; i++) {
-      const size_t pixel = (j * kWidth + i);
-      const size_t cpnti = (i / (kWidth / kCases)) & 1;
-      const size_t cpntj = (j / (kWidth / kCases)) & 1;
-      const uint8_t cpnt = (cpnti ^ cpntj) ? 0 : 0xff;
-      pixels[3 * pixel + 0] = cpnt;
-      pixels[3 * pixel + 1] = cpnt;
-      pixels[3 * pixel + 2] = cpnt;
-    }
-  }
 
   GL(GenTextures(1, &checkered_texture_));
   GL(BindTexture(GL_TEXTURE_2D, checkered_texture_));
-  GL(TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
-  GL(TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-  GL(TexImage2D(GL_TEXTURE_2D,
-                0,
-                GL_RGB,
-                kWidth,
-                kWidth,
-                0,
-                GL_RGB,
-                GL_UNSIGNED_BYTE,
-                pixels));
+  GL(TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));
+  GL(TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
+  GL(TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+  GL(TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR));
   GL(PixelStorei(GL_UNPACK_ALIGNMENT, 1));
+
+  // Allocates for biggest mip level.
+  const size_t buffer_size = 3 * kWidth * kWidth;
+  uint8_t* pixels =
+    memory::default_allocator()->Allocate<uint8_t>(buffer_size);
+
+  // Create the checkered pattern on all mip levels.
+  size_t level_width = kWidth;
+  for (size_t l = 0; level_width >= kCases; ++l, level_width /= 2) {
+    const size_t case_width = level_width / kCases;
+    for (size_t j = 0; j < level_width; ++j) {
+      const size_t cpntj = (j / case_width) & 1;
+      for (size_t i = 0; i < kCases; ++i) {
+        const size_t cpnti = i & 1;
+        const bool white_case = (cpnti ^ cpntj) != 0;
+        const uint8_t cpntr = white_case ? 0xff : j * 255 / level_width & 0xff;
+        const uint8_t cpntg = white_case ? 0xff : i * 255 / kCases & 0xff;
+        const uint8_t cpntb = white_case ? 0xff : 0;
+
+        const size_t case_start = j * level_width + i * case_width;
+        for (size_t k = case_start; k < case_start + case_width; ++k) {
+          pixels[k * 3 + 0] = cpntr;
+          pixels[k * 3 + 1] = cpntg;
+          pixels[k * 3 + 2] = cpntb;
+        }
+      }
+    }
+
+    GL(TexImage2D(GL_TEXTURE_2D,
+                  l,
+                  GL_RGB,
+                  level_width,
+                  level_width,
+                  0,
+                  GL_RGB,
+                  GL_UNSIGNED_BYTE,
+                  pixels));
+    GL(TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, l));
+  }
+
   GL(BindTexture(GL_TEXTURE_2D, 0));
   memory::default_allocator()->Deallocate(pixels);
 
