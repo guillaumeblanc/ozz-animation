@@ -388,8 +388,8 @@ bool RendererImpl::InitPostureRendering() {
 }
 
 bool RendererImpl::InitCheckeredTexture() {
-  const size_t kWidth = 1024;
-  const size_t kCases = 64;
+  const int kWidth = 1024;
+  const int kCases = 64;
 
   GL(GenTextures(1, &checkered_texture_));
   GL(BindTexture(GL_TEXTURE_2D, checkered_texture_));
@@ -405,20 +405,20 @@ bool RendererImpl::InitCheckeredTexture() {
     memory::default_allocator()->Allocate<uint8_t>(buffer_size);
 
   // Create the checkered pattern on all mip levels.
-  size_t level_width = kWidth;
-  for (size_t l = 0; level_width >= kCases; ++l, level_width /= 2) {
-    const size_t case_width = level_width / kCases;
-    for (size_t j = 0; j < level_width; ++j) {
-      const size_t cpntj = (j / case_width) & 1;
-      for (size_t i = 0; i < kCases; ++i) {
-        const size_t cpnti = i & 1;
+  int level_width = kWidth;
+  for (int l = 0; level_width >= kCases; ++l, level_width /= 2) {
+    const int case_width = level_width / kCases;
+    for (int j = 0; j < level_width; ++j) {
+      const int cpntj = (j / case_width) & 1;
+      for (int i = 0; i < kCases; ++i) {
+        const int cpnti = i & 1;
         const bool white_case = (cpnti ^ cpntj) != 0;
         const uint8_t cpntr = white_case ? 0xff : j * 255 / level_width & 0xff;
         const uint8_t cpntg = white_case ? 0xff : i * 255 / kCases & 0xff;
         const uint8_t cpntb = white_case ? 0xff : 0;
 
-        const size_t case_start = j * level_width + i * case_width;
-        for (size_t k = case_start; k < case_start + case_width; ++k) {
+        const int case_start = j * level_width + i * case_width;
+        for (int k = case_start; k < case_start + case_width; ++k) {
           pixels[k * 3 + 0] = cpntr;
           pixels[k * 3 + 1] = cpntg;
           pixels[k * 3 + 2] = cpntb;
