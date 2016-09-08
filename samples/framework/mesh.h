@@ -101,16 +101,16 @@ struct Mesh {
     }
 
     typedef ozz::Vector<float>::Std Positions;
-    Positions positions;
+    Positions positions;  // x, y, z components
 
     typedef ozz::Vector<float>::Std Normals;
-    Normals normals;
+    Normals normals;  // x, y, z components
 
     typedef ozz::Vector<float>::Std UVs;
-    UVs uvs;
+    UVs uvs;  // u, v components
 
     typedef ozz::Vector<uint8_t>::Std Colors;
-    Colors colors;
+    Colors colors;  // r, g, b, a components
 
     typedef ozz::Vector<uint16_t>::Std JointIndices;
     JointIndices joint_indices;

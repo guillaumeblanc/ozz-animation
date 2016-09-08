@@ -185,7 +185,7 @@ bool BuildVertices(FbxMesh* _fbx_mesh,
           }
         }
 
-        // This vertex is redundant to an existing one.
+        // This vertex is redundant with an existing one.
         redundant_with = to_test;
         break;
       }
