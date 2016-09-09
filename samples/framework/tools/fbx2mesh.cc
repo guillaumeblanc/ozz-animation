@@ -505,7 +505,9 @@ bool SplitParts(const ozz::sample::Mesh& _skinned_mesh,
     const int influences = i + 1;
     out_part.positions.resize(bucket_vertex_count * 3);  // x, y, z components.
     out_part.normals.resize(bucket_vertex_count * 3);  // x, y, z components.
-    out_part.uvs.resize(bucket_vertex_count * 2);  // u, v components.
+    if (in_part.uvs.size()) {
+      out_part.uvs.resize(bucket_vertex_count * 2);  // u, v components.
+    }
     out_part.joint_indices.resize(bucket_vertex_count * influences);
     out_part.joint_weights.resize(bucket_vertex_count * influences);
 
@@ -522,9 +524,11 @@ bool SplitParts(const ozz::sample::Mesh& _skinned_mesh,
       out_part.normals[j * 3 + 1] = in_part.normals[bucket_vertex_index * 3 + 1];
       out_part.normals[j * 3 + 2] = in_part.normals[bucket_vertex_index * 3 + 2];
 
-      // Fills normals.
-      out_part.uvs[j * 2 + 0] = in_part.uvs[bucket_vertex_index * 2 + 0];
-      out_part.uvs[j * 2 + 1] = in_part.uvs[bucket_vertex_index * 2 + 1];
+      // Fills uvs.
+      if (in_part.uvs.size()) {
+        out_part.uvs[j * 2 + 0] = in_part.uvs[bucket_vertex_index * 2 + 0];
+        out_part.uvs[j * 2 + 1] = in_part.uvs[bucket_vertex_index * 2 + 1];
+      }
 
       // Fills joints indices.
       const uint16_t* in_indices =
