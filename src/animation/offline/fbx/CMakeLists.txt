@@ -115,7 +115,7 @@ foreach(line ${animations})
     DEPENDS "${ozz_media_directory}${src}"
             "${ozz_media_directory}${skel}"
             fbx2anim
-    OUTPUT ${ozz_media_directory}${dest}
+    OUTPUT "${ozz_media_directory}${dest}"
     COMMAND fbx2anim
             ${option0}
             ${option1}

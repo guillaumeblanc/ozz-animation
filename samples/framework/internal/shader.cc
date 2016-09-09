@@ -365,26 +365,34 @@ const char* kShaderUberVS =
   "  v_vertex_color = a_color;\n"
   "  v_vertex_uv = a_uv;\n"
   "}\n";
+const char* kShaderAmbientFct =
+  "vec4 GetAmbient(vec3 _world_normal) {\n"
+  "  vec3 normal = normalize(_world_normal);\n"
+  "  vec3 alpha = (normal + 1.) * .5;\n"
+  "  vec4 bt = mix(\n"
+  "    vec4(.3, .3, .7, .7), vec4(.4, .4, .8, .8), alpha.xzxz);\n"
+  "  vec4 ambient = vec4(\n"
+  "     mix(vec3(bt.x, .3, bt.y), vec3(bt.z, .8, bt.w), alpha.y), 1.);\n"
+  "  return ambient;\n"
+  "}\n";
 const char* kShaderAmbientFS =
-  "vec3 lerp(in vec3 alpha, in vec3 a, in vec3 b) {\n"
-  "  return a + alpha * (b - a);\n"
-  "}\n"
-  "vec4 lerp(in vec4 alpha, in vec4 a, in vec4 b) {\n"
-  "  return a + alpha * (b - a);\n"
-  "}\n"
+  "varying vec3 v_world_normal;\n"
+  "varying vec4 v_vertex_color;\n"
+  "void main() {\n"
+  "  vec4 ambient = GetAmbient(v_world_normal);\n"
+  "  gl_FragColor = ambient *\n"
+  "                 v_vertex_color;\n"
+  "}\n";
+const char* kShaderAmbientTexturedFS =
   "uniform sampler2D u_texture;\n"
   "varying vec3 v_world_normal;\n"
   "varying vec4 v_vertex_color;\n"
   "varying vec2 v_vertex_uv;\n"
   "void main() {\n"
-  "  vec3 normal = normalize(v_world_normal);\n"
-  "  vec3 alpha = (normal + 1.) * .5;\n"
-  "  vec4 bt = lerp(\n"
-  "    alpha.xzxz, vec4(.3, .3, .7, .7), vec4(.4, .4, .8, .8));\n"
-  "  gl_FragColor = vec4(\n"
-  "     lerp(alpha.yyy, vec3(bt.x, .3, bt.y), vec3(bt.z, .8, bt.w)), 1.);\n"
-  "  gl_FragColor *= v_vertex_color;\n"
-  "  gl_FragColor *= texture2D(u_texture, v_vertex_uv);\n"
+  "  vec4 ambient = GetAmbient(v_world_normal);\n"
+  "  gl_FragColor = ambient *\n"
+  "                 v_vertex_color *\n"
+  "                 texture2D(u_texture, v_vertex_uv);\n"
   "}\n";
 }
 
@@ -458,6 +466,7 @@ JointShader* JointShader::Build() {
     kShaderUberVS};
   const char* fs[] = {
     kPlatformSpecivicFSHeader,
+    kShaderAmbientFct,
     kShaderAmbientFS};
 
   JointShader* shader = memory::default_allocator()->New<JointShader>();
@@ -519,6 +528,7 @@ BoneShader* BoneShader::Build() {  // Builds a world matrix from joint uniforms,
     kShaderUberVS};
   const char* fs[] = {
     kPlatformSpecivicFSHeader,
+    kShaderAmbientFct,
     kShaderAmbientFS};
 
   BoneShader* shader = memory::default_allocator()->New<BoneShader>();
@@ -556,7 +566,8 @@ AmbientShader* AmbientShader::Build() {
     kShaderUberVS};
   const char* fs[] = {
     kPlatformSpecivicFSHeader,
-    kShaderAmbientFS};
+    kShaderAmbientFct,
+    kShaderAmbientTexturedFS};
 
   AmbientShader* shader =
     memory::default_allocator()->New<AmbientShader>();
@@ -641,7 +652,8 @@ AmbientShaderInstanced* AmbientShaderInstanced::Build() {
     kShaderUberVS};
   const char* fs[] = {
     kPlatformSpecivicFSHeader,
-    kShaderAmbientFS};
+    kShaderAmbientFct,
+    kShaderAmbientTexturedFS};
 
   AmbientShaderInstanced* shader =
     memory::default_allocator()->New<AmbientShaderInstanced>();
