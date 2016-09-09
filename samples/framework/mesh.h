@@ -106,6 +106,9 @@ struct Mesh {
     typedef ozz::Vector<float>::Std Normals;
     Normals normals;  // x, y, z components
 
+    typedef ozz::Vector<float>::Std Tangents;
+    Tangents tangents;  // x, y, z, right or left handed.
+
     typedef ozz::Vector<float>::Std UVs;
     UVs uvs;  // u, v components
 

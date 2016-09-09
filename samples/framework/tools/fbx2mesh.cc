@@ -65,6 +65,54 @@ int SortTriangles(const void* _left, const void* _right) {
   const uint16_t* right = static_cast<const uint16_t*>(_right);
   return (left[0] + left[1] + left[2]) - (right[0] + right[1] + right[2]);
 }
+
+// Generic function that gets an element from a layer.
+template<typename _Element>
+bool GetElement(const _Element& _layer,
+                int _vertex_id,
+                int _control_point,
+                typename _Element::ArrayElementType* _out) {
+  assert(_out);
+
+  int direct_array_id;
+  switch (_layer.GetMappingMode()) {
+    case FbxGeometryElement::eByControlPoint: {
+      switch (_layer.GetReferenceMode()) {
+        case FbxGeometryElement::eDirect: {
+          direct_array_id = _control_point;
+          break;
+        }
+        case FbxGeometryElement::eIndexToDirect: {
+          direct_array_id = _layer.GetIndexArray().GetAt(_control_point);
+          break;
+        }
+        default: return false;  // Unhandled reference mode.
+      }
+      break;
+    }
+    case FbxGeometryElement::eByPolygonVertex: {
+      switch (_layer.GetReferenceMode()) {
+        case FbxGeometryElement::eDirect: {
+          direct_array_id = _vertex_id;
+          break;
+        }
+        case FbxGeometryElement::eIndexToDirect: {
+          direct_array_id = _layer.GetIndexArray().GetAt(_vertex_id);
+          break;
+        }
+        default: return false;  // Unhandled reference mode.
+      }
+      break;
+    }
+    default: return false;  // Unhandled mapping mode.
+  }
+
+  // Extract data from the layer direct array.
+  *_out = _layer.GetDirectArray().GetAt(direct_array_id);
+
+  return true;
+}
+
 }  // namespace
 
 bool BuildVertices(FbxMesh* _fbx_mesh,
@@ -81,26 +129,33 @@ bool BuildVertices(FbxMesh* _fbx_mesh,
   const int ctrl_point_count = _fbx_mesh->GetControlPointsCount();
   _remap->resize(ctrl_point_count);
 
-  // Checks normals availability.
-  bool has_normals =
-    _fbx_mesh->GetElementNormalCount() > 0 &&
-    _fbx_mesh->GetElementNormal(0)->GetMappingMode() != FbxLayerElement::eNone;
-
-  // Regenerate normals if they're not available or not in the right format.
-  if (!_fbx_mesh->GenerateNormals(!has_normals, // overwrite
-                                  false,  // by ctrl point
+  // Regenerate normals if they're not available.
+  if (!_fbx_mesh->GenerateNormals(false, // overwrite
+                                  true,  // by ctrl point
                                   false)) {  // clockwise
     return false;
   }
 
-  // Checks uvs availability.
-  bool has_uvs =
-    _fbx_mesh->GetElementUVCount() > 0 &&
-    _fbx_mesh->GetElementUV(0)->GetMappingMode() != FbxLayerElement::eNone;
+  assert(_fbx_mesh->GetElementNormalCount() > 0);
+  const FbxGeometryElementNormal* element_normals = _fbx_mesh->GetElementNormal(0);
+  assert(element_normals);
 
-  const char* uv_set_name = NULL;
-  if (has_uvs) {
-    uv_set_name = _fbx_mesh->GetElementUV(0)->GetName();
+  // Checks uvs availability.
+  const FbxGeometryElementUV* element_uvs = NULL;
+  if (_fbx_mesh->GetElementUVCount() > 0) {
+    element_uvs = _fbx_mesh->GetElementUV(0);
+  }
+
+  // Checks tangents availability.
+  const FbxGeometryElementTangent* element_tangents = NULL;
+  if (element_uvs) {  // UVs are needed to generate tangents.
+    // Regenerate tagents if they're not available.
+    if (!_fbx_mesh->GenerateTangentsData(0, false)) {
+      return false;
+    }
+  }
+  if (_fbx_mesh->GetElementTangentCount() > 0) {
+    element_tangents = _fbx_mesh->GetElementTangent(0);
   }
 
   // Computes worst vertex count case. Needs to allocate 3 vertices per polygon,
@@ -113,8 +168,10 @@ bool BuildVertices(FbxMesh* _fbx_mesh,
   ozz::sample::Mesh::Part& part = _output_mesh->parts[0];
   part.positions.reserve(vertex_count * 3);  // x,y,z components.
   part.normals.reserve(vertex_count * 3);  // x,y,z components.
-
-  if (has_uvs) {
+  if (element_tangents) {
+    part.tangents.reserve(vertex_count * 4);  // x, y, z, right or left handed.
+  }
+  if (element_uvs) {
     part.uvs.reserve(vertex_count * 2);  // u,v components.
   }
 
@@ -122,11 +179,12 @@ bool BuildVertices(FbxMesh* _fbx_mesh,
   _output_mesh->triangle_indices.resize(vertex_count);
 
   // Iterate all polygons and stores ctrl point to polygon mappings.
+  int vertex_id = 0;
   for (int p = 0; p < polygon_count; ++p) {
     assert(_fbx_mesh->GetPolygonSize(p) == 3 &&
            "Mesh must have been triangulated.");
 
-    for (int v = 0; v < 3; ++v) {
+    for (int v = 0; v < 3; ++v, ++vertex_id) {
 
       // Get control point.
       const int ctrl_point = _fbx_mesh->GetPolygonVertex(p, v);
@@ -139,22 +197,32 @@ bool BuildVertices(FbxMesh* _fbx_mesh,
 
       // Get vertex normal.
       FbxVector4 src_normal(0.f, 1.f, 0.f, 0.f);
-      _fbx_mesh->GetPolygonVertexNormal(p, v, src_normal);
+      if (!GetElement(*element_normals, vertex_id, ctrl_point, &src_normal)) {
+        return false;
+      }
       const ozz::math::Float3 normal = NormalizeSafe(
         _converter->ConvertNormal(src_normal), ozz::math::Float3::y_axis());
 
-      FbxVector2 src_uv;
-      bool unmapped = true;
-      if (has_uvs) {
-        if (!_fbx_mesh->GetPolygonVertexUV(p, v, uv_set_name, src_uv, unmapped)) {
-          unmapped = true;
+      // Get vertex tangent.
+      FbxVector4 src_tangent(1.f, 0.f, 0.f, 0.f);
+      if (element_tangents) {
+        if (!GetElement(*element_tangents, vertex_id, ctrl_point, &src_tangent)) {
+          return false;
         }
       }
-      // Set src_uv to default value if vertex has no uv.
-      if (unmapped) {
+      const ozz::math::Float3 tangent3 = NormalizeSafe(
+        _converter->ConvertNormal(src_tangent), ozz::math::Float3::x_axis());
+      const ozz::math::Float4 tangent(tangent3, static_cast<float>(src_tangent[3]));
+
+      // Get vertex uv.
+      FbxVector2 src_uv;
+      if (element_uvs) {
+        if (!GetElement(*element_uvs, vertex_id, ctrl_point, &src_uv)) {
+          return false;
+        }
+      } else {
         src_uv = FbxVector2(0., 0.);
       }
-
       const ozz::math::Float2 uv(static_cast<float>(src_uv[0]),
                                  static_cast<float>(src_uv[1]));
 
@@ -175,10 +243,23 @@ bool BuildVertices(FbxMesh* _fbx_mesh,
         }
 
         // Check for identical uvs.
-        if (has_uvs) {
+        if (element_uvs) {
           const int uv_offset = to_test * 2;  // u, v
           if (uv.x == part.uvs[uv_offset + 0] &&
               uv.y == part.uvs[uv_offset + 1]) {
+              // Redundant uv also.
+          } else {
+            continue;  // Next vertex.
+          }
+        }
+
+        // Check for identical tangents.
+        if (element_tangents) {
+          const int tangent_offset = to_test * 4;  // x, y, z, right or left handed.
+          if (tangent.x == part.tangents[tangent_offset + 0] &&
+              tangent.y == part.tangents[tangent_offset + 1] &&
+              tangent.z == part.tangents[tangent_offset + 2] &&
+              tangent.w == part.tangents[tangent_offset + 3]) {
               // Redundant uv also.
           } else {
             continue;  // Next vertex.
@@ -222,9 +303,16 @@ bool BuildVertices(FbxMesh* _fbx_mesh,
         part.normals.push_back(normal.x);
         part.normals.push_back(normal.y);
         part.normals.push_back(normal.z);
-        if (has_uvs) {
+        if (element_uvs) {
           part.uvs.push_back(uv.x);
           part.uvs.push_back(uv.y);
+        }
+        if (element_tangents) {
+          part.tangents.push_back(tangent.x);
+          part.tangents.push_back(tangent.y);
+          part.tangents.push_back(tangent.z);
+          part.tangents.push_back(tangent.w);
+          assert(tangent.w > 0);
         }
       }
     }
@@ -508,6 +596,9 @@ bool SplitParts(const ozz::sample::Mesh& _skinned_mesh,
     if (in_part.uvs.size()) {
       out_part.uvs.resize(bucket_vertex_count * 2);  // u, v components.
     }
+    if (in_part.tangents.size()) {
+      out_part.tangents.resize(bucket_vertex_count * 4);  // x, y, z, sign components.
+    }
     out_part.joint_indices.resize(bucket_vertex_count * influences);
     out_part.joint_weights.resize(bucket_vertex_count * influences);
 
@@ -528,6 +619,13 @@ bool SplitParts(const ozz::sample::Mesh& _skinned_mesh,
       if (in_part.uvs.size()) {
         out_part.uvs[j * 2 + 0] = in_part.uvs[bucket_vertex_index * 2 + 0];
         out_part.uvs[j * 2 + 1] = in_part.uvs[bucket_vertex_index * 2 + 1];
+      }
+      // Fills tangents.
+      if (in_part.tangents.size()) {
+        out_part.tangents[j * 4 + 0] = in_part.tangents[bucket_vertex_index * 4 + 0];
+        out_part.tangents[j * 4 + 1] = in_part.tangents[bucket_vertex_index * 4 + 1];
+        out_part.tangents[j * 4 + 2] = in_part.tangents[bucket_vertex_index * 4 + 2];
+        out_part.tangents[j * 4 + 3] = in_part.tangents[bucket_vertex_index * 4 + 3];
       }
 
       // Fills joints indices.

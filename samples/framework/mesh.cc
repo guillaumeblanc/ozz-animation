@@ -54,6 +54,7 @@ void Save(OArchive& _archive,
     const sample::Mesh::Part& part = _parts[i];
     _archive << part.positions;
     _archive << part.normals;
+    _archive << part.tangents;
     _archive << part.uvs;
     _archive << part.colors;
     _archive << part.joint_indices;
@@ -71,6 +72,7 @@ void Load(IArchive& _archive,
     sample::Mesh::Part& part = _parts[i];
     _archive >> part.positions;
     _archive >> part.normals;
+    _archive >> part.tangents;
     _archive >> part.uvs;
     _archive >> part.colors;
     _archive >> part.joint_indices;
