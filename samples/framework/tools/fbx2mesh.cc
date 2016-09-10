@@ -59,7 +59,7 @@ namespace {
 typedef ozz::Vector<uint16_t>::Std ControlPointRemap;
 typedef ozz::Vector<ControlPointRemap>::Std ControlPointsRemap;
 
-// Triangle indices sort function.
+// Triangle indices naive sort function.
 int SortTriangles(const void* _left, const void* _right) {
   const uint16_t* left = static_cast<const uint16_t*>(_left);
   const uint16_t* right = static_cast<const uint16_t*>(_right);
@@ -312,7 +312,6 @@ bool BuildVertices(FbxMesh* _fbx_mesh,
           part.tangents.push_back(tangent.y);
           part.tangents.push_back(tangent.z);
           part.tangents.push_back(tangent.w);
-          assert(tangent.w > 0);
         }
       }
     }
