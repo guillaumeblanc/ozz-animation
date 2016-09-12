@@ -158,6 +158,12 @@ bool BuildVertices(FbxMesh* _fbx_mesh,
     element_tangents = _fbx_mesh->GetElementTangent(0);
   }
 
+  // Checks vertex colors availability.
+  const FbxGeometryElementVertexColor* element_colors = NULL;
+  if (_fbx_mesh->GetElementVertexColorCount() > 0) {
+    element_colors = _fbx_mesh->GetElementVertexColor(0);
+  }
+
   // Computes worst vertex count case. Needs to allocate 3 vertices per polygon,
   // as they should all be triangles.
   const int polygon_count = _fbx_mesh->GetPolygonCount();
@@ -173,6 +179,9 @@ bool BuildVertices(FbxMesh* _fbx_mesh,
   }
   if (element_uvs) {
     part.uvs.reserve(vertex_count * 2);  // u,v components.
+  }
+  if (element_colors) {
+    part.colors.reserve(vertex_count * 4);  // r, g, b, a components.
   }
 
   // Resize triangle indices, as their size is known.
@@ -226,6 +235,22 @@ bool BuildVertices(FbxMesh* _fbx_mesh,
       const ozz::math::Float2 uv(static_cast<float>(src_uv[0]),
                                  static_cast<float>(src_uv[1]));
 
+      // Get vertex colors.
+      FbxColor src_color;
+      if (element_colors) {
+        if (!GetElement(*element_colors, vertex_id, ctrl_point, &src_color)) {
+          return false;
+        }
+      } else {
+        src_color = FbxColor(1., 1., 1., 1.);
+      }
+      const uint8_t color[4] = {
+        static_cast<uint8_t>(ozz::math::Clamp(0., src_color.mRed * 255., 255.)),
+        static_cast<uint8_t>(ozz::math::Clamp(0., src_color.mGreen * 255., 255.)),
+        static_cast<uint8_t>(ozz::math::Clamp(0., src_color.mBlue * 255., 255.)),
+        static_cast<uint8_t>(ozz::math::Clamp(0., src_color.mAlpha * 255., 255.)),
+      };
+
       // Check for vertex redundancy, only with other points that share the same
       // control point.
       int redundant_with = -1;
@@ -253,6 +278,19 @@ bool BuildVertices(FbxMesh* _fbx_mesh,
           }
         }
 
+        // Check for identical colors.
+        if (element_colors) {
+          const int color_offset = to_test * 4;  // r, g, b, a
+          if (color[0] == part.colors[color_offset + 0] &&
+              color[1] == part.colors[color_offset + 1] &&
+              color[2] == part.colors[color_offset + 2] &&
+              color[3] == part.colors[color_offset + 3]) {
+              // Redundant color also.
+          } else {
+            continue;  // Next vertex.
+          }
+        }
+
         // Check for identical tangents.
         if (element_tangents) {
           const int tangent_offset = to_test * 4;  // x, y, z, right or left handed.
@@ -260,7 +298,7 @@ bool BuildVertices(FbxMesh* _fbx_mesh,
               tangent.y == part.tangents[tangent_offset + 1] &&
               tangent.z == part.tangents[tangent_offset + 2] &&
               tangent.w == part.tangents[tangent_offset + 3]) {
-              // Redundant uv also.
+              // Redundant tangent also.
           } else {
             continue;  // Next vertex.
           }
@@ -313,11 +351,17 @@ bool BuildVertices(FbxMesh* _fbx_mesh,
           part.tangents.push_back(tangent.z);
           part.tangents.push_back(tangent.w);
         }
+        if (element_colors) {
+          part.colors.push_back(color[0]);
+          part.colors.push_back(color[1]);
+          part.colors.push_back(color[2]);
+          part.colors.push_back(color[3]);
+        }
       }
     }
   }
 
-  // Sort triangle indices to optimize vertex cache.
+  // Sorts triangle indices to optimize vertex cache.
   std::qsort(array_begin(_output_mesh->triangle_indices),
              _output_mesh->triangle_indices.size() / 3,
              sizeof(uint16_t) * 3,
@@ -595,6 +639,9 @@ bool SplitParts(const ozz::sample::Mesh& _skinned_mesh,
     if (in_part.uvs.size()) {
       out_part.uvs.resize(bucket_vertex_count * 2);  // u, v components.
     }
+    if (in_part.colors.size()) {
+      out_part.colors.resize(bucket_vertex_count * 4);  // r, g, b, a.
+    }
     if (in_part.tangents.size()) {
       out_part.tangents.resize(bucket_vertex_count * 4);  // x, y, z, sign components.
     }
@@ -618,6 +665,13 @@ bool SplitParts(const ozz::sample::Mesh& _skinned_mesh,
       if (in_part.uvs.size()) {
         out_part.uvs[j * 2 + 0] = in_part.uvs[bucket_vertex_index * 2 + 0];
         out_part.uvs[j * 2 + 1] = in_part.uvs[bucket_vertex_index * 2 + 1];
+      }
+      // Fills colors.
+      if (in_part.colors.size()) {
+        out_part.colors[j * 4 + 0] = in_part.colors[bucket_vertex_index * 4 + 0];
+        out_part.colors[j * 4 + 1] = in_part.colors[bucket_vertex_index * 4 + 1];
+        out_part.colors[j * 4 + 2] = in_part.colors[bucket_vertex_index * 4 + 2];
+        out_part.colors[j * 4 + 3] = in_part.colors[bucket_vertex_index * 4 + 3];
       }
       // Fills tangents.
       if (in_part.tangents.size()) {
