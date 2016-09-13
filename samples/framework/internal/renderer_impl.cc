@@ -1117,9 +1117,7 @@ bool RendererImpl::DrawSkinnedMesh(const Mesh& _mesh,
       for (float* normal = out_normal_begin;
            normal < out_normal_end;
            normal = ozz::PointerStride(normal, normals_stride)) {
-        normal[0] = 0.f;
-        normal[1] = 1.f;
-        normal[2] = 0.f;
+        normal[0] = 0.f; normal[1] = 1.f; normal[2] = 0.f;
       }
     }
 
