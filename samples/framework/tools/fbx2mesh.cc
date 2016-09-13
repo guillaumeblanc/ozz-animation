@@ -52,7 +52,8 @@
 OZZ_OPTIONS_DECLARE_STRING(file, "Specifies input file.", "", true)
 OZZ_OPTIONS_DECLARE_STRING(skeleton, "Specifies the skeleton that the skin is bound to.", "", true)
 OZZ_OPTIONS_DECLARE_STRING(mesh, "Specifies ozz mesh ouput file.", "", true)
-OZZ_OPTIONS_DECLARE_BOOL(split, "Split the skinned mesh into parts (number of vertex influences).", true, false)
+OZZ_OPTIONS_DECLARE_BOOL(split, "Split the skinned mesh into parts (number of joint influences per vertex).", true, false)
+OZZ_OPTIONS_DECLARE_INT(max_influences, "Maximum number of joint influences per vertex (0 means no limitation).", 0, false)
 
 namespace {
 
@@ -560,6 +561,41 @@ bool BuildSkin(FbxMesh* _fbx_mesh,
   return !vertex_isnt_influenced;
 }
 
+// Limits the number of joints influencing a vertex.
+bool LimitInfluences(ozz::sample::Mesh& _skinned_mesh, int _limit) {
+  assert(_skinned_mesh.parts.size() == 1);
+
+  ozz::sample::Mesh::Part& in_part = _skinned_mesh.parts.front();
+
+  // Check if it's actualluy needed to limit the number of influences.
+  const int max_influences = in_part.influences_count();
+  assert(max_influences > 0);
+  if (max_influences <= _limit) {
+    return true;
+  }
+
+  // Iterate all vertices to remove unwanted weights and renormalize.
+  // Note that weights are already sorted, so the last ones are the less influencing.
+  // 0 weights are removed from the data later in the process (see StripWeights).
+  const size_t vertex_count = in_part.vertex_count();
+  for (size_t i = 0; i < vertex_count; ++i) {
+    // Remove exceeding influences
+    for (int j = _limit; j < max_influences; ++j) {
+      in_part.joint_indices[i * max_influences + j] = 0;
+      in_part.joint_weights[i * max_influences + j] = 0.f;
+    }
+    // Redistribute weight to other joints.
+    float sum = 0.f;
+    for (int j = 0; j < _limit; ++j) {
+      sum += in_part.joint_weights[i * max_influences + j];
+    }
+    for (int j = 0; j < _limit; ++j) {
+      in_part.joint_weights[i * max_influences + j] *= 1.f / sum;
+    }
+  }
+  return true;
+}
+
 // Split the skinned mesh into parts. For each part, all vertices has the same
 // number of influencing joints.
 bool SplitParts(const ozz::sample::Mesh& _skinned_mesh,
@@ -836,6 +872,18 @@ int main(int _argc, const char** _argv) {
       return EXIT_FAILURE;
     }
 
+    // Limiting number of joint influences per vertex.
+    if (OPTIONS_max_influences > 0) {
+      ozz::log::LogV() << "Limiting number of joint influences per vertex to " <<
+        OPTIONS_max_influences << "." << std::endl;
+      ozz::sample::Mesh partitioned_meshes;
+      if (!LimitInfluences(output_mesh, OPTIONS_max_influences)) {
+        ozz::log::Err() << "Failed to limit number of joint influences." << std::endl;
+        return EXIT_FAILURE;
+      }
+    }
+
+    // Split the mesh if option is true (default)
     if (OPTIONS_split) {
       ozz::log::LogV() << "Partitioning meshes." << std::endl;
       ozz::sample::Mesh partitioned_meshes;
@@ -844,7 +892,7 @@ int main(int _argc, const char** _argv) {
         return EXIT_FAILURE;
       }
 
-      // Copy partitioned mesh back to the output mesh.
+      // Copy partitioned mesh back to the output.
       output_mesh = partitioned_meshes;
     }
 
@@ -853,6 +901,9 @@ int main(int _argc, const char** _argv) {
       ozz::log::Err() << "Failed to strip weights." << std::endl;
       return EXIT_FAILURE;
     }
+
+    assert(OPTIONS_max_influences <= 0 ||
+           output_mesh.max_influences_count() <= OPTIONS_max_influences);
   }
 
   // Opens output file.
