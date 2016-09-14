@@ -46,11 +46,6 @@ class Shader {
   // Destruct a shader.
   virtual ~Shader();
 
-  // Constructs a shader from _vertex and _fragment glsl sources.
-  // Mutliple source files can be specified using the *count argument.
-  bool BuildFromSource(int _vertex_count, const char** _vertex,
-                       int _fragment_count, const char** _fragment);
-
   // Returns the shader program that can be bound to the OpenGL context.
   GLuint program() const {
     return program_;
@@ -74,10 +69,20 @@ class Shader {
     return attribs_[_index];
   }
 
-  // Unbind all attribs from GL.
-  void UnbindAttribs();
+  // Unblind shader.
+  virtual void Unbind();
+
+ protected:
+
+  // Constructs a shader from _vertex and _fragment glsl sources.
+  // Mutliple source files can be specified using the *count argument.
+  bool BuildFromSource(int _vertex_count, const char** _vertex,
+                       int _fragment_count, const char** _fragment);
 
  private:
+
+  // Unbind all attribs from GL.
+  void UnbindAttribs();
 
   // Shader program
   GLuint program_;
@@ -109,8 +114,6 @@ public:
             const math::Float4x4& _view_proj,
             GLsizei _pos_stride, GLsizei _pos_offset,
             GLsizei _color_stride, GLsizei _color_offset);
-
-  void Unbind();
 };
 
 class ImmediatePTCShader : public Shader{
@@ -130,8 +133,6 @@ public:
             GLsizei _pos_stride, GLsizei _pos_offset,
             GLsizei _tex_stride, GLsizei _tex_offset,
             GLsizei _color_stride, GLsizei _color_offset);
-
-  void Unbind();
 };
 
 class SkeletonShader : public Shader {
@@ -145,8 +146,6 @@ class SkeletonShader : public Shader {
             GLsizei _pos_stride, GLsizei _pos_offset,
             GLsizei _normal_stride, GLsizei _normal_offset,
             GLsizei _color_stride, GLsizei _color_offset);
-
-  void Unbind();
 
   // Get an attribute location for the join, in cased of instanced rendering.
   GLint joint_instanced_attrib() const {
@@ -199,10 +198,11 @@ public:
             const math::Float4x4& _view_proj,
             GLsizei _pos_stride, GLsizei _pos_offset,
             GLsizei _normal_stride, GLsizei _normal_offset,
-            GLsizei _color_stride, GLsizei _color_offset,
-            GLsizei _uv_stride, GLsizei _uv_offset);
+            GLsizei _color_stride, GLsizei _color_offset);
 
-  void Unbind();
+ protected:
+   bool InternalBuild(int _vertex_count, const char** _vertex,
+                      int _fragment_count, const char** _fragment);
 };
 
 class AmbientShaderInstanced : public Shader{
@@ -221,11 +221,48 @@ public:
             const math::Float4x4& _view_proj,
             GLsizei _pos_stride, GLsizei _pos_offset,
             GLsizei _normal_stride, GLsizei _normal_offset,
+            GLsizei _color_stride, GLsizei _color_offset);
+
+  virtual void Unbind();
+};
+
+
+class AmbientTexturedShader : public AmbientShader {
+public:
+
+  // Constructs the shader.
+  // Returns NULL if shader compilation failed or a valid Shader pointer on
+  // success. The shader must then be deleted using default allocator Delete
+  // function.
+  static AmbientTexturedShader* Build();
+
+  // Binds the shader.
+  void Bind(const math::Float4x4& _model,
+            const math::Float4x4& _view_proj,
+            GLsizei _pos_stride, GLsizei _pos_offset,
+            GLsizei _normal_stride, GLsizei _normal_offset,
             GLsizei _color_stride, GLsizei _color_offset,
             GLsizei _uv_stride, GLsizei _uv_offset);
-
-  void Unbind();
 };
+/*
+class AmbientTexturedShaderInstanced : public AmbientShaderInstanced {
+public:
+
+  // Constructs the shader.
+  // Returns NULL if shader compilation failed or a valid Shader pointer on
+  // success. The shader must then be deleted using default allocator Delete
+  // function.
+  static AmbientTexturedShaderInstanced* Build();
+
+  // Binds the shader.
+  void Bind(GLsizei _models_offset,
+            const math::Float4x4& _view_proj,
+            GLsizei _pos_stride, GLsizei _pos_offset,
+            GLsizei _normal_stride, GLsizei _normal_offset,
+            GLsizei _color_stride, GLsizei _color_offset,
+            GLsizei _uv_stride, GLsizei _uv_offset);
+};
+*/
 }  // internal
 }  // sample
 }  // ozz

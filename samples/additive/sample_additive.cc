@@ -177,7 +177,8 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
     // Renders skin.
     return _renderer->DrawSkinnedMesh(mesh_,
                                       skinning_matrices_,
-                                      ozz::math::Float4x4::identity());
+                                      ozz::math::Float4x4::identity(),
+                                      render_options_);
   }
 
   virtual bool OnInitialize() {
@@ -367,6 +368,18 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
         }
       }
     }
+    // Expose mesh rendering options
+    {
+      static bool oc_open = false;
+      ozz::sample::ImGui::OpenClose oc(_im_gui, "Rendering options", &oc_open);
+      if (oc_open) {
+        _im_gui->DoCheckBox("Show texture", &render_options_.texture);
+        _im_gui->DoCheckBox("Show normals", &render_options_.normals);
+        _im_gui->DoCheckBox("Show tangents", &render_options_.tangents);
+        _im_gui->DoCheckBox("Show colors", &render_options_.colors);
+        _im_gui->DoCheckBox("Skip skinning", &render_options_.skip_skinning);
+      }
+    }
 
     return true;
   }
@@ -445,6 +458,9 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
 
   // The mesh used by the sample.
   ozz::sample::Mesh mesh_;
+
+  // Mesh rendering options.
+  ozz::sample::Renderer::Options render_options_;
 };
 
 int main(int _argc, const char** _argv) {

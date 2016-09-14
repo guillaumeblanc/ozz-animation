@@ -87,14 +87,52 @@ class Renderer {
   virtual bool DrawBoxShaded(const ozz::math::Box& _box,
                              ozz::Range<const ozz::math::Float4x4> _transforms) = 0;
 
+  struct Options {
+    bool texture;  // Show texture (default checkered texture).
+    bool normals;  // Show normals.
+    bool tangents;  // Show tangents.
+    bool colors;  // Show vertex colors.
+    bool skip_skinning;  // Show texture (default checkered texture).
+
+    Options()
+      : texture(false),
+        normals(false),
+        tangents(false),
+        colors(false),
+        skip_skinning(false) {
+    }
+
+    Options(bool _texture,
+            bool _normals,
+            bool _tangents,
+            bool _colors,
+            bool _skip_skinning)
+      : texture(_texture),
+        normals(_normals),
+        tangents(_tangents),
+        colors(_colors),
+        skip_skinning(_skip_skinning) {
+    }
+  };
+
   // Renders a skinned mesh at a specified location.
   virtual bool DrawSkinnedMesh(const Mesh& _mesh,
                                const Range<math::Float4x4> _skinning_matrices,
-                               const ozz::math::Float4x4& _transform) = 0;
+                               const ozz::math::Float4x4& _transform,
+                               const Options& _options = Options()) = 0;
 
   // Renders a mesh at a specified location.
   virtual bool DrawMesh(const Mesh& _mesh,
-                        const ozz::math::Float4x4& _transform) = 0;
+                        const ozz::math::Float4x4& _transform,
+                        const Options& _options = Options()) = 0;
+
+  // Renders vectors, defined by their starting point and a direction.
+  virtual bool DrawVectors(ozz::Range<const float> _positions, size_t _positions_stride,
+                           ozz::Range<const float> _directions, size_t _directions_stride,
+                           int _num_vectors,
+                           float _vector_length,
+                           Renderer::Color _color,
+                           const ozz::math::Float4x4& _transform) = 0;
 };
 }  // sample
 }  // ozz

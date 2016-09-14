@@ -77,6 +77,7 @@ class Camera;
 class Shader;
 class SkeletonShader;
 class AmbientShader;
+class AmbientTexturedShader;
 class AmbientShaderInstanced;
 class GlImmediateRenderer;
 
@@ -112,10 +113,19 @@ class RendererImpl : public Renderer {
 
   virtual bool DrawSkinnedMesh(const Mesh& _mesh,
                                const Range<math::Float4x4> _skinning_matrices,
-                               const ozz::math::Float4x4& _transform);
+                               const ozz::math::Float4x4& _transform,
+                               const Options& _options = Options());
 
   virtual bool DrawMesh(const Mesh& _mesh,
-                        const ozz::math::Float4x4& _transform);
+                        const ozz::math::Float4x4& _transform,
+                        const Options& _options = Options());
+
+  virtual bool DrawVectors(ozz::Range<const float> _positions, size_t _positions_stride,
+                           ozz::Range<const float> _directions, size_t _directions_stride,
+                           int _num_vectors,
+                           float _vector_length,
+                           Renderer::Color _color,
+                           const ozz::math::Float4x4& _transform);
 
   // Get GL immediate renderer implementation;
   GlImmediateRenderer* immediate_renderer() const {
@@ -198,6 +208,7 @@ class RendererImpl : public Renderer {
 
   // Ambient rendering shader.
   AmbientShader* ambient_shader;
+  AmbientTexturedShader* ambient_textured_shader;
   AmbientShaderInstanced* ambient_shader_instanced;
 
   // Checkered texture
