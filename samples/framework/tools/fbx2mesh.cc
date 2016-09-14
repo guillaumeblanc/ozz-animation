@@ -52,6 +52,8 @@
 OZZ_OPTIONS_DECLARE_STRING(file, "Specifies input file.", "", true)
 OZZ_OPTIONS_DECLARE_STRING(skeleton, "Specifies the skeleton that the skin is bound to.", "", true)
 OZZ_OPTIONS_DECLARE_STRING(mesh, "Specifies ozz mesh ouput file.", "", true)
+OZZ_OPTIONS_DECLARE_BOOL(split, "Split the skinned mesh into parts (number of joint influences per vertex).", true, false)
+OZZ_OPTIONS_DECLARE_INT(max_influences, "Maximum number of joint influences per vertex (0 means no limitation).", 0, false)
 
 namespace {
 
@@ -113,6 +115,13 @@ bool GetElement(const _Element& _layer,
   return true;
 }
 
+// Compare raw elements. Returns true if all elements from _a and _b are equals.
+template<typename _T>
+bool Compare(const _T* _a, const _T* _b, size_t _count) {
+  size_t i = 0;
+  for (; i < _count && _a[i] == _b[i]; ++i);
+  return i == _count;
+}
 }  // namespace
 
 bool BuildVertices(FbxMesh* _fbx_mesh,
@@ -258,48 +267,35 @@ bool BuildVertices(FbxMesh* _fbx_mesh,
         const int to_test = remap[r];
 
         // Check for identical normals.
-        const int normal_offset = to_test * ozz::sample::Mesh::Part::kNormalsCpnts;
-        if (normal.x == part.normals[normal_offset + 0] &&
-            normal.y == part.normals[normal_offset + 1] &&
-            normal.z == part.normals[normal_offset + 2]) {
-          // Redundant normal.
-        } else {
+        if (!Compare(&normal.x,
+                     &part.normals[to_test * ozz::sample::Mesh::Part::kNormalsCpnts],
+                     ozz::sample::Mesh::Part::kNormalsCpnts)) {
           continue;  // Next vertex.
         }
 
         // Check for identical uvs.
         if (element_uvs) {
-          const int uv_offset = to_test * ozz::sample::Mesh::Part::kUVsCpnts;
-          if (uv.x == part.uvs[uv_offset + 0] &&
-              uv.y == part.uvs[uv_offset + 1]) {
-              // Redundant uv also.
-          } else {
+          if (!Compare(&uv.x,
+                       &part.uvs[to_test * ozz::sample::Mesh::Part::kUVsCpnts],
+                       ozz::sample::Mesh::Part::kUVsCpnts)) {
             continue;  // Next vertex.
           }
         }
 
         // Check for identical colors.
         if (element_colors) {
-          const int color_offset = to_test * ozz::sample::Mesh::Part::kColorsCpnts;
-          if (color[0] == part.colors[color_offset + 0] &&
-              color[1] == part.colors[color_offset + 1] &&
-              color[2] == part.colors[color_offset + 2] &&
-              color[3] == part.colors[color_offset + 3]) {
-              // Redundant color also.
-          } else {
+          if (!Compare(color,
+                       &part.colors[to_test * ozz::sample::Mesh::Part::kColorsCpnts],
+                       ozz::sample::Mesh::Part::kColorsCpnts)) {
             continue;  // Next vertex.
           }
         }
 
         // Check for identical tangents.
         if (element_tangents) {
-          const int tangent_offset = to_test * ozz::sample::Mesh::Part::kTangentsCpnts;
-          if (tangent.x == part.tangents[tangent_offset + 0] &&
-              tangent.y == part.tangents[tangent_offset + 1] &&
-              tangent.z == part.tangents[tangent_offset + 2] &&
-              tangent.w == part.tangents[tangent_offset + 3]) {
-              // Redundant tangent also.
-          } else {
+          if (!Compare(&tangent.x,
+                       &part.tangents[to_test * ozz::sample::Mesh::Part::kTangentsCpnts],
+                       ozz::sample::Mesh::Part::kColorsCpnts)) {
             continue;  // Next vertex.
           }
         }
@@ -570,6 +566,43 @@ bool BuildSkin(FbxMesh* _fbx_mesh,
   return !vertex_isnt_influenced;
 }
 
+// Limits the number of joints influencing a vertex.
+bool LimitInfluences(ozz::sample::Mesh& _skinned_mesh, int _limit) {
+  assert(_skinned_mesh.parts.size() == 1);
+
+  ozz::sample::Mesh::Part& in_part = _skinned_mesh.parts.front();
+
+  // Check if it's actualluy needed to limit the number of influences.
+  const int max_influences = in_part.influences_count();
+  assert(max_influences > 0);
+  if (max_influences <= _limit) {
+    return true;
+  }
+
+  // Iterate all vertices to remove unwanted weights and renormalize.
+  // Note that weights are already sorted, so the last ones are the less influencing.
+  // 0 weights are removed from the data later in the process (see StripWeights).
+  const size_t vertex_count = in_part.vertex_count();
+  for (size_t i = 0; i < vertex_count; ++i) {
+    // Remove exceeding influences
+    for (int j = _limit; j < max_influences; ++j) {
+      in_part.joint_indices[i * max_influences + j] = 0;
+      in_part.joint_weights[i * max_influences + j] = 0.f;
+    }
+    // Redistribute weight to other joints.
+    float sum = 0.f;
+    for (int j = 0; j < _limit; ++j) {
+      sum += in_part.joint_weights[i * max_influences + j];
+    }
+    for (int j = 0; j < _limit; ++j) {
+      in_part.joint_weights[i * max_influences + j] *= 1.f / sum;
+    }
+  }
+  return true;
+}
+
+// Split the skinned mesh into parts. For each part, all vertices has the same
+// number of influencing joints.
 bool SplitParts(const ozz::sample::Mesh& _skinned_mesh,
                 ozz::sample::Mesh* _partitionned_mesh) {
   assert(_skinned_mesh.parts.size() == 1);
@@ -603,7 +636,7 @@ bool SplitParts(const ozz::sample::Mesh& _skinned_mesh,
 
   // Group vertices if there's not enough of them for a given part. This allows to
   // limit SkinningJob fix cost overhead.
-  const size_t kMinBucketSize = 16;
+  const size_t kMinBucketSize = 32;
 
   for (size_t i = 0; i < bucked_vertices.size() - 1; ++i) {
     BuckedVertices::reference bucket = bucked_vertices[i];
@@ -735,6 +768,8 @@ bool SplitParts(const ozz::sample::Mesh& _skinned_mesh,
   return true;
 }
 
+// Removes the less significant weight, which is recomputed at runtime (sum of
+// weights equals 1).
 bool StripWeights(ozz::sample::Mesh* _mesh) {
   for (size_t i = 0; i < _mesh->parts.size(); ++i) {
     ozz::sample::Mesh::Part& part = _mesh->parts[i];
@@ -837,6 +872,7 @@ int main(int _argc, const char** _argv) {
     return EXIT_FAILURE;
   }
 
+  // Finds skinning informations
   if (mesh->GetDeformerCount(FbxDeformer::eSkin) > 0) {
     ozz::log::LogV() << "Reading skinning data." << std::endl;
     if (!BuildSkin(mesh, scene_loader.converter(), remap, skeleton, &output_mesh)) {
@@ -844,21 +880,38 @@ int main(int _argc, const char** _argv) {
       return EXIT_FAILURE;
     }
 
-    ozz::log::LogV() << "Partitioning meshes." << std::endl;
-    ozz::sample::Mesh partitioned_meshes;
-    if (!SplitParts(output_mesh, &partitioned_meshes)) {
-      ozz::log::Err() << "Failed to partitioned meshes." << std::endl;
-      return EXIT_FAILURE;
+    // Limiting number of joint influences per vertex.
+    if (OPTIONS_max_influences > 0) {
+      ozz::log::LogV() << "Limiting number of joint influences per vertex to " <<
+        OPTIONS_max_influences << "." << std::endl;
+      ozz::sample::Mesh partitioned_meshes;
+      if (!LimitInfluences(output_mesh, OPTIONS_max_influences)) {
+        ozz::log::Err() << "Failed to limit number of joint influences." << std::endl;
+        return EXIT_FAILURE;
+      }
+    }
+
+    // Split the mesh if option is true (default)
+    if (OPTIONS_split) {
+      ozz::log::LogV() << "Partitioning meshes." << std::endl;
+      ozz::sample::Mesh partitioned_meshes;
+      if (!SplitParts(output_mesh, &partitioned_meshes)) {
+        ozz::log::Err() << "Failed to partitioned meshes." << std::endl;
+        return EXIT_FAILURE;
+      }
+
+      // Copy partitioned mesh back to the output.
+      output_mesh = partitioned_meshes;
     }
 
     ozz::log::LogV() << "Stripping skinning weights." << std::endl;
-    if (!StripWeights(&partitioned_meshes)) {
+    if (!StripWeights(&output_mesh)) {
       ozz::log::Err() << "Failed to strip weights." << std::endl;
       return EXIT_FAILURE;
     }
 
-    // Copy partitioned mesh back to the output mesh.
-    output_mesh = partitioned_meshes;
+    assert(OPTIONS_max_influences <= 0 ||
+           output_mesh.max_influences_count() <= OPTIONS_max_influences);
   }
 
   // Opens output file.
