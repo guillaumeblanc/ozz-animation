@@ -172,16 +172,16 @@ bool BuildVertices(FbxMesh* _fbx_mesh,
   // Reserve vertex buffers. Real size is unknown as redundant vertices will be
   // rejected.
   ozz::sample::Mesh::Part& part = _output_mesh->parts[0];
-  part.positions.reserve(vertex_count * 3);  // x,y,z components.
-  part.normals.reserve(vertex_count * 3);  // x,y,z components.
+  part.positions.reserve(vertex_count * ozz::sample::Mesh::Part::kPositionsCpnts);
+  part.normals.reserve(vertex_count * ozz::sample::Mesh::Part::kNormalsCpnts);
   if (element_tangents) {
-    part.tangents.reserve(vertex_count * 4);  // x, y, z, right or left handed.
+    part.tangents.reserve(vertex_count * ozz::sample::Mesh::Part::kTangentsCpnts);
   }
   if (element_uvs) {
-    part.uvs.reserve(vertex_count * 2);  // u,v components.
+    part.uvs.reserve(vertex_count * ozz::sample::Mesh::Part::kUVsCpnts);
   }
   if (element_colors) {
-    part.colors.reserve(vertex_count * 4);  // r, g, b, a components.
+    part.colors.reserve(vertex_count * ozz::sample::Mesh::Part::kColorsCpnts);
   }
 
   // Resize triangle indices, as their size is known.
@@ -258,7 +258,7 @@ bool BuildVertices(FbxMesh* _fbx_mesh,
         const int to_test = remap[r];
 
         // Check for identical normals.
-        const int normal_offset = to_test * 3;  // x, y, z
+        const int normal_offset = to_test * ozz::sample::Mesh::Part::kNormalsCpnts;
         if (normal.x == part.normals[normal_offset + 0] &&
             normal.y == part.normals[normal_offset + 1] &&
             normal.z == part.normals[normal_offset + 2]) {
@@ -269,7 +269,7 @@ bool BuildVertices(FbxMesh* _fbx_mesh,
 
         // Check for identical uvs.
         if (element_uvs) {
-          const int uv_offset = to_test * 2;  // u, v
+          const int uv_offset = to_test * ozz::sample::Mesh::Part::kUVsCpnts;
           if (uv.x == part.uvs[uv_offset + 0] &&
               uv.y == part.uvs[uv_offset + 1]) {
               // Redundant uv also.
@@ -280,7 +280,7 @@ bool BuildVertices(FbxMesh* _fbx_mesh,
 
         // Check for identical colors.
         if (element_colors) {
-          const int color_offset = to_test * 4;  // r, g, b, a
+          const int color_offset = to_test * ozz::sample::Mesh::Part::kColorsCpnts;
           if (color[0] == part.colors[color_offset + 0] &&
               color[1] == part.colors[color_offset + 1] &&
               color[2] == part.colors[color_offset + 2] &&
@@ -293,7 +293,7 @@ bool BuildVertices(FbxMesh* _fbx_mesh,
 
         // Check for identical tangents.
         if (element_tangents) {
-          const int tangent_offset = to_test * 4;  // x, y, z, right or left handed.
+          const int tangent_offset = to_test * ozz::sample::Mesh::Part::kTangentsCpnts;
           if (tangent.x == part.tangents[tangent_offset + 0] &&
               tangent.y == part.tangents[tangent_offset + 1] &&
               tangent.z == part.tangents[tangent_offset + 2] &&
@@ -326,7 +326,8 @@ bool BuildVertices(FbxMesh* _fbx_mesh,
         }
 
         // Deduce this vertex offset in the output vertex buffer.
-        uint16_t vertex_index = static_cast<uint16_t>(part.positions.size() / 3);
+        uint16_t vertex_index = static_cast<uint16_t>(
+          part.positions.size() / ozz::sample::Mesh::Part::kPositionsCpnts);
 
         // Build triangle indices.
         _output_mesh->triangle_indices[p * 3 + v] = vertex_index;
@@ -634,51 +635,54 @@ bool SplitParts(const ozz::sample::Mesh& _skinned_mesh,
 
     // Resize output part.
     const int influences = i + 1;
-    out_part.positions.resize(bucket_vertex_count * 3);  // x, y, z components.
-    out_part.normals.resize(bucket_vertex_count * 3);  // x, y, z components.
+    out_part.positions.resize(bucket_vertex_count * ozz::sample::Mesh::Part::kPositionsCpnts);
+    out_part.normals.resize(bucket_vertex_count * ozz::sample::Mesh::Part::kNormalsCpnts);
     if (in_part.uvs.size()) {
-      out_part.uvs.resize(bucket_vertex_count * 2);  // u, v components.
+      out_part.uvs.resize(bucket_vertex_count * ozz::sample::Mesh::Part::kUVsCpnts);
     }
     if (in_part.colors.size()) {
-      out_part.colors.resize(bucket_vertex_count * 4);  // r, g, b, a.
+      out_part.colors.resize(bucket_vertex_count * ozz::sample::Mesh::Part::kColorsCpnts);
     }
     if (in_part.tangents.size()) {
-      out_part.tangents.resize(bucket_vertex_count * 4);  // x, y, z, sign components.
+      out_part.tangents.resize(bucket_vertex_count * ozz::sample::Mesh::Part::kTangentsCpnts);
     }
     out_part.joint_indices.resize(bucket_vertex_count * influences);
     out_part.joint_weights.resize(bucket_vertex_count * influences);
 
     // Fills output of this part.
     for (size_t j = 0; j < bucket_vertex_count; ++j) {
-      // Fills positions.
+
       const size_t bucket_vertex_index = bucket[j];
-      out_part.positions[j * 3 + 0] = in_part.positions[bucket_vertex_index * 3 + 0];
-      out_part.positions[j * 3 + 1] = in_part.positions[bucket_vertex_index * 3 + 1];
-      out_part.positions[j * 3 + 2] = in_part.positions[bucket_vertex_index * 3 + 2];
+
+      // Fills positions.
+      float* out_pos = &out_part.positions[j * ozz::sample::Mesh::Part::kPositionsCpnts];
+      const float* in_pos = &in_part.positions[bucket_vertex_index * ozz::sample::Mesh::Part::kPositionsCpnts];
+      out_pos[0] = in_pos[0]; out_pos[1] = in_pos[1]; out_pos[2] = in_pos[2];
 
       // Fills normals.
-      out_part.normals[j * 3 + 0] = in_part.normals[bucket_vertex_index * 3 + 0];
-      out_part.normals[j * 3 + 1] = in_part.normals[bucket_vertex_index * 3 + 1];
-      out_part.normals[j * 3 + 2] = in_part.normals[bucket_vertex_index * 3 + 2];
+      float* out_normal = &out_part.normals[j * ozz::sample::Mesh::Part::kNormalsCpnts];
+      const float* in_normal = &in_part.normals[bucket_vertex_index * ozz::sample::Mesh::Part::kNormalsCpnts];
+      out_normal[0] = in_normal[0]; out_normal[1] = in_normal[1]; out_normal[2] = in_normal[2];
 
       // Fills uvs.
       if (in_part.uvs.size()) {
-        out_part.uvs[j * 2 + 0] = in_part.uvs[bucket_vertex_index * 2 + 0];
-        out_part.uvs[j * 2 + 1] = in_part.uvs[bucket_vertex_index * 2 + 1];
+        float* out_uv = &out_part.uvs[j * ozz::sample::Mesh::Part::kUVsCpnts];
+        const float* in_uv = &in_part.uvs[bucket_vertex_index * ozz::sample::Mesh::Part::kUVsCpnts];
+        out_uv[0] = in_uv[0]; out_uv[1] = in_uv[1];
       }
       // Fills colors.
       if (in_part.colors.size()) {
-        out_part.colors[j * 4 + 0] = in_part.colors[bucket_vertex_index * 4 + 0];
-        out_part.colors[j * 4 + 1] = in_part.colors[bucket_vertex_index * 4 + 1];
-        out_part.colors[j * 4 + 2] = in_part.colors[bucket_vertex_index * 4 + 2];
-        out_part.colors[j * 4 + 3] = in_part.colors[bucket_vertex_index * 4 + 3];
+        uint8_t* out_color = &out_part.colors[j * ozz::sample::Mesh::Part::kColorsCpnts];
+        const uint8_t* in_color = &in_part.colors[bucket_vertex_index * ozz::sample::Mesh::Part::kColorsCpnts];
+        out_color[0] = in_color[0]; out_color[1] = in_color[1];
+        out_color[2] = in_color[2]; out_color[3] = in_color[3];
       }
       // Fills tangents.
       if (in_part.tangents.size()) {
-        out_part.tangents[j * 4 + 0] = in_part.tangents[bucket_vertex_index * 4 + 0];
-        out_part.tangents[j * 4 + 1] = in_part.tangents[bucket_vertex_index * 4 + 1];
-        out_part.tangents[j * 4 + 2] = in_part.tangents[bucket_vertex_index * 4 + 2];
-        out_part.tangents[j * 4 + 3] = in_part.tangents[bucket_vertex_index * 4 + 3];
+        float* out_tangent = &out_part.tangents[j * ozz::sample::Mesh::Part::kTangentsCpnts];
+        const float* in_tangent = &in_part.tangents[bucket_vertex_index * ozz::sample::Mesh::Part::kTangentsCpnts];
+        out_tangent[0] = in_tangent[0]; out_tangent[1] = in_tangent[1];
+        out_tangent[2] = in_tangent[2]; out_tangent[3] = in_tangent[3];
       }
 
       // Fills joints indices.
