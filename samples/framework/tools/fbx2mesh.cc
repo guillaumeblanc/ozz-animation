@@ -581,23 +581,26 @@ bool LimitInfluences(ozz::sample::Mesh& _skinned_mesh, int _limit) {
 
   // Iterate all vertices to remove unwanted weights and renormalize.
   // Note that weights are already sorted, so the last ones are the less influencing.
-  // 0 weights are removed from the data later in the process (see StripWeights).
   const size_t vertex_count = in_part.vertex_count();
-  for (size_t i = 0; i < vertex_count; ++i) {
+  for (size_t i = 0, offset = 0; i < vertex_count; ++i, offset += _limit) {
     // Remove exceeding influences
-    for (int j = _limit; j < max_influences; ++j) {
-      in_part.joint_indices[i * max_influences + j] = 0;
-      in_part.joint_weights[i * max_influences + j] = 0.f;
+    for (int j = 0; j < _limit; ++j) {
+      in_part.joint_indices[offset + j] = in_part.joint_indices[i * max_influences + j];
+      in_part.joint_weights[offset + j] = in_part.joint_weights[i * max_influences + j];
     }
-    // Redistribute weight to other joints.
+    // Renormalize weights.
     float sum = 0.f;
     for (int j = 0; j < _limit; ++j) {
-      sum += in_part.joint_weights[i * max_influences + j];
+      sum += in_part.joint_weights[offset + j];
     }
     for (int j = 0; j < _limit; ++j) {
-      in_part.joint_weights[i * max_influences + j] *= 1.f / sum;
+      in_part.joint_weights[offset + j] *= 1.f / sum;
     }
   }
+
+  // Resizes data
+  in_part.joint_indices.resize(vertex_count * _limit);
+  in_part.joint_weights.resize(vertex_count * _limit);
   return true;
 }
 

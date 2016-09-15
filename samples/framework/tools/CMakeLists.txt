@@ -24,10 +24,14 @@ if(ozz_build_fbx)
             "${ozz_media_directory}/bin/alain_skeleton.ozz"
             "${ozz_media_directory}/fbx/alain/arnaud.fbx"
     OUTPUT "${ozz_media_directory}/bin/arnaud_mesh.ozz"
-    COMMAND sample_fbx2mesh "--file=${ozz_media_directory}/fbx/alain/arnaud.fbx" "--skeleton=${ozz_media_directory}/bin/alain_skeleton.ozz" "--mesh=${ozz_media_directory}/bin/arnaud_mesh.ozz")
+           "${ozz_media_directory}/bin/arnaud_mesh_4.ozz"
+    COMMAND sample_fbx2mesh "--file=${ozz_media_directory}/fbx/alain/arnaud.fbx" "--skeleton=${ozz_media_directory}/bin/alain_skeleton.ozz" "--mesh=${ozz_media_directory}/bin/arnaud_mesh.ozz"
+    COMMAND sample_fbx2mesh "--file=${ozz_media_directory}/fbx/alain/arnaud.fbx" "--skeleton=${ozz_media_directory}/bin/alain_skeleton.ozz" "--mesh=${ozz_media_directory}/bin/arnaud_mesh_4.ozz" --nosplit --max_influences=4)
 
   # Creates a target to build sample data
-  add_custom_target(BUILD_DATA_SAMPLE ALL DEPENDS "${ozz_media_directory}/bin/arnaud_mesh.ozz")
+  add_custom_target(BUILD_DATA_SAMPLE ALL DEPENDS
+    "${ozz_media_directory}/bin/arnaud_mesh.ozz"
+    "${ozz_media_directory}/bin/arnaud_mesh_4.ozz")
 
   add_test(NAME sample_fbx2mesh COMMAND sample_fbx2mesh "--file=${ozz_media_directory}/fbx/alain/skeleton.fbx" "--skeleton=${ozz_media_directory}/bin/alain_skeleton.ozz" "--mesh=${ozz_temp_directory}/mesh.ozz")
 
