@@ -964,9 +964,21 @@ void Filter(const _RawTrack& _src,
   size_t last_src_pushed = 0;  // Index (in src) of the last pushed key.
   for (size_t i = 0; i < _src.size(); ++i) {
     // First and last keys are always pushed.
-    if (i == 0 || i == _src.size() - 1) {
+    if (i == 0) {
       _dest->push_back(_src[i]);
       last_src_pushed = i;
+    } else if (i == _src.size() - 1) {
+      // Don't push the last value if it's the same as last_src_pushed.
+      typename _RawTrack::const_reference left = _src[last_src_pushed];
+      typename _RawTrack::const_reference right = _src[i];
+      if (!_comparator(left.value,
+                       right.value,
+                       _tolerance,
+                       _hierarchical_tolerance,
+                       _hierarchy_length)) {
+        _dest->push_back(right);
+        last_src_pushed = i;
+      }
     } else {
       // Only inserts i key if keys in range ]last_src_pushed,i] cannot be
       // interpolated from keys last_src_pushed and i + 1.
