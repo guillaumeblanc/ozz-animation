@@ -376,6 +376,7 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
         _im_gui->DoCheckBox("Show texture", &render_options_.texture);
         _im_gui->DoCheckBox("Show normals", &render_options_.normals);
         _im_gui->DoCheckBox("Show tangents", &render_options_.tangents);
+        _im_gui->DoCheckBox("Show binormals", &render_options_.binormals);
         _im_gui->DoCheckBox("Show colors", &render_options_.colors);
         _im_gui->DoCheckBox("Skip skinning", &render_options_.skip_skinning);
       }

@@ -127,6 +127,15 @@ class RendererImpl : public Renderer {
                            Renderer::Color _color,
                            const ozz::math::Float4x4& _transform);
 
+  virtual bool DrawBinormals(ozz::Range<const float> _positions, size_t _positions_stride,
+                             ozz::Range<const float> _normals, size_t _normals_stride,
+                             ozz::Range<const float> _tangents, size_t _tangents_stride,
+                             ozz::Range<const float> _handenesses, size_t _handenesses_stride,
+                             int _num_vectors,
+                             float _vector_length,
+                             Renderer::Color _color,
+                             const ozz::math::Float4x4& _transform);
+
   // Get GL immediate renderer implementation;
   GlImmediateRenderer* immediate_renderer() const {
     return immediate_;

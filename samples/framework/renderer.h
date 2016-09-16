@@ -91,6 +91,7 @@ class Renderer {
     bool texture;  // Show texture (default checkered texture).
     bool normals;  // Show normals.
     bool tangents;  // Show tangents.
+    bool binormals;  // Show binormals, computed from the normal and tangent.
     bool colors;  // Show vertex colors.
     bool skip_skinning;  // Show texture (default checkered texture).
 
@@ -98,6 +99,7 @@ class Renderer {
       : texture(false),
         normals(false),
         tangents(false),
+        binormals(false),
         colors(false),
         skip_skinning(false) {
     }
@@ -105,11 +107,13 @@ class Renderer {
     Options(bool _texture,
             bool _normals,
             bool _tangents,
+            bool _binormals,
             bool _colors,
             bool _skip_skinning)
       : texture(_texture),
         normals(_normals),
         tangents(_tangents),
+        binormals(_binormals),
         colors(_colors),
         skip_skinning(_skip_skinning) {
     }
@@ -133,6 +137,16 @@ class Renderer {
                            float _vector_length,
                            Renderer::Color _color,
                            const ozz::math::Float4x4& _transform) = 0;
+
+  // Compute binormals from normals and tangents, before displaying them.
+  virtual bool DrawBinormals(ozz::Range<const float> _positions, size_t _positions_stride,
+                             ozz::Range<const float> _normals, size_t _normals_stride,
+                             ozz::Range<const float> _tangents, size_t _tangents_stride,
+                             ozz::Range<const float> _handenesses, size_t _handenesses_stride,
+                             int _num_vectors,
+                             float _vector_length,
+                             Renderer::Color _color,
+                             const ozz::math::Float4x4& _transform) = 0;
 };
 }  // sample
 }  // ozz

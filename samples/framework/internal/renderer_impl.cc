@@ -827,22 +827,63 @@ bool RendererImpl::DrawVectors(ozz::Range<const float> _positions, size_t _posit
       PointerStride(_directions.begin, _directions_stride * _num_vectors) > _directions.end) {
     return false;
   }
-  
+
   GlImmediatePC im(immediate_renderer(), GL_LINES, _transform);
   GlImmediatePC::Vertex v = {{ 0, 0, 0 }, {_color.r, _color.g, _color.b, _color.a}};
 
   for (int i = 0; i < _num_vectors; ++i) {
-      const float* position = PointerStride(_positions.begin, _positions_stride * i);
-      v.pos[0] = position[0]; v.pos[1] = position[1]; v.pos[2] = position[2];
-      im.PushVertex(v);
+    const float* position = PointerStride(_positions.begin, _positions_stride * i);
+    v.pos[0] = position[0]; v.pos[1] = position[1]; v.pos[2] = position[2];
+    im.PushVertex(v);
 
-      const float* direction = PointerStride(_directions.begin, _directions_stride * i);
-      v.pos[0] = position[0] + direction[0] * _vector_length;
-      v.pos[1] = position[1] + direction[1] * _vector_length;
-      v.pos[2] = position[2] + direction[2] * _vector_length;
-      im.PushVertex(v);
+    const float* direction = PointerStride(_directions.begin, _directions_stride * i);
+    v.pos[0] = position[0] + direction[0] * _vector_length;
+    v.pos[1] = position[1] + direction[1] * _vector_length;
+    v.pos[2] = position[2] + direction[2] * _vector_length;
+    im.PushVertex(v);
   }
 
+  return true;
+}
+
+bool RendererImpl::DrawBinormals(ozz::Range<const float> _positions, size_t _positions_stride,
+                                 ozz::Range<const float> _normals, size_t _normals_stride,
+                                 ozz::Range<const float> _tangents, size_t _tangents_stride,
+                                 ozz::Range<const float> _handenesses, size_t _handenesses_stride,
+                                 int _num_vectors,
+                                 float _vector_length,
+                                 Renderer::Color _color,
+                                 const ozz::math::Float4x4& _transform) {
+  // Invalid range length.
+  if (PointerStride(_positions.begin, _positions_stride * _num_vectors) > _positions.end ||
+      PointerStride(_normals.begin, _normals_stride * _num_vectors) > _normals.end ||
+      PointerStride(_tangents.begin, _tangents_stride * _num_vectors) > _tangents.end ||
+      PointerStride(_handenesses.begin, _handenesses_stride * _num_vectors) > _handenesses.end) {
+    return false;
+  }
+
+  GlImmediatePC im(immediate_renderer(), GL_LINES, _transform);
+  GlImmediatePC::Vertex v = {{ 0, 0, 0 }, {_color.r, _color.g, _color.b, _color.a}};
+
+  for (int i = 0; i < _num_vectors; ++i) {
+    const float* position = PointerStride(_positions.begin, _positions_stride * i);
+    v.pos[0] = position[0]; v.pos[1] = position[1]; v.pos[2] = position[2];
+    im.PushVertex(v);
+
+    // Compute binormal.
+    const float* p_normal = PointerStride(_normals.begin, _normals_stride * i);
+    const ozz::math::Float3 normal(p_normal[0], p_normal[1], p_normal[2]);
+    const float* p_tangent = PointerStride(_tangents.begin, _tangents_stride * i);
+    const ozz::math::Float3 tangent(p_tangent[0], p_tangent[1], p_tangent[2]);
+    const float* p_handedness = PointerStride(_handenesses.begin, _handenesses_stride * i);
+    // Handedness is used to flip binormal.
+    const ozz::math::Float3 binormal = Cross(normal, tangent) * p_handedness[0];
+
+    v.pos[0] = position[0] + binormal.x * _vector_length;
+    v.pos[1] = position[1] + binormal.y * _vector_length;
+    v.pos[2] = position[2] + binormal.z * _vector_length;
+    im.PushVertex(v);
+  }
   return true;
 }
 
@@ -1079,7 +1120,7 @@ bool RendererImpl::DrawMesh(const Mesh& _mesh,
       DrawVectors(make_range(part.positions), ozz::sample::Mesh::Part::kPositionsCpnts * sizeof(float),
                   make_range(part.normals), ozz::sample::Mesh::Part::kNormalsCpnts * sizeof(float),
                   part.vertex_count(),
-                  .05f,
+                  .03f,
                   green,
                   _transform);
     }
@@ -1093,11 +1134,30 @@ bool RendererImpl::DrawMesh(const Mesh& _mesh,
       DrawVectors(make_range(part.positions), ozz::sample::Mesh::Part::kPositionsCpnts * sizeof(float),
                   make_range(part.tangents), ozz::sample::Mesh::Part::kTangentsCpnts * sizeof(float),
                   part.vertex_count(),
-                  .05f,
+                  .03f,
                   red,
                   _transform);
     }
   }
+
+  // Renders debug binormals.
+  if (_options.binormals/* &&
+      skinning_job.out_normals.Count() > 0 &&
+      skinning_job.out_tangents.Count() > 0*/) {
+    for (size_t i = 0; i < _mesh.parts.size(); ++i) {
+      const Mesh::Part& part = _mesh.parts[i];
+      const Renderer::Color blue = {0, 0, 255, 255};
+      DrawBinormals(make_range(part.positions), ozz::sample::Mesh::Part::kPositionsCpnts * sizeof(float),
+                    make_range(part.normals), ozz::sample::Mesh::Part::kNormalsCpnts * sizeof(float),
+                    make_range(part.tangents), ozz::sample::Mesh::Part::kTangentsCpnts * sizeof(float),
+                    ozz::Range<const float>(&part.tangents[3], part.tangents.size()), ozz::sample::Mesh::Part::kTangentsCpnts * sizeof(float),
+                    part.vertex_count(),
+                    .03f,
+                    blue,
+                    _transform);
+    }
+  }
+
   return true;
 }
 
@@ -1247,7 +1307,7 @@ bool RendererImpl::DrawSkinnedMesh(const Mesh& _mesh,
       DrawVectors(skinning_job.out_positions, skinning_job.out_positions_stride,
                   skinning_job.out_normals, skinning_job.out_normals_stride,
                   skinning_job.vertex_count,
-                  .05f,
+                  .03f,
                   green,
                   _transform);
     }
@@ -1258,9 +1318,24 @@ bool RendererImpl::DrawSkinnedMesh(const Mesh& _mesh,
       DrawVectors(skinning_job.out_positions, skinning_job.out_positions_stride,
                   skinning_job.out_tangents, skinning_job.out_tangents_stride,
                   skinning_job.vertex_count,
-                  .05f,
+                  .03f,
                   red,
                   _transform);
+    }
+
+    // Renders debug binormals.
+    if (_options.binormals &&
+        skinning_job.out_normals.Count() > 0 &&
+        skinning_job.out_tangents.Count() > 0) {
+      const Renderer::Color blue = {0, 0, 255, 255};
+      DrawBinormals(skinning_job.out_positions, skinning_job.out_positions_stride,
+                    skinning_job.out_normals, skinning_job.out_normals_stride,
+                    skinning_job.out_tangents, skinning_job.out_tangents_stride,
+                    ozz::Range<const float>(skinning_job.in_tangents.begin + 3, skinning_job.in_tangents.end + 3), skinning_job.in_tangents_stride,
+                    skinning_job.vertex_count,
+                    .03f,
+                    blue,
+                    _transform);
     }
 
     // Handles colors which aren't affected by skinning.
