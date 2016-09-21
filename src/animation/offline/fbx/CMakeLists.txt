@@ -36,7 +36,7 @@ set_target_properties(fbx2skel
   PROPERTIES FOLDER "ozz/tools")
 
 install(TARGETS fbx2skel DESTINATION bin/tools)
-  
+
 add_executable(fbx2anim
   fbx2anim.cc)
 target_link_libraries(fbx2anim
@@ -48,7 +48,7 @@ target_link_libraries(fbx2anim
   ozz_base)
 set_target_properties(fbx2anim
   PROPERTIES FOLDER "ozz/tools")
-  
+
 install(TARGETS fbx2anim DESTINATION bin/tools)
 
 # Gerenate binary skeleton data
@@ -76,53 +76,56 @@ endforeach()
 # Gerenate binary animation data
 set(animations
   "/fbx/alain/atlas.fbx\;/bin/alain_skeleton.ozz\;/bin/alain_atlas.ozz"
-  "/fbx/alain/atlas.fbx\;/bin/alain_skeleton.ozz\;/bin/alain_atlas_raw.ozz\;--raw\;--nooptimize"
-  "/fbx/alain/walk.fbx\;/bin/alain_skeleton.ozz\;/bin/alain_walk.ozz"
-  "/fbx/alain/jog.fbx\;/bin/alain_skeleton.ozz\;/bin/alain_jog.ozz"
-  "/fbx/alain/run.fbx\;/bin/alain_skeleton.ozz\;/bin/alain_run.ozz"
+  "/fbx/alain/atlas.fbx\;/bin/alain_skeleton.ozz\;/bin/alain_atlas_raw.ozz\;option:--raw\;option:--nooptimize"
+  "/fbx/alain/locomotions.fbx\;/bin/alain_skeleton.ozz\;/bin/alain_*.ozz\;output:/bin/alain_walk.ozz\;output:/bin/alain_jog.ozz\;output:/bin/alain_run.ozz"
   "/fbx/alain/crossarms.fbx\;/bin/alain_skeleton.ozz\;/bin/alain_crossarms.ozz"
   "/fbx/alain/crackhead.fbx\;/bin/alain_skeleton.ozz\;/bin/alain_crackhead.ozz"
-  "/fbx/alain/crackhead.fbx\;/bin/alain_skeleton.ozz\;/bin/alain_crackhead_additive.ozz\;--additive"
+  "/fbx/alain/crackhead.fbx\;/bin/alain_skeleton.ozz\;/bin/alain_crackhead_additive.ozz\;option:--additive"
   "/collada/astro_max.dae\;/bin/astro_max_skeleton.ozz\;/bin/astro_max_animation.ozz"
   "/collada/astro_maya.dae\;/bin/astro_maya_skeleton.ozz\;/bin/astro_maya_animation.ozz"
   "/collada/seymour.dae\;/bin/seymour_skeleton.ozz\;/bin/seymour_animation.ozz")
 
 foreach(line ${animations})
 
-  list(GET line 0 src) 
+  # First 3 elements are mandatory
+  list(GET line 0 src)
   list(GET line 1 skel)
-  list(GET line 2 dest)
+  list(GET line 2 anim)
 
   # Optional elements
   list(LENGTH line line_length)
 
-  set(option0 "")
-  set(option1 "")
-  set(option2 "")
-  if (${line_length} GREATER 3)
-    list(GET line 3 option0)
+  # Loops over all remaining arguments.
+  set(options "")
+  set(outputs "")
+  foreach(element ${line})
+    if (${element} MATCHES "option:(.*)")
+      string(SUBSTRING ${element} 7 -1 option)
+      list(APPEND options ${option})
+    endif()
+    if (${element} MATCHES "output:(.*)")
+      string(SUBSTRING ${element} 7 -1 output)
+      list(APPEND outputs ${ozz_media_directory}${output})
+    endif()
+  endforeach()
+
+  # Uses ${anim} as output if no specific output is specified
+  if (NOT outputs)
+    list(APPEND outputs ${ozz_media_directory}${anim})
   endif()
-  if (${line_length} GREATER 4)
-    list(GET line 4 option1)
-  endif()
-  if (${line_length} GREATER 5)
-    list(GET line 5 option2)
-  endif()
-  
-  list(APPEND bin_animations ${ozz_media_directory}${dest})
-  
+
+  list(APPEND bin_animations ${outputs})
+
   add_custom_command(
     DEPENDS "${ozz_media_directory}${src}"
             "${ozz_media_directory}${skel}"
             fbx2anim
-    OUTPUT "${ozz_media_directory}${dest}"
+    OUTPUT  ${outputs}
     COMMAND fbx2anim
-            ${option0}
-            ${option1}
-            ${option2}
+            ${options}
             "--file=${ozz_media_directory}${src}"
             "--skeleton=${ozz_media_directory}${skel}"
-            "--animation=${ozz_media_directory}${dest}")
+            "--animation=${ozz_media_directory}${anim}")
 endforeach()
 
 # Creates a target to build data

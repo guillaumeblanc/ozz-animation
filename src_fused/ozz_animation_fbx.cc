@@ -126,6 +126,7 @@ bool ExtractSkeleton(FbxSceneLoader& _loader, RawSkeleton* _skeleton);
 #error "This header is private, it cannot be included from public headers."
 #endif  // OZZ_INCLUDE_PRIVATE_HEADER
 
+#include "ozz/animation/offline/fbx/fbx.h"
 #include "ozz/animation/offline/fbx/fbx_base.h"
 
 namespace ozz {
@@ -139,10 +140,10 @@ struct RawAnimation;
 
 namespace fbx {
 
-bool ExtractAnimation(FbxSceneLoader* _scene_loader,
-                      const Skeleton& _skeleton,
-                      float _sampling_rate,
-                      RawAnimation* _animation);
+bool ExtractAnimations(FbxSceneLoader* _scene_loader,
+                       const Skeleton& _skeleton,
+                       float _sampling_rate,
+                       NamedAnimations* _animations);
 
 }  // fbx
 }  // offline
@@ -189,12 +190,12 @@ bool ImportFromFile(const char* _filename, RawSkeleton* _skeleton) {
 bool ImportFromFile(const char* _filename,
                     const Skeleton& _skeleton,
                     float _sampling_rate,
-                    RawAnimation* _animation) {
-  if (!_animation) {
+                    NamedAnimations* _animations) {
+  if (!_animations) {
     return false;
   }
   // Reset animation.
-  *_animation = RawAnimation();
+  _animations->clear();
 
   // Import Fbx content.
   FbxManagerInstance fbx_manager;
@@ -206,10 +207,10 @@ bool ImportFromFile(const char* _filename,
     return false;
   }
 
-  if (!ExtractAnimation(&scene_loader,
-                        _skeleton,
-                        _sampling_rate,
-                        _animation)) {
+  if (!ExtractAnimations(&scene_loader,
+                         _skeleton,
+                         _sampling_rate,
+                         _animations)) {
     log::Err() << "Fbx animation extraction failed." << std::endl;
     return false;
   }
@@ -289,6 +290,7 @@ bool ImportFromFile(const char* _filename,
 #error "This header is private, it cannot be included from public headers."
 #endif  // OZZ_INCLUDE_PRIVATE_HEADER
 
+#include "ozz/animation/offline/fbx/fbx.h"
 #include "ozz/animation/offline/fbx/fbx_base.h"
 
 namespace ozz {
@@ -302,10 +304,10 @@ struct RawAnimation;
 
 namespace fbx {
 
-bool ExtractAnimation(FbxSceneLoader* _scene_loader,
-                      const Skeleton& _skeleton,
-                      float _sampling_rate,
-                      RawAnimation* _animation);
+bool ExtractAnimations(FbxSceneLoader* _scene_loader,
+                       const Skeleton& _skeleton,
+                       float _sampling_rate,
+                       NamedAnimations* _animations);
 
 }  // fbx
 }  // offline
@@ -441,10 +443,10 @@ bool ExtractAnimation(FbxSceneLoader* _scene_loader,
 }
 }
 
-bool ExtractAnimation(FbxSceneLoader* _scene_loader,
-                      const Skeleton& _skeleton,
-                      float _sampling_rate,
-                      RawAnimation* _animation) {
+bool ExtractAnimations(FbxSceneLoader* _scene_loader,
+                       const Skeleton& _skeleton,
+                       float _sampling_rate,
+                       NamedAnimations* _animations) {
   FbxScene* scene = _scene_loader->scene();
   assert(scene);
 
@@ -455,21 +457,34 @@ bool ExtractAnimation(FbxSceneLoader* _scene_loader,
     ozz::log::Err() << "No animation found." << std::endl;
     return false;
   }
-  
-  if (anim_stacks_count > 1) {
-    ozz::log::Log() << anim_stacks_count <<
-      " animations found. Only the first one will be exported." << std::endl;
+
+  // Prepares ouputs.
+  _animations->resize(anim_stacks_count);
+
+  // Sequentially import all available animations.
+  bool success = true;
+  for (int i = 0; i < anim_stacks_count && success; ++i) {
+    FbxAnimStack* anim_stack = scene->GetSrcObject<FbxAnimStack>(i);
+    const char* name = anim_stack->GetName();
+
+    ozz::log::Log() << "Extracting animation \"" << name << "\""
+      << std::endl;
+
+    NamedAnimation& pair = _animations->at(i);
+    pair.name = name;
+    success &= ExtractAnimation(_scene_loader,
+                                anim_stack,
+                                _skeleton,
+                                _sampling_rate,
+                                &pair.animation);
   }
 
-  // Arbitrarily take the first animation of the stack.
-  FbxAnimStack* anim_stack = scene->GetSrcObject<FbxAnimStack>(0);
-  ozz::log::Log() << "Extracting animation \"" << anim_stack->GetName() << "\""
-    << std::endl;
-  return ExtractAnimation(_scene_loader,
-                          anim_stack,
-                          _skeleton,
-                          _sampling_rate,
-                          _animation);
+  // Clears output if somthing failed during import, avoids partial data.
+  if (!success) {
+    _animations->clear();
+  }
+
+  return success;
 }
 }  // fbx
 }  // offline

@@ -71,12 +71,12 @@ bool ImportFromFile(const char* _filename, RawSkeleton* _skeleton) {
 bool ImportFromFile(const char* _filename,
                     const Skeleton& _skeleton,
                     float _sampling_rate,
-                    RawAnimation* _animation) {
-  if (!_animation) {
+                    NamedAnimations* _animations) {
+  if (!_animations) {
     return false;
   }
   // Reset animation.
-  *_animation = RawAnimation();
+  _animations->clear();
 
   // Import Fbx content.
   FbxManagerInstance fbx_manager;
@@ -88,10 +88,10 @@ bool ImportFromFile(const char* _filename,
     return false;
   }
 
-  if (!ExtractAnimation(&scene_loader,
-                        _skeleton,
-                        _sampling_rate,
-                        _animation)) {
+  if (!ExtractAnimations(&scene_loader,
+                         _skeleton,
+                         _sampling_rate,
+                         _animations)) {
     log::Err() << "Fbx animation extraction failed." << std::endl;
     return false;
   }

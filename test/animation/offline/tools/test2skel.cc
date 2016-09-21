@@ -41,7 +41,7 @@ private:
     ozz::io::File file(_filename, "rb");
     if (file.opened()) {
       char buffer[256];
-      const char good_content[] = "good content";
+      const char good_content[] = "good content 1";
       if (file.Read(buffer, sizeof(buffer)) >= sizeof(good_content) - 1 &&
           memcmp(buffer, good_content, sizeof(good_content) - 1) == 0) {
         return true;
