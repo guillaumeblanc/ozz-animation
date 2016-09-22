@@ -1,6 +1,7 @@
 Release version 0.9.0
 ---------------------
 * Library
+  - [offline] Allows importing of all animations from a DCC file with a single command. fbx2anim now support the use of an * in the --animation option (output file name), which is replaced with the imported animation name when the output file is written to disk.
   - [offline] Removes dae tools, offline libraries and dependencies.
   - [offline] split offline tools in skel + anim to avoid command line options "issue".
 
