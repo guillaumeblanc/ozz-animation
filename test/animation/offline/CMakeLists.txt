@@ -50,6 +50,7 @@ add_test(NAME test_raw_skeleton_archive COMMAND test_raw_skeleton_archive)
 
 add_executable(test_raw_skeleton_archive_versioning
   raw_skeleton_archive_versioning_tests.cc)
+
 target_link_libraries(test_raw_skeleton_archive_versioning
   ozz_animation_offline
   ozz_animation
@@ -57,6 +58,7 @@ target_link_libraries(test_raw_skeleton_archive_versioning
   ozz_base
   gtest)
 set_target_properties(test_raw_skeleton_archive_versioning PROPERTIES FOLDER "ozz/tests/animation_offline")
+
 add_test(NAME test_raw_skeleton_archive_versioning_le COMMAND test_raw_skeleton_archive_versioning "--file=${ozz_media_directory}/bin/versioning/raw_skeleton_v1_le.ozz" "--joints=67" "--root_name=Hips")
 add_test(NAME test_raw_skeleton_archive_versioning_be COMMAND test_raw_skeleton_archive_versioning "--file=${ozz_media_directory}/bin/versioning/raw_skeleton_v1_be.ozz" "--joints=67" "--root_name=Hips")
 
@@ -79,8 +81,12 @@ target_link_libraries(test_raw_animation_archive_versioning
   ozz_base
   gtest)
 set_target_properties(test_raw_animation_archive_versioning PROPERTIES FOLDER "ozz/tests/animation_offline")
-add_test(NAME test_raw_animation_archive_versioning_le COMMAND test_raw_animation_archive_versioning "--file=${ozz_media_directory}/bin/versioning/raw_animation_v1_le.ozz" "--tracks=67" "--duration=1.3333333")
-add_test(NAME test_raw_animation_archive_versioning_be COMMAND test_raw_animation_archive_versioning "--file=${ozz_media_directory}/bin/versioning/raw_animation_v1_be.ozz" "--tracks=67" "--duration=1.3333333")
+
+add_test(NAME test_raw_animation_archive_versioning_le COMMAND test_raw_animation_archive_versioning "--file=${ozz_media_directory}/bin/versioning/raw_animation_v2_le.ozz" "--tracks=67" "--duration=1.3333333" "--name=walk")
+add_test(NAME test_raw_animation_archive_versioning_be COMMAND test_raw_animation_archive_versioning "--file=${ozz_media_directory}/bin/versioning/raw_animation_v2_be.ozz" "--tracks=67" "--duration=1.3333333" "--name=walk")
+
+add_test(NAME test_raw_animation_archive_versioning_le_older1 COMMAND test_raw_animation_archive_versioning "--file=${ozz_media_directory}/bin/versioning/raw_animation_v1_le.ozz" "--tracks=67" "--duration=1.3333333" "--name=")
+add_test(NAME test_raw_animation_archive_versioning_be_older1 COMMAND test_raw_animation_archive_versioning "--file=${ozz_media_directory}/bin/versioning/raw_animation_v1_be.ozz" "--tracks=67" "--duration=1.3333333" "--name=")
 
 # ozz_animation_offline fuse tests
 add_executable(test_fuse_animation_offline

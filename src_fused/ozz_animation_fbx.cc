@@ -143,7 +143,7 @@ namespace fbx {
 bool ExtractAnimations(FbxSceneLoader* _scene_loader,
                        const Skeleton& _skeleton,
                        float _sampling_rate,
-                       NamedAnimations* _animations);
+                       Animations* _animations);
 
 }  // fbx
 }  // offline
@@ -190,7 +190,7 @@ bool ImportFromFile(const char* _filename, RawSkeleton* _skeleton) {
 bool ImportFromFile(const char* _filename,
                     const Skeleton& _skeleton,
                     float _sampling_rate,
-                    NamedAnimations* _animations) {
+                    Animations* _animations) {
   if (!_animations) {
     return false;
   }
@@ -307,7 +307,7 @@ namespace fbx {
 bool ExtractAnimations(FbxSceneLoader* _scene_loader,
                        const Skeleton& _skeleton,
                        float _sampling_rate,
-                       NamedAnimations* _animations);
+                       Animations* _animations);
 
 }  // fbx
 }  // offline
@@ -338,8 +338,14 @@ bool ExtractAnimation(FbxSceneLoader* _scene_loader,
   FbxScene* scene = _scene_loader->scene();
   assert(scene);
 
+  ozz::log::Log() << "Extracting animation \"" << anim_stack->GetName() << "\""
+    << std::endl;
+
   // Setup Fbx animation evaluator.
   scene->SetCurrentAnimationStack(anim_stack);
+
+  // Set animation name.
+  _animation->name = anim_stack->GetName();
 
   // Extract animation duration.
   FbxTimeSpan time_spawn;
@@ -446,7 +452,10 @@ bool ExtractAnimation(FbxSceneLoader* _scene_loader,
 bool ExtractAnimations(FbxSceneLoader* _scene_loader,
                        const Skeleton& _skeleton,
                        float _sampling_rate,
-                       NamedAnimations* _animations) {
+                       Animations* _animations) {
+  // Clears output
+  _animations->clear();
+
   FbxScene* scene = _scene_loader->scene();
   assert(scene);
 
@@ -465,18 +474,11 @@ bool ExtractAnimations(FbxSceneLoader* _scene_loader,
   bool success = true;
   for (int i = 0; i < anim_stacks_count && success; ++i) {
     FbxAnimStack* anim_stack = scene->GetSrcObject<FbxAnimStack>(i);
-    const char* name = anim_stack->GetName();
-
-    ozz::log::Log() << "Extracting animation \"" << name << "\""
-      << std::endl;
-
-    NamedAnimation& pair = _animations->at(i);
-    pair.name = name;
     success &= ExtractAnimation(_scene_loader,
                                 anim_stack,
                                 _skeleton,
                                 _sampling_rate,
-                                &pair.animation);
+                                &_animations->at(i));
   }
 
   // Clears output if somthing failed during import, avoids partial data.

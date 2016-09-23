@@ -49,7 +49,7 @@ namespace fbx {
 bool ExtractAnimations(FbxSceneLoader* _scene_loader,
                        const Skeleton& _skeleton,
                        float _sampling_rate,
-                       NamedAnimations* _animations);
+                       Animations* _animations);
 
 }  // fbx
 }  // offline

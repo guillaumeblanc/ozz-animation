@@ -126,6 +126,7 @@ bool RawAnimation::Validate() const {
 #include "ozz/base/maths/math_archive.h"
 
 #include "ozz/base/containers/vector_archive.h"
+#include "ozz/base/containers/string_archive.h"
 
 namespace ozz {
 namespace io {
@@ -138,6 +139,7 @@ void Save(OArchive& _archive,
     const animation::offline::RawAnimation& animation = _animations[i];
     _archive << animation.duration;
     _archive << animation.tracks;
+    _archive << animation.name;
   }
 }
 
@@ -151,12 +153,14 @@ void Load(IArchive& _archive,
     animation::offline::RawAnimation& animation = _animations[i];
     _archive >> animation.duration;
     _archive >> animation.tracks;
+    if (_version > 1) {
+      _archive >> animation.name;
+    }
   }
 }
 
 // RawAnimation::*Keys' version can be declared locally as it will be saved from
 // this cpp file only.
-
 
 OZZ_IO_TYPE_VERSION(1, animation::offline::RawAnimation::JointTrack)
 
@@ -1076,6 +1080,7 @@ bool AnimationOptimizer::operator()(const RawAnimation& _input,
   BuildHierarchicalSpecs(_input, _skeleton, &hierarchical_joint_specs);
   
   // Rebuilds output animation.
+  _output->name = _input.name;
   _output->duration = _input.duration;
   _output->tracks.resize(_input.tracks.size());
   

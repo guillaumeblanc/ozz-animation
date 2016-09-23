@@ -71,7 +71,7 @@ bool ImportFromFile(const char* _filename, RawSkeleton* _skeleton) {
 bool ImportFromFile(const char* _filename,
                     const Skeleton& _skeleton,
                     float _sampling_rate,
-                    NamedAnimations* _animations) {
+                    Animations* _animations) {
   if (!_animations) {
     return false;
   }

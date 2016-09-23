@@ -28,6 +28,7 @@
 #ifndef OZZ_OZZ_ANIMATION_OFFLINE_RAW_ANIMATION_H_
 #define OZZ_OZZ_ANIMATION_OFFLINE_RAW_ANIMATION_H_
 
+#include "ozz/base/containers/string.h"
 #include "ozz/base/containers/vector.h"
 #include "ozz/base/maths/vec_float.h"
 #include "ozz/base/maths/quaternion.h"
@@ -136,11 +137,14 @@ struct RawAnimation {
   // The duration of the animation. All the keys of a valid RawAnimation are in
   // the range [0,duration].
   float duration;
+
+  // Name of the animation.
+  ozz::String::Std name;
 };
 }  // offline
 }  // animation
 namespace io {
-OZZ_IO_TYPE_VERSION(1, animation::offline::RawAnimation)
+OZZ_IO_TYPE_VERSION(2, animation::offline::RawAnimation)
 OZZ_IO_TYPE_TAG("ozz-raw_animation", animation::offline::RawAnimation)
 
 // Should not be called directly but through io::Archive << and >> operators.

@@ -93,6 +93,29 @@ TEST(Error, AnimationOptimizer) {
   }
 }
 
+TEST(Name, AnimationOptimizer) {
+  // Prepares a skeleton.
+  RawSkeleton raw_skeleton;
+  SkeletonBuilder skeleton_builder;
+  Skeleton* skeleton = skeleton_builder(raw_skeleton);
+  ASSERT_TRUE(skeleton != NULL);
+
+  AnimationOptimizer optimizer;
+
+  RawAnimation input;
+  input.name = "Test_Animation";
+  input.duration = 1.f;
+
+  ASSERT_TRUE(input.Validate());
+
+  RawAnimation output;
+  ASSERT_TRUE(optimizer(input, *skeleton, &output));
+  EXPECT_EQ(output.num_tracks(), 0);
+  EXPECT_STRCASEEQ(output.name.c_str(), "Test_Animation");
+
+  ozz::memory::default_allocator()->Delete(skeleton);
+}
+
 TEST(Optimize, AnimationOptimizer) {
   // Prepares a skeleton.
   RawSkeleton raw_skeleton;

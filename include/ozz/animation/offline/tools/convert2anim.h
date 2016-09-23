@@ -29,7 +29,6 @@
 #define OZZ_OZZ_ANIMATION_OFFLINE_TOOLS_CONVERT2ANIM_H_
 
 #include "ozz/base/containers/vector.h"
-#include "ozz/base/containers/string.h"
 
 #include "ozz/animation/offline/raw_animation.h"
 
@@ -46,18 +45,14 @@ class AnimationConverter {
 
  protected:
 
-  struct NamedAnimation {
-    ozz::String::Std name;
-    ozz::animation::offline::RawAnimation animation;
-  };
-  typedef ozz::Vector<NamedAnimation>::Std NamedAnimations;
+  typedef Vector<RawAnimation>::Std Animations;
 
  private:
 
   virtual bool Import(const char* _filename,
                       const ozz::animation::Skeleton& _skeleton,
                       float _sampling_rate,
-                      NamedAnimations* _animations) = 0;
+                      Animations* _animations) = 0;
 };
 }  // offline
 }  // animation

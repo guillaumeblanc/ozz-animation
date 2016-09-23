@@ -256,8 +256,7 @@ ozz::String::Std BuildFilename(const char* _filename, const char* _animation) {
   return output;
 }
 
-bool Export(const char* _name,
-            const ozz::animation::offline::RawAnimation _raw_animation,
+bool Export(const ozz::animation::offline::RawAnimation _raw_animation,
             const ozz::animation::Skeleton& _skeleton) {
   // Raw animation to build and output.
   ozz::animation::offline::RawAnimation raw_animation;
@@ -317,7 +316,8 @@ bool Export(const char* _name,
     // file on the disk.
 
     // Builds output filename.
-    ozz::String::Std filename = BuildFilename(OPTIONS_animation, _name);
+    ozz::String::Std filename = BuildFilename(OPTIONS_animation,
+                                              _raw_animation.name.c_str());
 
     ozz::log::Log() << "Opens output file: " << filename << std::endl;
     ozz::io::File file(filename.c_str(), "wb");
@@ -395,24 +395,22 @@ int AnimationConverter::operator()(int _argc, const char** _argv) {
     std::endl;
 
   bool success = false;
-  AnimationConverter::NamedAnimations output;
-  if (Import(OPTIONS_file, *skeleton, OPTIONS_sampling_rate, &output)) {
+  Animations animations;
+  if (Import(OPTIONS_file, *skeleton, OPTIONS_sampling_rate, &animations)) {
     success = true;
 
-    if (OutputSingleAnimation() && output.size() > 1) {
-      ozz::log::Log() << output.size() <<
-        " animations found. Only the first one (" << output[0].name <<
+    if (OutputSingleAnimation() && animations.size() > 1) {
+      ozz::log::Log() << animations.size() <<
+        " animations found. Only the first one (" << animations[0].name <<
         ") will be exported." << std::endl;
 
       // Remove all unhandled animations.
-      output.resize(1);
+      animations.resize(1);
     }
 
     // Iterate all imported animation, build and output them.
-    for (size_t i = 0; i < output.size(); ++i) {
-      success &= Export(output[i].name.c_str(),
-                        output[i].animation,
-                        *skeleton);
+    for (size_t i = 0; i < animations.size(); ++i) {
+      success &= Export(animations[i], *skeleton);
     }
   } else {
     ozz::log::Err() << "Failed to import file \"" << OPTIONS_file << "\"" <<

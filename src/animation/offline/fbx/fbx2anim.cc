@@ -47,20 +47,11 @@ private:
   virtual bool Import(const char* _filename,
                       const ozz::animation::Skeleton& _skeleton,
                       float _sampling_rate,
-                      NamedAnimations* _animations) {
-    ozz::animation::offline::fbx::NamedAnimations animations;
-    bool success = ozz::animation::offline::fbx::ImportFromFile(
-      _filename, _skeleton, _sampling_rate, &animations);
-
-    _animations->resize(animations.size());
-    if (success) {
-      // Need to copy as (unfortunately) they are not the same structure.
-      for (size_t i = 0; i < animations.size(); ++i) {
-        _animations->at(i).name = animations[i].name;
-        _animations->at(i).animation = animations[i].animation;
-      }
-    }
-    return success;
+                      Animations* _animations) {
+    return ozz::animation::offline::fbx::ImportFromFile(_filename,
+                                                        _skeleton,
+                                                        _sampling_rate,
+                                                        _animations);
   }
 };
 

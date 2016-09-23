@@ -51,12 +51,8 @@ namespace fbx {
 // and filled with skeleton data extracted from the fbx document.
 bool ImportFromFile(const char* _filename, RawSkeleton* _skeleton);
 
-// Animation import structure, adds a name to the raw animation.
-struct NamedAnimation {
-  ozz::String::Std name;
-  ozz::animation::offline::RawAnimation animation;
-};
-typedef ozz::Vector<NamedAnimation>::Std NamedAnimations;
+// Vector of imported animations.
+typedef Vector<RawAnimation>::Std Animations;
 
 // Imports an offline animation from _filename fbx document.
 // _animation must point to a valid RawSkeleton instance, that will be cleared
@@ -66,7 +62,7 @@ typedef ozz::Vector<NamedAnimation>::Std NamedAnimations;
 bool ImportFromFile(const char* _filename,
                     const Skeleton& _skeleton,
                     float _sampling_rate,
-                    NamedAnimations* _animations);
+                    Animations* _animations);
 }  // fbx
 }  // offline
 }  // animation

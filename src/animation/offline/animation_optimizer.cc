@@ -292,6 +292,7 @@ bool AnimationOptimizer::operator()(const RawAnimation& _input,
   BuildHierarchicalSpecs(_input, _skeleton, &hierarchical_joint_specs);
   
   // Rebuilds output animation.
+  _output->name = _input.name;
   _output->duration = _input.duration;
   _output->tracks.resize(_input.tracks.size());
   

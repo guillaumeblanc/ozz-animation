@@ -41,7 +41,7 @@ private:
   virtual bool Import(const char* _filename,
                       const ozz::animation::Skeleton& _skeleton,
                       float _sampling_rate,
-                      NamedAnimations* _animations) {
+                      Animations* _animations) {
     (void)_sampling_rate;
     (void)_skeleton;
 

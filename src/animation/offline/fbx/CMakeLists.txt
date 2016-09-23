@@ -54,6 +54,10 @@ install(TARGETS fbx2anim DESTINATION bin/tools)
 # Gerenate binary skeleton data
 set(skeletons
   "/fbx/alain/skeleton.fbx\;/bin/alain_skeleton.ozz"
+  "/fbx/alain/skeleton.fbx\;/bin/versioning/raw_skeleton_v1_le.ozz\;option:--raw\;option:--endian=little"
+  "/fbx/alain/skeleton.fbx\;/bin/versioning/raw_skeleton_v1_be.ozz\;option:--raw\;option:--endian=big"
+  "/fbx/alain/skeleton.fbx\;/bin/versioning/skeleton_v1_le.ozz\;option:--endian=little"
+  "/fbx/alain/skeleton.fbx\;/bin/versioning/skeleton_v1_be.ozz\;option:--endian=big"
   "/collada/astro_max.dae\;/bin/astro_max_skeleton.ozz"
   "/collada/astro_maya.dae\;/bin/astro_maya_skeleton.ozz"
   "/collada/seymour.dae\;/bin/seymour_skeleton.ozz")
@@ -64,11 +68,21 @@ foreach(line ${skeletons})
 
   list(APPEND bin_skeletons ${ozz_media_directory}${dest})
 
+  # Find options
+  set(options "")
+  foreach(element ${line})
+    if (${element} MATCHES "option:(.*)")
+      string(SUBSTRING ${element} 7 -1 option)
+      list(APPEND options ${option})
+    endif()
+  endforeach()
+
   add_custom_command(
     DEPENDS "${ozz_media_directory}${src}"
             fbx2skel
     OUTPUT ${ozz_media_directory}${dest}
     COMMAND fbx2skel
+            ${options}
             "--file=${ozz_media_directory}${src}"
             "--skeleton=${ozz_media_directory}${dest}")
 endforeach()
@@ -78,6 +92,10 @@ set(animations
   "/fbx/alain/atlas.fbx\;/bin/alain_skeleton.ozz\;/bin/alain_atlas.ozz"
   "/fbx/alain/atlas.fbx\;/bin/alain_skeleton.ozz\;/bin/alain_atlas_raw.ozz\;option:--raw\;option:--nooptimize"
   "/fbx/alain/locomotions.fbx\;/bin/alain_skeleton.ozz\;/bin/alain_*.ozz\;output:/bin/alain_walk.ozz\;output:/bin/alain_jog.ozz\;output:/bin/alain_run.ozz"
+  "/fbx/alain/walk.fbx\;/bin/alain_skeleton.ozz\;/bin/versioning/raw_animation_v2_le.ozz\;option:--raw\;option:--endian=little"
+  "/fbx/alain/walk.fbx\;/bin/alain_skeleton.ozz\;/bin/versioning/raw_animation_v2_be.ozz\;option:--raw\;option:--endian=big"
+  "/fbx/alain/walk.fbx\;/bin/alain_skeleton.ozz\;/bin/versioning/animation_v3_le.ozz\;option:--endian=little"
+  "/fbx/alain/walk.fbx\;/bin/alain_skeleton.ozz\;/bin/versioning/animation_v3_be.ozz\;option:--endian=big"
   "/fbx/alain/crossarms.fbx\;/bin/alain_skeleton.ozz\;/bin/alain_crossarms.ozz"
   "/fbx/alain/crackhead.fbx\;/bin/alain_skeleton.ozz\;/bin/alain_crackhead.ozz"
   "/fbx/alain/crackhead.fbx\;/bin/alain_skeleton.ozz\;/bin/alain_crackhead_additive.ozz\;option:--additive"

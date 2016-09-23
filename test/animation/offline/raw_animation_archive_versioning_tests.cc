@@ -38,6 +38,7 @@
 OZZ_OPTIONS_DECLARE_STRING(file, "Specifies input file", "", true)
 OZZ_OPTIONS_DECLARE_INT(tracks, "Number of tracks", 0, true)
 OZZ_OPTIONS_DECLARE_FLOAT(duration, "Duration", 0.f, true)
+OZZ_OPTIONS_DECLARE_STRING(name, "Name", "", true)
 
 int main(int _argc, char** _argv) {
   // Parses arguments.
@@ -71,4 +72,5 @@ TEST(Versioning, RawAnimationSerialize) {
   // More testing
   EXPECT_EQ(animation.num_tracks(), OPTIONS_tracks);
   EXPECT_FLOAT_EQ(animation.duration, OPTIONS_duration);
+  EXPECT_STREQ(animation.name.c_str(), OPTIONS_name.value());
 }
