@@ -49,7 +49,8 @@
 
 // Declares command line options.
 OZZ_OPTIONS_DECLARE_STRING(file, "Specifies input file", "", true)
-OZZ_OPTIONS_DECLARE_STRING(skeleton, "Specifies ozz skeleton (raw or runtime) input file", "", true)
+OZZ_OPTIONS_DECLARE_STRING(skeleton,
+  "Specifies ozz skeleton (raw or runtime) input file", "", true)
 
 // animation option can have 0 or 1 "Asterisk" (*) character to specify which
 // part of the filename should be replaced by the animation name (imported from
@@ -69,7 +70,10 @@ static bool ValidateAnimation(const ozz::options::Option& _option,
   }
   return asterisks <= 1;
 }
-OZZ_OPTIONS_DECLARE_STRING_FN(animation, "Specifies ozz animation output file", "", true, &ValidateAnimation)
+OZZ_OPTIONS_DECLARE_STRING_FN(animation,
+  "Specifies ozz animation output file(s). When importing multiple animations, "
+  "use a \'*\' character to specify which part of the filename should be "
+  "replaced by the animation name.", "", true, &ValidateAnimation)
 
 OZZ_OPTIONS_DECLARE_BOOL(
   optimize,
