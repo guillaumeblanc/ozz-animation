@@ -30,12 +30,6 @@
 
 #include "ozz/base/platform.h"
 
-// Detected deprecated behavior
-#if defined(OZZ_HAS_SSE2) || defined(OZZ_HAS_SSEx) || defined(OZZ_HAS_REF)
-#error Deprecated build option. SIMD options are automatically detected by\
- this file and should not be part of comipler definitions.
-#endif
-
 // Avoid SIMD instruction detection if reference (aka scalar) implementation is
 // forced.
 #if !defined(OZZ_BUILD_SIMD_REF)
