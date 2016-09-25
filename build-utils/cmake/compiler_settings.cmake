@@ -71,6 +71,9 @@ if(MSVC)
   # Disables crt secure warnings
   set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS _CRT_SECURE_NO_WARNINGS)
 
+  # MSVC STL doesn't support RTC compiler option
+  set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS _ALLOW_RTCc_IN_STL)
+
   # Adds support for SSE instructions
   string(REGEX REPLACE " /arch:SSE[0-9]?" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
   string(REGEX REPLACE " /arch:SSE[0-9]?" "" CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
