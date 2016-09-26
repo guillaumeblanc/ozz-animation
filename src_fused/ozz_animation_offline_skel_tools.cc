@@ -127,6 +127,13 @@ int SkeletonConverter::operator()(int _argc, const char** _argv) {
   // Imports skeleton from the file.
   ozz::log::Log() << "Importing file \"" << OPTIONS_file << "\"" <<
     std::endl;
+
+  if (!ozz::io::File::Exist(OPTIONS_file)) {
+    ozz::log::Err() << "File \"" << OPTIONS_file << "\" doesn't exist." <<
+      std::endl;
+    return EXIT_FAILURE;
+  }
+
   ozz::animation::offline::RawSkeleton raw_skeleton;
   if (!Import(OPTIONS_file, &raw_skeleton)) {
     ozz::log::Err() << "Failed to import file \"" << OPTIONS_file << "\"" <<
@@ -181,7 +188,7 @@ int SkeletonConverter::operator()(int _argc, const char** _argv) {
       archive << raw_skeleton;
     } else {
       ozz::log::Log() << "Outputs Skeleton to binary archive." << std::endl;
-      archive << *skeleton;    
+      archive << *skeleton;
     }
     ozz::log::Log() << "Skeleton binary archive successfully outputed." <<
       std::endl;

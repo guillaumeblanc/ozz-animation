@@ -116,7 +116,7 @@ Release version 0.5.0
   - Adds Emscripten and cross-compilation support to the builder helper python script.
   - Support for CMake 3.x.
   - Adds support for Microsoft Visual Studio 2013.
-  - Drops support fot Microsoft Visual Studio 2008 and olders, as a consequence of using <stdint.h>.
+  - Drops support for Microsoft Visual Studio 2008 and olders, as a consequence of using <stdint.h>.
 
 Release version 0.4.0
 ---------------------

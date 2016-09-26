@@ -109,7 +109,8 @@ class RendererImpl : public Renderer {
                          const Color _colors[2]);
 
   virtual bool DrawBoxShaded(const ozz::math::Box& _box,
-                             ozz::Range<const ozz::math::Float4x4> _transforms);
+                             ozz::Range<const ozz::math::Float4x4> _transforms,
+                             Color _color);
 
   virtual bool DrawSkinnedMesh(const Mesh& _mesh,
                                const Range<math::Float4x4> _skinning_matrices,

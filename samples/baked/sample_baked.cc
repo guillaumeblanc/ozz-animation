@@ -50,20 +50,21 @@
 OZZ_OPTIONS_DECLARE_STRING(
   skeleton,
   "Path to the skeleton (ozz archive format).",
-  "media/domino_skeleton.ozz",
+  "media/baked_skeleton.ozz",
   false)
 
 // Animation archive can be specified as an option.
 OZZ_OPTIONS_DECLARE_STRING(
   animation,
   "Path to the animation (ozz archive format).",
-  "media/domino_animation.ozz",
+  "media/baked_animation.ozz",
   false)
 
 class BakedSampleApplication : public ozz::sample::Application {
  public:
   BakedSampleApplication()
-    : cache_(NULL) {
+    : cache_(NULL),
+      camera_index_(-1) {
   }
 
  protected:
@@ -94,19 +95,6 @@ class BakedSampleApplication : public ozz::sample::Application {
     return true;
   }
 
-  // Samples animation, transforms to model space and renders.
-  virtual bool OnDisplay(ozz::sample::Renderer* _renderer) {
-
-    // Prepare rendering.
-    const float x = .5f;
-    const float y = .5f;
-    const float z = .5f;
-    const ozz::math::Box box(ozz::math::Float3(-x, -y, -z),
-                              ozz::math::Float3(x, y, z));
-
-    return _renderer->DrawBoxShaded(box, models_);
-  }
-
   virtual bool OnInitialize() {
     ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
 
@@ -129,6 +117,14 @@ class BakedSampleApplication : public ozz::sample::Application {
     // Allocates a cache that matches animation requirements.
     cache_ = allocator->New<ozz::animation::SamplingCache>(num_joints);
 
+    // Look for a "camera" joint.
+    for (int i = 0; i < num_joints; i++) {
+      if (std::strstr(skeleton_.joint_names()[i], "camera")) {
+        camera_index_ = i;
+        break;
+      }
+    }
+
     return true;
   }
 
@@ -137,6 +133,32 @@ class BakedSampleApplication : public ozz::sample::Application {
     allocator->Deallocate(locals_);
     allocator->Deallocate(models_);
     allocator->Delete(cache_);
+  }
+
+  // Samples animation, transforms to model space and renders.
+  virtual bool OnDisplay(ozz::sample::Renderer* _renderer) {
+
+    bool success = true;
+    
+    // Prepares dominos rendering.
+    {
+      const ozz::sample::Renderer::Color color = {0xff, 0xff, 0xff, 0xff};
+      const float size = .5f;
+      const ozz::math::Box box(ozz::math::Float3(-size),
+                               ozz::math::Float3(size));
+      success &= _renderer->DrawBoxShaded(box, models_, color);
+    }
+
+    // Prepares ground rendering.
+    {
+      const ozz::sample::Renderer::Color color = {0x50, 0x50, 0x50, 0xff};
+      const float size = 100.f;
+      const ozz::math::Box box(ozz::math::Float3(-size, -1.f, -size),
+                               ozz::math::Float3(size, 0.f, size));
+      const ozz::math::Float4x4 matrix = ozz::math::Float4x4::identity();
+      success &= _renderer->DrawBoxShaded(box, matrix, color);
+    }
+    return success;
   }
 
   virtual bool OnGui(ozz::sample::ImGui* _im_gui) {
@@ -150,6 +172,16 @@ class BakedSampleApplication : public ozz::sample::Application {
     }
 
     return true;
+  }
+
+  virtual bool GetCameraOverride(ozz::math::Float4x4* _transform) const {
+    // Early out if no camera joint was found.
+    if (camera_index_ == -1) {
+      return false;
+    }
+
+    *_transform = models_[camera_index_];
+    return false;
   }
 
   virtual void GetSceneBounds(ozz::math::Box* _bound) const {
@@ -176,10 +208,13 @@ class BakedSampleApplication : public ozz::sample::Application {
 
   // Buffer of model space matrices.
   ozz::Range<ozz::math::Float4x4> models_;
+
+  // Camera joint index. -1 if not found.
+  int camera_index_;
 };
 
 int main(int _argc, const char** _argv) {
   const char* title =
-    "Ozz-animation sample: Attachment 2";
+    "Ozz-animation sample: Baked rigid bodies";
   return BakedSampleApplication().Run(_argc, _argv, "1.0", title);
 }

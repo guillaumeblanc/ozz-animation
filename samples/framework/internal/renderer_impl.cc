@@ -717,7 +717,8 @@ bool RendererImpl::DrawBoxIm(const ozz::math::Box& _box,
 }
 
 bool RendererImpl::DrawBoxShaded(const ozz::math::Box& _box,
-                                 ozz::Range<const ozz::math::Float4x4> _transforms) {
+                                 ozz::Range<const ozz::math::Float4x4> _transforms,
+                                  Color _color) {
   // Early out if no instance to render.
   if (_transforms.Size() == 0) {
     return true;
@@ -737,26 +738,25 @@ bool RendererImpl::DrawBoxShaded(const ozz::math::Box& _box,
     math::Float3(-1,0,0), math::Float3(1,0,0), math::Float3(0,-1,0),
     math::Float3(0,1,0), math::Float3(0,0,-1), math::Float3(0,0,1)
   };
-  const Color white = {0xff, 0xff, 0xff, 0xff};
   const VertexPNC vertices[36] = {
-    {pos[0], normals[4], white}, {pos[3], normals[4], white},
-    {pos[1], normals[4], white}, {pos[3], normals[4], white},
-    {pos[2], normals[4], white}, {pos[1], normals[4], white},
-    {pos[2], normals[3], white}, {pos[3], normals[3], white},
-    {pos[7], normals[3], white}, {pos[7], normals[3], white},
-    {pos[6], normals[3], white}, {pos[2], normals[3], white},
-    {pos[5], normals[5], white}, {pos[6], normals[5], white},
-    {pos[7], normals[5], white}, {pos[5], normals[5], white},
-    {pos[7], normals[5], white}, {pos[4], normals[5], white},
-    {pos[0], normals[2], white}, {pos[1], normals[2], white},
-    {pos[4], normals[2], white}, {pos[4], normals[2], white},
-    {pos[1], normals[2], white}, {pos[5], normals[2], white},
-    {pos[0], normals[0], white}, {pos[4], normals[0], white},
-    {pos[3], normals[0], white}, {pos[4], normals[0], white},
-    {pos[7], normals[0], white}, {pos[3], normals[0], white},
-    {pos[5], normals[1], white}, {pos[1], normals[1], white},
-    {pos[2], normals[1], white}, {pos[5], normals[1], white},
-    {pos[2], normals[1], white}, {pos[6], normals[1], white}
+    {pos[0], normals[4], _color}, {pos[3], normals[4], _color},
+    {pos[1], normals[4], _color}, {pos[3], normals[4], _color},
+    {pos[2], normals[4], _color}, {pos[1], normals[4], _color},
+    {pos[2], normals[3], _color}, {pos[3], normals[3], _color},
+    {pos[7], normals[3], _color}, {pos[7], normals[3], _color},
+    {pos[6], normals[3], _color}, {pos[2], normals[3], _color},
+    {pos[5], normals[5], _color}, {pos[6], normals[5], _color},
+    {pos[7], normals[5], _color}, {pos[5], normals[5], _color},
+    {pos[7], normals[5], _color}, {pos[4], normals[5], _color},
+    {pos[0], normals[2], _color}, {pos[1], normals[2], _color},
+    {pos[4], normals[2], _color}, {pos[4], normals[2], _color},
+    {pos[1], normals[2], _color}, {pos[5], normals[2], _color},
+    {pos[0], normals[0], _color}, {pos[4], normals[0], _color},
+    {pos[3], normals[0], _color}, {pos[4], normals[0], _color},
+    {pos[7], normals[0], _color}, {pos[3], normals[0], _color},
+    {pos[5], normals[1], _color}, {pos[1], normals[1], _color},
+    {pos[2], normals[1], _color}, {pos[5], normals[1], _color},
+    {pos[2], normals[1], _color}, {pos[6], normals[1], _color}
   };
 
   const GLsizei stride = sizeof(VertexPNC);

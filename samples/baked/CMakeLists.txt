@@ -1,13 +1,14 @@
-if(NOT ozz_build_fbx)
-  return()
-endif()
+if(TRUE)
 
-if(FALSE)
+  if(NOT ozz_build_fbx)
+    return()
+  endif()
+
   add_executable(sample_fbx2baked
     fbx2baked.cc)
   target_link_libraries(sample_fbx2baked
     ozz_animation_fbx
-    ozz_animation_offline_tools
+    ozz_animation_offline_skel_tools
     ozz_animation_offline
     ozz_animation
     ozz_options
@@ -21,28 +22,30 @@ if(FALSE)
 
   add_custom_command(
     DEPENDS "${CMAKE_CURRENT_LIST_DIR}/README"
-            "${ozz_media_directory}/fbx/domino.fbx"
+            "${ozz_media_directory}/fbx/ozz_explode.fbx"
             sample_fbx2baked
             fbx2anim
     OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/README"
-           "${CMAKE_CURRENT_BINARY_DIR}/media/domino_skeleton.ozz"
-           "${CMAKE_CURRENT_BINARY_DIR}/media/domino_animation.ozz"
+           "${CMAKE_CURRENT_BINARY_DIR}/media/baked_skeleton.ozz"
+           "${CMAKE_CURRENT_BINARY_DIR}/media/baked_animation.ozz"
     COMMAND ${CMAKE_COMMAND} -E make_directory media
     COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_LIST_DIR}/README .
     COMMAND sample_fbx2baked
-      "--file=${ozz_media_directory}/fbx/domino.fbx"
-      "--skeleton=${CMAKE_CURRENT_BINARY_DIR}/media/domino_skeleton.ozz"
+      "--file=${ozz_media_directory}/fbx/ozz_explode.fbx"
+      "--skeleton=${CMAKE_CURRENT_BINARY_DIR}/media/baked_skeleton.ozz"
     COMMAND fbx2anim
-      "--file=${ozz_media_directory}/fbx/domino.fbx"
-      "--skeleton=${CMAKE_CURRENT_BINARY_DIR}/media/domino_skeleton.ozz"
-      "--animation=${CMAKE_CURRENT_BINARY_DIR}/media/domino_animation.ozz")
+      "--file=${ozz_media_directory}/fbx/ozz_explode.fbx"
+      "--skeleton=${CMAKE_CURRENT_BINARY_DIR}/media/baked_skeleton.ozz"
+      "--animation=${CMAKE_CURRENT_BINARY_DIR}/media/baked_animation.ozz"
+      "--rotation=0.001"
+      "--translation=0.001")
 endif()
 
 add_executable(sample_baked
   sample_baked.cc
   "${CMAKE_CURRENT_BINARY_DIR}/README"
-  "${CMAKE_CURRENT_BINARY_DIR}/media/domino_skeleton.ozz"
-  "${CMAKE_CURRENT_BINARY_DIR}/media/domino_animation.ozz")
+  "${CMAKE_CURRENT_BINARY_DIR}/media/baked_skeleton.ozz"
+  "${CMAKE_CURRENT_BINARY_DIR}/media/baked_animation.ozz")
 
 target_link_libraries(sample_baked
   sample_framework)

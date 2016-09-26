@@ -85,7 +85,8 @@ class Renderer {
 
   // Renders shaded boxes at specified locations.
   virtual bool DrawBoxShaded(const ozz::math::Box& _box,
-                             ozz::Range<const ozz::math::Float4x4> _transforms) = 0;
+                             ozz::Range<const ozz::math::Float4x4> _transforms,
+                             Color _color)= 0;
 
   struct Options {
     bool texture;  // Show texture (default checkered texture).

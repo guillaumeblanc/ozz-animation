@@ -402,6 +402,12 @@ int AnimationConverter::operator()(int _argc, const char** _argv) {
   ozz::log::Log() << "Importing file \"" << OPTIONS_file << "\"" <<
     std::endl;
 
+  if (!ozz::io::File::Exist(OPTIONS_file)) {
+    ozz::log::Err() << "File \"" << OPTIONS_file << "\" doesn't exist." <<
+      std::endl;
+    return EXIT_FAILURE;
+  }
+
   bool success = false;
   Animations animations;
   if (Import(OPTIONS_file, *skeleton, OPTIONS_sampling_rate, &animations)) {

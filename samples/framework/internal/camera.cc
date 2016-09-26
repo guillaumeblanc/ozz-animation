@@ -211,6 +211,10 @@ void Camera::Update(const math::Box& _box, float _delta_time, bool _first_frame)
   (void)zooming;
 }
 
+void Camera::Update(const math::Float4x4& _transform) {
+  view_ = Invert(_transform);
+}
+
 void Camera::OnGui(ImGui* _im_gui) {
 
   const char* controls_label =

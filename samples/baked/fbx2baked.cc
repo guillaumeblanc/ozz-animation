@@ -50,7 +50,8 @@ namespace {
     // Push this node if it's below a skeleton root (aka has a parent).
     process_node |= _parent != NULL;
 
-    // Push this node as a new joint if it has a joint compatible attribute.
+    // Here is the main difference with fbx2skel. All meshes are processed,
+    // whereas fbx2skel only processes node of tyoe FbxNodeAttribute::eSkeleton.
     FbxNodeAttribute* node_attribute = _node->GetNodeAttribute();
     process_node |=
       node_attribute &&
@@ -59,6 +60,7 @@ namespace {
     // Process node if required.
     if (process_node) {
 
+      // Considered as a skeleton anyway
       skeleton_found = true;
 
       RawSkeleton::Joint::Children* sibling = NULL;

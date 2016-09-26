@@ -682,22 +682,6 @@ void ImGuiImpl::DoGraph(const char* _label,
   // Renders background and borders.
   FillRect(graph_rect, 0, kGraphBackgroundColor);
   StrokeRect(graph_rect, 0, kWidgetBorderColor);
-  {
-    GlImmediatePC im(renderer_->immediate_renderer(),
-                     GL_LINES,
-                     ozz::math::Float4x4::identity());
-    GlImmediatePC::Vertex v = {
-      {0.f, 0.f, 0.f},
-      {kWidgetTextColor[0], kWidgetTextColor[1],
-       kWidgetTextColor[2], kWidgetTextColor[3]}
-    };
-    v.pos[0] = graph_rect.left;
-    v.pos[1] = graph_rect.bottom + graph_rect.height / 2.f;
-    im.PushVertex(v);
-    v.pos[0] = graph_rect.right();
-    v.pos[1] = graph_rect.bottom + graph_rect.height / 2.f;
-    im.PushVertex(v);
-  }
 
   // Render labels.
   char sz[16];

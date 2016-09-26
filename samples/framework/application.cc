@@ -108,6 +108,8 @@ Application::Application()
       camera_(NULL),
       shooter_(NULL),
       show_help_(false),
+      show_grid_(true),
+      show_axes_(true),
       capture_video_(false),
       capture_screenshot_(false),
       renderer_(NULL),
@@ -371,8 +373,12 @@ bool Application::Display() {
   }  // Ends profiling.
 
   // Renders grid and axes at the end as they are transparent.
-  renderer_->DrawGrid(20, 1.f);
-  renderer_->DrawAxes(ozz::math::Float4x4::identity());
+  if (show_grid_) {
+    renderer_->DrawGrid(20, 1.f);
+  }
+  if (show_axes_) {
+    renderer_->DrawAxes(ozz::math::Float4x4::identity());
+  }
 
   // Bind 2D camera matrices.
   camera_->Bind2D();
@@ -403,7 +409,8 @@ bool Application::Idle(bool _first_frame) {
 
   // Compute elapsed time since last idle.
   double time = glfwGetTime();
-  if (time == 0.) {  // Means glfw isn't initialized (rendering's disabled).
+  if (_first_frame ||  // Don't take into account time spent initializing.
+      time == 0.) {  // Means glfw isn't initialized (rendering's disabled).
     time = last_idle_time_ + 1. / 60.;
   }
 
@@ -437,9 +444,14 @@ bool Application::Idle(bool _first_frame) {
 
   // Update camera model-view matrix.
   if (camera_) {
-    math::Box scene_bounds;
-    GetSceneBounds(&scene_bounds);
-    camera_->Update(scene_bounds, delta, _first_frame);
+    math::Float4x4 camera_transform;
+    if (GetCameraOverride(&camera_transform)){
+      camera_->Update(camera_transform);
+    } else {
+      math::Box scene_bounds;
+      GetSceneBounds(&scene_bounds);
+      camera_->Update(scene_bounds, delta, _first_frame);
+    }
   }
 
   return update_result;
@@ -562,7 +574,7 @@ bool Application::FrameworkGui() {
   }
 
   { // Time control
-    static bool open = true;
+    static bool open = false;
     ImGui::OpenClose stats(im_gui_, "Time control", &open);
     if (open) {
       im_gui_->DoButton("Freeze", true, &freeze_);
@@ -604,6 +616,9 @@ bool Application::FrameworkGui() {
       if (im_gui_->DoCheckBox("Vertical sync", &vertical_sync_, true)) {
         glfwSwapInterval(vertical_sync_ ? 1 : 0);
       }
+
+      im_gui_->DoCheckBox("Show grid", &show_grid_, true);
+      im_gui_->DoCheckBox("Show axes", &show_axes_, true);
     }
 
     // Searches for matching resolution settings.
@@ -646,6 +661,13 @@ bool Application::FrameworkGui() {
     }
   }
   return true;
+}
+
+// Default implementation doesn't override camera location.
+bool Application::GetCameraOverride(math::Float4x4* _transform) const {
+  (void)_transform;
+  assert(_transform);
+  return false;
 }
 
 void Application::ResizeCbk(int _width, int _height) {

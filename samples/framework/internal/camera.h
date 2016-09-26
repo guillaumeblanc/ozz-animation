@@ -56,6 +56,10 @@ class Camera {
   // Returns actions that the user applied to the camera during the frame.
   void Update(const math::Box& _box, float _delta_time, bool _first_frame);
 
+  // Updates camera location, overriding user inputs.
+  // Returns actions that the user applied to the camera during the frame.
+  void Update(const math::Float4x4& _transform);
+
   // Provides immediate mode gui display event.
   void OnGui(ImGui* _im_gui);
 
