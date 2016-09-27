@@ -71,16 +71,6 @@ if(MSVC)
   # Disables crt secure warnings
   set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS _CRT_SECURE_NO_WARNINGS)
 
-  # MSVC STL doesn't support RTC compiler option
-  set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS _ALLOW_RTCc_IN_STL)
-
-  # Adds support for SSE instructions
-  string(REGEX REPLACE " /arch:SSE[0-9]?" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-  string(REGEX REPLACE " /arch:SSE[0-9]?" "" CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
-  if(NOT ozz_build_simd_ref AND NOT CMAKE_CL_64)  # /arch:SSE2 isn't valid for x64 builds.
-    set_property(DIRECTORY APPEND PROPERTY COMPILE_OPTIONS "/arch:SSE2")
-  endif()
-
   # Removes any exception mode
   string(REGEX REPLACE " /EH.*" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
   string(REGEX REPLACE " /EH.*" "" CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
@@ -101,10 +91,6 @@ if(MSVC)
 	# Prefers /Ox (full optimization) to /O2 (maximize speed)
     string(REGEX REPLACE "/O2" "/Ox" ${flag} "${${flag}}")
   endforeach()
-  
-  #----------------------
-  # Enables smaller type checks for debug builds only
-  set_property(DIRECTORY APPEND PROPERTY COMPILE_OPTIONS $<$<CONFIG:DEBUG>:/RTCc>)
 
 #--------------------------------------
 # else consider the compiler as GCC compatible
