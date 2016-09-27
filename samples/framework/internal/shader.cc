@@ -640,7 +640,7 @@ AmbientShaderInstanced* AmbientShaderInstanced::Build() {
   const char* fs[] = {
     kPlatformSpecivicFSHeader,
     kShaderAmbientFct,
-    kShaderAmbientTexturedFS};
+    kShaderAmbientFS};
 
   AmbientShaderInstanced* shader =
     memory::default_allocator()->New<AmbientShaderInstanced>();
@@ -651,7 +651,6 @@ AmbientShaderInstanced* AmbientShaderInstanced::Build() {
   success &= shader->FindAttrib("a_position");
   success &= shader->FindAttrib("a_normal");
   success &= shader->FindAttrib("a_color");
-  success &= shader->FindAttrib("a_uv");
   success &= shader->FindAttrib("a_mw");
 
   // Binds default uniforms
@@ -688,7 +687,7 @@ void AmbientShaderInstanced::Bind(GLsizei _models_offset,
                          _color_stride, GL_PTR_OFFSET(_color_offset)));
 
   // Binds mw uniform
-  const GLint models_attrib = attrib(4);
+  const GLint models_attrib = attrib(3);
   GL(EnableVertexAttribArray(models_attrib + 0));
   GL(EnableVertexAttribArray(models_attrib + 1));
   GL(EnableVertexAttribArray(models_attrib + 2));
@@ -717,7 +716,7 @@ void AmbientShaderInstanced::Bind(GLsizei _models_offset,
 }
 
 void AmbientShaderInstanced::Unbind() {
-  const GLint models_attrib = attrib(4);
+  const GLint models_attrib = attrib(3);
   GL(DisableVertexAttribArray(models_attrib + 0));
   GL(DisableVertexAttribArray(models_attrib + 1));
   GL(DisableVertexAttribArray(models_attrib + 2));
