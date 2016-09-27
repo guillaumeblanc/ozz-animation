@@ -134,12 +134,18 @@ bool ExtractAnimation(FbxSceneLoader* _scene_loader,
         loop_again = false;
       }
 
-      // Evaluate local transform at fbx_time.
-      const ozz::math::Transform transform =
-        _scene_loader->converter()->ConvertTransform(
-          _skeleton.joint_properties()[i].parent == Skeleton::kNoParentIndex?
-            evaluator->GetNodeGlobalTransform(node, FbxTimeSeconds(t)):
-            evaluator->GetNodeLocalTransform(node, FbxTimeSeconds(t)));
+      // Evaluate transform matric at t.
+      const FbxAMatrix matrix = _skeleton.joint_properties()[i].parent == Skeleton::kNoParentIndex?
+        evaluator->GetNodeGlobalTransform(node, FbxTimeSeconds(t)):
+        evaluator->GetNodeLocalTransform(node, FbxTimeSeconds(t));
+
+      // Convert to a transform obejct in ozz unit/axis system.
+      ozz::math::Transform transform;
+      if (!_scene_loader->converter()->ConvertTransform(matrix, &transform)) {
+        ozz::log::Err() << "Failed to extract animation transform for joint \"" <<
+          joint_name << "\" at t = " << t << "s." << std::endl;
+        return false;
+      }
 
       // Fills corresponding track.
       const float local_time = t - start;

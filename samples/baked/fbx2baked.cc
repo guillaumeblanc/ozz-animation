@@ -38,69 +38,84 @@ using namespace ozz::animation::offline;
 using namespace ozz::animation::offline::fbx;
 
 namespace {
-  bool RecurseNode(FbxNode* _node,
-                   FbxSystemConverter* _converter,
-                   RawSkeleton* _skeleton,
-                   RawSkeleton::Joint* _parent) {
-    bool skeleton_found = false;
-    RawSkeleton::Joint* this_joint = NULL;
 
-    bool process_node = false;
+enum RecurseReturn {kError, kSkeletonFound, kNoSkeleton};
 
-    // Push this node if it's below a skeleton root (aka has a parent).
-    process_node |= _parent != NULL;
+RecurseReturn RecurseNode(FbxNode* _node,
+                          FbxSystemConverter* _converter,
+                          RawSkeleton* _skeleton,
+                          RawSkeleton::Joint* _parent) {
+  bool skeleton_found = false;
+  RawSkeleton::Joint* this_joint = NULL;
 
-    // Here is the main difference with fbx2skel. All meshes are processed,
-    // whereas fbx2skel only processes node of tyoe FbxNodeAttribute::eSkeleton.
-    FbxNodeAttribute* node_attribute = _node->GetNodeAttribute();
-    process_node |=
-      node_attribute &&
-      node_attribute->GetAttributeType() == FbxNodeAttribute::eMesh;
+  bool process_node = false;
 
-    // Process node if required.
-    if (process_node) {
+  // Push this node if it's below a skeleton root (aka has a parent).
+  process_node |= _parent != NULL;
 
-      // Considered as a skeleton anyway
-      skeleton_found = true;
+  // Here is the main difference with fbx2skel. All meshes are processed,
+  // whereas fbx2skel only processes node of tyoe FbxNodeAttribute::eSkeleton.
+  FbxNodeAttribute* node_attribute = _node->GetNodeAttribute();
+  process_node |=
+    node_attribute &&
+    node_attribute->GetAttributeType() == FbxNodeAttribute::eMesh;
 
-      RawSkeleton::Joint::Children* sibling = NULL;
-      if (_parent) {
-        sibling = &_parent->children;
-      }
-      else {
-        sibling = &_skeleton->roots;
-      }
+  // Process node if required.
+  if (process_node) {
 
-      // Adds a new child.
-      sibling->resize(sibling->size() + 1);
-      this_joint = &sibling->back();  // Will not be resized inside recursion.
-      this_joint->name = _node->GetName();
+    // Considered as a skeleton anyway
+    skeleton_found = true;
 
-      // Outputs hierarchy on verbose stream.
-      ozz::log::LogV() << this_joint->name.c_str() << std::endl;
-
-      // Extract bind pose.
-      this_joint->transform =
-        _converter->ConvertTransform(_parent ? _node->EvaluateLocalTransform() :
-          _node->EvaluateGlobalTransform());
+    RawSkeleton::Joint::Children* sibling = NULL;
+    if (_parent) {
+      sibling = &_parent->children;
+    }
+    else {
+      sibling = &_skeleton->roots;
     }
 
-    // Iterate node's children.
-    for (int i = 0; i < _node->GetChildCount(); i++) {
-      FbxNode* child = _node->GetChild(i);
-      skeleton_found |= RecurseNode(child, _converter, _skeleton, this_joint);
-    }
+    // Adds a new child.
+    sibling->resize(sibling->size() + 1);
+    this_joint = &sibling->back();  // Will not be resized inside recursion.
+    this_joint->name = _node->GetName();
 
-    return skeleton_found;
+    // Outputs hierarchy on verbose stream.
+    ozz::log::LogV() << this_joint->name.c_str() << std::endl;
+
+    // Extract bind pose.
+    const FbxAMatrix matrix = _parent? _node->EvaluateLocalTransform():
+                                       _node->EvaluateGlobalTransform();
+    if (!_converter->ConvertTransform(matrix, &this_joint->transform)) {
+      ozz::log::Err() << "Failed to extract skeleton transform for joint \"" <<
+        this_joint->name << "\"." << std::endl;
+      return RecurseReturn::kError;
+    }
   }
 
-  bool ExtractSkeleton(FbxSceneLoader& _loader, RawSkeleton* _skeleton) {
-    if (!RecurseNode(_loader.scene()->GetRootNode(), _loader.converter(), _skeleton, NULL)) {
-      ozz::log::Err() << "No skeleton found in Fbx scene." << std::endl;
-      return false;
+  // Iterate node's children.
+  for (int i = 0; i < _node->GetChildCount(); i++) {
+    FbxNode* child = _node->GetChild(i);
+    const RecurseReturn ret = RecurseNode(child, _converter, _skeleton, this_joint);
+    if (ret == RecurseReturn::kError) {
+      return ret;
     }
-    return true;
+    skeleton_found |= (ret == RecurseReturn::kSkeletonFound);
   }
+
+  return skeleton_found ? RecurseReturn::kSkeletonFound : RecurseReturn::kNoSkeleton;
+}
+
+bool ExtractSkeleton(FbxSceneLoader& _loader, RawSkeleton* _skeleton) {
+  RecurseReturn ret = RecurseNode(_loader.scene()->GetRootNode(), _loader.converter(), _skeleton, NULL);
+  if (ret == RecurseReturn::kNoSkeleton) {
+    ozz::log::Err() << "No skeleton found in Fbx scene." << std::endl;
+    return false;
+  } else if (ret == RecurseReturn::kError) {
+    ozz::log::Err() << "Failed to extract skeleton." << std::endl;
+    return false;
+  }
+  return true;
+}
 }
 
 class FbxBakedSkeletonConverter :

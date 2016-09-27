@@ -113,7 +113,9 @@ class FbxSystemConverter {
 
   // Converts fbx matrix to an ozz transform, in ozz axis and unit systems,
   // using _m' = C * _m * (C-1) operation.
-  math::Transform ConvertTransform(const FbxAMatrix& _m) const;
+  // Can return false if matrix isn't affine.
+  bool ConvertTransform(const FbxAMatrix& _m,
+                        math::Transform* _transform) const;
 
   // Converts fbx FbxVector4 point to an ozz Float3, in ozz axis and unit
   // systems, using _p' = C * _p operation.
