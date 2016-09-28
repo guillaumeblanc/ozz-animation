@@ -124,7 +124,7 @@ OZZ_INLINE bool Compare(const math::Quaternion& _a,
 // Returns true if _q is a normalized quaternion.
 OZZ_INLINE bool IsNormalized(const Quaternion& _q) {
   const float sq_len = _q.x * _q.x + _q.y * _q.y + _q.z * _q.z + _q.w * _q.w;
-  return std::abs(sq_len - 1.f) < kNormalizationTolerance;
+  return std::abs(sq_len - 1.f) < kNormalizationToleranceSq;
 }
 
 // Returns the normalized quaternion _q.

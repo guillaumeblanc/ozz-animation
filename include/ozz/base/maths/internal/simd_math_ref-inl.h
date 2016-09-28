@@ -642,21 +642,21 @@ OZZ_INLINE SimdFloat4 NormalizeEst4(_SimdFloat4 _v) {
 
 OZZ_INLINE SimdInt4 IsNormalized2(_SimdFloat4 _v) {
   const float sq_len = _v.x * _v.x + _v.y * _v.y;
-  const bool normalized = std::abs(sq_len - 1.f) < kNormalizationTolerance;
+  const bool normalized = std::abs(sq_len - 1.f) < kNormalizationToleranceSq;
   const SimdInt4 ret = {-static_cast<int>(normalized), 0, 0, 0};
   return ret;
 }
 
 OZZ_INLINE SimdInt4 IsNormalized3(_SimdFloat4 _v) {
   const float sq_len = _v.x * _v.x + _v.y * _v.y + _v.z * _v.z;
-  const bool normalized = std::abs(sq_len - 1.f) < kNormalizationTolerance;
+  const bool normalized = std::abs(sq_len - 1.f) < kNormalizationToleranceSq;
   const SimdInt4 ret = {-static_cast<int>(normalized), 0, 0, 0};
   return ret;
 }
 
 OZZ_INLINE SimdInt4 IsNormalized4(_SimdFloat4 _v) {
   const float sq_len = _v.x * _v.x + _v.y * _v.y + _v.z * _v.z + _v.w * _v.w;
-  const bool normalized = std::abs(sq_len - 1.f) < kNormalizationTolerance;
+  const bool normalized = std::abs(sq_len - 1.f) < kNormalizationToleranceSq;
   const SimdInt4 ret = {-static_cast<int>(normalized), 0, 0, 0};
   return ret;
 }
@@ -664,7 +664,7 @@ OZZ_INLINE SimdInt4 IsNormalized4(_SimdFloat4 _v) {
 OZZ_INLINE SimdInt4 IsNormalizedEst2(_SimdFloat4 _v) {
   const float sq_len = _v.x * _v.x + _v.y * _v.y;
   const bool normalized =
-    std::abs(sq_len - 1.f) < kNormalizationToleranceEst;
+    std::abs(sq_len - 1.f) < kNormalizationToleranceEstSq;
   const SimdInt4 ret = {-static_cast<int>(normalized), 0, 0, 0};
   return ret;
 }
@@ -672,7 +672,7 @@ OZZ_INLINE SimdInt4 IsNormalizedEst2(_SimdFloat4 _v) {
 OZZ_INLINE SimdInt4 IsNormalizedEst3(_SimdFloat4 _v) {
   const float sq_len = _v.x * _v.x + _v.y * _v.y + _v.z * _v.z;
   const bool normalized =
-    std::abs(sq_len - 1.f) < kNormalizationToleranceEst;
+    std::abs(sq_len - 1.f) < kNormalizationToleranceEstSq;
   const SimdInt4 ret = {-static_cast<int>(normalized), 0, 0, 0};
   return ret;
 }
@@ -680,7 +680,7 @@ OZZ_INLINE SimdInt4 IsNormalizedEst3(_SimdFloat4 _v) {
 OZZ_INLINE SimdInt4 IsNormalizedEst4(_SimdFloat4 _v) {
   const float sq_len = _v.x * _v.x + _v.y * _v.y + _v.z * _v.z + _v.w * _v.w;
   const bool normalized =
-    std::abs(sq_len - 1.f) < kNormalizationToleranceEst;
+    std::abs(sq_len - 1.f) < kNormalizationToleranceEstSq;
   const SimdInt4 ret = {-static_cast<int>(normalized), 0, 0, 0};
   return ret;
 }
@@ -1755,7 +1755,7 @@ OZZ_INLINE SimdInt4 IsOrthogonal(const Float4x4& _m) {
   const SimdFloat4 at = NormalizeSafe3(_m.cols[2], simd_float4::zero());
 
   const float sq_len = cross.x * at.x + cross.y * at.y + cross.z * at.z;
-  const bool same = std::abs(sq_len - 1.f) < kNormalizationTolerance;
+  const bool same = std::abs(sq_len - 1.f) < kNormalizationToleranceSq;
   const SimdInt4 ret = {-static_cast<int>(same), 0, 0, 0};
   return ret;
 }
@@ -1808,15 +1808,18 @@ OZZ_INLINE bool ToAffine(const Float4x4& _m,
   _translation->w = 1.f;
 
   // Extracts scale.
-  const float scale_x = Length3(_m.cols[0]).x;
-  const float scale_y = Length3(_m.cols[1]).x;
-  const float scale_z = Length3(_m.cols[2]).x;
-
-  const bool x_zero = std::abs(scale_x) < kNormalizationTolerance;
-  const bool y_zero = std::abs(scale_y) < kNormalizationTolerance;
-  const bool z_zero = std::abs(scale_z) < kNormalizationTolerance;
+  const float sq_scale_x = Length3Sqr(_m.cols[0]).x;
+  const float scale_x = std::sqrt(sq_scale_x);
+  const float sq_scale_y = Length3Sqr(_m.cols[1]).x;
+  const float scale_y = std::sqrt(sq_scale_y);
+  const float sq_scale_z = Length3Sqr(_m.cols[2]).x;
+  const float scale_z = std::sqrt(sq_scale_z);
 
   // Builds an orthonormal matrix in order to support quaternion extraction.
+  const bool x_zero = std::abs(sq_scale_x) < kOrthogonalisationToleranceSq;
+  const bool y_zero = std::abs(sq_scale_y) < kOrthogonalisationToleranceSq;
+  const bool z_zero = std::abs(sq_scale_z) < kOrthogonalisationToleranceSq;
+
   Float4x4 orthonormal;
   if (x_zero) {
     if (y_zero || z_zero) {

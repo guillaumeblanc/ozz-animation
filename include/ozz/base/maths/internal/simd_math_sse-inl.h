@@ -587,8 +587,8 @@ OZZ_INLINE SimdFloat4 NormalizeEst4(_SimdFloat4 _v) {
 }
 
 OZZ_INLINE SimdInt4 IsNormalized2(_SimdFloat4 _v) {
-  const __m128 max = _mm_set_ss(1.f + kNormalizationTolerance);
-  const __m128 min = _mm_set_ss(1.f - kNormalizationTolerance);
+  const __m128 max = _mm_set_ss(1.f + kNormalizationToleranceSq);
+  const __m128 min = _mm_set_ss(1.f - kNormalizationToleranceSq);
   __m128 dot;
   OZZ_SSE_DOT2_F(_v, _v, dot);
   __m128 dotx000 = _mm_move_ss(_mm_setzero_ps(), dot);
@@ -597,8 +597,8 @@ OZZ_INLINE SimdInt4 IsNormalized2(_SimdFloat4 _v) {
 }
 
 OZZ_INLINE SimdInt4 IsNormalized3(_SimdFloat4 _v) {
-  const __m128 max = _mm_set_ss(1.f + kNormalizationTolerance);
-  const __m128 min = _mm_set_ss(1.f - kNormalizationTolerance);
+  const __m128 max = _mm_set_ss(1.f + kNormalizationToleranceSq);
+  const __m128 min = _mm_set_ss(1.f - kNormalizationToleranceSq);
   __m128 dot;
   OZZ_SSE_DOT3_F(_v, _v, dot);
   __m128 dotx000 = _mm_move_ss(_mm_setzero_ps(), dot);
@@ -607,8 +607,8 @@ OZZ_INLINE SimdInt4 IsNormalized3(_SimdFloat4 _v) {
 }
 
 OZZ_INLINE SimdInt4 IsNormalized4(_SimdFloat4 _v) {
-  const __m128 max = _mm_set_ss(1.f + kNormalizationTolerance);
-  const __m128 min = _mm_set_ss(1.f - kNormalizationTolerance);
+  const __m128 max = _mm_set_ss(1.f + kNormalizationToleranceSq);
+  const __m128 min = _mm_set_ss(1.f - kNormalizationToleranceSq);
   __m128 dot;
   OZZ_SSE_DOT4_F(_v, _v, dot);
   __m128 dotx000 = _mm_move_ss(_mm_setzero_ps(), dot);
@@ -617,8 +617,8 @@ OZZ_INLINE SimdInt4 IsNormalized4(_SimdFloat4 _v) {
 }
 
 OZZ_INLINE SimdInt4 IsNormalizedEst2(_SimdFloat4 _v) {
-  const __m128 max = _mm_set_ss(1.f + kNormalizationToleranceEst);
-  const __m128 min = _mm_set_ss(1.f - kNormalizationToleranceEst);
+  const __m128 max = _mm_set_ss(1.f + kNormalizationToleranceEstSq);
+  const __m128 min = _mm_set_ss(1.f - kNormalizationToleranceEstSq);
   __m128 dot;
   OZZ_SSE_DOT2_F(_v, _v, dot);
   __m128 dotx000 = _mm_move_ss(_mm_setzero_ps(), dot);
@@ -627,8 +627,8 @@ OZZ_INLINE SimdInt4 IsNormalizedEst2(_SimdFloat4 _v) {
 }
 
 OZZ_INLINE SimdInt4 IsNormalizedEst3(_SimdFloat4 _v) {
-  const __m128 max = _mm_set_ss(1.f + kNormalizationToleranceEst);
-  const __m128 min = _mm_set_ss(1.f - kNormalizationToleranceEst);
+  const __m128 max = _mm_set_ss(1.f + kNormalizationToleranceEstSq);
+  const __m128 min = _mm_set_ss(1.f - kNormalizationToleranceEstSq);
   __m128 dot;
   OZZ_SSE_DOT3_F(_v, _v, dot);
   __m128 dotx000 = _mm_move_ss(_mm_setzero_ps(), dot);
@@ -637,8 +637,8 @@ OZZ_INLINE SimdInt4 IsNormalizedEst3(_SimdFloat4 _v) {
 }
 
 OZZ_INLINE SimdInt4 IsNormalizedEst4(_SimdFloat4 _v) {
-  const __m128 max = _mm_set_ss(1.f + kNormalizationToleranceEst);
-  const __m128 min = _mm_set_ss(1.f - kNormalizationToleranceEst);
+  const __m128 max = _mm_set_ss(1.f + kNormalizationToleranceEstSq);
+  const __m128 min = _mm_set_ss(1.f - kNormalizationToleranceEstSq);
   __m128 dot;
   OZZ_SSE_DOT4_F(_v, _v, dot);
   __m128 dotx000 = _mm_move_ss(_mm_setzero_ps(), dot);
@@ -1505,8 +1505,8 @@ OZZ_INLINE Float4x4 ColumnMultiply(const Float4x4& _m, _SimdFloat4 _v) {
 }
 
 OZZ_INLINE SimdInt4 IsNormalized(const Float4x4& _m) {
-  const __m128 max = _mm_set_ps1(1.f + kNormalizationTolerance);
-  const __m128 min = _mm_set_ps1(1.f - kNormalizationTolerance);
+  const __m128 max = _mm_set_ps1(1.f + kNormalizationToleranceSq);
+  const __m128 min = _mm_set_ps1(1.f - kNormalizationToleranceSq);
 
   const __m128 tmp0 = _mm_unpacklo_ps(_m.cols[0], _m.cols[2]);
   const __m128 tmp1 = _mm_unpacklo_ps(_m.cols[1], _m.cols[3]);
@@ -1526,8 +1526,8 @@ OZZ_INLINE SimdInt4 IsNormalized(const Float4x4& _m) {
 }
 
 OZZ_INLINE SimdInt4 IsNormalizedEst(const Float4x4& _m) {
-  const __m128 max = _mm_set_ps1(1.f + kNormalizationToleranceEst);
-  const __m128 min = _mm_set_ps1(1.f - kNormalizationToleranceEst);
+  const __m128 max = _mm_set_ps1(1.f + kNormalizationToleranceEstSq);
+  const __m128 min = _mm_set_ps1(1.f - kNormalizationToleranceEstSq);
 
   const __m128 tmp0 = _mm_unpacklo_ps(_m.cols[0], _m.cols[2]);
   const __m128 tmp1 = _mm_unpacklo_ps(_m.cols[1], _m.cols[3]);
@@ -1549,8 +1549,8 @@ OZZ_INLINE SimdInt4 IsNormalizedEst(const Float4x4& _m) {
 }
 
 OZZ_INLINE SimdInt4 IsOrthogonal(const Float4x4& _m) {
-  const __m128 max = _mm_set_ss(1.f + kNormalizationTolerance);
-  const __m128 min = _mm_set_ss(1.f - kNormalizationTolerance);
+  const __m128 max = _mm_set_ss(1.f + kNormalizationToleranceSq);
+  const __m128 min = _mm_set_ss(1.f - kNormalizationToleranceSq);
   const __m128 zero = _mm_setzero_ps();
 
   // Use simd_float4::zero() if one of the normalization fails. _m will then be
@@ -1649,8 +1649,8 @@ OZZ_INLINE bool ToAffine(const Float4x4& _m,
   const __m128 zero = _mm_setzero_ps();
   const __m128 one = simd_float4::one();
   const __m128i fff0 = simd_int4::mask_fff0();
-  const __m128 max = _mm_set_ps1(kNormalizationTolerance);
-  const __m128 min = _mm_sub_ps(zero, max);
+  const __m128 max = _mm_set_ps1(kOrthogonalisationToleranceSq);
+  const __m128 min = _mm_set_ps1(-kOrthogonalisationToleranceSq);
 
   // Extracts translation.
   *_translation = OZZ_SSE_SELECT_F(fff0, _m.cols[3], one);

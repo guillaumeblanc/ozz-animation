@@ -553,34 +553,34 @@ OZZ_INLINE SoaFloat2 Normalize(const SoaFloat2& _v) {
 OZZ_INLINE math::SimdInt4 IsNormalized(const SoaFloat4& _v) {
   const SimdFloat4 len2 = _v.x * _v.x + _v.y * _v.y + _v.z * _v.z + _v.w * _v.w;
   return CmpLt(Abs(len2 - math::simd_float4::one()),
-               simd_float4::Load1(kNormalizationTolerance));
+               simd_float4::Load1(kNormalizationToleranceSq));
 }
 OZZ_INLINE math::SimdInt4 IsNormalized(const SoaFloat3& _v) {
   const SimdFloat4 len2 = _v.x * _v.x + _v.y * _v.y + _v.z * _v.z;
   return CmpLt(Abs(len2 - math::simd_float4::one()),
-               simd_float4::Load1(kNormalizationTolerance));
+               simd_float4::Load1(kNormalizationToleranceSq));
 }
 OZZ_INLINE math::SimdInt4 IsNormalized(const SoaFloat2& _v) {
   const SimdFloat4 len2 = _v.x * _v.x + _v.y * _v.y;
   return CmpLt(Abs(len2 - math::simd_float4::one()),
-               simd_float4::Load1(kNormalizationTolerance));
+               simd_float4::Load1(kNormalizationToleranceSq));
 }
 
 // Test if each vector _v is normalized using estimated tolerance.
 OZZ_INLINE math::SimdInt4 IsNormalizedEst(const SoaFloat4& _v) {
   const SimdFloat4 len2 = _v.x * _v.x + _v.y * _v.y + _v.z * _v.z + _v.w * _v.w;
   return CmpLt(Abs(len2 - math::simd_float4::one()),
-               simd_float4::Load1(kNormalizationToleranceEst));
+               simd_float4::Load1(kNormalizationToleranceEstSq));
 }
 OZZ_INLINE math::SimdInt4 IsNormalizedEst(const SoaFloat3& _v) {
   const SimdFloat4 len2 = _v.x * _v.x + _v.y * _v.y + _v.z * _v.z;
   return CmpLt(Abs(len2 - math::simd_float4::one()),
-               simd_float4::Load1(kNormalizationToleranceEst));
+               simd_float4::Load1(kNormalizationToleranceEstSq));
 }
 OZZ_INLINE math::SimdInt4 IsNormalizedEst(const SoaFloat2& _v) {
   const SimdFloat4 len2 = _v.x * _v.x + _v.y * _v.y;
   return CmpLt(Abs(len2 - math::simd_float4::one()),
-               simd_float4::Load1(kNormalizationToleranceEst));
+               simd_float4::Load1(kNormalizationToleranceEstSq));
 }
 
 // Returns the normalized vector _v if the norm of _v is not 0.

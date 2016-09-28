@@ -359,15 +359,15 @@ OZZ_INLINE Float2 Normalize(const Float2& _v) {
 // Returns true if _v is normalized.
 OZZ_INLINE bool IsNormalized(const Float4& _v) {
   const float len2 = _v.x * _v.x + _v.y * _v.y + _v.z * _v.z + _v.w * _v.w;
-  return std::abs(len2 - 1.f) < kNormalizationTolerance;
+  return std::abs(len2 - 1.f) < kNormalizationToleranceSq;
 }
 OZZ_INLINE bool IsNormalized(const Float3& _v) {
   const float len2 = _v.x * _v.x + _v.y * _v.y + _v.z * _v.z;
-  return std::abs(len2 - 1.f) < kNormalizationTolerance;
+  return std::abs(len2 - 1.f) < kNormalizationToleranceSq;
 }
 OZZ_INLINE bool IsNormalized(const Float2& _v) {
   const float len2 = _v.x * _v.x + _v.y * _v.y;
-  return std::abs(len2 - 1.f) < kNormalizationTolerance;
+  return std::abs(len2 - 1.f) < kNormalizationToleranceSq;
 }
 
 // Returns the normalized vector _v if the norm of _v is not 0.

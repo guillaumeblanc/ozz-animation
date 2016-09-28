@@ -90,14 +90,14 @@ OZZ_INLINE SoaQuaternion NormalizeEst(const SoaQuaternion& _q) {
 OZZ_INLINE SimdInt4 IsNormalized(const SoaQuaternion& _q) {
   const SimdFloat4 len2 = _q.x * _q.x + _q.y * _q.y + _q.z * _q.z + _q.w * _q.w;
   return CmpLt(Abs(len2 - math::simd_float4::one()),
-               simd_float4::Load1(kNormalizationTolerance));
+               simd_float4::Load1(kNormalizationToleranceSq));
 }
 
 // Test if each quaternion of _q is normalized. using estimated tolerance.
 OZZ_INLINE SimdInt4 IsNormalizedEst(const SoaQuaternion& _q) {
   const SimdFloat4 len2 = _q.x * _q.x + _q.y * _q.y + _q.z * _q.z + _q.w * _q.w;
   return CmpLt(Abs(len2 - math::simd_float4::one()),
-               simd_float4::Load1(kNormalizationToleranceEst));
+               simd_float4::Load1(kNormalizationToleranceEstSq));
 }
 
 // Returns the linear interpolation of SoaQuaternion _a and _b with coefficient _f.
