@@ -89,7 +89,6 @@ endforeach()
 
 # Gerenate binary animation data
 set(animations
-  "/fbx/alain/atlas.fbx\;/bin/alain_skeleton.ozz\;/bin/alain_atlas.ozz"
   "/fbx/alain/atlas.fbx\;/bin/alain_skeleton.ozz\;/bin/alain_atlas_raw.ozz\;option:--raw\;option:--nooptimize"
   "/fbx/alain/locomotions.fbx\;/bin/alain_skeleton.ozz\;/bin/alain_*.ozz\;output:/bin/alain_walk.ozz\;output:/bin/alain_jog.ozz\;output:/bin/alain_run.ozz"
   "/fbx/alain/run.fbx\;/bin/alain_skeleton.ozz\;/bin/versioning/raw_animation_v2_le.ozz\;option:--raw\;option:--endian=little"

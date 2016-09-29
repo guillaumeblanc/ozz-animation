@@ -56,7 +56,7 @@ OZZ_OPTIONS_DECLARE_STRING(
 OZZ_OPTIONS_DECLARE_STRING(
   animation,
   "Path to the animation (ozz archive format).",
-  "media/alain_atlas.ozz",
+  "media/alain_crossarms.ozz",
   false)
 
 class LoadSampleApplication : public ozz::sample::Application {

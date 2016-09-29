@@ -19,7 +19,7 @@ if(ozz_build_fbx)
   install(TARGETS sample_fbx2mesh DESTINATION bin/samples/tools)
 
   add_custom_command(
-    DEPENDS BUILD_DATA
+    DEPENDS $<$<BOOL:${ozz_build_fbx}>:BUILD_DATA>
             sample_fbx2mesh
             "${ozz_media_directory}/bin/alain_skeleton.ozz"
             "${ozz_media_directory}/fbx/alain/arnaud.fbx"
