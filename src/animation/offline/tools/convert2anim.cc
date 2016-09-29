@@ -388,6 +388,13 @@ int AnimationConverter::operator()(int _argc, const char** _argv) {
   }
   ozz::log::SetLevel(log_level);
 
+  // Ensures file to import actually exist.
+  if (!ozz::io::File::Exist(OPTIONS_file)) {
+    ozz::log::Err() << "File \"" << OPTIONS_file << "\" doesn't exist." <<
+      std::endl;
+    return EXIT_FAILURE;
+  }
+
   // Import skeleton instance.
   ozz::animation::Skeleton* skeleton = ImportSkeleton();
   if (!skeleton) {
@@ -397,12 +404,6 @@ int AnimationConverter::operator()(int _argc, const char** _argv) {
   // Imports animation from the document.
   ozz::log::Log() << "Importing file \"" << OPTIONS_file << "\"" <<
     std::endl;
-
-  if (!ozz::io::File::Exist(OPTIONS_file)) {
-    ozz::log::Err() << "File \"" << OPTIONS_file << "\" doesn't exist." <<
-      std::endl;
-    return EXIT_FAILURE;
-  }
 
   bool success = false;
   Animations animations;
