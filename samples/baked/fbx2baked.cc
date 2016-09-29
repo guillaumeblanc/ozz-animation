@@ -88,7 +88,7 @@ RecurseReturn RecurseNode(FbxNode* _node,
     if (!_converter->ConvertTransform(matrix, &this_joint->transform)) {
       ozz::log::Err() << "Failed to extract skeleton transform for joint \"" <<
         this_joint->name << "\"." << std::endl;
-      return RecurseReturn::kError;
+      return kError;
     }
   }
 
@@ -96,21 +96,21 @@ RecurseReturn RecurseNode(FbxNode* _node,
   for (int i = 0; i < _node->GetChildCount(); i++) {
     FbxNode* child = _node->GetChild(i);
     const RecurseReturn ret = RecurseNode(child, _converter, _skeleton, this_joint);
-    if (ret == RecurseReturn::kError) {
+    if (ret == kError) {
       return ret;
     }
-    skeleton_found |= (ret == RecurseReturn::kSkeletonFound);
+    skeleton_found |= (ret == kSkeletonFound);
   }
 
-  return skeleton_found ? RecurseReturn::kSkeletonFound : RecurseReturn::kNoSkeleton;
+  return skeleton_found ? kSkeletonFound : kNoSkeleton;
 }
 
 bool ExtractSkeleton(FbxSceneLoader& _loader, RawSkeleton* _skeleton) {
   RecurseReturn ret = RecurseNode(_loader.scene()->GetRootNode(), _loader.converter(), _skeleton, NULL);
-  if (ret == RecurseReturn::kNoSkeleton) {
+  if (ret == kNoSkeleton) {
     ozz::log::Err() << "No skeleton found in Fbx scene." << std::endl;
     return false;
-  } else if (ret == RecurseReturn::kError) {
+  } else if (ret == kError) {
     ozz::log::Err() << "Failed to extract skeleton." << std::endl;
     return false;
   }

@@ -53,7 +53,7 @@ static const float kNormalizationToleranceSq = 1e-6f;
 static const float kNormalizationToleranceEstSq = 2e-3f;
 
 // Defines the square orthogonalisation tolerance value.
-static const float kOrthogonalisationToleranceSq = 1e-12f;
+static const float kOrthogonalisationToleranceSq = 1e-16f;
 }  // math
 }  // ozz
 
