@@ -140,7 +140,7 @@ class BakedSampleApplication : public ozz::sample::Application {
 
     bool success = true;
     
-    // Prepares dominos rendering.
+    // Prepares baked boxes rendering.
     {
       const ozz::sample::Renderer::Color color = {0xff, 0xff, 0xff, 0xff};
       const float size = .5f;
@@ -148,7 +148,7 @@ class BakedSampleApplication : public ozz::sample::Application {
                                ozz::math::Float3(size));
       success &= _renderer->DrawBoxShaded(box, models_, color);
     }
-
+    /*
     // Prepares ground rendering.
     {
       const ozz::sample::Renderer::Color color = {0x50, 0x50, 0x50, 0xff};
@@ -157,7 +157,7 @@ class BakedSampleApplication : public ozz::sample::Application {
                                ozz::math::Float3(size, 0.f, size));
       const ozz::math::Float4x4 matrix = ozz::math::Float4x4::identity();
       success &= _renderer->DrawBoxShaded(box, matrix, color);
-    }
+    }*/
     return success;
   }
 
@@ -181,7 +181,7 @@ class BakedSampleApplication : public ozz::sample::Application {
     }
 
     *_transform = models_[camera_index_];
-    return false;
+    return true;
   }
 
   virtual void GetSceneBounds(ozz::math::Box* _bound) const {

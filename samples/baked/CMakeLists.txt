@@ -22,7 +22,7 @@ if(TRUE)
 
   add_custom_command(
     DEPENDS "${CMAKE_CURRENT_LIST_DIR}/README"
-            "${ozz_media_directory}/fbx/ozz_explode.fbx"
+            "${ozz_media_directory}/fbx/domino.fbx"
             sample_fbx2baked
             fbx2anim
     OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/README"
@@ -31,10 +31,10 @@ if(TRUE)
     COMMAND ${CMAKE_COMMAND} -E make_directory media
     COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_LIST_DIR}/README .
     COMMAND sample_fbx2baked
-      "--file=${ozz_media_directory}/fbx/ozz_explode.fbx"
+      "--file=${ozz_media_directory}/fbx/domino.fbx"
       "--skeleton=${CMAKE_CURRENT_BINARY_DIR}/media/baked_skeleton.ozz"
     COMMAND fbx2anim
-      "--file=${ozz_media_directory}/fbx/ozz_explode.fbx"
+      "--file=${ozz_media_directory}/fbx/domino.fbx"
       "--skeleton=${CMAKE_CURRENT_BINARY_DIR}/media/baked_skeleton.ozz"
       "--animation=${CMAKE_CURRENT_BINARY_DIR}/media/baked_animation.ozz"
       "--rotation=0.001"
@@ -68,9 +68,9 @@ else()
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/README DESTINATION bin/samples/baked)
 endif(EMSCRIPTEN)
 
-add_test(NAME sample_baked COMMAND sample_baked "--max_idle_loops=${SAMPLE_TESTING_LOOPS}" ${SAMPLE_RENDER_ARGUMENT})
-add_test(NAME sample_baked_load_path COMMAND sample_baked "--skeleton=media/domino_skeleton.ozz" "--animation=media/domino_animation.ozz" "--max_idle_loops=${SAMPLE_TESTING_LOOPS}" ${SAMPLE_RENDER_ARGUMENT})
-add_test(NAME sample_baked_load_invalid_skeleton_path COMMAND sample_baked "--skeleton=media/bad_skeleton.ozz" ${SAMPLE_RENDER_ARGUMENT})
+add_test(NAME sample_baked COMMAND sample_baked "--max_idle_loops=${ozz_sample_testing_loops}" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)
+add_test(NAME sample_baked_load_path COMMAND sample_baked "--skeleton=media/baked_skeleton.ozz" "--animation=media/baked_animation.ozz" "--max_idle_loops=${ozz_sample_testing_loops}" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)
+add_test(NAME sample_baked_load_invalid_skeleton_path COMMAND sample_baked "--skeleton=media/bad_skeleton.ozz" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)
 set_tests_properties(sample_baked_load_invalid_skeleton_path PROPERTIES WILL_FAIL true)
-add_test(NAME sample_baked_load_invalid_animation_path COMMAND sample_baked "--animation=media/bad_animation.ozz" ${SAMPLE_RENDER_ARGUMENT})
+add_test(NAME sample_baked_load_invalid_animation_path COMMAND sample_baked "--animation=media/bad_animation.ozz" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)
 set_tests_properties(sample_baked_load_invalid_animation_path PROPERTIES WILL_FAIL true)
