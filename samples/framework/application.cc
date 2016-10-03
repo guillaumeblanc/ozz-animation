@@ -284,17 +284,13 @@ Application::LoopStatus Application::OneLoop(int _loops) {
     return kContinue;  // ...but don't do anything.
   }
 #else  // EMSCRIPTEN
-  emscripten_set_main_loop_timing(EM_TIMING_RAF, 1);
-#endif  // EMSCRIPTEN
-  
-  // Updates resolution if required.
-  if (OPTIONS_render) {
-    int width, height;
-    glfwGetWindowSize(&width, &height);
-    if (resolution_.width != width || resolution_.height != height) {
-      glfwSetWindowSize(resolution_.width, resolution_.height);
-    }
+  // Detect canvas resizing which isn't automatically detected.
+  int width, height, fullscreen;
+  emscripten_get_canvas_size(&width, &height, &fullscreen);
+  if (width != resolution_.width || height != resolution_.height) {
+    ResizeCbk(width, height);  
   }
+#endif  // EMSCRIPTEN
 
   // Enable/disable help on F1 key.
   static int previous_f1 = glfwGetKey(GLFW_KEY_F1);
@@ -640,6 +636,7 @@ bool Application::FrameworkGui() {
     if (im_gui_->DoSlider(szResolution, 0, kNumPresets - 1, &preset_lookup)) {
       // Resolution changed.
       resolution_ = resolution_presets[preset_lookup];
+      glfwSetWindowSize(resolution_.width, resolution_.height);
     }
   }
 
