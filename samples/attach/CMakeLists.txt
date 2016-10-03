@@ -1,6 +1,6 @@
 
 add_custom_command(
-  DEPENDS BUILD_DATA
+  DEPENDS $<$<BOOL:${ozz_build_fbx}>:BUILD_DATA>
           "${CMAKE_CURRENT_LIST_DIR}/README"
           "${ozz_media_directory}/bin/alain_skeleton.ozz"
           "${ozz_media_directory}/bin/alain_walk.ozz"

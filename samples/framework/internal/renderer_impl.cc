@@ -416,28 +416,39 @@ bool RendererImpl::InitCheckeredTexture() {
 
   // Create the checkered pattern on all mip levels.
   int level_width = kWidth;
-  for (int l = 0; level_width >= kCases; ++l, level_width /= 2) {
-    const int case_width = level_width / kCases;
-    for (int j = 0; j < level_width; ++j) {
-      const int cpntj = (j / case_width) & 1;
-      for (int i = 0; i < kCases; ++i) {
-        const int cpnti = i & 1;
-        const bool white_case = (cpnti ^ cpntj) != 0;
-        const uint8_t cpntr = white_case ? 0xff : j * 255 / level_width & 0xff;
-        const uint8_t cpntg = white_case ? 0xff : i * 255 / kCases & 0xff;
-        const uint8_t cpntb = white_case ? 0xff : 0;
+  for (int level = 0; level_width > 0; ++level, level_width /= 2) {
+    if (level_width >= kCases) {
+      const int case_width = level_width / kCases;
+      for (int j = 0; j < level_width; ++j) {
+        const int cpntj = (j / case_width) & 1;
+        for (int i = 0; i < kCases; ++i) {
+          const int cpnti = i & 1;
+          const bool white_case = (cpnti ^ cpntj) != 0;
+          const uint8_t cpntr = white_case ? 0xff : j * 255 / level_width & 0xff;
+          const uint8_t cpntg = white_case ? 0xff : i * 255 / kCases & 0xff;
+          const uint8_t cpntb = white_case ? 0xff : 0;
 
-        const int case_start = j * level_width + i * case_width;
-        for (int k = case_start; k < case_start + case_width; ++k) {
-          pixels[k * 3 + 0] = cpntr;
-          pixels[k * 3 + 1] = cpntg;
-          pixels[k * 3 + 2] = cpntb;
+          const int case_start = j * level_width + i * case_width;
+          for (int k = case_start; k < case_start + case_width; ++k) {
+            pixels[k * 3 + 0] = cpntr;
+            pixels[k * 3 + 1] = cpntg;
+            pixels[k * 3 + 2] = cpntb;
+          }
         }
       }
+    } else {
+      // Mimaps where width is smaller than the number of cases.
+      for (int j = 0; j < level_width; ++j) {
+        for (int i = 0; i < level_width; ++i) {
+          pixels[(j * level_width + i) * 3 + 0] = 0x7f;
+          pixels[(j * level_width + i) * 3 + 1] = 0x7f;
+          pixels[(j * level_width + i) * 3 + 2] = 0x7f;
+        }
+      }      
     }
 
     GL(TexImage2D(GL_TEXTURE_2D,
-                  l,
+                  level,
                   GL_RGB,
                   level_width,
                   level_width,
@@ -445,7 +456,6 @@ bool RendererImpl::InitCheckeredTexture() {
                   GL_RGB,
                   GL_UNSIGNED_BYTE,
                   pixels));
-    GL(TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, l));
   }
 
   GL(BindTexture(GL_TEXTURE_2D, 0));
