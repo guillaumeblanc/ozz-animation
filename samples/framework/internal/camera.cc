@@ -98,7 +98,7 @@ void Camera::Update(const math::Box& _box, float _delta_time, bool _first_frame)
   // Auto framing is forced on the first frame.
   bool frame_all = auto_framing_ || _first_frame || glfwGetKey('F') == GLFW_PRESS;
 
-  // Frame te scene according to the provided box.
+  // Frame the scene according to the provided box.
   if (frame_all && _box.is_valid()) {
     center_ = (_box.max + _box.min) * .5f;
     const float radius = Length(_box.max - _box.min) * .5f;
