@@ -143,17 +143,17 @@ static bool ValidateSamplingRate(const ozz::options::Option& _option,
                                  int /*_argc*/) {
     const ozz::options::FloatOption& option =
       static_cast<const ozz::options::FloatOption&>(_option);
-    bool valid = option.value() > 0.f;
+    bool valid = option.value() >= 0.f;
     if (!valid) {
-      ozz::log::Err() << "Invalid sampling rate option." << std::endl;
+      ozz::log::Err() << "Invalid sampling rate option (must be >= 0)." << std::endl;
     }
     return valid;
 }
 
 OZZ_OPTIONS_DECLARE_FLOAT_FN(
   sampling_rate,
-  "Selects animation sampling rate in hertz",
-  30.f,
+  "Selects animation sampling rate in hertz. Set a value = 0 to use imported scene frame rate.",
+  0.f,
   false,
   &ValidateSamplingRate)
 
