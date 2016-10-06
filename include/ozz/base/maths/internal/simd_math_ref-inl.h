@@ -1916,7 +1916,7 @@ OZZ_INLINE Float4x4 Float4x4::FromAxisAngle(_SimdFloat4 _v) {
   const float e = _v.y * _v.z * t;
   const float f = _v.x * sin;
 
-  const Float4x4 ret = {{{cos + _v.x * _v.x * t, a + b, c - d},
+  const Float4x4 ret = {{{cos + _v.x * _v.x * t, a + b, c - d, 0.f},
                          {a - b, cos + _v.y * _v.y * t, e + f, 0.f},
                          {c + d, e - f, cos + _v.z * _v.z * t, 0.f},
                          {0.f, 0.f, 0.f, 1.f}}};
