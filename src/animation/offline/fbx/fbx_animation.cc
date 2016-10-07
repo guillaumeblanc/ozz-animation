@@ -70,8 +70,21 @@ bool ExtractAnimation(FbxSceneLoader* _scene_loader,
     scene->GetGlobalSettings().GetTimelineDefaultTimeSpan(time_spawn);
   }
 
-  float start = static_cast<float>(time_spawn.GetStart().GetSecondDouble());
-  float end = static_cast<float>(time_spawn.GetStop().GetSecondDouble());
+  // Get frame rate from the scene.
+  FbxTime::EMode mode = scene->GetGlobalSettings().GetTimeMode();
+  const float scene_frame_rate =
+      static_cast<float>((mode == FbxTime::eCustom)
+                             ? scene->GetGlobalSettings().GetCustomFrameRate()
+                             : FbxTime::GetFrameRate(mode));
+
+  // Deduce sampling period.
+  // Scene frame rate is used when provided argument is <= 0.
+  const float sampling_period =
+      1.f / (_sampling_rate > 0.f ? _sampling_rate : scene_frame_rate);
+
+  // Get scene start and end.
+  const float start = static_cast<float>(time_spawn.GetStart().GetSecondDouble());
+  const float end = static_cast<float>(time_spawn.GetStop().GetSecondDouble());
 
   // Animation duration could be 0 if it's just a pose. In this case we'll set a
   // default 1s duration.
@@ -118,7 +131,6 @@ bool ExtractAnimation(FbxSceneLoader* _scene_loader,
 
     // Reserve keys in animation tracks (allocation strategy optimization
     // purpose).
-    const float sampling_period = 1.f / _sampling_rate;
     const int max_keys =
       static_cast<int>(3.f + (end - start) / sampling_period);
     track.translations.reserve(max_keys);

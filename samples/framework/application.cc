@@ -403,15 +403,15 @@ bool Application::Idle(bool _first_frame) {
     return true;
   }
 
-  // Compute elapsed time since last idle.
+  // Compute elapsed time since last idle, and delta time.
+  float delta;
   double time = glfwGetTime();
   if (_first_frame ||  // Don't take into account time spent initializing.
       time == 0.) {  // Means glfw isn't initialized (rendering's disabled).
-    time = last_idle_time_ + 1. / 60.;
+    delta = 1.f / 60.f;
+  } else {
+    delta = static_cast<float>(time - last_idle_time_);
   }
-
-  // Real time dt.
-  const float delta = static_cast<float>(time - last_idle_time_);
   last_idle_time_ = time;
 
   // Update dt, can be scaled, fixed, freezed...

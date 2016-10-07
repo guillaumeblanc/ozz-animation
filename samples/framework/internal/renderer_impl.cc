@@ -479,7 +479,7 @@ int DrawPosture_FillUniforms(const ozz::animation::Skeleton& _skeleton,
     int instances = 0;
     for (int i = 0; i < num_joints && instances < _max_instances; ++i) {
 
-      // Selects parent matrix, which is identity in case of a root.
+      // Root isn't rendered.
       const int parent_id = properties[i].parent;
       if (parent_id == ozz::animation::Skeleton::kNoParentIndex) {
         continue;
