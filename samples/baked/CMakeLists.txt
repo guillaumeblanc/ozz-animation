@@ -1,9 +1,6 @@
-if(TRUE)
+set(baked_source_file "${ozz_media_directory}/fbx/ozz_explode.fbx")
 
-  if(NOT ozz_build_fbx)
-    return()
-  endif()
-
+if(ozz_build_fbx AND EXISTS "${baked_source_file}")
   add_executable(sample_fbx2baked
     fbx2baked.cc)
   target_link_libraries(sample_fbx2baked
@@ -22,24 +19,31 @@ if(TRUE)
 
   add_custom_command(
     DEPENDS "${CMAKE_CURRENT_LIST_DIR}/README"
-            "${ozz_media_directory}/fbx/domino.fbx"
+            "${baked_source_file}"
             sample_fbx2baked
             fbx2anim
-    OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/README"
-           "${CMAKE_CURRENT_BINARY_DIR}/media/baked_skeleton.ozz"
-           "${CMAKE_CURRENT_BINARY_DIR}/media/baked_animation.ozz"
-    COMMAND ${CMAKE_COMMAND} -E make_directory media
-    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_LIST_DIR}/README .
+    OUTPUT "${ozz_media_directory}/bin/baked_skeleton.ozz"
+           "${ozz_media_directory}/bin/baked_animation.ozz"
     COMMAND sample_fbx2baked
-      "--file=${ozz_media_directory}/fbx/domino.fbx"
-      "--skeleton=${CMAKE_CURRENT_BINARY_DIR}/media/baked_skeleton.ozz"
+      "--file=${baked_source_file}"
+      "--skeleton=${ozz_media_directory}/bin/baked_skeleton.ozz"
     COMMAND fbx2anim
-      "--file=${ozz_media_directory}/fbx/domino.fbx"
-      "--skeleton=${CMAKE_CURRENT_BINARY_DIR}/media/baked_skeleton.ozz"
-      "--animation=${CMAKE_CURRENT_BINARY_DIR}/media/baked_animation.ozz"
-      "--rotation=0.001"
-      "--translation=0.001")
+      "--file=${baked_source_file}"
+      "--skeleton=${ozz_media_directory}/bin/baked_skeleton.ozz"
+      "--animation=${ozz_media_directory}/bin/baked_animation.ozz")
 endif()
+
+add_custom_command(
+  DEPENDS "${CMAKE_CURRENT_LIST_DIR}/README"
+          "${ozz_media_directory}/bin/baked_skeleton.ozz"
+          "${ozz_media_directory}/bin/baked_animation.ozz"
+  OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/README"
+         "${CMAKE_CURRENT_BINARY_DIR}/media/baked_skeleton.ozz"
+         "${CMAKE_CURRENT_BINARY_DIR}/media/baked_animation.ozz"
+  COMMAND ${CMAKE_COMMAND} -E make_directory media
+  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_LIST_DIR}/README" .
+  COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/baked_skeleton.ozz" "./media"
+  COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/baked_animation.ozz" "./media")
 
 add_executable(sample_baked
   sample_baked.cc
