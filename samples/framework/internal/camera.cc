@@ -54,10 +54,9 @@ const Float2 kDefaultAngle = Float2(-ozz::math::kPi * 1.f / 12.f,
                                     ozz::math::kPi * 1.f / 5.f);
 const float kAngleFactor = .002f;
 const float kDistanceFactor = .1f;
-const float kScrollFactor = .02f;
+const float kScrollFactor = .03f;
 const float kPanFactor = .01f;
 const float kKeyboardFactor = 500.f;
-const float kAnimationTime = .15f;
 const float kNear = .01f;
 const float kFar = 1000.f;
 const float kFovY = ozz::math::kPi / 3.f;
@@ -72,14 +71,6 @@ Camera::Camera()
       angles_(kDefaultAngle),
       center_(kDefaultCenter),
       distance_(kDefaultDistance),
-      animated_angles_(kDefaultAngle),
-      smooth_angles_(true),
-      animated_center_(kDefaultCenter),
-      smooth_center_(false),
-      animated_distance_(kDefaultDistance),
-      smooth_distance_(false),
-      fix_distance_(true),
-      remaining_animation_time_(0.f),
       mouse_last_x_(0),
       mouse_last_y_(0),
       mouse_last_wheel_(0),
@@ -90,35 +81,78 @@ Camera::~Camera() {
 }
 
 void Camera::Update(const math::Box& _box, float _delta_time, bool _first_frame) {
-  bool zooming = false;
-  bool zooming_wheel = false;
-  bool rotating = false;
-  bool panning = false;
-
-  // Auto framing is forced on the first frame.
-  bool frame_all = auto_framing_ || _first_frame || glfwGetKey('F') == GLFW_PRESS;
+  assert(_box.is_valid());
 
   // Frame the scene according to the provided box.
-  if (frame_all && _box.is_valid()) {
+  if (auto_framing_ || _first_frame) {
     center_ = (_box.max + _box.min) * .5f;
     const float radius = Length(_box.max - _box.min) * .5f;
-    if (!fix_distance_ || _first_frame) {
+    if (_first_frame) {
       distance_ = (radius * kFrameAllZoomOut) / tanf(kFovY * .5f);
     }
-    remaining_animation_time_ = _first_frame? 0.f : kAnimationTime;
   }
 
-  // Mouse wheel activates Zoom.
-#ifndef EMSCRIPTEN
-  const int w = glfwGetMouseWheel();
-  const int dw = w - mouse_last_wheel_;
-  mouse_last_wheel_ = w;
-  if (dw != 0) {
-    zooming_wheel = true;
-    distance_ += -dw * kScrollFactor * distance_;
-    remaining_animation_time_= 0.f;
+  // Update manual controls.
+  const Controls controls = UpdateControls(_delta_time);
+
+  // Disable autoframing according to inputs.
+  auto_framing_ &= !controls.panning;
+}
+
+void Camera::Update(const math::Float4x4& _transform, const math::Box& _box,
+                    float _delta_time, bool _first_frame) {
+  // Extract distance and angles such that theu are coherent when switching out
+  // of auto_framing_.
+  if (auto_framing_ || _first_frame) {
+    // Extract components from the view martrix.
+    ozz::math::Float3 camera_dir;
+    ozz::math::Store3PtrU(-ozz::math::Normalize3(_transform.cols[2]),
+                          &camera_dir.x);
+    ozz::math::Float3 camera_pos;
+    ozz::math::Store3PtrU(_transform.cols[3], &camera_pos.x);
+
+    // Distance must be fixed, so it's computed on the first frame.
+    if (_first_frame) {
+      const ozz::math::Float3 box_center_ = (_box.max + _box.min) * .5f;
+      distance_ = Length(box_center_ - camera_pos);
+    }
+
+    center_ = camera_pos + camera_dir * distance_;
+    angles_.x = std::asinf(camera_dir.y);
+    angles_.y = std::acosf(Dot(ozz::math::Float3::z_axis(), -camera_dir));
   }
-#endif  // EMSCRIPTEN
+
+  // Update manual controls.
+  const Controls controls = UpdateControls(_delta_time);
+
+  // Disable autoframing according to inputs.
+  auto_framing_ &= !controls.panning && !controls.rotating &&
+                   !controls.zooming && !controls.zooming_wheel;
+
+  if (auto_framing_) {
+    view_ = Invert(_transform);
+  }
+}
+
+Camera::Controls Camera::UpdateControls(float _delta_time) {
+  Controls controls;
+  controls.zooming = false;
+  controls.zooming_wheel = false;
+  controls.rotating = false;
+  controls.panning = false;
+
+  // Mouse wheel + SHIFT activates Zoom.
+  if (glfwGetKey(GLFW_KEY_LSHIFT) == GLFW_PRESS) {
+    const int w = glfwGetMouseWheel();
+    const int dw = w - mouse_last_wheel_;
+    mouse_last_wheel_ = w;
+    if (dw != 0) {
+      controls.zooming_wheel = true;
+      distance_ *= 1.f + -dw * kScrollFactor;
+    }
+  } else {
+    mouse_last_wheel_ = glfwGetMouseWheel();
+  }
 
   // Fetches current mouse position and compute its movement since last frame.
   int x, y;
@@ -143,13 +177,12 @@ void Camera::Update(const math::Box& _box, float _delta_time, bool _first_frame)
 
   // Mouse right button activates Zoom, Pan and Orbit modes.
   if (keyboard_interact || glfwGetMouseButton(GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
-    if (glfwGetKey(GLFW_KEY_LCTRL) == GLFW_PRESS) {  // Zoom mode.
-      zooming = true;
+    if (glfwGetKey(GLFW_KEY_LSHIFT) == GLFW_PRESS) {  // Zoom mode.
+      controls.zooming = true;
 
       distance_ += dy * kDistanceFactor;
-      remaining_animation_time_= 0.f;
-    } else if (glfwGetKey(GLFW_KEY_LSHIFT) == GLFW_PRESS) {  // Pan mode.
-      panning = true;
+    } else if (glfwGetKey(GLFW_KEY_LCTRL) == GLFW_PRESS) {  // Pan mode.
+      controls.panning = true;
 
       const float dx_pan = -dx * kPanFactor;
       const float dy_pan = dy * kPanFactor;
@@ -161,80 +194,39 @@ void Camera::Update(const math::Box& _box, float _delta_time, bool _first_frame)
       math::Store3PtrU(transpose.cols[1], &up_transpose.x);
       center_ = center_ + right_transpose * dx_pan + up_transpose * dy_pan;
     } else {  // Orbit mode.
-      rotating = true;
+      controls.rotating = true;
 
       angles_.x = fmodf(angles_.x - dy * kAngleFactor, ozz::math::k2Pi);
       angles_.y = fmodf(angles_.y - dx * kAngleFactor, ozz::math::k2Pi);
-      remaining_animation_time_= 0.f;
     }
-  }
-
-  // An animation (to the new center position) is in progress.
-  if (remaining_animation_time_ > 0.001f) {
-    const float clamped_delta_time =
-      ozz::math::Min(_delta_time, remaining_animation_time_);
-    const float ratio = clamped_delta_time / remaining_animation_time_;
-
-    animated_angles_ = smooth_angles_?
-      animated_angles_ + (angles_ - animated_angles_) * ratio : angles_;
-    animated_center_ = smooth_center_?
-      animated_center_ + (center_ - animated_center_) * ratio : center_;
-    animated_distance_ = smooth_distance_?
-      animated_distance_ + (distance_ - animated_distance_) * ratio : distance_;
-    remaining_animation_time_ -= clamped_delta_time;
-  } else {
-    animated_angles_ = angles_;
-    animated_center_ = center_;
-    animated_distance_ = distance_;
   }
 
   // Build the model view matrix components.
   const Float4x4 center = Float4x4::Translation(
-    math::simd_float4::Load(
-      animated_center_.x, animated_center_.y, animated_center_.z, 1.f));
+    math::simd_float4::Load(center_.x, center_.y, center_.z, 1.f));
   const Float4x4 y_rotation = Float4x4::FromAxisAngle(
-    math::simd_float4::Load(0.f, 1.f, 0.f, animated_angles_.y));
+    math::simd_float4::Load(0.f, 1.f, 0.f, angles_.y));
   const Float4x4 x_rotation = Float4x4::FromAxisAngle(
-    math::simd_float4::Load(1.f, 0.f, 0.f, animated_angles_.x));
+    math::simd_float4::Load(1.f, 0.f, 0.f, angles_.x));
   const Float4x4 distance = Float4x4::Translation(
-    math::simd_float4::Load(0.f, 0.f, animated_distance_, 1.f));
+    math::simd_float4::Load(0.f, 0.f, distance_, 1.f));
 
   // Concatenate view matrix components.
   view_ = Invert(center * y_rotation * x_rotation * distance);
 
-  // Auto-framing is disabled based on user actions.
-  auto_framing_ &= !panning;
-
-  // Unused rotating variable.
-  (void)rotating;
-  (void)zooming_wheel;
-  (void)zooming;
-}
-
-void Camera::Update(const math::Float4x4& _transform) {
-  view_ = Invert(_transform);
+  return controls;
 }
 
 void Camera::OnGui(ImGui* _im_gui) {
 
   const char* controls_label =
-    "-F: Frame all\n"
     "-RMB: Rotate\n"
-    "-Ctrl + RMB: Zoom\n"
-    "-Shift + RMB: Pan\n";
+    "-Shift + Wheel: Zoom\n"
+    "-Shift + RMB: Zoom\n"
+    "-Ctr + RMB: Pan\n";
   _im_gui->DoLabel(controls_label, ImGui::kLeft, false);
 
-  _im_gui->DoCheckBox("Automatic framing", &auto_framing_);
-  {
-    static bool advanced = false;
-    ImGui::OpenClose stats(_im_gui, "Advanced options", &advanced);
-    if (advanced) {
-      _im_gui->DoCheckBox("Smooth rotations", &smooth_angles_);
-      _im_gui->DoCheckBox("Smooth targeting", &smooth_center_);
-      _im_gui->DoCheckBox("Fixes target distance", &fix_distance_);
-      _im_gui->DoCheckBox("Smooth target distance", &smooth_distance_, !fix_distance_);
-    }
-  }
+  _im_gui->DoCheckBox("Automatic (key A)", &auto_framing_);
 }
 
 void Camera::Bind3D() {

@@ -58,7 +58,7 @@ class Camera {
 
   // Updates camera location, overriding user inputs.
   // Returns actions that the user applied to the camera during the frame.
-  void Update(const math::Float4x4& _transform);
+  void Update(const math::Float4x4& _transform, const math::Box& _box, float _delta_time, bool _first_frame);
 
   // Provides immediate mode gui display event.
   void OnGui(ImGui* _im_gui);
@@ -97,6 +97,15 @@ class Camera {
   }
 
  private:
+
+  struct Controls {
+    bool zooming;
+    bool zooming_wheel;
+    bool rotating;
+    bool panning;
+  };
+  Controls UpdateControls(float _delta_time);
+
   // The current projection matrix.
   math::Float4x4 projection_;
 
@@ -113,34 +122,11 @@ class Camera {
   math::Float2 angles_;
 
   // The center of the rotation.
+  friend class Application;
   math::Float3 center_;
 
   // The view distance, from the center of rotation.
   float distance_;
-
-  // The current animated angles.
-  math::Float2 animated_angles_;
-
-  // True if angles should be animated.
-  bool smooth_angles_;
-
-  // The current animated center position.
-  math::Float3 animated_center_;
-
-  // True if angles should be animated.
-  bool smooth_center_;
-
-  // The current animated distance for the center.
-  float animated_distance_;
-
-  // True if angles should be animated.
-  bool smooth_distance_;
-
-  // Fix (don't animate) camera distance to the target.
-  bool fix_distance_;
-
-  // The remaining time for the  animated center to reach the center.
-  float remaining_animation_time_;
 
   // The position of the mouse, the last time it has been seen.
   int mouse_last_x_;

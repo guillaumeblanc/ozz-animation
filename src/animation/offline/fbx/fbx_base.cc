@@ -99,7 +99,7 @@ FbxSceneLoader::FbxSceneLoader(const char* _filename,
   // Initialize the importer by providing a filename. Use all available plugins.
   const bool initialized = importer->Initialize(_filename, -1, _io_settings);
 
-  // Get the version number of the FBX file format.
+  // Get the version of the FBX file format.
   int major, minor, revision;
   importer->GetFileVersion(major, minor, revision);
 
@@ -111,14 +111,14 @@ FbxSceneLoader::FbxSceneLoader(const char* _filename,
 
     if (importer->GetStatus().GetCode() == FbxStatus::eInvalidFileVersion)
     {
-      ozz::log::Err() << "FBX version number for " << _filename << " is " <<
+      ozz::log::Err() << "FBX version of " << _filename << " is " <<
         major << "." << minor<< "." << revision << "." << std::endl;
     }
   }
 
   if (initialized) {
     if ( importer->IsFBX()) {
-      ozz::log::Log() << "FBX version number for " << _filename << " is " <<
+      ozz::log::Log() << "FBX version of " << _filename << " is " <<
         major << "." << minor<< "." << revision << "." << std::endl;
     }
 

@@ -440,12 +440,13 @@ bool Application::Idle(bool _first_frame) {
 
   // Update camera model-view matrix.
   if (camera_) {
+    math::Box scene_bounds;
+    GetSceneBounds(&scene_bounds);
+
     math::Float4x4 camera_transform;
     if (GetCameraOverride(&camera_transform)){
-      camera_->Update(camera_transform);
+      camera_->Update(camera_transform, scene_bounds, delta, _first_frame);
     } else {
-      math::Box scene_bounds;
-      GetSceneBounds(&scene_bounds);
       camera_->Update(scene_bounds, delta, _first_frame);
     }
   }
