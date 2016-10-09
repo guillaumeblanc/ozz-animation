@@ -30,7 +30,8 @@ if(ozz_build_fbx AND EXISTS "${baked_source_file}")
     COMMAND fbx2anim
       "--file=${baked_source_file}"
       "--skeleton=${ozz_media_directory}/bin/baked_skeleton.ozz"
-      "--animation=${ozz_media_directory}/bin/baked_animation.ozz")
+      "--animation=${ozz_media_directory}/bin/baked_animation.ozz"
+      "--rotation=0.01")
 endif()
 
 add_custom_command(

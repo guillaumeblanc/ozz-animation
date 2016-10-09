@@ -138,27 +138,13 @@ class BakedSampleApplication : public ozz::sample::Application {
   // Samples animation, transforms to model space and renders.
   virtual bool OnDisplay(ozz::sample::Renderer* _renderer) {
 
-    bool success = true;
-    
-    // Prepares baked boxes rendering.
-    {
-      const ozz::sample::Renderer::Color color = {0xff, 0xff, 0xff, 0xff};
-      const float size = .5f;
-      const ozz::math::Box box(ozz::math::Float3(-size),
-                               ozz::math::Float3(size));
-      success &= _renderer->DrawBoxShaded(box, models_, color);
-    }
-    /*
-    // Prepares ground rendering.
-    {
-      const ozz::sample::Renderer::Color color = {0x50, 0x50, 0x50, 0xff};
-      const float size = 100.f;
-      const ozz::math::Box box(ozz::math::Float3(-size, -1.f, -size),
-                               ozz::math::Float3(size, 0.f, size));
-      const ozz::math::Float4x4 matrix = ozz::math::Float4x4::identity();
-      success &= _renderer->DrawBoxShaded(box, matrix, color);
-    }*/
-    return success;
+    // Render a 1m size boxes for every joint. The scale of each box come from
+    // the animation.
+    const ozz::sample::Renderer::Color color = {0xff, 0xff, 0xff, 0xff};
+    const float size = .5f;
+    const ozz::math::Box box(ozz::math::Float3(-size),
+                             ozz::math::Float3(size));
+    return _renderer->DrawBoxShaded(box, models_, color);
   }
 
   virtual bool OnGui(ozz::sample::ImGui* _im_gui) {
