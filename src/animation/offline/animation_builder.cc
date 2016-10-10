@@ -345,6 +345,12 @@ Animation* AnimationBuilder::operator()(const RawAnimation& _input) const {
   animation->rotations_ = CopyToAnimation(&sorting_rotations);
   animation->scales_ = CopyToAnimation(&sorting_scales);
 
+  // Copy name
+  const size_t name_len = _input.name.length() + 1;
+  animation->name_ =
+      memory::default_allocator()->Allocate<char>(name_len);
+  std::strcpy(animation->name_, _input.name.c_str());
+
   return animation;  // Success.
 }
 }  // offline

@@ -78,6 +78,11 @@ class Animation {
     return (num_tracks_ + 3) / 4;
   }
 
+  // Gets animation name.
+  const char* name() const {
+    return name_ ? name_ : "";
+  }
+
   // Gets the buffer of translations keys.
   ozz::Range<const TranslationKey> translations() const {
     return translations_;
@@ -114,22 +119,25 @@ class Animation {
   // Internal destruction function.
   void Destroy();
 
-  // Stores all translation/rotation/scale keys begin and end of buffers.
-  ozz::Range<TranslationKey> translations_;
-  ozz::Range<RotationKey> rotations_;
-  ozz::Range<ScaleKey> scales_;
-
   // Duration of the animation clip.
   float duration_;
 
   // The number of joint tracks. Can differ from the data stored in translation/
   // rotation/scale buffers because of SoA requirements.
   int num_tracks_;
+
+  // Animation name.
+  char* name_;
+
+  // Stores all translation/rotation/scale keys begin and end of buffers.
+  ozz::Range<TranslationKey> translations_;
+  ozz::Range<RotationKey> rotations_;
+  ozz::Range<ScaleKey> scales_;
 };
 }  // animation
 
 namespace io {
-OZZ_IO_TYPE_VERSION(3, animation::Animation)
+OZZ_IO_TYPE_VERSION(4, animation::Animation)
 OZZ_IO_TYPE_TAG("ozz-animation", animation::Animation)
 }  // io
 }  // ozz

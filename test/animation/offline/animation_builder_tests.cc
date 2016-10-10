@@ -190,6 +190,40 @@ TEST(Build, AnimationBuilder) {
   }
 }
 
+TEST(Name, AnimationBuilder) {
+  // Instantiates a builder objects with default parameters.
+  AnimationBuilder builder;
+
+  { // Building an unnamed animation.
+    RawAnimation raw_animation;
+    raw_animation.duration = 1.f;
+    raw_animation.tracks.resize(46);
+
+    // Builds animation
+    Animation* anim = builder(raw_animation);
+    EXPECT_TRUE(anim != NULL);
+
+    // Should 
+    EXPECT_STREQ(anim->name(), "");
+    ozz::memory::default_allocator()->Delete(anim);
+  }
+
+  { // Building an unnamed animation.
+    RawAnimation raw_animation;
+    raw_animation.duration = 1.f;
+    raw_animation.tracks.resize(46);
+    raw_animation.name = "46";
+
+    // Builds animation
+    Animation* anim = builder(raw_animation);
+    EXPECT_TRUE(anim != NULL);
+
+    // Should 
+    EXPECT_STREQ(anim->name(), "46");
+    ozz::memory::default_allocator()->Delete(anim);
+  }
+}
+
 TEST(Sort, AnimationBuilder) {
   // Instantiates a builder objects with default parameters.
   AnimationBuilder builder;

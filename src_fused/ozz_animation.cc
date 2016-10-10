@@ -35,6 +35,8 @@
 #include "ozz/base/maths/math_archive.h"
 #include "ozz/base/memory/allocator.h"
 
+#include <cstring>
+
 // Internal include file
 #define OZZ_INCLUDE_PRIVATE_HEADER  // Allows to include private headers.
 
@@ -134,7 +136,8 @@ namespace animation {
 
 Animation::Animation()
     : duration_(0.f),
-      num_tracks_(0) {
+      num_tracks_(0),
+      name_(NULL) {
 }
 
 Animation::~Animation() {
@@ -143,12 +146,15 @@ Animation::~Animation() {
 
 void Animation::Destroy() {
   memory::Allocator* allocator = memory::default_allocator();
-  allocator->Deallocate(translations_);
-  allocator->Deallocate(rotations_);
-  allocator->Deallocate(scales_);
 
   duration_ = 0.f;
   num_tracks_ = 0;
+
+  allocator->Deallocate(name_);
+  name_ = NULL;
+  allocator->Deallocate(translations_);
+  allocator->Deallocate(rotations_);
+  allocator->Deallocate(scales_);
 }
 
 size_t Animation::size() const {
@@ -160,6 +166,10 @@ size_t Animation::size() const {
 void Animation::Save(ozz::io::OArchive& _archive) const {
   _archive << duration_;
   _archive << static_cast<int32_t>(num_tracks_);
+
+  const size_t name_len = name_ ? std::strlen(name_) : 0;
+  _archive << static_cast<uint32_t>(name_len);
+  _archive << ozz::io::MakeArray(name_, name_len);
 
   const ptrdiff_t translation_count = translations_.Count();
   _archive << static_cast<int32_t>(translation_count);
@@ -200,7 +210,7 @@ void Animation::Load(ozz::io::IArchive& _archive, uint32_t _version) {
   Destroy();
 
   // No retro-compatibility with anterior versions.
-  if (_version != 3) {
+  if (_version != 4) {
     return;
   }
 
@@ -211,6 +221,12 @@ void Animation::Load(ozz::io::IArchive& _archive, uint32_t _version) {
   int32_t num_tracks;
   _archive >> num_tracks;
   num_tracks_ = num_tracks;
+
+  uint32_t name_len;
+  _archive >> name_len;
+  name_ = allocator->Allocate<char>(name_len + 1);
+  _archive >> ozz::io::MakeArray(name_, name_len);
+  name_[name_len] = 0;  // Fixup num terminating character.
 
   int32_t translation_count;
   _archive >> translation_count;
