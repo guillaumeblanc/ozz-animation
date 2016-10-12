@@ -128,54 +128,48 @@ void CopyRaw(const _SrcTrack& _src, uint16_t _track, float _duration,
   assert(_dest->front().key.time == 0.f && _dest->back().key.time == _duration);
 }
 
-ozz::Range<TranslationKey> CopyToAnimation(
-  ozz::Vector<SortingTranslationKey>::Std* _src) {
+void CopyToAnimation(ozz::Vector<SortingTranslationKey>::Std* _src,
+                     ozz::Range<TranslationKey>* _dest) {
   const size_t src_count = _src->size();
   if (!src_count) {
-    return ozz::Range<TranslationKey>();
+    return;
   }
 
   // Sort animation keys to favor cache coherency.
   std::sort(&_src->front(), (&_src->back()) + 1, &SortingKeyLess<SortingTranslationKey>);
 
   // Fills output.
-  ozz::Range<TranslationKey> dest =
-    memory::default_allocator()->AllocateRange<TranslationKey>(src_count);
   const SortingTranslationKey* src = &_src->front();
   for (size_t i = 0; i < src_count; ++i) {
-    TranslationKey& key = dest.begin[i];
+    TranslationKey& key = _dest->begin[i];
     key.time = src[i].key.time;
     key.track = src[i].track;
     key.value[0] = ozz::math::FloatToHalf(src[i].key.value.x);
     key.value[1] = ozz::math::FloatToHalf(src[i].key.value.y);
     key.value[2] = ozz::math::FloatToHalf(src[i].key.value.z);
   }
-  return dest;
 }
 
-ozz::Range<ScaleKey> CopyToAnimation(
-  ozz::Vector<SortingScaleKey>::Std* _src) {
+void CopyToAnimation(ozz::Vector<SortingScaleKey>::Std* _src,
+                     ozz::Range<ScaleKey>* _dest) {
   const size_t src_count = _src->size();
   if (!src_count) {
-    return ozz::Range<ScaleKey>();
+    return;
   }
 
   // Sort animation keys to favor cache coherency.
   std::sort(&_src->front(), (&_src->back()) + 1, &SortingKeyLess<SortingScaleKey>);
 
   // Fills output.
-  ozz::Range<ScaleKey> dest =
-    memory::default_allocator()->AllocateRange<ScaleKey>(src_count);
   const SortingScaleKey* src = &_src->front();
   for (size_t i = 0; i < src_count; ++i) {
-    ScaleKey& key = dest.begin[i];
+    ScaleKey& key = _dest->begin[i];
     key.time = src[i].key.time;
     key.track = src[i].track;
     key.value[0] = ozz::math::FloatToHalf(src[i].key.value.x);
     key.value[1] = ozz::math::FloatToHalf(src[i].key.value.y);
     key.value[2] = ozz::math::FloatToHalf(src[i].key.value.z);
   }
-  return dest;
 }
 
 namespace {
@@ -217,11 +211,11 @@ void CompressQuat(const ozz::math::Quaternion& _src,
 // Specialize for rotations in order to normalize quaternions.
 // Consecutive opposite quaternions are also fixed up in order to avoid checking
 // for the smallest path during the NLerp runtime algorithm.
-ozz::Range<RotationKey> CopyToAnimation(
-  ozz::Vector<SortingRotationKey>::Std* _src) {
+void CopyToAnimation(ozz::Vector<SortingRotationKey>::Std* _src,
+                     ozz::Range<RotationKey>* _dest) {
   const size_t src_count = _src->size();
   if (!src_count) {
-    return ozz::Range<RotationKey>();
+    return;
   }
 
   // Normalize quaternions.
@@ -258,18 +252,15 @@ ozz::Range<RotationKey> CopyToAnimation(
             &SortingKeyLess<SortingRotationKey>);
 
   // Fills rotation keys output.
-  ozz::Range<RotationKey> dest =
-    memory::default_allocator()->AllocateRange<RotationKey>(src_count);
   for (size_t i = 0; i < src_count; ++i) {
     const SortingRotationKey& skey = src[i];
-    RotationKey& dkey = dest.begin[i];
+    RotationKey& dkey = _dest->begin[i];
     dkey.time = skey.key.time;
     dkey.track = skey.track;
 
     // Compress quaternion to destination container.
     CompressQuat(skey.key.value, &dkey);
   }
-  return dest;
 }
 }  // namespace
 
@@ -340,15 +331,18 @@ Animation* AnimationBuilder::operator()(const RawAnimation& _input) const {
     PushBackIdentityKey<SrcSKey>(i, duration, &sorting_scales);
   }
 
+  // Allocate animation members.
+  animation->Allocate(_input.name.length() + 1,
+                      sorting_translations.size(),
+                      sorting_rotations.size(),
+                      sorting_scales.size());
+
   // Copy sorted keys to final animation.
-  animation->translations_ = CopyToAnimation(&sorting_translations);
-  animation->rotations_ = CopyToAnimation(&sorting_rotations);
-  animation->scales_ = CopyToAnimation(&sorting_scales);
+  CopyToAnimation(&sorting_translations, &animation->translations_);
+  CopyToAnimation(&sorting_rotations, &animation->rotations_);
+  CopyToAnimation(&sorting_scales, &animation->scales_);
 
   // Copy name
-  const size_t name_len = _input.name.length() + 1;
-  animation->name_ =
-      memory::default_allocator()->Allocate<char>(name_len);
   std::strcpy(animation->name_, _input.name.c_str());
 
   return animation;  // Success.

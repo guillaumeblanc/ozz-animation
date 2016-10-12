@@ -117,7 +117,9 @@ class Animation {
   friend class offline::AnimationBuilder;
 
   // Internal destruction function.
-  void Destroy();
+  void Allocate(size_t _name_size, size_t _translation_count,
+                size_t _rotation_count, size_t _scale_count);
+  void Deallocate();
 
   // Duration of the animation clip.
   float duration_;

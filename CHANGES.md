@@ -1,7 +1,7 @@
 Release version 0.9.0
 ---------------------
 * Library
-  - [offline[animation] Adds a name to the offline::RawAnimation and Animation data structure.
+  - [offline][animation] Adds a name to the offline::RawAnimation and Animation data structure.
   - [offline] Allows importing of all animations from a DCC file with a single command. fbx2anim now support the use of an * in the --animation option (output file name), which is replaced with the imported animation name when the output file is written to disk.
   - [offline] Removes dae tools, offline libraries and dependencies.
   - [offline] Uses scene frame rate as the default sampling rate option in fbx2anim. Allows to match DCC keys and avoid interpolation issues while importing from fbx sdk.
