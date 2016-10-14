@@ -56,8 +56,8 @@ set(skeletons
   "/fbx/alain/skeleton.fbx\;/bin/alain_skeleton.ozz"
   "/fbx/alain/skeleton.fbx\;/bin/versioning/raw_skeleton_v1_le.ozz\;option:--raw\;option:--endian=little"
   "/fbx/alain/skeleton.fbx\;/bin/versioning/raw_skeleton_v1_be.ozz\;option:--raw\;option:--endian=big"
-  "/fbx/alain/skeleton.fbx\;/bin/versioning/skeleton_v1_le.ozz\;option:--endian=little"
-  "/fbx/alain/skeleton.fbx\;/bin/versioning/skeleton_v1_be.ozz\;option:--endian=big"
+  "/fbx/alain/skeleton.fbx\;/bin/versioning/skeleton_v2_le.ozz\;option:--endian=little"
+  "/fbx/alain/skeleton.fbx\;/bin/versioning/skeleton_v2_be.ozz\;option:--endian=big"
   "/collada/astro_max.dae\;/bin/astro_max_skeleton.ozz"
   "/collada/astro_maya.dae\;/bin/astro_maya_skeleton.ozz"
   "/collada/seymour.dae\;/bin/seymour_skeleton.ozz")

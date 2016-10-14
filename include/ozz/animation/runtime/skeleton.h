@@ -124,8 +124,9 @@ class Skeleton {
   Skeleton(Skeleton const&);
   void operator=(Skeleton const&);
 
-  // Internal destruction function.
-  void Destroy();
+  // Internal allocation/deallocation function.
+  //void Allocate();
+  void Deallocate();
 
   // SkeletonBuilder class is allowed to instantiate an Skeleton.
   friend class offline::SkeletonBuilder;

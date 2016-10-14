@@ -38,7 +38,7 @@ namespace ozz {
 namespace io {
 // JointProperties' version can be declared locally as it will be saved from this
 // cpp file only.
-OZZ_IO_TYPE_VERSION(1, animation::Skeleton::JointProperties)
+OZZ_IO_TYPE_VERSION(2, animation::Skeleton::JointProperties)
 
 // Specializes Skeleton::JointProperties. This structure's bitset isn't written
 // as-is because of endianness issues.
@@ -81,16 +81,17 @@ Skeleton::Skeleton()
 }
 
 Skeleton::~Skeleton() {
-  Destroy();
+  Deallocate();
 }
+/*
+void Skeleton::Allocate(size_t _char_count, size_t _num_joints) {
+}*/
 
-void Skeleton::Destroy() {
+void Skeleton::Deallocate() {
   memory::Allocator* allocator = memory::default_allocator();
   allocator->Deallocate(joint_properties_);
   allocator->Deallocate(bind_pose_);
   allocator->Deallocate(joint_names_);
-
-  num_joints_ = 0;
 }
 
 // This function is not inlined in order to avoid the inclusion of SoaTransform.
@@ -126,8 +127,13 @@ void Skeleton::Save(ozz::io::OArchive& _archive) const {
 void Skeleton::Load(ozz::io::IArchive& _archive, uint32_t _version) {
   (void)_version;
 
-  // Destroy skeleton in case it was already used before.
-  Destroy();
+  // Deallocate skeleton in case it was already used before.
+  Deallocate();
+  num_joints_ = 0;
+
+  if (_version != 2) {
+    return;
+  }
 
   int32_t num_joints;
   _archive >> num_joints;

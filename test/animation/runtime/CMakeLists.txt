@@ -55,16 +55,10 @@ add_test(NAME test_animation_archive_versioning_be COMMAND test_animation_archiv
 # Previous versions.
 add_test(NAME test_animation_archive_versioning_le_older3 COMMAND test_animation_archive_versioning "--file=${ozz_media_directory}/bin/versioning/animation_v3_le.ozz" "--tracks=67" "--duration=.66666667" "--name=")
 set_tests_properties(test_animation_archive_versioning_le_older3 PROPERTIES WILL_FAIL true)
-add_test(NAME test_animation_archive_versioning_be_older3 COMMAND test_animation_archive_versioning "--file=${ozz_media_directory}/bin/versioning/animation_v3_be.ozz" "--tracks=67" "--duration=.66666667" "--name=")
-set_tests_properties(test_animation_archive_versioning_be_older3 PROPERTIES WILL_FAIL true)
 add_test(NAME test_animation_archive_versioning_le_older2 COMMAND test_animation_archive_versioning "--file=${ozz_media_directory}/bin/versioning/animation_v2_le.ozz" "--tracks=67" "--duration=1.33333302" "--name=")
 set_tests_properties(test_animation_archive_versioning_le_older2 PROPERTIES WILL_FAIL true)
-add_test(NAME test_animation_archive_versioning_be_older2 COMMAND test_animation_archive_versioning "--file=${ozz_media_directory}/bin/versioning/animation_v2_be.ozz" "--tracks=67" "--duration=1.33333302" "--name=")
-set_tests_properties(test_animation_archive_versioning_be_older2 PROPERTIES WILL_FAIL true)
 add_test(NAME test_animation_archive_versioning_le_older1 COMMAND test_animation_archive_versioning "--file=${ozz_media_directory}/bin/versioning/animation_v1_le.ozz" "--tracks=67" "--duration=.66666698" "--name=")
 set_tests_properties(test_animation_archive_versioning_le_older1 PROPERTIES WILL_FAIL true)
-add_test(NAME test_animation_archive_versioning_be_older1 COMMAND test_animation_archive_versioning "--file=${ozz_media_directory}/bin/versioning/animation_v1_be.ozz" "--tracks=67" "--duration=.66666698" "--name=")
-set_tests_properties(test_animation_archive_versioning_be_older1 PROPERTIES WILL_FAIL true)
 
 add_executable(test_skeleton_archive
   skeleton_archive_tests.cc)
@@ -84,8 +78,11 @@ target_link_libraries(test_skeleton_archive_versioning
   ozz_base
   gtest)
 set_target_properties(test_skeleton_archive_versioning PROPERTIES FOLDER "ozz/tests/animation")
-add_test(NAME test_skeleton_archive_versioning_le COMMAND test_skeleton_archive_versioning "--file=${ozz_media_directory}/bin/versioning/skeleton_v1_le.ozz" "--joints=67" "--root_name=Hips")
-add_test(NAME test_skeleton_archive_versioning_be COMMAND test_skeleton_archive_versioning "--file=${ozz_media_directory}/bin/versioning/skeleton_v1_be.ozz" "--joints=67" "--root_name=Hips")
+add_test(NAME test_skeleton_archive_versioning_le COMMAND test_skeleton_archive_versioning "--file=${ozz_media_directory}/bin/versioning/skeleton_v2_le.ozz" "--joints=67" "--root_name=Hips")
+add_test(NAME test_skeleton_archive_versioning_be COMMAND test_skeleton_archive_versioning "--file=${ozz_media_directory}/bin/versioning/skeleton_v2_be.ozz" "--joints=67" "--root_name=Hips")
+
+add_test(NAME test_skeleton_archive_versioning_le_older1 COMMAND test_skeleton_archive_versioning "--file=${ozz_media_directory}/bin/versioning/skeleton_v1_le.ozz" "--joints=67" "--root_name=Hips")
+set_tests_properties(test_skeleton_archive_versioning_le_older1 PROPERTIES WILL_FAIL true)
 
 add_executable(test_skeleton_utils
   skeleton_utils_tests.cc)

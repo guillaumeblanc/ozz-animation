@@ -87,7 +87,6 @@ add_test(NAME test_raw_animation_archive_versioning_be COMMAND test_raw_animatio
 
 # Previous versions.
 add_test(NAME test_raw_animation_archive_versioning_le_older1 COMMAND test_raw_animation_archive_versioning "--file=${ozz_media_directory}/bin/versioning/raw_animation_v1_le.ozz" "--tracks=67" "--duration=1.3333333" "--name=")
-add_test(NAME test_raw_animation_archive_versioning_be_older1 COMMAND test_raw_animation_archive_versioning "--file=${ozz_media_directory}/bin/versioning/raw_animation_v1_be.ozz" "--tracks=67" "--duration=1.3333333" "--name=")
 
 # ozz_animation_offline fuse tests
 add_executable(test_fuse_animation_offline
