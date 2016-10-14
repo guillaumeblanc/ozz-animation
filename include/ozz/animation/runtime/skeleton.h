@@ -125,7 +125,7 @@ class Skeleton {
   void operator=(Skeleton const&);
 
   // Internal allocation/deallocation function.
-  //void Allocate();
+  void Allocate(size_t _char_count, size_t _num_joints);
   void Deallocate();
 
   // SkeletonBuilder class is allowed to instantiate an Skeleton.

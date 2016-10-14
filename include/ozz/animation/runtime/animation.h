@@ -117,7 +117,7 @@ class Animation {
   friend class offline::AnimationBuilder;
 
   // Internal destruction function.
-  void Allocate(size_t _name_size, size_t _translation_count,
+  void Allocate(size_t _name_len, size_t _translation_count,
                 size_t _rotation_count, size_t _scale_count);
   void Deallocate();
 

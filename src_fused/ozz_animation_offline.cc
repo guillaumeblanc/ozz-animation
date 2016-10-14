@@ -1492,24 +1492,18 @@ Skeleton* SkeletonBuilder::operator()(const RawSkeleton& _raw_skeleton) const {
   JointLister lister(num_joints);
   _raw_skeleton.IterateJointsBF<JointLister&>(lister);
   assert(static_cast<int>(lister.linear_joints.size()) == num_joints);
-
-  // Transfers sorted joints hierarchy to the new skeleton.
-  skeleton->joint_properties_ =
-    memory::default_allocator()->Allocate<Skeleton::JointProperties>(num_joints);
-  for (int i = 0; i < num_joints; ++i) {
-    skeleton->joint_properties_[i].parent = lister.linear_joints[i].parent;
-    skeleton->joint_properties_[i].is_leaf =
-      lister.linear_joints[i].joint->children.empty();
-  }
-  // Transfers joint's names: First computes name's buffer size, then allocate
-  // and do the copy.
-  size_t buffer_size = num_joints * sizeof(char*);
+  
+  // Computes name's buffer size.
+  size_t chars_size = 0;
   for (int i = 0; i < num_joints; ++i) {
     const RawSkeleton::Joint& current = *lister.linear_joints[i].joint;
-    buffer_size += (current.name.size() + 1) * sizeof(char);
+    chars_size += (current.name.size() + 1) * sizeof(char);
   }
-  skeleton->joint_names_ =
-    memory::default_allocator()->Allocate<char*>(buffer_size);
+
+  // Allocates skeleton.
+  skeleton->Allocate(chars_size, num_joints);
+
+  // Copy names.
   char* cursor = reinterpret_cast<char*>(skeleton->joint_names_ + num_joints);
   for (int i = 0; i < num_joints; ++i) {
     const RawSkeleton::Joint& current = *lister.linear_joints[i].joint;
@@ -1518,15 +1512,19 @@ Skeleton* SkeletonBuilder::operator()(const RawSkeleton& _raw_skeleton) const {
     cursor += (current.name.size() + 1) * sizeof(char);
   }
 
-  // Transfers t-poses.
-  skeleton->bind_pose_ =
-    memory::default_allocator()->Allocate<math::SoaTransform>(num_soa_joints);
+  // Transfers sorted joints hierarchy to the new skeleton.
+  for (int i = 0; i < num_joints; ++i) {
+    skeleton->joint_properties_[i].parent = lister.linear_joints[i].parent;
+    skeleton->joint_properties_[i].is_leaf =
+      lister.linear_joints[i].joint->children.empty();
+  }
 
+  // Transfers t-poses.
   const math::SimdFloat4 w_axis = math::simd_float4::w_axis();
   const math::SimdFloat4 zero = math::simd_float4::zero();
   const math::SimdFloat4 one = math::simd_float4::one();
 
-  for (int i = 0; i < num_soa_joints; ++i) {
+  for (int i = 0; i < skeleton->num_soa_joints(); ++i) {
     math::SimdFloat4 translations[4];
     math::SimdFloat4 scales[4];
     math::SimdFloat4 rotations[4];

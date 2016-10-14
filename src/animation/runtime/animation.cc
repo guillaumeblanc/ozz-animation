@@ -51,13 +51,16 @@ Animation::~Animation() {
   Deallocate();
 }
 
-void Animation::Allocate(size_t _name_size, size_t _translation_count,
+void Animation::Allocate(size_t name_len, size_t _translation_count,
                          size_t _rotation_count, size_t _scale_count) {
   assert(name_ == NULL && translations_.Size() == 0 && rotations_.Size() == 0 &&
          scales_.Size() == 0);
+
   memory::Allocator* allocator = memory::default_allocator();
 
-  name_ = allocator->Allocate<char>(_name_size);
+  if (name_len > 0) {  // NULL name_ is supported.
+    name_ = allocator->Allocate<char>(name_len + 1);
+  }
   translations_ = allocator->AllocateRange<TranslationKey>(_translation_count);
   rotations_ = allocator->AllocateRange<RotationKey>(_rotation_count);
   scales_ = allocator->AllocateRange<ScaleKey>(_scale_count);
@@ -131,6 +134,7 @@ void Animation::Load(ozz::io::IArchive& _archive, uint32_t _version) {
 
   // No retro-compatibility with anterior versions.
   if (_version != 4) {
+    assert(false && "Unsupported version for Animation object type.");
     return;
   }
 
@@ -149,10 +153,12 @@ void Animation::Load(ozz::io::IArchive& _archive, uint32_t _version) {
   int32_t scale_count;
   _archive >> scale_count;
 
-  Allocate(name_len + 1, translation_count, rotation_count, scale_count);
+  Allocate(name_len, translation_count, rotation_count, scale_count);
 
-  _archive >> ozz::io::MakeArray(name_, name_len);
-  name_[name_len] = 0;  // Fixup num terminating character.
+  if (name_) {  // NULL name_ is supported.
+    _archive >> ozz::io::MakeArray(name_, name_len);
+    name_[name_len] = 0;
+  }
 
   for (int i = 0; i < translation_count; ++i) {
     TranslationKey& key = translations_.begin[i];

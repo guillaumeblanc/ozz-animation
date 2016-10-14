@@ -38,7 +38,7 @@ namespace ozz {
 namespace io {
 // JointProperties' version can be declared locally as it will be saved from this
 // cpp file only.
-OZZ_IO_TYPE_VERSION(2, animation::Skeleton::JointProperties)
+OZZ_IO_TYPE_VERSION(1, animation::Skeleton::JointProperties)
 
 // Specializes Skeleton::JointProperties. This structure's bitset isn't written
 // as-is because of endianness issues.
@@ -83,9 +83,21 @@ Skeleton::Skeleton()
 Skeleton::~Skeleton() {
   Deallocate();
 }
-/*
-void Skeleton::Allocate(size_t _char_count, size_t _num_joints) {
-}*/
+
+void Skeleton::Allocate(size_t _chars_size, size_t _num_joints) {
+
+  memory::Allocator* allocator = memory::default_allocator();
+
+  // Allocates and reads name's buffer. Names are stored at the end off the
+  // array of pointers.
+  const size_t buffer_size = _num_joints * sizeof(char*) + _chars_size;
+  joint_names_ = allocator->Allocate<char*>(buffer_size);
+
+  joint_properties_ =
+    allocator->Allocate<Skeleton::JointProperties>(_num_joints);
+  bind_pose_ =
+    allocator->Allocate<math::SoaTransform>((_num_joints + 3) / 4);
+}
 
 void Skeleton::Deallocate() {
   memory::Allocator* allocator = memory::default_allocator();
@@ -125,13 +137,13 @@ void Skeleton::Save(ozz::io::OArchive& _archive) const {
 }
 
 void Skeleton::Load(ozz::io::IArchive& _archive, uint32_t _version) {
-  (void)_version;
 
   // Deallocate skeleton in case it was already used before.
   Deallocate();
   num_joints_ = 0;
 
-  if (_version != 2) {
+  if (_version != 1) {
+    assert(false && "Unsupported version for Skeleton object type.");
     return;
   }
 
@@ -148,10 +160,10 @@ void Skeleton::Load(ozz::io::IArchive& _archive, uint32_t _version) {
   int32_t chars_count;
   _archive >> chars_count;
 
+  Allocate(chars_count, num_joints);
+
   // Allocates and reads name's buffer. Names are stored at the end off the
   // array of pointers.
-  const size_t buffer_size = num_joints * sizeof(char*) + chars_count;
-  joint_names_ = memory::default_allocator()->Allocate<char*>(buffer_size);
   char* cursor = reinterpret_cast<char*>(joint_names_ + num_joints);
   _archive >> ozz::io::MakeArray(cursor, chars_count);
 
@@ -164,14 +176,7 @@ void Skeleton::Load(ozz::io::IArchive& _archive, uint32_t _version) {
   // num_joints is > 0, as this was tested at the beginning of the function.
   joint_names_[num_joints - 1] = cursor;
 
-  // Reads joint's properties.
-  joint_properties_ = 
-    memory::default_allocator()->Allocate<Skeleton::JointProperties>(num_joints);
   _archive >> ozz::io::MakeArray(joint_properties_, num_joints);
-
-  // Reads bind pose.
-  bind_pose_ =
-    memory::default_allocator()->Allocate<math::SoaTransform>(num_soa_joints());
   _archive >> ozz::io::MakeArray(bind_pose_, num_soa_joints());
 }
 }  // animation
