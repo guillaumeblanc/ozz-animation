@@ -120,16 +120,22 @@ struct Range {
       end(_begin + _size) {
   }
   // Construct a range from a single element.
-  Range(_Ty& _element)
+  explicit Range(_Ty& _element)
     : begin(&_element),
       end((&_element) + 1) {
   }
   // Construct a range from an array, its size is automatically deduced.
   // It isn't declared explicit as conversion is free and safe.
   template <size_t _size>
-  Range(_Ty (&_array)[_size])
+  explicit Range(_Ty (&_array)[_size])
     : begin(_array),
       end(_array + _size) {
+  }
+
+  // Reset range to empty.
+  void Clear() {
+    begin = NULL;
+    end = NULL;
   }
 
   // Reinitialized from an array, its size is automatically deduced.

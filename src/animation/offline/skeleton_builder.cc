@@ -86,8 +86,6 @@ Skeleton* SkeletonBuilder::operator()(const RawSkeleton& _raw_skeleton) const {
   // Will not fail.
   Skeleton* skeleton = memory::default_allocator()->New<Skeleton>();
   const int num_joints = _raw_skeleton.num_joints();
-  skeleton->num_joints_ = num_joints;
-  const int num_soa_joints = skeleton->num_soa_joints();
 
   // Iterates through all the joint of the raw skeleton and fills a sorted joint
   // list.
@@ -102,11 +100,11 @@ Skeleton* SkeletonBuilder::operator()(const RawSkeleton& _raw_skeleton) const {
     chars_size += (current.name.size() + 1) * sizeof(char);
   }
 
-  // Allocates skeleton.
-  skeleton->Allocate(chars_size, num_joints);
+  // Allocates all skeleton members.
+  char* cursor = skeleton->Allocate(chars_size, num_joints);
 
-  // Copy names.
-  char* cursor = reinterpret_cast<char*>(skeleton->joint_names_ + num_joints);
+  // Copy names. All names are allocated in a single buffer. Only the first name
+  // is set, all other names array entries must be initialized.
   for (int i = 0; i < num_joints; ++i) {
     const RawSkeleton::Joint& current = *lister.linear_joints[i].joint;
     skeleton->joint_names_[i] = cursor;

@@ -30,6 +30,7 @@
 #include <cstring>
 
 #include "ozz/base/io/archive.h"
+#include "ozz/base/maths/math_ex.h"
 #include "ozz/base/maths/soa_math_archive.h"
 #include "ozz/base/maths/soa_transform.h"
 #include "ozz/base/memory/allocator.h"
@@ -73,74 +74,98 @@ void Load(IArchive& _archive,
 
 namespace animation {
 
-Skeleton::Skeleton()
-    : joint_properties_(NULL),
-      bind_pose_(NULL),
-      joint_names_(NULL),
-      num_joints_(0) {
-}
+Skeleton::Skeleton() {}
 
 Skeleton::~Skeleton() {
   Deallocate();
 }
 
-void Skeleton::Allocate(size_t _chars_size, size_t _num_joints) {
+char* Skeleton::Allocate(size_t _chars_size, size_t _num_joints) {
+  // Distributes buffer memory while ensuring proper alignment (serves larger
+  // alignment values first).
+  OZZ_STATIC_ASSERT(
+      ozz::AlignOf<math::SoaTransform>::value >= ozz::AlignOf<char*>::value &&
+      ozz::AlignOf<char*>::value >= ozz::AlignOf<Skeleton::JointProperties>::value &&
+      ozz::AlignOf<Skeleton::JointProperties>::value);
 
-  memory::Allocator* allocator = memory::default_allocator();
+  assert(bind_pose_.Size() == 0 && joint_names_.Size() == 0 &&
+         joint_properties_.Size() == 0);
 
-  // Allocates and reads name's buffer. Names are stored at the end off the
-  // array of pointers.
-  const size_t buffer_size = _num_joints * sizeof(char*) + _chars_size;
-  joint_names_ = allocator->Allocate<char*>(buffer_size);
+  // Early out if no joint.
+  if (_num_joints == 0) {
+    return NULL;
+  }
 
-  joint_properties_ =
-    allocator->Allocate<Skeleton::JointProperties>(_num_joints);
-  bind_pose_ =
-    allocator->Allocate<math::SoaTransform>((_num_joints + 3) / 4);
+  // Bind poses have SoA format
+  const size_t bind_poses_size = (_num_joints + 3) / 4 * sizeof(math::SoaTransform);
+  const size_t names_size = _num_joints * sizeof(char*);
+  const size_t properties_size = _num_joints * sizeof(Skeleton::JointProperties);
+  const size_t buffer_size =
+      names_size + _chars_size + properties_size + bind_poses_size;
+
+  // Allocates whole buffer.
+  char* buffer = reinterpret_cast<char*>(memory::default_allocator()->
+      Allocate(buffer_size, ozz::AlignOf<math::SoaTransform>::value));
+
+  // Bind pose first, biggest alignment.
+  bind_pose_.begin = reinterpret_cast<math::SoaTransform*>(buffer);
+  assert(math::IsAligned(bind_pose_.begin, ozz::AlignOf<math::SoaTransform>::value));
+  buffer += bind_poses_size;
+  bind_pose_.end = reinterpret_cast<math::SoaTransform*>(buffer);
+
+  // Then names array, second biggest alignment.
+  joint_names_.begin = reinterpret_cast<char**>(buffer);
+  assert(math::IsAligned(joint_names_.begin, ozz::AlignOf<char**>::value));
+  buffer += names_size;
+  joint_names_.end = reinterpret_cast<char**>(buffer);
+
+  // Properties, third biggest alignment.
+  joint_properties_.begin = reinterpret_cast<Skeleton::JointProperties*>(buffer);
+  assert(math::IsAligned(joint_properties_.begin, ozz::AlignOf<Skeleton::JointProperties>::value));
+  buffer += properties_size;
+  joint_properties_.end = reinterpret_cast<Skeleton::JointProperties*>(buffer);
+
+  // Remaning buffer will be used to store joint names.
+  return buffer;
 }
 
 void Skeleton::Deallocate() {
-  memory::Allocator* allocator = memory::default_allocator();
-  allocator->Deallocate(joint_properties_);
-  allocator->Deallocate(bind_pose_);
-  allocator->Deallocate(joint_names_);
-}
-
-// This function is not inlined in order to avoid the inclusion of SoaTransform.
-Range<const math::SoaTransform> Skeleton::bind_pose() const {
-  return Range<const math::SoaTransform>(bind_pose_,
-                                         bind_pose_ + ((num_joints_ + 3) / 4));
+  memory::default_allocator()->Deallocate(bind_pose_.begin);
+  bind_pose_.Clear();
+  joint_names_.Clear();
+  joint_properties_.Clear();
 }
 
 void Skeleton::Save(ozz::io::OArchive& _archive) const {
 
+  const int32_t num_joints = this->num_joints();
+
   // Early out if skeleton's empty.
-  _archive << static_cast<int32_t>(num_joints_);
-  if (!num_joints_) {
+  _archive << num_joints;
+  if (!num_joints) {
     return;
   }
 
   // Stores names. They are all concatenated in the same buffer, starting at
   // joint_names_[0].
   size_t chars_count = 0;
-  for (int i = 0; i < num_joints_; ++i) {
+  for (int i = 0; i < num_joints; ++i) {
     chars_count += (std::strlen(joint_names_[i]) + 1) * sizeof(char);
   }
   _archive << static_cast<int32_t>(chars_count);
   _archive << ozz::io::MakeArray(joint_names_[0], chars_count);
 
   // Stores joint's properties.
-  _archive << ozz::io::MakeArray(joint_properties_, num_joints_);
+  _archive << ozz::io::MakeArray(joint_properties_);
 
   // Stores bind poses.
-  _archive << ozz::io::MakeArray(bind_pose_, num_soa_joints());
+  _archive << ozz::io::MakeArray(bind_pose_);
 }
 
 void Skeleton::Load(ozz::io::IArchive& _archive, uint32_t _version) {
 
   // Deallocate skeleton in case it was already used before.
   Deallocate();
-  num_joints_ = 0;
 
   if (_version != 1) {
     assert(false && "Unsupported version for Skeleton object type.");
@@ -149,7 +174,6 @@ void Skeleton::Load(ozz::io::IArchive& _archive, uint32_t _version) {
 
   int32_t num_joints;
   _archive >> num_joints;
-  num_joints_ = num_joints;
 
   // Early out if skeleton's empty.
   if (!num_joints) {
@@ -160,11 +184,10 @@ void Skeleton::Load(ozz::io::IArchive& _archive, uint32_t _version) {
   int32_t chars_count;
   _archive >> chars_count;
 
-  Allocate(chars_count, num_joints);
+  // Allocates all skeleton data members.
+  char* cursor = Allocate(chars_count, num_joints);
 
-  // Allocates and reads name's buffer. Names are stored at the end off the
-  // array of pointers.
-  char* cursor = reinterpret_cast<char*>(joint_names_ + num_joints);
+  // Reads name's buffer, they are all contiguous in the same buffer.
   _archive >> ozz::io::MakeArray(cursor, chars_count);
 
   // Fixes up array of pointers. Stops at num_joints - 1, so that it doesn't
@@ -176,8 +199,8 @@ void Skeleton::Load(ozz::io::IArchive& _archive, uint32_t _version) {
   // num_joints is > 0, as this was tested at the beginning of the function.
   joint_names_[num_joints - 1] = cursor;
 
-  _archive >> ozz::io::MakeArray(joint_properties_, num_joints);
-  _archive >> ozz::io::MakeArray(bind_pose_, num_soa_joints());
+  _archive >> ozz::io::MakeArray(joint_properties_);
+  _archive >> ozz::io::MakeArray(bind_pose_);
 }
 }  // animation
 }  // ozz

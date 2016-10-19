@@ -82,13 +82,13 @@ class Skeleton {
 
   // Returns the number of joints of *this skeleton.
   int num_joints() const {
-    return num_joints_;
+    return static_cast<int>(joint_properties_.Count());
   }
 
   // Returns the number of soa elements matching the number of joints of *this
   // skeleton. This value is useful to allocate SoA runtime data structures.
   int num_soa_joints() const {
-      return (num_joints_ + 3) / 4;
+    return (num_joints() + 3) / 4;
   }
 
   // Per joint properties.
@@ -102,15 +102,17 @@ class Skeleton {
 
   // Returns joint's parent indices range.
   Range<const JointProperties> joint_properties() const {
-    return Range<const JointProperties>(joint_properties_, num_joints_);
+    return joint_properties_;
   }
 
   // Returns joint's bind poses. Bind poses are stored in soa format.
-  Range<const math::SoaTransform> bind_pose() const;
+  Range<const math::SoaTransform> bind_pose() const {
+    return bind_pose_;
+  }
 
   // Returns joint's name collection.
-  const char* const* joint_names() const {
-    return joint_names_;
+  Range<const char* const> joint_names() const {
+    return Range<const char* const>(joint_names_.begin, joint_names_.end);
   }
 
   // Serialization functions.
@@ -125,7 +127,8 @@ class Skeleton {
   void operator=(Skeleton const&);
 
   // Internal allocation/deallocation function.
-  void Allocate(size_t _char_count, size_t _num_joints);
+  // Allocate returns the beginning of the contiguous buffer of names.
+  char* Allocate(size_t _char_count, size_t _num_joints);
   void Deallocate();
 
   // SkeletonBuilder class is allowed to instantiate an Skeleton.
@@ -135,17 +138,13 @@ class Skeleton {
   // the number of joints of the skeleton.
 
   // Array of joint properties.
-  JointProperties* joint_properties_;
+  Range<JointProperties> joint_properties_;
 
   // Bind pose of every joint in local space.
-  math::SoaTransform* bind_pose_;
+  Range<math::SoaTransform> bind_pose_;
 
   // Stores the name of every joint in an array of c-strings.
-  // Uses a single allocation to store the array and all the c strings.
-  char** joint_names_;
-
-  // The number of joints.
-  int num_joints_;
+  Range<char*> joint_names_;
 };
 }  // animation
 

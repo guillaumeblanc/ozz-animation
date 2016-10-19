@@ -53,27 +53,51 @@ Animation::~Animation() {
 
 void Animation::Allocate(size_t name_len, size_t _translation_count,
                          size_t _rotation_count, size_t _scale_count) {
+  // Distributes buffer memory while ensuring proper alignment (serves larger
+  // alignment values first).
+  OZZ_STATIC_ASSERT(
+    ozz::AlignOf<TranslationKey>::value >= ozz::AlignOf<RotationKey>::value &&
+    ozz::AlignOf<RotationKey>::value >= ozz::AlignOf<ScaleKey>::value);
+
   assert(name_ == NULL && translations_.Size() == 0 && rotations_.Size() == 0 &&
          scales_.Size() == 0);
 
-  memory::Allocator* allocator = memory::default_allocator();
+  // Compute overall size and allocate a single buffer for all the data.
+  const size_t buffer_size =
+    (name_len > 0 ? name_len + 1 : 0) +
+    _translation_count * sizeof(TranslationKey) +
+    _rotation_count * sizeof(RotationKey) +
+    _scale_count * sizeof(ScaleKey);
 
-  if (name_len > 0) {  // NULL name_ is supported.
-    name_ = allocator->Allocate<char>(name_len + 1);
-  }
-  translations_ = allocator->AllocateRange<TranslationKey>(_translation_count);
-  rotations_ = allocator->AllocateRange<RotationKey>(_rotation_count);
-  scales_ = allocator->AllocateRange<ScaleKey>(_scale_count);
+  char* buffer = memory::default_allocator()->Allocate<char>(buffer_size);
+
+  // Fix up pointers
+  name_ = reinterpret_cast<char*>(name_len > 0 ? buffer : NULL);
+
+  buffer += name_len > 0 ? name_len + 1 : 0;
+  translations_.begin = reinterpret_cast<TranslationKey*>(buffer);
+  buffer += _translation_count * sizeof(TranslationKey);
+  translations_.end = reinterpret_cast<TranslationKey*>(buffer);
+
+  rotations_.begin = reinterpret_cast<RotationKey*>(buffer);
+  buffer += _rotation_count * sizeof(RotationKey);
+  rotations_.end = reinterpret_cast<RotationKey*>(buffer);
+
+  scales_.begin = reinterpret_cast<ScaleKey*>(buffer);
+  buffer += _scale_count * sizeof(ScaleKey);
+  scales_.end = reinterpret_cast<ScaleKey*>(buffer);
 }
 
 void Animation::Deallocate() {
-  memory::Allocator* allocator = memory::default_allocator();
 
-  allocator->Deallocate(name_);
+  void* buffer = name_ ? name_ : reinterpret_cast<void*>(translations_.begin);
+
+  memory::default_allocator()->Deallocate(buffer);
+  
   name_ = NULL;
-  allocator->Deallocate(translations_);
-  allocator->Deallocate(rotations_);
-  allocator->Deallocate(scales_);
+  translations_ = ozz::Range<TranslationKey>();
+  rotations_ = ozz::Range<RotationKey>();
+  scales_ = ozz::Range<ScaleKey>();
 }
 
 size_t Animation::size() const {

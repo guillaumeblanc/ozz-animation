@@ -140,6 +140,11 @@ TEST(Range, Memory) {
   EXPECT_EQ(reinit.Count(), array_size);
   EXPECT_EQ(reinit.Size(), sizeof(ai));
 
+  // Clear
+  reinit.Clear();
+  EXPECT_EQ(reinit.Count(), 0u);
+  EXPECT_EQ(reinit.Size(), 0u);
+
   cs1[12] = 46;
   EXPECT_EQ(cs1[12], 46);
   EXPECT_ASSERTION(cs1[46], "Index out of range");
