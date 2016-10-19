@@ -366,8 +366,15 @@ bool ExtractAnimation(FbxSceneLoader* _scene_loader,
 
   // Deduce sampling period.
   // Scene frame rate is used when provided argument is <= 0.
-  const float sampling_period =
-      1.f / (_sampling_rate > 0.f ? _sampling_rate : scene_frame_rate);
+  float sampling_rate;
+  if (_sampling_rate > 0.f) {
+    sampling_rate = _sampling_rate;
+    log::Log() << "Using sampling rate of " << sampling_rate << "hz." << std::endl;
+  } else {
+    sampling_rate = scene_frame_rate;
+    log::Log() << "Using scene sampling rate of " << sampling_rate << "hz." << std::endl;
+  }
+  const float sampling_period = 1.f / sampling_rate;
 
   // Get scene start and end.
   const float start = static_cast<float>(time_spawn.GetStart().GetSecondDouble());
