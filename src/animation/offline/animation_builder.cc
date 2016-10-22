@@ -342,8 +342,8 @@ Animation* AnimationBuilder::operator()(const RawAnimation& _input) const {
   CopyToAnimation(&sorting_rotations, &animation->rotations_);
   CopyToAnimation(&sorting_scales, &animation->scales_);
 
-  // Copy name
-  std::strcpy(animation->name_, _input.name.c_str());
+  // Copy animation's name.
+  strcpy(animation->name_, _input.name.c_str());
 
   return animation;  // Success.
 }
