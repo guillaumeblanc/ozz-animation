@@ -130,13 +130,13 @@ struct AlignedInts {
 TEST(TypedMalloc, Memory) {
   AlignedInts* p = ozz::memory::default_allocator()->Allocate<AlignedInts>(3);
   EXPECT_TRUE(p != NULL);
-  EXPECT_TRUE(ozz::math::IsAligned(p, ozz::AlignOf<AlignedInts>::value));
+  EXPECT_TRUE(ozz::math::IsAligned(p, OZZ_ALIGN_OF(AlignedInts)));
 
   memset(p, 0, sizeof(AlignedInts) * 3);
 
   p = ozz::memory::default_allocator()->Reallocate<AlignedInts>(p, 46);
   EXPECT_TRUE(p != NULL);
-  EXPECT_TRUE(ozz::math::IsAligned(p, ozz::AlignOf<AlignedInts>::value));
+  EXPECT_TRUE(ozz::math::IsAligned(p, OZZ_ALIGN_OF(AlignedInts)));
 
   memset(p, 0, sizeof(AlignedInts) * 46);
 

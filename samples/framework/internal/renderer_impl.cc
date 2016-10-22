@@ -469,7 +469,7 @@ int DrawPosture_FillUniforms(const ozz::animation::Skeleton& _skeleton,
                              ozz::Range<const ozz::math::Float4x4> _matrices,
                              float* _uniforms,
                              int _max_instances) {
-    assert(math::IsAligned(_uniforms, AlignOf<math::SimdFloat4>::value));
+    assert(math::IsAligned(_uniforms, OZZ_ALIGN_OF(math::SimdFloat4)));
 
     // Prepares computation constants.
     const int num_joints = _skeleton.num_joints();

@@ -88,7 +88,7 @@ class Allocator {
   template<typename _Ty>
   _Ty* Allocate(size_t _count) {
     return reinterpret_cast<_Ty*>(
-      Allocate(_count * sizeof(_Ty), AlignOf<_Ty>::value));
+      Allocate(_count * sizeof(_Ty), OZZ_ALIGN_OF(_Ty)));
   }
 
   // Allocates a range of _count objects of type _Ty. Alignment is
@@ -98,7 +98,7 @@ class Allocator {
   template<typename _Ty>
   Range<_Ty> AllocateRange(size_t _count) {
     _Ty* alloc = reinterpret_cast<_Ty*>(
-      Allocate(_count * sizeof(_Ty), AlignOf<_Ty>::value));
+      Allocate(_count * sizeof(_Ty), OZZ_ALIGN_OF(_Ty)));
     return Range<_Ty>(alloc, alloc ? _count : 0);
   }
 
@@ -119,7 +119,7 @@ class Allocator {
   _Ty* Reallocate(_Ty* _block,
                   size_t _count) {
     return reinterpret_cast<_Ty*>(
-      Reallocate(_block, _count * sizeof(_Ty), AlignOf<_Ty>::value));
+      Reallocate(_block, _count * sizeof(_Ty), OZZ_ALIGN_OF(_Ty)));
   }
 
   // Changes the size of a range that was allocated with Allocate,
@@ -127,7 +127,7 @@ class Allocator {
   template<typename _Ty>
   void Reallocate(Range<_Ty>& _range, size_t _count) {
     _Ty* alloc = reinterpret_cast<_Ty*>(
-      Reallocate(_range.begin, _count * sizeof(_Ty), AlignOf<_Ty>::value));
+      Reallocate(_range.begin, _count * sizeof(_Ty), OZZ_ALIGN_OF(_Ty)));
     _range = Range<_Ty>(alloc, alloc ? _count : 0);
   }
 

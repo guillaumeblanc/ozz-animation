@@ -33,6 +33,7 @@
 
 #include "ozz/base/io/archive.h"
 #include "ozz/base/maths/math_archive.h"
+#include "ozz/base/maths/math_ex.h"
 #include "ozz/base/memory/allocator.h"
 
 #include <cstring>
@@ -150,8 +151,9 @@ void Animation::Allocate(size_t name_len, size_t _translation_count,
   // Distributes buffer memory while ensuring proper alignment (serves larger
   // alignment values first).
   OZZ_STATIC_ASSERT(
-    ozz::AlignOf<TranslationKey>::value >= ozz::AlignOf<RotationKey>::value &&
-    ozz::AlignOf<RotationKey>::value >= ozz::AlignOf<ScaleKey>::value);
+    OZZ_ALIGN_OF(TranslationKey) >= OZZ_ALIGN_OF(RotationKey) &&
+    OZZ_ALIGN_OF(RotationKey) >= OZZ_ALIGN_OF(ScaleKey) &&
+    OZZ_ALIGN_OF(ScaleKey) >= OZZ_ALIGN_OF(char));
 
   assert(name_ == NULL && translations_.Size() == 0 && rotations_.Size() == 0 &&
          scales_.Size() == 0);
@@ -162,32 +164,34 @@ void Animation::Allocate(size_t name_len, size_t _translation_count,
     _translation_count * sizeof(TranslationKey) +
     _rotation_count * sizeof(RotationKey) +
     _scale_count * sizeof(ScaleKey);
-
   char* buffer = memory::default_allocator()->Allocate<char>(buffer_size);
 
   // Fix up pointers
-  name_ = reinterpret_cast<char*>(name_len > 0 ? buffer : NULL);
-
-  buffer += name_len > 0 ? name_len + 1 : 0;
   translations_.begin = reinterpret_cast<TranslationKey*>(buffer);
+  assert(math::IsAligned(translations_.begin, OZZ_ALIGN_OF(TranslationKey)));
   buffer += _translation_count * sizeof(TranslationKey);
   translations_.end = reinterpret_cast<TranslationKey*>(buffer);
 
   rotations_.begin = reinterpret_cast<RotationKey*>(buffer);
+  assert(math::IsAligned(rotations_.begin, OZZ_ALIGN_OF(RotationKey)));
   buffer += _rotation_count * sizeof(RotationKey);
   rotations_.end = reinterpret_cast<RotationKey*>(buffer);
 
   scales_.begin = reinterpret_cast<ScaleKey*>(buffer);
+  assert(math::IsAligned(scales_.begin, OZZ_ALIGN_OF(ScaleKey)));
   buffer += _scale_count * sizeof(ScaleKey);
   scales_.end = reinterpret_cast<ScaleKey*>(buffer);
+
+  // Let name be NULL if animation has no name. Allows to avoid allocating this
+  // buffer in the constructor of empty animations.
+  name_ = reinterpret_cast<char*>(name_len > 0 ? buffer : NULL);
+  assert(math::IsAligned(name_, OZZ_ALIGN_OF(char)));
 }
 
 void Animation::Deallocate() {
 
-  void* buffer = name_ ? name_ : reinterpret_cast<void*>(translations_.begin);
+  memory::default_allocator()->Deallocate(translations_.begin);
 
-  memory::default_allocator()->Deallocate(buffer);
-  
   name_ = NULL;
   translations_ = ozz::Range<TranslationKey>();
   rotations_ = ozz::Range<RotationKey>();
@@ -1528,7 +1532,7 @@ SamplingCache::SamplingCache(int _max_tracks)
   // Allocates all at once.
   memory::Allocator* allocator = memory::default_allocator();
   char* alloc_begin = reinterpret_cast<char*>(
-    allocator->Allocate(size, AlignOf<InterpSoaTranslation>::value));
+    allocator->Allocate(size, OZZ_ALIGN_OF(InterpSoaTranslation)));
   char* alloc_cursor = alloc_begin;
 
   // Dispatches allocated memory, from the highest alignment requirement to the
@@ -1671,9 +1675,9 @@ char* Skeleton::Allocate(size_t _chars_size, size_t _num_joints) {
   // Distributes buffer memory while ensuring proper alignment (serves larger
   // alignment values first).
   OZZ_STATIC_ASSERT(
-      ozz::AlignOf<math::SoaTransform>::value >= ozz::AlignOf<char*>::value &&
-      ozz::AlignOf<char*>::value >= ozz::AlignOf<Skeleton::JointProperties>::value &&
-      ozz::AlignOf<Skeleton::JointProperties>::value);
+      OZZ_ALIGN_OF(math::SoaTransform) >= OZZ_ALIGN_OF(char*) &&
+      OZZ_ALIGN_OF(char*) >= OZZ_ALIGN_OF(Skeleton::JointProperties) &&
+      OZZ_ALIGN_OF(Skeleton::JointProperties) >= OZZ_ALIGN_OF(char));
 
   assert(bind_pose_.Size() == 0 && joint_names_.Size() == 0 &&
          joint_properties_.Size() == 0);
@@ -1692,23 +1696,23 @@ char* Skeleton::Allocate(size_t _chars_size, size_t _num_joints) {
 
   // Allocates whole buffer.
   char* buffer = reinterpret_cast<char*>(memory::default_allocator()->
-      Allocate(buffer_size, ozz::AlignOf<math::SoaTransform>::value));
+      Allocate(buffer_size, OZZ_ALIGN_OF(math::SoaTransform)));
 
   // Bind pose first, biggest alignment.
   bind_pose_.begin = reinterpret_cast<math::SoaTransform*>(buffer);
-  assert(math::IsAligned(bind_pose_.begin, ozz::AlignOf<math::SoaTransform>::value));
+  assert(math::IsAligned(bind_pose_.begin, OZZ_ALIGN_OF(math::SoaTransform)));
   buffer += bind_poses_size;
   bind_pose_.end = reinterpret_cast<math::SoaTransform*>(buffer);
 
   // Then names array, second biggest alignment.
   joint_names_.begin = reinterpret_cast<char**>(buffer);
-  assert(math::IsAligned(joint_names_.begin, ozz::AlignOf<char**>::value));
+  assert(math::IsAligned(joint_names_.begin, OZZ_ALIGN_OF(char**)));
   buffer += names_size;
   joint_names_.end = reinterpret_cast<char**>(buffer);
 
   // Properties, third biggest alignment.
   joint_properties_.begin = reinterpret_cast<Skeleton::JointProperties*>(buffer);
-  assert(math::IsAligned(joint_properties_.begin, ozz::AlignOf<Skeleton::JointProperties>::value));
+  assert(math::IsAligned(joint_properties_.begin, OZZ_ALIGN_OF(Skeleton::JointProperties)));
   buffer += properties_size;
   joint_properties_.end = reinterpret_cast<Skeleton::JointProperties*>(buffer);
 

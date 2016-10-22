@@ -491,7 +491,7 @@ SamplingCache::SamplingCache(int _max_tracks)
   // Allocates all at once.
   memory::Allocator* allocator = memory::default_allocator();
   char* alloc_begin = reinterpret_cast<char*>(
-    allocator->Allocate(size, AlignOf<InterpSoaTranslation>::value));
+    allocator->Allocate(size, OZZ_ALIGN_OF(InterpSoaTranslation)));
   char* alloc_cursor = alloc_begin;
 
   // Dispatches allocated memory, from the highest alignment requirement to the

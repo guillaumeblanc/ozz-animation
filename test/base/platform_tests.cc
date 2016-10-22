@@ -48,10 +48,10 @@ struct Aligned { OZZ_ALIGN(128) char c; };
 }  // namespace
 
 TEST(Alignment, Platform) {
-  OZZ_STATIC_ASSERT(ozz::AlignOf<char>::value >= 1);
-  OZZ_STATIC_ASSERT(ozz::AlignOf<double>::value >= 8);
-  OZZ_STATIC_ASSERT(ozz::AlignOf<Misc>::value >= 8);
-  OZZ_STATIC_ASSERT(ozz::AlignOf<Aligned>::value >= 128);
+  OZZ_STATIC_ASSERT(OZZ_ALIGN_OF(char) >= 1);
+  OZZ_STATIC_ASSERT(OZZ_ALIGN_OF(double) >= 8);
+  OZZ_STATIC_ASSERT(OZZ_ALIGN_OF(Misc) >= 8);
+  OZZ_STATIC_ASSERT(OZZ_ALIGN_OF(Aligned) >= 128);
 
   Aligned alined;
   EXPECT_EQ(reinterpret_cast<uintptr_t>(&alined) & (128 - 1), 0u);

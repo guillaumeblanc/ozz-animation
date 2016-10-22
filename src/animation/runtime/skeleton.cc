@@ -84,9 +84,9 @@ char* Skeleton::Allocate(size_t _chars_size, size_t _num_joints) {
   // Distributes buffer memory while ensuring proper alignment (serves larger
   // alignment values first).
   OZZ_STATIC_ASSERT(
-      ozz::AlignOf<math::SoaTransform>::value >= ozz::AlignOf<char*>::value &&
-      ozz::AlignOf<char*>::value >= ozz::AlignOf<Skeleton::JointProperties>::value &&
-      ozz::AlignOf<Skeleton::JointProperties>::value);
+      OZZ_ALIGN_OF(math::SoaTransform) >= OZZ_ALIGN_OF(char*) &&
+      OZZ_ALIGN_OF(char*) >= OZZ_ALIGN_OF(Skeleton::JointProperties) &&
+      OZZ_ALIGN_OF(Skeleton::JointProperties) >= OZZ_ALIGN_OF(char));
 
   assert(bind_pose_.Size() == 0 && joint_names_.Size() == 0 &&
          joint_properties_.Size() == 0);
@@ -105,23 +105,23 @@ char* Skeleton::Allocate(size_t _chars_size, size_t _num_joints) {
 
   // Allocates whole buffer.
   char* buffer = reinterpret_cast<char*>(memory::default_allocator()->
-      Allocate(buffer_size, ozz::AlignOf<math::SoaTransform>::value));
+      Allocate(buffer_size, OZZ_ALIGN_OF(math::SoaTransform)));
 
   // Bind pose first, biggest alignment.
   bind_pose_.begin = reinterpret_cast<math::SoaTransform*>(buffer);
-  assert(math::IsAligned(bind_pose_.begin, ozz::AlignOf<math::SoaTransform>::value));
+  assert(math::IsAligned(bind_pose_.begin, OZZ_ALIGN_OF(math::SoaTransform)));
   buffer += bind_poses_size;
   bind_pose_.end = reinterpret_cast<math::SoaTransform*>(buffer);
 
   // Then names array, second biggest alignment.
   joint_names_.begin = reinterpret_cast<char**>(buffer);
-  assert(math::IsAligned(joint_names_.begin, ozz::AlignOf<char**>::value));
+  assert(math::IsAligned(joint_names_.begin, OZZ_ALIGN_OF(char**)));
   buffer += names_size;
   joint_names_.end = reinterpret_cast<char**>(buffer);
 
   // Properties, third biggest alignment.
   joint_properties_.begin = reinterpret_cast<Skeleton::JointProperties*>(buffer);
-  assert(math::IsAligned(joint_properties_.begin, ozz::AlignOf<Skeleton::JointProperties>::value));
+  assert(math::IsAligned(joint_properties_.begin, OZZ_ALIGN_OF(Skeleton::JointProperties)));
   buffer += properties_size;
   joint_properties_.end = reinterpret_cast<Skeleton::JointProperties*>(buffer);
 

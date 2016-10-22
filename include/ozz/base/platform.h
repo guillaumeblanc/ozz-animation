@@ -47,17 +47,20 @@ namespace ozz {
   struct OZZ_JOIN(_StaticAssert, __COUNTER__) { char x[(_condition) ? 1 : -1]; }
 
 // Gets alignment in bytes required for any instance of the given type.
-// Usage is AlignOf<MyStruct>::value.
+// Usage is OZZ_ALIGN_OF(MyStruct).
+namespace internal {
 template <typename _Ty>
 struct AlignOf {
-  enum { s = sizeof(_Ty), value = s ^ (s & (s - 1))};
+  static const size_t value = sizeof(_Ty) ^ (sizeof(_Ty) & (sizeof(_Ty) - 1));
 };
+}
+#define OZZ_ALIGN_OF(_Ty) ozz::internal::AlignOf<_Ty>::value
 
 // Finds the number of elements of a statically allocated array.
 #define OZZ_ARRAY_SIZE(_array) (sizeof(_array) / sizeof(_array[0]))
 
 // Specifies a minimum alignment (in bytes) for variables.
-// Syntax is: "OZZ_ALIGN(16) int i;" which aligns "i" variable address to 16b.
+// Syntax is: "OZZ_ALIGN(16) int i;" which aligns "i" variable address to 16 bytes.
 #if defined(_MSC_VER)
 #define OZZ_ALIGN(_alignment) __declspec(align(_alignment))
 #else
