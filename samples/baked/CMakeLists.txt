@@ -31,7 +31,9 @@ if(ozz_build_fbx AND EXISTS "${baked_source_file}")
       "--file=${baked_source_file}"
       "--skeleton=${ozz_media_directory}/bin/baked_skeleton.ozz"
       "--animation=${ozz_media_directory}/bin/baked_animation.ozz"
-      "--rotation=0.01")
+      "--translation=0.002" # Optimizes a bit more aggressively
+      "--rotation=0.002"
+      "--hierarchical=1")  # Skeleton hierarchy is flat, so no need for hierarchical tolerance
 endif()
 
 add_custom_command(
