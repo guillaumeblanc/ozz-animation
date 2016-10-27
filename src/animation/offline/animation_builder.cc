@@ -27,10 +27,11 @@
 
 #include "ozz/animation/offline/animation_builder.h"
 
-#include <cstddef>
-#include <cassert>
 #include <algorithm>
 #include <limits>
+#include <cstddef>
+#include <cassert>
+#include <cstring>
 
 #include "ozz/base/containers/vector.h"
 #include "ozz/base/memory/allocator.h"
