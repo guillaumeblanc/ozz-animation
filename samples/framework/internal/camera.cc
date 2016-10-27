@@ -111,15 +111,13 @@ void Camera::Update(const math::Float4x4& _transform, const math::Box& _box,
     ozz::math::Float3 camera_pos;
     ozz::math::Store3PtrU(_transform.cols[3], &camera_pos.x);
 
-    // Distance must be fixed, so it's computed on the first frame.
-    if (_first_frame) {
-      const ozz::math::Float3 box_center_ = (_box.max + _box.min) * .5f;
-      distance_ = Length(box_center_ - camera_pos);
-    }
-
+    // Arbitrary decides that distance (focus point) is from camera to scene
+    // center.
+    const ozz::math::Float3 box_center_ = (_box.max + _box.min) * .5f;
+    distance_ = Length(box_center_ - camera_pos);
     center_ = camera_pos + camera_dir * distance_;
-    angles_.x = std::asinf(camera_dir.y);
-    angles_.y = std::acosf(Dot(ozz::math::Float3::z_axis(), -camera_dir));
+    angles_.x = asinf(camera_dir.y);
+    angles_.y = atan2(-camera_dir.x, -camera_dir.z);
   }
 
   // Update manual controls.
@@ -226,7 +224,7 @@ void Camera::OnGui(ImGui* _im_gui) {
     "-Ctr + RMB: Pan\n";
   _im_gui->DoLabel(controls_label, ImGui::kLeft, false);
 
-  _im_gui->DoCheckBox("Automatic (key A)", &auto_framing_);
+  _im_gui->DoCheckBox("Automatic", &auto_framing_);
 }
 
 void Camera::Bind3D() {
