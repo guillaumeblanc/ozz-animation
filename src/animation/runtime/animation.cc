@@ -162,7 +162,6 @@ void Animation::Load(ozz::io::IArchive& _archive, uint32_t _version) {
 
   // No retro-compatibility with anterior versions.
   if (_version != 4) {
-    assert(false && "Unsupported version for Animation object type.");
     return;
   }
 

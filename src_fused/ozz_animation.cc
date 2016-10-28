@@ -256,7 +256,6 @@ void Animation::Load(ozz::io::IArchive& _archive, uint32_t _version) {
 
   // No retro-compatibility with anterior versions.
   if (_version != 4) {
-    assert(false && "Unsupported version for Animation object type.");
     return;
   }
 
@@ -1759,7 +1758,6 @@ void Skeleton::Load(ozz::io::IArchive& _archive, uint32_t _version) {
   Deallocate();
 
   if (_version != 1) {
-    assert(false && "Unsupported version for Skeleton object type.");
     return;
   }
 

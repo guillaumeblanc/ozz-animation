@@ -168,7 +168,6 @@ void Skeleton::Load(ozz::io::IArchive& _archive, uint32_t _version) {
   Deallocate();
 
   if (_version != 1) {
-    assert(false && "Unsupported version for Skeleton object type.");
     return;
   }
 
