@@ -1,6 +1,6 @@
-set(baked_source_file "${ozz_media_directory}/fbx/ozz_explode.fbx")
+set(baked_source_file "${ozz_media_directory}/fbx/ozz_baked.fbx")
 
-if(ozz_build_fbx AND EXISTS "${baked_source_file}")
+if(ozz_build_fbx)
   add_executable(sample_fbx2baked
     fbx2baked.cc)
   target_link_libraries(sample_fbx2baked
@@ -16,7 +16,9 @@ if(ozz_build_fbx AND EXISTS "${baked_source_file}")
 
   set_target_properties(sample_fbx2baked
     PROPERTIES FOLDER "samples/tools")
+endif()
 
+if(TARGET sample_fbx2baked AND EXISTS "${baked_source_file}")
   add_custom_command(
     DEPENDS "${CMAKE_CURRENT_LIST_DIR}/README"
             "${baked_source_file}"
@@ -70,6 +72,9 @@ if(EMSCRIPTEN)
     ${CMAKE_CURRENT_BINARY_DIR}/sample_baked.js
     DESTINATION bin/samples/baked)
 else()
+  if(sample_fbx2baked)
+    install(TARGETS sample_fbx2baked DESTINATION bin/samples/baked)
+  endif()
   install(TARGETS sample_baked DESTINATION bin/samples/baked)
   install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/media DESTINATION bin/samples/baked)
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/README DESTINATION bin/samples/baked)
