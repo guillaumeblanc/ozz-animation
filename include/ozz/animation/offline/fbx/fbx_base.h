@@ -144,10 +144,13 @@ class FbxSystemConverter {
 class FbxSceneLoader {
  public:
   // Loads the scene that can then be obtained with scene() function.
+  // _stream is optional. If provided it will be used instead of File IO.
+  // _filename/_password is still required for logging and reading.
    FbxSceneLoader(const char* _filename,
                   const char* _password,
                   const FbxManagerInstance& _manager,
-                  const FbxDefaultIOSettings& _io_settings);
+                  const FbxDefaultIOSettings& _io_settings,
+                  FbxStream* _stream = NULL);
   ~FbxSceneLoader();
 
   // Returns a valid scene if fbx import was successful, NULL otherwise.

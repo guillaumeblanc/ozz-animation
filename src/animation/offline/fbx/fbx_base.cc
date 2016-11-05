@@ -90,14 +90,17 @@ FbxSkeletonIOSettings::FbxSkeletonIOSettings(const FbxManagerInstance& _manager)
 FbxSceneLoader::FbxSceneLoader(const char* _filename,
                                const char* _password,
                                const FbxManagerInstance& _manager,
-                               const FbxDefaultIOSettings& _io_settings)
+                               const FbxDefaultIOSettings& _io_settings,
+                               FbxStream* _stream)
     : scene_(NULL),
       converter_(NULL) {
   // Create an importer.
   FbxImporter* importer = FbxImporter::Create(_manager,"ozz importer");
 
   // Initialize the importer by providing a filename. Use all available plugins.
-  const bool initialized = importer->Initialize(_filename, -1, _io_settings);
+  const bool initialized = _stream ?
+    importer->Initialize(_stream, NULL, -1, _io_settings) :
+    importer->Initialize(_filename, -1, _io_settings);
 
   // Get the version of the FBX file format.
   int major, minor, revision;
