@@ -36,7 +36,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/build-utils/cmak
 
 # Detects Fbx SDK, required to build Fbx pipeline.
 if(ozz_build_fbx)
-  find_package(Fbx)
+  find_package(Fbx 2016)
   # Disables ozz_build_fbx if Fbx SDK isn't found.
   if(NOT FBX_FOUND)
     message("Fbx SDK not found, FBX tools libraries and samples will be skipped.")

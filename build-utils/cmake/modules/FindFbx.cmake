@@ -9,11 +9,12 @@
 # directory structure proposed by Autodesk.
 # On every platform, the module will look for libraries that matches the
 # currently selected cmake generator.
+# A version can be specified to the find_package function.
 #
 # Known issues:
 # - On ALL platforms: If there are multiple FBX SDK version installed, the
 # current implementation will select the first one it finds.
-# - On MAC: If there are multiple FBX SDK compiler supported (clang or gcc), the
+# - On MACOS: If there are multiple FBX SDK compiler supported (clang or gcc), the
 # current implementation will select the first one it finds.
 
 #----------------------------------------------------------------------------#
@@ -61,6 +62,8 @@ function(FindFbxLibrariesGeneric _FBX_ROOT_DIR _OUT_FBX_LIBRARIES _OUT_FBX_LIBRA
     set(FBX_CP_PATH "vs2013")
   elseif(MSVC14)
     set(FBX_CP_PATH "vs2015")
+    elseif(MSVC15)
+    set(FBX_CP_PATH "vs2016")
   elseif(APPLE)
     set(FBX_CP_PATH "*")
   else()
@@ -127,25 +130,28 @@ set(FBX_SEARCH_PATHS
   "$ENV{PROGRAMFILES}/Autodesk/FBX/FBX SDK/*/"
   "/Applications/Autodesk/FBX SDK/*/")
 
-find_path(FBX_INCLUDE_DIR "fbxsdk.h"
-  PATHS ${FBX_SEARCH_PATHS}
-  PATH_SUFFIXES "include")
+find_path(FBX_INCLUDE_DIR 
+  NAMES "include/fbxsdk.h"
+  PATHS ${FBX_SEARCH_PATHS})
 
 if(FBX_INCLUDE_DIR)
   # Deduce SDK root directory.
-  set(FBX_ROOT_DIR "${FBX_INCLUDE_DIR}/..")
+  set(FBX_ROOT_DIR "${FBX_INCLUDE_DIR}/")
 
   # Fills CMake sytandard variables
-  set(FBX_INCLUDE_DIRS "${FBX_INCLUDE_DIR}")
+  set(FBX_INCLUDE_DIRS "${FBX_INCLUDE_DIR}/include")
 
   # Searches libraries according to the current compiler.
   FindFbxLibrariesGeneric(${FBX_ROOT_DIR} FBX_LIBRARIES FBX_LIBRARIES_DEBUG)
 endif()
 
-# Handles the QUIETLY and REQUIRED arguments and set FBX_FOUND to TRUE if all listed variables are TRUE
+# Extract fbx sdk version from its path.
+file(RELATIVE_PATH PATH_VERSION "${FBX_ROOT_DIR}/.." "${FBX_ROOT_DIR}")
+
+# Handles find_package arguments and set FBX_FOUND to TRUE if all listed variables and version are valid.
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(Fbx
-  DEFAULT_MSG
-  FBX_LIBRARIES
-  FBX_INCLUDE_DIRS)
-  
+  FOUND_VAR FBX_FOUND
+  REQUIRED_VARS FBX_LIBRARIES FBX_INCLUDE_DIRS
+  VERSION_VAR PATH_VERSION)
+ 

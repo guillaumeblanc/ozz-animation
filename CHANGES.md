@@ -4,18 +4,19 @@ Release version 0.9.0
 * Library
   - [offline][animation] Adds a name to the offline::RawAnimation and Animation data structure.
   - [animation] Optimizes animation and skeleton allocation strategy, merging all member buffers to a single allocation.
-  - [offline] Allows importing of all animations from a DCC file with a single command. fbx2anim now support the use of an * in the --animation option (output file name), which is replaced with the imported animation name when the output file is written to disk.
+  - [offline] #5 Allows importing of all animations from a DCC file with a single command. fbx2anim now support the use of an * in the --animation option (output file name), which is replaced with the imported animation name when the output file is written to disk.
   - [offline] Removes dae tools, offline libraries and dependencies.
   - [offline] Uses scene frame rate as the default sampling rate option in fbx2anim. Allows to match DCC keys and avoid interpolation issues while importing from fbx sdk.
   - [offline] Splits offline tools in skel + anim to avoid command line options "issue".
-  - [base] Adds support for Range serialization via ozz::io::MakeArray utiliy.
+  - [base] Adds support for Range serialization via ozz::io::MakeArray utility.
 
 * Samples
   - [sample_fbx2mesh] Fixes welding of redundant vertices. Reimported meshes now have significantly less vertices.
   - [sample_fbx2mesh] oss::sample::Mesh serialization format has changed. Meshes generated with a previous version need to be re-exported.
 
 * Build pipeline
-  - A Fused version of the sources for all libraries can be found in src_fused forlder. It is automatically generated when any library source file changes.
+  - A Fused version of the sources for all libraries can be found in src_fused folder. It is automatically generated when any library source file changes.
+  - #20 FindFbx.cmake module now supports a version as argument which can be tested in conformance with cmake find_package specifications.
 
 Release version 0.8.0
 ---------------------
