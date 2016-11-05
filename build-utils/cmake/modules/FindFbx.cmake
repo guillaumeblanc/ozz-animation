@@ -143,10 +143,10 @@ if(FBX_INCLUDE_DIR)
 
   # Searches libraries according to the current compiler.
   FindFbxLibrariesGeneric(${FBX_ROOT_DIR} FBX_LIBRARIES FBX_LIBRARIES_DEBUG)
-endif()
 
-# Extract fbx sdk version from its path.
-file(RELATIVE_PATH PATH_VERSION "${FBX_ROOT_DIR}/.." "${FBX_ROOT_DIR}")
+  # Extract fbx sdk version from its path.
+  file(RELATIVE_PATH PATH_VERSION "${FBX_ROOT_DIR}/.." "${FBX_ROOT_DIR}")
+endif()
 
 # Handles find_package arguments and set FBX_FOUND to TRUE if all listed variables and version are valid.
 include(FindPackageHandleStandardArgs)
