@@ -90,17 +90,38 @@ FbxSkeletonIOSettings::FbxSkeletonIOSettings(const FbxManagerInstance& _manager)
 FbxSceneLoader::FbxSceneLoader(const char* _filename,
                                const char* _password,
                                const FbxManagerInstance& _manager,
-                               const FbxDefaultIOSettings& _io_settings,
-                               FbxStream* _stream)
+                               const FbxDefaultIOSettings& _io_settings)
     : scene_(NULL),
-      converter_(NULL) {
+      converter_(NULL)
+{
   // Create an importer.
   FbxImporter* importer = FbxImporter::Create(_manager,"ozz importer");
+  const bool initialized = importer->Initialize(_filename, -1, _io_settings);
+  import_scene(importer, initialized, _password, _manager, _io_settings);
+}
 
-  // Initialize the importer by providing a filename. Use all available plugins.
-  const bool initialized = _stream ?
-    importer->Initialize(_stream, NULL, -1, _io_settings) :
-    importer->Initialize(_filename, -1, _io_settings);
+
+FbxSceneLoader::FbxSceneLoader(FbxStream* _stream,
+                               const char* _password,
+                               const FbxManagerInstance& _manager,
+                               const FbxDefaultIOSettings& _io_settings)
+    : scene_(NULL),
+      converter_(NULL)
+{
+  // Create an importer.
+  FbxImporter* importer = FbxImporter::Create(_manager,"ozz importer");
+  const bool initialized = importer->Initialize(_stream, NULL, -1, _io_settings);
+  import_scene(importer, initialized, _password, _manager, _io_settings);
+}
+
+void FbxSceneLoader::import_scene(FbxImporter* _importer,
+                               const bool _initialized,
+                               const char* _password,
+                               const FbxManagerInstance& _manager,
+                               const FbxDefaultIOSettings& _io_settings)
+{
+  FbxImporter* importer = _importer;
+  const bool initialized = _initialized;
 
   // Get the version of the FBX file format.
   int major, minor, revision;
@@ -114,14 +135,14 @@ FbxSceneLoader::FbxSceneLoader(const char* _filename,
 
     if (importer->GetStatus().GetCode() == FbxStatus::eInvalidFileVersion)
     {
-      ozz::log::Err() << "FBX version of " << _filename << " is " <<
+      ozz::log::Err() << "FBX version of file is " <<
         major << "." << minor<< "." << revision << "." << std::endl;
     }
   }
 
   if (initialized) {
     if ( importer->IsFBX()) {
-      ozz::log::Log() << "FBX version of " << _filename << " is " <<
+      ozz::log::Log() << "FBX version of file is " <<
         major << "." << minor<< "." << revision << "." << std::endl;
     }
 
