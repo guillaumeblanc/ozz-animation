@@ -148,6 +148,12 @@ class FbxSceneLoader {
                   const char* _password,
                   const FbxManagerInstance& _manager,
                   const FbxDefaultIOSettings& _io_settings);
+
+   FbxSceneLoader(FbxStream* _stream,
+                  const char* _password,
+                  const FbxManagerInstance& _manager,
+                  const FbxDefaultIOSettings& _io_settings);
+
   ~FbxSceneLoader();
 
   // Returns a valid scene if fbx import was successful, NULL otherwise.
@@ -161,6 +167,12 @@ class FbxSceneLoader {
   }
 
 private:
+
+  void import_scene(FbxImporter* _importer,
+                  const bool _initialized,
+                  const char* _password,
+                  const FbxManagerInstance& _manager,
+                  const FbxDefaultIOSettings& _io_settings);  
 
   // Scene instance that was loaded from the file.
   FbxScene* scene_;
