@@ -95,9 +95,13 @@ FbxSceneLoader::FbxSceneLoader(const char* _filename,
       converter_(NULL)
 {
   // Create an importer.
-  FbxImporter* importer = FbxImporter::Create(_manager,"ozz importer");
+  FbxImporter* importer = FbxImporter::Create(_manager,"ozz file importer");  
   const bool initialized = importer->Initialize(_filename, -1, _io_settings);
-  import_scene(importer, initialized, _password, _manager, _io_settings);
+
+  ImportScene(importer, initialized, _password, _manager, _io_settings);
+
+  // Destroy the importer
+  importer->Destroy();
 }
 
 
@@ -109,58 +113,57 @@ FbxSceneLoader::FbxSceneLoader(FbxStream* _stream,
       converter_(NULL)
 {
   // Create an importer.
-  FbxImporter* importer = FbxImporter::Create(_manager,"ozz importer");
+  FbxImporter* importer = FbxImporter::Create(_manager,"ozz stream importer");
   const bool initialized = importer->Initialize(_stream, NULL, -1, _io_settings);
-  import_scene(importer, initialized, _password, _manager, _io_settings);
+
+  ImportScene(importer, initialized, _password, _manager, _io_settings);
+
+  // Destroy the importer
+  importer->Destroy();
 }
 
-void FbxSceneLoader::import_scene(FbxImporter* _importer,
-                               const bool _initialized,
-                               const char* _password,
-                               const FbxManagerInstance& _manager,
-                               const FbxDefaultIOSettings& _io_settings)
+void FbxSceneLoader::ImportScene(FbxImporter* _importer,
+                                 const bool _initialized,
+                                 const char* _password,
+                                 const FbxManagerInstance& _manager,
+                                 const FbxDefaultIOSettings& _io_settings)
 {
-  FbxImporter* importer = _importer;
-  const bool initialized = _initialized;
-
   // Get the version of the FBX file format.
   int major, minor, revision;
-  importer->GetFileVersion(major, minor, revision);
+  _importer->GetFileVersion(major, minor, revision);
 
-  if (!initialized)  // Problem with the file to be imported.
+  if (!_initialized)  // Problem with the file to be imported.
   {
-    const FbxString error = importer->GetStatus().GetErrorString();
+    const FbxString error = _importer->GetStatus().GetErrorString();
     ozz::log::Err() << "FbxImporter initialization failed with error: " <<
       error.Buffer() << std::endl;
 
-    if (importer->GetStatus().GetCode() == FbxStatus::eInvalidFileVersion)
+    if (_importer->GetStatus().GetCode() == FbxStatus::eInvalidFileVersion)
     {
-      ozz::log::Err() << "FBX version of file is " <<
+      ozz::log::Err() << "FBX file version is " <<
         major << "." << minor<< "." << revision << "." << std::endl;
     }
-  }
-
-  if (initialized) {
-    if ( importer->IsFBX()) {
-      ozz::log::Log() << "FBX version of file is " <<
+  } else {
+    if (_importer->IsFBX()) {
+      ozz::log::Log() << "FBX file version is " <<
         major << "." << minor<< "." << revision << "." << std::endl;
     }
 
     // Load the scene.
     scene_ = FbxScene::Create(_manager,"ozz scene");
-    bool imported = importer->Import(scene_);
+    bool imported = _importer->Import(scene_);
 
     if(!imported &&     // The import file may have a password
-       importer->GetStatus().GetCode() == FbxStatus::ePasswordError)
+       _importer->GetStatus().GetCode() == FbxStatus::ePasswordError)
     {
       _io_settings.settings()->SetStringProp(IMP_FBX_PASSWORD, _password);
       _io_settings.settings()->SetBoolProp(IMP_FBX_PASSWORD_ENABLE, true);
 
       // Retries to import the scene.
-      imported = importer->Import(scene_);
+      imported = _importer->Import(scene_);
 
       if(!imported &&
-         importer->GetStatus().GetCode() == FbxStatus::ePasswordError)
+         _importer->GetStatus().GetCode() == FbxStatus::ePasswordError)
       {
         ozz::log::Err() << "Incorrect password." << std::endl;
 
@@ -182,9 +185,6 @@ void FbxSceneLoader::import_scene(FbxImporter* _importer,
       scene_ = NULL;
     }
   }
-
-  // Destroy the importer
-  importer->Destroy();
 }
 
 FbxSceneLoader::~FbxSceneLoader() {

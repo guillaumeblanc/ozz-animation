@@ -168,11 +168,11 @@ class FbxSceneLoader {
 
 private:
 
-  void import_scene(FbxImporter* _importer,
-                  const bool _initialized,
-                  const char* _password,
-                  const FbxManagerInstance& _manager,
-                  const FbxDefaultIOSettings& _io_settings);  
+  void ImportScene(FbxImporter* _importer,
+                   const bool _initialized,
+                   const char* _password,
+                   const FbxManagerInstance& _manager,
+                   const FbxDefaultIOSettings& _io_settings);  
 
   // Scene instance that was loaded from the file.
   FbxScene* scene_;
