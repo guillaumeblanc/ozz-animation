@@ -150,8 +150,15 @@ endif()
 
 # Handles find_package arguments and set FBX_FOUND to TRUE if all listed variables and version are valid.
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(Fbx
-  FOUND_VAR FBX_FOUND
-  REQUIRED_VARS FBX_LIBRARIES FBX_INCLUDE_DIRS
-  VERSION_VAR PATH_VERSION)
- 
+
+if (MSVC OR APPLE)
+  find_package_handle_standard_args(Fbx
+    FOUND_VAR FBX_FOUND
+    REQUIRED_VARS FBX_LIBRARIES FBX_INCLUDE_DIRS
+    VERSION_VAR PATH_VERSION)
+else ()
+  # Linux package installation does not specify a version.
+  find_package_handle_standard_args(Fbx
+    DEFAULT_MSG
+    FBX_LIBRARIES FBX_INCLUDE_DIRS)
+endif ()
