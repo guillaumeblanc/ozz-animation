@@ -120,6 +120,46 @@ function(FindFbxLibrariesGeneric _FBX_ROOT_DIR _OUT_FBX_LIBRARIES _OUT_FBX_LIBRA
 endfunction()
 
 ###############################################################################
+# Deduce Fbx sdk version
+###############################################################################
+function(FindFbxVersion _FBX_ROOT_DIR _OUT_FBX_VERSION)
+  # Opens fbxsdk_version.h in _FBX_ROOT_DIR and finds version defines.
+
+  set(fbx_version_filename "${_FBX_ROOT_DIR}include/fbxsdk/fbxsdk_version.h")
+
+  if(NOT EXISTS ${fbx_version_filename})
+    message(SEND_ERROR "Unable to find fbxsdk_version.h")
+  endif()
+
+  file(READ ${fbx_version_filename} fbx_version_file_content)
+
+  # Find version major
+  if(fbx_version_file_content MATCHES "FBXSDK_VERSION_MAJOR[\t ]+([0-9]+)")
+    set(fbx_version_file_major "${CMAKE_MATCH_1}")
+  endif()
+
+  # Find version minor
+  if(fbx_version_file_content MATCHES "FBXSDK_VERSION_MINOR[\t ]+([0-9]+)")
+    set(fbx_version_file_minor "${CMAKE_MATCH_1}")
+  endif()
+
+  # Find version patch
+  if(fbx_version_file_content MATCHES "FBXSDK_VERSION_POINT[\t ]+([0-9]+)")
+    set(fbx_version_file_patch "${CMAKE_MATCH_1}")
+  endif()
+
+  if (DEFINED fbx_version_file_major AND
+      DEFINED fbx_version_file_minor AND
+      DEFINED fbx_version_file_patch)
+    set(${_OUT_FBX_VERSION} ${fbx_version_file_major}.${fbx_version_file_minor}.${fbx_version_file_patch} PARENT_SCOPE)
+  else()
+    message(SEND_ERROR "Unable to deduce Fbx version for root dir ${_FBX_ROOT_DIR}")
+    set(${_OUT_FBX_VERSION} "unknown" PARENT_SCOPE)
+  endif()
+
+endfunction()
+
+###############################################################################
 # Main find package function
 ###############################################################################
 
@@ -141,24 +181,17 @@ if(FBX_INCLUDE_DIR)
   # Fills CMake sytandard variables
   set(FBX_INCLUDE_DIRS "${FBX_INCLUDE_DIR}/include")
 
-  # Searches libraries according to the current compiler.
+  # Searches libraries according to the current compiler
   FindFbxLibrariesGeneric(${FBX_ROOT_DIR} FBX_LIBRARIES FBX_LIBRARIES_DEBUG)
 
-  # Extract fbx sdk version from its path.
-  file(RELATIVE_PATH PATH_VERSION "${FBX_ROOT_DIR}/.." "${FBX_ROOT_DIR}")
+  # Deduce fbx sdk version
+  FindFbxVersion(${FBX_ROOT_DIR} PATH_VERSION)
 endif()
 
 # Handles find_package arguments and set FBX_FOUND to TRUE if all listed variables and version are valid.
 include(FindPackageHandleStandardArgs)
 
-if (MSVC OR APPLE)
-  find_package_handle_standard_args(Fbx
-    FOUND_VAR FBX_FOUND
-    REQUIRED_VARS FBX_LIBRARIES FBX_INCLUDE_DIRS
-    VERSION_VAR PATH_VERSION)
-else ()
-  # Linux package installation does not specify a version.
-  find_package_handle_standard_args(Fbx
-    DEFAULT_MSG
-    FBX_LIBRARIES FBX_INCLUDE_DIRS)
-endif ()
+find_package_handle_standard_args(Fbx
+  FOUND_VAR FBX_FOUND
+  REQUIRED_VARS FBX_LIBRARIES FBX_INCLUDE_DIRS
+  VERSION_VAR PATH_VERSION)
