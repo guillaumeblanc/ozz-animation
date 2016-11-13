@@ -10,7 +10,10 @@ matrix:
             - ubuntu-toolchain-r-test
           packages:
             - g++-4.9
-      env: CXX=g++-4.9
+      env: 
+        - CXX=g++-4.9
+        - CC=gcc-4.9
+        - FBX_DIR=/fbx/2017
     - compiler: gcc
       addons:
         apt:
@@ -18,7 +21,10 @@ matrix:
             - ubuntu-toolchain-r-test
           packages:
             - g++-5
-      env: CXX=g++-5
+      env:
+        - CXX=g++-5
+        - CC=gcc-5
+        - FBX_DIR=/fbx/2017
     - compiler: clang
       addons:
         apt:
@@ -27,7 +33,10 @@ matrix:
             - llvm-toolchain-precise-3.6
           packages:
             - clang-3.6
-      env: CXX=clang++-3.6
+      env:
+        - CXX=clang++-3.6
+        - CC=clang-3.6
+        - FBX_DIR=/fbx/2017
     - compiler: clang
       addons:
         apt:
@@ -36,12 +45,19 @@ matrix:
             - llvm-toolchain-precise-3.7
           packages:
             - clang-3.7
-      env: CXX=clang++-3.7
+      env:
+        - CXX=clang++-3.7
+        - CC=clang-3.7
+        - FBX_DIR=/fbx/2017
 before_install:
   - sudo apt-get install software-properties-common -y
   - sudo add-apt-repository ppa:george-edison55/cmake-3.x -y
   - sudo apt-get update
   - sudo apt-get install --only-upgrade cmake -y
+  - sudo mkdir -p /fbx/2017
+  - sudo wget http://download.autodesk.com/us/fbx/2017/2017.0.1/fbx20170_1_fbxsdk_linux.tar.gz
+  - sudo tar xf fbx20170_1_fbxsdk_linux.tar.gz
+  - yes yes | sudo ./fbx20170_1_fbxsdk_linux /fbx/2017
 script:
   - mkdir build
   - cd build
