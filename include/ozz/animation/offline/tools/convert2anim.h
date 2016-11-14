@@ -41,18 +41,15 @@ namespace offline {
 
 class AnimationConverter {
  public:
-  int operator ()(int _argc, const char** _argv);
+  int operator()(int _argc, const char** _argv);
 
  protected:
-
   typedef Vector<RawAnimation>::Std Animations;
 
  private:
-
   virtual bool Import(const char* _filename,
                       const ozz::animation::Skeleton& _skeleton,
-                      float _sampling_rate,
-                      Animations* _animations) = 0;
+                      float _sampling_rate, Animations* _animations) = 0;
 };
 }  // offline
 }  // animation

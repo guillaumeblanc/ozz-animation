@@ -37,8 +37,7 @@ namespace ozz {
 namespace io {
 
 template <>
-void Save(OArchive& _archive,
-          const animation::offline::RawSkeleton* _skeletons,
+void Save(OArchive& _archive, const animation::offline::RawSkeleton* _skeletons,
           size_t _count) {
   for (size_t i = 0; i < _count; ++i) {
     const animation::offline::RawSkeleton& skeleton = _skeletons[i];
@@ -47,10 +46,8 @@ void Save(OArchive& _archive,
 }
 
 template <>
-void Load(IArchive& _archive,
-          animation::offline::RawSkeleton* _skeletons,
-          size_t _count,
-          uint32_t _version) {
+void Load(IArchive& _archive, animation::offline::RawSkeleton* _skeletons,
+          size_t _count, uint32_t _version) {
   (void)_version;
   for (size_t i = 0; i < _count; ++i) {
     animation::offline::RawSkeleton& skeleton = _skeletons[i];
@@ -75,10 +72,8 @@ void Save(OArchive& _archive,
 }
 
 template <>
-void Load(IArchive& _archive,
-          animation::offline::RawSkeleton::Joint* _joints,
-          size_t _count,
-          uint32_t _version) {
+void Load(IArchive& _archive, animation::offline::RawSkeleton::Joint* _joints,
+          size_t _count, uint32_t _version) {
   (void)_version;
   for (size_t i = 0; i < _count; ++i) {
     animation::offline::RawSkeleton::Joint& joint = _joints[i];

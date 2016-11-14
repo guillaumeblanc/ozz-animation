@@ -32,12 +32,9 @@ namespace ozz {
 namespace animation {
 namespace offline {
 
-RawAnimation::RawAnimation()
-  : duration(1.f) {
-}
+RawAnimation::RawAnimation() : duration(1.f) {}
 
-RawAnimation::~RawAnimation() {
-}
+RawAnimation::~RawAnimation() {}
 
 namespace {
 
@@ -75,7 +72,7 @@ bool RawAnimation::Validate() const {
   for (size_t j = 0; j < tracks.size(); ++j) {
     const RawAnimation::JointTrack& track = tracks[j];
     if (!ValidateTrack<TranslationKey>(track.translations, duration) ||
-        !ValidateTrack<RotationKey>(track.rotations, duration) || 
+        !ValidateTrack<RotationKey>(track.rotations, duration) ||
         !ValidateTrack<ScaleKey>(track.scales, duration)) {
       return false;
     }

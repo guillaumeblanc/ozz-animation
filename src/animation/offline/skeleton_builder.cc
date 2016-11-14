@@ -29,11 +29,11 @@
 
 #include <cstring>
 
+#include "ozz/animation/offline/raw_skeleton.h"
+#include "ozz/animation/runtime/skeleton.h"
 #include "ozz/base/containers/vector.h"
 #include "ozz/base/maths/soa_transform.h"
 #include "ozz/base/memory/allocator.h"
-#include "ozz/animation/offline/raw_skeleton.h"
-#include "ozz/animation/runtime/skeleton.h"
 
 namespace ozz {
 namespace animation {
@@ -42,9 +42,7 @@ namespace offline {
 namespace {
 // Stores each traversed joint to a vector.
 struct JointLister {
-  explicit JointLister(int _num_joints) {
-    linear_joints.reserve(_num_joints);
-  }
+  explicit JointLister(int _num_joints) { linear_joints.reserve(_num_joints); }
   void operator()(const RawSkeleton::Joint& _current,
                   const RawSkeleton::Joint* _parent) {
     // Looks for the "lister" parent.
@@ -92,7 +90,7 @@ Skeleton* SkeletonBuilder::operator()(const RawSkeleton& _raw_skeleton) const {
   JointLister lister(num_joints);
   _raw_skeleton.IterateJointsBF<JointLister&>(lister);
   assert(static_cast<int>(lister.linear_joints.size()) == num_joints);
-  
+
   // Computes name's buffer size.
   size_t chars_size = 0;
   for (int i = 0; i < num_joints; ++i) {
@@ -116,7 +114,7 @@ Skeleton* SkeletonBuilder::operator()(const RawSkeleton& _raw_skeleton) const {
   for (int i = 0; i < num_joints; ++i) {
     skeleton->joint_properties_[i].parent = lister.linear_joints[i].parent;
     skeleton->joint_properties_[i].is_leaf =
-      lister.linear_joints[i].joint->children.empty();
+        lister.linear_joints[i].joint->children.empty();
   }
 
   // Transfers t-poses.
@@ -131,13 +129,13 @@ Skeleton* SkeletonBuilder::operator()(const RawSkeleton& _raw_skeleton) const {
     for (int j = 0; j < 4; ++j) {
       if (i * 4 + j < num_joints) {
         const RawSkeleton::Joint& src_joint =
-          *lister.linear_joints[i * 4 + j].joint;
+            *lister.linear_joints[i * 4 + j].joint;
         translations[j] =
-          math::simd_float4::Load3PtrU(&src_joint.transform.translation.x);
+            math::simd_float4::Load3PtrU(&src_joint.transform.translation.x);
         rotations[j] = math::NormalizeSafe4(
-          math::simd_float4::LoadPtrU(&src_joint.transform.rotation.x), w_axis);
-        scales[j] =
-          math::simd_float4::Load3PtrU(&src_joint.transform.scale.x);
+            math::simd_float4::LoadPtrU(&src_joint.transform.rotation.x),
+            w_axis);
+        scales[j] = math::simd_float4::Load3PtrU(&src_joint.transform.scale.x);
       } else {
         translations[j] = zero;
         rotations[j] = w_axis;

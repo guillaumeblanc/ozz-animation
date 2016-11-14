@@ -30,9 +30,9 @@
 
 #include <cassert>
 
-#include "ozz/base/platform.h"
 #include "ozz/base/maths/soa_float.h"
 #include "ozz/base/maths/soa_quaternion.h"
+#include "ozz/base/platform.h"
 
 namespace ozz {
 namespace math {
@@ -89,22 +89,11 @@ struct SoaFloat4x4 {
     const SimdFloat4 zz = _q.z * _q.z;
     const SimdFloat4 zw = _q.z * _q.w;
 
-    const SoaFloat4x4 ret = {{{one - two * (yy + zz),
-                               two * (xy + zw),
-                               two * (xz - yw),
-                               zero},
-                              {two * (xy - zw),
-                               one - two * (xx + zz),
-                               two * (yz + xw),
-                               zero},
-                              {two * (xz + yw),
-                               two * (yz - xw),
-                               one - two * (xx + yy),
-                               zero},
-                              {zero,
-                               zero,
-                               zero,
-                               one}}};
+    const SoaFloat4x4 ret = {
+        {{one - two * (yy + zz), two * (xy + zw), two * (xz - yw), zero},
+         {two * (xy - zw), one - two * (xx + zz), two * (yz + xw), zero},
+         {two * (xz + yw), two * (yz - xw), one - two * (xx + yy), zero},
+         {zero, zero, zero, one}}};
     return ret;
   }
 
@@ -129,33 +118,25 @@ struct SoaFloat4x4 {
     const SimdFloat4 zz = _quaternion.z * _quaternion.z;
     const SimdFloat4 zw = _quaternion.z * _quaternion.w;
 
-    const SoaFloat4x4 ret = {{{_scale.x * (one - two * (yy + zz)),
-                               _scale.x * two * (xy + zw),
-                               _scale.x * two * (xz - yw),
-                               zero},
-                              {_scale.y * two * (xy - zw),
-                               _scale.y * (one - two * (xx + zz)),
-                               _scale.y * two * (yz + xw),
-                               zero},
-                              {_scale.z * two * (xz + yw),
-                               _scale.z * two * (yz - xw),
-                               _scale.z * (one - two * (xx + yy)),
-                               zero},
-                              {_translation.x,
-                               _translation.y,
-                               _translation.z,
-                               one}}};
+    const SoaFloat4x4 ret = {
+        {{_scale.x * (one - two * (yy + zz)), _scale.x * two * (xy + zw),
+          _scale.x * two * (xz - yw), zero},
+         {_scale.y * two * (xy - zw), _scale.y * (one - two * (xx + zz)),
+          _scale.y * two * (yz + xw), zero},
+         {_scale.z * two * (xz + yw), _scale.z * two * (yz - xw),
+          _scale.z * (one - two * (xx + yy)), zero},
+         {_translation.x, _translation.y, _translation.z, one}}};
     return ret;
   }
 };
 
 // Returns the transpose of matrix _m.
 OZZ_INLINE SoaFloat4x4 Transpose(const SoaFloat4x4& _m) {
-  const SoaFloat4x4 ret = {{
-    {_m.cols[0].x, _m.cols[1].x, _m.cols[2].x, _m.cols[3].x},
-    {_m.cols[0].y, _m.cols[1].y, _m.cols[2].y, _m.cols[3].y},
-    {_m.cols[0].z, _m.cols[1].z, _m.cols[2].z, _m.cols[3].z},
-    {_m.cols[0].w, _m.cols[1].w, _m.cols[2].w, _m.cols[3].w}}};
+  const SoaFloat4x4 ret = {
+      {{_m.cols[0].x, _m.cols[1].x, _m.cols[2].x, _m.cols[3].x},
+       {_m.cols[0].y, _m.cols[1].y, _m.cols[2].y, _m.cols[3].y},
+       {_m.cols[0].z, _m.cols[1].z, _m.cols[2].z, _m.cols[3].z},
+       {_m.cols[0].w, _m.cols[1].w, _m.cols[2].w, _m.cols[3].w}}};
   return ret;
 }
 
@@ -202,49 +183,30 @@ OZZ_INLINE SoaFloat4x4 Invert(const SoaFloat4x4& _m) {
   const SimdFloat4 b2w = -cols[0].x * a14 + cols[0].y * a16 - cols[0].w * a18;
   const SimdFloat4 b3w = cols[0].x * a15 - cols[0].y * a17 + cols[0].z * a18;
 
-  const SimdFloat4 det = cols[0].x * b0x +
-                         cols[0].y * b1x +
-                         cols[0].z * b2x +
-                         cols[0].w * b3x;
+  const SimdFloat4 det =
+      cols[0].x * b0x + cols[0].y * b1x + cols[0].z * b2x + cols[0].w * b3x;
   assert(AreAllTrue(CmpNe(det, simd_float4::zero())) &&
          "Matrix is not invertible");
   const SimdFloat4 inv_det = simd_float4::one() / det;
 
-  const SoaFloat4x4 ret = {{{b0x * inv_det,
-                             b0y * inv_det,
-                             b0z * inv_det,
-                             b0w * inv_det},
-                            {b1x * inv_det,
-                             b1y * inv_det,
-                             b1z * inv_det,
-                             b1w * inv_det},
-                            {b2x * inv_det,
-                             b2y * inv_det,
-                             b2z * inv_det,
-                             b2w * inv_det},
-                            {b3x * inv_det,
-                             b3y * inv_det,
-                             b3z * inv_det,
-                             b3w * inv_det}}};
+  const SoaFloat4x4 ret = {
+      {{b0x * inv_det, b0y * inv_det, b0z * inv_det, b0w * inv_det},
+       {b1x * inv_det, b1y * inv_det, b1z * inv_det, b1w * inv_det},
+       {b2x * inv_det, b2y * inv_det, b2z * inv_det, b2w * inv_det},
+       {b3x * inv_det, b3y * inv_det, b3z * inv_det, b3w * inv_det}}};
   return ret;
 }
 
 // Scales matrix _m along the axis defined by _v components.
 // _v.w is ignored.
 OZZ_INLINE SoaFloat4x4 Scale(const SoaFloat4x4& _m, const SoaFloat4& _v) {
-  const SoaFloat4x4 ret = {{{_m.cols[0].x * _v.x,
-                             _m.cols[0].y * _v.x,
-                             _m.cols[0].z * _v.x,
-                             _m.cols[0].w * _v.x},
-                            {_m.cols[1].x * _v.y,
-                             _m.cols[1].y * _v.y,
-                             _m.cols[1].z * _v.y,
-                             _m.cols[1].w * _v.y},
-                            {_m.cols[2].x * _v.z,
-                             _m.cols[2].y * _v.z,
-                             _m.cols[2].z * _v.z,
-                             _m.cols[2].w * _v.z},
-                             _m.cols[3]}};
+  const SoaFloat4x4 ret = {{{_m.cols[0].x * _v.x, _m.cols[0].y * _v.x,
+                             _m.cols[0].z * _v.x, _m.cols[0].w * _v.x},
+                            {_m.cols[1].x * _v.y, _m.cols[1].y * _v.y,
+                             _m.cols[1].z * _v.y, _m.cols[1].w * _v.y},
+                            {_m.cols[2].x * _v.z, _m.cols[2].y * _v.z,
+                             _m.cols[2].z * _v.z, _m.cols[2].w * _v.z},
+                            _m.cols[3]}};
   return ret;
 }
 }  // ozz
@@ -253,76 +215,53 @@ OZZ_INLINE SoaFloat4x4 Scale(const SoaFloat4x4& _m, const SoaFloat4& _v) {
 // Computes the multiplication of matrix Float4x4 and vector  _v.
 OZZ_INLINE ozz::math::SoaFloat4 operator*(const ozz::math::SoaFloat4x4& _m,
                                           const ozz::math::SoaFloat4& _v) {
-  const ozz::math::SoaFloat4 ret = {_m.cols[0].x * _v.x +
-                                    _m.cols[1].x * _v.y +
-                                    _m.cols[2].x * _v.z +
-                                    _m.cols[3].x * _v.w,
-                                    _m.cols[0].y * _v.x +
-                                    _m.cols[1].y * _v.y +
-                                    _m.cols[2].y * _v.z +
-                                    _m.cols[3].y * _v.w,
-                                    _m.cols[0].z * _v.x +
-                                    _m.cols[1].z * _v.y +
-                                    _m.cols[2].z * _v.z +
-                                    _m.cols[3].z * _v.w,
-                                    _m.cols[0].w * _v.x +
-                                    _m.cols[1].w * _v.y +
-                                    _m.cols[2].w * _v.z +
-                                    _m.cols[3].w * _v.w};
+  const ozz::math::SoaFloat4 ret = {
+      _m.cols[0].x * _v.x + _m.cols[1].x * _v.y + _m.cols[2].x * _v.z +
+          _m.cols[3].x * _v.w,
+      _m.cols[0].y * _v.x + _m.cols[1].y * _v.y + _m.cols[2].y * _v.z +
+          _m.cols[3].y * _v.w,
+      _m.cols[0].z * _v.x + _m.cols[1].z * _v.y + _m.cols[2].z * _v.z +
+          _m.cols[3].z * _v.w,
+      _m.cols[0].w * _v.x + _m.cols[1].w * _v.y + _m.cols[2].w * _v.z +
+          _m.cols[3].w * _v.w};
   return ret;
 }
 
 // Computes the multiplication of two matrices _a and _b.
 OZZ_INLINE ozz::math::SoaFloat4x4 operator*(const ozz::math::SoaFloat4x4& _a,
                                             const ozz::math::SoaFloat4x4& _b) {
-  const ozz::math::SoaFloat4x4 ret = {{_a * _b.cols[0],
-                                       _a * _b.cols[1],
-                                       _a * _b.cols[2],
-                                       _a * _b.cols[3]}};
+  const ozz::math::SoaFloat4x4 ret = {
+      {_a * _b.cols[0], _a * _b.cols[1], _a * _b.cols[2], _a * _b.cols[3]}};
   return ret;
 }
 
 // Computes the per element addition of two matrices _a and _b.
 OZZ_INLINE ozz::math::SoaFloat4x4 operator+(const ozz::math::SoaFloat4x4& _a,
                                             const ozz::math::SoaFloat4x4& _b) {
-  const ozz::math::SoaFloat4x4 ret = {{{_a.cols[0].x + _b.cols[0].x,
-                                        _a.cols[0].y + _b.cols[0].y,
-                                        _a.cols[0].z + _b.cols[0].z,
-                                        _a.cols[0].w + _b.cols[0].w},
-                                       {_a.cols[1].x + _b.cols[1].x,
-                                        _a.cols[1].y + _b.cols[1].y,
-                                        _a.cols[1].z + _b.cols[1].z,
-                                        _a.cols[1].w + _b.cols[1].w},
-                                       {_a.cols[2].x + _b.cols[2].x,
-                                        _a.cols[2].y + _b.cols[2].y,
-                                        _a.cols[2].z + _b.cols[2].z,
-                                        _a.cols[2].w + _b.cols[2].w},
-                                       {_a.cols[3].x + _b.cols[3].x,
-                                        _a.cols[3].y + _b.cols[3].y,
-                                        _a.cols[3].z + _b.cols[3].z,
-                                        _a.cols[3].w + _b.cols[3].w}}};
+  const ozz::math::SoaFloat4x4 ret = {
+      {{_a.cols[0].x + _b.cols[0].x, _a.cols[0].y + _b.cols[0].y,
+        _a.cols[0].z + _b.cols[0].z, _a.cols[0].w + _b.cols[0].w},
+       {_a.cols[1].x + _b.cols[1].x, _a.cols[1].y + _b.cols[1].y,
+        _a.cols[1].z + _b.cols[1].z, _a.cols[1].w + _b.cols[1].w},
+       {_a.cols[2].x + _b.cols[2].x, _a.cols[2].y + _b.cols[2].y,
+        _a.cols[2].z + _b.cols[2].z, _a.cols[2].w + _b.cols[2].w},
+       {_a.cols[3].x + _b.cols[3].x, _a.cols[3].y + _b.cols[3].y,
+        _a.cols[3].z + _b.cols[3].z, _a.cols[3].w + _b.cols[3].w}}};
   return ret;
 }
 
 // Computes the per element subtraction of two matrices _a and _b.
 OZZ_INLINE ozz::math::SoaFloat4x4 operator-(const ozz::math::SoaFloat4x4& _a,
                                             const ozz::math::SoaFloat4x4& _b) {
-  const ozz::math::SoaFloat4x4 ret = {{{_a.cols[0].x - _b.cols[0].x,
-                                        _a.cols[0].y - _b.cols[0].y,
-                                        _a.cols[0].z - _b.cols[0].z,
-                                        _a.cols[0].w - _b.cols[0].w},
-                                       {_a.cols[1].x - _b.cols[1].x,
-                                        _a.cols[1].y - _b.cols[1].y,
-                                        _a.cols[1].z - _b.cols[1].z,
-                                        _a.cols[1].w - _b.cols[1].w},
-                                       {_a.cols[2].x - _b.cols[2].x,
-                                        _a.cols[2].y - _b.cols[2].y,
-                                        _a.cols[2].z - _b.cols[2].z,
-                                        _a.cols[2].w - _b.cols[2].w},
-                                       {_a.cols[3].x - _b.cols[3].x,
-                                        _a.cols[3].y - _b.cols[3].y,
-                                        _a.cols[3].z - _b.cols[3].z,
-                                        _a.cols[3].w - _b.cols[3].w}}};
+  const ozz::math::SoaFloat4x4 ret = {
+      {{_a.cols[0].x - _b.cols[0].x, _a.cols[0].y - _b.cols[0].y,
+        _a.cols[0].z - _b.cols[0].z, _a.cols[0].w - _b.cols[0].w},
+       {_a.cols[1].x - _b.cols[1].x, _a.cols[1].y - _b.cols[1].y,
+        _a.cols[1].z - _b.cols[1].z, _a.cols[1].w - _b.cols[1].w},
+       {_a.cols[2].x - _b.cols[2].x, _a.cols[2].y - _b.cols[2].y,
+        _a.cols[2].z - _b.cols[2].z, _a.cols[2].w - _b.cols[2].w},
+       {_a.cols[3].x - _b.cols[3].x, _a.cols[3].y - _b.cols[3].y,
+        _a.cols[3].z - _b.cols[3].z, _a.cols[3].w - _b.cols[3].w}}};
   return ret;
 }
 #endif  // OZZ_OZZ_BASE_MATHS_SOA_FLOAT4X4_H_

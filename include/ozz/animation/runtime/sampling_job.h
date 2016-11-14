@@ -33,7 +33,9 @@
 namespace ozz {
 
 // Forward declaration of math structures.
-namespace math { struct SoaTransform; }
+namespace math {
+struct SoaTransform;
+}
 
 namespace animation {
 
@@ -87,10 +89,10 @@ struct SamplingJob {
 };
 
 namespace internal {
-  // Soa hot data to interpolate.
-  struct InterpSoaTranslation;
-  struct InterpSoaRotation;
-  struct InterpSoaScale;
+// Soa hot data to interpolate.
+struct InterpSoaTranslation;
+struct InterpSoaRotation;
+struct InterpSoaScale;
 }  // internal
 
 // Declares the cache object used by the workload to take advantage of the
@@ -120,7 +122,6 @@ class SamplingCache {
   int max_soa_tracks() const { return max_soa_tracks_; }
 
  private:
-
   // Disables copy and assignation.
   SamplingCache(SamplingCache const&);
   void operator=(SamplingCache const&);

@@ -33,7 +33,8 @@
 #include "ozz/base/containers/std_allocator.h"
 
 namespace ozz {
-// Redirects std::deque to ozz::Deque in order to replace std default allocator by
+// Redirects std::deque to ozz::Deque in order to replace std default allocator
+// by
 // ozz::StdAllocator.
 template <class _Ty, class _Allocator = ozz::StdAllocator<_Ty> >
 struct Deque {

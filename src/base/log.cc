@@ -45,38 +45,29 @@ Level SetLevel(Level _level) {
   return previous_level;
 }
 
-Level GetLevel() {
-  return log_level;
-}
+Level GetLevel() { return log_level; }
 
-LogV::LogV()
-    : internal::Logger(std::clog, Verbose) {
-}
+LogV::LogV() : internal::Logger(std::clog, Verbose) {}
 
-Log::Log()
-    : internal::Logger(std::clog, Standard) {
-}
+Log::Log() : internal::Logger(std::clog, Standard) {}
 
-Out::Out()
-    : internal::Logger(std::cout, Standard) {
-}
+Out::Out() : internal::Logger(std::cout, Standard) {}
 
-Err::Err()
-    : internal::Logger(std::cerr, Standard) {
-}
+Err::Err() : internal::Logger(std::cerr, Standard) {}
 
 namespace internal {
 
 Logger::Logger(std::ostream& _stream, Level _level)
-    : stream_(_level <= GetLevel() ?
-        _stream : *ozz::memory::default_allocator()->New<std::ostringstream>()),
-      local_stream_(&stream_ != &_stream) {
-}
+    : stream_(
+          _level <= GetLevel()
+              ? _stream
+              : *ozz::memory::default_allocator()->New<std::ostringstream>()),
+      local_stream_(&stream_ != &_stream) {}
 Logger::~Logger() {
   if (local_stream_) {
     ozz::memory::default_allocator()->Delete(&stream_);
   }
 }
 }  // internal
-} // log
-} // ozz
+}  // log
+}  // ozz

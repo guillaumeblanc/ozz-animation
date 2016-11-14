@@ -30,11 +30,11 @@
 
 #ifdef _MSC_VER
 #pragma warning(push)
-#pragma warning(disable:4702)  // warning C4702: unreachable code 
-#endif  // _MSC_VER
+#pragma warning(disable : 4702)  // warning C4702: unreachable code
+#endif                           // _MSC_VER
 
-#include <map>
 #include <cstring>
+#include <map>
 
 #ifdef _MSC_VER
 #pragma warning(pop)
@@ -45,9 +45,7 @@
 namespace ozz {
 // Redirects std::map to ozz::Map in order to replace std default allocator by
 // ozz::StdAllocator.
-template <class _Key,
-          class _Ty,
-          class _Pred = std::less<_Key>,
+template <class _Key, class _Ty, class _Pred = std::less<_Key>,
           class _Allocator = ozz::StdAllocator<std::pair<const _Key, _Ty> > >
 struct Map {
   typedef std::map<_Key, _Ty, _Pred, _Allocator> Std;
@@ -61,18 +59,15 @@ struct str_less {
 };
 
 // Specializes std::map to use c-string as a key.
-template <
-  class _Ty,
-  class _Allocator = ozz::StdAllocator<std::pair<const char*, _Ty> > >
+template <class _Ty,
+          class _Allocator = ozz::StdAllocator<std::pair<const char*, _Ty> > >
 struct CStringMap {
   typedef std::map<const char*, _Ty, str_less, _Allocator> Std;
 };
 
 // Redirects std::multimap to ozz::MultiMap in order to replace std default
 // allocator by ozz::StdAllocator.
-template <class _Key,
-          class _Ty,
-          class _Pred = std::less<_Key>,
+template <class _Key, class _Ty, class _Pred = std::less<_Key>,
           class _Allocator = ozz::StdAllocator<std::pair<const _Key, _Ty> > >
 struct MultiMap {
   typedef std::multimap<_Key, _Ty, _Pred, _Allocator> Std;

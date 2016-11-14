@@ -28,8 +28,8 @@
 #ifndef OZZ_OZZ_ANIMATION_OFFLINE_FBX_FBX_H_
 #define OZZ_OZZ_ANIMATION_OFFLINE_FBX_FBX_H_
 
-#include "ozz/base/containers/vector.h"
 #include "ozz/base/containers/string.h"
+#include "ozz/base/containers/vector.h"
 
 #include "ozz/animation/offline/raw_animation.h"
 
@@ -59,10 +59,8 @@ typedef Vector<RawAnimation>::Std Animations;
 // and filled with animation data extracted from the fbx document.
 // _skeleton is a run-time Skeleton object used to select and sort animation
 // tracks.
-bool ImportFromFile(const char* _filename,
-                    const Skeleton& _skeleton,
-                    float _sampling_rate,
-                    Animations* _animations);
+bool ImportFromFile(const char* _filename, const Skeleton& _skeleton,
+                    float _sampling_rate, Animations* _animations);
 }  // fbx
 }  // offline
 }  // animation

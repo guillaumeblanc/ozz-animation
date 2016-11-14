@@ -36,8 +36,8 @@
 #include "ozz/base/maths/math_ex.h"
 #include "ozz/base/memory/allocator.h"
 
-#include <cstring>
 #include <cassert>
+#include <cstring>
 
 // Internal include file
 #define OZZ_INCLUDE_PRIVATE_HEADER  // Allows to include private headers.
@@ -136,34 +136,26 @@ struct ScaleKey {
 namespace ozz {
 namespace animation {
 
-Animation::Animation()
-    : duration_(0.f),
-      num_tracks_(0),
-      name_(NULL) {
-}
+Animation::Animation() : duration_(0.f), num_tracks_(0), name_(NULL) {}
 
-Animation::~Animation() {
-  Deallocate();
-}
+Animation::~Animation() { Deallocate(); }
 
 void Animation::Allocate(size_t name_len, size_t _translation_count,
                          size_t _rotation_count, size_t _scale_count) {
   // Distributes buffer memory while ensuring proper alignment (serves larger
   // alignment values first).
-  OZZ_STATIC_ASSERT(
-    OZZ_ALIGN_OF(TranslationKey) >= OZZ_ALIGN_OF(RotationKey) &&
-    OZZ_ALIGN_OF(RotationKey) >= OZZ_ALIGN_OF(ScaleKey) &&
-    OZZ_ALIGN_OF(ScaleKey) >= OZZ_ALIGN_OF(char));
+  OZZ_STATIC_ASSERT(OZZ_ALIGN_OF(TranslationKey) >= OZZ_ALIGN_OF(RotationKey) &&
+                    OZZ_ALIGN_OF(RotationKey) >= OZZ_ALIGN_OF(ScaleKey) &&
+                    OZZ_ALIGN_OF(ScaleKey) >= OZZ_ALIGN_OF(char));
 
   assert(name_ == NULL && translations_.Size() == 0 && rotations_.Size() == 0 &&
          scales_.Size() == 0);
 
   // Compute overall size and allocate a single buffer for all the data.
-  const size_t buffer_size =
-    (name_len > 0 ? name_len + 1 : 0) +
-    _translation_count * sizeof(TranslationKey) +
-    _rotation_count * sizeof(RotationKey) +
-    _scale_count * sizeof(ScaleKey);
+  const size_t buffer_size = (name_len > 0 ? name_len + 1 : 0) +
+                             _translation_count * sizeof(TranslationKey) +
+                             _rotation_count * sizeof(RotationKey) +
+                             _scale_count * sizeof(ScaleKey);
   char* buffer = memory::default_allocator()->Allocate<char>(buffer_size);
 
   // Fix up pointers
@@ -189,7 +181,6 @@ void Animation::Allocate(size_t name_len, size_t _translation_count,
 }
 
 void Animation::Deallocate() {
-
   memory::default_allocator()->Deallocate(translations_.begin);
 
   name_ = NULL;
@@ -200,7 +191,7 @@ void Animation::Deallocate() {
 
 size_t Animation::size() const {
   const size_t size =
-    sizeof(*this) + translations_.Size() + rotations_.Size() + scales_.Size();
+      sizeof(*this) + translations_.Size() + rotations_.Size() + scales_.Size();
   return size;
 }
 
@@ -248,7 +239,6 @@ void Animation::Save(ozz::io::OArchive& _archive) const {
 }
 
 void Animation::Load(ozz::io::IArchive& _archive, uint32_t _version) {
-
   // Destroy animation in case it was already used before.
   Deallocate();
   duration_ = 0.f;
@@ -344,8 +334,8 @@ void Animation::Load(ozz::io::IArchive& _archive, uint32_t _version) {
 
 #include "ozz/animation/runtime/blending_job.h"
 
-#include <cstddef>
 #include <cassert>
+#include <cstddef>
 
 #include "ozz/animation/runtime/skeleton.h"
 
@@ -355,13 +345,9 @@ void Animation::Load(ozz::io::IArchive& _archive, uint32_t _version) {
 namespace ozz {
 namespace animation {
 
-BlendingJob::Layer::Layer()
-    : weight(0.f) {
-}
+BlendingJob::Layer::Layer() : weight(0.f) {}
 
-BlendingJob::BlendingJob()
-    : threshold(.1f) {
-}
+BlendingJob::BlendingJob() : threshold(.1f) {}
 
 namespace {
 bool ValidateLayer(const BlendingJob::Layer& _layer, ptrdiff_t _min_range) {
@@ -375,7 +361,8 @@ bool ValidateLayer(const BlendingJob::Layer& _layer, ptrdiff_t _min_range) {
   // Joint weights are optional.
   if (_layer.joint_weights.begin != NULL) {
     valid &= _layer.joint_weights.end >= _layer.joint_weights.begin;
-    valid &= _layer.joint_weights.end - _layer.joint_weights.begin >= _min_range;
+    valid &=
+        _layer.joint_weights.end - _layer.joint_weights.begin >= _min_range;
   } else {
     valid &= _layer.joint_weights.end == NULL;
   }
@@ -414,8 +401,7 @@ bool BlendingJob::Validate() const {
   }
 
   // Validates layers.
-  for (const Layer* layer = layers.begin;
-       layers.begin && layer < layers.end;
+  for (const Layer* layer = layers.begin; layers.begin && layer < layers.end;
        ++layer) {
     valid &= ValidateLayer(*layer, min_range);
   }
@@ -429,7 +415,8 @@ bool BlendingJob::Validate() const {
 
   // Validates additive layers.
   for (const Layer* layer = additive_layers.begin;
-       additive_layers.begin && layer < additive_layers.end;  // Handles NULL pointers.
+       additive_layers.begin &&
+       layer < additive_layers.end;  // Handles NULL pointers.
        ++layer) {
     valid &= ValidateLayer(*layer, min_range);
   }
@@ -440,85 +427,84 @@ bool BlendingJob::Validate() const {
 namespace {
 
 // Macro that defines the process of blending the 1st pass.
-#define OZZ_BLEND_1ST_PASS(_in, _simd_weight, _out) { \
-  _out->translation = _in.translation * _simd_weight; \
-  _out->rotation = _in.rotation * _simd_weight; \
-  _out->scale = _in.scale * _simd_weight; \
+#define OZZ_BLEND_1ST_PASS(_in, _simd_weight, _out)     \
+  {                                                     \
+    _out->translation = _in.translation * _simd_weight; \
+    _out->rotation = _in.rotation * _simd_weight;       \
+    _out->scale = _in.scale * _simd_weight;             \
+  \
 }
 
 // Macro that defines the process of blending any pass but the first.
-#define OZZ_BLEND_N_PASS(_in, _simd_weight, _out) { \
-  /* Blends translation. */ \
-  _out->translation = _out->translation + _in.translation * _simd_weight; \
-  /* Blends rotations, negates opposed quaternions to be sure to choose*/ \
-  /* the shortest path between the two.*/ \
-  const math::SimdFloat4 dot = _out->rotation.x * _in.rotation.x + \
-                               _out->rotation.y * _in.rotation.y + \
-                               _out->rotation.z * _in.rotation.z + \
-                               _out->rotation.w * _in.rotation.w; \
-  const math::SimdInt4 sign = math::Sign(dot); \
-  const math::SoaQuaternion rotation = {math::Xor(_in.rotation.x, sign), \
-                                        math::Xor(_in.rotation.y, sign), \
-                                        math::Xor(_in.rotation.z, sign), \
-                                        math::Xor(_in.rotation.w, sign)}; \
-  _out->rotation = _out->rotation + rotation * _simd_weight; \
-  /* Blends scales.*/ \
-  _out->scale = _out->scale + _in.scale * _simd_weight; \
+#define OZZ_BLEND_N_PASS(_in, _simd_weight, _out)                           \
+  {                                                                         \
+    /* Blends translation. */                                               \
+    _out->translation = _out->translation + _in.translation * _simd_weight; \
+    /* Blends rotations, negates opposed quaternions to be sure to choose*/ \
+    /* the shortest path between the two.*/                                 \
+    const math::SimdFloat4 dot = _out->rotation.x * _in.rotation.x +        \
+                                 _out->rotation.y * _in.rotation.y +        \
+                                 _out->rotation.z * _in.rotation.z +        \
+                                 _out->rotation.w * _in.rotation.w;         \
+    const math::SimdInt4 sign = math::Sign(dot);                            \
+    const math::SoaQuaternion rotation = {                                  \
+        math::Xor(_in.rotation.x, sign), math::Xor(_in.rotation.y, sign),   \
+        math::Xor(_in.rotation.z, sign), math::Xor(_in.rotation.w, sign)};  \
+    _out->rotation = _out->rotation + rotation * _simd_weight;              \
+    /* Blends scales.*/                                                     \
+    _out->scale = _out->scale + _in.scale * _simd_weight;                   \
+  \
 }
 
 // Macro that defines the process of adding a pass.
-#define OZZ_ADD_PASS(_in, _simd_weight, _out) { \
-  _out.translation = _out.translation + _in.translation * _simd_weight; \
-  /* Interpolate quaternion between identity and src.rotation.*/ \
-  /* Quaternion sign is fixed up, so that lerp takes the shortest path.*/ \
-  const math::SimdInt4 sign = math::Sign(_in.rotation.w); \
-  const math::SoaQuaternion rotation = {math::Xor(_in.rotation.x, sign), \
-                                        math::Xor(_in.rotation.y, sign), \
-                                        math::Xor(_in.rotation.z, sign), \
-                                        math::Xor(_in.rotation.w, sign)}; \
-  const math::SoaQuaternion interp_quat = { \
-    rotation.x * _simd_weight, \
-    rotation.y * _simd_weight, \
-    rotation.z * _simd_weight, \
-    (rotation.w - one) * _simd_weight + one \
-  }; \
-  _out.rotation = NormalizeEst(interp_quat) * _out.rotation; \
-  _out.scale = _out.scale * (one_minus_weight_f3 + (_in.scale * _simd_weight)); \
+#define OZZ_ADD_PASS(_in, _simd_weight, _out)                                \
+  {                                                                          \
+    _out.translation = _out.translation + _in.translation * _simd_weight;    \
+    /* Interpolate quaternion between identity and src.rotation.*/           \
+    /* Quaternion sign is fixed up, so that lerp takes the shortest path.*/  \
+    const math::SimdInt4 sign = math::Sign(_in.rotation.w);                  \
+    const math::SoaQuaternion rotation = {                                   \
+        math::Xor(_in.rotation.x, sign), math::Xor(_in.rotation.y, sign),    \
+        math::Xor(_in.rotation.z, sign), math::Xor(_in.rotation.w, sign)};   \
+    const math::SoaQuaternion interp_quat = {                                \
+        rotation.x * _simd_weight, rotation.y * _simd_weight,                \
+        rotation.z * _simd_weight, (rotation.w - one) * _simd_weight + one}; \
+    _out.rotation = NormalizeEst(interp_quat) * _out.rotation;               \
+    _out.scale =                                                             \
+        _out.scale * (one_minus_weight_f3 + (_in.scale * _simd_weight));     \
+  \
 }
 
 // Macro that defines the process of subtracting a pass.
-#define OZZ_SUB_PASS(_in, _simd_weight, _out) { \
-  _out.translation = _out.translation - _in.translation * _simd_weight; \
-  /* Interpolate quaternion between identity and src.rotation.*/ \
-  /* Quaternion sign is fixed up, so that lerp takes the shortest path.*/ \
-  const math::SimdInt4 sign = math::Sign(_in.rotation.w); \
-  const math::SoaQuaternion rotation = {math::Xor(_in.rotation.x, sign), \
-                                        math::Xor(_in.rotation.y, sign), \
-                                        math::Xor(_in.rotation.z, sign), \
-                                        math::Xor(_in.rotation.w, sign)}; \
-  const math::SoaQuaternion interp_quat = { \
-    rotation.x * _simd_weight, \
-    rotation.y * _simd_weight, \
-    rotation.z * _simd_weight, \
-    (rotation.w - one) * _simd_weight + one \
-  }; \
-  _out.rotation = Conjugate(NormalizeEst(interp_quat)) * _out.rotation; \
-  const math::SoaFloat3 rcp_scale = { \
-    math::RcpEst(one_minus_weight + (_in.scale.x * _simd_weight)), \
-    math::RcpEst(one_minus_weight + (_in.scale.y * _simd_weight)), \
-    math::RcpEst(one_minus_weight + (_in.scale.z * _simd_weight)) \
-  }; \
-  _out.scale = _out.scale * rcp_scale; \
+#define OZZ_SUB_PASS(_in, _simd_weight, _out)                                \
+  {                                                                          \
+    _out.translation = _out.translation - _in.translation * _simd_weight;    \
+    /* Interpolate quaternion between identity and src.rotation.*/           \
+    /* Quaternion sign is fixed up, so that lerp takes the shortest path.*/  \
+    const math::SimdInt4 sign = math::Sign(_in.rotation.w);                  \
+    const math::SoaQuaternion rotation = {                                   \
+        math::Xor(_in.rotation.x, sign), math::Xor(_in.rotation.y, sign),    \
+        math::Xor(_in.rotation.z, sign), math::Xor(_in.rotation.w, sign)};   \
+    const math::SoaQuaternion interp_quat = {                                \
+        rotation.x * _simd_weight, rotation.y * _simd_weight,                \
+        rotation.z * _simd_weight, (rotation.w - one) * _simd_weight + one}; \
+    _out.rotation = Conjugate(NormalizeEst(interp_quat)) * _out.rotation;    \
+    const math::SoaFloat3 rcp_scale = {                                      \
+        math::RcpEst(one_minus_weight + (_in.scale.x * _simd_weight)),       \
+        math::RcpEst(one_minus_weight + (_in.scale.y * _simd_weight)),       \
+        math::RcpEst(one_minus_weight + (_in.scale.z * _simd_weight))};      \
+    _out.scale = _out.scale * rcp_scale;                                     \
+  \
 }
 
 // Defines parameters that are passed through blending stages.
 struct ProcessArgs {
   ProcessArgs(const BlendingJob& _job)
-    : job(_job),
-      num_soa_joints(_job.bind_pose.end - _job.bind_pose.begin),
-      num_passes(0),
-      num_partial_passes(0),
-      accumulated_weight(0.f) {
+      : job(_job),
+        num_soa_joints(_job.bind_pose.end - _job.bind_pose.begin),
+        num_passes(0),
+        num_partial_passes(0),
+        accumulated_weight(0.f) {
     // The range of all buffers has already been validated.
     assert(job.output.end >= job.output.begin + num_soa_joints);
     assert(OZZ_ARRAY_SIZE(accumulated_weights) >= num_soa_joints);
@@ -537,7 +523,8 @@ struct ProcessArgs {
   // The job to process.
   const BlendingJob& job;
 
-  // The number of transforms to process as defined by the size of the bind pose.
+  // The number of transforms to process as defined by the size of the bind
+  // pose.
   size_t num_soa_joints;
 
   // Number of processed blended passes (excluding passes with a weight <= 0.f),
@@ -551,9 +538,9 @@ struct ProcessArgs {
   float accumulated_weight;
 
  private:
-   // Disables assignment operators.
-   ProcessArgs(const ProcessArgs&);
-   void operator = (const ProcessArgs&);
+  // Disables assignment operators.
+  ProcessArgs(const ProcessArgs&);
+  void operator=(const ProcessArgs&);
 };
 
 // Blends all layers of the job to its output.
@@ -562,9 +549,7 @@ void BlendLayers(ProcessArgs* _args) {
 
   // Iterates through all layers and blend them to the output.
   for (const BlendingJob::Layer* layer = _args->job.layers.begin;
-       layer < _args->job.layers.end;
-       ++layer) {
-
+       layer < _args->job.layers.end; ++layer) {
     // Asserts buffer sizes, which must never fail as it has been validated.
     assert(layer->transform.end >=
            layer->transform.begin + _args->num_soa_joints);
@@ -579,7 +564,8 @@ void BlendLayers(ProcessArgs* _args) {
 
     // Accumulates global weights.
     _args->accumulated_weight += layer->weight;
-    const math::SimdFloat4 layer_weight = math::simd_float4::Load1(layer->weight);
+    const math::SimdFloat4 layer_weight =
+        math::simd_float4::Load1(layer->weight);
 
     if (layer->joint_weights.begin) {
       // This layer has per-joint weights.
@@ -590,7 +576,7 @@ void BlendLayers(ProcessArgs* _args) {
           const math::SoaTransform& src = layer->transform.begin[i];
           math::SoaTransform* dest = _args->job.output.begin + i;
           const math::SimdFloat4 weight =
-            layer_weight * math::Max0(layer->joint_weights.begin[i]);
+              layer_weight * math::Max0(layer->joint_weights.begin[i]);
           _args->accumulated_weights[i] = weight;
           OZZ_BLEND_1ST_PASS(src, weight, dest);
         }
@@ -599,9 +585,9 @@ void BlendLayers(ProcessArgs* _args) {
           const math::SoaTransform& src = layer->transform.begin[i];
           math::SoaTransform* dest = _args->job.output.begin + i;
           const math::SimdFloat4 weight =
-            layer_weight * math::Max0(layer->joint_weights.begin[i]);
+              layer_weight * math::Max0(layer->joint_weights.begin[i]);
           _args->accumulated_weights[i] =
-            _args->accumulated_weights[i] + weight;
+              _args->accumulated_weights[i] + weight;
           OZZ_BLEND_N_PASS(src, weight, dest);
         }
       }
@@ -619,7 +605,7 @@ void BlendLayers(ProcessArgs* _args) {
           const math::SoaTransform& src = layer->transform.begin[i];
           math::SoaTransform* dest = _args->job.output.begin + i;
           _args->accumulated_weights[i] =
-            _args->accumulated_weights[i] + layer_weight;
+              _args->accumulated_weights[i] + layer_weight;
           OZZ_BLEND_N_PASS(src, layer_weight, dest);
         }
       }
@@ -640,8 +626,7 @@ void BlendBindPose(ProcessArgs* _args) {
 
   if (_args->num_partial_passes == 0) {
     // No partial blending pass detected, threshold can be tested globally.
-    const float bp_weight =
-      _args->job.threshold - _args->accumulated_weight;
+    const float bp_weight = _args->job.threshold - _args->accumulated_weight;
 
     if (bp_weight > 0.f) {  // The bind-pose is needed if it has a weight.
       if (_args->num_passes == 0) {
@@ -656,7 +641,7 @@ void BlendBindPose(ProcessArgs* _args) {
         _args->accumulated_weight = _args->job.threshold;
 
         const math::SimdFloat4 simd_bp_weight =
-          math::simd_float4::Load1(bp_weight);
+            math::simd_float4::Load1(bp_weight);
 
         for (size_t i = 0; i < _args->num_soa_joints; ++i) {
           const math::SoaTransform& src = _args->job.bind_pose.begin[i];
@@ -668,8 +653,8 @@ void BlendBindPose(ProcessArgs* _args) {
   } else {
     // Blending passes contain partial blending, threshold must be tested for
     // each joint.
-    const math::SimdFloat4 threshold = 
-      math::simd_float4::Load1(_args->job.threshold);
+    const math::SimdFloat4 threshold =
+        math::simd_float4::Load1(_args->job.threshold);
 
     // There's been at least 1 pass as num_partial_passes != 0.
     assert(_args->num_passes != 0);
@@ -678,9 +663,9 @@ void BlendBindPose(ProcessArgs* _args) {
       const math::SoaTransform& src = _args->job.bind_pose.begin[i];
       math::SoaTransform* dest = _args->job.output.begin + i;
       const math::SimdFloat4 bp_weight =
-        math::Max0(threshold - _args->accumulated_weights[i]);
+          math::Max0(threshold - _args->accumulated_weights[i]);
       _args->accumulated_weights[i] =
-        math::Max(threshold, _args->accumulated_weights[i]);
+          math::Max(threshold, _args->accumulated_weights[i]);
       OZZ_BLEND_N_PASS(src, bp_weight, dest);
     }
   }
@@ -697,7 +682,7 @@ void Normalize(ProcessArgs* _args) {
     // Normalization of a non-partial blending requires to apply the same
     // division to all joints.
     const math::SimdFloat4 ratio =
-      math::simd_float4::Load1(1.f / _args->accumulated_weight);
+        math::simd_float4::Load1(1.f / _args->accumulated_weight);
     for (size_t i = 0; i < _args->num_soa_joints; ++i) {
       math::SoaTransform& dest = _args->job.output.begin[i];
       dest.rotation = NormalizeEst(dest.rotation);
@@ -723,9 +708,7 @@ void AddLayers(ProcessArgs* _args) {
 
   // Iterates through all layers and blend them to the output.
   for (const BlendingJob::Layer* layer = _args->job.additive_layers.begin;
-       layer < _args->job.additive_layers.end;
-       ++layer) {
-
+       layer < _args->job.additive_layers.end; ++layer) {
     // Asserts buffer sizes, which must never fail as it has been validated.
     assert(layer->transform.end >=
            layer->transform.begin + _args->num_soa_joints);
@@ -733,13 +716,13 @@ void AddLayers(ProcessArgs* _args) {
            (layer->joint_weights.end >=
             layer->joint_weights.begin + _args->num_soa_joints));
 
-    // Prepares constants. 
+    // Prepares constants.
     const math::SimdFloat4 one = math::simd_float4::one();
 
     if (layer->weight > 0.f) {
       // Weight is positive, need to perform additive blending.
       const math::SimdFloat4 layer_weight =
-        math::simd_float4::Load1(layer->weight);
+          math::simd_float4::Load1(layer->weight);
 
       if (layer->joint_weights.begin) {
         // This layer has per-joint weights.
@@ -747,17 +730,17 @@ void AddLayers(ProcessArgs* _args) {
           const math::SoaTransform& src = layer->transform.begin[i];
           math::SoaTransform& dest = _args->job.output.begin[i];
           const math::SimdFloat4 weight =
-            layer_weight * math::Max0(layer->joint_weights.begin[i]);
+              layer_weight * math::Max0(layer->joint_weights.begin[i]);
           const math::SimdFloat4 one_minus_weight = one - weight;
           const math::SoaFloat3 one_minus_weight_f3 = {
-            one_minus_weight, one_minus_weight, one_minus_weight};
+              one_minus_weight, one_minus_weight, one_minus_weight};
           OZZ_ADD_PASS(src, weight, dest);
         }
       } else {
         // This is a full layer.
         const math::SimdFloat4 one_minus_weight = one - layer_weight;
         const math::SoaFloat3 one_minus_weight_f3 = {
-          one_minus_weight, one_minus_weight, one_minus_weight};
+            one_minus_weight, one_minus_weight, one_minus_weight};
 
         for (size_t i = 0; i < _args->num_soa_joints; ++i) {
           const math::SoaTransform& src = layer->transform.begin[i];
@@ -768,7 +751,7 @@ void AddLayers(ProcessArgs* _args) {
     } else if (layer->weight < 0.f) {
       // Weight is negative, need to perform subtractive blending.
       const math::SimdFloat4 layer_weight =
-        math::simd_float4::Load1(-layer->weight);
+          math::simd_float4::Load1(-layer->weight);
 
       if (layer->joint_weights.begin) {
         // This layer has per-joint weights.
@@ -776,7 +759,7 @@ void AddLayers(ProcessArgs* _args) {
           const math::SoaTransform& src = layer->transform.begin[i];
           math::SoaTransform& dest = _args->job.output.begin[i];
           const math::SimdFloat4 weight =
-            layer_weight * math::Max0(layer->joint_weights.begin[i]);
+              layer_weight * math::Max0(layer->joint_weights.begin[i]);
           const math::SimdFloat4 one_minus_weight = one - weight;
           OZZ_SUB_PASS(src, weight, dest);
         }
@@ -854,10 +837,10 @@ bool BlendingJob::Run() const {
 
 #include <cassert>
 
-#include "ozz/base/maths/soa_transform.h"
-#include "ozz/base/maths/soa_float4x4.h"
-#include "ozz/base/maths/simd_math.h"
 #include "ozz/base/maths/math_ex.h"
+#include "ozz/base/maths/simd_math.h"
+#include "ozz/base/maths/soa_float4x4.h"
+#include "ozz/base/maths/soa_transform.h"
 
 #include "ozz/animation/runtime/skeleton.h"
 
@@ -904,7 +887,7 @@ bool LocalToModelJob::Run() const {
 
   // Fetch joint's properties.
   Range<const Skeleton::JointProperties> properties =
-    skeleton->joint_properties();
+      skeleton->joint_properties();
 
   // Output.
   Float4x4* const model_matrices = output.begin;
@@ -917,10 +900,8 @@ bool LocalToModelJob::Run() const {
   for (int joint = 0; joint < num_joints;) {
     // Builds soa matrices from soa transforms.
     const SoaTransform& transform = input.begin[joint / 4];
-    const SoaFloat4x4 local_soa_matrices =
-      SoaFloat4x4::FromAffine(transform.translation,
-                              transform.rotation,
-                              transform.scale);
+    const SoaFloat4x4 local_soa_matrices = SoaFloat4x4::FromAffine(
+        transform.translation, transform.rotation, transform.scale);
     // Converts to aos matrices.
     math::SimdFloat4 local_aos_matrices[16];
     math::Transpose16x16(&local_soa_matrices.cols[0].x, local_aos_matrices);
@@ -931,11 +912,9 @@ bool LocalToModelJob::Run() const {
     for (; joint < proceed_up_to; ++joint, local_aos_matrix += 4) {
       const int parent = properties.begin[joint].parent;
       const Float4x4* parent_matrix =
-        math::Select(parent == Skeleton::kNoParentIndex,
-                     &identity,
-                     &model_matrices[parent]);
-      const Float4x4 local_matrix = {{local_aos_matrix[0],
-                                      local_aos_matrix[1],
+          math::Select(parent == Skeleton::kNoParentIndex, &identity,
+                       &model_matrices[parent]);
+      const Float4x4 local_matrix = {{local_aos_matrix[0], local_aos_matrix[1],
                                       local_aos_matrix[2],
                                       local_aos_matrix[3]}};
       model_matrices[joint] = (*parent_matrix) * local_matrix;
@@ -979,11 +958,11 @@ bool LocalToModelJob::Run() const {
 
 #include <cassert>
 
-#include "ozz/base/maths/math_ex.h"
+#include "ozz/animation/runtime/animation.h"
 #include "ozz/base/maths/math_constant.h"
+#include "ozz/base/maths/math_ex.h"
 #include "ozz/base/maths/soa_transform.h"
 #include "ozz/base/memory/allocator.h"
-#include "ozz/animation/runtime/animation.h"
 
 // Internal include file
 #define OZZ_INCLUDE_PRIVATE_HEADER  // Allows to include private headers.
@@ -1121,74 +1100,71 @@ bool SamplingJob::Validate() const {
 
 namespace {
 // Loops through the sorted key frames and update cache structure.
-template<typename _Key>
-void UpdateKeys(float _time, int _num_soa_tracks,
-                ozz::Range<const _Key> _keys,
-                int* _cursor,
-                int* _cache, unsigned char* _outdated) {
-    assert(_num_soa_tracks >= 1);
-    const int num_tracks = _num_soa_tracks * 4;
-    assert(_keys.begin + num_tracks * 2 <= _keys.end);
+template <typename _Key>
+void UpdateKeys(float _time, int _num_soa_tracks, ozz::Range<const _Key> _keys,
+                int* _cursor, int* _cache, unsigned char* _outdated) {
+  assert(_num_soa_tracks >= 1);
+  const int num_tracks = _num_soa_tracks * 4;
+  assert(_keys.begin + num_tracks * 2 <= _keys.end);
 
-    const _Key* cursor = &_keys.begin[*_cursor];
-    if (!*_cursor) {
-      // Initializes interpolated entries with the first 2 sets of key frames.
-      // The sorting algorithm ensures that the first 2 key frames of a track
-      // are consecutive.
-      for (int i = 0; i < _num_soa_tracks; ++i) {
-        const int in_index0 = i * 4;  // * soa size
-        const int in_index1 = in_index0 + num_tracks;  // 2nd row.
-        const int out_index = i * 4 * 2;   
-        _cache[out_index + 0] = in_index0 + 0;
-        _cache[out_index + 1] = in_index1 + 0;
-        _cache[out_index + 2] = in_index0 + 1;
-        _cache[out_index + 3] = in_index1 + 1;
-        _cache[out_index + 4] = in_index0 + 2;
-        _cache[out_index + 5] = in_index1 + 2;
-        _cache[out_index + 6] = in_index0 + 3;
-        _cache[out_index + 7] = in_index1 + 3;
-      }
-      cursor = _keys.begin + num_tracks * 2;  // New cursor position.
+  const _Key* cursor = &_keys.begin[*_cursor];
+  if (!*_cursor) {
+    // Initializes interpolated entries with the first 2 sets of key frames.
+    // The sorting algorithm ensures that the first 2 key frames of a track
+    // are consecutive.
+    for (int i = 0; i < _num_soa_tracks; ++i) {
+      const int in_index0 = i * 4;                   // * soa size
+      const int in_index1 = in_index0 + num_tracks;  // 2nd row.
+      const int out_index = i * 4 * 2;
+      _cache[out_index + 0] = in_index0 + 0;
+      _cache[out_index + 1] = in_index1 + 0;
+      _cache[out_index + 2] = in_index0 + 1;
+      _cache[out_index + 3] = in_index1 + 1;
+      _cache[out_index + 4] = in_index0 + 2;
+      _cache[out_index + 5] = in_index1 + 2;
+      _cache[out_index + 6] = in_index0 + 3;
+      _cache[out_index + 7] = in_index1 + 3;
+    }
+    cursor = _keys.begin + num_tracks * 2;  // New cursor position.
 
-      // All entries are outdated. It cares to only flag valid soa entries as
-      // this is the exit condition of other algorithms.
-      const int num_outdated_flags = (_num_soa_tracks + 7) / 8;
-      for (int i = 0; i < num_outdated_flags - 1; ++i) {
-        _outdated[i] = 0xff;
-      }
-      _outdated[num_outdated_flags - 1] =
+    // All entries are outdated. It cares to only flag valid soa entries as
+    // this is the exit condition of other algorithms.
+    const int num_outdated_flags = (_num_soa_tracks + 7) / 8;
+    for (int i = 0; i < num_outdated_flags - 1; ++i) {
+      _outdated[i] = 0xff;
+    }
+    _outdated[num_outdated_flags - 1] =
         0xff >> (num_outdated_flags * 8 - _num_soa_tracks);
-    } else {
-      assert(cursor >= _keys.begin + num_tracks * 2 && cursor <= _keys.end);
-    }
+  } else {
+    assert(cursor >= _keys.begin + num_tracks * 2 && cursor <= _keys.end);
+  }
 
-    // Search for the keys that matches _time.
-    // Iterates while the cache is not updated with left and right keys required
-    // for interpolation at time _time, for all tracks. Thanks to the keyframe
-    // sorting, the loop can end as soon as it finds a key greater that _time.
-    // It will mean that all the keys lower than _time have been processed,
-    // meaning all cache entries are updated. 
-    while (cursor < _keys.end &&
-           _keys.begin[_cache[cursor->track * 2 + 1]].time <= _time) {
-      // Flag this soa entry as outdated.
-      _outdated[cursor->track / 32] |= (1 << ((cursor->track & 0x1f) / 4));
-      // Updates cache.
-      const int base = cursor->track * 2;
-      _cache[base] = _cache[base + 1];
-      _cache[base + 1] = static_cast<int>(cursor - _keys.begin);
-      // Process next key.
-      ++cursor;
-    }
-    assert(cursor <= _keys.end);
+  // Search for the keys that matches _time.
+  // Iterates while the cache is not updated with left and right keys required
+  // for interpolation at time _time, for all tracks. Thanks to the keyframe
+  // sorting, the loop can end as soon as it finds a key greater that _time.
+  // It will mean that all the keys lower than _time have been processed,
+  // meaning all cache entries are updated.
+  while (cursor < _keys.end &&
+         _keys.begin[_cache[cursor->track * 2 + 1]].time <= _time) {
+    // Flag this soa entry as outdated.
+    _outdated[cursor->track / 32] |= (1 << ((cursor->track & 0x1f) / 4));
+    // Updates cache.
+    const int base = cursor->track * 2;
+    _cache[base] = _cache[base + 1];
+    _cache[base + 1] = static_cast<int>(cursor - _keys.begin);
+    // Process next key.
+    ++cursor;
+  }
+  assert(cursor <= _keys.end);
 
-    // Updates cursor output.
-    *_cursor = static_cast<int>(cursor - _keys.begin);
+  // Updates cursor output.
+  *_cursor = static_cast<int>(cursor - _keys.begin);
 }
 
 void UpdateSoaTranslations(int _num_soa_tracks,
                            ozz::Range<const TranslationKey> _keys,
-                           const int* _interp,
-                           unsigned char* _outdated,
+                           const int* _interp, unsigned char* _outdated,
                            internal::InterpSoaTranslation* soa_translations_) {
   const int num_outdated_flags = (_num_soa_tracks + 7) / 8;
   for (int j = 0; j < num_outdated_flags; ++j) {
@@ -1205,94 +1181,110 @@ void UpdateSoaTranslations(int _num_soa_tracks,
       const TranslationKey& k10 = _keys.begin[_interp[base + 2]];
       const TranslationKey& k20 = _keys.begin[_interp[base + 4]];
       const TranslationKey& k30 = _keys.begin[_interp[base + 6]];
-      soa_translations_[i].time[0] = math::simd_float4::Load(
-        k00.time, k10.time, k20.time, k30.time);
+      soa_translations_[i].time[0] =
+          math::simd_float4::Load(k00.time, k10.time, k20.time, k30.time);
       soa_translations_[i].value[0].x = math::HalfToFloat(math::simd_int4::Load(
-        k00.value[0], k10.value[0], k20.value[0], k30.value[0]));
+          k00.value[0], k10.value[0], k20.value[0], k30.value[0]));
       soa_translations_[i].value[0].y = math::HalfToFloat(math::simd_int4::Load(
-        k00.value[1], k10.value[1], k20.value[1], k30.value[1]));
+          k00.value[1], k10.value[1], k20.value[1], k30.value[1]));
       soa_translations_[i].value[0].z = math::HalfToFloat(math::simd_int4::Load(
-        k00.value[2], k10.value[2], k20.value[2], k30.value[2]));
+          k00.value[2], k10.value[2], k20.value[2], k30.value[2]));
 
       // Decompress right side keyframes and store them in soa structures.
       const TranslationKey& k01 = _keys.begin[_interp[base + 1]];
       const TranslationKey& k11 = _keys.begin[_interp[base + 3]];
       const TranslationKey& k21 = _keys.begin[_interp[base + 5]];
       const TranslationKey& k31 = _keys.begin[_interp[base + 7]];
-      soa_translations_[i].time[1] = math::simd_float4::Load(
-        k01.time, k11.time, k21.time, k31.time);
+      soa_translations_[i].time[1] =
+          math::simd_float4::Load(k01.time, k11.time, k21.time, k31.time);
       soa_translations_[i].value[1].x = math::HalfToFloat(math::simd_int4::Load(
-        k01.value[0], k11.value[0], k21.value[0], k31.value[0]));
+          k01.value[0], k11.value[0], k21.value[0], k31.value[0]));
       soa_translations_[i].value[1].y = math::HalfToFloat(math::simd_int4::Load(
-        k01.value[1], k11.value[1], k21.value[1], k31.value[1]));
+          k01.value[1], k11.value[1], k21.value[1], k31.value[1]));
       soa_translations_[i].value[1].z = math::HalfToFloat(math::simd_int4::Load(
-        k01.value[2], k11.value[2], k21.value[2], k31.value[2]));
+          k01.value[2], k11.value[2], k21.value[2], k31.value[2]));
     }
   }
 }
 
-#define DECOMPRESS_SOA_QUAT(_k0, _k1, _k2, _k3, _quat) {\
-  /* Selects proper mapping for each key.*/\
-  const int* m0 = kCpntMapping[_k0.largest];\
-  const int* m1 = kCpntMapping[_k1.largest];\
-  const int* m2 = kCpntMapping[_k2.largest];\
-  const int* m3 = kCpntMapping[_k3.largest];\
-\
-  /* Prepares an array of input values, according to the mapping required to*/\
-  /* restore quaternion largest component.*/\
-  OZZ_ALIGN(16) int cmp_keys[4][4] = {\
-    {_k0.value[m0[0]], _k1.value[m1[0]], _k2.value[m2[0]], _k3.value[m3[0]]},\
-    {_k0.value[m0[1]], _k1.value[m1[1]], _k2.value[m2[1]], _k3.value[m3[1]]},\
-    {_k0.value[m0[2]], _k1.value[m1[2]], _k2.value[m2[2]], _k3.value[m3[2]]},\
-    {_k0.value[m0[3]], _k1.value[m1[3]], _k2.value[m2[3]], _k3.value[m3[3]]},\
-  };\
-\
-  /* Resets largest component to 0.*/\
-  cmp_keys[_k0.largest][0] = 0;\
-  cmp_keys[_k1.largest][1] = 0;\
-  cmp_keys[_k2.largest][2] = 0;\
-  cmp_keys[_k3.largest][3] = 0;\
-\
-  /* Rebuilds quaternion from quantized values.*/\
-  math::SimdFloat4 cpnt[4] = {\
-    kInt2Float * math::simd_float4::FromInt(math::simd_int4::LoadPtr(cmp_keys[0])),\
-    kInt2Float * math::simd_float4::FromInt(math::simd_int4::LoadPtr(cmp_keys[1])),\
-    kInt2Float * math::simd_float4::FromInt(math::simd_int4::LoadPtr(cmp_keys[2])),\
-    kInt2Float * math::simd_float4::FromInt(math::simd_int4::LoadPtr(cmp_keys[3])),\
-  };\
-\
-  /* Get back length of 4th component. Favors performance over accuracy by*/\
-  /* using x * RSqrtEst(x) instead of Sqrt(x).*/\
-  const math::SimdFloat4 dot =\
-    cpnt[0] * cpnt[0] + cpnt[1] * cpnt[1] + cpnt[2] * cpnt[2] + cpnt[3] * cpnt[3];\
-  const math::SimdFloat4 ww0 = math::Max(eps, one - dot);\
-  const math::SimdFloat4 w0 = ww0 * math::RSqrtEst(ww0);\
-  /* Re-applies 4th component's sign.*/\
-  const math::SimdInt4 sign = math::ShiftL(\
-    math::simd_int4::Load(_k0.sign, _k1.sign, _k2.sign, _k3.sign), 31);\
-  const math::SimdFloat4 restored = math::Or(w0, sign);\
-\
-  /* Re-injects the largest component inside the SoA structure.*/\
-  cpnt[_k0.largest] = math::Or(cpnt[_k0.largest], math::And(restored, mf000));\
-  cpnt[_k1.largest] = math::Or(cpnt[_k1.largest], math::And(restored, m0f00));\
-  cpnt[_k2.largest] = math::Or(cpnt[_k2.largest], math::And(restored, m00f0));\
-  cpnt[_k3.largest] = math::Or(cpnt[_k3.largest], math::And(restored, m000f));\
-\
-  /* Stores result.*/\
-  _quat.x = cpnt[0]; _quat.y = cpnt[1]; _quat.z = cpnt[2]; _quat.w = cpnt[3];\
+#define DECOMPRESS_SOA_QUAT(_k0, _k1, _k2, _k3, _quat)                         \
+  {                                                                            \
+    /* Selects proper mapping for each key.*/                                  \
+    const int* m0 = kCpntMapping[_k0.largest];                                 \
+    const int* m1 = kCpntMapping[_k1.largest];                                 \
+    const int* m2 = kCpntMapping[_k2.largest];                                 \
+    const int* m3 = kCpntMapping[_k3.largest];                                 \
+                                                                               \
+    /* Prepares an array of input values, according to the mapping required */ \
+    /* to restore quaternion largest component.*/                              \
+    OZZ_ALIGN(16)                                                              \
+    int cmp_keys[4][4] = {                                                     \
+        {_k0.value[m0[0]], _k1.value[m1[0]], _k2.value[m2[0]],                 \
+         _k3.value[m3[0]]},                                                    \
+        {_k0.value[m0[1]], _k1.value[m1[1]], _k2.value[m2[1]],                 \
+         _k3.value[m3[1]]},                                                    \
+        {_k0.value[m0[2]], _k1.value[m1[2]], _k2.value[m2[2]],                 \
+         _k3.value[m3[2]]},                                                    \
+        {_k0.value[m0[3]], _k1.value[m1[3]], _k2.value[m2[3]],                 \
+         _k3.value[m3[3]]},                                                    \
+    };                                                                         \
+                                                                               \
+    /* Resets largest component to 0.*/                                        \
+    cmp_keys[_k0.largest][0] = 0;                                              \
+    cmp_keys[_k1.largest][1] = 0;                                              \
+    cmp_keys[_k2.largest][2] = 0;                                              \
+    cmp_keys[_k3.largest][3] = 0;                                              \
+                                                                               \
+    /* Rebuilds quaternion from quantized values.*/                            \
+    math::SimdFloat4 cpnt[4] = {                                               \
+        kInt2Float *                                                           \
+            math::simd_float4::FromInt(math::simd_int4::LoadPtr(cmp_keys[0])), \
+        kInt2Float *                                                           \
+            math::simd_float4::FromInt(math::simd_int4::LoadPtr(cmp_keys[1])), \
+        kInt2Float *                                                           \
+            math::simd_float4::FromInt(math::simd_int4::LoadPtr(cmp_keys[2])), \
+        kInt2Float *                                                           \
+            math::simd_float4::FromInt(math::simd_int4::LoadPtr(cmp_keys[3])), \
+    };                                                                         \
+                                                                               \
+    /* Get back length of 4th component. Favors performance over accuracy by*/ \
+    /* using x * RSqrtEst(x) instead of Sqrt(x).*/                             \
+    const math::SimdFloat4 dot = cpnt[0] * cpnt[0] + cpnt[1] * cpnt[1] +       \
+                                 cpnt[2] * cpnt[2] + cpnt[3] * cpnt[3];        \
+    const math::SimdFloat4 ww0 = math::Max(eps, one - dot);                    \
+    const math::SimdFloat4 w0 = ww0 * math::RSqrtEst(ww0);                     \
+    /* Re-applies 4th component's sign.*/                                      \
+    const math::SimdInt4 sign = math::ShiftL(                                  \
+        math::simd_int4::Load(_k0.sign, _k1.sign, _k2.sign, _k3.sign), 31);    \
+    const math::SimdFloat4 restored = math::Or(w0, sign);                      \
+                                                                               \
+    /* Re-injects the largest component inside the SoA structure.*/            \
+    cpnt[_k0.largest] =                                                        \
+        math::Or(cpnt[_k0.largest], math::And(restored, mf000));               \
+    cpnt[_k1.largest] =                                                        \
+        math::Or(cpnt[_k1.largest], math::And(restored, m0f00));               \
+    cpnt[_k2.largest] =                                                        \
+        math::Or(cpnt[_k2.largest], math::And(restored, m00f0));               \
+    cpnt[_k3.largest] =                                                        \
+        math::Or(cpnt[_k3.largest], math::And(restored, m000f));               \
+                                                                               \
+    /* Stores result.*/                                                        \
+    _quat.x = cpnt[0];                                                         \
+    _quat.y = cpnt[1];                                                         \
+    _quat.z = cpnt[2];                                                         \
+    _quat.w = cpnt[3];                                                         \
+  \
 }
 
 void UpdateSoaRotations(int _num_soa_tracks,
-                        ozz::Range<const RotationKey> _keys,
-                        const int* _interp,
+                        ozz::Range<const RotationKey> _keys, const int* _interp,
                         unsigned char* _outdated,
                         internal::InterpSoaRotation* _soa_rotations) {
-
   // Prepares constants.
   const math::SimdFloat4 one = math::simd_float4::one();
   const math::SimdFloat4 eps = math::simd_float4::Load1(1e-16f);
   const math::SimdFloat4 kInt2Float =
-    math::simd_float4::Load1(1.f / (32767.f * math::kSqrt2));
+      math::simd_float4::Load1(1.f / (32767.f * math::kSqrt2));
   const math::SimdInt4 mf000 = math::simd_int4::mask_f000();
   const math::SimdInt4 m0f00 = math::simd_int4::mask_0f00();
   const math::SimdInt4 m00f0 = math::simd_int4::mask_00f0();
@@ -1301,8 +1293,7 @@ void UpdateSoaRotations(int _num_soa_tracks,
   // Defines a mapping table that defines components assignation in the output
   // quaternion.
   const int kCpntMapping[4][4] = {
-    {0, 0, 1, 2}, {0, 0, 1, 2}, {0, 1, 0, 2}, {0, 1, 2, 0}
-  };
+      {0, 0, 1, 2}, {0, 0, 1, 2}, {0, 1, 0, 2}, {0, 1, 2, 0}};
 
   const int num_outdated_flags = (_num_soa_tracks + 7) / 8;
   for (int j = 0; j < num_outdated_flags; ++j) {
@@ -1312,7 +1303,7 @@ void UpdateSoaRotations(int _num_soa_tracks,
       if (!(outdated & 1)) {
         continue;
       }
-      
+
       const int base = i * 4 * 2;  // * soa size * 2 keys per track
 
       // Decompress left side keyframes and store them in soa structures.
@@ -1323,7 +1314,7 @@ void UpdateSoaRotations(int _num_soa_tracks,
         const RotationKey& k3 = _keys.begin[_interp[base + 6]];
 
         _soa_rotations[i].time[0] =
-          math::simd_float4::Load(k0.time, k1.time, k2.time, k3.time);
+            math::simd_float4::Load(k0.time, k1.time, k2.time, k3.time);
         math::SoaQuaternion& quat = _soa_rotations[i].value[0];
         DECOMPRESS_SOA_QUAT(k0, k1, k2, k3, quat);
       }
@@ -1336,7 +1327,7 @@ void UpdateSoaRotations(int _num_soa_tracks,
         const RotationKey& k3 = _keys.begin[_interp[base + 7]];
 
         _soa_rotations[i].time[1] =
-          math::simd_float4::Load(k0.time, k1.time, k2.time, k3.time);
+            math::simd_float4::Load(k0.time, k1.time, k2.time, k3.time);
         math::SoaQuaternion& quat = _soa_rotations[i].value[1];
         DECOMPRESS_SOA_QUAT(k0, k1, k2, k3, quat);
       }
@@ -1346,10 +1337,8 @@ void UpdateSoaRotations(int _num_soa_tracks,
 
 #undef DECOMPRESS_SOA_QUAT
 
-void UpdateSoaScales(int _num_soa_tracks,
-                     ozz::Range<const ScaleKey> _keys,
-                     const int* _interp,
-                     unsigned char* _outdated,
+void UpdateSoaScales(int _num_soa_tracks, ozz::Range<const ScaleKey> _keys,
+                     const int* _interp, unsigned char* _outdated,
                      internal::InterpSoaScale* soa_scales_) {
   const int num_outdated_flags = (_num_soa_tracks + 7) / 8;
   for (int j = 0; j < num_outdated_flags; ++j) {
@@ -1366,69 +1355,64 @@ void UpdateSoaScales(int _num_soa_tracks,
       const ScaleKey& k10 = _keys.begin[_interp[base + 2]];
       const ScaleKey& k20 = _keys.begin[_interp[base + 4]];
       const ScaleKey& k30 = _keys.begin[_interp[base + 6]];
-      soa_scales_[i].time[0] = math::simd_float4::Load(
-        k00.time, k10.time, k20.time, k30.time);
+      soa_scales_[i].time[0] =
+          math::simd_float4::Load(k00.time, k10.time, k20.time, k30.time);
       soa_scales_[i].value[0].x = math::HalfToFloat(math::simd_int4::Load(
-        k00.value[0],k10.value[0], k20.value[0], k30.value[0]));
+          k00.value[0], k10.value[0], k20.value[0], k30.value[0]));
       soa_scales_[i].value[0].y = math::HalfToFloat(math::simd_int4::Load(
-        k00.value[1], k10.value[1], k20.value[1], k30.value[1]));
+          k00.value[1], k10.value[1], k20.value[1], k30.value[1]));
       soa_scales_[i].value[0].z = math::HalfToFloat(math::simd_int4::Load(
-        k00.value[2], k10.value[2], k20.value[2], k30.value[2]));
+          k00.value[2], k10.value[2], k20.value[2], k30.value[2]));
 
       // Decompress right side keyframes and store them in soa structures.
       const ScaleKey& k01 = _keys.begin[_interp[base + 1]];
       const ScaleKey& k11 = _keys.begin[_interp[base + 3]];
       const ScaleKey& k21 = _keys.begin[_interp[base + 5]];
       const ScaleKey& k31 = _keys.begin[_interp[base + 7]];
-      soa_scales_[i].time[1] = math::simd_float4::Load(
-        k01.time, k11.time, k21.time, k31.time);
+      soa_scales_[i].time[1] =
+          math::simd_float4::Load(k01.time, k11.time, k21.time, k31.time);
       soa_scales_[i].value[1].x = math::HalfToFloat(math::simd_int4::Load(
-        k01.value[0], k11.value[0], k21.value[0], k31.value[0]));
+          k01.value[0], k11.value[0], k21.value[0], k31.value[0]));
       soa_scales_[i].value[1].y = math::HalfToFloat(math::simd_int4::Load(
-        k01.value[1], k11.value[1], k21.value[1], k31.value[1]));
+          k01.value[1], k11.value[1], k21.value[1], k31.value[1]));
       soa_scales_[i].value[1].z = math::HalfToFloat(math::simd_int4::Load(
-        k01.value[2], k11.value[2], k21.value[2], k31.value[2]));
+          k01.value[2], k11.value[2], k21.value[2], k31.value[2]));
     }
   }
 }
 
-void Interpolates(float _anim_time,
-                  int _num_soa_tracks,
+void Interpolates(float _anim_time, int _num_soa_tracks,
                   const internal::InterpSoaTranslation* _translations,
                   const internal::InterpSoaRotation* _rotations,
                   const internal::InterpSoaScale* _scales,
                   math::SoaTransform* _output) {
-    const math::SimdFloat4 anim_time = math::simd_float4::Load1(_anim_time);
-    for (int i = 0; i < _num_soa_tracks; ++i) {
-      // Prepares interpolation coefficients.
-      const math::SimdFloat4 interp_t_time =
+  const math::SimdFloat4 anim_time = math::simd_float4::Load1(_anim_time);
+  for (int i = 0; i < _num_soa_tracks; ++i) {
+    // Prepares interpolation coefficients.
+    const math::SimdFloat4 interp_t_time =
         (anim_time - _translations[i].time[0]) *
         math::RcpEst(_translations[i].time[1] - _translations[i].time[0]);
-      const math::SimdFloat4 interp_r_time =
+    const math::SimdFloat4 interp_r_time =
         (anim_time - _rotations[i].time[0]) *
         math::RcpEst(_rotations[i].time[1] - _rotations[i].time[0]);
-      const math::SimdFloat4 interp_s_time =
+    const math::SimdFloat4 interp_s_time =
         (anim_time - _scales[i].time[0]) *
         math::RcpEst(_scales[i].time[1] - _scales[i].time[0]);
 
-      // Processes interpolations.
-      // The lerp of the rotation uses the shortest path, because opposed
-      // quaternions were negated during animation build stage (AnimationBuilder).
-      _output[i].translation = Lerp(
-        _translations[i].value[0], _translations[i].value[1], interp_t_time);
-      _output[i].rotation = NLerpEst(
-        _rotations[i].value[0], _rotations[i].value[1], interp_r_time);
-      _output[i].scale = Lerp(
-        _scales[i].value[0], _scales[i].value[1], interp_s_time);
-    }
+    // Processes interpolations.
+    // The lerp of the rotation uses the shortest path, because opposed
+    // quaternions were negated during animation build stage (AnimationBuilder).
+    _output[i].translation = Lerp(_translations[i].value[0],
+                                  _translations[i].value[1], interp_t_time);
+    _output[i].rotation =
+        NLerpEst(_rotations[i].value[0], _rotations[i].value[1], interp_r_time);
+    _output[i].scale =
+        Lerp(_scales[i].value[0], _scales[i].value[1], interp_s_time);
+  }
 }
 }  // namespace
 
-SamplingJob::SamplingJob()
-    : time(0.f),
-      animation(NULL),
-      cache(NULL) {
-}
+SamplingJob::SamplingJob() : time(0.f), animation(NULL), cache(NULL) {}
 
 bool SamplingJob::Run() const {
   if (!Validate()) {
@@ -1449,66 +1433,49 @@ bool SamplingJob::Run() const {
 
   // Fetch key frames from the animation to the cache a t = anim_time.
   // Then updates outdated soa hot values.
-  UpdateKeys(anim_time, num_soa_tracks,
-             animation->translations(),
-             &cache->translation_cursor_,
-             cache->translation_keys_,
+  UpdateKeys(anim_time, num_soa_tracks, animation->translations(),
+             &cache->translation_cursor_, cache->translation_keys_,
              cache->outdated_translations_);
-  UpdateSoaTranslations(num_soa_tracks,
-                        animation->translations(),
-                        cache->translation_keys_,
-                        cache->outdated_translations_,
+  UpdateSoaTranslations(num_soa_tracks, animation->translations(),
+                        cache->translation_keys_, cache->outdated_translations_,
                         cache->soa_translations_);
 
-  UpdateKeys(anim_time, num_soa_tracks,
-             animation->rotations(),
-             &cache->rotation_cursor_,
-             cache->rotation_keys_,
+  UpdateKeys(anim_time, num_soa_tracks, animation->rotations(),
+             &cache->rotation_cursor_, cache->rotation_keys_,
              cache->outdated_rotations_);
-  UpdateSoaRotations(num_soa_tracks,
-                     animation->rotations(),
-                     cache->rotation_keys_,
-                     cache->outdated_rotations_,
+  UpdateSoaRotations(num_soa_tracks, animation->rotations(),
+                     cache->rotation_keys_, cache->outdated_rotations_,
                      cache->soa_rotations_);
 
-  UpdateKeys(anim_time, num_soa_tracks,
-             animation->scales(),
-             &cache->scale_cursor_,
-             cache->scale_keys_,
+  UpdateKeys(anim_time, num_soa_tracks, animation->scales(),
+             &cache->scale_cursor_, cache->scale_keys_,
              cache->outdated_scales_);
-  UpdateSoaScales(num_soa_tracks,
-                  animation->scales(),
-                  cache->scale_keys_,
-                  cache->outdated_scales_,
-                  cache->soa_scales_);
+  UpdateSoaScales(num_soa_tracks, animation->scales(), cache->scale_keys_,
+                  cache->outdated_scales_, cache->soa_scales_);
 
   // Interpolates soa hot data.
-  Interpolates(anim_time,
-               num_soa_tracks,
-               cache->soa_translations_,
-               cache->soa_rotations_,
-               cache->soa_scales_,
-               output.begin);
+  Interpolates(anim_time, num_soa_tracks, cache->soa_translations_,
+               cache->soa_rotations_, cache->soa_scales_, output.begin);
 
   return true;
 }
 
 SamplingCache::SamplingCache(int _max_tracks)
     : animation_(NULL),
-    time_(0.f),
-    max_soa_tracks_((_max_tracks + 3) / 4),
-    soa_translations_(NULL),
-    soa_rotations_(NULL),
-    soa_scales_(NULL),
-    translation_keys_(NULL),
-    rotation_keys_(NULL),
-    scale_keys_(NULL),
-    translation_cursor_(0),
-    rotation_cursor_(0),
-    scale_cursor_(0),
-    outdated_translations_(NULL),
-    outdated_rotations_(NULL),
-    outdated_scales_(NULL) {
+      time_(0.f),
+      max_soa_tracks_((_max_tracks + 3) / 4),
+      soa_translations_(NULL),
+      soa_rotations_(NULL),
+      soa_scales_(NULL),
+      translation_keys_(NULL),
+      rotation_keys_(NULL),
+      scale_keys_(NULL),
+      translation_cursor_(0),
+      rotation_cursor_(0),
+      scale_cursor_(0),
+      outdated_translations_(NULL),
+      outdated_rotations_(NULL),
+      outdated_scales_(NULL) {
   using internal::InterpSoaTranslation;
   using internal::InterpSoaRotation;
   using internal::InterpSoaScale;
@@ -1522,16 +1489,16 @@ SamplingCache::SamplingCache(int _max_tracks)
   const size_t max_tracks = max_soa_tracks_ * 4;
   const size_t num_outdated = (max_soa_tracks_ + 7) / 8;
   const size_t size =
-    sizeof(InterpSoaTranslation) * max_soa_tracks_  +
-    sizeof(InterpSoaRotation) * max_soa_tracks_ +
-    sizeof(InterpSoaScale) *max_soa_tracks_ +
-    sizeof(int) * max_tracks * 2 * 3 +  // 2 keys * (trans + rot + scale).
-    sizeof(unsigned char) * 3 * num_outdated;
+      sizeof(InterpSoaTranslation) * max_soa_tracks_ +
+      sizeof(InterpSoaRotation) * max_soa_tracks_ +
+      sizeof(InterpSoaScale) * max_soa_tracks_ +
+      sizeof(int) * max_tracks * 2 * 3 +  // 2 keys * (trans + rot + scale).
+      sizeof(unsigned char) * 3 * num_outdated;
 
   // Allocates all at once.
   memory::Allocator* allocator = memory::default_allocator();
   char* alloc_begin = reinterpret_cast<char*>(
-    allocator->Allocate(size, OZZ_ALIGN_OF(InterpSoaTranslation)));
+      allocator->Allocate(size, OZZ_ALIGN_OF(InterpSoaTranslation)));
   char* alloc_cursor = alloc_begin;
 
   // Dispatches allocated memory, from the highest alignment requirement to the
@@ -1627,7 +1594,8 @@ void SamplingCache::Invalidate() {
 
 namespace ozz {
 namespace io {
-// JointProperties' version can be declared locally as it will be saved from this
+// JointProperties' version can be declared locally as it will be saved from
+// this
 // cpp file only.
 OZZ_IO_TYPE_VERSION(1, animation::Skeleton::JointProperties)
 
@@ -1646,10 +1614,8 @@ void Save(OArchive& _archive,
 }
 
 template <>
-void Load(IArchive& _archive,
-          animation::Skeleton::JointProperties* _properties,
-          size_t _count,
-          uint32_t _version) {
+void Load(IArchive& _archive, animation::Skeleton::JointProperties* _properties,
+          size_t _count, uint32_t _version) {
   (void)_version;
   for (size_t i = 0; i < _count; ++i) {
     uint16_t parent;
@@ -1666,9 +1632,7 @@ namespace animation {
 
 Skeleton::Skeleton() {}
 
-Skeleton::~Skeleton() {
-  Deallocate();
-}
+Skeleton::~Skeleton() { Deallocate(); }
 
 char* Skeleton::Allocate(size_t _chars_size, size_t _num_joints) {
   // Distributes buffer memory while ensuring proper alignment (serves larger
@@ -1687,15 +1651,17 @@ char* Skeleton::Allocate(size_t _chars_size, size_t _num_joints) {
   }
 
   // Bind poses have SoA format
-  const size_t bind_poses_size = (_num_joints + 3) / 4 * sizeof(math::SoaTransform);
+  const size_t bind_poses_size =
+      (_num_joints + 3) / 4 * sizeof(math::SoaTransform);
   const size_t names_size = _num_joints * sizeof(char*);
-  const size_t properties_size = _num_joints * sizeof(Skeleton::JointProperties);
+  const size_t properties_size =
+      _num_joints * sizeof(Skeleton::JointProperties);
   const size_t buffer_size =
       names_size + _chars_size + properties_size + bind_poses_size;
 
   // Allocates whole buffer.
-  char* buffer = reinterpret_cast<char*>(memory::default_allocator()->
-      Allocate(buffer_size, OZZ_ALIGN_OF(math::SoaTransform)));
+  char* buffer = reinterpret_cast<char*>(memory::default_allocator()->Allocate(
+      buffer_size, OZZ_ALIGN_OF(math::SoaTransform)));
 
   // Bind pose first, biggest alignment.
   bind_pose_.begin = reinterpret_cast<math::SoaTransform*>(buffer);
@@ -1710,8 +1676,10 @@ char* Skeleton::Allocate(size_t _chars_size, size_t _num_joints) {
   joint_names_.end = reinterpret_cast<char**>(buffer);
 
   // Properties, third biggest alignment.
-  joint_properties_.begin = reinterpret_cast<Skeleton::JointProperties*>(buffer);
-  assert(math::IsAligned(joint_properties_.begin, OZZ_ALIGN_OF(Skeleton::JointProperties)));
+  joint_properties_.begin =
+      reinterpret_cast<Skeleton::JointProperties*>(buffer);
+  assert(math::IsAligned(joint_properties_.begin,
+                         OZZ_ALIGN_OF(Skeleton::JointProperties)));
   buffer += properties_size;
   joint_properties_.end = reinterpret_cast<Skeleton::JointProperties*>(buffer);
 
@@ -1727,7 +1695,6 @@ void Skeleton::Deallocate() {
 }
 
 void Skeleton::Save(ozz::io::OArchive& _archive) const {
-
   const int32_t num_joints = this->num_joints();
 
   // Early out if skeleton's empty.
@@ -1753,7 +1720,6 @@ void Skeleton::Save(ozz::io::OArchive& _archive) const {
 }
 
 void Skeleton::Load(ozz::io::IArchive& _archive, uint32_t _version) {
-
   // Deallocate skeleton in case it was already used before.
   Deallocate();
 
@@ -1839,7 +1805,7 @@ ozz::math::Transform GetJointLocalBindPose(const Skeleton& _skeleton,
          "Joint index out of range.");
 
   const ozz::math::SoaTransform& soa_transform =
-    _skeleton.bind_pose()[_joint / 4];
+      _skeleton.bind_pose()[_joint / 4];
 
   // Transpose SoA data to AoS.
   ozz::math::SimdFloat4 translations[4];
@@ -1861,20 +1827,19 @@ ozz::math::Transform GetJointLocalBindPose(const Skeleton& _skeleton,
 
 // Helper macro used to detect if a joint has a brother.
 #define _HAS_SIBLING(_i, _num_joints, _properties) \
-  ((_i + 1 < _num_joints) &&\
+  ((_i + 1 < _num_joints) &&                       \
    (_properties[_i].parent == _properties[_i + 1].parent))
 
 // Implement joint hierarchy depth-first traversal.
 // Uses a non-recursive implementation to control stack usage (ie: making
 // algorithm behavior (stack consumption) independent off the data being
 // processed).
-void IterateJointsDF(const Skeleton& _skeleton,
-                     int _from,
+void IterateJointsDF(const Skeleton& _skeleton, int _from,
                      JointsIterator* _iterator) {
   assert(_iterator);
   const int num_joints = _skeleton.num_joints();
   Range<const Skeleton::JointProperties> properties =
-    _skeleton.joint_properties();
+      _skeleton.joint_properties();
 
   // Initialize iterator.
   _iterator->num_joints = 0;
@@ -1883,15 +1848,14 @@ void IterateJointsDF(const Skeleton& _skeleton,
   if (num_joints == 0) {
     return;
   }
-  if ((_from < 0 || _from >= num_joints) &&
-      _from != Skeleton::kNoParentIndex) {
+  if ((_from < 0 || _from >= num_joints) && _from != Skeleton::kNoParentIndex) {
     return;
   }
 
   // Simulate a stack to unroll usual recursive implementation.
   struct Context {
-    uint16_t joint:15;
-    uint16_t has_brother:1;
+    uint16_t joint : 15;
+    uint16_t has_brother : 1;
   };
   Context stack[Skeleton::kMaxJoints];
   int stack_size = 0;
@@ -1917,22 +1881,22 @@ void IterateJointsDF(const Skeleton& _skeleton,
     // Skip all the joints until the first child is found.
     if (!properties.begin[top.joint].is_leaf) {  // A leaf has no child anyway.
       uint16_t next_joint = top.joint + 1;
-      for (;
-           next_joint < num_joints &&
-           top.joint != properties.begin[next_joint].parent;
+      for (; next_joint < num_joints &&
+             top.joint != properties.begin[next_joint].parent;
            ++next_joint) {
       }
       if (next_joint < num_joints) {
         Context& next = stack[stack_size++];  // Push child and process it.
         next.joint = next_joint;
         next.has_brother =
-          _HAS_SIBLING(next_joint, num_joints, properties.begin);
+            _HAS_SIBLING(next_joint, num_joints, properties.begin);
         continue;
       }
     }
 
     // Rewind the stack while there's no brother to process.
-    for (;stack_size != 0 && !stack[stack_size - 1].has_brother; --stack_size) {
+    for (; stack_size != 0 && !stack[stack_size - 1].has_brother;
+         --stack_size) {
     }
 
     // Replace top joint by its brother.

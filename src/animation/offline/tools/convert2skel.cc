@@ -44,12 +44,13 @@
 
 // Declares command line options.
 OZZ_OPTIONS_DECLARE_STRING(file, "Specifies input file", "", true)
-OZZ_OPTIONS_DECLARE_STRING(skeleton, "Specifies ozz skeleton ouput file", "", true)
+OZZ_OPTIONS_DECLARE_STRING(skeleton, "Specifies ozz skeleton ouput file", "",
+                           true)
 
 static bool ValidateEndianness(const ozz::options::Option& _option,
                                int /*_argc*/) {
   const ozz::options::StringOption& option =
-    static_cast<const ozz::options::StringOption&>(_option);
+      static_cast<const ozz::options::StringOption&>(_option);
   bool valid = std::strcmp(option.value(), "native") == 0 ||
                std::strcmp(option.value(), "little") == 0 ||
                std::strcmp(option.value(), "big") == 0;
@@ -60,17 +61,15 @@ static bool ValidateEndianness(const ozz::options::Option& _option,
 }
 
 OZZ_OPTIONS_DECLARE_STRING_FN(
-  endian,
-  "Selects output endianness mode. Can be \"native\" (same as current "\
-  "platform), \"little\" or \"big\".",
-  "native",
-  false,
-  &ValidateEndianness)
+    endian,
+    "Selects output endianness mode. Can be \"native\" (same as current "
+    "platform), \"little\" or \"big\".",
+    "native", false, &ValidateEndianness)
 
 static bool ValidateLogLevel(const ozz::options::Option& _option,
                              int /*_argc*/) {
   const ozz::options::StringOption& option =
-    static_cast<const ozz::options::StringOption&>(_option);
+      static_cast<const ozz::options::StringOption&>(_option);
   bool valid = std::strcmp(option.value(), "verbose") == 0 ||
                std::strcmp(option.value(), "standard") == 0 ||
                std::strcmp(option.value(), "silent") == 0;
@@ -81,17 +80,13 @@ static bool ValidateLogLevel(const ozz::options::Option& _option,
 }
 
 OZZ_OPTIONS_DECLARE_STRING_FN(
-  log_level,
-  "Selects log level. Can be \"silent\", \"standard\" or \"verbose\".",
-  "standard",
-  false,
-  &ValidateLogLevel)
+    log_level,
+    "Selects log level. Can be \"silent\", \"standard\" or \"verbose\".",
+    "standard", false, &ValidateLogLevel)
 
-OZZ_OPTIONS_DECLARE_BOOL(
-  raw,
-  "Outputs raw skeleton, instead of runtime skeleton.",
-  false,
-  false)
+OZZ_OPTIONS_DECLARE_BOOL(raw,
+                         "Outputs raw skeleton, instead of runtime skeleton.",
+                         false, false)
 
 namespace ozz {
 namespace animation {
@@ -100,13 +95,12 @@ namespace offline {
 int SkeletonConverter::operator()(int _argc, const char** _argv) {
   // Parses arguments.
   ozz::options::ParseResult parse_result = ozz::options::ParseCommandLine(
-    _argc, _argv,
-    "1.1",
-    "Imports a skeleton from a file and converts it to ozz binary raw or "
-    "runtime skeleton format");
+      _argc, _argv, "1.1",
+      "Imports a skeleton from a file and converts it to ozz binary raw or "
+      "runtime skeleton format");
   if (parse_result != ozz::options::kSuccess) {
-    return parse_result == ozz::options::kExitSuccess ?
-      EXIT_SUCCESS : EXIT_FAILURE;
+    return parse_result == ozz::options::kExitSuccess ? EXIT_SUCCESS
+                                                      : EXIT_FAILURE;
   }
 
   // Initializes log level from options.
@@ -121,19 +115,18 @@ int SkeletonConverter::operator()(int _argc, const char** _argv) {
   ozz::log::SetLevel(log_level);
 
   // Imports skeleton from the file.
-  ozz::log::Log() << "Importing file \"" << OPTIONS_file << "\"" <<
-    std::endl;
+  ozz::log::Log() << "Importing file \"" << OPTIONS_file << "\"" << std::endl;
 
   if (!ozz::io::File::Exist(OPTIONS_file)) {
-    ozz::log::Err() << "File \"" << OPTIONS_file << "\" doesn't exist." <<
-      std::endl;
+    ozz::log::Err() << "File \"" << OPTIONS_file << "\" doesn't exist."
+                    << std::endl;
     return EXIT_FAILURE;
   }
 
   ozz::animation::offline::RawSkeleton raw_skeleton;
   if (!Import(OPTIONS_file, &raw_skeleton)) {
-    ozz::log::Err() << "Failed to import file \"" << OPTIONS_file << "\"" <<
-      std::endl;
+    ozz::log::Err() << "Failed to import file \"" << OPTIONS_file << "\""
+                    << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -159,8 +152,8 @@ int SkeletonConverter::operator()(int _argc, const char** _argv) {
     ozz::log::Log() << "Opens output file: " << OPTIONS_skeleton << std::endl;
     ozz::io::File file(OPTIONS_skeleton, "wb");
     if (!file.opened()) {
-      ozz::log::Err() << "Failed to open output file: " << OPTIONS_skeleton <<
-        std::endl;
+      ozz::log::Err() << "Failed to open output file: " << OPTIONS_skeleton
+                      << std::endl;
       ozz::memory::default_allocator()->Delete(skeleton);
       return EXIT_FAILURE;
     }
@@ -172,8 +165,8 @@ int SkeletonConverter::operator()(int _argc, const char** _argv) {
     } else if (std::strcmp(OPTIONS_endian, "big")) {
       endianness = ozz::kBigEndian;
     }
-    ozz::log::Log() << (endianness == ozz::kLittleEndian ? "Little" : "Big") <<
-      " Endian output binary format selected." << std::endl;
+    ozz::log::Log() << (endianness == ozz::kLittleEndian ? "Little" : "Big")
+                    << " Endian output binary format selected." << std::endl;
 
     // Initializes output archive.
     ozz::io::OArchive archive(&file, endianness);
@@ -186,10 +179,10 @@ int SkeletonConverter::operator()(int _argc, const char** _argv) {
       ozz::log::Log() << "Outputs Skeleton to binary archive." << std::endl;
       archive << *skeleton;
     }
-    ozz::log::Log() << "Skeleton binary archive successfully outputed." <<
-      std::endl;
+    ozz::log::Log() << "Skeleton binary archive successfully outputed."
+                    << std::endl;
   }
-  
+
   // Delete local objects.
   ozz::memory::default_allocator()->Delete(skeleton);
 

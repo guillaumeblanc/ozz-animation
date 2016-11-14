@@ -28,9 +28,9 @@
 #ifndef OZZ_OZZ_BASE_MATHS_TRANSFORM_H_
 #define OZZ_OZZ_BASE_MATHS_TRANSFORM_H_
 
-#include "ozz/base/platform.h"
-#include "ozz/base/maths/vec_float.h"
 #include "ozz/base/maths/quaternion.h"
+#include "ozz/base/maths/vec_float.h"
+#include "ozz/base/platform.h"
 
 namespace ozz {
 namespace math {
@@ -38,7 +38,6 @@ namespace math {
 // Stores an affine transformation with separate translation, rotation and scale
 // attributes.
 struct Transform {
-
   // Translation affine transformation component.
   Float3 translation;
 
@@ -50,8 +49,8 @@ struct Transform {
 
   // Builds an identity transform.
   static OZZ_INLINE Transform identity() {
-    const Transform ret = {
-      Float3::zero(), Quaternion::identity(), Float3::one()};
+    const Transform ret = {Float3::zero(), Quaternion::identity(),
+                           Float3::one()};
     return ret;
   }
 };

@@ -36,7 +36,7 @@ struct RawSkeleton;
 
 class SkeletonConverter {
  public:
-  int operator ()(int _argc, const char** _argv);
+  int operator()(int _argc, const char** _argv);
 
  private:
   virtual bool Import(const char* _filename,

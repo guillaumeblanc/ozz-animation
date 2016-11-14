@@ -30,7 +30,8 @@
 
 #ifdef _MSC_VER
 #pragma warning(push)
-#pragma warning(disable:4127)  // constant conditional expression
+// Removes constant conditional expression warning.
+#pragma warning(disable : 4127)
 #endif  // _MSC_VER
 
 #include <list>

@@ -129,66 +129,59 @@ const char* ParsedExecutableName();
 // returns a default empty string.
 const char* ParsedExecutableUsage();
 
-#define OZZ_OPTIONS_DECLARE_BOOL(_name, _help, _default, _required)\
-  OZZ_OPTIONS_DECLARE_VARIABLE(\
-    ozz::options::BoolOption, _name, _help, _default, _required)
-#define OZZ_OPTIONS_DECLARE_BOOL_FN(_name, _help, _default, _required, _fn)\
-  OZZ_OPTIONS_DECLARE_VARIABLE_FN(\
-    ozz::options::BoolOption, _name, _help, _default, _required, _fn)
+#define OZZ_OPTIONS_DECLARE_BOOL(_name, _help, _default, _required)    \
+  OZZ_OPTIONS_DECLARE_VARIABLE(ozz::options::BoolOption, _name, _help, \
+                               _default, _required)
+#define OZZ_OPTIONS_DECLARE_BOOL_FN(_name, _help, _default, _required, _fn) \
+  OZZ_OPTIONS_DECLARE_VARIABLE_FN(ozz::options::BoolOption, _name, _help,   \
+                                  _default, _required, _fn)
 
-#define OZZ_OPTIONS_DECLARE_INT(_name, _help, _default, _required)\
-  OZZ_OPTIONS_DECLARE_VARIABLE(\
-    ozz::options::IntOption, _name, _help, _default, _required)
-#define OZZ_OPTIONS_DECLARE_INT_FN(_name, _help, _default, _required, _fn)\
-  OZZ_OPTIONS_DECLARE_VARIABLE_FN(\
-    ozz::options::IntOption, _name, _help, _default, _required, _fn)
+#define OZZ_OPTIONS_DECLARE_INT(_name, _help, _default, _required)    \
+  OZZ_OPTIONS_DECLARE_VARIABLE(ozz::options::IntOption, _name, _help, \
+                               _default, _required)
+#define OZZ_OPTIONS_DECLARE_INT_FN(_name, _help, _default, _required, _fn) \
+  OZZ_OPTIONS_DECLARE_VARIABLE_FN(ozz::options::IntOption, _name, _help,   \
+                                  _default, _required, _fn)
 
-#define OZZ_OPTIONS_DECLARE_FLOAT(_name, _help, _default, _required)\
-  OZZ_OPTIONS_DECLARE_VARIABLE(\
-    ozz::options::FloatOption, _name, _help, _default, _required)
-#define OZZ_OPTIONS_DECLARE_FLOAT_FN(_name, _help, _default, _required, _fn)\
-  OZZ_OPTIONS_DECLARE_VARIABLE_FN(\
-    ozz::options::FloatOption, _name, _help, _default, _required, _fn)
+#define OZZ_OPTIONS_DECLARE_FLOAT(_name, _help, _default, _required)    \
+  OZZ_OPTIONS_DECLARE_VARIABLE(ozz::options::FloatOption, _name, _help, \
+                               _default, _required)
+#define OZZ_OPTIONS_DECLARE_FLOAT_FN(_name, _help, _default, _required, _fn) \
+  OZZ_OPTIONS_DECLARE_VARIABLE_FN(ozz::options::FloatOption, _name, _help,   \
+                                  _default, _required, _fn)
 
-#define OZZ_OPTIONS_DECLARE_STRING(_name, _help, _default, _required)\
-  OZZ_OPTIONS_DECLARE_VARIABLE(\
-    ozz::options::StringOption, _name, _help, _default, _required)
-#define OZZ_OPTIONS_DECLARE_STRING_FN(_name, _help, _default, _required, _fn)\
-  OZZ_OPTIONS_DECLARE_VARIABLE_FN(\
-    ozz::options::StringOption, _name, _help, _default, _required, _fn)
+#define OZZ_OPTIONS_DECLARE_STRING(_name, _help, _default, _required)    \
+  OZZ_OPTIONS_DECLARE_VARIABLE(ozz::options::StringOption, _name, _help, \
+                               _default, _required)
+#define OZZ_OPTIONS_DECLARE_STRING_FN(_name, _help, _default, _required, _fn) \
+  OZZ_OPTIONS_DECLARE_VARIABLE_FN(ozz::options::StringOption, _name, _help,   \
+                                  _default, _required, _fn)
 
-#define OZZ_OPTIONS_DECLARE_VARIABLE(_type, _name, _help, _default, _required)\
-  /* Instantiates a register for an option of type _type with name _name */\
-  static ozz::options::internal::Registrer<_type>\
-    OPTIONS_##_name(#_name, _help, _default, _required);
-#define OZZ_OPTIONS_DECLARE_VARIABLE_FN(_type, _name, _help, _default, _required, _fn)\
-  /* Instantiates a register for an option of type _type with name _name */\
-  static ozz::options::internal::Registrer<_type>\
-    OPTIONS_##_name(#_name, _help, _default, _required, _fn);
+#define OZZ_OPTIONS_DECLARE_VARIABLE(_type, _name, _help, _default, _required) \
+  /* Instantiates a register for an option of type _type with name _name */    \
+  static ozz::options::internal::Registrer<_type> OPTIONS_##_name(             \
+      #_name, _help, _default, _required);
+#define OZZ_OPTIONS_DECLARE_VARIABLE_FN(_type, _name, _help, _default,      \
+                                        _required, _fn)                     \
+  /* Instantiates a register for an option of type _type with name _name */ \
+  static ozz::options::internal::Registrer<_type> OPTIONS_##_name(          \
+      #_name, _help, _default, _required, _fn);
 
 // Defines option interface.
 class Option {
  public:
   // Returns option's name.
-  const char* name() const {
-    return name_;
-  }
+  const char* name() const { return name_; }
 
   // Returns help string.
-  const char* help() const {
-    return help_;
-  }
+  const char* help() const { return help_; }
 
   // A required option is satisfied if it was successfully parsed from the
   // command line. Non required option are always satisfied.
-  bool statisfied() const {
-    return parsed_ || !required_;
-  }
+  bool statisfied() const { return parsed_ || !required_; }
 
   // Returns true if the option is required.
-  bool required() const {
-    return required_;
-  }
+  bool required() const { return required_; }
 
   // Calls validation function if one is set.
   // Returns true if no function is set, or the function returns true.
@@ -209,9 +202,7 @@ class Option {
   virtual const char* FormatType() const = 0;
 
   // Implements the sorting operator.
-  bool operator < (const Option& _option) const {
-    return name_ < _option.name_;
-  }
+  bool operator<(const Option& _option) const { return name_ < _option.name_; }
 
  protected:
   // Declares validation function prototype.
@@ -254,49 +245,36 @@ class Option {
 };
 
 // Defines a strongly typed option class
-template<typename _Type>
+template <typename _Type>
 class TypedOption : public Option {
  public:
   // Lets the type be known.
   typedef _Type Type;
 
   // Defines an option.
-  TypedOption(const char* _name,
-              const char* _help,
-              _Type _default,
-              bool _required,
-              Option::ValidateFn _validate = NULL) :
-    Option(_name, _help, _required, _validate),
-    default_(_default),
-    value_(_default) {
-  }
+  TypedOption(const char* _name, const char* _help, _Type _default,
+              bool _required, Option::ValidateFn _validate = NULL)
+      : Option(_name, _help, _required, _validate),
+        default_(_default),
+        value_(_default) {}
 
-  virtual ~TypedOption() {
-  }
+  virtual ~TypedOption() {}
 
   // Implicit conversion to the option type.
-  operator _Type() const {
-    return value_;
-  }
+  operator _Type() const { return value_; }
 
   // Explicit getter.
-  const _Type& value() const {
-    return value_;
-  }
+  const _Type& value() const { return value_; }
 
   // Get the default value.
-  const _Type& default_value() const {
-    return default_;
-  }
+  const _Type& default_value() const { return default_; }
 
  private:
   // Parse the command line and set the option value.
   virtual bool ParseImpl(const char* _argv);
 
   // Restores default value implementation.
-  virtual void RestoreDefaultImpl() {
-    value_ = default_;
-  }
+  virtual void RestoreDefaultImpl() { value_ = default_; }
 
   // Outputs default value as a string.
   virtual std::string FormatDefault() const;
@@ -334,7 +312,7 @@ class Parser {
   // life of parser, as some arguments like string options or executable path
   // and name will be pointed by the parser (ie: not copied).
   // See ParseResult for more details about returned values.
-  ParseResult Parse(int _argc, const char* const *_argv);
+  ParseResult Parse(int _argc, const char* const* _argv);
 
   // Displays the help screen that is automatically built from all registered
   // options. Executable name is only available if ::Parse() was called with a
@@ -379,13 +357,11 @@ class Parser {
   std::string executable_path() const;
 
   // Returns the name of the executable that was extracted from argument 0.
-  const char* executable_name() const ;
+  const char* executable_name() const;
 
  private:
   // Get end of registered options array.
-  Option** options_end() {
-    return options_ + options_count_;
-  }
+  Option** options_end() { return options_ + options_count_; }
 
   // Collection of registered options.
   Option* options_[32];
@@ -418,17 +394,15 @@ class Parser {
 
 namespace internal {
 // Automatically registers itself to the global parser.
-template<typename _Option>
+template <typename _Option>
 class Registrer : public _Option {
  public:
-  Registrer(const char* _name,
-            const char* _help,
-            typename _Option::Type _default,
-            bool _required,
+  Registrer(const char* _name, const char* _help,
+            typename _Option::Type _default, bool _required,
             typename _Option::ValidateFn _fn = NULL);
   virtual ~Registrer();
 };
-} // internal
+}  // internal
 }  // options
 }  // ozz
 #endif  // OZZ_OZZ_OPTIONS_OPTIONS_H_

@@ -27,9 +27,9 @@
 
 #include "ozz/base/memory/allocator.h"
 
-#include <cstdlib>
-#include <cassert>
 #include <memory.h>
+#include <cassert>
+#include <cstdlib>
 
 #include "ozz/base/maths/math_ex.h"
 
@@ -47,12 +47,8 @@ struct Header {
 // Will trace allocation count and assert in case of a memory leak.
 class HeapAllocator : public Allocator {
  public:
-  HeapAllocator() :
-    allocation_count_(0) {
-  }
-  ~HeapAllocator() {
-    assert(allocation_count_ == 0 && "Memory leak detected");
-  }
+  HeapAllocator() : allocation_count_(0) {}
+  ~HeapAllocator() { assert(allocation_count_ == 0 && "Memory leak detected"); }
 
  protected:
   void* Allocate(size_t _size, size_t _alignment) {
@@ -79,7 +75,7 @@ class HeapAllocator : public Allocator {
     // Copies and deallocate the old memory block.
     if (_block) {
       Header* old_header = reinterpret_cast<Header*>(
-        reinterpret_cast<char*>(_block) - sizeof(Header));
+          reinterpret_cast<char*>(_block) - sizeof(Header));
       memcpy(new_block, _block, old_header->size);
       free(old_header->unaligned);
 
@@ -92,7 +88,7 @@ class HeapAllocator : public Allocator {
   void Deallocate(void* _block) {
     if (_block) {
       Header* header = reinterpret_cast<Header*>(
-        reinterpret_cast<char*>(_block) - sizeof(Header));
+          reinterpret_cast<char*>(_block) - sizeof(Header));
       free(header->unaligned);
       // Deallocation completed.
       --allocation_count_;
@@ -114,9 +110,7 @@ Allocator* g_default_allocator = &g_heap_allocator;
 }  // namespace
 
 // Implements default allocator accessor.
-Allocator* default_allocator() {
-  return g_default_allocator;
-}
+Allocator* default_allocator() { return g_default_allocator; }
 
 // Implements default allocator setter.
 Allocator* SetDefaulAllocator(Allocator* _allocator) {

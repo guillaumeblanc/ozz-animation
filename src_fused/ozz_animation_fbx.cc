@@ -35,61 +35,6 @@
 #include "ozz/animation/offline/fbx/fbx_base.h"
 
 
-// Includes internal include file animation/offline/fbx/fbx_skeleton.h
-
-//----------------------------------------------------------------------------//
-//                                                                            //
-// ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
-// and distributed under the MIT License (MIT).                               //
-//                                                                            //
-// Copyright (c) 2015 Guillaume Blanc                                         //
-//                                                                            //
-// Permission is hereby granted, free of charge, to any person obtaining a    //
-// copy of this software and associated documentation files (the "Software"), //
-// to deal in the Software without restriction, including without limitation  //
-// the rights to use, copy, modify, merge, publish, distribute, sublicense,   //
-// and/or sell copies of the Software, and to permit persons to whom the      //
-// Software is furnished to do so, subject to the following conditions:       //
-//                                                                            //
-// The above copyright notice and this permission notice shall be included in //
-// all copies or substantial portions of the Software.                        //
-//                                                                            //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR //
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,   //
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL    //
-// THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER //
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING    //
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER        //
-// DEALINGS IN THE SOFTWARE.                                                  //
-//                                                                            //
-//----------------------------------------------------------------------------//
-
-#ifndef OZZ_ANIMATION_OFFLINE_FBX_FBX_SKELETON_H_
-#define OZZ_ANIMATION_OFFLINE_FBX_FBX_SKELETON_H_
-
-#ifndef OZZ_INCLUDE_PRIVATE_HEADER
-#error "This header is private, it cannot be included from public headers."
-#endif  // OZZ_INCLUDE_PRIVATE_HEADER
-
-#include "ozz/animation/offline/fbx/fbx_base.h"
-
-namespace ozz {
-namespace animation {
-namespace offline {
-
-struct RawSkeleton;
-
-namespace fbx {
-
-bool ExtractSkeleton(FbxSceneLoader& _loader, RawSkeleton* _skeleton);
-
-}  // fbx
-}  // offline
-}  // animation
-}  // ozz
-#endif  // OZZ_ANIMATION_OFFLINE_FBX_FBX_SKELETON_H_
-
-
 // Includes internal include file animation/offline/fbx/fbx_animation.h
 
 //----------------------------------------------------------------------------//
@@ -152,6 +97,61 @@ bool ExtractAnimations(FbxSceneLoader* _scene_loader,
 #endif  // OZZ_ANIMATION_OFFLINE_FBX_FBX_ANIMATION_H_
 
 
+// Includes internal include file animation/offline/fbx/fbx_skeleton.h
+
+//----------------------------------------------------------------------------//
+//                                                                            //
+// ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
+// and distributed under the MIT License (MIT).                               //
+//                                                                            //
+// Copyright (c) 2015 Guillaume Blanc                                         //
+//                                                                            //
+// Permission is hereby granted, free of charge, to any person obtaining a    //
+// copy of this software and associated documentation files (the "Software"), //
+// to deal in the Software without restriction, including without limitation  //
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,   //
+// and/or sell copies of the Software, and to permit persons to whom the      //
+// Software is furnished to do so, subject to the following conditions:       //
+//                                                                            //
+// The above copyright notice and this permission notice shall be included in //
+// all copies or substantial portions of the Software.                        //
+//                                                                            //
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR //
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,   //
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL    //
+// THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER //
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING    //
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER        //
+// DEALINGS IN THE SOFTWARE.                                                  //
+//                                                                            //
+//----------------------------------------------------------------------------//
+
+#ifndef OZZ_ANIMATION_OFFLINE_FBX_FBX_SKELETON_H_
+#define OZZ_ANIMATION_OFFLINE_FBX_FBX_SKELETON_H_
+
+#ifndef OZZ_INCLUDE_PRIVATE_HEADER
+#error "This header is private, it cannot be included from public headers."
+#endif  // OZZ_INCLUDE_PRIVATE_HEADER
+
+#include "ozz/animation/offline/fbx/fbx_base.h"
+
+namespace ozz {
+namespace animation {
+namespace offline {
+
+struct RawSkeleton;
+
+namespace fbx {
+
+bool ExtractSkeleton(FbxSceneLoader& _loader, RawSkeleton* _skeleton);
+
+}  // fbx
+}  // offline
+}  // animation
+}  // ozz
+#endif  // OZZ_ANIMATION_OFFLINE_FBX_FBX_SKELETON_H_
+
+
 #include "ozz/base/log.h"
 
 #include "ozz/animation/offline/raw_animation.h"
@@ -174,8 +174,8 @@ bool ImportFromFile(const char* _filename, RawSkeleton* _skeleton) {
   FbxSkeletonIOSettings settings(fbx_manager);
   FbxSceneLoader scene_loader(_filename, "", fbx_manager, settings);
   if (!scene_loader.scene()) {
-    ozz::log::Err() << "Failed to import file " << _filename << "." <<
-      std::endl;
+    ozz::log::Err() << "Failed to import file " << _filename << "."
+                    << std::endl;
     return false;
   }
 
@@ -187,10 +187,8 @@ bool ImportFromFile(const char* _filename, RawSkeleton* _skeleton) {
   return true;
 }
 
-bool ImportFromFile(const char* _filename,
-                    const Skeleton& _skeleton,
-                    float _sampling_rate,
-                    Animations* _animations) {
+bool ImportFromFile(const char* _filename, const Skeleton& _skeleton,
+                    float _sampling_rate, Animations* _animations) {
   if (!_animations) {
     return false;
   }
@@ -202,14 +200,12 @@ bool ImportFromFile(const char* _filename,
   FbxAnimationIOSettings settings(fbx_manager);
   FbxSceneLoader scene_loader(_filename, "", fbx_manager, settings);
   if (!scene_loader.scene()) {
-    ozz::log::Err() << "Failed to import file " << _filename << "." <<
-      std::endl;
+    ozz::log::Err() << "Failed to import file " << _filename << "."
+                    << std::endl;
     return false;
   }
 
-  if (!ExtractAnimations(&scene_loader,
-                         _skeleton,
-                         _sampling_rate,
+  if (!ExtractAnimations(&scene_loader, _skeleton, _sampling_rate,
                          _animations)) {
     log::Err() << "Fbx animation extraction failed." << std::endl;
     return false;
@@ -316,9 +312,9 @@ bool ExtractAnimations(FbxSceneLoader* _scene_loader,
 #endif  // OZZ_ANIMATION_OFFLINE_FBX_FBX_ANIMATION_H_
 
 
+#include "ozz/animation/offline/raw_animation.h"
 #include "ozz/animation/runtime/skeleton.h"
 #include "ozz/animation/runtime/skeleton_utils.h"
-#include "ozz/animation/offline/raw_animation.h"
 
 #include "ozz/base/log.h"
 
@@ -330,16 +326,14 @@ namespace offline {
 namespace fbx {
 
 namespace {
-bool ExtractAnimation(FbxSceneLoader* _scene_loader,
-                      FbxAnimStack* anim_stack,
-                      const Skeleton& _skeleton,
-                      float _sampling_rate,
+bool ExtractAnimation(FbxSceneLoader* _scene_loader, FbxAnimStack* anim_stack,
+                      const Skeleton& _skeleton, float _sampling_rate,
                       RawAnimation* _animation) {
   FbxScene* scene = _scene_loader->scene();
   assert(scene);
 
   ozz::log::Log() << "Extracting animation \"" << anim_stack->GetName() << "\""
-    << std::endl;
+                  << std::endl;
 
   // Setup Fbx animation evaluator.
   scene->SetCurrentAnimationStack(anim_stack);
@@ -350,8 +344,7 @@ bool ExtractAnimation(FbxSceneLoader* _scene_loader,
   // Extract animation duration.
   FbxTimeSpan time_spawn;
   const FbxTakeInfo* take_info = scene->GetTakeInfo(anim_stack->GetName());
-  if (take_info)
-  {
+  if (take_info) {
     time_spawn = take_info->mLocalTimeSpan;
   } else {
     scene->GetGlobalSettings().GetTimelineDefaultTimeSpan(time_spawn);
@@ -369,15 +362,18 @@ bool ExtractAnimation(FbxSceneLoader* _scene_loader,
   float sampling_rate;
   if (_sampling_rate > 0.f) {
     sampling_rate = _sampling_rate;
-    log::Log() << "Using sampling rate of " << sampling_rate << "hz." << std::endl;
+    log::Log() << "Using sampling rate of " << sampling_rate << "hz."
+               << std::endl;
   } else {
     sampling_rate = scene_frame_rate;
-    log::Log() << "Using scene sampling rate of " << sampling_rate << "hz." << std::endl;
+    log::Log() << "Using scene sampling rate of " << sampling_rate << "hz."
+               << std::endl;
   }
   const float sampling_period = 1.f / sampling_rate;
 
   // Get scene start and end.
-  const float start = static_cast<float>(time_spawn.GetStart().GetSecondDouble());
+  const float start =
+      static_cast<float>(time_spawn.GetStart().GetSecondDouble());
   const float end = static_cast<float>(time_spawn.GetStop().GetSecondDouble());
 
   // Animation duration could be 0 if it's just a pose. In this case we'll set a
@@ -405,11 +401,11 @@ bool ExtractAnimation(FbxSceneLoader* _scene_loader,
     if (!node) {
       // Empty joint track.
       ozz::log::LogV() << "No animation track found for joint \"" << joint_name
-        << "\". Using skeleton bind pose instead." << std::endl;
+                       << "\". Using skeleton bind pose instead." << std::endl;
 
       // Get joint's bind pose.
       const ozz::math::Transform& bind_pose =
-        ozz::animation::GetJointLocalBindPose(_skeleton, i);
+          ozz::animation::GetJointLocalBindPose(_skeleton, i);
 
       const RawAnimation::TranslationKey tkey = {0.f, bind_pose.translation};
       track.translations.push_back(tkey);
@@ -426,7 +422,7 @@ bool ExtractAnimation(FbxSceneLoader* _scene_loader,
     // Reserve keys in animation tracks (allocation strategy optimization
     // purpose).
     const int max_keys =
-      static_cast<int>(3.f + (end - start) / sampling_period);
+        static_cast<int>(3.f + (end - start) / sampling_period);
     track.translations.reserve(max_keys);
     track.rotations.reserve(max_keys);
     track.scales.reserve(max_keys);
@@ -441,28 +437,28 @@ bool ExtractAnimation(FbxSceneLoader* _scene_loader,
       }
 
       // Evaluate transform matric at t.
-      const FbxAMatrix matrix = _skeleton.joint_properties()[i].parent == Skeleton::kNoParentIndex?
-        evaluator->GetNodeGlobalTransform(node, FbxTimeSeconds(t)):
-        evaluator->GetNodeLocalTransform(node, FbxTimeSeconds(t));
+      const FbxAMatrix matrix =
+          _skeleton.joint_properties()[i].parent == Skeleton::kNoParentIndex
+              ? evaluator->GetNodeGlobalTransform(node, FbxTimeSeconds(t))
+              : evaluator->GetNodeLocalTransform(node, FbxTimeSeconds(t));
 
       // Convert to a transform obejct in ozz unit/axis system.
       ozz::math::Transform transform;
       if (!_scene_loader->converter()->ConvertTransform(matrix, &transform)) {
-        ozz::log::Err() << "Failed to extract animation transform for joint \"" <<
-          joint_name << "\" at t = " << t << "s." << std::endl;
+        ozz::log::Err() << "Failed to extract animation transform for joint \""
+                        << joint_name << "\" at t = " << t << "s." << std::endl;
         return false;
       }
 
       // Fills corresponding track.
       const float local_time = t - start;
-      const RawAnimation::TranslationKey translation = {
-        local_time, transform.translation};
+      const RawAnimation::TranslationKey translation = {local_time,
+                                                        transform.translation};
       track.translations.push_back(translation);
-      const RawAnimation::RotationKey rotation = {
-        local_time, transform.rotation};
+      const RawAnimation::RotationKey rotation = {local_time,
+                                                  transform.rotation};
       track.rotations.push_back(rotation);
-      const RawAnimation::ScaleKey scale = {
-        local_time, transform.scale};
+      const RawAnimation::ScaleKey scale = {local_time, transform.scale};
       track.scales.push_back(scale);
     }
   }
@@ -474,10 +470,8 @@ bool ExtractAnimation(FbxSceneLoader* _scene_loader,
 }
 }
 
-bool ExtractAnimations(FbxSceneLoader* _scene_loader,
-                       const Skeleton& _skeleton,
-                       float _sampling_rate,
-                       Animations* _animations) {
+bool ExtractAnimations(FbxSceneLoader* _scene_loader, const Skeleton& _skeleton,
+                       float _sampling_rate, Animations* _animations) {
   // Clears output
   _animations->clear();
 
@@ -487,7 +481,7 @@ bool ExtractAnimations(FbxSceneLoader* _scene_loader,
   int anim_stacks_count = scene->GetSrcObjectCount<FbxAnimStack>();
 
   // Early out if no animation's found.
-  if(anim_stacks_count == 0) {
+  if (anim_stacks_count == 0) {
     ozz::log::Err() << "No animation found." << std::endl;
     return false;
   }
@@ -499,11 +493,8 @@ bool ExtractAnimations(FbxSceneLoader* _scene_loader,
   bool success = true;
   for (int i = 0; i < anim_stacks_count && success; ++i) {
     FbxAnimStack* anim_stack = scene->GetSrcObject<FbxAnimStack>(i);
-    success &= ExtractAnimation(_scene_loader,
-                                anim_stack,
-                                _skeleton,
-                                _sampling_rate,
-                                &_animations->at(i));
+    success &= ExtractAnimation(_scene_loader, anim_stack, _skeleton,
+                                _sampling_rate, &_animations->at(i));
   }
 
   // Clears output if somthing failed during import, avoids partial data.
@@ -562,14 +553,13 @@ namespace animation {
 namespace offline {
 namespace fbx {
 
-FbxManagerInstance::FbxManagerInstance()
-    : fbx_manager_(NULL) {
+FbxManagerInstance::FbxManagerInstance() : fbx_manager_(NULL) {
   // Instantiate Fbx manager, mostly a memory manager.
   fbx_manager_ = FbxManager::Create();
 
   // Logs SDK version.
-  ozz::log::Log() << "FBX importer version " << fbx_manager_->GetVersion() <<
-    "." << std::endl;
+  ozz::log::Log() << "FBX importer version " << fbx_manager_->GetVersion()
+                  << "." << std::endl;
 }
 
 FbxManagerInstance::~FbxManagerInstance() {
@@ -588,7 +578,8 @@ FbxDefaultIOSettings::~FbxDefaultIOSettings() {
   io_settings_ = NULL;
 }
 
-FbxAnimationIOSettings::FbxAnimationIOSettings(const FbxManagerInstance& _manager)
+FbxAnimationIOSettings::FbxAnimationIOSettings(
+    const FbxManagerInstance& _manager)
     : FbxDefaultIOSettings(_manager) {
   settings()->SetBoolProp(IMP_FBX_MATERIAL, false);
   settings()->SetBoolProp(IMP_FBX_TEXTURE, false);
@@ -609,15 +600,12 @@ FbxSkeletonIOSettings::FbxSkeletonIOSettings(const FbxManagerInstance& _manager)
   settings()->SetBoolProp(IMP_FBX_ANIMATION, false);
 }
 
-FbxSceneLoader::FbxSceneLoader(const char* _filename,
-                               const char* _password,
+FbxSceneLoader::FbxSceneLoader(const char* _filename, const char* _password,
                                const FbxManagerInstance& _manager,
                                const FbxDefaultIOSettings& _io_settings)
-    : scene_(NULL),
-      converter_(NULL)
-{
+    : scene_(NULL), converter_(NULL) {
   // Create an importer.
-  FbxImporter* importer = FbxImporter::Create(_manager,"ozz file importer");  
+  FbxImporter* importer = FbxImporter::Create(_manager, "ozz file importer");
   const bool initialized = importer->Initialize(_filename, -1, _io_settings);
 
   ImportScene(importer, initialized, _password, _manager, _io_settings);
@@ -626,17 +614,14 @@ FbxSceneLoader::FbxSceneLoader(const char* _filename,
   importer->Destroy();
 }
 
-
-FbxSceneLoader::FbxSceneLoader(FbxStream* _stream,
-                               const char* _password,
+FbxSceneLoader::FbxSceneLoader(FbxStream* _stream, const char* _password,
                                const FbxManagerInstance& _manager,
                                const FbxDefaultIOSettings& _io_settings)
-    : scene_(NULL),
-      converter_(NULL)
-{
+    : scene_(NULL), converter_(NULL) {
   // Create an importer.
-  FbxImporter* importer = FbxImporter::Create(_manager,"ozz stream importer");
-  const bool initialized = importer->Initialize(_stream, NULL, -1, _io_settings);
+  FbxImporter* importer = FbxImporter::Create(_manager, "ozz stream importer");
+  const bool initialized =
+      importer->Initialize(_stream, NULL, -1, _io_settings);
 
   ImportScene(importer, initialized, _password, _manager, _io_settings);
 
@@ -645,11 +630,9 @@ FbxSceneLoader::FbxSceneLoader(FbxStream* _stream,
 }
 
 void FbxSceneLoader::ImportScene(FbxImporter* _importer,
-                                 const bool _initialized,
-                                 const char* _password,
+                                 const bool _initialized, const char* _password,
                                  const FbxManagerInstance& _manager,
-                                 const FbxDefaultIOSettings& _io_settings)
-{
+                                 const FbxDefaultIOSettings& _io_settings) {
   // Get the version of the FBX file format.
   int major, minor, revision;
   _importer->GetFileVersion(major, minor, revision);
@@ -657,36 +640,33 @@ void FbxSceneLoader::ImportScene(FbxImporter* _importer,
   if (!_initialized)  // Problem with the file to be imported.
   {
     const FbxString error = _importer->GetStatus().GetErrorString();
-    ozz::log::Err() << "FbxImporter initialization failed with error: " <<
-      error.Buffer() << std::endl;
+    ozz::log::Err() << "FbxImporter initialization failed with error: "
+                    << error.Buffer() << std::endl;
 
-    if (_importer->GetStatus().GetCode() == FbxStatus::eInvalidFileVersion)
-    {
-      ozz::log::Err() << "FBX file version is " <<
-        major << "." << minor<< "." << revision << "." << std::endl;
+    if (_importer->GetStatus().GetCode() == FbxStatus::eInvalidFileVersion) {
+      ozz::log::Err() << "FBX file version is " << major << "." << minor << "."
+                      << revision << "." << std::endl;
     }
   } else {
     if (_importer->IsFBX()) {
-      ozz::log::Log() << "FBX file version is " <<
-        major << "." << minor<< "." << revision << "." << std::endl;
+      ozz::log::Log() << "FBX file version is " << major << "." << minor << "."
+                      << revision << "." << std::endl;
     }
 
     // Load the scene.
-    scene_ = FbxScene::Create(_manager,"ozz scene");
+    scene_ = FbxScene::Create(_manager, "ozz scene");
     bool imported = _importer->Import(scene_);
 
-    if(!imported &&     // The import file may have a password
-       _importer->GetStatus().GetCode() == FbxStatus::ePasswordError)
-    {
+    if (!imported &&  // The import file may have a password
+        _importer->GetStatus().GetCode() == FbxStatus::ePasswordError) {
       _io_settings.settings()->SetStringProp(IMP_FBX_PASSWORD, _password);
       _io_settings.settings()->SetBoolProp(IMP_FBX_PASSWORD_ENABLE, true);
 
       // Retries to import the scene.
       imported = _importer->Import(scene_);
 
-      if(!imported &&
-         _importer->GetStatus().GetCode() == FbxStatus::ePasswordError)
-      {
+      if (!imported &&
+          _importer->GetStatus().GetCode() == FbxStatus::ePasswordError) {
         ozz::log::Err() << "Incorrect password." << std::endl;
 
         // scene_ will be destroyed because imported is false.
@@ -696,9 +676,8 @@ void FbxSceneLoader::ImportScene(FbxImporter* _importer,
     // Setup axis and system converter.
     if (imported) {
       FbxGlobalSettings& settings = scene_->GetGlobalSettings();
-      converter_ = ozz::memory::default_allocator()->
-        New<FbxSystemConverter>(settings.GetAxisSystem(),
-                                settings.GetSystemUnit());
+      converter_ = ozz::memory::default_allocator()->New<FbxSystemConverter>(
+          settings.GetAxisSystem(), settings.GetSystemUnit());
     }
 
     // Clear the scene if import failed.
@@ -723,7 +702,6 @@ FbxSceneLoader::~FbxSceneLoader() {
 
 namespace {
 ozz::math::Float4x4 BuildAxisSystemMatrix(const FbxAxisSystem& _system) {
-
   int sign;
   ozz::math::SimdFloat4 up = ozz::math::simd_float4::y_axis();
   ozz::math::SimdFloat4 at = ozz::math::simd_float4::z_axis();
@@ -785,8 +763,8 @@ ozz::math::Float4x4 BuildAxisSystemMatrix(const FbxAxisSystem& _system) {
     right = math::Cross3(at, up);
   }
 
-  const ozz::math::Float4x4 matrix = {{
-    right, up, at, ozz::math::simd_float4::w_axis()}};
+  const ozz::math::Float4x4 matrix = {
+      {right, up, at, ozz::math::simd_float4::w_axis()}};
 
   return matrix;
 }
@@ -799,7 +777,7 @@ FbxSystemConverter::FbxSystemConverter(const FbxAxisSystem& _from_axis,
 
   // Finds unit conversion ratio to meters, where GetScaleFactor() is in cm.
   const float to_meters =
-    static_cast<float>(_from_unit.GetScaleFactor()) * .01f;
+      static_cast<float>(_from_unit.GetScaleFactor()) * .01f;
 
   // Builds conversion matrices.
   convert_ = Invert(from_matrix) *
@@ -810,32 +788,26 @@ FbxSystemConverter::FbxSystemConverter(const FbxAxisSystem& _from_axis,
 
 math::Float4x4 FbxSystemConverter::ConvertMatrix(const FbxAMatrix& _m) const {
   const ozz::math::Float4x4 m = {{
-    ozz::math::simd_float4::Load(static_cast<float>(_m[0][0]),
-                                 static_cast<float>(_m[0][1]),
-                                 static_cast<float>(_m[0][2]),
-                                 static_cast<float>(_m[0][3])),
-    ozz::math::simd_float4::Load(static_cast<float>(_m[1][0]),
-                                 static_cast<float>(_m[1][1]),
-                                 static_cast<float>(_m[1][2]),
-                                 static_cast<float>(_m[1][3])),
-    ozz::math::simd_float4::Load(static_cast<float>(_m[2][0]),
-                                 static_cast<float>(_m[2][1]),
-                                 static_cast<float>(_m[2][2]),
-                                 static_cast<float>(_m[2][3])),
-    ozz::math::simd_float4::Load(static_cast<float>(_m[3][0]),
-                                 static_cast<float>(_m[3][1]),
-                                 static_cast<float>(_m[3][2]),
-                                 static_cast<float>(_m[3][3])),
+      ozz::math::simd_float4::Load(
+          static_cast<float>(_m[0][0]), static_cast<float>(_m[0][1]),
+          static_cast<float>(_m[0][2]), static_cast<float>(_m[0][3])),
+      ozz::math::simd_float4::Load(
+          static_cast<float>(_m[1][0]), static_cast<float>(_m[1][1]),
+          static_cast<float>(_m[1][2]), static_cast<float>(_m[1][3])),
+      ozz::math::simd_float4::Load(
+          static_cast<float>(_m[2][0]), static_cast<float>(_m[2][1]),
+          static_cast<float>(_m[2][2]), static_cast<float>(_m[2][3])),
+      ozz::math::simd_float4::Load(
+          static_cast<float>(_m[3][0]), static_cast<float>(_m[3][1]),
+          static_cast<float>(_m[3][2]), static_cast<float>(_m[3][3])),
   }};
   return convert_ * m * inverse_convert_;
 }
 
 math::Float3 FbxSystemConverter::ConvertPoint(const FbxVector4& _p) const {
-  const math::SimdFloat4 p_in =
-    math::simd_float4::Load(static_cast<float>(_p[0]),
-                            static_cast<float>(_p[1]),
-                            static_cast<float>(_p[2]),
-                            1.f);
+  const math::SimdFloat4 p_in = math::simd_float4::Load(
+      static_cast<float>(_p[0]), static_cast<float>(_p[1]),
+      static_cast<float>(_p[2]), 1.f);
   const math::SimdFloat4 p_out = convert_ * p_in;
   math::Float3 ret;
   math::Store3PtrU(p_out, &ret.x);
@@ -843,11 +815,9 @@ math::Float3 FbxSystemConverter::ConvertPoint(const FbxVector4& _p) const {
 }
 
 math::Float3 FbxSystemConverter::ConvertNormal(const FbxVector4& _p) const {
-  const math::SimdFloat4 p_in =
-    math::simd_float4::Load(static_cast<float>(_p[0]),
-                            static_cast<float>(_p[1]),
-                            static_cast<float>(_p[2]),
-                            0.f);
+  const math::SimdFloat4 p_in = math::simd_float4::Load(
+      static_cast<float>(_p[0]), static_cast<float>(_p[1]),
+      static_cast<float>(_p[2]), 0.f);
   const math::SimdFloat4 p_out = inverse_transpose_convert_ * p_in;
   math::Float3 ret;
   math::Store3PtrU(p_out, &ret.x);
@@ -976,12 +946,10 @@ namespace fbx {
 
 namespace {
 
-enum RecurseReturn {kError, kSkeletonFound, kNoSkeleton};
+enum RecurseReturn { kError, kSkeletonFound, kNoSkeleton };
 
-RecurseReturn RecurseNode(FbxNode* _node,
-                          FbxSystemConverter* _converter,
-                          RawSkeleton* _skeleton,
-                          RawSkeleton::Joint* _parent,
+RecurseReturn RecurseNode(FbxNode* _node, FbxSystemConverter* _converter,
+                          RawSkeleton* _skeleton, RawSkeleton::Joint* _parent,
                           int _depth) {
   bool skeleton_found = false;
   RawSkeleton::Joint* this_joint = NULL;
@@ -994,12 +962,11 @@ RecurseReturn RecurseNode(FbxNode* _node,
   // Push this node as a new joint if it has a joint compatible attribute.
   FbxNodeAttribute* node_attribute = _node->GetNodeAttribute();
   process_node |=
-    node_attribute &&
-    node_attribute->GetAttributeType() == FbxNodeAttribute::eSkeleton;
+      node_attribute &&
+      node_attribute->GetAttributeType() == FbxNodeAttribute::eSkeleton;
 
   // Process node if required.
   if (process_node) {
-
     skeleton_found = true;
 
     RawSkeleton::Joint::Children* sibling = NULL;
@@ -1015,15 +982,17 @@ RecurseReturn RecurseNode(FbxNode* _node,
     this_joint->name = _node->GetName();
 
     // Outputs hierarchy on verbose stream.
-    for (int i = 0; i < _depth; ++i) { ozz::log::LogV() << '.'; }
+    for (int i = 0; i < _depth; ++i) {
+      ozz::log::LogV() << '.';
+    }
     ozz::log::LogV() << this_joint->name.c_str() << std::endl;
 
     // Extract bind pose.
-    const FbxAMatrix matrix = _parent? _node->EvaluateLocalTransform():
-                                       _node->EvaluateGlobalTransform();
+    const FbxAMatrix matrix = _parent ? _node->EvaluateLocalTransform()
+                                      : _node->EvaluateGlobalTransform();
     if (!_converter->ConvertTransform(matrix, &this_joint->transform)) {
-      ozz::log::Err() << "Failed to extract skeleton transform for joint \"" <<
-        this_joint->name << "\"." << std::endl;
+      ozz::log::Err() << "Failed to extract skeleton transform for joint \""
+                      << this_joint->name << "\"." << std::endl;
       return kError;
     }
 
@@ -1034,7 +1003,8 @@ RecurseReturn RecurseNode(FbxNode* _node,
   // Iterate node's children.
   for (int i = 0; i < _node->GetChildCount(); i++) {
     FbxNode* child = _node->GetChild(i);
-    const RecurseReturn ret = RecurseNode(child, _converter, _skeleton, this_joint, _depth);
+    const RecurseReturn ret =
+        RecurseNode(child, _converter, _skeleton, this_joint, _depth);
     if (ret == kError) {
       return ret;
     }
@@ -1046,7 +1016,8 @@ RecurseReturn RecurseNode(FbxNode* _node,
 }
 
 bool ExtractSkeleton(FbxSceneLoader& _loader, RawSkeleton* _skeleton) {
-  RecurseReturn ret = RecurseNode(_loader.scene()->GetRootNode(), _loader.converter(), _skeleton, NULL, 0);
+  RecurseReturn ret = RecurseNode(_loader.scene()->GetRootNode(),
+                                  _loader.converter(), _skeleton, NULL, 0);
   if (ret == kNoSkeleton) {
     ozz::log::Err() << "No skeleton found in Fbx scene." << std::endl;
     return false;

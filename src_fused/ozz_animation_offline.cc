@@ -36,12 +36,9 @@ namespace ozz {
 namespace animation {
 namespace offline {
 
-RawAnimation::RawAnimation()
-  : duration(1.f) {
-}
+RawAnimation::RawAnimation() : duration(1.f) {}
 
-RawAnimation::~RawAnimation() {
-}
+RawAnimation::~RawAnimation() {}
 
 namespace {
 
@@ -79,7 +76,7 @@ bool RawAnimation::Validate() const {
   for (size_t j = 0; j < tracks.size(); ++j) {
     const RawAnimation::JointTrack& track = tracks[j];
     if (!ValidateTrack<TranslationKey>(track.translations, duration) ||
-        !ValidateTrack<RotationKey>(track.rotations, duration) || 
+        !ValidateTrack<RotationKey>(track.rotations, duration) ||
         !ValidateTrack<ScaleKey>(track.scales, duration)) {
       return false;
     }
@@ -125,16 +122,15 @@ bool RawAnimation::Validate() const {
 #include "ozz/base/io/archive.h"
 #include "ozz/base/maths/math_archive.h"
 
-#include "ozz/base/containers/vector_archive.h"
 #include "ozz/base/containers/string_archive.h"
+#include "ozz/base/containers/vector_archive.h"
 
 namespace ozz {
 namespace io {
 
 template <>
 void Save(OArchive& _archive,
-          const animation::offline::RawAnimation* _animations,
-          size_t _count) {
+          const animation::offline::RawAnimation* _animations, size_t _count) {
   for (size_t i = 0; i < _count; ++i) {
     const animation::offline::RawAnimation& animation = _animations[i];
     _archive << animation.duration;
@@ -144,10 +140,8 @@ void Save(OArchive& _archive,
 }
 
 template <>
-void Load(IArchive& _archive,
-          animation::offline::RawAnimation* _animations,
-          size_t _count,
-          uint32_t _version) {
+void Load(IArchive& _archive, animation::offline::RawAnimation* _animations,
+          size_t _count, uint32_t _version) {
   (void)_version;
   for (size_t i = 0; i < _count; ++i) {
     animation::offline::RawAnimation& animation = _animations[i];
@@ -178,8 +172,7 @@ void Save(OArchive& _archive,
 
 template <>
 void Load(IArchive& _archive,
-          animation::offline::RawAnimation::JointTrack* _tracks,
-          size_t _count,
+          animation::offline::RawAnimation::JointTrack* _tracks, size_t _count,
           uint32_t _version) {
   (void)_version;
   for (size_t i = 0; i < _count; ++i) {
@@ -206,8 +199,7 @@ void Save(OArchive& _archive,
 template <>
 void Load(IArchive& _archive,
           animation::offline::RawAnimation::TranslationKey* _keys,
-          size_t _count,
-          uint32_t _version) {
+          size_t _count, uint32_t _version) {
   (void)_version;
   for (size_t i = 0; i < _count; ++i) {
     animation::offline::RawAnimation::TranslationKey& key = _keys[i];
@@ -231,8 +223,7 @@ void Save(OArchive& _archive,
 
 template <>
 void Load(IArchive& _archive,
-          animation::offline::RawAnimation::RotationKey* _keys,
-          size_t _count,
+          animation::offline::RawAnimation::RotationKey* _keys, size_t _count,
           uint32_t _version) {
   (void)_version;
   for (size_t i = 0; i < _count; ++i) {
@@ -256,10 +247,8 @@ void Save(OArchive& _archive,
 }
 
 template <>
-void Load(IArchive& _archive,
-          animation::offline::RawAnimation::ScaleKey* _keys,
-          size_t _count,
-          uint32_t _version) {
+void Load(IArchive& _archive, animation::offline::RawAnimation::ScaleKey* _keys,
+          size_t _count, uint32_t _version) {
   (void)_version;
   for (size_t i = 0; i < _count; ++i) {
     animation::offline::RawAnimation::ScaleKey& key = _keys[i];
@@ -307,8 +296,7 @@ namespace offline {
 
 // Translation interpolation method.
 // This must be the same Lerp as the one used by the sampling job.
-math::Float3 LerpTranslation(const math::Float3& _a,
-                             const math::Float3& _b,
+math::Float3 LerpTranslation(const math::Float3& _a, const math::Float3& _b,
                              float _alpha) {
   return math::Lerp(_a, _b, _alpha);
 }
@@ -319,19 +307,17 @@ math::Float3 LerpTranslation(const math::Float3& _a,
 // this behavior that is actually not done at runtime, but when building the
 // animation.
 math::Quaternion LerpRotation(const math::Quaternion& _a,
-                              const math::Quaternion& _b,
-                              float _alpha) {
+                              const math::Quaternion& _b, float _alpha) {
   // Finds the shortest path. This is done by the AnimationBuilder for runtime
   // animations.
   const float dot = _a.x * _b.x + _a.y * _b.y + _a.z * _b.z + _a.w * _b.w;
-  return math::NLerp(_a, dot < 0.f ? -_b : _b, _alpha); // _b an -_b are the
-                                                        // same rotation.
+  return math::NLerp(_a, dot < 0.f ? -_b : _b, _alpha);  // _b an -_b are the
+                                                         // same rotation.
 }
 
 // Scale interpolation method.
 // This must be the same Lerp as the one used by the sampling job.
-math::Float3 LerpScale(const math::Float3& _a,
-                       const math::Float3& _b,
+math::Float3 LerpScale(const math::Float3& _a, const math::Float3& _b,
                        float _alpha) {
   return math::Lerp(_a, _b, _alpha);
 }
@@ -371,10 +357,10 @@ math::Float3 LerpScale(const math::Float3& _a,
 #include "ozz/animation/offline/animation_builder.h"
 
 #include <algorithm>
-#include <limits>
-#include <cstddef>
 #include <cassert>
+#include <cstddef>
 #include <cstring>
+#include <limits>
 
 #include "ozz/base/containers/vector.h"
 #include "ozz/base/memory/allocator.h"
@@ -503,19 +489,19 @@ struct SortingScaleKey {
 };
 
 // Keyframe sorting. Stores first by time and then track number.
-template<typename _Key>
+template <typename _Key>
 bool SortingKeyLess(const _Key& _left, const _Key& _right) {
-  return _left.prev_key_time < _right.prev_key_time
-         || (_left.prev_key_time == _right.prev_key_time
-             && _left.track < _right.track);
+  return _left.prev_key_time < _right.prev_key_time ||
+         (_left.prev_key_time == _right.prev_key_time &&
+          _left.track < _right.track);
 }
 
-template<typename _SrcKey, typename _DestTrack>
+template <typename _SrcKey, typename _DestTrack>
 void PushBackIdentityKey(uint16_t _track, float _time, _DestTrack* _dest) {
   typedef typename _DestTrack::value_type DestKey;
   float prev_time = -1.f;
   if (!_dest->empty() && _dest->back().track == _track) {
-    prev_time =  _dest->back().key.time;
+    prev_time = _dest->back().key.time;
   }
   const DestKey key = {_track, prev_time, {_time, _SrcKey::identity()}};
   _dest->push_back(key);
@@ -523,7 +509,7 @@ void PushBackIdentityKey(uint16_t _track, float _time, _DestTrack* _dest) {
 
 // Copies a track from a RawAnimation to an Animation.
 // Also fixes up the front (t = 0) and back keys (t = duration).
-template<typename _SrcTrack, typename _DestTrack>
+template <typename _SrcTrack, typename _DestTrack>
 void CopyRaw(const _SrcTrack& _src, uint16_t _track, float _duration,
              _DestTrack* _dest) {
   typedef typename _SrcTrack::value_type SrcKey;
@@ -536,9 +522,9 @@ void CopyRaw(const _SrcTrack& _src, uint16_t _track, float _duration,
     const SrcKey& raw_key = _src.front();
     assert(raw_key.time >= 0 && raw_key.time <= _duration);
     const DestKey first = {_track, -1.f, {0.f, raw_key.value}};
-      _dest->push_back(first);
+    _dest->push_back(first);
     const DestKey last = {_track, 0.f, {_duration, raw_key.value}};
-      _dest->push_back(last);
+    _dest->push_back(last);
   } else {  // Copies all keys, and fixes up first and last keys.
     float prev_time = -1.f;
     if (_src.front().time != 0.f) {  // Needs a key at t = 0.f.
@@ -554,8 +540,7 @@ void CopyRaw(const _SrcTrack& _src, uint16_t _track, float _duration,
       prev_time = raw_key.time;
     }
     if (_src.back().time != _duration) {  // Needs a key at t = _duration.
-      const DestKey last = {
-        _track, prev_time, {_duration, _src.back().value}};
+      const DestKey last = {_track, prev_time, {_duration, _src.back().value}};
       _dest->push_back(last);
     }
   }
@@ -570,7 +555,8 @@ void CopyToAnimation(ozz::Vector<SortingTranslationKey>::Std* _src,
   }
 
   // Sort animation keys to favor cache coherency.
-  std::sort(&_src->front(), (&_src->back()) + 1, &SortingKeyLess<SortingTranslationKey>);
+  std::sort(&_src->front(), (&_src->back()) + 1,
+            &SortingKeyLess<SortingTranslationKey>);
 
   // Fills output.
   const SortingTranslationKey* src = &_src->front();
@@ -592,7 +578,8 @@ void CopyToAnimation(ozz::Vector<SortingScaleKey>::Std* _src,
   }
 
   // Sort animation keys to favor cache coherency.
-  std::sort(&_src->front(), (&_src->back()) + 1, &SortingKeyLess<SortingScaleKey>);
+  std::sort(&_src->front(), (&_src->back()) + 1,
+            &SortingKeyLess<SortingScaleKey>);
 
   // Fills output.
   const SortingScaleKey* src = &_src->front();
@@ -662,15 +649,15 @@ void CopyToAnimation(ozz::Vector<SortingRotationKey>::Std* _src,
   SortingRotationKey* src = &_src->front();
   for (size_t i = 0; i < src_count; ++i) {
     math::Quaternion normalized = NormalizeSafe(src[i].key.value, identity);
-    if (track != src[i].track) {  // First key of the track.
-      if (normalized.w < 0.f) {  // .w eq to a dot with identity quaternion.
+    if (track != src[i].track) {   // First key of the track.
+      if (normalized.w < 0.f) {    // .w eq to a dot with identity quaternion.
         normalized = -normalized;  // Q an -Q are the same rotation.
       }
     } else {  // Still on the same track: so fixes-up quaternion.
       const math::Float4 prev(src[i - 1].key.value.x, src[i - 1].key.value.y,
                               src[i - 1].key.value.z, src[i - 1].key.value.w);
-      const math::Float4 curr(normalized.x, normalized.y,
-                              normalized.z, normalized.w);
+      const math::Float4 curr(normalized.x, normalized.y, normalized.z,
+                              normalized.w);
       if (Dot(prev, curr) < 0.f) {
         normalized = -normalized;  // Q an -Q are the same rotation.
       }
@@ -681,8 +668,7 @@ void CopyToAnimation(ozz::Vector<SortingRotationKey>::Std* _src,
   }
 
   // Sort.
-  std::sort(array_begin(*_src),
-            array_end(*_src),
+  std::sort(array_begin(*_src), array_end(*_src),
             &SortingKeyLess<SortingRotationKey>);
 
   // Fills rotation keys output.
@@ -729,7 +715,7 @@ Animation* AnimationBuilder::operator()(const RawAnimation& _input) const {
   // Declares and preallocates tracks to sort.
   size_t translations = 0, rotations = 0, scales = 0;
   for (int i = 0; i < num_tracks; ++i) {
-    const RawAnimation::JointTrack& raw_track =  _input.tracks[i];
+    const RawAnimation::JointTrack& raw_track = _input.tracks[i];
     translations += raw_track.translations.size() + 2;  // +2 because worst case
     rotations += raw_track.rotations.size() + 2;        // needs to add the
     scales += raw_track.scales.size() + 2;              // first and last keys.
@@ -766,10 +752,8 @@ Animation* AnimationBuilder::operator()(const RawAnimation& _input) const {
   }
 
   // Allocate animation members.
-  animation->Allocate(_input.name.length() + 1,
-                      sorting_translations.size(),
-                      sorting_rotations.size(),
-                      sorting_scales.size());
+  animation->Allocate(_input.name.length() + 1, sorting_translations.size(),
+                      sorting_rotations.size(), sorting_scales.size());
 
   // Copy sorted keys to final animation.
   CopyToAnimation(&sorting_translations, &animation->translations_);
@@ -816,11 +800,11 @@ Animation* AnimationBuilder::operator()(const RawAnimation& _input) const {
 
 #include "ozz/animation/offline/animation_optimizer.h"
 
-#include <cstddef>
 #include <cassert>
+#include <cstddef>
 
-#include "ozz/base/maths/math_ex.h"
 #include "ozz/base/maths/math_constant.h"
+#include "ozz/base/maths/math_ex.h"
 
 #include "ozz/animation/offline/raw_animation.h"
 #include "ozz/animation/offline/raw_animation_utils.h"
@@ -834,10 +818,10 @@ namespace offline {
 
 // Setup default values (favoring quality).
 AnimationOptimizer::AnimationOptimizer()
-  : translation_tolerance(1e-3f),  // 1 mm.
-    rotation_tolerance(.1f * math::kPi / 180.f),  // 0.1 degree.
-    scale_tolerance(1e-3f),  // 0.1%.
-    hierarchical_tolerance(1e-3f) {  // 1 mm.
+    : translation_tolerance(1e-3f),                 // 1 mm.
+      rotation_tolerance(.1f * math::kPi / 180.f),  // 0.1 degree.
+      scale_tolerance(1e-3f),                       // 0.1%.
+      hierarchical_tolerance(1e-3f) {               // 1 mm.
 }
 
 namespace {
@@ -849,15 +833,14 @@ struct JointSpec {
 
 typedef ozz::Vector<JointSpec>::Std JointSpecs;
 
-JointSpec Iter(const Skeleton& _skeleton,
-               uint16_t _joint,
+JointSpec Iter(const Skeleton& _skeleton, uint16_t _joint,
                const JointSpecs& _local_joint_specs,
                float _parent_accumulated_scale,
                JointSpecs* _hierarchical_joint_specs) {
-
   JointSpec local_joint_spec = _local_joint_specs[_joint];
   JointSpec& hierarchical_joint_spec = _hierarchical_joint_specs->at(_joint);
-  const Skeleton::JointProperties* properties = _skeleton.joint_properties().begin;
+  const Skeleton::JointProperties* properties =
+      _skeleton.joint_properties().begin;
 
   // Applies parent's scale to this joint.
   uint16_t parent = properties[_joint].parent;
@@ -874,36 +857,31 @@ JointSpec Iter(const Skeleton& _skeleton,
   } else {
     // Find first child.
     uint16_t child = _joint + 1;
-    for (;
-         child < _skeleton.num_joints() && properties[child].parent != _joint;
+    for (; child < _skeleton.num_joints() && properties[child].parent != _joint;
          ++child) {
     }
     assert(properties[child].parent == _joint);
 
     // Now iterate childs.
-    for (;
-         child < _skeleton.num_joints() && properties[child].parent == _joint;
+    for (; child < _skeleton.num_joints() && properties[child].parent == _joint;
          ++child) {
-
       // Entering each child.
-      const JointSpec child_spec = Iter(_skeleton,
-                                        child,
-                                        _local_joint_specs,
-                                        local_joint_spec.scale,
-                                        _hierarchical_joint_specs);
+      const JointSpec child_spec =
+          Iter(_skeleton, child, _local_joint_specs, local_joint_spec.scale,
+               _hierarchical_joint_specs);
 
       // Accumulated each child specs to this joint.
       hierarchical_joint_spec.length =
-        math::Max(hierarchical_joint_spec.length, child_spec.length);
+          math::Max(hierarchical_joint_spec.length, child_spec.length);
       hierarchical_joint_spec.scale =
-        math::Max(hierarchical_joint_spec.scale, child_spec.scale);
+          math::Max(hierarchical_joint_spec.scale, child_spec.scale);
     }
   }
 
   // Returns accumulated specs for this joint.
   const JointSpec spec = {
-    hierarchical_joint_spec.length + local_joint_spec.length,
-    hierarchical_joint_spec.scale * _local_joint_specs[_joint].scale};
+      hierarchical_joint_spec.length + local_joint_spec.length,
+      hierarchical_joint_spec.scale * _local_joint_specs[_joint].scale};
   return spec;
 }
 
@@ -927,7 +905,8 @@ void BuildHierarchicalSpecs(const RawAnimation& _animation,
 
     float max_length = 0.f;
     for (size_t j = 0; j < track.translations.size(); ++j) {
-      max_length = math::Max(max_length, LengthSqr(track.translations[j].value));
+      max_length =
+          math::Max(max_length, LengthSqr(track.translations[j].value));
     }
     local_joint_specs[i].length = std::sqrt(max_length);
 
@@ -948,21 +927,17 @@ void BuildHierarchicalSpecs(const RawAnimation& _animation,
   for (uint16_t root = 0;
        root < _skeleton.num_joints() &&
        _skeleton.joint_properties()[root].parent == Skeleton::kNoParentIndex;
-        ++root) {
+       ++root) {
     // Entering each root.
     Iter(_skeleton, root, local_joint_specs, 1.f, _hierarchical_joint_specs);
   }
 }
 
 // Copy _src keys to _dest but except the ones that can be interpolated.
-template<typename _RawTrack, typename _Comparator, typename _Lerp>
-void Filter(const _RawTrack& _src,
-            const _Comparator& _comparator,
-            const _Lerp& _lerp,
-            float _tolerance,
-            float _hierarchical_tolerance,
-            float _hierarchy_length,
-            _RawTrack* _dest) {
+template <typename _RawTrack, typename _Comparator, typename _Lerp>
+void Filter(const _RawTrack& _src, const _Comparator& _comparator,
+            const _Lerp& _lerp, float _tolerance, float _hierarchical_tolerance,
+            float _hierarchy_length, _RawTrack* _dest) {
   _dest->reserve(_src.size());
 
   // Only copies the key that cannot be interpolated from the others.
@@ -976,11 +951,8 @@ void Filter(const _RawTrack& _src,
       // Don't push the last value if it's the same as last_src_pushed.
       typename _RawTrack::const_reference left = _src[last_src_pushed];
       typename _RawTrack::const_reference right = _src[i];
-      if (!_comparator(left.value,
-                       right.value,
-                       _tolerance,
-                       _hierarchical_tolerance,
-                       _hierarchy_length)) {
+      if (!_comparator(left.value, right.value, _tolerance,
+                       _hierarchical_tolerance, _hierarchy_length)) {
         _dest->push_back(right);
         last_src_pushed = i;
       }
@@ -993,10 +965,8 @@ void Filter(const _RawTrack& _src,
         typename _RawTrack::const_reference test = _src[j];
         const float alpha = (test.time - left.time) / (right.time - left.time);
         assert(alpha >= 0.f && alpha <= 1.f);
-        if (!_comparator(_lerp(left.value, right.value, alpha),
-                         test.value,
-                         _tolerance,
-                         _hierarchical_tolerance,
+        if (!_comparator(_lerp(left.value, right.value, alpha), test.value,
+                         _tolerance, _hierarchical_tolerance,
                          _hierarchy_length)) {
           _dest->push_back(_src[i]);
           last_src_pushed = i;
@@ -1009,10 +979,8 @@ void Filter(const _RawTrack& _src,
 }
 
 // Translation filtering comparator.
-bool CompareTranslation(const math::Float3& _a,
-                        const math::Float3& _b,
-                        float _tolerance,
-                        float _hierarchical_tolerance,
+bool CompareTranslation(const math::Float3& _a, const math::Float3& _b,
+                        float _tolerance, float _hierarchical_tolerance,
                         float _hierarchy_scale) {
   if (!Compare(_a, _b, _tolerance)) {
     return false;
@@ -1024,10 +992,8 @@ bool CompareTranslation(const math::Float3& _a,
 }
 
 // Rotation filtering comparator.
-bool CompareRotation(const math::Quaternion& _a,
-                     const math::Quaternion& _b,
-                     float _tolerance,
-                     float _hierarchical_tolerance,
+bool CompareRotation(const math::Quaternion& _a, const math::Quaternion& _b,
+                     float _tolerance, float _hierarchical_tolerance,
                      float _hierarchy_length) {
   // Compute the shortest unsigned angle between the 2 quaternions.
   // diff_w is w component of a-1 * b.
@@ -1043,10 +1009,8 @@ bool CompareRotation(const math::Quaternion& _a,
 }
 
 // Scale filtering comparator.
-bool CompareScale(const math::Float3& _a,
-                  const math::Float3& _b,
-                  float _tolerance,
-                  float _hierarchical_tolerance,
+bool CompareScale(const math::Float3& _a, const math::Float3& _b,
+                  float _tolerance, float _hierarchical_tolerance,
                   float _hierarchy_length) {
   if (!Compare(_a, _b, _tolerance)) {
     return false;
@@ -1070,7 +1034,7 @@ bool AnimationOptimizer::operator()(const RawAnimation& _input,
   if (!_input.Validate()) {
     return false;
   }
-  
+
   // Validates the skeleton matches the animation.
   if (_input.num_tracks() != _skeleton.num_joints()) {
     return false;
@@ -1079,26 +1043,20 @@ bool AnimationOptimizer::operator()(const RawAnimation& _input,
   // First computes bone lengths, that will be used when filtering.
   JointSpecs hierarchical_joint_specs;
   BuildHierarchicalSpecs(_input, _skeleton, &hierarchical_joint_specs);
-  
+
   // Rebuilds output animation.
   _output->name = _input.name;
   _output->duration = _input.duration;
   _output->tracks.resize(_input.tracks.size());
-  
+
   for (size_t i = 0; i < _input.tracks.size(); ++i) {
-    Filter(_input.tracks[i].translations,
-           CompareTranslation, LerpTranslation,
-           translation_tolerance,
-           hierarchical_tolerance, hierarchical_joint_specs[i].scale,
-           &_output->tracks[i].translations);
-    Filter(_input.tracks[i].rotations,
-           CompareRotation, LerpRotation,
-           rotation_tolerance,
-           hierarchical_tolerance, hierarchical_joint_specs[i].length,
-           &_output->tracks[i].rotations);
-    Filter(_input.tracks[i].scales,
-           CompareScale, LerpScale,
-           scale_tolerance,
+    Filter(_input.tracks[i].translations, CompareTranslation, LerpTranslation,
+           translation_tolerance, hierarchical_tolerance,
+           hierarchical_joint_specs[i].scale, &_output->tracks[i].translations);
+    Filter(_input.tracks[i].rotations, CompareRotation, LerpRotation,
+           rotation_tolerance, hierarchical_tolerance,
+           hierarchical_joint_specs[i].length, &_output->tracks[i].rotations);
+    Filter(_input.tracks[i].scales, CompareScale, LerpScale, scale_tolerance,
            hierarchical_tolerance, hierarchical_joint_specs[i].length,
            &_output->tracks[i].scales);
   }
@@ -1141,8 +1099,8 @@ bool AnimationOptimizer::operator()(const RawAnimation& _input,
 
 #include "ozz/animation/offline/additive_animation_builder.h"
 
-#include <cstddef>
 #include <cassert>
+#include <cstddef>
 
 #include "ozz/animation/offline/raw_animation.h"
 
@@ -1151,9 +1109,8 @@ namespace animation {
 namespace offline {
 
 namespace {
-template<typename _RawTrack, typename _MakeDelta>
-void MakeDelta(const _RawTrack& _src,
-               const _MakeDelta& _make_delta,
+template <typename _RawTrack, typename _MakeDelta>
+void MakeDelta(const _RawTrack& _src, const _MakeDelta& _make_delta,
                _RawTrack* _dest) {
   _dest->reserve(_src.size());
 
@@ -1168,9 +1125,7 @@ void MakeDelta(const _RawTrack& _src,
   // Copy animation keys.
   for (size_t i = 0; i < _src.size(); ++i) {
     const typename _RawTrack::value_type delta = {
-      _src[i].time,
-      _make_delta(reference.value, _src[i].value)
-    };
+        _src[i].time, _make_delta(reference.value, _src[i].value)};
     _dest->push_back(delta);
   }
 }
@@ -1192,8 +1147,7 @@ math::Float3 MakeDeltaScale(const math::Float3& _reference,
 }  // namespace
 
 // Setup default values (favoring quality).
-AdditiveAnimationBuilder::AdditiveAnimationBuilder() {
-}
+AdditiveAnimationBuilder::AdditiveAnimationBuilder() {}
 
 bool AdditiveAnimationBuilder::operator()(const RawAnimation& _input,
                                           RawAnimation* _output) const {
@@ -1211,16 +1165,13 @@ bool AdditiveAnimationBuilder::operator()(const RawAnimation& _input,
   // Rebuilds output animation.
   _output->duration = _input.duration;
   _output->tracks.resize(_input.tracks.size());
-  
+
   for (size_t i = 0; i < _input.tracks.size(); ++i) {
-    MakeDelta(_input.tracks[i].translations,
-              MakeDeltaTranslation,
+    MakeDelta(_input.tracks[i].translations, MakeDeltaTranslation,
               &_output->tracks[i].translations);
-    MakeDelta(_input.tracks[i].rotations,
-              MakeDeltaRotation,
+    MakeDelta(_input.tracks[i].rotations, MakeDeltaRotation,
               &_output->tracks[i].rotations);
-    MakeDelta(_input.tracks[i].scales,
-              MakeDeltaScale,
+    MakeDelta(_input.tracks[i].scales, MakeDeltaScale,
               &_output->tracks[i].scales);
   }
 
@@ -1268,11 +1219,9 @@ namespace ozz {
 namespace animation {
 namespace offline {
 
-RawSkeleton::RawSkeleton() {
-}
+RawSkeleton::RawSkeleton() {}
 
-RawSkeleton::~RawSkeleton() {
-}
+RawSkeleton::~RawSkeleton() {}
 
 bool RawSkeleton::Validate() const {
   if (num_joints() > Skeleton::kMaxJoints) {
@@ -1283,9 +1232,7 @@ bool RawSkeleton::Validate() const {
 
 namespace {
 struct JointCounter {
-  JointCounter() :
-    num_joints(0) {
-  }
+  JointCounter() : num_joints(0) {}
   void operator()(const RawSkeleton::Joint&, const RawSkeleton::Joint*) {
     ++num_joints;
   }
@@ -1342,8 +1289,7 @@ namespace ozz {
 namespace io {
 
 template <>
-void Save(OArchive& _archive,
-          const animation::offline::RawSkeleton* _skeletons,
+void Save(OArchive& _archive, const animation::offline::RawSkeleton* _skeletons,
           size_t _count) {
   for (size_t i = 0; i < _count; ++i) {
     const animation::offline::RawSkeleton& skeleton = _skeletons[i];
@@ -1352,10 +1298,8 @@ void Save(OArchive& _archive,
 }
 
 template <>
-void Load(IArchive& _archive,
-          animation::offline::RawSkeleton* _skeletons,
-          size_t _count,
-          uint32_t _version) {
+void Load(IArchive& _archive, animation::offline::RawSkeleton* _skeletons,
+          size_t _count, uint32_t _version) {
   (void)_version;
   for (size_t i = 0; i < _count; ++i) {
     animation::offline::RawSkeleton& skeleton = _skeletons[i];
@@ -1380,10 +1324,8 @@ void Save(OArchive& _archive,
 }
 
 template <>
-void Load(IArchive& _archive,
-          animation::offline::RawSkeleton::Joint* _joints,
-          size_t _count,
-          uint32_t _version) {
+void Load(IArchive& _archive, animation::offline::RawSkeleton::Joint* _joints,
+          size_t _count, uint32_t _version) {
   (void)_version;
   for (size_t i = 0; i < _count; ++i) {
     animation::offline::RawSkeleton::Joint& joint = _joints[i];
@@ -1428,11 +1370,11 @@ void Load(IArchive& _archive,
 
 #include <cstring>
 
+#include "ozz/animation/offline/raw_skeleton.h"
+#include "ozz/animation/runtime/skeleton.h"
 #include "ozz/base/containers/vector.h"
 #include "ozz/base/maths/soa_transform.h"
 #include "ozz/base/memory/allocator.h"
-#include "ozz/animation/offline/raw_skeleton.h"
-#include "ozz/animation/runtime/skeleton.h"
 
 namespace ozz {
 namespace animation {
@@ -1441,9 +1383,7 @@ namespace offline {
 namespace {
 // Stores each traversed joint to a vector.
 struct JointLister {
-  explicit JointLister(int _num_joints) {
-    linear_joints.reserve(_num_joints);
-  }
+  explicit JointLister(int _num_joints) { linear_joints.reserve(_num_joints); }
   void operator()(const RawSkeleton::Joint& _current,
                   const RawSkeleton::Joint* _parent) {
     // Looks for the "lister" parent.
@@ -1491,7 +1431,7 @@ Skeleton* SkeletonBuilder::operator()(const RawSkeleton& _raw_skeleton) const {
   JointLister lister(num_joints);
   _raw_skeleton.IterateJointsBF<JointLister&>(lister);
   assert(static_cast<int>(lister.linear_joints.size()) == num_joints);
-  
+
   // Computes name's buffer size.
   size_t chars_size = 0;
   for (int i = 0; i < num_joints; ++i) {
@@ -1515,7 +1455,7 @@ Skeleton* SkeletonBuilder::operator()(const RawSkeleton& _raw_skeleton) const {
   for (int i = 0; i < num_joints; ++i) {
     skeleton->joint_properties_[i].parent = lister.linear_joints[i].parent;
     skeleton->joint_properties_[i].is_leaf =
-      lister.linear_joints[i].joint->children.empty();
+        lister.linear_joints[i].joint->children.empty();
   }
 
   // Transfers t-poses.
@@ -1530,13 +1470,13 @@ Skeleton* SkeletonBuilder::operator()(const RawSkeleton& _raw_skeleton) const {
     for (int j = 0; j < 4; ++j) {
       if (i * 4 + j < num_joints) {
         const RawSkeleton::Joint& src_joint =
-          *lister.linear_joints[i * 4 + j].joint;
+            *lister.linear_joints[i * 4 + j].joint;
         translations[j] =
-          math::simd_float4::Load3PtrU(&src_joint.transform.translation.x);
+            math::simd_float4::Load3PtrU(&src_joint.transform.translation.x);
         rotations[j] = math::NormalizeSafe4(
-          math::simd_float4::LoadPtrU(&src_joint.transform.rotation.x), w_axis);
-        scales[j] =
-          math::simd_float4::Load3PtrU(&src_joint.transform.scale.x);
+            math::simd_float4::LoadPtrU(&src_joint.transform.rotation.x),
+            w_axis);
+        scales[j] = math::simd_float4::Load3PtrU(&src_joint.transform.scale.x);
       } else {
         translations[j] = zero;
         rotations[j] = w_axis;

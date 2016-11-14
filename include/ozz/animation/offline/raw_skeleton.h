@@ -28,10 +28,10 @@
 #ifndef OZZ_OZZ_ANIMATION_OFFLINE_RAW_SKELETON_H_
 #define OZZ_OZZ_ANIMATION_OFFLINE_RAW_SKELETON_H_
 
-#include "ozz/base/containers/vector.h"
 #include "ozz/base/containers/string.h"
-#include "ozz/base/maths/transform.h"
+#include "ozz/base/containers/vector.h"
 #include "ozz/base/io/archive_traits.h"
+#include "ozz/base/maths/transform.h"
 
 namespace ozz {
 namespace animation {
@@ -56,7 +56,6 @@ struct RawSkeleton {
 
   // Offline skeleton joint type.
   struct Joint {
-
     // Type of the list of children joints.
     typedef ozz::Vector<Joint>::Std Children;
 
@@ -84,7 +83,7 @@ struct RawSkeleton {
   // _Fct is of type void(const Joint& _current, const Joint* _parent) where the
   // first argument is the child of the second argument. _parent is null if the
   // _current joint is the root.
-  template<typename _Fct>
+  template <typename _Fct>
   _Fct IterateJointsDF(_Fct _fct) const {
     IterHierarchyDF(roots, NULL, _fct);
     return _fct;
@@ -94,7 +93,7 @@ struct RawSkeleton {
   // _Fct is of type void(const Joint& _current, const Joint* _parent) where the
   // first argument is the child of the second argument. _parent is null if the
   // _current joint is the root.
-  template<typename _Fct>
+  template <typename _Fct>
   _Fct IterateJointsBF(_Fct _fct) const {
     IterHierarchyBF(roots, NULL, _fct);
     return _fct;
@@ -105,10 +104,9 @@ struct RawSkeleton {
 
  private:
   // Internal function used to iterate through joint hierarchy depth-first.
-  template<typename _Fct>
+  template <typename _Fct>
   static void IterHierarchyDF(const RawSkeleton::Joint::Children& _children,
-                              const RawSkeleton::Joint* _parent,
-                              _Fct& _fct) {
+                              const RawSkeleton::Joint* _parent, _Fct& _fct) {
     for (size_t i = 0; i < _children.size(); ++i) {
       const RawSkeleton::Joint& current = _children[i];
       _fct(current, _parent);
@@ -117,10 +115,9 @@ struct RawSkeleton {
   }
 
   // Internal function used to iterate through joint hierarchy breadth-first.
-  template<typename _Fct>
+  template <typename _Fct>
   static void IterHierarchyBF(const RawSkeleton::Joint::Children& _children,
-                              const RawSkeleton::Joint* _parent,
-                              _Fct& _fct) {
+                              const RawSkeleton::Joint* _parent, _Fct& _fct) {
     for (size_t i = 0; i < _children.size(); ++i) {
       const RawSkeleton::Joint& current = _children[i];
       _fct(current, _parent);
@@ -139,15 +136,12 @@ OZZ_IO_TYPE_TAG("ozz-raw_skeleton", animation::offline::RawSkeleton)
 
 // Should not be called directly but through io::Archive << and >> operators.
 template <>
-void Save(OArchive& _archive,
-          const animation::offline::RawSkeleton* _skeletons,
+void Save(OArchive& _archive, const animation::offline::RawSkeleton* _skeletons,
           size_t _count);
 
 template <>
-void Load(IArchive& _archive,
-          animation::offline::RawSkeleton* _skeletons,
-          size_t _count,
-          uint32_t _version);
+void Load(IArchive& _archive, animation::offline::RawSkeleton* _skeletons,
+          size_t _count, uint32_t _version);
 }  // io
 }  // ozz
 #endif  // OZZ_OZZ_ANIMATION_OFFLINE_RAW_SKELETON_H_
