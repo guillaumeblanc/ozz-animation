@@ -165,6 +165,7 @@ endfunction()
 
 # Tries to find FBX SDK path
 set(FBX_SEARCH_PATHS
+  "${FBX_DIR}"
   "$ENV{FBX_DIR}"
   "$ENV{ProgramW6432}/Autodesk/FBX/FBX SDK/*/"
   "$ENV{PROGRAMFILES}/Autodesk/FBX/FBX SDK/*/"
@@ -198,5 +199,5 @@ find_package_handle_standard_args(Fbx
 
 # Warn about how this script can fail to find the newest version.
 if(NOT FBX_FOUND)
-  message("-- Fbx: Note that the script can fail to find the newest Fbx sdk if there are multiple ones installed. Please set \"FBX_DIR\" environment variable to choose a specific version/location.")
+  message("-- Fbx: Note that the script can fail to find the newest Fbx sdk if there are multiple ones installed. Please set \"FBX_DIR\" environment or cmake variable to choose a specific version/location.")
 endif()
