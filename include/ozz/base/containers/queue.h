@@ -42,8 +42,7 @@ struct Queue {
 
 // Redirects std::priority_queue to ozz::PriorityQueue in order to replace std
 // default allocator by ozz::StdAllocator.
-template <class _Ty,
-          class _Container = typename ozz::Deque<_Ty>::Std,
+template <class _Ty, class _Container = typename ozz::Deque<_Ty>::Std,
           class _Pred = std::less<typename _Container::value_type> >
 struct PriorityQueue {
   typedef std::priority_queue<_Ty, _Container, _Pred> Std;

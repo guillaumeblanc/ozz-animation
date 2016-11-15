@@ -57,5 +57,5 @@ static const float kOrthogonalisationToleranceSq = 1e-16f;
 }  // math
 }  // ozz
 
-#endif // INCLUDE_OZZ_MATH_CONSTANT_H_
+#endif  // INCLUDE_OZZ_MATH_CONSTANT_H_
 #endif  // OZZ_OZZ_BASE_MATHS_MATH_CONSTANT_H_

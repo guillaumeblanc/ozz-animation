@@ -28,15 +28,20 @@
 #ifndef OZZ_OZZ_ANIMATION_RUNTIME_ANIMATION_H_
 #define OZZ_OZZ_ANIMATION_RUNTIME_ANIMATION_H_
 
-#include "ozz/base/platform.h"
 #include "ozz/base/io/archive_traits.h"
+#include "ozz/base/platform.h"
 
 namespace ozz {
-namespace io { class IArchive; class OArchive; }
+namespace io {
+class IArchive;
+class OArchive;
+}
 namespace animation {
 
 // Forward declares the AnimationBuilder, used to instantiate an Animation.
-namespace offline { class AnimationBuilder; }
+namespace offline {
+class AnimationBuilder;
+}
 
 // Forward declaration of key frame's type.
 struct TranslationKey;
@@ -55,7 +60,6 @@ struct ScaleKey;
 // time, then by track number.
 class Animation {
  public:
-
   // Builds a default animation.
   Animation();
 
@@ -63,25 +67,17 @@ class Animation {
   ~Animation();
 
   // Gets the animation clip duration.
-  float duration() const {
-    return duration_;
-  }
+  float duration() const { return duration_; }
 
   // Gets the number of animated tracks.
-  int num_tracks() const {
-    return num_tracks_;
-  }
+  int num_tracks() const { return num_tracks_; }
 
   // Returns the number of SoA elements matching the number of tracks of *this
   // animation. This value is useful to allocate SoA runtime data structures.
-  int num_soa_tracks() const {
-    return (num_tracks_ + 3) / 4;
-  }
+  int num_soa_tracks() const { return (num_tracks_ + 3) / 4; }
 
   // Gets animation name.
-  const char* name() const {
-    return name_ ? name_ : "";
-  }
+  const char* name() const { return name_ ? name_ : ""; }
 
   // Gets the buffer of translations keys.
   ozz::Range<const TranslationKey> translations() const {
@@ -89,14 +85,10 @@ class Animation {
   }
 
   // Gets the buffer of rotation keys.
-  ozz::Range<const RotationKey> rotations() const {
-    return rotations_;
-  }
+  ozz::Range<const RotationKey> rotations() const { return rotations_; }
 
   // Gets the buffer of scale keys.
-  ozz::Range<const ScaleKey> scales() const {
-    return scales_;
-  }
+  ozz::Range<const ScaleKey> scales() const { return scales_; }
 
   // Get the estimated animation's size in bytes.
   size_t size() const;
@@ -108,7 +100,6 @@ class Animation {
 
  protected:
  private:
-
   // Disables copy and assignation.
   Animation(Animation const&);
   void operator=(Animation const&);

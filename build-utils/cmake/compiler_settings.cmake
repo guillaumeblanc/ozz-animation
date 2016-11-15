@@ -1,3 +1,6 @@
+#Set compilers settings for all platforms/compilers.
+#---------------------------------------------------
+
 #-----------------
 # Includes modules
 include(CheckIncludeFiles)

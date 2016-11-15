@@ -32,8 +32,8 @@
 #include "ozz/base/maths/math_ex.h"
 #include "ozz/base/memory/allocator.h"
 
-#include <cstring>
 #include <cassert>
+#include <cstring>
 
 // Internal include file
 #define OZZ_INCLUDE_PRIVATE_HEADER  // Allows to include private headers.
@@ -42,34 +42,26 @@
 namespace ozz {
 namespace animation {
 
-Animation::Animation()
-    : duration_(0.f),
-      num_tracks_(0),
-      name_(NULL) {
-}
+Animation::Animation() : duration_(0.f), num_tracks_(0), name_(NULL) {}
 
-Animation::~Animation() {
-  Deallocate();
-}
+Animation::~Animation() { Deallocate(); }
 
 void Animation::Allocate(size_t name_len, size_t _translation_count,
                          size_t _rotation_count, size_t _scale_count) {
   // Distributes buffer memory while ensuring proper alignment (serves larger
   // alignment values first).
-  OZZ_STATIC_ASSERT(
-    OZZ_ALIGN_OF(TranslationKey) >= OZZ_ALIGN_OF(RotationKey) &&
-    OZZ_ALIGN_OF(RotationKey) >= OZZ_ALIGN_OF(ScaleKey) &&
-    OZZ_ALIGN_OF(ScaleKey) >= OZZ_ALIGN_OF(char));
+  OZZ_STATIC_ASSERT(OZZ_ALIGN_OF(TranslationKey) >= OZZ_ALIGN_OF(RotationKey) &&
+                    OZZ_ALIGN_OF(RotationKey) >= OZZ_ALIGN_OF(ScaleKey) &&
+                    OZZ_ALIGN_OF(ScaleKey) >= OZZ_ALIGN_OF(char));
 
   assert(name_ == NULL && translations_.Size() == 0 && rotations_.Size() == 0 &&
          scales_.Size() == 0);
 
   // Compute overall size and allocate a single buffer for all the data.
-  const size_t buffer_size =
-    (name_len > 0 ? name_len + 1 : 0) +
-    _translation_count * sizeof(TranslationKey) +
-    _rotation_count * sizeof(RotationKey) +
-    _scale_count * sizeof(ScaleKey);
+  const size_t buffer_size = (name_len > 0 ? name_len + 1 : 0) +
+                             _translation_count * sizeof(TranslationKey) +
+                             _rotation_count * sizeof(RotationKey) +
+                             _scale_count * sizeof(ScaleKey);
   char* buffer = memory::default_allocator()->Allocate<char>(buffer_size);
 
   // Fix up pointers
@@ -95,7 +87,6 @@ void Animation::Allocate(size_t name_len, size_t _translation_count,
 }
 
 void Animation::Deallocate() {
-
   memory::default_allocator()->Deallocate(translations_.begin);
 
   name_ = NULL;
@@ -106,7 +97,7 @@ void Animation::Deallocate() {
 
 size_t Animation::size() const {
   const size_t size =
-    sizeof(*this) + translations_.Size() + rotations_.Size() + scales_.Size();
+      sizeof(*this) + translations_.Size() + rotations_.Size() + scales_.Size();
   return size;
 }
 
@@ -154,7 +145,6 @@ void Animation::Save(ozz::io::OArchive& _archive) const {
 }
 
 void Animation::Load(ozz::io::IArchive& _archive, uint32_t _version) {
-
   // Destroy animation in case it was already used before.
   Deallocate();
   duration_ = 0.f;

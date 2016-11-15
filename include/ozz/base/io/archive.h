@@ -73,11 +73,11 @@
 // the user side.
 
 #include "ozz/base/endianness.h"
-#include "ozz/base/platform.h"
 #include "ozz/base/io/stream.h"
+#include "ozz/base/platform.h"
 
-#include <cassert>
 #include <stdint.h>
+#include <cassert>
 
 #include "ozz/base/io/archive_traits.h"
 
@@ -87,7 +87,8 @@ namespace internal {
 // Defines Tagger helper object struct.
 // The boolean template argument is used to automatically select a template
 // specialisation, whether _Ty has a tag or not.
-template<typename _Ty, bool _HasTag = internal::Tag<const _Ty>::kTagLength != 0>
+template <typename _Ty,
+          bool _HasTag = internal::Tag<const _Ty>::kTagLength != 0>
 struct Tagger;
 }  // internal
 
@@ -97,16 +98,13 @@ struct Tagger;
 // endianness mode while reading.
 class OArchive {
  public:
-
   // Constructs an output archive from the Stream _stream that must be valid
   // and opened for writing.
-  explicit OArchive(Stream* _stream, 
+  explicit OArchive(Stream* _stream,
                     Endianness _endianness = GetNativeEndianness());
 
   // Returns true if an endian swap is required while writing.
-  bool endian_swap() const {
-    return endian_swap_;
-  }
+  bool endian_swap() const { return endian_swap_; }
 
   // Saves _size bytes of binary data from _data.
   size_t SaveBinary(const void* _data, size_t _size) {
@@ -121,12 +119,12 @@ class OArchive {
     Save(*this, &_ty, 1);
   }
 
-  // Primitive type saving.
-#define _OZZ_IO_PRIMITIVE_TYPE(_type)\
-  void operator<<(_type _v) {\
-    _type v = endian_swap_ ? EndianSwapper<_type>::Swap(_v) : _v;\
-    OZZ_IF_DEBUG(size_t size =) stream_->Write(&v, sizeof(v));\
-    assert(size == sizeof(v));\
+// Primitive type saving.
+#define _OZZ_IO_PRIMITIVE_TYPE(_type)                             \
+  void operator<<(_type _v) {                                     \
+    _type v = endian_swap_ ? EndianSwapper<_type>::Swap(_v) : _v; \
+    OZZ_IF_DEBUG(size_t size =) stream_->Write(&v, sizeof(v));    \
+    assert(size == sizeof(v));                                    \
   }
 
   _OZZ_IO_PRIMITIVE_TYPE(char)
@@ -143,9 +141,7 @@ class OArchive {
 #undef _OZZ_IO_PRIMITIVE_TYPE
 
   // Returns output stream.
-  Stream* stream() const {
-    return stream_;
-  }
+  Stream* stream() const { return stream_; }
 
  private:
   template <typename _Ty>
@@ -171,16 +167,13 @@ class OArchive {
 // and the native formats.
 class IArchive {
  public:
-
   // Constructs an input archive from the Stream _stream that must be opened for
   // reading, at the same tell (position in the stream) as when it was passed to
   // the OArchive.
   explicit IArchive(Stream* _stream);
 
   // Returns true if an endian swap is required while reading.
-  bool endian_swap() const {
-    return endian_swap_;
-  }
+  bool endian_swap() const { return endian_swap_; }
 
   // Loads _size bytes of binary data to _data.
   size_t LoadBinary(void* _data, size_t _size) {
@@ -199,13 +192,13 @@ class IArchive {
     Load(*this, &_ty, 1, version);
   }
 
-  // Primitive type loading.
-#define _OZZ_IO_PRIMITIVE_TYPE(_type)\
-  void operator>>(_type& _v) {\
-    _type v;\
-    OZZ_IF_DEBUG(size_t size =) stream_->Read(&v, sizeof(v));\
-    assert(size == sizeof(v));\
-    _v = endian_swap_ ? EndianSwapper<_type>::Swap(v) : v;\
+// Primitive type loading.
+#define _OZZ_IO_PRIMITIVE_TYPE(_type)                         \
+  void operator>>(_type& _v) {                                \
+    _type v;                                                  \
+    OZZ_IF_DEBUG(size_t size =) stream_->Read(&v, sizeof(v)); \
+    assert(size == sizeof(v));                                \
+    _v = endian_swap_ ? EndianSwapper<_type>::Swap(v) : v;    \
   }
 
   _OZZ_IO_PRIMITIVE_TYPE(char)
@@ -229,14 +222,12 @@ class IArchive {
 
     const int tell = stream_->Tell();
     bool valid = internal::Tagger<const _Ty>::Validate(*this);
-    stream_->Seek(tell, Stream::kSet); // Rewinds before the tag test.
+    stream_->Seek(tell, Stream::kSet);  // Rewinds before the tag test.
     return valid;
   }
 
   // Returns input stream.
-  Stream* stream() const {
-    return stream_;
-  }
+  Stream* stream() const { return stream_; }
 
  private:
   template <typename _Ty>
@@ -276,9 +267,7 @@ inline void Save(OArchive& _archive, const _Ty* _ty, size_t _count) {
   }
 }
 template <typename _Ty>
-inline void Load(IArchive& _archive,
-                 _Ty* _ty,
-                 size_t _count,
+inline void Load(IArchive& _archive, _Ty* _ty, size_t _count,
                  uint32_t _version) {
   for (size_t i = 0; i < _count; ++i) {
     _ty[i].Load(_archive, _version);
@@ -302,46 +291,57 @@ struct Array {
 
 // Array copies version from the type it contains.
 // Definition of Array of _Ty version: _Ty version.
-template <typename _Ty> struct Version<const Array<_Ty> > {
+template <typename _Ty>
+struct Version<const Array<_Ty> > {
   enum { kValue = Version<const _Ty>::kValue };
 };
 
+// clang-format off
 // Specializes Array Save/Load for primitive types.
-#define _OZZ_IO_PRIMITIVE_TYPE(_type)\
-template <>\
-inline void Array<const _type>::Save(OArchive& _archive) const {\
-  if (_archive.endian_swap()) {\
-    /* Save element by element as swapping in place the whole buffer is not*/\
-    /* possible.*/\
-    for (size_t i = 0; i < count; ++i) {\
-      _archive << array[i];\
-    }\
-  } else {\
-    OZZ_IF_DEBUG(size_t size =) _archive.SaveBinary(array, count * sizeof(_type));\
-    assert(size == count * sizeof(_type));\
-  }\
-}\
-template <>\
-inline void Array<_type>::Save(OArchive& _archive) const {\
-  if (_archive.endian_swap()) {\
-    /* Save element by element as swapping in place the whole buffer is not*/\
-    /* possible.*/\
-    for (size_t i = 0; i < count; ++i) {\
-      _archive << array[i];\
-    }\
-  } else {\
-    OZZ_IF_DEBUG(size_t size =) _archive.SaveBinary(array, count * sizeof(_type));\
-    assert(size == count * sizeof(_type));\
-  }\
-}\
-template <>\
-inline void Array<_type>::Load(IArchive& _archive, uint32_t /*_version*/) const {\
-  OZZ_IF_DEBUG(size_t size =) _archive.LoadBinary(array, count * sizeof(_type));\
-  assert(size == count * sizeof(_type));\
-  if (_archive.endian_swap()) { /*Can swap in-place.*/\
-    EndianSwapper<_type>::Swap(array, count);\
-  }\
+#define _OZZ_IO_PRIMITIVE_TYPE(_type)                                       \
+template<>                                                                  \
+inline void                                                                 \
+      Array<const _type>::Save(OArchive& _archive) const {                  \
+    if (_archive.endian_swap()) {                                           \
+      /* Save element by element as swapping in place the whole buffer is*/ \
+      /* not possible.*/                                                    \
+      for (size_t i = 0; i < count; ++i) {                                  \
+        _archive << array[i];                                               \
+      }                                                                     \
+    } else {                                                                \
+      OZZ_IF_DEBUG(size_t size =)                                           \
+      _archive.SaveBinary(array, count * sizeof(_type));                    \
+      assert(size == count * sizeof(_type));                                \
+    }                                                                       \
+}                                                                           \
+                                                                            \
+template<>                                                                  \
+inline void                                                                 \
+      Array<_type>::Save(OArchive& _archive) const {                        \
+    if (_archive.endian_swap()) {                                           \
+      /* Save element by element as swapping in place the whole buffer is*/ \
+      /* not possible.*/                                                    \
+      for (size_t i = 0; i < count; ++i) {                                  \
+        _archive << array[i];                                               \
+      }                                                                     \
+    } else {                                                                \
+      OZZ_IF_DEBUG(size_t size =)                                           \
+      _archive.SaveBinary(array, count * sizeof(_type));                    \
+      assert(size == count * sizeof(_type));                                \
+    }                                                                       \
+}                                                                           \
+                                                                            \
+template<>                                                                  \
+inline void                                                                 \
+      Array<_type>::Load(IArchive& _archive, uint32_t /*_version*/) const { \
+    OZZ_IF_DEBUG(size_t size =)                                             \
+    _archive.LoadBinary(array, count * sizeof(_type));                      \
+    assert(size == count * sizeof(_type));                                  \
+    if (_archive.endian_swap()) { /*Can swap in-place.*/                    \
+      EndianSwapper<_type>::Swap(array, count);                             \
+    }                                                                       \
 }
+// clang-format on
 
 _OZZ_IO_PRIMITIVE_TYPE(char)
 _OZZ_IO_PRIMITIVE_TYPE(int8_t)
@@ -359,8 +359,7 @@ _OZZ_IO_PRIMITIVE_TYPE(float)
 
 // Utility function that instantiates Array wrapper.
 template <typename _Ty>
-OZZ_INLINE const internal::Array<_Ty> MakeArray(_Ty* _array,
-                                                size_t _count) {
+OZZ_INLINE const internal::Array<_Ty> MakeArray(_Ty* _array, size_t _count) {
   const internal::Array<_Ty> array = {_array, _count};
   return array;
 }
@@ -387,18 +386,19 @@ OZZ_INLINE const internal::Array<_Ty> MakeArray(_Ty (&_array)[_count]) {
 }
 template <typename _Ty, size_t _count>
 OZZ_INLINE const internal::Array<const _Ty> MakeArray(
-  const _Ty (&_array)[_count]) {
+    const _Ty (&_array)[_count]) {
   const internal::Array<const _Ty> array = {_array, _count};
   return array;
 }
 
 namespace internal {
 // Specialisation of the Tagger helper for tagged types.
-template<typename _Ty>
+template <typename _Ty>
 struct Tagger<_Ty, true> {
   static void Write(OArchive& _archive) {
     typedef internal::Tag<const _Ty> Tag;
-    OZZ_IF_DEBUG(size_t size =) _archive.SaveBinary(Tag::Get(), Tag::kTagLength);
+    OZZ_IF_DEBUG(size_t size =)
+    _archive.SaveBinary(Tag::Get(), Tag::kTagLength);
     assert(size == Tag::kTagLength);
   }
   static bool Validate(IArchive& _archive) {
@@ -416,13 +416,10 @@ struct Tagger<_Ty, true> {
 };
 
 // Specialisation of the Tagger helper for types with no tag.
-template<typename _Ty>
+template <typename _Ty>
 struct Tagger<_Ty, false> {
-  static void Write(OArchive& /*_archive*/) {
-  }
-  static bool Validate(IArchive& /*_archive*/) {
-    return true;
-  }
+  static void Write(OArchive& /*_archive*/) {}
+  static bool Validate(IArchive& /*_archive*/) { return true; }
 };
 }  // internal
 }  // io

@@ -31,8 +31,14 @@
 #include "ozz/base/platform.h"
 
 namespace ozz {
-namespace animation { class Skeleton; }
-namespace math { struct Float4x4; struct Float3; struct Box; }
+namespace animation {
+class Skeleton;
+}
+namespace math {
+struct Float4x4;
+struct Float3;
+struct Box;
+}
 namespace sample {
 
 // Sample framework mesh type.
@@ -41,7 +47,6 @@ struct Mesh;
 // Defines renderer abstract interface.
 class Renderer {
  public:
-
   // Defines render Color structure.
   struct Color {
     unsigned char r, g, b, a;
@@ -80,44 +85,38 @@ class Renderer {
   // The 2 slots of _colors array respectively defines color of the filled
   // faces and color of the box outlines.
   virtual bool DrawBoxIm(const ozz::math::Box& _box,
-                       const ozz::math::Float4x4& _transform,
-                       const Color _colors[2]) = 0;
+                         const ozz::math::Float4x4& _transform,
+                         const Color _colors[2]) = 0;
 
   // Renders shaded boxes at specified locations.
   virtual bool DrawBoxShaded(const ozz::math::Box& _box,
                              ozz::Range<const ozz::math::Float4x4> _transforms,
-                             Color _color)= 0;
+                             Color _color) = 0;
 
   struct Options {
-    bool texture;  // Show texture (default checkered texture).
-    bool normals;  // Show normals.
-    bool tangents;  // Show tangents.
+    bool texture;    // Show texture (default checkered texture).
+    bool normals;    // Show normals.
+    bool tangents;   // Show tangents.
     bool binormals;  // Show binormals, computed from the normal and tangent.
-    bool colors;  // Show vertex colors.
+    bool colors;     // Show vertex colors.
     bool skip_skinning;  // Show texture (default checkered texture).
 
     Options()
-      : texture(false),
-        normals(false),
-        tangents(false),
-        binormals(false),
-        colors(false),
-        skip_skinning(false) {
-    }
+        : texture(false),
+          normals(false),
+          tangents(false),
+          binormals(false),
+          colors(false),
+          skip_skinning(false) {}
 
-    Options(bool _texture,
-            bool _normals,
-            bool _tangents,
-            bool _binormals,
-            bool _colors,
-            bool _skip_skinning)
-      : texture(_texture),
-        normals(_normals),
-        tangents(_tangents),
-        binormals(_binormals),
-        colors(_colors),
-        skip_skinning(_skip_skinning) {
-    }
+    Options(bool _texture, bool _normals, bool _tangents, bool _binormals,
+            bool _colors, bool _skip_skinning)
+        : texture(_texture),
+          normals(_normals),
+          tangents(_tangents),
+          binormals(_binormals),
+          colors(_colors),
+          skip_skinning(_skip_skinning) {}
   };
 
   // Renders a skinned mesh at a specified location.
@@ -132,22 +131,21 @@ class Renderer {
                         const Options& _options = Options()) = 0;
 
   // Renders vectors, defined by their starting point and a direction.
-  virtual bool DrawVectors(ozz::Range<const float> _positions, size_t _positions_stride,
-                           ozz::Range<const float> _directions, size_t _directions_stride,
-                           int _num_vectors,
-                           float _vector_length,
-                           Renderer::Color _color,
+  virtual bool DrawVectors(ozz::Range<const float> _positions,
+                           size_t _positions_stride,
+                           ozz::Range<const float> _directions,
+                           size_t _directions_stride, int _num_vectors,
+                           float _vector_length, Renderer::Color _color,
                            const ozz::math::Float4x4& _transform) = 0;
 
   // Compute binormals from normals and tangents, before displaying them.
-  virtual bool DrawBinormals(ozz::Range<const float> _positions, size_t _positions_stride,
-                             ozz::Range<const float> _normals, size_t _normals_stride,
-                             ozz::Range<const float> _tangents, size_t _tangents_stride,
-                             ozz::Range<const float> _handenesses, size_t _handenesses_stride,
-                             int _num_vectors,
-                             float _vector_length,
-                             Renderer::Color _color,
-                             const ozz::math::Float4x4& _transform) = 0;
+  virtual bool DrawBinormals(
+      ozz::Range<const float> _positions, size_t _positions_stride,
+      ozz::Range<const float> _normals, size_t _normals_stride,
+      ozz::Range<const float> _tangents, size_t _tangents_stride,
+      ozz::Range<const float> _handenesses, size_t _handenesses_stride,
+      int _num_vectors, float _vector_length, Renderer::Color _color,
+      const ozz::math::Float4x4& _transform) = 0;
 };
 }  // sample
 }  // ozz

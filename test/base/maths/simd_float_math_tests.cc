@@ -28,18 +28,20 @@
 #include "ozz/base/maths/simd_math.h"
 
 #include <stdint.h>
-#include <limits>
 #include <cmath>
+#include <limits>
 
 #include "gtest/gtest.h"
 
 #include "ozz/base/gtest_helper.h"
+#include "ozz/base/maths/gtest_math_helper.h"
 #include "ozz/base/maths/math_constant.h"
 #include "ozz/base/maths/math_ex.h"
-#include "ozz/base/maths/gtest_math_helper.h"
 
 using ozz::math::SimdFloat4;
 using ozz::math::SimdInt4;
+
+// clang-format off
 
 OZZ_STATIC_ASSERT(sizeof(SimdFloat4) == 4 * sizeof(float));
 

@@ -29,9 +29,9 @@
 
 #include "gtest/gtest.h"
 
-#include "ozz/base/memory/allocator.h"
 #include "ozz/base/maths/gtest_math_helper.h"
 #include "ozz/base/maths/soa_transform.h"
+#include "ozz/base/memory/allocator.h"
 
 #include "ozz/animation/offline/raw_skeleton.h"
 #include "ozz/animation/offline/skeleton_builder.h"
@@ -41,6 +41,8 @@ using ozz::animation::Skeleton;
 using ozz::animation::LocalToModelJob;
 using ozz::animation::offline::RawSkeleton;
 using ozz::animation::offline::SkeletonBuilder;
+
+// clang-format off
 
 TEST(JobValidity, LocalToModel) {
   RawSkeleton raw_skeleton;
@@ -59,9 +61,8 @@ TEST(JobValidity, LocalToModel) {
   Skeleton* skeleton = builder(raw_skeleton);
   ASSERT_TRUE(skeleton != NULL);
 
-  ozz::math::SoaTransform input[2] = {
-    ozz::math::SoaTransform::identity(),
-    ozz::math::SoaTransform::identity()};
+  ozz::math::SoaTransform input[2] = {ozz::math::SoaTransform::identity(),
+                                      ozz::math::SoaTransform::identity()};
   ozz::math::Float4x4 output[5];
 
   // Default job
@@ -212,27 +213,28 @@ TEST(Transformation, LocalToModel) {
   ASSERT_TRUE(skeleton != NULL);
 
   // Initializes an input transformation.
-  ozz::math::SoaTransform input[2] = {  // Stores up to 8 inputs, needs 6.
-    {{ozz::math::simd_float4::Load(2.f, 0.f, -2.f, 1.f),
-      ozz::math::simd_float4::Load(2.f, 0.f, -2.f, 2.f),
-      ozz::math::simd_float4::Load(2.f, 0.f, -2.f, 4.f)},
-     {ozz::math::simd_float4::Load(0.f, 0.f, 0.f, 0.f),
-      ozz::math::simd_float4::Load(0.f, .70710677f, 0.f, 0.f),
-      ozz::math::simd_float4::Load(0.f, 0.f, 0.f, 0.f),
-      ozz::math::simd_float4::Load(1.f, .70710677f, 1.f, 1.f)},
-     {ozz::math::simd_float4::Load(1.f, 1.f, 10.f, 1.f),
-      ozz::math::simd_float4::Load(1.f, 1.f, 10.f, 1.f),
-      ozz::math::simd_float4::Load(1.f, 1.f, 10.f, 1.f)}},
-    {{ozz::math::simd_float4::Load(12.f, 0.f, 0.f, 0.f),
-      ozz::math::simd_float4::Load(46.f, 0.f, 0.f, 0.f),
-      ozz::math::simd_float4::Load(-12.f, 0.f, 0.f, 0.f)},
-     {ozz::math::simd_float4::Load(0.f, 0.f, 0.f, 0.f),
-      ozz::math::simd_float4::Load(0.f, 0.f, 0.f, 0.f),
-      ozz::math::simd_float4::Load(0.f, 0.f, 0.f, 0.f),
-      ozz::math::simd_float4::Load(1.f, 1.f, 1.f, 1.f)},
-     {ozz::math::simd_float4::Load(1.f, -.1f, 1.f, 1.f),
-      ozz::math::simd_float4::Load(1.f, -.1f, 1.f, 1.f),
-      ozz::math::simd_float4::Load(1.f, -.1f, 1.f, 1.f)}}};
+  ozz::math::SoaTransform input[2] = {
+      // Stores up to 8 inputs, needs 6.
+      {{ozz::math::simd_float4::Load(2.f, 0.f, -2.f, 1.f),
+        ozz::math::simd_float4::Load(2.f, 0.f, -2.f, 2.f),
+        ozz::math::simd_float4::Load(2.f, 0.f, -2.f, 4.f)},
+       {ozz::math::simd_float4::Load(0.f, 0.f, 0.f, 0.f),
+        ozz::math::simd_float4::Load(0.f, .70710677f, 0.f, 0.f),
+        ozz::math::simd_float4::Load(0.f, 0.f, 0.f, 0.f),
+        ozz::math::simd_float4::Load(1.f, .70710677f, 1.f, 1.f)},
+       {ozz::math::simd_float4::Load(1.f, 1.f, 10.f, 1.f),
+        ozz::math::simd_float4::Load(1.f, 1.f, 10.f, 1.f),
+        ozz::math::simd_float4::Load(1.f, 1.f, 10.f, 1.f)}},
+      {{ozz::math::simd_float4::Load(12.f, 0.f, 0.f, 0.f),
+        ozz::math::simd_float4::Load(46.f, 0.f, 0.f, 0.f),
+        ozz::math::simd_float4::Load(-12.f, 0.f, 0.f, 0.f)},
+       {ozz::math::simd_float4::Load(0.f, 0.f, 0.f, 0.f),
+        ozz::math::simd_float4::Load(0.f, 0.f, 0.f, 0.f),
+        ozz::math::simd_float4::Load(0.f, 0.f, 0.f, 0.f),
+        ozz::math::simd_float4::Load(1.f, 1.f, 1.f, 1.f)},
+       {ozz::math::simd_float4::Load(1.f, -.1f, 1.f, 1.f),
+        ozz::math::simd_float4::Load(1.f, -.1f, 1.f, 1.f),
+        ozz::math::simd_float4::Load(1.f, -.1f, 1.f, 1.f)}}};
 
   // Allocates output.
   ozz::math::Float4x4 output[6];

@@ -28,9 +28,9 @@
 #ifndef OZZ_OZZ_BASE_MATHS_SOA_TRANSFORM_H_
 #define OZZ_OZZ_BASE_MATHS_SOA_TRANSFORM_H_
 
-#include "ozz/base/platform.h"
 #include "ozz/base/maths/soa_float.h"
 #include "ozz/base/maths/soa_quaternion.h"
+#include "ozz/base/platform.h"
 
 namespace ozz {
 namespace math {
@@ -43,7 +43,8 @@ struct SoaTransform {
   SoaFloat3 scale;
 
   static OZZ_INLINE SoaTransform identity() {
-    const SoaTransform ret = {SoaFloat3::zero(), SoaQuaternion::identity(), SoaFloat3::one()};
+    const SoaTransform ret = {SoaFloat3::zero(), SoaQuaternion::identity(),
+                              SoaFloat3::one()};
     return ret;
   }
 };

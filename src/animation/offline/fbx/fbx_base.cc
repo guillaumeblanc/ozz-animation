@@ -40,14 +40,13 @@ namespace animation {
 namespace offline {
 namespace fbx {
 
-FbxManagerInstance::FbxManagerInstance()
-    : fbx_manager_(NULL) {
+FbxManagerInstance::FbxManagerInstance() : fbx_manager_(NULL) {
   // Instantiate Fbx manager, mostly a memory manager.
   fbx_manager_ = FbxManager::Create();
 
   // Logs SDK version.
-  ozz::log::Log() << "FBX importer version " << fbx_manager_->GetVersion() <<
-    "." << std::endl;
+  ozz::log::Log() << "FBX importer version " << fbx_manager_->GetVersion()
+                  << "." << std::endl;
 }
 
 FbxManagerInstance::~FbxManagerInstance() {
@@ -66,7 +65,8 @@ FbxDefaultIOSettings::~FbxDefaultIOSettings() {
   io_settings_ = NULL;
 }
 
-FbxAnimationIOSettings::FbxAnimationIOSettings(const FbxManagerInstance& _manager)
+FbxAnimationIOSettings::FbxAnimationIOSettings(
+    const FbxManagerInstance& _manager)
     : FbxDefaultIOSettings(_manager) {
   settings()->SetBoolProp(IMP_FBX_MATERIAL, false);
   settings()->SetBoolProp(IMP_FBX_TEXTURE, false);
@@ -87,15 +87,12 @@ FbxSkeletonIOSettings::FbxSkeletonIOSettings(const FbxManagerInstance& _manager)
   settings()->SetBoolProp(IMP_FBX_ANIMATION, false);
 }
 
-FbxSceneLoader::FbxSceneLoader(const char* _filename,
-                               const char* _password,
+FbxSceneLoader::FbxSceneLoader(const char* _filename, const char* _password,
                                const FbxManagerInstance& _manager,
                                const FbxDefaultIOSettings& _io_settings)
-    : scene_(NULL),
-      converter_(NULL)
-{
+    : scene_(NULL), converter_(NULL) {
   // Create an importer.
-  FbxImporter* importer = FbxImporter::Create(_manager,"ozz file importer");  
+  FbxImporter* importer = FbxImporter::Create(_manager, "ozz file importer");
   const bool initialized = importer->Initialize(_filename, -1, _io_settings);
 
   ImportScene(importer, initialized, _password, _manager, _io_settings);
@@ -104,17 +101,14 @@ FbxSceneLoader::FbxSceneLoader(const char* _filename,
   importer->Destroy();
 }
 
-
-FbxSceneLoader::FbxSceneLoader(FbxStream* _stream,
-                               const char* _password,
+FbxSceneLoader::FbxSceneLoader(FbxStream* _stream, const char* _password,
                                const FbxManagerInstance& _manager,
                                const FbxDefaultIOSettings& _io_settings)
-    : scene_(NULL),
-      converter_(NULL)
-{
+    : scene_(NULL), converter_(NULL) {
   // Create an importer.
-  FbxImporter* importer = FbxImporter::Create(_manager,"ozz stream importer");
-  const bool initialized = importer->Initialize(_stream, NULL, -1, _io_settings);
+  FbxImporter* importer = FbxImporter::Create(_manager, "ozz stream importer");
+  const bool initialized =
+      importer->Initialize(_stream, NULL, -1, _io_settings);
 
   ImportScene(importer, initialized, _password, _manager, _io_settings);
 
@@ -123,11 +117,9 @@ FbxSceneLoader::FbxSceneLoader(FbxStream* _stream,
 }
 
 void FbxSceneLoader::ImportScene(FbxImporter* _importer,
-                                 const bool _initialized,
-                                 const char* _password,
+                                 const bool _initialized, const char* _password,
                                  const FbxManagerInstance& _manager,
-                                 const FbxDefaultIOSettings& _io_settings)
-{
+                                 const FbxDefaultIOSettings& _io_settings) {
   // Get the version of the FBX file format.
   int major, minor, revision;
   _importer->GetFileVersion(major, minor, revision);
@@ -135,36 +127,33 @@ void FbxSceneLoader::ImportScene(FbxImporter* _importer,
   if (!_initialized)  // Problem with the file to be imported.
   {
     const FbxString error = _importer->GetStatus().GetErrorString();
-    ozz::log::Err() << "FbxImporter initialization failed with error: " <<
-      error.Buffer() << std::endl;
+    ozz::log::Err() << "FbxImporter initialization failed with error: "
+                    << error.Buffer() << std::endl;
 
-    if (_importer->GetStatus().GetCode() == FbxStatus::eInvalidFileVersion)
-    {
-      ozz::log::Err() << "FBX file version is " <<
-        major << "." << minor<< "." << revision << "." << std::endl;
+    if (_importer->GetStatus().GetCode() == FbxStatus::eInvalidFileVersion) {
+      ozz::log::Err() << "FBX file version is " << major << "." << minor << "."
+                      << revision << "." << std::endl;
     }
   } else {
     if (_importer->IsFBX()) {
-      ozz::log::Log() << "FBX file version is " <<
-        major << "." << minor<< "." << revision << "." << std::endl;
+      ozz::log::Log() << "FBX file version is " << major << "." << minor << "."
+                      << revision << "." << std::endl;
     }
 
     // Load the scene.
-    scene_ = FbxScene::Create(_manager,"ozz scene");
+    scene_ = FbxScene::Create(_manager, "ozz scene");
     bool imported = _importer->Import(scene_);
 
-    if(!imported &&     // The import file may have a password
-       _importer->GetStatus().GetCode() == FbxStatus::ePasswordError)
-    {
+    if (!imported &&  // The import file may have a password
+        _importer->GetStatus().GetCode() == FbxStatus::ePasswordError) {
       _io_settings.settings()->SetStringProp(IMP_FBX_PASSWORD, _password);
       _io_settings.settings()->SetBoolProp(IMP_FBX_PASSWORD_ENABLE, true);
 
       // Retries to import the scene.
       imported = _importer->Import(scene_);
 
-      if(!imported &&
-         _importer->GetStatus().GetCode() == FbxStatus::ePasswordError)
-      {
+      if (!imported &&
+          _importer->GetStatus().GetCode() == FbxStatus::ePasswordError) {
         ozz::log::Err() << "Incorrect password." << std::endl;
 
         // scene_ will be destroyed because imported is false.
@@ -174,9 +163,8 @@ void FbxSceneLoader::ImportScene(FbxImporter* _importer,
     // Setup axis and system converter.
     if (imported) {
       FbxGlobalSettings& settings = scene_->GetGlobalSettings();
-      converter_ = ozz::memory::default_allocator()->
-        New<FbxSystemConverter>(settings.GetAxisSystem(),
-                                settings.GetSystemUnit());
+      converter_ = ozz::memory::default_allocator()->New<FbxSystemConverter>(
+          settings.GetAxisSystem(), settings.GetSystemUnit());
     }
 
     // Clear the scene if import failed.
@@ -201,7 +189,6 @@ FbxSceneLoader::~FbxSceneLoader() {
 
 namespace {
 ozz::math::Float4x4 BuildAxisSystemMatrix(const FbxAxisSystem& _system) {
-
   int sign;
   ozz::math::SimdFloat4 up = ozz::math::simd_float4::y_axis();
   ozz::math::SimdFloat4 at = ozz::math::simd_float4::z_axis();
@@ -263,8 +250,8 @@ ozz::math::Float4x4 BuildAxisSystemMatrix(const FbxAxisSystem& _system) {
     right = math::Cross3(at, up);
   }
 
-  const ozz::math::Float4x4 matrix = {{
-    right, up, at, ozz::math::simd_float4::w_axis()}};
+  const ozz::math::Float4x4 matrix = {
+      {right, up, at, ozz::math::simd_float4::w_axis()}};
 
   return matrix;
 }
@@ -277,7 +264,7 @@ FbxSystemConverter::FbxSystemConverter(const FbxAxisSystem& _from_axis,
 
   // Finds unit conversion ratio to meters, where GetScaleFactor() is in cm.
   const float to_meters =
-    static_cast<float>(_from_unit.GetScaleFactor()) * .01f;
+      static_cast<float>(_from_unit.GetScaleFactor()) * .01f;
 
   // Builds conversion matrices.
   convert_ = Invert(from_matrix) *
@@ -288,32 +275,26 @@ FbxSystemConverter::FbxSystemConverter(const FbxAxisSystem& _from_axis,
 
 math::Float4x4 FbxSystemConverter::ConvertMatrix(const FbxAMatrix& _m) const {
   const ozz::math::Float4x4 m = {{
-    ozz::math::simd_float4::Load(static_cast<float>(_m[0][0]),
-                                 static_cast<float>(_m[0][1]),
-                                 static_cast<float>(_m[0][2]),
-                                 static_cast<float>(_m[0][3])),
-    ozz::math::simd_float4::Load(static_cast<float>(_m[1][0]),
-                                 static_cast<float>(_m[1][1]),
-                                 static_cast<float>(_m[1][2]),
-                                 static_cast<float>(_m[1][3])),
-    ozz::math::simd_float4::Load(static_cast<float>(_m[2][0]),
-                                 static_cast<float>(_m[2][1]),
-                                 static_cast<float>(_m[2][2]),
-                                 static_cast<float>(_m[2][3])),
-    ozz::math::simd_float4::Load(static_cast<float>(_m[3][0]),
-                                 static_cast<float>(_m[3][1]),
-                                 static_cast<float>(_m[3][2]),
-                                 static_cast<float>(_m[3][3])),
+      ozz::math::simd_float4::Load(
+          static_cast<float>(_m[0][0]), static_cast<float>(_m[0][1]),
+          static_cast<float>(_m[0][2]), static_cast<float>(_m[0][3])),
+      ozz::math::simd_float4::Load(
+          static_cast<float>(_m[1][0]), static_cast<float>(_m[1][1]),
+          static_cast<float>(_m[1][2]), static_cast<float>(_m[1][3])),
+      ozz::math::simd_float4::Load(
+          static_cast<float>(_m[2][0]), static_cast<float>(_m[2][1]),
+          static_cast<float>(_m[2][2]), static_cast<float>(_m[2][3])),
+      ozz::math::simd_float4::Load(
+          static_cast<float>(_m[3][0]), static_cast<float>(_m[3][1]),
+          static_cast<float>(_m[3][2]), static_cast<float>(_m[3][3])),
   }};
   return convert_ * m * inverse_convert_;
 }
 
 math::Float3 FbxSystemConverter::ConvertPoint(const FbxVector4& _p) const {
-  const math::SimdFloat4 p_in =
-    math::simd_float4::Load(static_cast<float>(_p[0]),
-                            static_cast<float>(_p[1]),
-                            static_cast<float>(_p[2]),
-                            1.f);
+  const math::SimdFloat4 p_in = math::simd_float4::Load(
+      static_cast<float>(_p[0]), static_cast<float>(_p[1]),
+      static_cast<float>(_p[2]), 1.f);
   const math::SimdFloat4 p_out = convert_ * p_in;
   math::Float3 ret;
   math::Store3PtrU(p_out, &ret.x);
@@ -321,11 +302,9 @@ math::Float3 FbxSystemConverter::ConvertPoint(const FbxVector4& _p) const {
 }
 
 math::Float3 FbxSystemConverter::ConvertNormal(const FbxVector4& _p) const {
-  const math::SimdFloat4 p_in =
-    math::simd_float4::Load(static_cast<float>(_p[0]),
-                            static_cast<float>(_p[1]),
-                            static_cast<float>(_p[2]),
-                            0.f);
+  const math::SimdFloat4 p_in = math::simd_float4::Load(
+      static_cast<float>(_p[0]), static_cast<float>(_p[1]),
+      static_cast<float>(_p[2]), 0.f);
   const math::SimdFloat4 p_out = inverse_transpose_convert_ * p_in;
   math::Float3 ret;
   math::Store3PtrU(p_out, &ret.x);

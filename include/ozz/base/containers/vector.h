@@ -85,7 +85,8 @@ inline Range<_Ty> make_range(std::vector<_Ty, _Allocator>& _vector) {
 
 // Returns a non mutable ozz::Range from a vector.
 template <typename _Ty, class _Allocator>
-inline Range<const _Ty> make_range(const std::vector<_Ty, _Allocator>& _vector) {
+inline Range<const _Ty> make_range(
+    const std::vector<_Ty, _Allocator>& _vector) {
   const size_t size = _vector.size();
   return Range<const _Ty>(size != 0 ? &_vector[0] : NULL, size);
 }

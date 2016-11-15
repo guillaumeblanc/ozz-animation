@@ -27,8 +27,8 @@
 
 #include "ozz/animation/offline/additive_animation_builder.h"
 
-#include <cstddef>
 #include <cassert>
+#include <cstddef>
 
 #include "ozz/animation/offline/raw_animation.h"
 
@@ -37,9 +37,8 @@ namespace animation {
 namespace offline {
 
 namespace {
-template<typename _RawTrack, typename _MakeDelta>
-void MakeDelta(const _RawTrack& _src,
-               const _MakeDelta& _make_delta,
+template <typename _RawTrack, typename _MakeDelta>
+void MakeDelta(const _RawTrack& _src, const _MakeDelta& _make_delta,
                _RawTrack* _dest) {
   _dest->reserve(_src.size());
 
@@ -54,9 +53,7 @@ void MakeDelta(const _RawTrack& _src,
   // Copy animation keys.
   for (size_t i = 0; i < _src.size(); ++i) {
     const typename _RawTrack::value_type delta = {
-      _src[i].time,
-      _make_delta(reference.value, _src[i].value)
-    };
+        _src[i].time, _make_delta(reference.value, _src[i].value)};
     _dest->push_back(delta);
   }
 }
@@ -78,8 +75,7 @@ math::Float3 MakeDeltaScale(const math::Float3& _reference,
 }  // namespace
 
 // Setup default values (favoring quality).
-AdditiveAnimationBuilder::AdditiveAnimationBuilder() {
-}
+AdditiveAnimationBuilder::AdditiveAnimationBuilder() {}
 
 bool AdditiveAnimationBuilder::operator()(const RawAnimation& _input,
                                           RawAnimation* _output) const {
@@ -97,16 +93,13 @@ bool AdditiveAnimationBuilder::operator()(const RawAnimation& _input,
   // Rebuilds output animation.
   _output->duration = _input.duration;
   _output->tracks.resize(_input.tracks.size());
-  
+
   for (size_t i = 0; i < _input.tracks.size(); ++i) {
-    MakeDelta(_input.tracks[i].translations,
-              MakeDeltaTranslation,
+    MakeDelta(_input.tracks[i].translations, MakeDeltaTranslation,
               &_output->tracks[i].translations);
-    MakeDelta(_input.tracks[i].rotations,
-              MakeDeltaRotation,
+    MakeDelta(_input.tracks[i].rotations, MakeDeltaRotation,
               &_output->tracks[i].rotations);
-    MakeDelta(_input.tracks[i].scales,
-              MakeDeltaScale,
+    MakeDelta(_input.tracks[i].scales, MakeDeltaScale,
               &_output->tracks[i].scales);
   }
 

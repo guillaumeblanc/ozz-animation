@@ -28,9 +28,9 @@
 #ifndef OZZ_OZZ_BASE_PLATFORM_H_
 #define OZZ_OZZ_BASE_PLATFORM_H_
 
-#include <cstddef>
-#include <cassert>
 #include <stdint.h>
+#include <cassert>
+#include <cstddef>
 
 namespace ozz {
 
@@ -43,8 +43,10 @@ namespace ozz {
 // Compile time assertion. Breaks compiling if _condition is false.
 // Defines an array with a negative number of elements if _condition is false,
 // which generates a compiler error.
-#define OZZ_STATIC_ASSERT(_condition)\
-  struct OZZ_JOIN(_StaticAssert, __COUNTER__) { char x[(_condition) ? 1 : -1]; }
+#define OZZ_STATIC_ASSERT(_condition)           \
+  struct OZZ_JOIN(_StaticAssert, __COUNTER__) { \
+    char x[(_condition) ? 1 : -1];              \
+  }
 
 // Gets alignment in bytes required for any instance of the given type.
 // Usage is OZZ_ALIGN_OF(MyStruct).
@@ -60,7 +62,8 @@ struct AlignOf {
 #define OZZ_ARRAY_SIZE(_array) (sizeof(_array) / sizeof(_array[0]))
 
 // Specifies a minimum alignment (in bytes) for variables.
-// Syntax is: "OZZ_ALIGN(16) int i;" which aligns "i" variable address to 16 bytes.
+// Syntax is: "OZZ_ALIGN(16) int i;" which aligns "i" variable address to 16
+// bytes.
 #if defined(_MSC_VER)
 #define OZZ_ALIGN(_alignment) __declspec(align(_alignment))
 #else
@@ -108,32 +111,18 @@ _Ty* PointerStride(_Ty* _ty, size_t _stride) {
 template <typename _Ty>
 struct Range {
   // Default constructor initializes range to empty.
-  Range()
-    : begin(NULL),
-      end(NULL) {
-  }
+  Range() : begin(NULL), end(NULL) {}
   // Constructs a range from its extreme values.
-  Range(_Ty* _begin, const _Ty* _end)
-    : begin(_begin),
-      end(_end) {
-  }
-  // Construct a range from a pointer to a buffer and its size, ie its number of elements.
-  Range(_Ty* _begin, size_t _size)
-    : begin(_begin),
-      end(_begin + _size) {
-  }
+  Range(_Ty* _begin, const _Ty* _end) : begin(_begin), end(_end) {}
+  // Construct a range from a pointer to a buffer and its size, ie its number of
+  // elements.
+  Range(_Ty* _begin, size_t _size) : begin(_begin), end(_begin + _size) {}
   // Construct a range from a single element.
-  explicit Range(_Ty& _element)
-    : begin(&_element),
-      end((&_element) + 1) {
-  }
+  explicit Range(_Ty& _element) : begin(&_element), end((&_element) + 1) {}
   // Construct a range from an array, its size is automatically deduced.
   // It isn't declared explicit as conversion is free and safe.
   template <size_t _size>
-  explicit Range(_Ty (&_array)[_size])
-    : begin(_array),
-      end(_array + _size) {
-  }
+  explicit Range(_Ty (&_array)[_size]) : begin(_array), end(_array + _size) {}
 
   // Reset range to empty.
   void Clear() {
@@ -143,15 +132,13 @@ struct Range {
 
   // Reinitialized from an array, its size is automatically deduced.
   template <size_t _size>
-  void operator = (_Ty (&_array)[_size]) {
+  void operator=(_Ty (&_array)[_size]) {
     begin = _array;
     end = _array + _size;
   }
 
   // Implement cast operator to allow conversions to Range<const _Ty>.
-  operator Range<const _Ty> () const {
-    return Range<const _Ty>(begin, end);
-  }
+  operator Range<const _Ty>() const { return Range<const _Ty>(begin, end); }
 
   // Returns a const reference to element _i of range [begin,end[.
   const _Ty& operator[](size_t _i) const {
@@ -175,7 +162,7 @@ struct Range {
   // Gets the size in byte of the range.
   size_t Size() const {
     const ptrdiff_t size =
-      reinterpret_cast<uintptr_t>(end) - reinterpret_cast<uintptr_t>(begin);
+        reinterpret_cast<uintptr_t>(end) - reinterpret_cast<uintptr_t>(begin);
     return size > 0 ? size : 0;
   }
 

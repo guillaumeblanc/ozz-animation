@@ -1,4 +1,5 @@
 # Fuses all target .cc sources in a single file.
+#-----------------------------------------------
 
 function(fuse_target _target_name)
 

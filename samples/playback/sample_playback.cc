@@ -25,45 +25,39 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/animation/runtime/skeleton.h"
 #include "ozz/animation/runtime/animation.h"
-#include "ozz/animation/runtime/sampling_job.h"
 #include "ozz/animation/runtime/local_to_model_job.h"
+#include "ozz/animation/runtime/sampling_job.h"
+#include "ozz/animation/runtime/skeleton.h"
 
 #include "ozz/base/log.h"
 
 #include "ozz/base/memory/allocator.h"
 
-#include "ozz/base/maths/vec_float.h"
 #include "ozz/base/maths/simd_math.h"
 #include "ozz/base/maths/soa_transform.h"
+#include "ozz/base/maths/vec_float.h"
 
 #include "ozz/options/options.h"
 
 #include "framework/application.h"
-#include "framework/renderer.h"
 #include "framework/imgui.h"
+#include "framework/renderer.h"
 #include "framework/utils.h"
 
 // Skeleton archive can be specified as an option.
-OZZ_OPTIONS_DECLARE_STRING(
-  skeleton,
-  "Path to the skeleton (ozz archive format).",
-  "media/alain_skeleton.ozz",
-  false)
+OZZ_OPTIONS_DECLARE_STRING(skeleton,
+                           "Path to the skeleton (ozz archive format).",
+                           "media/alain_skeleton.ozz", false)
 
 // Animation archive can be specified as an option.
-OZZ_OPTIONS_DECLARE_STRING(
-  animation,
-  "Path to the animation (ozz archive format).",
-  "media/alain_crossarms.ozz",
-  false)
+OZZ_OPTIONS_DECLARE_STRING(animation,
+                           "Path to the animation (ozz archive format).",
+                           "media/alain_crossarms.ozz", false)
 
 class LoadSampleApplication : public ozz::sample::Application {
  public:
-  LoadSampleApplication()
-    : cache_(NULL) {
-  }
+  LoadSampleApplication() : cache_(NULL) {}
 
  protected:
   // Updates current animation time.
@@ -95,8 +89,7 @@ class LoadSampleApplication : public ozz::sample::Application {
 
   // Samples animation, transforms to model space and renders.
   virtual bool OnDisplay(ozz::sample::Renderer* _renderer) {
-    return _renderer->DrawPosture(skeleton_,
-                                  models_,
+    return _renderer->DrawPosture(skeleton_, models_,
                                   ozz::math::Float4x4::identity());
   }
 
@@ -105,12 +98,12 @@ class LoadSampleApplication : public ozz::sample::Application {
 
     // Reading skeleton.
     if (!ozz::sample::LoadSkeleton(OPTIONS_skeleton, &skeleton_)) {
-        return false;
+      return false;
     }
 
     // Reading animation.
     if (!ozz::sample::LoadAnimation(OPTIONS_animation, &animation_)) {
-        return false;
+      return false;
     }
 
     // Allocates runtime buffers.
@@ -149,7 +142,6 @@ class LoadSampleApplication : public ozz::sample::Application {
   }
 
  private:
-
   // Playback animation controller. This is a utility class that helps with
   // controlling animation playback time.
   ozz::sample::PlaybackController controller_;
@@ -171,7 +163,6 @@ class LoadSampleApplication : public ozz::sample::Application {
 };
 
 int main(int _argc, const char** _argv) {
-  const char* title =
-    "Ozz-animation sample: Binary animation/skeleton loading";
+  const char* title = "Ozz-animation sample: Binary animation/skeleton loading";
   return LoadSampleApplication().Run(_argc, _argv, "1.0", title);
 }

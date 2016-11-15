@@ -25,8 +25,8 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/animation/offline/raw_animation.h"
 #include "ozz/animation/offline/animation_builder.h"
+#include "ozz/animation/offline/raw_animation.h"
 
 #include "ozz/animation/runtime/animation.h"
 
@@ -34,7 +34,7 @@
 
 // Code for ozz-animation HowTo: "How to write a custon animation importer?"
 
-int main(int argc, char const *argv[]) {
+int main(int argc, char const* argv[]) {
   (void)argc;
   (void)argv;
 
@@ -63,14 +63,14 @@ int main(int argc, char const *argv[]) {
   {
     // Create a keyframe, at t=0, with a translation value.
     const ozz::animation::offline::RawAnimation::TranslationKey key0 = {
-      0.f, ozz::math::Float3(0.f, 4.6f, 0.f)};
+        0.f, ozz::math::Float3(0.f, 4.6f, 0.f)};
 
     raw_animation.tracks[0].translations.push_back(key0);
 
     // Create a new keyframe, at t=0.93 (must be less than duration), with a
     // translation value.
     const ozz::animation::offline::RawAnimation::TranslationKey key1 = {
-      .93f, ozz::math::Float3(0.f, 9.9f, 0.f)};
+        .93f, ozz::math::Float3(0.f, 9.9f, 0.f)};
 
     raw_animation.tracks[0].translations.push_back(key1);
   }
@@ -80,7 +80,7 @@ int main(int argc, char const *argv[]) {
   {
     // Create a keyframe, at t=.46, with a quaternion value.
     const ozz::animation::offline::RawAnimation::RotationKey key0 = {
-      .46f, ozz::math::Quaternion(0.f, 1.f, 0.f, 0.f)};
+        .46f, ozz::math::Quaternion(0.f, 1.f, 0.f, 0.f)};
 
     raw_animation.tracks[0].rotations.push_back(key0);
   }

@@ -31,14 +31,15 @@
 #include "renderer_impl.h"
 
 namespace ozz {
-namespace math { struct Float4x4; }
+namespace math {
+struct Float4x4;
+}
 namespace sample {
 namespace internal {
 
 // Declares a shader program.
 class Shader {
  public:
-
   // Construct a fixed function pipeline shader. Use Shader::Build to specify
   // shader sources.
   Shader();
@@ -47,40 +48,32 @@ class Shader {
   virtual ~Shader();
 
   // Returns the shader program that can be bound to the OpenGL context.
-  GLuint program() const {
-    return program_;
-  }
+  GLuint program() const { return program_; }
 
   // Request an uniform location and pushes it to the uniform stack.
   // The uniform location is then accessible thought uniform().
   bool BindUniform(const char* _semantic);
 
   // Get an uniform location from the stack at index _index.
-  GLint uniform(int _index) const {
-    return uniforms_[_index];
-  }
+  GLint uniform(int _index) const { return uniforms_[_index]; }
 
   // Request an attribute location and pushes it to the uniform stack.
   // The varying location is then accessible thought attrib().
   bool FindAttrib(const char* _semantic);
 
   // Get an varying location from the stack at index _index.
-  GLint attrib(int _index) const {
-    return attribs_[_index];
-  }
+  GLint attrib(int _index) const { return attribs_[_index]; }
 
   // Unblind shader.
   virtual void Unbind();
 
  protected:
-
   // Constructs a shader from _vertex and _fragment glsl sources.
   // Mutliple source files can be specified using the *count argument.
   bool BuildFromSource(int _vertex_count, const char** _vertex,
                        int _fragment_count, const char** _fragment);
 
  private:
-
   // Unbind all attribs from GL.
   void UnbindAttribs();
 
@@ -98,8 +91,8 @@ class Shader {
   ozz::Vector<GLint>::Std attribs_;
 };
 
-class ImmediatePCShader : public Shader{
-public:
+class ImmediatePCShader : public Shader {
+ public:
   ImmediatePCShader() {}
   virtual ~ImmediatePCShader() {}
 
@@ -110,14 +103,13 @@ public:
   static ImmediatePCShader* Build();
 
   // Binds the shader.
-  void Bind(const math::Float4x4& _model,
-            const math::Float4x4& _view_proj,
-            GLsizei _pos_stride, GLsizei _pos_offset,
-            GLsizei _color_stride, GLsizei _color_offset);
+  void Bind(const math::Float4x4& _model, const math::Float4x4& _view_proj,
+            GLsizei _pos_stride, GLsizei _pos_offset, GLsizei _color_stride,
+            GLsizei _color_offset);
 };
 
-class ImmediatePTCShader : public Shader{
-public:
+class ImmediatePTCShader : public Shader {
+ public:
   ImmediatePTCShader() {}
   virtual ~ImmediatePTCShader() {}
 
@@ -128,11 +120,9 @@ public:
   static ImmediatePTCShader* Build();
 
   // Binds the shader.
-  void Bind(const math::Float4x4& _model,
-            const math::Float4x4& _view_proj,
-            GLsizei _pos_stride, GLsizei _pos_offset,
-            GLsizei _tex_stride, GLsizei _tex_offset,
-            GLsizei _color_stride, GLsizei _color_offset);
+  void Bind(const math::Float4x4& _model, const math::Float4x4& _view_proj,
+            GLsizei _pos_stride, GLsizei _pos_offset, GLsizei _tex_stride,
+            GLsizei _tex_offset, GLsizei _color_stride, GLsizei _color_offset);
 };
 
 class SkeletonShader : public Shader {
@@ -141,37 +131,32 @@ class SkeletonShader : public Shader {
   virtual ~SkeletonShader() {}
 
   // Binds the shader.
-  void Bind(const math::Float4x4& _model,
-            const math::Float4x4& _view_proj,
-            GLsizei _pos_stride, GLsizei _pos_offset,
-            GLsizei _normal_stride, GLsizei _normal_offset,
-            GLsizei _color_stride, GLsizei _color_offset);
+  void Bind(const math::Float4x4& _model, const math::Float4x4& _view_proj,
+            GLsizei _pos_stride, GLsizei _pos_offset, GLsizei _normal_stride,
+            GLsizei _normal_offset, GLsizei _color_stride,
+            GLsizei _color_offset);
 
   // Get an attribute location for the join, in cased of instanced rendering.
-  GLint joint_instanced_attrib() const {
-    return attrib(3);
-  }
+  GLint joint_instanced_attrib() const { return attrib(3); }
 
   // Get an uniform location for the join, in cased of non-instanced rendering.
-  GLint joint_uniform() const {
-    return uniform(1);
-  }
+  GLint joint_uniform() const { return uniform(1); }
 };
 
-class JointShader : public SkeletonShader{
+class JointShader : public SkeletonShader {
  public:
   JointShader() {}
   virtual ~JointShader() {}
 
-   // Constructs the shader.
-   // Returns NULL if shader compilation failed or a valid Shader pointer on
-   // success. The shader must then be deleted using default allocator Delete
-   // function.
-   static JointShader* Build();
+  // Constructs the shader.
+  // Returns NULL if shader compilation failed or a valid Shader pointer on
+  // success. The shader must then be deleted using default allocator Delete
+  // function.
+  static JointShader* Build();
 };
 
-class BoneShader : public SkeletonShader{
-public:
+class BoneShader : public SkeletonShader {
+ public:
   BoneShader() {}
   virtual ~BoneShader() {}
 
@@ -182,8 +167,8 @@ public:
   static BoneShader* Build();
 };
 
-class AmbientShader : public Shader{
-public:
+class AmbientShader : public Shader {
+ public:
   AmbientShader() {}
   virtual ~AmbientShader() {}
 
@@ -194,19 +179,18 @@ public:
   static AmbientShader* Build();
 
   // Binds the shader.
-  void Bind(const math::Float4x4& _model,
-            const math::Float4x4& _view_proj,
-            GLsizei _pos_stride, GLsizei _pos_offset,
-            GLsizei _normal_stride, GLsizei _normal_offset,
-            GLsizei _color_stride, GLsizei _color_offset);
+  void Bind(const math::Float4x4& _model, const math::Float4x4& _view_proj,
+            GLsizei _pos_stride, GLsizei _pos_offset, GLsizei _normal_stride,
+            GLsizei _normal_offset, GLsizei _color_stride,
+            GLsizei _color_offset);
 
  protected:
-   bool InternalBuild(int _vertex_count, const char** _vertex,
-                      int _fragment_count, const char** _fragment);
+  bool InternalBuild(int _vertex_count, const char** _vertex,
+                     int _fragment_count, const char** _fragment);
 };
 
-class AmbientShaderInstanced : public Shader{
-public:
+class AmbientShaderInstanced : public Shader {
+ public:
   AmbientShaderInstanced() {}
   virtual ~AmbientShaderInstanced() {}
 
@@ -217,19 +201,16 @@ public:
   static AmbientShaderInstanced* Build();
 
   // Binds the shader.
-  void Bind(GLsizei _models_offset,
-            const math::Float4x4& _view_proj,
-            GLsizei _pos_stride, GLsizei _pos_offset,
-            GLsizei _normal_stride, GLsizei _normal_offset,
-            GLsizei _color_stride, GLsizei _color_offset);
+  void Bind(GLsizei _models_offset, const math::Float4x4& _view_proj,
+            GLsizei _pos_stride, GLsizei _pos_offset, GLsizei _normal_stride,
+            GLsizei _normal_offset, GLsizei _color_stride,
+            GLsizei _color_offset);
 
   virtual void Unbind();
 };
 
-
 class AmbientTexturedShader : public AmbientShader {
-public:
-
+ public:
   // Constructs the shader.
   // Returns NULL if shader compilation failed or a valid Shader pointer on
   // success. The shader must then be deleted using default allocator Delete
@@ -237,12 +218,10 @@ public:
   static AmbientTexturedShader* Build();
 
   // Binds the shader.
-  void Bind(const math::Float4x4& _model,
-            const math::Float4x4& _view_proj,
-            GLsizei _pos_stride, GLsizei _pos_offset,
-            GLsizei _normal_stride, GLsizei _normal_offset,
-            GLsizei _color_stride, GLsizei _color_offset,
-            GLsizei _uv_stride, GLsizei _uv_offset);
+  void Bind(const math::Float4x4& _model, const math::Float4x4& _view_proj,
+            GLsizei _pos_stride, GLsizei _pos_offset, GLsizei _normal_stride,
+            GLsizei _normal_offset, GLsizei _color_stride,
+            GLsizei _color_offset, GLsizei _uv_stride, GLsizei _uv_offset);
 };
 /*
 class AmbientTexturedShaderInstanced : public AmbientShaderInstanced {

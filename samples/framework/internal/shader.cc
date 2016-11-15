@@ -40,19 +40,15 @@ namespace sample {
 namespace internal {
 
 #ifdef EMSCRIPTEN
-  // WebGL requires to specify floating point precision
-  static const char* kPlatformSpecivicVSHeader = "precision mediump float;\n";
-  static const char* kPlatformSpecivicFSHeader = "precision mediump float;\n";
-#else  // EMSCRIPTEN
-  static const char* kPlatformSpecivicVSHeader = "";
-  static const char* kPlatformSpecivicFSHeader = "";
+// WebGL requires to specify floating point precision
+static const char* kPlatformSpecivicVSHeader = "precision mediump float;\n";
+static const char* kPlatformSpecivicFSHeader = "precision mediump float;\n";
+#else   // EMSCRIPTEN
+static const char* kPlatformSpecivicVSHeader = "";
+static const char* kPlatformSpecivicFSHeader = "";
 #endif  // EMSCRIPTEN
 
-Shader::Shader()
-    : program_(0),
-      vertex_(0),
-      fragment_(0) {
-}
+Shader::Shader() : program_(0), vertex_(0), fragment_(0) {}
 
 Shader::~Shader() {
   if (vertex_) {
@@ -77,8 +73,9 @@ GLuint CompileShader(GLenum _type, int _count, const char** _src) {
   int infolog_length = 0;
   GL(GetShaderiv(shader, GL_INFO_LOG_LENGTH, &infolog_length));
   if (infolog_length > 1) {
-    char* info_log = memory::default_allocator()->Allocate<char>(infolog_length);
-    int chars_written  = 0;
+    char* info_log =
+        memory::default_allocator()->Allocate<char>(infolog_length);
+    int chars_written = 0;
     glGetShaderInfoLog(shader, infolog_length, &chars_written, info_log);
     log::Err() << info_log << std::endl;
     memory::default_allocator()->Deallocate(info_log);
@@ -93,15 +90,14 @@ GLuint CompileShader(GLenum _type, int _count, const char** _src) {
   GL(DeleteShader(shader));
   return 0;
 }
-} // namespace
+}  // namespace
 
 bool Shader::BuildFromSource(int _vertex_count, const char** _vertex,
                              int _fragment_count, const char** _fragment) {
   // Tries to compile shaders.
   GLuint vertex_shader = 0;
   if (_vertex) {
-    vertex_shader =
-      CompileShader(GL_VERTEX_SHADER, _vertex_count, _vertex);
+    vertex_shader = CompileShader(GL_VERTEX_SHADER, _vertex_count, _vertex);
     if (!vertex_shader) {
       return false;
     }
@@ -109,7 +105,7 @@ bool Shader::BuildFromSource(int _vertex_count, const char** _vertex,
   GLuint fragment_shader = 0;
   if (_fragment) {
     fragment_shader =
-      CompileShader(GL_FRAGMENT_SHADER, _fragment_count, _fragment);
+        CompileShader(GL_FRAGMENT_SHADER, _fragment_count, _fragment);
     if (!fragment_shader) {
       if (vertex_shader) {
         GL(DeleteShader(vertex_shader));
@@ -130,8 +126,8 @@ bool Shader::BuildFromSource(int _vertex_count, const char** _vertex,
   GL(GetProgramiv(program_, GL_INFO_LOG_LENGTH, &infolog_length));
   if (infolog_length > 1) {
     char* info_log =
-      memory::default_allocator()->Allocate<char>(infolog_length);
-    int chars_written  = 0;
+        memory::default_allocator()->Allocate<char>(infolog_length);
+    int chars_written = 0;
     glGetProgramInfoLog(program_, infolog_length, &chars_written, info_log);
     log::Err() << info_log << std::endl;
     memory::default_allocator()->Deallocate(info_log);
@@ -173,32 +169,28 @@ ImmediatePCShader* ImmediatePCShader::Build() {
   bool success = true;
 
   const char* kSimplePCVS =
-    "uniform mat4 u_mvp;\n"
-    "attribute vec3 a_position;\n"
-    "attribute vec4 a_color;\n"
-    "varying vec4 v_vertex_color;\n"
-    "void main() {\n"
-    "  vec4 vertex = vec4(a_position.xyz, 1.);\n"
-    "  gl_Position = u_mvp * vertex;\n"
-    "  v_vertex_color = a_color;\n"
-    "}\n";
+      "uniform mat4 u_mvp;\n"
+      "attribute vec3 a_position;\n"
+      "attribute vec4 a_color;\n"
+      "varying vec4 v_vertex_color;\n"
+      "void main() {\n"
+      "  vec4 vertex = vec4(a_position.xyz, 1.);\n"
+      "  gl_Position = u_mvp * vertex;\n"
+      "  v_vertex_color = a_color;\n"
+      "}\n";
   const char* kSimplePCPS =
-    "varying vec4 v_vertex_color;\n"
-    "void main() {\n"
-    "  gl_FragColor = v_vertex_color;\n"
-    "}\n";
+      "varying vec4 v_vertex_color;\n"
+      "void main() {\n"
+      "  gl_FragColor = v_vertex_color;\n"
+      "}\n";
 
-  const char* vs[] = {
-    kPlatformSpecivicVSHeader,
-    kSimplePCVS};
-  const char* fs[] = {
-    kPlatformSpecivicFSHeader,
-    kSimplePCPS};
+  const char* vs[] = {kPlatformSpecivicVSHeader, kSimplePCVS};
+  const char* fs[] = {kPlatformSpecivicFSHeader, kSimplePCPS};
 
   ImmediatePCShader* shader =
-    memory::default_allocator()->New<ImmediatePCShader>();
-  success &= shader->BuildFromSource(OZZ_ARRAY_SIZE(vs), vs,
-                                     OZZ_ARRAY_SIZE(fs), fs);
+      memory::default_allocator()->New<ImmediatePCShader>();
+  success &=
+      shader->BuildFromSource(OZZ_ARRAY_SIZE(vs), vs, OZZ_ARRAY_SIZE(fs), fs);
 
   // Binds default attributes
   success &= shader->FindAttrib("a_position");
@@ -219,13 +211,12 @@ void ImmediatePCShader::Bind(const math::Float4x4& _model,
                              const math::Float4x4& _view_proj,
                              GLsizei _pos_stride, GLsizei _pos_offset,
                              GLsizei _color_stride, GLsizei _color_offset) {
-
   GL(UseProgram(program()));
 
   const GLint position_attrib = attrib(0);
   GL(EnableVertexAttribArray(position_attrib));
-  GL(VertexAttribPointer(position_attrib, 3, GL_FLOAT, GL_FALSE,
-                         _pos_stride, GL_PTR_OFFSET(_pos_offset)));
+  GL(VertexAttribPointer(position_attrib, 3, GL_FLOAT, GL_FALSE, _pos_stride,
+                         GL_PTR_OFFSET(_pos_offset)));
 
   const GLint color_attrib = attrib(1);
   GL(EnableVertexAttribArray(color_attrib));
@@ -247,39 +238,35 @@ ImmediatePTCShader* ImmediatePTCShader::Build() {
   bool success = true;
 
   const char* kSimplePCVS =
-    "uniform mat4 u_mvp;\n"
-    "attribute vec3 a_position;\n"
-    "attribute vec2 a_tex_coord;\n"
-    "attribute vec4 a_color;\n"
-    "varying vec4 v_vertex_color;\n"
-    "varying vec2 v_texture_coord;\n"
-    "void main() {\n"
-    "  vec4 vertex = vec4(a_position.xyz, 1.);\n"
-    "  gl_Position = u_mvp * vertex;\n"
-    "  v_vertex_color = a_color;\n"
-    "  v_texture_coord = a_tex_coord;\n"
-    "}\n";
+      "uniform mat4 u_mvp;\n"
+      "attribute vec3 a_position;\n"
+      "attribute vec2 a_tex_coord;\n"
+      "attribute vec4 a_color;\n"
+      "varying vec4 v_vertex_color;\n"
+      "varying vec2 v_texture_coord;\n"
+      "void main() {\n"
+      "  vec4 vertex = vec4(a_position.xyz, 1.);\n"
+      "  gl_Position = u_mvp * vertex;\n"
+      "  v_vertex_color = a_color;\n"
+      "  v_texture_coord = a_tex_coord;\n"
+      "}\n";
   const char* kSimplePCPS =
-    "uniform sampler2D u_texture;\n"
-    "varying vec4 v_vertex_color;\n"
-    "varying vec2 v_texture_coord;\n"
-    "void main() {\n"
-    "  vec4 tex_color = texture2D(u_texture, v_texture_coord);\n"
-    "  gl_FragColor = v_vertex_color * tex_color;\n"
-    "  if(gl_FragColor.a < .01) discard;\n"  // Implements alpha testing.
-    "}\n";
+      "uniform sampler2D u_texture;\n"
+      "varying vec4 v_vertex_color;\n"
+      "varying vec2 v_texture_coord;\n"
+      "void main() {\n"
+      "  vec4 tex_color = texture2D(u_texture, v_texture_coord);\n"
+      "  gl_FragColor = v_vertex_color * tex_color;\n"
+      "  if(gl_FragColor.a < .01) discard;\n"  // Implements alpha testing.
+      "}\n";
 
-  const char* vs[] = {
-    kPlatformSpecivicVSHeader,
-    kSimplePCVS};
-  const char* fs[] = {
-    kPlatformSpecivicFSHeader,
-    kSimplePCPS};
+  const char* vs[] = {kPlatformSpecivicVSHeader, kSimplePCVS};
+  const char* fs[] = {kPlatformSpecivicFSHeader, kSimplePCPS};
 
   ImmediatePTCShader* shader =
-    memory::default_allocator()->New<ImmediatePTCShader>();
-  success &= shader->BuildFromSource(OZZ_ARRAY_SIZE(vs), vs,
-                                     OZZ_ARRAY_SIZE(fs), fs);
+      memory::default_allocator()->New<ImmediatePTCShader>();
+  success &=
+      shader->BuildFromSource(OZZ_ARRAY_SIZE(vs), vs, OZZ_ARRAY_SIZE(fs), fs);
 
   // Binds default attributes
   success &= shader->FindAttrib("a_position");
@@ -303,18 +290,17 @@ void ImmediatePTCShader::Bind(const math::Float4x4& _model,
                               GLsizei _pos_stride, GLsizei _pos_offset,
                               GLsizei _tex_stride, GLsizei _tex_offset,
                               GLsizei _color_stride, GLsizei _color_offset) {
-
   GL(UseProgram(program()));
 
   const GLint position_attrib = attrib(0);
   GL(EnableVertexAttribArray(position_attrib));
-  GL(VertexAttribPointer(position_attrib, 3, GL_FLOAT, GL_FALSE,
-                         _pos_stride, GL_PTR_OFFSET(_pos_offset)));
+  GL(VertexAttribPointer(position_attrib, 3, GL_FLOAT, GL_FALSE, _pos_stride,
+                         GL_PTR_OFFSET(_pos_offset)));
 
   const GLint tex_attrib = attrib(1);
   GL(EnableVertexAttribArray(tex_attrib));
-  GL(VertexAttribPointer(tex_attrib, 2, GL_FLOAT, GL_FALSE,
-                         _tex_stride, GL_PTR_OFFSET(_tex_offset)));
+  GL(VertexAttribPointer(tex_attrib, 2, GL_FLOAT, GL_FALSE, _tex_stride,
+                         GL_PTR_OFFSET(_tex_offset)));
 
   const GLint color_attrib = attrib(2);
   GL(EnableVertexAttribArray(color_attrib));
@@ -338,75 +324,75 @@ void ImmediatePTCShader::Bind(const math::Float4x4& _model,
 
 namespace {
 const char* kShaderUberVS =
-  "uniform mat4 u_mvp;\n"
-  "attribute vec3 a_position;\n"
-  "attribute vec3 a_normal;\n"
-  "attribute vec4 a_color;\n"
-  "attribute vec2 a_uv;\n"
-  "varying vec3 v_world_normal;\n"
-  "varying vec4 v_vertex_color;\n"
-  "varying vec2 v_vertex_uv;\n"
-  "void main() {\n"
-  "  mat4 world_matrix = GetWorldMatrix();\n"
-  "  vec4 vertex = vec4(a_position.xyz, 1.);\n"
-  "  gl_Position = u_mvp * world_matrix * vertex;\n"
-  "  mat3 cross_matrix = mat3(\n"
-  "    cross(world_matrix[1].xyz, world_matrix[2].xyz),\n"
-  "    cross(world_matrix[2].xyz, world_matrix[0].xyz),\n"
-  "    cross(world_matrix[0].xyz, world_matrix[1].xyz));\n"
-  "  float invdet = 1.0 / dot(cross_matrix[2], world_matrix[2].xyz);\n"
-  "  mat3 normal_matrix = cross_matrix * invdet;\n"
-  "  v_world_normal = normal_matrix * a_normal;\n"
-  "  v_vertex_color = a_color;\n"
-  "  v_vertex_uv = a_uv;\n"
-  "}\n";
+    "uniform mat4 u_mvp;\n"
+    "attribute vec3 a_position;\n"
+    "attribute vec3 a_normal;\n"
+    "attribute vec4 a_color;\n"
+    "attribute vec2 a_uv;\n"
+    "varying vec3 v_world_normal;\n"
+    "varying vec4 v_vertex_color;\n"
+    "varying vec2 v_vertex_uv;\n"
+    "void main() {\n"
+    "  mat4 world_matrix = GetWorldMatrix();\n"
+    "  vec4 vertex = vec4(a_position.xyz, 1.);\n"
+    "  gl_Position = u_mvp * world_matrix * vertex;\n"
+    "  mat3 cross_matrix = mat3(\n"
+    "    cross(world_matrix[1].xyz, world_matrix[2].xyz),\n"
+    "    cross(world_matrix[2].xyz, world_matrix[0].xyz),\n"
+    "    cross(world_matrix[0].xyz, world_matrix[1].xyz));\n"
+    "  float invdet = 1.0 / dot(cross_matrix[2], world_matrix[2].xyz);\n"
+    "  mat3 normal_matrix = cross_matrix * invdet;\n"
+    "  v_world_normal = normal_matrix * a_normal;\n"
+    "  v_vertex_color = a_color;\n"
+    "  v_vertex_uv = a_uv;\n"
+    "}\n";
 const char* kShaderAmbientFct =
-  "vec4 GetAmbient(vec3 _world_normal) {\n"
-  "  vec3 normal = normalize(_world_normal);\n"
-  "  vec3 alpha = (normal + 1.) * .5;\n"
-  "  vec4 bt = mix(\n"
-  "    vec4(.3, .3, .7, .7), vec4(.4, .4, .8, .8), alpha.xzxz);\n"
-  "  vec4 ambient = vec4(\n"
-  "     mix(vec3(bt.x, .3, bt.y), vec3(bt.z, .8, bt.w), alpha.y), 1.);\n"
-  "  return ambient;\n"
-  "}\n";
+    "vec4 GetAmbient(vec3 _world_normal) {\n"
+    "  vec3 normal = normalize(_world_normal);\n"
+    "  vec3 alpha = (normal + 1.) * .5;\n"
+    "  vec4 bt = mix(\n"
+    "    vec4(.3, .3, .7, .7), vec4(.4, .4, .8, .8), alpha.xzxz);\n"
+    "  vec4 ambient = vec4(\n"
+    "     mix(vec3(bt.x, .3, bt.y), vec3(bt.z, .8, bt.w), alpha.y), 1.);\n"
+    "  return ambient;\n"
+    "}\n";
 const char* kShaderAmbientFS =
-  "varying vec3 v_world_normal;\n"
-  "varying vec4 v_vertex_color;\n"
-  "void main() {\n"
-  "  vec4 ambient = GetAmbient(v_world_normal);\n"
-  "  gl_FragColor = ambient *\n"
-  "                 v_vertex_color;\n"
-  "}\n";
+    "varying vec3 v_world_normal;\n"
+    "varying vec4 v_vertex_color;\n"
+    "void main() {\n"
+    "  vec4 ambient = GetAmbient(v_world_normal);\n"
+    "  gl_FragColor = ambient *\n"
+    "                 v_vertex_color;\n"
+    "}\n";
 const char* kShaderAmbientTexturedFS =
-  "uniform sampler2D u_texture;\n"
-  "varying vec3 v_world_normal;\n"
-  "varying vec4 v_vertex_color;\n"
-  "varying vec2 v_vertex_uv;\n"
-  "void main() {\n"
-  "  vec4 ambient = GetAmbient(v_world_normal);\n"
-  "  gl_FragColor = ambient *\n"
-  "                 v_vertex_color *\n"
-  "                 texture2D(u_texture, v_vertex_uv);\n"
-  "}\n";
+    "uniform sampler2D u_texture;\n"
+    "varying vec3 v_world_normal;\n"
+    "varying vec4 v_vertex_color;\n"
+    "varying vec2 v_vertex_uv;\n"
+    "void main() {\n"
+    "  vec4 ambient = GetAmbient(v_world_normal);\n"
+    "  gl_FragColor = ambient *\n"
+    "                 v_vertex_color *\n"
+    "                 texture2D(u_texture, v_vertex_uv);\n"
+    "}\n";
 }
 
 void SkeletonShader::Bind(const math::Float4x4& _model,
-                          const math::Float4x4& _view_proj,
-                          GLsizei _pos_stride, GLsizei _pos_offset,
-                          GLsizei _normal_stride, GLsizei _normal_offset,
-                          GLsizei _color_stride, GLsizei _color_offset) {
+                          const math::Float4x4& _view_proj, GLsizei _pos_stride,
+                          GLsizei _pos_offset, GLsizei _normal_stride,
+                          GLsizei _normal_offset, GLsizei _color_stride,
+                          GLsizei _color_offset) {
   GL(UseProgram(program()));
 
   const GLint position_attrib = attrib(0);
   GL(EnableVertexAttribArray(position_attrib));
-  GL(VertexAttribPointer(position_attrib, 3, GL_FLOAT, GL_FALSE,
-                         _pos_stride, GL_PTR_OFFSET(_pos_offset)));
+  GL(VertexAttribPointer(position_attrib, 3, GL_FLOAT, GL_FALSE, _pos_stride,
+                         GL_PTR_OFFSET(_pos_offset)));
 
   const GLint normal_attrib = attrib(1);
   GL(EnableVertexAttribArray(normal_attrib));
-  GL(VertexAttribPointer(normal_attrib, 3, GL_FLOAT, GL_FALSE,
-    _normal_stride, GL_PTR_OFFSET(_normal_offset)));
+  GL(VertexAttribPointer(normal_attrib, 3, GL_FLOAT, GL_FALSE, _normal_stride,
+                         GL_PTR_OFFSET(_normal_offset)));
 
   const GLint color_attrib = attrib(2);
   GL(EnableVertexAttribArray(color_attrib));
@@ -428,40 +414,36 @@ JointShader* JointShader::Build() {
   bool success = true;
 
   const char* vs_joint_to_world_matrix =
-    "mat4 GetWorldMatrix() {\n"
-    "  // Rebuilds joint matrix.\n"
-    "  mat4 joint_matrix;\n"
-    "  joint_matrix[0] = vec4(normalize(joint[0].xyz), 0.);\n"
-    "  joint_matrix[1] = vec4(normalize(joint[1].xyz), 0.);\n"
-    "  joint_matrix[2] = vec4(normalize(joint[2].xyz), 0.);\n"
-    "  joint_matrix[3] = vec4(joint[3].xyz, 1.);\n"
+      "mat4 GetWorldMatrix() {\n"
+      "  // Rebuilds joint matrix.\n"
+      "  mat4 joint_matrix;\n"
+      "  joint_matrix[0] = vec4(normalize(joint[0].xyz), 0.);\n"
+      "  joint_matrix[1] = vec4(normalize(joint[1].xyz), 0.);\n"
+      "  joint_matrix[2] = vec4(normalize(joint[2].xyz), 0.);\n"
+      "  joint_matrix[3] = vec4(joint[3].xyz, 1.);\n"
 
-    "  // Rebuilds bone properties.\n"
-    "  vec3 bone_dir = vec3(joint[0].w, joint[1].w, joint[2].w);\n"
-    "  float bone_len = length(bone_dir);\n"
+      "  // Rebuilds bone properties.\n"
+      "  vec3 bone_dir = vec3(joint[0].w, joint[1].w, joint[2].w);\n"
+      "  float bone_len = length(bone_dir);\n"
 
-    "  // Setup rendering world matrix.\n"
-    "  mat4 world_matrix;\n"
-    "  world_matrix[0] = joint_matrix[0] * bone_len;\n"
-    "  world_matrix[1] = joint_matrix[1] * bone_len;\n"
-    "  world_matrix[2] = joint_matrix[2] * bone_len;\n"
-    "  world_matrix[3] = joint_matrix[3];\n"
-    "  return world_matrix;\n"
-    "}\n";
-  const char* vs[] = {
-    kPlatformSpecivicVSHeader,
-    GL_ARB_instanced_arrays ?
-      "attribute mat4 joint;\n" : "uniform mat4 joint;\n",
-    vs_joint_to_world_matrix,
-    kShaderUberVS};
-  const char* fs[] = {
-    kPlatformSpecivicFSHeader,
-    kShaderAmbientFct,
-    kShaderAmbientFS};
+      "  // Setup rendering world matrix.\n"
+      "  mat4 world_matrix;\n"
+      "  world_matrix[0] = joint_matrix[0] * bone_len;\n"
+      "  world_matrix[1] = joint_matrix[1] * bone_len;\n"
+      "  world_matrix[2] = joint_matrix[2] * bone_len;\n"
+      "  world_matrix[3] = joint_matrix[3];\n"
+      "  return world_matrix;\n"
+      "}\n";
+  const char* vs[] = {kPlatformSpecivicVSHeader,
+                      GL_ARB_instanced_arrays ? "attribute mat4 joint;\n"
+                                              : "uniform mat4 joint;\n",
+                      vs_joint_to_world_matrix, kShaderUberVS};
+  const char* fs[] = {kPlatformSpecivicFSHeader, kShaderAmbientFct,
+                      kShaderAmbientFS};
 
   JointShader* shader = memory::default_allocator()->New<JointShader>();
-  success &= shader->BuildFromSource(OZZ_ARRAY_SIZE(vs), vs,
-                                     OZZ_ARRAY_SIZE(fs), fs);
+  success &=
+      shader->BuildFromSource(OZZ_ARRAY_SIZE(vs), vs, OZZ_ARRAY_SIZE(fs), fs);
 
   // Binds default attributes
   success &= shader->FindAttrib("a_position");
@@ -485,45 +467,43 @@ JointShader* JointShader::Build() {
   return shader;
 }
 
-BoneShader* BoneShader::Build() {  // Builds a world matrix from joint uniforms, sticking bone model between
+BoneShader* BoneShader::Build() {  // Builds a world matrix from joint uniforms,
+                                   // sticking bone model between
   bool success = true;
 
   // parent and child joints.
   const char* vs_joint_to_world_matrix =
-    "mat4 GetWorldMatrix() {\n"
-    "  // Rebuilds bone properties.\n"
-    "  // Bone length is set to zero to disable leaf rendering.\n"
-    "  float is_bone = joint[3].w;\n"
-    "  vec3 bone_dir = vec3(joint[0].w, joint[1].w, joint[2].w) * is_bone;\n"
-    "  float bone_len = length(bone_dir);\n"
+      "mat4 GetWorldMatrix() {\n"
+      "  // Rebuilds bone properties.\n"
+      "  // Bone length is set to zero to disable leaf rendering.\n"
+      "  float is_bone = joint[3].w;\n"
+      "  vec3 bone_dir = vec3(joint[0].w, joint[1].w, joint[2].w) * is_bone;\n"
+      "  float bone_len = length(bone_dir);\n"
 
-    "  // Setup rendering world matrix.\n"
-    "  float dot = dot(joint[2].xyz, bone_dir);\n"
-    "  vec3 binormal = abs(dot) < .01 ? joint[2].xyz : joint[1].xyz;\n"
+      "  // Setup rendering world matrix.\n"
+      "  float dot = dot(joint[2].xyz, bone_dir);\n"
+      "  vec3 binormal = abs(dot) < .01 ? joint[2].xyz : joint[1].xyz;\n"
 
-    "  mat4 world_matrix;\n"
-    "  world_matrix[0] = vec4(bone_dir, 0.);\n"
-    "  world_matrix[1] = \n"
-    "    vec4(bone_len * normalize(cross(binormal, bone_dir)), 0.);\n"
-    "  world_matrix[2] =\n"
-    "    vec4(bone_len * normalize(cross(bone_dir, world_matrix[1].xyz)), 0.);\n"
-    "  world_matrix[3] = vec4(joint[3].xyz, 1.);\n"
-    "  return world_matrix;\n"
-    "}\n";
-  const char* vs[] = {
-    kPlatformSpecivicVSHeader,
-    GL_ARB_instanced_arrays ?
-      "attribute mat4 joint;\n" : "uniform mat4 joint;\n",
-    vs_joint_to_world_matrix,
-    kShaderUberVS};
-  const char* fs[] = {
-    kPlatformSpecivicFSHeader,
-    kShaderAmbientFct,
-    kShaderAmbientFS};
+      "  mat4 world_matrix;\n"
+      "  world_matrix[0] = vec4(bone_dir, 0.);\n"
+      "  world_matrix[1] = \n"
+      "    vec4(bone_len * normalize(cross(binormal, bone_dir)), 0.);\n"
+      "  world_matrix[2] =\n"
+      "    vec4(bone_len * normalize(cross(bone_dir, world_matrix[1].xyz)), "
+      "0.);\n"
+      "  world_matrix[3] = vec4(joint[3].xyz, 1.);\n"
+      "  return world_matrix;\n"
+      "}\n";
+  const char* vs[] = {kPlatformSpecivicVSHeader,
+                      GL_ARB_instanced_arrays ? "attribute mat4 joint;\n"
+                                              : "uniform mat4 joint;\n",
+                      vs_joint_to_world_matrix, kShaderUberVS};
+  const char* fs[] = {kPlatformSpecivicFSHeader, kShaderAmbientFct,
+                      kShaderAmbientFS};
 
   BoneShader* shader = memory::default_allocator()->New<BoneShader>();
-  success &= shader->BuildFromSource(OZZ_ARRAY_SIZE(vs), vs,
-                                     OZZ_ARRAY_SIZE(fs), fs);
+  success &=
+      shader->BuildFromSource(OZZ_ARRAY_SIZE(vs), vs, OZZ_ARRAY_SIZE(fs), fs);
 
   // Binds default attributes
   success &= shader->FindAttrib("a_position");
@@ -548,20 +528,16 @@ BoneShader* BoneShader::Build() {  // Builds a world matrix from joint uniforms,
 }
 
 AmbientShader* AmbientShader::Build() {
-
   const char* vs[] = {
-    kPlatformSpecivicVSHeader,
-    "uniform mat4 u_mw;\n mat4 GetWorldMatrix() {return u_mw;}\n",
-    kShaderUberVS};
-  const char* fs[] = {
-    kPlatformSpecivicFSHeader,
-    kShaderAmbientFct,
-    kShaderAmbientFS};
+      kPlatformSpecivicVSHeader,
+      "uniform mat4 u_mw;\n mat4 GetWorldMatrix() {return u_mw;}\n",
+      kShaderUberVS};
+  const char* fs[] = {kPlatformSpecivicFSHeader, kShaderAmbientFct,
+                      kShaderAmbientFS};
 
-  AmbientShader* shader =
-    memory::default_allocator()->New<AmbientShader>();
-  bool success = shader->InternalBuild(OZZ_ARRAY_SIZE(vs), vs,
-                                       OZZ_ARRAY_SIZE(fs), fs);
+  AmbientShader* shader = memory::default_allocator()->New<AmbientShader>();
+  bool success =
+      shader->InternalBuild(OZZ_ARRAY_SIZE(vs), vs, OZZ_ARRAY_SIZE(fs), fs);
 
   if (!success) {
     memory::default_allocator()->Delete(shader);
@@ -575,8 +551,8 @@ bool AmbientShader::InternalBuild(int _vertex_count, const char** _vertex,
                                   int _fragment_count, const char** _fragment) {
   bool success = true;
 
-  success &= BuildFromSource(_vertex_count, _vertex,
-                             _fragment_count, _fragment);
+  success &=
+      BuildFromSource(_vertex_count, _vertex, _fragment_count, _fragment);
 
   // Binds default attributes
   success &= FindAttrib("a_position");
@@ -591,21 +567,21 @@ bool AmbientShader::InternalBuild(int _vertex_count, const char** _vertex,
 }
 
 void AmbientShader::Bind(const math::Float4x4& _model,
-                         const math::Float4x4& _view_proj,
-                         GLsizei _pos_stride, GLsizei _pos_offset,
-                         GLsizei _normal_stride, GLsizei _normal_offset,
-                         GLsizei _color_stride, GLsizei _color_offset) {
+                         const math::Float4x4& _view_proj, GLsizei _pos_stride,
+                         GLsizei _pos_offset, GLsizei _normal_stride,
+                         GLsizei _normal_offset, GLsizei _color_stride,
+                         GLsizei _color_offset) {
   GL(UseProgram(program()));
 
   const GLint position_attrib = attrib(0);
   GL(EnableVertexAttribArray(position_attrib));
-  GL(VertexAttribPointer(position_attrib, 3, GL_FLOAT, GL_FALSE,
-                         _pos_stride, GL_PTR_OFFSET(_pos_offset)));
+  GL(VertexAttribPointer(position_attrib, 3, GL_FLOAT, GL_FALSE, _pos_stride,
+                         GL_PTR_OFFSET(_pos_offset)));
 
   const GLint normal_attrib = attrib(1);
   GL(EnableVertexAttribArray(normal_attrib));
-  GL(VertexAttribPointer(normal_attrib, 3, GL_FLOAT, GL_TRUE,
-                         _normal_stride, GL_PTR_OFFSET(_normal_offset)));
+  GL(VertexAttribPointer(normal_attrib, 3, GL_FLOAT, GL_TRUE, _normal_stride,
+                         GL_PTR_OFFSET(_normal_offset)));
 
   const GLint color_attrib = attrib(2);
   GL(EnableVertexAttribArray(color_attrib));
@@ -634,18 +610,16 @@ AmbientShaderInstanced* AmbientShaderInstanced::Build() {
   bool success = true;
 
   const char* vs[] = {
-    kPlatformSpecivicVSHeader,
-    "attribute mat4 a_mw;\n mat4 GetWorldMatrix() {return a_mw;}\n",
-    kShaderUberVS};
-  const char* fs[] = {
-    kPlatformSpecivicFSHeader,
-    kShaderAmbientFct,
-    kShaderAmbientFS};
+      kPlatformSpecivicVSHeader,
+      "attribute mat4 a_mw;\n mat4 GetWorldMatrix() {return a_mw;}\n",
+      kShaderUberVS};
+  const char* fs[] = {kPlatformSpecivicFSHeader, kShaderAmbientFct,
+                      kShaderAmbientFS};
 
   AmbientShaderInstanced* shader =
-    memory::default_allocator()->New<AmbientShaderInstanced>();
-  success &= shader->BuildFromSource(OZZ_ARRAY_SIZE(vs), vs,
-                                     OZZ_ARRAY_SIZE(fs), fs);
+      memory::default_allocator()->New<AmbientShaderInstanced>();
+  success &=
+      shader->BuildFromSource(OZZ_ARRAY_SIZE(vs), vs, OZZ_ARRAY_SIZE(fs), fs);
 
   // Binds default attributes
   success &= shader->FindAttrib("a_position");
@@ -667,19 +641,20 @@ AmbientShaderInstanced* AmbientShaderInstanced::Build() {
 void AmbientShaderInstanced::Bind(GLsizei _models_offset,
                                   const math::Float4x4& _view_proj,
                                   GLsizei _pos_stride, GLsizei _pos_offset,
-                                  GLsizei _normal_stride, GLsizei _normal_offset,
-                                  GLsizei _color_stride, GLsizei _color_offset) {
+                                  GLsizei _normal_stride,
+                                  GLsizei _normal_offset, GLsizei _color_stride,
+                                  GLsizei _color_offset) {
   GL(UseProgram(program()));
 
   const GLint position_attrib = attrib(0);
   GL(EnableVertexAttribArray(position_attrib));
-  GL(VertexAttribPointer(position_attrib, 3, GL_FLOAT, GL_FALSE,
-                         _pos_stride, GL_PTR_OFFSET(_pos_offset)));
+  GL(VertexAttribPointer(position_attrib, 3, GL_FLOAT, GL_FALSE, _pos_stride,
+                         GL_PTR_OFFSET(_pos_offset)));
 
   const GLint normal_attrib = attrib(1);
   GL(EnableVertexAttribArray(normal_attrib));
-  GL(VertexAttribPointer(normal_attrib, 3, GL_FLOAT, GL_TRUE,
-                         _normal_stride, GL_PTR_OFFSET(_normal_offset)));
+  GL(VertexAttribPointer(normal_attrib, 3, GL_FLOAT, GL_TRUE, _normal_stride,
+                         GL_PTR_OFFSET(_normal_offset)));
 
   const GLint color_attrib = attrib(2);
   GL(EnableVertexAttribArray(color_attrib));
@@ -697,13 +672,17 @@ void AmbientShaderInstanced::Bind(GLsizei _models_offset,
   GL(VertexAttribDivisorARB(models_attrib + 2, 1));
   GL(VertexAttribDivisorARB(models_attrib + 3, 1));
   GL(VertexAttribPointer(models_attrib + 0, 4, GL_FLOAT, GL_FALSE,
-                         sizeof(math::Float4x4), GL_PTR_OFFSET(0 + _models_offset)));
+                         sizeof(math::Float4x4),
+                         GL_PTR_OFFSET(0 + _models_offset)));
   GL(VertexAttribPointer(models_attrib + 1, 4, GL_FLOAT, GL_FALSE,
-                         sizeof(math::Float4x4), GL_PTR_OFFSET(16 + _models_offset)));
+                         sizeof(math::Float4x4),
+                         GL_PTR_OFFSET(16 + _models_offset)));
   GL(VertexAttribPointer(models_attrib + 2, 4, GL_FLOAT, GL_FALSE,
-                         sizeof(math::Float4x4), GL_PTR_OFFSET(32 + _models_offset)));
+                         sizeof(math::Float4x4),
+                         GL_PTR_OFFSET(32 + _models_offset)));
   GL(VertexAttribPointer(models_attrib + 3, 4, GL_FLOAT, GL_FALSE,
-                         sizeof(math::Float4x4), GL_PTR_OFFSET(48 + _models_offset)));
+                         sizeof(math::Float4x4),
+                         GL_PTR_OFFSET(48 + _models_offset)));
 
   // Binds mvp uniform
   const GLint mvp_uniform = uniform(0);
@@ -729,20 +708,17 @@ void AmbientShaderInstanced::Unbind() {
 }
 
 AmbientTexturedShader* AmbientTexturedShader::Build() {
-
   const char* vs[] = {
-    kPlatformSpecivicVSHeader,
-    "uniform mat4 u_mw;\n mat4 GetWorldMatrix() {return u_mw;}\n",
-    kShaderUberVS };
-  const char* fs[] = {
-    kPlatformSpecivicFSHeader,
-    kShaderAmbientFct,
-    kShaderAmbientTexturedFS };
+      kPlatformSpecivicVSHeader,
+      "uniform mat4 u_mw;\n mat4 GetWorldMatrix() {return u_mw;}\n",
+      kShaderUberVS};
+  const char* fs[] = {kPlatformSpecivicFSHeader, kShaderAmbientFct,
+                      kShaderAmbientTexturedFS};
 
   AmbientTexturedShader* shader =
-    memory::default_allocator()->New<AmbientTexturedShader>();
-  bool success = shader->InternalBuild(OZZ_ARRAY_SIZE(vs), vs,
-                                       OZZ_ARRAY_SIZE(fs), fs);
+      memory::default_allocator()->New<AmbientTexturedShader>();
+  bool success =
+      shader->InternalBuild(OZZ_ARRAY_SIZE(vs), vs, OZZ_ARRAY_SIZE(fs), fs);
 
   success &= shader->FindAttrib("a_uv");
 
@@ -760,17 +736,14 @@ void AmbientTexturedShader::Bind(const math::Float4x4& _model,
                                  GLsizei _normal_stride, GLsizei _normal_offset,
                                  GLsizei _color_stride, GLsizei _color_offset,
                                  GLsizei _uv_stride, GLsizei _uv_offset) {
-
-  AmbientShader::Bind(_model,
-                      _view_proj,
-                      _pos_stride, _pos_offset,
-                      _normal_stride, _normal_offset,
-                      _color_stride, _color_offset);
+  AmbientShader::Bind(_model, _view_proj, _pos_stride, _pos_offset,
+                      _normal_stride, _normal_offset, _color_stride,
+                      _color_offset);
 
   const GLint uv_attrib = attrib(3);
   GL(EnableVertexAttribArray(uv_attrib));
-  GL(VertexAttribPointer(uv_attrib, 2, GL_FLOAT, GL_FALSE,
-                         _uv_stride, GL_PTR_OFFSET(_uv_offset)));
+  GL(VertexAttribPointer(uv_attrib, 2, GL_FLOAT, GL_FALSE, _uv_stride,
+                         GL_PTR_OFFSET(_uv_offset)));
 }
 }  // internal
 }  // sample

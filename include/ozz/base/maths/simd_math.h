@@ -28,8 +28,8 @@
 #ifndef OZZ_OZZ_BASE_MATHS_SIMD_MATH_H_
 #define OZZ_OZZ_BASE_MATHS_SIMD_MATH_H_
 
-#include "ozz/base/platform.h"
 #include "ozz/base/maths/internal/simd_math_config.h"
+#include "ozz/base/platform.h"
 
 namespace ozz {
 namespace math {
@@ -514,9 +514,7 @@ OZZ_INLINE SimdFloat4 NormalizeSafeEst4(_SimdFloat4 _v, _SimdFloat4 _safe);
 
 // Computes the per element linear interpolation of _a and _b, where _alpha is
 // not bound to range [0,1].
-OZZ_INLINE SimdFloat4 Lerp(_SimdFloat4 _a,
-                           _SimdFloat4 _b,
-                           _SimdFloat4 _alpha);
+OZZ_INLINE SimdFloat4 Lerp(_SimdFloat4 _a, _SimdFloat4 _b, _SimdFloat4 _alpha);
 
 // Computes the per element cosine of _v.
 OZZ_INLINE SimdFloat4 Cos(_SimdFloat4 _v);
@@ -568,8 +566,8 @@ OZZ_INLINE SimdFloat4 ATanX(_SimdFloat4 _v);
 
 // Returns Per bit selection of vectors _true and _false according to _b.
 // _v[0...127] = _b[0...127] ? _true[0...127]:_false[0...127]
-OZZ_INLINE SimdFloat4 Select(
-  _SimdInt4 _b, _SimdFloat4 _true, _SimdFloat4 _false);
+OZZ_INLINE SimdFloat4 Select(_SimdInt4 _b, _SimdFloat4 _true,
+                             _SimdFloat4 _false);
 
 // Per element "equal" comparison of _a and _b.
 OZZ_INLINE SimdInt4 CmpEq(_SimdFloat4 _a, _SimdFloat4 _b);
@@ -1101,62 +1099,59 @@ OZZ_INLINE SimdFloat4 ToQuaternion(const Float4x4& _m);
 // and translational components.
 // Returns false if it was not possible to decompose the matrix. This would be
 // because more than 1 of the 3 first column of _m are scaled to 0.
-OZZ_INLINE bool ToAffine(const Float4x4& _m,
-                         SimdFloat4* _translation,
-                         SimdFloat4* _quaternion,
-                         SimdFloat4* _scale);
+OZZ_INLINE bool ToAffine(const Float4x4& _m, SimdFloat4* _translation,
+                         SimdFloat4* _quaternion, SimdFloat4* _scale);
 
 // Computes the transformation of a Float4x4 matrix and a point _p.
 // This is equivalent to multiplying a matrix by a SimdFloat4 with a w component
 // of 1.
-OZZ_INLINE ozz::math::SimdFloat4 TransformPoint(
-  const ozz::math::Float4x4& _m, ozz::math::_SimdFloat4 _v);
+OZZ_INLINE ozz::math::SimdFloat4 TransformPoint(const ozz::math::Float4x4& _m,
+                                                ozz::math::_SimdFloat4 _v);
 
 // Computes the transformation of a Float4x4 matrix and a vector _v.
 // This is equivalent to multiplying a matrix by a SimdFloat4 with a w component
 // of 0.
-OZZ_INLINE ozz::math::SimdFloat4 TransformVector(
-  const ozz::math::Float4x4& _m, ozz::math::_SimdFloat4 _v);
+OZZ_INLINE ozz::math::SimdFloat4 TransformVector(const ozz::math::Float4x4& _m,
+                                                 ozz::math::_SimdFloat4 _v);
 }  // math
 }  // ozz
 
 #if !defined(__GNUC__) || defined(OZZ_SIMD_REF)
 // Returns per element addition of _a and _b.
-OZZ_INLINE ozz::math::SimdFloat4 operator+(
-  ozz::math::_SimdFloat4 _a, ozz::math::_SimdFloat4 _b);
+OZZ_INLINE ozz::math::SimdFloat4 operator+(ozz::math::_SimdFloat4 _a,
+                                           ozz::math::_SimdFloat4 _b);
 
 // Returns per element subtraction of _a and _b.
-OZZ_INLINE ozz::math::SimdFloat4 operator-(
-  ozz::math::_SimdFloat4 _a, ozz::math::_SimdFloat4 _b);
+OZZ_INLINE ozz::math::SimdFloat4 operator-(ozz::math::_SimdFloat4 _a,
+                                           ozz::math::_SimdFloat4 _b);
 
 // Returns per element negation of _v.
-OZZ_INLINE ozz::math::SimdFloat4 operator-(
-  ozz::math::_SimdFloat4 _v);
+OZZ_INLINE ozz::math::SimdFloat4 operator-(ozz::math::_SimdFloat4 _v);
 
 // Returns per element multiplication of _a and _b.
-OZZ_INLINE ozz::math::SimdFloat4 operator*(
-  ozz::math::_SimdFloat4 _a, ozz::math::_SimdFloat4 _b);
+OZZ_INLINE ozz::math::SimdFloat4 operator*(ozz::math::_SimdFloat4 _a,
+                                           ozz::math::_SimdFloat4 _b);
 
 // Returns per element division of _a and _b.
-OZZ_INLINE ozz::math::SimdFloat4 operator/(
-  ozz::math::_SimdFloat4 _a, ozz::math::_SimdFloat4 _b);
+OZZ_INLINE ozz::math::SimdFloat4 operator/(ozz::math::_SimdFloat4 _a,
+                                           ozz::math::_SimdFloat4 _b);
 #endif  // !defined(__GNUC__) || defined(OZZ_SIMD_REF)
 
 // Computes the multiplication of matrix Float4x4 and vector _v.
-OZZ_INLINE ozz::math::SimdFloat4 operator*(
-  const ozz::math::Float4x4& _m, ozz::math::_SimdFloat4 _v);
+OZZ_INLINE ozz::math::SimdFloat4 operator*(const ozz::math::Float4x4& _m,
+                                           ozz::math::_SimdFloat4 _v);
 
 // Computes the multiplication of two matrices _a and _b.
-OZZ_INLINE ozz::math::Float4x4 operator*(
-  const ozz::math::Float4x4& _a, const ozz::math::Float4x4& _b);
+OZZ_INLINE ozz::math::Float4x4 operator*(const ozz::math::Float4x4& _a,
+                                         const ozz::math::Float4x4& _b);
 
 // Computes the per element addition of two matrices _a and _b.
-OZZ_INLINE ozz::math::Float4x4 operator+(
-  const ozz::math::Float4x4& _a, const ozz::math::Float4x4& _b);
+OZZ_INLINE ozz::math::Float4x4 operator+(const ozz::math::Float4x4& _a,
+                                         const ozz::math::Float4x4& _b);
 
 // Computes the per element subtraction of two matrices _a and _b.
-OZZ_INLINE ozz::math::Float4x4 operator-(
-  const ozz::math::Float4x4& _a, const ozz::math::Float4x4& _b);
+OZZ_INLINE ozz::math::Float4x4 operator-(const ozz::math::Float4x4& _a,
+                                         const ozz::math::Float4x4& _b);
 
 // Implement format conversions.
 namespace ozz {

@@ -40,18 +40,15 @@
 // Use fbx2anim integrated help command (fbx2anim --help) for more details
 // about available arguments.
 
-class FbxAnimationConverter :
-  public ozz::animation::offline::AnimationConverter {
-private:
+class FbxAnimationConverter
+    : public ozz::animation::offline::AnimationConverter {
+ private:
   // Implement SkeletonConverter::Import function.
   virtual bool Import(const char* _filename,
                       const ozz::animation::Skeleton& _skeleton,
-                      float _sampling_rate,
-                      Animations* _animations) {
-    return ozz::animation::offline::fbx::ImportFromFile(_filename,
-                                                        _skeleton,
-                                                        _sampling_rate,
-                                                        _animations);
+                      float _sampling_rate, Animations* _animations) {
+    return ozz::animation::offline::fbx::ImportFromFile(
+        _filename, _skeleton, _sampling_rate, _animations);
   }
 };
 

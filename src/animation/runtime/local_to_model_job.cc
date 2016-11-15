@@ -29,10 +29,10 @@
 
 #include <cassert>
 
-#include "ozz/base/maths/soa_transform.h"
-#include "ozz/base/maths/soa_float4x4.h"
-#include "ozz/base/maths/simd_math.h"
 #include "ozz/base/maths/math_ex.h"
+#include "ozz/base/maths/simd_math.h"
+#include "ozz/base/maths/soa_float4x4.h"
+#include "ozz/base/maths/soa_transform.h"
 
 #include "ozz/animation/runtime/skeleton.h"
 
@@ -79,7 +79,7 @@ bool LocalToModelJob::Run() const {
 
   // Fetch joint's properties.
   Range<const Skeleton::JointProperties> properties =
-    skeleton->joint_properties();
+      skeleton->joint_properties();
 
   // Output.
   Float4x4* const model_matrices = output.begin;
@@ -92,10 +92,8 @@ bool LocalToModelJob::Run() const {
   for (int joint = 0; joint < num_joints;) {
     // Builds soa matrices from soa transforms.
     const SoaTransform& transform = input.begin[joint / 4];
-    const SoaFloat4x4 local_soa_matrices =
-      SoaFloat4x4::FromAffine(transform.translation,
-                              transform.rotation,
-                              transform.scale);
+    const SoaFloat4x4 local_soa_matrices = SoaFloat4x4::FromAffine(
+        transform.translation, transform.rotation, transform.scale);
     // Converts to aos matrices.
     math::SimdFloat4 local_aos_matrices[16];
     math::Transpose16x16(&local_soa_matrices.cols[0].x, local_aos_matrices);
@@ -106,11 +104,9 @@ bool LocalToModelJob::Run() const {
     for (; joint < proceed_up_to; ++joint, local_aos_matrix += 4) {
       const int parent = properties.begin[joint].parent;
       const Float4x4* parent_matrix =
-        math::Select(parent == Skeleton::kNoParentIndex,
-                     &identity,
-                     &model_matrices[parent]);
-      const Float4x4 local_matrix = {{local_aos_matrix[0],
-                                      local_aos_matrix[1],
+          math::Select(parent == Skeleton::kNoParentIndex, &identity,
+                       &model_matrices[parent]);
+      const Float4x4 local_matrix = {{local_aos_matrix[0], local_aos_matrix[1],
                                       local_aos_matrix[2],
                                       local_aos_matrix[3]}};
       model_matrices[joint] = (*parent_matrix) * local_matrix;

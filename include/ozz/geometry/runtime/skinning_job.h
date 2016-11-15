@@ -31,7 +31,9 @@
 #include "ozz/base/platform.h"
 
 namespace ozz {
-namespace math { struct Float4x4; }
+namespace math {
+struct Float4x4;
+}
 namespace geometry {
 
 // Provides per-vertex matrix palette skinning job implementation.
@@ -62,7 +64,7 @@ namespace geometry {
 // a different job for every vertices set.
 // Joint matrices are accessed using the per-vertex joints indices provided as
 // input. These matrices must be pre-multiplied with the inverse of the skeleton
-// bind-pose matrices. This allows to transform vertices to joints local space. 
+// bind-pose matrices. This allows to transform vertices to joints local space.
 // In case of non-uniform-scale matrices, the job proposes to transform vectors
 // using an optional set of matrices, whose are usually inverse transpose of
 // joints matrices (see http://www.glprogramming.com/red/appendixf.html). This
@@ -114,7 +116,7 @@ struct SkinningJob {
   // transformation is done by the inverse transpose of the transformation that
   // transforms points. Any rotation matrix is good though.
   // These matrices are optional as they might by costly to compute, and also
-  // fall into a more costly code path in the skinning algorithm. 
+  // fall into a more costly code path in the skinning algorithm.
   Range<const math::Float4x4> joint_inverse_transpose_matrices;
 
   // Array of joints indices. This array is used to indexes matrices in joints
@@ -163,7 +165,7 @@ struct SkinningJob {
   // Note that output normals are not normalized by the skinning job. This task
   // should be handled by the application, who knows if transform matrices have
   // uniform scale, and if normals are re-normalized later in the rendering
-  // pipeline (shader vertex transformation stage).  
+  // pipeline (shader vertex transformation stage).
   // Array length must be at least vertex_count * out_normals_stride.
   Range<float> out_normals;
   size_t out_normals_stride;

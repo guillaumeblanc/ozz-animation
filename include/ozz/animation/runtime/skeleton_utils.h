@@ -54,8 +54,7 @@ struct JointsIterator {
 // This function does not use a recursive implementation, to enforce a
 // predictable stack usage, independent off the data (joint hierarchy) being
 // processed.
-void IterateJointsDF(const Skeleton& _skeleton,
-                     int _from,
+void IterateJointsDF(const Skeleton& _skeleton, int _from,
                      JointsIterator* _iterator);
 
 // Applies a specified functor to each joint in a depth-first order.
@@ -67,7 +66,7 @@ void IterateJointsDF(const Skeleton& _skeleton,
 // multiple joints.
 // This implementation is based on IterateJointsDF(*, *, JointsIterator$)
 // variant.
-template<typename _Fct>
+template <typename _Fct>
 inline _Fct IterateJointsDF(const Skeleton& _skeleton, int _from, _Fct _fct) {
   // Iterates and fills iterator.
   JointsIterator iterator;
@@ -75,7 +74,7 @@ inline _Fct IterateJointsDF(const Skeleton& _skeleton, int _from, _Fct _fct) {
 
   // Consumes iterator and call _fct.
   Range<const Skeleton::JointProperties> properties =
-    _skeleton.joint_properties();
+      _skeleton.joint_properties();
   for (int i = 0; i < iterator.num_joints; ++i) {
     const int joint = iterator.joints[i];
     _fct(joint, properties.begin[joint].parent);

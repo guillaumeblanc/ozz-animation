@@ -51,34 +51,28 @@ class FbxManagerInstance {
   ~FbxManagerInstance();
 
   // Cast operator to get internal FbxManager instance.
-  operator FbxManager*() const {
-    return fbx_manager_;
-  }
-private:
+  operator FbxManager*() const { return fbx_manager_; }
+
+ private:
   FbxManager* fbx_manager_;
 };
 
 // Default io settings used to import a scene.
 class FbxDefaultIOSettings {
  public:
-
-   // Instantiates default settings.
+  // Instantiates default settings.
   explicit FbxDefaultIOSettings(const FbxManagerInstance& _manager);
 
   // De-instantiates default settings.
   virtual ~FbxDefaultIOSettings();
 
   // Get FbxIOSettings instance.
-  FbxIOSettings* settings() const {
-    return io_settings_;
-  }
+  FbxIOSettings* settings() const { return io_settings_; }
 
   // Cast operator to get internal FbxIOSettings instance.
-  operator FbxIOSettings*() const {
-    return io_settings_;
-  }
- private:
+  operator FbxIOSettings*() const { return io_settings_; }
 
+ private:
   FbxIOSettings* io_settings_;
 };
 
@@ -90,7 +84,7 @@ class FbxAnimationIOSettings : public FbxDefaultIOSettings {
 
 // Io settings used to import a skeleton from a scene.
 class FbxSkeletonIOSettings : public FbxDefaultIOSettings {
-public:
+ public:
   FbxSkeletonIOSettings(const FbxManagerInstance& _manager);
 };
 
@@ -102,7 +96,6 @@ public:
 // animations tranformations...
 class FbxSystemConverter {
  public:
-
   // Initialize converter with fbx scene systems.
   FbxSystemConverter(const FbxAxisSystem& _from_axis,
                      const FbxSystemUnit& _from_unit);
@@ -128,7 +121,6 @@ class FbxSystemConverter {
   math::Float3 ConvertNormal(const FbxVector4& _p) const;
 
  private:
-
   // The matrix used to convert from "from" axis/unit to ozz coordinate system
   // base.
   math::Float4x4 convert_;
@@ -144,35 +136,26 @@ class FbxSystemConverter {
 class FbxSceneLoader {
  public:
   // Loads the scene that can then be obtained with scene() function.
-   FbxSceneLoader(const char* _filename,
-                  const char* _password,
-                  const FbxManagerInstance& _manager,
-                  const FbxDefaultIOSettings& _io_settings);
+  FbxSceneLoader(const char* _filename, const char* _password,
+                 const FbxManagerInstance& _manager,
+                 const FbxDefaultIOSettings& _io_settings);
 
-   FbxSceneLoader(FbxStream* _stream,
-                  const char* _password,
-                  const FbxManagerInstance& _manager,
-                  const FbxDefaultIOSettings& _io_settings);
+  FbxSceneLoader(FbxStream* _stream, const char* _password,
+                 const FbxManagerInstance& _manager,
+                 const FbxDefaultIOSettings& _io_settings);
 
   ~FbxSceneLoader();
 
   // Returns a valid scene if fbx import was successful, NULL otherwise.
-  FbxScene* scene() const {
-    return scene_;
-  }
+  FbxScene* scene() const { return scene_; }
 
   // Returns a valid converter if fbx import was successful, NULL otherwise.
-  FbxSystemConverter* converter() {
-    return converter_;
-  }
+  FbxSystemConverter* converter() { return converter_; }
 
-private:
-
-  void ImportScene(FbxImporter* _importer,
-                   const bool _initialized,
-                   const char* _password,
-                   const FbxManagerInstance& _manager,
-                   const FbxDefaultIOSettings& _io_settings);  
+ private:
+  void ImportScene(FbxImporter* _importer, const bool _initialized,
+                   const char* _password, const FbxManagerInstance& _manager,
+                   const FbxDefaultIOSettings& _io_settings);
 
   // Scene instance that was loaded from the file.
   FbxScene* scene_;

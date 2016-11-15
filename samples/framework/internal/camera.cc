@@ -29,11 +29,11 @@
 
 #include "camera.h"
 
-#include "ozz/base/platform.h"
 #include "ozz/base/log.h"
 #include "ozz/base/maths/box.h"
-#include "ozz/base/maths/math_ex.h"
 #include "ozz/base/maths/math_constant.h"
+#include "ozz/base/maths/math_ex.h"
+#include "ozz/base/platform.h"
 
 #include "framework/imgui.h"
 
@@ -50,8 +50,8 @@ namespace internal {
 // Declares camera navigation constants.
 const float kDefaultDistance = 8.f;
 const Float3 kDefaultCenter = Float3(0.f, .5f, 0.f);
-const Float2 kDefaultAngle = Float2(-ozz::math::kPi * 1.f / 12.f,
-                                    ozz::math::kPi * 1.f / 5.f);
+const Float2 kDefaultAngle =
+    Float2(-ozz::math::kPi * 1.f / 12.f, ozz::math::kPi * 1.f / 5.f);
 const float kAngleFactor = .002f;
 const float kDistanceFactor = .1f;
 const float kScrollFactor = .03f;
@@ -74,13 +74,12 @@ Camera::Camera()
       mouse_last_x_(0),
       mouse_last_y_(0),
       mouse_last_wheel_(0),
-      auto_framing_(true) {
-}
+      auto_framing_(true) {}
 
-Camera::~Camera() {
-}
+Camera::~Camera() {}
 
-void Camera::Update(const math::Box& _box, float _delta_time, bool _first_frame) {
+void Camera::Update(const math::Box& _box, float _delta_time,
+                    bool _first_frame) {
   assert(_box.is_valid());
 
   // Frame the scene according to the provided box.
@@ -162,11 +161,11 @@ Camera::Controls Camera::UpdateControls(float _delta_time) {
 
   // Finds keyboard relative dx and dy commmands.
   const int timed_factor =
-    ozz::math::Max(1, static_cast<int>(kKeyboardFactor * _delta_time));
+      ozz::math::Max(1, static_cast<int>(kKeyboardFactor * _delta_time));
   const int kdx =
-    timed_factor * (glfwGetKey(GLFW_KEY_RIGHT) - glfwGetKey(GLFW_KEY_LEFT));
+      timed_factor * (glfwGetKey(GLFW_KEY_RIGHT) - glfwGetKey(GLFW_KEY_LEFT));
   const int kdy =
-    timed_factor * (glfwGetKey(GLFW_KEY_DOWN) - glfwGetKey(GLFW_KEY_UP));
+      timed_factor * (glfwGetKey(GLFW_KEY_DOWN) - glfwGetKey(GLFW_KEY_UP));
   const bool keyboard_interact = kdx || kdy;
 
   // Computes composed keyboard and mouse dx and dy.
@@ -174,7 +173,8 @@ Camera::Controls Camera::UpdateControls(float _delta_time) {
   const int dy = mdy + kdy;
 
   // Mouse right button activates Zoom, Pan and Orbit modes.
-  if (keyboard_interact || glfwGetMouseButton(GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
+  if (keyboard_interact ||
+      glfwGetMouseButton(GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
     if (glfwGetKey(GLFW_KEY_LSHIFT) == GLFW_PRESS) {  // Zoom mode.
       controls.zooming = true;
 
@@ -201,13 +201,13 @@ Camera::Controls Camera::UpdateControls(float _delta_time) {
 
   // Build the model view matrix components.
   const Float4x4 center = Float4x4::Translation(
-    math::simd_float4::Load(center_.x, center_.y, center_.z, 1.f));
+      math::simd_float4::Load(center_.x, center_.y, center_.z, 1.f));
   const Float4x4 y_rotation = Float4x4::FromAxisAngle(
-    math::simd_float4::Load(0.f, 1.f, 0.f, angles_.y));
+      math::simd_float4::Load(0.f, 1.f, 0.f, angles_.y));
   const Float4x4 x_rotation = Float4x4::FromAxisAngle(
-    math::simd_float4::Load(1.f, 0.f, 0.f, angles_.x));
-  const Float4x4 distance = Float4x4::Translation(
-    math::simd_float4::Load(0.f, 0.f, distance_, 1.f));
+      math::simd_float4::Load(1.f, 0.f, 0.f, angles_.x));
+  const Float4x4 distance =
+      Float4x4::Translation(math::simd_float4::Load(0.f, 0.f, distance_, 1.f));
 
   // Concatenate view matrix components.
   view_ = Invert(center * y_rotation * x_rotation * distance);
@@ -216,12 +216,11 @@ Camera::Controls Camera::UpdateControls(float _delta_time) {
 }
 
 void Camera::OnGui(ImGui* _im_gui) {
-
   const char* controls_label =
-    "-RMB: Rotate\n"
-    "-Shift + Wheel: Zoom\n"
-    "-Shift + RMB: Zoom\n"
-    "-Ctr + RMB: Pan\n";
+      "-RMB: Rotate\n"
+      "-Shift + Wheel: Zoom\n"
+      "-Shift + RMB: Zoom\n"
+      "-Ctr + RMB: Pan\n";
   _im_gui->DoLabel(controls_label, ImGui::kLeft, false);
 
   _im_gui->DoCheckBox("Automatic", &auto_framing_);
@@ -238,7 +237,6 @@ void Camera::Bind2D() {
 }
 
 void Camera::Resize(int _width, int _height) {
-
   // Handle empty windows.
   if (_width <= 0 || _height <= 0) {
     projection_ = ozz::math::Float4x4::identity();
@@ -248,21 +246,20 @@ void Camera::Resize(int _width, int _height) {
 
   // Compute the 3D projection matrix.
   const float ratio = 1.f * _width / _height;
-  const float h = tan( (kFovY * .5f)) * kNear;
+  const float h = tan((kFovY * .5f)) * kNear;
   const float w = h * ratio;
 
-  projection_.cols[0] = math::simd_float4::Load(
-    kNear / w, 0.f, 0.f, 0.f); 
-  projection_.cols[1] = math::simd_float4::Load(
-    0.f, kNear / h, 0.f, 0.f);
-  projection_.cols[2] = math::simd_float4::Load(
-    0.f, 0.f, -(kFar + kNear) / (kFar - kNear), -1.f);
+  projection_.cols[0] = math::simd_float4::Load(kNear / w, 0.f, 0.f, 0.f);
+  projection_.cols[1] = math::simd_float4::Load(0.f, kNear / h, 0.f, 0.f);
+  projection_.cols[2] =
+      math::simd_float4::Load(0.f, 0.f, -(kFar + kNear) / (kFar - kNear), -1.f);
   projection_.cols[3] = math::simd_float4::Load(
-    0.f, 0.f, -(2.f * kFar * kNear) / (kFar - kNear), 0.f);
+      0.f, 0.f, -(2.f * kFar * kNear) / (kFar - kNear), 0.f);
 
   // Computes the 2D projection matrix.
   projection_2d_.cols[0] = math::simd_float4::Load(2.f / _width, 0.f, 0.f, 0.f);
-  projection_2d_.cols[1] = math::simd_float4::Load(0.f, 2.f / _height, 0.f, 0.f);
+  projection_2d_.cols[1] =
+      math::simd_float4::Load(0.f, 2.f / _height, 0.f, 0.f);
   projection_2d_.cols[2] = math::simd_float4::Load(0.f, 0.f, -2.0f, 0.f);
   projection_2d_.cols[3] = math::simd_float4::Load(-1.f, -1.f, 0.f, 1.f);
 }

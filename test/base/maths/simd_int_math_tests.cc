@@ -32,11 +32,13 @@
 #include "gtest/gtest.h"
 
 #include "ozz/base/gtest_helper.h"
+#include "ozz/base/maths/gtest_math_helper.h"
 #include "ozz/base/maths/math_constant.h"
 #include "ozz/base/maths/math_ex.h"
-#include "ozz/base/maths/gtest_math_helper.h"
 
 using ozz::math::SimdInt4;
+
+// clang-format off
 
 OZZ_STATIC_ASSERT(sizeof(SimdInt4) == 4 * sizeof(int32_t));
 

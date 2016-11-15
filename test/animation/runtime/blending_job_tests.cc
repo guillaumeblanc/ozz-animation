@@ -34,25 +34,24 @@
 
 using ozz::animation::BlendingJob;
 
+// clang-format off
+
 TEST(JobValidity, BlendingJob) {
   const ozz::math::SoaTransform identity = ozz::math::SoaTransform::identity();
   const ozz::math::SimdFloat4 zero = ozz::math::simd_float4::zero();
   BlendingJob::Layer layers[2];
-  const ozz::math::SoaTransform bind_poses[3] = {
-    identity, identity, identity};
-  const ozz::math::SoaTransform input_transforms[3] = {
-    identity, identity, identity};
-  ozz::math::SoaTransform output_transforms[3] = {
-    identity, identity, identity};
-  ozz::math::SimdFloat4 joint_weights[3] = {
-    zero, zero, zero};
+  const ozz::math::SoaTransform bind_poses[3] = {identity, identity, identity};
+  const ozz::math::SoaTransform input_transforms[3] = {identity, identity,
+                                                       identity};
+  ozz::math::SoaTransform output_transforms[3] = {identity, identity, identity};
+  ozz::math::SimdFloat4 joint_weights[3] = {zero, zero, zero};
 
   layers[0].transform.begin = input_transforms;
   layers[0].transform.end = input_transforms + 3;
   layers[1].transform.begin = input_transforms;
   layers[1].transform.end = input_transforms + 2;
 
-  { // Empty/default job.
+  {  // Empty/default job.
     BlendingJob job;
     EXPECT_FALSE(job.Validate());
     EXPECT_FALSE(job.Run());
@@ -312,14 +311,11 @@ TEST(JobValidityAdditive, BlendingJob) {
   BlendingJob::Layer layers[2];
   BlendingJob::Layer additive_layers[2];
 
-  const ozz::math::SoaTransform bind_poses[3] = {
-    identity, identity, identity};
-  const ozz::math::SoaTransform input_transforms[3] = {
-    identity, identity, identity};
-  ozz::math::SoaTransform output_transforms[3] = {
-    identity, identity, identity};
-  ozz::math::SimdFloat4 joint_weights[3] = {
-    zero, zero, zero};
+  const ozz::math::SoaTransform bind_poses[3] = {identity, identity, identity};
+  const ozz::math::SoaTransform input_transforms[3] = {identity, identity,
+                                                       identity};
+  ozz::math::SoaTransform output_transforms[3] = {identity, identity, identity};
+  ozz::math::SimdFloat4 joint_weights[3] = {zero, zero, zero};
 
   layers[0].transform.begin = input_transforms;
   layers[0].transform.end = input_transforms + 3;
@@ -456,20 +452,19 @@ TEST(Empty, BlendingJob) {
   const ozz::math::SoaTransform identity = ozz::math::SoaTransform::identity();
 
   // Initialize bind pose.
-  ozz::math::SoaTransform bind_poses[2] = {
-    identity, identity};
+  ozz::math::SoaTransform bind_poses[2] = {identity, identity};
   bind_poses[0].translation = ozz::math::SoaFloat3::Load(
-    ozz::math::simd_float4::Load(0.f, 1.f, 2.f, 3.f),
-    ozz::math::simd_float4::Load(4.f, 5.f, 6.f, 7.f),
-    ozz::math::simd_float4::Load(8.f, 9.f, 10.f, 11.f));
+      ozz::math::simd_float4::Load(0.f, 1.f, 2.f, 3.f),
+      ozz::math::simd_float4::Load(4.f, 5.f, 6.f, 7.f),
+      ozz::math::simd_float4::Load(8.f, 9.f, 10.f, 11.f));
   bind_poses[0].scale = ozz::math::SoaFloat3::Load(
-    ozz::math::simd_float4::Load(0.f, 10.f, 20.f, 30.f),
-    ozz::math::simd_float4::Load(40.f, 50.f, 60.f, 70.f),
-    ozz::math::simd_float4::Load(80.f, 90.f, 100.f, 110.f));
-  bind_poses[1].translation =
-    bind_poses[0].translation * ozz::math::simd_float4::Load(2.f, 2.f, 2.f, 2.f); 
+      ozz::math::simd_float4::Load(0.f, 10.f, 20.f, 30.f),
+      ozz::math::simd_float4::Load(40.f, 50.f, 60.f, 70.f),
+      ozz::math::simd_float4::Load(80.f, 90.f, 100.f, 110.f));
+  bind_poses[1].translation = bind_poses[0].translation *
+                              ozz::math::simd_float4::Load(2.f, 2.f, 2.f, 2.f);
   bind_poses[1].scale =
-    bind_poses[0].scale * ozz::math::simd_float4::Load(2.f, 2.f, 2.f, 2.f);
+      bind_poses[0].scale * ozz::math::simd_float4::Load(2.f, 2.f, 2.f, 2.f);
 
   BlendingJob job;
   job.bind_pose = bind_poses;
@@ -613,37 +608,35 @@ TEST(JointWeights, BlendingJob) {
   const ozz::math::SoaTransform identity = ozz::math::SoaTransform::identity();
 
   // Initialize inputs.
-  ozz::math::SoaTransform input_transforms[2][2] = {
-    {identity, identity},
-    {identity, identity}};
+  ozz::math::SoaTransform input_transforms[2][2] = {{identity, identity},
+                                                    {identity, identity}};
   input_transforms[0][0].translation = ozz::math::SoaFloat3::Load(
-    ozz::math::simd_float4::Load(0.f, 1.f, 2.f, 3.f),
-    ozz::math::simd_float4::Load(4.f, 5.f, 6.f, 7.f),
-    ozz::math::simd_float4::Load(8.f, 9.f, 10.f, 11.f));
+      ozz::math::simd_float4::Load(0.f, 1.f, 2.f, 3.f),
+      ozz::math::simd_float4::Load(4.f, 5.f, 6.f, 7.f),
+      ozz::math::simd_float4::Load(8.f, 9.f, 10.f, 11.f));
   input_transforms[0][1].translation = ozz::math::SoaFloat3::Load(
-    ozz::math::simd_float4::Load(12.f, 13.f, 14.f, 15.f),
-    ozz::math::simd_float4::Load(16.f, 17.f, 18.f, 19.f),
-    ozz::math::simd_float4::Load(20.f, 21.f, 22.f, 23.f));
+      ozz::math::simd_float4::Load(12.f, 13.f, 14.f, 15.f),
+      ozz::math::simd_float4::Load(16.f, 17.f, 18.f, 19.f),
+      ozz::math::simd_float4::Load(20.f, 21.f, 22.f, 23.f));
   input_transforms[1][0].translation = -input_transforms[0][0].translation;
   input_transforms[1][1].translation = -input_transforms[0][1].translation;
   ozz::math::SimdFloat4 joint_weights[2][2] = {
-    {ozz::math::simd_float4::Load(1.f, 1.f, 0.f, 0.f),
-     ozz::math::simd_float4::Load(1.f, 0.f, 1.f, 1.f)},
-    {ozz::math::simd_float4::Load(1.f, 1.f, 1.f, 0.f),
-     ozz::math::simd_float4::Load(0.f, 1.f, 1.f, 1.f)}};
+      {ozz::math::simd_float4::Load(1.f, 1.f, 0.f, 0.f),
+       ozz::math::simd_float4::Load(1.f, 0.f, 1.f, 1.f)},
+      {ozz::math::simd_float4::Load(1.f, 1.f, 1.f, 0.f),
+       ozz::math::simd_float4::Load(0.f, 1.f, 1.f, 1.f)}};
   // Initialize bind pose.
-  ozz::math::SoaTransform bind_poses[2] = {
-    identity, identity};
+  ozz::math::SoaTransform bind_poses[2] = {identity, identity};
   bind_poses[0].translation = ozz::math::SoaFloat3::Load(
-    ozz::math::simd_float4::Load(10.f, 11.f, 12.f, 13.f),
-    ozz::math::simd_float4::Load(14.f, 15.f, 16.f, 17.f),
-    ozz::math::simd_float4::Load(18.f, 19.f, 20.f, 21.f));
+      ozz::math::simd_float4::Load(10.f, 11.f, 12.f, 13.f),
+      ozz::math::simd_float4::Load(14.f, 15.f, 16.f, 17.f),
+      ozz::math::simd_float4::Load(18.f, 19.f, 20.f, 21.f));
   bind_poses[0].scale = ozz::math::SoaFloat3::Load(
-    ozz::math::simd_float4::Load(0.f, 1.f, 2.f, 3.f),
-    ozz::math::simd_float4::Load(4.f, 5.f, 6.f, 7.f),
-    ozz::math::simd_float4::Load(8.f, 9.f, 10.f, 11.f));
+      ozz::math::simd_float4::Load(0.f, 1.f, 2.f, 3.f),
+      ozz::math::simd_float4::Load(4.f, 5.f, 6.f, 7.f),
+      ozz::math::simd_float4::Load(8.f, 9.f, 10.f, 11.f));
   bind_poses[1].scale =
-    bind_poses[0].scale * ozz::math::simd_float4::Load(2.f, 2.f, 2.f, 2.f);
+      bind_poses[0].scale * ozz::math::simd_float4::Load(2.f, 2.f, 2.f, 2.f);
 
   BlendingJob::Layer layers[2];
   layers[0].transform = input_transforms[0];
@@ -651,7 +644,7 @@ TEST(JointWeights, BlendingJob) {
   layers[1].transform = input_transforms[1];
   layers[1].joint_weights = joint_weights[1];
 
-  { // Weight .5 for both layers.
+  {  // Weight .5 for both layers.
     ozz::math::SoaTransform output_transforms[3];
 
     BlendingJob job;
@@ -681,7 +674,7 @@ TEST(JointWeights, BlendingJob) {
                         1.f, 1.f, 1.f, 1.f,
                         1.f, 1.f, 1.f, 1.f);
   }
-  { // Null weight for the first layer.
+  {  // Null weight for the first layer.
     ozz::math::SoaTransform output_transforms[2];
 
     BlendingJob job;
@@ -717,36 +710,35 @@ TEST(Normalize, BlendingJob) {
   const ozz::math::SoaTransform identity = ozz::math::SoaTransform::identity();
 
   // Initialize inputs.
-  ozz::math::SoaTransform input_transforms[2][1] = {
-    {identity}, {identity}};
+  ozz::math::SoaTransform input_transforms[2][1] = {{identity}, {identity}};
 
   // Initialize bind pose.
   ozz::math::SoaTransform bind_poses[1] = {identity};
   bind_poses[0].scale = ozz::math::SoaFloat3::Load(
-    ozz::math::simd_float4::Load(0.f, 1.f, 2.f, 3.f),
-    ozz::math::simd_float4::Load(4.f, 5.f, 6.f, 7.f),
-    ozz::math::simd_float4::Load(8.f, 9.f, 10.f, 11.f));
+      ozz::math::simd_float4::Load(0.f, 1.f, 2.f, 3.f),
+      ozz::math::simd_float4::Load(4.f, 5.f, 6.f, 7.f),
+      ozz::math::simd_float4::Load(8.f, 9.f, 10.f, 11.f));
 
   input_transforms[0][0].rotation = ozz::math::SoaQuaternion::Load(
-    ozz::math::simd_float4::Load(.70710677f, 0.f, 0.f, .382683432f),
-    ozz::math::simd_float4::Load(0.f, 0.f, .70710677f, 0.f),
-    ozz::math::simd_float4::Load(0.f, 0.f, 0.f, 0.f),
-    ozz::math::simd_float4::Load(.70710677f, 1.f, .70710677f, .9238795f));
+      ozz::math::simd_float4::Load(.70710677f, 0.f, 0.f, .382683432f),
+      ozz::math::simd_float4::Load(0.f, 0.f, .70710677f, 0.f),
+      ozz::math::simd_float4::Load(0.f, 0.f, 0.f, 0.f),
+      ozz::math::simd_float4::Load(.70710677f, 1.f, .70710677f, .9238795f));
   input_transforms[1][0].rotation = ozz::math::SoaQuaternion::Load(
-    ozz::math::simd_float4::Load(0.f, .70710677f, -.70710677f, -.382683432f),
-    ozz::math::simd_float4::Load(0.f, 0.f, 0.f, 0.f),
-    ozz::math::simd_float4::Load(0.f, 0.f, -.70710677f, 0.f),
-    ozz::math::simd_float4::Load(1.f, .70710677f, 0.f, -.9238795f));
+      ozz::math::simd_float4::Load(0.f, .70710677f, -.70710677f, -.382683432f),
+      ozz::math::simd_float4::Load(0.f, 0.f, 0.f, 0.f),
+      ozz::math::simd_float4::Load(0.f, 0.f, -.70710677f, 0.f),
+      ozz::math::simd_float4::Load(1.f, .70710677f, 0.f, -.9238795f));
 
-  { // Un-normalized weights < 1.f.
+  {  // Un-normalized weights < 1.f.
     input_transforms[0][0].translation = ozz::math::SoaFloat3::Load(
-      ozz::math::simd_float4::Load(2.f, 3.f, 4.f, 5.f),
-      ozz::math::simd_float4::Load(6.f, 7.f, 8.f, 9.f),
-      ozz::math::simd_float4::Load(10.f, 11.f, 12.f, 13.f));
+        ozz::math::simd_float4::Load(2.f, 3.f, 4.f, 5.f),
+        ozz::math::simd_float4::Load(6.f, 7.f, 8.f, 9.f),
+        ozz::math::simd_float4::Load(10.f, 11.f, 12.f, 13.f));
     input_transforms[1][0].translation = ozz::math::SoaFloat3::Load(
-      ozz::math::simd_float4::Load(3.f, 4.f, 5.f, 6.f),
-      ozz::math::simd_float4::Load(7.f, 8.f, 9.f, 10.f),
-      ozz::math::simd_float4::Load(11.f, 12.f, 13.f, 14.f));
+        ozz::math::simd_float4::Load(3.f, 4.f, 5.f, 6.f),
+        ozz::math::simd_float4::Load(7.f, 8.f, 9.f, 10.f),
+        ozz::math::simd_float4::Load(11.f, 12.f, 13.f, 14.f));
 
     BlendingJob::Layer layers[2];
     layers[0].weight = 0.2f;
@@ -778,7 +770,7 @@ TEST(Normalize, BlendingJob) {
                         1.f, 1.f, 1.f, 1.f,
                         1.f, 1.f, 1.f, 1.f);
   }
-  { // Un-normalized weights > 1.f.
+  {  // Un-normalized weights > 1.f.
     input_transforms[0][0].translation = ozz::math::SoaFloat3::Load(
       ozz::math::simd_float4::Load(5.f, 10.f, 15.f, 20.f),
       ozz::math::simd_float4::Load(25.f, 30.f, 35.f, 40.f),
@@ -818,7 +810,7 @@ TEST(Normalize, BlendingJob) {
                         1.f, 1.f, 1.f, 1.f,
                         1.f, 1.f, 1.f, 1.f);
   }
-  { // Un-normalized weights > 1.f, with per-joint weights.
+  {  // Un-normalized weights > 1.f, with per-joint weights.
     input_transforms[0][0].translation = ozz::math::SoaFloat3::Load(
       ozz::math::simd_float4::Load(5.f, 10.f, 15.f, 20.f),
       ozz::math::simd_float4::Load(25.f, 30.f, 35.f, 40.f),
@@ -861,26 +853,25 @@ TEST(Threshold, BlendingJob) {
   const ozz::math::SoaTransform identity = ozz::math::SoaTransform::identity();
 
   // Initialize inputs.
-  ozz::math::SoaTransform input_transforms[2][1] = {
-    {identity}, {identity}};
+  ozz::math::SoaTransform input_transforms[2][1] = {{identity}, {identity}};
 
   // Initialize bind pose.
   ozz::math::SoaTransform bind_poses[1] = {identity};
   bind_poses[0].scale = ozz::math::SoaFloat3::Load(
-    ozz::math::simd_float4::Load(0.f, 1.f, 2.f, 3.f),
-    ozz::math::simd_float4::Load(4.f, 5.f, 6.f, 7.f),
-    ozz::math::simd_float4::Load(8.f, 9.f, 10.f, 11.f));
+      ozz::math::simd_float4::Load(0.f, 1.f, 2.f, 3.f),
+      ozz::math::simd_float4::Load(4.f, 5.f, 6.f, 7.f),
+      ozz::math::simd_float4::Load(8.f, 9.f, 10.f, 11.f));
 
   input_transforms[0][0].translation = ozz::math::SoaFloat3::Load(
-    ozz::math::simd_float4::Load(2.f, 3.f, 4.f, 5.f),
-    ozz::math::simd_float4::Load(6.f, 7.f, 8.f, 9.f),
-    ozz::math::simd_float4::Load(10.f, 11.f, 12.f, 13.f));
+      ozz::math::simd_float4::Load(2.f, 3.f, 4.f, 5.f),
+      ozz::math::simd_float4::Load(6.f, 7.f, 8.f, 9.f),
+      ozz::math::simd_float4::Load(10.f, 11.f, 12.f, 13.f));
   input_transforms[1][0].translation = ozz::math::SoaFloat3::Load(
-    ozz::math::simd_float4::Load(3.f, 4.f, 5.f, 6.f),
-    ozz::math::simd_float4::Load(7.f, 8.f, 9.f, 10.f),
-    ozz::math::simd_float4::Load(11.f, 12.f, 13.f, 14.f));
+      ozz::math::simd_float4::Load(3.f, 4.f, 5.f, 6.f),
+      ozz::math::simd_float4::Load(7.f, 8.f, 9.f, 10.f),
+      ozz::math::simd_float4::Load(11.f, 12.f, 13.f, 14.f));
 
-  { // Threshold is not reached.
+  {  // Threshold is not reached.
     BlendingJob::Layer layers[2];
     layers[0].weight = 0.04f;
     layers[0].transform = input_transforms[0];
@@ -911,7 +902,7 @@ TEST(Threshold, BlendingJob) {
                         1.f, 1.f, 1.f, 1.f,
                         1.f, 1.f, 1.f, 1.f);
   }
-  { // Threshold is reached at 100%.
+  {  // Threshold is reached at 100%.
     BlendingJob::Layer layers[2];
     layers[0].weight = 1e-27f;
     layers[0].transform = input_transforms[0];
@@ -948,22 +939,20 @@ TEST(AdditiveWeight, BlendingJob) {
   const ozz::math::SoaTransform identity = ozz::math::SoaTransform::identity();
 
   // Initialize inputs.
-  ozz::math::SoaTransform input_transforms[2][1] = {
-    {identity},
-    {identity}};
+  ozz::math::SoaTransform input_transforms[2][1] = {{identity}, {identity}};
   input_transforms[0][0].translation = ozz::math::SoaFloat3::Load(
-    ozz::math::simd_float4::Load(0.f, 1.f, 2.f, 3.f),
-    ozz::math::simd_float4::Load(4.f, 5.f, 6.f, 7.f),
-    ozz::math::simd_float4::Load(8.f, 9.f, 10.f, 11.f));
+      ozz::math::simd_float4::Load(0.f, 1.f, 2.f, 3.f),
+      ozz::math::simd_float4::Load(4.f, 5.f, 6.f, 7.f),
+      ozz::math::simd_float4::Load(8.f, 9.f, 10.f, 11.f));
   input_transforms[0][0].rotation = ozz::math::SoaQuaternion::Load(
-    ozz::math::simd_float4::Load(.70710677f, 0.f, 0.f, .382683432f),
-    ozz::math::simd_float4::Load(0.f, 0.f, .70710677f, 0.f),
-    ozz::math::simd_float4::Load(0.f, 0.f, 0.f, 0.f),
-    ozz::math::simd_float4::Load(.70710677f, 1.f, -.70710677f, .9238795f));
+      ozz::math::simd_float4::Load(.70710677f, 0.f, 0.f, .382683432f),
+      ozz::math::simd_float4::Load(0.f, 0.f, .70710677f, 0.f),
+      ozz::math::simd_float4::Load(0.f, 0.f, 0.f, 0.f),
+      ozz::math::simd_float4::Load(.70710677f, 1.f, -.70710677f, .9238795f));
   input_transforms[0][0].scale = ozz::math::SoaFloat3::Load(
-    ozz::math::simd_float4::Load(12.f, 13.f, 14.f, 15.f),
-    ozz::math::simd_float4::Load(16.f, 17.f, 18.f, 19.f),
-    ozz::math::simd_float4::Load(20.f, 21.f, 22.f, 23.f));
+      ozz::math::simd_float4::Load(12.f, 13.f, 14.f, 15.f),
+      ozz::math::simd_float4::Load(16.f, 17.f, 18.f, 19.f),
+      ozz::math::simd_float4::Load(20.f, 21.f, 22.f, 23.f));
   input_transforms[1][0].translation = -input_transforms[0][0].translation;
   input_transforms[1][0].rotation = Conjugate(input_transforms[0][0].rotation);
   input_transforms[1][0].scale = -input_transforms[0][0].scale;
@@ -1116,24 +1105,23 @@ TEST(AdditiveJointWeight, BlendingJob) {
   const ozz::math::SoaTransform identity = ozz::math::SoaTransform::identity();
 
   // Initialize inputs.
-  ozz::math::SoaTransform input_transforms[1] = {
-    identity};
+  ozz::math::SoaTransform input_transforms[1] = {identity};
   input_transforms[0].translation = ozz::math::SoaFloat3::Load(
-    ozz::math::simd_float4::Load(0.f, 1.f, 2.f, 3.f),
-    ozz::math::simd_float4::Load(4.f, 5.f, 6.f, 7.f),
-    ozz::math::simd_float4::Load(8.f, 9.f, 10.f, 11.f));
+      ozz::math::simd_float4::Load(0.f, 1.f, 2.f, 3.f),
+      ozz::math::simd_float4::Load(4.f, 5.f, 6.f, 7.f),
+      ozz::math::simd_float4::Load(8.f, 9.f, 10.f, 11.f));
   input_transforms[0].rotation = ozz::math::SoaQuaternion::Load(
-    ozz::math::simd_float4::Load(.70710677f, 0.f, 0.f, .382683432f),
-    ozz::math::simd_float4::Load(0.f, 0.f, .70710677f, 0.f),
-    ozz::math::simd_float4::Load(0.f, 0.f, 0.f, 0.f),
-    ozz::math::simd_float4::Load(.70710677f, 1.f, -.70710677f, .9238795f));
+      ozz::math::simd_float4::Load(.70710677f, 0.f, 0.f, .382683432f),
+      ozz::math::simd_float4::Load(0.f, 0.f, .70710677f, 0.f),
+      ozz::math::simd_float4::Load(0.f, 0.f, 0.f, 0.f),
+      ozz::math::simd_float4::Load(.70710677f, 1.f, -.70710677f, .9238795f));
   input_transforms[0].scale = ozz::math::SoaFloat3::Load(
-    ozz::math::simd_float4::Load(12.f, 13.f, 14.f, 15.f),
-    ozz::math::simd_float4::Load(16.f, 17.f, 18.f, 19.f),
-    ozz::math::simd_float4::Load(20.f, 21.f, 22.f, 23.f));
+      ozz::math::simd_float4::Load(12.f, 13.f, 14.f, 15.f),
+      ozz::math::simd_float4::Load(16.f, 17.f, 18.f, 19.f),
+      ozz::math::simd_float4::Load(20.f, 21.f, 22.f, 23.f));
 
   ozz::math::SimdFloat4 joint_weights[1] = {
-    ozz::math::simd_float4::Load(1.f, .5f, 0.f, -1.f)};
+      ozz::math::simd_float4::Load(1.f, .5f, 0.f, -1.f)};
 
   // Initialize bind pose.
   ozz::math::SoaTransform bind_poses[1] = {identity};

@@ -33,43 +33,41 @@
 #include "ozz/base/gtest_helper.h"
 
 TEST(EmptyRegistration, Options) {
-  { // No argument is specified.
-    const char* argv[] = { "test.exe" };
+  {  // No argument is specified.
+    const char* argv[] = {"test.exe"};
     const int argc = OZZ_ARRAY_SIZE(argv);
 
-    EXPECT_EQ(ozz::options::ParseCommandLine(
-      argc, argv, "1.0", "AutoRegistration test"), ozz::options::kSuccess);
+    EXPECT_EQ(ozz::options::ParseCommandLine(argc, argv, "1.0",
+                                             "AutoRegistration test"),
+              ozz::options::kSuccess);
   }
 
-  { // An invalid argument is specified.
+  {  // An invalid argument is specified.
     const char* argv[] = {"test.exe", "--something"};
     const int argc = OZZ_ARRAY_SIZE(argv);
 
-    EXPECT_EQ_LOG(
-      ozz::options::ParseCommandLine(
-        argc, argv, "1.0", "AutoRegistration test"), ozz::options::kExitFailure,
-      std::cout, "Usage");
+    EXPECT_EQ_LOG(ozz::options::ParseCommandLine(argc, argv, "1.0",
+                                                 "AutoRegistration test"),
+                  ozz::options::kExitFailure, std::cout, "Usage");
   }
 }
 
 TEST(BuiltInEmptyRegistration, Options) {
-  { // Built-in version.
-    const char* argv[] = { "test.exe", "--version"};
+  {  // Built-in version.
+    const char* argv[] = {"test.exe", "--version"};
     const int argc = OZZ_ARRAY_SIZE(argv);
 
-    EXPECT_EQ_LOG(
-      ozz::options::ParseCommandLine(
-        argc, argv, "1.046", "AutoRegistration test"),
-      ozz::options::kExitSuccess, std::cout, "1.046");
+    EXPECT_EQ_LOG(ozz::options::ParseCommandLine(argc, argv, "1.046",
+                                                 "AutoRegistration test"),
+                  ozz::options::kExitSuccess, std::cout, "1.046");
   }
-  { // Built-in help.
-    const char* argv[] = { "test.exe", "--help"};
+  {  // Built-in help.
+    const char* argv[] = {"test.exe", "--help"};
     const int argc = OZZ_ARRAY_SIZE(argv);
 
-    EXPECT_EQ_LOG(
-      ozz::options::ParseCommandLine(
-        argc, argv, "1.046", "AutoRegistration test"),
-      ozz::options::kExitSuccess, std::cout, "--version");
+    EXPECT_EQ_LOG(ozz::options::ParseCommandLine(argc, argv, "1.046",
+                                                 "AutoRegistration test"),
+                  ozz::options::kExitSuccess, std::cout, "--version");
   }
 }
 
@@ -77,8 +75,9 @@ TEST(BuiltInArgv0, Options) {
   const char* argv[] = {"c:/a path/test.exe"};
   const int argc = OZZ_ARRAY_SIZE(argv);
 
-  EXPECT_EQ(ozz::options::ParseCommandLine(
-    argc, argv, "1.046", "AutoRegistration test"), ozz::options::kSuccess);
+  EXPECT_EQ(ozz::options::ParseCommandLine(argc, argv, "1.046",
+                                           "AutoRegistration test"),
+            ozz::options::kSuccess);
 
   EXPECT_STREQ(ozz::options::ParsedExecutablePath().c_str(), "c:/a path/");
   EXPECT_STREQ(ozz::options::ParsedExecutableName(), "test.exe");

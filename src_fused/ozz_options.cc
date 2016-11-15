@@ -31,14 +31,14 @@
 
 #include "ozz/options/options.h"
 
-#include <iostream>
-#include <iomanip>
-#include <sstream>
 #include <algorithm>
 #include <cassert>
 #include <cctype>
 #include <cstring>
+#include <iomanip>
+#include <iostream>
 #include <new>
+#include <sstream>
 
 namespace ozz {
 namespace options {
@@ -61,14 +61,12 @@ static class GlobalRegistrer {
 
   static Parser* Construct() {
     if (!parser_) {
-      parser_ = new(placeholder_)Parser;
+      parser_ = new (placeholder_) Parser;
     }
     return parser_;
   }
 
-  static Parser* parser() {
-    return parser_;
-  }
+  static Parser* parser() { return parser_; }
 
  private:
   // Take advantage of the default initialization (to 0) of file-scope level
@@ -89,24 +87,22 @@ Parser* GlobalRegistrer::parser_;
 // Compute placeholder_ array size and performs default initialization only.
 // See placeholder_ member document above.
 static const size_t kParserPlaceholerSize =
-  (sizeof(Parser) + sizeof(void*) - 1) / sizeof(void*);
+    (sizeof(Parser) + sizeof(void*) - 1) / sizeof(void*);
 void* GlobalRegistrer::placeholder_[kParserPlaceholerSize];
 }  // namespace
 
 // Implements Registrer constructor and destructor.
-template<typename _Option>
-Registrer<_Option>::Registrer(const char* _name,
-                              const char* _help,
-                              typename _Option::Type _default,
-                              bool _required,
-                              typename _Option::ValidateFn _fn) :
-  _Option(_name, _help, _default, _required, _fn) {
+template <typename _Option>
+Registrer<_Option>::Registrer(const char* _name, const char* _help,
+                              typename _Option::Type _default, bool _required,
+                              typename _Option::ValidateFn _fn)
+    : _Option(_name, _help, _default, _required, _fn) {
   if (!internal::g_global_registrer.Construct()->RegisterOption(this)) {
     std::cerr << "Failed to register option " << _name << std::endl;
   }
 }
 
-template<typename _Option>
+template <typename _Option>
 Registrer<_Option>::~Registrer() {
   Parser* parser = internal::g_global_registrer.parser();
   if (parser) {
@@ -164,7 +160,6 @@ const char* ParsedExecutableUsage() {
   return parser->usage();
 }
 
-
 namespace {
 
 // Portable case insensitive string comparison functions.
@@ -191,8 +186,7 @@ int StrNICmp(const char* _left, const char* _right, size_t _count) {
 
 // Returns the first character after _option, or NULL if option has not been
 // found.
-const char* ParseOption(const char* _argv,
-                        const char* _prefix,
+const char* ParseOption(const char* _argv, const char* _prefix,
                         const char* _option) {
   const size_t prefix_len = std::strlen(_prefix);
   const size_t option_len = std::strlen(_option);
@@ -210,7 +204,7 @@ const char* ParseOption(const char* _argv,
 }
 
 bool Parse(const char* _argv, const char* _option, bool* _value) {
-  assert(_value &&_option && _argv);
+  assert(_value && _option && _argv);
 
   const char* option_end = ParseOption(_argv, "--", _option);
   if (!option_end) {
@@ -231,11 +225,11 @@ bool Parse(const char* _argv, const char* _option, bool* _value) {
   } else if (*option_end == '=') {
     // Explicit options values are set after the '=' character.
     // Using StrICmp function ensures an exact match, ie no trailing characters.
-    for (++option_end; std::isspace(*option_end); ++option_end) {  // Trims spaces.
+    for (++option_end; std::isspace(*option_end);
+         ++option_end) {  // Trims spaces.
     }
     const char* true_options[] = {"yes", "true", "1", "t", "y"};
-    for (size_t i = 0;
-         i < sizeof(true_options) / sizeof(true_options[0]);
+    for (size_t i = 0; i < sizeof(true_options) / sizeof(true_options[0]);
          i++) {
       if (!StrICmp(option_end, true_options[i])) {
         *_value = true;
@@ -243,8 +237,7 @@ bool Parse(const char* _argv, const char* _option, bool* _value) {
       }
     }
     const char* false_options[] = {"no", "false", "0", "f", "n"};
-    for (size_t i = 0;
-         i < sizeof(false_options) / sizeof(false_options[0]);
+    for (size_t i = 0; i < sizeof(false_options) / sizeof(false_options[0]);
          ++i) {
       if (!StrICmp(option_end, false_options[i])) {
         *_value = false;
@@ -256,11 +249,12 @@ bool Parse(const char* _argv, const char* _option, bool* _value) {
 }
 
 bool Parse(const char* _argv, const char* _option, float* _value) {
-  assert(_value &&_option && _argv);
+  assert(_value && _option && _argv);
 
   const char* option_end = ParseOption(_argv, "--", _option);
   if (option_end && *option_end == '=') {
-    for (++option_end; std::isspace(*option_end); ++option_end) {  // Trims spaces.
+    for (++option_end; std::isspace(*option_end);
+         ++option_end) {  // Trims spaces.
     }
     char* found;
     double double_value = std::strtod(option_end, &found);
@@ -274,11 +268,12 @@ bool Parse(const char* _argv, const char* _option, float* _value) {
 }
 
 bool Parse(const char* _argv, const char* _option, int* _value) {
-  assert(_value &&_option && _argv);
+  assert(_value && _option && _argv);
 
   const char* option_end = ParseOption(_argv, "--", _option);
   if (option_end && *option_end == '=') {
-    for (++option_end; std::isspace(*option_end); ++option_end) {  // Trims spaces.
+    for (++option_end; std::isspace(*option_end);
+         ++option_end) {  // Trims spaces.
     }
     char* found;
     long long_value = std::strtol(option_end, &found, 10);
@@ -292,11 +287,12 @@ bool Parse(const char* _argv, const char* _option, int* _value) {
 }
 
 bool Parse(const char* _argv, const char* _option, const char** _value) {
-  assert(_value &&_option && _argv);
+  assert(_value && _option && _argv);
 
   const char* option_end = ParseOption(_argv, "--", _option);
   if (option_end && *option_end == '=') {
-    for (++option_end; std::isspace(*option_end); ++option_end) {  // Trims spaces.
+    for (++option_end; std::isspace(*option_end);
+         ++option_end) {  // Trims spaces.
     }
     *_value = option_end;
     return true;
@@ -305,23 +301,23 @@ bool Parse(const char* _argv, const char* _option, const char** _value) {
 }
 
 // Format option type using template specialization.
-template<typename _Type>
+template <typename _Type>
 const char* FormatOptionType();
 
 // Specialization of FormatOptionType for all supported types.
-template<>
+template <>
 const char* FormatOptionType<bool>() {
   return "bool";
 }
-template<>
+template <>
 const char* FormatOptionType<float>() {
   return "float";
 }
-template<>
+template <>
 const char* FormatOptionType<int>() {
   return "int";
 }
-template<>
+template <>
 const char* FormatOptionType<const char*>() {
   return "string";
 }
@@ -329,8 +325,10 @@ const char* FormatOptionType<const char*>() {
 // Validate exclusive options.
 bool ValidateExclusiveOption(const Option& _option, int _argc) {
   if (static_cast<const BoolOption&>(_option).value() && _argc != 1) {
-    std::cout << "Option \"" << _option.name() << "\" is an exclusive option. "
-      "It must not be used with any other option." << std::endl;
+    std::cout << "Option \"" << _option.name()
+              << "\" is an exclusive option. "
+                 "It must not be used with any other option."
+              << std::endl;
     // This is an exclusive flag.
     return false;
   }
@@ -344,11 +342,9 @@ Option::Option(const char* _name, const char* _help, bool _required,
       help_(_help ? _help : "..."),
       required_(_required),
       parsed_(false),
-      validate_(_validate) {
-}
+      validate_(_validate) {}
 
-Option::~Option() {
-}
+Option::~Option() {}
 
 bool Option::Validate(int _argc) {
   if (validate_) {
@@ -370,19 +366,19 @@ void Option::RestoreDefault() {
   RestoreDefaultImpl();  // Restores actual value.
 }
 
-template<typename _Type>
+template <typename _Type>
 bool TypedOption<_Type>::ParseImpl(const char* _argv) {
   return ozz::options::Parse(_argv, name(), &value_);
 }
 
-template<typename _Type>
+template <typename _Type>
 std::string TypedOption<_Type>::FormatDefault() const {
   std::stringstream str;
   str << "\"" << std::boolalpha << default_ << "\"";
   return str.str();
 }
 
-template<typename _Type>
+template <typename _Type>
 const char* TypedOption<_Type>::FormatType() const {
   return ozz::options::FormatOptionType<_Type>();
 }
@@ -426,7 +422,7 @@ ParseResult Parser::Parse(int _argc, const char* const* _argv) {
 
   // Select the left most '/' or '\\' separator.
   const char* path_end =
-    std::max(std::strrchr(_argv[0], '/'), strrchr(_argv[0], '\\'));
+      std::max(std::strrchr(_argv[0], '/'), strrchr(_argv[0], '\\'));
   if (path_end) {
     ++path_end;  // Includes the last separator.
     executable_path_begin_ = _argv[0];
@@ -435,7 +431,7 @@ ParseResult Parser::Parse(int _argc, const char* const* _argv) {
   } else {
     executable_path_begin_ = "";
     executable_path_end_ = executable_path_begin_ + 1;
-    executable_name_= _argv[0];
+    executable_name_ = _argv[0];
   }
 
   // The first argument is skipped because it is the program path.
@@ -444,8 +440,7 @@ ParseResult Parser::Parse(int _argc, const char* const* _argv) {
 
   // Hides all arguments after a "--" argument, substitutes argc to argc_trunc.
   int argc_trunc = 0;
-  for (;
-       argc_trunc < _argc && std::strcmp(_argv[argc_trunc], "--") != 0;
+  for (; argc_trunc < _argc && std::strcmp(_argv[argc_trunc], "--") != 0;
        ++argc_trunc) {
   }
 
@@ -459,12 +454,12 @@ ParseResult Parser::Parse(int _argc, const char* const* _argv) {
   ParseResult result = kSuccess;
   for (int i = 0; i < argc_trunc; ++i) {
     const char* argv = _argv[i];
-    
+
     // Empty arguments aren't consider invalid.
     if (*argv == 0) {
       continue;
     }
-    
+
     int j = 0;
     for (; j < options_count_; ++j) {
       if (options_[j]->Parse(argv)) {
@@ -474,7 +469,7 @@ ParseResult Parser::Parse(int _argc, const char* const* _argv) {
     // An invalid (or duplicated) command line argument is a fatal failure.
     if (j == options_count_) {
       std::cout << "Invalid command line argument:\"" << argv << "\"."
-        << std::endl;
+                << std::endl;
       result = kExitFailure;
       break;
     }
@@ -483,8 +478,8 @@ ParseResult Parser::Parse(int _argc, const char* const* _argv) {
   // Ensures all required options were specified in the command line.
   for (int i = 0; i < options_count_; ++i) {
     if (!options_[i]->statisfied()) {
-      std::cout << "Required option \"" << options_[i]->name() <<
-        "\" is not specified." << std::endl;
+      std::cout << "Required option \"" << options_[i]->name()
+                << "\" is not specified." << std::endl;
       result = kExitFailure;
       break;
     }
@@ -545,30 +540,30 @@ void Parser::Help() {
   for (int i = 0; i < options_count_; ++i) {
     const Option& option = *options_[i];
     const std::string option_str =
-      std::string(" --") + option.name() + "=<" + option.FormatType() + ">";
-    std::cout << std::setiosflags(std::ios::left) <<
-      std::setw(28) << option_str <<
-      std::resetiosflags(std::ios::left) <<
-      option.help() << "(default is " << option.FormatDefault() << ")" <<
-      std::endl;
+        std::string(" --") + option.name() + "=<" + option.FormatType() + ">";
+    std::cout << std::setiosflags(std::ios::left) << std::setw(28) << option_str
+              << std::resetiosflags(std::ios::left) << option.help()
+              << "(default is " << option.FormatDefault() << ")" << std::endl;
   }
 
   const char* how_to =
-    "\n"
-    "Syntax:\n"
-    "To set an option from the command line use the form --option=value for\n"
-    "non-boolean options, and --option/--nooption for booleans.\n"
-    "For example, \"foo --var=46\" will set \"var\" variable to 46.\n"
-    "If \"var\" type is not compatible with the specified argument (in this\n"
-    "case not an integer, a float or a string), then this help message\n"
-    "is displayed and application exits.\n"
-    "\n"
-    "Boolean options can be set using different syntax:\n"
-    "- to set a boolean option to true: \"--var\", \"--var=true\", \"--var=t\","
-    "  \"--var=yes\", \"--var=y\", \"--var=1\".\n"
-    "- to set a boolean option to false: \"--novar\", \"--var=false\","
-    "   \"--var=f\", \"--var=no\", \"--var=n\", \"--var=0\".\n"
-    "Consistently using single-form --option/--nooption is recommended though.";
+      "\n"
+      "Syntax:\n"
+      "To set an option from the command line use the form --option=value for\n"
+      "non-boolean options, and --option/--nooption for booleans.\n"
+      "For example, \"foo --var=46\" will set \"var\" variable to 46.\n"
+      "If \"var\" type is not compatible with the specified argument (in this\n"
+      "case not an integer, a float or a string), then this help message\n"
+      "is displayed and application exits.\n"
+      "\n"
+      "Boolean options can be set using different syntax:\n"
+      "- to set a boolean option to true: \"--var\", \"--var=true\", "
+      "\"--var=t\","
+      "  \"--var=yes\", \"--var=y\", \"--var=1\".\n"
+      "- to set a boolean option to false: \"--novar\", \"--var=false\","
+      "   \"--var=f\", \"--var=no\", \"--var=n\", \"--var=0\".\n"
+      "Consistently using single-form --option/--nooption is recommended "
+      "though.";
   std::cout << how_to << std::endl;
 }
 
@@ -576,8 +571,8 @@ namespace {
 // Sort required options first, and then based on their names.
 bool sort_options(Option* _left, Option* _right) {
   return (_left->required() && !_right->required()) ||
-         ( _left->required() == _right->required() &&
-           std::strcmp(_left->name(), _right->name()) < 0);
+         (_left->required() == _right->required() &&
+          std::strcmp(_left->name(), _right->name()) < 0);
 }
 }  // namespace
 
@@ -603,8 +598,8 @@ bool Parser::RegisterOption(Option* _option) {
   // Test for duplicate options' name.
   for (int i = 0; i < options_count_; ++i) {
     if (StrICmp(options_[i]->name(), _option->name()) == 0) {
-      std::cerr << "Option name:\"" << _option->name() <<
-        "\" already registered." << std::endl;
+      std::cerr << "Option name:\"" << _option->name()
+                << "\" already registered." << std::endl;
       return false;
     }
   }
@@ -641,21 +636,15 @@ void Parser::set_version(const char* _version) {
   version_ = _version ? _version : "unspecified version";
 }
 
-const char* Parser::usage() const {
-  return usage_;
-}
+const char* Parser::usage() const { return usage_; }
 
-const char* Parser::version() const {
-  return version_;
-}
+const char* Parser::version() const { return version_; }
 
 std::string Parser::executable_path() const {
   return std::string(executable_path_begin_, executable_path_end_);
 }
 
-const char* Parser::executable_name() const {
-  return executable_name_;
-}
+const char* Parser::executable_name() const { return executable_name_; }
 }  // options
 }  // ozz
 

@@ -38,11 +38,11 @@ namespace image {
 
 // Pixel format definition.
 struct Format {
- enum Value {
-   kRGB,
-   kBGR,
-   kRGBA,
-   kBGRA,
+  enum Value {
+    kRGB,
+    kBGR,
+    kRGBA,
+    kBGRA,
   };
 };
 
@@ -53,10 +53,8 @@ bool HasAlpha(Format::Value _format);
 int Stride(Format::Value _format);
 
 // Writes as TARGA image to file _filename.
-bool WriteTGA(const char* _filename,
-              int _width, int _height,
-              Format::Value _src_format,
-              const uint8_t* _src_buffer,
+bool WriteTGA(const char* _filename, int _width, int _height,
+              Format::Value _src_format, const uint8_t* _src_buffer,
               bool _write_alpha);
 
 }  // image

@@ -49,15 +49,16 @@ TEST(String, Archive) {
     ozz::String::Std small_o("Forty-six");
     o << small_o;
 
-    ozz::String::Std big_o("Forty-six is a Wedderburn-Etherington number, an "\
-      "enneagonal number and a centered triangular number. It is the sum of "\
-      "the totient function for the first twelve integers. 46 is the largest "\
-      "even integer that can't be expressed as a sum of two abundant numbers."\
-      "46 is the 16th semiprime. 46 is the third semiprime with a semiprime"\
-      "aliquot sum. The aliquot sequence of 46 is (46,26,16,15,9,4,3,1,0)."\
-      "Since it is possible to find sequences of 46 consecutive integers such "\
-      "that each inner member shares a factor with either the first or the "\
-      "last member, 46 is an Erdos-Woods number.");
+    ozz::String::Std big_o(
+        "Forty-six is a Wedderburn-Etherington number, an "
+        "enneagonal number and a centered triangular number. It is the sum of "
+        "the totient function for the first twelve integers. 46 is the largest "
+        "even integer that can't be expressed as a sum of two abundant numbers."
+        "46 is the 16th semiprime. 46 is the third semiprime with a semiprime"
+        "aliquot sum. The aliquot sequence of 46 is (46,26,16,15,9,4,3,1,0)."
+        "Since it is possible to find sequences of 46 consecutive integers "
+        "such that each inner member shares a factor with either the first or "
+        "the last member, 46 is an Erdos-Woods number.");
     o << big_o;
 
     // Rewrite for the string reuse test.

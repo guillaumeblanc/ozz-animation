@@ -30,10 +30,10 @@
 
 #include <cassert>
 
-#include "ozz/base/platform.h"
 #include "ozz/base/maths/math_constant.h"
 #include "ozz/base/maths/math_ex.h"
 #include "ozz/base/maths/vec_float.h"
+#include "ozz/base/platform.h"
 
 namespace ozz {
 namespace math {
@@ -42,16 +42,11 @@ struct Quaternion {
   float x, y, z, w;
 
   // Constructs an uninitialized quaternion.
-  OZZ_INLINE Quaternion() {
-  }
+  OZZ_INLINE Quaternion() {}
 
   // Constructs a quaternion from 4 floating point values.
-  OZZ_INLINE Quaternion(float _x, float _y, float _z, float _w) :
-    x(_x),
-    y(_y),
-    z(_z),
-    w(_w) {
-  }
+  OZZ_INLINE Quaternion(float _x, float _y, float _z, float _w)
+      : x(_x), y(_y), z(_z), w(_w) {}
 
   // Returns a normalized quaternion initialized from an axis angle
   // representation.
@@ -111,8 +106,7 @@ OZZ_INLINE Quaternion operator-(const Quaternion& _q) {
 }
 
 // Returns true if the angle between _a and _b is less than _tolerance.
-OZZ_INLINE bool Compare(const math::Quaternion& _a,
-                        const math::Quaternion& _b,
+OZZ_INLINE bool Compare(const math::Quaternion& _a, const math::Quaternion& _b,
                         float _tolerance) {
   // Computes w component of a-1 * b.
   const float diff_w = _a.x * _b.x + _a.y * _b.y + _a.z * _b.z + _a.w * _b.w;
@@ -132,8 +126,8 @@ OZZ_INLINE Quaternion Normalize(const Quaternion& _q) {
   const float sq_len = _q.x * _q.x + _q.y * _q.y + _q.z * _q.z + _q.w * _q.w;
   assert(sq_len != 0.f && "_q is not normalizable");
   const float inv_len = 1.f / std::sqrt(sq_len);
-  return Quaternion(
-    _q.x * inv_len, _q.y * inv_len, _q.z * inv_len, _q.w * inv_len);
+  return Quaternion(_q.x * inv_len, _q.y * inv_len, _q.z * inv_len,
+                    _q.w * inv_len);
 }
 
 // Returns the normalized quaternion _q if the norm of _q is not 0.
@@ -146,8 +140,8 @@ OZZ_INLINE Quaternion NormalizeSafe(const Quaternion& _q,
     return _safer;
   }
   const float inv_len = 1.f / std::sqrt(sq_len);
-  return Quaternion(
-    _q.x * inv_len, _q.y * inv_len, _q.z * inv_len, _q.w * inv_len);
+  return Quaternion(_q.x * inv_len, _q.y * inv_len, _q.z * inv_len,
+                    _q.w * inv_len);
 }
 
 OZZ_INLINE Quaternion Quaternion::FromAxisAngle(const Float4& _axis_angle) {
@@ -155,10 +149,8 @@ OZZ_INLINE Quaternion Quaternion::FromAxisAngle(const Float4& _axis_angle) {
   const float half_angle = _axis_angle.w * .5f;
   const float sin_half = std::sin(half_angle);
   const float cos_half = std::cos(half_angle);
-  return Quaternion(_axis_angle.x * sin_half,
-                    _axis_angle.y * sin_half,
-                    _axis_angle.z * sin_half,
-                    cos_half);
+  return Quaternion(_axis_angle.x * sin_half, _axis_angle.y * sin_half,
+                    _axis_angle.z * sin_half, cos_half);
 }
 
 // Returns to an axis angle representation of quaternion _q.
@@ -188,12 +180,10 @@ OZZ_INLINE Quaternion Quaternion::FromEuler(const Float3& _euler) {
   const float s2 = std::sin(half_euler.y);
   const float c3 = std::cos(half_euler.z);
   const float s3 = std::sin(half_euler.z);
-  const float c1c2 = c1*c2;
-  const float s1s2 = s1*s2;
-  return Quaternion(c1c2 * s3 + s1s2 * c3,
-                    s1 * c2 * c3 + c1 * s2 * s3,
-                    c1 * s2 * c3 - s1 * c2 * s3,
-                    c1c2 * c3 - s1s2 * s3);
+  const float c1c2 = c1 * c2;
+  const float s1s2 = s1 * s2;
+  return Quaternion(c1c2 * s3 + s1s2 * c3, s1 * c2 * c3 + c1 * s2 * s3,
+                    c1 * s2 * c3 - s1 * c2 * s3, c1c2 * c3 - s1s2 * s3);
 }
 
 // Returns to an Euler representation of quaternion _q.
@@ -216,44 +206,37 @@ OZZ_INLINE Float3 ToEuler(const Quaternion& _q) {
     euler.y = -kPi_2;
     euler.z = 0;
   } else {
-    euler.x = std::atan2(
-      2.f * _q.y * _q.w - 2.f *_q.x * _q.z, sqx - sqy - sqz + sqw);
+    euler.x = std::atan2(2.f * _q.y * _q.w - 2.f * _q.x * _q.z,
+                         sqx - sqy - sqz + sqw);
     euler.y = std::asin(2.f * test / unit);
-    euler.z = std::atan2(
-      2.f * _q.x * _q.w - 2.f * _q.y * _q.z , -sqx + sqy - sqz + sqw);
+    euler.z = std::atan2(2.f * _q.x * _q.w - 2.f * _q.y * _q.z,
+                         -sqx + sqy - sqz + sqw);
   }
   return euler;
 }
 
 // Returns the linear interpolation of quaternion _a and _b with coefficient _f.
-OZZ_INLINE Quaternion Lerp(const Quaternion& _a,
-                           const Quaternion& _b,
+OZZ_INLINE Quaternion Lerp(const Quaternion& _a, const Quaternion& _b,
                            float _f) {
-  return Quaternion((_b.x - _a.x) * _f + _a.x,
-                    (_b.y - _a.y) * _f + _a.y,
-                    (_b.z - _a.z) * _f + _a.z,
-                    (_b.w - _a.w) * _f + _a.w);
+  return Quaternion((_b.x - _a.x) * _f + _a.x, (_b.y - _a.y) * _f + _a.y,
+                    (_b.z - _a.z) * _f + _a.z, (_b.w - _a.w) * _f + _a.w);
 }
 
 // Returns the linear interpolation of quaternion _a and _b with coefficient _f.
-OZZ_INLINE Quaternion NLerp(const Quaternion& _a,
-                            const Quaternion& _b,
+OZZ_INLINE Quaternion NLerp(const Quaternion& _a, const Quaternion& _b,
                             float _f) {
-  const Float4 lerp((_b.x - _a.x) * _f + _a.x,
-                    (_b.y - _a.y) * _f + _a.y,
-                    (_b.z - _a.z) * _f + _a.z,
-                    (_b.w - _a.w) * _f + _a.w);
+  const Float4 lerp((_b.x - _a.x) * _f + _a.x, (_b.y - _a.y) * _f + _a.y,
+                    (_b.z - _a.z) * _f + _a.z, (_b.w - _a.w) * _f + _a.w);
   const float sq_len =
-    lerp.x * lerp.x + lerp.y * lerp.y + lerp.z * lerp.z + lerp.w * lerp.w;
+      lerp.x * lerp.x + lerp.y * lerp.y + lerp.z * lerp.z + lerp.w * lerp.w;
   const float inv_len = 1.f / std::sqrt(sq_len);
-  return Quaternion(
-    lerp.x * inv_len, lerp.y * inv_len, lerp.z * inv_len, lerp.w * inv_len);
+  return Quaternion(lerp.x * inv_len, lerp.y * inv_len, lerp.z * inv_len,
+                    lerp.w * inv_len);
 }
 
 // Returns the spherical interpolation of quaternion _a and _b with
 // coefficient _f.
-OZZ_INLINE Quaternion SLerp(const Quaternion& _a,
-                            const Quaternion& _b,
+OZZ_INLINE Quaternion SLerp(const Quaternion& _a, const Quaternion& _b,
                             float _f) {
   assert(IsNormalized(_a));
   assert(IsNormalized(_b));
@@ -272,20 +255,17 @@ OZZ_INLINE Quaternion SLerp(const Quaternion& _a,
   // If theta = pi then result is not fully defined, we could rotate around any
   // axis normal to _a or _b.
   if (sin_half_theta < .001f) {
-    return Quaternion((_a.x + _b.x) * .5f,
-                      (_a.y + _b.y) * .5f,
-                      (_a.z + _b.z) * .5f,
-                      (_a.w + _b.w) * .5f);
+    return Quaternion((_a.x + _b.x) * .5f, (_a.y + _b.y) * .5f,
+                      (_a.z + _b.z) * .5f, (_a.w + _b.w) * .5f);
   }
 
   const float ratio_a = std::sin((1.f - _f) * half_theta) / sin_half_theta;
   const float ratio_b = std::sin(_f * half_theta) / sin_half_theta;
 
   // Calculate Quaternion.
-  return Quaternion(ratio_a * _a.x + ratio_b * _b.x,
-                    ratio_a * _a.y + ratio_b * _b.y,
-                    ratio_a * _a.z + ratio_b * _b.z,
-                    ratio_a * _a.w + ratio_b * _b.w);
+  return Quaternion(
+      ratio_a * _a.x + ratio_b * _b.x, ratio_a * _a.y + ratio_b * _b.y,
+      ratio_a * _a.z + ratio_b * _b.z, ratio_a * _a.w + ratio_b * _b.w);
 }
 }  // maths
 }  // ozz

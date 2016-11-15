@@ -32,8 +32,8 @@
 #include "ozz/base/io/archive.h"
 #include "ozz/base/io/stream.h"
 
-#include "ozz/options/options.h"
 #include "ozz/base/log.h"
+#include "ozz/options/options.h"
 
 OZZ_OPTIONS_DECLARE_STRING(file, "Specifies input file", "", true)
 OZZ_OPTIONS_DECLARE_INT(tracks, "Number of tracks", 0, true)
@@ -44,12 +44,11 @@ int main(int _argc, char** _argv) {
   // Parses arguments.
   testing::InitGoogleTest(&_argc, _argv);
   ozz::options::ParseResult parse_result = ozz::options::ParseCommandLine(
-    _argc, _argv,
-    "1.0",
-    "Test RawAnimation archive versioning retrocompatibility");
+      _argc, _argv, "1.0",
+      "Test RawAnimation archive versioning retrocompatibility");
   if (parse_result != ozz::options::kSuccess) {
-    return parse_result == ozz::options::kExitSuccess ?
-      EXIT_SUCCESS : EXIT_FAILURE;
+    return parse_result == ozz::options::kExitSuccess ? EXIT_SUCCESS
+                                                      : EXIT_FAILURE;
   }
 
   return RUN_ALL_TESTS();

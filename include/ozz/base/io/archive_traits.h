@@ -53,72 +53,74 @@ class IArchive;
 //
 // This default function call member _Ty::Load/Save function.
 template <typename _Ty>
-inline void Save(OArchive& _archive, const _Ty* _ty, size_t _count) ;
+inline void Save(OArchive& _archive, const _Ty* _ty, size_t _count);
 template <typename _Ty>
-inline void Load(IArchive& _archive,
-                 _Ty* _ty,
-                 size_t _count,
+inline void Load(IArchive& _archive, _Ty* _ty, size_t _count,
                  uint32_t _version);
+
+// clang-format off
 
 // Declares the current (compile time) version of _type.
 // This macro must be used inside namespace ozz::io.
 // Syntax is: OZZ_IO_TYPE_VERSION(46, Foo).
-#define OZZ_IO_TYPE_VERSION(_version, _type)\
-OZZ_STATIC_ASSERT(_version > 0);\
-namespace internal {\
-template <> struct Version<const _type> {\
-  enum { kValue = _version };\
-};\
+#define OZZ_IO_TYPE_VERSION(_version, _type) \
+OZZ_STATIC_ASSERT(_version > 0);             \
+namespace internal {                         \
+template<> struct Version<const _type> {     \
+      enum { kValue = _version };            \
+};                                           \
 }  // internal
 
 // Declares the current (compile time) version of a template _type.
 // This macro must be used inside namespace ozz::io.
 // OZZ_IO_TYPE_VERSION_T1(46, typename, Foo<char>).
-#define OZZ_IO_TYPE_VERSION_T1(_version, _arg0, ...)\
-OZZ_STATIC_ASSERT(_version > 0);\
-namespace internal {\
-template<_arg0 >\
-struct Version<const __VA_ARGS__> {\
-  enum { kValue = _version };\
-};\
+#define OZZ_IO_TYPE_VERSION_T1(_version, _arg0, ...) \
+OZZ_STATIC_ASSERT(_version > 0);                     \
+namespace internal {                                 \
+template<_arg0>                                      \
+struct Version<const __VA_ARGS__> {                  \
+      enum { kValue = _version };                    \
+};                                                   \
 }  // internal
 
 // Declares the current (compile time) version of a template _type.
 // This macro must be used inside namespace ozz::io.
 // OZZ_IO_TYPE_VERSION_T1(46, typename, typename, Foo<char, bool>).
-#define OZZ_IO_TYPE_VERSION_T2(_version, _arg0, _arg1, ...)\
-OZZ_STATIC_ASSERT(_version > 0);\
-namespace internal {\
-template<_arg0, _arg1 >\
-struct Version<const __VA_ARGS__> {\
-  enum { kValue = _version };\
-};\
+#define OZZ_IO_TYPE_VERSION_T2(_version, _arg0, _arg1, ...) \
+OZZ_STATIC_ASSERT(_version > 0);                            \
+namespace internal {                                        \
+template<_arg0, _arg1>                                      \
+struct Version<const __VA_ARGS__> {                         \
+      enum { kValue = _version };                           \
+};                                                          \
+  \
 }  // internal
 
 // Declares the current (compile time) version of a template _type.
 // This macro must be used inside namespace ozz::io.
 // OZZ_IO_TYPE_VERSION_T3(
 //   46, typename, typename, typename, Foo<char, bool, bool>).
-#define OZZ_IO_TYPE_VERSION_T3(_version, _arg0, _arg1, _arg2, ...)\
-OZZ_STATIC_ASSERT(_version > 0);\
-namespace internal {\
-template<_arg0, _arg1, _arg2 >\
-struct Version<const __VA_ARGS__> {\
-  enum { kValue = _version };\
-};\
+#define OZZ_IO_TYPE_VERSION_T3(_version, _arg0, _arg1, _arg2, ...) \
+OZZ_STATIC_ASSERT(_version > 0);                                   \
+namespace internal {                                               \
+template<_arg0, _arg1, _arg2>                                      \
+struct Version<const __VA_ARGS__> {                                \
+      enum { kValue = _version };                                  \
+};                                                                 \
+  \
 }  // internal
 
 // Declares the current (compile time) version of a template _type.
 // This macro must be used inside namespace ozz::io.
 // OZZ_IO_TYPE_VERSION_T4(
 //   46, typename, typename, typename, bool, Foo<char, bool, bool, false>).
-#define OZZ_IO_TYPE_VERSION_T4(_version, _arg0, _arg1, _arg2, _arg3, ...)\
-OZZ_STATIC_ASSERT(_version > 0);\
-namespace internal {\
-template<_arg0, _arg1, _arg2, _arg3 >\
-struct Version<const __VA_ARGS__> {\
-  enum { kValue = _version };\
-};\
+#define OZZ_IO_TYPE_VERSION_T4(_version, _arg0, _arg1, _arg2, _arg3, ...) \
+OZZ_STATIC_ASSERT(_version > 0);                                          \
+namespace internal {                                                      \
+template<_arg0, _arg1, _arg2, _arg3>                                      \
+struct Version<const __VA_ARGS__> {                                       \
+      enum { kValue = _version };                                         \
+};                                                                        \
 }  // internal
 
 // Declares that _type is not versionable. Its version number is 0.
@@ -126,11 +128,11 @@ struct Version<const __VA_ARGS__> {\
 // braking versioning.
 // This macro must be used inside namespace ozz::io.
 // Syntax is: OZZ_IO_TYPE_NOT_VERSIONABLE(Foo).
-#define OZZ_IO_TYPE_NOT_VERSIONABLE(_type)\
-namespace internal {\
-template <> struct Version<const _type> {\
-  enum { kValue = 0 };\
-};\
+#define OZZ_IO_TYPE_NOT_VERSIONABLE(_type) \
+namespace internal {                       \
+template<> struct Version<const _type> {   \
+      enum { kValue = 0 };                 \
+};                                         \
 }  // internal
 
 // Declares that a template _type is not versionable. Its version number is 0.
@@ -139,47 +141,47 @@ template <> struct Version<const _type> {\
 // This macro must be used inside namespace ozz::io.
 // Syntax is:
 // OZZ_IO_TYPE_NOT_VERSIONABLE_T1(typename, Foo<char>).
-#define OZZ_IO_TYPE_NOT_VERSIONABLE_T1(_arg0, ...)\
-namespace internal {\
-template<_arg0 >\
-struct Version<const __VA_ARGS__ > {\
-  enum { kValue = 0 };\
-};\
+#define OZZ_IO_TYPE_NOT_VERSIONABLE_T1(_arg0, ...) \
+namespace internal {                               \
+template<_arg0>                                    \
+struct Version<const __VA_ARGS__> {                \
+      enum { kValue = 0 };                         \
+};                                                 \
 }  // internal
 
 // Decline non-versionable template declaration to 2 template arguments.
 // Syntax is:
 // OZZ_IO_TYPE_NOT_VERSIONABLE_T2(typename, bool, Foo<char, true>).
-#define OZZ_IO_TYPE_NOT_VERSIONABLE_T2(_arg0, _arg1, ...)\
-namespace internal {\
-template<_arg0, _arg1 >\
-struct Version<const __VA_ARGS__ > {\
-  enum { kValue = 0 };\
-};\
+#define OZZ_IO_TYPE_NOT_VERSIONABLE_T2(_arg0, _arg1, ...) \
+namespace internal {                                      \
+template<_arg0, _arg1>                                    \
+struct Version<const __VA_ARGS__> {                       \
+      enum { kValue = 0 };                                \
+};                                                        \
 }  // internal
 
 // Decline non-versionable template declaration to 3 template arguments.
 // Syntax is:
 // OZZ_IO_TYPE_NOT_VERSIONABLE_T3(
 //   typename, typename, bool, Foo<char, int, true>).
-#define OZZ_IO_TYPE_NOT_VERSIONABLE_T3(_arg0, _arg1, _arg2, ...)\
-namespace internal {\
-template<_arg0, _arg1, _arg2 >\
-struct Version<const __VA_ARGS__ > {\
-  enum { kValue = 0 };\
-};\
+#define OZZ_IO_TYPE_NOT_VERSIONABLE_T3(_arg0, _arg1, _arg2, ...) \
+namespace internal {                                             \
+template<_arg0, _arg1, _arg2>                                    \
+struct Version<const __VA_ARGS__> {                              \
+      enum { kValue = 0 };                                       \
+};                                                               \
 }  // internal
 
 // Decline non-versionable template declaration to 4 template arguments.
 // Syntax is:
 // OZZ_IO_TYPE_NOT_VERSIONABLE_T4(
 //   typename, typename, bool, typename, Foo<char, int, true, bool>).
-#define OZZ_IO_TYPE_NOT_VERSIONABLE_T4(_arg0, _arg1, _arg2, _arg3, ...)\
-namespace internal {\
-template<_arg0, _arg1, _arg2, _arg3 >\
-struct Version<const __VA_ARGS__ > {\
-  enum { kValue = 0 };\
-};\
+#define OZZ_IO_TYPE_NOT_VERSIONABLE_T4(_arg0, _arg1, _arg2, _arg3, ...) \
+namespace internal {                                                    \
+template<_arg0, _arg1, _arg2, _arg3>                                    \
+struct Version<const __VA_ARGS__> {                                     \
+      enum { kValue = 0 };                                              \
+};                                                                      \
 }  // internal
 
 // Declares the tag of a template _type.
@@ -188,26 +190,31 @@ struct Version<const __VA_ARGS__ > {\
 // check is performed.
 // This macro must be used inside namespace ozz::io.
 // OZZ_IO_TYPE_TAG("FourtySix", Foo).
-#define OZZ_IO_TYPE_TAG(_tag, _type)\
-namespace internal {\
-template <> struct Tag<const _type> {\
-  /* Length includes null terminated character to detect partial tag mapping.*/\
-  enum { kTagLength = OZZ_ARRAY_SIZE(_tag) };\
-  static const char* Get() {\
-    return _tag;\
-  }\
-};\
+#define OZZ_IO_TYPE_TAG(_tag, _type)                                     \
+namespace internal {                                                     \
+template<> struct Tag<const _type> {                                     \
+      /* Length includes null terminated character to detect partial */  \
+      /* tag mapping.*/                                                  \
+      enum { kTagLength = OZZ_ARRAY_SIZE(_tag) };                        \
+      static const char* Get() { return _tag; }                          \
+};                                                                       \
 }  // internal
+
+// clang-format on
 
 namespace internal {
 // Definition of version specializable template struct.
 // There's no default implementation in order to force user to define it, which
 // in turn forces those who want to serialize an object to include the file that
 // defines it's version. This helps with detecting issues at compile time.
-template <typename _Ty> struct Version;
+template <typename _Ty>
+struct Version;
 
 // Defines default tag value, which is disabled.
-template <typename _Ty> struct Tag { enum { kTagLength = 0 }; };
+template <typename _Ty>
+struct Tag {
+  enum { kTagLength = 0 };
+};
 }  // internal
 }  // io
 }  // ozz

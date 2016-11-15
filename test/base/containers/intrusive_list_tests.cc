@@ -29,8 +29,8 @@
 
 #ifdef _MSC_VER
 #pragma warning(push)
-#pragma warning(disable:4127)  // constant conditional expression
-#endif  // _MSC_VER
+#pragma warning(disable : 4127)  // constant conditional expression
+#endif                           // _MSC_VER
 
 #include <list>
 
@@ -54,7 +54,7 @@ using ozz::containers::Option;
 // The default implementation allows to run all tests.
 template <typename _Ty>
 struct TestAssertCompliance {
-  enum {kValue = 1};
+  enum { kValue = 1 };
 };
 
 // Check compiler settings for std/crt debug level availability.
@@ -69,40 +69,35 @@ struct TestAssertCompliance {
 // Specializes for std::list,  according to compilation settings.
 template <typename _Ty>
 struct TestAssertCompliance<std::list<_Ty> > {
-  enum { kValue = HAS_STD_ASSERTION};
+  enum { kValue = HAS_STD_ASSERTION };
 };
 
 // Defines a test object that inherits from IntrusiveList::Hook in order to be
 // listed by an IntrusiveList.
 // Every instance is assigned a value (obtained for a global instance counter)
 // used for instance sorting and comparison.
-template<typename _Options0 = Option<> >
+template <typename _Options0 = Option<> >
 class TestObj1 : public IntrusiveList<TestObj1<_Options0>, _Options0>::Hook {
  public:
-
   // Constructs a TestObj1 and increments global TestObj1 counter.
   TestObj1() : instance_(s_instance_counter_++) {}
 
   // Does not copy the Node itself, just maintains the assigned instance number.
-  TestObj1(TestObj1 const& _r)  // NOLINT cannot be explicit as used by std::list
-    : IntrusiveList<TestObj1<_Options0>, _Options0>::Hook(),
-      instance_(_r.instance_) { 
-  }
+  TestObj1(
+      TestObj1 const& _r)  // NOLINT cannot be explicit as used by std::list
+      : IntrusiveList<TestObj1<_Options0>, _Options0>::Hook(),
+        instance_(_r.instance_) {}
 
   // Implements comparison operators.
-  bool operator == (TestObj1 const& _r) const {
+  bool operator==(TestObj1 const& _r) const {
     return instance_ == _r.instance_;
   }
-  bool operator < (TestObj1 const& _r) const {
-    return instance_ < _r.instance_;
-  }
-  bool operator > (TestObj1 const& _r) const {
-    return instance_ > _r.instance_;
-  }
+  bool operator<(TestObj1 const& _r) const { return instance_ < _r.instance_; }
+  bool operator>(TestObj1 const& _r) const { return instance_ > _r.instance_; }
 
  private:
   // Disallows assignment operator.
-  void operator = (TestObj1 const& _r);
+  void operator=(TestObj1 const& _r);
 
   // Assigned instance value.
   const int instance_;
@@ -111,28 +106,27 @@ class TestObj1 : public IntrusiveList<TestObj1<_Options0>, _Options0>::Hook {
   static int s_instance_counter_;
 };
 
-template<typename _Options0> int TestObj1<_Options0>::s_instance_counter_ = 0;
+template <typename _Options0>
+int TestObj1<_Options0>::s_instance_counter_ = 0;
 
 // Defines a test object that inherits from TestObj1 in order to be listed by
 // two IntrusiveList at a time.
-template<typename _Options1, typename _Options2>
-class TestObj2 : public TestObj1<_Options1>,
-                 public IntrusiveList<TestObj2<_Options1, _Options2>,
-                                      _Options2>::Hook {
+template <typename _Options1, typename _Options2>
+class TestObj2
+    : public TestObj1<_Options1>,
+      public IntrusiveList<TestObj2<_Options1, _Options2>, _Options2>::Hook {
  public:
-
   // Constructs a default TestObj2.
   TestObj2() {}
 
   // Does not copy the Node itself, just maintains the assigned instance number.
   explicit TestObj2(TestObj2 const& _r)
-    : TestObj1<_Options1>(_r),
-      IntrusiveList<TestObj2<_Options1, _Options2>, _Options2>::Hook() {
-  }
+      : TestObj1<_Options1>(_r),
+        IntrusiveList<TestObj2<_Options1, _Options2>, _Options2>::Hook() {}
 };
 
 // Applies the _Test function to some std::list<> and Intrusive<> types.
-template<template <typename> class _Test>
+template <template <typename> class _Test>
 void BindTypes() {
   // std::list
   _Test<std::list<TestObj1<> > >()();
@@ -177,8 +171,7 @@ struct CompliancePushPopFront {
     }
     l.push_front(first);
     EXPECT_TRUE(l.size() == 1 && l.front() == first && l.back() == first);
-    EXPECT_TRUE(r_const_l.size() == 1 &&
-                r_const_l.front() == first &&
+    EXPECT_TRUE(r_const_l.size() == 1 && r_const_l.front() == first &&
                 r_const_l.back() == first);
     l.push_front(second);
     EXPECT_TRUE(l.size() == 2 && l.front() == second && l.back() == first);
@@ -204,8 +197,7 @@ struct CompliancePushPopBack {
     const _List& r_const_l = l;
     l.push_back(first);
     EXPECT_TRUE(l.size() == 1 && l.front() == first && l.back() == first);
-    EXPECT_TRUE(r_const_l.size() == 1 &&
-                r_const_l.front() == first &&
+    EXPECT_TRUE(r_const_l.size() == 1 && r_const_l.front() == first &&
                 r_const_l.back() == first);
     l.push_back(second);
     EXPECT_TRUE(l.size() == 2 && l.front() == first && l.back() == second);
@@ -223,7 +215,7 @@ TEST(CompliancePushPopBack, IntrusiveList) {
 // Tests compliance of mixed "front" and "back" push/pop.
 template <typename _List>
 struct CompliancePushPopMixed {
-    void operator()() {
+  void operator()() {
     typename _List::value_type first;
     typename _List::value_type second;
     typename _List::value_type third;
@@ -305,9 +297,7 @@ struct ComplianceBegin {
   }
 };
 
-TEST(ComplianceBegin, IntrusiveList) {
-  BindTypes<ComplianceBegin>();
-}
+TEST(ComplianceBegin, IntrusiveList) { BindTypes<ComplianceBegin>(); }
 
 // Tests compliance of std::list end iterator specifications.
 template <typename _List>
@@ -368,9 +358,7 @@ struct ComplianceEnd {
   }
 };
 
-TEST(ComplianceEnd, IntrusiveList) {
-  BindTypes<ComplianceEnd>();
-}
+TEST(ComplianceEnd, IntrusiveList) { BindTypes<ComplianceEnd>(); }
 
 // Tests compliance with std::list typedefs.
 template <typename _List>
@@ -403,9 +391,8 @@ struct ComplianceTypedef {
     typename _List::reference r = l.front();
     EXPECT_TRUE(r == first);
 
-    typename _List::difference_type diff = std::count(l.begin(),
-                                                      l.end(),
-                                                      first);
+    typename _List::difference_type diff =
+        std::count(l.begin(), l.end(), first);
     EXPECT_EQ(diff, 1);
 
     typename _List::size_type size = l.size();
@@ -415,9 +402,7 @@ struct ComplianceTypedef {
   }
 };
 
-TEST(ComplianceTypedef, IntrusiveList) {
-  BindTypes<ComplianceTypedef>();
-}
+TEST(ComplianceTypedef, IntrusiveList) { BindTypes<ComplianceTypedef>(); }
 
 // Tests compliance of std::list iterator specifications.
 template <typename _List>
@@ -462,9 +447,12 @@ struct ComplianceIterator {
     if (void(0), TestAssertCompliance<_List>::kValue) {
       // Test comparing iterators of different lists
       EXPECT_ASSERTION(void(typename _List::iterator() == l1.begin()), "");
-      EXPECT_ASSERTION(void(typename _List::const_iterator() == l1.begin()), "");
-      EXPECT_ASSERTION(void(l1.begin() != static_cast<const _List&>(l2).begin()), "");
-      EXPECT_ASSERTION(void(l1.end() != static_cast<const _List&>(l2).end()), "");
+      EXPECT_ASSERTION(void(typename _List::const_iterator() == l1.begin()),
+                       "");
+      EXPECT_ASSERTION(
+          void(l1.begin() != static_cast<const _List&>(l2).begin()), "");
+      EXPECT_ASSERTION(void(l1.end() != static_cast<const _List&>(l2).end()),
+                       "");
       EXPECT_ASSERTION(void(rcosnt_l1.begin() != l2.begin()), "");
       EXPECT_ASSERTION(void(rcosnt_l1.end() != l2.end()), "");
 
@@ -500,18 +488,14 @@ struct ComplianceIterator {
         EXPECT_ASSERTION(std::advance(it, 2), "");
       }
     }
-    {
-      EXPECT_EQ(std::distance(l1.begin(), l1.end()), 1);
-    }
+    { EXPECT_EQ(std::distance(l1.begin(), l1.end()), 1); }
 
     l1.clear();
     l2.clear();
   }
 };
 
-TEST(ComplianceIterator, IntrusiveList) {
-  BindTypes<ComplianceIterator>();
-}
+TEST(ComplianceIterator, IntrusiveList) { BindTypes<ComplianceIterator>(); }
 
 // Tests compliance with "rbegin" function specifications.
 template <typename _List>
@@ -554,9 +538,7 @@ struct ComplianceRBegin {
   }
 };
 
-TEST(ComplianceRBegin, IntrusiveList) {
-  BindTypes<ComplianceRBegin>();
-}
+TEST(ComplianceRBegin, IntrusiveList) { BindTypes<ComplianceRBegin>(); }
 
 // Tests compliance with "rend" function specifications.
 template <typename _List>
@@ -604,9 +586,7 @@ struct ComplianceREnd {
   }
 };
 
-TEST(ComplianceREnd, IntrusiveList) {
-  BindTypes<ComplianceREnd>();
-}
+TEST(ComplianceREnd, IntrusiveList) { BindTypes<ComplianceREnd>(); }
 
 // Tests compliance with clear/empty specifications.
 template <typename _List>
@@ -629,9 +609,7 @@ struct ComplianceClearEmpty {
   }
 };
 
-TEST(ComplianceClearEmpty, IntrusiveList) {
-  BindTypes<ComplianceClearEmpty>();
-}
+TEST(ComplianceClearEmpty, IntrusiveList) { BindTypes<ComplianceClearEmpty>(); }
 
 // Tests compliance with "remove" function specifications.
 template <typename _List>
@@ -660,20 +638,17 @@ struct ComplianceRemove {
   }
 };
 
-TEST(ComplianceRemove, IntrusiveList) {
-  BindTypes<ComplianceRemove>();
-}
+TEST(ComplianceRemove, IntrusiveList) { BindTypes<ComplianceRemove>(); }
 
 // Implements a functor used to test "remove_if" function.
-template<typename _List>
+template <typename _List>
 class is_to_be_removed {
  public:
   explicit is_to_be_removed(int _which) : which_(_which) {}
-  bool operator()(typename _List::const_reference) {
-    return which_-- == 0;
-  }
+  bool operator()(typename _List::const_reference) { return which_-- == 0; }
+
  private:
-  void operator = (const is_to_be_removed&);
+  void operator=(const is_to_be_removed&);
 
   int which_;
 };
@@ -699,9 +674,7 @@ struct ComplianceRemoveIf {
   }
 };
 
-TEST(ComplianceRemoveIf, IntrusiveList) {
-  BindTypes<ComplianceRemoveIf>();
-}
+TEST(ComplianceRemoveIf, IntrusiveList) { BindTypes<ComplianceRemoveIf>(); }
 
 // Tests compliance with "erase" function specifications.
 template <typename _List>
@@ -745,9 +718,7 @@ struct ComplianceErase {
   }
 };
 
-TEST(ComplianceErase, IntrusiveList) {
-  BindTypes<ComplianceErase>();
-}
+TEST(ComplianceErase, IntrusiveList) { BindTypes<ComplianceErase>(); }
 
 // Tests compliance with "insert" function specifications.
 template <typename _List>
@@ -778,9 +749,7 @@ struct ComplianceInsert {
   }
 };
 
-TEST(ComplianceInsert, IntrusiveList) {
-  BindTypes<ComplianceInsert>();
-}
+TEST(ComplianceInsert, IntrusiveList) { BindTypes<ComplianceInsert>(); }
 
 // Tests compliance with "reverse" function specifications.
 template <typename _List>
@@ -832,9 +801,7 @@ struct ComplianceReverse {
   }
 };
 
-TEST(ComplianceReverse, IntrusiveList) {
-  BindTypes<ComplianceReverse>();
-}
+TEST(ComplianceReverse, IntrusiveList) { BindTypes<ComplianceReverse>(); }
 
 // Tests compliance with "splice" function specifications.
 template <typename _List>
@@ -1039,9 +1006,7 @@ struct ComplianceSplice {
   }
 };
 
-TEST(ComplianceSplice, IntrusiveList) {
-  BindTypes<ComplianceSplice>();
-}
+TEST(ComplianceSplice, IntrusiveList) { BindTypes<ComplianceSplice>(); }
 
 // Tests compliance with "swap" function specifications.
 template <typename _List>
@@ -1125,9 +1090,7 @@ struct ComplianceSwap {
   }
 };
 
-TEST(ComplianceSwap, IntrusiveList) {
-  BindTypes<ComplianceSwap>();
-}
+TEST(ComplianceSwap, IntrusiveList) { BindTypes<ComplianceSwap>(); }
 
 // Tests compliance with "sort" function specifications.
 template <typename _List>
@@ -1153,7 +1116,7 @@ struct ComplianceSort {
     // Sort a list of 2 elements
     l.push_back(second);
 
-      l.sort();
+    l.sort();
 
     l.push_back(third);
     l.push_back(fourth);
@@ -1198,9 +1161,7 @@ struct ComplianceSort {
   }
 };
 
-TEST(ComplianceSort, IntrusiveList) {
-  BindTypes<ComplianceSort>();
-}
+TEST(ComplianceSort, IntrusiveList) { BindTypes<ComplianceSort>(); }
 
 // Tests compliance with "merge" function specifications.
 template <typename _List>
@@ -1373,19 +1334,19 @@ struct ComplianceMerge {
 
       // l2 and l3 are not sorted "greater"
       if (void(0), TestAssertCompliance<_List>::kValue) {
-        EXPECT_ASSERTION(l2.merge(
-          l3, std::greater<typename _List::value_type>()), "");
+        EXPECT_ASSERTION(
+            l2.merge(l3, std::greater<typename _List::value_type>()), "");
       }
-      
+
       // So sort l2
       l2.sort(std::greater<typename _List::value_type>());
 
       // l3 is still not sorted  "greater"
       if (void(0), TestAssertCompliance<_List>::kValue) {
-        EXPECT_ASSERTION(l2.merge(
-          l3, std::greater<typename _List::value_type>()), "");
+        EXPECT_ASSERTION(
+            l2.merge(l3, std::greater<typename _List::value_type>()), "");
       }
-      
+
       // So sort l3
       l3.sort(std::greater<typename _List::value_type>());
 
@@ -1414,21 +1375,20 @@ struct ComplianceMerge {
   }
 };
 
-TEST(ComplianceMerge, IntrusiveList) {
-  BindTypes<ComplianceMerge>();
-}
+TEST(ComplianceMerge, IntrusiveList) { BindTypes<ComplianceMerge>(); }
 
 // Always return the boolean _b.
-template<typename _T, bool _b> bool Always(_T) { return _b; }
+template <typename _T, bool _b>
+bool Always(_T) {
+  return _b;
+}
 
 // Counts the number of time a functor is called
 template <typename _List>
 class Count {
  public:
   Count() : num_(0) {}
-  void operator()(typename _List::const_reference) {
-    ++num_;
-  }
+  void operator()(typename _List::const_reference) { ++num_; }
   int num_;
 };
 
@@ -1529,12 +1489,10 @@ struct ComplianceAlgorithm {
 
     // Count algorithms
     EXPECT_EQ(std::count(l1.begin(), l1.end(), second), 1);
-    EXPECT_EQ(std::count_if(l1.begin(),
-                            l1.end(),
+    EXPECT_EQ(std::count_if(l1.begin(), l1.end(),
                             Always<typename _List::const_reference, false>),
               0);
-    EXPECT_EQ(std::count_if(l1.begin(),
-                            l1.end(),
+    EXPECT_EQ(std::count_if(l1.begin(), l1.end(),
                             Always<typename _List::const_reference, true>),
               2);
 
@@ -1547,9 +1505,7 @@ struct ComplianceAlgorithm {
   }
 };
 
-TEST(ComplianceAlgorithm, IntrusiveList) {
-  BindTypes<ComplianceAlgorithm>();
-}
+TEST(ComplianceAlgorithm, IntrusiveList) { BindTypes<ComplianceAlgorithm>(); }
 
 // Tests IntrusiveList kSafe linkMode specific behavior.
 TEST(SafeLink, IntrusiveList) {
@@ -1560,7 +1516,7 @@ TEST(SafeLink, IntrusiveList) {
   LocalTestObj obj;
   EXPECT_FALSE(obj.is_linked());
 
-  { // Test link state
+  {  // Test link state
     List l, other;
 
 #ifndef NDEBUG
@@ -1586,11 +1542,21 @@ TEST(SafeLink, IntrusiveList) {
   }
 
   // Destroy the list before the hook
-  EXPECT_ASSERTION({List l; l.push_front(obj); }, "");
+  EXPECT_ASSERTION(
+      {
+        List l;
+        l.push_front(obj);
+      },
+      "");
 
-  { // Destroy the hook before the list
+  {  // Destroy the hook before the list
     List l;
-    EXPECT_ASSERTION({LocalTestObj obj2; l.push_front(obj2); }, "");
+    EXPECT_ASSERTION(
+        {
+          LocalTestObj obj2;
+          l.push_front(obj2);
+        },
+        "");
   }
 }
 
@@ -1603,7 +1569,7 @@ TEST(AutoLink, IntrusiveList) {
   LocalTestObj obj;
   EXPECT_TRUE(!obj.is_linked());
 
-  { // Test link state
+  {  // Test link state
     List l, other;
 
 #ifndef NDEBUG
@@ -1628,13 +1594,13 @@ TEST(AutoLink, IntrusiveList) {
     EXPECT_ASSERTION(obj.unlink(), "");
   }
 
-  { // Destroy the list before the hook
+  {  // Destroy the list before the hook
     List l;
     l.push_front(obj);
   }
   EXPECT_TRUE(!obj.is_linked());
 
-  { // Destroy the hook before the list
+  {  // Destroy the hook before the list
     List l;
     {
       LocalTestObj obj2;
@@ -1653,7 +1619,7 @@ TEST(UnsafeLink, IntrusiveList) {
   LocalTestObj obj;
   EXPECT_TRUE(!obj.is_linked());
 
-  { // Test link state
+  {  // Test link state
     List l, other;
 
 #ifndef NDEBUG
@@ -1678,12 +1644,12 @@ TEST(UnsafeLink, IntrusiveList) {
     EXPECT_ASSERTION(obj.unlink(), "");
   }
 
-  { // Destroy the list before the hook
+  {  // Destroy the list before the hook
     List l;
     l.push_front(obj);
   }  // obj is in a undefined state now
 
-  { // Destroy the hook before the list
+  {  // Destroy the hook before the list
     List l;
     {
       LocalTestObj obj2;

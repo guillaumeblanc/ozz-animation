@@ -33,23 +33,19 @@
 namespace ozz {
 namespace io {
 template <>
-void Save(OArchive& _archive,
-          const String::Std* _values,
-          size_t _count) {
- for (size_t i = 0; i < _count; i++) {
-   const ozz::String::Std& string = _values[i];
+void Save(OArchive& _archive, const String::Std* _values, size_t _count) {
+  for (size_t i = 0; i < _count; i++) {
+    const ozz::String::Std& string = _values[i];
 
-   // Get size excluding null terminating character.
-   uint32_t size = static_cast<uint32_t>(string.size());
-   _archive << size;
-   _archive << ozz::io::MakeArray(string.c_str(), size);
- }
+    // Get size excluding null terminating character.
+    uint32_t size = static_cast<uint32_t>(string.size());
+    _archive << size;
+    _archive << ozz::io::MakeArray(string.c_str(), size);
+  }
 }
 
 template <>
-void Load(IArchive& _archive,
-          String::Std* _values,
-          size_t _count,
+void Load(IArchive& _archive, String::Std* _values, size_t _count,
           uint32_t _version) {
   (void)_version;
   for (size_t i = 0; i < _count; i++) {
@@ -66,7 +62,8 @@ void Load(IArchive& _archive,
     char buffer[128];
     for (size_t to_read = size; to_read != 0;) {
       // Read from the archive to the local temporary buffer.
-      const size_t to_read_this_loop = math::Min(to_read, OZZ_ARRAY_SIZE(buffer));
+      const size_t to_read_this_loop =
+          math::Min(to_read, OZZ_ARRAY_SIZE(buffer));
       _archive >> ozz::io::MakeArray(buffer, to_read_this_loop);
       to_read -= to_read_this_loop;
 

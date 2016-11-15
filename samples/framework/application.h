@@ -71,8 +71,8 @@ class Application {
   // EXIT_FAILURE if an error occurred during initialization or the main loop.
   // Only one application can be run at a time, otherwise EXIT_FAILURE is
   // returned.
-  int Run(int _argc, const char** _argv,
-          const char* _version, const char* _title);
+  int Run(int _argc, const char** _argv, const char* _version,
+          const char* _title);
 
  private:
   // Provides initialization event to the inheriting application. Called while
@@ -123,8 +123,8 @@ class Application {
 
   // Implements framework internal one iteration loop function.
   enum LoopStatus {
-    kContinue,  // Can continue with next loop.
-    kBreak,  // Should stop looping (ex: exit).
+    kContinue,      // Can continue with next loop.
+    kBreak,         // Should stop looping (ex: exit).
     kBreakFailure,  // // Should stop looping beacause something went wrong.
   };
   LoopStatus OneLoop(int _loops);
@@ -155,7 +155,7 @@ class Application {
 
   // Disallow copy and assignment.
   Application(const Application& _application);
-  void operator = (const Application& _application);
+  void operator=(const Application& _application);
 
   // A pointer to the current, and only, running application.
   static Application* application_;

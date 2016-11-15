@@ -33,11 +33,9 @@ namespace ozz {
 namespace animation {
 namespace offline {
 
-RawSkeleton::RawSkeleton() {
-}
+RawSkeleton::RawSkeleton() {}
 
-RawSkeleton::~RawSkeleton() {
-}
+RawSkeleton::~RawSkeleton() {}
 
 bool RawSkeleton::Validate() const {
   if (num_joints() > Skeleton::kMaxJoints) {
@@ -48,9 +46,7 @@ bool RawSkeleton::Validate() const {
 
 namespace {
 struct JointCounter {
-  JointCounter() :
-    num_joints(0) {
-  }
+  JointCounter() : num_joints(0) {}
   void operator()(const RawSkeleton::Joint&, const RawSkeleton::Joint*) {
     ++num_joints;
   }
