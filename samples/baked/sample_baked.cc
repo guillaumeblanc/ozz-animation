@@ -25,47 +25,40 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/animation/runtime/skeleton.h"
 #include "ozz/animation/runtime/animation.h"
-#include "ozz/animation/runtime/sampling_job.h"
 #include "ozz/animation/runtime/local_to_model_job.h"
+#include "ozz/animation/runtime/sampling_job.h"
+#include "ozz/animation/runtime/skeleton.h"
 
 #include "ozz/base/log.h"
 
 #include "ozz/base/memory/allocator.h"
 
-#include "ozz/base/maths/vec_float.h"
-#include "ozz/base/maths/simd_math.h"
 #include "ozz/base/maths/box.h"
+#include "ozz/base/maths/simd_math.h"
 #include "ozz/base/maths/soa_transform.h"
+#include "ozz/base/maths/vec_float.h"
 
 #include "ozz/options/options.h"
 
 #include "framework/application.h"
-#include "framework/renderer.h"
 #include "framework/imgui.h"
+#include "framework/renderer.h"
 #include "framework/utils.h"
 
 // Skeleton archive can be specified as an option.
-OZZ_OPTIONS_DECLARE_STRING(
-  skeleton,
-  "Path to the skeleton (ozz archive format).",
-  "media/baked_skeleton.ozz",
-  false)
+OZZ_OPTIONS_DECLARE_STRING(skeleton,
+                           "Path to the skeleton (ozz archive format).",
+                           "media/baked_skeleton.ozz", false)
 
 // Animation archive can be specified as an option.
-OZZ_OPTIONS_DECLARE_STRING(
-  animation,
-  "Path to the animation (ozz archive format).",
-  "media/baked_animation.ozz",
-  false)
+OZZ_OPTIONS_DECLARE_STRING(animation,
+                           "Path to the animation (ozz archive format).",
+                           "media/baked_animation.ozz", false)
 
 class BakedSampleApplication : public ozz::sample::Application {
  public:
-  BakedSampleApplication()
-    : cache_(NULL),
-      camera_index_(-1) {
-  }
+  BakedSampleApplication() : cache_(NULL), camera_index_(-1) {}
 
  protected:
   // Updates current animation time.
@@ -100,12 +93,12 @@ class BakedSampleApplication : public ozz::sample::Application {
 
     // Reading skeleton.
     if (!ozz::sample::LoadSkeleton(OPTIONS_skeleton, &skeleton_)) {
-        return false;
+      return false;
     }
 
     // Reading animation.
     if (!ozz::sample::LoadAnimation(OPTIONS_animation, &animation_)) {
-        return false;
+      return false;
     }
 
     // Allocates runtime buffers.
@@ -137,13 +130,11 @@ class BakedSampleApplication : public ozz::sample::Application {
 
   // Samples animation, transforms to model space and renders.
   virtual bool OnDisplay(ozz::sample::Renderer* _renderer) {
-
     // Render a 1m size boxes for every joint. The scale of each box come from
     // the animation.
     const ozz::sample::Renderer::Color color = {0xff, 0xff, 0xff, 0xff};
     const float size = .5f;
-    const ozz::math::Box box(ozz::math::Float3(-size),
-                             ozz::math::Float3(size));
+    const ozz::math::Box box(ozz::math::Float3(-size), ozz::math::Float3(size));
     return _renderer->DrawBoxShaded(box, models_, color);
   }
 
@@ -175,7 +166,6 @@ class BakedSampleApplication : public ozz::sample::Application {
   }
 
  private:
-
   // Playback animation controller. This is a utility class that helps with
   // controlling animation playback time.
   ozz::sample::PlaybackController controller_;
@@ -200,7 +190,6 @@ class BakedSampleApplication : public ozz::sample::Application {
 };
 
 int main(int _argc, const char** _argv) {
-  const char* title =
-    "Ozz-animation sample: Baked rigid bodies";
+  const char* title = "Ozz-animation sample: Baked rigid bodies";
   return BakedSampleApplication().Run(_argc, _argv, "1.0", title);
 }

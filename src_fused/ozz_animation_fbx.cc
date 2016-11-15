@@ -85,10 +85,8 @@ struct RawAnimation;
 
 namespace fbx {
 
-bool ExtractAnimations(FbxSceneLoader* _scene_loader,
-                       const Skeleton& _skeleton,
-                       float _sampling_rate,
-                       Animations* _animations);
+bool ExtractAnimations(FbxSceneLoader* _scene_loader, const Skeleton& _skeleton,
+                       float _sampling_rate, Animations* _animations);
 
 }  // fbx
 }  // offline
@@ -300,10 +298,8 @@ struct RawAnimation;
 
 namespace fbx {
 
-bool ExtractAnimations(FbxSceneLoader* _scene_loader,
-                       const Skeleton& _skeleton,
-                       float _sampling_rate,
-                       Animations* _animations);
+bool ExtractAnimations(FbxSceneLoader* _scene_loader, const Skeleton& _skeleton,
+                       float _sampling_rate, Animations* _animations);
 
 }  // fbx
 }  // offline

@@ -35,11 +35,14 @@
 TEST(Validity, Box) {
   EXPECT_FALSE(ozz::math::Box().is_valid());
   EXPECT_FALSE(ozz::math::Box(ozz::math::Float3(0.f, 1.f, 2.f),
-                              ozz::math::Float3(0.f, -1.f, 2.f)).is_valid());
+                              ozz::math::Float3(0.f, -1.f, 2.f))
+                   .is_valid());
   EXPECT_TRUE(ozz::math::Box(ozz::math::Float3(0.f, -1.f, 2.f),
-                             ozz::math::Float3(0.f, 1.f, 2.f)).is_valid());
+                             ozz::math::Float3(0.f, 1.f, 2.f))
+                  .is_valid());
   EXPECT_TRUE(ozz::math::Box(ozz::math::Float3(0.f, 1.f, 2.f),
-                             ozz::math::Float3(0.f, 1.f, 2.f)).is_valid());
+                             ozz::math::Float3(0.f, 1.f, 2.f))
+                  .is_valid());
 }
 
 TEST(Inside, Box) {
@@ -88,25 +91,21 @@ TEST(Merge, Box) {
 }
 
 TEST(Build, Box) {
-
   const struct {
     ozz::math::Float3 value;
     char pad;
   } points[] = {
-    {ozz::math::Float3(0.f, 0.f, 0.f), 0},
-    {ozz::math::Float3(1.f, -1.f, 0.f), 0},
-    {ozz::math::Float3(0.f, 0.f, 46.f), 0},
-    {ozz::math::Float3(-27.f, 0.f, 0.f), 0},
-    {ozz::math::Float3(0.f, 58.f, 0.f), 0},
+      {ozz::math::Float3(0.f, 0.f, 0.f), 0},
+      {ozz::math::Float3(1.f, -1.f, 0.f), 0},
+      {ozz::math::Float3(0.f, 0.f, 46.f), 0},
+      {ozz::math::Float3(-27.f, 0.f, 0.f), 0},
+      {ozz::math::Float3(0.f, 58.f, 0.f), 0},
   };
 
-  const ozz::math::Box invalid(&points->value,
-                               sizeof(points[0]),
-                               0);
+  const ozz::math::Box invalid(&points->value, sizeof(points[0]), 0);
   EXPECT_FALSE(invalid.is_valid());
 
-  const ozz::math::Box valid(&points->value,
-                             sizeof(points[0]),
+  const ozz::math::Box valid(&points->value, sizeof(points[0]),
                              OZZ_ARRAY_SIZE(points));
   EXPECT_TRUE(valid.is_valid());
   EXPECT_FLOAT3_EQ(valid.min, -27.f, -1.f, 0.f);

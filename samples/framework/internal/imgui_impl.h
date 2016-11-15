@@ -51,18 +51,13 @@ class RendererImpl;
 // Immediate mode gui implementation.
 class ImGuiImpl : public ImGui {
  public:
-
   ImGuiImpl();
   virtual ~ImGuiImpl();
 
   // Input state.
   struct Inputs {
     // Default input values.
-    Inputs()
-      : mouse_x(0),
-        mouse_y(0),
-        lmb_pressed(false) {
-    }
+    Inputs() : mouse_x(0), mouse_y(0), lmb_pressed(false) {}
 
     // Cursor x position. 0 indicates the screen left border.
     int mouse_x;
@@ -82,73 +77,59 @@ class ImGuiImpl : public ImGui {
   void EndFrame();
 
  protected:
-
   // Starts ImGui interface implementation.
   // See imgui.h for virtual function specifications.
 
-  virtual void BeginContainer(const char* _title,
-                              const math::RectFloat* _rect,
-                              bool* _open,
-                              bool _constrain);
+  virtual void BeginContainer(const char* _title, const math::RectFloat* _rect,
+                              bool* _open, bool _constrain);
 
   virtual void EndContainer();
 
   virtual bool DoButton(const char* _label, bool _enabled, bool* _state);
 
-  virtual bool DoSlider(const char* _label,
-                        float _min, float _max, float* _value,
-                        float _pow,
-                        bool _enabled);
+  virtual bool DoSlider(const char* _label, float _min, float _max,
+                        float* _value, float _pow, bool _enabled);
 
-  virtual bool DoSlider(const char* _label,
-                        int _min, int _max, int* _value,
-                        float _pow,
-                        bool _enabled);
+  virtual bool DoSlider(const char* _label, int _min, int _max, int* _value,
+                        float _pow, bool _enabled);
 
   virtual bool DoCheckBox(const char* _label, bool* _state, bool _enabled);
 
-  virtual bool DoRadioButton(int _ref,
-                             const char* _label,
-                             int* _value,
+  virtual bool DoRadioButton(int _ref, const char* _label, int* _value,
                              bool _enabled);
 
-  virtual void DoLabel(const char* _label,
-                       Justification _justification,
+  virtual void DoLabel(const char* _label, Justification _justification,
                        bool _single_line);
 
-  virtual void DoGraph(const char* _label,
-                       float _min, float _max, float _mean,
-                       const float* _value_cursor,
-                       const float* _value_begin, const float* _value_end);
- private:
+  virtual void DoGraph(const char* _label, float _min, float _max, float _mean,
+                       const float* _value_cursor, const float* _value_begin,
+                       const float* _value_end);
 
+ private:
   // Computes the rect of a new widget to add.
   // Returns true if there is enough space for a new widget.
   bool AddWidget(float _height, math::RectFloat* _rect);
 
   // Implements button logic.
   // Returns true if the button was clicked.
-  bool ButtonLogic(const math::RectFloat& _rect, int _id, bool* _hot, bool* _active);
+  bool ButtonLogic(const math::RectFloat& _rect, int _id, bool* _hot,
+                   bool* _active);
 
   // Fills a rectangle with _rect coordinates. Draws rounded angles if _radius
   // is greater than 0.
   // If _texture id is not 0, then texture with id _texture is mapped using a
   // planar projection to the rect.
-  void FillRect(const math::RectFloat& _rect,
-                float _radius,
+  void FillRect(const math::RectFloat& _rect, float _radius,
                 const GLubyte _rgba[4]) const;
-  void FillRect(const math::RectFloat& _rect,
-                float _radius,
+  void FillRect(const math::RectFloat& _rect, float _radius,
                 const GLubyte _rgba[4],
                 const ozz::math::Float4x4& _transform) const;
 
   // Strokes a rectangle with _rect coordinates. Draws rounded angles if _radius
   // is greater than 0.
-  void StrokeRect(const math::RectFloat& _rect,
-                  float _radius,
+  void StrokeRect(const math::RectFloat& _rect, float _radius,
                   const GLubyte _rgba[4]) const;
-  void StrokeRect(const math::RectFloat& _rect,
-                  float _radius,
+  void StrokeRect(const math::RectFloat& _rect, float _radius,
                   const GLubyte _rgba[4],
                   const ozz::math::Float4x4& _transform) const;
 
@@ -165,10 +146,8 @@ class ImGuiImpl : public ImGui {
   };
 
   // Print _text in _rect.
-  float Print(const char* _text,
-              const math::RectFloat& _rect,
-              PrintLayout _layout,
-              const GLubyte _rgba[4]) const;
+  float Print(const char* _text, const math::RectFloat& _rect,
+              PrintLayout _layout, const GLubyte _rgba[4]) const;
 
   // Initialize circle vertices.
   void InitializeCircle();
@@ -199,7 +178,8 @@ class ImGuiImpl : public ImGui {
     // The y offset of the top of the next widget in the current container.
     float offset_y;
 
-    // Constrains container height to the size used by controls in the container.
+    // Constrains container height to the size used by controls in the
+    // container.
     bool constrain;
   };
 
@@ -219,10 +199,10 @@ class ImGuiImpl : public ImGui {
 
   // Declares font's structure.
   struct Font {
-    int texture_width;  // width of the pow2 texture.
+    int texture_width;   // width of the pow2 texture.
     int texture_height;  // height of the pow2 texture.
-    int image_width;  // width of the image area in the texture.
-    int image_height;  // height of the image area in the texture.
+    int image_width;     // width of the image area in the texture.
+    int image_height;    // height of the image area in the texture.
     int glyph_height;
     int glyph_width;
     int glyph_count;

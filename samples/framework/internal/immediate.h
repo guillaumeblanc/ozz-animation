@@ -70,7 +70,8 @@ struct VertexPTC {
 };
 
 // Declares Immediate mode types.
-template<typename _Ty> class GlImmediate;
+template <typename _Ty>
+class GlImmediate;
 typedef GlImmediate<VertexPC> GlImmediatePC;
 typedef GlImmediate<VertexPN> GlImmediatePN;
 typedef GlImmediate<VertexPTC> GlImmediatePTC;
@@ -87,18 +88,18 @@ class GlImmediateRenderer {
 
  private:
   // GlImmediate is used to work with the renderer.
-  template<typename _Ty>
+  template <typename _Ty>
   friend class GlImmediate;
 
   // Begin stacking vertices.
   void Begin();
 
   // End stacking vertices. Call GL rendering.
-  template<typename _Ty>
+  template <typename _Ty>
   void End(GLenum _mode, const ozz::math::Float4x4& _transform);
 
   // Push a new vertex to the buffer.
-  template<typename _Ty>
+  template <typename _Ty>
   OZZ_INLINE void PushVertex(const _Ty& _vertex) {
     // Resize buffer if needed.
     const size_t new_size = size_ + sizeof(_Ty);
@@ -133,31 +134,25 @@ class GlImmediateRenderer {
 };
 
 // RAII object that allows to push vertices to the imrender stack.
-template<typename _Ty>
+template <typename _Ty>
 class GlImmediate {
  public:
-
   // Immediate object vertex format.
   typedef _Ty Vertex;
 
   // Start a new immediate stack.
-  GlImmediate(GlImmediateRenderer* _renderer,
-              GLenum _mode,
+  GlImmediate(GlImmediateRenderer* _renderer, GLenum _mode,
               const ozz::math::Float4x4& _transform)
-      : transform_(_transform),
-        renderer_(_renderer),
-        mode_(_mode) {
+      : transform_(_transform), renderer_(_renderer), mode_(_mode) {
     renderer_->Begin();
   }
 
   // End immediate vertex stacking, and renders all vertices.
-  ~GlImmediate() {
-    renderer_->End<_Ty>(mode_, transform_);
-  }
+  ~GlImmediate() { renderer_->End<_Ty>(mode_, transform_); }
 
   // Pushes a new vertex to the stack.
   OZZ_INLINE void PushVertex(const _Ty& _vertex) {
-    renderer_->PushVertex(_vertex);    
+    renderer_->PushVertex(_vertex);
   }
 
  private:

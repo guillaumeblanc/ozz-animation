@@ -29,20 +29,22 @@
 
 #include "gtest/gtest.h"
 
-#include "ozz/base/memory/allocator.h"
 #include "ozz/base/maths/gtest_math_helper.h"
 #include "ozz/base/maths/soa_transform.h"
+#include "ozz/base/memory/allocator.h"
 
 #include "ozz/animation/runtime/animation.h"
 
-#include "ozz/animation/offline/raw_animation.h"
 #include "ozz/animation/offline/animation_builder.h"
+#include "ozz/animation/offline/raw_animation.h"
 
 using ozz::animation::Animation;
 using ozz::animation::SamplingJob;
 using ozz::animation::SamplingCache;
 using ozz::animation::offline::RawAnimation;
 using ozz::animation::offline::AnimationBuilder;
+
+// clang-format off
 
 TEST(JobValidity, SamplingJob) {
   RawAnimation raw_animation;
@@ -56,7 +58,7 @@ TEST(JobValidity, SamplingJob) {
   // Allocates cache.
   SamplingCache cache(1);
 
-  { // Empty/default job
+  {  // Empty/default job
     SamplingJob job;
     EXPECT_FALSE(job.Validate());
     EXPECT_FALSE(job.Run());
@@ -120,7 +122,7 @@ TEST(JobValidity, SamplingJob) {
   {  // Invalid job with smaller output.
     ozz::math::SoaTransform output[1];
     SamplingJob job;
-    job.time = 2155.f; // Any time can be set.
+    job.time = 2155.f;  // Any time can be set.
     job.animation = animation;
     job.cache = &cache;
     job.output.begin = output;
@@ -132,7 +134,7 @@ TEST(JobValidity, SamplingJob) {
   {  // Valid job.
     ozz::math::SoaTransform output[1];
     SamplingJob job;
-    job.time = 2155.f; // Any time can be set.
+    job.time = 2155.f;  // Any time can be set.
     job.animation = animation;
     job.cache = &cache;
     job.output.begin = output;
@@ -145,7 +147,7 @@ TEST(JobValidity, SamplingJob) {
     SamplingCache big_cache(2);
     ozz::math::SoaTransform output[1];
     SamplingJob job;
-    job.time = 2155.f; // Any time can be set.
+    job.time = 2155.f;  // Any time can be set.
     job.animation = animation;
     job.cache = &big_cache;
     job.output.begin = output;
@@ -157,7 +159,7 @@ TEST(JobValidity, SamplingJob) {
   {  // Valid job with bigger output.
     ozz::math::SoaTransform output[2];
     SamplingJob job;
-    job.time = 2155.f; // Any time can be set.
+    job.time = 2155.f;  // Any time can be set.
     job.animation = animation;
     job.cache = &cache;
     job.output.begin = output;
@@ -181,7 +183,6 @@ TEST(JobValidity, SamplingJob) {
 }
 
 TEST(Sampling, SamplingJob) {
-
   // Instantiates a builder objects with default parameters.
   AnimationBuilder builder;
 
@@ -329,7 +330,7 @@ TEST(Sampling1Track0Key, SamplingJob) {
   job.output.begin = output;
   job.output.end = output + 1;
 
-  for(float t = -.2f; t < animation->duration() + .2f; t += .1f) {
+  for (float t = -.2f; t < animation->duration() + .2f; t += .1f) {
     memset(output, 0xde, sizeof(output));
     job.time = t;
     EXPECT_TRUE(job.Validate());
@@ -356,9 +357,9 @@ TEST(Sampling1Track1Key, SamplingJob) {
 
   SamplingCache cache(1);
 
-  const RawAnimation::TranslationKey tkey =
-    {.3f, ozz::math::Float3(1.f, -1.f, 5.f)};
-  raw_animation.tracks[0].translations.push_back(tkey); // Adds a key.
+  const RawAnimation::TranslationKey tkey = {.3f,
+                                             ozz::math::Float3(1.f, -1.f, 5.f)};
+  raw_animation.tracks[0].translations.push_back(tkey);  // Adds a key.
 
   AnimationBuilder builder;
   ozz::animation::Animation* animation = builder(raw_animation);
@@ -372,7 +373,7 @@ TEST(Sampling1Track1Key, SamplingJob) {
   job.output.begin = output;
   job.output.end = output + 1;
 
-  for(float t = -.2f; t < animation->duration() + .2f; t += .1f) {
+  for (float t = -.2f; t < animation->duration() + .2f; t += .1f) {
     memset(output, 0xde, sizeof(output));
     job.time = t;
     EXPECT_TRUE(job.Validate());
@@ -399,12 +400,12 @@ TEST(Sampling1Track2Keys, SamplingJob) {
 
   SamplingCache cache(1);
 
-  const RawAnimation::TranslationKey tkey0 =
-    {.5f, ozz::math::Float3(1.f, 2.f, 4.f)};
-  raw_animation.tracks[0].translations.push_back(tkey0); // Adds a key.
-  const RawAnimation::TranslationKey tkey1 =
-    {.8f, ozz::math::Float3(2.f, 4.f, 8.f)};
-  raw_animation.tracks[0].translations.push_back(tkey1); // Adds a key.
+  const RawAnimation::TranslationKey tkey0 = {.5f,
+                                              ozz::math::Float3(1.f, 2.f, 4.f)};
+  raw_animation.tracks[0].translations.push_back(tkey0);  // Adds a key.
+  const RawAnimation::TranslationKey tkey1 = {.8f,
+                                              ozz::math::Float3(2.f, 4.f, 8.f)};
+  raw_animation.tracks[0].translations.push_back(tkey1);  // Adds a key.
 
   AnimationBuilder builder;
   ozz::animation::Animation* animation = builder(raw_animation);
@@ -504,35 +505,34 @@ TEST(Sampling4Track2Keys, SamplingJob) {
 
   SamplingCache cache(1);
 
-  const RawAnimation::TranslationKey tkey00 =
-    {.5f, ozz::math::Float3(1.f, 2.f, 4.f)};
-  raw_animation.tracks[0].translations.push_back(tkey00); // Adds a key.
-  const RawAnimation::TranslationKey tkey01 =
-    {.8f, ozz::math::Float3(2.f, 4.f, 8.f)};
-  raw_animation.tracks[0].translations.push_back(tkey01); // Adds a key.
+  const RawAnimation::TranslationKey tkey00 = {
+      .5f, ozz::math::Float3(1.f, 2.f, 4.f)};
+  raw_animation.tracks[0].translations.push_back(tkey00);  // Adds a key.
+  const RawAnimation::TranslationKey tkey01 = {
+      .8f, ozz::math::Float3(2.f, 4.f, 8.f)};
+  raw_animation.tracks[0].translations.push_back(tkey01);  // Adds a key.
 
   // This quaternion will be negated as the builder ensures that the first key
   // is in identity quaternion hemisphere.
-  const RawAnimation::RotationKey rkey10 =
-    {0.f, ozz::math::Quaternion(0.f, 0.f, 0.f, -1.f)};
-  raw_animation.tracks[1].rotations.push_back(rkey10); // Adds a key.
-  const RawAnimation::RotationKey rkey11 =
-    {1.f, ozz::math::Quaternion(0.f, 1.f, 0.f, 0.f)};
-  raw_animation.tracks[1].rotations.push_back(rkey11); // Adds a key.
+  const RawAnimation::RotationKey rkey10 = {
+      0.f, ozz::math::Quaternion(0.f, 0.f, 0.f, -1.f)};
+  raw_animation.tracks[1].rotations.push_back(rkey10);  // Adds a key.
+  const RawAnimation::RotationKey rkey11 = {
+      1.f, ozz::math::Quaternion(0.f, 1.f, 0.f, 0.f)};
+  raw_animation.tracks[1].rotations.push_back(rkey11);  // Adds a key.
 
-  const RawAnimation::ScaleKey skey20 =
-    {.5f, ozz::math::Float3(0.f, 0.f, 0.f)};
-  raw_animation.tracks[2].scales.push_back(skey20); // Adds a key.
-  const RawAnimation::ScaleKey skey21 =
-    {.8f, ozz::math::Float3(-1.f, -1.f, -1.f)};
-  raw_animation.tracks[2].scales.push_back(skey21); // Adds a key.
+  const RawAnimation::ScaleKey skey20 = {.5f, ozz::math::Float3(0.f, 0.f, 0.f)};
+  raw_animation.tracks[2].scales.push_back(skey20);  // Adds a key.
+  const RawAnimation::ScaleKey skey21 = {.8f,
+                                         ozz::math::Float3(-1.f, -1.f, -1.f)};
+  raw_animation.tracks[2].scales.push_back(skey21);  // Adds a key.
 
-  const RawAnimation::TranslationKey tkey30 =
-    {0.f, ozz::math::Float3(-1.f,- 2.f, -4.f)};
-  raw_animation.tracks[3].translations.push_back(tkey30); // Adds a key.
-  const RawAnimation::TranslationKey tkey31 =
-    {1.f, ozz::math::Float3(-2.f, -4.f, -8.f)};
-  raw_animation.tracks[3].translations.push_back(tkey31); // Adds a key.
+  const RawAnimation::TranslationKey tkey30 = {
+      0.f, ozz::math::Float3(-1.f, -2.f, -4.f)};
+  raw_animation.tracks[3].translations.push_back(tkey30);  // Adds a key.
+  const RawAnimation::TranslationKey tkey31 = {
+      1.f, ozz::math::Float3(-2.f, -4.f, -8.f)};
+  raw_animation.tracks[3].translations.push_back(tkey31);  // Adds a key.
 
   AnimationBuilder builder;
   ozz::animation::Animation* animation = builder(raw_animation);
@@ -600,16 +600,15 @@ TEST(SamplingCache, SamplingJob) {
   raw_animation.duration = 1.f;
   raw_animation.tracks.resize(1);  // Adds a joint.
   const RawAnimation::TranslationKey empty_key = {
-    0.f, RawAnimation::TranslationKey::identity()
-  };
+      0.f, RawAnimation::TranslationKey::identity()};
   raw_animation.tracks[0].translations.push_back(empty_key);
 
   SamplingCache cache(1);
   ozz::animation::Animation* animations[2] = {};
 
   {
-    const RawAnimation::TranslationKey tkey =
-      {.3f, ozz::math::Float3(1.f, -1.f, 5.f)};
+    const RawAnimation::TranslationKey tkey = {
+        .3f, ozz::math::Float3(1.f, -1.f, 5.f)};
     raw_animation.tracks[0].translations[0] = tkey;
 
     AnimationBuilder builder;
@@ -617,8 +616,8 @@ TEST(SamplingCache, SamplingJob) {
     ASSERT_TRUE(animations[0] != NULL);
   }
   {
-    const RawAnimation::TranslationKey tkey =
-      {.3f, ozz::math::Float3(-1.f, 1.f, -5.f)};
+    const RawAnimation::TranslationKey tkey = {
+        .3f, ozz::math::Float3(-1.f, 1.f, -5.f)};
     raw_animation.tracks[0].translations[0] = tkey;
 
     AnimationBuilder builder;

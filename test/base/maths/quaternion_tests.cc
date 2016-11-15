@@ -53,85 +53,84 @@ TEST(AxisAngle, Quaternion) {
 
   // Other axis angles
   EXPECT_QUATERNION_EQ(
-    Quaternion::FromAxisAngle(Float4(Float3::y_axis(), ozz::math::kPi_2)),
-    0.f, .70710677f, 0.f, .70710677f);
+      Quaternion::FromAxisAngle(Float4(Float3::y_axis(), ozz::math::kPi_2)),
+      0.f, .70710677f, 0.f, .70710677f);
   EXPECT_FLOAT4_EQ(ToAxisAngle(Quaternion(0.f, .70710677f, 0.f, .70710677f)),
                    0.f, 1.f, 0.f, ozz::math::kPi_2);
 
   EXPECT_QUATERNION_EQ(
-    Quaternion::FromAxisAngle(Float4(Float3::y_axis(), -ozz::math::kPi_2)),
-    0.f, -.70710677f, 0.f, .70710677f);
+      Quaternion::FromAxisAngle(Float4(Float3::y_axis(), -ozz::math::kPi_2)),
+      0.f, -.70710677f, 0.f, .70710677f);
   EXPECT_FLOAT4_EQ(ToAxisAngle(Quaternion(0.f, -.70710677f, 0.f, .70710677f)),
                    0.f, -1.f, 0.f, ozz::math::kPi_2);
 
   EXPECT_QUATERNION_EQ(
-    Quaternion::FromAxisAngle(Float4(Float3::y_axis(), -ozz::math::kPi_2)),
-    0.f, -.70710677f, 0.f, .70710677f);
+      Quaternion::FromAxisAngle(Float4(Float3::y_axis(), -ozz::math::kPi_2)),
+      0.f, -.70710677f, 0.f, .70710677f);
   EXPECT_FLOAT4_EQ(ToAxisAngle(Quaternion(0.f, -.70710677f, 0.f, .70710677f)),
                    0.f, -1.f, 0.f, ozz::math::kPi_2);
 
   EXPECT_QUATERNION_EQ(
-    Quaternion::FromAxisAngle(Float4(.819865f, .033034f, -.571604f, 1.123f)),
-    .4365425f, .017589169f, -.30435428f, .84645736f);
-  EXPECT_FLOAT4_EQ(ToAxisAngle(
-    Quaternion(.4365425f, .017589169f, -.30435428f, .84645736f)),
-    .819865f, .033034f, -.571604f, 1.123f);
+      Quaternion::FromAxisAngle(Float4(.819865f, .033034f, -.571604f, 1.123f)),
+      .4365425f, .017589169f, -.30435428f, .84645736f);
+  EXPECT_FLOAT4_EQ(
+      ToAxisAngle(Quaternion(.4365425f, .017589169f, -.30435428f, .84645736f)),
+      .819865f, .033034f, -.571604f, 1.123f);
 }
 
 TEST(QuaternionEuler, Quaternion) {
   // Identity
-  EXPECT_QUATERNION_EQ(Quaternion::FromEuler(Float3(0.f, 0.f, 0.f)),
-                       0.f, 0.f, 0.f, 1.f);
+  EXPECT_QUATERNION_EQ(Quaternion::FromEuler(Float3(0.f, 0.f, 0.f)), 0.f, 0.f,
+                       0.f, 1.f);
   EXPECT_FLOAT3_EQ(ToEuler(Quaternion::identity()), 0.f, 0.f, 0.f);
 
   // Heading
   EXPECT_QUATERNION_EQ(
-    Quaternion::FromEuler(Float3(ozz::math::kPi_2, 0.f, 0.f)),
-    0.f, .70710677f, 0.f, .70710677f);
+      Quaternion::FromEuler(Float3(ozz::math::kPi_2, 0.f, 0.f)), 0.f,
+      .70710677f, 0.f, .70710677f);
   EXPECT_FLOAT3_EQ(ToEuler(Quaternion(0.f, .70710677f, 0.f, .70710677f)),
                    ozz::math::kPi_2, 0.f, 0.f);
 
   // Elevation
   EXPECT_QUATERNION_EQ(
-    Quaternion::FromEuler(Float3(0.f, ozz::math::kPi_2, 0.f)),
-    0.f, 0.f, .70710677f, .70710677f);
-  EXPECT_FLOAT3_EQ(ToEuler(Quaternion(0.f, 0.f, .70710677f, .70710677f)),
-                   0.f, ozz::math::kPi_2, 0.f);
+      Quaternion::FromEuler(Float3(0.f, ozz::math::kPi_2, 0.f)), 0.f, 0.f,
+      .70710677f, .70710677f);
+  EXPECT_FLOAT3_EQ(ToEuler(Quaternion(0.f, 0.f, .70710677f, .70710677f)), 0.f,
+                   ozz::math::kPi_2, 0.f);
 
   // Bank
   EXPECT_QUATERNION_EQ(
-    Quaternion::FromEuler(Float3(0.f, 0.f, ozz::math::kPi_2)),
-    .70710677f, 0.f, 0.f, .70710677f);
-  EXPECT_FLOAT3_EQ(
-    ToEuler(Quaternion(.70710677f, 0.f, 0.f, .70710677f)),
-    0.f, 0.f, ozz::math::kPi_2);
+      Quaternion::FromEuler(Float3(0.f, 0.f, ozz::math::kPi_2)), .70710677f,
+      0.f, 0.f, .70710677f);
+  EXPECT_FLOAT3_EQ(ToEuler(Quaternion(.70710677f, 0.f, 0.f, .70710677f)), 0.f,
+                   0.f, ozz::math::kPi_2);
 
   // Any rotation
   EXPECT_QUATERNION_EQ(
-    Quaternion::FromEuler(
-      Float3(ozz::math::kPi / 4.f, -ozz::math::kPi / 6.f, ozz::math::kPi_2)),
-    .56098551f, .092295974f, -0.43045932f, .70105737f);
+      Quaternion::FromEuler(Float3(ozz::math::kPi / 4.f, -ozz::math::kPi / 6.f,
+                                   ozz::math::kPi_2)),
+      .56098551f, .092295974f, -0.43045932f, .70105737f);
   EXPECT_FLOAT3_EQ(
-    ToEuler(Quaternion(.56098551f, .092295974f, -0.43045932f, .70105737f)),
-    ozz::math::kPi / 4.f, -ozz::math::kPi / 6.f, ozz::math::kPi_2);
+      ToEuler(Quaternion(.56098551f, .092295974f, -0.43045932f, .70105737f)),
+      ozz::math::kPi / 4.f, -ozz::math::kPi / 6.f, ozz::math::kPi_2);
 }
 
 TEST(Compare, Quaternion) {
   EXPECT_TRUE(Quaternion::identity() == Quaternion(0.f, 0.f, 0.f, 1.f));
   EXPECT_TRUE(Quaternion::identity() != Quaternion(1.f, 0.f, 0.f, 0.f));
   EXPECT_TRUE(Compare(Quaternion::identity(), Quaternion::identity(), 0.f));
-  EXPECT_TRUE(Compare(
-    Quaternion::identity(),
-    Quaternion::FromEuler(Float3(0.f, 0.f, ozz::math::kPi / 100.f)),
-    ozz::math::kPi / 50.f));
-  EXPECT_TRUE(Compare(
-    Quaternion::identity(),
-    -Quaternion::FromEuler(Float3(0.f, 0.f, ozz::math::kPi / 100.f)),
-    ozz::math::kPi / 50.f));
-  EXPECT_FALSE(Compare(
-    Quaternion::identity(),
-    Quaternion::FromEuler(Float3(0.f, 0.f, ozz::math::kPi / 100.f)),
-    ozz::math::kPi / 200.f));
+  EXPECT_TRUE(
+      Compare(Quaternion::identity(),
+              Quaternion::FromEuler(Float3(0.f, 0.f, ozz::math::kPi / 100.f)),
+              ozz::math::kPi / 50.f));
+  EXPECT_TRUE(
+      Compare(Quaternion::identity(),
+              -Quaternion::FromEuler(Float3(0.f, 0.f, ozz::math::kPi / 100.f)),
+              ozz::math::kPi / 50.f));
+  EXPECT_FALSE(
+      Compare(Quaternion::identity(),
+              Quaternion::FromEuler(Float3(0.f, 0.f, ozz::math::kPi / 100.f)),
+              ozz::math::kPi / 200.f));
 }
 
 TEST(Arithmetic, Quaternion) {
@@ -176,12 +175,12 @@ TEST(Arithmetic, Quaternion) {
   EXPECT_ASSERTION(NormalizeSafe(denorm, Quaternion(0.f, 0.f, 0.f, 0.f)),
                    "_safer is not normalized");
   const Quaternion normalize_safe =
-    NormalizeSafe(denorm, Quaternion::identity());
+      NormalizeSafe(denorm, Quaternion::identity());
   EXPECT_TRUE(IsNormalized(normalize_safe));
   EXPECT_QUATERNION_EQ(normalize_safe, .7071068f, 0.f, 0.f, .7071068f);
 
   const Quaternion normalize_safer =
-    NormalizeSafe(Quaternion(0.f, 0.f, 0.f, 0.f), Quaternion::identity());
+      NormalizeSafe(Quaternion(0.f, 0.f, 0.f, 0.f), Quaternion::identity());
   EXPECT_TRUE(IsNormalized(normalize_safer));
   EXPECT_QUATERNION_EQ(normalize_safer, 0.f, 0.f, 0.f, 1.f);
 

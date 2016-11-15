@@ -39,7 +39,7 @@
 #include <cstdlib>
 
 // Code for ozz-animation HowTo: "How to load an object from a file?"
-int main(int argc, char const *argv[]) {
+int main(int argc, char const* argv[]) {
   (void)argc;
   (void)argv;
 
@@ -92,8 +92,8 @@ int main(int argc, char const *argv[]) {
     // high level object types (skeletons, animations...), but not low level
     // ones (math objects, native types...).
     if (!archive.TestTag<ozz::animation::Skeleton>()) {
-      ozz::log::Err() << "Archive doesn't contain the expected object type." <<
-        std::endl;
+      ozz::log::Err() << "Archive doesn't contain the expected object type."
+                      << std::endl;
       return EXIT_FAILURE;
     }
 

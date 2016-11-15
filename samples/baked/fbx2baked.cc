@@ -39,12 +39,10 @@ using namespace ozz::animation::offline::fbx;
 
 namespace {
 
-enum RecurseReturn {kError, kSkeletonFound, kNoSkeleton};
+enum RecurseReturn { kError, kSkeletonFound, kNoSkeleton };
 
-RecurseReturn RecurseNode(FbxNode* _node,
-                          FbxSystemConverter* _converter,
-                          RawSkeleton* _skeleton,
-                          RawSkeleton::Joint* _parent) {
+RecurseReturn RecurseNode(FbxNode* _node, FbxSystemConverter* _converter,
+                          RawSkeleton* _skeleton, RawSkeleton::Joint* _parent) {
   bool skeleton_found = false;
   RawSkeleton::Joint* this_joint = NULL;
 
@@ -56,21 +54,18 @@ RecurseReturn RecurseNode(FbxNode* _node,
   // Here is the main difference with fbx2skel. All meshes are processed,
   // whereas fbx2skel only processes node of tyoe FbxNodeAttribute::eSkeleton.
   FbxNodeAttribute* node_attribute = _node->GetNodeAttribute();
-  process_node |=
-    node_attribute &&
-    node_attribute->GetAttributeType() == FbxNodeAttribute::eMesh;
+  process_node |= node_attribute &&
+                  node_attribute->GetAttributeType() == FbxNodeAttribute::eMesh;
 
   // Process node if required.
   if (process_node) {
-
     // Considered as a skeleton anyway
     skeleton_found = true;
 
     RawSkeleton::Joint::Children* sibling = NULL;
     if (_parent) {
       sibling = &_parent->children;
-    }
-    else {
+    } else {
       sibling = &_skeleton->roots;
     }
 
@@ -83,11 +78,11 @@ RecurseReturn RecurseNode(FbxNode* _node,
     ozz::log::LogV() << this_joint->name.c_str() << std::endl;
 
     // Extract bind pose.
-    const FbxAMatrix matrix = _parent? _node->EvaluateLocalTransform():
-                                       _node->EvaluateGlobalTransform();
+    const FbxAMatrix matrix = _parent ? _node->EvaluateLocalTransform()
+                                      : _node->EvaluateGlobalTransform();
     if (!_converter->ConvertTransform(matrix, &this_joint->transform)) {
-      ozz::log::Err() << "Failed to extract skeleton transform for joint \"" <<
-        this_joint->name << "\"." << std::endl;
+      ozz::log::Err() << "Failed to extract skeleton transform for joint \""
+                      << this_joint->name << "\"." << std::endl;
       return kError;
     }
   }
@@ -95,7 +90,8 @@ RecurseReturn RecurseNode(FbxNode* _node,
   // Iterate node's children.
   for (int i = 0; i < _node->GetChildCount(); i++) {
     FbxNode* child = _node->GetChild(i);
-    const RecurseReturn ret = RecurseNode(child, _converter, _skeleton, this_joint);
+    const RecurseReturn ret =
+        RecurseNode(child, _converter, _skeleton, this_joint);
     if (ret == kError) {
       return ret;
     }
@@ -106,7 +102,8 @@ RecurseReturn RecurseNode(FbxNode* _node,
 }
 
 bool ExtractSkeleton(FbxSceneLoader& _loader, RawSkeleton* _skeleton) {
-  RecurseReturn ret = RecurseNode(_loader.scene()->GetRootNode(), _loader.converter(), _skeleton, NULL);
+  RecurseReturn ret = RecurseNode(_loader.scene()->GetRootNode(),
+                                  _loader.converter(), _skeleton, NULL);
   if (ret == kNoSkeleton) {
     ozz::log::Err() << "No skeleton found in Fbx scene." << std::endl;
     return false;
@@ -118,13 +115,10 @@ bool ExtractSkeleton(FbxSceneLoader& _loader, RawSkeleton* _skeleton) {
 }
 }
 
-class FbxBakedSkeletonConverter :
-  public SkeletonConverter {
-private:
+class FbxBakedSkeletonConverter : public SkeletonConverter {
+ private:
   // Implement SkeletonConverter::Import function.
-  virtual bool Import(const char* _filename,
-                      RawSkeleton* _skeleton) {
-
+  virtual bool Import(const char* _filename, RawSkeleton* _skeleton) {
     if (!_skeleton) {
       return false;
     }
@@ -136,8 +130,8 @@ private:
     FbxSkeletonIOSettings settings(fbx_manager);
     FbxSceneLoader scene_loader(_filename, "", fbx_manager, settings);
     if (!scene_loader.scene()) {
-      ozz::log::Err() << "Failed to import file " << _filename << "." <<
-        std::endl;
+      ozz::log::Err() << "Failed to import file " << _filename << "."
+                      << std::endl;
       return false;
     }
 

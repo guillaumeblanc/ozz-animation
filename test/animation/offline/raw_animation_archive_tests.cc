@@ -55,15 +55,17 @@ TEST(Empty, RawAnimationSerialize) {
 }
 
 TEST(Filled, RawAnimationSerialize) {
-
   RawAnimation o_animation;
   o_animation.duration = 46.f;
   o_animation.tracks.resize(3);
-  const RawAnimation::TranslationKey t_key = {0.f, ozz::math::Float3(46.f, 93.f, 99.f)};
+  const RawAnimation::TranslationKey t_key = {
+      0.f, ozz::math::Float3(46.f, 93.f, 99.f)};
   o_animation.tracks[0].translations.push_back(t_key);
-  const RawAnimation::RotationKey r_key = {46.f, ozz::math::Quaternion(0.f, 1.f, 0.f, 0.f)};
+  const RawAnimation::RotationKey r_key = {
+      46.f, ozz::math::Quaternion(0.f, 1.f, 0.f, 0.f)};
   o_animation.tracks[1].rotations.push_back(r_key);
-  const RawAnimation::ScaleKey s_key = {1.f, ozz::math::Float3(93.f, 46.f, 99.f)};
+  const RawAnimation::ScaleKey s_key = {1.f,
+                                        ozz::math::Float3(93.f, 46.f, 99.f)};
   o_animation.tracks[2].scales.push_back(s_key);
 
   EXPECT_TRUE(o_animation.Validate());
@@ -114,7 +116,6 @@ TEST(Filled, RawAnimationSerialize) {
 }
 
 TEST(AlreadyInitialized, RawAnimationSerialize) {
-
   RawAnimation o_animation;
   o_animation.duration = 46.f;
   o_animation.tracks.resize(1);

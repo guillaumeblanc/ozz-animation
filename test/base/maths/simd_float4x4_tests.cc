@@ -30,12 +30,14 @@
 #include "gtest/gtest.h"
 
 #include "ozz/base/gtest_helper.h"
+#include "ozz/base/maths/gtest_math_helper.h"
 #include "ozz/base/maths/math_constant.h"
 #include "ozz/base/maths/math_ex.h"
-#include "ozz/base/maths/gtest_math_helper.h"
 
 using ozz::math::SimdFloat4;
 using ozz::math::Float4x4;
+
+// clang-format off
 
 TEST(Constant, Float4x4) {
   const Float4x4 identity = Float4x4::identity();

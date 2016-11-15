@@ -32,11 +32,11 @@
 #include "ozz/base/maths/gtest_math_helper.h"
 
 #include "ozz/base/io/archive.h"
-#include "ozz/base/maths/vec_float.h"
-#include "ozz/base/maths/quaternion.h"
-#include "ozz/base/maths/transform.h"
 #include "ozz/base/maths/box.h"
+#include "ozz/base/maths/quaternion.h"
 #include "ozz/base/maths/rect.h"
+#include "ozz/base/maths/transform.h"
+#include "ozz/base/maths/vec_float.h"
 
 TEST(Maths, Archive) {
   for (int e = 0; e < 2; ++e) {

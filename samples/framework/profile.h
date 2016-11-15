@@ -49,19 +49,13 @@ class Record {
   // cursor() == record_begin() == record_end() if record is empty.
   // Recorded values can be accessed sequentially from the newest to the oldest
   // from [cursor():record_end()[ and then [record_begin():cursor()[
-  const float* cursor() const {
-    return cursor_;
-  }
+  const float* cursor() const { return cursor_; }
 
   // Returns the beginning of the recorded values.
-  const float* record_begin() const {
-    return records_begin_;
-  }
+  const float* record_begin() const { return records_begin_; }
 
   // Returns the end of the recorded values.
-  const float* record_end() const {
-    return records_end_;
-  }
+  const float* record_end() const { return records_end_; }
 
   // Statistics returned by GetStatistics function.
   struct Statistics {
@@ -81,7 +75,7 @@ class Record {
  private:
   // Disables assignment and copy.
   Record(const Record& _record);
-  void operator = (const Record& _record);
+  void operator=(const Record& _record);
 
   // The maximum number of recorded entries.
   int max_records_;
@@ -110,7 +104,7 @@ class Profiler {
  private:
   // Disables assignment and copy.
   Profiler(const Profiler& _profiler);
-  void operator = (const Profiler& _profiler);
+  void operator=(const Profiler& _profiler);
 
   // The time at which profiling began.
   float begin_;

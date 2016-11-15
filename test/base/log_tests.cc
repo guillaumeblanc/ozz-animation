@@ -49,14 +49,8 @@ void TestLogLevel(ozz::log::Level _level) {
   EXPECT_EQ_LOG_ERR(TestFunction(ozz::log::Err(), "err"), 46, "err");
 }
 
-TEST(Log, Silent) {
-  TestLogLevel(ozz::log::Silent);
-}
+TEST(Log, Silent) { TestLogLevel(ozz::log::Silent); }
 
-TEST(Log, Standard) {
-  TestLogLevel(ozz::log::Standard);
-}
+TEST(Log, Standard) { TestLogLevel(ozz::log::Standard); }
 
-TEST(Log, Verbose) {
-  TestLogLevel(ozz::log::Verbose);
-}
+TEST(Log, Verbose) { TestLogLevel(ozz::log::Verbose); }

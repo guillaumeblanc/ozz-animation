@@ -58,27 +58,27 @@ TEST(Load2, Vector) {
 }
 
 TEST(Constant4, Vector) {
-	EXPECT_FLOAT4_EQ(Float4::zero(), 0.f, 0.f, 0.f, 0.f);
-	EXPECT_FLOAT4_EQ(Float4::one(), 1.f, 1.f, 1.f, 1.f);
-	EXPECT_FLOAT4_EQ(Float4::x_axis(), 1.f, 0.f, 0.f, 0.f);
-	EXPECT_FLOAT4_EQ(Float4::y_axis(), 0.f, 1.f, 0.f, 0.f);
-	EXPECT_FLOAT4_EQ(Float4::z_axis(), 0.f, 0.f, 1.f, 0.f);
-	EXPECT_FLOAT4_EQ(Float4::w_axis(), 0.f, 0.f, 0.f, 1.f);
+  EXPECT_FLOAT4_EQ(Float4::zero(), 0.f, 0.f, 0.f, 0.f);
+  EXPECT_FLOAT4_EQ(Float4::one(), 1.f, 1.f, 1.f, 1.f);
+  EXPECT_FLOAT4_EQ(Float4::x_axis(), 1.f, 0.f, 0.f, 0.f);
+  EXPECT_FLOAT4_EQ(Float4::y_axis(), 0.f, 1.f, 0.f, 0.f);
+  EXPECT_FLOAT4_EQ(Float4::z_axis(), 0.f, 0.f, 1.f, 0.f);
+  EXPECT_FLOAT4_EQ(Float4::w_axis(), 0.f, 0.f, 0.f, 1.f);
 }
 
 TEST(Constant3, Vector) {
-	EXPECT_FLOAT3_EQ(Float3::zero(), 0.f, 0.f, 0.f);
-	EXPECT_FLOAT3_EQ(Float3::one(), 1.f, 1.f, 1.f);
-	EXPECT_FLOAT3_EQ(Float3::x_axis(), 1.f, 0.f, 0.f);
-	EXPECT_FLOAT3_EQ(Float3::y_axis(), 0.f, 1.f, 0.f);
-	EXPECT_FLOAT3_EQ(Float3::z_axis(), 0.f, 0.f, 1.f);
+  EXPECT_FLOAT3_EQ(Float3::zero(), 0.f, 0.f, 0.f);
+  EXPECT_FLOAT3_EQ(Float3::one(), 1.f, 1.f, 1.f);
+  EXPECT_FLOAT3_EQ(Float3::x_axis(), 1.f, 0.f, 0.f);
+  EXPECT_FLOAT3_EQ(Float3::y_axis(), 0.f, 1.f, 0.f);
+  EXPECT_FLOAT3_EQ(Float3::z_axis(), 0.f, 0.f, 1.f);
 }
 
 TEST(Constant2, Vector) {
-	EXPECT_FLOAT2_EQ(Float2::zero(), 0.f, 0.f);
-	EXPECT_FLOAT2_EQ(Float2::one(), 1.f, 1.f);
-	EXPECT_FLOAT2_EQ(Float2::x_axis(), 1.f, 0.f);
-	EXPECT_FLOAT2_EQ(Float2::y_axis(), 0.f, 1.f);
+  EXPECT_FLOAT2_EQ(Float2::zero(), 0.f, 0.f);
+  EXPECT_FLOAT2_EQ(Float2::one(), 1.f, 1.f);
+  EXPECT_FLOAT2_EQ(Float2::x_axis(), 1.f, 0.f);
+  EXPECT_FLOAT2_EQ(Float2::y_axis(), 0.f, 1.f);
 }
 
 TEST(Arithmetic4, Vector) {
@@ -101,10 +101,10 @@ TEST(Arithmetic4, Vector) {
   EXPECT_FLOAT4_EQ(mul_scal, 1.f, 2.f, 4.f, 6.f);
 
   const Float4 div = a / b;
-  EXPECT_FLOAT4_EQ(div, .5f/4.f, 1.f/5.f, -2.f/6.f, 3.f/7.f);
+  EXPECT_FLOAT4_EQ(div, .5f / 4.f, 1.f / 5.f, -2.f / 6.f, 3.f / 7.f);
 
   const Float4 div_scal = a / 2.f;
-  EXPECT_FLOAT4_EQ(div_scal, .5f/2.f, 1.f/2.f, 2.f/2.f, 3.f/2.f);
+  EXPECT_FLOAT4_EQ(div_scal, .5f / 2.f, 1.f / 2.f, 2.f / 2.f, 3.f / 2.f);
 
   const float hadd4 = HAdd(a);
   EXPECT_FLOAT_EQ(hadd4, 6.5f);
@@ -128,7 +128,8 @@ TEST(Arithmetic4, Vector) {
   const Float4 safe(1.f, 0.f, 0.f, 0.f);
   const Float4 normalize_safe = NormalizeSafe(a, safe);
   EXPECT_TRUE(IsNormalized(normalize_safe));
-  EXPECT_FLOAT4_EQ(normalize_safe, .13245323f, .26490647f, .52981293f, .79471946f);
+  EXPECT_FLOAT4_EQ(normalize_safe, .13245323f, .26490647f, .52981293f,
+                   .79471946f);
 
   const Float4 normalize_safer = NormalizeSafe(Float4::zero(), safe);
   EXPECT_TRUE(IsNormalized(normalize_safer));
@@ -141,10 +142,12 @@ TEST(Arithmetic4, Vector) {
   EXPECT_FLOAT4_EQ(lerp_1, b.x, b.y, b.z, b.w);
 
   const Float4 lerp_0_5 = Lerp(a, b, .5f);
-  EXPECT_FLOAT4_EQ(lerp_0_5, (a.x + b.x) * .5f, (a.y + b.y) * .5f, (a.z + b.z) * .5f, (a.w + b.w) * .5f);
+  EXPECT_FLOAT4_EQ(lerp_0_5, (a.x + b.x) * .5f, (a.y + b.y) * .5f,
+                   (a.z + b.z) * .5f, (a.w + b.w) * .5f);
 
   const Float4 lerp_2 = Lerp(a, b, 2.f);
-  EXPECT_FLOAT4_EQ(lerp_2, 2.f * b.x - a.x, 2.f * b.y - a.y, 2.f * b.z - a.z, 2.f * b.w - a.w);
+  EXPECT_FLOAT4_EQ(lerp_2, 2.f * b.x - a.x, 2.f * b.y - a.y, 2.f * b.z - a.z,
+                   2.f * b.w - a.w);
 }
 
 TEST(Arithmetic3, Vector) {
@@ -167,10 +170,10 @@ TEST(Arithmetic3, Vector) {
   EXPECT_FLOAT3_EQ(mul_scal, 1.f, 2.f, 4.f);
 
   const Float3 div = a / b;
-  EXPECT_FLOAT3_EQ(div, .5f/4.f, 1.f/5.f, -2.f/6.f);
+  EXPECT_FLOAT3_EQ(div, .5f / 4.f, 1.f / 5.f, -2.f / 6.f);
 
   const Float3 div_scal = a / 2.f;
-  EXPECT_FLOAT3_EQ(div_scal, .5f/2.f, 1.f/2.f, 2.f/2.f);
+  EXPECT_FLOAT3_EQ(div_scal, .5f / 2.f, 1.f / 2.f, 2.f / 2.f);
 
   const float hadd4 = HAdd(a);
   EXPECT_FLOAT_EQ(hadd4, 3.5f);
@@ -210,7 +213,8 @@ TEST(Arithmetic3, Vector) {
   EXPECT_FLOAT3_EQ(lerp_1, b.x, b.y, b.z);
 
   const Float3 lerp_0_5 = Lerp(a, b, .5f);
-  EXPECT_FLOAT3_EQ(lerp_0_5, (a.x + b.x) * .5f, (a.y + b.y) * .5f, (a.z + b.z) * .5f);
+  EXPECT_FLOAT3_EQ(lerp_0_5, (a.x + b.x) * .5f, (a.y + b.y) * .5f,
+                   (a.z + b.z) * .5f);
 
   const Float3 lerp_2 = Lerp(a, b, 2.f);
   EXPECT_FLOAT3_EQ(lerp_2, 2.f * b.x - a.x, 2.f * b.y - a.y, 2.f * b.z - a.z);
@@ -236,9 +240,9 @@ TEST(Arithmetic2, Vector) {
   EXPECT_FLOAT2_EQ(mul_scal, 1.f, 2.f);
 
   const Float2 div = a / b;
-  EXPECT_FLOAT2_EQ(div, .5f/4.f, 1.f/5.f);
+  EXPECT_FLOAT2_EQ(div, .5f / 4.f, 1.f / 5.f);
   const Float2 div_scal = a / 2.f;
-  EXPECT_FLOAT2_EQ(div_scal, .5f/2.f, 1.f/2.f);
+  EXPECT_FLOAT2_EQ(div_scal, .5f / 2.f, 1.f / 2.f);
 
   const float hadd4 = HAdd(a);
   EXPECT_FLOAT_EQ(hadd4, 1.5f);
@@ -293,7 +297,8 @@ TEST(Comparison4, Vector) {
   const Float4 max = Max(a, b);
   EXPECT_FLOAT4_EQ(max, 4.f, 5.f, 2.f, 7.f);
 
-  EXPECT_FLOAT4_EQ(Clamp(a, Float4(-12.f, 2.f, 9.f, 3.f), c), .5f, 2.f, 6.f, 3.f);
+  EXPECT_FLOAT4_EQ(Clamp(a, Float4(-12.f, 2.f, 9.f, 3.f), c), .5f, 2.f, 6.f,
+                   3.f);
 
   EXPECT_TRUE(a < c);
   EXPECT_TRUE(a <= c);

@@ -27,9 +27,9 @@
 
 #include "ozz/base/platform.h"
 
+#include <stdint.h>
 #include <cassert>
 #include <climits>
-#include <stdint.h>
 
 #include "gtest/gtest.h"
 #include "ozz/base/gtest_helper.h"
@@ -41,10 +41,16 @@ TEST(StaticAssertion, Platform) {
 
 namespace {
 // Declares a structure that should have at least 8 bytes aligned.
-struct Misc { double d; char c; int i; };
+struct Misc {
+  double d;
+  char c;
+  int i;
+};
 
 // Declares an aligned structure in order to test OZZ_ALIGN and AlignOf.
-struct Aligned { OZZ_ALIGN(128) char c; };
+struct Aligned {
+  OZZ_ALIGN(128) char c;
+};
 }  // namespace
 
 TEST(Alignment, Platform) {

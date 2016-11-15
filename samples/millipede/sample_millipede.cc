@@ -25,31 +25,31 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
+#include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <cmath>
 
 #include "ozz/animation/runtime/animation.h"
-#include "ozz/animation/runtime/skeleton.h"
-#include "ozz/animation/runtime/sampling_job.h"
 #include "ozz/animation/runtime/local_to_model_job.h"
+#include "ozz/animation/runtime/sampling_job.h"
+#include "ozz/animation/runtime/skeleton.h"
 
 #include "ozz/animation/offline/animation_builder.h"
 #include "ozz/animation/offline/raw_animation.h"
 #include "ozz/animation/offline/raw_skeleton.h"
 #include "ozz/animation/offline/skeleton_builder.h"
 
-#include "ozz/base/maths/vec_float.h"
 #include "ozz/base/maths/quaternion.h"
 #include "ozz/base/maths/simd_math.h"
 #include "ozz/base/maths/soa_transform.h"
+#include "ozz/base/maths/vec_float.h"
 
 #include "ozz/base/memory/allocator.h"
 
 #include "framework/application.h"
-#include "framework/renderer.h"
 #include "framework/imgui.h"
+#include "framework/renderer.h"
 #include "framework/utils.h"
 
 using ozz::math::Float3;
@@ -72,22 +72,23 @@ using ozz::animation::offline::RawAnimation;
 //     |               |
 // left_foot        right_foot
 
-// The following constants are used to define the millipede skeleton and animation.
+// The following constants are used to define the millipede skeleton and
+// animation.
 // Skeleton constants.
 const Float3 kTransUp = Float3(0.f, 0.f, 0.f);
 const Float3 kTransDown = Float3(0.f, 0.f, 1.f);
 const Float3 kTransFoot = Float3(1.f, 0.f, 0.f);
 
 const Quaternion kRotLeftUp =
-  Quaternion::FromAxisAngle(Float4(0.f, 1.f, 0.f, -ozz::math::kPi_2));
+    Quaternion::FromAxisAngle(Float4(0.f, 1.f, 0.f, -ozz::math::kPi_2));
 const Quaternion kRotLeftDown =
-  Quaternion::FromAxisAngle(Float4(1.f, 0.f, 0.f, ozz::math::kPi_2)) *
-  Quaternion::FromAxisAngle(Float4(0.f, 1.f, 0.f, -ozz::math::kPi_2));
+    Quaternion::FromAxisAngle(Float4(1.f, 0.f, 0.f, ozz::math::kPi_2)) *
+    Quaternion::FromAxisAngle(Float4(0.f, 1.f, 0.f, -ozz::math::kPi_2));
 const Quaternion kRotRightUp =
-  Quaternion::FromAxisAngle(Float4(0.f, 1.f, 0.f, ozz::math::kPi_2));
+    Quaternion::FromAxisAngle(Float4(0.f, 1.f, 0.f, ozz::math::kPi_2));
 const Quaternion kRotRightDown =
-  Quaternion::FromAxisAngle(Float4(1.f, 0.f, 0.f, ozz::math::kPi_2)) *
-  Quaternion::FromAxisAngle(Float4(0.f, 1.f, 0.f, -ozz::math::kPi_2));
+    Quaternion::FromAxisAngle(Float4(1.f, 0.f, 0.f, ozz::math::kPi_2)) *
+    Quaternion::FromAxisAngle(Float4(0.f, 1.f, 0.f, -ozz::math::kPi_2));
 
 // Animation constants.
 const float kDuration = 6.f;
@@ -97,33 +98,28 @@ const int kWalkCycleCount = 4;
 const float kSpinLoop = 2 * kWalkCycleCount * kWalkCycleLength / kSpinLength;
 
 const RawAnimation::TranslationKey kPrecomputedKeys[] = {
-  {0.f * kDuration, Float3(.25f * kWalkCycleLength, 0.f, 0.f)},
-  {.125f * kDuration, Float3(-.25f * kWalkCycleLength, 0.f, 0.f)},
-  {.145f * kDuration, Float3(-.17f * kWalkCycleLength, .3f, 0.f)},
-  {.23f * kDuration, Float3(.17f * kWalkCycleLength, .3f, 0.f)},
-  {.25f * kDuration, Float3(.25f * kWalkCycleLength, 0.f, 0.f)},
-  {.375f * kDuration, Float3(-.25f * kWalkCycleLength, 0.f, 0.f)},
-  {.395f * kDuration, Float3(-.17f * kWalkCycleLength, .3f, 0.f)},
-  {.48f * kDuration, Float3(.17f * kWalkCycleLength, .3f, 0.f)},
-  {.5f * kDuration, Float3(.25f * kWalkCycleLength, 0.f, 0.f)},
-  {.625f * kDuration, Float3(-.25f * kWalkCycleLength, 0.f, 0.f)},
-  {.645f * kDuration, Float3(-.17f * kWalkCycleLength, .3f, 0.f)},
-  {.73f * kDuration, Float3(.17f * kWalkCycleLength, .3f, 0.f)},
-  {.75f * kDuration, Float3(.25f * kWalkCycleLength, 0.f, 0.f)},
-  {.875f * kDuration, Float3(-.25f * kWalkCycleLength, 0.f, 0.f)},
-  {.895f * kDuration, Float3(-.17f * kWalkCycleLength, .3f, 0.f)},
-  {.98f * kDuration, Float3(.17f * kWalkCycleLength, .3f, 0.f)}};
+    {0.f * kDuration, Float3(.25f * kWalkCycleLength, 0.f, 0.f)},
+    {.125f * kDuration, Float3(-.25f * kWalkCycleLength, 0.f, 0.f)},
+    {.145f * kDuration, Float3(-.17f * kWalkCycleLength, .3f, 0.f)},
+    {.23f * kDuration, Float3(.17f * kWalkCycleLength, .3f, 0.f)},
+    {.25f * kDuration, Float3(.25f * kWalkCycleLength, 0.f, 0.f)},
+    {.375f * kDuration, Float3(-.25f * kWalkCycleLength, 0.f, 0.f)},
+    {.395f * kDuration, Float3(-.17f * kWalkCycleLength, .3f, 0.f)},
+    {.48f * kDuration, Float3(.17f * kWalkCycleLength, .3f, 0.f)},
+    {.5f * kDuration, Float3(.25f * kWalkCycleLength, 0.f, 0.f)},
+    {.625f * kDuration, Float3(-.25f * kWalkCycleLength, 0.f, 0.f)},
+    {.645f * kDuration, Float3(-.17f * kWalkCycleLength, .3f, 0.f)},
+    {.73f * kDuration, Float3(.17f * kWalkCycleLength, .3f, 0.f)},
+    {.75f * kDuration, Float3(.25f * kWalkCycleLength, 0.f, 0.f)},
+    {.875f * kDuration, Float3(-.25f * kWalkCycleLength, 0.f, 0.f)},
+    {.895f * kDuration, Float3(-.17f * kWalkCycleLength, .3f, 0.f)},
+    {.98f * kDuration, Float3(.17f * kWalkCycleLength, .3f, 0.f)}};
 const int kPrecomputedKeyCount = OZZ_ARRAY_SIZE(kPrecomputedKeys);
-
 
 class MillipedeSampleApplication : public ozz::sample::Application {
  public:
   MillipedeSampleApplication()
-    : slice_count_(26),
-      skeleton_(NULL),
-      animation_(NULL),
-      cache_(NULL) {
-  }
+      : slice_count_(26), skeleton_(NULL), animation_(NULL), cache_(NULL) {}
 
  protected:
   virtual bool OnUpdate(float _dt) {
@@ -150,18 +146,13 @@ class MillipedeSampleApplication : public ozz::sample::Application {
 
   virtual bool OnDisplay(ozz::sample::Renderer* _renderer) {
     // Renders the animated posture.
-      return _renderer->DrawPosture(*skeleton_,
-                                    models_,
-                                    ozz::math::Float4x4::identity());
+    return _renderer->DrawPosture(*skeleton_, models_,
+                                  ozz::math::Float4x4::identity());
   }
 
-  virtual bool OnInitialize() {
-    return Build();
-  }
+  virtual bool OnInitialize() { return Build(); }
 
-  virtual void OnDestroy() {
-    Destroy();
-  }
+  virtual void OnDestroy() { Destroy(); }
 
   virtual bool OnGui(ozz::sample::ImGui* _im_gui) {
     // Rebuilds all if the number of joints has changed.
@@ -171,9 +162,8 @@ class MillipedeSampleApplication : public ozz::sample::Application {
 
     // Uses an exponential scale in the slider to maintain enough precision in
     // the lowest values.
-    if (_im_gui->DoSlider(label,
-                          8, ozz::animation::Skeleton::kMaxJoints, &joints, .3f,
-                          true)) {
+    if (_im_gui->DoSlider(label, 8, ozz::animation::Skeleton::kMaxJoints,
+                          &joints, .3f, true)) {
       const int new_slice_count = (joints - 1) / 7;
       // Slider use floats, we need to check if it has really changed.
       if (new_slice_count != slice_count_) {
@@ -327,34 +317,36 @@ class MillipedeSampleApplication : public ozz::sample::Application {
         // Copy original keys while taking into consideration the spine number
         // as a phase.
         const int spine_number = std::atoi(joint_name + 2);
-        const float offset = kDuration * (slice_count_ - spine_number) /
-          kSpinLoop;
+        const float offset =
+            kDuration * (slice_count_ - spine_number) / kSpinLoop;
         const float phase = std::fmod(offset, kDuration);
 
         // Loop to find animation start.
         int i_offset = 0;
-        while (i_offset < kPrecomputedKeyCount && kPrecomputedKeys[i_offset].time < phase) {
+        while (i_offset < kPrecomputedKeyCount &&
+               kPrecomputedKeys[i_offset].time < phase) {
           i_offset++;
         }
 
         // Push key with their corrected time.
         track.translations.reserve(kPrecomputedKeyCount);
         for (int j = i_offset; j < i_offset + kPrecomputedKeyCount; ++j) {
-          const RawAnimation::TranslationKey& rkey = kPrecomputedKeys[j % kPrecomputedKeyCount];
+          const RawAnimation::TranslationKey& rkey =
+              kPrecomputedKeys[j % kPrecomputedKeyCount];
           float new_time = rkey.time - phase;
           if (new_time < 0.f) {
             new_time = kDuration - phase + rkey.time;
           }
 
           if (left) {
-            const RawAnimation::TranslationKey tkey =
-              {new_time, kTransDown + rkey.value};
+            const RawAnimation::TranslationKey tkey = {new_time,
+                                                       kTransDown + rkey.value};
             track.translations.push_back(tkey);
           } else {
-            const RawAnimation::TranslationKey tkey =
-              {new_time, Float3(kTransDown.x - rkey.value.x,
-               kTransDown.y + rkey.value.y,
-               kTransDown.z + rkey.value.z)};
+            const RawAnimation::TranslationKey tkey = {
+                new_time,
+                Float3(kTransDown.x - rkey.value.x, kTransDown.y + rkey.value.y,
+                       kTransDown.z + rkey.value.z)};
             track.translations.push_back(tkey);
           }
         }
@@ -381,29 +373,27 @@ class MillipedeSampleApplication : public ozz::sample::Application {
         const RawAnimation::RotationKey rkey0 = {0.f, kRotRightUp};
         track.rotations.push_back(rkey0);
       } else if (strstr(joint_name, "lf")) {
-          const RawAnimation::TranslationKey tkey = {0.f, kTransFoot};
-          track.translations.push_back(tkey);
+        const RawAnimation::TranslationKey tkey = {0.f, kTransFoot};
+        track.translations.push_back(tkey);
       } else if (strstr(joint_name, "rf")) {
-          const RawAnimation::TranslationKey tkey0 = {0.f, kTransFoot};
-          track.translations.push_back(tkey0);
+        const RawAnimation::TranslationKey tkey0 = {0.f, kTransFoot};
+        track.translations.push_back(tkey0);
       } else if (strstr(joint_name, "sp")) {
         const RawAnimation::TranslationKey skey = {
-          0.f,
-          Float3(0.f, 0.f, kSpinLength)};
+            0.f, Float3(0.f, 0.f, kSpinLength)};
         track.translations.push_back(skey);
 
         const RawAnimation::RotationKey rkey = {
-          0.f,
-          ozz::math::Quaternion::FromAxisAngle(Float4(0.f, 1.f, 0.f, 0.f))};
+            0.f,
+            ozz::math::Quaternion::FromAxisAngle(Float4(0.f, 1.f, 0.f, 0.f))};
         track.rotations.push_back(rkey);
       } else if (strstr(joint_name, "root")) {
         const RawAnimation::TranslationKey tkey0 = {
-          0.f,
-          Float3(0.f, 1.f, -slice_count_ * kSpinLength)};
+            0.f, Float3(0.f, 1.f, -slice_count_ * kSpinLength)};
         track.translations.push_back(tkey0);
         const RawAnimation::TranslationKey tkey1 = {
-          kDuration,
-          Float3(0.f, 1.f, kWalkCycleCount * kWalkCycleLength + tkey0.value.z)};
+            kDuration, Float3(0.f, 1.f, kWalkCycleCount * kWalkCycleLength +
+                                            tkey0.value.z)};
         track.translations.push_back(tkey1);
       }
 
@@ -412,19 +402,18 @@ class MillipedeSampleApplication : public ozz::sample::Application {
         const RawAnimation::TranslationKey& front = track.translations.front();
         const RawAnimation::TranslationKey& back = track.translations.back();
         const float lerp_time =
-          front.time / (front.time + kDuration - back.time);
+            front.time / (front.time + kDuration - back.time);
         const RawAnimation::TranslationKey tkey = {
-          0.f,
-          Lerp(front.value, back.value, lerp_time)};
+            0.f, Lerp(front.value, back.value, lerp_time)};
         track.translations.insert(track.translations.begin(), tkey);
       }
       if (track.translations.back().time != kDuration) {
         const RawAnimation::TranslationKey& front = track.translations.front();
         const RawAnimation::TranslationKey& back = track.translations.back();
         const float lerp_time =
-          (kDuration - back.time) / (front.time + kDuration - back.time);
+            (kDuration - back.time) / (front.time + kDuration - back.time);
         const RawAnimation::TranslationKey tkey = {
-          kDuration, Lerp(back.value, front.value, lerp_time)};
+            kDuration, Lerp(back.value, front.value, lerp_time)};
         track.translations.push_back(tkey);
       }
     }
@@ -435,7 +424,6 @@ class MillipedeSampleApplication : public ozz::sample::Application {
   }
 
  private:
-
   // Playback animation controller. This is a utility class that helps with
   // controlling animation playback time.
   ozz::sample::PlaybackController controller_;
@@ -461,7 +449,6 @@ class MillipedeSampleApplication : public ozz::sample::Application {
 };
 
 int main(int _argc, const char** _argv) {
-  const char* title =
-    "Ozz-animation sample: RawAnimation/RawSkeleton building";
+  const char* title = "Ozz-animation sample: RawAnimation/RawSkeleton building";
   return MillipedeSampleApplication().Run(_argc, _argv, "1.0", title);
 }
