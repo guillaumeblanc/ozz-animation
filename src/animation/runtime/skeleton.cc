@@ -30,6 +30,7 @@
 #include <cstring>
 
 #include "ozz/base/io/archive.h"
+#include "ozz/base/log.h"
 #include "ozz/base/maths/math_ex.h"
 #include "ozz/base/maths/soa_math_archive.h"
 #include "ozz/base/maths/soa_transform.h"
@@ -167,6 +168,8 @@ void Skeleton::Load(ozz::io::IArchive& _archive, uint32_t _version) {
   Deallocate();
 
   if (_version != 1) {
+    log::Err() << "Unsupported Skeleton version " << _version << "."
+               << std::endl;
     return;
   }
 

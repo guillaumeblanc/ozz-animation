@@ -28,6 +28,7 @@
 #include "ozz/animation/runtime/animation.h"
 
 #include "ozz/base/io/archive.h"
+#include "ozz/base/log.h"
 #include "ozz/base/maths/math_archive.h"
 #include "ozz/base/maths/math_ex.h"
 #include "ozz/base/memory/allocator.h"
@@ -152,6 +153,8 @@ void Animation::Load(ozz::io::IArchive& _archive, uint32_t _version) {
 
   // No retro-compatibility with anterior versions.
   if (_version != 4) {
+    log::Err() << "Unsupported Animation version " << _version << "."
+               << std::endl;
     return;
   }
 
