@@ -31,6 +31,7 @@
 // Provides traits for customizing archive serialization properties: version,
 // tag... See archive.h for more details.
 
+#include <cstddef>
 #include <stdint.h>
 
 namespace ozz {
