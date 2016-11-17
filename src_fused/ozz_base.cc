@@ -31,9 +31,9 @@
 
 #include "ozz/base/memory/allocator.h"
 
-#include <cstdlib>
-#include <cassert>
 #include <memory.h>
+#include <cassert>
+#include <cstdlib>
 
 #include "ozz/base/maths/math_ex.h"
 
@@ -51,12 +51,8 @@ struct Header {
 // Will trace allocation count and assert in case of a memory leak.
 class HeapAllocator : public Allocator {
  public:
-  HeapAllocator() :
-    allocation_count_(0) {
-  }
-  ~HeapAllocator() {
-    assert(allocation_count_ == 0 && "Memory leak detected");
-  }
+  HeapAllocator() : allocation_count_(0) {}
+  ~HeapAllocator() { assert(allocation_count_ == 0 && "Memory leak detected"); }
 
  protected:
   void* Allocate(size_t _size, size_t _alignment) {
@@ -83,7 +79,7 @@ class HeapAllocator : public Allocator {
     // Copies and deallocate the old memory block.
     if (_block) {
       Header* old_header = reinterpret_cast<Header*>(
-        reinterpret_cast<char*>(_block) - sizeof(Header));
+          reinterpret_cast<char*>(_block) - sizeof(Header));
       memcpy(new_block, _block, old_header->size);
       free(old_header->unaligned);
 
@@ -96,7 +92,7 @@ class HeapAllocator : public Allocator {
   void Deallocate(void* _block) {
     if (_block) {
       Header* header = reinterpret_cast<Header*>(
-        reinterpret_cast<char*>(_block) - sizeof(Header));
+          reinterpret_cast<char*>(_block) - sizeof(Header));
       free(header->unaligned);
       // Deallocation completed.
       --allocation_count_;
@@ -118,9 +114,7 @@ Allocator* g_default_allocator = &g_heap_allocator;
 }  // namespace
 
 // Implements default allocator accessor.
-Allocator* default_allocator() {
-  return g_default_allocator;
-}
+Allocator* default_allocator() { return g_default_allocator; }
 
 // Implements default allocator setter.
 Allocator* SetDefaulAllocator(Allocator* _allocator) {
@@ -180,41 +174,32 @@ Level SetLevel(Level _level) {
   return previous_level;
 }
 
-Level GetLevel() {
-  return log_level;
-}
+Level GetLevel() { return log_level; }
 
-LogV::LogV()
-    : internal::Logger(std::clog, Verbose) {
-}
+LogV::LogV() : internal::Logger(std::clog, Verbose) {}
 
-Log::Log()
-    : internal::Logger(std::clog, Standard) {
-}
+Log::Log() : internal::Logger(std::clog, Standard) {}
 
-Out::Out()
-    : internal::Logger(std::cout, Standard) {
-}
+Out::Out() : internal::Logger(std::cout, Standard) {}
 
-Err::Err()
-    : internal::Logger(std::cerr, Standard) {
-}
+Err::Err() : internal::Logger(std::cerr, Standard) {}
 
 namespace internal {
 
 Logger::Logger(std::ostream& _stream, Level _level)
-    : stream_(_level <= GetLevel() ?
-        _stream : *ozz::memory::default_allocator()->New<std::ostringstream>()),
-      local_stream_(&stream_ != &_stream) {
-}
+    : stream_(
+          _level <= GetLevel()
+              ? _stream
+              : *ozz::memory::default_allocator()->New<std::ostringstream>()),
+      local_stream_(&stream_ != &_stream) {}
 Logger::~Logger() {
   if (local_stream_) {
     ozz::memory::default_allocator()->Delete(&stream_);
   }
 }
 }  // internal
-} // log
-} // ozz
+}  // log
+}  // ozz
 
 // Including containers/string_archive.cc file.
 
@@ -253,23 +238,19 @@ Logger::~Logger() {
 namespace ozz {
 namespace io {
 template <>
-void Save(OArchive& _archive,
-          const String::Std* _values,
-          size_t _count) {
- for (size_t i = 0; i < _count; i++) {
-   const ozz::String::Std& string = _values[i];
+void Save(OArchive& _archive, const String::Std* _values, size_t _count) {
+  for (size_t i = 0; i < _count; i++) {
+    const ozz::String::Std& string = _values[i];
 
-   // Get size excluding null terminating character.
-   uint32_t size = static_cast<uint32_t>(string.size());
-   _archive << size;
-   _archive << ozz::io::MakeArray(string.c_str(), size);
- }
+    // Get size excluding null terminating character.
+    uint32_t size = static_cast<uint32_t>(string.size());
+    _archive << size;
+    _archive << ozz::io::MakeArray(string.c_str(), size);
+  }
 }
 
 template <>
-void Load(IArchive& _archive,
-          String::Std* _values,
-          size_t _count,
+void Load(IArchive& _archive, String::Std* _values, size_t _count,
           uint32_t _version) {
   (void)_version;
   for (size_t i = 0; i < _count; i++) {
@@ -286,7 +267,8 @@ void Load(IArchive& _archive,
     char buffer[128];
     for (size_t to_read = size; to_read != 0;) {
       // Read from the archive to the local temporary buffer.
-      const size_t to_read_this_loop = math::Min(to_read, OZZ_ARRAY_SIZE(buffer));
+      const size_t to_read_this_loop =
+          math::Min(to_read, OZZ_ARRAY_SIZE(buffer));
       _archive >> ozz::io::MakeArray(buffer, to_read_this_loop);
       to_read -= to_read_this_loop;
 
@@ -337,8 +319,7 @@ namespace io {
 // OArchive implementation.
 
 OArchive::OArchive(Stream* _stream, Endianness _endianness)
-    : stream_(_stream),
-      endian_swap_(_endianness != GetNativeEndianness()) {
+    : stream_(_stream), endian_swap_(_endianness != GetNativeEndianness()) {
   assert(stream_ && stream_->opened() &&
          L"_stream argument must point a valid opened stream.");
   // Save as a single byte as it does not need to be swapped.
@@ -348,9 +329,7 @@ OArchive::OArchive(Stream* _stream, Endianness _endianness)
 
 // IArchive implementation.
 
-IArchive::IArchive(Stream* _stream)
-    : stream_(_stream),
-      endian_swap_(false) {
+IArchive::IArchive(Stream* _stream) : stream_(_stream), endian_swap_(false) {
   assert(stream_ && stream_->opened() &&
          L"_stream argument must point a valid opened stream.");
   // Endianness was saved as a single byte, as it does not need to be swapped.
@@ -392,13 +371,13 @@ IArchive::IArchive(Stream* _stream)
 
 #include "ozz/base/io/stream.h"
 
-#include <cstdio>
-#include <limits>
-#include <cstring>
 #include <cassert>
+#include <cstdio>
+#include <cstring>
+#include <limits>
 
-#include "ozz/base/memory/allocator.h"
 #include "ozz/base/maths/math_ex.h"
+#include "ozz/base/memory/allocator.h"
 
 namespace ozz {
 namespace io {
@@ -415,16 +394,11 @@ bool File::Exist(const char* _filename) {
 }
 
 File::File(const char* _filename, const char* _mode)
-    : file_(std::fopen(_filename, _mode)) {
-}
+    : file_(std::fopen(_filename, _mode)) {}
 
-File::File(void* _file)
-    : file_(_file) {
-}
+File::File(void* _file) : file_(_file) {}
 
-File::~File() {
-  Close();
-}
+File::~File() { Close(); }
 
 void File::Close() {
   if (file_) {
@@ -434,9 +408,7 @@ void File::Close() {
   }
 }
 
-bool File::opened() const {
-  return file_ != NULL;
-}
+bool File::opened() const { return file_ != NULL; }
 
 size_t File::Read(void* _buffer, size_t _size) {
   std::FILE* file = reinterpret_cast<std::FILE*>(file_);
@@ -468,7 +440,8 @@ size_t File::Size() const {
   const int current = std::ftell(file);
   assert(current >= 0);
   int seek = std::fseek(file, 0, SEEK_END);
-  assert(seek == 0); (void)seek;
+  assert(seek == 0);
+  (void)seek;
   const int end = std::ftell(file);
   assert(end >= 0);
   seek = std::fseek(file, current, SEEK_SET);
@@ -478,24 +451,18 @@ size_t File::Size() const {
 }
 
 // Starts MemoryStream implementation.
-const size_t MemoryStream::kBufferSizeIncrement = 16<<10;
+const size_t MemoryStream::kBufferSizeIncrement = 16 << 10;
 const size_t MemoryStream::kMaxSize = std::numeric_limits<int>::max();
 
 MemoryStream::MemoryStream()
-    : buffer_(NULL),
-      alloc_size_(0),
-      end_(0),
-      tell_(0) {
-}
+    : buffer_(NULL), alloc_size_(0), end_(0), tell_(0) {}
 
 MemoryStream::~MemoryStream() {
   ozz::memory::default_allocator()->Deallocate(buffer_);
   buffer_ = NULL;
 }
 
-bool MemoryStream::opened() const {
-  return true;
-}
+bool MemoryStream::opened() const { return true; }
 
 size_t MemoryStream::Read(void* _buffer, size_t _size) {
   // A read cannot set file position beyond the end of the file.
@@ -511,8 +478,7 @@ size_t MemoryStream::Read(void* _buffer, size_t _size) {
 }
 
 size_t MemoryStream::Write(const void* _buffer, size_t _size) {
-  if (_size > kMaxSize ||
-      tell_ > static_cast<int>(kMaxSize - _size)) {
+  if (_size > kMaxSize || tell_ > static_cast<int>(kMaxSize - _size)) {
     // A write cannot exceed the maximum Stream size.
     return 0;
   }
@@ -544,14 +510,21 @@ size_t MemoryStream::Write(const void* _buffer, size_t _size) {
 int MemoryStream::Seek(int _offset, Origin _origin) {
   int origin;
   switch (_origin) {
-    case kCurrent: origin = tell_; break;
-    case kEnd: origin = end_; break;
-    case kSet: origin = 0; break;
-    default: return -1;
+    case kCurrent:
+      origin = tell_;
+      break;
+    case kEnd:
+      origin = end_;
+      break;
+    case kSet:
+      origin = 0;
+      break;
+    default:
+      return -1;
   }
 
   // Exit if seeking before file begin or beyond max file size.
-  if (origin < -_offset ||  
+  if (origin < -_offset ||
       (_offset > 0 && origin > static_cast<int>(kMaxSize - _offset))) {
     return -1;
   }
@@ -562,23 +535,20 @@ int MemoryStream::Seek(int _offset, Origin _origin) {
   return 0;
 }
 
-int MemoryStream::Tell() const {
-  return tell_;
-}
+int MemoryStream::Tell() const { return tell_; }
 
-size_t MemoryStream::Size() const {
-  return static_cast<size_t>(end_);
-}
+size_t MemoryStream::Size() const { return static_cast<size_t>(end_); }
 
 bool MemoryStream::Resize(size_t _size) {
   if (_size > alloc_size_) {
     // Resize to the next multiple of kBufferSizeIncrement, requires
     // kBufferSizeIncrement to be a power of 2.
     OZZ_STATIC_ASSERT(
-      (MemoryStream::kBufferSizeIncrement & (kBufferSizeIncrement-1)) == 0);
+        (MemoryStream::kBufferSizeIncrement & (kBufferSizeIncrement - 1)) == 0);
 
     alloc_size_ = ozz::math::Align(_size, kBufferSizeIncrement);
-    buffer_ = ozz::memory::default_allocator()->Reallocate(buffer_, alloc_size_);
+    buffer_ =
+        ozz::memory::default_allocator()->Reallocate(buffer_, alloc_size_);
   }
   return _size == 0 || buffer_ != NULL;
 }
@@ -624,9 +594,8 @@ namespace ozz {
 namespace math {
 
 Box::Box()
-  : min(std::numeric_limits<float>::max()),
-    max(-std::numeric_limits<float>::max()) {
-}
+    : min(std::numeric_limits<float>::max()),
+      max(-std::numeric_limits<float>::max()) {}
 
 Box::Box(const Float3* _points, size_t _stride, size_t _count) {
   Float3 local_min(std::numeric_limits<float>::max());
@@ -735,129 +704,97 @@ const char* SimdImplementationName() {
 #include <cassert>
 
 #include "ozz/base/io/archive.h"
-#include "ozz/base/maths/vec_float.h"
-#include "ozz/base/maths/quaternion.h"
-#include "ozz/base/maths/transform.h"
 #include "ozz/base/maths/box.h"
+#include "ozz/base/maths/quaternion.h"
 #include "ozz/base/maths/rect.h"
+#include "ozz/base/maths/transform.h"
+#include "ozz/base/maths/vec_float.h"
 
 namespace ozz {
 namespace io {
 template <>
-void Save(OArchive& _archive,
-          const math::Float2* _values,
-          size_t _count) {
+void Save(OArchive& _archive, const math::Float2* _values, size_t _count) {
   _archive << MakeArray(&_values->x, 2 * _count);
 }
 template <>
-void Load(IArchive& _archive,
-          math::Float2* _values,
-          size_t _count,
+void Load(IArchive& _archive, math::Float2* _values, size_t _count,
           uint32_t _version) {
   (void)_version;
   _archive >> MakeArray(&_values->x, 2 * _count);
 }
 
 template <>
-void Save(OArchive& _archive,
-          const math::Float3* _values,
-          size_t _count) {
+void Save(OArchive& _archive, const math::Float3* _values, size_t _count) {
   _archive << MakeArray(&_values->x, 3 * _count);
 }
 template <>
-void Load(IArchive& _archive,
-          math::Float3* _values,
-          size_t _count,
+void Load(IArchive& _archive, math::Float3* _values, size_t _count,
           uint32_t _version) {
   (void)_version;
   _archive >> MakeArray(&_values->x, 3 * _count);
 }
 
 template <>
-void Save(OArchive& _archive,
-          const math::Float4* _values,
-          size_t _count) {
+void Save(OArchive& _archive, const math::Float4* _values, size_t _count) {
   _archive << MakeArray(&_values->x, 4 * _count);
 }
 template <>
-void Load(IArchive& _archive,
-          math::Float4* _values,
-          size_t _count,
+void Load(IArchive& _archive, math::Float4* _values, size_t _count,
           uint32_t _version) {
   (void)_version;
   _archive >> MakeArray(&_values->x, 4 * _count);
 }
 
 template <>
-void Save(OArchive& _archive,
-          const math::Quaternion* _values,
-          size_t _count) {
+void Save(OArchive& _archive, const math::Quaternion* _values, size_t _count) {
   _archive << MakeArray(&_values->x, 4 * _count);
 }
 template <>
-void Load(IArchive& _archive,
-          math::Quaternion* _values,
-          size_t _count,
+void Load(IArchive& _archive, math::Quaternion* _values, size_t _count,
           uint32_t _version) {
   (void)_version;
   _archive >> MakeArray(&_values->x, 4 * _count);
 }
 
 template <>
-void Save(OArchive& _archive,
-          const math::Transform* _values,
-          size_t _count) {
+void Save(OArchive& _archive, const math::Transform* _values, size_t _count) {
   _archive << MakeArray(&_values->translation.x, 10 * _count);
 }
 template <>
-void Load(IArchive& _archive,
-          math::Transform* _values,
-          size_t _count,
+void Load(IArchive& _archive, math::Transform* _values, size_t _count,
           uint32_t _version) {
   (void)_version;
   _archive >> MakeArray(&_values->translation.x, 10 * _count);
 }
 
 template <>
-void Save(OArchive& _archive,
-          const math::Box* _values,
-          size_t _count) {
+void Save(OArchive& _archive, const math::Box* _values, size_t _count) {
   _archive << MakeArray(&_values->min.x, 6 * _count);
 }
 template <>
-void Load(IArchive& _archive,
-          math::Box* _values,
-          size_t _count,
+void Load(IArchive& _archive, math::Box* _values, size_t _count,
           uint32_t _version) {
   (void)_version;
   _archive >> MakeArray(&_values->min.x, 6 * _count);
 }
 
 template <>
-void Save(OArchive& _archive,
-          const math::RectFloat* _values,
-          size_t _count) {
+void Save(OArchive& _archive, const math::RectFloat* _values, size_t _count) {
   _archive << MakeArray(&_values->left, 4 * _count);
 }
 template <>
-void Load(IArchive& _archive,
-          math::RectFloat* _values,
-          size_t _count,
+void Load(IArchive& _archive, math::RectFloat* _values, size_t _count,
           uint32_t _version) {
   (void)_version;
   _archive >> MakeArray(&_values->left, 4 * _count);
 }
 
 template <>
-void Save(OArchive& _archive,
-          const math::RectInt* _values,
-          size_t _count) {
+void Save(OArchive& _archive, const math::RectInt* _values, size_t _count) {
   _archive << MakeArray(&_values->left, 4 * _count);
 }
 template <>
-void Load(IArchive& _archive,
-          math::RectInt* _values,
-          size_t _count,
+void Load(IArchive& _archive, math::RectInt* _values, size_t _count,
           uint32_t _version) {
   (void)_version;
   _archive >> MakeArray(&_values->left, 4 * _count);
@@ -900,91 +837,68 @@ void Load(IArchive& _archive,
 
 #include "ozz/base/io/archive.h"
 #include "ozz/base/maths/soa_float.h"
-#include "ozz/base/maths/soa_quaternion.h"
 #include "ozz/base/maths/soa_float4x4.h"
+#include "ozz/base/maths/soa_quaternion.h"
 #include "ozz/base/maths/soa_transform.h"
 
 namespace ozz {
 namespace io {
 template <>
-void Save(OArchive& _archive,
-          const math::SoaFloat2* _values,
-          size_t _count) {
+void Save(OArchive& _archive, const math::SoaFloat2* _values, size_t _count) {
   _archive << MakeArray(reinterpret_cast<const float*>(&_values->x),
                         2 * 4 * _count);
 }
 template <>
-void Load(IArchive& _archive,
-          math::SoaFloat2* _values,
-          size_t _count,
+void Load(IArchive& _archive, math::SoaFloat2* _values, size_t _count,
           uint32_t _version) {
   (void)_version;
-  _archive >> MakeArray(reinterpret_cast<float*>(&_values->x),
-                        2 * 4 * _count);
+  _archive >> MakeArray(reinterpret_cast<float*>(&_values->x), 2 * 4 * _count);
 }
 
 template <>
-void Save(OArchive& _archive,
-          const math::SoaFloat3* _values,
-          size_t _count) {
+void Save(OArchive& _archive, const math::SoaFloat3* _values, size_t _count) {
   _archive << MakeArray(reinterpret_cast<const float*>(&_values->x),
                         3 * 4 * _count);
 }
 template <>
-void Load(IArchive& _archive,
-          math::SoaFloat3* _values,
-          size_t _count,
+void Load(IArchive& _archive, math::SoaFloat3* _values, size_t _count,
           uint32_t _version) {
   (void)_version;
-  _archive >> MakeArray(reinterpret_cast<float*>(&_values->x),
-                        3 * 4 * _count);
+  _archive >> MakeArray(reinterpret_cast<float*>(&_values->x), 3 * 4 * _count);
 }
 
 template <>
-void Save(OArchive& _archive,
-          const math::SoaFloat4* _values,
-          size_t _count) {
+void Save(OArchive& _archive, const math::SoaFloat4* _values, size_t _count) {
   _archive << MakeArray(reinterpret_cast<const float*>(&_values->x),
-                        4 * 4 *_count);
-}
-template <>
-void Load(IArchive& _archive,
-          math::SoaFloat4* _values,
-          size_t _count,
-          uint32_t _version) {
-  (void)_version;
-  _archive >> MakeArray(reinterpret_cast<float*>(&_values->x),
                         4 * 4 * _count);
 }
+template <>
+void Load(IArchive& _archive, math::SoaFloat4* _values, size_t _count,
+          uint32_t _version) {
+  (void)_version;
+  _archive >> MakeArray(reinterpret_cast<float*>(&_values->x), 4 * 4 * _count);
+}
 
 template <>
-void Save(OArchive& _archive,
-          const math::SoaQuaternion* _values,
+void Save(OArchive& _archive, const math::SoaQuaternion* _values,
           size_t _count) {
   _archive << MakeArray(reinterpret_cast<const float*>(&_values->x),
                         4 * 4 * _count);
 }
 template <>
-void Load(IArchive& _archive,
-          math::SoaQuaternion* _values,
-          size_t _count,
+void Load(IArchive& _archive, math::SoaQuaternion* _values, size_t _count,
           uint32_t _version) {
   (void)_version;
-  _archive >> MakeArray(reinterpret_cast<float*>(&_values->x),
-                        4 * 4 * _count);
+  _archive >> MakeArray(reinterpret_cast<float*>(&_values->x), 4 * 4 * _count);
 }
 
 template <>
-void Save(OArchive& _archive,
-          const math::SoaFloat4x4* _values,
-          size_t _count) {
+void Save(OArchive& _archive, const math::SoaFloat4x4* _values, size_t _count) {
   _archive << MakeArray(reinterpret_cast<const float*>(&_values->cols[0].x),
-                        4 * 4 * 4 *_count);
+                        4 * 4 * 4 * _count);
 }
 template <>
-void Load(IArchive& _archive,
-          math::SoaFloat4x4* _values,
-          size_t _count,
+void Load(IArchive& _archive, math::SoaFloat4x4* _values, size_t _count,
           uint32_t _version) {
   (void)_version;
   _archive >> MakeArray(reinterpret_cast<float*>(&_values->cols[0].x),
@@ -992,16 +906,13 @@ void Load(IArchive& _archive,
 }
 
 template <>
-void Save(OArchive& _archive,
-          const math::SoaTransform* _values,
+void Save(OArchive& _archive, const math::SoaTransform* _values,
           size_t _count) {
   _archive << MakeArray(reinterpret_cast<const float*>(&_values->translation.x),
-                        10 * 4 *_count);
+                        10 * 4 * _count);
 }
 template <>
-void Load(IArchive& _archive,
-          math::SoaTransform* _values,
-          size_t _count,
+void Load(IArchive& _archive, math::SoaTransform* _values, size_t _count,
           uint32_t _version) {
   (void)_version;
   _archive >> MakeArray(reinterpret_cast<float*>(&_values->translation.x),
@@ -1048,45 +959,33 @@ void Load(IArchive& _archive,
 namespace ozz {
 namespace io {
 template <>
-void Save(OArchive& _archive,
-          const math::SimdFloat4* _values,
-          size_t _count) {
+void Save(OArchive& _archive, const math::SimdFloat4* _values, size_t _count) {
   _archive << MakeArray(reinterpret_cast<const float*>(_values), 4 * _count);
 }
 template <>
-void Load(IArchive& _archive,
-          math::SimdFloat4* _values,
-          size_t _count,
+void Load(IArchive& _archive, math::SimdFloat4* _values, size_t _count,
           uint32_t _version) {
   (void)_version;
   _archive >> MakeArray(reinterpret_cast<float*>(_values), 4 * _count);
 }
 
 template <>
-void Save(OArchive& _archive,
-          const math::SimdInt4* _values,
-          size_t _count) {
+void Save(OArchive& _archive, const math::SimdInt4* _values, size_t _count) {
   _archive << MakeArray(reinterpret_cast<const int*>(_values), 4 * _count);
 }
 template <>
-void Load(IArchive& _archive,
-          math::SimdInt4* _values,
-          size_t _count,
+void Load(IArchive& _archive, math::SimdInt4* _values, size_t _count,
           uint32_t _version) {
   (void)_version;
   _archive >> MakeArray(reinterpret_cast<int*>(_values), 4 * _count);
 }
 
 template <>
-void Save(OArchive& _archive,
-          const math::Float4x4* _values,
-          size_t _count) {
+void Save(OArchive& _archive, const math::Float4x4* _values, size_t _count) {
   _archive << MakeArray(reinterpret_cast<const float*>(_values), 16 * _count);
 }
 template <>
-void Load(IArchive& _archive,
-          math::Float4x4* _values,
-          size_t _count,
+void Load(IArchive& _archive, math::Float4x4* _values, size_t _count,
           uint32_t _version) {
   (void)_version;
   _archive >> MakeArray(reinterpret_cast<float*>(_values), 16 * _count);

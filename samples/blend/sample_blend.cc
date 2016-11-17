@@ -25,63 +25,54 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/animation/runtime/skeleton.h"
 #include "ozz/animation/runtime/animation.h"
 #include "ozz/animation/runtime/blending_job.h"
-#include "ozz/animation/runtime/sampling_job.h"
 #include "ozz/animation/runtime/local_to_model_job.h"
+#include "ozz/animation/runtime/sampling_job.h"
+#include "ozz/animation/runtime/skeleton.h"
 
 #include "ozz/base/log.h"
 
 #include "ozz/base/maths/math_ex.h"
-#include "ozz/base/maths/vec_float.h"
 #include "ozz/base/maths/simd_math.h"
 #include "ozz/base/maths/soa_transform.h"
+#include "ozz/base/maths/vec_float.h"
 
 #include "ozz/base/memory/allocator.h"
 
 #include "ozz/options/options.h"
 
 #include "framework/application.h"
-#include "framework/renderer.h"
 #include "framework/imgui.h"
+#include "framework/renderer.h"
 #include "framework/utils.h"
 
 // Skeleton archive can be specified as an option.
-OZZ_OPTIONS_DECLARE_STRING(
-  skeleton,
-  "Path to the skeleton (ozz archive format).",
-  "media/alain_skeleton.ozz",
-  false)
+OZZ_OPTIONS_DECLARE_STRING(skeleton,
+                           "Path to the skeleton (ozz archive format).",
+                           "media/alain_skeleton.ozz", false)
 
 // First animation archive can be specified as an option.
-OZZ_OPTIONS_DECLARE_STRING(
-  animation1,
-  "Path to the first animation (ozz archive format).",
-  "media/alain_walk.ozz",
-  false)
+OZZ_OPTIONS_DECLARE_STRING(animation1,
+                           "Path to the first animation (ozz archive format).",
+                           "media/alain_walk.ozz", false)
 
 // Second animation archive can be specified as an option.
-OZZ_OPTIONS_DECLARE_STRING(
-  animation2,
-  "Path to the second animation (ozz archive format).",
-  "media/alain_jog.ozz",
-  false)
+OZZ_OPTIONS_DECLARE_STRING(animation2,
+                           "Path to the second animation (ozz archive format).",
+                           "media/alain_jog.ozz", false)
 
 // Third animation archive can be specified as an option.
-OZZ_OPTIONS_DECLARE_STRING(
-  animation3,
-  "Path to the second animation (ozz archive format).",
-  "media/alain_run.ozz",
-  false)
+OZZ_OPTIONS_DECLARE_STRING(animation3,
+                           "Path to the second animation (ozz archive format).",
+                           "media/alain_run.ozz", false)
 
 class BlendSampleApplication : public ozz::sample::Application {
  public:
   BlendSampleApplication()
-    : blend_ratio_(.3f),
-      manual_(false),
-      threshold_(ozz::animation::BlendingJob().threshold) {
-  }
+      : blend_ratio_(.3f),
+        manual_(false),
+        threshold_(ozz::animation::BlendingJob().threshold) {}
 
  protected:
   // Updates current animation time.
@@ -178,7 +169,7 @@ class BlendSampleApplication : public ozz::sample::Application {
     // Uses a maximum value smaller that 1.f (-epsilon) to ensure that
     // (relevant_sampler + 1) is always valid.
     const int relevant_sampler =
-      static_cast<int>((blend_ratio_ - 1e-3f) * (kNumLayers - 1));
+        static_cast<int>((blend_ratio_ - 1e-3f) * (kNumLayers - 1));
     assert(relevant_sampler + 1 < kNumLayers);
     Sampler& sampler_l = samplers_[relevant_sampler];
     Sampler& sampler_r = samplers_[relevant_sampler + 1];
@@ -186,8 +177,8 @@ class BlendSampleApplication : public ozz::sample::Application {
     // Interpolates animation durations using their respective weights, to
     // find the loop cycle duration that matches blend_ratio_.
     const float loop_duration =
-      sampler_l.animation.duration() * sampler_l.weight +
-      sampler_r.animation.duration() * sampler_r.weight;
+        sampler_l.animation.duration() * sampler_l.weight +
+        sampler_r.animation.duration() * sampler_r.weight;
 
     // Finally finds the speed coefficient for all samplers.
     const float inv_loop_duration = 1.f / loop_duration;
@@ -200,37 +191,35 @@ class BlendSampleApplication : public ozz::sample::Application {
 
   // Samples animation, transforms to model space and renders.
   virtual bool OnDisplay(ozz::sample::Renderer* _renderer) {
-    return _renderer->DrawPosture(skeleton_,
-                                  models_,
+    return _renderer->DrawPosture(skeleton_, models_,
                                   ozz::math::Float4x4::identity());
   }
 
   virtual bool OnInitialize() {
     ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
 
-
     // Reading skeleton.
     if (!ozz::sample::LoadSkeleton(OPTIONS_skeleton, &skeleton_)) {
-        return false;
+      return false;
     }
 
     const int num_joints = skeleton_.num_joints();
     const int num_soa_joints = skeleton_.num_soa_joints();
 
     // Reading animations.
-    const char* filenames[] = {
-      OPTIONS_animation1, OPTIONS_animation2, OPTIONS_animation3};
+    const char* filenames[] = {OPTIONS_animation1, OPTIONS_animation2,
+                               OPTIONS_animation3};
     OZZ_STATIC_ASSERT(OZZ_ARRAY_SIZE(filenames) == kNumLayers);
     for (int i = 0; i < kNumLayers; ++i) {
       Sampler& sampler = samplers_[i];
 
       if (!ozz::sample::LoadAnimation(filenames[i], &sampler.animation)) {
-          return false;
+        return false;
       }
 
       // Allocates sampler runtime buffers.
       sampler.locals =
-        allocator->AllocateRange<ozz::math::SoaTransform>(num_soa_joints);
+          allocator->AllocateRange<ozz::math::SoaTransform>(num_soa_joints);
 
       // Allocates a cache that matches animation requirements.
       sampler.cache = allocator->New<ozz::animation::SamplingCache>(num_joints);
@@ -238,7 +227,7 @@ class BlendSampleApplication : public ozz::sample::Application {
 
     // Allocates local space runtime buffers of blended data.
     blended_locals_ =
-      allocator->AllocateRange<ozz::math::SoaTransform>(num_soa_joints);
+        allocator->AllocateRange<ozz::math::SoaTransform>(num_soa_joints);
 
     // Allocates model space runtime buffers of blended data.
     models_ = allocator->AllocateRange<ozz::math::Float4x4>(num_joints);
@@ -311,7 +300,6 @@ class BlendSampleApplication : public ozz::sample::Application {
   }
 
  private:
-
   // Runtime skeleton.
   ozz::animation::Skeleton skeleton_;
 
@@ -332,10 +320,7 @@ class BlendSampleApplication : public ozz::sample::Application {
   // animation.
   struct Sampler {
     // Constructor, default initialization.
-    Sampler()
-     : weight(1.f),
-       cache(NULL) {
-    }
+    Sampler() : weight(1.f), cache(NULL) {}
 
     // Playback animation controller. This is a utility class that helps with
     // controlling animation playback time.

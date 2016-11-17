@@ -31,16 +31,16 @@
 #include <cstdio>
 
 namespace ozz {
-namespace math { struct RectFloat; }
+namespace math {
+struct RectFloat;
+}
 namespace sample {
 
 // Interface for immediate mode graphical user interface rendering.
 class ImGui {
  public:
-
   // Declares a virtual destructor to allow proper destruction.
-  virtual ~ImGui() {
-  }
+  virtual ~ImGui() {}
 
   // Text justification types.
   enum Justification {
@@ -58,20 +58,16 @@ class ImGui {
   // Providing a non NULL _open argument enables the open/close mechanism.
   class Form {
    public:
-    Form(ImGui* _im_gui,
-         const char* _title,
-         const math::RectFloat& _rect,
-         bool* _open,
-         bool _constrain)
-      : im_gui_(_im_gui){
+    Form(ImGui* _im_gui, const char* _title, const math::RectFloat& _rect,
+         bool* _open, bool _constrain)
+        : im_gui_(_im_gui) {
       im_gui_->BeginContainer(_title, &_rect, _open, _constrain);
     }
-    ~Form() {
-      im_gui_->EndContainer();
-    }
+    ~Form() { im_gui_->EndContainer(); }
+
    private:
-    Form(const Form&);  // Forbids copy.
-    void operator = (const Form&);  // Forbids assignment.
+    Form(const Form&);            // Forbids copy.
+    void operator=(const Form&);  // Forbids assignment.
     ImGui* im_gui_;
   };
 
@@ -84,15 +80,14 @@ class ImGui {
   class OpenClose {
    public:
     OpenClose(ImGui* _im_gui, const char* _title, bool* _open)
-      : im_gui_(_im_gui) {
+        : im_gui_(_im_gui) {
       im_gui_->BeginContainer(_title, NULL, _open, true);
     }
-    ~OpenClose() {
-      im_gui_->EndContainer();
-    }
+    ~OpenClose() { im_gui_->EndContainer(); }
+
    private:
-    OpenClose(const OpenClose&);  // Forbids copy.
-    void operator = (const OpenClose&);  // Forbids assignment.
+    OpenClose(const OpenClose&);       // Forbids copy.
+    void operator=(const OpenClose&);  // Forbids assignment.
     ImGui* im_gui_;
   };
 
@@ -102,10 +97,9 @@ class ImGui {
   // If _state is not NULL, then it is used as an in-out parameter to set and
   // store button's state. The button can then behave like a check box, with
   // a button rendering style.
-  // It allows for example to 
+  // It allows for example to
   // Returns true is button was clicked.
-  virtual bool DoButton(const char* _label,
-                        bool _enabled = true,
+  virtual bool DoButton(const char* _label, bool _enabled = true,
                         bool* _state = NULL) = 0;
 
   // Adds a float slider to the current context and returns true if _value was
@@ -117,9 +111,8 @@ class ImGui {
   // If _enabled is false then interactions with the slider are disabled, and
   // rendering is grayed out.
   // Returns true if _value _value has changed.
-  virtual bool DoSlider(const char* _label,
-                        float _min, float _max, float* _value,
-                        float _pow = 1.f,
+  virtual bool DoSlider(const char* _label, float _min, float _max,
+                        float* _value, float _pow = 1.f,
                         bool _enabled = true) = 0;
 
   // Adds an integer slider to the current context and returns true if _value
@@ -131,10 +124,8 @@ class ImGui {
   // If _enabled is false then interactions with the slider are disabled, and
   // rendering is grayed out.
   // Returns true if _value _value has changed.
-  virtual bool DoSlider(const char* _label,
-                        int _min, int _max, int* _value,
-                        float _pow = 1.f,
-                        bool _enabled = true) = 0;
+  virtual bool DoSlider(const char* _label, int _min, int _max, int* _value,
+                        float _pow = 1.f, bool _enabled = true) = 0;
 
   // Adds a check box to the current context and returns true if it has been
   // modified. Used to represent boolean value.
@@ -142,8 +133,7 @@ class ImGui {
   // If _enabled is false then interactions with the slider are disabled, and
   // rendering is grayed out.
   // Returns true if _value _state has changed.
-  virtual bool DoCheckBox(const char* _label,
-                          bool* _state,
+  virtual bool DoCheckBox(const char* _label, bool* _state,
                           bool _enabled = true) = 0;
 
   // Adds a radio button to the current context and returns true if it has been
@@ -151,9 +141,7 @@ class ImGui {
   // current value _value.
   // Displays a "checked" radio button if _ref si equal to th selected _value.
   // Returns true if _value _value has changed.
-  virtual bool DoRadioButton(int _ref,
-                             const char* _label,
-                             int* _value,
+  virtual bool DoRadioButton(int _ref, const char* _label, int* _value,
                              bool _enabled = true) = 0;
 
   // Adds a text label to the current context. Its height depends on the number
@@ -161,8 +149,7 @@ class ImGui {
   // _justification selects the text alignment in the current container.
   // if _single_line is true then _label text is cut at the end of the first
   // line.
-  virtual void DoLabel(const char* _label,
-                       Justification _justification = kLeft,
+  virtual void DoLabel(const char* _label, Justification _justification = kLeft,
                        bool _single_line = true) = 0;
 
   // Adds a graph widget to the current context.
@@ -174,25 +161,22 @@ class ImGui {
   // _value_end[ and [_value_begin,_value_cursor[ are used.
   // All values outside of _min and _max range are clamped.
   // If _label is not NULL then a text is displayed on top of the graph.
-  virtual void DoGraph(const char* _label,
-                       float _min, float _max, float _mean,
-                       const float* _value_cursor,
-                       const float* _value_begin, const float* _value_end) = 0;
+  virtual void DoGraph(const char* _label, float _min, float _max, float _mean,
+                       const float* _value_cursor, const float* _value_begin,
+                       const float* _value_end) = 0;
 
  private:
-
   // Begins a new container of size _rect.
   // Widgets (buttons, sliders...) can only be displayed in a container.
   // The rectangles height is the maximum height that the container can use. The
   // container automatically shrinks to fit the size of the widgets it contains.
-  // Providing a non NULL _title argument displays a title on top of the container.
+  // Providing a non NULL _title argument displays a title on top of the
+  // container.
   // Providing a NULL _rect argument means that the container will use all its
   // parent size.
   // Providing a non NULL _open argument enables the open/close mechanism.
-  virtual void BeginContainer(const char* _title,
-                              const math::RectFloat* _rect,
-                              bool* _open,
-                              bool _constrain) = 0;
+  virtual void BeginContainer(const char* _title, const math::RectFloat* _rect,
+                              bool* _open, bool _constrain) = 0;
 
   // Ends the current container.
   virtual void EndContainer() = 0;

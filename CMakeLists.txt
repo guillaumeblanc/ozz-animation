@@ -5,7 +5,7 @@ project(ozz)
 
 # Current version
 set(CPACK_PACKAGE_VERSION_MAJOR 0)
-set(CPACK_PACKAGE_VERSION_MINOR 8)
+set(CPACK_PACKAGE_VERSION_MINOR 9)
 set(CPACK_PACKAGE_VERSION_PATCH 0)
 
 # Add project build options
@@ -25,6 +25,7 @@ set(ozz_sample_testing_loops "20" CACHE INT "Number of loops while running sampl
 include(build-utils/cmake/compiler_settings.cmake)
 include(build-utils/cmake/package_settings.cmake)
 include(build-utils/cmake/fuse_target.cmake)
+include(build-utils/cmake/clang_format.cmake)
 
 # Enables unit tests only
 if(ozz_build_tests)

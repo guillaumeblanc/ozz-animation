@@ -30,9 +30,9 @@
 
 #include "ozz/base/containers/string.h"
 #include "ozz/base/containers/vector.h"
-#include "ozz/base/maths/vec_float.h"
-#include "ozz/base/maths/quaternion.h"
 #include "ozz/base/io/archive_traits.h"
+#include "ozz/base/maths/quaternion.h"
+#include "ozz/base/maths/vec_float.h"
 
 namespace ozz {
 namespace animation {
@@ -79,9 +79,7 @@ struct RawAnimation {
     Value value;
 
     // Provides identity transformation for a translation key.
-    static math::Float3 identity() {
-      return math::Float3::zero();
-    }
+    static math::Float3 identity() { return math::Float3::zero(); }
   };
 
   // Defines a raw rotation key frame.
@@ -94,9 +92,7 @@ struct RawAnimation {
     math::Quaternion value;
 
     // Provides identity transformation for a rotation key.
-    static math::Quaternion identity() {
-      return math::Quaternion::identity();
-    }
+    static math::Quaternion identity() { return math::Quaternion::identity(); }
   };
 
   // Defines a raw scaling key frame.
@@ -109,9 +105,7 @@ struct RawAnimation {
     math::Float3 value;
 
     // Provides identity transformation for a scale key.
-    static math::Float3 identity() {
-      return math::Float3::one();
-    }
+    static math::Float3 identity() { return math::Float3::one(); }
   };
 
   // Defines a track of key frames for a bone, including translation, rotation
@@ -126,9 +120,7 @@ struct RawAnimation {
   };
 
   // Returns the number of tracks of this animation.
-  int num_tracks() const {
-    return static_cast<int>(tracks.size());
-  }
+  int num_tracks() const { return static_cast<int>(tracks.size()); }
 
   // Stores per joint JointTrack, ie: per joint animation key-frames.
   // tracks_.size() gives the number of animated joints.
@@ -150,14 +142,11 @@ OZZ_IO_TYPE_TAG("ozz-raw_animation", animation::offline::RawAnimation)
 // Should not be called directly but through io::Archive << and >> operators.
 template <>
 void Save(OArchive& _archive,
-          const animation::offline::RawAnimation* _animations,
-          size_t _count);
+          const animation::offline::RawAnimation* _animations, size_t _count);
 
 template <>
-void Load(IArchive& _archive,
-          animation::offline::RawAnimation* _animations,
-          size_t _count,
-          uint32_t _version);
+void Load(IArchive& _archive, animation::offline::RawAnimation* _animations,
+          size_t _count, uint32_t _version);
 }  // io
 }  // ozz
 #endif  // OZZ_OZZ_ANIMATION_OFFLINE_RAW_ANIMATION_H_

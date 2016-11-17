@@ -34,36 +34,26 @@ namespace math {
 // Defines a rectangle by the integer coordinates of its lower-left and
 // width-height.
 struct RectInt {
-
   // Constructs a uninitialized rectangle.
-  RectInt() {
-  }
+  RectInt() {}
 
   // Constructs a rectangle with the specified arguments.
   RectInt(int _left, int _bottom, int _width, int _height)
-    : left(_left),
-      bottom(_bottom),
-      width(_width),
-      height(_height) {
-  }
+      : left(_left), bottom(_bottom), width(_width), height(_height) {}
 
   // Tests whether _x and _y coordinates are within rectangle bounds.
   bool is_inside(int _x, int _y) const {
-    return _x >= left && _x < left + width &&
-           _y >= bottom && _y < bottom + height;
+    return _x >= left && _x < left + width && _y >= bottom &&
+           _y < bottom + height;
   }
 
   // Gets the rectangle x coordinate of the right rectangle side.
-  int right() const {
-    return left + width;
-  }
+  int right() const { return left + width; }
 
   // Gets the rectangle y coordinate of the top rectangle side.
-  int top() const {
-    return bottom + height;
-  }
+  int top() const { return bottom + height; }
 
-  // Specifies the x-coordinate of the lower side. 
+  // Specifies the x-coordinate of the lower side.
   int left;
   // Specifies the x-coordinate of the left side.
   int bottom;
@@ -76,36 +66,26 @@ struct RectInt {
 // Defines a rectangle by the floating point coordinates of its lower-left
 // and width-height.
 struct RectFloat {
-
   // Constructs a uninitialized rectangle.
-  RectFloat() {
-  }
+  RectFloat() {}
 
   // Constructs a rectangle with the specified arguments.
-  RectFloat(float _left, float _bottom, float _width, float _height) :
-    left(_left),
-    bottom(_bottom),
-    width(_width),
-    height(_height) {
-  }
+  RectFloat(float _left, float _bottom, float _width, float _height)
+      : left(_left), bottom(_bottom), width(_width), height(_height) {}
 
   // Tests whether _x and _y coordinates are within rectangle bounds
   bool is_inside(float _x, float _y) const {
-    return _x >= left && _x < left + width &&
-           _y >= bottom && _y < bottom + height;
+    return _x >= left && _x < left + width && _y >= bottom &&
+           _y < bottom + height;
   }
 
   // Gets the rectangle x coordinate of the right rectangle side.
-  float right() const {
-    return left + width;
-  }
+  float right() const { return left + width; }
 
   // Gets the rectangle y coordinate of the top rectangle side.
-  float top() const {
-    return bottom + height;
-  }
+  float top() const { return bottom + height; }
 
-  // Specifies the x-coordinate of the lower side. 
+  // Specifies the x-coordinate of the lower side.
   float left;
   // Specifies the x-coordinate of the left side.
   float bottom;

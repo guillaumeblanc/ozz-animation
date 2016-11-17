@@ -37,6 +37,8 @@ using ozz::math::SoaQuaternion;
 using ozz::math::SoaFloat3;
 using ozz::math::SoaFloat4;
 
+// clang-format off
+
 TEST(Constant, SoaFloat4x4) {
   const SoaFloat4x4 identity = SoaFloat4x4::identity();
   EXPECT_SOAFLOAT4x4_EQ(identity, 1.f, 1.f, 1.f, 1.f,

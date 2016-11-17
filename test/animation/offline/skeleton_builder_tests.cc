@@ -32,10 +32,10 @@
 
 #include "gtest/gtest.h"
 
-#include "ozz/base/memory/allocator.h"
+#include "ozz/animation/runtime/skeleton.h"
 #include "ozz/base/maths/simd_math.h"
 #include "ozz/base/maths/soa_transform.h"
-#include "ozz/animation/runtime/skeleton.h"
+#include "ozz/base/memory/allocator.h"
 
 #include "ozz/base/maths/gtest_math_helper.h"
 
@@ -65,9 +65,7 @@ namespace {
 // Tester object that ensure order (depth-first) of joints iteration.
 class RawSkeletonIterateDFTester {
  public:
-  RawSkeletonIterateDFTester() :
-    num_joint_(0) {
-  }
+  RawSkeletonIterateDFTester() : num_joint_(0) {}
   void operator()(const RawSkeleton::Joint& _current,
                   const RawSkeleton::Joint* _parent) {
     switch (num_joint_) {
@@ -102,6 +100,7 @@ class RawSkeletonIterateDFTester {
     }
     ++num_joint_;
   }
+
  private:
   int num_joint_;
 };
@@ -109,9 +108,7 @@ class RawSkeletonIterateDFTester {
 // Tester object that ensure order (breadth-first) of joints iteration.
 class RawSkeletonIterateBFTester {
  public:
-  RawSkeletonIterateBFTester() :
-    num_joint_(0) {
-  }
+  RawSkeletonIterateBFTester() : num_joint_(0) {}
   void operator()(const RawSkeleton::Joint& _current,
                   const RawSkeleton::Joint* _parent) {
     switch (num_joint_) {
@@ -146,6 +143,7 @@ class RawSkeletonIterateBFTester {
     }
     ++num_joint_;
   }
+
  private:
   int num_joint_;
 };
@@ -201,8 +199,7 @@ TEST(Build, SkeletonBuilder) {
     Skeleton* skeleton = builder(raw_skeleton);
     ASSERT_TRUE(skeleton != NULL);
     EXPECT_EQ(skeleton->num_joints(), 1);
-    EXPECT_EQ(skeleton->joint_properties()[0].parent,
-              Skeleton::kNoParentIndex);
+    EXPECT_EQ(skeleton->joint_properties()[0].parent, Skeleton::kNoParentIndex);
     EXPECT_EQ(skeleton->joint_properties()[0].is_leaf, 1u);
 
     ozz::memory::default_allocator()->Delete(skeleton);
@@ -238,7 +235,8 @@ TEST(Build, SkeletonBuilder) {
         EXPECT_EQ(parent_index, Skeleton::kNoParentIndex);
         EXPECT_EQ(skeleton->joint_properties()[i].is_leaf, 0u);
       } else if (std::strcmp(skeleton->joint_names()[i], "j0") == 0) {
-        EXPECT_TRUE(std::strcmp(skeleton->joint_names()[parent_index], "root") == 0);
+        EXPECT_TRUE(
+            std::strcmp(skeleton->joint_names()[parent_index], "root") == 0);
         EXPECT_EQ(skeleton->joint_properties()[i].is_leaf, 1u);
       } else {
         EXPECT_TRUE(false);
@@ -686,9 +684,7 @@ TEST(InterateProperties, SkeletonBuilder) {
         EXPECT_TRUE(name == "j6");
         break;
       }
-      default: {
-        assert(false);
-      }
+      default: { assert(false); }
     }
   }
 
@@ -835,11 +831,10 @@ TEST(TPose, SkeletonBuilder) {
 }
 
 TEST(MaxJoints, SkeletonBuilder) {
-
   // Instantiates a builder objects with default parameters.
   SkeletonBuilder builder;
 
-  { // Inside the domain.
+  {  // Inside the domain.
     RawSkeleton raw_skeleton;
     raw_skeleton.roots.resize(Skeleton::kMaxJoints);
 
@@ -851,7 +846,7 @@ TEST(MaxJoints, SkeletonBuilder) {
     ozz::memory::default_allocator()->Delete(skeleton);
   }
 
-  { // Outside of the domain.
+  {  // Outside of the domain.
     RawSkeleton raw_skeleton;
     raw_skeleton.roots.resize(Skeleton::kMaxJoints + 1);
 

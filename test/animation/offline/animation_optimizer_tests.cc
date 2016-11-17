@@ -31,11 +31,11 @@
 
 #include "ozz/base/maths/math_constant.h"
 
-#include "ozz/animation/offline/raw_animation.h"
 #include "ozz/animation/offline/animation_builder.h"
+#include "ozz/animation/offline/raw_animation.h"
 
-#include "ozz/animation/offline/skeleton_builder.h"
 #include "ozz/animation/offline/raw_skeleton.h"
+#include "ozz/animation/offline/skeleton_builder.h"
 #include "ozz/animation/runtime/skeleton.h"
 
 using ozz::animation::Skeleton;
@@ -47,7 +47,7 @@ using ozz::animation::offline::AnimationOptimizer;
 TEST(Error, AnimationOptimizer) {
   AnimationOptimizer optimizer;
 
-  { // NULL output.
+  {  // NULL output.
     RawAnimation input;
     Skeleton skeleton;
     EXPECT_TRUE(input.Validate());
@@ -56,7 +56,7 @@ TEST(Error, AnimationOptimizer) {
     EXPECT_FALSE(optimizer(input, skeleton, NULL));
   }
 
-  { // Invalid input animation.
+  {  // Invalid input animation.
     RawSkeleton raw_skeleton;
     raw_skeleton.roots.resize(1);
     SkeletonBuilder skeleton_builder;
@@ -78,7 +78,7 @@ TEST(Error, AnimationOptimizer) {
     ozz::memory::default_allocator()->Delete(skeleton);
   }
 
-  { // Invalid skeleton.
+  {  // Invalid skeleton.
     Skeleton skeleton;
 
     RawAnimation input;
@@ -130,60 +130,57 @@ TEST(Optimize, AnimationOptimizer) {
   input.duration = 1.f;
   input.tracks.resize(1);
   {
-    RawAnimation::TranslationKey key = {
-      0.f, ozz::math::Float3(0.f, 0.f, 0.f)};
+    RawAnimation::TranslationKey key = {0.f, ozz::math::Float3(0.f, 0.f, 0.f)};
     input.tracks[0].translations.push_back(key);
   }
   {
     RawAnimation::TranslationKey key = {
-      .25f, ozz::math::Float3(.1f, 0.f, 0.f)};  // Not interpolable.
+        .25f, ozz::math::Float3(.1f, 0.f, 0.f)};  // Not interpolable.
+    input.tracks[0].translations.push_back(key);
+  }
+  {
+    RawAnimation::TranslationKey key = {.5f, ozz::math::Float3(0.f, 0.f, 0.f)};
     input.tracks[0].translations.push_back(key);
   }
   {
     RawAnimation::TranslationKey key = {
-      .5f, ozz::math::Float3(0.f, 0.f, 0.f)};
+        .625f, ozz::math::Float3(.1f, 0.f, 0.f)};  // Interpolable.
     input.tracks[0].translations.push_back(key);
   }
   {
     RawAnimation::TranslationKey key = {
-      .625f, ozz::math::Float3(.1f, 0.f, 0.f)};  // Interpolable.
+        .75f, ozz::math::Float3(.21f, 0.f, 0.f)};  // Interpolable.
     input.tracks[0].translations.push_back(key);
   }
   {
     RawAnimation::TranslationKey key = {
-      .75f, ozz::math::Float3(.21f, 0.f, 0.f)};  // Interpolable.
+        .875f, ozz::math::Float3(.29f, 0.f, 0.f)};  // Interpolable.
+    input.tracks[0].translations.push_back(key);
+  }
+  {
+    RawAnimation::TranslationKey key = {.9999f,
+                                        ozz::math::Float3(.4f, 0.f, 0.f)};
     input.tracks[0].translations.push_back(key);
   }
   {
     RawAnimation::TranslationKey key = {
-      .875f, ozz::math::Float3(.29f, 0.f, 0.f)};  // Interpolable.
+        1.f, ozz::math::Float3(0.f, 0.f, 0.f)};  // Last key.
     input.tracks[0].translations.push_back(key);
   }
   {
-    RawAnimation::TranslationKey key = {
-      .9999f, ozz::math::Float3(.4f, 0.f, 0.f)};
-    input.tracks[0].translations.push_back(key);
-  }
-  {
-    RawAnimation::TranslationKey key = {
-      1.f, ozz::math::Float3(0.f, 0.f, 0.f)};  // Last key.
-    input.tracks[0].translations.push_back(key);
-  }
-  {
-    RawAnimation::RotationKey key = {
-      0.f, ozz::math::Quaternion::identity()};
+    RawAnimation::RotationKey key = {0.f, ozz::math::Quaternion::identity()};
     input.tracks[0].rotations.push_back(key);
   }
   {
     RawAnimation::RotationKey key = {
-      .5f, ozz::math::Quaternion::FromEuler(
-        ozz::math::Float3(1.1f * ozz::math::kPi / 180.f, 0, 0))};
+        .5f, ozz::math::Quaternion::FromEuler(
+                 ozz::math::Float3(1.1f * ozz::math::kPi / 180.f, 0, 0))};
     input.tracks[0].rotations.push_back(key);
   }
   {
     RawAnimation::RotationKey key = {
-      1.f, ozz::math::Quaternion::FromEuler(
-        ozz::math::Float3(2.f * ozz::math::kPi / 180.f, 0, 0))};
+        1.f, ozz::math::Quaternion::FromEuler(
+                 ozz::math::Float3(2.f * ozz::math::kPi / 180.f, 0, 0))};
     input.tracks[0].rotations.push_back(key);
   }
 
@@ -198,19 +195,19 @@ TEST(Optimize, AnimationOptimizer) {
     EXPECT_EQ(output.num_tracks(), 1);
 
     const RawAnimation::JointTrack::Translations& translations =
-      output.tracks[0].translations;
+        output.tracks[0].translations;
     ASSERT_EQ(translations.size(), 8u);
-    EXPECT_FLOAT_EQ(translations[0].time, 0.f);  // Track 0 begin.
-    EXPECT_FLOAT_EQ(translations[1].time, .25f);  // Track 0 at .25f.
-    EXPECT_FLOAT_EQ(translations[2].time, .5f);  // Track 0 at .5f.
-    EXPECT_FLOAT_EQ(translations[3].time, .625f);  // Track 0 at .625f.
-    EXPECT_FLOAT_EQ(translations[4].time, .75f);  // Track 0 at .75f.
-    EXPECT_FLOAT_EQ(translations[5].time, .875f);  // Track 0 at .875f.
+    EXPECT_FLOAT_EQ(translations[0].time, 0.f);     // Track 0 begin.
+    EXPECT_FLOAT_EQ(translations[1].time, .25f);    // Track 0 at .25f.
+    EXPECT_FLOAT_EQ(translations[2].time, .5f);     // Track 0 at .5f.
+    EXPECT_FLOAT_EQ(translations[3].time, .625f);   // Track 0 at .625f.
+    EXPECT_FLOAT_EQ(translations[4].time, .75f);    // Track 0 at .75f.
+    EXPECT_FLOAT_EQ(translations[5].time, .875f);   // Track 0 at .875f.
     EXPECT_FLOAT_EQ(translations[6].time, .9999f);  // Track 0 ~end.
-    EXPECT_FLOAT_EQ(translations[7].time, 1.f);  // Track 0 end.*/
+    EXPECT_FLOAT_EQ(translations[7].time, 1.f);     // Track 0 end.*/
 
     const RawAnimation::JointTrack::Rotations& rotations =
-      output.tracks[0].rotations;
+        output.tracks[0].rotations;
     ASSERT_EQ(rotations.size(), 3u);
     EXPECT_FLOAT_EQ(rotations[0].time, 0.f);  // Track 0 begin.
     EXPECT_FLOAT_EQ(rotations[1].time, .5f);  // Track 0 at .5f.
@@ -226,16 +223,16 @@ TEST(Optimize, AnimationOptimizer) {
     EXPECT_EQ(output.num_tracks(), 1);
 
     const RawAnimation::JointTrack::Translations& translations =
-      output.tracks[0].translations;
+        output.tracks[0].translations;
     ASSERT_EQ(translations.size(), 5u);
-    EXPECT_FLOAT_EQ(translations[0].time, 0.f);  // Track 0 begin.
-    EXPECT_FLOAT_EQ(translations[1].time, .25f);  // Track 0 at .25f.
-    EXPECT_FLOAT_EQ(translations[2].time, .5f);  // Track 0 at .5f.
+    EXPECT_FLOAT_EQ(translations[0].time, 0.f);     // Track 0 begin.
+    EXPECT_FLOAT_EQ(translations[1].time, .25f);    // Track 0 at .25f.
+    EXPECT_FLOAT_EQ(translations[2].time, .5f);     // Track 0 at .5f.
     EXPECT_FLOAT_EQ(translations[3].time, .9999f);  // Track 0 at ~1.f.
-    EXPECT_FLOAT_EQ(translations[4].time, 1.f);  // Track 0 end.
+    EXPECT_FLOAT_EQ(translations[4].time, 1.f);     // Track 0 end.
 
     const RawAnimation::JointTrack::Rotations& rotations =
-      output.tracks[0].rotations;
+        output.tracks[0].rotations;
     ASSERT_EQ(rotations.size(), 2u);
     EXPECT_FLOAT_EQ(rotations[0].time, 0.f);  // Track 0 begin.
     EXPECT_FLOAT_EQ(rotations[1].time, 1.f);  // Track 0 end.
@@ -262,105 +259,99 @@ TEST(OptimizeHierarchical, AnimationOptimizer) {
 
   // Translations on track 0.
   {
-    RawAnimation::TranslationKey key = {
-      0.f, ozz::math::Float3(0.f, 0.f, 0.f)};
+    RawAnimation::TranslationKey key = {0.f, ozz::math::Float3(0.f, 0.f, 0.f)};
+    input.tracks[0].translations.push_back(key);
+  }
+  {
+    RawAnimation::TranslationKey key = {.1f, ozz::math::Float3(1.f, 0.f, 0.f)};
+    input.tracks[0].translations.push_back(key);
+  }
+  {
+    RawAnimation::TranslationKey key = {.2f, ozz::math::Float3(2.f, 0.f, 0.f)};
     input.tracks[0].translations.push_back(key);
   }
   {
     RawAnimation::TranslationKey key = {
-      .1f, ozz::math::Float3(1.f, 0.f, 0.f)};
+        .3f, ozz::math::Float3(3.0009f, 0.f, 0.f)};  // Creates an error.
     input.tracks[0].translations.push_back(key);
   }
   {
-    RawAnimation::TranslationKey key = {
-      .2f, ozz::math::Float3(2.f, 0.f, 0.f)};
-    input.tracks[0].translations.push_back(key);
-  }
-  {
-    RawAnimation::TranslationKey key = {
-      .3f, ozz::math::Float3(3.0009f, 0.f, 0.f)};  // Creates an error.
-    input.tracks[0].translations.push_back(key);
-  }
-  {
-    RawAnimation::TranslationKey key = {
-      .4f, ozz::math::Float3(4.f, 0.f, 0.f)};
+    RawAnimation::TranslationKey key = {.4f, ozz::math::Float3(4.f, 0.f, 0.f)};
     input.tracks[0].translations.push_back(key);
   }
 
   // Rotations on track 0.
   {
     RawAnimation::RotationKey key = {
-      0.f, ozz::math::Quaternion::FromEuler(ozz::math::Float3(0.f, 0.f, 0.f))};
+        0.f,
+        ozz::math::Quaternion::FromEuler(ozz::math::Float3(0.f, 0.f, 0.f))};
     input.tracks[0].rotations.push_back(key);
   }
   {
     RawAnimation::RotationKey key = {
-      .1f, -ozz::math::Quaternion::FromEuler(ozz::math::Float3(ozz::math::kPi_4, 0.f, 0.f))};
+        .1f, -ozz::math::Quaternion::FromEuler(
+                 ozz::math::Float3(ozz::math::kPi_4, 0.f, 0.f))};
     input.tracks[0].rotations.push_back(key);
   }
   {
     RawAnimation::RotationKey key = {
-      .2f, ozz::math::Quaternion::FromEuler(ozz::math::Float3(ozz::math::kPi_2, 0.f, 0.f))};
-    input.tracks[0].rotations.push_back(key);
-  }
-  {
-    RawAnimation::RotationKey key = {  // Creates an error.
-      .3f, ozz::math::Quaternion::FromEuler(ozz::math::Float3(ozz::math::kPi_4 + ozz::math::kPi / 100.f, 0.f, 0.f))};
+        .2f, ozz::math::Quaternion::FromEuler(
+                 ozz::math::Float3(ozz::math::kPi_2, 0.f, 0.f))};
     input.tracks[0].rotations.push_back(key);
   }
   {
     RawAnimation::RotationKey key = {
-      .4f, ozz::math::Quaternion::FromEuler(ozz::math::Float3(0.f, 0.f, 0.f))};
+        // Creates an error.
+        .3f, ozz::math::Quaternion::FromEuler(ozz::math::Float3(
+                 ozz::math::kPi_4 + ozz::math::kPi / 100.f, 0.f, 0.f))};
+    input.tracks[0].rotations.push_back(key);
+  }
+  {
+    RawAnimation::RotationKey key = {
+        .4f,
+        ozz::math::Quaternion::FromEuler(ozz::math::Float3(0.f, 0.f, 0.f))};
     input.tracks[0].rotations.push_back(key);
   }
 
   // Scales on track 0.
   {
-    RawAnimation::ScaleKey key = {
-      0.f, ozz::math::Float3(0.f, 1.f, 1.f)};
+    RawAnimation::ScaleKey key = {0.f, ozz::math::Float3(0.f, 1.f, 1.f)};
     input.tracks[0].scales.push_back(key);
   }
   {
-    RawAnimation::ScaleKey key = {
-      .1f, ozz::math::Float3(1.f, 1.f, 1.f)};
+    RawAnimation::ScaleKey key = {.1f, ozz::math::Float3(1.f, 1.f, 1.f)};
     input.tracks[0].scales.push_back(key);
   }
   {
-    RawAnimation::ScaleKey key = {
-      .2f, ozz::math::Float3(2.f, 1.f, 1.f)};
+    RawAnimation::ScaleKey key = {.2f, ozz::math::Float3(2.f, 1.f, 1.f)};
     input.tracks[0].scales.push_back(key);
   }
   {
-    RawAnimation::ScaleKey key = {
-      .3f, ozz::math::Float3(3.001f, 1.f, 1.f)};
+    RawAnimation::ScaleKey key = {.3f, ozz::math::Float3(3.001f, 1.f, 1.f)};
     input.tracks[0].scales.push_back(key);
   }
   {
-    RawAnimation::ScaleKey key = {
-      .4f, ozz::math::Float3(4.f, 1.f, 1.f)};
+    RawAnimation::ScaleKey key = {.4f, ozz::math::Float3(4.f, 1.f, 1.f)};
     input.tracks[0].scales.push_back(key);
   }
-  
+
   // Scales on track 1 have a big scale which impacts translation
   // optimizations.
   {
-    RawAnimation::ScaleKey key = {
-      0.f, ozz::math::Float3(3.f, 3.f, 3.f)};
+    RawAnimation::ScaleKey key = {0.f, ozz::math::Float3(3.f, 3.f, 3.f)};
     input.tracks[1].scales.push_back(key);
   }
 
   // Translations on track 2 have a big length which impacts rotation
   // optimizations.
   {
-    RawAnimation::TranslationKey key = {
-      0.f, ozz::math::Float3(0.f, 0.f, 2.f)};
+    RawAnimation::TranslationKey key = {0.f, ozz::math::Float3(0.f, 0.f, 2.f)};
     input.tracks[2].translations.push_back(key);
   }
-  
+
   // Push a scale on track 2.
   {
-    RawAnimation::ScaleKey key = {
-      0.f, ozz::math::Float3(2.f, 2.f, 2.f)};
+    RawAnimation::ScaleKey key = {0.f, ozz::math::Float3(2.f, 2.f, 2.f)};
     input.tracks[2].scales.push_back(key);
   }
 
@@ -373,7 +364,7 @@ TEST(OptimizeHierarchical, AnimationOptimizer) {
     EXPECT_EQ(output.num_tracks(), 3);
 
     const RawAnimation::JointTrack::Translations& translations =
-      output.tracks[0].translations;
+        output.tracks[0].translations;
     ASSERT_EQ(translations.size(), 4u);
     EXPECT_FLOAT_EQ(translations[0].time, 0.f);
     EXPECT_FLOAT_EQ(translations[1].time, .2f);
@@ -381,15 +372,14 @@ TEST(OptimizeHierarchical, AnimationOptimizer) {
     EXPECT_FLOAT_EQ(translations[3].time, .4f);
 
     const RawAnimation::JointTrack::Rotations& rotations =
-      output.tracks[0].rotations;
+        output.tracks[0].rotations;
     ASSERT_EQ(rotations.size(), 4u);
     EXPECT_FLOAT_EQ(rotations[0].time, 0.f);
     EXPECT_FLOAT_EQ(rotations[1].time, .2f);
     EXPECT_FLOAT_EQ(rotations[2].time, .3f);
     EXPECT_FLOAT_EQ(rotations[3].time, .4f);
 
-    const RawAnimation::JointTrack::Scales& scales =
-      output.tracks[0].scales;
+    const RawAnimation::JointTrack::Scales& scales = output.tracks[0].scales;
     ASSERT_EQ(rotations.size(), 4u);
     EXPECT_FLOAT_EQ(scales[0].time, 0.f);
     EXPECT_FLOAT_EQ(scales[1].time, .2f);

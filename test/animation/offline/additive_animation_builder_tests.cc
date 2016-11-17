@@ -29,8 +29,8 @@
 
 #include "gtest/gtest.h"
 
-#include "ozz/base/maths/math_constant.h"
 #include "ozz/base/maths/gtest_math_helper.h"
+#include "ozz/base/maths/math_constant.h"
 
 #include "ozz/animation/offline/raw_animation.h"
 
@@ -40,7 +40,7 @@ using ozz::animation::offline::AdditiveAnimationBuilder;
 TEST(Error, AdditiveAnimationBuilder) {
   AdditiveAnimationBuilder builder;
 
-  { // NULL output.
+  {  // NULL output.
     RawAnimation input;
     EXPECT_TRUE(input.Validate());
 
@@ -48,7 +48,7 @@ TEST(Error, AdditiveAnimationBuilder) {
     EXPECT_FALSE(builder(input, NULL));
   }
 
-  { // Invalid input animation.
+  {  // Invalid input animation.
     RawAnimation input;
     input.duration = -1.f;
     EXPECT_FALSE(input.Validate());
@@ -72,24 +72,23 @@ TEST(Build, AdditiveAnimationBuilder) {
 
   // First track is empty
   {
-    // input.tracks[0]
+      // input.tracks[0]
   }
 
   // 2nd track
   // 1 key at the beginning
   {
-    const RawAnimation::TranslationKey key = {
-      0.f, ozz::math::Float3(2.f, 3.f, 4.f)};
+    const RawAnimation::TranslationKey key = {0.f,
+                                              ozz::math::Float3(2.f, 3.f, 4.f)};
     input.tracks[1].translations.push_back(key);
   }
   {
     const RawAnimation::RotationKey key = {
-      0.f, ozz::math::Quaternion(.70710677f, 0.f, 0.f, .70710677f)};
+        0.f, ozz::math::Quaternion(.70710677f, 0.f, 0.f, .70710677f)};
     input.tracks[1].rotations.push_back(key);
   }
   {
-    const RawAnimation::ScaleKey key = {
-      0.f, ozz::math::Float3(5.f, 6.f, 7.f)};
+    const RawAnimation::ScaleKey key = {0.f, ozz::math::Float3(5.f, 6.f, 7.f)};
     input.tracks[1].scales.push_back(key);
   }
 
@@ -97,26 +96,25 @@ TEST(Build, AdditiveAnimationBuilder) {
   // 2 keys after the beginning
   {
     const RawAnimation::TranslationKey key0 = {
-      .5f, ozz::math::Float3(2.f, 3.f, 4.f)};
+        .5f, ozz::math::Float3(2.f, 3.f, 4.f)};
     input.tracks[2].translations.push_back(key0);
     const RawAnimation::TranslationKey key1 = {
-      .7f, ozz::math::Float3(20.f, 30.f, 40.f)};
+        .7f, ozz::math::Float3(20.f, 30.f, 40.f)};
     input.tracks[2].translations.push_back(key1);
   }
   {
     const RawAnimation::RotationKey key0 = {
-      .5f, ozz::math::Quaternion(.70710677f, 0.f, 0.f, .70710677f)};
+        .5f, ozz::math::Quaternion(.70710677f, 0.f, 0.f, .70710677f)};
     input.tracks[2].rotations.push_back(key0);
     const RawAnimation::RotationKey key1 = {
-      .7f, ozz::math::Quaternion(-.70710677f, 0.f, 0.f, .70710677f)};
+        .7f, ozz::math::Quaternion(-.70710677f, 0.f, 0.f, .70710677f)};
     input.tracks[2].rotations.push_back(key1);
   }
   {
-    const RawAnimation::ScaleKey key0 = {
-      .5f, ozz::math::Float3(5.f, 6.f, 7.f)};
+    const RawAnimation::ScaleKey key0 = {.5f, ozz::math::Float3(5.f, 6.f, 7.f)};
     input.tracks[2].scales.push_back(key0);
-    const RawAnimation::ScaleKey key1 = {
-      .7f, ozz::math::Float3(50.f, 60.f, 70.f)};
+    const RawAnimation::ScaleKey key1 = {.7f,
+                                         ozz::math::Float3(50.f, 60.f, 70.f)};
     input.tracks[2].scales.push_back(key1);
   }
 
@@ -136,17 +134,16 @@ TEST(Build, AdditiveAnimationBuilder) {
     // 2nd track.
     {
       const RawAnimation::JointTrack::Translations& translations =
-        output.tracks[1].translations;
+          output.tracks[1].translations;
       EXPECT_EQ(translations.size(), 1u);
       EXPECT_FLOAT_EQ(translations[0].time, 0.f);
       EXPECT_FLOAT3_EQ(translations[0].value, 0.f, 0.f, 0.f);
       const RawAnimation::JointTrack::Rotations& rotations =
-        output.tracks[1].rotations;
+          output.tracks[1].rotations;
       EXPECT_EQ(rotations.size(), 1u);
       EXPECT_FLOAT_EQ(rotations[0].time, 0.f);
       EXPECT_QUATERNION_EQ(rotations[0].value, 0.f, 0.f, 0.f, 1.f);
-      const RawAnimation::JointTrack::Scales& scales =
-        output.tracks[1].scales;
+      const RawAnimation::JointTrack::Scales& scales = output.tracks[1].scales;
       EXPECT_EQ(scales.size(), 1u);
       EXPECT_FLOAT_EQ(scales[0].time, 0.f);
       EXPECT_FLOAT3_EQ(scales[0].value, 1.f, 1.f, 1.f);
@@ -155,21 +152,20 @@ TEST(Build, AdditiveAnimationBuilder) {
     // 3rd track.
     {
       const RawAnimation::JointTrack::Translations& translations =
-        output.tracks[2].translations;
+          output.tracks[2].translations;
       EXPECT_EQ(translations.size(), 2u);
       EXPECT_FLOAT_EQ(translations[0].time, .5f);
       EXPECT_FLOAT3_EQ(translations[0].value, 0.f, 0.f, 0.f);
       EXPECT_FLOAT_EQ(translations[1].time, .7f);
       EXPECT_FLOAT3_EQ(translations[1].value, 18.f, 27.f, 36.f);
       const RawAnimation::JointTrack::Rotations& rotations =
-        output.tracks[2].rotations;
+          output.tracks[2].rotations;
       EXPECT_EQ(rotations.size(), 2u);
       EXPECT_FLOAT_EQ(rotations[0].time, .5f);
       EXPECT_QUATERNION_EQ(rotations[0].value, 0.f, 0.f, 0.f, 1.f);
       EXPECT_FLOAT_EQ(rotations[1].time, .7f);
       EXPECT_QUATERNION_EQ(rotations[1].value, -1.f, 0.f, 0.f, 0.f);
-      const RawAnimation::JointTrack::Scales& scales =
-        output.tracks[2].scales;
+      const RawAnimation::JointTrack::Scales& scales = output.tracks[2].scales;
       EXPECT_EQ(scales.size(), 2u);
       EXPECT_FLOAT_EQ(scales[0].time, .5f);
       EXPECT_FLOAT3_EQ(scales[0].value, 1.f, 1.f, 1.f);

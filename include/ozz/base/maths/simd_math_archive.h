@@ -28,43 +28,31 @@
 #ifndef OZZ_OZZ_BASE_MATHS_SIMD_MATH_ARCHIVE_H_
 #define OZZ_OZZ_BASE_MATHS_SIMD_MATH_ARCHIVE_H_
 
-#include "ozz/base/platform.h"
 #include "ozz/base/io/archive_traits.h"
 #include "ozz/base/maths/simd_math.h"
+#include "ozz/base/platform.h"
 
 namespace ozz {
 namespace io {
 OZZ_IO_TYPE_NOT_VERSIONABLE(math::SimdFloat4)
 template <>
-void Save(OArchive& _archive,
-          const math::SimdFloat4* _values,
-          size_t _count);
+void Save(OArchive& _archive, const math::SimdFloat4* _values, size_t _count);
 template <>
-void Load(IArchive& _archive,
-          math::SimdFloat4* _values,
-          size_t _count,
+void Load(IArchive& _archive, math::SimdFloat4* _values, size_t _count,
           uint32_t _version);
 
 OZZ_IO_TYPE_NOT_VERSIONABLE(math::SimdInt4)
 template <>
-void Save(OArchive& _archive,
-          const math::SimdInt4* _values,
-          size_t _count);
+void Save(OArchive& _archive, const math::SimdInt4* _values, size_t _count);
 template <>
-void Load(IArchive& _archive,
-          math::SimdInt4* _values,
-          size_t _count,
+void Load(IArchive& _archive, math::SimdInt4* _values, size_t _count,
           uint32_t _version);
 
 OZZ_IO_TYPE_NOT_VERSIONABLE(math::Float4x4)
 template <>
-void Save(OArchive& _archive,
-          const math::Float4x4* _values,
-          size_t _count);
+void Save(OArchive& _archive, const math::Float4x4* _values, size_t _count);
 template <>
-void Load(IArchive& _archive,
-          math::Float4x4* _values,
-          size_t _count,
+void Load(IArchive& _archive, math::Float4x4* _values, size_t _count,
           uint32_t _version);
 }  // io
 }  // ozz

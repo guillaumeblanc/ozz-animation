@@ -56,21 +56,27 @@
 
 // Provides helper macro to test for glGetError on a gl call.
 #ifndef NDEBUG
-#define GL(_f) do{\
-  gl##_f;\
-  GLenum error = glGetError();\
-  assert(error == GL_NO_ERROR);\
-} while(void(0), 0)
+#define GL(_f)                    \
+  do {                            \
+    gl##_f;                       \
+    GLenum error = glGetError();  \
+    assert(error == GL_NO_ERROR); \
+  \
+} while (void(0), 0)
 #else  // NDEBUG
 #define GL(_f) gl##_f
-#endif // NDEBUG
+#endif  // NDEBUG
 
 // Convenient macro definition for specifying buffer offsets.
 #define GL_PTR_OFFSET(i) reinterpret_cast<void*>(static_cast<intptr_t>(i))
 
 namespace ozz {
-namespace animation { class Skeleton; }
-namespace math { struct Float4x4; }
+namespace animation {
+class Skeleton;
+}
+namespace math {
+struct Float4x4;
+}
 namespace sample {
 namespace internal {
 class Camera;
@@ -84,7 +90,6 @@ class GlImmediateRenderer;
 // Implements Renderer interface.
 class RendererImpl : public Renderer {
  public:
-
   RendererImpl(Camera* _camera);
   virtual ~RendererImpl();
 
@@ -121,34 +126,28 @@ class RendererImpl : public Renderer {
                         const ozz::math::Float4x4& _transform,
                         const Options& _options = Options());
 
-  virtual bool DrawVectors(ozz::Range<const float> _positions, size_t _positions_stride,
-                           ozz::Range<const float> _directions, size_t _directions_stride,
-                           int _num_vectors,
-                           float _vector_length,
-                           Renderer::Color _color,
+  virtual bool DrawVectors(ozz::Range<const float> _positions,
+                           size_t _positions_stride,
+                           ozz::Range<const float> _directions,
+                           size_t _directions_stride, int _num_vectors,
+                           float _vector_length, Renderer::Color _color,
                            const ozz::math::Float4x4& _transform);
 
-  virtual bool DrawBinormals(ozz::Range<const float> _positions, size_t _positions_stride,
-                             ozz::Range<const float> _normals, size_t _normals_stride,
-                             ozz::Range<const float> _tangents, size_t _tangents_stride,
-                             ozz::Range<const float> _handenesses, size_t _handenesses_stride,
-                             int _num_vectors,
-                             float _vector_length,
-                             Renderer::Color _color,
-                             const ozz::math::Float4x4& _transform);
+  virtual bool DrawBinormals(
+      ozz::Range<const float> _positions, size_t _positions_stride,
+      ozz::Range<const float> _normals, size_t _normals_stride,
+      ozz::Range<const float> _tangents, size_t _tangents_stride,
+      ozz::Range<const float> _handenesses, size_t _handenesses_stride,
+      int _num_vectors, float _vector_length, Renderer::Color _color,
+      const ozz::math::Float4x4& _transform);
 
   // Get GL immediate renderer implementation;
-  GlImmediateRenderer* immediate_renderer() const {
-    return immediate_;
-  }
+  GlImmediateRenderer* immediate_renderer() const { return immediate_; }
 
   // Get application camera that provides rendering matrices.
-  Camera* camera() const {
-    return camera_;
-  }
+  Camera* camera() const { return camera_; }
 
  private:
-
   // Defines the internal structure used to define a model.
   struct Model {
     Model();
@@ -174,13 +173,13 @@ class RendererImpl : public Renderer {
 
   // Draw posture internal non-instanced rendering fall back implementation.
   void DrawPosture_Impl(const ozz::math::Float4x4& _transform,
-                        const float* _uniforms,
-                        int _instance_count, bool _draw_joints);
+                        const float* _uniforms, int _instance_count,
+                        bool _draw_joints);
 
   // Draw posture internal instanced rendering implementation.
   void DrawPosture_InstancedImpl(const ozz::math::Float4x4& _transform,
-                                 const float* _uniforms,
-                                 int _instance_count, bool _draw_joints);
+                                 const float* _uniforms, int _instance_count,
+                                 bool _draw_joints);
 
   // Array of matrices used to store model space matrices during DrawSkeleton
   // execution.

@@ -35,8 +35,7 @@ namespace io {
 // OArchive implementation.
 
 OArchive::OArchive(Stream* _stream, Endianness _endianness)
-    : stream_(_stream),
-      endian_swap_(_endianness != GetNativeEndianness()) {
+    : stream_(_stream), endian_swap_(_endianness != GetNativeEndianness()) {
   assert(stream_ && stream_->opened() &&
          L"_stream argument must point a valid opened stream.");
   // Save as a single byte as it does not need to be swapped.
@@ -46,9 +45,7 @@ OArchive::OArchive(Stream* _stream, Endianness _endianness)
 
 // IArchive implementation.
 
-IArchive::IArchive(Stream* _stream)
-    : stream_(_stream),
-      endian_swap_(false) {
+IArchive::IArchive(Stream* _stream) : stream_(_stream), endian_swap_(false) {
   assert(stream_ && stream_->opened() &&
          L"_stream argument must point a valid opened stream.");
   // Endianness was saved as a single byte, as it does not need to be swapped.

@@ -39,12 +39,13 @@ OZZ_OPTIONS_DECLARE_FLOAT(a_float, "A float", 46.f, false);
 OZZ_OPTIONS_DECLARE_STRING(a_string, "A string", "Forty six", false);
 
 TEST(AutoRegistration, Options) {
-  { // No argument is specified.
+  {  // No argument is specified.
     const char* argv[] = {"c:/a path/test.exe"};
     const int argc = OZZ_ARRAY_SIZE(argv);
 
-    EXPECT_EQ(ozz::options::ParseCommandLine(
-      argc, argv, "1.0", "AutoRegistration test"), ozz::options::kSuccess);
+    EXPECT_EQ(ozz::options::ParseCommandLine(argc, argv, "1.0",
+                                             "AutoRegistration test"),
+              ozz::options::kSuccess);
 
     EXPECT_FALSE(OPTIONS_a_bool);
     EXPECT_EQ(OPTIONS_a_int, 46);
@@ -52,12 +53,13 @@ TEST(AutoRegistration, Options) {
     EXPECT_STREQ(OPTIONS_a_string, "Forty six");
   }
 
-  { // An argument is specified.
+  {  // An argument is specified.
     const char* argv[] = {"c:/a path/test.exe", "--a_bool"};
     const int argc = OZZ_ARRAY_SIZE(argv);
 
-    EXPECT_EQ(ozz::options::ParseCommandLine(
-      argc, argv, "1.0", "AutoRegistration test"), ozz::options::kSuccess);
+    EXPECT_EQ(ozz::options::ParseCommandLine(argc, argv, "1.0",
+                                             "AutoRegistration test"),
+              ozz::options::kSuccess);
 
     EXPECT_TRUE(OPTIONS_a_bool);
     OPTIONS_a_bool.RestoreDefault();
@@ -67,14 +69,13 @@ TEST(AutoRegistration, Options) {
     EXPECT_STREQ(OPTIONS_a_string, "Forty six");
   }
 
-  { // An invalid argument is specified.
+  {  // An invalid argument is specified.
     const char* argv[] = {"c:/a path/test.exe", "--a_boolean"};
     const int argc = OZZ_ARRAY_SIZE(argv);
 
-    EXPECT_EQ_LOG(
-      ozz::options::ParseCommandLine(
-        argc, argv, "1.0", "AutoRegistration test"),
-      ozz::options::kExitFailure, std::cout, "--a_bool=<bool>");
+    EXPECT_EQ_LOG(ozz::options::ParseCommandLine(argc, argv, "1.0",
+                                                 "AutoRegistration test"),
+                  ozz::options::kExitFailure, std::cout, "--a_bool=<bool>");
 
     EXPECT_FALSE(OPTIONS_a_bool);
     EXPECT_EQ(OPTIONS_a_int, 46);
@@ -82,14 +83,13 @@ TEST(AutoRegistration, Options) {
     EXPECT_STREQ(OPTIONS_a_string, "Forty six");
   }
 
-  { // An invalid argument value is specified.
+  {  // An invalid argument value is specified.
     const char* argv[] = {"c:/a path/test.exe", "--a_bool=46"};
     const int argc = OZZ_ARRAY_SIZE(argv);
 
-    EXPECT_EQ_LOG(
-      ozz::options::ParseCommandLine(
-        argc, argv, "1.0", "AutoRegistration test"),
-      ozz::options::kExitFailure, std::cout, "--a_bool=<bool>");
+    EXPECT_EQ_LOG(ozz::options::ParseCommandLine(argc, argv, "1.0",
+                                                 "AutoRegistration test"),
+                  ozz::options::kExitFailure, std::cout, "--a_bool=<bool>");
 
     EXPECT_FALSE(OPTIONS_a_bool);
     EXPECT_EQ(OPTIONS_a_int, 46);
@@ -99,23 +99,22 @@ TEST(AutoRegistration, Options) {
 }
 
 TEST(BuiltInRegistration, Options) {
-  { // Built-in version.
+  {  // Built-in version.
     const char* argv[] = {"c:/a path/test.exe", "--version"};
     const int argc = OZZ_ARRAY_SIZE(argv);
 
-    EXPECT_EQ_LOG(
-      ozz::options::ParseCommandLine(
-        argc, argv, "1.046", "AutoRegistration test"),
-      ozz::options::kExitSuccess, std::cout, "1.046");
+    EXPECT_EQ_LOG(ozz::options::ParseCommandLine(argc, argv, "1.046",
+                                                 "AutoRegistration test"),
+                  ozz::options::kExitSuccess, std::cout, "1.046");
   }
-  { // Built-in help.
+  {  // Built-in help.
     const char* argv[] = {"c:/a path/test.exe", "--help"};
     const int argc = OZZ_ARRAY_SIZE(argv);
 
-    EXPECT_EQ_LOG(
-      ozz::options::ParseCommandLine(
-        argc, argv, "1.046", "AutoRegistration test"),
-      ozz::options::kExitSuccess, std::cout, "AutoRegistration test");
+    EXPECT_EQ_LOG(ozz::options::ParseCommandLine(argc, argv, "1.046",
+                                                 "AutoRegistration test"),
+                  ozz::options::kExitSuccess, std::cout,
+                  "AutoRegistration test");
   }
 }
 
@@ -123,8 +122,9 @@ TEST(BuiltInArgv0, Options) {
   const char* argv[] = {"c:/a path/test.exe"};
   const int argc = OZZ_ARRAY_SIZE(argv);
 
-  EXPECT_EQ(ozz::options::ParseCommandLine(
-    argc, argv, "1.046", "AutoRegistration test"), ozz::options::kSuccess);
+  EXPECT_EQ(ozz::options::ParseCommandLine(argc, argv, "1.046",
+                                           "AutoRegistration test"),
+            ozz::options::kSuccess);
 
   EXPECT_STREQ(ozz::options::ParsedExecutablePath().c_str(), "c:/a path/");
   EXPECT_STREQ(ozz::options::ParsedExecutableName(), "test.exe");

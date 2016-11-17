@@ -33,7 +33,9 @@
 namespace ozz {
 
 // Forward declaration of math structures.
-namespace math { struct SoaTransform; }
+namespace math {
+struct SoaTransform;
+}
 
 namespace animation {
 

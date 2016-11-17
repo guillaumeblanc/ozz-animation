@@ -38,8 +38,8 @@
 
 #include "ozz/animation/runtime/sampling_job.h"
 
-#include "ozz/animation/offline/raw_animation.h"
 #include "ozz/animation/offline/animation_builder.h"
+#include "ozz/animation/offline/raw_animation.h"
 
 using ozz::animation::Animation;
 using ozz::animation::TranslationKey;
@@ -47,6 +47,8 @@ using ozz::animation::RotationKey;
 using ozz::animation::ScaleKey;
 using ozz::animation::offline::RawAnimation;
 using ozz::animation::offline::AnimationBuilder;
+
+// clang-format off
 
 TEST(Empty, AnimationSerialize) {
   ozz::io::MemoryStream stream;
@@ -75,19 +77,18 @@ TEST(Filled, AnimationSerialize) {
     raw_animation.duration = 1.f;
     raw_animation.tracks.resize(1);
 
-    RawAnimation::TranslationKey t_key0 = {
-      0.f, ozz::math::Float3(93.f, 58.f, 46.f)};
+    RawAnimation::TranslationKey t_key0 = {0.f,
+                                           ozz::math::Float3(93.f, 58.f, 46.f)};
     raw_animation.tracks[0].translations.push_back(t_key0);
-    RawAnimation::TranslationKey t_key1 = {
-      .9f, ozz::math::Float3(46.f, 58.f, 93.f)};
+    RawAnimation::TranslationKey t_key1 = {.9f,
+                                           ozz::math::Float3(46.f, 58.f, 93.f)};
     raw_animation.tracks[0].translations.push_back(t_key1);
 
     RawAnimation::RotationKey r_key = {
-      0.7f, ozz::math::Quaternion(0.f, 1.f, 0.f, 0.f)};
+        0.7f, ozz::math::Quaternion(0.f, 1.f, 0.f, 0.f)};
     raw_animation.tracks[0].rotations.push_back(r_key);
 
-    RawAnimation::ScaleKey s_key = {
-      0.1f, ozz::math::Float3(99.f, 26.f, 14.f)};
+    RawAnimation::ScaleKey s_key = {0.1f, ozz::math::Float3(99.f, 26.f, 14.f)};
     raw_animation.tracks[0].scales.push_back(s_key);
 
     AnimationBuilder builder;
@@ -124,7 +125,7 @@ TEST(Filled, AnimationSerialize) {
     job.output.end = output + 1;
 
     // Samples and compares the two animations
-    { // Samples at t = 0
+    {  // Samples at t = 0
       job.time = 0.f;
       job.Run();
       EXPECT_SOAFLOAT3_EQ_EST(output[0].translation, 93.f, 0.f, 0.f, 0.f,
@@ -138,7 +139,7 @@ TEST(Filled, AnimationSerialize) {
                                                26.f, 1.f, 1.f, 1.f,
                                                14.f, 1.f, 1.f, 1.f);
     }
-    { // Samples at t = 1
+    {  // Samples at t = 1
       job.time = 1.f;
       job.Run();
       EXPECT_SOAFLOAT3_EQ_EST(output[0].translation, 46.f, 0.f, 0.f, 0.f,
@@ -157,7 +158,6 @@ TEST(Filled, AnimationSerialize) {
 }
 
 TEST(AlreadyInitialized, AnimationSerialize) {
-
   ozz::io::MemoryStream stream;
 
   {

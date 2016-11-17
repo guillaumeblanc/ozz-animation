@@ -35,63 +35,66 @@ namespace ozz {
 namespace sample {
 namespace image {
 
-bool HasAlpha(Format::Value _format) {
-  return _format >= Format::kRGBA;
-}
+bool HasAlpha(Format::Value _format) { return _format >= Format::kRGBA; }
 
-int Stride(Format::Value _format) {
-  return _format <= Format::kBGR ? 3 : 4;
-}
+int Stride(Format::Value _format) { return _format <= Format::kBGR ? 3 : 4; }
 
 #define PUSH_PIXEL_RGB(_buffer, _size, _repetition, _pixel, _mapping) \
-  _buffer[_size + 0] = 0x80 | ((_repetition - 1) & 0xff); \
-  _buffer[_size + 1] = _pixel.c[_mapping[0]]; \
-  _buffer[_size + 2] = _pixel.c[_mapping[1]]; \
-  _buffer[_size + 3] = _pixel.c[_mapping[2]]; \
+  _buffer[_size + 0] = 0x80 | ((_repetition - 1) & 0xff);             \
+  _buffer[_size + 1] = _pixel.c[_mapping[0]];                         \
+  _buffer[_size + 2] = _pixel.c[_mapping[1]];                         \
+  _buffer[_size + 3] = _pixel.c[_mapping[2]];                         \
   _size += 4;
 
 #define PUSH_PIXEL_RGBA(_buffer, _size, _repetition, _pixel, _mapping) \
-  _buffer[_size + 0] = 0x80 | ((_repetition - 1) & 0xff); \
-  _buffer[_size + 1] = _pixel.c[_mapping[0]]; \
-  _buffer[_size + 2] = _pixel.c[_mapping[1]]; \
-  _buffer[_size + 3] = _pixel.c[_mapping[2]]; \
-  _buffer[_size + 4] = _pixel.c[_mapping[3]]; \
+  _buffer[_size + 0] = 0x80 | ((_repetition - 1) & 0xff);              \
+  _buffer[_size + 1] = _pixel.c[_mapping[0]];                          \
+  _buffer[_size + 2] = _pixel.c[_mapping[1]];                          \
+  _buffer[_size + 3] = _pixel.c[_mapping[2]];                          \
+  _buffer[_size + 4] = _pixel.c[_mapping[3]];                          \
   _size += 5;
 
-bool WriteTGA(const char* _filename,
-              int _width, int _height,
-              Format::Value _src_format,
-              const uint8_t* _src_buffer,
+bool WriteTGA(const char* _filename, int _width, int _height,
+              Format::Value _src_format, const uint8_t* _src_buffer,
               bool _write_alpha) {
-  union Pixel { uint8_t c[4]; uint32_t p;};
+  union Pixel {
+    uint8_t c[4];
+    uint32_t p;
+  };
 
   assert(_filename && _src_buffer);
 
   ozz::log::LogV() << "Write image to TGA file \"" << _filename << "\"."
-    << std::endl;
+                   << std::endl;
 
   // Opens output file.
   ozz::io::File file(_filename, "wb");
   if (!file.opened()) {
     ozz::log::Err() << "Failed to open file \"" << _filename
-      << "\" for writing." << std::endl;
+                    << "\" for writing." << std::endl;
     return false;
   }
 
   // Builds and writes tga header.
   const uint8_t header[] = {
-    0,  // ID length
-    0,  // Color map type
-    10,  // Image type (RLE true-color)
-    0, 0, 0, 0, 0,  // Color map specification (no color map)
-    0, 0,  // X-origin (2 bytes little-endian)
-    0, 0,  // Y-origin (2 bytes little-endian)
-    static_cast<uint8_t>(_width & 0xff),  // Width (2 bytes little-endian)
-    static_cast<uint8_t>((_width >> 8) & 0xff),
-    static_cast<uint8_t>(_height & 0xff),  // Height (2 bytes little-endian)
-    static_cast<uint8_t>((_height >> 8) & 0xff),
-    static_cast<uint8_t>(_write_alpha ? 32 : 24),  // Pixel depth
-    0};  // Image descriptor
+      0,   // ID length
+      0,   // Color map type
+      10,  // Image type (RLE true-color)
+      0,
+      0,
+      0,
+      0,
+      0,  // Color map specification (no color map)
+      0,
+      0,  // X-origin (2 bytes little-endian)
+      0,
+      0,                                    // Y-origin (2 bytes little-endian)
+      static_cast<uint8_t>(_width & 0xff),  // Width (2 bytes little-endian)
+      static_cast<uint8_t>((_width >> 8) & 0xff),
+      static_cast<uint8_t>(_height & 0xff),  // Height (2 bytes little-endian)
+      static_cast<uint8_t>((_height >> 8) & 0xff),
+      static_cast<uint8_t>(_write_alpha ? 32 : 24),  // Pixel depth
+      0};                                            // Image descriptor
   OZZ_STATIC_ASSERT(sizeof(header) == 18);
   file.Write(header, sizeof(header));
 
@@ -104,12 +107,12 @@ bool WriteTGA(const char* _filename,
 
   // Prepares component mappings from src to TARGA format.
   const uint8_t mappings[4][4] = {
-    {2, 1, 0, 0}, {0, 1, 2, 0}, {2, 1, 0, 3}, {0, 1, 2, 3}};
+      {2, 1, 0, 0}, {0, 1, 2, 0}, {2, 1, 0, 3}, {0, 1, 2, 3}};
   const uint8_t* mapping = mappings[_src_format];
 
   // Allocates enough space to store RLE packets for the worst case scenario.
-  uint8_t* dest_buffer = ozz::memory::default_allocator()->
-    Allocate<uint8_t>((1 + (_write_alpha ? 4 : 3)) * _width * _height);
+  uint8_t* dest_buffer = ozz::memory::default_allocator()->Allocate<uint8_t>(
+      (1 + (_write_alpha ? 4 : 3)) * _width * _height);
 
   size_t dest_size = 0;
   if (HasAlpha(_src_format)) {
@@ -142,8 +145,8 @@ bool WriteTGA(const char* _filename,
                           _src_buffer[line + 2], 0}};
         int count = 1;
         for (int p = line + 4; p < line + _width * 4; p += 4, count++) {
-          const Pixel next = {{_src_buffer[p + 0], _src_buffer[p + 1],
-                               _src_buffer[p + 2], 0}};
+          const Pixel next = {
+              {_src_buffer[p + 0], _src_buffer[p + 1], _src_buffer[p + 2], 0}};
           if (current.p != next.p || count == 128) {
             // Writes current packet.
             PUSH_PIXEL_RGB(dest_buffer, dest_size, count, current, mapping);
@@ -167,8 +170,8 @@ bool WriteTGA(const char* _filename,
                           _src_buffer[line + 2], 255}};
         int count = 1;
         for (int p = line + 3; p < line + _width * 3; p += 3, count++) {
-          const Pixel next = {{
-            _src_buffer[p + 0], _src_buffer[p + 1], _src_buffer[p + 2], 255}};
+          const Pixel next = {{_src_buffer[p + 0], _src_buffer[p + 1],
+                               _src_buffer[p + 2], 255}};
           if (current.p != next.p || count == 128) {
             // Writes current packet.
             PUSH_PIXEL_RGBA(dest_buffer, dest_size, count, current, mapping);
@@ -183,12 +186,12 @@ bool WriteTGA(const char* _filename,
       }
     } else {
       for (int line = 0; line < src_size; line += src_pitch) {
-        Pixel current = {{
-          _src_buffer[line + 0], _src_buffer[line + 1], _src_buffer[line + 2], 0}};
+        Pixel current = {{_src_buffer[line + 0], _src_buffer[line + 1],
+                          _src_buffer[line + 2], 0}};
         int count = 1;
         for (int p = line + 3; p < line + _width * 3; p += 3, count++) {
-          const Pixel next = {{
-            _src_buffer[p + 0], _src_buffer[p + 1], _src_buffer[p + 2], 0}};
+          const Pixel next = {
+              {_src_buffer[p + 0], _src_buffer[p + 1], _src_buffer[p + 2], 0}};
           if (current.p != next.p || count == 128) {
             // Writes current packet.
             PUSH_PIXEL_RGB(dest_buffer, dest_size, count, current, mapping);

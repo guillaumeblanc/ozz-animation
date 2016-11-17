@@ -36,6 +36,8 @@ using ozz::math::SoaQuaternion;
 using ozz::math::SoaFloat4;
 using ozz::math::SoaFloat3;
 
+// clang-format off
+
 TEST(QuaternionConstant, ozz_math) {
   EXPECT_SOAQUATERNION_EQ(SoaQuaternion::identity(), 0.f, 0.f, 0.f, 0.f,
                                                      0.f, 0.f, 0.f, 0.f,

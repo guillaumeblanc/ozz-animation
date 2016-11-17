@@ -30,16 +30,15 @@
 #include "ozz/base/io/archive.h"
 #include "ozz/base/maths/math_archive.h"
 
-#include "ozz/base/containers/vector_archive.h"
 #include "ozz/base/containers/string_archive.h"
+#include "ozz/base/containers/vector_archive.h"
 
 namespace ozz {
 namespace io {
 
 template <>
 void Save(OArchive& _archive,
-          const animation::offline::RawAnimation* _animations,
-          size_t _count) {
+          const animation::offline::RawAnimation* _animations, size_t _count) {
   for (size_t i = 0; i < _count; ++i) {
     const animation::offline::RawAnimation& animation = _animations[i];
     _archive << animation.duration;
@@ -49,10 +48,8 @@ void Save(OArchive& _archive,
 }
 
 template <>
-void Load(IArchive& _archive,
-          animation::offline::RawAnimation* _animations,
-          size_t _count,
-          uint32_t _version) {
+void Load(IArchive& _archive, animation::offline::RawAnimation* _animations,
+          size_t _count, uint32_t _version) {
   (void)_version;
   for (size_t i = 0; i < _count; ++i) {
     animation::offline::RawAnimation& animation = _animations[i];
@@ -83,8 +80,7 @@ void Save(OArchive& _archive,
 
 template <>
 void Load(IArchive& _archive,
-          animation::offline::RawAnimation::JointTrack* _tracks,
-          size_t _count,
+          animation::offline::RawAnimation::JointTrack* _tracks, size_t _count,
           uint32_t _version) {
   (void)_version;
   for (size_t i = 0; i < _count; ++i) {
@@ -111,8 +107,7 @@ void Save(OArchive& _archive,
 template <>
 void Load(IArchive& _archive,
           animation::offline::RawAnimation::TranslationKey* _keys,
-          size_t _count,
-          uint32_t _version) {
+          size_t _count, uint32_t _version) {
   (void)_version;
   for (size_t i = 0; i < _count; ++i) {
     animation::offline::RawAnimation::TranslationKey& key = _keys[i];
@@ -136,8 +131,7 @@ void Save(OArchive& _archive,
 
 template <>
 void Load(IArchive& _archive,
-          animation::offline::RawAnimation::RotationKey* _keys,
-          size_t _count,
+          animation::offline::RawAnimation::RotationKey* _keys, size_t _count,
           uint32_t _version) {
   (void)_version;
   for (size_t i = 0; i < _count; ++i) {
@@ -161,10 +155,8 @@ void Save(OArchive& _archive,
 }
 
 template <>
-void Load(IArchive& _archive,
-          animation::offline::RawAnimation::ScaleKey* _keys,
-          size_t _count,
-          uint32_t _version) {
+void Load(IArchive& _archive, animation::offline::RawAnimation::ScaleKey* _keys,
+          size_t _count, uint32_t _version) {
   (void)_version;
   for (size_t i = 0; i < _count; ++i) {
     animation::offline::RawAnimation::ScaleKey& key = _keys[i];

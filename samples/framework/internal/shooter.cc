@@ -115,7 +115,8 @@ void Shooter::Resize(int _width, int _height) {
   for (int i = 0; i < kNumShots; ++i) {
     Shot& shot = shots_[i];
     GL(BindBuffer(GL_PIXEL_PACK_BUFFER, shot.pbo));
-    GL(BufferData(GL_PIXEL_PACK_BUFFER, _width * _height * 4, 0, GL_STREAM_READ));
+    GL(BufferData(GL_PIXEL_PACK_BUFFER, _width * _height * 4, 0,
+                  GL_STREAM_READ));
     shot.width = _width;
     shot.height = _height;
     assert(shot.cooldown == 0);  // Must have been processed.
@@ -123,9 +124,7 @@ void Shooter::Resize(int _width, int _height) {
   GL(BindBuffer(GL_PIXEL_PACK_BUFFER, 0));
 }
 
-bool Shooter::Update() {
-  return Process();
-}
+bool Shooter::Update() { return Process(); }
 
 bool Shooter::Process() {
   // Early out if not supported.
@@ -150,14 +149,11 @@ bool Shooter::Process() {
     // Processes this shot.
     GL(BindBuffer(GL_PIXEL_PACK_BUFFER, shot.pbo));
     const void* pixels = glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
-    if(pixels) {
+    if (pixels) {
       char name[16];
       sprintf(name, "%06d.tga", shot_number_++);
 
-      ozz::sample::image::WriteTGA(name,
-                                   shot.width,
-                                   shot.height,
-                                   image_format_,
+      ozz::sample::image::WriteTGA(name, shot.width, shot.height, image_format_,
                                    reinterpret_cast<const uint8_t*>(pixels),
                                    false);
       GL(UnmapBuffer(GL_PIXEL_PACK_BUFFER));
@@ -168,7 +164,8 @@ bool Shooter::Process() {
 }
 
 bool Shooter::ProcessAll() {
-  // Reset cooldown to 1 for all "unprocessed" shots, so they will be "processed".
+  // Reset cooldown to 1 for all "unprocessed" shots, so they will be
+  // "processed".
   for (int i = 0; i < kNumShots; ++i) {
     Shot& shot = shots_[i];
     shot.cooldown = shot.cooldown > 0 ? 1 : 0;
@@ -179,7 +176,7 @@ bool Shooter::ProcessAll() {
 
 bool Shooter::Capture(int _buffer) {
   assert(_buffer == GL_FRONT || _buffer == GL_BACK);
-  
+
   // Early out if not supported.
   if (!supported_) {
     return true;
@@ -187,8 +184,7 @@ bool Shooter::Capture(int _buffer) {
 
   // Finds the shot to use for this capture.
   Shot* shot;
-  for (shot = shots_;
-       shot < shots_ + kNumShots && shot->cooldown != 0;
+  for (shot = shots_; shot < shots_ + kNumShots && shot->cooldown != 0;
        ++shot) {
   }
   assert(shot != shots_ + kNumShots);
@@ -201,12 +197,11 @@ bool Shooter::Capture(int _buffer) {
   GL(ReadBuffer(_buffer));
   GL(BindBuffer(GL_PIXEL_PACK_BUFFER, shot->pbo));
   GL(PixelStorei(GL_PACK_ALIGNMENT, 4));
-  GL(ReadPixels(0, 0,
-                shot->width, shot->height,
-                gl_shot_format_, GL_UNSIGNED_BYTE, 0));
+  GL(ReadPixels(0, 0, shot->width, shot->height, gl_shot_format_,
+                GL_UNSIGNED_BYTE, 0));
   GL(BindBuffer(GL_PIXEL_PACK_BUFFER, 0));
 #endif  // EMSCRIPTEN
-  
+
   return true;
 }
 }  // internal

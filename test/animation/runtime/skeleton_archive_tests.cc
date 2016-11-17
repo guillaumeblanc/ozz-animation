@@ -29,12 +29,12 @@
 
 #include "gtest/gtest.h"
 
+#include "ozz/animation/offline/raw_skeleton.h"
+#include "ozz/animation/offline/skeleton_builder.h"
 #include "ozz/base/io/archive.h"
 #include "ozz/base/io/stream.h"
 #include "ozz/base/maths/soa_transform.h"
 #include "ozz/base/memory/allocator.h"
-#include "ozz/animation/offline/raw_skeleton.h"
-#include "ozz/animation/offline/skeleton_builder.h"
 
 using ozz::animation::Skeleton;
 using ozz::animation::offline::RawSkeleton;
@@ -110,19 +110,18 @@ TEST(Filled, SkeletonSerialize) {
                 o_skeleton->joint_properties().begin[i].parent);
       EXPECT_EQ(i_skeleton.joint_properties().begin[i].is_leaf,
                 o_skeleton->joint_properties().begin[i].is_leaf);
-      EXPECT_STREQ(i_skeleton.joint_names()[i],
-                   o_skeleton->joint_names()[i]);
+      EXPECT_STREQ(i_skeleton.joint_names()[i], o_skeleton->joint_names()[i]);
     }
     for (int i = 0; i < (i_skeleton.num_joints() + 3) / 4; ++i) {
-      EXPECT_TRUE(ozz::math::AreAllTrue(
-        i_skeleton.bind_pose().begin[i].translation ==
-        o_skeleton->bind_pose().begin[i].translation));
-      EXPECT_TRUE(ozz::math::AreAllTrue(
-        i_skeleton.bind_pose().begin[i].rotation ==
-        o_skeleton->bind_pose().begin[i].rotation));
-      EXPECT_TRUE(ozz::math::AreAllTrue(
-        i_skeleton.bind_pose().begin[i].scale ==
-        o_skeleton->bind_pose().begin[i].scale));
+      EXPECT_TRUE(
+          ozz::math::AreAllTrue(i_skeleton.bind_pose().begin[i].translation ==
+                                o_skeleton->bind_pose().begin[i].translation));
+      EXPECT_TRUE(
+          ozz::math::AreAllTrue(i_skeleton.bind_pose().begin[i].rotation ==
+                                o_skeleton->bind_pose().begin[i].rotation));
+      EXPECT_TRUE(
+          ozz::math::AreAllTrue(i_skeleton.bind_pose().begin[i].scale ==
+                                o_skeleton->bind_pose().begin[i].scale));
     }
   }
   ozz::memory::default_allocator()->Delete(o_skeleton);
@@ -169,16 +168,13 @@ TEST(AlreadyInitialized, SkeletonSerialize) {
     Skeleton i_skeleton;
     i >> i_skeleton;
     ASSERT_EQ(o_skeleton[0]->num_joints(), 1);
-    EXPECT_STREQ(i_skeleton.joint_names()[0],
-                 o_skeleton[0]->joint_names()[0]);
+    EXPECT_STREQ(i_skeleton.joint_names()[0], o_skeleton[0]->joint_names()[0]);
 
     // Reuse the skeleton a second time.
     i >> i_skeleton;
     ASSERT_EQ(o_skeleton[1]->num_joints(), 2);
-    EXPECT_STREQ(i_skeleton.joint_names()[0],
-                 o_skeleton[1]->joint_names()[0]);
-    EXPECT_STREQ(i_skeleton.joint_names()[1],
-                 o_skeleton[1]->joint_names()[1]);
+    EXPECT_STREQ(i_skeleton.joint_names()[0], o_skeleton[1]->joint_names()[0]);
+    EXPECT_STREQ(i_skeleton.joint_names()[1], o_skeleton[1]->joint_names()[1]);
   }
 
   ozz::memory::default_allocator()->Delete(o_skeleton[0]);

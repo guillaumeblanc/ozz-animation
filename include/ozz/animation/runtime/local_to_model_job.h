@@ -33,8 +33,12 @@
 namespace ozz {
 
 // Forward declaration math structures.
-namespace math { struct SoaTransform; }
-namespace math { struct Float4x4; }
+namespace math {
+struct SoaTransform;
+}
+namespace math {
+struct Float4x4;
+}
 
 namespace animation {
 
@@ -52,9 +56,7 @@ class Skeleton;
 // that cannot be represented as Transform object.
 struct LocalToModelJob {
   // Default constructor, initializes default values.
-  LocalToModelJob() :
-    skeleton(NULL) {
-  }
+  LocalToModelJob() : skeleton(NULL) {}
 
   // Validates job parameters. Returns true for a valid job, or false otherwise:
   // -if any input pointer, including ranges, is NULL.

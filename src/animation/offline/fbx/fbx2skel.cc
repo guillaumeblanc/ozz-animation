@@ -39,14 +39,12 @@
 // Use fbx2skel integrated help command (fbx2skel --help) for more details
 // about available arguments.
 
-class FbxSkeletonConverter :
-  public ozz::animation::offline::SkeletonConverter {
-private:
+class FbxSkeletonConverter : public ozz::animation::offline::SkeletonConverter {
+ private:
   // Implement SkeletonConverter::Import function.
   virtual bool Import(const char* _filename,
                       ozz::animation::offline::RawSkeleton* _skeleton) {
-    return ozz::animation::offline::fbx::ImportFromFile(_filename,
-      _skeleton);
+    return ozz::animation::offline::fbx::ImportFromFile(_filename, _skeleton);
   }
 };
 

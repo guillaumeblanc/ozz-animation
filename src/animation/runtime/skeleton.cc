@@ -30,6 +30,7 @@
 #include <cstring>
 
 #include "ozz/base/io/archive.h"
+#include "ozz/base/log.h"
 #include "ozz/base/maths/math_ex.h"
 #include "ozz/base/maths/soa_math_archive.h"
 #include "ozz/base/maths/soa_transform.h"
@@ -37,7 +38,8 @@
 
 namespace ozz {
 namespace io {
-// JointProperties' version can be declared locally as it will be saved from this
+// JointProperties' version can be declared locally as it will be saved from
+// this
 // cpp file only.
 OZZ_IO_TYPE_VERSION(1, animation::Skeleton::JointProperties)
 
@@ -56,10 +58,8 @@ void Save(OArchive& _archive,
 }
 
 template <>
-void Load(IArchive& _archive,
-          animation::Skeleton::JointProperties* _properties,
-          size_t _count,
-          uint32_t _version) {
+void Load(IArchive& _archive, animation::Skeleton::JointProperties* _properties,
+          size_t _count, uint32_t _version) {
   (void)_version;
   for (size_t i = 0; i < _count; ++i) {
     uint16_t parent;
@@ -76,9 +76,7 @@ namespace animation {
 
 Skeleton::Skeleton() {}
 
-Skeleton::~Skeleton() {
-  Deallocate();
-}
+Skeleton::~Skeleton() { Deallocate(); }
 
 char* Skeleton::Allocate(size_t _chars_size, size_t _num_joints) {
   // Distributes buffer memory while ensuring proper alignment (serves larger
@@ -97,15 +95,17 @@ char* Skeleton::Allocate(size_t _chars_size, size_t _num_joints) {
   }
 
   // Bind poses have SoA format
-  const size_t bind_poses_size = (_num_joints + 3) / 4 * sizeof(math::SoaTransform);
+  const size_t bind_poses_size =
+      (_num_joints + 3) / 4 * sizeof(math::SoaTransform);
   const size_t names_size = _num_joints * sizeof(char*);
-  const size_t properties_size = _num_joints * sizeof(Skeleton::JointProperties);
+  const size_t properties_size =
+      _num_joints * sizeof(Skeleton::JointProperties);
   const size_t buffer_size =
       names_size + _chars_size + properties_size + bind_poses_size;
 
   // Allocates whole buffer.
-  char* buffer = reinterpret_cast<char*>(memory::default_allocator()->
-      Allocate(buffer_size, OZZ_ALIGN_OF(math::SoaTransform)));
+  char* buffer = reinterpret_cast<char*>(memory::default_allocator()->Allocate(
+      buffer_size, OZZ_ALIGN_OF(math::SoaTransform)));
 
   // Bind pose first, biggest alignment.
   bind_pose_.begin = reinterpret_cast<math::SoaTransform*>(buffer);
@@ -120,8 +120,10 @@ char* Skeleton::Allocate(size_t _chars_size, size_t _num_joints) {
   joint_names_.end = reinterpret_cast<char**>(buffer);
 
   // Properties, third biggest alignment.
-  joint_properties_.begin = reinterpret_cast<Skeleton::JointProperties*>(buffer);
-  assert(math::IsAligned(joint_properties_.begin, OZZ_ALIGN_OF(Skeleton::JointProperties)));
+  joint_properties_.begin =
+      reinterpret_cast<Skeleton::JointProperties*>(buffer);
+  assert(math::IsAligned(joint_properties_.begin,
+                         OZZ_ALIGN_OF(Skeleton::JointProperties)));
   buffer += properties_size;
   joint_properties_.end = reinterpret_cast<Skeleton::JointProperties*>(buffer);
 
@@ -137,7 +139,6 @@ void Skeleton::Deallocate() {
 }
 
 void Skeleton::Save(ozz::io::OArchive& _archive) const {
-
   const int32_t num_joints = this->num_joints();
 
   // Early out if skeleton's empty.
@@ -163,11 +164,12 @@ void Skeleton::Save(ozz::io::OArchive& _archive) const {
 }
 
 void Skeleton::Load(ozz::io::IArchive& _archive, uint32_t _version) {
-
   // Deallocate skeleton in case it was already used before.
   Deallocate();
 
   if (_version != 1) {
+    log::Err() << "Unsupported Skeleton version " << _version << "."
+               << std::endl;
     return;
   }
 

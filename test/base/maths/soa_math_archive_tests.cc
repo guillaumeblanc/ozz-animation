@@ -37,6 +37,8 @@
 #include "ozz/base/maths/soa_quaternion.h"
 #include "ozz/base/maths/soa_transform.h"
 
+// clang-format off
+
 TEST(SoaMaths, Archive) {
   for (int e = 0; e < 2; ++e) {
     ozz::Endianness endianess = e == 0 ? ozz::kBigEndian : ozz::kLittleEndian;

@@ -34,6 +34,8 @@
 #include "ozz/base/io/archive.h"
 #include "ozz/base/maths/simd_math.h"
 
+// clang-format off
+
 TEST(SimdMaths, Archive) {
   for (int e = 0; e < 2; ++e) {
     ozz::Endianness endianess = e == 0 ? ozz::kBigEndian : ozz::kLittleEndian;
@@ -44,16 +46,15 @@ TEST(SimdMaths, Archive) {
     // Write soa math types.
     ozz::io::OArchive o(&stream, endianess);
     const ozz::math::SimdFloat4 of4 =
-      ozz::math::simd_float4::Load(46.f, 58.f, 14.f, 5.f);
+        ozz::math::simd_float4::Load(46.f, 58.f, 14.f, 5.f);
     o << of4;
-    const ozz::math::SimdInt4 oi4 =
-      ozz::math::simd_int4::Load(46, 58, 14, 5);
+    const ozz::math::SimdInt4 oi4 = ozz::math::simd_int4::Load(46, 58, 14, 5);
     o << oi4;
-    const ozz::math::Float4x4 of44 = {{
-      ozz::math::simd_float4::Load(46.f, 58.f, 14.f, 5.f),
-      ozz::math::simd_float4::Load(26.f, 35.f, 1.f, 27.f),
-      ozz::math::simd_float4::Load(99.f, 11.f, 4.f, 46.f),
-      ozz::math::simd_float4::Load(58.f, 26.f, 14.f, 99.f)}};
+    const ozz::math::Float4x4 of44 = {
+        {ozz::math::simd_float4::Load(46.f, 58.f, 14.f, 5.f),
+         ozz::math::simd_float4::Load(26.f, 35.f, 1.f, 27.f),
+         ozz::math::simd_float4::Load(99.f, 11.f, 4.f, 46.f),
+         ozz::math::simd_float4::Load(58.f, 26.f, 14.f, 99.f)}};
     o << of44;
 
     // Reads soa math types.

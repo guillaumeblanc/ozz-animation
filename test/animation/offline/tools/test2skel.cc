@@ -31,9 +31,9 @@
 
 #include "ozz/base/io/stream.h"
 
-class TestSkeletonConverter :
-  public ozz::animation::offline::SkeletonConverter {
-private:
+class TestSkeletonConverter
+    : public ozz::animation::offline::SkeletonConverter {
+ private:
   // Implement SkeletonConverter::Import function.
   virtual bool Import(const char* _filename,
                       ozz::animation::offline::RawSkeleton* _skeleton) {

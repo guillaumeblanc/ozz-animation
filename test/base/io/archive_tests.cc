@@ -27,8 +27,8 @@
 
 #include "ozz/base/io/archive.h"
 
-#include <cstring>
 #include <stdint.h>
+#include <cstring>
 
 #include "gtest/gtest.h"
 

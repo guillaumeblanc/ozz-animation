@@ -44,9 +44,9 @@ namespace ozz {
 namespace log {
 
 enum Level {
-  Silent,  // No output at all, even errors are muted.
+  Silent,    // No output at all, even errors are muted.
   Standard,  // Default output level.
-  Verbose,  // Most verbose output level.
+  Verbose,   // Most verbose output level.
 };
 
 // Sets the global logging level.
@@ -63,27 +63,23 @@ namespace internal {
 // Forwards ostream::operator << to a standard ostream or a silent
 // ostringstream according to the logging level at construction time.
 class Logger {
-public:
+ public:
   // Forwards ostream::operator << for any type.
-  template<typename _T>
-  std::ostream& operator << (const _T& _t) {
+  template <typename _T>
+  std::ostream& operator<<(const _T& _t) {
     return stream_ << _t;
   }
   // Forwards ostream::operator << for modifiers.
-  std::ostream& operator << (std::ostream& (*_Pfn)(std::ostream&)) {
+  std::ostream& operator<<(std::ostream& (*_Pfn)(std::ostream&)) {
     return ((*_Pfn)(stream_));
   }
   // Cast operator.
-  operator std::ostream& () {
-    return stream_;
-  }
+  operator std::ostream&() { return stream_; }
 
   // Cast operator.
-  std::ostream& stream() {
-    return stream_;
-  }
+  std::ostream& stream() { return stream_; }
 
-protected:
+ protected:
   // Specifies the global stream and the output level.
   // Logging levels allows to select _stream or a "silent" stream according to
   // the current global logging level.
@@ -92,10 +88,10 @@ protected:
   // Destructor, deletes the internal "silent" stream.
   ~Logger();
 
-private:
+ private:
   // Disables copy and assignment.
   Logger(const Logger&);
-  void operator = (Logger&);
+  void operator=(Logger&);
 
   // Selected output stream.
   std::ostream& stream_;
@@ -109,30 +105,30 @@ private:
 // Logs verbose output to the standard error stream (std::clog).
 // Enabled if logging level is Verbose.
 class LogV : public internal::Logger {
-public:
+ public:
   LogV();
 };
 
 // Logs output to the standard error stream (std::clog).
 // Enabled if logging level is not Silent.
 class Log : public internal::Logger {
-public:
+ public:
   Log();
 };
 
 // Logs output to the standard output (std::cout).
 // Enabled if logging level is not Silent.
 class Out : public internal::Logger {
-public:
+ public:
   Out();
 };
 
 // Logs error to the standard error stream (std::cerr).
 // Enabled if logging level is not Silent.
 class Err : public internal::Logger {
-public:
+ public:
   Err();
 };
-} // log
-} // ozz
+}  // log
+}  // ozz
 #endif  // OZZ_OZZ_BASE_LOG_H_

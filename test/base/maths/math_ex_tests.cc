@@ -25,8 +25,8 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/base/maths/math_ex.h"
 #include "ozz/base/maths/math_constant.h"
+#include "ozz/base/maths/math_ex.h"
 
 #include "gtest/gtest.h"
 
@@ -69,27 +69,27 @@ TEST(FloatComparison, MathEx) {
 
 TEST(Select, MathEx) {
   int a = -27, b = 46;
-  int* pa = &a, *pb = &b;
-  int* cpa = &a, *cpb = &b;
+  int *pa = &a, *pb = &b;
+  int *cpa = &a, *cpb = &b;
 
-  { // Integer select
+  {  // Integer select
     EXPECT_EQ(ozz::math::Select(true, a, b), a);
     EXPECT_EQ(ozz::math::Select(true, b, a), b);
     EXPECT_EQ(ozz::math::Select(false, a, b), b);
   }
 
-  { // Float select
+  {  // Float select
     EXPECT_FLOAT_EQ(ozz::math::Select(true, 46.f, 27.f), 46.f);
     EXPECT_FLOAT_EQ(ozz::math::Select(false, 99.f, 46.f), 46.f);
   }
 
-  { // Pointer select
+  {  // Pointer select
     EXPECT_EQ(ozz::math::Select(true, pa, pb), pa);
     EXPECT_EQ(ozz::math::Select(true, pb, pa), pb);
     EXPECT_EQ(ozz::math::Select(false, pa, pb), pb);
   }
 
-  { // Const pointer select
+  {  // Const pointer select
     EXPECT_EQ(ozz::math::Select(true, cpa, cpb), cpa);
     EXPECT_EQ(ozz::math::Select(true, cpb, cpa), cpb);
     EXPECT_EQ(ozz::math::Select(false, cpa, cpb), cpb);

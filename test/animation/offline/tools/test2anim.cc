@@ -33,15 +33,13 @@
 
 #include "ozz/base/io/stream.h"
 
-class TestAnimationConverter :
-  public ozz::animation::offline::AnimationConverter {
-    
-private:
+class TestAnimationConverter
+    : public ozz::animation::offline::AnimationConverter {
+ private:
   // Implement SkeletonConverter::Import function.
   virtual bool Import(const char* _filename,
                       const ozz::animation::Skeleton& _skeleton,
-                      float _sampling_rate,
-                      Animations* _animations) {
+                      float _sampling_rate, Animations* _animations) {
     (void)_sampling_rate;
     (void)_skeleton;
 
