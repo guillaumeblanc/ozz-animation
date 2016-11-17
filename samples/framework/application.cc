@@ -689,8 +689,8 @@ int Application::CloseCbk() {
 void Application::ParseReadme() {
   const char* error_message = "Unable to find README help file.";
 
-  // Get README file
-  ozz::io::File file("README", "rb");  // Opens as binary to avoid conversions.
+  // Get README file, opens as binary to avoid conversions.
+  ozz::io::File file("README.md", "rb");
   if (!file.opened()) {
     help_ = error_message;
     return;
