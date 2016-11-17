@@ -1,19 +1,23 @@
 Ozz-animation sample: Animation playback
 
 1. Description
+
 Loads a skeleton and an animation from ozz binary archives. Then playbacks animation and renders the corresponding animated skeleton.
 
 2. Concept
+
 This sample loads ozz binary archive file (to read an animation and a skeleton). Ozz binary files can be produced with ozz command line tools (fbx2skel tool ouputs a skeleton from a Collada or Fbx document, fbx2anim an animation), or with ozz serializer (ozz::io::OArchive) from your own application/converter.
 At every frame the animation is sampled with ozz::animation::SamplingJob. Sampled local-space output is then converted to model-space matrices for rendering using ozz::animation::LocalToModelJob.
 
 3. Sample usage
+
 Some parameters can be tuned from sample UI:
   - Play/pause animation.
   - Fix animation time.
   - Set playback speed, which can be negative to go backward.
 
 4. Implementation
+
   1. Load animation and skeleton.
     1. Open a ozz::io::OArchive object with a valid ozz::io::Stream as argument. The stream can be a ozz::io::File, or your custom io read capable object that inherits from ozz::io::Stream.
     2. Check that the stream stores the expected object using ozz::io::OArchive::TestTag() function. Object type is specified as a template argument.

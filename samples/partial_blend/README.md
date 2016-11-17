@@ -1,19 +1,23 @@
 Ozz-animation sample: Partial animations blending
 
 1. Description
+
 Uses partial animation blending technique to animate the lower and upper part of the skeleton with different animations.
 
 2. Concept
+
 Partial animation blending uses the same job (aka ozz::animation::BlendingJob) as the full blending technique (see "blend" sample for more details). Partial blending uses a coefficient per joint to weight the animation influence, for every joint. This per-joint weight is modulated with layer's weight to compute the final influence of every joint. This set of weight coefficients are provided to the BlendingJob::Layer as an array of SoA floating point values, arranged in the same order as skeleton joints.
 The sample uses ozz::animation::IterateJointsDF helper function to iterate all children of the upper body "root" joint, and set up per-joint weight masks.
 
 3. Sample usage
+
 The sample proposes two modes of interaction:
   - Automatic: With this mode the GUI proposes to automatically control all blending parameters from a single "upper body weight" slider. The selected coefficient is used to set up the per-joint weights of the upper body layer, while lower body weights are set to one minus upper body weights.
   - Manuel: Allows to setup all blending parameters independently.
 The GUI also proposes to select the "root" joint of the upper body hierarchy, which is affected by the partially animated layer. 
 
 4. Implementation
+
   1. This sample extends "blend" sample, and uses the same procedure to load skeleton and animations objects.
   2. Samples each animation at their own speed, they do not need to be synchronized.
   3. Prepares per-joint weight masks for the two lower and upper body layers. If interaction mode is set to automatic, then lower and upper body weight coefficients are computed from the single "Upper body weight" parameter. In this case upper body coefficient equals one minus lower body coefficient. If interaction mode is set to manual, then all parameters are set manually.
