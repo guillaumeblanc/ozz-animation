@@ -20,4 +20,4 @@ The sample exposes animation time and playback speed.
 
 1. fbx2baked implementation is based on fbx2skel. The only difference being that fbx2baked does not search for joints, but for meshes.
 2. Load animation and skeleton, sample animation to get local-space transformations, and convert local-space transformations to model-space matrices. See Playback sample for more details about these steps.
-3. Render a unit size cube for each joint. The sample uses instanced rendering to improve performances.
+3. Render a unit size cube for each joint, transformed by each joint matrix which contains the scale to restore original mesh size. The sample uses instanced rendering to improve performances.
