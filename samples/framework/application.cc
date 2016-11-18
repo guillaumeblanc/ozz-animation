@@ -140,7 +140,7 @@ int Application::Run(int _argc, const char** _argv, const char* _version,
              << std::endl;
 
   // Parse command line arguments.
-  const char* usage = "Ozz animation sample. See README file for more details.";
+  const char* usage = "Ozz animation sample. See README.md file for more details.";
   ozz::options::ParseResult result =
       ozz::options::ParseCommandLine(_argc, _argv, _version, usage);
   if (result != ozz::options::kSuccess) {
@@ -665,7 +665,7 @@ int Application::CloseCbk() {
 }
 
 void Application::ParseReadme() {
-  const char* error_message = "Unable to find README help file.";
+  const char* error_message = "Unable to find README.md help file.";
 
   // Get README file, opens as binary to avoid conversions.
   ozz::io::File file("README.md", "rb");

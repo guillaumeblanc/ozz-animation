@@ -2,18 +2,18 @@
 
 add_custom_command(
   DEPENDS $<$<BOOL:${ozz_build_fbx}>:BUILD_DATA>
-          "${CMAKE_CURRENT_LIST_DIR}/README"
+          "${CMAKE_CURRENT_LIST_DIR}/README.md"
           "${ozz_media_directory}/bin/alain_skeleton.ozz"
           "${ozz_media_directory}/bin/alain_walk.ozz"
           "${ozz_media_directory}/bin/alain_jog.ozz"
           "${ozz_media_directory}/bin/alain_run.ozz"
-  OUTPUT  "${CMAKE_CURRENT_BINARY_DIR}/README"
+  OUTPUT  "${CMAKE_CURRENT_BINARY_DIR}/README.md"
           "${CMAKE_CURRENT_BINARY_DIR}/media/alain_skeleton.ozz"
           "${CMAKE_CURRENT_BINARY_DIR}/media/alain_walk.ozz"
           "${CMAKE_CURRENT_BINARY_DIR}/media/alain_jog.ozz"
           "${CMAKE_CURRENT_BINARY_DIR}/media/alain_run.ozz"
   COMMAND ${CMAKE_COMMAND} -E make_directory media
-  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_LIST_DIR}/README" .
+  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_LIST_DIR}/README.md" .
   COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/alain_skeleton.ozz" "./media"
   COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/alain_walk.ozz" "./media"
   COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/alain_jog.ozz" "./media"
@@ -22,7 +22,7 @@ add_custom_command(
 # Adds sample executable
 add_executable(sample_blend
   sample_blend.cc
-  "${CMAKE_CURRENT_BINARY_DIR}/README"
+  "${CMAKE_CURRENT_BINARY_DIR}/README.md"
   "${CMAKE_CURRENT_BINARY_DIR}/media/alain_skeleton.ozz"
   "${CMAKE_CURRENT_BINARY_DIR}/media/alain_walk.ozz"
   "${CMAKE_CURRENT_BINARY_DIR}/media/alain_jog.ozz"
@@ -37,7 +37,7 @@ set_target_properties(sample_blend
 if(EMSCRIPTEN)
   # Resource files are embedded to the output file with emscripten
   set_target_properties(sample_blend
-    PROPERTIES LINK_FLAGS "--embed-file media --embed-file README --memory-init-file 0")
+    PROPERTIES LINK_FLAGS "--embed-file media --embed-file README.md --memory-init-file 0")
 
   install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/sample_blend.html
@@ -46,7 +46,7 @@ if(EMSCRIPTEN)
 else()
   install(TARGETS sample_blend DESTINATION bin/samples/blend)
   install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/media DESTINATION bin/samples/blend)
-  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/README DESTINATION bin/samples/blend)
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/README.md DESTINATION bin/samples/blend)
 endif(EMSCRIPTEN)
 
 add_test(NAME sample_blend COMMAND sample_blend "--max_idle_loops=${ozz_sample_testing_loops}" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)

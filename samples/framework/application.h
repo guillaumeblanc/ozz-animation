@@ -150,7 +150,7 @@ class Application {
   // Implements framework glfw window close callback.
   static int CloseCbk();
 
-  // Get README for content to display it in the help ui.
+  // Get README.md for content to display it in the help ui.
   void ParseReadme();
 
   // Disallow copy and assignment.
