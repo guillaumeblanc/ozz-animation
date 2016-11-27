@@ -1,5 +1,7 @@
-set(baked_source_file "${ozz_media_directory}/fbx/ozz_baked.fbx")
+# Option to build baked data is disabled by default as it is very costly.
+option(ozz_baked_sample_build_data "Build baked sample data" OFF)
 
+# Build baked skeleton import tool.
 if(ozz_build_fbx)
   add_executable(sample_fbx2baked
     fbx2baked.cc)
@@ -18,19 +20,20 @@ if(ozz_build_fbx)
     PROPERTIES FOLDER "samples/tools")
 endif()
 
-if(TARGET sample_fbx2baked AND EXISTS "${baked_source_file}")
+# Build baked data
+if(TARGET sample_fbx2baked AND ozz_baked_sample_build_data)
   add_custom_command(
     DEPENDS "${CMAKE_CURRENT_LIST_DIR}/README.md"
-            "${baked_source_file}"
+            "${ozz_media_directory}/fbx/ozz_baked.fbx"
             sample_fbx2baked
             fbx2anim
     OUTPUT "${ozz_media_directory}/bin/baked_skeleton.ozz"
            "${ozz_media_directory}/bin/baked_animation.ozz"
     COMMAND sample_fbx2baked
-      "--file=${baked_source_file}"
+      "--file=${ozz_media_directory}/fbx/ozz_baked.fbx"
       "--skeleton=${ozz_media_directory}/bin/baked_skeleton.ozz"
     COMMAND fbx2anim
-      "--file=${baked_source_file}"
+      "--file=${ozz_media_directory}/fbx/ozz_baked.fbx"
       "--skeleton=${ozz_media_directory}/bin/baked_skeleton.ozz"
       "--animation=${ozz_media_directory}/bin/baked_animation.ozz"
       "--translation=0.002" # Optimizes a bit more aggressively
