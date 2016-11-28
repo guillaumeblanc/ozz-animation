@@ -1,7 +1,3 @@
-if(NOT ozz_build_howtos OR EMSCRIPTEN)
-  return()
-endif()
-
 # load_from_file
 
 add_executable(load_from_file

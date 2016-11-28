@@ -1,7 +1,3 @@
-if(EMSCRIPTEN OR NOT ozz_build_tests)
-  return()
-endif()
-
 # Sets GTest specific flags
 set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS GTEST_HAS_EXCEPTIONS=0)
 
