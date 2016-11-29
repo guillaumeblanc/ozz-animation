@@ -46,18 +46,18 @@ add_custom_command(
           "${ozz_media_directory}/bin/baked_skeleton.ozz"
           "${ozz_media_directory}/bin/baked_animation.ozz"
   OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/README.md"
-         "${CMAKE_CURRENT_BINARY_DIR}/media/baked_skeleton.ozz"
-         "${CMAKE_CURRENT_BINARY_DIR}/media/baked_animation.ozz"
+         "${CMAKE_CURRENT_BINARY_DIR}/media/skeleton.ozz"
+         "${CMAKE_CURRENT_BINARY_DIR}/media/animation.ozz"
   COMMAND ${CMAKE_COMMAND} -E make_directory media
   COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_LIST_DIR}/README.md" .
-  COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/baked_skeleton.ozz" "./media"
-  COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/baked_animation.ozz" "./media")
+  COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/baked_skeleton.ozz" "./media/skeleton.ozz"
+  COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/baked_animation.ozz" "./media/animation.ozz")
 
 add_executable(sample_baked
   sample_baked.cc
   "${CMAKE_CURRENT_BINARY_DIR}/README.md"
-  "${CMAKE_CURRENT_BINARY_DIR}/media/baked_skeleton.ozz"
-  "${CMAKE_CURRENT_BINARY_DIR}/media/baked_animation.ozz")
+  "${CMAKE_CURRENT_BINARY_DIR}/media/skeleton.ozz"
+  "${CMAKE_CURRENT_BINARY_DIR}/media/animation.ozz")
 
 target_link_libraries(sample_baked
   sample_framework)
@@ -84,7 +84,7 @@ else()
 endif(EMSCRIPTEN)
 
 add_test(NAME sample_baked COMMAND sample_baked "--max_idle_loops=${ozz_sample_testing_loops}" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)
-add_test(NAME sample_baked_load_path COMMAND sample_baked "--skeleton=media/baked_skeleton.ozz" "--animation=media/baked_animation.ozz" "--max_idle_loops=${ozz_sample_testing_loops}" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)
+add_test(NAME sample_baked_load_path COMMAND sample_baked "--skeleton=media/skeleton.ozz" "--animation=media/animation.ozz" "--max_idle_loops=${ozz_sample_testing_loops}" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)
 add_test(NAME sample_baked_load_invalid_skeleton_path COMMAND sample_baked "--skeleton=media/bad_skeleton.ozz" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)
 set_tests_properties(sample_baked_load_invalid_skeleton_path PROPERTIES WILL_FAIL true)
 add_test(NAME sample_baked_load_invalid_animation_path COMMAND sample_baked "--animation=media/bad_animation.ozz" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)

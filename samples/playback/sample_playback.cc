@@ -48,12 +48,12 @@
 // Skeleton archive can be specified as an option.
 OZZ_OPTIONS_DECLARE_STRING(skeleton,
                            "Path to the skeleton (ozz archive format).",
-                           "media/alain_skeleton.ozz", false)
+                           "media/skeleton.ozz", false)
 
 // Animation archive can be specified as an option.
 OZZ_OPTIONS_DECLARE_STRING(animation,
                            "Path to the animation (ozz archive format).",
-                           "media/alain_crossarms.ozz", false)
+                           "media/animation.ozz", false)
 
 class LoadSampleApplication : public ozz::sample::Application {
  public:

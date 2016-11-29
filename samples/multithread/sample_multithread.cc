@@ -55,12 +55,12 @@
 // Skeleton archive can be specified as an option.
 OZZ_OPTIONS_DECLARE_STRING(skeleton,
                            "Path to the skeleton (ozz archive format).",
-                           "media/alain_skeleton.ozz", false)
+                           "media/skeleton.ozz", false)
 
 // First animation archive can be specified as an option.
 OZZ_OPTIONS_DECLARE_STRING(animation,
                            "Path to the first animation (ozz archive format).",
-                           "media/alain_walk.ozz", false)
+                           "media/animation.ozz", false)
 
 // Interval between each character.
 const float kInterval = 2.f;

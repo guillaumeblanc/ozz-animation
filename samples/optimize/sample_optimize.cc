@@ -58,10 +58,10 @@
 
 // Skeleton and animation file can be specified as an option.
 OZZ_OPTIONS_DECLARE_STRING(skeleton, "Path to the runtime skeleton file.",
-                           "media/alain_skeleton.ozz", false)
+                           "media/skeleton.ozz", false)
 
 OZZ_OPTIONS_DECLARE_STRING(animation, "Path to the raw animation file.",
-                           "media/alain_atlas_raw.ozz", false)
+                           "media/animation_raw.ozz", false)
 
 namespace {
 
