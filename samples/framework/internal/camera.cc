@@ -172,9 +172,9 @@ Camera::Controls Camera::UpdateControls(float _delta_time) {
   const int dx = mdx + kdx;
   const int dy = mdy + kdy;
 
-  // Mouse left button activates Zoom, Pan and Orbit modes.
+  // Mouse right button activates Zoom, Pan and Orbit modes.
   if (keyboard_interact ||
-      glfwGetMouseButton(GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
+      glfwGetMouseButton(GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
     if (glfwGetKey(GLFW_KEY_LSHIFT) == GLFW_PRESS) {  // Zoom mode.
       controls.zooming = true;
 
