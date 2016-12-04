@@ -111,13 +111,14 @@ else()
     set_property(DIRECTORY APPEND PROPERTY COMPILE_OPTIONS "$<$<STREQUAL:$<TARGET_PROPERTY:LINKER_LANGUAGE>,CXX>:-std=c++11>")
   endif()
 
-  # Enable extra level of warning
-  #if(NOT CMAKE_CXX_FLAGS MATCHES "-Wextra")
-  #  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra")
-  #endif()
-
   # Set the warning level to Wall
   set_property(DIRECTORY APPEND PROPERTY COMPILE_OPTIONS "-Wall")
+
+  # Enable extra level of warning
+  #set_property(DIRECTORY APPEND PROPERTY COMPILE_OPTIONS "-Wextra")
+
+  # Set warning as error
+  set_property(DIRECTORY APPEND PROPERTY COMPILE_OPTIONS "-Werror")
 
   # Automatically selects native architecture optimizations (sse...)
   #set_property(DIRECTORY APPEND PROPERTY COMPILE_OPTIONS "-march=native")
