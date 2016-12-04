@@ -82,6 +82,9 @@ if(MSVC)
   # Adds support for multiple processes builds
   set_property(DIRECTORY APPEND PROPERTY COMPILE_OPTIONS "/MP")
 
+  # Set warning as error
+  set_property(DIRECTORY APPEND PROPERTY COMPILE_OPTIONS "/WX")
+
   #---------------
   # For all builds
   foreach(flag ${cxx_all_flags})
