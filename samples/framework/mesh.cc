@@ -80,6 +80,7 @@ void Save(OArchive& _archive, const sample::Mesh* _meshes, size_t _count) {
     const sample::Mesh& mesh = _meshes[i];
     _archive << mesh.parts;
     _archive << mesh.triangle_indices;
+    _archive << mesh.joint_remaps;
     _archive << mesh.inverse_bind_poses;
   }
 }
@@ -92,6 +93,7 @@ void Load(IArchive& _archive, sample::Mesh* _meshes, size_t _count,
     sample::Mesh& mesh = _meshes[i];
     _archive >> mesh.parts;
     _archive >> mesh.triangle_indices;
+    _archive >> mesh.joint_remaps;
     _archive >> mesh.inverse_bind_poses;
   }
 }

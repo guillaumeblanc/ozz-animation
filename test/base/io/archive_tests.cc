@@ -289,7 +289,7 @@ TEST(TagEOF, Archive) {
     Tagged1 ot;
     o << ot;
   }
-  
+
   // Reads from archive.
   stream.Seek(0, ozz::io::Stream::kSet);
   ozz::io::IArchive i(&stream);

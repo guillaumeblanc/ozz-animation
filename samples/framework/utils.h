@@ -28,6 +28,7 @@
 #ifndef OZZ_SAMPLES_FRAMEWORK_UTILS_H_
 #define OZZ_SAMPLES_FRAMEWORK_UTILS_H_
 
+#include "ozz/base/containers/vector.h"
 #include "ozz/base/platform.h"
 
 namespace ozz {
@@ -120,9 +121,18 @@ bool LoadAnimation(const char* _filename,
 // Loads a sample::Mesh from an ozz archive file named _filename.
 // This function will fail and return false if the file cannot be opened or if
 // it is not a valid ozz mesh archive. A valid mesh archive can be
-// produced with ozz tools (fbx2skin) or using ozz animation serialization API.
+// produced with ozz tools (sample_fbx2mesh) or using ozz animation
+// serialization API.
 // _filename and _mesh must be non-NULL.
 bool LoadMesh(const char* _filename, ozz::sample::Mesh* _mesh);
+
+// Loads n sample::Mesh from an ozz archive file named _filename.
+// This function will fail and return false if the file cannot be opened or if
+// it is not a valid ozz mesh archive. A valid mesh archive can be
+// produced with ozz tools (fbx2skin) or using ozz animation serialization API.
+// _filename and _mesh must be non-NULL.
+bool LoadMeshes(const char* _filename,
+                ozz::Vector<ozz::sample::Mesh>::Std* _meshes);
 
 }  // sample
 }  // ozz

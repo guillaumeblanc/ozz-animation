@@ -155,13 +155,18 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
 
   // Samples animation, transforms to model space and renders.
   virtual bool OnDisplay(ozz::sample::Renderer* _renderer) {
-    // Update skinning matrices latest blending stage output.
-    assert(models_.Count() == skinning_matrices_.Count() &&
-           models_.Count() == mesh_.inverse_bind_poses.size());
+    // Mesh must be compatible with animation/skeleton.
+    assert(
+        models_.Count() >= static_cast<size_t>(mesh_.highest_joint_index()) &&
+        skinning_matrices_.Count() >= static_cast<size_t>(mesh_.num_joints()));
 
     // Builds skinning matrices, based on the output of the animation stage.
-    for (size_t i = 0; i < models_.Count(); ++i) {
-      skinning_matrices_[i] = models_[i] * mesh_.inverse_bind_poses[i];
+    // The mesh might not use (aka be skinned by) all skeleton joints. We use
+    // the joint remapping table (available from the mesh object) to reorder
+    // skinning matrices.
+    for (size_t i = 0; i < mesh_.joint_remaps.size(); ++i) {
+      skinning_matrices_[i] =
+          models_[mesh_.joint_remaps[i]] * mesh_.inverse_bind_poses[i];
     }
 
     // Renders skin.
@@ -186,7 +191,7 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
     }
 
     // The number of joints of the mesh needs to match skeleton.
-    if (mesh_.num_joints() != num_joints) {
+    if (num_joints < mesh_.highest_joint_index()) {
       ozz::log::Err() << "The provided mesh doesn't match skeleton "
                          "(joint count mismatch)."
                       << std::endl;
