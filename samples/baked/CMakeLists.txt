@@ -21,7 +21,9 @@ if(ozz_build_fbx)
 endif()
 
 # Build baked data
-if(TARGET sample_fbx2baked AND ozz_baked_sample_build_data)
+if(ozz_baked_sample_build_data AND
+   TARGET sample_fbx2baked AND
+   TARGET fbx2anim)
   add_custom_command(
     DEPENDS "${CMAKE_CURRENT_LIST_DIR}/README.md"
             "${ozz_media_directory}/fbx/ozz_baked.fbx"
