@@ -5,18 +5,18 @@ add_custom_command(
           "${ozz_media_directory}/bin/alain_skeleton.ozz"
           "${ozz_media_directory}/bin/alain_crossarms.ozz"
   OUTPUT  "${CMAKE_CURRENT_BINARY_DIR}/README.md"
-          "${CMAKE_CURRENT_BINARY_DIR}/media/alain_skeleton.ozz"
-          "${CMAKE_CURRENT_BINARY_DIR}/media/alain_crossarms.ozz"
+          "${CMAKE_CURRENT_BINARY_DIR}/media/skeleton.ozz"
+          "${CMAKE_CURRENT_BINARY_DIR}/media/animation.ozz"
   COMMAND ${CMAKE_COMMAND} -E make_directory media
   COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_LIST_DIR}/README.md" .
-  COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/alain_skeleton.ozz" "./media"
-  COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/alain_crossarms.ozz" "./media")
+  COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/alain_skeleton.ozz" "./media/skeleton.ozz"
+  COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/alain_crossarms.ozz" "./media/animation.ozz")
 
 add_executable(sample_playback
   sample_playback.cc
   "${CMAKE_CURRENT_BINARY_DIR}/README.md"
-  "${CMAKE_CURRENT_BINARY_DIR}/media/alain_skeleton.ozz"
-  "${CMAKE_CURRENT_BINARY_DIR}/media/alain_crossarms.ozz")
+  "${CMAKE_CURRENT_BINARY_DIR}/media/skeleton.ozz"
+  "${CMAKE_CURRENT_BINARY_DIR}/media/animation.ozz")
 target_link_libraries(sample_playback
   sample_framework)
 
@@ -39,7 +39,7 @@ else()
 endif(EMSCRIPTEN)
 
 add_test(NAME sample_playback COMMAND sample_playback "--max_idle_loops=${ozz_sample_testing_loops}" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)
-add_test(NAME sample_playback_path1 COMMAND sample_playback "--skeleton=media/alain_skeleton.ozz" "--animation=media/alain_crossarms.ozz" "--max_idle_loops=${ozz_sample_testing_loops}" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)
+add_test(NAME sample_playback_path1 COMMAND sample_playback "--skeleton=media/skeleton.ozz" "--animation=media/animation.ozz" "--max_idle_loops=${ozz_sample_testing_loops}" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)
 add_test(NAME sample_playback_invalid_skeleton_path COMMAND sample_playback "--skeleton=media/bad_skeleton.ozz" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)
 set_tests_properties(sample_playback_invalid_skeleton_path PROPERTIES WILL_FAIL true)
 add_test(NAME sample_playback_invalid_animation_path COMMAND sample_playback "--animation=media/bad_animation.ozz" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)

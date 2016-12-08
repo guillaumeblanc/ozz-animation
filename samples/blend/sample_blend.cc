@@ -50,22 +50,22 @@
 // Skeleton archive can be specified as an option.
 OZZ_OPTIONS_DECLARE_STRING(skeleton,
                            "Path to the skeleton (ozz archive format).",
-                           "media/alain_skeleton.ozz", false)
+                           "media/skeleton.ozz", false)
 
 // First animation archive can be specified as an option.
 OZZ_OPTIONS_DECLARE_STRING(animation1,
                            "Path to the first animation (ozz archive format).",
-                           "media/alain_walk.ozz", false)
+                           "media/animation1.ozz", false)
 
 // Second animation archive can be specified as an option.
 OZZ_OPTIONS_DECLARE_STRING(animation2,
                            "Path to the second animation (ozz archive format).",
-                           "media/alain_jog.ozz", false)
+                           "media/animation2.ozz", false)
 
 // Third animation archive can be specified as an option.
 OZZ_OPTIONS_DECLARE_STRING(animation3,
                            "Path to the second animation (ozz archive format).",
-                           "media/alain_run.ozz", false)
+                           "media/animation3.ozz", false)
 
 class BlendSampleApplication : public ozz::sample::Application {
  public:
