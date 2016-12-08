@@ -19,7 +19,8 @@ set_target_properties(ozz_animation_offline PROPERTIES FOLDER "ozz")
 
 install(TARGETS ozz_animation_offline DESTINATION lib)
 
-add_subdirectory(collada)
+fuse_target("ozz_animation_offline")
+
 add_subdirectory(fbx)
 add_subdirectory(tools)
 

@@ -82,7 +82,7 @@ TEST(Filled, RawSkeletonSerialize) {
   root.children[0].children[0].name = "j2";
   root.children[0].children[0].transform = ozz::math::Transform::identity();
   root.children[0].children[0].transform.rotation =
-    ozz::math::Quaternion(0.f, 0.f, 1.f, 0.f);
+      ozz::math::Quaternion(0.f, 0.f, 1.f, 0.f);
 
   EXPECT_TRUE(o_skeleton.Validate());
   EXPECT_EQ(o_skeleton.num_joints(), 4);
@@ -117,33 +117,31 @@ TEST(Filled, RawSkeletonSerialize) {
 
     // Compares skeletons joint's transform.
     EXPECT_TRUE(Compare(o_skeleton.roots[0].transform.translation,
-                        i_skeleton.roots[0].transform.translation,
-                        0.f));
+                        i_skeleton.roots[0].transform.translation, 0.f));
     EXPECT_TRUE(Compare(o_skeleton.roots[0].transform.rotation,
-                        i_skeleton.roots[0].transform.rotation,
-                        0.f));
+                        i_skeleton.roots[0].transform.rotation, 0.f));
     EXPECT_TRUE(Compare(o_skeleton.roots[0].transform.scale,
-                        i_skeleton.roots[0].transform.scale,
-                        0.f));
+                        i_skeleton.roots[0].transform.scale, 0.f));
 
     EXPECT_TRUE(Compare(o_skeleton.roots[0].children[0].transform.translation,
                         i_skeleton.roots[0].children[0].transform.translation,
                         0.f));
     EXPECT_TRUE(Compare(o_skeleton.roots[0].children[0].transform.rotation,
-                        i_skeleton.roots[0].children[0].transform.rotation, 0.f));
+                        i_skeleton.roots[0].children[0].transform.rotation,
+                        0.f));
     EXPECT_TRUE(Compare(o_skeleton.roots[0].children[0].transform.scale,
-                        i_skeleton.roots[0].children[0].transform.scale,
-                        0.f));
+                        i_skeleton.roots[0].children[0].transform.scale, 0.f));
 
-    EXPECT_TRUE(Compare(o_skeleton.roots[0].children[0].children[0].transform.translation,
-                        i_skeleton.roots[0].children[0].children[0].transform.translation,
-                        0.f));
-    EXPECT_TRUE(Compare(o_skeleton.roots[0].children[0].children[0].transform.rotation,
-                        i_skeleton.roots[0].children[0].children[0].transform.rotation,
-                        0.f));
-    EXPECT_TRUE(Compare(o_skeleton.roots[0].children[0].children[0].transform.scale,
-                        i_skeleton.roots[0].children[0].children[0].transform.scale,
-                        0.f));
+    EXPECT_TRUE(Compare(
+        o_skeleton.roots[0].children[0].children[0].transform.translation,
+        i_skeleton.roots[0].children[0].children[0].transform.translation,
+        0.f));
+    EXPECT_TRUE(Compare(
+        o_skeleton.roots[0].children[0].children[0].transform.rotation,
+        i_skeleton.roots[0].children[0].children[0].transform.rotation, 0.f));
+    EXPECT_TRUE(Compare(
+        o_skeleton.roots[0].children[0].children[0].transform.scale,
+        i_skeleton.roots[0].children[0].children[0].transform.scale, 0.f));
 
     EXPECT_TRUE(Compare(o_skeleton.roots[0].children[1].transform.translation,
                         i_skeleton.roots[0].children[1].transform.translation,
@@ -152,13 +150,11 @@ TEST(Filled, RawSkeletonSerialize) {
                         i_skeleton.roots[0].children[1].transform.rotation,
                         0.f));
     EXPECT_TRUE(Compare(o_skeleton.roots[0].children[1].transform.scale,
-                        i_skeleton.roots[0].children[1].transform.scale,
-                        0.f));
+                        i_skeleton.roots[0].children[1].transform.scale, 0.f));
   }
 }
 
 TEST(AlreadyInitialized, RawSkeletonSerialize) {
-
   RawSkeleton o_skeleton;
   o_skeleton.roots.resize(1);
 

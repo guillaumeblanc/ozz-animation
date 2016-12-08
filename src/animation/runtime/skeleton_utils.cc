@@ -41,7 +41,7 @@ ozz::math::Transform GetJointLocalBindPose(const Skeleton& _skeleton,
          "Joint index out of range.");
 
   const ozz::math::SoaTransform& soa_transform =
-    _skeleton.bind_pose()[_joint / 4];
+      _skeleton.bind_pose()[_joint / 4];
 
   // Transpose SoA data to AoS.
   ozz::math::SimdFloat4 translations[4];
@@ -63,20 +63,19 @@ ozz::math::Transform GetJointLocalBindPose(const Skeleton& _skeleton,
 
 // Helper macro used to detect if a joint has a brother.
 #define _HAS_SIBLING(_i, _num_joints, _properties) \
-  ((_i + 1 < _num_joints) &&\
+  ((_i + 1 < _num_joints) &&                       \
    (_properties[_i].parent == _properties[_i + 1].parent))
 
 // Implement joint hierarchy depth-first traversal.
 // Uses a non-recursive implementation to control stack usage (ie: making
 // algorithm behavior (stack consumption) independent off the data being
 // processed).
-void IterateJointsDF(const Skeleton& _skeleton,
-                     int _from,
+void IterateJointsDF(const Skeleton& _skeleton, int _from,
                      JointsIterator* _iterator) {
   assert(_iterator);
   const int num_joints = _skeleton.num_joints();
   Range<const Skeleton::JointProperties> properties =
-    _skeleton.joint_properties();
+      _skeleton.joint_properties();
 
   // Initialize iterator.
   _iterator->num_joints = 0;
@@ -85,15 +84,14 @@ void IterateJointsDF(const Skeleton& _skeleton,
   if (num_joints == 0) {
     return;
   }
-  if ((_from < 0 || _from >= num_joints) &&
-      _from != Skeleton::kNoParentIndex) {
+  if ((_from < 0 || _from >= num_joints) && _from != Skeleton::kNoParentIndex) {
     return;
   }
 
   // Simulate a stack to unroll usual recursive implementation.
   struct Context {
-    uint16_t joint:15;
-    uint16_t has_brother:1;
+    uint16_t joint : 15;
+    uint16_t has_brother : 1;
   };
   Context stack[Skeleton::kMaxJoints];
   int stack_size = 0;
@@ -119,22 +117,22 @@ void IterateJointsDF(const Skeleton& _skeleton,
     // Skip all the joints until the first child is found.
     if (!properties.begin[top.joint].is_leaf) {  // A leaf has no child anyway.
       uint16_t next_joint = top.joint + 1;
-      for (;
-           next_joint < num_joints &&
-           top.joint != properties.begin[next_joint].parent;
+      for (; next_joint < num_joints &&
+             top.joint != properties.begin[next_joint].parent;
            ++next_joint) {
       }
       if (next_joint < num_joints) {
         Context& next = stack[stack_size++];  // Push child and process it.
         next.joint = next_joint;
         next.has_brother =
-          _HAS_SIBLING(next_joint, num_joints, properties.begin);
+            _HAS_SIBLING(next_joint, num_joints, properties.begin);
         continue;
       }
     }
 
     // Rewind the stack while there's no brother to process.
-    for (;stack_size != 0 && !stack[stack_size - 1].has_brother; --stack_size) {
+    for (; stack_size != 0 && !stack[stack_size - 1].has_brother;
+         --stack_size) {
     }
 
     // Replace top joint by its brother.

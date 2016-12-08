@@ -32,6 +32,7 @@
 #error "This header is private, it cannot be included from public headers."
 #endif  // OZZ_INCLUDE_PRIVATE_HEADER
 
+#include "ozz/animation/offline/fbx/fbx.h"
 #include "ozz/animation/offline/fbx/fbx_base.h"
 
 namespace ozz {
@@ -45,10 +46,8 @@ struct RawAnimation;
 
 namespace fbx {
 
-bool ExtractAnimation(FbxSceneLoader* _scene_loader,
-                      const Skeleton& _skeleton,
-                      float _sampling_rate,
-                      RawAnimation* _animation);
+bool ExtractAnimations(FbxSceneLoader* _scene_loader, const Skeleton& _skeleton,
+                       float _sampling_rate, Animations* _animations);
 
 }  // fbx
 }  // offline

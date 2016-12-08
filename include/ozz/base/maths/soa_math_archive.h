@@ -28,8 +28,8 @@
 #ifndef OZZ_OZZ_BASE_MATHS_SOA_MATH_ARCHIVE_H_
 #define OZZ_OZZ_BASE_MATHS_SOA_MATH_ARCHIVE_H_
 
-#include "ozz/base/platform.h"
 #include "ozz/base/io/archive_traits.h"
+#include "ozz/base/platform.h"
 
 namespace ozz {
 namespace math {
@@ -43,68 +43,45 @@ struct SoaTransform;
 namespace io {
 OZZ_IO_TYPE_NOT_VERSIONABLE(math::SoaFloat2)
 template <>
-void Save(OArchive& _archive,
-          const math::SoaFloat2* _values,
-          size_t _count);
+void Save(OArchive& _archive, const math::SoaFloat2* _values, size_t _count);
 template <>
-void Load(IArchive& _archive,
-          math::SoaFloat2* _values,
-          size_t _count,
+void Load(IArchive& _archive, math::SoaFloat2* _values, size_t _count,
           uint32_t _version);
 
 OZZ_IO_TYPE_NOT_VERSIONABLE(math::SoaFloat3)
 template <>
-void Save(OArchive& _archive,
-          const math::SoaFloat3* _values,
-          size_t _count);
+void Save(OArchive& _archive, const math::SoaFloat3* _values, size_t _count);
 template <>
-void Load(IArchive& _archive,
-          math::SoaFloat3* _values,
-          size_t _count,
+void Load(IArchive& _archive, math::SoaFloat3* _values, size_t _count,
           uint32_t _version);
 
 OZZ_IO_TYPE_NOT_VERSIONABLE(math::SoaFloat4)
 template <>
-void Save(OArchive& _archive,
-          const math::SoaFloat4* _values,
-          size_t _count);
+void Save(OArchive& _archive, const math::SoaFloat4* _values, size_t _count);
 template <>
-void Load(IArchive& _archive,
-          math::SoaFloat4* _values,
-          size_t _count,
+void Load(IArchive& _archive, math::SoaFloat4* _values, size_t _count,
           uint32_t _version);
 
 OZZ_IO_TYPE_NOT_VERSIONABLE(math::SoaQuaternion)
 template <>
-void Save(OArchive& _archive,
-          const math::SoaQuaternion* _values,
+void Save(OArchive& _archive, const math::SoaQuaternion* _values,
           size_t _count);
 template <>
-void Load(IArchive& _archive,
-          math::SoaQuaternion* _values,
-          size_t _count,
+void Load(IArchive& _archive, math::SoaQuaternion* _values, size_t _count,
           uint32_t _version);
 
 OZZ_IO_TYPE_NOT_VERSIONABLE(math::SoaFloat4x4)
 template <>
-void Save(OArchive& _archive,
-          const math::SoaFloat4x4* _values,
-          size_t _count);
+void Save(OArchive& _archive, const math::SoaFloat4x4* _values, size_t _count);
 template <>
-void Load(IArchive& _archive,
-          math::SoaFloat4x4* _values,
-          size_t _count,
+void Load(IArchive& _archive, math::SoaFloat4x4* _values, size_t _count,
           uint32_t _version);
 
 OZZ_IO_TYPE_NOT_VERSIONABLE(math::SoaTransform)
 template <>
-void Save(OArchive& _archive,
-          const math::SoaTransform* _values,
-          size_t _count);
+void Save(OArchive& _archive, const math::SoaTransform* _values, size_t _count);
 template <>
-void Load(IArchive& _archive,
-          math::SoaTransform* _values,
-          size_t _count,
+void Load(IArchive& _archive, math::SoaTransform* _values, size_t _count,
           uint32_t _version);
 }  // io
 }  // ozz

@@ -39,9 +39,7 @@ namespace ozz {
 namespace sample {
 
 Profiler::Profiler(Record* _record)
-    : begin_(static_cast<float>(glfwGetTime())),
-      record_(_record) {
-}
+    : begin_(static_cast<float>(glfwGetTime())), record_(_record) {}
 
 Profiler::~Profiler() {
   if (record_) {
@@ -55,8 +53,7 @@ Record::Record(int _max_records)
       records_end_(memory::default_allocator()->Allocate<float>(_max_records) +
                    max_records_),
       records_begin_(records_end_),
-      cursor_(records_end_) {
-}
+      cursor_(records_end_) {}
 
 Record::~Record() {
   memory::default_allocator()->Deallocate(records_end_ - max_records_);
@@ -90,8 +87,8 @@ Record::Statistics Record::GetStatistics() {
     if (*current < statistics.min) {
       statistics.min = *current;
     }
-    if (*current >  statistics.max) {
-       statistics.max = *current;
+    if (*current > statistics.max) {
+      statistics.max = *current;
     }
     sum += *current;
     ++current;

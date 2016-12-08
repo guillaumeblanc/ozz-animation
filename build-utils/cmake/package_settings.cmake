@@ -1,3 +1,6 @@
+# Setup packages informations.
+#-----------------------------
+
 # Prepares installation
 install(DIRECTORY "${CMAKE_SOURCE_DIR}/include" DESTINATION ".")
 

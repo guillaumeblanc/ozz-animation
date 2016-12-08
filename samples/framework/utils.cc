@@ -27,16 +27,16 @@
 
 #include "framework/utils.h"
 
-#include <limits>
 #include <cassert>
+#include <limits>
 
 #include "ozz/base/maths/box.h"
 #include "ozz/base/maths/simd_math.h"
 #include "ozz/base/memory/allocator.h"
 
 #include "ozz/animation/runtime/animation.h"
-#include "ozz/animation/runtime/skeleton.h"
 #include "ozz/animation/runtime/local_to_model_job.h"
+#include "ozz/animation/runtime/skeleton.h"
 
 #include "ozz/geometry/runtime/skinning_job.h"
 
@@ -51,10 +51,7 @@ namespace ozz {
 namespace sample {
 
 PlaybackController::PlaybackController()
-  : time_(0.f),
-    playback_speed_(1.f),
-    play_(true) {
-}
+    : time_(0.f), playback_speed_(1.f), play_(true) {}
 
 void PlaybackController::Update(const animation::Animation& _animation,
                                 float _dt) {
@@ -73,15 +70,14 @@ void PlaybackController::Reset() {
 }
 
 void PlaybackController::OnGui(const animation::Animation& _animation,
-                               ImGui* _im_gui,
-                               bool _enabled) {
+                               ImGui* _im_gui, bool _enabled) {
   if (_im_gui->DoButton(play_ ? "Pause" : "Play", _enabled)) {
     play_ = !play_;
   }
   char szLabel[64];
   std::sprintf(szLabel, "Animation time: %.2f", time_);
-  if (_im_gui->DoSlider(
-    szLabel, 0.f, _animation.duration(), &time_, 1.f, _enabled)) {
+  if (_im_gui->DoSlider(szLabel, 0.f, _animation.duration(), &time_, 1.f,
+                        _enabled)) {
     // Pause the time if slider as moved.
     play_ = false;
   }
@@ -89,8 +85,8 @@ void PlaybackController::OnGui(const animation::Animation& _animation,
   _im_gui->DoSlider(szLabel, -5.f, 5.f, &playback_speed_, 1.f, _enabled);
 
   // Allow to reset speed if it is not the default value.
-  if (_im_gui->DoButton(
-    "Reset playback speed", playback_speed_ != 1.f && _enabled)) {
+  if (_im_gui->DoButton("Reset playback speed",
+                        playback_speed_ != 1.f && _enabled)) {
     playback_speed_ = 1.f;
   }
 }
@@ -114,7 +110,7 @@ void ComputeSkeletonBounds(const animation::Skeleton& _skeleton,
   // Allocate matrix array, out of memory is handled by the LocalToModelJob.
   memory::Allocator* allocator = memory::default_allocator();
   ozz::Range<ozz::math::Float4x4> models =
-    allocator->AllocateRange<ozz::math::Float4x4>(num_joints);
+      allocator->AllocateRange<ozz::math::Float4x4>(num_joints);
   if (!models.begin) {
     return;
   }
@@ -147,37 +143,40 @@ void ComputePostureBounds(ozz::Range<const ozz::math::Float4x4> _matrices,
     return;
   }
 
-  math::SimdFloat4 min =
-    math::simd_float4::Load1(std::numeric_limits<float>::max());
-  math::SimdFloat4 max = -min;
+  // Loops through matrices and stores min/max.
+  // Matrices array cannot be empty, it was checked at the beginning of the
+  // function.
   const ozz::math::Float4x4* current = _matrices.begin;
+  math::SimdFloat4 min = current->cols[3];
+  math::SimdFloat4 max = current->cols[3];
+  ++current;
   while (current < _matrices.end) {
     min = math::Min(min, current->cols[3]);
     max = math::Max(max, current->cols[3]);
     ++current;
   }
 
+  // Stores in math::Box structure.
   math::Store3PtrU(min, &_bound->min.x);
   math::Store3PtrU(max, &_bound->max.x);
 
   return;
 }
 
-bool LoadSkeleton(const char* _filename,
-                  ozz::animation::Skeleton* _skeleton) {
+bool LoadSkeleton(const char* _filename, ozz::animation::Skeleton* _skeleton) {
   assert(_filename && _skeleton);
-  ozz::log::Out() << "Loading skeleton archive " << _filename <<
-    "." << std::endl;
+  ozz::log::Out() << "Loading skeleton archive " << _filename << "."
+                  << std::endl;
   ozz::io::File file(_filename, "rb");
   if (!file.opened()) {
     ozz::log::Err() << "Failed to open skeleton file " << _filename << "."
-      << std::endl;
+                    << std::endl;
     return false;
   }
   ozz::io::IArchive archive(&file);
   if (!archive.TestTag<ozz::animation::Skeleton>()) {
-    ozz::log::Err() << "Failed to load skeleton instance from file " <<
-      _filename << "." << std::endl;
+    ozz::log::Err() << "Failed to load skeleton instance from file "
+                    << _filename << "." << std::endl;
     return false;
   }
 
@@ -190,18 +189,18 @@ bool LoadSkeleton(const char* _filename,
 bool LoadAnimation(const char* _filename,
                    ozz::animation::Animation* _animation) {
   assert(_filename && _animation);
-  ozz::log::Out() << "Loading animation archive: " << _filename <<
-    "." << std::endl;
+  ozz::log::Out() << "Loading animation archive: " << _filename << "."
+                  << std::endl;
   ozz::io::File file(_filename, "rb");
   if (!file.opened()) {
-    ozz::log::Err() << "Failed to open animation file " << _filename <<
-      "." << std::endl;
+    ozz::log::Err() << "Failed to open animation file " << _filename << "."
+                    << std::endl;
     return false;
   }
   ozz::io::IArchive archive(&file);
   if (!archive.TestTag<ozz::animation::Animation>()) {
-    ozz::log::Err() << "Failed to load animation instance from file " <<
-      _filename << "." << std::endl;
+    ozz::log::Err() << "Failed to load animation instance from file "
+                    << _filename << "." << std::endl;
     return false;
   }
 
@@ -211,21 +210,19 @@ bool LoadAnimation(const char* _filename,
   return true;
 }
 
-bool LoadMesh(const char* _filename,
-              ozz::sample::Mesh* _mesh) {
+bool LoadMesh(const char* _filename, ozz::sample::Mesh* _mesh) {
   assert(_filename && _mesh);
-  ozz::log::Out() << "Loading mesh archive: " << _filename <<
-    "." << std::endl;
+  ozz::log::Out() << "Loading mesh archive: " << _filename << "." << std::endl;
   ozz::io::File file(_filename, "rb");
   if (!file.opened()) {
-    ozz::log::Err() << "Failed to open mesh file " << _filename <<
-      "." << std::endl;
+    ozz::log::Err() << "Failed to open mesh file " << _filename << "."
+                    << std::endl;
     return false;
   }
   ozz::io::IArchive archive(&file);
   if (!archive.TestTag<ozz::sample::Mesh>()) {
-    ozz::log::Err() << "Failed to load mesh instance from file " <<
-      _filename << "." << std::endl;
+    ozz::log::Err() << "Failed to load mesh instance from file " << _filename
+                    << "." << std::endl;
     return false;
   }
 

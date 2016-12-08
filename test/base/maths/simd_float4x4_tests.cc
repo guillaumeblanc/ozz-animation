@@ -30,12 +30,14 @@
 #include "gtest/gtest.h"
 
 #include "ozz/base/gtest_helper.h"
+#include "ozz/base/maths/gtest_math_helper.h"
 #include "ozz/base/maths/math_constant.h"
 #include "ozz/base/maths/math_ex.h"
-#include "ozz/base/maths/gtest_math_helper.h"
 
 using ozz::math::SimdFloat4;
 using ozz::math::Float4x4;
+
+// clang-format off
 
 TEST(Constant, Float4x4) {
   const Float4x4 identity = Float4x4::identity();
@@ -309,8 +311,8 @@ TEST(Affine, Float4x4) {
   EXPECT_TRUE(ozz::math::AreAllTrue1(IsOrthogonal(affine)));
 
   const Float4x4 affine_reflexion = Float4x4::FromAffine(ozz::math::simd_float4::Load(-12.f, 46.f, 12.f, 9.f),
-                                               ozz::math::simd_float4::Load(0.f, .70710677f, 0.f, .70710677f),
-                                               ozz::math::simd_float4::Load(2.f, -1.f, 3.f, 1.f));
+                                                         ozz::math::simd_float4::Load(0.f, .70710677f, 0.f, .70710677f),
+                                                         ozz::math::simd_float4::Load(2.f, -1.f, 3.f, 1.f));
   EXPECT_FLOAT4x4_EQ(affine_reflexion, 0.f, 0.f, -2.f, 0.f,
                              0.f, -1.f, 0.f, 0.f,
                              3.f, 0.f, 0.f, 0.f,
@@ -467,7 +469,7 @@ TEST(ToAffine, Float4x4) {
   EXPECT_SIMDFLOAT_EQ(rotate, .70710677f, 0.f, 0.f, .70710677f);
   EXPECT_SIMDFLOAT_EQ(scale, 2.f, -3.f, 4.f, 1.f);
 
-  Float4x4 trace = {{
+  const Float4x4 trace = {{
     ozz::math::simd_float4::Load(-.916972f, 0.f, -.398952f, 0.f),
     ozz::math::simd_float4::Load(0.f, -1, 0.f, 0.f),
     ozz::math::simd_float4::Load(-.398952f, 0, .916972f, 0.f),
@@ -476,4 +478,14 @@ TEST(ToAffine, Float4x4) {
   EXPECT_SIMDFLOAT_EQ(translate, 0.f, 0.f, 0.f, 1.f);
   EXPECT_SIMDFLOAT_EQ(rotate, -.20375007f, 0.f, .97902298f, 0.f);
   EXPECT_SIMDFLOAT_EQ(scale, 1.f, 1.f, 1.f, 1.f);
+
+  const Float4x4 small = {{
+    ozz::math::simd_float4::Load(.000907520065f, 0.f, 0.f, 0.f),
+    ozz::math::simd_float4::Load(0.f, .000959928846f, 0.f, 0.f),
+    ozz::math::simd_float4::Load(0.f, 0.f, .0159599986f, 0.f),
+    ozz::math::simd_float4::Load(.00649994006f, .00719946623f, -.000424541620f, .999999940f)}};
+  EXPECT_TRUE(ToAffine(small, &translate, &rotate, &scale));
+  EXPECT_SIMDFLOAT_EQ(translate, .00649994006f, .00719946623f, -.000424541620f, 1.f);
+  EXPECT_SIMDFLOAT_EQ(rotate, 0.f, 0.f, 0.f, 1.f);
+  EXPECT_SIMDFLOAT_EQ(scale, .000907520065f, .000959928846f, .0159599986f, 1.f);
 }

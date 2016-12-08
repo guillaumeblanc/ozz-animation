@@ -59,8 +59,8 @@ class Stream {
   // Declares seeking origin enumeration.
   enum Origin {
     kCurrent,  // Current position of the stream pointer.
-    kEnd,  // End of stream.
-    kSet,  // Beginning of stream.
+    kEnd,      // End of stream.
+    kSet,      // Beginning of stream.
   };
   // Sets the position indicator associated with the stream to a new position
   // defined by adding _offset to a reference position specified by _origin.
@@ -75,16 +75,19 @@ class Stream {
   virtual size_t Size() const = 0;
 
  protected:
-
   // Required virtual destructor.
-  virtual ~Stream() {
-  }
+  virtual ~Stream() {}
 };
 
 // Implements Stream of type File.
 class File : public Stream {
  public:
-  // Open a file at path _filename with mode * _mode, in confromance with fopen
+  // Test if a file at path _filename exists.
+  // Note that this function is costly. If you aim to open the file right after,
+  // then open it and use File::opened() to test if it's actually existing.
+  static bool Exist(const char* _filename);
+
+  // Open a file at path _filename with mode * _mode, in conformance with fopen
   // specifications.
   // Use opened() function to test opening result.
   File(const char* _filename, const char* _mode);
@@ -151,7 +154,6 @@ class MemoryStream : public Stream {
   virtual size_t Size() const;
 
  private:
-
   // Resizes buffers size to _size bytes. If _size is less than the actual
   // buffer size, then it remains unchanged.
   // Returns true if the buffer can contains _size bytes.

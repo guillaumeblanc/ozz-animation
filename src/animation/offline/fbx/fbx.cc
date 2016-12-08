@@ -30,8 +30,8 @@
 #include "ozz/animation/offline/fbx/fbx.h"
 #include "ozz/animation/offline/fbx/fbx_base.h"
 
-#include "fbx_skeleton.h"
-#include "fbx_animation.h"
+#include "animation/offline/fbx/fbx_animation.h"
+#include "animation/offline/fbx/fbx_skeleton.h"
 
 #include "ozz/base/log.h"
 
@@ -55,8 +55,8 @@ bool ImportFromFile(const char* _filename, RawSkeleton* _skeleton) {
   FbxSkeletonIOSettings settings(fbx_manager);
   FbxSceneLoader scene_loader(_filename, "", fbx_manager, settings);
   if (!scene_loader.scene()) {
-    ozz::log::Err() << "Failed to import file " << _filename << "." <<
-      std::endl;
+    ozz::log::Err() << "Failed to import file " << _filename << "."
+                    << std::endl;
     return false;
   }
 
@@ -68,30 +68,26 @@ bool ImportFromFile(const char* _filename, RawSkeleton* _skeleton) {
   return true;
 }
 
-bool ImportFromFile(const char* _filename,
-                    const Skeleton& _skeleton,
-                    float _sampling_rate,
-                    RawAnimation* _animation) {
-  if (!_animation) {
+bool ImportFromFile(const char* _filename, const Skeleton& _skeleton,
+                    float _sampling_rate, Animations* _animations) {
+  if (!_animations) {
     return false;
   }
   // Reset animation.
-  *_animation = RawAnimation();
+  _animations->clear();
 
   // Import Fbx content.
   FbxManagerInstance fbx_manager;
   FbxAnimationIOSettings settings(fbx_manager);
   FbxSceneLoader scene_loader(_filename, "", fbx_manager, settings);
   if (!scene_loader.scene()) {
-    ozz::log::Err() << "Failed to import file " << _filename << "." <<
-      std::endl;
+    ozz::log::Err() << "Failed to import file " << _filename << "."
+                    << std::endl;
     return false;
   }
 
-  if (!ExtractAnimation(&scene_loader,
-                        _skeleton,
-                        _sampling_rate,
-                        _animation)) {
+  if (!ExtractAnimations(&scene_loader, _skeleton, _sampling_rate,
+                         _animations)) {
     log::Err() << "Fbx animation extraction failed." << std::endl;
     return false;
   }

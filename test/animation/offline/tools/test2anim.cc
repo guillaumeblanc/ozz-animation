@@ -33,24 +33,39 @@
 
 #include "ozz/base/io/stream.h"
 
-class TestAnimationConverter :
-  public ozz::animation::offline::AnimationConverter {
-private:
+class TestAnimationConverter
+    : public ozz::animation::offline::AnimationConverter {
+ private:
   // Implement SkeletonConverter::Import function.
   virtual bool Import(const char* _filename,
                       const ozz::animation::Skeleton& _skeleton,
-                      float _sampling_rate,
-                      ozz::animation::offline::RawAnimation* _animation) {
+                      float _sampling_rate, Animations* _animations) {
     (void)_sampling_rate;
     (void)_skeleton;
-    (void)_animation;
+
+    // Start with a clean output.
+    _animations->clear();
 
     ozz::io::File file(_filename, "rb");
     if (file.opened()) {
       char buffer[256];
-      const char good_content[] = "good content";
-      if (file.Read(buffer, sizeof(buffer)) >= sizeof(good_content) - 1 &&
-          memcmp(buffer, good_content, sizeof(good_content) - 1) == 0) {
+      // Hanldes a single animation per file.
+      const char good_content1[] = "good content 1";
+      file.Seek(0, ozz::io::File::kSet);
+      if (file.Read(buffer, sizeof(buffer)) >= sizeof(good_content1) - 1 &&
+          memcmp(buffer, good_content1, sizeof(good_content1) - 1) == 0) {
+        _animations->resize(1);
+        _animations->at(0).name = "one";
+        return true;
+      }
+      // Hanldes more than one animation per file.
+      const char good_content2[] = "good content 2";
+      file.Seek(0, ozz::io::File::kSet);
+      if (file.Read(buffer, sizeof(buffer)) >= sizeof(good_content2) - 1 &&
+          memcmp(buffer, good_content2, sizeof(good_content2) - 1) == 0) {
+        _animations->resize(2);
+        _animations->at(0).name = "one";
+        _animations->at(1).name = "TWO";
         return true;
       }
     }

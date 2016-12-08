@@ -28,8 +28,8 @@
 #ifndef OZZ_OZZ_BASE_MATHS_MATH_ARCHIVE_H_
 #define OZZ_OZZ_BASE_MATHS_MATH_ARCHIVE_H_
 
-#include "ozz/base/platform.h"
 #include "ozz/base/io/archive_traits.h"
+#include "ozz/base/platform.h"
 
 namespace ozz {
 namespace math {
@@ -45,90 +45,58 @@ struct RectInt;
 namespace io {
 OZZ_IO_TYPE_NOT_VERSIONABLE(math::Float2)
 template <>
-void Save(OArchive& _archive,
-          const math::Float2* _values,
-          size_t _count);
+void Save(OArchive& _archive, const math::Float2* _values, size_t _count);
 template <>
-void Load(IArchive& _archive,
-          math::Float2* _values,
-          size_t _count,
+void Load(IArchive& _archive, math::Float2* _values, size_t _count,
           uint32_t _version);
 
 OZZ_IO_TYPE_NOT_VERSIONABLE(math::Float3)
 template <>
-void Save(OArchive& _archive,
-          const math::Float3* _values,
-          size_t _count);
+void Save(OArchive& _archive, const math::Float3* _values, size_t _count);
 template <>
-void Load(IArchive& _archive,
-          math::Float3* _values,
-          size_t _count,
+void Load(IArchive& _archive, math::Float3* _values, size_t _count,
           uint32_t _version);
 
 OZZ_IO_TYPE_NOT_VERSIONABLE(math::Float4)
 template <>
-void Save(OArchive& _archive,
-          const math::Float4* _values,
-          size_t _count);
+void Save(OArchive& _archive, const math::Float4* _values, size_t _count);
 template <>
-void Load(IArchive& _archive,
-          math::Float4* _values,
-          size_t _count,
+void Load(IArchive& _archive, math::Float4* _values, size_t _count,
           uint32_t _version);
 
 OZZ_IO_TYPE_NOT_VERSIONABLE(math::Quaternion)
 template <>
-void Save(OArchive& _archive,
-          const math::Quaternion* _values,
-          size_t _count);
+void Save(OArchive& _archive, const math::Quaternion* _values, size_t _count);
 template <>
-void Load(IArchive& _archive,
-          math::Quaternion* _values,
-          size_t _count,
+void Load(IArchive& _archive, math::Quaternion* _values, size_t _count,
           uint32_t _version);
 
 OZZ_IO_TYPE_NOT_VERSIONABLE(math::Transform)
 template <>
-void Save(OArchive& _archive,
-          const math::Transform* _values,
-          size_t _count);
+void Save(OArchive& _archive, const math::Transform* _values, size_t _count);
 template <>
-void Load(IArchive& _archive,
-          math::Transform* _values,
-          size_t _count,
+void Load(IArchive& _archive, math::Transform* _values, size_t _count,
           uint32_t _version);
 
 OZZ_IO_TYPE_NOT_VERSIONABLE(math::Box)
 template <>
-void Save(OArchive& _archive,
-          const math::Box* _values,
-          size_t _count);
+void Save(OArchive& _archive, const math::Box* _values, size_t _count);
 template <>
-void Load(IArchive& _archive,
-          math::Box* _values,
-          size_t _count,
+void Load(IArchive& _archive, math::Box* _values, size_t _count,
           uint32_t _version);
 
 OZZ_IO_TYPE_NOT_VERSIONABLE(math::RectFloat)
 template <>
-void Save(OArchive& _archive,
-          const math::RectFloat* _values,
-          size_t _count);
+void Save(OArchive& _archive, const math::RectFloat* _values, size_t _count);
 template <>
-void Load(IArchive& _archive,
-          math::RectFloat* _values,
-          size_t _count,
+void Load(IArchive& _archive, math::RectFloat* _values, size_t _count,
           uint32_t _version);
 
 OZZ_IO_TYPE_NOT_VERSIONABLE(math::RectInt)
 template <>
-void Save(OArchive& _archive,
-          const math::RectInt* _values,
-          size_t _count);
+void Save(OArchive& _archive, const math::RectInt* _values, size_t _count);
 template <>
-void Load(IArchive& _archive,
-          math::RectInt* _values,
-          size_t _count,
+void Load(IArchive& _archive, math::RectInt* _values, size_t _count,
           uint32_t _version);
 }  // io
 }  // ozz

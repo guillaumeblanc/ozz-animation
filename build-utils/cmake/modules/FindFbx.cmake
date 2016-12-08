@@ -9,11 +9,12 @@
 # directory structure proposed by Autodesk.
 # On every platform, the module will look for libraries that matches the
 # currently selected cmake generator.
+# A version can be specified to the find_package function.
 #
 # Known issues:
 # - On ALL platforms: If there are multiple FBX SDK version installed, the
 # current implementation will select the first one it finds.
-# - On MAC: If there are multiple FBX SDK compiler supported (clang or gcc), the
+# - On MACOS: If there are multiple FBX SDK compiler supported (clang or gcc), the
 # current implementation will select the first one it finds.
 
 #----------------------------------------------------------------------------#
@@ -61,6 +62,8 @@ function(FindFbxLibrariesGeneric _FBX_ROOT_DIR _OUT_FBX_LIBRARIES _OUT_FBX_LIBRA
     set(FBX_CP_PATH "vs2013")
   elseif(MSVC14)
     set(FBX_CP_PATH "vs2015")
+    elseif(MSVC15)
+    set(FBX_CP_PATH "vs2016")
   elseif(APPLE)
     set(FBX_CP_PATH "*")
   else()
@@ -117,35 +120,84 @@ function(FindFbxLibrariesGeneric _FBX_ROOT_DIR _OUT_FBX_LIBRARIES _OUT_FBX_LIBRA
 endfunction()
 
 ###############################################################################
+# Deduce Fbx sdk version
+###############################################################################
+function(FindFbxVersion _FBX_ROOT_DIR _OUT_FBX_VERSION)
+  # Opens fbxsdk_version.h in _FBX_ROOT_DIR and finds version defines.
+
+  set(fbx_version_filename "${_FBX_ROOT_DIR}include/fbxsdk/fbxsdk_version.h")
+
+  if(NOT EXISTS ${fbx_version_filename})
+    message(SEND_ERROR "Unable to find fbxsdk_version.h")
+  endif()
+
+  file(READ ${fbx_version_filename} fbx_version_file_content)
+
+  # Find version major
+  if(fbx_version_file_content MATCHES "FBXSDK_VERSION_MAJOR[\t ]+([0-9]+)")
+    set(fbx_version_file_major "${CMAKE_MATCH_1}")
+  endif()
+
+  # Find version minor
+  if(fbx_version_file_content MATCHES "FBXSDK_VERSION_MINOR[\t ]+([0-9]+)")
+    set(fbx_version_file_minor "${CMAKE_MATCH_1}")
+  endif()
+
+  # Find version patch
+  if(fbx_version_file_content MATCHES "FBXSDK_VERSION_POINT[\t ]+([0-9]+)")
+    set(fbx_version_file_patch "${CMAKE_MATCH_1}")
+  endif()
+
+  if (DEFINED fbx_version_file_major AND
+      DEFINED fbx_version_file_minor AND
+      DEFINED fbx_version_file_patch)
+    set(${_OUT_FBX_VERSION} ${fbx_version_file_major}.${fbx_version_file_minor}.${fbx_version_file_patch} PARENT_SCOPE)
+  else()
+    message(SEND_ERROR "Unable to deduce Fbx version for root dir ${_FBX_ROOT_DIR}")
+    set(${_OUT_FBX_VERSION} "unknown" PARENT_SCOPE)
+  endif()
+
+endfunction()
+
+###############################################################################
 # Main find package function
 ###############################################################################
 
 # Tries to find FBX SDK path
 set(FBX_SEARCH_PATHS
+  "${FBX_DIR}"
   "$ENV{FBX_DIR}"
   "$ENV{ProgramW6432}/Autodesk/FBX/FBX SDK/*/"
   "$ENV{PROGRAMFILES}/Autodesk/FBX/FBX SDK/*/"
   "/Applications/Autodesk/FBX SDK/*/")
 
-find_path(FBX_INCLUDE_DIR "fbxsdk.h"
-  PATHS ${FBX_SEARCH_PATHS}
-  PATH_SUFFIXES "include")
+find_path(FBX_INCLUDE_DIR 
+  NAMES "include/fbxsdk.h"
+  PATHS ${FBX_SEARCH_PATHS})
 
 if(FBX_INCLUDE_DIR)
   # Deduce SDK root directory.
-  set(FBX_ROOT_DIR "${FBX_INCLUDE_DIR}/..")
+  set(FBX_ROOT_DIR "${FBX_INCLUDE_DIR}/")
 
   # Fills CMake sytandard variables
-  set(FBX_INCLUDE_DIRS "${FBX_INCLUDE_DIR}")
+  set(FBX_INCLUDE_DIRS "${FBX_INCLUDE_DIR}/include")
 
-  # Searches libraries according to the current compiler.
+  # Searches libraries according to the current compiler
   FindFbxLibrariesGeneric(${FBX_ROOT_DIR} FBX_LIBRARIES FBX_LIBRARIES_DEBUG)
+
+  # Deduce fbx sdk version
+  FindFbxVersion(${FBX_ROOT_DIR} PATH_VERSION)
 endif()
 
-# Handles the QUIETLY and REQUIRED arguments and set FBX_FOUND to TRUE if all listed variables are TRUE
+# Handles find_package arguments and set FBX_FOUND to TRUE if all listed variables and version are valid.
 include(FindPackageHandleStandardArgs)
+
 find_package_handle_standard_args(Fbx
-  DEFAULT_MSG
-  FBX_LIBRARIES
-  FBX_INCLUDE_DIRS)
-  
+  FOUND_VAR FBX_FOUND
+  REQUIRED_VARS FBX_LIBRARIES FBX_INCLUDE_DIRS
+  VERSION_VAR PATH_VERSION)
+
+# Warn about how this script can fail to find the newest version.
+if(NOT FBX_FOUND)
+  message("-- Note that the FindFbx.cmake script can fail to find the newest Fbx sdk if there are multiple ones installed. Please set \"FBX_DIR\" environment or cmake variable to choose a specific version/location.")
+endif()

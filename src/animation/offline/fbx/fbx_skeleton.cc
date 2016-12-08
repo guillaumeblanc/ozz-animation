@@ -39,11 +39,12 @@ namespace offline {
 namespace fbx {
 
 namespace {
-bool RecurseNode(FbxNode* _node,
-                 FbxSystemConverter* _converter,
-                 RawSkeleton* _skeleton,
-                 RawSkeleton::Joint* _parent,
-                 int _depth) {
+
+enum RecurseReturn { kError, kSkeletonFound, kNoSkeleton };
+
+RecurseReturn RecurseNode(FbxNode* _node, FbxSystemConverter* _converter,
+                          RawSkeleton* _skeleton, RawSkeleton::Joint* _parent,
+                          int _depth) {
   bool skeleton_found = false;
   RawSkeleton::Joint* this_joint = NULL;
 
@@ -55,12 +56,11 @@ bool RecurseNode(FbxNode* _node,
   // Push this node as a new joint if it has a joint compatible attribute.
   FbxNodeAttribute* node_attribute = _node->GetNodeAttribute();
   process_node |=
-    node_attribute &&
-    node_attribute->GetAttributeType() == FbxNodeAttribute::eSkeleton;
+      node_attribute &&
+      node_attribute->GetAttributeType() == FbxNodeAttribute::eSkeleton;
 
   // Process node if required.
   if (process_node) {
-
     skeleton_found = true;
 
     RawSkeleton::Joint::Children* sibling = NULL;
@@ -76,13 +76,19 @@ bool RecurseNode(FbxNode* _node,
     this_joint->name = _node->GetName();
 
     // Outputs hierarchy on verbose stream.
-    for (int i = 0; i < _depth; ++i) { ozz::log::LogV() << '.'; }
+    for (int i = 0; i < _depth; ++i) {
+      ozz::log::LogV() << '.';
+    }
     ozz::log::LogV() << this_joint->name.c_str() << std::endl;
 
     // Extract bind pose.
-    this_joint->transform =
-      _converter->ConvertTransform(_parent?_node->EvaluateLocalTransform():
-                                           _node->EvaluateGlobalTransform());
+    const FbxAMatrix matrix = _parent ? _node->EvaluateLocalTransform()
+                                      : _node->EvaluateGlobalTransform();
+    if (!_converter->ConvertTransform(matrix, &this_joint->transform)) {
+      ozz::log::Err() << "Failed to extract skeleton transform for joint \""
+                      << this_joint->name << "\"." << std::endl;
+      return kError;
+    }
 
     // One level deeper in the hierarchy.
     _depth++;
@@ -91,15 +97,26 @@ bool RecurseNode(FbxNode* _node,
   // Iterate node's children.
   for (int i = 0; i < _node->GetChildCount(); i++) {
     FbxNode* child = _node->GetChild(i);
-    skeleton_found |= RecurseNode(child, _converter, _skeleton, this_joint, _depth);
+    const RecurseReturn ret =
+        RecurseNode(child, _converter, _skeleton, this_joint, _depth);
+    if (ret == kError) {
+      return ret;
+    }
+    skeleton_found |= (ret == kSkeletonFound);
   }
-  return skeleton_found;
+
+  return skeleton_found ? kSkeletonFound : kNoSkeleton;
 }
 }
 
 bool ExtractSkeleton(FbxSceneLoader& _loader, RawSkeleton* _skeleton) {
-  if (!RecurseNode(_loader.scene()->GetRootNode(), _loader.converter(), _skeleton, NULL, 0)) {
+  RecurseReturn ret = RecurseNode(_loader.scene()->GetRootNode(),
+                                  _loader.converter(), _skeleton, NULL, 0);
+  if (ret == kNoSkeleton) {
     ozz::log::Err() << "No skeleton found in Fbx scene." << std::endl;
+    return false;
+  } else if (ret == kError) {
+    ozz::log::Err() << "Failed to extract skeleton." << std::endl;
     return false;
   }
   return true;

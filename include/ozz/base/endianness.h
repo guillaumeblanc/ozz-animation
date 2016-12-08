@@ -30,8 +30,8 @@
 
 // Declares endianness modes and functions to swap data from a mode to another.
 
-#include "ozz/base/platform.h"
 #include <cstddef>
+#include "ozz/base/platform.h"
 
 namespace ozz {
 
@@ -65,20 +65,22 @@ template <typename _Ty, size_t _size = sizeof(_Ty)>
 struct EndianSwapper;
 
 // Internal macro used to swap two bytes.
-#define _OZZ_BYTE_SWAP(_a, _b) {\
-  const uint8_t temp = _a;\
-  _a = _b;\
-  _b = temp;\
+#define _OZZ_BYTE_SWAP(_a, _b) \
+  {                            \
+    const uint8_t temp = _a;   \
+    _a = _b;                   \
+    _b = temp;                 \
+  \
 }
 
 // EndianSwapper specialization for 1 byte types.
 template <typename _Ty>
 struct EndianSwapper<_Ty, 1> {
-  OZZ_INLINE static void Swap(_Ty* /*_ty*/, size_t /*_count*/) {
+  OZZ_INLINE static void Swap(_Ty* _ty, size_t _count) {
+    (void)_ty;
+    (void)_count;
   }
-  OZZ_INLINE static _Ty Swap(_Ty _ty) {
-    return _ty;
-  }
+  OZZ_INLINE static _Ty Swap(_Ty _ty) { return _ty; }
 };
 
 // EndianSwapper specialization for 2 bytes types.
@@ -141,13 +143,13 @@ struct EndianSwapper<_Ty, 8> {
 #undef _OZZ_BYTE_SWAP
 
 // Helper function that swaps _count elements of the array _ty in place.
-template<typename _Ty>
+template <typename _Ty>
 OZZ_INLINE void EndianSwap(_Ty* _ty, size_t _count) {
   EndianSwapper<_Ty>::Swap(_ty, _count);
 }
 
 // Helper function that swaps _ty in place.
-template<typename _Ty>
+template <typename _Ty>
 OZZ_INLINE _Ty EndianSwap(_Ty _ty) {
   return EndianSwapper<_Ty>::Swap(_ty);
 }

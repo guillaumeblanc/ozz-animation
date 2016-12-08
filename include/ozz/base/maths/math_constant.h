@@ -49,10 +49,13 @@ static const float kDegreeToRadian = kPi / 180.f;
 static const float kRadianToDegree = 180.f / kPi;
 
 // Defines the square normalization tolerance value.
-static const float kNormalizationTolerance = 1e-6f;
-static const float kNormalizationToleranceEst = 5e-3f;
+static const float kNormalizationToleranceSq = 1e-6f;
+static const float kNormalizationToleranceEstSq = 2e-3f;
+
+// Defines the square orthogonalisation tolerance value.
+static const float kOrthogonalisationToleranceSq = 1e-16f;
 }  // math
 }  // ozz
 
-#endif // INCLUDE_OZZ_MATH_CONSTANT_H_
+#endif  // INCLUDE_OZZ_MATH_CONSTANT_H_
 #endif  // OZZ_OZZ_BASE_MATHS_MATH_CONSTANT_H_

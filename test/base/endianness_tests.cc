@@ -30,37 +30,36 @@
 #include "gtest/gtest.h"
 
 TEST(NativeEndianness, Endianness) {
-  // Uses pre-defined macro to check know endianness.
-  // Endianness detection does not rely on this as this is not standard, but it
-  // helps with testing.
+// Uses pre-defined macro to check know endianness.
+// Endianness detection does not rely on this as this is not standard, but it
+// helps with testing.
 
-  // x86 and x86-64 Little endian processors.
-#if defined(i386) || defined(__i386__) ||  /*GNU C*/\
-    defined(__X86__) ||  /*MinGW32*/\
-    defined(__x86_64__) ||  /*Intel C/C++*/\
-    defined(_M_IX86) ||  /*Visual Studio*/\
-    defined(_M_X64)  /*Visual Studio*/
+// x86 and x86-64 Little endian processors.
+#if defined(i386) || defined(__i386__) || /*GNU C*/         \
+    defined(__X86__) ||                   /*MinGW32*/       \
+    defined(__x86_64__) ||                /*Intel C/C++*/   \
+    defined(_M_IX86) ||                   /*Visual Studio*/ \
+    defined(_M_X64)                       /*Visual Studio*/
   EXPECT_EQ(ozz::GetNativeEndianness(), ozz::kLittleEndian);
 #endif
 
-  // PowerPc Big endian processors.
-#if defined(__POWERPC__) || defined(__ppc__) ||\
-    defined(__powerpc__) ||  /*GNU C*/\
-    defined(__IA64__) || defined(__ia64__) ||\
-    defined(_M_PPC)  /*Visual Studio*/
+// PowerPc Big endian processors.
+#if defined(__POWERPC__) || defined(__ppc__) || \
+    defined(__powerpc__) || /*GNU C*/           \
+    defined(__IA64__) || defined(__ia64__) ||   \
+    defined(_M_PPC) /*Visual Studio*/
   EXPECT_EQ(ozz::GetNativeEndianness(), ozz::kBigEndian);
 #endif
 
-  // Itanium Big endian processors.
-#if defined(_IA64) ||  /*GNU C*/\
-    defined(_M_IA64) ||  /*Visual Studio*/\
-    defined(_M_IA64)  /*Intel C/C++*/
+// Itanium Big endian processors.
+#if defined(_IA64) ||   /*GNU C*/         \
+    defined(_M_IA64) || /*Visual Studio*/ \
+    defined(_M_IA64)    /*Intel C/C++*/
   EXPECT_EQ(ozz::GetNativeEndianness(), ozz::kBigEndian);
 #endif
 }
 
 TEST(Swap, Endianness) {
-
   {  // 1 byte swapping.
     uint8_t uo = 0x46;
     EXPECT_EQ(ozz::EndianSwap(uo), 0x46);

@@ -27,9 +27,9 @@
 
 #include "ozz/base/platform.h"
 
+#include <stdint.h>
 #include <cassert>
 #include <climits>
-#include <stdint.h>
 
 #include "gtest/gtest.h"
 #include "ozz/base/gtest_helper.h"
@@ -41,17 +41,23 @@ TEST(StaticAssertion, Platform) {
 
 namespace {
 // Declares a structure that should have at least 8 bytes aligned.
-struct Misc { double d; char c; int i; };
+struct Misc {
+  double d;
+  char c;
+  int i;
+};
 
 // Declares an aligned structure in order to test OZZ_ALIGN and AlignOf.
-struct Aligned { OZZ_ALIGN(128) char c; };
+struct Aligned {
+  OZZ_ALIGN(128) char c;
+};
 }  // namespace
 
 TEST(Alignment, Platform) {
-  OZZ_STATIC_ASSERT(ozz::AlignOf<char>::value >= 1);
-  OZZ_STATIC_ASSERT(ozz::AlignOf<double>::value >= 8);
-  OZZ_STATIC_ASSERT(ozz::AlignOf<Misc>::value >= 8);
-  OZZ_STATIC_ASSERT(ozz::AlignOf<Aligned>::value >= 128);
+  OZZ_STATIC_ASSERT(OZZ_ALIGN_OF(char) >= 1);
+  OZZ_STATIC_ASSERT(OZZ_ALIGN_OF(double) >= 8);
+  OZZ_STATIC_ASSERT(OZZ_ALIGN_OF(Misc) >= 8);
+  OZZ_STATIC_ASSERT(OZZ_ALIGN_OF(Aligned) >= 128);
 
   Aligned alined;
   EXPECT_EQ(reinterpret_cast<uintptr_t>(&alined) & (128 - 1), 0u);
@@ -106,6 +112,7 @@ TEST(ArraySize, Platform) {
 }
 
 TEST(Range, Memory) {
+  int i = 46;
   int ai[46];
   const size_t array_size = OZZ_ARRAY_SIZE(ai);
 
@@ -116,6 +123,14 @@ TEST(Range, Memory) {
   EXPECT_EQ(empty.Size(), 0u);
 
   EXPECT_ASSERTION(empty[46], "Index out of range");
+
+  ozz::Range<int> single(i);
+  EXPECT_TRUE(single.begin == &i);
+  EXPECT_TRUE(single.end == (&i) + 1);
+  EXPECT_EQ(single.Count(), 1u);
+  EXPECT_EQ(single.Size(), sizeof(i));
+
+  EXPECT_ASSERTION(single[46], "Index out of range");
 
   ozz::Range<int> cs1(ai, ai + array_size);
   EXPECT_EQ(cs1.begin, ai);
@@ -130,6 +145,11 @@ TEST(Range, Memory) {
   EXPECT_EQ(reinit.end, ai + array_size);
   EXPECT_EQ(reinit.Count(), array_size);
   EXPECT_EQ(reinit.Size(), sizeof(ai));
+
+  // Clear
+  reinit.Clear();
+  EXPECT_EQ(reinit.Count(), 0u);
+  EXPECT_EQ(reinit.Size(), 0u);
 
   cs1[12] = 46;
   EXPECT_EQ(cs1[12], 46);

@@ -7,3 +7,14 @@ target_link_libraries(test_skinning_job
   gtest)
 set_target_properties(test_skinning_job PROPERTIES FOLDER "ozz/tests/geometry")
 add_test(NAME test_skinning_job COMMAND test_skinning_job)
+
+# ozz_geometry fuse tests
+add_executable(test_fuse_geometry
+  skinning_job_tests.cc
+  ${CMAKE_SOURCE_DIR}/src_fused/ozz_geometry.cc)
+add_dependencies(test_fuse_geometry BUILD_FUSE_ozz_geometry)
+target_link_libraries(test_fuse_geometry
+  ozz_base
+  gtest)
+add_test(NAME test_fuse_geometry COMMAND test_fuse_geometry)
+set_target_properties(test_fuse_geometry PROPERTIES FOLDER "ozz/tests/geometry")

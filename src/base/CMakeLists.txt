@@ -51,3 +51,5 @@ add_library(ozz_base
 set_target_properties(ozz_base PROPERTIES FOLDER "ozz")
 
 install(TARGETS ozz_base DESTINATION lib)
+
+fuse_target("ozz_base")

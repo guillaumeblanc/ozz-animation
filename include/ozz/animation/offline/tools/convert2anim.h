@@ -28,6 +28,10 @@
 #ifndef OZZ_OZZ_ANIMATION_OFFLINE_TOOLS_CONVERT2ANIM_H_
 #define OZZ_OZZ_ANIMATION_OFFLINE_TOOLS_CONVERT2ANIM_H_
 
+#include "ozz/base/containers/vector.h"
+
+#include "ozz/animation/offline/raw_animation.h"
+
 namespace ozz {
 namespace animation {
 
@@ -35,17 +39,17 @@ class Skeleton;
 
 namespace offline {
 
-struct RawAnimation;
-
 class AnimationConverter {
  public:
-  int operator ()(int _argc, const char** _argv);
+  int operator()(int _argc, const char** _argv);
+
+ protected:
+  typedef Vector<RawAnimation>::Std Animations;
 
  private:
   virtual bool Import(const char* _filename,
                       const ozz::animation::Skeleton& _skeleton,
-                      float _sampling_rate,
-                      ozz::animation::offline::RawAnimation* _animation) = 0;
+                      float _sampling_rate, Animations* _animations) = 0;
 };
 }  // offline
 }  // animation

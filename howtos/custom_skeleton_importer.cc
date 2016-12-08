@@ -34,7 +34,7 @@
 
 // Code for ozz-animation HowTo: "How to write a custon skeleton importer?"
 
-int main(int argc, char const *argv[]) {
+int main(int argc, char const* argv[]) {
   (void)argc;
   (void)argv;
 

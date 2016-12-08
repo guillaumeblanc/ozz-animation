@@ -46,7 +46,7 @@ class AnimationBuilder {
  public:
   // Creates an Animation based on _raw_animation and *this builder parameters.
   // Returns a valid Animation on success
-  // The returned animation will then need to be deleted using the default 
+  // The returned animation will then need to be deleted using the default
   // allocator Delete() function.
   // See RawAnimation::Validate() for more details about failure reasons.
   Animation* operator()(const RawAnimation& _raw_animation) const;

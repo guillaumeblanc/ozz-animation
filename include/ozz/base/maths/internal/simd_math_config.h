@@ -30,19 +30,13 @@
 
 #include "ozz/base/platform.h"
 
-// Detected deprecated behavior
-#if defined(OZZ_HAS_SSE2) || defined(OZZ_HAS_SSEx) || defined(OZZ_HAS_REF)
-#error Deprecated build option. SIMD options are automatically detected by\
- this file and should not be part of comipler definitions.
-#endif
-
 // Avoid SIMD instruction detection if reference (aka scalar) implementation is
 // forced.
 #if !defined(OZZ_BUILD_SIMD_REF)
 
 // Try to match a SSE2+ version.
 #if defined(__AVX__) || defined(OZZ_SIMD_AVX)
-#include <immintrin.h> 
+#include <immintrin.h>
 #define OZZ_SIMD_AVX
 #define OZZ_SIMD_SSE4_2  // SSE4.2 is available if avx is.
 #endif
@@ -73,7 +67,8 @@
 
 // x64/amd64 have SSE2 instructions
 // _M_IX86_FP is 2 if /arch:SSE2, /arch:AVX or /arch:AVX2 was used.
-#if defined(__SSE2__) || defined(_M_AMD64) || defined(_M_X64) || (_M_IX86_FP>=2) || defined(OZZ_SIMD_SSE2)
+#if defined(__SSE2__) || defined(_M_AMD64) || defined(_M_X64) || \
+    (_M_IX86_FP >= 2) || defined(OZZ_SIMD_SSE2)
 #include <emmintrin.h>
 #define OZZ_SIMD_SSE2
 #define OZZ_SIMD_SSEx  // OZZ_SIMD_SSEx is the generic flag for SSE support

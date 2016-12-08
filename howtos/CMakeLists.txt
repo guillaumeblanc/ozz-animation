@@ -11,7 +11,7 @@ target_link_libraries(load_from_file
   ozz_base)
 set_target_properties(load_from_file
   PROPERTIES FOLDER "howtos")
-add_test(NAME load_from_file COMMAND load_from_file "${ozz_media_directory}/bin/skeleton_v1_be.ozz")
+add_test(NAME load_from_file COMMAND load_from_file "${ozz_media_directory}/bin/alain_skeleton.ozz")
 add_test(NAME load_from_file_no_arg COMMAND load_from_file)
 set_tests_properties(load_from_file_no_arg PROPERTIES WILL_FAIL true)
 add_test(NAME load_from_file_bad_arg COMMAND load_from_file "${ozz_media_directory}/bin/doesn_t_exist.ozz")

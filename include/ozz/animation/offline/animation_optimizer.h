@@ -53,8 +53,7 @@ class AnimationOptimizer {
   // *_output must be a valid RawAnimation instance.
   // Returns false on failure and resets _output to an empty animation.
   // See RawAnimation::Validate() for more details about failure reasons.
-  bool operator()(const RawAnimation& _input,
-                  const Skeleton& _skeleton,
+  bool operator()(const RawAnimation& _input, const Skeleton& _skeleton,
                   RawAnimation* _output) const;
 
   // Translation optimization tolerance, defined as the distance between two

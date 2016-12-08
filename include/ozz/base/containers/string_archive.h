@@ -28,9 +28,9 @@
 #ifndef OZZ_OZZ_BASE_CONTAINERS_STRING_ARCHIVE_H_
 #define OZZ_OZZ_BASE_CONTAINERS_STRING_ARCHIVE_H_
 
-#include "ozz/base/platform.h"
 #include "ozz/base/containers/string.h"
 #include "ozz/base/io/archive_traits.h"
+#include "ozz/base/platform.h"
 
 namespace ozz {
 namespace io {
@@ -40,14 +40,10 @@ class OArchive;
 OZZ_IO_TYPE_NOT_VERSIONABLE(ozz::String::Std)
 
 template <>
-void Save(OArchive& _archive,
-          const ozz::String::Std* _values,
-          size_t _count);
+void Save(OArchive& _archive, const ozz::String::Std* _values, size_t _count);
 
 template <>
-void Load(IArchive& _archive,
-          ozz::String::Std* _values,
-          size_t _count,
+void Load(IArchive& _archive, ozz::String::Std* _values, size_t _count,
           uint32_t _version);
 }  // io
 }  // ozz

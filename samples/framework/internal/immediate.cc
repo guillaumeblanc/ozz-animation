@@ -33,9 +33,9 @@
 
 #include "ozz/base/memory/allocator.h"
 
-#include "shader.h"
-#include "renderer_impl.h"
 #include "camera.h"
+#include "renderer_impl.h"
+#include "shader.h"
 
 namespace ozz {
 namespace sample {
@@ -48,12 +48,11 @@ GlImmediateRenderer::GlImmediateRenderer(RendererImpl* _renderer)
       size_(0),
       immediate_pc_shader(NULL),
       immediate_ptc_shader(NULL),
-      renderer_(_renderer){
-}
+      renderer_(_renderer) {}
 
 GlImmediateRenderer::~GlImmediateRenderer() {
   assert(size_ == 0 && "Immediate rendering still in use.");
-  
+
   if (vbo_) {
     GL(DeleteBuffers(1, &vbo_));
     vbo_ = 0;
@@ -71,7 +70,7 @@ GlImmediateRenderer::~GlImmediateRenderer() {
 
 bool GlImmediateRenderer::Initialize() {
   GL(GenBuffers(1, &vbo_));
-  const size_t kDefaultVboSize = 2<<10;
+  const size_t kDefaultVboSize = 2 << 10;
   ResizeVbo(kDefaultVboSize);
 
   immediate_pc_shader = ImmediatePCShader::Build();
@@ -90,16 +89,14 @@ void GlImmediateRenderer::Begin() {
   assert(size_ == 0 && "Immediate rendering already in use.");
 }
 
-template<>
+template <>
 void GlImmediateRenderer::End<VertexPC>(GLenum _mode,
                                         const ozz::math::Float4x4& _transform) {
   GL(BindBuffer(GL_ARRAY_BUFFER, vbo_));
   GL(BufferSubData(GL_ARRAY_BUFFER, 0, size_, buffer_));
 
-  immediate_pc_shader->Bind(_transform,
-                            renderer_->camera()->view_proj(),
-                            sizeof(VertexPC), 0,
-                            sizeof(VertexPC), 12);
+  immediate_pc_shader->Bind(_transform, renderer_->camera()->view_proj(),
+                            sizeof(VertexPC), 0, sizeof(VertexPC), 12);
 
   const int count = static_cast<int>(size_ / sizeof(VertexPC));
   GL(DrawArrays(_mode, 0, count));
@@ -112,16 +109,14 @@ void GlImmediateRenderer::End<VertexPC>(GLenum _mode,
   size_ = 0;
 }
 
-template<>
-void GlImmediateRenderer::End<VertexPTC>(GLenum _mode,
-                                         const ozz::math::Float4x4& _transform) {
+template <>
+void GlImmediateRenderer::End<VertexPTC>(
+    GLenum _mode, const ozz::math::Float4x4& _transform) {
   GL(BindBuffer(GL_ARRAY_BUFFER, vbo_));
   GL(BufferSubData(GL_ARRAY_BUFFER, 0, size_, buffer_));
 
-  immediate_ptc_shader->Bind(_transform,
-                             renderer_->camera()->view_proj(),
-                             sizeof(VertexPTC), 0,
-                             sizeof(VertexPTC), 12,
+  immediate_ptc_shader->Bind(_transform, renderer_->camera()->view_proj(),
+                             sizeof(VertexPTC), 0, sizeof(VertexPTC), 12,
                              sizeof(VertexPTC), 20);
 
   const int count = static_cast<int>(size_ / sizeof(VertexPTC));
@@ -138,8 +133,7 @@ void GlImmediateRenderer::End<VertexPTC>(GLenum _mode,
 void GlImmediateRenderer::ResizeVbo(size_t _new_size) {
   if (_new_size > max_size_) {
     max_size_ = ozz::math::Max(max_size_ * 2, _new_size);
-    buffer_ = ozz::memory::default_allocator()->Reallocate(
-      buffer_, max_size_);
+    buffer_ = ozz::memory::default_allocator()->Reallocate(buffer_, max_size_);
 
     GL(BindBuffer(GL_ARRAY_BUFFER, vbo_));
     GL(BufferData(GL_ARRAY_BUFFER, max_size_, NULL, GL_STREAM_DRAW));

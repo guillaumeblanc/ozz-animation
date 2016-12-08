@@ -28,16 +28,23 @@
 #ifndef OZZ_OZZ_ANIMATION_RUNTIME_SKELETON_H_
 #define OZZ_OZZ_ANIMATION_RUNTIME_SKELETON_H_
 
-#include "ozz/base/platform.h"
 #include "ozz/base/io/archive_traits.h"
+#include "ozz/base/platform.h"
 
 namespace ozz {
-namespace io { class IArchive; class OArchive; }
-namespace math { struct SoaTransform; }
+namespace io {
+class IArchive;
+class OArchive;
+}
+namespace math {
+struct SoaTransform;
+}
 namespace animation {
 
 // Forward declaration of SkeletonBuilder, used to instantiate a skeleton.
-namespace offline { class SkeletonBuilder; }
+namespace offline {
+class SkeletonBuilder;
+}
 
 // This runtime skeleton data structure provides a const-only access to joint
 // hierarchy, joint names and bind-pose. This structure is filled by the
@@ -52,7 +59,6 @@ namespace offline { class SkeletonBuilder; }
 // skeleton_utils.h that implements a depth-first traversal utility.
 class Skeleton {
  public:
-
   // Defines Skeleton constant values.
   enum Constants {
     // Limits the number of joints in order to control the number of bits
@@ -63,7 +69,7 @@ class Skeleton {
 
     // Defines the maximum number of joints.
     // Reserves one index (the last) for kNoParentIndex value.
-    kMaxJoints = (1<<kMaxJointsNumBits) - 1,
+    kMaxJoints = (1 << kMaxJointsNumBits) - 1,
 
     // Defines the maximum number of SoA elements required to store the maximum
     // number of joints.
@@ -81,36 +87,32 @@ class Skeleton {
   ~Skeleton();
 
   // Returns the number of joints of *this skeleton.
-  int num_joints() const {
-    return num_joints_;
-  }
+  int num_joints() const { return static_cast<int>(joint_properties_.Count()); }
 
   // Returns the number of soa elements matching the number of joints of *this
   // skeleton. This value is useful to allocate SoA runtime data structures.
-  int num_soa_joints() const {
-      return (num_joints_ + 3) / 4;
-  }
+  int num_soa_joints() const { return (num_joints() + 3) / 4; }
 
   // Per joint properties.
   struct JointProperties {
     // Parent's index, kNoParentIndex for the root.
-    uint16_t parent: Skeleton::kMaxJointsNumBits;
-    
+    uint16_t parent : Skeleton::kMaxJointsNumBits;
+
     // Set to 1 for a leaf, 0 for a branch.
-    uint16_t is_leaf: 1;
+    uint16_t is_leaf : 1;
   };
 
   // Returns joint's parent indices range.
   Range<const JointProperties> joint_properties() const {
-    return Range<const JointProperties>(joint_properties_, num_joints_);
+    return joint_properties_;
   }
 
   // Returns joint's bind poses. Bind poses are stored in soa format.
-  Range<const math::SoaTransform> bind_pose() const;
+  Range<const math::SoaTransform> bind_pose() const { return bind_pose_; }
 
   // Returns joint's name collection.
-  const char* const* joint_names() const {
-    return joint_names_;
+  Range<const char* const> joint_names() const {
+    return Range<const char* const>(joint_names_.begin, joint_names_.end);
   }
 
   // Serialization functions.
@@ -119,13 +121,14 @@ class Skeleton {
   void Load(ozz::io::IArchive& _archive, uint32_t _version);
 
  private:
-
   // Disables copy and assignation.
   Skeleton(Skeleton const&);
   void operator=(Skeleton const&);
 
-  // Internal destruction function.
-  void Destroy();
+  // Internal allocation/deallocation function.
+  // Allocate returns the beginning of the contiguous buffer of names.
+  char* Allocate(size_t _char_count, size_t _num_joints);
+  void Deallocate();
 
   // SkeletonBuilder class is allowed to instantiate an Skeleton.
   friend class offline::SkeletonBuilder;
@@ -134,17 +137,13 @@ class Skeleton {
   // the number of joints of the skeleton.
 
   // Array of joint properties.
-  JointProperties* joint_properties_;
+  Range<JointProperties> joint_properties_;
 
   // Bind pose of every joint in local space.
-  math::SoaTransform* bind_pose_;
+  Range<math::SoaTransform> bind_pose_;
 
   // Stores the name of every joint in an array of c-strings.
-  // Uses a single allocation to store the array and all the c strings.
-  char** joint_names_;
-
-  // The number of joints.
-  int num_joints_;
+  Range<char*> joint_names_;
 };
 }  // animation
 

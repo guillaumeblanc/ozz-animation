@@ -41,7 +41,7 @@ class Animation;
 class Skeleton;
 namespace offline {
 struct RawAnimation;
-struct RawSkeleton; 
+struct RawSkeleton;
 }  // offline
 }  // animation
 namespace sample {
@@ -58,24 +58,16 @@ class PlaybackController {
   PlaybackController();
 
   // Sets animation current time.
-  void set_time(float _time) {
-    time_ = _time;
-  }
+  void set_time(float _time) { time_ = _time; }
 
   // Gets animation current time.
-  float time() const {
-    return time_;
-  }
+  float time() const { return time_; }
 
   // Sets playback speed.
-  void set_playback_speed(float _speed) {
-    playback_speed_ = _speed;
-  }
+  void set_playback_speed(float _speed) { playback_speed_ = _speed; }
 
   // Gets playback speed.
-  float playback_speed() const {
-    return playback_speed_;
-  }
+  float playback_speed() const { return playback_speed_; }
 
   // Updates animation time if in "play" state, according to playback speed and
   // given frame time _dt.
@@ -85,8 +77,7 @@ class PlaybackController {
   void Reset();
 
   // Do controller Gui.
-  void OnGui(const animation::Animation& _animation,
-             ImGui* _im_gui,
+  void OnGui(const animation::Animation& _animation, ImGui* _im_gui,
              bool _enabled = true);
 
  private:
@@ -114,15 +105,14 @@ void ComputePostureBounds(ozz::Range<const ozz::math::Float4x4> _matrices,
 // Loads a skeleton from an ozz archive file named _filename.
 // This function will fail and return false if the file cannot be opened or if
 // it is not a valid ozz skeleton archive. A valid skeleton archive can be
-// produced with ozz tools (dae2skel) or using ozz skeleton serialization API.
+// produced with ozz tools (fbx2skel) or using ozz skeleton serialization API.
 // _filename and _skeleton must be non-NULL.
-bool LoadSkeleton(const char* _filename,
-                  ozz::animation::Skeleton* _skeleton);
+bool LoadSkeleton(const char* _filename, ozz::animation::Skeleton* _skeleton);
 
 // Loads an animation from an ozz archive file named _filename.
 // This function will fail and return false if the file cannot be opened or if
 // it is not a valid ozz animation archive. A valid animation archive can be
-// produced with ozz tools (dae2anim) or using ozz animation serialization API.
+// produced with ozz tools (fbx2anim) or using ozz animation serialization API.
 // _filename and _animation must be non-NULL.
 bool LoadAnimation(const char* _filename,
                    ozz::animation::Animation* _animation);
@@ -132,8 +122,7 @@ bool LoadAnimation(const char* _filename,
 // it is not a valid ozz mesh archive. A valid mesh archive can be
 // produced with ozz tools (fbx2skin) or using ozz animation serialization API.
 // _filename and _mesh must be non-NULL.
-bool LoadMesh(const char* _filename,
-              ozz::sample::Mesh* _mesh);
+bool LoadMesh(const char* _filename, ozz::sample::Mesh* _mesh);
 
 }  // sample
 }  // ozz

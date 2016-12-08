@@ -27,8 +27,8 @@
 
 #include "mesh.h"
 
-#include "ozz/base/memory/allocator.h"
 #include "ozz/base/containers/vector_archive.h"
+#include "ozz/base/memory/allocator.h"
 
 #include "ozz/base/io/archive.h"
 
@@ -37,25 +37,21 @@
 
 namespace ozz {
 namespace sample {
-Mesh::Mesh() {
-}
+Mesh::Mesh() {}
 
-Mesh::~Mesh() {
-}
+Mesh::~Mesh() {}
 }  // sample
 
 namespace io {
 
-OZZ_IO_TYPE_NOT_VERSIONABLE(sample::Mesh::Part)
-
 template <>
-void Save(OArchive& _archive,
-          const sample::Mesh::Part* _parts,
-          size_t _count) {
+void Save(OArchive& _archive, const sample::Mesh::Part* _parts, size_t _count) {
   for (size_t i = 0; i < _count; ++i) {
     const sample::Mesh::Part& part = _parts[i];
     _archive << part.positions;
     _archive << part.normals;
+    _archive << part.tangents;
+    _archive << part.uvs;
     _archive << part.colors;
     _archive << part.joint_indices;
     _archive << part.joint_weights;
@@ -63,15 +59,15 @@ void Save(OArchive& _archive,
 }
 
 template <>
-void Load(IArchive& _archive,
-          sample::Mesh::Part* _parts,
-          size_t _count,
+void Load(IArchive& _archive, sample::Mesh::Part* _parts, size_t _count,
           uint32_t _version) {
   (void)_version;
   for (size_t i = 0; i < _count; ++i) {
     sample::Mesh::Part& part = _parts[i];
     _archive >> part.positions;
     _archive >> part.normals;
+    _archive >> part.tangents;
+    _archive >> part.uvs;
     _archive >> part.colors;
     _archive >> part.joint_indices;
     _archive >> part.joint_weights;
@@ -79,9 +75,7 @@ void Load(IArchive& _archive,
 }
 
 template <>
-void Save(OArchive& _archive,
-          const sample::Mesh* _meshes,
-          size_t _count) {
+void Save(OArchive& _archive, const sample::Mesh* _meshes, size_t _count) {
   for (size_t i = 0; i < _count; ++i) {
     const sample::Mesh& mesh = _meshes[i];
     _archive << mesh.parts;
@@ -91,9 +85,7 @@ void Save(OArchive& _archive,
 }
 
 template <>
-void Load(IArchive& _archive,
-          sample::Mesh* _meshes,
-          size_t _count,
+void Load(IArchive& _archive, sample::Mesh* _meshes, size_t _count,
           uint32_t _version) {
   (void)_version;
   for (size_t i = 0; i < _count; ++i) {

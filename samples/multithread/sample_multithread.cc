@@ -29,42 +29,38 @@
 #include <cstdlib>
 
 #include "ozz/animation/runtime/animation.h"
-#include "ozz/animation/runtime/skeleton.h"
-#include "ozz/animation/runtime/sampling_job.h"
 #include "ozz/animation/runtime/local_to_model_job.h"
+#include "ozz/animation/runtime/sampling_job.h"
+#include "ozz/animation/runtime/skeleton.h"
 
 #include "ozz/base/log.h"
 
 #include "ozz/base/containers/vector.h"
 
+#include "ozz/base/maths/box.h"
 #include "ozz/base/maths/math_ex.h"
-#include "ozz/base/maths/vec_float.h"
 #include "ozz/base/maths/simd_math.h"
 #include "ozz/base/maths/soa_transform.h"
-#include "ozz/base/maths/box.h"
+#include "ozz/base/maths/vec_float.h"
 
 #include "ozz/base/memory/allocator.h"
 
 #include "ozz/options/options.h"
 
 #include "framework/application.h"
-#include "framework/renderer.h"
 #include "framework/imgui.h"
+#include "framework/renderer.h"
 #include "framework/utils.h"
 
 // Skeleton archive can be specified as an option.
-OZZ_OPTIONS_DECLARE_STRING(
-  skeleton,
-  "Path to the skeleton (ozz archive format).",
-  "media/skeleton.ozz",
-  false)
+OZZ_OPTIONS_DECLARE_STRING(skeleton,
+                           "Path to the skeleton (ozz archive format).",
+                           "media/skeleton.ozz", false)
 
 // First animation archive can be specified as an option.
-OZZ_OPTIONS_DECLARE_STRING(
-  animation,
-  "Path to the first animation (ozz archive format).",
-  "media/animation.ozz",
-  false)
+OZZ_OPTIONS_DECLARE_STRING(animation,
+                           "Path to the first animation (ozz archive format).",
+                           "media/animation.ozz", false)
 
 // Interval between each character.
 const float kInterval = 2.f;
@@ -76,46 +72,42 @@ const int kDepth = 16;
 class MultithreadSampleApplication : public ozz::sample::Application {
  public:
   MultithreadSampleApplication()
-    : num_characters_(kWidth * kDepth),
-      enable_openmp_(true),
-      num_threads_(1),
-      openmp_statistics() {
+      : num_characters_(kWidth * kDepth),
+        enable_openmp_(true),
+        num_threads_(1),
+        openmp_statistics() {
     // Do not allocate all threads to OpenMp by default, as it is too intensive.
     const int max_threads = omp_get_max_threads();
     num_threads_ = (max_threads > 2) ? max_threads - 1 : max_threads;
   }
 
  private:
-
   // Nested Character struct forward declaration.
   struct Character;
 
  protected:
-
   // Updates current animation time.
   virtual bool OnUpdate(float _dt) {
-
-    #pragma omp parallel if (enable_openmp_) num_threads(num_threads_)
+#pragma omp parallel if (enable_openmp_) num_threads(num_threads_)
     {
-        // Collect open mp statistics on the master thread.
-        #pragma omp single
-        {
-          openmp_statistics.num_procs = omp_get_num_procs();
-          openmp_statistics.num_threads = omp_get_num_threads();
-          openmp_statistics.max_threads = omp_get_max_threads();
-        }
-        // Updates all animations.
-        #pragma omp for
-        for (int i = 0; i < num_characters_; ++i) {
-          UpdateCharacter(&characters_[i], _dt);
-        }
+// Collect open mp statistics on the master thread.
+#pragma omp single
+      {
+        openmp_statistics.num_procs = omp_get_num_procs();
+        openmp_statistics.num_threads = omp_get_num_threads();
+        openmp_statistics.max_threads = omp_get_max_threads();
+      }
+// Updates all animations.
+#pragma omp for
+      for (int i = 0; i < num_characters_; ++i) {
+        UpdateCharacter(&characters_[i], _dt);
+      }
     }
 
     return true;
   }
 
   bool UpdateCharacter(Character* _character, float _dt) {
-
     // Samples animation.
     _character->controller.Update(animation_, _dt);
 
@@ -145,36 +137,31 @@ class MultithreadSampleApplication : public ozz::sample::Application {
 
   // Renders all skeletons.
   virtual bool OnDisplay(ozz::sample::Renderer* _renderer) {
-
     bool success = true;
     for (int c = 0; success && c < num_characters_; ++c) {
       ozz::math::Float4 position(
-        ((c % kWidth) - kWidth / 2) * kInterval,
-        ((c / kWidth) / kDepth) * kInterval,
-        (((c / kWidth) % kDepth) - kDepth / 2) * kInterval,
-        1.f);
+          ((c % kWidth) - kWidth / 2) * kInterval,
+          ((c / kWidth) / kDepth) * kInterval,
+          (((c / kWidth) % kDepth) - kDepth / 2) * kInterval, 1.f);
       ;
-      const ozz::math::Float4x4 transform =
-        ozz::math::Float4x4::Translation(
+      const ozz::math::Float4x4 transform = ozz::math::Float4x4::Translation(
           ozz::math::simd_float4::LoadPtrU(&position.x));
-      success &=
-        _renderer->DrawPosture(
-        skeleton_, characters_[c].models, transform, false);
+      success &= _renderer->DrawPosture(skeleton_, characters_[c].models,
+                                        transform, false);
     }
 
     return true;
   }
 
   virtual bool OnInitialize() {
-
     // Reading skeleton.
     if (!ozz::sample::LoadSkeleton(OPTIONS_skeleton, &skeleton_)) {
       return false;
     }
-    
+
     // Reading animations.
     if (!ozz::sample::LoadAnimation(OPTIONS_animation, &animation_)) {
-        return false;
+      return false;
     }
 
     // Allocate a default number of characters.
@@ -183,9 +170,7 @@ class MultithreadSampleApplication : public ozz::sample::Application {
     return true;
   }
 
-  virtual void OnDestroy() {
-      DeallocateCharaters();
-  }
+  virtual void OnDestroy() { DeallocateCharaters(); }
 
   virtual bool OnGui(ozz::sample::ImGui* _im_gui) {
     // Exposes multi-threading parameters.
@@ -216,41 +201,39 @@ class MultithreadSampleApplication : public ozz::sample::Application {
         std::sprintf(label, "Number of joints: %d", num_joints);
         _im_gui->DoLabel(label);
       }
-    } 
+    }
     return true;
   }
 
   virtual void GetSceneBounds(ozz::math::Box* _bound) const {
     _bound->min.x = -(kWidth / 2) * kInterval;
     _bound->max.x =
-      _bound->min.x + ozz::math::Min(num_characters_, kWidth) * kInterval;
+        _bound->min.x + ozz::math::Min(num_characters_, kWidth) * kInterval;
     _bound->min.y = 0.f;
     _bound->max.y = ((num_characters_ / kWidth / kDepth) + 1) * kInterval;
     _bound->min.z = -(kDepth / 2) * kInterval;
     _bound->max.z =
-      _bound->min.z +
-      ozz::math::Min(num_characters_ / kWidth, kDepth) * kInterval;
+        _bound->min.z +
+        ozz::math::Min(num_characters_ / kWidth, kDepth) * kInterval;
   }
 
  private:
-
   bool AllocateCharaters() {
-
     // Reallocate all characters.
     ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
     for (size_t c = 0; c < kMaxCharacters; ++c) {
       Character& character = characters_[c];
-      character.cache = allocator->
-        New<ozz::animation::SamplingCache>(animation_.num_tracks());
+      character.cache = allocator->New<ozz::animation::SamplingCache>(
+          animation_.num_tracks());
 
       // Initializes each controller start time to a different value.
-      character.controller.set_time(
-        animation_.duration() * kWidth * c / kMaxCharacters);
+      character.controller.set_time(animation_.duration() * kWidth * c /
+                                    kMaxCharacters);
 
-      character.locals = allocator->
-          AllocateRange<ozz::math::SoaTransform>(skeleton_.num_soa_joints());
-      character.models = allocator->
-        AllocateRange<ozz::math::Float4x4>(skeleton_.num_joints());
+      character.locals = allocator->AllocateRange<ozz::math::SoaTransform>(
+          skeleton_.num_soa_joints());
+      character.models =
+          allocator->AllocateRange<ozz::math::Float4x4>(skeleton_.num_joints());
     }
 
     return true;
@@ -275,9 +258,7 @@ class MultithreadSampleApplication : public ozz::sample::Application {
   // Character structure contains all the data required to sample and blend a
   // character.
   struct Character {
-    Character()
-     : cache(NULL){
-    }
+    Character() : cache(NULL) {}
 
     // Playback animation controller. This is a utility class that helps with
     // controlling animation playback time.
@@ -296,7 +277,7 @@ class MultithreadSampleApplication : public ozz::sample::Application {
 
   // The maximum number of characters.
   enum {
-      kMaxCharacters = 4096,
+    kMaxCharacters = 4096,
   };
 
   // Array of characters of the sample.

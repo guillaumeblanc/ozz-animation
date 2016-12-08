@@ -28,12 +28,12 @@
 #ifndef OZZ_SAMPLES_FRAMEWORK_MESH_H_
 #define OZZ_SAMPLES_FRAMEWORK_MESH_H_
 
-#include "ozz/base/platform.h"
 #include "ozz/base/containers/vector.h"
 #include "ozz/base/io/archive_traits.h"
+#include "ozz/base/platform.h"
 
-#include "ozz/base/maths/vec_float.h"
 #include "ozz/base/maths/simd_math.h"
+#include "ozz/base/maths/vec_float.h"
 
 namespace ozz {
 namespace sample {
@@ -64,8 +64,9 @@ struct Mesh {
     int max_influences_count = 0;
     for (size_t i = 0; i < parts.size(); ++i) {
       const int influences_count = parts[i].influences_count();
-      max_influences_count = influences_count > max_influences_count ?
-        influences_count : max_influences_count;
+      max_influences_count = influences_count > max_influences_count
+                                 ? influences_count
+                                 : max_influences_count;
     }
     return max_influences_count;
   }
@@ -81,16 +82,12 @@ struct Mesh {
   }
 
   // Returns the number of joints used to skin the mesh.
-  int num_joints() {
-    return static_cast<int>(inverse_bind_poses.size());
-  }
+  int num_joints() { return static_cast<int>(inverse_bind_poses.size()); }
 
   // Defines a portion of the mesh. A mesh is subdivided in sets of vertices
   // with the same number of joint influences.
   struct Part {
-    int vertex_count() const {
-      return static_cast<int>(positions.size()) / 3;
-    }
+    int vertex_count() const { return static_cast<int>(positions.size()) / 3; }
 
     int influences_count() const {
       const int _vertex_count = vertex_count();
@@ -102,18 +99,29 @@ struct Mesh {
 
     typedef ozz::Vector<float>::Std Positions;
     Positions positions;
+    enum { kPositionsCpnts = 3 };  // x, y, z components
 
     typedef ozz::Vector<float>::Std Normals;
     Normals normals;
+    enum { kNormalsCpnts = 3 };  // x, y, z components
+
+    typedef ozz::Vector<float>::Std Tangents;
+    Tangents tangents;
+    enum { kTangentsCpnts = 4 };  // x, y, z, right or left handed.
+
+    typedef ozz::Vector<float>::Std UVs;
+    UVs uvs;  // u, v components
+    enum { kUVsCpnts = 2 };
 
     typedef ozz::Vector<uint8_t>::Std Colors;
     Colors colors;
+    enum { kColorsCpnts = 4 };  // r, g, b, a components
 
     typedef ozz::Vector<uint16_t>::Std JointIndices;
-    JointIndices joint_indices;
+    JointIndices joint_indices;  // Stride equals influences_count
 
     typedef ozz::Vector<float>::Std JointWeights;
-    JointWeights joint_weights;
+    JointWeights joint_weights;  // Stride equals influences_count - 1
   };
   typedef ozz::Vector<Part>::Std Parts;
   Parts parts;
@@ -129,18 +137,18 @@ struct Mesh {
 }  // sample
 
 namespace io {
+
+OZZ_IO_TYPE_TAG("ozz-sample-Mesh-Part", sample::Mesh::Part)
+OZZ_IO_TYPE_VERSION(1, sample::Mesh::Part)
+
 OZZ_IO_TYPE_TAG("ozz-sample-Mesh", sample::Mesh)
-OZZ_IO_TYPE_NOT_VERSIONABLE(sample::Mesh)
+OZZ_IO_TYPE_VERSION(1, sample::Mesh)
 
 template <>
-void Save(OArchive& _archive,
-          const sample::Mesh* _meshes,
-          size_t _count);
+void Save(OArchive& _archive, const sample::Mesh* _meshes, size_t _count);
 
 template <>
-void Load(IArchive& _archive,
-          sample::Mesh* _meshes,
-          size_t _count,
+void Load(IArchive& _archive, sample::Mesh* _meshes, size_t _count,
           uint32_t _version);
 }  // io
 }  // ozz

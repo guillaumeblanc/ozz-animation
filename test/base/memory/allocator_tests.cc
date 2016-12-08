@@ -50,7 +50,8 @@ TEST(Malloc, Memory) {
 }
 
 TEST(Range, Memory) {
-  ozz::Range<int> range = ozz::memory::default_allocator()->AllocateRange<int>(12);
+  ozz::Range<int> range =
+      ozz::memory::default_allocator()->AllocateRange<int>(12);
   EXPECT_TRUE(range.begin != NULL);
   EXPECT_EQ(range.end, range.begin + 12);
 
@@ -71,21 +72,21 @@ TEST(Range, Memory) {
 }
 
 TEST(MallocCompliance, Memory) {
-  { // Allocating 0 byte gives a valid pointer.
+  {  // Allocating 0 byte gives a valid pointer.
     void* p = ozz::memory::default_allocator()->Allocate(0, 1024);
     EXPECT_TRUE(p != NULL);
     ozz::memory::default_allocator()->Deallocate(p);
   }
 
-  { // Freeing of a NULL pointer is valid.
+  {  // Freeing of a NULL pointer is valid.
     ozz::memory::default_allocator()->Deallocate(NULL);
   }
 
-  { // Reallocating NULL pointer is valid
+  {  // Reallocating NULL pointer is valid
     void* p = ozz::memory::default_allocator()->Reallocate(NULL, 12, 1024);
     EXPECT_TRUE(p != NULL);
 
-  // Fills allocated memory.
+    // Fills allocated memory.
     memset(p, 0, 12);
 
     ozz::memory::default_allocator()->Deallocate(p);
@@ -123,20 +124,20 @@ struct AlignedInts {
     }
   }
 
-  static const int array_size = 517;  
+  static const int array_size = 517;
   OZZ_ALIGN(64) int array[array_size];
 };
 
 TEST(TypedMalloc, Memory) {
   AlignedInts* p = ozz::memory::default_allocator()->Allocate<AlignedInts>(3);
   EXPECT_TRUE(p != NULL);
-  EXPECT_TRUE(ozz::math::IsAligned(p, ozz::AlignOf<AlignedInts>::value));
+  EXPECT_TRUE(ozz::math::IsAligned(p, OZZ_ALIGN_OF(AlignedInts)));
 
   memset(p, 0, sizeof(AlignedInts) * 3);
 
   p = ozz::memory::default_allocator()->Reallocate<AlignedInts>(p, 46);
   EXPECT_TRUE(p != NULL);
-  EXPECT_TRUE(ozz::math::IsAligned(p, ozz::AlignOf<AlignedInts>::value));
+  EXPECT_TRUE(ozz::math::IsAligned(p, OZZ_ALIGN_OF(AlignedInts)));
 
   memset(p, 0, sizeof(AlignedInts) * 46);
 
@@ -168,8 +169,8 @@ TEST(NewDelete, Memory) {
   }
   ozz::memory::default_allocator()->Delete(ai2);
 
-
-  AlignedInts* ai3 = ozz::memory::default_allocator()->New<AlignedInts>(46, 69, 58);
+  AlignedInts* ai3 =
+      ozz::memory::default_allocator()->New<AlignedInts>(46, 69, 58);
   ASSERT_TRUE(ai3 != NULL);
   EXPECT_EQ(ai3->array[0], 46);
   EXPECT_EQ(ai3->array[1], 69);
@@ -182,26 +183,18 @@ TEST(NewDelete, Memory) {
 
 class TestAllocator : public ozz::memory::Allocator {
  public:
-  TestAllocator()
-    : hard_coded_address_(&hard_coded_address_) {
-  }
+  TestAllocator() : hard_coded_address_(&hard_coded_address_) {}
 
-  void* hard_coded_address() const {
-    return hard_coded_address_;
-  } 
- 
+  void* hard_coded_address() const { return hard_coded_address_; }
+
  private:
   virtual void* Allocate(size_t _size, size_t _alignment) {
     (void)_size;
     (void)_alignment;
     return hard_coded_address_;
   }
-  virtual void Deallocate(void* _block) {
-    (void)_block;
-  }
-  virtual void* Reallocate(void* _block,
-                           size_t _size,
-                           size_t _alignment) {
+  virtual void Deallocate(void* _block) { (void)_block; }
+  virtual void* Reallocate(void* _block, size_t _size, size_t _alignment) {
     (void)_block;
     (void)_size;
     (void)_alignment;
@@ -214,7 +207,7 @@ class TestAllocator : public ozz::memory::Allocator {
 TEST(AllocatorOverride, Memory) {
   TestAllocator test_allocator;
   ozz::memory::Allocator* previous =
-    ozz::memory::SetDefaulAllocator(&test_allocator);
+      ozz::memory::SetDefaulAllocator(&test_allocator);
   ozz::memory::Allocator* current = ozz::memory::default_allocator();
 
   void* alloc = current->Allocate(1, 1);

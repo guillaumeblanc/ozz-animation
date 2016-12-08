@@ -112,13 +112,11 @@ def Configure():
 
 def ConfigureCC():
   # Configure build process.
-  print("Configuring cross compilation build project.")
+  print("Configuring emscripten cross compilation build with path: " + emscripten_path)
   options = ['cmake']
 
   options += ['-D', 'CMAKE_BUILD_TYPE=' + config]
   options += ['-D', 'CMAKE_TOOLCHAIN_FILE=' + emscripten_path + '/cmake/Modules/Platform/Emscripten.cmake']
-  options += ['-D', 'dae2anim_DIR=' + build_dir]
-  options += ['-D', 'dae2skel_DIR=' + build_dir]
 
   options += ['-G', 'MinGW Makefiles']
   options += [root]
@@ -311,7 +309,7 @@ def main():
   # Adds emscripten
   global emscripten_path
   if emscripten_path != None:
-    options['1a'] = ["Build emscripten", [MakeBuildDir, Configure, Build, partial(MakeBuildDir, build_dir_cc), ConfigureCC, partial(Build, build_dir_cc)]]
+    options['1a'] = ["Build emscripten", [partial(MakeBuildDir, build_dir_cc), ConfigureCC, partial(Build, build_dir_cc)]]
     options['5a'] = ["Pack emscripten binaries", [MakeBuildDir, Configure, Build, partial(MakeBuildDir, build_dir_cc), ConfigureCC, partial(Build, build_dir_cc), partial(PackBinaries, "ZIP", build_dir_cc)]]
 
   while True:

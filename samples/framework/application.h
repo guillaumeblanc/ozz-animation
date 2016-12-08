@@ -32,7 +32,10 @@
 #include "ozz/base/containers/string.h"
 
 namespace ozz {
-namespace math {struct Box;}
+namespace math {
+struct Box;
+struct Float4x4;
+}  // math
 namespace sample {
 
 class ImGui;
@@ -68,8 +71,8 @@ class Application {
   // EXIT_FAILURE if an error occurred during initialization or the main loop.
   // Only one application can be run at a time, otherwise EXIT_FAILURE is
   // returned.
-  int Run(int _argc, const char** _argv,
-          const char* _version, const char* _title);
+  int Run(int _argc, const char** _argv, const char* _version,
+          const char* _title);
 
  private:
   // Provides initialization event to the inheriting application. Called while
@@ -101,6 +104,12 @@ class Application {
   // application with EXIT_FAILURE. Note that OnDestroy is called in any case.
   virtual bool OnDisplay(Renderer* _renderer) = 0;
 
+  // Allows the inheriting application to override camera location.
+  // Application should return true (false by default) if it wants to override
+  // Camera location, and fills in this case _transform matrix.
+  // This function is never called before a first OnUpdate.
+  virtual bool GetCameraOverride(math::Float4x4* _transform) const;
+
   // Requires the inheriting application to provide scene bounds. It is used by
   // the camera to frame all the scene.
   // This function is never called before a first OnUpdate.
@@ -114,8 +123,8 @@ class Application {
 
   // Implements framework internal one iteration loop function.
   enum LoopStatus {
-    kContinue,  // Can continue with next loop.
-    kBreak,  // Should stop looping (ex: exit).
+    kContinue,      // Can continue with next loop.
+    kBreak,         // Should stop looping (ex: exit).
     kBreakFailure,  // // Should stop looping beacause something went wrong.
   };
   LoopStatus OneLoop(int _loops);
@@ -141,12 +150,12 @@ class Application {
   // Implements framework glfw window close callback.
   static int CloseCbk();
 
-  // Get README for content to display it in the help ui.
+  // Get README.md for content to display it in the help ui.
   void ParseReadme();
 
   // Disallow copy and assignment.
   Application(const Application& _application);
-  void operator = (const Application& _application);
+  void operator=(const Application& _application);
 
   // A pointer to the current, and only, running application.
   static Application* application_;
@@ -179,6 +188,10 @@ class Application {
 
   // Set to true to display help.
   bool show_help_;
+
+  // Grid display settings.
+  bool show_grid_;
+  bool show_axes_;
 
   // Capture settings.
   bool capture_video_;

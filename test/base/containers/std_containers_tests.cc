@@ -29,8 +29,8 @@
 #include "ozz/base/containers/list.h"
 #include "ozz/base/containers/map.h"
 #include "ozz/base/containers/queue.h"
-#include "ozz/base/containers/stack.h"
 #include "ozz/base/containers/set.h"
+#include "ozz/base/containers/stack.h"
 #include "ozz/base/containers/string.h"
 #include "ozz/base/containers/vector.h"
 
@@ -196,11 +196,11 @@ TEST(Map, Containers) {
   {
     typedef ozz::MultiMap<char, int> Container;
     Container::Std container;
-    container.insert(std::pair<char,int>('a', -3));
-    container.insert(std::pair<char,int>('c', -1));
-    container.insert(std::pair<char,int>('b', -2));
-    container.insert(std::pair<char,int>('d', 1));
-    container.insert(std::pair<char,int>('d', 2));
+    container.insert(std::pair<char, int>('a', -3));
+    container.insert(std::pair<char, int>('c', -1));
+    container.insert(std::pair<char, int>('b', -2));
+    container.insert(std::pair<char, int>('d', 1));
+    container.insert(std::pair<char, int>('d', 2));
     EXPECT_EQ(container.find('a')->second, -3);
     EXPECT_EQ(container.find('b')->second, -2);
     EXPECT_EQ(container.find('c')->second, -1);

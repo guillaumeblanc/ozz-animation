@@ -32,21 +32,19 @@
 // fbx2skel is a command line tool that converts a skeleton imported from a
 // Fbx document to ozz runtime format.
 //
-// dae2skel extracts the skeleton from the Fbx document. It then builds an
+// fbx2skel extracts the skeleton from the Fbx document. It then builds an
 // ozz runtime skeleton, from the Fbx skeleton, and serializes it to a ozz
 // binary archive.
 //
-// Use dae2skel integrated help command (fbx2skel --help) for more details
+// Use fbx2skel integrated help command (fbx2skel --help) for more details
 // about available arguments.
 
-class FbxSkeletonConverter :
-  public ozz::animation::offline::SkeletonConverter {
-private:
+class FbxSkeletonConverter : public ozz::animation::offline::SkeletonConverter {
+ private:
   // Implement SkeletonConverter::Import function.
   virtual bool Import(const char* _filename,
                       ozz::animation::offline::RawSkeleton* _skeleton) {
-    return ozz::animation::offline::fbx::ImportFromFile(_filename,
-      _skeleton);
+    return ozz::animation::offline::fbx::ImportFromFile(_filename, _skeleton);
   }
 };
 

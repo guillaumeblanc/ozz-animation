@@ -25,48 +25,41 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/animation/runtime/skeleton.h"
 #include "ozz/animation/runtime/animation.h"
-#include "ozz/animation/runtime/sampling_job.h"
 #include "ozz/animation/runtime/local_to_model_job.h"
+#include "ozz/animation/runtime/sampling_job.h"
+#include "ozz/animation/runtime/skeleton.h"
 
 #include "ozz/base/log.h"
 
 #include "ozz/base/memory/allocator.h"
 
-#include "ozz/base/maths/vec_float.h"
-#include "ozz/base/maths/simd_math.h"
 #include "ozz/base/maths/box.h"
+#include "ozz/base/maths/simd_math.h"
 #include "ozz/base/maths/soa_transform.h"
+#include "ozz/base/maths/vec_float.h"
 
 #include "ozz/options/options.h"
 
 #include "framework/application.h"
-#include "framework/renderer.h"
 #include "framework/imgui.h"
+#include "framework/renderer.h"
 #include "framework/utils.h"
 
 // Skeleton archive can be specified as an option.
-OZZ_OPTIONS_DECLARE_STRING(
-  skeleton,
-  "Path to the skeleton (ozz archive format).",
-  "media/skeleton.ozz",
-  false)
+OZZ_OPTIONS_DECLARE_STRING(skeleton,
+                           "Path to the skeleton (ozz archive format).",
+                           "media/skeleton.ozz", false)
 
 // Animation archive can be specified as an option.
-OZZ_OPTIONS_DECLARE_STRING(
-  animation,
-  "Path to the animation (ozz archive format).",
-  "media/animation.ozz",
-  false)
+OZZ_OPTIONS_DECLARE_STRING(animation,
+                           "Path to the animation (ozz archive format).",
+                           "media/animation.ozz", false)
 
 class AttachSampleApplication : public ozz::sample::Application {
  public:
   AttachSampleApplication()
-    : cache_(NULL),
-      attachment_(0),
-      offset_(-.02f, .03f, .05f) {
-  }
+      : cache_(NULL), attachment_(0), offset_(-.02f, .03f, .05f) {}
 
  protected:
   // Updates current animation time.
@@ -98,8 +91,7 @@ class AttachSampleApplication : public ozz::sample::Application {
 
   // Samples animation, transforms to model space and renders.
   virtual bool OnDisplay(ozz::sample::Renderer* _renderer) {
-    if (!_renderer->DrawPosture(skeleton_,
-                                models_,
+    if (!_renderer->DrawPosture(skeleton_, models_,
                                 ozz::math::Float4x4::identity())) {
       return false;
     }
@@ -110,21 +102,21 @@ class AttachSampleApplication : public ozz::sample::Application {
 
     // Builds offset transformation matrix.
     const ozz::math::SimdFloat4 translation =
-      ozz::math::simd_float4::Load3PtrU(&offset_.x);
+        ozz::math::simd_float4::Load3PtrU(&offset_.x);
 
     // Concatenates joint and offset transformations.
     const ozz::math::Float4x4 transform =
-      joint * ozz::math::Float4x4::Translation(translation);
+        joint * ozz::math::Float4x4::Translation(translation);
 
     // Prepare rendering.
     const float thickness = .01f;
     const float length = .5f;
     const ozz::math::Box box(ozz::math::Float3(-thickness, -thickness, -length),
                              ozz::math::Float3(thickness, thickness, 0.f));
-    const ozz::sample::Renderer::Color colors[2] = {
-      {0xff, 0, 0, 0xff}, {0, 0xff, 0, 0xff}};
+    const ozz::sample::Renderer::Color colors[2] = {{0xff, 0, 0, 0xff},
+                                                    {0, 0xff, 0, 0xff}};
 
-    return _renderer->DrawBox(box, transform, colors);
+    return _renderer->DrawBoxIm(box, transform, colors);
   }
 
   virtual bool OnInitialize() {
@@ -132,12 +124,12 @@ class AttachSampleApplication : public ozz::sample::Application {
 
     // Reading skeleton.
     if (!ozz::sample::LoadSkeleton(OPTIONS_skeleton, &skeleton_)) {
-        return false;
+      return false;
     }
 
     // Reading animation.
     if (!ozz::sample::LoadAnimation(OPTIONS_animation, &animation_)) {
-        return false;
+      return false;
     }
 
     // Allocates runtime buffers.
@@ -184,12 +176,9 @@ class AttachSampleApplication : public ozz::sample::Application {
       if (open && skeleton_.num_joints() != 0) {
         _im_gui->DoLabel("Select joint:");
         char label[64];
-        std::sprintf(label, "%s (%d)",
-                     skeleton_.joint_names()[attachment_],
+        std::sprintf(label, "%s (%d)", skeleton_.joint_names()[attachment_],
                      attachment_);
-        _im_gui->DoSlider(label,
-                          0, skeleton_.num_joints() - 1,
-                          &attachment_);
+        _im_gui->DoSlider(label, 0, skeleton_.num_joints() - 1, &attachment_);
 
         _im_gui->DoLabel("Attachment offset:");
         sprintf(label, "x: %02f", offset_.x);
@@ -209,7 +198,6 @@ class AttachSampleApplication : public ozz::sample::Application {
   }
 
  private:
-
   // Playback animation controller. This is a utility class that helps with
   // controlling animation playback time.
   ozz::sample::PlaybackController controller_;
@@ -238,6 +226,6 @@ class AttachSampleApplication : public ozz::sample::Application {
 
 int main(int _argc, const char** _argv) {
   const char* title =
-    "Ozz-animation sample: Attachment to animated skeleton joints";
+      "Ozz-animation sample: Attachment to animated skeleton joints";
   return AttachSampleApplication().Run(_argc, _argv, "1.0", title);
 }

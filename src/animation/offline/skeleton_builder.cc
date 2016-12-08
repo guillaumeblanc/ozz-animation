@@ -29,11 +29,11 @@
 
 #include <cstring>
 
+#include "ozz/animation/offline/raw_skeleton.h"
+#include "ozz/animation/runtime/skeleton.h"
 #include "ozz/base/containers/vector.h"
 #include "ozz/base/maths/soa_transform.h"
 #include "ozz/base/memory/allocator.h"
-#include "ozz/animation/offline/raw_skeleton.h"
-#include "ozz/animation/runtime/skeleton.h"
 
 namespace ozz {
 namespace animation {
@@ -42,9 +42,7 @@ namespace offline {
 namespace {
 // Stores each traversed joint to a vector.
 struct JointLister {
-  explicit JointLister(int _num_joints) {
-    linear_joints.reserve(_num_joints);
-  }
+  explicit JointLister(int _num_joints) { linear_joints.reserve(_num_joints); }
   void operator()(const RawSkeleton::Joint& _current,
                   const RawSkeleton::Joint* _parent) {
     // Looks for the "lister" parent.
@@ -86,8 +84,6 @@ Skeleton* SkeletonBuilder::operator()(const RawSkeleton& _raw_skeleton) const {
   // Will not fail.
   Skeleton* skeleton = memory::default_allocator()->New<Skeleton>();
   const int num_joints = _raw_skeleton.num_joints();
-  skeleton->num_joints_ = num_joints;
-  const int num_soa_joints = skeleton->num_soa_joints();
 
   // Iterates through all the joint of the raw skeleton and fills a sorted joint
   // list.
@@ -95,24 +91,18 @@ Skeleton* SkeletonBuilder::operator()(const RawSkeleton& _raw_skeleton) const {
   _raw_skeleton.IterateJointsBF<JointLister&>(lister);
   assert(static_cast<int>(lister.linear_joints.size()) == num_joints);
 
-  // Transfers sorted joints hierarchy to the new skeleton.
-  skeleton->joint_properties_ =
-    memory::default_allocator()->Allocate<Skeleton::JointProperties>(num_joints);
-  for (int i = 0; i < num_joints; ++i) {
-    skeleton->joint_properties_[i].parent = lister.linear_joints[i].parent;
-    skeleton->joint_properties_[i].is_leaf =
-      lister.linear_joints[i].joint->children.empty();
-  }
-  // Transfers joint's names: First computes name's buffer size, then allocate
-  // and do the copy.
-  size_t buffer_size = num_joints * sizeof(char*);
+  // Computes name's buffer size.
+  size_t chars_size = 0;
   for (int i = 0; i < num_joints; ++i) {
     const RawSkeleton::Joint& current = *lister.linear_joints[i].joint;
-    buffer_size += (current.name.size() + 1) * sizeof(char);
+    chars_size += (current.name.size() + 1) * sizeof(char);
   }
-  skeleton->joint_names_ =
-    memory::default_allocator()->Allocate<char*>(buffer_size);
-  char* cursor = reinterpret_cast<char*>(skeleton->joint_names_ + num_joints);
+
+  // Allocates all skeleton members.
+  char* cursor = skeleton->Allocate(chars_size, num_joints);
+
+  // Copy names. All names are allocated in a single buffer. Only the first name
+  // is set, all other names array entries must be initialized.
   for (int i = 0; i < num_joints; ++i) {
     const RawSkeleton::Joint& current = *lister.linear_joints[i].joint;
     skeleton->joint_names_[i] = cursor;
@@ -120,28 +110,32 @@ Skeleton* SkeletonBuilder::operator()(const RawSkeleton& _raw_skeleton) const {
     cursor += (current.name.size() + 1) * sizeof(char);
   }
 
-  // Transfers t-poses.
-  skeleton->bind_pose_ =
-    memory::default_allocator()->Allocate<math::SoaTransform>(num_soa_joints);
+  // Transfers sorted joints hierarchy to the new skeleton.
+  for (int i = 0; i < num_joints; ++i) {
+    skeleton->joint_properties_[i].parent = lister.linear_joints[i].parent;
+    skeleton->joint_properties_[i].is_leaf =
+        lister.linear_joints[i].joint->children.empty();
+  }
 
+  // Transfers t-poses.
   const math::SimdFloat4 w_axis = math::simd_float4::w_axis();
   const math::SimdFloat4 zero = math::simd_float4::zero();
   const math::SimdFloat4 one = math::simd_float4::one();
 
-  for (int i = 0; i < num_soa_joints; ++i) {
+  for (int i = 0; i < skeleton->num_soa_joints(); ++i) {
     math::SimdFloat4 translations[4];
     math::SimdFloat4 scales[4];
     math::SimdFloat4 rotations[4];
     for (int j = 0; j < 4; ++j) {
       if (i * 4 + j < num_joints) {
         const RawSkeleton::Joint& src_joint =
-          *lister.linear_joints[i * 4 + j].joint;
+            *lister.linear_joints[i * 4 + j].joint;
         translations[j] =
-          math::simd_float4::Load3PtrU(&src_joint.transform.translation.x);
+            math::simd_float4::Load3PtrU(&src_joint.transform.translation.x);
         rotations[j] = math::NormalizeSafe4(
-          math::simd_float4::LoadPtrU(&src_joint.transform.rotation.x), w_axis);
-        scales[j] =
-          math::simd_float4::Load3PtrU(&src_joint.transform.scale.x);
+            math::simd_float4::LoadPtrU(&src_joint.transform.rotation.x),
+            w_axis);
+        scales[j] = math::simd_float4::Load3PtrU(&src_joint.transform.scale.x);
       } else {
         translations[j] = zero;
         rotations[j] = w_axis;

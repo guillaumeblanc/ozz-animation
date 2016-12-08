@@ -28,8 +28,13 @@
 #include "ozz/animation/runtime/animation.h"
 
 #include "ozz/base/io/archive.h"
+#include "ozz/base/log.h"
 #include "ozz/base/maths/math_archive.h"
+#include "ozz/base/maths/math_ex.h"
 #include "ozz/base/memory/allocator.h"
+
+#include <cassert>
+#include <cstring>
 
 // Internal include file
 #define OZZ_INCLUDE_PRIVATE_HEADER  // Allows to include private headers.
@@ -38,28 +43,62 @@
 namespace ozz {
 namespace animation {
 
-Animation::Animation()
-    : duration_(0.f),
-      num_tracks_(0) {
+Animation::Animation() : duration_(0.f), num_tracks_(0), name_(NULL) {}
+
+Animation::~Animation() { Deallocate(); }
+
+void Animation::Allocate(size_t name_len, size_t _translation_count,
+                         size_t _rotation_count, size_t _scale_count) {
+  // Distributes buffer memory while ensuring proper alignment (serves larger
+  // alignment values first).
+  OZZ_STATIC_ASSERT(OZZ_ALIGN_OF(TranslationKey) >= OZZ_ALIGN_OF(RotationKey) &&
+                    OZZ_ALIGN_OF(RotationKey) >= OZZ_ALIGN_OF(ScaleKey) &&
+                    OZZ_ALIGN_OF(ScaleKey) >= OZZ_ALIGN_OF(char));
+
+  assert(name_ == NULL && translations_.Size() == 0 && rotations_.Size() == 0 &&
+         scales_.Size() == 0);
+
+  // Compute overall size and allocate a single buffer for all the data.
+  const size_t buffer_size = (name_len > 0 ? name_len + 1 : 0) +
+                             _translation_count * sizeof(TranslationKey) +
+                             _rotation_count * sizeof(RotationKey) +
+                             _scale_count * sizeof(ScaleKey);
+  char* buffer = memory::default_allocator()->Allocate<char>(buffer_size);
+
+  // Fix up pointers
+  translations_.begin = reinterpret_cast<TranslationKey*>(buffer);
+  assert(math::IsAligned(translations_.begin, OZZ_ALIGN_OF(TranslationKey)));
+  buffer += _translation_count * sizeof(TranslationKey);
+  translations_.end = reinterpret_cast<TranslationKey*>(buffer);
+
+  rotations_.begin = reinterpret_cast<RotationKey*>(buffer);
+  assert(math::IsAligned(rotations_.begin, OZZ_ALIGN_OF(RotationKey)));
+  buffer += _rotation_count * sizeof(RotationKey);
+  rotations_.end = reinterpret_cast<RotationKey*>(buffer);
+
+  scales_.begin = reinterpret_cast<ScaleKey*>(buffer);
+  assert(math::IsAligned(scales_.begin, OZZ_ALIGN_OF(ScaleKey)));
+  buffer += _scale_count * sizeof(ScaleKey);
+  scales_.end = reinterpret_cast<ScaleKey*>(buffer);
+
+  // Let name be NULL if animation has no name. Allows to avoid allocating this
+  // buffer in the constructor of empty animations.
+  name_ = reinterpret_cast<char*>(name_len > 0 ? buffer : NULL);
+  assert(math::IsAligned(name_, OZZ_ALIGN_OF(char)));
 }
 
-Animation::~Animation() {
-  Destroy();
-}
+void Animation::Deallocate() {
+  memory::default_allocator()->Deallocate(translations_.begin);
 
-void Animation::Destroy() {
-  memory::Allocator* allocator = memory::default_allocator();
-  allocator->Deallocate(translations_);
-  allocator->Deallocate(rotations_);
-  allocator->Deallocate(scales_);
-
-  duration_ = 0.f;
-  num_tracks_ = 0;
+  name_ = NULL;
+  translations_ = ozz::Range<TranslationKey>();
+  rotations_ = ozz::Range<RotationKey>();
+  scales_ = ozz::Range<ScaleKey>();
 }
 
 size_t Animation::size() const {
   const size_t size =
-    sizeof(*this) + translations_.Size() + rotations_.Size() + scales_.Size();
+      sizeof(*this) + translations_.Size() + rotations_.Size() + scales_.Size();
   return size;
 }
 
@@ -67,8 +106,18 @@ void Animation::Save(ozz::io::OArchive& _archive) const {
   _archive << duration_;
   _archive << static_cast<int32_t>(num_tracks_);
 
+  const size_t name_len = name_ ? std::strlen(name_) : 0;
+  _archive << static_cast<int32_t>(name_len);
+
   const ptrdiff_t translation_count = translations_.Count();
   _archive << static_cast<int32_t>(translation_count);
+  const ptrdiff_t rotation_count = rotations_.Count();
+  _archive << static_cast<int32_t>(rotation_count);
+  const ptrdiff_t scale_count = scales_.Count();
+  _archive << static_cast<int32_t>(scale_count);
+
+  _archive << ozz::io::MakeArray(name_, name_len);
+
   for (ptrdiff_t i = 0; i < translation_count; ++i) {
     const TranslationKey& key = translations_.begin[i];
     _archive << key.time;
@@ -76,8 +125,6 @@ void Animation::Save(ozz::io::OArchive& _archive) const {
     _archive << ozz::io::MakeArray(key.value);
   }
 
-  const ptrdiff_t rotation_count = rotations_.Count();
-  _archive << static_cast<int32_t>(rotation_count);
   for (ptrdiff_t i = 0; i < rotation_count; ++i) {
     const RotationKey& key = rotations_.begin[i];
     _archive << key.time;
@@ -90,8 +137,6 @@ void Animation::Save(ozz::io::OArchive& _archive) const {
     _archive << ozz::io::MakeArray(key.value);
   }
 
-  const ptrdiff_t scale_count = scales_.Count();
-  _archive << static_cast<int32_t>(scale_count);
   for (ptrdiff_t i = 0; i < scale_count; ++i) {
     const ScaleKey& key = scales_.begin[i];
     _archive << key.time;
@@ -101,16 +146,17 @@ void Animation::Save(ozz::io::OArchive& _archive) const {
 }
 
 void Animation::Load(ozz::io::IArchive& _archive, uint32_t _version) {
-
   // Destroy animation in case it was already used before.
-  Destroy();
+  Deallocate();
+  duration_ = 0.f;
+  num_tracks_ = 0;
 
   // No retro-compatibility with anterior versions.
-  if (_version != 3) {
+  if (_version != 4) {
+    log::Err() << "Unsupported Animation version " << _version << "."
+               << std::endl;
     return;
   }
-
-  memory::Allocator* allocator = memory::default_allocator();
 
   _archive >> duration_;
 
@@ -118,18 +164,29 @@ void Animation::Load(ozz::io::IArchive& _archive, uint32_t _version) {
   _archive >> num_tracks;
   num_tracks_ = num_tracks;
 
+  int32_t name_len;
+  _archive >> name_len;
   int32_t translation_count;
   _archive >> translation_count;
-  translations_ = allocator->AllocateRange<TranslationKey>(translation_count);
+  int32_t rotation_count;
+  _archive >> rotation_count;
+  int32_t scale_count;
+  _archive >> scale_count;
+
+  Allocate(name_len, translation_count, rotation_count, scale_count);
+
+  if (name_) {  // NULL name_ is supported.
+    _archive >> ozz::io::MakeArray(name_, name_len);
+    name_[name_len] = 0;
+  }
+
   for (int i = 0; i < translation_count; ++i) {
     TranslationKey& key = translations_.begin[i];
     _archive >> key.time;
     _archive >> key.track;
     _archive >> ozz::io::MakeArray(key.value);
   }
-  int32_t rotation_count;
-  _archive >> rotation_count;
-  rotations_ = allocator->AllocateRange<RotationKey>(rotation_count);
+
   for (int i = 0; i < rotation_count; ++i) {
     RotationKey& key = rotations_.begin[i];
     _archive >> key.time;
@@ -144,9 +201,7 @@ void Animation::Load(ozz::io::IArchive& _archive, uint32_t _version) {
     key.sign = sign & 1;
     _archive >> ozz::io::MakeArray(key.value);
   }
-  int32_t scale_count;
-  _archive >> scale_count;
-  scales_ = allocator->AllocateRange<ScaleKey>(scale_count);
+
   for (int i = 0; i < scale_count; ++i) {
     ScaleKey& key = scales_.begin[i];
     _archive >> key.time;

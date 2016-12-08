@@ -28,8 +28,8 @@
 #ifndef OZZ_TEST_BASE_IO_ARCHIVE_TESTS_OBJECTS_H_
 #define OZZ_TEST_BASE_IO_ARCHIVE_TESTS_OBJECTS_H_
 
-#include "ozz/base/platform.h"
 #include "ozz/base/io/archive_traits.h"
+#include "ozz/base/platform.h"
 
 namespace ozz {
 namespace io {
@@ -39,9 +39,7 @@ class IArchive;
 }  // ozz
 
 struct Intrusive {
-  explicit Intrusive(int32_t _i = 12) :
-    i(_i) {
-  }
+  explicit Intrusive(int32_t _i = 12) : i(_i) {}
   void Save(ozz::io::OArchive& _archive) const;
   void Load(ozz::io::IArchive& _archive, uint32_t _version);
   int32_t i;
@@ -63,9 +61,7 @@ OZZ_IO_TYPE_NOT_VERSIONABLE(Extrusive)
 template <>
 void Save(OArchive& _archive, const Extrusive* _test, size_t _count);
 template <>
-void Load(IArchive& _archive,
-          Extrusive* _test,
-          size_t _count,
+void Load(IArchive& _archive, Extrusive* _test, size_t _count,
           uint32_t _version);
 }  // ozz
 }  // io

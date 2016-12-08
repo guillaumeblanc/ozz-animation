@@ -23,3 +23,14 @@ target_link_libraries(test_platform
   gtest)
 add_test(NAME test_platform COMMAND test_platform)
 set_target_properties(test_platform PROPERTIES FOLDER "ozz/tests/base")
+
+# ozz_base fuse tests
+add_executable(test_fuse_base
+  log_tests.cc
+  platform_tests.cc
+  ${CMAKE_SOURCE_DIR}/src_fused/ozz_base.cc)
+add_dependencies(test_fuse_base BUILD_FUSE_ozz_base)
+target_link_libraries(test_fuse_base
+  gtest)
+add_test(NAME test_fuse_base COMMAND test_fuse_base)
+set_target_properties(test_fuse_base PROPERTIES FOLDER "ozz/tests/base")
