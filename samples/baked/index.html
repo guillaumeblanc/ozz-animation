@@ -27,16 +27,18 @@
           <a class="w3-btn w3-small w3-white w3-border w3-border-blue w3-round" href="https://twitter.com/jozz_sc">Follow @jozz_sc <img src="https://upload.wikimedia.org/wikipedia/en/9/9f/Twitter_bird_logo_2012.svg" width="20" height="20"></a>
         </div>
       </div>
-    </div>
+    </header>
     <div class="w3-container w3-center"> 
       <div class="w3-row">
         <p id="sample_status">Initializing WebGL</p>
       </div>
     </div>
-    <div class="w3-container w3-center"> 
+    <div class="w3-container w3-center" > 
       <div id="sample_border" class="w3-row">
         <div class="w3-display-container">
-          <canvas id="sample_canvas" class="w3-round w3-black" oncontextmenu="event.preventDefault()"></canvas>
+          <div style="font-size:0; line-height:0;">
+            <canvas id="sample_canvas" class="w3-round w3-black" oncontextmenu="event.preventDefault()"></canvas>
+          </div> 
           <div>
             <input id="full_screen" type="button" class="w3-btn w3-display-bottomright w3-tiny w3-white w3-border w3-border-blue w3-round" value="Fullscreen" onclick="Module.requestFullscreen(false, true)">
           </div>
