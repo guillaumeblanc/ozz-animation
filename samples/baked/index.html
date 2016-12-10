@@ -4,8 +4,8 @@
     <title>ozz-animation sample</title>
     <style>
       canvas {
-        width: 96vw;
-        height: 54vw;  // 16/9 aspect ratio
+        width: 100%;
+        height: 100%;  // 16/9 aspect ratio
       }
     </style>
     <link rel="stylesheet" href="http://www.w3schools.com/lib/w3.css">
@@ -27,10 +27,17 @@
           <a class="w3-btn w3-white w3-border w3-border-blue w3-round" href="https://twitter.com/jozz_sc">Follow @jozz_sc <img src="https://upload.wikimedia.org/wikipedia/en/9/9f/Twitter_bird_logo_2012.svg" width="24" height="24"></a>
         </div>
       </div>
-      <div id="sample_border" class="w3-border-0">
+        <span><input type="button" value="Fullscreen" onclick="Module.requestFullscreen(false, true)">
+  </span>
+
+      <div id="sample_border">
         <p id="sample_status">Initializing WebGL</p>
-        <div><canvas id="sample_canvas" class="w3-round w3-black" oncontextmenu="event.preventDefault()"></canvas></div>
-        <textarea id="sample_output" class="w3-light-grey w3-round" rows="8" style="width:100%;"></textarea>
+        <div>
+          <canvas id="sample_canvas" class="w3-round w3-black" oncontextmenu="event.preventDefault()"></canvas>
+        </div>
+        <div>
+          <textarea id="sample_output" class="w3-light-grey w3-round" rows="8" style="width:100%;"></textarea>
+        </div>
       </div>
     </div>
     <script>
@@ -43,7 +50,7 @@
 
       function CanvasResize() {
         sample_canvas.width = sample_canvas.clientWidth;
-        sample_canvas.height = sample_canvas.clientWidth * 9 / 16;
+        sample_canvas.height = sample_canvas.clientWidth * 10 / 16;
       }
 
       function CheckWebGLSupport(canvas) {
