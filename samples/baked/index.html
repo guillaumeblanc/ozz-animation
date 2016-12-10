@@ -9,13 +9,13 @@
       }
     </style>
     <link rel="stylesheet" href="http://www.w3schools.com/lib/w3.css">
-    <meta name="viewport" content="width=device-width">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <!--[if lt IE 9]>
     <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
   </head>
   <body>
-    <div class="w3-container w3-center">
+    <header class="w3-container w3-center">
       <div class="w3-row">
         <div class="w3-half">
           <img src="https://raw.githubusercontent.com/guillaumeblanc/ozz-animation/master/media/icon/ozz-grey-256.png" width="196" height="196">
@@ -23,20 +23,26 @@
         <div class="w3-half">
           <h1>ozz-animation</h1>
           <p>Open source c++ skeletal animation engine and tools</p>
-          <a class="w3-btn w3-white w3-border w3-border-blue w3-round" href="https://github.com/guillaumeblanc/ozz-animation">View on GitHub<img src="https://assets-cdn.github.com/images/modules/logos_page/GitHub-Mark.png" width="24" height="24"></a>
-          <a class="w3-btn w3-white w3-border w3-border-blue w3-round" href="https://twitter.com/jozz_sc">Follow @jozz_sc <img src="https://upload.wikimedia.org/wikipedia/en/9/9f/Twitter_bird_logo_2012.svg" width="24" height="24"></a>
+          <a class="w3-btn w3-small w3-white w3-border w3-border-blue w3-round" href="https://github.com/guillaumeblanc/ozz-animation">View on GitHub<img src="https://assets-cdn.github.com/images/modules/logos_page/GitHub-Mark.png" width="20" height="20"></a>
+          <a class="w3-btn w3-small w3-white w3-border w3-border-blue w3-round" href="https://twitter.com/jozz_sc">Follow @jozz_sc <img src="https://upload.wikimedia.org/wikipedia/en/9/9f/Twitter_bird_logo_2012.svg" width="20" height="20"></a>
         </div>
       </div>
-        <span><input type="button" value="Fullscreen" onclick="Module.requestFullscreen(false, true)">
-  </span>
-
-      <div id="sample_border">
+    </div>
+    <div class="w3-container w3-center"> 
+      <div class="w3-row">
         <p id="sample_status">Initializing WebGL</p>
-        <div>
+      </div>
+    </div>
+    <div class="w3-container w3-center"> 
+      <div id="sample_border" class="w3-row">
+        <div class="w3-display-container">
           <canvas id="sample_canvas" class="w3-round w3-black" oncontextmenu="event.preventDefault()"></canvas>
+          <div>
+            <input type="button" class="w3-btn w3-display-bottomright w3-tiny w3-white w3-border w3-border-blue w3-round" value="Fullscreen" onclick="Module.requestFullscreen(false, true)">
+          </div>
         </div>
         <div>
-          <textarea id="sample_output" class="w3-light-grey w3-round" rows="8" style="width:100%;"></textarea>
+          <textarea id="sample_output" class="w3-light-grey w3-round" rows="6" style="width:100%;"></textarea>
         </div>
       </div>
     </div>
@@ -50,7 +56,7 @@
 
       function CanvasResize() {
         sample_canvas.width = sample_canvas.clientWidth;
-        sample_canvas.height = sample_canvas.clientWidth * 10 / 16;
+        sample_canvas.height = sample_canvas.clientWidth * 9 / 16;
       }
 
       function CheckWebGLSupport(canvas) {
@@ -72,7 +78,7 @@
       }
 
       function OnSampleSuccess() {
-        sample_status.innerHTML = "ozz-animation sample compiled from c++ with emscripten.";
+        sample_status.innerHTML = "ozz-animation c++ sample compiled for the web (js) with emscripten.";
         // Initialize canvas size
         CanvasResize();
       }
