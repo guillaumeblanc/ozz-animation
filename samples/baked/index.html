@@ -30,6 +30,7 @@
     </header>
     <div class="w3-container w3-center"> 
       <div class="w3-row">
+        <p>This samples shows a physic simulation baked into an animation. This scene contains more than 1000 cuboids. See <a href="https://github.com/guillaumeblanc/ozz-animation/blob/master/samples/baked/README.md">README.md</a> for all details.</p>
         <p id="sample_status">Initializing WebGL</p>
       </div>
     </div>
@@ -40,7 +41,7 @@
             <canvas id="sample_canvas" class="w3-round w3-black" oncontextmenu="event.preventDefault()"></canvas>
           </div> 
           <div>
-            <input id="full_screen" type="button" class="w3-btn w3-display-bottomright w3-tiny w3-white w3-border w3-border-blue w3-round" value="Fullscreen" onclick="Module.requestFullscreen(false, true)">
+            <input id="full_screen" type="button" class="w3-btn w3-display-bottomright w3-tiny w3-white w3-border w3-border-grey w3-round" value="Fullscreen" onclick="Module.requestFullscreen(false, true)">
           </div>
         </div>
         <div>
@@ -85,7 +86,7 @@
 
       function OnSampleSuccess() {
         full_screen.style.display = "inline";
-        sample_status.innerHTML = "ozz-animation c++ sample compiled for the web (js) with emscripten.";
+        sample_status.innerHTML = "ozz-animation c++ sample compiled to javascript/webgl with emscripten.";
         // Initialize canvas size
         CanvasResize();
       }
