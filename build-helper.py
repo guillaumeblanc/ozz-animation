@@ -34,6 +34,7 @@ import shutil
 import sys
 import os
 import re
+import platform
 from functools import partial
 
 
@@ -118,7 +119,11 @@ def ConfigureCC():
   options += ['-D', 'CMAKE_BUILD_TYPE=' + config]
   options += ['-D', 'CMAKE_TOOLCHAIN_FILE=' + emscripten_path + '/cmake/Modules/Platform/Emscripten.cmake']
 
-  options += ['-G', 'MinGW Makefiles']
+  if(platform.system() == 'Windows'):
+    options += ['-G', 'MinGW Makefiles']
+  else:
+    options += ['-G', 'Unix Makefiles']
+
   options += [root]
   config_process = subprocess.Popen(options, cwd=build_dir_cc)
   config_process.wait()
