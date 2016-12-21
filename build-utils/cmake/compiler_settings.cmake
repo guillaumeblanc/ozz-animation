@@ -117,6 +117,9 @@ else()
   # Enable extra level of warning
   #set_property(DIRECTORY APPEND PROPERTY COMPILE_OPTIONS "-Wextra")
 
+  # Template arguments cannot have the aligned attributes
+  set_property(DIRECTORY APPEND PROPERTY COMPILE_OPTIONS "-Wno-ignored-attributes")
+  
   # Set warning as error
   set_property(DIRECTORY APPEND PROPERTY COMPILE_OPTIONS "-Werror")
 
