@@ -1474,9 +1474,9 @@ bool RendererImpl::DrawSkinnedMesh(
   return true;
 }
 
+// clang-format off
 // Helper macro used to initialize extension function pointer.
 #define OZZ_INIT_GL_EXT(_fct, _fct_type, _success)                        \
-  \
 do {                                                                      \
     _fct = reinterpret_cast<_fct_type>(glfwGetProcAddress(#_fct));        \
     if (_fct == NULL) {                                                   \
@@ -1484,8 +1484,8 @@ do {                                                                      \
       _success &= false;                                                  \
     }                                                                     \
   \
-}                                                                    \
-  while (void(0), 0)
+} while (void(0), 0)
+// clang-format on
 
 bool RendererImpl::InitOpenGLExtensions() {
   bool optional_success = true;

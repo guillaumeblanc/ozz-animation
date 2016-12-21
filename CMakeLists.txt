@@ -9,17 +9,28 @@ set(CPACK_PACKAGE_VERSION_MINOR 9)
 set(CPACK_PACKAGE_VERSION_PATCH 0)
 
 # Add project build options
-set(ozz_build_fbx ON CACHE BOOL "Build Fbx pipeline (Requires Fbx SDK)")
-set(ozz_build_samples ON CACHE BOOL "Build samples")
-set(ozz_build_howtos ON CACHE BOOL "Build howtos")
-set(ozz_build_tests ON CACHE BOOL "Build unit tests")
-set(ozz_build_simd_ref OFF CACHE BOOL "Forces SIMD math reference implementation")
-set(ozz_build_cpp11 OFF CACHE BOOL "Enable c++11")
-set(ozz_build_coverage OFF CACHE BOOL "Enable gcov code coverage")
+option(ozz_build_fbx "Build Fbx pipeline (Requires Fbx SDK)" ON)
+option(ozz_build_samples "Build samples" ON)
+option(ozz_build_howtos "Build howtos" ON)
+option(ozz_build_tests "Build unit tests" OFF)
+option(ozz_build_simd_ref "Forces SIMD math reference implementation" OFF)
+option(ozz_build_cpp11 "Enable c++11" OFF)
+option(ozz_build_coverage "Enable gcov build coverage" OFF)
+
+# Outputs selected options (can be modified by the command line)
+message("-- ---------------------------------------------------------")
+message("-- Selected options:")
+message("-- - ozz_build_fbx: " ${ozz_build_fbx})
+message("-- - ozz_build_samples: " ${ozz_build_samples})
+message("-- - ozz_build_howtos: " ${ozz_build_howtos})
+message("-- - ozz_build_tests: " ${ozz_build_tests})
+message("-- - ozz_build_simd_ref: " ${ozz_build_simd_ref})
+message("-- - ozz_build_cpp11: " ${ozz_build_cpp11})
+message("-- - ozz_build_coverage: " ${ozz_build_coverage})
 
 # Add project execution options
-set(ozz_run_tests_headless ON CACHE BOOL "Run samples without rendering (used for unit tests)")
-set(ozz_sample_testing_loops "20" CACHE INT "Number of loops while running sample tests (used for unit tests)")
+option(ozz_run_tests_headless "Run samples without rendering (used for unit tests)" ON)
+set(ozz_sample_testing_loops 20 CACHE INT "Number of loops while running sample tests (used for unit tests)")
 
 # Include ozz cmake parameters and scripts
 include(build-utils/cmake/compiler_settings.cmake)
@@ -59,10 +70,16 @@ include_directories(include)
 add_subdirectory(src)
 
 # Continues with howtos
-add_subdirectory(howtos)
+if(ozz_build_howtos AND NOT EMSCRIPTEN)
+  add_subdirectory(howtos)
+endif()
 
 # Continues with samples
-add_subdirectory(samples)
+if(ozz_build_samples)
+  add_subdirectory(samples)
+endif()
 
 # Continues with the tests tree
-add_subdirectory(test)
+if(ozz_build_tests AND NOT EMSCRIPTEN)
+  add_subdirectory(test)
+endif()

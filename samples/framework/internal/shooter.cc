@@ -43,7 +43,12 @@ Shooter::Shooter()
       image_format_(image::Format::kRGBA),
       shot_number_(0) {
   // Test required extension (optional for the framework).
-  supported_ = glMapBuffer != NULL && glUnmapBuffer != NULL;
+  // If GL_VERSION_1_5 is defined (aka OZZ_GL_VERSION_1_5_EXT not defined), then
+  // these functions are part of the library (don't need extensions).
+  supported_ = true;
+#ifdef OZZ_GL_VERSION_1_5_EXT
+  supported_ &= glMapBuffer != NULL && glUnmapBuffer != NULL;
+#endif  // OZZ_GL_VERSION_1_5_EXT
 
   // Initializes shots
   GLuint pbos[kNumShots];
