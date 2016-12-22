@@ -641,7 +641,6 @@ bool RemapIndices(ozz::sample::Mesh* _skinned_mesh) {
   std::sort(local_indices.begin(), local_indices.end());
   local_indices.erase(std::unique(local_indices.begin(), local_indices.end()),
                       local_indices.end());
-  const size_t num_unique_joints = local_indices.size();
 
   // Build mapping table of mesh original joints to the new ones. Unused joints
   // are set to 0.
