@@ -660,8 +660,6 @@ bool RemapIndices(ozz::sample::Mesh* _skinned_mesh) {
   // Builds joint mapping for the mesh.
   _skinned_mesh->joint_remaps = local_indices;
 
-  assert(std::is_sorted(local_indices.cbegin(), local_indices.cend()));
-
   // Remaps bind poses and removes unused joints.
   for (size_t i = 0; i < local_indices.size(); ++i) {
     _skinned_mesh->inverse_bind_poses[i] =
