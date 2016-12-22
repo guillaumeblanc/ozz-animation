@@ -591,14 +591,14 @@ bool LimitInfluences(ozz::sample::Mesh& _skinned_mesh, int _limit) {
 
   ozz::sample::Mesh::Part& in_part = _skinned_mesh.parts.front();
 
-  // Check if it's actualluy needed to limit the number of influences.
+  // Check if it's actually needed to limit the number of influences.
   const int max_influences = in_part.influences_count();
   assert(max_influences > 0);
   if (max_influences <= _limit) {
     return true;
   }
 
-  // Iterate all vertices to remove unwanted weights and renormalize.
+  // Iterate all vertices to remove unwanted weights and renormalizes.
   // Note that weights are already sorted, so the last ones are the less
   // influencing.
   const size_t vertex_count = in_part.vertex_count();
@@ -610,7 +610,7 @@ bool LimitInfluences(ozz::sample::Mesh& _skinned_mesh, int _limit) {
       in_part.joint_weights[offset + j] =
           in_part.joint_weights[i * max_influences + j];
     }
-    // Renormalize weights.
+    // Renormalizes weights.
     float sum = 0.f;
     for (int j = 0; j < _limit; ++j) {
       sum += in_part.joint_weights[offset + j];
@@ -628,17 +628,13 @@ bool LimitInfluences(ozz::sample::Mesh& _skinned_mesh, int _limit) {
 
 // Finds used joints and remaps joint indices to the minimal range.
 // The mesh might not use all skeleton joints, so this function remaps joint
-// indices to the subset of used joints. It also reoders inverse bin pose
+// indices to the subset of used joints. It also reorders inverse bin pose
 // matrices.
 bool RemapIndices(ozz::sample::Mesh* _skinned_mesh) {
   assert(_skinned_mesh->parts.size() == 1);
 
   ozz::sample::Mesh::Part& in_part = _skinned_mesh->parts.front();
-  const size_t vertex_count = in_part.vertex_count();
-
-  // Creates one mesh part per influence.
-  const int max_influences = in_part.influences_count();
-  assert(max_influences > 0);
+  assert(in_part.influences_count() > 0);
 
   // Collects all unique indices.
   ozz::sample::Mesh::Part::JointIndices local_indices = in_part.joint_indices;
