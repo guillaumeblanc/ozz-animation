@@ -363,6 +363,7 @@ def main():
     print("")
     print("Selected build configuration: %s") % config
     print("Selected generator: %s") % generator
+    print("Testing enabled: %s") % enable_testing
     print("")
     print("Choose an option:")
     print("------------------")
