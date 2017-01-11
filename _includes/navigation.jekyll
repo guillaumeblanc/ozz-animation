@@ -7,7 +7,10 @@
     </li>
     <li class="w3-hide-medium w3-hide-small"><a class="w3-hover-white w3-padding-16" href="{{site.baseurl}}/">Home</a></li>
     {% for collection in site.collections %}
-      <li class="w3-hide-medium w3-hide-small"><a class="w3-hover-white w3-padding-16" href="{{site.baseurl}}/{{collection[1].label}}/" onclick="w3_show_nav('{{collection[1].label}}')">{{collection[1].display_name}}</a></li>
+      {% if collection.label == 'posts' %}
+        {% continue %}
+      {% endif %}
+      <li class="w3-hide-medium w3-hide-small"><a class="w3-hover-white w3-padding-16" href="{{site.baseurl}}/{{collection.label}}/" onclick="w3_show_nav('{{collection.label}}')">{{collection.display_name}}</a></li>
     {% endfor %}
   </ul>
 </div>
@@ -23,10 +26,13 @@
   <div class="w3-clear"></div>
 
   {% for collection in site.collections %}
+    {% if collection.label == 'posts' %}
+      {% continue %}
+    {% endif %}
     <div class="myMenu w3-padding-top">
-      <a href="{{site.baseurl}}/{{collection[1].label}}/" onclick="w3_show_nav('{{collection[1].label}}')" class="w3-left w3-theme w3-hover-white w3-padding-16 w3-large w3-hide-large" style="width:100%">{{collection[1].display_name}}</a>
+      <a href="{{site.baseurl}}/{{collection.label}}/" onclick="w3_show_nav('{{collection.label}}')" class="w3-left w3-theme w3-hover-white w3-padding-16 w3-large w3-hide-large" style="width:100%">{{collection.display_name}}</a>
       <div class="w3-container">
-        {% assign collection_id = collection[1].label %}
+        {% assign collection_id = collection.label %}
         {% if {{collection_id}} == {{page.collection}} %}
           {% assign pages = site[{{collection_id}}] | sort:"order" %}
           {% for page in pages %}
@@ -54,7 +60,7 @@
   function w3_show_nav(name) {
 
       {% for collection in site.collections %}
-        document.getElementById('{{collection[1].label}}').style.display = "none";
+        document.getElementById('{{collection.label}}').style.display = "none";
       {% endfor %}
 
       document.getElementById(name).style.display = "block";
