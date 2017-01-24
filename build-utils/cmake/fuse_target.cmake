@@ -4,7 +4,7 @@
 function(fuse_target _target_name)
 
   set(output_file_name "${_target_name}.cc")
-  set(output_file "${CMAKE_SOURCE_DIR}/src_fused/${output_file_name}")
+  set(output_file "${ozz_root_dir}/src_fused/${output_file_name}")
 
   # Get all target sources.
   get_property(target_source_files TARGET ${_target_name} PROPERTY SOURCES)
@@ -12,8 +12,8 @@ function(fuse_target _target_name)
   add_custom_command(
     OUTPUT "${output_file}"
     DEPENDS "${target_source_files}"
-            "${CMAKE_SOURCE_DIR}/build-utils/cmake/fuse_target_script.cmake"
-    COMMAND ${CMAKE_COMMAND} -Dozz_fuse_output_file="${output_file}" -Dozz_target_source_files="${target_source_files}" -Dozz_fuse_target_dir="${CMAKE_CURRENT_LIST_DIR}" -Dozz_fuse_src_dir="${CMAKE_SOURCE_DIR}" -P "${CMAKE_SOURCE_DIR}/build-utils/cmake/fuse_target_script.cmake")
+            "${ozz_root_dir}/build-utils/cmake/fuse_target_script.cmake"
+    COMMAND ${CMAKE_COMMAND} -Dozz_fuse_output_file="${output_file}" -Dozz_target_source_files="${target_source_files}" -Dozz_fuse_target_dir="${CMAKE_CURRENT_LIST_DIR}" -Dozz_fuse_src_dir="${ozz_root_dir}" -P "${ozz_root_dir}/build-utils/cmake/fuse_target_script.cmake")
 
   add_custom_target(BUILD_FUSE_${_target_name} ALL DEPENDS "${output_file}")
   set_target_properties(BUILD_FUSE_${_target_name} PROPERTIES FOLDER "ozz/fuse")
