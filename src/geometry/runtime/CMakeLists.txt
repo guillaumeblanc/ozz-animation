@@ -1,4 +1,4 @@
-add_library(ozz_geometry
+add_library(ozz_geometry STATIC
   ${ozz_root_dir}/include/ozz/geometry/runtime/skinning_job.h
   skinning_job.cc)
 set_target_properties(ozz_geometry

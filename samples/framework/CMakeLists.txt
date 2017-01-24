@@ -1,6 +1,6 @@
 include_directories(${ozz_root_dir}/extern/glfw/include)
 
-add_library(sample_framework
+add_library(sample_framework STATIC
   application.h
   application.cc
   imgui.h

@@ -1,4 +1,4 @@
-add_library(ozz_animation
+add_library(ozz_animation STATIC
   ${ozz_root_dir}/include/ozz/animation/runtime/animation.h
   animation.cc
   animation_keyframe.h

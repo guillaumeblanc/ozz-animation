@@ -4,7 +4,7 @@ endif()
 
 include_directories(${FBX_INCLUDE_DIRS})
 
-add_library(ozz_animation_fbx
+add_library(ozz_animation_fbx STATIC
   ${ozz_root_dir}/include/ozz/animation/offline/fbx/fbx.h
   fbx.cc
   fbx_animation.h

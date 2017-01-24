@@ -3,7 +3,7 @@ include_directories(lib)
 # Buils Win32 specific files and options
 if(WIN32)
   include_directories(lib/win32)
-  set(specific_file_list 
+  set(specific_file_list
     lib/win32/platform.h
     lib/win32/win32_dllmain.c
     lib/win32/win32_enable.c
@@ -22,7 +22,7 @@ if(UNIX AND NOT APPLE)
   if(X11_FOUND)
     include_directories(lib/x11)
     include_directories(${X11_INCLUDE_DIR})
-    set(specific_file_list 
+    set(specific_file_list
       lib/x11/platform.h
       lib/x11/x11_enable.c
       lib/x11/x11_fullscreen.c
@@ -54,11 +54,11 @@ if(UNIX AND APPLE)
     lib/cocoa/cocoa_window.m)
   # Treats .m files as C files.
   set_source_files_properties(${specific_objc_file_list} PROPERTIES LANGUAGE C)
-  
+
   # Disables warnings in glfw.
   set_source_files_properties(${specific_objc_file_list} PROPERTIES COMPILE_FLAGS
     "-Wno-deprecated-declarations -Wno-incompatible-pointer-types -Wno-implicit-function-declaration -Wno-int-conversion")
-  
+
   # Appends other c files
   set(specific_file_list
     ${specific_objc_file_list}
@@ -66,7 +66,7 @@ if(UNIX AND APPLE)
     lib/cocoa/platform.h)
 endif()
 
-add_library(glfw
+add_library(glfw STATIC
   include/GL/glfw.h
   include/GL/glext.h
   lib/enable.c
