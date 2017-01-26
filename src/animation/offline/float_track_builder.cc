@@ -44,17 +44,17 @@ void PatchBeginEndKeys(const RawFloatTrack& _input,
                        RawFloatTrack::Keyframes* keyframes) {
   if (_input.keyframes.empty()) {
     const RawFloatTrack::Keyframe begin = {
-        RawFloatTrack::Interpolation::kLinear, 0.f, 0.f};
+        RawFloatTrack::kLinear, 0.f, 0.f};
     keyframes->push_back(begin);
-    const RawFloatTrack::Keyframe end = {RawFloatTrack::Interpolation::kLinear,
+    const RawFloatTrack::Keyframe end = {RawFloatTrack::kLinear,
                                          _input.duration, 0.f};
     keyframes->push_back(end);
   } else if (_input.keyframes.size() == 1) {
     const RawFloatTrack::Keyframe& src_key = _input.keyframes.front();
     const RawFloatTrack::Keyframe begin = {
-        RawFloatTrack::Interpolation::kLinear, 0.f, src_key.value};
+        RawFloatTrack::kLinear, 0.f, src_key.value};
     keyframes->push_back(begin);
-    const RawFloatTrack::Keyframe end = {RawFloatTrack::Interpolation::kLinear,
+    const RawFloatTrack::Keyframe end = {RawFloatTrack::kLinear,
                                          _input.duration, src_key.value};
     keyframes->push_back(end);
   } else {
@@ -62,7 +62,7 @@ void PatchBeginEndKeys(const RawFloatTrack& _input,
     if (_input.keyframes.front().time != 0.f) {
       const RawFloatTrack::Keyframe& src_key = _input.keyframes.front();
       const RawFloatTrack::Keyframe begin = {
-          RawFloatTrack::Interpolation::kLinear, 0.f, src_key.value};
+          RawFloatTrack::kLinear, 0.f, src_key.value};
       keyframes->push_back(begin);
     }
     for (size_t i = 0; i < _input.keyframes.size(); ++i) {
@@ -71,7 +71,7 @@ void PatchBeginEndKeys(const RawFloatTrack& _input,
     if (_input.keyframes.back().time != _input.duration) {
       const RawFloatTrack::Keyframe& src_key = _input.keyframes.back();
       const RawFloatTrack::Keyframe end = {
-          RawFloatTrack::Interpolation::kLinear, _input.duration,
+          RawFloatTrack::kLinear, _input.duration,
           src_key.value};
       keyframes->push_back(end);
     }
@@ -89,23 +89,23 @@ void Linearize(RawFloatTrack::Keyframes* keyframes) {
        it != keyframes->end() - 1; ++it) {
     const RawFloatTrack::Keyframe& src_key = *it;
 
-    if (src_key.interpolation == RawFloatTrack::Interpolation::kStep) {
+    if (src_key.interpolation == RawFloatTrack::kStep) {
       // Pick a time right before the next key frame.
       const RawFloatTrack::Keyframe& src_next_key = *(it + 1);
       const float new_key_time =
           std::nextafter(src_next_key.time, std::numeric_limits<float>::min());
 
       const RawFloatTrack::Keyframe new_key = {
-          RawFloatTrack::Interpolation::kLinear, new_key_time, src_key.value};
+          RawFloatTrack::kLinear, new_key_time, src_key.value};
 
       it = keyframes->insert(it + 1, new_key);
     } else {
-      assert(src_key.interpolation == RawFloatTrack::Interpolation::kLinear);
+      assert(src_key.interpolation == RawFloatTrack::kLinear);
     }
   }
 
   // Patch last key as its interpolation mode has no impact.
-  keyframes->back().interpolation = RawFloatTrack::Interpolation::kLinear;
+  keyframes->back().interpolation = RawFloatTrack::kLinear;
 }
 }  // namespace
 

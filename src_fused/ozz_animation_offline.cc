@@ -1607,7 +1607,76 @@ bool RawFloatTrack::Validate() const {
 namespace ozz {
 namespace animation {
 namespace offline {
-namespace {}  // namespace
+
+namespace {
+void PatchBeginEndKeys(const RawFloatTrack& _input,
+                       RawFloatTrack::Keyframes* keyframes) {
+  if (_input.keyframes.empty()) {
+    const RawFloatTrack::Keyframe begin = {
+        RawFloatTrack::kLinear, 0.f, 0.f};
+    keyframes->push_back(begin);
+    const RawFloatTrack::Keyframe end = {RawFloatTrack::kLinear,
+                                         _input.duration, 0.f};
+    keyframes->push_back(end);
+  } else if (_input.keyframes.size() == 1) {
+    const RawFloatTrack::Keyframe& src_key = _input.keyframes.front();
+    const RawFloatTrack::Keyframe begin = {
+        RawFloatTrack::kLinear, 0.f, src_key.value};
+    keyframes->push_back(begin);
+    const RawFloatTrack::Keyframe end = {RawFloatTrack::kLinear,
+                                         _input.duration, src_key.value};
+    keyframes->push_back(end);
+  } else {
+    // Copy all source data.
+    if (_input.keyframes.front().time != 0.f) {
+      const RawFloatTrack::Keyframe& src_key = _input.keyframes.front();
+      const RawFloatTrack::Keyframe begin = {
+          RawFloatTrack::kLinear, 0.f, src_key.value};
+      keyframes->push_back(begin);
+    }
+    for (size_t i = 0; i < _input.keyframes.size(); ++i) {
+      keyframes->push_back(_input.keyframes[i]);
+    }
+    if (_input.keyframes.back().time != _input.duration) {
+      const RawFloatTrack::Keyframe& src_key = _input.keyframes.back();
+      const RawFloatTrack::Keyframe end = {
+          RawFloatTrack::kLinear, _input.duration,
+          src_key.value};
+      keyframes->push_back(end);
+    }
+  }
+}
+
+void Linearize(RawFloatTrack::Keyframes* keyframes) {
+  assert(keyframes->size() >= 2);
+
+  // Loop through kStep keys and create an extra key right before the next
+  // "official" one such that interpolating this two keys will simulate a kStep
+  // behavior.
+  // Note that interpolation mode of the last key has no impact.
+  for (RawFloatTrack::Keyframes::iterator it = keyframes->begin();
+       it != keyframes->end() - 1; ++it) {
+    const RawFloatTrack::Keyframe& src_key = *it;
+
+    if (src_key.interpolation == RawFloatTrack::kStep) {
+      // Pick a time right before the next key frame.
+      const RawFloatTrack::Keyframe& src_next_key = *(it + 1);
+      const float new_key_time =
+          std::nextafter(src_next_key.time, std::numeric_limits<float>::min());
+
+      const RawFloatTrack::Keyframe new_key = {
+          RawFloatTrack::kLinear, new_key_time, src_key.value};
+
+      it = keyframes->insert(it + 1, new_key);
+    } else {
+      assert(src_key.interpolation == RawFloatTrack::kLinear);
+    }
+  }
+
+  // Patch last key as its interpolation mode has no impact.
+  keyframes->back().interpolation = RawFloatTrack::kLinear;
+}
+}  // namespace
 
 // Ensures _input's validity and allocates _animation.
 // An animation needs to have at least two key frames per joint, the first at
@@ -1629,45 +1698,15 @@ FloatTrack* FloatTrackBuilder::operator()(const RawFloatTrack& _input) const {
   assert(duration > 0.f);  // This case is handled by Validate().
 
   // Copy data to temporary prepared data structure
-  ozz::Vector<RawFloatTrack::Keyframe>::Std keyframes;
-  keyframes.reserve(_input.keyframes.size() +
-                    2);  // Guessing a worst size to avoid realloc.
+  RawFloatTrack::Keyframes keyframes;
+  // Guessing a worst size to avoid realloc.
+  const size_t worst_size =
+      _input.keyframes.size() * 2 +  // * 2 in case all keys are kStep
+      2;                             // + 2 for first and last keys
+  keyframes.reserve(worst_size);
 
-  // Manages empty source.
-  if (_input.keyframes.empty()) {
-    const RawFloatTrack::Keyframe begin = {
-        RawFloatTrack::Interpolation::kLinear, 0.f, 0.f};
-    keyframes.push_back(begin);
-    const RawFloatTrack::Keyframe end = {RawFloatTrack::Interpolation::kLinear,
-                                         _input.duration, 0.f};
-    keyframes.push_back(end);
-  } else if (_input.keyframes.size() == 1) {
-    const RawFloatTrack::Keyframe& src_key = _input.keyframes.front();
-    const RawFloatTrack::Keyframe begin = {
-        RawFloatTrack::Interpolation::kLinear, 0.f, src_key.value};
-    keyframes.push_back(begin);
-    const RawFloatTrack::Keyframe end = {RawFloatTrack::Interpolation::kLinear,
-                                         _input.duration, src_key.value};
-    keyframes.push_back(end);
-  } else {
-    // Copy all source data.
-    if (_input.keyframes.front().time != 0.f) {
-      const RawFloatTrack::Keyframe& src_key = _input.keyframes.front();
-      const RawFloatTrack::Keyframe begin = {
-          RawFloatTrack::Interpolation::kLinear, 0.f, src_key.value};
-      keyframes.push_back(begin);
-    }
-    for (size_t i = 0; i < _input.keyframes.size(); ++i) {
-      keyframes.push_back(_input.keyframes[i]);
-    }
-    if (_input.keyframes.back().time != _input.duration) {
-      const RawFloatTrack::Keyframe& src_key = _input.keyframes.back();
-      const RawFloatTrack::Keyframe end = {
-          RawFloatTrack::Interpolation::kLinear, _input.duration,
-          src_key.value};
-      keyframes.push_back(end);
-    }
-  }
+  PatchBeginEndKeys(_input, &keyframes);
+  Linearize(&keyframes);
 
   // Allocates output track.
   track->Allocate(keyframes.size());
