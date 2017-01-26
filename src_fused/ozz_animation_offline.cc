@@ -593,7 +593,6 @@ void CopyToAnimation(ozz::Vector<SortingScaleKey>::Std* _src,
   }
 }
 
-namespace {
 // Compares float absolute values.
 bool LessAbs(float _left, float _right) {
   return std::abs(_left) < std::abs(_right);
@@ -626,7 +625,6 @@ void CompressQuat(const ozz::math::Quaternion& _src,
   _dest->value[0] = math::Clamp(-32767, a, 32767) & 0xffff;
   _dest->value[1] = math::Clamp(-32767, b, 32767) & 0xffff;
   _dest->value[2] = math::Clamp(-32767, c, 32767) & 0xffff;
-}
 }
 
 // Specialize for rotations in order to normalize quaternions.
@@ -1490,6 +1488,201 @@ Skeleton* SkeletonBuilder::operator()(const RawSkeleton& _raw_skeleton) const {
   }
 
   return skeleton;  // Success.
+}
+}  // offline
+}  // animation
+}  // ozz
+
+// Including raw_float_track.cc file.
+
+//----------------------------------------------------------------------------//
+//                                                                            //
+// ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
+// and distributed under the MIT License (MIT).                               //
+//                                                                            //
+// Copyright (c) 2015 Guillaume Blanc                                         //
+//                                                                            //
+// Permission is hereby granted, free of charge, to any person obtaining a    //
+// copy of this software and associated documentation files (the "Software"), //
+// to deal in the Software without restriction, including without limitation  //
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,   //
+// and/or sell copies of the Software, and to permit persons to whom the      //
+// Software is furnished to do so, subject to the following conditions:       //
+//                                                                            //
+// The above copyright notice and this permission notice shall be included in //
+// all copies or substantial portions of the Software.                        //
+//                                                                            //
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR //
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,   //
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL    //
+// THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER //
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING    //
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER        //
+// DEALINGS IN THE SOFTWARE.                                                  //
+//                                                                            //
+//----------------------------------------------------------------------------//
+
+#include "ozz/animation/offline/raw_float_track.h"
+
+namespace ozz {
+namespace animation {
+namespace offline {
+
+RawFloatTrack::RawFloatTrack() : duration(1.f) {}
+
+RawFloatTrack::~RawFloatTrack() {}
+
+namespace {
+
+// Implements key frames' time range and ordering checks.
+static bool ValidateKeyframes(const RawFloatTrack::Keyframes& _keyframes,
+                              float _duration) {
+  float previous_time = -1.f;
+  for (size_t k = 0; k < _keyframes.size(); ++k) {
+    const float frame_time = _keyframes[k].time;
+    // Tests frame's time is in range [0:duration].
+    if (frame_time < 0.f || frame_time > _duration) {
+      return false;
+    }
+    // Tests that frames are sorted.
+    if (frame_time <= previous_time) {
+      return false;
+    }
+    previous_time = frame_time;
+  }
+  return true;  // Validated.
+}
+}  // namespace
+
+bool RawFloatTrack::Validate() const {
+  if (duration <= 0.f) {  // Tests duration is valid.
+    return false;
+  }
+
+  return ValidateKeyframes(keyframes, duration);
+}
+}  // offline
+}  // animation
+}  // ozz
+
+// Including float_track_builder.cc file.
+
+//----------------------------------------------------------------------------//
+//                                                                            //
+// ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
+// and distributed under the MIT License (MIT).                               //
+//                                                                            //
+// Copyright (c) 2015 Guillaume Blanc                                         //
+//                                                                            //
+// Permission is hereby granted, free of charge, to any person obtaining a    //
+// copy of this software and associated documentation files (the "Software"), //
+// to deal in the Software without restriction, including without limitation  //
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,   //
+// and/or sell copies of the Software, and to permit persons to whom the      //
+// Software is furnished to do so, subject to the following conditions:       //
+//                                                                            //
+// The above copyright notice and this permission notice shall be included in //
+// all copies or substantial portions of the Software.                        //
+//                                                                            //
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR //
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,   //
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL    //
+// THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER //
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING    //
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER        //
+// DEALINGS IN THE SOFTWARE.                                                  //
+//                                                                            //
+//----------------------------------------------------------------------------//
+
+#include "ozz/animation/offline/float_track_builder.h"
+
+#include <cassert>
+
+#include "ozz/base/memory/allocator.h"
+
+#include "ozz/animation/offline/raw_float_track.h"
+
+#include "ozz/animation/runtime/float_track.h"
+
+namespace ozz {
+namespace animation {
+namespace offline {
+namespace {}  // namespace
+
+// Ensures _input's validity and allocates _animation.
+// An animation needs to have at least two key frames per joint, the first at
+// t = 0 and the last at t = duration. If at least one of those keys are not
+// in the RawAnimation then the builder creates it.
+FloatTrack* FloatTrackBuilder::operator()(const RawFloatTrack& _input) const {
+  // Tests _raw_animation validity.
+  if (!_input.Validate()) {
+    return NULL;
+  }
+
+  // Everything is fine, allocates and fills the animation.
+  // Nothing can fail now.
+  FloatTrack* track = memory::default_allocator()->New<FloatTrack>();
+
+  // Sets duration.
+  const float duration = _input.duration;
+  track->duration_ = duration;
+  assert(duration > 0.f);  // This case is handled by Validate().
+
+  // Copy data to temporary prepared data structure
+  ozz::Vector<RawFloatTrack::Keyframe>::Std keyframes;
+  keyframes.reserve(_input.keyframes.size() +
+                    2);  // Guessing a worst size to avoid realloc.
+
+  // Manages empty source.
+  if (_input.keyframes.empty()) {
+    const RawFloatTrack::Keyframe begin = {
+        RawFloatTrack::Interpolation::kLinear, 0.f, 0.f};
+    keyframes.push_back(begin);
+    const RawFloatTrack::Keyframe end = {RawFloatTrack::Interpolation::kLinear,
+                                         _input.duration, 0.f};
+    keyframes.push_back(end);
+  } else if (_input.keyframes.size() == 1) {
+    const RawFloatTrack::Keyframe& src_key = _input.keyframes.front();
+    const RawFloatTrack::Keyframe begin = {
+        RawFloatTrack::Interpolation::kLinear, 0.f, src_key.value};
+    keyframes.push_back(begin);
+    const RawFloatTrack::Keyframe end = {RawFloatTrack::Interpolation::kLinear,
+                                         _input.duration, src_key.value};
+    keyframes.push_back(end);
+  } else {
+    // Copy all source data.
+    if (_input.keyframes.front().time != 0.f) {
+      const RawFloatTrack::Keyframe& src_key = _input.keyframes.front();
+      const RawFloatTrack::Keyframe begin = {
+          RawFloatTrack::Interpolation::kLinear, 0.f, src_key.value};
+      keyframes.push_back(begin);
+    }
+    for (size_t i = 0; i < _input.keyframes.size(); ++i) {
+      keyframes.push_back(_input.keyframes[i]);
+    }
+    if (_input.keyframes.back().time != _input.duration) {
+      const RawFloatTrack::Keyframe& src_key = _input.keyframes.back();
+      const RawFloatTrack::Keyframe end = {
+          RawFloatTrack::Interpolation::kLinear, _input.duration,
+          src_key.value};
+      keyframes.push_back(end);
+    }
+  }
+
+  // Allocates output track.
+  track->Allocate(keyframes.size());
+
+  // Copy all keys to output.
+  for (size_t i = 0; i < keyframes.size(); ++i) {
+    const RawFloatTrack::Keyframe& src_key = keyframes[i];
+    track->times()[i] = src_key.time;
+    track->values()[i] = src_key.value;
+  }
+  /*
+    // Copy animation's name.
+    strcpy(animation->name_, _input.name.c_str());
+    */
+  return track;  // Success.
 }
 }  // offline
 }  // animation

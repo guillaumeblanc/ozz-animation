@@ -14,7 +14,11 @@ add_library(ozz_animation_offline
   raw_skeleton.cc
   raw_skeleton_archive.cc
   ${CMAKE_SOURCE_DIR}/include/ozz/animation/offline/skeleton_builder.h
-  skeleton_builder.cc)
+  skeleton_builder.cc
+  ${CMAKE_SOURCE_DIR}/include/ozz/animation/offline/raw_float_track.h
+  raw_float_track.cc
+  ${CMAKE_SOURCE_DIR}/include/ozz/animation/offline/float_track_builder.h
+  float_track_builder.cc)
 set_target_properties(ozz_animation_offline PROPERTIES FOLDER "ozz")
 
 install(TARGETS ozz_animation_offline DESTINATION lib)

@@ -11,7 +11,9 @@ add_library(ozz_animation
   ${CMAKE_SOURCE_DIR}/include/ozz/animation/runtime/skeleton.h
   skeleton.cc
   ${CMAKE_SOURCE_DIR}/include/ozz/animation/runtime/skeleton_utils.h
-  skeleton_utils.cc)
+  skeleton_utils.cc
+  ${CMAKE_SOURCE_DIR}/include/ozz/animation/runtime/float_track.h
+  float_track.cc)
 set_target_properties(ozz_animation
   PROPERTIES FOLDER "ozz")
 

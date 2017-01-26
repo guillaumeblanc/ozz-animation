@@ -316,5 +316,4 @@ do {                                                                           \
 } while (void(0), 0)
 
 // clang-format on
-
 #endif  // OZZ_OZZ_BASE_MATHS_GTEST_MATH_HELPER_H_

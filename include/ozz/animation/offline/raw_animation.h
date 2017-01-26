@@ -56,7 +56,7 @@ namespace offline {
 // Animations that would fail this validation will fail to be converted by the
 // AnimationBuilder.
 struct RawAnimation {
-  // Constructs an valid RawAnimation with a 1s default duration.
+  // Constructs a valid RawAnimation with a 1s default duration.
   RawAnimation();
 
   // Deallocates raw animation.

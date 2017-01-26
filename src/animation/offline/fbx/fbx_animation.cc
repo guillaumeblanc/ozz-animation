@@ -153,7 +153,7 @@ bool ExtractAnimation(FbxSceneLoader* _scene_loader, FbxAnimStack* anim_stack,
         loop_again = false;
       }
 
-      // Evaluate transform matric at t.
+      // Evaluate transform matrix at t.
       const FbxAMatrix matrix =
           _skeleton.joint_properties()[i].parent == Skeleton::kNoParentIndex
               ? evaluator->GetNodeGlobalTransform(node, FbxTimeSeconds(t))

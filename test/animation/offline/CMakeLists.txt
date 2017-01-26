@@ -48,6 +48,16 @@ target_link_libraries(test_raw_skeleton_archive
 set_target_properties(test_raw_skeleton_archive PROPERTIES FOLDER "ozz/tests/animation_offline")
 add_test(NAME test_raw_skeleton_archive COMMAND test_raw_skeleton_archive)
 
+add_executable(test_float_track_builder
+  float_track_builder_tests.cc)
+target_link_libraries(test_float_track_builder
+  ozz_animation_offline
+  ozz_animation
+  ozz_base
+  gtest)
+set_target_properties(test_float_track_builder PROPERTIES FOLDER "ozz/tests/animation_offline")
+add_test(NAME test_float_track_builder COMMAND test_float_track_builder)
+
 add_executable(test_raw_skeleton_archive_versioning
   raw_skeleton_archive_versioning_tests.cc)
 

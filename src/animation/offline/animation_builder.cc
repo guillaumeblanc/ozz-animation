@@ -174,7 +174,6 @@ void CopyToAnimation(ozz::Vector<SortingScaleKey>::Std* _src,
   }
 }
 
-namespace {
 // Compares float absolute values.
 bool LessAbs(float _left, float _right) {
   return std::abs(_left) < std::abs(_right);
@@ -207,7 +206,6 @@ void CompressQuat(const ozz::math::Quaternion& _src,
   _dest->value[0] = math::Clamp(-32767, a, 32767) & 0xffff;
   _dest->value[1] = math::Clamp(-32767, b, 32767) & 0xffff;
   _dest->value[2] = math::Clamp(-32767, c, 32767) & 0xffff;
-}
 }
 
 // Specialize for rotations in order to normalize quaternions.
