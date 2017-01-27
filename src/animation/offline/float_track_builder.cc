@@ -28,6 +28,8 @@
 #include "ozz/animation/offline/float_track_builder.h"
 
 #include <cassert>
+#include <cmath>
+#include <limits>
 
 #include "ozz/base/memory/allocator.h"
 
@@ -43,16 +45,15 @@ namespace {
 void PatchBeginEndKeys(const RawFloatTrack& _input,
                        RawFloatTrack::Keyframes* keyframes) {
   if (_input.keyframes.empty()) {
-    const RawFloatTrack::Keyframe begin = {
-        RawFloatTrack::kLinear, 0.f, 0.f};
+    const RawFloatTrack::Keyframe begin = {RawFloatTrack::kLinear, 0.f, 0.f};
     keyframes->push_back(begin);
     const RawFloatTrack::Keyframe end = {RawFloatTrack::kLinear,
                                          _input.duration, 0.f};
     keyframes->push_back(end);
   } else if (_input.keyframes.size() == 1) {
     const RawFloatTrack::Keyframe& src_key = _input.keyframes.front();
-    const RawFloatTrack::Keyframe begin = {
-        RawFloatTrack::kLinear, 0.f, src_key.value};
+    const RawFloatTrack::Keyframe begin = {RawFloatTrack::kLinear, 0.f,
+                                           src_key.value};
     keyframes->push_back(begin);
     const RawFloatTrack::Keyframe end = {RawFloatTrack::kLinear,
                                          _input.duration, src_key.value};
@@ -61,8 +62,8 @@ void PatchBeginEndKeys(const RawFloatTrack& _input,
     // Copy all source data.
     if (_input.keyframes.front().time != 0.f) {
       const RawFloatTrack::Keyframe& src_key = _input.keyframes.front();
-      const RawFloatTrack::Keyframe begin = {
-          RawFloatTrack::kLinear, 0.f, src_key.value};
+      const RawFloatTrack::Keyframe begin = {RawFloatTrack::kLinear, 0.f,
+                                             src_key.value};
       keyframes->push_back(begin);
     }
     for (size_t i = 0; i < _input.keyframes.size(); ++i) {
@@ -70,9 +71,8 @@ void PatchBeginEndKeys(const RawFloatTrack& _input,
     }
     if (_input.keyframes.back().time != _input.duration) {
       const RawFloatTrack::Keyframe& src_key = _input.keyframes.back();
-      const RawFloatTrack::Keyframe end = {
-          RawFloatTrack::kLinear, _input.duration,
-          src_key.value};
+      const RawFloatTrack::Keyframe end = {RawFloatTrack::kLinear,
+                                           _input.duration, src_key.value};
       keyframes->push_back(end);
     }
   }
@@ -93,10 +93,10 @@ void Linearize(RawFloatTrack::Keyframes* keyframes) {
       // Pick a time right before the next key frame.
       const RawFloatTrack::Keyframe& src_next_key = *(it + 1);
       const float new_key_time =
-          std::nextafter(src_next_key.time, std::numeric_limits<float>::min());
+          nextafter(src_next_key.time, std::numeric_limits<float>::lowest());
 
-      const RawFloatTrack::Keyframe new_key = {
-          RawFloatTrack::kLinear, new_key_time, src_key.value};
+      const RawFloatTrack::Keyframe new_key = {RawFloatTrack::kLinear,
+                                               new_key_time, src_key.value};
 
       it = keyframes->insert(it + 1, new_key);
     } else {
