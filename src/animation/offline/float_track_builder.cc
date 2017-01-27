@@ -29,7 +29,6 @@
 
 #include <cassert>
 #include <cmath>
-#include <limits>
 
 #include "ozz/base/memory/allocator.h"
 
@@ -92,8 +91,7 @@ void Linearize(RawFloatTrack::Keyframes* keyframes) {
     if (src_key.interpolation == RawFloatTrack::kStep) {
       // Pick a time right before the next key frame.
       const RawFloatTrack::Keyframe& src_next_key = *(it + 1);
-      const float new_key_time =
-          nextafter(src_next_key.time, std::numeric_limits<float>::lowest());
+      const float new_key_time = nextafterf(src_next_key.time, -1.f);
 
       const RawFloatTrack::Keyframe new_key = {RawFloatTrack::kLinear,
                                                new_key_time, src_key.value};

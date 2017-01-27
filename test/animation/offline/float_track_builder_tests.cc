@@ -63,20 +63,21 @@ struct FloatSamplingJob {
     // Search for the first key frame with a time value greater than input time.
     const float* ptk1 = std::upper_bound(times.begin, times.end, time);
 
-    // upper_bound returns "end" if time == duration. Then patch the selected
-    // keyframe to enter the lerp algorithm.
+    // upper_bound returns "end" if time == duration, so patch the selected
+    // keyframe (ptk1) to be able enter the lerp algorithm.
     if (ptk1 == times.end) {
-      ptk1 = (times.end - 1);
+      --ptk1;
     }
 
     // Lerp relevant keys.
-    const float tk1 = *ptk1;
-    const float tk0 = *(ptk1 - 1);
-    assert(time >= tk0);
+    const float tk0 = ptk1[-1];
+    const float tk1 = ptk1[0];
+    assert(time >= tk0 && tk0 != tk1);
     const float* pvk1 = values.begin + (ptk1 - times.begin);
-    const float* pvk0 = pvk1 - 1;
+    const float vk0 = pvk1[-1];
+    const float vk1 = pvk1[0];
     const float alpha = (time - tk0) / (tk1 - tk0);
-    *result = math::Lerp(*pvk0, *pvk1, alpha);
+    *result = math::Lerp(vk0, vk1, alpha);
 
     return true;
   }
