@@ -744,7 +744,7 @@ ozz::math::Float4x4 BuildAxisSystemMatrix(const FbxAxisSystem& _system) {
     default: {
       assert(false && "Invalid FbxAxisSystem");
       break;
-    } 
+    }
   }
 
   // If the front axis and the up axis are determined, the third axis will be
@@ -770,17 +770,13 @@ FbxSystemConverter::FbxSystemConverter(const FbxAxisSystem& _from_axis,
                                        const FbxSystemUnit& _from_unit) {
   // Build axis system conversion matrix.
   const math::Float4x4 from_matrix = BuildAxisSystemMatrix(_from_axis);
-  const math::Float4x4 to_matrix = { ozz::math::simd_float4::x_axis(),
-                                     ozz::math::simd_float4::y_axis(),
-                                     -ozz::math::simd_float4::z_axis(),
-                                     ozz::math::simd_float4::w_axis()};
 
   // Finds unit conversion ratio to meters, where GetScaleFactor() is in cm.
   const float to_meters =
       static_cast<float>(_from_unit.GetScaleFactor()) * .01f;
 
   // Builds conversion matrices.
-  convert_ = to_matrix * Invert(from_matrix) *
+  convert_ = Invert(from_matrix) *
              math::Float4x4::Scaling(math::simd_float4::Load1(to_meters));
   inverse_convert_ = Invert(convert_);
   inverse_transpose_convert_ = Transpose(inverse_convert_);
