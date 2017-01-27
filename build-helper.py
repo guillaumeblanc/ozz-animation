@@ -33,6 +33,7 @@ import multiprocessing
 import shutil
 import sys
 import os
+import os.path
 import re
 import platform
 from functools import partial
@@ -284,12 +285,7 @@ def SelecGenerator():
 
 def DetectTesting():
   global enable_testing
-  try:
-    test_file = open(cteste_cache_file)
-  except:
-    enable_testing = False
-    return
-  enable_testing = True
+  enable_testing = os.path.isfile(ctest_cache_file)
 
 def EnableTesting():
   global enable_testing
