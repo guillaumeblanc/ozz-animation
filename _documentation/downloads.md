@@ -1,6 +1,7 @@
 ---
 title: Downloads
 layout: full
+collection: documentation
 keywords: download,sources,binary,git,clone,build,package,gcc,clang,msvc,visual studio,mac,osx,ios,windows,linux,debian,freebsd
 order: 20
 ---

@@ -1,1 +1,1 @@
-{% if {{include.level}} == 1 %}beginner{% endif %}{% if {{include.level}} == 2 %}intermediate{% endif %}{% if {{include.level}} == 3 %}advanced{% endif %}
+{% if {{include.level}} == 1 %}<span class="w3-tag w3-green w3-round">beginner</span>{% endif %}{% if {{include.level}} == 2 %}<span class="w3-tag w3-yellow w3-round">intermediate</span>{% endif %}{% if {{include.level}} == 3 %}<span class="w3-tag w3-red w3-round">advanced</span>{% endif %}

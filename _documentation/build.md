@@ -1,6 +1,7 @@
 ---
 title: Build
 layout: full
+collection: documentation
 keywords: build,cmake,gcc,clang,msvc,emscripten,opengl,glfw,opengl,directx,unit-tests,package
 order: 30
 ---

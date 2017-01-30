@@ -1,5 +1,21 @@
-
-    <script src="http://www.w3schools.com/lib/w3codecolors.js"></script>
+    <footer class="w3-container w3-section w3-padding-32 w3-card-2 w3-theme w3-center" style="position:relative;z-index:20;">
+      <div class="w3-row-padding w3-center">
+        <div class="w3-half">
+          <a href="http://github.com/guillaumeblanc/ozz-animation">
+            <i class="fa fa-github" aria-hidden="true"></i>Github
+          </a>
+        </div>  
+        <div class="w3-half">
+          <a href="http://twitter.com/jozz_sc">
+            <i class="fa fa-twitter" aria-hidden="true"></i>Twitter
+          </a>
+        </div>  
+      </div>
+      <div class="w3-small"> 
+        <p>Site and software released under the MIT license</p>
+        <p>Copyright © 2012-2017 ozz-animation</p>
+      </div>
+    </footer>
 
     {% include tracking.jekyll %}
   </body>

@@ -1,14 +1,34 @@
+<div class="w3-container w3-center"> 
+  <div class="w3-row">
+    <p id="sample_status">Initializing WebGL</p>
+  </div>
+</div>
 <div id="sample_border">
-<p id="sample_status">Initializing WebGL</p>
-<div><canvas id="sample_canvas"></canvas></div>
-<textarea id="sample_output" rows="8"></textarea>
+  <div class="w3-display-container">
+    <div style="font-size:0; line-height:0;">
+      <canvas id="sample_canvas" class="w3-round w3-black w3-card-2" oncontextmenu="event.preventDefault()"></canvas>
+    </div> 
+    <div>
+      <input id="full_screen" type="button" class="w3-btn w3-theme w3-display-bottomright w3-tiny w3-white w3-border w3-border-grey w3-round" value="Fullscreen" onclick="Module.requestFullscreen(false, true)">
+    </div>
+  </div>
+  <div>
+    <textarea id="sample_output" class="w3-light-grey w3-round w3-tiny w3-card-2" rows="6" style="width:100%;"></textarea>
+  </div>
 </div>
 <script>
   var sample_border = document.getElementById("sample_border");
   var sample_canvas = document.getElementById("sample_canvas");
   var sample_status = document.getElementById("sample_status");
   var sample_output = document.getElementById("sample_output");
-
+  // Fullscreen button is hidden while sample isn't initialized.
+  var full_screen = document.getElementById("full_screen");
+  full_screen.style.display = "none";
+  document.getElementsByTagName("body")[0].onresize = CanvasResize;
+  function CanvasResize() {
+    sample_canvas.width = sample_canvas.clientWidth;
+    sample_canvas.height = sample_canvas.clientWidth * 9 / 16;
+  }
   function CheckWebGLSupport(canvas) {
     if (!window.WebGLRenderingContext) {
       // The browser doesn't even know what WebGL is.
@@ -26,27 +46,25 @@
     // Success.
     return [true, 'WebGL is supported by your browser.'];
   }
-
   function OnSampleSuccess() {
-    sample_status.innerHTML = "ozz-animation sample compiled from c++ with emscripten and running WebGL.";
+    full_screen.style.display = "inline";
+    sample_status.innerHTML = "ozz-animation c++ sample compiled to javascript/webgl with emscripten.";
+    // Initialize canvas size
+    CanvasResize();
   }
-
   function OnSampleFailure(text) {
-    sample_border.style.display = "none";  // Disable the whole sample display.
     sample_status.innerHTML = text;
   }
-
   function OnSampleProgress(text) {
     sample_status.innerHTML = text;
   }
   
   var webgl_support = CheckWebGLSupport(sample_canvas);
-
   if(!webgl_support[0]) {
     OnSampleFailure(webgl_support[1]);
   } else {
     var Module = {
-      arguments: ['--resolution=2'],
+      arguments: ['--resolution=7'],
       preRun: [],
       postRun: [],
       print: (function() {
@@ -72,7 +90,7 @@
         } else {
           OnSampleProgress(text);
         }
-      },
+      }
     };
     Module.setStatus('Downloading...');
   }

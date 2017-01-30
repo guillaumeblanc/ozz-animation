@@ -1,6 +1,7 @@
 ---
 title: Features list and availability
 layout: full
+collection: documentation
 keywords: roadmap,features list,version,plan,compiler,gcc,clang,msvc,visual studio,os,mac,osx,ios,windows,linux,debian,freebsd
 order: 80
 ---

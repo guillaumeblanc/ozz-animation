@@ -1,6 +1,7 @@
 ---
 title: Partial animations blending
 layout: full
+collection: samples
 keywords: animation,blending,partial,lower,upper,body,arm,head,character,skeleton,additive
 order: 30
 level: 2

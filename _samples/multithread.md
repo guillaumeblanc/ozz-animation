@@ -1,6 +1,7 @@
 ---
 title: Multi-threaded sampling with OpenMp
 layout: full
+collection: samples
 keywords: animation,sampling,blending,playback,optimize,multithreads,threading,job,openmp,intel,tbb,thread
 order: 70
 level: 3

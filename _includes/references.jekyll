@@ -7,6 +7,7 @@
 [link_partial_blend_sample]: {{site.baseurl}}/samples/partial_blend/
 [link_playback_sample]: {{site.baseurl}}/samples/playback/
 [link_multithread_sample]: {{site.baseurl}}/samples/multithread/
+[link_baked_sample]: {{site.baseurl}}/samples/baked/
 
 [link_how_to]: {{site.baseurl}}/documentation/howtos/
 [link_how_to_load]: {{site.baseurl}}/howto/#howtoloadfromfile

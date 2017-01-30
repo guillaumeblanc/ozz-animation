@@ -1,6 +1,7 @@
 ---
 title: Runtime pipeline
 layout: full
+collection: documentation
 keywords: runtime,optimize,sample,sampling,blend,blending,soa,sse,job,batch,skinning,matrix,palette,cpu
 order: 50
 ---

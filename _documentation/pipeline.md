@@ -1,6 +1,7 @@
 ---
 title: Pipeline
 layout: full
+collection: documentation
 keywords: pipeline, dae, obj, fbx, 3ds, max, maya, blender, offline, load, import, runtime, build, convert, optimize
 order: 15
 ---

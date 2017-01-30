@@ -1,37 +1,54 @@
 <!-- Top -->
-<div class="w3-top">
-  <ul class="w3-navbar w3-theme w3-large" style="z-index:4;">
+  <div class="w3-row w3-white w3-padding">
+    <div class="w3-half" style="margin:4px 0 6px 0;"></div>
+    <div class="w3-half w3-margin-top w3-wide"><div class="w3-right">ozz-animation</div></div>
+  </div>
+
+  <ul id="myTabNav" class="w3-navbar w3-theme w3-large" style="z-index:4;">
     <li class="w3-opennav w3-left w3-hide-large">
-      <i class="fa fa-bars w3-hover-white fa-lg w3-theme w3-padding-16" href="javascript:void(0)" onclick="w3_open()"></i>
-      {{page.title}}
+      <a class="w3-hover-white w3-large w3-theme w3-padding-16" href="javascript:void(0)" onclick="w3_open()">&#9776;</a>
     </li>
+
     <li class="w3-hide-medium w3-hide-small"><a class="w3-hover-white w3-padding-16" href="{{site.baseurl}}/">Home</a></li>
     {% for collection in site.collections %}
       {% if collection.label == 'posts' %}
         {% continue %}
       {% endif %}
-      <li class="w3-hide-medium w3-hide-small"><a class="w3-hover-white w3-padding-16" href="{{site.baseurl}}/{{collection.label}}/" onclick="w3_show_nav('{{collection.label}}')">{{collection.display_name}}</a></li>
-    {% endfor %}
+      {% assign collection_id = collection.label %}
+      {% if {{collection_id}} == {{page.collection}} %}
+        <li class="w3-green w3-hide-medium w3-hide-small">
+      {% else %}
+        <li class="w3-hide-medium w3-hide-small">
+      {% endif %}  
+      <a class="w3-hover-white w3-padding-16" href="{{site.baseurl}}/{{collection.label}}/">{{collection.display_name}}</a>
+      </li>
+   {% endfor %}
+
   </ul>
-</div>
+
+<div id="myMarker"></div>
 
 <!-- Sidenav -->
-<nav class="w3-sidenav w3-collapse w3-white" style="z-index:3;width:270px" id="mySidenav">
-  <i class="fa fa-times w3-right w3-xlarge w3-padding-large w3-hide-large" href="javascript:void(0)" onclick="w3_close()"></i>
-
-  <div class="w3-hide-large">
-    <a href="{{site.baseurl}}/" class="w3-left w3-theme w3-hover-white w3-padding-16 w3-large" style="width:100%">Home</a>
-  </div>
-
+{% if page.layout == 'full' %}
+  <nav class="w3-sidenav w3-collapse w3-white w3-animate-left" style="z-index:3;width:270px;" id="mySidenav">
+{% else %}
+  <nav class="w3-sidenav w3-white w3-animate-left w3-hide-large" style="z-index:3;width:270px;display:none;" id="mySidenav">
+{% endif %}
   <div class="w3-clear"></div>
-
-  {% for collection in site.collections %}
-    {% if collection.label == 'posts' %}
-      {% continue %}
-    {% endif %}
-    <div class="myMenu w3-padding-top">
-      <a href="{{site.baseurl}}/{{collection.label}}/" onclick="w3_show_nav('{{collection.label}}')" class="w3-left w3-theme w3-hover-white w3-padding-16 w3-large w3-hide-large" style="width:100%">{{collection.display_name}}</a>
-      <div class="w3-container">
+    <a href="javascript:void(0)" onclick="w3_close()" class="w3-right w3-xlarge w3-padding-large w3-hide-large" title="Close">&times;</a>
+  <div>
+    <a href="{{site.baseurl}}/">Home</a>
+    {% if page.layout == 'full' %}
+      {% assign pages = site[{{page.collection}}] | sort:"order" %}
+      {% for page in pages %}
+        <a href="{{site.baseurl}}{{page.url}}/">{{page.title}}</a>
+      {% endfor %}
+    {% else %}
+      {% for collection in site.collections %}
+        {% if collection.label == 'posts' %}
+          {% continue %}
+        {% endif %}
+        <a href="{{site.baseurl}}/{{collection.label}}/">{{collection.display_name}}</a>
         {% assign collection_id = collection.label %}
         {% if {{collection_id}} == {{page.collection}} %}
           {% assign pages = site[{{collection_id}}] | sort:"order" %}
@@ -40,13 +57,31 @@
             {{text | markdownify}}
           {% endfor %}
         {% endif %}
-      </div>
-    </div>
-  {% endfor %}
-
+      {% endfor %}
+    {% endif %}
+  </div>
 </nav>
 
+<!-- Overlay effect when opening sidenav on small screens -->
+<div class="w3-overlay w3-hide-large" onclick="w3_close()" style="cursor:pointer;" title="Close" id="myOverlay"></div>
+
 <script>
+
+  var myTabNav = document.getElementById("myTabNav");
+  var myTabNavRect = myTabNav.getBoundingClientRect();
+  var myMarker = document.getElementById("myMarker");
+
+  function scroll_script() {
+
+    if(document.body.scrollTop > myTabNavRect.top) {
+      myTabNav.classList.add("w3-top");
+      myMarker.style.marginTop = myTabNavRect.height.toString() + "px";
+    }else{
+      myTabNav.classList.remove("w3-top");
+      myMarker.style.marginTop = "0px";
+    }
+  }
+
   // Script to open and close the sidenav
   function w3_open() {
       document.getElementById("mySidenav").style.display = "block";
@@ -57,18 +92,6 @@
       document.getElementById("mySidenav").style.display = "none";
       document.getElementById("myOverlay").style.display = "none";
   }
-  function w3_show_nav(name) {
-
-      {% for collection in site.collections %}
-        document.getElementById('{{collection.label}}').style.display = "none";
-      {% endfor %}
-
-      document.getElementById(name).style.display = "block";
-      w3-open();
-  }
-
-  // Select current page in navigation menu.
-  w3_show_nav('{{page.collection}}');
 
 </script>
 

@@ -1,6 +1,7 @@
 ---
 title: Offline libraries and tools
 layout: full
+collection: documentation
 keywords: offline, load, import, runtime, build, convert, optimize
 order: 60
 ---

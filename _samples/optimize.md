@@ -1,6 +1,7 @@
 ---
 title: Animation keyframe optimization
 layout: full
+collection: samples
 keywords: sample,optimize,quantize,compress,animation,keyframe,offline
 order: 60
 level: 2
