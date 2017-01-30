@@ -8,8 +8,6 @@ set(CPACK_PACKAGE_VERSION_MAJOR 0)
 set(CPACK_PACKAGE_VERSION_MINOR 9)
 set(CPACK_PACKAGE_VERSION_PATCH 0)
 
-set(ozz_root_dir ${CMAKE_CURRENT_SOURCE_DIR})
-
 # Add project build options
 set(ozz_build_fbx ON CACHE BOOL "Build Fbx pipeline (Requires Fbx SDK)")
 set(ozz_build_samples ON CACHE BOOL "Build samples")
@@ -24,10 +22,10 @@ set(ozz_run_tests_headless ON CACHE BOOL "Run samples without rendering (used fo
 set(ozz_sample_testing_loops "20" CACHE INT "Number of loops while running sample tests (used for unit tests)")
 
 # Include ozz cmake parameters and scripts
-include(${ozz_root_dir}/build-utils/cmake/compiler_settings.cmake)
-include(${ozz_root_dir}/build-utils/cmake/package_settings.cmake)
-include(${ozz_root_dir}/build-utils/cmake/fuse_target.cmake)
-include(${ozz_root_dir}/build-utils/cmake/clang_format.cmake)
+include(${PROJECT_SOURCE_DIR}/build-utils/cmake/compiler_settings.cmake)
+include(${PROJECT_SOURCE_DIR}/build-utils/cmake/package_settings.cmake)
+include(${PROJECT_SOURCE_DIR}/build-utils/cmake/fuse_target.cmake)
+include(${PROJECT_SOURCE_DIR}/build-utils/cmake/clang_format.cmake)
 
 # Enables unit tests only
 if(ozz_build_tests)
@@ -35,7 +33,7 @@ if(ozz_build_tests)
 endif()
 
 # Configure CMake module path
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${ozz_root_dir}/build-utils/cmake/modules/")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/build-utils/cmake/modules/")
 
 # Detects Fbx SDK, required to build Fbx pipeline.
 if(ozz_build_fbx)
@@ -48,7 +46,7 @@ if(ozz_build_fbx)
 endif()
 
 # Locates media directory.
-set(ozz_media_directory "${ozz_root_dir}/media")
+set(ozz_media_directory "${PROJECT_SOURCE_DIR}/media")
 
 # Creates temporary directory for tests inputs/outputs.
 set(ozz_temp_directory ${CMAKE_BINARY_DIR}/temp)

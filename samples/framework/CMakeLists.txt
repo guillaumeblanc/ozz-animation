@@ -1,4 +1,4 @@
-include_directories(${ozz_root_dir}/extern/glfw/include)
+include_directories(${PROJECT_SOURCE_DIR}/extern/glfw/include)
 
 add_library(sample_framework STATIC
   application.h
@@ -32,7 +32,7 @@ if(NOT EMSCRIPTEN)
 
   include_directories(${OPENGL_INCLUDE_DIR})
 
-  add_subdirectory(${ozz_root_dir}/extern/glfw glfw)
+  add_subdirectory(${PROJECT_SOURCE_DIR}/extern/glfw glfw)
 
   target_link_libraries(sample_framework
     ${OPENGL_LIBRARIES}

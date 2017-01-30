@@ -5,8 +5,8 @@ if(ozz_build_fbx)
   # share meshes with thte sample framework
   add_executable(sample_fbx2mesh
     fbx2mesh.cc
-    ${ozz_root_dir}/samples/framework/mesh.cc
-    ${ozz_root_dir}/samples/framework/mesh.h)
+    ${PROJECT_SOURCE_DIR}/samples/framework/mesh.cc
+    ${PROJECT_SOURCE_DIR}/samples/framework/mesh.h)
   target_link_libraries(sample_fbx2mesh
     ozz_animation_fbx
     ozz_animation_offline
