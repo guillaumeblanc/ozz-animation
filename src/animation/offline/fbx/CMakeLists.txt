@@ -4,12 +4,12 @@ endif()
 
 include_directories(${FBX_INCLUDE_DIRS})
 
-add_library(ozz_animation_fbx
-  ${CMAKE_SOURCE_DIR}/include/ozz/animation/offline/fbx/fbx.h
+add_library(ozz_animation_fbx STATIC
+  ${PROJECT_SOURCE_DIR}/include/ozz/animation/offline/fbx/fbx.h
   fbx.cc
   fbx_animation.h
   fbx_animation.cc
-  ${CMAKE_SOURCE_DIR}/include/ozz/animation/offline/fbx/fbx_base.h
+  ${PROJECT_SOURCE_DIR}/include/ozz/animation/offline/fbx/fbx_base.h
   fbx_base.cc
   fbx_skeleton.h
   fbx_skeleton.cc)
@@ -63,7 +63,7 @@ set(skeletons
   "/collada/seymour.dae\;/bin/seymour_skeleton.ozz")
 
 foreach(line ${skeletons})
-  list(GET line 0 src) 
+  list(GET line 0 src)
   list(GET line 1 dest)
 
   list(APPEND bin_skeletons ${ozz_media_directory}${dest})

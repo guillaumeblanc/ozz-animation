@@ -78,7 +78,7 @@ if(MSVC)
   string(REGEX REPLACE " /EH.*" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
   string(REGEX REPLACE " /EH.*" "" CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
   set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS _HAS_EXCEPTIONS=0)
-  
+
   # Adds support for multiple processes builds
   set_property(DIRECTORY APPEND PROPERTY COMPILE_OPTIONS "/MP")
 
@@ -90,11 +90,11 @@ if(MSVC)
   foreach(flag ${cxx_all_flags})
     # Set the warning level to W4
     string(REGEX REPLACE "/W3" "/W4" ${flag} "${${flag}}")
-    
+
     # Prefers static lining with runtime libraries, to ease installation
     string(REGEX REPLACE "/MD" "/MT" ${flag} "${${flag}}")
 
-	# Prefers /Ox (full optimization) to /O2 (maximize speed)
+    # Prefers /Ox (full optimization) to /O2 (maximize speed)
     string(REGEX REPLACE "/O2" "/Ox" ${flag} "${${flag}}")
   endforeach()
 
@@ -204,7 +204,10 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ".")
 
 #-------------------------------
 # Set a postfix for output files
-set(CMAKE_DEBUG_POSTFIX "_d")
-set(CMAKE_RELEASE_POSTFIX "_r")
-set(CMAKE_MINSIZEREL_POSTFIX "_rs")
-set(CMAKE_RELWITHDEBINFO_POSTFIX "_rd")
+set(ozz_override_configuration_postfixes CACHE ON "Add custom postfixes for output files")
+if(ozz_override_configuration_postfixes)
+    set(CMAKE_DEBUG_POSTFIX "_d")
+    set(CMAKE_RELEASE_POSTFIX "_r")
+    set(CMAKE_MINSIZEREL_POSTFIX "_rs")
+    set(CMAKE_RELWITHDEBINFO_POSTFIX "_rd")
+endif()
