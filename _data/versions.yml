@@ -1,3 +1,5 @@
+- version: "0.9.0"
+  comment: "Multi take support."
 - version: "0.8.0"
   comment: "Adds additive blending and improves compression quality."
 - version: "0.7.3"

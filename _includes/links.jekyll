@@ -1,0 +1,71 @@
+[link_home]: {{site.baseurl}}/
+
+[link_attach_sample]: {{site.baseurl}}/samples/attach/
+[link_blend_sample]: {{site.baseurl}}/samples/blend/
+[link_millipede_sample]: {{site.baseurl}}/samples/millipede/
+[link_optimize_sample]: {{site.baseurl}}/samples/optimize/
+[link_partial_blend_sample]: {{site.baseurl}}/samples/partial_blend/
+[link_playback_sample]: {{site.baseurl}}/samples/playback/
+[link_multithread_sample]: {{site.baseurl}}/samples/multithread/
+[link_baked_sample]: {{site.baseurl}}/samples/baked/
+
+[link_how_to]: {{site.baseurl}}/documentation/howtos/
+[link_how_to_load]: {{site.baseurl}}/howto/#howtoloadfromfile
+[link_howto_custom_skeleton_importer]: {{site.baseurl}}/howto/#howtowriteacustomskeletonimporter
+[link_howto_custom_animation_importer]: {{site.baseurl}}/howto/#howtowriteacustomanimationimporter
+
+[link_toolset]: {{site.baseurl}}/documentation/toolset/
+[link_toolset_fbx2anim]: {{site.baseurl}}/documentation/toolset/#fbx2anim
+
+[link_offline]: {{site.baseurl}}/documentation/offline/
+[link_offline_utilities]: {{site.baseurl}}/documentation/offline/#ozz-animationofflineutilities
+
+[link_raw_skeleton]: {{site.baseurl}}/documentation/offline/#ozzanimationofflinerawskeleton
+[link_raw_animation]: {{site.baseurl}}/documentation/offline/#ozzanimationofflinerawanimation
+[link_skeleton_builder]: {{site.baseurl}}/documentation/offline/#ozzanimationofflineskeletonbuilder
+[link_animation_builder]: {{site.baseurl}}/documentation/offline/#ozzanimationofflineanimationbuilder
+[link_animation_optimizer]: {{site.baseurl}}/documentation/offline/#ozzanimationofflineanimationoptimizer
+[link_runtime]: {{site.baseurl}}/documentation/animation_runtime/
+[link_coordinate_system]: {{site.baseurl}}/documentation/animation_runtime/#local-space-and-model-space-coordinate-systems
+[link_skeleton]: {{site.baseurl}}/documentation/animation_runtime/#ozzanimationskeleton
+[link_animation]: {{site.baseurl}}/documentation/animation_runtime/#ozzanimationanimation
+[link_sampling_job]: {{site.baseurl}}/documentation/animation_runtime/#ozzanimationsamplingjob
+[link_blending_job]: {{site.baseurl}}/documentation/animation_runtime/#ozzanimationblendingjob
+[link_local_to_model_job]: {{site.baseurl}}/documentation/animation_runtime/#ozzanimationlocaltomodeljob
+
+[link_skinning_job]: {{site.baseurl}}/documentation/geometry_runtime/#ozzanimationsklinningjob
+
+[link_features]: {{site.baseurl}}/documentation/features/
+
+[link_io]: {{site.baseurl}}/documentation/advanced/#fileiomanagement
+[link_serialize]: {{site.baseurl}}/documentation/advanced/#serializationmechanics
+
+[link_maths]: {{site.baseurl}}/documentation/advanced/#maths
+
+[link_downloads]: {{site.baseurl}}/documentation/downloads/
+
+[link_dashboard]: {{site.baseurl}}/documentation/downloads/#dashboard
+
+[link_github]: http://github.com/guillaumeblanc/ozz-animation
+[link_github_issues]: http://github.com/guillaumeblanc/ozz-animation/issues
+[link_latest_changes]: http://github.com/guillaumeblanc/ozz-animation/blob/master/CHANGES.md
+[link_latest_release]: http://github.com/guillaumeblanc/ozz-animation/releases
+[link_latest_sources]: http://github.com/guillaumeblanc/ozz-animation/archive/master.zip
+
+[link_git_flow]: http://nvie.com/posts/a-successful-git-branching-model/
+
+[link_src_build_options]: http://github.com/guillaumeblanc/ozz-animation/blob/master/CMakeLists.txt#L15
+
+[link_src_fused]: http://github.com/guillaumeblanc/ozz-animation/tree/master/src_fused
+
+[link_src_convert2skel]: http://github.com/guillaumeblanc/ozz-animation/blob/master/include/ozz/animation/offline/tools/convert2skel.h
+[link_src_convert2anim]: http://github.com/guillaumeblanc/ozz-animation/blob/master/include/ozz/animation/offline/tools/convert2anim.h
+
+[link_src_how_to_load]: http://github.com/guillaumeblanc/ozz-animation/blob/master/howtos/load_from_file.cc
+[link_src_howto_custom_skeleton_importer]: http://github.com/guillaumeblanc/ozz-animation/blob/master/howtos/custom_skeleton_importer.cc
+[link_src_howto_custom_animation_importer]: http://github.com/guillaumeblanc/ozz-animation/blob/master/howtos/custom_animation_importer.cc
+
+[link_src_containers]: http://github.com/guillaumeblanc/ozz-animation/tree/master/include/ozz/base/containers
+[link_src_intrusive_list]: http://github.com/guillaumeblanc/ozz-animation/blob/master/include/ozz/base/containers/intrusive_list.h
+
+[link_fbxsdk_formats]: http://help.autodesk.com/view/FBX/2017/ENU/?guid=__files_GUID_0B122E01_7DB8_48E3_AADA_5E85A197FEE1_htm

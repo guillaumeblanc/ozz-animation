@@ -1,10 +1,16 @@
 {% include header.jekyll %}
+  
+<div class="w3-row w3-white w3-padding">
+  <div class="w3-half" style="margin:4px 0 6px 0;"></div>
+  <div class="w3-half w3-margin-top w3-wide"><div class="w3-right">ozz-animation</div></div>
+</div>
+
 {% include navigation.jekyll %}
 
 <!-- Main content: shift it to the right by 270 pixels when the sidenav is visible -->
 <div id="myMain" class="w3-main w3-container" style="margin-left:270px;">
 
-  <div class="w3-container w3-section w3-content w3-padding-large w3-card-2 w3-light-grey">
+  <div class="w3-container w3-section w3-content w3-padding-large">
 	{{content}}
   </div>
 

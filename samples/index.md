@@ -5,7 +5,7 @@ collection: samples
 keywords: sample, tutorial
 ---
 
-{% include references.jekyll %}
+{% include links.jekyll %}
 
 ozz-animation provides many samples to help with this first integration steps.
 

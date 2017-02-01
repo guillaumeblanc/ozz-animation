@@ -1,13 +1,12 @@
 ---
 title: Animation blending
 layout: full
-collection: samples
 keywords: sample,blend,mix,transition,weight,interpolate,lerp,slerp
 order: 20
 level: 1
 ---
 
-{% include references.jekyll %}
+{% include links.jekyll %}
 
 Description
 ===========

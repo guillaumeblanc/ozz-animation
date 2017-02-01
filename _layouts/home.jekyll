@@ -1,14 +1,15 @@
 {% include header.jekyll %}
-{% include navigation.jekyll %}
 
 <div class="w3-center w3-theme">
-  <img src="{{site.baseurl}}/images/logo/ozz-white-512.png" class="w3-image" alt="ozz" width="512" height="512">
+  <img src="{{site.baseurl}}/images/logo/ozz-white-512.png" class="w3-image" alt="ozz" width="512" height="512" style="z-index:10;">
 </div>
+
+{% include navigation.jekyll %}
 
 <!-- Main content: sidenav is not visible with home layout -->
 <div class="w3-container">
 
-  <div class="w3-container w3-content w3-section w3-padding-large w3-card-2 w3-light-grey">
+  <div class="w3-container w3-content w3-section w3-padding-large">
 	{{content}}
   </div>
 

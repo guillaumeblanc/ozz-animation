@@ -1,12 +1,11 @@
 ---
-title: Offline libraries and tools
+title: Offline libraries
 layout: full
-collection: documentation
 keywords: offline, load, import, runtime, build, convert, optimize
 order: 60
 ---
 
-{% include references.jekyll %}
+{% include links.jekyll %}
 
 ozz-animation offline data structures
 =====================================

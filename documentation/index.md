@@ -1,31 +1,25 @@
 ---
-title: Documentation
+title: Overview
 layout: full
 collection: documentation
 keywords: documentation, doc, help, howto, license, pipeline, tools, primer, introduction, definition
 ---
 
-{% include references.jekyll %}
+{% include links.jekyll %}
 
 What ozz-animation is
 =====================
-ozz-animation is an open source *c++ 3d skeletal animation engine*. It provides runtime *character animation playback* fonctionnalities (loading, sampling, blending...), with full support for *Collada* and *Fbx* import formats. It proposes a low-level *renderer agnostic* and *game-engine agnostic* implementation, focusing on performance and memory constraints with a data-oriented design.
+ozz-animation is an open source *c++ 3d skeletal animation engine*. It provides runtime *character animation playback* fonctionnalities (loading, sampling, blending...), with full support for *Fbx*, *Collada* and other major 3D formats. It proposes a low-level *renderer agnostic* and *game-engine agnostic* implementation, focusing on performance and memory constraints with a data-oriented design.
 
-ozz-animation comes with *Collada* and *Fbx* toolchains to convert from major Digital Content Creation formats to ozz optimized runtime structures. Offline libraries are also provided to implement the conversion from any other animation and skeleton formats.
+ozz-animation comes with a toolchain to convert from major Digital Content Creation formats to ozz optimized runtime structures. Offline libraries are also provided to implement the conversion from any other animation and skeleton formats.
 
-What ozz-animation is not
-=========================
+What it's not
+=============
 ozz-animation is not a high level animation blend tree. It proposes the mathematical background required for playing animations and a pipeline to build/import animations. It lets you organise your data and your blending logic the way you decide.
 
 ozz-animation doesn't do any rendering either. You're in charge of applying the output of the animation stage (one matrix per joint) to your skins, or to your scene graph nodes.
 
-Finally ozz does not propose the pipeline to load meshes and materials either.
-
-Pipeline
-========
-ozz-animation comes with the tool chain to convert from major Digital Content Creation tools' formats (Collada, fbx, obj, 3ds...) to ozz optimized runtime structures. Offline libraries are also provided to implement the convertion from any other animation (and skeleton) formats.
-
-![ozz-animation offline pipeline]({{site.baseurl}}/images/documentation/pipeline.png)
+Finally ozz does not propose an official pipeline to load meshes and materials either. The sample framework embed a mesh importing tool (fbx2mesh) though.
 
 License
 =======
@@ -41,10 +35,15 @@ The license does not require source code to be made available if distributing bi
 
 Reporting issues or feature requests
 ====================================
-[This page][link_features_map] lists implemented features and plans for future releases. Please use github issues to report bugs and feature requests.
-
-{% include feedback_form.jekyll %}
+[This page][link_features] lists implemented features and plans for future releases. Please use [github issues][link_github_issues] to report bugs, to request features or discuss animation techniques.
 
 Contributing
 ============
-Any contribution is welcome: code review, bug report or fix, feature request or implementation. Don't hesitate...
+Everyone is welcome to contribute: code review, bug report or fix, feature request or implementation, optimization, samples...
+
+ozz branching strategy follows [gitflow model][link_git_flow]. When submitting patches, please:
+
+- Make pull requests to develop branch for features, to release branch for hotfixes.
+- Do not include merge commits in pull requests; include only commits with the new relevant code.
+- Add all relevant unit tests.
+- Run all the tests and make sure they pass.

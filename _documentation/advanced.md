@@ -1,12 +1,11 @@
 ---
 title: Advanced
 layout: full
-collection: documentation
 keywords: advanced,multi-threading,io,memory,management,serialization,openmp
 order: 70
 ---
 
-{% include references.jekyll %}
+{% include links.jekyll %}
 
 Thread safety
 =============

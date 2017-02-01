@@ -13,7 +13,7 @@
     </div>
   </div>
   <div>
-    <textarea id="sample_output" class="w3-light-grey w3-round w3-tiny w3-card-2" rows="6" style="width:100%;"></textarea>
+    <textarea id="sample_output" class="w3-light-grey w3-round w3-tiny w3-card-2" rows="6" style="width:100%;resize:none;"></textarea>
   </div>
 </div>
 <script>

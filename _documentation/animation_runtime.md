@@ -1,12 +1,11 @@
 ---
-title: Runtime pipeline
+title: Animation runtime
 layout: full
-collection: documentation
-keywords: runtime,optimize,sample,sampling,blend,blending,soa,sse,job,batch,skinning,matrix,palette,cpu
+keywords: runtime,optimize,sample,sampling,blend,blending,soa,sse,job,batch,cpu,thread
 order: 50
 ---
 
-{% include references.jekyll %}
+{% include links.jekyll %}
 
 ozz-animation runtime data structures
 =====================================
@@ -50,7 +49,7 @@ Note that in fact "previous keyframe time" (which is only available in the offli
 
 This table shows the data layout of an animation of 1 second duration, 4 tracks (track0-3) and 17 keyframes (0-16)
 
-![]({{site.baseurl}}/images/documentation/animation-tracks.png)
+<img src="{{site.baseurl}}/images/documentation/animation-tracks.png" class="w3-image">
 
 Note that keyframes are mandatory at t=0 and t=duration, for all tracks, in order to optimize sampling algorithm. This constrain is automatically handled by the `AnimationBuilder` utility though.
 
@@ -62,23 +61,23 @@ The following diagrams show "hot" keys, the one that are accessed during samplin
  
 - To sample at time = 0, the sampling algorithm goes through the 8 first keys and finds all the keys needed. The `SamplingCache` also stores the sampling-cursor (the red arrow) at key 8, to be able to start again from there if sampling-time is moved further.
 
-![]({{site.baseurl}}/images/documentation/animation-tracks-t0.png)
+<img src="{{site.baseurl}}/images/documentation/animation-tracks-t0.png" class="w3-image">
 
 - When sampling at time = 0.1, the cache is already filled (as shown by orange keys) with all the required data decompressed to SoA keyframes, optimized for interpolation operations. They are the same as the one used at time = 0. The sampling-cursor doesn't have to be moved either.
 
-![]({{site.baseurl}}/images/documentation/animation-tracks-t0.1.png)
+<img src="{{site.baseurl}}/images/documentation/animation-tracks-t0.1.png" class="w3-image">
 
 - Sampling-time 0.3 is further than the latest sampling-cursor, so it has to be incremented up to key 10. Note that very few increments are needed, and that hot keys are still grouped. 
 
-![]({{site.baseurl}}/images/documentation/animation-tracks-t0.3.png)
+![]({{site.baseurl}}/images/documentation/animation-tracks-t0.3.png" class="w3-image">
 
 - Moving a bit further to time = 0.7 requires to increment the sampling-cursor again. Note that hot keys are also quite grouped, despite a few holes.
 
-![]({{site.baseurl}}/images/documentation/animation-tracks-t0.7.png)
+<img src="{{site.baseurl}}/images/documentation/animation-tracks-t0.7.png" class="w3-image">
 
 - Finally moving to time = 1, the cursor is pushed up to the last key, with most of the hot keys close one to each other in memory, already cached and decompressed (orange keys).
 
-![]({{site.baseurl}}/images/documentation/animation-tracks-t1.png)
+<img src="{{site.baseurl}}/images/documentation/animation-tracks-t1.png" class="w3-image">
 
 The sampling algorithm needs to access very few keyframes when moving forward in the timeline, thanks to the way keyframe are stored.
 

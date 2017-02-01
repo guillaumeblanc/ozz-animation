@@ -1,12 +1,11 @@
 ---
 title: HowTos
 layout: full
-collection: documentation
 keywords: documentation,doc,help,howto,how to,custom,import,animation,skeleton,fbx,load,file,serialize
 order: 90
 ---
 
-{% include references.jekyll %}
+{% include links.jekyll %}
 
 This page contains some how-tos for achieving different tasks with ozz-animation:
 
