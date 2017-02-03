@@ -46,16 +46,14 @@ void PatchBeginEndKeys(const RawFloatTrack& _input,
   if (_input.keyframes.empty()) {
     const RawFloatTrack::Keyframe begin = {RawFloatTrack::kLinear, 0.f, 0.f};
     keyframes->push_back(begin);
-    const RawFloatTrack::Keyframe end = {RawFloatTrack::kLinear,
-                                         _input.duration, 0.f};
+    const RawFloatTrack::Keyframe end = {RawFloatTrack::kLinear, 1.f, 0.f};
     keyframes->push_back(end);
   } else if (_input.keyframes.size() == 1) {
     const RawFloatTrack::Keyframe& src_key = _input.keyframes.front();
     const RawFloatTrack::Keyframe begin = {RawFloatTrack::kLinear, 0.f,
                                            src_key.value};
     keyframes->push_back(begin);
-    const RawFloatTrack::Keyframe end = {RawFloatTrack::kLinear,
-                                         _input.duration, src_key.value};
+    const RawFloatTrack::Keyframe end = {RawFloatTrack::kLinear, 1.f, src_key.value};
     keyframes->push_back(end);
   } else {
     // Copy all source data.
@@ -68,10 +66,10 @@ void PatchBeginEndKeys(const RawFloatTrack& _input,
     for (size_t i = 0; i < _input.keyframes.size(); ++i) {
       keyframes->push_back(_input.keyframes[i]);
     }
-    if (_input.keyframes.back().time != _input.duration) {
+    if (_input.keyframes.back().time != 1.f) {
       const RawFloatTrack::Keyframe& src_key = _input.keyframes.back();
       const RawFloatTrack::Keyframe end = {RawFloatTrack::kLinear,
-                                           _input.duration, src_key.value};
+                                           1.f, src_key.value};
       keyframes->push_back(end);
     }
   }
@@ -109,7 +107,7 @@ void Linearize(RawFloatTrack::Keyframes* keyframes) {
 
 // Ensures _input's validity and allocates _animation.
 // An animation needs to have at least two key frames per joint, the first at
-// t = 0 and the last at t = duration. If at least one of those keys are not
+// t = 0 and the last at t = 1. If at least one of those keys are not
 // in the RawAnimation then the builder creates it.
 FloatTrack* FloatTrackBuilder::operator()(const RawFloatTrack& _input) const {
   // Tests _raw_animation validity.
@@ -120,11 +118,6 @@ FloatTrack* FloatTrackBuilder::operator()(const RawFloatTrack& _input) const {
   // Everything is fine, allocates and fills the animation.
   // Nothing can fail now.
   FloatTrack* track = memory::default_allocator()->New<FloatTrack>();
-
-  // Sets duration.
-  const float duration = _input.duration;
-  track->duration_ = duration;
-  assert(duration > 0.f);  // This case is handled by Validate().
 
   // Copy data to temporary prepared data structure
   RawFloatTrack::Keyframes keyframes;

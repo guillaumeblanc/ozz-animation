@@ -45,8 +45,7 @@ struct FloatSamplingJob {
   bool Validate() const {
     bool success = true;
     success &= result != NULL;
-    success &= time >= 0.f;
-    success &= track != NULL && time <= track->duration();
+    success &= track != NULL;
     return success;
   }
 
@@ -55,15 +54,18 @@ struct FloatSamplingJob {
       return false;
     }
 
+    // Clamps time in range [0,1].
+    const float clamped_time = math::Clamp(0.f, time, 1.f);
+
     // Search keyframes to interpolate.
     const Range<const float> times = track->times();
     const Range<const float> values = track->values();
     assert(times.Size() == values.Size());
 
     // Search for the first key frame with a time value greater than input time.
-    const float* ptk1 = std::upper_bound(times.begin, times.end, time);
+    const float* ptk1 = std::upper_bound(times.begin, times.end, clamped_time);
 
-    // upper_bound returns "end" if time == duration, so patch the selected
+    // upper_bound returns "end" if time == end, so patch the selected
     // keyframe (ptk1) to be able enter the lerp algorithm.
     if (ptk1 == times.end) {
       --ptk1;
@@ -72,20 +74,21 @@ struct FloatSamplingJob {
     // Lerp relevant keys.
     const float tk0 = ptk1[-1];
     const float tk1 = ptk1[0];
-    assert(time >= tk0 && tk0 != tk1);
+    assert(clamped_time >= tk0 && tk0 != tk1);
     const float* pvk1 = values.begin + (ptk1 - times.begin);
     const float vk0 = pvk1[-1];
     const float vk1 = pvk1[0];
-    const float alpha = (time - tk0) / (tk1 - tk0);
+    const float alpha = (clamped_time - tk0) / (tk1 - tk0);
     *result = math::Lerp(vk0, vk1, alpha);
 
     return true;
   }
 
-  // Time used to sample animation, clamped in range [0,duration] before
+  // Time used to sample animation, clamped in range [0,1] before
   // job execution. This resolves approximations issues on range bounds.
   float time;
 
+  // Track to sample.
   const FloatTrack* track;
 
   // Job output.
@@ -103,29 +106,8 @@ TEST(Error, FloatTrackBuilder) {
   // Instantiates a builder objects with default parameters.
   FloatTrackBuilder builder;
 
-  {  // Building an empty track fails because duration
-    // must be >= 0.
-    RawFloatTrack raw_float_track;
-    raw_float_track.duration = -1.f;  // Negative duration.
-    EXPECT_FALSE(raw_float_track.Validate());
-
-    // Builds track
-    EXPECT_TRUE(!builder(raw_float_track));
-  }
-
-  {  // Building an empty RawFloatTrack fails because track duration
-    // must be >= 0.
-    RawFloatTrack raw_float_track;
-    raw_float_track.duration = 0.f;
-    EXPECT_FALSE(raw_float_track.Validate());
-
-    // Builds track
-    EXPECT_TRUE(!builder(raw_float_track));
-  }
-
   {  // Building default RawFloatTrack succeeds.
     RawFloatTrack raw_float_track;
-    EXPECT_EQ(raw_float_track.duration, 1.f);
     EXPECT_TRUE(raw_float_track.Validate());
 
     // Builds track
@@ -141,7 +123,6 @@ TEST(Build, FloatTrackBuilder) {
 
   {  // Building a track with unsorted keys fails.
     RawFloatTrack raw_float_track;
-    raw_float_track.duration = 1.f;
     raw_float_track.keyframes.resize(2);
 
     // Adds 2 unordered keys
@@ -159,7 +140,6 @@ TEST(Build, FloatTrackBuilder) {
 
   {  // Building a track with invalid key frame's time fails.
     RawFloatTrack raw_float_track;
-    raw_float_track.duration = 1.f;
     raw_float_track.keyframes.resize(1);
 
     // Adds 2 unordered keys
@@ -174,7 +154,6 @@ TEST(Build, FloatTrackBuilder) {
 
   {  // Building a track with equal key frame's time fails.
     RawFloatTrack raw_float_track;
-    raw_float_track.duration = 1.f;
     raw_float_track.keyframes.resize(2);
 
     // Adds 2 unordered keys
@@ -192,7 +171,6 @@ TEST(Build, FloatTrackBuilder) {
 
   {  // Building a valid track with 1 key succeeds.
     RawFloatTrack raw_float_track;
-    EXPECT_EQ(raw_float_track.duration, 1.f);
     RawFloatTrack::Keyframe first_key = {RawFloatTrack::kLinear,
                                          .8f, 0.f};
     raw_float_track.keyframes.push_back(first_key);
@@ -244,7 +222,6 @@ TEST(Build0Keys, FloatTrackBuilder) {
   FloatTrackBuilder builder;
 
   RawFloatTrack raw_float_track;
-  raw_float_track.duration = 1.f;
 
   // Builds track
   FloatTrack* track = builder(raw_float_track);
@@ -269,7 +246,6 @@ TEST(BuildLinear, FloatTrackBuilder) {
 
   {  // 1 key at the beginning
     RawFloatTrack raw_float_track;
-    raw_float_track.duration = 1.f;
 
     RawFloatTrack::Keyframe first_key = {RawFloatTrack::kLinear,
                                          0.f, 46.f};
@@ -301,7 +277,6 @@ TEST(BuildLinear, FloatTrackBuilder) {
 
   {  // 1 key in the middle
     RawFloatTrack raw_float_track;
-    raw_float_track.duration = 1.f;
 
     RawFloatTrack::Keyframe first_key = {RawFloatTrack::kLinear,
                                          .5f, 46.f};
@@ -333,7 +308,6 @@ TEST(BuildLinear, FloatTrackBuilder) {
 
   {  // 1 key at the end
     RawFloatTrack raw_float_track;
-    raw_float_track.duration = 1.f;
 
     RawFloatTrack::Keyframe first_key = {RawFloatTrack::kLinear,
                                          1.f, 46.f};
@@ -365,7 +339,6 @@ TEST(BuildLinear, FloatTrackBuilder) {
 
   {  // 2 keys at the end
     RawFloatTrack raw_float_track;
-    raw_float_track.duration = 1.f;
 
     RawFloatTrack::Keyframe first_key = {RawFloatTrack::kLinear,
                                          .5f, 46.f};
@@ -414,7 +387,6 @@ TEST(BuildStep, FloatTrackBuilder) {
 
   {  // 1 key at the beginning
     RawFloatTrack raw_float_track;
-    raw_float_track.duration = 1.f;
 
     RawFloatTrack::Keyframe first_key = {RawFloatTrack::kStep,
                                          0.f, 46.f};
@@ -446,7 +418,6 @@ TEST(BuildStep, FloatTrackBuilder) {
 
   {  // 1 key in the middle
     RawFloatTrack raw_float_track;
-    raw_float_track.duration = 1.f;
 
     RawFloatTrack::Keyframe first_key = {RawFloatTrack::kStep,
                                          .5f, 46.f};
@@ -478,7 +449,6 @@ TEST(BuildStep, FloatTrackBuilder) {
 
   {  // 1 key at the end
     RawFloatTrack raw_float_track;
-    raw_float_track.duration = 1.f;
 
     RawFloatTrack::Keyframe first_key = {RawFloatTrack::kStep,
                                          1.f, 46.f};
@@ -510,7 +480,6 @@ TEST(BuildStep, FloatTrackBuilder) {
 
   {  // 2 keys
     RawFloatTrack raw_float_track;
-    raw_float_track.duration = 1.f;
 
     RawFloatTrack::Keyframe first_key = {RawFloatTrack::kStep,
                                          .5f, 46.f};
@@ -567,7 +536,6 @@ TEST(BuildMixed, FloatTrackBuilder) {
 
   {  // 2 keys
     RawFloatTrack raw_float_track;
-    raw_float_track.duration = 1.f;
 
     RawFloatTrack::Keyframe key0 = {RawFloatTrack::kLinear,
                                          0.f, 0.f};

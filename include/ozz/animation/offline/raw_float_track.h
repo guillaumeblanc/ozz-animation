@@ -41,13 +41,13 @@ namespace offline {
 // channel using the FlatTrackBuilder.
 // This animation structure exposes a single float sequence of keyframes.
 // Keyframes are defined with a time, a float value and an interpolation mode
-// (impact the range from the keyframe to the next). Channel structure is then a
-// sorted vector of keyframes, along with a duration value.
+// (impact the range from the keyframe to the next). Float track structure is then a
+// sorted vector of keyframes. A track has no duration, keyframes time range
+// must be between 0 and 1.
 // Finally the RawFloatTrack structure exposes Validate() function to check that
 // it is valid, meaning that all the following rules are respected:
-//  1. Duration is greater than 0.
-//  2. Keyframes' time are sorted in a strict ascending order.
-//  3. Keyframes' time are all within [0,animation duration] range.
+//  1. Keyframes' time are sorted in a strict ascending order.
+//  2. Keyframes' time are all within [0,1] range.
 // RawFloatTrack that would fail this validation will fail to be converted by the
 // RawFloatTrackBuilder.
 struct RawFloatTrack {
@@ -58,13 +58,9 @@ struct RawFloatTrack {
   ~RawFloatTrack();
 
   // Validates that all the following rules are respected:
-  //  1. Animation duration is greater than 0.
-  //  2. Keyframes' time are sorted in a strict ascending order.
-  //  3. Keyframes' time are all within [0,animation duration] range.
+  //  1. Keyframes' time are sorted in a strict ascending order.
+  //  2. Keyframes' time are all within [0,1] range.
   bool Validate() const;
-
-  // Track duration.
-  float duration;
 
   // Interpolation mode.
   enum Interpolation {

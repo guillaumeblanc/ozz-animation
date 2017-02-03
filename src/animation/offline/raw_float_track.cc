@@ -31,20 +31,16 @@ namespace ozz {
 namespace animation {
 namespace offline {
 
-RawFloatTrack::RawFloatTrack() : duration(1.f) {}
+RawFloatTrack::RawFloatTrack() {}
 
 RawFloatTrack::~RawFloatTrack() {}
 
-namespace {
-
-// Implements key frames' time range and ordering checks.
-static bool ValidateKeyframes(const RawFloatTrack::Keyframes& _keyframes,
-                              float _duration) {
+bool RawFloatTrack::Validate() const {
   float previous_time = -1.f;
-  for (size_t k = 0; k < _keyframes.size(); ++k) {
-    const float frame_time = _keyframes[k].time;
-    // Tests frame's time is in range [0:duration].
-    if (frame_time < 0.f || frame_time > _duration) {
+  for (size_t k = 0; k < keyframes.size(); ++k) {
+    const float frame_time = keyframes[k].time;
+    // Tests frame's time is in range [0:1].
+    if (frame_time < 0.f || frame_time > 1.f) {
       return false;
     }
     // Tests that frames are sorted.
@@ -54,15 +50,6 @@ static bool ValidateKeyframes(const RawFloatTrack::Keyframes& _keyframes,
     previous_time = frame_time;
   }
   return true;  // Validated.
-}
-}  // namespace
-
-bool RawFloatTrack::Validate() const {
-  if (duration <= 0.f) {  // Tests duration is valid.
-    return false;
-  }
-
-  return ValidateKeyframes(keyframes, duration);
 }
 }  // offline
 }  // animation
