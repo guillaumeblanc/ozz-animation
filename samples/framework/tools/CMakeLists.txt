@@ -5,8 +5,8 @@ if(ozz_build_fbx)
   # share meshes with thte sample framework
   add_executable(sample_fbx2mesh
     fbx2mesh.cc
-    ${CMAKE_SOURCE_DIR}/samples/framework/mesh.cc
-    ${CMAKE_SOURCE_DIR}/samples/framework/mesh.h)
+    ${PROJECT_SOURCE_DIR}/samples/framework/mesh.cc
+    ${PROJECT_SOURCE_DIR}/samples/framework/mesh.h)
   target_link_libraries(sample_fbx2mesh
     ozz_animation_fbx
     ozz_animation_offline
@@ -15,7 +15,7 @@ if(ozz_build_fbx)
     ozz_base)
   set_target_properties(sample_fbx2mesh
     PROPERTIES FOLDER "samples/tools")
-  
+
   install(TARGETS sample_fbx2mesh DESTINATION bin/samples/tools)
 
   add_custom_command(

@@ -16,6 +16,7 @@ option(ozz_build_tests "Build unit tests" OFF)
 option(ozz_build_simd_ref "Forces SIMD math reference implementation" OFF)
 option(ozz_build_cpp11 "Enable c++11" OFF)
 option(ozz_build_coverage "Enable gcov build coverage" OFF)
+option(ozz_build_postfix "Add custom postfixes for output files" ON)
 
 # Outputs selected options (can be modified by the command line)
 message("-- ---------------------------------------------------------")
@@ -27,16 +28,17 @@ message("-- - ozz_build_tests: " ${ozz_build_tests})
 message("-- - ozz_build_simd_ref: " ${ozz_build_simd_ref})
 message("-- - ozz_build_cpp11: " ${ozz_build_cpp11})
 message("-- - ozz_build_coverage: " ${ozz_build_coverage})
+message("-- - ozz_build_postfix: " ${ozz_build_postfix})
 
 # Add project execution options
 option(ozz_run_tests_headless "Run samples without rendering (used for unit tests)" ON)
 set(ozz_sample_testing_loops 20 CACHE INT "Number of loops while running sample tests (used for unit tests)")
 
 # Include ozz cmake parameters and scripts
-include(build-utils/cmake/compiler_settings.cmake)
-include(build-utils/cmake/package_settings.cmake)
-include(build-utils/cmake/fuse_target.cmake)
-include(build-utils/cmake/clang_format.cmake)
+include(${PROJECT_SOURCE_DIR}/build-utils/cmake/compiler_settings.cmake)
+include(${PROJECT_SOURCE_DIR}/build-utils/cmake/package_settings.cmake)
+include(${PROJECT_SOURCE_DIR}/build-utils/cmake/fuse_target.cmake)
+include(${PROJECT_SOURCE_DIR}/build-utils/cmake/clang_format.cmake)
 
 # Enables unit tests only
 if(ozz_build_tests)
@@ -44,7 +46,7 @@ if(ozz_build_tests)
 endif()
 
 # Configure CMake module path
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/build-utils/cmake/modules/")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/build-utils/cmake/modules/")
 
 # Detects Fbx SDK, required to build Fbx pipeline.
 if(ozz_build_fbx)
@@ -57,7 +59,7 @@ if(ozz_build_fbx)
 endif()
 
 # Locates media directory.
-set(ozz_media_directory "${CMAKE_SOURCE_DIR}/media")
+set(ozz_media_directory "${PROJECT_SOURCE_DIR}/media")
 
 # Creates temporary directory for tests inputs/outputs.
 set(ozz_temp_directory ${CMAKE_BINARY_DIR}/temp)
