@@ -178,7 +178,7 @@ endforeach()
 
 message(STATUS "---------------------------------------------------------")
 
-get_directory_property(DirectoryCompileOptions DIRECTORY ${CMAKE_SOURCE_DIR} COMPILE_OPTIONS)
+get_directory_property(DirectoryCompileOptions DIRECTORY ${PROJECT_SOURCE_DIR} COMPILE_OPTIONS)
 message(STATUS "Directory Compile Options:")
 foreach(opt ${DirectoryCompileOptions})
   message(STATUS ${opt})
@@ -186,7 +186,7 @@ endforeach()
 
 message(STATUS "---------------------------------------------------------")
 
-get_directory_property(DirectoryCompileDefinitions DIRECTORY ${CMAKE_SOURCE_DIR} COMPILE_DEFINITIONS)
+get_directory_property(DirectoryCompileDefinitions DIRECTORY ${PROJECT_SOURCE_DIR} COMPILE_DEFINITIONS)
 message(STATUS "Directory Compile Definitions:")
 foreach(def ${DirectoryCompileDefinitions})
   message(STATUS ${def})

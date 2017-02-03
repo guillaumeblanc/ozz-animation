@@ -94,7 +94,7 @@ add_test(NAME test_skeleton_utils COMMAND test_skeleton_utils)
 # ozz_animation fuse tests
 add_executable(test_fuse_animation
   sampling_job_tests.cc
-  ${CMAKE_SOURCE_DIR}/src_fused/ozz_animation.cc)
+  ${PROJECT_SOURCE_DIR}/src_fused/ozz_animation.cc)
 add_dependencies(test_fuse_animation BUILD_FUSE_ozz_animation)
 target_link_libraries(test_fuse_animation
   ozz_animation_offline
