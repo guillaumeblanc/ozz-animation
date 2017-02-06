@@ -2,7 +2,7 @@
 title: Geometry runtime
 layout: full
 keywords: runtime,optimize,sample,sampling,blend,blending,soa,sse,job,batch,skinning,matrix,palette,cpu
-order: 50
+order: 70
 ---
 
 {% include links.jekyll %}

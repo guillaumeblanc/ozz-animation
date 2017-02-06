@@ -69,7 +69,7 @@ The following diagrams show "hot" keys, the one that are accessed during samplin
 
 - Sampling-time 0.3 is further than the latest sampling-cursor, so it has to be incremented up to key 10. Note that very few increments are needed, and that hot keys are still grouped. 
 
-![]({{site.baseurl}}/images/documentation/animation-tracks-t0.3.png" class="w3-image">
+<img src="{{site.baseurl}}/images/documentation/animation-tracks-t0.3.png" class="w3-image">
 
 - Moving a bit further to time = 0.7 requires to increment the sampling-cursor again. Note that hot keys are also quite grouped, despite a few holes.
 

@@ -10,29 +10,28 @@
     {% endif %}
     {% assign collection_id = collection.label %}
     {% if {{collection_id}} == {{page.collection}} %}
-      <li class="w3-green w3-hide-medium w3-hide-small">
+      <li class="w3-text-orange w3-hide-medium w3-hide-small">
     {% else %}
       <li class="w3-hide-medium w3-hide-small">
     {% endif %}  
     <a class="w3-hover-white w3-padding-16" href="{{site.baseurl}}/{{collection.label}}/">{{collection.display_name}}</a>
     </li>
  {% endfor %}
+  <li class="w3-hide-medium w3-hide-small"><a class="w3-hover-white w3-padding-16" href="http://github.com/guillaumeblanc/ozz-animation" target="_blank">Github</a></li>
 </ul>
 
 <div id="myMarker"></div>
 
 <!-- Sidenav -->
 {% if page.layout == 'full' %}
-  <nav class="w3-sidenav w3-collapse w3-white w3-animate-left w3-light-grey" style="z-index:3;width:270px;" id="mySidenav">
+  <nav class="w3-sidenav w3-collapse w3-white w3-light-grey" style="z-index:3;width:270px;" id="mySidenav">
 {% else %}
-  <nav class="w3-sidenav w3-white w3-animate-left w3-hide-large w3-light-grey" style="z-index:3;width:270px;display:none;" id="mySidenav">
+  <nav class="w3-sidenav w3-white w3-hide-large w3-light-grey" style="z-index:3;width:270px;display:none;" id="mySidenav">
 {% endif %}
   <div class="w3-clear"></div>
     <a href="javascript:void(0)" onclick="w3_close()" class="w3-right w3-xlarge w3-padding-large w3-hide-large" title="Close">&times;</a>
   <div style="clear:both;">
     {% if page.layout == 'full' %}
-      {% assign collection = site.collections | where: "label", {{page.collection}} | first %}
-      <a href="{{site.baseurl}}/{{collection.label}}">{{collection.display_name}}</a>
       {% assign pages = site[{{page.collection}}] | sort:"order" %}
       {% for page in pages %}
         <a href="{{site.baseurl}}{{page.url}}">{{page.title}}</a>

@@ -1,5 +1,7 @@
 [link_home]: {{site.baseurl}}/
 
+[link_media_bin]: http://github.com/guillaumeblanc/ozz-animation/tree/master/media/bin/
+
 [link_attach_sample]: {{site.baseurl}}/samples/attach/
 [link_blend_sample]: {{site.baseurl}}/samples/blend/
 [link_millipede_sample]: {{site.baseurl}}/samples/millipede/
@@ -10,11 +12,12 @@
 [link_baked_sample]: {{site.baseurl}}/samples/baked/
 
 [link_how_to]: {{site.baseurl}}/documentation/howtos/
-[link_how_to_load]: {{site.baseurl}}/howto/#howtoloadfromfile
-[link_howto_custom_skeleton_importer]: {{site.baseurl}}/howto/#howtowriteacustomskeletonimporter
-[link_howto_custom_animation_importer]: {{site.baseurl}}/howto/#howtowriteacustomanimationimporter
+[link_how_to_load]: {{site.baseurl}}/documentation/howtos/#howtoloadfromfile
+[link_howto_custom_skeleton_importer]: {{site.baseurl}}/documentation/howtos/#howtowriteacustomskeletonimporter
+[link_howto_custom_animation_importer]: {{site.baseurl}}/documentation/howtos/#howtowriteacustomanimationimporter
 
 [link_toolset]: {{site.baseurl}}/documentation/toolset/
+[link_toolset_fbx2skel]: {{site.baseurl}}/documentation/toolset/#fbx2skel
 [link_toolset_fbx2anim]: {{site.baseurl}}/documentation/toolset/#fbx2anim
 
 [link_offline]: {{site.baseurl}}/documentation/offline/
@@ -42,9 +45,9 @@
 
 [link_maths]: {{site.baseurl}}/documentation/advanced/#maths
 
-[link_downloads]: {{site.baseurl}}/documentation/downloads/
+[link_download]: {{site.baseurl}}/documentation/download/
 
-[link_dashboard]: {{site.baseurl}}/documentation/downloads/#dashboard
+[link_dashboard]: {{site.baseurl}}/documentation/download/#dashboard
 
 [link_github]: http://github.com/guillaumeblanc/ozz-animation
 [link_github_issues]: http://github.com/guillaumeblanc/ozz-animation/issues

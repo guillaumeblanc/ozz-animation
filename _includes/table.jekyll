@@ -1,13 +1,13 @@
 <div class="w3-responsive">
-  <table class="w3-table-all w3-hoverable w3-card-2">
-    {% for item in {{include.data}} %}
+  <table id="{{include.id}}" class="w3-table-all w3-hoverable w3-card-2">
+    {% for line in {{include.data}} %}
       <tr>
         {% if forloop.first %}
-          {% for col in item %}
+          {% for col in line %}
             <th class="w3-theme">{{col[1]}}</th>
           {% endfor %}
         {% else %}  	
-          {% for col in item %}
+          {% for col in line %}
             <td>{{col[1]}}</td>
           {% endfor %}
         {% endif %}  	

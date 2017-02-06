@@ -50,9 +50,8 @@ ozz-animation is an **open source c++ 3d skeletal animation engine**. It provide
           <i class="fa fa-pencil" style="font-size:128px"></i>
         </div>
         <p>Engine agnostic</p>
-        <p>Data oriented</p>
         <p>Cache friendly</p>
-        <p>Thread safe</p>
+        <p>Thread safety</p>
         <p>SIMD SOA math</p>
         <p>MIT license</p>
       </div>

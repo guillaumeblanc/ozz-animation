@@ -1,19 +1,19 @@
     <footer class="w3-container w3-section w3-padding-32 w3-card-2 w3-theme w3-center" style="position:relative;z-index:20;">
       <div class="w3-row-padding w3-center">
         <div class="w3-half">
-          <a href="http://github.com/guillaumeblanc/ozz-animation">
+          <a href="http://github.com/guillaumeblanc/ozz-animation" target="_blank">
             <i class="fa fa-github" aria-hidden="true"></i>Github
           </a>
         </div>  
         <div class="w3-half">
-          <a href="http://twitter.com/jozz_sc">
+          <a href="http://twitter.com/jozz_sc" target="_blank">
             <i class="fa fa-twitter" aria-hidden="true"></i>Twitter
           </a>
         </div>  
       </div>
       <div class="w3-small"> 
         <p>ozz-animation software and site is hosted at <a href="http://github.com/guillaumeblanc/ozz-animation">github</a> and distributed under the MIT License.</p>
-        <p>Copyright © 2012-2017 ozz-animation</p>
+        <p>Copyright © 2014-2017 ozz-animation</p>
       </div>
     </footer>
 

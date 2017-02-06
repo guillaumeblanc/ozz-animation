@@ -74,7 +74,7 @@ Full sources for this how-to are available [here][link_how_to_load_src].
 
 How to write a custom skeleton importer?
 ========================================
-ozz proposes all the offline [data structures][link_offline_pipeline] and [utilities][link_offline_pipeline_utilities] required to build runtime optimized skeleton data. `ozz::animation::offline::RawSkeleton` is the offline data structure for skeletons. It is defined as a hierachy of joints, with their names and default transformation. It is converted to the runtime `ozz::animation::Skeleton` with `ozz::animation::offline::SkeletonBuilder` class.
+ozz proposes all the offline [data structures][link_toolset] and [utilities][link_toolset_utilities] required to build runtime optimized skeleton data. `ozz::animation::offline::RawSkeleton` is the offline data structure for skeletons. It is defined as a hierachy of joints, with their names and default transformation. It is converted to the runtime `ozz::animation::Skeleton` with `ozz::animation::offline::SkeletonBuilder` class.
 
 So writing a custom importer means first filling a `RawSkeleton` object. The next few code part setup a Raw skeleton with a root and 2 children (3 joints in total).
 
@@ -156,7 +156,7 @@ Full sources for this how-to are available [here][link_src_howto_custom_skeleton
 
 How to write a custom animation importer?
 =========================================
-As for the skeleton, ozz proposes all the offline [data structures][link_offline_pipeline] and [utilities][link_offline_pipeline_utilities] required to build runtime optimized animation data. `ozz::animation::offline::RawAnimation` is the offline data structure for animations. It is defined as an array of tracks, each one containing discrete arrays of translation, rotation and scale keyframes. It is converted to the runtime `ozz::animation::Animation` with `ozz::animation::offline::AnimationBuilder` class.
+As for the skeleton, ozz proposes all the offline [data structures][link_toolset] and [utilities][link_toolset] required to build runtime optimized animation data. `ozz::animation::offline::RawAnimation` is the offline data structure for animations. It is defined as an array of tracks, each one containing discrete arrays of translation, rotation and scale keyframes. It is converted to the runtime `ozz::animation::Animation` with `ozz::animation::offline::AnimationBuilder` class.
 
 So writing a custom importer means first filling a RawAnimation object. The next few code part setup a Raw animation with 3 tracks (usable with a 3 joints skeleton).
 

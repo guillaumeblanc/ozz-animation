@@ -1,8 +1,8 @@
 ---
 title: Samples
 layout: full
-collection: samples
 keywords: sample, tutorial
+permalink: /:collection/index.html
 ---
 
 {% include links.jekyll %}

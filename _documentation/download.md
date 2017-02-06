@@ -12,7 +12,7 @@ The current version is {{site.data.versions[0].version}}. See [latest CHANGES][l
 Sources
 =======
 
-ozz-animation is hosted on [gitub][link_github]. The latest versions of the source code, including all release tags and incoming branches, are available from there. Get a local copy of the ozz-animation git repository with this command:
+ozz-animation is hosted on [github][link_github]. The latest versions of the source code, including all release tags and incoming branches, are available from there. Get a local copy of the ozz-animation git repository with this command:
 
 {% highlight bash %}
 git clone https://github.com/guillaumeblanc/ozz-animation.git
@@ -30,31 +30,22 @@ Dashboard
 
 Use the continuous integration build [dashboard][link_dashboard] to verify branches stability.
 
-The following table automatically reflects github branches.
-<table id="id01" class="w3-table-all w3-card-2">
-  <tr class="w3-theme">
-    <th>Branch</th>
-    <th>Linux</th>
-    <th>MacOS</th>
-    <th>Windows</th>
-  </tr>
-</table>
+The following table automatically reflects all existing github branches.
+
+{% include table.jekyll id="dashboard_table" data=site.data.dashboard %}
 
 <script>
 var xmlhttp = new XMLHttpRequest();
-var url = "https://api.github.com/repos/guillaumeblanc/ozz-animation/branches";
-
 xmlhttp.onreadystatechange = function() {
   if (this.readyState == XMLHttpRequest.DONE) {
     if (this.status == 200) {
-      var myArr = JSON.parse(this.responseText);
-      myFunction(myArr);
+      populate_table(JSON.parse(this.responseText));
     } else {
-      document.getElementById("id01").innerHTML += "Failed to list branches.";
+      document.getElementById("dashboard_table").innerHTML += "Failed to list branches.";
     }
   }
 };
-xmlhttp.open("GET", url, true);
+xmlhttp.open("GET", "http://api.github.com/repos/guillaumeblanc/ozz-animation/branches", true);
 xmlhttp.send();
 
 function populate_row(branch) {
@@ -68,18 +59,7 @@ function populate_row(branch) {
   return row;
 }
 
-function PickBranch(branches, name) {
-  for(var i = 0; i < branches.length; i++) {
-    var branch = branches[i];
-    if (branch.name.includes(name)) {
-      branches.splice(i, 1);
-      return branch;
-	}
-  }
-  return null;
-}
-
-function myFunction(branches) {
+function populate_table(branches) {
     branches.sort(function(a, b){
     	if(a.name == "master") return -1;
     	if(b.name == "master") return 1;
@@ -103,6 +83,6 @@ function myFunction(branches) {
     	out += populate_row(branch)
 
     }
-    document.getElementById("id01").innerHTML += out;
+    document.getElementById("dashboard_table").innerHTML += out;
 }
 </script>
