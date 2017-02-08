@@ -12,7 +12,7 @@ This page lists implemented features and plans for future releases.
 Features
 ========
 
-{% include table.jekyll id="features_table" data=site.data.references_low_level %}
+{% include table.jekyll id="features_table" data=site.data.features %}
 
 Samples
 =======

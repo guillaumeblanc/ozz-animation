@@ -21,7 +21,9 @@ cmake ..
 cmake --build ./ --config Release
 {% endhighlight %}
 
-ozz-animation libraries and samples will be build by default. Fbx tools will be automatically built if a compatible FbxSdk is found. Unit tests are disabled by default, which can be changed by setting ozz_build_tests to ON. All build options are listed in the project root [CMakeLists.txt file][link_src_build_options].  
+ozz-animation libraries and samples will be build by default. Unit tests are disabled by default, which can be changed by setting ozz_build_tests to ON. All build options are listed in the project root [CMakeLists.txt file][link_src_build_options].  
+
+> Fbx tools will be automatically built if a compatible FbxSdk is found.
 
 An optional python script `build-helper.py` is available in the root directory to help performing all operations:
 

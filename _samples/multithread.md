@@ -1,5 +1,5 @@
 ---
-title: Multi-threaded sampling with OpenMp
+title: Multi-threading
 layout: full
 keywords: animation,sampling,blending,playback,optimize,multithreads,threading,job,openmp,intel,tbb,thread
 order: 70

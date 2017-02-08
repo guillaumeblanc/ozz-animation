@@ -9,7 +9,7 @@
 <!-- Main content: sidenav is not visible with home layout -->
 <div class="w3-container">
 
-  <div class="w3-container w3-content w3-section w3-padding-large">
+  <div class="w3-container w3-content w3-section">
 	{{content}}
   </div>
 
