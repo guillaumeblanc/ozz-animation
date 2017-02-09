@@ -58,6 +58,16 @@ target_link_libraries(test_float_track_builder
 set_target_properties(test_float_track_builder PROPERTIES FOLDER "ozz/tests/animation_offline")
 add_test(NAME test_float_track_builder COMMAND test_float_track_builder)
 
+add_executable(test_float_track_optimizer
+  float_track_optimizer_tests.cc)
+target_link_libraries(test_float_track_optimizer
+  ozz_animation_offline
+  ozz_animation
+  ozz_base
+  gtest)
+set_target_properties(test_float_track_optimizer PROPERTIES FOLDER "ozz/tests/animation_offline")
+add_test(NAME test_float_track_optimizer COMMAND test_float_track_optimizer)
+
 add_executable(test_raw_skeleton_archive_versioning
   raw_skeleton_archive_versioning_tests.cc)
 

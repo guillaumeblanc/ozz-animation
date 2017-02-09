@@ -534,7 +534,7 @@ TEST(BuildMixed, FloatTrackBuilder) {
   FloatTrackBuilder builder;
   float result;
 
-  {  // 2 keys
+  {
     RawFloatTrack raw_float_track;
 
     RawFloatTrack::Keyframe key0 = {RawFloatTrack::kLinear,

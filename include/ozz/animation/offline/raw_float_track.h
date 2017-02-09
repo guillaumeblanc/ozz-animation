@@ -51,7 +51,7 @@ namespace offline {
 // RawFloatTrack that would fail this validation will fail to be converted by the
 // RawFloatTrackBuilder.
 struct RawFloatTrack {
-  // Constructs a valid RawFloatTrack with a 1s default duration.
+  // Constructs a valid RawFloatTrack.
   RawFloatTrack();
 
   // Deallocates track.

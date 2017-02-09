@@ -18,7 +18,9 @@ add_library(ozz_animation_offline STATIC
   ${PROJECT_SOURCE_DIR}/include/ozz/animation/offline/raw_float_track.h
   raw_float_track.cc
   ${PROJECT_SOURCE_DIR}/include/ozz/animation/offline/float_track_builder.h
-  float_track_builder.cc)
+  float_track_builder.cc
+  ${PROJECT_SOURCE_DIR}/include/ozz/animation/offline/float_track_optimizer.h
+  float_track_optimizer.cc)
 set_target_properties(ozz_animation_offline PROPERTIES FOLDER "ozz")
 
 install(TARGETS ozz_animation_offline DESTINATION lib)

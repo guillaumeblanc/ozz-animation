@@ -1,0 +1,114 @@
+//----------------------------------------------------------------------------//
+//                                                                            //
+// ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
+// and distributed under the MIT License (MIT).                               //
+//                                                                            //
+// Copyright (c) 2015 Guillaume Blanc                                         //
+//                                                                            //
+// Permission is hereby granted, free of charge, to any person obtaining a    //
+// copy of this software and associated documentation files (the "Software"), //
+// to deal in the Software without restriction, including without limitation  //
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,   //
+// and/or sell copies of the Software, and to permit persons to whom the      //
+// Software is furnished to do so, subject to the following conditions:       //
+//                                                                            //
+// The above copyright notice and this permission notice shall be included in //
+// all copies or substantial portions of the Software.                        //
+//                                                                            //
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR //
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,   //
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL    //
+// THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER //
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING    //
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER        //
+// DEALINGS IN THE SOFTWARE.                                                  //
+//                                                                            //
+//----------------------------------------------------------------------------//
+
+#include "ozz/animation/offline/float_track_optimizer.h"
+
+#include <cassert>
+#include <cstddef>
+  
+#include "ozz/base/maths/math_ex.h"
+
+#include "ozz/animation/offline/raw_float_track.h"
+
+namespace ozz {
+namespace animation {
+namespace offline {
+
+// Setup default values (favoring quality).
+FloatTrackOptimizer::FloatTrackOptimizer()
+    : tolerance(1e-3f) {  // 1 mm.
+}
+
+namespace {
+
+bool Compare(float _left, float _right, float _tolerance) {
+  return fabs(_left - _right) <= _tolerance;
+}
+
+// Copy _src keys to _dest but except the ones that can be interpolated.
+void Filter(const RawFloatTrack::Keyframes& _src, float _tolerance, RawFloatTrack::Keyframes* _dest) {
+  _dest->reserve(_src.size());
+
+  // Only copies the key that cannot be interpolated from the others.
+  size_t last_src_pushed = 0;  // Index (in src) of the last pushed key.
+  for (size_t i = 0; i < _src.size(); ++i) {
+    const RawFloatTrack::Keyframe& current = _src[i];
+
+    // First and last keys are always pushed.
+    // RawFloatTrack::kStep keyframes aren't optimized, as steps can't be interpolated.
+    if (i == 0 || current.interpolation == RawFloatTrack::kStep) {
+      _dest->push_back(_src[i]);
+      last_src_pushed = i;
+    } else if (i == _src.size() - 1) {
+      // Don't push the last value if it's the same as last_src_pushed.
+      const RawFloatTrack::Keyframe& left = _src[last_src_pushed];
+      if (!Compare(left.value, current.value, _tolerance)) {
+        _dest->push_back(current);
+        last_src_pushed = i;
+      }
+    } else {
+      // Only inserts i key if keys in range ]last_src_pushed,i] cannot be
+      // interpolated from keys last_src_pushed and i + 1.
+      const RawFloatTrack::Keyframe& left = _src[last_src_pushed];
+      const RawFloatTrack::Keyframe& right = _src[i + 1];
+      for (size_t j = last_src_pushed + 1; j <= i; ++j) {
+        const RawFloatTrack::Keyframe& test = _src[j];
+        const float alpha = (test.time - left.time) / (right.time - left.time);
+        assert(alpha >= 0.f && alpha <= 1.f);
+        if (!Compare(math::Lerp(left.value, right.value, alpha), test.value, _tolerance)) {
+          _dest->push_back(current);
+          last_src_pushed = i;
+          break;
+        }
+      }
+    }
+  }
+  assert(_dest->size() <= _src.size());
+}
+}  // namespace
+
+bool FloatTrackOptimizer::operator()(const RawFloatTrack& _input,
+                                     RawFloatTrack* _output) const {
+  if (!_output) {
+    return false;
+  }
+  // Reset output animation to default.
+  *_output = RawFloatTrack();
+
+  // Validate animation.
+  if (!_input.Validate()) {
+    return false;
+  }
+
+  Filter(_input.keyframes, tolerance, &_output->keyframes);
+
+  // Output animation is always valid though.
+  return _output->Validate();
+}
+}  // offline
+}  // animation
+}  // ozz
