@@ -58,7 +58,7 @@ TEST(Error, FloatTrackOptimizer) {
     RawFloatTrack output;
     output.keyframes.resize(1);
     EXPECT_FALSE(optimizer(input, &output));
-    EXPECT_EQ(output.keyframes.size(), 0);
+    EXPECT_EQ(output.keyframes.size(), 0u);
   }
 }
 /*
@@ -105,7 +105,7 @@ TEST(OptimizeSteps, FloatTrackOptimizer) {
   RawFloatTrack output;
   ASSERT_TRUE(optimizer(raw_float_track, &output));
 
-  EXPECT_EQ(output.keyframes.size(), 3);
+  EXPECT_EQ(output.keyframes.size(), 3u);
 
   EXPECT_EQ(output.keyframes[0].interpolation, key0.interpolation);
   EXPECT_FLOAT_EQ(output.keyframes[0].time, key0.time);
@@ -154,7 +154,7 @@ TEST(OptimizeInterpolate, FloatTrackOptimizer) {
     optimizer.tolerance = 1e-3f;
     ASSERT_TRUE(optimizer(raw_float_track, &output));
 
-    EXPECT_EQ(output.keyframes.size(), 2);
+    EXPECT_EQ(output.keyframes.size(), 2u);
 
     EXPECT_EQ(output.keyframes[0].interpolation, key0.interpolation);
     EXPECT_FLOAT_EQ(output.keyframes[0].time, key0.time);
@@ -170,7 +170,7 @@ TEST(OptimizeInterpolate, FloatTrackOptimizer) {
     optimizer.tolerance = 1e-9f;
     ASSERT_TRUE(optimizer(raw_float_track, &output));
 
-    EXPECT_EQ(output.keyframes.size(), 4);
+    EXPECT_EQ(output.keyframes.size(), 4u);
 
     EXPECT_EQ(output.keyframes[0].interpolation, key0.interpolation);
     EXPECT_FLOAT_EQ(output.keyframes[0].time, key0.time);
