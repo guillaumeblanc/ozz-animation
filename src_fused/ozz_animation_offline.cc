@@ -1585,6 +1585,7 @@ bool RawFloatTrack::Validate() const {
 
 #include <cassert>
 #include <cmath>
+#include <cfloat>
 
 #include "ozz/base/memory/allocator.h"
 
@@ -1645,7 +1646,12 @@ void Linearize(RawFloatTrack::Keyframes* keyframes) {
     if (src_key.interpolation == RawFloatTrack::kStep) {
       // Pick a time right before the next key frame.
       const RawFloatTrack::Keyframe& src_next_key = *(it + 1);
-      const float new_key_time = nextafterf(src_next_key.time, -1.f);
+
+      // FLT_EPSILON is the smallest such that 1.0+FLT_EPSILON != 1.0.
+      // Key time being in range [0, 1], FLT_EPSILON works.
+      // nextafterf(src_next_key.time, -1.f) would be a better option, but it
+      // isn't available for all compilers (MSVC 11).
+      const float new_key_time = src_next_key.time - FLT_EPSILON;
 
       const RawFloatTrack::Keyframe new_key = {RawFloatTrack::kLinear,
                                                new_key_time, src_key.value};
@@ -1658,6 +1664,9 @@ void Linearize(RawFloatTrack::Keyframes* keyframes) {
 
   // Patch last key as its interpolation mode has no impact.
   keyframes->back().interpolation = RawFloatTrack::kLinear;
+
+  assert(keyframes->front().time >= 0.f);
+  assert(keyframes->back().time <= 1.f);
 }
 }  // namespace
 

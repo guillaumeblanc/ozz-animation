@@ -482,7 +482,7 @@ TEST(BuildStep, FloatTrackBuilder) {
     RawFloatTrack raw_float_track;
 
     RawFloatTrack::Keyframe first_key = {RawFloatTrack::kStep,
-                                         .5f, 46.f};
+                                         0.f, 46.f};
     raw_float_track.keyframes.push_back(first_key);
     RawFloatTrack::Keyframe second_key = {RawFloatTrack::kStep,
                                          .7f, 0.f};
@@ -524,6 +524,67 @@ TEST(BuildStep, FloatTrackBuilder) {
     sampling.time = 1.f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 0.f);
+
+    ozz::memory::default_allocator()->Delete(track);
+  }
+
+  {  // 3 keys
+    RawFloatTrack raw_float_track;
+
+    RawFloatTrack::Keyframe first_key = {RawFloatTrack::kStep,
+                                         .5f, 46.f};
+    raw_float_track.keyframes.push_back(first_key);
+    RawFloatTrack::Keyframe second_key = {RawFloatTrack::kStep,
+                                         .7f, 0.f};
+    raw_float_track.keyframes.push_back(second_key);
+    RawFloatTrack::Keyframe third_key = {RawFloatTrack::kStep,
+                                         1.f, 99.f};
+    raw_float_track.keyframes.push_back(third_key);
+
+    // Builds track
+    FloatTrack* track = builder(raw_float_track);
+    ASSERT_TRUE(track != NULL);
+
+    // Samples to verify build output.
+    FloatSamplingJob sampling;
+    sampling.track = track;
+    sampling.result = &result;
+
+    sampling.time = 0.f;
+    ASSERT_TRUE(sampling.Run());
+    EXPECT_FLOAT_EQ(result, 46.f);
+
+    sampling.time = .5f;
+    ASSERT_TRUE(sampling.Run());
+    EXPECT_FLOAT_EQ(result, 46.f);
+
+    sampling.time = .5f + 1e-7f;
+    ASSERT_TRUE(sampling.Run());
+    EXPECT_FLOAT_EQ(result, 46.f);
+
+    sampling.time = .6f;
+    ASSERT_TRUE(sampling.Run());
+    EXPECT_FLOAT_EQ(result, 46.f);
+
+    sampling.time = .7f - 1e-7f;
+    ASSERT_TRUE(sampling.Run());
+    EXPECT_FLOAT_EQ(result, 46.f);
+
+    sampling.time = .7f;
+    ASSERT_TRUE(sampling.Run());
+    EXPECT_FLOAT_EQ(result, 0.f);
+
+    sampling.time = .7f + 1e-7f;
+    ASSERT_TRUE(sampling.Run());
+    EXPECT_FLOAT_EQ(result, 0.f);
+
+    sampling.time = 1.f - 1e-7f;
+    ASSERT_TRUE(sampling.Run());
+    EXPECT_FLOAT_EQ(result, 0.f);
+
+    sampling.time = 1.f;
+    ASSERT_TRUE(sampling.Run());
+    EXPECT_FLOAT_EQ(result, 99.f);
 
     ozz::memory::default_allocator()->Delete(track);
   }
