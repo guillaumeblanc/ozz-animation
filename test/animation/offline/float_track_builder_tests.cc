@@ -33,6 +33,8 @@
 #include "ozz/animation/offline/raw_float_track.h"
 #include "ozz/animation/runtime/float_track.h"
 
+#include <limits>
+
 // TEMP !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #include <algorithm>
 #include "ozz/base/maths/math_ex.h"
@@ -102,7 +104,7 @@ using ozz::animation::FloatSamplingJob;
 using ozz::animation::offline::RawFloatTrack;
 using ozz::animation::offline::FloatTrackBuilder;
 
-TEST(Error, FloatTrackBuilder) {
+TEST(Default, FloatTrackBuilder) {
   // Instantiates a builder objects with default parameters.
   FloatTrackBuilder builder;
 
@@ -131,6 +133,24 @@ TEST(Build, FloatTrackBuilder) {
     raw_float_track.keyframes.push_back(first_key);
     RawFloatTrack::Keyframe second_key = {RawFloatTrack::kLinear,
                                           .2f, 0.f};
+    raw_float_track.keyframes.push_back(second_key);
+
+    // Builds track
+    EXPECT_FALSE(raw_float_track.Validate());
+    EXPECT_TRUE(!builder(raw_float_track));
+  }
+
+  {  // Building a track with too close keys fails.
+    RawFloatTrack raw_float_track;
+    raw_float_track.keyframes.resize(2);
+
+    // Adds 2 unordered keys
+    RawFloatTrack::Keyframe first_key = {RawFloatTrack::kLinear,
+                                         .1f, 0.f};
+    raw_float_track.keyframes.push_back(first_key);
+    RawFloatTrack::Keyframe second_key = {
+      RawFloatTrack::kLinear,
+      .1f + std::numeric_limits<float>::epsilon(), 0.f};
     raw_float_track.keyframes.push_back(second_key);
 
     // Builds track
@@ -522,6 +542,50 @@ TEST(BuildStep, FloatTrackBuilder) {
     EXPECT_FLOAT_EQ(result, 0.f);
 
     sampling.time = 1.f;
+    ASSERT_TRUE(sampling.Run());
+    EXPECT_FLOAT_EQ(result, 0.f);
+
+    ozz::memory::default_allocator()->Delete(track);
+  }
+
+
+  {  // 2 close keys
+    RawFloatTrack raw_float_track;
+
+    RawFloatTrack::Keyframe first_key = {RawFloatTrack::kStep,
+                                         .5f, 46.f};
+    raw_float_track.keyframes.push_back(first_key);
+    RawFloatTrack::Keyframe second_key = {
+      RawFloatTrack::kStep,
+      .5f + 2.f * std::numeric_limits<float>::epsilon(), 0.f};
+    raw_float_track.keyframes.push_back(second_key);
+
+    // Builds track
+    FloatTrack* track = builder(raw_float_track);
+    ASSERT_TRUE(track != NULL);
+
+    // Samples to verify build output.
+    FloatSamplingJob sampling;
+    sampling.track = track;
+    sampling.result = &result;
+
+    sampling.time = 0.f;
+    ASSERT_TRUE(sampling.Run());
+    EXPECT_FLOAT_EQ(result, 46.f);
+
+    sampling.time = .5f;
+    ASSERT_TRUE(sampling.Run());
+    EXPECT_FLOAT_EQ(result, 46.f);
+
+    sampling.time = .5f + std::numeric_limits<float>::epsilon();
+    ASSERT_TRUE(sampling.Run());
+    EXPECT_FLOAT_EQ(result, 46.f);
+
+    sampling.time = .5f + 2.f * std::numeric_limits<float>::epsilon();
+    ASSERT_TRUE(sampling.Run());
+    EXPECT_FLOAT_EQ(result, 0.f);
+
+    sampling.time = .7f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 0.f);
 

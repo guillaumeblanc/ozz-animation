@@ -1524,6 +1524,8 @@ Skeleton* SkeletonBuilder::operator()(const RawSkeleton& _raw_skeleton) const {
 
 #include "ozz/animation/offline/raw_float_track.h"
 
+#include <limits>
+
 namespace ozz {
 namespace animation {
 namespace offline {
@@ -1541,7 +1543,7 @@ bool RawFloatTrack::Validate() const {
       return false;
     }
     // Tests that frames are sorted.
-    if (frame_time <= previous_time) {
+    if (frame_time - previous_time <= std::numeric_limits<float>::epsilon()) {
       return false;
     }
     previous_time = frame_time;
@@ -1585,7 +1587,7 @@ bool RawFloatTrack::Validate() const {
 
 #include <cassert>
 #include <cmath>
-#include <cfloat>
+#include <limits>
 
 #include "ozz/base/memory/allocator.h"
 
@@ -1647,11 +1649,12 @@ void Linearize(RawFloatTrack::Keyframes* keyframes) {
       // Pick a time right before the next key frame.
       const RawFloatTrack::Keyframe& src_next_key = *(it + 1);
 
-      // FLT_EPSILON is the smallest such that 1.0+FLT_EPSILON != 1.0.
-      // Key time being in range [0, 1], FLT_EPSILON works.
+      // epsilon is the smallest such that 1.0+epsilon != 1.0.
+      // Key time being in range [0, 1], so epsilon works.
       // nextafterf(src_next_key.time, -1.f) would be a better option, but it
       // isn't available for all compilers (MSVC 11).
-      const float new_key_time = src_next_key.time - FLT_EPSILON;
+      const float new_key_time =
+        src_next_key.time - std::numeric_limits<float>::epsilon();
 
       const RawFloatTrack::Keyframe new_key = {RawFloatTrack::kLinear,
                                                new_key_time, src_key.value};

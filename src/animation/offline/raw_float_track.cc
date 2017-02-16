@@ -27,6 +27,8 @@
 
 #include "ozz/animation/offline/raw_float_track.h"
 
+#include <limits>
+
 namespace ozz {
 namespace animation {
 namespace offline {
@@ -44,7 +46,7 @@ bool RawFloatTrack::Validate() const {
       return false;
     }
     // Tests that frames are sorted.
-    if (frame_time <= previous_time) {
+    if (frame_time - previous_time <= std::numeric_limits<float>::epsilon()) {
       return false;
     }
     previous_time = frame_time;

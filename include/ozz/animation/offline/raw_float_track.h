@@ -48,6 +48,8 @@ namespace offline {
 // it is valid, meaning that all the following rules are respected:
 //  1. Keyframes' time are sorted in a strict ascending order.
 //  2. Keyframes' time are all within [0,1] range.
+//  3. Successive keyframes' time must be separated by at least
+// std::numeric_limits<float>::epsilon() (around 1e-7).
 // RawFloatTrack that would fail this validation will fail to be converted by the
 // RawFloatTrackBuilder.
 struct RawFloatTrack {
@@ -60,6 +62,8 @@ struct RawFloatTrack {
   // Validates that all the following rules are respected:
   //  1. Keyframes' time are sorted in a strict ascending order.
   //  2. Keyframes' time are all within [0,1] range.
+  //  3. Successive keyframes' time must be separated by at least
+  // std::numeric_limits<float>::epsilon (1e-5).
   bool Validate() const;
 
   // Interpolation mode.

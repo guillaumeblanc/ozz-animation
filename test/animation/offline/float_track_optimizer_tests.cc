@@ -136,7 +136,7 @@ TEST(OptimizeInterpolate, FloatTrackOptimizer) {
                                        .5f, 23.f};
   raw_float_track.keyframes.push_back(key2);
   RawFloatTrack::Keyframe key3 = {RawFloatTrack::kLinear,
-                                       .5000001f, 23.000001f};
+                                       .500001f, 23.000001f};
   raw_float_track.keyframes.push_back(key3);
   RawFloatTrack::Keyframe key4 = {RawFloatTrack::kLinear,
                                        .75f, 0.f};
