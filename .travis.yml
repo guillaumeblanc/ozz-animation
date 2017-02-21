@@ -5,6 +5,12 @@ sudo: required
 
 matrix:
   include:
+
+  - os: linux
+    compiler: clang
+    env:
+    - env_build_root="../test/sub/"
+    
   # Emscripten cross compiling
   #- os: linux
   #  compiler: gcc
@@ -83,10 +89,6 @@ matrix:
     env:
     - env_build_fbx=0
     - env_build_tests=0
-  - os: linux
-    compiler: clang
-    env:
-    - env_build_root="../test/sub/"
 
   # Newer compilers
   # gcc
