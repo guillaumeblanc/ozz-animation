@@ -4,7 +4,7 @@ cmake_minimum_required (VERSION 3.0)
 project(ozz_sub)
 
 # Setup a variable that points to ozz-animation folder path.
-set(path_to_ozz_folder "CMAKE_CURRENT_LIST_DIR/../..")
+set(path_to_ozz_folder "${CMAKE_CURRENT_LIST_DIR}/../..")
 
 # Includes ozz-animation as a sub directory, using an arbitrary "ozz-animation/" binary output folder.
 add_subdirectory(${path_to_ozz_folder} "$CMAKE_BINARY_DIR/ozz-animation/")
