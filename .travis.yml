@@ -86,7 +86,7 @@ matrix:
   - os: linux
     compiler: clang
     env:
-    - env_build_root="../tests/sub/"
+    - env_build_root="../test/sub/"
 
   # Newer compilers
   # gcc
