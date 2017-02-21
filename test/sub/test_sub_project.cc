@@ -25,6 +25,8 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
+#include <cstdlib>
+
 // Includes a file from ozz
 #include "ozz/animation/runtime/skeleton.h"
 
