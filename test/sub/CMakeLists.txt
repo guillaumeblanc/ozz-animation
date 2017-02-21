@@ -3,6 +3,8 @@ cmake_minimum_required (VERSION 3.0)
 # Defines the project's name
 project(ozz_sub)
 
+enable_testing()
+
 # Setup a variable that points to ozz-animation folder path.
 set(path_to_ozz_folder "${CMAKE_CURRENT_LIST_DIR}/../..")
 
