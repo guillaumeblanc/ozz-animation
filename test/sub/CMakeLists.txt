@@ -7,7 +7,7 @@ project(ozz_sub)
 set(path_to_ozz_folder "${CMAKE_CURRENT_LIST_DIR}/../..")
 
 # Includes ozz-animation as a sub directory, using an arbitrary "ozz-animation/" binary output folder.
-add_subdirectory(${path_to_ozz_folder} "$CMAKE_BINARY_DIR/ozz-animation/")
+add_subdirectory(${path_to_ozz_folder} "${CMAKE_BINARY_DIR}/ozz-animation/")
 
 # Setup ozz include path.
 include_directories(${path_to_ozz_folder}/include)
@@ -18,3 +18,5 @@ add_executable(test_sub_project
 target_link_libraries(test_sub_project
   ozz_animation
   ozz_base)
+
+add_test(NAME test_sub_project COMMAND test_sub_project)
