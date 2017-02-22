@@ -6,8 +6,11 @@ project(ozz_sub)
 # Setup a variable that points to ozz-animation folder path.
 set(path_to_ozz_folder "${CMAKE_CURRENT_LIST_DIR}/../..")
 
+# Disables ozz libraries naming postfix that isn't compatible
+set(ozz_build_postfix OFF CACHE BOOL "Disables ozz_build_postfix." FORCE)
+
 # Includes ozz-animation as a sub directory, using an arbitrary "ozz-animation/" binary output folder.
-add_subdirectory(${path_to_ozz_folder} "${CMAKE_BINARY_DIR}/ozz-animation/")
+add_subdirectory(${path_to_ozz_folder} "${PROJECT_BINARY_DIR}/ozz-animation/")
 
 # Setup ozz include path.
 include_directories(${path_to_ozz_folder}/include)
