@@ -62,7 +62,7 @@ endif()
 set(ozz_media_directory "${PROJECT_SOURCE_DIR}/media")
 
 # Creates temporary directory for tests inputs/outputs.
-set(ozz_temp_directory ${CMAKE_BINARY_DIR}/temp)
+set(ozz_temp_directory ${PROJECT_BINARY_DIR}/temp)
 file(MAKE_DIRECTORY ${ozz_temp_directory})
 
 # Includes the root of ozz includes
