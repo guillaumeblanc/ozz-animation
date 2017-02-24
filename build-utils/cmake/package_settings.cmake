@@ -5,6 +5,9 @@
 install(DIRECTORY "${PROJECT_SOURCE_DIR}/include" DESTINATION ".")
 
 # Prepares packing
+set(CPACK_PACKAGE_VERSION_MAJOR ${OZZ_VERSION_MAJOR})
+set(CPACK_PACKAGE_VERSION_MINOR ${OZZ_VERSION_MINOR})
+set(CPACK_PACKAGE_VERSION_PATCH ${OZZ_VERSION_PATCH})
 set(CPACK_PACKAGE_VENDOR "Guillaume Blanc")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Ozz run-time animation library and tools. http://github.com/guillaumeblanc/ozz-animation")
 #set(CPACK_PACKAGE_ICON )

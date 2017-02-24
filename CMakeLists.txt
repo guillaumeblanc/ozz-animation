@@ -4,9 +4,10 @@ cmake_minimum_required (VERSION 3.0)
 project(ozz)
 
 # Current version
-set(CPACK_PACKAGE_VERSION_MAJOR 0)
-set(CPACK_PACKAGE_VERSION_MINOR 9)
-set(CPACK_PACKAGE_VERSION_PATCH 0)
+set(OZZ_VERSION_MAJOR 0)
+set(OZZ_VERSION_MINOR 9)
+set(OZZ_VERSION_PATCH 0)
+set(OZZ_VERSION ${OZZ_VERSION_MAJOR}.${OZZ_VERSION_MINOR}.${OZZ_VERSION_PATCH})
 
 # Add project build options
 option(ozz_build_fbx "Build Fbx pipeline (Requires Fbx SDK)" ON)
