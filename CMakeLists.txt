@@ -16,6 +16,7 @@ option(ozz_build_howtos "Build howtos" ON)
 option(ozz_build_tests "Build unit tests" OFF)
 option(ozz_build_simd_ref "Forces SIMD math reference implementation" OFF)
 option(ozz_build_cpp11 "Enable c++11" OFF)
+option(ozz_build_msvc_rt_dll "Use DLL version of the msvc runtime library" OFF)
 option(ozz_build_coverage "Enable gcov build coverage" OFF)
 
 # Outputs selected options (can be modified by the command line)
@@ -28,7 +29,7 @@ message("-- - ozz_build_tests: " ${ozz_build_tests})
 message("-- - ozz_build_simd_ref: " ${ozz_build_simd_ref})
 message("-- - ozz_build_cpp11: " ${ozz_build_cpp11})
 message("-- - ozz_build_coverage: " ${ozz_build_coverage})
-message("-- - ozz_build_postfix: " ${ozz_build_postfix})
+message("-- - ozz_build_msvc_rt_dll: " ${ozz_build_msvc_rt_dll})
 
 # Add project execution options
 option(ozz_run_tests_headless "Run samples without rendering (used for unit tests)" ON)

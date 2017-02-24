@@ -62,8 +62,8 @@ function(FindFbxLibrariesGeneric _FBX_ROOT_DIR _OUT_FBX_LIBRARIES _OUT_FBX_LIBRA
     set(FBX_CP_PATH "vs2013")
   elseif(MSVC14)
     set(FBX_CP_PATH "vs2015")
-    elseif(MSVC15)
-    set(FBX_CP_PATH "vs2016")
+  elseif(MSVC15)
+    set(FBX_CP_PATH "vs2017")
   elseif(APPLE)
     set(FBX_CP_PATH "*")
   else()
@@ -80,7 +80,15 @@ function(FindFbxLibrariesGeneric _FBX_ROOT_DIR _OUT_FBX_LIBRARIES _OUT_FBX_LIBRA
   endif()
 
   # Set libraries names to search, sorted by preference.
-  set(FBX_SEARCH_LIB_NAMES libfbxsdk-mt.lib fbxsdk-static.a libfbxsdk.a fbxsdk.a)
+  set(FBX_SEARCH_LIB_NAMES fbxsdk-static.a libfbxsdk.a fbxsdk.a)
+  # Select whether to use the DLL version or the static library version of the Visual C++ runtime library.
+  if (ozz_build_msvc_rt_dll)
+    set(FBX_SEARCH_LIB_NAMES ${FBX_SEARCH_LIB_NAMES} libfbxsdk-md.lib)
+  else()
+    set(FBX_SEARCH_LIB_NAMES ${FBX_SEARCH_LIB_NAMES} libfbxsdk-mt.lib)
+  endif()   
+
+  # Set search path.
   set(FBX_SEARCH_LIB_PATH "${_FBX_ROOT_DIR}/lib/${FBX_CP_PATH}/${FBX_PROCESSOR_PATH}")
 
   find_library(FBX_LIB
@@ -88,7 +96,6 @@ function(FindFbxLibrariesGeneric _FBX_ROOT_DIR _OUT_FBX_LIBRARIES _OUT_FBX_LIBRA
     HINTS "${FBX_SEARCH_LIB_PATH}/release/")
 
   if(FBX_LIB)
-
     # Searches debug version also
     find_library(FBX_LIB_DEBUG
       ${FBX_SEARCH_LIB_NAMES}

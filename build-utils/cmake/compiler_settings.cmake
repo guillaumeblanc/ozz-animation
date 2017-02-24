@@ -85,8 +85,12 @@ if(MSVC)
     # Set the warning level to W4
     string(REGEX REPLACE "/W3" "/W4" ${flag} "${${flag}}")
 
-    # Prefers static lining with runtime libraries, to ease installation
-    string(REGEX REPLACE "/MD" "/MT" ${flag} "${${flag}}")
+    # Select whether to use the DLL version or the static library version of the Visual C++ runtime library.
+    if (ozz_build_msvc_rt_dll)
+      string(REGEX REPLACE "/MT" "/MD" ${flag} "${${flag}}")
+    else()
+      string(REGEX REPLACE "/MD" "/MT" ${flag} "${${flag}}")
+    endif()
 
     # Prefers /Ox (full optimization) to /O2 (maximize speed)
     string(REGEX REPLACE "/O2" "/Ox" ${flag} "${${flag}}")
