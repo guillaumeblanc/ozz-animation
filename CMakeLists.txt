@@ -17,7 +17,6 @@ option(ozz_build_tests "Build unit tests" OFF)
 option(ozz_build_simd_ref "Forces SIMD math reference implementation" OFF)
 option(ozz_build_cpp11 "Enable c++11" OFF)
 option(ozz_build_coverage "Enable gcov build coverage" OFF)
-option(ozz_build_postfix "Add custom postfixes for output files" ON)
 
 # Outputs selected options (can be modified by the command line)
 message("-- ---------------------------------------------------------")
