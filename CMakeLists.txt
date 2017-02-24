@@ -42,7 +42,7 @@ include(${PROJECT_SOURCE_DIR}/build-utils/cmake/clang_format.cmake)
 
 # Enables unit tests only
 if(ozz_build_tests)
-  enable_testing()
+  include(CTest)
 endif()
 
 # Configure CMake module path
@@ -82,6 +82,6 @@ if(ozz_build_samples)
 endif()
 
 # Continues with the tests tree
-if(ozz_build_tests AND NOT EMSCRIPTEN)
+if(BUILD_TESTING AND NOT EMSCRIPTEN)
   add_subdirectory(test)
 endif()
