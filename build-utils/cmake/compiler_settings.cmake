@@ -5,12 +5,6 @@
 # Includes modules
 include(CheckIncludeFiles)
 
-#----------------------------------
-# Set default build type to "Release"
-if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE "Release")
-endif()
-
 #------------------------------
 # Enables IDE folders y default
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
