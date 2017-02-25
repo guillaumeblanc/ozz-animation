@@ -68,11 +68,6 @@ if(MSVC)
   # Disables crt secure warnings
   set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS _CRT_SECURE_NO_WARNINGS)
 
-  # Removes any exception mode
-  string(REGEX REPLACE " /EH.*" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-  string(REGEX REPLACE " /EH.*" "" CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
-  set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS _HAS_EXCEPTIONS=0)
-
   # Adds support for multiple processes builds
   set_property(DIRECTORY APPEND PROPERTY COMPILE_OPTIONS "/MP")
 
@@ -91,9 +86,6 @@ if(MSVC)
     else()
       string(REGEX REPLACE "/MD" "/MT" ${flag} "${${flag}}")
     endif()
-
-    # Prefers /Ox (full optimization) to /O2 (maximize speed)
-    string(REGEX REPLACE "/O2" "/Ox" ${flag} "${${flag}}")
   endforeach()
 
 #--------------------------------------
@@ -120,9 +112,6 @@ else()
   
   # Set warning as error
   set_property(DIRECTORY APPEND PROPERTY COMPILE_OPTIONS "-Werror")
-
-  # Automatically selects native architecture optimizations (sse...)
-  #set_property(DIRECTORY APPEND PROPERTY COMPILE_OPTIONS "-march=native")
 
   #----------------------
   # Enables debug glibcxx if NDebug isn't defined, not supported by APPLE
