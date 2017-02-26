@@ -41,7 +41,7 @@ include(${PROJECT_SOURCE_DIR}/build-utils/cmake/package_settings.cmake)
 include(${PROJECT_SOURCE_DIR}/build-utils/cmake/fuse_target.cmake)
 include(${PROJECT_SOURCE_DIR}/build-utils/cmake/clang_format.cmake)
 
-# Enables unit tests only
+# Enables unit tests.
 if(ozz_build_tests)
   include(CTest)
 endif()
@@ -53,10 +53,10 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/build-utils/cm
 if(ozz_build_fbx)
 
   # Select a msvc runtime compatible with ozz_build_msvc_rt_dll
-  if (defined ozz_build_msvc_rt_dll)
+  if (DEFINED ozz_build_msvc_rt_dll)
     set(FBX_MSVC_RUNTIME_DLL ${ozz_build_msvc_rt_dll})
   endif()
-  
+
   find_package(Fbx 2016)
   # Disables ozz_build_fbx if Fbx SDK isn't found.
   if(NOT FBX_FOUND)

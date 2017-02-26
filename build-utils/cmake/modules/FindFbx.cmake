@@ -89,7 +89,7 @@ function(FindFbxLibrariesGeneric _FBX_ROOT_DIR _OUT_FBX_LIBRARIES _OUT_FBX_LIBRA
 
   # Select whether to use the DLL version or the static library version of the Visual C++ runtime library.
   # Default is "md", aka use the multithread-specific and DLL-specific version of the run-time library.
-  if (not defined FBX_MSVC_RUNTIME_DLL or FBX_MSVC_RUNTIME_DLL)
+  if (NOT DEFINED FBX_MSVC_RUNTIME_DLL OR FBX_MSVC_RUNTIME_DLL)
     set(FBX_SEARCH_LIB_NAMES ${FBX_SEARCH_LIB_NAMES} libfbxsdk-md.lib)
   else()
     set(FBX_SEARCH_LIB_NAMES ${FBX_SEARCH_LIB_NAMES} libfbxsdk-mt.lib)
