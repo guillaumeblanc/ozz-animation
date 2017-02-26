@@ -85,14 +85,13 @@ function(FindFbxLibrariesGeneric _FBX_ROOT_DIR _OUT_FBX_LIBRARIES _OUT_FBX_LIBRA
   endif()
 
   # Set libraries names to search, sorted by preference.
-  set(FBX_SEARCH_LIB_NAMES fbxsdk-static.a libfbxsdk.a fbxsdk.a)
 
   # Select whether to use the DLL version or the static library version of the Visual C++ runtime library.
   # Default is "MD", aka use the multithread-specific and DLL-specific version of the run-time library.
-  if (FBX_MSVC_RUNTIME)
+  if (NOT FBX_MSVC_RUNTIME)
     set(FBX_MSVC_RUNTIME "MD")
   endif()
-  set(FBX_SEARCH_LIB_NAMES ${FBX_SEARCH_LIB_NAMES} "libfbxsdk-${FBX_MSVC_RUNTIME}.lib")
+  set(FBX_SEARCH_LIB_NAMES "libfbxsdk-${FBX_MSVC_RUNTIME}.lib" fbxsdk-static.a libfbxsdk.a fbxsdk.a)
 
   # Set search path.
   set(FBX_SEARCH_LIB_PATH "${_FBX_ROOT_DIR}/lib/${FBX_CP_PATH}/${FBX_PROCESSOR_PATH}")
@@ -192,7 +191,7 @@ if(FBX_INCLUDE_DIR)
   # Deduce SDK root directory.
   set(FBX_ROOT_DIR "${FBX_INCLUDE_DIR}/")
 
-  # Fills CMake sytandard variables
+  # Fills CMake standard variables
   set(FBX_INCLUDE_DIRS "${FBX_INCLUDE_DIR}/include")
 
   # Searches libraries according to the current compiler
