@@ -81,7 +81,7 @@ if(MSVC)
     string(REGEX REPLACE "/W3" "/W4" ${flag} "${${flag}}")
 
     # Select whether to use the DLL version or the static library version of the Visual C++ runtime library.
-    if (ozz_build_msvc_rt)
+    if (ozz_build_msvc_rt_dll)
       string(REGEX REPLACE "/MT" "/MD" ${flag} "${${flag}}")
     else()
       string(REGEX REPLACE "/MD" "/MT" ${flag} "${${flag}}")
