@@ -1,15 +1,20 @@
-# - Tries to find FBX SDK package.
+# This module will try to located FBX SDK folder, based on the standard
+# directory structure proposed by Autodesk.
+# On every platform, the module will look for libraries that matches the
+# currently selected cmake generator.
+# A version can be specified to the find_package function.
+#
 # Once done, it will define
 #  FBX_FOUND - System has Fbx SDK installed
 #  FBX_INCLUDE_DIRS - The Fbx SDK include directories
 #  FBX_LIBRARIES - The libraries needed to use Fbx SDK
 #  FBX_LIBRARIES_DEBUG - The libraries needed to use debug Fbx SDK
 #
-# This module will try to located FBX SDK folder, based on the standard
-# directory structure proposed by Autodesk.
-# On every platform, the module will look for libraries that matches the
-# currently selected cmake generator.
-# A version can be specified to the find_package function.
+# It accepts the following variables as input:
+#
+#  FBX_MSVC_RUNTIME_DLL - Select whether to use the DLL version or the static
+#                         library version of the Visual C++ runtime library.
+#                         Default is DLL (aka /MD).
 #
 # Known issues:
 # - On ALL platforms: If there are multiple FBX SDK version installed, the
@@ -81,8 +86,10 @@ function(FindFbxLibrariesGeneric _FBX_ROOT_DIR _OUT_FBX_LIBRARIES _OUT_FBX_LIBRA
 
   # Set libraries names to search, sorted by preference.
   set(FBX_SEARCH_LIB_NAMES fbxsdk-static.a libfbxsdk.a fbxsdk.a)
+
   # Select whether to use the DLL version or the static library version of the Visual C++ runtime library.
-  if (ozz_build_msvc_rt_dll)
+  # Default is "md", aka use the multithread-specific and DLL-specific version of the run-time library.
+  if (not defined FBX_MSVC_RUNTIME_DLL or FBX_MSVC_RUNTIME_DLL)
     set(FBX_SEARCH_LIB_NAMES ${FBX_SEARCH_LIB_NAMES} libfbxsdk-md.lib)
   else()
     set(FBX_SEARCH_LIB_NAMES ${FBX_SEARCH_LIB_NAMES} libfbxsdk-mt.lib)

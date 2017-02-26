@@ -1,4 +1,4 @@
-#Set compilers settings for all platforms/compilers.
+# Set compilers settings for all platforms/compilers.
 #---------------------------------------------------
 
 #-----------------
@@ -81,10 +81,13 @@ if(MSVC)
     string(REGEX REPLACE "/W3" "/W4" ${flag} "${${flag}}")
 
     # Select whether to use the DLL version or the static library version of the Visual C++ runtime library.
-    if (ozz_build_msvc_rt_dll)
-      string(REGEX REPLACE "/MT" "/MD" ${flag} "${${flag}}")
-    else()
-      string(REGEX REPLACE "/MD" "/MT" ${flag} "${${flag}}")
+    # if ozz_build_msvc_rt_dll isn't defined, it is let as default.
+    if (defined ozz_build_msvc_rt_dll)
+      if (ozz_build_msvc_rt_dll)
+        string(REGEX REPLACE "/MT" "/MD" ${flag} "${${flag}}")
+      else()
+        string(REGEX REPLACE "/MD" "/MT" ${flag} "${${flag}}")
+      endif()
     endif()
   endforeach()
 
