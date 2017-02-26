@@ -21,3 +21,9 @@ add_executable(test_sub_project
 target_link_libraries(test_sub_project
   ozz_animation
   ozz_base)
+
+# Adds some tests
+add_test(NAME test_sub_project COMMAND test_sub_project)
+if(TARGET fbx2skel)
+  add_test(NAME test_sub_fbx2skel COMMAND fbx2skel "--version")
+endif()
