@@ -71,7 +71,7 @@ install:
 build_script:
 - mkdir build
 - cd build
-- cmake  -G "%env_cmake_generator%" -Dozz_build_tests=1 -ozz_build_msvc_rt_dll=%env_build_msvc_rt_dll% -DCMAKE_BUILD_TYPE=%env_cmake_configuration% %env_src_root%
+- cmake  -G "%env_cmake_generator%" -Dozz_build_tests=1 -Dozz_build_msvc_rt_dll=%env_build_msvc_rt_dll% -DCMAKE_BUILD_TYPE=%env_cmake_configuration% %env_src_root%
 - cmake --build ./ --config %env_cmake_configuration%
 
 test_script:
