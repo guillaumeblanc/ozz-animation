@@ -61,7 +61,9 @@ install:
     }
 # Fixe up env_src_root if it isn't defined
 - ps: >-
-    $Env:env_src_root=".."
+    if (!$Env:env_src_root) {
+      $Env:env_src_root=".."
+    }
 
 build_script:
 - mkdir build
