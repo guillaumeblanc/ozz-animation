@@ -17,7 +17,7 @@ option(ozz_build_tests "Build unit tests" OFF)
 option(ozz_build_simd_ref "Forces SIMD math reference implementation" OFF)
 option(ozz_build_cpp11 "Enable c++11" OFF)
 option(ozz_build_coverage "Enable gcov build coverage" OFF)
-set(ozz_build_msvc_rt "" CACHE STRING "Select msvc runtime library (MD, MT, or empty (default)")
+option(ozz_build_msvc_rt_dll "Select msvc DLL runtime library" ON)
 
 # Outputs selected options (can be modified by the command line)
 message("-- ---------------------------------------------------------")
@@ -29,11 +29,14 @@ message("-- - ozz_build_tests: " ${ozz_build_tests})
 message("-- - ozz_build_simd_ref: " ${ozz_build_simd_ref})
 message("-- - ozz_build_cpp11: " ${ozz_build_cpp11})
 message("-- - ozz_build_coverage: " ${ozz_build_coverage})
-message("-- - ozz_build_msvc_rt: " ${ozz_build_msvc_rt})
+message("-- - ozz_build_msvc_rt_dll: " ${ozz_build_msvc_rt_dll})
 
 # Add project execution options
 option(ozz_run_tests_headless "Run samples without rendering (used for unit tests)" ON)
 set(ozz_sample_testing_loops 20 CACHE INT "Number of loops while running sample tests (used for unit tests)")
+
+# Configure CMake module path
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/build-utils/cmake/modules/")
 
 # Include ozz cmake parameters and scripts
 include(${PROJECT_SOURCE_DIR}/build-utils/cmake/compiler_settings.cmake)
@@ -46,18 +49,15 @@ if(ozz_build_tests)
   include(CTest)
 endif()
 
-# Configure CMake module path
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/build-utils/cmake/modules/")
-
 # Detects Fbx SDK, required to build Fbx pipeline.
 if(ozz_build_fbx)
 
-  # Select a msvc runtime compatible with ozz_build_msvc_rt
-  if (ozz_build_msvc_rt)
-    set(FBX_MSVC_RUNTIME ${ozz_build_msvc_rt})
-  endif()
+  # Select a msvc runtime compatible with ozz_build_msvc_rt_dll
+  set(FBX_MSVC_RT_DLL ${ozz_build_msvc_rt_dll})
 
+  # Search for FBX sdk package
   find_package(Fbx 2016)
+
   # Disables ozz_build_fbx if Fbx SDK isn't found.
   if(NOT FBX_FOUND)
     message("Fbx SDK not found, FBX tools libraries and samples will be skipped.")
