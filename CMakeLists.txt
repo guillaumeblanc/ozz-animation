@@ -16,8 +16,8 @@ option(ozz_build_howtos "Build howtos" ON)
 option(ozz_build_tests "Build unit tests" OFF)
 option(ozz_build_simd_ref "Forces SIMD math reference implementation" OFF)
 option(ozz_build_cpp11 "Enable c++11" OFF)
-option(ozz_build_msvc_rt_dll "Use DLL version of the msvc runtime library" OFF)
 option(ozz_build_coverage "Enable gcov build coverage" OFF)
+set(ozz_build_msvc_rt "" CACHE STRING "Select msvc runtime library (MD, MT, or empty (default)")
 
 # Outputs selected options (can be modified by the command line)
 message("-- ---------------------------------------------------------")
@@ -29,7 +29,7 @@ message("-- - ozz_build_tests: " ${ozz_build_tests})
 message("-- - ozz_build_simd_ref: " ${ozz_build_simd_ref})
 message("-- - ozz_build_cpp11: " ${ozz_build_cpp11})
 message("-- - ozz_build_coverage: " ${ozz_build_coverage})
-message("-- - ozz_build_msvc_rt_dll: " ${ozz_build_msvc_rt_dll})
+message("-- - ozz_build_msvc_rt: " ${ozz_build_msvc_rt})
 
 # Add project execution options
 option(ozz_run_tests_headless "Run samples without rendering (used for unit tests)" ON)
@@ -52,9 +52,9 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/build-utils/cm
 # Detects Fbx SDK, required to build Fbx pipeline.
 if(ozz_build_fbx)
 
-  # Select a msvc runtime compatible with ozz_build_msvc_rt_dll
-  if (DEFINED ozz_build_msvc_rt_dll)
-    set(FBX_MSVC_RUNTIME_DLL ${ozz_build_msvc_rt_dll})
+  # Select a msvc runtime compatible with ozz_build_msvc_rt
+  if (ozz_build_msvc_rt)
+    set(FBX_MSVC_RUNTIME ${ozz_build_msvc_rt})
   endif()
 
   find_package(Fbx 2016)

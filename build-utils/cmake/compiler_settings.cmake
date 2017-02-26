@@ -81,19 +81,15 @@ if(MSVC)
     string(REGEX REPLACE "/W3" "/W4" ${flag} "${${flag}}")
 
     # Select whether to use the DLL version or the static library version of the Visual C++ runtime library.
-    # if ozz_build_msvc_rt_dll isn't defined, it is let as default.
-    if (DEFINED ozz_build_msvc_rt_dll)
-      if (ozz_build_msvc_rt_dll)
-        string(REGEX REPLACE "/MT" "/MD" ${flag} "${${flag}}")
-      else()
-        string(REGEX REPLACE "/MD" "/MT" ${flag} "${${flag}}")
-      endif()
+    # Valid values for ozz_build_msvc_rt are MD, MT or empty.
+    if (ozz_build_msvc_rt)
+      string(REGEX REPLACE "(/MD)|(/MT)" ${ozz_build_msvc_rt} "/${flag}" "${${flag}}")
     endif()
   endforeach()
 
 #--------------------------------------
 # else consider the compiler as GCC compatible
-# Modify default GCC compilation flags
+
 else()
 
   #---------------------------
