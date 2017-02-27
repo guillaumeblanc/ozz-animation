@@ -1,7 +1,7 @@
 add_executable(test_options options_tests.cc)
 target_link_libraries(test_options
-  ozz_base
   ozz_options
+  ozz_base
   gtest)
 add_test(NAME test_options COMMAND test_options)
 set_target_properties(test_options PROPERTIES FOLDER "ozz/tests/options")
@@ -27,6 +27,8 @@ add_executable(test_fuse_options
 add_dependencies(test_fuse_options BUILD_FUSE_ozz_options)
 target_link_libraries(test_fuse_options
   gtest)
+target_include_directories(test_fuse_options
+  PUBLIC "${PROJECT_SOURCE_DIR}/include")
 add_test(NAME test_fuse_options COMMAND test_fuse_options)
 set_target_properties(test_fuse_options PROPERTIES FOLDER "ozz/tests/options")
 

@@ -6,21 +6,16 @@ project(ozz_sub)
 # Activates unit tests
 include(CTest)
 
-# Setup a variable that points to ozz-animation folder path.
-set(path_to_ozz_folder "${CMAKE_CURRENT_LIST_DIR}/../..")
-
 # Includes ozz-animation as a sub directory, using an arbitrary "ozz-animation/" binary output folder.
-add_subdirectory(${path_to_ozz_folder} "${PROJECT_BINARY_DIR}/ozz-animation/")
-
-# Setup ozz include path.
-include_directories(${path_to_ozz_folder}/include)
+add_subdirectory(
+  "${CMAKE_CURRENT_LIST_DIR}/../.."
+  "${PROJECT_BINARY_DIR}/ozz-animation/")
 
 # Then link with ozz libraries as any other cmake target.
 add_executable(test_sub_project
   test_sub_project.cc)
 target_link_libraries(test_sub_project
-  ozz_animation
-  ozz_base)
+  ozz_animation)
 
 # Adds some tests
 add_test(NAME test_sub_project COMMAND test_sub_project)

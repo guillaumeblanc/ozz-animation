@@ -12,6 +12,8 @@ add_library(ozz_animation STATIC
   skeleton.cc
   ${PROJECT_SOURCE_DIR}/include/ozz/animation/runtime/skeleton_utils.h
   skeleton_utils.cc)
+target_link_libraries(ozz_animation
+  ozz_base)
 set_target_properties(ozz_animation
   PROPERTIES FOLDER "ozz")
 

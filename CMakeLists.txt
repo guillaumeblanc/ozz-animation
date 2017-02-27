@@ -72,9 +72,6 @@ set(ozz_media_directory "${PROJECT_SOURCE_DIR}/media")
 set(ozz_temp_directory ${PROJECT_BINARY_DIR}/temp)
 file(MAKE_DIRECTORY ${ozz_temp_directory})
 
-# Includes the root of ozz includes
-include_directories(include)
-
 # Starts building the sources tree
 add_subdirectory(src)
 

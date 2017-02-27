@@ -42,8 +42,7 @@ endif()
 target_link_libraries(sample_framework
   ozz_geometry
   ozz_animation
-  ozz_options
-  ozz_base)
+  ozz_options)
 
 if(TARGET BUILD_DATA_SAMPLE)
   add_dependencies(sample_framework BUILD_DATA_SAMPLE)

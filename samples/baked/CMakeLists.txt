@@ -7,11 +7,7 @@ if(ozz_build_fbx)
     fbx2baked.cc)
   target_link_libraries(sample_fbx2baked
     ozz_animation_fbx
-    ozz_animation_offline_skel_tools
-    ozz_animation_offline
-    ozz_animation
-    ozz_options
-    ozz_base)
+    ozz_animation_offline_skel_tools)
     
   target_include_directories(sample_fbx2baked PUBLIC
     ${FBX_INCLUDE_DIRS})

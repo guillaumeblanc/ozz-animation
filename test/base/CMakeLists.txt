@@ -32,5 +32,7 @@ add_executable(test_fuse_base
 add_dependencies(test_fuse_base BUILD_FUSE_ozz_base)
 target_link_libraries(test_fuse_base
   gtest)
+target_include_directories(test_fuse_base
+  PUBLIC "${PROJECT_SOURCE_DIR}/include")
 add_test(NAME test_fuse_base COMMAND test_fuse_base)
 set_target_properties(test_fuse_base PROPERTIES FOLDER "ozz/tests/base")

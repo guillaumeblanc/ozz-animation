@@ -50,6 +50,9 @@ add_library(ozz_base STATIC
   maths/simd_math_archive.cc)
 set_target_properties(ozz_base PROPERTIES FOLDER "ozz")
 
+target_include_directories(ozz_base
+  PUBLIC "${PROJECT_SOURCE_DIR}/include")
+
 install(TARGETS ozz_base DESTINATION lib)
 
 fuse_target("ozz_base")
