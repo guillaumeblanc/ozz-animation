@@ -11,14 +11,14 @@ add_library(ozz_animation_fbx STATIC
   fbx_base.cc
   fbx_skeleton.h
   fbx_skeleton.cc)
+target_include_directories(ozz_animation_fbx PUBLIC
+  $<BUILD_INTERFACE:${FBX_INCLUDE_DIRS}>)
 target_link_libraries(ozz_animation_fbx
   ozz_animation_offline
   debug ${FBX_LIBRARIES_DEBUG}
   optimized ${FBX_LIBRARIES})
 set_target_properties(ozz_animation_fbx
   PROPERTIES FOLDER "ozz")
-target_include_directories(ozz_animation_fbx
-  PUBLIC ${FBX_INCLUDE_DIRS})
 
 install(TARGETS ozz_animation_fbx DESTINATION lib)
 

@@ -1,8 +1,8 @@
 add_executable(test_intrusive_list intrusive_list_tests.cc)
-target_link_libraries(test_intrusive_list
-  gtest)
 target_include_directories(test_intrusive_list
   PUBLIC "${PROJECT_SOURCE_DIR}/include")
+target_link_libraries(test_intrusive_list
+  gtest)
 add_test(NAME test_intrusive_list COMMAND test_intrusive_list)
 set_target_properties(test_intrusive_list PROPERTIES FOLDER "ozz/tests/base")
 
