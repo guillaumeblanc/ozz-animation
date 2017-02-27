@@ -7,9 +7,7 @@ project(ozz_sub)
 include(CTest)
 
 # Includes ozz-animation as a sub directory, using an arbitrary "ozz-animation/" binary output folder.
-add_subdirectory(
-  "${CMAKE_CURRENT_LIST_DIR}/../.."
-  "${PROJECT_BINARY_DIR}/ozz-animation/")
+add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/../.." ozz-animation/)
 
 # Then link with ozz libraries as any other cmake target.
 add_executable(test_sub_project
