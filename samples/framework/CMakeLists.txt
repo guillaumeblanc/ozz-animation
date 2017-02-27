@@ -1,5 +1,3 @@
-include_directories(${PROJECT_SOURCE_DIR}/extern/glfw/include)
-
 add_library(sample_framework STATIC
   application.h
   application.cc
@@ -28,14 +26,9 @@ add_library(sample_framework STATIC
 
 # Samples requires OpenGL package.
 if(NOT EMSCRIPTEN)
-  find_package(OpenGL REQUIRED)
-
-  include_directories(${OPENGL_INCLUDE_DIR})
-
   add_subdirectory(${PROJECT_SOURCE_DIR}/extern/glfw glfw)
 
   target_link_libraries(sample_framework
-    ${OPENGL_LIBRARIES}
     glfw)
 endif()
 
