@@ -1,5 +1,5 @@
 ---
-title: Animation keyframe optimization
+title: Keyframe reduction
 layout: full
 keywords: sample,optimize,quantize,compress,animation,keyframe,offline
 order: 60

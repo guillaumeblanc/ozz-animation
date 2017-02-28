@@ -25,7 +25,7 @@
 {% if page.layout == 'full' %}
   <nav class="w3-sidenav w3-margin-top w3-collapse w3-white" style="z-index:3;width:270px;" id="mySidenav">
 {% else %}
-  <nav class="w3-sidenav w3-margin-top w3-white w3-hide-medium w3-hide-large" style="z-index:3;width:270px;display:none;" id="mySidenav">
+  <nav class="w3-sidenav w3-margin-top w3-white w3-hide-medium w3-hide-large" style="z-index:3;width:270px;display:none;position:fixed;top:46px" id="mySidenav">
 {% endif %}
   <div class="w3-clear"></div>
     <a href="javascript:void(0)" onclick="w3_close()" class="a_reject w3-right w3-xlarge w3-padding-large w3-hide-medium w3-hide-large" title="Close">&times;</a>
@@ -68,12 +68,12 @@
 
   // Script to open and close the sidenav.
   function w3_open() {
-      document.getElementById("mySidenav").style.display = "block";
-      document.getElementById("myOverlay").style.display = "block";
+    document.getElementById("mySidenav").style.display = "block";
+    document.getElementById("myOverlay").style.display = "block";
   }   
   function w3_close() {
-      document.getElementById("mySidenav").style.display = "none";
-      document.getElementById("myOverlay").style.display = "none";
+    document.getElementById("mySidenav").style.display = "none";
+    document.getElementById("myOverlay").style.display = "none";
   }
 </script>
 

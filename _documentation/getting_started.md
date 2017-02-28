@@ -1,7 +1,7 @@
 ---
 title: Getting started
 layout: full
-keywords: download,build,libraries,amalgamated,sources,cmake,gcc,clang,msvc,start,tutorial,emscripten,opengl,glfw,opengl,directx,unit-tests,package
+keywords: download,build,libraries,amalgamated,sources,cmake,git,gcc,clang,msvc,start,tutorial,emscripten,opengl,glfw,unit-tests,package
 order: 5
 ---
 
@@ -103,15 +103,15 @@ set(path_to_ozz_folder "ozz root folder path on your machine")
 # binary output folder.
 add_subdirectory(${path_to_ozz_folder} "${CMAKE_BINARY_DIR}/ozz-animation/")
 
-# Setup ozz include path.
-include_directories(${path_to_ozz_folder}/include)
-
-# Then link with ozz libraries as any other cmake target.
+# Defines your executable.
 add_executable(test_sub_project
   test_sub_project.cc)
+
+# Then link with ozz libraries as any other cmake target.
+# This will automatically link with all ozz_animation dependencies, as well as
+# add ozz include directories.
 target_link_libraries(test_sub_project
-  ozz_animation
-  ozz_base)
+  ozz_animation)
 {% endhighlight %}
 
 Setting up ozz include path
