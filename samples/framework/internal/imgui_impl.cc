@@ -629,6 +629,17 @@ bool ImGuiImpl::DoRadioButton(int _ref, const char* _label, int* _value,
   return clicked;
 }
 
+namespace {
+float FindMax(float _value) {
+  if (_value == 0.f) {
+    return 0.f;
+  }
+  const float mexp = floor(log10(_value));
+  const float mpow = pow(10.f, mexp);
+  return ceil(_value / mpow * 2) * mpow;
+}
+}
+
 void ImGuiImpl::DoGraph(const char* _label, float _min, float _max, float _mean,
                         const float* _value_cursor, const float* _value_begin,
                         const float* _value_end) {
@@ -690,7 +701,9 @@ void ImGuiImpl::DoGraph(const char* _label, float _min, float _max, float _mean,
   if (_value_end - _value_begin >= 2) {  // Reject invalid or to small inputs.
     const float abscissa_min = graph_rect.bottom + 1.f;
     const float abscissa_max = graph_rect.top() - 1.f;
-    const float abscissa_scale = (abscissa_max - abscissa_min) / (_max - _min);
+    // Computes a new max value, rounded up to be more stable.
+    const float graph_max = FindMax(_max);
+    const float abscissa_scale = (abscissa_max - abscissa_min) / (graph_max - _min);
     const float abscissa_begin = graph_rect.bottom + 1.f;
     const float ordinate_inc =
         -(graph_rect.width - 2.f) / (_value_end - _value_begin - 1.f);
