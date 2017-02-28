@@ -23,13 +23,6 @@ ozz-animation doesn't do any rendering either. You're in charge of applying the 
 
 Finally ozz does not propose an official pipeline to load meshes and materials either. The sample framework embed a mesh importing tool (fbx2mesh) though.
 
-Getting started
-===============
-
-The easiest way to get started with ozz-animation is to look at the [playback sample][link_playback_sample]. It implements the basics for animating a skeleton. Its documentation explains all the steps, from loading the data to updating joints position each frame.
-
-The animation data the sample uses are located in the [media/bin][link_media_bin] directory. To get a first idea about the toolset used to import these data from fbx (for example), it's recommended to read the [offline toolset][link_toolset] documentation. Getting an understanding about how this data are built in the sample case requires to get deeper into cmake, which is not the point there.
-
 License
 =======
 
@@ -46,7 +39,7 @@ The license does not require source code to be made available if distributing bi
 Reporting issues or feature requests
 ====================================
 
-[This page][link_features] lists implemented features and plans for future releases. Please use [github issues][link_github_issues] to report bugs, to request features or discuss animation techniques.
+[This page][link_features] lists implemented features and plans for future releases. Please use [github issues][link_github_issues] to report bugs, request features or discuss animation techniques.
 
 Contributing
 ============

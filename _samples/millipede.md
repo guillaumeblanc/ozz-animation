@@ -7,6 +7,7 @@ level: 3
 ---
 
 {% include links.jekyll %}
+{% include link_sample_code.jekyll sample="millipede" %}
 
 Description
 ===========

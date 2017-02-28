@@ -1,0 +1,1 @@
+<i class="fa fa-file-text-o" aria-hidden="true"></i> View {{include.sample}} sample <a href="http://github.com/guillaumeblanc/ozz-animation/blob/master/samples/{{include.sample}}/sample_{{include.sample}}.cc" target="_blank">source code</a>.

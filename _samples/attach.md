@@ -2,9 +2,12 @@
 title: Joint attachment
 layout: full
 keywords: sample, tutorial, attach, offset, local, model, space, transformation, matrix, concatenate
-order: 15
+order: 25
 level: 1
 ---
+
+{% include links.jekyll %}
+{% include link_sample_code.jekyll sample="attach" %}
 
 Description
 ===========

@@ -7,15 +7,16 @@ collection: home
 
 {% include links.jekyll %}
 
+ozz-animation provides runtime character animation functionalities (loading, sampling, blending...), with the toolchain to import from major DCC formats (Collada, Fbx, ...). It proposes a low-level renderer and game-engine agnostic implementation, focusing on performance and memory constraints with a data-oriented design.
 <br />
 
 <div class="w3-row-padding w3-center">
   <div class="w3-third">
     <div class="w3-card-2" style="min-height:460px">
       <div class="w3-container w3-margin">
-        <h1 class="w3-wide">Features</h1>
+        <div class="w3-xxlarge w3-wide">Features</div>
         <div class="w3-text-theme">
-          <i class="fa fa-superpowers" style="font-size:128px"></i>
+          <i class="fa fa-superpowers w3-padding-8" style="font-size:128px"></i>
         </div>
         <p>Sampling</p>
         <p>Blending</p>
@@ -28,9 +29,9 @@ collection: home
   <div class="w3-third">
     <div class="w3-card-2" style="min-height:460px">
       <div class="w3-container w3-margin">
-        <h1 class="w3-wide">Toolset</h1>
+        <div class="w3-xxlarge w3-wide">Toolset</div>
         <div class="w3-text-theme">
-          <i class="fa fa-wrench" style="font-size:128px"></i>
+          <i class="fa fa-wrench w3-padding-8" style="font-size:128px"></i>
         </div>
         <p>Fbx, Collada, Obj, 3ds, dxf</p>
         <p>Compression</p>
@@ -43,9 +44,9 @@ collection: home
   <div class="w3-third">
     <div class="w3-card-2" style="min-height:460px">
       <div class="w3-container w3-margin">
-        <h1 class="w3-wide">Code</h1>
+        <div class="w3-xxlarge w3-wide">Code</div>
         <div class="w3-text-theme">
-          <i class="fa fa-pencil" style="font-size:128px"></i>
+          <i class="fa fa-pencil w3-padding-8" style="font-size:128px"></i>
         </div>
         <p>Engine agnostic</p>
         <p>Cache friendly</p>
@@ -57,23 +58,37 @@ collection: home
   </div>
 </div>
 
-<br />
-
-ozz-animation is an **open source c++ 3d skeletal animation engine**. It provides runtime character animation functionalities (loading, sampling, blending...), with the toolchain to import from major DCC formats (Collada, Fbx, ...). It proposes a low-level renderer and game-engine agnostic implementation, focusing on performance and memory constraints with a data-oriented design.
-
-<div class="w3-row-padding w3-center w3-padding-64">
-  <div class="w3-third">
-    <a class="w3-btn w3-round w3-padding-32 w3-margin w3-orange" href="{{site.baseurl}}/documentation/">Getting started</a>
-  </div>
-  <div class="w3-third">
-    <a class="w3-btn w3-round w3-padding-32 w3-margin w3-theme" href="{{site.baseurl}}/samples/">View samples</a>
-  </div>
-  <div class="w3-third">
-    <a class="w3-btn w3-round w3-padding-32 w3-margin w3-theme" href="http://github.com/guillaumeblanc/ozz-animation" target="_blank">View on Github</a>
+<div class="w3-row w3-center">
+  <div class="w3-card-2 w3-margin">
+    <div class="w3-margin">
+      <a class="a_reject" href="{{site.baseurl}}/samples">
+        <div class="w3-center w3-xxlarge w3-wide">Samples</div>
+        <p>Review samples to evaluate ozz-animation runtime features.</p>
+      </a>
+      {% include emscripten.jekyll emscripten_path="samples/emscripten/sample_additive.js" %}
+    </div>
   </div>
 </div>
 
-Below is a [baked animation sample][link_baked_sample], part of ozz package. It shows a physic simulation baked into an animation. This scene contains more than 1000 animated cuboids. 
-
-{% include emscripten.jekyll emscripten_path="samples/emscripten/sample_baked.js" %}
-
+<div class="w3-row-padding w3-center">
+  <a class="a_reject w3-half" href="{{site.baseurl}}/documentation/getting_started">
+    <div class="w3-card-2" style="min-height:260px">
+      <div class="w3-container w3-margin">
+        <div class="w3-xxlarge w3-wide">Getting started</div>
+        <div class="w3-text-theme">
+          <i class="fa fa-forward w3-padding-8" style="font-size:128px"></i>
+        </div>
+      </div>  
+    </div>
+  </a>
+  <a class="a_reject w3-half" href="http://github.com/guillaumeblanc/ozz-animation" target="_blank">
+    <div class="w3-card-2" style="min-height:260px">
+      <div class="w3-container w3-margin">
+        <div class="w3-xxlarge w3-wide">View on Github</div>
+        <div class="w3-text-theme">
+          <i class="fa fa-github w3-padding-8" style="font-size:128px"></i>
+        </div>
+      </div>
+    </div>
+  </a>
+</div>

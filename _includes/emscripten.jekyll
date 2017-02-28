@@ -1,7 +1,5 @@
-<div class="w3-container w3-center"> 
-  <div class="w3-row">
-    <p id="sample_status">Initializing WebGL</p>
-  </div>
+<div class="w3-center">
+    <p class="w3-tiny" id="sample_status">Initializing WebGL</p>
 </div>
 <div id="sample_border">
   <div class="w3-display-container">
@@ -48,7 +46,7 @@
   }
   function OnSampleSuccess() {
     full_screen.style.display = "inline";
-    sample_status.innerHTML = "ozz-animation c++ sample compiled to javascript/webgl with emscripten.";
+    sample_status.innerHTML = "&nbsp;";
     // Initialize canvas size
     CanvasResize();
   }

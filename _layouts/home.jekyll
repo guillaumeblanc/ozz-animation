@@ -1,13 +1,15 @@
 {% include header.jekyll %}
 
-<div class="w3-center w3-theme">
+<div id="myHeader" class="w3-center w3-theme">
   <img src="{{site.baseurl}}/images/logo/ozz-white-512.png" class="w3-image" alt="ozz" width="512" height="512" style="z-index:10;">
+  <div class="w3-center w3-theme w3-large w3-wide">open source c++ 3d skeletal animation engine</div>
+  <br />
 </div>
 
 {% include navigation.jekyll %}
 
 <!-- Main content: sidenav is not visible with home layout -->
-<div class="w3-container">
+<div id="myMain" class="w3-container">
 
   <div class="w3-container w3-content w3-section">
 	{{content}}

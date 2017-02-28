@@ -7,6 +7,7 @@ level: 1
 ---
 
 {% include links.jekyll %}
+{% include link_sample_code.jekyll sample="blend" %}
 
 Description
 ===========

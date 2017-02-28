@@ -7,6 +7,7 @@ level: 2
 ---
 
 {% include links.jekyll %}
+{% include link_sample_code.jekyll sample="optimize" %}
 
 Description
 ===========

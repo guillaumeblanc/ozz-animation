@@ -7,6 +7,7 @@ level: 3
 ---
 
 {% include links.jekyll %}
+{% include link_sample_code.jekyll sample="multithread" %}
 
 > Note for windows users: On Windows, this sample requires "VC++ Redistribuable Packages" to be installed. OpenMp runtime libraries are only available as Dlls (vcomp`*`.dll) indeed. Latest packages are available from [Microsoft](http://support.microsoft.com/kb/2019667).
 

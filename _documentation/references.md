@@ -2,7 +2,7 @@
 title: References
 layout: full
 keywords: reference,animation,thesis,blog
-order: 65
+order: 90
 ---
 
 {% include links.jekyll %}

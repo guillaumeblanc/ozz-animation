@@ -1,42 +1,47 @@
 <!-- Top -->
-<ul id="myTabNav" class="w3-navbar w3-theme w3-large" style="z-index:4;">
-  <li class="w3-opennav w3-left w3-hide-medium w3-hide-large">
-    <a class="w3-hover-white w3-large w3-theme w3-padding-16" href="javascript:void(0)" onclick="w3_open()">&#9776;</a>
-  </li>
-  <li class="w3-hide-small"><a class="w3-hover-white w3-padding-16" href="{{site.baseurl}}/">Home</a></li>
-  {% for collection in site.collections %}
-    {% if collection.label == 'posts' %}
-      {% continue %}
-    {% endif %}
-    {% assign collection_id = collection.label %}
-    <li class="{% if {{collection_id}} == {{page.collection}} %} w3-text-orange {% endif %} w3-hide-small"><a class="w3-hover-white w3-padding-16" href="{{site.baseurl}}/{{collection.label}}/">{{collection.display_name}}</a>
+<div class="w3-display-container" style="min-height:64px">
+  <ul id="myTabNav" class="w3-navbar w3-theme w3-large w3-wide" style="z-index:4;">
+    <li class="w3-opennav w3-left w3-hide-large">
+      <a class="a_reject w3-hover-white w3-large w3-theme w3-padding-8" href="javascript:void(0)" onclick="w3_open()">&#9776;</a>
     </li>
- {% endfor %}
-  <li class="w3-hide-small"><a class="w3-hover-white w3-padding-16" href="http://github.com/guillaumeblanc/ozz-animation" target="_blank">Github</a></li>
-</ul>
-
-<div id="myMarker"></div>
-
-<!-- Sidenav -->
-{% if page.layout == 'full' %}
-  <nav class="w3-sidenav w3-collapse w3-white" style="z-index:3;width:270px;" id="mySidenav">
-{% else %}
-  <nav class="w3-sidenav w3-white w3-hide-medium w3-hide-large" style="z-index:3;width:270px;display:none;" id="mySidenav">
-{% endif %}
-  <div class="w3-clear"></div>
-    <a href="javascript:void(0)" onclick="w3_close()" class="w3-right w3-xlarge w3-padding-large w3-hide-medium w3-hide-large" title="Close">&times;</a>
-  <div style="clear:both;">
-    <a class="w3-large" href="{{site.baseurl}}/">Home</a>
+    <li class="w3-hide-small"><a class="a_reject {% if "home" == {{page.layout}} %}w3-text-orange{% endif %} w3-hover-white w3-padding-8" href="{{site.baseurl}}/">Home</a></li>
     {% for collection in site.collections %}
       {% if collection.label == 'posts' %}
         {% continue %}
       {% endif %}
-      <a class="w3-large" href="{{site.baseurl}}/{{collection.label}}">{{collection.display_name}}</a>
+      {% assign collection_id = collection.label %}
+      <li class="{% if {{collection_id}} == {{page.collection}} %}w3-text-orange{% endif %} w3-hide-small"><a class="a_reject w3-hover-white w3-padding-8" href="{{site.baseurl}}/{{collection.label}}/">{{collection.display_name}}</a>
+      </li>
+   {% endfor %}
+    <li class="w3-hide-small"><a class="a_reject w3-hover-white w3-padding-8" href="http://github.com/guillaumeblanc/ozz-animation" target="_blank">Github</a></li>
+    {% if page.layout != 'home' %}
+      <li class="w3-right w3-padding-8"><img src="{{site.baseurl}}/images/logo/ozz-white-32.png" class="w3-right w3-image w3-margin-right" alt="ozz" width="24" height="24"></li>
+    {% endif %}
+  </ul>
+  <div class="w3-display-center">&nbsp;</div>
+</div>
+
+<!-- Sidenav -->
+{% if page.layout == 'full' %}
+  <nav class="w3-sidenav w3-margin-top w3-collapse w3-white" style="z-index:3;width:270px;" id="mySidenav">
+{% else %}
+  <nav class="w3-sidenav w3-margin-top w3-white w3-hide-medium w3-hide-large" style="z-index:3;width:270px;display:none;" id="mySidenav">
+{% endif %}
+  <div class="w3-clear"></div>
+    <a href="javascript:void(0)" onclick="w3_close()" class="a_reject w3-right w3-xlarge w3-padding-large w3-hide-medium w3-hide-large" title="Close">&times;</a>
+  <div style="clear:both;">
+    <a class="a_reject w3-hide-medium w3-hide-large" href="{{site.baseurl}}/">Home</a>
+    {% for collection in site.collections %}
+      {% if collection.label == 'posts' %}
+        {% continue %}
+      {% endif %}
+      <a class="a_reject w3-margin-top w3-hide-medium w3-hide-large" href="{{site.baseurl}}/{{collection.label}}">{{collection.display_name}}</a>
       {% assign collection_id = collection.label %}
       {% if {{collection_id}} == {{page.collection}} %}
         {% assign pages = site[{{collection_id}}] | sort:"order" %}
         {% for cpage in pages %}
-          <a class="w3-margin-left {% if page.url == cpage.url %} w3-orange {% endif %}" href="{{site.baseurl}}{{cpage.url}}">{{cpage.title}}</a>
+          <a class="a_reject w3-hide-medium w3-hide-large w3-margin-left {% if page.url == cpage.url %} w3-orange {% endif %}" href="{{site.baseurl}}{{cpage.url}}">{{cpage.title}}</a>
+          <a class="a_reject w3-hide-small {% if page.url == cpage.url %} w3-orange {% endif %}" href="{{site.baseurl}}{{cpage.url}}">{{cpage.title}}</a>
         {% endfor %}
       {% endif %}
     {% endfor %}
@@ -46,33 +51,29 @@
 <!-- Overlay effect when opening sidenav on small screens -->
 <div class="w3-overlay w3-hide-medium w3-hide-large" onclick="w3_close()" style="cursor:pointer;" title="Close" id="myOverlay"></div>
 
+<!-- Navigation scripts -->
 <script>
-
-  var myTabNav = document.getElementById("myTabNav");
-  var myTabNavRect = myTabNav.getBoundingClientRect();
-  var myMarker = document.getElementById("myMarker");
-
+  // Handle navbar stickiness.
   function scroll_script() {
-
-    if(document.body.scrollTop > myTabNavRect.top) {
+    var myHeader = document.getElementById("myHeader");
+    var myHeaderRect = myHeader.getBoundingClientRect();
+    var myTabNav = document.getElementById("myTabNav");
+    if(document.body.scrollTop >= myHeaderRect.height) {
       myTabNav.classList.add("w3-top");
-      myMarker.style.marginTop = myTabNavRect.height.toString() + "px";
     }else{
       myTabNav.classList.remove("w3-top");
-      myMarker.style.marginTop = "0px";
     }
   }
+  document.addEventListener("scroll", scroll_script);
 
-  // Script to open and close the sidenav
+  // Script to open and close the sidenav.
   function w3_open() {
       document.getElementById("mySidenav").style.display = "block";
       document.getElementById("myOverlay").style.display = "block";
-  }
-   
+  }   
   function w3_close() {
       document.getElementById("mySidenav").style.display = "none";
       document.getElementById("myOverlay").style.display = "none";
   }
-
 </script>
 
