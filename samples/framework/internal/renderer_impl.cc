@@ -1133,8 +1133,6 @@ bool RendererImpl::DrawMesh(const Mesh& _mesh,
     shader = ambient_shader;
   }
 
-  GL(BindBuffer(GL_ARRAY_BUFFER, 0));
-
   // Maps the index dynamic buffer and update it.
   GL(BindBuffer(GL_ELEMENT_ARRAY_BUFFER, dynamic_index_bo_));
   const Mesh::TriangleIndices& indices = _mesh.triangle_indices;
@@ -1148,6 +1146,7 @@ bool RendererImpl::DrawMesh(const Mesh& _mesh,
                   GL_UNSIGNED_SHORT, 0));
 
   // Unbinds.
+  GL(BindBuffer(GL_ARRAY_BUFFER, 0));
   GL(BindTexture(GL_TEXTURE_2D, 0));
   GL(BindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
   shader->Unbind();
@@ -1179,9 +1178,7 @@ bool RendererImpl::DrawMesh(const Mesh& _mesh,
   }
 
   // Renders debug binormals.
-  if (_options.binormals /* &&
-      skinning_job.out_normals.Count() > 0 &&
-      skinning_job.out_tangents.Count() > 0*/) {
+  if (_options.binormals) {
     for (size_t i = 0; i < _mesh.parts.size(); ++i) {
       const Mesh::Part& part = _mesh.parts[i];
       const Renderer::Color blue = {0, 0, 255, 255};
@@ -1402,7 +1399,7 @@ bool RendererImpl::DrawSkinnedMesh(
       }
     }
 
-    // Handles uvs which aren't affected by skinning.
+    // Copies uvs which aren't affected by skinning.
     if (_options.texture) {
       if (part_vertex_count ==
           part.uvs.size() / ozz::sample::Mesh::Part::kUVsCpnts) {
@@ -1452,8 +1449,6 @@ bool RendererImpl::DrawSkinnedMesh(
     shader = ambient_shader;
   }
 
-  GL(BindBuffer(GL_ARRAY_BUFFER, 0));
-
   // Maps the index dynamic buffer and update it.
   GL(BindBuffer(GL_ELEMENT_ARRAY_BUFFER, dynamic_index_bo_));
   const Mesh::TriangleIndices& indices = _mesh.triangle_indices;
@@ -1467,6 +1462,7 @@ bool RendererImpl::DrawSkinnedMesh(
                   GL_UNSIGNED_SHORT, 0));
 
   // Unbinds.
+  GL(BindBuffer(GL_ARRAY_BUFFER, 0));
   GL(BindTexture(GL_TEXTURE_2D, 0));
   GL(BindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
   shader->Unbind();
