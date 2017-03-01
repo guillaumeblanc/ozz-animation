@@ -26,30 +26,6 @@ set(cxx_all_flags
   CMAKE_CXX_FLAGS_RELEASE
   CMAKE_C_FLAGS_RELEASE)
 
-set(cxx_all_but_default_flags
-  CMAKE_CXX_FLAGS_DEBUG
-  CMAKE_C_FLAGS_DEBUG
-  CMAKE_CXX_FLAGS_MINSIZEREL
-  CMAKE_C_FLAGS_MINSIZEREL
-  CMAKE_CXX_FLAGS_RELWITHDEBINFO
-  CMAKE_C_FLAGS_RELWITHDEBINFO
-  CMAKE_CXX_FLAGS_RELEASE
-  CMAKE_C_FLAGS_RELEASE)
-
-# Lists debug cxx flags only
-set(cxx_debug_flags
-  CMAKE_CXX_FLAGS_DEBUG
-  CMAKE_C_FLAGS_DEBUG)
-
-# Lists release cxx flags only
-set(cxx_release_flags
-  CMAKE_CXX_FLAGS_MINSIZEREL
-  CMAKE_C_FLAGS_MINSIZEREL
-  CMAKE_CXX_FLAGS_RELWITHDEBINFO
-  CMAKE_C_FLAGS_RELWITHDEBINFO
-  CMAKE_CXX_FLAGS_RELEASE
-  CMAKE_C_FLAGS_RELEASE)
-
 #--------------------------------------
 # Cross compiler compilation flags
 
@@ -71,16 +47,15 @@ if(MSVC)
   # Adds support for multiple processes builds
   set_property(DIRECTORY APPEND PROPERTY COMPILE_OPTIONS "/MP")
 
+  # Set the warning level to W4
+  set_property(DIRECTORY APPEND PROPERTY COMPILE_OPTIONS "/W4")
+
   # Set warning as error
   set_property(DIRECTORY APPEND PROPERTY COMPILE_OPTIONS "/WX")
 
   #---------------
-  # For all builds
+  # Select whether to use the DLL version or the static library version of the Visual C++ runtime library.
   foreach(flag ${cxx_all_flags})
-    # Set the warning level to W4
-    string(REGEX REPLACE "/W3" "/W4" ${flag} "${${flag}}")
-
-    # Select whether to use the DLL version or the static library version of the Visual C++ runtime library.
     if (ozz_build_msvc_rt_dll)
       string(REGEX REPLACE "/MT" "/MD" ${flag} "${${flag}}")
     else()
@@ -116,7 +91,7 @@ else()
   #----------------------
   # Enables debug glibcxx if NDebug isn't defined, not supported by APPLE
   if(NOT APPLE)
-    set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS $<$<CONFIG:Debug>:_GLIBCXX_DEBUG>)
+    set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS "$<$<CONFIG:Debug>:_GLIBCXX_DEBUG>")
   endif()
 
   #----------------------
@@ -127,29 +102,6 @@ else()
     #if(NOT ozz_build_simd_ref)
     #  set_property(DIRECTORY APPEND PROPERTY COMPILE_OPTIONS "-msse2")
     #endif()
-  endif()
-
-  #----------------------
-  # Handles coverage options
-  if(ozz_build_coverage)
-    # Extern libraries and samples are not included in the coverage, as not covered by automatic dashboard tests.
-    set(CTEST_CUSTOM_COVERAGE_EXCLUDE ${CTEST_CUSTOM_COVERAGE_EXCLUDE} "extern/" "samples/")
-
-    # Linker options
-    if(NOT ${CMAKE_SHARED_LINKER_FLAGS_DEBUG} MATCHES "-fprofile-arcs -ftest-coverage")
-      set(CMAKE_SHARED_LINKER_FLAGS_DEBUG "${CMAKE_SHARED_LINKER_FLAGS_DEBUG} -fprofile-arcs -ftest-coverage")
-    endif()
-    if(NOT ${CMAKE_EXE_LINKER_FLAGS_DEBUG} MATCHES "-fprofile-arcs -ftest-coverage")
-      set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -fprofile-arcs -ftest-coverage")
-    endif()
-
-    # Compiler options
-    foreach(flag ${cxx_debug_flags})
-      if(NOT ${flag} MATCHES "-fprofile-arcs -ftest-coverage")
-        set(${flag} "${${flag}} -fprofile-arcs -ftest-coverage")
-      endif()
-    endforeach()
-    #set_property(DIRECTORY APPEND PROPERTY COMPILE_OPTIONS "-fprofile-arcs -ftest-coverage")
   endif()
 
 endif()

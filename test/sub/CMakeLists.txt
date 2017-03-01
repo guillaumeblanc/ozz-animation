@@ -4,7 +4,7 @@ cmake_minimum_required (VERSION 3.0)
 project(ozz_sub)
 
 # Activates unit tests
-include(CTest)
+enable_testing()
 
 # Includes ozz-animation as a sub directory, using an arbitrary "ozz-animation/" binary output folder.
 add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/../.." ozz-animation/)
