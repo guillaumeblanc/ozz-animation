@@ -636,7 +636,7 @@ float FindMax(float _value) {
   }
   const float mexp = floor(log10(_value));
   const float mpow = pow(10.f, mexp);
-  return ceil(_value / mpow * 2) * mpow;
+  return ceil(_value / mpow) * 2.f * mpow;
 }
 }
 
