@@ -1,3 +1,6 @@
+[![Travis-CI](https://travis-ci.org/guillaumeblanc/ozz-animation.svg?branch=master)](http://travis-ci.org/guillaumeblanc/ozz-animation)
+[![AppVeyor](https://ci.appveyor.com/api/projects/status/github/guillaumeblanc/ozz-animation?branch=master&svg=true)](http://ci.appveyor.com/project/guillaumeblanc/ozz-animation)
+
 ![logo](media/icon/ozz-grey-128.png)
 
 ozz-animation is an **open source c++ 3d skeletal animation engine**. It provides runtime character animation playback functionalities (loading, sampling, blending...). It proposes a low-level renderer agnostic and game-engine agnostic implementation, focusing on performance and memory constraints with a data-oriented design.

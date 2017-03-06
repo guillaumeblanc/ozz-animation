@@ -1,20 +1,22 @@
-add_library(ozz_animation_offline
-  ${CMAKE_SOURCE_DIR}/include/ozz/animation/offline/raw_animation.h
+add_library(ozz_animation_offline STATIC
+  ${PROJECT_SOURCE_DIR}/include/ozz/animation/offline/raw_animation.h
   raw_animation.cc
   raw_animation_archive.cc
-  ${CMAKE_SOURCE_DIR}/include/ozz/animation/offline/raw_animation_utils.h
+  ${PROJECT_SOURCE_DIR}/include/ozz/animation/offline/raw_animation_utils.h
   raw_animation_utils.cc
-  ${CMAKE_SOURCE_DIR}/include/ozz/animation/offline/animation_builder.h
+  ${PROJECT_SOURCE_DIR}/include/ozz/animation/offline/animation_builder.h
   animation_builder.cc
-  ${CMAKE_SOURCE_DIR}/include/ozz/animation/offline/animation_optimizer.h
+  ${PROJECT_SOURCE_DIR}/include/ozz/animation/offline/animation_optimizer.h
   animation_optimizer.cc
-  ${CMAKE_SOURCE_DIR}/include/ozz/animation/offline/additive_animation_builder.h
+  ${PROJECT_SOURCE_DIR}/include/ozz/animation/offline/additive_animation_builder.h
   additive_animation_builder.cc
-  ${CMAKE_SOURCE_DIR}/include/ozz/animation/offline/raw_skeleton.h
+  ${PROJECT_SOURCE_DIR}/include/ozz/animation/offline/raw_skeleton.h
   raw_skeleton.cc
   raw_skeleton_archive.cc
-  ${CMAKE_SOURCE_DIR}/include/ozz/animation/offline/skeleton_builder.h
+  ${PROJECT_SOURCE_DIR}/include/ozz/animation/offline/skeleton_builder.h
   skeleton_builder.cc)
+target_link_libraries(ozz_animation_offline
+  ozz_animation)
 set_target_properties(ozz_animation_offline PROPERTIES FOLDER "ozz")
 
 install(TARGETS ozz_animation_offline DESTINATION lib)

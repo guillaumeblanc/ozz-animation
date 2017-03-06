@@ -34,6 +34,7 @@ import shutil
 import sys
 import os
 import re
+import platform
 from functools import partial
 
 
@@ -42,9 +43,11 @@ root = os.path.abspath(os.path.join(os.getcwd(), '.'))
 build_dir = os.path.join(root, 'build')
 build_dir_cc = os.path.join(root, 'build-cc')
 cmake_cache_file = os.path.join(build_dir, 'CMakeCache.txt')
+ctest_cache_file = os.path.join(build_dir, 'CTestTestfile.cmake')
 config = 'Release'
 generators = {0: 'default'}
 generator = generators[0]
+enable_testing = False
 emscripten_path = os.environ.get('EMSCRIPTEN')
 
 def ValidateCMake():
@@ -94,6 +97,10 @@ def Configure():
   print("Configuring build project.")
   options = ['cmake']
   options += ['-D', 'CMAKE_BUILD_TYPE=' + config]
+
+  if (enable_testing) :
+    options += ['-D', 'ozz_build_tests=1']
+
   global generator
   if(generator != 'default'):
     options += ['-G', generator]
@@ -118,7 +125,11 @@ def ConfigureCC():
   options += ['-D', 'CMAKE_BUILD_TYPE=' + config]
   options += ['-D', 'CMAKE_TOOLCHAIN_FILE=' + emscripten_path + '/cmake/Modules/Platform/Emscripten.cmake']
 
-  options += ['-G', 'MinGW Makefiles']
+  if(platform.system() == 'Windows'):
+    options += ['-G', 'MinGW Makefiles']
+  else:
+    options += ['-G', 'Unix Makefiles']
+
   options += [root]
   config_process = subprocess.Popen(options, cwd=build_dir_cc)
   config_process.wait()
@@ -271,10 +282,37 @@ def SelecGenerator():
         return CleanBuildDir()
     return True
 
+def DetectTesting():
+  global enable_testing
+  try:
+    test_file = open(ctest_cache_file)
+  except:
+    enable_testing = False
+    return
+  enable_testing = True
+
+def EnableTesting():
+  global enable_testing
+  while True:
+    # Get input and check validity
+    answer = raw_input("enable testing (y/n): ")
+    if answer != 'y' and answer != 'n':
+      continue
+    wanted = (answer == 'y')
+    
+    # Get current state
+    if (enable_testing != wanted):
+      enable_testing = wanted
+      print("Testing state has changed.")
+      clean = raw_input("Do you want to clean build directory to apply the change? (y/n): ") == "y"
+      if clean:
+        return CleanBuildDir()
+    return True
+
 def ClearScreen():
   os.system('cls' if os.name=='nt' else 'clear')
 
-def Exit():
+def Quit():
   sys.exit(0)
   return True
 
@@ -290,6 +328,9 @@ def main():
   # Detects available generators
   FindGenerators()
 
+  # Detects testing state
+  DetectTesting()
+
   # Update current generator
   print("DetectGenerator")
   global generator
@@ -302,9 +343,10 @@ def main():
     '4': ["Clean out-of-source build directory\n  ------------------", [CleanBuildDir]],
     '5': ["Pack binaries", [MakeBuildDir, Configure, Build, partial(PackBinaries, "ZIP"), partial(PackBinaries, "TBZ2")]],
     '6': ["Pack sources\n  ------------------", [MakeBuildDir, Configure, partial(PackSources, "ZIP"), partial(PackSources, "TBZ2")]],
-    '7': ["Select build configuration", [SelecConfig]],
-    '8': ["Select cmake generator\n  ------------------", [SelecGenerator]],
-    '9': ["Exit\n------------------", [Exit]]}
+    '7': ["Enable testing", [EnableTesting]],
+    '8': ["Select build configuration", [SelecConfig]],
+    '9': ["Select cmake generator\n  ------------------", [SelecGenerator]],
+    'q': ["Quit\n------------------", [Quit]]}
 
   # Adds emscripten
   global emscripten_path
@@ -319,6 +361,7 @@ def main():
     print("")
     print("Selected build configuration: %s") % config
     print("Selected generator: %s") % generator
+    print("Testing enabled: %s") % enable_testing
     print("")
     print("Choose an option:")
     print("------------------")

@@ -1,7 +1,3 @@
-if(NOT ozz_build_samples)
-  return()
-endif()
-
 # Adds the sample framework to the include path.
 include_directories(./)
 

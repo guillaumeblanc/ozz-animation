@@ -16,7 +16,7 @@ set_target_properties(sample_millipede
 
 if(EMSCRIPTEN)
   set_target_properties(sample_millipede
-    PROPERTIES LINK_FLAGS "--embed-file README.md")
+    PROPERTIES LINK_FLAGS "--embed-file README.md --memory-init-file 0")
 
   install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/sample_millipede.html

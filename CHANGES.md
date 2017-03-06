@@ -1,3 +1,11 @@
+TODO Change status badges to master branch.
+
+* Build pipeline
+  - Adds Travis-CI (http://travis-ci.org/guillaumeblanc/ozz-animation) and AppVeyor (http://ci.appveyor.com/project/guillaumeblanc/ozz-animation) continuous integration support.
+  
+* Samples
+  - [sample_fbx2mesh] Remaps joint indices to the smaller range of skeleton joints that are actually used by the skinning. It's now required to index skeleton matrices using ozz::sample::framework:Mesh::joint_remaps when build skinning matrices.
+
 Release version 0.9.0
 ---------------------
 
@@ -135,7 +143,7 @@ Release version 0.4.0
 
 * Library
   - [offline] Adds Fbx import pipeline, through fbx2skel and fbx2anim command line tools.
-  - [offline] Adds Fbx import and conversion library, through ozz_animation_offline_fbx. Building fbx related libraries requires fbx sdk to be installed.
+  - [offline] Adds Fbx import and conversion library, through ozz_animation_fbx. Building fbx related libraries requires fbx sdk to be installed.
   - [offline] Adds ozz_animation_offline_tools library to share the common work for Collada and Fbx import tools. This could be use to implement custom conversion command line tools.
 
 * Samples
