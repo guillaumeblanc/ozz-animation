@@ -1659,6 +1659,7 @@ void Linearize(RawFloatTrack::Keyframes* keyframes) {
       const RawFloatTrack::Keyframe new_key = {RawFloatTrack::kLinear,
                                                new_key_time, src_key.value};
 
+      it->interpolation = RawFloatTrack::kLinear;
       it = keyframes->insert(it + 1, new_key);
     } else {
       assert(src_key.interpolation == RawFloatTrack::kLinear);
@@ -1695,7 +1696,10 @@ FloatTrack* FloatTrackBuilder::operator()(const RawFloatTrack& _input) const {
       2;                             // + 2 for first and last keys
   keyframes.reserve(worst_size);
 
+  // Ensure there's a keyframe at the start and end of the track (required for sampling).
   PatchBeginEndKeys(_input, &keyframes);
+
+  // Converts kStep keyframes to kLinear, which will add some keys.
   Linearize(&keyframes);
 
   // Allocates output track.
@@ -1704,6 +1708,7 @@ FloatTrack* FloatTrackBuilder::operator()(const RawFloatTrack& _input) const {
   // Copy all keys to output.
   for (size_t i = 0; i < keyframes.size(); ++i) {
     const RawFloatTrack::Keyframe& src_key = keyframes[i];
+    assert(src_key.interpolation == RawFloatTrack::kLinear);
     track->times()[i] = src_key.time;
     track->values()[i] = src_key.value;
   }

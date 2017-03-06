@@ -57,6 +57,7 @@ void FloatTrack::Allocate(size_t _keys_count) {
   assert(math::IsAligned(times_.begin, OZZ_ALIGN_OF(float)));
   buffer += _keys_count * sizeof(float);
   times_.end = reinterpret_cast<float*>(buffer);
+  
   values_.begin = reinterpret_cast<float*>(buffer);
   assert(math::IsAligned(times_.begin, OZZ_ALIGN_OF(float)));
   buffer += _keys_count * sizeof(float);

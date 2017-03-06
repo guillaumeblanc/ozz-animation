@@ -25,67 +25,32 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#ifndef OZZ_OZZ_ANIMATION_RUNTIME_FLOAT_TRACK_H_
-#define OZZ_OZZ_ANIMATION_RUNTIME_FLOAT_TRACK_H_
-
-#include "ozz/base/io/archive_traits.h"
-#include "ozz/base/platform.h"
+#ifndef OZZ_OZZ_ANIMATION_RUNTIME_FLOAT_TRACK_SAMPLING_JOB_H_
+#define OZZ_OZZ_ANIMATION_RUNTIME_FLOAT_TRACK_SAMPLING_JOB_H_
 
 namespace ozz {
 namespace animation {
 
-// Forward declares the FloatTrackBuilder, used to instantiate a FloatTrack.
-namespace offline {
-class FloatTrackBuilder;
-}
+// Forward declares FloatTrack object.
+class FloatTrack;
 
-// Runtime float track data structure.
-class FloatTrack {
- public:
-  FloatTrack();
+struct FloatTrackSamplingJob {
+  FloatTrackSamplingJob();
 
-  ~FloatTrack();
+  bool Validate() const;
 
-  float duration() const { return duration_; }
-  
-  Range<float> times() const { return times_; }
-  Range<float> values() const { return values_; }
+  bool Run() const;
 
-  // Get the estimated track's size in bytes.
-  size_t size() const;
+  // Time used to sample animation, clamped in range [0,1] before
+  // job execution. This resolves approximations issues on range bounds.
+  float time;
 
-  // Serialization functions.
-  // Should not be called directly but through io::Archive << and >> operators.
-  void Save(ozz::io::OArchive& _archive) const;
-  void Load(ozz::io::IArchive& _archive, uint32_t _version);
+  // Track to sample.
+  const FloatTrack* track;
 
- private:
-
-  // FloatTrackBuilder class is allowed to instantiate an Animation.
-  friend class offline::FloatTrackBuilder;
-
-  // Internal destruction function.
-  void Allocate(size_t _keys_count);
-  void Deallocate();
-
-  Range<float> times_;
-  Range<float> values_;
-  float duration_;
+  // Job output.
+  float* result;
 };
-
 }  // animation
-namespace io {
-OZZ_IO_TYPE_VERSION(1, animation::FloatTrack)
-OZZ_IO_TYPE_TAG("ozz-float_track", animation::FloatTrack)
-
-// Should not be called directly but through io::Archive << and >> operators.
-template <>
-void Save(OArchive& _archive, const animation::FloatTrack* _tracks,
-          size_t _count);
-
-template <>
-void Load(IArchive& _archive, animation::FloatTrack* _tracks, size_t _count,
-          uint32_t _version);
-}  // io
 }  // ozz
-#endif  // OZZ_OZZ_ANIMATION_RUNTIME_FLOAT_TRACK_H_
+#endif  // OZZ_OZZ_ANIMATION_RUNTIME_FLOAT_TRACK_SAMPLING_JOB_H_

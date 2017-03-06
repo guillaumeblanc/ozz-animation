@@ -25,67 +25,58 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#ifndef OZZ_OZZ_ANIMATION_RUNTIME_FLOAT_TRACK_H_
-#define OZZ_OZZ_ANIMATION_RUNTIME_FLOAT_TRACK_H_
+#include "ozz/animation/runtime/float_track_sampling_job.h"
+#include "ozz/animation/runtime/float_track.h"
+#include "ozz/base/maths/math_ex.h"
 
-#include "ozz/base/io/archive_traits.h"
-#include "ozz/base/platform.h"
+#include <cassert>
+#include <algorithm>
 
 namespace ozz {
 namespace animation {
 
-// Forward declares the FloatTrackBuilder, used to instantiate a FloatTrack.
-namespace offline {
-class FloatTrackBuilder;
+FloatTrackSamplingJob::FloatTrackSamplingJob() : time(0.f), track(NULL), result(NULL) {}
+
+bool FloatTrackSamplingJob::Validate() const {
+  bool success = true;
+  success &= result != NULL;
+  success &= track != NULL;
+  return success;
 }
 
-// Runtime float track data structure.
-class FloatTrack {
- public:
-  FloatTrack();
+bool FloatTrackSamplingJob::Run() const {
+  if (!Validate()) {
+    return false;
+  }
 
-  ~FloatTrack();
+  // Clamps time in range [0,1].
+  const float clamped_time = math::Clamp(0.f, time, 1.f);
 
-  float duration() const { return duration_; }
-  
-  Range<float> times() const { return times_; }
-  Range<float> values() const { return values_; }
+  // Search keyframes to interpolate.
+  const Range<const float> times = track->times();
+  const Range<const float> values = track->values();
+  assert(times.Size() == values.Size());
 
-  // Get the estimated track's size in bytes.
-  size_t size() const;
+  // Search for the first key frame with a time value greater than input time.
+  const float* ptk1 = std::upper_bound(times.begin, times.end, clamped_time);
 
-  // Serialization functions.
-  // Should not be called directly but through io::Archive << and >> operators.
-  void Save(ozz::io::OArchive& _archive) const;
-  void Load(ozz::io::IArchive& _archive, uint32_t _version);
+  // upper_bound returns "end" if time == end, so patch the selected
+  // keyframe (ptk1) to be able enter the lerp algorithm.
+  if (ptk1 == times.end) {
+    --ptk1;
+  }
 
- private:
+  // Lerp relevant keys.
+  const float tk0 = ptk1[-1];
+  const float tk1 = ptk1[0];
+  assert(clamped_time >= tk0 && tk0 != tk1);
+  const float* pvk1 = values.begin + (ptk1 - times.begin);
+  const float vk0 = pvk1[-1];
+  const float vk1 = pvk1[0];
+  const float alpha = (clamped_time - tk0) / (tk1 - tk0);
+  *result = math::Lerp(vk0, vk1, alpha);
 
-  // FloatTrackBuilder class is allowed to instantiate an Animation.
-  friend class offline::FloatTrackBuilder;
-
-  // Internal destruction function.
-  void Allocate(size_t _keys_count);
-  void Deallocate();
-
-  Range<float> times_;
-  Range<float> values_;
-  float duration_;
-};
-
+  return true;
+}
 }  // animation
-namespace io {
-OZZ_IO_TYPE_VERSION(1, animation::FloatTrack)
-OZZ_IO_TYPE_TAG("ozz-float_track", animation::FloatTrack)
-
-// Should not be called directly but through io::Archive << and >> operators.
-template <>
-void Save(OArchive& _archive, const animation::FloatTrack* _tracks,
-          size_t _count);
-
-template <>
-void Load(IArchive& _archive, animation::FloatTrack* _tracks, size_t _count,
-          uint32_t _version);
-}  // io
 }  // ozz
-#endif  // OZZ_OZZ_ANIMATION_RUNTIME_FLOAT_TRACK_H_
