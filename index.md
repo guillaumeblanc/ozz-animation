@@ -63,7 +63,7 @@ ozz-animation provides runtime character animation functionalities (loading, sam
     <div class="w3-margin">
       <a class="a_reject" href="{{site.baseurl}}/samples">
         <div class="w3-center w3-xxlarge w3-wide">Samples</div>
-        <p>Review samples to evaluate ozz-animation runtime features.</p>
+        <p>Try the samples to evaluate ozz-animation runtime features.</p>
       </a>
       {% include emscripten.jekyll emscripten_path="samples/emscripten/sample_additive.js" %}
     </div>

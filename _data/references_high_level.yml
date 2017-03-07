@@ -3,13 +3,17 @@
   col2: "Description"
   col3: "Link"
 - col0: "Automated  Semi‐Procedural  Animation for  Character  Locomotion"
-  col1: "Rune Skovbo Johansen"
+  col1: "Rune  Skovbo  Johansen"
   col2: "Describes animation motion analysis and semi-procedural methods for adjusting the blended motion."
   col3: "http://runevision.com/thesis/rune_skovbo_johansen_thesis.pdf"
 - col0: "Gradient Band Interpolation shadertoy"
   col1: "Kyle Rocha"
   col2: "Shadertoy implementation of Gradient Band Interpolation for both Cartesian and Radial coordinates."
   col3: "https://www.shadertoy.com/view/XlKXWR"
+- col0: "Animation Bootcamp: An Indie Approach to Procedural Animation"
+  col1: "David Rosen - Wolfire Games"
+  col2: "A simple and efficient way to create animations and transitions with very few key frames."
+  col3: "http://www.gdcvault.com/play/1020583/Animation-Bootcamp-An-Indie-Approach"
 - col0: "Unity3d animation manual"
   col1: "Unity3d"
   col2: "Unity animation system documentation"

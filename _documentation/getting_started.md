@@ -49,8 +49,6 @@ cmake --build ./
 
 ozz-animation libraries and samples will be built by default.
 
-> On windows with Visual Studio, you'll find a project solution (.sln) file in the build folder.
-
 Build options
 -------------
 
@@ -93,25 +91,20 @@ Integrating ozz to your build process
 Integrating ozz as a cmake sub project
 --------------------------------------
 
-If you're already using cmake, then the simplest way to use ozz is probably to include ozz as a cmake sub project. This allows to build ozz along with your project, include ozz header files and link with ozz libraries as any other cmake target.
+If you're already using cmake, then the recommended way to use ozz is to include ozz as a sub project. This allows to build ozz along with your project, include ozz header files and link with ozz libraries as any of your own cmake target.
 
 {% highlight bash %}
-# Setup a variable that points to ozz-animation folder path.
-set(path_to_ozz_folder "ozz root folder path on your machine")
-
 # Includes ozz-animation as a sub directory, using an arbitrary "ozz-animation/"
 # binary output folder.
-add_subdirectory(${path_to_ozz_folder} "${CMAKE_BINARY_DIR}/ozz-animation/")
+add_subdirectory("your path to ozz root folder" "ozz-animation/")
 
 # Defines your executable.
-add_executable(test_sub_project
-  test_sub_project.cc)
+add_executable(test_sub_project test_sub_project.cc)
 
 # Then link with ozz libraries as any other cmake target.
 # This will automatically link with all ozz_animation dependencies, as well as
 # add ozz include directories.
-target_link_libraries(test_sub_project
-  ozz_animation)
+target_link_libraries(test_sub_project ozz_animation)
 {% endhighlight %}
 
 Setting up ozz include path
@@ -122,7 +115,7 @@ If you're not using the "cmake sub project" way above, you'll need to setup ozz 
 With cmake, you do it this way:
 
 {% highlight bash %}
-include_directories(ozz "include" folder path on your machine)
+target_include_directories(your_target "Your path ot ozz include folder")
 {% endhighlight %}
 
 Without cmake, it's then platform specific. In Visual Studio for example:
@@ -155,7 +148,10 @@ Ozz libraries are organized this way:
 
 Linking is build-system specific.
 
-With cmake, you'd use target_link_libraries.
+With cmake, you'd use target_link_libraries. Note that library dependencies aren't automatically deduced in this case.
+{% highlight bash %}
+target_link_libraries(your_target ozz_animation ozz_base)
+{% endhighlight %}
 
 Without cmake, it's then platform specific. In Visual Studio for example:
 
@@ -166,7 +162,7 @@ Without cmake, it's then platform specific. In Visual Studio for example:
 Integrating ozz-animation sources to your build process
 -------------------------------------------------------
 
-Instead of linking with ozz libraries, offline and runtime sources can be integrated to your own build process. Ozz is compatible with all modern c++ compilers and does not rely on any configuration file. You'll only need to add [ozz sources files][link_src] to your build system. Of course ozz `include/` path still needs to be set. Building should then be straightforward.
+Instead of linking with ozz libraries, offline and runtime sources can be integrated to your own build process. Ozz is compatible with all modern c++ compilers and does not rely on any configuration file. You'll only need to add [ozz sources files][link_src] to your build system. Of course ozz `include/` path still needs to be set.
 
 This latest solution is interesting for ozz runtime features as it ensures compilation options compatibility. Tracing into ozz code is then straightforward also.
 

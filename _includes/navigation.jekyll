@@ -6,7 +6,7 @@
     </li>
     <li class="w3-hide-small"><a class="a_reject {% if "home" == {{page.layout}} %}w3-text-orange{% endif %} w3-hover-white w3-padding-8" href="{{site.baseurl}}/">Home</a></li>
     {% for collection in site.collections %}
-      {% if collection.label == 'posts' %}
+      {% if collection.label == 'posts' or collection.output == false %}
         {% continue %}
       {% endif %}
       {% assign collection_id = collection.label %}
@@ -18,38 +18,39 @@
       <li class="w3-right w3-padding-8"><img src="{{site.baseurl}}/images/logo/ozz-white-32.png" class="w3-right w3-image w3-margin-right" alt="ozz" width="24" height="24"></li>
     {% endif %}
   </ul>
-  <div class="w3-display-center">&nbsp;</div>
 </div>
 
 <!-- Sidenav -->
-{% if page.layout == 'full' %}
-  <nav class="w3-sidenav w3-margin-top w3-collapse w3-white" style="z-index:3;width:270px;" id="mySidenav">
-{% else %}
-  <nav class="w3-sidenav w3-margin-top w3-white w3-hide-medium w3-hide-large" style="z-index:3;width:270px;display:none;position:fixed;top:46px" id="mySidenav">
-{% endif %}
-  <div class="w3-clear"></div>
-    <a href="javascript:void(0)" onclick="w3_close()" class="a_reject w3-right w3-xlarge w3-padding-large w3-hide-medium w3-hide-large" title="Close">&times;</a>
-  <div style="clear:both;">
-    <a class="a_reject w3-hide-medium w3-hide-large" href="{{site.baseurl}}/">Home</a>
-    {% for collection in site.collections %}
-      {% if collection.label == 'posts' %}
-        {% continue %}
-      {% endif %}
-      <a class="a_reject w3-margin-top w3-hide-medium w3-hide-large" href="{{site.baseurl}}/{{collection.label}}">{{collection.display_name}}</a>
-      {% assign collection_id = collection.label %}
-      {% if {{collection_id}} == {{page.collection}} %}
-        {% assign pages = site[{{collection_id}}] | sort:"order" %}
-        {% for cpage in pages %}
-          <a class="a_reject w3-hide-medium w3-hide-large w3-margin-left {% if page.url == cpage.url %} w3-orange {% endif %}" href="{{site.baseurl}}{{cpage.url}}">{{cpage.title}}</a>
-          <a class="a_reject w3-hide-small {% if page.url == cpage.url %} w3-orange {% endif %}" href="{{site.baseurl}}{{cpage.url}}">{{cpage.title}}</a>
-        {% endfor %}
-      {% endif %}
-    {% endfor %}
-  </div>
-</nav>
+<div class="w3-text-theme w3-large w3-white w3-margin-top">
+  {% if page.layout == 'full' %}
+    <nav class="w3-sidenav w3-collapse" style="z-index:3;width:270px;" id="mySidenav">
+  {% else %}
+    <nav class="w3-sidenav w3-hide-medium w3-hide-large" style="z-index:3;width:270px;display:none;position:fixed;top:32px" id="mySidenav">
+  {% endif %}
+    <div class="w3-clear"></div>
+      <a href="javascript:void(0)" onclick="w3_close()" class="a_reject w3-right w3-xlarge w3-padding-large w3-hide-large" title="Close">&times;</a>
+    <div style="clear:both;">
+      <a class="a_reject w3-hide-medium w3-hide-large" href="{{site.baseurl}}/">Home</a>
+      {% for collection in site.collections %}
+        {% if collection.label == 'posts' or collection.output == false %}
+          {% continue %}
+        {% endif %}
+        <a class="a_reject w3-margin-top w3-hide-medium w3-hide-large" href="{{site.baseurl}}/{{collection.label}}">{{collection.display_name}}</a>
+        {% assign collection_id = collection.label %}
+        {% if {{collection_id}} == {{page.collection}} %}
+          {% assign pages = site[{{collection_id}}] | sort:"order" %}
+          {% for cpage in pages %}
+            <a class="a_reject w3-hide-medium w3-hide-large w3-margin-left {% if page.url == cpage.url %} w3-orange w3-round {% endif %}" href="{{site.baseurl}}{{cpage.url}}">{{cpage.title}}</a>
+            <a class="a_reject w3-hide-small {% if page.url == cpage.url %} w3-orange w3-round {% endif %}" href="{{site.baseurl}}{{cpage.url}}">{{cpage.title}}</a>
+          {% endfor %}
+        {% endif %}
+      {% endfor %}
+    </div>
+  </nav>
+</div>
 
 <!-- Overlay effect when opening sidenav on small screens -->
-<div class="w3-overlay w3-hide-medium w3-hide-large" onclick="w3_close()" style="cursor:pointer;" title="Close" id="myOverlay"></div>
+<div class="w3-overlay w3-hide-large" onclick="w3_close()" style="cursor:pointer;" title="Close" id="myOverlay"></div>
 
 <!-- Navigation scripts -->
 <script>

@@ -8,7 +8,7 @@
   col3: "https://www.youtube.com/watch?v=rX0ItVEVjHc"
 - col0: "Efficiency with Algorithms, Performance with Data Structures"
   col1: "Chandler Carruth - Google"
-  col2: "Defines performance and efficiency, why they matter, and how can C++ help to control them."
+  col2: "Defines performance and efficiency, why they matter, and how can C++ help controlling them."
   col3: "https://www.youtube.com/watch?v=fHNmRkzxHWs"
 - col0: "Immediate-Mode Graphical User Interface"
   col1: "Casey Muratori - Molly Rocket"

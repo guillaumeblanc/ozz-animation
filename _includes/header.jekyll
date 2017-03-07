@@ -11,13 +11,16 @@
     <link rel="stylesheet" type="text/css" href="http://www.w3schools.com/lib/w3.css">
     <link rel="stylesheet" type="text/css" href="http://www.w3schools.com/lib/w3-theme-dark-grey.css">
     <link rel="stylesheet" type="text/css" href="http://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="{{site.baseurl}}/style/jekyll-github.css">
     <style>
       * { font: inherit; }
-      a:not(.a_reject) { color:#9f5800; }
-      a { text-decoration:none; }
-      canvas { width: 100%; height: 100%; }
-      blockquote {border-left:6px solid #ccc!important; padding:0.01em 8px; margin-top:8px!important;margin-bottom:8px!important; overflow-x:scroll;}
-      figure {border-left:6px solid #ccc!important; padding:0.01em 8px; margin-top:8px!important;margin-bottom:8px!important; overflow-x:scroll;}
+      h1{font-size:30px}h2{font-size:24px}h3{font-size:20px}h4{font-size:18px}h5{font-size:16px}h6{font-size:15px}
+      a:not(.a_reject) { color:#9f5800!important; }
+      a { text-decoration:none!important; }
+      a:hover { color:#cf7800!important; }
+      canvas { width: 100%!important; height: 100%!important; }
+      blockquote { font-style:italic; margin-top:8px!important; margin-bottom:8px!important; overflow-x:scroll;}
+      figure { border-left:6px solid #ccc!important; padding:0.01em 8px; margin-top:8px!important; margin-bottom:8px!important; overflow-x:scroll;}
     </style>
   </head>
   <body class="w3-justify">

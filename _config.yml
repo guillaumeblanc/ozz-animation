@@ -12,3 +12,6 @@ collections:
     display_name: Documentation
     output: true
     permalink: /:collection/:path/
+  faqs:
+    display_name: FAQ
+    output: false

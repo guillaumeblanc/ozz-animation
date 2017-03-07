@@ -14,10 +14,7 @@ Features
 
 {% include table.jekyll id="features_table" data=site.data.features %}
 
-Samples
-=======
-
-{% include table.jekyll id="samples_table" data=site.data.samples %}
+Features usage is demonstrated with the [samples][link_samples].
 
 Os support
 ==========
