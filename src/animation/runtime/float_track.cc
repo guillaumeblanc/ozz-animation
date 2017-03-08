@@ -80,7 +80,7 @@ size_t FloatTrack::size() const {
 void FloatTrack::Save(ozz::io::OArchive& /*_archive*/) const {
 }
 
-void FloatTrack::Load(ozz::io::IArchive& _archive, uint32_t _version) {
+void FloatTrack::Load(ozz::io::IArchive& /*_archive*/, uint32_t _version) {
   // Destroy animation in case it was already used before.
   Deallocate();
 
