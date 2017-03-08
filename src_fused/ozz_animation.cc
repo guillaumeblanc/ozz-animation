@@ -1960,7 +1960,7 @@ void IterateJointsDF(const Skeleton& _skeleton, int _from,
 namespace ozz {
 namespace animation {
 
-FloatTrack::FloatTrack() : duration_(0.f) {}
+FloatTrack::FloatTrack() {}
 
 FloatTrack::~FloatTrack() { Deallocate(); }
 
@@ -1996,26 +1996,22 @@ void FloatTrack::Deallocate() {
 }
 
 size_t FloatTrack::size() const {
-  const size_t size = sizeof(*this);
+  const size_t size = sizeof(*this) + times_.Size() + values_.Size();
   return size;
 }
 
-void FloatTrack::Save(ozz::io::OArchive& _archive) const {
-  _archive << duration_;
+void FloatTrack::Save(ozz::io::OArchive& /*_archive*/) const {
 }
 
-void FloatTrack::Load(ozz::io::IArchive& _archive, uint32_t _version) {
+void FloatTrack::Load(ozz::io::IArchive& /*_archive*/, uint32_t _version) {
   // Destroy animation in case it was already used before.
   Deallocate();
-  duration_ = 0.f;
 
   if (_version > 1) {
     log::Err() << "Unsupported FloatTrack version " << _version << "."
                << std::endl;
     return;
   }
-
-  _archive >> duration_;
 }
 }  // animation
 }  // ozz

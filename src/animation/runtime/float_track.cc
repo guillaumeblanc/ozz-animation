@@ -73,7 +73,7 @@ void FloatTrack::Deallocate() {
 }
 
 size_t FloatTrack::size() const {
-  const size_t size = sizeof(*this);
+  const size_t size = sizeof(*this) + times_.Size() + values_.Size();
   return size;
 }
 

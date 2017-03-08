@@ -46,8 +46,8 @@ class FloatTrack {
 
   ~FloatTrack();
 
-  Range<float> times() const { return times_; }
-  Range<float> values() const { return values_; }
+  Range<const float> times() const { return times_; }
+  Range<const float> values() const { return values_; }
 
   // Get the estimated track's size in bytes.
   size_t size() const;

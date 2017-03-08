@@ -148,11 +148,13 @@ FloatTrack* FloatTrackBuilder::operator()(const RawFloatTrack& _input) const {
   track->Allocate(keyframes.size());
 
   // Copy all keys to output.
+  assert(keyframes.size() == track->times_.Count() &&
+         keyframes.size() == track->values_.Count());
   for (size_t i = 0; i < keyframes.size(); ++i) {
     const RawFloatTrack::Keyframe& src_key = keyframes[i];
     assert(src_key.interpolation == RawFloatTrack::kLinear);
-    track->times()[i] = src_key.time;
-    track->values()[i] = src_key.value;
+    track->times_[i] = src_key.time;
+    track->values_[i] = src_key.value;
   }
   /*
     // Copy animation's name.
