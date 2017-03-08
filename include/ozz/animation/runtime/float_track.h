@@ -46,8 +46,6 @@ class FloatTrack {
 
   ~FloatTrack();
 
-  float duration() const { return duration_; }
-  
   Range<float> times() const { return times_; }
   Range<float> values() const { return values_; }
 
@@ -70,7 +68,6 @@ class FloatTrack {
 
   Range<float> times_;
   Range<float> values_;
-  float duration_;
 };
 
 }  // animation
