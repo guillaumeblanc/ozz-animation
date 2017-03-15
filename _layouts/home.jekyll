@@ -8,8 +8,8 @@
 
 {% include navigation.jekyll %}
 
-<!-- Main content: sidenav is not visible with home layout -->
-<div id="myMain" class="w3-container">
+<!-- Main content -->
+<div class="w3-container">
 
   <div class="w3-container w3-content w3-section">
 	{{content}}

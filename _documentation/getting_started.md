@@ -7,7 +7,7 @@ order: 5
 
 {% include links.jekyll %}
 
-This chapter will drive you through the steps of downloading, building and integrating ozz-animation to your project. If you found any mistake in this page, or think something should be added, please don't hesitate to <a href="http://github.com/guillaumeblanc/ozz-animation/issues" target="_blank">open an issue</a>.
+This chapter will drive you through the steps of downloading, building and integrating ozz-animation to your project. If you find any mistake in this page, or think something should be added, please don't hesitate to <a href="http://github.com/guillaumeblanc/ozz-animation/issues" target="_blank">open an issue</a>.
 
 Downloading
 ===========
@@ -15,7 +15,7 @@ Downloading
 Prebuilt built libraries, tools and samples
 -------------------------------------------
 
-Pre-compiled binaries (libraries, samples...) of the latest release for all supported platforms can be downloaded from [github releases][link_latest_release] page. These packages are available for Linux, Windows ans MacOS systems. They include pre-built libraries, samples and tools.
+Pre-compiled binaries (libraries, samples...) of the latest release for all supported platforms can be downloaded from [github releases][link_latest_release] page. These packages are available for Linux, Windows ans MacOS systems.
 
 > Note that ozz c++ samples can also be [tested online in your web browser][link_samples], thanks to emscripten.
 
@@ -47,12 +47,16 @@ cmake ..
 cmake --build ./
 {% endhighlight %}
 
-ozz-animation libraries and samples will be built by default.
+ozz-animation libraries and samples will be built by default. Unit tests aren't built by default, to lower build time.
 
 Build options
 -------------
 
-All build options are listed in the project root [CMakeLists.txt file][link_src_build_options]. They can be changed there, or when invoking cmake with -D argument, ex -Dozz_build_samples=1
+All build options are listed in the project root [CMakeLists.txt file][link_src_build_options]. They can be changed there, or when invoking cmake with -D argument. As an example, to setup unit tests build directives:
+
+{% highlight bash %}
+cmake -Dozz_build_tests=1 ..
+{% endhighlight %}
 
 Using build help script
 -----------------------
@@ -74,7 +78,7 @@ Ozz-animation implements a fbx toolchain (fbx2skel, fbx2anim), based on [Autodes
 Running unit tests
 ------------------
 
-Unit tests are using ctest and gtest. They are disabled by default, which can be changed by setting ozz_build_tests to ON. Once cmake has been configured with unit tests enabled, build ozz and use the following commands to run them (from "build" directory):
+Unit tests are using ctest and gtest. Once cmake has been configured with unit tests enabled, build ozz and use the following commands to run them (from "build" directory):
 
 {% highlight bash %}
 ctest

@@ -1,56 +1,61 @@
-<!-- Top -->
-<div class="w3-display-container" style="min-height:64px">
-  <ul id="myTabNav" class="w3-navbar w3-theme w3-large w3-wide" style="z-index:4;">
-    <li class="w3-opennav w3-left w3-hide-large">
-      <a class="a_reject w3-hover-white w3-large w3-theme w3-padding-8" href="javascript:void(0)" onclick="w3_open()">&#9776;</a>
-    </li>
-    <li class="w3-hide-small"><a class="a_reject {% if "home" == {{page.layout}} %}w3-text-orange{% endif %} w3-hover-white w3-padding-8" href="{{site.baseurl}}/">Home</a></li>
-    {% for collection in site.collections %}
-      {% if collection.label == 'posts' or collection.output == false %}
-        {% continue %}
-      {% endif %}
-      {% assign collection_id = collection.label %}
-      <li class="{% if {{collection_id}} == {{page.collection}} %}w3-text-orange{% endif %} w3-hide-small"><a class="a_reject w3-hover-white w3-padding-8" href="{{site.baseurl}}/{{collection.label}}/">{{collection.display_name}}</a>
-      </li>
-   {% endfor %}
-    <li class="w3-hide-small"><a class="a_reject w3-hover-white w3-padding-8" href="http://github.com/guillaumeblanc/ozz-animation" target="_blank">Github</a></li>
-    {% if page.layout != 'home' %}
-      <li class="w3-right w3-padding-8"><img src="{{site.baseurl}}/images/logo/ozz-white-32.png" class="w3-right w3-image w3-margin-right" alt="ozz" width="24" height="24"></li>
-    {% endif %}
-  </ul>
-</div>
+<!-- Topnav -->
+<div style="min-height:64px">
+  <div id="myTabNav">
+    <div class="w3-bar w3-theme">
+      <a class="a_reject w3-bar-item w3-button w3-large w3-wide w3-hide-large w3-hide-medium" href="javascript:void(0)" onclick="w3_open()">&#9776;</a>
+      <a class="a_reject w3-bar-item w3-button w3-large w3-wide w3-hide-small {% if {{page.layout}} == "home" %}w3-text-orange{% endif %}" href="{{site.baseurl}}/">Home</a>
 
-<!-- Sidenav -->
-<div class="w3-text-theme w3-large w3-white w3-margin-top">
-  {% if page.layout == 'full' %}
-    <nav class="w3-sidenav w3-collapse" style="z-index:3;width:270px;" id="mySidenav">
-  {% else %}
-    <nav class="w3-sidenav w3-hide-medium w3-hide-large" style="z-index:3;width:270px;display:none;position:fixed;top:32px" id="mySidenav">
-  {% endif %}
-    <div class="w3-clear"></div>
-      <a href="javascript:void(0)" onclick="w3_close()" class="a_reject w3-right w3-xlarge w3-padding-large w3-hide-large" title="Close">&times;</a>
-    <div style="clear:both;">
-      <a class="a_reject w3-hide-medium w3-hide-large" href="{{site.baseurl}}/">Home</a>
       {% for collection in site.collections %}
         {% if collection.label == 'posts' or collection.output == false %}
           {% continue %}
         {% endif %}
-        <a class="a_reject w3-margin-top w3-hide-medium w3-hide-large" href="{{site.baseurl}}/{{collection.label}}">{{collection.display_name}}</a>
         {% assign collection_id = collection.label %}
-        {% if {{collection_id}} == {{page.collection}} %}
-          {% assign pages = site[{{collection_id}}] | sort:"order" %}
-          {% for cpage in pages %}
-            <a class="a_reject w3-hide-medium w3-hide-large w3-margin-left {% if page.url == cpage.url %} w3-orange w3-round {% endif %}" href="{{site.baseurl}}{{cpage.url}}">{{cpage.title}}</a>
-            <a class="a_reject w3-hide-small {% if page.url == cpage.url %} w3-orange w3-round {% endif %}" href="{{site.baseurl}}{{cpage.url}}">{{cpage.title}}</a>
-          {% endfor %}
-        {% endif %}
+
+        <div class="w3-dropdown-hover w3-hide-small">
+          <a class="a_reject w3-button w3-large w3-wide {% if {{page.collection}} == {{collection_id}} %}w3-text-orange{% endif %}" href="{{site.baseurl}}/{{collection.label}}/">{{collection.display_name}}</a>
+          <div class="w3-dropdown-content w3-bar-block w3-card-2">
+            {% assign pages = site[{{collection_id}}] | sort:"order" %}
+            {% for cpage in pages %}
+              <a class="a_reject w3-medium w3-wide {% if page.url == cpage.url %} w3-orange {% endif %}" href="{{site.baseurl}}{{cpage.url}}">{{cpage.title}}</a>
+            {% endfor %}
+          </div>
+        </div>
       {% endfor %}
+
+      <a class="a_reject w3-bar-item w3-button w3-large w3-wide w3-hide-small" href="http://github.com/guillaumeblanc/ozz-animation" target="_blank">Github</a>
+
+      {% if {{page.layout}} != "home" %}
+        <div class="w3-right w3-padding-8 w3-margin-right">
+          <img src="{{site.baseurl}}/images/logo/ozz-white-32.png" class="w3-image" alt="ozz" width="24" height="24">
+        </div>
+      {% endif %}
     </div>
-  </nav>
+  </div>
+</div>
+
+<!-- Sidenav -->
+<div class="w3-sidebar w3-bar-block w3-animate-left w3-small w3-wide" style="display:none;z-index:5;position:fixed;top:32px" id="mySidenav">
+  <a href="javascript:void(0)" onclick="w3_close()" class="a_reject w3-right w3-xlarge w3-padding-large" title="Close">&times;</a>
+
+  <div style="clear:both;"></div>
+  <a class="a_reject w3-bar-item w3-button {% if {{page.layout}} == "home" %}w3-orange{% endif %}" href="{{site.baseurl}}/">Home</a>
+  {% for collection in site.collections %}
+    {% if collection.label == 'posts' or collection.output == false %}
+      {% continue %}
+    {% endif %}
+    <a class="a_reject w3-bar-item w3-button" href="{{site.baseurl}}/{{collection.label}}">{{collection.display_name}}</a>
+    {% assign collection_id = collection.label %}
+    {% if {{collection_id}} == {{page.collection}} or ({{page.layout}} == "home" and {{collection_id}} == "documentation") %}
+      {% assign pages = site[{{collection_id}}] | sort:"order" %}
+      {% for cpage in pages %}
+        <a class="a_reject w3-bar-item w3-button w3-margin-left {% if page.url == cpage.url %} w3-orange {% endif %}" href="{{site.baseurl}}{{cpage.url}}">{{cpage.title}}</a>
+      {% endfor %}
+    {% endif %}
+  {% endfor %}
 </div>
 
 <!-- Overlay effect when opening sidenav on small screens -->
-<div class="w3-overlay w3-hide-large" onclick="w3_close()" style="cursor:pointer;" title="Close" id="myOverlay"></div>
+<div class="w3-overlay w3-animate-opacity" onclick="w3_close()" style="cursor:pointer" id="myOverlay"></div>
 
 <!-- Navigation scripts -->
 <script>

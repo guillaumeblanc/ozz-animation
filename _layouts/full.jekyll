@@ -7,10 +7,10 @@
 
 {% include navigation.jekyll %}
 
-<!-- Main content: shift it to the right by 270 pixels when the sidenav is visible -->
-<div id="myMain" class="w3-main w3-container" style="margin-left:270px;">
+<!-- Main content -->
+<div class="w3-container">
 
-  <div class="w3-container w3-section w3-content w3-theme-l5 w3-card-2" style="min-height:500px;">
+  <div class="w3-container w3-section w3-content" style="min-height:500px;">
 	{{content}}
   </div>
 
