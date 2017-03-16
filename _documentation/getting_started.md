@@ -38,7 +38,7 @@ Ozz build process relies on [cmake](http://www.cmake.org) which provides a porta
 
 > See [the feature-map page][link_features_os] for a list of tested OS and compilers.
 
-You can run CMake as usual from ozz-animation root directory. It is recommended to build out-of-source though (creating "build" directory and running CMake from there):
+You can run CMake as usual from ozz-animation root directory. It is recommended to build out-of-source though (creating "build" directory and running CMake from there). From ozz-animation root, use the following commands:
 
 {% highlight bash %}
 mkdir build
@@ -48,6 +48,23 @@ cmake --build ./
 {% endhighlight %}
 
 ozz-animation libraries and samples will be built by default. Unit tests aren't built by default, to lower build time.
+
+This will output ozz libraries:
+
+- Runtime libraries:
+
+  - `ozz_base`: Required for any other library. Integrates io, math, log...
+  - `ozz_animation`: Integrates all animation runtime jobs, sampling, blending...
+  - `ozz_geometry`: Integrates geometry runtime jobs, skinning...
+
+- Offline libraries:
+
+  - `ozz_animation_offline`: Integrates ozz offline libraries, animation builder, optimizer...
+  - `ozz_animation_offline_fbx`: Integrates ozz fbx import libraries. Note that integrating Fbx related libraries will require to also link with Fbx sdk.
+
+- Other libraries:
+
+  - `ozz_options`: Cross platform command line option parser.
 
 Build options
 -------------
@@ -92,10 +109,11 @@ ctest --build-config Release
 Integrating ozz to your build process
 =====================================
 
-Integrating ozz as a cmake sub project
---------------------------------------
+There are different options to intergate ozz to your project. Some are enumerated below.
 
-If you're already using cmake, then the recommended way to use ozz is to include ozz as a sub project. This allows to build ozz along with your project, include ozz header files and link with ozz libraries as any of your own cmake target.
+## 1. Integrating ozz as a cmake sub project
+
+If you're already using cmake, then the recommended way is to include ozz as subtree or submodule within your project's source tree, and add the directory using CMake's add_subdirectory command.
 
 {% highlight bash %}
 # Includes ozz-animation as a sub directory, using an arbitrary "ozz-animation/"
@@ -103,16 +121,21 @@ If you're already using cmake, then the recommended way to use ozz is to include
 add_subdirectory("your path to ozz root folder" "ozz-animation/")
 
 # Defines your executable.
-add_executable(test_sub_project test_sub_project.cc)
+add_executable(foo foo.cc)
 
 # Then link with ozz libraries as any other cmake target.
 # This will automatically link with all ozz_animation dependencies, as well as
 # add ozz include directories.
-target_link_libraries(test_sub_project ozz_animation)
+target_link_libraries(foo ozz_animation)
 {% endhighlight %}
 
-Setting up ozz include path
----------------------------
+This allows to build ozz along with your project, include ozz header files and link with ozz libraries as any of your own cmake target.
+
+## 2. Using pre-build binaries
+
+If using pre-build libraries, you'll need to set ozz include path and link with libraires.
+
+### Setting up ozz include path
 
 If you're not using the "cmake sub project" way above, you'll need to setup ozz include path. It means adding ozz `include/` path to your project's header search path, so that you can include ozz files from your cpp file with the following syntax: `#include "ozz/...*.h"`).
 
@@ -122,33 +145,11 @@ With cmake, you do it this way:
 target_include_directories(your_target "Your path ot ozz include folder")
 {% endhighlight %}
 
-Without cmake, it's then platform specific. In Visual Studio for example:
+Without cmake, it's then platform specific. In Visual Studio for example, follow [these instructions](https://msdn.microsoft.com/en-us/library/73f9s62w.aspx).
 
-1. In the solution explorer, select your project.
-2. Right click and select properties.
-3. Go to ... TODO
-
-Linking with ozz libraries
---------------------------
+###   Linking with ozz libraries
 
 Then you'll have to setup the project to link with ozz libraries.
-
-Ozz libraries are organized this way:
-
-- Runtime libraries:
-
-  - `ozz_base`: Required for any other library. Integrates io, math, log...
-  - `ozz_animation`: Integrates all animation runtime jobs, sampling, blending...
-  - `ozz_geometry`: Integrates geometry runtime jobs, skinning...
-
-- Offline libraries:
-
-  - `ozz_animation_offline`: Integrates ozz offline libraries, animation builder, optimizer...
-  - `ozz_animation_offline_fbx`: Integrates ozz fbx import libraries. Note that integrating Fbx related libraries will require to also link with Fbx sdk.
-
-- Other libraries:
-
-  - `ozz_options`: Cross platform command line option parser.
 
 Linking is build-system specific.
 
@@ -157,25 +158,17 @@ With cmake, you'd use target_link_libraries. Note that library dependencies aren
 target_link_libraries(your_target ozz_animation ozz_base)
 {% endhighlight %}
 
-Without cmake, it's then platform specific. In Visual Studio for example:
+Without cmake, it's then platform specific. In Visual Studio for example, follow [these instructions](https://msdn.microsoft.com/en-us/library/ba1z7822.aspx).
 
-1. In the solution explorer, select your project.
-2. Right click and select properties.
-3. Go to ... TODO
-
-Integrating ozz-animation sources to your build process
--------------------------------------------------------
+## 3. Integrating ozz-animation sources to your build process
 
 Instead of linking with ozz libraries, offline and runtime sources can be integrated to your own build process. Ozz is compatible with all modern c++ compilers and does not rely on any configuration file. You'll only need to add [ozz sources files][link_src] to your build system. Of course ozz `include/` path still needs to be set.
 
 This latest solution is interesting for ozz runtime features as it ensures compilation options compatibility. Tracing into ozz code is then straightforward also.
 
-Integrating amalgamated sources
--------------------------------
+## 4. Integrating amalgamated sources
 
-Ozz also embeds automatically generated [fused / amalgamated sources][link_src_fused]. These amalgamated sources are single .cc files (one per ozz library) that can be added to your project sources. This aims to simplify project maintenance and further updates of ozz libraries.
-
-> Ozz include path remains the same with amalgamated sources.
+Ozz also embeds automatically generated [fused / amalgamated sources][link_src_fused]. These amalgamated sources are single .cc files (one per ozz library) that can be added to your project sources. This aims to simplify project maintenance and further updates of ozz libraries. Again ozz include path remains and must be set.
 
 Next step
 =========

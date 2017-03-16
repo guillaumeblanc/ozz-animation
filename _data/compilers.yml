@@ -10,3 +10,6 @@
 - col0: "MSVC"
   col1: "Support Visual Studio 2012 - 2013 - 2015."
   col2: "0.8.0"
+- col0: "Emscripten 1.37.0"
+  col1: "Support Emscripten LLVM to javascript compiler."
+  col2: "0.9.0"

@@ -13,7 +13,7 @@
 
         <div class="w3-dropdown-hover w3-hide-small">
           <a class="a_reject w3-button w3-large w3-wide {% if {{page.collection}} == {{collection_id}} %}w3-text-orange{% endif %}" href="{{site.baseurl}}/{{collection.label}}/">{{collection.display_name}}</a>
-          <div class="w3-dropdown-content w3-bar-block w3-card-2">
+          <div class="w3-dropdown-content w3-bar-block w3-theme-l4 w3-card-2">
             {% assign pages = site[{{collection_id}}] | sort:"order" %}
             {% for cpage in pages %}
               <a class="a_reject w3-medium w3-wide {% if page.url == cpage.url %} w3-orange {% endif %}" href="{{site.baseurl}}{{cpage.url}}">{{cpage.title}}</a>
@@ -34,7 +34,7 @@
 </div>
 
 <!-- Sidenav -->
-<div class="w3-sidebar w3-bar-block w3-animate-left w3-small w3-wide" style="display:none;z-index:5;position:fixed;top:32px" id="mySidenav">
+<div class="w3-sidebar w3-bar-block w3-animate-left w3-medium w3-wide" style="display:none;z-index:5;position:fixed;top:32px" id="mySidenav">
   <a href="javascript:void(0)" onclick="w3_close()" class="a_reject w3-right w3-xlarge w3-padding-large" title="Close">&times;</a>
 
   <div style="clear:both;"></div>
@@ -43,15 +43,17 @@
     {% if collection.label == 'posts' or collection.output == false %}
       {% continue %}
     {% endif %}
-    <a class="a_reject w3-bar-item w3-button" href="{{site.baseurl}}/{{collection.label}}">{{collection.display_name}}</a>
+    <a class="a_reject w3-bar-item w3-button w3-medium" href="{{site.baseurl}}/{{collection.label}}">{{collection.display_name}}</a>
     {% assign collection_id = collection.label %}
     {% if {{collection_id}} == {{page.collection}} or ({{page.layout}} == "home" and {{collection_id}} == "documentation") %}
       {% assign pages = site[{{collection_id}}] | sort:"order" %}
       {% for cpage in pages %}
-        <a class="a_reject w3-bar-item w3-button w3-margin-left {% if page.url == cpage.url %} w3-orange {% endif %}" href="{{site.baseurl}}{{cpage.url}}">{{cpage.title}}</a>
+        <a class="a_reject w3-bar-item w3-button w3-margin-left w3-small {% if page.url == cpage.url %} w3-orange {% endif %}" href="{{site.baseurl}}{{cpage.url}}">{{cpage.title}}</a>
       {% endfor %}
     {% endif %}
   {% endfor %}
+  <br />
+  <br />
 </div>
 
 <!-- Overlay effect when opening sidenav on small screens -->
