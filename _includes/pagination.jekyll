@@ -1,0 +1,21 @@
+{% assign pages = site[{{page.collection}}] | sort:"order" %}
+{% for cpage in pages %}
+  {% if found %}
+    {% assign next = cpage %}
+    {% break %}
+  {% endif %}
+  {% if page.id == cpage.id %}
+    {% assign found = cpage %}
+  {% else %}
+    {% assign prev = cpage %}
+  {% endif %}
+{% endfor %}
+
+<div class="w3-bar w3-border w3-round">
+  {% if prev %}
+    <a class="a_reject w3-button" href="{{site.baseurl}}{{prev.url}}">&#10094; {{prev.title}}</a>
+  {% endif %}
+  {% if next %}
+    <a class="a_reject w3-button w3-right" href="{{site.baseurl}}{{next.url}}">{{next.title}} &#10095;</a>
+  {% endif %}
+</div>

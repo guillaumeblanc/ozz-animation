@@ -12,9 +12,15 @@
 
   <div class="w3-container w3-section w3-content" style="min-height:500px;">
 	{{content}}
+
+    <br />
+    <br />
+
+    <!-- Pagination -->
+    {% include pagination.jekyll %}
+
   </div>
 
-<!-- END MAIN -->
 </div>
 
 {% include footer.jekyll %}
