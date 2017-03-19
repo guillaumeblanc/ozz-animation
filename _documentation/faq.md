@@ -1,3 +1,5 @@
+hide
+
 ---
 title: FAQ
 layout: full
