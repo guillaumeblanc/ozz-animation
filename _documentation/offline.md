@@ -72,12 +72,16 @@ The AnimationBuilder utility class purpose is to build a runtime animation from 
 ---------------------------------------------
 
 The AnimationOptimizer strips redundant/interpolable key frames from a raw animation. It doesn't actually modify input animation, but builds a second one. Tolerances are provided as input arguments, for every key frame type: translation, rotation and scale.
+The optimizer also takes into account for each joint the error generated on its whole child hierarchy, with the hierarchical tolerance value. This allows for example to take into consideration the error generated on a finger when optimizing the shoulder. A small error on the shoulder can be magnified when propagated to the finger indeed.
+Default optimization tolerances are set in order to favor quality over runtime performances and memory footprint.
 
 - __Inputs__
   - `ozz::animation::offline::RawAnimation raw_animation`
   - `float translation_tolerance`: Translation optimization tolerance, defined as the distance between two values in meters.
   - `float rotation_tolerance`: Rotation optimization tolerance, ie: the angle between two rotation values in radian.
   - `float scale_tolerance`: Scale optimization tolerance, ie: the norm of the difference of two scales.
+  - `float hierarchical_tolerance`: Hierarchical translation optimization tolerance, ie: the maximum error (distance) that an optimization on a joint is allowed to generate on its whole child hierarchy.
+  float hierarchical_tolerance;
 - __Processing__
   - Validates inputs.
   - Computes the maximum length of each joint's hierarchy for the whole animation.
