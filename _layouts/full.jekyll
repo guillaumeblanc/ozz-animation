@@ -11,6 +11,14 @@
 <div class="w3-container">
 
   <div class="w3-container w3-section w3-content" style="min-height:500px;">
+
+    <br />
+
+    {% assign collec = site.collections | where: "label", {{page.collection}} | first %}
+    <div class="w3-bar w3-border w3-round w3-xxlarge w3-center">{{collec.display_name}} - {{page.title}}</div>
+
+    <br />
+
 	{{content}}
 
     <br />
@@ -19,6 +27,8 @@
     <!-- Pagination -->
     {% include pagination.jekyll %}
 
+    <br />
+        
   </div>
 
 </div>
