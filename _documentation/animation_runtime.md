@@ -152,12 +152,12 @@ Partial animation blending is supported through optional joint weights that can 
 - __Outputs__
   - `ozz::math::SoATransform* output`
 
-See [blending sample]({{site.baseurl}}/samples/blend) that blends 3 locomotion animations (walk/jog/run) depending on a target speed factor, and [partial blending sample]({{site.baseurl}}/samples/partial_blend) that blends a specific animation to the character upper-body.
+See [blending sample][link_blend_sample] that blends 3 locomotion animations (walk/jog/run) depending on a target speed factor, and [partial blending sample][link_partial_blend_sample] that blends a specific animation to the character upper-body.
 
 `ozz::animation::LocalToModelJob`
 ---------------------------------
 
-The `ozz::nimation::LocalToModelJob` is in charge of converting [local-space to model-space coordinate system]({{site.baseurl}}/documentation/runtime_pipeline#localspaceandmodelspacecoordinatesystems). It uses the skeleton to define joints parent-child hierarchy. The job iterates through all joints to compute their transform relatively to the skeleton root.
+The `ozz::nimation::LocalToModelJob` is in charge of converting [local-space to model-space coordinate system][link_coordinate_system]. It uses the skeleton to define joints parent-child hierarchy. The job iterates through all joints to compute their transform relatively to the skeleton root.
 Job inputs is an array of SoaTransform objects (in local-space), ordered like skeleton's joints. Job output is an array of matrices (in model-space), also ordered like skeleton's joints. Output are matrices, because the combination of affine transformations can contain shearing or complex transformation that cannot be represented as affine transform objects.
 
 Note that this job also intrinsically unpack SoA input data (`ozz::math::SoATransform`) to standard AoS matrices (`ozz::math::Float4x4`) on output.
@@ -172,7 +172,7 @@ Note that this job also intrinsically unpack SoA input data (`ozz::math::SoATran
 - __Outputs__
   - `ozz::math::Float4x4* output`: Output matrices in model spaces.
 
-All samples use `ozz::animation::LocalToModelJob`. See [playback sample]({{site.baseurl}}/samples/playback) for a simple use case.
+All samples use `ozz::animation::LocalToModelJob`. See [playback sample][link_playback_sample] for a simple use case.
 
 `ozz::geometry::SkinningJob`
 ----------------------------
