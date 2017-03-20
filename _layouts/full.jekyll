@@ -15,7 +15,7 @@
     <br />
 
     {% assign collec = site.collections | where: "label", {{page.collection}} | first %}
-    <div class="w3-bar w3-border w3-round w3-xxlarge w3-center">{{collec.display_name}} - {{page.title}}</div>
+    <div class="w3-bar w3-border w3-round w3-xlarge w3-center">{{collec.display_name}} - {{page.title}}</div>
 
     <br />
 
