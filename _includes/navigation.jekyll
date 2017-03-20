@@ -48,7 +48,7 @@
     {% if {{collection_id}} == {{page.collection}} or ({{page.layout}} == "home" and {{collection_id}} == "documentation") %}
       {% assign pages = site[{{collection_id}}] | sort:"order" %}
       {% for cpage in pages %}
-        <a class="a_reject w3-bar-item w3-button w3-margin-left w3-small {% if page.url == cpage.url %} w3-orange {% endif %}" href="{{site.baseurl}}{{cpage.url}}/">{{cpage.title}}</a>
+        <a class="a_reject w3-bar-item w3-button w3-margin-left w3-small {% if page.url == cpage.url %} w3-orange {% endif %}" href="{{site.baseurl}}{{cpage.url}}">{{cpage.title}}</a>
       {% endfor %}
     {% endif %}
   {% endfor %}

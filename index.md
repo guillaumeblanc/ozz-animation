@@ -61,7 +61,7 @@ ozz-animation provides runtime character animation functionalities (loading, sam
 <div class="w3-row w3-center">
   <div class="w3-card-2 w3-margin">
     <div class="w3-margin">
-      <a class="a_reject" href="{{site.baseurl}}/samples">
+      <a class="a_reject" href="{{site.baseurl}}/samples/">
         <div class="w3-center w3-xxlarge w3-wide">Samples</div>
         <p>Try the samples to evaluate ozz-animation runtime features.</p>
       </a>
@@ -71,7 +71,7 @@ ozz-animation provides runtime character animation functionalities (loading, sam
 </div>
 
 <div class="w3-row-padding w3-center">
-  <a class="a_reject w3-half" href="{{site.baseurl}}/documentation/getting_started">
+  <a class="a_reject w3-half" href="{{site.baseurl}}/documentation/getting_started/">
     <div class="w3-card-2" style="min-height:260px">
       <div class="w3-container w3-margin">
         <div class="w3-xxlarge w3-wide">Getting started</div>
@@ -81,7 +81,7 @@ ozz-animation provides runtime character animation functionalities (loading, sam
       </div>  
     </div>
   </a>
-  <a class="a_reject w3-half" href="http://github.com/guillaumeblanc/ozz-animation" target="_blank">
+  <a class="a_reject w3-half" href="http://github.com/guillaumeblanc/ozz-animation/" target="_blank">
     <div class="w3-card-2" style="min-height:260px">
       <div class="w3-container w3-margin">
         <div class="w3-xxlarge w3-wide">View on Github</div>
