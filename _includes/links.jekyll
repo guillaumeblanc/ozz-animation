@@ -43,8 +43,8 @@
 [link_features]: {{site.baseurl}}/documentation/features/
 [link_features_os]: {{site.baseurl}}/documentation/features/#os-support
 
-[link_io]: {{site.baseurl}}/documentation/advanced/#fileiomanagement
-[link_serialize]: {{site.baseurl}}/documentation/advanced/#serializationmechanics
+[link_io]: {{site.baseurl}}/documentation/advanced/#file-io-management
+[link_serialize]: {{site.baseurl}}/documentation/advanced/#serialization-mechanics
 
 [link_maths]: {{site.baseurl}}/documentation/advanced/#maths
 
