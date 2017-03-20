@@ -7,6 +7,7 @@
     <meta name="description" content="{{page.title}}">
     <meta name="keywords" content="{{site.keywords}}, {{page.keywords}}">
     <meta name="author" content="Guillaume Blanc">
+    <meta name="google-site-verification" content="2sKam6cmz8I5XpGAouSdQc0E3nh9vW0Gi5z-G0vpWL0" />
     <link rel="shortcut icon" href="{{site.baseurl}}/images/logo/ozz-grey-64.png" />
     <link rel="stylesheet" type="text/css" href="https://www.w3schools.com/lib/w3.css">
     <link rel="stylesheet" type="text/css" href="https://www.w3schools.com/lib/w3-theme-dark-grey.css">
