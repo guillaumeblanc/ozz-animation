@@ -14,9 +14,9 @@
 [link_baked_sample]: {{site.baseurl}}/samples/baked/
 
 [link_how_to]: {{site.baseurl}}/documentation/howtos/
-[link_how_to_load]: {{site.baseurl}}/documentation/howtos/#howtoloadfromfile
-[link_howto_custom_skeleton_importer]: {{site.baseurl}}/documentation/howtos/#howtowriteacustomskeletonimporter
-[link_howto_custom_animation_importer]: {{site.baseurl}}/documentation/howtos/#howtowriteacustomanimationimporter
+[link_how_to_load]: {{site.baseurl}}/documentation/howtos/#how-to-load-an-object-from-a-file
+[link_howto_custom_skeleton_importer]: {{site.baseurl}}/documentation/howtos/#how-to-write-a-custom-skeleton-importer
+[link_howto_custom_animation_importer]: {{site.baseurl}}/documentation/howtos/#how-to-write-a-custom-animation-importer
 
 [link_toolset]: {{site.baseurl}}/documentation/toolset/
 [link_toolset_fbx2skel]: {{site.baseurl}}/documentation/toolset/#fbx2skel
