@@ -22,7 +22,7 @@
         </div>
       {% endfor %}
 
-      <a class="a_reject w3-bar-item w3-button w3-large w3-wide w3-hide-small" href="http://github.com/guillaumeblanc/ozz-animation/" target="_blank">Github</a>
+      <a class="a_reject w3-bar-item w3-button w3-large w3-wide w3-hide-small" href="https://github.com/guillaumeblanc/ozz-animation/" target="_blank">Github</a>
 
       {% if {{page.layout}} != "home" %}
         <div class="w3-right w3-padding-8 w3-margin-right">
