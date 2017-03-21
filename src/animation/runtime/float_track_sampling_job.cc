@@ -60,7 +60,7 @@ bool TrackSamplingJob<_Track>::Run() const {
   // Search keyframes to interpolate.
   const Range<const float> times = track->times();
   const Range<const typename _Track::ValueType> values = track->values();
-  assert(times.Size() == values.Size());
+  assert(times.Count() == values.Count());
 
   // Search for the first key frame with a time value greater than input time.
   const float* ptk1 = std::upper_bound(times.begin, times.end, clamped_time);
