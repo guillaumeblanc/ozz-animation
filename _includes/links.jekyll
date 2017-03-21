@@ -75,5 +75,5 @@
 [link_src_intrusive_list]: https://github.com/guillaumeblanc/ozz-animation/blob/master/include/ozz/base/containers/intrusive_list.h
 
 [link_fbxsdk_cmake_module]: https://github.com/guillaumeblanc/ozz-animation/blob/master/build-utils/cmake/modules/FindFbx.cmake
-[link_fbxsdk]: http://www.autodesk.com/products/fbx/overview/
+[link_fbxsdk]: http://www.autodesk.com/products/fbx/overview
 [link_fbxsdk_formats]: http://help.autodesk.com/view/FBX/2017/ENU/?guid=__files_GUID_0B122E01_7DB8_48E3_AADA_5E85A197FEE1_htm

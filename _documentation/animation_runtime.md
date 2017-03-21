@@ -86,7 +86,7 @@ However this strategy doesn't apply to move the time cursor backward. The curren
 Mathematical structures
 -----------------------
 
-The runtime pipeline also refers to generic c++ mathematical structures like vectors, quaternions, matrices, `ozz:math::Transform` (translation, rotation and scale). It especially makes a heavy use of Struct-of-Array mathematical structures available in ozz for optimum memory access patterns and maximize SIMD instruction (SSE2, AVX...) throughput. This [document from Intel](http://software.intel.com/en-us/articles/how-to-manipulate-data-structure-to-optimize-memory-use-on-32-bit-intel-architecture) gives more details about the AoS/SoA layouts and their benefit.
+The runtime pipeline also refers to generic c++ mathematical structures like vectors, quaternions, matrices, `ozz:math::Transform` (translation, rotation and scale). It especially makes a heavy use of Struct-of-Array mathematical structures available in ozz for optimum memory access patterns and maximize SIMD instruction (SSE2, AVX...) throughput. This [document from Intel](https://software.intel.com/en-us/articles/how-to-manipulate-data-structure-to-optimize-memory-use-on-32-bit-intel-architecture) gives more details about the AoS/SoA layouts and their benefit.
 
 More details about ozz-animation maths libraries are available in the [advanced][link_maths] section.
 

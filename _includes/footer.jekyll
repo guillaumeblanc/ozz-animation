@@ -1,12 +1,12 @@
     <footer class="w3-container w3-section w3-padding-32 w3-card-2 w3-theme w3-center">
       <div class="w3-row-padding w3-center">
         <div class="w3-col" style="width:33%">
-          <a class="a_reject" href="https://github.com/guillaumeblanc/ozz-animation/" target="_blank">
+          <a class="a_reject" href="https://github.com/guillaumeblanc/ozz-animation/">
             <i class="fa fa-github" aria-hidden="true"></i> Github
           </a>
         </div>  
         <div class="w3-col" style="width:34%">
-          <a class="a_reject" href="https://twitter.com/jozz_sc/" target="_blank">
+          <a class="a_reject" href="https://twitter.com/jozz_sc/">
             <i class="fa fa-twitter" aria-hidden="true"></i> Twitter
           </a>
         </div>

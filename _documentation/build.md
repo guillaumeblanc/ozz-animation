@@ -7,7 +7,7 @@ order: 5
 
 {% include links.jekyll %}
 
-This chapter will drive you through the steps of downloading, building and integrating ozz-animation to your project. If you find any mistake in this page, or think something should be added, please don't hesitate to <a href="http://github.com/guillaumeblanc/ozz-animation/issues" target="_blank">open an issue</a>.
+This chapter will drive you through the steps of downloading, building and integrating ozz-animation to your project. If you find any mistake in this page, or think something should be added, please don't hesitate to [open an issue][link_github_issues]</a>.
 
 Downloading
 ===========
@@ -34,7 +34,7 @@ Alternatively, latest release sources can be downloaded as a [zip package][link_
 Building ozz libraries, tools and samples
 =========================================
 
-Ozz build process relies on [cmake](http://www.cmake.org) which provides a portable build system. It is setup to build ozz-animation libraries, tools and samples (along with their data). It can also run unit-tests and package sources/binary distributions.
+Ozz build process relies on [cmake](http://cmake.org) which provides a portable build system. It is setup to build ozz-animation libraries, tools and samples (along with their data). It can also run unit-tests and package sources/binary distributions.
 
 > See [the feature-map page][link_features_os] for a list of tested OS and compilers.
 

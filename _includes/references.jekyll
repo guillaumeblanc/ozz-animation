@@ -7,7 +7,7 @@
           <th class="w3-theme">{{item.col1}}</th>
           <th class="w3-theme">{{item.col2}}</th>
         {% else %}  	
-          <th><a href="{{item.col3}}" target="_blank">{{item.col0}}</a></th>
+          <th><a href="{{item.col3}}">{{item.col0}}</a></th>
           <th>{{item.col1}}</th>
           <th>{{item.col2}}</th>
         {% endif %}  	
