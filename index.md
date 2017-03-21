@@ -7,9 +7,10 @@ collection: home
 
 {% include links.jekyll %}
 
-ozz-animation provides runtime character animation functionalities (loading, sampling, blending...), with the toolchain to import from major DCC formats (Collada, Fbx, ...). It proposes a low-level renderer and game-engine agnostic implementation, focusing on performance and memory constraints with a data-oriented design.
+<div class="w3-container w3-margin">
+  ozz-animation provides runtime character animation functionalities (loading, sampling, blending...), with the toolchain to import from major DCC formats (Collada, Fbx, ...). It proposes a low-level renderer and game-engine agnostic implementation, focusing on performance and memory constraints with a data-oriented design.
+</div>
 <br />
-
 <div class="w3-row-padding w3-center">
   <div class="w3-third">
     <div class="w3-card-2" style="min-height:460px">
