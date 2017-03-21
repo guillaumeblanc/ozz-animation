@@ -31,25 +31,33 @@
 namespace ozz {
 namespace animation {
 
-// Forward declares the runtime float track type.
+// Forward declares the runtime tracks type.
 class FloatTrack;
+class Float3Track;
 
 namespace offline {
 
-// Forward declares the offline float track type.
+// Forward declares the offline tracks type.
 struct RawFloatTrack;
+struct RawFloat3Track;
 
 // Defines the class responsible of building runtime float track instances from
 // offline raw float tracks.
 // No optimization at all is performed on the data.
 class FloatTrackBuilder {
  public:
-  // Creates an FloatTrack based on _raw_float_track and *this builder parameters.
+  // Creates an FloatTrack based on _raw_float_track and *this builder
+  // parameters.
   // Returns a valid FloatTrack on success
   // The returned instance will then need to be deleted using the default
   // allocator Delete() function.
   // See RawFloatTrack::Validate() for more details about failure reasons.
-  FloatTrack* operator()(const RawFloatTrack& _raw_float_track) const;
+  FloatTrack* operator()(const RawFloatTrack& _input) const;
+  Float3Track* operator()(const RawFloat3Track& _input) const;
+
+ private:
+  template <typename _RawTrack, typename _Track>
+  _Track* Build(const _RawTrack& _input) const;
 };
 }  // offline
 }  // animation

@@ -31,8 +31,8 @@
 
 #include "ozz/animation/runtime/animation.h"
 
-#include "ozz/base/log.h"
 #include "ozz/base/io/archive.h"
+#include "ozz/base/log.h"
 #include "ozz/base/maths/math_archive.h"
 #include "ozz/base/maths/math_ex.h"
 #include "ozz/base/memory/allocator.h"
@@ -159,7 +159,7 @@ void Animation::Allocate(size_t name_len, size_t _translation_count,
                              _scale_count * sizeof(ScaleKey);
   char* buffer = memory::default_allocator()->Allocate<char>(buffer_size);
 
-  // Fix up pointers
+  // Fix up pointers. Serves larger alignment values first.
   translations_.begin = reinterpret_cast<TranslationKey*>(buffer);
   assert(math::IsAligned(translations_.begin, OZZ_ALIGN_OF(TranslationKey)));
   buffer += _translation_count * sizeof(TranslationKey);
@@ -1667,6 +1667,7 @@ char* Skeleton::Allocate(size_t _chars_size, size_t _num_joints) {
   char* buffer = reinterpret_cast<char*>(memory::default_allocator()->Allocate(
       buffer_size, OZZ_ALIGN_OF(math::SoaTransform)));
 
+  // Serves larger alignment values first.
   // Bind pose first, biggest alignment.
   bind_pose_.begin = reinterpret_cast<math::SoaTransform*>(buffer);
   assert(math::IsAligned(bind_pose_.begin, OZZ_ALIGN_OF(math::SoaTransform)));
@@ -1952,67 +1953,84 @@ void IterateJointsDF(const Skeleton& _skeleton, int _from,
 
 #include "ozz/base/io/archive.h"
 #include "ozz/base/log.h"
-#include "ozz/base/memory/allocator.h"
 #include "ozz/base/maths/math_ex.h"
+#include "ozz/base/memory/allocator.h"
 
 #include <cassert>
 
 namespace ozz {
 namespace animation {
 
-FloatTrack::FloatTrack() {}
+namespace internal {
 
-FloatTrack::~FloatTrack() { Deallocate(); }
+template <typename Value>
+Track<Value>::Track() {}
 
-void FloatTrack::Allocate(size_t _keys_count) {
+template <typename Value>
+Track<Value>::~Track() {
+  Deallocate();
+}
+
+template <typename Value>
+void Track<Value>::Allocate(size_t _keys_count) {
+  assert(times_.Size() == 0 && values_.Size() == 0);
+
   // Distributes buffer memory while ensuring proper alignment (serves larger
   // alignment values first).
-  assert(times_.Size() == 0 && values_.Size() == 0);
+  OZZ_STATIC_ASSERT(OZZ_ALIGN_OF(Value) >= OZZ_ALIGN_OF(float));
 
   // Compute overall size and allocate a single buffer for all the data.
   const size_t buffer_size = _keys_count * sizeof(float) +  // times
-                             _keys_count * sizeof(float);   // values
+                             _keys_count * sizeof(Value);   // values
   char* buffer = reinterpret_cast<char*>(
-      memory::default_allocator()->Allocate(buffer_size, OZZ_ALIGN_OF(float)));
+      memory::default_allocator()->Allocate(buffer_size, OZZ_ALIGN_OF(Value)));
 
-  // Fix up pointers
+  // Fix up pointers. Serves larger alignment values first.
+  values_.begin = reinterpret_cast<Value*>(buffer);
+  assert(math::IsAligned(times_.begin, OZZ_ALIGN_OF(Value)));
+  buffer += _keys_count * sizeof(Value);
+  values_.end = reinterpret_cast<Value*>(buffer);
+
   times_.begin = reinterpret_cast<float*>(buffer);
   assert(math::IsAligned(times_.begin, OZZ_ALIGN_OF(float)));
   buffer += _keys_count * sizeof(float);
   times_.end = reinterpret_cast<float*>(buffer);
-  
-  values_.begin = reinterpret_cast<float*>(buffer);
-  assert(math::IsAligned(times_.begin, OZZ_ALIGN_OF(float)));
-  buffer += _keys_count * sizeof(float);
-  values_.end = reinterpret_cast<float*>(buffer);
 }
 
-void FloatTrack::Deallocate() {
+template <typename Value>
+void Track<Value>::Deallocate() {
   // Deallocate everything at once.
-  memory::default_allocator()->Deallocate(times_.begin);
+  memory::default_allocator()->Deallocate(values_.begin);
 
   times_.Clear();
   values_.Clear();
 }
 
-size_t FloatTrack::size() const {
+template <typename Value>
+size_t Track<Value>::size() const {
   const size_t size = sizeof(*this) + times_.Size() + values_.Size();
   return size;
 }
 
-void FloatTrack::Save(ozz::io::OArchive& /*_archive*/) const {
-}
+template <typename Value>
+void Track<Value>::Save(ozz::io::OArchive& /*_archive*/) const {}
 
-void FloatTrack::Load(ozz::io::IArchive& /*_archive*/, uint32_t _version) {
+template <typename Value>
+void Track<Value>::Load(ozz::io::IArchive& /*_archive*/, uint32_t _version) {
   // Destroy animation in case it was already used before.
   Deallocate();
 
   if (_version > 1) {
-    log::Err() << "Unsupported FloatTrack version " << _version << "."
-               << std::endl;
+    log::Err() << "Unsupported Track version " << _version << "." << std::endl;
     return;
   }
 }
+
+// Explicitly instantiate supported tracks.
+template Track<float>;
+template Track<math::Float3>;
+
+}  // internal
 }  // animation
 }  // ozz
 
@@ -2049,22 +2067,27 @@ void FloatTrack::Load(ozz::io::IArchive& /*_archive*/, uint32_t _version) {
 #include "ozz/animation/runtime/float_track.h"
 #include "ozz/base/maths/math_ex.h"
 
-#include <cassert>
 #include <algorithm>
+#include <cassert>
 
 namespace ozz {
 namespace animation {
+namespace internal {
 
-FloatTrackSamplingJob::FloatTrackSamplingJob() : time(0.f), track(NULL), result(NULL) {}
+template <typename _Track>
+TrackSamplingJob<_Track>::TrackSamplingJob()
+    : time(0.f), track(NULL), result(NULL) {}
 
-bool FloatTrackSamplingJob::Validate() const {
+template <typename _Track>
+bool TrackSamplingJob<_Track>::Validate() const {
   bool success = true;
   success &= result != NULL;
   success &= track != NULL;
   return success;
 }
 
-bool FloatTrackSamplingJob::Run() const {
+template <typename _Track>
+bool TrackSamplingJob<_Track>::Run() const {
   if (!Validate()) {
     return false;
   }
@@ -2074,7 +2097,7 @@ bool FloatTrackSamplingJob::Run() const {
 
   // Search keyframes to interpolate.
   const Range<const float> times = track->times();
-  const Range<const float> values = track->values();
+  const Range<const _Track::Value> values = track->values();
   assert(times.Size() == values.Size());
 
   // Search for the first key frame with a time value greater than input time.
@@ -2090,14 +2113,20 @@ bool FloatTrackSamplingJob::Run() const {
   const float tk0 = ptk1[-1];
   const float tk1 = ptk1[0];
   assert(clamped_time >= tk0 && tk0 != tk1);
-  const float* pvk1 = values.begin + (ptk1 - times.begin);
-  const float vk0 = pvk1[-1];
-  const float vk1 = pvk1[0];
+  const _Track::Value* pvk1 = values.begin + (ptk1 - times.begin);
+  const _Track::Value vk0 = pvk1[-1];
+  const _Track::Value vk1 = pvk1[0];
   const float alpha = (clamped_time - tk0) / (tk1 - tk0);
   *result = math::Lerp(vk0, vk1, alpha);
 
   return true;
 }
+
+// Explicitly instantiate supported raw tracks.
+template TrackSamplingJob<FloatTrack>;
+template TrackSamplingJob<Float3Track>;
+
+}  // internal
 }  // animation
 }  // ozz
 

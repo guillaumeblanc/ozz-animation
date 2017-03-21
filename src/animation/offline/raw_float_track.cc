@@ -32,12 +32,16 @@
 namespace ozz {
 namespace animation {
 namespace offline {
+namespace internal {
 
-RawFloatTrack::RawFloatTrack() {}
+template <typename Value>
+RawTrack<Value>::RawTrack() {}
 
-RawFloatTrack::~RawFloatTrack() {}
+template <typename Value>
+RawTrack<Value>::~RawTrack() {}
 
-bool RawFloatTrack::Validate() const {
+template <typename Value>
+bool RawTrack<Value>::Validate() const {
   float previous_time = -1.f;
   for (size_t k = 0; k < keyframes.size(); ++k) {
     const float frame_time = keyframes[k].time;
@@ -53,6 +57,12 @@ bool RawFloatTrack::Validate() const {
   }
   return true;  // Validated.
 }
+
+// Explicitly instantiate supported raw tracks.
+template RawTrack<float>;
+template RawTrack<math::Float3>;
+
+}  // internal
 }  // offline
 }  // animation
 }  // ozz

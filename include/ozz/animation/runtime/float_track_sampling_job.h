@@ -28,14 +28,15 @@
 #ifndef OZZ_OZZ_ANIMATION_RUNTIME_FLOAT_TRACK_SAMPLING_JOB_H_
 #define OZZ_OZZ_ANIMATION_RUNTIME_FLOAT_TRACK_SAMPLING_JOB_H_
 
+#include "ozz/animation/runtime/float_track.h"
+
 namespace ozz {
 namespace animation {
+namespace internal {
 
-// Forward declares FloatTrack object.
-class FloatTrack;
-
-struct FloatTrackSamplingJob {
-  FloatTrackSamplingJob();
+template <typename _Track>
+struct TrackSamplingJob {
+  TrackSamplingJob();
 
   bool Validate() const;
 
@@ -46,11 +47,17 @@ struct FloatTrackSamplingJob {
   float time;
 
   // Track to sample.
-  const FloatTrack* track;
+  const _Track* track;
 
   // Job output.
-  float* result;
+  typename _Track::Value* result;
 };
+}  // internal
+
+struct FloatTrackSamplingJob : public internal::TrackSamplingJob<FloatTrack> {};
+struct Float3TrackSamplingJob : public internal::TrackSamplingJob<Float3Track> {
+};
+
 }  // animation
 }  // ozz
 #endif  // OZZ_OZZ_ANIMATION_RUNTIME_FLOAT_TRACK_SAMPLING_JOB_H_

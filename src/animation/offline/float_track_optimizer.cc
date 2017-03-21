@@ -29,7 +29,7 @@
 
 #include <cassert>
 #include <cstddef>
-  
+
 #include "ozz/base/maths/math_ex.h"
 
 #include "ozz/animation/offline/raw_float_track.h"
@@ -39,8 +39,7 @@ namespace animation {
 namespace offline {
 
 // Setup default values (favoring quality).
-FloatTrackOptimizer::FloatTrackOptimizer()
-    : tolerance(1e-3f) {  // 1 mm.
+TrackOptimizer::TrackOptimizer() : tolerance(1e-3f) {  // 1 mm.
 }
 
 namespace {
@@ -50,22 +49,27 @@ bool Compare(float _left, float _right, float _tolerance) {
 }
 
 // Copy _src keys to _dest but except the ones that can be interpolated.
-void Filter(const RawFloatTrack::Keyframes& _src, float _tolerance, RawFloatTrack::Keyframes* _dest) {
+template <typename _Keyframes>
+void Filter(const _Keyframes& _src, float _tolerance,
+            _Keyframes* _dest) {
+  typedef typename _Keyframes::value_type Keyframe;
+
   _dest->reserve(_src.size());
 
   // Only copies the key that cannot be interpolated from the others.
   size_t last_src_pushed = 0;  // Index (in src) of the last pushed key.
   for (size_t i = 0; i < _src.size(); ++i) {
-    const RawFloatTrack::Keyframe& current = _src[i];
+    const Keyframe& current = _src[i];
 
     // First and last keys are always pushed.
-    // RawFloatTrack::kStep keyframes aren't optimized, as steps can't be interpolated.
-    if (i == 0 || current.interpolation == RawFloatTrack::kStep) {
+    // RawTrackInterpolation::kStep keyframes aren't optimized, as steps can't
+    // be interpolated.
+    if (i == 0 || current.interpolation == RawTrackInterpolation::kStep) {
       _dest->push_back(_src[i]);
       last_src_pushed = i;
     } else if (i == _src.size() - 1) {
       // Don't push the last value if it's the same as last_src_pushed.
-      const RawFloatTrack::Keyframe& left = _src[last_src_pushed];
+      const Keyframe& left = _src[last_src_pushed];
       if (!Compare(left.value, current.value, _tolerance)) {
         _dest->push_back(current);
         last_src_pushed = i;
@@ -73,13 +77,14 @@ void Filter(const RawFloatTrack::Keyframes& _src, float _tolerance, RawFloatTrac
     } else {
       // Only inserts i key if keys in range ]last_src_pushed,i] cannot be
       // interpolated from keys last_src_pushed and i + 1.
-      const RawFloatTrack::Keyframe& left = _src[last_src_pushed];
-      const RawFloatTrack::Keyframe& right = _src[i + 1];
+      const Keyframe& left = _src[last_src_pushed];
+      const Keyframe& right = _src[i + 1];
       for (size_t j = last_src_pushed + 1; j <= i; ++j) {
-        const RawFloatTrack::Keyframe& test = _src[j];
+        const Keyframe& test = _src[j];
         const float alpha = (test.time - left.time) / (right.time - left.time);
         assert(alpha >= 0.f && alpha <= 1.f);
-        if (!Compare(math::Lerp(left.value, right.value, alpha), test.value, _tolerance)) {
+        if (!Compare(math::Lerp(left.value, right.value, alpha), test.value,
+                     _tolerance)) {
           _dest->push_back(current);
           last_src_pushed = i;
           break;
@@ -89,25 +94,35 @@ void Filter(const RawFloatTrack::Keyframes& _src, float _tolerance, RawFloatTrac
   }
   assert(_dest->size() <= _src.size());
 }
-}  // namespace
 
-bool FloatTrackOptimizer::operator()(const RawFloatTrack& _input,
-                                     RawFloatTrack* _output) const {
+template <typename _Track>
+bool Optimize(const TrackOptimizer& _optimizer, const _Track& _input, _Track* _output) {
   if (!_output) {
     return false;
   }
   // Reset output animation to default.
-  *_output = RawFloatTrack();
+  *_output = _Track();
 
   // Validate animation.
   if (!_input.Validate()) {
     return false;
   }
 
-  Filter(_input.keyframes, tolerance, &_output->keyframes);
+  Filter(_input.keyframes, _optimizer.tolerance, &_output->keyframes);
 
   // Output animation is always valid though.
   return _output->Validate();
+}
+}  // namespace
+
+bool TrackOptimizer::operator()(const RawFloatTrack& _input,
+                                RawFloatTrack* _output) const {
+  return Optimize(*this, _input, _output);
+}
+
+bool TrackOptimizer::operator()(const RawFloat3Track& _input,
+                                RawFloat3Track* _output) const {
+  return Optimize(*this, _input, _output);
 }
 }  // offline
 }  // animation

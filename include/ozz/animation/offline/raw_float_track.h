@@ -31,17 +31,29 @@
 #include "ozz/base/containers/vector.h"
 #include "ozz/base/io/archive_traits.h"
 
+// TODO see if it's the right place
+#include "ozz/base/maths/vec_float.h"
+
 namespace ozz {
 namespace animation {
 namespace offline {
 
+// Interpolation mode.
+enum RawTrackInterpolation {
+  kStep,    // All values following this key, up to the next key, are equal.
+  kLinear,  // All value between this key and the next are linearly
+            // interpolated.
+};
+
 // Offline float animation track type.
 // This data type is not intended to be used in run time. It is used to
-// define the offline float curve/track object that can be converted to the runtime
+// define the offline float curve/track object that can be converted to the
+// runtime
 // channel using the FlatTrackBuilder.
 // This animation structure exposes a single float sequence of keyframes.
 // Keyframes are defined with a time, a float value and an interpolation mode
-// (impact the range from the keyframe to the next). Float track structure is then a
+// (impact the range from the keyframe to the next). Float track structure is
+// then a
 // sorted vector of keyframes. A track has no duration, keyframes time range
 // must be between 0 and 1.
 // Finally the RawFloatTrack structure exposes Validate() function to check that
@@ -50,14 +62,19 @@ namespace offline {
 //  2. Keyframes' time are all within [0,1] range.
 //  3. Successive keyframes' time must be separated by at least
 // std::numeric_limits<float>::epsilon() (around 1e-7).
-// RawFloatTrack that would fail this validation will fail to be converted by the
+// RawFloatTrack that would fail this validation will fail to be converted by
+// the
 // RawFloatTrackBuilder.
-struct RawFloatTrack {
+namespace internal {
+template <typename Value>
+struct RawTrack {
+  typedef Value Value;
+
   // Constructs a valid RawFloatTrack.
-  RawFloatTrack();
+  RawTrack();
 
   // Deallocates track.
-  ~RawFloatTrack();
+  ~RawTrack();
 
   // Validates that all the following rules are respected:
   //  1. Keyframes' time are sorted in a strict ascending order.
@@ -66,25 +83,23 @@ struct RawFloatTrack {
   // std::numeric_limits<float>::epsilon (1e-5).
   bool Validate() const;
 
-  // Interpolation mode.
-  enum Interpolation {
-    kStep,    // All values following this key, up to the next key, are equal.
-    kLinear,  // All value between this key and the next are linearly
-              // interpolated.
-  };
-
   // Keyframe data structure.
   struct Keyframe {
-    Interpolation interpolation;
+    RawTrackInterpolation interpolation;
     float time;
-    float value;
+    Value value;
   };
   // Sequence of keyframes, expected to be sorted.
-  typedef ozz::Vector<Keyframe>::Std Keyframes;
+  typedef typename ozz::Vector<Keyframe>::Std Keyframes;
   Keyframes keyframes;
 };
+}  // internal
+
+struct RawFloatTrack : public internal::RawTrack<float> {};
+struct RawFloat3Track : public internal::RawTrack<math::Float3> {};
 }  // offline
 }  // animation
+
 namespace io {
 OZZ_IO_TYPE_VERSION(1, animation::offline::RawFloatTrack)
 OZZ_IO_TYPE_TAG("ozz-raw_float_track", animation::offline::RawFloatTrack)

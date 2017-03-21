@@ -28,17 +28,18 @@
 #include "ozz/animation/offline/float_track_optimizer.h"
 
 #include "gtest/gtest.h"
-
-#include "ozz/base/maths/math_constant.h"
+#include "ozz/base/maths/gtest_math_helper.h"
 
 #include "ozz/animation/offline/float_track_builder.h"
 #include "ozz/animation/offline/raw_float_track.h"
 
 using ozz::animation::offline::RawFloatTrack;
-using ozz::animation::offline::FloatTrackOptimizer;
+using ozz::animation::offline::RawFloat3Track;
+using ozz::animation::offline::TrackOptimizer;
+using ozz::animation::offline::RawTrackInterpolation;
 
-TEST(Error, FloatTrackOptimizer) {
-  FloatTrackOptimizer optimizer;
+TEST(Error, TrackOptimizer) {
+  TrackOptimizer optimizer;
 
   {  // NULL output.
     RawFloatTrack input;
@@ -86,20 +87,16 @@ TEST(Name, FloatTrackOptimizer) {
 }
 */
 
-
-TEST(OptimizeSteps, FloatTrackOptimizer) {
+TEST(OptimizeSteps, TrackOptimizer) {
   // Step keys aren't optimized.
-  FloatTrackOptimizer optimizer;
+  TrackOptimizer optimizer;
 
   RawFloatTrack raw_float_track;
-  RawFloatTrack::Keyframe key0 = {RawFloatTrack::kStep,
-                                       .5f, 46.f};
+  RawFloatTrack::Keyframe key0 = {RawTrackInterpolation::kStep, .5f, 46.f};
   raw_float_track.keyframes.push_back(key0);
-  RawFloatTrack::Keyframe key1 = {RawFloatTrack::kStep,
-                                       .7f, 0.f};
+  RawFloatTrack::Keyframe key1 = {RawTrackInterpolation::kStep, .7f, 0.f};
   raw_float_track.keyframes.push_back(key1);
-  RawFloatTrack::Keyframe key2 = {RawFloatTrack::kStep,
-                                       .8f, 1e-9f};
+  RawFloatTrack::Keyframe key2 = {RawTrackInterpolation::kStep, .8f, 1e-9f};
   raw_float_track.keyframes.push_back(key2);
 
   RawFloatTrack output;
@@ -120,32 +117,25 @@ TEST(OptimizeSteps, FloatTrackOptimizer) {
   EXPECT_FLOAT_EQ(output.keyframes[2].value, key2.value);
 }
 
-
-TEST(OptimizeInterpolate, FloatTrackOptimizer) {
+TEST(OptimizeInterpolate, TrackOptimizer) {
   // Step keys aren't optimized.
-  FloatTrackOptimizer optimizer;
+  TrackOptimizer optimizer;
 
   RawFloatTrack raw_float_track;
-  RawFloatTrack::Keyframe key0 = {RawFloatTrack::kLinear,
-                                       0.f, 69.f};
+  RawFloatTrack::Keyframe key0 = {RawTrackInterpolation::kLinear, 0.f, 69.f};
   raw_float_track.keyframes.push_back(key0);
-  RawFloatTrack::Keyframe key1 = {RawFloatTrack::kLinear,
-                                       .25f, 46.f};
+  RawFloatTrack::Keyframe key1 = {RawTrackInterpolation::kLinear, .25f, 46.f};
   raw_float_track.keyframes.push_back(key1);
-  RawFloatTrack::Keyframe key2 = {RawFloatTrack::kLinear,
-                                       .5f, 23.f};
+  RawFloatTrack::Keyframe key2 = {RawTrackInterpolation::kLinear, .5f, 23.f};
   raw_float_track.keyframes.push_back(key2);
-  RawFloatTrack::Keyframe key3 = {RawFloatTrack::kLinear,
-                                       .500001f, 23.000001f};
+  RawFloatTrack::Keyframe key3 = {RawTrackInterpolation::kLinear, .500001f,
+                                  23.000001f};
   raw_float_track.keyframes.push_back(key3);
-  RawFloatTrack::Keyframe key4 = {RawFloatTrack::kLinear,
-                                       .75f, 0.f};
+  RawFloatTrack::Keyframe key4 = {RawTrackInterpolation::kLinear, .75f, 0.f};
   raw_float_track.keyframes.push_back(key4);
-  RawFloatTrack::Keyframe key5 = {RawFloatTrack::kLinear,
-                                       .8f, 1e-12f};
+  RawFloatTrack::Keyframe key5 = {RawTrackInterpolation::kLinear, .8f, 1e-12f};
   raw_float_track.keyframes.push_back(key5);
-  RawFloatTrack::Keyframe key6 = {RawFloatTrack::kLinear,
-                                  1.f, -1e-12f};
+  RawFloatTrack::Keyframe key6 = {RawTrackInterpolation::kLinear, 1.f, -1e-12f};
   raw_float_track.keyframes.push_back(key6);
 
   {
@@ -188,4 +178,80 @@ TEST(OptimizeInterpolate, FloatTrackOptimizer) {
     EXPECT_FLOAT_EQ(output.keyframes[3].time, key4.time);
     EXPECT_FLOAT_EQ(output.keyframes[3].value, key4.value);
   }
+}
+
+TEST(float, TrackOptimizer) {
+  TrackOptimizer optimizer;
+
+  RawFloatTrack raw_track;
+  RawFloatTrack::Keyframe key0 = {RawTrackInterpolation::kLinear, 0.f, 6.9f};
+  raw_track.keyframes.push_back(key0);
+  RawFloatTrack::Keyframe key1 = {RawTrackInterpolation::kLinear, .25f, 4.6f};
+  raw_track.keyframes.push_back(key1);
+  RawFloatTrack::Keyframe key2 = {RawTrackInterpolation::kLinear, .5f, 2.3f};
+  raw_track.keyframes.push_back(key2);
+  RawFloatTrack::Keyframe key3 = {RawTrackInterpolation::kLinear, .500001f,
+                                  2.300001f};
+  raw_track.keyframes.push_back(key3);
+  RawFloatTrack::Keyframe key4 = {RawTrackInterpolation::kLinear, .75f, 0.f};
+  raw_track.keyframes.push_back(key4);
+  RawFloatTrack::Keyframe key5 = {RawTrackInterpolation::kLinear, .8f, 1e-12f};
+  raw_track.keyframes.push_back(key5);
+  RawFloatTrack::Keyframe key6 = {RawTrackInterpolation::kLinear, 1.f, -1e-12f};
+  raw_track.keyframes.push_back(key6);
+
+  RawFloatTrack output;
+  ASSERT_TRUE(optimizer(raw_track, &output));
+
+  EXPECT_EQ(output.keyframes.size(), 2u);
+
+  EXPECT_EQ(output.keyframes[0].interpolation, key0.interpolation);
+  EXPECT_FLOAT_EQ(output.keyframes[0].time, key0.time);
+  EXPECT_FLOAT_EQ(output.keyframes[0].value, key0.value);
+
+  EXPECT_EQ(output.keyframes[1].interpolation, key4.interpolation);
+  EXPECT_FLOAT_EQ(output.keyframes[1].time, key4.time);
+  EXPECT_FLOAT_EQ(output.keyframes[1].value, key4.value);
+}
+
+TEST(Float3, TrackOptimizer) {
+  TrackOptimizer optimizer;
+
+  RawFloat3Track raw_track;
+  RawFloat3Track::Keyframe key0 = {RawTrackInterpolation::kLinear, 0.f,
+                                   ozz::math::Float3(6.9f, 0.f, 0.f)};
+  raw_track.keyframes.push_back(key0);
+  RawFloat3Track::Keyframe key1 = {RawTrackInterpolation::kLinear, .25f,
+                                   ozz::math::Float3(4.6f, 0.f, 0.f)};
+  raw_track.keyframes.push_back(key1);
+  RawFloat3Track::Keyframe key2 = {RawTrackInterpolation::kLinear, .5f,
+                                   ozz::math::Float3(2.3f, 0.f, 0.f)};
+  raw_track.keyframes.push_back(key2);
+  RawFloat3Track::Keyframe key3 = {RawTrackInterpolation::kLinear, .500001f,
+                                   ozz::math::Float3(2.3000001f, 0.f, 0.f)};
+  raw_track.keyframes.push_back(key3);
+  RawFloat3Track::Keyframe key4 = {RawTrackInterpolation::kLinear, .75f,
+                                   ozz::math::Float3(0.f, 0.f, 0.f)};
+  raw_track.keyframes.push_back(key4);
+  RawFloat3Track::Keyframe key5 = {RawTrackInterpolation::kLinear, .8f,
+                                   ozz::math::Float3(0.f, 0.f, 1e-12f)};
+  raw_track.keyframes.push_back(key5);
+  RawFloat3Track::Keyframe key6 = {RawTrackInterpolation::kLinear, 1.f,
+                                   ozz::math::Float3(0.f, -1e-12f, 0.f)};
+  raw_track.keyframes.push_back(key6);
+
+  RawFloat3Track output;
+  ASSERT_TRUE(optimizer(raw_track, &output));
+
+  EXPECT_EQ(output.keyframes.size(), 2u);
+
+  EXPECT_EQ(output.keyframes[0].interpolation, key0.interpolation);
+  EXPECT_FLOAT_EQ(output.keyframes[0].time, key0.time);
+  EXPECT_FLOAT3_EQ(output.keyframes[0].value, key0.value.x, key0.value.y,
+                   key0.value.z);
+
+  EXPECT_EQ(output.keyframes[1].interpolation, key4.interpolation);
+  EXPECT_FLOAT_EQ(output.keyframes[1].time, key4.time);
+  EXPECT_FLOAT3_EQ(output.keyframes[1].value, key4.value.x, key4.value.y,
+                   key4.value.z);
 }

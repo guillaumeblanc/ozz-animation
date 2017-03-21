@@ -41,11 +41,9 @@ using ozz::animation::FloatTrack;
 using ozz::animation::FloatTrackSamplingJob;
 using ozz::animation::offline::RawFloatTrack;
 using ozz::animation::offline::FloatTrackBuilder;
-
-// clang-format off
+using ozz::animation::offline::RawTrackInterpolation;
 
 TEST(JobValidity, FloatTrackSamplingJob) {
-
   // Instantiates a builder objects with default parameters.
   FloatTrackBuilder builder;
 
@@ -95,14 +93,11 @@ TEST(Bounds, FloatTrackSamplingJob) {
 
   RawFloatTrack raw_float_track;
 
-  RawFloatTrack::Keyframe key0 = {RawFloatTrack::kLinear,
-                                        0.f, 0.f};
+  RawFloatTrack::Keyframe key0 = {RawTrackInterpolation::kLinear, 0.f, 0.f};
   raw_float_track.keyframes.push_back(key0);
-  RawFloatTrack::Keyframe key1 = {RawFloatTrack::kStep,
-                                        .5f, 46.f};
+  RawFloatTrack::Keyframe key1 = {RawTrackInterpolation::kStep, .5f, 46.f};
   raw_float_track.keyframes.push_back(key1);
-  RawFloatTrack::Keyframe key2 = {RawFloatTrack::kLinear,
-                                        .7f, 0.f};
+  RawFloatTrack::Keyframe key2 = {RawTrackInterpolation::kLinear, .7f, 0.f};
   raw_float_track.keyframes.push_back(key2);
 
   // Builds track
@@ -133,6 +128,132 @@ TEST(Bounds, FloatTrackSamplingJob) {
   sampling.time = 1.f + 1e-7f;
   ASSERT_TRUE(sampling.Run());
   EXPECT_FLOAT_EQ(result, 0.f);
+
+  ozz::memory::default_allocator()->Delete(track);
+}
+
+TEST(Float, TrackSamplingJob) {
+  FloatTrackBuilder builder;
+  float result;
+
+  ozz::animation::offline::RawFloatTrack raw_track;
+
+  ozz::animation::offline::RawFloatTrack::Keyframe key0 = {
+      RawTrackInterpolation::kLinear, 0.f, 0.f};
+  raw_track.keyframes.push_back(key0);
+  ozz::animation::offline::RawFloatTrack::Keyframe key1 = {
+      RawTrackInterpolation::kStep, .5f, 4.6f};
+  raw_track.keyframes.push_back(key1);
+  ozz::animation::offline::RawFloatTrack::Keyframe key2 = {
+      RawTrackInterpolation::kLinear, .7f, 9.2f};
+  raw_track.keyframes.push_back(key2);
+  ozz::animation::offline::RawFloatTrack::Keyframe key3 = {
+      RawTrackInterpolation::kLinear, .9f, 0.f};
+  raw_track.keyframes.push_back(key3);
+
+  // Builds track
+  ozz::animation::FloatTrack* track = builder(raw_track);
+  ASSERT_TRUE(track != NULL);
+
+  // Samples to verify build output.
+  ozz::animation::FloatTrackSamplingJob sampling;
+  sampling.track = track;
+  sampling.result = &result;
+
+  sampling.time = 0.f;
+  ASSERT_TRUE(sampling.Run());
+  EXPECT_FLOAT_EQ(result, 0.f);
+
+  sampling.time = .25f;
+  ASSERT_TRUE(sampling.Run());
+  EXPECT_FLOAT_EQ(result, 2.3f);
+
+  sampling.time = .5f;
+  ASSERT_TRUE(sampling.Run());
+  EXPECT_FLOAT_EQ(result, 4.6f);
+
+  sampling.time = .6f;
+  ASSERT_TRUE(sampling.Run());
+  EXPECT_FLOAT_EQ(result, 4.6f);
+
+  sampling.time = .7f;
+  ASSERT_TRUE(sampling.Run());
+  EXPECT_FLOAT_EQ(result, 9.2f);
+
+  sampling.time = .8f;
+  ASSERT_TRUE(sampling.Run());
+  EXPECT_FLOAT_EQ(result, 4.6f);
+
+  sampling.time = .9f;
+  ASSERT_TRUE(sampling.Run());
+  EXPECT_FLOAT_EQ(result, 0.f);
+
+  sampling.time = 1.f;
+  ASSERT_TRUE(sampling.Run());
+  EXPECT_FLOAT_EQ(result, 0.f);
+
+  ozz::memory::default_allocator()->Delete(track);
+}
+
+TEST(Float3, TrackSamplingJob) {
+  FloatTrackBuilder builder;
+  ozz::math::Float3 result;
+
+  ozz::animation::offline::RawFloat3Track raw_track;
+
+  ozz::animation::offline::RawFloat3Track::Keyframe key0 = {
+      RawTrackInterpolation::kLinear, 0.f, ozz::math::Float3(0.f, 0.f, 0.f)};
+  raw_track.keyframes.push_back(key0);
+  ozz::animation::offline::RawFloat3Track::Keyframe key1 = {
+      RawTrackInterpolation::kStep, .5f, ozz::math::Float3(0.f, 2.3f, 4.6f)};
+  raw_track.keyframes.push_back(key1);
+  ozz::animation::offline::RawFloat3Track::Keyframe key2 = {
+      RawTrackInterpolation::kLinear, .7f, ozz::math::Float3(0.f, 4.6f, 9.2f)};
+  raw_track.keyframes.push_back(key2);
+  ozz::animation::offline::RawFloat3Track::Keyframe key3 = {
+      RawTrackInterpolation::kLinear, .9f, ozz::math::Float3(0.f, 0.f, 0.f)};
+  raw_track.keyframes.push_back(key3);
+
+  // Builds track
+  ozz::animation::Float3Track* track = builder(raw_track);
+  ASSERT_TRUE(track != NULL);
+
+  // Samples to verify build output.
+  ozz::animation::Float3TrackSamplingJob sampling;
+  sampling.track = track;
+  sampling.result = &result;
+
+  sampling.time = 0.f;
+  ASSERT_TRUE(sampling.Run());
+  EXPECT_FLOAT3_EQ(result, 0.f, 0.f, 0.f);
+
+  sampling.time = .25f;
+  ASSERT_TRUE(sampling.Run());
+  EXPECT_FLOAT3_EQ(result, 0.f, 1.15f, 2.3f);
+
+  sampling.time = .5f;
+  ASSERT_TRUE(sampling.Run());
+  EXPECT_FLOAT3_EQ(result, 0.f, 2.3f, 4.6f);
+
+  sampling.time = .6f;
+  ASSERT_TRUE(sampling.Run());
+  EXPECT_FLOAT3_EQ(result, 0.f, 2.3f, 4.6f);
+
+  sampling.time = .7f;
+  ASSERT_TRUE(sampling.Run());
+  EXPECT_FLOAT3_EQ(result, 0.f, 4.6f, 9.2f);
+
+  sampling.time = .8f;
+  ASSERT_TRUE(sampling.Run());
+  EXPECT_FLOAT3_EQ(result, 0.f, 2.3f, 4.6f);
+
+  sampling.time = .9f;
+  ASSERT_TRUE(sampling.Run());
+  EXPECT_FLOAT3_EQ(result, 0.f, 0.f, 0.f);
+
+  sampling.time = 1.f;
+  ASSERT_TRUE(sampling.Run());
+  EXPECT_FLOAT3_EQ(result, 0.f, 0.f, 0.f);
 
   ozz::memory::default_allocator()->Delete(track);
 }

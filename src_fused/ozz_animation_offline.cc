@@ -1529,12 +1529,16 @@ Skeleton* SkeletonBuilder::operator()(const RawSkeleton& _raw_skeleton) const {
 namespace ozz {
 namespace animation {
 namespace offline {
+namespace internal {
 
-RawFloatTrack::RawFloatTrack() {}
+template <typename Value>
+RawTrack<Value>::RawTrack() {}
 
-RawFloatTrack::~RawFloatTrack() {}
+template <typename Value>
+RawTrack<Value>::~RawTrack() {}
 
-bool RawFloatTrack::Validate() const {
+template <typename Value>
+bool RawTrack<Value>::Validate() const {
   float previous_time = -1.f;
   for (size_t k = 0; k < keyframes.size(); ++k) {
     const float frame_time = keyframes[k].time;
@@ -1550,6 +1554,12 @@ bool RawFloatTrack::Validate() const {
   }
   return true;  // Validated.
 }
+
+// Explicitly instantiate supported raw tracks.
+template RawTrack<float>;
+template RawTrack<math::Float3>;
+
+}  // internal
 }  // offline
 }  // animation
 }  // ozz
@@ -1600,77 +1610,83 @@ namespace animation {
 namespace offline {
 
 namespace {
-void PatchBeginEndKeys(const RawFloatTrack& _input,
-                       RawFloatTrack::Keyframes* keyframes) {
+
+template <typename _RawTrack>
+void PatchBeginEndKeys(const _RawTrack& _input,
+                       typename _RawTrack::Keyframes* keyframes) {
   if (_input.keyframes.empty()) {
-    const RawFloatTrack::Keyframe begin = {RawFloatTrack::kLinear, 0.f, 0.f};
+    const _RawTrack::Keyframe begin = {RawTrackInterpolation::kLinear, 0.f,
+                                       _RawTrack::Value()};
     keyframes->push_back(begin);
-    const RawFloatTrack::Keyframe end = {RawFloatTrack::kLinear, 1.f, 0.f};
+    const _RawTrack::Keyframe end = {RawTrackInterpolation::kLinear, 1.f,
+                                     _RawTrack::Value()};
     keyframes->push_back(end);
   } else if (_input.keyframes.size() == 1) {
-    const RawFloatTrack::Keyframe& src_key = _input.keyframes.front();
-    const RawFloatTrack::Keyframe begin = {RawFloatTrack::kLinear, 0.f,
-                                           src_key.value};
+    const _RawTrack::Keyframe& src_key = _input.keyframes.front();
+    const _RawTrack::Keyframe begin = {RawTrackInterpolation::kLinear, 0.f,
+                                       src_key.value};
     keyframes->push_back(begin);
-    const RawFloatTrack::Keyframe end = {RawFloatTrack::kLinear, 1.f, src_key.value};
+    const _RawTrack::Keyframe end = {RawTrackInterpolation::kLinear, 1.f,
+                                     src_key.value};
     keyframes->push_back(end);
   } else {
     // Copy all source data.
     if (_input.keyframes.front().time != 0.f) {
-      const RawFloatTrack::Keyframe& src_key = _input.keyframes.front();
-      const RawFloatTrack::Keyframe begin = {RawFloatTrack::kLinear, 0.f,
-                                             src_key.value};
+      const _RawTrack::Keyframe& src_key = _input.keyframes.front();
+      const _RawTrack::Keyframe begin = {RawTrackInterpolation::kLinear, 0.f,
+                                         src_key.value};
       keyframes->push_back(begin);
     }
     for (size_t i = 0; i < _input.keyframes.size(); ++i) {
       keyframes->push_back(_input.keyframes[i]);
     }
     if (_input.keyframes.back().time != 1.f) {
-      const RawFloatTrack::Keyframe& src_key = _input.keyframes.back();
-      const RawFloatTrack::Keyframe end = {RawFloatTrack::kLinear,
-                                           1.f, src_key.value};
+      const _RawTrack::Keyframe& src_key = _input.keyframes.back();
+      const _RawTrack::Keyframe end = {RawTrackInterpolation::kLinear, 1.f,
+                                       src_key.value};
       keyframes->push_back(end);
     }
   }
 }
 
-void Linearize(RawFloatTrack::Keyframes* keyframes) {
-  assert(keyframes->size() >= 2);
+template <typename _Keyframes>
+void Linearize(_Keyframes* _keyframes) {
+  assert(_keyframes->size() >= 2);
 
   // Loop through kStep keys and create an extra key right before the next
   // "official" one such that interpolating this two keys will simulate a kStep
   // behavior.
   // Note that interpolation mode of the last key has no impact.
-  for (RawFloatTrack::Keyframes::iterator it = keyframes->begin();
-       it != keyframes->end() - 1; ++it) {
-    const RawFloatTrack::Keyframe& src_key = *it;
+  for (_Keyframes::iterator it = _keyframes->begin();
+       it != _keyframes->end() - 1; ++it) {
+    _Keyframes::const_reference src_key = *it;
 
-    if (src_key.interpolation == RawFloatTrack::kStep) {
+    if (src_key.interpolation == RawTrackInterpolation::kStep) {
       // Pick a time right before the next key frame.
-      const RawFloatTrack::Keyframe& src_next_key = *(it + 1);
+      _Keyframes::const_reference src_next_key = *(it + 1);
 
       // epsilon is the smallest such that 1.0+epsilon != 1.0.
       // Key time being in range [0, 1], so epsilon works.
       // nextafterf(src_next_key.time, -1.f) would be a better option, but it
       // isn't available for all compilers (MSVC 11).
       const float new_key_time =
-        src_next_key.time - std::numeric_limits<float>::epsilon();
+          src_next_key.time - std::numeric_limits<float>::epsilon();
 
-      const RawFloatTrack::Keyframe new_key = {RawFloatTrack::kLinear,
-                                               new_key_time, src_key.value};
+      const _Keyframes::value_type new_key = {RawTrackInterpolation::kLinear,
+                                              new_key_time, src_key.value};
 
-      it->interpolation = RawFloatTrack::kLinear;
-      it = keyframes->insert(it + 1, new_key);
+      it->interpolation = RawTrackInterpolation::kLinear;
+      it = _keyframes->insert(it + 1, new_key);
     } else {
-      assert(src_key.interpolation == RawFloatTrack::kLinear);
+      assert(src_key.interpolation == RawTrackInterpolation::kLinear);
     }
   }
 
   // Patch last key as its interpolation mode has no impact.
-  keyframes->back().interpolation = RawFloatTrack::kLinear;
+  _keyframes->back().interpolation = RawTrackInterpolation::kLinear;
 
-  assert(keyframes->front().time >= 0.f);
-  assert(keyframes->back().time <= 1.f);
+  assert(_keyframes->front().time >= 0.f);
+  assert(_keyframes->back().time <= 1.f);
 }
 }  // namespace
 
@@ -1678,7 +1694,8 @@ void Linearize(RawFloatTrack::Keyframes* keyframes) {
 // An animation needs to have at least two key frames per joint, the first at
 // t = 0 and the last at t = 1. If at least one of those keys are not
 // in the RawAnimation then the builder creates it.
-FloatTrack* FloatTrackBuilder::operator()(const RawFloatTrack& _input) const {
+template <typename _RawTrack, typename _Track>
+_Track* FloatTrackBuilder::Build(const _RawTrack& _input) const {
   // Tests _raw_animation validity.
   if (!_input.Validate()) {
     return NULL;
@@ -1686,17 +1703,18 @@ FloatTrack* FloatTrackBuilder::operator()(const RawFloatTrack& _input) const {
 
   // Everything is fine, allocates and fills the animation.
   // Nothing can fail now.
-  FloatTrack* track = memory::default_allocator()->New<FloatTrack>();
+  _Track* track = memory::default_allocator()->New<_Track>();
 
   // Copy data to temporary prepared data structure
-  RawFloatTrack::Keyframes keyframes;
+  typename _RawTrack::Keyframes keyframes;
   // Guessing a worst size to avoid realloc.
   const size_t worst_size =
       _input.keyframes.size() * 2 +  // * 2 in case all keys are kStep
       2;                             // + 2 for first and last keys
   keyframes.reserve(worst_size);
 
-  // Ensure there's a keyframe at the start and end of the track (required for sampling).
+  // Ensure there's a key frame at the start and end of the track (required for
+  // sampling).
   PatchBeginEndKeys(_input, &keyframes);
 
   // Converts kStep keyframes to kLinear, which will add some keys.
@@ -1709,8 +1727,8 @@ FloatTrack* FloatTrackBuilder::operator()(const RawFloatTrack& _input) const {
   assert(keyframes.size() == track->times_.Count() &&
          keyframes.size() == track->values_.Count());
   for (size_t i = 0; i < keyframes.size(); ++i) {
-    const RawFloatTrack::Keyframe& src_key = keyframes[i];
-    assert(src_key.interpolation == RawFloatTrack::kLinear);
+    const _RawTrack::Keyframe& src_key = keyframes[i];
+    assert(src_key.interpolation == RawTrackInterpolation::kLinear);
     track->times_[i] = src_key.time;
     track->values_[i] = src_key.value;
   }
@@ -1719,6 +1737,13 @@ FloatTrack* FloatTrackBuilder::operator()(const RawFloatTrack& _input) const {
     strcpy(animation->name_, _input.name.c_str());
     */
   return track;  // Success.
+}
+
+FloatTrack* FloatTrackBuilder::operator()(const RawFloatTrack& _input) const {
+  return Build<RawFloatTrack, FloatTrack>(_input);
+}
+Float3Track* FloatTrackBuilder::operator()(const RawFloat3Track& _input) const {
+  return Build<RawFloat3Track, Float3Track>(_input);
 }
 }  // offline
 }  // animation
@@ -1757,7 +1782,7 @@ FloatTrack* FloatTrackBuilder::operator()(const RawFloatTrack& _input) const {
 
 #include <cassert>
 #include <cstddef>
-  
+
 #include "ozz/base/maths/math_ex.h"
 
 #include "ozz/animation/offline/raw_float_track.h"
@@ -1767,8 +1792,7 @@ namespace animation {
 namespace offline {
 
 // Setup default values (favoring quality).
-FloatTrackOptimizer::FloatTrackOptimizer()
-    : tolerance(1e-3f) {  // 1 mm.
+TrackOptimizer::TrackOptimizer() : tolerance(1e-3f) {  // 1 mm.
 }
 
 namespace {
@@ -1778,22 +1802,27 @@ bool Compare(float _left, float _right, float _tolerance) {
 }
 
 // Copy _src keys to _dest but except the ones that can be interpolated.
-void Filter(const RawFloatTrack::Keyframes& _src, float _tolerance, RawFloatTrack::Keyframes* _dest) {
+template <typename _Keyframes>
+void Filter(const _Keyframes& _src, float _tolerance,
+            _Keyframes* _dest) {
+  typedef typename _Keyframes::value_type Keyframe;
+
   _dest->reserve(_src.size());
 
   // Only copies the key that cannot be interpolated from the others.
   size_t last_src_pushed = 0;  // Index (in src) of the last pushed key.
   for (size_t i = 0; i < _src.size(); ++i) {
-    const RawFloatTrack::Keyframe& current = _src[i];
+    const Keyframe& current = _src[i];
 
     // First and last keys are always pushed.
-    // RawFloatTrack::kStep keyframes aren't optimized, as steps can't be interpolated.
-    if (i == 0 || current.interpolation == RawFloatTrack::kStep) {
+    // RawTrackInterpolation::kStep keyframes aren't optimized, as steps can't
+    // be interpolated.
+    if (i == 0 || current.interpolation == RawTrackInterpolation::kStep) {
       _dest->push_back(_src[i]);
       last_src_pushed = i;
     } else if (i == _src.size() - 1) {
       // Don't push the last value if it's the same as last_src_pushed.
-      const RawFloatTrack::Keyframe& left = _src[last_src_pushed];
+      const Keyframe& left = _src[last_src_pushed];
       if (!Compare(left.value, current.value, _tolerance)) {
         _dest->push_back(current);
         last_src_pushed = i;
@@ -1801,13 +1830,14 @@ void Filter(const RawFloatTrack::Keyframes& _src, float _tolerance, RawFloatTrac
     } else {
       // Only inserts i key if keys in range ]last_src_pushed,i] cannot be
       // interpolated from keys last_src_pushed and i + 1.
-      const RawFloatTrack::Keyframe& left = _src[last_src_pushed];
-      const RawFloatTrack::Keyframe& right = _src[i + 1];
+      const Keyframe& left = _src[last_src_pushed];
+      const Keyframe& right = _src[i + 1];
       for (size_t j = last_src_pushed + 1; j <= i; ++j) {
-        const RawFloatTrack::Keyframe& test = _src[j];
+        const Keyframe& test = _src[j];
         const float alpha = (test.time - left.time) / (right.time - left.time);
         assert(alpha >= 0.f && alpha <= 1.f);
-        if (!Compare(math::Lerp(left.value, right.value, alpha), test.value, _tolerance)) {
+        if (!Compare(math::Lerp(left.value, right.value, alpha), test.value,
+                     _tolerance)) {
           _dest->push_back(current);
           last_src_pushed = i;
           break;
@@ -1817,25 +1847,35 @@ void Filter(const RawFloatTrack::Keyframes& _src, float _tolerance, RawFloatTrac
   }
   assert(_dest->size() <= _src.size());
 }
-}  // namespace
 
-bool FloatTrackOptimizer::operator()(const RawFloatTrack& _input,
-                                     RawFloatTrack* _output) const {
+template <typename _Track>
+bool Optimize(const TrackOptimizer& _optimizer, const _Track& _input, _Track* _output) {
   if (!_output) {
     return false;
   }
   // Reset output animation to default.
-  *_output = RawFloatTrack();
+  *_output = _Track();
 
   // Validate animation.
   if (!_input.Validate()) {
     return false;
   }
 
-  Filter(_input.keyframes, tolerance, &_output->keyframes);
+  Filter(_input.keyframes, _optimizer.tolerance, &_output->keyframes);
 
   // Output animation is always valid though.
   return _output->Validate();
+}
+}  // namespace
+
+bool TrackOptimizer::operator()(const RawFloatTrack& _input,
+                                RawFloatTrack* _output) const {
+  return Optimize(*this, _input, _output);
+}
+
+bool TrackOptimizer::operator()(const RawFloat3Track& _input,
+                                RawFloat3Track* _output) const {
+  return Optimize(*this, _input, _output);
 }
 }  // offline
 }  // animation

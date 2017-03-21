@@ -31,6 +31,9 @@
 #include "ozz/base/io/archive_traits.h"
 #include "ozz/base/platform.h"
 
+// TODO reconsider ??
+#include "ozz/base/maths/vec_float.h"
+
 namespace ozz {
 namespace animation {
 
@@ -39,15 +42,18 @@ namespace offline {
 class FloatTrackBuilder;
 }
 
+namespace internal {
 // Runtime float track data structure.
-class FloatTrack {
+template <typename Value>
+class Track {
  public:
-  FloatTrack();
+  typedef Value Value;
 
-  ~FloatTrack();
+  Track();
+  ~Track();
 
   Range<const float> times() const { return times_; }
-  Range<const float> values() const { return values_; }
+  Range<const Value> values() const { return values_; }
 
   // Get the estimated track's size in bytes.
   size_t size() const;
@@ -58,8 +64,7 @@ class FloatTrack {
   void Load(ozz::io::IArchive& _archive, uint32_t _version);
 
  private:
-
-  // FloatTrackBuilder class is allowed to instantiate an Animation.
+  // FloatTrackBuilder class is allowed to allocate an Animation.
   friend class offline::FloatTrackBuilder;
 
   // Internal destruction function.
@@ -67,8 +72,13 @@ class FloatTrack {
   void Deallocate();
 
   Range<float> times_;
-  Range<float> values_;
+  Range<Value> values_;
 };
+}  // internal
+
+// Runtime float track data structure.
+class FloatTrack : public internal::Track<float> {};
+class Float3Track : public internal::Track<math::Float3> {};
 
 }  // animation
 namespace io {

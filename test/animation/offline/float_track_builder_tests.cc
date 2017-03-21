@@ -40,6 +40,7 @@ using ozz::animation::FloatTrack;
 using ozz::animation::FloatTrackSamplingJob;
 using ozz::animation::offline::RawFloatTrack;
 using ozz::animation::offline::FloatTrackBuilder;
+using ozz::animation::offline::RawTrackInterpolation;
 
 TEST(Default, FloatTrackBuilder) {
   // Instantiates a builder objects with default parameters.
@@ -65,11 +66,11 @@ TEST(Build, FloatTrackBuilder) {
     raw_float_track.keyframes.resize(2);
 
     // Adds 2 unordered keys
-    RawFloatTrack::Keyframe first_key = {RawFloatTrack::kLinear,
-                                         .8f, 0.f};
+    RawFloatTrack::Keyframe first_key = {RawTrackInterpolation::kLinear, .8f,
+                                         0.f};
     raw_float_track.keyframes.push_back(first_key);
-    RawFloatTrack::Keyframe second_key = {RawFloatTrack::kLinear,
-                                          .2f, 0.f};
+    RawFloatTrack::Keyframe second_key = {RawTrackInterpolation::kLinear, .2f,
+                                          0.f};
     raw_float_track.keyframes.push_back(second_key);
 
     // Builds track
@@ -82,12 +83,12 @@ TEST(Build, FloatTrackBuilder) {
     raw_float_track.keyframes.resize(2);
 
     // Adds 2 unordered keys
-    RawFloatTrack::Keyframe first_key = {RawFloatTrack::kLinear,
-                                         .1f, 0.f};
+    RawFloatTrack::Keyframe first_key = {RawTrackInterpolation::kLinear, .1f,
+                                         0.f};
     raw_float_track.keyframes.push_back(first_key);
     RawFloatTrack::Keyframe second_key = {
-      RawFloatTrack::kLinear,
-      .1f + std::numeric_limits<float>::epsilon(), 0.f};
+        RawTrackInterpolation::kLinear,
+        .1f + std::numeric_limits<float>::epsilon(), 0.f};
     raw_float_track.keyframes.push_back(second_key);
 
     // Builds track
@@ -100,8 +101,8 @@ TEST(Build, FloatTrackBuilder) {
     raw_float_track.keyframes.resize(1);
 
     // Adds 2 unordered keys
-    RawFloatTrack::Keyframe first_key = {RawFloatTrack::kLinear,
-                                         1.8f, 0.f};
+    RawFloatTrack::Keyframe first_key = {RawTrackInterpolation::kLinear, 1.8f,
+                                         0.f};
     raw_float_track.keyframes.push_back(first_key);
 
     // Builds track
@@ -114,11 +115,11 @@ TEST(Build, FloatTrackBuilder) {
     raw_float_track.keyframes.resize(2);
 
     // Adds 2 unordered keys
-    RawFloatTrack::Keyframe first_key = {RawFloatTrack::kLinear,
-                                         .8f, 0.f};
+    RawFloatTrack::Keyframe first_key = {RawTrackInterpolation::kLinear, .8f,
+                                         0.f};
     raw_float_track.keyframes.push_back(first_key);
-    RawFloatTrack::Keyframe second_key = {RawFloatTrack::kLinear,
-                                          .8f, 1.f};
+    RawFloatTrack::Keyframe second_key = {RawTrackInterpolation::kLinear, .8f,
+                                          1.f};
     raw_float_track.keyframes.push_back(second_key);
 
     // Builds track
@@ -128,8 +129,8 @@ TEST(Build, FloatTrackBuilder) {
 
   {  // Building a valid track with 1 key succeeds.
     RawFloatTrack raw_float_track;
-    RawFloatTrack::Keyframe first_key = {RawFloatTrack::kLinear,
-                                         .8f, 0.f};
+    RawFloatTrack::Keyframe first_key = {RawTrackInterpolation::kLinear, .8f,
+                                         0.f};
     raw_float_track.keyframes.push_back(first_key);
     EXPECT_TRUE(raw_float_track.Validate());
 
@@ -204,8 +205,8 @@ TEST(BuildLinear, FloatTrackBuilder) {
   {  // 1 key at the beginning
     RawFloatTrack raw_float_track;
 
-    RawFloatTrack::Keyframe first_key = {RawFloatTrack::kLinear,
-                                         0.f, 46.f};
+    RawFloatTrack::Keyframe first_key = {RawTrackInterpolation::kLinear, 0.f,
+                                         46.f};
     raw_float_track.keyframes.push_back(first_key);
 
     // Builds track
@@ -235,8 +236,8 @@ TEST(BuildLinear, FloatTrackBuilder) {
   {  // 1 key in the middle
     RawFloatTrack raw_float_track;
 
-    RawFloatTrack::Keyframe first_key = {RawFloatTrack::kLinear,
-                                         .5f, 46.f};
+    RawFloatTrack::Keyframe first_key = {RawTrackInterpolation::kLinear, .5f,
+                                         46.f};
     raw_float_track.keyframes.push_back(first_key);
 
     // Builds track
@@ -266,8 +267,8 @@ TEST(BuildLinear, FloatTrackBuilder) {
   {  // 1 key at the end
     RawFloatTrack raw_float_track;
 
-    RawFloatTrack::Keyframe first_key = {RawFloatTrack::kLinear,
-                                         1.f, 46.f};
+    RawFloatTrack::Keyframe first_key = {RawTrackInterpolation::kLinear, 1.f,
+                                         46.f};
     raw_float_track.keyframes.push_back(first_key);
 
     // Builds track
@@ -297,11 +298,11 @@ TEST(BuildLinear, FloatTrackBuilder) {
   {  // 2 keys at the end
     RawFloatTrack raw_float_track;
 
-    RawFloatTrack::Keyframe first_key = {RawFloatTrack::kLinear,
-                                         .5f, 46.f};
+    RawFloatTrack::Keyframe first_key = {RawTrackInterpolation::kLinear, .5f,
+                                         46.f};
     raw_float_track.keyframes.push_back(first_key);
-    RawFloatTrack::Keyframe second_key = {RawFloatTrack::kLinear,
-                                         .7f, 0.f};
+    RawFloatTrack::Keyframe second_key = {RawTrackInterpolation::kLinear, .7f,
+                                          0.f};
     raw_float_track.keyframes.push_back(second_key);
 
     // Builds track
@@ -345,8 +346,8 @@ TEST(BuildStep, FloatTrackBuilder) {
   {  // 1 key at the beginning
     RawFloatTrack raw_float_track;
 
-    RawFloatTrack::Keyframe first_key = {RawFloatTrack::kStep,
-                                         0.f, 46.f};
+    RawFloatTrack::Keyframe first_key = {RawTrackInterpolation::kStep, 0.f,
+                                         46.f};
     raw_float_track.keyframes.push_back(first_key);
 
     // Builds track
@@ -376,8 +377,8 @@ TEST(BuildStep, FloatTrackBuilder) {
   {  // 1 key in the middle
     RawFloatTrack raw_float_track;
 
-    RawFloatTrack::Keyframe first_key = {RawFloatTrack::kStep,
-                                         .5f, 46.f};
+    RawFloatTrack::Keyframe first_key = {RawTrackInterpolation::kStep, .5f,
+                                         46.f};
     raw_float_track.keyframes.push_back(first_key);
 
     // Builds track
@@ -407,8 +408,8 @@ TEST(BuildStep, FloatTrackBuilder) {
   {  // 1 key at the end
     RawFloatTrack raw_float_track;
 
-    RawFloatTrack::Keyframe first_key = {RawFloatTrack::kStep,
-                                         1.f, 46.f};
+    RawFloatTrack::Keyframe first_key = {RawTrackInterpolation::kStep, 1.f,
+                                         46.f};
     raw_float_track.keyframes.push_back(first_key);
 
     // Builds track
@@ -438,8 +439,8 @@ TEST(BuildStep, FloatTrackBuilder) {
   {  // 1 key at the beginning
     RawFloatTrack raw_float_track;
 
-    RawFloatTrack::Keyframe first_key = {RawFloatTrack::kStep,
-                                         0.f, 46.f};
+    RawFloatTrack::Keyframe first_key = {RawTrackInterpolation::kStep, 0.f,
+                                         46.f};
     raw_float_track.keyframes.push_back(first_key);
 
     // Builds track
@@ -469,11 +470,11 @@ TEST(BuildStep, FloatTrackBuilder) {
   {  // 2 keys
     RawFloatTrack raw_float_track;
 
-    RawFloatTrack::Keyframe first_key = {RawFloatTrack::kStep,
-                                         0.f, 46.f};
+    RawFloatTrack::Keyframe first_key = {RawTrackInterpolation::kStep, 0.f,
+                                         46.f};
     raw_float_track.keyframes.push_back(first_key);
-    RawFloatTrack::Keyframe second_key = {RawFloatTrack::kStep,
-                                         .7f, 0.f};
+    RawFloatTrack::Keyframe second_key = {RawTrackInterpolation::kStep, .7f,
+                                          0.f};
     raw_float_track.keyframes.push_back(second_key);
 
     // Builds track
@@ -519,14 +520,14 @@ TEST(BuildStep, FloatTrackBuilder) {
   {  // 3 keys
     RawFloatTrack raw_float_track;
 
-    RawFloatTrack::Keyframe first_key = {RawFloatTrack::kStep,
-                                         0.f, 46.f};
+    RawFloatTrack::Keyframe first_key = {RawTrackInterpolation::kStep, 0.f,
+                                         46.f};
     raw_float_track.keyframes.push_back(first_key);
-    RawFloatTrack::Keyframe second_key = {RawFloatTrack::kStep,
-                                         .7f, 0.f};
+    RawFloatTrack::Keyframe second_key = {RawTrackInterpolation::kStep, .7f,
+                                          0.f};
     raw_float_track.keyframes.push_back(second_key);
-    RawFloatTrack::Keyframe third_key = {RawFloatTrack::kStep,
-                                         1.f, 99.f};
+    RawFloatTrack::Keyframe third_key = {RawTrackInterpolation::kStep, 1.f,
+                                         99.f};
     raw_float_track.keyframes.push_back(third_key);
 
     // Builds track
@@ -573,16 +574,15 @@ TEST(BuildStep, FloatTrackBuilder) {
     ozz::memory::default_allocator()->Delete(track);
   }
 
-
   {  // 2 close keys
     RawFloatTrack raw_float_track;
 
-    RawFloatTrack::Keyframe first_key = {RawFloatTrack::kStep,
-                                         .5f, 46.f};
+    RawFloatTrack::Keyframe first_key = {RawTrackInterpolation::kStep, .5f,
+                                         46.f};
     raw_float_track.keyframes.push_back(first_key);
     RawFloatTrack::Keyframe second_key = {
-      RawFloatTrack::kStep,
-      .5f + 2.f * std::numeric_limits<float>::epsilon(), 0.f};
+        RawTrackInterpolation::kStep,
+        .5f + 2.f * std::numeric_limits<float>::epsilon(), 0.f};
     raw_float_track.keyframes.push_back(second_key);
 
     // Builds track
@@ -620,14 +620,14 @@ TEST(BuildStep, FloatTrackBuilder) {
   {  // 3 keys
     RawFloatTrack raw_float_track;
 
-    RawFloatTrack::Keyframe first_key = {RawFloatTrack::kStep,
-                                         .5f, 46.f};
+    RawFloatTrack::Keyframe first_key = {RawTrackInterpolation::kStep, .5f,
+                                         46.f};
     raw_float_track.keyframes.push_back(first_key);
-    RawFloatTrack::Keyframe second_key = {RawFloatTrack::kStep,
-                                         .7f, 0.f};
+    RawFloatTrack::Keyframe second_key = {RawTrackInterpolation::kStep, .7f,
+                                          0.f};
     raw_float_track.keyframes.push_back(second_key);
-    RawFloatTrack::Keyframe third_key = {RawFloatTrack::kStep,
-                                         1.f, 99.f};
+    RawFloatTrack::Keyframe third_key = {RawTrackInterpolation::kStep, 1.f,
+                                         99.f};
     raw_float_track.keyframes.push_back(third_key);
 
     // Builds track
@@ -686,14 +686,11 @@ TEST(BuildMixed, FloatTrackBuilder) {
 
   RawFloatTrack raw_float_track;
 
-  RawFloatTrack::Keyframe key0 = {RawFloatTrack::kLinear,
-                                        0.f, 0.f};
+  RawFloatTrack::Keyframe key0 = {RawTrackInterpolation::kLinear, 0.f, 0.f};
   raw_float_track.keyframes.push_back(key0);
-  RawFloatTrack::Keyframe key1 = {RawFloatTrack::kStep,
-                                        .5f, 46.f};
+  RawFloatTrack::Keyframe key1 = {RawTrackInterpolation::kStep, .5f, 46.f};
   raw_float_track.keyframes.push_back(key1);
-  RawFloatTrack::Keyframe key2 = {RawFloatTrack::kLinear,
-                                        .7f, 0.f};
+  RawFloatTrack::Keyframe key2 = {RawTrackInterpolation::kLinear, .7f, 0.f};
   raw_float_track.keyframes.push_back(key2);
 
   // Builds track
@@ -736,6 +733,50 @@ TEST(BuildMixed, FloatTrackBuilder) {
   sampling.time = 1.f;
   ASSERT_TRUE(sampling.Run());
   EXPECT_FLOAT_EQ(result, 0.f);
+
+  ozz::memory::default_allocator()->Delete(track);
+}
+
+TEST(Lerp, Float3TrackBuilder) {
+  FloatTrackBuilder builder;
+  ozz::animation::offline::RawFloat3Track raw_track;
+
+  ozz::animation::offline::RawFloat3Track::Keyframe first_key = {
+      RawTrackInterpolation::kLinear, .5f, ozz::math::Float3(0.f, 23.f, 46.f)};
+  raw_track.keyframes.push_back(first_key);
+  ozz::animation::offline::RawFloat3Track::Keyframe second_key = {
+      RawTrackInterpolation::kLinear, .7f, ozz::math::Float3(23.f, 46.f, 92.f)};
+  raw_track.keyframes.push_back(second_key);
+
+  // Builds track
+  ozz::animation::Float3Track* track = builder(raw_track);
+  ASSERT_TRUE(track != NULL);
+
+  // Samples to verify build output.
+  ozz::math::Float3 result;
+  ozz::animation::Float3TrackSamplingJob sampling;
+  sampling.track = track;
+  sampling.result = &result;
+
+  sampling.time = 0.f;
+  ASSERT_TRUE(sampling.Run());
+  EXPECT_FLOAT3_EQ(result, 0.f, 23.f, 46.f);
+
+  sampling.time = .5f;
+  ASSERT_TRUE(sampling.Run());
+  EXPECT_FLOAT3_EQ(result, 0.f, 23.f, 46.f);
+
+  sampling.time = .6f;
+  ASSERT_TRUE(sampling.Run());
+  EXPECT_FLOAT3_EQ(result, 11.5f, 34.5f, 69.f);
+
+  sampling.time = .7f;
+  ASSERT_TRUE(sampling.Run());
+  EXPECT_FLOAT3_EQ(result, 23.f, 46.f, 92.f);
+
+  sampling.time = 1.f;
+  ASSERT_TRUE(sampling.Run());
+  EXPECT_FLOAT3_EQ(result, 23.f, 46.f, 92.f);
 
   ozz::memory::default_allocator()->Delete(track);
 }
