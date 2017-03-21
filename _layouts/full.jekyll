@@ -1,7 +1,7 @@
 {% include header.jekyll %}
   
 <div id="myHeader" class="w3-row w3-white w3-padding">
-  <div class="w3-half" style="margin:4px 0 6px 0;"></div>
+  <div class="w3-half"><br /></div>
   <div class="w3-half w3-margin-top w3-wide w3-large"><div class="w3-right">ozz-animation</div></div>
 </div>
 
