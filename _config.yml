@@ -2,7 +2,7 @@ gems:
   - jekyll-sitemap
 encoding: utf-8
 google-tracking-id: UA-35633955-2
-keywords: animation, library, engine, game, 3d, c++, cpp, cplusplus, open, source, mit, skeleton, skeletal, bone, joint, character, blending, load, import, fbx, collada, obj, directx, opengl
+keywords: skeletal, animation, library, engine, game, 3d, c++, cpp, cplusplus, open, source, mit, skeleton, skeletal, bone, joint, character, blending, load, import, fbx, collada, obj, directx, opengl
 collections:
   samples:
     display_name: Samples
