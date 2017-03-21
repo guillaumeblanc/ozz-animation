@@ -2,8 +2,8 @@
   col1: "Author"
   col2: "Description"
   col3: "Link"
-- col0: "Automated  Semi‐Procedural Animation for  Character  Locomotion"
-  col1: "Rune  Skovbo  Johansen"
+- col0: "Automated semi-procedural animation for character locomotion"
+  col1: "Rune Skovbo Johansen"
   col2: "Describes animation motion analysis and semi-procedural methods for adjusting the blended motion."
   col3: "http://runevision.com/thesis/rune_skovbo_johansen_thesis.pdf"
 - col0: "Gradient Band Interpolation shadertoy"
