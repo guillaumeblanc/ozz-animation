@@ -34,7 +34,7 @@
 </div>
 
 <!-- Sidenav -->
-<div class="w3-sidebar w3-bar-block w3-animate-left w3-medium w3-wide" style="display:none;z-index:5;position:fixed;top:32px" id="mySidenav">
+<div class="w3-sidebar w3-bar-block w3-animate-left w3-medium w3-wide w3-padding-right" style="display:none;z-index:5;position:fixed;top:0px" id="mySidenav">
   <a href="javascript:void(0)" onclick="w3_close()" class="a_reject w3-right w3-xlarge w3-padding-large" title="Close">&times;</a>
 
   <div style="clear:both;"></div>
