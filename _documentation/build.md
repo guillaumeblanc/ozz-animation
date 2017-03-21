@@ -1,5 +1,5 @@
 ---
-title: Getting started
+title: Build
 layout: full
 keywords: download,build,libraries,amalgamated,sources,cmake,git,gcc,clang,msvc,start,tutorial,emscripten,opengl,glfw,unit-tests,package
 order: 5
