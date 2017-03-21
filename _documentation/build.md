@@ -34,7 +34,7 @@ Alternatively, latest release sources can be downloaded as a [zip package][link_
 Building ozz libraries, tools and samples
 =========================================
 
-Ozz build process relies on [cmake](http://cmake.org) which provides a portable build system. It is setup to build ozz-animation libraries, tools and samples (along with their data). It can also run unit-tests and package sources/binary distributions.
+Ozz build process relies on [cmake](https://cmake.org) which provides a portable build system. It is setup to build ozz-animation libraries, tools and samples (along with their data). It can also run unit-tests and package sources/binary distributions.
 
 > See [the feature-map page][link_features_os] for a list of tested OS and compilers.
 
