@@ -26,7 +26,7 @@
 
       {% if {{page.layout}} != "home" %}
         <div class="w3-right w3-padding-8 w3-margin-right">
-          <a class="a_reject w3-bar-item w3-button {% if {{page.layout}} == "home" %}w3-orange{% endif %}" href="{{site.baseurl}}/">
+          <a class="a_reject" href="{{site.baseurl}}/">
             <img src="{{site.baseurl}}/images/logo/ozz-white-32.png" class="w3-image" alt="ozz" width="24" height="24">
           </a>
         </div>
