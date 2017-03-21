@@ -74,7 +74,7 @@ Full sources for this how-to are available [here][link_how_to_load_src].
 
 How to write a custom skeleton importer?
 ========================================
-ozz proposes all the offline [data structures][link_toolset] and [utilities][link_toolset_utilities] required to build runtime optimized skeleton data. `ozz::animation::offline::RawSkeleton` is the offline data structure for skeletons. It is defined as a hierachy of joints, with their names and default transformation. It is converted to the runtime `ozz::animation::Skeleton` with `ozz::animation::offline::SkeletonBuilder` class.
+ozz proposes all the offline [data structures][link_toolset] and [utilities][link_toolset] required to build runtime optimized skeleton data. `ozz::animation::offline::RawSkeleton` is the offline data structure for skeletons. It is defined as a hierachy of joints, with their names and default transformation. It is converted to the runtime `ozz::animation::Skeleton` with `ozz::animation::offline::SkeletonBuilder` class.
 
 So writing a custom importer means first filling a `RawSkeleton` object. The next few code part setup a Raw skeleton with a root and 2 children (3 joints in total).
 
