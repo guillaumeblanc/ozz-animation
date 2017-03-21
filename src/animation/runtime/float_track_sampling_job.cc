@@ -59,7 +59,7 @@ bool TrackSamplingJob<_Track>::Run() const {
 
   // Search keyframes to interpolate.
   const Range<const float> times = track->times();
-  const Range<const _Track::Value> values = track->values();
+  const Range<const typename _Track::ValueType> values = track->values();
   assert(times.Size() == values.Size());
 
   // Search for the first key frame with a time value greater than input time.
@@ -75,9 +75,9 @@ bool TrackSamplingJob<_Track>::Run() const {
   const float tk0 = ptk1[-1];
   const float tk1 = ptk1[0];
   assert(clamped_time >= tk0 && tk0 != tk1);
-  const _Track::Value* pvk1 = values.begin + (ptk1 - times.begin);
-  const _Track::Value vk0 = pvk1[-1];
-  const _Track::Value vk1 = pvk1[0];
+  const typename _Track::ValueType* pvk1 = values.begin + (ptk1 - times.begin);
+  const typename _Track::ValueType vk0 = pvk1[-1];
+  const typename _Track::ValueType vk1 = pvk1[0];
   const float alpha = (clamped_time - tk0) / (tk1 - tk0);
   *result = math::Lerp(vk0, vk1, alpha);
 
@@ -85,8 +85,8 @@ bool TrackSamplingJob<_Track>::Run() const {
 }
 
 // Explicitly instantiate supported raw tracks.
-template TrackSamplingJob<FloatTrack>;
-template TrackSamplingJob<Float3Track>;
+template struct TrackSamplingJob<FloatTrack>;
+template struct TrackSamplingJob<Float3Track>;
 
 }  // internal
 }  // animation

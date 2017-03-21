@@ -47,25 +47,25 @@ template <typename _RawTrack>
 void PatchBeginEndKeys(const _RawTrack& _input,
                        typename _RawTrack::Keyframes* keyframes) {
   if (_input.keyframes.empty()) {
-    const _RawTrack::Keyframe begin = {RawTrackInterpolation::kLinear, 0.f,
-                                       _RawTrack::Value()};
+    const typename _RawTrack::Keyframe begin = {RawTrackInterpolation::kLinear, 0.f,
+                                       typename _RawTrack::ValueType()};
     keyframes->push_back(begin);
-    const _RawTrack::Keyframe end = {RawTrackInterpolation::kLinear, 1.f,
-                                     _RawTrack::Value()};
+    const typename _RawTrack::Keyframe end = {RawTrackInterpolation::kLinear, 1.f,
+                                     typename _RawTrack::ValueType()};
     keyframes->push_back(end);
   } else if (_input.keyframes.size() == 1) {
-    const _RawTrack::Keyframe& src_key = _input.keyframes.front();
-    const _RawTrack::Keyframe begin = {RawTrackInterpolation::kLinear, 0.f,
+    const typename _RawTrack::Keyframe& src_key = _input.keyframes.front();
+    const typename _RawTrack::Keyframe begin = {RawTrackInterpolation::kLinear, 0.f,
                                        src_key.value};
     keyframes->push_back(begin);
-    const _RawTrack::Keyframe end = {RawTrackInterpolation::kLinear, 1.f,
+    const typename _RawTrack::Keyframe end = {RawTrackInterpolation::kLinear, 1.f,
                                      src_key.value};
     keyframes->push_back(end);
   } else {
     // Copy all source data.
     if (_input.keyframes.front().time != 0.f) {
-      const _RawTrack::Keyframe& src_key = _input.keyframes.front();
-      const _RawTrack::Keyframe begin = {RawTrackInterpolation::kLinear, 0.f,
+      const typename _RawTrack::Keyframe& src_key = _input.keyframes.front();
+      const typename _RawTrack::Keyframe begin = {RawTrackInterpolation::kLinear, 0.f,
                                          src_key.value};
       keyframes->push_back(begin);
     }
@@ -73,8 +73,8 @@ void PatchBeginEndKeys(const _RawTrack& _input,
       keyframes->push_back(_input.keyframes[i]);
     }
     if (_input.keyframes.back().time != 1.f) {
-      const _RawTrack::Keyframe& src_key = _input.keyframes.back();
-      const _RawTrack::Keyframe end = {RawTrackInterpolation::kLinear, 1.f,
+      const typename _RawTrack::Keyframe& src_key = _input.keyframes.back();
+      const typename _RawTrack::Keyframe end = {RawTrackInterpolation::kLinear, 1.f,
                                        src_key.value};
       keyframes->push_back(end);
     }
@@ -89,13 +89,13 @@ void Linearize(_Keyframes* _keyframes) {
   // "official" one such that interpolating this two keys will simulate a kStep
   // behavior.
   // Note that interpolation mode of the last key has no impact.
-  for (_Keyframes::iterator it = _keyframes->begin();
+  for (typename _Keyframes::iterator it = _keyframes->begin();
        it != _keyframes->end() - 1; ++it) {
-    _Keyframes::const_reference src_key = *it;
+    typename _Keyframes::const_reference src_key = *it;
 
     if (src_key.interpolation == RawTrackInterpolation::kStep) {
       // Pick a time right before the next key frame.
-      _Keyframes::const_reference src_next_key = *(it + 1);
+      typename _Keyframes::const_reference src_next_key = *(it + 1);
 
       // epsilon is the smallest such that 1.0+epsilon != 1.0.
       // Key time being in range [0, 1], so epsilon works.
@@ -104,7 +104,7 @@ void Linearize(_Keyframes* _keyframes) {
       const float new_key_time =
           src_next_key.time - std::numeric_limits<float>::epsilon();
 
-      const _Keyframes::value_type new_key = {RawTrackInterpolation::kLinear,
+      const typename _Keyframes::value_type new_key = {RawTrackInterpolation::kLinear,
                                               new_key_time, src_key.value};
 
       it->interpolation = RawTrackInterpolation::kLinear;
@@ -159,7 +159,7 @@ _Track* FloatTrackBuilder::Build(const _RawTrack& _input) const {
   assert(keyframes.size() == track->times_.Count() &&
          keyframes.size() == track->values_.Count());
   for (size_t i = 0; i < keyframes.size(); ++i) {
-    const _RawTrack::Keyframe& src_key = keyframes[i];
+    const typename _RawTrack::Keyframe& src_key = keyframes[i];
     assert(src_key.interpolation == RawTrackInterpolation::kLinear);
     track->times_[i] = src_key.time;
     track->values_[i] = src_key.value;

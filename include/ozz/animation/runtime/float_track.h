@@ -44,16 +44,16 @@ class FloatTrackBuilder;
 
 namespace internal {
 // Runtime float track data structure.
-template <typename Value>
+template <typename _ValueType>
 class Track {
  public:
-  typedef Value Value;
+  typedef _ValueType ValueType;
 
   Track();
   ~Track();
 
   Range<const float> times() const { return times_; }
-  Range<const Value> values() const { return values_; }
+  Range<const _ValueType> values() const { return values_; }
 
   // Get the estimated track's size in bytes.
   size_t size() const;
@@ -72,7 +72,7 @@ class Track {
   void Deallocate();
 
   Range<float> times_;
-  Range<Value> values_;
+  Range<_ValueType> values_;
 };
 }  // internal
 

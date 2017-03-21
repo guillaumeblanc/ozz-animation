@@ -50,7 +50,7 @@ struct TrackSamplingJob {
   const _Track* track;
 
   // Job output.
-  typename _Track::Value* result;
+  typename _Track::ValueType* result;
 };
 }  // internal
 

@@ -39,10 +39,12 @@ namespace animation {
 namespace offline {
 
 // Interpolation mode.
-enum RawTrackInterpolation {
-  kStep,    // All values following this key, up to the next key, are equal.
-  kLinear,  // All value between this key and the next are linearly
-            // interpolated.
+struct RawTrackInterpolation {
+  enum Value {
+    kStep,    // All values following this key, up to the next key, are equal.
+    kLinear,  // All value between this key and the next are linearly
+              // interpolated.
+  };
 };
 
 // Offline float animation track type.
@@ -66,9 +68,9 @@ enum RawTrackInterpolation {
 // the
 // RawFloatTrackBuilder.
 namespace internal {
-template <typename Value>
+template <typename _ValueType>
 struct RawTrack {
-  typedef Value Value;
+  typedef _ValueType ValueType;
 
   // Constructs a valid RawFloatTrack.
   RawTrack();
@@ -85,9 +87,9 @@ struct RawTrack {
 
   // Keyframe data structure.
   struct Keyframe {
-    RawTrackInterpolation interpolation;
+    RawTrackInterpolation::Value interpolation;
     float time;
-    Value value;
+    _ValueType value;
   };
   // Sequence of keyframes, expected to be sorted.
   typedef typename ozz::Vector<Keyframe>::Std Keyframes;

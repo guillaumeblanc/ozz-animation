@@ -34,14 +34,14 @@ namespace animation {
 namespace offline {
 namespace internal {
 
-template <typename Value>
-RawTrack<Value>::RawTrack() {}
+template <typename _ValueType>
+RawTrack<_ValueType>::RawTrack() {}
 
-template <typename Value>
-RawTrack<Value>::~RawTrack() {}
+template <typename _ValueType>
+RawTrack<_ValueType>::~RawTrack() {}
 
-template <typename Value>
-bool RawTrack<Value>::Validate() const {
+template <typename _ValueType>
+bool RawTrack<_ValueType>::Validate() const {
   float previous_time = -1.f;
   for (size_t k = 0; k < keyframes.size(); ++k) {
     const float frame_time = keyframes[k].time;
@@ -59,8 +59,8 @@ bool RawTrack<Value>::Validate() const {
 }
 
 // Explicitly instantiate supported raw tracks.
-template RawTrack<float>;
-template RawTrack<math::Float3>;
+template struct RawTrack<float>;
+template struct RawTrack<math::Float3>;
 
 }  // internal
 }  // offline
