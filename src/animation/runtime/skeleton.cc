@@ -107,6 +107,7 @@ char* Skeleton::Allocate(size_t _chars_size, size_t _num_joints) {
   char* buffer = reinterpret_cast<char*>(memory::default_allocator()->Allocate(
       buffer_size, OZZ_ALIGN_OF(math::SoaTransform)));
 
+  // Serves larger alignment values first.
   // Bind pose first, biggest alignment.
   bind_pose_.begin = reinterpret_cast<math::SoaTransform*>(buffer);
   assert(math::IsAligned(bind_pose_.begin, OZZ_ALIGN_OF(math::SoaTransform)));

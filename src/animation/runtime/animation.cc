@@ -27,8 +27,8 @@
 
 #include "ozz/animation/runtime/animation.h"
 
-#include "ozz/base/log.h"
 #include "ozz/base/io/archive.h"
+#include "ozz/base/log.h"
 #include "ozz/base/maths/math_archive.h"
 #include "ozz/base/maths/math_ex.h"
 #include "ozz/base/memory/allocator.h"
@@ -65,7 +65,7 @@ void Animation::Allocate(size_t name_len, size_t _translation_count,
                              _scale_count * sizeof(ScaleKey);
   char* buffer = memory::default_allocator()->Allocate<char>(buffer_size);
 
-  // Fix up pointers
+  // Fix up pointers. Serves larger alignment values first.
   translations_.begin = reinterpret_cast<TranslationKey*>(buffer);
   assert(math::IsAligned(translations_.begin, OZZ_ALIGN_OF(TranslationKey)));
   buffer += _translation_count * sizeof(TranslationKey);

@@ -140,7 +140,8 @@ int Application::Run(int _argc, const char** _argv, const char* _version,
              << std::endl;
 
   // Parse command line arguments.
-  const char* usage = "Ozz animation sample. See README.md file for more details.";
+  const char* usage =
+      "Ozz animation sample. See README.md file for more details.";
   ozz::options::ParseResult result =
       ozz::options::ParseCommandLine(_argc, _argv, _version, usage);
   if (result != ozz::options::kSuccess) {
@@ -202,7 +203,7 @@ int Application::Run(int _argc, const char** _argv, const char* _version,
         shooter_ = memory::default_allocator()->New<internal::Shooter>();
         im_gui_ = memory::default_allocator()->New<internal::ImGuiImpl>();
 
-#ifndef EMSCRIPTEN // Better not rename web page.
+#ifndef EMSCRIPTEN  // Better not rename web page.
         glfwSetWindowTitle(_title);
 #endif  // EMSCRIPTEN
 
