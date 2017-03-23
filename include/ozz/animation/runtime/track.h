@@ -37,9 +37,9 @@
 namespace ozz {
 namespace animation {
 
-// Forward declares the FloatTrackBuilder, used to instantiate a FloatTrack.
+// Forward declares the TrackBuilder, used to instantiate a Track.
 namespace offline {
-class FloatTrackBuilder;
+class TrackBuilder;
 }
 
 namespace internal {
@@ -64,8 +64,8 @@ class Track {
   void Load(ozz::io::IArchive& _archive, uint32_t _version);
 
  private:
-  // FloatTrackBuilder class is allowed to allocate an Animation.
-  friend class offline::FloatTrackBuilder;
+  // TrackBuilder class is allowed to allocate an Animation.
+  friend class offline::TrackBuilder;
 
   // Internal destruction function.
   void Allocate(size_t _keys_count);

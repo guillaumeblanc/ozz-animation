@@ -12,10 +12,10 @@ add_library(ozz_animation STATIC
   skeleton.cc
   ${PROJECT_SOURCE_DIR}/include/ozz/animation/runtime/skeleton_utils.h
   skeleton_utils.cc
-  ${PROJECT_SOURCE_DIR}/include/ozz/animation/runtime/float_track.h
-  float_track.cc
-  ${PROJECT_SOURCE_DIR}/include/ozz/animation/runtime/float_track_sampling_job.h
-  float_track_sampling_job.cc)
+  ${PROJECT_SOURCE_DIR}/include/ozz/animation/runtime/track.h
+  track.cc
+  ${PROJECT_SOURCE_DIR}/include/ozz/animation/runtime/track_sampling_job.h
+  track_sampling_job.cc)
 set_target_properties(ozz_animation
   PROPERTIES FOLDER "ozz")
 

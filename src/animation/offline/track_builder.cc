@@ -25,7 +25,7 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/animation/offline/float_track_builder.h"
+#include "ozz/animation/offline/track_builder.h"
 
 #include <cassert>
 #include <cmath>
@@ -33,9 +33,9 @@
 
 #include "ozz/base/memory/allocator.h"
 
-#include "ozz/animation/offline/raw_float_track.h"
+#include "ozz/animation/offline/raw_track.h"
 
-#include "ozz/animation/runtime/float_track.h"
+#include "ozz/animation/runtime/track.h"
 
 namespace ozz {
 namespace animation {
@@ -127,7 +127,7 @@ void Linearize(_Keyframes* _keyframes) {
 // t = 0 and the last at t = 1. If at least one of those keys are not
 // in the RawAnimation then the builder creates it.
 template <typename _RawTrack, typename _Track>
-_Track* FloatTrackBuilder::Build(const _RawTrack& _input) const {
+_Track* TrackBuilder::Build(const _RawTrack& _input) const {
   // Tests _raw_animation validity.
   if (!_input.Validate()) {
     return NULL;
@@ -171,10 +171,10 @@ _Track* FloatTrackBuilder::Build(const _RawTrack& _input) const {
   return track;  // Success.
 }
 
-FloatTrack* FloatTrackBuilder::operator()(const RawFloatTrack& _input) const {
+FloatTrack* TrackBuilder::operator()(const RawFloatTrack& _input) const {
   return Build<RawFloatTrack, FloatTrack>(_input);
 }
-Float3Track* FloatTrackBuilder::operator()(const RawFloat3Track& _input) const {
+Float3Track* TrackBuilder::operator()(const RawFloat3Track& _input) const {
   return Build<RawFloat3Track, Float3Track>(_input);
 }
 }  // offline

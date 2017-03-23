@@ -25,27 +25,27 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/animation/runtime/float_track_sampling_job.h"
+#include "ozz/animation/runtime/track_sampling_job.h"
 
 #include "gtest/gtest.h"
 
 #include "ozz/base/maths/gtest_math_helper.h"
 #include "ozz/base/memory/allocator.h"
 
-#include "ozz/animation/offline/float_track_builder.h"
-#include "ozz/animation/offline/raw_float_track.h"
+#include "ozz/animation/offline/track_builder.h"
+#include "ozz/animation/offline/raw_track.h"
 
-#include "ozz/animation/runtime/float_track.h"
+#include "ozz/animation/runtime/track.h"
 
 using ozz::animation::FloatTrack;
 using ozz::animation::FloatTrackSamplingJob;
 using ozz::animation::offline::RawFloatTrack;
-using ozz::animation::offline::FloatTrackBuilder;
+using ozz::animation::offline::TrackBuilder;
 using ozz::animation::offline::RawTrackInterpolation;
 
 TEST(JobValidity, FloatTrackSamplingJob) {
   // Instantiates a builder objects with default parameters.
-  FloatTrackBuilder builder;
+  TrackBuilder builder;
 
   // Building default RawFloatTrack succeeds.
   RawFloatTrack raw_float_track;
@@ -88,7 +88,7 @@ TEST(JobValidity, FloatTrackSamplingJob) {
 }
 
 TEST(Bounds, FloatTrackSamplingJob) {
-  FloatTrackBuilder builder;
+  TrackBuilder builder;
   float result;
 
   RawFloatTrack raw_float_track;
@@ -133,7 +133,7 @@ TEST(Bounds, FloatTrackSamplingJob) {
 }
 
 TEST(Float, TrackSamplingJob) {
-  FloatTrackBuilder builder;
+  TrackBuilder builder;
   float result;
 
   ozz::animation::offline::RawFloatTrack raw_track;
@@ -196,7 +196,7 @@ TEST(Float, TrackSamplingJob) {
 }
 
 TEST(Float3, TrackSamplingJob) {
-  FloatTrackBuilder builder;
+  TrackBuilder builder;
   ozz::math::Float3 result;
 
   ozz::animation::offline::RawFloat3Track raw_track;

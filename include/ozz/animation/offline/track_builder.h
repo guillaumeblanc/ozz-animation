@@ -25,69 +25,41 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/animation/runtime/float_track_sampling_job.h"
-#include "ozz/animation/runtime/float_track.h"
-#include "ozz/base/maths/math_ex.h"
-
-#include <algorithm>
-#include <cassert>
+#ifndef OZZ_OZZ_ANIMATION_OFFLINE_FLOAT_TRACK_BUILDER_H_
+#define OZZ_OZZ_ANIMATION_OFFLINE_FLOAT_TRACK_BUILDER_H_
 
 namespace ozz {
 namespace animation {
-namespace internal {
 
-template <typename _Track>
-TrackSamplingJob<_Track>::TrackSamplingJob()
-    : time(0.f), track(NULL), result(NULL) {}
+// Forward declares the runtime tracks type.
+class FloatTrack;
+class Float3Track;
 
-template <typename _Track>
-bool TrackSamplingJob<_Track>::Validate() const {
-  bool success = true;
-  success &= result != NULL;
-  success &= track != NULL;
-  return success;
-}
+namespace offline {
 
-template <typename _Track>
-bool TrackSamplingJob<_Track>::Run() const {
-  if (!Validate()) {
-    return false;
-  }
+// Forward declares the offline tracks type.
+struct RawFloatTrack;
+struct RawFloat3Track;
 
-  // Clamps time in range [0,1].
-  const float clamped_time = math::Clamp(0.f, time, 1.f);
+// Defines the class responsible of building runtime float track instances from
+// offline raw float tracks.
+// No optimization at all is performed on the data.
+class TrackBuilder {
+ public:
+  // Creates an FloatTrack based on _raw_track and *this builder
+  // parameters.
+  // Returns a valid FloatTrack on success
+  // The returned instance will then need to be deleted using the default
+  // allocator Delete() function.
+  // See RawFloatTrack::Validate() for more details about failure reasons.
+  FloatTrack* operator()(const RawFloatTrack& _input) const;
+  Float3Track* operator()(const RawFloat3Track& _input) const;
 
-  // Search keyframes to interpolate.
-  const Range<const float> times = track->times();
-  const Range<const typename _Track::ValueType> values = track->values();
-  assert(times.Count() == values.Count());
-
-  // Search for the first key frame with a time value greater than input time.
-  const float* ptk1 = std::upper_bound(times.begin, times.end, clamped_time);
-
-  // upper_bound returns "end" if time == end, so patch the selected
-  // keyframe (ptk1) to be able enter the lerp algorithm.
-  if (ptk1 == times.end) {
-    --ptk1;
-  }
-
-  // Lerp relevant keys.
-  const float tk0 = ptk1[-1];
-  const float tk1 = ptk1[0];
-  assert(clamped_time >= tk0 && tk0 != tk1);
-  const typename _Track::ValueType* pvk1 = values.begin + (ptk1 - times.begin);
-  const typename _Track::ValueType vk0 = pvk1[-1];
-  const typename _Track::ValueType vk1 = pvk1[0];
-  const float alpha = (clamped_time - tk0) / (tk1 - tk0);
-  *result = math::Lerp(vk0, vk1, alpha);
-
-  return true;
-}
-
-// Explicitly instantiate supported raw tracks.
-template struct TrackSamplingJob<FloatTrack>;
-template struct TrackSamplingJob<Float3Track>;
-
-}  // internal
+ private:
+  template <typename _RawTrack, typename _Track>
+  _Track* Build(const _RawTrack& _input) const;
+};
+}  // offline
 }  // animation
 }  // ozz
+#endif  // OZZ_OZZ_ANIMATION_OFFLINE_FLOAT_TRACK_BUILDER_H_

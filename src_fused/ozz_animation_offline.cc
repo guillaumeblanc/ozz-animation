@@ -1493,7 +1493,7 @@ Skeleton* SkeletonBuilder::operator()(const RawSkeleton& _raw_skeleton) const {
 }  // animation
 }  // ozz
 
-// Including raw_float_track.cc file.
+// Including raw_track.cc file.
 
 //----------------------------------------------------------------------------//
 //                                                                            //
@@ -1522,7 +1522,7 @@ Skeleton* SkeletonBuilder::operator()(const RawSkeleton& _raw_skeleton) const {
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/animation/offline/raw_float_track.h"
+#include "ozz/animation/offline/raw_track.h"
 
 #include <limits>
 
@@ -1564,7 +1564,7 @@ template struct RawTrack<math::Float3>;
 }  // animation
 }  // ozz
 
-// Including float_track_builder.cc file.
+// Including track_builder.cc file.
 
 //----------------------------------------------------------------------------//
 //                                                                            //
@@ -1593,7 +1593,7 @@ template struct RawTrack<math::Float3>;
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/animation/offline/float_track_builder.h"
+#include "ozz/animation/offline/track_builder.h"
 
 #include <cassert>
 #include <cmath>
@@ -1601,9 +1601,9 @@ template struct RawTrack<math::Float3>;
 
 #include "ozz/base/memory/allocator.h"
 
-#include "ozz/animation/offline/raw_float_track.h"
+#include "ozz/animation/offline/raw_track.h"
 
-#include "ozz/animation/runtime/float_track.h"
+#include "ozz/animation/runtime/track.h"
 
 namespace ozz {
 namespace animation {
@@ -1695,7 +1695,7 @@ void Linearize(_Keyframes* _keyframes) {
 // t = 0 and the last at t = 1. If at least one of those keys are not
 // in the RawAnimation then the builder creates it.
 template <typename _RawTrack, typename _Track>
-_Track* FloatTrackBuilder::Build(const _RawTrack& _input) const {
+_Track* TrackBuilder::Build(const _RawTrack& _input) const {
   // Tests _raw_animation validity.
   if (!_input.Validate()) {
     return NULL;
@@ -1739,17 +1739,17 @@ _Track* FloatTrackBuilder::Build(const _RawTrack& _input) const {
   return track;  // Success.
 }
 
-FloatTrack* FloatTrackBuilder::operator()(const RawFloatTrack& _input) const {
+FloatTrack* TrackBuilder::operator()(const RawFloatTrack& _input) const {
   return Build<RawFloatTrack, FloatTrack>(_input);
 }
-Float3Track* FloatTrackBuilder::operator()(const RawFloat3Track& _input) const {
+Float3Track* TrackBuilder::operator()(const RawFloat3Track& _input) const {
   return Build<RawFloat3Track, Float3Track>(_input);
 }
 }  // offline
 }  // animation
 }  // ozz
 
-// Including float_track_optimizer.cc file.
+// Including track_optimizer.cc file.
 
 //----------------------------------------------------------------------------//
 //                                                                            //
@@ -1778,14 +1778,14 @@ Float3Track* FloatTrackBuilder::operator()(const RawFloat3Track& _input) const {
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/animation/offline/float_track_optimizer.h"
+#include "ozz/animation/offline/track_optimizer.h"
 
 #include <cassert>
 #include <cstddef>
 
 #include "ozz/base/maths/math_ex.h"
 
-#include "ozz/animation/offline/raw_float_track.h"
+#include "ozz/animation/offline/raw_track.h"
 
 namespace ozz {
 namespace animation {

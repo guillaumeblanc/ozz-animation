@@ -25,13 +25,13 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/animation/offline/float_track_optimizer.h"
+#include "ozz/animation/offline/track_optimizer.h"
 
 #include "gtest/gtest.h"
 #include "ozz/base/maths/gtest_math_helper.h"
 
-#include "ozz/animation/offline/float_track_builder.h"
-#include "ozz/animation/offline/raw_float_track.h"
+#include "ozz/animation/offline/track_builder.h"
+#include "ozz/animation/offline/raw_track.h"
 
 using ozz::animation::offline::RawFloatTrack;
 using ozz::animation::offline::RawFloat3Track;

@@ -25,41 +25,44 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#ifndef OZZ_OZZ_ANIMATION_OFFLINE_FLOAT_TRACK_BUILDER_H_
-#define OZZ_OZZ_ANIMATION_OFFLINE_FLOAT_TRACK_BUILDER_H_
+#include "ozz/animation/offline/raw_track.h"
+
+#include <limits>
 
 namespace ozz {
 namespace animation {
-
-// Forward declares the runtime tracks type.
-class FloatTrack;
-class Float3Track;
-
 namespace offline {
+namespace internal {
 
-// Forward declares the offline tracks type.
-struct RawFloatTrack;
-struct RawFloat3Track;
+template <typename _ValueType>
+RawTrack<_ValueType>::RawTrack() {}
 
-// Defines the class responsible of building runtime float track instances from
-// offline raw float tracks.
-// No optimization at all is performed on the data.
-class FloatTrackBuilder {
- public:
-  // Creates an FloatTrack based on _raw_float_track and *this builder
-  // parameters.
-  // Returns a valid FloatTrack on success
-  // The returned instance will then need to be deleted using the default
-  // allocator Delete() function.
-  // See RawFloatTrack::Validate() for more details about failure reasons.
-  FloatTrack* operator()(const RawFloatTrack& _input) const;
-  Float3Track* operator()(const RawFloat3Track& _input) const;
+template <typename _ValueType>
+RawTrack<_ValueType>::~RawTrack() {}
 
- private:
-  template <typename _RawTrack, typename _Track>
-  _Track* Build(const _RawTrack& _input) const;
-};
+template <typename _ValueType>
+bool RawTrack<_ValueType>::Validate() const {
+  float previous_time = -1.f;
+  for (size_t k = 0; k < keyframes.size(); ++k) {
+    const float frame_time = keyframes[k].time;
+    // Tests frame's time is in range [0:1].
+    if (frame_time < 0.f || frame_time > 1.f) {
+      return false;
+    }
+    // Tests that frames are sorted.
+    if (frame_time - previous_time <= std::numeric_limits<float>::epsilon()) {
+      return false;
+    }
+    previous_time = frame_time;
+  }
+  return true;  // Validated.
+}
+
+// Explicitly instantiate supported raw tracks.
+template struct RawTrack<float>;
+template struct RawTrack<math::Float3>;
+
+}  // internal
 }  // offline
 }  // animation
 }  // ozz
-#endif  // OZZ_OZZ_ANIMATION_OFFLINE_FLOAT_TRACK_BUILDER_H_

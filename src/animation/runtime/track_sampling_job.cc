@@ -25,39 +25,69 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#ifndef OZZ_OZZ_ANIMATION_RUNTIME_FLOAT_TRACK_SAMPLING_JOB_H_
-#define OZZ_OZZ_ANIMATION_RUNTIME_FLOAT_TRACK_SAMPLING_JOB_H_
+#include "ozz/animation/runtime/track_sampling_job.h"
+#include "ozz/animation/runtime/track.h"
+#include "ozz/base/maths/math_ex.h"
 
-#include "ozz/animation/runtime/float_track.h"
+#include <algorithm>
+#include <cassert>
 
 namespace ozz {
 namespace animation {
 namespace internal {
 
 template <typename _Track>
-struct TrackSamplingJob {
-  TrackSamplingJob();
+TrackSamplingJob<_Track>::TrackSamplingJob()
+    : time(0.f), track(NULL), result(NULL) {}
 
-  bool Validate() const;
+template <typename _Track>
+bool TrackSamplingJob<_Track>::Validate() const {
+  bool success = true;
+  success &= result != NULL;
+  success &= track != NULL;
+  return success;
+}
 
-  bool Run() const;
+template <typename _Track>
+bool TrackSamplingJob<_Track>::Run() const {
+  if (!Validate()) {
+    return false;
+  }
 
-  // Time used to sample animation, clamped in range [0,1] before
-  // job execution. This resolves approximations issues on range bounds.
-  float time;
+  // Clamps time in range [0,1].
+  const float clamped_time = math::Clamp(0.f, time, 1.f);
 
-  // Track to sample.
-  const _Track* track;
+  // Search keyframes to interpolate.
+  const Range<const float> times = track->times();
+  const Range<const typename _Track::ValueType> values = track->values();
+  assert(times.Count() == values.Count());
 
-  // Job output.
-  typename _Track::ValueType* result;
-};
+  // Search for the first key frame with a time value greater than input time.
+  const float* ptk1 = std::upper_bound(times.begin, times.end, clamped_time);
+
+  // upper_bound returns "end" if time == end, so patch the selected
+  // keyframe (ptk1) to be able enter the lerp algorithm.
+  if (ptk1 == times.end) {
+    --ptk1;
+  }
+
+  // Lerp relevant keys.
+  const float tk0 = ptk1[-1];
+  const float tk1 = ptk1[0];
+  assert(clamped_time >= tk0 && tk0 != tk1);
+  const typename _Track::ValueType* pvk1 = values.begin + (ptk1 - times.begin);
+  const typename _Track::ValueType vk0 = pvk1[-1];
+  const typename _Track::ValueType vk1 = pvk1[0];
+  const float alpha = (clamped_time - tk0) / (tk1 - tk0);
+  *result = math::Lerp(vk0, vk1, alpha);
+
+  return true;
+}
+
+// Explicitly instantiate supported raw tracks.
+template struct TrackSamplingJob<FloatTrack>;
+template struct TrackSamplingJob<Float3Track>;
+
 }  // internal
-
-struct FloatTrackSamplingJob : public internal::TrackSamplingJob<FloatTrack> {};
-struct Float3TrackSamplingJob : public internal::TrackSamplingJob<Float3Track> {
-};
-
 }  // animation
 }  // ozz
-#endif  // OZZ_OZZ_ANIMATION_RUNTIME_FLOAT_TRACK_SAMPLING_JOB_H_

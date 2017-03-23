@@ -25,44 +25,38 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/animation/offline/raw_float_track.h"
+#ifndef OZZ_OZZ_ANIMATION_RUNTIME_FLOAT_TRACK_SAMPLING_JOB_H_
+#define OZZ_OZZ_ANIMATION_RUNTIME_FLOAT_TRACK_SAMPLING_JOB_H_
 
-#include <limits>
+#include "ozz/animation/runtime/track.h"
 
 namespace ozz {
 namespace animation {
-namespace offline {
 namespace internal {
 
-template <typename _ValueType>
-RawTrack<_ValueType>::RawTrack() {}
+template <typename _Track>
+struct TrackSamplingJob {
+  TrackSamplingJob();
 
-template <typename _ValueType>
-RawTrack<_ValueType>::~RawTrack() {}
+  bool Validate() const;
 
-template <typename _ValueType>
-bool RawTrack<_ValueType>::Validate() const {
-  float previous_time = -1.f;
-  for (size_t k = 0; k < keyframes.size(); ++k) {
-    const float frame_time = keyframes[k].time;
-    // Tests frame's time is in range [0:1].
-    if (frame_time < 0.f || frame_time > 1.f) {
-      return false;
-    }
-    // Tests that frames are sorted.
-    if (frame_time - previous_time <= std::numeric_limits<float>::epsilon()) {
-      return false;
-    }
-    previous_time = frame_time;
-  }
-  return true;  // Validated.
-}
+  bool Run() const;
 
-// Explicitly instantiate supported raw tracks.
-template struct RawTrack<float>;
-template struct RawTrack<math::Float3>;
+  // Time used to sample animation, clamped in range [0,1] before
+  // job execution. This resolves approximations issues on range bounds.
+  float time;
 
+  // Track to sample.
+  const _Track* track;
+
+  // Job output.
+  typename _Track::ValueType* result;
+};
 }  // internal
-}  // offline
+
+struct FloatTrackSamplingJob : public internal::TrackSamplingJob<FloatTrack> {};
+struct Float3TrackSamplingJob : public internal::TrackSamplingJob<Float3Track> {};
+
 }  // animation
 }  // ozz
+#endif  // OZZ_OZZ_ANIMATION_RUNTIME_FLOAT_TRACK_SAMPLING_JOB_H_

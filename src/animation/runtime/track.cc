@@ -25,7 +25,7 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/animation/runtime/float_track.h"
+#include "ozz/animation/runtime/track.h"
 
 #include "ozz/base/io/archive.h"
 #include "ozz/base/log.h"

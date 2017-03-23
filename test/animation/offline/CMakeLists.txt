@@ -48,25 +48,25 @@ target_link_libraries(test_raw_skeleton_archive
 set_target_properties(test_raw_skeleton_archive PROPERTIES FOLDER "ozz/tests/animation_offline")
 add_test(NAME test_raw_skeleton_archive COMMAND test_raw_skeleton_archive)
 
-add_executable(test_float_track_builder
-  float_track_builder_tests.cc)
-target_link_libraries(test_float_track_builder
+add_executable(test_track_builder
+  track_builder_tests.cc)
+target_link_libraries(test_track_builder
   ozz_animation_offline
   ozz_animation
   ozz_base
   gtest)
-set_target_properties(test_float_track_builder PROPERTIES FOLDER "ozz/tests/animation_offline")
-add_test(NAME test_float_track_builder COMMAND test_float_track_builder)
+set_target_properties(test_track_builder PROPERTIES FOLDER "ozz/tests/animation_offline")
+add_test(NAME test_track_builder COMMAND test_track_builder)
 
-add_executable(test_float_track_optimizer
-  float_track_optimizer_tests.cc)
-target_link_libraries(test_float_track_optimizer
+add_executable(test_track_optimizer
+  track_optimizer_tests.cc)
+target_link_libraries(test_track_optimizer
   ozz_animation_offline
   ozz_animation
   ozz_base
   gtest)
-set_target_properties(test_float_track_optimizer PROPERTIES FOLDER "ozz/tests/animation_offline")
-add_test(NAME test_float_track_optimizer COMMAND test_float_track_optimizer)
+set_target_properties(test_track_optimizer PROPERTIES FOLDER "ozz/tests/animation_offline")
+add_test(NAME test_track_optimizer COMMAND test_track_optimizer)
 
 add_executable(test_raw_skeleton_archive_versioning
   raw_skeleton_archive_versioning_tests.cc)

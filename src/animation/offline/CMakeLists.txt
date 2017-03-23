@@ -15,12 +15,12 @@ add_library(ozz_animation_offline STATIC
   raw_skeleton_archive.cc
   ${PROJECT_SOURCE_DIR}/include/ozz/animation/offline/skeleton_builder.h
   skeleton_builder.cc
-  ${PROJECT_SOURCE_DIR}/include/ozz/animation/offline/raw_float_track.h
-  raw_float_track.cc
-  ${PROJECT_SOURCE_DIR}/include/ozz/animation/offline/float_track_builder.h
-  float_track_builder.cc
-  ${PROJECT_SOURCE_DIR}/include/ozz/animation/offline/float_track_optimizer.h
-  float_track_optimizer.cc)
+  ${PROJECT_SOURCE_DIR}/include/ozz/animation/offline/raw_track.h
+  raw_track.cc
+  ${PROJECT_SOURCE_DIR}/include/ozz/animation/offline/track_builder.h
+  track_builder.cc
+  ${PROJECT_SOURCE_DIR}/include/ozz/animation/offline/track_optimizer.h
+  track_optimizer.cc)
 set_target_properties(ozz_animation_offline PROPERTIES FOLDER "ozz")
 
 install(TARGETS ozz_animation_offline DESTINATION lib)

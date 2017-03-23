@@ -25,26 +25,26 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/animation/offline/float_track_builder.h"
+#include "ozz/animation/offline/track_builder.h"
 
 #include "gtest/gtest.h"
 #include "ozz/base/maths/gtest_math_helper.h"
 
-#include "ozz/animation/offline/raw_float_track.h"
-#include "ozz/animation/runtime/float_track.h"
-#include "ozz/animation/runtime/float_track_sampling_job.h"
+#include "ozz/animation/offline/raw_track.h"
+#include "ozz/animation/runtime/track.h"
+#include "ozz/animation/runtime/track_sampling_job.h"
 
 #include <limits>
 
 using ozz::animation::FloatTrack;
 using ozz::animation::FloatTrackSamplingJob;
 using ozz::animation::offline::RawFloatTrack;
-using ozz::animation::offline::FloatTrackBuilder;
+using ozz::animation::offline::TrackBuilder;
 using ozz::animation::offline::RawTrackInterpolation;
 
-TEST(Default, FloatTrackBuilder) {
+TEST(Default, TrackBuilder) {
   // Instantiates a builder objects with default parameters.
-  FloatTrackBuilder builder;
+  TrackBuilder builder;
 
   {  // Building default RawFloatTrack succeeds.
     RawFloatTrack raw_float_track;
@@ -57,9 +57,9 @@ TEST(Default, FloatTrackBuilder) {
   }
 }
 
-TEST(Build, FloatTrackBuilder) {
+TEST(Build, TrackBuilder) {
   // Instantiates a builder objects with default parameters.
-  FloatTrackBuilder builder;
+  TrackBuilder builder;
 
   {  // Building a track with unsorted keys fails.
     RawFloatTrack raw_float_track;
@@ -141,7 +141,7 @@ TEST(Build, FloatTrackBuilder) {
   }
 }
 
-TEST(Name, FloatTrackBuilder) { /*
+TEST(Name, TrackBuilder) { /*
    // Instantiates a builder objects with default parameters.
    AnimationBuilder builder;
 
@@ -175,9 +175,9 @@ TEST(Name, FloatTrackBuilder) { /*
    }*/
 }
 
-TEST(Build0Keys, FloatTrackBuilder) {
+TEST(Build0Keys, TrackBuilder) {
   // Instantiates a builder objects with default parameters.
-  FloatTrackBuilder builder;
+  TrackBuilder builder;
 
   RawFloatTrack raw_float_track;
 
@@ -197,9 +197,9 @@ TEST(Build0Keys, FloatTrackBuilder) {
   ozz::memory::default_allocator()->Delete(track);
 }
 
-TEST(BuildLinear, FloatTrackBuilder) {
+TEST(BuildLinear, TrackBuilder) {
   // Instantiates a builder objects with default parameters.
-  FloatTrackBuilder builder;
+  TrackBuilder builder;
   float result;
 
   {  // 1 key at the beginning
@@ -338,9 +338,9 @@ TEST(BuildLinear, FloatTrackBuilder) {
   }
 }
 
-TEST(BuildStep, FloatTrackBuilder) {
+TEST(BuildStep, TrackBuilder) {
   // Instantiates a builder objects with default parameters.
-  FloatTrackBuilder builder;
+  TrackBuilder builder;
   float result;
 
   {  // 1 key at the beginning
@@ -679,9 +679,9 @@ TEST(BuildStep, FloatTrackBuilder) {
   }
 }
 
-TEST(BuildMixed, FloatTrackBuilder) {
+TEST(BuildMixed, TrackBuilder) {
   // Instantiates a builder objects with default parameters.
-  FloatTrackBuilder builder;
+  TrackBuilder builder;
   float result;
 
   RawFloatTrack raw_float_track;
@@ -738,7 +738,7 @@ TEST(BuildMixed, FloatTrackBuilder) {
 }
 
 TEST(Lerp, Float3TrackBuilder) {
-  FloatTrackBuilder builder;
+  TrackBuilder builder;
   ozz::animation::offline::RawFloat3Track raw_track;
 
   ozz::animation::offline::RawFloat3Track::Keyframe first_key = {

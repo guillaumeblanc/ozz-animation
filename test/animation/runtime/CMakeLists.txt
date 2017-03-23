@@ -91,16 +91,16 @@ target_link_libraries(test_skeleton_utils
 set_target_properties(test_skeleton_utils PROPERTIES FOLDER "ozz/tests/animation")
 add_test(NAME test_skeleton_utils COMMAND test_skeleton_utils)
 
-# float_track_sampling_job_tests
-add_executable(test_float_track_sampling_job
-  float_track_sampling_job_tests.cc)
-target_link_libraries(test_float_track_sampling_job
+# track_sampling_job_tests
+add_executable(test_track_sampling_job
+  track_sampling_job_tests.cc)
+target_link_libraries(test_track_sampling_job
   ozz_animation_offline
   ozz_animation
   ozz_base
   gtest)
-set_target_properties(test_float_track_sampling_job PROPERTIES FOLDER "ozz/tests/animation")
-add_test(NAME test_float_track_sampling_job COMMAND test_float_track_sampling_job)
+set_target_properties(test_track_sampling_job PROPERTIES FOLDER "ozz/tests/animation")
+add_test(NAME test_track_sampling_job COMMAND test_track_sampling_job)
 
 # ozz_animation fuse tests
 add_executable(test_fuse_animation

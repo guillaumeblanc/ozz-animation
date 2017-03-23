@@ -1920,7 +1920,7 @@ void IterateJointsDF(const Skeleton& _skeleton, int _from,
 }  // animation
 }  // ozz
 
-// Including float_track.cc file.
+// Including track.cc file.
 
 //----------------------------------------------------------------------------//
 //                                                                            //
@@ -1949,7 +1949,7 @@ void IterateJointsDF(const Skeleton& _skeleton, int _from,
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/animation/runtime/float_track.h"
+#include "ozz/animation/runtime/track.h"
 
 #include "ozz/base/io/archive.h"
 #include "ozz/base/log.h"
@@ -2034,7 +2034,7 @@ template class Track<math::Float3>;
 }  // animation
 }  // ozz
 
-// Including float_track_sampling_job.cc file.
+// Including track_sampling_job.cc file.
 
 //----------------------------------------------------------------------------//
 //                                                                            //
@@ -2063,8 +2063,8 @@ template class Track<math::Float3>;
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/animation/runtime/float_track_sampling_job.h"
-#include "ozz/animation/runtime/float_track.h"
+#include "ozz/animation/runtime/track_sampling_job.h"
+#include "ozz/animation/runtime/track.h"
 #include "ozz/base/maths/math_ex.h"
 
 #include <algorithm>
