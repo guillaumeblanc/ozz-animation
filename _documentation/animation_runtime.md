@@ -34,7 +34,9 @@ struct JointProperties {
 `ozz::animation::Animation`
 ---------------------------
 
-The runtime animation data structure stores compressed animation keyframes, for all the joints of a skeleton. Translations and scales are stored using 3 half floats (3 * 16bits) while rotations (a quaternion) are quantized on 3 16bits integers (the 4th component is recomputed at runtime). This structure is usually filled by the `ozz::animation::offline::AnimationBuilder' and deserialized/loaded at runtime.
+The runtime animation data structure stores compressed animation keyframes, for all the joints of a skeleton. Translations and scales are stored using 3 half floats (3 * 16bits) while rotations (a quaternion) are quantized on 3 16bits integers. Quaternion are normalized indeed, so the 4th compenent can be restored at runtime from the 3 others and a sign. Ozz restores the biggest of the 4 components, improving numerical accuracy which gets very bad for small values (√(x + ϵ) for small x). It also allows to pre-multiply each of the 3 smallest components by sqrt(2), maximizing quantization range by over 41%.
+
+This structure is usually filled by the `ozz::animation::offline::AnimationBuilder' and deserialized/loaded at runtime.
 For each transformation type (translation, rotation and scale), animation structure stores a single array of keyframes that contains all the tracks required to animate all the joints of a skeleton, matching breadth-first joints order of the runtime skeleton structure. Keyframes in this array are sorted by time, then by track number. This is the comparison function "less" used be the sorting algorithm of the AnimationBuilder implementation:
 
 {% highlight cpp %}
