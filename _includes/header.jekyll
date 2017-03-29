@@ -15,13 +15,13 @@
     <link rel="stylesheet" type="text/css" href="{{site.baseurl}}/style/jekyll-github.css">
     <style>
       * { font: inherit; }
-      h1{font-size:30px}h2{font-size:24px}h3{font-size:20px}h4{font-size:18px}h5{font-size:16px}h6{font-size:15px}
+      h1{font-size:28px; margin-top:40px;}h2{font-size:24px}h3{font-size:20px}h4{font-size:18px}h5{font-size:16px}h6{font-size:15px}
       a:not(.a_reject) { color:#9f5800!important; }
       a { text-decoration:none!important; }
       a:hover { color:#cf7800!important; }
       canvas { width: 100%!important; height: 100%!important; }
       blockquote { font-style:italic; margin-top:8px!important; margin-bottom:8px!important; overflow-x:scroll;}
-      figure { margin:0px; border-radius:4px!important; border:1px solid #ccc!important; border-left:6px solid #ccc!important; padding:0.01em 8px; margin-top:8px!important; margin-bottom:8px!important; overflow-x:scroll;}
+      figure { margin:0px; background-color:#f6f6f6 !important; border-radius:4px!important; border:1px solid #ccc!important; border-left:6px solid #ccc!important; padding:0.01em 8px; margin-top:8px!important; margin-bottom:8px!important; overflow-x:scroll;}
     </style>
   </head>
   <body class="">
