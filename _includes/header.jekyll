@@ -12,7 +12,7 @@
     <meta name="twitter:site" content="@jozz_sc" />
     <meta name="twitter:title" content="open source c++ skeletal animation library and toolset" />
     <meta name="twitter:description" content="Provides runtime character animation functionalities (loading, sampling, blending...), with the toolchain to import major DCC formats (Collada, Fbx...). It proposes a low-level renderer and game-engine agnostic implementation, focusing on performance and memory constraints with a data-oriented design." />
-    <meta name="twitter:image" content="{site.baseurl}}/images/logo/ozz-grey-256.png" />
+    <meta name="twitter:image" content="{{site.baseurl}}/images/logo/ozz-grey-256.png" />
     <link rel="shortcut icon" href="{{site.baseurl}}/images/logo/ozz-grey-64.png" />
     <link rel="stylesheet" type="text/css" href="https://www.w3schools.com/lib/w3.css" />
     <link rel="stylesheet" type="text/css" href="https://www.w3schools.com/lib/w3-theme-dark-grey.css" />
