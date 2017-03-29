@@ -1,7 +1,7 @@
 ---
 title: Advanced
 layout: full
-keywords: advanced,multi-threading,io,memory,management,serialization,openmp
+keywords: advanced,multi-threading,io,memory,management,serialization,openmp,maths,soa,sse,simd
 order: 70
 ---
 

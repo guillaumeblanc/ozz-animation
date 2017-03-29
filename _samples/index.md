@@ -1,7 +1,7 @@
 ---
 title: Overview
 layout: full
-keywords: sample, tutorial
+keywords: webgl,sample,tutorial
 permalink: /:collection/index.html
 ---
 

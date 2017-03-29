@@ -1,7 +1,7 @@
 ---
-title: "open source c++ skeletal animation engine and tools"
+title: "open source c++ skeletal animation library and toolset"
 layout: home
-keywords: animation,library,engine,game,3d,c++,cpp,cplusplus,open,source,mit,skeleton,skeletal,bone,joint,character,blending,import,fbx,collada,obj,skinning,directx,opengl
+keywords: home,main
 collection: home
 ---
 

@@ -1,7 +1,7 @@
 ---
 title: Animation runtime
 layout: full
-keywords: runtime,optimize,sample,sampling,blend,blending,soa,sse,job,batch,cpu,thread
+keywords: runtime,optimize,sample,sampling,blending,soa,sse,job,batch,cpu,cache,friendly,data,oriented
 order: 50
 ---
 

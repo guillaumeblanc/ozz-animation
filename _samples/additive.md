@@ -1,7 +1,7 @@
 ---
 title: Additive blending
 layout: full
-keywords: blend, additive, partial, blending, sample, tutorial
+keywords: blend,additive,partial,blending,sample,tutorial
 order: 35
 level: 2
 ---

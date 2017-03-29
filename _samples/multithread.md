@@ -1,7 +1,7 @@
 ---
 title: Multi-threading
 layout: full
-keywords: animation,sampling,blending,playback,optimize,multithreads,threading,job,openmp,intel,tbb,thread
+keywords: optimize,multithreads,threading,job,openmp,intel,tbb,thread,distribute,workload
 order: 70
 level: 3
 ---

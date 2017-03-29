@@ -1,7 +1,7 @@
 ---
 title: Dashboard
 layout: full
-keywords: continuous,integration,ci, travis,appveyor,sources,build,package,gcc,clang,msvc,visual studio,mac,osx,ios,windows,linux,debian,freebsd
+keywords: continuous,integration,ci,travis,appveyor,sources,build,package,gcc,clang,msvc,visual studio,mac,osx,ios,windows,linux,debian,freebsd
 order: 100
 ---
 

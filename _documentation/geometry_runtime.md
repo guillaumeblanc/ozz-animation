@@ -1,7 +1,7 @@
 ---
 title: Geometry runtime
 layout: full
-keywords: runtime,optimize,sample,sampling,blend,blending,soa,sse,job,batch,skinning,matrix,palette,cpu
+keywords: runtime,optimize,soa,sse,job,batch,skinning,matrix,palette,cpu,opengl,directx,webgl
 order: 70
 ---
 

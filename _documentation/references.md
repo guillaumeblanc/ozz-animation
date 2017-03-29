@@ -1,7 +1,7 @@
 ---
 title: References
 layout: full
-keywords: reference,animation,thesis,blog
+keywords: reference,animation,thesis,blog,programming
 order: 90
 ---
 

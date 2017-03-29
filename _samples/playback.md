@@ -1,7 +1,7 @@
 ---
 title: Animation playback
 layout: full
-keywords: load,playback,animation,skeleton,hierarchy,joint,fbx,collada,3d,soa,local,model,space
+keywords: load,playback,sample,skeleton,hierarchy,joint,fbx,collada,3d,soa,local,model,space
 order: 10
 level: 1
 ---
