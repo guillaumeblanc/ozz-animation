@@ -144,7 +144,7 @@ If you're not using the "cmake sub project" way above, you'll need to setup ozz 
 With cmake, you do it this way:
 
 {% highlight bash %}
-target_include_directories(your_target "Your path ot ozz include folder")
+target_include_directories(your_target "Your path to ozz include folder")
 {% endhighlight %}
 
 Without cmake, it's then platform specific. In Visual Studio for example, follow [these instructions](https://msdn.microsoft.com/en-us/library/73f9s62w.aspx).
