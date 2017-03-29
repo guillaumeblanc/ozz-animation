@@ -7,7 +7,7 @@ order: 5
 
 {% include links.jekyll %}
 
-This chapter will drive you through the steps of downloading, building and integrating ozz-animation to your project. If you find any mistake in this page, or think something should be added, please don't hesitate to [open an issue][link_github_issues]</a>.
+This chapter will drive you through the steps of downloading, building and integrating ozz-animation to your project. If you find any mistake in this page, or think something should be added, please don't hesitate to [open an issue][link_github_issues].
 
 Downloading
 ===========
