@@ -32,6 +32,7 @@
 #include "ozz/base/platform.h"
 
 // TODO reconsider ??
+#include "ozz/base/maths/quaternion.h"
 #include "ozz/base/maths/vec_float.h"
 
 namespace ozz {
@@ -74,11 +75,31 @@ class Track {
   Range<float> times_;
   Range<_ValueType> values_;
 };
+
+// Definition of operations policies per track value type.
+template <typename _ValueType>
+struct TrackPolicy {
+  inline static _ValueType Lerp(const _ValueType& _a, const _ValueType& _b,
+                                float _alpha) {
+    return math::Lerp(_a, _b, _alpha);
+  }
+};
+// Specialization for quaternions policy.
+template <>
+inline math::Quaternion TrackPolicy<math::Quaternion>::Lerp(
+    const math::Quaternion& _a, const math::Quaternion& _b, float _alpha) {
+  // Uses NLerp to favor speed. This same function is used when optimizing the
+  // curve (key frame reduction), so "constant speed" interpolation can still be
+  // approximated with a lower tolerance value if it matters.
+  return math::NLerp(_a, _b, _alpha);
+}
 }  // internal
 
 // Runtime float track data structure.
 class FloatTrack : public internal::Track<float> {};
+class Float2Track : public internal::Track<math::Float2> {};
 class Float3Track : public internal::Track<math::Float3> {};
+class QuaternionTrack : public internal::Track<math::Quaternion> {};
 
 }  // animation
 namespace io {

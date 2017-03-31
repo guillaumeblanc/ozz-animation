@@ -33,6 +33,7 @@
 
 // TODO see if it's the right place
 #include "ozz/base/maths/vec_float.h"
+#include "ozz/base/maths/quaternion.h"
 
 namespace ozz {
 namespace animation {
@@ -87,9 +88,10 @@ struct RawTrack {
 
   // Keyframe data structure.
   struct Keyframe {
+    typedef _ValueType ValueType;
     RawTrackInterpolation::Value interpolation;
     float time;
-    _ValueType value;
+    ValueType value;
   };
   // Sequence of keyframes, expected to be sorted.
   typedef typename ozz::Vector<Keyframe>::Std Keyframes;
@@ -98,7 +100,9 @@ struct RawTrack {
 }  // internal
 
 struct RawFloatTrack : public internal::RawTrack<float> {};
+struct RawFloat2Track : public internal::RawTrack<math::Float2> {};
 struct RawFloat3Track : public internal::RawTrack<math::Float3> {};
+struct RawQuaternionTrack : public internal::RawTrack<math::Quaternion> {};
 }  // offline
 }  // animation
 

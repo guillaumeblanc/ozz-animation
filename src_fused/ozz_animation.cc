@@ -2028,7 +2028,9 @@ void Track<_ValueType>::Load(ozz::io::IArchive& /*_archive*/, uint32_t _version)
 
 // Explicitly instantiate supported tracks.
 template class Track<float>;
+template class Track<math::Float2>;
 template class Track<math::Float3>;
+template class Track<math::Quaternion>;
 
 }  // internal
 }  // animation
@@ -2124,8 +2126,9 @@ bool TrackSamplingJob<_Track>::Run() const {
 
 // Explicitly instantiate supported raw tracks.
 template struct TrackSamplingJob<FloatTrack>;
+template struct TrackSamplingJob<Float2Track>;
 template struct TrackSamplingJob<Float3Track>;
-
+template struct TrackSamplingJob<QuaternionTrack>;
 }  // internal
 }  // animation
 }  // ozz

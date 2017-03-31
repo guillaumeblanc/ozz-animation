@@ -86,8 +86,9 @@ bool TrackSamplingJob<_Track>::Run() const {
 
 // Explicitly instantiate supported raw tracks.
 template struct TrackSamplingJob<FloatTrack>;
+template struct TrackSamplingJob<Float2Track>;
 template struct TrackSamplingJob<Float3Track>;
-
+template struct TrackSamplingJob<QuaternionTrack>;
 }  // internal
 }  // animation
 }  // ozz

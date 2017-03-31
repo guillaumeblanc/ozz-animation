@@ -55,7 +55,9 @@ struct TrackSamplingJob {
 }  // internal
 
 struct FloatTrackSamplingJob : public internal::TrackSamplingJob<FloatTrack> {};
+struct Float2TrackSamplingJob : public internal::TrackSamplingJob<Float2Track> {};
 struct Float3TrackSamplingJob : public internal::TrackSamplingJob<Float3Track> {};
+struct QuaternionTrackSamplingJob : public internal::TrackSamplingJob<QuaternionTrack> {};
 
 }  // animation
 }  // ozz

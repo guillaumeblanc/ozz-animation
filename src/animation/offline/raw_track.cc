@@ -60,7 +60,9 @@ bool RawTrack<_ValueType>::Validate() const {
 
 // Explicitly instantiate supported raw tracks.
 template struct RawTrack<float>;
+template struct RawTrack<math::Float2>;
 template struct RawTrack<math::Float3>;
+template struct RawTrack<math::Quaternion>;
 
 }  // internal
 }  // offline

@@ -35,7 +35,9 @@ namespace offline {
 
 // Forward declare offline float track type.
 struct RawFloatTrack;
+struct RawFloat2Track;
 struct RawFloat3Track;
+struct RawQuaternionTrack;
 
 // Defines the class responsible of optimizing an offline raw float track
 // instance. Default optimization tolerances are set in order to favor quality
@@ -52,7 +54,9 @@ class TrackOptimizer {
   // Returns false on failure and resets _output to an empty track.
   // See RawFloatTrack::Validate() for more details about failure reasons.
   bool operator()(const RawFloatTrack& _input, RawFloatTrack* _output) const;
+  bool operator()(const RawFloat2Track& _input, RawFloat2Track* _output) const;
   bool operator()(const RawFloat3Track& _input, RawFloat3Track* _output) const;
+  bool operator()(const RawQuaternionTrack& _input, RawQuaternionTrack* _output) const;
 
   // Optimization tolerance.
   float tolerance;

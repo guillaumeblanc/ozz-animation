@@ -33,13 +33,17 @@ namespace animation {
 
 // Forward declares the runtime tracks type.
 class FloatTrack;
+class Float2Track;
 class Float3Track;
+class QuaternionTrack;
 
 namespace offline {
 
 // Forward declares the offline tracks type.
 struct RawFloatTrack;
+struct RawFloat2Track;
 struct RawFloat3Track;
+struct RawQuaternionTrack;
 
 // Defines the class responsible of building runtime float track instances from
 // offline raw float tracks.
@@ -53,7 +57,9 @@ class TrackBuilder {
   // allocator Delete() function.
   // See RawFloatTrack::Validate() for more details about failure reasons.
   FloatTrack* operator()(const RawFloatTrack& _input) const;
+  Float2Track* operator()(const RawFloat2Track& _input) const;
   Float3Track* operator()(const RawFloat3Track& _input) const;
+  QuaternionTrack* operator()(const RawQuaternionTrack& _input) const;
 
  private:
   template <typename _RawTrack, typename _Track>

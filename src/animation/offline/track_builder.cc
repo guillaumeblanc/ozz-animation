@@ -174,8 +174,14 @@ _Track* TrackBuilder::Build(const _RawTrack& _input) const {
 FloatTrack* TrackBuilder::operator()(const RawFloatTrack& _input) const {
   return Build<RawFloatTrack, FloatTrack>(_input);
 }
+Float2Track* TrackBuilder::operator()(const RawFloat2Track& _input) const {
+  return Build<RawFloat2Track, Float2Track>(_input);
+}
 Float3Track* TrackBuilder::operator()(const RawFloat3Track& _input) const {
   return Build<RawFloat3Track, Float3Track>(_input);
+}
+QuaternionTrack* TrackBuilder::operator()(const RawQuaternionTrack& _input) const {
+  return Build<RawQuaternionTrack, QuaternionTrack>(_input);
 }
 }  // offline
 }  // animation

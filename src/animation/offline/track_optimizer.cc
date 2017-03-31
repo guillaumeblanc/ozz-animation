@@ -34,6 +34,9 @@
 
 #include "ozz/animation/offline/raw_track.h"
 
+// Needs runtime track to access TrackPolicy.
+#include "ozz/animation/runtime/track.h"
+
 namespace ozz {
 namespace animation {
 namespace offline {
@@ -50,9 +53,9 @@ bool Compare(float _left, float _right, float _tolerance) {
 
 // Copy _src keys to _dest but except the ones that can be interpolated.
 template <typename _Keyframes>
-void Filter(const _Keyframes& _src, float _tolerance,
-            _Keyframes* _dest) {
+void Filter(const _Keyframes& _src, float _tolerance, _Keyframes* _dest) {
   typedef typename _Keyframes::value_type Keyframe;
+  typedef typename Keyframe::ValueType ValueType;
 
   _dest->reserve(_src.size());
 
@@ -83,8 +86,9 @@ void Filter(const _Keyframes& _src, float _tolerance,
         const Keyframe& test = _src[j];
         const float alpha = (test.time - left.time) / (right.time - left.time);
         assert(alpha >= 0.f && alpha <= 1.f);
-        if (!Compare(math::Lerp(left.value, right.value, alpha), test.value,
-                     _tolerance)) {
+        const ValueType lerped = animation::internal::TrackPolicy<ValueType>::Lerp(
+            left.value, right.value, alpha);
+        if (!Compare(lerped, test.value, _tolerance)) {
           _dest->push_back(current);
           last_src_pushed = i;
           break;
@@ -96,7 +100,8 @@ void Filter(const _Keyframes& _src, float _tolerance,
 }
 
 template <typename _Track>
-bool Optimize(const TrackOptimizer& _optimizer, const _Track& _input, _Track* _output) {
+bool Optimize(const TrackOptimizer& _optimizer, const _Track& _input,
+              _Track* _output) {
   if (!_output) {
     return false;
   }
@@ -119,9 +124,16 @@ bool TrackOptimizer::operator()(const RawFloatTrack& _input,
                                 RawFloatTrack* _output) const {
   return Optimize(*this, _input, _output);
 }
-
+bool TrackOptimizer::operator()(const RawFloat2Track& _input,
+                                RawFloat2Track* _output) const {
+  return Optimize(*this, _input, _output);
+}
 bool TrackOptimizer::operator()(const RawFloat3Track& _input,
                                 RawFloat3Track* _output) const {
+  return Optimize(*this, _input, _output);
+}
+bool TrackOptimizer::operator()(const RawQuaternionTrack& _input,
+                                RawQuaternionTrack* _output) const {
   return Optimize(*this, _input, _output);
 }
 }  // offline
