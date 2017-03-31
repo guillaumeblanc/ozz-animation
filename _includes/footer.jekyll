@@ -23,5 +23,6 @@
     </footer>
 
     {% include tracking.jekyll %}
+    {% include structured_data.jekyll %}
   </body>
 </html>
