@@ -47,26 +47,26 @@ template <typename _RawTrack>
 void PatchBeginEndKeys(const _RawTrack& _input,
                        typename _RawTrack::Keyframes* keyframes) {
   if (_input.keyframes.empty()) {
-    const typename _RawTrack::Keyframe begin = {RawTrackInterpolation::kLinear, 0.f,
-                                       typename _RawTrack::ValueType()};
+    const typename _RawTrack::Keyframe begin = {
+        RawTrackInterpolation::kLinear, 0.f, typename _RawTrack::ValueType()};
     keyframes->push_back(begin);
-    const typename _RawTrack::Keyframe end = {RawTrackInterpolation::kLinear, 1.f,
-                                     typename _RawTrack::ValueType()};
+    const typename _RawTrack::Keyframe end = {
+        RawTrackInterpolation::kLinear, 1.f, typename _RawTrack::ValueType()};
     keyframes->push_back(end);
   } else if (_input.keyframes.size() == 1) {
     const typename _RawTrack::Keyframe& src_key = _input.keyframes.front();
-    const typename _RawTrack::Keyframe begin = {RawTrackInterpolation::kLinear, 0.f,
-                                       src_key.value};
+    const typename _RawTrack::Keyframe begin = {RawTrackInterpolation::kLinear,
+                                                0.f, src_key.value};
     keyframes->push_back(begin);
-    const typename _RawTrack::Keyframe end = {RawTrackInterpolation::kLinear, 1.f,
-                                     src_key.value};
+    const typename _RawTrack::Keyframe end = {RawTrackInterpolation::kLinear,
+                                              1.f, src_key.value};
     keyframes->push_back(end);
   } else {
     // Copy all source data.
     if (_input.keyframes.front().time != 0.f) {
       const typename _RawTrack::Keyframe& src_key = _input.keyframes.front();
-      const typename _RawTrack::Keyframe begin = {RawTrackInterpolation::kLinear, 0.f,
-                                         src_key.value};
+      const typename _RawTrack::Keyframe begin = {
+          RawTrackInterpolation::kLinear, 0.f, src_key.value};
       keyframes->push_back(begin);
     }
     for (size_t i = 0; i < _input.keyframes.size(); ++i) {
@@ -74,8 +74,8 @@ void PatchBeginEndKeys(const _RawTrack& _input,
     }
     if (_input.keyframes.back().time != 1.f) {
       const typename _RawTrack::Keyframe& src_key = _input.keyframes.back();
-      const typename _RawTrack::Keyframe end = {RawTrackInterpolation::kLinear, 1.f,
-                                       src_key.value};
+      const typename _RawTrack::Keyframe end = {RawTrackInterpolation::kLinear,
+                                                1.f, src_key.value};
       keyframes->push_back(end);
     }
   }
@@ -104,8 +104,8 @@ void Linearize(_Keyframes* _keyframes) {
       const float new_key_time =
           src_next_key.time - std::numeric_limits<float>::epsilon();
 
-      const typename _Keyframes::value_type new_key = {RawTrackInterpolation::kLinear,
-                                              new_key_time, src_key.value};
+      const typename _Keyframes::value_type new_key = {
+          RawTrackInterpolation::kLinear, new_key_time, src_key.value};
 
       it->interpolation = RawTrackInterpolation::kLinear;
       it = _keyframes->insert(it + 1, new_key);
@@ -119,6 +119,12 @@ void Linearize(_Keyframes* _keyframes) {
 
   assert(_keyframes->front().time >= 0.f);
   assert(_keyframes->back().time <= 1.f);
+}
+
+template <typename _Keyframes>
+void Fixup(_Keyframes* _keyframes) {
+  // Nothing to do by default.
+  (void)_keyframes;
 }
 }  // namespace
 
@@ -148,6 +154,10 @@ _Track* TrackBuilder::Build(const _RawTrack& _input) const {
   // Ensure there's a key frame at the start and end of the track (required for
   // sampling).
   PatchBeginEndKeys(_input, &keyframes);
+
+  // Fixup values, ex: successive opposite quaternions that would fail to take
+  // the shortest path during the normalized-lerp.
+  Fixup(&keyframes);
 
   // Converts kStep keyframes to kLinear, which will add some keys.
   Linearize(&keyframes);
@@ -180,7 +190,42 @@ Float2Track* TrackBuilder::operator()(const RawFloat2Track& _input) const {
 Float3Track* TrackBuilder::operator()(const RawFloat3Track& _input) const {
   return Build<RawFloat3Track, Float3Track>(_input);
 }
-QuaternionTrack* TrackBuilder::operator()(const RawQuaternionTrack& _input) const {
+
+namespace {
+// Fixes-up successive opposite quaternions that would fail to take the shortest
+// path during the lerp.
+template <>
+void Fixup<RawQuaternionTrack::Keyframes>(RawQuaternionTrack::Keyframes* _keyframes) {
+  assert(_keyframes->size() >= 2);
+
+  const math::Quaternion identity = math::Quaternion::identity();
+  for (size_t i = 0; i < _keyframes->size(); ++i) {
+
+    RawQuaternionTrack::ValueType& src_key = _keyframes->at(i).value;
+
+    // Normalizes input quaternion.
+    src_key = NormalizeSafe(src_key, identity);
+
+    // Ensures quaternions are all on the same hemisphere.
+    if (i == 0) {
+      if (src_key.w < 0.f) {
+        src_key = -src_key;  // Q an -Q are the same rotation.
+      }
+    } else {
+      RawQuaternionTrack::ValueType& prev_key = _keyframes->at(i - 1).value;
+
+      const float dot = src_key.x * prev_key.x + src_key.y * prev_key.y +
+                        src_key.z * prev_key.z + src_key.w * prev_key.w;
+      if (dot < 0.f) {
+        src_key = -src_key;  // Q an -Q are the same rotation.
+      }
+    }
+  }
+}
+}
+
+QuaternionTrack* TrackBuilder::operator()(
+    const RawQuaternionTrack& _input) const {
   return Build<RawQuaternionTrack, QuaternionTrack>(_input);
 }
 }  // offline

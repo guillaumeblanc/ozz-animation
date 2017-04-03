@@ -873,12 +873,15 @@ TEST(Quaternion, TrackBuilder) {
   TrackBuilder builder;
   ozz::animation::offline::RawQuaternionTrack raw_track;
 
-  ozz::animation::offline::RawQuaternionTrack::Keyframe first_key = {
+  ozz::animation::offline::RawQuaternionTrack::Keyframe key0 = {
       RawTrackInterpolation::kLinear, .5f, ozz::math::Quaternion(.70710677f, 0.f, 0.f, .70710677f)};
-  raw_track.keyframes.push_back(first_key);
-  ozz::animation::offline::RawQuaternionTrack::Keyframe second_key = {
+  raw_track.keyframes.push_back(key0);
+  ozz::animation::offline::RawQuaternionTrack::Keyframe key1 = {
       RawTrackInterpolation::kLinear, .7f, ozz::math::Quaternion(0.f, .70710677f, 0.f, .70710677f)};
-  raw_track.keyframes.push_back(second_key);
+  raw_track.keyframes.push_back(key1);
+  ozz::animation::offline::RawQuaternionTrack::Keyframe key2 = {
+      RawTrackInterpolation::kLinear, .8f, ozz::math::Quaternion(-0.f, -.70710677f, -0.f, -.70710677f)};
+  raw_track.keyframes.push_back(key2);
 
   // Builds track
   ozz::animation::QuaternionTrack* track = builder(raw_track);
@@ -906,10 +909,17 @@ TEST(Quaternion, TrackBuilder) {
   ASSERT_TRUE(sampling.Run());
   EXPECT_QUATERNION_EQ(result, 0.f, .70710677f, 0.f, .70710677f);
 
+  sampling.time = .75f;
+  ASSERT_TRUE(sampling.Run());
+  EXPECT_QUATERNION_EQ(result, 0.f, .70710677f, 0.f, .70710677f);
+
+  sampling.time = .8f;
+  ASSERT_TRUE(sampling.Run());
+  EXPECT_QUATERNION_EQ(result, 0.f, .70710677f, 0.f, .70710677f);
+
   sampling.time = 1.f;
   ASSERT_TRUE(sampling.Run());
   EXPECT_QUATERNION_EQ(result, 0.f, .70710677f, 0.f, .70710677f);
 
   ozz::memory::default_allocator()->Delete(track);
 }
-
