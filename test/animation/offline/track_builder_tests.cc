@@ -874,13 +874,18 @@ TEST(Quaternion, TrackBuilder) {
   ozz::animation::offline::RawQuaternionTrack raw_track;
 
   ozz::animation::offline::RawQuaternionTrack::Keyframe key0 = {
-      RawTrackInterpolation::kLinear, .5f, ozz::math::Quaternion(.70710677f, 0.f, 0.f, .70710677f)};
+      RawTrackInterpolation::kLinear, .5f,
+      ozz::math::Quaternion(
+          -.70710677f, -0.f, -0.f,
+          -.70710677f)};  // Will be opposed to be on the other hemisphere
   raw_track.keyframes.push_back(key0);
   ozz::animation::offline::RawQuaternionTrack::Keyframe key1 = {
-      RawTrackInterpolation::kLinear, .7f, ozz::math::Quaternion(0.f, .70710677f, 0.f, .70710677f)};
+      RawTrackInterpolation::kLinear, .7f,
+      ozz::math::Quaternion(0.f, .70710677f, 0.f, .70710677f)};
   raw_track.keyframes.push_back(key1);
   ozz::animation::offline::RawQuaternionTrack::Keyframe key2 = {
-      RawTrackInterpolation::kLinear, .8f, ozz::math::Quaternion(-0.f, -.70710677f, -0.f, -.70710677f)};
+      RawTrackInterpolation::kLinear, .8f,
+      ozz::math::Quaternion(-0.f, -.70710677f, -0.f, -.70710677f)};
   raw_track.keyframes.push_back(key2);
 
   // Builds track

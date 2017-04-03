@@ -1765,12 +1765,12 @@ namespace {
 // Fixes-up successive opposite quaternions that would fail to take the shortest
 // path during the lerp.
 template <>
-void Fixup<RawQuaternionTrack::Keyframes>(RawQuaternionTrack::Keyframes* _keyframes) {
+void Fixup<RawQuaternionTrack::Keyframes>(
+    RawQuaternionTrack::Keyframes* _keyframes) {
   assert(_keyframes->size() >= 2);
 
   const math::Quaternion identity = math::Quaternion::identity();
   for (size_t i = 0; i < _keyframes->size(); ++i) {
-
     RawQuaternionTrack::ValueType& src_key = _keyframes->at(i).value;
 
     // Normalizes input quaternion.
@@ -1783,7 +1783,6 @@ void Fixup<RawQuaternionTrack::Keyframes>(RawQuaternionTrack::Keyframes* _keyfra
       }
     } else {
       RawQuaternionTrack::ValueType& prev_key = _keyframes->at(i - 1).value;
-
       const float dot = src_key.x * prev_key.x + src_key.y * prev_key.y +
                         src_key.z * prev_key.z + src_key.w * prev_key.w;
       if (dot < 0.f) {
