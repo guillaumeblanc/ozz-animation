@@ -1,5 +1,5 @@
 ---
-title: "open source c++ skeletal animation library and toolset"
+title: "ozz-animation - open source c++ skeletal animation library and toolset"
 layout: home
 keywords: home,main
 collection: home
