@@ -13,5 +13,5 @@
     "keywords": ["{{site.keywords | split: ',' | join: '","'}}","{{page.keywords | split: ',' | join: '","'}}"],
     "image": "http://guillaumeblanc.github.io/ozz-animation/images/logo/ozz-grey-256.png",
     "license": "https://github.com/guillaumeblanc/ozz-animation/blob/master/LICENSE.md",
-    "text": "ozz-animation is an open source c++ 3d skeletal animation library. It provides runtime character animation functionalities (sampling, blending...), with the toolset to import major DCC formats (Collada, Fbx...). It proposes a low-level renderer and game-engine agnostic implementation, focusing on performance and memory constraints with a data-oriented design."
+    "description": "ozz-animation is an open source c++ 3d skeletal animation library. It provides runtime character animation functionalities (sampling, blending...), with the toolset to import major DCC formats (Collada, Fbx...). It proposes a low-level renderer and game-engine agnostic implementation, focusing on performance and memory constraints with a data-oriented design."
   } </script>
