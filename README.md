@@ -1,5 +1,5 @@
-[![Travis-CI](https://travis-ci.org/guillaumeblanc/ozz-animation.svg?branch=develop)](http://travis-ci.org/guillaumeblanc/ozz-animation)
-[![AppVeyor](https://ci.appveyor.com/api/projects/status/github/guillaumeblanc/ozz-animation?branch=develop&svg=true)](http://ci.appveyor.com/project/guillaumeblanc/ozz-animation)
+[![Travis-CI](https://travis-ci.org/guillaumeblanc/ozz-animation.svg?branch=master)](http://travis-ci.org/guillaumeblanc/ozz-animation)
+[![AppVeyor](https://ci.appveyor.com/api/projects/status/github/guillaumeblanc/ozz-animation?branch=master&svg=true)](http://ci.appveyor.com/project/guillaumeblanc/ozz-animation)
 
 ![logo](media/icon/ozz-grey-128.png)
 

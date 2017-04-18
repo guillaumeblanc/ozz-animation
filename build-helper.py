@@ -285,7 +285,7 @@ def SelecGenerator():
 def DetectTesting():
   global enable_testing
   try:
-    test_file = open(cteste_cache_file)
+    test_file = open(ctest_cache_file)
   except:
     enable_testing = False
     return
@@ -298,9 +298,7 @@ def EnableTesting():
     answer = raw_input("enable testing (y/n): ")
     if answer != 'y' and answer != 'n':
       continue
-    wanted = False
-    if answer == 'y':
-      wanted = True
+    wanted = (answer == 'y')
     
     # Get current state
     if (enable_testing != wanted):

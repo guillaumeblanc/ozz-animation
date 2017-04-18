@@ -2,12 +2,12 @@ if(NOT ozz_build_fbx)
   return()
 endif()
 
-include_directories(${FBX_INCLUDE_DIRS})
-
 # Creates a file with an invalid content.
 file(WRITE "${ozz_temp_directory}/content.bad" "bad content")
 
 # Run fbx2skel failing tests
+add_test(NAME fbx2skel_noarg COMMAND fbx2skel)
+set_tests_properties(fbx2skel_noarg PROPERTIES WILL_FAIL true)
 add_test(NAME fbx2skel_badcontent COMMAND fbx2skel "--file=${ozz_temp_directory}/content.bad" "--skeleton=${ozz_temp_directory}/fbx_should_not_exist.ozz")
 set_tests_properties(fbx2skel_badcontent PROPERTIES WILL_FAIL true)
 add_test(NAME fbx2skel_no_skeleton COMMAND fbx2skel "--file=${ozz_media_directory}/fbx/cube.fbx" "--skeleton=${ozz_temp_directory}/fbx_should_not_exist.ozz")
@@ -26,6 +26,7 @@ set_tests_properties(fbx2skel_ouput PROPERTIES
            fbx2skel_no_skeleton_dae")
 
 # Run fbx2skel passing tests
+add_test(NAME fbx2skel_version COMMAND fbx2skel "--version")
 add_test(NAME fbx2skel_simple COMMAND fbx2skel "--file=${ozz_media_directory}/fbx/alain/skeleton.fbx" "--skeleton=${ozz_temp_directory}/fbx_skeleton.ozz")
 add_test(NAME fbx2skel_simple_raw COMMAND fbx2skel "--raw" "--file=${ozz_media_directory}/fbx/alain/skeleton.fbx" "--skeleton=${ozz_temp_directory}/raw_fbx_skeleton.ozz")
 add_test(NAME fbx2skel_little COMMAND fbx2skel "--file=${ozz_media_directory}/fbx/alain/skeleton.fbx" "--skeleton=${ozz_temp_directory}/skeleton_little.ozz" "--endian=little")
@@ -37,11 +38,14 @@ add_test(NAME fbx2skel_simple_dae_astro_maya COMMAND fbx2skel "--file=${ozz_medi
 add_test(NAME fbx2skel_simple_dae_seymour COMMAND fbx2skel "--file=${ozz_media_directory}/collada/seymour.dae" "--skeleton=${ozz_temp_directory}/seymour_skeleton.ozz")
 
 # Run fbx2anim failing tests
+add_test(NAME fbx2anim_noarg COMMAND fbx2anim)
+set_tests_properties(fbx2anim_noarg PROPERTIES WILL_FAIL true)
 add_test(NAME fbx2anim_badcontent COMMAND fbx2anim "--file=${ozz_temp_directory}/content.bad" "--skeleton=${ozz_temp_directory}/fbx_skeleton.ozz" "--animation=${ozz_temp_directory}/fbx_should_not_exist.ozz")
 set_tests_properties(fbx2anim_badcontent PROPERTIES DEPENDS fbx2skel_simple)
 set_tests_properties(fbx2anim_badcontent PROPERTIES WILL_FAIL true)
 
 # Run fbx2anim passing tests
+add_test(NAME fbx2anim_version COMMAND fbx2anim "--version")
 add_test(NAME fbx2anim_simple COMMAND fbx2anim "--file=${ozz_media_directory}/fbx/alain/run.fbx" "--skeleton=${ozz_temp_directory}/fbx_skeleton.ozz" "--animation=${ozz_temp_directory}/fbx_animation_${CMAKE_CURRENT_LIST_LINE}.ozz")
 set_tests_properties(fbx2anim_simple PROPERTIES DEPENDS fbx2skel_simple)
 add_test(NAME fbx2anim_simple_raw COMMAND fbx2anim "--raw" "--file=${ozz_media_directory}/fbx/alain/run.fbx" "--skeleton=${ozz_temp_directory}/fbx_skeleton.ozz" "--animation=${ozz_temp_directory}/fbx_raw_animation_${CMAKE_CURRENT_LIST_LINE}.ozz")
@@ -100,19 +104,18 @@ if(TARGET sample_playback)
   add_test(NAME sample_playback_mixed_fd COMMAND sample_playback "--skeleton=${ozz_media_directory}/bin/alain_skeleton.ozz" "--animation=${ozz_temp_directory}/alain_walk_dae.ozz" "--max_idle_loops=${ozz_sample_testing_loops}" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)
 endif()
 
-# ozz_animation_offline_fbx fuse tests
+# ozz_animation_fbx fuse tests
 add_executable(test_fuse_ozz_animation_fbx
-  ${CMAKE_SOURCE_DIR}/src/animation/offline/fbx/fbx2skel.cc
-  ${CMAKE_SOURCE_DIR}/src_fused/ozz_animation_fbx.cc)
-add_dependencies(test_fuse_ozz_animation_fbx BUILD_FUSE_ozz_animation_fbx)
+  ${PROJECT_SOURCE_DIR}/src/animation/offline/fbx/fbx2skel.cc
+  ${PROJECT_SOURCE_DIR}/src_fused/ozz_animation_fbx.cc)
+target_include_directories(test_fuse_ozz_animation_fbx
+  PUBLIC ${FBX_INCLUDE_DIRS})
 target_link_libraries(test_fuse_ozz_animation_fbx
   debug ${FBX_LIBRARIES_DEBUG}
   optimized ${FBX_LIBRARIES}
   ozz_animation_offline_skel_tools
-  ozz_animation_offline
-  ozz_animation
-  ozz_options
-  ozz_base)
+  ozz_options)
+add_dependencies(test_fuse_ozz_animation_fbx BUILD_FUSE_ozz_animation_fbx)
 set_target_properties(test_fuse_ozz_animation_fbx PROPERTIES FOLDER "ozz/tests/animation_offline")
 
 add_test(NAME test_fuse_ozz_animation_fbx_no_arg COMMAND test_fuse_ozz_animation_fbx)

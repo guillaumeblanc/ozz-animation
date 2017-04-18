@@ -143,7 +143,7 @@ Release version 0.4.0
 
 * Library
   - [offline] Adds Fbx import pipeline, through fbx2skel and fbx2anim command line tools.
-  - [offline] Adds Fbx import and conversion library, through ozz_animation_offline_fbx. Building fbx related libraries requires fbx sdk to be installed.
+  - [offline] Adds Fbx import and conversion library, through ozz_animation_fbx. Building fbx related libraries requires fbx sdk to be installed.
   - [offline] Adds ozz_animation_offline_tools library to share the common work for Collada and Fbx import tools. This could be use to implement custom conversion command line tools.
 
 * Samples

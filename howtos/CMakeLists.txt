@@ -3,8 +3,7 @@
 add_executable(load_from_file
   load_from_file.cc)
 target_link_libraries(load_from_file
-  ozz_animation
-  ozz_base)
+  ozz_animation)
 set_target_properties(load_from_file
   PROPERTIES FOLDER "howtos")
 add_test(NAME load_from_file COMMAND load_from_file "${ozz_media_directory}/bin/alain_skeleton.ozz")
@@ -18,9 +17,7 @@ set_tests_properties(load_from_file_bad_arg PROPERTIES WILL_FAIL true)
 add_executable(custom_skeleton_importer
   custom_skeleton_importer.cc)
 target_link_libraries(custom_skeleton_importer
-  ozz_animation_offline
-  ozz_animation
-  ozz_base)
+  ozz_animation_offline)
 set_target_properties(custom_skeleton_importer
   PROPERTIES FOLDER "howtos")
 add_test(NAME custom_skeleton_importer COMMAND custom_skeleton_importer)
@@ -30,9 +27,7 @@ add_test(NAME custom_skeleton_importer COMMAND custom_skeleton_importer)
 add_executable(custom_animation_importer
   custom_animation_importer.cc)
 target_link_libraries(custom_animation_importer
-  ozz_animation_offline
-  ozz_animation
-  ozz_base)
+  ozz_animation_offline)
 set_target_properties(custom_animation_importer
   PROPERTIES FOLDER "howtos")
 add_test(NAME custom_animation_importer COMMAND custom_animation_importer)

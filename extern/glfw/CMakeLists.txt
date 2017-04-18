@@ -1,4 +1,4 @@
-include_directories(lib)
+find_package(OpenGL REQUIRED)
 
 # Buils Win32 specific files and options
 if(WIN32)
@@ -84,8 +84,15 @@ add_library(glfw STATIC
   lib/window.c
   ${specific_file_list})
 
+target_include_directories(glfw PUBLIC
+  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/extern/glfw/include>)
+target_include_directories(glfw PUBLIC
+  $<BUILD_INTERFACE:${OPENGL_INCLUDE_DIR}>)
+target_include_directories(glfw PRIVATE
+  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/extern/glfw/lib>)
+
 target_link_libraries(glfw
-  ${OPENGL_gl_LIBRARY}
+  ${OPENGL_LIBRARIES}
   ${X11_LIBRARIES}
   ${COCOA_FRAMEWORK}
   ${IOKIT_FRAMEWORK})
