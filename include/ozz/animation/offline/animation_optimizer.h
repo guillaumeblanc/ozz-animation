@@ -39,7 +39,15 @@ namespace offline {
 struct RawAnimation;
 
 // Defines the class responsible of optimizing an offline raw animation
-// instance. Default optimization tolerances are set in order to favor quality
+// instance. Optimization is performed using a key frame reduction technique. It
+// strips redundant / interpolable key frames, within error tolerances given as
+// input.
+// The optimizer also takes into account for each joint the error generated on
+// its whole child hierarchy, with the hierarchical tolerance value. This allows
+// for example to take into consideration the error generated on a finger when
+// optimizing the shoulder. A small error on the shoulder can be magnified when
+// propagated to the finger indeed.
+// Default optimization tolerances are set in order to favor quality
 // over runtime performances and memory footprint.
 class AnimationOptimizer {
  public:

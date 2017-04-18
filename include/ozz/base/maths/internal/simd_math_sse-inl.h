@@ -623,7 +623,7 @@ OZZ_INLINE SimdFloat4 NormalizeSafe2(_SimdFloat4 _v, _SimdFloat4 _safe) {
   const __m128 inv_lenxxxx = OZZ_SSE_SPLAT_F(inv_len, 0);
   const __m128 norm = _mm_mul_ps(_v, inv_lenxxxx);
   const __m128i cond = _mm_castps_si128(
-      _mm_cmpeq_ps(OZZ_SSE_SPLAT_F(sq_len, 0), _mm_setzero_ps()));
+      _mm_cmple_ps(OZZ_SSE_SPLAT_F(sq_len, 0), _mm_setzero_ps()));
   const __m128 cfalse = _mm_movelh_ps(norm, _mm_movehl_ps(_v, _v));
   return OZZ_SSE_SELECT_F(cond, _safe, cfalse);
 }
@@ -636,7 +636,7 @@ OZZ_INLINE SimdFloat4 NormalizeSafe3(_SimdFloat4 _v, _SimdFloat4 _safe) {
   const __m128 inv_lenxxxx = OZZ_SSE_SPLAT_F(inv_len, 0);
   const __m128 normwxyz = _mm_move_ss(_mm_mul_ps(vwxyz, inv_lenxxxx), vwxyz);
   const __m128i cond = _mm_castps_si128(
-      _mm_cmpeq_ps(OZZ_SSE_SPLAT_F(sq_len, 0), _mm_setzero_ps()));
+      _mm_cmple_ps(OZZ_SSE_SPLAT_F(sq_len, 0), _mm_setzero_ps()));
   const __m128 cfalse =
       _mm_shuffle_ps(normwxyz, normwxyz, _MM_SHUFFLE(0, 1, 2, 3));
   return OZZ_SSE_SELECT_F(cond, _safe, cfalse);
@@ -648,7 +648,7 @@ OZZ_INLINE SimdFloat4 NormalizeSafe4(_SimdFloat4 _v, _SimdFloat4 _safe) {
   const __m128 inv_len = _mm_div_ss(simd_float4::one(), _mm_sqrt_ss(sq_len));
   const __m128 inv_lenxxxx = OZZ_SSE_SPLAT_F(inv_len, 0);
   const __m128i cond = _mm_castps_si128(
-      _mm_cmpeq_ps(OZZ_SSE_SPLAT_F(sq_len, 0), _mm_setzero_ps()));
+      _mm_cmple_ps(OZZ_SSE_SPLAT_F(sq_len, 0), _mm_setzero_ps()));
   const __m128 cfalse = _mm_mul_ps(_v, inv_lenxxxx);
   return OZZ_SSE_SELECT_F(cond, _safe, cfalse);
 }
@@ -660,7 +660,7 @@ OZZ_INLINE SimdFloat4 NormalizeSafeEst2(_SimdFloat4 _v, _SimdFloat4 _safe) {
   const __m128 inv_lenxxxx = OZZ_SSE_SPLAT_F(inv_len, 0);
   const __m128 norm = _mm_mul_ps(_v, inv_lenxxxx);
   const __m128i cond = _mm_castps_si128(
-      _mm_cmpeq_ps(OZZ_SSE_SPLAT_F(sq_len, 0), _mm_setzero_ps()));
+      _mm_cmple_ps(OZZ_SSE_SPLAT_F(sq_len, 0), _mm_setzero_ps()));
   const __m128 cfalse = _mm_movelh_ps(norm, _mm_movehl_ps(_v, _v));
   return OZZ_SSE_SELECT_F(cond, _safe, cfalse);
 }
@@ -673,7 +673,7 @@ OZZ_INLINE SimdFloat4 NormalizeSafeEst3(_SimdFloat4 _v, _SimdFloat4 _safe) {
   const __m128 inv_lenxxxx = OZZ_SSE_SPLAT_F(inv_len, 0);
   const __m128 normwxyz = _mm_move_ss(_mm_mul_ps(vwxyz, inv_lenxxxx), vwxyz);
   const __m128i cond = _mm_castps_si128(
-      _mm_cmpeq_ps(OZZ_SSE_SPLAT_F(sq_len, 0), _mm_setzero_ps()));
+      _mm_cmple_ps(OZZ_SSE_SPLAT_F(sq_len, 0), _mm_setzero_ps()));
   const __m128 cfalse =
       _mm_shuffle_ps(normwxyz, normwxyz, _MM_SHUFFLE(0, 1, 2, 3));
   return OZZ_SSE_SELECT_F(cond, _safe, cfalse);
@@ -685,7 +685,7 @@ OZZ_INLINE SimdFloat4 NormalizeSafeEst4(_SimdFloat4 _v, _SimdFloat4 _safe) {
   const __m128 inv_len = _mm_rsqrt_ss(sq_len);
   const __m128 inv_lenxxxx = OZZ_SSE_SPLAT_F(inv_len, 0);
   const __m128i cond = _mm_castps_si128(
-      _mm_cmpeq_ps(OZZ_SSE_SPLAT_F(sq_len, 0), _mm_setzero_ps()));
+      _mm_cmple_ps(OZZ_SSE_SPLAT_F(sq_len, 0), _mm_setzero_ps()));
   const __m128 cfalse = _mm_mul_ps(_v, inv_lenxxxx);
   return OZZ_SSE_SELECT_F(cond, _safe, cfalse);
 }
