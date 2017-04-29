@@ -323,15 +323,22 @@ void ImmediatePTCShader::Bind(const math::Float4x4& _model,
 }
 
 namespace {
+const char* kPassUv =
+    "attribute vec2 a_uv;\n"
+    "varying vec2 v_vertex_uv;\n"
+    "void PassUv() {\n"
+    "  v_vertex_uv = a_uv;\n"
+    "}\n";
+const char* kPassNoUv =
+    "void PassUv() {\n"
+    "}\n";
 const char* kShaderUberVS =
     "uniform mat4 u_mvp;\n"
     "attribute vec3 a_position;\n"
     "attribute vec3 a_normal;\n"
     "attribute vec4 a_color;\n"
-    "attribute vec2 a_uv;\n"
     "varying vec3 v_world_normal;\n"
     "varying vec4 v_vertex_color;\n"
-    "varying vec2 v_vertex_uv;\n"
     "void main() {\n"
     "  mat4 world_matrix = GetWorldMatrix();\n"
     "  vec4 vertex = vec4(a_position.xyz, 1.);\n"
@@ -344,7 +351,7 @@ const char* kShaderUberVS =
     "  mat3 normal_matrix = cross_matrix * invdet;\n"
     "  v_world_normal = normal_matrix * a_normal;\n"
     "  v_vertex_color = a_color;\n"
-    "  v_vertex_uv = a_uv;\n"
+    "  PassUv();\n"
     "}\n";
 const char* kShaderAmbientFct =
     "vec4 GetAmbient(vec3 _world_normal) {\n"
@@ -435,6 +442,7 @@ JointShader* JointShader::Build() {
       "  return world_matrix;\n"
       "}\n";
   const char* vs[] = {kPlatformSpecivicVSHeader,
+                      kPassNoUv,
                       GL_ARB_instanced_arrays ? "attribute mat4 joint;\n"
                                               : "uniform mat4 joint;\n",
                       vs_joint_to_world_matrix, kShaderUberVS};
@@ -495,6 +503,7 @@ BoneShader* BoneShader::Build() {  // Builds a world matrix from joint uniforms,
       "  return world_matrix;\n"
       "}\n";
   const char* vs[] = {kPlatformSpecivicVSHeader,
+                      kPassNoUv,
                       GL_ARB_instanced_arrays ? "attribute mat4 joint;\n"
                                               : "uniform mat4 joint;\n",
                       vs_joint_to_world_matrix, kShaderUberVS};
@@ -530,6 +539,7 @@ BoneShader* BoneShader::Build() {  // Builds a world matrix from joint uniforms,
 AmbientShader* AmbientShader::Build() {
   const char* vs[] = {
       kPlatformSpecivicVSHeader,
+      kPassNoUv,
       "uniform mat4 u_mw;\n mat4 GetWorldMatrix() {return u_mw;}\n",
       kShaderUberVS};
   const char* fs[] = {kPlatformSpecivicFSHeader, kShaderAmbientFct,
@@ -611,6 +621,7 @@ AmbientShaderInstanced* AmbientShaderInstanced::Build() {
 
   const char* vs[] = {
       kPlatformSpecivicVSHeader,
+      kPassNoUv,
       "attribute mat4 a_mw;\n mat4 GetWorldMatrix() {return a_mw;}\n",
       kShaderUberVS};
   const char* fs[] = {kPlatformSpecivicFSHeader, kShaderAmbientFct,
@@ -710,6 +721,7 @@ void AmbientShaderInstanced::Unbind() {
 AmbientTexturedShader* AmbientTexturedShader::Build() {
   const char* vs[] = {
       kPlatformSpecivicVSHeader,
+      kPassUv,
       "uniform mat4 u_mw;\n mat4 GetWorldMatrix() {return u_mw;}\n",
       kShaderUberVS};
   const char* fs[] = {kPlatformSpecivicFSHeader, kShaderAmbientFct,
