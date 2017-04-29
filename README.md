@@ -1,6 +1,7 @@
 [![Travis-CI](https://travis-ci.org/guillaumeblanc/ozz-animation.svg?branch=master)](http://travis-ci.org/guillaumeblanc/ozz-animation)
 [![AppVeyor](https://ci.appveyor.com/api/projects/status/github/guillaumeblanc/ozz-animation?branch=master&svg=true)](http://ci.appveyor.com/project/guillaumeblanc/ozz-animation)
-[Dashboard for all branches](http://guillaumeblanc.github.io/ozz-animation/documentation/dashboard/)
+
+> [Dashboard for all branches](http://guillaumeblanc.github.io/ozz-animation/documentation/dashboard/)
 
 ozz-animation - open source c++ skeletal animation library and toolset
 ----------------------------------------------------------------------
