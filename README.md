@@ -1,5 +1,6 @@
 [![Travis-CI](https://travis-ci.org/guillaumeblanc/ozz-animation.svg?branch=master)](http://travis-ci.org/guillaumeblanc/ozz-animation)
 [![AppVeyor](https://ci.appveyor.com/api/projects/status/github/guillaumeblanc/ozz-animation?branch=master&svg=true)](http://ci.appveyor.com/project/guillaumeblanc/ozz-animation)
+<a href="http://guillaumeblanc.github.io/ozz-animation/documentation/dashboard/"><i class="fa fa-thermometer-full" aria-hidden="true"></i></a>
 
 ozz-animation - open source c++ skeletal animation library and toolset
 ----------------------------------------------------------------------
