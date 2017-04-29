@@ -2,6 +2,8 @@
 [![AppVeyor](https://ci.appveyor.com/api/projects/status/github/guillaumeblanc/ozz-animation?branch=master&svg=true)](http://ci.appveyor.com/project/guillaumeblanc/ozz-animation)
 
 ozz-animation - open source c++ skeletal animation library and toolset
+----------------------------------------------------------------------
+
 [![logo](media/icon/ozz-grey-256.png)](http://guillaumeblanc.github.io/ozz-animation/)
 
 ozz-animation is an open source c++ 3d skeletal animation library. It provides runtime character animation playback functionalities (loading, sampling, blending...). It proposes a low-level renderer agnostic and game-engine agnostic implementation, focusing on performance and memory constraints with a data-oriented design.
@@ -10,7 +12,7 @@ ozz-animation comes with the toolchain to convert from major Digital Content Cre
 
 ---
 
-Documentation is available [online](http://guillaumeblanc.github.io/ozz-animation/).
+Documentation is available [online](http://guillaumeblanc.github.io/ozz-animation/documentation/).
 
 ---
 
