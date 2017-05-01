@@ -1,6 +1,3 @@
-[![Travis-CI](https://travis-ci.org/guillaumeblanc/ozz-animation.svg?branch=master)](http://travis-ci.org/guillaumeblanc/ozz-animation)
-[![AppVeyor](https://ci.appveyor.com/api/projects/status/github/guillaumeblanc/ozz-animation?branch=master&svg=true)](http://ci.appveyor.com/project/guillaumeblanc/ozz-animation)
-
 [![logo](media/icon/ozz-grey-256.png)](http://guillaumeblanc.github.io/ozz-animation/)
 
 ozz-animation
@@ -30,8 +27,8 @@ Build status
 
 |         | Linux  | Mac OS | Windows |
 | ------- | ------ | ------ | ------- |
-| Master  | [![Travis-CI](https://travis-ci.org/guillaumeblanc/ozz-animation.svg?branch=master)](http://travis-ci.org/guillaumeblanc/ozz-animation) | [![Travis-CI](https://travis-ci.org/guillaumeblanc/ozz-animation.svg?branch=master)](http://travis-ci.org/guillaumeblanc/ozz-animation) | [![AppVeyor](https://ci.appveyor.com/api/projects/status/github/guillaumeblanc/ozz-animation?branch=master&svg=true)](http://ci.appveyor.com/project/guillaumeblanc/ozz-animation) |
-| Develop | [![Travis-CI](https://travis-ci.org/guillaumeblanc/ozz-animation.svg?branch=develop)](http://travis-ci.org/guillaumeblanc/ozz-animation) | [![Travis-CI](https://travis-ci.org/guillaumeblanc/ozz-animation.svg?branch=develop)](http://travis-ci.org/guillaumeblanc/ozz-animation) | [![AppVeyor](https://ci.appveyor.com/api/projects/status/github/guillaumeblanc/ozz-animation?branch=develop&svg=true)](http://ci.appveyor.com/project/guillaumeblanc/ozz-animation) |
+| master  | [![Travis-CI](https://travis-ci.org/guillaumeblanc/ozz-animation.svg?branch=master)](http://travis-ci.org/guillaumeblanc/ozz-animation) | [![Travis-CI](https://travis-ci.org/guillaumeblanc/ozz-animation.svg?branch=master)](http://travis-ci.org/guillaumeblanc/ozz-animation) | [![AppVeyor](https://ci.appveyor.com/api/projects/status/github/guillaumeblanc/ozz-animation?branch=master&svg=true)](http://ci.appveyor.com/project/guillaumeblanc/ozz-animation) |
+| develop | [![Travis-CI](https://travis-ci.org/guillaumeblanc/ozz-animation.svg?branch=develop)](http://travis-ci.org/guillaumeblanc/ozz-animation) | [![Travis-CI](https://travis-ci.org/guillaumeblanc/ozz-animation.svg?branch=develop)](http://travis-ci.org/guillaumeblanc/ozz-animation) | [![AppVeyor](https://ci.appveyor.com/api/projects/status/github/guillaumeblanc/ozz-animation?branch=develop&svg=true)](http://ci.appveyor.com/project/guillaumeblanc/ozz-animation) |
 
 The dashboard for all branches is available [here](http://guillaumeblanc.github.io/ozz-animation/documentation/dashboard/).
 
