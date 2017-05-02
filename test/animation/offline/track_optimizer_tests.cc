@@ -94,11 +94,13 @@ TEST(OptimizeSteps, TrackOptimizer) {
   TrackOptimizer optimizer;
 
   RawFloatTrack raw_float_track;
-  RawFloatTrack::Keyframe key0 = {RawTrackInterpolation::kStep, .5f, 46.f};
+  const RawFloatTrack::Keyframe key0 = {RawTrackInterpolation::kStep, .5f,
+                                        46.f};
   raw_float_track.keyframes.push_back(key0);
-  RawFloatTrack::Keyframe key1 = {RawTrackInterpolation::kStep, .7f, 0.f};
+  const RawFloatTrack::Keyframe key1 = {RawTrackInterpolation::kStep, .7f, 0.f};
   raw_float_track.keyframes.push_back(key1);
-  RawFloatTrack::Keyframe key2 = {RawTrackInterpolation::kStep, .8f, 1e-9f};
+  const RawFloatTrack::Keyframe key2 = {RawTrackInterpolation::kStep, .8f,
+                                        1e-9f};
   raw_float_track.keyframes.push_back(key2);
 
   RawFloatTrack output;
@@ -124,20 +126,26 @@ TEST(OptimizeInterpolate, TrackOptimizer) {
   TrackOptimizer optimizer;
 
   RawFloatTrack raw_float_track;
-  RawFloatTrack::Keyframe key0 = {RawTrackInterpolation::kLinear, 0.f, 69.f};
+  const RawFloatTrack::Keyframe key0 = {RawTrackInterpolation::kLinear, 0.f,
+                                        69.f};
   raw_float_track.keyframes.push_back(key0);
-  RawFloatTrack::Keyframe key1 = {RawTrackInterpolation::kLinear, .25f, 46.f};
+  const RawFloatTrack::Keyframe key1 = {RawTrackInterpolation::kLinear, .25f,
+                                        46.f};
   raw_float_track.keyframes.push_back(key1);
-  RawFloatTrack::Keyframe key2 = {RawTrackInterpolation::kLinear, .5f, 23.f};
+  const RawFloatTrack::Keyframe key2 = {RawTrackInterpolation::kLinear, .5f,
+                                        23.f};
   raw_float_track.keyframes.push_back(key2);
-  RawFloatTrack::Keyframe key3 = {RawTrackInterpolation::kLinear, .500001f,
-                                  23.000001f};
+  const RawFloatTrack::Keyframe key3 = {RawTrackInterpolation::kLinear,
+                                        .500001f, 23.000001f};
   raw_float_track.keyframes.push_back(key3);
-  RawFloatTrack::Keyframe key4 = {RawTrackInterpolation::kLinear, .75f, 0.f};
+  const RawFloatTrack::Keyframe key4 = {RawTrackInterpolation::kLinear, .75f,
+                                        0.f};
   raw_float_track.keyframes.push_back(key4);
-  RawFloatTrack::Keyframe key5 = {RawTrackInterpolation::kLinear, .8f, 1e-12f};
+  const RawFloatTrack::Keyframe key5 = {RawTrackInterpolation::kLinear, .8f,
+                                        1e-12f};
   raw_float_track.keyframes.push_back(key5);
-  RawFloatTrack::Keyframe key6 = {RawTrackInterpolation::kLinear, 1.f, -1e-12f};
+  const RawFloatTrack::Keyframe key6 = {RawTrackInterpolation::kLinear, 1.f,
+                                        -1e-12f};
   raw_float_track.keyframes.push_back(key6);
 
   {
@@ -186,20 +194,26 @@ TEST(float, TrackOptimizer) {
   TrackOptimizer optimizer;
 
   RawFloatTrack raw_track;
-  RawFloatTrack::Keyframe key0 = {RawTrackInterpolation::kLinear, 0.f, 6.9f};
+  const RawFloatTrack::Keyframe key0 = {RawTrackInterpolation::kLinear, 0.f,
+                                        6.9f};
   raw_track.keyframes.push_back(key0);
-  RawFloatTrack::Keyframe key1 = {RawTrackInterpolation::kLinear, .25f, 4.6f};
+  const RawFloatTrack::Keyframe key1 = {RawTrackInterpolation::kLinear, .25f,
+                                        4.6f};
   raw_track.keyframes.push_back(key1);
-  RawFloatTrack::Keyframe key2 = {RawTrackInterpolation::kLinear, .5f, 2.3f};
+  const RawFloatTrack::Keyframe key2 = {RawTrackInterpolation::kLinear, .5f,
+                                        2.3f};
   raw_track.keyframes.push_back(key2);
-  RawFloatTrack::Keyframe key3 = {RawTrackInterpolation::kLinear, .500001f,
-                                  2.300001f};
+  const RawFloatTrack::Keyframe key3 = {RawTrackInterpolation::kLinear,
+                                        .500001f, 2.300001f};
   raw_track.keyframes.push_back(key3);
-  RawFloatTrack::Keyframe key4 = {RawTrackInterpolation::kLinear, .75f, 0.f};
+  const RawFloatTrack::Keyframe key4 = {RawTrackInterpolation::kLinear, .75f,
+                                        0.f};
   raw_track.keyframes.push_back(key4);
-  RawFloatTrack::Keyframe key5 = {RawTrackInterpolation::kLinear, .8f, 1e-12f};
+  const RawFloatTrack::Keyframe key5 = {RawTrackInterpolation::kLinear, .8f,
+                                        1e-12f};
   raw_track.keyframes.push_back(key5);
-  RawFloatTrack::Keyframe key6 = {RawTrackInterpolation::kLinear, 1.f, -1e-12f};
+  const RawFloatTrack::Keyframe key6 = {RawTrackInterpolation::kLinear, 1.f,
+                                        -1e-12f};
   raw_track.keyframes.push_back(key6);
 
   RawFloatTrack output;
@@ -220,26 +234,27 @@ TEST(Float2, TrackOptimizer) {
   TrackOptimizer optimizer;
 
   RawFloat2Track raw_track;
-  RawFloat2Track::Keyframe key0 = {RawTrackInterpolation::kLinear, 0.f,
-                                   ozz::math::Float2(6.9f, 0.f)};
+  const RawFloat2Track::Keyframe key0 = {RawTrackInterpolation::kLinear, 0.f,
+                                         ozz::math::Float2(6.9f, 0.f)};
   raw_track.keyframes.push_back(key0);
-  RawFloat2Track::Keyframe key1 = {RawTrackInterpolation::kLinear, .25f,
-                                   ozz::math::Float2(4.6f, 0.f)};
+  const RawFloat2Track::Keyframe key1 = {RawTrackInterpolation::kLinear, .25f,
+                                         ozz::math::Float2(4.6f, 0.f)};
   raw_track.keyframes.push_back(key1);
-  RawFloat2Track::Keyframe key2 = {RawTrackInterpolation::kLinear, .5f,
-                                   ozz::math::Float2(2.3f, 0.f)};
+  const RawFloat2Track::Keyframe key2 = {RawTrackInterpolation::kLinear, .5f,
+                                         ozz::math::Float2(2.3f, 0.f)};
   raw_track.keyframes.push_back(key2);
-  RawFloat2Track::Keyframe key3 = {RawTrackInterpolation::kLinear, .500001f,
-                                   ozz::math::Float2(2.3000001f, 0.f)};
+  const RawFloat2Track::Keyframe key3 = {RawTrackInterpolation::kLinear,
+                                         .500001f,
+                                         ozz::math::Float2(2.3000001f, 0.f)};
   raw_track.keyframes.push_back(key3);
-  RawFloat2Track::Keyframe key4 = {RawTrackInterpolation::kLinear, .75f,
-                                   ozz::math::Float2(0.f, 0.f)};
+  const RawFloat2Track::Keyframe key4 = {RawTrackInterpolation::kLinear, .75f,
+                                         ozz::math::Float2(0.f, 0.f)};
   raw_track.keyframes.push_back(key4);
-  RawFloat2Track::Keyframe key5 = {RawTrackInterpolation::kLinear, .8f,
-                                   ozz::math::Float2(0.f, 1e-12f)};
+  const RawFloat2Track::Keyframe key5 = {RawTrackInterpolation::kLinear, .8f,
+                                         ozz::math::Float2(0.f, 1e-12f)};
   raw_track.keyframes.push_back(key5);
-  RawFloat2Track::Keyframe key6 = {RawTrackInterpolation::kLinear, 1.f,
-                                   ozz::math::Float2(-1e-12f, 0.f)};
+  const RawFloat2Track::Keyframe key6 = {RawTrackInterpolation::kLinear, 1.f,
+                                         ozz::math::Float2(-1e-12f, 0.f)};
   raw_track.keyframes.push_back(key6);
 
   RawFloat2Track output;
@@ -260,26 +275,27 @@ TEST(Float3, TrackOptimizer) {
   TrackOptimizer optimizer;
 
   RawFloat3Track raw_track;
-  RawFloat3Track::Keyframe key0 = {RawTrackInterpolation::kLinear, 0.f,
-                                   ozz::math::Float3(6.9f, 0.f, 0.f)};
+  const RawFloat3Track::Keyframe key0 = {RawTrackInterpolation::kLinear, 0.f,
+                                         ozz::math::Float3(6.9f, 0.f, 0.f)};
   raw_track.keyframes.push_back(key0);
-  RawFloat3Track::Keyframe key1 = {RawTrackInterpolation::kLinear, .25f,
-                                   ozz::math::Float3(4.6f, 0.f, 0.f)};
+  const RawFloat3Track::Keyframe key1 = {RawTrackInterpolation::kLinear, .25f,
+                                         ozz::math::Float3(4.6f, 0.f, 0.f)};
   raw_track.keyframes.push_back(key1);
-  RawFloat3Track::Keyframe key2 = {RawTrackInterpolation::kLinear, .5f,
-                                   ozz::math::Float3(2.3f, 0.f, 0.f)};
+  const RawFloat3Track::Keyframe key2 = {RawTrackInterpolation::kLinear, .5f,
+                                         ozz::math::Float3(2.3f, 0.f, 0.f)};
   raw_track.keyframes.push_back(key2);
-  RawFloat3Track::Keyframe key3 = {RawTrackInterpolation::kLinear, .500001f,
-                                   ozz::math::Float3(2.3000001f, 0.f, 0.f)};
+  const RawFloat3Track::Keyframe key3 = {
+      RawTrackInterpolation::kLinear, .500001f,
+      ozz::math::Float3(2.3000001f, 0.f, 0.f)};
   raw_track.keyframes.push_back(key3);
-  RawFloat3Track::Keyframe key4 = {RawTrackInterpolation::kLinear, .75f,
-                                   ozz::math::Float3(0.f, 0.f, 0.f)};
+  const RawFloat3Track::Keyframe key4 = {RawTrackInterpolation::kLinear, .75f,
+                                         ozz::math::Float3(0.f, 0.f, 0.f)};
   raw_track.keyframes.push_back(key4);
-  RawFloat3Track::Keyframe key5 = {RawTrackInterpolation::kLinear, .8f,
-                                   ozz::math::Float3(0.f, 0.f, 1e-12f)};
+  const RawFloat3Track::Keyframe key5 = {RawTrackInterpolation::kLinear, .8f,
+                                         ozz::math::Float3(0.f, 0.f, 1e-12f)};
   raw_track.keyframes.push_back(key5);
-  RawFloat3Track::Keyframe key6 = {RawTrackInterpolation::kLinear, 1.f,
-                                   ozz::math::Float3(0.f, -1e-12f, 0.f)};
+  const RawFloat3Track::Keyframe key6 = {RawTrackInterpolation::kLinear, 1.f,
+                                         ozz::math::Float3(0.f, -1e-12f, 0.f)};
   raw_track.keyframes.push_back(key6);
 
   RawFloat3Track output;
@@ -302,31 +318,31 @@ TEST(Quaternion, TrackOptimizer) {
   TrackOptimizer optimizer;
 
   RawQuaternionTrack raw_track;
-  RawQuaternionTrack::Keyframe key0 = {
+  const RawQuaternionTrack::Keyframe key0 = {
       RawTrackInterpolation::kLinear, 0.f,
       ozz::math::Quaternion(.70710677f, 0.f, 0.f, .70710677f)};
   raw_track.keyframes.push_back(key0);
-  RawQuaternionTrack::Keyframe key1 = {
+  const RawQuaternionTrack::Keyframe key1 = {
       RawTrackInterpolation::kLinear, .1f,
       ozz::math::Quaternion(.6172133f, .1543033f, 0.f, .7715167f)};  // NLerp
   raw_track.keyframes.push_back(key1);
-  RawQuaternionTrack::Keyframe key2 = {
+  const RawQuaternionTrack::Keyframe key2 = {
       RawTrackInterpolation::kLinear, .5f,
       ozz::math::Quaternion(0.f, .70710677f, 0.f, .70710677f)};
   raw_track.keyframes.push_back(key2);
-  RawQuaternionTrack::Keyframe key3 = {
+  const RawQuaternionTrack::Keyframe key3 = {
       RawTrackInterpolation::kLinear, .500001f,
       ozz::math::Quaternion(0.f, .70710676f, 0.f, .70710678f)};
   raw_track.keyframes.push_back(key3);
-  RawQuaternionTrack::Keyframe key4 = {
+  const RawQuaternionTrack::Keyframe key4 = {
       RawTrackInterpolation::kLinear, .75f,
       ozz::math::Quaternion(0.f, .70710677f, 0.f, .70710677f)};
   raw_track.keyframes.push_back(key4);
-  RawQuaternionTrack::Keyframe key5 = {
+  const RawQuaternionTrack::Keyframe key5 = {
       RawTrackInterpolation::kLinear, .8f,
       ozz::math::Quaternion(-0.f, -0.70710677f, -0.f, -.70710677f)};
   raw_track.keyframes.push_back(key5);
-  RawQuaternionTrack::Keyframe key6 = {
+  const RawQuaternionTrack::Keyframe key6 = {
       RawTrackInterpolation::kLinear, 1.f,
       ozz::math::Quaternion(0.f, .70710677f, 0.f, .70710677f)};
   raw_track.keyframes.push_back(key6);

@@ -63,14 +63,13 @@ TEST(Build, TrackBuilder) {
 
   {  // Building a track with unsorted keys fails.
     RawFloatTrack raw_float_track;
-    raw_float_track.keyframes.resize(2);
 
     // Adds 2 unordered keys
-    RawFloatTrack::Keyframe first_key = {RawTrackInterpolation::kLinear, .8f,
-                                         0.f};
+    const RawFloatTrack::Keyframe first_key = {RawTrackInterpolation::kLinear,
+                                               .8f, 0.f};
     raw_float_track.keyframes.push_back(first_key);
-    RawFloatTrack::Keyframe second_key = {RawTrackInterpolation::kLinear, .2f,
-                                          0.f};
+    const RawFloatTrack::Keyframe second_key = {RawTrackInterpolation::kLinear,
+                                                .2f, 0.f};
     raw_float_track.keyframes.push_back(second_key);
 
     // Builds track
@@ -80,13 +79,12 @@ TEST(Build, TrackBuilder) {
 
   {  // Building a track with too close keys fails.
     RawFloatTrack raw_float_track;
-    raw_float_track.keyframes.resize(2);
 
     // Adds 2 unordered keys
-    RawFloatTrack::Keyframe first_key = {RawTrackInterpolation::kLinear, .1f,
-                                         0.f};
+    const RawFloatTrack::Keyframe first_key = {RawTrackInterpolation::kLinear,
+                                               .1f, 0.f};
     raw_float_track.keyframes.push_back(first_key);
-    RawFloatTrack::Keyframe second_key = {
+    const RawFloatTrack::Keyframe second_key = {
         RawTrackInterpolation::kLinear,
         .1f + std::numeric_limits<float>::epsilon(), 0.f};
     raw_float_track.keyframes.push_back(second_key);
@@ -98,11 +96,10 @@ TEST(Build, TrackBuilder) {
 
   {  // Building a track with invalid key frame's time fails.
     RawFloatTrack raw_float_track;
-    raw_float_track.keyframes.resize(1);
 
     // Adds 2 unordered keys
-    RawFloatTrack::Keyframe first_key = {RawTrackInterpolation::kLinear, 1.8f,
-                                         0.f};
+    const RawFloatTrack::Keyframe first_key = {RawTrackInterpolation::kLinear,
+                                               1.8f, 0.f};
     raw_float_track.keyframes.push_back(first_key);
 
     // Builds track
@@ -112,14 +109,13 @@ TEST(Build, TrackBuilder) {
 
   {  // Building a track with equal key frame's time fails.
     RawFloatTrack raw_float_track;
-    raw_float_track.keyframes.resize(2);
 
     // Adds 2 unordered keys
-    RawFloatTrack::Keyframe first_key = {RawTrackInterpolation::kLinear, .8f,
-                                         0.f};
+    const RawFloatTrack::Keyframe first_key = {RawTrackInterpolation::kLinear,
+                                               .8f, 0.f};
     raw_float_track.keyframes.push_back(first_key);
-    RawFloatTrack::Keyframe second_key = {RawTrackInterpolation::kLinear, .8f,
-                                          1.f};
+    const RawFloatTrack::Keyframe second_key = {RawTrackInterpolation::kLinear,
+                                                .8f, 1.f};
     raw_float_track.keyframes.push_back(second_key);
 
     // Builds track
@@ -129,8 +125,8 @@ TEST(Build, TrackBuilder) {
 
   {  // Building a valid track with 1 key succeeds.
     RawFloatTrack raw_float_track;
-    RawFloatTrack::Keyframe first_key = {RawTrackInterpolation::kLinear, .8f,
-                                         0.f};
+    const RawFloatTrack::Keyframe first_key = {RawTrackInterpolation::kLinear,
+                                               .8f, 0.f};
     raw_float_track.keyframes.push_back(first_key);
     EXPECT_TRUE(raw_float_track.Validate());
 
@@ -205,8 +201,8 @@ TEST(BuildLinear, TrackBuilder) {
   {  // 1 key at the beginning
     RawFloatTrack raw_float_track;
 
-    RawFloatTrack::Keyframe first_key = {RawTrackInterpolation::kLinear, 0.f,
-                                         46.f};
+    const RawFloatTrack::Keyframe first_key = {RawTrackInterpolation::kLinear,
+                                               0.f, 46.f};
     raw_float_track.keyframes.push_back(first_key);
 
     // Builds track
@@ -236,8 +232,8 @@ TEST(BuildLinear, TrackBuilder) {
   {  // 1 key in the middle
     RawFloatTrack raw_float_track;
 
-    RawFloatTrack::Keyframe first_key = {RawTrackInterpolation::kLinear, .5f,
-                                         46.f};
+    const RawFloatTrack::Keyframe first_key = {RawTrackInterpolation::kLinear,
+                                               .5f, 46.f};
     raw_float_track.keyframes.push_back(first_key);
 
     // Builds track
@@ -267,8 +263,8 @@ TEST(BuildLinear, TrackBuilder) {
   {  // 1 key at the end
     RawFloatTrack raw_float_track;
 
-    RawFloatTrack::Keyframe first_key = {RawTrackInterpolation::kLinear, 1.f,
-                                         46.f};
+    const RawFloatTrack::Keyframe first_key = {RawTrackInterpolation::kLinear,
+                                               1.f, 46.f};
     raw_float_track.keyframes.push_back(first_key);
 
     // Builds track
@@ -298,11 +294,11 @@ TEST(BuildLinear, TrackBuilder) {
   {  // 2 keys at the end
     RawFloatTrack raw_float_track;
 
-    RawFloatTrack::Keyframe first_key = {RawTrackInterpolation::kLinear, .5f,
-                                         46.f};
+    const RawFloatTrack::Keyframe first_key = {RawTrackInterpolation::kLinear,
+                                               .5f, 46.f};
     raw_float_track.keyframes.push_back(first_key);
-    RawFloatTrack::Keyframe second_key = {RawTrackInterpolation::kLinear, .7f,
-                                          0.f};
+    const RawFloatTrack::Keyframe second_key = {RawTrackInterpolation::kLinear,
+                                                .7f, 0.f};
     raw_float_track.keyframes.push_back(second_key);
 
     // Builds track
@@ -346,8 +342,8 @@ TEST(BuildStep, TrackBuilder) {
   {  // 1 key at the beginning
     RawFloatTrack raw_float_track;
 
-    RawFloatTrack::Keyframe first_key = {RawTrackInterpolation::kStep, 0.f,
-                                         46.f};
+    const RawFloatTrack::Keyframe first_key = {RawTrackInterpolation::kStep,
+                                               0.f, 46.f};
     raw_float_track.keyframes.push_back(first_key);
 
     // Builds track
@@ -377,8 +373,8 @@ TEST(BuildStep, TrackBuilder) {
   {  // 1 key in the middle
     RawFloatTrack raw_float_track;
 
-    RawFloatTrack::Keyframe first_key = {RawTrackInterpolation::kStep, .5f,
-                                         46.f};
+    const RawFloatTrack::Keyframe first_key = {RawTrackInterpolation::kStep,
+                                               .5f, 46.f};
     raw_float_track.keyframes.push_back(first_key);
 
     // Builds track
@@ -408,8 +404,8 @@ TEST(BuildStep, TrackBuilder) {
   {  // 1 key at the end
     RawFloatTrack raw_float_track;
 
-    RawFloatTrack::Keyframe first_key = {RawTrackInterpolation::kStep, 1.f,
-                                         46.f};
+    const RawFloatTrack::Keyframe first_key = {RawTrackInterpolation::kStep,
+                                               1.f, 46.f};
     raw_float_track.keyframes.push_back(first_key);
 
     // Builds track
@@ -439,8 +435,8 @@ TEST(BuildStep, TrackBuilder) {
   {  // 1 key at the beginning
     RawFloatTrack raw_float_track;
 
-    RawFloatTrack::Keyframe first_key = {RawTrackInterpolation::kStep, 0.f,
-                                         46.f};
+    const RawFloatTrack::Keyframe first_key = {RawTrackInterpolation::kStep,
+                                               0.f, 46.f};
     raw_float_track.keyframes.push_back(first_key);
 
     // Builds track
@@ -470,11 +466,11 @@ TEST(BuildStep, TrackBuilder) {
   {  // 2 keys
     RawFloatTrack raw_float_track;
 
-    RawFloatTrack::Keyframe first_key = {RawTrackInterpolation::kStep, 0.f,
-                                         46.f};
+    const RawFloatTrack::Keyframe first_key = {RawTrackInterpolation::kStep,
+                                               0.f, 46.f};
     raw_float_track.keyframes.push_back(first_key);
-    RawFloatTrack::Keyframe second_key = {RawTrackInterpolation::kStep, .7f,
-                                          0.f};
+    const RawFloatTrack::Keyframe second_key = {RawTrackInterpolation::kStep,
+                                                .7f, 0.f};
     raw_float_track.keyframes.push_back(second_key);
 
     // Builds track
@@ -520,14 +516,14 @@ TEST(BuildStep, TrackBuilder) {
   {  // 3 keys
     RawFloatTrack raw_float_track;
 
-    RawFloatTrack::Keyframe first_key = {RawTrackInterpolation::kStep, 0.f,
-                                         46.f};
+    const RawFloatTrack::Keyframe first_key = {RawTrackInterpolation::kStep,
+                                               0.f, 46.f};
     raw_float_track.keyframes.push_back(first_key);
-    RawFloatTrack::Keyframe second_key = {RawTrackInterpolation::kStep, .7f,
-                                          0.f};
+    const RawFloatTrack::Keyframe second_key = {RawTrackInterpolation::kStep,
+                                                .7f, 0.f};
     raw_float_track.keyframes.push_back(second_key);
-    RawFloatTrack::Keyframe third_key = {RawTrackInterpolation::kStep, 1.f,
-                                         99.f};
+    const RawFloatTrack::Keyframe third_key = {RawTrackInterpolation::kStep,
+                                               1.f, 99.f};
     raw_float_track.keyframes.push_back(third_key);
 
     // Builds track
@@ -577,10 +573,10 @@ TEST(BuildStep, TrackBuilder) {
   {  // 2 close keys
     RawFloatTrack raw_float_track;
 
-    RawFloatTrack::Keyframe first_key = {RawTrackInterpolation::kStep, .5f,
-                                         46.f};
+    const RawFloatTrack::Keyframe first_key = {RawTrackInterpolation::kStep,
+                                               .5f, 46.f};
     raw_float_track.keyframes.push_back(first_key);
-    RawFloatTrack::Keyframe second_key = {
+    const RawFloatTrack::Keyframe second_key = {
         RawTrackInterpolation::kStep,
         .5f + 2.f * std::numeric_limits<float>::epsilon(), 0.f};
     raw_float_track.keyframes.push_back(second_key);
@@ -620,14 +616,14 @@ TEST(BuildStep, TrackBuilder) {
   {  // 3 keys
     RawFloatTrack raw_float_track;
 
-    RawFloatTrack::Keyframe first_key = {RawTrackInterpolation::kStep, .5f,
-                                         46.f};
+    const RawFloatTrack::Keyframe first_key = {RawTrackInterpolation::kStep,
+                                               .5f, 46.f};
     raw_float_track.keyframes.push_back(first_key);
-    RawFloatTrack::Keyframe second_key = {RawTrackInterpolation::kStep, .7f,
-                                          0.f};
+    const RawFloatTrack::Keyframe second_key = {RawTrackInterpolation::kStep,
+                                                .7f, 0.f};
     raw_float_track.keyframes.push_back(second_key);
-    RawFloatTrack::Keyframe third_key = {RawTrackInterpolation::kStep, 1.f,
-                                         99.f};
+    const RawFloatTrack::Keyframe third_key = {RawTrackInterpolation::kStep,
+                                               1.f, 99.f};
     raw_float_track.keyframes.push_back(third_key);
 
     // Builds track
@@ -686,11 +682,14 @@ TEST(BuildMixed, TrackBuilder) {
 
   RawFloatTrack raw_float_track;
 
-  RawFloatTrack::Keyframe key0 = {RawTrackInterpolation::kLinear, 0.f, 0.f};
+  const RawFloatTrack::Keyframe key0 = {RawTrackInterpolation::kLinear, 0.f,
+                                        0.f};
   raw_float_track.keyframes.push_back(key0);
-  RawFloatTrack::Keyframe key1 = {RawTrackInterpolation::kStep, .5f, 46.f};
+  const RawFloatTrack::Keyframe key1 = {RawTrackInterpolation::kStep, .5f,
+                                        46.f};
   raw_float_track.keyframes.push_back(key1);
-  RawFloatTrack::Keyframe key2 = {RawTrackInterpolation::kLinear, .7f, 0.f};
+  const RawFloatTrack::Keyframe key2 = {RawTrackInterpolation::kLinear, .7f,
+                                        0.f};
   raw_float_track.keyframes.push_back(key2);
 
   // Builds track
@@ -741,190 +740,272 @@ TEST(Float, TrackBuilder) {
   TrackBuilder builder;
   ozz::animation::offline::RawFloatTrack raw_track;
 
-  ozz::animation::offline::RawFloatTrack::Keyframe first_key = {
-      RawTrackInterpolation::kLinear, .5f, 23.f};
-  raw_track.keyframes.push_back(first_key);
-  ozz::animation::offline::RawFloatTrack::Keyframe second_key = {
-      RawTrackInterpolation::kLinear, .7f, 46.f};
-  raw_track.keyframes.push_back(second_key);
+  {
+    // Default value for quaternion is identity.
+    ozz::animation::FloatTrack* track = builder(raw_track);
+    ASSERT_TRUE(track != NULL);
 
-  // Builds track
-  ozz::animation::FloatTrack* track = builder(raw_track);
-  ASSERT_TRUE(track != NULL);
+    // Samples to verify build output.
+    float result;
+    ozz::animation::FloatTrackSamplingJob sampling;
+    sampling.track = track;
+    sampling.result = &result;
 
-  // Samples to verify build output.
-  float result;
-  ozz::animation::FloatTrackSamplingJob sampling;
-  sampling.track = track;
-  sampling.result = &result;
+    sampling.time = .5f;
+    ASSERT_TRUE(sampling.Run());
+    EXPECT_FLOAT_EQ(result, 0.f);
 
-  sampling.time = 0.f;
-  ASSERT_TRUE(sampling.Run());
-  EXPECT_FLOAT_EQ(result, 23.f);
+    ozz::memory::default_allocator()->Delete(track);
+  }
 
-  sampling.time = .5f;
-  ASSERT_TRUE(sampling.Run());
-  EXPECT_FLOAT_EQ(result, 23.f);
+  {
+    const ozz::animation::offline::RawFloatTrack::Keyframe first_key = {
+        RawTrackInterpolation::kLinear, .5f, 23.f};
+    raw_track.keyframes.push_back(first_key);
+    const ozz::animation::offline::RawFloatTrack::Keyframe second_key = {
+        RawTrackInterpolation::kLinear, .7f, 46.f};
+    raw_track.keyframes.push_back(second_key);
 
-  sampling.time = .6f;
-  ASSERT_TRUE(sampling.Run());
-  EXPECT_FLOAT_EQ(result, 34.5f);
+    // Builds track
+    ozz::animation::FloatTrack* track = builder(raw_track);
+    ASSERT_TRUE(track != NULL);
 
-  sampling.time = .7f;
-  ASSERT_TRUE(sampling.Run());
-  EXPECT_FLOAT_EQ(result, 46.f);
+    // Samples to verify build output.
+    float result;
+    ozz::animation::FloatTrackSamplingJob sampling;
+    sampling.track = track;
+    sampling.result = &result;
 
-  sampling.time = 1.f;
-  ASSERT_TRUE(sampling.Run());
-  EXPECT_FLOAT_EQ(result, 46.f);
+    sampling.time = 0.f;
+    ASSERT_TRUE(sampling.Run());
+    EXPECT_FLOAT_EQ(result, 23.f);
 
-  ozz::memory::default_allocator()->Delete(track);
+    sampling.time = .5f;
+    ASSERT_TRUE(sampling.Run());
+    EXPECT_FLOAT_EQ(result, 23.f);
+
+    sampling.time = .6f;
+    ASSERT_TRUE(sampling.Run());
+    EXPECT_FLOAT_EQ(result, 34.5f);
+
+    sampling.time = .7f;
+    ASSERT_TRUE(sampling.Run());
+    EXPECT_FLOAT_EQ(result, 46.f);
+
+    sampling.time = 1.f;
+    ASSERT_TRUE(sampling.Run());
+    EXPECT_FLOAT_EQ(result, 46.f);
+
+    ozz::memory::default_allocator()->Delete(track);
+  }
 }
 
 TEST(Float2, TrackBuilder) {
   TrackBuilder builder;
   ozz::animation::offline::RawFloat2Track raw_track;
 
-  ozz::animation::offline::RawFloat2Track::Keyframe first_key = {
-      RawTrackInterpolation::kLinear, .5f, ozz::math::Float2(0.f, 23.f)};
-  raw_track.keyframes.push_back(first_key);
-  ozz::animation::offline::RawFloat2Track::Keyframe second_key = {
-      RawTrackInterpolation::kLinear, .7f, ozz::math::Float2(23.f, 46.f)};
-  raw_track.keyframes.push_back(second_key);
+  {
+    // Default value for quaternion is identity.
+    ozz::animation::Float2Track* track = builder(raw_track);
+    ASSERT_TRUE(track != NULL);
 
-  // Builds track
-  ozz::animation::Float2Track* track = builder(raw_track);
-  ASSERT_TRUE(track != NULL);
+    // Samples to verify build output.
+    ozz::math::Float2 result;
+    ozz::animation::Float2TrackSamplingJob sampling;
+    sampling.track = track;
+    sampling.result = &result;
 
-  // Samples to verify build output.
-  ozz::math::Float2 result;
-  ozz::animation::Float2TrackSamplingJob sampling;
-  sampling.track = track;
-  sampling.result = &result;
+    sampling.time = .5f;
+    ASSERT_TRUE(sampling.Run());
+    EXPECT_FLOAT2_EQ(result, 0.f, 0.f);
 
-  sampling.time = 0.f;
-  ASSERT_TRUE(sampling.Run());
-  EXPECT_FLOAT2_EQ(result, 0.f, 23.f);
+    ozz::memory::default_allocator()->Delete(track);
+  }
 
-  sampling.time = .5f;
-  ASSERT_TRUE(sampling.Run());
-  EXPECT_FLOAT2_EQ(result, 0.f, 23.f);
+  {
+    const ozz::animation::offline::RawFloat2Track::Keyframe first_key = {
+        RawTrackInterpolation::kLinear, .5f, ozz::math::Float2(0.f, 23.f)};
+    raw_track.keyframes.push_back(first_key);
+    const ozz::animation::offline::RawFloat2Track::Keyframe second_key = {
+        RawTrackInterpolation::kLinear, .7f, ozz::math::Float2(23.f, 46.f)};
+    raw_track.keyframes.push_back(second_key);
 
-  sampling.time = .6f;
-  ASSERT_TRUE(sampling.Run());
-  EXPECT_FLOAT2_EQ(result, 11.5f, 34.5f);
+    // Builds track
+    ozz::animation::Float2Track* track = builder(raw_track);
+    ASSERT_TRUE(track != NULL);
 
-  sampling.time = .7f;
-  ASSERT_TRUE(sampling.Run());
-  EXPECT_FLOAT2_EQ(result, 23.f, 46.f);
+    // Samples to verify build output.
+    ozz::math::Float2 result;
+    ozz::animation::Float2TrackSamplingJob sampling;
+    sampling.track = track;
+    sampling.result = &result;
 
-  sampling.time = 1.f;
-  ASSERT_TRUE(sampling.Run());
-  EXPECT_FLOAT2_EQ(result, 23.f, 46.f);
+    sampling.time = 0.f;
+    ASSERT_TRUE(sampling.Run());
+    EXPECT_FLOAT2_EQ(result, 0.f, 23.f);
 
-  ozz::memory::default_allocator()->Delete(track);
+    sampling.time = .5f;
+    ASSERT_TRUE(sampling.Run());
+    EXPECT_FLOAT2_EQ(result, 0.f, 23.f);
+
+    sampling.time = .6f;
+    ASSERT_TRUE(sampling.Run());
+    EXPECT_FLOAT2_EQ(result, 11.5f, 34.5f);
+
+    sampling.time = .7f;
+    ASSERT_TRUE(sampling.Run());
+    EXPECT_FLOAT2_EQ(result, 23.f, 46.f);
+
+    sampling.time = 1.f;
+    ASSERT_TRUE(sampling.Run());
+    EXPECT_FLOAT2_EQ(result, 23.f, 46.f);
+
+    ozz::memory::default_allocator()->Delete(track);
+  }
 }
 
 TEST(Float3, TrackBuilder) {
   TrackBuilder builder;
   ozz::animation::offline::RawFloat3Track raw_track;
 
-  ozz::animation::offline::RawFloat3Track::Keyframe first_key = {
-      RawTrackInterpolation::kLinear, .5f, ozz::math::Float3(0.f, 23.f, 46.f)};
-  raw_track.keyframes.push_back(first_key);
-  ozz::animation::offline::RawFloat3Track::Keyframe second_key = {
-      RawTrackInterpolation::kLinear, .7f, ozz::math::Float3(23.f, 46.f, 92.f)};
-  raw_track.keyframes.push_back(second_key);
+  {
+    // Default value for quaternion is identity.
+    ozz::animation::Float3Track* track = builder(raw_track);
+    ASSERT_TRUE(track != NULL);
 
-  // Builds track
-  ozz::animation::Float3Track* track = builder(raw_track);
-  ASSERT_TRUE(track != NULL);
+    // Samples to verify build output.
+    ozz::math::Float3 result;
+    ozz::animation::Float3TrackSamplingJob sampling;
+    sampling.track = track;
+    sampling.result = &result;
 
-  // Samples to verify build output.
-  ozz::math::Float3 result;
-  ozz::animation::Float3TrackSamplingJob sampling;
-  sampling.track = track;
-  sampling.result = &result;
+    sampling.time = .5f;
+    ASSERT_TRUE(sampling.Run());
+    EXPECT_FLOAT3_EQ(result, 0.f, 0.f, 0.f);
 
-  sampling.time = 0.f;
-  ASSERT_TRUE(sampling.Run());
-  EXPECT_FLOAT3_EQ(result, 0.f, 23.f, 46.f);
+    ozz::memory::default_allocator()->Delete(track);
+  }
 
-  sampling.time = .5f;
-  ASSERT_TRUE(sampling.Run());
-  EXPECT_FLOAT3_EQ(result, 0.f, 23.f, 46.f);
+  {
+    const ozz::animation::offline::RawFloat3Track::Keyframe first_key = {
+        RawTrackInterpolation::kLinear, .5f,
+        ozz::math::Float3(0.f, 23.f, 46.f)};
+    raw_track.keyframes.push_back(first_key);
+    const ozz::animation::offline::RawFloat3Track::Keyframe second_key = {
+        RawTrackInterpolation::kLinear, .7f,
+        ozz::math::Float3(23.f, 46.f, 92.f)};
+    raw_track.keyframes.push_back(second_key);
 
-  sampling.time = .6f;
-  ASSERT_TRUE(sampling.Run());
-  EXPECT_FLOAT3_EQ(result, 11.5f, 34.5f, 69.f);
+    // Builds track
+    ozz::animation::Float3Track* track = builder(raw_track);
+    ASSERT_TRUE(track != NULL);
 
-  sampling.time = .7f;
-  ASSERT_TRUE(sampling.Run());
-  EXPECT_FLOAT3_EQ(result, 23.f, 46.f, 92.f);
+    // Samples to verify build output.
+    ozz::math::Float3 result;
+    ozz::animation::Float3TrackSamplingJob sampling;
+    sampling.track = track;
+    sampling.result = &result;
 
-  sampling.time = 1.f;
-  ASSERT_TRUE(sampling.Run());
-  EXPECT_FLOAT3_EQ(result, 23.f, 46.f, 92.f);
+    sampling.time = 0.f;
+    ASSERT_TRUE(sampling.Run());
+    EXPECT_FLOAT3_EQ(result, 0.f, 23.f, 46.f);
 
-  ozz::memory::default_allocator()->Delete(track);
+    sampling.time = .5f;
+    ASSERT_TRUE(sampling.Run());
+    EXPECT_FLOAT3_EQ(result, 0.f, 23.f, 46.f);
+
+    sampling.time = .6f;
+    ASSERT_TRUE(sampling.Run());
+    EXPECT_FLOAT3_EQ(result, 11.5f, 34.5f, 69.f);
+
+    sampling.time = .7f;
+    ASSERT_TRUE(sampling.Run());
+    EXPECT_FLOAT3_EQ(result, 23.f, 46.f, 92.f);
+
+    sampling.time = 1.f;
+    ASSERT_TRUE(sampling.Run());
+    EXPECT_FLOAT3_EQ(result, 23.f, 46.f, 92.f);
+
+    ozz::memory::default_allocator()->Delete(track);
+  }
 }
 
 TEST(Quaternion, TrackBuilder) {
   TrackBuilder builder;
   ozz::animation::offline::RawQuaternionTrack raw_track;
 
-  ozz::animation::offline::RawQuaternionTrack::Keyframe key0 = {
-      RawTrackInterpolation::kLinear, .5f,
-      ozz::math::Quaternion(
-          -.70710677f, -0.f, -0.f,
-          -.70710677f)};  // Will be opposed to be on the other hemisphere
-  raw_track.keyframes.push_back(key0);
-  ozz::animation::offline::RawQuaternionTrack::Keyframe key1 = {
-      RawTrackInterpolation::kLinear, .7f,
-      ozz::math::Quaternion(0.f, .70710677f, 0.f, .70710677f)};
-  raw_track.keyframes.push_back(key1);
-  ozz::animation::offline::RawQuaternionTrack::Keyframe key2 = {
-      RawTrackInterpolation::kLinear, .8f,
-      ozz::math::Quaternion(-0.f, -.70710677f, -0.f, -.70710677f)};
-  raw_track.keyframes.push_back(key2);
+  {
+    // Default value for quaternion is identity.
+    ozz::animation::QuaternionTrack* track = builder(raw_track);
+    ASSERT_TRUE(track != NULL);
 
-  // Builds track
-  ozz::animation::QuaternionTrack* track = builder(raw_track);
-  ASSERT_TRUE(track != NULL);
+    // Samples to verify build output.
+    ozz::math::Quaternion result;
+    ozz::animation::QuaternionTrackSamplingJob sampling;
+    sampling.track = track;
+    sampling.result = &result;
 
-  // Samples to verify build output.
-  ozz::math::Quaternion result;
-  ozz::animation::QuaternionTrackSamplingJob sampling;
-  sampling.track = track;
-  sampling.result = &result;
+    sampling.time = .5f;
+    ASSERT_TRUE(sampling.Run());
+    EXPECT_QUATERNION_EQ(result, 0.f, 0.f, 0.f, 1.f);
 
-  sampling.time = 0.f;
-  ASSERT_TRUE(sampling.Run());
-  EXPECT_QUATERNION_EQ(result, .70710677f, 0.f, 0.f, .70710677f);
+    ozz::memory::default_allocator()->Delete(track);
+  }
 
-  sampling.time = .5f;
-  ASSERT_TRUE(sampling.Run());
-  EXPECT_QUATERNION_EQ(result, .70710677f, 0.f, 0.f, .70710677f);
+  {
+    const ozz::animation::offline::RawQuaternionTrack::Keyframe key0 = {
+        RawTrackInterpolation::kLinear, .5f,
+        ozz::math::Quaternion(
+            -.70710677f, -0.f, -0.f,
+            -.70710677f)};  // Will be opposed to be on the other hemisphere
+    raw_track.keyframes.push_back(key0);
+    const ozz::animation::offline::RawQuaternionTrack::Keyframe key1 = {
+        RawTrackInterpolation::kLinear, .7f,
+        ozz::math::Quaternion(0.f, .70710677f, 0.f, .70710677f)};
+    raw_track.keyframes.push_back(key1);
+    const ozz::animation::offline::RawQuaternionTrack::Keyframe key2 = {
+        RawTrackInterpolation::kLinear, .8f,
+        ozz::math::Quaternion(-0.f, -.70710677f, -0.f, -.70710677f)};
+    raw_track.keyframes.push_back(key2);
 
-  sampling.time = .54f;
-  ASSERT_TRUE(sampling.Run());
-  EXPECT_QUATERNION_EQ(result, .5656853f, .1414213f, 0.f, .7071068f);
+    // Builds track
+    ozz::animation::QuaternionTrack* track = builder(raw_track);
+    ASSERT_TRUE(track != NULL);
 
-  sampling.time = .7f;
-  ASSERT_TRUE(sampling.Run());
-  EXPECT_QUATERNION_EQ(result, 0.f, .70710677f, 0.f, .70710677f);
+    // Samples to verify build output.
+    ozz::math::Quaternion result;
+    ozz::animation::QuaternionTrackSamplingJob sampling;
+    sampling.track = track;
+    sampling.result = &result;
 
-  sampling.time = .75f;
-  ASSERT_TRUE(sampling.Run());
-  EXPECT_QUATERNION_EQ(result, 0.f, .70710677f, 0.f, .70710677f);
+    sampling.time = 0.f;
+    ASSERT_TRUE(sampling.Run());
+    EXPECT_QUATERNION_EQ(result, .70710677f, 0.f, 0.f, .70710677f);
 
-  sampling.time = .8f;
-  ASSERT_TRUE(sampling.Run());
-  EXPECT_QUATERNION_EQ(result, 0.f, .70710677f, 0.f, .70710677f);
+    sampling.time = .5f;
+    ASSERT_TRUE(sampling.Run());
+    EXPECT_QUATERNION_EQ(result, .70710677f, 0.f, 0.f, .70710677f);
 
-  sampling.time = 1.f;
-  ASSERT_TRUE(sampling.Run());
-  EXPECT_QUATERNION_EQ(result, 0.f, .70710677f, 0.f, .70710677f);
+    sampling.time = .54f;
+    ASSERT_TRUE(sampling.Run());
+    EXPECT_QUATERNION_EQ(result, .61721331f, .15430345f, 0.f, .77151674f);
 
-  ozz::memory::default_allocator()->Delete(track);
+    sampling.time = .7f;
+    ASSERT_TRUE(sampling.Run());
+    EXPECT_QUATERNION_EQ(result, 0.f, .70710677f, 0.f, .70710677f);
+
+    sampling.time = .75f;
+    ASSERT_TRUE(sampling.Run());
+    EXPECT_QUATERNION_EQ(result, 0.f, .70710677f, 0.f, .70710677f);
+
+    sampling.time = .8f;
+    ASSERT_TRUE(sampling.Run());
+    EXPECT_QUATERNION_EQ(result, 0.f, .70710677f, 0.f, .70710677f);
+
+    sampling.time = 1.f;
+    ASSERT_TRUE(sampling.Run());
+    EXPECT_QUATERNION_EQ(result, 0.f, .70710677f, 0.f, .70710677f);
+
+    ozz::memory::default_allocator()->Delete(track);
+  }
 }

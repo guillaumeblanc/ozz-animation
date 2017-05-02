@@ -47,11 +47,15 @@ template <typename _RawTrack>
 void PatchBeginEndKeys(const _RawTrack& _input,
                        typename _RawTrack::Keyframes* keyframes) {
   if (_input.keyframes.empty()) {
-    const typename _RawTrack::Keyframe begin = {
-        RawTrackInterpolation::kLinear, 0.f, typename _RawTrack::ValueType()};
+    const typename _RawTrack::ValueType default_value =
+        animation::internal::TrackPolicy<
+            typename _RawTrack::ValueType>::identity();
+
+    const typename _RawTrack::Keyframe begin = {RawTrackInterpolation::kLinear,
+                                                0.f, default_value};
     keyframes->push_back(begin);
-    const typename _RawTrack::Keyframe end = {
-        RawTrackInterpolation::kLinear, 1.f, typename _RawTrack::ValueType()};
+    const typename _RawTrack::Keyframe end = {RawTrackInterpolation::kLinear,
+                                              1.f, default_value};
     keyframes->push_back(end);
   } else if (_input.keyframes.size() == 1) {
     const typename _RawTrack::Keyframe& src_key = _input.keyframes.front();
@@ -63,6 +67,7 @@ void PatchBeginEndKeys(const _RawTrack& _input,
     keyframes->push_back(end);
   } else {
     // Copy all source data.
+    // Push an initial and last keys if they don't exist.
     if (_input.keyframes.front().time != 0.f) {
       const typename _RawTrack::Keyframe& src_key = _input.keyframes.front();
       const typename _RawTrack::Keyframe begin = {
