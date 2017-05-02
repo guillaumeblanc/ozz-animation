@@ -83,6 +83,9 @@ struct TrackPolicy {
                                 float _alpha) {
     return math::Lerp(_a, _b, _alpha);
   }
+  inline static _ValueType identity() {
+    return _ValueType(0.f);
+  }
 };
 // Specialization for quaternions policy.
 template <>
@@ -92,6 +95,10 @@ inline math::Quaternion TrackPolicy<math::Quaternion>::Lerp(
   // curve (key frame reduction), so "constant speed" interpolation can still be
   // approximated with a lower tolerance value if it matters.
   return math::NLerp(_a, _b, _alpha);
+}
+template <>
+inline math::Quaternion TrackPolicy<math::Quaternion>::identity() {
+  return math::Quaternion::identity();
 }
 }  // internal
 
