@@ -79,8 +79,8 @@ bool TrackSamplingJob<_Track>::Run() const {
   const typename _Track::ValueType vk0 = pvk1[-1];
   const typename _Track::ValueType vk1 = pvk1[0];
   const float alpha = (clamped_time - tk0) / (tk1 - tk0);
-  *result = math::Lerp(vk0, vk1, alpha);
 
+    *result = internal::TrackPolicy<typename _Track::ValueType>::Lerp(vk0, vk1, alpha);
   return true;
 }
 
