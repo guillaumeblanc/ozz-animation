@@ -18,7 +18,7 @@ Documentation and samples are available from [ozz-animation website](http://guil
 Supported platforms
 -------------------
 
-Ozz is tested on Linux, Mac OS and Windows. The run-time code (ozz_base, ozz_animation, ozz_geometry) only refers to the standard CRT and has no OS specific code, portability to any other plateform shouldn't be an issue.
+Ozz is tested on Linux, Mac OS and Windows. The run-time code (ozz_base, ozz_animation, ozz_geometry) depends only on the standard CRT and has no OS specific code, portability to any other plateform shouldn't be an issue.
 
 Samples, tools and tests depend on external libraries (glfw, Fbx SDK, gtest, ...), which could limit portability.
 
