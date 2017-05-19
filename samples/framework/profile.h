@@ -112,6 +112,6 @@ class Profiler {
   // Profiling result is pushed in the record_ object.
   Record* record_;
 };
-}  // sample
-}  // ozz
+}  // namespace sample
+}  // namespace ozz
 #endif  // OZZ_SAMPLES_FRAMEWORK_PROFILE_H_

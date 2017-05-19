@@ -94,6 +94,6 @@ struct RectFloat {
   // Specifies the height of the rectangle.
   float height;
 };
-}  // math
-}  // ozz
+}  // namespace math
+}  // namespace ozz
 #endif  // OZZ_OZZ_BASE_MATHS_RECT_H_

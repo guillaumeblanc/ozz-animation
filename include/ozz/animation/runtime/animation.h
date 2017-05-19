@@ -35,7 +35,7 @@ namespace ozz {
 namespace io {
 class IArchive;
 class OArchive;
-}
+}  // namespace io
 namespace animation {
 
 // Forward declares the AnimationBuilder, used to instantiate an Animation.
@@ -127,11 +127,11 @@ class Animation {
   ozz::Range<RotationKey> rotations_;
   ozz::Range<ScaleKey> scales_;
 };
-}  // animation
+}  // namespace animation
 
 namespace io {
 OZZ_IO_TYPE_VERSION(4, animation::Animation)
 OZZ_IO_TYPE_TAG("ozz-animation", animation::Animation)
-}  // io
-}  // ozz
+}  // namespace io
+}  // namespace ozz
 #endif  // OZZ_OZZ_ANIMATION_RUNTIME_ANIMATION_H_

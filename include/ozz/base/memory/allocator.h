@@ -175,6 +175,6 @@ class Allocator {
     }
   }
 };
-}  // memory
-}  // ozz
+}  // namespace memory
+}  // namespace ozz
 #endif  // OZZ_OZZ_BASE_MEMORY_ALLOCATOR_H_

@@ -51,5 +51,5 @@ Box::Box(const Float3* _points, size_t _stride, size_t _count) {
   min = local_min;
   max = local_max;
 }
-}  // ozz
-}  // math
+}  // namespace math
+}  // namespace ozz

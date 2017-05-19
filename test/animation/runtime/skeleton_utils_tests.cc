@@ -152,7 +152,7 @@ class IterateDFTester {
   // Number of iterations completed.
   int num_iterations_;
 };
-}
+}  // namespace
 
 TEST(InterateDF, SkeletonUtils) {
   // Instantiates a builder objects with default parameters.

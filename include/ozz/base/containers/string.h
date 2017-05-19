@@ -40,5 +40,5 @@ struct String {
                             ozz::StdAllocator<char> >
       Std;
 };
-}  // ozz
+}  // namespace ozz
 #endif  // OZZ_OZZ_BASE_CONTAINERS_STRING_H_

@@ -227,7 +227,7 @@ class ImGuiImpl : public ImGui {
   // Renderer, available between Begin/EndFrame
   RendererImpl* renderer_;
 };
-}  // internal
-}  // sample
-}  // ozz
+}  // namespace internal
+}  // namespace sample
+}  // namespace ozz
 #endif  // OZZ_SAMPLES_FRAMEWORK_INTERNAL_IMGUI_IMPL_H_

@@ -48,6 +48,6 @@ struct SoaTransform {
     return ret;
   }
 };
-}  // math
-}  // ozz
+}  // namespace math
+}  // namespace ozz
 #endif  // OZZ_OZZ_BASE_MATHS_SOA_TRANSFORM_H_

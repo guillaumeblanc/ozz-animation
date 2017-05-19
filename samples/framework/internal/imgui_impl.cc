@@ -638,7 +638,7 @@ float FindMax(float _value) {
   const float mpow = pow(10.f, mexp);
   return ceil(_value / mpow) * 2.f * mpow;
 }
-}
+}  // namespace
 
 void ImGuiImpl::DoGraph(const char* _label, float _min, float _max, float _mean,
                         const float* _value_cursor, const float* _value_begin,
@@ -703,7 +703,8 @@ void ImGuiImpl::DoGraph(const char* _label, float _min, float _max, float _mean,
     const float abscissa_max = graph_rect.top() - 1.f;
     // Computes a new max value, rounded up to be more stable.
     const float graph_max = FindMax(_max);
-    const float abscissa_scale = (abscissa_max - abscissa_min) / (graph_max - _min);
+    const float abscissa_scale =
+        (abscissa_max - abscissa_min) / (graph_max - _min);
     const float abscissa_begin = graph_rect.bottom + 1.f;
     const float ordinate_inc =
         -(graph_rect.width - 2.f) / (_value_end - _value_begin - 1.f);
@@ -1260,7 +1261,7 @@ struct LineSpec {
   const char* begin;
   const char* end;
 };
-}
+}  // namespace
 
 float ImGuiImpl::Print(const char* _text, const math::RectFloat& _rect,
                        PrintLayout _layout, const GLubyte _rgba[4]) const {
@@ -1420,6 +1421,6 @@ float ImGuiImpl::Print(const char* _text, const math::RectFloat& _rect,
   // Returns the bottom of the last line.
   return ly + font_.glyph_height + interlign - _rect.bottom;
 }
-}  // internal
-}  // sample
-}  // ozz
+}  // namespace internal
+}  // namespace sample
+}  // namespace ozz

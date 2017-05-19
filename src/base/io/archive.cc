@@ -53,5 +53,5 @@ IArchive::IArchive(Stream* _stream) : stream_(_stream), endian_swap_(false) {
   *this >> endianness;
   endian_swap_ = endianness != GetNativeEndianness();
 }
-}  // io
-}  // ozz
+}  // namespace io
+}  // namespace ozz

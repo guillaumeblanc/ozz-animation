@@ -113,7 +113,7 @@ bool ExtractSkeleton(FbxSceneLoader& _loader, RawSkeleton* _skeleton) {
   }
   return true;
 }
-}
+}  // namespace
 
 class FbxBakedSkeletonConverter : public SkeletonConverter {
  private:

@@ -129,8 +129,8 @@ struct ScaleKey {
   uint16_t track;
   uint16_t value[3];
 };
-}  // animation
-}  // ozz
+}  // namespace animation
+}  // namespace ozz
 #endif  // OZZ_ANIMATION_RUNTIME_ANIMATION_KEYFRAME_H_
 
 
@@ -303,8 +303,8 @@ void Animation::Load(ozz::io::IArchive& _archive, uint32_t _version) {
     _archive >> ozz::io::MakeArray(key.value);
   }
 }
-}  // animation
-}  // ozz
+}  // namespace animation
+}  // namespace ozz
 
 // Including blending_job.cc file.
 
@@ -435,8 +435,7 @@ namespace {
     _out->translation = _in.translation * _simd_weight; \
     _out->rotation = _in.rotation * _simd_weight;       \
     _out->scale = _in.scale * _simd_weight;             \
-  \
-}
+  }
 
 // Macro that defines the process of blending any pass but the first.
 #define OZZ_BLEND_N_PASS(_in, _simd_weight, _out)                           \
@@ -456,8 +455,7 @@ namespace {
     _out->rotation = _out->rotation + rotation * _simd_weight;              \
     /* Blends scales.*/                                                     \
     _out->scale = _out->scale + _in.scale * _simd_weight;                   \
-  \
-}
+  }
 
 // Macro that defines the process of adding a pass.
 #define OZZ_ADD_PASS(_in, _simd_weight, _out)                                \
@@ -475,8 +473,7 @@ namespace {
     _out.rotation = NormalizeEst(interp_quat) * _out.rotation;               \
     _out.scale =                                                             \
         _out.scale * (one_minus_weight_f3 + (_in.scale * _simd_weight));     \
-  \
-}
+  }
 
 // Macro that defines the process of subtracting a pass.
 #define OZZ_SUB_PASS(_in, _simd_weight, _out)                                \
@@ -497,8 +494,7 @@ namespace {
         math::RcpEst(one_minus_weight + (_in.scale.y * _simd_weight)),       \
         math::RcpEst(one_minus_weight + (_in.scale.z * _simd_weight))};      \
     _out.scale = _out.scale * rcp_scale;                                     \
-  \
-}
+  }
 
 // Defines parameters that are passed through blending stages.
 struct ProcessArgs {
@@ -804,8 +800,8 @@ bool BlendingJob::Run() const {
 
   return true;
 }
-}  // animation
-}  // ozz
+}  // namespace animation
+}  // namespace ozz
 
 // Including local_to_model_job.cc file.
 
@@ -925,8 +921,8 @@ bool LocalToModelJob::Run() const {
   }
   return true;
 }
-}  // animation
-}  // ozz
+}  // namespace animation
+}  // namespace ozz
 
 // Including sampling_job.cc file.
 
@@ -1056,8 +1052,8 @@ struct ScaleKey {
   uint16_t track;
   uint16_t value[3];
 };
-}  // animation
-}  // ozz
+}  // namespace animation
+}  // namespace ozz
 #endif  // OZZ_ANIMATION_RUNTIME_ANIMATION_KEYFRAME_H_
 
 
@@ -1077,7 +1073,7 @@ struct InterpSoaScale {
   math::SimdFloat4 time[2];
   math::SoaFloat3 value[2];
 };
-}  // internal
+}  // namespace internal
 
 bool SamplingJob::Validate() const {
   // Don't need any early out, as jobs are valid in most of the performance
@@ -1276,8 +1272,7 @@ void UpdateSoaTranslations(int _num_soa_tracks,
     _quat.y = cpnt[1];                                                         \
     _quat.z = cpnt[2];                                                         \
     _quat.w = cpnt[3];                                                         \
-  \
-}
+  }
 
 void UpdateSoaRotations(int _num_soa_tracks,
                         ozz::Range<const RotationKey> _keys, const int* _interp,
@@ -1553,8 +1548,8 @@ void SamplingCache::Invalidate() {
   rotation_cursor_ = 0;
   scale_cursor_ = 0;
 }
-}  // animation
-}  // ozz
+}  // namespace animation
+}  // namespace ozz
 
 // Including skeleton.cc file.
 
@@ -1630,7 +1625,7 @@ void Load(IArchive& _archive, animation::Skeleton::JointProperties* _properties,
     _properties[i].is_leaf = is_leaf;
   }
 }
-}  // io
+}  // namespace io
 
 namespace animation {
 
@@ -1763,8 +1758,8 @@ void Skeleton::Load(ozz::io::IArchive& _archive, uint32_t _version) {
   _archive >> ozz::io::MakeArray(joint_properties_);
   _archive >> ozz::io::MakeArray(bind_pose_);
 }
-}  // animation
-}  // ozz
+}  // namespace animation
+}  // namespace ozz
 
 // Including skeleton_utils.cc file.
 
@@ -1916,6 +1911,6 @@ void IterateJointsDF(const Skeleton& _skeleton, int _from,
   }
 }
 #undef _HAS_SIBLING
-}  // animation
-}  // ozz
+}  // namespace animation
+}  // namespace ozz
 

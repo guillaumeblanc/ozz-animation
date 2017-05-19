@@ -185,7 +185,7 @@ bool ExtractAnimation(FbxSceneLoader* _scene_loader, FbxAnimStack* anim_stack,
 
   return true;
 }
-}
+}  // namespace
 
 bool ExtractAnimations(FbxSceneLoader* _scene_loader, const Skeleton& _skeleton,
                        float _sampling_rate, Animations* _animations) {
@@ -221,7 +221,7 @@ bool ExtractAnimations(FbxSceneLoader* _scene_loader, const Skeleton& _skeleton,
 
   return success;
 }
-}  // fbx
-}  // offline
-}  // animation
-}  // ozz
+}  // namespace fbx
+}  // namespace offline
+}  // namespace animation
+}  // namespace ozz

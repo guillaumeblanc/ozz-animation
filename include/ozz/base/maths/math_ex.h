@@ -149,6 +149,6 @@ OZZ_INLINE _Ty* Stride(_Ty* _value, intptr_t _stride) {
   return reinterpret_cast<const _Ty*>(reinterpret_cast<uintptr_t>(_value) +
                                       _stride);
 }
-}  // math
-}  // ozz
+}  // namespace math
+}  // namespace ozz
 #endif  // OZZ_OZZ_BASE_MATHS_MATH_EX_H_

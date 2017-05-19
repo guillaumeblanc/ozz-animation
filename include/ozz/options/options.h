@@ -402,7 +402,7 @@ class Registrer : public _Option {
             typename _Option::ValidateFn _fn = NULL);
   virtual ~Registrer();
 };
-}  // internal
-}  // options
-}  // ozz
+}  // namespace internal
+}  // namespace options
+}  // namespace ozz
 #endif  // OZZ_OZZ_OPTIONS_OPTIONS_H_

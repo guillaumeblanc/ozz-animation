@@ -48,5 +48,5 @@ template <class _Key, class _Pred = std::less<_Key>,
 struct MultiSet {
   typedef std::multiset<_Key, _Pred, _Allocator> Std;
 };
-}  // ozz
+}  // namespace ozz
 #endif  // OZZ_OZZ_BASE_CONTAINERS_SET_H_

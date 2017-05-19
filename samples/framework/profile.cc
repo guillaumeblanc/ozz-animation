@@ -111,5 +111,5 @@ Record::Statistics Record::GetStatistics() {
 
   return statistics;
 }
-}  // sample
-}  // ozz
+}  // namespace sample
+}  // namespace ozz

@@ -169,7 +169,7 @@ class GlImmediate {
   // Draw array mode GL_POINTS, GL_LINE_STRIP, ...
   GLenum mode_;
 };
-}  // internal
-}  // sample
-}  // ozz
+}  // namespace internal
+}  // namespace sample
+}  // namespace ozz
 #endif  // OZZ_SAMPLES_FRAMEWORK_INTERNAL_IMMEDIATE_H_

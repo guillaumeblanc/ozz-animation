@@ -70,8 +70,7 @@ struct EndianSwapper;
     const uint8_t temp = _a;   \
     _a = _b;                   \
     _b = temp;                 \
-  \
-}
+  }
 
 // EndianSwapper specialization for 1 byte types.
 template <typename _Ty>
@@ -153,5 +152,5 @@ template <typename _Ty>
 OZZ_INLINE _Ty EndianSwap(_Ty _ty) {
   return EndianSwapper<_Ty>::Swap(_ty);
 }
-}  // ozz
+}  // namespace ozz
 #endif  // OZZ_OZZ_BASE_ENDIANNESS_H_

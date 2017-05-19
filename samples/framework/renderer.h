@@ -38,7 +38,7 @@ namespace math {
 struct Float4x4;
 struct Float3;
 struct Box;
-}
+}  // namespace math
 namespace sample {
 
 // Sample framework mesh type.
@@ -147,6 +147,6 @@ class Renderer {
       int _num_vectors, float _vector_length, Renderer::Color _color,
       const ozz::math::Float4x4& _transform) = 0;
 };
-}  // sample
-}  // ozz
+}  // namespace sample
+}  // namespace ozz
 #endif  // OZZ_SAMPLES_FRAMEWORK_RENDERER_H_

@@ -146,5 +146,5 @@ void IterateJointsDF(const Skeleton& _skeleton, int _from,
   }
 }
 #undef _HAS_SIBLING
-}  // animation
-}  // ozz
+}  // namespace animation
+}  // namespace ozz

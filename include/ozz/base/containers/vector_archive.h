@@ -71,6 +71,6 @@ void Load(IArchive& _archive, std::vector<_Ty, _Allocator>* _values,
     }
   }
 }
-}  // io
-}  // ozz
+}  // namespace io
+}  // namespace ozz
 #endif  // OZZ_OZZ_BASE_CONTAINERS_VECTOR_ARCHIVE_H_

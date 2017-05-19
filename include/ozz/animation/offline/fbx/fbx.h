@@ -61,8 +61,8 @@ typedef Vector<RawAnimation>::Std Animations;
 // tracks.
 bool ImportFromFile(const char* _filename, const Skeleton& _skeleton,
                     float _sampling_rate, Animations* _animations);
-}  // fbx
-}  // offline
-}  // animation
-}  // ozz
+}  // namespace fbx
+}  // namespace offline
+}  // namespace animation
+}  // namespace ozz
 #endif  // OZZ_OZZ_ANIMATION_OFFLINE_FBX_FBX_H_

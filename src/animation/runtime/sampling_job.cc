@@ -55,7 +55,7 @@ struct InterpSoaScale {
   math::SimdFloat4 time[2];
   math::SoaFloat3 value[2];
 };
-}  // internal
+}  // namespace internal
 
 bool SamplingJob::Validate() const {
   // Don't need any early out, as jobs are valid in most of the performance
@@ -254,8 +254,7 @@ void UpdateSoaTranslations(int _num_soa_tracks,
     _quat.y = cpnt[1];                                                         \
     _quat.z = cpnt[2];                                                         \
     _quat.w = cpnt[3];                                                         \
-  \
-}
+  }
 
 void UpdateSoaRotations(int _num_soa_tracks,
                         ozz::Range<const RotationKey> _keys, const int* _interp,
@@ -531,5 +530,5 @@ void SamplingCache::Invalidate() {
   rotation_cursor_ = 0;
   scale_cursor_ = 0;
 }
-}  // animation
-}  // ozz
+}  // namespace animation
+}  // namespace ozz

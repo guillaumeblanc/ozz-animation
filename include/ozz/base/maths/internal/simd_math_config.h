@@ -94,8 +94,8 @@ typedef __m128i SimdInt4;
 
 // Argument type for Int4.
 typedef const __m128i _SimdInt4;
-}  // math
-}  // ozz
+}  // namespace math
+}  // namespace ozz
 
 #else  // No builtin simd available
 
@@ -137,8 +137,8 @@ typedef SimdInt4Def SimdInt4;
 // Argument type for SimdInt4.
 typedef const SimdInt4& _SimdInt4;
 
-}  // math
-}  // ozz
+}  // namespace math
+}  // namespace ozz
 
 #endif  // OZZ_SIMD_x
 #endif  // OZZ_OZZ_BASE_MATHS_INTERNAL_SIMD_MATH_CONFIG_H_

@@ -140,6 +140,6 @@ void GlImmediateRenderer::ResizeVbo(size_t _new_size) {
     GL(BindBuffer(GL_ARRAY_BUFFER, 0));
   }
 }
-}  // internal
-}  // sample
-}  // ozz
+}  // namespace internal
+}  // namespace sample
+}  // namespace ozz

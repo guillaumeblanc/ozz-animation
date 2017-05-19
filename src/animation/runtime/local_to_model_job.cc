@@ -114,5 +114,5 @@ bool LocalToModelJob::Run() const {
   }
   return true;
 }
-}  // animation
-}  // ozz
+}  // namespace animation
+}  // namespace ozz

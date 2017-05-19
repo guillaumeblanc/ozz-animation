@@ -140,8 +140,8 @@ OZZ_INLINE SoaQuaternion NLerpEst(const SoaQuaternion& _a,
                            lerp.w * inv_len};
   return r;
 }
-}  // maths
-}  // ozz
+}  // namespace math
+}  // namespace ozz
 
 // Returns the addition of _a and _b.
 OZZ_INLINE ozz::math::SoaQuaternion operator+(

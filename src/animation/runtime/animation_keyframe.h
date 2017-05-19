@@ -82,6 +82,6 @@ struct ScaleKey {
   uint16_t track;
   uint16_t value[3];
 };
-}  // animation
-}  // ozz
+}  // namespace animation
+}  // namespace ozz
 #endif  // OZZ_ANIMATION_RUNTIME_ANIMATION_KEYFRAME_H_

@@ -47,7 +47,7 @@ math::Quaternion LerpRotation(const math::Quaternion& _a,
 // Scale interpolation method.
 math::Float3 LerpScale(const math::Float3& _a, const math::Float3& _b,
                        float _alpha);
-}  // offline
-}  // animation
-}  // ozz
+}  // namespace offline
+}  // namespace animation
+}  // namespace ozz
 #endif  // OZZ_OZZ_ANIMATION_OFFLINE_RAW_ANIMATION_UTILS_H_

@@ -39,5 +39,5 @@ template <class _Ty, class _Container = typename ozz::Deque<_Ty>::Std>
 struct Stack {
   typedef std::stack<_Ty, _Container> Std;
 };
-}  // ozz
+}  // namespace ozz
 #endif  // OZZ_OZZ_BASE_CONTAINERS_STACK_H_

@@ -80,6 +80,6 @@ bool RawAnimation::Validate() const {
 
   return true;  // *this is valid.
 }
-}  // offline
-}  // animation
-}  // ozz
+}  // namespace offline
+}  // namespace animation
+}  // namespace ozz

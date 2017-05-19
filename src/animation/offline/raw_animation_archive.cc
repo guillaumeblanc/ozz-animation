@@ -164,5 +164,5 @@ void Load(IArchive& _archive, animation::offline::RawAnimation::ScaleKey* _keys,
     _archive >> key.value;
   }
 }
-}  // io
-}  // ozz
+}  // namespace io
+}  // namespace ozz

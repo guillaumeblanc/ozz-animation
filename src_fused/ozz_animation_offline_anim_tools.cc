@@ -439,7 +439,7 @@ int AnimationConverter::operator()(int _argc, const char** _argv) {
 
   return success ? EXIT_SUCCESS : EXIT_FAILURE;
 }
-}  // offline
-}  // animation
-}  // ozz
+}  // namespace offline
+}  // namespace animation
+}  // namespace ozz
 

@@ -72,5 +72,5 @@ template <class _Key, class _Ty, class _Pred = std::less<_Key>,
 struct MultiMap {
   typedef std::multimap<_Key, _Ty, _Pred, _Allocator> Std;
 };
-}  // ozz
+}  // namespace ozz
 #endif  // OZZ_OZZ_BASE_CONTAINERS_MAP_H_

@@ -65,5 +65,5 @@ void Load(IArchive& _archive, math::Float4x4* _values, size_t _count,
   (void)_version;
   _archive >> MakeArray(reinterpret_cast<float*>(_values), 16 * _count);
 }
-}  // io
-}  // ozz
+}  // namespace io
+}  // namespace ozz

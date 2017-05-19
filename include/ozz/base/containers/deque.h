@@ -40,5 +40,5 @@ template <class _Ty, class _Allocator = ozz::StdAllocator<_Ty> >
 struct Deque {
   typedef std::deque<_Ty, _Allocator> Std;
 };
-}  // ozz
+}  // namespace ozz
 #endif  // OZZ_OZZ_BASE_CONTAINERS_DEQUE_H_

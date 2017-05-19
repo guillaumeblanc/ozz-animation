@@ -58,6 +58,6 @@ struct JointCounter {
 int RawSkeleton::num_joints() const {
   return IterateJointsDF(JointCounter()).num_joints;
 }
-}  // offline
-}  // animation
-}  // ozz
+}  // namespace offline
+}  // namespace animation
+}  // namespace ozz

@@ -242,7 +242,7 @@ public:
             GLsizei _uv_stride, GLsizei _uv_offset);
 };
 */
-}  // internal
-}  // sample
-}  // ozz
+}  // namespace internal
+}  // namespace sample
+}  // namespace ozz
 #endif  // OZZ_SAMPLES_FRAMEWORK_INTERNAL_SHADER_H_

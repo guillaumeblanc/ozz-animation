@@ -52,8 +52,8 @@ void Load(IArchive& _archive, Extrusive* _test, size_t _count,
   EXPECT_EQ(_version, 0u);
   _archive >> ozz::io::MakeArray(&_test->i, _count);
 }
-}  // ozz
-}  // io
+}  // namespace io
+}  // namespace ozz
 
 void Tagged1::Save(ozz::io::OArchive& /*_archive*/) const {}
 void Tagged1::Load(ozz::io::IArchive& /*_archive*/, uint32_t /*_version*/) {}

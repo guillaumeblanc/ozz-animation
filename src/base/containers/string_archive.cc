@@ -72,5 +72,5 @@ void Load(IArchive& _archive, String::Std* _values, size_t _count,
     }
   }
 }
-}  // io
-}  // ozz
+}  // namespace io
+}  // namespace ozz

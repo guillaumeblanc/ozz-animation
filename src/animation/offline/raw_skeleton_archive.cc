@@ -82,5 +82,5 @@ void Load(IArchive& _archive, animation::offline::RawSkeleton::Joint* _joints,
     _archive >> joint.children;
   }
 }
-}  // io
-}  // ozz
+}  // namespace io
+}  // namespace ozz

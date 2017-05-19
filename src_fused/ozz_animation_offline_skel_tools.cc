@@ -192,7 +192,7 @@ int SkeletonConverter::operator()(int _argc, const char** _argv) {
 
   return EXIT_SUCCESS;
 }
-}  // offline
-}  // animation
-}  // ozz
+}  // namespace offline
+}  // namespace animation
+}  // namespace ozz
 

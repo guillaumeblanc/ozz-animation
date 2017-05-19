@@ -452,7 +452,7 @@ class IntrusiveListIterator {
   // list. A default iterator has a NULL designated Node.
   ListNode* node_;
 };
-}  // internal
+}  // namespace internal
 
 // IntrusiveList implementation.
 template <typename _Ty, typename _Option>
@@ -1111,9 +1111,9 @@ inline bool IntrusiveNodeList::_is_ordered(_Pred _pred) const {
   }
   return true;
 }
-}  // internal
-}  // containers
-}  // ozz
+}  // namespace internal
+}  // namespace containers
+}  // namespace ozz
 
 // Specialization of the std::swap algorithm for the IntusiveList class.
 // Does not need to be implemented in std namespace thanks to ADL.

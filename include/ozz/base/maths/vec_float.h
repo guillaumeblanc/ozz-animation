@@ -462,6 +462,6 @@ OZZ_INLINE Float2 Clamp(const Float2& _a, const Float2& _v, const Float2& _b) {
   const Float2 min(_v.x < _b.x ? _v.x : _b.x, _v.y < _b.y ? _v.y : _b.y);
   return Float2(_a.x > min.x ? _a.x : min.x, _a.y > min.y ? _a.y : min.y);
 }
-}  // math
-}  // ozz
+}  // namespace math
+}  // namespace ozz
 #endif  // OZZ_OZZ_BASE_MATHS_VEC_FLOAT_H_

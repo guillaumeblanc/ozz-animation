@@ -208,5 +208,5 @@ bool MemoryStream::Resize(size_t _size) {
   }
   return _size == 0 || buffer_ != NULL;
 }
-}  // io
-}  // ozz
+}  // namespace io
+}  // namespace ozz

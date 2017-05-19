@@ -51,7 +51,7 @@ class AdditiveAnimationBuilder {
   // See RawAnimation::Validate() for more details about failure reasons.
   bool operator()(const RawAnimation& _input, RawAnimation* _output) const;
 };
-}  // offline
-}  // animation
-}  // ozz
+}  // namespace offline
+}  // namespace animation
+}  // namespace ozz
 #endif  // OZZ_OZZ_ANIMATION_OFFLINE_ADDITIVE_ANIMATION_BUILDER_H_

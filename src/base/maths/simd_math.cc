@@ -50,5 +50,5 @@ const char* SimdImplementationName() {
 #endif
 }
 
-}  // math
-}  // ozz
+}  // namespace math
+}  // namespace ozz

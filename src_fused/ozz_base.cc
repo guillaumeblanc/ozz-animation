@@ -45,7 +45,7 @@ struct Header {
   void* unaligned;
   size_t size;
 };
-}
+}  // namespace
 
 // Implements the basic heap allocator->
 // Will trace allocation count and assert in case of a memory leak.
@@ -122,8 +122,8 @@ Allocator* SetDefaulAllocator(Allocator* _allocator) {
   g_default_allocator = _allocator;
   return previous;
 }
-}  // memory
-}  // ozz
+}  // namespace memory
+}  // namespace ozz
 
 // Including log.cc file.
 
@@ -197,9 +197,9 @@ Logger::~Logger() {
     ozz::memory::default_allocator()->Delete(&stream_);
   }
 }
-}  // internal
-}  // log
-}  // ozz
+}  // namespace internal
+}  // namespace log
+}  // namespace ozz
 
 // Including containers/string_archive.cc file.
 
@@ -277,8 +277,8 @@ void Load(IArchive& _archive, String::Std* _values, size_t _count,
     }
   }
 }
-}  // io
-}  // ozz
+}  // namespace io
+}  // namespace ozz
 
 // Including io/archive.cc file.
 
@@ -337,8 +337,8 @@ IArchive::IArchive(Stream* _stream) : stream_(_stream), endian_swap_(false) {
   *this >> endianness;
   endian_swap_ = endianness != GetNativeEndianness();
 }
-}  // io
-}  // ozz
+}  // namespace io
+}  // namespace ozz
 
 // Including io/stream.cc file.
 
@@ -552,8 +552,8 @@ bool MemoryStream::Resize(size_t _size) {
   }
   return _size == 0 || buffer_ != NULL;
 }
-}  // io
-}  // ozz
+}  // namespace io
+}  // namespace ozz
 
 // Including maths/box.cc file.
 
@@ -610,8 +610,8 @@ Box::Box(const Float3* _points, size_t _stride, size_t _count) {
   min = local_min;
   max = local_max;
 }
-}  // ozz
-}  // math
+}  // namespace math
+}  // namespace ozz
 
 // Including maths/simd_math.cc file.
 
@@ -667,8 +667,8 @@ const char* SimdImplementationName() {
 #endif
 }
 
-}  // math
-}  // ozz
+}  // namespace math
+}  // namespace ozz
 
 // Including maths/math_archive.cc file.
 
@@ -799,8 +799,8 @@ void Load(IArchive& _archive, math::RectInt* _values, size_t _count,
   (void)_version;
   _archive >> MakeArray(&_values->left, 4 * _count);
 }
-}  // io
-}  // ozz
+}  // namespace io
+}  // namespace ozz
 
 // Including maths/soa_math_archive.cc file.
 
@@ -918,8 +918,8 @@ void Load(IArchive& _archive, math::SoaTransform* _values, size_t _count,
   _archive >> MakeArray(reinterpret_cast<float*>(&_values->translation.x),
                         10 * 4 * _count);
 }
-}  // io
-}  // ozz
+}  // namespace io
+}  // namespace ozz
 
 // Including maths/simd_math_archive.cc file.
 
@@ -990,6 +990,6 @@ void Load(IArchive& _archive, math::Float4x4* _values, size_t _count,
   (void)_version;
   _archive >> MakeArray(reinterpret_cast<float*>(_values), 16 * _count);
 }
-}  // io
-}  // ozz
+}  // namespace io
+}  // namespace ozz
 

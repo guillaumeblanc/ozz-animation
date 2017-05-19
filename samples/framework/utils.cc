@@ -231,5 +231,5 @@ bool LoadMesh(const char* _filename, ozz::sample::Mesh* _mesh) {
 
   return true;
 }
-}  // sample
-}  // ozz
+}  // namespace sample
+}  // namespace ozz

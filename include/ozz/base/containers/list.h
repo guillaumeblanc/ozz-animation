@@ -49,5 +49,5 @@ template <class _Ty, class _Allocator = ozz::StdAllocator<_Ty> >
 struct List {
   typedef std::list<_Ty, _Allocator> Std;
 };
-}  // ozz
+}  // namespace ozz
 #endif  // OZZ_OZZ_BASE_CONTAINERS_LIST_H_

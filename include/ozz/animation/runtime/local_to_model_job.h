@@ -84,6 +84,6 @@ struct LocalToModelJob {
   // The output range to be filled with model matrices.
   Range<ozz::math::Float4x4> output;
 };
-}  // animation
-}  // ozz
+}  // namespace animation
+}  // namespace ozz
 #endif  // OZZ_OZZ_ANIMATION_RUNTIME_LOCAL_TO_MODEL_JOB_H_

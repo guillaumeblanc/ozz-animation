@@ -54,7 +54,7 @@ class SkeletonBuilder {
   // failure reasons.
   Skeleton* operator()(const RawSkeleton& _raw_skeleton) const;
 };
-}  // offline
-}  // animation
-}  // ozz
+}  // namespace offline
+}  // namespace animation
+}  // namespace ozz
 #endif  // OZZ_OZZ_ANIMATION_OFFLINE_SKELETON_BUILDER_H_

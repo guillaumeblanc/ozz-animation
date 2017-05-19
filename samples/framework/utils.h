@@ -35,15 +35,15 @@ namespace ozz {
 namespace math {
 struct Box;
 struct Float4x4;
-}  // math
+}  // namespace math
 namespace animation {
 class Animation;
 class Skeleton;
 namespace offline {
 struct RawAnimation;
 struct RawSkeleton;
-}  // offline
-}  // animation
+}  // namespace offline
+}  // namespace animation
 namespace sample {
 class ImGui;
 struct Mesh;
@@ -124,6 +124,6 @@ bool LoadAnimation(const char* _filename,
 // _filename and _mesh must be non-NULL.
 bool LoadMesh(const char* _filename, ozz::sample::Mesh* _mesh);
 
-}  // sample
-}  // ozz
+}  // namespace sample
+}  // namespace ozz
 #endif  // OZZ_SAMPLES_FRAMEWORK_UTILS_H_

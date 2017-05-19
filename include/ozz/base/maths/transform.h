@@ -54,6 +54,6 @@ struct Transform {
     return ret;
   }
 };
-}  // math
-}  // ozz
+}  // namespace math
+}  // namespace ozz
 #endif  // OZZ_OZZ_BASE_MATHS_TRANSFORM_H_

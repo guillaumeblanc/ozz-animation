@@ -216,7 +216,7 @@ template <typename _Ty>
 struct Tag {
   enum { kTagLength = 0 };
 };
-}  // internal
-}  // io
-}  // ozz
+}  // namespace internal
+}  // namespace io
+}  // namespace ozz
 #endif  // OZZ_OZZ_BASE_IO_ARCHIVE_TRAITS_H_

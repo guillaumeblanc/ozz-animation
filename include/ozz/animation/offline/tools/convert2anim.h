@@ -51,7 +51,7 @@ class AnimationConverter {
                       const ozz::animation::Skeleton& _skeleton,
                       float _sampling_rate, Animations* _animations) = 0;
 };
-}  // offline
-}  // animation
-}  // ozz
+}  // namespace offline
+}  // namespace animation
+}  // namespace ozz
 #endif  // OZZ_OZZ_ANIMATION_OFFLINE_TOOLS_CONVERT2ANIM_H_

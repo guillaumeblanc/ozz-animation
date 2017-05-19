@@ -209,5 +209,5 @@ void Animation::Load(ozz::io::IArchive& _archive, uint32_t _version) {
     _archive >> ozz::io::MakeArray(key.value);
   }
 }
-}  // animation
-}  // ozz
+}  // namespace animation
+}  // namespace ozz

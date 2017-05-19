@@ -181,6 +181,6 @@ class ImGui {
   // Ends the current container.
   virtual void EndContainer() = 0;
 };
-}  // sample
-}  // ozz
+}  // namespace sample
+}  // namespace ozz
 #endif  // OZZ_SAMPLES_FRAMEWORK_IMGUI_H_

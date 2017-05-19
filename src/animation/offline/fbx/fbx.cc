@@ -94,7 +94,7 @@ bool ImportFromFile(const char* _filename, const Skeleton& _skeleton,
 
   return true;
 }
-}  // fbx
-}  // offline
-}  // animation
-}  // ozz
+}  // namespace fbx
+}  // namespace offline
+}  // namespace animation
+}  // namespace ozz

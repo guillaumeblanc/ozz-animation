@@ -41,7 +41,7 @@ struct Header {
   void* unaligned;
   size_t size;
 };
-}
+}  // namespace
 
 // Implements the basic heap allocator->
 // Will trace allocation count and assert in case of a memory leak.
@@ -118,5 +118,5 @@ Allocator* SetDefaulAllocator(Allocator* _allocator) {
   g_default_allocator = _allocator;
   return previous;
 }
-}  // memory
-}  // ozz
+}  // namespace memory
+}  // namespace ozz

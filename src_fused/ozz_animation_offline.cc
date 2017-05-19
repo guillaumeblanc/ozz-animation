@@ -84,9 +84,9 @@ bool RawAnimation::Validate() const {
 
   return true;  // *this is valid.
 }
-}  // offline
-}  // animation
-}  // ozz
+}  // namespace offline
+}  // namespace animation
+}  // namespace ozz
 
 // Including raw_animation_archive.cc file.
 
@@ -256,8 +256,8 @@ void Load(IArchive& _archive, animation::offline::RawAnimation::ScaleKey* _keys,
     _archive >> key.value;
   }
 }
-}  // io
-}  // ozz
+}  // namespace io
+}  // namespace ozz
 
 // Including raw_animation_utils.cc file.
 
@@ -321,9 +321,9 @@ math::Float3 LerpScale(const math::Float3& _a, const math::Float3& _b,
                        float _alpha) {
   return math::Lerp(_a, _b, _alpha);
 }
-}  // offline
-}  // animation
-}  // ozz
+}  // namespace offline
+}  // namespace animation
+}  // namespace ozz
 
 // Including animation_builder.cc file.
 
@@ -460,8 +460,8 @@ struct ScaleKey {
   uint16_t track;
   uint16_t value[3];
 };
-}  // animation
-}  // ozz
+}  // namespace animation
+}  // namespace ozz
 #endif  // OZZ_ANIMATION_RUNTIME_ANIMATION_KEYFRAME_H_
 
 
@@ -627,7 +627,7 @@ void CompressQuat(const ozz::math::Quaternion& _src,
   _dest->value[1] = math::Clamp(-32767, b, 32767) & 0xffff;
   _dest->value[2] = math::Clamp(-32767, c, 32767) & 0xffff;
 }
-}
+}  // namespace
 
 // Specialize for rotations in order to normalize quaternions.
 // Consecutive opposite quaternions are also fixed up in order to avoid checking
@@ -765,9 +765,9 @@ Animation* AnimationBuilder::operator()(const RawAnimation& _input) const {
 
   return animation;  // Success.
 }
-}  // offline
-}  // animation
-}  // ozz
+}  // namespace offline
+}  // namespace animation
+}  // namespace ozz
 
 // Including animation_optimizer.cc file.
 
@@ -1064,9 +1064,9 @@ bool AnimationOptimizer::operator()(const RawAnimation& _input,
   // Output animation is always valid though.
   return _output->Validate();
 }
-}  // offline
-}  // animation
-}  // ozz
+}  // namespace offline
+}  // namespace animation
+}  // namespace ozz
 
 // Including additive_animation_builder.cc file.
 
@@ -1178,9 +1178,9 @@ bool AdditiveAnimationBuilder::operator()(const RawAnimation& _input,
   // Output animation is always valid though.
   return _output->Validate();
 }
-}  // offline
-}  // animation
-}  // ozz
+}  // namespace offline
+}  // namespace animation
+}  // namespace ozz
 
 // Including raw_skeleton.cc file.
 
@@ -1244,9 +1244,9 @@ struct JointCounter {
 int RawSkeleton::num_joints() const {
   return IterateJointsDF(JointCounter()).num_joints;
 }
-}  // offline
-}  // animation
-}  // ozz
+}  // namespace offline
+}  // namespace animation
+}  // namespace ozz
 
 // Including raw_skeleton_archive.cc file.
 
@@ -1334,8 +1334,8 @@ void Load(IArchive& _archive, animation::offline::RawSkeleton::Joint* _joints,
     _archive >> joint.children;
   }
 }
-}  // io
-}  // ozz
+}  // namespace io
+}  // namespace ozz
 
 // Including skeleton_builder.cc file.
 
@@ -1491,7 +1491,7 @@ Skeleton* SkeletonBuilder::operator()(const RawSkeleton& _raw_skeleton) const {
 
   return skeleton;  // Success.
 }
-}  // offline
-}  // animation
-}  // ozz
+}  // namespace offline
+}  // namespace animation
+}  // namespace ozz
 

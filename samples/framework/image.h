@@ -57,7 +57,7 @@ bool WriteTGA(const char* _filename, int _width, int _height,
               Format::Value _src_format, const uint8_t* _src_buffer,
               bool _write_alpha);
 
-}  // image
-}  // sample
-}  // ozz
+}  // namespace image
+}  // namespace sample
+}  // namespace ozz
 #endif  // OZZ_SAMPLES_FRAMEWORK_IMAGE_H_

@@ -35,7 +35,7 @@ namespace ozz {
 namespace math {
 struct Box;
 struct Float4x4;
-}  // math
+}  // namespace math
 namespace sample {
 
 class ImGui;
@@ -46,7 +46,7 @@ namespace internal {
 class RendererImpl;
 class Camera;
 class Shooter;
-}  // internal
+}  // namespace internal
 
 // Screen resolution settings.
 struct Resolution {
@@ -214,6 +214,6 @@ class Application {
   // Help message.
   ozz::String::Std help_;
 };
-}  // sample
-}  // ozz
+}  // namespace sample
+}  // namespace ozz
 #endif  // OZZ_SAMPLES_FRAMEWORK_APPLICATION_H_

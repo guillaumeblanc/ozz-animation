@@ -70,7 +70,7 @@ void Load(IArchive& _archive, animation::Skeleton::JointProperties* _properties,
     _properties[i].is_leaf = is_leaf;
   }
 }
-}  // io
+}  // namespace io
 
 namespace animation {
 
@@ -203,5 +203,5 @@ void Skeleton::Load(ozz::io::IArchive& _archive, uint32_t _version) {
   _archive >> ozz::io::MakeArray(joint_properties_);
   _archive >> ozz::io::MakeArray(bind_pose_);
 }
-}  // animation
-}  // ozz
+}  // namespace animation
+}  // namespace ozz

@@ -41,7 +41,7 @@ struct Transform;
 struct Box;
 struct RectFloat;
 struct RectInt;
-}  // math
+}  // namespace math
 namespace io {
 OZZ_IO_TYPE_NOT_VERSIONABLE(math::Float2)
 template <>
@@ -98,6 +98,6 @@ void Save(OArchive& _archive, const math::RectInt* _values, size_t _count);
 template <>
 void Load(IArchive& _archive, math::RectInt* _values, size_t _count,
           uint32_t _version);
-}  // io
-}  // ozz
+}  // namespace io
+}  // namespace ozz
 #endif  // OZZ_OZZ_BASE_MATHS_MATH_ARCHIVE_H_

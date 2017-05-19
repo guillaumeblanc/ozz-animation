@@ -178,6 +178,6 @@ class MemoryStream : public Stream {
   // The cursor position in the buffer of data.
   int tell_;
 };
-}  // io
-}  // ozz
+}  // namespace io
+}  // namespace ozz
 #endif  // OZZ_OZZ_BASE_IO_STREAM_H_

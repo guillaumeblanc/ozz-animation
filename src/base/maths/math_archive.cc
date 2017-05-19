@@ -125,5 +125,5 @@ void Load(IArchive& _archive, math::RectInt* _values, size_t _count,
   (void)_version;
   _archive >> MakeArray(&_values->left, 4 * _count);
 }
-}  // io
-}  // ozz
+}  // namespace io
+}  // namespace ozz

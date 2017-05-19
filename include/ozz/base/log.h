@@ -100,7 +100,7 @@ class Logger {
   // in the destructor.
   bool local_stream_;
 };
-}  // internal
+}  // namespace internal
 
 // Logs verbose output to the standard error stream (std::clog).
 // Enabled if logging level is Verbose.
@@ -129,6 +129,6 @@ class Err : public internal::Logger {
  public:
   Err();
 };
-}  // log
-}  // ozz
+}  // namespace log
+}  // namespace ozz
 #endif  // OZZ_OZZ_BASE_LOG_H_

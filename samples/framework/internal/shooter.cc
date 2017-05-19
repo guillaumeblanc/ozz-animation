@@ -209,6 +209,6 @@ bool Shooter::Capture(int _buffer) {
 
   return true;
 }
-}  // internal
-}  // sample
-}  // ozz
+}  // namespace internal
+}  // namespace sample
+}  // namespace ozz

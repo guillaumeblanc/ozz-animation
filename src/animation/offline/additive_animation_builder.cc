@@ -106,6 +106,6 @@ bool AdditiveAnimationBuilder::operator()(const RawAnimation& _input,
   // Output animation is always valid though.
   return _output->Validate();
 }
-}  // offline
-}  // animation
-}  // ozz
+}  // namespace offline
+}  // namespace animation
+}  // namespace ozz

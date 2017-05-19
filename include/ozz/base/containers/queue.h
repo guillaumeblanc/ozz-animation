@@ -47,5 +47,5 @@ template <class _Ty, class _Container = typename ozz::Deque<_Ty>::Std,
 struct PriorityQueue {
   typedef std::priority_queue<_Ty, _Container, _Pred> Std;
 };
-}  // ozz
+}  // namespace ozz
 #endif  // OZZ_OZZ_BASE_CONTAINERS_QUEUE_H_

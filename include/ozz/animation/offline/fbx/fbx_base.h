@@ -36,7 +36,7 @@
 namespace ozz {
 namespace math {
 struct Transform;
-}  // math
+}  // namespace math
 namespace animation {
 namespace offline {
 namespace fbx {
@@ -163,8 +163,8 @@ class FbxSceneLoader {
   // Axis and unit conversion helper.
   FbxSystemConverter* converter_;
 };
-}  // fbx
-}  // offline
-}  // animation
-}  // ozz
+}  // namespace fbx
+}  // namespace offline
+}  // namespace animation
+}  // namespace ozz
 #endif  // OZZ_OZZ_ANIMATION_OFFLINE_FBX_FBX_BASE_H_

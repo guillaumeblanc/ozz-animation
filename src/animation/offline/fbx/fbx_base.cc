@@ -255,7 +255,7 @@ ozz::math::Float4x4 BuildAxisSystemMatrix(const FbxAxisSystem& _system) {
 
   return matrix;
 }
-}
+}  // namespace
 
 FbxSystemConverter::FbxSystemConverter(const FbxAxisSystem& _from_axis,
                                        const FbxSystemUnit& _from_unit) {
@@ -330,7 +330,7 @@ bool FbxSystemConverter::ConvertTransform(const FbxAMatrix& _m,
   *_transform = ozz::math::Transform::identity();
   return false;
 }
-}  // fbx
-}  // ozz
-}  // offline
-}  // animation
+}  // namespace fbx
+}  // namespace offline
+}  // namespace animation
+}  // namespace ozz

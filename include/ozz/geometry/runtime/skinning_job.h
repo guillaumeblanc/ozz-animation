@@ -178,6 +178,6 @@ struct SkinningJob {
   Range<float> out_tangents;
   size_t out_tangents_stride;
 };
-}  // geometry
-}  // ozz
+}  // namespace geometry
+}  // namespace ozz
 #endif  // OZZ_OZZ_GEOMETRY_RUNTIME_SKINNING_JOB_H_

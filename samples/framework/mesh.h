@@ -134,7 +134,7 @@ struct Mesh {
   typedef ozz::Vector<ozz::math::Float4x4>::Std InversBindPoses;
   InversBindPoses inverse_bind_poses;
 };
-}  // sample
+}  // namespace sample
 
 namespace io {
 
@@ -150,6 +150,6 @@ void Save(OArchive& _archive, const sample::Mesh* _meshes, size_t _count);
 template <>
 void Load(IArchive& _archive, sample::Mesh* _meshes, size_t _count,
           uint32_t _version);
-}  // io
-}  // ozz
+}  // namespace io
+}  // namespace ozz
 #endif  // OZZ_SAMPLES_FRAMEWORK_MESH_H_

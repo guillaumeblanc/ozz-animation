@@ -90,5 +90,5 @@ inline Range<const _Ty> make_range(
   const size_t size = _vector.size();
   return Range<const _Ty>(size != 0 ? &_vector[0] : NULL, size);
 }
-}  // ozz
+}  // namespace ozz
 #endif  // OZZ_OZZ_BASE_CONTAINERS_VECTOR_H_

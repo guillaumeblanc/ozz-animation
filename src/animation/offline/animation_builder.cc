@@ -208,7 +208,7 @@ void CompressQuat(const ozz::math::Quaternion& _src,
   _dest->value[1] = math::Clamp(-32767, b, 32767) & 0xffff;
   _dest->value[2] = math::Clamp(-32767, c, 32767) & 0xffff;
 }
-}
+}  // namespace
 
 // Specialize for rotations in order to normalize quaternions.
 // Consecutive opposite quaternions are also fixed up in order to avoid checking
@@ -346,6 +346,6 @@ Animation* AnimationBuilder::operator()(const RawAnimation& _input) const {
 
   return animation;  // Success.
 }
-}  // offline
-}  // animation
-}  // ozz
+}  // namespace offline
+}  // namespace animation
+}  // namespace ozz

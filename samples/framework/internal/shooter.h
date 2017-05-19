@@ -89,7 +89,7 @@ class Shooter {
   // Is the shooter functionality supported.
   bool supported_;
 };
-}  // internal
-}  // sample
-}  // ozz
+}  // namespace internal
+}  // namespace sample
+}  // namespace ozz
 #endif  // OZZ_SAMPLES_FRAMEWORK_INTERNAL_SHOOTER_H_

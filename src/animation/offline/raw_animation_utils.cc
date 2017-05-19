@@ -58,6 +58,6 @@ math::Float3 LerpScale(const math::Float3& _a, const math::Float3& _b,
                        float _alpha) {
   return math::Lerp(_a, _b, _alpha);
 }
-}  // offline
-}  // animation
-}  // ozz
+}  // namespace offline
+}  // namespace animation
+}  // namespace ozz

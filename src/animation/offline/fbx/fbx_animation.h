@@ -49,8 +49,8 @@ namespace fbx {
 bool ExtractAnimations(FbxSceneLoader* _scene_loader, const Skeleton& _skeleton,
                        float _sampling_rate, Animations* _animations);
 
-}  // fbx
-}  // offline
-}  // animation
-}  // ozz
+}  // namespace fbx
+}  // namespace offline
+}  // namespace animation
+}  // namespace ozz
 #endif  // OZZ_ANIMATION_OFFLINE_FBX_FBX_ANIMATION_H_

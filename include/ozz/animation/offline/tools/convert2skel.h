@@ -42,7 +42,7 @@ class SkeletonConverter {
   virtual bool Import(const char* _filename,
                       ozz::animation::offline::RawSkeleton* _skeleton) = 0;
 };
-}  // offline
-}  // animation
-}  // ozz
+}  // namespace offline
+}  // namespace animation
+}  // namespace ozz
 #endif  // OZZ_OZZ_ANIMATION_OFFLINE_TOOLS_CONVERT2SKEL_H_

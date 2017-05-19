@@ -68,6 +68,6 @@ Logger::~Logger() {
     ozz::memory::default_allocator()->Delete(&stream_);
   }
 }
-}  // internal
-}  // log
-}  // ozz
+}  // namespace internal
+}  // namespace log
+}  // namespace ozz

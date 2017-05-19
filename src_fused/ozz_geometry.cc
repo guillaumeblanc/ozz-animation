@@ -513,6 +513,6 @@ bool SkinningJob::Run() const {
 
   return true;
 }
-}  // geometry
-}  // ozz
+}  // namespace geometry
+}  // namespace ozz
 

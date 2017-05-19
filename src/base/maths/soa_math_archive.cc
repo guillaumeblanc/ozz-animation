@@ -112,5 +112,5 @@ void Load(IArchive& _archive, math::SoaTransform* _values, size_t _count,
   _archive >> MakeArray(reinterpret_cast<float*>(&_values->translation.x),
                         10 * 4 * _count);
 }
-}  // io
-}  // ozz
+}  // namespace io
+}  // namespace ozz

@@ -40,7 +40,7 @@ namespace sample {
 Mesh::Mesh() {}
 
 Mesh::~Mesh() {}
-}  // sample
+}  // namespace sample
 
 namespace io {
 
@@ -95,5 +95,5 @@ void Load(IArchive& _archive, sample::Mesh* _meshes, size_t _count,
     _archive >> mesh.inverse_bind_poses;
   }
 }
-}  // io
-}  // ozz
+}  // namespace io
+}  // namespace ozz

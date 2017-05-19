@@ -55,7 +55,7 @@ template <typename _Ty>
 struct AlignOf {
   static const size_t value = sizeof(_Ty) ^ (sizeof(_Ty) & (sizeof(_Ty) - 1));
 };
-}
+}  // namespace internal
 #define OZZ_ALIGN_OF(_Ty) ozz::internal::AlignOf<_Ty>::value
 
 // Finds the number of elements of a statically allocated array.

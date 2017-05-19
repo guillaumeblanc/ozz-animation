@@ -131,6 +131,6 @@ struct BlendingJob {
   // transforms defined by the bind pose buffer size will be processed.
   Range<ozz::math::SoaTransform> output;
 };
-}  // animation
-}  // ozz
+}  // namespace animation
+}  // namespace ozz
 #endif  // OZZ_OZZ_ANIMATION_RUNTIME_BLENDING_JOB_H_

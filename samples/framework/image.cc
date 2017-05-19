@@ -216,6 +216,6 @@ bool WriteTGA(const char* _filename, int _width, int _height,
 }
 #undef PUSH_PIXEL_RGB
 #undef PUSH_PIXEL_RGBA
-}  // image
-}  // sample
-}  // ozz
+}  // namespace image
+}  // namespace sample
+}  // namespace ozz

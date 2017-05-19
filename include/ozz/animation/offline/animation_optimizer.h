@@ -80,7 +80,7 @@ class AnimationOptimizer {
   // whole child hierarchy.
   float hierarchical_tolerance;
 };
-}  // offline
-}  // animation
-}  // ozz
+}  // namespace offline
+}  // namespace animation
+}  // namespace ozz
 #endif  // OZZ_OZZ_ANIMATION_OFFLINE_ANIMATION_OPTIMIZER_H_

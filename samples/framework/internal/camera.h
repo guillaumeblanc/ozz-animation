@@ -127,7 +127,7 @@ class Camera {
   // Set to true to automatically frame the camera on the whole scene.
   bool auto_framing_;
 };
-}  // internal
-}  // sample
-}  // ozz
+}  // namespace internal
+}  // namespace sample
+}  // namespace ozz
 #endif  // OZZ_SAMPLES_FRAMEWORK_INTERNAL_CAMERA_H_

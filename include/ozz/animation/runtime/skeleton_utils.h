@@ -81,6 +81,6 @@ inline _Fct IterateJointsDF(const Skeleton& _skeleton, int _from, _Fct _fct) {
   }
   return _fct;
 }
-}  // animation
-}  // ozz
+}  // namespace animation
+}  // namespace ozz
 #endif  // OZZ_OZZ_ANIMATION_RUNTIME_SKELETON_UTILS_H_
