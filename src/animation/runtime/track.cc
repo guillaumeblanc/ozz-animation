@@ -54,12 +54,14 @@ void Track<_ValueType>::Allocate(size_t _keys_count) {
   // Distributes buffer memory while ensuring proper alignment (serves larger
   // alignment values first).
   OZZ_STATIC_ASSERT(OZZ_ALIGN_OF(_ValueType) >= OZZ_ALIGN_OF(float));
+  OZZ_STATIC_ASSERT(OZZ_ALIGN_OF(float) >= OZZ_ALIGN_OF(bool));
 
   // Compute overall size and allocate a single buffer for all the data.
-  const size_t buffer_size = _keys_count * sizeof(float) +  // times
-                             _keys_count * sizeof(_ValueType);   // values
-  char* buffer = reinterpret_cast<char*>(
-      memory::default_allocator()->Allocate(buffer_size, OZZ_ALIGN_OF(_ValueType)));
+  const size_t buffer_size = _keys_count * sizeof(_ValueType) +  // values
+                             _keys_count * sizeof(float) +       // times
+                             _keys_count * sizeof(bool);         // values
+  char* buffer = reinterpret_cast<char*>(memory::default_allocator()->Allocate(
+      buffer_size, OZZ_ALIGN_OF(_ValueType)));
 
   // Fix up pointers. Serves larger alignment values first.
   values_.begin = reinterpret_cast<_ValueType*>(buffer);
@@ -71,6 +73,11 @@ void Track<_ValueType>::Allocate(size_t _keys_count) {
   assert(math::IsAligned(times_.begin, OZZ_ALIGN_OF(float)));
   buffer += _keys_count * sizeof(float);
   times_.end = reinterpret_cast<float*>(buffer);
+
+  steps_.begin = reinterpret_cast<bool*>(buffer);
+  assert(math::IsAligned(times_.begin, OZZ_ALIGN_OF(bool)));
+  buffer += _keys_count * sizeof(float);
+  steps_.end = reinterpret_cast<bool*>(buffer);
 }
 
 template <typename _ValueType>
@@ -78,13 +85,15 @@ void Track<_ValueType>::Deallocate() {
   // Deallocate everything at once.
   memory::default_allocator()->Deallocate(values_.begin);
 
-  times_.Clear();
   values_.Clear();
+  times_.Clear();
+  steps_.Clear();
 }
 
 template <typename _ValueType>
 size_t Track<_ValueType>::size() const {
-  const size_t size = sizeof(*this) + times_.Size() + values_.Size();
+  const size_t size =
+      sizeof(*this) + values_.Size() + times_.Size() + steps_.Size();
   return size;
 }
 
@@ -92,7 +101,8 @@ template <typename _ValueType>
 void Track<_ValueType>::Save(ozz::io::OArchive& /*_archive*/) const {}
 
 template <typename _ValueType>
-void Track<_ValueType>::Load(ozz::io::IArchive& /*_archive*/, uint32_t _version) {
+void Track<_ValueType>::Load(ozz::io::IArchive& /*_archive*/,
+                             uint32_t _version) {
   // Destroy animation in case it was already used before.
   Deallocate();
 
@@ -108,6 +118,6 @@ template class Track<math::Float2>;
 template class Track<math::Float3>;
 template class Track<math::Quaternion>;
 
-}  // internal
-}  // animation
-}  // ozz
+}  // namespace internal
+}  // namespace animation
+}  // namespace ozz

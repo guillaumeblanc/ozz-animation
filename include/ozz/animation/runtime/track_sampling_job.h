@@ -25,8 +25,8 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#ifndef OZZ_OZZ_ANIMATION_RUNTIME_FLOAT_TRACK_SAMPLING_JOB_H_
-#define OZZ_OZZ_ANIMATION_RUNTIME_FLOAT_TRACK_SAMPLING_JOB_H_
+#ifndef OZZ_OZZ_ANIMATION_RUNTIME_TRACK_SAMPLING_JOB_H_
+#define OZZ_OZZ_ANIMATION_RUNTIME_TRACK_SAMPLING_JOB_H_
 
 #include "ozz/animation/runtime/track.h"
 
@@ -61,4 +61,4 @@ struct QuaternionTrackSamplingJob : public internal::TrackSamplingJob<Quaternion
 
 }  // animation
 }  // ozz
-#endif  // OZZ_OZZ_ANIMATION_RUNTIME_FLOAT_TRACK_SAMPLING_JOB_H_
+#endif  // OZZ_OZZ_ANIMATION_RUNTIME_TRACK_SAMPLING_JOB_H_

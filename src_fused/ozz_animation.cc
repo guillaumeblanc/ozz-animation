@@ -1978,12 +1978,14 @@ void Track<_ValueType>::Allocate(size_t _keys_count) {
   // Distributes buffer memory while ensuring proper alignment (serves larger
   // alignment values first).
   OZZ_STATIC_ASSERT(OZZ_ALIGN_OF(_ValueType) >= OZZ_ALIGN_OF(float));
+  OZZ_STATIC_ASSERT(OZZ_ALIGN_OF(float) >= OZZ_ALIGN_OF(bool));
 
   // Compute overall size and allocate a single buffer for all the data.
-  const size_t buffer_size = _keys_count * sizeof(float) +  // times
-                             _keys_count * sizeof(_ValueType);   // values
-  char* buffer = reinterpret_cast<char*>(
-      memory::default_allocator()->Allocate(buffer_size, OZZ_ALIGN_OF(_ValueType)));
+  const size_t buffer_size = _keys_count * sizeof(_ValueType) +  // values
+                             _keys_count * sizeof(float) +       // times
+                             _keys_count * sizeof(bool);         // values
+  char* buffer = reinterpret_cast<char*>(memory::default_allocator()->Allocate(
+      buffer_size, OZZ_ALIGN_OF(_ValueType)));
 
   // Fix up pointers. Serves larger alignment values first.
   values_.begin = reinterpret_cast<_ValueType*>(buffer);
@@ -1995,6 +1997,11 @@ void Track<_ValueType>::Allocate(size_t _keys_count) {
   assert(math::IsAligned(times_.begin, OZZ_ALIGN_OF(float)));
   buffer += _keys_count * sizeof(float);
   times_.end = reinterpret_cast<float*>(buffer);
+
+  steps_.begin = reinterpret_cast<bool*>(buffer);
+  assert(math::IsAligned(times_.begin, OZZ_ALIGN_OF(bool)));
+  buffer += _keys_count * sizeof(float);
+  steps_.end = reinterpret_cast<bool*>(buffer);
 }
 
 template <typename _ValueType>
@@ -2002,13 +2009,15 @@ void Track<_ValueType>::Deallocate() {
   // Deallocate everything at once.
   memory::default_allocator()->Deallocate(values_.begin);
 
-  times_.Clear();
   values_.Clear();
+  times_.Clear();
+  steps_.Clear();
 }
 
 template <typename _ValueType>
 size_t Track<_ValueType>::size() const {
-  const size_t size = sizeof(*this) + times_.Size() + values_.Size();
+  const size_t size =
+      sizeof(*this) + values_.Size() + times_.Size() + steps_.Size();
   return size;
 }
 
@@ -2016,7 +2025,8 @@ template <typename _ValueType>
 void Track<_ValueType>::Save(ozz::io::OArchive& /*_archive*/) const {}
 
 template <typename _ValueType>
-void Track<_ValueType>::Load(ozz::io::IArchive& /*_archive*/, uint32_t _version) {
+void Track<_ValueType>::Load(ozz::io::IArchive& /*_archive*/,
+                             uint32_t _version) {
   // Destroy animation in case it was already used before.
   Deallocate();
 
@@ -2032,9 +2042,9 @@ template class Track<math::Float2>;
 template class Track<math::Float3>;
 template class Track<math::Quaternion>;
 
-}  // internal
-}  // animation
-}  // ozz
+}  // namespace internal
+}  // namespace animation
+}  // namespace ozz
 
 // Including track_sampling_job.cc file.
 
@@ -2103,24 +2113,25 @@ bool TrackSamplingJob<_Track>::Run() const {
   assert(times.Count() == values.Count());
 
   // Search for the first key frame with a time value greater than input time.
+  // Our time is between this one and the previous one.
   const float* ptk1 = std::upper_bound(times.begin, times.end, clamped_time);
 
-  // upper_bound returns "end" if time == end, so patch the selected
-  // keyframe (ptk1) to be able enter the lerp algorithm.
-  if (ptk1 == times.end) {
-    --ptk1;
+  // Deduce keys indices.
+  const size_t id1 = ptk1 - times.begin;
+  const size_t id0 = id1 - 1;
+
+  if (track->steps()[id0] || ptk1 == times.end) {
+    *result = values[id0];
+  } else {
+    // Lerp relevant keys.
+    const float tk0 = times[id0];
+    const float tk1 = times[id1];
+    assert(clamped_time >= tk0 && clamped_time < tk1 && tk0 != tk1);
+    const float alpha = (clamped_time - tk0) / (tk1 - tk0);
+    const typename _Track::ValueType& vk0 = values[id0];
+    const typename _Track::ValueType& vk1 = values[id1];
+    *result = internal::TrackPolicy<typename _Track::ValueType>::Lerp(vk0, vk1, alpha);
   }
-
-  // Lerp relevant keys.
-  const float tk0 = ptk1[-1];
-  const float tk1 = ptk1[0];
-  assert(clamped_time >= tk0 && tk0 != tk1);
-  const typename _Track::ValueType* pvk1 = values.begin + (ptk1 - times.begin);
-  const typename _Track::ValueType vk0 = pvk1[-1];
-  const typename _Track::ValueType vk1 = pvk1[0];
-  const float alpha = (clamped_time - tk0) / (tk1 - tk0);
-  *result = math::Lerp(vk0, vk1, alpha);
-
   return true;
 }
 
@@ -2129,7 +2140,159 @@ template struct TrackSamplingJob<FloatTrack>;
 template struct TrackSamplingJob<Float2Track>;
 template struct TrackSamplingJob<Float3Track>;
 template struct TrackSamplingJob<QuaternionTrack>;
-}  // internal
-}  // animation
-}  // ozz
+}  // namespace internal
+}  // namespace animation
+}  // namespace ozz
+
+// Including track_triggering_job.cc file.
+
+//----------------------------------------------------------------------------//
+//                                                                            //
+// ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
+// and distributed under the MIT License (MIT).                               //
+//                                                                            //
+// Copyright (c) 2015 Guillaume Blanc                                         //
+//                                                                            //
+// Permission is hereby granted, free of charge, to any person obtaining a    //
+// copy of this software and associated documentation files (the "Software"), //
+// to deal in the Software without restriction, including without limitation  //
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,   //
+// and/or sell copies of the Software, and to permit persons to whom the      //
+// Software is furnished to do so, subject to the following conditions:       //
+//                                                                            //
+// The above copyright notice and this permission notice shall be included in //
+// all copies or substantial portions of the Software.                        //
+//                                                                            //
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR //
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,   //
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL    //
+// THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER //
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING    //
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER        //
+// DEALINGS IN THE SOFTWARE.                                                  //
+//                                                                            //
+//----------------------------------------------------------------------------//
+
+#include "ozz/animation/runtime/track_triggering_job.h"
+#include "ozz/animation/runtime/track.h"
+
+#include <algorithm>
+#include <cassert>
+
+namespace ozz {
+namespace animation {
+
+FloatTrackTriggeringJob::FloatTrackTriggeringJob()
+    : from(0.f), to(0.f), threshold(0.f), track(NULL), edges(NULL) {}
+
+bool FloatTrackTriggeringJob::Validate() const { return true; }
+
+bool FloatTrackTriggeringJob::Run() const {
+  if (!Validate()) {
+    return false;
+  }
+
+  // Triggering can only happen in a valid range of time.
+  if (from == to) {
+    *num_edges = 0;
+    return true;
+  }
+
+  // Search keyframes to interpolate.
+  const Range<const float> times = track->times();
+  const Range<const float> values = track->values();
+  const Range<const bool> steps = track->steps();
+  assert(times.Count() == values.Count());
+
+  const bool forward = to > from;
+  const float rfrom = forward ? from : to;
+  const float rto = forward ? to : from;
+
+  // If from is >= 1.f, then we consider as within a loop, meaning we should
+  // detect edges between the last and first keys.
+  float prev_loop_val = values[values.Count() - 1];
+
+  // Loops in the global evaluation range, divided in local subranges [0,1].
+  int current_edge = 0;
+  for (float rcurr = floorf(rfrom), lcurr = rfrom - rcurr;
+       rcurr < rto;    // Up to reaching the end time.
+       rcurr += 1.f,   // Next loop.
+       lcurr = 0.f) {  // Always starts from 0 (local) on the following loops
+
+    const float lto = math::Min(rto - rcurr, 1.f);
+    assert(lcurr >= 0.f && lcurr <= 1.f && lto > lcurr && lto <= 1.f);
+
+    // Finds iteration starting point. Key at t=0 is known, aka times.begin.
+    const float* ptfrom = lcurr == 0.f
+                              ? times.begin
+                              : std::lower_bound(times.begin, times.end, lcurr);
+
+    for (size_t i = ptfrom - times.begin; i < times.Count(); ++i) {
+      // Find relevant keyframes value around i.
+      const float vk0 = i == 0 ? prev_loop_val : values[i - 1];
+      const float vk1 = values[i];
+
+      // Stores value for next outer loop.
+      prev_loop_val = vk1;
+
+      bool rising = false;
+      bool detected = false;
+      if (vk0 < threshold && vk1 >= threshold) {
+        // Rising edge
+        rising = forward;
+        detected = true;
+      } else if (vk0 >= threshold && vk1 < threshold) {
+        // Falling edge
+        rising = !forward;
+        detected = true;
+      }
+
+      if (detected) {
+        Edge edge;
+        edge.rising = rising;
+        if (steps[i]) {
+          edge.time = times[i];
+        } else {
+          // Finds when threshold is traversed, in local keyframes range.
+          assert(vk0 != vk1);
+          // Finds where the curve crosses threshold value.
+          // This is the lerp equation, where we know the result and look for
+          // alpha, aka unlerp.
+          const float alpha = (threshold - vk0) / (vk1 - vk0);
+
+          // Remaps to keyframes actual times.
+          const float tk0 = times[i - 1];
+          const float tk1 = times[i];
+          const float time = math::Lerp(tk0, tk1, alpha);
+
+          // Set found edge time.
+          edge.time = time;
+        }
+
+        // Pushes the new edge only if it's in the input range.
+        if (edge.time >= lcurr && (edge.time < lto || lto == 1.f)) {
+          edge.time += rcurr;  // To global time space.
+          (*edges)[current_edge++] = edge;
+        }
+      }
+
+      // If "to" is higher that the current frame, we can stop iterating.
+      if (times[i] >= lto) {
+        break;
+      }
+    }
+  }
+
+  // Reverse if backward.
+  if (!forward) {
+    std::reverse(edges->begin, edges->begin + current_edge);
+  }
+
+  // Set output.
+  *num_edges = current_edge;
+
+  return true;
+}
+}  // namespace animation
+}  // namespace ozz
 

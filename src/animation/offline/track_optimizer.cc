@@ -137,6 +137,6 @@ bool TrackOptimizer::operator()(const RawQuaternionTrack& _input,
                                 RawQuaternionTrack* _output) const {
   return Optimize(*this, _input, _output);
 }
-}  // offline
-}  // animation
-}  // ozz
+}  // namespace offline
+}  // namespace animation
+}  // namespace ozz

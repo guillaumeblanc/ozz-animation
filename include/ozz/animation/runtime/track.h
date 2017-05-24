@@ -55,6 +55,7 @@ class Track {
 
   Range<const float> times() const { return times_; }
   Range<const _ValueType> values() const { return values_; }
+  Range<const bool> steps() const { return steps_; }
 
   // Get the estimated track's size in bytes.
   size_t size() const;
@@ -74,6 +75,7 @@ class Track {
 
   Range<float> times_;
   Range<_ValueType> values_;
+  Range<bool> steps_;
 };
 
 // Definition of operations policies per track value type.

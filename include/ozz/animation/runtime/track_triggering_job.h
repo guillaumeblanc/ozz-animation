@@ -25,71 +25,39 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/animation/runtime/track_sampling_job.h"
-#include "ozz/animation/runtime/track.h"
-#include "ozz/base/maths/math_ex.h"
+#ifndef OZZ_OZZ_ANIMATION_RUNTIME_TRACK_TRIGGERING_JOB_H_
+#define OZZ_OZZ_ANIMATION_RUNTIME_TRACK_TRIGGERING_JOB_H_
 
-#include <algorithm>
-#include <cassert>
+#include "ozz/animation/runtime/track.h"
 
 namespace ozz {
 namespace animation {
-namespace internal {
+struct FloatTrackTriggeringJob {
+  FloatTrackTriggeringJob();
 
-template <typename _Track>
-TrackSamplingJob<_Track>::TrackSamplingJob()
-    : time(0.f), track(NULL), result(NULL) {}
+  bool Validate() const;
 
-template <typename _Track>
-bool TrackSamplingJob<_Track>::Validate() const {
-  bool success = true;
-  success &= result != NULL;
-  success &= track != NULL;
-  return success;
-}
+  bool Run() const;
 
-template <typename _Track>
-bool TrackSamplingJob<_Track>::Run() const {
-  if (!Validate()) {
-    return false;
-  }
+  // Input range.
+  float from;
+  float to;
 
-  // Clamps time in range [0,1].
-  const float clamped_time = math::Clamp(0.f, time, 1.f);
+  // Edge detection threshold.
+  float threshold;
 
-  // Search keyframes to interpolate.
-  const Range<const float> times = track->times();
-  const Range<const typename _Track::ValueType> values = track->values();
-  assert(times.Count() == values.Count());
+  // Track to sample.
+  const FloatTrack* track;
 
-  // Search for the first key frame with a time value greater than input time.
-  // Our time is between this one and the previous one.
-  const float* ptk1 = std::upper_bound(times.begin, times.end, clamped_time);
+  // Job output.
+  struct Edge {
+    float time;
+    bool rising;
+  };
 
-  // Deduce keys indices.
-  const size_t id1 = ptk1 - times.begin;
-  const size_t id0 = id1 - 1;
-
-  if (track->steps()[id0] || ptk1 == times.end) {
-    *result = values[id0];
-  } else {
-    // Lerp relevant keys.
-    const float tk0 = times[id0];
-    const float tk1 = times[id1];
-    assert(clamped_time >= tk0 && clamped_time < tk1 && tk0 != tk1);
-    const float alpha = (clamped_time - tk0) / (tk1 - tk0);
-    const typename _Track::ValueType& vk0 = values[id0];
-    const typename _Track::ValueType& vk1 = values[id1];
-    *result = internal::TrackPolicy<typename _Track::ValueType>::Lerp(vk0, vk1, alpha);
-  }
-  return true;
-}
-
-// Explicitly instantiate supported raw tracks.
-template struct TrackSamplingJob<FloatTrack>;
-template struct TrackSamplingJob<Float2Track>;
-template struct TrackSamplingJob<Float3Track>;
-template struct TrackSamplingJob<QuaternionTrack>;
-}  // namespace internal
+  Range<Edge>* edges;
+  int* num_edges;
+};
 }  // namespace animation
 }  // namespace ozz
+#endif  // OZZ_OZZ_ANIMATION_RUNTIME_TRACK_TRIGGERING_JOB_H_

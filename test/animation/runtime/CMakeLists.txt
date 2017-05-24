@@ -102,6 +102,18 @@ target_link_libraries(test_track_sampling_job
 set_target_properties(test_track_sampling_job PROPERTIES FOLDER "ozz/tests/animation")
 add_test(NAME test_track_sampling_job COMMAND test_track_sampling_job)
 
+# test_track_triggering_job
+add_executable(test_track_triggering_job
+  track_triggering_job_tests.cc)
+target_link_libraries(test_track_triggering_job
+  ozz_animation_offline
+  ozz_animation
+  ozz_base
+  gtest)
+set_target_properties(test_track_triggering_job PROPERTIES FOLDER "ozz/tests/animation")
+add_test(NAME test_track_triggering_job COMMAND test_track_triggering_job)
+
+
 # ozz_animation fuse tests
 add_executable(test_fuse_animation
   sampling_job_tests.cc

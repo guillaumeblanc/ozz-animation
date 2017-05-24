@@ -165,7 +165,7 @@ _Track* TrackBuilder::Build(const _RawTrack& _input) const {
   Fixup(&keyframes);
 
   // Converts kStep keyframes to kLinear, which will add some keys.
-  Linearize(&keyframes);
+  // Linearize(&keyframes);
 
   // Allocates output track.
   track->Allocate(keyframes.size());
@@ -175,9 +175,9 @@ _Track* TrackBuilder::Build(const _RawTrack& _input) const {
          keyframes.size() == track->values_.Count());
   for (size_t i = 0; i < keyframes.size(); ++i) {
     const typename _RawTrack::Keyframe& src_key = keyframes[i];
-    assert(src_key.interpolation == RawTrackInterpolation::kLinear);
     track->times_[i] = src_key.time;
     track->values_[i] = src_key.value;
+    track->steps_[i] = src_key.interpolation == RawTrackInterpolation::kStep;
   }
   /*
     // Copy animation's name.
@@ -226,12 +226,12 @@ void Fixup<RawQuaternionTrack::Keyframes>(
     }
   }
 }
-}
+}  // namespace
 
 QuaternionTrack* TrackBuilder::operator()(
     const RawQuaternionTrack& _input) const {
   return Build<RawQuaternionTrack, QuaternionTrack>(_input);
 }
-}  // offline
-}  // animation
-}  // ozz
+}  // namespace offline
+}  // namespace animation
+}  // namespace ozz
