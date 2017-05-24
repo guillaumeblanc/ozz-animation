@@ -181,7 +181,7 @@ void TestEdgesIntegrity(const ozz::animation::FloatTrack& _track) {
     // Check edges.
     bool rising = false;
     bool init = false;
-    for (size_t e = 0; e < num_edges; ++e) {
+    for (int e = 0; e < num_edges; ++e) {
       if (!init) {
         rising = edges[e].rising;
         init = true;
