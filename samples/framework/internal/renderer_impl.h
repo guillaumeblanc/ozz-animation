@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2015 Guillaume Blanc                                         //
+// Copyright (c) 2017 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -61,8 +61,8 @@
     gl##_f;                       \
     GLenum error = glGetError();  \
     assert(error == GL_NO_ERROR); \
-  \
-} while (void(0), 0)
+                                  \
+  } while (void(0), 0)
 #else  // NDEBUG
 #define GL(_f) gl##_f
 #endif  // NDEBUG
@@ -223,9 +223,9 @@ class RendererImpl : public Renderer {
   // Checkered texture
   unsigned int checkered_texture_;
 };
-}  // internal
-}  // sample
-}  // ozz
+}  // namespace internal
+}  // namespace sample
+}  // namespace ozz
 
 // OpenGL 1.5 buffer object management functions, mandatory.
 #ifdef OZZ_GL_VERSION_1_5_EXT

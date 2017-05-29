@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2015 Guillaume Blanc                                         //
+// Copyright (c) 2017 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -35,7 +35,7 @@ namespace ozz {
 namespace io {
 class IArchive;
 class OArchive;
-}
+}  // namespace io
 namespace math {
 struct SoaTransform;
 }
@@ -145,11 +145,11 @@ class Skeleton {
   // Stores the name of every joint in an array of c-strings.
   Range<char*> joint_names_;
 };
-}  // animation
+}  // namespace animation
 
 namespace io {
 OZZ_IO_TYPE_VERSION(1, animation::Skeleton)
 OZZ_IO_TYPE_TAG("ozz-skeleton", animation::Skeleton)
-}  // io
-}  // ozz
+}  // namespace io
+}  // namespace ozz
 #endif  // OZZ_OZZ_ANIMATION_RUNTIME_SKELETON_H_

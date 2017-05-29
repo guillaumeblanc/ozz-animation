@@ -4,7 +4,7 @@
 # ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  #
 # and distributed under the MIT License (MIT).                               #
 #                                                                            #
-# Copyright (c) 2015 Guillaume Blanc                                         #
+# Copyright (c) 2017 Guillaume Blanc                                         #
 #                                                                            #
 # Permission is hereby granted, free of charge, to any person obtaining a    #
 # copy of this software and associated documentation files (the "Software"), #
@@ -294,9 +294,7 @@ def EnableTesting():
     answer = raw_input("enable testing (y/n): ")
     if answer != 'y' and answer != 'n':
       continue
-    wanted = False
-    if answer == 'y':
-      wanted = True
+    wanted = (answer == 'y')
     
     # Get current state
     if (enable_testing != wanted):

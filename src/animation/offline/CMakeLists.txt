@@ -21,6 +21,9 @@ add_library(ozz_animation_offline STATIC
   track_builder.cc
   ${PROJECT_SOURCE_DIR}/include/ozz/animation/offline/track_optimizer.h
   track_optimizer.cc)
+target_link_libraries(ozz_animation_offline
+  ozz_animation)
+
 set_target_properties(ozz_animation_offline PROPERTIES FOLDER "ozz")
 
 install(TARGETS ozz_animation_offline DESTINATION lib)

@@ -2,8 +2,6 @@ if(NOT ozz_build_fbx)
   return()
 endif()
 
-include_directories(${FBX_INCLUDE_DIRS})
-
 add_library(ozz_animation_fbx STATIC
   ${PROJECT_SOURCE_DIR}/include/ozz/animation/offline/fbx/fbx.h
   fbx.cc
@@ -13,7 +11,10 @@ add_library(ozz_animation_fbx STATIC
   fbx_base.cc
   fbx_skeleton.h
   fbx_skeleton.cc)
+target_include_directories(ozz_animation_fbx PUBLIC
+  $<BUILD_INTERFACE:${FBX_INCLUDE_DIRS}>)
 target_link_libraries(ozz_animation_fbx
+  ozz_animation_offline
   debug ${FBX_LIBRARIES_DEBUG}
   optimized ${FBX_LIBRARIES})
 set_target_properties(ozz_animation_fbx
@@ -27,11 +28,7 @@ add_executable(fbx2skel
   fbx2skel.cc)
 target_link_libraries(fbx2skel
   ozz_animation_offline_skel_tools
-  ozz_animation_fbx
-  ozz_animation_offline
-  ozz_animation
-  ozz_options
-  ozz_base)
+  ozz_animation_fbx)
 set_target_properties(fbx2skel
   PROPERTIES FOLDER "ozz/tools")
 
@@ -41,11 +38,7 @@ add_executable(fbx2anim
   fbx2anim.cc)
 target_link_libraries(fbx2anim
   ozz_animation_offline_anim_tools
-  ozz_animation_fbx
-  ozz_animation_offline
-  ozz_animation
-  ozz_options
-  ozz_base)
+  ozz_animation_fbx)
 set_target_properties(fbx2anim
   PROPERTIES FOLDER "ozz/tools")
 

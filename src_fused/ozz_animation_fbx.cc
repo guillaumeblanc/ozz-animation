@@ -7,7 +7,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2015 Guillaume Blanc                                         //
+// Copyright (c) 2017 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -42,7 +42,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2015 Guillaume Blanc                                         //
+// Copyright (c) 2017 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -88,10 +88,10 @@ namespace fbx {
 bool ExtractAnimations(FbxSceneLoader* _scene_loader, const Skeleton& _skeleton,
                        float _sampling_rate, Animations* _animations);
 
-}  // fbx
-}  // offline
-}  // animation
-}  // ozz
+}  // namespace fbx
+}  // namespace offline
+}  // namespace animation
+}  // namespace ozz
 #endif  // OZZ_ANIMATION_OFFLINE_FBX_FBX_ANIMATION_H_
 
 
@@ -102,7 +102,7 @@ bool ExtractAnimations(FbxSceneLoader* _scene_loader, const Skeleton& _skeleton,
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2015 Guillaume Blanc                                         //
+// Copyright (c) 2017 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -143,10 +143,10 @@ namespace fbx {
 
 bool ExtractSkeleton(FbxSceneLoader& _loader, RawSkeleton* _skeleton);
 
-}  // fbx
-}  // offline
-}  // animation
-}  // ozz
+}  // namespace fbx
+}  // namespace offline
+}  // namespace animation
+}  // namespace ozz
 #endif  // OZZ_ANIMATION_OFFLINE_FBX_FBX_SKELETON_H_
 
 
@@ -211,10 +211,10 @@ bool ImportFromFile(const char* _filename, const Skeleton& _skeleton,
 
   return true;
 }
-}  // fbx
-}  // offline
-}  // animation
-}  // ozz
+}  // namespace fbx
+}  // namespace offline
+}  // namespace animation
+}  // namespace ozz
 
 // Including fbx_animation.cc file.
 
@@ -223,7 +223,7 @@ bool ImportFromFile(const char* _filename, const Skeleton& _skeleton,
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2015 Guillaume Blanc                                         //
+// Copyright (c) 2017 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -255,7 +255,7 @@ bool ImportFromFile(const char* _filename, const Skeleton& _skeleton,
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2015 Guillaume Blanc                                         //
+// Copyright (c) 2017 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -301,10 +301,10 @@ namespace fbx {
 bool ExtractAnimations(FbxSceneLoader* _scene_loader, const Skeleton& _skeleton,
                        float _sampling_rate, Animations* _animations);
 
-}  // fbx
-}  // offline
-}  // animation
-}  // ozz
+}  // namespace fbx
+}  // namespace offline
+}  // namespace animation
+}  // namespace ozz
 #endif  // OZZ_ANIMATION_OFFLINE_FBX_FBX_ANIMATION_H_
 
 
@@ -464,7 +464,7 @@ bool ExtractAnimation(FbxSceneLoader* _scene_loader, FbxAnimStack* anim_stack,
 
   return true;
 }
-}
+}  // namespace
 
 bool ExtractAnimations(FbxSceneLoader* _scene_loader, const Skeleton& _skeleton,
                        float _sampling_rate, Animations* _animations) {
@@ -500,10 +500,10 @@ bool ExtractAnimations(FbxSceneLoader* _scene_loader, const Skeleton& _skeleton,
 
   return success;
 }
-}  // fbx
-}  // offline
-}  // animation
-}  // ozz
+}  // namespace fbx
+}  // namespace offline
+}  // namespace animation
+}  // namespace ozz
 
 // Including fbx_base.cc file.
 
@@ -512,7 +512,7 @@ bool ExtractAnimations(FbxSceneLoader* _scene_loader, const Skeleton& _skeleton,
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2015 Guillaume Blanc                                         //
+// Copyright (c) 2017 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -764,7 +764,7 @@ ozz::math::Float4x4 BuildAxisSystemMatrix(const FbxAxisSystem& _system) {
 
   return matrix;
 }
-}
+}  // namespace
 
 FbxSystemConverter::FbxSystemConverter(const FbxAxisSystem& _from_axis,
                                        const FbxSystemUnit& _from_unit) {
@@ -839,10 +839,10 @@ bool FbxSystemConverter::ConvertTransform(const FbxAMatrix& _m,
   *_transform = ozz::math::Transform::identity();
   return false;
 }
-}  // fbx
-}  // ozz
-}  // offline
-}  // animation
+}  // namespace fbx
+}  // namespace offline
+}  // namespace animation
+}  // namespace ozz
 
 // Including fbx_skeleton.cc file.
 
@@ -851,7 +851,7 @@ bool FbxSystemConverter::ConvertTransform(const FbxAMatrix& _m,
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2015 Guillaume Blanc                                         //
+// Copyright (c) 2017 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -883,7 +883,7 @@ bool FbxSystemConverter::ConvertTransform(const FbxAMatrix& _m,
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2015 Guillaume Blanc                                         //
+// Copyright (c) 2017 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -924,10 +924,10 @@ namespace fbx {
 
 bool ExtractSkeleton(FbxSceneLoader& _loader, RawSkeleton* _skeleton);
 
-}  // fbx
-}  // offline
-}  // animation
-}  // ozz
+}  // namespace fbx
+}  // namespace offline
+}  // namespace animation
+}  // namespace ozz
 #endif  // OZZ_ANIMATION_OFFLINE_FBX_FBX_SKELETON_H_
 
 
@@ -957,9 +957,8 @@ RecurseReturn RecurseNode(FbxNode* _node, FbxSystemConverter* _converter,
 
   // Push this node as a new joint if it has a joint compatible attribute.
   FbxNodeAttribute* node_attribute = _node->GetNodeAttribute();
-  process_node |=
-      node_attribute &&
-      node_attribute->GetAttributeType() == FbxNodeAttribute::eSkeleton;
+  process_node |= node_attribute && node_attribute->GetAttributeType() ==
+                                        FbxNodeAttribute::eSkeleton;
 
   // Process node if required.
   if (process_node) {
@@ -1009,7 +1008,7 @@ RecurseReturn RecurseNode(FbxNode* _node, FbxSystemConverter* _converter,
 
   return skeleton_found ? kSkeletonFound : kNoSkeleton;
 }
-}
+}  // namespace
 
 bool ExtractSkeleton(FbxSceneLoader& _loader, RawSkeleton* _skeleton) {
   RecurseReturn ret = RecurseNode(_loader.scene()->GetRootNode(),
@@ -1023,8 +1022,8 @@ bool ExtractSkeleton(FbxSceneLoader& _loader, RawSkeleton* _skeleton) {
   }
   return true;
 }
-}  // fbx
-}  // ozz
-}  // offline
-}  // animation
+}  // namespace fbx
+}  // namespace offline
+}  // namespace animation
+}  // namespace ozz
 

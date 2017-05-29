@@ -48,6 +48,9 @@ add_library(ozz_base STATIC
   maths/soa_math_archive.cc
   ${PROJECT_SOURCE_DIR}/include/ozz/base/maths/simd_math_archive.h
   maths/simd_math_archive.cc)
+target_include_directories(ozz_base PUBLIC
+  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:$<INSTALL_PREFIX>/include>)
 set_target_properties(ozz_base PROPERTIES FOLDER "ozz")
 
 install(TARGETS ozz_base DESTINATION lib)

@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2015 Guillaume Blanc                                         //
+// Copyright (c) 2017 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -51,5 +51,5 @@ Box::Box(const Float3* _points, size_t _stride, size_t _count) {
   min = local_min;
   max = local_max;
 }
-}  // ozz
-}  // math
+}  // namespace math
+}  // namespace ozz

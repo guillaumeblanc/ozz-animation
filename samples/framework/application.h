@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2015 Guillaume Blanc                                         //
+// Copyright (c) 2017 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -35,7 +35,7 @@ namespace ozz {
 namespace math {
 struct Box;
 struct Float4x4;
-}  // math
+}  // namespace math
 namespace sample {
 
 class ImGui;
@@ -46,7 +46,7 @@ namespace internal {
 class RendererImpl;
 class Camera;
 class Shooter;
-}  // internal
+}  // namespace internal
 
 // Screen resolution settings.
 struct Resolution {
@@ -214,6 +214,6 @@ class Application {
   // Help message.
   ozz::String::Std help_;
 };
-}  // sample
-}  // ozz
+}  // namespace sample
+}  // namespace ozz
 #endif  // OZZ_SAMPLES_FRAMEWORK_APPLICATION_H_

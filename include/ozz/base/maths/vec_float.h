@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2015 Guillaume Blanc                                         //
+// Copyright (c) 2017 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -297,7 +297,7 @@ OZZ_INLINE bool IsNormalized(const Float2& _v) {
 OZZ_INLINE Float4 NormalizeSafe(const Float4& _v, const Float4& _safer) {
   assert(IsNormalized(_safer) && "_safer is not normalized");
   const float len2 = _v.x * _v.x + _v.y * _v.y + _v.z * _v.z + _v.w * _v.w;
-  if (len2 == 0) {
+  if (len2 <= 0.f) {
     return _safer;
   }
   const float len = std::sqrt(len2);
@@ -306,7 +306,7 @@ OZZ_INLINE Float4 NormalizeSafe(const Float4& _v, const Float4& _safer) {
 OZZ_INLINE Float3 NormalizeSafe(const Float3& _v, const Float3& _safer) {
   assert(IsNormalized(_safer) && "_safer is not normalized");
   const float len2 = _v.x * _v.x + _v.y * _v.y + _v.z * _v.z;
-  if (len2 == 0) {
+  if (len2 <= 0.f) {
     return _safer;
   }
   const float len = std::sqrt(len2);
@@ -315,7 +315,7 @@ OZZ_INLINE Float3 NormalizeSafe(const Float3& _v, const Float3& _safer) {
 OZZ_INLINE Float2 NormalizeSafe(const Float2& _v, const Float2& _safer) {
   assert(IsNormalized(_safer) && "_safer is not normalized");
   const float len2 = _v.x * _v.x + _v.y * _v.y;
-  if (len2 == 0) {
+  if (len2 <= 0.f) {
     return _safer;
   }
   const float len = std::sqrt(len2);
@@ -462,6 +462,6 @@ OZZ_INLINE Float2 Clamp(const Float2& _a, const Float2& _v, const Float2& _b) {
   const Float2 min(_v.x < _b.x ? _v.x : _b.x, _v.y < _b.y ? _v.y : _b.y);
   return Float2(_a.x > min.x ? _a.x : min.x, _a.y > min.y ? _a.y : min.y);
 }
-}  // math
-}  // ozz
+}  // namespace math
+}  // namespace ozz
 #endif  // OZZ_OZZ_BASE_MATHS_VEC_FLOAT_H_

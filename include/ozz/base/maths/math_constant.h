@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2015 Guillaume Blanc                                         //
+// Copyright (c) 2017 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -54,8 +54,8 @@ static const float kNormalizationToleranceEstSq = 2e-3f;
 
 // Defines the square orthogonalisation tolerance value.
 static const float kOrthogonalisationToleranceSq = 1e-16f;
-}  // math
-}  // ozz
+}  // namespace math
+}  // namespace ozz
 
 #endif  // INCLUDE_OZZ_MATH_CONSTANT_H_
 #endif  // OZZ_OZZ_BASE_MATHS_MATH_CONSTANT_H_

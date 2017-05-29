@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2015 Guillaume Blanc                                         //
+// Copyright (c) 2017 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -255,7 +255,7 @@ ozz::math::Float4x4 BuildAxisSystemMatrix(const FbxAxisSystem& _system) {
 
   return matrix;
 }
-}
+}  // namespace
 
 FbxSystemConverter::FbxSystemConverter(const FbxAxisSystem& _from_axis,
                                        const FbxSystemUnit& _from_unit) {
@@ -330,7 +330,7 @@ bool FbxSystemConverter::ConvertTransform(const FbxAMatrix& _m,
   *_transform = ozz::math::Transform::identity();
   return false;
 }
-}  // fbx
-}  // ozz
-}  // offline
-}  // animation
+}  // namespace fbx
+}  // namespace offline
+}  // namespace animation
+}  // namespace ozz

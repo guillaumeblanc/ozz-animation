@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2015 Guillaume Blanc                                         //
+// Copyright (c) 2017 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -134,7 +134,7 @@ OZZ_INLINE SimdFloat4 Load3PtrU(const float* _f);
 
 // Convert from integer to float.
 OZZ_INLINE SimdFloat4 FromInt(_SimdInt4 _i);
-}  // simd_float4
+}  // namespace simd_float4
 
 // Returns the x component of _v as a float.
 OZZ_INLINE float GetX(_SimdFloat4 _v);
@@ -794,7 +794,7 @@ OZZ_INLINE SimdInt4 FromFloatRound(_SimdFloat4 _f);
 
 // Convert from float to integer by truncating.
 OZZ_INLINE SimdInt4 FromFloatTrunc(_SimdFloat4 _f);
-}  // simd_float4
+}  // namespace simd_int4
 
 // Returns the x component of _v as an integer.
 OZZ_INLINE int GetX(_SimdInt4 _v);
@@ -1113,8 +1113,8 @@ OZZ_INLINE ozz::math::SimdFloat4 TransformPoint(const ozz::math::Float4x4& _m,
 // of 0.
 OZZ_INLINE ozz::math::SimdFloat4 TransformVector(const ozz::math::Float4x4& _m,
                                                  ozz::math::_SimdFloat4 _v);
-}  // math
-}  // ozz
+}  // namespace math
+}  // namespace ozz
 
 #if !defined(__GNUC__) || defined(OZZ_SIMD_REF)
 // Returns per element addition of _a and _b.
@@ -1167,8 +1167,8 @@ OZZ_INLINE SimdInt4 FloatToHalf(_SimdFloat4 _f);
 
 // Converts from a half to a float.
 OZZ_INLINE SimdFloat4 HalfToFloat(_SimdInt4 _h);
-}  // math
-}  // ozz
+}  // namespace math
+}  // namespace ozz
 
 #if defined(OZZ_SIMD_SSEx)
 #include "ozz/base/maths/internal/simd_math_sse-inl.h"
