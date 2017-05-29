@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2015 Guillaume Blanc                                         //
+// Copyright (c) 2017 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -36,15 +36,15 @@ namespace ozz {
 namespace math {
 struct Box;
 struct Float4x4;
-}  // math
+}  // namespace math
 namespace animation {
 class Animation;
 class Skeleton;
 namespace offline {
 struct RawAnimation;
 struct RawSkeleton;
-}  // offline
-}  // animation
+}  // namespace offline
+}  // namespace animation
 namespace sample {
 class ImGui;
 struct Mesh;
@@ -133,7 +133,6 @@ bool LoadMesh(const char* _filename, ozz::sample::Mesh* _mesh);
 // _filename and _mesh must be non-NULL.
 bool LoadMeshes(const char* _filename,
                 ozz::Vector<ozz::sample::Mesh>::Std* _meshes);
-
-}  // sample
-}  // ozz
+}  // namespace sample
+}  // namespace ozz
 #endif  // OZZ_SAMPLES_FRAMEWORK_UTILS_H_

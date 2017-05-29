@@ -7,7 +7,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2015 Guillaume Blanc                                         //
+// Copyright (c) 2017 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -84,9 +84,9 @@ bool RawAnimation::Validate() const {
 
   return true;  // *this is valid.
 }
-}  // offline
-}  // animation
-}  // ozz
+}  // namespace offline
+}  // namespace animation
+}  // namespace ozz
 
 // Including raw_animation_archive.cc file.
 
@@ -95,7 +95,7 @@ bool RawAnimation::Validate() const {
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2015 Guillaume Blanc                                         //
+// Copyright (c) 2017 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -256,8 +256,8 @@ void Load(IArchive& _archive, animation::offline::RawAnimation::ScaleKey* _keys,
     _archive >> key.value;
   }
 }
-}  // io
-}  // ozz
+}  // namespace io
+}  // namespace ozz
 
 // Including raw_animation_utils.cc file.
 
@@ -266,7 +266,7 @@ void Load(IArchive& _archive, animation::offline::RawAnimation::ScaleKey* _keys,
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2015 Guillaume Blanc                                         //
+// Copyright (c) 2017 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -321,9 +321,9 @@ math::Float3 LerpScale(const math::Float3& _a, const math::Float3& _b,
                        float _alpha) {
   return math::Lerp(_a, _b, _alpha);
 }
-}  // offline
-}  // animation
-}  // ozz
+}  // namespace offline
+}  // namespace animation
+}  // namespace ozz
 
 // Including animation_builder.cc file.
 
@@ -332,7 +332,7 @@ math::Float3 LerpScale(const math::Float3& _a, const math::Float3& _b,
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2015 Guillaume Blanc                                         //
+// Copyright (c) 2017 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -381,7 +381,7 @@ math::Float3 LerpScale(const math::Float3& _a, const math::Float3& _b,
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2015 Guillaume Blanc                                         //
+// Copyright (c) 2017 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -460,8 +460,8 @@ struct ScaleKey {
   uint16_t track;
   uint16_t value[3];
 };
-}  // animation
-}  // ozz
+}  // namespace animation
+}  // namespace ozz
 #endif  // OZZ_ANIMATION_RUNTIME_ANIMATION_KEYFRAME_H_
 
 
@@ -627,7 +627,7 @@ void CompressQuat(const ozz::math::Quaternion& _src,
   _dest->value[1] = math::Clamp(-32767, b, 32767) & 0xffff;
   _dest->value[2] = math::Clamp(-32767, c, 32767) & 0xffff;
 }
-}
+}  // namespace
 
 // Specialize for rotations in order to normalize quaternions.
 // Consecutive opposite quaternions are also fixed up in order to avoid checking
@@ -765,9 +765,9 @@ Animation* AnimationBuilder::operator()(const RawAnimation& _input) const {
 
   return animation;  // Success.
 }
-}  // offline
-}  // animation
-}  // ozz
+}  // namespace offline
+}  // namespace animation
+}  // namespace ozz
 
 // Including animation_optimizer.cc file.
 
@@ -776,7 +776,7 @@ Animation* AnimationBuilder::operator()(const RawAnimation& _input) const {
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2015 Guillaume Blanc                                         //
+// Copyright (c) 2017 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -1064,9 +1064,9 @@ bool AnimationOptimizer::operator()(const RawAnimation& _input,
   // Output animation is always valid though.
   return _output->Validate();
 }
-}  // offline
-}  // animation
-}  // ozz
+}  // namespace offline
+}  // namespace animation
+}  // namespace ozz
 
 // Including additive_animation_builder.cc file.
 
@@ -1075,7 +1075,7 @@ bool AnimationOptimizer::operator()(const RawAnimation& _input,
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2015 Guillaume Blanc                                         //
+// Copyright (c) 2017 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -1178,9 +1178,9 @@ bool AdditiveAnimationBuilder::operator()(const RawAnimation& _input,
   // Output animation is always valid though.
   return _output->Validate();
 }
-}  // offline
-}  // animation
-}  // ozz
+}  // namespace offline
+}  // namespace animation
+}  // namespace ozz
 
 // Including raw_skeleton.cc file.
 
@@ -1189,7 +1189,7 @@ bool AdditiveAnimationBuilder::operator()(const RawAnimation& _input,
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2015 Guillaume Blanc                                         //
+// Copyright (c) 2017 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -1244,9 +1244,9 @@ struct JointCounter {
 int RawSkeleton::num_joints() const {
   return IterateJointsDF(JointCounter()).num_joints;
 }
-}  // offline
-}  // animation
-}  // ozz
+}  // namespace offline
+}  // namespace animation
+}  // namespace ozz
 
 // Including raw_skeleton_archive.cc file.
 
@@ -1255,7 +1255,7 @@ int RawSkeleton::num_joints() const {
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2015 Guillaume Blanc                                         //
+// Copyright (c) 2017 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -1334,8 +1334,8 @@ void Load(IArchive& _archive, animation::offline::RawSkeleton::Joint* _joints,
     _archive >> joint.children;
   }
 }
-}  // io
-}  // ozz
+}  // namespace io
+}  // namespace ozz
 
 // Including skeleton_builder.cc file.
 
@@ -1344,7 +1344,7 @@ void Load(IArchive& _archive, animation::offline::RawSkeleton::Joint* _joints,
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2015 Guillaume Blanc                                         //
+// Copyright (c) 2017 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -1491,7 +1491,7 @@ Skeleton* SkeletonBuilder::operator()(const RawSkeleton& _raw_skeleton) const {
 
   return skeleton;  // Success.
 }
-}  // offline
-}  // animation
-}  // ozz
+}  // namespace offline
+}  // namespace animation
+}  // namespace ozz
 

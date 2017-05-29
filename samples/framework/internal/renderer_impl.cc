@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2015 Guillaume Blanc                                         //
+// Copyright (c) 2017 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -1277,10 +1277,9 @@ bool RendererImpl::DrawSkinnedMesh(
 
     // Setup output positions, coming from the rendering output mesh buffers.
     // We need to offset the buffer every loop.
-    skinning_job.out_positions.begin =
-        reinterpret_cast<float*>(ozz::PointerStride(
-            vbo_map,
-            positions_offset + processed_vertex_count * positions_stride));
+    skinning_job.out_positions.begin = reinterpret_cast<float*>(
+        ozz::PointerStride(vbo_map, positions_offset + processed_vertex_count *
+                                                           positions_stride));
     skinning_job.out_positions.end = ozz::PointerStride(
         skinning_job.out_positions.begin, part_vertex_count * positions_stride);
     skinning_job.out_positions_stride = positions_stride;
@@ -1607,9 +1606,9 @@ void* RendererImpl::ScratchBuffer::Resize(size_t _size) {
   }
   return buffer_;
 }
-}  // internal
-}  // sample
-}  // ozz
+}  // namespace internal
+}  // namespace sample
+}  // namespace ozz
 
 // Helper macro used to declare extension function pointer.
 #define OZZ_DECL_GL_EXT(_fct, _fct_type) _fct_type _fct = NULL

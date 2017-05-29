@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2015 Guillaume Blanc                                         //
+// Copyright (c) 2017 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -90,7 +90,7 @@ namespace internal {
 template <typename _Ty,
           bool _HasTag = internal::Tag<const _Ty>::kTagLength != 0>
 struct Tagger;
-}  // internal
+}  // namespace internal
 
 // Implements output archive concept used to save/serialize data from a Stream.
 // The output endianness mode is set at construction time. It is written to the
@@ -355,7 +355,7 @@ _OZZ_IO_PRIMITIVE_TYPE(uint64_t)
 _OZZ_IO_PRIMITIVE_TYPE(bool)
 _OZZ_IO_PRIMITIVE_TYPE(float)
 #undef _OZZ_IO_PRIMITIVE_TYPE
-}  // internal
+}  // namespace internal
 
 // Utility function that instantiates Array wrapper.
 template <typename _Ty>
@@ -421,7 +421,7 @@ struct Tagger<_Ty, false> {
   static void Write(OArchive& /*_archive*/) {}
   static bool Validate(IArchive& /*_archive*/) { return true; }
 };
-}  // internal
-}  // io
-}  // ozz
+}  // namespace internal
+}  // namespace io
+}  // namespace ozz
 #endif  // OZZ_OZZ_BASE_IO_ARCHIVE_H_

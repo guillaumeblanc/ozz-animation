@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2015 Guillaume Blanc                                         //
+// Copyright (c) 2017 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -382,7 +382,7 @@ const char* kShaderAmbientTexturedFS =
     "                 v_vertex_color *\n"
     "                 texture2D(u_texture, v_vertex_uv);\n"
     "}\n";
-}
+}  // namespace
 
 void SkeletonShader::Bind(const math::Float4x4& _model,
                           const math::Float4x4& _view_proj, GLsizei _pos_stride,
@@ -441,8 +441,7 @@ JointShader* JointShader::Build() {
       "  world_matrix[3] = joint_matrix[3];\n"
       "  return world_matrix;\n"
       "}\n";
-  const char* vs[] = {kPlatformSpecivicVSHeader,
-                      kPassNoUv,
+  const char* vs[] = {kPlatformSpecivicVSHeader, kPassNoUv,
                       GL_ARB_instanced_arrays ? "attribute mat4 joint;\n"
                                               : "uniform mat4 joint;\n",
                       vs_joint_to_world_matrix, kShaderUberVS};
@@ -502,8 +501,7 @@ BoneShader* BoneShader::Build() {  // Builds a world matrix from joint uniforms,
       "  world_matrix[3] = vec4(joint[3].xyz, 1.);\n"
       "  return world_matrix;\n"
       "}\n";
-  const char* vs[] = {kPlatformSpecivicVSHeader,
-                      kPassNoUv,
+  const char* vs[] = {kPlatformSpecivicVSHeader, kPassNoUv,
                       GL_ARB_instanced_arrays ? "attribute mat4 joint;\n"
                                               : "uniform mat4 joint;\n",
                       vs_joint_to_world_matrix, kShaderUberVS};
@@ -538,8 +536,7 @@ BoneShader* BoneShader::Build() {  // Builds a world matrix from joint uniforms,
 
 AmbientShader* AmbientShader::Build() {
   const char* vs[] = {
-      kPlatformSpecivicVSHeader,
-      kPassNoUv,
+      kPlatformSpecivicVSHeader, kPassNoUv,
       "uniform mat4 u_mw;\n mat4 GetWorldMatrix() {return u_mw;}\n",
       kShaderUberVS};
   const char* fs[] = {kPlatformSpecivicFSHeader, kShaderAmbientFct,
@@ -620,8 +617,7 @@ AmbientShaderInstanced* AmbientShaderInstanced::Build() {
   bool success = true;
 
   const char* vs[] = {
-      kPlatformSpecivicVSHeader,
-      kPassNoUv,
+      kPlatformSpecivicVSHeader, kPassNoUv,
       "attribute mat4 a_mw;\n mat4 GetWorldMatrix() {return a_mw;}\n",
       kShaderUberVS};
   const char* fs[] = {kPlatformSpecivicFSHeader, kShaderAmbientFct,
@@ -720,8 +716,7 @@ void AmbientShaderInstanced::Unbind() {
 
 AmbientTexturedShader* AmbientTexturedShader::Build() {
   const char* vs[] = {
-      kPlatformSpecivicVSHeader,
-      kPassUv,
+      kPlatformSpecivicVSHeader, kPassUv,
       "uniform mat4 u_mw;\n mat4 GetWorldMatrix() {return u_mw;}\n",
       kShaderUberVS};
   const char* fs[] = {kPlatformSpecivicFSHeader, kShaderAmbientFct,
@@ -758,5 +753,5 @@ void AmbientTexturedShader::Bind(const math::Float4x4& _model,
                          GL_PTR_OFFSET(_uv_offset)));
 }
 }  // internal
-}  // sample
-}  // ozz
+}  // namespace sample
+}  // namespace ozz

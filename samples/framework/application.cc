@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2015 Guillaume Blanc                                         //
+// Copyright (c) 2017 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -71,7 +71,7 @@ const ozz::sample::Resolution resolution_presets[] = {
     {1400, 1050}, {1440, 900}, {1600, 900}, {1600, 1200}, {1680, 1050},
     {1920, 1080}, {1920, 1200}};
 const int kNumPresets = OZZ_ARRAY_SIZE(resolution_presets);
-}
+}  // namespace
 
 // Check resolution argument is within 0 - kNumPresets
 static bool ResolutionCheck(const ozz::options::Option& _option,
@@ -203,7 +203,7 @@ int Application::Run(int _argc, const char** _argv, const char* _version,
         shooter_ = memory::default_allocator()->New<internal::Shooter>();
         im_gui_ = memory::default_allocator()->New<internal::ImGuiImpl>();
 
-#ifndef EMSCRIPTEN // Better not rename web page.
+#ifndef EMSCRIPTEN  // Better not rename web page.
         glfwSetWindowTitle(_title);
 #endif  // EMSCRIPTEN
 
@@ -693,5 +693,5 @@ void Application::ParseReadme() {
   // Deallocate temporary buffer;
   allocator->Deallocate(content);
 }
-}  // sample
-}  // ozz
+}  // namespace sample
+}  // namespace ozz

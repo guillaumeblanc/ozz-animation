@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2015 Guillaume Blanc                                         //
+// Copyright (c) 2017 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -133,8 +133,8 @@ struct RawAnimation {
   // Name of the animation.
   ozz::String::Std name;
 };
-}  // offline
-}  // animation
+}  // namespace offline
+}  // namespace animation
 namespace io {
 OZZ_IO_TYPE_VERSION(2, animation::offline::RawAnimation)
 OZZ_IO_TYPE_TAG("ozz-raw_animation", animation::offline::RawAnimation)
@@ -147,6 +147,6 @@ void Save(OArchive& _archive,
 template <>
 void Load(IArchive& _archive, animation::offline::RawAnimation* _animations,
           size_t _count, uint32_t _version);
-}  // io
-}  // ozz
+}  // namespace io
+}  // namespace ozz
 #endif  // OZZ_OZZ_ANIMATION_OFFLINE_RAW_ANIMATION_H_

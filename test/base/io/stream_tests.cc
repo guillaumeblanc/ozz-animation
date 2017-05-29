@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2015 Guillaume Blanc                                         //
+// Copyright (c) 2017 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -27,8 +27,8 @@
 
 #include "ozz/base/io/stream.h"
 
-#include <limits>
 #include <stdint.h>
+#include <limits>
 
 #include "gtest/gtest.h"
 
@@ -81,8 +81,8 @@ void TestSeek(ozz::io::Stream* _stream) {
 
   const int64_t kEnd = 465827;
   // Force file length to kEnd but do not write to the stream.
-  EXPECT_EQ(_stream->Seek(kEnd - _stream->Tell(),
-                          ozz::io::Stream::kCurrent), 0);
+  EXPECT_EQ(_stream->Seek(kEnd - _stream->Tell(), ozz::io::Stream::kCurrent),
+            0);
   EXPECT_EQ(_stream->Tell(), kEnd);
   EXPECT_EQ(_stream->Size(), sizeof(Type));
 
@@ -97,20 +97,22 @@ void TestSeek(ozz::io::Stream* _stream) {
   EXPECT_EQ(_stream->Size(), sizeof(Type));
 
   // Force file length to kEnd + sizeof(Type) and write to the stream.
-  EXPECT_EQ(_stream->Seek(
-    kEnd - _stream->Tell() - static_cast<int>(sizeof(Type)),
-    ozz::io::Stream::kCurrent), 0);
+  EXPECT_EQ(
+      _stream->Seek(kEnd - _stream->Tell() - static_cast<int>(sizeof(Type)),
+                    ozz::io::Stream::kCurrent),
+      0);
   EXPECT_EQ(_stream->Tell(), kEnd - static_cast<int>(sizeof(Type)));
   EXPECT_EQ(_stream->Write(&to_write, sizeof(Type)), sizeof(Type));
   EXPECT_EQ(_stream->Tell(), kEnd);
-  EXPECT_EQ(_stream->Seek(
-    -static_cast<int>(sizeof(Type)), ozz::io::Stream::kEnd), 0);
+  EXPECT_EQ(
+      _stream->Seek(-static_cast<int>(sizeof(Type)), ozz::io::Stream::kEnd), 0);
   EXPECT_EQ(_stream->Tell(), kEnd - static_cast<int>(sizeof(Type)));
   EXPECT_EQ(_stream->Read(&to_read, sizeof(Type)), sizeof(Type));
   EXPECT_EQ(to_read, to_write);
   EXPECT_EQ(_stream->Tell(), kEnd);
-  EXPECT_EQ(_stream->Seek(-static_cast<int>(sizeof(Type)) * 2,
-                          ozz::io::Stream::kEnd), 0);
+  EXPECT_EQ(
+      _stream->Seek(-static_cast<int>(sizeof(Type)) * 2, ozz::io::Stream::kEnd),
+      0);
   EXPECT_EQ(_stream->Read(&to_read, sizeof(Type)), sizeof(Type));
   EXPECT_EQ(to_read, 0);
   EXPECT_EQ(_stream->Tell(), kEnd - static_cast<int>(sizeof(Type)));
@@ -160,24 +162,20 @@ TEST(File, Stream) {
     ozz::io::File file(NULL);
     EXPECT_FALSE(file.opened());
   }
-  {
-    EXPECT_FALSE(ozz::io::File::Exist("unexisting.file"));
-  }
+  { EXPECT_FALSE(ozz::io::File::Exist("unexisting.file")); }
   {
     ozz::io::File file("test.bin", "w+t");
     EXPECT_TRUE(file.opened());
     TestSeek(&file);
   }
-  {
-    EXPECT_TRUE(ozz::io::File::Exist("test.bin"));
-  }
+  { EXPECT_TRUE(ozz::io::File::Exist("test.bin")); }
 }
 
 TEST(MemoryStream, Stream) {
-    {
-      ozz::io::MemoryStream stream;
-      TestStream(&stream);
-    }
+  {
+    ozz::io::MemoryStream stream;
+    TestStream(&stream);
+  }
   {
     ozz::io::MemoryStream stream;
     TestSeek(&stream);

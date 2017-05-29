@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2015 Guillaume Blanc                                         //
+// Copyright (c) 2017 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -55,9 +55,8 @@ RecurseReturn RecurseNode(FbxNode* _node, FbxSystemConverter* _converter,
 
   // Push this node as a new joint if it has a joint compatible attribute.
   FbxNodeAttribute* node_attribute = _node->GetNodeAttribute();
-  process_node |=
-      node_attribute &&
-      node_attribute->GetAttributeType() == FbxNodeAttribute::eSkeleton;
+  process_node |= node_attribute && node_attribute->GetAttributeType() ==
+                                        FbxNodeAttribute::eSkeleton;
 
   // Process node if required.
   if (process_node) {
@@ -107,7 +106,7 @@ RecurseReturn RecurseNode(FbxNode* _node, FbxSystemConverter* _converter,
 
   return skeleton_found ? kSkeletonFound : kNoSkeleton;
 }
-}
+}  // namespace
 
 bool ExtractSkeleton(FbxSceneLoader& _loader, RawSkeleton* _skeleton) {
   RecurseReturn ret = RecurseNode(_loader.scene()->GetRootNode(),
@@ -121,7 +120,7 @@ bool ExtractSkeleton(FbxSceneLoader& _loader, RawSkeleton* _skeleton) {
   }
   return true;
 }
-}  // fbx
-}  // ozz
-}  // offline
-}  // animation
+}  // namespace fbx
+}  // namespace offline
+}  // namespace animation
+}  // namespace ozz

@@ -11,6 +11,7 @@ Release version 0.9.1
   - Allows to use ozz-animation from another project using cmake add_subdirectory() command, conforming with [online documentation](http://guillaumeblanc.github.io/ozz-animation/documentation/build/).
   - Adds Travis-CI (http://travis-ci.org/guillaumeblanc/ozz-animation) and AppVeyor (http://ci.appveyor.com/project/guillaumeblanc/ozz-animation) continuous integration support.
   - Exposes MSVC /MD and /MT option (ozz_build_msvc_rt_dll). Default is /MD, same as MSVC/cmake.
+  - Adds support for Xcode 8.3.2 (fbx specific compilation option).
 
 Release version 0.9.0
 ---------------------

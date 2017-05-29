@@ -7,7 +7,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2015 Guillaume Blanc                                         //
+// Copyright (c) 2017 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -115,7 +115,7 @@ template class Registrer<TypedOption<bool> >;
 template class Registrer<TypedOption<int> >;
 template class Registrer<TypedOption<float> >;
 template class Registrer<TypedOption<const char*> >;
-}  // internal
+}  // namespace internal
 
 // Construct the parser if no option is registered.
 // This local parser will be deleted automatically. This allows to query the
@@ -494,7 +494,7 @@ ParseResult Parser::Parse(int _argc, const char* const* _argv) {
     std::cout << "version " << version() << std::endl;
     result = kExitSuccess;
   }
-  
+
   // Ensures all required options were specified in the command line.
   if (result == kSuccess) {
     for (int i = 0; i < options_count_; ++i) {
@@ -657,6 +657,6 @@ std::string Parser::executable_path() const {
 }
 
 const char* Parser::executable_name() const { return executable_name_; }
-}  // options
-}  // ozz
+}  // namespace options
+}  // namespace ozz
 

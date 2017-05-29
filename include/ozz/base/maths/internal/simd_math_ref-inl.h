@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2015 Guillaume Blanc                                         //
+// Copyright (c) 2017 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -51,7 +51,7 @@ union SimdIF4 {
   SimdInt4 i;
   SimdFloat4 f;
 };
-}  // internal
+}  // namespace internal
 
 // clang-format off
 
@@ -189,7 +189,7 @@ OZZ_INLINE SimdFloat4 FromInt(_SimdInt4 _i) {
                           static_cast<float>(_i.z), static_cast<float>(_i.w)};
   return ret;
 }
-}  // simd_float4
+}  // namespace simd_float4
 
 OZZ_INLINE float GetX(_SimdFloat4 _v) { return _v.x; }
 
@@ -1167,7 +1167,7 @@ OZZ_INLINE SimdInt4 FromFloatTrunc(_SimdFloat4 _f) {
                         static_cast<int>(_f.z), static_cast<int>(_f.w)};
   return ret;
 }
-}  // simd_int4
+}  // namespace simd_int4
 
 OZZ_INLINE int GetX(_SimdInt4 _v) { return _v.x; }
 
@@ -1862,8 +1862,8 @@ OZZ_INLINE ozz::math::SimdFloat4 TransformVector(const ozz::math::Float4x4& _m,
       _m.cols[0].w * _v.x + _m.cols[1].w * _v.y + _m.cols[2].w * _v.z};
   return ret;
 }
-}  // math
-}  // ozz
+}  // namespace math
+}  // namespace ozz
 
 OZZ_INLINE ozz::math::SimdFloat4 operator+(ozz::math::_SimdFloat4 _a,
                                            ozz::math::_SimdFloat4 _b) {
@@ -2030,8 +2030,8 @@ OZZ_INLINE SimdFloat4 HalfToFloat(_SimdInt4 _h) {
       HalfToFloat(_h.z & 0x0000ffff), HalfToFloat(_h.w & 0x0000ffff)};
   return ret;
 }
-}  // math
-}  // ozz
+}  // namespace math
+}  // namespace ozz
 
 #undef OZZ_RCP_EST
 #undef OZZ_RSQRT_EST

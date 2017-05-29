@@ -36,17 +36,6 @@ set(ozz_sample_testing_loops 20 CACHE INT "Number of loops while running sample 
 # Configure CMake module path
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/build-utils/cmake/modules/")
 
-# Include ozz cmake parameters and scripts
-include(${PROJECT_SOURCE_DIR}/build-utils/cmake/compiler_settings.cmake)
-include(${PROJECT_SOURCE_DIR}/build-utils/cmake/package_settings.cmake)
-include(${PROJECT_SOURCE_DIR}/build-utils/cmake/fuse_target.cmake)
-include(${PROJECT_SOURCE_DIR}/build-utils/cmake/clang_format.cmake)
-
-# Enables unit tests.
-if(ozz_build_tests)
-  enable_testing()
-endif()
-
 # Detects Fbx SDK, required to build Fbx pipeline.
 if(ozz_build_fbx)
 
@@ -61,6 +50,17 @@ if(ozz_build_fbx)
     message("Fbx SDK not found, FBX tools libraries and samples will be skipped.")
     set(ozz_build_fbx OFF)
   endif()
+endif()
+
+# Include ozz cmake parameters and scripts
+include(${PROJECT_SOURCE_DIR}/build-utils/cmake/compiler_settings.cmake)
+include(${PROJECT_SOURCE_DIR}/build-utils/cmake/package_settings.cmake)
+include(${PROJECT_SOURCE_DIR}/build-utils/cmake/fuse_target.cmake)
+include(${PROJECT_SOURCE_DIR}/build-utils/cmake/clang_format.cmake)
+
+# Enables unit tests.
+if(ozz_build_tests)
+  enable_testing()
 endif()
 
 # Locates media directory.

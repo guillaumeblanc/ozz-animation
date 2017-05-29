@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2015 Guillaume Blanc                                         //
+// Copyright (c) 2017 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -36,7 +36,7 @@
 namespace ozz {
 namespace math {
 struct Transform;
-}  // math
+}  // namespace math
 namespace animation {
 namespace offline {
 namespace fbx {
@@ -163,8 +163,8 @@ class FbxSceneLoader {
   // Axis and unit conversion helper.
   FbxSystemConverter* converter_;
 };
-}  // fbx
-}  // offline
-}  // animation
-}  // ozz
+}  // namespace fbx
+}  // namespace offline
+}  // namespace animation
+}  // namespace ozz
 #endif  // OZZ_OZZ_ANIMATION_OFFLINE_FBX_FBX_BASE_H_

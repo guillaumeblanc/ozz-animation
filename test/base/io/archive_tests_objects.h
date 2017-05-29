@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2015 Guillaume Blanc                                         //
+// Copyright (c) 2017 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -35,8 +35,8 @@ namespace ozz {
 namespace io {
 class OArchive;
 class IArchive;
-}  // io
-}  // ozz
+}  // namespace io
+}  // namespace ozz
 
 struct Intrusive {
   explicit Intrusive(int32_t _i = 12) : i(_i) {}
@@ -63,8 +63,8 @@ void Save(OArchive& _archive, const Extrusive* _test, size_t _count);
 template <>
 void Load(IArchive& _archive, Extrusive* _test, size_t _count,
           uint32_t _version);
-}  // ozz
-}  // io
+}  // namespace io
+}  // namespace ozz
 
 class Tagged1 {
  public:
@@ -84,6 +84,6 @@ OZZ_IO_TYPE_NOT_VERSIONABLE(Tagged1)
 OZZ_IO_TYPE_TAG("tagged1", Tagged1)
 OZZ_IO_TYPE_NOT_VERSIONABLE(Tagged2)
 OZZ_IO_TYPE_TAG("tagged2", Tagged2)
-}  // ozz
-}  // io
+}  // namespace io
+}  // namespace ozz
 #endif  // OZZ_TEST_BASE_IO_ARCHIVE_TESTS_OBJECTS_H_

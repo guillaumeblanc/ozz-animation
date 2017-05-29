@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2015 Guillaume Blanc                                         //
+// Copyright (c) 2017 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -167,8 +167,8 @@ struct SoaFloat4 {
     return r;
   }
 };
-}  // math
-}  // ozz
+}  // namespace math
+}  // namespace ozz
 
 // Returns per element addition of _a and _b using operator +.
 OZZ_INLINE ozz::math::SoaFloat4 operator+(const ozz::math::SoaFloat4& _a,
@@ -671,6 +671,6 @@ OZZ_INLINE SoaFloat2 Clamp(const SoaFloat2& _a, const SoaFloat2& _v,
                            const SoaFloat2& _b) {
   return Max(_a, Min(_v, _b));
 }
-}  // math
-}  // ozz
+}  // namespace math
+}  // namespace ozz
 #endif  // OZZ_OZZ_BASE_MATHS_SOA_FLOAT_H_
