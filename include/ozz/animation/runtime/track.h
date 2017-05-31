@@ -25,8 +25,8 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#ifndef OZZ_OZZ_ANIMATION_RUNTIME_FLOAT_TRACK_H_
-#define OZZ_OZZ_ANIMATION_RUNTIME_FLOAT_TRACK_H_
+#ifndef OZZ_OZZ_ANIMATION_RUNTIME_TRACK_H_
+#define OZZ_OZZ_ANIMATION_RUNTIME_TRACK_H_
 
 #include "ozz/base/io/archive_traits.h"
 #include "ozz/base/platform.h"
@@ -125,4 +125,4 @@ void Load(IArchive& _archive, animation::FloatTrack* _tracks, size_t _count,
           uint32_t _version);
 }  // io
 }  // ozz
-#endif  // OZZ_OZZ_ANIMATION_RUNTIME_FLOAT_TRACK_H_
+#endif  // OZZ_OZZ_ANIMATION_RUNTIME_TRACK_H_

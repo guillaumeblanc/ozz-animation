@@ -36,6 +36,8 @@ namespace internal {
 
 template <typename _Track>
 struct TrackSamplingJob {
+  typedef typename _Track::ValueType ValueType;
+
   TrackSamplingJob();
 
   bool Validate() const;
@@ -52,13 +54,16 @@ struct TrackSamplingJob {
   // Job output.
   typename _Track::ValueType* result;
 };
-}  // internal
+}  // namespace internal
 
 struct FloatTrackSamplingJob : public internal::TrackSamplingJob<FloatTrack> {};
-struct Float2TrackSamplingJob : public internal::TrackSamplingJob<Float2Track> {};
-struct Float3TrackSamplingJob : public internal::TrackSamplingJob<Float3Track> {};
-struct QuaternionTrackSamplingJob : public internal::TrackSamplingJob<QuaternionTrack> {};
+struct Float2TrackSamplingJob : public internal::TrackSamplingJob<Float2Track> {
+};
+struct Float3TrackSamplingJob : public internal::TrackSamplingJob<Float3Track> {
+};
+struct QuaternionTrackSamplingJob
+    : public internal::TrackSamplingJob<QuaternionTrack> {};
 
-}  // animation
-}  // ozz
+}  // namespace animation
+}  // namespace ozz
 #endif  // OZZ_OZZ_ANIMATION_RUNTIME_TRACK_SAMPLING_JOB_H_

@@ -46,7 +46,7 @@ bool FloatTrackTriggeringJob::Run() const {
 
   // Triggering can only happen in a valid range of time.
   if (from == to) {
-    *num_edges = 0;
+    edges->Clear();
     return true;
   }
 
@@ -56,6 +56,8 @@ bool FloatTrackTriggeringJob::Run() const {
   const Range<const bool> steps = track->steps();
   assert(times.Count() == values.Count());
 
+  // from and to are exchanged if time is going backward, so the algorithm
+  // remains the same. Output is reversed after on exit though.
   const bool forward = to > from;
   const float rfrom = forward ? from : to;
   const float rto = forward ? to : from;
@@ -65,7 +67,7 @@ bool FloatTrackTriggeringJob::Run() const {
   float prev_loop_val = values[values.Count() - 1];
 
   // Loops in the global evaluation range, divided in local subranges [0,1].
-  int current_edge = 0;
+  Edge* edges_end = edges->begin;
   for (float rcurr = floorf(rfrom), lcurr = rfrom - rcurr;
        rcurr < rto;    // Up to reaching the end time.
        rcurr += 1.f,   // Next loop.
@@ -74,10 +76,10 @@ bool FloatTrackTriggeringJob::Run() const {
     const float lto = math::Min(rto - rcurr, 1.f);
     assert(lcurr >= 0.f && lcurr <= 1.f && lto > lcurr && lto <= 1.f);
 
-    // Finds iteration starting point. Key at t=0 is known, aka times.begin.
-    const float* ptfrom = lcurr == 0.f
-                              ? times.begin
-                              : std::lower_bound(times.begin, times.end, lcurr);
+    // Finds iteration starting point. Key at t=0 is the first key.
+    const float* ptfrom =
+        lcurr == 0.f ? times.begin
+                     : std::lower_bound(times.begin + 1, times.end, lcurr);
 
     for (size_t i = ptfrom - times.begin; i < times.Count(); ++i) {
       // Find relevant keyframes value around i.
@@ -123,8 +125,17 @@ bool FloatTrackTriggeringJob::Run() const {
 
         // Pushes the new edge only if it's in the input range.
         if (edge.time >= lcurr && (edge.time < lto || lto == 1.f)) {
-          edge.time += rcurr;  // To global time space.
-          (*edges)[current_edge++] = edge;
+          // Prevents output buffer overflow.
+          if (edges_end == edges->end) {
+            // edges buffer is full, returning false allows the user to know
+            // that output buffer range was too small.
+            return false;
+          }
+          // Convert local loop time to global time space.
+          edge.time += rcurr;
+
+          // Pushes new edge to output.
+          *(edges_end++) = edge;
         }
       }
 
@@ -136,12 +147,13 @@ bool FloatTrackTriggeringJob::Run() const {
   }
 
   // Reverse if backward.
+  // Edge* new_end = edges->begin + current_edge;
   if (!forward) {
-    std::reverse(edges->begin, edges->begin + current_edge);
+    std::reverse(edges->begin, edges_end);
   }
 
-  // Set output.
-  *num_edges = current_edge;
+  // Adjust output length.
+  edges->end = edges_end;
 
   return true;
 }

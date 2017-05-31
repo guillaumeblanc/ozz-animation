@@ -25,8 +25,8 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#ifndef OZZ_OZZ_ANIMATION_OFFLINE_FLOAT_TRACK_BUILDER_H_
-#define OZZ_OZZ_ANIMATION_OFFLINE_FLOAT_TRACK_BUILDER_H_
+#ifndef OZZ_OZZ_ANIMATION_OFFLINE_TRACK_BUILDER_H_
+#define OZZ_OZZ_ANIMATION_OFFLINE_TRACK_BUILDER_H_
 
 namespace ozz {
 namespace animation {
@@ -68,4 +68,4 @@ class TrackBuilder {
 }  // offline
 }  // animation
 }  // ozz
-#endif  // OZZ_OZZ_ANIMATION_OFFLINE_FLOAT_TRACK_BUILDER_H_
+#endif  // OZZ_OZZ_ANIMATION_OFFLINE_TRACK_BUILDER_H_

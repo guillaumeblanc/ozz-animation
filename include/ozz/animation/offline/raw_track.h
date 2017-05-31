@@ -25,8 +25,8 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#ifndef OZZ_OZZ_ANIMATION_OFFLINE_RAW_FLOAT_TRACK_H_
-#define OZZ_OZZ_ANIMATION_OFFLINE_RAW_FLOAT_TRACK_H_
+#ifndef OZZ_OZZ_ANIMATION_OFFLINE_RAW_TRACK_H_
+#define OZZ_OZZ_ANIMATION_OFFLINE_RAW_TRACK_H_
 
 #include "ozz/base/containers/vector.h"
 #include "ozz/base/io/archive_traits.h"
@@ -120,4 +120,4 @@ void Load(IArchive& _archive, animation::offline::RawFloatTrack* _tracks,
           size_t _count, uint32_t _version);
 }  // io
 }  // ozz
-#endif  // OZZ_OZZ_ANIMATION_OFFLINE_RAW_FLOAT_TRACK_H_
+#endif  // OZZ_OZZ_ANIMATION_OFFLINE_RAW_TRACK_H_
