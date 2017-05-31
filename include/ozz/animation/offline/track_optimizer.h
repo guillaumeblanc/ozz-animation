@@ -25,8 +25,8 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#ifndef OZZ_OZZ_ANIMATION_OFFLINE_FLOAT_TRACK_OPTIMIZER_H_
-#define OZZ_OZZ_ANIMATION_OFFLINE_FLOAT_TRACK_OPTIMIZER_H_
+#ifndef OZZ_OZZ_ANIMATION_OFFLINE_TRACK_OPTIMIZER_H_
+#define OZZ_OZZ_ANIMATION_OFFLINE_TRACK_OPTIMIZER_H_
 
 namespace ozz {
 namespace animation {
@@ -64,4 +64,4 @@ class TrackOptimizer {
 }  // offline
 }  // animation
 }  // ozz
-#endif  // OZZ_OZZ_ANIMATION_OFFLINE_FLOAT_TRACK_OPTIMIZER_H_
+#endif  // OZZ_OZZ_ANIMATION_OFFLINE_TRACK_OPTIMIZER_H_

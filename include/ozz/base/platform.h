@@ -112,13 +112,17 @@ template <typename _Ty>
 struct Range {
   // Default constructor initializes range to empty.
   Range() : begin(NULL), end(NULL) {}
+
   // Constructs a range from its extreme values.
   Range(_Ty* _begin, const _Ty* _end) : begin(_begin), end(_end) {}
+
   // Construct a range from a pointer to a buffer and its size, ie its number of
   // elements.
   Range(_Ty* _begin, size_t _size) : begin(_begin), end(_begin + _size) {}
+
   // Construct a range from a single element.
   explicit Range(_Ty& _element) : begin(&_element), end((&_element) + 1) {}
+
   // Construct a range from an array, its size is automatically deduced.
   // It isn't declared explicit as conversion is free and safe.
   template <size_t _size>

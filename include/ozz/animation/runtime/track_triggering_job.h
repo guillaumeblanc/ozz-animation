@@ -32,7 +32,11 @@
 
 namespace ozz {
 namespace animation {
+
+// Only FloatTrack is supported, because comparing and un-lerping other tracks
+// doesn't make much sense.
 struct FloatTrackTriggeringJob {
+
   FloatTrackTriggeringJob();
 
   bool Validate() const;
@@ -54,9 +58,8 @@ struct FloatTrackTriggeringJob {
     float time;
     bool rising;
   };
-
-  Range<Edge>* edges;
-  int* num_edges;
+  typedef Range<Edge> Edges;
+  Edges* edges;
 };
 }  // namespace animation
 }  // namespace ozz
