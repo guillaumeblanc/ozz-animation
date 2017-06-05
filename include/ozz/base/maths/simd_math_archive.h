@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2015 Guillaume Blanc                                         //
+// Copyright (c) 2017 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -54,6 +54,6 @@ void Save(OArchive& _archive, const math::Float4x4* _values, size_t _count);
 template <>
 void Load(IArchive& _archive, math::Float4x4* _values, size_t _count,
           uint32_t _version);
-}  // io
-}  // ozz
+}  // namespace io
+}  // namespace ozz
 #endif  // OZZ_OZZ_BASE_MATHS_SIMD_MATH_ARCHIVE_H_

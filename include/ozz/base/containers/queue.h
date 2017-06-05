@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2015 Guillaume Blanc                                         //
+// Copyright (c) 2017 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -47,5 +47,5 @@ template <class _Ty, class _Container = typename ozz::Deque<_Ty>::Std,
 struct PriorityQueue {
   typedef std::priority_queue<_Ty, _Container, _Pred> Std;
 };
-}  // ozz
+}  // namespace ozz
 #endif  // OZZ_OZZ_BASE_CONTAINERS_QUEUE_H_

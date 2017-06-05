@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2015 Guillaume Blanc                                         //
+// Copyright (c) 2017 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -400,6 +400,19 @@ TEST(BuiltInOptions, Options) {
                   std::cout, "version 1.2.3");
   }
 
+  {  // Valid built-in "version" option, with required arguments.
+    const char* argv[] = {"c:/a path/test.exe", "--version"};
+    const int argc = OZZ_ARRAY_SIZE(argv);
+    ozz::options::Parser parser;
+    ozz::options::BoolOption bool_option("bool", "", false, true);
+    EXPECT_FALSE(bool_option);
+    EXPECT_TRUE(parser.RegisterOption(&bool_option));
+    parser.set_version("1.2.3");
+    EXPECT_EQ_LOG(parser.Parse(argc, argv), ozz::options::kExitSuccess,
+                  std::cout, "version 1.2.3");
+    EXPECT_TRUE(parser.UnregisterOption(&bool_option));
+  }
+
   {  // Valid built-in "version" option.
     const char* argv[] = {"c:/a path/test.exe", "--version=true"};
     const int argc = OZZ_ARRAY_SIZE(argv);
@@ -593,7 +606,7 @@ TEST(MultipleCall, Options) {
   {  // Built-in flag.
     const char* argv[] = {"c:/a path/test.exe", "--help"};
     const int argc = OZZ_ARRAY_SIZE(argv);
-    EXPECT_EQ_LOG(parser.Parse(argc, argv), ozz::options::kExitFailure,
+    EXPECT_EQ_LOG(parser.Parse(argc, argv), ozz::options::kExitSuccess,
                   std::cout, "Usage");
     EXPECT_FALSE(bool_option);
     EXPECT_EQ(int_required_option, 27);

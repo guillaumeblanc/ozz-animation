@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2015 Guillaume Blanc                                         //
+// Copyright (c) 2017 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -117,5 +117,5 @@ template <class _Ty, class _Other>
 inline bool operator!=(const StdAllocator<_Ty>&, const StdAllocator<_Other>&) {
   return false;
 }
-}  // ozz
+}  // namespace ozz
 #endif  // OZZ_OZZ_BASE_CONTAINERS_STD_ALLOCATOR_H_

@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2015 Guillaume Blanc                                         //
+// Copyright (c) 2017 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -323,15 +323,22 @@ void ImmediatePTCShader::Bind(const math::Float4x4& _model,
 }
 
 namespace {
+const char* kPassUv =
+    "attribute vec2 a_uv;\n"
+    "varying vec2 v_vertex_uv;\n"
+    "void PassUv() {\n"
+    "  v_vertex_uv = a_uv;\n"
+    "}\n";
+const char* kPassNoUv =
+    "void PassUv() {\n"
+    "}\n";
 const char* kShaderUberVS =
     "uniform mat4 u_mvp;\n"
     "attribute vec3 a_position;\n"
     "attribute vec3 a_normal;\n"
     "attribute vec4 a_color;\n"
-    "attribute vec2 a_uv;\n"
     "varying vec3 v_world_normal;\n"
     "varying vec4 v_vertex_color;\n"
-    "varying vec2 v_vertex_uv;\n"
     "void main() {\n"
     "  mat4 world_matrix = GetWorldMatrix();\n"
     "  vec4 vertex = vec4(a_position.xyz, 1.);\n"
@@ -344,7 +351,7 @@ const char* kShaderUberVS =
     "  mat3 normal_matrix = cross_matrix * invdet;\n"
     "  v_world_normal = normal_matrix * a_normal;\n"
     "  v_vertex_color = a_color;\n"
-    "  v_vertex_uv = a_uv;\n"
+    "  PassUv();\n"
     "}\n";
 const char* kShaderAmbientFct =
     "vec4 GetAmbient(vec3 _world_normal) {\n"
@@ -375,7 +382,7 @@ const char* kShaderAmbientTexturedFS =
     "                 v_vertex_color *\n"
     "                 texture2D(u_texture, v_vertex_uv);\n"
     "}\n";
-}
+}  // namespace
 
 void SkeletonShader::Bind(const math::Float4x4& _model,
                           const math::Float4x4& _view_proj, GLsizei _pos_stride,
@@ -434,7 +441,7 @@ JointShader* JointShader::Build() {
       "  world_matrix[3] = joint_matrix[3];\n"
       "  return world_matrix;\n"
       "}\n";
-  const char* vs[] = {kPlatformSpecivicVSHeader,
+  const char* vs[] = {kPlatformSpecivicVSHeader, kPassNoUv,
                       GL_ARB_instanced_arrays ? "attribute mat4 joint;\n"
                                               : "uniform mat4 joint;\n",
                       vs_joint_to_world_matrix, kShaderUberVS};
@@ -494,7 +501,7 @@ BoneShader* BoneShader::Build() {  // Builds a world matrix from joint uniforms,
       "  world_matrix[3] = vec4(joint[3].xyz, 1.);\n"
       "  return world_matrix;\n"
       "}\n";
-  const char* vs[] = {kPlatformSpecivicVSHeader,
+  const char* vs[] = {kPlatformSpecivicVSHeader, kPassNoUv,
                       GL_ARB_instanced_arrays ? "attribute mat4 joint;\n"
                                               : "uniform mat4 joint;\n",
                       vs_joint_to_world_matrix, kShaderUberVS};
@@ -529,7 +536,7 @@ BoneShader* BoneShader::Build() {  // Builds a world matrix from joint uniforms,
 
 AmbientShader* AmbientShader::Build() {
   const char* vs[] = {
-      kPlatformSpecivicVSHeader,
+      kPlatformSpecivicVSHeader, kPassNoUv,
       "uniform mat4 u_mw;\n mat4 GetWorldMatrix() {return u_mw;}\n",
       kShaderUberVS};
   const char* fs[] = {kPlatformSpecivicFSHeader, kShaderAmbientFct,
@@ -610,7 +617,7 @@ AmbientShaderInstanced* AmbientShaderInstanced::Build() {
   bool success = true;
 
   const char* vs[] = {
-      kPlatformSpecivicVSHeader,
+      kPlatformSpecivicVSHeader, kPassNoUv,
       "attribute mat4 a_mw;\n mat4 GetWorldMatrix() {return a_mw;}\n",
       kShaderUberVS};
   const char* fs[] = {kPlatformSpecivicFSHeader, kShaderAmbientFct,
@@ -709,7 +716,7 @@ void AmbientShaderInstanced::Unbind() {
 
 AmbientTexturedShader* AmbientTexturedShader::Build() {
   const char* vs[] = {
-      kPlatformSpecivicVSHeader,
+      kPlatformSpecivicVSHeader, kPassUv,
       "uniform mat4 u_mw;\n mat4 GetWorldMatrix() {return u_mw;}\n",
       kShaderUberVS};
   const char* fs[] = {kPlatformSpecivicFSHeader, kShaderAmbientFct,
@@ -746,5 +753,5 @@ void AmbientTexturedShader::Bind(const math::Float4x4& _model,
                          GL_PTR_OFFSET(_uv_offset)));
 }
 }  // internal
-}  // sample
-}  // ozz
+}  // namespace sample
+}  // namespace ozz

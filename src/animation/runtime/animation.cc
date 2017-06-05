@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2015 Guillaume Blanc                                         //
+// Copyright (c) 2017 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -209,5 +209,5 @@ void Animation::Load(ozz::io::IArchive& _archive, uint32_t _version) {
     _archive >> ozz::io::MakeArray(key.value);
   }
 }
-}  // animation
-}  // ozz
+}  // namespace animation
+}  // namespace ozz

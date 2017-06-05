@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2015 Guillaume Blanc                                         //
+// Copyright (c) 2017 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -216,7 +216,7 @@ template <typename _Ty>
 struct Tag {
   enum { kTagLength = 0 };
 };
-}  // internal
-}  // io
-}  // ozz
+}  // namespace internal
+}  // namespace io
+}  // namespace ozz
 #endif  // OZZ_OZZ_BASE_IO_ARCHIVE_TRAITS_H_

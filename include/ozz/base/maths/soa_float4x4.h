@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2015 Guillaume Blanc                                         //
+// Copyright (c) 2017 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -209,8 +209,8 @@ OZZ_INLINE SoaFloat4x4 Scale(const SoaFloat4x4& _m, const SoaFloat4& _v) {
                             _m.cols[3]}};
   return ret;
 }
-}  // ozz
-}  // math
+}  // namespace math
+}  // namespace ozz
 
 // Computes the multiplication of matrix Float4x4 and vector  _v.
 OZZ_INLINE ozz::math::SoaFloat4 operator*(const ozz::math::SoaFloat4x4& _m,

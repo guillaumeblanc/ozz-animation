@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2015 Guillaume Blanc                                         //
+// Copyright (c) 2017 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -94,8 +94,8 @@ typedef __m128i SimdInt4;
 
 // Argument type for Int4.
 typedef const __m128i _SimdInt4;
-}  // math
-}  // ozz
+}  // namespace math
+}  // namespace ozz
 
 #else  // No builtin simd available
 
@@ -137,8 +137,8 @@ typedef SimdInt4Def SimdInt4;
 // Argument type for SimdInt4.
 typedef const SimdInt4& _SimdInt4;
 
-}  // math
-}  // ozz
+}  // namespace math
+}  // namespace ozz
 
 #endif  // OZZ_SIMD_x
 #endif  // OZZ_OZZ_BASE_MATHS_INTERNAL_SIMD_MATH_CONFIG_H_

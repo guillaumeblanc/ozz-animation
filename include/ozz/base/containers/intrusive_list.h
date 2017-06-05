@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2015 Guillaume Blanc                                         //
+// Copyright (c) 2017 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -452,7 +452,7 @@ class IntrusiveListIterator {
   // list. A default iterator has a NULL designated Node.
   ListNode* node_;
 };
-}  // internal
+}  // namespace internal
 
 // IntrusiveList implementation.
 template <typename _Ty, typename _Option>
@@ -1111,9 +1111,9 @@ inline bool IntrusiveNodeList::_is_ordered(_Pred _pred) const {
   }
   return true;
 }
-}  // internal
-}  // containers
-}  // ozz
+}  // namespace internal
+}  // namespace containers
+}  // namespace ozz
 
 // Specialization of the std::swap algorithm for the IntusiveList class.
 // Does not need to be implemented in std namespace thanks to ADL.

@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2015 Guillaume Blanc                                         //
+// Copyright (c) 2017 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -1133,8 +1133,6 @@ bool RendererImpl::DrawMesh(const Mesh& _mesh,
     shader = ambient_shader;
   }
 
-  GL(BindBuffer(GL_ARRAY_BUFFER, 0));
-
   // Maps the index dynamic buffer and update it.
   GL(BindBuffer(GL_ELEMENT_ARRAY_BUFFER, dynamic_index_bo_));
   const Mesh::TriangleIndices& indices = _mesh.triangle_indices;
@@ -1148,6 +1146,7 @@ bool RendererImpl::DrawMesh(const Mesh& _mesh,
                   GL_UNSIGNED_SHORT, 0));
 
   // Unbinds.
+  GL(BindBuffer(GL_ARRAY_BUFFER, 0));
   GL(BindTexture(GL_TEXTURE_2D, 0));
   GL(BindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
   shader->Unbind();
@@ -1179,9 +1178,7 @@ bool RendererImpl::DrawMesh(const Mesh& _mesh,
   }
 
   // Renders debug binormals.
-  if (_options.binormals /* &&
-      skinning_job.out_normals.Count() > 0 &&
-      skinning_job.out_tangents.Count() > 0*/) {
+  if (_options.binormals) {
     for (size_t i = 0; i < _mesh.parts.size(); ++i) {
       const Mesh::Part& part = _mesh.parts[i];
       const Renderer::Color blue = {0, 0, 255, 255};
@@ -1280,10 +1277,9 @@ bool RendererImpl::DrawSkinnedMesh(
 
     // Setup output positions, coming from the rendering output mesh buffers.
     // We need to offset the buffer every loop.
-    skinning_job.out_positions.begin =
-        reinterpret_cast<float*>(ozz::PointerStride(
-            vbo_map,
-            positions_offset + processed_vertex_count * positions_stride));
+    skinning_job.out_positions.begin = reinterpret_cast<float*>(
+        ozz::PointerStride(vbo_map, positions_offset + processed_vertex_count *
+                                                           positions_stride));
     skinning_job.out_positions.end = ozz::PointerStride(
         skinning_job.out_positions.begin, part_vertex_count * positions_stride);
     skinning_job.out_positions_stride = positions_stride;
@@ -1402,7 +1398,7 @@ bool RendererImpl::DrawSkinnedMesh(
       }
     }
 
-    // Handles uvs which aren't affected by skinning.
+    // Copies uvs which aren't affected by skinning.
     if (_options.texture) {
       if (part_vertex_count ==
           part.uvs.size() / ozz::sample::Mesh::Part::kUVsCpnts) {
@@ -1452,8 +1448,6 @@ bool RendererImpl::DrawSkinnedMesh(
     shader = ambient_shader;
   }
 
-  GL(BindBuffer(GL_ARRAY_BUFFER, 0));
-
   // Maps the index dynamic buffer and update it.
   GL(BindBuffer(GL_ELEMENT_ARRAY_BUFFER, dynamic_index_bo_));
   const Mesh::TriangleIndices& indices = _mesh.triangle_indices;
@@ -1467,6 +1461,7 @@ bool RendererImpl::DrawSkinnedMesh(
                   GL_UNSIGNED_SHORT, 0));
 
   // Unbinds.
+  GL(BindBuffer(GL_ARRAY_BUFFER, 0));
   GL(BindTexture(GL_TEXTURE_2D, 0));
   GL(BindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
   shader->Unbind();
@@ -1611,9 +1606,9 @@ void* RendererImpl::ScratchBuffer::Resize(size_t _size) {
   }
   return buffer_;
 }
-}  // internal
-}  // sample
-}  // ozz
+}  // namespace internal
+}  // namespace sample
+}  // namespace ozz
 
 // Helper macro used to declare extension function pointer.
 #define OZZ_DECL_GL_EXT(_fct, _fct_type) _fct_type _fct = NULL

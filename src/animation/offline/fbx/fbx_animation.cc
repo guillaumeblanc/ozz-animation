@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2015 Guillaume Blanc                                         //
+// Copyright (c) 2017 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -185,7 +185,7 @@ bool ExtractAnimation(FbxSceneLoader* _scene_loader, FbxAnimStack* anim_stack,
 
   return true;
 }
-}
+}  // namespace
 
 bool ExtractAnimations(FbxSceneLoader* _scene_loader, const Skeleton& _skeleton,
                        float _sampling_rate, Animations* _animations) {
@@ -221,7 +221,7 @@ bool ExtractAnimations(FbxSceneLoader* _scene_loader, const Skeleton& _skeleton,
 
   return success;
 }
-}  // fbx
-}  // offline
-}  // animation
-}  // ozz
+}  // namespace fbx
+}  // namespace offline
+}  // namespace animation
+}  // namespace ozz

@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2015 Guillaume Blanc                                         //
+// Copyright (c) 2017 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -623,7 +623,7 @@ OZZ_INLINE SimdFloat4 NormalizeSafe2(_SimdFloat4 _v, _SimdFloat4 _safe) {
   const __m128 inv_lenxxxx = OZZ_SSE_SPLAT_F(inv_len, 0);
   const __m128 norm = _mm_mul_ps(_v, inv_lenxxxx);
   const __m128i cond = _mm_castps_si128(
-      _mm_cmpeq_ps(OZZ_SSE_SPLAT_F(sq_len, 0), _mm_setzero_ps()));
+      _mm_cmple_ps(OZZ_SSE_SPLAT_F(sq_len, 0), _mm_setzero_ps()));
   const __m128 cfalse = _mm_movelh_ps(norm, _mm_movehl_ps(_v, _v));
   return OZZ_SSE_SELECT_F(cond, _safe, cfalse);
 }
@@ -636,7 +636,7 @@ OZZ_INLINE SimdFloat4 NormalizeSafe3(_SimdFloat4 _v, _SimdFloat4 _safe) {
   const __m128 inv_lenxxxx = OZZ_SSE_SPLAT_F(inv_len, 0);
   const __m128 normwxyz = _mm_move_ss(_mm_mul_ps(vwxyz, inv_lenxxxx), vwxyz);
   const __m128i cond = _mm_castps_si128(
-      _mm_cmpeq_ps(OZZ_SSE_SPLAT_F(sq_len, 0), _mm_setzero_ps()));
+      _mm_cmple_ps(OZZ_SSE_SPLAT_F(sq_len, 0), _mm_setzero_ps()));
   const __m128 cfalse =
       _mm_shuffle_ps(normwxyz, normwxyz, _MM_SHUFFLE(0, 1, 2, 3));
   return OZZ_SSE_SELECT_F(cond, _safe, cfalse);
@@ -648,7 +648,7 @@ OZZ_INLINE SimdFloat4 NormalizeSafe4(_SimdFloat4 _v, _SimdFloat4 _safe) {
   const __m128 inv_len = _mm_div_ss(simd_float4::one(), _mm_sqrt_ss(sq_len));
   const __m128 inv_lenxxxx = OZZ_SSE_SPLAT_F(inv_len, 0);
   const __m128i cond = _mm_castps_si128(
-      _mm_cmpeq_ps(OZZ_SSE_SPLAT_F(sq_len, 0), _mm_setzero_ps()));
+      _mm_cmple_ps(OZZ_SSE_SPLAT_F(sq_len, 0), _mm_setzero_ps()));
   const __m128 cfalse = _mm_mul_ps(_v, inv_lenxxxx);
   return OZZ_SSE_SELECT_F(cond, _safe, cfalse);
 }
@@ -660,7 +660,7 @@ OZZ_INLINE SimdFloat4 NormalizeSafeEst2(_SimdFloat4 _v, _SimdFloat4 _safe) {
   const __m128 inv_lenxxxx = OZZ_SSE_SPLAT_F(inv_len, 0);
   const __m128 norm = _mm_mul_ps(_v, inv_lenxxxx);
   const __m128i cond = _mm_castps_si128(
-      _mm_cmpeq_ps(OZZ_SSE_SPLAT_F(sq_len, 0), _mm_setzero_ps()));
+      _mm_cmple_ps(OZZ_SSE_SPLAT_F(sq_len, 0), _mm_setzero_ps()));
   const __m128 cfalse = _mm_movelh_ps(norm, _mm_movehl_ps(_v, _v));
   return OZZ_SSE_SELECT_F(cond, _safe, cfalse);
 }
@@ -673,7 +673,7 @@ OZZ_INLINE SimdFloat4 NormalizeSafeEst3(_SimdFloat4 _v, _SimdFloat4 _safe) {
   const __m128 inv_lenxxxx = OZZ_SSE_SPLAT_F(inv_len, 0);
   const __m128 normwxyz = _mm_move_ss(_mm_mul_ps(vwxyz, inv_lenxxxx), vwxyz);
   const __m128i cond = _mm_castps_si128(
-      _mm_cmpeq_ps(OZZ_SSE_SPLAT_F(sq_len, 0), _mm_setzero_ps()));
+      _mm_cmple_ps(OZZ_SSE_SPLAT_F(sq_len, 0), _mm_setzero_ps()));
   const __m128 cfalse =
       _mm_shuffle_ps(normwxyz, normwxyz, _MM_SHUFFLE(0, 1, 2, 3));
   return OZZ_SSE_SELECT_F(cond, _safe, cfalse);
@@ -685,7 +685,7 @@ OZZ_INLINE SimdFloat4 NormalizeSafeEst4(_SimdFloat4 _v, _SimdFloat4 _safe) {
   const __m128 inv_len = _mm_rsqrt_ss(sq_len);
   const __m128 inv_lenxxxx = OZZ_SSE_SPLAT_F(inv_len, 0);
   const __m128i cond = _mm_castps_si128(
-      _mm_cmpeq_ps(OZZ_SSE_SPLAT_F(sq_len, 0), _mm_setzero_ps()));
+      _mm_cmple_ps(OZZ_SSE_SPLAT_F(sq_len, 0), _mm_setzero_ps()));
   const __m128 cfalse = _mm_mul_ps(_v, inv_lenxxxx);
   return OZZ_SSE_SELECT_F(cond, _safe, cfalse);
 }
@@ -987,7 +987,7 @@ OZZ_INLINE SimdInt4 FromFloatRound(_SimdFloat4 _f) {
 OZZ_INLINE SimdInt4 FromFloatTrunc(_SimdFloat4 _f) {
   return _mm_cvttps_epi32(_f);
 }
-}  // ozz::math::simd_int4
+}  // namespace simd_int4
 
 OZZ_INLINE int GetX(_SimdInt4 _v) { return _mm_cvtsi128_si32(_v); }
 
@@ -1813,8 +1813,8 @@ OZZ_INLINE ozz::math::SimdFloat4 TransformVector(const ozz::math::Float4x4& _m,
   const __m128 a01 = _mm_add_ps(m0, m1);
   return _mm_add_ps(a01, m2);
 }
-}  // math
-}  // ozz
+}  // namespace math
+}  // namespace ozz
 
 #if !defined(__GNUC__)
 OZZ_INLINE ozz::math::SimdFloat4 operator+(ozz::math::_SimdFloat4 _a,
@@ -1993,8 +1993,8 @@ OZZ_INLINE SimdFloat4 HalfToFloat(_SimdInt4 _h) {
   const __m128 sign_inf = _mm_or_ps(_mm_castsi128_ps(sign), infnanexp);
   return _mm_or_ps(scaled, sign_inf);
 }
-}  // math
-}  // ozz
+}  // namespace math
+}  // namespace ozz
 
 #undef OZZ_SSE_SPLAT_F
 #undef OZZ_SSE_HADD2_F

@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2015 Guillaume Blanc                                         //
+// Copyright (c) 2017 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -216,6 +216,6 @@ bool WriteTGA(const char* _filename, int _width, int _height,
 }
 #undef PUSH_PIXEL_RGB
 #undef PUSH_PIXEL_RGBA
-}  // image
-}  // sample
-}  // ozz
+}  // namespace image
+}  // namespace sample
+}  // namespace ozz

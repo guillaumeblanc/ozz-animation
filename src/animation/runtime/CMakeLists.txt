@@ -18,6 +18,9 @@ add_library(ozz_animation STATIC
   track_sampling_job.cc
   ${PROJECT_SOURCE_DIR}/include/ozz/animation/runtime/track_triggering_job.h
   track_triggering_job.cc)
+target_link_libraries(ozz_animation
+  ozz_base)
+
 set_target_properties(ozz_animation
   PROPERTIES FOLDER "ozz")
 

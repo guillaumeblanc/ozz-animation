@@ -4,7 +4,7 @@
 # ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  #
 # and distributed under the MIT License (MIT).                               #
 #                                                                            #
-# Copyright (c) 2015 Guillaume Blanc                                         #
+# Copyright (c) 2017 Guillaume Blanc                                         #
 #                                                                            #
 # Permission is hereby granted, free of charge, to any person obtaining a    #
 # copy of this software and associated documentation files (the "Software"), #
@@ -41,7 +41,7 @@ def recurse_files(_folder, _filter):
     for i in glob.iglob(os.path.join(_folder, '*/')):
         #... and recurse them.
         for j in recurse_files(i, _filter):
-            if j.find('\\extern\\') == -1 and j.find('\\src_fused\\') == -1 and j.find('/extern/') == -1 and j.find('\\build\\') == -1 and j.find('/build/') == -1:
+            if j.find('\\extern\\') == -1 and j.find('/extern/') == -1 and j.find('\\build\\') == -1 and j.find('/build/') == -1 and j.find('\\src_fused\\') == -1 and j.find('/src_fused/') == -1:
                 yield j
 
 license_text = "\
@@ -50,7 +50,7 @@ license_text = "\
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //\n\
 // and distributed under the MIT License (MIT).                               //\n\
 //                                                                            //\n\
-// Copyright (c) 2015 Guillaume Blanc                                         //\n\
+// Copyright (c) 2017 Guillaume Blanc                                         //\n\
 //                                                                            //\n\
 // Permission is hereby granted, free of charge, to any person obtaining a    //\n\
 // copy of this software and associated documentation files (the \"Software\"), //\n\
@@ -201,17 +201,5 @@ def main():
 
     while 1:
         time.sleep(10)
-
-def main():
-    # Process .h
-    for i in recurse_files('../../', '*.h'):
-        process_h(i)
-    # Process .cc
-    for i in recurse_files('../../', '*.cc'):
-        process_cc(i)
-    #
-    print 'Terminated'
-
-    while 1:
-        time.sleep(10)
+        
 main()
