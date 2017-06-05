@@ -3011,3 +3011,28 @@ TEST(Overflow, TrackEdgeTriggerJob) {
 
   ozz::memory::default_allocator()->Delete(track);
 }
+
+TEST(Emyty, TrackEdgeTriggerJob) {
+  TrackBuilder builder;
+
+  // Builds track
+  ozz::animation::offline::RawFloatTrack raw_track;
+  ozz::animation::FloatTrack* track = builder(raw_track);
+  ASSERT_TRUE(track != NULL);
+
+  FloatTrackTriggeringJob::Edge edges_buffer[3];
+
+  FloatTrackTriggeringJob job;
+  job.track = track;
+  job.threshold = 1.f;
+  job.from = 0.f;
+  job.to = 1.f;
+  ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+  job.edges = &edges;
+
+  EXPECT_TRUE(job.Run());
+
+  ASSERT_EQ(edges.Count(), 0u);
+
+  ozz::memory::default_allocator()->Delete(track);
+}
