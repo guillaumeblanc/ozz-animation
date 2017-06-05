@@ -2185,7 +2185,12 @@ namespace animation {
 FloatTrackTriggeringJob::FloatTrackTriggeringJob()
     : from(0.f), to(0.f), threshold(0.f), track(NULL), edges(NULL) {}
 
-bool FloatTrackTriggeringJob::Validate() const { return true; }
+bool FloatTrackTriggeringJob::Validate() const {
+  bool valid = true;
+  valid &= track != NULL;
+  valid &= edges != NULL;
+  return valid;
+}
 
 bool FloatTrackTriggeringJob::Run() const {
   if (!Validate()) {

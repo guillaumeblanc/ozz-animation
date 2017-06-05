@@ -44,49 +44,47 @@ using ozz::animation::offline::TrackBuilder;
 using ozz::animation::offline::RawTrackInterpolation;
 
 TEST(JobValidity, FloatTrackTriggeringJob) {
-  /*
-  // Instantiates a builder objects with default parameters.
-  TrackBuilder builder;
+  FloatTrackTriggeringJob::Edge edges_buffer[8];
+  ozz::animation::FloatTrack track;
 
-  // Building default RawFloatTrack succeeds.
-  RawFloatTrack raw_float_track;
-  EXPECT_TRUE(raw_float_track.Validate());
-
-  // Builds track
-  FloatTrack* track = builder(raw_float_track);
-  EXPECT_TRUE(track != NULL);
-
-  {  // Empty/default job
-    FloatTrackSamplingJob job;
+  {  // Default is invalid
+    FloatTrackTriggeringJob job;
     EXPECT_FALSE(job.Validate());
     EXPECT_FALSE(job.Run());
   }
 
-  {  // Invalid output
-    FloatTrackSamplingJob job;
-    job.track = track;
+  {  // No track
+    FloatTrackTriggeringJob job;
+    ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+    job.edges = &edges;
     EXPECT_FALSE(job.Validate());
     EXPECT_FALSE(job.Run());
   }
 
-  {  // Invalid track.
-    FloatTrackSamplingJob job;
-    float result;
-    job.result = &result;
+  {  // No output
+    FloatTrackTriggeringJob job;
+    job.track = &track;
     EXPECT_FALSE(job.Validate());
     EXPECT_FALSE(job.Run());
   }
 
   {  // Valid
-    FloatTrackSamplingJob job;
-    job.track = track;
-    float result;
-    job.result = &result;
+    FloatTrackTriggeringJob job;
+    job.track = &track;
+    ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+    job.edges = &edges;
     EXPECT_TRUE(job.Validate());
     EXPECT_TRUE(job.Run());
   }
-  ozz::memory::default_allocator()->Delete(track);
-*/
+
+  {  // Empty output is valid
+    FloatTrackTriggeringJob job;
+    job.track = &track;
+    ozz::Range<FloatTrackTriggeringJob::Edge> edges;
+    job.edges = &edges;
+    EXPECT_TRUE(job.Validate());
+    EXPECT_TRUE(job.Run());
+  }
 }
 
 TEST(NoRange, TrackEdgeTriggerJob) {
@@ -112,13 +110,13 @@ TEST(NoRange, TrackEdgeTriggerJob) {
 
   FloatTrackTriggeringJob job;
   job.track = track;
-  ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
-  job.edges = &edges;
   job.threshold = 1.f;
 
   {  // Forward [0., 0.[
     job.from = 0.f;
     job.to = 0.f;
+    ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+    job.edges = &edges;
     EXPECT_TRUE(job.Run());
 
     ASSERT_EQ(edges.Count(), 0);
@@ -127,6 +125,8 @@ TEST(NoRange, TrackEdgeTriggerJob) {
   {  // Forward [.1, .1]
     job.from = .1f;
     job.to = .1f;
+    ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+    job.edges = &edges;
     EXPECT_TRUE(job.Run());
 
     ASSERT_EQ(edges.Count(), 0);
@@ -135,6 +135,8 @@ TEST(NoRange, TrackEdgeTriggerJob) {
   {  // Forward [.5, .5[
     job.from = .5f;
     job.to = .5f;
+    ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+    job.edges = &edges;
     EXPECT_TRUE(job.Run());
 
     ASSERT_EQ(edges.Count(), 0);
@@ -143,6 +145,8 @@ TEST(NoRange, TrackEdgeTriggerJob) {
   {  // Forward [1., 1.]
     job.from = 1.f;
     job.to = 1.f;
+    ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+    job.edges = &edges;
     EXPECT_TRUE(job.Run());
 
     ASSERT_EQ(edges.Count(), 0);
@@ -2978,5 +2982,15 @@ TEST(Overflow, TrackEdgeTriggerJob) {
     EXPECT_FLOAT_EQ(edges[2].time, 1.5f);
     EXPECT_EQ(edges[2].rising, true);
   }
+
+  {  // Empty output
+    job.from = 0.f;
+    job.to = 2.f;
+    ozz::Range<FloatTrackTriggeringJob::Edge> edges;
+    job.edges = &edges;
+
+    EXPECT_FALSE(job.Run());
+  }
+
   ozz::memory::default_allocator()->Delete(track);
 }
