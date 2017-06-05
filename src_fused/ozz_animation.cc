@@ -1995,7 +1995,7 @@ void Track<_ValueType>::Allocate(size_t _keys_count) {
 
   steps_.begin = reinterpret_cast<bool*>(buffer);
   assert(math::IsAligned(times_.begin, OZZ_ALIGN_OF(bool)));
-  buffer += _keys_count * sizeof(float);
+  buffer += _keys_count * sizeof(bool);
   steps_.end = reinterpret_cast<bool*>(buffer);
 }
 
