@@ -35,6 +35,42 @@
 #include "ozz/base/containers/vector_archive.h"
 
 namespace ozz {
+namespace io {
+
+// Can be declared locally as it's only referenced from this file.
+OZZ_IO_TYPE_VERSION_T1(1, typename _ValueType,
+                       animation::offline::RawTrackKeyframe<_ValueType>)
+
+template <typename _ValueType>
+void Save(OArchive& _archive,
+          const animation::offline::RawTrackKeyframe<_ValueType>* _keyframes,
+          size_t _count) {
+  for (size_t i = 0; i < _count; ++i) {
+    const animation::offline::RawTrackKeyframe<_ValueType>& keyframe =
+        _keyframes[i];
+    const uint8_t interp = static_cast<uint8_t>(keyframe.interpolation);
+    _archive << interp;
+    _archive << keyframe.time;
+    _archive << keyframe.value;
+  }
+}
+
+template <typename _ValueType>
+void Load(IArchive& _archive,
+          animation::offline::RawTrackKeyframe<_ValueType>* _keyframes,
+          size_t _count, uint32_t _version) {
+  (void)_version;
+  for (size_t i = 0; i < _count; ++i) {
+    animation::offline::RawTrackKeyframe<_ValueType>& keyframe = _keyframes[i];
+    uint8_t interp;
+    _archive >> interp;
+    keyframe.interpolation =
+        static_cast<animation::offline::RawTrackInterpolation::Value>(interp);
+    _archive >> keyframe.time;
+    _archive >> keyframe.value;
+  }
+}
+}  // namespace io
 namespace animation {
 namespace offline {
 namespace internal {
@@ -69,8 +105,7 @@ void RawTrack<_ValueType>::Save(io::OArchive& _archive) const {
 }
 
 template <typename _ValueType>
-void RawTrack<_ValueType>::Load(io::IArchive& _archive,
-                                uint32_t _version) {
+void RawTrack<_ValueType>::Load(io::IArchive& _archive, uint32_t _version) {
   (void)_version;
   assert(_version == 1);
   _archive >> keyframes;
@@ -84,41 +119,4 @@ template struct RawTrack<math::Quaternion>;
 }  // namespace internal
 }  // namespace offline
 }  // namespace animation
-
-namespace io {
-
-// Can be declared locally has only been reference in this file.
-OZZ_IO_TYPE_VERSION_T1(1, typename _ValueType,
-                       animation::offline::RawTrackKeyframe<_ValueType>)
-
-template <typename _ValueType>
-void Save(OArchive& _archive,
-          const animation::offline::RawTrackKeyframe<_ValueType>* _keyframes,
-          size_t _count) {
-  for (size_t i = 0; i < _count; ++i) {
-    const animation::offline::RawTrackKeyframe<_ValueType>& keyframe =
-        _keyframes[i];
-    const uint8_t interp = static_cast<uint8_t>(keyframe.interpolation);
-    _archive << interp;
-    _archive << keyframe.time;
-    _archive << keyframe.value;
-  }
-}
-
-template <typename _ValueType>
-void Load(IArchive& _archive,
-          animation::offline::RawTrackKeyframe<_ValueType>* _keyframes,
-          size_t _count, uint32_t _version) {
-  (void)_version;
-  for (size_t i = 0; i < _count; ++i) {
-    animation::offline::RawTrackKeyframe<_ValueType>& keyframe = _keyframes[i];
-    uint8_t interp;
-    _archive >> interp;
-    keyframe.interpolation =
-        static_cast<animation::offline::RawTrackInterpolation::Value>(interp);
-    _archive >> keyframe.time;
-    _archive >> keyframe.value;
-  }
-}
-}  // namespace io
 }  // namespace ozz
