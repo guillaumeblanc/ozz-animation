@@ -34,8 +34,6 @@
 
 namespace ozz {
 namespace io {
-class IArchive;
-class OArchive;
 
 OZZ_IO_TYPE_NOT_VERSIONABLE_T2(class _Ty, class _Allocator,
                                std::vector<_Ty, _Allocator>)
@@ -45,8 +43,6 @@ void Save(OArchive& _archive, const std::vector<_Ty, _Allocator>* _values,
           size_t _count) {
   for (size_t i = 0; i < _count; i++) {
     const std::vector<_Ty, _Allocator>& vector = _values[i];
-
-    // Get size excluding null terminating character.
     const uint32_t size = static_cast<uint32_t>(vector.size());
     _archive << size;
     if (size > 0) {
@@ -61,8 +57,6 @@ void Load(IArchive& _archive, std::vector<_Ty, _Allocator>* _values,
   (void)_version;
   for (size_t i = 0; i < _count; i++) {
     std::vector<_Ty, _Allocator>& vector = _values[i];
-
-    // Get size excluding null terminating character.
     uint32_t size;
     _archive >> size;
     vector.resize(size);

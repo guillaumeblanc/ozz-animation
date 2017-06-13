@@ -32,8 +32,8 @@
 #include "ozz/base/io/archive_traits.h"
 
 // TODO see if it's the right place
-#include "ozz/base/maths/vec_float.h"
 #include "ozz/base/maths/quaternion.h"
+#include "ozz/base/maths/vec_float.h"
 
 namespace ozz {
 namespace animation {
@@ -47,6 +47,17 @@ struct RawTrackInterpolation {
               // interpolated.
   };
 };
+
+// Keyframe data structure.
+template <typename _ValueType>
+struct RawTrackKeyframe {
+  typedef _ValueType ValueType;
+  RawTrackInterpolation::Value interpolation;
+  float time;
+  ValueType value;
+};
+
+namespace internal {
 
 // Offline float animation track type.
 // This data type is not intended to be used in run time. It is used to
@@ -68,10 +79,10 @@ struct RawTrackInterpolation {
 // RawFloatTrack that would fail this validation will fail to be converted by
 // the
 // RawFloatTrackBuilder.
-namespace internal {
 template <typename _ValueType>
 struct RawTrack {
   typedef _ValueType ValueType;
+  typedef RawTrackKeyframe<ValueType> Keyframe;
 
   // Constructs a valid RawFloatTrack.
   RawTrack();
@@ -86,38 +97,33 @@ struct RawTrack {
   // std::numeric_limits<float>::epsilon (1e-5).
   bool Validate() const;
 
-  // Keyframe data structure.
-  struct Keyframe {
-    typedef _ValueType ValueType;
-    RawTrackInterpolation::Value interpolation;
-    float time;
-    ValueType value;
-  };
+  // Uses intrusive serialization option, as a way to factorize code.
+  // Version and Tag should still be defined for each specialization.
+  void Save(io::OArchive& _archive) const;
+  void Load(io::IArchive& _archive, uint32_t _version);
+
   // Sequence of keyframes, expected to be sorted.
   typedef typename ozz::Vector<Keyframe>::Std Keyframes;
   Keyframes keyframes;
 };
-}  // internal
+}  // namespace internal
 
 struct RawFloatTrack : public internal::RawTrack<float> {};
 struct RawFloat2Track : public internal::RawTrack<math::Float2> {};
 struct RawFloat3Track : public internal::RawTrack<math::Float3> {};
 struct RawQuaternionTrack : public internal::RawTrack<math::Quaternion> {};
-}  // offline
-}  // animation
+}  // namespace offline
+}  // namespace animation
 
 namespace io {
 OZZ_IO_TYPE_VERSION(1, animation::offline::RawFloatTrack)
 OZZ_IO_TYPE_TAG("ozz-raw_float_track", animation::offline::RawFloatTrack)
-
-// Should not be called directly but through io::Archive << and >> operators.
-template <>
-void Save(OArchive& _archive, const animation::offline::RawFloatTrack* _tracks,
-          size_t _count);
-
-template <>
-void Load(IArchive& _archive, animation::offline::RawFloatTrack* _tracks,
-          size_t _count, uint32_t _version);
-}  // io
-}  // ozz
+OZZ_IO_TYPE_VERSION(1, animation::offline::RawFloat2Track)
+OZZ_IO_TYPE_TAG("ozz-raw_float2_track", animation::offline::RawFloat2Track)
+OZZ_IO_TYPE_VERSION(1, animation::offline::RawFloat3Track)
+OZZ_IO_TYPE_TAG("ozz-raw_float3_track", animation::offline::RawFloat3Track)
+OZZ_IO_TYPE_VERSION(1, animation::offline::RawQuaternionTrack)
+OZZ_IO_TYPE_TAG("ozz-raw_quatt_track", animation::offline::RawQuaternionTrack)
+}  // namespace io
+}  // namespace ozz
 #endif  // OZZ_OZZ_ANIMATION_OFFLINE_RAW_TRACK_H_
