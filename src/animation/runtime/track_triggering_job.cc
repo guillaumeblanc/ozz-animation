@@ -58,7 +58,7 @@ bool FloatTrackTriggeringJob::Run() const {
   // Search keyframes to interpolate.
   const Range<const float> times = track->times();
   const Range<const float> values = track->values();
-  const Range<const bool> steps = track->steps();
+  const Range<const uint8_t> steps = track->steps();
   assert(times.Count() == values.Count());
 
   // from and to are exchanged if time is going backward, so the algorithm
@@ -109,11 +109,13 @@ bool FloatTrackTriggeringJob::Run() const {
       if (detected) {
         Edge edge;
         edge.rising = rising;
-        if (steps[i]) {
+
+        const bool step = (steps[i / 8] & (1 << (i & 7))) != 0;
+        if (step) {
           edge.time = times[i];
         } else {
-          // Finds when threshold is traversed, in local keyframes range.
           assert(vk0 != vk1);
+
           // Finds where the curve crosses threshold value.
           // This is the lerp equation, where we know the result and look for
           // alpha, aka unlerp.

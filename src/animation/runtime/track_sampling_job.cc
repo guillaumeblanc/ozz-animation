@@ -70,7 +70,8 @@ bool TrackSamplingJob<_Track>::Run() const {
   const size_t id1 = ptk1 - times.begin;
   const size_t id0 = id1 - 1;
 
-  if (track->steps()[id0] || ptk1 == times.end) {
+  const bool id0step = (track->steps()[id0/8] & (1<<(id0&7))) != 0;
+  if (id0step || ptk1 == times.end) {
     *result = values[id0];
   } else {
     // Lerp relevant keys.

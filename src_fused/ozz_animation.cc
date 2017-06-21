@@ -1974,12 +1974,12 @@ void Track<_ValueType>::Allocate(size_t _keys_count) {
   // Distributes buffer memory while ensuring proper alignment (serves larger
   // alignment values first).
   OZZ_STATIC_ASSERT(OZZ_ALIGN_OF(_ValueType) >= OZZ_ALIGN_OF(float));
-  OZZ_STATIC_ASSERT(OZZ_ALIGN_OF(float) >= OZZ_ALIGN_OF(bool));
+  OZZ_STATIC_ASSERT(OZZ_ALIGN_OF(float) >= OZZ_ALIGN_OF(uint8_t));
 
   // Compute overall size and allocate a single buffer for all the data.
-  const size_t buffer_size = _keys_count * sizeof(_ValueType) +  // values
-                             _keys_count * sizeof(float) +       // times
-                             _keys_count * sizeof(bool);         // values
+  const size_t buffer_size = _keys_count * sizeof(_ValueType) +        // values
+                             _keys_count * sizeof(float) +             // times
+                             (_keys_count + 7) * sizeof(uint8_t) / 8;  // values
   char* buffer = reinterpret_cast<char*>(memory::default_allocator()->Allocate(
       buffer_size, OZZ_ALIGN_OF(_ValueType)));
 
@@ -1994,10 +1994,10 @@ void Track<_ValueType>::Allocate(size_t _keys_count) {
   buffer += _keys_count * sizeof(float);
   times_.end = reinterpret_cast<float*>(buffer);
 
-  steps_.begin = reinterpret_cast<bool*>(buffer);
-  assert(math::IsAligned(times_.begin, OZZ_ALIGN_OF(bool)));
-  buffer += _keys_count * sizeof(bool);
-  steps_.end = reinterpret_cast<bool*>(buffer);
+  steps_.begin = reinterpret_cast<uint8_t*>(buffer);
+  assert(math::IsAligned(times_.begin, OZZ_ALIGN_OF(uint8_t)));
+  buffer += (_keys_count + 7) * sizeof(uint8_t) / 8;
+  steps_.end = reinterpret_cast<uint8_t*>(buffer);
 }
 
 template <typename _ValueType>
@@ -2116,7 +2116,8 @@ bool TrackSamplingJob<_Track>::Run() const {
   const size_t id1 = ptk1 - times.begin;
   const size_t id0 = id1 - 1;
 
-  if (track->steps()[id0] || ptk1 == times.end) {
+  const bool id0step = (track->steps()[id0/8] & (1<<(id0&7))) != 0;
+  if (id0step || ptk1 == times.end) {
     *result = values[id0];
   } else {
     // Lerp relevant keys.
@@ -2202,7 +2203,7 @@ bool FloatTrackTriggeringJob::Run() const {
   // Search keyframes to interpolate.
   const Range<const float> times = track->times();
   const Range<const float> values = track->values();
-  const Range<const bool> steps = track->steps();
+  const Range<const uint8_t> steps = track->steps();
   assert(times.Count() == values.Count());
 
   // from and to are exchanged if time is going backward, so the algorithm
@@ -2253,11 +2254,13 @@ bool FloatTrackTriggeringJob::Run() const {
       if (detected) {
         Edge edge;
         edge.rising = rising;
-        if (steps[i]) {
+
+        const bool step = (steps[i / 8] & (1 << (i & 7))) != 0;
+        if (step) {
           edge.time = times[i];
         } else {
-          // Finds when threshold is traversed, in local keyframes range.
           assert(vk0 != vk1);
+
           // Finds where the curve crosses threshold value.
           // This is the lerp equation, where we know the result and look for
           // alpha, aka unlerp.

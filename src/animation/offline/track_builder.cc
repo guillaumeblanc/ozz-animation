@@ -87,46 +87,6 @@ void PatchBeginEndKeys(const _RawTrack& _input,
 }
 
 template <typename _Keyframes>
-void Linearize(_Keyframes* _keyframes) {
-  assert(_keyframes->size() >= 2);
-
-  // Loop through kStep keys and create an extra key right before the next
-  // "official" one such that interpolating this two keys will simulate a kStep
-  // behavior.
-  // Note that interpolation mode of the last key has no impact.
-  for (typename _Keyframes::iterator it = _keyframes->begin();
-       it != _keyframes->end() - 1; ++it) {
-    typename _Keyframes::const_reference src_key = *it;
-
-    if (src_key.interpolation == RawTrackInterpolation::kStep) {
-      // Pick a time right before the next key frame.
-      typename _Keyframes::const_reference src_next_key = *(it + 1);
-
-      // epsilon is the smallest such that 1.0+epsilon != 1.0.
-      // Key time being in range [0, 1], so epsilon works.
-      // nextafterf(src_next_key.time, -1.f) would be a better option, but it
-      // isn't available for all compilers (MSVC 11).
-      const float new_key_time =
-          src_next_key.time - std::numeric_limits<float>::epsilon();
-
-      const typename _Keyframes::value_type new_key = {
-          RawTrackInterpolation::kLinear, new_key_time, src_key.value};
-
-      it->interpolation = RawTrackInterpolation::kLinear;
-      it = _keyframes->insert(it + 1, new_key);
-    } else {
-      assert(src_key.interpolation == RawTrackInterpolation::kLinear);
-    }
-  }
-
-  // Patch last key as its interpolation mode has no impact.
-  _keyframes->back().interpolation = RawTrackInterpolation::kLinear;
-
-  assert(_keyframes->front().time >= 0.f);
-  assert(_keyframes->back().time <= 1.f);
-}
-
-template <typename _Keyframes>
 void Fixup(_Keyframes* _keyframes) {
   // Nothing to do by default.
   (void)_keyframes;
@@ -164,20 +124,19 @@ _Track* TrackBuilder::Build(const _RawTrack& _input) const {
   // the shortest path during the normalized-lerp.
   Fixup(&keyframes);
 
-  // Converts kStep keyframes to kLinear, which will add some keys.
-  // Linearize(&keyframes);
-
   // Allocates output track.
   track->Allocate(keyframes.size());
 
   // Copy all keys to output.
   assert(keyframes.size() == track->times_.Count() &&
-         keyframes.size() == track->values_.Count());
+         keyframes.size() == track->values_.Count() &&
+         keyframes.size() <= track->steps_.Count() * 8);
+  memset(track->steps_.begin, 0, track->steps_.Size());
   for (size_t i = 0; i < keyframes.size(); ++i) {
     const typename _RawTrack::Keyframe& src_key = keyframes[i];
     track->times_[i] = src_key.time;
     track->values_[i] = src_key.value;
-    track->steps_[i] = src_key.interpolation == RawTrackInterpolation::kStep;
+    track->steps_[i/8] |= (src_key.interpolation == RawTrackInterpolation::kStep) << (i&7);
   }
   /*
     // Copy animation's name.

@@ -31,7 +31,6 @@
 #include "ozz/base/io/archive_traits.h"
 #include "ozz/base/platform.h"
 
-// TODO reconsider ??
 #include "ozz/base/maths/quaternion.h"
 #include "ozz/base/maths/vec_float.h"
 
@@ -55,7 +54,7 @@ class Track {
 
   Range<const float> times() const { return times_; }
   Range<const _ValueType> values() const { return values_; }
-  Range<const bool> steps() const { return steps_; }
+  Range<const uint8_t> steps() const { return steps_; }
 
   // Get the estimated track's size in bytes.
   size_t size() const;
@@ -75,7 +74,7 @@ class Track {
 
   Range<float> times_;
   Range<_ValueType> values_;
-  Range<bool> steps_;
+  Range<uint8_t> steps_;
 };
 
 // Definition of operations policies per track value type.

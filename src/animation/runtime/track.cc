@@ -54,12 +54,12 @@ void Track<_ValueType>::Allocate(size_t _keys_count) {
   // Distributes buffer memory while ensuring proper alignment (serves larger
   // alignment values first).
   OZZ_STATIC_ASSERT(OZZ_ALIGN_OF(_ValueType) >= OZZ_ALIGN_OF(float));
-  OZZ_STATIC_ASSERT(OZZ_ALIGN_OF(float) >= OZZ_ALIGN_OF(bool));
+  OZZ_STATIC_ASSERT(OZZ_ALIGN_OF(float) >= OZZ_ALIGN_OF(uint8_t));
 
   // Compute overall size and allocate a single buffer for all the data.
-  const size_t buffer_size = _keys_count * sizeof(_ValueType) +  // values
-                             _keys_count * sizeof(float) +       // times
-                             _keys_count * sizeof(bool);         // values
+  const size_t buffer_size = _keys_count * sizeof(_ValueType) +        // values
+                             _keys_count * sizeof(float) +             // times
+                             (_keys_count + 7) * sizeof(uint8_t) / 8;  // values
   char* buffer = reinterpret_cast<char*>(memory::default_allocator()->Allocate(
       buffer_size, OZZ_ALIGN_OF(_ValueType)));
 
@@ -74,10 +74,10 @@ void Track<_ValueType>::Allocate(size_t _keys_count) {
   buffer += _keys_count * sizeof(float);
   times_.end = reinterpret_cast<float*>(buffer);
 
-  steps_.begin = reinterpret_cast<bool*>(buffer);
-  assert(math::IsAligned(times_.begin, OZZ_ALIGN_OF(bool)));
-  buffer += _keys_count * sizeof(bool);
-  steps_.end = reinterpret_cast<bool*>(buffer);
+  steps_.begin = reinterpret_cast<uint8_t*>(buffer);
+  assert(math::IsAligned(times_.begin, OZZ_ALIGN_OF(uint8_t)));
+  buffer += (_keys_count + 7) * sizeof(uint8_t) / 8;
+  steps_.end = reinterpret_cast<uint8_t*>(buffer);
 }
 
 template <typename _ValueType>
