@@ -53,11 +53,7 @@ class IArchive;
 // including the file that contains the template definition.
 //
 // This default function call member _Ty::Load/Save function.
-template <typename _Ty>
-inline void Save(OArchive& _archive, const _Ty* _ty, size_t _count);
-template <typename _Ty>
-inline void Load(IArchive& _archive, _Ty* _ty, size_t _count,
-                 uint32_t _version);
+template <typename _Ty> struct Extern;
 
 // clang-format off
 

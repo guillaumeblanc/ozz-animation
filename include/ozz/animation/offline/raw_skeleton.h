@@ -136,12 +136,14 @@ OZZ_IO_TYPE_TAG("ozz-raw_skeleton", animation::offline::RawSkeleton)
 
 // Should not be called directly but through io::Archive << and >> operators.
 template <>
-void Save(OArchive& _archive, const animation::offline::RawSkeleton* _skeletons,
-          size_t _count);
-
-template <>
-void Load(IArchive& _archive, animation::offline::RawSkeleton* _skeletons,
-          size_t _count, uint32_t _version);
+struct Extern<animation::offline::RawSkeleton> {
+  static void Save(OArchive& _archive,
+                   const animation::offline::RawSkeleton* _skeletons,
+                   size_t _count);
+  static void Load(IArchive& _archive,
+                   animation::offline::RawSkeleton* _skeletons, size_t _count,
+                   uint32_t _version);
+};
 }  // namespace io
 }  // namespace ozz
 #endif  // OZZ_OZZ_ANIMATION_OFFLINE_RAW_SKELETON_H_

@@ -59,10 +59,11 @@ OZZ_IO_TYPE_NOT_VERSIONABLE(Extrusive)
 
 // Specializes Extrusive type external Save and Load functions.
 template <>
-void Save(OArchive& _archive, const Extrusive* _test, size_t _count);
-template <>
-void Load(IArchive& _archive, Extrusive* _test, size_t _count,
-          uint32_t _version);
+struct Extern<Extrusive> {
+  static void Save(OArchive& _archive, const Extrusive* _test, size_t _count);
+  static void Load(IArchive& _archive, Extrusive* _test, size_t _count,
+                   uint32_t _version);
+};
 }  // namespace io
 }  // namespace ozz
 

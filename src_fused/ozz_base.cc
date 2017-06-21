@@ -237,8 +237,8 @@ Logger::~Logger() {
 
 namespace ozz {
 namespace io {
-template <>
-void Save(OArchive& _archive, const String::Std* _values, size_t _count) {
+void Extern<String::Std>::Save(OArchive& _archive, const String::Std* _values,
+                               size_t _count) {
   for (size_t i = 0; i < _count; i++) {
     const ozz::String::Std& string = _values[i];
 
@@ -249,9 +249,8 @@ void Save(OArchive& _archive, const String::Std* _values, size_t _count) {
   }
 }
 
-template <>
-void Load(IArchive& _archive, String::Std* _values, size_t _count,
-          uint32_t _version) {
+void Extern<String::Std>::Load(IArchive& _archive, String::Std* _values,
+                               size_t _count, uint32_t _version) {
   (void)_version;
   for (size_t i = 0; i < _count; i++) {
     ozz::String::Std& string = _values[i];
@@ -712,90 +711,85 @@ const char* SimdImplementationName() {
 
 namespace ozz {
 namespace io {
-template <>
-void Save(OArchive& _archive, const math::Float2* _values, size_t _count) {
+void Extern<math::Float2>::Save(OArchive& _archive, const math::Float2* _values,
+                                size_t _count) {
   _archive << MakeArray(&_values->x, 2 * _count);
 }
-template <>
-void Load(IArchive& _archive, math::Float2* _values, size_t _count,
-          uint32_t _version) {
+void Extern<math::Float2>::Load(IArchive& _archive, math::Float2* _values,
+                                size_t _count, uint32_t _version) {
   (void)_version;
   _archive >> MakeArray(&_values->x, 2 * _count);
 }
 
-template <>
-void Save(OArchive& _archive, const math::Float3* _values, size_t _count) {
+void Extern<math::Float3>::Save(OArchive& _archive, const math::Float3* _values, size_t _count) {
   _archive << MakeArray(&_values->x, 3 * _count);
 }
-template <>
-void Load(IArchive& _archive, math::Float3* _values, size_t _count,
-          uint32_t _version) {
+void Extern<math::Float3>::Load(IArchive& _archive, math::Float3* _values,
+                                size_t _count, uint32_t _version) {
   (void)_version;
   _archive >> MakeArray(&_values->x, 3 * _count);
 }
 
-template <>
-void Save(OArchive& _archive, const math::Float4* _values, size_t _count) {
+void Extern<math::Float4>::Save(OArchive& _archive, const math::Float4* _values,
+                                size_t _count) {
   _archive << MakeArray(&_values->x, 4 * _count);
 }
-template <>
-void Load(IArchive& _archive, math::Float4* _values, size_t _count,
-          uint32_t _version) {
+void Extern<math::Float4>::Load(IArchive& _archive, math::Float4* _values,
+                                size_t _count, uint32_t _version) {
   (void)_version;
   _archive >> MakeArray(&_values->x, 4 * _count);
 }
 
-template <>
-void Save(OArchive& _archive, const math::Quaternion* _values, size_t _count) {
+void Extern<math::Quaternion>::Save(OArchive& _archive,
+                                    const math::Quaternion* _values,
+                                    size_t _count) {
   _archive << MakeArray(&_values->x, 4 * _count);
 }
-template <>
-void Load(IArchive& _archive, math::Quaternion* _values, size_t _count,
-          uint32_t _version) {
+void Extern<math::Quaternion>::Load(IArchive& _archive,
+                                    math::Quaternion* _values, size_t _count,
+                                    uint32_t _version) {
   (void)_version;
   _archive >> MakeArray(&_values->x, 4 * _count);
 }
 
-template <>
-void Save(OArchive& _archive, const math::Transform* _values, size_t _count) {
+void Extern<math::Transform>::Save(OArchive& _archive,
+                                   const math::Transform* _values,
+                                   size_t _count) {
   _archive << MakeArray(&_values->translation.x, 10 * _count);
 }
-template <>
-void Load(IArchive& _archive, math::Transform* _values, size_t _count,
-          uint32_t _version) {
+void Extern<math::Transform>::Load(IArchive& _archive, math::Transform* _values,
+                                   size_t _count, uint32_t _version) {
   (void)_version;
   _archive >> MakeArray(&_values->translation.x, 10 * _count);
 }
 
-template <>
-void Save(OArchive& _archive, const math::Box* _values, size_t _count) {
+void Extern<math::Box>::Save(OArchive& _archive, const math::Box* _values,
+                             size_t _count) {
   _archive << MakeArray(&_values->min.x, 6 * _count);
 }
-template <>
-void Load(IArchive& _archive, math::Box* _values, size_t _count,
-          uint32_t _version) {
+void Extern<math::Box>::Load(IArchive& _archive, math::Box* _values,
+                             size_t _count, uint32_t _version) {
   (void)_version;
   _archive >> MakeArray(&_values->min.x, 6 * _count);
 }
 
-template <>
-void Save(OArchive& _archive, const math::RectFloat* _values, size_t _count) {
+void Extern<math::RectFloat>::Save(OArchive& _archive,
+                                   const math::RectFloat* _values,
+                                   size_t _count) {
   _archive << MakeArray(&_values->left, 4 * _count);
 }
-template <>
-void Load(IArchive& _archive, math::RectFloat* _values, size_t _count,
-          uint32_t _version) {
+void Extern<math::RectFloat>::Load(IArchive& _archive, math::RectFloat* _values,
+                                   size_t _count, uint32_t _version) {
   (void)_version;
   _archive >> MakeArray(&_values->left, 4 * _count);
 }
 
-template <>
-void Save(OArchive& _archive, const math::RectInt* _values, size_t _count) {
+void Extern<math::RectInt>::Save(OArchive& _archive,
+                                 const math::RectInt* _values, size_t _count) {
   _archive << MakeArray(&_values->left, 4 * _count);
 }
-template <>
-void Load(IArchive& _archive, math::RectInt* _values, size_t _count,
-          uint32_t _version) {
+void Extern<math::RectInt>::Load(IArchive& _archive, math::RectInt* _values,
+                                 size_t _count, uint32_t _version) {
   (void)_version;
   _archive >> MakeArray(&_values->left, 4 * _count);
 }
@@ -831,9 +825,7 @@ void Load(IArchive& _archive, math::RectInt* _values, size_t _count,
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/base/maths/math_archive.h"
-
-#include <cassert>
+#include "ozz/base/maths/soa_math_archive.h"
 
 #include "ozz/base/io/archive.h"
 #include "ozz/base/maths/soa_float.h"
@@ -843,77 +835,78 @@ void Load(IArchive& _archive, math::RectInt* _values, size_t _count,
 
 namespace ozz {
 namespace io {
-template <>
-void Save(OArchive& _archive, const math::SoaFloat2* _values, size_t _count) {
+void Extern<math::SoaFloat2>::Save(OArchive& _archive,
+                                   const math::SoaFloat2* _values,
+                                   size_t _count) {
   _archive << MakeArray(reinterpret_cast<const float*>(&_values->x),
                         2 * 4 * _count);
 }
-template <>
-void Load(IArchive& _archive, math::SoaFloat2* _values, size_t _count,
-          uint32_t _version) {
+void Extern<math::SoaFloat2>::Load(IArchive& _archive, math::SoaFloat2* _values,
+                                   size_t _count, uint32_t _version) {
   (void)_version;
   _archive >> MakeArray(reinterpret_cast<float*>(&_values->x), 2 * 4 * _count);
 }
 
-template <>
-void Save(OArchive& _archive, const math::SoaFloat3* _values, size_t _count) {
+void Extern<math::SoaFloat3>::Save(OArchive& _archive,
+                                   const math::SoaFloat3* _values,
+                                   size_t _count) {
   _archive << MakeArray(reinterpret_cast<const float*>(&_values->x),
                         3 * 4 * _count);
 }
-template <>
-void Load(IArchive& _archive, math::SoaFloat3* _values, size_t _count,
-          uint32_t _version) {
+void Extern<math::SoaFloat3>::Load(IArchive& _archive, math::SoaFloat3* _values,
+                                   size_t _count, uint32_t _version) {
   (void)_version;
   _archive >> MakeArray(reinterpret_cast<float*>(&_values->x), 3 * 4 * _count);
 }
 
-template <>
-void Save(OArchive& _archive, const math::SoaFloat4* _values, size_t _count) {
+void Extern<math::SoaFloat4>::Save(OArchive& _archive,
+                                   const math::SoaFloat4* _values,
+                                   size_t _count) {
   _archive << MakeArray(reinterpret_cast<const float*>(&_values->x),
                         4 * 4 * _count);
 }
-template <>
-void Load(IArchive& _archive, math::SoaFloat4* _values, size_t _count,
-          uint32_t _version) {
+void Extern<math::SoaFloat4>::Load(IArchive& _archive, math::SoaFloat4* _values,
+                                   size_t _count, uint32_t _version) {
   (void)_version;
   _archive >> MakeArray(reinterpret_cast<float*>(&_values->x), 4 * 4 * _count);
 }
 
-template <>
-void Save(OArchive& _archive, const math::SoaQuaternion* _values,
-          size_t _count) {
+void Extern<math::SoaQuaternion>::Save(OArchive& _archive,
+                                       const math::SoaQuaternion* _values,
+                                       size_t _count) {
   _archive << MakeArray(reinterpret_cast<const float*>(&_values->x),
                         4 * 4 * _count);
 }
-template <>
-void Load(IArchive& _archive, math::SoaQuaternion* _values, size_t _count,
-          uint32_t _version) {
+void Extern<math::SoaQuaternion>::Load(IArchive& _archive,
+                                       math::SoaQuaternion* _values,
+                                       size_t _count, uint32_t _version) {
   (void)_version;
   _archive >> MakeArray(reinterpret_cast<float*>(&_values->x), 4 * 4 * _count);
 }
 
-template <>
-void Save(OArchive& _archive, const math::SoaFloat4x4* _values, size_t _count) {
+void Extern<math::SoaFloat4x4>::Save(OArchive& _archive,
+                                     const math::SoaFloat4x4* _values,
+                                     size_t _count) {
   _archive << MakeArray(reinterpret_cast<const float*>(&_values->cols[0].x),
                         4 * 4 * 4 * _count);
 }
-template <>
-void Load(IArchive& _archive, math::SoaFloat4x4* _values, size_t _count,
-          uint32_t _version) {
+void Extern<math::SoaFloat4x4>::Load(IArchive& _archive,
+                                     math::SoaFloat4x4* _values, size_t _count,
+                                     uint32_t _version) {
   (void)_version;
   _archive >> MakeArray(reinterpret_cast<float*>(&_values->cols[0].x),
                         4 * 4 * 4 * _count);
 }
 
-template <>
-void Save(OArchive& _archive, const math::SoaTransform* _values,
-          size_t _count) {
+void Extern<math::SoaTransform>::Save(OArchive& _archive,
+                                      const math::SoaTransform* _values,
+                                      size_t _count) {
   _archive << MakeArray(reinterpret_cast<const float*>(&_values->translation.x),
                         10 * 4 * _count);
 }
-template <>
-void Load(IArchive& _archive, math::SoaTransform* _values, size_t _count,
-          uint32_t _version) {
+void Extern<math::SoaTransform>::Load(IArchive& _archive,
+                                      math::SoaTransform* _values,
+                                      size_t _count, uint32_t _version) {
   (void)_version;
   _archive >> MakeArray(reinterpret_cast<float*>(&_values->translation.x),
                         10 * 4 * _count);
@@ -958,35 +951,36 @@ void Load(IArchive& _archive, math::SoaTransform* _values, size_t _count,
 
 namespace ozz {
 namespace io {
-template <>
-void Save(OArchive& _archive, const math::SimdFloat4* _values, size_t _count) {
+void Extern<math::SimdFloat4>::Save(OArchive& _archive,
+                                    const math::SimdFloat4* _values,
+                                    size_t _count) {
   _archive << MakeArray(reinterpret_cast<const float*>(_values), 4 * _count);
 }
-template <>
-void Load(IArchive& _archive, math::SimdFloat4* _values, size_t _count,
-          uint32_t _version) {
+void Extern<math::SimdFloat4>::Load(IArchive& _archive,
+                                    math::SimdFloat4* _values, size_t _count,
+                                    uint32_t _version) {
   (void)_version;
   _archive >> MakeArray(reinterpret_cast<float*>(_values), 4 * _count);
 }
 
-template <>
-void Save(OArchive& _archive, const math::SimdInt4* _values, size_t _count) {
+void Extern<math::SimdInt4>::Save(OArchive& _archive,
+                                  const math::SimdInt4* _values,
+                                  size_t _count) {
   _archive << MakeArray(reinterpret_cast<const int*>(_values), 4 * _count);
 }
-template <>
-void Load(IArchive& _archive, math::SimdInt4* _values, size_t _count,
-          uint32_t _version) {
+void Extern<math::SimdInt4>::Load(IArchive& _archive, math::SimdInt4* _values,
+                                  size_t _count, uint32_t _version) {
   (void)_version;
   _archive >> MakeArray(reinterpret_cast<int*>(_values), 4 * _count);
 }
 
-template <>
-void Save(OArchive& _archive, const math::Float4x4* _values, size_t _count) {
+void Extern<math::Float4x4>::Save(OArchive& _archive,
+                                  const math::Float4x4* _values,
+                                  size_t _count) {
   _archive << MakeArray(reinterpret_cast<const float*>(_values), 16 * _count);
 }
-template <>
-void Load(IArchive& _archive, math::Float4x4* _values, size_t _count,
-          uint32_t _version) {
+void Extern<math::Float4x4>::Load(IArchive& _archive, math::Float4x4* _values,
+                                  size_t _count, uint32_t _version) {
   (void)_version;
   _archive >> MakeArray(reinterpret_cast<float*>(_values), 16 * _count);
 }

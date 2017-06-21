@@ -1,3 +1,8 @@
+Release version 0.10.0
+----------------------
+* Library
+  - [base] Changes non-intrusive serialization mechanism to use a specialize template struct "Extern" instead of function overloading.
+
 Release version 0.9.1
 ---------------------
 
