@@ -44,7 +44,9 @@ Mesh::~Mesh() {}
 
 namespace io {
 
-void Extern<sample::Mesh::Part>::Save(OArchive& _archive, const sample::Mesh::Part* _parts, size_t _count) {
+void Extern<sample::Mesh::Part>::Save(OArchive& _archive,
+                                      const sample::Mesh::Part* _parts,
+                                      size_t _count) {
   for (size_t i = 0; i < _count; ++i) {
     const sample::Mesh::Part& part = _parts[i];
     _archive << part.positions;
@@ -57,8 +59,9 @@ void Extern<sample::Mesh::Part>::Save(OArchive& _archive, const sample::Mesh::Pa
   }
 }
 
-void Extern<sample::Mesh::Part>::Load(IArchive& _archive, sample::Mesh::Part* _parts, size_t _count,
-          uint32_t _version) {
+void Extern<sample::Mesh::Part>::Load(IArchive& _archive,
+                                      sample::Mesh::Part* _parts, size_t _count,
+                                      uint32_t _version) {
   (void)_version;
   for (size_t i = 0; i < _count; ++i) {
     sample::Mesh::Part& part = _parts[i];
@@ -72,7 +75,8 @@ void Extern<sample::Mesh::Part>::Load(IArchive& _archive, sample::Mesh::Part* _p
   }
 }
 
-void Extern<sample::Mesh>::Save(OArchive& _archive, const sample::Mesh* _meshes, size_t _count) {
+void Extern<sample::Mesh>::Save(OArchive& _archive, const sample::Mesh* _meshes,
+                                size_t _count) {
   for (size_t i = 0; i < _count; ++i) {
     const sample::Mesh& mesh = _meshes[i];
     _archive << mesh.parts;
@@ -81,8 +85,8 @@ void Extern<sample::Mesh>::Save(OArchive& _archive, const sample::Mesh* _meshes,
   }
 }
 
-void Extern<sample::Mesh>::Load(IArchive& _archive, sample::Mesh* _meshes, size_t _count,
-          uint32_t _version) {
+void Extern<sample::Mesh>::Load(IArchive& _archive, sample::Mesh* _meshes,
+                                size_t _count, uint32_t _version) {
   (void)_version;
   for (size_t i = 0; i < _count; ++i) {
     sample::Mesh& mesh = _meshes[i];
