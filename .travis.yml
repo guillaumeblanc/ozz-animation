@@ -142,6 +142,10 @@ before_install:
 
 install:
 - echo install-----------------------------------------------------------------
+# Download and install mesa dev
+- if [[ $TRAVIS_OS_NAME == "linux" ]]; then
+    sudo apt-get install libgl1-mesa-dev;
+  fi
 # Download and install fbx sdk
 - if [[ $TRAVIS_OS_NAME == "linux" ]]; then
     mkdir fbx;
