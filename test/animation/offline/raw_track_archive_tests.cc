@@ -70,7 +70,7 @@ TEST(Filled, RawAnimationSerialize) {
   o_track.keyframes.push_back(second_key);
 
   EXPECT_TRUE(o_track.Validate());
-  EXPECT_EQ(o_track.keyframes.size(), 2);
+  EXPECT_EQ(o_track.keyframes.size(), 2u);
 
   for (int e = 0; e < 2; ++e) {
     ozz::Endianness endianess = e == 0 ? ozz::kBigEndian : ozz::kLittleEndian;
@@ -180,7 +180,7 @@ TEST(Float3, RawAnimationSerialize) {
   o_track.keyframes.push_back(second_key);
 
   EXPECT_TRUE(o_track.Validate());
-  EXPECT_EQ(o_track.keyframes.size(), 2);
+  EXPECT_EQ(o_track.keyframes.size(), 2u);
 
   for (int e = 0; e < 2; ++e) {
     ozz::Endianness endianess = e == 0 ? ozz::kBigEndian : ozz::kLittleEndian;
