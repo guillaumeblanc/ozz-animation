@@ -1654,6 +1654,7 @@ template struct RawTrack<math::Quaternion>;
 
 #include <cassert>
 #include <cmath>
+#include <cstring>
 #include <limits>
 
 #include "ozz/base/memory/allocator.h"

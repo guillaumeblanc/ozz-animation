@@ -29,6 +29,7 @@
 
 #include <cassert>
 #include <cmath>
+#include <cstring>
 #include <limits>
 
 #include "ozz/base/memory/allocator.h"
