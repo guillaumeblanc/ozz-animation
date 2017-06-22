@@ -65,7 +65,11 @@ class Track {
   void Load(ozz::io::IArchive& _archive, uint32_t _version);
 
  private:
-  // TrackBuilder class is allowed to allocate an Animation.
+  // Disables copy and assignation.
+  Track(Track const&);
+  void operator=(Track const&);
+
+  // TrackBuilder class is allowed to allocate a Track.
   friend class offline::TrackBuilder;
 
   // Internal destruction function.
