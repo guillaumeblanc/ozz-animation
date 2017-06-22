@@ -130,11 +130,11 @@ TEST(AlreadyInitialized, RawAnimationSerialize) {
 TEST(Float2, RawAnimationSerialize) {
   RawFloat2Track o_track;
 
-  const RawFloat2Track::Keyframe first_key = {RawTrackInterpolation::kLinear,
-                                             .5f, ozz::math::Float2(46.f, 99.f)};
+  const RawFloat2Track::Keyframe first_key = {
+      RawTrackInterpolation::kLinear, .5f, ozz::math::Float2(46.f, 99.f)};
   o_track.keyframes.push_back(first_key);
-  const RawFloat2Track::Keyframe second_key = {RawTrackInterpolation::kLinear,
-                                              .7f, ozz::math::Float2(16.f, 93.f)};
+  const RawFloat2Track::Keyframe second_key = {
+      RawTrackInterpolation::kLinear, .7f, ozz::math::Float2(16.f, 93.f)};
   o_track.keyframes.push_back(second_key);
 
   EXPECT_TRUE(o_track.Validate());
@@ -172,11 +172,11 @@ TEST(Float2, RawAnimationSerialize) {
 TEST(Float3, RawAnimationSerialize) {
   RawFloat3Track o_track;
 
-  const RawFloat3Track::Keyframe first_key = {RawTrackInterpolation::kLinear,
-                                             .5f, ozz::math::Float3(46.f, 99.f, 25.f)};
+  const RawFloat3Track::Keyframe first_key = {
+      RawTrackInterpolation::kLinear, .5f, ozz::math::Float3(46.f, 99.f, 25.f)};
   o_track.keyframes.push_back(first_key);
-  const RawFloat3Track::Keyframe second_key = {RawTrackInterpolation::kLinear,
-                                              .7f, ozz::math::Float3(16.f, 93.f, 4.f)};
+  const RawFloat3Track::Keyframe second_key = {
+      RawTrackInterpolation::kLinear, .7f, ozz::math::Float3(16.f, 93.f, 4.f)};
   o_track.keyframes.push_back(second_key);
 
   EXPECT_TRUE(o_track.Validate());
@@ -214,11 +214,13 @@ TEST(Float3, RawAnimationSerialize) {
 TEST(Quaternion, RawAnimationSerialize) {
   RawQuaternionTrack o_track;
 
-  const RawQuaternionTrack::Keyframe first_key = {RawTrackInterpolation::kLinear,
-                                             .5f, ozz::math::Quaternion(0.f, .70710677f, 0.f, .70710677f)};
+  const RawQuaternionTrack::Keyframe first_key = {
+      RawTrackInterpolation::kLinear, .5f,
+      ozz::math::Quaternion(0.f, .70710677f, 0.f, .70710677f)};
   o_track.keyframes.push_back(first_key);
-  const RawQuaternionTrack::Keyframe second_key = {RawTrackInterpolation::kLinear,
-                                              .7f, ozz::math::Quaternion(.6172133f, .1543033f, 0.f, .7715167f)};
+  const RawQuaternionTrack::Keyframe second_key = {
+      RawTrackInterpolation::kLinear, .7f,
+      ozz::math::Quaternion(.6172133f, .1543033f, 0.f, .7715167f)};
   o_track.keyframes.push_back(second_key);
 
   EXPECT_TRUE(o_track.Validate());

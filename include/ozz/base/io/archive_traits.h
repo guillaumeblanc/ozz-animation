@@ -53,7 +53,8 @@ class IArchive;
 // including the file that contains the template definition.
 //
 // This default function call member _Ty::Load/Save function.
-template <typename _Ty> struct Extern;
+template <typename _Ty>
+struct Extern;
 
 // clang-format off
 

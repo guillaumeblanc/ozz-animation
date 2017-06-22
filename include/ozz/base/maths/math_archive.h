@@ -44,7 +44,7 @@ struct RectInt;
 }  // namespace math
 namespace io {
 OZZ_IO_TYPE_NOT_VERSIONABLE(math::Float2)
-template<>
+template <>
 struct Extern<math::Float2> {
   static void Save(OArchive& _archive, const math::Float2* _values,
                    size_t _count);
@@ -53,7 +53,7 @@ struct Extern<math::Float2> {
 };
 
 OZZ_IO_TYPE_NOT_VERSIONABLE(math::Float3)
-template<>
+template <>
 struct Extern<math::Float3> {
   static void Save(OArchive& _archive, const math::Float3* _values,
                    size_t _count);
@@ -62,7 +62,7 @@ struct Extern<math::Float3> {
 };
 
 OZZ_IO_TYPE_NOT_VERSIONABLE(math::Float4)
-template<>
+template <>
 struct Extern<math::Float4> {
   static void Save(OArchive& _archive, const math::Float4* _values,
                    size_t _count);
@@ -71,7 +71,7 @@ struct Extern<math::Float4> {
 };
 
 OZZ_IO_TYPE_NOT_VERSIONABLE(math::Quaternion)
-template<>
+template <>
 struct Extern<math::Quaternion> {
   static void Save(OArchive& _archive, const math::Quaternion* _values,
                    size_t _count);
@@ -80,7 +80,7 @@ struct Extern<math::Quaternion> {
 };
 
 OZZ_IO_TYPE_NOT_VERSIONABLE(math::Transform)
-template<>
+template <>
 struct Extern<math::Transform> {
   static void Save(OArchive& _archive, const math::Transform* _values,
                    size_t _count);
@@ -89,7 +89,7 @@ struct Extern<math::Transform> {
 };
 
 OZZ_IO_TYPE_NOT_VERSIONABLE(math::Box)
-template<>
+template <>
 struct Extern<math::Box> {
   static void Save(OArchive& _archive, const math::Box* _values, size_t _count);
   static void Load(IArchive& _archive, math::Box* _values, size_t _count,
@@ -97,7 +97,7 @@ struct Extern<math::Box> {
 };
 
 OZZ_IO_TYPE_NOT_VERSIONABLE(math::RectFloat)
-template<>
+template <>
 struct Extern<math::RectFloat> {
   static void Save(OArchive& _archive, const math::RectFloat* _values,
                    size_t _count);
@@ -106,7 +106,7 @@ struct Extern<math::RectFloat> {
 };
 
 OZZ_IO_TYPE_NOT_VERSIONABLE(math::RectInt)
-template<>
+template <>
 struct Extern<math::RectInt> {
   static void Save(OArchive& _archive, const math::RectInt* _values,
                    size_t _count);

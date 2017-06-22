@@ -65,7 +65,7 @@ class TrackBuilder {
   template <typename _RawTrack, typename _Track>
   _Track* Build(const _RawTrack& _input) const;
 };
-}  // offline
-}  // animation
-}  // ozz
+}  // namespace offline
+}  // namespace animation
+}  // namespace ozz
 #endif  // OZZ_OZZ_ANIMATION_OFFLINE_TRACK_BUILDER_H_

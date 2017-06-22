@@ -56,12 +56,13 @@ class TrackOptimizer {
   bool operator()(const RawFloatTrack& _input, RawFloatTrack* _output) const;
   bool operator()(const RawFloat2Track& _input, RawFloat2Track* _output) const;
   bool operator()(const RawFloat3Track& _input, RawFloat3Track* _output) const;
-  bool operator()(const RawQuaternionTrack& _input, RawQuaternionTrack* _output) const;
+  bool operator()(const RawQuaternionTrack& _input,
+                  RawQuaternionTrack* _output) const;
 
   // Optimization tolerance.
   float tolerance;
 };
-}  // offline
-}  // animation
-}  // ozz
+}  // namespace offline
+}  // namespace animation
+}  // namespace ozz
 #endif  // OZZ_OZZ_ANIMATION_OFFLINE_TRACK_OPTIMIZER_H_

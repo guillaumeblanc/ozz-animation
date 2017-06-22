@@ -52,8 +52,9 @@ struct Extern<std::vector<_Ty, _Allocator> > {
       }
     }
   }
-  inline static void Load(IArchive& _archive, std::vector<_Ty, _Allocator>* _values,
-                     size_t _count, uint32_t _version) {
+  inline static void Load(IArchive& _archive,
+                          std::vector<_Ty, _Allocator>* _values, size_t _count,
+                          uint32_t _version) {
     (void)_version;
     for (size_t i = 0; i < _count; i++) {
       std::vector<_Ty, _Allocator>& vector = _values[i];

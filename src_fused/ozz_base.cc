@@ -721,7 +721,8 @@ void Extern<math::Float2>::Load(IArchive& _archive, math::Float2* _values,
   _archive >> MakeArray(&_values->x, 2 * _count);
 }
 
-void Extern<math::Float3>::Save(OArchive& _archive, const math::Float3* _values, size_t _count) {
+void Extern<math::Float3>::Save(OArchive& _archive, const math::Float3* _values,
+                                size_t _count) {
   _archive << MakeArray(&_values->x, 3 * _count);
 }
 void Extern<math::Float3>::Load(IArchive& _archive, math::Float3* _values,

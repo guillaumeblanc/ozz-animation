@@ -123,7 +123,7 @@ OZZ_IO_TYPE_TAG("ozz-raw_float2_track", animation::offline::RawFloat2Track)
 OZZ_IO_TYPE_VERSION(1, animation::offline::RawFloat3Track)
 OZZ_IO_TYPE_TAG("ozz-raw_float3_track", animation::offline::RawFloat3Track)
 OZZ_IO_TYPE_VERSION(1, animation::offline::RawQuaternionTrack)
-OZZ_IO_TYPE_TAG("ozz-raw_quatt_track", animation::offline::RawQuaternionTrack)
+OZZ_IO_TYPE_TAG("ozz-raw_quat_track", animation::offline::RawQuaternionTrack)
 }  // namespace io
 }  // namespace ozz
 #endif  // OZZ_OZZ_ANIMATION_OFFLINE_RAW_TRACK_H_

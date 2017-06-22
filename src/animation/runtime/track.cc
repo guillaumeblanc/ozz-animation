@@ -29,6 +29,7 @@
 
 #include "ozz/base/io/archive.h"
 #include "ozz/base/log.h"
+#include "ozz/base/maths/math_archive.h"
 #include "ozz/base/maths/math_ex.h"
 #include "ozz/base/memory/allocator.h"
 
@@ -98,11 +99,16 @@ size_t Track<_ValueType>::size() const {
 }
 
 template <typename _ValueType>
-void Track<_ValueType>::Save(ozz::io::OArchive& /*_archive*/) const {}
+void Track<_ValueType>::Save(ozz::io::OArchive& _archive) const {
+  uint32_t num_keys = static_cast<uint32_t>(times_.Count());
+  _archive << num_keys;
+  _archive << ozz::io::MakeArray(times_);
+  _archive << ozz::io::MakeArray(values_);
+  _archive << ozz::io::MakeArray(times_);
+}
 
 template <typename _ValueType>
-void Track<_ValueType>::Load(ozz::io::IArchive& /*_archive*/,
-                             uint32_t _version) {
+void Track<_ValueType>::Load(ozz::io::IArchive& _archive, uint32_t _version) {
   // Destroy animation in case it was already used before.
   Deallocate();
 
@@ -110,6 +116,14 @@ void Track<_ValueType>::Load(ozz::io::IArchive& /*_archive*/,
     log::Err() << "Unsupported Track version " << _version << "." << std::endl;
     return;
   }
+
+  uint32_t num_keys;
+  _archive >> num_keys;
+  Allocate(num_keys);
+
+  _archive >> ozz::io::MakeArray(times_);
+  _archive >> ozz::io::MakeArray(values_);
+  _archive >> ozz::io::MakeArray(times_);
 }
 
 // Explicitly instantiate supported tracks.

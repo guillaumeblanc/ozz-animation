@@ -291,7 +291,7 @@ TEST(BuildLinear, TrackBuilder) {
     ozz::memory::default_allocator()->Delete(track);
   }
 
-  {  // 2 keys at the end
+  {  // 2 keys
     RawFloatTrack raw_float_track;
 
     const RawFloatTrack::Keyframe first_key = {RawTrackInterpolation::kLinear,
@@ -329,6 +329,55 @@ TEST(BuildLinear, TrackBuilder) {
     sampling.time = 1.f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 0.f);
+
+    ozz::memory::default_allocator()->Delete(track);
+  }
+
+  {  // n keys with same value
+    RawFloatTrack raw_float_track;
+
+    const RawFloatTrack::Keyframe key1 = {RawTrackInterpolation::kLinear, .5f,
+                                          46.f};
+    raw_float_track.keyframes.push_back(key1);
+    const RawFloatTrack::Keyframe key2 = {RawTrackInterpolation::kLinear, .7f,
+                                          46.f};
+    raw_float_track.keyframes.push_back(key2);
+    const RawFloatTrack::Keyframe key3 = {RawTrackInterpolation::kLinear, .8f,
+                                          46.f};
+    raw_float_track.keyframes.push_back(key3);
+
+    // Builds track
+    FloatTrack* track = builder(raw_float_track);
+    ASSERT_TRUE(track != NULL);
+
+    // Samples to verify build output.
+    FloatTrackSamplingJob sampling;
+    sampling.track = track;
+    sampling.result = &result;
+
+    sampling.time = 0.f;
+    ASSERT_TRUE(sampling.Run());
+    EXPECT_FLOAT_EQ(result, 46.f);
+
+    sampling.time = .5f;
+    ASSERT_TRUE(sampling.Run());
+    EXPECT_FLOAT_EQ(result, 46.f);
+
+    sampling.time = .6f;
+    ASSERT_TRUE(sampling.Run());
+    EXPECT_FLOAT_EQ(result, 46.f);
+
+    sampling.time = .7f;
+    ASSERT_TRUE(sampling.Run());
+    EXPECT_FLOAT_EQ(result, 46.f);
+
+    sampling.time = .75f;
+    ASSERT_TRUE(sampling.Run());
+    EXPECT_FLOAT_EQ(result, 46.f);
+
+    sampling.time = 1.f;
+    ASSERT_TRUE(sampling.Run());
+    EXPECT_FLOAT_EQ(result, 46.f);
 
     ozz::memory::default_allocator()->Delete(track);
   }

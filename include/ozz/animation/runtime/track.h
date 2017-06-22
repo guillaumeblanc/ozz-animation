@@ -101,7 +101,7 @@ inline math::Quaternion TrackPolicy<math::Quaternion>::identity() {
 }
 }  // namespace internal
 
-// Runtime float track data structure.
+// Runtime track data structure.
 class FloatTrack : public internal::Track<float> {};
 class Float2Track : public internal::Track<math::Float2> {};
 class Float3Track : public internal::Track<math::Float3> {};
@@ -111,15 +111,12 @@ class QuaternionTrack : public internal::Track<math::Quaternion> {};
 namespace io {
 OZZ_IO_TYPE_VERSION(1, animation::FloatTrack)
 OZZ_IO_TYPE_TAG("ozz-float_track", animation::FloatTrack)
-
-// Should not be called directly but through io::Archive << and >> operators.
-template <>
-struct Extern<animation::FloatTrack> {
-  static void Save(OArchive& _archive, const animation::FloatTrack* _tracks,
-                   size_t _count);
-  static void Load(IArchive& _archive, animation::FloatTrack* _tracks,
-                   size_t _count, uint32_t _version);
-};
+OZZ_IO_TYPE_VERSION(1, animation::Float2Track)
+OZZ_IO_TYPE_TAG("ozz-float2_track", animation::Float2Track)
+OZZ_IO_TYPE_VERSION(1, animation::Float3Track)
+OZZ_IO_TYPE_TAG("ozz-float3_track", animation::Float3Track)
+OZZ_IO_TYPE_VERSION(1, animation::QuaternionTrack)
+OZZ_IO_TYPE_TAG("ozz-quat_track", animation::QuaternionTrack)
 }  // namespace io
 }  // namespace ozz
 #endif  // OZZ_OZZ_ANIMATION_RUNTIME_TRACK_H_

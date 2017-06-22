@@ -99,6 +99,13 @@ target_link_libraries(test_track_triggering_job
 set_target_properties(test_track_triggering_job PROPERTIES FOLDER "ozz/tests/animation")
 add_test(NAME test_track_triggering_job COMMAND test_track_triggering_job)
 
+add_executable(test_track_archive
+  track_archive_tests.cc)
+target_link_libraries(test_track_archive
+  ozz_animation_offline
+  gtest)
+set_target_properties(test_track_archive PROPERTIES FOLDER "ozz/tests/animation")
+add_test(NAME test_track_archive COMMAND test_track_archive)
 
 # ozz_animation fuse tests
 add_executable(test_fuse_animation

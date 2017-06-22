@@ -36,7 +36,6 @@ namespace animation {
 // Only FloatTrack is supported, because comparing and un-lerping other tracks
 // doesn't make much sense.
 struct FloatTrackTriggeringJob {
-
   FloatTrackTriggeringJob();
 
   bool Validate() const;

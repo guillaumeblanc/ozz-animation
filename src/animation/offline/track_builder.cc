@@ -137,7 +137,8 @@ _Track* TrackBuilder::Build(const _RawTrack& _input) const {
     const typename _RawTrack::Keyframe& src_key = keyframes[i];
     track->times_[i] = src_key.time;
     track->values_[i] = src_key.value;
-    track->steps_[i/8] |= (src_key.interpolation == RawTrackInterpolation::kStep) << (i&7);
+    track->steps_[i / 8] |=
+        (src_key.interpolation == RawTrackInterpolation::kStep) << (i & 7);
   }
   /*
     // Copy animation's name.
