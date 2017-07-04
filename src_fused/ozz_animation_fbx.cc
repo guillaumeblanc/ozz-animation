@@ -483,24 +483,24 @@ bool ExtractAnimation(FbxSceneLoader* _scene_loader, FbxAnimStack* _anim_stack,
 bool GetValue(FbxPropertyValue& _property_value, EFbxType _type,
               float* _value) {
   switch (_type) {
-    case EFbxType::eFbxBool: {
+    case eFbxBool: {
       bool value;
-      bool success = _property_value.Get(&value, EFbxType::eFbxBool);
+      bool success = _property_value.Get(&value, eFbxBool);
       *_value = value ? 1.f : 0.f;
       return success;
     }
-    case EFbxType::eFbxInt: {
+    case eFbxInt: {
       int value;
-      bool success = _property_value.Get(&value, EFbxType::eFbxInt);
+      bool success = _property_value.Get(&value, eFbxInt);
       *_value = static_cast<float>(value);
       return success;
     }
-    case EFbxType::eFbxFloat: {
-      return _property_value.Get(_value, EFbxType::eFbxFloat);
+    case eFbxFloat: {
+      return _property_value.Get(_value, eFbxFloat);
     }
-    case EFbxType::eFbxDouble: {
+    case eFbxDouble: {
       double value;
-      bool success = _property_value.Get(&value, EFbxType::eFbxDouble);
+      bool success = _property_value.Get(&value, eFbxDouble);
       *_value = static_cast<float>(value);
       return success;
     }
@@ -513,9 +513,10 @@ bool GetValue(FbxPropertyValue& _property_value, EFbxType _type,
 
 bool GetValue(FbxPropertyValue& _property_value, EFbxType _type,
               ozz::math::Float2* _value) {
-  assert(_type == EFbxType::eFbxDouble2);
+  (void)_type;
+  assert(_type == eFbxDouble2);
   double dvalue[2];
-  if (!_property_value.Get(&dvalue, EFbxType::eFbxDouble2)) {
+  if (!_property_value.Get(&dvalue, eFbxDouble2)) {
     return false;
   }
   _value->x = static_cast<float>(dvalue[0]);
@@ -526,9 +527,10 @@ bool GetValue(FbxPropertyValue& _property_value, EFbxType _type,
 
 bool GetValue(FbxPropertyValue& _property_value, EFbxType _type,
               ozz::math::Float3* _value) {
-  assert(_type == EFbxType::eFbxDouble3);
+  (void)_type;
+  assert(_type == eFbxDouble3);
   double dvalue[3];
-  if (!_property_value.Get(&dvalue, EFbxType::eFbxDouble3)) {
+  if (!_property_value.Get(&dvalue, eFbxDouble3)) {
     return false;
   }
   _value->x = static_cast<float>(dvalue[0]);
@@ -658,18 +660,18 @@ bool ExtractProperty(FbxSceneLoader* _scene_loader, const SamplingInfo& _info,
                      FbxProperty& _property) {
   const EFbxType type = _property.GetPropertyDataType().GetType();
   switch (type) {
-    case EFbxType::eFbxBool:
-    case EFbxType::eFbxInt:
-    case EFbxType::eFbxFloat:
-    case EFbxType::eFbxDouble: {
+    case eFbxBool:
+    case eFbxInt:
+    case eFbxFloat:
+    case eFbxDouble: {
       RawFloatTrack track;
       return ExtractCurve(_scene_loader, _property, type, _info, &track);
     }
-    case EFbxType::eFbxDouble2: {
+    case eFbxDouble2: {
       RawFloat2Track track;
       return ExtractCurve(_scene_loader, _property, type, _info, &track);
     }
-    case EFbxType::eFbxDouble3: {
+    case eFbxDouble3: {
       RawFloat3Track track;
       return ExtractCurve(_scene_loader, _property, type, _info, &track);
     }
@@ -736,7 +738,7 @@ bool ExtractAnimations(FbxSceneLoader* _scene_loader, const Skeleton& _skeleton,
     success &= ExtractAnimation(_scene_loader, anim_stack, info, _skeleton,
                                 &_animations->at(i));
 
-    //success &= ExtractTrack(_scene_loader, info, "Hips", "TranslationMaxZ");
+    // success &= ExtractTrack(_scene_loader, info, "Hips", "TranslationMaxZ");
   }
 
   // Clears output if something failed during import, avoids partial data.
@@ -745,7 +747,7 @@ bool ExtractAnimations(FbxSceneLoader* _scene_loader, const Skeleton& _skeleton,
   }
 
   return success;
-}  // namespace fbx
+}
 }  // namespace fbx
 }  // namespace offline
 }  // namespace animation
