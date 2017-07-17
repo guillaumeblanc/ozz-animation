@@ -207,7 +207,7 @@ class ImGuiImpl : public ImGui {
     int glyph_width;
     int glyph_count;
     unsigned char glyph_start;  // ascii code of the first character.
-    const unsigned char* pixels;
+    const uint16_t* pixels;
     size_t pixels_size;
   };
 

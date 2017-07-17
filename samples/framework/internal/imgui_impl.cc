@@ -40,6 +40,7 @@
 
 #include "immediate.h"
 #include "renderer_impl.h"
+#include "sdf.h"
 
 namespace ozz {
 namespace sample {
@@ -1092,6 +1093,7 @@ void ImGuiImpl::InitializeCircle() {
   }
 }
 
+/*
 static const unsigned char kFontPixelRawData[] = {
     0x00, 0x21, 0xb0, 0xa1, 0x04, 0x00, 0x08, 0x08, 0x40, 0x40, 0x00, 0x00,
     0x00, 0x02, 0x38, 0x60, 0xe1, 0xc0, 0xc7, 0x87, 0x3e, 0x38, 0x70, 0x00,
@@ -1162,45 +1164,45 @@ static const unsigned char kFontPixelRawData[] = {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x01, 0xc0, 0x07, 0x00, 0x7f, 0x00, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x1c, 0x00, 0x01, 0xc0, 0x00, 0x00, 0x00, 0x00, 0xe0, 0x1c,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xf0, 0x00, 0x40, 0x04, 0x00, 0x00};
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xf0, 0x00, 0x40, 0x04, 0x00, 0x00};*/
 
 // Declares internal font raw data.
 const ImGuiImpl::Font ImGuiImpl::font_ = {
-    1024,                      //  texture_width
-    16,                        //  texture_height
-    672,                       //  image_width
-    10,                        //  image_height
-    10,                        //  glyph_height
-    7,                         //  glyph_width
-    95,                        //  glyph_count
-    32,                        //  glyph_start
-    kFontPixelRawData,         // pixels
-    sizeof(kFontPixelRawData)  // pixels_size
+    1024,                              //  texture_width
+    128,                               //  texture_height
+    1024,                              //  image_width
+    128,                               //  image_height
+    24,                                //  glyph_height
+    24,                                //  glyph_width
+    95,                                //  glyph_count
+    ' ',                               //  glyph_start
+    kFontPixelRawData,                 //  pixels
+    OZZ_ARRAY_SIZE(kFontPixelRawData)  //  pixels_size
 };
 
 void ImGuiImpl::InitalizeFont() {
-  // Builds font texture.
-  assert(static_cast<size_t>(font_.texture_width * font_.texture_height) >=
-         font_.pixels_size * 8);
 
   const size_t buffer_size = 4 * font_.texture_width * font_.texture_height;
-  unsigned char* pixels =
-      memory::default_allocator()->Allocate<unsigned char>(buffer_size);
+  uint8_t* pixels = memory::default_allocator()->Allocate<uint8_t>(buffer_size);
   memset(pixels, 0, buffer_size);
 
-  // Unpack font data font 1 bit per pixel to 8.
-  for (int i = 0; i < font_.image_width * font_.image_height; i += 8) {
-    for (int j = 0; j < 8; ++j) {
-      const int pixel = (i + j) / font_.image_width * font_.texture_width +
-                        (i + j) % font_.image_width;
-      const int bit = 7 - j;
-      const char cpnt = ((font_.pixels[i / 8] >> bit) & 1) * 255;
-      pixels[4 * pixel + 0] = cpnt;
-      pixels[4 * pixel + 1] = cpnt;
-      pixels[4 * pixel + 2] = cpnt;
-      pixels[4 * pixel + 3] = cpnt;
+  // Unpack font data font, rle, repetition 8 bits, color 8 bits.
+  size_t offset = 0;
+  for (int i = 0; i < font_.pixels_size; ++i) {
+    const uint16_t packet = font_.pixels[i];
+    const size_t count = 1 + ((packet >> 8) & 0xff);
+    const uint8_t color = packet & 0xff;
+
+    assert(offset + 4 * count <= buffer_size);
+
+    for (const size_t end = offset + 4 * count; offset < end; offset += 4) {
+      pixels[offset + 0] = color;
+      pixels[offset + 1] = color;
+      pixels[offset + 2] = color;
+      pixels[offset + 3] = color;
     }
   }
+  assert(offset == buffer_size);
 
   GL(GenTextures(1, &glyph_texture_));
   GL(BindTexture(GL_TEXTURE_2D, glyph_texture_));
@@ -1220,27 +1222,30 @@ void ImGuiImpl::InitalizeFont() {
 
   const int num_glyphes = static_cast<int>(OZZ_ARRAY_SIZE(glyphes_));
   assert(num_glyphes >= font_.glyph_start + font_.glyph_count);
+
   for (int i = 0; i < num_glyphes; ++i) {
     if (i >= font_.glyph_start && i < font_.glyph_start + font_.glyph_count) {
       Glyph& glyph = glyphes_[i];
       const int index = i - font_.glyph_start;
-      glyph.uv[0][0] = index * glyph_uv_width;
-      glyph.uv[0][1] = 0.f;
+      const int col_offset = index % (font_.image_width / font_.glyph_width);
+      const int row_offset = index / (font_.image_width / font_.glyph_width);
+      glyph.uv[0][0] = col_offset * glyph_uv_width;
+      glyph.uv[0][1] = row_offset * glyph_uv_height;
       glyph.pos[0][0] = 0.f;
       glyph.pos[0][1] = static_cast<float>(font_.glyph_height);
 
-      glyph.uv[1][0] = index * glyph_uv_width;
-      glyph.uv[1][1] = glyph_uv_height;
+      glyph.uv[1][0] = col_offset * glyph_uv_width;
+      glyph.uv[1][1] = (row_offset + 1) * glyph_uv_height;
       glyph.pos[1][0] = 0.f;
       glyph.pos[1][1] = 0.f;
 
-      glyph.uv[2][0] = (index + 1) * glyph_uv_width;
-      glyph.uv[2][1] = 0.f;
+      glyph.uv[2][0] = (col_offset + 1) * glyph_uv_width;
+      glyph.uv[2][1] = row_offset * glyph_uv_height;
       glyph.pos[2][0] = static_cast<float>(font_.glyph_width);
       glyph.pos[2][1] = static_cast<float>(font_.glyph_height);
 
-      glyph.uv[3][0] = (index + 1) * glyph_uv_width;
-      glyph.uv[3][1] = glyph_uv_height;
+      glyph.uv[3][0] = (col_offset + 1) * glyph_uv_width;
+      glyph.uv[3][1] = (row_offset + 1) * glyph_uv_height;
       glyph.pos[3][0] = static_cast<float>(font_.glyph_width);
       glyph.pos[3][1] = 0.f;
     } else {
@@ -1405,7 +1410,7 @@ float ImGuiImpl::Print(const char* _text, const math::RectFloat& _rect,
             const int index = indices[j];
             v.uv[0] = glyph.uv[index][0];
             v.uv[1] = glyph.uv[index][1];
-            v.pos[0] = lx + glyph.pos[index][0] + offset;
+            v.pos[0] = lx + glyph.pos[index][0] + offset * 4.f;
             v.pos[1] = ly + glyph.pos[index][1];
             im.PushVertex(v);
           }

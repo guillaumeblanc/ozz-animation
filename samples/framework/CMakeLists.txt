@@ -19,6 +19,7 @@ add_library(sample_framework STATIC
   internal/imgui_impl.cc
   internal/renderer_impl.h
   internal/renderer_impl.cc
+  internal/sdf.h
   internal/shader.h
   internal/shader.cc
   internal/shooter.h
