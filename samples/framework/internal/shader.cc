@@ -254,10 +254,30 @@ ImmediatePTCShader* ImmediatePTCShader::Build() {
       "uniform sampler2D u_texture;\n"
       "varying vec4 v_vertex_color;\n"
       "varying vec2 v_texture_coord;\n"
+      "float contour(in float d, in float w) {\n"
+      "  return smoothstep(0.75 - w, 0.75 + w, d);\n"
+      "}\n"
+      "float samp(in vec2 uv, float w) {\n"
+      "  return contour(texture2D(u_texture, uv).a, w);\n"
+      "}\n"
       "void main() {\n"
-      "  vec4 tex_color = texture2D(u_texture, v_texture_coord);\n"
-      "  gl_FragColor = v_vertex_color * tex_color;\n"
-      "  if(gl_FragColor.a < .01) discard;\n"  // Implements alpha testing.
+//      "  vec4 tex_color = texture2D(u_texture, v_texture_coord);\n"
+      "  float dist = texture2D(u_texture, v_texture_coord).a;\n"
+      "  float width = fwidth(dist);\n"
+      "  float alpha = contour(dist, width);\n"
+      "  float dscale = 0.354;\n"
+      "  vec2 duv = dscale * (dFdx(v_texture_coord) + dFdy(v_texture_coord));\n"
+      "  vec4 box = vec4(v_texture_coord - duv, v_texture_coord + duv);\n"
+      "  float asum = samp(box.xy, width)\n"
+      "             + samp(box.zw, width)\n"
+      "             + samp(box.xw, width)\n"
+      "             + samp(box.zy, width);\n"
+      "  alpha = (alpha + 0.5 * asum) / 3.0;\n"
+//      "  float smoothing = 1. / 16.;\n"
+//      "  float distance = tex_color.a;\n"
+//      "  float alpha = smoothstep(.75 - smoothing, .75 + smoothing, distance);\n"
+      "  gl_FragColor = vec4(v_vertex_color.rgb * alpha, 1.);\n"
+//      "  if(gl_FragColor.a < .1) discard;\n"  // Implements alpha testing.
       "}\n";
 
   const char* vs[] = {kPlatformSpecivicVSHeader, kSimplePCVS};
