@@ -30,7 +30,6 @@
 #include "ozz/animation/offline/raw_skeleton.h"
 
 #include "ozz/animation/offline/fbx/fbx.h"
-#include "ozz/animation/offline/fbx/fbx_base.h"
 
 #include "ozz/base/log.h"
 
@@ -116,32 +115,49 @@ bool ExtractSkeleton(FbxSceneLoader& _loader, RawSkeleton* _skeleton) {
 }  // namespace
 
 class FbxBakedSkeletonConverter : public SkeletonConverter {
+ public:
+  FbxBakedSkeletonConverter() : settings_(fbx_manager_), scene_loader_(NULL) {}
+  ~FbxBakedSkeletonConverter() { ozz::memory::default_allocator()->Delete(scene_loader_); }
+
  private:
-  // Implement SkeletonConverter::Import function.
-  virtual bool Import(const char* _filename, RawSkeleton* _skeleton) {
+  virtual bool Load(const char* _filename) {
+    ozz::memory::default_allocator()->Delete(scene_loader_);
+    scene_loader_ = ozz::memory::default_allocator()
+                        ->New<ozz::animation::offline::fbx::FbxSceneLoader>(
+                            _filename, "", fbx_manager_, settings_);
+
+    if (!scene_loader_->scene()) {
+      ozz::log::Err() << "Failed to import file " << _filename << "."
+                      << std::endl;
+      ozz::memory::default_allocator()->Delete(scene_loader_);
+      scene_loader_ = NULL;
+      return false;
+    }
+    return true;
+  }
+  virtual bool Import(RawSkeleton* _skeleton) {
     if (!_skeleton) {
       return false;
     }
-    // Reset skeleton.
-    *_skeleton = RawSkeleton();
 
-    // Import Fbx content.
-    FbxManagerInstance fbx_manager;
-    FbxSkeletonIOSettings settings(fbx_manager);
-    FbxSceneLoader scene_loader(_filename, "", fbx_manager, settings);
-    if (!scene_loader.scene()) {
-      ozz::log::Err() << "Failed to import file " << _filename << "."
-                      << std::endl;
+    // Reset skeleton.
+    *_skeleton = ozz::animation::offline::RawSkeleton();
+
+    if (!scene_loader_) {
       return false;
     }
 
-    if (!ExtractSkeleton(scene_loader, _skeleton)) {
+    if (!ExtractSkeleton(*scene_loader_, _skeleton)) {
       ozz::log::Err() << "Fbx skeleton extraction failed." << std::endl;
       return false;
     }
 
     return true;
   }
+
+  ozz::animation::offline::fbx::FbxManagerInstance fbx_manager_;
+  ozz::animation::offline::fbx::FbxSkeletonIOSettings settings_;
+  ozz::animation::offline::fbx::FbxSceneLoader* scene_loader_;
 };
 
 int main(int _argc, const char** _argv) {

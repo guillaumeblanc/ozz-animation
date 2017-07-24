@@ -59,26 +59,22 @@ struct RawTrackKeyframe {
 
 namespace internal {
 
-// Offline float animation track type.
-// This data type is not intended to be used in run time. It is used to
-// define the offline float curve/track object that can be converted to the
-// runtime
-// channel using the FlatTrackBuilder.
-// This animation structure exposes a single float sequence of keyframes.
-// Keyframes are defined with a time, a float value and an interpolation mode
-// (impact the range from the keyframe to the next). Float track structure is
-// then a
-// sorted vector of keyframes. A track has no duration, keyframes time range
-// must be between 0 and 1.
-// Finally the RawFloatTrack structure exposes Validate() function to check that
-// it is valid, meaning that all the following rules are respected:
+// Offline animation track type implementation.
+// This data type is not intended to be used in run time. It is used to define
+// the offline float curve/track object that can be converted to the runtime
+// channel using the FlatTrackBuilder. This animation structure exposes a single
+// float sequence of keyframes. Keyframes are defined with a time, a float value
+// and an interpolation mode (impact the range from the keyframe to the next).
+// Float track structure is then a sorted vector of keyframes. A track has no
+// duration, keyframes time range must be between 0 and 1. Finally the
+// RawFloatTrack structure exposes Validate() function to check that it is
+// valid, meaning that all the following rules are respected:
 //  1. Keyframes' time are sorted in a strict ascending order.
 //  2. Keyframes' time are all within [0,1] range.
 //  3. Successive keyframes' time must be separated by at least
-// std::numeric_limits<float>::epsilon() (around 1e-7).
+//  std::numeric_limits<float>::epsilon() (around 1e-7).
 // RawFloatTrack that would fail this validation will fail to be converted by
-// the
-// RawFloatTrackBuilder.
+// the RawFloatTrackBuilder.
 template <typename _ValueType>
 struct RawTrack {
   typedef _ValueType ValueType;

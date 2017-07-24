@@ -5,11 +5,9 @@ endif()
 add_library(ozz_animation_fbx STATIC
   ${PROJECT_SOURCE_DIR}/include/ozz/animation/offline/fbx/fbx.h
   fbx.cc
-  fbx_animation.h
+  ${PROJECT_SOURCE_DIR}/include/ozz/animation/offline/fbx/fbx_animation.h
   fbx_animation.cc
-  ${PROJECT_SOURCE_DIR}/include/ozz/animation/offline/fbx/fbx_base.h
-  fbx_base.cc
-  fbx_skeleton.h
+  ${PROJECT_SOURCE_DIR}/include/ozz/animation/offline/fbx/fbx_skeleton.h
   fbx_skeleton.cc)
 target_include_directories(ozz_animation_fbx PUBLIC
   $<BUILD_INTERFACE:${FBX_INCLUDE_DIRS}>)

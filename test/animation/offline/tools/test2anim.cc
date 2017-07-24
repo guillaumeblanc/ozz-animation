@@ -32,45 +32,96 @@
 #include "ozz/animation/runtime/skeleton.h"
 
 #include "ozz/base/io/stream.h"
+#include "ozz/base/memory/allocator.h"
 
 class TestAnimationConverter
     : public ozz::animation::offline::AnimationConverter {
+ public:
+  TestAnimationConverter() : file_(NULL) {}
+  ~TestAnimationConverter() { ozz::memory::default_allocator()->Delete(file_); }
+
  private:
-  // Implement SkeletonConverter::Import function.
-  virtual bool Import(const char* _filename,
+  virtual bool Load(const char* _filename) {
+    ozz::memory::default_allocator()->Delete(file_);
+    file_ =
+        ozz::memory::default_allocator()->New<ozz::io::File>(_filename, "rb");
+    if (!file_->opened()) {
+      ozz::memory::default_allocator()->Delete(file_);
+      file_ = NULL;
+      return false;
+    }
+    return true;
+  }
+
+  virtual AnimationNames GetAnimationNames() {
+    AnimationNames names;
+
+    if (file_ && file_->opened()) {
+      char buffer[256];
+
+      file_->Seek(0, ozz::io::File::kSet);
+      const char good_content1[] = "good content 1";
+      if (file_->Read(buffer, sizeof(buffer)) >= sizeof(good_content1) - 1 &&
+          memcmp(buffer, good_content1, sizeof(good_content1) - 1) == 0) {
+        names.push_back("one");
+        return names;
+      }
+
+      // Handles more than one animation per file.
+      file_->Seek(0, ozz::io::File::kSet);
+      const char good_content2[] = "good content 2";
+      if (file_->Read(buffer, sizeof(buffer)) >= sizeof(good_content2) - 1 &&
+          memcmp(buffer, good_content2, sizeof(good_content2) - 1) == 0) {
+        names.push_back("one");
+        names.push_back("TWO");
+        return names;
+      }
+    }
+
+    return names;
+  }
+
+  virtual bool Import(const char* _animation_name,
                       const ozz::animation::Skeleton& _skeleton,
-                      float _sampling_rate, Animations* _animations) {
+                      float _sampling_rate,
+                      ozz::animation::offline::RawAnimation* _animation) {
     (void)_sampling_rate;
     (void)_skeleton;
 
-    // Start with a clean output.
-    _animations->clear();
-
-    ozz::io::File file(_filename, "rb");
-    if (file.opened()) {
+    if (file_ && file_->opened()) {
       char buffer[256];
-      // Hanldes a single animation per file.
+      // Handles a single animation per file.
+      file_->Seek(0, ozz::io::File::kSet);
       const char good_content1[] = "good content 1";
-      file.Seek(0, ozz::io::File::kSet);
-      if (file.Read(buffer, sizeof(buffer)) >= sizeof(good_content1) - 1 &&
+      if (file_->Read(buffer, sizeof(buffer)) >= sizeof(good_content1) - 1 &&
           memcmp(buffer, good_content1, sizeof(good_content1) - 1) == 0) {
-        _animations->resize(1);
-        _animations->at(0).name = "one";
+        _animation->name = _animation_name;
         return true;
       }
-      // Hanldes more than one animation per file.
+      // Handles more than one animation per file.
+      file_->Seek(0, ozz::io::File::kSet);
       const char good_content2[] = "good content 2";
-      file.Seek(0, ozz::io::File::kSet);
-      if (file.Read(buffer, sizeof(buffer)) >= sizeof(good_content2) - 1 &&
+      if (file_->Read(buffer, sizeof(buffer)) >= sizeof(good_content2) - 1 &&
           memcmp(buffer, good_content2, sizeof(good_content2) - 1) == 0) {
-        _animations->resize(2);
-        _animations->at(0).name = "one";
-        _animations->at(1).name = "TWO";
+        _animation->name = _animation_name;
         return true;
       }
     }
     return false;
   }
+
+  virtual bool Import(const char* _animation_name, const char* _node_name,
+                      const char* _track_name, float _sampling_rate,
+                      ozz::animation::offline::RawFloatTrack* _track) {
+    (void)_animation_name;
+    (void)_node_name;
+    (void)_track_name;
+    (void)_sampling_rate;
+    (void)_track;
+    return true;
+  }
+
+  ozz::io::File* file_;
 };
 
 int main(int _argc, const char** _argv) {

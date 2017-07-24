@@ -28,7 +28,6 @@
 #include "framework/mesh.h"
 
 #include "ozz/animation/offline/fbx/fbx.h"
-#include "ozz/animation/offline/fbx/fbx_base.h"
 
 #include "ozz/animation/runtime/skeleton.h"
 

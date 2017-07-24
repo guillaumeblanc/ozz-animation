@@ -25,9 +25,7 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#define OZZ_INCLUDE_PRIVATE_HEADER  // Allows to include private headers.
-
-#include "animation/offline/fbx/fbx_animation.h"
+#include "ozz/animation/offline/fbx/fbx_animation.h"
 
 #include "ozz/animation/offline/raw_animation.h"
 #include "ozz/animation/offline/raw_track.h"
@@ -76,11 +74,11 @@ SamplingInfo ExtractSamplingInfo(FbxScene* _scene, FbxAnimStack* _anim_stack,
   float sampling_rate;
   if (_sampling_rate > 0.f) {
     sampling_rate = _sampling_rate;
-    log::Log() << "Using sampling rate of " << sampling_rate << "hz."
+    log::LogV() << "Using sampling rate of " << sampling_rate << "hz."
                << std::endl;
   } else {
     sampling_rate = scene_frame_rate;
-    log::Log() << "Using scene sampling rate of " << sampling_rate << "hz."
+    log::LogV() << "Using scene sampling rate of " << sampling_rate << "hz."
                << std::endl;
   }
   info.period = 1.f / sampling_rate;
@@ -100,20 +98,12 @@ SamplingInfo ExtractSamplingInfo(FbxScene* _scene, FbxAnimStack* _anim_stack,
   return info;
 }
 
-bool ExtractAnimation(FbxSceneLoader* _scene_loader, FbxAnimStack* _anim_stack,
-                      const SamplingInfo& _info, const Skeleton& _skeleton,
-                      RawAnimation* _animation) {
-  FbxScene* scene = _scene_loader->scene();
+bool ExtractAnimation(FbxSceneLoader& _scene_loader, const SamplingInfo& _info,
+                      const Skeleton& _skeleton, RawAnimation* _animation) {
+  FbxScene* scene = _scene_loader.scene();
   assert(scene);
 
-  ozz::log::Log() << "Extracting animation \"" << _anim_stack->GetName() << "\""
-                  << std::endl;
-
-  // Setup Fbx animation evaluator.
-  scene->SetCurrentAnimationStack(_anim_stack);
-
   // Set animation data.
-  _animation->name = _anim_stack->GetName();
   _animation->duration = _info.duration;
 
   // Allocates all tracks with the same number of joints as the skeleton.
@@ -176,7 +166,7 @@ bool ExtractAnimation(FbxSceneLoader* _scene_loader, FbxAnimStack* _anim_stack,
 
       // Convert to a transform object in ozz unit/axis system.
       ozz::math::Transform transform;
-      if (!_scene_loader->converter()->ConvertTransform(matrix, &transform)) {
+      if (!_scene_loader.converter()->ConvertTransform(matrix, &transform)) {
         ozz::log::Err() << "Failed to extract animation transform for joint \""
                         << joint_name << "\" at t = " << t << "s." << std::endl;
         return false;
@@ -195,10 +185,7 @@ bool ExtractAnimation(FbxSceneLoader* _scene_loader, FbxAnimStack* _anim_stack,
     }
   }
 
-  // Output animation must be valid at that point.
-  assert(_animation->Validate());
-
-  return true;
+  return _animation->Validate();
 }
 
 bool GetValue(FbxPropertyValue& _property_value, EFbxType _type,
@@ -262,11 +249,11 @@ bool GetValue(FbxPropertyValue& _property_value, EFbxType _type,
 }
 
 template <typename _Track>
-bool ExtractCurve(FbxSceneLoader* _scene_loader, FbxProperty& _property,
+bool ExtractCurve(FbxSceneLoader& _scene_loader, FbxProperty& _property,
                   EFbxType _type, const SamplingInfo& _info, _Track* _track) {
   assert(_track->keyframes.size() == 0);
 
-  FbxScene* scene = _scene_loader->scene();
+  FbxScene* scene = _scene_loader.scene();
   assert(scene);
 
   FbxAnimEvaluator* evaluator = scene->GetAnimationEvaluator();
@@ -377,40 +364,123 @@ const char* FbxTypeToString(EFbxType _type) {
   }
 }
 
-bool ExtractProperty(FbxSceneLoader* _scene_loader, const SamplingInfo& _info,
-                     FbxProperty& _property) {
+bool ExtractProperty(FbxSceneLoader& _scene_loader, const SamplingInfo& _info,
+                     FbxProperty& _property, RawFloatTrack* _track) {
   const EFbxType type = _property.GetPropertyDataType().GetType();
   switch (type) {
     case eFbxBool:
     case eFbxInt:
     case eFbxFloat:
     case eFbxDouble: {
-      RawFloatTrack track;
-      return ExtractCurve(_scene_loader, _property, type, _info, &track);
-    }
-    case eFbxDouble2: {
-      RawFloat2Track track;
-      return ExtractCurve(_scene_loader, _property, type, _info, &track);
-    }
-    case eFbxDouble3: {
-      RawFloat3Track track;
-      return ExtractCurve(_scene_loader, _property, type, _info, &track);
+      return ExtractCurve(_scene_loader, _property, type, _info, _track);
     }
     default: {
-      log::Err() << "Unsupported track type: " << FbxTypeToString(type) << "\""
-                 << std::endl;
+      log::Err() << "Float track can't be imported from a track of type: "
+                 << FbxTypeToString(type) << "\"" << std::endl;
+      return false;
+    }
+  }
+}
+
+bool ExtractProperty(FbxSceneLoader& _scene_loader, const SamplingInfo& _info,
+                     FbxProperty& _property, RawFloat2Track* _track) {
+  const EFbxType type = _property.GetPropertyDataType().GetType();
+  switch (type) {
+    case eFbxDouble2: {
+      return ExtractCurve(_scene_loader, _property, type, _info, _track);
+    }
+    default: {
+      log::Err() << "Float track can't be imported from a track of type: "
+                 << FbxTypeToString(type) << "\"" << std::endl;
+      return false;
+    }
+  }
+}
+
+bool ExtractProperty(FbxSceneLoader& _scene_loader, const SamplingInfo& _info,
+                     FbxProperty& _property, RawFloat3Track* _track) {
+  const EFbxType type = _property.GetPropertyDataType().GetType();
+  switch (type) {
+    case eFbxDouble3: {
+      return ExtractCurve(_scene_loader, _property, type, _info, _track);
+    }
+    default: {
+      log::Err() << "Float track can't be imported from a track of type: "
+                 << FbxTypeToString(type) << "\"" << std::endl;
       return false;
     }
   }
 }
 }  // namespace
 
-bool ExtractTrack(FbxSceneLoader* _scene_loader, const SamplingInfo& _info,
-                  const char* _node_name, const char* _property_name) {
-  ozz::log::Log() << "Extracting animation track \"" << _node_name << ":"
-                  << _property_name << "\"" << std::endl;
+AnimationNames GetAnimationNames(FbxSceneLoader& _scene_loader) {
+  AnimationNames names;
 
-  FbxScene* scene = _scene_loader->scene();
+  const FbxScene* scene = _scene_loader.scene();
+  for (int i = 0; i < scene->GetSrcObjectCount<FbxAnimStack>(); ++i) {
+    FbxAnimStack* anim_stack = scene->GetSrcObject<FbxAnimStack>(i);
+    names.push_back(ozz::String::Std(anim_stack->GetName()));
+  }
+
+  return names;
+}
+
+bool ExtractAnimation(const char* _animation_name,
+                      FbxSceneLoader& _scene_loader, const Skeleton& _skeleton,
+                      float _sampling_rate,
+                      ozz::animation::offline::RawAnimation* _animation) {
+  FbxScene* scene = _scene_loader.scene();
+  assert(scene);
+
+  bool success = false;
+
+  FbxAnimStack* anim_stack =
+      scene->FindSrcObject<FbxAnimStack>(_animation_name);
+  if (anim_stack) {
+    // Extract sampling info relative to the stack.
+    const SamplingInfo& info =
+        ExtractSamplingInfo(scene, anim_stack, _sampling_rate);
+
+    ozz::log::Log() << "Extracting animation \"" << anim_stack->GetName()
+                    << "\"" << std::endl;
+
+    // Setup Fbx animation evaluator.
+    scene->SetCurrentAnimationStack(anim_stack);
+
+    _animation->name = anim_stack->GetName();
+    success = ExtractAnimation(_scene_loader, info, _skeleton, _animation);
+  }
+
+  // Clears output if something failed during import, avoids partial data.
+  if (!success) {
+    *_animation = ozz::animation::offline::RawAnimation();
+  }
+
+  return success;
+}
+
+bool ExtractTrack(const char* _animation_name, const char* _node_name,
+                  const char* _track_name, FbxSceneLoader& _scene_loader,
+                  float _sampling_rate, RawFloatTrack* _track) {
+  FbxScene* scene = _scene_loader.scene();
+  assert(scene);
+
+  // Reset track
+  *_track = RawFloatTrack();
+
+  FbxAnimStack* anim_stack =
+      scene->FindSrcObject<FbxAnimStack>(_animation_name);
+  if (!anim_stack) {
+    return false;
+  }
+
+  // Extract sampling info relative to the stack.
+  const SamplingInfo& info =
+      ExtractSamplingInfo(scene, anim_stack, _sampling_rate);
+
+  ozz::log::Log() << "Extracting animation track \"" << _node_name << ":"
+                  << _track_name << "\"" << std::endl;
+
   FbxNode* node = scene->FindNodeByName(_node_name);
   if (!node) {
     ozz::log::Err() << "Invalid node name \"" << _node_name << "\""
@@ -418,56 +488,14 @@ bool ExtractTrack(FbxSceneLoader* _scene_loader, const SamplingInfo& _info,
     return false;
   }
 
-  FbxProperty property = node->FindProperty(_property_name);
+  FbxProperty property = node->FindProperty(_track_name);
   if (!property.IsValid()) {
-    ozz::log::Err() << "Invalid property name \"" << _property_name << "\""
+    ozz::log::Err() << "Invalid property name \"" << _track_name << "\""
                     << std::endl;
     return false;
   }
 
-  return ExtractProperty(_scene_loader, _info, property);
-}
-
-bool ExtractAnimations(FbxSceneLoader* _scene_loader, const Skeleton& _skeleton,
-                       float _sampling_rate, Animations* _animations) {
-  // Clears output
-  _animations->clear();
-
-  FbxScene* scene = _scene_loader->scene();
-  assert(scene);
-
-  int anim_stacks_count = scene->GetSrcObjectCount<FbxAnimStack>();
-
-  // Early out if no animation's found.
-  if (anim_stacks_count == 0) {
-    ozz::log::Err() << "No animation found." << std::endl;
-    return false;
-  }
-
-  // Prepares outputs.
-  _animations->resize(anim_stacks_count);
-
-  // Sequentially import all available animations.
-  bool success = true;
-  for (int i = 0; i < anim_stacks_count && success; ++i) {
-    FbxAnimStack* anim_stack = scene->GetSrcObject<FbxAnimStack>(i);
-
-    // Extract sampling info relative to the stack.
-    const SamplingInfo& info =
-        ExtractSamplingInfo(scene, anim_stack, _sampling_rate);
-
-    success &= ExtractAnimation(_scene_loader, anim_stack, info, _skeleton,
-                                &_animations->at(i));
-
-    // success &= ExtractTrack(_scene_loader, info, "Hips", "TranslationMaxZ");
-  }
-
-  // Clears output if something failed during import, avoids partial data.
-  if (!success) {
-    _animations->clear();
-  }
-
-  return success;
+  return ExtractProperty(_scene_loader, info, property, _track);
 }
 }  // namespace fbx
 }  // namespace offline

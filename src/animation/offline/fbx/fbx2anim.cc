@@ -28,6 +28,13 @@
 #include "ozz/animation/offline/tools/convert2anim.h"
 
 #include "ozz/animation/offline/fbx/fbx.h"
+#include "ozz/animation/offline/fbx/fbx_animation.h"
+#include "ozz/animation/offline/fbx/fbx_skeleton.h"
+
+#include "ozz/animation/offline/raw_animation.h"
+#include "ozz/animation/offline/raw_skeleton.h"
+
+#include "ozz/base/log.h"
 
 // fbx2anim is a command line tool that converts an animation imported from a
 // fbx document to ozz runtime format.
@@ -42,14 +49,69 @@
 
 class FbxAnimationConverter
     : public ozz::animation::offline::AnimationConverter {
- private:
-  // Implement SkeletonConverter::Import function.
-  virtual bool Import(const char* _filename,
-                      const ozz::animation::Skeleton& _skeleton,
-                      float _sampling_rate, Animations* _animations) {
-    return ozz::animation::offline::fbx::ImportFromFile(
-        _filename, _skeleton, _sampling_rate, _animations);
+ public:
+  FbxAnimationConverter() : settings_(fbx_manager_), scene_loader_(NULL) {}
+  ~FbxAnimationConverter() {
+    ozz::memory::default_allocator()->Delete(scene_loader_);
   }
+
+ private:
+  virtual bool Load(const char* _filename) {
+    ozz::memory::default_allocator()->Delete(scene_loader_);
+    scene_loader_ = ozz::memory::default_allocator()
+                        ->New<ozz::animation::offline::fbx::FbxSceneLoader>(
+                            _filename, "", fbx_manager_, settings_);
+
+    if (!scene_loader_->scene()) {
+      ozz::log::Err() << "Failed to import file " << _filename << "."
+                      << std::endl;
+      ozz::memory::default_allocator()->Delete(scene_loader_);
+      scene_loader_ = NULL;
+      return false;
+    }
+    return true;
+  }
+
+  virtual AnimationNames GetAnimationNames() {
+    if (!scene_loader_) {
+      return AnimationNames();
+    }
+    return ozz::animation::offline::fbx::GetAnimationNames(*scene_loader_);
+  }
+
+  virtual bool Import(const char* _animation_name,
+                      const ozz::animation::Skeleton& _skeleton,
+                      float _sampling_rate,
+                      ozz::animation::offline::RawAnimation* _animation) {
+    if (!_animation) {
+      return false;
+    }
+
+    *_animation = ozz::animation::offline::RawAnimation();
+
+    if (!scene_loader_) {
+      return false;
+    }
+
+    return ozz::animation::offline::fbx::ExtractAnimation(
+        _animation_name, *scene_loader_, _skeleton, _sampling_rate, _animation);
+  }
+
+  virtual bool Import(const char* _animation_name, const char* _node_name,
+                      const char* _track_name, float _sampling_rate,
+                      ozz::animation::offline::RawFloatTrack* _track) {
+    if (!scene_loader_) {
+      return false;
+    }
+
+    return ozz::animation::offline::fbx::ExtractTrack(
+        _animation_name, _node_name, _track_name, *scene_loader_,
+        _sampling_rate, _track);
+  }
+
+  ozz::animation::offline::fbx::FbxManagerInstance fbx_manager_;
+  ozz::animation::offline::fbx::FbxAnimationIOSettings settings_;
+  ozz::animation::offline::fbx::FbxSceneLoader* scene_loader_;
 };
 
 int main(int _argc, const char** _argv) {

@@ -30,25 +30,41 @@
 #include "ozz/animation/offline/tools/convert2skel.h"
 
 #include "ozz/base/io/stream.h"
+#include "ozz/base/memory/allocator.h"
 
 class TestSkeletonConverter
     : public ozz::animation::offline::SkeletonConverter {
+ public:
+  TestSkeletonConverter() : file_(NULL) {}
+  ~TestSkeletonConverter() { ozz::memory::default_allocator()->Delete(file_); }
+
  private:
-  // Implement SkeletonConverter::Import function.
-  virtual bool Import(const char* _filename,
-                      ozz::animation::offline::RawSkeleton* _skeleton) {
+  virtual bool Load(const char* _filename) {
+    ozz::memory::default_allocator()->Delete(file_);
+    file_ =
+        ozz::memory::default_allocator()->New<ozz::io::File>(_filename, "rb");
+    if (!file_->opened()) {
+      ozz::memory::default_allocator()->Delete(file_);
+      file_ = NULL;
+      return false;
+    }
+    return true;
+  }
+
+  virtual bool Import(ozz::animation::offline::RawSkeleton* _skeleton) {
     (void)_skeleton;
-    ozz::io::File file(_filename, "rb");
-    if (file.opened()) {
+    if (file_ && file_->opened()) {
       char buffer[256];
       const char good_content[] = "good content 1";
-      if (file.Read(buffer, sizeof(buffer)) >= sizeof(good_content) - 1 &&
+      if (file_->Read(buffer, sizeof(buffer)) >= sizeof(good_content) - 1 &&
           memcmp(buffer, good_content, sizeof(good_content) - 1) == 0) {
         return true;
       }
     }
     return false;
   }
+
+  ozz::io::File* file_;
 };
 
 int main(int _argc, const char** _argv) {

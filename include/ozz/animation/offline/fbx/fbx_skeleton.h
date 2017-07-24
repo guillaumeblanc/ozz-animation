@@ -25,32 +25,23 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#ifndef OZZ_ANIMATION_OFFLINE_FBX_FBX_ANIMATION_H_
-#define OZZ_ANIMATION_OFFLINE_FBX_FBX_ANIMATION_H_
-
-#ifndef OZZ_INCLUDE_PRIVATE_HEADER
-#error "This header is private, it cannot be included from public headers."
-#endif  // OZZ_INCLUDE_PRIVATE_HEADER
+#ifndef OZZ_ANIMATION_OFFLINE_FBX_FBX_SKELETON_H_
+#define OZZ_ANIMATION_OFFLINE_FBX_FBX_SKELETON_H_
 
 #include "ozz/animation/offline/fbx/fbx.h"
-#include "ozz/animation/offline/fbx/fbx_base.h"
 
 namespace ozz {
 namespace animation {
-
-class Skeleton;
-
 namespace offline {
 
-struct RawAnimation;
+struct RawSkeleton;
 
 namespace fbx {
 
-bool ExtractAnimations(FbxSceneLoader* _scene_loader, const Skeleton& _skeleton,
-                       float _sampling_rate, Animations* _animations);
+bool ExtractSkeleton(FbxSceneLoader& _loader, RawSkeleton* _skeleton);
 
 }  // namespace fbx
 }  // namespace offline
 }  // namespace animation
 }  // namespace ozz
-#endif  // OZZ_ANIMATION_OFFLINE_FBX_FBX_ANIMATION_H_
+#endif  // OZZ_ANIMATION_OFFLINE_FBX_FBX_SKELETON_H_

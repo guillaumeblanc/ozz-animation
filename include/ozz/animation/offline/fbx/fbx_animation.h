@@ -25,27 +25,39 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#ifndef OZZ_ANIMATION_OFFLINE_FBX_FBX_SKELETON_H_
-#define OZZ_ANIMATION_OFFLINE_FBX_FBX_SKELETON_H_
+#ifndef OZZ_ANIMATION_OFFLINE_FBX_FBX_ANIMATION_H_
+#define OZZ_ANIMATION_OFFLINE_FBX_FBX_ANIMATION_H_
 
-#ifndef OZZ_INCLUDE_PRIVATE_HEADER
-#error "This header is private, it cannot be included from public headers."
-#endif  // OZZ_INCLUDE_PRIVATE_HEADER
+#include "ozz/animation/offline/fbx/fbx.h"
 
-#include "ozz/animation/offline/fbx/fbx_base.h"
+#include "ozz/base/containers/string.h"
+#include "ozz/base/containers/vector.h"
 
 namespace ozz {
 namespace animation {
+
+class Skeleton;
+
 namespace offline {
 
-struct RawSkeleton;
+struct RawAnimation;
+struct RawFloatTrack;
 
 namespace fbx {
 
-bool ExtractSkeleton(FbxSceneLoader& _loader, RawSkeleton* _skeleton);
+typedef ozz::Vector<ozz::String::Std>::Std AnimationNames;
+AnimationNames GetAnimationNames(FbxSceneLoader& _scene_loader);
+
+bool ExtractAnimation(const char* _animation_name,
+                      FbxSceneLoader& _scene_loader, const Skeleton& _skeleton,
+                      float _sampling_rate, RawAnimation* _animation);
+
+bool ExtractTrack(const char* _animation_name, const char* _node_name,
+                  const char* _track_name, FbxSceneLoader& _scene_loader,
+                  float _sampling_rate, RawFloatTrack* _track);
 
 }  // namespace fbx
 }  // namespace offline
 }  // namespace animation
 }  // namespace ozz
-#endif  // OZZ_ANIMATION_OFFLINE_FBX_FBX_SKELETON_H_
+#endif  // OZZ_ANIMATION_OFFLINE_FBX_FBX_ANIMATION_H_

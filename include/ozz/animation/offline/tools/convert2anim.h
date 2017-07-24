@@ -31,6 +31,7 @@
 #include "ozz/base/containers/vector.h"
 
 #include "ozz/animation/offline/raw_animation.h"
+#include "ozz/animation/offline/raw_track.h"
 
 namespace ozz {
 namespace animation {
@@ -44,12 +45,20 @@ class AnimationConverter {
   int operator()(int _argc, const char** _argv);
 
  protected:
-  typedef Vector<RawAnimation>::Std Animations;
+  typedef ozz::Vector<ozz::String::Std>::Std AnimationNames;
 
  private:
-  virtual bool Import(const char* _filename,
+  virtual bool Load(const char* _filename) = 0;
+
+  virtual AnimationNames GetAnimationNames() = 0;
+
+  virtual bool Import(const char* _animation_name,
                       const ozz::animation::Skeleton& _skeleton,
-                      float _sampling_rate, Animations* _animations) = 0;
+                      float _sampling_rate, RawAnimation* _animation) = 0;
+
+  virtual bool Import(const char* _animation_name, const char* _node_name,
+                      const char* _track_name, float _sampling_rate,
+                      RawFloatTrack* _track) = 0;
 };
 }  // namespace offline
 }  // namespace animation

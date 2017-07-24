@@ -123,9 +123,15 @@ int SkeletonConverter::operator()(int _argc, const char** _argv) {
     return EXIT_FAILURE;
   }
 
-  ozz::animation::offline::RawSkeleton raw_skeleton;
-  if (!Import(OPTIONS_file, &raw_skeleton)) {
+  if (!Load(OPTIONS_file)) {
     ozz::log::Err() << "Failed to import file \"" << OPTIONS_file << "\""
+                    << std::endl;
+    return EXIT_FAILURE;
+  }
+
+  ozz::animation::offline::RawSkeleton raw_skeleton;
+  if (!Import(&raw_skeleton)) {
+    ozz::log::Err() << "Failed to import skeleton from \"" << OPTIONS_file << "\""
                     << std::endl;
     return EXIT_FAILURE;
   }
