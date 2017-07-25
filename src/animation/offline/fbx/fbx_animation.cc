@@ -75,11 +75,11 @@ SamplingInfo ExtractSamplingInfo(FbxScene* _scene, FbxAnimStack* _anim_stack,
   if (_sampling_rate > 0.f) {
     sampling_rate = _sampling_rate;
     log::LogV() << "Using sampling rate of " << sampling_rate << "hz."
-               << std::endl;
+                << std::endl;
   } else {
     sampling_rate = scene_frame_rate;
     log::LogV() << "Using scene sampling rate of " << sampling_rate << "hz."
-               << std::endl;
+                << std::endl;
   }
   info.period = 1.f / sampling_rate;
 
@@ -381,7 +381,7 @@ bool ExtractProperty(FbxSceneLoader& _scene_loader, const SamplingInfo& _info,
     }
   }
 }
-/*
+
 bool ExtractProperty(FbxSceneLoader& _scene_loader, const SamplingInfo& _info,
                      FbxProperty& _property, RawFloat2Track* _track) {
   const EFbxType type = _property.GetPropertyDataType().GetType();
@@ -410,7 +410,47 @@ bool ExtractProperty(FbxSceneLoader& _scene_loader, const SamplingInfo& _info,
       return false;
     }
   }
-}*/
+}
+
+template <typename _Track>
+bool ExtractTrackImpl(const char* _animation_name, const char* _node_name,
+                      const char* _track_name, FbxSceneLoader& _scene_loader,
+                      float _sampling_rate, _Track* _track) {
+  FbxScene* scene = _scene_loader.scene();
+  assert(scene);
+
+  // Reset track
+  *_track = _Track();
+
+  FbxAnimStack* anim_stack =
+      scene->FindSrcObject<FbxAnimStack>(_animation_name);
+  if (!anim_stack) {
+    return false;
+  }
+
+  // Extract sampling info relative to the stack.
+  const SamplingInfo& info =
+      ExtractSamplingInfo(scene, anim_stack, _sampling_rate);
+
+  ozz::log::Log() << "Extracting animation track \"" << _node_name << ":"
+                  << _track_name << "\"" << std::endl;
+
+  FbxNode* node = scene->FindNodeByName(_node_name);
+  if (!node) {
+    ozz::log::Err() << "Invalid node name \"" << _node_name << "\""
+                    << std::endl;
+    return false;
+  }
+
+  FbxProperty property = node->FindProperty(_track_name);
+  if (!property.IsValid()) {
+    ozz::log::Err() << "Invalid property name \"" << _track_name << "\""
+                    << std::endl;
+    return false;
+  }
+
+  return ExtractProperty(_scene_loader, info, property, _track);
+}
 }  // namespace
 
 AnimationNames GetAnimationNames(FbxSceneLoader& _scene_loader) {
@@ -462,40 +502,22 @@ bool ExtractAnimation(const char* _animation_name,
 bool ExtractTrack(const char* _animation_name, const char* _node_name,
                   const char* _track_name, FbxSceneLoader& _scene_loader,
                   float _sampling_rate, RawFloatTrack* _track) {
-  FbxScene* scene = _scene_loader.scene();
-  assert(scene);
+  return ExtractTrackImpl(_animation_name, _node_name, _track_name,
+                          _scene_loader, _sampling_rate, _track);
+}
 
-  // Reset track
-  *_track = RawFloatTrack();
+bool ExtractTrack(const char* _animation_name, const char* _node_name,
+                  const char* _track_name, FbxSceneLoader& _scene_loader,
+                  float _sampling_rate, RawFloat2Track* _track) {
+  return ExtractTrackImpl(_animation_name, _node_name, _track_name,
+                          _scene_loader, _sampling_rate, _track);
+}
 
-  FbxAnimStack* anim_stack =
-      scene->FindSrcObject<FbxAnimStack>(_animation_name);
-  if (!anim_stack) {
-    return false;
-  }
-
-  // Extract sampling info relative to the stack.
-  const SamplingInfo& info =
-      ExtractSamplingInfo(scene, anim_stack, _sampling_rate);
-
-  ozz::log::Log() << "Extracting animation track \"" << _node_name << ":"
-                  << _track_name << "\"" << std::endl;
-
-  FbxNode* node = scene->FindNodeByName(_node_name);
-  if (!node) {
-    ozz::log::Err() << "Invalid node name \"" << _node_name << "\""
-                    << std::endl;
-    return false;
-  }
-
-  FbxProperty property = node->FindProperty(_track_name);
-  if (!property.IsValid()) {
-    ozz::log::Err() << "Invalid property name \"" << _track_name << "\""
-                    << std::endl;
-    return false;
-  }
-
-  return ExtractProperty(_scene_loader, info, property, _track);
+bool ExtractTrack(const char* _animation_name, const char* _node_name,
+                  const char* _track_name, FbxSceneLoader& _scene_loader,
+                  float _sampling_rate, RawFloat3Track* _track) {
+  return ExtractTrackImpl(_animation_name, _node_name, _track_name,
+                          _scene_loader, _sampling_rate, _track);
 }
 }  // namespace fbx
 }  // namespace offline

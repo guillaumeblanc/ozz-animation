@@ -42,6 +42,9 @@ namespace offline {
 
 struct RawAnimation;
 struct RawFloatTrack;
+struct RawFloat2Track;
+struct RawFloat3Track;
+struct RawquaternionTrack;
 
 namespace fbx {
 
@@ -55,6 +58,14 @@ bool ExtractAnimation(const char* _animation_name,
 bool ExtractTrack(const char* _animation_name, const char* _node_name,
                   const char* _track_name, FbxSceneLoader& _scene_loader,
                   float _sampling_rate, RawFloatTrack* _track);
+
+bool ExtractTrack(const char* _animation_name, const char* _node_name,
+                  const char* _track_name, FbxSceneLoader& _scene_loader,
+                  float _sampling_rate, RawFloat2Track* _track);
+
+bool ExtractTrack(const char* _animation_name, const char* _node_name,
+                  const char* _track_name, FbxSceneLoader& _scene_loader,
+                  float _sampling_rate, RawFloat3Track* _track);
 
 }  // namespace fbx
 }  // namespace offline
