@@ -714,7 +714,7 @@ bool ExtractProperty(FbxSceneLoader& _scene_loader, const SamplingInfo& _info,
     }
   }
 }
-
+/*
 bool ExtractProperty(FbxSceneLoader& _scene_loader, const SamplingInfo& _info,
                      FbxProperty& _property, RawFloat2Track* _track) {
   const EFbxType type = _property.GetPropertyDataType().GetType();
@@ -743,7 +743,7 @@ bool ExtractProperty(FbxSceneLoader& _scene_loader, const SamplingInfo& _info,
       return false;
     }
   }
-}
+}*/
 }  // namespace
 
 AnimationNames GetAnimationNames(FbxSceneLoader& _scene_loader) {

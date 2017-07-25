@@ -517,18 +517,18 @@ int AnimationConverter::operator()(int _argc, const char** _argv) {
     return EXIT_FAILURE;
   }
 
-  // Import skeleton instance.
-  ozz::animation::Skeleton* skeleton = ImportSkeleton();
-  if (!skeleton) {
-    return EXIT_FAILURE;
-  }
-
   // Get all available animation names.
   AnimationNames animation_names = GetAnimationNames();
 
   // Are there animations available
   if (animation_names.empty()) {
     ozz::log::Err() << "No animation found." << std::endl;
+    return EXIT_FAILURE;
+  }
+
+  // Import skeleton instance.
+  ozz::animation::Skeleton* skeleton = ImportSkeleton();
+  if (!skeleton) {
     return EXIT_FAILURE;
   }
 
