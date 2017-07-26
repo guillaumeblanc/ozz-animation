@@ -25,6 +25,7 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
+#include <algorithm>
 #include <cstdlib>
 #include <future>
 
@@ -80,10 +81,10 @@ class MultithreadSampleApplication : public ozz::sample::Application {
  public:
   MultithreadSampleApplication()
       : characters_(kMaxCharacters),
-        thread_ids_(kMaxCharacters),
         num_characters_(1024),
         enable_theading_(true),
-        grain_size_(128) {}
+        grain_size_(128),
+        thread_ids_(kMaxCharacters) {}
 
  private:
   // Nested Character struct forward declaration.
