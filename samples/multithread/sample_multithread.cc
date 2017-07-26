@@ -90,15 +90,15 @@ class MultithreadSampleApplication : public ozz::sample::Application {
   // Nested Character struct forward declaration.
   struct Character;
 
-  static bool UpdateCharacter(const ozz::animation::Animation* _animation,
-                              const ozz::animation::Skeleton* _skeleton,
+  static bool UpdateCharacter(const ozz::animation::Animation& _animation,
+                              const ozz::animation::Skeleton& _skeleton,
                               float _dt, Character* _character) {
     // Samples animation.
-    _character->controller.Update(*_animation, _dt);
+    _character->controller.Update(_animation, _dt);
 
     // Setup sampling job.
     ozz::animation::SamplingJob sampling_job;
-    sampling_job.animation = _animation;
+    sampling_job.animation = &_animation;
     sampling_job.cache = _character->cache;
     sampling_job.time = _character->controller.time();
     sampling_job.output = _character->locals;
@@ -110,7 +110,7 @@ class MultithreadSampleApplication : public ozz::sample::Application {
 
     // Converts from local space to model space matrices.
     ozz::animation::LocalToModelJob ltm_job;
-    ltm_job.skeleton = _skeleton;
+    ltm_job.skeleton = &_skeleton;
     ltm_job.input = _character->locals;
     ltm_job.output = _character->models;
     if (!ltm_job.Run()) {
@@ -120,41 +120,50 @@ class MultithreadSampleApplication : public ozz::sample::Application {
     return true;
   }
 
-  static bool ParallelUpdate(int _grain_size,
-                             const ozz::animation::Animation* _animation,
-                             const ozz::animation::Skeleton* _skeleton,
-                             float _dt, Character* _characters, int _num,
-                             size_t** _thread_ids) {
+  struct ParallelArgs {
+    const ozz::animation::Animation& animation;
+    const ozz::animation::Skeleton& skeleton;
+    float dt;
+    int grain_size;
+  };
+
+  static bool ParallelUpdate(const ParallelArgs& _args, Character* _characters, 
+                             int _num, size_t** _thread_ids) {
     bool success = true;
-    if (_num <= _grain_size) {
+    if (_num <= _args.grain_size) {
       size_t* thread_id = &kTlsThreadIdentifier;
       for (int i = 0; i < _num; ++i) {
         _thread_ids[i] = thread_id;  // Store this thread identifier.
-        success &= UpdateCharacter(_animation, _skeleton, _dt, &_characters[i]);
+        success &= UpdateCharacter(_args.animation, _args.skeleton, _args.dt, &_characters[i]);
       }
     } else {
+      // Run half the job on a asyn task, possibly another new thread.
       const int half = _num / 2;
-      auto handle = std::async(std::launch::async, ParallelUpdate, _grain_size,
-                               _animation, _skeleton, _dt, _characters + half,
+      auto handle = std::async(std::launch::async, ParallelUpdate, _args, _characters + half,
                                _num - half, _thread_ids + half);
-      success &= ParallelUpdate(_grain_size, _animation, _skeleton, _dt,
-                                _characters, half, _thread_ids);
+
+      // The other half is processed by this thread.
+      success &= ParallelUpdate(_args, _characters, half, _thread_ids);
+
+      // Get result of the async task or process it if it's not started yet.
       success &= handle.get();
     }
     return success;
   }
 
  protected:
+  
   // Updates current animation time.
   virtual bool OnUpdate(float _dt) {
     bool success = true;
     if (enable_theading_) {
-      success = ParallelUpdate(grain_size_, &animation_, &skeleton_, _dt,
+      const ParallelArgs args = {animation_, skeleton_, _dt, grain_size_};
+      success = ParallelUpdate(args,
                                array_begin(characters_), num_characters_,
                                array_begin(thread_ids_));
     } else {
       for (int i = 0; i < num_characters_; ++i) {
-        success &= UpdateCharacter(&animation_, &skeleton_, _dt,
+        success &= UpdateCharacter(animation_, skeleton_, _dt,
                                    array_begin(characters_) + i);
       }
     }
