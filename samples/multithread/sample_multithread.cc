@@ -121,8 +121,8 @@ class MultithreadSampleApplication : public ozz::sample::Application {
   }
 
   struct ParallelArgs {
-    const ozz::animation::Animation& animation;
-    const ozz::animation::Skeleton& skeleton;
+    const ozz::animation::Animation* animation;
+    const ozz::animation::Skeleton* skeleton;
     float dt;
     int grain_size;
   };
@@ -134,7 +134,7 @@ class MultithreadSampleApplication : public ozz::sample::Application {
       size_t* thread_id = &kTlsThreadIdentifier;
       for (int i = 0; i < _num; ++i) {
         _thread_ids[i] = thread_id;  // Store this thread identifier.
-        success &= UpdateCharacter(_args.animation, _args.skeleton, _args.dt, &_characters[i]);
+        success &= UpdateCharacter(*_args.animation, *_args.skeleton, _args.dt, &_characters[i]);
       }
     } else {
       // Run half the job on a asyn task, possibly another new thread.
@@ -157,7 +157,7 @@ class MultithreadSampleApplication : public ozz::sample::Application {
   virtual bool OnUpdate(float _dt) {
     bool success = true;
     if (enable_theading_) {
-      const ParallelArgs args = {animation_, skeleton_, _dt, grain_size_};
+      const ParallelArgs args = {&animation_, &skeleton_, _dt, grain_size_};
       success = ParallelUpdate(args,
                                array_begin(characters_), num_characters_,
                                array_begin(thread_ids_));
