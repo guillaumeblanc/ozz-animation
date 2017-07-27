@@ -131,7 +131,7 @@ class MultithreadSampleApplication : public ozz::sample::Application {
   // Every task will push its thread id to an array. We can then process it to
   // find how many threads were used.
   struct ParallelAnalyze {
-    ParallelAnalyze() : num_async_tasks(0) {
+    ParallelAnalyze() {
       // Finds the maximum possible number of tasks considering kMinGrain grain
       // size for kMaxCharacters characters.
       int max_tasks = 1;
@@ -139,6 +139,7 @@ class MultithreadSampleApplication : public ozz::sample::Application {
            processed *= 2, max_tasks *= 2)
         ;
       thread_ids_.resize(max_tasks);
+      num_async_tasks.store(0);
     }
     ozz::Vector<std::thread::id>::Std thread_ids_;
     std::atomic_int num_async_tasks;
