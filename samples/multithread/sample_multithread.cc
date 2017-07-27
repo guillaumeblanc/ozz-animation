@@ -151,6 +151,7 @@ class MultithreadSampleApplication : public ozz::sample::Application {
       // Stores this thread identifier to a new task slot.
       _analyze->thread_ids_[_analyze->num_async_tasks++] =
           std::this_thread::get_id();
+
       for (int i = 0; i < _num; ++i) {
         success &= UpdateCharacter(*_args.animation, *_args.skeleton, _args.dt,
                                    &_characters[i]);

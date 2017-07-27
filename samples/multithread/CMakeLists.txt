@@ -1,3 +1,5 @@
+find_package(Threads REQUIRED)
+
 add_custom_command(
   DEPENDS $<$<BOOL:${ozz_build_fbx}>:BUILD_DATA>
           "${CMAKE_CURRENT_LIST_DIR}/README.md"
@@ -18,7 +20,8 @@ add_executable(sample_multithread
   "${CMAKE_CURRENT_BINARY_DIR}/media/animation.ozz")
 
 target_link_libraries(sample_multithread
-  sample_framework)
+  sample_framework
+  ${CMAKE_THREAD_LIBS_INIT})
 
 set_target_properties(sample_multithread
   PROPERTIES FOLDER "samples")
