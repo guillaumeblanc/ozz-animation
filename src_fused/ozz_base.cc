@@ -32,6 +32,7 @@
 #include "ozz/base/memory/allocator.h"
 
 #include <memory.h>
+#include <atomic>
 #include <cassert>
 #include <cstdlib>
 
@@ -47,12 +48,12 @@ struct Header {
 };
 }  // namespace
 
-// Implements the basic heap allocator->
+// Implements the basic heap allocator.
 // Will trace allocation count and assert in case of a memory leak.
 class HeapAllocator : public Allocator {
  public:
-  HeapAllocator() : allocation_count_(0) {}
-  ~HeapAllocator() { assert(allocation_count_ == 0 && "Memory leak detected"); }
+  HeapAllocator() { allocation_count_.store(0); }
+  ~HeapAllocator() { assert(allocation_count_.load() == 0 && "Memory leak detected"); }
 
  protected:
   void* Allocate(size_t _size, size_t _alignment) {
@@ -102,7 +103,7 @@ class HeapAllocator : public Allocator {
  private:
   // Internal allocation count used to track memory leaks.
   // Should equals 0 at destruction time.
-  int allocation_count_;
+  std::atomic_int allocation_count_;
 };
 
 namespace {
