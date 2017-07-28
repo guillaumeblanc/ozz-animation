@@ -40,7 +40,6 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/build-utils/cm
 
 # Detects Fbx SDK, required to build Fbx pipeline.
 if(ozz_build_fbx)
-
   # Select a msvc runtime compatible with ozz_build_msvc_rt_dll
   set(FBX_MSVC_RT_DLL ${ozz_build_msvc_rt_dll})
 
@@ -48,12 +47,16 @@ if(ozz_build_fbx)
   find_package(Fbx 2016)
 
   # Disables ozz_build_fbx if Fbx SDK isn't found.
-  # Disables data generation as well.
   if(NOT FBX_FOUND)
     message("Fbx SDK not found, FBX tools libraries and samples will be skipped.")
     set(ozz_build_fbx OFF)
-    set(ozz_build_data OFF)
   endif()
+endif()
+
+# Disables data generation if fbx is not active.
+if(NOT ozz_build_fbx)
+  message("Disabling build of data because fbx isn't available.")
+  set(ozz_build_data OFF)
 endif()
 
 # Include ozz cmake parameters and scripts
