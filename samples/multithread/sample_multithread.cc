@@ -75,7 +75,7 @@ const int kDepth = 16;
 const int kMaxCharacters = 4096;
 
 // The minimum number of characters per task.
-const int kMinGrain = 32;
+const int kMinGrainSize = 32;
 
 class MultithreadSampleApplication : public ozz::sample::Application {
  public:
@@ -115,7 +115,6 @@ class MultithreadSampleApplication : public ozz::sample::Application {
     if (!ltm_job.Run()) {
       return false;
     }
-
     return true;
   }
 
@@ -124,33 +123,34 @@ class MultithreadSampleApplication : public ozz::sample::Application {
     const ozz::animation::Animation* animation;
     const ozz::animation::Skeleton* skeleton;
     float dt;
-    int grain_size;
+    int grain_size;  // Maximum number of characters that can be processed by a
+                     // task.
   };
 
-  // Data used to analyze threading.
+  // Data used to monitor and analyze threading.
   // Every task will push its thread id to an array. We can then process it to
   // find how many threads were used.
-  struct ParallelAnalyze {
-    ParallelAnalyze() {
+  struct ParallelMonitor {
+    ParallelMonitor() {
       // Finds the maximum possible number of tasks considering kMinGrain grain
       // size for kMaxCharacters characters.
       int max_tasks = 1;
-      for (int processed = kMinGrain; processed < kMaxCharacters;
-           processed *= 2, max_tasks *= 2)
-        ;
+      for (int processed = kMinGrainSize; processed < kMaxCharacters;
+           processed *= 2, max_tasks *= 2) {
+      }
       thread_ids_.resize(max_tasks);
       num_async_tasks.store(0);
     }
     ozz::Vector<std::thread::id>::Std thread_ids_;
-    std::atomic_int num_async_tasks;
+    std::atomic_uint num_async_tasks;
   };
 
   static bool ParallelUpdate(const ParallelArgs& _args, Character* _characters,
-                             int _num, ParallelAnalyze* _analyze) {
+                             int _num, ParallelMonitor* _monitor) {
     bool success = true;
     if (_num <= _args.grain_size) {
       // Stores this thread identifier to a new task slot.
-      _analyze->thread_ids_[_analyze->num_async_tasks++] =
+      _monitor->thread_ids_[_monitor->num_async_tasks++] =
           std::this_thread::get_id();
 
       for (int i = 0; i < _num; ++i) {
@@ -161,10 +161,10 @@ class MultithreadSampleApplication : public ozz::sample::Application {
       // Run half the job on an async task, possibly another thread.
       const int half = _num / 2;
       auto handle = std::async(std::launch::async, ParallelUpdate, _args,
-                               _characters + half, _num - half, _analyze);
+                               _characters + half, _num - half, _monitor);
 
       // The other half is processed by this thread.
-      success &= ParallelUpdate(_args, _characters, half, _analyze);
+      success &= ParallelUpdate(_args, _characters, half, _monitor);
 
       // Get result of the async task or process it if it's not started yet.
       success &= handle.get();
@@ -172,15 +172,16 @@ class MultithreadSampleApplication : public ozz::sample::Application {
     return success;
   }
 
- protected:
   // Updates current animation time.
   virtual bool OnUpdate(float _dt) {
     bool success = true;
     if (enable_theading_) {
-      analyse_.num_async_tasks.store(0);
+      // Initialize task counter. It's only used to monitor threading behavior.
+      monitor_.num_async_tasks.store(0);
+
       const ParallelArgs args = {&animation_, &skeleton_, _dt, grain_size_};
       success = ParallelUpdate(args, array_begin(characters_), num_characters_,
-                               &analyse_);
+                               &monitor_);
     } else {
       for (int i = 0; i < num_characters_; ++i) {
         success &= UpdateCharacter(animation_, skeleton_, _dt,
@@ -236,20 +237,20 @@ class MultithreadSampleApplication : public ozz::sample::Application {
         if (enable_theading_) {
           char label[64];
           std::sprintf(label, "Grain size: %d", grain_size_);
-          _im_gui->DoSlider(label, kMinGrain, kMaxCharacters, &grain_size_,
+          _im_gui->DoSlider(label, kMinGrainSize, kMaxCharacters, &grain_size_,
                             .2f);
 
           // Finds number of threads, which is the number of unique thread ids
           // found.
-          std::sort(analyse_.thread_ids_.begin(),
-                    analyse_.thread_ids_.begin() + analyse_.num_async_tasks);
+          std::sort(monitor_.thread_ids_.begin(),
+                    monitor_.thread_ids_.begin() + monitor_.num_async_tasks);
           auto end = std::unique(
-              analyse_.thread_ids_.begin(),
-              analyse_.thread_ids_.begin() + analyse_.num_async_tasks);
+              monitor_.thread_ids_.begin(),
+              monitor_.thread_ids_.begin() + monitor_.num_async_tasks);
           const int num_threads =
-              static_cast<int>(end - analyse_.thread_ids_.begin());
+              static_cast<int>(end - monitor_.thread_ids_.begin());
           std::sprintf(label, "Thread/task count: %d/%d", num_threads,
-                       analyse_.num_async_tasks.load());
+                       monitor_.num_async_tasks.load());
           _im_gui->DoLabel(label);
         }
       }
@@ -283,7 +284,6 @@ class MultithreadSampleApplication : public ozz::sample::Application {
         ozz::math::Min(num_characters_ / kWidth, kDepth) * kInterval;
   }
 
- private:
   bool AllocateCharaters() {
     // Reallocate all characters.
     ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
@@ -353,8 +353,8 @@ class MultithreadSampleApplication : public ozz::sample::Application {
   // Define the number of characters that a task can handle.
   int grain_size_;
 
-  // Data used to analyze threading.
-  ParallelAnalyze analyse_;
+  // Data used to monitor and analyze threading.
+  ParallelMonitor monitor_;
 };
 
 int main(int _argc, const char** _argv) {
