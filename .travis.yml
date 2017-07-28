@@ -200,7 +200,7 @@ before_script:
 - if [[ -z $env_build_samples ]]; then export env_build_samples=1; fi
 - if [[ -z $env_build_simd_ref ]]; then export env_build_simd_ref=0; fi
 - if [[ -z $env_build_tests ]]; then export env_build_tests=1; fi
-- if [[ -z $env_build_data ]]; then export env_build_data=0; fi
+- if [[ -z $env_build_data ]]; then export env_build_data=1; fi
 - if [[ -z $env_cmake_configuration ]]; then export env_cmake_configuration=Debug; fi
 - if [[ -z $env_cmake_cxx_compiler ]]; then export env_cmake_cxx_compiler=$CXX; fi
 - if [[ -z $env_cmake_c_compiler ]]; then export env_cmake_c_compiler=$CC; fi
