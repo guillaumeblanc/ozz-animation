@@ -67,8 +67,8 @@ set_tests_properties(fbx2anim_simple_dae_astro_maya PROPERTIES DEPENDS fbx2skel_
 add_test(NAME fbx2anim_simple_dae_seymour COMMAND fbx2anim "--file=${ozz_media_directory}/collada/seymour.dae" "--skeleton=${ozz_temp_directory}/seymour_skeleton.ozz" "--animation=${ozz_temp_directory}/dae_animation_${CMAKE_CURRENT_LIST_LINE}.ozz")
 set_tests_properties(fbx2anim_simple_dae_seymour PROPERTIES DEPENDS fbx2skel_simple_dae_seymour)
 
-# Uses the sample playback to test other file format and special cases.
-if(TARGET sample_playback)
+# Uses the sample playback to test other file format AND special cases.
+if(ozz_build_data AND TARGET sample_playback)
   add_custom_command(
     DEPENDS fbx2skel
             fbx2anim

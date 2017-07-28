@@ -1,3 +1,6 @@
+* Build pipeline
+  - Disables data generation by default (ozz_build_data variable), to speed up development iteration process that doesn't requires to build data every time the code is changed.
+
 Release version 0.9.1
 ---------------------
 
