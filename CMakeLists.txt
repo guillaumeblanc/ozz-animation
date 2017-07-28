@@ -48,9 +48,11 @@ if(ozz_build_fbx)
   find_package(Fbx 2016)
 
   # Disables ozz_build_fbx if Fbx SDK isn't found.
+  # Disables data generation as well.
   if(NOT FBX_FOUND)
     message("Fbx SDK not found, FBX tools libraries and samples will be skipped.")
     set(ozz_build_fbx OFF)
+    set(ozz_build_data OFF)
   endif()
 endif()
 
