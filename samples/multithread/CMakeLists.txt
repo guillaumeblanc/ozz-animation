@@ -27,9 +27,11 @@ set_target_properties(sample_multithread
   PROPERTIES FOLDER "samples")
 
 if(EMSCRIPTEN)
+  set_target_properties(sample_multithread PROPERTIES COMPILE_FLAGS "-s USE_PTHREADS=1")
+
   # Resource files are embedded to the output file with emscripten
   set_target_properties(sample_multithread
-    PROPERTIES LINK_FLAGS "--embed-file media --embed-file README.md --memory-init-file 0")
+    PROPERTIES LINK_FLAGS "-s TOTAL_MEMORY=100663296 -s USE_PTHREADS=1 --embed-file media --embed-file README.md --memory-init-file 0")
 
   install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/sample_multithread.html

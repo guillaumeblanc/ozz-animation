@@ -54,12 +54,17 @@
 #include "framework/renderer.h"
 #include "framework/utils.h"
 
+#if EMSCRIPTEN
+#include <emscripten.h>
+#include <emscripten/threading.h>
+#endif  // EMSCRIPTEN
+
 // Skeleton archive can be specified as an option.
 OZZ_OPTIONS_DECLARE_STRING(skeleton,
                            "Path to the skeleton (ozz archive format).",
                            "media/skeleton.ozz", false)
 
-// First animation archive can be specified as an option.
+// Animation archive can be specified as an option.
 OZZ_OPTIONS_DECLARE_STRING(animation,
                            "Path to the first animation (ozz archive format).",
                            "media/animation.ozz", false)
@@ -81,9 +86,21 @@ class MultithreadSampleApplication : public ozz::sample::Application {
  public:
   MultithreadSampleApplication()
       : characters_(kMaxCharacters),
-        num_characters_(1024),
-        enable_theading_(true),
-        grain_size_(128) {}
+        num_characters_(kMaxCharacters / 4),
+#ifdef EMSCRIPTEN
+        has_threading_support_(emscripten_has_threading_support()),
+#else  // EMSCRIPTEN
+        has_threading_support_(true),
+#endif  // EMSCRIPTEN
+        enable_theading_(has_threading_support_),
+        grain_size_(128) {
+    if (has_threading_support_) {
+      ozz::log::Out() << "Platform has threading support." << std::endl; 
+    } else {
+      ozz::log::Out() << "Platform doesn't have threading support, " <<
+        "multithreading is disabled." << std::endl;       
+    }
+  }
 
  private:
   // Nested Character struct forward declaration.
@@ -227,13 +244,44 @@ class MultithreadSampleApplication : public ozz::sample::Application {
 
   virtual void OnDestroy() { DeallocateCharaters(); }
 
+  bool AllocateCharaters() {
+    // Reallocate all characters.
+    ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
+    for (size_t c = 0; c < kMaxCharacters; ++c) {
+      Character& character = characters_[c];
+      character.cache = allocator->New<ozz::animation::SamplingCache>(
+          animation_.num_tracks());
+
+      // Initializes each controller start time to a different value.
+      character.controller.set_time(animation_.duration() * kWidth * c /
+                                    kMaxCharacters);
+
+      character.locals = allocator->AllocateRange<ozz::math::SoaTransform>(
+          skeleton_.num_soa_joints());
+      character.models =
+          allocator->AllocateRange<ozz::math::Float4x4>(skeleton_.num_joints());
+    }
+
+    return true;
+  }
+
+  void DeallocateCharaters() {
+    ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
+    for (size_t c = 0; c < kMaxCharacters; ++c) {
+      Character& character = characters_[c];
+      allocator->Delete(character.cache);
+      allocator->Deallocate(character.locals);
+      allocator->Deallocate(character.models);
+    }
+  }
+
   virtual bool OnGui(ozz::sample::ImGui* _im_gui) {
     // Exposes multi-threading parameters.
     {
       static bool oc_open = true;
       ozz::sample::ImGui::OpenClose oc(_im_gui, "Threading control", &oc_open);
       if (oc_open) {
-        _im_gui->DoCheckBox("Enables threading", &enable_theading_);
+        _im_gui->DoCheckBox("Enables threading", &enable_theading_, has_threading_support_);
         if (enable_theading_) {
           char label[64];
           std::sprintf(label, "Grain size: %d", grain_size_);
@@ -284,37 +332,6 @@ class MultithreadSampleApplication : public ozz::sample::Application {
         ozz::math::Min(num_characters_ / kWidth, kDepth) * kInterval;
   }
 
-  bool AllocateCharaters() {
-    // Reallocate all characters.
-    ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
-    for (size_t c = 0; c < kMaxCharacters; ++c) {
-      Character& character = characters_[c];
-      character.cache = allocator->New<ozz::animation::SamplingCache>(
-          animation_.num_tracks());
-
-      // Initializes each controller start time to a different value.
-      character.controller.set_time(animation_.duration() * kWidth * c /
-                                    kMaxCharacters);
-
-      character.locals = allocator->AllocateRange<ozz::math::SoaTransform>(
-          skeleton_.num_soa_joints());
-      character.models =
-          allocator->AllocateRange<ozz::math::Float4x4>(skeleton_.num_joints());
-    }
-
-    return true;
-  }
-
-  void DeallocateCharaters() {
-    ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
-    for (size_t c = 0; c < kMaxCharacters; ++c) {
-      Character& character = characters_[c];
-      allocator->Delete(character.cache);
-      allocator->Deallocate(character.locals);
-      allocator->Deallocate(character.models);
-    }
-  }
-
   // Runtime skeleton.
   ozz::animation::Skeleton skeleton_;
 
@@ -346,6 +363,9 @@ class MultithreadSampleApplication : public ozz::sample::Application {
 
   // Number of used characters.
   int num_characters_;
+
+  // Does the current plateform actually has threading support.
+  bool has_threading_support_;
 
   // Enable or disable threading.
   bool enable_theading_;
