@@ -44,6 +44,11 @@ set_target_properties(fbx2anim
 
 install(TARGETS fbx2anim DESTINATION bin/tools)
 
+# Data generation can be disabled
+if(NOT ozz_build_data)
+  return()
+endif()
+
 # Gerenate binary skeleton data
 set(skeletons
   "/fbx/alain/skeleton.fbx\;/bin/alain_skeleton.ozz"

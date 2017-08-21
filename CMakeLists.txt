@@ -14,6 +14,7 @@ option(ozz_build_fbx "Build Fbx pipeline (Requires Fbx SDK)" ON)
 option(ozz_build_samples "Build samples" ON)
 option(ozz_build_howtos "Build howtos" ON)
 option(ozz_build_tests "Build unit tests" OFF)
+option(ozz_build_data "Build data" OFF)
 option(ozz_build_simd_ref "Forces SIMD math reference implementation" OFF)
 option(ozz_build_cpp11 "Enable c++11" OFF)
 option(ozz_build_msvc_rt_dll "Select msvc DLL runtime library" ON)
@@ -25,6 +26,7 @@ message("-- - ozz_build_fbx: " ${ozz_build_fbx})
 message("-- - ozz_build_samples: " ${ozz_build_samples})
 message("-- - ozz_build_howtos: " ${ozz_build_howtos})
 message("-- - ozz_build_tests: " ${ozz_build_tests})
+message("-- - ozz_build_data: " ${ozz_build_data})
 message("-- - ozz_build_simd_ref: " ${ozz_build_simd_ref})
 message("-- - ozz_build_cpp11: " ${ozz_build_cpp11})
 message("-- - ozz_build_msvc_rt_dll: " ${ozz_build_msvc_rt_dll})
@@ -38,7 +40,6 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/build-utils/cm
 
 # Detects Fbx SDK, required to build Fbx pipeline.
 if(ozz_build_fbx)
-
   # Select a msvc runtime compatible with ozz_build_msvc_rt_dll
   set(FBX_MSVC_RT_DLL ${ozz_build_msvc_rt_dll})
 
@@ -50,6 +51,12 @@ if(ozz_build_fbx)
     message("Fbx SDK not found, FBX tools libraries and samples will be skipped.")
     set(ozz_build_fbx OFF)
   endif()
+endif()
+
+# Disables data generation if fbx is not active.
+if(NOT ozz_build_fbx)
+  message("Disabling build of data because fbx isn't available.")
+  set(ozz_build_data OFF)
 endif()
 
 # Include ozz cmake parameters and scripts
