@@ -1923,7 +1923,7 @@ void IterateJointsDF(const Skeleton& _skeleton, int _from,
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2015 Guillaume Blanc                                         //
+// Copyright (c) 2017 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -2063,7 +2063,7 @@ template class Track<math::Quaternion>;
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2015 Guillaume Blanc                                         //
+// Copyright (c) 2017 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -2122,6 +2122,12 @@ bool TrackSamplingJob<_Track>::Run() const {
   const Range<const ValueType> values = track->values();
   assert(times.Count() == values.Count());
 
+  // Default track returns identity.
+  if (times.Count() == 0) {
+    *result = internal::TrackPolicy<ValueType>::identity();
+    return true;
+  }
+
   // Search for the first key frame with a time value greater than input time.
   // Our time is between this one and the previous one.
   const float* ptk1 = std::upper_bound(times.begin, times.end, clamped_time);
@@ -2162,7 +2168,7 @@ template struct TrackSamplingJob<QuaternionTrack>;
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2015 Guillaume Blanc                                         //
+// Copyright (c) 2017 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //

@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2015 Guillaume Blanc                                         //
+// Copyright (c) 2017 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -102,6 +102,18 @@ TEST(JobValidity, FloatTrackTriggeringJob) {
     EXPECT_TRUE(job.Run());
   }
   ozz::memory::default_allocator()->Delete(track);
+}
+
+TEST(Default, TrackEdgeTriggerJob) {
+  FloatTrack default_track;
+  FloatTrackTriggeringJob job;
+  job.track = &default_track;
+  FloatTrackTriggeringJob::Edge edges_buffer[8];
+  ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+  job.edges = &edges;
+  EXPECT_TRUE(job.Validate());
+  EXPECT_TRUE(job.Run());
+  ASSERT_EQ(edges.Count(), 0u);
 }
 
 TEST(NoRange, TrackEdgeTriggerJob) {

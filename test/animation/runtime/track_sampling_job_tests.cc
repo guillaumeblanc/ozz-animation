@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2015 Guillaume Blanc                                         //
+// Copyright (c) 2017 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -85,6 +85,17 @@ TEST(JobValidity, TrackSamplingJob) {
     EXPECT_TRUE(job.Run());
   }
   ozz::memory::default_allocator()->Delete(track);
+}
+
+TEST(Default, TrackSamplingJob) {
+  FloatTrack default_track;
+  FloatTrackSamplingJob job;
+  job.track = &default_track;
+  float result = 1.f;
+  job.result = &result;
+  EXPECT_TRUE(job.Validate());
+  EXPECT_TRUE(job.Run());
+  EXPECT_FLOAT_EQ(result, 0.f);
 }
 
 TEST(Bounds, TrackSamplingJob) {
