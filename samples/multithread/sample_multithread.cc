@@ -82,16 +82,21 @@ const int kMaxCharacters = 4096;
 // The minimum number of characters per task.
 const int kMinGrainSize = 32;
 
+// Checks if platform has threading support.
+bool HasThreadingSupport() {
+#ifdef EMSCRIPTEN
+  return emscripten_has_threading_support();
+#else  // EMSCRIPTEN
+  return true;
+#endif  // EMSCRIPTEN
+}
+
 class MultithreadSampleApplication : public ozz::sample::Application {
  public:
   MultithreadSampleApplication()
       : characters_(kMaxCharacters),
         num_characters_(kMaxCharacters / 4),
-#ifdef EMSCRIPTEN
-        has_threading_support_(emscripten_has_threading_support()),
-#else  // EMSCRIPTEN
-        has_threading_support_(true),
-#endif  // EMSCRIPTEN
+        has_threading_support_(HasThreadingSupport()),
         enable_theading_(has_threading_support_),
         grain_size_(128) {
     if (has_threading_support_) {
