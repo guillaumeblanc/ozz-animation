@@ -8,3 +8,4 @@ Local Modifications:
 - Extracted include and source files from json package.
 - Striped from unsued files.
 - Creates a specific CMakeLists.txt
+- Applies PR https://github.com/nlohmann/json/pull/212 to support gcc 4.8.
