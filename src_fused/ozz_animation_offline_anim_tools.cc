@@ -109,6 +109,8 @@ OZZ_OPTIONS_DECLARE_STRING_FN(
     "replaced by the animation name.",
     "", true, &ValidateAnimation)
 
+OZZ_OPTIONS_DECLARE_STRING(track, "Specifies track to import", "", false);
+
 OZZ_OPTIONS_DECLARE_BOOL(optimize, "Activate keyframes optimization stage.",
                          true, false)
 
@@ -200,8 +202,6 @@ OZZ_OPTIONS_DECLARE_FLOAT_FN(sampling_rate,
 OZZ_OPTIONS_DECLARE_BOOL(raw,
                          "Outputs raw animation, instead of runtime animation.",
                          false, false)
-
-OZZ_OPTIONS_DECLARE_STRING(tracks, "Specifies tracks to import", "", false);
 
 namespace ozz {
 namespace animation {
@@ -557,7 +557,7 @@ int AnimationConverter::operator()(int _argc, const char** _argv) {
   }
 
   // Iterates all tracks, build and output them.
-  const char* track_defintion = OPTIONS_tracks;
+  const char* track_defintion = OPTIONS_track;
   if (track_defintion[0] != 0) {
     for (size_t i = 0; success && i < animation_names.size(); ++i) {
       const char* separator = strchr(track_defintion, ':');

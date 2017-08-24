@@ -69,8 +69,7 @@ FbxDefaultIOSettings::~FbxDefaultIOSettings() {
 
 FbxAnimationIOSettings::FbxAnimationIOSettings(
     const FbxManagerInstance& _manager)
-    : FbxDefaultIOSettings(_manager) {
-}
+    : FbxDefaultIOSettings(_manager) {}
 
 FbxSkeletonIOSettings::FbxSkeletonIOSettings(const FbxManagerInstance& _manager)
     : FbxDefaultIOSettings(_manager) {

@@ -53,8 +53,9 @@ RecurseReturn RecurseNode(FbxNode* _node, FbxSystemConverter* _converter,
 
   // Push this node as a new joint if it has a joint compatible attribute.
   FbxNodeAttribute* node_attribute = _node->GetNodeAttribute();
-  process_node |= node_attribute && node_attribute->GetAttributeType() ==
-                                        FbxNodeAttribute::eSkeleton;
+  process_node |=
+      node_attribute &&
+      node_attribute->GetAttributeType() == FbxNodeAttribute::eSkeleton;
 
   // Process node if required.
   if (process_node) {

@@ -25,8 +25,8 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#ifndef OZZ_ANIMATION_OFFLINE_FBX_FBX_ANIMATION_H_
-#define OZZ_ANIMATION_OFFLINE_FBX_FBX_ANIMATION_H_
+#ifndef OZZ_OZZ_ANIMATION_OFFLINE_FBX_FBX_ANIMATION_H_
+#define OZZ_OZZ_ANIMATION_OFFLINE_FBX_FBX_ANIMATION_H_
 
 #include "ozz/animation/offline/fbx/fbx.h"
 
@@ -71,4 +71,4 @@ bool ExtractTrack(const char* _animation_name, const char* _node_name,
 }  // namespace offline
 }  // namespace animation
 }  // namespace ozz
-#endif  // OZZ_ANIMATION_OFFLINE_FBX_FBX_ANIMATION_H_
+#endif  // OZZ_OZZ_ANIMATION_OFFLINE_FBX_FBX_ANIMATION_H_

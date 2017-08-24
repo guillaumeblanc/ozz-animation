@@ -25,8 +25,8 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#ifndef OZZ_ANIMATION_OFFLINE_FBX_FBX_SKELETON_H_
-#define OZZ_ANIMATION_OFFLINE_FBX_FBX_SKELETON_H_
+#ifndef OZZ_OZZ_ANIMATION_OFFLINE_FBX_FBX_SKELETON_H_
+#define OZZ_OZZ_ANIMATION_OFFLINE_FBX_FBX_SKELETON_H_
 
 #include "ozz/animation/offline/fbx/fbx.h"
 
@@ -44,4 +44,4 @@ bool ExtractSkeleton(FbxSceneLoader& _loader, RawSkeleton* _skeleton);
 }  // namespace offline
 }  // namespace animation
 }  // namespace ozz
-#endif  // OZZ_ANIMATION_OFFLINE_FBX_FBX_SKELETON_H_
+#endif  // OZZ_OZZ_ANIMATION_OFFLINE_FBX_FBX_SKELETON_H_
