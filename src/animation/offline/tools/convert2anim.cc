@@ -30,6 +30,9 @@
 #include <cstdlib>
 #include <cstring>
 
+#include <json.hpp>
+using json = nlohmann::json;
+
 #include "ozz/animation/offline/additive_animation_builder.h"
 #include "ozz/animation/offline/animation_builder.h"
 #include "ozz/animation/offline/animation_optimizer.h"

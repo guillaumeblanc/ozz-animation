@@ -1,0 +1,10 @@
+URL: https://github.com/nlohmann/json
+Version: 2.1.1
+License: MIT
+License File: LICENSE.MIT
+Description: JSON for Modern C++
+
+Local Modifications:
+- Extracted include and source files from json package.
+- Striped from unsued files.
+- Creates a specific CMakeLists.txt
