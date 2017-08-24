@@ -1,13 +1,4 @@
-# Samples requires OpenGL package.
-find_package(OpenMP)
-
-if (NOT OPENMP_FOUND)
-  return()
-endif()
-
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
+find_package(Threads REQUIRED)
 
 add_custom_command(
   DEPENDS $<$<BOOL:${ozz_build_fbx}>:BUILD_DATA>
@@ -29,15 +20,18 @@ add_executable(sample_multithread
   "${CMAKE_CURRENT_BINARY_DIR}/media/animation.ozz")
 
 target_link_libraries(sample_multithread
-  sample_framework)
+  sample_framework
+  ${CMAKE_THREAD_LIBS_INIT})
 
 set_target_properties(sample_multithread
   PROPERTIES FOLDER "samples")
 
 if(EMSCRIPTEN)
+  set_target_properties(sample_multithread PROPERTIES COMPILE_FLAGS "-s USE_PTHREADS=1")
+
   # Resource files are embedded to the output file with emscripten
   set_target_properties(sample_multithread
-    PROPERTIES LINK_FLAGS "--embed-file media --embed-file README.md --memory-init-file 0")
+    PROPERTIES LINK_FLAGS "-s TOTAL_MEMORY=100663296 -s USE_PTHREADS=1 --embed-file media --embed-file README.md --memory-init-file 0")
 
   install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/sample_multithread.html

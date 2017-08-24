@@ -1,7 +1,15 @@
-Release version 0.10.0
-----------------------
+Next release
+---------------------
+
 * Library
   - [base] Changes non-intrusive serialization mechanism to use a specialize template struct "Extern" instead of function overloading.
+
+* Build pipeline
+  - ozz now requires c++11 compatible compiler. It's enforced be CMake during generation phase.
+  - [base] Changes non-intrusive serialization mechanism to use a specialize template struct "Extern" instead of function overloading.
+
+* Samples
+  - [multithread] Switched from OpenMP to c++11 std::async API to implement a parallel-for loop over all computation tasks.
 
 Release version 0.9.1
 ---------------------

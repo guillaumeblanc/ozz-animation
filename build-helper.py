@@ -378,7 +378,7 @@ def main():
         else:
           print("\nExecution failed.\n")
           break
-    except Exception, e:
+    except Exception as e:
       print("\nAn error occured during script execution: %s\n") % e
 
     raw_input("Press enter to continue...")
