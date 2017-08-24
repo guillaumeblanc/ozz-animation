@@ -220,6 +220,7 @@ add_dependencies(test_fuse_animation_offline_anim_tools BUILD_FUSE_ozz_animation
 target_link_libraries(test_fuse_animation_offline_anim_tools
   ozz_animation_offline
   ozz_options
+  json
   gtest)
 
 set_target_properties(test_fuse_animation_offline_anim_tools PROPERTIES FOLDER "ozz/tests/animation_offline")
