@@ -952,7 +952,6 @@ bool RendererImpl::DrawSphereShaded(
     const GLsizei colors_stride = sizeof(uint8_t) * 4;
     const GLsizei colors_size = colors_stride * icosphere::kNumVertices;
     const GLsizei bo_size = sizeof(icosphere::kVertices) + colors_size;
-    const GLsizei models_offset = sizeof(icosphere::kVertices) + colors_size;
 
     // Reallocate vertex buffer.
     GL(BindBuffer(GL_ARRAY_BUFFER, dynamic_array_bo_));
