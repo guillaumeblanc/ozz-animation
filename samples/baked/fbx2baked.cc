@@ -117,7 +117,9 @@ bool ExtractSkeleton(FbxSceneLoader& _loader, RawSkeleton* _skeleton) {
 class FbxBakedSkeletonConverter : public SkeletonConverter {
  public:
   FbxBakedSkeletonConverter() : settings_(fbx_manager_), scene_loader_(NULL) {}
-  ~FbxBakedSkeletonConverter() { ozz::memory::default_allocator()->Delete(scene_loader_); }
+  ~FbxBakedSkeletonConverter() {
+    ozz::memory::default_allocator()->Delete(scene_loader_);
+  }
 
  private:
   virtual bool Load(const char* _filename) {

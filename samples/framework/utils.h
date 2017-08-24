@@ -39,6 +39,7 @@ struct Float4x4;
 namespace animation {
 class Animation;
 class Skeleton;
+class FloatTrack;
 namespace offline {
 struct RawAnimation;
 struct RawSkeleton;
@@ -71,7 +72,8 @@ class PlaybackController {
 
   // Updates animation time if in "play" state, according to playback speed and
   // given frame time _dt.
-  void Update(const animation::Animation& _animation, float _dt);
+  // Returns true if animation has looped during update
+  bool Update(const animation::Animation& _animation, float _dt);
 
   // Resets all parameters to their default value.
   void Reset();
@@ -116,6 +118,13 @@ bool LoadSkeleton(const char* _filename, ozz::animation::Skeleton* _skeleton);
 // _filename and _animation must be non-NULL.
 bool LoadAnimation(const char* _filename,
                    ozz::animation::Animation* _animation);
+
+// Loads a float track from an ozz archive file named _filename.
+// This function will fail and return false if the file cannot be opened or if
+// it is not a valid ozz float track archive. A valid float track archive can be
+// produced with ozz tools (fbx2anim) or using ozz serialization API.
+// _filename and _track must be non-NULL.
+bool LoadTrack(const char* _filename, ozz::animation::FloatTrack* _track);
 
 // Loads a sample::Mesh from an ozz archive file named _filename.
 // This function will fail and return false if the file cannot be opened or if

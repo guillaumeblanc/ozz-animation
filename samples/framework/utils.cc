@@ -37,6 +37,7 @@
 #include "ozz/animation/runtime/animation.h"
 #include "ozz/animation/runtime/local_to_model_job.h"
 #include "ozz/animation/runtime/skeleton.h"
+#include "ozz/animation/runtime/track.h"
 
 #include "ozz/geometry/runtime/skinning_job.h"
 
@@ -53,14 +54,17 @@ namespace sample {
 PlaybackController::PlaybackController()
     : time_(0.f), playback_speed_(1.f), play_(true) {}
 
-void PlaybackController::Update(const animation::Animation& _animation,
+bool PlaybackController::Update(const animation::Animation& _animation,
                                 float _dt) {
   if (!play_) {
-    return;
+    return false;
   }
   const float new_time = time_ + _dt * playback_speed_;
   const float loops = new_time / _animation.duration();
   time_ = new_time - floorf(loops) * _animation.duration();
+
+  // Return true if looping forward or backward
+  return loops < 0.f || loops >= 1.f;
 }
 
 void PlaybackController::Reset() {
@@ -206,6 +210,28 @@ bool LoadAnimation(const char* _filename,
 
   // Once the tag is validated, reading cannot fail.
   archive >> *_animation;
+
+  return true;
+}
+
+bool LoadTrack(const char* _filename, ozz::animation::FloatTrack* _track) {
+  assert(_filename && _track);
+  ozz::log::Out() << "Loading track archive: " << _filename << "." << std::endl;
+  ozz::io::File file(_filename, "rb");
+  if (!file.opened()) {
+    ozz::log::Err() << "Failed to open track file " << _filename << "."
+                    << std::endl;
+    return false;
+  }
+  ozz::io::IArchive archive(&file);
+  if (!archive.TestTag<ozz::animation::FloatTrack>()) {
+    ozz::log::Err() << "Failed to load float track instance from file "
+                    << _filename << "." << std::endl;
+    return false;
+  }
+
+  // Once the tag is validated, reading cannot fail.
+  archive >> *_track;
 
   return true;
 }
