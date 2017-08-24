@@ -29,10 +29,15 @@ set(cxx_all_flags
 #--------------------------------------
 # Cross compiler compilation flags
 
+# c++11 is required
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 # Simd math force ref
 if(ozz_build_simd_ref)
   set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS OZZ_BUILD_SIMD_REF)
 endif()
+
 
 #--------------------------------------
 # Modify default MSVC compilation flags
@@ -67,14 +72,6 @@ if(MSVC)
 # else consider the compiler as GCC compatible
 # Modify default GCC compilation flags
 else()
-
-  #---------------------------
-  # For the common build flags
-
-  # Enable c++11
-  if(ozz_build_cpp11)
-    set_property(DIRECTORY APPEND PROPERTY COMPILE_OPTIONS "$<$<STREQUAL:$<TARGET_PROPERTY:LINKER_LANGUAGE>,CXX>:-std=c++11>")
-  endif()
 
   # Set the warning level to Wall
   set_property(DIRECTORY APPEND PROPERTY COMPILE_OPTIONS "-Wall")

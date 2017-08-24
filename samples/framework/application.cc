@@ -38,7 +38,7 @@
 #endif  // __APPLE__
 
 #if EMSCRIPTEN
-#include "emscripten.h"
+#include <emscripten.h>
 #endif  // EMSCRIPTEN
 
 #include "framework/image.h"

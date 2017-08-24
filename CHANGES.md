@@ -1,3 +1,12 @@
+Next release
+---------------------
+
+* Build pipeline
+  - ozz now requires c++11 compatible compiler. It's enforced be CMake during generation phase.
+
+* Samples
+  - [multithread] Switched from OpenMP to c++11 std::async API to implement a parallel-for loop over all computation tasks.
+
 Release version 0.9.1
 ---------------------
 
