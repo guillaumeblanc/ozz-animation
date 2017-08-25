@@ -1,4 +1,4 @@
-add_subdirectory(${PROJECT_SOURCE_DIR}/extern/json json)
+add_subdirectory(${PROJECT_SOURCE_DIR}/extern/jsoncpp json)
 
 add_library(ozz_animation_offline_skel_tools STATIC
   ${PROJECT_SOURCE_DIR}/include/ozz/animation/offline/tools/convert2skel.h
