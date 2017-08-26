@@ -1,0 +1,10 @@
+URL: 
+Version: 
+License: PUBLIC DOMAIN
+License File: 
+Description: 
+
+Local Modifications:
+- Extracted amalgamated source files from jsoncpp package.
+- Creates a specific CMakeLists.txt
+- Fixes MSVC warning C4512: 'Json::Exception' : assignment operator could not be generated.
