@@ -1,5 +1,7 @@
 # Sample requires C++11 threading
-if (NOT "cxx_thread_local" IN_LIST CMAKE_CXX_COMPILE_FEATURES)
+
+list (FIND CMAKE_CXX_COMPILE_FEATURES "cxx_thread_local" found_index)
+if (${found_index} EQUAL -1)
   message("Multithread sample discarded because compiler doesn't support C++11.")
   return()
 endif()
