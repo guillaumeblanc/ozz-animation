@@ -157,8 +157,8 @@ class LoadSampleApplication : public ozz::sample::Application {
                                            kAtlasColor);
 
     // Draws a sphere at hand position, which shows "attached" flag status.
-    const ozz::sample::Renderer::Color colors[]{{0xff, 0, 0, 0xff},
-                                                {0, 0xff, 0, 0xff}};
+    const ozz::sample::Renderer::Color colors[] = {{0xff, 0, 0, 0xff},
+                                                   {0, 0xff, 0, 0xff}};
     _renderer->DrawSphereIm(.02f, models_[hand_joint_], colors[attached_]);
 
     // Draws the background pedestal.
