@@ -1,8 +1,8 @@
-URL: 
-Version: 
+URL: https://github.com/open-source-parsers/jsoncpp
+Version: 0.y.z
 License: PUBLIC DOMAIN
-License File: 
-Description: 
+License File: LICENSE
+Description: A C++ library for interacting with JSON.
 
 Local Modifications:
 - Extracted amalgamated source files from jsoncpp package.
