@@ -1,4 +1,17 @@
-find_package(Threads REQUIRED)
+# Sample requires C++11 threading
+
+list (FIND CMAKE_CXX_COMPILE_FEATURES "cxx_thread_local" found_index)
+if (${found_index} EQUAL -1)
+  message("Multithread sample discarded because compiler doesn't support C++11.")
+  return()
+endif()
+
+# Sample requires thread libraries
+find_package(Threads)
+if (NOT Threads_FOUND)
+  message("Multithread sample discarded because threading libraries aren't available.")
+  return()
+endif()
 
 add_custom_command(
   DEPENDS $<$<BOOL:${ozz_build_fbx}>:BUILD_DATA>
@@ -22,6 +35,10 @@ add_executable(sample_multithread
 target_link_libraries(sample_multithread
   sample_framework
   ${CMAKE_THREAD_LIBS_INIT})
+
+# c++11 is required
+set_property(TARGET sample_multithread PROPERTY CXX_STANDARD 11)
+set_property(TARGET sample_multithread PROPERTY CXX_STANDARD_REQUIRED ON)
 
 set_target_properties(sample_multithread
   PROPERTIES FOLDER "samples")
