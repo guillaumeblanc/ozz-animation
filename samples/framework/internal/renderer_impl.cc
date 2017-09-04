@@ -916,9 +916,10 @@ bool RendererImpl::DrawSphereShaded(
   if (GL_ARB_instanced_arrays) {
     const GLsizei colors_stride = 0;
     const GLsizei colors_size = sizeof(uint8_t) * 4;
+    const GLsizei models_offset =
+        sizeof(icosphere::kVertices) + sizeof(uint8_t) * 4;
     const GLsizei bo_size =
-        sizeof(icosphere::kVertices) + colors_size + _transforms.Size();
-    const GLsizei models_offset = sizeof(icosphere::kVertices) + colors_size;
+        sizeof(icosphere::kVertices) + sizeof(uint8_t) * 4 + _transforms.Size();
 
     GL(BindBuffer(GL_ARRAY_BUFFER, dynamic_array_bo_));
     GL(BufferData(GL_ARRAY_BUFFER, bo_size, NULL, GL_STREAM_DRAW));
