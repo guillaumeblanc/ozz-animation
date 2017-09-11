@@ -49,17 +49,19 @@
 #include "framework/renderer.h"
 #include "framework/utils.h"
 
-// Some atlas (the ball) constants.
-const float kAtlasRadius = .3f;
-const ozz::math::SimdFloat4 kAtlasOffsetToBone =
-    ozz::math::simd_float4::Load(0.f, kAtlasRadius, 0.f, 0.f);
-const ozz::math::SimdFloat4 kAtlasInitialPosition =
-    ozz::math::simd_float4::Load(0.f, kAtlasRadius, .1f, 0.f);
-const ozz::math::SimdFloat4 kAtlasFinalPosition =
-    ozz::math::simd_float4::Load(0.f, 1.f + kAtlasRadius, -2.f, 0.f);
-const ozz::math::Box kPedestalBox(ozz::math::Float3(0.f, 0.f, 0.f),
-                                  ozz::math::Float3(1.f, 1.f, 1.f));
-const ozz::sample::Renderer::Color kAtlasColor = {0x80, 0x80, 0x80, 0xff};
+// Some scene constants.
+const ozz::math::Box kBox(ozz::math::Float3(-.01f, -.1f, -.05f),
+                          ozz::math::Float3(.01f, .1f, .05f));
+
+const ozz::math::Float4x4 kBoxToBone = ozz::math::Float4x4::FromAffine(
+    ozz::math::simd_float4::Load(kBox.max.x, 0.f, 0.f, 0.f),
+    ozz::math::simd_float4::Load(0.f, .7071078f, .7071078f, 0.f),
+    ozz::math::simd_float4::one());
+
+const ozz::math::SimdFloat4 kBoxInitialPosition =
+    ozz::math::simd_float4::Load(0.f, .1f, -.5f, 0.f);
+
+const ozz::sample::Renderer::Color kBoxColor = {0x80, 0x80, 0x80, 0xff};
 
 // Skeleton archive can be specified as an option.
 OZZ_OPTIONS_DECLARE_STRING(skeleton,
@@ -81,13 +83,18 @@ class LoadSampleApplication : public ozz::sample::Application {
       : cache_(NULL),
         attached_(false),
         hand_joint_(0),
-        atlas_transform_(
-            ozz::math::Float4x4::Translation(kAtlasInitialPosition)) {}
+        box_transform_(ozz::math::Float4x4::Translation(kBoxInitialPosition)) {}
 
  protected:
   virtual bool OnUpdate(float _dt) {
     // Updates current animation time.
     bool looped = controller_.Update(animation_, _dt);
+
+    // Reset box position to its initial location. Note that it depends on
+    // animation playback direction.
+    if (looped) {
+      box_transform_ = ozz::math::Float4x4::Translation(kBoxInitialPosition);
+    }
 
     // Samples optimized animation at t = animation_time_.
     ozz::animation::SamplingJob sampling_job;
@@ -108,20 +115,8 @@ class LoadSampleApplication : public ozz::sample::Application {
       return false;
     }
 
-    // Reset atlas position to its initial location. Note that it depends on
-    // animation playback direction.
-    if (looped) {
-      if (_dt * controller_.playback_speed() >= 0.f) {
-        atlas_transform_ =
-            ozz::math::Float4x4::Translation(kAtlasInitialPosition);
-      } else {
-        atlas_transform_ =
-            ozz::math::Float4x4::Translation(kAtlasFinalPosition);
-      }
-    }
-
-    // Samples the track in order to know if the atlas ball should be attached
-    // to the skeleton joint (hand).
+    // Samples the track in order to know if the box should be attached to the
+    // skeleton joint (hand).
     ozz::animation::FloatTrackSamplingJob track_sampling_job;
 
     // Tracks have a unit length duration. They are thus sampled with a ratio
@@ -137,12 +132,12 @@ class LoadSampleApplication : public ozz::sample::Application {
 
     // Sampling the FloatTrack returns a float, which can be interpreted to a
     // bool.
-    attached_ = attached != 0.f;
+    attached_ = attached == 0.f;
 
-    // Updates the atlas ball transform if it is attached to the hand joint.
+    // Updates the box transform if it is attached to the hand joint.
     // Otherwise let it where it is.
     if (attached_) {
-      atlas_transform_ = Translate(models_[hand_joint_], kAtlasOffsetToBone);
+      box_transform_ = models_[hand_joint_] * kBoxToBone;
     }
 
     return true;
@@ -152,18 +147,13 @@ class LoadSampleApplication : public ozz::sample::Application {
   virtual bool OnDisplay(ozz::sample::Renderer* _renderer) {
     bool success = true;
 
-    // Draw atlas ball at the position computed during update.
-    success &= _renderer->DrawSphereShaded(kAtlasRadius, atlas_transform_,
-                                           kAtlasColor);
+    // Draw box at the position computed during update.
+    success &= _renderer->DrawBoxShaded(kBox, box_transform_, kBoxColor);
 
     // Draws a sphere at hand position, which shows "attached" flag status.
-    const ozz::sample::Renderer::Color colors[] = {{0xff, 0, 0, 0xff},
-                                                   {0, 0xff, 0, 0xff}};
-    _renderer->DrawSphereIm(.02f, models_[hand_joint_], colors[attached_]);
-
-    // Draws the background pedestal.
-    success &= _renderer->DrawBoxShaded(
-        kPedestalBox, ozz::math::Float4x4::identity(), kAtlasColor);
+    const ozz::sample::Renderer::Color colors[] = {{0, 0xff, 0, 0xff},
+                                                   {0xff, 0, 0, 0xff}};
+    _renderer->DrawSphereIm(.01f, models_[hand_joint_], colors[attached_]);
 
     // Draws the animated skeleton.
     success &= _renderer->DrawPosture(skeleton_, models_,
@@ -179,10 +169,10 @@ class LoadSampleApplication : public ozz::sample::Application {
       return false;
     }
 
-    // Finds the hand joint where the atlas ball should be attached.
+    // Finds the hand joint where the box should be attached.
     // If not found, let it be 0.
     for (int i = 0; i < skeleton_.num_joints(); i++) {
-      if (std::strstr(skeleton_.joint_names()[i], "LeftHandMiddle")) {
+      if (std::strstr(skeleton_.joint_names()[i], "tong_L2")) {
         hand_joint_ = i;
         break;
       }
@@ -254,18 +244,18 @@ class LoadSampleApplication : public ozz::sample::Application {
   ozz::Range<ozz::math::Float4x4> models_;
 
   // Runtime float track.
-  // Stores whether the atlas ball should be attached to the hand.
+  // Stores whether the box should be attached to the hand.
   ozz::animation::FloatTrack track_;
 
-  // Stores whether the atlas ball is attached to the hand. This flag is
+  // Stores whether the box ball is attached to the hand. This flag is
   // computed during update. This is only used for debug display purpose.
   bool attached_;
 
-  // Index of the hand joint, where the atlas ball must be attached.
+  // Index of the hand joint, where the box must be attached.
   int hand_joint_;
 
-  // Atlas (the ball) current transformation.
-  ozz::math::Float4x4 atlas_transform_;
+  // Box current transformation.
+  ozz::math::Float4x4 box_transform_;
 };
 
 int main(int _argc, const char** _argv) {

@@ -2,15 +2,15 @@
 add_custom_command(
   DEPENDS $<$<BOOL:${ozz_build_fbx}>:BUILD_DATA>
           "${CMAKE_CURRENT_LIST_DIR}/README.md"
-          "${ozz_media_directory}/bin/alain_skeleton.ozz"
-          "${ozz_media_directory}/bin/alain_atlas.ozz"
+          "${ozz_media_directory}/bin/robot_skeleton.ozz"
+          "${ozz_media_directory}/bin/robot_animation.ozz"
   OUTPUT  "${CMAKE_CURRENT_BINARY_DIR}/README.md"
           "${CMAKE_CURRENT_BINARY_DIR}/media/skeleton.ozz"
           "${CMAKE_CURRENT_BINARY_DIR}/media/animation.ozz"
   COMMAND ${CMAKE_COMMAND} -E make_directory media
   COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_LIST_DIR}/README.md" .
-  COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/alain_skeleton.ozz" "./media/skeleton.ozz"
-  COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/alain_atlas.ozz" "./media/animation.ozz")
+  COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/robot_skeleton.ozz" "./media/skeleton.ozz"
+  COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/robot_animation.ozz" "./media/animation.ozz")
 
 add_executable(sample_user_channel
   sample_user_channel.cc
