@@ -16,6 +16,7 @@ if(CLANG_FORMAT)
   add_custom_target(
     BUILD_CLANG_FORMAT
     COMMAND ${CLANG_FORMAT} -i -style=google ${all_source_files}
-    COMMENT ${all_source_files}    )
+    COMMENT ${all_source_files}
+    VERBATIM)
 
 endif()

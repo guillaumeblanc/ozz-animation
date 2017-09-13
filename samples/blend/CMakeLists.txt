@@ -17,7 +17,8 @@ add_custom_command(
   COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/alain_skeleton.ozz" "./media/skeleton.ozz"
   COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/alain_walk.ozz" "./media/animation1.ozz"
   COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/alain_jog.ozz" "./media/animation2.ozz"
-  COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/alain_run.ozz" "./media/animation3.ozz")
+  COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/alain_run.ozz" "./media/animation3.ozz"
+  VERBATIM)
 
 # Adds sample executable
 add_executable(sample_blend

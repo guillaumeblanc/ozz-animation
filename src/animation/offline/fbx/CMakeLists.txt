@@ -77,7 +77,8 @@ foreach(line ${skeletons})
     COMMAND fbx2skel
             ${options}
             "--file=${ozz_media_directory}${src}"
-            "--skeleton=${ozz_media_directory}${dest}")
+            "--skeleton=${ozz_media_directory}${dest}"
+    VERBATIM)
 endforeach()
 
 # Gerenate binary animation data
@@ -138,10 +139,11 @@ foreach(line ${animations})
             "--skeleton=${ozz_media_directory}${skel}"
             "--config_string=${config}"
             "--log_level=verbose"
-            VERBATIM)
+    VERBATIM)
 endforeach()
 
 # Creates a target to build data
 add_custom_target(BUILD_DATA ALL
   DEPENDS ${bin_animations}
-          ${bin_skeletons})
+          ${bin_skeletons}
+  VERBATIM)

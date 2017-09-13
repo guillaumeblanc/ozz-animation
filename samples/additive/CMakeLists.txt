@@ -17,7 +17,8 @@ add_custom_command(
   COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/arnaud_mesh.ozz" "./media/mesh.ozz"
   COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/alain_skeleton.ozz" "./media/skeleton.ozz"
   COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/alain_walk.ozz" "./media/animation_base.ozz"
-  COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/alain_crackhead_additive.ozz" "./media/animation_additive.ozz")
+  COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/alain_crackhead_additive.ozz" "./media/animation_additive.ozz"
+  VERBATIM)
 
 add_executable(sample_additive
   sample_additive.cc

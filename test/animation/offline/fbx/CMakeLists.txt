@@ -93,7 +93,8 @@ if(TARGET sample_playback)
   add_custom_target(BUILD_DATA_TEST ALL DEPENDS
     "${ozz_temp_directory}/alain_skeleton_dae.ozz"
     "${ozz_temp_directory}/alain_skeleton_dae_zup.ozz"
-    "${ozz_temp_directory}/alain_walk_dae.ozz")
+    "${ozz_temp_directory}/alain_walk_dae.ozz"
+    VERBATIM)
 
   add_test(NAME sample_playback_dae_zup COMMAND sample_playback  "--skeleton=${ozz_temp_directory}/alain_skeleton_dae_zup.ozz" "--animation=${ozz_temp_directory}/alain_walk_dae.ozz" "--max_idle_loops=${ozz_sample_testing_loops}" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)
 
