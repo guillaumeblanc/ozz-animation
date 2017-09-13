@@ -86,7 +86,7 @@ const int kMinGrainSize = 32;
 bool HasThreadingSupport() {
 #ifdef EMSCRIPTEN
   return emscripten_has_threading_support();
-#else  // EMSCRIPTEN
+#else   // EMSCRIPTEN
   return true;
 #endif  // EMSCRIPTEN
 }
@@ -100,10 +100,10 @@ class MultithreadSampleApplication : public ozz::sample::Application {
         enable_theading_(has_threading_support_),
         grain_size_(128) {
     if (has_threading_support_) {
-      ozz::log::Out() << "Platform has threading support." << std::endl; 
+      ozz::log::Out() << "Platform has threading support." << std::endl;
     } else {
-      ozz::log::Out() << "Platform doesn't have threading support, " <<
-        "multithreading is disabled." << std::endl;       
+      ozz::log::Out() << "Platform doesn't have threading support, "
+                      << "multithreading is disabled." << std::endl;
     }
   }
 
@@ -286,7 +286,8 @@ class MultithreadSampleApplication : public ozz::sample::Application {
       static bool oc_open = true;
       ozz::sample::ImGui::OpenClose oc(_im_gui, "Threading control", &oc_open);
       if (oc_open) {
-        _im_gui->DoCheckBox("Enables threading", &enable_theading_, has_threading_support_);
+        _im_gui->DoCheckBox("Enables threading", &enable_theading_,
+                            has_threading_support_);
         if (enable_theading_) {
           char label[64];
           std::sprintf(label, "Grain size: %d", grain_size_);

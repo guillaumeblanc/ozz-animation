@@ -169,23 +169,23 @@ struct ToJsonType;
 
 template <>
 struct ToJsonType<int> {
-  static const Json::ValueType kType = Json::ValueType::intValue;
+  static const Json::ValueType kType = Json::intValue;
 };
 template <>
 struct ToJsonType<unsigned int> {
-  static const Json::ValueType kType = Json::ValueType::uintValue;
+  static const Json::ValueType kType = Json::uintValue;
 };
 template <>
 struct ToJsonType<float> {
-  static const Json::ValueType kType = Json::ValueType::realValue;
+  static const Json::ValueType kType = Json::realValue;
 };
 template <>
 struct ToJsonType<const char*> {
-  static const Json::ValueType kType = Json::ValueType::stringValue;
+  static const Json::ValueType kType = Json::stringValue;
 };
 template <>
 struct ToJsonType<bool> {
-  static const Json::ValueType kType = Json::ValueType::booleanValue;
+  static const Json::ValueType kType = Json::booleanValue;
 };
 
 const char* JsonTypeToString(Json::ValueType _type) {
