@@ -8,9 +8,6 @@ if(ozz_build_fbx)
   target_link_libraries(sample_fbx2baked
     ozz_animation_fbx
     ozz_animation_offline_skel_tools)
-    
-  target_include_directories(sample_fbx2baked PUBLIC
-    $<BUILD_INTERFACE:${FBX_INCLUDE_DIRS}>)
 
   set_target_properties(sample_fbx2baked
     PROPERTIES FOLDER "samples/tools")
@@ -33,10 +30,8 @@ if(ozz_baked_sample_build_data AND
     COMMAND fbx2anim
       "--file=${ozz_media_directory}/fbx/ozz_baked.fbx"
       "--skeleton=${ozz_media_directory}/bin/baked_skeleton.ozz"
-      "--animation=${ozz_media_directory}/bin/baked_animation.ozz"
-      "--translation=0.002" # Optimizes a bit more aggressively
-      "--rotation=0.002"
-      "--hierarchical=1")  # Skeleton hierarchy is flat, so no need for hierarchical tolerance
+      "--config_string={\"animations\":[{\"output\":\"${ozz_media_directory}/bin/baked_animation.ozz\", \"optimization_tolerances\":{\"translation\":0.002,\"rotation\":0.002,\"hierarchical\":1.0}}]}"
+      VERBATIM)
 endif()
 
 add_custom_command(

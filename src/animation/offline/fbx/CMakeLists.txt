@@ -82,37 +82,39 @@ endforeach()
 
 # Gerenate binary animation data
 set(animations
-  "/fbx/alain/atlas.fbx\;/bin/alain_skeleton.ozz\;/bin/alain_atlas_raw.ozz\;option:--raw\;option:--nooptimize"
-  "/fbx/alain/locomotions.fbx\;/bin/alain_skeleton.ozz\;/bin/alain_*.ozz\;output:/bin/alain_walk.ozz\;output:/bin/alain_jog.ozz\;output:/bin/alain_run.ozz"
-  "/fbx/alain/run.fbx\;/bin/alain_skeleton.ozz\;/bin/versioning/raw_animation_v2_le.ozz\;option:--raw\;option:--endian=little"
-  "/fbx/alain/run.fbx\;/bin/alain_skeleton.ozz\;/bin/versioning/raw_animation_v2_be.ozz\;option:--raw\;option:--endian=big"
-  "/fbx/alain/run.fbx\;/bin/alain_skeleton.ozz\;/bin/versioning/animation_v4_le.ozz\;option:--endian=little"
-  "/fbx/alain/run.fbx\;/bin/alain_skeleton.ozz\;/bin/versioning/animation_v4_be.ozz\;option:--endian=big"
-  "/fbx/alain/crossarms.fbx\;/bin/alain_skeleton.ozz\;/bin/alain_crossarms.ozz"
-  "/fbx/alain/crackhead.fbx\;/bin/alain_skeleton.ozz\;/bin/alain_crackhead.ozz"
-  "/fbx/alain/crackhead.fbx\;/bin/alain_skeleton.ozz\;/bin/alain_crackhead_additive.ozz\;option:--additive"
-  "/collada/astro_max.dae\;/bin/astro_max_skeleton.ozz\;/bin/astro_max_animation.ozz"
-  "/collada/astro_maya.dae\;/bin/astro_maya_skeleton.ozz\;/bin/astro_maya_animation.ozz"
-  "/collada/seymour.dae\;/bin/seymour_skeleton.ozz\;/bin/seymour_animation.ozz")
+  # Library data
+  "/fbx/alain/atlas.fbx\;/bin/alain_skeleton.ozz\;{\"animations\":[{\"output\":\"${ozz_media_directory}/bin/alain_atlas_raw.ozz\",\"raw\":true,\"optimize\":false}]}\;output:/bin/alain_atlas_raw.ozz"
+  "/fbx/alain/locomotions.fbx\;/bin/alain_skeleton.ozz\;{\"animations\":[{\"output\":\"${ozz_media_directory}/bin/alain_*.ozz\"}]}\;output:/bin/alain_walk.ozz\;output:/bin/alain_jog.ozz\;output:/bin/alain_run.ozz"
+  "/fbx/alain/crossarms.fbx\;/bin/alain_skeleton.ozz\;{\"animations\":[{\"output\":\"${ozz_media_directory}/bin/alain_crossarms.ozz\"}]}\;output:/bin/alain_crossarms.ozz"
+  "/fbx/alain/crackhead.fbx\;/bin/alain_skeleton.ozz\;{\"animations\":[{\"output\":\"${ozz_media_directory}/bin/alain_crackhead.ozz\"}]}\;output:/bin/alain_crackhead.ozz"
+  "/fbx/alain/crackhead.fbx\;/bin/alain_skeleton.ozz\;{\"animations\":[{\"output\":\"${ozz_media_directory}/bin/alain_crackhead_additive.ozz\", \"additive\":true}]}\;output:/bin/alain_crackhead_additive.ozz"
+
+  # Versioning
+  "/fbx/alain/run.fbx\;/bin/alain_skeleton.ozz\;{\"animations\":[{\"output\":\"${ozz_media_directory}/bin/versioning/raw_animation_v2_le.ozz\",\"raw\":true}]}\;output:/bin/versioning/raw_animation_v2_le.ozz\;option:--endian=little"
+  "/fbx/alain/run.fbx\;/bin/alain_skeleton.ozz\;{\"animations\":[{\"output\":\"${ozz_media_directory}/bin/versioning/raw_animation_v2_be.ozz\",\"raw\":true}]}\;output:/bin/versioning/raw_animation_v2_be.ozz\;option:--endian=big"
+  "/fbx/alain/run.fbx\;/bin/alain_skeleton.ozz\;{\"animations\":[{\"output\":\"${ozz_media_directory}/bin/versioning/animation_v4_le.ozz\"}]}\;output:/bin/versioning/animation_v4_le.ozz\;option:--endian=little"
+  "/fbx/alain/run.fbx\;/bin/alain_skeleton.ozz\;{\"animations\":[{\"output\":\"${ozz_media_directory}/bin/versioning/animation_v4_be.ozz\"}]}\;output:/bin/versioning/animation_v4_be.ozz\;option:--endian=big"
+
+  # Collada
+  "/collada/astro_max.dae\;/bin/astro_max_skeleton.ozz\;{\"animations\":[{\"output\":\"${ozz_media_directory}/bin/astro_max_animation.ozz\"}]}\;output:/bin/astro_max_animation.ozz"
+  "/collada/astro_maya.dae\;/bin/astro_maya_skeleton.ozz\;{\"animations\":[{\"output\":\"${ozz_media_directory}/bin/astro_maya_animation.ozz\"}]}\;output:/bin/astro_maya_animation.ozz"
+  "/collada/seymour.dae\;/bin/seymour_skeleton.ozz\;{\"animations\":[{\"output\":\"${ozz_media_directory}/bin/seymour_animation.ozz\"}]}\;output:/bin/seymour_animation.ozz"
+  )
 
 foreach(line ${animations})
+
 
   # First 3 elements are mandatory
   list(GET line 0 src)
   list(GET line 1 skel)
-  list(GET line 2 anim)
+  list(GET line 2 config)
 
   # Optional elements
   list(LENGTH line line_length)
 
   # Loops over all remaining arguments.
-  set(options "")
   set(outputs "")
   foreach(element ${line})
-    if (${element} MATCHES "option:(.*)")
-      string(SUBSTRING ${element} 7 -1 option)
-      list(APPEND options ${option})
-    endif()
     if (${element} MATCHES "output:(.*)")
       string(SUBSTRING ${element} 7 -1 output)
       list(APPEND outputs ${ozz_media_directory}${output})
@@ -121,7 +123,7 @@ foreach(line ${animations})
 
   # Uses ${anim} as output if no specific output is specified
   if (NOT outputs)
-    list(APPEND outputs ${ozz_media_directory}${anim})
+    message("Missing output file(s) list.")
   endif()
 
   list(APPEND bin_animations ${outputs})
@@ -132,10 +134,11 @@ foreach(line ${animations})
             fbx2anim
     OUTPUT  ${outputs}
     COMMAND fbx2anim
-            ${options}
             "--file=${ozz_media_directory}${src}"
             "--skeleton=${ozz_media_directory}${skel}"
-            "--animation=${ozz_media_directory}${anim}")
+            "--config_string=${config}"
+            "--log_level=verbose"
+            VERBATIM)
 endforeach()
 
 # Creates a target to build data

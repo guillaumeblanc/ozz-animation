@@ -54,55 +54,8 @@ OZZ_OPTIONS_DECLARE_STRING(file, "Specifies input file", "", true)
 OZZ_OPTIONS_DECLARE_STRING(skeleton,
                            "Specifies ozz skeleton (raw or runtime) input file",
                            "", true)
-
-// animation option can have 0 or 1 "Asterisk" (*) character to specify which
-// part of the filename should be replaced by the animation name (imported from
-// the DCC source file).
-// If no * is given, only a single animation is imported from the input file.
-static bool ValidateAnimation(const ozz::options::Option& _option,
-                              int /*_argc*/) {
-  const ozz::options::StringOption& option =
-      static_cast<const ozz::options::StringOption&>(_option);
-  const char* file = option.value();
-  // Count the number of '*'.
-  size_t asterisks = 0;
-  for (; file[asterisks] != 0; file[asterisks] == '*' ? ++asterisks : *++file)
-    ;
-  if (asterisks > 1) {
-    ozz::log::Err()
-        << "Invalid file option. There should be 0 or 1 \'*\' character."
-        << std::endl;
-  }
-  return asterisks <= 1;
-}
-OZZ_OPTIONS_DECLARE_STRING_FN(
-    animation,
-    "Specifies ozz animation output file(s). When importing multiple "
-    "animations, "
-    "use a \'*\' character to specify which part of the filename should be "
-    "replaced by the animation name.",
-    "", true, &ValidateAnimation)
-
-OZZ_OPTIONS_DECLARE_BOOL(optimize, "Activate keyframes optimization stage.",
-                         true, false)
-
-OZZ_OPTIONS_DECLARE_FLOAT(
-    rotation, "Optimizer rotation tolerance in degrees",
-    ozz::animation::offline::AnimationOptimizer().rotation_tolerance, false)
-OZZ_OPTIONS_DECLARE_FLOAT(
-    translation, "Optimizer translation tolerance in meters",
-    ozz::animation::offline::AnimationOptimizer().translation_tolerance, false)
-OZZ_OPTIONS_DECLARE_FLOAT(
-    scale, "Optimizer scale tolerance in percents",
-    ozz::animation::offline::AnimationOptimizer().scale_tolerance, false)
-OZZ_OPTIONS_DECLARE_FLOAT(
-    hierarchical, "Optimizer hierarchical tolerance in meters",
-    ozz::animation::offline::AnimationOptimizer().hierarchical_tolerance, false)
-
-OZZ_OPTIONS_DECLARE_BOOL(
-    additive,
-    "Creates a delta animation that can be used for additive blending.", false,
-    false)
+OZZ_OPTIONS_DECLARE_STRING(config_string,
+                           "Specifies input configuration string", "{}", false)
 
 static bool ValidateEndianness(const ozz::options::Option& _option,
                                int /*_argc*/) {
@@ -158,15 +111,201 @@ OZZ_OPTIONS_DECLARE_FLOAT_FN(sampling_rate,
                              "value = 0 to use imported scene frame rate.",
                              0.f, false, &ValidateSamplingRate)
 
-OZZ_OPTIONS_DECLARE_BOOL(raw,
-                         "Outputs raw animation, instead of runtime animation.",
-                         false, false)
-
 namespace ozz {
 namespace animation {
 namespace offline {
 
 namespace {
+
+bool MakeDefaultArray(Json::Value& _parent, const char* _name,
+                      const char* _comment) {
+  const Json::Value* found = _parent.find(_name, _name + strlen(_name));
+  if (!found) {
+    Json::Value& member = _parent[_name];
+    member.resize(1);
+    if (*_comment != 0) {
+      member.setComment(std::string("//  ") + _comment, Json::commentBefore);
+    }
+
+    // It is not a failure to have a missing member, just use the default value.
+    return true;
+  }
+
+  if (!found->isArray()) {
+    // It's a failure to have a wrong member type.
+    return false;
+  }
+
+  return true;
+}
+
+bool MakeDefaultObject(Json::Value& _parent, const char* _name,
+                       const char* _comment) {
+  const Json::Value* found = _parent.find(_name, _name + strlen(_name));
+  if (!found) {
+    Json::Value& member = _parent[_name];
+    if (*_comment != 0) {
+      member.setComment(std::string("//  ") + _comment, Json::commentBefore);
+    }
+
+    // It is not a failure to have a missing member, just use the default value.
+    return true;
+  }
+
+  if (!found->isObject()) {
+    // It's a failure to have a wrong member type.
+    return false;
+  }
+
+  return true;
+}
+
+template <typename _Type>
+struct ToJsonType;
+
+template <>
+struct ToJsonType<int> {
+  static const Json::ValueType kType = Json::ValueType::intValue;
+};
+template <>
+struct ToJsonType<unsigned int> {
+  static const Json::ValueType kType = Json::ValueType::uintValue;
+};
+template <>
+struct ToJsonType<float> {
+  static const Json::ValueType kType = Json::ValueType::realValue;
+};
+template <>
+struct ToJsonType<const char*> {
+  static const Json::ValueType kType = Json::ValueType::stringValue;
+};
+template <>
+struct ToJsonType<bool> {
+  static const Json::ValueType kType = Json::ValueType::booleanValue;
+};
+
+const char* JsonTypeToString(Json::ValueType _type) {
+  switch (_type) {
+    case Json::nullValue:
+      return "null";
+    case Json::intValue:
+      return "integer";
+    case Json::uintValue:
+      return "unsigned integer";
+    case Json::realValue:
+      return "float";
+    case Json::stringValue:
+      return "UTF-8 string";
+    case Json::booleanValue:
+      return "boolean";
+    case Json::arrayValue:
+      return "array";
+    case Json::objectValue:
+      return "object";
+    default:
+      assert(false && "unknown json type");
+      return "unknown";
+  }
+}
+
+template <typename _Type>
+bool MakeDefault(Json::Value& _parent, const char* _name, _Type _value,
+                 const char* _comment) {
+  const Json::Value* found = _parent.find(_name, _name + strlen(_name));
+  if (!found) {
+    Json::Value& member = _parent[_name];
+    member = _value;
+    if (*_comment != 0) {
+      member.setComment(std::string("//  ") + _comment,
+                        Json::commentAfterOnSameLine);
+    }
+
+    // It is not a failure to have a missing member, just use default value.
+    return true;
+  }
+
+  if (found->type() != ToJsonType<_Type>::kType) {
+    // It's a failure to have a wrong member type.
+    ozz::log::Err() << "Invalid type \"" << JsonTypeToString(found->type())
+                    << "\" for json member \"" << _name << "\". \""
+                    << JsonTypeToString(ToJsonType<_Type>::kType)
+                    << "\" expected." << std::endl;
+    return false;
+  }
+
+  return true;
+}
+
+bool SanitizeOptimizationTolerances(Json::Value& _root) {
+  bool success = true;
+
+  success &= MakeDefaultObject(_root, "optimization_tolerances",
+                               "Optimization tolerances.");
+
+  Json::Value& tolerances = _root["optimization_tolerances"];
+
+  success &= MakeDefault(
+      tolerances, "translation",
+      ozz::animation::offline::AnimationOptimizer().translation_tolerance,
+      "Translation optimization tolerance, defined as the distance between "
+      "two translation values in meters.");
+
+  success &= MakeDefault(
+      tolerances, "rotation",
+      ozz::animation::offline::AnimationOptimizer().rotation_tolerance,
+      "Rotation optimization tolerance, ie: the angle between two rotation "
+      "values in radian.");
+
+  success &=
+      MakeDefault(tolerances, "scale",
+                  ozz::animation::offline::AnimationOptimizer().scale_tolerance,
+                  "Scale optimization tolerance, ie: the norm of the "
+                  "difference of two scales.");
+
+  success &= MakeDefault(
+      tolerances, "hierarchical",
+      ozz::animation::offline::AnimationOptimizer().hierarchical_tolerance,
+      "Hierarchical translation optimization tolerance, ie: the maximum "
+      "error "
+      "(distance) that an optimization on a joint is allowed to generate on "
+      "its whole child hierarchy.");
+
+  return success;
+}
+
+bool SanitizeAnimation(Json::Value& _root) {
+  bool success = true;
+
+  success &= MakeDefault(_root, "output", "*.ozz",
+                         "Specifies ozz animation output file(s). When "
+                         "importing multiple animations, use a \'*\' character "
+                         "to specify part(s) of the filename that should be "
+                         "replaced by the animation name.");
+
+  success &=
+      MakeDefault(_root, "optimize", true, "Activates keyframes optimization.");
+  success &= SanitizeOptimizationTolerances(_root);
+  success &= MakeDefault(_root, "raw", false, "Outputs raw animation.");
+  success &= MakeDefault(
+      _root, "additive", false,
+      "Creates a delta animation that can be used for additive blending.");
+
+  return success;
+}
+
+bool Sanitize(Json::Value& _root) {
+  bool success = true;
+
+  success &= MakeDefaultArray(_root, "animations", "Animations to extract.");
+
+  Json::Value& animations = _root["animations"];
+  for (Json::ArrayIndex i = 0; i < animations.size(); ++i) {
+    success &= SanitizeAnimation(animations[0]);
+  }
+
+  return success;
+}
+
 void DisplaysOptimizationstatistics(const RawAnimation& _non_optimized,
                                     const RawAnimation& _optimized) {
   size_t opt_translations = 0, opt_rotations = 0, opt_scales = 0;
@@ -216,8 +355,8 @@ ozz::animation::Skeleton* ImportSkeleton() {
                     << OPTIONS_skeleton << std::endl;
     ozz::io::File file(OPTIONS_skeleton, "rb");
     if (!file.opened()) {
-      ozz::log::Err() << "Failed to open input skeleton ozz binary file: "
-                      << OPTIONS_skeleton << std::endl;
+      ozz::log::Err() << "Failed to open input skeleton ozz binary file: \""
+                      << OPTIONS_skeleton << "\"" << std::endl;
       return NULL;
     }
     ozz::io::IArchive archive(&file);
@@ -253,26 +392,28 @@ ozz::animation::Skeleton* ImportSkeleton() {
   return skeleton;
 }
 
-bool OutputSingleAnimation() {
-  return strchr(OPTIONS_animation.value(), '*') == NULL;
+bool OutputSingleAnimation(const char* _output) {
+  return strchr(_output, '*') == NULL;
 }
 
 ozz::String::Std BuildFilename(const char* _filename, const char* _animation) {
   ozz::String::Std output(_filename);
-  const size_t asterisk = output.find('*');
-  if (asterisk != std::string::npos) {
+
+  for (size_t asterisk = output.find('*'); asterisk != std::string::npos;
+       asterisk = output.find('*')) {
     output.replace(asterisk, 1, _animation);
   }
   return output;
 }
 
-bool Export(const ozz::animation::offline::RawAnimation _raw_animation,
-            const ozz::animation::Skeleton& _skeleton) {
+bool Export(const ozz::animation::offline::RawAnimation& _raw_animation,
+            const ozz::animation::Skeleton& _skeleton,
+            const Json::Value& _config) {
   // Raw animation to build and output.
   ozz::animation::offline::RawAnimation raw_animation;
 
   // Make delta animation if requested.
-  if (OPTIONS_additive) {
+  if (_config["additive"].asBool()) {
     ozz::log::Log() << "Makes additive animation." << std::endl;
     ozz::animation::offline::AdditiveAnimationBuilder additive_builder;
     RawAnimation raw_additive;
@@ -287,13 +428,17 @@ bool Export(const ozz::animation::offline::RawAnimation _raw_animation,
   }
 
   // Optimizes animation if option is enabled.
-  if (OPTIONS_optimize) {
+  if (_config["optimize"].asBool()) {
     ozz::log::Log() << "Optimizing animation." << std::endl;
     ozz::animation::offline::AnimationOptimizer optimizer;
-    optimizer.rotation_tolerance = OPTIONS_rotation;
-    optimizer.translation_tolerance = OPTIONS_translation;
-    optimizer.scale_tolerance = OPTIONS_scale;
-    optimizer.hierarchical_tolerance = OPTIONS_hierarchical;
+
+    // Setup optimizer from config parameters.
+    const Json::Value& tolerances = _config["optimization_tolerances"];
+    optimizer.translation_tolerance = tolerances["translation"].asFloat();
+    optimizer.rotation_tolerance = tolerances["rotation"].asFloat();
+    optimizer.scale_tolerance = tolerances["scale"].asFloat();
+    optimizer.hierarchical_tolerance = tolerances["hierarchical"].asFloat();
+
     ozz::animation::offline::RawAnimation raw_optimized_animation;
     if (!optimizer(raw_animation, _skeleton, &raw_optimized_animation)) {
       ozz::log::Err() << "Failed to optimize animation." << std::endl;
@@ -309,7 +454,7 @@ bool Export(const ozz::animation::offline::RawAnimation _raw_animation,
 
   // Builds runtime animation.
   ozz::animation::Animation* animation = NULL;
-  if (!OPTIONS_raw) {
+  if (!_config["raw"].asBool()) {
     ozz::log::Log() << "Builds runtime animation." << std::endl;
     ozz::animation::offline::AnimationBuilder builder;
     animation = builder(raw_animation);
@@ -320,19 +465,18 @@ bool Export(const ozz::animation::offline::RawAnimation _raw_animation,
   }
 
   {
-    // Prepares output stream. File is a RAII so it will close automatically at
-    // the end of this scope.
-    // Once the file is opened, nothing should fail as it would leave an invalid
-    // file on the disk.
+    // Prepares output stream. File is a RAII so it will close automatically
+    // at the end of this scope. Once the file is opened, nothing should fail
+    // as it would leave an invalid file on the disk.
 
     // Builds output filename.
-    ozz::String::Std filename =
-        BuildFilename(OPTIONS_animation, _raw_animation.name.c_str());
+    ozz::String::Std filename = BuildFilename(_config["output"].asCString(),
+                                              _raw_animation.name.c_str());
 
     ozz::log::Log() << "Opens output file: " << filename << std::endl;
     ozz::io::File file(filename.c_str(), "wb");
     if (!file.opened()) {
-      ozz::log::Err() << "Failed to open output file: " << filename
+      ozz::log::Err() << "Failed to open output file: \"" << filename << "\""
                       << std::endl;
       ozz::memory::default_allocator()->Delete(animation);
       return false;
@@ -352,7 +496,7 @@ bool Export(const ozz::animation::offline::RawAnimation _raw_animation,
     ozz::io::OArchive archive(&file, endianness);
 
     // Fills output archive with the animation.
-    if (OPTIONS_raw) {
+    if (_config["raw"].asBool()) {
       ozz::log::Log() << "Outputs RawAnimation to binary archive." << std::endl;
       archive << raw_animation;
     } else {
@@ -381,6 +525,28 @@ int AnimationConverter::operator()(int _argc, const char** _argv) {
     return parse_result == ozz::options::kExitSuccess ? EXIT_SUCCESS
                                                       : EXIT_FAILURE;
   }
+
+  Json::Value config;
+  Json::Reader json_builder;
+  ozz::log::Log() << "Config: " << OPTIONS_config_string.value() << std::endl;
+  if (!json_builder.parse(std::string(OPTIONS_config_string.value()), config,
+                          true)) {
+    ozz::log::Err() << "Error while parsing configuration string: "
+                    << json_builder.getFormattedErrorMessages() << std::endl;
+    return EXIT_FAILURE;
+  }
+  if (!Sanitize(config)) {
+    ozz::log::Err() << "Invalid configuration." << std::endl;
+    return EXIT_FAILURE;
+  }
+
+  Json::StreamWriterBuilder builder;
+  builder["indentation"] = "  ";
+  builder["precision"] = 4;
+  std::string document = Json::writeString(builder, config);
+  // ozz::log::Log() << document << std::endl;
+
+  // ozz::log::Log() << Json::FastWriter().write(config) << std::endl;
 
   // Initializes log level from options.
   ozz::log::Level log_level = ozz::log::GetLevel();
@@ -414,7 +580,8 @@ int AnimationConverter::operator()(int _argc, const char** _argv) {
   if (Import(OPTIONS_file, *skeleton, OPTIONS_sampling_rate, &animations)) {
     success = true;
 
-    if (OutputSingleAnimation() && animations.size() > 1) {
+    if (OutputSingleAnimation(config["animations"][0]["output"].asCString()) &&
+        animations.size() > 1) {
       ozz::log::Log() << animations.size()
                       << " animations found. Only the first one ("
                       << animations[0].name << ") will be exported."
@@ -426,7 +593,7 @@ int AnimationConverter::operator()(int _argc, const char** _argv) {
 
     // Iterate all imported animation, build and output them.
     for (size_t i = 0; i < animations.size(); ++i) {
-      success &= Export(animations[i], *skeleton);
+      success &= Export(animations[i], *skeleton, config["animations"][0]);
     }
   } else {
     ozz::log::Err() << "Failed to import file \"" << OPTIONS_file << "\""
