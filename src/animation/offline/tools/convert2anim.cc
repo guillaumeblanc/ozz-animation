@@ -165,23 +165,23 @@ struct ToJsonType;
 
 template <>
 struct ToJsonType<int> {
-  static const Json::ValueType kType = Json::intValue;
+  static Json::ValueType type() { return Json::intValue; }
 };
 template <>
 struct ToJsonType<unsigned int> {
-  static const Json::ValueType kType = Json::uintValue;
+  static Json::ValueType type() { return Json::uintValue; }
 };
 template <>
 struct ToJsonType<float> {
-  static const Json::ValueType kType = Json::realValue;
+  static Json::ValueType type() { return Json::realValue; }
 };
 template <>
 struct ToJsonType<const char*> {
-  static const Json::ValueType kType = Json::stringValue;
+  static Json::ValueType type() { return Json::stringValue; }
 };
 template <>
 struct ToJsonType<bool> {
-  static const Json::ValueType kType = Json::booleanValue;
+  static Json::ValueType type() { return Json::booleanValue; }
 };
 
 const char* JsonTypeToString(Json::ValueType _type) {
@@ -224,11 +224,11 @@ bool MakeDefault(Json::Value& _parent, const char* _name, _Type _value,
     return true;
   }
 
-  if (found->type() != ToJsonType<_Type>::kType) {
+  if (found->type() != ToJsonType<_Type>::type()) {
     // It's a failure to have a wrong member type.
     ozz::log::Err() << "Invalid type \"" << JsonTypeToString(found->type())
                     << "\" for json member \"" << _name << "\". \""
-                    << JsonTypeToString(ToJsonType<_Type>::kType)
+                    << JsonTypeToString(ToJsonType<_Type>::type())
                     << "\" expected." << std::endl;
     return false;
   }
