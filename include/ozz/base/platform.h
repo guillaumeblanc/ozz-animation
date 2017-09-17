@@ -101,6 +101,11 @@ struct AlignOf {
 #define OZZ_IF_NDEBUG(...)
 #endif  // NDEBUG
 
+// Case sensitive wildcard string matching:
+// - a ? sign matches any character, except an empty string.
+// - a * sign matches any string, including an empty string.
+bool strmatch(const char* _str, const char* _pattern);
+
 // Offset a pointer from a given number of bytes.
 template <typename _Ty>
 _Ty* PointerStride(_Ty* _ty, size_t _stride) {
