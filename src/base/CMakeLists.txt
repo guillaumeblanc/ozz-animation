@@ -4,6 +4,7 @@ add_library(ozz_base STATIC
   ${PROJECT_SOURCE_DIR}/include/ozz/base/memory/allocator.h
   memory/allocator.cc
   ${PROJECT_SOURCE_DIR}/include/ozz/base/platform.h
+  platform.cc
   ${PROJECT_SOURCE_DIR}/include/ozz/base/log.h
   log.cc
   ${PROJECT_SOURCE_DIR}/include/ozz/base/containers/intrusive_list.h

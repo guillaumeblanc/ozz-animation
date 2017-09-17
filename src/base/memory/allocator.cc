@@ -52,16 +52,16 @@ class HeapAllocator : public Allocator {
  public:
   HeapAllocator() {
 #if __cplusplus >= 201103L
-  allocation_count_.store(0);
-# else  // __cplusplus
-  allocation_count_ = 0;
+    allocation_count_.store(0);
+#else  // __cplusplus
+    allocation_count_ = 0;
 #endif
-}
+  }
   ~HeapAllocator() {
 #if __cplusplus >= 201103L
-  assert(allocation_count_.load() == 0 && "Memory leak detected");
-# else  // __cplusplus
-  assert(allocation_count_ == 0 && "Memory leak detected");
+    assert(allocation_count_.load() == 0 && "Memory leak detected");
+#else  // __cplusplus
+    assert(allocation_count_ == 0 && "Memory leak detected");
 #endif
   }
 
@@ -111,11 +111,11 @@ class HeapAllocator : public Allocator {
   }
 
  private:
-  // Internal allocation count used to track memory leaks.
-  // Should equals 0 at destruction time.
-#if __cplusplus >= 201103L 
+// Internal allocation count used to track memory leaks.
+// Should equals 0 at destruction time.
+#if __cplusplus >= 201103L
   std::atomic_int allocation_count_;
-#else  // __cplusplus
+#else   // __cplusplus
   int allocation_count_;
 #endif  // __cplusplus
 };
