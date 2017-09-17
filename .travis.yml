@@ -87,14 +87,14 @@ matrix:
   - os: linux
     compiler: clang
     env:
-    - env_build_data_on_change=0
+    - env_build_data=0
     - env_build_fbx=0
     - env_build_samples=0
     - env_build_tests=0
   - os: linux
     compiler: clang
     env:
-    - env_build_data_on_change=0
+    - env_build_data=0
   - os: linux
     compiler: clang
     env:
@@ -196,7 +196,7 @@ before_script:
 - if [[ -z $env_src_root ]]; then export env_src_root=".."; fi
 - if [[ -z $env_build_cpp11 ]]; then export env_build_cpp11=0; fi
 - if [[ -z $env_build_fbx ]]; then export env_build_fbx=1; fi
-- if [[ -z $env_build_data_on_change ]]; then export env_build_data_on_change=1; fi
+- if [[ -z $env_build_data ]]; then export env_build_data=1; fi
 - if [[ -z $env_build_howtos ]]; then export env_build_howtos=1; fi
 - if [[ -z $env_build_samples ]]; then export env_build_samples=1; fi
 - if [[ -z $env_build_simd_ref ]]; then export env_build_simd_ref=0; fi
@@ -217,7 +217,7 @@ script:
 - mkdir build
 - cd build
 - echo $env_cmake_toolchain
-- cmake -G "$env_cmake_generator" $env_cmake_toolchain -DCMAKE_CXX_COMPILER=$env_cmake_cxx_compiler -DCMAKE_C_COMPILER=$env_cmake_c_compiler -DCMAKE_BUILD_TYPE=$env_cmake_configuration -Dozz_build_cpp11=$env_build_cpp11 -Dozz_build_fbx=$env_build_fbx -Dozz_build_data=$env_build_data_on_change -Dozz_build_howtos=$env_build_howtos -Dozz_build_samples=$env_build_samples -Dozz_build_simd_ref=$env_build_simd_ref -Dozz_build_tests=$env_build_tests $env_src_root
+- cmake -G "$env_cmake_generator" $env_cmake_toolchain -DCMAKE_CXX_COMPILER=$env_cmake_cxx_compiler -DCMAKE_C_COMPILER=$env_cmake_c_compiler -DCMAKE_BUILD_TYPE=$env_cmake_configuration -Dozz_build_cpp11=$env_build_cpp11 -Dozz_build_fbx=$env_build_fbx -Dozz_build_data=$env_build_data -Dozz_build_howtos=$env_build_howtos -Dozz_build_samples=$env_build_samples -Dozz_build_simd_ref=$env_build_simd_ref -Dozz_build_tests=$env_build_tests $env_src_root
 # Build
 - cmake --build ./ --config $env_cmake_configuration --use-stderr -- $env_cmake_generator_specific
 # Test
