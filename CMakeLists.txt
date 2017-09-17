@@ -11,6 +11,7 @@ set(OZZ_VERSION ${OZZ_VERSION_MAJOR}.${OZZ_VERSION_MINOR}.${OZZ_VERSION_PATCH})
 
 # Add project build options
 option(ozz_build_fbx "Build Fbx pipeline (Requires Fbx SDK)" ON)
+option(ozz_build_data "Build data on code change" OFF)
 option(ozz_build_samples "Build samples" ON)
 option(ozz_build_howtos "Build howtos" ON)
 option(ozz_build_tests "Build unit tests" OFF)
