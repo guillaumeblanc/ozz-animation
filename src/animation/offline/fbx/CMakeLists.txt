@@ -103,9 +103,7 @@ set(animations
   )
 
 # Generate a command for each line of the configuration
-set(id 0)
 foreach(line ${animations})
-  math(EXPR id "${id}+1")
 
   # First 3 elements are mandatory
   list(GET line 0 src)
@@ -132,7 +130,8 @@ foreach(line ${animations})
   list(APPEND bin_animations ${outputs})
 
   # Dump config file
-  set(config_filename "${ozz_temp_directory}/fbx_config${id}.json")
+  string(MD5 hash "${line}")
+  set(config_filename "${ozz_temp_directory}/config_${hash}.json")
   file(WRITE "${config_filename}" "${config}")
 
   # Create build command
