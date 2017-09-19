@@ -102,8 +102,10 @@ set(animations
   "/collada/seymour.dae\;/bin/seymour_skeleton.ozz\;{\"animations\":[{\"output\":\"${ozz_media_directory}/bin/seymour_animation.ozz\"}]}\;output:/bin/seymour_animation.ozz"
   )
 
+# Generate a command for each line of the configuration
+set(id 0)
 foreach(line ${animations})
-
+  math(EXPR id "${id}+1")
 
   # First 3 elements are mandatory
   list(GET line 0 src)
@@ -129,6 +131,11 @@ foreach(line ${animations})
 
   list(APPEND bin_animations ${outputs})
 
+  # Dump config file
+  set(config_filename "${ozz_temp_directory}/fbx_config${id}.json")
+  file(WRITE "${config_filename}" "${config}")
+
+  # Create build command
   add_custom_command(
     DEPENDS "${ozz_media_directory}${src}"
             "${ozz_media_directory}${skel}"
@@ -137,8 +144,7 @@ foreach(line ${animations})
     COMMAND fbx2anim
             "--file=${ozz_media_directory}${src}"
             "--skeleton=${ozz_media_directory}${skel}"
-            "--config=${config}"
-            "--log_level=verbose"
+            "--config_file=${config_filename}"
     VERBATIM)
 endforeach()
 

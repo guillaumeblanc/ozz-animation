@@ -610,7 +610,7 @@ int AnimationConverter::operator()(int _argc, const char** _argv) {
 
     // Dump to log
     if (log_config) {
-      ozz::log::LogV() << document << std::endl;
+      ozz::log::LogV() << "Sanitized configuration:" << std::endl << document << std::endl;
     }
     // Dump to file
     if (OPTIONS_config_dump.value()[0] != 0) {
