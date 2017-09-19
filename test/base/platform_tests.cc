@@ -180,3 +180,39 @@ TEST(Range, Memory) {
   EXPECT_EQ(cs2[12], 46);
   EXPECT_ASSERTION(cs2[46], "Index out of range");
 }
+
+TEST(StrMatch, Platform) {
+  EXPECT_TRUE(ozz::strmatch("a", "a"));
+  EXPECT_FALSE(ozz::strmatch("a", "b"));
+  EXPECT_TRUE(ozz::strmatch("a", "a*"));
+  EXPECT_FALSE(ozz::strmatch("a", "a?"));
+  EXPECT_TRUE(ozz::strmatch("ab", "a?"));
+  EXPECT_TRUE(ozz::strmatch("ab", "ab"));
+  EXPECT_TRUE(ozz::strmatch("a*b", "a*b"));
+  EXPECT_TRUE(ozz::strmatch("a*b", "a?b"));
+  EXPECT_TRUE(ozz::strmatch("ab", "ab*"));
+  EXPECT_TRUE(ozz::strmatch("ab", "a*"));
+  EXPECT_TRUE(ozz::strmatch("ab", "*b"));
+  EXPECT_TRUE(ozz::strmatch("ab", "a*b"));
+  EXPECT_TRUE(ozz::strmatch("acb", "a*b"));
+  EXPECT_FALSE(ozz::strmatch("abc", "a*b"));
+  EXPECT_TRUE(ozz::strmatch("abcdef", "a*c*"));
+  EXPECT_TRUE(ozz::strmatch("abc.def", "a*c.*"));
+  EXPECT_TRUE(ozz::strmatch("abc.def", "abc.def"));
+  EXPECT_TRUE(ozz::strmatch("abc.def", "abc.def***"));
+  EXPECT_FALSE(ozz::strmatch("abc.def", "abc.def?"));
+  EXPECT_TRUE(ozz::strmatch("abc.def", "abc?def"));
+  EXPECT_TRUE(ozz::strmatch("abc.def", "a*c?*"));
+  EXPECT_TRUE(ozz::strmatch("abc.def", "a*.*"));
+  EXPECT_TRUE(ozz::strmatch("abc.def", "a*c.*e?"));
+  EXPECT_TRUE(ozz::strmatch("abc.def", "*"));
+  EXPECT_TRUE(ozz::strmatch("abc.def", "*.*"));
+  EXPECT_TRUE(ozz::strmatch("abc.def", "???.???"));
+  EXPECT_FALSE(ozz::strmatch("abc.def", "??.???"));
+  EXPECT_TRUE(ozz::strmatch("abc.def", "*??.???"));
+  EXPECT_TRUE(ozz::strmatch("abc.def", "*??.??*"));
+  EXPECT_TRUE(
+      ozz::strmatch("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                    "aaaaaaaaaaaaaaa",
+                    "*a*??????a?????????a???????????????"));
+}
