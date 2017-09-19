@@ -137,7 +137,7 @@ foreach(line ${animations})
     COMMAND fbx2anim
             "--file=${ozz_media_directory}${src}"
             "--skeleton=${ozz_media_directory}${skel}"
-            "--config_string=${config}"
+            "--config=${config}"
             "--log_level=verbose"
     VERBATIM)
 endforeach()

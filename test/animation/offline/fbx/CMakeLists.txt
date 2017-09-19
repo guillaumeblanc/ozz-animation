@@ -46,25 +46,25 @@ set_tests_properties(fbx2anim_badcontent PROPERTIES PASS_REGULAR_EXPRESSION "Fbx
 
 # Run fbx2anim passing tests
 add_test(NAME fbx2anim_version COMMAND fbx2anim "--version")
-add_test(NAME fbx2anim_simple COMMAND fbx2anim "--file=${ozz_media_directory}/fbx/alain/run.fbx" "--skeleton=${ozz_temp_directory}/fbx_skeleton.ozz" "--config_string={\"animations\":[{\"output\":\"${ozz_temp_directory}/fbx_animation_${CMAKE_CURRENT_LIST_LINE}.ozz\"}]}")
+add_test(NAME fbx2anim_simple COMMAND fbx2anim "--file=${ozz_media_directory}/fbx/alain/run.fbx" "--skeleton=${ozz_temp_directory}/fbx_skeleton.ozz" "--config={\"animations\":[{\"output\":\"${ozz_temp_directory}/fbx_animation_${CMAKE_CURRENT_LIST_LINE}.ozz\"}]}")
 set_tests_properties(fbx2anim_simple PROPERTIES DEPENDS fbx2skel_simple)
-add_test(NAME fbx2anim_simple_raw COMMAND fbx2anim "--file=${ozz_media_directory}/fbx/alain/run.fbx" "--skeleton=${ozz_temp_directory}/fbx_skeleton.ozz" "--config_string={\"animations\":[{\"output\":\"${ozz_temp_directory}/fbx_animation_${CMAKE_CURRENT_LIST_LINE}.ozz\",\"raw\":true}]}")
+add_test(NAME fbx2anim_simple_raw COMMAND fbx2anim "--file=${ozz_media_directory}/fbx/alain/run.fbx" "--skeleton=${ozz_temp_directory}/fbx_skeleton.ozz" "--config={\"animations\":[{\"output\":\"${ozz_temp_directory}/fbx_animation_${CMAKE_CURRENT_LIST_LINE}.ozz\",\"raw\":true}]}")
 set_tests_properties(fbx2anim_simple_raw PROPERTIES DEPENDS fbx2skel_simple)
-add_test(NAME fbx2anim_simple_from_raw COMMAND fbx2anim "--file=${ozz_media_directory}/fbx/alain/run.fbx" "--skeleton=${ozz_temp_directory}/raw_fbx_skeleton.ozz" "--config_string={\"animations\":[{\"output\":\"${ozz_temp_directory}/fbx_animation_${CMAKE_CURRENT_LIST_LINE}.ozz\"}]}")
+add_test(NAME fbx2anim_simple_from_raw COMMAND fbx2anim "--file=${ozz_media_directory}/fbx/alain/run.fbx" "--skeleton=${ozz_temp_directory}/raw_fbx_skeleton.ozz" "--config={\"animations\":[{\"output\":\"${ozz_temp_directory}/fbx_animation_${CMAKE_CURRENT_LIST_LINE}.ozz\"}]}")
 set_tests_properties(fbx2anim_simple_from_raw PROPERTIES DEPENDS fbx2skel_simple_raw)
-add_test(NAME fbx2anim_simple_raw_from_raw COMMAND fbx2anim "--file=${ozz_media_directory}/fbx/alain/run.fbx" "--skeleton=${ozz_temp_directory}/raw_fbx_skeleton.ozz" "--config_string={\"animations\":[{\"output\":\"${ozz_temp_directory}/fbx_animation_${CMAKE_CURRENT_LIST_LINE}.ozz\",\"raw\":true}]}")
+add_test(NAME fbx2anim_simple_raw_from_raw COMMAND fbx2anim "--file=${ozz_media_directory}/fbx/alain/run.fbx" "--skeleton=${ozz_temp_directory}/raw_fbx_skeleton.ozz" "--config={\"animations\":[{\"output\":\"${ozz_temp_directory}/fbx_animation_${CMAKE_CURRENT_LIST_LINE}.ozz\",\"raw\":true}]}")
 set_tests_properties(fbx2anim_simple_raw_from_raw PROPERTIES DEPENDS fbx2skel_simple_raw)
-add_test(NAME fbx2anim_little COMMAND fbx2anim "--file=${ozz_media_directory}/fbx/alain/run.fbx" "--skeleton=${ozz_temp_directory}/fbx_skeleton.ozz" "--config_string={\"animations\":[{\"output\":\"${ozz_temp_directory}/fbx_animation_${CMAKE_CURRENT_LIST_LINE}.ozz\"}]}" "--endian=little")
+add_test(NAME fbx2anim_little COMMAND fbx2anim "--file=${ozz_media_directory}/fbx/alain/run.fbx" "--skeleton=${ozz_temp_directory}/fbx_skeleton.ozz" "--config={\"animations\":[{\"output\":\"${ozz_temp_directory}/fbx_animation_${CMAKE_CURRENT_LIST_LINE}.ozz\"}]}" "--endian=little")
 set_tests_properties(fbx2anim_little PROPERTIES DEPENDS fbx2skel_simple)
-add_test(NAME fbx2anim_big COMMAND fbx2anim "--file=${ozz_media_directory}/fbx/alain/run.fbx" "--skeleton=${ozz_temp_directory}/fbx_skeleton.ozz" "--config_string={\"animations\":[{\"output\":\"${ozz_temp_directory}/fbx_animation_${CMAKE_CURRENT_LIST_LINE}.ozz\"}]}" "--endian=big")
+add_test(NAME fbx2anim_big COMMAND fbx2anim "--file=${ozz_media_directory}/fbx/alain/run.fbx" "--skeleton=${ozz_temp_directory}/fbx_skeleton.ozz" "--config={\"animations\":[{\"output\":\"${ozz_temp_directory}/fbx_animation_${CMAKE_CURRENT_LIST_LINE}.ozz\"}]}" "--endian=big")
 set_tests_properties(fbx2anim_big PROPERTIES DEPENDS fbx2skel_simple)
 
 # Run fbx2anim collada passing tests
-add_test(NAME fbx2anim_simple_dae_astro_max COMMAND fbx2anim "--file=${ozz_media_directory}/collada/astro_max.dae" "--skeleton=${ozz_temp_directory}/astro_max_skeleton.ozz" "--config_string={\"animations\":[{\"output\":\"${ozz_temp_directory}/dae_animation_${CMAKE_CURRENT_LIST_LINE}.ozz\"}]}")
+add_test(NAME fbx2anim_simple_dae_astro_max COMMAND fbx2anim "--file=${ozz_media_directory}/collada/astro_max.dae" "--skeleton=${ozz_temp_directory}/astro_max_skeleton.ozz" "--config={\"animations\":[{\"output\":\"${ozz_temp_directory}/dae_animation_${CMAKE_CURRENT_LIST_LINE}.ozz\"}]}")
 set_tests_properties(fbx2anim_simple_dae_astro_max PROPERTIES DEPENDS fbx2skel_simple_dae_astro_max)
-add_test(NAME fbx2anim_simple_dae_astro_maya COMMAND fbx2anim "--file=${ozz_media_directory}/collada/astro_maya.dae" "--skeleton=${ozz_temp_directory}/astro_maya_skeleton.ozz" "--config_string={\"animations\":[{\"output\":\"${ozz_temp_directory}/dae_animation_${CMAKE_CURRENT_LIST_LINE}.ozz\"}]}")
+add_test(NAME fbx2anim_simple_dae_astro_maya COMMAND fbx2anim "--file=${ozz_media_directory}/collada/astro_maya.dae" "--skeleton=${ozz_temp_directory}/astro_maya_skeleton.ozz" "--config={\"animations\":[{\"output\":\"${ozz_temp_directory}/dae_animation_${CMAKE_CURRENT_LIST_LINE}.ozz\"}]}")
 set_tests_properties(fbx2anim_simple_dae_astro_maya PROPERTIES DEPENDS fbx2skel_simple_dae_astro_maya)
-add_test(NAME fbx2anim_simple_dae_seymour COMMAND fbx2anim "--file=${ozz_media_directory}/collada/seymour.dae" "--skeleton=${ozz_temp_directory}/seymour_skeleton.ozz" "--config_string={\"animations\":[{\"output\":\"${ozz_temp_directory}/dae_animation_${CMAKE_CURRENT_LIST_LINE}.ozz\"}]}")
+add_test(NAME fbx2anim_simple_dae_seymour COMMAND fbx2anim "--file=${ozz_media_directory}/collada/seymour.dae" "--skeleton=${ozz_temp_directory}/seymour_skeleton.ozz" "--config={\"animations\":[{\"output\":\"${ozz_temp_directory}/dae_animation_${CMAKE_CURRENT_LIST_LINE}.ozz\"}]}")
 set_tests_properties(fbx2anim_simple_dae_seymour PROPERTIES DEPENDS fbx2skel_simple_dae_seymour)
 
 # Uses the sample playback to test other file format and special cases.
@@ -87,7 +87,7 @@ if(TARGET sample_playback)
     COMMAND fbx2anim
       "--file=${ozz_media_directory}/collada/alain/walk.dae"
       "--skeleton=${ozz_temp_directory}/alain_skeleton_dae.ozz"
-      "--config_string={\"animations\":[{\"output\":\"${ozz_temp_directory}/alain_walk_dae.ozz\"}]}"
+      "--config={\"animations\":[{\"output\":\"${ozz_temp_directory}/alain_walk_dae.ozz\"}]}"
     VERBATIM)
       
   add_custom_target(BUILD_DATA_TEST ALL DEPENDS

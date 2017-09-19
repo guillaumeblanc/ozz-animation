@@ -184,7 +184,7 @@ namespace log {
 
 // Default log level initialization.
 namespace {
-Level log_level = Standard;
+Level log_level = kStandard;
 }
 
 Level SetLevel(Level _level) {
@@ -195,13 +195,13 @@ Level SetLevel(Level _level) {
 
 Level GetLevel() { return log_level; }
 
-LogV::LogV() : internal::Logger(std::clog, Verbose) {}
+LogV::LogV() : internal::Logger(std::clog, kVerbose) {}
 
-Log::Log() : internal::Logger(std::clog, Standard) {}
+Log::Log() : internal::Logger(std::clog, kStandard) {}
 
-Out::Out() : internal::Logger(std::cout, Standard) {}
+Out::Out() : internal::Logger(std::cout, kStandard) {}
 
-Err::Err() : internal::Logger(std::cerr, Standard) {}
+Err::Err() : internal::Logger(std::cerr, kStandard) {}
 
 namespace internal {
 

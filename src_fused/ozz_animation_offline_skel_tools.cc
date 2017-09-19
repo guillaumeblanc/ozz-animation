@@ -110,11 +110,11 @@ int SkeletonConverter::operator()(int _argc, const char** _argv) {
   // Initializes log level from options.
   ozz::log::Level log_level = ozz::log::GetLevel();
   if (std::strcmp(OPTIONS_log_level, "silent") == 0) {
-    log_level = ozz::log::Silent;
+    log_level = ozz::log::kSilent;
   } else if (std::strcmp(OPTIONS_log_level, "standard") == 0) {
-    log_level = ozz::log::Standard;
+    log_level = ozz::log::kStandard;
   } else if (std::strcmp(OPTIONS_log_level, "verbose") == 0) {
-    log_level = ozz::log::Verbose;
+    log_level = ozz::log::kVerbose;
   }
   ozz::log::SetLevel(log_level);
 

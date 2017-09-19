@@ -33,6 +33,7 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <fstream>
 
 #include <json/json.h>
 
@@ -58,8 +59,35 @@ OZZ_OPTIONS_DECLARE_STRING(file, "Specifies input file", "", true)
 OZZ_OPTIONS_DECLARE_STRING(skeleton,
                            "Specifies ozz skeleton (raw or runtime) input file",
                            "", true)
-OZZ_OPTIONS_DECLARE_STRING(config_string,
-                           "Specifies input configuration string", "{}", false)
+
+bool ValidateExclusiveConfigOption(const ozz::options::Option& _option,
+                                   int _argc);
+OZZ_OPTIONS_DECLARE_STRING_FN(
+    config, "Specifies input configuration string in json format", "", false,
+    &ValidateExclusiveConfigOption)
+OZZ_OPTIONS_DECLARE_STRING_FN(
+    config_file, "Specifies input configuration file in json format", "", false,
+    &ValidateExclusiveConfigOption)
+
+// Validate exclusive config options.
+bool ValidateExclusiveConfigOption(const ozz::options::Option& _option,
+                                   int _argc) {
+  (void)_option;
+  (void)_argc;
+
+  bool not_exclusive =
+      OPTIONS_config_file.value()[0] != 0 && OPTIONS_config.value()[0] != 0;
+
+  if (not_exclusive) {
+    ozz::log::Err() << "--config and --config_file are exclusive options."
+                    << std::endl;
+  }
+
+  return !not_exclusive;
+}
+
+
+OZZ_OPTIONS_DECLARE_STRING(config_dump, "Dump sanitized configuration to the specified file", "", false)
 
 static bool ValidateEndianness(const ozz::options::Option& _option,
                                int /*_argc*/) {
@@ -355,8 +383,8 @@ ozz::animation::Skeleton* ImportSkeleton() {
   // Reads the skeleton from the binary ozz stream.
   ozz::animation::Skeleton* skeleton = NULL;
   {
-    ozz::log::Log() << "Opens input skeleton ozz binary file: "
-                    << OPTIONS_skeleton << std::endl;
+    ozz::log::LogV() << "Opens input skeleton ozz binary file: "
+                     << OPTIONS_skeleton << std::endl;
     ozz::io::File file(OPTIONS_skeleton, "rb");
     if (!file.opened()) {
       ozz::log::Err() << "Failed to open input skeleton ozz binary file: \""
@@ -477,7 +505,7 @@ bool Export(const ozz::animation::offline::RawAnimation& _raw_animation,
     ozz::String::Std filename = BuildFilename(_config["output"].asCString(),
                                               _raw_animation.name.c_str());
 
-    ozz::log::Log() << "Opens output file: " << filename << std::endl;
+    ozz::log::LogV() << "Opens output file: " << filename << std::endl;
     ozz::io::File file(filename.c_str(), "wb");
     if (!file.opened()) {
       ozz::log::Err() << "Failed to open output file: \"" << filename << "\""
@@ -522,7 +550,7 @@ bool Export(const ozz::animation::offline::RawAnimation& _raw_animation,
 int AnimationConverter::operator()(int _argc, const char** _argv) {
   // Parses arguments.
   ozz::options::ParseResult parse_result = ozz::options::ParseCommandLine(
-      _argc, _argv, "1.1",
+      _argc, _argv, "2.0",
       "Imports a animation from a file and converts it to ozz binary raw or "
       "runtime animation format");
   if (parse_result != ozz::options::kSuccess) {
@@ -530,38 +558,75 @@ int AnimationConverter::operator()(int _argc, const char** _argv) {
                                                       : EXIT_FAILURE;
   }
 
+  // Initializes log level from options.
+  ozz::log::Level log_level = ozz::log::GetLevel();
+  if (std::strcmp(OPTIONS_log_level, "silent") == 0) {
+    log_level = ozz::log::kSilent;
+  } else if (std::strcmp(OPTIONS_log_level, "standard") == 0) {
+    log_level = ozz::log::kStandard;
+  } else if (std::strcmp(OPTIONS_log_level, "verbose") == 0) {
+    log_level = ozz::log::kVerbose;
+  }
+  ozz::log::SetLevel(log_level);
+
+  // Use {} as a default config, otherwise take the one specified as argument.
+  std::string config_string = "{}";
+  if (OPTIONS_config.value()[0] != 0) {
+    config_string = OPTIONS_config.value();
+  } else if (OPTIONS_config_file.value()[0] != 0) {
+    ozz::log::LogV() << "Opens config file: " << OPTIONS_config_file
+                     << std::endl;
+
+    std::ifstream file(OPTIONS_config_file.value());
+    if (!file.is_open()) {
+      ozz::log::Err() << "Failed to open config file: \"" << OPTIONS_config_file
+                      << "\"" << std::endl;
+      return EXIT_FAILURE;
+    }
+    config_string.assign((std::istreambuf_iterator<char>(file)),
+                         std::istreambuf_iterator<char>());
+  }
+
   Json::Value config;
   Json::Reader json_builder;
-  ozz::log::Log() << "Config: " << OPTIONS_config_string.value() << std::endl;
-  if (!json_builder.parse(std::string(OPTIONS_config_string.value()), config,
-                          true)) {
+  if (!json_builder.parse(config_string, config, true)) {
     ozz::log::Err() << "Error while parsing configuration string: "
                     << json_builder.getFormattedErrorMessages() << std::endl;
     return EXIT_FAILURE;
   }
   if (!Sanitize(config)) {
-    ozz::log::Err() << "Invalid configuration." << std::endl;
+    // Specific error message are reported during Sanitize.
     return EXIT_FAILURE;
   }
 
-  Json::StreamWriterBuilder builder;
-  builder["indentation"] = "  ";
-  builder["precision"] = 4;
-  std::string document = Json::writeString(builder, config);
-  // ozz::log::Log() << document << std::endl;
+  // Dumps the config once it's sanitized.
+  const bool log_config = ozz::log::GetLevel() >= ozz::log::kVerbose;
+  if (log_config || OPTIONS_config_dump.value()[0] != 0) {
+    // Format configuration
+    Json::StreamWriterBuilder builder;
+    builder["indentation"] = "  ";
+    builder["precision"] = 4;
+    const std::string document = Json::writeString(builder, config);
 
-  // ozz::log::Log() << Json::FastWriter().write(config) << std::endl;
+    // Dump to log
+    if (log_config) {
+      ozz::log::LogV() << document << std::endl;
+    }
+    // Dump to file
+    if (OPTIONS_config_dump.value()[0] != 0) {
+      ozz::log::LogV() << "Opens dump config file: "
+                       << OPTIONS_config_dump.value() << std::endl;
 
-  // Initializes log level from options.
-  ozz::log::Level log_level = ozz::log::GetLevel();
-  if (std::strcmp(OPTIONS_log_level, "silent") == 0) {
-    log_level = ozz::log::Silent;
-  } else if (std::strcmp(OPTIONS_log_level, "standard") == 0) {
-    log_level = ozz::log::Standard;
-  } else if (std::strcmp(OPTIONS_log_level, "verbose") == 0) {
-    log_level = ozz::log::Verbose;
+      std::ofstream file(OPTIONS_config_dump.value());
+      if (!file.is_open()) {
+        ozz::log::Err() << "Failed to open dump config file: \""
+                        << OPTIONS_config_dump.value() << "\""
+                        << std::endl;
+        return EXIT_FAILURE;
+      }
+      file << document;
+    }
   }
-  ozz::log::SetLevel(log_level);
 
   // Ensures file to import actually exist.
   if (!ozz::io::File::Exist(OPTIONS_file)) {
