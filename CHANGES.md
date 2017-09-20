@@ -6,6 +6,7 @@ Next release
 
 * Build pipeline
   - ozz optionnaly supports c++11 compiler.
+  - Adds ozz_build_data option (OFF by default), to avoid building data on every code change. Building data takes time indeed, and isn't required on every change. It should be turned ON when output format changes to update all data again.
 
 * Samples
   - [multithread] Switched from OpenMP to c++11 std::async API to implement a parallel-for loop over all computation tasks.

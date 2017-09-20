@@ -70,8 +70,8 @@ set_tests_properties(fbx2anim_simple_dae_seymour PROPERTIES DEPENDS fbx2skel_sim
 # Uses the sample playback to test other file format and special cases.
 if(TARGET sample_playback)
   add_custom_command(
-    DEPENDS fbx2skel
-            fbx2anim
+    DEPENDS $<$<AND:$<BOOL:${ozz_build_data}>,$<BOOL:${ozz_build_fbx}>>:fbx2skel>
+            $<$<AND:$<BOOL:${ozz_build_data}>,$<BOOL:${ozz_build_fbx}>>:fbx2anim>
             "${ozz_media_directory}/collada/alain/skeleton.dae"
             "${ozz_media_directory}/collada/alain/skeleton_zup.dae"
             "${ozz_media_directory}/collada/alain/walk.dae"
