@@ -125,6 +125,13 @@ set_tests_properties(test2anim_wrongoptimize PROPERTIES WILL_FAIL true DEPENDS t
 add_test(NAME test2anim_to_much_asterisks COMMAND test2anim "--file=${ozz_temp_directory}/good.content1" "--skeleton=${ozz_temp_directory}/skeleton.ozz" "--animation=${ozz_temp_directory}/*/should_not_exist_*.ozz")
 set_tests_properties(test2anim_to_much_asterisks PROPERTIES WILL_FAIL true DEPENDS test2skel_simple)
 
+add_test(NAME test2anim_track_bad_name COMMAND test2anim "--file=${ozz_temp_directory}/good.content1" "--skeleton=${ozz_temp_directory}/skeleton.ozz" "--animation=${ozz_temp_directory}/animation_${CMAKE_CURRENT_LIST_LINE}.ozz" "--track=node_name1:track_name")
+set_tests_properties(test2anim_track_bad_name PROPERTIES PASS_REGULAR_EXPRESSION "Failed to import track \"node_name1:track_name\"" DEPENDS test2skel_simple)
+add_test(NAME test2anim_track_bad_format1 COMMAND test2anim "--file=${ozz_temp_directory}/good.content1" "--skeleton=${ozz_temp_directory}/skeleton.ozz" "--animation=${ozz_temp_directory}/animation_${CMAKE_CURRENT_LIST_LINE}.ozz" "--track=node_name;track_name")
+set_tests_properties(test2anim_track_bad_format1 PROPERTIES PASS_REGULAR_EXPRESSION "Invalid track option \"node_name;track_name\"" DEPENDS test2skel_simple)
+add_test(NAME test2anim_track_bad_format2 COMMAND test2anim "--file=${ozz_temp_directory}/good.content1" "--skeleton=${ozz_temp_directory}/skeleton.ozz" "--animation=${ozz_temp_directory}/animation_${CMAKE_CURRENT_LIST_LINE}.ozz" "--track=node:name:track_name")
+set_tests_properties(test2anim_track_bad_format2 PROPERTIES PASS_REGULAR_EXPRESSION "Invalid track option \"node:name:track_name\"" DEPENDS test2skel_simple)
+
 # Ensures nothing was outputted.
 add_test(NAME test2anim_ouput COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/should_not_exist.ozz" "${ozz_temp_directory}/should_not_exist_too.ozz")
 set_tests_properties(test2anim_ouput PROPERTIES WILL_FAIL true)
@@ -187,6 +194,9 @@ add_test(NAME test2anim_multi1_2 COMMAND test2anim "--file=${ozz_temp_directory}
 set_tests_properties(test2anim_multi1_2 PROPERTIES DEPENDS test2skel_simple)
 add_test(NAME test2anim_multi2 COMMAND test2anim "--file=${ozz_temp_directory}/good.content2" "--skeleton=${ozz_temp_directory}/skeleton.ozz" "--animation=${ozz_temp_directory}/animation_multi2_*.ozz")
 set_tests_properties(test2anim_multi2 PROPERTIES DEPENDS test2skel_simple)
+
+add_test(NAME test2anim_track COMMAND test2anim "--file=${ozz_temp_directory}/good.content1" "--skeleton=${ozz_temp_directory}/skeleton.ozz" "--animation=${ozz_temp_directory}/animation_${CMAKE_CURRENT_LIST_LINE}.ozz" "--track=node_name:track_name")
+set_tests_properties(test2anim_track PROPERTIES DEPENDS test2skel_simple)
 
 # Ensures animations were outputted.
 add_test(NAME test2anim_mult_ouput1_one COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/animation_multi1_one.ozz" "${ozz_temp_directory}/animation_multi1_one_should_exist.ozz")

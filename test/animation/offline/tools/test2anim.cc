@@ -114,11 +114,11 @@ class TestAnimationConverter
                       const char* _track_name, float _sampling_rate,
                       ozz::animation::offline::RawFloatTrack* _track) {
     (void)_animation_name;
-    (void)_node_name;
-    (void)_track_name;
     (void)_sampling_rate;
     (void)_track;
-    return true;
+
+    return strcmp(_node_name, "node_name") == 0 &&
+           strcmp(_track_name, "track_name") == 0;
   }
 
   ozz::io::File* file_;

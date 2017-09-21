@@ -56,26 +56,6 @@ OZZ_OPTIONS_DECLARE_STRING(file, "Specifies input file", "", true)
 OZZ_OPTIONS_DECLARE_STRING(skeleton,
                            "Specifies ozz skeleton (raw or runtime) input file",
                            "", true)
-/*
-struct ImportAnimation {
-  float sampling_rate = 0.f;
-  bool raw = false;
-  bool additive = false;
-  bool optimize = true;
-  float translation_tolerance =
-      ozz::animation::offline::AnimationOptimizer().translation_tolerance;
-  float rotation_tolerance =
-      ozz::animation::offline::AnimationOptimizer().rotation_tolerance;
-  float scale_tolerance =
-      ozz::animation::offline::AnimationOptimizer().scale_tolerance;
-  float hierarchical_tolerance =
-      ozz::animation::offline::AnimationOptimizer().hierarchical_tolerance;
-};
-
-struct ImportTrack {
-  ozz::String::Std node;
-  ozz::String::Std name;
-};*/
 
 // animation option can have 0 or 1 "Asterisk" (*) character to specify which
 // part of the filename should be replaced by the animation name (imported from
@@ -105,7 +85,23 @@ OZZ_OPTIONS_DECLARE_STRING_FN(
     "replaced by the animation name.",
     "", true, &ValidateAnimation)
 
-OZZ_OPTIONS_DECLARE_STRING(track, "Specifies track to import", "", false);
+// Track option should be in the form of a "node name : property name".
+static bool ValidateTrack(const ozz::options::Option& _option, int /*_argc*/) {
+  const ozz::options::StringOption& option =
+      static_cast<const ozz::options::StringOption&>(_option);
+
+  bool valid =
+      option.value()[0] == 0 || (ozz::strmatch(option.value(), "?*:?*") &&
+                                 !ozz::strmatch(option.value(), "*:*:*"));
+  if (!valid) {
+    ozz::log::Err() << "Invalid track option \"" << option.value() << "\"."
+                    << std::endl;
+  }
+  return valid;
+}
+OZZ_OPTIONS_DECLARE_STRING_FN(
+    track, "Specifies track to import, in the form \"node name:track name\"",
+    "", false, &ValidateTrack);
 
 OZZ_OPTIONS_DECLARE_BOOL(optimize, "Activate keyframes optimization stage.",
                          true, false)
@@ -557,6 +553,9 @@ int AnimationConverter::operator()(int _argc, const char** _argv) {
   if (track_defintion[0] != 0) {
     for (size_t i = 0; success && i < animation_names.size(); ++i) {
       const char* separator = strchr(track_defintion, ':');
+      assert(separator &&
+             "Track definition should have a : character, which must have been "
+             "checked while validating configuration.");
       ozz::String::Std node_name(track_defintion, separator);
       ozz::String::Std track_name(++separator);
       RawFloatTrack track;
