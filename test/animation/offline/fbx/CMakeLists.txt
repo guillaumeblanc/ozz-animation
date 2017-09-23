@@ -105,9 +105,10 @@ if(TARGET sample_playback)
 endif()
 
 # ozz_animation_fbx fuse tests
+set_source_files_properties(${PROJECT_BINARY_DIR}/src_fused/ozz_animation_fbx.cc PROPERTIES GENERATED 1)
 add_executable(test_fuse_ozz_animation_fbx
   ${PROJECT_SOURCE_DIR}/src/animation/offline/fbx/fbx2skel.cc
-  ${PROJECT_SOURCE_DIR}/src_fused/ozz_animation_fbx.cc)
+  ${PROJECT_BINARY_DIR}/src_fused/ozz_animation_fbx.cc)
 add_dependencies(test_fuse_ozz_animation_fbx BUILD_FUSE_ozz_animation_fbx)
 target_include_directories(test_fuse_ozz_animation_fbx
   PUBLIC ${FBX_INCLUDE_DIRS})
