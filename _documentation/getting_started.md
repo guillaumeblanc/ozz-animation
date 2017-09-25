@@ -168,7 +168,18 @@ This latest solution is interesting for ozz runtime features as it ensures compi
 
 ## 4. Integrating amalgamated sources
 
-Ozz also embeds automatically generated [fused / amalgamated sources][link_src_fused]. These amalgamated sources are single .cc files (one per ozz library) that can be added to your project sources. This aims to simplify project maintenance and further updates of ozz libraries. Again ozz include path remains and must be set.
+Ozz also allows to use fused / amalgamated sources. These amalgamated sources are single .cc files (one per ozz library) that can be added to your project sources. This aims to simplify project maintenance and further updates of ozz libraries. Again ozz include path remains the same and must be set.
+
+Fused sources are generated during build, in a "src_fused" folder in the binrary ouput folder ("build/src_fused/"" folder by default). To generate them without building the whole library,, one can use the following commands:
+
+{% highlight bash %}
+mkdir build-fuse
+cd build-fuse
+cmake ..
+cmake --build ./ --target BUILD_FUSE_ALL
+{% endhighlight %}
+
+Fused sources can the be found in "build/src_fused/" folder.
 
 Next step
 =========

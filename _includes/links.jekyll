@@ -62,8 +62,6 @@
 
 [link_src_build_options]: http://github.com/guillaumeblanc/ozz-animation/blob/master/CMakeLists.txt#L15
 
-[link_src_fused]: http://github.com/guillaumeblanc/ozz-animation/tree/master/src_fused
-
 [link_src_convert2skel]: http://github.com/guillaumeblanc/ozz-animation/blob/master/include/ozz/animation/offline/tools/convert2skel.h
 [link_src_convert2anim]: http://github.com/guillaumeblanc/ozz-animation/blob/master/include/ozz/animation/offline/tools/convert2anim.h
 
