@@ -237,9 +237,10 @@ add_test(NAME test2anim_mult_ouput2_two COMMAND ${CMAKE_COMMAND} -E copy "${ozz_
 set_tests_properties(test2anim_mult_ouput2_two PROPERTIES DEPENDS test2anim_multi2)
 
 # ozz_animation_offline_skel_tools fuse tests
+set_source_files_properties(${PROJECT_BINARY_DIR}/src_fused/ozz_animation_offline_skel_tools.cc PROPERTIES GENERATED 1)
 add_executable(test_fuse_animation_offline_skel_tools
   test2skel.cc
-  ${PROJECT_SOURCE_DIR}/src_fused/ozz_animation_offline_skel_tools.cc)
+  ${PROJECT_BINARY_DIR}/src_fused/ozz_animation_offline_skel_tools.cc)
 add_dependencies(test_fuse_animation_offline_skel_tools BUILD_FUSE_ozz_animation_offline_skel_tools)
 target_link_libraries(test_fuse_animation_offline_skel_tools
   ozz_animation_offline
@@ -251,9 +252,10 @@ add_test(NAME test_fuse_animation_offline_skel_tools_no_arg COMMAND test_fuse_an
 set_tests_properties(test_fuse_animation_offline_skel_tools_no_arg PROPERTIES WILL_FAIL true)
 
 # ozz_animation_offline_anim_tools fuse tests
+set_source_files_properties(${PROJECT_BINARY_DIR}/src_fused/ozz_animation_offline_anim_tools.cc PROPERTIES GENERATED 1)
 add_executable(test_fuse_animation_offline_anim_tools
   test2anim.cc
-  ${PROJECT_SOURCE_DIR}/src_fused/ozz_animation_offline_anim_tools.cc)
+  ${PROJECT_BINARY_DIR}/src_fused/ozz_animation_offline_anim_tools.cc)
 add_dependencies(test_fuse_animation_offline_anim_tools BUILD_FUSE_ozz_animation_offline_anim_tools)
 target_link_libraries(test_fuse_animation_offline_anim_tools
   ozz_animation_offline
