@@ -38,7 +38,7 @@ Ozz build process relies on [cmake](http://www.cmake.org) which provides a porta
 
 > See [the feature-map page][link_features_os] for a list of tested OS and compilers.
 
-You can run CMake as usual from ozz-animation root directory. It is recommended to build out-of-source though (creating "build" directory and running CMake from there). From ozz-animation root, use the following commands:
+You can run CMake as usual from ozz-animation root directory. It is recommended to build out-of-source though (creating "build" directory and running CMake from there). From ozz-animation root, use the following commands from ozz sources directory:
 
 {% highlight bash %}
 mkdir build
@@ -170,11 +170,11 @@ This latest solution is interesting for ozz runtime features as it ensures compi
 
 Ozz also allows to use fused / amalgamated sources. These amalgamated sources are single .cc files (one per ozz library) that can be added to your project sources. This aims to simplify project maintenance and further updates of ozz libraries. Again ozz include path remains the same and must be set.
 
-Fused sources are generated during build, in a "src_fused" folder in the binrary ouput folder ("build/src_fused/"" folder by default). To generate them without building the whole library,, one can use the following commands:
+Fused sources are generated during build, in a "src_fused" folder in the binrary ouput folder ("build/src_fused/"" folder by default). To generate them without building the whole library,, one can use the following commands from ozz sources directory:
 
 {% highlight bash %}
-mkdir build-fuse
-cd build-fuse
+mkdir build
+cd build
 cmake ..
 cmake --build ./ --target BUILD_FUSE_ALL
 {% endhighlight %}
