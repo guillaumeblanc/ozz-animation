@@ -25,30 +25,15 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
+#ifndef OZZ_OZZ_ANIMATION_OFFLINE_TOOLS_CONFIGURATION_H_
+#define OZZ_OZZ_ANIMATION_OFFLINE_TOOLS_CONFIGURATION_H_
+
 #include "ozz/base/platform.h"
 
-namespace ozz {
+#include <json/json.h>
 
-bool strmatch(const char* _str, const char* _pattern) {
-  for (; *_pattern; ++_str, ++_pattern) {
-    if (*_pattern == '?') {
-      if (!*_str) {
-        return false;
-      }
-    } else if (*_pattern == '*') {
-      if (strmatch(_str, _pattern + 1)) {
-        return true;
-      }
-      if (*_str && strmatch(_str + 1, _pattern)) {
-        return true;
-      }
-      return false;
-    } else {
-      if (*_str != *_pattern) {
-        return false;
-      }
-    }
-  }
-  return !*_str && !*_pattern;
-}
-}  // namespace ozz
+// Sanitized provided configuration, validating members, types, and adding
+// default values where missing.
+bool Sanitize(Json::Value& _config);
+
+#endif  // OZZ_OZZ_ANIMATION_OFFLINE_TOOLS_CONFIGURATION_H_

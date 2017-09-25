@@ -178,7 +178,7 @@ Allocator* SetDefaulAllocator(Allocator* _allocator) {
 namespace ozz {
 
 bool strmatch(const char* _str, const char* _pattern) {
-  for (;*_pattern; ++_str, ++_pattern) {
+  for (; *_pattern; ++_str, ++_pattern) {
     if (*_pattern == '?') {
       if (!*_str) {
         return false;
@@ -200,6 +200,7 @@ bool strmatch(const char* _str, const char* _pattern) {
   return !*_str && !*_pattern;
 }
 }  // namespace ozz
+
 // Including log.cc file.
 
 //----------------------------------------------------------------------------//

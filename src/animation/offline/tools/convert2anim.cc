@@ -31,7 +31,7 @@
 #include <cstring>
 #include <fstream>
 
-#include <json/json.h>
+#include "animation/offline/tools/configuration.h"
 
 #include "ozz/animation/offline/additive_animation_builder.h"
 #include "ozz/animation/offline/animation_builder.h"
@@ -70,20 +70,18 @@ bool ValidateExclusiveConfigOption(const ozz::options::Option& _option,
                                    int _argc) {
   (void)_option;
   (void)_argc;
-
   bool not_exclusive =
       OPTIONS_config_file.value()[0] != 0 && OPTIONS_config.value()[0] != 0;
-
   if (not_exclusive) {
     ozz::log::Err() << "--config and --config_file are exclusive options."
                     << std::endl;
   }
-
   return !not_exclusive;
 }
 
-
-OZZ_OPTIONS_DECLARE_STRING(config_dump, "Dump sanitized configuration to the specified file", "", false)
+OZZ_OPTIONS_DECLARE_STRING(config_dump,
+                           "Dump sanitized configuration to the specified file",
+                           "", false)
 
 static bool ValidateEndianness(const ozz::options::Option& _option,
                                int /*_argc*/) {
@@ -122,217 +120,10 @@ OZZ_OPTIONS_DECLARE_STRING_FN(
     "Selects log level. Can be \"silent\", \"standard\" or \"verbose\".",
     "standard", false, &ValidateLogLevel)
 
-static bool ValidateSamplingRate(const ozz::options::Option& _option,
-                                 int /*_argc*/) {
-  const ozz::options::FloatOption& option =
-      static_cast<const ozz::options::FloatOption&>(_option);
-  bool valid = option.value() >= 0.f;
-  if (!valid) {
-    ozz::log::Err() << "Invalid sampling rate option (must be >= 0)."
-                    << std::endl;
-  }
-  return valid;
-}
-
-OZZ_OPTIONS_DECLARE_FLOAT_FN(sampling_rate,
-                             "Selects animation sampling rate in hertz. Set a "
-                             "value = 0 to use imported scene frame rate.",
-                             0.f, false, &ValidateSamplingRate)
-
 namespace ozz {
 namespace animation {
 namespace offline {
-
 namespace {
-
-bool MakeDefaultArray(Json::Value& _parent, const char* _name,
-                      const char* _comment) {
-  const Json::Value* found = _parent.find(_name, _name + strlen(_name));
-  if (!found) {
-    Json::Value& member = _parent[_name];
-    member.resize(1);
-    if (*_comment != 0) {
-      member.setComment(std::string("//  ") + _comment, Json::commentBefore);
-    }
-
-    // It is not a failure to have a missing member, just use the default value.
-    return true;
-  }
-
-  if (!found->isArray()) {
-    // It's a failure to have a wrong member type.
-    return false;
-  }
-
-  return true;
-}
-
-bool MakeDefaultObject(Json::Value& _parent, const char* _name,
-                       const char* _comment) {
-  const Json::Value* found = _parent.find(_name, _name + strlen(_name));
-  if (!found) {
-    Json::Value& member = _parent[_name];
-    if (*_comment != 0) {
-      member.setComment(std::string("//  ") + _comment, Json::commentBefore);
-    }
-
-    // It is not a failure to have a missing member, just use the default value.
-    return true;
-  }
-
-  if (!found->isObject()) {
-    // It's a failure to have a wrong member type.
-    return false;
-  }
-
-  return true;
-}
-
-template <typename _Type>
-struct ToJsonType;
-
-template <>
-struct ToJsonType<int> {
-  static Json::ValueType type() { return Json::intValue; }
-};
-template <>
-struct ToJsonType<unsigned int> {
-  static Json::ValueType type() { return Json::uintValue; }
-};
-template <>
-struct ToJsonType<float> {
-  static Json::ValueType type() { return Json::realValue; }
-};
-template <>
-struct ToJsonType<const char*> {
-  static Json::ValueType type() { return Json::stringValue; }
-};
-template <>
-struct ToJsonType<bool> {
-  static Json::ValueType type() { return Json::booleanValue; }
-};
-
-const char* JsonTypeToString(Json::ValueType _type) {
-  switch (_type) {
-    case Json::nullValue:
-      return "null";
-    case Json::intValue:
-      return "integer";
-    case Json::uintValue:
-      return "unsigned integer";
-    case Json::realValue:
-      return "float";
-    case Json::stringValue:
-      return "UTF-8 string";
-    case Json::booleanValue:
-      return "boolean";
-    case Json::arrayValue:
-      return "array";
-    case Json::objectValue:
-      return "object";
-    default:
-      assert(false && "unknown json type");
-      return "unknown";
-  }
-}
-
-template <typename _Type>
-bool MakeDefault(Json::Value& _parent, const char* _name, _Type _value,
-                 const char* _comment) {
-  const Json::Value* found = _parent.find(_name, _name + strlen(_name));
-  if (!found) {
-    Json::Value& member = _parent[_name];
-    member = _value;
-    if (*_comment != 0) {
-      member.setComment(std::string("//  ") + _comment,
-                        Json::commentAfterOnSameLine);
-    }
-
-    // It is not a failure to have a missing member, just use default value.
-    return true;
-  }
-
-  if (found->type() != ToJsonType<_Type>::type()) {
-    // It's a failure to have a wrong member type.
-    ozz::log::Err() << "Invalid type \"" << JsonTypeToString(found->type())
-                    << "\" for json member \"" << _name << "\". \""
-                    << JsonTypeToString(ToJsonType<_Type>::type())
-                    << "\" expected." << std::endl;
-    return false;
-  }
-
-  return true;
-}
-
-bool SanitizeOptimizationTolerances(Json::Value& _root) {
-  bool success = true;
-
-  success &= MakeDefaultObject(_root, "optimization_tolerances",
-                               "Optimization tolerances.");
-
-  Json::Value& tolerances = _root["optimization_tolerances"];
-
-  success &= MakeDefault(
-      tolerances, "translation",
-      ozz::animation::offline::AnimationOptimizer().translation_tolerance,
-      "Translation optimization tolerance, defined as the distance between "
-      "two translation values in meters.");
-
-  success &= MakeDefault(
-      tolerances, "rotation",
-      ozz::animation::offline::AnimationOptimizer().rotation_tolerance,
-      "Rotation optimization tolerance, ie: the angle between two rotation "
-      "values in radian.");
-
-  success &=
-      MakeDefault(tolerances, "scale",
-                  ozz::animation::offline::AnimationOptimizer().scale_tolerance,
-                  "Scale optimization tolerance, ie: the norm of the "
-                  "difference of two scales.");
-
-  success &= MakeDefault(
-      tolerances, "hierarchical",
-      ozz::animation::offline::AnimationOptimizer().hierarchical_tolerance,
-      "Hierarchical translation optimization tolerance, ie: the maximum "
-      "error "
-      "(distance) that an optimization on a joint is allowed to generate on "
-      "its whole child hierarchy.");
-
-  return success;
-}
-
-bool SanitizeAnimation(Json::Value& _root) {
-  bool success = true;
-
-  success &= MakeDefault(_root, "output", "*.ozz",
-                         "Specifies ozz animation output file(s). When "
-                         "importing multiple animations, use a \'*\' character "
-                         "to specify part(s) of the filename that should be "
-                         "replaced by the animation name.");
-
-  success &=
-      MakeDefault(_root, "optimize", true, "Activates keyframes optimization.");
-  success &= SanitizeOptimizationTolerances(_root);
-  success &= MakeDefault(_root, "raw", false, "Outputs raw animation.");
-  success &= MakeDefault(
-      _root, "additive", false,
-      "Creates a delta animation that can be used for additive blending.");
-
-  return success;
-}
-
-bool Sanitize(Json::Value& _root) {
-  bool success = true;
-
-  success &= MakeDefaultArray(_root, "animations", "Animations to extract.");
-
-  Json::Value& animations = _root["animations"];
-  for (Json::ArrayIndex i = 0; i < animations.size(); ++i) {
-    success &= SanitizeAnimation(animations[0]);
-  }
-
-  return success;
-}
 
 void DisplaysOptimizationstatistics(const RawAnimation& _non_optimized,
                                     const RawAnimation& _optimized) {
@@ -449,7 +240,7 @@ bool Export(const ozz::animation::offline::RawAnimation& _raw_animation,
       ozz::log::Err() << "Failed to make additive animation." << std::endl;
       return false;
     }
-    // Copy animation.
+    // checker animation.
     raw_animation = raw_additive;
   } else {
     raw_animation = _raw_animation;
@@ -606,7 +397,8 @@ int AnimationConverter::operator()(int _argc, const char** _argv) {
 
     // Dump to log
     if (log_config) {
-      ozz::log::LogV() << "Sanitized configuration:" << std::endl << document << std::endl;
+      ozz::log::LogV() << "Sanitized configuration:" << std::endl
+                       << document << std::endl;
     }
     // Dump to file
     if (OPTIONS_config_dump.value()[0] != 0) {
@@ -616,8 +408,7 @@ int AnimationConverter::operator()(int _argc, const char** _argv) {
       std::ofstream file(OPTIONS_config_dump.value());
       if (!file.is_open()) {
         ozz::log::Err() << "Failed to open dump config file: \""
-                        << OPTIONS_config_dump.value() << "\""
-                        << std::endl;
+                        << OPTIONS_config_dump.value() << "\"" << std::endl;
         return EXIT_FAILURE;
       }
       file << document;
@@ -642,7 +433,8 @@ int AnimationConverter::operator()(int _argc, const char** _argv) {
 
   bool success = false;
   Animations animations;
-  if (Import(OPTIONS_file, *skeleton, OPTIONS_sampling_rate, &animations)) {
+  if (Import(OPTIONS_file, *skeleton,
+             config["animations"][0]["sampling_rate"].asFloat(), &animations)) {
     success = true;
 
     if (OutputSingleAnimation(config["animations"][0]["output"].asCString()) &&
