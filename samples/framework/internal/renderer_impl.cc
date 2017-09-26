@@ -916,8 +916,7 @@ bool RendererImpl::DrawSphereShaded(
   if (GL_ARB_instanced_arrays) {
     const GLsizei colors_stride = 0;
     const GLsizei colors_size = sizeof(uint8_t) * 4;
-    const GLsizei models_offset =
-        sizeof(icosphere::kVertices) + colors_size;
+    const GLsizei models_offset = sizeof(icosphere::kVertices) + colors_size;
     const GLsizei bo_size =
         models_offset + static_cast<GLsizei>(_transforms.Size());
 

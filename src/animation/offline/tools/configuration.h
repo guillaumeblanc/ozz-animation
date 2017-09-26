@@ -25,49 +25,15 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/base/log.h"
+#ifndef OZZ_OZZ_ANIMATION_OFFLINE_TOOLS_CONFIGURATION_H_
+#define OZZ_OZZ_ANIMATION_OFFLINE_TOOLS_CONFIGURATION_H_
 
-#include <sstream>
+#include "ozz/base/platform.h"
 
-#include "ozz/base/memory/allocator.h"
+#include <json/json.h>
 
-namespace ozz {
-namespace log {
+// Sanitized provided configuration, validating members, types, and adding
+// default values where missing.
+bool Sanitize(Json::Value& _config);
 
-// Default log level initialization.
-namespace {
-Level log_level = kStandard;
-}
-
-Level SetLevel(Level _level) {
-  const Level previous_level = log_level;
-  log_level = _level;
-  return previous_level;
-}
-
-Level GetLevel() { return log_level; }
-
-LogV::LogV() : internal::Logger(std::clog, kVerbose) {}
-
-Log::Log() : internal::Logger(std::clog, kStandard) {}
-
-Out::Out() : internal::Logger(std::cout, kStandard) {}
-
-Err::Err() : internal::Logger(std::cerr, kStandard) {}
-
-namespace internal {
-
-Logger::Logger(std::ostream& _stream, Level _level)
-    : stream_(
-          _level <= GetLevel()
-              ? _stream
-              : *ozz::memory::default_allocator()->New<std::ostringstream>()),
-      local_stream_(&stream_ != &_stream) {}
-Logger::~Logger() {
-  if (local_stream_) {
-    ozz::memory::default_allocator()->Delete(&stream_);
-  }
-}
-}  // namespace internal
-}  // namespace log
-}  // namespace ozz
+#endif  // OZZ_OZZ_ANIMATION_OFFLINE_TOOLS_CONFIGURATION_H_

@@ -30,7 +30,7 @@
 namespace ozz {
 
 bool strmatch(const char* _str, const char* _pattern) {
-  for (;*_pattern; ++_str, ++_pattern) {
+  for (; *_pattern; ++_str, ++_pattern) {
     if (*_pattern == '?') {
       if (!*_str) {
         return false;

@@ -29,6 +29,9 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <fstream>
+
+#include "animation/offline/tools/configuration.h"
 
 #include "ozz/animation/offline/additive_animation_builder.h"
 #include "ozz/animation/offline/animation_builder.h"
@@ -57,72 +60,32 @@ OZZ_OPTIONS_DECLARE_STRING(skeleton,
                            "Specifies ozz skeleton (raw or runtime) input file",
                            "", true)
 
-// animation option can have 0 or 1 "Asterisk" (*) character to specify which
-// part of the filename should be replaced by the animation name (imported from
-// the DCC source file).
-// If no * is given, only a single animation is imported from the input file.
-static bool ValidateAnimation(const ozz::options::Option& _option,
-                              int /*_argc*/) {
-  const ozz::options::StringOption& option =
-      static_cast<const ozz::options::StringOption&>(_option);
-  const char* file = option.value();
-  // Count the number of '*'.
-  size_t asterisks = 0;
-  for (; file[asterisks] != 0; file[asterisks] == '*' ? ++asterisks : *++file)
-    ;
-  if (asterisks > 1) {
-    ozz::log::Err()
-        << "Invalid file option. There should be 0 or 1 \'*\' character."
-        << std::endl;
-  }
-  return asterisks <= 1;
-}
+bool ValidateExclusiveConfigOption(const ozz::options::Option& _option,
+                                   int _argc);
 OZZ_OPTIONS_DECLARE_STRING_FN(
-    animation,
-    "Specifies ozz animation output file(s). When importing multiple "
-    "animations, "
-    "use a \'*\' character to specify which part of the filename should be "
-    "replaced by the animation name.",
-    "", true, &ValidateAnimation)
+    config, "Specifies input configuration string in json format", "", false,
+    &ValidateExclusiveConfigOption)
+OZZ_OPTIONS_DECLARE_STRING_FN(
+    config_file, "Specifies input configuration file in json format", "", false,
+    &ValidateExclusiveConfigOption)
 
-// Track option should be in the form of a "node name : property name".
-static bool ValidateTrack(const ozz::options::Option& _option, int /*_argc*/) {
-  const ozz::options::StringOption& option =
-      static_cast<const ozz::options::StringOption&>(_option);
-
-  bool valid =
-      option.value()[0] == 0 || (ozz::strmatch(option.value(), "?*:?*") &&
-                                 !ozz::strmatch(option.value(), "*:*:*"));
-  if (!valid) {
-    ozz::log::Err() << "Invalid track option \"" << option.value() << "\"."
+// Validate exclusive config options.
+bool ValidateExclusiveConfigOption(const ozz::options::Option& _option,
+                                   int _argc) {
+  (void)_option;
+  (void)_argc;
+  bool not_exclusive =
+      OPTIONS_config_file.value()[0] != 0 && OPTIONS_config.value()[0] != 0;
+  if (not_exclusive) {
+    ozz::log::Err() << "--config and --config_file are exclusive options."
                     << std::endl;
   }
-  return valid;
+  return !not_exclusive;
 }
-OZZ_OPTIONS_DECLARE_STRING_FN(
-    track, "Specifies track to import, in the form \"node name:track name\"",
-    "", false, &ValidateTrack);
 
-OZZ_OPTIONS_DECLARE_BOOL(optimize, "Activate keyframes optimization stage.",
-                         true, false)
-
-OZZ_OPTIONS_DECLARE_FLOAT(
-    rotation, "Optimizer rotation tolerance in degrees",
-    ozz::animation::offline::AnimationOptimizer().rotation_tolerance, false)
-OZZ_OPTIONS_DECLARE_FLOAT(
-    translation, "Optimizer translation tolerance in meters",
-    ozz::animation::offline::AnimationOptimizer().translation_tolerance, false)
-OZZ_OPTIONS_DECLARE_FLOAT(
-    scale, "Optimizer scale tolerance in percents",
-    ozz::animation::offline::AnimationOptimizer().scale_tolerance, false)
-OZZ_OPTIONS_DECLARE_FLOAT(
-    hierarchical, "Optimizer hierarchical tolerance in meters",
-    ozz::animation::offline::AnimationOptimizer().hierarchical_tolerance, false)
-
-OZZ_OPTIONS_DECLARE_BOOL(
-    additive,
-    "Creates a delta animation that can be used for additive blending.", false,
-    false)
+OZZ_OPTIONS_DECLARE_STRING(config_dump,
+                           "Dump sanitized configuration to the specified file",
+                           "", false)
 
 static bool ValidateEndianness(const ozz::options::Option& _option,
                                int /*_argc*/) {
@@ -174,32 +137,11 @@ OZZ_OPTIONS_DECLARE_STRING_FN(
     "Selects log level. Can be \"silent\", \"standard\" or \"verbose\".",
     "standard", false, &ValidateLogLevel)
 
-static bool ValidateSamplingRate(const ozz::options::Option& _option,
-                                 int /*_argc*/) {
-  const ozz::options::FloatOption& option =
-      static_cast<const ozz::options::FloatOption&>(_option);
-  bool valid = option.value() >= 0.f;
-  if (!valid) {
-    ozz::log::Err() << "Invalid sampling rate option (must be >= 0)."
-                    << std::endl;
-  }
-  return valid;
-}
-
-OZZ_OPTIONS_DECLARE_FLOAT_FN(sampling_rate,
-                             "Selects animation sampling rate in hertz. Set a "
-                             "value = 0 to use imported scene frame rate.",
-                             0.f, false, &ValidateSamplingRate)
-
-OZZ_OPTIONS_DECLARE_BOOL(raw,
-                         "Outputs raw animation, instead of runtime animation.",
-                         false, false)
-
 namespace ozz {
 namespace animation {
 namespace offline {
-
 namespace {
+
 void DisplaysOptimizationstatistics(const RawAnimation& _non_optimized,
                                     const RawAnimation& _optimized) {
   size_t opt_translations = 0, opt_rotations = 0, opt_scales = 0;
@@ -249,8 +191,8 @@ ozz::animation::Skeleton* ImportSkeleton() {
                      << OPTIONS_skeleton << std::endl;
     ozz::io::File file(OPTIONS_skeleton, "rb");
     if (!file.opened()) {
-      ozz::log::Err() << "Failed to open input skeleton ozz binary file: "
-                      << OPTIONS_skeleton << std::endl;
+      ozz::log::Err() << "Failed to open input skeleton ozz binary file: \""
+                      << OPTIONS_skeleton << "\"" << std::endl;
       return NULL;
     }
     ozz::io::IArchive archive(&file);
@@ -286,47 +228,53 @@ ozz::animation::Skeleton* ImportSkeleton() {
   return skeleton;
 }
 
-bool OutputSingleAnimation() {
-  return strchr(OPTIONS_animation.value(), '*') == NULL;
+bool OutputSingleAnimation(const char* _output) {
+  return strchr(_output, '*') == NULL;
 }
 
 ozz::String::Std BuildFilename(const char* _filename, const char* _animation) {
   ozz::String::Std output(_filename);
-  const size_t asterisk = output.find('*');
-  if (asterisk != std::string::npos) {
+
+  for (size_t asterisk = output.find('*'); asterisk != std::string::npos;
+       asterisk = output.find('*')) {
     output.replace(asterisk, 1, _animation);
   }
   return output;
 }
 
-bool Export(const ozz::animation::offline::RawAnimation _raw_animation,
-            const ozz::animation::Skeleton& _skeleton) {
+bool Export(const ozz::animation::offline::RawAnimation& _raw_animation,
+            const ozz::animation::Skeleton& _skeleton,
+            const Json::Value& _config) {
   // Raw animation to build and output.
   ozz::animation::offline::RawAnimation raw_animation;
 
   // Make delta animation if requested.
-  if (OPTIONS_additive) {
-    ozz::log::LogV() << "Makes additive animation." << std::endl;
+  if (_config["additive"].asBool()) {
+    ozz::log::Log() << "Makes additive animation." << std::endl;
     ozz::animation::offline::AdditiveAnimationBuilder additive_builder;
     RawAnimation raw_additive;
     if (!additive_builder(_raw_animation, &raw_additive)) {
       ozz::log::Err() << "Failed to make additive animation." << std::endl;
       return false;
     }
-    // Copy animation.
+    // checker animation.
     raw_animation = raw_additive;
   } else {
     raw_animation = _raw_animation;
   }
 
   // Optimizes animation if option is enabled.
-  if (OPTIONS_optimize) {
-    ozz::log::LogV() << "Optimizing animation." << std::endl;
+  if (_config["optimize"].asBool()) {
+    ozz::log::Log() << "Optimizing animation." << std::endl;
     ozz::animation::offline::AnimationOptimizer optimizer;
-    optimizer.rotation_tolerance = OPTIONS_rotation;
-    optimizer.translation_tolerance = OPTIONS_translation;
-    optimizer.scale_tolerance = OPTIONS_scale;
-    optimizer.hierarchical_tolerance = OPTIONS_hierarchical;
+
+    // Setup optimizer from config parameters.
+    const Json::Value& tolerances = _config["optimization_tolerances"];
+    optimizer.translation_tolerance = tolerances["translation"].asFloat();
+    optimizer.rotation_tolerance = tolerances["rotation"].asFloat();
+    optimizer.scale_tolerance = tolerances["scale"].asFloat();
+    optimizer.hierarchical_tolerance = tolerances["hierarchical"].asFloat();
+
     ozz::animation::offline::RawAnimation raw_optimized_animation;
     if (!optimizer(raw_animation, _skeleton, &raw_optimized_animation)) {
       ozz::log::Err() << "Failed to optimize animation." << std::endl;
@@ -342,8 +290,8 @@ bool Export(const ozz::animation::offline::RawAnimation _raw_animation,
 
   // Builds runtime animation.
   ozz::animation::Animation* animation = NULL;
-  if (!OPTIONS_raw) {
-    ozz::log::LogV() << "Builds runtime animation." << std::endl;
+  if (!_config["raw"].asBool()) {
+    ozz::log::Log() << "Builds runtime animation." << std::endl;
     ozz::animation::offline::AnimationBuilder builder;
     animation = builder(raw_animation);
     if (!animation) {
@@ -353,19 +301,18 @@ bool Export(const ozz::animation::offline::RawAnimation _raw_animation,
   }
 
   {
-    // Prepares output stream. File is a RAII so it will close automatically at
-    // the end of this scope.
-    // Once the file is opened, nothing should fail as it would leave an invalid
-    // file on the disk.
+    // Prepares output stream. File is a RAII so it will close automatically
+    // at the end of this scope. Once the file is opened, nothing should fail
+    // as it would leave an invalid file on the disk.
 
     // Builds output filename.
-    const ozz::String::Std filename =
-        BuildFilename(OPTIONS_animation, _raw_animation.name.c_str());
+    ozz::String::Std filename = BuildFilename(_config["output"].asCString(),
+                                              _raw_animation.name.c_str());
 
     ozz::log::LogV() << "Opens output file: " << filename << std::endl;
     ozz::io::File file(filename.c_str(), "wb");
     if (!file.opened()) {
-      ozz::log::Err() << "Failed to open output file: " << filename
+      ozz::log::Err() << "Failed to open output file: \"" << filename << "\""
                       << std::endl;
       ozz::memory::default_allocator()->Delete(animation);
       return false;
@@ -375,9 +322,8 @@ bool Export(const ozz::animation::offline::RawAnimation _raw_animation,
     ozz::io::OArchive archive(&file, Endianness());
 
     // Fills output archive with the animation.
-    if (OPTIONS_raw) {
-      ozz::log::LogV() << "Outputs RawAnimation to binary archive."
-                       << std::endl;
+    if (_config["raw"].asBool()) {
+      ozz::log::Log() << "Outputs RawAnimation to binary archive." << std::endl;
       archive << raw_animation;
     } else {
       ozz::log::LogV() << "Outputs Animation to binary archive." << std::endl;
@@ -394,12 +340,13 @@ bool Export(const ozz::animation::offline::RawAnimation _raw_animation,
   return true;
 }
 
-bool Export(const ozz::animation::offline::RawFloatTrack& _raw_track) {
+bool Export(const ozz::animation::offline::RawFloatTrack& _raw_track,
+            const Json::Value& _config) {
   // Raw track to build and output.
   ozz::animation::offline::RawFloatTrack raw_track;
 
   // Optimizes track if option is enabled.
-  if (OPTIONS_optimize) {
+  if (_config["optimize"].asBool()) {
     ozz::log::LogV() << "Optimizing track." << std::endl;
     ozz::animation::offline::TrackOptimizer optimizer;
     // optimizer.rotation_tolerance = OPTIONS_rotation;
@@ -420,7 +367,7 @@ bool Export(const ozz::animation::offline::RawFloatTrack& _raw_track) {
 
   // Builds runtime track.
   ozz::animation::FloatTrack* track = NULL;
-  if (!OPTIONS_raw) {
+  if (!_config["raw"].asBool()) {
     ozz::log::LogV() << "Builds runtime track." << std::endl;
     ozz::animation::offline::TrackBuilder builder;
     track = builder(raw_track);
@@ -453,7 +400,7 @@ bool Export(const ozz::animation::offline::RawFloatTrack& _raw_track) {
     ozz::io::OArchive archive(&file, Endianness());
 
     // Fills output archive with the track.
-    if (OPTIONS_raw) {
+    if (_config["raw"].asBool()) {
       ozz::log::LogV() << "Outputs RawTrack to binary archive." << std::endl;
       archive << raw_track;
     } else {
@@ -475,7 +422,7 @@ bool Export(const ozz::animation::offline::RawFloatTrack& _raw_track) {
 int AnimationConverter::operator()(int _argc, const char** _argv) {
   // Parses arguments.
   ozz::options::ParseResult parse_result = ozz::options::ParseCommandLine(
-      _argc, _argv, "1.1",
+      _argc, _argv, "2.0",
       "Imports a animation from a file and converts it to ozz binary raw or "
       "runtime animation format");
   if (parse_result != ozz::options::kSuccess) {
@@ -486,13 +433,72 @@ int AnimationConverter::operator()(int _argc, const char** _argv) {
   // Initializes log level from options.
   ozz::log::Level log_level = ozz::log::GetLevel();
   if (std::strcmp(OPTIONS_log_level, "silent") == 0) {
-    log_level = ozz::log::Silent;
+    log_level = ozz::log::kSilent;
   } else if (std::strcmp(OPTIONS_log_level, "standard") == 0) {
-    log_level = ozz::log::Standard;
+    log_level = ozz::log::kStandard;
   } else if (std::strcmp(OPTIONS_log_level, "verbose") == 0) {
-    log_level = ozz::log::Verbose;
+    log_level = ozz::log::kVerbose;
   }
   ozz::log::SetLevel(log_level);
+
+  // Use {} as a default config, otherwise take the one specified as argument.
+  std::string config_string = "{}";
+  if (OPTIONS_config.value()[0] != 0) {
+    config_string = OPTIONS_config.value();
+  } else if (OPTIONS_config_file.value()[0] != 0) {
+    ozz::log::LogV() << "Opens config file: " << OPTIONS_config_file
+                     << std::endl;
+
+    std::ifstream file(OPTIONS_config_file.value());
+    if (!file.is_open()) {
+      ozz::log::Err() << "Failed to open config file: \"" << OPTIONS_config_file
+                      << "\"" << std::endl;
+      return EXIT_FAILURE;
+    }
+    config_string.assign((std::istreambuf_iterator<char>(file)),
+                         std::istreambuf_iterator<char>());
+  }
+
+  Json::Value config;
+  Json::Reader json_builder;
+  if (!json_builder.parse(config_string, config, true)) {
+    ozz::log::Err() << "Error while parsing configuration string: "
+                    << json_builder.getFormattedErrorMessages() << std::endl;
+    return EXIT_FAILURE;
+  }
+  if (!Sanitize(config)) {
+    // Specific error message are reported during Sanitize.
+    return EXIT_FAILURE;
+  }
+
+  // Dumps the config once it's sanitized.
+  const bool log_config = ozz::log::GetLevel() >= ozz::log::kVerbose;
+  if (log_config || OPTIONS_config_dump.value()[0] != 0) {
+    // Format configuration
+    Json::StreamWriterBuilder builder;
+    builder["indentation"] = "  ";
+    builder["precision"] = 4;
+    const std::string document = Json::writeString(builder, config);
+
+    // Dump to log
+    if (log_config) {
+      ozz::log::LogV() << "Sanitized configuration:" << std::endl
+                       << document << std::endl;
+    }
+    // Dump to file
+    if (OPTIONS_config_dump.value()[0] != 0) {
+      ozz::log::LogV() << "Opens dump config file: "
+                       << OPTIONS_config_dump.value() << std::endl;
+
+      std::ofstream file(OPTIONS_config_dump.value());
+      if (!file.is_open()) {
+        ozz::log::Err() << "Failed to open dump config file: \""
+                        << OPTIONS_config_dump.value() << "\"" << std::endl;
+        return EXIT_FAILURE;
+      }
+      file << document;
+    }
+  }
 
   // Ensures file to import actually exist.
   if (!ozz::io::File::Exist(OPTIONS_file)) {
@@ -518,14 +524,9 @@ int AnimationConverter::operator()(int _argc, const char** _argv) {
     return EXIT_FAILURE;
   }
 
-  // Import skeleton instance.
-  ozz::animation::Skeleton* skeleton = ImportSkeleton();
-  if (!skeleton) {
-    return EXIT_FAILURE;
-  }
-
   // Check whether multiple animation are supported.
-  if (OutputSingleAnimation() && animation_names.size() > 1) {
+  if (OutputSingleAnimation(config["animations"][0]["output"].asCString()) &&
+      animation_names.size() > 1) {
     ozz::log::Log() << animation_names.size()
                     << " animations found. Only the first one ("
                     << animation_names[0] << ") will be exported." << std::endl;
@@ -534,39 +535,46 @@ int AnimationConverter::operator()(int _argc, const char** _argv) {
     animation_names.resize(1);
   }
 
+  // Import skeleton instance.
+  ozz::animation::Skeleton* skeleton = ImportSkeleton();
+  if (!skeleton) {
+    return EXIT_FAILURE;
+  }
+
   // Iterates all imported animations, build and output them.
   bool success = true;
   for (size_t i = 0; success && i < animation_names.size(); ++i) {
+    const Json::Value& anim_config = config["animations"][0];
     RawAnimation animation;
-    success = Import(animation_names[i].c_str(), *skeleton,
-                     OPTIONS_sampling_rate, &animation);
+    success =
+        Import(animation_names[i].c_str(), *skeleton,
+               anim_config["sampling_rate"].asFloat(), &animation);
     if (success) {
-      success &= Export(animation, *skeleton);
+      success &= Export(animation, *skeleton, anim_config);
+
+      // Iterates all tracks, build and output them.
+      const char* track_defintion = "";
+      if (track_defintion[0] != 0) {
+        const char* separator = strchr(track_defintion, ':');
+        assert(separator &&
+               "Track definition should have a : character, which must have "
+               "been checked while validating configuration.");
+        ozz::String::Std node_name(track_defintion, separator);
+        ozz::String::Std track_name(++separator);
+        RawFloatTrack track;
+        success &= Import(
+            animation_names[i].c_str(), node_name.c_str(), track_name.c_str(),
+            anim_config["sampling_rate"].asFloat(), &track);
+        if (success) {
+          success &= Export(track, config);
+        } else {
+          ozz::log::Err() << "Failed to import track \"" << node_name << ":"
+                          << track_name << "\"" << std::endl;
+        }
+      }
     } else {
       ozz::log::Err() << "Failed to import animation \"" << animation_names[0]
                       << "\"" << std::endl;
-    }
-  }
-
-  // Iterates all tracks, build and output them.
-  const char* track_defintion = OPTIONS_track;
-  if (track_defintion[0] != 0) {
-    for (size_t i = 0; success && i < animation_names.size(); ++i) {
-      const char* separator = strchr(track_defintion, ':');
-      assert(separator &&
-             "Track definition should have a : character, which must have been "
-             "checked while validating configuration.");
-      ozz::String::Std node_name(track_defintion, separator);
-      ozz::String::Std track_name(++separator);
-      RawFloatTrack track;
-      success &= Import(animation_names[i].c_str(), node_name.c_str(),
-                        track_name.c_str(), OPTIONS_sampling_rate, &track);
-      if (success) {
-        success &= Export(track);
-      } else {
-        ozz::log::Err() << "Failed to import track \"" << node_name << ":"
-                        << track_name << "\"" << std::endl;
-      }
     }
   }
 
