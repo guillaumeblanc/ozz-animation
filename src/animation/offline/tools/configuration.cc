@@ -27,12 +27,44 @@
 
 #include "animation/offline/tools/configuration.h"
 
+#include <fstream>
+#include <sstream>
+
 #include "ozz/animation/offline/additive_animation_builder.h"
 #include "ozz/animation/offline/animation_builder.h"
 #include "ozz/animation/offline/animation_optimizer.h"
 
+#include "ozz/base/containers/string.h"
 #include "ozz/base/log.h"
 
+#include "ozz/options/options.h"
+
+bool ValidateExclusiveConfigOption(const ozz::options::Option& _option,
+                                   int _argc);
+OZZ_OPTIONS_DECLARE_STRING_FN(
+    config, "Specifies input configuration string in json format", "", false,
+    &ValidateExclusiveConfigOption)
+OZZ_OPTIONS_DECLARE_STRING_FN(
+    config_file, "Specifies input configuration file in json format", "", false,
+    &ValidateExclusiveConfigOption)
+
+// Validate exclusive config options.
+bool ValidateExclusiveConfigOption(const ozz::options::Option& _option,
+                                   int _argc) {
+  (void)_option;
+  (void)_argc;
+  bool not_exclusive =
+      OPTIONS_config_file.value()[0] != 0 && OPTIONS_config.value()[0] != 0;
+  if (not_exclusive) {
+    ozz::log::Err() << "--config and --config_file are exclusive options."
+                    << std::endl;
+  }
+  return !not_exclusive;
+}
+
+OZZ_OPTIONS_DECLARE_STRING(config_dump,
+                           "Dump sanitized configuration to the specified file",
+                           "", false)
 namespace {
 
 template <typename _Type>
@@ -203,13 +235,8 @@ bool SanitizeAnimation(Json::Value& _root) {
       "Creates a delta animation that can be used for additive blending.");
 
   MakeDefault(_root, "sampling_rate", 0.f,
-              "Selects animation sampling rate in hertz. Set a value = 0 to "
+              "Selects animation sampling rate in hertz. Set a value <= 0 to "
               "use imported scene frame rate.");
-  if (_root["sampling_rate"].asFloat() < 0.f) {
-    ozz::log::Err() << "Invalid sampling rate option (must be >= 0)."
-                    << std::endl;
-    return false;
-  }
 
   return true;
 }  // namespace
@@ -227,8 +254,8 @@ bool SanitizeRoot(Json::Value& _root) {
   return true;
 }
 
-bool RecursiveSanitize(const Json::Value& _root, const Json::Value& _expected,
-                       const char* _name) {
+bool RecursiveCheck(const Json::Value& _root, const Json::Value& _expected,
+                    ozz::String::Std _name) {
   if (!IsCompatibleType(_root.type(), _expected.type())) {
     // It's a failure to have a wrong member type.
     ozz::log::Err() << "Invalid type \"" << JsonTypeToString(_root.type())
@@ -241,7 +268,9 @@ bool RecursiveSanitize(const Json::Value& _root, const Json::Value& _expected,
   if (_root.isArray()) {
     assert(_expected.isArray());
     for (Json::ArrayIndex i = 0; i < _root.size(); ++i) {
-      if (!RecursiveSanitize(_root[i], _expected[0], "[]")) {
+      std::ostringstream istr;
+      istr << "[" << i << "]";
+      if (!RecursiveCheck(_root[i], _expected[0], _name + istr.str().c_str())) {
         return false;
       }
     }
@@ -254,7 +283,7 @@ bool RecursiveSanitize(const Json::Value& _root, const Json::Value& _expected,
         return false;
       }
       const Json::Value& expected_member = _expected[name];
-      if (!RecursiveSanitize(*it, expected_member, name.c_str())) {
+      if (!RecursiveCheck(*it, expected_member, _name + "." + name.c_str())) {
         return false;
       }
     }
@@ -263,7 +292,36 @@ bool RecursiveSanitize(const Json::Value& _root, const Json::Value& _expected,
 }
 }  // namespace
 
-bool Sanitize(Json::Value& _config) {
+bool ProcessConfiguration(Json::Value* _config) {
+  if (!_config) {
+    return false;
+  }
+
+  // Use {} as a default config, otherwise take the one specified as argument.
+  std::string config_string = "{}";
+  if (OPTIONS_config.value()[0] != 0) {
+    config_string = OPTIONS_config.value();
+  } else if (OPTIONS_config_file.value()[0] != 0) {
+    ozz::log::LogV() << "Opens config file: " << OPTIONS_config_file
+                     << std::endl;
+
+    std::ifstream file(OPTIONS_config_file.value());
+    if (!file.is_open()) {
+      ozz::log::Err() << "Failed to open config file: \"" << OPTIONS_config_file
+                      << "\"" << std::endl;
+      return false;
+    }
+    config_string.assign((std::istreambuf_iterator<char>(file)),
+                         std::istreambuf_iterator<char>());
+  }
+
+  Json::Reader json_builder;
+  if (!json_builder.parse(config_string, *_config, true)) {
+    ozz::log::Err() << "Error while parsing configuration string: "
+                    << json_builder.getFormattedErrorMessages() << std::endl;
+    return false;
+  }
+
   // Build a default config to compare it with provided one and detect
   // unexpected members.
   Json::Value default_config;
@@ -272,10 +330,43 @@ bool Sanitize(Json::Value& _config) {
   }
 
   // All format errors are reported within that function
-  if (!RecursiveSanitize(_config, default_config, "root")) {
+  if (!RecursiveCheck(*_config, default_config, "root")) {
     return false;
   }
 
   // Sanitized provided config.
-  return SanitizeRoot(_config);
+  if (!SanitizeRoot(*_config)) {
+    return false;
+  }
+
+  // Dumps the config once it's sanitized.
+  const bool log_config = ozz::log::GetLevel() >= ozz::log::kVerbose;
+  if (log_config || OPTIONS_config_dump.value()[0] != 0) {
+    // Format configuration
+    Json::StreamWriterBuilder builder;
+    builder["indentation"] = "  ";
+    builder["precision"] = 4;
+    const std::string document = Json::writeString(builder, *_config);
+
+    // Dump to log
+    if (log_config) {
+      ozz::log::LogV() << "Sanitized configuration:" << std::endl
+                       << document << std::endl;
+    }
+    // Dump to file
+    if (OPTIONS_config_dump.value()[0] != 0) {
+      ozz::log::LogV() << "Opens dump config file: "
+                       << OPTIONS_config_dump.value() << std::endl;
+
+      std::ofstream file(OPTIONS_config_dump.value());
+      if (!file.is_open()) {
+        ozz::log::Err() << "Failed to open dump config file: \""
+                        << OPTIONS_config_dump.value() << "\"" << std::endl;
+        return false;
+      }
+      file << document;
+    }
+  }
+
+  return true;
 }

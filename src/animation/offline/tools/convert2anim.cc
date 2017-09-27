@@ -29,7 +29,6 @@
 
 #include <cstdlib>
 #include <cstring>
-#include <fstream>
 
 #include "animation/offline/tools/configuration.h"
 
@@ -59,34 +58,7 @@ OZZ_OPTIONS_DECLARE_STRING(file, "Specifies input file", "", true)
 OZZ_OPTIONS_DECLARE_STRING(skeleton,
                            "Specifies ozz skeleton (raw or runtime) input file",
                            "", true)
-
-bool ValidateExclusiveConfigOption(const ozz::options::Option& _option,
-                                   int _argc);
-OZZ_OPTIONS_DECLARE_STRING_FN(
-    config, "Specifies input configuration string in json format", "", false,
-    &ValidateExclusiveConfigOption)
-OZZ_OPTIONS_DECLARE_STRING_FN(
-    config_file, "Specifies input configuration file in json format", "", false,
-    &ValidateExclusiveConfigOption)
-
-// Validate exclusive config options.
-bool ValidateExclusiveConfigOption(const ozz::options::Option& _option,
-                                   int _argc) {
-  (void)_option;
-  (void)_argc;
-  bool not_exclusive =
-      OPTIONS_config_file.value()[0] != 0 && OPTIONS_config.value()[0] != 0;
-  if (not_exclusive) {
-    ozz::log::Err() << "--config and --config_file are exclusive options."
-                    << std::endl;
-  }
-  return !not_exclusive;
-}
-
-OZZ_OPTIONS_DECLARE_STRING(config_dump,
-                           "Dump sanitized configuration to the specified file",
-                           "", false)
-
+	
 static bool ValidateEndianness(const ozz::options::Option& _option,
                                int /*_argc*/) {
   const ozz::options::StringOption& option =
@@ -441,63 +413,10 @@ int AnimationConverter::operator()(int _argc, const char** _argv) {
   }
   ozz::log::SetLevel(log_level);
 
-  // Use {} as a default config, otherwise take the one specified as argument.
-  std::string config_string = "{}";
-  if (OPTIONS_config.value()[0] != 0) {
-    config_string = OPTIONS_config.value();
-  } else if (OPTIONS_config_file.value()[0] != 0) {
-    ozz::log::LogV() << "Opens config file: " << OPTIONS_config_file
-                     << std::endl;
-
-    std::ifstream file(OPTIONS_config_file.value());
-    if (!file.is_open()) {
-      ozz::log::Err() << "Failed to open config file: \"" << OPTIONS_config_file
-                      << "\"" << std::endl;
-      return EXIT_FAILURE;
-    }
-    config_string.assign((std::istreambuf_iterator<char>(file)),
-                         std::istreambuf_iterator<char>());
-  }
-
   Json::Value config;
-  Json::Reader json_builder;
-  if (!json_builder.parse(config_string, config, true)) {
-    ozz::log::Err() << "Error while parsing configuration string: "
-                    << json_builder.getFormattedErrorMessages() << std::endl;
-    return EXIT_FAILURE;
-  }
-  if (!Sanitize(config)) {
+  if (!ProcessConfiguration(&config)) {
     // Specific error message are reported during Sanitize.
     return EXIT_FAILURE;
-  }
-
-  // Dumps the config once it's sanitized.
-  const bool log_config = ozz::log::GetLevel() >= ozz::log::kVerbose;
-  if (log_config || OPTIONS_config_dump.value()[0] != 0) {
-    // Format configuration
-    Json::StreamWriterBuilder builder;
-    builder["indentation"] = "  ";
-    builder["precision"] = 4;
-    const std::string document = Json::writeString(builder, config);
-
-    // Dump to log
-    if (log_config) {
-      ozz::log::LogV() << "Sanitized configuration:" << std::endl
-                       << document << std::endl;
-    }
-    // Dump to file
-    if (OPTIONS_config_dump.value()[0] != 0) {
-      ozz::log::LogV() << "Opens dump config file: "
-                       << OPTIONS_config_dump.value() << std::endl;
-
-      std::ofstream file(OPTIONS_config_dump.value());
-      if (!file.is_open()) {
-        ozz::log::Err() << "Failed to open dump config file: \""
-                        << OPTIONS_config_dump.value() << "\"" << std::endl;
-        return EXIT_FAILURE;
-      }
-      file << document;
-    }
   }
 
   // Ensures file to import actually exist.

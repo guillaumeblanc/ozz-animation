@@ -121,19 +121,17 @@ set_tests_properties(test2anim_invalid_output_path PROPERTIES PASS_REGULAR_EXPRE
 add_test(NAME test2anim_invalid_output_path_raw COMMAND test2anim "--file=${ozz_temp_directory}/good.content1" "--skeleton=${ozz_temp_directory}/raw_skeleton.ozz" "--config={\"animations\":[{\"output\":\"${ozz_temp_directory}/invalid_path/anim_should_not_exist.ozz\",\"raw\":false}]}")
 set_tests_properties(test2anim_invalid_output_path_raw PROPERTIES PASS_REGULAR_EXPRESSION "Failed to open output file: \"${ozz_temp_directory}/invalid_path/anim_should_not_exist.ozz\"" DEPENDS test2skel_simple_raw)
 
-add_test(NAME test2anim_bad_sampling_rate COMMAND test2anim "--file=${ozz_temp_directory}/good.content1" "--skeleton=${ozz_temp_directory}/skeleton.ozz" "--config={\"animations\":[{\"output\":\"${ozz_temp_directory}/anim_should_not_exist.ozz\",\"sampling_rate\":-1.}]}")
-set_tests_properties(test2anim_bad_sampling_rate PROPERTIES PASS_REGULAR_EXPRESSION "Invalid sampling rate option" DEPENDS test2skel_simple)
-add_test(NAME test2anim_bad_sampling_rate_raw COMMAND test2anim "--file=${ozz_temp_directory}/good.content1" "--skeleton=${ozz_temp_directory}/raw_skeleton.ozz" "--config={\"animations\":[{\"output\":\"${ozz_temp_directory}/anim_should_not_exist.ozz\",\"raw\":false,\"sampling_rate\":-1.}]}")
-set_tests_properties(test2anim_bad_sampling_rate_raw PROPERTIES PASS_REGULAR_EXPRESSION "Invalid sampling rate option" DEPENDS test2skel_simple_raw)
-add_test(NAME test2anim_bad_sampling_rate_type COMMAND test2anim "--file=${ozz_temp_directory}/good.content1" "--skeleton=${ozz_temp_directory}/raw_skeleton.ozz" "--config={\"animations\":[{\"output\":\"${ozz_temp_directory}/anim_should_not_exist.ozz\",\"sampling_rate\":\"1\"}]}")
-set_tests_properties(test2anim_bad_sampling_rate_type PROPERTIES PASS_REGULAR_EXPRESSION "Invalid type \"UTF-8 string\" for json member \"sampling_rate\". \"float\" expected." DEPENDS test2skel_simple)
+add_test(NAME test2anim_bad_type COMMAND test2anim "--file=${ozz_temp_directory}/good.content1" "--skeleton=${ozz_temp_directory}/raw_skeleton.ozz" "--config={\"animations\":[{\"output\":\"${ozz_temp_directory}/anim_should_not_exist.ozz\",\"sampling_rate\":\"1\"}]}")
+set_tests_properties(test2anim_bad_type PROPERTIES PASS_REGULAR_EXPRESSION "Invalid type \"UTF-8 string\" for json member \"root.animations\\\[0\\\].sampling_rate\". \"float\" expected." DEPENDS test2skel_simple)
+add_test(NAME test2anim_bad_type_in_array COMMAND test2anim "--file=${ozz_temp_directory}/good.content1" "--skeleton=${ozz_temp_directory}/raw_skeleton.ozz" "--config={\"animations\":[{},{\"sampling_rate\":true}]}")
+set_tests_properties(test2anim_bad_type_in_array PROPERTIES PASS_REGULAR_EXPRESSION "Invalid type \"boolean\" for json member \"root.animations\\\[1\\\].sampling_rate\". \"float\" expected." DEPENDS test2skel_simple)
 
 add_test(NAME test2anim_bad_log_level COMMAND test2anim "--file=${ozz_temp_directory}/good.content1" "--skeleton=${ozz_temp_directory}/skeleton.ozz" "--config={\"animations\":[{\"output\":\"${ozz_temp_directory}/anim_should_not_exist.ozz\"}]}" "--log_level=no_log")
 set_tests_properties(test2anim_bad_log_level PROPERTIES PASS_REGULAR_EXPRESSION "Invalid log level option." DEPENDS test2skel_simple)
 add_test(NAME test2anim_bad_log_level_raw COMMAND test2anim "--file=${ozz_temp_directory}/good.content1" "--skeleton=${ozz_temp_directory}/raw_skeleton.ozz" "--config={\"animations\":[{\"output\":\"${ozz_temp_directory}/anim_should_not_exist.ozz\",\"raw\":false}]}" "--log_level=no_log")
 set_tests_properties(test2anim_bad_log_level_raw PROPERTIES PASS_REGULAR_EXPRESSION "Invalid log level option." DEPENDS test2skel_simple_raw)
 add_test(NAME test2anim_wrong_optimize COMMAND test2anim "--file=${ozz_temp_directory}/good.content1" "--skeleton=${ozz_temp_directory}/skeleton.ozz" "--config={\"animations\":[{\"output\":\"${ozz_temp_directory}/anim_should_not_exist.ozz\",\"optimize\":99}]}")
-set_tests_properties(test2anim_wrong_optimize PROPERTIES PASS_REGULAR_EXPRESSION "Invalid type \"integer\" for json member \"optimize\". \"boolean\" expected." DEPENDS test2skel_simple)
+set_tests_properties(test2anim_wrong_optimize PROPERTIES PASS_REGULAR_EXPRESSION "Invalid type \"integer\" for json member \"root.animations\\\[0\\\].optimize\". \"boolean\" expected." DEPENDS test2skel_simple)
 
 add_test(NAME test2anim_wrong_config_unexpected_member1 COMMAND test2anim "--file=${ozz_temp_directory}/good.content1" "--skeleton=${ozz_temp_directory}/skeleton.ozz" "--config={\"output\":\"${ozz_temp_directory}/anim_should_not_exist.ozz\"}")
 set_tests_properties(test2anim_wrong_config_unexpected_member1 PROPERTIES PASS_REGULAR_EXPRESSION "Invalid member \"output\"." DEPENDS test2skel_simple)
@@ -142,9 +140,9 @@ set_tests_properties(test2anim_wrong_config_unexpected_member2 PROPERTIES PASS_R
 add_test(NAME test2anim_wrong_config_unexpected_member3 COMMAND test2anim "--file=${ozz_temp_directory}/good.content1" "--skeleton=${ozz_temp_directory}/skeleton.ozz" "--config={\"animations\":[{\"foo\":true}]}")
 set_tests_properties(test2anim_wrong_config_unexpected_member3 PROPERTIES PASS_REGULAR_EXPRESSION "Invalid member \"foo\"." DEPENDS test2skel_simple)
 add_test(NAME test2anim_wrong_config_invalid_object COMMAND test2anim "--file=${ozz_temp_directory}/good.content1" "--skeleton=${ozz_temp_directory}/skeleton.ozz" "--config={\"animations\":{\"output\":\"${ozz_temp_directory}/anim_should_not_exist.ozz\"}}")
-set_tests_properties(test2anim_wrong_config_invalid_object PROPERTIES PASS_REGULAR_EXPRESSION "Invalid type \"object\" for json member \"animations\". \"array\" expected." DEPENDS test2skel_simple)
+set_tests_properties(test2anim_wrong_config_invalid_object PROPERTIES PASS_REGULAR_EXPRESSION "Invalid type \"object\" for json member \"root.animations\". \"array\" expected." DEPENDS test2skel_simple)
 add_test(NAME test2anim_wrong_config_invalid_array COMMAND test2anim "--file=${ozz_temp_directory}/good.content1" "--skeleton=${ozz_temp_directory}/skeleton.ozz" "--config={\"animations\":[{\"optimize\":[]}]}")
-set_tests_properties(test2anim_wrong_config_invalid_array PROPERTIES PASS_REGULAR_EXPRESSION "Invalid type \"array\" for json member \"optimize\". \"boolean\" expected." DEPENDS test2skel_simple)
+set_tests_properties(test2anim_wrong_config_invalid_array PROPERTIES PASS_REGULAR_EXPRESSION "Invalid type \"array\" for json member \"root.animations\\\[0\\\].optimize\". \"boolean\" expected." DEPENDS test2skel_simple)
 
 #add_test(NAME test2anim_track_bad_name COMMAND test2anim "--file=${ozz_temp_directory}/good.content1" "--skeleton=${ozz_temp_directory}/skeleton.ozz" "--animation=${ozz_temp_directory}/animation_${CMAKE_CURRENT_LIST_LINE}.ozz" "--track=node_name1:track_name")
 #add_test(NAME test2anim_track_bad_format1 COMMAND test2anim "--file=${ozz_temp_directory}/good.content1" "--skeleton=${ozz_temp_directory}/skeleton.ozz" "--animation=${ozz_temp_directory}/animation_${CMAKE_CURRENT_LIST_LINE}.ozz" "--track=node_name;track_name")
@@ -171,8 +169,6 @@ set_tests_properties(test2anim_output PROPERTIES
            test2anim_unexisting_skeleton_raw
            test2anim_invalid_output_path
            test2anim_invalid_output_path_raw
-           test2anim_bad_sampling_rate
-           test2anim_bad_sampling_rate_raw
            test2anim_bad_log_level
            test2anim_bad_log_level_raw")
            
@@ -218,6 +214,10 @@ add_test(NAME test2anim_sampling_rate COMMAND test2anim "--file=${ozz_temp_direc
 set_tests_properties(test2anim_sampling_rate PROPERTIES DEPENDS test2skel_simple)
 add_test(NAME test2anim_sampling_rate_int COMMAND test2anim "--file=${ozz_temp_directory}/good.content1" "--skeleton=${ozz_temp_directory}/skeleton.ozz" "--config={\"animations\":[{\"output\":\"${ozz_temp_directory}/animation_${CMAKE_CURRENT_LIST_LINE}.ozz\",\"sampling_rate\":1}]}")
 set_tests_properties(test2anim_sampling_rate_int PROPERTIES DEPENDS test2skel_simple)
+add_test(NAME test2anim_sampling_rate_0 COMMAND test2anim "--file=${ozz_temp_directory}/good.content1" "--skeleton=${ozz_temp_directory}/skeleton.ozz" "--config={\"animations\":[{\"output\":\"${ozz_temp_directory}/animation_${CMAKE_CURRENT_LIST_LINE}.ozz\",\"sampling_rate\":0}]}")
+set_tests_properties(test2anim_sampling_rate_0 PROPERTIES DEPENDS test2skel_simple)
+add_test(NAME test2anim_sampling_rate_neg COMMAND test2anim "--file=${ozz_temp_directory}/good.content1" "--skeleton=${ozz_temp_directory}/raw_skeleton.ozz" "--config={\"animations\":[{\"output\":\"${ozz_temp_directory}/animation_${CMAKE_CURRENT_LIST_LINE}.ozz\",\"sampling_rate\":-1}]}")
+set_tests_properties(test2anim_sampling_rate_neg PROPERTIES DEPENDS test2skel_simple)
 add_test(NAME test2anim_log_verbose COMMAND test2anim "--file=${ozz_temp_directory}/good.content1" "--skeleton=${ozz_temp_directory}/skeleton.ozz" "--config={\"animations\":[{\"output\":\"${ozz_temp_directory}/animation_${CMAKE_CURRENT_LIST_LINE}.ozz\"}]}" "--log_level=verbose")
 set_tests_properties(test2anim_log_verbose PROPERTIES DEPENDS test2skel_simple)
 

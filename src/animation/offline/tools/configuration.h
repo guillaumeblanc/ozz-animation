@@ -32,8 +32,7 @@
 
 #include <json/json.h>
 
-// Sanitized provided configuration, validating members, types, and adding
-// default values where missing.
-bool Sanitize(Json::Value& _config);
+// Get the sanitized (all members are set, with the right types) configuration.
+bool ProcessConfiguration(Json::Value* _config);
 
 #endif  // OZZ_OZZ_ANIMATION_OFFLINE_TOOLS_CONFIGURATION_H_
