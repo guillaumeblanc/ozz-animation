@@ -200,10 +200,6 @@ ozz::animation::Skeleton* ImportSkeleton() {
   return skeleton;
 }
 
-bool OutputSingleAnimation(const char* _output) {
-  return strchr(_output, '*') == NULL;
-}
-
 ozz::String::Std BuildFilename(const char* _filename, const char* _animation) {
   ozz::String::Std output(_filename);
 
@@ -452,11 +448,11 @@ int AnimationConverter::operator()(int _argc, const char** _argv) {
   // Iterates all imported animations, build and output them.
   bool success = true;
   const Json::Value& animations_config = config["animations"];
-  for (size_t i = 0; success && i < animations_config.size(); ++i) {
+  for (Json::ArrayIndex i = 0; success && i < animations_config.size(); ++i) {
+    const Json::Value& animation_config = animations_config[i];
     // Loop though all existing animations, and export those who match
     // configuration.
     for (size_t j = 0; success && j < import_animation_names.size(); ++j) {
-      const Json::Value& animation_config = animations_config[i];
       const char* animation_name = import_animation_names[j].c_str();
       if (!strmatch(animation_name, animation_config["name"].asCString())) {
         continue;

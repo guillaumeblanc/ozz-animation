@@ -210,13 +210,6 @@ bool SanitizeOptimizationTolerances(Json::Value& _root) {
   return true;
 }
 
-bool SanitizeTrackOptimizationTolerance(Json::Value& _root) {
-  MakeDefault(_root, "joint_name", "",
-              "Name of the joint that contains the property to import. "
-              "Wildcard characters '*' and '?' are supported.");
-  return true;
-}
-
 bool SanitizeTrackImport(Json::Value& _root) {
   MakeDefault(_root, "output", "*.ozz",
               "Specifies track output file(s). Use a \'*\' character "
