@@ -58,7 +58,7 @@ OZZ_OPTIONS_DECLARE_STRING(file, "Specifies input file", "", true)
 OZZ_OPTIONS_DECLARE_STRING(skeleton,
                            "Specifies ozz skeleton (raw or runtime) input file",
                            "", true)
-	
+
 static bool ValidateEndianness(const ozz::options::Option& _option,
                                int /*_argc*/) {
   const ozz::options::StringOption& option =
@@ -435,23 +435,12 @@ int AnimationConverter::operator()(int _argc, const char** _argv) {
   }
 
   // Get all available animation names.
-  AnimationNames animation_names = GetAnimationNames();
+  AnimationNames import_animation_names = GetAnimationNames();
 
   // Are there animations available
-  if (animation_names.empty()) {
+  if (import_animation_names.empty()) {
     ozz::log::Err() << "No animation found." << std::endl;
     return EXIT_FAILURE;
-  }
-
-  // Check whether multiple animation are supported.
-  if (OutputSingleAnimation(config["animations"][0]["output"].asCString()) &&
-      animation_names.size() > 1) {
-    ozz::log::Log() << animation_names.size()
-                    << " animations found. Only the first one ("
-                    << animation_names[0] << ") will be exported." << std::endl;
-
-    // Removes all unhandled animations.
-    animation_names.resize(1);
   }
 
   // Import skeleton instance.
@@ -462,38 +451,48 @@ int AnimationConverter::operator()(int _argc, const char** _argv) {
 
   // Iterates all imported animations, build and output them.
   bool success = true;
-  for (size_t i = 0; success && i < animation_names.size(); ++i) {
-    const Json::Value& anim_config = config["animations"][0];
-    RawAnimation animation;
-    success =
-        Import(animation_names[i].c_str(), *skeleton,
-               anim_config["sampling_rate"].asFloat(), &animation);
-    if (success) {
-      success &= Export(animation, *skeleton, anim_config);
-
-      // Iterates all tracks, build and output them.
-      const char* track_defintion = "";
-      if (track_defintion[0] != 0) {
-        const char* separator = strchr(track_defintion, ':');
-        assert(separator &&
-               "Track definition should have a : character, which must have "
-               "been checked while validating configuration.");
-        ozz::String::Std node_name(track_defintion, separator);
-        ozz::String::Std track_name(++separator);
-        RawFloatTrack track;
-        success &= Import(
-            animation_names[i].c_str(), node_name.c_str(), track_name.c_str(),
-            anim_config["sampling_rate"].asFloat(), &track);
-        if (success) {
-          success &= Export(track, config);
-        } else {
-          ozz::log::Err() << "Failed to import track \"" << node_name << ":"
-                          << track_name << "\"" << std::endl;
-        }
+  const Json::Value& animations_config = config["animations"];
+  for (size_t i = 0; success && i < animations_config.size(); ++i) {
+    // Loop though all existing animations, and export those who match
+    // configuration.
+    for (size_t j = 0; success && j < import_animation_names.size(); ++j) {
+      const Json::Value& animation_config = animations_config[i];
+      const char* animation_name = import_animation_names[j].c_str();
+      if (!strmatch(animation_name, animation_config["name"].asCString())) {
+        continue;
       }
-    } else {
-      ozz::log::Err() << "Failed to import animation \"" << animation_names[0]
-                      << "\"" << std::endl;
+
+      RawAnimation animation;
+      success = Import(animation_name, *skeleton,
+                       animation_config["sampling_rate"].asFloat(), &animation);
+      if (success) {
+        success &= Export(animation, *skeleton, animation_config);
+
+        // Iterates all tracks, build and output them.
+        const char* track_defintion = "";
+        if (track_defintion[0] != 0) {
+          const char* separator = strchr(track_defintion, ':');
+          assert(separator &&
+                 "Track definition should have a : character, which must have "
+                 "been checked while validating configuration.");
+          ozz::String::Std node_name(track_defintion, separator);
+          ozz::String::Std track_name(++separator);
+          RawFloatTrack track;
+          success &=
+              Import(import_animation_names[i].c_str(), node_name.c_str(),
+                     track_name.c_str(),
+                     animation_config["sampling_rate"].asFloat(), &track);
+          if (success) {
+            success &= Export(track, config);
+          } else {
+            ozz::log::Err() << "Failed to import track \"" << node_name << ":"
+                            << track_name << "\"" << std::endl;
+          }
+        }
+      } else {
+        ozz::log::Err() << "Failed to import animation \"" << animation_name
+                        << "\"" << std::endl;
+      }
     }
   }
 

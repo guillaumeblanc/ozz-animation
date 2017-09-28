@@ -221,29 +221,27 @@ set_tests_properties(test2anim_sampling_rate_neg PROPERTIES DEPENDS test2skel_si
 add_test(NAME test2anim_log_verbose COMMAND test2anim "--file=${ozz_temp_directory}/good.content1" "--skeleton=${ozz_temp_directory}/skeleton.ozz" "--config={\"animations\":[{\"output\":\"${ozz_temp_directory}/animation_${CMAKE_CURRENT_LIST_LINE}.ozz\"}]}" "--log_level=verbose")
 set_tests_properties(test2anim_log_verbose PROPERTIES DEPENDS test2skel_simple)
 
-add_test(NAME test2anim_multi1 COMMAND test2anim "--file=${ozz_temp_directory}/good.content1" "--skeleton=${ozz_temp_directory}/skeleton.ozz" "--config={\"animations\":[{\"output\":\"${ozz_temp_directory}/animation_multi1_*.ozz\"}]}")
-set_tests_properties(test2anim_multi1 PROPERTIES DEPENDS test2skel_simple)
-add_test(NAME test2anim_multi1multi COMMAND test2anim "--file=${ozz_temp_directory}/good.content1" "--skeleton=${ozz_temp_directory}/skeleton.ozz" "--config={\"animations\":[{\"output\":\"${ozz_temp_directory}/animation_*_multi1_*.ozz\"}]}")
-set_tests_properties(test2anim_multi1multi PROPERTIES DEPENDS test2skel_simple)
-add_test(NAME test2anim_multi1_2 COMMAND test2anim "--file=${ozz_temp_directory}/good.content2" "--skeleton=${ozz_temp_directory}/skeleton.ozz" "--config={\"animations\":[{\"output\":\"${ozz_temp_directory}/animation_multi1_2.ozz\"}]}")
-set_tests_properties(test2anim_multi1_2 PROPERTIES DEPENDS test2skel_simple)
+add_test(NAME test2anim_single1_wild COMMAND test2anim "--file=${ozz_temp_directory}/good.content1" "--skeleton=${ozz_temp_directory}/skeleton.ozz" "--config={\"animations\":[{\"output\":\"${ozz_temp_directory}/animation_single1_wild_*.ozz\"}]}")
+set_tests_properties(test2anim_single1_wild PROPERTIES DEPENDS test2skel_simple)
+add_test(NAME test2anim_single1_wild_ouput1 COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/animation_single1_wild_one.ozz" "${ozz_temp_directory}/animation_single1_wild_one_should_exist.ozz")
+set_tests_properties(test2anim_single1_wild_ouput1 PROPERTIES DEPENDS test2anim_single1_wild)
 add_test(NAME test2anim_multi2 COMMAND test2anim "--file=${ozz_temp_directory}/good.content2" "--skeleton=${ozz_temp_directory}/skeleton.ozz" "--config={\"animations\":[{\"output\":\"${ozz_temp_directory}/animation_multi2_*.ozz\"}]}")
 set_tests_properties(test2anim_multi2 PROPERTIES DEPENDS test2skel_simple)
+add_test(NAME test2anim_multi2_ouput1
+  COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/animation_multi2_one.ozz" "${ozz_temp_directory}/animation_multi2_one_should_exist.ozz")
+set_tests_properties(test2anim_multi2_ouput1 PROPERTIES DEPENDS test2anim_multi2)
+add_test(NAME test2anim_multi2_ouput2
+  COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/animation_multi2_TWO.ozz" "${ozz_temp_directory}/animation_multi2_TWO_should_exist.ozz")
+set_tests_properties(test2anim_multi2_ouput2 PROPERTIES DEPENDS test2anim_multi2)
+
+add_test(NAME test2anim_multi2_single COMMAND test2anim "--file=${ozz_temp_directory}/good.content2" "--skeleton=${ozz_temp_directory}/skeleton.ozz" "--config={\"animations\":[{\"name\":\"T?O\",\"output\":\"${ozz_temp_directory}/animation_multi2_single.ozz\"}]}")
+set_tests_properties(test2anim_multi2_single PROPERTIES DEPENDS test2skel_simple)
+add_test(NAME test2anim_multi2_single_ouput1
+  COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/animation_multi2_single.ozz" "${ozz_temp_directory}/animation_multi2_single.ozz")
+set_tests_properties(test2anim_multi2_single_ouput1 PROPERTIES DEPENDS test2anim_multi2_single)
 
 #add_test(NAME test2anim_track COMMAND test2anim "--file=${ozz_temp_directory}/good.content1" "--skeleton=${ozz_temp_directory}/skeleton.ozz" "--animation=${ozz_temp_directory}/animation_${CMAKE_CURRENT_LIST_LINE}.ozz" "--track=node_name:track_name")
 #set_tests_properties(test2anim_track PROPERTIES DEPENDS test2skel_simple)
-
-# Ensures animations were outputted.
-add_test(NAME test2anim_multi_ouput1_one COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/animation_multi1_one.ozz" "${ozz_temp_directory}/animation_multi1_one_should_exist.ozz")
-set_tests_properties(test2anim_multi_ouput1_one PROPERTIES DEPENDS test2anim_multi1)
-add_test(NAME test2anim_multi1multi_ouput1_one COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/animation_one_multi1_one.ozz" "${ozz_temp_directory}/animation_multi1_one_should_exist.ozz")
-set_tests_properties(test2anim_multi1multi_ouput1_one PROPERTIES DEPENDS test2anim_multi1multi)
-add_test(NAME test2anim_mult_ouput1_2 COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/animation_multi1_2.ozz" "${ozz_temp_directory}/animation_multi1_2_should_exist.ozz")
-set_tests_properties(test2anim_mult_ouput1_2 PROPERTIES DEPENDS test2anim_multi1_2)
-add_test(NAME test2anim_mult_ouput2_one COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/animation_multi2_one.ozz" "${ozz_temp_directory}/animation_multi2_one_should_exist.ozz")
-set_tests_properties(test2anim_mult_ouput2_one PROPERTIES DEPENDS test2anim_multi2)
-add_test(NAME test2anim_mult_ouput2_two COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/animation_multi2_TWO.ozz" "${ozz_temp_directory}/animation_multi2_TWO_should_exist.ozz")
-set_tests_properties(test2anim_mult_ouput2_two PROPERTIES DEPENDS test2anim_multi2)
 
 # ozz_animation_offline_skel_tools fuse tests
 set_source_files_properties(${PROJECT_BINARY_DIR}/src_fused/ozz_animation_offline_skel_tools.cc PROPERTIES GENERATED 1)

@@ -30,9 +30,8 @@
 #include <fstream>
 #include <sstream>
 
-#include "ozz/animation/offline/additive_animation_builder.h"
-#include "ozz/animation/offline/animation_builder.h"
 #include "ozz/animation/offline/animation_optimizer.h"
+#include "ozz/animation/offline/track_optimizer.h"
 
 #include "ozz/base/containers/string.h"
 #include "ozz/base/log.h"
@@ -211,11 +210,76 @@ bool SanitizeOptimizationTolerances(Json::Value& _root) {
   return true;
 }
 
-bool SanitizeAnimation(Json::Value& _root) {
+bool SanitizeTrackOptimizationTolerance(Json::Value& _root) {
+  MakeDefault(_root, "joint_name", "",
+              "Name of the joint that contains the property to import. "
+              "Wildcard characters '*' and '?' are supported.");
+  return true;
+}
+
+bool SanitizeTrackImport(Json::Value& _root) {
   MakeDefault(_root, "output", "*.ozz",
-              "Specifies ozz animation output file(s). When importing multiple "
-              "animations, use a \'*\' character to specify part(s) of the "
-              "filename that should be replaced by the animation name.");
+              "Specifies track output file(s). Use a \'*\' character "
+              "to specify part(s) of the filename that should be replaced by "
+              "the track (aka \"joint_name-property_name\") name.");
+  MakeDefault(_root, "joint_name", "",
+              "Name of the joint that contains the property to import. "
+              "Wildcard characters '*' and '?' are supported.");
+  MakeDefault(_root, "property_name", "",
+              "Name of the property to import. Wildcard characters '*' and '?' "
+              "are supported.");
+  MakeDefault(_root, "type", 1,
+              "Type of the property, aka the number of floating point "
+              "components. 1 to 4 components are supported.");
+  MakeDefault(_root, "optimization_tolerance",
+              ozz::animation::offline::TrackOptimizer().tolerance,
+              "Optimization tolerance");
+  return true;
+}
+
+bool SanitizeTrackMotion(Json::Value& _root) {
+  MakeDefault(_root, "joint_name", "",
+              "Name of the joint that contains the property to import. "
+              "Wildcard characters '*' and '?' are supported.");
+  MakeDefault(_root, "output", "*.ozz",
+              "Specifies track output file(s). Use a \'*\' character to "
+              "specify part(s) of the filename that should be replaced by the "
+              "joint_name.");
+  MakeDefault(_root, "optimization_tolerance",
+              ozz::animation::offline::TrackOptimizer().tolerance,
+              "Optimization tolerance");
+  return true;
+}
+
+bool SanitizeTrack(Json::Value& _root) {
+  (void)_root;
+
+  MakeDefaultArray(_root, "imports", "Tracks (properties) to import.");
+  Json::Value& imports = _root["imports"];
+  for (Json::ArrayIndex i = 0; i < imports.size(); ++i) {
+    if (!SanitizeTrackImport(imports[i])) {
+      return false;
+    }
+  }
+
+  MakeDefaultArray(_root, "motions", "Motions tracks to generate.");
+  Json::Value& motions = _root["motions"];
+  for (Json::ArrayIndex i = 0; i < motions.size(); ++i) {
+    if (!SanitizeTrackMotion(motions[i])) {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool SanitizeAnimation(Json::Value& _root) {
+  MakeDefault(_root, "name", "*",
+              "Specifies name of the animation to import. Wildcard characters "
+              "\'*\' and \'?\' are supported");
+  MakeDefault(_root, "output", "*.ozz",
+              "Specifies animation output file(s). Use a \'*\' character to "
+              "specify part(s) of the filename that should be replaced by the "
+              "animation name.");
 
   MakeDefault(_root, "optimize", true, "Activates keyframes optimization.");
 
@@ -238,12 +302,19 @@ bool SanitizeAnimation(Json::Value& _root) {
               "Selects animation sampling rate in hertz. Set a value <= 0 to "
               "use imported scene frame rate.");
 
+  MakeDefaultArray(_root, "tracks", "Tracks to build.");
+  Json::Value& tracks = _root["tracks"];
+  for (Json::ArrayIndex i = 0; i < tracks.size(); ++i) {
+    if (!SanitizeTrack(tracks[i])) {
+      return false;
+    }
+  }
+
   return true;
 }  // namespace
 
 bool SanitizeRoot(Json::Value& _root) {
   MakeDefaultArray(_root, "animations", "Animations to extract.");
-
   Json::Value& animations = _root["animations"];
   for (Json::ArrayIndex i = 0; i < animations.size(); ++i) {
     if (!SanitizeAnimation(animations[i])) {
