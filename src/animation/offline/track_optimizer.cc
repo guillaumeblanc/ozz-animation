@@ -114,6 +114,10 @@ bool Optimize(const TrackOptimizer& _optimizer, const _Track& _input,
     return false;
   }
 
+  // Copy name
+  _output->name = _input.name;
+
+  // Optimizes.
   Filter(_input.keyframes, _optimizer.tolerance, &_output->keyframes);
 
   // Output animation is always valid though.

@@ -64,30 +64,19 @@ TEST(Error, TrackOptimizer) {
     EXPECT_EQ(output.keyframes.size(), 0u);
   }
 }
-/*
+
 TEST(Name, FloatTrackOptimizer) {
-  // Prepares a skeleton.
-  RawSkeleton raw_skeleton;
-  SkeletonBuilder skeleton_builder;
-  Skeleton* skeleton = skeleton_builder(raw_skeleton);
-  ASSERT_TRUE(skeleton != NULL);
+  // Step keys aren't optimized.
+  TrackOptimizer optimizer;
 
-  FloatTrackOptimizer optimizer;
-
-  RawFloatTrack input;
-  input.name = "Test_Animation";
-  input.duration = 1.f;
-
-  ASSERT_TRUE(input.Validate());
+  RawFloatTrack raw_float_track;
+  raw_float_track.name = "FloatTrackOptimizer test";
 
   RawFloatTrack output;
-  ASSERT_TRUE(optimizer(input, *&output));
-  EXPECT_EQ(output.num_tracks(), 0);
-  EXPECT_STRCASEEQ(output.name.c_str(), "Test_Animation");
+  ASSERT_TRUE(optimizer(raw_float_track, &output));
 
-  ozz::memory::default_allocator()->Delete(skeleton);
+  EXPECT_STREQ(raw_float_track.name.c_str(), output.name.c_str());
 }
-*/
 
 TEST(OptimizeSteps, TrackOptimizer) {
   // Step keys aren't optimized.

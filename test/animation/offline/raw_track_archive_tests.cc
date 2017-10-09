@@ -34,9 +34,9 @@
 
 #include "ozz/base/maths/gtest_math_helper.h"
 
-using ozz::animation::offline::RawFloatTrack;
 using ozz::animation::offline::RawFloat2Track;
 using ozz::animation::offline::RawFloat3Track;
+using ozz::animation::offline::RawFloatTrack;
 using ozz::animation::offline::RawQuaternionTrack;
 using ozz::animation::offline::RawTrackInterpolation;
 
@@ -57,10 +57,12 @@ TEST(Empty, RawTrackSerialize) {
   i >> i_track;
 
   EXPECT_EQ(o_track.keyframes.size(), i_track.keyframes.size());
+  EXPECT_STREQ(o_track.name.c_str(), i_track.name.c_str());
 }
 
 TEST(Filled, RawAnimationSerialize) {
   RawFloatTrack o_track;
+  o_track.name = "test track";
 
   const RawFloatTrack::Keyframe first_key = {RawTrackInterpolation::kLinear,
                                              .5f, 46.f};
@@ -89,6 +91,7 @@ TEST(Filled, RawAnimationSerialize) {
 
     EXPECT_TRUE(i_track.Validate());
     ASSERT_EQ(o_track.keyframes.size(), i_track.keyframes.size());
+    EXPECT_STREQ(o_track.name.c_str(), i_track.name.c_str());
 
     for (size_t i = 0; i < o_track.keyframes.size(); ++i) {
       const RawFloatTrack::Keyframe& o_key = o_track.keyframes[i];
@@ -108,10 +111,12 @@ TEST(AlreadyInitialized, RawAnimationSerialize) {
 
   // Streams out.
   ozz::io::OArchive o(&stream);
+  o_track.name = "test track";
   o << o_track;
 
   // Streams out a second time.
   o_track.keyframes.resize(2);
+  o_track.name = "test track 2";
   o << o_track;
 
   // Streams in.
@@ -125,10 +130,12 @@ TEST(AlreadyInitialized, RawAnimationSerialize) {
   // A second time
   i >> i_track;
   ASSERT_EQ(i_track.keyframes.size(), 2u);
+  EXPECT_STREQ(o_track.name.c_str(), i_track.name.c_str());
 }
 
 TEST(Float2, RawAnimationSerialize) {
   RawFloat2Track o_track;
+  o_track.name = "test track";
 
   const RawFloat2Track::Keyframe first_key = {
       RawTrackInterpolation::kLinear, .5f, ozz::math::Float2(46.f, 99.f)};
@@ -157,6 +164,7 @@ TEST(Float2, RawAnimationSerialize) {
 
     EXPECT_TRUE(i_track.Validate());
     ASSERT_EQ(o_track.keyframes.size(), i_track.keyframes.size());
+    EXPECT_STREQ(o_track.name.c_str(), i_track.name.c_str());
 
     for (size_t i = 0; i < o_track.keyframes.size(); ++i) {
       const RawFloat2Track::Keyframe& o_key = o_track.keyframes[i];

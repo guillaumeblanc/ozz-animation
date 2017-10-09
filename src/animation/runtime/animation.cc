@@ -47,7 +47,7 @@ Animation::Animation() : duration_(0.f), num_tracks_(0), name_(NULL) {}
 
 Animation::~Animation() { Deallocate(); }
 
-void Animation::Allocate(size_t name_len, size_t _translation_count,
+void Animation::Allocate(size_t _name_len, size_t _translation_count,
                          size_t _rotation_count, size_t _scale_count) {
   // Distributes buffer memory while ensuring proper alignment (serves larger
   // alignment values first).
@@ -59,7 +59,7 @@ void Animation::Allocate(size_t name_len, size_t _translation_count,
          scales_.Size() == 0);
 
   // Compute overall size and allocate a single buffer for all the data.
-  const size_t buffer_size = (name_len > 0 ? name_len + 1 : 0) +
+  const size_t buffer_size = (_name_len > 0 ? _name_len + 1 : 0) +
                              _translation_count * sizeof(TranslationKey) +
                              _rotation_count * sizeof(RotationKey) +
                              _scale_count * sizeof(ScaleKey);
@@ -83,7 +83,7 @@ void Animation::Allocate(size_t name_len, size_t _translation_count,
 
   // Let name be NULL if animation has no name. Allows to avoid allocating this
   // buffer in the constructor of empty animations.
-  name_ = reinterpret_cast<char*>(name_len > 0 ? buffer : NULL);
+  name_ = reinterpret_cast<char*>(_name_len > 0 ? buffer : NULL);
   assert(math::IsAligned(name_, OZZ_ALIGN_OF(char)));
 }
 

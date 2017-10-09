@@ -32,6 +32,7 @@
 #include "ozz/base/io/archive.h"
 #include "ozz/base/maths/math_archive.h"
 
+#include "ozz/base/containers/string_archive.h"
 #include "ozz/base/containers/vector_archive.h"
 
 namespace ozz {
@@ -104,6 +105,7 @@ bool RawTrack<_ValueType>::Validate() const {
 template <typename _ValueType>
 void RawTrack<_ValueType>::Save(io::OArchive& _archive) const {
   _archive << keyframes;
+  _archive << name;
 }
 
 template <typename _ValueType>
@@ -111,6 +113,7 @@ void RawTrack<_ValueType>::Load(io::IArchive& _archive, uint32_t _version) {
   (void)_version;
   assert(_version == 1);
   _archive >> keyframes;
+  _archive >> name;
 }
 
 // Explicitly instantiate supported raw tracks.

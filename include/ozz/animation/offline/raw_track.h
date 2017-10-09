@@ -28,6 +28,7 @@
 #ifndef OZZ_OZZ_ANIMATION_OFFLINE_RAW_TRACK_H_
 #define OZZ_OZZ_ANIMATION_OFFLINE_RAW_TRACK_H_
 
+#include "ozz/base/containers/string.h"
 #include "ozz/base/containers/vector.h"
 #include "ozz/base/io/archive_traits.h"
 
@@ -101,6 +102,9 @@ struct RawTrack {
   // Sequence of keyframes, expected to be sorted.
   typedef typename ozz::Vector<Keyframe>::Std Keyframes;
   Keyframes keyframes;
+
+  // Name of the track.
+  String::Std name;
 };
 }  // namespace internal
 

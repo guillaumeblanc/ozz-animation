@@ -39,17 +39,17 @@
 #include "ozz/animation/offline/raw_track.h"
 #include "ozz/animation/offline/track_builder.h"
 
-using ozz::animation::FloatTrack;
-using ozz::animation::FloatTrackSamplingJob;
 using ozz::animation::Float2Track;
 using ozz::animation::Float2TrackSamplingJob;
 using ozz::animation::Float3Track;
 using ozz::animation::Float3TrackSamplingJob;
+using ozz::animation::FloatTrack;
+using ozz::animation::FloatTrackSamplingJob;
 using ozz::animation::QuaternionTrack;
 using ozz::animation::QuaternionTrackSamplingJob;
-using ozz::animation::offline::RawFloatTrack;
 using ozz::animation::offline::RawFloat2Track;
 using ozz::animation::offline::RawFloat3Track;
+using ozz::animation::offline::RawFloatTrack;
 using ozz::animation::offline::RawQuaternionTrack;
 using ozz::animation::offline::RawTrackInterpolation;
 using ozz::animation::offline::TrackBuilder;
@@ -71,6 +71,64 @@ TEST(Empty, TrackSerialize) {
   i >> i_track;
 
   EXPECT_EQ(o_track.size(), i_track.size());
+}
+
+TEST(Name, TrackSerialize) {
+  ozz::io::MemoryStream stream;
+
+  // Instantiates a builder objects with default parameters.
+  TrackBuilder builder;
+
+  {  // No name
+    RawFloatTrack raw_float_track;
+
+    FloatTrack* o_track = builder(raw_float_track);
+    ASSERT_TRUE(o_track != NULL);
+
+    // Streams out.
+    {
+      stream.Seek(0, ozz::io::Stream::kSet);
+      ozz::io::OArchive o(&stream, ozz::GetNativeEndianness());
+      o << *o_track;
+    }
+
+    // Streams in.
+    stream.Seek(0, ozz::io::Stream::kSet);
+    ozz::io::IArchive i(&stream);
+
+    FloatTrack i_track;
+    i >> i_track;
+
+    EXPECT_STREQ(o_track->name(), i_track.name());
+
+    ozz::memory::default_allocator()->Delete(o_track);
+  }
+
+  {  // A name
+    RawFloatTrack raw_float_track;
+    raw_float_track.name = "test name";
+
+    FloatTrack* o_track = builder(raw_float_track);
+    ASSERT_TRUE(o_track != NULL);
+
+    // Streams out.
+    {
+      stream.Seek(0, ozz::io::Stream::kSet);
+      ozz::io::OArchive o(&stream, ozz::GetNativeEndianness());
+      o << *o_track;
+    }
+
+    // Streams in.
+    stream.Seek(0, ozz::io::Stream::kSet);
+    ozz::io::IArchive i(&stream);
+
+    FloatTrack i_track;
+    i >> i_track;
+
+    EXPECT_STREQ(o_track->name(), i_track.name());
+
+    ozz::memory::default_allocator()->Delete(o_track);
+  }
 }
 
 TEST(FilledFloat, TrackSerialize) {

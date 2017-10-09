@@ -41,7 +41,7 @@ namespace animation {
 namespace internal {
 
 template <typename _ValueType>
-Track<_ValueType>::Track() {}
+Track<_ValueType>::Track() : name_(NULL) {}
 
 template <typename _ValueType>
 Track<_ValueType>::~Track() {
@@ -49,7 +49,7 @@ Track<_ValueType>::~Track() {
 }
 
 template <typename _ValueType>
-void Track<_ValueType>::Allocate(size_t _keys_count) {
+void Track<_ValueType>::Allocate(size_t _keys_count, size_t _name_len) {
   assert(times_.Size() == 0 && values_.Size() == 0);
 
   // Distributes buffer memory while ensuring proper alignment (serves larger
@@ -58,9 +58,11 @@ void Track<_ValueType>::Allocate(size_t _keys_count) {
   OZZ_STATIC_ASSERT(OZZ_ALIGN_OF(float) >= OZZ_ALIGN_OF(uint8_t));
 
   // Compute overall size and allocate a single buffer for all the data.
-  const size_t buffer_size = _keys_count * sizeof(_ValueType) +        // values
-                             _keys_count * sizeof(float) +             // times
-                             (_keys_count + 7) * sizeof(uint8_t) / 8;  // values
+  const size_t buffer_size =
+      _keys_count * sizeof(_ValueType) +         // values
+      _keys_count * sizeof(float) +              // times
+      (_keys_count + 7) * sizeof(uint8_t) / 8 +  // values
+      (_name_len > 0 ? _name_len + 1 : 0);
   char* buffer = reinterpret_cast<char*>(memory::default_allocator()->Allocate(
       buffer_size, OZZ_ALIGN_OF(_ValueType)));
 
@@ -79,6 +81,11 @@ void Track<_ValueType>::Allocate(size_t _keys_count) {
   assert(math::IsAligned(times_.begin, OZZ_ALIGN_OF(uint8_t)));
   buffer += (_keys_count + 7) * sizeof(uint8_t) / 8;
   steps_.end = reinterpret_cast<uint8_t*>(buffer);
+
+  // Let name be NULL if track has no name. Allows to avoid allocating this
+  // buffer in the constructor of empty animations.
+  name_ = reinterpret_cast<char*>(_name_len > 0 ? buffer : NULL);
+  assert(math::IsAligned(name_, OZZ_ALIGN_OF(char)));
 }
 
 template <typename _ValueType>
@@ -89,6 +96,7 @@ void Track<_ValueType>::Deallocate() {
   values_.Clear();
   times_.Clear();
   steps_.Clear();
+  name_ = NULL;
 }
 
 template <typename _ValueType>
@@ -102,9 +110,15 @@ template <typename _ValueType>
 void Track<_ValueType>::Save(ozz::io::OArchive& _archive) const {
   uint32_t num_keys = static_cast<uint32_t>(times_.Count());
   _archive << num_keys;
+  
+  const size_t name_len = name_ ? std::strlen(name_) : 0;
+  _archive << static_cast<int32_t>(name_len);
+
   _archive << ozz::io::MakeArray(times_);
   _archive << ozz::io::MakeArray(values_);
   _archive << ozz::io::MakeArray(times_);
+
+  _archive << ozz::io::MakeArray(name_, name_len);
 }
 
 template <typename _ValueType>
@@ -119,11 +133,20 @@ void Track<_ValueType>::Load(ozz::io::IArchive& _archive, uint32_t _version) {
 
   uint32_t num_keys;
   _archive >> num_keys;
-  Allocate(num_keys);
+
+  int32_t name_len;
+  _archive >> name_len;
+
+  Allocate(num_keys, name_len);
 
   _archive >> ozz::io::MakeArray(times_);
   _archive >> ozz::io::MakeArray(values_);
   _archive >> ozz::io::MakeArray(times_);
+
+  if (name_) {  // NULL name_ is supported.
+    _archive >> ozz::io::MakeArray(name_, name_len);
+    name_[name_len] = 0;
+  }
 }
 
 // Explicitly instantiate supported tracks.

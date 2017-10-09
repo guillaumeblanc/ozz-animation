@@ -126,7 +126,8 @@ _Track* TrackBuilder::Build(const _RawTrack& _input) const {
   Fixup(&keyframes);
 
   // Allocates output track.
-  track->Allocate(keyframes.size());
+  const size_t name_len = _input.name.size();
+  track->Allocate(keyframes.size(), _input.name.size());
 
   // Copy all keys to output.
   assert(keyframes.size() == track->times_.Count() &&
@@ -140,10 +141,12 @@ _Track* TrackBuilder::Build(const _RawTrack& _input) const {
     track->steps_[i / 8] |=
         (src_key.interpolation == RawTrackInterpolation::kStep) << (i & 7);
   }
-  /*
-    // Copy animation's name.
-    strcpy(animation->name_, _input.name.c_str());
-    */
+
+  // Copy track's name.
+  if (name_len) {
+    strcpy(track->name_, _input.name.c_str());
+  }
+
   return track;  // Success.
 }
 

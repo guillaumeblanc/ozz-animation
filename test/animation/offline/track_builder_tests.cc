@@ -39,8 +39,8 @@
 using ozz::animation::FloatTrack;
 using ozz::animation::FloatTrackSamplingJob;
 using ozz::animation::offline::RawFloatTrack;
-using ozz::animation::offline::TrackBuilder;
 using ozz::animation::offline::RawTrackInterpolation;
+using ozz::animation::offline::TrackBuilder;
 
 TEST(Default, TrackBuilder) {
   // Instantiates a builder objects with default parameters.
@@ -137,38 +137,32 @@ TEST(Build, TrackBuilder) {
   }
 }
 
-TEST(Name, TrackBuilder) { /*
-   // Instantiates a builder objects with default parameters.
-   AnimationBuilder builder;
+TEST(Name, TrackBuilder) {
+  // Instantiates a builder objects with default parameters.
+  TrackBuilder builder;
 
-   {  // Building an unnamed animation.
-     RawAnimation raw_animation;
-     raw_animation.duration = 1.f;
-     raw_animation.tracks.resize(46);
+  {  // No name
+    RawFloatTrack raw_float_track;
 
-     // Builds animation
-     Animation* anim = builder(raw_animation);
-     EXPECT_TRUE(anim != NULL);
+    FloatTrack* track = builder(raw_float_track);
+    ASSERT_TRUE(track != NULL);
 
-     // Should
-     EXPECT_STREQ(anim->name(), "");
-     ozz::memory::default_allocator()->Delete(anim);
-   }
+    EXPECT_STREQ(track->name(), "");
 
-   {  // Building an unnamed animation.
-     RawAnimation raw_animation;
-     raw_animation.duration = 1.f;
-     raw_animation.tracks.resize(46);
-     raw_animation.name = "46";
+    ozz::memory::default_allocator()->Delete(track);
+  }
 
-     // Builds animation
-     Animation* anim = builder(raw_animation);
-     EXPECT_TRUE(anim != NULL);
+  {  // A name
+    RawFloatTrack raw_float_track;
+    raw_float_track.name = "test name";
 
-     // Should
-     EXPECT_STREQ(anim->name(), "46");
-     ozz::memory::default_allocator()->Delete(anim);
-   }*/
+    FloatTrack* track = builder(raw_float_track);
+    ASSERT_TRUE(track != NULL);
+
+    EXPECT_STREQ(track->name(), raw_float_track.name.c_str());
+
+    ozz::memory::default_allocator()->Delete(track);
+  }
 }
 
 TEST(Build0Keys, TrackBuilder) {

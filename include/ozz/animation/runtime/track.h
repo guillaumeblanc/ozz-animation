@@ -59,6 +59,9 @@ class Track {
   // Get the estimated track's size in bytes.
   size_t size() const;
 
+  // Get track name.
+  const char* name() const { return name_ ? name_ : ""; }
+
   // Serialization functions.
   // Should not be called directly but through io::Archive << and >> operators.
   void Save(ozz::io::OArchive& _archive) const;
@@ -73,12 +76,20 @@ class Track {
   friend class offline::TrackBuilder;
 
   // Internal destruction function.
-  void Allocate(size_t _keys_count);
+  void Allocate(size_t _keys_count, size_t _name_len);
   void Deallocate();
 
+  // Keyframe times.
   Range<float> times_;
+
+  // Keyframe values.
   Range<_ValueType> values_;
+
+  // Keyframe modes (1 bit per key): 1 for step, 0 for linear.
   Range<uint8_t> steps_;
+
+  // Track name.
+  char* name_;
 };
 
 // Definition of operations policies per track value type.
