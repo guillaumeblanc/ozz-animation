@@ -191,7 +191,11 @@ TEST(StrMatch, Platform) {
   EXPECT_FALSE(ozz::strmatch("ab", "a"));
   EXPECT_TRUE(ozz::strmatch("ab", "ab"));
   EXPECT_TRUE(ozz::strmatch("", ""));
+  EXPECT_TRUE(ozz::strmatch("", "*"));
+  EXPECT_FALSE(ozz::strmatch("", "?"));
   EXPECT_FALSE(ozz::strmatch("ab", ""));
+  EXPECT_FALSE(ozz::strmatch("ab", "?"));
+  EXPECT_TRUE(ozz::strmatch("ab", "??"));
   EXPECT_TRUE(ozz::strmatch("a*b", "a*b"));
   EXPECT_TRUE(ozz::strmatch("a*b", "a?b"));
   EXPECT_TRUE(ozz::strmatch("ab", "ab*"));

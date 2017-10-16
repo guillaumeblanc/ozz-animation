@@ -95,7 +95,10 @@ class TestAnimationConverter
       const char good_content1[] = "good content 1";
       if (file_->Read(buffer, sizeof(buffer)) >= sizeof(good_content1) - 1 &&
           memcmp(buffer, good_content1, sizeof(good_content1) - 1) == 0) {
-        _animation->name = _animation_name;
+        if (strcmp(_animation_name, "one") != 0) {
+          return false;
+        }
+        _animation->tracks.resize(_skeleton.num_joints());
         return true;
       }
       // Handles more than one animation per file.
@@ -103,11 +106,29 @@ class TestAnimationConverter
       const char good_content2[] = "good content 2";
       if (file_->Read(buffer, sizeof(buffer)) >= sizeof(good_content2) - 1 &&
           memcmp(buffer, good_content2, sizeof(good_content2) - 1) == 0) {
-        _animation->name = _animation_name;
+        if (strcmp(_animation_name, "one") != 0 &&
+            strcmp(_animation_name, "TWO") != 0) {
+          return false;
+        }
+        _animation->tracks.resize(_skeleton.num_joints());
         return true;
       }
     }
     return false;
+  }
+
+  virtual NodeProperties GetNodeProperties(const char* _node_name) {
+    NodeProperties ppts;
+    bool found =
+        strcmp(_node_name, "joint0") == 0 || strcmp(_node_name, "joint1") == 0;
+
+    if (found) {
+      const NodeProperty ppt0 = {"property0", NodeProperty::kFloat1};
+      ppts.push_back(ppt0);
+      const NodeProperty ppt1 = {"property1", NodeProperty::kFloat1};
+      ppts.push_back(ppt1);
+    }
+    return ppts;
   }
 
   virtual bool Import(const char* _animation_name, const char* _node_name,
@@ -117,8 +138,12 @@ class TestAnimationConverter
     (void)_sampling_rate;
     (void)_track;
 
-    return strcmp(_node_name, "node_name") == 0 &&
-           strcmp(_track_name, "track_name") == 0;
+    // joint2 doesn't have the property
+    bool found = (strcmp(_node_name, "joint0") == 0 ||
+                  strcmp(_node_name, "joint1") == 0) &&
+                 (strcmp(_track_name, "property0") == 0 ||
+                  strcmp(_track_name, "property1") == 0);
+    return found;
   }
 
   ozz::io::File* file_;

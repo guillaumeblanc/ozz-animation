@@ -30,6 +30,8 @@
 
 #include "ozz/animation/offline/fbx/fbx.h"
 
+#include "ozz/animation/offline/tools/convert2anim.h"
+
 #include "ozz/base/containers/string.h"
 #include "ozz/base/containers/vector.h"
 
@@ -48,12 +50,13 @@ struct RawquaternionTrack;
 
 namespace fbx {
 
-typedef ozz::Vector<ozz::String::Std>::Std AnimationNames;
-AnimationNames GetAnimationNames(FbxSceneLoader& _scene_loader);
+AnimationConverter::AnimationNames GetAnimationNames(FbxSceneLoader& _scene_loader);
 
 bool ExtractAnimation(const char* _animation_name,
                       FbxSceneLoader& _scene_loader, const Skeleton& _skeleton,
                       float _sampling_rate, RawAnimation* _animation);
+
+AnimationConverter::NodeProperties GetNodeProperties(FbxSceneLoader& _scene_loader, const char* _node_name);
 
 bool ExtractTrack(const char* _animation_name, const char* _node_name,
                   const char* _track_name, FbxSceneLoader& _scene_loader,

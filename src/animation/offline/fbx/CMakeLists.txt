@@ -44,7 +44,7 @@ install(TARGETS fbx2anim DESTINATION bin/tools)
 
 # Gerenate binary skeleton data
 set(skeletons
-  "/fbx/robot_dof_anim.fbx\;/bin/robot_skeleton.ozz"
+  "/fbx/robot_anim.fbx\;/bin/robot_skeleton.ozz"
   "/fbx/alain/skeleton.fbx\;/bin/alain_skeleton.ozz"
   "/fbx/alain/skeleton.fbx\;/bin/versioning/raw_skeleton_v1_le.ozz\;option:--raw\;option:--endian=little"
   "/fbx/alain/skeleton.fbx\;/bin/versioning/raw_skeleton_v1_be.ozz\;option:--raw\;option:--endian=big"
@@ -82,6 +82,9 @@ endforeach()
 
 # Gerenate binary animation data
 set(animations
+
+  "/fbx/robot_anim.fbx\;/bin/robot_skeleton.ozz\;{\"animations\":[{\"output\":\"${ozz_media_directory}/bin/robot_animation.ozz\"}]}\;output:/bin/robot_animation.ozz"
+
   # Library data
   "/fbx/alain/atlas.fbx\;/bin/alain_skeleton.ozz\;{\"animations\":[{\"output\":\"${ozz_media_directory}/bin/alain_atlas_raw.ozz\",\"raw\":true,\"optimize\":false}]}\;output:/bin/alain_atlas_raw.ozz"
   "/fbx/alain/locomotions.fbx\;/bin/alain_skeleton.ozz\;{\"animations\":[{\"output\":\"${ozz_media_directory}/bin/alain_*.ozz\"}]}\;output:/bin/alain_walk.ozz\;output:/bin/alain_jog.ozz\;output:/bin/alain_run.ozz"

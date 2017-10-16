@@ -97,6 +97,14 @@ class FbxAnimationConverter
         _animation_name, *scene_loader_, _skeleton, _sampling_rate, _animation);
   }
 
+  virtual NodeProperties GetNodeProperties(const char* _node_name) {
+    if (!scene_loader_) {
+      return NodeProperties();
+    }
+
+    return ozz::animation::offline::fbx::GetNodeProperties(*scene_loader_, _node_name);
+  }
+
   virtual bool Import(const char* _animation_name, const char* _node_name,
                       const char* _track_name, float _sampling_rate,
                       ozz::animation::offline::RawFloatTrack* _track) {

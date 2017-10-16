@@ -368,8 +368,14 @@ bool ExtractProperty(FbxSceneLoader& _scene_loader, const SamplingInfo& _info,
                      FbxProperty& _property, RawFloatTrack* _track) {
   const EFbxType type = _property.GetPropertyDataType().GetType();
   switch (type) {
-    case eFbxBool:
+    case eFbxChar:
+    case eFbxUChar:
+    case eFbxShort:
+    case eFbxUShort:
     case eFbxInt:
+    case eFbxUInt:
+    case eFbxBool:
+    case eFbxHalfFloat:
     case eFbxFloat:
     case eFbxDouble: {
       return ExtractCurve(_scene_loader, _property, type, _info, _track);
@@ -453,8 +459,9 @@ bool ExtractTrackImpl(const char* _animation_name, const char* _node_name,
 }
 }  // namespace
 
-AnimationNames GetAnimationNames(FbxSceneLoader& _scene_loader) {
-  AnimationNames names;
+AnimationConverter::AnimationNames GetAnimationNames(
+    FbxSceneLoader& _scene_loader) {
+  AnimationConverter::AnimationNames names;
 
   const FbxScene* scene = _scene_loader.scene();
   for (int i = 0; i < scene->GetSrcObjectCount<FbxAnimStack>(); ++i) {
@@ -487,7 +494,6 @@ bool ExtractAnimation(const char* _animation_name,
     // Setup Fbx animation evaluator.
     scene->SetCurrentAnimationStack(anim_stack);
 
-    _animation->name = anim_stack->GetName();
     success = ExtractAnimation(_scene_loader, info, _skeleton, _animation);
   }
 
@@ -497,6 +503,57 @@ bool ExtractAnimation(const char* _animation_name,
   }
 
   return success;
+}
+
+AnimationConverter::NodeProperties GetNodeProperties(
+    FbxSceneLoader& _scene_loader, const char* _node_name) {
+  AnimationConverter::NodeProperties properties;
+  FbxScene* scene = _scene_loader.scene();
+  const FbxNode* node = scene->FindNodeByName(_node_name);
+  if (!node) {
+    ozz::log::LogV() << "Invalid node name \"" << _node_name << "\""
+                     << std::endl;
+    return properties;
+  }
+
+  for (FbxProperty fbx_property = node->GetFirstProperty();
+       fbx_property.IsValid();
+       fbx_property = node->GetNextProperty(fbx_property)) {
+    const char* ppt_name = fbx_property.GetName();
+
+    const EFbxType type = fbx_property.GetPropertyDataType().GetType();
+    switch (type) {
+      case eFbxChar:
+      case eFbxUChar:
+      case eFbxShort:
+      case eFbxUShort:
+      case eFbxInt:
+      case eFbxUInt:
+      case eFbxBool:
+      case eFbxHalfFloat:
+      case eFbxFloat: {
+        const AnimationConverter::NodeProperty ppt = {
+            ppt_name, AnimationConverter::NodeProperty::kFloat1};
+        properties.push_back(ppt);
+      }
+      case eFbxDouble2: {
+        const AnimationConverter::NodeProperty ppt = {
+            ppt_name, AnimationConverter::NodeProperty::kFloat2};
+        properties.push_back(ppt);
+      }
+      case eFbxDouble3: {
+        const AnimationConverter::NodeProperty ppt = {
+            ppt_name, AnimationConverter::NodeProperty::kFloat2};
+        properties.push_back(ppt);
+      }
+      default: {
+        log::LogV() << "Node property \"" << ppt_name
+                    << "\" doesn't have a importable type\""
+                    << FbxTypeToString(type) << "\"" << std::endl;
+      }
+    }
+  }
+  return properties;
 }
 
 bool ExtractTrack(const char* _animation_name, const char* _node_name,

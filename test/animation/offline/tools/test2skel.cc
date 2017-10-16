@@ -29,6 +29,8 @@
 
 #include "ozz/animation/offline/tools/convert2skel.h"
 
+#include "ozz/animation/offline/raw_skeleton.h"
+
 #include "ozz/base/io/stream.h"
 #include "ozz/base/memory/allocator.h"
 
@@ -58,6 +60,19 @@ class TestSkeletonConverter
       const char good_content[] = "good content 1";
       if (file_->Read(buffer, sizeof(buffer)) >= sizeof(good_content) - 1 &&
           memcmp(buffer, good_content, sizeof(good_content) - 1) == 0) {
+
+        _skeleton->roots.resize(1);
+        ozz::animation::offline::RawSkeleton::Joint& root = _skeleton->roots[0];
+        root.name = "root";
+
+        root.children.resize(3);
+        ozz::animation::offline::RawSkeleton::Joint& joint0 = root.children[0];
+        joint0.name = "joint0";
+        ozz::animation::offline::RawSkeleton::Joint& joint1 = root.children[1];
+        joint1.name = "joint1";
+        ozz::animation::offline::RawSkeleton::Joint& joint2 = root.children[2];
+        joint2.name = "joint2";
+
         return true;
       }
     }

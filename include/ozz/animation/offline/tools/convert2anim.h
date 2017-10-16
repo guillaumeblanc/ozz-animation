@@ -44,11 +44,9 @@ class AnimationConverter {
  public:
   int operator()(int _argc, const char** _argv);
 
- protected:
-  typedef ozz::Vector<ozz::String::Std>::Std AnimationNames;
+  // Animations management.
 
- private:
-  virtual bool Load(const char* _filename) = 0;
+  typedef ozz::Vector<ozz::String::Std>::Std AnimationNames;
 
   virtual AnimationNames GetAnimationNames() = 0;
 
@@ -56,9 +54,23 @@ class AnimationConverter {
                       const ozz::animation::Skeleton& _skeleton,
                       float _sampling_rate, RawAnimation* _animation) = 0;
 
+  // Tracks / properties management.
+
+  struct NodeProperty {
+    ozz::String::Std name;
+    enum Type { kFloat1, kFloat2, kFloat3, kQuaternion };
+    Type type;
+  };
+  typedef ozz::Vector<NodeProperty>::Std NodeProperties;
+
+  virtual NodeProperties GetNodeProperties(const char* _node_name) = 0;
+
   virtual bool Import(const char* _animation_name, const char* _node_name,
                       const char* _track_name, float _sampling_rate,
                       RawFloatTrack* _track) = 0;
+
+ private:
+  virtual bool Load(const char* _filename) = 0;
 };
 }  // namespace offline
 }  // namespace animation

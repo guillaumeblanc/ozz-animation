@@ -200,12 +200,12 @@ ozz::animation::Skeleton* ImportSkeleton() {
   return skeleton;
 }
 
-ozz::String::Std BuildFilename(const char* _filename, const char* _animation) {
+ozz::String::Std BuildFilename(const char* _filename, const char* _data_name) {
   ozz::String::Std output(_filename);
 
   for (size_t asterisk = output.find('*'); asterisk != std::string::npos;
        asterisk = output.find('*')) {
-    output.replace(asterisk, 1, _animation);
+    output.replace(asterisk, 1, _data_name);
   }
   return output;
 }
@@ -308,6 +308,24 @@ bool Export(const ozz::animation::offline::RawAnimation& _raw_animation,
   return true;
 }
 
+bool ProcessAnimation(AnimationConverter& _converter,
+                      const char* _animation_name,
+                      const ozz::animation::Skeleton& _skeleton,
+                      const Json::Value& _config) {
+  RawAnimation animation;
+  if (!_converter.Import(_animation_name, _skeleton,
+                         _config["sampling_rate"].asFloat(), &animation)) {
+    ozz::log::Err() << "Failed to import animation \"" << _animation_name
+                    << "\"" << std::endl;
+    return false;
+  } else {
+    // Give animation a name
+    animation.name = _animation_name;
+
+    return Export(animation, _skeleton, _config);
+  }
+}
+
 bool Export(const ozz::animation::offline::RawFloatTrack& _raw_track,
             const Json::Value& _config) {
   // Raw track to build and output.
@@ -329,8 +347,6 @@ bool Export(const ozz::animation::offline::RawFloatTrack& _raw_track,
 
     // Brings data back to the raw track.
     raw_track = raw_optimized_track;
-  } else {
-    raw_track = _raw_track;
   }
 
   // Builds runtime track.
@@ -346,14 +362,12 @@ bool Export(const ozz::animation::offline::RawFloatTrack& _raw_track,
   }
 
   {
-    // Prepares output stream. File is a RAII so it will close automatically at
-    // the end of this scope.
-    // Once the file is opened, nothing should fail as it would leave an invalid
-    // file on the disk.
+    // Prepares output stream. Once the file is opened, nothing should fail as
+    // it would leave an invalid file on the disk.
 
     // Builds output filename.
-    const ozz::String::Std filename = "temp_track";
-    //        BuildFilename(OPTIONS_animation, _raw_animation.name.c_str());
+    const ozz::String::Std filename =
+        BuildFilename(_config["output"].asCString(), _raw_track.name.c_str());
 
     ozz::log::LogV() << "Opens output file: " << filename << std::endl;
     ozz::io::File file(filename.c_str(), "wb");
@@ -384,6 +398,101 @@ bool Export(const ozz::animation::offline::RawFloatTrack& _raw_track,
   ozz::memory::default_allocator()->Delete(track);
 
   return true;
+}
+
+bool ProcessImportTrack(AnimationConverter& _converter,
+                        const char* _animation_name, const Skeleton& _skeleton,
+                        const Json::Value& _import) {
+  // Early out if no name is specified
+  const char* joint_name_match = _import["joint_name"].asCString();
+  const char* ppt_name_match = _import["property_name"].asCString();
+
+  // empty strings "" are NULL
+  if (joint_name_match == NULL || ppt_name_match == NULL) {
+    return false;
+  }
+
+  // Process every joint that matches.
+  bool success = true;
+  bool joint_found = false;
+  for (int s = 0; success && s < _skeleton.num_joints(); ++s) {
+    const char* joint_name = _skeleton.joint_names()[s];
+    if (!strmatch(joint_name, joint_name_match)) {
+      continue;
+    }
+    joint_found = true;
+
+    // Node found, need to find matching properties now.
+    bool ppt_found = false;
+    const AnimationConverter::NodeProperties properties =
+        _converter.GetNodeProperties(joint_name);
+    for (size_t p = 0; p < properties.size(); ++p) {
+      const AnimationConverter::NodeProperty property = properties[p];
+      const char* property_name = property.name.c_str();
+      if (!strmatch(property.name.c_str(), ppt_name_match)) {
+        continue;
+      }
+      ppt_found = true;
+
+      // Property found
+      RawFloatTrack track;
+      success &= _converter.Import(_animation_name, joint_name, property_name,
+                                   0, &track);
+
+      if (success) {
+        // Give the track a name
+        track.name = joint_name;
+        track.name += '-';
+        track.name += property_name;
+
+        success &= Export(track, _import);
+      } else {
+        ozz::log::Err() << "Failed to import track \"" << joint_name << ":"
+                        << property.name << "\"" << std::endl;
+      }
+    }
+
+    if (!ppt_found) {
+      ozz::log::Log() << "No property found for track import definition \""
+                      << joint_name_match << ":" << ppt_name_match << "\"."
+                      << std::endl;
+    }
+  }
+
+  if (!joint_found) {
+    ozz::log::Log() << "No joint found for track import definition \""
+                    << joint_name_match << "\"." << std::endl;
+  }
+
+  return success;
+}
+
+/*
+bool ProcessMotionTrack(AnimationConverter& _converter,
+                        const char* _animation_name, const Skeleton& _skeleton,
+                        const Json::Value& _motion) {
+  return true;
+}*/
+
+bool ProcessTracks(AnimationConverter& _converter, const char* _animation_name,
+                   const Skeleton& _skeleton, const Json::Value& _config) {
+  bool success = true;
+
+  const Json::Value& imports = _config["imports"];
+  for (Json::ArrayIndex i = 0; success && i < imports.size(); ++i) {
+    success &=
+        ProcessImportTrack(_converter, _animation_name, _skeleton, imports[i]);
+  }
+
+  /*
+    const Json::Value& motions = _config["motions"];
+    for (Json::ArrayIndex i = 0; success && i < motions.size(); ++i) {
+      success &=
+          ProcessMotionTrack(_converter, _animation_name, _skeleton,
+    motions[i]);
+    }*/
+
+  return success;
 }
 }  // namespace
 
@@ -458,36 +567,13 @@ int AnimationConverter::operator()(int _argc, const char** _argv) {
         continue;
       }
 
-      RawAnimation animation;
-      success = Import(animation_name, *skeleton,
-                       animation_config["sampling_rate"].asFloat(), &animation);
-      if (success) {
-        success &= Export(animation, *skeleton, animation_config);
+      success =
+          ProcessAnimation(*this, animation_name, *skeleton, animation_config);
 
-        // Iterates all tracks, build and output them.
-        const char* track_defintion = "";
-        if (track_defintion[0] != 0) {
-          const char* separator = strchr(track_defintion, ':');
-          assert(separator &&
-                 "Track definition should have a : character, which must have "
-                 "been checked while validating configuration.");
-          ozz::String::Std node_name(track_defintion, separator);
-          ozz::String::Std track_name(++separator);
-          RawFloatTrack track;
-          success &=
-              Import(import_animation_names[i].c_str(), node_name.c_str(),
-                     track_name.c_str(),
-                     animation_config["sampling_rate"].asFloat(), &track);
-          if (success) {
-            success &= Export(track, config);
-          } else {
-            ozz::log::Err() << "Failed to import track \"" << node_name << ":"
-                            << track_name << "\"" << std::endl;
-          }
-        }
-      } else {
-        ozz::log::Err() << "Failed to import animation \"" << animation_name
-                        << "\"" << std::endl;
+      const Json::Value& tracks_config = animation_config["tracks"];
+      for (Json::ArrayIndex t = 0; success && t < tracks_config.size(); ++t) {
+        success =
+            ProcessTracks(*this, animation_name, *skeleton, tracks_config[t]);
       }
     }
   }
@@ -495,7 +581,7 @@ int AnimationConverter::operator()(int _argc, const char** _argv) {
   ozz::memory::default_allocator()->Delete(skeleton);
 
   return success ? EXIT_SUCCESS : EXIT_FAILURE;
-}
+}  // namespace animation
 }  // namespace offline
 }  // namespace animation
 }  // namespace ozz
