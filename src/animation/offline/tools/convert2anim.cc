@@ -407,11 +407,6 @@ bool ProcessImportTrack(AnimationConverter& _converter,
   const char* joint_name_match = _import["joint_name"].asCString();
   const char* ppt_name_match = _import["property_name"].asCString();
 
-  // empty strings "" are NULL
-  if (joint_name_match == NULL || ppt_name_match == NULL) {
-    return false;
-  }
-
   // Process every joint that matches.
   bool success = true;
   bool joint_found = false;

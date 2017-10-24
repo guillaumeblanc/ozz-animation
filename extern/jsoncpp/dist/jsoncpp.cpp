@@ -2797,7 +2797,7 @@ bool Value::operator!=(const Value& other) const { return !(*this == other); }
 const char* Value::asCString() const {
   JSON_ASSERT_MESSAGE(type_ == stringValue,
                       "in Json::Value::asCString(): requires stringValue");
-  if (value_.string_ == 0) return 0;
+  if (value_.string_ == 0) return "";  // Modified for ozz
   unsigned this_len;
   char const* this_str;
   decodePrefixedString(this->allocated_, this->value_.string_, &this_len, &this_str);
