@@ -139,24 +139,27 @@ bool IsCompatibleType(Json::ValueType _type, Json::ValueType _expected) {
   }
 }
 
-void MakeDefaultArray(Json::Value& _parent, const char* _name,
-                      const char* _comment) {
+bool MakeDefaultArray(Json::Value& _parent, const char* _name,
+                      const char* _comment, bool _empty) {
   const Json::Value* found = _parent.find(_name, _name + strlen(_name));
-  if (!found) {
+  const bool exist = found != NULL;
+  if (!exist) {
     Json::Value& member = _parent[_name];
-    member.resize(1);
+    member.resize(_empty ? 0 : 1);
     if (*_comment != 0) {
       member.setComment(std::string("//  ") + _comment, Json::commentBefore);
     }
     found = &member;
   }
   assert(found->isArray());
+  return exist;
 }
 
-void MakeDefaultObject(Json::Value& _parent, const char* _name,
+bool MakeDefaultObject(Json::Value& _parent, const char* _name,
                        const char* _comment) {
   const Json::Value* found = _parent.find(_name, _name + strlen(_name));
-  if (!found) {
+  const bool exist = found != NULL;
+  if (!exist) {
     Json::Value& member = _parent[_name];
     member = Json::Value(Json::objectValue);
     if (*_comment != 0) {
@@ -165,13 +168,15 @@ void MakeDefaultObject(Json::Value& _parent, const char* _name,
     found = &member;
   }
   assert(found->isObject());
+  return exist;
 }
 
 template <typename _Type>
-void MakeDefault(Json::Value& _parent, const char* _name, _Type _value,
+bool MakeDefault(Json::Value& _parent, const char* _name, _Type _value,
                  const char* _comment) {
   const Json::Value* found = _parent.find(_name, _name + strlen(_name));
-  if (!found) {
+  const bool exist = found != NULL;
+  if (!exist) {
     Json::Value& member = _parent[_name];
     member = _value;
     if (*_comment != 0) {
@@ -181,6 +186,7 @@ void MakeDefault(Json::Value& _parent, const char* _name, _Type _value,
     found = &member;
   }
   assert(IsCompatibleType(found->type(), ToJsonType<_Type>::type()));
+  return exist;
 }
 
 bool SanitizeOptimizationTolerances(Json::Value& _root) {
@@ -244,10 +250,11 @@ bool SanitizeTrackMotion(Json::Value& _root) {
   return true;
 }
 
-bool SanitizeTrack(Json::Value& _root) {
+bool SanitizeTrack(Json::Value& _root, bool _all_options) {
   (void)_root;
 
-  MakeDefaultArray(_root, "imports", "Tracks (properties) to import.");
+  MakeDefaultArray(_root, "imports", "Tracks (properties) to import.",
+                   !_all_options);
   Json::Value& imports = _root["imports"];
   for (Json::ArrayIndex i = 0; i < imports.size(); ++i) {
     if (!SanitizeTrackImport(imports[i])) {
@@ -255,7 +262,8 @@ bool SanitizeTrack(Json::Value& _root) {
     }
   }
 
-  MakeDefaultArray(_root, "motions", "Motions tracks to generate.");
+  MakeDefaultArray(_root, "motions", "Motions tracks to generate.",
+                   !_all_options);
   Json::Value& motions = _root["motions"];
   for (Json::ArrayIndex i = 0; i < motions.size(); ++i) {
     if (!SanitizeTrackMotion(motions[i])) {
@@ -265,7 +273,7 @@ bool SanitizeTrack(Json::Value& _root) {
   return true;
 }
 
-bool SanitizeAnimation(Json::Value& _root) {
+bool SanitizeAnimation(Json::Value& _root, bool _all_options) {
   MakeDefault(_root, "name", "*",
               "Specifies name of the animation to import. Wildcard characters "
               "\'*\' and \'?\' are supported");
@@ -295,10 +303,10 @@ bool SanitizeAnimation(Json::Value& _root) {
               "Selects animation sampling rate in hertz. Set a value <= 0 to "
               "use imported scene frame rate.");
 
-  MakeDefaultArray(_root, "tracks", "Tracks to build.");
+  MakeDefaultArray(_root, "tracks", "Tracks to build.", !_all_options);
   Json::Value& tracks = _root["tracks"];
   for (Json::ArrayIndex i = 0; i < tracks.size(); ++i) {
-    if (!SanitizeTrack(tracks[i])) {
+    if (!SanitizeTrack(tracks[i], _all_options)) {
       return false;
     }
   }
@@ -306,11 +314,12 @@ bool SanitizeAnimation(Json::Value& _root) {
   return true;
 }  // namespace
 
-bool SanitizeRoot(Json::Value& _root) {
-  MakeDefaultArray(_root, "animations", "Animations to extract.");
+bool SanitizeRoot(Json::Value& _root, bool _all_options) {
+  MakeDefaultArray(_root, "animations", "Animations to extract.",
+                   !_all_options);
   Json::Value& animations = _root["animations"];
   for (Json::ArrayIndex i = 0; i < animations.size(); ++i) {
-    if (!SanitizeAnimation(animations[i])) {
+    if (!SanitizeAnimation(animations[i], _all_options)) {
       return false;
     }
   }
@@ -389,7 +398,7 @@ bool ProcessConfiguration(Json::Value* _config) {
   // Build a default config to compare it with provided one and detect
   // unexpected members.
   Json::Value default_config;
-  if (!SanitizeRoot(default_config)) {
+  if (!SanitizeRoot(default_config, true)) {
     assert(false && "Failed to sanitized default configuration.");
   }
 
@@ -399,7 +408,7 @@ bool ProcessConfiguration(Json::Value* _config) {
   }
 
   // Sanitized provided config.
-  if (!SanitizeRoot(*_config)) {
+  if (!SanitizeRoot(*_config, false)) {
     return false;
   }
 

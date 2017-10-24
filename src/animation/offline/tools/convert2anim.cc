@@ -557,6 +557,10 @@ int AnimationConverter::operator()(int _argc, const char** _argv) {
   // Iterates all imported animations, build and output them.
   bool success = true;
   const Json::Value& animations_config = config["animations"];
+  if (animations_config.size() == 0) {
+    ozz::log::Log() << "Configuration contains no animation export definition."
+                    << std::endl;
+  }
   for (Json::ArrayIndex i = 0; success && i < animations_config.size(); ++i) {
     const Json::Value& animation_config = animations_config[i];
     // Loop though all existing animations, and export those who match
