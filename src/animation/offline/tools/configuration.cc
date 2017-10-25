@@ -61,9 +61,8 @@ bool ValidateExclusiveConfigOption(const ozz::options::Option& _option,
   return !not_exclusive;
 }
 
-OZZ_OPTIONS_DECLARE_STRING(config_dump,
-                           "Dump sanitized configuration to the specified file",
-                           "", false)
+OZZ_OPTIONS_DECLARE_STRING(dump_full_config,
+                           "Dump the full default configuration", "", false)
 namespace {
 
 template <typename _Type>
@@ -363,6 +362,14 @@ bool RecursiveCheck(const Json::Value& _root, const Json::Value& _expected,
   }
   return true;
 }
+
+std::string ToString(const Json::Value& _value) {
+  // Format configuration
+  Json::StreamWriterBuilder builder;
+  builder["indentation"] = "  ";
+  builder["precision"] = 4;
+  return Json::writeString(builder, _value);
+}
 }  // namespace
 
 bool ProcessConfiguration(Json::Value* _config) {
@@ -397,13 +404,13 @@ bool ProcessConfiguration(Json::Value* _config) {
 
   // Build a default config to compare it with provided one and detect
   // unexpected members.
-  Json::Value default_config;
-  if (!SanitizeRoot(default_config, true)) {
+  Json::Value default_full_config;
+  if (!SanitizeRoot(default_full_config, true)) {
     assert(false && "Failed to sanitized default configuration.");
   }
 
   // All format errors are reported within that function
-  if (!RecursiveCheck(*_config, default_config, "root")) {
+  if (!RecursiveCheck(*_config, default_full_config, "root")) {
     return false;
   }
 
@@ -412,33 +419,25 @@ bool ProcessConfiguration(Json::Value* _config) {
     return false;
   }
 
-  // Dumps the config once it's sanitized.
-  const bool log_config = ozz::log::GetLevel() >= ozz::log::kVerbose;
-  if (log_config || OPTIONS_config_dump.value()[0] != 0) {
-    // Format configuration
-    Json::StreamWriterBuilder builder;
-    builder["indentation"] = "  ";
-    builder["precision"] = 4;
-    const std::string document = Json::writeString(builder, *_config);
+  // Dumps the config to LogV now it's sanitized.
+  if (ozz::log::GetLevel() >= ozz::log::kVerbose) {
+    const std::string& document = ToString(*_config);
+    ozz::log::LogV() << "Sanitized configuration:" << std::endl
+                     << document << std::endl;
+  }
 
-    // Dump to log
-    if (log_config) {
-      ozz::log::LogV() << "Sanitized configuration:" << std::endl
-                       << document << std::endl;
+  // Dumps full default config to file.
+  if (OPTIONS_dump_full_config.value()[0] != 0) {
+    ozz::log::LogV() << "Opens dump config file: "
+                     << OPTIONS_dump_full_config.value() << std::endl;
+    std::ofstream file(OPTIONS_dump_full_config.value());
+    if (!file.is_open()) {
+      ozz::log::Err() << "Failed to open config file to dump: \""
+                      << OPTIONS_dump_full_config.value() << "\"" << std::endl;
+      return false;
     }
-    // Dump to file
-    if (OPTIONS_config_dump.value()[0] != 0) {
-      ozz::log::LogV() << "Opens dump config file: "
-                       << OPTIONS_config_dump.value() << std::endl;
-
-      std::ofstream file(OPTIONS_config_dump.value());
-      if (!file.is_open()) {
-        ozz::log::Err() << "Failed to open dump config file: \""
-                        << OPTIONS_config_dump.value() << "\"" << std::endl;
-        return false;
-      }
-      file << document;
-    }
+    const std::string& document = ToString(default_full_config);
+    file << document;
   }
 
   return true;
