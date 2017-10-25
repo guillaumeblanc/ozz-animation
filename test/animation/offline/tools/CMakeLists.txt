@@ -121,6 +121,9 @@ set_tests_properties(test2anim_invalid_output_path PROPERTIES PASS_REGULAR_EXPRE
 add_test(NAME test2anim_invalid_output_path_raw COMMAND test2anim "--file=${ozz_temp_directory}/good.content1" "--skeleton=${ozz_temp_directory}/raw_skeleton.ozz" "--config={\"animations\":[{\"output\":\"${ozz_temp_directory}/invalid_path/anim_should_not_exist.ozz\",\"raw\":false}]}")
 set_tests_properties(test2anim_invalid_output_path_raw PROPERTIES PASS_REGULAR_EXPRESSION "Failed to open output file: \"${ozz_temp_directory}/invalid_path/anim_should_not_exist.ozz\"" DEPENDS test2skel_simple_raw)
 
+add_test(NAME test2anim_no_match COMMAND test2anim "--file=${ozz_temp_directory}/good.content1" "--skeleton=${ozz_temp_directory}/skeleton.ozz" "--config={\"animations\":[{\"name\":\"won_t_match\",\"output\":\"${ozz_temp_directory}/invalid_path/anim_should_not_exist.ozz\"}]}")
+set_tests_properties(test2anim_no_match PROPERTIES PASS_REGULAR_EXPRESSION "No matching animation found for \"won_t_match\"." DEPENDS test2skel_simple)
+
 add_test(NAME test2anim_bad_type COMMAND test2anim "--file=${ozz_temp_directory}/good.content1" "--skeleton=${ozz_temp_directory}/raw_skeleton.ozz" "--config={\"animations\":[{\"output\":\"${ozz_temp_directory}/anim_should_not_exist.ozz\",\"sampling_rate\":\"1\"}]}")
 set_tests_properties(test2anim_bad_type PROPERTIES PASS_REGULAR_EXPRESSION "Invalid type \"UTF-8 string\" for json member \"root.animations\\\[0\\\].sampling_rate\". \"float\" expected." DEPENDS test2skel_simple)
 add_test(NAME test2anim_bad_type_in_array COMMAND test2anim "--file=${ozz_temp_directory}/good.content1" "--skeleton=${ozz_temp_directory}/raw_skeleton.ozz" "--config={\"animations\":[{},{\"sampling_rate\":true}]}")

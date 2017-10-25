@@ -555,28 +555,36 @@ int AnimationConverter::operator()(int _argc, const char** _argv) {
   if (animations_config.size() == 0) {
     ozz::log::Log() << "Configuration contains no animation export definition."
                     << std::endl;
-  }
-  for (Json::ArrayIndex i = 0; success && i < animations_config.size(); ++i) {
-    const Json::Value& animation_config = animations_config[i];
+  } else {
     // Loop though all existing animations, and export those who match
     // configuration.
-    for (size_t j = 0; success && j < import_animation_names.size(); ++j) {
-      const char* animation_name = import_animation_names[j].c_str();
-      if (!strmatch(animation_name, animation_config["name"].asCString())) {
-        continue;
+    for (Json::ArrayIndex i = 0; success && i < animations_config.size(); ++i) {
+      const Json::Value& animation_config = animations_config[i];
+      const char* animation_match = animation_config["name"].asCString();
+
+      bool matched = false;
+      for (size_t j = 0; success && j < import_animation_names.size(); ++j) {
+        const char* animation_name = import_animation_names[j].c_str();
+        if (!strmatch(animation_name, animation_match)) {
+          continue;
+        }
+
+        matched = true;
+        success = ProcessAnimation(*this, animation_name, *skeleton,
+                                   animation_config);
+
+        const Json::Value& tracks_config = animation_config["tracks"];
+        for (Json::ArrayIndex t = 0; success && t < tracks_config.size(); ++t) {
+          success =
+              ProcessTracks(*this, animation_name, *skeleton, tracks_config[t]);
+        }
       }
-
-      success =
-          ProcessAnimation(*this, animation_name, *skeleton, animation_config);
-
-      const Json::Value& tracks_config = animation_config["tracks"];
-      for (Json::ArrayIndex t = 0; success && t < tracks_config.size(); ++t) {
-        success =
-            ProcessTracks(*this, animation_name, *skeleton, tracks_config[t]);
+      if (!matched) {
+        ozz::log::Log() << "No matching animation found for \""
+                        << animation_match << "\"." << std::endl;
       }
     }
   }
-
   ozz::memory::default_allocator()->Delete(skeleton);
 
   return success ? EXIT_SUCCESS : EXIT_FAILURE;
