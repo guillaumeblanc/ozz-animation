@@ -73,9 +73,10 @@ add_test(NAME test_raw_animation_archive_versioning_be COMMAND test_raw_animatio
 add_test(NAME test_raw_animation_archive_versioning_le_older1 COMMAND test_raw_animation_archive_versioning "--file=${ozz_media_directory}/bin/versioning/raw_animation_v1_le.ozz" "--tracks=67" "--duration=1.3333333" "--name=")
 
 # ozz_animation_offline fuse tests
+set_source_files_properties(${PROJECT_BINARY_DIR}/src_fused/ozz_animation_offline.cc PROPERTIES GENERATED 1)
 add_executable(test_fuse_animation_offline
   animation_builder_tests.cc
-  ${PROJECT_SOURCE_DIR}/src_fused/ozz_animation_offline.cc)
+  ${PROJECT_BINARY_DIR}/src_fused/ozz_animation_offline.cc)
 add_dependencies(test_fuse_animation_offline BUILD_FUSE_ozz_animation_offline)
 target_link_libraries(test_fuse_animation_offline
   ozz_animation

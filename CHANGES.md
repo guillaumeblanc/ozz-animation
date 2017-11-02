@@ -1,8 +1,14 @@
 Release version NEXT
 ---------------------
-  
+
+* Build pipeline
+  - ozz optionnaly supports c++11 compiler.
+  - Adds ozz_build_data option (OFF by default), to avoid building data on every code change. Building data takes time indeed, and isn't required on every change. It should be turned ON when output format changes to update all data again.
+  - Removes fused source files from the depot. Fused files are generated during build to ${PROJECT_BINARY_DIR}/src_fused/ folder. To generate fused source files without building the whole project, then build BUILD_FUSE_ALL target with "cmake --build . --target BUILD_FUSE_ALL" command.
+
 * Samples
   - [sample_fbx2mesh] Remaps joint indices to the smaller range of skeleton joints that are actually used by the skinning. It's now required to index skeleton matrices using ozz::sample::framework:Mesh::joint_remaps when build skinning matrices.
+  - [multithread] Switched from OpenMP to c++11 std::async API to implement a parallel-for loop over all computation tasks.
 
 Release version 0.9.1
 ---------------------
