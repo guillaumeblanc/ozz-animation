@@ -168,7 +168,7 @@ bool BuildVertices(FbxMesh* _fbx_mesh,
   // Checks tangents availability.
   const FbxGeometryElementTangent* element_tangents = NULL;
   if (element_uvs) {  // UVs are needed to generate tangents.
-    // Regenerate tagents if they're not available.
+    // Regenerate tangents if they're not available.
     if (!_fbx_mesh->GenerateTangentsData(0, false)) {
       return false;
     }
