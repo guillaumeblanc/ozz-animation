@@ -70,8 +70,8 @@ set_tests_properties(fbx2anim_simple_dae_seymour PROPERTIES DEPENDS fbx2skel_sim
 # Uses the sample playback to test other file format and special cases.
 if(TARGET sample_playback)
   add_custom_command(
-    DEPENDS fbx2skel
-            fbx2anim
+    DEPENDS $<$<AND:$<BOOL:${ozz_build_data}>,$<BOOL:${ozz_build_fbx}>>:fbx2skel>
+            $<$<AND:$<BOOL:${ozz_build_data}>,$<BOOL:${ozz_build_fbx}>>:fbx2anim>
             "${ozz_media_directory}/collada/alain/skeleton.dae"
             "${ozz_media_directory}/collada/alain/skeleton_zup.dae"
             "${ozz_media_directory}/collada/alain/walk.dae"
@@ -105,9 +105,10 @@ if(TARGET sample_playback)
 endif()
 
 # ozz_animation_fbx fuse tests
+set_source_files_properties(${PROJECT_BINARY_DIR}/src_fused/ozz_animation_fbx.cc PROPERTIES GENERATED 1)
 add_executable(test_fuse_ozz_animation_fbx
   ${PROJECT_SOURCE_DIR}/src/animation/offline/fbx/fbx2skel.cc
-  ${PROJECT_SOURCE_DIR}/src_fused/ozz_animation_fbx.cc)
+  ${PROJECT_BINARY_DIR}/src_fused/ozz_animation_fbx.cc)
 target_include_directories(test_fuse_ozz_animation_fbx
   PUBLIC ${FBX_INCLUDE_DIRS})
 target_link_libraries(test_fuse_ozz_animation_fbx

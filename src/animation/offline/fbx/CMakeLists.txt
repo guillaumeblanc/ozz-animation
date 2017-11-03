@@ -72,7 +72,7 @@ foreach(line ${skeletons})
 
   add_custom_command(
     DEPENDS "${ozz_media_directory}${src}"
-            fbx2skel
+            $<$<AND:$<BOOL:${ozz_build_data}>,$<BOOL:${ozz_build_fbx}>>:fbx2skel>
     OUTPUT ${ozz_media_directory}${dest}
     COMMAND fbx2skel
             ${options}
@@ -129,7 +129,7 @@ foreach(line ${animations})
   add_custom_command(
     DEPENDS "${ozz_media_directory}${src}"
             "${ozz_media_directory}${skel}"
-            fbx2anim
+            $<$<AND:$<BOOL:${ozz_build_data}>,$<BOOL:${ozz_build_fbx}>>:fbx2anim>
     OUTPUT  ${outputs}
     COMMAND fbx2anim
             ${options}
