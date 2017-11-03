@@ -351,7 +351,7 @@ bool BuildVertices(FbxMesh* _fbx_mesh,
         _output_mesh->triangle_indices[p * 3 + v] = vertex_index;
 
         // Stores vertex offset in the output vertex buffer.
-        _remap->at(ctrl_point).push_back(vertex_index);
+        remap.push_back(vertex_index);
 
         // Push vertex data.
         part.positions.push_back(position.x);
@@ -507,18 +507,20 @@ bool BuildSkin(FbxMesh* _fbx_mesh,
     for (int cpi = 0; cpi < ctrl_point_index_count; ++cpi) {
       const SkinMapping mapping = {joint,
                                    static_cast<float>(ctrl_point_weights[cpi])};
+      if (mapping.weight <= 0.f) {
+        continue;
+      }
 
-      // Sometimes, the mesh can have less points than at the time of the
-      // skinning because a smooth operator was active when skinning but has
-      // been deactivated during export.
       const int ctrl_point = ctrl_point_indices[cpi];
-      if (ctrl_point < _fbx_mesh->GetControlPointsCount() &&
-          mapping.weight > 0.f) {
-        const ControlPointRemap& remap = _remap[ctrl_point];
-        assert(remap.size() >= 1);  // At least a 1-1 mapping.
-        for (size_t v = 0; v < remap.size(); ++v) {
-          vertex_skin_mappings[remap[v]].push_back(mapping);
-        }
+      assert(ctrl_point < static_cast<int>(_remap.size()));
+
+      // remap.size() can be 0, skinned control point might not be used by any
+      // polygon of the mesh. Sometimes, the mesh can have less points than at
+      // the time of the skinning because a smooth operator was active when
+      // skinning but has been deactivated during export.
+      const ControlPointRemap& remap = _remap[ctrl_point];
+      for (size_t v = 0; v < remap.size(); ++v) {
+        vertex_skin_mappings[remap[v]].push_back(mapping);
       }
     }
   }
