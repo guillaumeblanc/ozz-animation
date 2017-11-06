@@ -69,7 +69,7 @@ OZZ_OPTIONS_DECLARE_STRING(mesh,
 
 class DemoApplication : public ozz::sample::Application {
  public:
-  DemoApplication() : cache_(NULL) {}
+  DemoApplication() : cache_(NULL), camera_index_(-1) {}
 
  protected:
   // Updates current animation time.
@@ -181,7 +181,7 @@ class DemoApplication : public ozz::sample::Application {
     // of the skeleton.
     if (animation_.num_tracks() < skeleton_.num_joints()) {
       ozz::log::Err() << "The provided animation doesn't match skeleton "
-                          "(tracks/joint scount mismatch)."
+                         "(tracks/joint scount mismatch)."
                       << std::endl;
       return false;
     }
@@ -197,6 +197,13 @@ class DemoApplication : public ozz::sample::Application {
     skinning_matrices_ =
         allocator->AllocateRange<ozz::math::Float4x4>(num_joints);
 
+    // Look for a "camera" joint.
+    for (int i = 0; i < num_joints; i++) {
+      if (std::strstr(skeleton_.joint_names()[i], "camera")) {
+        camera_index_ = i;
+        break;
+      }
+    }
     return true;
   }
 
@@ -234,6 +241,16 @@ class DemoApplication : public ozz::sample::Application {
     return true;
   }
 
+  virtual bool GetCameraOverride(ozz::math::Float4x4* _transform) const {
+    // Early out if no camera joint was found.
+    if (camera_index_ == -1) {
+      return false;
+    }
+
+    *_transform = models_[camera_index_];
+    return true;
+  }
+
   virtual void GetSceneBounds(ozz::math::Box* _bound) const {
     ozz::sample::ComputePostureBounds(models_, _bound);
   }
@@ -267,6 +284,9 @@ class DemoApplication : public ozz::sample::Application {
 
   // Mesh rendering options.
   ozz::sample::Renderer::Options render_options_;
+
+  // Camera joint index. -1 if not found.
+  int camera_index_;
 };
 
 int main(int _argc, const char** _argv) {
