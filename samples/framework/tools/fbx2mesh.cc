@@ -934,14 +934,15 @@ int main(int _argc, const char** _argv) {
     return EXIT_FAILURE;
   }
 
-  if (scene_loader.scene()->GetSrcObjectCount<FbxMesh>() == 0) {
+  const int num_meshes = scene_loader.scene()->GetSrcObjectCount<FbxMesh>();
+  if (num_meshes == 0) {
     ozz::log::Err() << "No mesh to process in this file: "
                     << OPTIONS_file.value() << "." << std::endl;
     return EXIT_FAILURE;
-  } else if (scene_loader.scene()->GetSrcObjectCount<FbxMesh>() > 1) {
+  } else if (num_meshes > 1) {
     ozz::log::Err() << "There's more than one mesh in the file: "
-                    << OPTIONS_file.value()
-                    << ". All meshes will be concatenated to the output file."
+                    << OPTIONS_file.value() << ". All (" << num_meshes
+                    << ") meshes will be concatenated to the output file."
                     << std::endl;
   }
 
@@ -957,7 +958,6 @@ int main(int _argc, const char** _argv) {
 
   // Take all meshes
   ozz::Vector<ozz::sample::Mesh>::Std meshes;
-  const int num_meshes = scene_loader.scene()->GetSrcObjectCount<FbxMesh>();
   meshes.resize(num_meshes);
 
   for (int m = 0; m < num_meshes; ++m) {
