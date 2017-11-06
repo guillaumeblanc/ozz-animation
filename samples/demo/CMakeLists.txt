@@ -8,9 +8,9 @@ if(ozz_demo_build_data AND
    TARGET sample_fbx2mesh)
 
   add_custom_command(
-    DEPENDS fbx2skel
-            fbx2anim
-            sample_fbx2mesh
+    DEPENDS $<$<AND:$<BOOL:${ozz_build_data}>,$<BOOL:${ozz_build_fbx}>>:fbx2skel>
+            $<$<AND:$<BOOL:${ozz_build_data}>,$<BOOL:${ozz_build_fbx}>>:fbx2anim>
+            $<$<AND:$<BOOL:${ozz_build_data}>,$<BOOL:${ozz_build_fbx}>>:sample_fbx2mesh>
             "${ozz_media_directory}/fbx/alain/magic.fbx"
     OUTPUT "${ozz_media_directory}/bin/magic_skeleton.ozz"
            "${ozz_media_directory}/bin/magic_animation.ozz"

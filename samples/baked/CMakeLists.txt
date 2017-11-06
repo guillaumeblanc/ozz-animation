@@ -23,7 +23,7 @@ if(ozz_baked_sample_build_data AND
   add_custom_command(
     DEPENDS "${CMAKE_CURRENT_LIST_DIR}/README.md"
             "${ozz_media_directory}/fbx/ozz_baked.fbx"
-            sample_fbx2baked
+            $<$<AND:$<BOOL:${ozz_build_data}>,$<BOOL:${ozz_build_fbx}>>:sample_fbx2baked>
             fbx2anim
     OUTPUT "${ozz_media_directory}/bin/baked_skeleton.ozz"
            "${ozz_media_directory}/bin/baked_animation.ozz"
