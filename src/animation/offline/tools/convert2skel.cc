@@ -35,6 +35,9 @@
 
 #include "ozz/animation/runtime/skeleton.h"
 
+#include "ozz/base/containers/set.h"
+#include "ozz/base/containers/map.h"
+
 #include "ozz/base/io/archive.h"
 #include "ozz/base/io/stream.h"
 
@@ -91,6 +94,34 @@ OZZ_OPTIONS_DECLARE_BOOL(raw,
 namespace ozz {
 namespace animation {
 namespace offline {
+namespace {
+
+// Uses a set to detect names uniqueness.
+typedef ozz::Set<const char*, ozz::str_less>::Std Names;
+
+bool ValidateJointNamesUniquenessRecurse(
+    const RawSkeleton::Joint::Children& _joints, Names* _names) {
+  for (size_t i = 0; i < _joints.size(); ++i) {
+    const RawSkeleton::Joint& joint = _joints[i];
+    const char* name = joint.name.c_str();
+    if (!_names->insert(name).second) {
+      ozz::log::Err()
+          << "Skeleton contains at least one non-unique joint name \"" << name
+          << "\". This is not supported by the import pipeline." << std::endl;
+      return false;
+    }
+    if (!ValidateJointNamesUniquenessRecurse(_joints[i].children, _names)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool ValidateJointNamesUniqueness(const RawSkeleton& _skeleton) {
+  Names joint_names;
+  return ValidateJointNamesUniquenessRecurse(_skeleton.roots, &joint_names);
+}
+}  // namespace
 
 int SkeletonConverter::operator()(int _argc, const char** _argv) {
   // Parses arguments.
@@ -127,6 +158,12 @@ int SkeletonConverter::operator()(int _argc, const char** _argv) {
   if (!Import(OPTIONS_file, &raw_skeleton)) {
     ozz::log::Err() << "Failed to import file \"" << OPTIONS_file << "\""
                     << std::endl;
+    return EXIT_FAILURE;
+  }
+
+  // Non unique joint names are not supported.
+  if (!(ValidateJointNamesUniqueness(raw_skeleton))) {
+    // Log Err is done by the validation function.
     return EXIT_FAILURE;
   }
 
