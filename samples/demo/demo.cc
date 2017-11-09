@@ -103,7 +103,7 @@ class DemoApplication : public ozz::sample::Application {
     return true;
   }
 
-  // Samples animation, transforms to model space and renders.
+  // Renders all meshes.
   virtual bool OnDisplay(ozz::sample::Renderer* _renderer) {
     bool success = true;
     for (size_t m = 0; success && m < meshes_.size(); ++m) {
@@ -130,13 +130,16 @@ class DemoApplication : public ozz::sample::Application {
                                               ozz::math::Float4x4::identity(),
                                               render_options_);
       } else if (mesh.num_joints() == 1) {
-        // Every mesh vertex is transformed by a the same joint. Renders it as
+        // Every mesh vertex is transformed by the same joint. Renders it as
         // static mesh.
+        assert(mesh.joint_remaps.size() == 1);
+        // Builds the static mesh transformation matrix as it was a skinning
+        // matrix.
         const ozz::math::Float4x4 transform =
             models_[mesh.joint_remaps[0]] * mesh.inverse_bind_poses[0];
         success &= _renderer->DrawMesh(mesh, transform, render_options_);
       } else {
-        // Unskinned. Renders it as static meshes.
+        // Not skinned. Renders it as static meshes.
         success &= _renderer->DrawMesh(mesh, ozz::math::Float4x4::identity(),
                                        render_options_);
       }
@@ -181,7 +184,7 @@ class DemoApplication : public ozz::sample::Application {
     // of the skeleton.
     if (animation_.num_tracks() < skeleton_.num_joints()) {
       ozz::log::Err() << "The provided animation doesn't match skeleton "
-                         "(tracks/joint scount mismatch)."
+                         "(tracks/joint count mismatch)."
                       << std::endl;
       return false;
     }
@@ -199,7 +202,7 @@ class DemoApplication : public ozz::sample::Application {
 
     // Look for a "camera" joint.
     for (int i = 0; i < num_joints; i++) {
-      if (std::strstr(skeleton_.joint_names()[i], "camera")) {
+      if (std::strstr(skeleton_.joint_names()[i], "Cam_Joint")) {
         camera_index_ = i;
         break;
       }

@@ -1,7 +1,7 @@
-# Option to build baked data is disabled by default as it is very costly.
+# Option to build demo data is disabled by default as it is very costly.
 option(ozz_demo_build_data "Build demo data" ON)
 
-# Build baked data
+# Build demo data
 if(ozz_demo_build_data AND
    TARGET fbx2skel AND
    TARGET fbx2anim AND
@@ -11,7 +11,7 @@ if(ozz_demo_build_data AND
     DEPENDS $<$<AND:$<BOOL:${ozz_build_data}>,$<BOOL:${ozz_build_fbx}>>:fbx2skel>
             $<$<AND:$<BOOL:${ozz_build_data}>,$<BOOL:${ozz_build_fbx}>>:fbx2anim>
             $<$<AND:$<BOOL:${ozz_build_data}>,$<BOOL:${ozz_build_fbx}>>:sample_fbx2mesh>
-            "${ozz_media_directory}/fbx/alain/magic.fbx"
+            "${ozz_media_directory}/fbx/magic.fbx"
     OUTPUT "${ozz_media_directory}/bin/magic_skeleton.ozz"
            "${ozz_media_directory}/bin/magic_animation.ozz"
            "${ozz_media_directory}/bin/magic_mesh.ozz"

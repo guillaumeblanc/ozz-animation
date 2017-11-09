@@ -86,6 +86,7 @@ struct Mesh {
 
   // Returns the highest joint number used in the skeleton.
   int highest_joint_index() const {
+    // Takes advantage that joint_remaps is sorted.
     return joint_remaps.size() != 0 ? static_cast<int>(joint_remaps.back()) : 0;
   }
 
