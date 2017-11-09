@@ -107,7 +107,7 @@ bool ValidateJointNamesUniquenessRecurse(
     if (!_names->insert(name).second) {
       ozz::log::Err()
           << "Skeleton contains at least one non-unique joint name \"" << name
-          << "\". This is not supported by the import pipeline." << std::endl;
+          << "\", which is not supported." << std::endl;
       return false;
     }
     if (!ValidateJointNamesUniquenessRecurse(_joints[i].children, _names)) {
