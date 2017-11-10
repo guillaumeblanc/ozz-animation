@@ -197,6 +197,9 @@ set_tests_properties(test2anim_track_bad_joint_name PROPERTIES PASS_REGULAR_EXPR
 add_test(NAME test2anim_track_bad_ppt_name COMMAND test2anim "--file=${ozz_temp_directory}/good.content1" "--skeleton=${ozz_temp_directory}/skeleton.ozz" "--config={\"animations\":[{\"tracks\":[{\"imports\":[{\"joint_name\":\"joint2\",\"property_name\":\"property2\",\"output\":\"${ozz_temp_directory}/anim_should_not_exist.ozz\"}]}]}]}")
 set_tests_properties(test2anim_track_bad_ppt_name PROPERTIES PASS_REGULAR_EXPRESSION "No property found for track import definition \"joint2:property2\"" DEPENDS test2skel_simple)
 
+add_test(NAME test2anim_track_bad_type COMMAND test2anim "--file=${ozz_temp_directory}/good.content1" "--skeleton=${ozz_temp_directory}/skeleton.ozz" "--config={\"animations\":[{\"tracks\":[{\"imports\":[{\"joint_name\":\"joint2\",\"property_name\":\"property2\",\"type\":4,\"output\":\"${ozz_temp_directory}/anim_should_not_exist.ozz\"}]}]}]}")
+set_tests_properties(test2anim_track_bad_type PROPERTIES PASS_REGULAR_EXPRESSION "Invalid value \"4\" for import track type property. 1 to 3 components are supported." DEPENDS test2skel_simple)
+
 # Ensures nothing was outputted.
 add_test(NAME test2anim_output COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/anim_should_not_exist.ozz" "${ozz_temp_directory}/anim_should_not_exist_too.ozz")
 set_tests_properties(test2anim_output PROPERTIES WILL_FAIL true)
@@ -222,9 +225,6 @@ set_tests_properties(test2anim_output PROPERTIES
 # Run test2anim passing tests
 #----------------------------
 add_test(NAME test2anim_no_config COMMAND test2anim "--file=${ozz_temp_directory}/good.content1" "--skeleton=${ozz_temp_directory}/skeleton.ozz")
-
-add_test(NAME test2anim_no_config_output COMMAND test2anim "--file=${ozz_temp_directory}/good.content1" "--skeleton=${ozz_temp_directory}/skeleton.ozz")
-set_tests_properties(test2anim_no_config_output PROPERTIES PASS_REGULAR_EXPRESSION "Configuration contains no animation export definition." DEPENDS test2skel_simple)
 
 add_test(NAME test2anim_simple COMMAND test2anim "--file=${ozz_temp_directory}/good.content1" "--skeleton=${ozz_temp_directory}/skeleton.ozz" "--config={\"animations\":[{\"output\":\"${ozz_temp_directory}/animation_simple.ozz\"}]}")
 set_tests_properties(test2anim_simple PROPERTIES DEPENDS test2skel_simple)
@@ -337,9 +337,11 @@ set_tests_properties(test2anim_multi2_multi_ouput1 PROPERTIES DEPENDS test2anim_
 add_test(NAME test2anim_multi2_multi_ouput2 COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/animation_multi2_multi_TWO.ozz" "${ozz_temp_directory}/animation_multi2_multi_TWO_should_exist.ozz")
 set_tests_properties(test2anim_multi2_multi_ouput2 PROPERTIES DEPENDS test2anim_multi2_multi)
 
-add_test(NAME test2anim_track_simple COMMAND test2anim "--file=${ozz_temp_directory}/good.content1" "--skeleton=${ozz_temp_directory}/skeleton.ozz" "--config={\"animations\":[{\"tracks\":[{\"imports\":[{\"joint_name\":\"joint0\",\"property_name\":\"property0\",\"output\":\"${ozz_temp_directory}/track_simple.ozz\"}]}]}]}")
+add_test(NAME test2anim_track_simple COMMAND test2anim "--file=${ozz_temp_directory}/good.content1" "--skeleton=${ozz_temp_directory}/skeleton.ozz" "--config={\"animations\":[{\"output\":\"${ozz_temp_directory}/animation_track_simple_*.ozz\",\"tracks\":[{\"imports\":[{\"joint_name\":\"joint0\",\"property_name\":\"property0\",\"output\":\"${ozz_temp_directory}/track_simple.ozz\"}]}]}]}")
 add_test(NAME test2anim_track_simple_output COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/track_simple.ozz" "${ozz_temp_directory}/track_simple_should_exist.ozz")
 set_tests_properties(test2anim_track_simple_output PROPERTIES DEPENDS test2anim_track_simple)
+add_test(NAME test2anim_track_simple_output_anim COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/animation_track_simple_one.ozz" "${ozz_temp_directory}/animation_track_simple_one_should_exist.ozz")
+set_tests_properties(test2anim_track_simple_output_anim PROPERTIES DEPENDS test2anim_track_simple)
 
 add_test(NAME test2anim_track_wild_joint COMMAND test2anim "--file=${ozz_temp_directory}/good.content1" "--skeleton=${ozz_temp_directory}/skeleton.ozz" "--config={\"animations\":[{\"tracks\":[{\"imports\":[{\"joint_name\":\"joint?\",\"property_name\":\"property0\",\"output\":\"${ozz_temp_directory}/track_wild_*.ozz\"}]}]}]}")
 add_test(NAME test2anim_track_wild_joint_output0

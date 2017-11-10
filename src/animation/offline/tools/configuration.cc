@@ -228,13 +228,21 @@ bool SanitizeTrackImport(Json::Value& _root) {
               "are supported.");
   MakeDefault(_root, "type", 1,
               "Type of the property, aka the number of floating point "
-              "components. 1 to 4 components are supported.");
+              "components. 1 to 3 components are supported.");
+  const int components = _root["type"].asInt();
+  if (components < 1 || components > 3) {
+    ozz::log::Err() << "Invalid value \"" << components
+                    << "\" for import track type property. 1 to 3 components "
+                       "are supported."
+                    << std::endl;
+    return false;
+  }
   MakeDefault(_root, "optimization_tolerance",
               ozz::animation::offline::TrackOptimizer().tolerance,
               "Optimization tolerance");
   return true;
 }
-
+/*
 bool SanitizeTrackMotion(Json::Value& _root) {
   MakeDefault(_root, "joint_name", "",
               "Name of the joint that contains the property to import. "
@@ -247,11 +255,9 @@ bool SanitizeTrackMotion(Json::Value& _root) {
               ozz::animation::offline::TrackOptimizer().tolerance,
               "Optimization tolerance");
   return true;
-}
+}*/
 
 bool SanitizeTrack(Json::Value& _root, bool _all_options) {
-  (void)_root;
-
   MakeDefaultArray(_root, "imports", "Tracks (properties) to import.",
                    !_all_options);
   Json::Value& imports = _root["imports"];
@@ -260,15 +266,15 @@ bool SanitizeTrack(Json::Value& _root, bool _all_options) {
       return false;
     }
   }
-
-  MakeDefaultArray(_root, "motions", "Motions tracks to generate.",
-                   !_all_options);
-  Json::Value& motions = _root["motions"];
-  for (Json::ArrayIndex i = 0; i < motions.size(); ++i) {
-    if (!SanitizeTrackMotion(motions[i])) {
-      return false;
-    }
-  }
+  /*
+    MakeDefaultArray(_root, "motions", "Motions tracks to generate.",
+                     !_all_options);
+    Json::Value& motions = _root["motions"];
+    for (Json::ArrayIndex i = 0; i < motions.size(); ++i) {
+      if (!SanitizeTrackMotion(motions[i])) {
+        return false;
+      }
+    }*/
   return true;
 }
 
@@ -314,8 +320,7 @@ bool SanitizeAnimation(Json::Value& _root, bool _all_options) {
 }  // namespace
 
 bool SanitizeRoot(Json::Value& _root, bool _all_options) {
-  MakeDefaultArray(_root, "animations", "Animations to extract.",
-                   !_all_options);
+  MakeDefaultArray(_root, "animations", "Animations to extract.", false);
   Json::Value& animations = _root["animations"];
   for (Json::ArrayIndex i = 0; i < animations.size(); ++i) {
     if (!SanitizeAnimation(animations[i], _all_options)) {
@@ -382,13 +387,13 @@ bool ProcessConfiguration(Json::Value* _config) {
   if (OPTIONS_config.value()[0] != 0) {
     config_string = OPTIONS_config.value();
   } else if (OPTIONS_config_file.value()[0] != 0) {
-    ozz::log::LogV() << "Opens config file: " << OPTIONS_config_file
+    ozz::log::LogV() << "Opens config file: \"" << OPTIONS_config_file << "\"."
                      << std::endl;
 
     std::ifstream file(OPTIONS_config_file.value());
     if (!file.is_open()) {
       ozz::log::Err() << "Failed to open config file: \"" << OPTIONS_config_file
-                      << "\"" << std::endl;
+                      << "\"." << std::endl;
       return false;
     }
     config_string.assign((std::istreambuf_iterator<char>(file)),
