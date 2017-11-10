@@ -50,7 +50,7 @@ set_target_properties(demo
 if(EMSCRIPTEN)
   # Resource files are embedded to the output file with emscripten
   set_target_properties(demo
-    PROPERTIES LINK_FLAGS "--embed-file media --embed-file README.md.md --memory-init-file 0")
+    PROPERTIES LINK_FLAGS "--embed-file media --embed-file README.md --memory-init-file 0")
 
   install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/demo.html
