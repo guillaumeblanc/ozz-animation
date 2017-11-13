@@ -519,7 +519,7 @@ AnimationConverter::NodeProperties GetNodeProperties(
   for (FbxProperty fbx_property = node->GetFirstProperty();
        fbx_property.IsValid();
        fbx_property = node->GetNextProperty(fbx_property)) {
-    const char* ppt_name = fbx_property.GetName();
+    const char* ppt_name = fbx_property.GetNameAsCStr();
 
     const EFbxType type = fbx_property.GetPropertyDataType().GetType();
     switch (type) {
@@ -535,21 +535,25 @@ AnimationConverter::NodeProperties GetNodeProperties(
         const AnimationConverter::NodeProperty ppt = {
             ppt_name, AnimationConverter::NodeProperty::kFloat1};
         properties.push_back(ppt);
+        break;
       }
       case eFbxDouble2: {
         const AnimationConverter::NodeProperty ppt = {
             ppt_name, AnimationConverter::NodeProperty::kFloat2};
         properties.push_back(ppt);
+        break;
       }
       case eFbxDouble3: {
         const AnimationConverter::NodeProperty ppt = {
             ppt_name, AnimationConverter::NodeProperty::kFloat2};
         properties.push_back(ppt);
+        break;
       }
       default: {
         log::LogV() << "Node property \"" << ppt_name
                     << "\" doesn't have a importable type\""
                     << FbxTypeToString(type) << "\"" << std::endl;
+        break;
       }
     }
   }
