@@ -258,15 +258,14 @@ bool ExtractCurve(FbxSceneLoader& _scene_loader, FbxProperty& _property,
 
   FbxAnimEvaluator* evaluator = scene->GetAnimationEvaluator();
 
-  if (_property.IsAnimated()) {
+  if (!_property.IsAnimated()) {
     FbxPropertyValue& property_value =
         evaluator->GetPropertyValue(_property, FbxTimeSeconds(0.));
 
     typename _Track::ValueType value;
     bool success = GetValue(property_value, _type, &value);
-    if (!success) {
-      return false;
-    }
+    (void)success;
+    assert(success);
 
     // Build and push keyframe
     const typename _Track::Keyframe key = {RawTrackInterpolation::kStep, 0.f,
