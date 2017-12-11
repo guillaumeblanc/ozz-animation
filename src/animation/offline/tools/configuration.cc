@@ -237,9 +237,12 @@ bool SanitizeTrackImport(Json::Value& _root) {
                     << std::endl;
     return false;
   }
+  MakeDefault(_root, "optimize", true, "Activates keyframes optimization.");
   MakeDefault(_root, "optimization_tolerance",
               ozz::animation::offline::TrackOptimizer().tolerance,
               "Optimization tolerance");
+  MakeDefault(_root, "raw", false, "Outputs raw track.");
+
   return true;
 }
 /*

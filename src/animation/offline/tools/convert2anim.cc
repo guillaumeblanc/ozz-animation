@@ -326,17 +326,33 @@ bool ProcessAnimation(AnimationConverter& _converter,
   }
 }
 
-bool Export(const ozz::animation::offline::RawFloatTrack& _raw_track,
-            const Json::Value& _config) {
+template <typename _RawTrack>
+struct RawTrackToTrack;
+
+template <>
+struct RawTrackToTrack<RawFloatTrack> {
+  typedef ozz::animation::FloatTrack Track;
+};
+template <>
+struct RawTrackToTrack<RawFloat2Track> {
+  typedef ozz::animation::Float2Track Track;
+};
+template <>
+struct RawTrackToTrack<RawFloat3Track> {
+  typedef ozz::animation::Float3Track Track;
+};
+
+template <typename _RawTrack>
+bool Export(const _RawTrack& _raw_track, const Json::Value& _config) {
   // Raw track to build and output.
-  ozz::animation::offline::RawFloatTrack raw_track;
+  _RawTrack raw_track;
 
   // Optimizes track if option is enabled.
   if (_config["optimize"].asBool()) {
     ozz::log::LogV() << "Optimizing track." << std::endl;
     ozz::animation::offline::TrackOptimizer optimizer;
-    // optimizer.rotation_tolerance = OPTIONS_rotation;
-    ozz::animation::offline::RawFloatTrack raw_optimized_track;
+    optimizer.tolerance = _config["optimization_tolerance"].asFloat();
+    _RawTrack raw_optimized_track;
     if (!optimizer(_raw_track, &raw_optimized_track)) {
       ozz::log::Err() << "Failed to optimize track." << std::endl;
       return false;
@@ -350,7 +366,7 @@ bool Export(const ozz::animation::offline::RawFloatTrack& _raw_track,
   }
 
   // Builds runtime track.
-  ozz::animation::FloatTrack* track = NULL;
+  RawTrackToTrack<_RawTrack>::Track* track = NULL;
   if (!_config["raw"].asBool()) {
     ozz::log::LogV() << "Builds runtime track." << std::endl;
     ozz::animation::offline::TrackBuilder builder;
@@ -400,12 +416,55 @@ bool Export(const ozz::animation::offline::RawFloatTrack& _raw_track,
   return true;
 }
 
+template <AnimationConverter::NodeProperty::Type _type>
+struct TrackFromType;
+
+template <>
+struct TrackFromType<AnimationConverter::NodeProperty::kFloat1> {
+  typedef RawFloatTrack RawTrack;
+};
+template <>
+struct TrackFromType<AnimationConverter::NodeProperty::kFloat2> {
+  typedef RawFloat2Track RawTrack;
+};
+template <>
+struct TrackFromType<AnimationConverter::NodeProperty::kFloat3> {
+  typedef RawFloat3Track RawTrack;
+};
+
+template <AnimationConverter::NodeProperty::Type _type>
+bool ProcessImportTrackType(AnimationConverter& _converter,
+                            const char* _animation_name,
+                            const char* _joint_name,
+                            const AnimationConverter::NodeProperty& _property,
+                            const Json::Value& _import_config) {
+  bool success = true;
+
+  TrackFromType<_type>::RawTrack track;
+  success &= _converter.Import(_animation_name, _joint_name,
+                               _property.name.c_str(), 0, &track);
+
+  if (success) {
+    // Give the track a name
+    track.name = _joint_name;
+    track.name += '-';
+    track.name += _property.name.c_str();
+
+    success &= Export(track, _import_config);
+  } else {
+    ozz::log::Err() << "Failed to import track \"" << _joint_name << ":"
+                    << _property.name << "\"" << std::endl;
+  }
+
+  return success;
+}
+
 bool ProcessImportTrack(AnimationConverter& _converter,
                         const char* _animation_name, const Skeleton& _skeleton,
-                        const Json::Value& _import) {
+                        const Json::Value& _import_config) {
   // Early out if no name is specified
-  const char* joint_name_match = _import["joint_name"].asCString();
-  const char* ppt_name_match = _import["property_name"].asCString();
+  const char* joint_name_match = _import_config["joint_name"].asCString();
+  const char* ppt_name_match = _import_config["property_name"].asCString();
 
   // Process every joint that matches.
   bool success = true;
@@ -423,27 +482,49 @@ bool ProcessImportTrack(AnimationConverter& _converter,
         _converter.GetNodeProperties(joint_name);
     for (size_t p = 0; p < properties.size(); ++p) {
       const AnimationConverter::NodeProperty property = properties[p];
+      // Checks property name matches
       const char* property_name = property.name.c_str();
-      if (!strmatch(property.name.c_str(), ppt_name_match)) {
+      if (!strmatch(property_name, ppt_name_match)) {
         continue;
       }
-      ppt_found = true;
+      // Checks property type matches
+      const int property_type = _import_config["type"].asInt();
+      if (property_type != property.type) {
+        ozz::log::Log() << "Incompatible type \"" << property_type
+                        << "\" for property \"" << joint_name_match << ":"
+                        << ppt_name_match << "\" of type \"" << property.type
+                        << "\"." << std::endl;
+        continue;
+      }
 
-      // Property found
-      RawFloatTrack track;
-      success &= _converter.Import(_animation_name, joint_name, property_name,
-                                   0, &track);
-
-      if (success) {
-        // Give the track a name
-        track.name = joint_name;
-        track.name += '-';
-        track.name += property_name;
-
-        success &= Export(track, _import);
-      } else {
-        ozz::log::Err() << "Failed to import track \"" << joint_name << ":"
-                        << property.name << "\"" << std::endl;
+      // Import property depending on its type.
+      switch (property.type) {
+        case AnimationConverter::NodeProperty::kFloat1: {
+          success &=
+              ProcessImportTrackType<AnimationConverter::NodeProperty::kFloat1>(
+                  _converter, _animation_name, joint_name, property,
+                  _import_config);
+          break;
+        }
+        case AnimationConverter::NodeProperty::kFloat2: {
+          success &=
+              ProcessImportTrackType<AnimationConverter::NodeProperty::kFloat2>(
+                  _converter, _animation_name, joint_name, property,
+                  _import_config);
+          break;
+        }
+        case AnimationConverter::NodeProperty::kFloat3: {
+          success &=
+              ProcessImportTrackType<AnimationConverter::NodeProperty::kFloat3>(
+                  _converter, _animation_name, joint_name, property,
+                  _import_config);
+          break;
+        }
+        default: {
+          assert(false && "Unknown property type.");
+          success = false;
+          break;
+        }
       }
     }
 

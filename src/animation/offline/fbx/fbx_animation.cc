@@ -544,7 +544,7 @@ AnimationConverter::NodeProperties GetNodeProperties(
       }
       case eFbxDouble3: {
         const AnimationConverter::NodeProperty ppt = {
-            ppt_name, AnimationConverter::NodeProperty::kFloat2};
+            ppt_name, AnimationConverter::NodeProperty::kFloat3};
         properties.push_back(ppt);
         break;
       }

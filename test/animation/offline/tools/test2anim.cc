@@ -127,6 +127,10 @@ class TestAnimationConverter
       ppts.push_back(ppt0);
       const NodeProperty ppt1 = {"property1", NodeProperty::kFloat1};
       ppts.push_back(ppt1);
+      const NodeProperty ppt2 = {"property2", NodeProperty::kFloat2};
+      ppts.push_back(ppt2);
+      const NodeProperty ppt3 = {"property3", NodeProperty::kFloat3};
+      ppts.push_back(ppt3);
     }
     return ppts;
   }
@@ -143,6 +147,34 @@ class TestAnimationConverter
                   strcmp(_node_name, "joint1") == 0) &&
                  (strcmp(_track_name, "property0") == 0 ||
                   strcmp(_track_name, "property1") == 0);
+    return found;
+  }
+
+  virtual bool Import(const char* _animation_name, const char* _node_name,
+                      const char* _track_name, float _sampling_rate,
+                      ozz::animation::offline::RawFloat2Track* _track) {
+    (void)_animation_name;
+    (void)_sampling_rate;
+    (void)_track;
+
+    // joint2 doesn't have the property
+    bool found = (strcmp(_node_name, "joint0") == 0 ||
+                  strcmp(_node_name, "joint1") == 0) &&
+                 strcmp(_track_name, "property2") == 0;
+    return found;
+  }
+
+  virtual bool Import(const char* _animation_name, const char* _node_name,
+                      const char* _track_name, float _sampling_rate,
+                      ozz::animation::offline::RawFloat3Track* _track) {
+    (void)_animation_name;
+    (void)_sampling_rate;
+    (void)_track;
+
+    // joint2 doesn't have the property
+    bool found = (strcmp(_node_name, "joint0") == 0 ||
+                  strcmp(_node_name, "joint1") == 0) &&
+                 strcmp(_track_name, "property3") == 0;
     return found;
   }
 
