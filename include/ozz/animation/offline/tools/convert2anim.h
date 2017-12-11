@@ -58,7 +58,7 @@ class AnimationConverter {
 
   struct NodeProperty {
     ozz::String::Std name;
-    enum Type { kFloat1, kFloat2, kFloat3, kQuaternion };
+    enum Type { kFloat1 = 1, kFloat2 = 2, kFloat3 = 3 };
     Type type;
   };
   typedef ozz::Vector<NodeProperty>::Std NodeProperties;
@@ -68,6 +68,12 @@ class AnimationConverter {
   virtual bool Import(const char* _animation_name, const char* _node_name,
                       const char* _track_name, float _sampling_rate,
                       RawFloatTrack* _track) = 0;
+  virtual bool Import(const char* _animation_name, const char* _node_name,
+                      const char* _track_name, float _sampling_rate,
+                      RawFloat2Track* _track) = 0;
+  virtual bool Import(const char* _animation_name, const char* _node_name,
+                      const char* _track_name, float _sampling_rate,
+                      RawFloat3Track* _track) = 0;
 
  private:
   virtual bool Load(const char* _filename) = 0;
