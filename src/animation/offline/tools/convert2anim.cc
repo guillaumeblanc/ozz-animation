@@ -366,7 +366,7 @@ bool Export(const _RawTrack& _raw_track, const Json::Value& _config) {
   }
 
   // Builds runtime track.
-  RawTrackToTrack<_RawTrack>::Track* track = NULL;
+  typename RawTrackToTrack<_RawTrack>::Track* track = NULL;
   if (!_config["raw"].asBool()) {
     ozz::log::LogV() << "Builds runtime track." << std::endl;
     ozz::animation::offline::TrackBuilder builder;
@@ -440,7 +440,7 @@ bool ProcessImportTrackType(AnimationConverter& _converter,
                             const Json::Value& _import_config) {
   bool success = true;
 
-  TrackFromType<_type>::RawTrack track;
+  typename TrackFromType<_type>::RawTrack track;
   success &= _converter.Import(_animation_name, _joint_name,
                                _property.name.c_str(), 0, &track);
 
