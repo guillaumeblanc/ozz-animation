@@ -1169,11 +1169,13 @@ bool RendererImpl::DrawMesh(const Mesh& _mesh,
     const Renderer::Color red = {255, 0, 0, 255};
     for (size_t i = 0; i < _mesh.parts.size(); ++i) {
       const Mesh::Part& part = _mesh.parts[i];
-      DrawVectors(make_range(part.positions),
-                  ozz::sample::Mesh::Part::kPositionsCpnts * sizeof(float),
-                  make_range(part.tangents),
-                  ozz::sample::Mesh::Part::kTangentsCpnts * sizeof(float),
-                  part.vertex_count(), .03f, red, _transform);
+      if (part.normals.size() != 0) {
+        DrawVectors(make_range(part.positions),
+                    ozz::sample::Mesh::Part::kPositionsCpnts * sizeof(float),
+                    make_range(part.tangents),
+                    ozz::sample::Mesh::Part::kTangentsCpnts * sizeof(float),
+                    part.vertex_count(), .03f, red, _transform);
+      }
     }
   }
 
@@ -1182,16 +1184,18 @@ bool RendererImpl::DrawMesh(const Mesh& _mesh,
     for (size_t i = 0; i < _mesh.parts.size(); ++i) {
       const Mesh::Part& part = _mesh.parts[i];
       const Renderer::Color blue = {0, 0, 255, 255};
-      DrawBinormals(
-          make_range(part.positions),
-          ozz::sample::Mesh::Part::kPositionsCpnts * sizeof(float),
-          make_range(part.normals),
-          ozz::sample::Mesh::Part::kNormalsCpnts * sizeof(float),
-          make_range(part.tangents),
-          ozz::sample::Mesh::Part::kTangentsCpnts * sizeof(float),
-          ozz::Range<const float>(&part.tangents[3], part.tangents.size()),
-          ozz::sample::Mesh::Part::kTangentsCpnts * sizeof(float),
-          part.vertex_count(), .03f, blue, _transform);
+      if (part.normals.size() != 0 && part.tangents.size() != 0) {
+        DrawBinormals(
+            make_range(part.positions),
+            ozz::sample::Mesh::Part::kPositionsCpnts * sizeof(float),
+            make_range(part.normals),
+            ozz::sample::Mesh::Part::kNormalsCpnts * sizeof(float),
+            make_range(part.tangents),
+            ozz::sample::Mesh::Part::kTangentsCpnts * sizeof(float),
+            ozz::Range<const float>(&part.tangents[3], part.tangents.size()),
+            ozz::sample::Mesh::Part::kTangentsCpnts * sizeof(float),
+            part.vertex_count(), .03f, blue, _transform);
+      }
     }
   }
 
