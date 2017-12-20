@@ -29,14 +29,15 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <iomanip>
 
 #include "ozz/animation/offline/raw_skeleton.h"
 #include "ozz/animation/offline/skeleton_builder.h"
 
 #include "ozz/animation/runtime/skeleton.h"
 
-#include "ozz/base/containers/set.h"
 #include "ozz/base/containers/map.h"
+#include "ozz/base/containers/set.h"
 
 #include "ozz/base/io/archive.h"
 #include "ozz/base/io/stream.h"
@@ -121,6 +122,30 @@ bool ValidateJointNamesUniqueness(const RawSkeleton& _skeleton) {
   Names joint_names;
   return ValidateJointNamesUniquenessRecurse(_skeleton.roots, &joint_names);
 }
+
+void LogHierarchy(const RawSkeleton::Joint::Children& _children,
+                  int _depth = 0) {
+  const std::streamsize pres = ozz::log::LogV().stream().precision();
+  for (size_t i = 0; i < _children.size(); ++i) {
+    const RawSkeleton::Joint& joint = _children[i];
+    ozz::log::LogV() << std::setw(_depth) << std::setfill('.') << "";
+    ozz::log::LogV() << joint.name.c_str() << std::setprecision(4)
+                     << " t: " << joint.transform.translation.x << ", "
+                     << joint.transform.translation.y << ", "
+                     << joint.transform.translation.z
+                     << " r: " << joint.transform.rotation.x << ", "
+                     << joint.transform.rotation.y << ", "
+                     << joint.transform.rotation.z << ", "
+                     << joint.transform.rotation.w
+                     << " s: " << joint.transform.scale.x << ", "
+                     << joint.transform.scale.y << ", "
+                     << joint.transform.scale.z << std::endl;
+
+    // Recurse
+    LogHierarchy(joint.children, _depth + 1);
+  }
+  ozz::log::LogV() << std::setprecision(pres);
+}
 }  // namespace
 
 int SkeletonConverter::operator()(int _argc, const char** _argv) {
@@ -159,6 +184,11 @@ int SkeletonConverter::operator()(int _argc, const char** _argv) {
     ozz::log::Err() << "Failed to import file \"" << OPTIONS_file << "\""
                     << std::endl;
     return EXIT_FAILURE;
+  }
+
+  // Log skeleton hierarchy
+  if (ozz::log::GetLevel() == ozz::log::Verbose) {
+    LogHierarchy(raw_skeleton.roots);
   }
 
   // Non unique joint names are not supported.

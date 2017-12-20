@@ -43,8 +43,8 @@ namespace {
 enum RecurseReturn { kError, kSkeletonFound, kNoSkeleton };
 
 RecurseReturn RecurseNode(FbxNode* _node, FbxSystemConverter* _converter,
-                          RawSkeleton* _skeleton, RawSkeleton::Joint* _parent,
-                          int _depth) {
+                          RawSkeleton* _skeleton, RawSkeleton::Joint* _parent) {
+
   bool skeleton_found = false;
   RawSkeleton::Joint* this_joint = NULL;
 
@@ -74,12 +74,6 @@ RecurseReturn RecurseNode(FbxNode* _node, FbxSystemConverter* _converter,
     this_joint = &sibling->back();  // Will not be resized inside recursion.
     this_joint->name = _node->GetName();
 
-    // Outputs hierarchy on verbose stream.
-    for (int i = 0; i < _depth; ++i) {
-      ozz::log::LogV() << '.';
-    }
-    ozz::log::LogV() << this_joint->name.c_str() << std::endl;
-
     // Extract bind pose.
     const FbxAMatrix matrix = _parent ? _node->EvaluateLocalTransform()
                                       : _node->EvaluateGlobalTransform();
@@ -88,16 +82,13 @@ RecurseReturn RecurseNode(FbxNode* _node, FbxSystemConverter* _converter,
                       << this_joint->name << "\"." << std::endl;
       return kError;
     }
-
-    // One level deeper in the hierarchy.
-    _depth++;
   }
 
   // Iterate node's children.
   for (int i = 0; i < _node->GetChildCount(); i++) {
     FbxNode* child = _node->GetChild(i);
     const RecurseReturn ret =
-        RecurseNode(child, _converter, _skeleton, this_joint, _depth);
+        RecurseNode(child, _converter, _skeleton, this_joint);
     if (ret == kError) {
       return ret;
     }
@@ -110,7 +101,7 @@ RecurseReturn RecurseNode(FbxNode* _node, FbxSystemConverter* _converter,
 
 bool ExtractSkeleton(FbxSceneLoader& _loader, RawSkeleton* _skeleton) {
   RecurseReturn ret = RecurseNode(_loader.scene()->GetRootNode(),
-                                  _loader.converter(), _skeleton, NULL, 0);
+                                  _loader.converter(), _skeleton, NULL);
   if (ret == kNoSkeleton) {
     ozz::log::Err() << "No skeleton found in Fbx scene." << std::endl;
     return false;
