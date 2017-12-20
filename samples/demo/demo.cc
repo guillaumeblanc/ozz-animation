@@ -130,16 +130,16 @@ class DemoApplication : public ozz::sample::Application {
                                               ozz::math::Float4x4::identity(),
                                               render_options_);
       } else if (mesh.num_joints() == 1) {
-        // Every mesh vertex is transformed by the same joint. Renders it as
-        // static mesh.
-        assert(mesh.joint_remaps.size() == 1);
+        // Every mesh vertex is transformed by the same joint.
+        // It can thus be rendered as static mesh.
+        // assert(mesh.joint_remaps.size() == 1);
         // Builds the static mesh transformation matrix as it was a skinning
         // matrix.
         const ozz::math::Float4x4 transform =
             models_[mesh.joint_remaps[0]] * mesh.inverse_bind_poses[0];
         success &= _renderer->DrawMesh(mesh, transform, render_options_);
       } else {
-        // Not skinned. Renders it as static meshes.
+        // Not skinned. Renders it as an untransformed static meshes.
         success &= _renderer->DrawMesh(mesh, ozz::math::Float4x4::identity(),
                                        render_options_);
       }
