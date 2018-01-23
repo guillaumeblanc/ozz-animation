@@ -44,7 +44,7 @@ install(TARGETS fbx2anim DESTINATION bin/tools)
 
 # Gerenate binary skeleton data
 set(skeletons
-  "/fbx/robot.fbx\;/bin/robot_skeleton.ozz"
+  "/fbx/robot_rig_anim_baked.fbx\;/bin/robot_skeleton.ozz"
   "/fbx/alain/skeleton.fbx\;/bin/alain_skeleton.ozz"
   "/fbx/alain/skeleton.fbx\;/bin/versioning/raw_skeleton_v1_le.ozz\;option:--raw\;option:--endian=little"
   "/fbx/alain/skeleton.fbx\;/bin/versioning/raw_skeleton_v1_be.ozz\;option:--raw\;option:--endian=big"
@@ -83,14 +83,13 @@ endforeach()
 # Gerenate binary animation data
 set(animations
 
-  "/fbx/robot.fbx\;/bin/robot_skeleton.ozz\;{\"animations\":[{\"output\":\"${ozz_media_directory}/bin/robot_animation.ozz\",\"tracks\":[{\"imports\":[{\"joint_name\":\"thumb2\",\"property_name\":\"grasp\",\"output\":\"${ozz_media_directory}/bin/robot_track_grasp.ozz\"}]}]}]}\;output:/bin/robot_animation.ozz\;output:/bin/robot_track_grasp.ozz"
-
   # Library data
   "/fbx/alain/atlas.fbx\;/bin/alain_skeleton.ozz\;{\"animations\":[{\"output\":\"${ozz_media_directory}/bin/alain_atlas_raw.ozz\",\"raw\":true,\"optimize\":false}]}\;output:/bin/alain_atlas_raw.ozz"
   "/fbx/alain/locomotions.fbx\;/bin/alain_skeleton.ozz\;{\"animations\":[{\"output\":\"${ozz_media_directory}/bin/alain_*.ozz\"}]}\;output:/bin/alain_walk.ozz\;output:/bin/alain_jog.ozz\;output:/bin/alain_run.ozz"
   "/fbx/alain/crossarms.fbx\;/bin/alain_skeleton.ozz\;{\"animations\":[{\"output\":\"${ozz_media_directory}/bin/alain_crossarms.ozz\"}]}\;output:/bin/alain_crossarms.ozz"
   "/fbx/alain/crackhead.fbx\;/bin/alain_skeleton.ozz\;{\"animations\":[{\"output\":\"${ozz_media_directory}/bin/alain_crackhead.ozz\"}]}\;output:/bin/alain_crackhead.ozz"
   "/fbx/alain/crackhead.fbx\;/bin/alain_skeleton.ozz\;{\"animations\":[{\"output\":\"${ozz_media_directory}/bin/alain_crackhead_additive.ozz\",\"additive\":true}]}\;output:/bin/alain_crackhead_additive.ozz"
+  "/fbx/robot.fbx\;/bin/robot_skeleton.ozz\;{\"animations\":[{\"output\":\"${ozz_media_directory}/bin/robot_animation.ozz\",\"tracks\":[{\"imports\":[{\"joint_name\":\"thumb2\",\"property_name\":\"grasp\",\"output\":\"${ozz_media_directory}/bin/robot_track_grasp.ozz\"}]}]}]}\;output:/bin/robot_animation.ozz\;output:/bin/robot_track_grasp.ozz"
 
   # Versioning
   "/fbx/alain/run.fbx\;/bin/alain_skeleton.ozz\;{\"animations\":[{\"output\":\"${ozz_media_directory}/bin/versioning/raw_animation_v2_le.ozz\",\"raw\":true}]}\;output:/bin/versioning/raw_animation_v2_le.ozz\;option:--endian=little"

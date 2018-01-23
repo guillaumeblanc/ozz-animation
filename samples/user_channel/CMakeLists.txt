@@ -4,19 +4,23 @@ add_custom_command(
           "${CMAKE_CURRENT_LIST_DIR}/README.md"
           "${ozz_media_directory}/bin/robot_skeleton.ozz"
           "${ozz_media_directory}/bin/robot_animation.ozz"
+          "${ozz_media_directory}/bin/robot_track_grasp.ozz"
   OUTPUT  "${CMAKE_CURRENT_BINARY_DIR}/README.md"
           "${CMAKE_CURRENT_BINARY_DIR}/media/skeleton.ozz"
           "${CMAKE_CURRENT_BINARY_DIR}/media/animation.ozz"
+          "${CMAKE_CURRENT_BINARY_DIR}/media/track.ozz"
   COMMAND ${CMAKE_COMMAND} -E make_directory media
   COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_LIST_DIR}/README.md" .
   COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/robot_skeleton.ozz" "./media/skeleton.ozz"
-  COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/robot_animation.ozz" "./media/animation.ozz")
+  COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/robot_animation.ozz" "./media/animation.ozz"
+  COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/robot_track_grasp.ozz" "./media/track.ozz")
 
 add_executable(sample_user_channel
   sample_user_channel.cc
   "${CMAKE_CURRENT_BINARY_DIR}/README.md"
   "${CMAKE_CURRENT_BINARY_DIR}/media/skeleton.ozz"
-  "${CMAKE_CURRENT_BINARY_DIR}/media/animation.ozz")
+  "${CMAKE_CURRENT_BINARY_DIR}/media/animation.ozz"
+  "${CMAKE_CURRENT_BINARY_DIR}/media/track.ozz")
 target_link_libraries(sample_user_channel
   sample_framework)
 
@@ -44,4 +48,6 @@ add_test(NAME sample_user_channel_invalid_skeleton_path COMMAND sample_user_chan
 set_tests_properties(sample_user_channel_invalid_skeleton_path PROPERTIES WILL_FAIL true)
 add_test(NAME sample_user_channel_invalid_animation_path COMMAND sample_user_channel "--animation=media/bad_animation.ozz" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)
 set_tests_properties(sample_user_channel_invalid_animation_path PROPERTIES WILL_FAIL true)
+add_test(NAME sample_user_channel_invalid_track_path COMMAND sample_user_channel "--track=media/bad_animation.ozz" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)
+set_tests_properties(sample_user_channel_invalid_track_path PROPERTIES WILL_FAIL true)
 

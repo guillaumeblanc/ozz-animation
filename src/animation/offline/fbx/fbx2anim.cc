@@ -105,38 +105,35 @@ class FbxAnimationConverter
     return ozz::animation::offline::fbx::GetNodeProperties(*scene_loader_, _node_name);
   }
 
+  template<typename _RawTrack>
+  bool Import(const char* _animation_name, const char* _node_name,
+              const char* _track_name, float _sampling_rate,
+              _RawTrack* _track) {
+    if (!scene_loader_) {
+      return false;
+    }
+    return ozz::animation::offline::fbx::ExtractTrack(
+        _animation_name, _node_name, _track_name, *scene_loader_,
+        _sampling_rate, _track);
+
+  }
+
   virtual bool Import(const char* _animation_name, const char* _node_name,
                       const char* _track_name, float _sampling_rate,
                       ozz::animation::offline::RawFloatTrack* _track) {
-    if (!scene_loader_) {
-      return false;
-    }
-
-    return ozz::animation::offline::fbx::ExtractTrack(
-        _animation_name, _node_name, _track_name, *scene_loader_,
-        _sampling_rate, _track);
+    return Import(_animation_name, _node_name, _track_name, _sampling_rate, _track);
   }
+
   virtual bool Import(const char* _animation_name, const char* _node_name,
                       const char* _track_name, float _sampling_rate,
                       ozz::animation::offline::RawFloat2Track* _track) {
-    if (!scene_loader_) {
-      return false;
-    }
-
-    return ozz::animation::offline::fbx::ExtractTrack(
-        _animation_name, _node_name, _track_name, *scene_loader_,
-        _sampling_rate, _track);
+    return Import(_animation_name, _node_name, _track_name, _sampling_rate, _track);
   }
+
   virtual bool Import(const char* _animation_name, const char* _node_name,
                       const char* _track_name, float _sampling_rate,
                       ozz::animation::offline::RawFloat3Track* _track) {
-    if (!scene_loader_) {
-      return false;
-    }
-
-    return ozz::animation::offline::fbx::ExtractTrack(
-        _animation_name, _node_name, _track_name, *scene_loader_,
-        _sampling_rate, _track);
+    return Import(_animation_name, _node_name, _track_name, _sampling_rate, _track);
   }
 
   ozz::animation::offline::fbx::FbxManagerInstance fbx_manager_;

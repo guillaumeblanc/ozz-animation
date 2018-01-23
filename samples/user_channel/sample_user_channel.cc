@@ -82,7 +82,7 @@ class LoadSampleApplication : public ozz::sample::Application {
   LoadSampleApplication()
       : cache_(NULL),
         attached_(false),
-        hand_joint_(0),
+        attach_joint_(0),
         box_transform_(ozz::math::Float4x4::Translation(kBoxInitialPosition)) {}
 
  protected:
@@ -134,10 +134,10 @@ class LoadSampleApplication : public ozz::sample::Application {
     // bool.
     attached_ = attached == 0.f;
 
-    // Updates the box transform if it is attached to the hand joint.
+    // Updates the box transform if it is attached to the joint.
     // Otherwise let it where it is.
     if (attached_) {
-      box_transform_ = models_[hand_joint_] * kBoxToBone;
+      box_transform_ = models_[attach_joint_] * kBoxToBone;
     }
 
     return true;
@@ -153,7 +153,7 @@ class LoadSampleApplication : public ozz::sample::Application {
     // Draws a sphere at hand position, which shows "attached" flag status.
     const ozz::sample::Renderer::Color colors[] = {{0, 0xff, 0, 0xff},
                                                    {0xff, 0, 0, 0xff}};
-    _renderer->DrawSphereIm(.01f, models_[hand_joint_], colors[attached_]);
+    _renderer->DrawSphereIm(.01f, models_[attach_joint_], colors[attached_]);
 
     // Draws the animated skeleton.
     success &= _renderer->DrawPosture(skeleton_, models_,
@@ -172,8 +172,8 @@ class LoadSampleApplication : public ozz::sample::Application {
     // Finds the hand joint where the box should be attached.
     // If not found, let it be 0.
     for (int i = 0; i < skeleton_.num_joints(); i++) {
-      if (std::strstr(skeleton_.joint_names()[i], "tong_L2")) {
-        hand_joint_ = i;
+      if (std::strstr(skeleton_.joint_names()[i], "finger")) {
+        attach_joint_ = i;
         break;
       }
     }
@@ -193,9 +193,9 @@ class LoadSampleApplication : public ozz::sample::Application {
     cache_ = allocator->New<ozz::animation::SamplingCache>(num_joints);
 
     // Reading track.
-    //     if (!ozz::sample::LoadTrack(OPTIONS_track, &track_)) {
-    //       return false;
-    //     }
+    if (!ozz::sample::LoadTrack(OPTIONS_track, &track_)) {
+      return false;
+    }
 
     return true;
   }
@@ -251,8 +251,8 @@ class LoadSampleApplication : public ozz::sample::Application {
   // computed during update. This is only used for debug display purpose.
   bool attached_;
 
-  // Index of the hand joint, where the box must be attached.
-  int hand_joint_;
+  // Index of the joint where the box must be attached.
+  int attach_joint_;
 
   // Box current transformation.
   ozz::math::Float4x4 box_transform_;
