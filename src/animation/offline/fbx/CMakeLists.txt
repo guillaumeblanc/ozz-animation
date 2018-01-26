@@ -44,7 +44,7 @@ install(TARGETS fbx2anim DESTINATION bin/tools)
 
 # Gerenate binary skeleton data
 set(skeletons
-  "/fbx/robot_rig_anim_baked.fbx\;/bin/robot_skeleton.ozz"
+  "/fbx/robot.fbx\;/bin/robot_skeleton.ozz"
   "/fbx/alain/skeleton.fbx\;/bin/alain_skeleton.ozz"
   "/fbx/alain/skeleton.fbx\;/bin/versioning/raw_skeleton_v1_le.ozz\;option:--raw\;option:--endian=little"
   "/fbx/alain/skeleton.fbx\;/bin/versioning/raw_skeleton_v1_be.ozz\;option:--raw\;option:--endian=big"

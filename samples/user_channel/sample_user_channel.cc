@@ -32,6 +32,7 @@
 
 #include "ozz/animation/runtime/track.h"
 #include "ozz/animation/runtime/track_sampling_job.h"
+#include "ozz/animation/runtime/track_triggering_job.h"
 
 #include "ozz/base/log.h"
 
@@ -53,13 +54,8 @@
 const ozz::math::Box kBox(ozz::math::Float3(-.01f, -.1f, -.05f),
                           ozz::math::Float3(.01f, .1f, .05f));
 
-const ozz::math::Float4x4 kBoxToBone = ozz::math::Float4x4::FromAffine(
-    ozz::math::simd_float4::Load(kBox.max.x, 0.f, 0.f, 0.f),
-    ozz::math::simd_float4::Load(0.f, .7071078f, .7071078f, 0.f),
-    ozz::math::simd_float4::one());
-
 const ozz::math::SimdFloat4 kBoxInitialPosition =
-    ozz::math::simd_float4::Load(0.f, .1f, -.5f, 0.f);
+    ozz::math::simd_float4::Load(0.f, .1f, .3f, 0.f);
 
 const ozz::sample::Renderer::Color kBoxColor = {0x80, 0x80, 0x80, 0xff};
 
@@ -81,9 +77,12 @@ class LoadSampleApplication : public ozz::sample::Application {
  public:
   LoadSampleApplication()
       : cache_(NULL),
+        method_(0),
         attached_(false),
         attach_joint_(0),
-        box_transform_(ozz::math::Float4x4::Translation(kBoxInitialPosition)) {}
+        box_world_transform_(
+            ozz::math::Float4x4::Translation(kBoxInitialPosition)),
+        box_local_transform_(ozz::math::Float4x4::identity()) {}
 
  protected:
   virtual bool OnUpdate(float _dt) {
@@ -93,7 +92,8 @@ class LoadSampleApplication : public ozz::sample::Application {
     // Reset box position to its initial location. Note that it depends on
     // animation playback direction.
     if (looped) {
-      box_transform_ = ozz::math::Float4x4::Translation(kBoxInitialPosition);
+      box_world_transform_ =
+          ozz::math::Float4x4::Translation(kBoxInitialPosition);
     }
 
     // Samples optimized animation at t = animation_time_.
@@ -115,31 +115,90 @@ class LoadSampleApplication : public ozz::sample::Application {
       return false;
     }
 
+    // Stores previous attachment state to be able to detect a change.
+    const bool previously_attached = attached_;
+
+    // Update attachment state depending on the selected method, aka sample or
+    // triggering.
+    if (method_ == 0) {
+      if (!Update_SamplingMethod(_dt)) {
+        return false;
+      }
+    } else {
+      if (!Update_TriggeringMethod(_dt)) {
+        return false;
+      }
+    }
+
+    // Updates box transform based on attachment state.
+    if (attached_) {
+      // Find the relative transform of the box relative to the joint if the box
+      // is being attached now.
+      if (!previously_attached) {
+        box_local_transform_ =
+            Invert(models_[attach_joint_]) * box_world_transform_;
+      }
+      // Compute new (attached) box position.
+      box_world_transform_ = models_[attach_joint_] * box_local_transform_;
+    } else {
+      // Lets the box where it is.
+    }
+
+    return true;
+  }
+
+  bool Update_SamplingMethod(float _dt) {
+    (void)_dt;
     // Samples the track in order to know if the box should be attached to the
     // skeleton joint (hand).
-    ozz::animation::FloatTrackSamplingJob track_sampling_job;
+    ozz::animation::FloatTrackSamplingJob job;
 
     // Tracks have a unit length duration. They are thus sampled with a ratio
     // (rather than a time), which is computed based on the duration of the
-    // animation  they refer to.
-    track_sampling_job.time = controller_.time() / animation_.duration();
-    track_sampling_job.track = &track_;
+    // animation they refer to.
+    job.time = controller_.time() / animation_.duration();
+    job.track = &track_;
     float attached;
-    track_sampling_job.result = &attached;
-    if (!track_sampling_job.Run()) {
+    job.result = &attached;
+    if (!job.Run()) {
+      return false;
+    }
+    attached_ = attached != 0.f;
+
+    return true;
+  }
+
+  bool Update_TriggeringMethod(float _dt) {
+    // Walks through the track to find edges, aka when the box should be
+    // attached or detached.
+    ozz::animation::FloatTrackTriggeringJob job;
+
+    // Tracks have a unit length duration. They are thus sampled with a ratio
+    // (rather than a time), which is computed based on the duration of the
+    // animation they refer to.
+    job.from = (controller_.time() - _dt) / animation_.duration();
+    job.to = controller_.time() / animation_.duration();
+    job.track = &track_;
+    job.threshold =
+        .5f;  // Considered attached as soon as the value is greater than this.
+    ozz::animation::FloatTrackTriggeringJob::Edge edges_buffer[8];
+    ozz::animation::FloatTrackTriggeringJob::Edges edges(edges_buffer);
+    job.edges = &edges;
+    if (!job.Run()) {
       return false;
     }
 
-    // Sampling the FloatTrack returns a float, which can be interpreted to a
-    // bool.
-    attached_ = attached == 0.f;
+    // Rising edges put "attached" state on. In this case we're only interested
+    // in the last edge (if any).
+    if (edges.Count() != 0) {
+      const ozz::animation::FloatTrackTriggeringJob::Edge& last_edge =
+          edges[edges.Count() - 1];
+      attached_ = last_edge.rising;
 
-    // Updates the box transform if it is attached to the joint.
-    // Otherwise let it where it is.
-    if (attached_) {
-      box_transform_ = models_[attach_joint_] * kBoxToBone;
+      // Knowing exact edge time, joint position could be re-sampled in order to
+      // get attachment joint position at the precise attachment time. This
+      // makes the algorithm frame rate independent.
     }
-
     return true;
   }
 
@@ -148,7 +207,7 @@ class LoadSampleApplication : public ozz::sample::Application {
     bool success = true;
 
     // Draw box at the position computed during update.
-    success &= _renderer->DrawBoxShaded(kBox, box_transform_, kBoxColor);
+    success &= _renderer->DrawBoxShaded(kBox, box_world_transform_, kBoxColor);
 
     // Draws a sphere at hand position, which shows "attached" flag status.
     const ozz::sample::Renderer::Color colors[] = {{0, 0xff, 0, 0xff},
@@ -172,7 +231,7 @@ class LoadSampleApplication : public ozz::sample::Application {
     // Finds the hand joint where the box should be attached.
     // If not found, let it be 0.
     for (int i = 0; i < skeleton_.num_joints(); i++) {
-      if (std::strstr(skeleton_.joint_names()[i], "finger")) {
+      if (std::strstr(skeleton_.joint_names()[i], "thumb2")) {
         attach_joint_ = i;
         break;
       }
@@ -208,11 +267,21 @@ class LoadSampleApplication : public ozz::sample::Application {
   }
 
   virtual bool OnGui(ozz::sample::ImGui* _im_gui) {
+    // Exposes sample specific parameters.
+    {
+      static bool open = true;
+      ozz::sample::ImGui::OpenClose oc(_im_gui, "Track access method", &open);
+      _im_gui->DoRadioButton(0, "Sampling", &method_);
+      _im_gui->DoRadioButton(1, "Triggering", &method_);
+    }
     // Exposes animation runtime playback controls.
     {
       static bool open = true;
       ozz::sample::ImGui::OpenClose oc(_im_gui, "Animation control", &open);
       if (open) {
+        _im_gui->DoLabel(
+            "Note that changing playback time could break box attachment state",
+            ozz::sample::ImGui::kLeft, false);
         controller_.OnGui(animation_, _im_gui);
       }
     }
@@ -247,15 +316,21 @@ class LoadSampleApplication : public ozz::sample::Application {
   // Stores whether the box should be attached to the hand.
   ozz::animation::FloatTrack track_;
 
-  // Stores whether the box ball is attached to the hand. This flag is
-  // computed during update. This is only used for debug display purpose.
+  // Track reading method, aka sampling (0) or triggering (1).
+  int method_;
+
+  // Stores whether the box is currently attached. This flag is computed during
+  // update. This is only used for debug display purpose.
   bool attached_;
 
   // Index of the joint where the box must be attached.
   int attach_joint_;
 
   // Box current transformation.
-  ozz::math::Float4x4 box_transform_;
+  ozz::math::Float4x4 box_world_transform_;
+
+  // Box transformation relative to the attached bone.
+  ozz::math::Float4x4 box_local_transform_;
 };
 
 int main(int _argc, const char** _argv) {
