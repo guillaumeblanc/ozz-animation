@@ -59,10 +59,16 @@ class PlaybackController {
   PlaybackController();
 
   // Sets animation current time.
-  void set_time(float _time) { time_ = _time; }
+  void set_time(float _time) {
+    previous_time_ = time_;
+    time_ = _time;
+  }
 
   // Gets animation current time.
   float time() const { return time_; }
+
+  // Gets animation time of last update.
+  float previous_time() const { return previous_time_; }
 
   // Sets playback speed.
   void set_playback_speed(float _speed) { playback_speed_ = _speed; }
@@ -83,6 +89,9 @@ class PlaybackController {
              bool _enabled = true);
 
  private:
+  // Time of the previous update.
+  float previous_time_;
+
   // Current animation time.
   float time_;
 

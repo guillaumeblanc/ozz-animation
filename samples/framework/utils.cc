@@ -52,13 +52,16 @@ namespace ozz {
 namespace sample {
 
 PlaybackController::PlaybackController()
-    : time_(0.f), playback_speed_(1.f), play_(true) {}
+    : previous_time_(0.f), time_(0.f), playback_speed_(1.f), play_(true) {}
 
 bool PlaybackController::Update(const animation::Animation& _animation,
                                 float _dt) {
   if (!play_) {
     return false;
   }
+
+  previous_time_ = time_;
+
   const float new_time = time_ + _dt * playback_speed_;
   const float loops = new_time / _animation.duration();
   time_ = new_time - floorf(loops) * _animation.duration();
@@ -68,7 +71,7 @@ bool PlaybackController::Update(const animation::Animation& _animation,
 }
 
 void PlaybackController::Reset() {
-  time_ = 0.f;
+  previous_time_ = time_ = 0.f;
   playback_speed_ = 1.f;
   play_ = true;
 }

@@ -121,11 +121,11 @@ class LoadSampleApplication : public ozz::sample::Application {
     // Update attachment state depending on the selected method, aka sample or
     // triggering.
     if (method_ == 0) {
-      if (!Update_SamplingMethod(_dt)) {
+      if (!Update_SamplingMethod()) {
         return false;
       }
     } else {
-      if (!Update_TriggeringMethod(_dt)) {
+      if (!Update_TriggeringMethod()) {
         return false;
       }
     }
@@ -147,8 +147,7 @@ class LoadSampleApplication : public ozz::sample::Application {
     return true;
   }
 
-  bool Update_SamplingMethod(float _dt) {
-    (void)_dt;
+  bool Update_SamplingMethod() {
     // Samples the track in order to know if the box should be attached to the
     // skeleton joint (hand).
     ozz::animation::FloatTrackSamplingJob job;
@@ -168,7 +167,7 @@ class LoadSampleApplication : public ozz::sample::Application {
     return true;
   }
 
-  bool Update_TriggeringMethod(float _dt) {
+  bool Update_TriggeringMethod() {
     // Walks through the track to find edges, aka when the box should be
     // attached or detached.
     ozz::animation::FloatTrackTriggeringJob job;
@@ -176,7 +175,7 @@ class LoadSampleApplication : public ozz::sample::Application {
     // Tracks have a unit length duration. They are thus sampled with a ratio
     // (rather than a time), which is computed based on the duration of the
     // animation they refer to.
-    job.from = (controller_.time() - _dt) / animation_.duration();
+    job.from = controller_.previous_time() / animation_.duration();
     job.to = controller_.time() / animation_.duration();
     job.track = &track_;
     job.threshold =
@@ -197,7 +196,8 @@ class LoadSampleApplication : public ozz::sample::Application {
 
       // Knowing exact edge time, joint position could be re-sampled in order to
       // get attachment joint position at the precise attachment time. This
-      // makes the algorithm frame rate independent.
+      // would make the algorithm frame rate independent.
+      // Left to the reader as an exercise...
     }
     return true;
   }
