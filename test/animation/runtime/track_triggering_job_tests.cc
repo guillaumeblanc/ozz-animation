@@ -60,7 +60,7 @@ TEST(JobValidity, FloatTrackTriggeringJob) {
 
   {  // No track
     FloatTrackTriggeringJob job;
-    ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+    FloatTrackTriggeringJob::Edges edges(edges_buffer);
     job.edges = &edges;
     EXPECT_FALSE(job.Validate());
     EXPECT_FALSE(job.Run());
@@ -76,7 +76,7 @@ TEST(JobValidity, FloatTrackTriggeringJob) {
   {  // Valid
     FloatTrackTriggeringJob job;
     job.track = track;
-    ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+    FloatTrackTriggeringJob::Edges edges(edges_buffer);
     job.edges = &edges;
     EXPECT_TRUE(job.Validate());
     EXPECT_TRUE(job.Run());
@@ -87,7 +87,7 @@ TEST(JobValidity, FloatTrackTriggeringJob) {
     job.from = 0.f;
     job.to = 1.f;
     job.track = track;
-    ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+    FloatTrackTriggeringJob::Edges edges(edges_buffer);
     job.edges = &edges;
     EXPECT_TRUE(job.Validate());
     EXPECT_TRUE(job.Run());
@@ -96,7 +96,7 @@ TEST(JobValidity, FloatTrackTriggeringJob) {
   {  // Empty output is valid
     FloatTrackTriggeringJob job;
     job.track = track;
-    ozz::Range<FloatTrackTriggeringJob::Edge> edges;
+    FloatTrackTriggeringJob::Edges edges;
     job.edges = &edges;
     EXPECT_TRUE(job.Validate());
     EXPECT_TRUE(job.Run());
@@ -109,7 +109,7 @@ TEST(Default, TrackEdgeTriggerJob) {
   FloatTrackTriggeringJob job;
   job.track = &default_track;
   FloatTrackTriggeringJob::Edge edges_buffer[8];
-  ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+  FloatTrackTriggeringJob::Edges edges(edges_buffer);
   job.edges = &edges;
   EXPECT_TRUE(job.Validate());
   EXPECT_TRUE(job.Run());
@@ -144,7 +144,7 @@ TEST(NoRange, TrackEdgeTriggerJob) {
   {  // Forward [0., 0.[
     job.from = 0.f;
     job.to = 0.f;
-    ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+    FloatTrackTriggeringJob::Edges edges(edges_buffer);
     job.edges = &edges;
     EXPECT_TRUE(job.Run());
 
@@ -154,7 +154,7 @@ TEST(NoRange, TrackEdgeTriggerJob) {
   {  // Forward [.1, .1]
     job.from = .1f;
     job.to = .1f;
-    ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+    FloatTrackTriggeringJob::Edges edges(edges_buffer);
     job.edges = &edges;
     EXPECT_TRUE(job.Run());
 
@@ -164,7 +164,7 @@ TEST(NoRange, TrackEdgeTriggerJob) {
   {  // Forward [.5, .5[
     job.from = .5f;
     job.to = .5f;
-    ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+    FloatTrackTriggeringJob::Edges edges(edges_buffer);
     job.edges = &edges;
     EXPECT_TRUE(job.Run());
 
@@ -174,7 +174,7 @@ TEST(NoRange, TrackEdgeTriggerJob) {
   {  // Forward [1., 1.]
     job.from = 1.f;
     job.to = 1.f;
-    ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+    FloatTrackTriggeringJob::Edges edges(edges_buffer);
     job.edges = &edges;
     EXPECT_TRUE(job.Run());
 
@@ -204,7 +204,7 @@ void TestEdgesIntegrity(const ozz::animation::FloatTrack& _track) {
     }
     job.to = time;
 
-    ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+    FloatTrackTriggeringJob::Edges edges(edges_buffer);
     job.edges = &edges;
 
     EXPECT_TRUE(job.Run());
@@ -260,7 +260,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Forward [0, .99[, 1 is excluded
       job.from = 0.f;
       job.to = .99f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
 
       EXPECT_TRUE(job.Run());
@@ -275,7 +275,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Forward [0, 1], 1 is included
       job.from = 0.f;
       job.to = 1.f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -291,7 +291,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Forward [0, .5[
       job.from = 0.f;
       job.to = .5f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -301,7 +301,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Forward [.1, .5[
       job.from = .1f;
       job.to = .5f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -311,7 +311,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Forward [.5, .9[
       job.from = .5;
       job.to = .9f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -324,7 +324,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Forward [.6, .9[
       job.from = .6f;
       job.to = .9f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -334,7 +334,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Forward [.9, 1.], 1 is included
       job.from = .9f;
       job.to = 1.f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -347,7 +347,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Forward [.5, 1.], 1 is included
       job.from = .5f;
       job.to = 1.f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -363,7 +363,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Forward loop [0., 2.],
       job.from = 0.f;
       job.to = 2.f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -385,7 +385,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Forward loop [0., 1.5[,
       job.from = 0.f;
       job.to = 1.5f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -401,7 +401,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Forward loop [0., 1.],
       job.from = 0.f;
       job.to = 1.f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -417,7 +417,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Forward loop ]1., 2.],
       job.from = 1.f;
       job.to = 2.f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -433,7 +433,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Forward loop [1., 1.6[,
       job.from = 1.f;
       job.to = 1.6f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -446,7 +446,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Forward loop [.9, 1.6[,
       job.from = .9f;
       job.to = 1.6f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -462,7 +462,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Forward out of bound[1.5, 1.9[
       job.from = 1.5f;
       job.to = 1.9f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -475,7 +475,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Forward out of bound[1.5, 3.[
       job.from = 1.5f;
       job.to = 3.f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -499,7 +499,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Backward [1, .01], 0 is excluded
       job.from = 1.f;
       job.to = .01f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -515,7 +515,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Backward [1, 0], 0 is included
       job.from = 1.f;
       job.to = 0.f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -531,7 +531,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Backward ].5, 0]
       job.from = .5f;
       job.to = 0.f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -541,7 +541,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Backward ].9, .5]
       job.from = .9f;
       job.to = .5f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -554,7 +554,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Backward [1., .5]
       job.from = 1.f;
       job.to = .5f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -570,7 +570,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Backward ].4, .1]
       job.from = .4f;
       job.to = .1f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -580,7 +580,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Backward loop [2., 0.]
       job.from = 2.f;
       job.to = 0.f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -602,7 +602,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Backward loop ]1.5, 0]
       job.from = 1.5f;
       job.to = 0.f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -618,7 +618,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Backward loop [2., 1.]
       job.from = 1.f;
       job.to = 0.f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -634,7 +634,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Backward loop [1., 0.]
       job.from = 1.f;
       job.to = 0.f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -650,7 +650,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Backward loop ]1.5, 1.]
       job.from = 1.5f;
       job.to = 1.f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -660,7 +660,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Backward loop ]1.6, .9]
       job.from = 1.6f;
       job.to = .9f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -676,7 +676,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Backward out of bound ]1.5, 1.1]
       job.from = 1.5f;
       job.to = 1.1f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -686,7 +686,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Backward out of bound [3., 1.5]
       job.from = 3.f;
       job.to = 1.5f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -710,7 +710,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // [0., 2.]
       job.from = 0.f;
       job.to = 2.f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -732,7 +732,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // [2., 0.]
       job.from = 2.f;
       job.to = 0.f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -754,7 +754,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // [.7, 1.5[
       job.from = .7f;
       job.to = 1.5f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -767,7 +767,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // ]1.5, .7]
       job.from = 1.5f;
       job.to = .7f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -782,7 +782,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // [-1, 0[
       job.from = -1.f;
       job.to = 0.f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -798,7 +798,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // [-1.5, 0.75[
       job.from = -1.5f;
       job.to = .5f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -822,7 +822,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // [0, -1]
       job.from = 0.f;
       job.to = -1.f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -838,7 +838,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // ]0.5, -1.5]
       job.from = .5f;
       job.to = -1.5f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -860,7 +860,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // ]0.6, -1.4]
       job.from = .6f;
       job.to = -1.4f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -906,7 +906,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Forward [0, .99[, 1 is excluded
       job.from = 0.f;
       job.to = .99f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -923,7 +923,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Forward [0, 1], 1 is included
       job.from = 0.f;
       job.to = 1.f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -940,7 +940,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
        // [0, 1]
       job.from = 1.f;
       job.to = 2.f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -956,7 +956,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Forward [0, .6[
       job.from = 0.f;
       job.to = .6f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -969,7 +969,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Forward [.1, .6[
       job.from = .1f;
       job.to = .6f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -979,7 +979,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Forward [.6, .9[
       job.from = .6f;
       job.to = .9f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -992,7 +992,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Forward [.7, .9[
       job.from = .7f;
       job.to = .9f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -1002,7 +1002,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Forward [.9, 1.], 1 is included
       job.from = .9f;
       job.to = 1.f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -1012,7 +1012,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Forward [.6, 1.], 1 is included
       job.from = .6f;
       job.to = 1.f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -1025,7 +1025,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Forward loop [0., 2.],
       job.from = 0.f;
       job.to = 2.f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -1047,7 +1047,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Forward loop [0., 1.6[,
       job.from = 0.f;
       job.to = 1.6f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -1066,7 +1066,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Forward out of bound[1.6, 1.9[
       job.from = 1.6f;
       job.to = 1.9f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -1079,7 +1079,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Forward out of bound[1.6, 3.]
       job.from = 1.6f;
       job.to = 3.f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -1098,7 +1098,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Forward loop [1., 1.7[,
       job.from = 1.f;
       job.to = 1.7f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -1115,7 +1115,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Forward loop [.9, 1.7[,
       job.from = .9f;
       job.to = 1.7f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -1133,7 +1133,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Backward [1, .01], 0 is excluded
       job.from = 1.f;
       job.to = .01f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -1146,7 +1146,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Backward [1, 0], 0 is included
       job.from = 1.f;
       job.to = 0.f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -1162,7 +1162,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Backward [2, 1],
       job.from = 2.f;
       job.to = 1.f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -1178,7 +1178,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Backward ].6, 0]
       job.from = .6f;
       job.to = 0.f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -1191,7 +1191,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Backward ].9, .6]
       job.from = .9f;
       job.to = .6f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -1204,7 +1204,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Backward [1., .6]
       job.from = 1.f;
       job.to = .6f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -1217,7 +1217,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Backward ].4, .1]
       job.from = .4f;
       job.to = .1f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -1227,7 +1227,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Backward loop [2., 0.]
       job.from = 2.f;
       job.to = 0.f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -1249,7 +1249,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Backward loop ]1.6, 0]
       job.from = 1.6f;
       job.to = 0.f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -1268,7 +1268,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Backward loop ]1.6, 1.]
       job.from = 1.6f;
       job.to = 1.f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -1281,7 +1281,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Backward loop ]1.7, .9]
       job.from = 1.7f;
       job.to = .9f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -1297,7 +1297,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Backward out of bound [3., 1.6]
       job.from = 3.f;
       job.to = 1.6f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -1318,7 +1318,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // [0., 2.]
       job.from = 0.f;
       job.to = 2.f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -1340,7 +1340,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // [2., 0.]
       job.from = 2.f;
       job.to = 0.f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -1364,7 +1364,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // [-1, 0[
       job.from = -1.f;
       job.to = 0.f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -1380,7 +1380,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // [-1.4, 0.6[
       job.from = -1.4f;
       job.to = .6f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -1402,7 +1402,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // [-1.3, 0.7[
       job.from = -1.3f;
       job.to = .7f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -1426,7 +1426,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // [0, -1]
       job.from = 0.f;
       job.to = -1.f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -1442,7 +1442,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // ]0.6, -1.5]
       job.from = .6f;
       job.to = -1.5f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -1464,7 +1464,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // ]0.7, -1.4]
       job.from = .7f;
       job.to = -1.4f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -1513,7 +1513,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Forward [0, .99[, 1 is excluded
       job.from = 0.f;
       job.to = .99f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -1529,7 +1529,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Forward [0, 1], 1 is included
       job.from = 0.f;
       job.to = 1.f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -1545,7 +1545,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Forward [0, .5[
       job.from = 0.f;
       job.to = .5f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -1558,7 +1558,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Forward [.1, .5[
       job.from = .1f;
       job.to = .5f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -1568,7 +1568,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Forward [.5, .9[
       job.from = .5;
       job.to = .9f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -1581,7 +1581,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Forward [.9, 1.], 1 is included
       job.from = .9f;
       job.to = 1.f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -1591,7 +1591,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Forward [.5, 1.], 1 is included
       job.from = .5f;
       job.to = 1.f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -1604,7 +1604,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Forward loop [0., 2.],
       job.from = 0.f;
       job.to = 2.f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -1626,7 +1626,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Forward loop [0., 1.5[,
       job.from = 0.f;
       job.to = 1.5f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -1645,7 +1645,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Forward out of bound[1.5, 1.9[
       job.from = 1.5f;
       job.to = 1.9f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -1658,7 +1658,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Forward out of bound[1.5, 3.]
       job.from = 1.5f;
       job.to = 3.f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -1677,7 +1677,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Forward loop [1., 1.6[,
       job.from = 1.f;
       job.to = 1.6f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -1694,7 +1694,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Forward loop [.9, 1.6[,
       job.from = .9f;
       job.to = 1.6f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -1712,7 +1712,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Backward [1, .01], 0 is excluded
       job.from = 1.f;
       job.to = .01f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -1725,7 +1725,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Backward [1, 0], 0 is included
       job.from = 1.f;
       job.to = 0.f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -1741,7 +1741,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Backward [2, 1],
       job.from = 2.f;
       job.to = 1.f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -1757,7 +1757,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Backward ].5, 0]
       job.from = .5f;
       job.to = 0.f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -1770,7 +1770,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Backward ].9, .5]
       job.from = .9f;
       job.to = .5f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -1783,7 +1783,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Backward [1., .5]
       job.from = 1.f;
       job.to = .5f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -1796,7 +1796,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Backward ].4, .1]
       job.from = .4f;
       job.to = .1f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -1806,7 +1806,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Backward loop [2., 0.]
       job.from = 2.f;
       job.to = 0.f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -1828,7 +1828,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Backward loop ]1.5, 0]
       job.from = 1.5f;
       job.to = 0.f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -1847,7 +1847,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Backward loop ]1.5, 1.]
       job.from = 1.5f;
       job.to = 1.f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -1860,7 +1860,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Backward loop [1.6, .9[
       job.from = 1.6f;
       job.to = .9f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -1876,7 +1876,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // Backward out of bound [3., 1.5]
       job.from = 3.f;
       job.to = 1.5f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -1897,7 +1897,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // [0., 2.]
       job.from = 0.f;
       job.to = 2.f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -1919,7 +1919,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // [2., 0.]
       job.from = 2.f;
       job.to = 0.f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -1943,7 +1943,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // [-1, 0[
       job.from = -1.f;
       job.to = 0.f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -1959,7 +1959,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // [-1.5, 0.5[
       job.from = -1.5f;
       job.to = .5f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -1981,7 +1981,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // [-1.4, 0.6[
       job.from = -1.4f;
       job.to = .6f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -2005,7 +2005,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // [0, -1]
       job.from = 0.f;
       job.to = -1.f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -2021,7 +2021,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // ]0.5, -1.5]
       job.from = .5f;
       job.to = -1.5f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -2043,7 +2043,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     {  // ]0.6, -1.4]
       job.from = .6f;
       job.to = -1.4f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -2097,7 +2097,7 @@ TEST(Linear, TrackEdgeTriggerJob) {
     {  // Forward [0, .99[, 1 is excluded
       job.from = 0.f;
       job.to = .99f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -2113,7 +2113,7 @@ TEST(Linear, TrackEdgeTriggerJob) {
     {  // Forward [0, 1], 1 is included
       job.from = 0.f;
       job.to = 1.f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -2129,7 +2129,7 @@ TEST(Linear, TrackEdgeTriggerJob) {
     {  // Forward [0, .5[
       job.from = 0.f;
       job.to = .5f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -2142,7 +2142,7 @@ TEST(Linear, TrackEdgeTriggerJob) {
     {  // Forward [.1, .25[
       job.from = 0.f;
       job.to = .25f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -2152,7 +2152,7 @@ TEST(Linear, TrackEdgeTriggerJob) {
     {  // Forward [.25, .5[
       job.from = 0.f;
       job.to = .5f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -2165,7 +2165,7 @@ TEST(Linear, TrackEdgeTriggerJob) {
     {  // Forward [.4, .5[
       job.from = .4f;
       job.to = .5f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -2175,7 +2175,7 @@ TEST(Linear, TrackEdgeTriggerJob) {
     {  // Forward [.5, .75[
       job.from = .5;
       job.to = .75f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -2185,7 +2185,7 @@ TEST(Linear, TrackEdgeTriggerJob) {
     {  // Forward [.75, 1.[
       job.from = .75;
       job.to = 1.f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -2198,7 +2198,7 @@ TEST(Linear, TrackEdgeTriggerJob) {
     {  // Forward [.5, .9[
       job.from = .5;
       job.to = .9f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -2211,7 +2211,7 @@ TEST(Linear, TrackEdgeTriggerJob) {
     {  // Forward [.9, 1.], 1 is included
       job.from = .9f;
       job.to = 1.f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -2221,7 +2221,7 @@ TEST(Linear, TrackEdgeTriggerJob) {
     {  // Forward [.5, 1.], 1 is included
       job.from = .5f;
       job.to = 1.f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -2234,7 +2234,7 @@ TEST(Linear, TrackEdgeTriggerJob) {
     {  // Forward loop [0., 2.],
       job.from = 0.f;
       job.to = 2.f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -2256,7 +2256,7 @@ TEST(Linear, TrackEdgeTriggerJob) {
     {  // Forward loop [0., 1.75[,
       job.from = 0.f;
       job.to = 1.75f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -2275,7 +2275,7 @@ TEST(Linear, TrackEdgeTriggerJob) {
     {  // Forward out of bound[1.5, 1.9[
       job.from = 1.5f;
       job.to = 1.9f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -2288,7 +2288,7 @@ TEST(Linear, TrackEdgeTriggerJob) {
     {  // Forward out of bound[1.5, 3.]
       job.from = 1.5f;
       job.to = 3.f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -2307,7 +2307,7 @@ TEST(Linear, TrackEdgeTriggerJob) {
     {  // Forward loop [1., 1.8[,
       job.from = 1.f;
       job.to = 1.8f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -2324,7 +2324,7 @@ TEST(Linear, TrackEdgeTriggerJob) {
     {  // Forward loop [1.25, 1.8[,
       job.from = 1.25f;
       job.to = 1.8f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -2341,7 +2341,7 @@ TEST(Linear, TrackEdgeTriggerJob) {
     {  // Forward loop [1.25, 1.75[,
       job.from = 1.25f;
       job.to = 1.75f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -2354,7 +2354,7 @@ TEST(Linear, TrackEdgeTriggerJob) {
     {  // Forward loop [.9, 1.6[,
       job.from = .9f;
       job.to = 1.6f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -2369,7 +2369,7 @@ TEST(Linear, TrackEdgeTriggerJob) {
     {  // Backward [1, .01], 0 is excluded
       job.from = 1.f;
       job.to = .01f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -2385,7 +2385,7 @@ TEST(Linear, TrackEdgeTriggerJob) {
     {  // Backward [1, 0], 0 is included
       job.from = 1.f;
       job.to = 0.f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -2401,7 +2401,7 @@ TEST(Linear, TrackEdgeTriggerJob) {
     {  // Backward [2, 1],
       job.from = 2.f;
       job.to = 1.f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -2417,7 +2417,7 @@ TEST(Linear, TrackEdgeTriggerJob) {
     {  // Backward ].5, 0]
       job.from = .5f;
       job.to = 0.f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -2430,7 +2430,7 @@ TEST(Linear, TrackEdgeTriggerJob) {
     {  // Backward ].9, .5]
       job.from = .9f;
       job.to = .5f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -2443,7 +2443,7 @@ TEST(Linear, TrackEdgeTriggerJob) {
     {  // Backward [1., .75]
       job.from = 1.f;
       job.to = .75f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -2456,7 +2456,7 @@ TEST(Linear, TrackEdgeTriggerJob) {
     {  // Backward ].25, .1]
       job.from = .25f;
       job.to = .1f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -2466,7 +2466,7 @@ TEST(Linear, TrackEdgeTriggerJob) {
     {  // Backward loop [2., 0.]
       job.from = 2.f;
       job.to = 0.f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -2488,7 +2488,7 @@ TEST(Linear, TrackEdgeTriggerJob) {
     {  // Backward loop ]1.5, 0]
       job.from = 1.5f;
       job.to = 0.f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -2507,7 +2507,7 @@ TEST(Linear, TrackEdgeTriggerJob) {
     {  // Backward loop ]1.75, 1.]
       job.from = 1.75f;
       job.to = 1.f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -2520,7 +2520,7 @@ TEST(Linear, TrackEdgeTriggerJob) {
     {  // Backward loop ]1.8, .7]
       job.from = 1.8f;
       job.to = .7f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -2539,7 +2539,7 @@ TEST(Linear, TrackEdgeTriggerJob) {
     {  // Backward out of bound [3., 1.5]
       job.from = 3.f;
       job.to = 1.5f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -2560,7 +2560,7 @@ TEST(Linear, TrackEdgeTriggerJob) {
     {  // [0., 1.75]
       job.from = 0.f;
       job.to = 1.75f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -2579,7 +2579,7 @@ TEST(Linear, TrackEdgeTriggerJob) {
     {  // [1.75, 0.]
       job.from = 1.75f;
       job.to = 0.f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -2600,7 +2600,7 @@ TEST(Linear, TrackEdgeTriggerJob) {
     {  // [-1, 0[
       job.from = -1.f;
       job.to = 0.f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -2616,7 +2616,7 @@ TEST(Linear, TrackEdgeTriggerJob) {
     {  // [-1.75,0.75[
       job.from = -1.75f;
       job.to = .75f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -2641,7 +2641,7 @@ TEST(Linear, TrackEdgeTriggerJob) {
     {  // [-1.25, 0.8[
       job.from = -1.25f;
       job.to = .8f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -2668,7 +2668,7 @@ TEST(Linear, TrackEdgeTriggerJob) {
     {  // [0, -1]
       job.from = 0.f;
       job.to = -1.f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -2684,7 +2684,7 @@ TEST(Linear, TrackEdgeTriggerJob) {
     {  // ]0.5, -1.5]
       job.from = .5f;
       job.to = -1.5f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -2706,7 +2706,7 @@ TEST(Linear, TrackEdgeTriggerJob) {
     {  // ]0.8, -1.4]
       job.from = .8f;
       job.to = -1.4f;
-      ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
 
@@ -2763,7 +2763,7 @@ TEST(StepThreshold, TrackEdgeTriggerJob) {
 
   {  // In range
     job.threshold = .5f;
-    ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+    FloatTrackTriggeringJob::Edges edges(edges_buffer);
     job.edges = &edges;
 
     EXPECT_TRUE(job.Run());
@@ -2778,7 +2778,7 @@ TEST(StepThreshold, TrackEdgeTriggerJob) {
 
   {  // Top range is included
     job.threshold = 1.f;
-    ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+    FloatTrackTriggeringJob::Edges edges(edges_buffer);
     job.edges = &edges;
 
     EXPECT_TRUE(job.Run());
@@ -2793,7 +2793,7 @@ TEST(StepThreshold, TrackEdgeTriggerJob) {
 
   {  // In range
     job.threshold = 0.f;
-    ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+    FloatTrackTriggeringJob::Edges edges(edges_buffer);
     job.edges = &edges;
 
     EXPECT_TRUE(job.Run());
@@ -2808,7 +2808,7 @@ TEST(StepThreshold, TrackEdgeTriggerJob) {
 
   {  // Bottom of range is excluded
     job.threshold = -1.f;
-    ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+    FloatTrackTriggeringJob::Edges edges(edges_buffer);
     job.edges = &edges;
 
     EXPECT_TRUE(job.Run());
@@ -2820,7 +2820,7 @@ TEST(StepThreshold, TrackEdgeTriggerJob) {
     job.from = 0.f;
     job.to = 1.f;
     job.threshold = 2.f;
-    ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+    FloatTrackTriggeringJob::Edges edges(edges_buffer);
     job.edges = &edges;
 
     EXPECT_TRUE(job.Run());
@@ -2860,7 +2860,7 @@ TEST(LiearThreshold, TrackEdgeTriggerJob) {
 
   {  // In range
     job.threshold = .5f;
-    ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+    FloatTrackTriggeringJob::Edges edges(edges_buffer);
     job.edges = &edges;
 
     EXPECT_TRUE(job.Run());
@@ -2875,7 +2875,7 @@ TEST(LiearThreshold, TrackEdgeTriggerJob) {
 
   {  // Top range is included
     job.threshold = 1.f;
-    ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+    FloatTrackTriggeringJob::Edges edges(edges_buffer);
     job.edges = &edges;
 
     EXPECT_TRUE(job.Run());
@@ -2890,7 +2890,7 @@ TEST(LiearThreshold, TrackEdgeTriggerJob) {
 
   {  // In range
     job.threshold = 0.f;
-    ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+    FloatTrackTriggeringJob::Edges edges(edges_buffer);
     job.edges = &edges;
 
     EXPECT_TRUE(job.Run());
@@ -2905,7 +2905,7 @@ TEST(LiearThreshold, TrackEdgeTriggerJob) {
 
   {  // Bottom of range is excluded
     job.threshold = -1.f;
-    ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+    FloatTrackTriggeringJob::Edges edges(edges_buffer);
     job.edges = &edges;
 
     EXPECT_TRUE(job.Run());
@@ -2917,7 +2917,7 @@ TEST(LiearThreshold, TrackEdgeTriggerJob) {
     job.from = 0.f;
     job.to = 1.f;
     job.threshold = 2.f;
-    ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+    FloatTrackTriggeringJob::Edges edges(edges_buffer);
     job.edges = &edges;
 
     EXPECT_TRUE(job.Run());
@@ -2958,7 +2958,7 @@ TEST(Overflow, TrackEdgeTriggerJob) {
   {  // No overflow
     job.from = 0.f;
     job.to = 1.f;
-    ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+    FloatTrackTriggeringJob::Edges edges(edges_buffer);
     job.edges = &edges;
 
     EXPECT_TRUE(job.Run());
@@ -2975,7 +2975,7 @@ TEST(Overflow, TrackEdgeTriggerJob) {
   {  // Full but no overflow
     job.from = 0.f;
     job.to = 1.6f;
-    ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+    FloatTrackTriggeringJob::Edges edges(edges_buffer);
     job.edges = &edges;
 
     EXPECT_TRUE(job.Run());
@@ -2995,7 +2995,7 @@ TEST(Overflow, TrackEdgeTriggerJob) {
   {  // Overflow
     job.from = 0.f;
     job.to = 2.f;
-    ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+    FloatTrackTriggeringJob::Edges edges(edges_buffer);
     job.edges = &edges;
 
     EXPECT_FALSE(job.Run());  // Return false
@@ -3015,7 +3015,7 @@ TEST(Overflow, TrackEdgeTriggerJob) {
   {  // Empty output
     job.from = 0.f;
     job.to = 2.f;
-    ozz::Range<FloatTrackTriggeringJob::Edge> edges;
+    FloatTrackTriggeringJob::Edges edges;
     job.edges = &edges;
 
     EXPECT_FALSE(job.Run());
@@ -3039,7 +3039,7 @@ TEST(Emyty, TrackEdgeTriggerJob) {
   job.threshold = 1.f;
   job.from = 0.f;
   job.to = 1.f;
-  ozz::Range<FloatTrackTriggeringJob::Edge> edges(edges_buffer);
+  FloatTrackTriggeringJob::Edges edges(edges_buffer);
   job.edges = &edges;
 
   EXPECT_TRUE(job.Run());
