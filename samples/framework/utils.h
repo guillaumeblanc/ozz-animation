@@ -86,7 +86,7 @@ class PlaybackController {
 
   // Do controller Gui.
   void OnGui(const animation::Animation& _animation, ImGui* _im_gui,
-             bool _enabled = true);
+             bool _enabled = true, bool _allow_set_time = true);
 
  private:
   // Time of the previous update.

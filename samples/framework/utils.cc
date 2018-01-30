@@ -77,14 +77,15 @@ void PlaybackController::Reset() {
 }
 
 void PlaybackController::OnGui(const animation::Animation& _animation,
-                               ImGui* _im_gui, bool _enabled) {
+                               ImGui* _im_gui, bool _enabled,
+                               bool _allow_set_time) {
   if (_im_gui->DoButton(play_ ? "Pause" : "Play", _enabled)) {
     play_ = !play_;
   }
   char szLabel[64];
   std::sprintf(szLabel, "Animation time: %.2f", time_);
   if (_im_gui->DoSlider(szLabel, 0.f, _animation.duration(), &time_, 1.f,
-                        _enabled)) {
+                        _enabled && _allow_set_time)) {
     // Pause the time if slider as moved.
     play_ = false;
   }
