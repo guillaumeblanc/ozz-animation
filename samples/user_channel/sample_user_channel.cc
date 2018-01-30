@@ -77,7 +77,7 @@ class LoadSampleApplication : public ozz::sample::Application {
  public:
   LoadSampleApplication()
       : cache_(NULL),
-        method_(0),
+        method_(1),  // Triggering is the most robust method.
         attached_(false),
         attach_joint_(0),
         box_world_transform_(
@@ -87,36 +87,7 @@ class LoadSampleApplication : public ozz::sample::Application {
  protected:
   virtual bool OnUpdate(float _dt) {
     // Updates current animation time.
-    bool looped = controller_.Update(animation_, _dt);
-
-    // Reset box position to its initial location. Note that it depends on
-    // animation playback direction.
-    if (looped) {
-      box_world_transform_ =
-          ozz::math::Float4x4::Translation(kBoxInitialPosition);
-    }
-
-    // Samples optimized animation at t = animation_time_.
-    ozz::animation::SamplingJob sampling_job;
-    sampling_job.animation = &animation_;
-    sampling_job.cache = cache_;
-    sampling_job.time = controller_.time();
-    sampling_job.output = locals_;
-    if (!sampling_job.Run()) {
-      return false;
-    }
-
-    // Converts from local space to model space matrices.
-    ozz::animation::LocalToModelJob ltm_job;
-    ltm_job.skeleton = &skeleton_;
-    ltm_job.input = locals_;
-    ltm_job.output = models_;
-    if (!ltm_job.Run()) {
-      return false;
-    }
-
-    // Stores previous attachment state to be able to detect a change.
-    const bool previously_attached = attached_;
+    controller_.Update(animation_, _dt);
 
     // Update attachment state depending on the selected method, aka sample or
     // triggering.
@@ -132,13 +103,6 @@ class LoadSampleApplication : public ozz::sample::Application {
 
     // Updates box transform based on attachment state.
     if (attached_) {
-      // Find the relative transform of the box relative to the joint if the box
-      // is being attached now.
-      if (!previously_attached) {
-        box_local_transform_ =
-            Invert(models_[attach_joint_]) * box_world_transform_;
-      }
-      // Compute new (attached) box position.
       box_world_transform_ = models_[attach_joint_] * box_local_transform_;
     } else {
       // Lets the box where it is.
@@ -148,6 +112,12 @@ class LoadSampleApplication : public ozz::sample::Application {
   }
 
   bool Update_SamplingMethod() {
+
+    // Updates animation and computes new joints position.
+    if (!Update_Joints(controller_.time())) {
+      return false;
+    }
+
     // Samples the track in order to know if the box should be attached to the
     // skeleton joint (hand).
     ozz::animation::FloatTrackSamplingJob job;
@@ -162,7 +132,16 @@ class LoadSampleApplication : public ozz::sample::Application {
     if (!job.Run()) {
       return false;
     }
+
+    bool previously_attached = attached_;
     attached_ = attached != 0.f;
+
+    // If box is being attached, then computes it's relative position with the
+    // attachment joint.
+    if (attached_ && !previously_attached) {
+      box_local_transform_ =
+          Invert(models_[attach_joint_]) * box_world_transform_;
+    }
 
     return true;
   }
@@ -178,8 +157,8 @@ class LoadSampleApplication : public ozz::sample::Application {
     job.from = controller_.previous_time() / animation_.duration();
     job.to = controller_.time() / animation_.duration();
     job.track = &track_;
-    job.threshold =
-        .5f;  // Considered attached as soon as the value is greater than this.
+    job.threshold = .5f;  // Considered attached as soon as the value is
+                          // greater than this.
     ozz::animation::FloatTrackTriggeringJob::Edge edges_buffer[8];
     ozz::animation::FloatTrackTriggeringJob::Edges edges(edges_buffer);
     job.edges = &edges;
@@ -187,18 +166,62 @@ class LoadSampleApplication : public ozz::sample::Application {
       return false;
     }
 
-    // Rising edges put "attached" state on. In this case we're only interested
-    // in the last edge (if any).
-    if (edges.Count() != 0) {
-      const ozz::animation::FloatTrackTriggeringJob::Edge& last_edge =
-          edges[edges.Count() - 1];
-      attached_ = last_edge.rising;
+    // Knowing exact edge time, joint position can be re-sampled in order
+    // to get attachment joint position at the precise attachment time. This
+    // makes the algorithm frame rate independent.
+    for (size_t i = 0; i < edges.Count(); ++i) {
+      const ozz::animation::FloatTrackTriggeringJob::Edge& edge = edges[i];
 
-      // Knowing exact edge time, joint position could be re-sampled in order to
-      // get attachment joint position at the precise attachment time. This
-      // would make the algorithm frame rate independent.
-      // Left to the reader as an exercise...
+      // Updates attachment state.
+      attached_ = edge.rising;
+
+      // Updates animation and computes joints position at edge time.
+      // Sampling is cached so this intermediate updates don't have a big
+      // performance impact.
+      if (!Update_Joints(edge.time * animation_.duration())) {
+        return false;
+      }
+
+      if (edge.rising) {
+        // Box is being attached on rising edges.
+        // Find the relative transform of the box to the attachment joint.
+        box_local_transform_ =
+            Invert(models_[attach_joint_]) * box_world_transform_;
+      } else {
+        // Box is being detached on falling edges.
+        // Compute box position when it was released.
+        box_world_transform_ = models_[attach_joint_] * box_local_transform_;
+      }
     }
+
+    // Finally updates animation and computes joints position.
+    if (!Update_Joints(controller_.time())) {
+      return false;
+    }
+
+    return true;
+  }
+
+  bool Update_Joints(float _time) {
+    // Samples animation at t = _time.
+    ozz::animation::SamplingJob sampling_job;
+    sampling_job.animation = &animation_;
+    sampling_job.cache = cache_;
+    sampling_job.time = _time;
+    sampling_job.output = locals_;
+    if (!sampling_job.Run()) {
+      return false;
+    }
+
+    // Converts from local space to model space matrices.
+    ozz::animation::LocalToModelJob ltm_job;
+    ltm_job.skeleton = &skeleton_;
+    ltm_job.input = locals_;
+    ltm_job.output = models_;
+    if (!ltm_job.Run()) {
+      return false;
+    }
+
     return true;
   }
 
@@ -271,8 +294,16 @@ class LoadSampleApplication : public ozz::sample::Application {
     {
       static bool open = true;
       ozz::sample::ImGui::OpenClose oc(_im_gui, "Track access method", &open);
-      _im_gui->DoRadioButton(0, "Sampling", &method_);
-      _im_gui->DoRadioButton(1, "Triggering", &method_);
+      bool changed = _im_gui->DoRadioButton(0, "Sampling", &method_);
+      changed |= _im_gui->DoRadioButton(1, "Triggering", &method_);
+      if (changed) {
+        // Reset box position to its initial location.
+        controller_.set_time(0.f);
+        attached_ = false;
+        box_local_transform_ = ozz::math::Float4x4::identity();
+        box_world_transform_ =
+            ozz::math::Float4x4::Translation(kBoxInitialPosition);
+      }
     }
     // Exposes animation runtime playback controls.
     {
@@ -280,9 +311,10 @@ class LoadSampleApplication : public ozz::sample::Application {
       ozz::sample::ImGui::OpenClose oc(_im_gui, "Animation control", &open);
       if (open) {
         _im_gui->DoLabel(
-            "Note that changing playback time could break box attachment state",
+            "Note that changing playback time could break box attachment "
+            "state",
             ozz::sample::ImGui::kLeft, false);
-        controller_.OnGui(animation_, _im_gui);
+        controller_.OnGui(animation_, _im_gui, true, false);
       }
     }
     return true;
@@ -319,8 +351,8 @@ class LoadSampleApplication : public ozz::sample::Application {
   // Track reading method, aka sampling (0) or triggering (1).
   int method_;
 
-  // Stores whether the box is currently attached. This flag is computed during
-  // update. This is only used for debug display purpose.
+  // Stores whether the box is currently attached. This flag is computed
+  // during update. This is only used for debug display purpose.
   bool attached_;
 
   // Index of the joint where the box must be attached.
