@@ -46,7 +46,11 @@ struct FloatTrackTriggeringJob {
   float from;
   float to;
 
-  // Edge detection threshold.
+  // Edge detection threshold value.
+  // A rising edge is detected as soon as the track value becomes greater than
+  // the threshold.
+  // A falling edge is detected as soon as the track value becomes smaller or
+  // equal than the threshold.
   float threshold;
 
   // Track to sample.

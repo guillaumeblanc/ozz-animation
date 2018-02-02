@@ -96,11 +96,11 @@ bool FloatTrackTriggeringJob::Run() const {
 
       bool rising = false;
       bool detected = false;
-      if (vk0 < threshold && vk1 >= threshold) {
+      if (vk0 <= threshold && vk1 > threshold) {
         // Rising edge
         rising = forward;
         detected = true;
-      } else if (vk0 >= threshold && vk1 < threshold) {
+      } else if (vk0 > threshold && vk1 <= threshold) {
         // Falling edge
         rising = !forward;
         detected = true;

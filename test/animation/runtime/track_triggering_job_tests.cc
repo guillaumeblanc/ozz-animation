@@ -40,8 +40,8 @@
 using ozz::animation::FloatTrack;
 using ozz::animation::FloatTrackTriggeringJob;
 using ozz::animation::offline::RawFloatTrack;
-using ozz::animation::offline::TrackBuilder;
 using ozz::animation::offline::RawTrackInterpolation;
+using ozz::animation::offline::TrackBuilder;
 
 TEST(JobValidity, FloatTrackTriggeringJob) {
   FloatTrackTriggeringJob::Edge edges_buffer[8];
@@ -2741,7 +2741,7 @@ TEST(StepThreshold, TrackEdgeTriggerJob) {
   // Rising edge at t = 0.5
   ozz::animation::offline::RawFloatTrack raw_track;
 
-  // Keyframe values oscillate in range [0,1].
+  // Keyframe values oscillate in range [-1,1].
   const ozz::animation::offline::RawFloatTrack::Keyframe key0 = {
       RawTrackInterpolation::kStep, 0.f, -1.f};
   raw_track.keyframes.push_back(key0);
@@ -2776,8 +2776,8 @@ TEST(StepThreshold, TrackEdgeTriggerJob) {
     EXPECT_EQ(edges[1].rising, false);
   }
 
-  {  // Top range is included
-    job.threshold = 1.f;
+  {  // Bottom of range is included
+    job.threshold = -1.f;
     FloatTrackTriggeringJob::Edges edges(edges_buffer);
     job.edges = &edges;
 
@@ -2789,6 +2789,16 @@ TEST(StepThreshold, TrackEdgeTriggerJob) {
     EXPECT_EQ(edges[0].rising, true);
     EXPECT_FLOAT_EQ(edges[1].time, 1.f);
     EXPECT_EQ(edges[1].rising, false);
+  }
+
+  {  // Top range is excluded
+    job.threshold = 1.f;
+    FloatTrackTriggeringJob::Edges edges(edges_buffer);
+    job.edges = &edges;
+
+    EXPECT_TRUE(job.Run());
+
+    ASSERT_EQ(edges.Count(), 0u);
   }
 
   {  // In range
@@ -2806,16 +2816,6 @@ TEST(StepThreshold, TrackEdgeTriggerJob) {
     EXPECT_EQ(edges[1].rising, false);
   }
 
-  {  // Bottom of range is excluded
-    job.threshold = -1.f;
-    FloatTrackTriggeringJob::Edges edges(edges_buffer);
-    job.edges = &edges;
-
-    EXPECT_TRUE(job.Run());
-
-    ASSERT_EQ(edges.Count(), 0u);
-  }
-
   {  // Out of range
     job.from = 0.f;
     job.to = 1.f;
@@ -2831,7 +2831,7 @@ TEST(StepThreshold, TrackEdgeTriggerJob) {
   ozz::memory::default_allocator()->Delete(track);
 }
 
-TEST(LiearThreshold, TrackEdgeTriggerJob) {
+TEST(StepThresholdBool, TrackEdgeTriggerJob) {
   TrackBuilder builder;
   FloatTrackTriggeringJob::Edge edges_buffer[8];
 
@@ -2839,6 +2839,76 @@ TEST(LiearThreshold, TrackEdgeTriggerJob) {
   ozz::animation::offline::RawFloatTrack raw_track;
 
   // Keyframe values oscillate in range [0,1].
+  const ozz::animation::offline::RawFloatTrack::Keyframe key0 = {
+      RawTrackInterpolation::kStep, 0.f, 0.f};
+  raw_track.keyframes.push_back(key0);
+  const ozz::animation::offline::RawFloatTrack::Keyframe key1 = {
+      RawTrackInterpolation::kStep, .5f, 1.f};
+  raw_track.keyframes.push_back(key1);
+  const ozz::animation::offline::RawFloatTrack::Keyframe key2 = {
+      RawTrackInterpolation::kStep, 1.f, 0.f};
+  raw_track.keyframes.push_back(key2);
+
+  // Builds track
+  ozz::animation::FloatTrack* track = builder(raw_track);
+  ASSERT_TRUE(track != NULL);
+
+  FloatTrackTriggeringJob job;
+  job.track = track;
+  job.from = 0.f;
+  job.to = 1.f;
+
+  {  // In range
+    job.threshold = .5f;
+    FloatTrackTriggeringJob::Edges edges(edges_buffer);
+    job.edges = &edges;
+
+    EXPECT_TRUE(job.Run());
+
+    ASSERT_EQ(edges.Count(), 2u);
+
+    EXPECT_FLOAT_EQ(edges[0].time, .5f);
+    EXPECT_EQ(edges[0].rising, true);
+    EXPECT_FLOAT_EQ(edges[1].time, 1.f);
+    EXPECT_EQ(edges[1].rising, false);
+  }
+
+  {  // Top range is excluded
+    job.threshold = 1.f;
+    FloatTrackTriggeringJob::Edges edges(edges_buffer);
+    job.edges = &edges;
+
+    EXPECT_TRUE(job.Run());
+
+    ASSERT_EQ(edges.Count(), 0u);
+  }
+
+  {  // Bottom range is included
+    job.threshold = 0.f;
+    FloatTrackTriggeringJob::Edges edges(edges_buffer);
+    job.edges = &edges;
+
+    EXPECT_TRUE(job.Run());
+
+    ASSERT_EQ(edges.Count(), 2u);
+
+    EXPECT_FLOAT_EQ(edges[0].time, .5f);
+    EXPECT_EQ(edges[0].rising, true);
+    EXPECT_FLOAT_EQ(edges[1].time, 1.f);
+    EXPECT_EQ(edges[1].rising, false);
+  }
+
+  ozz::memory::default_allocator()->Delete(track);
+}
+
+TEST(LiearThreshold, TrackEdgeTriggerJob) {
+  TrackBuilder builder;
+  FloatTrackTriggeringJob::Edge edges_buffer[8];
+
+  // Rising edge at t = 0.5
+  ozz::animation::offline::RawFloatTrack raw_track;
+
+  // Keyframe values oscillate in range [-1,1].
   const ozz::animation::offline::RawFloatTrack::Keyframe key0 = {
       RawTrackInterpolation::kLinear, 0.f, -1.f};
   raw_track.keyframes.push_back(key0);
@@ -2873,19 +2943,14 @@ TEST(LiearThreshold, TrackEdgeTriggerJob) {
     EXPECT_EQ(edges[1].rising, false);
   }
 
-  {  // Top range is included
+  {  // Top range is excluded
     job.threshold = 1.f;
     FloatTrackTriggeringJob::Edges edges(edges_buffer);
     job.edges = &edges;
 
     EXPECT_TRUE(job.Run());
 
-    ASSERT_EQ(edges.Count(), 2u);
-
-    EXPECT_FLOAT_EQ(edges[0].time, .5f);
-    EXPECT_EQ(edges[0].rising, true);
-    EXPECT_FLOAT_EQ(edges[1].time, .5f);
-    EXPECT_EQ(edges[1].rising, false);
+    ASSERT_EQ(edges.Count(), 0u);
   }
 
   {  // In range
@@ -2903,14 +2968,19 @@ TEST(LiearThreshold, TrackEdgeTriggerJob) {
     EXPECT_EQ(edges[1].rising, false);
   }
 
-  {  // Bottom of range is excluded
+  {  // Bottom of range is included
     job.threshold = -1.f;
     FloatTrackTriggeringJob::Edges edges(edges_buffer);
     job.edges = &edges;
 
     EXPECT_TRUE(job.Run());
 
-    ASSERT_EQ(edges.Count(), 0u);
+    ASSERT_EQ(edges.Count(), 2u);
+
+    EXPECT_FLOAT_EQ(edges[0].time, 0.f);
+    EXPECT_EQ(edges[0].rising, true);
+    EXPECT_FLOAT_EQ(edges[1].time, 1.f);
+    EXPECT_EQ(edges[1].rising, false);
   }
 
   {  // Out of range

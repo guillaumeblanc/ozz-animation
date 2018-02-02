@@ -112,7 +112,6 @@ class LoadSampleApplication : public ozz::sample::Application {
   }
 
   bool Update_SamplingMethod() {
-
     // Updates animation and computes new joints position.
     if (!Update_Joints(controller_.time())) {
       return false;
@@ -154,11 +153,18 @@ class LoadSampleApplication : public ozz::sample::Application {
     // Tracks have a unit length duration. They are thus sampled with a ratio
     // (rather than a time), which is computed based on the duration of the
     // animation they refer to.
+    // Its important to use exact "previous time" here, because if we recompute
+    // it with dt, we might use a time range that is not exactly next to the
+    // previous one, leading to missed or redundant edges.
+    // Previous_time can be higher that current time, in case of a loop. It's
+    // not a problem. Edges will be triggered backward (rewinding track in
+    // time), so the "attachment" state remains valid. It's not the shortest or
+    // optimum path though.
     job.from = controller_.previous_time() / animation_.duration();
     job.to = controller_.time() / animation_.duration();
     job.track = &track_;
-    job.threshold = .5f;  // Considered attached as soon as the value is
-                          // greater than this.
+    job.threshold = 0.f;  // Considered attached as soon as the value is
+                          // greater than 0, aka different from 0.
     ozz::animation::FloatTrackTriggeringJob::Edge edges_buffer[8];
     ozz::animation::FloatTrackTriggeringJob::Edges edges(edges_buffer);
     job.edges = &edges;
@@ -297,7 +303,7 @@ class LoadSampleApplication : public ozz::sample::Application {
       bool changed = _im_gui->DoRadioButton(0, "Sampling", &method_);
       changed |= _im_gui->DoRadioButton(1, "Triggering", &method_);
       if (changed) {
-        // Reset box position to its initial location.
+        // Reset everything to it's initial state.
         controller_.set_time(0.f);
         attached_ = false;
         box_local_transform_ = ozz::math::Float4x4::identity();
