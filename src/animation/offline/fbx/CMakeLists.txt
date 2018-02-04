@@ -89,7 +89,7 @@ set(animations
   "/fbx/alain/crossarms.fbx\;/bin/alain_skeleton.ozz\;{\"animations\":[{\"output\":\"${ozz_media_directory}/bin/alain_crossarms.ozz\"}]}\;output:/bin/alain_crossarms.ozz"
   "/fbx/alain/crackhead.fbx\;/bin/alain_skeleton.ozz\;{\"animations\":[{\"output\":\"${ozz_media_directory}/bin/alain_crackhead.ozz\"}]}\;output:/bin/alain_crackhead.ozz"
   "/fbx/alain/crackhead.fbx\;/bin/alain_skeleton.ozz\;{\"animations\":[{\"output\":\"${ozz_media_directory}/bin/alain_crackhead_additive.ozz\",\"additive\":true}]}\;output:/bin/alain_crackhead_additive.ozz"
-  "/fbx/robot.fbx\;/bin/robot_skeleton.ozz\;{\"animations\":[{\"output\":\"${ozz_media_directory}/bin/robot_animation.ozz\",\"tracks\":[{\"imports\":[{\"joint_name\":\"thumb2\",\"property_name\":\"grasp\",\"output\":\"${ozz_media_directory}/bin/robot_track_grasp.ozz\"}]}]}]}\;output:/bin/robot_animation.ozz\;output:/bin/robot_track_grasp.ozz"
+  "/fbx/robot.fbx\;/bin/robot_skeleton.ozz\;{\"animations\":[{\"output\":\"${ozz_media_directory}/bin/robot_animation.ozz\",\"optimization_tolerances\":{\"hierarchical\":0.0001},\"tracks\":[{\"imports\":[{\"joint_name\":\"thumb2\",\"property_name\":\"grasp\",\"output\":\"${ozz_media_directory}/bin/robot_track_grasp.ozz\"}]}]}]}\;output:/bin/robot_animation.ozz\;output:/bin/robot_track_grasp.ozz"
 
   # Versioning
   "/fbx/alain/run.fbx\;/bin/alain_skeleton.ozz\;{\"animations\":[{\"output\":\"${ozz_media_directory}/bin/versioning/raw_animation_v2_le.ozz\",\"raw\":true}]}\;output:/bin/versioning/raw_animation_v2_le.ozz\;option:--endian=little"
