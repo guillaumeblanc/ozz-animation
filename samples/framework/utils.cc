@@ -56,12 +56,15 @@ PlaybackController::PlaybackController()
 
 bool PlaybackController::Update(const animation::Animation& _animation,
                                 float _dt) {
+  // Needs to update previous_time_ even if controller isn't in "play" state.
+  // Play state means times does not progress, like _dt equals 0.
+  previous_time_ = time_;
+
   if (!play_) {
     return false;
   }
 
-  previous_time_ = time_;
-
+  // Updates next iteration time.
   const float new_time = time_ + _dt * playback_speed_;
   const float loops = new_time / _animation.duration();
   time_ = new_time - floorf(loops) * _animation.duration();
