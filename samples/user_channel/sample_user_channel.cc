@@ -79,12 +79,19 @@ class LoadSampleApplication : public ozz::sample::Application {
       : cache_(NULL),
         method_(1),  // Triggering is the most robust method.
         attached_(false),
-        attach_joint_(0),
-        box_world_transform_(
-            ozz::math::Float4x4::Translation(kBoxInitialPosition)),
-        box_local_transform_(ozz::math::Float4x4::identity()) {}
+        attach_joint_(0) {
+    ResetState();
+  }
 
  protected:
+  // Resets everything to it's initial state.
+  void ResetState() {
+    controller_.set_time(0.f);
+    attached_ = false;
+    box_local_transform_ = ozz::math::Float4x4::identity();
+    box_world_transform_ =
+        ozz::math::Float4x4::Translation(kBoxInitialPosition);
+  }
   virtual bool OnUpdate(float _dt) {
     // Updates current animation time.
     controller_.Update(animation_, _dt);
@@ -303,12 +310,7 @@ class LoadSampleApplication : public ozz::sample::Application {
       bool changed = _im_gui->DoRadioButton(0, "Sampling", &method_);
       changed |= _im_gui->DoRadioButton(1, "Triggering", &method_);
       if (changed) {
-        // Reset everything to it's initial state.
-        controller_.set_time(0.f);
-        attached_ = false;
-        box_local_transform_ = ozz::math::Float4x4::identity();
-        box_world_transform_ =
-            ozz::math::Float4x4::Translation(kBoxInitialPosition);
+        ResetState();
       }
     }
     // Exposes animation runtime playback controls.
