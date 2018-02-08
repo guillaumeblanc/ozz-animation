@@ -354,6 +354,24 @@ set_tests_properties(test2anim_track_simple_output PROPERTIES DEPENDS test2anim_
 add_test(NAME test2anim_track_simple_output_anim COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/animation_track_simple_one.ozz" "${ozz_temp_directory}/animation_track_simple_one_should_exist.ozz")
 set_tests_properties(test2anim_track_simple_output_anim PROPERTIES DEPENDS test2anim_track_simple)
 
+add_test(NAME test2anim_track_simple_raw COMMAND test2anim "--file=${ozz_temp_directory}/good.content1" "--skeleton=${ozz_temp_directory}/skeleton.ozz" "--config={\"animations\":[{\"output\":\"${ozz_temp_directory}/animation_track_simple_*.ozz\",\"tracks\":[{\"imports\":[{\"joint_name\":\"joint0\",\"property_name\":\"property0\",\"output\":\"${ozz_temp_directory}/track_simple_raw.ozz\",\"raw\":true}]}]}]}")
+add_test(NAME test2anim_track_simple_raw_output COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/track_simple_raw.ozz" "${ozz_temp_directory}/track_simple_should_exist.ozz")
+set_tests_properties(test2anim_track_simple_raw_output PROPERTIES DEPENDS test2anim_track_simple_raw)
+add_test(NAME test2anim_track_simple_raw_output_anim COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/animation_track_simple_one.ozz" "${ozz_temp_directory}/animation_track_simple_one_should_exist.ozz")
+set_tests_properties(test2anim_track_simple_raw_output_anim PROPERTIES DEPENDS test2anim_track_simple_raw)
+
+add_test(NAME test2anim_track_simple_no_opt COMMAND test2anim "--file=${ozz_temp_directory}/good.content1" "--skeleton=${ozz_temp_directory}/skeleton.ozz" "--config={\"animations\":[{\"output\":\"${ozz_temp_directory}/animation_track_simple_*.ozz\",\"tracks\":[{\"imports\":[{\"joint_name\":\"joint0\",\"property_name\":\"property0\",\"output\":\"${ozz_temp_directory}/track_simple_no_opt.ozz\",\"optimize\":false}]}]}]}")
+add_test(NAME test2anim_track_simple_no_opt_output COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/track_simple_no_opt.ozz" "${ozz_temp_directory}/track_simple_should_exist.ozz")
+set_tests_properties(test2anim_track_simple_no_opt_output PROPERTIES DEPENDS test2anim_track_simple_no_opt)
+add_test(NAME test2anim_track_simple_no_opt_output_anim COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/animation_track_simple_one.ozz" "${ozz_temp_directory}/animation_track_simple_one_should_exist.ozz")
+set_tests_properties(test2anim_track_simple_no_opt_output_anim PROPERTIES DEPENDS test2anim_track_simple_no_opt)
+
+add_test(NAME test2anim_track_simple_no_opt_raw COMMAND test2anim "--file=${ozz_temp_directory}/good.content1" "--skeleton=${ozz_temp_directory}/skeleton.ozz" "--config={\"animations\":[{\"output\":\"${ozz_temp_directory}/animation_track_simple_*.ozz\",\"tracks\":[{\"imports\":[{\"joint_name\":\"joint0\",\"property_name\":\"property0\",\"output\":\"${ozz_temp_directory}/track_simple_no_opt_raw.ozz\",\"optimize\":false,\"raw\":true}]}]}]}")
+add_test(NAME test2anim_track_simple_no_opt_raw_output COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/track_simple_no_opt_raw.ozz" "${ozz_temp_directory}/track_simple_should_exist.ozz")
+set_tests_properties(test2anim_track_simple_no_opt_raw_output PROPERTIES DEPENDS test2anim_track_simple_no_opt_raw)
+add_test(NAME test2anim_track_simple_no_opt_raw_output_anim COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/animation_track_simple_one.ozz" "${ozz_temp_directory}/animation_track_simple_one_should_exist.ozz")
+set_tests_properties(test2anim_track_simple_no_opt_raw_output_anim PROPERTIES DEPENDS test2anim_track_simple_no_opt_raw)
+
 add_test(NAME test2anim_track2_simple COMMAND test2anim "--file=${ozz_temp_directory}/good.content1" "--skeleton=${ozz_temp_directory}/skeleton.ozz" "--config={\"animations\":[{\"output\":\"${ozz_temp_directory}/animation_track2_simple_*.ozz\",\"tracks\":[{\"imports\":[{\"joint_name\":\"joint0\",\"property_name\":\"property2\",\"type\":2,\"output\":\"${ozz_temp_directory}/track2_simple.ozz\"}]}]}]}")
 add_test(NAME test2anim_track2_simple_output COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/track2_simple.ozz" "${ozz_temp_directory}/track2_simple_should_exist.ozz")
 set_tests_properties(test2anim_track2_simple_output PROPERTIES DEPENDS test2anim_track2_simple)
