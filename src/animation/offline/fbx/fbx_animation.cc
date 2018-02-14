@@ -197,7 +197,14 @@ bool GetValue(FbxPropertyValue& _property_value, EFbxType _type,
       *_value = value ? 1.f : 0.f;
       return success;
     }
-    case eFbxInt: {
+    case eFbxChar:
+    case eFbxUChar:
+    case eFbxShort:
+    case eFbxUShort:
+    case eFbxInt:
+    case eFbxUInt:
+    case eFbxEnum:
+    case eFbxEnumM: {
       int value;
       bool success = _property_value.Get(&value, eFbxInt);
       *_value = static_cast<float>(value);
@@ -213,6 +220,8 @@ bool GetValue(FbxPropertyValue& _property_value, EFbxType _type,
       return success;
     }
     default: {
+      // Only supported types are enumerated, so this function should not be
+      // called for something else.
       assert(false);
       return false;
     }
@@ -222,6 +231,8 @@ bool GetValue(FbxPropertyValue& _property_value, EFbxType _type,
 bool GetValue(FbxPropertyValue& _property_value, EFbxType _type,
               ozz::math::Float2* _value) {
   (void)_type;
+  // Only supported types are enumerated, so this function should not be called
+  // for something else but eFbxDouble2.
   assert(_type == eFbxDouble2);
   double dvalue[2];
   if (!_property_value.Get(&dvalue, eFbxDouble2)) {
@@ -236,6 +247,8 @@ bool GetValue(FbxPropertyValue& _property_value, EFbxType _type,
 bool GetValue(FbxPropertyValue& _property_value, EFbxType _type,
               ozz::math::Float3* _value) {
   (void)_type;
+  // Only supported types are enumerated, so this function should not be called
+  // for something else but eFbxDouble3.
   assert(_type == eFbxDouble3);
   double dvalue[3];
   if (!_property_value.Get(&dvalue, eFbxDouble3)) {
@@ -374,9 +387,10 @@ bool ExtractProperty(FbxSceneLoader& _scene_loader, const SamplingInfo& _info,
     case eFbxInt:
     case eFbxUInt:
     case eFbxBool:
-    case eFbxHalfFloat:
     case eFbxFloat:
-    case eFbxDouble: {
+    case eFbxDouble:
+    case eFbxEnum:
+    case eFbxEnumM: {
       return ExtractCurve(_scene_loader, _property, type, _info, _track);
     }
     default: {
@@ -529,8 +543,10 @@ AnimationConverter::NodeProperties GetNodeProperties(
       case eFbxInt:
       case eFbxUInt:
       case eFbxBool:
-      case eFbxHalfFloat:
-      case eFbxFloat: {
+      case eFbxFloat:
+      case eFbxDouble:
+      case eFbxEnum:
+      case eFbxEnumM: {
         const AnimationConverter::NodeProperty ppt = {
             ppt_name, AnimationConverter::NodeProperty::kFloat1};
         properties.push_back(ppt);
