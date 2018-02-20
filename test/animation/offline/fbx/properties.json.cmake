@@ -1,0 +1,34 @@
+{
+  "animations":
+  [
+    {
+      "output":"${ozz_temp_directory}/fbx_properties_animation_${CMAKE_CURRENT_LIST_LINE}.ozz",
+      "tracks":
+      [
+        {
+          "imports":
+          [
+            {
+              "output":"${ozz_temp_directory}/fbx_properties_track1_*.ozz",
+              "joint_name":"*",
+              "property_name":"ozz_*",
+              "type":1
+            },
+            {
+              "output":"${ozz_temp_directory}/fbx_properties_track2_*.ozz",
+              "joint_name":"*",
+              "property_name":"ozz_*",
+              "type":2
+            },
+            {
+              "output":"${ozz_temp_directory}/fbx_properties_track3_*.ozz",
+              "joint_name":"*",
+              "property_name":"ozz_*",
+              "type":3
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -59,6 +59,38 @@ set_tests_properties(fbx2anim_little PROPERTIES DEPENDS fbx2skel_simple)
 add_test(NAME fbx2anim_big COMMAND fbx2anim "--file=${ozz_media_directory}/fbx/alain/run.fbx" "--skeleton=${ozz_temp_directory}/fbx_skeleton.ozz" "--config={\"animations\":[{\"output\":\"${ozz_temp_directory}/fbx_animation_${CMAKE_CURRENT_LIST_LINE}.ozz\"}]}" "--endian=big")
 set_tests_properties(fbx2anim_big PROPERTIES DEPENDS fbx2skel_simple)
 
+# Run fbx2anim track passing tests
+
+add_test(NAME fbx2skel_properties COMMAND fbx2skel "--file=${ozz_media_directory}/fbx/properties.fbx" "--skeleton=${ozz_temp_directory}/fbx_propreties_skeleton.ozz")
+
+configure_file("${CMAKE_CURRENT_LIST_DIR}/properties.json.cmake" "${ozz_temp_directory}/properties.json")
+
+add_test(NAME fbx2anim_properties COMMAND fbx2anim "--file=${ozz_media_directory}/fbx/properties.fbx" "--skeleton=${ozz_temp_directory}/fbx_propreties_skeleton.ozz" "--config_file=${ozz_temp_directory}/properties.json")
+set_tests_properties(fbx2anim_properties PROPERTIES DEPENDS fbx2skel_properties)
+
+# Ensures all tracks were outputted.
+file(MAKE_DIRECTORY ${ozz_temp_directory}/fbx_properties_tracks_cp)
+add_test(NAME fbx2anim_properties_ouput COMMAND ${CMAKE_COMMAND} -E copy
+  "${ozz_temp_directory}/fbx_properties_track1_animated-ozz_curve_bool.ozz"
+  "${ozz_temp_directory}/fbx_properties_track1_animated-ozz_curve_int.ozz"
+  "${ozz_temp_directory}/fbx_properties_track1_animated-ozz_curve_number.ozz"
+  "${ozz_temp_directory}/fbx_properties_track1_animated-ozz_step_bool.ozz"
+  "${ozz_temp_directory}/fbx_properties_track1_animated-ozz_step_enum.ozz"
+  "${ozz_temp_directory}/fbx_properties_track1_animated-ozz_step_int.ozz"
+  "${ozz_temp_directory}/fbx_properties_track1_animated-ozz_step_number.ozz"
+  "${ozz_temp_directory}/fbx_properties_track1_constant-ozz_bool.ozz"
+  "${ozz_temp_directory}/fbx_properties_track1_constant-ozz_enum.ozz"
+  "${ozz_temp_directory}/fbx_properties_track1_constant-ozz_int.ozz"
+  "${ozz_temp_directory}/fbx_properties_track1_constant-ozz_number.ozz"
+  "${ozz_temp_directory}/fbx_properties_track3_animated-ozz_curve_vector.ozz"
+  "${ozz_temp_directory}/fbx_properties_track3_constant-ozz_vector.ozz"
+  "${ozz_temp_directory}/fbx_properties_tracks_cp/"
+  )
+set_tests_properties(fbx2anim_properties_ouput PROPERTIES
+  DEPENDS fbx2anim_properties
+          "${ozz_media_directory}/fbx/properties.fbx"
+          "${ozz_temp_directory}/fbx_propreties_skeleton.ozz")
+
 # Run fbx2anim collada passing tests
 add_test(NAME fbx2anim_simple_dae_astro_max COMMAND fbx2anim "--file=${ozz_media_directory}/collada/astro_max.dae" "--skeleton=${ozz_temp_directory}/astro_max_skeleton.ozz" "--config={\"animations\":[{\"output\":\"${ozz_temp_directory}/dae_animation_${CMAKE_CURRENT_LIST_LINE}.ozz\"}]}")
 set_tests_properties(fbx2anim_simple_dae_astro_max PROPERTIES DEPENDS fbx2skel_simple_dae_astro_max)
