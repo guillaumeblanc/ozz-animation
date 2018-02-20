@@ -41,8 +41,8 @@ namespace {
 enum RecurseReturn { kError, kSkeletonFound, kNoSkeleton };
 
 RecurseReturn RecurseNode(FbxNode* _node, FbxSystemConverter* _converter,
-                          RawSkeleton* _skeleton, RawSkeleton::Joint* _parent,
-                          int _depth) {
+                          bool _all_nodes, RawSkeleton* _skeleton,
+                          RawSkeleton::Joint* _parent, int _depth) {
   bool skeleton_found = false;
   RawSkeleton::Joint* this_joint = NULL;
 
@@ -54,8 +54,8 @@ RecurseReturn RecurseNode(FbxNode* _node, FbxSystemConverter* _converter,
   // Push this node as a new joint if it has a joint compatible attribute.
   FbxNodeAttribute* node_attribute = _node->GetNodeAttribute();
   process_node |=
-      node_attribute &&
-      node_attribute->GetAttributeType() == FbxNodeAttribute::eSkeleton;
+      node_attribute && (_all_nodes || node_attribute->GetAttributeType() ==
+                                           FbxNodeAttribute::eSkeleton);
 
   // Process node if required.
   if (process_node) {
@@ -95,8 +95,8 @@ RecurseReturn RecurseNode(FbxNode* _node, FbxSystemConverter* _converter,
   // Iterate node's children.
   for (int i = 0; i < _node->GetChildCount(); i++) {
     FbxNode* child = _node->GetChild(i);
-    const RecurseReturn ret =
-        RecurseNode(child, _converter, _skeleton, this_joint, _depth);
+    const RecurseReturn ret = RecurseNode(child, _converter, _all_nodes,
+                                          _skeleton, this_joint, _depth);
     if (ret == kError) {
       return ret;
     }
@@ -107,9 +107,11 @@ RecurseReturn RecurseNode(FbxNode* _node, FbxSystemConverter* _converter,
 }
 }  // namespace
 
-bool ExtractSkeleton(FbxSceneLoader& _loader, RawSkeleton* _skeleton) {
-  RecurseReturn ret = RecurseNode(_loader.scene()->GetRootNode(),
-                                  _loader.converter(), _skeleton, NULL, 0);
+bool ExtractSkeleton(FbxSceneLoader& _loader, bool _all_nodes,
+                     RawSkeleton* _skeleton) {
+  RecurseReturn ret =
+      RecurseNode(_loader.scene()->GetRootNode(), _loader.converter(),
+                  _all_nodes, _skeleton, NULL, 0);
   if (ret == kNoSkeleton) {
     ozz::log::Err() << "No skeleton found in Fbx scene." << std::endl;
     return false;

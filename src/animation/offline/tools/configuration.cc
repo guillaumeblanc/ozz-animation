@@ -62,7 +62,7 @@ bool ValidateExclusiveConfigOption(const ozz::options::Option& _option,
 }
 
 OZZ_OPTIONS_DECLARE_STRING(dump_full_config,
-                           "Dump the full default configuration", "", false)
+                           "Dump the full default configuration to specified file.", "", false)
 namespace {
 
 template <typename _Type>

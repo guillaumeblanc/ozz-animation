@@ -53,14 +53,15 @@ class TestSkeletonConverter
     return true;
   }
 
-  virtual bool Import(ozz::animation::offline::RawSkeleton* _skeleton) {
+  virtual bool Import(ozz::animation::offline::RawSkeleton* _skeleton,
+                      bool _all_nodes) {
     (void)_skeleton;
+    (void)_all_nodes;
     if (file_ && file_->opened()) {
       char buffer[256];
       const char good_content[] = "good content 1";
       if (file_->Read(buffer, sizeof(buffer)) >= sizeof(good_content) - 1 &&
           memcmp(buffer, good_content, sizeof(good_content) - 1) == 0) {
-
         _skeleton->roots.resize(1);
         ozz::animation::offline::RawSkeleton::Joint& root = _skeleton->roots[0];
         root.name = "root";

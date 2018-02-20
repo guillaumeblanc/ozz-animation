@@ -1,36 +1,25 @@
 # Option to build baked data is disabled by default as it is very costly.
 option(ozz_baked_sample_build_data "Build baked sample data" OFF)
 
-# Build baked skeleton import tool.
-if(ozz_build_fbx)
-  add_executable(sample_fbx2baked
-    fbx2baked.cc)
-  target_link_libraries(sample_fbx2baked
-    ozz_animation_fbx
-    ozz_animation_offline_skel_tools)
-
-  set_target_properties(sample_fbx2baked
-    PROPERTIES FOLDER "samples/tools")
-endif()
-
 # Build baked data
 if(ozz_baked_sample_build_data AND
-   TARGET sample_fbx2baked AND
+   TARGET fbx2skel AND
    TARGET fbx2anim)
   add_custom_command(
     DEPENDS "${CMAKE_CURRENT_LIST_DIR}/README.md"
             "${ozz_media_directory}/fbx/ozz_baked.fbx"
-            sample_fbx2baked
+            fbx2skel
             fbx2anim
     OUTPUT "${ozz_media_directory}/bin/baked_skeleton.ozz"
            "${ozz_media_directory}/bin/baked_animation.ozz"
-    COMMAND sample_fbx2baked
+    COMMAND fbx2skel
       "--file=${ozz_media_directory}/fbx/ozz_baked.fbx"
       "--skeleton=${ozz_media_directory}/bin/baked_skeleton.ozz"
+      "--all_nodes"
     COMMAND fbx2anim
       "--file=${ozz_media_directory}/fbx/ozz_baked.fbx"
       "--skeleton=${ozz_media_directory}/bin/baked_skeleton.ozz"
-      "--config_string={\"animations\":[{\"output\":\"${ozz_media_directory}/bin/baked_animation.ozz\", \"optimization_tolerances\":{\"translation\":0.002,\"rotation\":0.002,\"hierarchical\":1.0}}]}"
+      "--config={\"animations\":[{\"output\":\"${ozz_media_directory}/bin/baked_animation.ozz\",\"optimization_tolerances\":{\"translation\":0.002,\"rotation\":0.002,\"hierarchical\":1.0}}]}"
       VERBATIM)
 endif()
 
@@ -69,9 +58,6 @@ if(EMSCRIPTEN)
     ${CMAKE_CURRENT_BINARY_DIR}/sample_baked.js
     DESTINATION bin/samples/baked)
 else()
-  if(sample_fbx2baked)
-    install(TARGETS sample_fbx2baked DESTINATION bin/samples/baked)
-  endif()
   install(TARGETS sample_baked DESTINATION bin/samples/baked)
   install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/media DESTINATION bin/samples/baked)
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/README.md DESTINATION bin/samples/baked)

@@ -1,6 +1,9 @@
 Next release
 ---------------------
 
+* Tools
+  - Adds a --all_nodes option to fbx2skel which allows to export all scene nodes to a skeleton, ie not only joints. This is useful for the baked sample for example, which animates mesh nodes.
+
 * Library
   - [base] Changes non-intrusive serialization mechanism to use a specialize template struct "Extern" instead of function overloading.
 

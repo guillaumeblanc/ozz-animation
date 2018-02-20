@@ -68,7 +68,7 @@ class FbxSkeletonConverter : public ozz::animation::offline::SkeletonConverter {
     return true;
   }
 
-  virtual bool Import(ozz::animation::offline::RawSkeleton* _skeleton) {
+  virtual bool Import(ozz::animation::offline::RawSkeleton* _skeleton, bool _all_nodes) {
     if (!_skeleton) {
       return false;
     }
@@ -81,6 +81,7 @@ class FbxSkeletonConverter : public ozz::animation::offline::SkeletonConverter {
     }
 
     if (!ozz::animation::offline::fbx::ExtractSkeleton(*scene_loader_,
+                                                       _all_nodes,
                                                        _skeleton)) {
       ozz::log::Err() << "Fbx skeleton extraction failed." << std::endl;
       return false;

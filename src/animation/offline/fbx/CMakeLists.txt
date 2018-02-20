@@ -16,7 +16,7 @@ target_link_libraries(ozz_animation_fbx
   debug ${FBX_LIBRARIES_DEBUG}
   optimized ${FBX_LIBRARIES})
 set_target_properties(ozz_animation_fbx
-  PROPERTIES FOLDER "ozz")
+  PROPERTIES FOLDER "ozz/tools")
 
 install(TARGETS ozz_animation_fbx DESTINATION lib)
 

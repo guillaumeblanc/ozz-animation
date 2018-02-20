@@ -40,7 +40,7 @@ class SkeletonConverter {
 
  private:
   virtual bool Load(const char* _filename) = 0;
-  virtual bool Import(ozz::animation::offline::RawSkeleton* _skeleton) = 0;
+  virtual bool Import(ozz::animation::offline::RawSkeleton* _skeleton, bool _all_nodes) = 0;
 };
 }  // namespace offline
 }  // namespace animation

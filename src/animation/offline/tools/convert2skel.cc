@@ -46,6 +46,7 @@
 OZZ_OPTIONS_DECLARE_STRING(file, "Specifies input file", "", true)
 OZZ_OPTIONS_DECLARE_STRING(skeleton, "Specifies ozz skeleton ouput file", "",
                            true)
+OZZ_OPTIONS_DECLARE_BOOL(all_nodes, "Exports all nodes regardless of their type.", false, false)
 
 static bool ValidateEndianness(const ozz::options::Option& _option,
                                int /*_argc*/) {
@@ -130,7 +131,7 @@ int SkeletonConverter::operator()(int _argc, const char** _argv) {
   }
 
   ozz::animation::offline::RawSkeleton raw_skeleton;
-  if (!Import(&raw_skeleton)) {
+  if (!Import(&raw_skeleton, OPTIONS_all_nodes)) {
     ozz::log::Err() << "Failed to import skeleton from \"" << OPTIONS_file
                     << "\"" << std::endl;
     return EXIT_FAILURE;
