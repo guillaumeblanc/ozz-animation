@@ -46,7 +46,9 @@
 OZZ_OPTIONS_DECLARE_STRING(file, "Specifies input file", "", true)
 OZZ_OPTIONS_DECLARE_STRING(skeleton, "Specifies ozz skeleton ouput file", "",
                            true)
-OZZ_OPTIONS_DECLARE_BOOL(all_nodes, "Exports all nodes regardless of their type.", false, false)
+OZZ_OPTIONS_DECLARE_BOOL(all_nodes,
+                         "Exports all nodes regardless of their type.", false,
+                         false)
 
 static bool ValidateEndianness(const ozz::options::Option& _option,
                                int /*_argc*/) {

@@ -84,6 +84,8 @@ add_test(NAME fbx2anim_properties_ouput COMMAND ${CMAKE_COMMAND} -E copy
   "${ozz_temp_directory}/fbx_properties_track1_constant-ozz_number.ozz"
   "${ozz_temp_directory}/fbx_properties_track3_animated-ozz_curve_vector.ozz"
   "${ozz_temp_directory}/fbx_properties_track3_constant-ozz_vector.ozz"
+  "${ozz_temp_directory}/fbx_properties_track4_animated-ozz_curve_color.ozz"
+  "${ozz_temp_directory}/fbx_properties_track4_constant-ozz_color.ozz"
   "${ozz_temp_directory}/fbx_properties_tracks_cp/"
   )
 set_tests_properties(fbx2anim_properties_ouput PROPERTIES

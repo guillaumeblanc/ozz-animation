@@ -46,17 +46,20 @@ struct RawAnimation;
 struct RawFloatTrack;
 struct RawFloat2Track;
 struct RawFloat3Track;
+struct RawFloat4Track;
 struct RawquaternionTrack;
 
 namespace fbx {
 
-AnimationConverter::AnimationNames GetAnimationNames(FbxSceneLoader& _scene_loader);
+AnimationConverter::AnimationNames GetAnimationNames(
+    FbxSceneLoader& _scene_loader);
 
 bool ExtractAnimation(const char* _animation_name,
                       FbxSceneLoader& _scene_loader, const Skeleton& _skeleton,
                       float _sampling_rate, RawAnimation* _animation);
 
-AnimationConverter::NodeProperties GetNodeProperties(FbxSceneLoader& _scene_loader, const char* _node_name);
+AnimationConverter::NodeProperties GetNodeProperties(
+    FbxSceneLoader& _scene_loader, const char* _node_name);
 
 bool ExtractTrack(const char* _animation_name, const char* _node_name,
                   const char* _track_name, FbxSceneLoader& _scene_loader,
@@ -69,6 +72,10 @@ bool ExtractTrack(const char* _animation_name, const char* _node_name,
 bool ExtractTrack(const char* _animation_name, const char* _node_name,
                   const char* _track_name, FbxSceneLoader& _scene_loader,
                   float _sampling_rate, RawFloat3Track* _track);
+
+bool ExtractTrack(const char* _animation_name, const char* _node_name,
+                  const char* _track_name, FbxSceneLoader& _scene_loader,
+                  float _sampling_rate, RawFloat4Track* _track);
 
 }  // namespace fbx
 }  // namespace offline

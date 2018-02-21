@@ -34,9 +34,10 @@
 
 #include "ozz/base/maths/gtest_math_helper.h"
 
+using ozz::animation::offline::RawFloatTrack;
 using ozz::animation::offline::RawFloat2Track;
 using ozz::animation::offline::RawFloat3Track;
-using ozz::animation::offline::RawFloatTrack;
+using ozz::animation::offline::RawFloat4Track;
 using ozz::animation::offline::RawQuaternionTrack;
 using ozz::animation::offline::RawTrackInterpolation;
 
@@ -211,6 +212,50 @@ TEST(Float3, RawAnimationSerialize) {
     for (size_t i = 0; i < o_track.keyframes.size(); ++i) {
       const RawFloat3Track::Keyframe& o_key = o_track.keyframes[i];
       const RawFloat3Track::Keyframe& i_key = i_track.keyframes[i];
+
+      EXPECT_EQ(o_key.interpolation, i_key.interpolation);
+      EXPECT_FLOAT_EQ(o_key.time, i_key.time);
+      EXPECT_EQ(o_key.value, i_key.value);
+    }
+  }
+}
+
+TEST(Float4, RawAnimationSerialize) {
+  RawFloat4Track o_track;
+
+  const RawFloat4Track::Keyframe first_key = {
+      RawTrackInterpolation::kLinear, .5f,
+      ozz::math::Float4(46.f, 99.f, 25.f, 5.f)};
+  o_track.keyframes.push_back(first_key);
+  const RawFloat4Track::Keyframe second_key = {
+      RawTrackInterpolation::kLinear, .7f,
+      ozz::math::Float4(16.f, 93.f, 4.f, 46.f)};
+  o_track.keyframes.push_back(second_key);
+
+  EXPECT_TRUE(o_track.Validate());
+  EXPECT_EQ(o_track.keyframes.size(), 2u);
+
+  for (int e = 0; e < 2; ++e) {
+    ozz::Endianness endianess = e == 0 ? ozz::kBigEndian : ozz::kLittleEndian;
+    ozz::io::MemoryStream stream;
+
+    // Streams out.
+    ozz::io::OArchive o(&stream, endianess);
+    o << o_track;
+
+    // Streams in.
+    stream.Seek(0, ozz::io::Stream::kSet);
+    ozz::io::IArchive ia(&stream);
+
+    RawFloat4Track i_track;
+    ia >> i_track;
+
+    EXPECT_TRUE(i_track.Validate());
+    ASSERT_EQ(o_track.keyframes.size(), i_track.keyframes.size());
+
+    for (size_t i = 0; i < o_track.keyframes.size(); ++i) {
+      const RawFloat4Track::Keyframe& o_key = o_track.keyframes[i];
+      const RawFloat4Track::Keyframe& i_key = i_track.keyframes[i];
 
       EXPECT_EQ(o_key.interpolation, i_key.interpolation);
       EXPECT_FLOAT_EQ(o_key.time, i_key.time);

@@ -111,6 +111,7 @@ struct RawTrack {
 struct RawFloatTrack : public internal::RawTrack<float> {};
 struct RawFloat2Track : public internal::RawTrack<math::Float2> {};
 struct RawFloat3Track : public internal::RawTrack<math::Float3> {};
+struct RawFloat4Track : public internal::RawTrack<math::Float4> {};
 struct RawQuaternionTrack : public internal::RawTrack<math::Quaternion> {};
 }  // namespace offline
 }  // namespace animation
@@ -122,6 +123,8 @@ OZZ_IO_TYPE_VERSION(1, animation::offline::RawFloat2Track)
 OZZ_IO_TYPE_TAG("ozz-raw_float2_track", animation::offline::RawFloat2Track)
 OZZ_IO_TYPE_VERSION(1, animation::offline::RawFloat3Track)
 OZZ_IO_TYPE_TAG("ozz-raw_float3_track", animation::offline::RawFloat3Track)
+OZZ_IO_TYPE_VERSION(1, animation::offline::RawFloat4Track)
+OZZ_IO_TYPE_TAG("ozz-raw_float4_track", animation::offline::RawFloat4Track)
 OZZ_IO_TYPE_VERSION(1, animation::offline::RawQuaternionTrack)
 OZZ_IO_TYPE_TAG("ozz-raw_quat_track", animation::offline::RawQuaternionTrack)
 }  // namespace io

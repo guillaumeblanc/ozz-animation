@@ -39,17 +39,20 @@
 #include "ozz/animation/offline/raw_track.h"
 #include "ozz/animation/offline/track_builder.h"
 
+using ozz::animation::FloatTrack;
+using ozz::animation::FloatTrackSamplingJob;
 using ozz::animation::Float2Track;
 using ozz::animation::Float2TrackSamplingJob;
 using ozz::animation::Float3Track;
 using ozz::animation::Float3TrackSamplingJob;
-using ozz::animation::FloatTrack;
-using ozz::animation::FloatTrackSamplingJob;
+using ozz::animation::Float4Track;
+using ozz::animation::Float4TrackSamplingJob;
 using ozz::animation::QuaternionTrack;
 using ozz::animation::QuaternionTrackSamplingJob;
+using ozz::animation::offline::RawFloatTrack;
 using ozz::animation::offline::RawFloat2Track;
 using ozz::animation::offline::RawFloat3Track;
-using ozz::animation::offline::RawFloatTrack;
+using ozz::animation::offline::RawFloat4Track;
 using ozz::animation::offline::RawQuaternionTrack;
 using ozz::animation::offline::RawTrackInterpolation;
 using ozz::animation::offline::TrackBuilder;
@@ -295,6 +298,62 @@ TEST(FilledFloat3, TrackSerialize) {
   sampling.time = 1.f;
   ASSERT_TRUE(sampling.Run());
   EXPECT_FLOAT3_EQ(result, 0.f, 5.f, 0.f);
+
+  ozz::memory::default_allocator()->Delete(o_track);
+}
+
+TEST(FilledFloat4, TrackSerialize) {
+  TrackBuilder builder;
+  RawFloat4Track raw_float4_track;
+
+  const RawFloat4Track::Keyframe key0 = {
+      RawTrackInterpolation::kLinear, 0.f,
+      ozz::math::Float4(0.f, 26.f, 93.f, 5.f)};
+  raw_float4_track.keyframes.push_back(key0);
+  const RawFloat4Track::Keyframe key1 = {
+      RawTrackInterpolation::kStep, .5f,
+      ozz::math::Float4(46.f, 0.f, 25.f, 25.f)};
+  raw_float4_track.keyframes.push_back(key1);
+  const RawFloat4Track::Keyframe key2 = {RawTrackInterpolation::kLinear, .7f,
+                                         ozz::math::Float4(0.f, 5.f, 0.f, 0.f)};
+  raw_float4_track.keyframes.push_back(key2);
+
+  // Builds track
+  Float4Track* o_track = builder(raw_float4_track);
+  ASSERT_TRUE(o_track != NULL);
+
+  ozz::io::MemoryStream stream;
+
+  // Streams out.
+  ozz::io::OArchive o(&stream);
+  o << *o_track;
+
+  // Streams in.
+  stream.Seek(0, ozz::io::Stream::kSet);
+  ozz::io::IArchive i(&stream);
+
+  Float4Track i_track;
+  i >> i_track;
+
+  EXPECT_EQ(o_track->size(), i_track.size());
+
+  // Samples and compares the two animations
+  Float4TrackSamplingJob sampling;
+  sampling.track = &i_track;
+  ozz::math::Float4 result;
+  sampling.result = &result;
+
+  sampling.time = 0.f;
+  ASSERT_TRUE(sampling.Run());
+  EXPECT_FLOAT4_EQ(result, 0.f, 26.f, 93.f, 5.f);
+
+  sampling.time = .5f;
+  ASSERT_TRUE(sampling.Run());
+  EXPECT_FLOAT4_EQ(result, 46.f, 0.f, 25.f, 25.f);
+
+  sampling.time = 1.f;
+  ASSERT_TRUE(sampling.Run());
+  EXPECT_FLOAT4_EQ(result, 0.f, 5.f, 0.f, 0.f);
 
   ozz::memory::default_allocator()->Delete(o_track);
 }

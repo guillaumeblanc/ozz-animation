@@ -137,6 +137,10 @@ bool TrackOptimizer::operator()(const RawFloat3Track& _input,
                                 RawFloat3Track* _output) const {
   return Optimize(*this, _input, _output);
 }
+bool TrackOptimizer::operator()(const RawFloat4Track& _input,
+                                RawFloat4Track* _output) const {
+  return Optimize(*this, _input, _output);
+}
 bool TrackOptimizer::operator()(const RawQuaternionTrack& _input,
                                 RawQuaternionTrack* _output) const {
   return Optimize(*this, _input, _output);

@@ -200,10 +200,10 @@ add_test(NAME test2anim_track_bad_ppt_name COMMAND test2anim "--file=${ozz_temp_
 set_tests_properties(test2anim_track_bad_ppt_name PROPERTIES PASS_REGULAR_EXPRESSION "No property found for track import definition \"joint2:propertyx\"" DEPENDS test2skel_simple)
 
 add_test(NAME test2anim_track_bad_type COMMAND test2anim "--file=${ozz_temp_directory}/good.content1" "--skeleton=${ozz_temp_directory}/skeleton.ozz" "--config={\"animations\":[{\"tracks\":[{\"imports\":[{\"joint_name\":\"joint1\",\"property_name\":\"property2\",\"type\":3,\"output\":\"${ozz_temp_directory}/anim_should_not_exist.ozz\"}]}]}]}")
-set_tests_properties(test2anim_track_bad_type PROPERTIES PASS_REGULAR_EXPRESSION "Incompatible type \"3\" for property \"joint1:property2\" of type \"2\"" DEPENDS test2skel_simple)
+set_tests_properties(test2anim_track_bad_type PROPERTIES PASS_REGULAR_EXPRESSION "Incompatible type \"3\" for matching property \"joint1:property2\" of type \"2\"" DEPENDS test2skel_simple)
 
-add_test(NAME test2anim_track_invalid_type COMMAND test2anim "--file=${ozz_temp_directory}/good.content1" "--skeleton=${ozz_temp_directory}/skeleton.ozz" "--config={\"animations\":[{\"tracks\":[{\"imports\":[{\"joint_name\":\"joint1\",\"property_name\":\"property2\",\"type\":4,\"output\":\"${ozz_temp_directory}/anim_should_not_exist.ozz\"}]}]}]}")
-set_tests_properties(test2anim_track_invalid_type PROPERTIES PASS_REGULAR_EXPRESSION "Invalid value \"4\" for import track type property. 1 to 3 components are supported." DEPENDS test2skel_simple)
+add_test(NAME test2anim_track_invalid_type COMMAND test2anim "--file=${ozz_temp_directory}/good.content1" "--skeleton=${ozz_temp_directory}/skeleton.ozz" "--config={\"animations\":[{\"tracks\":[{\"imports\":[{\"joint_name\":\"joint1\",\"property_name\":\"property2\",\"type\":0,\"output\":\"${ozz_temp_directory}/anim_should_not_exist.ozz\"}]}]}]}")
+set_tests_properties(test2anim_track_invalid_type PROPERTIES PASS_REGULAR_EXPRESSION "Invalid value \"0\" for import track type property. 1 to 4 components are supported." DEPENDS test2skel_simple)
 
 # Ensures nothing was outputted.
 add_test(NAME test2anim_output COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/anim_should_not_exist.ozz" "${ozz_temp_directory}/anim_should_not_exist_too.ozz")

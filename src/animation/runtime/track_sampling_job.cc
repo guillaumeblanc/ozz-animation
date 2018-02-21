@@ -96,6 +96,7 @@ bool TrackSamplingJob<_Track>::Run() const {
 template struct TrackSamplingJob<FloatTrack>;
 template struct TrackSamplingJob<Float2Track>;
 template struct TrackSamplingJob<Float3Track>;
+template struct TrackSamplingJob<Float4Track>;
 template struct TrackSamplingJob<QuaternionTrack>;
 }  // namespace internal
 }  // namespace animation

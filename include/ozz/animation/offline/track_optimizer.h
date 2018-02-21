@@ -37,6 +37,7 @@ namespace offline {
 struct RawFloatTrack;
 struct RawFloat2Track;
 struct RawFloat3Track;
+struct RawFloat4Track;
 struct RawQuaternionTrack;
 
 // Defines the class responsible of optimizing an offline raw float track
@@ -56,6 +57,7 @@ class TrackOptimizer {
   bool operator()(const RawFloatTrack& _input, RawFloatTrack* _output) const;
   bool operator()(const RawFloat2Track& _input, RawFloat2Track* _output) const;
   bool operator()(const RawFloat3Track& _input, RawFloat3Track* _output) const;
+  bool operator()(const RawFloat4Track& _input, RawFloat4Track* _output) const;
   bool operator()(const RawQuaternionTrack& _input,
                   RawQuaternionTrack* _output) const;
 

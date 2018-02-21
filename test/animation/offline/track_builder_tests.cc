@@ -973,6 +973,72 @@ TEST(Float3, TrackBuilder) {
   }
 }
 
+TEST(Float4, TrackBuilder) {
+  TrackBuilder builder;
+  ozz::animation::offline::RawFloat4Track raw_track;
+
+  {
+    // Default value for quaternion is identity.
+    ozz::animation::Float4Track* track = builder(raw_track);
+    ASSERT_TRUE(track != NULL);
+
+    // Samples to verify build output.
+    ozz::math::Float4 result;
+    ozz::animation::Float4TrackSamplingJob sampling;
+    sampling.track = track;
+    sampling.result = &result;
+
+    sampling.time = .5f;
+    ASSERT_TRUE(sampling.Run());
+    EXPECT_FLOAT4_EQ(result, 0.f, 0.f, 0.f, 0.f);
+
+    ozz::memory::default_allocator()->Delete(track);
+  }
+
+  {
+    const ozz::animation::offline::RawFloat4Track::Keyframe first_key = {
+        RawTrackInterpolation::kLinear, .5f,
+        ozz::math::Float4(0.f, 23.f, 46.f, 5.f)};
+    raw_track.keyframes.push_back(first_key);
+    const ozz::animation::offline::RawFloat4Track::Keyframe second_key = {
+        RawTrackInterpolation::kLinear, .7f,
+        ozz::math::Float4(23.f, 46.f, 92.f, 25.f)};
+    raw_track.keyframes.push_back(second_key);
+
+    // Builds track
+    ozz::animation::Float4Track* track = builder(raw_track);
+    ASSERT_TRUE(track != NULL);
+
+    // Samples to verify build output.
+    ozz::math::Float4 result;
+    ozz::animation::Float4TrackSamplingJob sampling;
+    sampling.track = track;
+    sampling.result = &result;
+
+    sampling.time = 0.f;
+    ASSERT_TRUE(sampling.Run());
+    EXPECT_FLOAT4_EQ(result, 0.f, 23.f, 46.f, 5.f);
+
+    sampling.time = .5f;
+    ASSERT_TRUE(sampling.Run());
+    EXPECT_FLOAT4_EQ(result, 0.f, 23.f, 46.f, 5.f);
+
+    sampling.time = .6f;
+    ASSERT_TRUE(sampling.Run());
+    EXPECT_FLOAT4_EQ(result, 11.5f, 34.5f, 69.f, 15.f);
+
+    sampling.time = .7f;
+    ASSERT_TRUE(sampling.Run());
+    EXPECT_FLOAT4_EQ(result, 23.f, 46.f, 92.f, 25.f);
+
+    sampling.time = 1.f;
+    ASSERT_TRUE(sampling.Run());
+    EXPECT_FLOAT4_EQ(result, 23.f, 46.f, 92.f, 25.f);
+
+    ozz::memory::default_allocator()->Delete(track);
+  }
+}
+
 TEST(Quaternion, TrackBuilder) {
   TrackBuilder builder;
   ozz::animation::offline::RawQuaternionTrack raw_track;

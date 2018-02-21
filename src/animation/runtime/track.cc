@@ -110,7 +110,7 @@ template <typename _ValueType>
 void Track<_ValueType>::Save(ozz::io::OArchive& _archive) const {
   uint32_t num_keys = static_cast<uint32_t>(times_.Count());
   _archive << num_keys;
-  
+
   const size_t name_len = name_ ? std::strlen(name_) : 0;
   _archive << static_cast<int32_t>(name_len);
 
@@ -153,6 +153,7 @@ void Track<_ValueType>::Load(ozz::io::IArchive& _archive, uint32_t _version) {
 template class Track<float>;
 template class Track<math::Float2>;
 template class Track<math::Float3>;
+template class Track<math::Float4>;
 template class Track<math::Quaternion>;
 
 }  // namespace internal

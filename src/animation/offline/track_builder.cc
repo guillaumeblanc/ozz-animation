@@ -159,6 +159,9 @@ Float2Track* TrackBuilder::operator()(const RawFloat2Track& _input) const {
 Float3Track* TrackBuilder::operator()(const RawFloat3Track& _input) const {
   return Build<RawFloat3Track, Float3Track>(_input);
 }
+Float4Track* TrackBuilder::operator()(const RawFloat4Track& _input) const {
+  return Build<RawFloat4Track, Float4Track>(_input);
+}
 
 namespace {
 // Fixes-up successive opposite quaternions that would fail to take the shortest

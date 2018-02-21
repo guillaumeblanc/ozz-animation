@@ -61,8 +61,9 @@ bool ValidateExclusiveConfigOption(const ozz::options::Option& _option,
   return !not_exclusive;
 }
 
-OZZ_OPTIONS_DECLARE_STRING(dump_full_config,
-                           "Dump the full default configuration to specified file.", "", false)
+OZZ_OPTIONS_DECLARE_STRING(
+    dump_full_config, "Dump the full default configuration to specified file.",
+    "", false)
 namespace {
 
 template <typename _Type>
@@ -228,11 +229,11 @@ bool SanitizeTrackImport(Json::Value& _root) {
               "are supported.");
   MakeDefault(_root, "type", 1,
               "Type of the property, aka the number of floating point "
-              "components. 1 to 3 components are supported.");
+              "components. 1 to 4 components are supported.");
   const int components = _root["type"].asInt();
-  if (components < 1 || components > 3) {
+  if (components < 1 || components > 4) {
     ozz::log::Err() << "Invalid value \"" << components
-                    << "\" for import track type property. 1 to 3 components "
+                    << "\" for import track type property. 1 to 4 components "
                        "are supported."
                     << std::endl;
     return false;

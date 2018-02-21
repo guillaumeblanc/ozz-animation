@@ -61,6 +61,8 @@ struct Float2TrackSamplingJob : public internal::TrackSamplingJob<Float2Track> {
 };
 struct Float3TrackSamplingJob : public internal::TrackSamplingJob<Float3Track> {
 };
+struct Float4TrackSamplingJob : public internal::TrackSamplingJob<Float4Track> {
+};
 struct QuaternionTrackSamplingJob
     : public internal::TrackSamplingJob<QuaternionTrack> {};
 

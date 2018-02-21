@@ -177,6 +177,19 @@ class TestAnimationConverter
                  strcmp(_track_name, "property3") == 0;
     return found;
   }
+  virtual bool Import(const char* _animation_name, const char* _node_name,
+                      const char* _track_name, float _sampling_rate,
+                      ozz::animation::offline::RawFloat4Track* _track) {
+    (void)_animation_name;
+    (void)_sampling_rate;
+    (void)_track;
+
+    // joint2 doesn't have the property
+    bool found = (strcmp(_node_name, "joint0") == 0 ||
+                  strcmp(_node_name, "joint1") == 0) &&
+                 strcmp(_track_name, "property4") == 0;
+    return found;
+  }
 
   ozz::io::File* file_;
 };

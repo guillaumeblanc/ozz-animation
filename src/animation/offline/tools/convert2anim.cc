@@ -341,6 +341,10 @@ template <>
 struct RawTrackToTrack<RawFloat3Track> {
   typedef ozz::animation::Float3Track Track;
 };
+template <>
+struct RawTrackToTrack<RawFloat4Track> {
+  typedef ozz::animation::Float4Track Track;
+};
 
 template <typename _RawTrack>
 bool Export(const _RawTrack& _raw_track, const Json::Value& _config) {
@@ -431,6 +435,10 @@ template <>
 struct TrackFromType<AnimationConverter::NodeProperty::kFloat3> {
   typedef RawFloat3Track RawTrack;
 };
+template <>
+struct TrackFromType<AnimationConverter::NodeProperty::kFloat4> {
+  typedef RawFloat4Track RawTrack;
+};
 
 template <AnimationConverter::NodeProperty::Type _type>
 bool ProcessImportTrackType(AnimationConverter& _converter,
@@ -491,11 +499,14 @@ bool ProcessImportTrack(AnimationConverter& _converter,
       const int property_type = _import_config["type"].asInt();
       if (property_type != property.type) {
         ozz::log::Log() << "Incompatible type \"" << property_type
-                        << "\" for property \"" << joint_name_match << ":"
-                        << ppt_name_match << "\" of type \"" << property.type
+                        << "\" for matching property \"" << joint_name << ":"
+                        << property_name << "\" of type \"" << property.type
                         << "\"." << std::endl;
         continue;
       }
+
+      // A property has been found.
+      ppt_found = true;
 
       // Import property depending on its type.
       switch (property.type) {
@@ -516,6 +527,13 @@ bool ProcessImportTrack(AnimationConverter& _converter,
         case AnimationConverter::NodeProperty::kFloat3: {
           success &=
               ProcessImportTrackType<AnimationConverter::NodeProperty::kFloat3>(
+                  _converter, _animation_name, joint_name, property,
+                  _import_config);
+          break;
+        }
+        case AnimationConverter::NodeProperty::kFloat4: {
+          success &=
+              ProcessImportTrackType<AnimationConverter::NodeProperty::kFloat4>(
                   _converter, _animation_name, joint_name, property,
                   _import_config);
           break;

@@ -120,6 +120,7 @@ inline math::Quaternion TrackPolicy<math::Quaternion>::identity() {
 class FloatTrack : public internal::Track<float> {};
 class Float2Track : public internal::Track<math::Float2> {};
 class Float3Track : public internal::Track<math::Float3> {};
+class Float4Track : public internal::Track<math::Float4> {};
 class QuaternionTrack : public internal::Track<math::Quaternion> {};
 
 }  // namespace animation
@@ -130,6 +131,8 @@ OZZ_IO_TYPE_VERSION(1, animation::Float2Track)
 OZZ_IO_TYPE_TAG("ozz-float2_track", animation::Float2Track)
 OZZ_IO_TYPE_VERSION(1, animation::Float3Track)
 OZZ_IO_TYPE_TAG("ozz-float3_track", animation::Float3Track)
+OZZ_IO_TYPE_VERSION(1, animation::Float4Track)
+OZZ_IO_TYPE_TAG("ozz-float4_track", animation::Float4Track)
 OZZ_IO_TYPE_VERSION(1, animation::QuaternionTrack)
 OZZ_IO_TYPE_TAG("ozz-quat_track", animation::QuaternionTrack)
 }  // namespace io

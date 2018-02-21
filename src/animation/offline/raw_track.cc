@@ -120,6 +120,7 @@ void RawTrack<_ValueType>::Load(io::IArchive& _archive, uint32_t _version) {
 template struct RawTrack<float>;
 template struct RawTrack<math::Float2>;
 template struct RawTrack<math::Float3>;
+template struct RawTrack<math::Float4>;
 template struct RawTrack<math::Quaternion>;
 }  // namespace internal
 }  // namespace offline

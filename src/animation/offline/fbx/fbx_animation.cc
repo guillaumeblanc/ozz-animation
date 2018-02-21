@@ -188,36 +188,47 @@ bool ExtractAnimation(FbxSceneLoader& _scene_loader, const SamplingInfo& _info,
   return _animation->Validate();
 }
 
+template <typename _Type>
+bool PropertyGetValueAsFloat(FbxPropertyValue& _property_value,
+                             EFbxType _fbx_type, float* _value) {
+  _Type value;
+  assert(_property_value.GetSizeOf() == sizeof(_Type));
+  bool success = _property_value.Get(&value, _fbx_type);
+  *_value = static_cast<float>(value);
+  return success;
+}
+
 bool GetValue(FbxPropertyValue& _property_value, EFbxType _type,
               float* _value) {
   switch (_type) {
     case eFbxBool: {
-      bool value;
-      bool success = _property_value.Get(&value, eFbxBool);
-      *_value = value ? 1.f : 0.f;
-      return success;
+      return PropertyGetValueAsFloat<bool>(_property_value, _type, _value);
     }
-    case eFbxChar:
-    case eFbxUChar:
-    case eFbxShort:
-    case eFbxUShort:
+    case eFbxChar: {
+      return PropertyGetValueAsFloat<int8_t>(_property_value, _type, _value);
+    }
+    case eFbxUChar: {
+      return PropertyGetValueAsFloat<uint8_t>(_property_value, _type, _value);
+    }
+    case eFbxShort: {
+      return PropertyGetValueAsFloat<int16_t>(_property_value, _type, _value);
+    }
+    case eFbxUShort: {
+      return PropertyGetValueAsFloat<uint16_t>(_property_value, _type, _value);
+    }
     case eFbxInt:
-    case eFbxUInt:
     case eFbxEnum:
     case eFbxEnumM: {
-      int value;
-      bool success = _property_value.Get(&value, eFbxInt);
-      *_value = static_cast<float>(value);
-      return success;
+      return PropertyGetValueAsFloat<int32_t>(_property_value, _type, _value);
+    }
+    case eFbxUInt: {
+      return PropertyGetValueAsFloat<uint32_t>(_property_value, _type, _value);
     }
     case eFbxFloat: {
-      return _property_value.Get(_value, eFbxFloat);
+      return PropertyGetValueAsFloat<float>(_property_value, _type, _value);
     }
     case eFbxDouble: {
-      double value;
-      bool success = _property_value.Get(&value, eFbxDouble);
-      *_value = static_cast<float>(value);
-      return success;
+      return PropertyGetValueAsFloat<double>(_property_value, _type, _value);
     }
     default: {
       // Only supported types are enumerated, so this function should not be
@@ -257,6 +268,24 @@ bool GetValue(FbxPropertyValue& _property_value, EFbxType _type,
   _value->x = static_cast<float>(dvalue[0]);
   _value->y = static_cast<float>(dvalue[1]);
   _value->z = static_cast<float>(dvalue[2]);
+
+  return true;
+}
+
+bool GetValue(FbxPropertyValue& _property_value, EFbxType _type,
+              ozz::math::Float4* _value) {
+  (void)_type;
+  // Only supported types are enumerated, so this function should not be called
+  // for something else but eFbxDouble4.
+  assert(_type == eFbxDouble4);
+  double dvalue[4];
+  if (!_property_value.Get(&dvalue, eFbxDouble4)) {
+    return false;
+  }
+  _value->x = static_cast<float>(dvalue[0]);
+  _value->y = static_cast<float>(dvalue[1]);
+  _value->z = static_cast<float>(dvalue[2]);
+  _value->w = static_cast<float>(dvalue[3]);
 
   return true;
 }
@@ -409,7 +438,7 @@ bool ExtractProperty(FbxSceneLoader& _scene_loader, const SamplingInfo& _info,
       return ExtractCurve(_scene_loader, _property, type, _info, _track);
     }
     default: {
-      log::Err() << "Float track can't be imported from a track of type: "
+      log::Err() << "Float2 track can't be imported from a track of type: "
                  << FbxTypeToString(type) << "\"" << std::endl;
       return false;
     }
@@ -424,7 +453,22 @@ bool ExtractProperty(FbxSceneLoader& _scene_loader, const SamplingInfo& _info,
       return ExtractCurve(_scene_loader, _property, type, _info, _track);
     }
     default: {
-      log::Err() << "Float track can't be imported from a track of type: "
+      log::Err() << "Float6 track can't be imported from a track of type: "
+                 << FbxTypeToString(type) << "\"" << std::endl;
+      return false;
+    }
+  }
+}
+
+bool ExtractProperty(FbxSceneLoader& _scene_loader, const SamplingInfo& _info,
+                     FbxProperty& _property, RawFloat4Track* _track) {
+  const EFbxType type = _property.GetPropertyDataType().GetType();
+  switch (type) {
+    case eFbxDouble4: {
+      return ExtractCurve(_scene_loader, _property, type, _info, _track);
+    }
+    default: {
+      log::Err() << "Float4 track can't be imported from a track of type: "
                  << FbxTypeToString(type) << "\"" << std::endl;
       return false;
     }
@@ -564,6 +608,12 @@ AnimationConverter::NodeProperties GetNodeProperties(
         properties.push_back(ppt);
         break;
       }
+      case eFbxDouble4: {
+        const AnimationConverter::NodeProperty ppt = {
+            ppt_name, AnimationConverter::NodeProperty::kFloat4};
+        properties.push_back(ppt);
+        break;
+      }
       default: {
         log::LogV() << "Node property \"" << ppt_name
                     << "\" doesn't have a importable type\""
@@ -592,6 +642,13 @@ bool ExtractTrack(const char* _animation_name, const char* _node_name,
 bool ExtractTrack(const char* _animation_name, const char* _node_name,
                   const char* _track_name, FbxSceneLoader& _scene_loader,
                   float _sampling_rate, RawFloat3Track* _track) {
+  return ExtractTrackImpl(_animation_name, _node_name, _track_name,
+                          _scene_loader, _sampling_rate, _track);
+}
+
+bool ExtractTrack(const char* _animation_name, const char* _node_name,
+                  const char* _track_name, FbxSceneLoader& _scene_loader,
+                  float _sampling_rate, RawFloat4Track* _track) {
   return ExtractTrackImpl(_animation_name, _node_name, _track_name,
                           _scene_loader, _sampling_rate, _track);
 }

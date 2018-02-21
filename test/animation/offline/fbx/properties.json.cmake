@@ -25,6 +25,12 @@
               "joint_name":"*",
               "property_name":"ozz_*",
               "type":3
+            },
+            {
+              "output":"${ozz_temp_directory}/fbx_properties_track4_*.ozz",
+              "joint_name":"*",
+              "property_name":"ozz_*",
+              "type":4
             }
           ]
         }

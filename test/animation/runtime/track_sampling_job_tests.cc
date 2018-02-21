@@ -339,6 +339,73 @@ TEST(Float3, TrackSamplingJob) {
   ozz::memory::default_allocator()->Delete(track);
 }
 
+TEST(Float4, TrackSamplingJob) {
+  TrackBuilder builder;
+  ozz::math::Float4 result;
+
+  ozz::animation::offline::RawFloat4Track raw_track;
+
+  const ozz::animation::offline::RawFloat4Track::Keyframe key0 = {
+      RawTrackInterpolation::kLinear, 0.f,
+      ozz::math::Float4(0.f, 0.f, 0.f, 0.f)};
+  raw_track.keyframes.push_back(key0);
+  const ozz::animation::offline::RawFloat4Track::Keyframe key1 = {
+      RawTrackInterpolation::kStep, .5f,
+      ozz::math::Float4(0.f, 2.3f, 0.f, 4.6f)};
+  raw_track.keyframes.push_back(key1);
+  const ozz::animation::offline::RawFloat4Track::Keyframe key2 = {
+      RawTrackInterpolation::kLinear, .7f,
+      ozz::math::Float4(0.f, 4.6f, 0.f, 9.2f)};
+  raw_track.keyframes.push_back(key2);
+  const ozz::animation::offline::RawFloat4Track::Keyframe key3 = {
+      RawTrackInterpolation::kLinear, .9f,
+      ozz::math::Float4(0.f, 0.f, 0.f, 0.f)};
+  raw_track.keyframes.push_back(key3);
+
+  // Builds track
+  ozz::animation::Float4Track* track = builder(raw_track);
+  ASSERT_TRUE(track != NULL);
+
+  // Samples to verify build output.
+  ozz::animation::Float4TrackSamplingJob sampling;
+  sampling.track = track;
+  sampling.result = &result;
+
+  sampling.time = 0.f;
+  ASSERT_TRUE(sampling.Run());
+  EXPECT_FLOAT4_EQ(result, 0.f, 0.f, 0.f, 0.f);
+
+  sampling.time = .25f;
+  ASSERT_TRUE(sampling.Run());
+  EXPECT_FLOAT4_EQ(result, 0.f, 1.15f, 0.f, 2.3f);
+
+  sampling.time = .5f;
+  ASSERT_TRUE(sampling.Run());
+  EXPECT_FLOAT4_EQ(result, 0.f, 2.3f, 0.f, 4.6f);
+
+  sampling.time = .6f;
+  ASSERT_TRUE(sampling.Run());
+  EXPECT_FLOAT4_EQ(result, 0.f, 2.3f, 0.f, 4.6f);
+
+  sampling.time = .7f;
+  ASSERT_TRUE(sampling.Run());
+  EXPECT_FLOAT4_EQ(result, 0.f, 4.6f, 0.f, 9.2f);
+
+  sampling.time = .8f;
+  ASSERT_TRUE(sampling.Run());
+  EXPECT_FLOAT4_EQ(result, 0.f, 2.3f, 0.f, 4.6f);
+
+  sampling.time = .9f;
+  ASSERT_TRUE(sampling.Run());
+  EXPECT_FLOAT4_EQ(result, 0.f, 0.f, 0.f, 0.f);
+
+  sampling.time = 1.f;
+  ASSERT_TRUE(sampling.Run());
+  EXPECT_FLOAT4_EQ(result, 0.f, 0.f, 0.f, 0.f);
+
+  ozz::memory::default_allocator()->Delete(track);
+}
+
 TEST(Quaternion, TrackSamplingJob) {
   TrackBuilder builder;
   ozz::math::Quaternion result;

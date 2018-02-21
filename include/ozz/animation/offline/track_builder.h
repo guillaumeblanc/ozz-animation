@@ -35,6 +35,7 @@ namespace animation {
 class FloatTrack;
 class Float2Track;
 class Float3Track;
+class Float4Track;
 class QuaternionTrack;
 
 namespace offline {
@@ -43,6 +44,7 @@ namespace offline {
 struct RawFloatTrack;
 struct RawFloat2Track;
 struct RawFloat3Track;
+struct RawFloat4Track;
 struct RawQuaternionTrack;
 
 // Defines the class responsible of building runtime float track instances from
@@ -59,6 +61,7 @@ class TrackBuilder {
   FloatTrack* operator()(const RawFloatTrack& _input) const;
   Float2Track* operator()(const RawFloat2Track& _input) const;
   Float3Track* operator()(const RawFloat3Track& _input) const;
+  Float4Track* operator()(const RawFloat4Track& _input) const;
   QuaternionTrack* operator()(const RawQuaternionTrack& _input) const;
 
  private:
