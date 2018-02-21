@@ -2,6 +2,7 @@ Next release
 ---------------------
 
 * Tools
+  - Moved all fbx2anim options to a json config file. List of options with default values are available 
   - Adds a --all_nodes option to fbx2skel which allows to export all scene nodes to a skeleton, ie not only joints. This is useful for the baked sample for example, which animates mesh nodes.
 
 * Library
