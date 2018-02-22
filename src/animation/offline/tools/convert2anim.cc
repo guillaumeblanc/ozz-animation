@@ -678,7 +678,8 @@ int AnimationConverter::operator()(int _argc, const char** _argv) {
               ProcessTracks(*this, animation_name, *skeleton, tracks_config[t]);
         }
       }
-      if (!matched) {
+      // Don't display any message if no animation is supposed to be imported.
+      if (!matched && *animation_match != 0) {
         ozz::log::Log() << "No matching animation found for \""
                         << animation_match << "\"." << std::endl;
       }
