@@ -25,77 +25,67 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/animation/offline/tools/convert2skel.h"
+#ifndef OZZ_ANIMATION_OFFLINE_FBX_FBX2OZZ_H_
+#define OZZ_ANIMATION_OFFLINE_FBX_FBX2OZZ_H_
+
+#include "ozz/animation/offline/tools/convert2ozz.h"
 
 #include "ozz/animation/offline/fbx/fbx.h"
-#include "ozz/animation/offline/fbx/fbx_skeleton.h"
 
-#include "ozz/animation/offline/raw_skeleton.h"
-
-#include "ozz/base/log.h"
-#include "ozz/base/memory/allocator.h"
-
-// fbx2skel is a command line tool that converts a skeleton imported from a
-// Fbx document to ozz runtime format.
+// fbx2ozz is a command line tool that converts an animation imported from a
+// fbx document to ozz runtime format.
 //
-// fbx2skel extracts the skeleton from the Fbx document. It then builds an
-// ozz runtime skeleton, from the Fbx skeleton, and serializes it to a ozz
-// binary archive.
+// fbx2ozz extracts animated joints from a fbx document. Only the animated
+// joints whose names match those of the ozz runtime skeleton given as argument
+// are selected. Keyframes are then optimized, based on command line settings,
+// and serialized as a runtime animation to an ozz binary archive.
 //
-// Use fbx2skel integrated help command (fbx2skel --help) for more details
+// Use fbx2ozz integrated help command (fbx2ozz --help) for more details
 // about available arguments.
-class FbxSkeletonConverter : public ozz::animation::offline::SkeletonConverter {
+
+class FbxAnimationConverter
+    : public ozz::animation::offline::AnimationConverter {
  public:
-  FbxSkeletonConverter() : settings_(fbx_manager_), scene_loader_(NULL) {}
-  ~FbxSkeletonConverter() {
-    ozz::memory::default_allocator()->Delete(scene_loader_);
-  }
+  FbxAnimationConverter();
+  ~FbxAnimationConverter();
 
  private:
-  virtual bool Load(const char* _filename) {
-    ozz::memory::default_allocator()->Delete(scene_loader_);
-    scene_loader_ = ozz::memory::default_allocator()
-                        ->New<ozz::animation::offline::fbx::FbxSceneLoader>(
-                            _filename, "", fbx_manager_, settings_);
+  virtual bool Load(const char* _filename);
 
-    if (!scene_loader_->scene()) {
-      ozz::log::Err() << "Failed to import file " << _filename << "."
-                      << std::endl;
-      ozz::memory::default_allocator()->Delete(scene_loader_);
-      scene_loader_ = NULL;
-      return false;
-    }
-    return true;
-  }
-
+  // Skeleton management
   virtual bool Import(ozz::animation::offline::RawSkeleton* _skeleton,
-                      bool _all_nodes) {
-    if (!_skeleton) {
-      return false;
-    }
+                      bool _all_nodes);
 
-    // Reset skeleton.
-    *_skeleton = ozz::animation::offline::RawSkeleton();
+  // Animation management
+  virtual AnimationNames GetAnimationNames();
 
-    if (!scene_loader_) {
-      return false;
-    }
+  virtual bool Import(const char* _animation_name,
+                      const ozz::animation::Skeleton& _skeleton,
+                      float _sampling_rate,
+                      ozz::animation::offline::RawAnimation* _animation);
 
-    if (!ozz::animation::offline::fbx::ExtractSkeleton(*scene_loader_,
-                                                       _all_nodes, _skeleton)) {
-      ozz::log::Err() << "Fbx skeleton extraction failed." << std::endl;
-      return false;
-    }
+  // Track management
+  virtual NodeProperties GetNodeProperties(const char* _node_name);
 
-    return true;
-  }
+  virtual bool Import(const char* _animation_name, const char* _node_name,
+                      const char* _track_name, float _sampling_rate,
+                      ozz::animation::offline::RawFloatTrack* _track);
 
+  virtual bool Import(const char* _animation_name, const char* _node_name,
+                      const char* _track_name, float _sampling_rate,
+                      ozz::animation::offline::RawFloat2Track* _track);
+
+  virtual bool Import(const char* _animation_name, const char* _node_name,
+                      const char* _track_name, float _sampling_rate,
+                      ozz::animation::offline::RawFloat3Track* _track);
+
+  virtual bool Import(const char* _animation_name, const char* _node_name,
+                      const char* _track_name, float _sampling_rate,
+                      ozz::animation::offline::RawFloat4Track* _track);
+
+  // Fbx internal helpers
   ozz::animation::offline::fbx::FbxManagerInstance fbx_manager_;
-  ozz::animation::offline::fbx::FbxSkeletonIOSettings settings_;
+  ozz::animation::offline::fbx::FbxAnimationIOSettings settings_;
   ozz::animation::offline::fbx::FbxSceneLoader* scene_loader_;
 };
-
-int main(int _argc, const char** _argv) {
-  FbxSkeletonConverter converter;
-  return converter(_argc, _argv);
-}
+#endif  // OZZ_ANIMATION_OFFLINE_FBX_FBX2OZZ_H_

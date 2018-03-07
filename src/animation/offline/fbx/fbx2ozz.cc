@@ -25,60 +25,34 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#ifndef OZZ_OZZ_ANIMATION_OFFLINE_FBX_FBX_ANIMATION_H_
-#define OZZ_OZZ_ANIMATION_OFFLINE_FBX_FBX_ANIMATION_H_
+#include "animation/offline/fbx/fbx2ozz.h"
 
-#include "ozz/animation/offline/fbx/fbx.h"
+#include "ozz/base/log.h"
 
-#include "ozz/animation/offline/tools/convert2ozz.h"
+int main(int _argc, const char** _argv) {
+  FbxAnimationConverter converter;
+  return converter(_argc, _argv);
+}
 
-#include "ozz/base/containers/string.h"
-#include "ozz/base/containers/vector.h"
+FbxAnimationConverter::FbxAnimationConverter()
+    : settings_(fbx_manager_), scene_loader_(NULL) {}
 
-namespace ozz {
-namespace animation {
+FbxAnimationConverter::~FbxAnimationConverter() {
+  ozz::memory::default_allocator()->Delete(scene_loader_);
+}
 
-class Skeleton;
+bool FbxAnimationConverter::Load(const char* _filename) {
+  ozz::memory::default_allocator()->Delete(scene_loader_);
+  scene_loader_ = ozz::memory::default_allocator()
+                      ->New<ozz::animation::offline::fbx::FbxSceneLoader>(
+                          _filename, "", fbx_manager_, settings_);
 
-namespace offline {
-
-struct RawAnimation;
-struct RawFloatTrack;
-struct RawFloat2Track;
-struct RawFloat3Track;
-struct RawFloat4Track;
-struct RawquaternionTrack;
-
-namespace fbx {
-
-AnimationConverter::AnimationNames GetAnimationNames(
-    FbxSceneLoader& _scene_loader);
-
-bool ExtractAnimation(const char* _animation_name,
-                      FbxSceneLoader& _scene_loader, const Skeleton& _skeleton,
-                      float _sampling_rate, RawAnimation* _animation);
-
-AnimationConverter::NodeProperties GetNodeProperties(
-    FbxSceneLoader& _scene_loader, const char* _node_name);
-
-bool ExtractTrack(const char* _animation_name, const char* _node_name,
-                  const char* _track_name, FbxSceneLoader& _scene_loader,
-                  float _sampling_rate, RawFloatTrack* _track);
-
-bool ExtractTrack(const char* _animation_name, const char* _node_name,
-                  const char* _track_name, FbxSceneLoader& _scene_loader,
-                  float _sampling_rate, RawFloat2Track* _track);
-
-bool ExtractTrack(const char* _animation_name, const char* _node_name,
-                  const char* _track_name, FbxSceneLoader& _scene_loader,
-                  float _sampling_rate, RawFloat3Track* _track);
-
-bool ExtractTrack(const char* _animation_name, const char* _node_name,
-                  const char* _track_name, FbxSceneLoader& _scene_loader,
-                  float _sampling_rate, RawFloat4Track* _track);
-
-}  // namespace fbx
-}  // namespace offline
-}  // namespace animation
-}  // namespace ozz
-#endif  // OZZ_OZZ_ANIMATION_OFFLINE_FBX_FBX_ANIMATION_H_
+  if (!scene_loader_->scene()) {
+    ozz::log::Err() << "Failed to import file " << _filename << "."
+                    << std::endl;
+    ozz::memory::default_allocator()->Delete(scene_loader_);
+    scene_loader_ = NULL;
+    return false;
+  }
+  return true;
+}

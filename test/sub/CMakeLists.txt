@@ -17,6 +17,6 @@ target_link_libraries(test_sub_project
 
 # Adds some tests
 add_test(NAME test_sub_project COMMAND test_sub_project)
-if(TARGET fbx2skel)
-  add_test(NAME test_sub_fbx2skel COMMAND fbx2skel "--version")
+if(TARGET fbx2ozz)
+  add_test(NAME test_sub_fbx2ozz COMMAND fbx2ozz "--version")
 endif()

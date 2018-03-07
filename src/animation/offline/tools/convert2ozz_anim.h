@@ -25,13 +25,27 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#ifndef OZZ_ANIMATION_OFFLINE_TOOLS_CONFIGURATION_H_
-#define OZZ_ANIMATION_OFFLINE_TOOLS_CONFIGURATION_H_
+#ifndef OZZ_ANIMATION_OFFLINE_TOOLS_CONVERT2OZZ_ANIM_H_
+#define OZZ_ANIMATION_OFFLINE_TOOLS_CONVERT2OZZ_ANIM_H_
 
+#include "ozz/base/endianness.h"
 #include "ozz/base/platform.h"
 
-#include <json/json.h>
+namespace Json {
+class Value;
+}
 
-// Get the sanitized (all members are set, with the right types) configuration.
-bool ProcessConfiguration(Json::Value* _config);
-#endif  // OZZ_ANIMATION_OFFLINE_TOOLS_CONFIGURATION_H_
+namespace ozz {
+namespace animation {
+namespace offline {
+
+class AnimationConverter;
+
+bool ProcessAnimations(const Json::Value& _config,
+                       AnimationConverter* _converter,
+                       const ozz::Endianness _endianness);
+
+}  // namespace offline
+}  // namespace offline
+}  // namespace animation
+#endif  // OZZ_ANIMATION_OFFLINE_TOOLS_CONVERT2OZZ_ANIM_H_

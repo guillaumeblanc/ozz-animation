@@ -1,25 +1,14 @@
-# Option to build baked data is disabled by default as it is very costly.
-option(ozz_baked_sample_build_data "Build baked sample data" OFF)
-
 # Build baked data
-if(ozz_baked_sample_build_data AND
-   TARGET fbx2skel AND
-   TARGET fbx2anim)
+if(TARGET fbx2ozz)
   add_custom_command(
     DEPENDS "${CMAKE_CURRENT_LIST_DIR}/README.md"
-            "${ozz_media_directory}/fbx/ozz_baked.fbx"
-            fbx2skel
-            fbx2anim
+            "${ozz_media_directory}/fbx/baked.fbx"
+            fbx2ozz
     OUTPUT "${ozz_media_directory}/bin/baked_skeleton.ozz"
            "${ozz_media_directory}/bin/baked_animation.ozz"
-    COMMAND fbx2skel
-      "--file=${ozz_media_directory}/fbx/ozz_baked.fbx"
-      "--skeleton=${ozz_media_directory}/bin/baked_skeleton.ozz"
-      "--all_nodes"
-    COMMAND fbx2anim
-      "--file=${ozz_media_directory}/fbx/ozz_baked.fbx"
-      "--skeleton=${ozz_media_directory}/bin/baked_skeleton.ozz"
-      "--config={\"animations\":[{\"output\":\"${ozz_media_directory}/bin/baked_animation.ozz\",\"optimization_tolerances\":{\"translation\":0.002,\"rotation\":0.002,\"hierarchical\":1.0}}]}"
+    COMMAND fbx2ozz
+      "--file=${ozz_media_directory}/fbx/baked.fbx"
+      "--config={\"skeleton\":{\"output\":\"${ozz_media_directory}/bin/baked_skeleton.ozz\",\"all_nodes\":true},\"animations\":[{\"skeleton\":\"${ozz_media_directory}/bin/baked_skeleton.ozz\",\"output\":\"${ozz_media_directory}/bin/baked_animation.ozz\",\"optimization_tolerances\":{\"translation\":0.002,\"rotation\":0.002,\"hierarchical\":1.0}}]}"
       VERBATIM)
 endif()
 

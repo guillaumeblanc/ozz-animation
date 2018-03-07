@@ -25,60 +25,14 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#ifndef OZZ_OZZ_ANIMATION_OFFLINE_FBX_FBX_ANIMATION_H_
-#define OZZ_OZZ_ANIMATION_OFFLINE_FBX_FBX_ANIMATION_H_
+#ifndef OZZ_ANIMATION_OFFLINE_TOOLS_CONFIGURATION_H_
+#define OZZ_ANIMATION_OFFLINE_TOOLS_CONFIGURATION_H_
 
-#include "ozz/animation/offline/fbx/fbx.h"
+#include "ozz/base/platform.h"
 
-#include "ozz/animation/offline/tools/convert2ozz.h"
+#include <json/json.h>
 
-#include "ozz/base/containers/string.h"
-#include "ozz/base/containers/vector.h"
+// Get the sanitized (all members are set, with the right types) configuration.
+bool ProcessConfiguration(Json::Value* _config);
 
-namespace ozz {
-namespace animation {
-
-class Skeleton;
-
-namespace offline {
-
-struct RawAnimation;
-struct RawFloatTrack;
-struct RawFloat2Track;
-struct RawFloat3Track;
-struct RawFloat4Track;
-struct RawquaternionTrack;
-
-namespace fbx {
-
-AnimationConverter::AnimationNames GetAnimationNames(
-    FbxSceneLoader& _scene_loader);
-
-bool ExtractAnimation(const char* _animation_name,
-                      FbxSceneLoader& _scene_loader, const Skeleton& _skeleton,
-                      float _sampling_rate, RawAnimation* _animation);
-
-AnimationConverter::NodeProperties GetNodeProperties(
-    FbxSceneLoader& _scene_loader, const char* _node_name);
-
-bool ExtractTrack(const char* _animation_name, const char* _node_name,
-                  const char* _track_name, FbxSceneLoader& _scene_loader,
-                  float _sampling_rate, RawFloatTrack* _track);
-
-bool ExtractTrack(const char* _animation_name, const char* _node_name,
-                  const char* _track_name, FbxSceneLoader& _scene_loader,
-                  float _sampling_rate, RawFloat2Track* _track);
-
-bool ExtractTrack(const char* _animation_name, const char* _node_name,
-                  const char* _track_name, FbxSceneLoader& _scene_loader,
-                  float _sampling_rate, RawFloat3Track* _track);
-
-bool ExtractTrack(const char* _animation_name, const char* _node_name,
-                  const char* _track_name, FbxSceneLoader& _scene_loader,
-                  float _sampling_rate, RawFloat4Track* _track);
-
-}  // namespace fbx
-}  // namespace offline
-}  // namespace animation
-}  // namespace ozz
-#endif  // OZZ_OZZ_ANIMATION_OFFLINE_FBX_FBX_ANIMATION_H_
+#endif  // OZZ_ANIMATION_OFFLINE_TOOLS_CONFIGURATION_H_

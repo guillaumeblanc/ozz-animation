@@ -1,7 +1,12 @@
 {
+  "skeleton":
+  {
+    "output":"${ozz_temp_directory}/fbx_propreties_skeleton.ozz"
+  },
   "animations":
   [
     {
+      "skeleton":"${ozz_temp_directory}/fbx_propreties_skeleton.ozz",
       "output":"${ozz_temp_directory}/fbx_properties_animation_${CMAKE_CURRENT_LIST_LINE}.ozz",
       "tracks":
       [

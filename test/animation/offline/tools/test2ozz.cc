@@ -27,7 +27,7 @@
 
 #include <string.h>
 
-#include "ozz/animation/offline/tools/convert2anim.h"
+#include "ozz/animation/offline/tools/convert2ozz.h"
 
 #include "ozz/animation/runtime/skeleton.h"
 
@@ -50,7 +50,41 @@ class TestAnimationConverter
       file_ = NULL;
       return false;
     }
-    return true;
+
+    const char good_content[] = "good content";
+    char buffer[256];
+    bool valid =
+        file_->Read(buffer, sizeof(buffer)) >= sizeof(good_content) - 1 &&
+        memcmp(buffer, good_content, sizeof(good_content) - 1) == 0;
+    file_->Seek(0, ozz::io::File::kSet);
+    return valid;
+  }
+
+  virtual bool Import(ozz::animation::offline::RawSkeleton* _skeleton,
+                      bool _all_nodes) {
+    (void)_all_nodes;
+    if (file_ && file_->opened()) {
+      file_->Seek(0, ozz::io::File::kSet);
+      char buffer[256];
+      const char good_content[] = "good content 1";
+      if (file_->Read(buffer, sizeof(buffer)) >= sizeof(good_content) - 1 &&
+          memcmp(buffer, good_content, sizeof(good_content) - 1) == 0) {
+        _skeleton->roots.resize(1);
+        ozz::animation::offline::RawSkeleton::Joint& root = _skeleton->roots[0];
+        root.name = "root";
+
+        root.children.resize(3);
+        ozz::animation::offline::RawSkeleton::Joint& joint0 = root.children[0];
+        joint0.name = "joint0";
+        ozz::animation::offline::RawSkeleton::Joint& joint1 = root.children[1];
+        joint1.name = "joint1";
+        ozz::animation::offline::RawSkeleton::Joint& joint2 = root.children[2];
+        joint2.name = "joint2";
+
+        return true;
+      }
+    }
+    return false;
   }
 
   virtual AnimationNames GetAnimationNames() {
@@ -58,6 +92,13 @@ class TestAnimationConverter
 
     if (file_ && file_->opened()) {
       char buffer[256];
+
+      file_->Seek(0, ozz::io::File::kSet);
+      const char good_content0[] = "good content 0";
+      if (file_->Read(buffer, sizeof(buffer)) >= sizeof(good_content0) - 1 &&
+          memcmp(buffer, good_content0, sizeof(good_content0) - 1) == 0) {
+        return names;  // No animations
+      }
 
       file_->Seek(0, ozz::io::File::kSet);
       const char good_content1[] = "good content 1";

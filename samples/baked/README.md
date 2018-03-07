@@ -7,7 +7,7 @@ This samples shows a physic simulation baked into an animation. This scene conta
 ## Concept
 
 This sample has two fundamental parts:
-1. Extract a skeleton from the baked scene (fbx2baked). The baked scene is made of animated meshes/cubes. There's no hierarchy between objects, but it's still required to define a skeleton to be able to animate it, aka assign animated tracks. Animation extraction is using fbx2anim as usual.
+1. Extract a skeleton from the baked scene using fxb2ozz all_nodes configuration option. The baked scene is made of animated meshes/cubes. There's no hierarchy between objects, but it's still required to define a skeleton to be able to animate it, aka assign animated tracks. Animation extraction is using fbx2ozz as usual.
 2. Render animated meshes. The original scene is made of cuboids of different sizes. The sample doesn't import scene meshes, but renders unit size cubes instead. Each cube is actually scaled by its animation scale track which was extracted from its corresponding mesh scale.
 
 This sample also introduces camera animation. The camera is considered as a joint in the scene skeleton. Camera animation track is extracted in the same way meshes animations are. The sample code then forwards animated camera matrix to the renderer each frame.

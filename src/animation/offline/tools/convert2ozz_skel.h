@@ -25,65 +25,26 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include <string.h>
+#ifndef OZZ_ANIMATION_OFFLINE_TOOLS_CONVERT2OZZ_SKEL_H_
+#define OZZ_ANIMATION_OFFLINE_TOOLS_CONVERT2OZZ_SKEL_H_
 
-#include "ozz/animation/offline/tools/convert2skel.h"
+#include "ozz/base/endianness.h"
+#include "ozz/base/platform.h"
 
-#include "ozz/animation/offline/raw_skeleton.h"
-
-#include "ozz/base/io/stream.h"
-#include "ozz/base/memory/allocator.h"
-
-class TestSkeletonConverter
-    : public ozz::animation::offline::SkeletonConverter {
- public:
-  TestSkeletonConverter() : file_(NULL) {}
-  ~TestSkeletonConverter() { ozz::memory::default_allocator()->Delete(file_); }
-
- private:
-  virtual bool Load(const char* _filename) {
-    ozz::memory::default_allocator()->Delete(file_);
-    file_ =
-        ozz::memory::default_allocator()->New<ozz::io::File>(_filename, "rb");
-    if (!file_->opened()) {
-      ozz::memory::default_allocator()->Delete(file_);
-      file_ = NULL;
-      return false;
-    }
-    return true;
-  }
-
-  virtual bool Import(ozz::animation::offline::RawSkeleton* _skeleton,
-                      bool _all_nodes) {
-    (void)_skeleton;
-    (void)_all_nodes;
-    if (file_ && file_->opened()) {
-      char buffer[256];
-      const char good_content[] = "good content 1";
-      if (file_->Read(buffer, sizeof(buffer)) >= sizeof(good_content) - 1 &&
-          memcmp(buffer, good_content, sizeof(good_content) - 1) == 0) {
-        _skeleton->roots.resize(1);
-        ozz::animation::offline::RawSkeleton::Joint& root = _skeleton->roots[0];
-        root.name = "root";
-
-        root.children.resize(3);
-        ozz::animation::offline::RawSkeleton::Joint& joint0 = root.children[0];
-        joint0.name = "joint0";
-        ozz::animation::offline::RawSkeleton::Joint& joint1 = root.children[1];
-        joint1.name = "joint1";
-        ozz::animation::offline::RawSkeleton::Joint& joint2 = root.children[2];
-        joint2.name = "joint2";
-
-        return true;
-      }
-    }
-    return false;
-  }
-
-  ozz::io::File* file_;
-};
-
-int main(int _argc, const char** _argv) {
-  TestSkeletonConverter converter;
-  return converter(_argc, _argv);
+namespace Json {
+class Value;
 }
+
+namespace ozz {
+namespace animation {
+namespace offline {
+
+class AnimationConverter;
+
+bool ProcessSkeleton(const Json::Value& _config, AnimationConverter* _converter,
+                     const ozz::Endianness _endianness);
+
+}  // namespace offline
+}  // namespace animation
+}  // namespace ozz
+#endif  // OZZ_ANIMATION_OFFLINE_TOOLS_CONVERT2OZZ_SKEL_H_

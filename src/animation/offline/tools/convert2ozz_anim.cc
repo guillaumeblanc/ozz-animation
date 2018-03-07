@@ -25,12 +25,12 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/animation/offline/tools/convert2anim.h"
+#include "ozz/animation/offline/tools/convert2ozz.h"
 
 #include <cstdlib>
 #include <cstring>
 
-#include "animation/offline/tools/configuration.h"
+#include "animation/offline/tools/convert2ozz_config.h"
 
 #include "ozz/animation/offline/additive_animation_builder.h"
 #include "ozz/animation/offline/animation_builder.h"
@@ -52,62 +52,6 @@
 #include "ozz/base/log.h"
 
 #include "ozz/options/options.h"
-
-// Declares command line options.
-OZZ_OPTIONS_DECLARE_STRING(file, "Specifies input file", "", true)
-OZZ_OPTIONS_DECLARE_STRING(skeleton,
-                           "Specifies ozz skeleton (raw or runtime) input file",
-                           "", true)
-
-static bool ValidateEndianness(const ozz::options::Option& _option,
-                               int /*_argc*/) {
-  const ozz::options::StringOption& option =
-      static_cast<const ozz::options::StringOption&>(_option);
-  bool valid = std::strcmp(option.value(), "native") == 0 ||
-               std::strcmp(option.value(), "little") == 0 ||
-               std::strcmp(option.value(), "big") == 0;
-  if (!valid) {
-    ozz::log::Err() << "Invalid endianess option." << std::endl;
-  }
-  return valid;
-}
-
-OZZ_OPTIONS_DECLARE_STRING_FN(
-    endian,
-    "Selects output endianness mode. Can be \"native\" (same as current "
-    "platform), \"little\" or \"big\".",
-    "native", false, &ValidateEndianness)
-
-ozz::Endianness Endianness() {
-  // Initializes output endianness from options.
-  ozz::Endianness endianness = ozz::GetNativeEndianness();
-  if (std::strcmp(OPTIONS_endian, "little")) {
-    endianness = ozz::kLittleEndian;
-  } else if (std::strcmp(OPTIONS_endian, "big")) {
-    endianness = ozz::kBigEndian;
-  }
-  ozz::log::LogV() << (endianness == ozz::kLittleEndian ? "Little" : "Big")
-                   << " Endian output binary format selected." << std::endl;
-  return endianness;
-}
-
-static bool ValidateLogLevel(const ozz::options::Option& _option,
-                             int /*_argc*/) {
-  const ozz::options::StringOption& option =
-      static_cast<const ozz::options::StringOption&>(_option);
-  bool valid = std::strcmp(option.value(), "verbose") == 0 ||
-               std::strcmp(option.value(), "standard") == 0 ||
-               std::strcmp(option.value(), "silent") == 0;
-  if (!valid) {
-    ozz::log::Err() << "Invalid log level option." << std::endl;
-  }
-  return valid;
-}
-
-OZZ_OPTIONS_DECLARE_STRING_FN(
-    log_level,
-    "Selects log level. Can be \"silent\", \"standard\" or \"verbose\".",
-    "standard", false, &ValidateLogLevel)
 
 namespace ozz {
 namespace animation {
@@ -155,16 +99,21 @@ void DisplaysOptimizationstatistics(const RawAnimation& _non_optimized,
                    << "%" << std::endl;
 }
 
-ozz::animation::Skeleton* ImportSkeleton() {
+ozz::animation::Skeleton* ImportSkeleton(const char* _path) {
   // Reads the skeleton from the binary ozz stream.
   ozz::animation::Skeleton* skeleton = NULL;
   {
-    ozz::log::LogV() << "Opens input skeleton ozz binary file: "
-                     << OPTIONS_skeleton << std::endl;
-    ozz::io::File file(OPTIONS_skeleton, "rb");
+    if (*_path == 0) {
+      ozz::log::Err() << "No ozz binary skeleton file specified from config."
+                      << std::endl;
+      return NULL;
+    }
+    ozz::log::LogV() << "Opens input skeleton ozz binary file: " << _path
+                     << std::endl;
+    ozz::io::File file(_path, "rb");
     if (!file.opened()) {
       ozz::log::Err() << "Failed to open input skeleton ozz binary file: \""
-                      << OPTIONS_skeleton << "\"" << std::endl;
+                      << _path << "\"" << std::endl;
       return NULL;
     }
     ozz::io::IArchive archive(&file);
@@ -193,7 +142,7 @@ ozz::animation::Skeleton* ImportSkeleton() {
       archive >> *skeleton;
     } else {
       ozz::log::Err() << "Failed to read input skeleton from binary file: "
-                      << OPTIONS_skeleton << std::endl;
+                      << _path << std::endl;
       return NULL;
     }
   }
@@ -212,7 +161,7 @@ ozz::String::Std BuildFilename(const char* _filename, const char* _data_name) {
 
 bool Export(const ozz::animation::offline::RawAnimation& _raw_animation,
             const ozz::animation::Skeleton& _skeleton,
-            const Json::Value& _config) {
+            const Json::Value& _config, const ozz::Endianness _endianness) {
   // Raw animation to build and output.
   ozz::animation::offline::RawAnimation raw_animation;
 
@@ -287,7 +236,7 @@ bool Export(const ozz::animation::offline::RawAnimation& _raw_animation,
     }
 
     // Initializes output archive.
-    ozz::io::OArchive archive(&file, Endianness());
+    ozz::io::OArchive archive(&file, _endianness);
 
     // Fills output archive with the animation.
     if (_config["raw"].asBool()) {
@@ -311,7 +260,8 @@ bool Export(const ozz::animation::offline::RawAnimation& _raw_animation,
 bool ProcessAnimation(AnimationConverter& _converter,
                       const char* _animation_name,
                       const ozz::animation::Skeleton& _skeleton,
-                      const Json::Value& _config) {
+                      const Json::Value& _config,
+                      const ozz::Endianness _endianness) {
   RawAnimation animation;
   if (!_converter.Import(_animation_name, _skeleton,
                          _config["sampling_rate"].asFloat(), &animation)) {
@@ -322,7 +272,7 @@ bool ProcessAnimation(AnimationConverter& _converter,
     // Give animation a name
     animation.name = _animation_name;
 
-    return Export(animation, _skeleton, _config);
+    return Export(animation, _skeleton, _config, _endianness);
   }
 }
 
@@ -347,7 +297,8 @@ struct RawTrackToTrack<RawFloat4Track> {
 };
 
 template <typename _RawTrack>
-bool Export(const _RawTrack& _raw_track, const Json::Value& _config) {
+bool Export(const _RawTrack& _raw_track, const Json::Value& _config,
+            const ozz::Endianness _endianness) {
   // Raw track to build and output.
   _RawTrack raw_track;
 
@@ -399,7 +350,7 @@ bool Export(const _RawTrack& _raw_track, const Json::Value& _config) {
     }
 
     // Initializes output archive.
-    ozz::io::OArchive archive(&file, Endianness());
+    ozz::io::OArchive archive(&file, _endianness);
 
     // Fills output archive with the track.
     if (_config["raw"].asBool()) {
@@ -445,7 +396,8 @@ bool ProcessImportTrackType(AnimationConverter& _converter,
                             const char* _animation_name,
                             const char* _joint_name,
                             const AnimationConverter::NodeProperty& _property,
-                            const Json::Value& _import_config) {
+                            const Json::Value& _import_config,
+                            const ozz::Endianness _endianness) {
   bool success = true;
 
   typename TrackFromType<_type>::RawTrack track;
@@ -458,7 +410,7 @@ bool ProcessImportTrackType(AnimationConverter& _converter,
     track.name += '-';
     track.name += _property.name.c_str();
 
-    success &= Export(track, _import_config);
+    success &= Export(track, _import_config, _endianness);
   } else {
     ozz::log::Err() << "Failed to import track \"" << _joint_name << ":"
                     << _property.name << "\"" << std::endl;
@@ -469,7 +421,8 @@ bool ProcessImportTrackType(AnimationConverter& _converter,
 
 bool ProcessImportTrack(AnimationConverter& _converter,
                         const char* _animation_name, const Skeleton& _skeleton,
-                        const Json::Value& _import_config) {
+                        const Json::Value& _import_config,
+                        const ozz::Endianness _endianness) {
   // Early out if no name is specified
   const char* joint_name_match = _import_config["joint_name"].asCString();
   const char* ppt_name_match = _import_config["property_name"].asCString();
@@ -514,28 +467,28 @@ bool ProcessImportTrack(AnimationConverter& _converter,
           success &=
               ProcessImportTrackType<AnimationConverter::NodeProperty::kFloat1>(
                   _converter, _animation_name, joint_name, property,
-                  _import_config);
+                  _import_config, _endianness);
           break;
         }
         case AnimationConverter::NodeProperty::kFloat2: {
           success &=
               ProcessImportTrackType<AnimationConverter::NodeProperty::kFloat2>(
                   _converter, _animation_name, joint_name, property,
-                  _import_config);
+                  _import_config, _endianness);
           break;
         }
         case AnimationConverter::NodeProperty::kFloat3: {
           success &=
               ProcessImportTrackType<AnimationConverter::NodeProperty::kFloat3>(
                   _converter, _animation_name, joint_name, property,
-                  _import_config);
+                  _import_config, _endianness);
           break;
         }
         case AnimationConverter::NodeProperty::kFloat4: {
           success &=
               ProcessImportTrackType<AnimationConverter::NodeProperty::kFloat4>(
                   _converter, _animation_name, joint_name, property,
-                  _import_config);
+                  _import_config, _endianness);
           break;
         }
         default: {
@@ -569,13 +522,14 @@ bool ProcessMotionTrack(AnimationConverter& _converter,
 }*/
 
 bool ProcessTracks(AnimationConverter& _converter, const char* _animation_name,
-                   const Skeleton& _skeleton, const Json::Value& _config) {
+                   const Skeleton& _skeleton, const Json::Value& _config,
+                   const ozz::Endianness _endianness) {
   bool success = true;
 
   const Json::Value& imports = _config["imports"];
   for (Json::ArrayIndex i = 0; success && i < imports.size(); ++i) {
-    success &=
-        ProcessImportTrack(_converter, _animation_name, _skeleton, imports[i]);
+    success &= ProcessImportTrack(_converter, _animation_name, _skeleton,
+                                  imports[i], _endianness);
   }
 
   /*
@@ -590,104 +544,70 @@ bool ProcessTracks(AnimationConverter& _converter, const char* _animation_name,
 }
 }  // namespace
 
-int AnimationConverter::operator()(int _argc, const char** _argv) {
-  // Parses arguments.
-  ozz::options::ParseResult parse_result = ozz::options::ParseCommandLine(
-      _argc, _argv, "2.0",
-      "Imports a animation from a file and converts it to ozz binary raw or "
-      "runtime animation format");
-  if (parse_result != ozz::options::kSuccess) {
-    return parse_result == ozz::options::kExitSuccess ? EXIT_SUCCESS
-                                                      : EXIT_FAILURE;
-  }
-
-  // Initializes log level from options.
-  ozz::log::Level log_level = ozz::log::GetLevel();
-  if (std::strcmp(OPTIONS_log_level, "silent") == 0) {
-    log_level = ozz::log::kSilent;
-  } else if (std::strcmp(OPTIONS_log_level, "standard") == 0) {
-    log_level = ozz::log::kStandard;
-  } else if (std::strcmp(OPTIONS_log_level, "verbose") == 0) {
-    log_level = ozz::log::kVerbose;
-  }
-  ozz::log::SetLevel(log_level);
-
-  Json::Value config;
-  if (!ProcessConfiguration(&config)) {
-    // Specific error message are reported during Sanitize.
-    return EXIT_FAILURE;
-  }
-
-  // Ensures file to import actually exist.
-  if (!ozz::io::File::Exist(OPTIONS_file)) {
-    ozz::log::Err() << "File \"" << OPTIONS_file << "\" doesn't exist."
+bool ProcessAnimations(const Json::Value& _config,
+                       AnimationConverter* _converter,
+                       const ozz::Endianness _endianness) {
+  if (_config.size() == 0) {
+    ozz::log::Log() << "Configuration contains no animation export "
+                       "definition, animations import will be skipped."
                     << std::endl;
-    return EXIT_FAILURE;
-  }
-
-  // Imports animations from the document.
-  ozz::log::Log() << "Importing file \"" << OPTIONS_file << "\"" << std::endl;
-  if (!Load(OPTIONS_file)) {
-    ozz::log::Err() << "Failed to import file \"" << OPTIONS_file << "\""
-                    << std::endl;
-    return EXIT_FAILURE;
+    return true;
   }
 
   // Get all available animation names.
-  AnimationNames import_animation_names = GetAnimationNames();
+  const AnimationConverter::AnimationNames& import_animation_names =
+      _converter->GetAnimationNames();
 
   // Are there animations available
   if (import_animation_names.empty()) {
     ozz::log::Err() << "No animation found." << std::endl;
-    return EXIT_FAILURE;
-  }
-
-  // Import skeleton instance.
-  ozz::animation::Skeleton* skeleton = ImportSkeleton();
-  if (!skeleton) {
-    return EXIT_FAILURE;
+    return true;
   }
 
   // Iterates all imported animations, build and output them.
   bool success = true;
-  const Json::Value& animations_config = config["animations"];
-  if (animations_config.size() == 0) {
-    ozz::log::Log() << "Configuration contains no animation export definition."
-                    << std::endl;
-  } else {
-    // Loop though all existing animations, and export those who match
-    // configuration.
-    for (Json::ArrayIndex i = 0; success && i < animations_config.size(); ++i) {
-      const Json::Value& animation_config = animations_config[i];
-      const char* animation_match = animation_config["name"].asCString();
 
-      bool matched = false;
-      for (size_t j = 0; success && j < import_animation_names.size(); ++j) {
-        const char* animation_name = import_animation_names[j].c_str();
-        if (!strmatch(animation_name, animation_match)) {
-          continue;
-        }
+  // Loop though all existing animations, and export those who match
+  // configuration.
+  for (Json::ArrayIndex i = 0; success && i < _config.size(); ++i) {
+    const Json::Value& animation_config = _config[i];
+    const char* animation_match = animation_config["name"].asCString();
 
-        matched = true;
-        success = ProcessAnimation(*this, animation_name, *skeleton,
-                                   animation_config);
+    // Import skeleton instance.
+    ozz::animation::Skeleton* skeleton =
+        ImportSkeleton(animation_config["skeleton"].asCString());
+    if (!skeleton) {
+      success = false;
+      break;
+    }
 
-        const Json::Value& tracks_config = animation_config["tracks"];
-        for (Json::ArrayIndex t = 0; success && t < tracks_config.size(); ++t) {
-          success =
-              ProcessTracks(*this, animation_name, *skeleton, tracks_config[t]);
-        }
+    bool matched = false;
+    for (size_t j = 0; success && j < import_animation_names.size(); ++j) {
+      const char* animation_name = import_animation_names[j].c_str();
+      if (!strmatch(animation_name, animation_match)) {
+        continue;
       }
-      // Don't display any message if no animation is supposed to be imported.
-      if (!matched && *animation_match != 0) {
-        ozz::log::Log() << "No matching animation found for \""
-                        << animation_match << "\"." << std::endl;
+
+      matched = true;
+      success = ProcessAnimation(*_converter, animation_name, *skeleton,
+                                 animation_config, _endianness);
+
+      const Json::Value& tracks_config = animation_config["tracks"];
+      for (Json::ArrayIndex t = 0; success && t < tracks_config.size(); ++t) {
+        success = ProcessTracks(*_converter, animation_name, *skeleton,
+                                tracks_config[t], _endianness);
       }
     }
-  }
-  ozz::memory::default_allocator()->Delete(skeleton);
+    // Don't display any message if no animation is supposed to be imported.
+    if (!matched && *animation_match != 0) {
+      ozz::log::Log() << "No matching animation found for \"" << animation_match
+                      << "\"." << std::endl;
+    }
 
-  return success ? EXIT_SUCCESS : EXIT_FAILURE;
+    ozz::memory::default_allocator()->Delete(skeleton);
+  }
+
+  return success;
 }  // namespace animation
 }  // namespace offline
 }  // namespace animation

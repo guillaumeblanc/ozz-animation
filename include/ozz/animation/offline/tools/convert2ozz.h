@@ -25,12 +25,13 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#ifndef OZZ_OZZ_ANIMATION_OFFLINE_TOOLS_CONVERT2ANIM_H_
-#define OZZ_OZZ_ANIMATION_OFFLINE_TOOLS_CONVERT2ANIM_H_
+#ifndef OZZ_OZZ_ANIMATION_OFFLINE_TOOLS_CONVERT2OZZ_H_
+#define OZZ_OZZ_ANIMATION_OFFLINE_TOOLS_CONVERT2OZZ_H_
 
 #include "ozz/base/containers/vector.h"
 
 #include "ozz/animation/offline/raw_animation.h"
+#include "ozz/animation/offline/raw_skeleton.h"
 #include "ozz/animation/offline/raw_track.h"
 
 namespace ozz {
@@ -43,6 +44,10 @@ namespace offline {
 class AnimationConverter {
  public:
   int operator()(int _argc, const char** _argv);
+
+  // Skeleton management.
+  virtual bool Import(ozz::animation::offline::RawSkeleton* _skeleton,
+                      bool _all_nodes) = 0;
 
   // Animations management.
 
@@ -84,4 +89,4 @@ class AnimationConverter {
 }  // namespace offline
 }  // namespace animation
 }  // namespace ozz
-#endif  // OZZ_OZZ_ANIMATION_OFFLINE_TOOLS_CONVERT2ANIM_H_
+#endif  // OZZ_OZZ_ANIMATION_OFFLINE_TOOLS_CONVERT2OZZ_H_

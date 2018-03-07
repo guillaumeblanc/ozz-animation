@@ -25,7 +25,7 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "animation/offline/tools/configuration.h"
+#include "animation/offline/tools/convert2ozz_config.h"
 
 #include <fstream>
 #include <sstream>
@@ -189,6 +189,16 @@ bool MakeDefault(Json::Value& _parent, const char* _name, _Type _value,
   return exist;
 }
 
+bool SanitizeSkeleton(Json::Value& _root, bool _all_options) {
+  (void)_all_options;
+  MakeDefault(_root, "output", "", "Specifies skeleton output file.");
+  MakeDefault(_root, "raw", false, "Outputs raw skeleton.");
+  MakeDefault(_root, "all_nodes", false,
+              "Exports all nodes regardless of their type.");
+
+  return true;
+}
+
 bool SanitizeOptimizationTolerances(Json::Value& _root) {
   MakeDefault(
       _root, "translation",
@@ -286,16 +296,19 @@ bool SanitizeAnimation(Json::Value& _root, bool _all_options) {
   MakeDefault(_root, "name", "*",
               "Specifies name of the animation to import. Wildcard characters "
               "\'*\' and \'?\' are supported");
+
   MakeDefault(_root, "output", "*.ozz",
               "Specifies animation output file(s). Use a \'*\' character to "
               "specify part(s) of the filename that should be replaced by the "
               "animation name.");
 
+  MakeDefault(_root, "skeleton", "",
+              "Specifies ozz skeleton (raw or runtime) input file.");
+
   MakeDefault(_root, "optimize", true, "Activates keyframes optimization.");
 
   MakeDefaultObject(_root, "optimization_tolerances",
                     "Optimization tolerances.");
-
   SanitizeOptimizationTolerances(_root["optimization_tolerances"]);
 
   MakeDefault(_root, "raw", false, "Outputs raw animation.");
@@ -324,7 +337,13 @@ bool SanitizeAnimation(Json::Value& _root, bool _all_options) {
 }  // namespace
 
 bool SanitizeRoot(Json::Value& _root, bool _all_options) {
-  MakeDefaultArray(_root, "animations", "Animations to extract.", false);
+  // Skeleton
+  MakeDefaultObject(_root, "skeleton", "Skeleton to import");
+  SanitizeSkeleton(_root["skeleton"], _all_options);
+
+  // Animations
+  MakeDefaultArray(_root, "animations", "Animations to extract.",
+                   !_all_options);
   Json::Value& animations = _root["animations"];
   for (Json::ArrayIndex i = 0; i < animations.size(); ++i) {
     if (!SanitizeAnimation(animations[i], _all_options)) {
