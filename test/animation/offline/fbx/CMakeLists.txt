@@ -116,6 +116,7 @@ set_tests_properties(fbx2ozz_anim_simple_dae_seymour PROPERTIES DEPENDS fbx2ozz_
 
 # Uses the sample playback to test other file format and special cases.
 if(TARGET sample_playback)
+
   add_custom_command(
     DEPENDS $<$<AND:$<BOOL:${ozz_build_data}>,$<BOOL:${ozz_build_fbx}>>:fbx2ozz>
             "${ozz_media_directory}/collada/alain/skeleton.dae"
@@ -132,7 +133,7 @@ if(TARGET sample_playback)
       "--config={\"skeleton\":{\"output\":\"${ozz_temp_directory}/alain_skeleton_dae_zup.ozz\"}}"
     COMMAND fbx2ozz
       "--file=${ozz_media_directory}/collada/alain/walk.dae"
-      "--config={\"animations\":[{\"skeleton\":\"${ozz_temp_directory}/alain_skeleton_dae.ozz\",\"output\":\"${ozz_temp_directory}/alain_walk_dae.ozz\"}]}"
+      "--config={\"animations\": [{\"skeleton\":\"${ozz_temp_directory}/alain_skeleton_dae.ozz\",\"output\":\"${ozz_temp_directory}/alain_walk_dae.ozz\"}]}"
     VERBATIM)
       
   add_custom_target(BUILD_DATA_TEST ALL DEPENDS
@@ -141,11 +142,11 @@ if(TARGET sample_playback)
     "${ozz_temp_directory}/alain_walk_dae.ozz"
     VERBATIM)
 
-  add_test(NAME sample_playback_dae_zup COMMAND sample_playback  "--skeleton=${ozz_temp_directory}/alain_skeleton_dae_zup.ozz" "--animation=${ozz_temp_directory}/alain_walk_dae.ozz" "--max_idle_loops=${ozz_sample_testing_loops}" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)
+  add_test(NAME sample_playback_dae_zup COMMAND sample_playback "--skeleton=${ozz_temp_directory}/alain_skeleton_dae_zup.ozz" "--animation=${ozz_temp_directory}/alain_walk_dae.ozz" "--max_idle_loops=${ozz_sample_testing_loops}" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)
 
-  add_test(NAME sample_playback_dae_seymour COMMAND sample_playback  "--skeleton=${ozz_media_directory}/bin/seymour_skeleton.ozz" "--animation=${ozz_media_directory}/bin/seymour_animation.ozz" "--max_idle_loops=${ozz_sample_testing_loops}" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)
-  add_test(NAME sample_playback_dae_astro_max COMMAND sample_playback  "--skeleton=${ozz_media_directory}/bin/astro_max_skeleton.ozz" "--animation=${ozz_media_directory}/bin/astro_max_animation.ozz" "--max_idle_loops=${ozz_sample_testing_loops}" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)
-  add_test(NAME sample_playback_dae_astro_maya COMMAND sample_playback  "--skeleton=${ozz_media_directory}/bin/astro_maya_skeleton.ozz" "--animation=${ozz_media_directory}/bin/astro_maya_animation.ozz" "--max_idle_loops=${ozz_sample_testing_loops}" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)
+  add_test(NAME sample_playback_dae_seymour COMMAND sample_playback "--skeleton=${ozz_media_directory}/bin/seymour_skeleton.ozz" "--animation=${ozz_media_directory}/bin/seymour_animation.ozz" "--max_idle_loops=${ozz_sample_testing_loops}" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)
+  add_test(NAME sample_playback_dae_astro_max COMMAND sample_playback "--skeleton=${ozz_media_directory}/bin/astro_max_skeleton.ozz" "--animation=${ozz_media_directory}/bin/astro_max_animation.ozz" "--max_idle_loops=${ozz_sample_testing_loops}" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)
+  add_test(NAME sample_playback_dae_astro_maya COMMAND sample_playback "--skeleton=${ozz_media_directory}/bin/astro_maya_skeleton.ozz" "--animation=${ozz_media_directory}/bin/astro_maya_animation.ozz" "--max_idle_loops=${ozz_sample_testing_loops}" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)
   
   add_test(NAME sample_playback_mixed_df COMMAND sample_playback "--skeleton=${ozz_temp_directory}/alain_skeleton_dae.ozz" "--animation=${ozz_media_directory}/bin/alain_walk.ozz" "--max_idle_loops=${ozz_sample_testing_loops}" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)
   add_test(NAME sample_playback_mixed_fd COMMAND sample_playback "--skeleton=${ozz_media_directory}/bin/alain_skeleton.ozz" "--animation=${ozz_temp_directory}/alain_walk_dae.ozz" "--max_idle_loops=${ozz_sample_testing_loops}" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)
