@@ -219,9 +219,9 @@ script:
 - echo $env_cmake_toolchain
 - cmake -G "$env_cmake_generator" $env_cmake_toolchain -DCMAKE_CXX_COMPILER=$env_cmake_cxx_compiler -DCMAKE_C_COMPILER=$env_cmake_c_compiler -DCMAKE_BUILD_TYPE=$env_cmake_configuration -Dozz_build_cpp11=$env_build_cpp11 -Dozz_build_fbx=$env_build_fbx -Dozz_build_data=$env_build_data -Dozz_build_howtos=$env_build_howtos -Dozz_build_samples=$env_build_samples -Dozz_build_simd_ref=$env_build_simd_ref -Dozz_build_tests=$env_build_tests $env_src_root
 # Build
-- cmake --build ./ --config $env_cmake_configuration --use-stderr -- $env_cmake_generator_specific
+- cmake --build ./ --config $env_cmake_configuration --use-stderr -- $env_cmake_generator_specific -j4
 # Test
-- ctest --build-config $env_cmake_configuration --output-on-failure -- $env_cmake_generator_specific
+- ctest --build-config $env_cmake_configuration --output-on-failure -- $env_cmake_generator_specific -j16
 
 after_success:
 - echo after_success-----------------------------------------------------------
