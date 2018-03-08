@@ -160,9 +160,9 @@ def Build(_build_dir = build_dir):
   return True
 
 def Test():
-  # Configure Test process.
+  # Configure Test process, parallelize a lot of tests in order to stress their dependencies
   print("Running unit tests.")
-  options = ['ctest' ,'--output-on-failure', '-j' + str(multiprocessing.cpu_count()), '--build-config', config]
+  options = ['ctest' ,'--output-on-failure', '-j' + str(multiprocessing.cpu_count()) * 16, '--build-config', config]
   config_process = subprocess.Popen(options, cwd=build_dir)
   config_process.wait()
   if(config_process.returncode != 0):
