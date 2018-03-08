@@ -42,9 +42,6 @@
 
 // Declares command line options.
 OZZ_OPTIONS_DECLARE_STRING(file, "Specifies input file", "", true)
-OZZ_OPTIONS_DECLARE_STRING(skeleton,
-                           "Specifies ozz skeleton (raw or runtime) input file",
-                           "", false)
 
 static bool ValidateEndianness(const ozz::options::Option& _option,
                                int /*_argc*/) {
