@@ -117,7 +117,7 @@ int AnimationConverter::operator()(int _argc, const char** _argv) {
   ozz::options::ParseResult parse_result = ozz::options::ParseCommandLine(
       _argc, _argv, "2.0",
       "Imports skeleton and animations from a file and converts it to ozz "
-      "binary raw or runtime animation format");
+      "binary raw or runtime data format.");
   if (parse_result != ozz::options::kSuccess) {
     return parse_result == ozz::options::kExitSuccess ? EXIT_SUCCESS
                                                       : EXIT_FAILURE;
