@@ -379,7 +379,8 @@ bool RecursiveCheck(const Json::Value& _root, const Json::Value& _expected,
     for (Json::Value::iterator it = _root.begin(); it != _root.end(); it++) {
       const std::string& name = it.name();
       if (!_expected.isMember(name)) {
-        ozz::log::Err() << "Invalid member \"" << name << "\"." << std::endl;
+        ozz::log::Err() << "Invalid configuration member \""
+                        << _name + "." + name.c_str() << "\"." << std::endl;
         return false;
       }
       const Json::Value& expected_member = _expected[name];
