@@ -35,26 +35,60 @@ set_target_properties(fbx2ozz
 
 install(TARGETS fbx2ozz DESTINATION bin/tools)
 
-# Gerenate binary skeleton data
-set(skeletons
-  "/fbx/robot.fbx\;/bin/robot_skeleton.ozz\;{\"skeleton\":{\"output\":\"${ozz_media_directory}/bin/robot_skeleton.ozz\"}}"
-  "/fbx/alain/skeleton.fbx\;/bin/alain_skeleton.ozz\;{\"skeleton\":{\"output\":\"${ozz_media_directory}/bin/alain_skeleton.ozz\"}}"
-  "/fbx/alain/skeleton.fbx\;/bin/versioning/raw_skeleton_v1_le.ozz\;{\"skeleton\":{\"output\":\"${ozz_media_directory}/bin/versioning/raw_skeleton_v1_le.ozz\",\"raw\":true}}\;option:--endian=little"
-  "/fbx/alain/skeleton.fbx\;/bin/versioning/raw_skeleton_v1_be.ozz\;{\"skeleton\":{\"output\":\"${ozz_media_directory}/bin/versioning/raw_skeleton_v1_be.ozz\",\"raw\":true}}\;option:--endian=big"
-  "/fbx/alain/skeleton.fbx\;/bin/versioning/skeleton_v1_le.ozz\;{\"skeleton\":{\"output\":\"${ozz_media_directory}/bin/versioning/skeleton_v1_le.ozz\"}}\;option:--endian=little"
-  "/fbx/alain/skeleton.fbx\;/bin/versioning/skeleton_v1_be.ozz\;{\"skeleton\":{\"output\":\"${ozz_media_directory}/bin/versioning/skeleton_v1_be.ozz\"}}\;option:--endian=big"
-  "/collada/astro_max.dae\;/bin/astro_max_skeleton.ozz\;{\"skeleton\":{\"output\":\"${ozz_media_directory}/bin/astro_max_skeleton.ozz\"}}"
-  "/collada/astro_maya.dae\;/bin/astro_maya_skeleton.ozz\;{\"skeleton\":{\"output\":\"${ozz_media_directory}/bin/astro_maya_skeleton.ozz\"}}"
-  "/collada/seymour.dae\;/bin/seymour_skeleton.ozz\;{\"skeleton\":{\"output\":\"${ozz_media_directory}/bin/seymour_skeleton.ozz\"}}")
+# Gerenate binary animation data
+set(animations
 
-foreach(line ${skeletons})
+  # Library data
+  "/fbx/alain/skeleton.fbx\;{\"skeleton\":{\"output\":\"${ozz_media_directory}/bin/alain_skeleton.ozz\"}}\;output:${ozz_media_directory}/bin/alain_skeleton.ozz"
+  "/fbx/alain/atlas.fbx\;{\"skeleton\":{\"output\":\"${ozz_media_directory}/bin/alain_skeleton.ozz\"},\"animations\":[{\"skeleton\":\"${ozz_media_directory}/bin/alain_skeleton.ozz\",\"output\":\"${ozz_media_directory}/bin/alain_atlas_raw.ozz\",\"raw\":true,\"optimize\":false}]}\;output:${ozz_media_directory}/bin/alain_atlas_raw.ozz\;depend:${ozz_media_directory}/bin/alain_skeleton.ozz"
+  "/fbx/alain/locomotions.fbx\;{\"animations\":[{\"skeleton\":\"${ozz_media_directory}/bin/alain_skeleton.ozz\",\"output\":\"${ozz_media_directory}/bin/alain_*.ozz\"}]}\;output:${ozz_media_directory}/bin/alain_walk.ozz\;output:${ozz_media_directory}/bin/alain_jog.ozz\;output:${ozz_media_directory}/bin/alain_run.ozz\;depend:${ozz_media_directory}/bin/alain_skeleton.ozz"
+  "/fbx/alain/crossarms.fbx\;{\"animations\":[{\"skeleton\":\"${ozz_media_directory}/bin/alain_skeleton.ozz\",\"output\":\"${ozz_media_directory}/bin/alain_crossarms.ozz\"}]}\;output:${ozz_media_directory}/bin/alain_crossarms.ozz\;depend:${ozz_media_directory}/bin/alain_skeleton.ozz"
+  "/fbx/alain/crackhead.fbx\;{\"animations\":[{\"skeleton\":\"${ozz_media_directory}/bin/alain_skeleton.ozz\",\"output\":\"${ozz_media_directory}/bin/alain_crackhead.ozz\"}]}\;output:${ozz_media_directory}/bin/alain_crackhead.ozz\;depend:${ozz_media_directory}/bin/alain_skeleton.ozz"
+  "/fbx/alain/crackhead.fbx\;{\"animations\":[{\"skeleton\":\"${ozz_media_directory}/bin/alain_skeleton.ozz\",\"output\":\"${ozz_media_directory}/bin/alain_crackhead_additive.ozz\",\"additive\":true}]}\;output:${ozz_media_directory}/bin/alain_crackhead_additive.ozz\;depend:${ozz_media_directory}/bin/alain_skeleton.ozz"
+  "/fbx/robot.fbx\;{\"skeleton\":{\"output\":\"${ozz_media_directory}/bin/robot_skeleton.ozz\"},\"animations\":[{\"skeleton\":\"${ozz_media_directory}/bin/robot_skeleton.ozz\",\"output\":\"${ozz_media_directory}/bin/robot_animation.ozz\",\"optimization_tolerances\":{\"hierarchical\":0.0001},\"tracks\":[{\"imports\":[{\"joint_name\":\"thumb2\",\"property_name\":\"grasp\",\"output\":\"${ozz_media_directory}/bin/robot_track_grasp.ozz\"}]}]}]}\;output:${ozz_media_directory}/bin/robot_skeleton.ozz\;output:${ozz_media_directory}/bin/robot_animation.ozz\;output:${ozz_media_directory}/bin/robot_track_grasp.ozz"
+
+  # Versioning
+  "/fbx/alain/skeleton.fbx\;{\"skeleton\":{\"output\":\"${ozz_media_directory}/bin/versioning/raw_skeleton_v1_le.ozz\",\"raw\":true}}\;output:${ozz_media_directory}/bin/versioning/raw_skeleton_v1_le.ozz\;option:--endian=little"
+  "/fbx/alain/skeleton.fbx\;{\"skeleton\":{\"output\":\"${ozz_media_directory}/bin/versioning/raw_skeleton_v1_be.ozz\",\"raw\":true}}\;output:${ozz_media_directory}/bin/versioning/raw_skeleton_v1_be.ozz\;option:--endian=big"
+  "/fbx/alain/skeleton.fbx\;{\"skeleton\":{\"output\":\"${ozz_media_directory}/bin/versioning/skeleton_v1_le.ozz\"}}\;output:${ozz_media_directory}/bin/versioning/skeleton_v1_le.ozz\;option:--endian=little"
+  "/fbx/alain/skeleton.fbx\;{\"skeleton\":{\"output\":\"${ozz_media_directory}/bin/versioning/skeleton_v1_be.ozz\"}}\;output:${ozz_media_directory}/bin/versioning/skeleton_v1_be.ozz\;option:--endian=big"
+  "/fbx/alain/run.fbx\;{\"animations\":[{\"skeleton\":\"${ozz_media_directory}/bin/alain_skeleton.ozz\",\"output\":\"${ozz_media_directory}/bin/versioning/raw_animation_v2_le.ozz\",\"raw\":true}]}\;output:${ozz_media_directory}/bin/versioning/raw_animation_v2_le.ozz\;option:--endian=little"
+  "/fbx/alain/run.fbx\;{\"animations\":[{\"skeleton\":\"${ozz_media_directory}/bin/alain_skeleton.ozz\",\"output\":\"${ozz_media_directory}/bin/versioning/raw_animation_v2_be.ozz\",\"raw\":true}]}\;output:${ozz_media_directory}/bin/versioning/raw_animation_v2_be.ozz\;option:--endian=big\;depend:${ozz_media_directory}/bin/alain_skeleton.ozz"
+  "/fbx/alain/run.fbx\;{\"animations\":[{\"skeleton\":\"${ozz_media_directory}/bin/alain_skeleton.ozz\",\"output\":\"${ozz_media_directory}/bin/versioning/animation_v4_le.ozz\"}]}\;output:${ozz_media_directory}/bin/versioning/animation_v4_le.ozz\;option:--endian=little\;depend:${ozz_media_directory}/bin/alain_skeleton.ozz"
+  "/fbx/alain/run.fbx\;{\"animations\":[{\"skeleton\":\"${ozz_media_directory}/bin/alain_skeleton.ozz\",\"output\":\"${ozz_media_directory}/bin/versioning/animation_v4_be.ozz\"}]}\;output:${ozz_media_directory}/bin/versioning/animation_v4_be.ozz\;option:--endian=big\;depend:${ozz_media_directory}/bin/alain_skeleton.ozz"
+
+  # Collada
+  "/collada/astro_max.dae\;{\"skeleton\":{\"output\":\"${ozz_media_directory}/bin/astro_max_skeleton.ozz\"},\"animations\":[{\"skeleton\":\"${ozz_media_directory}/bin/astro_max_skeleton.ozz\",\"output\":\"${ozz_media_directory}/bin/astro_max_animation.ozz\"}]}\;output:${ozz_media_directory}/bin/astro_max_animation.ozz\;output:${ozz_media_directory}/bin/astro_max_skeleton.ozz"
+  "/collada/astro_maya.dae\;{\"skeleton\":{\"output\":\"${ozz_media_directory}/bin/astro_maya_skeleton.ozz\"},\"animations\":[{\"skeleton\":\"${ozz_media_directory}/bin/astro_maya_skeleton.ozz\",\"output\":\"${ozz_media_directory}/bin/astro_maya_animation.ozz\"}]}\;output:${ozz_media_directory}/bin/astro_maya_animation.ozz\;output:${ozz_media_directory}/bin/astro_maya_skeleton.ozz"
+  "/collada/seymour.dae\;{\"skeleton\":{\"output\":\"${ozz_media_directory}/bin/seymour_skeleton.ozz\"},\"animations\":[{\"skeleton\":\"${ozz_media_directory}/bin/seymour_skeleton.ozz\",\"output\":\"${ozz_media_directory}/bin/seymour_animation.ozz\"}]}\;output:${ozz_media_directory}/bin/seymour_animation.ozz\;output:${ozz_media_directory}seymour_skeleton.ozz"
+  )
+
+# Generate a command for each line of the configuration
+foreach(line ${animations})
+
+  # First 3 elements are mandatory
   list(GET line 0 src)
-  list(GET line 1 dest)
-  list(GET line 2 config)
+  list(GET line 1 config)
 
-  list(APPEND bin_skeletons ${ozz_media_directory}${dest})
+  # Optional elements
+  list(LENGTH line line_length)
 
-  # Find options
+  # Loops over all remaining arguments to find outputs.
+  set(outputs "")
+  foreach(element ${line})
+    if (${element} MATCHES "output:(.*)")
+      string(SUBSTRING ${element} 7 -1 output)
+      list(APPEND outputs ${output})
+    endif()
+  endforeach()
+  list(APPEND all_outputs ${outputs})
+
+  # output is required
+  if (NOT outputs)
+    message("Missing output file(s) list.")
+  endif()
+
+  # Loops over all remaining arguments to find options.
   set(options "")
   foreach(element ${line})
     if (${element} MATCHES "option:(.*)")
@@ -63,71 +97,14 @@ foreach(line ${skeletons})
     endif()
   endforeach()
 
-  # Dump config file
-  string(MD5 hash "${line}")
-  set(config_filename "${ozz_temp_directory}/config_${hash}.json")
-  file(WRITE "${config_filename}" "${config}")
-
-  add_custom_command(
-    DEPENDS "${ozz_media_directory}${src}"
-            $<$<AND:$<BOOL:${ozz_build_data}>,$<BOOL:${ozz_build_fbx}>>:fbx2ozz>
-    OUTPUT ${ozz_media_directory}${dest}
-    COMMAND fbx2ozz
-            ${options}
-            "--file=${ozz_media_directory}${src}"
-            "--config_file=${config_filename}"
-    VERBATIM)
-endforeach()
-
-# Gerenate binary animation data
-set(animations
-
-  # Library data
-  "/fbx/alain/atlas.fbx\;/bin/alain_skeleton.ozz\;{\"animations\":[{\"skeleton\":\"${ozz_media_directory}/bin/alain_skeleton.ozz\",\"output\":\"${ozz_media_directory}/bin/alain_atlas_raw.ozz\",\"raw\":true,\"optimize\":false}]}\;output:/bin/alain_atlas_raw.ozz"
-  "/fbx/alain/locomotions.fbx\;/bin/alain_skeleton.ozz\;{\"animations\":[{\"skeleton\":\"${ozz_media_directory}/bin/alain_skeleton.ozz\",\"output\":\"${ozz_media_directory}/bin/alain_*.ozz\"}]}\;output:/bin/alain_walk.ozz\;output:/bin/alain_jog.ozz\;output:/bin/alain_run.ozz"
-  "/fbx/alain/crossarms.fbx\;/bin/alain_skeleton.ozz\;{\"animations\":[{\"skeleton\":\"${ozz_media_directory}/bin/alain_skeleton.ozz\",\"output\":\"${ozz_media_directory}/bin/alain_crossarms.ozz\"}]}\;output:/bin/alain_crossarms.ozz"
-  "/fbx/alain/crackhead.fbx\;/bin/alain_skeleton.ozz\;{\"animations\":[{\"skeleton\":\"${ozz_media_directory}/bin/alain_skeleton.ozz\",\"output\":\"${ozz_media_directory}/bin/alain_crackhead.ozz\"}]}\;output:/bin/alain_crackhead.ozz"
-  "/fbx/alain/crackhead.fbx\;/bin/alain_skeleton.ozz\;{\"animations\":[{\"skeleton\":\"${ozz_media_directory}/bin/alain_skeleton.ozz\",\"output\":\"${ozz_media_directory}/bin/alain_crackhead_additive.ozz\",\"additive\":true}]}\;output:/bin/alain_crackhead_additive.ozz"
-  "/fbx/robot.fbx\;/bin/robot_skeleton.ozz\;{\"animations\":[{\"skeleton\":\"${ozz_media_directory}/bin/robot_skeleton.ozz\",\"output\":\"${ozz_media_directory}/bin/robot_animation.ozz\",\"optimization_tolerances\":{\"hierarchical\":0.0001},\"tracks\":[{\"imports\":[{\"joint_name\":\"thumb2\",\"property_name\":\"grasp\",\"output\":\"${ozz_media_directory}/bin/robot_track_grasp.ozz\"}]}]}]}\;output:/bin/robot_animation.ozz\;output:/bin/robot_track_grasp.ozz"
-
-  # Versioning
-  "/fbx/alain/run.fbx\;/bin/alain_skeleton.ozz\;{\"animations\":[{\"skeleton\":\"${ozz_media_directory}/bin/alain_skeleton.ozz\",\"output\":\"${ozz_media_directory}/bin/versioning/raw_animation_v2_le.ozz\",\"raw\":true}]}\;output:/bin/versioning/raw_animation_v2_le.ozz\;option:--endian=little"
-  "/fbx/alain/run.fbx\;/bin/alain_skeleton.ozz\;{\"animations\":[{\"skeleton\":\"${ozz_media_directory}/bin/alain_skeleton.ozz\",\"output\":\"${ozz_media_directory}/bin/versioning/raw_animation_v2_be.ozz\",\"raw\":true}]}\;output:/bin/versioning/raw_animation_v2_be.ozz\;option:--endian=big"
-  "/fbx/alain/run.fbx\;/bin/alain_skeleton.ozz\;{\"animations\":[{\"skeleton\":\"${ozz_media_directory}/bin/alain_skeleton.ozz\",\"output\":\"${ozz_media_directory}/bin/versioning/animation_v4_le.ozz\"}]}\;output:/bin/versioning/animation_v4_le.ozz\;option:--endian=little"
-  "/fbx/alain/run.fbx\;/bin/alain_skeleton.ozz\;{\"animations\":[{\"skeleton\":\"${ozz_media_directory}/bin/alain_skeleton.ozz\",\"output\":\"${ozz_media_directory}/bin/versioning/animation_v4_be.ozz\"}]}\;output:/bin/versioning/animation_v4_be.ozz\;option:--endian=big"
-
-  # Collada
-  "/collada/astro_max.dae\;/bin/astro_max_skeleton.ozz\;{\"animations\":[{\"skeleton\":\"${ozz_media_directory}/bin/astro_max_skeleton.ozz\",\"output\":\"${ozz_media_directory}/bin/astro_max_animation.ozz\"}]}\;output:/bin/astro_max_animation.ozz"
-  "/collada/astro_maya.dae\;/bin/astro_maya_skeleton.ozz\;{\"animations\":[{\"skeleton\":\"${ozz_media_directory}/bin/astro_maya_skeleton.ozz\",\"output\":\"${ozz_media_directory}/bin/astro_maya_animation.ozz\"}]}\;output:/bin/astro_maya_animation.ozz"
-  "/collada/seymour.dae\;/bin/seymour_skeleton.ozz\;{\"animations\":[{\"skeleton\":\"${ozz_media_directory}/bin/seymour_skeleton.ozz\",\"output\":\"${ozz_media_directory}/bin/seymour_animation.ozz\"}]}\;output:/bin/seymour_animation.ozz"
-  )
-
-# Generate a command for each line of the configuration
-foreach(line ${animations})
-
-  # First 3 elements are mandatory
-  list(GET line 0 src)
-  list(GET line 1 skel)
-  list(GET line 2 config)
-
-  # Optional elements
-  list(LENGTH line line_length)
-
-  # Loops over all remaining arguments.
-  set(outputs "")
+  # Loops over all remaining arguments to find dependencies.
+  set(options "")
   foreach(element ${line})
-    if (${element} MATCHES "output:(.*)")
-      string(SUBSTRING ${element} 7 -1 output)
-      list(APPEND outputs ${ozz_media_directory}${output})
+    if (${element} MATCHES "depend:(.*)")
+      string(SUBSTRING ${element} 7 -1 depend)
+      list(APPEND depends ${depend})
     endif()
   endforeach()
-
-  # output is required
-  if (NOT outputs)
-    message("Missing output file(s) list.")
-  endif()
-
-  list(APPEND bin_animations ${outputs})
 
   # Dump config file
   string(MD5 hash "${line}")
@@ -137,12 +114,13 @@ foreach(line ${animations})
   # Create build command
   add_custom_command(
     DEPENDS "${ozz_media_directory}${src}"
-            "${ozz_media_directory}${skel}"
+            ${depends}
             $<$<AND:$<BOOL:${ozz_build_data}>,$<BOOL:${ozz_build_fbx}>>:fbx2ozz>
     OUTPUT  ${outputs}
     COMMAND fbx2ozz
             "--file=${ozz_media_directory}${src}"
             "--config_file=${config_filename}"
+            ${options}
     VERBATIM)
 endforeach()
 
@@ -158,7 +136,6 @@ endforeach()
 
 # Creates a target to build data
 add_custom_target(BUILD_DATA ALL
-  DEPENDS ${bin_animations}
-          ${bin_skeletons}
-#          "${ozz_media_directory}/default_config.json"
+  DEPENDS ${all_outputs}
+#         "${ozz_media_directory}/default_config.json"
  VERBATIM)
