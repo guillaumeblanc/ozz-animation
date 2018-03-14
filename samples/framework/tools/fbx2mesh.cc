@@ -52,7 +52,7 @@ OZZ_OPTIONS_DECLARE_STRING(file, "Specifies input file.", "", true)
 OZZ_OPTIONS_DECLARE_STRING(skeleton,
                            "Specifies the skeleton that the skin is bound to.",
                            "", true)
-OZZ_OPTIONS_DECLARE_STRING(mesh, "Specifies ozz mesh ouput file.", "", true)
+OZZ_OPTIONS_DECLARE_STRING(mesh, "Specifies ozz mesh output file.", "", true)
 OZZ_OPTIONS_DECLARE_BOOL(split,
                          "Split the skinned mesh into parts (number of joint "
                          "influences per vertex).",

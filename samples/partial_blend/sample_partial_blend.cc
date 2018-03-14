@@ -126,7 +126,7 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
     }
 
     // Converts from local space to model space matrices.
-    // Gets the ouput of the blending stage, and converts it to model space.
+    // Gets the output of the blending stage, and converts it to model space.
 
     // Setup local-to-model conversion job.
     ozz::animation::LocalToModelJob ltm_job;

@@ -262,25 +262,25 @@ set_tests_properties(test2ozz_anim_single1_wild_output1 PROPERTIES DEPENDS test2
 add_test(NAME test2ozz_anim_multi1 COMMAND test2ozz "--file=${ozz_temp_directory}/good.content2" "--config={\"animations\":[{\"skeleton\":\"${ozz_temp_directory}/skeleton.ozz\",\"output\":\"${ozz_temp_directory}/animation_multi2_*.ozz\"}]}")
 set_tests_properties(test2ozz_anim_multi1 PROPERTIES DEPENDS test2ozz_skel_simple)
 
-add_test(NAME test2ozz_anim_multi2_ouput1 COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/animation_multi2_one.ozz" "${ozz_temp_directory}/animation_multi1_one_should_exist.ozz")
-set_tests_properties(test2ozz_anim_multi2_ouput1 PROPERTIES DEPENDS test2ozz_anim_multi1)
+add_test(NAME test2ozz_anim_multi2_output1 COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/animation_multi2_one.ozz" "${ozz_temp_directory}/animation_multi1_one_should_exist.ozz")
+set_tests_properties(test2ozz_anim_multi2_output1 PROPERTIES DEPENDS test2ozz_anim_multi1)
 
-add_test(NAME test2ozz_anim_multi2_ouput2 COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/animation_multi2_TWO.ozz" "${ozz_temp_directory}/animation_multi1_TWO_should_exist.ozz")
-set_tests_properties(test2ozz_anim_multi2_ouput2 PROPERTIES DEPENDS test2ozz_anim_multi1)
+add_test(NAME test2ozz_anim_multi2_output2 COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/animation_multi2_TWO.ozz" "${ozz_temp_directory}/animation_multi1_TWO_should_exist.ozz")
+set_tests_properties(test2ozz_anim_multi2_output2 PROPERTIES DEPENDS test2ozz_anim_multi1)
 
 add_test(NAME test2ozz_anim_multi2_single COMMAND test2ozz "--file=${ozz_temp_directory}/good.content2" "--config={\"animations\":[{\"skeleton\":\"${ozz_temp_directory}/skeleton.ozz\",\"name\":\"T?O\",\"output\":\"${ozz_temp_directory}/animation_multi2_single.ozz\"}]}")
 set_tests_properties(test2ozz_anim_multi2_single PROPERTIES DEPENDS test2ozz_skel_simple)
 
-add_test(NAME test2ozz_anim_multi2_single_ouput1 COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/animation_multi2_single.ozz" "${ozz_temp_directory}/animation_multi2_single_should_exist.ozz")
-set_tests_properties(test2ozz_anim_multi2_single_ouput1 PROPERTIES DEPENDS test2ozz_anim_multi2_single)
+add_test(NAME test2ozz_anim_multi2_single_output1 COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/animation_multi2_single.ozz" "${ozz_temp_directory}/animation_multi2_single_should_exist.ozz")
+set_tests_properties(test2ozz_anim_multi2_single_output1 PROPERTIES DEPENDS test2ozz_anim_multi2_single)
 
 add_test(NAME test2ozz_anim_multi2_multi COMMAND test2ozz "--file=${ozz_temp_directory}/good.content2" "--config={\"animations\":[{\"skeleton\":\"${ozz_temp_directory}/skeleton.ozz\",\"name\":\"one\",\"output\":\"${ozz_temp_directory}/animation_multi2_multi_one.ozz\"},{\"skeleton\":\"${ozz_temp_directory}/skeleton.ozz\",\"name\":\"TWO\",\"output\":\"${ozz_temp_directory}/animation_multi2_multi_TWO.ozz\"}]}")
 set_tests_properties(test2ozz_anim_multi2_multi PROPERTIES DEPENDS test2ozz_skel_simple)
 
-add_test(NAME test2ozz_anim_multi2_multi_ouput1 COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/animation_multi2_multi_one.ozz" "${ozz_temp_directory}/animation_multi2_multi_one_should_exist.ozz")
-set_tests_properties(test2ozz_anim_multi2_multi_ouput1 PROPERTIES DEPENDS test2ozz_anim_multi2_multi)
-add_test(NAME test2ozz_anim_multi2_multi_ouput2 COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/animation_multi2_multi_TWO.ozz" "${ozz_temp_directory}/animation_multi2_multi_TWO_should_exist.ozz")
-set_tests_properties(test2ozz_anim_multi2_multi_ouput2 PROPERTIES DEPENDS test2ozz_anim_multi2_multi)
+add_test(NAME test2ozz_anim_multi2_multi_output1 COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/animation_multi2_multi_one.ozz" "${ozz_temp_directory}/animation_multi2_multi_one_should_exist.ozz")
+set_tests_properties(test2ozz_anim_multi2_multi_output1 PROPERTIES DEPENDS test2ozz_anim_multi2_multi)
+add_test(NAME test2ozz_anim_multi2_multi_output2 COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/animation_multi2_multi_TWO.ozz" "${ozz_temp_directory}/animation_multi2_multi_TWO_should_exist.ozz")
+set_tests_properties(test2ozz_anim_multi2_multi_output2 PROPERTIES DEPENDS test2ozz_anim_multi2_multi)
 
 # Run test2ozz tracks import passing tests
 #----------------------------

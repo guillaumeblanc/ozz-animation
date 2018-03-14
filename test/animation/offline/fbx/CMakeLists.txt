@@ -27,9 +27,9 @@ add_test(NAME fbx2ozz_skel_no_skeleton_dae COMMAND fbx2ozz "--file=${ozz_media_d
 set_tests_properties(fbx2ozz_skel_no_skeleton_dae PROPERTIES PASS_REGULAR_EXPRESSION "Failed to import skeleton.")
 
 # Ensures nothing was outputted.
-add_test(NAME fbx2ozz_skel_ouput COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/fbx_should_not_exist.ozz" "${ozz_temp_directory}/fbx_should_not_exist_too.ozz")
-set_tests_properties(fbx2ozz_skel_ouput PROPERTIES WILL_FAIL true)
-set_tests_properties(fbx2ozz_skel_ouput PROPERTIES
+add_test(NAME fbx2ozz_skel_output COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/fbx_should_not_exist.ozz" "${ozz_temp_directory}/fbx_should_not_exist_too.ozz")
+set_tests_properties(fbx2ozz_skel_output PROPERTIES WILL_FAIL true)
+set_tests_properties(fbx2ozz_skel_output PROPERTIES
   DEPENDS "fbx2ozz_skel_no_skeleton
            fbx2ozz_skel_no_skeleton_dae")
 
@@ -81,7 +81,7 @@ set_tests_properties(fbx2ozz_anim_properties PROPERTIES DEPENDS fbx2ozz_skel_pro
 
 # Ensures all tracks were outputted.
 file(MAKE_DIRECTORY ${ozz_temp_directory}/fbx_properties_tracks_cp)
-add_test(NAME fbx2ozz_anim_properties_ouput COMMAND ${CMAKE_COMMAND} -E copy
+add_test(NAME fbx2ozz_anim_properties_output COMMAND ${CMAKE_COMMAND} -E copy
   "${ozz_temp_directory}/fbx_properties_track1_animated-ozz_curve_bool.ozz"
   "${ozz_temp_directory}/fbx_properties_track1_animated-ozz_curve_int.ozz"
   "${ozz_temp_directory}/fbx_properties_track1_animated-ozz_curve_number.ozz"
@@ -99,7 +99,7 @@ add_test(NAME fbx2ozz_anim_properties_ouput COMMAND ${CMAKE_COMMAND} -E copy
   "${ozz_temp_directory}/fbx_properties_track4_constant-ozz_color.ozz"
   "${ozz_temp_directory}/fbx_properties_tracks_cp/"
   )
-set_tests_properties(fbx2ozz_anim_properties_ouput PROPERTIES
+set_tests_properties(fbx2ozz_anim_properties_output PROPERTIES
   DEPENDS fbx2ozz_anim_properties
           "${ozz_media_directory}/fbx/properties.fbx"
           "${ozz_temp_directory}/fbx_propreties_skeleton.ozz")
