@@ -8,9 +8,7 @@ file(WRITE "${ozz_temp_directory}/bad.fbx" "bad content")
 # Run fbx2ozz generic failing tests
 #----------------------------
 
-add_test(NAME fbx2ozz_noarg COMMAND fbx2ozz)
 add_test(NAME fbx2ozz_version COMMAND fbx2ozz "--version")
-set_tests_properties(fbx2ozz_noarg PROPERTIES PASS_REGULAR_EXPRESSION "Required option \"file\" is not specified.")
 add_test(NAME fbx2ozz_bad_content COMMAND fbx2ozz "--file=${ozz_temp_directory}/bad.fbx" )
 set_tests_properties(fbx2ozz_bad_content PROPERTIES PASS_REGULAR_EXPRESSION "Failed to import file \"${ozz_temp_directory}/bad.fbx\".")
 
@@ -49,8 +47,6 @@ add_test(NAME fbx2ozz_skel_simple_dae_seymour COMMAND fbx2ozz "--file=${ozz_medi
 # Run fbx2ozz animation failing tests
 #----------------------------
 
-add_test(NAME fbx2ozz_anim_noarg COMMAND fbx2ozz)
-set_tests_properties(fbx2ozz_anim_noarg PROPERTIES PASS_REGULAR_EXPRESSION "Required option \"file\" is not specified.")
 add_test(NAME fbx2ozz_anim_badcontent COMMAND fbx2ozz "--file=${ozz_temp_directory}/bad.fbx")
 set_tests_properties(fbx2ozz_anim_badcontent PROPERTIES DEPENDS fbx2ozz_skel_simple)
 set_tests_properties(fbx2ozz_anim_badcontent PROPERTIES PASS_REGULAR_EXPRESSION "FbxImporter initialization failed with error: Unexpected file type")
