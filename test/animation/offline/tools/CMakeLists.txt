@@ -47,7 +47,7 @@ set_tests_properties(test2ozz_unexisting_config_file PROPERTIES PASS_REGULAR_EXP
 add_test(NAME test2ozz_invalid_config_file COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config_file=${ozz_temp_directory}/invalid_config.json")
 set_tests_properties(test2ozz_invalid_config_file PROPERTIES PASS_REGULAR_EXPRESSION "Error while parsing configuration string" DEPENDS test2ozz_skel_simple)
 
-add_test(NAME test2ozz_dump_config_bad_file COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--dump_full_config=${ozz_temp_directory}/unexisting/config.json")
+add_test(NAME test2ozz_dump_config_bad_file COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config_dump_reference=${ozz_temp_directory}/unexisting/config.json")
 set_tests_properties(test2ozz_dump_config_bad_file PROPERTIES PASS_REGULAR_EXPRESSION "Failed to open config file to dump" DEPENDS test2ozz_skel_simple)
 
 # Run test2ozz generic passing tests
@@ -65,11 +65,29 @@ set_tests_properties(test2ozz_little PROPERTIES PASS_REGULAR_EXPRESSION "Little 
 add_test(NAME test2ozz_big COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--endian=big" "--log_level=verbose")
 set_tests_properties(test2ozz_big PROPERTIES PASS_REGULAR_EXPRESSION "Big endian output binary format selected.")
 
+add_test(NAME test2ozz_log_config_verbose COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" --log_level=verbose)
+set_tests_properties(test2ozz_log_config_verbose PROPERTIES PASS_REGULAR_EXPRESSION "//  Creates a delta animation that can be used for additive blending.")
+
+add_test(NAME test2ozz_dump_ref_config COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config_dump_reference=${ozz_temp_directory}/reference.json")
+add_test(NAME test2ozz_dump_ref_config_output COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/reference.json" "${ozz_temp_directory}/reference_should_exist.ozz")
+set_tests_properties(test2ozz_dump_ref_config_output PROPERTIES DEPENDS test2ozz_dump_ref_config)
+
+add_test(NAME test2ozz_dump_default_config COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config_dump_default=${ozz_temp_directory}/default.json")
+add_test(NAME test2ozz_dump_default_config_output COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/default.json" "${ozz_temp_directory}/default_should_exist.ozz")
+set_tests_properties(test2ozz_dump_default_config_output PROPERTIES DEPENDS test2ozz_dump_default_config)
+
+file(MAKE_DIRECTORY ${ozz_temp_directory}/default_config_relative)
+add_test(NAME test2ozz_load_default_config COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config_file=${ozz_temp_directory}/default.json" WORKING_DIRECTORY "${ozz_temp_directory}/default_config_relative")
+set_tests_properties(test2ozz_load_default_config PROPERTIES DEPENDS test2ozz_dump_default_config)
+
+file(MAKE_DIRECTORY ${ozz_temp_directory}/default_config_relative/cp)
+add_test(NAME test2ozz_load_default_config_output COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/default_config_relative/skeleton.ozz" "${ozz_temp_directory}/default_config_relative/one.ozz" "${ozz_temp_directory}/default_config_relative/cp/")
+set_tests_properties(test2ozz_load_default_config_output PROPERTIES DEPENDS test2ozz_load_default_config)
+
 # Run test2ozz skeleton import failing tests
 #----------------------------
 
 add_test(NAME test2ozz_skel_no_config COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1")
-set_tests_properties(test2ozz_skel_no_config PROPERTIES PASS_REGULAR_EXPRESSION "No skeleton output name provided. Skeleton import will be skipped.")
 
 add_test(NAME test2ozz_skel_missing_output COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"skeleton\":{}}")
 set_tests_properties(test2ozz_skel_missing_output PROPERTIES PASS_REGULAR_EXPRESSION "No skeleton output name provided. Skeleton import will be skipped.")
@@ -96,7 +114,6 @@ add_test(NAME test2ozz_anim_missing_output COMMAND test2ozz "--file=${ozz_temp_d
 set_tests_properties(test2ozz_anim_missing_output PROPERTIES PASS_REGULAR_EXPRESSION "Configuration contains no animation export definition, animations import will be skipped.")
 
 add_test(NAME test2ozz_anim_no_config COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1")
-set_tests_properties(test2ozz_anim_missing_output PROPERTIES PASS_REGULAR_EXPRESSION "Configuration contains no animation export definition, animations import will be skipped.")
 
 add_test(NAME test2ozz_anim_missing_test COMMAND test2ozz "--config={\"animations\":[{\"skeleton\":\"${ozz_temp_directory}/skeleton.ozz\",\"output\":\"${ozz_temp_directory}/anim_should_not_exist.ozz\"}]}")
 set_tests_properties(test2ozz_anim_missing_test PROPERTIES PASS_REGULAR_EXPRESSION "Required option \"file\" is not specified." DEPENDS test2ozz_skel_simple)
@@ -183,24 +200,14 @@ set_tests_properties(test2ozz_anim_simple PROPERTIES DEPENDS test2ozz_skel_simpl
 add_test(NAME test2ozz_anim_simple_output COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/animation_simple.ozz" "${ozz_temp_directory}/animation_simple_should_exist.ozz")
 set_tests_properties(test2ozz_anim_simple_output PROPERTIES DEPENDS test2ozz_anim_simple)
 
-file(MAKE_DIRECTORY ${ozz_temp_directory}/relative)
-add_test(NAME test2ozz_anim_simple_relative COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"animations\":[{\"skeleton\":\"${ozz_temp_directory}/skeleton.ozz\",\"output\":\"animation_simple_relative.ozz\"}]}" WORKING_DIRECTORY "${ozz_temp_directory}/relative")
+file(MAKE_DIRECTORY ${ozz_temp_directory}/anim_simple_relative)
+add_test(NAME test2ozz_anim_simple_relative COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"animations\":[{\"skeleton\":\"${ozz_temp_directory}/skeleton.ozz\",\"output\":\"animation.ozz\"}]}" WORKING_DIRECTORY "${ozz_temp_directory}/anim_simple_relative")
 set_tests_properties(test2ozz_anim_simple_relative PROPERTIES DEPENDS test2ozz_skel_simple)
-add_test(NAME test2ozz_anim_simple_relative_output COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/relative/animation_simple_relative.ozz" "${ozz_temp_directory}/relative/animation_simple_relative_should_exist.ozz")
+add_test(NAME test2ozz_anim_simple_relative_output COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/anim_simple_relative/animation.ozz" "${ozz_temp_directory}/anim_simple_relative/animation_should_exist.ozz")
 set_tests_properties(test2ozz_anim_simple_relative_output PROPERTIES DEPENDS test2ozz_anim_simple_relative)
 
 add_test(NAME test2ozz_anim_simple_config_file COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config_file=${ozz_temp_directory}/valid_config.json")
 set_tests_properties(test2ozz_anim_simple_config_file PROPERTIES DEPENDS test2ozz_skel_simple)
-
-# TODOTODOTODOTODOTODOTODOTODOTODOTODOTODOTODOTODOTODOTODOTODOTODOTODOTODOTODOTODOTODOTODOTODOTODOTODOTODOTODOTODOTODOTODOTODO dump a use default config
-#add_test(NAME test2ozz_anim_dump_config COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--dump_full_config=${ozz_temp_directory}/default_config.json")
-#set_tests_properties(test2ozz_anim_dump_config PROPERTIES DEPENDS test2ozz_skel_simple)
-#add_test(NAME test2ozz_anim_log_config_verbose COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" --log_level=verbose)
-#set_tests_properties(test2ozz_anim_log_config_verbose PROPERTIES PASS_REGULAR_EXPRESSION "//  Animations to extract." DEPENDS test2ozz_skel_simple)
-#add_test(NAME test2ozz_anim_default_config COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config_file=${ozz_temp_directory}/default_config.json" WORKING_DIRECTORY "${ozz_temp_directory}")
-#set_tests_properties(test2ozz_anim_default_config PROPERTIES DEPENDS test2ozz_anim_default_config)
-#add_test(NAME test2ozz_anim_default_config_output COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/one.ozz" "${ozz_temp_directory}/one_should_exist.ozz")
-#set_tests_properties(test2ozz_anim_default_config_output PROPERTIES DEPENDS test2ozz_anim_default_config)
 
 add_test(NAME test2ozz_anim_optimize COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"animations\":[{\"skeleton\":\"${ozz_temp_directory}/skeleton.ozz\",\"output\":\"${ozz_temp_directory}/animation_${CMAKE_CURRENT_LIST_LINE}.ozz\",\"optimize\":true}]}")
 set_tests_properties(test2ozz_anim_optimize PROPERTIES DEPENDS test2ozz_skel_simple)
@@ -346,4 +353,4 @@ target_link_libraries(test_fuse_ozz_animation_tools
 set_target_properties(test_fuse_ozz_animation_tools PROPERTIES FOLDER "ozz/tests/animation_offline")
 
 add_test(NAME test_fuse_ozz_animation_tools_no_arg COMMAND test_fuse_ozz_animation_tools)
-set_tests_properties(test_fuse_ozz_animation_tools_no_arg PROPERTIES WILL_FAIL true)
+set_tests_properties(test_fuse_ozz_animation_tools_no_arg PROPERTIES PASS_REGULAR_EXPRESSION "Required option \"file\" is not specified.")

@@ -131,7 +131,7 @@ endforeach()
 #  COMMAND fbx2ozz
 #          "--file=unused"
 #          "--skeleton=unused"
-#          "--dump_full_config=${ozz_media_directory}/default_config.json"
+#          "--config_dump_reference=${ozz_media_directory}/default_config.json"
 #  VERBATIM)
 
 # Creates a target to build data

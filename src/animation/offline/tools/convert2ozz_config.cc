@@ -62,8 +62,13 @@ bool ValidateExclusiveConfigOption(const ozz::options::Option& _option,
 }
 
 OZZ_OPTIONS_DECLARE_STRING(
-    dump_full_config, "Dump the full default configuration to specified file.",
+    config_dump_reference,
+    "Dumps reference json configuration to specified file.", "", false)
+
+OZZ_OPTIONS_DECLARE_STRING(
+    config_dump_default, "Dumps default json configuration to specified file.",
     "", false)
+
 namespace {
 
 template <typename _Type>
@@ -317,13 +322,9 @@ bool SanitizeAnimation(Json::Value& _root, bool _all_options) {
       _root, "additive", false,
       "Creates a delta animation that can be used for additive blending.");
 
-  MakeDefault(
-      _root, "additive", false,
-      "Creates a delta animation that can be used for additive blending.");
-
   MakeDefault(_root, "sampling_rate", 0.f,
               "Selects animation sampling rate in hertz. Set a value <= 0 to "
-              "use imported scene frame rate.");
+              "use imported scene default frame rate.");
 
   MakeDefaultArray(_root, "tracks", "Tracks to build.", !_all_options);
   Json::Value& tracks = _root["tracks"];
@@ -399,6 +400,21 @@ std::string ToString(const Json::Value& _value) {
   builder["precision"] = 4;
   return Json::writeString(builder, _value);
 }
+
+bool DumpConfig(const char* _path, const Json::Value& _config) {
+  if (_path[0] != 0) {
+    ozz::log::LogV() << "Opens config file to dump: " << _path << std::endl;
+    std::ofstream file(_path);
+    if (!file.is_open()) {
+      ozz::log::Err() << "Failed to open config file to dump: \"" << _path
+                      << "\"" << std::endl;
+      return false;
+    }
+    const std::string& document = ToString(_config);
+    file << document;
+  }
+  return true;
+}
 }  // namespace
 
 bool ProcessConfiguration(Json::Value* _config) {
@@ -407,7 +423,15 @@ bool ProcessConfiguration(Json::Value* _config) {
   }
 
   // Use {} as a default config, otherwise take the one specified as argument.
-  std::string config_string = "{}";
+  std::string config_string =
+      "{\"skeleton\":{\"output\":\"skeleton.ozz\"},\"animations\":[{"
+      "\"skeleton\":\"skeleton.ozz\",\"output\":\"*.ozz\"}]}";
+  Json::Reader json_builder;
+  Json::Value default_config;
+  if (!json_builder.parse(config_string, default_config, true)) {
+    assert(false && "Error while parsing default configuration string.");
+  }
+  // Takes config from program options.
   if (OPTIONS_config.value()[0] != 0) {
     config_string = OPTIONS_config.value();
   } else if (OPTIONS_config_file.value()[0] != 0) {
@@ -420,26 +444,25 @@ bool ProcessConfiguration(Json::Value* _config) {
                       << "\"." << std::endl;
       return false;
     }
-    config_string.assign((std::istreambuf_iterator<char>(file)),
+    config_string.assign(std::istreambuf_iterator<char>(file),
                          std::istreambuf_iterator<char>());
   }
 
-  Json::Reader json_builder;
   if (!json_builder.parse(config_string, *_config, true)) {
     ozz::log::Err() << "Error while parsing configuration string: "
                     << json_builder.getFormattedErrorMessages() << std::endl;
     return false;
   }
 
-  // Build a default config to compare it with provided one and detect
+  // Build the reference config to compare it with provided one and detect
   // unexpected members.
-  Json::Value default_full_config;
-  if (!SanitizeRoot(default_full_config, true)) {
+  Json::Value ref_config;
+  if (!SanitizeRoot(ref_config, true)) {
     assert(false && "Failed to sanitized default configuration.");
   }
 
   // All format errors are reported within that function
-  if (!RecursiveCheck(*_config, default_full_config, "root")) {
+  if (!RecursiveCheck(*_config, ref_config, "root")) {
     return false;
   }
 
@@ -455,18 +478,14 @@ bool ProcessConfiguration(Json::Value* _config) {
                      << document << std::endl;
   }
 
-  // Dumps full default config to file.
-  if (OPTIONS_dump_full_config.value()[0] != 0) {
-    ozz::log::LogV() << "Opens dump config file: "
-                     << OPTIONS_dump_full_config.value() << std::endl;
-    std::ofstream file(OPTIONS_dump_full_config.value());
-    if (!file.is_open()) {
-      ozz::log::Err() << "Failed to open config file to dump: \""
-                      << OPTIONS_dump_full_config.value() << "\"" << std::endl;
-      return false;
-    }
-    const std::string& document = ToString(default_full_config);
-    file << document;
+  // Dumps reference config to file.
+  if (!DumpConfig(OPTIONS_config_dump_reference.value(), ref_config)) {
+    return false;
+  }
+
+  // Dumps default config to file.
+  if (!DumpConfig(OPTIONS_config_dump_default.value(), default_config)) {
+    return false;
   }
 
   return true;

@@ -129,7 +129,7 @@ int AnimationConverter::operator()(int _argc, const char** _argv) {
 
   Json::Value config;
   if (!ProcessConfiguration(&config)) {
-    // Specific error message are reported during Sanitize.
+    // Specific error message are reported during configuration processing.
     return EXIT_FAILURE;
   }
 
