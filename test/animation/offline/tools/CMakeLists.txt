@@ -1,7 +1,7 @@
 add_executable(test2ozz
   test2ozz.cc)
 target_link_libraries(test2ozz
-  ozz_animation_offline_tools
+  ozz_animation_tools
   ozz_options)
 
 set_target_properties(test2ozz
@@ -331,19 +331,19 @@ add_test(NAME test2ozz_skel_anim_simple COMMAND test2ozz "--file=${ozz_temp_dire
 # Fused sources tests
 #----------------------------
 
-# ozz_animation_offline_tools fuse tests
-set_source_files_properties(${PROJECT_BINARY_DIR}/src_fused/ozz_animation_offline_tools.cc PROPERTIES GENERATED 1)
-add_executable(test_fuse_animation_offline_anim_tools
+# ozz_animation_tools fuse tests
+set_source_files_properties(${PROJECT_BINARY_DIR}/src_fused/ozz_animation_tools.cc PROPERTIES GENERATED 1)
+add_executable(test_fuse_ozz_animation_tools
   test2ozz.cc
-  ${PROJECT_BINARY_DIR}/src_fused/ozz_animation_offline_tools.cc)
-add_dependencies(test_fuse_animation_offline_anim_tools BUILD_FUSE_ozz_animation_offline_tools)
-target_link_libraries(test_fuse_animation_offline_anim_tools
+  ${PROJECT_BINARY_DIR}/src_fused/ozz_animation_tools.cc)
+add_dependencies(test_fuse_ozz_animation_tools BUILD_FUSE_ozz_animation_tools)
+target_link_libraries(test_fuse_ozz_animation_tools
   ozz_animation_offline
   ozz_options
   json
   gtest)
 
-set_target_properties(test_fuse_animation_offline_anim_tools PROPERTIES FOLDER "ozz/tests/animation_offline")
+set_target_properties(test_fuse_ozz_animation_tools PROPERTIES FOLDER "ozz/tests/animation_offline")
 
-add_test(NAME test_fuse_animation_offline_anim_tools_no_arg COMMAND test_fuse_animation_offline_anim_tools)
-set_tests_properties(test_fuse_animation_offline_anim_tools_no_arg PROPERTIES WILL_FAIL true)
+add_test(NAME test_fuse_ozz_animation_tools_no_arg COMMAND test_fuse_ozz_animation_tools)
+set_tests_properties(test_fuse_ozz_animation_tools_no_arg PROPERTIES WILL_FAIL true)

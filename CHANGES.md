@@ -7,6 +7,7 @@ Next release
 
 * Library
   - [base] Changes non-intrusive serialization mechanism to use a specialize template struct "Extern" instead of function overloading.
+  - [base] Merges ozz_animation_offline_skel_tools and ozz_animation_offline_anim_tools into a single ozz_animation_tools library.
 
 * Build pipeline
   - ozz optionnaly supports c++11 compiler.

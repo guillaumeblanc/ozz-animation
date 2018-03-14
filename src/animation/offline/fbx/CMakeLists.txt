@@ -28,7 +28,7 @@ add_executable(fbx2ozz
   fbx2ozz_anim.cc
   fbx2ozz_skel.cc)
 target_link_libraries(fbx2ozz
-  ozz_animation_offline_tools
+  ozz_animation_tools
   ozz_animation_fbx)
 set_target_properties(fbx2ozz
   PROPERTIES FOLDER "ozz/tools")
