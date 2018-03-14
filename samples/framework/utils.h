@@ -138,8 +138,8 @@ bool LoadTrack(const char* _filename, ozz::animation::FloatTrack* _track);
 // Loads a sample::Mesh from an ozz archive file named _filename.
 // This function will fail and return false if the file cannot be opened or if
 // it is not a valid ozz mesh archive. A valid mesh archive can be
-// produced with ozz tools (sample_fbx2mesh) or using ozz animation serialization API.
-// _filename and _mesh must be non-NULL.
+// produced with ozz tools (sample_fbx2mesh) or using ozz animation
+// serialization API. _filename and _mesh must be non-NULL.
 bool LoadMesh(const char* _filename, ozz::sample::Mesh* _mesh);
 
 }  // namespace sample
