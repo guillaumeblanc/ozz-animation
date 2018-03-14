@@ -3,7 +3,7 @@ if(TARGET fbx2ozz)
   add_custom_command(
     DEPENDS "${CMAKE_CURRENT_LIST_DIR}/README.md"
             "${ozz_media_directory}/fbx/baked.fbx"
-            fbx2ozz
+            $<$<AND:$<BOOL:${ozz_build_data}>,$<BOOL:${ozz_build_fbx}>>:fbx2ozz>
     OUTPUT "${ozz_media_directory}/bin/baked_skeleton.ozz"
            "${ozz_media_directory}/bin/baked_animation.ozz"
     COMMAND fbx2ozz
@@ -13,7 +13,8 @@ if(TARGET fbx2ozz)
 endif()
 
 add_custom_command(
-  DEPENDS "${CMAKE_CURRENT_LIST_DIR}/README.md"
+  DEPENDS $<$<BOOL:${ozz_build_fbx}>:BUILD_DATA>
+          "${CMAKE_CURRENT_LIST_DIR}/README.md"
           "${ozz_media_directory}/bin/baked_skeleton.ozz"
           "${ozz_media_directory}/bin/baked_animation.ozz"
   OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/README.md"
