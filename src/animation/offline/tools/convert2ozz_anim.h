@@ -46,6 +46,6 @@ bool ProcessAnimations(const Json::Value& _config,
                        const ozz::Endianness _endianness);
 
 }  // namespace offline
-}  // namespace offline
 }  // namespace animation
+}  // namespace ozz
 #endif  // OZZ_ANIMATION_OFFLINE_TOOLS_CONVERT2OZZ_ANIM_H_
