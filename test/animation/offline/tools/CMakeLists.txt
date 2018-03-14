@@ -323,6 +323,14 @@ add_test(NAME test2ozz_anim_track_wild_joint_output1
   COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/track_wild_joint1-property0.ozz" "${ozz_temp_directory}/track_wild_joint1-property0_should_exist.ozz")
 set_tests_properties(test2ozz_anim_track_wild_joint_output1 PROPERTIES DEPENDS test2ozz_anim_track_wild_joint)
 
+# Run test2ozz both skeleton and animation import passing tests
+#----------------------------
+
+add_test(NAME test2ozz_skel_anim_simple COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"skeleton\":{\"output\":\"${ozz_temp_directory}/skeleton_skel_anim.ozz\"},\"animations\":[{\"skeleton\":\"${ozz_temp_directory}/skeleton_skel_anim.ozz\",\"output\":\"${ozz_temp_directory}/animation_skel_anim_simple.ozz\"}]}")
+
+# Fused sources tests
+#----------------------------
+
 # ozz_animation_offline_tools fuse tests
 set_source_files_properties(${PROJECT_BINARY_DIR}/src_fused/ozz_animation_offline_tools.cc PROPERTIES GENERATED 1)
 add_executable(test_fuse_animation_offline_anim_tools
