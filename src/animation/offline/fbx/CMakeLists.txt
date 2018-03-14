@@ -60,7 +60,7 @@ set(animations
   # Collada
   "/collada/astro_max.dae\;{\"skeleton\":{\"output\":\"${ozz_media_directory}/bin/astro_max_skeleton.ozz\"},\"animations\":[{\"skeleton\":\"${ozz_media_directory}/bin/astro_max_skeleton.ozz\",\"output\":\"${ozz_media_directory}/bin/astro_max_animation.ozz\"}]}\;output:${ozz_media_directory}/bin/astro_max_animation.ozz\;output:${ozz_media_directory}/bin/astro_max_skeleton.ozz"
   "/collada/astro_maya.dae\;{\"skeleton\":{\"output\":\"${ozz_media_directory}/bin/astro_maya_skeleton.ozz\"},\"animations\":[{\"skeleton\":\"${ozz_media_directory}/bin/astro_maya_skeleton.ozz\",\"output\":\"${ozz_media_directory}/bin/astro_maya_animation.ozz\"}]}\;output:${ozz_media_directory}/bin/astro_maya_animation.ozz\;output:${ozz_media_directory}/bin/astro_maya_skeleton.ozz"
-  "/collada/seymour.dae\;{\"skeleton\":{\"output\":\"${ozz_media_directory}/bin/seymour_skeleton.ozz\"},\"animations\":[{\"skeleton\":\"${ozz_media_directory}/bin/seymour_skeleton.ozz\",\"output\":\"${ozz_media_directory}/bin/seymour_animation.ozz\"}]}\;output:${ozz_media_directory}/bin/seymour_animation.ozz\;output:${ozz_media_directory}seymour_skeleton.ozz"
+  "/collada/seymour.dae\;{\"skeleton\":{\"output\":\"${ozz_media_directory}/bin/seymour_skeleton.ozz\"},\"animations\":[{\"skeleton\":\"${ozz_media_directory}/bin/seymour_skeleton.ozz\",\"output\":\"${ozz_media_directory}/bin/seymour_animation.ozz\"}]}\;output:${ozz_media_directory}/bin/seymour_animation.ozz\;output:${ozz_media_directory}/bin/seymour_skeleton.ozz"
   )
 
 # Generate a command for each line of the configuration
