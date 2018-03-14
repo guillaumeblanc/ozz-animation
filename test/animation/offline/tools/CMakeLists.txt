@@ -132,10 +132,10 @@ add_test(NAME test2ozz_anim_wrong_optimize COMMAND test2ozz "--file=${ozz_temp_d
 set_tests_properties(test2ozz_anim_wrong_optimize PROPERTIES PASS_REGULAR_EXPRESSION "Invalid type \"integer\" for json member \"root.animations\\\[0\\\].optimize\". \"boolean\" expected." DEPENDS test2ozz_skel_simple)
 
 add_test(NAME test2ozz_anim_wrong_config_unexpected_member1 COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"skeleton\":\"${ozz_temp_directory}/skeleton.ozz\",\"output\":\"${ozz_temp_directory}/anim_should_not_exist.ozz\"}")
-set_tests_properties(test2ozz_anim_wrong_config_unexpected_member1 PROPERTIES PASS_REGULAR_EXPRESSION "Invalid json configuration member \"root.output\"." DEPENDS test2ozz_skel_simple)
+set_tests_properties(test2ozz_anim_wrong_config_unexpected_member1 PROPERTIES PASS_REGULAR_EXPRESSION "Invalid json member \"root.output\"." DEPENDS test2ozz_skel_simple)
 
 add_test(NAME test2ozz_anim_wrong_config_unexpected_member2 COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"animations\":[{},{\"foo\":true}]}")
-set_tests_properties(test2ozz_anim_wrong_config_unexpected_member2 PROPERTIES PASS_REGULAR_EXPRESSION "Invalid json configuration member \"root.animations\\\[1\\\].foo\"." DEPENDS test2ozz_skel_simple)
+set_tests_properties(test2ozz_anim_wrong_config_unexpected_member2 PROPERTIES PASS_REGULAR_EXPRESSION "Invalid json member \"root.animations\\\[1\\\].foo\"." DEPENDS test2ozz_skel_simple)
 
 add_test(NAME test2ozz_anim_wrong_config_invalid_object COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"animations\":{\"output\":\"${ozz_temp_directory}/anim_should_not_exist.ozz\"}}")
 set_tests_properties(test2ozz_anim_wrong_config_invalid_object PROPERTIES PASS_REGULAR_EXPRESSION "Invalid type \"object\" for json member \"root.animations\". \"array\" expected." DEPENDS test2ozz_skel_simple)
