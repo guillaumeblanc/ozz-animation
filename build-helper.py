@@ -162,7 +162,7 @@ def Build(_build_dir = build_dir):
 def Test():
   # Configure Test process, parallelize a lot of tests in order to stress their dependencies
   print("Running unit tests.")
-  options = ['ctest' ,'--output-on-failure', '-j' + str(multiprocessing.cpu_count()) * 16, '--build-config', config]
+  options = ['ctest' ,'--output-on-failure', '-j' + str(multiprocessing.cpu_count() * 4), '--build-config', config]
   config_process = subprocess.Popen(options, cwd=build_dir)
   config_process.wait()
   if(config_process.returncode != 0):
