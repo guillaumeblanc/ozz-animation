@@ -56,23 +56,23 @@ set_tests_properties(test2ozz_dump_config_bad_file PROPERTIES PASS_REGULAR_EXPRE
 add_test(NAME test2ozz_version COMMAND test2ozz "--version")
 set_tests_properties(test2ozz_version PROPERTIES PASS_REGULAR_EXPRESSION "version 2.0")
 
-add_test(NAME test2ozz_log_verbose COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--log_level=verbose")
+add_test(NAME test2ozz_log_verbose COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={}" "--log_level=verbose")
 set_tests_properties(test2ozz_log_verbose PROPERTIES PASS_REGULAR_EXPRESSION "Verbose log level activated.")
 
-add_test(NAME test2ozz_native COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--endian=native")
-add_test(NAME test2ozz_little COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--endian=little" "--log_level=verbose")
+add_test(NAME test2ozz_native COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={}" "--endian=native")
+add_test(NAME test2ozz_little COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={}" "--endian=little" "--log_level=verbose")
 set_tests_properties(test2ozz_little PROPERTIES PASS_REGULAR_EXPRESSION "Little endian output binary format selected.")
-add_test(NAME test2ozz_big COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--endian=big" "--log_level=verbose")
+add_test(NAME test2ozz_big COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={}" "--endian=big" "--log_level=verbose")
 set_tests_properties(test2ozz_big PROPERTIES PASS_REGULAR_EXPRESSION "Big endian output binary format selected.")
 
-add_test(NAME test2ozz_log_config_verbose COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" --log_level=verbose)
-set_tests_properties(test2ozz_log_config_verbose PROPERTIES PASS_REGULAR_EXPRESSION "//  Creates a delta animation that can be used for additive blending.")
+add_test(NAME test2ozz_log_config_verbose COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={}" --log_level=verbose)
+set_tests_properties(test2ozz_log_config_verbose PROPERTIES PASS_REGULAR_EXPRESSION "//  Animations to extract.")
 
-add_test(NAME test2ozz_dump_ref_config COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config_dump_reference=${ozz_temp_directory}/reference.json")
+add_test(NAME test2ozz_dump_ref_config COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1"  "--config={}" "--config_dump_reference=${ozz_temp_directory}/reference.json")
 add_test(NAME test2ozz_dump_ref_config_output COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/reference.json" "${ozz_temp_directory}/reference_should_exist.ozz")
 set_tests_properties(test2ozz_dump_ref_config_output PROPERTIES DEPENDS test2ozz_dump_ref_config)
 
-add_test(NAME test2ozz_dump_default_config COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config_dump_default=${ozz_temp_directory}/default.json")
+add_test(NAME test2ozz_dump_default_config COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={}" "--config_dump_default=${ozz_temp_directory}/default.json")
 add_test(NAME test2ozz_dump_default_config_output COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/default.json" "${ozz_temp_directory}/default_should_exist.ozz")
 set_tests_properties(test2ozz_dump_default_config_output PROPERTIES DEPENDS test2ozz_dump_default_config)
 
@@ -84,10 +84,16 @@ file(MAKE_DIRECTORY ${ozz_temp_directory}/default_config_relative/cp)
 add_test(NAME test2ozz_load_default_config_output COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/default_config_relative/skeleton.ozz" "${ozz_temp_directory}/default_config_relative/one.ozz" "${ozz_temp_directory}/default_config_relative/cp/")
 set_tests_properties(test2ozz_load_default_config_output PROPERTIES DEPENDS test2ozz_load_default_config)
 
-# Run test2ozz skeleton import failing tests
-#----------------------------
+file(MAKE_DIRECTORY ${ozz_temp_directory}/test2ozz_no_config)
+add_test(NAME test2ozz_no_config COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" WORKING_DIRECTORY "${ozz_temp_directory}/test2ozz_no_config")
+set_tests_properties(test2ozz_no_config PROPERTIES PASS_REGULAR_EXPRESSION "No cofiguration provided, using default configuration.")
 
-add_test(NAME test2ozz_skel_no_config COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1")
+file(MAKE_DIRECTORY ${ozz_temp_directory}/test2ozz_no_config/cp)
+add_test(NAME test2ozz_no_config_output COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/test2ozz_no_config/skeleton.ozz" "${ozz_temp_directory}/test2ozz_no_config/one.ozz" "${ozz_temp_directory}/test2ozz_no_config/cp/")
+set_tests_properties(test2ozz_no_config_output PROPERTIES DEPENDS test2ozz_no_config)
+
+# Run test2ozz skeleton import failing tests
+#----------------------
 
 add_test(NAME test2ozz_skel_missing_output COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"skeleton\":{}}")
 set_tests_properties(test2ozz_skel_missing_output PROPERTIES PASS_REGULAR_EXPRESSION "No skeleton output name provided. Skeleton import will be skipped.")
@@ -112,8 +118,6 @@ add_test(NAME test2ozz_skel_big COMMAND test2ozz "--endian=big" "--file=${ozz_te
 #----------------------------
 add_test(NAME test2ozz_anim_missing_output COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"skeleton\":{}}")
 set_tests_properties(test2ozz_anim_missing_output PROPERTIES PASS_REGULAR_EXPRESSION "Configuration contains no animation export definition, animations import will be skipped.")
-
-add_test(NAME test2ozz_anim_no_config COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1")
 
 add_test(NAME test2ozz_anim_missing_test COMMAND test2ozz "--config={\"animations\":[{\"skeleton\":\"${ozz_temp_directory}/skeleton.ozz\",\"output\":\"${ozz_temp_directory}/anim_should_not_exist.ozz\"}]}")
 set_tests_properties(test2ozz_anim_missing_test PROPERTIES PASS_REGULAR_EXPRESSION "Required option \"file\" is not specified." DEPENDS test2ozz_skel_simple)
@@ -141,9 +145,6 @@ set_tests_properties(test2ozz_anim_bad_type PROPERTIES PASS_REGULAR_EXPRESSION "
 
 add_test(NAME test2ozz_anim_bad_type_in_array COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"animations\":[{},{\"sampling_rate\":true}]}")
 set_tests_properties(test2ozz_anim_bad_type_in_array PROPERTIES PASS_REGULAR_EXPRESSION "Invalid type \"boolean\" for json member \"root.animations\\\[1\\\].sampling_rate\". \"float\" expected." DEPENDS test2ozz_skel_simple)
-
-add_test(NAME test2ozz_anim_bad_log_level COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--log_level=no_log")
-set_tests_properties(test2ozz_anim_bad_log_level PROPERTIES PASS_REGULAR_EXPRESSION "Invalid log level option." DEPENDS test2ozz_skel_simple)
 
 add_test(NAME test2ozz_anim_wrong_optimize COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"animations\":[{\"skeleton\":\"${ozz_temp_directory}/skeleton.ozz\",\"output\":\"${ozz_temp_directory}/anim_should_not_exist.ozz\",\"optimize\":99}]}")
 set_tests_properties(test2ozz_anim_wrong_optimize PROPERTIES PASS_REGULAR_EXPRESSION "Invalid type \"integer\" for json member \"root.animations\\\[0\\\].optimize\". \"boolean\" expected." DEPENDS test2ozz_skel_simple)
