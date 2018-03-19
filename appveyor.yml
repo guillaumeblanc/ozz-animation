@@ -13,6 +13,7 @@ environment:
     env_cmake_configuration: Release
   - env_cmake_generator: "Visual Studio 11 2012"
     env_cmake_configuration: Debug
+    image: Visual Studio 2015
     env_fbxsdk_path: "http://download.autodesk.com/us/fbx/2017/2017.1/fbx20171_fbxsdk_vs2012_win.exe"
   - env_cmake_generator: "Visual Studio 12 2013"
     env_cmake_configuration: Debug
