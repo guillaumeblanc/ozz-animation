@@ -65,12 +65,12 @@ install:
       Start-Process -FilePath "fbxsdk.exe" /S -Wait
       cd ..
     }
-# Fixe up env_src_root if it isn't defined
+# Fixes up env_src_root if it isn't defined
 - ps: >-
     if (!$Env:env_src_root) {
       $Env:env_src_root=".."
     }
-# Fixe up env_src_root if it isn't defined
+# Fixes up env_build_msvc_rt_dll if it isn't defined
 - ps: >-
     if (!$Env:env_build_msvc_rt_dll) {
       $Env:env_build_msvc_rt_dll="1"
@@ -80,7 +80,7 @@ build_script:
 - cmake --version
 - mkdir build
 - cd build
-- cmake  -G "%env_cmake_generator%" -Dozz_build_tests=1 -Dozz_build_data=1 -Dozz_build_msvc_rt_dll=%env_build_msvc_rt_dll% -DCMAKE_BUILD_TYPE=%env_cmake_configuration% %env_src_root%
+- cmake -G "%env_cmake_generator%" -Dozz_build_tests=1 -Dozz_build_data=1 -Dozz_build_msvc_rt_dll=%env_build_msvc_rt_dll% -DCMAKE_BUILD_TYPE=%env_cmake_configuration% %env_src_root%
 - cmake --build ./ --config %env_cmake_configuration%
 
 test_script:
