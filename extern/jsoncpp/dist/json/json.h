@@ -927,6 +927,9 @@ Json::Value obj_value(Json::objectValue); // {}
   iterator begin();
   iterator end();
 
+  // ozz
+  Int order() const {return order_;}
+
 private:
   void initBasic(ValueType type, bool allocated = false);
 
@@ -963,6 +966,9 @@ private:
   unsigned int allocated_ : 1; // Notes: if declared as bool, bitfield is useless.
                                // If not allocated_, string_ must be null-terminated.
   CommentInfo* comments_;
+
+  // ozz: stores order of insertion.
+  size_t order_;
 };
 
 /** \brief Experimental and untested: represents an element of the "path" to

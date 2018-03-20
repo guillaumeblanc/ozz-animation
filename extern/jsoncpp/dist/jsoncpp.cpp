@@ -2598,9 +2598,9 @@ Value::Value(bool value) {
 }
 
 Value::Value(Value const& other)
-    : type_(other.type_), allocated_(false)
-      ,
-      comments_(0)
+    : type_(other.type_), allocated_(false),
+      comments_(0),
+      order_(other.order_)
 {
   switch (type_) {
   case nullValue:
@@ -3127,6 +3127,7 @@ Value& Value::operator[](ArrayIndex index) {
 
   ObjectValues::value_type defaultValue(key, nullRef);
   it = value_.map_->insert(it, defaultValue);
+  (*it).second.order_ = value_.map_->size(); // ozz: stores order of insertion
   return (*it).second;
 }
 
@@ -3161,6 +3162,7 @@ void Value::initBasic(ValueType vtype, bool allocated) {
   type_ = vtype;
   allocated_ = allocated;
   comments_ = 0;
+  order_ = 0;
 }
 
 // Access an object value by name, create a null member if it does not exist.
@@ -3181,6 +3183,7 @@ Value& Value::resolveReference(const char* key) {
   ObjectValues::value_type defaultValue(actualKey, nullRef);
   it = value_.map_->insert(it, defaultValue);
   Value& value = (*it).second;
+  value.order_ = value_.map_->size(); // ozz: stores order of insertion
   return value;
 }
 
@@ -3201,6 +3204,7 @@ Value& Value::resolveReference(char const* key, char const* cend)
   ObjectValues::value_type defaultValue(actualKey, nullRef);
   it = value_.map_->insert(it, defaultValue);
   Value& value = (*it).second;
+  value.order_ = value_.map_->size(); // ozz: stores order of insertion
   return value;
 }
 
@@ -3363,20 +3367,37 @@ bool Value::isMember(const CppTL::ConstString& key) const {
 }
 #endif
 
+namespace {
+bool sort_order(const Value::ObjectValues::const_iterator& a, const Value::ObjectValues::const_iterator& b) {
+    return a->second.order() < b->second.order();
+}
+}
+
 Value::Members Value::getMemberNames() const {
   JSON_ASSERT_MESSAGE(
       type_ == nullValue || type_ == objectValue,
       "in Json::Value::getMemberNames(), value must be objectValue");
   if (type_ == nullValue)
     return Value::Members();
+
+  // ozz: sorts member names so that they are iterated in order then.
+  std::vector<ObjectValues::const_iterator> values;
+  ObjectValues::const_iterator mit = value_.map_->begin();
+  ObjectValues::const_iterator mitEnd = value_.map_->end();
+  for (; mit != mitEnd; ++mit) {
+    values.push_back(mit);
+  }
+  sort(values.begin(), values.end(), sort_order);
+
   Members members;
   members.reserve(value_.map_->size());
-  ObjectValues::const_iterator it = value_.map_->begin();
-  ObjectValues::const_iterator itEnd = value_.map_->end();
-  for (; it != itEnd; ++it) {
-    members.push_back(std::string((*it).first.data(),
-                                  (*it).first.length()));
+  std::vector<ObjectValues::const_iterator>::const_iterator vit = values.begin();
+  std::vector<ObjectValues::const_iterator>::const_iterator vitEnd = values.end();
+  for (; vit != vitEnd; ++vit) {
+    members.push_back(std::string((*vit)->first.data(),
+                                  (*vit)->first.length()));
   }
+
   return members;
 }
 //

@@ -9,3 +9,4 @@ Local Modifications:
 - Creates a specific CMakeLists.txt
 - Fixes MSVC warning C4512: 'Json::Exception' : assignment operator could not be generated.
 - Modifies Value::asCString() to return an empty string instead of NULL when string length is 0.
+- Sorts members by insertion time, in order to dump them in a defined order.
