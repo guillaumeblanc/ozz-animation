@@ -449,7 +449,8 @@ bool ProcessConfiguration(Json::Value* _config) {
     config_string.assign(std::istreambuf_iterator<char>(file),
                          std::istreambuf_iterator<char>());
   } else {
-    ozz::log::Log() << "No configuration provided, using default configuration." << std::endl;
+    ozz::log::Log() << "No configuration provided, using default configuration."
+                    << std::endl;
   }
 
   if (!json_builder.parse(config_string, *_config, true)) {
