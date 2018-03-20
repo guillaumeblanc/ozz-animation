@@ -44,6 +44,8 @@
 
 #include "ozz/base/log.h"
 
+#include <json/json.h>
+
 namespace ozz {
 namespace animation {
 namespace offline {

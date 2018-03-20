@@ -30,7 +30,7 @@
 
 #include "ozz/base/platform.h"
 
-#include <json/json.h>
+#include <json/json-forwards.h>
 
 // Get the sanitized (all members are set, with the right types) configuration.
 bool ProcessConfiguration(Json::Value* _config);

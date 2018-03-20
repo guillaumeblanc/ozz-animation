@@ -40,6 +40,8 @@
 
 #include "ozz/options/options.h"
 
+#include <json/json.h>
+
 // Declares command line options.
 OZZ_OPTIONS_DECLARE_STRING(file, "Specifies input file", "", true)
 

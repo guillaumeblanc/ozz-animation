@@ -53,6 +53,8 @@
 
 #include "ozz/options/options.h"
 
+#include <json/json.h>
+
 namespace ozz {
 namespace animation {
 namespace offline {

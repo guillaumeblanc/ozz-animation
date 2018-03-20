@@ -38,6 +38,8 @@
 
 #include "ozz/options/options.h"
 
+#include <json/json.h>
+
 bool ValidateExclusiveConfigOption(const ozz::options::Option& _option,
                                    int _argc);
 OZZ_OPTIONS_DECLARE_STRING_FN(
@@ -310,12 +312,6 @@ bool SanitizeAnimation(Json::Value& _root, bool _all_options) {
   MakeDefault(_root, "skeleton", "",
               "Specifies ozz skeleton (raw or runtime) input file.");
 
-  MakeDefault(_root, "optimize", true, "Activates keyframes optimization.");
-
-  MakeDefaultObject(_root, "optimization_tolerances",
-                    "Optimization tolerances.");
-  SanitizeOptimizationTolerances(_root["optimization_tolerances"]);
-
   MakeDefault(_root, "raw", false, "Outputs raw animation.");
 
   MakeDefault(
@@ -325,6 +321,12 @@ bool SanitizeAnimation(Json::Value& _root, bool _all_options) {
   MakeDefault(_root, "sampling_rate", 0.f,
               "Selects animation sampling rate in hertz. Set a value <= 0 to "
               "use imported scene default frame rate.");
+
+  MakeDefault(_root, "optimize", true, "Activates keyframes optimization.");
+
+  MakeDefaultObject(_root, "optimization_tolerances",
+                    "Optimization tolerances.");
+  SanitizeOptimizationTolerances(_root["optimization_tolerances"]);
 
   MakeDefaultArray(_root, "tracks", "Tracks to build.", !_all_options);
   Json::Value& tracks = _root["tracks"];
@@ -447,7 +449,7 @@ bool ProcessConfiguration(Json::Value* _config) {
     config_string.assign(std::istreambuf_iterator<char>(file),
                          std::istreambuf_iterator<char>());
   } else {
-    ozz::log::Log() << "No cofiguration provided, using default configuration." << std::endl;
+    ozz::log::Log() << "No configuration provided, using default configuration." << std::endl;
   }
 
   if (!json_builder.parse(config_string, *_config, true)) {

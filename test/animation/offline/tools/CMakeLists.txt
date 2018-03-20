@@ -86,7 +86,7 @@ set_tests_properties(test2ozz_load_default_config_output PROPERTIES DEPENDS test
 
 file(MAKE_DIRECTORY ${ozz_temp_directory}/test2ozz_no_config)
 add_test(NAME test2ozz_no_config COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" WORKING_DIRECTORY "${ozz_temp_directory}/test2ozz_no_config")
-set_tests_properties(test2ozz_no_config PROPERTIES PASS_REGULAR_EXPRESSION "No cofiguration provided, using default configuration.")
+set_tests_properties(test2ozz_no_config PROPERTIES PASS_REGULAR_EXPRESSION "No configuration provided, using default configuration.")
 
 file(MAKE_DIRECTORY ${ozz_temp_directory}/test2ozz_no_config/cp)
 add_test(NAME test2ozz_no_config_output COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/test2ozz_no_config/skeleton.ozz" "${ozz_temp_directory}/test2ozz_no_config/one.ozz" "${ozz_temp_directory}/test2ozz_no_config/cp/")
