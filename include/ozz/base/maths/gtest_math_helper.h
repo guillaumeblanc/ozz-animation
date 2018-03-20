@@ -138,7 +138,7 @@ do {                                                        \
     IMPL_EXPECT_SIMDFLOAT_EQ_EST(expected, _x, _y, _z, _w); \
 } while (void(0), 0)
 
-// Macro for testing ozz::math::simd::SimdFloat members with x, y, z, w values.
+// Macro for testing ozz::math::simd::SimdInt members with x, y, z, w values.
 #define EXPECT_SIMDINT_EQ(_expected, _x, _y, _z, _w) \
 do {                                                 \
     SCOPED_TRACE("");                                \

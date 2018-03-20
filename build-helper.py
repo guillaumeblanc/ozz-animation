@@ -101,6 +101,8 @@ def Configure():
 
   if (enable_testing) :
     options += ['-D', 'ozz_build_tests=1']
+  else:
+    options += ['-D', 'ozz_build_tests=0']
 
   global generator
   if(generator != 'default'):
@@ -300,9 +302,7 @@ def EnableTesting():
     if (enable_testing != wanted):
       enable_testing = wanted
       print("Testing state has changed.")
-      clean = raw_input("Do you want to clean build directory to apply the change? (y/n): ") == "y"
-      if clean:
-        return CleanBuildDir()
+      
     return True
 
 def ClearScreen():
