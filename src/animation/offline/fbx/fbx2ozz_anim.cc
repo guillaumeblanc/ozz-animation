@@ -33,15 +33,15 @@
 
 #include "ozz/base/log.h"
 
-FbxAnimationConverter::AnimationNames
-FbxAnimationConverter::GetAnimationNames() {
+FbxConverter::AnimationNames
+FbxConverter::GetAnimationNames() {
   if (!scene_loader_) {
     return AnimationNames();
   }
   return ozz::animation::offline::fbx::GetAnimationNames(*scene_loader_);
 }
 
-bool FbxAnimationConverter::Import(
+bool FbxConverter::Import(
     const char* _animation_name, const ozz::animation::Skeleton& _skeleton,
     float _sampling_rate, ozz::animation::offline::RawAnimation* _animation) {
   if (!_animation) {
@@ -58,7 +58,7 @@ bool FbxAnimationConverter::Import(
       _animation_name, *scene_loader_, _skeleton, _sampling_rate, _animation);
 }
 
-FbxAnimationConverter::NodeProperties FbxAnimationConverter::GetNodeProperties(
+FbxConverter::NodeProperties FbxConverter::GetNodeProperties(
     const char* _node_name) {
   if (!scene_loader_) {
     return NodeProperties();
@@ -81,7 +81,7 @@ bool ImportImpl(ozz::animation::offline::fbx::FbxSceneLoader* _scene_loader,
                                                     _sampling_rate, _track);
 }
 
-bool FbxAnimationConverter::Import(
+bool FbxConverter::Import(
     const char* _animation_name, const char* _node_name,
     const char* _track_name, float _sampling_rate,
     ozz::animation::offline::RawFloatTrack* _track) {
@@ -89,7 +89,7 @@ bool FbxAnimationConverter::Import(
                     _sampling_rate, _track);
 }
 
-bool FbxAnimationConverter::Import(
+bool FbxConverter::Import(
     const char* _animation_name, const char* _node_name,
     const char* _track_name, float _sampling_rate,
     ozz::animation::offline::RawFloat2Track* _track) {
@@ -97,7 +97,7 @@ bool FbxAnimationConverter::Import(
                     _sampling_rate, _track);
 }
 
-bool FbxAnimationConverter::Import(
+bool FbxConverter::Import(
     const char* _animation_name, const char* _node_name,
     const char* _track_name, float _sampling_rate,
     ozz::animation::offline::RawFloat3Track* _track) {
@@ -105,7 +105,7 @@ bool FbxAnimationConverter::Import(
                     _sampling_rate, _track);
 }
 
-bool FbxAnimationConverter::Import(
+bool FbxConverter::Import(
     const char* _animation_name, const char* _node_name,
     const char* _track_name, float _sampling_rate,
     ozz::animation::offline::RawFloat4Track* _track) {

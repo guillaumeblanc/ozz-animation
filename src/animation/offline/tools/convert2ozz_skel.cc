@@ -50,7 +50,7 @@ namespace ozz {
 namespace animation {
 namespace offline {
 
-bool ProcessSkeleton(const Json::Value& _config, AnimationConverter* _converter,
+bool ProcessSkeleton(const Json::Value& _config, Converter* _converter,
                      const ozz::Endianness _endianness) {
   // First check that there's a skeleton actually expected.
   const char* output_name = _config["output"].asCString();

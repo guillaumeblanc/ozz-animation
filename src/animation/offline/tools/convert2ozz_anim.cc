@@ -259,7 +259,7 @@ bool Export(const ozz::animation::offline::RawAnimation& _raw_animation,
   return true;
 }
 
-bool ProcessAnimation(AnimationConverter& _converter,
+bool ProcessAnimation(Converter& _converter,
                       const char* _animation_name,
                       const ozz::animation::Skeleton& _skeleton,
                       const Json::Value& _config,
@@ -373,31 +373,31 @@ bool Export(const _RawTrack& _raw_track, const Json::Value& _config,
   return true;
 }
 
-template <AnimationConverter::NodeProperty::Type _type>
+template <Converter::NodeProperty::Type _type>
 struct TrackFromType;
 
 template <>
-struct TrackFromType<AnimationConverter::NodeProperty::kFloat1> {
+struct TrackFromType<Converter::NodeProperty::kFloat1> {
   typedef RawFloatTrack RawTrack;
 };
 template <>
-struct TrackFromType<AnimationConverter::NodeProperty::kFloat2> {
+struct TrackFromType<Converter::NodeProperty::kFloat2> {
   typedef RawFloat2Track RawTrack;
 };
 template <>
-struct TrackFromType<AnimationConverter::NodeProperty::kFloat3> {
+struct TrackFromType<Converter::NodeProperty::kFloat3> {
   typedef RawFloat3Track RawTrack;
 };
 template <>
-struct TrackFromType<AnimationConverter::NodeProperty::kFloat4> {
+struct TrackFromType<Converter::NodeProperty::kFloat4> {
   typedef RawFloat4Track RawTrack;
 };
 
-template <AnimationConverter::NodeProperty::Type _type>
-bool ProcessImportTrackType(AnimationConverter& _converter,
+template <Converter::NodeProperty::Type _type>
+bool ProcessImportTrackType(Converter& _converter,
                             const char* _animation_name,
                             const char* _joint_name,
-                            const AnimationConverter::NodeProperty& _property,
+                            const Converter::NodeProperty& _property,
                             const Json::Value& _import_config,
                             const ozz::Endianness _endianness) {
   bool success = true;
@@ -421,7 +421,7 @@ bool ProcessImportTrackType(AnimationConverter& _converter,
   return success;
 }
 
-bool ProcessImportTrack(AnimationConverter& _converter,
+bool ProcessImportTrack(Converter& _converter,
                         const char* _animation_name, const Skeleton& _skeleton,
                         const Json::Value& _import_config,
                         const ozz::Endianness _endianness) {
@@ -441,10 +441,10 @@ bool ProcessImportTrack(AnimationConverter& _converter,
 
     // Node found, need to find matching properties now.
     bool ppt_found = false;
-    const AnimationConverter::NodeProperties properties =
+    const Converter::NodeProperties properties =
         _converter.GetNodeProperties(joint_name);
     for (size_t p = 0; p < properties.size(); ++p) {
-      const AnimationConverter::NodeProperty& property = properties[p];
+      const Converter::NodeProperty& property = properties[p];
       // Checks property name matches
       const char* property_name = property.name.c_str();
       if (!strmatch(property_name, ppt_name_match)) {
@@ -465,30 +465,30 @@ bool ProcessImportTrack(AnimationConverter& _converter,
 
       // Import property depending on its type.
       switch (property.type) {
-        case AnimationConverter::NodeProperty::kFloat1: {
+        case Converter::NodeProperty::kFloat1: {
           success &=
-              ProcessImportTrackType<AnimationConverter::NodeProperty::kFloat1>(
+              ProcessImportTrackType<Converter::NodeProperty::kFloat1>(
                   _converter, _animation_name, joint_name, property,
                   _import_config, _endianness);
           break;
         }
-        case AnimationConverter::NodeProperty::kFloat2: {
+        case Converter::NodeProperty::kFloat2: {
           success &=
-              ProcessImportTrackType<AnimationConverter::NodeProperty::kFloat2>(
+              ProcessImportTrackType<Converter::NodeProperty::kFloat2>(
                   _converter, _animation_name, joint_name, property,
                   _import_config, _endianness);
           break;
         }
-        case AnimationConverter::NodeProperty::kFloat3: {
+        case Converter::NodeProperty::kFloat3: {
           success &=
-              ProcessImportTrackType<AnimationConverter::NodeProperty::kFloat3>(
+              ProcessImportTrackType<Converter::NodeProperty::kFloat3>(
                   _converter, _animation_name, joint_name, property,
                   _import_config, _endianness);
           break;
         }
-        case AnimationConverter::NodeProperty::kFloat4: {
+        case Converter::NodeProperty::kFloat4: {
           success &=
-              ProcessImportTrackType<AnimationConverter::NodeProperty::kFloat4>(
+              ProcessImportTrackType<Converter::NodeProperty::kFloat4>(
                   _converter, _animation_name, joint_name, property,
                   _import_config, _endianness);
           break;
@@ -517,13 +517,13 @@ bool ProcessImportTrack(AnimationConverter& _converter,
 }
 
 /*
-bool ProcessMotionTrack(AnimationConverter& _converter,
+bool ProcessMotionTrack(Converter& _converter,
                         const char* _animation_name, const Skeleton& _skeleton,
                         const Json::Value& _motion) {
   return true;
 }*/
 
-bool ProcessTracks(AnimationConverter& _converter, const char* _animation_name,
+bool ProcessTracks(Converter& _converter, const char* _animation_name,
                    const Skeleton& _skeleton, const Json::Value& _config,
                    const ozz::Endianness _endianness) {
   bool success = true;
@@ -547,7 +547,7 @@ bool ProcessTracks(AnimationConverter& _converter, const char* _animation_name,
 }  // namespace
 
 bool ProcessAnimations(const Json::Value& _config,
-                       AnimationConverter* _converter,
+                       Converter* _converter,
                        const ozz::Endianness _endianness) {
   if (_config.size() == 0) {
     ozz::log::Log() << "Configuration contains no animation export "
@@ -557,7 +557,7 @@ bool ProcessAnimations(const Json::Value& _config,
   }
 
   // Get all available animation names.
-  const AnimationConverter::AnimationNames& import_animation_names =
+  const Converter::AnimationNames& import_animation_names =
       _converter->GetAnimationNames();
 
   // Are there animations available

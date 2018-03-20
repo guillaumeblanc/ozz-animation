@@ -516,9 +516,9 @@ bool ExtractTrackImpl(const char* _animation_name, const char* _node_name,
 }
 }  // namespace
 
-AnimationConverter::AnimationNames GetAnimationNames(
+Converter::AnimationNames GetAnimationNames(
     FbxSceneLoader& _scene_loader) {
-  AnimationConverter::AnimationNames names;
+  Converter::AnimationNames names;
 
   const FbxScene* scene = _scene_loader.scene();
   for (int i = 0; i < scene->GetSrcObjectCount<FbxAnimStack>(); ++i) {
@@ -562,9 +562,9 @@ bool ExtractAnimation(const char* _animation_name,
   return success;
 }
 
-AnimationConverter::NodeProperties GetNodeProperties(
+Converter::NodeProperties GetNodeProperties(
     FbxSceneLoader& _scene_loader, const char* _node_name) {
-  AnimationConverter::NodeProperties properties;
+  Converter::NodeProperties properties;
   FbxScene* scene = _scene_loader.scene();
   const FbxNode* node = scene->FindNodeByName(_node_name);
   if (!node) {
@@ -591,26 +591,26 @@ AnimationConverter::NodeProperties GetNodeProperties(
       case eFbxDouble:
       case eFbxEnum:
       case eFbxEnumM: {
-        const AnimationConverter::NodeProperty ppt = {
-            ppt_name, AnimationConverter::NodeProperty::kFloat1};
+        const Converter::NodeProperty ppt = {
+            ppt_name, Converter::NodeProperty::kFloat1};
         properties.push_back(ppt);
         break;
       }
       case eFbxDouble2: {
-        const AnimationConverter::NodeProperty ppt = {
-            ppt_name, AnimationConverter::NodeProperty::kFloat2};
+        const Converter::NodeProperty ppt = {
+            ppt_name, Converter::NodeProperty::kFloat2};
         properties.push_back(ppt);
         break;
       }
       case eFbxDouble3: {
-        const AnimationConverter::NodeProperty ppt = {
-            ppt_name, AnimationConverter::NodeProperty::kFloat3};
+        const Converter::NodeProperty ppt = {
+            ppt_name, Converter::NodeProperty::kFloat3};
         properties.push_back(ppt);
         break;
       }
       case eFbxDouble4: {
-        const AnimationConverter::NodeProperty ppt = {
-            ppt_name, AnimationConverter::NodeProperty::kFloat4};
+        const Converter::NodeProperty ppt = {
+            ppt_name, Converter::NodeProperty::kFloat4};
         properties.push_back(ppt);
         break;
       }

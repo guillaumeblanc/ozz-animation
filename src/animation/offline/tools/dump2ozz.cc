@@ -27,13 +27,13 @@
 
 #include "ozz/animation/offline/tools/convert2ozz.h"
 
-// Mocks AnimationConverter so it can be used to dump default and reference
+// Mocks Converter so it can be used to dump default and reference
 // configurations.
-class DumpAnimationConverter
-    : public ozz::animation::offline::AnimationConverter {
+class DumpConverter
+    : public ozz::animation::offline::Converter {
  public:
-  DumpAnimationConverter() {}
-  ~DumpAnimationConverter() {}
+  DumpConverter() {}
+  ~DumpConverter() {}
 
  private:
   virtual bool Load(const char* _filename) {
@@ -114,6 +114,6 @@ class DumpAnimationConverter
 };
 
 int main(int _argc, const char** _argv) {
-  DumpAnimationConverter converter;
+  DumpConverter converter;
   return converter(_argc, _argv);
 }

@@ -30,18 +30,18 @@
 #include "ozz/base/log.h"
 
 int main(int _argc, const char** _argv) {
-  FbxAnimationConverter converter;
+  FbxConverter converter;
   return converter(_argc, _argv);
 }
 
-FbxAnimationConverter::FbxAnimationConverter()
+FbxConverter::FbxConverter()
     : settings_(fbx_manager_), scene_loader_(NULL) {}
 
-FbxAnimationConverter::~FbxAnimationConverter() {
+FbxConverter::~FbxConverter() {
   ozz::memory::default_allocator()->Delete(scene_loader_);
 }
 
-bool FbxAnimationConverter::Load(const char* _filename) {
+bool FbxConverter::Load(const char* _filename) {
   ozz::memory::default_allocator()->Delete(scene_loader_);
   scene_loader_ = ozz::memory::default_allocator()
                       ->New<ozz::animation::offline::fbx::FbxSceneLoader>(

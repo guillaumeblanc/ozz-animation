@@ -41,7 +41,7 @@ class Skeleton;
 
 namespace offline {
 
-class AnimationConverter {
+class Converter {
  public:
   int operator()(int _argc, const char** _argv);
 

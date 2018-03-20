@@ -34,11 +34,11 @@
 #include "ozz/base/io/stream.h"
 #include "ozz/base/memory/allocator.h"
 
-class TestAnimationConverter
-    : public ozz::animation::offline::AnimationConverter {
+class TestConverter
+    : public ozz::animation::offline::Converter {
  public:
-  TestAnimationConverter() : file_(NULL) {}
-  ~TestAnimationConverter() { ozz::memory::default_allocator()->Delete(file_); }
+  TestConverter() : file_(NULL) {}
+  ~TestConverter() { ozz::memory::default_allocator()->Delete(file_); }
 
  private:
   virtual bool Load(const char* _filename) {
@@ -236,6 +236,6 @@ class TestAnimationConverter
 };
 
 int main(int _argc, const char** _argv) {
-  TestAnimationConverter converter;
+  TestConverter converter;
   return converter(_argc, _argv);
 }

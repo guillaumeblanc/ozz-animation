@@ -39,10 +39,10 @@ namespace ozz {
 namespace animation {
 namespace offline {
 
-class AnimationConverter;
+class Converter;
 
 bool ProcessAnimations(const Json::Value& _config,
-                       AnimationConverter* _converter,
+                       Converter* _converter,
                        const ozz::Endianness _endianness);
 
 }  // namespace offline

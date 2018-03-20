@@ -43,11 +43,11 @@
 // Use fbx2ozz integrated help command (fbx2ozz --help) for more details
 // about available arguments.
 
-class FbxAnimationConverter
-    : public ozz::animation::offline::AnimationConverter {
+class FbxConverter
+    : public ozz::animation::offline::Converter {
  public:
-  FbxAnimationConverter();
-  ~FbxAnimationConverter();
+  FbxConverter();
+  ~FbxConverter();
 
  private:
   virtual bool Load(const char* _filename);
