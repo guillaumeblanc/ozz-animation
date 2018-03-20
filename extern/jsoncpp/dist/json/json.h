@@ -928,7 +928,7 @@ Json::Value obj_value(Json::objectValue); // {}
   iterator end();
 
   // ozz
-  Int order() const {return order_;}
+  size_t order() const { return order_; }
 
 private:
   void initBasic(ValueType type, bool allocated = false);
