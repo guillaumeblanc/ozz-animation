@@ -19,3 +19,16 @@ set_target_properties(ozz_animation_tools
 install(TARGETS ozz_animation_tools DESTINATION lib)
 
 fuse_target("ozz_animation_tools")
+
+add_executable(dump2ozz
+  dump2ozz.cc)
+target_link_libraries(dump2ozz
+  ozz_animation_tools
+  ozz_options)
+
+add_custom_command(TARGET dump2ozz POST_BUILD
+  COMMAND dump2ozz "--file=${CMAKE_CURRENT_SOURCE_DIR}/dump2ozz.cc" "--config={}" "--config_dump_reference=${CMAKE_CURRENT_SOURCE_DIR}/reference.json"
+  COMMAND dump2ozz "--file=${CMAKE_CURRENT_SOURCE_DIR}/dump2ozz.cc" "--config={}" "--config_dump_default=${CMAKE_CURRENT_SOURCE_DIR}/default.json")
+
+set_target_properties(dump2ozz
+  PROPERTIES FOLDER "ozz/tools")

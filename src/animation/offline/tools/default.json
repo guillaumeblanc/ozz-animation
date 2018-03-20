@@ -1,0 +1,13 @@
+{
+  "skeleton" : 
+  {
+    "output" : "skeleton.ozz"
+  },
+  "animations" : 
+  [
+    {
+      "skeleton" : "skeleton.ozz",
+      "output" : "*.ozz"
+    }
+  ]
+}
