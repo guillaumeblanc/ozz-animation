@@ -11,7 +11,7 @@
       "tracks":
       [
         {
-          "imports":
+          "properties":
           [
             {
               "output":"${ozz_temp_directory}/fbx_properties_track1_*.ozz",

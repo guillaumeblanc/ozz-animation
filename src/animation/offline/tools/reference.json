@@ -29,8 +29,8 @@
       "tracks" : 
       [
         {
-          //  Tracks (properties) to import.
-          "imports" : 
+          //  Properties to import.
+          "properties" : 
           [
             {
               "output" : "*.ozz", //  Specifies track output file(s). Use a '*' character to specify part(s) of the filename that should be replaced by the track (aka "joint_name-property_name") name.

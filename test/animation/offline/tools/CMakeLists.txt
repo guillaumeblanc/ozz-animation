@@ -164,16 +164,16 @@ set_tests_properties(test2ozz_anim_wrong_config_invalid_array PROPERTIES PASS_RE
 # Run test2ozz track import failing tests
 #----------------------------
 
-add_test(NAME test2ozz_anim_track_bad_joint_name COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"animations\":[{\"skeleton\":\"${ozz_temp_directory}/skeleton.ozz\",\"tracks\":[{\"imports\":[{\"joint_name\":\"joint3\",\"property_name\":\"property2\",\"output\":\"${ozz_temp_directory}/anim_should_not_exist.ozz\"}]}]}]}")
+add_test(NAME test2ozz_anim_track_bad_joint_name COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"animations\":[{\"skeleton\":\"${ozz_temp_directory}/skeleton.ozz\",\"tracks\":[{\"properties\":[{\"joint_name\":\"joint3\",\"property_name\":\"property2\",\"output\":\"${ozz_temp_directory}/anim_should_not_exist.ozz\"}]}]}]}")
 set_tests_properties(test2ozz_anim_track_bad_joint_name PROPERTIES PASS_REGULAR_EXPRESSION "No joint found for track import definition \"joint3\"" DEPENDS test2ozz_skel_simple)
 
-add_test(NAME test2ozz_anim_track_bad_ppt_name COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"animations\":[{\"skeleton\":\"${ozz_temp_directory}/skeleton.ozz\",\"tracks\":[{\"imports\":[{\"joint_name\":\"joint2\",\"property_name\":\"propertyx\",\"output\":\"${ozz_temp_directory}/anim_should_not_exist.ozz\"}]}]}]}")
+add_test(NAME test2ozz_anim_track_bad_ppt_name COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"animations\":[{\"skeleton\":\"${ozz_temp_directory}/skeleton.ozz\",\"tracks\":[{\"properties\":[{\"joint_name\":\"joint2\",\"property_name\":\"propertyx\",\"output\":\"${ozz_temp_directory}/anim_should_not_exist.ozz\"}]}]}]}")
 set_tests_properties(test2ozz_anim_track_bad_ppt_name PROPERTIES PASS_REGULAR_EXPRESSION "No property found for track import definition \"joint2:propertyx\"" DEPENDS test2ozz_skel_simple)
 
-add_test(NAME test2ozz_anim_track_bad_type COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"animations\":[{\"skeleton\":\"${ozz_temp_directory}/skeleton.ozz\",\"tracks\":[{\"imports\":[{\"joint_name\":\"joint1\",\"property_name\":\"property2\",\"type\":3,\"output\":\"${ozz_temp_directory}/anim_should_not_exist.ozz\"}]}]}]}")
+add_test(NAME test2ozz_anim_track_bad_type COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"animations\":[{\"skeleton\":\"${ozz_temp_directory}/skeleton.ozz\",\"tracks\":[{\"properties\":[{\"joint_name\":\"joint1\",\"property_name\":\"property2\",\"type\":3,\"output\":\"${ozz_temp_directory}/anim_should_not_exist.ozz\"}]}]}]}")
 set_tests_properties(test2ozz_anim_track_bad_type PROPERTIES PASS_REGULAR_EXPRESSION "Incompatible type \"3\" for matching property \"joint1:property2\" of type \"2\"" DEPENDS test2ozz_skel_simple)
 
-add_test(NAME test2ozz_anim_track_invalid_type COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"animations\":[{\"skeleton\":\"${ozz_temp_directory}/skeleton.ozz\",\"tracks\":[{\"imports\":[{\"joint_name\":\"joint1\",\"property_name\":\"property2\",\"type\":0,\"output\":\"${ozz_temp_directory}/anim_should_not_exist.ozz\"}]}]}]}")
+add_test(NAME test2ozz_anim_track_invalid_type COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"animations\":[{\"skeleton\":\"${ozz_temp_directory}/skeleton.ozz\",\"tracks\":[{\"properties\":[{\"joint_name\":\"joint1\",\"property_name\":\"property2\",\"type\":0,\"output\":\"${ozz_temp_directory}/anim_should_not_exist.ozz\"}]}]}]}")
 set_tests_properties(test2ozz_anim_track_invalid_type PROPERTIES PASS_REGULAR_EXPRESSION "Invalid value \"0\" for import track type property. 1 to 4 components are supported." DEPENDS test2ozz_skel_simple)
 
 # Ensures nothing was outputted.
@@ -290,37 +290,37 @@ set_tests_properties(test2ozz_anim_multi2_multi_output2 PROPERTIES DEPENDS test2
 # Run test2ozz tracks import passing tests
 #----------------------------
 
-add_test(NAME test2ozz_anim_track_simple COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"animations\":[{\"skeleton\":\"${ozz_temp_directory}/skeleton.ozz\",\"output\":\"${ozz_temp_directory}/animation_track_simple_*.ozz\",\"tracks\":[{\"imports\":[{\"joint_name\":\"joint0\",\"property_name\":\"property0\",\"output\":\"${ozz_temp_directory}/track_simple.ozz\"}]}]}]}")
+add_test(NAME test2ozz_anim_track_simple COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"animations\":[{\"skeleton\":\"${ozz_temp_directory}/skeleton.ozz\",\"output\":\"${ozz_temp_directory}/animation_track_simple_*.ozz\",\"tracks\":[{\"properties\":[{\"joint_name\":\"joint0\",\"property_name\":\"property0\",\"output\":\"${ozz_temp_directory}/track_simple.ozz\"}]}]}]}")
 add_test(NAME test2ozz_anim_track_simple_output COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/track_simple.ozz" "${ozz_temp_directory}/track_simple_should_exist.ozz")
 set_tests_properties(test2ozz_anim_track_simple_output PROPERTIES DEPENDS test2ozz_anim_track_simple)
 add_test(NAME test2ozz_anim_track_simple_output_anim COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/animation_track_simple_one.ozz" "${ozz_temp_directory}/animation_track_simple_one_should_exist.ozz")
 set_tests_properties(test2ozz_anim_track_simple_output_anim PROPERTIES DEPENDS test2ozz_anim_track_simple)
 
-add_test(NAME test2ozz_anim_track_simple_raw COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"animations\":[{\"skeleton\":\"${ozz_temp_directory}/skeleton.ozz\",\"output\":\"${ozz_temp_directory}/animation_track_simple_raw_*.ozz\",\"tracks\":[{\"imports\":[{\"joint_name\":\"joint0\",\"property_name\":\"property0\",\"output\":\"${ozz_temp_directory}/track_simple_raw.ozz\",\"raw\":true}]}]}]}")
+add_test(NAME test2ozz_anim_track_simple_raw COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"animations\":[{\"skeleton\":\"${ozz_temp_directory}/skeleton.ozz\",\"output\":\"${ozz_temp_directory}/animation_track_simple_raw_*.ozz\",\"tracks\":[{\"properties\":[{\"joint_name\":\"joint0\",\"property_name\":\"property0\",\"output\":\"${ozz_temp_directory}/track_simple_raw.ozz\",\"raw\":true}]}]}]}")
 add_test(NAME test2ozz_anim_track_simple_raw_output COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/track_simple_raw.ozz" "${ozz_temp_directory}/track_simple_raw_should_exist.ozz")
 set_tests_properties(test2ozz_anim_track_simple_raw_output PROPERTIES DEPENDS test2ozz_anim_track_simple_raw)
 add_test(NAME test2ozz_anim_track_simple_raw_output_anim COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/animation_track_simple_raw_one.ozz" "${ozz_temp_directory}/animation_track_simple_raw_one_should_exist.ozz")
 set_tests_properties(test2ozz_anim_track_simple_raw_output_anim PROPERTIES DEPENDS test2ozz_anim_track_simple_raw)
 
-add_test(NAME test2ozz_anim_track_simple_no_opt COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"animations\":[{\"skeleton\":\"${ozz_temp_directory}/skeleton.ozz\",\"output\":\"${ozz_temp_directory}/animation_track_simple_no_opt_*.ozz\",\"tracks\":[{\"imports\":[{\"joint_name\":\"joint0\",\"property_name\":\"property0\",\"output\":\"${ozz_temp_directory}/track_simple_no_opt.ozz\",\"optimize\":false}]}]}]}")
+add_test(NAME test2ozz_anim_track_simple_no_opt COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"animations\":[{\"skeleton\":\"${ozz_temp_directory}/skeleton.ozz\",\"output\":\"${ozz_temp_directory}/animation_track_simple_no_opt_*.ozz\",\"tracks\":[{\"properties\":[{\"joint_name\":\"joint0\",\"property_name\":\"property0\",\"output\":\"${ozz_temp_directory}/track_simple_no_opt.ozz\",\"optimize\":false}]}]}]}")
 add_test(NAME test2ozz_anim_track_simple_no_opt_output COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/track_simple_no_opt.ozz" "${ozz_temp_directory}/track_simple_no_opt_should_exist.ozz")
 set_tests_properties(test2ozz_anim_track_simple_no_opt_output PROPERTIES DEPENDS test2ozz_anim_track_simple_no_opt)
 add_test(NAME test2ozz_anim_track_simple_no_opt_output_anim COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/animation_track_simple_no_opt_one.ozz" "${ozz_temp_directory}/animation_track_simple_no_opt_one_should_exist.ozz")
 set_tests_properties(test2ozz_anim_track_simple_no_opt_output_anim PROPERTIES DEPENDS test2ozz_anim_track_simple_no_opt)
 
-add_test(NAME test2ozz_anim_track_simple_no_opt_raw COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"animations\":[{\"skeleton\":\"${ozz_temp_directory}/skeleton.ozz\",\"output\":\"${ozz_temp_directory}/animation_track_simple_no_opt_raw_*.ozz\",\"tracks\":[{\"imports\":[{\"joint_name\":\"joint0\",\"property_name\":\"property0\",\"output\":\"${ozz_temp_directory}/track_simple_no_opt_raw.ozz\",\"optimize\":false,\"raw\":true}]}]}]}")
+add_test(NAME test2ozz_anim_track_simple_no_opt_raw COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"animations\":[{\"skeleton\":\"${ozz_temp_directory}/skeleton.ozz\",\"output\":\"${ozz_temp_directory}/animation_track_simple_no_opt_raw_*.ozz\",\"tracks\":[{\"properties\":[{\"joint_name\":\"joint0\",\"property_name\":\"property0\",\"output\":\"${ozz_temp_directory}/track_simple_no_opt_raw.ozz\",\"optimize\":false,\"raw\":true}]}]}]}")
 add_test(NAME test2ozz_anim_track_simple_no_opt_raw_output COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/track_simple_no_opt_raw.ozz" "${ozz_temp_directory}/track_simple_no_opt_raw_should_exist.ozz")
 set_tests_properties(test2ozz_anim_track_simple_no_opt_raw_output PROPERTIES DEPENDS test2ozz_anim_track_simple_no_opt_raw)
 add_test(NAME test2ozz_anim_track_simple_no_opt_raw_output_anim COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/animation_track_simple_no_opt_raw_one.ozz" "${ozz_temp_directory}/animation_track_simple_no_opt_raw_one_should_exist.ozz")
 set_tests_properties(test2ozz_anim_track_simple_no_opt_raw_output_anim PROPERTIES DEPENDS test2ozz_anim_track_simple_no_opt_raw)
 
-add_test(NAME test2ozz_anim_track2_simple COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"animations\":[{\"skeleton\":\"${ozz_temp_directory}/skeleton.ozz\",\"output\":\"${ozz_temp_directory}/animation_track2_simple_*.ozz\",\"tracks\":[{\"imports\":[{\"joint_name\":\"joint0\",\"property_name\":\"property2\",\"type\":2,\"output\":\"${ozz_temp_directory}/track2_simple.ozz\"}]}]}]}")
+add_test(NAME test2ozz_anim_track2_simple COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"animations\":[{\"skeleton\":\"${ozz_temp_directory}/skeleton.ozz\",\"output\":\"${ozz_temp_directory}/animation_track2_simple_*.ozz\",\"tracks\":[{\"properties\":[{\"joint_name\":\"joint0\",\"property_name\":\"property2\",\"type\":2,\"output\":\"${ozz_temp_directory}/track2_simple.ozz\"}]}]}]}")
 add_test(NAME test2ozz_anim_track2_simple_output COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/track2_simple.ozz" "${ozz_temp_directory}/track2_simple_should_exist.ozz")
 set_tests_properties(test2ozz_anim_track2_simple_output PROPERTIES DEPENDS test2ozz_anim_track2_simple)
 add_test(NAME test2ozz_anim_track2_simple_output_anim COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/animation_track2_simple_one.ozz" "${ozz_temp_directory}/animation_track2_simple_one_should_exist.ozz")
 set_tests_properties(test2ozz_anim_track2_simple_output_anim PROPERTIES DEPENDS test2ozz_anim_track2_simple)
 
-add_test(NAME test2ozz_anim_track_wild_joint COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"animations\":[{\"skeleton\":\"${ozz_temp_directory}/skeleton.ozz\",\"tracks\":[{\"imports\":[{\"joint_name\":\"joint?\",\"property_name\":\"property0\",\"output\":\"${ozz_temp_directory}/track_wild_*.ozz\"}]}]}]}")
+add_test(NAME test2ozz_anim_track_wild_joint COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"animations\":[{\"skeleton\":\"${ozz_temp_directory}/skeleton.ozz\",\"tracks\":[{\"properties\":[{\"joint_name\":\"joint?\",\"property_name\":\"property0\",\"output\":\"${ozz_temp_directory}/track_wild_*.ozz\"}]}]}]}")
 add_test(NAME test2ozz_anim_track_wild_joint_output0
   COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/track_wild_joint0-property0.ozz" "${ozz_temp_directory}/track_wild_joint0-property0_should_exist.ozz")
 set_tests_properties(test2ozz_anim_track_wild_joint_output0 PROPERTIES DEPENDS test2ozz_anim_track_wild_joint)

@@ -522,7 +522,7 @@ bool ProcessTracks(Converter& _converter, const char* _animation_name,
                    const ozz::Endianness _endianness) {
   bool success = true;
 
-  const Json::Value& imports = _config["imports"];
+  const Json::Value& imports = _config["properties"];
   for (Json::ArrayIndex i = 0; success && i < imports.size(); ++i) {
     success &= ProcessImportTrack(_converter, _animation_name, _skeleton,
                                   imports[i], _endianness);
