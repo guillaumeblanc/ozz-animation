@@ -29,86 +29,45 @@
 
 // Mocks Converter so it can be used to dump default and reference
 // configurations.
-class DumpConverter
-    : public ozz::animation::offline::Converter {
+class DumpConverter : public ozz::animation::offline::Converter {
  public:
   DumpConverter() {}
   ~DumpConverter() {}
 
  private:
-  virtual bool Load(const char* _filename) {
-    (void)_filename;
+  virtual bool Load(const char*) { return true; }
+
+  virtual bool Import(ozz::animation::offline::RawSkeleton*, bool) {
     return true;
   }
 
-  virtual bool Import(ozz::animation::offline::RawSkeleton* _skeleton,
-                      bool _all_nodes) {
-    (void)_skeleton;
-    (void)_all_nodes;
-    return true;
-  }
+  virtual AnimationNames GetAnimationNames() { return AnimationNames(); }
 
-  virtual AnimationNames GetAnimationNames() {
-    AnimationNames names;
-    return names;
-  }
-
-  virtual bool Import(const char* _animation_name,
-                      const ozz::animation::Skeleton& _skeleton,
-                      float _sampling_rate,
-                      ozz::animation::offline::RawAnimation* _animation) {
-    (void)_animation_name;
-    (void)_skeleton;
-    (void)_sampling_rate;
-    (void)_animation;
+  virtual bool Import(const char*, const ozz::animation::Skeleton&, float,
+                      ozz::animation::offline::RawAnimation*) {
     return true;
   }
 
   virtual NodeProperties GetNodeProperties(const char* _node_name) {
-    NodeProperties ppts;
-    return ppts;
+    return NodeProperties();
   }
 
-  virtual bool Import(const char* _animation_name, const char* _node_name,
-                      const char* _track_name, float _sampling_rate,
-                      ozz::animation::offline::RawFloatTrack* _track) {
-    (void)_animation_name;
-    (void)_node_name;
-    (void)_track_name;
-    (void)_sampling_rate;
-    (void)_track;
+  virtual bool Import(const char*, const char*, const char*, float,
+                      ozz::animation::offline::RawFloatTrack*) {
     return true;
   }
 
-  virtual bool Import(const char* _animation_name, const char* _node_name,
-                      const char* _track_name, float _sampling_rate,
-                      ozz::animation::offline::RawFloat2Track* _track) {
-    (void)_animation_name;
-    (void)_node_name;
-    (void)_track_name;
-    (void)_sampling_rate;
-    (void)_track;
+  virtual bool Import(const char*, const char*, const char*, float,
+                      ozz::animation::offline::RawFloat2Track*) {
     return true;
   }
 
-  virtual bool Import(const char* _animation_name, const char* _node_name,
-                      const char* _track_name, float _sampling_rate,
-                      ozz::animation::offline::RawFloat3Track* _track) {
-    (void)_animation_name;
-    (void)_node_name;
-    (void)_track_name;
-    (void)_sampling_rate;
-    (void)_track;
+  virtual bool Import(const char*, const char*, const char*, float,
+                      ozz::animation::offline::RawFloat3Track*) {
     return true;
   }
-  virtual bool Import(const char* _animation_name, const char* _node_name,
-                      const char* _track_name, float _sampling_rate,
-                      ozz::animation::offline::RawFloat4Track* _track) {
-    (void)_animation_name;
-    (void)_node_name;
-    (void)_track_name;
-    (void)_sampling_rate;
-    (void)_track;
+  virtual bool Import(const char*, const char*, const char*, float,
+                      ozz::animation::offline::RawFloat4Track*) {
     return true;
   }
 };
