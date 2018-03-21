@@ -77,7 +77,7 @@ class LoadSampleApplication : public ozz::sample::Application {
  public:
   LoadSampleApplication()
       : cache_(NULL),
-        method_(1),  // Triggering is the most robust method.
+        method_(kTriggering),  // Triggering is the most robust method.
         attached_(false),
         attach_joint_(0) {
     ResetState();
@@ -98,7 +98,7 @@ class LoadSampleApplication : public ozz::sample::Application {
 
     // Update attachment state depending on the selected method, aka sample or
     // triggering.
-    if (method_ == 0) {
+    if (method_ == kSampling) {
       if (!Update_SamplingMethod()) {
         return false;
       }
@@ -307,9 +307,11 @@ class LoadSampleApplication : public ozz::sample::Application {
     {
       static bool open = true;
       ozz::sample::ImGui::OpenClose oc(_im_gui, "Track access method", &open);
-      bool changed = _im_gui->DoRadioButton(0, "Sampling", &method_);
-      changed |= _im_gui->DoRadioButton(1, "Triggering", &method_);
+      int method = static_cast<int>(method_);
+      bool changed = _im_gui->DoRadioButton(kSampling, "Sampling", &method);
+      changed |= _im_gui->DoRadioButton(kTriggering, "Triggering", &method);
       if (changed) {
+        method_ = static_cast<Method>(method);
         ResetState();
       }
     }
@@ -318,11 +320,15 @@ class LoadSampleApplication : public ozz::sample::Application {
       static bool open = true;
       ozz::sample::ImGui::OpenClose oc(_im_gui, "Animation control", &open);
       if (open) {
-        _im_gui->DoLabel(
-            "Note that changing playback time could break box attachment "
-            "state",
-            ozz::sample::ImGui::kLeft, false);
-        controller_.OnGui(animation_, _im_gui, true, false);
+        if (controller_.OnGui(animation_, _im_gui, true)) {
+          // Triggering method can adapt to "big" time changes (jumps), because
+          // all the events will be triggered and processed for the whole time
+          // period.
+          // No point doing that for sampling method.
+          if (method_ == kTriggering) {
+            Update_TriggeringMethod();
+          }
+        }
       }
     }
     return true;
@@ -356,8 +362,11 @@ class LoadSampleApplication : public ozz::sample::Application {
   // Stores whether the box should be attached to the hand.
   ozz::animation::FloatTrack track_;
 
-  // Track reading method, aka sampling (0) or triggering (1).
-  int method_;
+  // Track reading method.
+  enum Method {
+    kSampling,   // Will use TrackSamplingJob
+    kTriggering  // Will use TrackTriggeringJob
+  } method_;
 
   // Stores whether the box is currently attached. This flag is computed
   // during update. This is only used for debug display purpose.

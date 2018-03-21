@@ -79,9 +79,11 @@ void PlaybackController::Reset() {
   play_ = true;
 }
 
-void PlaybackController::OnGui(const animation::Animation& _animation,
+bool PlaybackController::OnGui(const animation::Animation& _animation,
                                ImGui* _im_gui, bool _enabled,
                                bool _allow_set_time) {
+  bool time_changed = false;
+
   if (_im_gui->DoButton(play_ ? "Pause" : "Play", _enabled)) {
     play_ = !play_;
   }
@@ -91,6 +93,7 @@ void PlaybackController::OnGui(const animation::Animation& _animation,
                         _enabled && _allow_set_time)) {
     // Pause the time if slider as moved.
     play_ = false;
+    time_changed = true;
   }
   std::sprintf(szLabel, "Playback speed: %.2f", playback_speed_);
   _im_gui->DoSlider(szLabel, -5.f, 5.f, &playback_speed_, 1.f, _enabled);
@@ -100,6 +103,7 @@ void PlaybackController::OnGui(const animation::Animation& _animation,
                         playback_speed_ != 1.f && _enabled)) {
     playback_speed_ = 1.f;
   }
+  return time_changed;
 }
 
 // Uses LocalToModelJob to compute skeleton model space posture, then forwards

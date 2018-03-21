@@ -85,7 +85,8 @@ class PlaybackController {
   void Reset();
 
   // Do controller Gui.
-  void OnGui(const animation::Animation& _animation, ImGui* _im_gui,
+  // Returns true if animation time has been changed.
+  bool OnGui(const animation::Animation& _animation, ImGui* _im_gui,
              bool _enabled = true, bool _allow_set_time = true);
 
  private:
