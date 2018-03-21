@@ -48,7 +48,7 @@ class DumpConverter : public ozz::animation::offline::Converter {
     return true;
   }
 
-  virtual NodeProperties GetNodeProperties(const char* _node_name) {
+  virtual NodeProperties GetNodeProperties(const char*) {
     return NodeProperties();
   }
 
