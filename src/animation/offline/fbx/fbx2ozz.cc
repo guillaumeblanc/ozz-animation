@@ -34,8 +34,7 @@ int main(int _argc, const char** _argv) {
   return converter(_argc, _argv);
 }
 
-FbxConverter::FbxConverter()
-    : settings_(fbx_manager_), scene_loader_(NULL) {}
+FbxConverter::FbxConverter() : settings_(fbx_manager_), scene_loader_(NULL) {}
 
 FbxConverter::~FbxConverter() {
   ozz::memory::default_allocator()->Delete(scene_loader_);

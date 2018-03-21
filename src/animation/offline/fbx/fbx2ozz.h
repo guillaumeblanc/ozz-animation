@@ -43,8 +43,7 @@
 // Use fbx2ozz integrated help command (fbx2ozz --help) for more details
 // about available arguments.
 
-class FbxConverter
-    : public ozz::animation::offline::Converter {
+class FbxConverter : public ozz::animation::offline::Converter {
  public:
   FbxConverter();
   ~FbxConverter();

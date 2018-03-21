@@ -26,6 +26,7 @@ target_link_libraries(dump2ozz
   ozz_animation_tools
   ozz_options)
 
+# Uses a fake import file to dump reference and default configurations.
 add_custom_command(TARGET dump2ozz POST_BUILD
   COMMAND dump2ozz "--file=${CMAKE_CURRENT_SOURCE_DIR}/dump2ozz.cc" "--config={}" "--config_dump_reference=${CMAKE_CURRENT_SOURCE_DIR}/reference.json"
   COMMAND dump2ozz "--file=${CMAKE_CURRENT_SOURCE_DIR}/dump2ozz.cc" "--config={}" "--config_dump_default=${CMAKE_CURRENT_SOURCE_DIR}/default.json")

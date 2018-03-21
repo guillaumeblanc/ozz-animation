@@ -33,17 +33,17 @@
 
 #include "ozz/base/log.h"
 
-FbxConverter::AnimationNames
-FbxConverter::GetAnimationNames() {
+FbxConverter::AnimationNames FbxConverter::GetAnimationNames() {
   if (!scene_loader_) {
     return AnimationNames();
   }
   return ozz::animation::offline::fbx::GetAnimationNames(*scene_loader_);
 }
 
-bool FbxConverter::Import(
-    const char* _animation_name, const ozz::animation::Skeleton& _skeleton,
-    float _sampling_rate, ozz::animation::offline::RawAnimation* _animation) {
+bool FbxConverter::Import(const char* _animation_name,
+                          const ozz::animation::Skeleton& _skeleton,
+                          float _sampling_rate,
+                          ozz::animation::offline::RawAnimation* _animation) {
   if (!_animation) {
     return false;
   }
@@ -81,34 +81,30 @@ bool ImportImpl(ozz::animation::offline::fbx::FbxSceneLoader* _scene_loader,
                                                     _sampling_rate, _track);
 }
 
-bool FbxConverter::Import(
-    const char* _animation_name, const char* _node_name,
-    const char* _track_name, float _sampling_rate,
-    ozz::animation::offline::RawFloatTrack* _track) {
+bool FbxConverter::Import(const char* _animation_name, const char* _node_name,
+                          const char* _track_name, float _sampling_rate,
+                          ozz::animation::offline::RawFloatTrack* _track) {
   return ImportImpl(scene_loader_, _animation_name, _node_name, _track_name,
                     _sampling_rate, _track);
 }
 
-bool FbxConverter::Import(
-    const char* _animation_name, const char* _node_name,
-    const char* _track_name, float _sampling_rate,
-    ozz::animation::offline::RawFloat2Track* _track) {
+bool FbxConverter::Import(const char* _animation_name, const char* _node_name,
+                          const char* _track_name, float _sampling_rate,
+                          ozz::animation::offline::RawFloat2Track* _track) {
   return ImportImpl(scene_loader_, _animation_name, _node_name, _track_name,
                     _sampling_rate, _track);
 }
 
-bool FbxConverter::Import(
-    const char* _animation_name, const char* _node_name,
-    const char* _track_name, float _sampling_rate,
-    ozz::animation::offline::RawFloat3Track* _track) {
+bool FbxConverter::Import(const char* _animation_name, const char* _node_name,
+                          const char* _track_name, float _sampling_rate,
+                          ozz::animation::offline::RawFloat3Track* _track) {
   return ImportImpl(scene_loader_, _animation_name, _node_name, _track_name,
                     _sampling_rate, _track);
 }
 
-bool FbxConverter::Import(
-    const char* _animation_name, const char* _node_name,
-    const char* _track_name, float _sampling_rate,
-    ozz::animation::offline::RawFloat4Track* _track) {
+bool FbxConverter::Import(const char* _animation_name, const char* _node_name,
+                          const char* _track_name, float _sampling_rate,
+                          ozz::animation::offline::RawFloat4Track* _track) {
   return ImportImpl(scene_loader_, _animation_name, _node_name, _track_name,
                     _sampling_rate, _track);
 }

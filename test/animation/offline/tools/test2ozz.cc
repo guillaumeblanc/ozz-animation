@@ -34,8 +34,7 @@
 #include "ozz/base/io/stream.h"
 #include "ozz/base/memory/allocator.h"
 
-class TestConverter
-    : public ozz::animation::offline::Converter {
+class TestConverter : public ozz::animation::offline::Converter {
  public:
   TestConverter() : file_(NULL) {}
   ~TestConverter() { ozz::memory::default_allocator()->Delete(file_); }

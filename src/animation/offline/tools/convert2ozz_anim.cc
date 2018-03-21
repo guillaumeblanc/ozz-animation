@@ -259,8 +259,7 @@ bool Export(const ozz::animation::offline::RawAnimation& _raw_animation,
   return true;
 }
 
-bool ProcessAnimation(Converter& _converter,
-                      const char* _animation_name,
+bool ProcessAnimation(Converter& _converter, const char* _animation_name,
                       const ozz::animation::Skeleton& _skeleton,
                       const Json::Value& _config,
                       const ozz::Endianness _endianness) {
@@ -394,8 +393,7 @@ struct TrackFromType<Converter::NodeProperty::kFloat4> {
 };
 
 template <Converter::NodeProperty::Type _type>
-bool ProcessImportTrackType(Converter& _converter,
-                            const char* _animation_name,
+bool ProcessImportTrackType(Converter& _converter, const char* _animation_name,
                             const char* _joint_name,
                             const Converter::NodeProperty& _property,
                             const Json::Value& _import_config,
@@ -421,8 +419,8 @@ bool ProcessImportTrackType(Converter& _converter,
   return success;
 }
 
-bool ProcessImportTrack(Converter& _converter,
-                        const char* _animation_name, const Skeleton& _skeleton,
+bool ProcessImportTrack(Converter& _converter, const char* _animation_name,
+                        const Skeleton& _skeleton,
                         const Json::Value& _import_config,
                         const ozz::Endianness _endianness) {
   // Early out if no name is specified
@@ -466,31 +464,27 @@ bool ProcessImportTrack(Converter& _converter,
       // Import property depending on its type.
       switch (property.type) {
         case Converter::NodeProperty::kFloat1: {
-          success &=
-              ProcessImportTrackType<Converter::NodeProperty::kFloat1>(
-                  _converter, _animation_name, joint_name, property,
-                  _import_config, _endianness);
+          success &= ProcessImportTrackType<Converter::NodeProperty::kFloat1>(
+              _converter, _animation_name, joint_name, property, _import_config,
+              _endianness);
           break;
         }
         case Converter::NodeProperty::kFloat2: {
-          success &=
-              ProcessImportTrackType<Converter::NodeProperty::kFloat2>(
-                  _converter, _animation_name, joint_name, property,
-                  _import_config, _endianness);
+          success &= ProcessImportTrackType<Converter::NodeProperty::kFloat2>(
+              _converter, _animation_name, joint_name, property, _import_config,
+              _endianness);
           break;
         }
         case Converter::NodeProperty::kFloat3: {
-          success &=
-              ProcessImportTrackType<Converter::NodeProperty::kFloat3>(
-                  _converter, _animation_name, joint_name, property,
-                  _import_config, _endianness);
+          success &= ProcessImportTrackType<Converter::NodeProperty::kFloat3>(
+              _converter, _animation_name, joint_name, property, _import_config,
+              _endianness);
           break;
         }
         case Converter::NodeProperty::kFloat4: {
-          success &=
-              ProcessImportTrackType<Converter::NodeProperty::kFloat4>(
-                  _converter, _animation_name, joint_name, property,
-                  _import_config, _endianness);
+          success &= ProcessImportTrackType<Converter::NodeProperty::kFloat4>(
+              _converter, _animation_name, joint_name, property, _import_config,
+              _endianness);
           break;
         }
         default: {
@@ -546,8 +540,7 @@ bool ProcessTracks(Converter& _converter, const char* _animation_name,
 }
 }  // namespace
 
-bool ProcessAnimations(const Json::Value& _config,
-                       Converter* _converter,
+bool ProcessAnimations(const Json::Value& _config, Converter* _converter,
                        const ozz::Endianness _endianness) {
   if (_config.size() == 0) {
     ozz::log::Log() << "Configuration contains no animation export "
