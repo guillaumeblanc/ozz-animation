@@ -62,10 +62,6 @@ add_test(NAME fbx2ozz_anim_simple_from_raw COMMAND fbx2ozz "--file=${ozz_media_d
 set_tests_properties(fbx2ozz_anim_simple_from_raw PROPERTIES DEPENDS fbx2ozz_skel_simple_raw)
 add_test(NAME fbx2ozz_anim_simple_raw_from_raw COMMAND fbx2ozz "--file=${ozz_media_directory}/fbx/alain/run.fbx" "--config={\"animations\":[{\"skeleton\":\"${ozz_temp_directory}/fbx_raw_skeleton.ozz\",\"output\":\"${ozz_temp_directory}/fbx_animation_${CMAKE_CURRENT_LIST_LINE}.ozz\",\"raw\":true}]}")
 set_tests_properties(fbx2ozz_anim_simple_raw_from_raw PROPERTIES DEPENDS fbx2ozz_skel_simple_raw)
-add_test(NAME fbx2ozz_anim_little COMMAND fbx2ozz "--file=${ozz_media_directory}/fbx/alain/run.fbx" "--config={\"animations\":[{\"skeleton\":\"${ozz_temp_directory}/fbx_skeleton.ozz\",\"output\":\"${ozz_temp_directory}/fbx_animation_${CMAKE_CURRENT_LIST_LINE}.ozz\"}]}" "--endian=little")
-set_tests_properties(fbx2ozz_anim_little PROPERTIES DEPENDS fbx2ozz_skel_simple)
-add_test(NAME fbx2ozz_anim_big COMMAND fbx2ozz "--file=${ozz_media_directory}/fbx/alain/run.fbx" "--config={\"animations\":[{\"skeleton\":\"${ozz_temp_directory}/fbx_skeleton.ozz\",\"output\":\"${ozz_temp_directory}/fbx_animation_${CMAKE_CURRENT_LIST_LINE}.ozz\"}]}" "--endian=big")
-set_tests_properties(fbx2ozz_anim_big PROPERTIES DEPENDS fbx2ozz_skel_simple)
 
 # Run fbx2ozz track passing tests
 #----------------------------
