@@ -279,8 +279,7 @@ bool SanitizeTrackMotion(Json::Value& _root) {
 }*/
 
 bool SanitizeTrack(Json::Value& _root, bool _all_options) {
-  MakeDefaultArray(_root, "properties", "Properties to import.",
-                   !_all_options);
+  MakeDefaultArray(_root, "properties", "Properties to import.", !_all_options);
   Json::Value& imports = _root["properties"];
   for (Json::ArrayIndex i = 0; i < imports.size(); ++i) {
     if (!SanitizeTrackImport(imports[i])) {

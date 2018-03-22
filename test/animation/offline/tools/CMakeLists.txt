@@ -116,14 +116,20 @@ add_test(NAME test2ozz_skel_big COMMAND test2ozz "--endian=big" "--file=${ozz_te
 
 # Run test2ozz animation import failing tests
 #----------------------------
-add_test(NAME test2ozz_anim_missing_output COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"skeleton\":{}}")
-set_tests_properties(test2ozz_anim_missing_output PROPERTIES PASS_REGULAR_EXPRESSION "Configuration contains no animation export definition, animations import will be skipped.")
+add_test(NAME test2ozz_anim_no_animation COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={}")
+set_tests_properties(test2ozz_anim_no_animation PROPERTIES PASS_REGULAR_EXPRESSION "Configuration contains no animation export definition, animations import will be skipped.")
+
+add_test(NAME test2ozz_anim_no_animation_name COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"animations\":[{\"name\":\"\"}]}")
+set_tests_properties(test2ozz_anim_no_animation_name PROPERTIES PASS_REGULAR_EXPRESSION "No animation name provided. Animation import will be skipped.")
+
+add_test(NAME test2ozz_anim_no_animation_output COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"animations\":[{\"skeleton\":\"${ozz_temp_directory}/skeleton.ozz\",\"output\":\"\"}]}")
+set_tests_properties(test2ozz_anim_no_animation_output PROPERTIES PASS_REGULAR_EXPRESSION "Failed to open output file: \"\"." DEPENDS test2ozz_skel_simple)
 
 add_test(NAME test2ozz_anim_missing_test COMMAND test2ozz "--config={\"animations\":[{\"skeleton\":\"${ozz_temp_directory}/skeleton.ozz\",\"output\":\"${ozz_temp_directory}/anim_should_not_exist.ozz\"}]}")
 set_tests_properties(test2ozz_anim_missing_test PROPERTIES PASS_REGULAR_EXPRESSION "Required option \"file\" is not specified." DEPENDS test2ozz_skel_simple)
 
 add_test(NAME test2ozz_anim_missing_skeleton COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"animations\":[{\"output\":\"${ozz_temp_directory}/anim_should_not_exist.ozz\"}]}")
-set_tests_properties(test2ozz_anim_missing_skeleton PROPERTIES PASS_REGULAR_EXPRESSION "No ozz binary skeleton file specified from config.")
+set_tests_properties(test2ozz_anim_missing_skeleton PROPERTIES PASS_REGULAR_EXPRESSION "Missing input skeleton file from json config.")
 
 add_test(NAME test2ozz_anim_bad_test COMMAND test2ozz "--file=${ozz_temp_directory}/good.content0" "--config={\"animations\":[{\"skeleton\":\"${ozz_temp_directory}/skeleton.ozz\",\"output\":\"${ozz_temp_directory}/anim_should_not_exist.ozz\"}]}")
 set_tests_properties(test2ozz_anim_bad_test PROPERTIES PASS_REGULAR_EXPRESSION "No animation found." DEPENDS test2ozz_skel_simple)
@@ -135,7 +141,7 @@ add_test(NAME test2ozz_anim_unexisting_skeleton COMMAND test2ozz "--file=${ozz_t
 set_tests_properties(test2ozz_anim_unexisting_skeleton PROPERTIES PASS_REGULAR_EXPRESSION "Failed to open input skeleton ozz binary file: \"${ozz_temp_directory}/unexisting.ozz\"")
 
 add_test(NAME test2ozz_anim_invalid_output_path COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"animations\":[{\"skeleton\":\"${ozz_temp_directory}/skeleton.ozz\",\"output\":\"${ozz_temp_directory}/invalid_path/anim_should_not_exist.ozz\"}]}")
-set_tests_properties(test2ozz_anim_invalid_output_path PROPERTIES PASS_REGULAR_EXPRESSION "Failed to open output file: \"${ozz_temp_directory}/invalid_path/anim_should_not_exist.ozz\"" DEPENDS test2ozz_skel_simple)
+set_tests_properties(test2ozz_anim_invalid_output_path PROPERTIES PASS_REGULAR_EXPRESSION "Failed to open output file: \"${ozz_temp_directory}/invalid_path/anim_should_not_exist.ozz\"." DEPENDS test2ozz_skel_simple)
 
 add_test(NAME test2ozz_anim_no_match COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"animations\":[{\"skeleton\":\"${ozz_temp_directory}/skeleton.ozz\",\"name\":\"won_t_match\",\"output\":\"${ozz_temp_directory}/invalid_path/anim_should_not_exist.ozz\"}]}")
 set_tests_properties(test2ozz_anim_no_match PROPERTIES PASS_REGULAR_EXPRESSION "No matching animation found for \"won_t_match\"." DEPENDS test2ozz_skel_simple)

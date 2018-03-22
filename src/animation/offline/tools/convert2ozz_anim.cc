@@ -106,7 +106,7 @@ ozz::animation::Skeleton* ImportSkeleton(const char* _path) {
   ozz::animation::Skeleton* skeleton = NULL;
   {
     if (*_path == 0) {
-      ozz::log::Err() << "No ozz binary skeleton file specified from config."
+      ozz::log::Err() << "Missing input skeleton file from json config."
                       << std::endl;
       return NULL;
     }
@@ -567,6 +567,13 @@ bool ProcessAnimations(const Json::Value& _config, Converter* _converter,
   for (Json::ArrayIndex i = 0; success && i < _config.size(); ++i) {
     const Json::Value& animation_config = _config[i];
     const char* animation_match = animation_config["name"].asCString();
+
+    if (*animation_match == 0) {
+      ozz::log::Log() << "No animation name provided. Animation import "
+                         "will be skipped."
+                       << std::endl;
+      continue;
+    }
 
     // Import skeleton instance.
     ozz::animation::Skeleton* skeleton =
