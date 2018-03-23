@@ -30,9 +30,9 @@
 
 #include "ozz/base/containers/string.h"
 #include "ozz/base/containers/vector.h"
+
 #include "ozz/base/io/archive_traits.h"
 
-// TODO see if it's the right place
 #include "ozz/base/maths/quaternion.h"
 #include "ozz/base/maths/vec_float.h"
 
