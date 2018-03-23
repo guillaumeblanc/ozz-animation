@@ -66,7 +66,7 @@ add_test(NAME test2ozz_big COMMAND test2ozz "--file=${ozz_temp_directory}/good.c
 set_tests_properties(test2ozz_big PROPERTIES PASS_REGULAR_EXPRESSION "Big endian output binary format selected.")
 
 add_test(NAME test2ozz_log_config_verbose COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={}" --log_level=verbose)
-set_tests_properties(test2ozz_log_config_verbose PROPERTIES PASS_REGULAR_EXPRESSION "//  Animations to extract.")
+set_tests_properties(test2ozz_log_config_verbose PROPERTIES PASS_REGULAR_EXPRESSION "//  Animations to import.")
 
 add_test(NAME test2ozz_dump_ref_config COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1"  "--config={}" "--config_dump_reference=${ozz_temp_directory}/reference.json")
 add_test(NAME test2ozz_dump_ref_config_output COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/reference.json" "${ozz_temp_directory}/reference_should_exist.json")

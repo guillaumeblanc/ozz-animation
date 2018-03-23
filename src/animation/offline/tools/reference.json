@@ -6,12 +6,12 @@
     "raw" : false, //  Outputs raw skeleton.
     "all_nodes" : false //  Exports all nodes regardless of their type.
   },
-  //  Animations to extract.
+  //  Animations to import.
   "animations" : 
   [
     {
-      "name" : "*", //  Specifies name of the animation to import. Wildcard characters '*' and '?' are supported
-      "output" : "*.ozz", //  Specifies animation output file(s). Use a '*' character to specify part(s) of the filename that should be replaced by the animation name.
+      "name" : "*", //  Specifies name of the animation to import from the source file. Wildcard characters '*' and '?' are supported
+      "output" : "*.ozz", //  Specifies animation output file. Use a '*' character to specify part(s) of the filename that should be replaced by the animation name.
       "skeleton" : "", //  Specifies ozz skeleton (raw or runtime) input file.
       "raw" : false, //  Outputs raw animation.
       "additive" : false, //  Creates a delta animation that can be used for additive blending.

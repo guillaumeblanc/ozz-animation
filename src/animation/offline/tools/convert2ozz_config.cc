@@ -300,11 +300,11 @@ bool SanitizeTrack(Json::Value& _root, bool _all_options) {
 
 bool SanitizeAnimation(Json::Value& _root, bool _all_options) {
   MakeDefault(_root, "name", "*",
-              "Specifies name of the animation to import. Wildcard characters "
-              "\'*\' and \'?\' are supported");
+              "Specifies name of the animation to import from the source file. "
+              "Wildcard characters \'*\' and \'?\' are supported");
 
   MakeDefault(_root, "output", "*.ozz",
-              "Specifies animation output file(s). Use a \'*\' character to "
+              "Specifies animation output file. Use a \'*\' character to "
               "specify part(s) of the filename that should be replaced by the "
               "animation name.");
 
@@ -344,7 +344,7 @@ bool SanitizeRoot(Json::Value& _root, bool _all_options) {
   SanitizeSkeleton(_root["skeleton"], _all_options);
 
   // Animations
-  MakeDefaultArray(_root, "animations", "Animations to extract.",
+  MakeDefaultArray(_root, "animations", "Animations to import.",
                    !_all_options);
   Json::Value& animations = _root["animations"];
   for (Json::ArrayIndex i = 0; i < animations.size(); ++i) {
