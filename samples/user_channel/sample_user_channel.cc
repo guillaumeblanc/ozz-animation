@@ -186,6 +186,9 @@ class LoadSampleApplication : public ozz::sample::Application {
       const ozz::animation::FloatTrackTriggeringJob::Edge& edge = edges[i];
 
       // Updates attachment state.
+      // Triggering job ensures rising and falling edges symmetry, this can be
+      // asserted.
+      assert(attached_ != edge.rising);
       attached_ = edge.rising;
 
       // Updates animation and computes joints position at edge time.
