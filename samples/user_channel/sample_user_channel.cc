@@ -119,7 +119,7 @@ class LoadSampleApplication : public ozz::sample::Application {
   }
 
   bool Update_SamplingMethod() {
-    // Updates animation and computes new joints position.
+    // Updates animation and computes new joints position at frame time.
     if (!Update_Joints(controller_.time())) {
       return false;
     }
@@ -200,22 +200,22 @@ class LoadSampleApplication : public ozz::sample::Application {
 
       if (edge.rising) {
         // Box is being attached on rising edges.
-        // Find the relative transform of the box to the attachment joint.
+        // Find the relative transform of the box to the attachment joint at the
+        // exact time of the rising edge.
         box_local_transform_ =
             Invert(models_[attach_joint_]) * box_world_transform_;
       } else {
         // Box is being detached on falling edges.
-        // Compute box position when it was released.
+        // Compute box position when at the exact time it is released.
         box_world_transform_ = models_[attach_joint_] * box_local_transform_;
       }
     }
 
-    // Finally updates animation and computes joints position.
-    if (!Update_Joints(controller_.time())) {
-      return false;
-    }
+    float f1 = 60 * 60;
+    float f2 = f1 + 1.f / 60.f;
 
-    return true;
+    // Finally updates animation and computes joints position at frame time.
+    return Update_Joints(f2);
   }
 
   bool Update_Joints(float _time) {
