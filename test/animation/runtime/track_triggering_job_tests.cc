@@ -3082,6 +3082,36 @@ TEST(Overflow, TrackEdgeTriggerJob) {
     EXPECT_EQ(edges[2].rising, true);
   }
 
+  {  // Overflow 2 passes
+    job.from = 0.f;
+    job.to = 2.f;
+    FloatTrackTriggeringJob::Edges edges(edges_buffer);
+    job.edges = &edges;
+
+    // 1st pass
+    EXPECT_FALSE(job.Run());  // Return false
+
+    ASSERT_EQ(edges.Count(), 3u);  // But buffer is full.
+
+    EXPECT_FLOAT_EQ(edges[0].time, .5f);
+    EXPECT_EQ(edges[0].rising, true);
+
+    EXPECT_FLOAT_EQ(edges[1].time, 1.f);
+    EXPECT_EQ(edges[1].rising, false);
+
+    EXPECT_FLOAT_EQ(edges[2].time, 1.5f);
+    EXPECT_EQ(edges[2].rising, true);
+
+    // 2nd pass, starting from the end of the first one
+    job.from = edges[2].time + .0001f;
+    EXPECT_TRUE(job.Run());  // Last pass
+
+    ASSERT_EQ(edges.Count(), 1u);  // But buffer isn't empty.
+
+    EXPECT_FLOAT_EQ(edges[0].time, 2.f);
+    EXPECT_EQ(edges[0].rising, false);
+  }
+
   {  // Empty output
     job.from = 0.f;
     job.to = 2.f;
