@@ -328,7 +328,9 @@ class LoadSampleApplication : public ozz::sample::Application {
           // period.
           // No point doing that for sampling method.
           if (method_ == kTriggering) {
-            Update_TriggeringMethod();
+            if (!Update_TriggeringMethod()) {
+              return false;
+            }
           }
         }
       }
