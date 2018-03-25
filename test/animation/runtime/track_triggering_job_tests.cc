@@ -3102,8 +3102,8 @@ TEST(Overflow, TrackEdgeTriggerJob) {
     EXPECT_FLOAT_EQ(edges[2].time, 1.5f);
     EXPECT_EQ(edges[2].rising, true);
 
-    // 2nd pass, starting from the end of the first one
-    job.from = edges[2].time + .0001f;
+    // 2nd pass, starting right after the end of the first one.
+    job.from = nexttowardf(edges[2].time, job.to);
     EXPECT_TRUE(job.Run());  // Last pass
 
     ASSERT_EQ(edges.Count(), 1u);  // But buffer isn't empty.
