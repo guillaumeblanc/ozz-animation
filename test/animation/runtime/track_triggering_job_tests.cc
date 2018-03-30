@@ -288,6 +288,22 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
       EXPECT_EQ(edges[1].rising, false);
     }
 
+    {  // Forward [1, 2]
+      job.from = 1.f;
+      job.to = 2.f;
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
+      job.edges = &edges;
+      EXPECT_TRUE(job.Run());
+
+      ASSERT_EQ(edges.Count(), 2u);
+
+      EXPECT_FLOAT_EQ(edges[0].time, 1.5f);
+      EXPECT_EQ(edges[0].rising, true);
+
+      EXPECT_FLOAT_EQ(edges[1].time, 2.f);
+      EXPECT_EQ(edges[1].rising, false);
+    }
+
     {  // Forward [0, .5[
       job.from = 0.f;
       job.to = .5f;
@@ -496,9 +512,9 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
 
     // Backward
 
-    {  // Backward [1, .01], 0 is excluded
+    {  // Backward [1, 0], 0 is included
       job.from = 1.f;
-      job.to = .01f;
+      job.to = 0.f;
       FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
@@ -512,9 +528,9 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
       EXPECT_EQ(edges[1].rising, false);
     }
 
-    {  // Backward [1, 0], 0 is included
+    {  // Backward [1, .01], 0 is excluded
       job.from = 1.f;
-      job.to = 0.f;
+      job.to = .01f;
       FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
       EXPECT_TRUE(job.Run());
@@ -936,8 +952,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
       EXPECT_EQ(edges[1].rising, true);
     }
 
-    {  // Forward [1, 2], 1 should be included, as it wasn't included with range
-       // [0, 1]
+    {  // Forward [1, 2], 1 should be included, as it wasn't with range [0, 1]
       job.from = 1.f;
       job.to = 2.f;
       FloatTrackTriggeringJob::Edges edges(edges_buffer);
@@ -951,6 +966,28 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
 
       EXPECT_FLOAT_EQ(edges[1].time, 1.6f);
       EXPECT_EQ(edges[1].rising, true);
+    }
+
+    {  // Forward [-1, 1]
+      job.from = -1.f;
+      job.to = 1.f;
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
+      job.edges = &edges;
+      EXPECT_TRUE(job.Run());
+
+      ASSERT_EQ(edges.Count(), 4u);
+
+      EXPECT_FLOAT_EQ(edges[0].time, -1.f);
+      EXPECT_EQ(edges[0].rising, false);
+
+      EXPECT_FLOAT_EQ(edges[1].time, -.4f);
+      EXPECT_EQ(edges[1].rising, true);
+
+      EXPECT_FLOAT_EQ(edges[2].time, 0.f);
+      EXPECT_EQ(edges[2].rising, false);
+
+      EXPECT_FLOAT_EQ(edges[3].time, .6f);
+      EXPECT_EQ(edges[3].rising, true);
     }
 
     {  // Forward [0, .6[
@@ -1157,6 +1194,28 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
 
       EXPECT_FLOAT_EQ(edges[1].time, 0.f);
       EXPECT_EQ(edges[1].rising, true);
+    }
+
+    {  // Backward [1, -1]
+      job.from = 1.f;
+      job.to = -1.f;
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
+      job.edges = &edges;
+      EXPECT_TRUE(job.Run());
+
+      ASSERT_EQ(edges.Count(), 4u);
+
+      EXPECT_FLOAT_EQ(edges[0].time, .6f);
+      EXPECT_EQ(edges[0].rising, false);
+
+      EXPECT_FLOAT_EQ(edges[1].time, 0.f);
+      EXPECT_EQ(edges[1].rising, true);
+
+      EXPECT_FLOAT_EQ(edges[2].time, -.4f);
+      EXPECT_EQ(edges[2].rising, false);
+
+      EXPECT_FLOAT_EQ(edges[3].time, -1.f);
+      EXPECT_EQ(edges[3].rising, true);
     }
 
     {  // Backward [2, 1],
@@ -1526,7 +1585,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
       EXPECT_EQ(edges[1].rising, false);
     }
 
-    {  // Forward [0, 1], 1 is included
+    {  // Forward [0, 1]
       job.from = 0.f;
       job.to = 1.f;
       FloatTrackTriggeringJob::Edges edges(edges_buffer);
@@ -1539,6 +1598,22 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
       EXPECT_EQ(edges[0].rising, true);
 
       EXPECT_FLOAT_EQ(edges[1].time, .5f);
+      EXPECT_EQ(edges[1].rising, false);
+    }
+
+    {  // Forward [1, 2]
+      job.from = 1.f;
+      job.to = 2.f;
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
+      job.edges = &edges;
+      EXPECT_TRUE(job.Run());
+
+      ASSERT_EQ(edges.Count(), 2u);
+
+      EXPECT_FLOAT_EQ(edges[0].time, 1.f);
+      EXPECT_EQ(edges[0].rising, true);
+
+      EXPECT_FLOAT_EQ(edges[1].time, 1.5f);
       EXPECT_EQ(edges[1].rising, false);
     }
 
