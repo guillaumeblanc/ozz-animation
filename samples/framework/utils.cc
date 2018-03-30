@@ -90,7 +90,7 @@ bool PlaybackController::OnGui(const animation::Animation& _animation,
   char szLabel[64];
   std::sprintf(szLabel, "Animation time: %.2f", time_);
 
-  // Uses a local copie ot time_ so that set_time is used to actually apply
+  // Uses a local copy of time_ so that set_time is used to actually apply
   // changes. Otherwise previous time would be incorrect.
   float time = time_;
   if (_im_gui->DoSlider(szLabel, 0.f, _animation.duration(), &time, 1.f,
