@@ -67,10 +67,6 @@ bool FloatTrackTriggeringJob::Run() const {
   const float rfrom = forward ? from : to;
   const float rto = forward ? to : from;
 
-  // If from is >= 1.f, then we consider as within a loop, meaning we should
-  // detect edges between the last and first keys.
-  float prev_loop_val = values[values.Count() - 1];
-
   // Loops in the global evaluation range, divided in local subranges [0,1].
   Edge* edges_end = edges->begin;
   for (float rcurr = floorf(rfrom), lcurr = rfrom - rcurr;
@@ -88,11 +84,9 @@ bool FloatTrackTriggeringJob::Run() const {
 
     for (size_t i = ptfrom - times.begin; i < times.Count(); ++i) {
       // Find relevant keyframes value around i.
-      const float vk0 = i == 0 ? prev_loop_val : values[i - 1];
+      const size_t i0 = i == 0 ? values.Count() - 1 : i - 1;
+      const float vk0 = values[i0];
       const float vk1 = values[i];
-
-      // Stores value for next outer loop.
-      prev_loop_val = vk1;
 
       bool rising = false;
       bool detected = false;
@@ -116,6 +110,10 @@ bool FloatTrackTriggeringJob::Run() const {
         } else {
           assert(vk0 != vk1);
 
+          if(i == 0) {
+            edge.time = 0.f;
+          } else {
+
           // Finds where the curve crosses threshold value.
           // This is the lerp equation, where we know the result and look for
           // alpha, aka unlerp.
@@ -124,10 +122,8 @@ bool FloatTrackTriggeringJob::Run() const {
           // Remaps to keyframes actual times.
           const float tk0 = times[i - 1];
           const float tk1 = times[i];
-          const float time = math::Lerp(tk0, tk1, alpha);
-
-          // Set found edge time.
-          edge.time = time;
+          edge.time = math::Lerp(tk0, tk1, alpha);
+          }
         }
 
         // Pushes the new edge only if it's in the input range.
@@ -154,7 +150,6 @@ bool FloatTrackTriggeringJob::Run() const {
   }
 
   // Reverse if backward.
-  // Edge* new_end = edges->begin + current_edge;
   if (!forward) {
     std::reverse(edges->begin, edges_end);
   }
