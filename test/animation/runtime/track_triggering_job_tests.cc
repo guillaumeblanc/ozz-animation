@@ -215,9 +215,6 @@ void TestEdgesExpectation(
     const FloatTrackTriggeringJob::Edge (&_expected)[_size]) {
   OZZ_STATIC_ASSERT(_size >= 2);
 
-  // Last edge is included if it time is 1.f.
-  const bool last_included = _expected[_size - 1].time == 1.f;
-
   // Builds track
   ozz::animation::FloatTrack* track = TrackBuilder()(_raw_track);
   ASSERT_TRUE(track != NULL);
@@ -297,7 +294,7 @@ void TestEdgesExpectation(
 
     for (size_t i = 0; i < edges.Count(); ++i) {
       const size_t ie = i % _size;
-      const float loops = i / _size;
+      const float loops = static_cast<float>(i / _size);
       EXPECT_FLOAT_EQ(edges[i].time, _expected[ie].time + loops);
       EXPECT_EQ(edges[i].rising, _expected[ie].rising);
     }
@@ -313,13 +310,17 @@ void TestEdgesExpectation(
 
     for (size_t i = 0; i < edges.Count(); ++i) {
       const size_t ie = (edges.Count() - i - 1) % _size;
-      const float loops = (edges.Count() - i - 1) / _size;
+      const float loops = static_cast<float>((edges.Count() - i - 1) / _size);
       EXPECT_FLOAT_EQ(edges[i].time, _expected[ie].time + loops);
       EXPECT_EQ(edges[i].rising, !_expected[ie].rising);
     }
   }
 
   {  // Forward, first edge to last, last can be excluded.
+
+    // Last edge is included if it time is 1.f.
+    const bool last_included = _expected[_size - 1].time == 1.f;
+
     job.from = _expected[0].time;
     job.to = _expected[_size - 1].time;
     FloatTrackTriggeringJob::Edges edges(edges_buffer);
@@ -334,6 +335,10 @@ void TestEdgesExpectation(
     }
   }
   {  // Backward, last edge to first, last can be excluded.
+    
+    // Last edge is included if it time is 1.f.
+    const bool last_included = _expected[_size - 1].time == 1.f;
+
     job.from = _expected[_size - 1].time;
     job.to = _expected[0].time;
     FloatTrackTriggeringJob::Edges edges(edges_buffer);
@@ -343,7 +348,7 @@ void TestEdgesExpectation(
     ASSERT_EQ(edges.Count(), last_included ? _size : _size - 1);
 
     for (size_t i = 0; i < edges.Count(); ++i) {
-      const size_t ie = last_included ? _size - i - 1 : _size - i - 2.f;
+      const size_t ie = last_included ? _size - i - 1 : _size - i - 2;
       EXPECT_FLOAT_EQ(edges[i].time, _expected[ie].time);
       EXPECT_EQ(edges[i].rising, !_expected[ie].rising);
     }
