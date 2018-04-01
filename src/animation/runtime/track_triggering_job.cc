@@ -104,25 +104,24 @@ bool FloatTrackTriggeringJob::Run() const {
         Edge edge;
         edge.rising = rising;
 
-        const bool step = (steps[i / 8] & (1 << (i & 7))) != 0;
+        const bool step = (steps[i0 / 8] & (1 << (i0 & 7))) != 0;
         if (step) {
           edge.time = times[i];
         } else {
-          assert(vk0 != vk1);
+          assert(vk0 != vk1);  // Won't devide by 0
 
-          if(i == 0) {
+          if (i == 0) {
             edge.time = 0.f;
           } else {
+            // Finds where the curve crosses threshold value.
+            // This is the lerp equation, where we know the result and look for
+            // alpha, aka unlerp.
+            const float alpha = (threshold - vk0) / (vk1 - vk0);
 
-          // Finds where the curve crosses threshold value.
-          // This is the lerp equation, where we know the result and look for
-          // alpha, aka unlerp.
-          const float alpha = (threshold - vk0) / (vk1 - vk0);
-
-          // Remaps to keyframes actual times.
-          const float tk0 = times[i - 1];
-          const float tk1 = times[i];
-          edge.time = math::Lerp(tk0, tk1, alpha);
+            // Remaps to keyframes actual times.
+            const float tk0 = times[i - 1];
+            const float tk1 = times[i];
+            edge.time = math::Lerp(tk0, tk1, alpha);
           }
         }
 
