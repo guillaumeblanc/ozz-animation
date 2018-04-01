@@ -589,12 +589,12 @@ void TestEdgesExpectation(
     bool init = false;
     for (size_t i = 0; i < 100000; ++i) {
       // Finds new evaluation range
-      const float kMaxLoops = 3.f;
+      const float kMaxRange = 3.f;
       const float rand_range =
           1.f - 2.f * static_cast<float>(rand()) / RAND_MAX;
 
       job.from = time;
-      time += kMaxLoops * rand_range;
+      time += kMaxRange * rand_range;
       job.to = time;
 
       FloatTrackTriggeringJob::Edges edges(edges_buffer);
@@ -691,6 +691,7 @@ TEST(SquareStep, TrackEdgeTriggerJob) {
     const FloatTrackTriggeringJob::Edge expected[] = {{.5f, true},
                                                       {1.f, false}};
     TestEdgesExpectation(raw_track, 0.f, expected);
+    TestEdgesExpectation(raw_track, -1.f, expected);
   }
 
   {  // More edges
