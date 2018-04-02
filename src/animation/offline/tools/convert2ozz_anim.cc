@@ -571,7 +571,7 @@ bool ProcessAnimations(const Json::Value& _config, Converter* _converter,
     if (*animation_match == 0) {
       ozz::log::Log() << "No animation name provided. Animation import "
                          "will be skipped."
-                       << std::endl;
+                      << std::endl;
       continue;
     }
 

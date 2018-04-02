@@ -344,8 +344,7 @@ bool SanitizeRoot(Json::Value& _root, bool _all_options) {
   SanitizeSkeleton(_root["skeleton"], _all_options);
 
   // Animations
-  MakeDefaultArray(_root, "animations", "Animations to import.",
-                   !_all_options);
+  MakeDefaultArray(_root, "animations", "Animations to import.", !_all_options);
   Json::Value& animations = _root["animations"];
   for (Json::ArrayIndex i = 0; i < animations.size(); ++i) {
     if (!SanitizeAnimation(animations[i], _all_options)) {
