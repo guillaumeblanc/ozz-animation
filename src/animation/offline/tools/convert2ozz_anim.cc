@@ -566,9 +566,9 @@ bool ProcessAnimations(const Json::Value& _config, Converter* _converter,
   // configuration.
   for (Json::ArrayIndex i = 0; success && i < _config.size(); ++i) {
     const Json::Value& animation_config = _config[i];
-    const char* animation_match = animation_config["name"].asCString();
+    const char* clip_match = animation_config["clip"].asCString();
 
-    if (*animation_match == 0) {
+    if (*clip_match == 0) {
       ozz::log::Log() << "No animation name provided. Animation import "
                          "will be skipped."
                       << std::endl;
@@ -586,7 +586,7 @@ bool ProcessAnimations(const Json::Value& _config, Converter* _converter,
     bool matched = false;
     for (size_t j = 0; success && j < import_animation_names.size(); ++j) {
       const char* animation_name = import_animation_names[j].c_str();
-      if (!strmatch(animation_name, animation_match)) {
+      if (!strmatch(animation_name, clip_match)) {
         continue;
       }
 
@@ -601,8 +601,8 @@ bool ProcessAnimations(const Json::Value& _config, Converter* _converter,
       }
     }
     // Don't display any message if no animation is supposed to be imported.
-    if (!matched && *animation_match != 0) {
-      ozz::log::Log() << "No matching animation found for \"" << animation_match
+    if (!matched && *clip_match != 0) {
+      ozz::log::Log() << "No matching animation found for \"" << clip_match
                       << "\"." << std::endl;
     }
 

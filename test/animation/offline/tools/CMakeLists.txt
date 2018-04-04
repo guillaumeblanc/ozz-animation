@@ -119,7 +119,7 @@ add_test(NAME test2ozz_skel_big COMMAND test2ozz "--endian=big" "--file=${ozz_te
 add_test(NAME test2ozz_anim_no_animation COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={}")
 set_tests_properties(test2ozz_anim_no_animation PROPERTIES PASS_REGULAR_EXPRESSION "Configuration contains no animation export definition, animations import will be skipped.")
 
-add_test(NAME test2ozz_anim_no_animation_name COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"animations\":[{\"name\":\"\"}]}")
+add_test(NAME test2ozz_anim_no_animation_name COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"animations\":[{\"clip\":\"\"}]}")
 set_tests_properties(test2ozz_anim_no_animation_name PROPERTIES PASS_REGULAR_EXPRESSION "No animation name provided. Animation import will be skipped.")
 
 add_test(NAME test2ozz_anim_no_animation_output COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"animations\":[{\"skeleton\":\"${ozz_temp_directory}/skeleton.ozz\",\"output\":\"\"}]}")
@@ -143,7 +143,7 @@ set_tests_properties(test2ozz_anim_unexisting_skeleton PROPERTIES PASS_REGULAR_E
 add_test(NAME test2ozz_anim_invalid_output_path COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"animations\":[{\"skeleton\":\"${ozz_temp_directory}/skeleton.ozz\",\"output\":\"${ozz_temp_directory}/invalid_path/anim_should_not_exist.ozz\"}]}")
 set_tests_properties(test2ozz_anim_invalid_output_path PROPERTIES PASS_REGULAR_EXPRESSION "Failed to open output file: \"${ozz_temp_directory}/invalid_path/anim_should_not_exist.ozz\"." DEPENDS test2ozz_skel_simple)
 
-add_test(NAME test2ozz_anim_no_match COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"animations\":[{\"skeleton\":\"${ozz_temp_directory}/skeleton.ozz\",\"name\":\"won_t_match\",\"output\":\"${ozz_temp_directory}/invalid_path/anim_should_not_exist.ozz\"}]}")
+add_test(NAME test2ozz_anim_no_match COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"animations\":[{\"skeleton\":\"${ozz_temp_directory}/skeleton.ozz\",\"clip\":\"won_t_match\",\"output\":\"${ozz_temp_directory}/invalid_path/anim_should_not_exist.ozz\"}]}")
 set_tests_properties(test2ozz_anim_no_match PROPERTIES PASS_REGULAR_EXPRESSION "No matching animation found for \"won_t_match\"." DEPENDS test2ozz_skel_simple)
 
 add_test(NAME test2ozz_anim_bad_type COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"animations\":[{\"skeleton\":\"${ozz_temp_directory}/skeleton.ozz\",\"output\":\"${ozz_temp_directory}/anim_should_not_exist.ozz\",\"sampling_rate\":\"1\"}]}")
@@ -279,13 +279,13 @@ set_tests_properties(test2ozz_anim_multi2_output1 PROPERTIES DEPENDS test2ozz_an
 add_test(NAME test2ozz_anim_multi2_output2 COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/animation_multi2_TWO.ozz" "${ozz_temp_directory}/animation_multi1_TWO_should_exist.ozz")
 set_tests_properties(test2ozz_anim_multi2_output2 PROPERTIES DEPENDS test2ozz_anim_multi1)
 
-add_test(NAME test2ozz_anim_multi2_single COMMAND test2ozz "--file=${ozz_temp_directory}/good.content2" "--config={\"animations\":[{\"skeleton\":\"${ozz_temp_directory}/skeleton.ozz\",\"name\":\"T?O\",\"output\":\"${ozz_temp_directory}/animation_multi2_single.ozz\"}]}")
+add_test(NAME test2ozz_anim_multi2_single COMMAND test2ozz "--file=${ozz_temp_directory}/good.content2" "--config={\"animations\":[{\"skeleton\":\"${ozz_temp_directory}/skeleton.ozz\",\"clip\":\"T?O\",\"output\":\"${ozz_temp_directory}/animation_multi2_single.ozz\"}]}")
 set_tests_properties(test2ozz_anim_multi2_single PROPERTIES DEPENDS test2ozz_skel_simple)
 
 add_test(NAME test2ozz_anim_multi2_single_output1 COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/animation_multi2_single.ozz" "${ozz_temp_directory}/animation_multi2_single_should_exist.ozz")
 set_tests_properties(test2ozz_anim_multi2_single_output1 PROPERTIES DEPENDS test2ozz_anim_multi2_single)
 
-add_test(NAME test2ozz_anim_multi2_multi COMMAND test2ozz "--file=${ozz_temp_directory}/good.content2" "--config={\"animations\":[{\"skeleton\":\"${ozz_temp_directory}/skeleton.ozz\",\"name\":\"one\",\"output\":\"${ozz_temp_directory}/animation_multi2_multi_one.ozz\"},{\"skeleton\":\"${ozz_temp_directory}/skeleton.ozz\",\"name\":\"TWO\",\"output\":\"${ozz_temp_directory}/animation_multi2_multi_TWO.ozz\"}]}")
+add_test(NAME test2ozz_anim_multi2_multi COMMAND test2ozz "--file=${ozz_temp_directory}/good.content2" "--config={\"animations\":[{\"skeleton\":\"${ozz_temp_directory}/skeleton.ozz\",\"clip\":\"one\",\"output\":\"${ozz_temp_directory}/animation_multi2_multi_one.ozz\"},{\"skeleton\":\"${ozz_temp_directory}/skeleton.ozz\",\"clip\":\"TWO\",\"output\":\"${ozz_temp_directory}/animation_multi2_multi_TWO.ozz\"}]}")
 set_tests_properties(test2ozz_anim_multi2_multi PROPERTIES DEPENDS test2ozz_skel_simple)
 
 add_test(NAME test2ozz_anim_multi2_multi_output1 COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/animation_multi2_multi_one.ozz" "${ozz_temp_directory}/animation_multi2_multi_one_should_exist.ozz")

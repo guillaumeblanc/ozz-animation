@@ -299,9 +299,9 @@ bool SanitizeTrack(Json::Value& _root, bool _all_options) {
 }
 
 bool SanitizeAnimation(Json::Value& _root, bool _all_options) {
-  MakeDefault(_root, "name", "*",
-              "Specifies name of the animation to import from the source file. "
-              "Wildcard characters \'*\' and \'?\' are supported");
+  MakeDefault(_root, "clip", "*",
+              "Specifies clip name of the animation to import from the source "
+              "file. Wildcard characters \'*\' and \'?\' are supported");
 
   MakeDefault(_root, "output", "*.ozz",
               "Specifies animation output file. Use a \'*\' character to "
