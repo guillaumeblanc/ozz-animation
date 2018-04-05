@@ -2,7 +2,7 @@
   //  Skeleton to import
   "skeleton" : 
   {
-    "output" : "", //  TODOOOO Specifies skeleton output file. Specifies ozz skeleton (raw or runtime) input file.
+    "filename" : "", //  Specifies skeleton input/output filename. The file will be outputted if import is true. It will also be used as an input reference during animations import.
     "import" : false,
     "raw" : false, //  Outputs raw skeleton.
     "all_nodes" : false //  Exports all nodes regardless of their type.
@@ -12,7 +12,7 @@
   [
     {
       "clip" : "*", //  Specifies clip name (take) of the animation to import from the source file. Wildcard characters '*' and '?' are supported
-      "output" : "*.ozz", //  Specifies animation output file. Use a '*' character to specify part(s) of the filename that should be replaced by the animation name.
+      "filename" : "*.ozz", //  Specifies animation output filename. Use a '*' character to specify part(s) of the filename that should be replaced by the animation name.
       "raw" : false, //  Outputs raw animation.
       "additive" : false, //  Creates a delta animation that can be used for additive blending.
       "sampling_rate" : 0, //  Selects animation sampling rate in hertz. Set a value <= 0 to use imported scene default frame rate.
@@ -33,7 +33,7 @@
           "properties" : 
           [
             {
-              "output" : "*.ozz", //  Specifies track output file(s). Use a '*' character to specify part(s) of the filename that should be replaced by the track (aka "joint_name-property_name") name.
+              "filename" : "*.ozz", //  Specifies track output filename(s). Use a '*' character to specify part(s) of the filename that should be replaced by the track (aka "joint_name-property_name") name.
               "joint_name" : "", //  Name of the joint that contains the property to import. Wildcard characters '*' and '?' are supported.
               "property_name" : "", //  Name of the property to import. Wildcard characters '*' and '?' are supported.
               "type" : 1, //  Type of the property, aka the number of floating point components. 1 to 4 components are supported.

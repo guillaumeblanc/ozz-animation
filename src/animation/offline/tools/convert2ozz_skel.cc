@@ -87,12 +87,11 @@ bool ImportSkeleton(const Json::Value& _config, Converter* _converter,
   // Once the file is opened, nothing should fail as it would leave an invalid
   // file on the disk.
   {
-    ozz::log::Log() << "Opens output file: "
-                    << skeleton_config["output"].asCString() << std::endl;
-    ozz::io::File file(skeleton_config["output"].asCString(), "wb");
+    const char* filename = skeleton_config["filename"].asCString();
+    ozz::log::Log() << "Opens output file: " << filename << std::endl;
+    ozz::io::File file(filename, "wb");
     if (!file.opened()) {
-      ozz::log::Err() << "Failed to open output file: \""
-                      << skeleton_config["output"].asCString() << "\"."
+      ozz::log::Err() << "Failed to open output file: \"" << filename << "\"."
                       << std::endl;
       ozz::memory::default_allocator()->Delete(skeleton);
       return false;

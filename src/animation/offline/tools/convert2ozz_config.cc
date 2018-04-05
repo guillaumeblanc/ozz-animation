@@ -198,9 +198,10 @@ bool MakeDefault(Json::Value& _parent, const char* _name, _Type _value,
 
 bool SanitizeSkeleton(Json::Value& _root, bool _all_options) {
   (void)_all_options;
-  MakeDefault(_root, "output", "",
-              "TODOOOO Specifies skeleton output file. Specifies ozz skeleton "
-              "(raw or runtime) input file.");
+  MakeDefault(_root, "filename", "",
+              "Specifies skeleton input/output filename. The file will be "
+              "outputted if import is true. It will also be used as an input "
+              "reference during animations import.");
   MakeDefault(_root, "import", false, "");
   MakeDefault(_root, "raw", false, "Outputs raw skeleton.");
   MakeDefault(_root, "all_nodes", false,
@@ -237,8 +238,8 @@ bool SanitizeOptimizationTolerances(Json::Value& _root) {
 }
 
 bool SanitizeTrackImport(Json::Value& _root) {
-  MakeDefault(_root, "output", "*.ozz",
-              "Specifies track output file(s). Use a \'*\' character "
+  MakeDefault(_root, "filename", "*.ozz",
+              "Specifies track output filename(s). Use a \'*\' character "
               "to specify part(s) of the filename that should be replaced by "
               "the track (aka \"joint_name-property_name\") name.");
   MakeDefault(_root, "joint_name", "",
@@ -306,8 +307,8 @@ bool SanitizeAnimation(Json::Value& _root, bool _all_options) {
               "Specifies clip name (take) of the animation to import from the "
               "source file. Wildcard characters \'*\' and \'?\' are supported");
 
-  MakeDefault(_root, "output", "*.ozz",
-              "Specifies animation output file. Use a \'*\' character to "
+  MakeDefault(_root, "filename", "*.ozz",
+              "Specifies animation output filename. Use a \'*\' character to "
               "specify part(s) of the filename that should be replaced by the "
               "animation name.");
 
@@ -425,8 +426,8 @@ bool ProcessConfiguration(Json::Value* _config) {
 
   // Use {} as a default config, otherwise take the one specified as argument.
   std::string config_string =
-      "{\"skeleton\":{\"output\":\"skeleton.ozz\",\"import\":true},"
-      "\"animations\":[{\"clip\":\"*\",\"output\":\"*.ozz\"}]}";
+      "{\"skeleton\":{\"filename\":\"skeleton.ozz\",\"import\":true},"
+      "\"animations\":[{\"clip\":\"*\",\"filename\":\"*.ozz\"}]}";
   Json::Reader json_builder;
   Json::Value default_config;
   if (!json_builder.parse(config_string, default_config, true)) {

@@ -1,14 +1,14 @@
 {
   "skeleton" : 
   {
-    "output" : "skeleton.ozz",
+    "filename" : "skeleton.ozz",
     "import" : true
   },
   "animations" : 
   [
     {
       "clip" : "*",
-      "output" : "*.ozz"
+      "filename" : "*.ozz"
     }
   ]
 }

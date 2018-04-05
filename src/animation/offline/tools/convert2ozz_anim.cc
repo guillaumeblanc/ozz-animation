@@ -225,7 +225,7 @@ bool Export(const ozz::animation::offline::RawAnimation& _raw_animation,
     // as it would leave an invalid file on the disk.
 
     // Builds output filename.
-    ozz::String::Std filename = BuildFilename(_config["output"].asCString(),
+    ozz::String::Std filename = BuildFilename(_config["filename"].asCString(),
                                               _raw_animation.name.c_str());
 
     ozz::log::LogV() << "Opens output file: " << filename << std::endl;
@@ -339,7 +339,7 @@ bool Export(const _RawTrack& _raw_track, const Json::Value& _config,
 
     // Builds output filename.
     const ozz::String::Std filename =
-        BuildFilename(_config["output"].asCString(), _raw_track.name.c_str());
+        BuildFilename(_config["filename"].asCString(), _raw_track.name.c_str());
 
     ozz::log::LogV() << "Opens output file: " << filename << std::endl;
     ozz::io::File file(filename.c_str(), "wb");
@@ -567,7 +567,7 @@ bool ImportAnimations(const Json::Value& _config, Converter* _converter,
 
   // Import skeleton instance.
   ozz::animation::Skeleton* skeleton =
-      LoadSkeleton(skeleton_config["output"].asCString());
+      LoadSkeleton(skeleton_config["filename"].asCString());
   success &= skeleton != NULL;
 
   // Loop though all existing animations, and export those who match

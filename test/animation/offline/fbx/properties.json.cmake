@@ -1,38 +1,38 @@
 {
   "skeleton":
   {
-    "output":"${ozz_temp_directory}/fbx_propreties_skeleton.ozz",
+    "filename":"${ozz_temp_directory}/fbx_propreties_skeleton.ozz",
     "import":true
   },
   "animations":
   [
     {
-      "output":"${ozz_temp_directory}/fbx_properties_animation_${CMAKE_CURRENT_LIST_LINE}.ozz",
+      "filename":"${ozz_temp_directory}/fbx_properties_animation_${CMAKE_CURRENT_LIST_LINE}.ozz",
       "tracks":
       [
         {
           "properties":
           [
             {
-              "output":"${ozz_temp_directory}/fbx_properties_track1_*.ozz",
+              "filename":"${ozz_temp_directory}/fbx_properties_track1_*.ozz",
               "joint_name":"*",
               "property_name":"ozz_*",
               "type":1
             },
             {
-              "output":"${ozz_temp_directory}/fbx_properties_track2_*.ozz",
+              "filename":"${ozz_temp_directory}/fbx_properties_track2_*.ozz",
               "joint_name":"*",
               "property_name":"ozz_*",
               "type":2
             },
             {
-              "output":"${ozz_temp_directory}/fbx_properties_track3_*.ozz",
+              "filename":"${ozz_temp_directory}/fbx_properties_track3_*.ozz",
               "joint_name":"*",
               "property_name":"ozz_*",
               "type":3
             },
             {
-              "output":"${ozz_temp_directory}/fbx_properties_track4_*.ozz",
+              "filename":"${ozz_temp_directory}/fbx_properties_track4_*.ozz",
               "joint_name":"*",
               "property_name":"ozz_*",
               "type":4
