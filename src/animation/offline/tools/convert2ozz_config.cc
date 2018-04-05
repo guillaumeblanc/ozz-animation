@@ -202,7 +202,7 @@ bool SanitizeSkeleton(Json::Value& _root, bool _all_options) {
               "Specifies skeleton input/output filename. The file will be "
               "outputted if import is true. It will also be used as an input "
               "reference during animations import.");
-  MakeDefault(_root, "import", false, "");
+  MakeDefault(_root, "import", false, "Imports and outputs skeleton file.");
   MakeDefault(_root, "raw", false, "Outputs raw skeleton.");
   MakeDefault(_root, "all_nodes", false,
               "Exports all nodes regardless of their type.");

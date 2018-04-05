@@ -3,7 +3,7 @@
   "skeleton" : 
   {
     "filename" : "", //  Specifies skeleton input/output filename. The file will be outputted if import is true. It will also be used as an input reference during animations import.
-    "import" : false,
+    "import" : false, //  Imports and outputs skeleton file.
     "raw" : false, //  Outputs raw skeleton.
     "all_nodes" : false //  Exports all nodes regardless of their type.
   },
