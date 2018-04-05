@@ -37,9 +37,9 @@
               "joint_name" : "", //  Name of the joint that contains the property to import. Wildcard characters '*' and '?' are supported.
               "property_name" : "", //  Name of the property to import. Wildcard characters '*' and '?' are supported.
               "type" : 1, //  Type of the property, aka the number of floating point components. 1 to 4 components are supported.
+              "raw" : false, //  Outputs raw track.
               "optimize" : true, //  Activates keyframes optimization.
-              "optimization_tolerance" : 0.001, //  Optimization tolerance
-              "raw" : false //  Outputs raw track.
+              "optimization_tolerance" : 0.001 //  Optimization tolerance
             }
           ]
         }
