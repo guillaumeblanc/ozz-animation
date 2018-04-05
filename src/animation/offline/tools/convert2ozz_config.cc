@@ -198,7 +198,10 @@ bool MakeDefault(Json::Value& _parent, const char* _name, _Type _value,
 
 bool SanitizeSkeleton(Json::Value& _root, bool _all_options) {
   (void)_all_options;
-  MakeDefault(_root, "output", "", "Specifies skeleton output file.");
+  MakeDefault(_root, "output", "",
+              "TODOOOO Specifies skeleton output file. Specifies ozz skeleton "
+              "(raw or runtime) input file.");
+  MakeDefault(_root, "import", false, "");
   MakeDefault(_root, "raw", false, "Outputs raw skeleton.");
   MakeDefault(_root, "all_nodes", false,
               "Exports all nodes regardless of their type.");
@@ -300,16 +303,13 @@ bool SanitizeTrack(Json::Value& _root, bool _all_options) {
 
 bool SanitizeAnimation(Json::Value& _root, bool _all_options) {
   MakeDefault(_root, "clip", "*",
-              "Specifies clip name of the animation to import from the source "
-              "file. Wildcard characters \'*\' and \'?\' are supported");
+              "Specifies clip name (take) of the animation to import from the "
+              "source file. Wildcard characters \'*\' and \'?\' are supported");
 
   MakeDefault(_root, "output", "*.ozz",
               "Specifies animation output file. Use a \'*\' character to "
               "specify part(s) of the filename that should be replaced by the "
               "animation name.");
-
-  MakeDefault(_root, "skeleton", "",
-              "Specifies ozz skeleton (raw or runtime) input file.");
 
   MakeDefault(_root, "raw", false, "Outputs raw animation.");
 
@@ -321,7 +321,8 @@ bool SanitizeAnimation(Json::Value& _root, bool _all_options) {
               "Selects animation sampling rate in hertz. Set a value <= 0 to "
               "use imported scene default frame rate.");
 
-  MakeDefault(_root, "optimize", true, "Activates keyframes optimization.");
+  MakeDefault(_root, "optimize", true,
+              "Activates keyframes reduction optimization.");
 
   MakeDefaultObject(_root, "optimization_tolerances",
                     "Optimization tolerances.");
@@ -424,8 +425,8 @@ bool ProcessConfiguration(Json::Value* _config) {
 
   // Use {} as a default config, otherwise take the one specified as argument.
   std::string config_string =
-      "{\"skeleton\":{\"output\":\"skeleton.ozz\"},\"animations\":[{"
-      "\"skeleton\":\"skeleton.ozz\",\"output\":\"*.ozz\"}]}";
+      "{\"skeleton\":{\"output\":\"skeleton.ozz\",\"import\":true},"
+      "\"animations\":[{\"clip\":\"*\",\"output\":\"*.ozz\"}]}";
   Json::Reader json_builder;
   Json::Value default_config;
   if (!json_builder.parse(config_string, default_config, true)) {

@@ -151,12 +151,12 @@ int Converter::operator()(int _argc, const char** _argv) {
   }
 
   // Handles skeleton import processing
-  if (!ProcessSkeleton(config["skeleton"], this, endianness)) {
+  if (!ImportSkeleton(config, this, endianness)) {
     return EXIT_FAILURE;
   }
 
   // Handles animations import processing
-  if (!ProcessAnimations(config["animations"], this, endianness)) {
+  if (!ImportAnimations(config, this, endianness)) {
     return EXIT_FAILURE;
   }
 

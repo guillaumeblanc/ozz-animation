@@ -335,7 +335,7 @@ void TestEdgesExpectation(
     }
   }
   {  // Backward, last edge to first, last can be excluded.
-    
+
     // Last edge is included if it time is 1.f.
     const bool last_included = _expected[_size - 1].time == 1.f;
 

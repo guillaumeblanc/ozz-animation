@@ -15,13 +15,13 @@ set_tests_properties(fbx2ozz_bad_content PROPERTIES PASS_REGULAR_EXPRESSION "Fai
 # Run fbx2ozz skeleton failing tests
 #----------------------------
 
-add_test(NAME fbx2ozz_skel_no_skeleton COMMAND fbx2ozz "--file=${ozz_media_directory}/fbx/cube.fbx" "--config={\"skeleton\":{\"output\":\"${ozz_temp_directory}/fbx_should_not_exist.ozz\"}}")
+add_test(NAME fbx2ozz_skel_no_skeleton COMMAND fbx2ozz "--file=${ozz_media_directory}/fbx/cube.fbx" "--config={\"skeleton\":{\"output\":\"${ozz_temp_directory}/fbx_should_not_exist.ozz\",\"import\":true}}")
 set_tests_properties(fbx2ozz_skel_no_skeleton PROPERTIES PASS_REGULAR_EXPRESSION "Failed to import skeleton.")
 
 # Run fbx2ozz collada failing tests
 #----------------------------
 
-add_test(NAME fbx2ozz_skel_no_skeleton_dae COMMAND fbx2ozz "--file=${ozz_media_directory}/collada/cube.dae" "--config={\"skeleton\":{\"output\":\"${ozz_temp_directory}/fbx_should_not_exist.ozz\"}}")
+add_test(NAME fbx2ozz_skel_no_skeleton_dae COMMAND fbx2ozz "--file=${ozz_media_directory}/collada/cube.dae" "--config={\"skeleton\":{\"output\":\"${ozz_temp_directory}/fbx_should_not_exist.ozz\",\"import\":true}}")
 set_tests_properties(fbx2ozz_skel_no_skeleton_dae PROPERTIES PASS_REGULAR_EXPRESSION "Failed to import skeleton.")
 
 # Ensures nothing was outputted.
@@ -34,15 +34,15 @@ set_tests_properties(fbx2ozz_skel_output PROPERTIES
 # Run fbx2ozz skeleton passing tests
 #----------------------------
 
-add_test(NAME fbx2ozz_skel_simple COMMAND fbx2ozz "--file=${ozz_media_directory}/fbx/alain/skeleton.fbx" "--config={\"skeleton\":{\"output\":\"${ozz_temp_directory}/fbx_skeleton.ozz\"}}")
-add_test(NAME fbx2ozz_skel_simple_raw COMMAND fbx2ozz "--file=${ozz_media_directory}/fbx/alain/skeleton.fbx" "--config={\"skeleton\":{\"output\":\"${ozz_temp_directory}/fbx_raw_skeleton.ozz\",\"raw\":true}}")
+add_test(NAME fbx2ozz_skel_simple COMMAND fbx2ozz "--file=${ozz_media_directory}/fbx/alain/skeleton.fbx" "--config={\"skeleton\":{\"output\":\"${ozz_temp_directory}/fbx_skeleton.ozz\",\"import\":true}}")
+add_test(NAME fbx2ozz_skel_simple_raw COMMAND fbx2ozz "--file=${ozz_media_directory}/fbx/alain/skeleton.fbx" "--config={\"skeleton\":{\"output\":\"${ozz_temp_directory}/fbx_raw_skeleton.ozz\",\"import\":true,\"raw\":true}}")
 
 # Run fbx2ozz collada skeleton passing tests
 #----------------------------
 
-add_test(NAME fbx2ozz_skel_simple_dae_astro_max COMMAND fbx2ozz "--file=${ozz_media_directory}/collada/astro_max.dae" "--config={\"skeleton\":{\"output\":\"${ozz_temp_directory}/astro_max_skeleton.ozz\"}}")
-add_test(NAME fbx2ozz_skel_simple_dae_astro_maya COMMAND fbx2ozz "--file=${ozz_media_directory}/collada/astro_maya.dae" "--config={\"skeleton\":{\"output\":\"${ozz_temp_directory}/astro_maya_skeleton.ozz\"}}")
-add_test(NAME fbx2ozz_skel_simple_dae_seymour COMMAND fbx2ozz "--file=${ozz_media_directory}/collada/seymour.dae" "--config={\"skeleton\":{\"output\":\"${ozz_temp_directory}/seymour_skeleton.ozz\"}}")
+add_test(NAME fbx2ozz_skel_simple_dae_astro_max COMMAND fbx2ozz "--file=${ozz_media_directory}/collada/astro_max.dae" "--config={\"skeleton\":{\"output\":\"${ozz_temp_directory}/astro_max_skeleton.ozz\",\"import\":true}}")
+add_test(NAME fbx2ozz_skel_simple_dae_astro_maya COMMAND fbx2ozz "--file=${ozz_media_directory}/collada/astro_maya.dae" "--config={\"skeleton\":{\"output\":\"${ozz_temp_directory}/astro_maya_skeleton.ozz\",\"import\":true}}")
+add_test(NAME fbx2ozz_skel_simple_dae_seymour COMMAND fbx2ozz "--file=${ozz_media_directory}/collada/seymour.dae" "--config={\"skeleton\":{\"output\":\"${ozz_temp_directory}/seymour_skeleton.ozz\",\"import\":true}}")
 
 # Run fbx2ozz animation failing tests
 #----------------------------
@@ -54,13 +54,13 @@ set_tests_properties(fbx2ozz_anim_badcontent PROPERTIES PASS_REGULAR_EXPRESSION 
 # Run fbx2ozz animation passing tests
 #----------------------------
 
-add_test(NAME fbx2ozz_anim_simple COMMAND fbx2ozz "--file=${ozz_media_directory}/fbx/alain/run.fbx" "--config={\"animations\":[{\"skeleton\":\"${ozz_temp_directory}/fbx_skeleton.ozz\",\"output\":\"${ozz_temp_directory}/fbx_animation_${CMAKE_CURRENT_LIST_LINE}.ozz\"}]}")
+add_test(NAME fbx2ozz_anim_simple COMMAND fbx2ozz "--file=${ozz_media_directory}/fbx/alain/run.fbx" "--config={\"skeleton\":{\"output\":\"${ozz_temp_directory}/fbx_skeleton.ozz\"},\"animations\":[{\"output\":\"${ozz_temp_directory}/fbx_animation_${CMAKE_CURRENT_LIST_LINE}.ozz\"}]}")
 set_tests_properties(fbx2ozz_anim_simple PROPERTIES DEPENDS fbx2ozz_skel_simple)
-add_test(NAME fbx2ozz_anim_simple_raw COMMAND fbx2ozz "--file=${ozz_media_directory}/fbx/alain/run.fbx" "--config={\"animations\":[{\"skeleton\":\"${ozz_temp_directory}/fbx_skeleton.ozz\",\"output\":\"${ozz_temp_directory}/fbx_animation_${CMAKE_CURRENT_LIST_LINE}.ozz\",\"raw\":true}]}")
+add_test(NAME fbx2ozz_anim_simple_raw COMMAND fbx2ozz "--file=${ozz_media_directory}/fbx/alain/run.fbx" "--config={\"skeleton\":{\"output\":\"${ozz_temp_directory}/fbx_skeleton.ozz\"},\"animations\":[{\"output\":\"${ozz_temp_directory}/fbx_animation_${CMAKE_CURRENT_LIST_LINE}.ozz\",\"raw\":true}]}")
 set_tests_properties(fbx2ozz_anim_simple_raw PROPERTIES DEPENDS fbx2ozz_skel_simple)
-add_test(NAME fbx2ozz_anim_simple_from_raw COMMAND fbx2ozz "--file=${ozz_media_directory}/fbx/alain/run.fbx" "--config={\"animations\":[{\"skeleton\":\"${ozz_temp_directory}/fbx_raw_skeleton.ozz\",\"output\":\"${ozz_temp_directory}/fbx_animation_${CMAKE_CURRENT_LIST_LINE}.ozz\"}]}")
+add_test(NAME fbx2ozz_anim_simple_from_raw COMMAND fbx2ozz "--file=${ozz_media_directory}/fbx/alain/run.fbx" "--config={\"skeleton\":{\"output\":\"${ozz_temp_directory}/fbx_raw_skeleton.ozz\"},\"animations\":[{\"output\":\"${ozz_temp_directory}/fbx_animation_${CMAKE_CURRENT_LIST_LINE}.ozz\"}]}")
 set_tests_properties(fbx2ozz_anim_simple_from_raw PROPERTIES DEPENDS fbx2ozz_skel_simple_raw)
-add_test(NAME fbx2ozz_anim_simple_raw_from_raw COMMAND fbx2ozz "--file=${ozz_media_directory}/fbx/alain/run.fbx" "--config={\"animations\":[{\"skeleton\":\"${ozz_temp_directory}/fbx_raw_skeleton.ozz\",\"output\":\"${ozz_temp_directory}/fbx_animation_${CMAKE_CURRENT_LIST_LINE}.ozz\",\"raw\":true}]}")
+add_test(NAME fbx2ozz_anim_simple_raw_from_raw COMMAND fbx2ozz "--file=${ozz_media_directory}/fbx/alain/run.fbx" "--config={\"skeleton\":{\"output\":\"${ozz_temp_directory}/fbx_raw_skeleton.ozz\"},\"animations\":[{\"output\":\"${ozz_temp_directory}/fbx_animation_${CMAKE_CURRENT_LIST_LINE}.ozz\",\"raw\":true}]}")
 set_tests_properties(fbx2ozz_anim_simple_raw_from_raw PROPERTIES DEPENDS fbx2ozz_skel_simple_raw)
 
 # Run fbx2ozz track passing tests
@@ -99,11 +99,12 @@ set_tests_properties(fbx2ozz_anim_properties_output PROPERTIES
 # Run fbx2ozz animation collada passing tests
 #----------------------------
 
-add_test(NAME fbx2ozz_anim_simple_dae_astro_max COMMAND fbx2ozz "--file=${ozz_media_directory}/collada/astro_max.dae" "--config={\"animations\":[{\"skeleton\":\"${ozz_temp_directory}/astro_max_skeleton.ozz\",\"output\":\"${ozz_temp_directory}/dae_animation_${CMAKE_CURRENT_LIST_LINE}.ozz\"}]}")
+add_test(NAME fbx2ozz_anim_simple_dae_astro_max COMMAND fbx2ozz "--file=${ozz_media_directory}/collada/astro_max.dae" "--config={\"skeleton\":{\"output\":\"${ozz_temp_directory}/astro_max_skeleton.ozz\"},\"animations\":[{\"output\":\"${ozz_temp_directory}/dae_animation_${CMAKE_CURRENT_LIST_LINE}.ozz\"}]}")
 set_tests_properties(fbx2ozz_anim_simple_dae_astro_max PROPERTIES DEPENDS fbx2ozz_skel_simple_dae_astro_max)
-add_test(NAME fbx2ozz_anim_simple_dae_astro_maya COMMAND fbx2ozz "--file=${ozz_media_directory}/collada/astro_maya.dae" "--config={\"animations\":[{\"skeleton\":\"${ozz_temp_directory}/astro_maya_skeleton.ozz\",\"output\":\"${ozz_temp_directory}/dae_animation_${CMAKE_CURRENT_LIST_LINE}.ozz\"}]}")
+add_test(NAME fbx2ozz_anim_simple_dae_astro_maya COMMAND fbx2ozz "--file=${ozz_media_directory}/collada/astro_maya.dae" "--config={\"skeleton\":{\"output\":\"${ozz_temp_directory}/astro_maya_skeleton.ozz\"},\"animations\":[{\"output\":\"${ozz_temp_directory}/dae_animation_${CMAKE_CURRENT_LIST_LINE}.ozz\"}]}")
 set_tests_properties(fbx2ozz_anim_simple_dae_astro_maya PROPERTIES DEPENDS fbx2ozz_skel_simple_dae_astro_maya)
-add_test(NAME fbx2ozz_anim_simple_dae_seymour COMMAND fbx2ozz "--file=${ozz_media_directory}/collada/seymour.dae" "--config={\"animations\":[{\"skeleton\":\"${ozz_temp_directory}/seymour_skeleton.ozz\",\"output\":\"${ozz_temp_directory}/dae_animation_${CMAKE_CURRENT_LIST_LINE}.ozz\"}]}")
+add_test(NAME fbx2ozz_anim_simple_dae_seymour COMMAND fbx2ozz "--file=${ozz_media_directory}/collada/seymour.dae" "--config={\"skeleton\":{\"output\":\"${ozz_temp_directory}/seymour_skeleton.ozz\"},\"animations\":[{
+\"output\":\"${ozz_temp_directory}/dae_animation_${CMAKE_CURRENT_LIST_LINE}.ozz\"}]}")
 set_tests_properties(fbx2ozz_anim_simple_dae_seymour PROPERTIES DEPENDS fbx2ozz_skel_simple_dae_seymour)
 
 # Uses the sample playback to test other file format and special cases.
@@ -119,13 +120,13 @@ if(TARGET sample_playback)
             "${ozz_temp_directory}/alain_walk_dae.ozz"
     COMMAND fbx2ozz
       "--file=${ozz_media_directory}/collada/alain/skeleton.dae"
-      "--config={\"skeleton\":{\"output\":\"${ozz_temp_directory}/alain_skeleton_dae.ozz\"}}"
+      "--config={\"skeleton\":{\"output\": \"${ozz_temp_directory}/alain_skeleton_dae.ozz\",\"import\":true}}"
     COMMAND fbx2ozz
       "--file=${ozz_media_directory}/collada/alain/skeleton_zup.dae"
-      "--config={\"skeleton\":{\"output\":\"${ozz_temp_directory}/alain_skeleton_dae_zup.ozz\"}}"
+      "--config={\"skeleton\":{\"output\": \"${ozz_temp_directory}/alain_skeleton_dae_zup.ozz\",\"import\":true}}"
     COMMAND fbx2ozz
       "--file=${ozz_media_directory}/collada/alain/walk.dae"
-      "--config={\"animations\": [{\"skeleton\":\"${ozz_temp_directory}/alain_skeleton_dae.ozz\",\"output\":\"${ozz_temp_directory}/alain_walk_dae.ozz\"}]}"
+      "--config={\"skeleton\":{\"output\": \"${ozz_temp_directory}/alain_skeleton_dae_zup.ozz\"},\"animations\": [{\"output\":\"${ozz_temp_directory}/alain_walk_dae.ozz\"}]}"
     VERBATIM)
       
   add_custom_target(BUILD_DATA_TEST ALL DEPENDS

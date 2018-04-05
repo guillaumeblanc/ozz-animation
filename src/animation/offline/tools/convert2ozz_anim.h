@@ -41,8 +41,8 @@ namespace offline {
 
 class Converter;
 
-bool ProcessAnimations(const Json::Value& _config, Converter* _converter,
-                       const ozz::Endianness _endianness);
+bool ImportAnimations(const Json::Value& _config, Converter* _converter,
+                      const ozz::Endianness _endianness);
 
 }  // namespace offline
 }  // namespace animation

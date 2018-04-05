@@ -50,19 +50,20 @@ namespace ozz {
 namespace animation {
 namespace offline {
 
-bool ProcessSkeleton(const Json::Value& _config, Converter* _converter,
-                     const ozz::Endianness _endianness) {
-  // First check that there's a skeleton actually expected.
-  const char* output_name = _config["output"].asCString();
-  if (*output_name == 0) {
-    ozz::log::Log()
-        << "No skeleton output name provided. Skeleton import will be skipped."
-        << std::endl;
+bool ImportSkeleton(const Json::Value& _config, Converter* _converter,
+                    const ozz::Endianness _endianness) {
+  const Json::Value& skeleton_config = _config["skeleton"];
+
+  // First check that we're actually expecting to import a skeleton.
+  if (!skeleton_config["import"].asBool()) {
+    ozz::log::Log() << "Skeleton build disabled, import will be skipped."
+                    << std::endl;
     return true;
   }
 
   ozz::animation::offline::RawSkeleton raw_skeleton;
-  if (!_converter->Import(&raw_skeleton, _config["all_nodes"].asBool())) {
+  if (!_converter->Import(&raw_skeleton,
+                          skeleton_config["all_nodes"].asBool())) {
     ozz::log::Err() << "Failed to import skeleton." << std::endl;
     return false;
   }
@@ -70,7 +71,7 @@ bool ProcessSkeleton(const Json::Value& _config, Converter* _converter,
   // Needs to be done before opening the output file, so that if it fails then
   // there's no invalid file outputted.
   ozz::animation::Skeleton* skeleton = NULL;
-  if (!_config["raw"].asBool()) {
+  if (!skeleton_config["raw"].asBool()) {
     // Builds runtime skeleton.
     ozz::log::Log() << "Builds runtime skeleton." << std::endl;
     ozz::animation::offline::SkeletonBuilder builder;
@@ -86,12 +87,13 @@ bool ProcessSkeleton(const Json::Value& _config, Converter* _converter,
   // Once the file is opened, nothing should fail as it would leave an invalid
   // file on the disk.
   {
-    ozz::log::Log() << "Opens output file: " << _config["output"].asCString()
-                    << std::endl;
-    ozz::io::File file(_config["output"].asCString(), "wb");
+    ozz::log::Log() << "Opens output file: "
+                    << skeleton_config["output"].asCString() << std::endl;
+    ozz::io::File file(skeleton_config["output"].asCString(), "wb");
     if (!file.opened()) {
       ozz::log::Err() << "Failed to open output file: \""
-                      << _config["output"].asCString() << "\"." << std::endl;
+                      << skeleton_config["output"].asCString() << "\"."
+                      << std::endl;
       ozz::memory::default_allocator()->Delete(skeleton);
       return false;
     }
@@ -100,7 +102,7 @@ bool ProcessSkeleton(const Json::Value& _config, Converter* _converter,
     ozz::io::OArchive archive(&file, _endianness);
 
     // Fills output archive with the skeleton.
-    if (_config["raw"].asBool()) {
+    if (skeleton_config["raw"].asBool()) {
       ozz::log::Log() << "Outputs RawSkeleton to binary archive." << std::endl;
       archive << raw_skeleton;
     } else {

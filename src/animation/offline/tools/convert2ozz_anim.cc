@@ -101,7 +101,7 @@ void DisplaysOptimizationstatistics(const RawAnimation& _non_optimized,
                    << "%" << std::endl;
 }
 
-ozz::animation::Skeleton* ImportSkeleton(const char* _path) {
+ozz::animation::Skeleton* LoadSkeleton(const char* _path) {
   // Reads the skeleton from the binary ozz stream.
   ozz::animation::Skeleton* skeleton = NULL;
   {
@@ -540,9 +540,12 @@ bool ProcessTracks(Converter& _converter, const char* _animation_name,
 }
 }  // namespace
 
-bool ProcessAnimations(const Json::Value& _config, Converter* _converter,
-                       const ozz::Endianness _endianness) {
-  if (_config.size() == 0) {
+bool ImportAnimations(const Json::Value& _config, Converter* _converter,
+                      const ozz::Endianness _endianness) {
+  const Json::Value& skeleton_config = _config["skeleton"];
+  const Json::Value& animations_config = _config["animations"];
+
+  if (animations_config.size() == 0) {
     ozz::log::Log() << "Configuration contains no animation export "
                        "definition, animations import will be skipped."
                     << std::endl;
@@ -562,25 +565,22 @@ bool ProcessAnimations(const Json::Value& _config, Converter* _converter,
   // Iterates all imported animations, build and output them.
   bool success = true;
 
+  // Import skeleton instance.
+  ozz::animation::Skeleton* skeleton =
+      LoadSkeleton(skeleton_config["output"].asCString());
+  success &= skeleton != NULL;
+
   // Loop though all existing animations, and export those who match
   // configuration.
-  for (Json::ArrayIndex i = 0; success && i < _config.size(); ++i) {
-    const Json::Value& animation_config = _config[i];
+  for (Json::ArrayIndex i = 0; success && i < animations_config.size(); ++i) {
+    const Json::Value& animation_config = animations_config[i];
     const char* clip_match = animation_config["clip"].asCString();
 
     if (*clip_match == 0) {
-      ozz::log::Log() << "No animation name provided. Animation import "
+      ozz::log::Log() << "No clip name provided. Animation import "
                          "will be skipped."
                       << std::endl;
       continue;
-    }
-
-    // Import skeleton instance.
-    ozz::animation::Skeleton* skeleton =
-        ImportSkeleton(animation_config["skeleton"].asCString());
-    if (!skeleton) {
-      success = false;
-      break;
     }
 
     bool matched = false;
@@ -605,9 +605,9 @@ bool ProcessAnimations(const Json::Value& _config, Converter* _converter,
       ozz::log::Log() << "No matching animation found for \"" << clip_match
                       << "\"." << std::endl;
     }
-
-    ozz::memory::default_allocator()->Delete(skeleton);
   }
+
+  ozz::memory::default_allocator()->Delete(skeleton);
 
   return success;
 }  // namespace animation

@@ -1,12 +1,13 @@
 {
   "skeleton" : 
   {
-    "output" : "skeleton.ozz"
+    "output" : "skeleton.ozz",
+    "import" : true
   },
   "animations" : 
   [
     {
-      "skeleton" : "skeleton.ozz",
+      "clip" : "*",
       "output" : "*.ozz"
     }
   ]

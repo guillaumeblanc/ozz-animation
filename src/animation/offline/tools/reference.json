@@ -3,7 +3,7 @@
   "skeleton" : 
   {
     "output" : "", //  TODOOOO Specifies skeleton output file. Specifies ozz skeleton (raw or runtime) input file.
-    "build" : false, //  TODODODODODODODOO
+    "import" : false,
     "raw" : false, //  Outputs raw skeleton.
     "all_nodes" : false //  Exports all nodes regardless of their type.
   },
@@ -16,7 +16,7 @@
       "raw" : false, //  Outputs raw animation.
       "additive" : false, //  Creates a delta animation that can be used for additive blending.
       "sampling_rate" : 0, //  Selects animation sampling rate in hertz. Set a value <= 0 to use imported scene default frame rate.
-      "optimize" : true, //  Activates keyframes optimization.
+      "optimize" : true, //  Activates keyframes reduction optimization.
       //  Optimization tolerances.
       "optimization_tolerances" : 
       {
