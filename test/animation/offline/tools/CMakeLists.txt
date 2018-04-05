@@ -108,11 +108,18 @@ set_tests_properties(test2ozz_skel_invalid_output_path_raw PROPERTIES WILL_FAIL 
 #----------------------------
 add_test(NAME test2ozz_skel_simple COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"skeleton\":{\"filename\":\"${ozz_temp_directory}/skeleton.ozz\",\"import\":true}}")
 add_test(NAME test2ozz_skel_simple_raw COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"skeleton\":{\"filename\":\"${ozz_temp_directory}/raw_skeleton.ozz\",\"import\":true,\"raw\":true}}")
+add_test(NAME test2ozz_skel_no_import COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"skeleton\":{\"filename\":\"${ozz_temp_directory}/skel_should_not_exist.ozz\",\"import\":false}}")
 
 add_test(NAME test2ozz_skel_native COMMAND test2ozz "--endian=native" "--file=${ozz_temp_directory}/good.content1" "--config={\"skeleton\":{\"filename\":\"${ozz_temp_directory}/skeleton_native.ozz\",\"import\":true}}")
 add_test(NAME test2ozz_skel_native_raw COMMAND test2ozz "--endian=native" "--file=${ozz_temp_directory}/good.content1" "--config={\"skeleton\":{\"filename\":\"${ozz_temp_directory}/raw_skeleton_native.ozz\",\"import\":true,\"raw\":true}}")
 add_test(NAME test2ozz_skel_little COMMAND test2ozz "--endian=little" "--file=${ozz_temp_directory}/good.content1" "--config={\"skeleton\":{\"filename\":\"${ozz_temp_directory}/skeleton_little.ozz\",\"import\":true}}")
 add_test(NAME test2ozz_skel_big COMMAND test2ozz "--endian=big" "--file=${ozz_temp_directory}/good.content1" "--config={\"skeleton\":{\"filename\":\"${ozz_temp_directory}/skeleton_big.ozz\",\"import\":true}}")
+
+# Ensures nothing was outputted.
+add_test(NAME test2ozz_skel_output COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/skel_should_not_exist.ozz" "${ozz_temp_directory}/skel_should_not_exist_too.ozz")
+set_tests_properties(test2ozz_skel_output PROPERTIES WILL_FAIL true)
+set_tests_properties(test2ozz_skel_output PROPERTIES
+  DEPENDS "test2ozz_skel_no_import")
 
 # Run test2ozz animation import failing tests
 #----------------------------
