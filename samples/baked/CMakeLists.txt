@@ -1,16 +1,4 @@
-# Build baked data
-if(TARGET fbx2ozz)
-  add_custom_command(
-    DEPENDS "${CMAKE_CURRENT_LIST_DIR}/README.md"
-            "${ozz_media_directory}/fbx/baked.fbx"
-            $<$<AND:$<BOOL:${ozz_build_data}>,$<BOOL:${ozz_build_fbx}>>:fbx2ozz>
-    OUTPUT "${ozz_media_directory}/bin/baked_skeleton.ozz"
-           "${ozz_media_directory}/bin/baked_animation.ozz"
-    COMMAND fbx2ozz
-      "--file=${ozz_media_directory}/fbx/baked.fbx"
-      "--config={\"skeleton\": {\"output\":\"${ozz_media_directory}/bin/baked_skeleton.ozz\",\"all_nodes\":true},\"animations\":[{\"skeleton\":\"${ozz_media_directory}/bin/baked_skeleton.ozz\",\"output\":\"${ozz_media_directory}/bin/baked_animation.ozz\",\"optimization_tolerances\":{\"translation\":0.002,\"rotation\":0.002,\"hierarchical\":1.0}}]}"
-      VERBATIM)
-endif()
+# Generates sample data
 
 add_custom_command(
   DEPENDS $<$<BOOL:${ozz_build_fbx}>:BUILD_DATA>
