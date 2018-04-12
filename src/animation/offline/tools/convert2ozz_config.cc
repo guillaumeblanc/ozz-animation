@@ -67,10 +67,6 @@ OZZ_OPTIONS_DECLARE_STRING(
     config_dump_reference,
     "Dumps reference json configuration to specified file.", "", false)
 
-OZZ_OPTIONS_DECLARE_STRING(
-    config_dump_default, "Dumps default json configuration to specified file.",
-    "", false)
-
 namespace {
 
 template <typename _Type>
@@ -148,61 +144,70 @@ bool IsCompatibleType(Json::ValueType _type, Json::ValueType _expected) {
 
 bool MakeDefaultArray(Json::Value& _parent, const char* _name,
                       const char* _comment, bool _empty) {
-  const Json::Value* found = _parent.find(_name, _name + strlen(_name));
-  const bool exist = found != NULL;
-  if (!exist) {
-    Json::Value& member = _parent[_name];
-    member.resize(_empty ? 0 : 1);
-    if (*_comment != 0) {
-      member.setComment(std::string("//  ") + _comment, Json::commentBefore);
-    }
-    found = &member;
+  // Check if exists first.
+  const bool existed = _parent.isMember(_name);
+  // Create in any case
+  Json::Value* member = &_parent[_name];
+  if (!existed) {
+    member->resize(_empty ? 0 : 1);
+    assert(member->isArray());
   }
-  assert(found->isArray());
-  return exist;
+
+  // Pushes comment if there's not one already.
+  if (*_comment != 0 && !member->hasComment(Json::commentBefore)) {
+    member->setComment(std::string("//  ") + _comment, Json::commentBefore);
+  }
+
+  return existed;
 }
 
 bool MakeDefaultObject(Json::Value& _parent, const char* _name,
                        const char* _comment) {
-  const Json::Value* found = _parent.find(_name, _name + strlen(_name));
-  const bool exist = found != NULL;
-  if (!exist) {
-    Json::Value& member = _parent[_name];
-    member = Json::Value(Json::objectValue);
-    if (*_comment != 0) {
-      member.setComment(std::string("//  ") + _comment, Json::commentBefore);
-    }
-    found = &member;
+  // Check if exists first.
+  const bool existed = _parent.isMember(_name);
+  // Create in any case
+  Json::Value* member = &_parent[_name];
+  if (!existed) {
+    *member = Json::Value(Json::objectValue);
+    assert(member->isObject());
   }
-  assert(found->isObject());
-  return exist;
+
+  // Pushes comment if there's not one already.
+  if (*_comment != 0 && !member->hasComment(Json::commentBefore)) {
+    member->setComment(std::string("//  ") + _comment, Json::commentBefore);
+  }
+
+  return existed;
 }
 
 template <typename _Type>
 bool MakeDefault(Json::Value& _parent, const char* _name, _Type _value,
                  const char* _comment) {
-  const Json::Value* found = _parent.find(_name, _name + strlen(_name));
-  const bool exist = found != NULL;
-  if (!exist) {
-    Json::Value& member = _parent[_name];
-    member = _value;
-    if (*_comment != 0) {
-      member.setComment(std::string("//  ") + _comment,
-                        Json::commentAfterOnSameLine);
-    }
-    found = &member;
+  // Check if exists first.
+  const bool existed = _parent.isMember(_name);
+  // Create in any case
+  Json::Value* member = &_parent[_name];
+  if (!existed) {
+    *member = _value;
+    assert(IsCompatibleType(member->type(), ToJsonType<_Type>::type()));
   }
-  assert(IsCompatibleType(found->type(), ToJsonType<_Type>::type()));
-  return exist;
+
+  // Pushes comment if there's not one already.
+  if (*_comment != 0 && !member->hasComment(Json::commentAfterOnSameLine)) {
+    member->setComment(std::string("//  ") + _comment,
+                       Json::commentAfterOnSameLine);
+  }
+
+  return existed;
 }
 
 bool SanitizeSkeleton(Json::Value& _root, bool _all_options) {
   (void)_all_options;
-  MakeDefault(_root, "filename", "",
+  MakeDefault(_root, "filename", "skeleton.ozz",
               "Specifies skeleton input/output filename. The file will be "
               "outputted if import is true. It will also be used as an input "
               "reference during animations import.");
-  MakeDefault(_root, "import", false, "Imports and outputs skeleton file.");
+  MakeDefault(_root, "import", true, "Imports and outputs skeleton file.");
   MakeDefault(_root, "raw", false, "Outputs raw skeleton.");
   MakeDefault(_root, "all_nodes", false,
               "Exports all nodes regardless of their type.");
@@ -242,10 +247,10 @@ bool SanitizeTrackImport(Json::Value& _root) {
               "Specifies track output filename(s). Use a \'*\' character "
               "to specify part(s) of the filename that should be replaced by "
               "the track (aka \"joint_name-property_name\") name.");
-  MakeDefault(_root, "joint_name", "",
+  MakeDefault(_root, "joint_name", "*",
               "Name of the joint that contains the property to import. "
               "Wildcard characters '*' and '?' are supported.");
-  MakeDefault(_root, "property_name", "",
+  MakeDefault(_root, "property_name", "*",
               "Name of the property to import. Wildcard characters '*' and '?' "
               "are supported.");
   MakeDefault(_root, "type", 1,
@@ -345,8 +350,9 @@ bool SanitizeRoot(Json::Value& _root, bool _all_options) {
   MakeDefaultObject(_root, "skeleton", "Skeleton to import");
   SanitizeSkeleton(_root["skeleton"], _all_options);
 
-  // Animations
-  MakeDefaultArray(_root, "animations", "Animations to import.", !_all_options);
+  // Animations.
+  // Forces array creation as it's expected for the defaultconfiguration.
+  MakeDefaultArray(_root, "animations", "Animations to import.", false);
   Json::Value& animations = _root["animations"];
   for (Json::ArrayIndex i = 0; i < animations.size(); ++i) {
     if (!SanitizeAnimation(animations[i], _all_options)) {
@@ -425,14 +431,7 @@ bool ProcessConfiguration(Json::Value* _config) {
   }
 
   // Use {} as a default config, otherwise take the one specified as argument.
-  std::string config_string =
-      "{\"skeleton\":{\"filename\":\"skeleton.ozz\",\"import\":true},"
-      "\"animations\":[{\"clip\":\"*\",\"filename\":\"*.ozz\"}]}";
-  Json::Reader json_builder;
-  Json::Value default_config;
-  if (!json_builder.parse(config_string, default_config, true)) {
-    assert(false && "Error while parsing default configuration string.");
-  }
+  std::string config_string = "{}";
   // Takes config from program options.
   if (OPTIONS_config.value()[0] != 0) {
     config_string = OPTIONS_config.value();
@@ -453,6 +452,7 @@ bool ProcessConfiguration(Json::Value* _config) {
                     << std::endl;
   }
 
+  Json::Reader json_builder;
   if (!json_builder.parse(config_string, *_config, true)) {
     ozz::log::Err() << "Error while parsing configuration string: "
                     << json_builder.getFormattedErrorMessages() << std::endl;
@@ -485,11 +485,6 @@ bool ProcessConfiguration(Json::Value* _config) {
 
   // Dumps reference config to file.
   if (!DumpConfig(OPTIONS_config_dump_reference.value(), ref_config)) {
-    return false;
-  }
-
-  // Dumps default config to file.
-  if (!DumpConfig(OPTIONS_config_dump_default.value(), default_config)) {
     return false;
   }
 

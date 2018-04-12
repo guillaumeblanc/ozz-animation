@@ -546,7 +546,7 @@ bool ImportAnimations(const Json::Value& _config, Converter* _converter,
   const Json::Value& animations_config = _config["animations"];
 
   if (animations_config.size() == 0) {
-    ozz::log::Log() << "Configuration contains no animation export "
+    ozz::log::Log() << "Configuration contains no animation import "
                        "definition, animations import will be skipped."
                     << std::endl;
     return true;

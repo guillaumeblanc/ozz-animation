@@ -2,8 +2,8 @@
   //  Skeleton to import
   "skeleton" : 
   {
-    "filename" : "", //  Specifies skeleton input/output filename. The file will be outputted if import is true. It will also be used as an input reference during animations import.
-    "import" : false, //  Imports and outputs skeleton file.
+    "filename" : "skeleton.ozz", //  Specifies skeleton input/output filename. The file will be outputted if import is true. It will also be used as an input reference during animations import.
+    "import" : true, //  Imports and outputs skeleton file.
     "raw" : false, //  Outputs raw skeleton.
     "all_nodes" : false //  Exports all nodes regardless of their type.
   },
@@ -34,8 +34,8 @@
           [
             {
               "filename" : "*.ozz", //  Specifies track output filename(s). Use a '*' character to specify part(s) of the filename that should be replaced by the track (aka "joint_name-property_name") name.
-              "joint_name" : "", //  Name of the joint that contains the property to import. Wildcard characters '*' and '?' are supported.
-              "property_name" : "", //  Name of the property to import. Wildcard characters '*' and '?' are supported.
+              "joint_name" : "*", //  Name of the joint that contains the property to import. Wildcard characters '*' and '?' are supported.
+              "property_name" : "*", //  Name of the property to import. Wildcard characters '*' and '?' are supported.
               "type" : 1, //  Type of the property, aka the number of floating point components. 1 to 4 components are supported.
               "raw" : false, //  Outputs raw track.
               "optimize" : true, //  Activates keyframes optimization.
