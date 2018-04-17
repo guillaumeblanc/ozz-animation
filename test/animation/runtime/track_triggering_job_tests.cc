@@ -707,7 +707,7 @@ void TestEdgesExpectation(
     ASSERT_TRUE(job.Run());
 
     if (last_included) {
-      ASSERT_EQ(edges.Count(), 2);
+      ASSERT_EQ(edges.Count(), 2u);
 
       EXPECT_FLOAT_EQ(edges[0].time, _expected[_size - 1].time - 1.f);
       EXPECT_EQ(edges[0].rising, _expected[_size - 1].rising);
@@ -732,7 +732,7 @@ void TestEdgesExpectation(
     ASSERT_TRUE(job.Run());
 
     if (last_included) {
-      ASSERT_EQ(edges.Count(), 2);
+      ASSERT_EQ(edges.Count(), 2u);
 
       EXPECT_FLOAT_EQ(edges[0].time, _expected[0].time);
       EXPECT_EQ(edges[0].rising, !_expected[0].rising);
