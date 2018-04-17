@@ -28,10 +28,12 @@
 #ifndef OZZ_OZZ_ANIMATION_RUNTIME_TRACK_TRIGGERING_JOB_H_
 #define OZZ_OZZ_ANIMATION_RUNTIME_TRACK_TRIGGERING_JOB_H_
 
-#include "ozz/animation/runtime/track.h"
+#include "ozz/base/platform.h"
 
 namespace ozz {
 namespace animation {
+
+class FloatTrack;
 
 // Only FloatTrack is supported, because comparing and un-lerping other tracks
 // doesn't make much sense.
@@ -63,7 +65,65 @@ struct FloatTrackTriggeringJob {
   };
   typedef Range<Edge> Edges;
   Edges* edges;
+
+  class Iterator;
+
+  Iterator end() const;
 };
+
+class FloatTrackTriggeringJob::Iterator {
+ public:
+  void operator++();
+  Iterator operator++(int) {
+    Iterator prev = *this;
+    ++*this;
+    return prev;
+  }
+
+  bool operator!=(const Iterator& _it) const {
+    return inner_ != _it.inner_ || outer_ != _it.outer_ || job_ != _it.job_;
+  }
+  bool operator==(const Iterator& _it) const {
+    return job_ == _it.job_ && outer_ == _it.outer_ && inner_ == _it.inner_;
+  }
+
+  const Edge& operator*() const {
+    assert(*this != job_->end());
+    return edge_;
+  }
+
+  const Edge* operator->() const {
+    assert(*this != job_->end());
+    return &edge_;
+  }
+
+ private:
+  explicit Iterator(const FloatTrackTriggeringJob* _job);
+
+  struct End {};
+  Iterator(const FloatTrackTriggeringJob* _job, End) : job_(_job) {
+    outer_ = job_->to;
+    inner_ = 0;
+  }
+
+  friend struct FloatTrackTriggeringJob;
+
+  // Job this iterator works on.
+  const FloatTrackTriggeringJob* job_;
+
+  // Current value of the outer loop, aka a time cursor between from and to.
+  float outer_;
+
+  // Current value of the inner loop, aka a key frame index.
+  ptrdiff_t inner_;
+
+  // Latest evaluated edge.
+  Edge edge_;
+};
+
+inline FloatTrackTriggeringJob::Iterator FloatTrackTriggeringJob::end() const {
+  return Iterator(this, Iterator::End());
+}
 }  // namespace animation
 }  // namespace ozz
 #endif  // OZZ_OZZ_ANIMATION_RUNTIME_TRACK_TRIGGERING_JOB_H_

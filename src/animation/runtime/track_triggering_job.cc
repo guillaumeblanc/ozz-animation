@@ -55,108 +55,130 @@ bool FloatTrackTriggeringJob::Run() const {
     return true;
   }
 
-  // Search keyframes to interpolate.
-  const Range<const float> times = track->times();
-  const Range<const float> values = track->values();
-  const Range<const uint8_t> steps = track->steps();
-  assert(times.Count() == values.Count());
-
-  // from and to are exchanged if time is going backward, so the algorithm
-  // remains the same. Output is reversed after on exit though.
-  const bool forward = to > from;
-  const float rfrom = forward ? from : to;
-  const float rto = forward ? to : from;
-
-  // Loops in the global evaluation range, divided in local subranges [0,1].
-  Edge* edges_end = edges->begin;
-  for (float rcurr = floorf(rfrom), lcurr = rfrom - rcurr;
-       rcurr < rto;    // Up to reaching the end time.
-       rcurr += 1.f,   // Next loop.
-       lcurr = 0.f) {  // Always starts from 0 (local) on the following loops
-
-    const float lto = math::Min(rto - rcurr, 1.f);
-    assert(lcurr >= 0.f && lcurr <= 1.f && lto > lcurr && lto <= 1.f);
-
-    // Finds iteration starting point. Key at t=0 is the first key.
-    const float* ptfrom =
-        lcurr == 0.f ? times.begin
-                     : std::lower_bound(times.begin + 1, times.end, lcurr);
-
-    for (size_t i = ptfrom - times.begin; i < times.Count(); ++i) {
-      // Find relevant keyframes value around i.
-      const size_t i0 = i == 0 ? values.Count() - 1 : i - 1;
-      const float vk0 = values[i0];
-      const float vk1 = values[i];
-
-      bool rising = false;
-      bool detected = false;
-      if (vk0 <= threshold && vk1 > threshold) {
-        // Rising edge
-        rising = forward;
-        detected = true;
-      } else if (vk0 > threshold && vk1 <= threshold) {
-        // Falling edge
-        rising = !forward;
-        detected = true;
-      }
-
-      if (detected) {
-        Edge edge;
-        edge.rising = rising;
-
-        const bool step = (steps[i0 / 8] & (1 << (i0 & 7))) != 0;
-        if (step) {
-          edge.time = times[i];
-        } else {
-          assert(vk0 != vk1);  // Won't devide by 0
-
-          if (i == 0) {
-            edge.time = 0.f;
-          } else {
-            // Finds where the curve crosses threshold value.
-            // This is the lerp equation, where we know the result and look for
-            // alpha, aka unlerp.
-            const float alpha = (threshold - vk0) / (vk1 - vk0);
-
-            // Remaps to keyframes actual times.
-            const float tk0 = times[i - 1];
-            const float tk1 = times[i];
-            edge.time = math::Lerp(tk0, tk1, alpha);
-          }
-        }
-
-        // Pushes the new edge only if it's in the input range.
-        if (edge.time >= lcurr && (edge.time < lto || lto == 1.f)) {
-          // Prevents output buffer overflow.
-          if (edges_end == edges->end) {
-            // edges buffer is full, returning false allows the user to know
-            // that output buffer range was too small.
-            return false;
-          }
-          // Convert local loop time to global time space.
-          edge.time += rcurr;
-
-          // Pushes new edge to output.
-          *(edges_end++) = edge;
-        }
-      }
-
-      // If "to" is higher that the current frame, we can stop iterating.
-      if (times[i] >= lto) {
-        break;
-      }
-    }
-  }
-
-  // Reverse if backward.
-  if (!forward) {
-    std::reverse(edges->begin, edges_end);
-  }
+  Iterator iterator(this);
 
   // Adjust output length.
+  Edge* edges_end = edges->begin;
+  for (; iterator != end(); ++iterator, ++edges_end) {
+    if (edges_end == edges->end) {
+      return false;
+    }
+    *edges_end = *iterator;
+  }
   edges->end = edges_end;
 
   return true;
+}
+
+namespace {
+inline bool DetectEdge(ptrdiff_t _i0, ptrdiff_t _i1, bool _forward,
+                       const FloatTrackTriggeringJob& _job,
+                       FloatTrackTriggeringJob::Edge* _edge) {
+  const Range<const float>& values = _job.track->values();
+
+  const float vk0 = values[_i0];
+  const float vk1 = values[_i1];
+
+  bool detected = false;
+  if (vk0 <= _job.threshold && vk1 > _job.threshold) {
+    // Rising edge
+    _edge->rising = _forward;
+    detected = true;
+  } else if (vk0 > _job.threshold && vk1 <= _job.threshold) {
+    // Falling edge
+    _edge->rising = !_forward;
+    detected = true;
+  }
+
+  if (detected) {
+    const Range<const float>& times = _job.track->times();
+    const Range<const uint8_t>& steps = _job.track->steps();
+
+    const bool step = (steps[_i0 / 8] & (1 << (_i0 & 7))) != 0;
+    if (step) {
+      _edge->time = times[_i1];
+    } else {
+      assert(vk0 != vk1);  // Won't divide by 0
+
+      if (_i1 == 0) {
+        _edge->time = 0.f;
+      } else {
+        // Finds where the curve crosses threshold value.
+        // This is the lerp equation, where we know the result and look for
+        // alpha, aka un-lerp.
+        const float alpha = (_job.threshold - vk0) / (vk1 - vk0);
+
+        // Remaps to keyframes actual times.
+        const float tk0 = times[_i0];
+        const float tk1 = times[_i1];
+        _edge->time = math::Lerp(tk0, tk1, alpha);
+      }
+    }
+  }
+  return detected;
+}
+}  // namespace
+
+FloatTrackTriggeringJob::Iterator::Iterator(const FloatTrackTriggeringJob* _job)
+    : job_(_job) {
+  if (job_->to > job_->from) {
+    outer_ = floorf(job_->from);
+    inner_ = 0;
+  } else {
+    outer_ = ceilf(job_->from);
+    inner_ = job_->track->times().Count() - 1;
+  }
+  ++*this;  // Evaluate first edge
+}
+
+void FloatTrackTriggeringJob::Iterator::operator++() {
+  // Search keyframes to interpolate.
+  const Range<const float>& times = job_->track->times();
+  const ptrdiff_t num_keys = times.Count();
+
+  if (job_->to > job_->from) {
+    for (; outer_ < job_->to; outer_ += 1.f) {
+      for (; inner_ < num_keys; ++inner_) {
+        // Find relevant keyframes value around i.
+        const ptrdiff_t i0 = inner_ == 0 ? num_keys - 1 : inner_ - 1;
+        if (DetectEdge(i0, inner_, true, *job_, &edge_)) {
+          // Convert local loop time to global time space.
+          edge_.time += outer_;
+          // Pushes the new edge only if it's in the input range.
+          if (edge_.time >= job_->from &&
+              (edge_.time < job_->to || job_->to >= 1.f + outer_)) {
+            // Yield found edge.
+            ++inner_;
+            return;
+          }
+        }
+      }
+      inner_ = 0;  // Ready for next loop.
+    }
+  } else {
+    for (; outer_ > job_->to; outer_ -= 1.f) {
+      for (; inner_ >= 0; --inner_) {
+        // Find relevant keyframes value around i.
+        const ptrdiff_t i0 = inner_ == 0 ? num_keys - 1 : inner_ - 1;
+        if (DetectEdge(i0, inner_, false, *job_, &edge_)) {
+          // Convert local loop time to global time space.
+          edge_.time += outer_ - 1.f;
+          // Pushes the new edge only if it's in the input range.
+          if (edge_.time >= job_->to &&
+              (edge_.time < job_->from || job_->from >= outer_)) {
+            // Yield found edge.
+            --inner_;
+            return;
+          }
+        }
+      }
+      inner_ = times.Count() - 1;  // Ready for next loop.
+    }
+  }
+
+  // Set iterator to end position.
+  outer_ = job_->to;  // End
+  inner_ = 0;
 }
 }  // namespace animation
 }  // namespace ozz

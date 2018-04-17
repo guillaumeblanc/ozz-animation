@@ -129,18 +129,7 @@ foreach(line ${animations})
     VERBATIM)
 endforeach()
 
-# outputs default configuration
-# !!! It doesn't work this way because fbx2ozz expects to read file and skeleton
-#add_custom_command(
-#  OUTPUT  "${ozz_media_directory}/default_config.json"
-#  COMMAND fbx2ozz
-#          "--file=unused"
-#          "--skeleton=unused"
-#          "--config_dump_reference=${ozz_media_directory}/default_config.json"
-#  VERBATIM)
-
 # Creates a target to build data
 add_custom_target(BUILD_DATA ALL
   DEPENDS ${all_outputs}
-#         "${ozz_media_directory}/default_config.json"
- VERBATIM)
+  VERBATIM)

@@ -112,11 +112,11 @@ TEST(Default, TrackEdgeTriggerJob) {
   FloatTrackTriggeringJob::Edges edges(edges_buffer);
   job.edges = &edges;
   EXPECT_TRUE(job.Validate());
-  EXPECT_TRUE(job.Run());
+  ASSERT_TRUE(job.Run());
   ASSERT_EQ(edges.Count(), 0u);
 }
 
-TEST(Emyty, TrackEdgeTriggerJob) {
+TEST(Empty, TrackEdgeTriggerJob) {
   TrackBuilder builder;
 
   // Builds track
@@ -134,7 +134,7 @@ TEST(Emyty, TrackEdgeTriggerJob) {
   FloatTrackTriggeringJob::Edges edges(edges_buffer);
   job.edges = &edges;
 
-  EXPECT_TRUE(job.Run());
+  ASSERT_TRUE(job.Run());
 
   ASSERT_EQ(edges.Count(), 0u);
 
@@ -171,7 +171,7 @@ TEST(NoRange, TrackEdgeTriggerJob) {
     job.to = 0.f;
     FloatTrackTriggeringJob::Edges edges(edges_buffer);
     job.edges = &edges;
-    EXPECT_TRUE(job.Run());
+    ASSERT_TRUE(job.Run());
 
     ASSERT_EQ(edges.Count(), 0u);
   }
@@ -181,7 +181,7 @@ TEST(NoRange, TrackEdgeTriggerJob) {
     job.to = .1f;
     FloatTrackTriggeringJob::Edges edges(edges_buffer);
     job.edges = &edges;
-    EXPECT_TRUE(job.Run());
+    ASSERT_TRUE(job.Run());
 
     ASSERT_EQ(edges.Count(), 0u);
   }
@@ -191,7 +191,7 @@ TEST(NoRange, TrackEdgeTriggerJob) {
     job.to = .5f;
     FloatTrackTriggeringJob::Edges edges(edges_buffer);
     job.edges = &edges;
-    EXPECT_TRUE(job.Run());
+    ASSERT_TRUE(job.Run());
 
     ASSERT_EQ(edges.Count(), 0u);
   }
@@ -201,7 +201,7 @@ TEST(NoRange, TrackEdgeTriggerJob) {
     job.to = 1.f;
     FloatTrackTriggeringJob::Edges edges(edges_buffer);
     job.edges = &edges;
-    EXPECT_TRUE(job.Run());
+    ASSERT_TRUE(job.Run());
 
     ASSERT_EQ(edges.Count(), 0u);
   }
@@ -230,7 +230,7 @@ void TestEdgesExpectation(
     job.to = 1.f;
     FloatTrackTriggeringJob::Edges edges(edges_buffer);
     job.edges = &edges;
-    EXPECT_TRUE(job.Run());
+    ASSERT_TRUE(job.Run());
 
     ASSERT_EQ(edges.Count(), _size);
 
@@ -244,7 +244,7 @@ void TestEdgesExpectation(
     job.to = 0.f;
     FloatTrackTriggeringJob::Edges edges(edges_buffer);
     job.edges = &edges;
-    EXPECT_TRUE(job.Run());
+    ASSERT_TRUE(job.Run());
 
     ASSERT_EQ(edges.Count(), _size);
 
@@ -259,7 +259,7 @@ void TestEdgesExpectation(
     job.to = 2.f;
     FloatTrackTriggeringJob::Edges edges(edges_buffer);
     job.edges = &edges;
-    EXPECT_TRUE(job.Run());
+    ASSERT_TRUE(job.Run());
 
     ASSERT_EQ(edges.Count(), _size);
 
@@ -273,7 +273,7 @@ void TestEdgesExpectation(
     job.to = 1.f;
     FloatTrackTriggeringJob::Edges edges(edges_buffer);
     job.edges = &edges;
-    EXPECT_TRUE(job.Run());
+    ASSERT_TRUE(job.Run());
 
     ASSERT_EQ(edges.Count(), _size);
 
@@ -288,7 +288,7 @@ void TestEdgesExpectation(
     job.to = 3.f;
     FloatTrackTriggeringJob::Edges edges(edges_buffer);
     job.edges = &edges;
-    EXPECT_TRUE(job.Run());
+    ASSERT_TRUE(job.Run());
 
     ASSERT_EQ(edges.Count(), _size * 3);
 
@@ -304,7 +304,7 @@ void TestEdgesExpectation(
     job.to = 0.f;
     FloatTrackTriggeringJob::Edges edges(edges_buffer);
     job.edges = &edges;
-    EXPECT_TRUE(job.Run());
+    ASSERT_TRUE(job.Run());
 
     ASSERT_EQ(edges.Count(), _size * 3);
 
@@ -316,7 +316,7 @@ void TestEdgesExpectation(
     }
   }
 
-  {  // Forward, first edge to last, last can be excluded.
+  {  // Forward, first edge to last, last can be included.
 
     // Last edge is included if it time is 1.f.
     const bool last_included = _expected[_size - 1].time == 1.f;
@@ -325,7 +325,7 @@ void TestEdgesExpectation(
     job.to = _expected[_size - 1].time;
     FloatTrackTriggeringJob::Edges edges(edges_buffer);
     job.edges = &edges;
-    EXPECT_TRUE(job.Run());
+    ASSERT_TRUE(job.Run());
 
     ASSERT_EQ(edges.Count(), last_included ? _size : _size - 1);
 
@@ -334,7 +334,7 @@ void TestEdgesExpectation(
       EXPECT_EQ(edges[i].rising, _expected[i].rising);
     }
   }
-  {  // Backward, last edge to first, last can be excluded.
+  {  // Backward, last edge to first, last can be included.
 
     // Last edge is included if it time is 1.f.
     const bool last_included = _expected[_size - 1].time == 1.f;
@@ -343,7 +343,7 @@ void TestEdgesExpectation(
     job.to = _expected[0].time;
     FloatTrackTriggeringJob::Edges edges(edges_buffer);
     job.edges = &edges;
-    EXPECT_TRUE(job.Run());
+    ASSERT_TRUE(job.Run());
 
     ASSERT_EQ(edges.Count(), last_included ? _size : _size - 1);
 
@@ -359,7 +359,7 @@ void TestEdgesExpectation(
     job.to = 1.f;
     FloatTrackTriggeringJob::Edges edges(edges_buffer);
     job.edges = &edges;
-    EXPECT_TRUE(job.Run());
+    ASSERT_TRUE(job.Run());
 
     ASSERT_EQ(edges.Count(), _size - 1);
 
@@ -373,7 +373,7 @@ void TestEdgesExpectation(
     job.to = nexttowardf(_expected[0].time, 1.f);
     FloatTrackTriggeringJob::Edges edges(edges_buffer);
     job.edges = &edges;
-    EXPECT_TRUE(job.Run());
+    ASSERT_TRUE(job.Run());
 
     ASSERT_EQ(edges.Count(), _size - 1);
 
@@ -388,7 +388,7 @@ void TestEdgesExpectation(
     job.to = _expected[0].time;
     FloatTrackTriggeringJob::Edges edges(edges_buffer);
     job.edges = &edges;
-    EXPECT_TRUE(job.Run());
+    ASSERT_TRUE(job.Run());
 
     ASSERT_EQ(edges.Count(), 0u);
   }
@@ -397,7 +397,7 @@ void TestEdgesExpectation(
     job.to = 0.f;
     FloatTrackTriggeringJob::Edges edges(edges_buffer);
     job.edges = &edges;
-    EXPECT_TRUE(job.Run());
+    ASSERT_TRUE(job.Run());
 
     ASSERT_EQ(edges.Count(), 0u);
   }
@@ -407,7 +407,7 @@ void TestEdgesExpectation(
     job.to = nexttowardf(_expected[0].time, 1.f);
     FloatTrackTriggeringJob::Edges edges(edges_buffer);
     job.edges = &edges;
-    EXPECT_TRUE(job.Run());
+    ASSERT_TRUE(job.Run());
 
     ASSERT_EQ(edges.Count(), 1u);
 
@@ -419,7 +419,7 @@ void TestEdgesExpectation(
     job.to = 0.f;
     FloatTrackTriggeringJob::Edges edges(edges_buffer);
     job.edges = &edges;
-    EXPECT_TRUE(job.Run());
+    ASSERT_TRUE(job.Run());
 
     ASSERT_EQ(edges.Count(), 1u);
 
@@ -432,7 +432,7 @@ void TestEdgesExpectation(
     job.to = nexttowardf(_expected[_size - 1].time, 0.f);
     FloatTrackTriggeringJob::Edges edges(edges_buffer);
     job.edges = &edges;
-    EXPECT_TRUE(job.Run());
+    ASSERT_TRUE(job.Run());
 
     ASSERT_EQ(edges.Count(), _size - 1);
 
@@ -446,7 +446,7 @@ void TestEdgesExpectation(
     job.to = 0.f;
     FloatTrackTriggeringJob::Edges edges(edges_buffer);
     job.edges = &edges;
-    EXPECT_TRUE(job.Run());
+    ASSERT_TRUE(job.Run());
 
     ASSERT_EQ(edges.Count(), _size - 1);
 
@@ -461,7 +461,7 @@ void TestEdgesExpectation(
     job.to = nexttowardf(_expected[_size - 1].time, 1.f);
     FloatTrackTriggeringJob::Edges edges(edges_buffer);
     job.edges = &edges;
-    EXPECT_TRUE(job.Run());
+    ASSERT_TRUE(job.Run());
 
     ASSERT_EQ(edges.Count(), _size);
 
@@ -475,12 +475,41 @@ void TestEdgesExpectation(
     job.to = 0.f;
     FloatTrackTriggeringJob::Edges edges(edges_buffer);
     job.edges = &edges;
-    EXPECT_TRUE(job.Run());
+    ASSERT_TRUE(job.Run());
 
     ASSERT_EQ(edges.Count(), _size);
 
     for (size_t i = 0; i < edges.Count(); ++i) {
       EXPECT_FLOAT_EQ(edges[i].time, _expected[_size - i - 1].time);
+      EXPECT_EQ(edges[i].rising, !_expected[_size - i - 1].rising);
+    }
+  }
+
+  {  // Forward, 1 to after last edge + 1.
+    job.from = 1.f;
+    job.to = nexttowardf(_expected[_size - 1].time + 1.f, 2.f);
+    FloatTrackTriggeringJob::Edges edges(edges_buffer);
+    job.edges = &edges;
+    ASSERT_TRUE(job.Run());
+
+    ASSERT_EQ(edges.Count(), _size);
+
+    for (size_t i = 0; i < edges.Count(); ++i) {
+      EXPECT_FLOAT_EQ(edges[i].time, _expected[i].time + 1.f);
+      EXPECT_EQ(edges[i].rising, _expected[i].rising);
+    }
+  }
+  {  // Backward, after last edge + 1 to 1
+    job.from = nexttowardf(_expected[_size - 1].time + 1.f, 2.f);
+    job.to = 1.f;
+    FloatTrackTriggeringJob::Edges edges(edges_buffer);
+    job.edges = &edges;
+    ASSERT_TRUE(job.Run());
+
+    ASSERT_EQ(edges.Count(), _size);
+
+    for (size_t i = 0; i < edges.Count(); ++i) {
+      EXPECT_FLOAT_EQ(edges[i].time, _expected[_size - i - 1].time + 1.f);
       EXPECT_EQ(edges[i].rising, !_expected[_size - i - 1].rising);
     }
   }
@@ -492,7 +521,7 @@ void TestEdgesExpectation(
     job.to = 0.f;
     FloatTrackTriggeringJob::Edges edges(edges_buffer);
     job.edges = &edges;
-    EXPECT_TRUE(job.Run());
+    ASSERT_TRUE(job.Run());
 
     ASSERT_EQ(edges.Count(), _size);
 
@@ -506,7 +535,7 @@ void TestEdgesExpectation(
     job.to = -1.f;
     FloatTrackTriggeringJob::Edges edges(edges_buffer);
     job.edges = &edges;
-    EXPECT_TRUE(job.Run());
+    ASSERT_TRUE(job.Run());
 
     ASSERT_EQ(edges.Count(), _size);
 
@@ -521,7 +550,7 @@ void TestEdgesExpectation(
     job.to = -1.f;
     FloatTrackTriggeringJob::Edges edges(edges_buffer);
     job.edges = &edges;
-    EXPECT_TRUE(job.Run());
+    ASSERT_TRUE(job.Run());
 
     ASSERT_EQ(edges.Count(), _size);
 
@@ -535,7 +564,7 @@ void TestEdgesExpectation(
     job.to = -2.f;
     FloatTrackTriggeringJob::Edges edges(edges_buffer);
     job.edges = &edges;
-    EXPECT_TRUE(job.Run());
+    ASSERT_TRUE(job.Run());
 
     ASSERT_EQ(edges.Count(), _size);
 
@@ -550,7 +579,7 @@ void TestEdgesExpectation(
     job.to = 1.f;
     FloatTrackTriggeringJob::Edges edges(edges_buffer);
     job.edges = &edges;
-    EXPECT_TRUE(job.Run());
+    ASSERT_TRUE(job.Run());
 
     ASSERT_EQ(edges.Count(), _size * 2);
 
@@ -563,12 +592,12 @@ void TestEdgesExpectation(
       EXPECT_EQ(edges[i + _size].rising, _expected[i].rising);
     }
   }
-  {  // Backward [1, 1]
+  {  // Backward [1, -1]
     job.from = 1.f;
     job.to = -1.f;
     FloatTrackTriggeringJob::Edges edges(edges_buffer);
     job.edges = &edges;
-    EXPECT_TRUE(job.Run());
+    ASSERT_TRUE(job.Run());
 
     ASSERT_EQ(edges.Count(), _size * 2);
 
@@ -583,34 +612,193 @@ void TestEdgesExpectation(
     }
   }
 
+  {  // Forward, -1 to first edge.
+    job.from = -1.f;
+    job.to = _expected[0].time - 1.f;
+    FloatTrackTriggeringJob::Edges edges(edges_buffer);
+    job.edges = &edges;
+    ASSERT_TRUE(job.Run());
+
+    ASSERT_EQ(edges.Count(), 0u);
+  }
+  {  // Backward, first edge to -1
+    job.from = _expected[0].time - 1.f;
+    job.to = -1.f;
+    FloatTrackTriggeringJob::Edges edges(edges_buffer);
+    job.edges = &edges;
+    ASSERT_TRUE(job.Run());
+
+    ASSERT_EQ(edges.Count(), 0u);
+  }
+
+  {  // Forward, -1 to after last edge.
+    job.from = -1.f;
+    job.to = _expected[_size - 1].time - .999999f;
+    FloatTrackTriggeringJob::Edges edges(edges_buffer);
+    job.edges = &edges;
+    ASSERT_TRUE(job.Run());
+
+    ASSERT_EQ(edges.Count(), _size);
+
+    for (size_t i = 0; i < edges.Count(); ++i) {
+      EXPECT_FLOAT_EQ(edges[i].time, _expected[i].time - 1.f);
+      EXPECT_EQ(edges[i].rising, _expected[i].rising);
+    }
+  }
+  {  // Backward, after last edge to -1
+    job.from = _expected[_size - 1].time - .999999f;
+    job.to = -1.f;
+    FloatTrackTriggeringJob::Edges edges(edges_buffer);
+    job.edges = &edges;
+    ASSERT_TRUE(job.Run());
+
+    ASSERT_EQ(edges.Count(), _size);
+
+    for (size_t i = 0; i < edges.Count(); ++i) {
+      EXPECT_FLOAT_EQ(edges[i].time, _expected[_size - i - 1].time - 1.f);
+      EXPECT_EQ(edges[i].rising, !_expected[_size - i - 1].rising);
+    }
+  }
+
+  {  // Forward [-1, -eps]
+    // Last edge is included if it time is not 1.f.
+    const bool last_included = _expected[_size - 1].time != 1.f;
+
+    job.from = -1.f;
+    job.to = nexttowardf(0.f, -1.f);
+    FloatTrackTriggeringJob::Edges edges(edges_buffer);
+    job.edges = &edges;
+    ASSERT_TRUE(job.Run());
+
+    ASSERT_EQ(edges.Count(), last_included ? _size : _size - 1);
+
+    for (size_t i = 0; i < edges.Count(); ++i) {
+      EXPECT_FLOAT_EQ(edges[i].time, _expected[i].time - 1.f);
+      EXPECT_EQ(edges[i].rising, _expected[i].rising);
+    }
+  }
+  {  // Backward [-eps, -1]
+    // Last edge is included if it time is not 1.f.
+    const bool last_included = _expected[_size - 1].time != 1.f;
+
+    job.from = nexttowardf(0.f, -1.f);
+    job.to = -1.f;
+    FloatTrackTriggeringJob::Edges edges(edges_buffer);
+    job.edges = &edges;
+    ASSERT_TRUE(job.Run());
+
+    ASSERT_EQ(edges.Count(), last_included ? _size : _size - 1);
+
+    for (size_t i = 0; i < edges.Count(); ++i) {
+      const size_t ie = last_included ? _size - i - 1 : _size - i - 2;
+      EXPECT_FLOAT_EQ(edges[i].time, _expected[ie].time - 1.f);
+      EXPECT_EQ(edges[i].rising, !_expected[ie].rising);
+    }
+  }
+
+  {  // Forward [-eps, ..]
+    // Last edge is included if it time is 1.f.
+    const bool last_included = _expected[_size - 1].time == 1.f;
+
+    job.from = nexttowardf(0.f, -1.f);
+    job.to = nexttowardf(_expected[0].time, 1.f);
+    FloatTrackTriggeringJob::Edges edges(edges_buffer);
+    job.edges = &edges;
+    ASSERT_TRUE(job.Run());
+
+    if (last_included) {
+      ASSERT_EQ(edges.Count(), 2);
+
+      EXPECT_FLOAT_EQ(edges[0].time, _expected[_size - 1].time - 1.f);
+      EXPECT_EQ(edges[0].rising, _expected[_size - 1].rising);
+
+      EXPECT_FLOAT_EQ(edges[1].time, _expected[0].time);
+      EXPECT_EQ(edges[1].rising, _expected[0].rising);
+    } else {
+      ASSERT_EQ(edges.Count(), 1);
+
+      EXPECT_FLOAT_EQ(edges[0].time, _expected[0].time);
+      EXPECT_EQ(edges[0].rising, _expected[0].rising);
+    }
+  }
+  {  // Backward [..., -eps]
+    // Last edge is included if it time is 1.f.
+    const bool last_included = _expected[_size - 1].time == 1.f;
+
+    job.from = nexttowardf(_expected[0].time, 1.f);
+    job.to = nexttowardf(0.f, -1.f);
+    FloatTrackTriggeringJob::Edges edges(edges_buffer);
+    job.edges = &edges;
+    ASSERT_TRUE(job.Run());
+
+    if (last_included) {
+      ASSERT_EQ(edges.Count(), 2);
+
+      EXPECT_FLOAT_EQ(edges[0].time, _expected[0].time);
+      EXPECT_EQ(edges[0].rising, !_expected[0].rising);
+
+      EXPECT_FLOAT_EQ(edges[1].time, _expected[_size - 1].time - 1.f);
+      EXPECT_EQ(edges[1].rising, !_expected[_size - 1].rising);
+
+    } else {
+      ASSERT_EQ(edges.Count(), 1);
+
+      EXPECT_FLOAT_EQ(edges[0].time, _expected[0].time);
+      EXPECT_EQ(edges[0].rising, !_expected[0].rising);
+    }
+  }
+
   {  // Randomized
+    const float kMaxRange = 2.f;
+    const size_t kMaxIterations = 100000;
     float time = 0.f;
     bool rising = false;
     bool init = false;
-    for (size_t i = 0; i < 100000; ++i) {
+    for (size_t i = 0; i < kMaxIterations; ++i) {
       // Finds new evaluation range
-      const float kMaxRange = 3.f;
-      const float rand_range =
-          1.f - 2.f * static_cast<float>(rand()) / RAND_MAX;
+      float new_time =
+          time +
+          kMaxRange * (1.f - 2.f * static_cast<float>(rand()) / RAND_MAX);
+
+      switch (rand() % 20) {
+        case 0: {
+          // Set time to a keyframe time.
+          new_time = _expected[rand() % _size].time + floorf(new_time);
+          break;
+        }
+        case 1: {
+          // Set time to after a keyframe time.
+          new_time = nexttowardf(
+              _expected[rand() % _size].time + floorf(new_time), 1e15f);
+          break;
+        }
+        case 2: {
+          // Set time to before a keyframe time.
+          new_time = nexttowardf(
+              _expected[rand() % _size].time + floorf(new_time), -1e15f);
+          break;
+        }
+        default:
+          break;
+      }
 
       job.from = time;
-      time += kMaxRange * rand_range;
+      time = new_time;
       job.to = time;
 
       FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
 
-      EXPECT_TRUE(job.Run());
+      ASSERT_TRUE(job.Run());
 
-      // Check edges.
+      // Successive edges should always be opposed, whichever direction the
+      // time is going.
       for (size_t e = 0; e < edges.Count(); ++e) {
         if (!init) {
           rising = edges[e].rising;
           init = true;
         } else {
-          // Successive edges should always be opposed, whichever direction the
-          // time is going.
-          EXPECT_TRUE(rising != edges[e].rising);
+          assert(rising != edges[e].rising);
           rising = edges[e].rising;
         }
       }
@@ -871,7 +1059,7 @@ TEST(StepThreshold, TrackEdgeTriggerJob) {
     FloatTrackTriggeringJob::Edges edges(edges_buffer);
     job.edges = &edges;
 
-    EXPECT_TRUE(job.Run());
+    ASSERT_TRUE(job.Run());
 
     ASSERT_EQ(edges.Count(), 2u);
 
@@ -886,7 +1074,7 @@ TEST(StepThreshold, TrackEdgeTriggerJob) {
     FloatTrackTriggeringJob::Edges edges(edges_buffer);
     job.edges = &edges;
 
-    EXPECT_TRUE(job.Run());
+    ASSERT_TRUE(job.Run());
 
     ASSERT_EQ(edges.Count(), 2u);
 
@@ -901,7 +1089,7 @@ TEST(StepThreshold, TrackEdgeTriggerJob) {
     FloatTrackTriggeringJob::Edges edges(edges_buffer);
     job.edges = &edges;
 
-    EXPECT_TRUE(job.Run());
+    ASSERT_TRUE(job.Run());
 
     ASSERT_EQ(edges.Count(), 0u);
   }
@@ -911,7 +1099,7 @@ TEST(StepThreshold, TrackEdgeTriggerJob) {
     FloatTrackTriggeringJob::Edges edges(edges_buffer);
     job.edges = &edges;
 
-    EXPECT_TRUE(job.Run());
+    ASSERT_TRUE(job.Run());
 
     ASSERT_EQ(edges.Count(), 2u);
 
@@ -928,7 +1116,7 @@ TEST(StepThreshold, TrackEdgeTriggerJob) {
     FloatTrackTriggeringJob::Edges edges(edges_buffer);
     job.edges = &edges;
 
-    EXPECT_TRUE(job.Run());
+    ASSERT_TRUE(job.Run());
 
     ASSERT_EQ(edges.Count(), 0u);
   }
@@ -968,7 +1156,7 @@ TEST(StepThresholdBool, TrackEdgeTriggerJob) {
     FloatTrackTriggeringJob::Edges edges(edges_buffer);
     job.edges = &edges;
 
-    EXPECT_TRUE(job.Run());
+    ASSERT_TRUE(job.Run());
 
     ASSERT_EQ(edges.Count(), 2u);
 
@@ -983,7 +1171,7 @@ TEST(StepThresholdBool, TrackEdgeTriggerJob) {
     FloatTrackTriggeringJob::Edges edges(edges_buffer);
     job.edges = &edges;
 
-    EXPECT_TRUE(job.Run());
+    ASSERT_TRUE(job.Run());
 
     ASSERT_EQ(edges.Count(), 0u);
   }
@@ -993,7 +1181,7 @@ TEST(StepThresholdBool, TrackEdgeTriggerJob) {
     FloatTrackTriggeringJob::Edges edges(edges_buffer);
     job.edges = &edges;
 
-    EXPECT_TRUE(job.Run());
+    ASSERT_TRUE(job.Run());
 
     ASSERT_EQ(edges.Count(), 2u);
 
@@ -1038,7 +1226,7 @@ TEST(LinearThreshold, TrackEdgeTriggerJob) {
     FloatTrackTriggeringJob::Edges edges(edges_buffer);
     job.edges = &edges;
 
-    EXPECT_TRUE(job.Run());
+    ASSERT_TRUE(job.Run());
 
     ASSERT_EQ(edges.Count(), 2u);
 
@@ -1053,7 +1241,7 @@ TEST(LinearThreshold, TrackEdgeTriggerJob) {
     FloatTrackTriggeringJob::Edges edges(edges_buffer);
     job.edges = &edges;
 
-    EXPECT_TRUE(job.Run());
+    ASSERT_TRUE(job.Run());
 
     ASSERT_EQ(edges.Count(), 0u);
   }
@@ -1063,7 +1251,7 @@ TEST(LinearThreshold, TrackEdgeTriggerJob) {
     FloatTrackTriggeringJob::Edges edges(edges_buffer);
     job.edges = &edges;
 
-    EXPECT_TRUE(job.Run());
+    ASSERT_TRUE(job.Run());
 
     ASSERT_EQ(edges.Count(), 2u);
 
@@ -1078,7 +1266,7 @@ TEST(LinearThreshold, TrackEdgeTriggerJob) {
     FloatTrackTriggeringJob::Edges edges(edges_buffer);
     job.edges = &edges;
 
-    EXPECT_TRUE(job.Run());
+    ASSERT_TRUE(job.Run());
 
     ASSERT_EQ(edges.Count(), 2u);
 
@@ -1095,7 +1283,7 @@ TEST(LinearThreshold, TrackEdgeTriggerJob) {
     FloatTrackTriggeringJob::Edges edges(edges_buffer);
     job.edges = &edges;
 
-    EXPECT_TRUE(job.Run());
+    ASSERT_TRUE(job.Run());
 
     ASSERT_EQ(edges.Count(), 0u);
   }
@@ -1136,7 +1324,7 @@ TEST(Overflow, TrackEdgeTriggerJob) {
     FloatTrackTriggeringJob::Edges edges(edges_buffer);
     job.edges = &edges;
 
-    EXPECT_TRUE(job.Run());
+    ASSERT_TRUE(job.Run());
 
     ASSERT_EQ(edges.Count(), 2u);
 
@@ -1153,7 +1341,7 @@ TEST(Overflow, TrackEdgeTriggerJob) {
     FloatTrackTriggeringJob::Edges edges(edges_buffer);
     job.edges = &edges;
 
-    EXPECT_TRUE(job.Run());
+    ASSERT_TRUE(job.Run());
 
     ASSERT_EQ(edges.Count(), 3u);
 
@@ -1209,7 +1397,7 @@ TEST(Overflow, TrackEdgeTriggerJob) {
 
     // 2nd pass, starting right after the end of the first one.
     job.from = nexttowardf(edges[2].time, job.to);
-    EXPECT_TRUE(job.Run());  // Last pass
+    ASSERT_TRUE(job.Run());  // Last pass
 
     ASSERT_EQ(edges.Count(), 1u);  // But buffer isn't empty.
 
