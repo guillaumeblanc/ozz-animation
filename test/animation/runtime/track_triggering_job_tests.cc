@@ -798,7 +798,7 @@ void TestEdgesExpectation(
           rising = edges[e].rising;
           init = true;
         } else {
-          assert(rising != edges[e].rising);
+          ASSERT_TRUE(rising != edges[e].rising);
           rising = edges[e].rising;
         }
       }
