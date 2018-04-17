@@ -121,18 +121,17 @@ inline bool DetectEdge(ptrdiff_t _i0, ptrdiff_t _i1, bool _forward,
 
 FloatTrackTriggeringJob::Iterator::Iterator(const FloatTrackTriggeringJob* _job)
     : job_(_job) {
+  outer_ = floorf(job_->from);
   if (job_->to > job_->from) {
-    outer_ = floorf(job_->from);
     inner_ = 0;
   } else {
-    outer_ = ceilf(job_->from);
+    outer_ += 1.f;
     inner_ = job_->track->times().Count() - 1;
   }
   ++*this;  // Evaluate first edge
 }
 
 void FloatTrackTriggeringJob::Iterator::operator++() {
-  // Search keyframes to interpolate.
   const Range<const float>& times = job_->track->times();
   const ptrdiff_t num_keys = times.Count();
 
@@ -150,6 +149,10 @@ void FloatTrackTriggeringJob::Iterator::operator++() {
             // Yield found edge.
             ++inner_;
             return;
+          }
+          // Won't find any further edge.
+          if (times[inner_] + outer_ >= job_->to) {
+            break;
           }
         }
       }
@@ -170,6 +173,10 @@ void FloatTrackTriggeringJob::Iterator::operator++() {
             --inner_;
             return;
           }
+        }
+        // Won't find any further edge.
+        if (times[inner_] + outer_ - 1.f <= job_->to) {
+          break;
         }
       }
       inner_ = times.Count() - 1;  // Ready for next loop.
