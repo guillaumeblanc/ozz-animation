@@ -209,11 +209,10 @@ TEST(NoRange, TrackEdgeTriggerJob) {
   ozz::memory::default_allocator()->Delete(track);
 }
 
-template <size_t _size>
 void TestEdgesExpectation(
     const ozz::animation::offline::RawFloatTrack& _raw_track, float _threshold,
-    const FloatTrackTriggeringJob::Edge (&_expected)[_size]) {
-  OZZ_STATIC_ASSERT(_size >= 2);
+    const FloatTrackTriggeringJob::Edge* _expected, size_t _size) {
+  assert(_size >= 2);
 
   // Builds track
   ozz::animation::FloatTrack* track = TrackBuilder()(_raw_track);
@@ -514,6 +513,51 @@ void TestEdgesExpectation(
     }
   }
 
+  {  // Forward, 0 to before last edge + 1
+    const bool last_included = _expected[_size - 1].time == 1.f;
+
+    job.from = 0.f;
+    job.to = _expected[_size - 1].time + 1.f;
+    FloatTrackTriggeringJob::Edges edges(edges_buffer);
+    job.edges = &edges;
+    ASSERT_TRUE(job.Run());
+
+    ASSERT_EQ(edges.Count(), last_included ? _size * 2 : _size * 2 - 1);
+
+    for (size_t i = 0; i < _size; ++i) {
+      EXPECT_FLOAT_EQ(edges[i].time, _expected[i].time);
+      EXPECT_EQ(edges[i].rising, _expected[i].rising);
+    }
+    for (size_t i = _size; i < (last_included ? _size * 2 : _size * 2 - 1);
+         ++i) {
+      EXPECT_FLOAT_EQ(edges[i].time, _expected[i - _size].time + 1.f);
+      EXPECT_EQ(edges[i].rising, _expected[i - _size].rising);
+    }
+  }
+  {  // Backward, after last edge + 1 to 0
+    const bool last_included = _expected[_size - 1].time == 1.f;
+
+    job.from = _expected[_size - 1].time + 1.f;
+    job.to = 0.f;
+    FloatTrackTriggeringJob::Edges edges(edges_buffer);
+    job.edges = &edges;
+    ASSERT_TRUE(job.Run());
+
+    ASSERT_EQ(edges.Count(), last_included ? _size * 2 : _size * 2 - 1);
+
+    for (size_t i = 0; i < _size; ++i) {
+      EXPECT_FLOAT_EQ(edges[edges.Count() - i - 1].time, _expected[i].time);
+      EXPECT_EQ(edges[edges.Count() - i - 1].rising, !_expected[i].rising);
+    }
+    for (size_t i = _size; i < (last_included ? _size * 2 : _size * 2 - 1);
+         ++i) {
+      EXPECT_FLOAT_EQ(edges[edges.Count() - i - 1].time,
+                      _expected[i - _size].time + 1.f);
+      EXPECT_EQ(edges[edges.Count() - i - 1].rising,
+                !_expected[i - _size].rising);
+    }
+  }
+
   // Negative times
 
   {  // Forward [-1, 0]
@@ -805,6 +849,14 @@ void TestEdgesExpectation(
     }
   }
   ozz::memory::default_allocator()->Delete(track);
+}
+
+template <size_t _size>
+inline void TestEdgesExpectation(
+    const ozz::animation::offline::RawFloatTrack& _raw_track, float _threshold,
+    const FloatTrackTriggeringJob::Edge (&_expected)[_size]) {
+  OZZ_STATIC_ASSERT(_size >= 2);
+  TestEdgesExpectation(_raw_track, _threshold, _expected, _size);
 }
 
 TEST(SquareStep, TrackEdgeTriggerJob) {
