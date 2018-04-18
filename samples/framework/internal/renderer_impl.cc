@@ -283,7 +283,7 @@ bool RendererImpl::DrawSkeleton(const ozz::animation::Skeleton& _skeleton,
   }
 
   // Reallocate matrix array if necessary.
-  if (prealloc_models_.Size() < num_joints * sizeof(ozz::math::Float4x4)) {
+  if (prealloc_models_.size() < num_joints * sizeof(ozz::math::Float4x4)) {
     ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
     prealloc_models_ =
         allocator->AllocateRange<ozz::math::Float4x4>(_skeleton.num_joints());
@@ -777,7 +777,7 @@ bool RendererImpl::DrawBoxShaded(
     const ozz::math::Box& _box,
     ozz::Range<const ozz::math::Float4x4> _transforms, Color _color) {
   // Early out if no instance to render.
-  if (_transforms.Size() == 0) {
+  if (_transforms.size() == 0) {
     return true;
   }
 
@@ -820,7 +820,7 @@ bool RendererImpl::DrawBoxShaded(
 
   if (GL_ARB_instanced_arrays) {
     // Buffer object will contain vertices and model matrices.
-    const size_t bo_size = sizeof(vertices) + _transforms.Size();
+    const size_t bo_size = sizeof(vertices) + _transforms.size();
     GL(BindBuffer(GL_ARRAY_BUFFER, dynamic_array_bo_));
     GL(BufferData(GL_ARRAY_BUFFER, bo_size, NULL, GL_STREAM_DRAW));
 
@@ -828,7 +828,7 @@ bool RendererImpl::DrawBoxShaded(
     GL(BufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices));
     // Pushes matrices
     const size_t models_offset = sizeof(vertices);
-    GL(BufferSubData(GL_ARRAY_BUFFER, models_offset, _transforms.Size(),
+    GL(BufferSubData(GL_ARRAY_BUFFER, models_offset, _transforms.size(),
                      _transforms.begin));
 
     ambient_shader_instanced->Bind(models_offset, camera()->view_proj(), stride,
@@ -837,7 +837,7 @@ bool RendererImpl::DrawBoxShaded(
     GL(BindBuffer(GL_ARRAY_BUFFER, 0));
 
     GL(DrawArraysInstancedARB(GL_TRIANGLES, 0, OZZ_ARRAY_SIZE(vertices),
-                              static_cast<GLsizei>(_transforms.Count())));
+                              static_cast<GLsizei>(_transforms.count())));
 
     // Unbinds.
     ambient_shader_instanced->Unbind();
@@ -846,7 +846,7 @@ bool RendererImpl::DrawBoxShaded(
     GL(BindBuffer(GL_ARRAY_BUFFER, dynamic_array_bo_));
     GL(BufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STREAM_DRAW));
 
-    for (size_t i = 0; i < _transforms.Count(); i++) {
+    for (size_t i = 0; i < _transforms.count(); i++) {
       const ozz::math::Float4x4& transform = _transforms[i];
 
       ambient_shader->Bind(transform, camera()->view_proj(), stride,
@@ -893,7 +893,7 @@ bool RendererImpl::DrawSphereShaded(
     float _radius, ozz::Range<const ozz::math::Float4x4> _transforms,
     Color _color) {
   // Early out if no instance to render.
-  if (_transforms.Size() == 0) {
+  if (_transforms.size() == 0) {
     return true;
   }
 
@@ -918,7 +918,7 @@ bool RendererImpl::DrawSphereShaded(
     const GLsizei colors_size = sizeof(uint8_t) * 4;
     const GLsizei models_offset = sizeof(icosphere::kVertices) + colors_size;
     const GLsizei bo_size =
-        models_offset + static_cast<GLsizei>(_transforms.Size());
+        models_offset + static_cast<GLsizei>(_transforms.size());
 
     GL(BindBuffer(GL_ARRAY_BUFFER, dynamic_array_bo_));
     GL(BufferData(GL_ARRAY_BUFFER, bo_size, NULL, GL_STREAM_DRAW));
@@ -927,11 +927,11 @@ bool RendererImpl::DrawSphereShaded(
     GL(BufferSubData(GL_ARRAY_BUFFER, colors_offset, colors_size, &_color));
 
     ozz::math::Float4x4* models = static_cast<ozz::math::Float4x4*>(
-        scratch_buffer_.Resize(_transforms.Size()));
-    for (size_t i = 0; i < _transforms.Count(); ++i) {
+        scratch_buffer_.Resize(_transforms.size()));
+    for (size_t i = 0; i < _transforms.count(); ++i) {
       models[i] = Scale(_transforms[i], radius);
     }
-    GL(BufferSubData(GL_ARRAY_BUFFER, models_offset, _transforms.Size(),
+    GL(BufferSubData(GL_ARRAY_BUFFER, models_offset, _transforms.size(),
                      models));
 
     ambient_shader_instanced->Bind(models_offset, camera()->view_proj(),
@@ -942,7 +942,7 @@ bool RendererImpl::DrawSphereShaded(
     OZZ_STATIC_ASSERT(sizeof(icosphere::kIndices[0]) == 2);
     GL(DrawElementsInstancedARB(
         GL_TRIANGLES, OZZ_ARRAY_SIZE(icosphere::kIndices), GL_UNSIGNED_SHORT, 0,
-        static_cast<GLsizei>(_transforms.Count())));
+        static_cast<GLsizei>(_transforms.count())));
 
     // Unbinds.
     ambient_shader_instanced->Unbind();
@@ -964,7 +964,7 @@ bool RendererImpl::DrawSphereShaded(
     }
     GL(BufferSubData(GL_ARRAY_BUFFER, colors_offset, colors_size, colors));
 
-    for (size_t i = 0; i < _transforms.Count(); i++) {
+    for (size_t i = 0; i < _transforms.count(); i++) {
       const ozz::math::Float4x4& transform = Scale(_transforms[i], radius);
 
       ambient_shader->Bind(transform, camera()->view_proj(), positions_stride,
@@ -1472,7 +1472,7 @@ bool RendererImpl::DrawSkinnedMesh(
     }
 
     // Renders debug normals.
-    if (_options.normals && skinning_job.out_normals.Count() > 0) {
+    if (_options.normals && skinning_job.out_normals.count() > 0) {
       const Renderer::Color green = {0, 255, 0, 255};
       DrawVectors(skinning_job.out_positions, skinning_job.out_positions_stride,
                   skinning_job.out_normals, skinning_job.out_normals_stride,
@@ -1480,7 +1480,7 @@ bool RendererImpl::DrawSkinnedMesh(
     }
 
     // Renders debug tangents.
-    if (_options.tangents && skinning_job.out_tangents.Count() > 0) {
+    if (_options.tangents && skinning_job.out_tangents.count() > 0) {
       const Renderer::Color red = {255, 0, 0, 255};
       DrawVectors(skinning_job.out_positions, skinning_job.out_positions_stride,
                   skinning_job.out_tangents, skinning_job.out_tangents_stride,
@@ -1488,8 +1488,8 @@ bool RendererImpl::DrawSkinnedMesh(
     }
 
     // Renders debug binormals.
-    if (_options.binormals && skinning_job.out_normals.Count() > 0 &&
-        skinning_job.out_tangents.Count() > 0) {
+    if (_options.binormals && skinning_job.out_normals.count() > 0 &&
+        skinning_job.out_tangents.count() > 0) {
       const Renderer::Color blue = {0, 0, 255, 255};
       DrawBinormals(skinning_job.out_positions,
                     skinning_job.out_positions_stride, skinning_job.out_normals,

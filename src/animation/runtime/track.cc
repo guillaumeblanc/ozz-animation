@@ -50,7 +50,7 @@ Track<_ValueType>::~Track() {
 
 template <typename _ValueType>
 void Track<_ValueType>::Allocate(size_t _keys_count, size_t _name_len) {
-  assert(times_.Size() == 0 && values_.Size() == 0);
+  assert(times_.size() == 0 && values_.size() == 0);
 
   // Distributes buffer memory while ensuring proper alignment (serves larger
   // alignment values first).
@@ -102,13 +102,13 @@ void Track<_ValueType>::Deallocate() {
 template <typename _ValueType>
 size_t Track<_ValueType>::size() const {
   const size_t size =
-      sizeof(*this) + values_.Size() + times_.Size() + steps_.Size();
+      sizeof(*this) + values_.size() + times_.size() + steps_.size();
   return size;
 }
 
 template <typename _ValueType>
 void Track<_ValueType>::Save(ozz::io::OArchive& _archive) const {
-  uint32_t num_keys = static_cast<uint32_t>(times_.Count());
+  uint32_t num_keys = static_cast<uint32_t>(times_.count());
   _archive << num_keys;
 
   const size_t name_len = name_ ? std::strlen(name_) : 0;

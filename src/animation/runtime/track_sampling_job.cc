@@ -60,10 +60,10 @@ bool TrackSamplingJob<_Track>::Run() const {
   // Search keyframes to interpolate.
   const Range<const float> times = track->times();
   const Range<const ValueType> values = track->values();
-  assert(times.Count() == values.Count());
+  assert(times.count() == values.count());
 
   // Default track returns identity.
-  if (times.Count() == 0) {
+  if (times.count() == 0) {
     *result = internal::TrackPolicy<ValueType>::identity();
     return true;
   }

@@ -156,11 +156,11 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
   // Samples animation, transforms to model space and renders.
   virtual bool OnDisplay(ozz::sample::Renderer* _renderer) {
     // Update skinning matrices latest blending stage output.
-    assert(models_.Count() == skinning_matrices_.Count() &&
-           models_.Count() == mesh_.inverse_bind_poses.size());
+    assert(models_.count() == skinning_matrices_.count() &&
+           models_.count() == mesh_.inverse_bind_poses.size());
 
     // Builds skinning matrices, based on the output of the animation stage.
-    for (size_t i = 0; i < models_.Count(); ++i) {
+    for (size_t i = 0; i < models_.count(); ++i) {
       skinning_matrices_[i] = models_[i] * mesh_.inverse_bind_poses[i];
     }
 

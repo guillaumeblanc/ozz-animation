@@ -126,14 +126,14 @@ FloatTrackTriggeringJob::Iterator::Iterator(const FloatTrackTriggeringJob* _job)
     inner_ = 0;
   } else {
     outer_ += 1.f;
-    inner_ = job_->track->times().Count() - 1;
+    inner_ = job_->track->times().count() - 1;
   }
   ++*this;  // Evaluate first edge
 }
 
 void FloatTrackTriggeringJob::Iterator::operator++() {
   const Range<const float>& times = job_->track->times();
-  const ptrdiff_t num_keys = times.Count();
+  const ptrdiff_t num_keys = times.count();
 
   if (job_->to > job_->from) {
     for (; outer_ < job_->to; outer_ += 1.f) {
@@ -179,7 +179,7 @@ void FloatTrackTriggeringJob::Iterator::operator++() {
           break;
         }
       }
-      inner_ = times.Count() - 1;  // Ready for next loop.
+      inner_ = times.count() - 1;  // Ready for next loop.
     }
   }
 

@@ -257,8 +257,8 @@ class OptimizeSampleApplication : public ozz::sample::Application {
       const ozz::animation::offline::RawAnimation& _animation, float _time,
       ozz::Range<ozz::math::SoaTransform> _locals) {
     // Ensure output is big enough.
-    if (_locals.Count() * 4 < _animation.tracks.size() &&
-        locals_raw_aos_.Count() * 4 < _animation.tracks.size()) {
+    if (_locals.count() * 4 < _animation.tracks.size() &&
+        locals_raw_aos_.count() * 4 < _animation.tracks.size()) {
       return false;
     }
 

@@ -113,7 +113,7 @@ TEST(Default, TrackEdgeTriggerJob) {
   job.edges = &edges;
   EXPECT_TRUE(job.Validate());
   ASSERT_TRUE(job.Run());
-  ASSERT_EQ(edges.Count(), 0u);
+  ASSERT_EQ(edges.count(), 0u);
 }
 
 TEST(Empty, TrackEdgeTriggerJob) {
@@ -136,7 +136,7 @@ TEST(Empty, TrackEdgeTriggerJob) {
 
   ASSERT_TRUE(job.Run());
 
-  ASSERT_EQ(edges.Count(), 0u);
+  ASSERT_EQ(edges.count(), 0u);
 
   ozz::memory::default_allocator()->Delete(track);
 }
@@ -173,7 +173,7 @@ TEST(NoRange, TrackEdgeTriggerJob) {
     job.edges = &edges;
     ASSERT_TRUE(job.Run());
 
-    ASSERT_EQ(edges.Count(), 0u);
+    ASSERT_EQ(edges.count(), 0u);
   }
 
   {  // Forward [.1, .1]
@@ -183,7 +183,7 @@ TEST(NoRange, TrackEdgeTriggerJob) {
     job.edges = &edges;
     ASSERT_TRUE(job.Run());
 
-    ASSERT_EQ(edges.Count(), 0u);
+    ASSERT_EQ(edges.count(), 0u);
   }
 
   {  // Forward [.5, .5[
@@ -193,7 +193,7 @@ TEST(NoRange, TrackEdgeTriggerJob) {
     job.edges = &edges;
     ASSERT_TRUE(job.Run());
 
-    ASSERT_EQ(edges.Count(), 0u);
+    ASSERT_EQ(edges.count(), 0u);
   }
 
   {  // Forward [1., 1.]
@@ -203,7 +203,7 @@ TEST(NoRange, TrackEdgeTriggerJob) {
     job.edges = &edges;
     ASSERT_TRUE(job.Run());
 
-    ASSERT_EQ(edges.Count(), 0u);
+    ASSERT_EQ(edges.count(), 0u);
   }
 
   ozz::memory::default_allocator()->Delete(track);
@@ -231,9 +231,9 @@ void TestEdgesExpectation(
     job.edges = &edges;
     ASSERT_TRUE(job.Run());
 
-    ASSERT_EQ(edges.Count(), _size);
+    ASSERT_EQ(edges.count(), _size);
 
-    for (size_t i = 0; i < edges.Count(); ++i) {
+    for (size_t i = 0; i < edges.count(); ++i) {
       EXPECT_FLOAT_EQ(edges[i].time, _expected[i].time);
       EXPECT_EQ(edges[i].rising, _expected[i].rising);
     }
@@ -245,9 +245,9 @@ void TestEdgesExpectation(
     job.edges = &edges;
     ASSERT_TRUE(job.Run());
 
-    ASSERT_EQ(edges.Count(), _size);
+    ASSERT_EQ(edges.count(), _size);
 
-    for (size_t i = 0; i < edges.Count(); ++i) {
+    for (size_t i = 0; i < edges.count(); ++i) {
       EXPECT_FLOAT_EQ(edges[i].time, _expected[_size - i - 1].time);
       EXPECT_EQ(edges[i].rising, !_expected[_size - i - 1].rising);
     }
@@ -260,9 +260,9 @@ void TestEdgesExpectation(
     job.edges = &edges;
     ASSERT_TRUE(job.Run());
 
-    ASSERT_EQ(edges.Count(), _size);
+    ASSERT_EQ(edges.count(), _size);
 
-    for (size_t i = 0; i < edges.Count(); ++i) {
+    for (size_t i = 0; i < edges.count(); ++i) {
       EXPECT_FLOAT_EQ(edges[i].time, _expected[i].time + 1.f);
       EXPECT_EQ(edges[i].rising, _expected[i].rising);
     }
@@ -274,9 +274,9 @@ void TestEdgesExpectation(
     job.edges = &edges;
     ASSERT_TRUE(job.Run());
 
-    ASSERT_EQ(edges.Count(), _size);
+    ASSERT_EQ(edges.count(), _size);
 
-    for (size_t i = 0; i < edges.Count(); ++i) {
+    for (size_t i = 0; i < edges.count(); ++i) {
       EXPECT_FLOAT_EQ(edges[i].time, _expected[_size - i - 1].time + 1.f);
       EXPECT_EQ(edges[i].rising, !_expected[_size - i - 1].rising);
     }
@@ -289,9 +289,9 @@ void TestEdgesExpectation(
     job.edges = &edges;
     ASSERT_TRUE(job.Run());
 
-    ASSERT_EQ(edges.Count(), _size * 3);
+    ASSERT_EQ(edges.count(), _size * 3);
 
-    for (size_t i = 0; i < edges.Count(); ++i) {
+    for (size_t i = 0; i < edges.count(); ++i) {
       const size_t ie = i % _size;
       const float loops = static_cast<float>(i / _size);
       EXPECT_FLOAT_EQ(edges[i].time, _expected[ie].time + loops);
@@ -305,11 +305,11 @@ void TestEdgesExpectation(
     job.edges = &edges;
     ASSERT_TRUE(job.Run());
 
-    ASSERT_EQ(edges.Count(), _size * 3);
+    ASSERT_EQ(edges.count(), _size * 3);
 
-    for (size_t i = 0; i < edges.Count(); ++i) {
-      const size_t ie = (edges.Count() - i - 1) % _size;
-      const float loops = static_cast<float>((edges.Count() - i - 1) / _size);
+    for (size_t i = 0; i < edges.count(); ++i) {
+      const size_t ie = (edges.count() - i - 1) % _size;
+      const float loops = static_cast<float>((edges.count() - i - 1) / _size);
       EXPECT_FLOAT_EQ(edges[i].time, _expected[ie].time + loops);
       EXPECT_EQ(edges[i].rising, !_expected[ie].rising);
     }
@@ -326,9 +326,9 @@ void TestEdgesExpectation(
     job.edges = &edges;
     ASSERT_TRUE(job.Run());
 
-    ASSERT_EQ(edges.Count(), last_included ? _size : _size - 1);
+    ASSERT_EQ(edges.count(), last_included ? _size : _size - 1);
 
-    for (size_t i = 0; i < edges.Count(); ++i) {
+    for (size_t i = 0; i < edges.count(); ++i) {
       EXPECT_FLOAT_EQ(edges[i].time, _expected[i].time);
       EXPECT_EQ(edges[i].rising, _expected[i].rising);
     }
@@ -344,9 +344,9 @@ void TestEdgesExpectation(
     job.edges = &edges;
     ASSERT_TRUE(job.Run());
 
-    ASSERT_EQ(edges.Count(), last_included ? _size : _size - 1);
+    ASSERT_EQ(edges.count(), last_included ? _size : _size - 1);
 
-    for (size_t i = 0; i < edges.Count(); ++i) {
+    for (size_t i = 0; i < edges.count(); ++i) {
       const size_t ie = last_included ? _size - i - 1 : _size - i - 2;
       EXPECT_FLOAT_EQ(edges[i].time, _expected[ie].time);
       EXPECT_EQ(edges[i].rising, !_expected[ie].rising);
@@ -360,9 +360,9 @@ void TestEdgesExpectation(
     job.edges = &edges;
     ASSERT_TRUE(job.Run());
 
-    ASSERT_EQ(edges.Count(), _size - 1);
+    ASSERT_EQ(edges.count(), _size - 1);
 
-    for (size_t i = 0; i < edges.Count(); ++i) {
+    for (size_t i = 0; i < edges.count(); ++i) {
       EXPECT_FLOAT_EQ(edges[i].time, _expected[i + 1].time);
       EXPECT_EQ(edges[i].rising, _expected[i + 1].rising);
     }
@@ -374,9 +374,9 @@ void TestEdgesExpectation(
     job.edges = &edges;
     ASSERT_TRUE(job.Run());
 
-    ASSERT_EQ(edges.Count(), _size - 1);
+    ASSERT_EQ(edges.count(), _size - 1);
 
-    for (size_t i = 0; i < edges.Count(); ++i) {
+    for (size_t i = 0; i < edges.count(); ++i) {
       EXPECT_FLOAT_EQ(edges[i].time, _expected[_size - i - 1].time);
       EXPECT_EQ(edges[i].rising, !_expected[_size - i - 1].rising);
     }
@@ -389,7 +389,7 @@ void TestEdgesExpectation(
     job.edges = &edges;
     ASSERT_TRUE(job.Run());
 
-    ASSERT_EQ(edges.Count(), 0u);
+    ASSERT_EQ(edges.count(), 0u);
   }
   {  // Backward, first edge to 0
     job.from = _expected[0].time;
@@ -398,7 +398,7 @@ void TestEdgesExpectation(
     job.edges = &edges;
     ASSERT_TRUE(job.Run());
 
-    ASSERT_EQ(edges.Count(), 0u);
+    ASSERT_EQ(edges.count(), 0u);
   }
 
   {  // Forward, 0 to after first edge.
@@ -408,7 +408,7 @@ void TestEdgesExpectation(
     job.edges = &edges;
     ASSERT_TRUE(job.Run());
 
-    ASSERT_EQ(edges.Count(), 1u);
+    ASSERT_EQ(edges.count(), 1u);
 
     EXPECT_FLOAT_EQ(edges[0].time, _expected[0].time);
     EXPECT_EQ(edges[0].rising, _expected[0].rising);
@@ -420,7 +420,7 @@ void TestEdgesExpectation(
     job.edges = &edges;
     ASSERT_TRUE(job.Run());
 
-    ASSERT_EQ(edges.Count(), 1u);
+    ASSERT_EQ(edges.count(), 1u);
 
     EXPECT_FLOAT_EQ(edges[0].time, _expected[0].time);
     EXPECT_EQ(edges[0].rising, !_expected[0].rising);
@@ -433,9 +433,9 @@ void TestEdgesExpectation(
     job.edges = &edges;
     ASSERT_TRUE(job.Run());
 
-    ASSERT_EQ(edges.Count(), _size - 1);
+    ASSERT_EQ(edges.count(), _size - 1);
 
-    for (size_t i = 0; i < edges.Count(); ++i) {
+    for (size_t i = 0; i < edges.count(); ++i) {
       EXPECT_FLOAT_EQ(edges[i].time, _expected[i].time);
       EXPECT_EQ(edges[i].rising, _expected[i].rising);
     }
@@ -447,9 +447,9 @@ void TestEdgesExpectation(
     job.edges = &edges;
     ASSERT_TRUE(job.Run());
 
-    ASSERT_EQ(edges.Count(), _size - 1);
+    ASSERT_EQ(edges.count(), _size - 1);
 
-    for (size_t i = 0; i < edges.Count(); ++i) {
+    for (size_t i = 0; i < edges.count(); ++i) {
       EXPECT_FLOAT_EQ(edges[i].time, _expected[_size - i - 2].time);
       EXPECT_EQ(edges[i].rising, !_expected[_size - i - 2].rising);
     }
@@ -462,9 +462,9 @@ void TestEdgesExpectation(
     job.edges = &edges;
     ASSERT_TRUE(job.Run());
 
-    ASSERT_EQ(edges.Count(), _size);
+    ASSERT_EQ(edges.count(), _size);
 
-    for (size_t i = 0; i < edges.Count(); ++i) {
+    for (size_t i = 0; i < edges.count(); ++i) {
       EXPECT_FLOAT_EQ(edges[i].time, _expected[i].time);
       EXPECT_EQ(edges[i].rising, _expected[i].rising);
     }
@@ -476,9 +476,9 @@ void TestEdgesExpectation(
     job.edges = &edges;
     ASSERT_TRUE(job.Run());
 
-    ASSERT_EQ(edges.Count(), _size);
+    ASSERT_EQ(edges.count(), _size);
 
-    for (size_t i = 0; i < edges.Count(); ++i) {
+    for (size_t i = 0; i < edges.count(); ++i) {
       EXPECT_FLOAT_EQ(edges[i].time, _expected[_size - i - 1].time);
       EXPECT_EQ(edges[i].rising, !_expected[_size - i - 1].rising);
     }
@@ -491,9 +491,9 @@ void TestEdgesExpectation(
     job.edges = &edges;
     ASSERT_TRUE(job.Run());
 
-    ASSERT_EQ(edges.Count(), _size);
+    ASSERT_EQ(edges.count(), _size);
 
-    for (size_t i = 0; i < edges.Count(); ++i) {
+    for (size_t i = 0; i < edges.count(); ++i) {
       EXPECT_FLOAT_EQ(edges[i].time, _expected[i].time + 1.f);
       EXPECT_EQ(edges[i].rising, _expected[i].rising);
     }
@@ -505,9 +505,9 @@ void TestEdgesExpectation(
     job.edges = &edges;
     ASSERT_TRUE(job.Run());
 
-    ASSERT_EQ(edges.Count(), _size);
+    ASSERT_EQ(edges.count(), _size);
 
-    for (size_t i = 0; i < edges.Count(); ++i) {
+    for (size_t i = 0; i < edges.count(); ++i) {
       EXPECT_FLOAT_EQ(edges[i].time, _expected[_size - i - 1].time + 1.f);
       EXPECT_EQ(edges[i].rising, !_expected[_size - i - 1].rising);
     }
@@ -522,7 +522,7 @@ void TestEdgesExpectation(
     job.edges = &edges;
     ASSERT_TRUE(job.Run());
 
-    ASSERT_EQ(edges.Count(), last_included ? _size * 2 : _size * 2 - 1);
+    ASSERT_EQ(edges.count(), last_included ? _size * 2 : _size * 2 - 1);
 
     for (size_t i = 0; i < _size; ++i) {
       EXPECT_FLOAT_EQ(edges[i].time, _expected[i].time);
@@ -543,17 +543,17 @@ void TestEdgesExpectation(
     job.edges = &edges;
     ASSERT_TRUE(job.Run());
 
-    ASSERT_EQ(edges.Count(), last_included ? _size * 2 : _size * 2 - 1);
+    ASSERT_EQ(edges.count(), last_included ? _size * 2 : _size * 2 - 1);
 
     for (size_t i = 0; i < _size; ++i) {
-      EXPECT_FLOAT_EQ(edges[edges.Count() - i - 1].time, _expected[i].time);
-      EXPECT_EQ(edges[edges.Count() - i - 1].rising, !_expected[i].rising);
+      EXPECT_FLOAT_EQ(edges[edges.count() - i - 1].time, _expected[i].time);
+      EXPECT_EQ(edges[edges.count() - i - 1].rising, !_expected[i].rising);
     }
     for (size_t i = _size; i < (last_included ? _size * 2 : _size * 2 - 1);
          ++i) {
-      EXPECT_FLOAT_EQ(edges[edges.Count() - i - 1].time,
+      EXPECT_FLOAT_EQ(edges[edges.count() - i - 1].time,
                       _expected[i - _size].time + 1.f);
-      EXPECT_EQ(edges[edges.Count() - i - 1].rising,
+      EXPECT_EQ(edges[edges.count() - i - 1].rising,
                 !_expected[i - _size].rising);
     }
   }
@@ -567,9 +567,9 @@ void TestEdgesExpectation(
     job.edges = &edges;
     ASSERT_TRUE(job.Run());
 
-    ASSERT_EQ(edges.Count(), _size);
+    ASSERT_EQ(edges.count(), _size);
 
-    for (size_t i = 0; i < edges.Count(); ++i) {
+    for (size_t i = 0; i < edges.count(); ++i) {
       EXPECT_FLOAT_EQ(edges[i].time, _expected[i].time - 1.f);
       EXPECT_EQ(edges[i].rising, _expected[i].rising);
     }
@@ -581,9 +581,9 @@ void TestEdgesExpectation(
     job.edges = &edges;
     ASSERT_TRUE(job.Run());
 
-    ASSERT_EQ(edges.Count(), _size);
+    ASSERT_EQ(edges.count(), _size);
 
-    for (size_t i = 0; i < edges.Count(); ++i) {
+    for (size_t i = 0; i < edges.count(); ++i) {
       EXPECT_FLOAT_EQ(edges[i].time, _expected[_size - i - 1].time - 1.f);
       EXPECT_EQ(edges[i].rising, !_expected[_size - i - 1].rising);
     }
@@ -596,9 +596,9 @@ void TestEdgesExpectation(
     job.edges = &edges;
     ASSERT_TRUE(job.Run());
 
-    ASSERT_EQ(edges.Count(), _size);
+    ASSERT_EQ(edges.count(), _size);
 
-    for (size_t i = 0; i < edges.Count(); ++i) {
+    for (size_t i = 0; i < edges.count(); ++i) {
       EXPECT_FLOAT_EQ(edges[i].time, _expected[i].time - 2.f);
       EXPECT_EQ(edges[i].rising, _expected[i].rising);
     }
@@ -610,9 +610,9 @@ void TestEdgesExpectation(
     job.edges = &edges;
     ASSERT_TRUE(job.Run());
 
-    ASSERT_EQ(edges.Count(), _size);
+    ASSERT_EQ(edges.count(), _size);
 
-    for (size_t i = 0; i < edges.Count(); ++i) {
+    for (size_t i = 0; i < edges.count(); ++i) {
       EXPECT_FLOAT_EQ(edges[i].time, _expected[_size - i - 1].time - 2.f);
       EXPECT_EQ(edges[i].rising, !_expected[_size - i - 1].rising);
     }
@@ -625,7 +625,7 @@ void TestEdgesExpectation(
     job.edges = &edges;
     ASSERT_TRUE(job.Run());
 
-    ASSERT_EQ(edges.Count(), _size * 2);
+    ASSERT_EQ(edges.count(), _size * 2);
 
     for (size_t i = 0; i < _size; ++i) {
       EXPECT_FLOAT_EQ(edges[i].time, _expected[i].time - 1.f);
@@ -643,7 +643,7 @@ void TestEdgesExpectation(
     job.edges = &edges;
     ASSERT_TRUE(job.Run());
 
-    ASSERT_EQ(edges.Count(), _size * 2);
+    ASSERT_EQ(edges.count(), _size * 2);
 
     for (size_t i = 0; i < _size; ++i) {
       EXPECT_FLOAT_EQ(edges[i].time, _expected[_size - i - 1].time);
@@ -663,7 +663,7 @@ void TestEdgesExpectation(
     job.edges = &edges;
     ASSERT_TRUE(job.Run());
 
-    ASSERT_EQ(edges.Count(), 0u);
+    ASSERT_EQ(edges.count(), 0u);
   }
   {  // Backward, first edge to -1
     job.from = _expected[0].time - 1.f;
@@ -672,7 +672,7 @@ void TestEdgesExpectation(
     job.edges = &edges;
     ASSERT_TRUE(job.Run());
 
-    ASSERT_EQ(edges.Count(), 0u);
+    ASSERT_EQ(edges.count(), 0u);
   }
 
   {  // Forward, -1 to after last edge.
@@ -682,9 +682,9 @@ void TestEdgesExpectation(
     job.edges = &edges;
     ASSERT_TRUE(job.Run());
 
-    ASSERT_EQ(edges.Count(), _size);
+    ASSERT_EQ(edges.count(), _size);
 
-    for (size_t i = 0; i < edges.Count(); ++i) {
+    for (size_t i = 0; i < edges.count(); ++i) {
       EXPECT_FLOAT_EQ(edges[i].time, _expected[i].time - 1.f);
       EXPECT_EQ(edges[i].rising, _expected[i].rising);
     }
@@ -696,9 +696,9 @@ void TestEdgesExpectation(
     job.edges = &edges;
     ASSERT_TRUE(job.Run());
 
-    ASSERT_EQ(edges.Count(), _size);
+    ASSERT_EQ(edges.count(), _size);
 
-    for (size_t i = 0; i < edges.Count(); ++i) {
+    for (size_t i = 0; i < edges.count(); ++i) {
       EXPECT_FLOAT_EQ(edges[i].time, _expected[_size - i - 1].time - 1.f);
       EXPECT_EQ(edges[i].rising, !_expected[_size - i - 1].rising);
     }
@@ -714,9 +714,9 @@ void TestEdgesExpectation(
     job.edges = &edges;
     ASSERT_TRUE(job.Run());
 
-    ASSERT_EQ(edges.Count(), last_included ? _size : _size - 1);
+    ASSERT_EQ(edges.count(), last_included ? _size : _size - 1);
 
-    for (size_t i = 0; i < edges.Count(); ++i) {
+    for (size_t i = 0; i < edges.count(); ++i) {
       EXPECT_FLOAT_EQ(edges[i].time, _expected[i].time - 1.f);
       EXPECT_EQ(edges[i].rising, _expected[i].rising);
     }
@@ -731,9 +731,9 @@ void TestEdgesExpectation(
     job.edges = &edges;
     ASSERT_TRUE(job.Run());
 
-    ASSERT_EQ(edges.Count(), last_included ? _size : _size - 1);
+    ASSERT_EQ(edges.count(), last_included ? _size : _size - 1);
 
-    for (size_t i = 0; i < edges.Count(); ++i) {
+    for (size_t i = 0; i < edges.count(); ++i) {
       const size_t ie = last_included ? _size - i - 1 : _size - i - 2;
       EXPECT_FLOAT_EQ(edges[i].time, _expected[ie].time - 1.f);
       EXPECT_EQ(edges[i].rising, !_expected[ie].rising);
@@ -751,7 +751,7 @@ void TestEdgesExpectation(
     ASSERT_TRUE(job.Run());
 
     if (last_included) {
-      ASSERT_EQ(edges.Count(), 2u);
+      ASSERT_EQ(edges.count(), 2u);
 
       EXPECT_FLOAT_EQ(edges[0].time, _expected[_size - 1].time - 1.f);
       EXPECT_EQ(edges[0].rising, _expected[_size - 1].rising);
@@ -759,7 +759,7 @@ void TestEdgesExpectation(
       EXPECT_FLOAT_EQ(edges[1].time, _expected[0].time);
       EXPECT_EQ(edges[1].rising, _expected[0].rising);
     } else {
-      ASSERT_EQ(edges.Count(), 1u);
+      ASSERT_EQ(edges.count(), 1u);
 
       EXPECT_FLOAT_EQ(edges[0].time, _expected[0].time);
       EXPECT_EQ(edges[0].rising, _expected[0].rising);
@@ -776,7 +776,7 @@ void TestEdgesExpectation(
     ASSERT_TRUE(job.Run());
 
     if (last_included) {
-      ASSERT_EQ(edges.Count(), 2u);
+      ASSERT_EQ(edges.count(), 2u);
 
       EXPECT_FLOAT_EQ(edges[0].time, _expected[0].time);
       EXPECT_EQ(edges[0].rising, !_expected[0].rising);
@@ -785,7 +785,7 @@ void TestEdgesExpectation(
       EXPECT_EQ(edges[1].rising, !_expected[_size - 1].rising);
 
     } else {
-      ASSERT_EQ(edges.Count(), 1u);
+      ASSERT_EQ(edges.count(), 1u);
 
       EXPECT_FLOAT_EQ(edges[0].time, _expected[0].time);
       EXPECT_EQ(edges[0].rising, !_expected[0].rising);
@@ -793,6 +793,9 @@ void TestEdgesExpectation(
   }
 
   {  // Randomized
+	  std::vector<FloatTrackTriggeringJob::Edge> vedges;
+	  	  std::vector<float> vtimes;
+		  vtimes.push_back(0.f);
     const float kMaxRange = 2.f;
     const size_t kMaxIterations = 100000;
     float time = 0.f;
@@ -829,6 +832,7 @@ void TestEdgesExpectation(
       job.from = time;
       time = new_time;
       job.to = time;
+	  vtimes.push_back(time);
 
       FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
@@ -837,11 +841,16 @@ void TestEdgesExpectation(
 
       // Successive edges should always be opposed, whichever direction the
       // time is going.
-      for (size_t e = 0; e < edges.Count(); ++e) {
+      for (size_t e = 0; e < edges.count(); ++e) {
+		  vedges.push_back(edges[e]);
         if (!init) {
           rising = edges[e].rising;
           init = true;
         } else {
+          if (rising == edges[e].rising) {
+            // assert(false);
+            break;
+          }
           ASSERT_TRUE(rising != edges[e].rising);
           rising = edges[e].rising;
         }
@@ -1113,7 +1122,7 @@ TEST(StepThreshold, TrackEdgeTriggerJob) {
 
     ASSERT_TRUE(job.Run());
 
-    ASSERT_EQ(edges.Count(), 2u);
+    ASSERT_EQ(edges.count(), 2u);
 
     EXPECT_FLOAT_EQ(edges[0].time, .5f);
     EXPECT_EQ(edges[0].rising, true);
@@ -1128,7 +1137,7 @@ TEST(StepThreshold, TrackEdgeTriggerJob) {
 
     ASSERT_TRUE(job.Run());
 
-    ASSERT_EQ(edges.Count(), 2u);
+    ASSERT_EQ(edges.count(), 2u);
 
     EXPECT_FLOAT_EQ(edges[0].time, .5f);
     EXPECT_EQ(edges[0].rising, true);
@@ -1143,7 +1152,7 @@ TEST(StepThreshold, TrackEdgeTriggerJob) {
 
     ASSERT_TRUE(job.Run());
 
-    ASSERT_EQ(edges.Count(), 0u);
+    ASSERT_EQ(edges.count(), 0u);
   }
 
   {  // In range
@@ -1153,7 +1162,7 @@ TEST(StepThreshold, TrackEdgeTriggerJob) {
 
     ASSERT_TRUE(job.Run());
 
-    ASSERT_EQ(edges.Count(), 2u);
+    ASSERT_EQ(edges.count(), 2u);
 
     EXPECT_FLOAT_EQ(edges[0].time, .5f);
     EXPECT_EQ(edges[0].rising, true);
@@ -1170,7 +1179,7 @@ TEST(StepThreshold, TrackEdgeTriggerJob) {
 
     ASSERT_TRUE(job.Run());
 
-    ASSERT_EQ(edges.Count(), 0u);
+    ASSERT_EQ(edges.count(), 0u);
   }
 
   ozz::memory::default_allocator()->Delete(track);
@@ -1210,7 +1219,7 @@ TEST(StepThresholdBool, TrackEdgeTriggerJob) {
 
     ASSERT_TRUE(job.Run());
 
-    ASSERT_EQ(edges.Count(), 2u);
+    ASSERT_EQ(edges.count(), 2u);
 
     EXPECT_FLOAT_EQ(edges[0].time, .5f);
     EXPECT_EQ(edges[0].rising, true);
@@ -1225,7 +1234,7 @@ TEST(StepThresholdBool, TrackEdgeTriggerJob) {
 
     ASSERT_TRUE(job.Run());
 
-    ASSERT_EQ(edges.Count(), 0u);
+    ASSERT_EQ(edges.count(), 0u);
   }
 
   {  // Bottom range is included
@@ -1235,7 +1244,7 @@ TEST(StepThresholdBool, TrackEdgeTriggerJob) {
 
     ASSERT_TRUE(job.Run());
 
-    ASSERT_EQ(edges.Count(), 2u);
+    ASSERT_EQ(edges.count(), 2u);
 
     EXPECT_FLOAT_EQ(edges[0].time, .5f);
     EXPECT_EQ(edges[0].rising, true);
@@ -1280,7 +1289,7 @@ TEST(LinearThreshold, TrackEdgeTriggerJob) {
 
     ASSERT_TRUE(job.Run());
 
-    ASSERT_EQ(edges.Count(), 2u);
+    ASSERT_EQ(edges.count(), 2u);
 
     EXPECT_FLOAT_EQ(edges[0].time, .375f);
     EXPECT_EQ(edges[0].rising, true);
@@ -1295,7 +1304,7 @@ TEST(LinearThreshold, TrackEdgeTriggerJob) {
 
     ASSERT_TRUE(job.Run());
 
-    ASSERT_EQ(edges.Count(), 0u);
+    ASSERT_EQ(edges.count(), 0u);
   }
 
   {  // In range
@@ -1305,7 +1314,7 @@ TEST(LinearThreshold, TrackEdgeTriggerJob) {
 
     ASSERT_TRUE(job.Run());
 
-    ASSERT_EQ(edges.Count(), 2u);
+    ASSERT_EQ(edges.count(), 2u);
 
     EXPECT_FLOAT_EQ(edges[0].time, .25f);
     EXPECT_EQ(edges[0].rising, true);
@@ -1320,7 +1329,7 @@ TEST(LinearThreshold, TrackEdgeTriggerJob) {
 
     ASSERT_TRUE(job.Run());
 
-    ASSERT_EQ(edges.Count(), 2u);
+    ASSERT_EQ(edges.count(), 2u);
 
     EXPECT_FLOAT_EQ(edges[0].time, 0.f);
     EXPECT_EQ(edges[0].rising, true);
@@ -1337,7 +1346,7 @@ TEST(LinearThreshold, TrackEdgeTriggerJob) {
 
     ASSERT_TRUE(job.Run());
 
-    ASSERT_EQ(edges.Count(), 0u);
+    ASSERT_EQ(edges.count(), 0u);
   }
 
   ozz::memory::default_allocator()->Delete(track);
@@ -1378,7 +1387,7 @@ TEST(Overflow, TrackEdgeTriggerJob) {
 
     ASSERT_TRUE(job.Run());
 
-    ASSERT_EQ(edges.Count(), 2u);
+    ASSERT_EQ(edges.count(), 2u);
 
     EXPECT_FLOAT_EQ(edges[0].time, .5f);
     EXPECT_EQ(edges[0].rising, true);
@@ -1395,7 +1404,7 @@ TEST(Overflow, TrackEdgeTriggerJob) {
 
     ASSERT_TRUE(job.Run());
 
-    ASSERT_EQ(edges.Count(), 3u);
+    ASSERT_EQ(edges.count(), 3u);
 
     EXPECT_FLOAT_EQ(edges[0].time, .5f);
     EXPECT_EQ(edges[0].rising, true);
@@ -1415,7 +1424,7 @@ TEST(Overflow, TrackEdgeTriggerJob) {
 
     EXPECT_FALSE(job.Run());  // Return false
 
-    ASSERT_EQ(edges.Count(), 3u);  // But buffer isn't empty.
+    ASSERT_EQ(edges.count(), 3u);  // But buffer isn't empty.
 
     EXPECT_FLOAT_EQ(edges[0].time, .5f);
     EXPECT_EQ(edges[0].rising, true);
@@ -1436,7 +1445,7 @@ TEST(Overflow, TrackEdgeTriggerJob) {
     // 1st pass
     EXPECT_FALSE(job.Run());  // Return false
 
-    ASSERT_EQ(edges.Count(), 3u);  // But buffer is full.
+    ASSERT_EQ(edges.count(), 3u);  // But buffer is full.
 
     EXPECT_FLOAT_EQ(edges[0].time, .5f);
     EXPECT_EQ(edges[0].rising, true);
@@ -1451,7 +1460,7 @@ TEST(Overflow, TrackEdgeTriggerJob) {
     job.from = nexttowardf(edges[2].time, job.to);
     ASSERT_TRUE(job.Run());  // Last pass
 
-    ASSERT_EQ(edges.Count(), 1u);  // But buffer isn't empty.
+    ASSERT_EQ(edges.count(), 1u);  // But buffer isn't empty.
 
     EXPECT_FLOAT_EQ(edges[0].time, 2.f);
     EXPECT_EQ(edges[0].rising, false);

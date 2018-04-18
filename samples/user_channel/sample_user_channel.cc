@@ -183,7 +183,7 @@ class LoadSampleApplication : public ozz::sample::Application {
     // Knowing exact edge time, joint position can be re-sampled in order
     // to get attachment joint position at the precise attachment time. This
     // makes the algorithm frame rate independent.
-    for (size_t i = 0; i < edges.Count(); ++i) {
+    for (size_t i = 0; i < edges.count(); ++i) {
       const ozz::animation::FloatTrackTriggeringJob::Edge& edge = edges[i];
 
       // Updates attachment state.

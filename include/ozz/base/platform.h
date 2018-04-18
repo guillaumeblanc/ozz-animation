@@ -119,7 +119,9 @@ struct Range {
   Range() : begin(NULL), end(NULL) {}
 
   // Constructs a range from its extreme values.
-  Range(_Ty* _begin, const _Ty* _end) : begin(_begin), end(_end) {}
+  Range(_Ty* _begin, const _Ty* _end) : begin(_begin), end(_end) {
+    assert(_begin <= _end && "Invalid range.");
+  }
 
   // Construct a range from a pointer to a buffer and its size, ie its number of
   // elements.
@@ -151,28 +153,28 @@ struct Range {
 
   // Returns a const reference to element _i of range [begin,end[.
   const _Ty& operator[](size_t _i) const {
-    assert(begin && &begin[_i] < end && "Index out of range");
+    assert(begin != NULL && begin + _i < end && "Index out of range.");
     return begin[_i];
   }
 
   // Returns a reference to element _i of range [begin,end[.
   _Ty& operator[](size_t _i) {
-    assert(begin && &begin[_i] < end && "Index out of range");
+    assert(begin != NULL && begin + _i < end && "Index out of range.");
     return begin[_i];
   }
 
   // Gets the number of elements of the range.
   // This size isn't stored but computed from begin and end pointers.
-  size_t Count() const {
-    const ptrdiff_t count = end - begin;
-    return count > 0 ? count : 0;
+  size_t count() const {
+    assert(begin <= end && "Invalid range.");
+    return static_cast<size_t>(end - begin);
   }
 
   // Gets the size in byte of the range.
-  size_t Size() const {
-    const ptrdiff_t size =
-        reinterpret_cast<uintptr_t>(end) - reinterpret_cast<uintptr_t>(begin);
-    return size > 0 ? size : 0;
+  size_t size() const {
+    assert(begin <= end && "Invalid range.");
+    return static_cast<size_t>(reinterpret_cast<uintptr_t>(end) -
+                               reinterpret_cast<uintptr_t>(begin));
   }
 
   // Range begin pointer.
@@ -181,5 +183,5 @@ struct Range {
   // Range end pointer, declared as const as it should never be dereferenced.
   const _Ty* end;
 };
-}  // ozz
+}  // namespace ozz
 #endif  // OZZ_OZZ_BASE_PLATFORM_H_

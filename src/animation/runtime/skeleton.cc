@@ -87,8 +87,8 @@ char* Skeleton::Allocate(size_t _chars_size, size_t _num_joints) {
       OZZ_ALIGN_OF(char*) >= OZZ_ALIGN_OF(Skeleton::JointProperties) &&
       OZZ_ALIGN_OF(Skeleton::JointProperties) >= OZZ_ALIGN_OF(char));
 
-  assert(bind_pose_.Size() == 0 && joint_names_.Size() == 0 &&
-         joint_properties_.Size() == 0);
+  assert(bind_pose_.size() == 0 && joint_names_.size() == 0 &&
+         joint_properties_.size() == 0);
 
   // Early out if no joint.
   if (_num_joints == 0) {
