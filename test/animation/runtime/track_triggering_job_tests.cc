@@ -715,7 +715,7 @@ void TestEdgesExpectation(
       EXPECT_FLOAT_EQ(edges[1].time, _expected[0].time);
       EXPECT_EQ(edges[1].rising, _expected[0].rising);
     } else {
-      ASSERT_EQ(edges.Count(), 1);
+      ASSERT_EQ(edges.Count(), 1u);
 
       EXPECT_FLOAT_EQ(edges[0].time, _expected[0].time);
       EXPECT_EQ(edges[0].rising, _expected[0].rising);
@@ -741,7 +741,7 @@ void TestEdgesExpectation(
       EXPECT_EQ(edges[1].rising, !_expected[_size - 1].rising);
 
     } else {
-      ASSERT_EQ(edges.Count(), 1);
+      ASSERT_EQ(edges.Count(), 1u);
 
       EXPECT_FLOAT_EQ(edges[0].time, _expected[0].time);
       EXPECT_EQ(edges[0].rising, !_expected[0].rising);
