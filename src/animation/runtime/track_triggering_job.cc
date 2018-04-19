@@ -35,12 +35,12 @@ namespace ozz {
 namespace animation {
 
 FloatTrackTriggeringJob::FloatTrackTriggeringJob()
-    : from(0.f), to(0.f), threshold(0.f), track(NULL), edges(NULL) {}
+    : from(0.f), to(0.f), threshold(0.f), track(NULL), iterator(NULL) {}
 
 bool FloatTrackTriggeringJob::Validate() const {
   bool valid = true;
   valid &= track != NULL;
-  valid &= edges != NULL;
+  valid &= iterator != NULL;
   return valid;
 }
 
@@ -51,21 +51,11 @@ bool FloatTrackTriggeringJob::Run() const {
 
   // Triggering can only happen in a valid range of time.
   if (from == to) {
-    edges->Clear();
+    *iterator = end();
     return true;
   }
 
-  Iterator iterator(this);
-
-  // Adjust output length.
-  Edge* edges_end = edges->begin;
-  for (; iterator != end(); ++iterator, ++edges_end) {
-    if (edges_end == edges->end) {
-      return false;
-    }
-    *edges_end = *iterator;
-  }
-  edges->end = edges_end;
+  *iterator = Iterator(this);
 
   return true;
 }

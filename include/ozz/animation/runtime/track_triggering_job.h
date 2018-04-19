@@ -59,20 +59,22 @@ struct FloatTrackTriggeringJob {
   const FloatTrack* track;
 
   // Job output.
+  class Iterator;
+  Iterator* iterator;
+
+  Iterator end() const;
+
+  // TODODODODO
   struct Edge {
     float time;
     bool rising;
   };
-  typedef Range<Edge> Edges;
-  Edges* edges;
-
-  class Iterator;
-
-  Iterator end() const;
 };
 
 class FloatTrackTriggeringJob::Iterator {
  public:
+  Iterator() : job_(NULL), outer_(0.f), inner_(0) {}
+
   void operator++();
   Iterator operator++(int) {
     Iterator prev = *this;

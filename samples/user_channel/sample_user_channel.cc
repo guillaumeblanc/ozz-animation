@@ -173,9 +173,8 @@ class LoadSampleApplication : public ozz::sample::Application {
     job.track = &track_;
     job.threshold = 0.f;  // Considered attached as soon as the value is
                           // greater than 0, aka different from 0.
-    ozz::animation::FloatTrackTriggeringJob::Edge edges_buffer[8];
-    ozz::animation::FloatTrackTriggeringJob::Edges edges(edges_buffer);
-    job.edges = &edges;
+    ozz::animation::FloatTrackTriggeringJob::Iterator iterator;
+    job.iterator = &iterator;
     if (!job.Run()) {
       return false;
     }
@@ -183,8 +182,10 @@ class LoadSampleApplication : public ozz::sample::Application {
     // Knowing exact edge time, joint position can be re-sampled in order
     // to get attachment joint position at the precise attachment time. This
     // makes the algorithm frame rate independent.
-    for (size_t i = 0; i < edges.count(); ++i) {
-      const ozz::animation::FloatTrackTriggeringJob::Edge& edge = edges[i];
+    for (const ozz::animation::FloatTrackTriggeringJob::Iterator end =
+             job.end();
+         iterator != end; ++iterator) {
+      const ozz::animation::FloatTrackTriggeringJob::Edge& edge = *iterator;
 
       // Updates attachment state.
       // Triggering job ensures rising and falling edges symmetry, this can be
