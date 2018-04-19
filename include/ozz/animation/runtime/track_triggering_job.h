@@ -102,7 +102,7 @@ class FloatTrackTriggeringJob::Iterator {
 
   struct End {};
   Iterator(const FloatTrackTriggeringJob* _job, End) : job_(_job) {
-    outer_ = _job->to;
+    outer_ = _job->to - 1.f;
     inner_ = 0;
   }
 

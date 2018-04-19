@@ -122,12 +122,13 @@ inline bool DetectEdge(ptrdiff_t _i0, ptrdiff_t _i1, bool _forward,
 FloatTrackTriggeringJob::Iterator::Iterator(const FloatTrackTriggeringJob* _job)
     : job_(_job) {
   outer_ = floorf(job_->from);
-  if (job_->to > job_->from) {
-    inner_ = 0;
-  } else {
-    outer_ += 1.f;
-    inner_ = job_->track->times().count() - 1;
-  }
+  // Search could start more closely to the "from" time, but it's not possible
+  // to ensure that floating point precision will not lead to missing a key
+  // (when from/to range is far from 0). This is less good in algorithmic
+  // complexity, but for consistency of forward and backward triggering, it's
+  // better to let iterator ++ implementation filter included and excluded
+  // edges.
+  inner_ = job_->from < job_->to ? 0 : _job->track->times().count() - 1;
   ++*this;  // Evaluate first edge
 }
 
@@ -138,17 +139,13 @@ void FloatTrackTriggeringJob::Iterator::operator++() {
   if (job_->to > job_->from) {
     for (; outer_ < job_->to; outer_ += 1.f) {
       for (; inner_ < num_keys; ++inner_) {
-        // Find relevant keyframes value around i.
         const ptrdiff_t i0 = inner_ == 0 ? num_keys - 1 : inner_ - 1;
         if (DetectEdge(i0, inner_, true, *job_, &edge_)) {
-          // Convert local loop time to global time space.
-          edge_.time += outer_;
-          // Pushes the new edge only if it's in the input range.
+          edge_.time += outer_;  // Convert to global time space.
           if (edge_.time >= job_->from &&
               (edge_.time < job_->to || job_->to >= 1.f + outer_)) {
-            // Yield found edge.
             ++inner_;
-            return;
+            return;  // Yield found edge.
           }
           // Won't find any further edge.
           if (times[inner_] + outer_ >= job_->to) {
@@ -159,23 +156,19 @@ void FloatTrackTriggeringJob::Iterator::operator++() {
       inner_ = 0;  // Ready for next loop.
     }
   } else {
-    for (; outer_ > job_->to; outer_ -= 1.f) {
+    for (; outer_ + 1.f > job_->to; outer_ -= 1.f) {
       for (; inner_ >= 0; --inner_) {
-        // Find relevant keyframes value around i.
         const ptrdiff_t i0 = inner_ == 0 ? num_keys - 1 : inner_ - 1;
         if (DetectEdge(i0, inner_, false, *job_, &edge_)) {
-          // Convert local loop time to global time space.
-          edge_.time += outer_ - 1.f;
-          // Pushes the new edge only if it's in the input range.
+          edge_.time += outer_;  // Convert to global time space.
           if (edge_.time >= job_->to &&
-              (edge_.time < job_->from || job_->from >= outer_)) {
-            // Yield found edge.
+              (edge_.time < job_->from || job_->from >= 1.f + outer_)) {
             --inner_;
-            return;
+            return;  // Yield found edge.
           }
         }
         // Won't find any further edge.
-        if (times[inner_] + outer_ - 1.f <= job_->to) {
+        if (times[inner_] + outer_ <= job_->to) {
           break;
         }
       }
@@ -184,8 +177,7 @@ void FloatTrackTriggeringJob::Iterator::operator++() {
   }
 
   // Set iterator to end position.
-  outer_ = job_->to;  // End
-  inner_ = 0;
+  *this = job_->end();
 }
 }  // namespace animation
 }  // namespace ozz

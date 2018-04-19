@@ -654,10 +654,41 @@ void TestEdgesExpectation(
     TestEdgesExpectationBackward(job);
   }
 
-  {  // Randomized
-     //   std::vector<FloatTrackTriggeringJob::Edge> vedges;
-     //   std::vector<float> vtimes;
-     //    vtimes.push_back(0.f);
+  {  // Forward [-21.3999996, -21.0000019]
+    job.from = -21.3999996f;
+    job.to = -21.0000019f;
+    FloatTrackTriggeringJob::Edges edges(edges_buffer);
+    job.edges = &edges;
+    ASSERT_TRUE(job.Run());
+
+    size_t found = 0;
+    for (size_t i = 0; i < _size; ++i) {
+      if (_expected[i].time - 22.f >= job.from &&
+          _expected[i].time - 22.f < job.to) {
+        found++;
+      }
+    }
+
+    ASSERT_EQ(edges.count(), found);
+
+    TestEdgesExpectationBackward(job);
+  }
+
+  {  // Randomized tests forward/backward coherency
+    const float kMaxRange = 10.f;
+    const size_t kMaxIterations = 10000;
+    for (size_t i = 0; i < kMaxIterations; ++i) {
+      job.from =
+          kMaxRange * (1.f - 2.f * static_cast<float>(rand()) / RAND_MAX);
+      job.to = kMaxRange * (1.f - 2.f * static_cast<float>(rand()) / RAND_MAX);
+      FloatTrackTriggeringJob::Edges edges(edges_buffer);
+      job.edges = &edges;
+      ASSERT_TRUE(job.Run());
+      TestEdgesExpectationBackward(job);
+    }
+  }
+
+  {  // Randomized tests rising/falling coherency
     const float kMaxRange = 2.f;
     const size_t kMaxIterations = 100000;
     float time = 0.f;
@@ -694,7 +725,6 @@ void TestEdgesExpectation(
       job.from = time;
       time = new_time;
       job.to = time;
-      //  vtimes.push_back(time);
 
       FloatTrackTriggeringJob::Edges edges(edges_buffer);
       job.edges = &edges;
@@ -704,15 +734,14 @@ void TestEdgesExpectation(
       // Successive edges should always be opposed, whichever direction the
       // time is going.
       for (size_t e = 0; e < edges.count(); ++e) {
-        // vedges.push_back(edges[e]);
         if (!init) {
           rising = edges[e].rising;
           init = true;
         } else {
-          //   if (rising == edges[e].rising) {
+          //     if (rising == edges[e].rising) {
           // assert(false);
-          //     break;
-          //   }
+          //       break;
+          //     }
           ASSERT_TRUE(rising != edges[e].rising);
           rising = edges[e].rising;
         }
