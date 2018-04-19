@@ -28,7 +28,7 @@
 #include "ozz/animation/runtime/track_triggering_job.h"
 
 #include "gtest/gtest.h"
-
+#include "ozz/base/gtest_helper.h"
 #include "ozz/base/maths/gtest_math_helper.h"
 #include "ozz/base/memory/allocator.h"
 
@@ -130,6 +130,143 @@ TEST(Empty, TrackEdgeTriggerJob) {
 
   ASSERT_TRUE(job.Run());
   EXPECT_EQ(iterator, job.end());
+
+  ozz::memory::default_allocator()->Delete(track);
+}
+
+TEST(Iterator, TrackEdgeTriggerJob) {
+  TrackBuilder builder;
+
+  ozz::animation::offline::RawFloatTrack raw_track;
+
+  // Keyframe values oscillate in range [0,2].
+  const ozz::animation::offline::RawFloatTrack::Keyframe key0 = {
+      RawTrackInterpolation::kStep, 0.f, 0.f};
+  raw_track.keyframes.push_back(key0);
+  const ozz::animation::offline::RawFloatTrack::Keyframe key1 = {
+      RawTrackInterpolation::kStep, .5f, 2.f};
+  raw_track.keyframes.push_back(key1);
+  const ozz::animation::offline::RawFloatTrack::Keyframe key2 = {
+      RawTrackInterpolation::kStep, 1.f, 0.f};
+  raw_track.keyframes.push_back(key2);
+
+  // Builds track
+  ozz::animation::FloatTrack* track = builder(raw_track);
+  ASSERT_TRUE(track != NULL);
+
+  FloatTrackTriggeringJob job;
+  job.track = track;
+  job.threshold = 1.f;
+
+  job.from = 0.f;
+  job.to = 2.f;
+  FloatTrackTriggeringJob::Iterator iterator;
+  job.iterator = &iterator;
+  ASSERT_TRUE(job.Run());
+
+  EXPECT_TRUE(iterator == iterator);
+  EXPECT_FALSE(iterator != iterator);
+  EXPECT_TRUE(job.end() == job.end());
+  EXPECT_FALSE(job.end() != job.end());
+  EXPECT_TRUE(iterator != job.end());
+  EXPECT_FALSE(iterator == job.end());
+
+  FloatTrackTriggeringJob::Iterator iterator_cpy(iterator);
+  EXPECT_TRUE(iterator == iterator_cpy);
+  EXPECT_FALSE(iterator != iterator_cpy);
+
+  FloatTrackTriggeringJob::Iterator default_iterator;
+  EXPECT_TRUE(default_iterator == default_iterator);
+  EXPECT_FALSE(default_iterator != default_iterator);
+  EXPECT_TRUE(default_iterator != iterator);
+  EXPECT_FALSE(default_iterator == iterator);
+
+  {  // Other jobs
+    FloatTrackTriggeringJob job2;
+    job2.track = track;
+    job2.threshold = 1.f;
+
+    job2.from = 0.f;
+    job2.to = 1.f;
+    FloatTrackTriggeringJob::Iterator iterator2;
+    job2.iterator = &iterator2;
+    ASSERT_TRUE(job2.Run());
+
+    EXPECT_TRUE(iterator2 != iterator);
+    EXPECT_FALSE(iterator2 == iterator);
+  }
+
+  {  // *
+    EXPECT_TRUE((*iterator).rising);
+    FloatTrackTriggeringJob::Edge edge;
+    EXPECT_ASSERTION(edge = *job.end(), "Can't dereference end iterator");
+  }
+
+  {  // ->
+    EXPECT_TRUE(iterator->rising);
+    bool rising;
+    EXPECT_ASSERTION(rising = job.end()->rising,
+                     "Can't dereference end iterator");
+  }
+
+  {  // Pre increment
+    FloatTrackTriggeringJob::Iterator iterator_cpy1(iterator);
+    FloatTrackTriggeringJob::Iterator iterator_cpy2(iterator);
+
+    ++iterator_cpy1;
+    EXPECT_TRUE(iterator_cpy1 != iterator_cpy2);
+    EXPECT_FALSE(iterator_cpy1 == iterator_cpy2);
+
+    ++iterator_cpy2;
+    EXPECT_TRUE(iterator_cpy1 == iterator_cpy2);
+    EXPECT_FALSE(iterator_cpy1 != iterator_cpy2);
+
+    EXPECT_TRUE(++iterator_cpy1 != iterator_cpy2++);
+
+    EXPECT_ASSERTION(++job.end(), "Can't increment end iterator.");
+  }
+
+  {  // Post increment
+    FloatTrackTriggeringJob::Iterator iterator_cpy1(iterator);
+    FloatTrackTriggeringJob::Iterator iterator_cpy2(iterator);
+
+    iterator_cpy1++;
+    EXPECT_TRUE(iterator_cpy1 != iterator_cpy2);
+    EXPECT_FALSE(iterator_cpy1 == iterator_cpy2);
+
+    iterator_cpy2++;
+    EXPECT_TRUE(iterator_cpy1 == iterator_cpy2);
+    EXPECT_FALSE(iterator_cpy1 != iterator_cpy2);
+
+    EXPECT_TRUE((++iterator_cpy1)->rising != (iterator_cpy2++)->rising);
+    EXPECT_TRUE(iterator_cpy1->rising == iterator_cpy2->rising);
+
+    EXPECT_ASSERTION(job.end()++, "Can't increment end iterator.");
+  }
+
+  {  // Assignement
+    FloatTrackTriggeringJob::Iterator iterator_cpy1(iterator);
+    FloatTrackTriggeringJob::Iterator iterator_cpy2(iterator);
+
+    ++iterator_cpy1;
+    EXPECT_TRUE(iterator_cpy1 != iterator_cpy2);
+
+    iterator_cpy2 = iterator_cpy1;
+    EXPECT_TRUE(iterator_cpy1 == iterator_cpy2);
+
+    ++iterator_cpy1;
+    ++iterator_cpy2;
+    EXPECT_TRUE(iterator_cpy1 == iterator_cpy2);
+  }
+
+  {  // Loop
+    FloatTrackTriggeringJob::Iterator iterator_cpy1(iterator);
+    FloatTrackTriggeringJob::Iterator iterator_cpy2(iterator);
+
+    for (; iterator_cpy1 != job.end(); ++iterator_cpy1, iterator_cpy2++) {
+    }
+    EXPECT_TRUE(iterator_cpy2 == job.end());
+  }
 
   ozz::memory::default_allocator()->Delete(track);
 }

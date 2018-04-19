@@ -75,7 +75,10 @@ class FloatTrackTriggeringJob::Iterator {
  public:
   Iterator() : job_(NULL), outer_(0.f), inner_(0) {}
 
-  void operator++();
+  // Calling this function on an end iterator results in an assertion in debug,
+  // an undefined behavior otherwise.
+  const Iterator& operator++();
+
   Iterator operator++(int) {
     Iterator prev = *this;
     ++*this;
@@ -90,12 +93,12 @@ class FloatTrackTriggeringJob::Iterator {
   }
 
   const Edge& operator*() const {
-    assert(*this != job_->end());
+    assert(*this != job_->end() && "Can't dereference end iterator.");
     return edge_;
   }
 
   const Edge* operator->() const {
-    assert(*this != job_->end());
+    assert(*this != job_->end() && "Can't dereference end iterator.");
     return &edge_;
   }
 
@@ -103,9 +106,10 @@ class FloatTrackTriggeringJob::Iterator {
   explicit Iterator(const FloatTrackTriggeringJob* _job);
 
   struct End {};
-  Iterator(const FloatTrackTriggeringJob* _job, End) : job_(_job) {
-    outer_ = _job->to - 1.f;
-    inner_ = 0;
+  Iterator(const FloatTrackTriggeringJob* _job, End)
+      : job_(_job),
+        outer_(0.f),
+        inner_(-2) {  // Can never be reached while looping.
   }
 
   friend struct FloatTrackTriggeringJob;

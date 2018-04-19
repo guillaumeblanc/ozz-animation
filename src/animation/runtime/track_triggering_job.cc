@@ -111,7 +111,9 @@ inline bool DetectEdge(ptrdiff_t _i0, ptrdiff_t _i1, bool _forward,
 
 FloatTrackTriggeringJob::Iterator::Iterator(const FloatTrackTriggeringJob* _job)
     : job_(_job) {
+  // Outer loop initialization.
   outer_ = floorf(job_->from);
+
   // Search could start more closely to the "from" time, but it's not possible
   // to ensure that floating point precision will not lead to missing a key
   // (when from/to range is far from 0). This is less good in algorithmic
@@ -119,10 +121,15 @@ FloatTrackTriggeringJob::Iterator::Iterator(const FloatTrackTriggeringJob* _job)
   // better to let iterator ++ implementation filter included and excluded
   // edges.
   inner_ = job_->from < job_->to ? 0 : _job->track->times().count() - 1;
-  ++*this;  // Evaluate first edge
+
+  // Evaluates first edge.
+  ++*this;
 }
 
-void FloatTrackTriggeringJob::Iterator::operator++() {
+const FloatTrackTriggeringJob::Iterator& FloatTrackTriggeringJob::Iterator::
+operator++() {
+  assert(*this != job_->end() && "Can't increment end iterator.");
+
   const Range<const float>& times = job_->track->times();
   const ptrdiff_t num_keys = times.count();
 
@@ -135,7 +142,7 @@ void FloatTrackTriggeringJob::Iterator::operator++() {
           if (edge_.time >= job_->from &&
               (edge_.time < job_->to || job_->to >= 1.f + outer_)) {
             ++inner_;
-            return;  // Yield found edge.
+            return *this;  // Yield found edge.
           }
           // Won't find any further edge.
           if (times[inner_] + outer_ >= job_->to) {
@@ -154,7 +161,7 @@ void FloatTrackTriggeringJob::Iterator::operator++() {
           if (edge_.time >= job_->to &&
               (edge_.time < job_->from || job_->from >= 1.f + outer_)) {
             --inner_;
-            return;  // Yield found edge.
+            return *this;  // Yield found edge.
           }
         }
         // Won't find any further edge.
@@ -168,6 +175,8 @@ void FloatTrackTriggeringJob::Iterator::operator++() {
 
   // Set iterator to end position.
   *this = job_->end();
+
+  return *this;
 }
 }  // namespace animation
 }  // namespace ozz
