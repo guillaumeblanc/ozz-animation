@@ -103,21 +103,11 @@ TEST(Algorithm, TrackEdgeTriggerJob) {
     std::for_each(iterator, job.end(), IsRising);
   }
 
-  {  // all_of, any_of, none_of
-    ozz::Vector<FloatTrackTriggeringJob::Edge>::Std edges;
-    EXPECT_FALSE(std::all_of(iterator, job.end(), IsRising));
-    EXPECT_FALSE(std::none_of(iterator, job.end(), IsRising));
-    EXPECT_TRUE(std::any_of(iterator, job.end(), IsRising));
-  }
-
-  {  // find_if, find_if_not
+  {  // find_if
     ozz::Vector<FloatTrackTriggeringJob::Edge>::Std edges;
     FloatTrackTriggeringJob::Iterator it_if =
         std::find_if(iterator, job.end(), IsRising);
     EXPECT_TRUE(it_if->rising);
-    FloatTrackTriggeringJob::Iterator it_if_not =
-        std::find_if_not(iterator, job.end(), IsRising);
-    EXPECT_FALSE(it_if_not->rising);
   }
 
   ozz::memory::default_allocator()->Delete(track);
