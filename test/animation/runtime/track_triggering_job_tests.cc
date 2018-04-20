@@ -202,6 +202,7 @@ TEST(Iterator, TrackEdgeTriggerJob) {
     EXPECT_TRUE((*iterator).rising);
     FloatTrackTriggeringJob::Edge edge;
     EXPECT_ASSERTION(edge = *job.end(), "Can't dereference end iterator");
+    (void)edge;
   }
 
   {  // ->
@@ -209,6 +210,7 @@ TEST(Iterator, TrackEdgeTriggerJob) {
     bool rising;
     EXPECT_ASSERTION(rising = job.end()->rising,
                      "Can't dereference end iterator");
+    (void)rising;
   }
 
   {  // Pre increment
