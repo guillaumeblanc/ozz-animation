@@ -179,9 +179,8 @@ class LoadSampleApplication : public ozz::sample::Application {
       return false;
     }
 
-    // Knowing exact edge time, joint position can be re-sampled in order
-    // to get attachment joint position at the precise attachment time. This
-    // makes the algorithm frame rate independent.
+    // Iteratively evaluates all edges.
+    // Edges are lazily evaluated on iterator increments.
     for (const ozz::animation::FloatTrackTriggeringJob::Iterator end =
              job.end();
          iterator != end; ++iterator) {
@@ -193,7 +192,9 @@ class LoadSampleApplication : public ozz::sample::Application {
       assert(attached_ != edge.rising);
       attached_ = edge.rising;
 
-      // Updates animation and computes joints position at edge time.
+      // Knowing exact edge time, joint position can be re-sampled in order
+      // to get attachment joint position at the precise attachment time. This
+      // makes the algorithm frame rate independent.
       // Sampling is cached so this intermediate updates don't have a big
       // performance impact.
       if (!Update_Joints(edge.time * animation_.duration())) {

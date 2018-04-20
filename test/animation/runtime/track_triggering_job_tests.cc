@@ -180,6 +180,8 @@ TEST(Iterator, TrackEdgeTriggerJob) {
   EXPECT_FALSE(default_iterator != default_iterator);
   EXPECT_TRUE(default_iterator != iterator);
   EXPECT_FALSE(default_iterator == iterator);
+  EXPECT_TRUE(default_iterator != job.end());
+  EXPECT_FALSE(default_iterator == job.end());
 
   {  // Other jobs
     FloatTrackTriggeringJob job2;
