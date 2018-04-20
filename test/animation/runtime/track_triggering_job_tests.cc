@@ -200,14 +200,14 @@ TEST(Iterator, TrackEdgeTriggerJob) {
 
   {  // *
     EXPECT_TRUE((*iterator).rising);
-    FloatTrackTriggeringJob::Edge edge;
+    OZZ_IF_DEBUG(FloatTrackTriggeringJob::Edge edge;)
     EXPECT_ASSERTION(edge = *job.end(), "Can't dereference end iterator");
     (void)edge;
   }
 
   {  // ->
     EXPECT_TRUE(iterator->rising);
-    bool rising;
+    OZZ_IF_DEBUG(bool rising;)
     EXPECT_ASSERTION(rising = job.end()->rising,
                      "Can't dereference end iterator");
     (void)rising;
