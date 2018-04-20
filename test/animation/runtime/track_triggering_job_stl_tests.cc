@@ -89,14 +89,12 @@ TEST(Algorithm, TrackEdgeTriggerJob) {
 
   {  // count
     ozz::Vector<FloatTrackTriggeringJob::Edge>::Std edges;
-    typename std::iterator_traits<
-        FloatTrackTriggeringJob::Iterator>::difference_type count =
-        std::count_if(iterator, job.end(), IsRising);
+    std::iterator_traits<FloatTrackTriggeringJob::Iterator>::difference_type
+        count = std::count_if(iterator, job.end(), IsRising);
     EXPECT_EQ(count, 2);
 
-    typename std::iterator_traits<
-        FloatTrackTriggeringJob::Iterator>::difference_type count_end =
-        std::count_if(job.end(), job.end(), IsRising);
+    std::iterator_traits<FloatTrackTriggeringJob::Iterator>::difference_type
+        count_end = std::count_if(job.end(), job.end(), IsRising);
     EXPECT_EQ(count_end, 0);
   }
 
