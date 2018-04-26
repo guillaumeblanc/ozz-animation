@@ -52,25 +52,28 @@ namespace ozz {
 namespace sample {
 
 PlaybackController::PlaybackController()
-    : previous_time_(0.f), time_(0.f), playback_speed_(1.f), play_(true) {}
+    : previous_time_(0.f),
+      time_(0.f),
+      playback_speed_(1.f),
+      play_(true),
+      loop_(true) {}
 
-bool PlaybackController::Update(const animation::Animation& _animation,
+void PlaybackController::Update(const animation::Animation& _animation,
                                 float _dt) {
   // Needs to update previous_time_ even if controller isn't in "play" state.
   // Play state means times does not progress, like _dt equals 0.
   previous_time_ = time_;
 
-  if (!play_) {
-    return false;
-  }
-
   // Updates next iteration time.
-  const float new_time = time_ + _dt * playback_speed_;
-  const float loops = new_time / _animation.duration();
-  time_ = new_time - floorf(loops) * _animation.duration();
-
-  // Return true if looping forward or backward
-  return loops < 0.f || loops >= 1.f;
+  if (play_) {
+    const float new_time = time_ + _dt * playback_speed_;
+    if (loop_) {
+      const float loops = new_time / _animation.duration();
+      time_ = new_time - floorf(loops) * _animation.duration();
+    } else {
+      time_ = math::Clamp(0.f, new_time, _animation.duration());
+    }
+  }
 }
 
 void PlaybackController::Reset() {
@@ -87,6 +90,9 @@ bool PlaybackController::OnGui(const animation::Animation& _animation,
   if (_im_gui->DoButton(play_ ? "Pause" : "Play", _enabled)) {
     play_ = !play_;
   }
+
+  _im_gui->DoCheckBox("Loop", &loop_, _enabled);
+
   char szLabel[64];
   std::sprintf(szLabel, "Animation time: %.2f", time_);
 
