@@ -103,7 +103,7 @@ foreach(line ${animations})
   endforeach()
 
   # Loops over all remaining arguments to find dependencies.
-  set(options "")
+  set(depends "")
   foreach(element ${line})
     if (${element} MATCHES "depend:(.*)")
       string(SUBSTRING ${element} 7 -1 depend)
