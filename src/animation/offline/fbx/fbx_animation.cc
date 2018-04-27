@@ -106,85 +106,151 @@ bool ExtractAnimation(FbxSceneLoader& _scene_loader, const SamplingInfo& _info,
   // Set animation data.
   _animation->duration = _info.duration;
 
+  // Locates all skeleton nodes in the fbx scene. Some might be NULL.
+  ozz::Vector<FbxNode*>::Std nodes;
+  for (int i = 0; i < _skeleton.num_joints(); i++) {
+    const char* joint_name = _skeleton.joint_names()[i];
+    nodes.push_back(scene->FindNodeByName(joint_name));
+  }
+
+  // Preallocates and initializes world matrices.
+  const size_t max_keys =
+      static_cast<size_t>(3.f + (_info.end - _info.start) / _info.period);
+  ozz::Vector<float>::Std times;
+  times.reserve(max_keys);
+  ozz::Vector<ozz::Vector<ozz::math::Float4x4>::Std>::Std world_matrices;
+  world_matrices.resize(_skeleton.num_joints());
+  for (int i = 0; i < _skeleton.num_joints(); i++) {
+    world_matrices[i].reserve(max_keys);
+  }
+
+  // Goes through the whole timeline to compute animated word matrices.
+  // Fbx sdk seems to compute nodes transformation for the whole scene, so it's
+  // much faster to query all nodes at once for the same time t.
+  FbxAnimEvaluator* evaluator = scene->GetAnimationEvaluator();
+  bool loop_again = true;
+  size_t num_keys = 0;
+  for (float t = _info.start; loop_again; t += _info.period) {
+    if (t >= _info.end) {
+      t = _info.end;
+      loop_again = false;
+    }
+    times.push_back(t - _info.start);
+    ++num_keys;
+
+    // Goes through all nodes.
+    for (int i = 0; i < _skeleton.num_joints(); i++) {
+      FbxNode* node = nodes[i];
+      if (node) {
+        const FbxAMatrix fbx_matrix =
+            evaluator->GetNodeGlobalTransform(node, FbxTimeSeconds(t));
+        const math::Float4x4 matrix =
+            _scene_loader.converter()->ConvertMatrix(fbx_matrix);
+        world_matrices[i].push_back(matrix);
+      }
+    }
+  }
+  assert(num_keys <= max_keys);
+
+  // Builds world matrices for non-animated joints.
+  // Skeleton is order with parents first, so it can be traversed in order.
+  for (int i = 0; i < _skeleton.num_joints(); i++) {
+    // Initializes non-animated joints.
+    FbxNode* node = nodes[i];
+    if (node == NULL) {
+      ozz::log::LogV() << "No animation track found for joint \""
+                       << _skeleton.joint_names()[i]
+                       << "\". Using skeleton bind pose instead." << std::endl;
+
+      const math::Transform& bind_pose =
+          ozz::animation::GetJointLocalBindPose(_skeleton, i);
+      const math::SimdFloat4 t =
+          math::simd_float4::Load3PtrU(&bind_pose.translation.x);
+      const math::SimdFloat4 q =
+          math::simd_float4::LoadPtrU(&bind_pose.rotation.x);
+      const math::SimdFloat4 s =
+          math::simd_float4::Load3PtrU(&bind_pose.scale.x);
+      const math::Float4x4 local_matrix = math::Float4x4::FromAffine(t, q, s);
+
+      ozz::Vector<math::Float4x4>::Std& node_matrices = world_matrices[i];
+      const uint16_t parent = _skeleton.joint_properties()[i].parent;
+      if (parent != Skeleton::kNoParentIndex) {
+        ozz::Vector<math::Float4x4>::Std& parent_matrices =
+            world_matrices[parent];
+        assert(num_keys == parent_matrices.size());
+        for (size_t p = 0; p < num_keys; ++p) {
+          node_matrices.push_back(parent_matrices[p] * local_matrix);
+        }
+      } else {
+        for (size_t p = 0; p < num_keys; ++p) {
+          node_matrices.push_back(local_matrix);
+        }
+      }
+    }
+  }
+
+  // Builds world inverse matrices.
+  ozz::Vector<ozz::Vector<ozz::math::Float4x4>::Std>::Std world_inv_matrices;
+  world_inv_matrices.resize(_skeleton.num_joints());
+  for (int i = 0; i < _skeleton.num_joints(); i++) {
+    ozz::Vector<math::Float4x4>::Std& node_world_matrices = world_matrices[i];
+    ozz::Vector<math::Float4x4>::Std& node_world_inv_matrices =
+        world_inv_matrices[i];
+    node_world_inv_matrices.reserve(num_keys);
+    for (size_t p = 0; p < num_keys; ++p) {
+      node_world_inv_matrices.push_back(Invert(node_world_matrices[p]));
+    }
+  }
+
+  // Builds local space animation tracks.
   // Allocates all tracks with the same number of joints as the skeleton.
   // Tracks that would not be found will be set to skeleton bind-pose
   // transformation.
   _animation->tracks.resize(_skeleton.num_joints());
-
-  // Iterate all skeleton joints and fills there track with key frames.
-  FbxAnimEvaluator* evaluator = scene->GetAnimationEvaluator();
   for (int i = 0; i < _skeleton.num_joints(); i++) {
     RawAnimation::JointTrack& track = _animation->tracks[i];
+    track.rotations.reserve(num_keys);
+    track.translations.reserve(num_keys);
+    track.scales.reserve(num_keys);
 
-    // Find a node that matches skeleton joint.
-    const char* joint_name = _skeleton.joint_names()[i];
-    FbxNode* node = scene->FindNodeByName(joint_name);
+    const uint16_t parent = _skeleton.joint_properties()[i].parent;
+    ozz::Vector<math::Float4x4>::Std& node_world_matrices = world_matrices[i];
+    ozz::Vector<math::Float4x4>::Std& node_world_inv_matrices =
+        world_inv_matrices[parent != Skeleton::kNoParentIndex ? parent : 0];
 
-    if (!node) {
-      // Empty joint track.
-      ozz::log::LogV() << "No animation track found for joint \"" << joint_name
-                       << "\". Using skeleton bind pose instead." << std::endl;
-
-      // Get joint's bind pose.
-      const ozz::math::Transform& bind_pose =
-          ozz::animation::GetJointLocalBindPose(_skeleton, i);
-
-      const RawAnimation::TranslationKey tkey = {0.f, bind_pose.translation};
-      track.translations.push_back(tkey);
-
-      const RawAnimation::RotationKey rkey = {0.f, bind_pose.rotation};
-      track.rotations.push_back(rkey);
-
-      const RawAnimation::ScaleKey skey = {0.f, bind_pose.scale};
-      track.scales.push_back(skey);
-
-      continue;
-    }
-
-    // Reserve keys in animation tracks (allocation strategy optimization
-    // purpose).
-    const int max_keys =
-        static_cast<int>(3.f + (_info.end - _info.start) / _info.period);
-    track.translations.reserve(max_keys);
-    track.rotations.reserve(max_keys);
-    track.scales.reserve(max_keys);
-
-    // Evaluate joint transformation at the specified time.
-    // Make sure to include "end" time, and enter the loop once at least.
-    bool loop_again = true;
-    for (float t = _info.start; loop_again; t += _info.period) {
-      if (t >= _info.end) {
-        t = _info.end;
-        loop_again = false;
+    for (size_t n = 0; n < num_keys; ++n) {
+      // Builds local matrix;
+      math::Float4x4 local_matrix;
+      if (parent != Skeleton::kNoParentIndex) {
+        local_matrix = node_world_inv_matrices[n] * node_world_matrices[n];
+      } else {
+        local_matrix = node_world_matrices[n];
       }
 
-      // Evaluate transform matrix at t.
-      const FbxAMatrix matrix =
-          _skeleton.joint_properties()[i].parent == Skeleton::kNoParentIndex
-              ? evaluator->GetNodeGlobalTransform(node, FbxTimeSeconds(t))
-              : evaluator->GetNodeLocalTransform(node, FbxTimeSeconds(t));
-
-      // Convert to a transform object in ozz unit/axis system.
-      ozz::math::Transform transform;
-      if (!_scene_loader.converter()->ConvertTransform(matrix, &transform)) {
-        ozz::log::Err() << "Failed to extract animation transform for joint \""
-                        << joint_name << "\" at t = " << t << "s." << std::endl;
+      // Convert to transform structure.
+      math::SimdFloat4 t, q, s;
+      if (!ToAffine(local_matrix, &t, &q, &s)) {
+        ozz::log::Err() << "Failed to extract animation transform for joint\""
+                        << _skeleton.joint_names()[i]
+                        << "\" at t = " << times[n] << "s." << std::endl;
         return false;
       }
 
+      ozz::math::Transform transform;
+      math::Store3PtrU(t, &transform.translation.x);
+      math::StorePtrU(math::Normalize4(q), &transform.rotation.x);
+      math::Store3PtrU(s, &transform.scale.x);
+
       // Fills corresponding track.
-      const float local_time = t - _info.start;
-      const RawAnimation::TranslationKey translation = {local_time,
-                                                        transform.translation};
-      track.translations.push_back(translation);
-      const RawAnimation::RotationKey rotation = {local_time,
-                                                  transform.rotation};
-      track.rotations.push_back(rotation);
-      const RawAnimation::ScaleKey scale = {local_time, transform.scale};
-      track.scales.push_back(scale);
+      const float time = times[n];
+      const RawAnimation::TranslationKey tkey = {time, transform.translation};
+      track.translations.push_back(tkey);
+      const RawAnimation::RotationKey rkey = {time, transform.rotation};
+      track.rotations.push_back(rkey);
+      const RawAnimation::ScaleKey skey = {time, transform.scale};
+      track.scales.push_back(skey);
     }
   }
-
   return _animation->Validate();
 }
 
@@ -242,8 +308,8 @@ bool GetValue(FbxPropertyValue& _property_value, EFbxType _type,
 bool GetValue(FbxPropertyValue& _property_value, EFbxType _type,
               ozz::math::Float2* _value) {
   (void)_type;
-  // Only supported types are enumerated, so this function should not be called
-  // for something else but eFbxDouble2.
+  // Only supported types are enumerated, so this function should not be
+  // called for something else but eFbxDouble2.
   assert(_type == eFbxDouble2);
   double dvalue[2];
   if (!_property_value.Get(&dvalue, eFbxDouble2)) {
@@ -258,8 +324,8 @@ bool GetValue(FbxPropertyValue& _property_value, EFbxType _type,
 bool GetValue(FbxPropertyValue& _property_value, EFbxType _type,
               ozz::math::Float3* _value) {
   (void)_type;
-  // Only supported types are enumerated, so this function should not be called
-  // for something else but eFbxDouble3.
+  // Only supported types are enumerated, so this function should not be
+  // called for something else but eFbxDouble3.
   assert(_type == eFbxDouble3);
   double dvalue[3];
   if (!_property_value.Get(&dvalue, eFbxDouble3)) {
@@ -275,8 +341,8 @@ bool GetValue(FbxPropertyValue& _property_value, EFbxType _type,
 bool GetValue(FbxPropertyValue& _property_value, EFbxType _type,
               ozz::math::Float4* _value) {
   (void)_type;
-  // Only supported types are enumerated, so this function should not be called
-  // for something else but eFbxDouble4.
+  // Only supported types are enumerated, so this function should not be
+  // called for something else but eFbxDouble4.
   assert(_type == eFbxDouble4);
   double dvalue[4];
   if (!_property_value.Get(&dvalue, eFbxDouble4)) {
