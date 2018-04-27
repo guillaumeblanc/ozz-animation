@@ -50,7 +50,7 @@ namespace ozz {
 namespace animation {
 namespace offline {
 
-bool ImportSkeleton(const Json::Value& _config, Converter* _converter,
+bool ImportSkeleton(const Json::Value& _config, OzzConverter* _converter,
                     const ozz::Endianness _endianness) {
   const Json::Value& skeleton_config = _config["skeleton"];
 
@@ -61,9 +61,18 @@ bool ImportSkeleton(const Json::Value& _config, Converter* _converter,
     return true;
   }
 
+  // Setup node types import properties.
+  OzzConverter::NodeType types = {0};
+  const Json::Value& types_config = skeleton_config["node_types"];
+  types.skeleton = types_config["skeleton"].asBool();
+  types.marker = types_config["marker"].asBool();
+  types.camera = types_config["camera"].asBool();
+  types.geometry = types_config["geometry"].asBool();
+  types.light = types_config["light"].asBool();
+  types.any = types_config["any"].asBool();
+
   ozz::animation::offline::RawSkeleton raw_skeleton;
-  if (!_converter->Import(&raw_skeleton,
-                          skeleton_config["all_nodes"].asBool())) {
+  if (!_converter->Import(&raw_skeleton, types)) {
     ozz::log::Err() << "Failed to import skeleton." << std::endl;
     return false;
   }

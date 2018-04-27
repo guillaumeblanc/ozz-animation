@@ -34,7 +34,7 @@
 #include "ozz/base/io/stream.h"
 #include "ozz/base/memory/allocator.h"
 
-class TestConverter : public ozz::animation::offline::Converter {
+class TestConverter : public ozz::animation::offline::OzzConverter {
  public:
   TestConverter() : file_(NULL) {}
   ~TestConverter() { ozz::memory::default_allocator()->Delete(file_); }
@@ -60,8 +60,8 @@ class TestConverter : public ozz::animation::offline::Converter {
   }
 
   virtual bool Import(ozz::animation::offline::RawSkeleton* _skeleton,
-                      bool _all_nodes) {
-    (void)_all_nodes;
+                      const NodeType& _types) {
+    (void)_types;
     if (file_ && file_->opened()) {
       file_->Seek(0, ozz::io::File::kSet);
       char buffer[256];

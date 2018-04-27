@@ -114,7 +114,7 @@ namespace ozz {
 namespace animation {
 namespace offline {
 
-int Converter::operator()(int _argc, const char** _argv) {
+int OzzConverter::operator()(int _argc, const char** _argv) {
   // Parses arguments.
   ozz::options::ParseResult parse_result = ozz::options::ParseCommandLine(
       _argc, _argv, "2.0",

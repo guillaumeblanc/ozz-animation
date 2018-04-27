@@ -41,13 +41,24 @@ class Skeleton;
 
 namespace offline {
 
-class Converter {
+class OzzConverter {
  public:
   int operator()(int _argc, const char** _argv);
 
   // Skeleton management.
+
+  struct NodeType {
+    bool skeleton : 1;  // Uses skeleton nodes as skeleton joints.
+    bool marker : 1;    // Uses marker nodes as skeleton joints.
+    bool camera : 1;    // Uses camera nodes as skeleton joints.
+    bool geometry : 1;  // Uses geometry nodes as skeleton joints.
+    bool light : 1;     // Uses light nodes as skeleton joints.
+    bool any : 1;  // Uses any node type as skeleton joints, including those
+                   // listed above and any other.
+  };
+
   virtual bool Import(ozz::animation::offline::RawSkeleton* _skeleton,
-                      bool _all_nodes) = 0;
+                      const NodeType& _types) = 0;
 
   // Animations management.
 

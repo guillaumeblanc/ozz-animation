@@ -43,7 +43,7 @@
 // Use fbx2ozz integrated help command (fbx2ozz --help) for more details
 // about available arguments.
 
-class FbxConverter : public ozz::animation::offline::Converter {
+class FbxConverter : public ozz::animation::offline::OzzConverter {
  public:
   FbxConverter();
   ~FbxConverter();
@@ -53,7 +53,7 @@ class FbxConverter : public ozz::animation::offline::Converter {
 
   // Skeleton management
   virtual bool Import(ozz::animation::offline::RawSkeleton* _skeleton,
-                      bool _all_nodes);
+                      const NodeType& _types);
 
   // Animation management
   virtual AnimationNames GetAnimationNames();

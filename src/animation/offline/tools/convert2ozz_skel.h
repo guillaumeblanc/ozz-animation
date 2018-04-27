@@ -39,9 +39,9 @@ namespace ozz {
 namespace animation {
 namespace offline {
 
-class Converter;
+class OzzConverter;
 
-bool ImportSkeleton(const Json::Value& _config, Converter* _converter,
+bool ImportSkeleton(const Json::Value& _config, OzzConverter* _converter,
                     const ozz::Endianness _endianness);
 
 }  // namespace offline

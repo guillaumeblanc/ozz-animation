@@ -201,16 +201,34 @@ bool MakeDefault(Json::Value& _parent, const char* _name, _Type _value,
   return existed;
 }
 
-bool SanitizeSkeleton(Json::Value& _root, bool _all_options) {
+bool SanitizeSkeletonJointTypes(Json::Value& _root, bool _all_options) {
   (void)_all_options;
+  MakeDefault(_root, "skeleton", true,
+              "Uses skeleton nodes as skeleton joints.");
+  MakeDefault(_root, "marker", false, "Uses marker nodes as skeleton joints.");
+  MakeDefault(_root, "camera", false, "Uses camera nodes as skeleton joints.");
+  MakeDefault(_root, "geometry", false,
+              "Uses geometry nodes as skeleton joints.");
+  MakeDefault(_root, "light", false, "Uses light nodes as skeleton joints.");
+  MakeDefault(_root, "null", false, "Uses null nodes as skeleton joints.");
+  MakeDefault(_root, "any", false,
+              "Uses any node type as skeleton joints, including those listed "
+              "above and any other.");
+
+  return true;
+}
+
+bool SanitizeSkeleton(Json::Value& _root, bool _all_options) {
   MakeDefault(_root, "filename", "skeleton.ozz",
               "Specifies skeleton input/output filename. The file will be "
               "outputted if import is true. It will also be used as an input "
               "reference during animations import.");
-  MakeDefault(_root, "import", true, "Imports and outputs skeleton file.");
+  MakeDefault(_root, "import", true, "Imports and writes skeleton file.");
   MakeDefault(_root, "raw", false, "Outputs raw skeleton.");
-  MakeDefault(_root, "all_nodes", false,
-              "Exports all nodes regardless of their type.");
+  MakeDefaultObject(
+      _root, "node_types",
+      "Define nodes types that should be considered as skeleton joints.");
+  SanitizeSkeletonJointTypes(_root["node_types"], _all_options);
 
   return true;
 }

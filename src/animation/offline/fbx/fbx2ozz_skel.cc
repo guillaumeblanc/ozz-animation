@@ -35,7 +35,7 @@
 #include "ozz/base/log.h"
 
 bool FbxConverter::Import(ozz::animation::offline::RawSkeleton* _skeleton,
-                          bool _all_nodes) {
+                          const NodeType& _types) {
   if (!_skeleton) {
     return false;
   }
@@ -47,7 +47,7 @@ bool FbxConverter::Import(ozz::animation::offline::RawSkeleton* _skeleton,
     return false;
   }
 
-  if (!ozz::animation::offline::fbx::ExtractSkeleton(*scene_loader_, _all_nodes,
+  if (!ozz::animation::offline::fbx::ExtractSkeleton(*scene_loader_, _types,
                                                      _skeleton)) {
     ozz::log::Err() << "Fbx skeleton extraction failed." << std::endl;
     return false;

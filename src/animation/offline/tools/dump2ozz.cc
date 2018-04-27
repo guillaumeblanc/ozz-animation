@@ -27,9 +27,9 @@
 
 #include "ozz/animation/offline/tools/convert2ozz.h"
 
-// Mocks Converter so it can be used to dump default and reference
+// Mocks OzzConverter so it can be used to dump default and reference
 // configurations.
-class DumpConverter : public ozz::animation::offline::Converter {
+class DumpConverter : public ozz::animation::offline::OzzConverter {
  public:
   DumpConverter() {}
   ~DumpConverter() {}
@@ -37,7 +37,7 @@ class DumpConverter : public ozz::animation::offline::Converter {
  private:
   virtual bool Load(const char*) { return true; }
 
-  virtual bool Import(ozz::animation::offline::RawSkeleton*, bool) {
+  virtual bool Import(ozz::animation::offline::RawSkeleton*, const NodeType&) {
     return true;
   }
 

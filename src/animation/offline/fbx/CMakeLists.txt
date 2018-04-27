@@ -50,7 +50,7 @@ set(animations
   "/fbx/robot.fbx\;{\"skeleton\":{\"filename\":\"${ozz_media_directory}/bin/robot_skeleton.ozz\",\"import\":true},\"animations\":[{\"filename\":\"${ozz_media_directory}/bin/robot_animation.ozz\",\"optimization_tolerances\":{\"hierarchical\":0.0001},\"tracks\":[{\"properties\":[{\"joint_name\":\"thumb2\",\"property_name\":\"grasp\",\"filename\":\"${ozz_media_directory}/bin/robot_track_grasp.ozz\"}]}]}]}\;output:${ozz_media_directory}/bin/robot_skeleton.ozz\;output:${ozz_media_directory}/bin/robot_animation.ozz\;output:${ozz_media_directory}/bin/robot_track_grasp.ozz"
 
   # Baked animation
-  "/fbx/baked.fbx\;{\"skeleton\": {\"filename\":\"${ozz_media_directory}/bin/baked_skeleton.ozz\",\"import\":true,\"all_nodes\":true},\"animations\":[{\"filename\":\"${ozz_media_directory}/bin/baked_animation.ozz\",\"optimization_tolerances\":{\"translation\":0.002,\"rotation\":0.002,\"hierarchical\":1.0}}]}\;output:${ozz_media_directory}/bin/baked_skeleton.ozz\;output:${ozz_media_directory}/bin/baked_animation.ozz"
+  "/fbx/baked.fbx\;{\"skeleton\": {\"filename\":\"${ozz_media_directory}/bin/baked_skeleton.ozz\",\"import\":true,\"node_types\":{\"geometry\":true}},\"animations\":[{\"filename\":\"${ozz_media_directory}/bin/baked_animation.ozz\",\"optimization_tolerances\":{\"translation\":0.002,\"rotation\":0.002,\"hierarchical\":1.0}}]}\;output:${ozz_media_directory}/bin/baked_skeleton.ozz\;output:${ozz_media_directory}/bin/baked_animation.ozz"
 
   # Versioning
   "/fbx/alain/skeleton.fbx\;{\"skeleton\":{\"filename\":\"${ozz_media_directory}/bin/versioning/raw_skeleton_v1_le.ozz\",\"import\":true,\"raw\":true}}\;output:${ozz_media_directory}/bin/versioning/raw_skeleton_v1_le.ozz\;option:--endian=little"

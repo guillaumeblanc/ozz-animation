@@ -51,14 +51,14 @@ struct RawquaternionTrack;
 
 namespace fbx {
 
-Converter::AnimationNames GetAnimationNames(FbxSceneLoader& _scene_loader);
+OzzConverter::AnimationNames GetAnimationNames(FbxSceneLoader& _scene_loader);
 
 bool ExtractAnimation(const char* _animation_name,
                       FbxSceneLoader& _scene_loader, const Skeleton& _skeleton,
                       float _sampling_rate, RawAnimation* _animation);
 
-Converter::NodeProperties GetNodeProperties(FbxSceneLoader& _scene_loader,
-                                            const char* _node_name);
+OzzConverter::NodeProperties GetNodeProperties(FbxSceneLoader& _scene_loader,
+                                               const char* _node_name);
 
 bool ExtractTrack(const char* _animation_name, const char* _node_name,
                   const char* _track_name, FbxSceneLoader& _scene_loader,
