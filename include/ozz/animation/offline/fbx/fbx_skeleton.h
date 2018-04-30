@@ -29,7 +29,7 @@
 #define OZZ_OZZ_ANIMATION_OFFLINE_FBX_FBX_SKELETON_H_
 
 #include "ozz/animation/offline/fbx/fbx.h"
-#include "ozz/animation/offline/tools/convert2ozz.h"
+#include "ozz/animation/offline/tools/import2ozz.h"
 
 namespace ozz {
 namespace animation {
@@ -40,7 +40,7 @@ struct RawSkeleton;
 namespace fbx {
 
 bool ExtractSkeleton(FbxSceneLoader& _loader,
-                     const OzzConverter::NodeType& _types,
+                     const OzzImporter::NodeType& _types,
                      RawSkeleton* _skeleton);
 
 }  // namespace fbx

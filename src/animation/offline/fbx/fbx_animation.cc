@@ -582,8 +582,8 @@ bool ExtractTrackImpl(const char* _animation_name, const char* _node_name,
 }
 }  // namespace
 
-OzzConverter::AnimationNames GetAnimationNames(FbxSceneLoader& _scene_loader) {
-  OzzConverter::AnimationNames names;
+OzzImporter::AnimationNames GetAnimationNames(FbxSceneLoader& _scene_loader) {
+  OzzImporter::AnimationNames names;
 
   const FbxScene* scene = _scene_loader.scene();
   for (int i = 0; i < scene->GetSrcObjectCount<FbxAnimStack>(); ++i) {
@@ -627,9 +627,9 @@ bool ExtractAnimation(const char* _animation_name,
   return success;
 }
 
-OzzConverter::NodeProperties GetNodeProperties(FbxSceneLoader& _scene_loader,
-                                               const char* _node_name) {
-  OzzConverter::NodeProperties properties;
+OzzImporter::NodeProperties GetNodeProperties(FbxSceneLoader& _scene_loader,
+                                              const char* _node_name) {
+  OzzImporter::NodeProperties properties;
   FbxScene* scene = _scene_loader.scene();
   const FbxNode* node = scene->FindNodeByName(_node_name);
   if (!node) {
@@ -656,26 +656,26 @@ OzzConverter::NodeProperties GetNodeProperties(FbxSceneLoader& _scene_loader,
       case eFbxDouble:
       case eFbxEnum:
       case eFbxEnumM: {
-        const OzzConverter::NodeProperty ppt = {
-            ppt_name, OzzConverter::NodeProperty::kFloat1};
+        const OzzImporter::NodeProperty ppt = {
+            ppt_name, OzzImporter::NodeProperty::kFloat1};
         properties.push_back(ppt);
         break;
       }
       case eFbxDouble2: {
-        const OzzConverter::NodeProperty ppt = {
-            ppt_name, OzzConverter::NodeProperty::kFloat2};
+        const OzzImporter::NodeProperty ppt = {
+            ppt_name, OzzImporter::NodeProperty::kFloat2};
         properties.push_back(ppt);
         break;
       }
       case eFbxDouble3: {
-        const OzzConverter::NodeProperty ppt = {
-            ppt_name, OzzConverter::NodeProperty::kFloat3};
+        const OzzImporter::NodeProperty ppt = {
+            ppt_name, OzzImporter::NodeProperty::kFloat3};
         properties.push_back(ppt);
         break;
       }
       case eFbxDouble4: {
-        const OzzConverter::NodeProperty ppt = {
-            ppt_name, OzzConverter::NodeProperty::kFloat4};
+        const OzzImporter::NodeProperty ppt = {
+            ppt_name, OzzImporter::NodeProperty::kFloat4};
         properties.push_back(ppt);
         break;
       }

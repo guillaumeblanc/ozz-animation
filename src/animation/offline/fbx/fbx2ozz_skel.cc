@@ -34,8 +34,8 @@
 
 #include "ozz/base/log.h"
 
-bool FbxConverter::Import(ozz::animation::offline::RawSkeleton* _skeleton,
-                          const NodeType& _types) {
+bool Fbx2OzzImporter::Import(ozz::animation::offline::RawSkeleton* _skeleton,
+                             const NodeType& _types) {
   if (!_skeleton) {
     return false;
   }

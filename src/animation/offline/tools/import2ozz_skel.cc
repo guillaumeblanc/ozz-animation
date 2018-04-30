@@ -25,14 +25,14 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "animation/offline/tools/convert2ozz_skel.h"
+#include "animation/offline/tools/import2ozz_skel.h"
 
 #include <cstdlib>
 #include <cstring>
 
-#include "animation/offline/tools/convert2ozz_config.h"
+#include "animation/offline/tools/import2ozz_config.h"
 
-#include "ozz/animation/offline/tools/convert2ozz.h"
+#include "ozz/animation/offline/tools/import2ozz.h"
 
 #include "ozz/animation/offline/raw_skeleton.h"
 #include "ozz/animation/offline/skeleton_builder.h"
@@ -50,7 +50,7 @@ namespace ozz {
 namespace animation {
 namespace offline {
 
-bool ImportSkeleton(const Json::Value& _config, OzzConverter* _converter,
+bool ImportSkeleton(const Json::Value& _config, OzzImporter* _converter,
                     const ozz::Endianness _endianness) {
   const Json::Value& skeleton_config = _config["skeleton"];
 
@@ -62,7 +62,7 @@ bool ImportSkeleton(const Json::Value& _config, OzzConverter* _converter,
   }
 
   // Setup node types import properties.
-  OzzConverter::NodeType types = {0};
+  OzzImporter::NodeType types = {0};
   const Json::Value& types_config = skeleton_config["node_types"];
   types.skeleton = types_config["skeleton"].asBool();
   types.marker = types_config["marker"].asBool();

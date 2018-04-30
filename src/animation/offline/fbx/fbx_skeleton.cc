@@ -40,7 +40,7 @@ namespace {
 
 enum RecurseReturn { kError, kSkeletonFound, kNoSkeleton };
 
-bool IsTypeSelected(const OzzConverter::NodeType& _types,
+bool IsTypeSelected(const OzzImporter::NodeType& _types,
                     FbxNodeAttribute::EType _node_type) {
   // Early out to accept any node type
   if (_types.any) {
@@ -92,7 +92,7 @@ bool IsTypeSelected(const OzzConverter::NodeType& _types,
 }
 
 RecurseReturn RecurseNode(FbxNode* _node, FbxSystemConverter* _converter,
-                          const OzzConverter::NodeType& _types,
+                          const OzzImporter::NodeType& _types,
                           RawSkeleton* _skeleton, RawSkeleton::Joint* _parent,
                           FbxAMatrix _parent_global_inv, int _depth) {
   bool skeleton_found = false;
@@ -156,7 +156,7 @@ RecurseReturn RecurseNode(FbxNode* _node, FbxSystemConverter* _converter,
 }  // namespace
 
 bool ExtractSkeleton(FbxSceneLoader& _loader,
-                     const OzzConverter::NodeType& _types,
+                     const OzzImporter::NodeType& _types,
                      RawSkeleton* _skeleton) {
   RecurseReturn ret =
       RecurseNode(_loader.scene()->GetRootNode(), _loader.converter(), _types,

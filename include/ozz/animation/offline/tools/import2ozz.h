@@ -25,8 +25,8 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#ifndef OZZ_OZZ_ANIMATION_OFFLINE_TOOLS_CONVERT2OZZ_H_
-#define OZZ_OZZ_ANIMATION_OFFLINE_TOOLS_CONVERT2OZZ_H_
+#ifndef OZZ_OZZ_ANIMATION_OFFLINE_TOOLS_import2ozz_H_
+#define OZZ_OZZ_ANIMATION_OFFLINE_TOOLS_import2ozz_H_
 
 #include "ozz/base/containers/vector.h"
 
@@ -42,7 +42,7 @@ class Skeleton;
 namespace offline {
 
 // Defines ozz converter/importer interface.
-// OzzConverter implements a command line tool to convert any source data format
+// OzzImporter implements a command line tool to convert any source data format
 // to ozz skeletons and animations. The tool exposes a set of global options
 // through the command line, and a json configuration file to tune import
 // settings. Reference json configuration is generated at
@@ -50,13 +50,12 @@ namespace offline {
 // To import a new source data format, one will implement the pure virtual
 // functions of this interface. All the conversions end error processing are
 // done by the tool.
-class OzzConverter {
+class OzzImporter {
  public:
   // Function operator that must be called with main() arguments to start import
   // process.
   int operator()(int _argc, const char** _argv);
 
- private:
   // Loads source data file.
   // Returning false will report and error.
   virtual bool Load(const char* _filename) = 0;
@@ -127,4 +126,4 @@ class OzzConverter {
 }  // namespace offline
 }  // namespace animation
 }  // namespace ozz
-#endif  // OZZ_OZZ_ANIMATION_OFFLINE_TOOLS_CONVERT2OZZ_H_
+#endif  // OZZ_OZZ_ANIMATION_OFFLINE_TOOLS_import2ozz_H_

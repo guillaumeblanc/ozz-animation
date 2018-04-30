@@ -25,12 +25,12 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/animation/offline/tools/convert2ozz.h"
+#include "ozz/animation/offline/tools/import2ozz.h"
 
 #include <cstdlib>
 #include <cstring>
 
-#include "animation/offline/tools/convert2ozz_config.h"
+#include "animation/offline/tools/import2ozz_config.h"
 
 #include "ozz/animation/offline/additive_animation_builder.h"
 #include "ozz/animation/offline/animation_builder.h"
@@ -259,7 +259,7 @@ bool Export(const ozz::animation::offline::RawAnimation& _raw_animation,
   return true;
 }
 
-bool ProcessAnimation(OzzConverter& _converter, const char* _animation_name,
+bool ProcessAnimation(OzzImporter& _converter, const char* _animation_name,
                       const ozz::animation::Skeleton& _skeleton,
                       const Json::Value& _config,
                       const ozz::Endianness _endianness) {
@@ -372,31 +372,31 @@ bool Export(const _RawTrack& _raw_track, const Json::Value& _config,
   return true;
 }
 
-template <OzzConverter::NodeProperty::Type _type>
+template <OzzImporter::NodeProperty::Type _type>
 struct TrackFromType;
 
 template <>
-struct TrackFromType<OzzConverter::NodeProperty::kFloat1> {
+struct TrackFromType<OzzImporter::NodeProperty::kFloat1> {
   typedef RawFloatTrack RawTrack;
 };
 template <>
-struct TrackFromType<OzzConverter::NodeProperty::kFloat2> {
+struct TrackFromType<OzzImporter::NodeProperty::kFloat2> {
   typedef RawFloat2Track RawTrack;
 };
 template <>
-struct TrackFromType<OzzConverter::NodeProperty::kFloat3> {
+struct TrackFromType<OzzImporter::NodeProperty::kFloat3> {
   typedef RawFloat3Track RawTrack;
 };
 template <>
-struct TrackFromType<OzzConverter::NodeProperty::kFloat4> {
+struct TrackFromType<OzzImporter::NodeProperty::kFloat4> {
   typedef RawFloat4Track RawTrack;
 };
 
-template <OzzConverter::NodeProperty::Type _type>
-bool ProcessImportTrackType(OzzConverter& _converter,
+template <OzzImporter::NodeProperty::Type _type>
+bool ProcessImportTrackType(OzzImporter& _converter,
                             const char* _animation_name,
                             const char* _joint_name,
-                            const OzzConverter::NodeProperty& _property,
+                            const OzzImporter::NodeProperty& _property,
                             const Json::Value& _import_config,
                             const ozz::Endianness _endianness) {
   bool success = true;
@@ -420,7 +420,7 @@ bool ProcessImportTrackType(OzzConverter& _converter,
   return success;
 }
 
-bool ProcessImportTrack(OzzConverter& _converter, const char* _animation_name,
+bool ProcessImportTrack(OzzImporter& _converter, const char* _animation_name,
                         const Skeleton& _skeleton,
                         const Json::Value& _import_config,
                         const ozz::Endianness _endianness) {
@@ -440,10 +440,10 @@ bool ProcessImportTrack(OzzConverter& _converter, const char* _animation_name,
 
     // Node found, need to find matching properties now.
     bool ppt_found = false;
-    const OzzConverter::NodeProperties properties =
+    const OzzImporter::NodeProperties properties =
         _converter.GetNodeProperties(joint_name);
     for (size_t p = 0; p < properties.size(); ++p) {
-      const OzzConverter::NodeProperty& property = properties[p];
+      const OzzImporter::NodeProperty& property = properties[p];
       // Checks property name matches
       const char* property_name = property.name.c_str();
       if (!strmatch(property_name, ppt_name_match)) {
@@ -464,32 +464,28 @@ bool ProcessImportTrack(OzzConverter& _converter, const char* _animation_name,
 
       // Import property depending on its type.
       switch (property.type) {
-        case OzzConverter::NodeProperty::kFloat1: {
-          success &=
-              ProcessImportTrackType<OzzConverter::NodeProperty::kFloat1>(
-                  _converter, _animation_name, joint_name, property,
-                  _import_config, _endianness);
+        case OzzImporter::NodeProperty::kFloat1: {
+          success &= ProcessImportTrackType<OzzImporter::NodeProperty::kFloat1>(
+              _converter, _animation_name, joint_name, property, _import_config,
+              _endianness);
           break;
         }
-        case OzzConverter::NodeProperty::kFloat2: {
-          success &=
-              ProcessImportTrackType<OzzConverter::NodeProperty::kFloat2>(
-                  _converter, _animation_name, joint_name, property,
-                  _import_config, _endianness);
+        case OzzImporter::NodeProperty::kFloat2: {
+          success &= ProcessImportTrackType<OzzImporter::NodeProperty::kFloat2>(
+              _converter, _animation_name, joint_name, property, _import_config,
+              _endianness);
           break;
         }
-        case OzzConverter::NodeProperty::kFloat3: {
-          success &=
-              ProcessImportTrackType<OzzConverter::NodeProperty::kFloat3>(
-                  _converter, _animation_name, joint_name, property,
-                  _import_config, _endianness);
+        case OzzImporter::NodeProperty::kFloat3: {
+          success &= ProcessImportTrackType<OzzImporter::NodeProperty::kFloat3>(
+              _converter, _animation_name, joint_name, property, _import_config,
+              _endianness);
           break;
         }
-        case OzzConverter::NodeProperty::kFloat4: {
-          success &=
-              ProcessImportTrackType<OzzConverter::NodeProperty::kFloat4>(
-                  _converter, _animation_name, joint_name, property,
-                  _import_config, _endianness);
+        case OzzImporter::NodeProperty::kFloat4: {
+          success &= ProcessImportTrackType<OzzImporter::NodeProperty::kFloat4>(
+              _converter, _animation_name, joint_name, property, _import_config,
+              _endianness);
           break;
         }
         default: {
@@ -516,13 +512,13 @@ bool ProcessImportTrack(OzzConverter& _converter, const char* _animation_name,
 }
 
 /*
-bool ProcessMotionTrack(OzzConverter& _converter,
+bool ProcessMotionTrack(OzzImporter& _converter,
                         const char* _animation_name, const Skeleton& _skeleton,
                         const Json::Value& _motion) {
   return true;
 }*/
 
-bool ProcessTracks(OzzConverter& _converter, const char* _animation_name,
+bool ProcessTracks(OzzImporter& _converter, const char* _animation_name,
                    const Skeleton& _skeleton, const Json::Value& _config,
                    const ozz::Endianness _endianness) {
   bool success = true;
@@ -545,7 +541,7 @@ bool ProcessTracks(OzzConverter& _converter, const char* _animation_name,
 }
 }  // namespace
 
-bool ImportAnimations(const Json::Value& _config, OzzConverter* _converter,
+bool ImportAnimations(const Json::Value& _config, OzzImporter* _converter,
                       const ozz::Endianness _endianness) {
   const Json::Value& skeleton_config = _config["skeleton"];
   const Json::Value& animations_config = _config["animations"];
@@ -558,7 +554,7 @@ bool ImportAnimations(const Json::Value& _config, OzzConverter* _converter,
   }
 
   // Get all available animation names.
-  const OzzConverter::AnimationNames& import_animation_names =
+  const OzzImporter::AnimationNames& import_animation_names =
       _converter->GetAnimationNames();
 
   // Are there animations available

@@ -25,7 +25,7 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "animation/offline/tools/convert2ozz_config.h"
+#include "animation/offline/tools/import2ozz_config.h"
 
 #include <fstream>
 #include <sstream>

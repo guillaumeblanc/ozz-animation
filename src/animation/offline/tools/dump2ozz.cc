@@ -25,11 +25,11 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/animation/offline/tools/convert2ozz.h"
+#include "ozz/animation/offline/tools/import2ozz.h"
 
-// Mocks OzzConverter so it can be used to dump default and reference
+// Mocks OzzImporter so it can be used to dump default and reference
 // configurations.
-class DumpConverter : public ozz::animation::offline::OzzConverter {
+class DumpConverter : public ozz::animation::offline::OzzImporter {
  public:
   DumpConverter() {}
   ~DumpConverter() {}

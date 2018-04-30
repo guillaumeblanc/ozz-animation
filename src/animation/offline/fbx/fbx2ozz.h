@@ -28,7 +28,7 @@
 #ifndef OZZ_ANIMATION_OFFLINE_FBX_FBX2OZZ_H_
 #define OZZ_ANIMATION_OFFLINE_FBX_FBX2OZZ_H_
 
-#include "ozz/animation/offline/tools/convert2ozz.h"
+#include "ozz/animation/offline/tools/import2ozz.h"
 
 #include "ozz/animation/offline/fbx/fbx.h"
 
@@ -43,10 +43,10 @@
 // Use fbx2ozz integrated help command (fbx2ozz --help) for more details
 // about available arguments.
 
-class FbxConverter : public ozz::animation::offline::OzzConverter {
+class Fbx2OzzImporter : public ozz::animation::offline::OzzImporter {
  public:
-  FbxConverter();
-  ~FbxConverter();
+  Fbx2OzzImporter();
+  ~Fbx2OzzImporter();
 
  private:
   virtual bool Load(const char* _filename);

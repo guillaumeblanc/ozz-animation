@@ -25,14 +25,14 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/animation/offline/tools/convert2ozz.h"
+#include "ozz/animation/offline/tools/import2ozz.h"
 
 #include <cstdlib>
 #include <cstring>
 
-#include "animation/offline/tools/convert2ozz_anim.h"
-#include "animation/offline/tools/convert2ozz_config.h"
-#include "animation/offline/tools/convert2ozz_skel.h"
+#include "animation/offline/tools/import2ozz_anim.h"
+#include "animation/offline/tools/import2ozz_config.h"
+#include "animation/offline/tools/import2ozz_skel.h"
 
 #include "ozz/base/log.h"
 
@@ -114,7 +114,7 @@ namespace ozz {
 namespace animation {
 namespace offline {
 
-int OzzConverter::operator()(int _argc, const char** _argv) {
+int OzzImporter::operator()(int _argc, const char** _argv) {
   // Parses arguments.
   ozz::options::ParseResult parse_result = ozz::options::ParseCommandLine(
       _argc, _argv, "2.0",

@@ -27,14 +27,14 @@
 
 #include <string.h>
 
-#include "ozz/animation/offline/tools/convert2ozz.h"
+#include "ozz/animation/offline/tools/import2ozz.h"
 
 #include "ozz/animation/runtime/skeleton.h"
 
 #include "ozz/base/io/stream.h"
 #include "ozz/base/memory/allocator.h"
 
-class TestConverter : public ozz::animation::offline::OzzConverter {
+class TestConverter : public ozz::animation::offline::OzzImporter {
  public:
   TestConverter() : file_(NULL) {}
   ~TestConverter() { ozz::memory::default_allocator()->Delete(file_); }
