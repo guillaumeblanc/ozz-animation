@@ -3,18 +3,22 @@
   "skeleton" : 
   {
     "filename" : "skeleton.ozz", //  Specifies skeleton input/output filename. The file will be outputted if import is true. It will also be used as an input reference during animations import.
-    "import" : true, //  Imports and writes skeleton file.
-    "raw" : false, //  Outputs raw skeleton.
-    //  Define nodes types that should be considered as skeleton joints.
-    "node_types" : 
+    //  Define skeleton import settings.
+    "import" : 
     {
-      "skeleton" : true, //  Uses skeleton nodes as skeleton joints.
-      "marker" : false, //  Uses marker nodes as skeleton joints.
-      "camera" : false, //  Uses camera nodes as skeleton joints.
-      "geometry" : false, //  Uses geometry nodes as skeleton joints.
-      "light" : false, //  Uses light nodes as skeleton joints.
-      "null" : false, //  Uses null nodes as skeleton joints.
-      "any" : false //  Uses any node type as skeleton joints, including those listed above and any other.
+      "enable" : true, //  Imports (from source data file) and writes skeleton output file.
+      "raw" : false, //  Outputs raw skeleton.
+      //  Define nodes types that should be considered as skeleton joints.
+      "types" : 
+      {
+        "skeleton" : true, //  Uses skeleton nodes as skeleton joints.
+        "marker" : false, //  Uses marker nodes as skeleton joints.
+        "camera" : false, //  Uses camera nodes as skeleton joints.
+        "geometry" : false, //  Uses geometry nodes as skeleton joints.
+        "light" : false, //  Uses light nodes as skeleton joints.
+        "null" : false, //  Uses null nodes as skeleton joints.
+        "any" : false //  Uses any node type as skeleton joints, including those listed above and any other.
+      }
     }
   },
   //  Animations to import.

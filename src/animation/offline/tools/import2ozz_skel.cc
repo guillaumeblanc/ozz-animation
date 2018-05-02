@@ -53,17 +53,18 @@ namespace offline {
 bool ImportSkeleton(const Json::Value& _config, OzzImporter* _converter,
                     const ozz::Endianness _endianness) {
   const Json::Value& skeleton_config = _config["skeleton"];
+  const Json::Value& import_config = skeleton_config["import"];
 
   // First check that we're actually expecting to import a skeleton.
-  if (!skeleton_config["import"].asBool()) {
+  if (!import_config["enable"].asBool()) {
     ozz::log::Log() << "Skeleton build disabled, import will be skipped."
                     << std::endl;
     return true;
   }
 
   // Setup node types import properties.
+  const Json::Value& types_config = import_config["types"];
   OzzImporter::NodeType types = {0};
-  const Json::Value& types_config = skeleton_config["node_types"];
   types.skeleton = types_config["skeleton"].asBool();
   types.marker = types_config["marker"].asBool();
   types.camera = types_config["camera"].asBool();
@@ -80,7 +81,7 @@ bool ImportSkeleton(const Json::Value& _config, OzzImporter* _converter,
   // Needs to be done before opening the output file, so that if it fails then
   // there's no invalid file outputted.
   ozz::animation::Skeleton* skeleton = NULL;
-  if (!skeleton_config["raw"].asBool()) {
+  if (!import_config["raw"].asBool()) {
     // Builds runtime skeleton.
     ozz::log::Log() << "Builds runtime skeleton." << std::endl;
     ozz::animation::offline::SkeletonBuilder builder;
@@ -110,7 +111,7 @@ bool ImportSkeleton(const Json::Value& _config, OzzImporter* _converter,
     ozz::io::OArchive archive(&file, _endianness);
 
     // Fills output archive with the skeleton.
-    if (skeleton_config["raw"].asBool()) {
+    if (import_config["raw"].asBool()) {
       ozz::log::Log() << "Outputs RawSkeleton to binary archive." << std::endl;
       archive << raw_skeleton;
     } else {

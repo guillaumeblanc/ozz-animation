@@ -218,17 +218,26 @@ bool SanitizeSkeletonJointTypes(Json::Value& _root, bool _all_options) {
   return true;
 }
 
+bool SanitizeSkeletonImport(Json::Value& _root, bool _all_options) {
+  (void)_all_options;
+  MakeDefault(
+      _root, "enable", true,
+      "Imports (from source data file) and writes skeleton output file.");
+  MakeDefault(_root, "raw", false, "Outputs raw skeleton.");
+  MakeDefaultObject(
+      _root, "types",
+      "Define nodes types that should be considered as skeleton joints.");
+  SanitizeSkeletonJointTypes(_root["types"], _all_options);
+  return true;
+}
+
 bool SanitizeSkeleton(Json::Value& _root, bool _all_options) {
   MakeDefault(_root, "filename", "skeleton.ozz",
               "Specifies skeleton input/output filename. The file will be "
               "outputted if import is true. It will also be used as an input "
               "reference during animations import.");
-  MakeDefault(_root, "import", true, "Imports and writes skeleton file.");
-  MakeDefault(_root, "raw", false, "Outputs raw skeleton.");
-  MakeDefaultObject(
-      _root, "node_types",
-      "Define nodes types that should be considered as skeleton joints.");
-  SanitizeSkeletonJointTypes(_root["node_types"], _all_options);
+  MakeDefaultObject(_root, "import", "Define skeleton import settings.");
+  SanitizeSkeletonImport(_root["import"], _all_options);
 
   return true;
 }

@@ -1,8 +1,7 @@
 {
   "skeleton":
   {
-    "filename":"${ozz_temp_directory}/fbx_propreties_skeleton.ozz",
-    "import":true
+    "filename":"${ozz_temp_directory}/fbx_propreties_skeleton.ozz"
   },
   "animations":
   [
