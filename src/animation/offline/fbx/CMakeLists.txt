@@ -35,37 +35,37 @@ set_target_properties(fbx2ozz
 
 install(TARGETS fbx2ozz DESTINATION bin/tools)
 
-# Gerenate binary data
+# Gerenate binary data to a specific folder (${ozz_media_directory}/bin)
 set(animations
 
   # Library data
-  "/fbx/alain/skeleton.fbx\;{\"skeleton\":{\"filename\":\"${ozz_media_directory}/bin/alain_skeleton.ozz\",\"import\":{\"enable\":true}}}\;output:${ozz_media_directory}/bin/alain_skeleton.ozz"
-  "/fbx/alain/atlas.fbx\;{\"skeleton\":{\"filename\":\"${ozz_media_directory}/bin/alain_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"${ozz_media_directory}/bin/alain_atlas_raw.ozz\",\"raw\":true,\"optimize\":false}]}\;output:${ozz_media_directory}/bin/alain_atlas_raw.ozz\;depend:${ozz_media_directory}/bin/alain_skeleton.ozz"
-  "/fbx/alain/locomotions.fbx\;{\"skeleton\":{\"filename\":\"${ozz_media_directory}/bin/alain_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"${ozz_media_directory}/bin/alain_*.ozz\"}]}\;output:${ozz_media_directory}/bin/alain_walk.ozz\;output:${ozz_media_directory}/bin/alain_jog.ozz\;output:${ozz_media_directory}/bin/alain_run.ozz\;depend:${ozz_media_directory}/bin/alain_skeleton.ozz"
-  "/fbx/alain/crossarms.fbx\;{\"skeleton\":{\"filename\":\"${ozz_media_directory}/bin/alain_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"${ozz_media_directory}/bin/alain_crossarms.ozz\"}]}\;output:${ozz_media_directory}/bin/alain_crossarms.ozz\;depend:${ozz_media_directory}/bin/alain_skeleton.ozz"
-  "/fbx/alain/crackhead.fbx\;{\"skeleton\":{\"filename\":\"${ozz_media_directory}/bin/alain_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"${ozz_media_directory}/bin/alain_crackhead.ozz\"}]}\;output:${ozz_media_directory}/bin/alain_crackhead.ozz\;depend:${ozz_media_directory}/bin/alain_skeleton.ozz"
-  "/fbx/alain/crackhead.fbx\;{\"skeleton\":{\"filename\":\"${ozz_media_directory}/bin/alain_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"${ozz_media_directory}/bin/alain_crackhead_additive.ozz\",\"additive\":true}]}\;output:${ozz_media_directory}/bin/alain_crackhead_additive.ozz\;depend:${ozz_media_directory}/bin/alain_skeleton.ozz"
+  "/fbx/alain/skeleton.fbx\;{\"skeleton\":{\"filename\":\"alain_skeleton.ozz\",\"import\":{\"enable\":true}},\"animations\":[]}\;output:alain_skeleton.ozz"
+  "/fbx/alain/atlas.fbx\;{\"skeleton\":{\"filename\":\"alain_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"alain_atlas_raw.ozz\",\"raw\":true,\"optimize\":false}]}\;output:alain_atlas_raw.ozz\;depend:alain_skeleton.ozz"
+  "/fbx/alain/locomotions.fbx\;{\"skeleton\":{\"filename\":\"alain_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"alain_*.ozz\"}]}\;output:alain_walk.ozz\;output:alain_jog.ozz\;output:alain_run.ozz\;depend:alain_skeleton.ozz"
+  "/fbx/alain/crossarms.fbx\;{\"skeleton\":{\"filename\":\"alain_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"alain_crossarms.ozz\"}]}\;output:alain_crossarms.ozz\;depend:alain_skeleton.ozz"
+  "/fbx/alain/crackhead.fbx\;{\"skeleton\":{\"filename\":\"alain_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"alain_crackhead.ozz\"}]}\;output:alain_crackhead.ozz\;depend:alain_skeleton.ozz"
+  "/fbx/alain/crackhead.fbx\;{\"skeleton\":{\"filename\":\"alain_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"alain_crackhead_additive.ozz\",\"additive\":true}]}\;output:alain_crackhead_additive.ozz\;depend:alain_skeleton.ozz"
   
   # Robot user channels
-  "/fbx/robot.fbx\;{\"skeleton\":{\"filename\":\"${ozz_media_directory}/bin/robot_skeleton.ozz\",\"import\":{\"enable\":true}},\"animations\":[{\"filename\":\"${ozz_media_directory}/bin/robot_animation.ozz\",\"optimization_tolerances\":{\"hierarchical\":0.0001},\"tracks\":[{\"properties\":[{\"joint_name\":\"thumb2\",\"property_name\":\"grasp\",\"filename\":\"${ozz_media_directory}/bin/robot_track_grasp.ozz\"}]}]}]}\;output:${ozz_media_directory}/bin/robot_skeleton.ozz\;output:${ozz_media_directory}/bin/robot_animation.ozz\;output:${ozz_media_directory}/bin/robot_track_grasp.ozz"
+  "/fbx/robot.fbx\;{\"skeleton\":{\"filename\":\"robot_skeleton.ozz\",\"import\":{\"enable\":true}},\"animations\":[{\"filename\":\"robot_animation.ozz\",\"optimization_tolerances\":{\"hierarchical\":0.0001},\"tracks\":[{\"properties\":[{\"joint_name\":\"thumb2\",\"property_name\":\"grasp\",\"filename\":\"robot_track_grasp.ozz\"}]}]}]}\;output:robot_skeleton.ozz\;output:robot_animation.ozz\;output:robot_track_grasp.ozz"
 
   # Baked animation
-  "/fbx/baked.fbx\;{\"skeleton\": {\"filename\":\"${ozz_media_directory}/bin/baked_skeleton.ozz\",\"import\":{\"enable\":true,\"types\":{\"geometry\":true}}},\"animations\":[{\"filename\":\"${ozz_media_directory}/bin/baked_animation.ozz\",\"optimization_tolerances\":{\"translation\":0.002,\"rotation\":0.002,\"hierarchical\":1.0}}]}\;output:${ozz_media_directory}/bin/baked_skeleton.ozz\;output:${ozz_media_directory}/bin/baked_animation.ozz"
+  "/fbx/baked.fbx\;{\"skeleton\": {\"filename\":\"baked_skeleton.ozz\",\"import\":{\"enable\":true,\"types\":{\"geometry\":true}}},\"animations\":[{\"filename\":\"baked_animation.ozz\",\"optimization_tolerances\":{\"translation\":0.002,\"rotation\":0.002,\"hierarchical\":1.0}}]}\;output:baked_skeleton.ozz\;output:baked_animation.ozz"
 
   # Versioning
-  "/fbx/alain/skeleton.fbx\;{\"skeleton\":{\"filename\":\"${ozz_media_directory}/bin/versioning/raw_skeleton_v1_le.ozz\",\"import\":{\"enable\":true,\"raw\":true}}}\;output:${ozz_media_directory}/bin/versioning/raw_skeleton_v1_le.ozz\;option:--endian=little"
-  "/fbx/alain/skeleton.fbx\;{\"skeleton\":{\"filename\":\"${ozz_media_directory}/bin/versioning/raw_skeleton_v1_be.ozz\",\"import\":{\"enable\":true,\"raw\":true}}}\;output:${ozz_media_directory}/bin/versioning/raw_skeleton_v1_be.ozz\;option:--endian=big"
-  "/fbx/alain/skeleton.fbx\;{\"skeleton\":{\"filename\":\"${ozz_media_directory}/bin/versioning/skeleton_v1_le.ozz\",\"import\":{\"enable\":true}}}\;output:${ozz_media_directory}/bin/versioning/skeleton_v1_le.ozz\;option:--endian=little"
-  "/fbx/alain/skeleton.fbx\;{\"skeleton\":{\"filename\":\"${ozz_media_directory}/bin/versioning/skeleton_v1_be.ozz\",\"import\":{\"enable\":true}}}\;output:${ozz_media_directory}/bin/versioning/skeleton_v1_be.ozz\;option:--endian=big"
-  "/fbx/alain/run.fbx\;{\"skeleton\":{\"filename\":\"${ozz_media_directory}/bin/alain_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"${ozz_media_directory}/bin/versioning/raw_animation_v2_le.ozz\",\"raw\":true}]}\;output:${ozz_media_directory}/bin/versioning/raw_animation_v2_le.ozz\;option:--endian=little\;depend:${ozz_media_directory}/bin/alain_skeleton.ozz"
-  "/fbx/alain/run.fbx\;{\"skeleton\":{\"filename\":\"${ozz_media_directory}/bin/alain_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"${ozz_media_directory}/bin/versioning/raw_animation_v2_be.ozz\",\"raw\":true}]}\;output:${ozz_media_directory}/bin/versioning/raw_animation_v2_be.ozz\;option:--endian=big\;depend:${ozz_media_directory}/bin/alain_skeleton.ozz"
-  "/fbx/alain/run.fbx\;{\"skeleton\":{\"filename\":\"${ozz_media_directory}/bin/alain_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"${ozz_media_directory}/bin/versioning/animation_v4_le.ozz\"}]}\;output:${ozz_media_directory}/bin/versioning/animation_v4_le.ozz\;option:--endian=little\;depend:${ozz_media_directory}/bin/alain_skeleton.ozz"
-  "/fbx/alain/run.fbx\;{\"skeleton\":{\"filename\":\"${ozz_media_directory}/bin/alain_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"${ozz_media_directory}/bin/versioning/animation_v4_be.ozz\"}]}\;output:${ozz_media_directory}/bin/versioning/animation_v4_be.ozz\;option:--endian=big\;depend:${ozz_media_directory}/bin/alain_skeleton.ozz"
+  "/fbx/alain/skeleton.fbx\;{\"skeleton\":{\"filename\":\"versioning/raw_skeleton_v1_le.ozz\",\"import\":{\"enable\":true,\"raw\":true}}}\;output:versioning/raw_skeleton_v1_le.ozz\;option:--endian=little"
+  "/fbx/alain/skeleton.fbx\;{\"skeleton\":{\"filename\":\"versioning/raw_skeleton_v1_be.ozz\",\"import\":{\"enable\":true,\"raw\":true}}}\;output:versioning/raw_skeleton_v1_be.ozz\;option:--endian=big"
+  "/fbx/alain/skeleton.fbx\;{\"skeleton\":{\"filename\":\"versioning/skeleton_v1_le.ozz\",\"import\":{\"enable\":true}}}\;output:versioning/skeleton_v1_le.ozz\;option:--endian=little"
+  "/fbx/alain/skeleton.fbx\;{\"skeleton\":{\"filename\":\"versioning/skeleton_v1_be.ozz\",\"import\":{\"enable\":true}}}\;output:versioning/skeleton_v1_be.ozz\;option:--endian=big"
+  "/fbx/alain/run.fbx\;{\"skeleton\":{\"filename\":\"alain_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"versioning/raw_animation_v2_le.ozz\",\"raw\":true}]}\;output:versioning/raw_animation_v2_le.ozz\;option:--endian=little\;depend:alain_skeleton.ozz"
+  "/fbx/alain/run.fbx\;{\"skeleton\":{\"filename\":\"alain_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"versioning/raw_animation_v2_be.ozz\",\"raw\":true}]}\;output:versioning/raw_animation_v2_be.ozz\;option:--endian=big\;depend:alain_skeleton.ozz"
+  "/fbx/alain/run.fbx\;{\"skeleton\":{\"filename\":\"alain_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"versioning/animation_v4_le.ozz\"}]}\;output:versioning/animation_v4_le.ozz\;option:--endian=little\;depend:alain_skeleton.ozz"
+  "/fbx/alain/run.fbx\;{\"skeleton\":{\"filename\":\"alain_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"versioning/animation_v4_be.ozz\"}]}\;output:versioning/animation_v4_be.ozz\;option:--endian=big\;depend:alain_skeleton.ozz"
 
   # Collada
-  "/collada/astro_max.dae\;{\"skeleton\":{\"filename\":\"${ozz_media_directory}/bin/astro_max_skeleton.ozz\",\"import\":{\"enable\":true}},\"animations\":[{\"filename\":\"${ozz_media_directory}/bin/astro_max_animation.ozz\"}]}\;output:${ozz_media_directory}/bin/astro_max_animation.ozz\;output:${ozz_media_directory}/bin/astro_max_skeleton.ozz"
-  "/collada/astro_maya.dae\;{\"skeleton\":{\"filename\":\"${ozz_media_directory}/bin/astro_maya_skeleton.ozz\",\"import\":{\"enable\":true}},\"animations\":[{\"filename\":\"${ozz_media_directory}/bin/astro_maya_animation.ozz\"}]}\;output:${ozz_media_directory}/bin/astro_maya_animation.ozz\;output:${ozz_media_directory}/bin/astro_maya_skeleton.ozz"
-  "/collada/seymour.dae\;{\"skeleton\":{\"filename\":\"${ozz_media_directory}/bin/seymour_skeleton.ozz\",\"import\":{\"enable\":true}},\"animations\":[{\"filename\":\"${ozz_media_directory}/bin/seymour_animation.ozz\"}]}\;output:${ozz_media_directory}/bin/seymour_animation.ozz\;output:${ozz_media_directory}/bin/seymour_skeleton.ozz"
+  "/collada/astro_max.dae\;{\"skeleton\":{\"filename\":\"astro_max_skeleton.ozz\",\"import\":{\"enable\":true}},\"animations\":[{\"filename\":\"astro_max_animation.ozz\"}]}\;output:astro_max_animation.ozz\;output:astro_max_skeleton.ozz"
+  "/collada/astro_maya.dae\;{\"skeleton\":{\"filename\":\"astro_maya_skeleton.ozz\",\"import\":{\"enable\":true}},\"animations\":[{\"filename\":\"astro_maya_animation.ozz\"}]}\;output:astro_maya_animation.ozz\;output:astro_maya_skeleton.ozz"
+  "/collada/seymour.dae\;{\"skeleton\":{\"filename\":\"seymour_skeleton.ozz\",\"import\":{\"enable\":true}},\"animations\":[{\"filename\":\"seymour_animation.ozz\"}]}\;output:seymour_animation.ozz\;output:seymour_skeleton.ozz"
 )
 
 # Generate a command for each line of the configuration
@@ -87,15 +87,15 @@ foreach(line ${animations})
   foreach(element ${line})
     if (${element} MATCHES "output:(.*)")
       string(SUBSTRING ${element} 7 -1 output)
-      list(APPEND outputs ${output})
+      list(APPEND outputs "${ozz_media_directory}/bin/${output}")
+    endif()
+    if (${element} MATCHES "depend:(.*)")
+      string(SUBSTRING ${element} 7 -1 depend)
+      list(APPEND depends "${ozz_media_directory}/bin/${depend}")
     endif()
     if (${element} MATCHES "option:(.*)")
       string(SUBSTRING ${element} 7 -1 option)
       list(APPEND options ${option})
-    endif()
-    if (${element} MATCHES "depend:(.*)")
-      string(SUBSTRING ${element} 7 -1 depend)
-      list(APPEND depends ${depend})
     endif()
   endforeach()
 
@@ -120,6 +120,7 @@ foreach(line ${animations})
             "--file=${ozz_media_directory}${src}"
             "--config_file=${config_filename}"
             ${options}
+    WORKING_DIRECTORY "${ozz_media_directory}/bin/"
     VERBATIM)
 endforeach()
 
