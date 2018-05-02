@@ -35,7 +35,7 @@ set_target_properties(fbx2ozz
 
 install(TARGETS fbx2ozz DESTINATION bin/tools)
 
-# Gerenate binary animation data
+# Gerenate binary data
 set(animations
 
   # Library data
@@ -80,36 +80,30 @@ foreach(line ${animations})
 
   # Loops over all remaining arguments to find outputs.
   set(outputs "")
+  set(options "")
+  set(depends "")
+    
+  # Loops over all elements to find parameters.
   foreach(element ${line})
     if (${element} MATCHES "output:(.*)")
       string(SUBSTRING ${element} 7 -1 output)
       list(APPEND outputs ${output})
     endif()
-  endforeach()
-  list(APPEND all_outputs ${outputs})
-
-  # output is required
-  if (NOT outputs)
-    message("Missing output file(s) list.")
-  endif()
-
-  # Loops over all remaining arguments to find options.
-  set(options "")
-  foreach(element ${line})
     if (${element} MATCHES "option:(.*)")
       string(SUBSTRING ${element} 7 -1 option)
       list(APPEND options ${option})
     endif()
-  endforeach()
-
-  # Loops over all remaining arguments to find dependencies.
-  set(depends "")
-  foreach(element ${line})
     if (${element} MATCHES "depend:(.*)")
       string(SUBSTRING ${element} 7 -1 depend)
       list(APPEND depends ${depend})
     endif()
   endforeach()
+
+  list(APPEND all_outputs ${outputs})
+  # output is required
+  if (NOT outputs)
+    message("Missing output file(s) list.")
+  endif()
 
   # Dump config file
   string(MD5 hash "${line}")
