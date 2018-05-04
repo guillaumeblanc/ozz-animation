@@ -1,0 +1,26 @@
+{
+  "skeleton":
+  {
+    "filename":"baked_skeleton.ozz",
+    "import":
+    {
+      "enable":true,
+      "types":
+      {
+        "geometry":true
+      }
+    }
+  },
+  "animations":
+  [
+    {
+      "filename":"baked_animation.ozz",
+      "optimization_tolerances":
+      {
+        "translation":0.002,
+        "rotation":0.002,
+        "hierarchical":1.0
+      }
+    }
+  ]
+}

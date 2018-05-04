@@ -36,8 +36,7 @@ set_target_properties(fbx2ozz
 install(TARGETS fbx2ozz DESTINATION bin/tools)
 
 # Gerenate binary data to a specific folder (${ozz_media_directory}/bin)
-set(animations
-
+set(build_configurations
   # Library data
   "/fbx/alain/skeleton.fbx\;{\"skeleton\":{\"filename\":\"alain_skeleton.ozz\",\"import\":{\"enable\":true}},\"animations\":[]}\;output:alain_skeleton.ozz"
   "/fbx/alain/atlas.fbx\;{\"skeleton\":{\"filename\":\"alain_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"alain_atlas_raw.ozz\",\"raw\":true,\"optimize\":false}]}\;output:alain_atlas_raw.ozz\;depend:alain_skeleton.ozz"
@@ -47,10 +46,10 @@ set(animations
   "/fbx/alain/crackhead.fbx\;{\"skeleton\":{\"filename\":\"alain_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"alain_crackhead_additive.ozz\",\"additive\":true}]}\;output:alain_crackhead_additive.ozz\;depend:alain_skeleton.ozz"
   
   # Robot user channels
-  "/fbx/robot.fbx\;{\"skeleton\":{\"filename\":\"robot_skeleton.ozz\",\"import\":{\"enable\":true}},\"animations\":[{\"filename\":\"robot_animation.ozz\",\"optimization_tolerances\":{\"hierarchical\":0.0001},\"tracks\":[{\"properties\":[{\"joint_name\":\"thumb2\",\"property_name\":\"grasp\",\"filename\":\"robot_track_grasp.ozz\"}]}]}]}\;output:robot_skeleton.ozz\;output:robot_animation.ozz\;output:robot_track_grasp.ozz"
+  "/fbx/robot.fbx\;\;config_file:${PROJECT_SOURCE_DIR}/samples/user_channel/config.json\;output:robot_skeleton.ozz\;output:robot_animation.ozz\;output:robot_track_grasp.ozz"
 
   # Baked animation
-  "/fbx/baked.fbx\;{\"skeleton\": {\"filename\":\"baked_skeleton.ozz\",\"import\":{\"enable\":true,\"types\":{\"geometry\":true}}},\"animations\":[{\"filename\":\"baked_animation.ozz\",\"optimization_tolerances\":{\"translation\":0.002,\"rotation\":0.002,\"hierarchical\":1.0}}]}\;output:baked_skeleton.ozz\;output:baked_animation.ozz"
+  "/fbx/baked.fbx\;\;config_file:${PROJECT_SOURCE_DIR}/samples/baked/config.json\;output:baked_skeleton.ozz\;output:baked_animation.ozz"
 
   # Versioning
   "/fbx/alain/skeleton.fbx\;{\"skeleton\":{\"filename\":\"versioning/raw_skeleton_v1_le.ozz\",\"import\":{\"enable\":true,\"raw\":true}}}\;output:versioning/raw_skeleton_v1_le.ozz\;option:--endian=little"
@@ -69,7 +68,7 @@ set(animations
 )
 
 # Generate a command for each line of the configuration
-foreach(line ${animations})
+foreach(line ${build_configurations})
 
   # First 3 elements are mandatory
   list(GET line 0 src)
@@ -82,6 +81,7 @@ foreach(line ${animations})
   set(outputs "")
   set(options "")
   set(depends "")
+  set(config_file "")
     
   # Loops over all elements to find parameters.
   foreach(element ${line})
@@ -97,6 +97,9 @@ foreach(line ${animations})
       string(SUBSTRING ${element} 7 -1 option)
       list(APPEND options ${option})
     endif()
+    if (${element} MATCHES "config_file:(.*)")
+      string(SUBSTRING ${element} 12 -1 config_file)
+    endif()
   endforeach()
 
   list(APPEND all_outputs ${outputs})
@@ -106,9 +109,13 @@ foreach(line ${animations})
   endif()
 
   # Dump config file
-  string(MD5 hash "${line}")
-  set(config_filename "${ozz_temp_directory}/config_${hash}.json")
-  file(WRITE "${config_filename}" "${config}")
+  if(NOT config_file)
+    string(MD5 hash "${line}")
+    set(config_file "${ozz_temp_directory}/config_${hash}.json")
+    file(WRITE "${config_file}" "${config}")
+  else()
+    list(APPEND depends "${config_file}")
+  endif()
 
   # Create build command
   add_custom_command(
@@ -118,7 +125,7 @@ foreach(line ${animations})
     OUTPUT  ${outputs}
     COMMAND fbx2ozz
             "--file=${ozz_media_directory}${src}"
-            "--config_file=${config_filename}"
+            "--config_file=${config_file}"
             ${options}
     WORKING_DIRECTORY "${ozz_media_directory}/bin/"
     VERBATIM)

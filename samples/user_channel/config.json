@@ -1,0 +1,34 @@
+{
+  "skeleton":
+  {
+    "filename":"robot_skeleton.ozz",
+    "import":
+    {
+      "enable":true
+    }
+  },
+  "animations":
+  [
+    {
+      "filename":"robot_animation.ozz",
+      "optimization_tolerances":
+      {
+        "hierarchical":0.0001
+      },
+      "tracks":
+      [
+        {
+          "properties":
+          [
+            {
+              "joint_name":"thumb2",
+              "property_name":"grasp",
+              "filename":"robot_track_grasp.ozz"
+            }
+          ]
+        }
+      ]
+
+    }
+  ]
+}
