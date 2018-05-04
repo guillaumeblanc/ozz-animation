@@ -34,17 +34,17 @@
 namespace ozz {
 namespace animation {
 
-FloatTrackTriggeringJob::FloatTrackTriggeringJob()
+TrackTriggeringJob::TrackTriggeringJob()
     : from(0.f), to(0.f), threshold(0.f), track(NULL), iterator(NULL) {}
 
-bool FloatTrackTriggeringJob::Validate() const {
+bool TrackTriggeringJob::Validate() const {
   bool valid = true;
   valid &= track != NULL;
   valid &= iterator != NULL;
   return valid;
 }
 
-bool FloatTrackTriggeringJob::Run() const {
+bool TrackTriggeringJob::Run() const {
   if (!Validate()) {
     return false;
   }
@@ -62,8 +62,8 @@ bool FloatTrackTriggeringJob::Run() const {
 
 namespace {
 inline bool DetectEdge(ptrdiff_t _i0, ptrdiff_t _i1, bool _forward,
-                       const FloatTrackTriggeringJob& _job,
-                       FloatTrackTriggeringJob::Edge* _edge) {
+                       const TrackTriggeringJob& _job,
+                       TrackTriggeringJob::Edge* _edge) {
   const Range<const float>& values = _job.track->values();
 
   const float vk0 = values[_i0];
@@ -109,7 +109,7 @@ inline bool DetectEdge(ptrdiff_t _i0, ptrdiff_t _i1, bool _forward,
 }
 }  // namespace
 
-FloatTrackTriggeringJob::Iterator::Iterator(const FloatTrackTriggeringJob* _job)
+TrackTriggeringJob::Iterator::Iterator(const TrackTriggeringJob* _job)
     : job_(_job) {
   // Outer loop initialization.
   outer_ = floorf(job_->from);
@@ -126,8 +126,7 @@ FloatTrackTriggeringJob::Iterator::Iterator(const FloatTrackTriggeringJob* _job)
   ++*this;
 }
 
-const FloatTrackTriggeringJob::Iterator& FloatTrackTriggeringJob::Iterator::
-operator++() {
+const TrackTriggeringJob::Iterator& TrackTriggeringJob::Iterator::operator++() {
   assert(*this != job_->end() && "Can't increment end iterator.");
 
   const Range<const float>& times = job_->track->times();

@@ -156,7 +156,7 @@ class LoadSampleApplication : public ozz::sample::Application {
   bool Update_TriggeringMethod() {
     // Walks through the track to find edges, aka when the box should be
     // attached or detached.
-    ozz::animation::FloatTrackTriggeringJob job;
+    ozz::animation::TrackTriggeringJob job;
 
     // Tracks have a unit length duration. They are thus sampled with a ratio
     // (rather than a time), which is computed based on the duration of the
@@ -173,7 +173,7 @@ class LoadSampleApplication : public ozz::sample::Application {
     job.track = &track_;
     job.threshold = 0.f;  // Considered attached as soon as the value is
                           // greater than 0, aka different from 0.
-    ozz::animation::FloatTrackTriggeringJob::Iterator iterator;
+    ozz::animation::TrackTriggeringJob::Iterator iterator;
     job.iterator = &iterator;
     if (!job.Run()) {
       return false;
@@ -181,10 +181,9 @@ class LoadSampleApplication : public ozz::sample::Application {
 
     // Iteratively evaluates all edges.
     // Edges are lazily evaluated on iterator increments.
-    for (const ozz::animation::FloatTrackTriggeringJob::Iterator end =
-             job.end();
+    for (const ozz::animation::TrackTriggeringJob::Iterator end = job.end();
          iterator != end; ++iterator) {
-      const ozz::animation::FloatTrackTriggeringJob::Edge& edge = *iterator;
+      const ozz::animation::TrackTriggeringJob::Edge& edge = *iterator;
 
       // Updates attachment state.
       // Triggering job ensures rising and falling edges symmetry, this can be

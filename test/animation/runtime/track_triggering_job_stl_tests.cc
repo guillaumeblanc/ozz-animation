@@ -40,15 +40,13 @@
 #include <algorithm>
 
 using ozz::animation::FloatTrack;
-using ozz::animation::FloatTrackTriggeringJob;
+using ozz::animation::TrackTriggeringJob;
 using ozz::animation::offline::RawFloatTrack;
 using ozz::animation::offline::RawTrackInterpolation;
 using ozz::animation::offline::TrackBuilder;
 
 namespace {
-bool IsRising(const FloatTrackTriggeringJob::Edge& _edge) {
-  return _edge.rising;
-}
+bool IsRising(const TrackTriggeringJob::Edge& _edge) { return _edge.rising; }
 }  // namespace
 
 TEST(Algorithm, TrackEdgeTriggerJob) {
@@ -71,41 +69,41 @@ TEST(Algorithm, TrackEdgeTriggerJob) {
   ozz::animation::FloatTrack* track = builder(raw_track);
   ASSERT_TRUE(track != NULL);
 
-  FloatTrackTriggeringJob job;
+  TrackTriggeringJob job;
   job.track = track;
   job.threshold = 1.f;
 
   job.from = 0.f;
   job.to = 2.f;
-  FloatTrackTriggeringJob::Iterator iterator;
+  TrackTriggeringJob::Iterator iterator;
   job.iterator = &iterator;
   ASSERT_TRUE(job.Run());
 
   {  // copy
-    ozz::Vector<FloatTrackTriggeringJob::Edge>::Std edges;
+    ozz::Vector<TrackTriggeringJob::Edge>::Std edges;
     std::copy(iterator, job.end(), std::back_inserter(edges));
     EXPECT_EQ(edges.size(), 4u);
   }
 
   {  // count
-    ozz::Vector<FloatTrackTriggeringJob::Edge>::Std edges;
-    std::iterator_traits<FloatTrackTriggeringJob::Iterator>::difference_type
-        count = std::count_if(iterator, job.end(), IsRising);
+    ozz::Vector<TrackTriggeringJob::Edge>::Std edges;
+    std::iterator_traits<TrackTriggeringJob::Iterator>::difference_type count =
+        std::count_if(iterator, job.end(), IsRising);
     EXPECT_EQ(count, 2);
 
-    std::iterator_traits<FloatTrackTriggeringJob::Iterator>::difference_type
+    std::iterator_traits<TrackTriggeringJob::Iterator>::difference_type
         count_end = std::count_if(job.end(), job.end(), IsRising);
     EXPECT_EQ(count_end, 0);
   }
 
   {  // for_each
-    ozz::Vector<FloatTrackTriggeringJob::Edge>::Std edges;
+    ozz::Vector<TrackTriggeringJob::Edge>::Std edges;
     std::for_each(iterator, job.end(), IsRising);
   }
 
   {  // find_if
-    ozz::Vector<FloatTrackTriggeringJob::Edge>::Std edges;
-    FloatTrackTriggeringJob::Iterator it_if =
+    ozz::Vector<TrackTriggeringJob::Edge>::Std edges;
+    TrackTriggeringJob::Iterator it_if =
         std::find_if(iterator, job.end(), IsRising);
     EXPECT_TRUE(it_if->rising);
   }

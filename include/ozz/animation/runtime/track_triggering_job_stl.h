@@ -28,7 +28,7 @@
 #ifndef OZZ_OZZ_ANIMATION_RUNTIME_TRACK_TRIGGERING_JOB_STL_H_
 #define OZZ_OZZ_ANIMATION_RUNTIME_TRACK_TRIGGERING_JOB_STL_H_
 
-// Defines iterator traits required to use FloatTrackTriggeringJob::Iterator
+// Defines iterator traits required to use TrackTriggeringJob::Iterator
 // with stl algorithms.
 // This is a separate file from "track_triggering_job.h" to prevent everyone
 // from including stl file <iterator>.
@@ -40,11 +40,11 @@
 // Specializes std::iterator_traits.
 namespace std {
 template <>
-struct iterator_traits<ozz::animation::FloatTrackTriggeringJob::Iterator> {
+struct iterator_traits<ozz::animation::TrackTriggeringJob::Iterator> {
   typedef ptrdiff_t difference_type;
-  typedef ozz::animation::FloatTrackTriggeringJob::Edge value_type;
-  typedef const ozz::animation::FloatTrackTriggeringJob::Edge* pointer;
-  typedef const ozz::animation::FloatTrackTriggeringJob::Edge& reference;
+  typedef ozz::animation::TrackTriggeringJob::Edge value_type;
+  typedef const ozz::animation::TrackTriggeringJob::Edge* pointer;
+  typedef const ozz::animation::TrackTriggeringJob::Edge& reference;
   typedef forward_iterator_tag iterator_category;
 };
 }  // namespace std

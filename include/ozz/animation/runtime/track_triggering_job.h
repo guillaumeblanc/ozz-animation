@@ -37,8 +37,8 @@ class FloatTrack;
 
 // Only FloatTrack is supported, because comparing and un-lerping other tracks
 // doesn't make much sense.
-struct FloatTrackTriggeringJob {
-  FloatTrackTriggeringJob();
+struct TrackTriggeringJob {
+  TrackTriggeringJob();
 
   bool Validate() const;
 
@@ -71,7 +71,7 @@ struct FloatTrackTriggeringJob {
   };
 };
 
-class FloatTrackTriggeringJob::Iterator {
+class TrackTriggeringJob::Iterator {
  public:
   Iterator() : job_(NULL), outer_(0.f), inner_(0) {}
 
@@ -103,19 +103,19 @@ class FloatTrackTriggeringJob::Iterator {
   }
 
  private:
-  explicit Iterator(const FloatTrackTriggeringJob* _job);
+  explicit Iterator(const TrackTriggeringJob* _job);
 
   struct End {};
-  Iterator(const FloatTrackTriggeringJob* _job, End)
+  Iterator(const TrackTriggeringJob* _job, End)
       : job_(_job),
         outer_(0.f),
         inner_(-2) {  // Can never be reached while looping.
   }
 
-  friend struct FloatTrackTriggeringJob;
+  friend struct TrackTriggeringJob;
 
   // Job this iterator works on.
-  const FloatTrackTriggeringJob* job_;
+  const TrackTriggeringJob* job_;
 
   // Current value of the outer loop, aka a time cursor between from and to.
   float outer_;
@@ -127,7 +127,7 @@ class FloatTrackTriggeringJob::Iterator {
   Edge edge_;
 };
 
-inline FloatTrackTriggeringJob::Iterator FloatTrackTriggeringJob::end() const {
+inline TrackTriggeringJob::Iterator TrackTriggeringJob::end() const {
   return Iterator(this, Iterator::End());
 }
 }  // namespace animation
