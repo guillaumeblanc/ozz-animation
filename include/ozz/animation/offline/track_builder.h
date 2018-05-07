@@ -47,17 +47,17 @@ struct RawFloat3Track;
 struct RawFloat4Track;
 struct RawQuaternionTrack;
 
-// Defines the class responsible of building runtime float track instances from
-// offline raw float tracks.
+// Defines the class responsible of building runtime track instances from
+// offline tracks.
 // No optimization at all is performed on the data.
 class TrackBuilder {
  public:
-  // Creates an FloatTrack based on _raw_track and *this builder
+  // Creates a Track based on _raw_track and *this builder
   // parameters.
-  // Returns a valid FloatTrack on success
+  // Returns a valid Track on success
   // The returned instance will then need to be deleted using the default
   // allocator Delete() function.
-  // See RawFloatTrack::Validate() for more details about failure reasons.
+  // See Raw*Track::Validate() for more details about failure reasons.
   FloatTrack* operator()(const RawFloatTrack& _input) const;
   Float2Track* operator()(const RawFloat2Track& _input) const;
   Float3Track* operator()(const RawFloat3Track& _input) const;

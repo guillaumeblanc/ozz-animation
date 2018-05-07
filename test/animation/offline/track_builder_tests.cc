@@ -77,23 +77,6 @@ TEST(Build, TrackBuilder) {
     EXPECT_TRUE(!builder(raw_float_track));
   }
 
-  {  // Building a track with too close keys fails.
-    RawFloatTrack raw_float_track;
-
-    // Adds 2 unordered keys
-    const RawFloatTrack::Keyframe first_key = {RawTrackInterpolation::kLinear,
-                                               .1f, 0.f};
-    raw_float_track.keyframes.push_back(first_key);
-    const RawFloatTrack::Keyframe second_key = {
-        RawTrackInterpolation::kLinear,
-        .1f + std::numeric_limits<float>::epsilon(), 0.f};
-    raw_float_track.keyframes.push_back(second_key);
-
-    // Builds track
-    EXPECT_FALSE(raw_float_track.Validate());
-    EXPECT_TRUE(!builder(raw_float_track));
-  }
-
   {  // Building a track with invalid key frame's time fails.
     RawFloatTrack raw_float_track;
 

@@ -35,16 +35,34 @@ namespace animation {
 
 class FloatTrack;
 
-// Only FloatTrack is supported, because comparing and un-lerping other tracks
-// doesn't make much sense.
+// Track edge triggering job implementation. Edge triggering wording refers to
+// signal processing, where a signal edge is a transition from low to high or
+// from high to low. It is called an "edge" because of the square wave which
+// represents a signal has edges at those points. A rising edge is the
+// transition from low to high, a falling edge is from high to low.
+// TrackTriggeringJob detects when track curve crosses a threshold value,
+// triggering dated events that can be processed as state changes.
+// Only FloatTrack is supported, because comparing to a threshold for other
+// track types isn't possible.
+// The job execution actually performs a lazy evaluation of edges. It builds an
+// iterator that will process the next edge on each call to ++ operator.
 struct TrackTriggeringJob {
   TrackTriggeringJob();
 
+  // Validates job parameters.
   bool Validate() const;
 
+  // Validates and executes job. Execution is lazy. Iterator operator ++ is
+  // actually doing the processing work.
   bool Run() const;
 
-  // Input range.
+  // Input range. 0 is the beginning of the track, 1 is the end.
+  // from and to can be of any sign, any order, and any range. The job will
+  // perform accordingly:
+  // - if difference between from and to is greater than 1, the iterator will
+  // loop multiple times on the track.
+  // - if from is greater than to, then the track is processed backward (rising
+  // edges in forward become falling ones).
   float from;
   float to;
 
@@ -58,33 +76,40 @@ struct TrackTriggeringJob {
   // Track to sample.
   const FloatTrack* track;
 
-  // Job output.
+  // Job output iterator.
   class Iterator;
   Iterator* iterator;
 
+  // Returns an iterator referring to the past-the-end element. It should only
+  // be used to test if iterator loop reached the end (using operator !=), and
+  // shall not be dereferenced.
   Iterator end() const;
 
-  // TODODODODO
+  // Structure of an edge as detected by the job.
   struct Edge {
-    float time;
-    bool rising;
+    float time;   // Time at which track value crossed threshold.
+    bool rising;  // true is edge is rising (getting higher than threshold).
   };
 };
 
+// Iterator implementation. Calls to ++ operator will compute the next edge. It
+// should be compared (using operator !=) to job's end iterator to test if the
+// last edge has been reached.
 class TrackTriggeringJob::Iterator {
  public:
   Iterator() : job_(NULL), outer_(0.f), inner_(0) {}
 
+  // Evaluate next edge.
   // Calling this function on an end iterator results in an assertion in debug,
   // an undefined behavior otherwise.
   const Iterator& operator++();
-
   Iterator operator++(int) {
     Iterator prev = *this;
     ++*this;
     return prev;
   }
 
+  // Compare with other iterators.
   bool operator!=(const Iterator& _it) const {
     return inner_ != _it.inner_ || outer_ != _it.outer_ || job_ != _it.job_;
   }
@@ -92,11 +117,11 @@ class TrackTriggeringJob::Iterator {
     return job_ == _it.job_ && outer_ == _it.outer_ && inner_ == _it.inner_;
   }
 
+  // Dereferencing operators.
   const Edge& operator*() const {
     assert(*this != job_->end() && "Can't dereference end iterator.");
     return edge_;
   }
-
   const Edge* operator->() const {
     assert(*this != job_->end() && "Can't dereference end iterator.");
     return &edge_;

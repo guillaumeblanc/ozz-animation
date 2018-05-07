@@ -94,7 +94,7 @@ bool RawTrack<_ValueType>::Validate() const {
       return false;
     }
     // Tests that frames are sorted.
-    if (frame_time - previous_time <= std::numeric_limits<float>::epsilon()) {
+    if (frame_time <= previous_time) {
       return false;
     }
     previous_time = frame_time;

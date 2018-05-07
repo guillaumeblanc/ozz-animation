@@ -43,7 +43,8 @@ class TrackBuilder;
 }
 
 namespace internal {
-// Runtime float track data structure.
+// Runtime user-channel track internal implementation. See *Track for more
+// details.
 template <typename _ValueType>
 class Track {
  public:
@@ -52,6 +53,7 @@ class Track {
   Track();
   ~Track();
 
+  // Keyframe accessors.
   Range<const float> times() const { return times_; }
   Range<const _ValueType> values() const { return values_; }
   Range<const uint8_t> steps() const { return steps_; }

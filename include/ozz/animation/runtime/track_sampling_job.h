@@ -32,20 +32,26 @@
 
 namespace ozz {
 namespace animation {
+
 namespace internal {
 
+// TrackSamplingJob internal implementation. See *TrackSamplingJob for more
+// details.
 template <typename _Track>
 struct TrackSamplingJob {
   typedef typename _Track::ValueType ValueType;
 
   TrackSamplingJob();
 
+  // Validates all parameters.
   bool Validate() const;
 
+  // Validates and executes sampling.
   bool Run() const;
 
-  // Time used to sample animation, clamped in range [0,1] before
-  // job execution. This resolves approximations issues on range bounds.
+  // Ratio used to sample track, clamped in range [0,1] before job execution. 0
+  // is the beginning of the track, 1 is the end. This is a ratio rather than a
+  // time because tracks have no duration.
   float time;
 
   // Track to sample.
@@ -56,6 +62,9 @@ struct TrackSamplingJob {
 };
 }  // namespace internal
 
+// Track sampling job implementation. Track sampling allows to query a track
+// value for a specified ratio. This is a ratio rather than a time because
+// tracks have no duration.
 struct FloatTrackSamplingJob : public internal::TrackSamplingJob<FloatTrack> {};
 struct Float2TrackSamplingJob : public internal::TrackSamplingJob<Float2Track> {
 };
