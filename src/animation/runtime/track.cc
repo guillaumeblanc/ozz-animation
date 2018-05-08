@@ -68,7 +68,7 @@ void Track<_ValueType>::Allocate(size_t _keys_count, size_t _name_len) {
 
   // Fix up pointers. Serves larger alignment values first.
   values_.begin = reinterpret_cast<_ValueType*>(buffer);
-  assert(math::IsAligned(times_.begin, OZZ_ALIGN_OF(_ValueType)));
+  assert(math::IsAligned(values_.begin, OZZ_ALIGN_OF(_ValueType)));
   buffer += _keys_count * sizeof(_ValueType);
   values_.end = reinterpret_cast<_ValueType*>(buffer);
 
@@ -78,7 +78,7 @@ void Track<_ValueType>::Allocate(size_t _keys_count, size_t _name_len) {
   times_.end = reinterpret_cast<float*>(buffer);
 
   steps_.begin = reinterpret_cast<uint8_t*>(buffer);
-  assert(math::IsAligned(times_.begin, OZZ_ALIGN_OF(uint8_t)));
+  assert(math::IsAligned(steps_.begin, OZZ_ALIGN_OF(uint8_t)));
   buffer += (_keys_count + 7) * sizeof(uint8_t) / 8;
   steps_.end = reinterpret_cast<uint8_t*>(buffer);
 
