@@ -84,7 +84,8 @@ void Filter(const _Keyframes& _src, float _tolerance, _Keyframes* _dest) {
       const Keyframe& right = _src[i + 1];
       for (size_t j = last_src_pushed + 1; j <= i; ++j) {
         const Keyframe& test = _src[j];
-        const float alpha = (test.time - left.time) / (right.time - left.time);
+        const float alpha =
+            (test.ratio - left.ratio) / (right.ratio - left.ratio);
         assert(alpha >= 0.f && alpha <= 1.f);
         const ValueType lerped =
             animation::internal::TrackPolicy<ValueType>::Lerp(

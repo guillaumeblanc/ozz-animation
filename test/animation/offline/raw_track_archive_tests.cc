@@ -99,7 +99,7 @@ TEST(Filled, RawAnimationSerialize) {
       const RawFloatTrack::Keyframe& i_key = i_track.keyframes[i];
 
       EXPECT_EQ(o_key.interpolation, i_key.interpolation);
-      EXPECT_FLOAT_EQ(o_key.time, i_key.time);
+      EXPECT_FLOAT_EQ(o_key.ratio, i_key.ratio);
       EXPECT_EQ(o_key.value, i_key.value);
     }
   }
@@ -115,7 +115,7 @@ TEST(AlreadyInitialized, RawAnimationSerialize) {
   o_track.name = "test track";
   o << o_track;
 
-  // Streams out a second time.
+  // Streams out a second ratio.
   o_track.keyframes.resize(2);
   o_track.name = "test track 2";
   o << o_track;
@@ -128,7 +128,7 @@ TEST(AlreadyInitialized, RawAnimationSerialize) {
   i >> i_track;
   ASSERT_EQ(i_track.keyframes.size(), 0u);
 
-  // A second time
+  // A second ratio
   i >> i_track;
   ASSERT_EQ(i_track.keyframes.size(), 2u);
   EXPECT_STREQ(o_track.name.c_str(), i_track.name.c_str());
@@ -172,7 +172,7 @@ TEST(Float2, RawAnimationSerialize) {
       const RawFloat2Track::Keyframe& i_key = i_track.keyframes[i];
 
       EXPECT_EQ(o_key.interpolation, i_key.interpolation);
-      EXPECT_FLOAT_EQ(o_key.time, i_key.time);
+      EXPECT_FLOAT_EQ(o_key.ratio, i_key.ratio);
       EXPECT_EQ(o_key.value, i_key.value);
     }
   }
@@ -214,7 +214,7 @@ TEST(Float3, RawAnimationSerialize) {
       const RawFloat3Track::Keyframe& i_key = i_track.keyframes[i];
 
       EXPECT_EQ(o_key.interpolation, i_key.interpolation);
-      EXPECT_FLOAT_EQ(o_key.time, i_key.time);
+      EXPECT_FLOAT_EQ(o_key.ratio, i_key.ratio);
       EXPECT_EQ(o_key.value, i_key.value);
     }
   }
@@ -258,7 +258,7 @@ TEST(Float4, RawAnimationSerialize) {
       const RawFloat4Track::Keyframe& i_key = i_track.keyframes[i];
 
       EXPECT_EQ(o_key.interpolation, i_key.interpolation);
-      EXPECT_FLOAT_EQ(o_key.time, i_key.time);
+      EXPECT_FLOAT_EQ(o_key.ratio, i_key.ratio);
       EXPECT_EQ(o_key.value, i_key.value);
     }
   }
@@ -302,7 +302,7 @@ TEST(Quaternion, RawAnimationSerialize) {
       const RawQuaternionTrack::Keyframe& i_key = i_track.keyframes[i];
 
       EXPECT_EQ(o_key.interpolation, i_key.interpolation);
-      EXPECT_FLOAT_EQ(o_key.time, i_key.time);
+      EXPECT_FLOAT_EQ(o_key.ratio, i_key.ratio);
       EXPECT_EQ(o_key.value, i_key.value);
     }
   }

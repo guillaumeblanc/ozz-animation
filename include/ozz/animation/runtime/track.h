@@ -54,7 +54,7 @@ class Track {
   ~Track();
 
   // Keyframe accessors.
-  Range<const float> times() const { return times_; }
+  Range<const float> ratios() const { return ratios_; }
   Range<const _ValueType> values() const { return values_; }
   Range<const uint8_t> steps() const { return steps_; }
 
@@ -81,8 +81,8 @@ class Track {
   void Allocate(size_t _keys_count, size_t _name_len);
   void Deallocate();
 
-  // Keyframe times.
-  Range<float> times_;
+  // Keyframe ratios (0 is the beginning of the track, 1 is the end).
+  Range<float> ratios_;
 
   // Keyframe values.
   Range<_ValueType> values_;

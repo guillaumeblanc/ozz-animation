@@ -50,7 +50,7 @@ Track<_ValueType>::~Track() {
 
 template <typename _ValueType>
 void Track<_ValueType>::Allocate(size_t _keys_count, size_t _name_len) {
-  assert(times_.size() == 0 && values_.size() == 0);
+  assert(ratios_.size() == 0 && values_.size() == 0);
 
   // Distributes buffer memory while ensuring proper alignment (serves larger
   // alignment values first).
@@ -58,11 +58,10 @@ void Track<_ValueType>::Allocate(size_t _keys_count, size_t _name_len) {
   OZZ_STATIC_ASSERT(OZZ_ALIGN_OF(float) >= OZZ_ALIGN_OF(uint8_t));
 
   // Compute overall size and allocate a single buffer for all the data.
-  const size_t buffer_size =
-      _keys_count * sizeof(_ValueType) +         // values
-      _keys_count * sizeof(float) +              // times
-      (_keys_count + 7) * sizeof(uint8_t) / 8 +  // values
-      (_name_len > 0 ? _name_len + 1 : 0);
+  const size_t buffer_size = _keys_count * sizeof(_ValueType) +  // values
+                             _keys_count * sizeof(float) +       // ratios
+                             (_keys_count + 7) * sizeof(uint8_t) / 8 +  // steps
+                             (_name_len > 0 ? _name_len + 1 : 0);
   char* buffer = reinterpret_cast<char*>(memory::default_allocator()->Allocate(
       buffer_size, OZZ_ALIGN_OF(_ValueType)));
 
@@ -72,10 +71,10 @@ void Track<_ValueType>::Allocate(size_t _keys_count, size_t _name_len) {
   buffer += _keys_count * sizeof(_ValueType);
   values_.end = reinterpret_cast<_ValueType*>(buffer);
 
-  times_.begin = reinterpret_cast<float*>(buffer);
-  assert(math::IsAligned(times_.begin, OZZ_ALIGN_OF(float)));
+  ratios_.begin = reinterpret_cast<float*>(buffer);
+  assert(math::IsAligned(ratios_.begin, OZZ_ALIGN_OF(float)));
   buffer += _keys_count * sizeof(float);
-  times_.end = reinterpret_cast<float*>(buffer);
+  ratios_.end = reinterpret_cast<float*>(buffer);
 
   steps_.begin = reinterpret_cast<uint8_t*>(buffer);
   assert(math::IsAligned(steps_.begin, OZZ_ALIGN_OF(uint8_t)));
@@ -94,7 +93,7 @@ void Track<_ValueType>::Deallocate() {
   memory::default_allocator()->Deallocate(values_.begin);
 
   values_.Clear();
-  times_.Clear();
+  ratios_.Clear();
   steps_.Clear();
   name_ = NULL;
 }
@@ -102,19 +101,19 @@ void Track<_ValueType>::Deallocate() {
 template <typename _ValueType>
 size_t Track<_ValueType>::size() const {
   const size_t size =
-      sizeof(*this) + values_.size() + times_.size() + steps_.size();
+      sizeof(*this) + values_.size() + ratios_.size() + steps_.size();
   return size;
 }
 
 template <typename _ValueType>
 void Track<_ValueType>::Save(ozz::io::OArchive& _archive) const {
-  uint32_t num_keys = static_cast<uint32_t>(times_.count());
+  uint32_t num_keys = static_cast<uint32_t>(ratios_.count());
   _archive << num_keys;
 
   const size_t name_len = name_ ? std::strlen(name_) : 0;
   _archive << static_cast<int32_t>(name_len);
 
-  _archive << ozz::io::MakeArray(times_);
+  _archive << ozz::io::MakeArray(ratios_);
   _archive << ozz::io::MakeArray(values_);
   _archive << ozz::io::MakeArray(steps_);
 
@@ -139,7 +138,7 @@ void Track<_ValueType>::Load(ozz::io::IArchive& _archive, uint32_t _version) {
 
   Allocate(num_keys, name_len);
 
-  _archive >> ozz::io::MakeArray(times_);
+  _archive >> ozz::io::MakeArray(ratios_);
   _archive >> ozz::io::MakeArray(values_);
   _archive >> ozz::io::MakeArray(steps_);
 

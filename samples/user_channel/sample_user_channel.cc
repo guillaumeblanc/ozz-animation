@@ -132,7 +132,7 @@ class LoadSampleApplication : public ozz::sample::Application {
     // Tracks have a unit length duration. They are thus sampled with a ratio
     // (rather than a time), which is computed based on the duration of the
     // animation they refer to.
-    job.time = controller_.time() / animation_.duration();
+    job.ratio = controller_.time() / animation_.duration();
     job.track = &track_;
     float attached;
     job.result = &attached;
@@ -162,8 +162,8 @@ class LoadSampleApplication : public ozz::sample::Application {
     // (rather than a time), which is computed based on the duration of the
     // animation they refer to.
     // Its important to use exact "previous time" here, because if we recompute
-    // it with dt, we might use a time range that is not exactly next to the
-    // previous one, leading to missed or redundant edges.
+    // it, we might end up useing a time range that is not exactly the previous
+    // one, leading to missed or redundant edges.
     // Previous_time can be higher that current time, in case of a loop. It's
     // not a problem. Edges will be triggered backward (rewinding track in
     // time), so the "attachment" state remains valid. It's not the shortest or
@@ -191,12 +191,12 @@ class LoadSampleApplication : public ozz::sample::Application {
       assert(attached_ != edge.rising);
       attached_ = edge.rising;
 
-      // Knowing exact edge time, joint position can be re-sampled in order
+      // Knowing exact edge ratio, joint position can be re-sampled in order
       // to get attachment joint position at the precise attachment time. This
       // makes the algorithm frame rate independent.
       // Sampling is cached so this intermediate updates don't have a big
       // performance impact.
-      if (!Update_Joints(edge.time * animation_.duration())) {
+      if (!Update_Joints(edge.ratio * animation_.duration())) {
         return false;
       }
 

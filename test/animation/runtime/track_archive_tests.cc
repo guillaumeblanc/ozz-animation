@@ -179,15 +179,15 @@ TEST(FilledFloat, TrackSerialize) {
     float result;
     sampling.result = &result;
 
-    sampling.time = 0.f;
+    sampling.ratio = 0.f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 0.f);
 
-    sampling.time = .5f;
+    sampling.ratio = .5f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 46.f);
 
-    sampling.time = 1.f;
+    sampling.ratio = 1.f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 0.f);
   }
@@ -233,15 +233,15 @@ TEST(FilledFloat2, TrackSerialize) {
   ozz::math::Float2 result;
   sampling.result = &result;
 
-  sampling.time = 0.f;
+  sampling.ratio = 0.f;
   ASSERT_TRUE(sampling.Run());
   EXPECT_FLOAT2_EQ(result, 0.f, 26.f);
 
-  sampling.time = .5f;
+  sampling.ratio = .5f;
   ASSERT_TRUE(sampling.Run());
   EXPECT_FLOAT2_EQ(result, 46.f, 0.f);
 
-  sampling.time = 1.f;
+  sampling.ratio = 1.f;
   ASSERT_TRUE(sampling.Run());
   EXPECT_FLOAT2_EQ(result, 0.f, 5.f);
 
@@ -287,15 +287,15 @@ TEST(FilledFloat3, TrackSerialize) {
   ozz::math::Float3 result;
   sampling.result = &result;
 
-  sampling.time = 0.f;
+  sampling.ratio = 0.f;
   ASSERT_TRUE(sampling.Run());
   EXPECT_FLOAT3_EQ(result, 0.f, 26.f, 93.f);
 
-  sampling.time = .5f;
+  sampling.ratio = .5f;
   ASSERT_TRUE(sampling.Run());
   EXPECT_FLOAT3_EQ(result, 46.f, 0.f, 25.f);
 
-  sampling.time = 1.f;
+  sampling.ratio = 1.f;
   ASSERT_TRUE(sampling.Run());
   EXPECT_FLOAT3_EQ(result, 0.f, 5.f, 0.f);
 
@@ -343,15 +343,15 @@ TEST(FilledFloat4, TrackSerialize) {
   ozz::math::Float4 result;
   sampling.result = &result;
 
-  sampling.time = 0.f;
+  sampling.ratio = 0.f;
   ASSERT_TRUE(sampling.Run());
   EXPECT_FLOAT4_EQ(result, 0.f, 26.f, 93.f, 5.f);
 
-  sampling.time = .5f;
+  sampling.ratio = .5f;
   ASSERT_TRUE(sampling.Run());
   EXPECT_FLOAT4_EQ(result, 46.f, 0.f, 25.f, 25.f);
 
-  sampling.time = 1.f;
+  sampling.ratio = 1.f;
   ASSERT_TRUE(sampling.Run());
   EXPECT_FLOAT4_EQ(result, 0.f, 5.f, 0.f, 0.f);
 
@@ -400,15 +400,15 @@ TEST(FilledQuaternion, TrackSerialize) {
   ozz::math::Quaternion result;
   sampling.result = &result;
 
-  sampling.time = 0.f;
+  sampling.ratio = 0.f;
   ASSERT_TRUE(sampling.Run());
   EXPECT_QUATERNION_EQ(result, 0.f, .70710677f, 0.f, .70710677f);
 
-  sampling.time = .5f;
+  sampling.ratio = .5f;
   ASSERT_TRUE(sampling.Run());
   EXPECT_QUATERNION_EQ(result, .61721331f, .15430345f, 0.f, .77151674f);
 
-  sampling.time = 1.f;
+  sampling.ratio = 1.f;
   ASSERT_TRUE(sampling.Run());
   EXPECT_QUATERNION_EQ(result, 1.f, 0.f, 0.f, 0.f);
 
@@ -462,7 +462,7 @@ TEST(AlreadyInitialized, TrackSerialize) {
     i >> i_track;
     const size_t size = i_track.size();
 
-    // Reuse the animation a second time.
+    // Reuse the animation a second ratio.
     i >> i_track;
     ASSERT_TRUE(i_track.size() > size);
   }

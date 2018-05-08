@@ -87,7 +87,7 @@ struct TrackTriggeringJob {
 
   // Structure of an edge as detected by the job.
   struct Edge {
-    float time;   // Time at which track value crossed threshold.
+    float ratio;  // Ratio at which track value crossed threshold.
     bool rising;  // true is edge is rising (getting higher than threshold).
   };
 };
@@ -142,7 +142,7 @@ class TrackTriggeringJob::Iterator {
   // Job this iterator works on.
   const TrackTriggeringJob* job_;
 
-  // Current value of the outer loop, aka a time cursor between from and to.
+  // Current value of the outer loop, aka a ratio cursor between from and to.
   float outer_;
 
   // Current value of the inner loop, aka a key frame index.

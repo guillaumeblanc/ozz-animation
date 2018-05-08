@@ -69,7 +69,7 @@ void PatchBeginEndKeys(const _RawTrack& _input,
   } else {
     // Copy all source data.
     // Push an initial and last keys if they don't exist.
-    if (_input.keyframes.front().time != 0.f) {
+    if (_input.keyframes.front().ratio != 0.f) {
       const typename _RawTrack::Keyframe& src_key = _input.keyframes.front();
       const typename _RawTrack::Keyframe begin = {
           RawTrackInterpolation::kLinear, 0.f, src_key.value};
@@ -78,7 +78,7 @@ void PatchBeginEndKeys(const _RawTrack& _input,
     for (size_t i = 0; i < _input.keyframes.size(); ++i) {
       keyframes->push_back(_input.keyframes[i]);
     }
-    if (_input.keyframes.back().time != 1.f) {
+    if (_input.keyframes.back().ratio != 1.f) {
       const typename _RawTrack::Keyframe& src_key = _input.keyframes.back();
       const typename _RawTrack::Keyframe end = {RawTrackInterpolation::kLinear,
                                                 1.f, src_key.value};
@@ -130,13 +130,13 @@ _Track* TrackBuilder::Build(const _RawTrack& _input) const {
   track->Allocate(keyframes.size(), _input.name.size());
 
   // Copy all keys to output.
-  assert(keyframes.size() == track->times_.count() &&
+  assert(keyframes.size() == track->ratios_.count() &&
          keyframes.size() == track->values_.count() &&
          keyframes.size() <= track->steps_.count() * 8);
   memset(track->steps_.begin, 0, track->steps_.size());
   for (size_t i = 0; i < keyframes.size(); ++i) {
     const typename _RawTrack::Keyframe& src_key = keyframes[i];
-    track->times_[i] = src_key.time;
+    track->ratios_[i] = src_key.ratio;
     track->values_[i] = src_key.value;
     track->steps_[i / 8] |=
         (src_key.interpolation == RawTrackInterpolation::kStep) << (i & 7);

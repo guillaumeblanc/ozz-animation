@@ -77,7 +77,7 @@ TEST(Build, TrackBuilder) {
     EXPECT_TRUE(!builder(raw_float_track));
   }
 
-  {  // Building a track with invalid key frame's time fails.
+  {  // Building a track with invalid key frame's ratio fails.
     RawFloatTrack raw_float_track;
 
     // Adds 2 unordered keys
@@ -90,7 +90,7 @@ TEST(Build, TrackBuilder) {
     EXPECT_TRUE(!builder(raw_float_track));
   }
 
-  {  // Building a track with equal key frame's time fails.
+  {  // Building a track with equal key frame's ratio fails.
     RawFloatTrack raw_float_track;
 
     // Adds 2 unordered keys
@@ -163,7 +163,7 @@ TEST(Build0Keys, TrackBuilder) {
   sampling.track = track;
   float result;
   sampling.result = &result;
-  sampling.time = 0.f;
+  sampling.ratio = 0.f;
   ASSERT_TRUE(sampling.Run());
   EXPECT_FLOAT_EQ(result, 0.f);
 
@@ -191,15 +191,15 @@ TEST(BuildLinear, TrackBuilder) {
     sampling.track = track;
     sampling.result = &result;
 
-    sampling.time = 0.f;
+    sampling.ratio = 0.f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 46.f);
 
-    sampling.time = .5f;
+    sampling.ratio = .5f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 46.f);
 
-    sampling.time = 1.f;
+    sampling.ratio = 1.f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 46.f);
 
@@ -222,15 +222,15 @@ TEST(BuildLinear, TrackBuilder) {
     sampling.track = track;
     sampling.result = &result;
 
-    sampling.time = 0.f;
+    sampling.ratio = 0.f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 46.f);
 
-    sampling.time = .5f;
+    sampling.ratio = .5f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 46.f);
 
-    sampling.time = 1.f;
+    sampling.ratio = 1.f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 46.f);
 
@@ -253,15 +253,15 @@ TEST(BuildLinear, TrackBuilder) {
     sampling.track = track;
     sampling.result = &result;
 
-    sampling.time = 0.f;
+    sampling.ratio = 0.f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 46.f);
 
-    sampling.time = .5f;
+    sampling.ratio = .5f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 46.f);
 
-    sampling.time = 1.f;
+    sampling.ratio = 1.f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 46.f);
 
@@ -287,23 +287,23 @@ TEST(BuildLinear, TrackBuilder) {
     sampling.track = track;
     sampling.result = &result;
 
-    sampling.time = 0.f;
+    sampling.ratio = 0.f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 46.f);
 
-    sampling.time = .5f;
+    sampling.ratio = .5f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 46.f);
 
-    sampling.time = .6f;
+    sampling.ratio = .6f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 23.f);
 
-    sampling.time = .7f;
+    sampling.ratio = .7f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 0.f);
 
-    sampling.time = 1.f;
+    sampling.ratio = 1.f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 0.f);
 
@@ -332,27 +332,27 @@ TEST(BuildLinear, TrackBuilder) {
     sampling.track = track;
     sampling.result = &result;
 
-    sampling.time = 0.f;
+    sampling.ratio = 0.f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 46.f);
 
-    sampling.time = .5f;
+    sampling.ratio = .5f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 46.f);
 
-    sampling.time = .6f;
+    sampling.ratio = .6f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 46.f);
 
-    sampling.time = .7f;
+    sampling.ratio = .7f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 46.f);
 
-    sampling.time = .75f;
+    sampling.ratio = .75f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 46.f);
 
-    sampling.time = 1.f;
+    sampling.ratio = 1.f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 46.f);
 
@@ -381,15 +381,15 @@ TEST(BuildStep, TrackBuilder) {
     sampling.track = track;
     sampling.result = &result;
 
-    sampling.time = 0.f;
+    sampling.ratio = 0.f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 46.f);
 
-    sampling.time = .5f;
+    sampling.ratio = .5f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 46.f);
 
-    sampling.time = 1.f;
+    sampling.ratio = 1.f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 46.f);
 
@@ -412,15 +412,15 @@ TEST(BuildStep, TrackBuilder) {
     sampling.track = track;
     sampling.result = &result;
 
-    sampling.time = 0.f;
+    sampling.ratio = 0.f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 46.f);
 
-    sampling.time = .5f;
+    sampling.ratio = .5f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 46.f);
 
-    sampling.time = 1.f;
+    sampling.ratio = 1.f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 46.f);
 
@@ -443,15 +443,15 @@ TEST(BuildStep, TrackBuilder) {
     sampling.track = track;
     sampling.result = &result;
 
-    sampling.time = 0.f;
+    sampling.ratio = 0.f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 46.f);
 
-    sampling.time = .5f;
+    sampling.ratio = .5f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 46.f);
 
-    sampling.time = 1.f;
+    sampling.ratio = 1.f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 46.f);
 
@@ -474,15 +474,15 @@ TEST(BuildStep, TrackBuilder) {
     sampling.track = track;
     sampling.result = &result;
 
-    sampling.time = 0.f;
+    sampling.ratio = 0.f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 46.f);
 
-    sampling.time = .5f;
+    sampling.ratio = .5f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 46.f);
 
-    sampling.time = 1.f;
+    sampling.ratio = 1.f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 46.f);
 
@@ -508,31 +508,31 @@ TEST(BuildStep, TrackBuilder) {
     sampling.track = track;
     sampling.result = &result;
 
-    sampling.time = 0.f;
+    sampling.ratio = 0.f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 46.f);
 
-    sampling.time = .5f;
+    sampling.ratio = .5f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 46.f);
 
-    sampling.time = .5f + 1e-7f;
+    sampling.ratio = .5f + 1e-7f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 46.f);
 
-    sampling.time = .6f;
+    sampling.ratio = .6f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 46.f);
 
-    sampling.time = .7f - 1e-7f;
+    sampling.ratio = .7f - 1e-7f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 46.f);
 
-    sampling.time = .7f;
+    sampling.ratio = .7f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 0.f);
 
-    sampling.time = 1.f;
+    sampling.ratio = 1.f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 0.f);
 
@@ -561,35 +561,35 @@ TEST(BuildStep, TrackBuilder) {
     sampling.track = track;
     sampling.result = &result;
 
-    sampling.time = 0.f;
+    sampling.ratio = 0.f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 46.f);
 
-    sampling.time = .5f;
+    sampling.ratio = .5f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 46.f);
 
-    sampling.time = .5f + 1e-7f;
+    sampling.ratio = .5f + 1e-7f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 46.f);
 
-    sampling.time = .6f;
+    sampling.ratio = .6f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 46.f);
 
-    sampling.time = .7f - 1e-7f;
+    sampling.ratio = .7f - 1e-7f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 46.f);
 
-    sampling.time = .7f;
+    sampling.ratio = .7f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 0.f);
 
-    sampling.time = .9f;
+    sampling.ratio = .9f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 0.f);
 
-    sampling.time = 1.f;
+    sampling.ratio = 1.f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 99.f);
 
@@ -616,23 +616,23 @@ TEST(BuildStep, TrackBuilder) {
     sampling.track = track;
     sampling.result = &result;
 
-    sampling.time = 0.f;
+    sampling.ratio = 0.f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 46.f);
 
-    sampling.time = .5f;
+    sampling.ratio = .5f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 46.f);
 
-    sampling.time = .5f + std::numeric_limits<float>::epsilon();
+    sampling.ratio = .5f + std::numeric_limits<float>::epsilon();
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 46.f);
 
-    sampling.time = .5f + 2.f * std::numeric_limits<float>::epsilon();
+    sampling.ratio = .5f + 2.f * std::numeric_limits<float>::epsilon();
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 0.f);
 
-    sampling.time = .7f;
+    sampling.ratio = .7f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 0.f);
 
@@ -661,39 +661,39 @@ TEST(BuildStep, TrackBuilder) {
     sampling.track = track;
     sampling.result = &result;
 
-    sampling.time = 0.f;
+    sampling.ratio = 0.f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 46.f);
 
-    sampling.time = .5f;
+    sampling.ratio = .5f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 46.f);
 
-    sampling.time = .5f + 1e-7f;
+    sampling.ratio = .5f + 1e-7f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 46.f);
 
-    sampling.time = .6f;
+    sampling.ratio = .6f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 46.f);
 
-    sampling.time = .7f - 1e-7f;
+    sampling.ratio = .7f - 1e-7f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 46.f);
 
-    sampling.time = .7f;
+    sampling.ratio = .7f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 0.f);
 
-    sampling.time = .7f + 1e-7f;
+    sampling.ratio = .7f + 1e-7f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 0.f);
 
-    sampling.time = 1.f - 1e-7f;
+    sampling.ratio = 1.f - 1e-7f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 0.f);
 
-    sampling.time = 1.f;
+    sampling.ratio = 1.f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 99.f);
 
@@ -727,35 +727,35 @@ TEST(BuildMixed, TrackBuilder) {
   sampling.track = track;
   sampling.result = &result;
 
-  sampling.time = 0.f;
+  sampling.ratio = 0.f;
   ASSERT_TRUE(sampling.Run());
   EXPECT_FLOAT_EQ(result, 0.f);
 
-  sampling.time = .25f;
+  sampling.ratio = .25f;
   ASSERT_TRUE(sampling.Run());
   EXPECT_FLOAT_EQ(result, 23.f);
 
-  sampling.time = .5f;
+  sampling.ratio = .5f;
   ASSERT_TRUE(sampling.Run());
   EXPECT_FLOAT_EQ(result, 46.f);
 
-  sampling.time = .5f + 1e-7f;
+  sampling.ratio = .5f + 1e-7f;
   ASSERT_TRUE(sampling.Run());
   EXPECT_FLOAT_EQ(result, 46.f);
 
-  sampling.time = .6f;
+  sampling.ratio = .6f;
   ASSERT_TRUE(sampling.Run());
   EXPECT_FLOAT_EQ(result, 46.f);
 
-  sampling.time = .7f - 1e-7f;
+  sampling.ratio = .7f - 1e-7f;
   ASSERT_TRUE(sampling.Run());
   EXPECT_FLOAT_EQ(result, 46.f);
 
-  sampling.time = .7f;
+  sampling.ratio = .7f;
   ASSERT_TRUE(sampling.Run());
   EXPECT_FLOAT_EQ(result, 0.f);
 
-  sampling.time = 1.f;
+  sampling.ratio = 1.f;
   ASSERT_TRUE(sampling.Run());
   EXPECT_FLOAT_EQ(result, 0.f);
 
@@ -777,7 +777,7 @@ TEST(Float, TrackBuilder) {
     sampling.track = track;
     sampling.result = &result;
 
-    sampling.time = .5f;
+    sampling.ratio = .5f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 0.f);
 
@@ -802,23 +802,23 @@ TEST(Float, TrackBuilder) {
     sampling.track = track;
     sampling.result = &result;
 
-    sampling.time = 0.f;
+    sampling.ratio = 0.f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 23.f);
 
-    sampling.time = .5f;
+    sampling.ratio = .5f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 23.f);
 
-    sampling.time = .6f;
+    sampling.ratio = .6f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 34.5f);
 
-    sampling.time = .7f;
+    sampling.ratio = .7f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 46.f);
 
-    sampling.time = 1.f;
+    sampling.ratio = 1.f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 46.f);
 
@@ -841,7 +841,7 @@ TEST(Float2, TrackBuilder) {
     sampling.track = track;
     sampling.result = &result;
 
-    sampling.time = .5f;
+    sampling.ratio = .5f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT2_EQ(result, 0.f, 0.f);
 
@@ -866,23 +866,23 @@ TEST(Float2, TrackBuilder) {
     sampling.track = track;
     sampling.result = &result;
 
-    sampling.time = 0.f;
+    sampling.ratio = 0.f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT2_EQ(result, 0.f, 23.f);
 
-    sampling.time = .5f;
+    sampling.ratio = .5f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT2_EQ(result, 0.f, 23.f);
 
-    sampling.time = .6f;
+    sampling.ratio = .6f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT2_EQ(result, 11.5f, 34.5f);
 
-    sampling.time = .7f;
+    sampling.ratio = .7f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT2_EQ(result, 23.f, 46.f);
 
-    sampling.time = 1.f;
+    sampling.ratio = 1.f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT2_EQ(result, 23.f, 46.f);
 
@@ -905,7 +905,7 @@ TEST(Float3, TrackBuilder) {
     sampling.track = track;
     sampling.result = &result;
 
-    sampling.time = .5f;
+    sampling.ratio = .5f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT3_EQ(result, 0.f, 0.f, 0.f);
 
@@ -932,23 +932,23 @@ TEST(Float3, TrackBuilder) {
     sampling.track = track;
     sampling.result = &result;
 
-    sampling.time = 0.f;
+    sampling.ratio = 0.f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT3_EQ(result, 0.f, 23.f, 46.f);
 
-    sampling.time = .5f;
+    sampling.ratio = .5f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT3_EQ(result, 0.f, 23.f, 46.f);
 
-    sampling.time = .6f;
+    sampling.ratio = .6f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT3_EQ(result, 11.5f, 34.5f, 69.f);
 
-    sampling.time = .7f;
+    sampling.ratio = .7f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT3_EQ(result, 23.f, 46.f, 92.f);
 
-    sampling.time = 1.f;
+    sampling.ratio = 1.f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT3_EQ(result, 23.f, 46.f, 92.f);
 
@@ -971,7 +971,7 @@ TEST(Float4, TrackBuilder) {
     sampling.track = track;
     sampling.result = &result;
 
-    sampling.time = .5f;
+    sampling.ratio = .5f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT4_EQ(result, 0.f, 0.f, 0.f, 0.f);
 
@@ -998,23 +998,23 @@ TEST(Float4, TrackBuilder) {
     sampling.track = track;
     sampling.result = &result;
 
-    sampling.time = 0.f;
+    sampling.ratio = 0.f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT4_EQ(result, 0.f, 23.f, 46.f, 5.f);
 
-    sampling.time = .5f;
+    sampling.ratio = .5f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT4_EQ(result, 0.f, 23.f, 46.f, 5.f);
 
-    sampling.time = .6f;
+    sampling.ratio = .6f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT4_EQ(result, 11.5f, 34.5f, 69.f, 15.f);
 
-    sampling.time = .7f;
+    sampling.ratio = .7f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT4_EQ(result, 23.f, 46.f, 92.f, 25.f);
 
-    sampling.time = 1.f;
+    sampling.ratio = 1.f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT4_EQ(result, 23.f, 46.f, 92.f, 25.f);
 
@@ -1037,7 +1037,7 @@ TEST(Quaternion, TrackBuilder) {
     sampling.track = track;
     sampling.result = &result;
 
-    sampling.time = .5f;
+    sampling.ratio = .5f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_QUATERNION_EQ(result, 0.f, 0.f, 0.f, 1.f);
 
@@ -1070,31 +1070,31 @@ TEST(Quaternion, TrackBuilder) {
     sampling.track = track;
     sampling.result = &result;
 
-    sampling.time = 0.f;
+    sampling.ratio = 0.f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_QUATERNION_EQ(result, .70710677f, 0.f, 0.f, .70710677f);
 
-    sampling.time = .5f;
+    sampling.ratio = .5f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_QUATERNION_EQ(result, .70710677f, 0.f, 0.f, .70710677f);
 
-    sampling.time = .54f;
+    sampling.ratio = .54f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_QUATERNION_EQ(result, .61721331f, .15430345f, 0.f, .77151674f);
 
-    sampling.time = .7f;
+    sampling.ratio = .7f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_QUATERNION_EQ(result, 0.f, .70710677f, 0.f, .70710677f);
 
-    sampling.time = .75f;
+    sampling.ratio = .75f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_QUATERNION_EQ(result, 0.f, .70710677f, 0.f, .70710677f);
 
-    sampling.time = .8f;
+    sampling.ratio = .8f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_QUATERNION_EQ(result, 0.f, .70710677f, 0.f, .70710677f);
 
-    sampling.time = 1.f;
+    sampling.ratio = 1.f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_QUATERNION_EQ(result, 0.f, .70710677f, 0.f, .70710677f);
 

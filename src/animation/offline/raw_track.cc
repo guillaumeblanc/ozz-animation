@@ -53,7 +53,7 @@ struct Extern<animation::offline::RawTrackKeyframe<_ValueType> > {
           _keyframes[i];
       const uint8_t interp = static_cast<uint8_t>(keyframe.interpolation);
       _archive << interp;
-      _archive << keyframe.time;
+      _archive << keyframe.ratio;
       _archive << keyframe.value;
     }
   }
@@ -68,7 +68,7 @@ struct Extern<animation::offline::RawTrackKeyframe<_ValueType> > {
       _archive >> interp;
       keyframe.interpolation =
           static_cast<animation::offline::RawTrackInterpolation::Value>(interp);
-      _archive >> keyframe.time;
+      _archive >> keyframe.ratio;
       _archive >> keyframe.value;
     }
   }
@@ -86,18 +86,18 @@ RawTrack<_ValueType>::~RawTrack() {}
 
 template <typename _ValueType>
 bool RawTrack<_ValueType>::Validate() const {
-  float previous_time = -1.f;
+  float previous_ratio = -1.f;
   for (size_t k = 0; k < keyframes.size(); ++k) {
-    const float frame_time = keyframes[k].time;
-    // Tests frame's time is in range [0:1].
-    if (frame_time < 0.f || frame_time > 1.f) {
+    const float frame_ratio = keyframes[k].ratio;
+    // Tests frame's ratio is in range [0:1].
+    if (frame_ratio < 0.f || frame_ratio > 1.f) {
       return false;
     }
     // Tests that frames are sorted.
-    if (frame_time <= previous_time) {
+    if (frame_ratio <= previous_ratio) {
       return false;
     }
-    previous_time = frame_time;
+    previous_ratio = frame_ratio;
   }
   return true;  // Validated.
 }

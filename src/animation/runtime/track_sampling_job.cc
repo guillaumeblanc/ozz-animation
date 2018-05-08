@@ -38,7 +38,7 @@ namespace internal {
 
 template <typename _Track>
 TrackSamplingJob<_Track>::TrackSamplingJob()
-    : time(0.f), track(NULL), result(NULL) {}
+    : ratio(0.f), track(NULL), result(NULL) {}
 
 template <typename _Track>
 bool TrackSamplingJob<_Track>::Validate() const {
@@ -54,37 +54,38 @@ bool TrackSamplingJob<_Track>::Run() const {
     return false;
   }
 
-  // Clamps time in range [0,1].
-  const float clamped_time = math::Clamp(0.f, time, 1.f);
+  // Clamps ratio in range [0,1].
+  const float clamped_ratio = math::Clamp(0.f, ratio, 1.f);
 
   // Search keyframes to interpolate.
-  const Range<const float> times = track->times();
+  const Range<const float> ratios = track->ratios();
   const Range<const ValueType> values = track->values();
-  assert(times.count() == values.count());
+  assert(ratios.count() == values.count() &&
+         track->steps().count() * 8 >= values.count());
 
   // Default track returns identity.
-  if (times.count() == 0) {
+  if (ratios.count() == 0) {
     *result = internal::TrackPolicy<ValueType>::identity();
     return true;
   }
 
-  // Search for the first key frame with a time value greater than input time.
-  // Our time is between this one and the previous one.
-  const float* ptk1 = std::upper_bound(times.begin, times.end, clamped_time);
+  // Search for the first key frame with a ratio value greater than input ratio.
+  // Our ratio is between this one and the previous one.
+  const float* ptk1 = std::upper_bound(ratios.begin, ratios.end, clamped_ratio);
 
   // Deduce keys indices.
-  const size_t id1 = ptk1 - times.begin;
+  const size_t id1 = ptk1 - ratios.begin;
   const size_t id0 = id1 - 1;
 
   const bool id0step = (track->steps()[id0 / 8] & (1 << (id0 & 7))) != 0;
-  if (id0step || ptk1 == times.end) {
+  if (id0step || ptk1 == ratios.end) {
     *result = values[id0];
   } else {
     // Lerp relevant keys.
-    const float tk0 = times[id0];
-    const float tk1 = times[id1];
-    assert(clamped_time >= tk0 && clamped_time < tk1 && tk0 != tk1);
-    const float alpha = (clamped_time - tk0) / (tk1 - tk0);
+    const float tk0 = ratios[id0];
+    const float tk1 = ratios[id1];
+    assert(clamped_ratio >= tk0 && clamped_ratio < tk1 && tk0 != tk1);
+    const float alpha = (clamped_ratio - tk0) / (tk1 - tk0);
     const ValueType& vk0 = values[id0];
     const ValueType& vk1 = values[id1];
     *result = internal::TrackPolicy<ValueType>::Lerp(vk0, vk1, alpha);

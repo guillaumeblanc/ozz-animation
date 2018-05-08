@@ -51,8 +51,8 @@ struct TrackSamplingJob {
 
   // Ratio used to sample track, clamped in range [0,1] before job execution. 0
   // is the beginning of the track, 1 is the end. This is a ratio rather than a
-  // time because tracks have no duration.
-  float time;
+  // ratio because tracks have no duration.
+  float ratio;
 
   // Track to sample.
   const _Track* track;

@@ -55,7 +55,7 @@ TEST(Error, TrackOptimizer) {
   {  // Invalid input animation.
     RawFloatTrack input;
     input.keyframes.resize(1);
-    input.keyframes[0].time = 99.f;
+    input.keyframes[0].ratio = 99.f;
     EXPECT_FALSE(input.Validate());
 
     // Builds animation
@@ -99,15 +99,15 @@ TEST(OptimizeSteps, TrackOptimizer) {
   EXPECT_EQ(output.keyframes.size(), 3u);
 
   EXPECT_EQ(output.keyframes[0].interpolation, key0.interpolation);
-  EXPECT_FLOAT_EQ(output.keyframes[0].time, key0.time);
+  EXPECT_FLOAT_EQ(output.keyframes[0].ratio, key0.ratio);
   EXPECT_FLOAT_EQ(output.keyframes[0].value, key0.value);
 
   EXPECT_EQ(output.keyframes[1].interpolation, key1.interpolation);
-  EXPECT_FLOAT_EQ(output.keyframes[1].time, key1.time);
+  EXPECT_FLOAT_EQ(output.keyframes[1].ratio, key1.ratio);
   EXPECT_FLOAT_EQ(output.keyframes[1].value, key1.value);
 
   EXPECT_EQ(output.keyframes[2].interpolation, key2.interpolation);
-  EXPECT_FLOAT_EQ(output.keyframes[2].time, key2.time);
+  EXPECT_FLOAT_EQ(output.keyframes[2].ratio, key2.ratio);
   EXPECT_FLOAT_EQ(output.keyframes[2].value, key2.value);
 }
 
@@ -147,11 +147,11 @@ TEST(OptimizeInterpolate, TrackOptimizer) {
     EXPECT_EQ(output.keyframes.size(), 2u);
 
     EXPECT_EQ(output.keyframes[0].interpolation, key0.interpolation);
-    EXPECT_FLOAT_EQ(output.keyframes[0].time, key0.time);
+    EXPECT_FLOAT_EQ(output.keyframes[0].ratio, key0.ratio);
     EXPECT_FLOAT_EQ(output.keyframes[0].value, key0.value);
 
     EXPECT_EQ(output.keyframes[1].interpolation, key4.interpolation);
-    EXPECT_FLOAT_EQ(output.keyframes[1].time, key4.time);
+    EXPECT_FLOAT_EQ(output.keyframes[1].ratio, key4.ratio);
     EXPECT_FLOAT_EQ(output.keyframes[1].value, key4.value);
   }
 
@@ -163,19 +163,19 @@ TEST(OptimizeInterpolate, TrackOptimizer) {
     EXPECT_EQ(output.keyframes.size(), 4u);
 
     EXPECT_EQ(output.keyframes[0].interpolation, key0.interpolation);
-    EXPECT_FLOAT_EQ(output.keyframes[0].time, key0.time);
+    EXPECT_FLOAT_EQ(output.keyframes[0].ratio, key0.ratio);
     EXPECT_FLOAT_EQ(output.keyframes[0].value, key0.value);
 
     EXPECT_EQ(output.keyframes[1].interpolation, key2.interpolation);
-    EXPECT_FLOAT_EQ(output.keyframes[1].time, key2.time);
+    EXPECT_FLOAT_EQ(output.keyframes[1].ratio, key2.ratio);
     EXPECT_FLOAT_EQ(output.keyframes[1].value, key2.value);
 
     EXPECT_EQ(output.keyframes[2].interpolation, key3.interpolation);
-    EXPECT_FLOAT_EQ(output.keyframes[2].time, key3.time);
+    EXPECT_FLOAT_EQ(output.keyframes[2].ratio, key3.ratio);
     EXPECT_FLOAT_EQ(output.keyframes[2].value, key3.value);
 
     EXPECT_EQ(output.keyframes[3].interpolation, key4.interpolation);
-    EXPECT_FLOAT_EQ(output.keyframes[3].time, key4.time);
+    EXPECT_FLOAT_EQ(output.keyframes[3].ratio, key4.ratio);
     EXPECT_FLOAT_EQ(output.keyframes[3].value, key4.value);
   }
 }
@@ -212,11 +212,11 @@ TEST(float, TrackOptimizer) {
   EXPECT_EQ(output.keyframes.size(), 2u);
 
   EXPECT_EQ(output.keyframes[0].interpolation, key0.interpolation);
-  EXPECT_FLOAT_EQ(output.keyframes[0].time, key0.time);
+  EXPECT_FLOAT_EQ(output.keyframes[0].ratio, key0.ratio);
   EXPECT_FLOAT_EQ(output.keyframes[0].value, key0.value);
 
   EXPECT_EQ(output.keyframes[1].interpolation, key4.interpolation);
-  EXPECT_FLOAT_EQ(output.keyframes[1].time, key4.time);
+  EXPECT_FLOAT_EQ(output.keyframes[1].ratio, key4.ratio);
   EXPECT_FLOAT_EQ(output.keyframes[1].value, key4.value);
 }
 
@@ -253,11 +253,11 @@ TEST(Float2, TrackOptimizer) {
   EXPECT_EQ(output.keyframes.size(), 2u);
 
   EXPECT_EQ(output.keyframes[0].interpolation, key0.interpolation);
-  EXPECT_FLOAT_EQ(output.keyframes[0].time, key0.time);
+  EXPECT_FLOAT_EQ(output.keyframes[0].ratio, key0.ratio);
   EXPECT_FLOAT2_EQ(output.keyframes[0].value, key0.value.x, key0.value.y);
 
   EXPECT_EQ(output.keyframes[1].interpolation, key4.interpolation);
-  EXPECT_FLOAT_EQ(output.keyframes[1].time, key4.time);
+  EXPECT_FLOAT_EQ(output.keyframes[1].ratio, key4.ratio);
   EXPECT_FLOAT2_EQ(output.keyframes[1].value, key4.value.x, key4.value.y);
 }
 
@@ -294,12 +294,12 @@ TEST(Float3, TrackOptimizer) {
   EXPECT_EQ(output.keyframes.size(), 2u);
 
   EXPECT_EQ(output.keyframes[0].interpolation, key0.interpolation);
-  EXPECT_FLOAT_EQ(output.keyframes[0].time, key0.time);
+  EXPECT_FLOAT_EQ(output.keyframes[0].ratio, key0.ratio);
   EXPECT_FLOAT3_EQ(output.keyframes[0].value, key0.value.x, key0.value.y,
                    key0.value.z);
 
   EXPECT_EQ(output.keyframes[1].interpolation, key4.interpolation);
-  EXPECT_FLOAT_EQ(output.keyframes[1].time, key4.time);
+  EXPECT_FLOAT_EQ(output.keyframes[1].ratio, key4.ratio);
   EXPECT_FLOAT3_EQ(output.keyframes[1].value, key4.value.x, key4.value.y,
                    key4.value.z);
 }
@@ -342,12 +342,12 @@ TEST(Float4, TrackOptimizer) {
   EXPECT_EQ(output.keyframes.size(), 2u);
 
   EXPECT_EQ(output.keyframes[0].interpolation, key0.interpolation);
-  EXPECT_FLOAT_EQ(output.keyframes[0].time, key0.time);
+  EXPECT_FLOAT_EQ(output.keyframes[0].ratio, key0.ratio);
   EXPECT_FLOAT4_EQ(output.keyframes[0].value, key0.value.x, key0.value.y,
                    key0.value.z, key0.value.w);
 
   EXPECT_EQ(output.keyframes[1].interpolation, key4.interpolation);
-  EXPECT_FLOAT_EQ(output.keyframes[1].time, key4.time);
+  EXPECT_FLOAT_EQ(output.keyframes[1].ratio, key4.ratio);
   EXPECT_FLOAT4_EQ(output.keyframes[1].value, key4.value.x, key4.value.y,
                    key4.value.z, key0.value.w);
 }
@@ -391,12 +391,12 @@ TEST(Quaternion, TrackOptimizer) {
   EXPECT_EQ(output.keyframes.size(), 2u);
 
   EXPECT_EQ(output.keyframes[0].interpolation, key0.interpolation);
-  EXPECT_FLOAT_EQ(output.keyframes[0].time, key0.time);
+  EXPECT_FLOAT_EQ(output.keyframes[0].ratio, key0.ratio);
   EXPECT_QUATERNION_EQ(output.keyframes[0].value, key0.value.x, key0.value.y,
                        key0.value.z, key0.value.w);
 
   EXPECT_EQ(output.keyframes[1].interpolation, key3.interpolation);
-  EXPECT_FLOAT_EQ(output.keyframes[1].time, key3.time);
+  EXPECT_FLOAT_EQ(output.keyframes[1].ratio, key3.ratio);
   EXPECT_QUATERNION_EQ(output.keyframes[1].value, key3.value.x, key3.value.y,
                        key3.value.z, key3.value.w);
 }

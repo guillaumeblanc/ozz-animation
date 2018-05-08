@@ -54,7 +54,7 @@ template <typename _ValueType>
 struct RawTrackKeyframe {
   typedef _ValueType ValueType;
   RawTrackInterpolation::Value interpolation;
-  float time;
+  float ratio;
   ValueType value;
 };
 
@@ -74,8 +74,8 @@ struct RawTrack {
   ~RawTrack();
 
   // Validates that all the following rules are respected:
-  //  1. Keyframes' time are sorted in a strict ascending order.
-  //  2. Keyframes' time are all within [0,1] range.
+  //  1. Keyframes' ratios are sorted in a strict ascending order.
+  //  2. Keyframes' ratios are all within [0,1] range.
   bool Validate() const;
 
   // Uses intrusive serialization option, as a way to factorize code.
@@ -96,14 +96,14 @@ struct RawTrack {
 // This data type is not intended to be used in run time. It is used to define
 // the offline track object that can be converted to the runtime one using the a
 // TrackBuilder. This animation structure exposes a single sequence of
-// keyframes. Keyframes are defined with a time, a value and an interpolation
+// keyframes. Keyframes are defined with a ratio, a value and an interpolation
 // mode (impact the range from the keyframe to the next). Track structure is
-// then a sorted vector of keyframes. A track has no duration, keyframes time
+// then a sorted vector of keyframes. A track has no duration, keyframes ratio
 // range must be between 0 and 1. Finally the
 // RawTrack structure exposes Validate() function to check that it is
 // valid, meaning that all the following rules are respected:
-//  1. Keyframes' time are sorted in a strict ascending order.
-//  2. Keyframes' time are all within [0,1] range.
+//  1. Keyframes' ratios are sorted in a strict ascending order.
+//  2. Keyframes' ratios are all within [0,1] range.
 // RawTrack that would fail this validation will fail to be converted by
 // the RawTrackBuilder.
 struct RawFloatTrack : public internal::RawTrack<float> {};

@@ -380,7 +380,7 @@ void TestEdgesExpectationBackward(TrackTriggeringJob::Iterator _fw_iterator,
   for (ozz::Vector<TrackTriggeringJob::Edge>::Std::const_reverse_iterator
            fw_rit = fw_edges.rbegin();
        fw_rit != fw_edges.rend(); ++fw_rit, ++bw_iterator) {
-    EXPECT_FLOAT_EQ(fw_rit->time, bw_iterator->time);
+    EXPECT_FLOAT_EQ(fw_rit->ratio, bw_iterator->ratio);
     EXPECT_EQ(fw_rit->rising, !bw_iterator->rising);
   }
 }
@@ -409,7 +409,7 @@ void TestEdgesExpectation(
 
     TrackTriggeringJob::Iterator it = iterator;
     for (size_t i = 0; it != job.end(); ++it, ++i) {
-      EXPECT_FLOAT_EQ(it->time, _expected[i].time);
+      EXPECT_FLOAT_EQ(it->ratio, _expected[i].ratio);
       EXPECT_EQ(it->rising, _expected[i].rising);
     }
 
@@ -427,7 +427,7 @@ void TestEdgesExpectation(
 
     TrackTriggeringJob::Iterator it = iterator;
     for (size_t i = 0; it != job.end(); ++it, ++i) {
-      EXPECT_FLOAT_EQ(it->time, _expected[i].time + 1.f);
+      EXPECT_FLOAT_EQ(it->ratio, _expected[i].ratio + 1.f);
       EXPECT_EQ(it->rising, _expected[i].rising);
     }
     TestEdgesExpectationBackward(iterator, job);
@@ -446,7 +446,7 @@ void TestEdgesExpectation(
     for (size_t i = 0; it != job.end(); ++it, ++i) {
       const size_t ie = i % _size;
       const float loops = static_cast<float>(i / _size);
-      EXPECT_FLOAT_EQ(it->time, _expected[ie].time + loops);
+      EXPECT_FLOAT_EQ(it->ratio, _expected[ie].ratio + loops);
       EXPECT_EQ(it->rising, _expected[ie].rising);
     }
     TestEdgesExpectationBackward(iterator, job);
@@ -454,11 +454,11 @@ void TestEdgesExpectation(
 
   {  // Forward, first edge to last, last can be included.
 
-    // Last edge is included if it time is 1.f.
-    const bool last_included = _expected[_size - 1].time == 1.f;
+    // Last edge is included if it ratio is 1.f.
+    const bool last_included = _expected[_size - 1].ratio == 1.f;
 
-    job.from = _expected[0].time;
-    job.to = _expected[_size - 1].time;
+    job.from = _expected[0].ratio;
+    job.to = _expected[_size - 1].ratio;
     TrackTriggeringJob::Iterator iterator;
     job.iterator = &iterator;
     ASSERT_TRUE(job.Run());
@@ -468,14 +468,14 @@ void TestEdgesExpectation(
 
     TrackTriggeringJob::Iterator it = iterator;
     for (size_t i = 0; it != job.end(); ++it, ++i) {
-      EXPECT_FLOAT_EQ(it->time, _expected[i].time);
+      EXPECT_FLOAT_EQ(it->ratio, _expected[i].ratio);
       EXPECT_EQ(it->rising, _expected[i].rising);
     }
     TestEdgesExpectationBackward(iterator, job);
   }
 
   {  // Forward, after first edge to 1.
-    job.from = nexttowardf(_expected[0].time, 1.f);
+    job.from = nexttowardf(_expected[0].ratio, 1.f);
     job.to = 1.f;
     TrackTriggeringJob::Iterator iterator;
     job.iterator = &iterator;
@@ -485,7 +485,7 @@ void TestEdgesExpectation(
 
     TrackTriggeringJob::Iterator it = iterator;
     for (size_t i = 0; it != job.end(); ++it, ++i) {
-      EXPECT_FLOAT_EQ(it->time, _expected[i + 1].time);
+      EXPECT_FLOAT_EQ(it->ratio, _expected[i + 1].ratio);
       EXPECT_EQ(it->rising, _expected[i + 1].rising);
     }
     TestEdgesExpectationBackward(iterator, job);
@@ -493,7 +493,7 @@ void TestEdgesExpectation(
 
   {  // Forward, 0 to first edge.
     job.from = 0.f;
-    job.to = _expected[0].time;
+    job.to = _expected[0].ratio;
     TrackTriggeringJob::Iterator iterator;
     job.iterator = &iterator;
     ASSERT_TRUE(job.Run());
@@ -504,14 +504,14 @@ void TestEdgesExpectation(
 
   {  // Forward, 0 to after first edge.
     job.from = 0.f;
-    job.to = nexttowardf(_expected[0].time, 1.f);
+    job.to = nexttowardf(_expected[0].ratio, 1.f);
     TrackTriggeringJob::Iterator iterator;
     job.iterator = &iterator;
     ASSERT_TRUE(job.Run());
 
     ASSERT_EQ(CountEdges(iterator, job.end()), 1u);
 
-    EXPECT_FLOAT_EQ(iterator->time, _expected[0].time);
+    EXPECT_FLOAT_EQ(iterator->ratio, _expected[0].ratio);
     EXPECT_EQ(iterator->rising, _expected[0].rising);
 
     TestEdgesExpectationBackward(iterator, job);
@@ -519,7 +519,7 @@ void TestEdgesExpectation(
 
   {  // Forward, 0 to before last edge.
     job.from = 0.f;
-    job.to = nexttowardf(_expected[_size - 1].time, 0.f);
+    job.to = nexttowardf(_expected[_size - 1].ratio, 0.f);
     TrackTriggeringJob::Iterator iterator;
     job.iterator = &iterator;
     ASSERT_TRUE(job.Run());
@@ -528,7 +528,7 @@ void TestEdgesExpectation(
 
     TrackTriggeringJob::Iterator it = iterator;
     for (size_t i = 0; it != job.end(); ++it, ++i) {
-      EXPECT_FLOAT_EQ(it->time, _expected[i].time);
+      EXPECT_FLOAT_EQ(it->ratio, _expected[i].ratio);
       EXPECT_EQ(it->rising, _expected[i].rising);
     }
     TestEdgesExpectationBackward(iterator, job);
@@ -536,7 +536,7 @@ void TestEdgesExpectation(
 
   {  // Forward, 0 to after last edge.
     job.from = 0.f;
-    job.to = nexttowardf(_expected[_size - 1].time, 1.f);
+    job.to = nexttowardf(_expected[_size - 1].ratio, 1.f);
     TrackTriggeringJob::Iterator iterator;
     job.iterator = &iterator;
     ASSERT_TRUE(job.Run());
@@ -545,7 +545,7 @@ void TestEdgesExpectation(
 
     TrackTriggeringJob::Iterator it = iterator;
     for (size_t i = 0; it != job.end(); ++it, ++i) {
-      EXPECT_FLOAT_EQ(it->time, _expected[i].time);
+      EXPECT_FLOAT_EQ(it->ratio, _expected[i].ratio);
       EXPECT_EQ(it->rising, _expected[i].rising);
     }
     TestEdgesExpectationBackward(iterator, job);
@@ -553,7 +553,7 @@ void TestEdgesExpectation(
 
   {  // Forward, 1 to after last edge + 1.
     job.from = 1.f;
-    job.to = nexttowardf(_expected[_size - 1].time + 1.f, 2.f);
+    job.to = nexttowardf(_expected[_size - 1].ratio + 1.f, 2.f);
     TrackTriggeringJob::Iterator iterator;
     job.iterator = &iterator;
     ASSERT_TRUE(job.Run());
@@ -562,7 +562,7 @@ void TestEdgesExpectation(
 
     TrackTriggeringJob::Iterator it = iterator;
     for (size_t i = 0; it != job.end(); ++it, ++i) {
-      EXPECT_FLOAT_EQ(it->time, _expected[i].time + 1.f);
+      EXPECT_FLOAT_EQ(it->ratio, _expected[i].ratio + 1.f);
       EXPECT_EQ(it->rising, _expected[i].rising);
     }
     TestEdgesExpectationBackward(iterator, job);
@@ -570,7 +570,7 @@ void TestEdgesExpectation(
 
   {  // Forward, 46 to after last edge + 46.
     job.from = 46.f;
-    job.to = nexttowardf(_expected[_size - 1].time + 46.f, 100.f);
+    job.to = nexttowardf(_expected[_size - 1].ratio + 46.f, 100.f);
     TrackTriggeringJob::Iterator iterator;
     job.iterator = &iterator;
     ASSERT_TRUE(job.Run());
@@ -579,7 +579,7 @@ void TestEdgesExpectation(
 
     TrackTriggeringJob::Iterator it = iterator;
     for (size_t i = 0; it != job.end(); ++it, ++i) {
-      EXPECT_FLOAT_EQ(it->time, _expected[i].time + 46.f);
+      EXPECT_FLOAT_EQ(it->ratio, _expected[i].ratio + 46.f);
       EXPECT_EQ(it->rising, _expected[i].rising);
     }
     TestEdgesExpectationBackward(iterator, job);
@@ -587,7 +587,7 @@ void TestEdgesExpectation(
 
   {  // Forward, 46 to before last edge + 46.
     job.from = 46.f;
-    job.to = nexttowardf(_expected[_size - 1].time + 46.f, -100.f);
+    job.to = nexttowardf(_expected[_size - 1].ratio + 46.f, -100.f);
     TrackTriggeringJob::Iterator iterator;
     job.iterator = &iterator;
     ASSERT_TRUE(job.Run());
@@ -596,17 +596,17 @@ void TestEdgesExpectation(
 
     TrackTriggeringJob::Iterator it = iterator;
     for (size_t i = 0; it != job.end(); ++it, ++i) {
-      EXPECT_FLOAT_EQ(it->time, _expected[i].time + 46.f);
+      EXPECT_FLOAT_EQ(it->ratio, _expected[i].ratio + 46.f);
       EXPECT_EQ(it->rising, _expected[i].rising);
     }
     TestEdgesExpectationBackward(iterator, job);
   }
 
   {  // Forward, 46 to last edge + 46.
-    const bool last_included = _expected[_size - 1].time == 1.f;
+    const bool last_included = _expected[_size - 1].ratio == 1.f;
 
     job.from = 46.f;
-    job.to = _expected[_size - 1].time + 46.f;
+    job.to = _expected[_size - 1].ratio + 46.f;
     TrackTriggeringJob::Iterator iterator;
     job.iterator = &iterator;
     ASSERT_TRUE(job.Run());
@@ -616,17 +616,17 @@ void TestEdgesExpectation(
 
     TrackTriggeringJob::Iterator it = iterator;
     for (size_t i = 0; it != job.end(); ++it, ++i) {
-      EXPECT_FLOAT_EQ(it->time, _expected[i].time + 46.f);
+      EXPECT_FLOAT_EQ(it->ratio, _expected[i].ratio + 46.f);
       EXPECT_EQ(it->rising, _expected[i].rising);
     }
     TestEdgesExpectationBackward(iterator, job);
   }
 
   {  // Forward, 0 to before last edge + 1
-    const bool last_included = _expected[_size - 1].time == 1.f;
+    const bool last_included = _expected[_size - 1].ratio == 1.f;
 
     job.from = 0.f;
-    job.to = _expected[_size - 1].time + 1.f;
+    job.to = _expected[_size - 1].ratio + 1.f;
     TrackTriggeringJob::Iterator iterator;
     job.iterator = &iterator;
     ASSERT_TRUE(job.Run());
@@ -636,12 +636,12 @@ void TestEdgesExpectation(
 
     TrackTriggeringJob::Iterator it = iterator;
     for (size_t i = 0; i < _size; ++i, ++it) {
-      EXPECT_FLOAT_EQ(it->time, _expected[i].time);
+      EXPECT_FLOAT_EQ(it->ratio, _expected[i].ratio);
       EXPECT_EQ(it->rising, _expected[i].rising);
     }
     for (size_t i = _size; i < (last_included ? _size * 2 : _size * 2 - 1);
          ++i, ++it) {
-      EXPECT_FLOAT_EQ(it->time, _expected[i - _size].time + 1.f);
+      EXPECT_FLOAT_EQ(it->ratio, _expected[i - _size].ratio + 1.f);
       EXPECT_EQ(it->rising, _expected[i - _size].rising);
     }
     TestEdgesExpectationBackward(iterator, job);
@@ -660,7 +660,7 @@ void TestEdgesExpectation(
 
     TrackTriggeringJob::Iterator it = iterator;
     for (size_t i = 0; it != job.end(); ++it, ++i) {
-      EXPECT_FLOAT_EQ(it->time, _expected[i].time - 1.f);
+      EXPECT_FLOAT_EQ(it->ratio, _expected[i].ratio - 1.f);
       EXPECT_EQ(it->rising, _expected[i].rising);
     }
     TestEdgesExpectationBackward(iterator, job);
@@ -677,7 +677,7 @@ void TestEdgesExpectation(
 
     TrackTriggeringJob::Iterator it = iterator;
     for (size_t i = 0; it != job.end(); ++it, ++i) {
-      EXPECT_FLOAT_EQ(it->time, _expected[i].time - 2.f);
+      EXPECT_FLOAT_EQ(it->ratio, _expected[i].ratio - 2.f);
       EXPECT_EQ(it->rising, _expected[i].rising);
     }
     TestEdgesExpectationBackward(iterator, job);
@@ -694,11 +694,11 @@ void TestEdgesExpectation(
 
     TrackTriggeringJob::Iterator it = iterator;
     for (size_t i = 0; i < _size; ++i, ++it) {
-      EXPECT_FLOAT_EQ(it->time, _expected[i].time - 1.f);
+      EXPECT_FLOAT_EQ(it->ratio, _expected[i].ratio - 1.f);
       EXPECT_EQ(it->rising, _expected[i].rising);
     }
     for (size_t i = 0; i < _size; ++i, ++it) {
-      EXPECT_FLOAT_EQ(it->time, _expected[i].time);
+      EXPECT_FLOAT_EQ(it->ratio, _expected[i].ratio);
       EXPECT_EQ(it->rising, _expected[i].rising);
     }
     TestEdgesExpectationBackward(iterator, job);
@@ -706,7 +706,7 @@ void TestEdgesExpectation(
 
   {  // Forward, -1 to first edge.
     job.from = -1.f;
-    job.to = _expected[0].time - 1.f;
+    job.to = _expected[0].ratio - 1.f;
     TrackTriggeringJob::Iterator iterator;
     job.iterator = &iterator;
     ASSERT_TRUE(job.Run());
@@ -717,7 +717,7 @@ void TestEdgesExpectation(
 
   {  // Forward, -1 to after last edge.
     job.from = -1.f;
-    job.to = _expected[_size - 1].time - .999999f;
+    job.to = _expected[_size - 1].ratio - .999999f;
     TrackTriggeringJob::Iterator iterator;
     job.iterator = &iterator;
     ASSERT_TRUE(job.Run());
@@ -726,15 +726,15 @@ void TestEdgesExpectation(
 
     TrackTriggeringJob::Iterator it = iterator;
     for (size_t i = 0; it != job.end(); ++it, ++i) {
-      EXPECT_FLOAT_EQ(it->time, _expected[i].time - 1.f);
+      EXPECT_FLOAT_EQ(it->ratio, _expected[i].ratio - 1.f);
       EXPECT_EQ(it->rising, _expected[i].rising);
     }
     TestEdgesExpectationBackward(iterator, job);
   }
 
   {  // Forward [-1, -eps]
-    // Last edge is included if it time is not 1.f.
-    const bool last_included = _expected[_size - 1].time != 1.f;
+    // Last edge is included if it ratio is not 1.f.
+    const bool last_included = _expected[_size - 1].ratio != 1.f;
 
     job.from = -1.f;
     job.to = nexttowardf(0.f, -1.f);
@@ -747,18 +747,18 @@ void TestEdgesExpectation(
 
     TrackTriggeringJob::Iterator it = iterator;
     for (size_t i = 0; it != job.end(); ++it, ++i) {
-      EXPECT_FLOAT_EQ(it->time, _expected[i].time - 1.f);
+      EXPECT_FLOAT_EQ(it->ratio, _expected[i].ratio - 1.f);
       EXPECT_EQ(it->rising, _expected[i].rising);
     }
     TestEdgesExpectationBackward(iterator, job);
   }
 
   {  // Forward [-eps, ..]
-    // Last edge is included if it time is 1.f.
-    const bool last_included = _expected[_size - 1].time == 1.f;
+    // Last edge is included if it ratio is 1.f.
+    const bool last_included = _expected[_size - 1].ratio == 1.f;
 
     job.from = nexttowardf(0.f, -1.f);
-    job.to = nexttowardf(_expected[0].time, 1.f);
+    job.to = nexttowardf(_expected[0].ratio, 1.f);
     TrackTriggeringJob::Iterator iterator;
     job.iterator = &iterator;
     ASSERT_TRUE(job.Run());
@@ -767,17 +767,17 @@ void TestEdgesExpectation(
       ASSERT_EQ(CountEdges(iterator, job.end()), 2u);
 
       TrackTriggeringJob::Iterator it = iterator;
-      EXPECT_FLOAT_EQ(it->time, _expected[_size - 1].time - 1.f);
+      EXPECT_FLOAT_EQ(it->ratio, _expected[_size - 1].ratio - 1.f);
       EXPECT_EQ(it->rising, _expected[_size - 1].rising);
       ++it;
 
-      EXPECT_FLOAT_EQ(it->time, _expected[0].time);
+      EXPECT_FLOAT_EQ(it->ratio, _expected[0].ratio);
       EXPECT_EQ(it->rising, _expected[0].rising);
     } else {
       ASSERT_EQ(CountEdges(iterator, job.end()), 1u);
 
       TrackTriggeringJob::Iterator it = iterator;
-      EXPECT_FLOAT_EQ(it->time, _expected[0].time);
+      EXPECT_FLOAT_EQ(it->ratio, _expected[0].ratio);
       EXPECT_EQ(it->rising, _expected[0].rising);
     }
     TestEdgesExpectationBackward(iterator, job);
@@ -785,7 +785,7 @@ void TestEdgesExpectation(
 
   {  // Forward, -46 to after last edge + -46.
     job.from = -46.f;
-    job.to = nexttowardf(_expected[_size - 1].time + -46.f, 100.f);
+    job.to = nexttowardf(_expected[_size - 1].ratio + -46.f, 100.f);
     TrackTriggeringJob::Iterator iterator;
     job.iterator = &iterator;
     ASSERT_TRUE(job.Run());
@@ -794,7 +794,7 @@ void TestEdgesExpectation(
 
     TrackTriggeringJob::Iterator it = iterator;
     for (size_t i = 0; it != job.end(); ++it, ++i) {
-      EXPECT_FLOAT_EQ(it->time, _expected[i].time + -46.f);
+      EXPECT_FLOAT_EQ(it->ratio, _expected[i].ratio + -46.f);
       EXPECT_EQ(it->rising, _expected[i].rising);
     }
     TestEdgesExpectationBackward(iterator, job);
@@ -802,7 +802,7 @@ void TestEdgesExpectation(
 
   {  // Forward, -46 to before last edge + -46.
     job.from = -46.f;
-    job.to = nexttowardf(_expected[_size - 1].time + -46.f, -100.f);
+    job.to = nexttowardf(_expected[_size - 1].ratio + -46.f, -100.f);
     TrackTriggeringJob::Iterator iterator;
     job.iterator = &iterator;
     ASSERT_TRUE(job.Run());
@@ -811,17 +811,17 @@ void TestEdgesExpectation(
 
     TrackTriggeringJob::Iterator it = iterator;
     for (size_t i = 0; it != job.end(); ++it, ++i) {
-      EXPECT_FLOAT_EQ(it->time, _expected[i].time + -46.f);
+      EXPECT_FLOAT_EQ(it->ratio, _expected[i].ratio + -46.f);
       EXPECT_EQ(it->rising, _expected[i].rising);
     }
     TestEdgesExpectationBackward(iterator, job);
   }
 
   {  // Forward, -46 to last edge + -46.
-    const bool last_included = _expected[_size - 1].time == 1.f;
+    const bool last_included = _expected[_size - 1].ratio == 1.f;
 
     job.from = -46.f;
-    job.to = _expected[_size - 1].time + -46.f;
+    job.to = _expected[_size - 1].ratio + -46.f;
     TrackTriggeringJob::Iterator iterator;
     job.iterator = &iterator;
     ASSERT_TRUE(job.Run());
@@ -831,7 +831,7 @@ void TestEdgesExpectation(
 
     TrackTriggeringJob::Iterator it = iterator;
     for (size_t i = 0; it != job.end(); ++it, ++i) {
-      EXPECT_FLOAT_EQ(it->time, _expected[i].time + -46.f);
+      EXPECT_FLOAT_EQ(it->ratio, _expected[i].ratio + -46.f);
       EXPECT_EQ(it->rising, _expected[i].rising);
     }
     TestEdgesExpectationBackward(iterator, job);
@@ -846,8 +846,8 @@ void TestEdgesExpectation(
 
     size_t found = 0;
     for (size_t i = 0; i < _size; ++i) {
-      if (_expected[i].time - 22.f >= job.from &&
-          _expected[i].time - 22.f < job.to) {
+      if (_expected[i].ratio - 22.f >= job.from &&
+          _expected[i].ratio - 22.f < job.to) {
         found++;
       }
     }
@@ -873,40 +873,40 @@ void TestEdgesExpectation(
   {  // Randomized tests rising/falling coherency
     const float kMaxRange = 2.f;
     const size_t kMaxIterations = 100000;
-    float time = 0.f;
+    float ratio = 0.f;
     bool rising = false;
     bool init = false;
     for (size_t i = 0; i < kMaxIterations; ++i) {
       // Finds new evaluation range
       float new_time =
-          time +
+          ratio +
           kMaxRange * (1.f - 2.f * static_cast<float>(rand()) / RAND_MAX);
 
       switch (rand() % 20) {
         case 0: {
-          // Set time to a keyframe time.
-          new_time = _expected[rand() % _size].time + floorf(new_time);
+          // Set ratio to a keyframe ratio.
+          new_time = _expected[rand() % _size].ratio + floorf(new_time);
           break;
         }
         case 1: {
-          // Set time to after a keyframe time.
+          // Set ratio to after a keyframe ratio.
           new_time = nexttowardf(
-              _expected[rand() % _size].time + floorf(new_time), 1e15f);
+              _expected[rand() % _size].ratio + floorf(new_time), 1e15f);
           break;
         }
         case 2: {
-          // Set time to before a keyframe time.
+          // Set ratio to before a keyframe ratio.
           new_time = nexttowardf(
-              _expected[rand() % _size].time + floorf(new_time), -1e15f);
+              _expected[rand() % _size].ratio + floorf(new_time), -1e15f);
           break;
         }
         default:
           break;
       }
 
-      job.from = time;
-      time = new_time;
-      job.to = time;
+      job.from = ratio;
+      ratio = new_time;
+      job.to = ratio;
 
       TrackTriggeringJob::Iterator iterator;
       job.iterator = &iterator;
@@ -914,7 +914,7 @@ void TestEdgesExpectation(
       ASSERT_TRUE(job.Run());
 
       // Successive edges should always be opposed, whichever direction the
-      // time is going.
+      // ratio is going.
       for (const TrackTriggeringJob::Iterator end = job.end(); iterator != end;
            ++iterator) {
         const TrackTriggeringJob::Edge& edge = *iterator;
@@ -1185,10 +1185,10 @@ TEST(StepThreshold, TrackEdgeTriggerJob) {
 
     ASSERT_EQ(CountEdges(iterator, job.end()), 2u);
 
-    EXPECT_FLOAT_EQ(iterator->time, .5f);
+    EXPECT_FLOAT_EQ(iterator->ratio, .5f);
     EXPECT_EQ(iterator->rising, true);
     ++iterator;
-    EXPECT_FLOAT_EQ(iterator->time, 1.f);
+    EXPECT_FLOAT_EQ(iterator->ratio, 1.f);
     EXPECT_EQ(iterator->rising, false);
   }
 
@@ -1201,10 +1201,10 @@ TEST(StepThreshold, TrackEdgeTriggerJob) {
 
     ASSERT_EQ(CountEdges(iterator, job.end()), 2u);
 
-    EXPECT_FLOAT_EQ(iterator->time, .5f);
+    EXPECT_FLOAT_EQ(iterator->ratio, .5f);
     EXPECT_EQ(iterator->rising, true);
     ++iterator;
-    EXPECT_FLOAT_EQ(iterator->time, 1.f);
+    EXPECT_FLOAT_EQ(iterator->ratio, 1.f);
     EXPECT_EQ(iterator->rising, false);
   }
 
@@ -1227,10 +1227,10 @@ TEST(StepThreshold, TrackEdgeTriggerJob) {
 
     ASSERT_EQ(CountEdges(iterator, job.end()), 2u);
 
-    EXPECT_FLOAT_EQ(iterator->time, .5f);
+    EXPECT_FLOAT_EQ(iterator->ratio, .5f);
     EXPECT_EQ(iterator->rising, true);
     ++iterator;
-    EXPECT_FLOAT_EQ(iterator->time, 1.f);
+    EXPECT_FLOAT_EQ(iterator->ratio, 1.f);
     EXPECT_EQ(iterator->rising, false);
   }
 
@@ -1284,10 +1284,10 @@ TEST(StepThresholdBool, TrackEdgeTriggerJob) {
 
     ASSERT_EQ(CountEdges(iterator, job.end()), 2u);
 
-    EXPECT_FLOAT_EQ(iterator->time, .5f);
+    EXPECT_FLOAT_EQ(iterator->ratio, .5f);
     EXPECT_EQ(iterator->rising, true);
     ++iterator;
-    EXPECT_FLOAT_EQ(iterator->time, 1.f);
+    EXPECT_FLOAT_EQ(iterator->ratio, 1.f);
     EXPECT_EQ(iterator->rising, false);
   }
 
@@ -1310,10 +1310,10 @@ TEST(StepThresholdBool, TrackEdgeTriggerJob) {
 
     ASSERT_EQ(CountEdges(iterator, job.end()), 2u);
 
-    EXPECT_FLOAT_EQ(iterator->time, .5f);
+    EXPECT_FLOAT_EQ(iterator->ratio, .5f);
     EXPECT_EQ(iterator->rising, true);
     ++iterator;
-    EXPECT_FLOAT_EQ(iterator->time, 1.f);
+    EXPECT_FLOAT_EQ(iterator->ratio, 1.f);
     EXPECT_EQ(iterator->rising, false);
   }
 
@@ -1355,10 +1355,10 @@ TEST(LinearThreshold, TrackEdgeTriggerJob) {
 
     ASSERT_EQ(CountEdges(iterator, job.end()), 2u);
 
-    EXPECT_FLOAT_EQ(iterator->time, .375f);
+    EXPECT_FLOAT_EQ(iterator->ratio, .375f);
     EXPECT_EQ(iterator->rising, true);
     ++iterator;
-    EXPECT_FLOAT_EQ(iterator->time, .625f);
+    EXPECT_FLOAT_EQ(iterator->ratio, .625f);
     EXPECT_EQ(iterator->rising, false);
   }
 
@@ -1381,10 +1381,10 @@ TEST(LinearThreshold, TrackEdgeTriggerJob) {
 
     ASSERT_EQ(CountEdges(iterator, job.end()), 2u);
 
-    EXPECT_FLOAT_EQ(iterator->time, .25f);
+    EXPECT_FLOAT_EQ(iterator->ratio, .25f);
     EXPECT_EQ(iterator->rising, true);
     ++iterator;
-    EXPECT_FLOAT_EQ(iterator->time, .75f);
+    EXPECT_FLOAT_EQ(iterator->ratio, .75f);
     EXPECT_EQ(iterator->rising, false);
   }
 
@@ -1397,10 +1397,10 @@ TEST(LinearThreshold, TrackEdgeTriggerJob) {
 
     ASSERT_EQ(CountEdges(iterator, job.end()), 2u);
 
-    EXPECT_FLOAT_EQ(iterator->time, 0.f);
+    EXPECT_FLOAT_EQ(iterator->ratio, 0.f);
     EXPECT_EQ(iterator->rising, true);
     ++iterator;
-    EXPECT_FLOAT_EQ(iterator->time, 1.f);
+    EXPECT_FLOAT_EQ(iterator->ratio, 1.f);
     EXPECT_EQ(iterator->rising, false);
   }
 

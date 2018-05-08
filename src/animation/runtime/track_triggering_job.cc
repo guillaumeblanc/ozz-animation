@@ -49,7 +49,7 @@ bool TrackTriggeringJob::Run() const {
     return false;
   }
 
-  // Triggering can only happen in a valid range of time.
+  // Triggering can only happen in a valid range of ratio.
   if (from == to) {
     *iterator = end();
     return true;
@@ -81,17 +81,17 @@ inline bool DetectEdge(ptrdiff_t _i0, ptrdiff_t _i1, bool _forward,
   }
 
   if (detected) {
-    const Range<const float>& times = _job.track->times();
+    const Range<const float>& ratios = _job.track->ratios();
     const Range<const uint8_t>& steps = _job.track->steps();
 
     const bool step = (steps[_i0 / 8] & (1 << (_i0 & 7))) != 0;
     if (step) {
-      _edge->time = times[_i1];
+      _edge->ratio = ratios[_i1];
     } else {
       assert(vk0 != vk1);  // Won't divide by 0
 
       if (_i1 == 0) {
-        _edge->time = 0.f;
+        _edge->ratio = 0.f;
       } else {
         // Finds where the curve crosses threshold value.
         // This is the lerp equation, where we know the result and look for
@@ -99,9 +99,9 @@ inline bool DetectEdge(ptrdiff_t _i0, ptrdiff_t _i1, bool _forward,
         const float alpha = (_job.threshold - vk0) / (vk1 - vk0);
 
         // Remaps to keyframes actual times.
-        const float tk0 = times[_i0];
-        const float tk1 = times[_i1];
-        _edge->time = math::Lerp(tk0, tk1, alpha);
+        const float tk0 = ratios[_i0];
+        const float tk1 = ratios[_i1];
+        _edge->ratio = math::Lerp(tk0, tk1, alpha);
       }
     }
   }
@@ -114,13 +114,13 @@ TrackTriggeringJob::Iterator::Iterator(const TrackTriggeringJob* _job)
   // Outer loop initialization.
   outer_ = floorf(job_->from);
 
-  // Search could start more closely to the "from" time, but it's not possible
+  // Search could start more closely to the "from" ratio, but it's not possible
   // to ensure that floating point precision will not lead to missing a key
   // (when from/to range is far from 0). This is less good in algorithmic
   // complexity, but for consistency of forward and backward triggering, it's
   // better to let iterator ++ implementation filter included and excluded
   // edges.
-  inner_ = job_->from < job_->to ? 0 : _job->track->times().count() - 1;
+  inner_ = job_->from < job_->to ? 0 : _job->track->ratios().count() - 1;
 
   // Evaluates first edge.
   ++*this;
@@ -129,22 +129,22 @@ TrackTriggeringJob::Iterator::Iterator(const TrackTriggeringJob* _job)
 const TrackTriggeringJob::Iterator& TrackTriggeringJob::Iterator::operator++() {
   assert(*this != job_->end() && "Can't increment end iterator.");
 
-  const Range<const float>& times = job_->track->times();
-  const ptrdiff_t num_keys = times.count();
+  const Range<const float>& ratios = job_->track->ratios();
+  const ptrdiff_t num_keys = ratios.count();
 
   if (job_->to > job_->from) {
     for (; outer_ < job_->to; outer_ += 1.f) {
       for (; inner_ < num_keys; ++inner_) {
         const ptrdiff_t i0 = inner_ == 0 ? num_keys - 1 : inner_ - 1;
         if (DetectEdge(i0, inner_, true, *job_, &edge_)) {
-          edge_.time += outer_;  // Convert to global time space.
-          if (edge_.time >= job_->from &&
-              (edge_.time < job_->to || job_->to >= 1.f + outer_)) {
+          edge_.ratio += outer_;  // Convert to global ratio space.
+          if (edge_.ratio >= job_->from &&
+              (edge_.ratio < job_->to || job_->to >= 1.f + outer_)) {
             ++inner_;
             return *this;  // Yield found edge.
           }
           // Won't find any further edge.
-          if (times[inner_] + outer_ >= job_->to) {
+          if (ratios[inner_] + outer_ >= job_->to) {
             break;
           }
         }
@@ -156,19 +156,19 @@ const TrackTriggeringJob::Iterator& TrackTriggeringJob::Iterator::operator++() {
       for (; inner_ >= 0; --inner_) {
         const ptrdiff_t i0 = inner_ == 0 ? num_keys - 1 : inner_ - 1;
         if (DetectEdge(i0, inner_, false, *job_, &edge_)) {
-          edge_.time += outer_;  // Convert to global time space.
-          if (edge_.time >= job_->to &&
-              (edge_.time < job_->from || job_->from >= 1.f + outer_)) {
+          edge_.ratio += outer_;  // Convert to global ratio space.
+          if (edge_.ratio >= job_->to &&
+              (edge_.ratio < job_->from || job_->from >= 1.f + outer_)) {
             --inner_;
             return *this;  // Yield found edge.
           }
         }
         // Won't find any further edge.
-        if (times[inner_] + outer_ <= job_->to) {
+        if (ratios[inner_] + outer_ <= job_->to) {
           break;
         }
       }
-      inner_ = times.count() - 1;  // Ready for next loop.
+      inner_ = ratios.count() - 1;  // Ready for next loop.
     }
   }
 
