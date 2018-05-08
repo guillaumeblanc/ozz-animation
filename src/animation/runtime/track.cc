@@ -116,7 +116,7 @@ void Track<_ValueType>::Save(ozz::io::OArchive& _archive) const {
 
   _archive << ozz::io::MakeArray(times_);
   _archive << ozz::io::MakeArray(values_);
-  _archive << ozz::io::MakeArray(times_);
+  _archive << ozz::io::MakeArray(steps_);
 
   _archive << ozz::io::MakeArray(name_, name_len);
 }
@@ -141,7 +141,7 @@ void Track<_ValueType>::Load(ozz::io::IArchive& _archive, uint32_t _version) {
 
   _archive >> ozz::io::MakeArray(times_);
   _archive >> ozz::io::MakeArray(values_);
-  _archive >> ozz::io::MakeArray(times_);
+  _archive >> ozz::io::MakeArray(steps_);
 
   if (name_) {  // NULL name_ is supported.
     _archive >> ozz::io::MakeArray(name_, name_len);
