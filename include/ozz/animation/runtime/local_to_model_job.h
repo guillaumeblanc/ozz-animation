@@ -56,7 +56,7 @@ class Skeleton;
 // that cannot be represented as Transform object.
 struct LocalToModelJob {
   // Default constructor, initializes default values.
-  LocalToModelJob() : skeleton(NULL) {}
+  LocalToModelJob() : skeleton(NULL), root(NULL) {}
 
   // Validates job parameters. Returns true for a valid job, or false otherwise:
   // -if any input pointer, including ranges, is NULL.
@@ -75,6 +75,10 @@ struct LocalToModelJob {
   // The Skeleton object describing the joint hierarchy used for local to
   // model space conversion.
   const Skeleton* skeleton;
+
+  // The root matrix will multiply to every model space matrices, default NULL
+  // means an identity matrix.
+  const ozz::math::Float4x4* root;
 
   // Job input.
   // The input range that store local transforms.

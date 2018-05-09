@@ -14,6 +14,10 @@ if(WIN32)
     lib/win32/win32_thread.c
     lib/win32/win32_time.c
     lib/win32/win32_window.c)
+  if(MSYS OR MINGW)
+    # Disables warnings in glfw.
+    set_source_files_properties(${specific_file_list} PROPERTIES COMPILE_FLAGS "-Wno-unknown-pragmas")
+  endif()
 endif()
 
 # Samples requires X11 package on linux.
