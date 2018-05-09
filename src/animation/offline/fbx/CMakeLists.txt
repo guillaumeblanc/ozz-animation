@@ -51,10 +51,10 @@ set(build_configurations
   "/fbx/baked.fbx\;\;config_file:${PROJECT_SOURCE_DIR}/samples/baked/config.json\;output:baked_skeleton.ozz\;output:baked_animation.ozz"
 
   # Versioning
-  "/fbx/alain/skeleton.fbx\;{\"skeleton\":{\"filename\":\"versioning/raw_skeleton_v1_le.ozz\",\"import\":{\"enable\":true,\"raw\":true}}}\;output:versioning/raw_skeleton_v1_le.ozz\;option:--endian=little"
-  "/fbx/alain/skeleton.fbx\;{\"skeleton\":{\"filename\":\"versioning/raw_skeleton_v1_be.ozz\",\"import\":{\"enable\":true,\"raw\":true}}}\;output:versioning/raw_skeleton_v1_be.ozz\;option:--endian=big"
-  "/fbx/alain/skeleton.fbx\;{\"skeleton\":{\"filename\":\"versioning/skeleton_v1_le.ozz\",\"import\":{\"enable\":true}}}\;output:versioning/skeleton_v1_le.ozz\;option:--endian=little"
-  "/fbx/alain/skeleton.fbx\;{\"skeleton\":{\"filename\":\"versioning/skeleton_v1_be.ozz\",\"import\":{\"enable\":true}}}\;output:versioning/skeleton_v1_be.ozz\;option:--endian=big"
+  "/fbx/alain/skeleton.fbx\;{\"skeleton\":{\"filename\":\"versioning/raw_skeleton_v1_le.ozz\",\"import\":{\"enable\":true,\"raw\":true}},\"animations\":[]}\;output:versioning/raw_skeleton_v1_le.ozz\;option:--endian=little"
+  "/fbx/alain/skeleton.fbx\;{\"skeleton\":{\"filename\":\"versioning/raw_skeleton_v1_be.ozz\",\"import\":{\"enable\":true,\"raw\":true}},\"animations\":[]}\;output:versioning/raw_skeleton_v1_be.ozz\;option:--endian=big"
+  "/fbx/alain/skeleton.fbx\;{\"skeleton\":{\"filename\":\"versioning/skeleton_v1_le.ozz\",\"import\":{\"enable\":true}},\"animations\":[]}\;output:versioning/skeleton_v1_le.ozz\;option:--endian=little"
+  "/fbx/alain/skeleton.fbx\;{\"skeleton\":{\"filename\":\"versioning/skeleton_v1_be.ozz\",\"import\":{\"enable\":true}},\"animations\":[]}\;output:versioning/skeleton_v1_be.ozz\;option:--endian=big"
   "/fbx/alain/run.fbx\;{\"skeleton\":{\"filename\":\"alain_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"versioning/raw_animation_v2_le.ozz\",\"raw\":true}]}\;output:versioning/raw_animation_v2_le.ozz\;option:--endian=little\;depend:alain_skeleton.ozz"
   "/fbx/alain/run.fbx\;{\"skeleton\":{\"filename\":\"alain_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"versioning/raw_animation_v2_be.ozz\",\"raw\":true}]}\;output:versioning/raw_animation_v2_be.ozz\;option:--endian=big\;depend:alain_skeleton.ozz"
   "/fbx/alain/run.fbx\;{\"skeleton\":{\"filename\":\"alain_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"versioning/animation_v4_le.ozz\"}]}\;output:versioning/animation_v4_le.ozz\;option:--endian=little\;depend:alain_skeleton.ozz"
