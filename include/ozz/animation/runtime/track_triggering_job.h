@@ -128,16 +128,16 @@ class TrackTriggeringJob::Iterator {
   }
 
  private:
-  explicit Iterator(const TrackTriggeringJob* _job);
+  friend struct TrackTriggeringJob;
 
+  // Constructors used by the job.
+  explicit Iterator(const TrackTriggeringJob* _job);
   struct End {};
   Iterator(const TrackTriggeringJob* _job, End)
       : job_(_job),
         outer_(0.f),
         inner_(-2) {  // Can never be reached while looping.
   }
-
-  friend struct TrackTriggeringJob;
 
   // Job this iterator works on.
   const TrackTriggeringJob* job_;
@@ -152,6 +152,7 @@ class TrackTriggeringJob::Iterator {
   Edge edge_;
 };
 
+// end() job function inline implementation.
 inline TrackTriggeringJob::Iterator TrackTriggeringJob::end() const {
   return Iterator(this, Iterator::End());
 }

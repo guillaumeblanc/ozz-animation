@@ -1,9 +1,9 @@
-Next release
----------------------
+Release version 0.10.0
+----------------------
 
 * Tools
-  - Merged \*2skel and \*2anim in a single tool where all options are specified as a json config file. List of options with default values are available: TODO.
-  - Adds a --all_nodes option to fbx2skel which allows to export all scene nodes to a skeleton, ie not only joints. This is useful for the baked sample for example, which animates mesh nodes.
+  - Merged \*2skel and \*2anim in a single tool (\*2ozz) where all options are specified as a json config file. List of options with default values are available in [src/animation/offline/tools/reference.json] file(https://github.com/guillaumeblanc/ozz-animation/blob/master/src/animation/offline/tools/reference.json).
+  - Adds an option while importing skeletons to choose scene node types that must be considered as skeleton joints, ie not only actual scene joints. This is useful for the baked sample for example, which animates mesh nodes.
 
 * Library
   - [base] Changes non-intrusive serialization mechanism to use a specialize template struct "Extern" instead of function overloading.
@@ -16,6 +16,7 @@ Next release
   - Drops appveyor CI support for Visual Studio 11 2012.
 
 * Samples
+  - [user_channel] Adds new user-channel sample, demonstrating usage of user-channel tracks API and import pipeline usage.
   - [multithread] Switched from OpenMP to c++11 std::async API to implement a parallel-for loop over all computation tasks.
 
 Release version 0.9.1
