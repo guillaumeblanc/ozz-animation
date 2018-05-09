@@ -205,7 +205,7 @@ Standard containers
 
 ozz base library remaps stl standard containers ([vectors, maps..][link_src_containers]) to ozz memory allocators. The purpose is to track memory allocations and avoid leaks.
 
-> Note that this containers are not used by the runtime libraries.
+> Note that these containers are not used by the runtime libraries.
 
 Custom containers
 -----------------
