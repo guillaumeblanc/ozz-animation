@@ -7,22 +7,28 @@
     <meta name="description" content="{{page.title}}">
     <meta name="keywords" content="{{site.keywords}}, {{page.keywords}}">
     <meta name="author" content="Guillaume Blanc">
+    <meta name="google-site-verification" content="2sKam6cmz8I5XpGAouSdQc0E3nh9vW0Gi5z-G0vpWL0" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:site" content="@jozz_sc" />
+    <meta name="twitter:title" content="open source c++ skeletal animation library and toolset" />
+    <meta name="twitter:description" content="Provides runtime character animation functionalities, with the toolset to import major DCC formats (Collada, Fbx...). It proposes a low-level renderer and game-engine agnostic implementation, focusing on performance and memory constraints with a data-oriented design." />
+    <meta name="twitter:image" content="http://guillaumeblanc.github.io/ozz-animation/images/logo/ozz-grey-256.png" />
     <link rel="shortcut icon" href="{{site.baseurl}}/images/logo/ozz-grey-64.png" />
-    <link rel="stylesheet" type="text/css" href="http://www.w3schools.com/lib/w3.css">
-    <link rel="stylesheet" type="text/css" href="http://www.w3schools.com/lib/w3-theme-dark-grey.css">
-    <link rel="stylesheet" type="text/css" href="http://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-    <link rel="stylesheet" type="text/css" href="{{site.baseurl}}/style/jekyll-github.css">
+    <link rel="stylesheet" type="text/css" href="https://www.w3schools.com/lib/w3.css" />
+    <link rel="stylesheet" type="text/css" href="https://www.w3schools.com/lib/w3-theme-dark-grey.css" />
+    <link rel="stylesheet" type="text/css" href="http://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
+    <link rel="stylesheet" type="text/css" href="{{site.baseurl}}/style/jekyll-github.css" />
     <style>
       * { font: inherit; }
-      h1{font-size:30px}h2{font-size:24px}h3{font-size:20px}h4{font-size:18px}h5{font-size:16px}h6{font-size:15px}
+      h1{font-size:28px; margin-top:40px;}h2{font-size:24px}h3{font-size:20px}h4{font-size:18px}h5{font-size:16px}h6{font-size:15px}
       a:not(.a_reject) { color:#9f5800!important; }
       a { text-decoration:none!important; }
       a:hover { color:#cf7800!important; }
       canvas { width: 100%!important; height: 100%!important; }
       blockquote { font-style:italic; margin-top:8px!important; margin-bottom:8px!important; overflow-x:scroll;}
-      figure { margin:0px; border-radius:4px!important; border:1px solid #ccc!important; border-left:6px solid #ccc!important; padding:0.01em 8px; margin-top:8px!important; margin-bottom:8px!important; overflow-x:scroll;}
+      figure { margin:0px; background-color:#f6f6f6 !important; border-radius:4px!important; border:1px solid #ccc!important; border-left:6px solid #ccc!important; padding:0.01em 8px; margin-top:8px!important; margin-bottom:8px!important; overflow-x:scroll;}
     </style>
   </head>
-  <body class="w3-justify">
+  <body class="">
   
   

@@ -1,7 +1,7 @@
 ---
 title: Overview
 layout: full
-keywords: documentation, doc, help, howto, license, pipeline, tools, primer, introduction, definition
+keywords: documentation,doc,help,howto,license,pipeline,tools,primer,introduction,definition
 permalink: /:collection/index.html
 ---
 

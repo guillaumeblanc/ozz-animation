@@ -4,9 +4,9 @@ var myTableBadges = (function () {
     var row = "";
     row += '<tr>';
     row += '<th>' + branch.name + '</th>';
-    row += '<th><a href="http://travis-ci.org/guillaumeblanc/ozz-animation/branches" target="_blank"><img src="https://travis-ci.org/guillaumeblanc/ozz-animation.svg?branch=' + branch.name + '" alt="' + branch.name + '"></a></th>';
-    row += '<th><a href="http://travis-ci.org/guillaumeblanc/ozz-animation/branches" target="_blank"><img src="https://travis-ci.org/guillaumeblanc/ozz-animation.svg?branch=' + branch.name + '" alt="' + branch.name + '"></a></th>';
-    row += '<th><a href="http://ci.appveyor.com/project/guillaumeblanc/ozz-animation" target="_blank"><img src="https://ci.appveyor.com/api/projects/status/github/guillaumeblanc/ozz-animation?branch=' + branch.name + '&svg=true"></a></th>';
+    row += '<th><a href="http://travis-ci.org/guillaumeblanc/ozz-animation/branches"><img src="https://travis-ci.org/guillaumeblanc/ozz-animation.svg?branch=' + branch.name + '" alt="' + branch.name + '"></a></th>';
+    row += '<th><a href="http://travis-ci.org/guillaumeblanc/ozz-animation/branches"><img src="https://travis-ci.org/guillaumeblanc/ozz-animation.svg?branch=' + branch.name + '" alt="' + branch.name + '"></a></th>';
+    row += '<th><a href="http://ci.appveyor.com/project/guillaumeblanc/ozz-animation"><img src="https://ci.appveyor.com/api/projects/status/github/guillaumeblanc/ozz-animation?branch=' + branch.name + '&svg=true"></a></th>';
     row += '</tr>';
     return row;
   }

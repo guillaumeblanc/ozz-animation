@@ -1,7 +1,7 @@
 ---
 title: Animation runtime
 layout: full
-keywords: runtime,optimize,sample,sampling,blend,blending,soa,sse,job,batch,cpu,thread
+keywords: runtime,optimize,sample,sampling,blending,soa,sse,job,batch,cpu,cache,friendly,data,oriented
 order: 50
 ---
 
@@ -34,7 +34,9 @@ struct JointProperties {
 `ozz::animation::Animation`
 ---------------------------
 
-The runtime animation data structure stores compressed animation keyframes, for all the joints of a skeleton. Translations and scales are stored using 3 half floats (3 * 16bits) while rotations (a quaternion) are quantized on 3 16bits integers (the 4th component is recomputed at runtime). This structure is usually filled by the `ozz::animation::offline::AnimationBuilder' and deserialized/loaded at runtime.
+The runtime animation data structure stores compressed animation keyframes, for all the joints of a skeleton. Translations and scales are stored using 3 half floats (3 * 16bits) while rotations (a quaternion) are quantized on 3 16bits integers. Quaternion are normalized indeed, so the 4th compenent can be restored at runtime from the 3 others and a sign. Ozz restores the biggest of the 4 components, improving numerical accuracy which gets very bad for small values (√(x + ϵ) for small x). It also allows to pre-multiply each of the 3 smallest components by sqrt(2), maximizing quantization range by over 41%.
+
+This structure is usually filled by the `ozz::animation::offline::AnimationBuilder' and deserialized/loaded at runtime.
 For each transformation type (translation, rotation and scale), animation structure stores a single array of keyframes that contains all the tracks required to animate all the joints of a skeleton, matching breadth-first joints order of the runtime skeleton structure. Keyframes in this array are sorted by time, then by track number. This is the comparison function "less" used be the sorting algorithm of the AnimationBuilder implementation:
 
 {% highlight cpp %}
@@ -86,7 +88,7 @@ However this strategy doesn't apply to move the time cursor backward. The curren
 Mathematical structures
 -----------------------
 
-The runtime pipeline also refers to generic c++ mathematical structures like vectors, quaternions, matrices, `ozz:math::Transform` (translation, rotation and scale). It especially makes a heavy use of Struct-of-Array mathematical structures available in ozz for optimum memory access patterns and maximize SIMD instruction (SSE2, AVX...) throughput. This [document from Intel](http://software.intel.com/en-us/articles/how-to-manipulate-data-structure-to-optimize-memory-use-on-32-bit-intel-architecture) gives more details about the AoS/SoA layouts and their benefit.
+The runtime pipeline also refers to generic c++ mathematical structures like vectors, quaternions, matrices, `ozz:math::Transform` (translation, rotation and scale). It especially makes a heavy use of Struct-of-Array mathematical structures available in ozz for optimum memory access patterns and maximize SIMD instruction (SSE2, AVX...) throughput. This [document from Intel](https://software.intel.com/en-us/articles/how-to-manipulate-data-structure-to-optimize-memory-use-on-32-bit-intel-architecture) gives more details about the AoS/SoA layouts and their benefit.
 
 More details about ozz-animation maths libraries are available in the [advanced][link_maths] section.
 
@@ -152,12 +154,12 @@ Partial animation blending is supported through optional joint weights that can 
 - __Outputs__
   - `ozz::math::SoATransform* output`
 
-See [blending sample]({{site.baseurl}}/samples/blend) that blends 3 locomotion animations (walk/jog/run) depending on a target speed factor, and [partial blending sample]({{site.baseurl}}/samples/partial_blend) that blends a specific animation to the character upper-body.
+See [blending sample][link_blend_sample] that blends 3 locomotion animations (walk/jog/run) depending on a target speed factor, and [partial blending sample][link_partial_blend_sample] that blends a specific animation to the character upper-body.
 
 `ozz::animation::LocalToModelJob`
 ---------------------------------
 
-The `ozz::nimation::LocalToModelJob` is in charge of converting [local-space to model-space coordinate system]({{site.baseurl}}/documentation/runtime_pipeline#localspaceandmodelspacecoordinatesystems). It uses the skeleton to define joints parent-child hierarchy. The job iterates through all joints to compute their transform relatively to the skeleton root.
+The `ozz::nimation::LocalToModelJob` is in charge of converting [local-space to model-space coordinate system][link_coordinate_system]. It uses the skeleton to define joints parent-child hierarchy. The job iterates through all joints to compute their transform relatively to the skeleton root.
 Job inputs is an array of SoaTransform objects (in local-space), ordered like skeleton's joints. Job output is an array of matrices (in model-space), also ordered like skeleton's joints. Output are matrices, because the combination of affine transformations can contain shearing or complex transformation that cannot be represented as affine transform objects.
 
 Note that this job also intrinsically unpack SoA input data (`ozz::math::SoATransform`) to standard AoS matrices (`ozz::math::Float4x4`) on output.
@@ -172,7 +174,7 @@ Note that this job also intrinsically unpack SoA input data (`ozz::math::SoATran
 - __Outputs__
   - `ozz::math::Float4x4* output`: Output matrices in model spaces.
 
-All samples use `ozz::animation::LocalToModelJob`. See [playback sample]({{site.baseurl}}/samples/playback) for a simple use case.
+All samples use `ozz::animation::LocalToModelJob`. See [playback sample][link_playback_sample] for a simple use case.
 
 `ozz::geometry::SkinningJob`
 ----------------------------

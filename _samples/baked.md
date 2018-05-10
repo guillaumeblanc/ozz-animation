@@ -1,7 +1,7 @@
 ---
 title: Baked physic simulation
 layout: full
-keywords: sample, tutorial, attach, baked, physic, local, model, space, transformation, matrix, instanced, camera
+keywords: sample,tutorial,baked,physic,transformation,matrix,instanced,animated,camera
 order: 55
 level: 2
 ---

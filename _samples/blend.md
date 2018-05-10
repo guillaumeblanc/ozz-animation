@@ -1,7 +1,7 @@
 ---
 title: Animation blending
 layout: full
-keywords: sample,blend,mix,transition,weight,interpolate,lerp,slerp
+keywords: sample,blend,mix,transition,weight,interpolate,lerp,slerp,nlerp
 order: 20
 level: 1
 ---

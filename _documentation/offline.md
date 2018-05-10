@@ -1,7 +1,7 @@
 ---
 title: Offline libraries
 layout: full
-keywords: offline, load, import, runtime, build, convert, optimize
+keywords: offline,load,import,runtime,build,convert,optimize,reduction,compress,quantize
 order: 60
 ---
 
