@@ -54,9 +54,9 @@ inline int AbortHook(int, char*, int*) { exit(EXIT_FAILURE); }
     /* During death tests executions:*/                                        \
     /* Disables popping message boxes during crt and stl assertions*/          \
     int old_mode = 0;                                                          \
-    (void) old_mode;                                                           \
+    (void)old_mode;                                                            \
     _CRT_REPORT_HOOK old_hook = NULL;                                          \
-    (void) old_hook;                                                           \
+    (void)old_hook;                                                            \
     if (testing::internal::GTEST_FLAG(internal_run_death_test).length() > 0) { \
       old_mode = _CrtSetReportMode(_CRT_ASSERT, _CRTDBG_MODE_DEBUG);           \
       old_hook = _CrtSetReportHook(&internal::AbortHook);                      \
