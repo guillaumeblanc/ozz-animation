@@ -7,7 +7,7 @@ The samples uses a user channel track to drive attachment state of a box manipul
 ## Concept
 
 User-channels are the way to animate data that aren't joint transformations: float, bool... In this sample the user-data is the boolean attachment state of the box with the robot's finger. The sample attaches the box (see attachment sample) to the robot's finger when the boolean becomes true, and detaches it when it's getting false.
-The user-channel track was edited in a DCC tool as a custom property and saved in the fbx file alongside the animation. fbx2ozz is used to extract this track using "animations[].tracks[].properties[]" parameter of fbx2ozz json configuration. See [config.json](samples/user_channel/config.json).
+The user-channel track was edited in a DCC tool as a custom property and saved in the fbx file alongside the animation. fbx2ozz is used to extract this track using "animations[].tracks[].properties[]" parameter of fbx2ozz json configuration. See [config.json](config.json).
 
 The sample demonstrates two ways to use the user-channel track, based on ozz API:
 1. Sampling: Using ozz::animation::TrackSamplingJob, the samples queries the track value each keyframe. It will get true or false depending on if the box should be attached or detached for current frame time. If the box is detached, its position remains unchanged. If it is attached, the sample computes box position as transformed by the finger joint. The relative transformation of the box to the finger is stored when attachment state switches from off to on. Because the frame time isn't exactly the time when the state has changed, a transformation error is accumulated.
