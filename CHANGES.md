@@ -1,13 +1,15 @@
 Release version 0.10.0
 ----------------------
 
-* Tools
-  - Merged \*2skel and \*2anim in a single tool (\*2ozz) where all options are specified as a json config file. List of options with default values are available in [src/animation/offline/tools/reference.json] file(https://github.com/guillaumeblanc/ozz-animation/blob/master/src/animation/offline/tools/reference.json).
-  - Adds an option while importing skeletons to choose scene node types that must be considered as skeleton joints, ie not only actual scene joints. This is useful for the baked sample for example, which animates mesh nodes.
-
 * Library
-  - [base] Changes non-intrusive serialization mechanism to use a specialize template struct "Extern" instead of function overloading.
+  - [animation] Adds user-channel feature #4. ozz now offers tracks of float, float2, float3, float4 and quaternion for both raw/offline and runtime. A track can be used to store animated user-data, aka data that aren't joint transformations. Runtime jobs allow to query a track value for any time t (ozz::animation::TrackSamplingJob), or get all rising and falling edges that happened during a period of time (ozz::animation::TrackTriggeringJob). Utilities allow to optimize a raw track (ozz::animation::offline::TrackOptimizer) and build a runtime track (ozz::animation::offline::TrackOptimizer). fbx2ozz comes with the ability to import tracks from fbx node properties.
   - [base] Merges ozz_animation_offline_skel_tools and ozz_animation_offline_anim_tools into a single ozz_animation_tools library.
+  - [base] Changes non-intrusive serialization mechanism to use a specialize template struct "Extern" instead of function overloading.
+
+* Tools
+  - Merged \*2skel and \*2anim in a single tool (\*2ozz, fbx2ozz for fbx importer) where all options are specified as a json config file. List of options with default values are available in [src/animation/offline/tools/reference.json](https://github.com/guillaumeblanc/ozz-animation/blob/master/src/animation/offline/tools/reference.json) file.
+  - Adds options to import user-channel tracks (from node properties for fbx) using json "animations[].tracks[].properties[]" definition.
+  - Adds an option while importing skeletons to choose scene node types that must be considered as skeleton joints, ie not restricting to scene joints only. This is useful for the baked sample for example, which animates mesh nodes.
 
 * Build pipeline
   - ozz optionnaly supports c++11 compiler.
