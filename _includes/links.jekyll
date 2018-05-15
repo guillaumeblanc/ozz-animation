@@ -12,6 +12,9 @@
 [link_playback_sample]: {{site.baseurl}}/samples/playback/
 [link_multithread_sample]: {{site.baseurl}}/samples/multithread/
 [link_baked_sample]: {{site.baseurl}}/samples/baked/
+[link_baked_sample_config]: https://github.com/guillaumeblanc/ozz-animation/blob/master/samples/baked/config.json
+[link_user_channel_sample]: {{site.baseurl}}/samples/user_channel/
+[link_user_channel_sample_config]: https://github.com/guillaumeblanc/ozz-animation/blob/master/samples/user_channel/config.json
 
 [link_how_to]: {{site.baseurl}}/documentation/howtos/
 [link_how_to_load]: {{site.baseurl}}/documentation/howtos/#how-to-load-an-object-from-a-file
