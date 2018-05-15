@@ -7,7 +7,7 @@ This samples shows a physic simulation baked into an animation. This scene conta
 ## Concept
 
 This sample has two fundamental parts:
-1. Extract a skeleton from the baked scene using fxb2ozz. There's no hierarchy between objects, but it's still required to define a skeleton to be able to animate it. The baked scene is made of animated meshes/cubes, which are considered as joints while importing the skeleton. See [config.json](https://github.com/guillaumeblanc/ozz-animation/blob/master/samples/baked/config.json) for more details of this setting.
+1. Extract a skeleton from the baked scene using fxb2ozz. There's no hierarchy between objects, but it's still required to define a skeleton to be able to animate it. The baked scene is made of animated meshes/cubes, which are considered as joints while importing the skeleton. See [config.json](samples/baked/config.json) for more details of this setting.
 2. Animation extraction is using fbx2ozz as usual.
 3. Render animated meshes. The original scene is made of cuboids of different sizes. The sample doesn't import scene meshes, but renders unit size cubes instead. Each cube is scaled by its joint animation scale track.
 

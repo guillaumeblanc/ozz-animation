@@ -7,7 +7,7 @@ Release version 0.10.0
   - [base] Changes non-intrusive serialization mechanism to use a specialize template struct "Extern" instead of function overloading.
 
 * Tools
-  - Merged \*2skel and \*2anim in a single tool (\*2ozz, fbx2ozz for fbx importer) where all options are specified as a json config file. List of options with default values are available in [src/animation/offline/tools/reference.json](https://github.com/guillaumeblanc/ozz-animation/blob/master/src/animation/offline/tools/reference.json) file.
+  - Merged \*2skel and \*2anim in a single tool (\*2ozz, fbx2ozz for fbx importer) where all options are specified as a json config file. List of options with default values are available in [src/animation/offline/tools/reference.json](src/animation/offline/tools/reference.json) file.
   - Adds options to import user-channel tracks (from node properties for fbx) using json "animations[].tracks[].properties[]" definition.
   - Adds an option while importing skeletons to choose scene node types that must be considered as skeleton joints, ie not restricting to scene joints only. This is useful for the baked sample for example, which animates mesh nodes.
 
