@@ -33,6 +33,10 @@
 [link_skeleton_builder]: {{site.baseurl}}/documentation/offline/#ozzanimationofflineskeletonbuilder
 [link_animation_builder]: {{site.baseurl}}/documentation/offline/#ozzanimationofflineanimationbuilder
 [link_animation_optimizer]: {{site.baseurl}}/documentation/offline/#ozzanimationofflineanimationoptimizer
+
+[link_track_builder]: {{site.baseurl}}/documentation/offline/#ozzanimationofflinetrackbuilder
+[link_track_optimizer]: {{site.baseurl}}/documentation/offline/#ozzanimationofflinetrackoptimizer
+
 [link_runtime]: {{site.baseurl}}/documentation/animation_runtime/
 [link_coordinate_system]: {{site.baseurl}}/documentation/animation_runtime/#local-space-and-model-space-coordinate-systems
 [link_skeleton]: {{site.baseurl}}/documentation/animation_runtime/#ozzanimationskeleton

@@ -10,9 +10,9 @@ order: 70
 ozz-geometry runtime data structures
 ====================================
 
-ozz-geometry doesn't provide nor impose a format for geometry processing.
+ozz-geometry doesn't provide nor impose a format for geometry processing. Jobs relies on float buffers and strides in order to be mesh data format agnostic.
 
-ozz-geometry runtime jopbs
+ozz-geometry runtime jops
 ==========================
 
 `ozz::geometry::SkinningJob`

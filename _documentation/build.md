@@ -147,20 +147,18 @@ With cmake, you do it this way:
 target_include_directories(your_target "Your path to ozz include folder")
 {% endhighlight %}
 
-Without cmake, it's then platform specific. In Visual Studio for example, follow [these instructions](https://msdn.microsoft.com/en-us/library/73f9s62w.aspx).
+Without cmake, in Visual Studio for example, follow [these instructions](https://msdn.microsoft.com/en-us/library/73f9s62w.aspx).
 
-####   Linking with ozz libraries
+#### Linking with ozz libraries
 
-Then you'll have to setup the project to link with ozz libraries.
-
-Linking is build-system specific.
+Then you'll have to setup the project to link with ozz libraries, which is build-system specific.
 
 With cmake, you'd use target_link_libraries. Note that library dependencies aren't automatically deduced in this case.
 {% highlight bash %}
 target_link_libraries(your_target ozz_animation ozz_base)
 {% endhighlight %}
 
-Without cmake, it's then platform specific. In Visual Studio for example, follow [these instructions](https://msdn.microsoft.com/en-us/library/ba1z7822.aspx).
+Without cmake, in Visual Studio for example, follow [these instructions](https://msdn.microsoft.com/en-us/library/ba1z7822.aspx).
 
 ### 2. Integrating ozz-animation sources to your build process
 
@@ -172,7 +170,7 @@ This latest solution is interesting for ozz runtime features as it ensures compi
 
 Ozz also allows to use fused / amalgamated sources. These amalgamated sources are single .cc files (one per ozz library) that can be added to your project sources. This aims to simplify project maintenance and further updates of ozz libraries. Again ozz include path remains the same and must be set.
 
-Fused sources are generated during build, in a "src_fused" folder in the binrary ouput folder ("build/src_fused/"" folder by default). To generate them without building the whole library,, one can use the following commands from ozz sources directory:
+Fused sources are generated during build, in a "src_fused" folder in the binrary ouput folder ("build/src_fused/"" folder by default). To generate them without building the whole library, one can use the following commands from ozz sources directory:
 
 {% highlight bash %}
 mkdir build

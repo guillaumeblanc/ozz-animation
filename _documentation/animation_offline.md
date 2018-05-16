@@ -33,10 +33,27 @@ Finally the RawAnimation structure exposes Validate() function to check that it 
 Animations that would fail this validation will fail to be converted by the AnimationBuilder.
 A valid RawAnimation can also be optimized (removing redundant keyframes) using AnimationOptimizer. See [optimize sample][link_optimize_sample] for more details.
 
+`ozz::animation::offline::Raw*Track`
+---------------------------------------
+
+This offline track data structure is meant to be used for user-channel tracks, aka animation of variables that aren't joint transformation. It is available for tracks of 1 to 4 floats (RawFloatTrack, RawFloat2Track, ..., RawFloat4Track) and quaternions (RawQuaternionTrack). Quaternions differ from float4 because of the specific interpolation and comparison treatment they require.
+
+As all other Raw data types, they are not intended to be used in run time. They are used to define the offline track object that can be converted to the runtime one using the a [`ozz::animation::offline::TrackBuilder`][link_track_builder].
+
+A track has no duration. It uses ratios between 0 (beginning of the track) and 1 (the end), instead of times. This allows to avoid any discrepancy between the durations of tracks and the animation they match with.
+
+This animation structure exposes a single sequence of keyframes. Keyframes are defined with a ratio, a value and an interpolation mode. Track structure is then a sorted vector of keyframes.
+
+RawTrack structure exposes a Validate() function to check that all the following rules are respected:
+1. Keyframes' ratios are sorted in a strict ascending order.
+2. Keyframes' ratios are all within [0,1] range.
+
+A RawTrack that would fail this validation will fail to be converted by the RawTrackBuilder.
+
 ozz-animation offline utilities
 ===============================
 
-ozz offline utilities are usually conversion functions, like `ozz::animation::offline::SkeletonBuilder` and `ozz::animation::offline::animationBuilder` are. Using the "builder" design approach frees the user from understanding internal details about the implementation (compression, memory packing...). It also allows to modify ozz internal implementation, without affecting existing user code.
+ozz offline utilities are usually conversion functions, like `ozz::animation::offline::SkeletonBuilder` and `ozz::animation::offline::AnimationBuilder` are. Using the "builder" design approach frees the user from understanding internal details about the implementation (compression, memory packing...). It also allows to modify ozz internal implementation, without affecting existing user code.
 
 `ozz::animation::offline::SkeletonBuilder`
 ------------------------------------------
