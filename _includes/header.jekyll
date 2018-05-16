@@ -20,7 +20,10 @@
     <link rel="stylesheet" type="text/css" href="{{site.baseurl}}/style/jekyll-github.css" />
     <style>
       * { font: inherit; }
-      h1{font-size:28px; margin-top:40px;}h2{font-size:24px}h3{font-size:20px}h4{font-size:18px}h5{font-size:16px}h6{font-size:15px}
+      h1{font-size:28px; font-weight: bold;}
+      h2{font-size:24px;}
+      h3{font-size:22px;}
+      h4{font-size:20px;}
       a:not(.a_reject) { color:#9f5800!important; }
       a { text-decoration:none!important; }
       a:hover { color:#cf7800!important; }
