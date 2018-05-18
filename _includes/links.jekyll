@@ -34,6 +34,7 @@
 [link_animation_builder]: {{site.baseurl}}/documentation/offline/#ozzanimationofflineanimationbuilder
 [link_animation_optimizer]: {{site.baseurl}}/documentation/offline/#ozzanimationofflineanimationoptimizer
 
+[link_raw_track]: {{site.baseurl}}/documentation/offline/#ozzanimationofflinerawtrack
 [link_track_builder]: {{site.baseurl}}/documentation/offline/#ozzanimationofflinetrackbuilder
 [link_track_optimizer]: {{site.baseurl}}/documentation/offline/#ozzanimationofflinetrackoptimizer
 
@@ -44,6 +45,7 @@
 [link_sampling_job]: {{site.baseurl}}/documentation/animation_runtime/#ozzanimationsamplingjob
 [link_blending_job]: {{site.baseurl}}/documentation/animation_runtime/#ozzanimationblendingjob
 [link_local_to_model_job]: {{site.baseurl}}/documentation/animation_runtime/#ozzanimationlocaltomodeljob
+[link_track]: {{site.baseurl}}/documentation/animation_runtime/#ozzanimationtrack
 
 [link_skinning_job]: {{site.baseurl}}/documentation/geometry_runtime/#ozzanimationsklinningjob
 

@@ -40,15 +40,20 @@ This offline track data structure is meant to be used for user-channel tracks, a
 
 As all other Raw data types, they are not intended to be used in run time. They are used to define the offline track object that can be converted to the runtime one using the a [`ozz::animation::offline::TrackBuilder`][link_track_builder].
 
-A track has no duration. It uses ratios between 0 (beginning of the track) and 1 (the end), instead of times. This allows to avoid any discrepancy between the durations of tracks and the animation they match with.
+This animation structure exposes a single sequence of keyframes. Keyframes are defined with a ratio, a value and an interpolation mode:
+- Ratio: A track has no duration, so it uses ratios between 0 (beginning of the track) and 1 (the end), instead of times. This allows to avoid any discrepancy between the durations of tracks and the animation they match with.
+- Value: The animated value (float, ... float4, quaternion).
+- Interpolation mode (`ozz::animation::offline::RawTrackInterpolation`): Defines how value is interpolated with the next key.
+  - kStep: All values following this key, up to the next key, are equal.
+  - kLinear: All value between this key and the next are linearly interpolated.
 
-This animation structure exposes a single sequence of keyframes. Keyframes are defined with a ratio, a value and an interpolation mode. Track structure is then a sorted vector of keyframes.
+Track structure is then a sorted vector of keyframes.
 
 RawTrack structure exposes a Validate() function to check that all the following rules are respected:
 1. Keyframes' ratios are sorted in a strict ascending order.
 2. Keyframes' ratios are all within [0,1] range.
 
-A RawTrack that would fail this validation will fail to be converted by the RawTrackBuilder.
+A RawTrack that would fail this validation will fail to be converted by the [`ozz::animation::offline::TrackBuilder`][link_track_builder].
 
 ozz-animation offline utilities
 ===============================
@@ -106,3 +111,14 @@ Default optimization tolerances are set in order to favor quality over runtime p
   - Builds output raw animation.
 - __Outputs__
   - `ozz::animation::offline::RawAnimation raw_animation`
+
+`ozz::animation::offline::TrackBuilder`
+---------------------------------------
+
+Defines the class responsible for building [runtime track][link_track] instances from [offline tracks][link_offline_track]. No optimization is performed on the data at all.
+
+`ozz::animation::offline::TrackOptimizer`
+-----------------------------------------
+
+Defines the class responsible for optimizing an [offline tracks][link_offline_track] instance. Optimization is a keyframe reduction process. Redundant and interpolable keyframes (within a tolerance value) are removed from the track.
+Default optimization tolerances are set in order to favor quality over runtime performances and memory footprint.
