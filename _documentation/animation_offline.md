@@ -115,7 +115,7 @@ Default optimization tolerances are set in order to favor quality over runtime p
 `ozz::animation::offline::TrackBuilder`
 ---------------------------------------
 
-Defines the class responsible for building [runtime track][link_track] instances from [offline tracks][link_offline_track]. No optimization is performed on the data at all.
+Defines the class responsible for building [runtime track][link_track] instances from [offline/raw tracks][link_offline_track]. The input raw track is first validated. Runtime conversion of a validated raw track cannot fail. Note that no optimization is performed on the data at all.
 
 `ozz::animation::offline::TrackOptimizer`
 -----------------------------------------
