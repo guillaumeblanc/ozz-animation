@@ -121,20 +121,6 @@ All jobs follow the same principals: They process inputs (read-only or read-writ
 The `ozz::animation::SamplingJob` is in charge of computing the local-space transformations (for all tracks) at a given time of an animation. The output could be considered as a pose, a snapshot of all the tracks of an animation at a specific time.
 The SamplingJob uses a cache (aka `ozz::animation::SamplingCache`) to store intermediate values (decompressed animation keyframes...) while sampling, which are likely to be used for the subsequent frames thanks to interpolation. This cache also stores pre-computed values that allows drastic optimization while playing/sampling the animation forward. Backward sampling works of course but isn't optimized through the cache though, favoring memory footprint over performance in this case.
 
-- __Inputs__
-  - `ozz::animation::Animation animation`
-  - `float time`
-  - `ozz::animation::SamplingCache* sampling_cache`
-- __Processing__
-  - Validates job.
-  - Finds relevant keyframes for the sampling _time_, for all tracks, for all transformations type (translation, rotation and scale). Finding will take advantage of the `sampling_cache` if possible.
-  - Decompress relevant animation keyframes.
-  - Pack keyframes in SoA structures (`ozz::math::SoATransform`).
-  - Updates the `sampling_cache` with intermediary results.
-  - Interpolates keyframes (SoA form) and fills local-space transformations output `transforms` (SoA form also).
-- __Outputs__
-  - `ozz::math::SoATransform* transforms`
-
 Relying on the fact that the same set of keyframes can be relevant from an update to the next (because keyframes are interpolated), the _sampling_cache_ stores data as decompressed SoA structures. This factorizes decompression and SoA conversion cost. Furthermore, interpolating SoA structures is optimal.
 
 See [playback sample][link_playback_sample] for a simple use case.
@@ -145,21 +131,6 @@ See [playback sample][link_playback_sample] for a simple use case.
 The `ozz::animation::BlendingJob` is in charge of blending (mixing) multiple poses (the result of a sampled animation) according to their respective weight, into one output pose. The number of transforms/joints blended by the job is defined by the number of transforms of the bind-pose (note that this is a SoA format). This means that all buffers must be at least as big as the bind pose buffer.
 Partial animation blending is supported through optional joint weights that can be specified for each layer's `joint_weights` buffer. Unspecified joint weights are considered as a unit weight of 1.f, allowing to mix full and partial blend operations in a single pass.
 
-- __Inputs__
-  - `ozz::animation::BlendingJob::Layer`
-    - `float weight`: Overall layer weight.
-    - `ozz::math::SoATransform* transforms`: Posture in local space.
-    - `ozz::math::SimdFloat4* joint_weights`: Optional range of blending weight for each joint.
-  - `float threshold`: Minimum weight before blending to the bind pose.
-  - `ozz::math::SoATransform* bind_pose`
-- __Processing__
-  - Validates job.
-  - Blends all layers together, according to layer and joint's weight.
-  - Blends bind pose to all joints whose weight is lower than threshold.
-  - Normalizes output.
-- __Outputs__
-  - `ozz::math::SoATransform* output`
-
 See [blending sample][link_blend_sample] that blends 3 locomotion animations (walk/jog/run) depending on a target speed factor, and [partial blending sample][link_partial_blend_sample] that blends a specific animation to the character upper-body.
 
 `ozz::animation::LocalToModelJob`
@@ -169,15 +140,5 @@ The `ozz::nimation::LocalToModelJob` is in charge of converting [local-space to 
 Job inputs is an array of SoaTransform objects (in local-space), ordered like skeleton's joints. Job output is an array of matrices (in model-space), also ordered like skeleton's joints. Output are matrices, because the combination of affine transformations can contain shearing or complex transformation that cannot be represented as affine transform objects.
 
 Note that this job also intrinsically unpack SoA input data (`ozz::math::SoATransform`) to standard AoS matrices (`ozz::math::Float4x4`) on output.
-
-- __Inputs__
-  - `ozz::animation::Skeleton* skeleton`: The skeleton object defining joints hierarchy.
-  - `ozz::math::SoATransform* input`: Input SoA transforms in model space.
-- __Processing__
-  - Validates job.
-  - Builds joints matrices from input affine transformations (SoATransform).
-  - Concatenate matrices according to skeleton joints hierarchy.
-- __Outputs__
-  - `ozz::math::Float4x4* output`: Output matrices in model spaces.
 
 All samples use `ozz::animation::LocalToModelJob`. See [playback sample][link_playback_sample] for a simple use case.

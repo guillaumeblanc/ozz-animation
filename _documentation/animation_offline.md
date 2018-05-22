@@ -63,32 +63,12 @@ ozz offline utilities are usually conversion functions, like `ozz::animation::of
 `ozz::animation::offline::SkeletonBuilder`
 ------------------------------------------
 
-The SkeletonBuilder utility class purpose is to build a [runtime skeleton][link_skeleton] from an offline raw skeleton. Raw data structures are suited for offline task, but are not optimized for runtime constraints. 
-
-- __Inputs__
-  - `ozz::animation::offline::RawSkeleton raw_skeleton`
-- __Processing__
-  - Validates input.
-  - Builds skeleton breadth-first joints tree.
-  - Packs bind poses to soa data structures.
-  - Fills other runtime skeleton data structures (array of names...).
-- __Outputs__
-  - `ozz::animation::Skeleton skeleton`
+The SkeletonBuilder utility class purpose is to build a [runtime skeleton][link_skeleton] from an offline raw skeleton. Raw data structures are suited for offline task, but are not optimized for runtime constraints.
 
 `ozz::animation::offline::AnimationBuilder`
 -------------------------------------------
 
-The AnimationBuilder utility class purpose is to build a runtime animation from an offline raw animation. The raw animation has a simple API based on vectors of tracks and key frames, whereas the [runtime animation][link_animation] has compressed key frames structured and organized to maximize performance and cache coherency.
-
-- __Inputs__
-  - `ozz::animation::offline::RawAnimation raw_animation`
-- __Processing__
-  - Validates input.
-  - Creates required first and last keys for all tracks (if missing).
-  - Sorts keys to match runtime sampling job requirements, maximizing cache coherency.
-  - Compresses translation and scales to three half floating point values, and quantizes quaternions to three 16bit integers (4th component is recomputed at runtime).
-- __Outputs__
-  - `ozz::animation::Animation animation`
+The AnimationBuilder utility class purpose is to build a runtime animation from an offline raw animation. The raw animation has a simple API based on vectors of tracks and key frames, whereas the runtime animation has compressed key frames structured and organized to maximize performance and cache coherency. See [runtime animation][link_animation] data structure for more details about keyframe compression and cache coherency optimizations.
 
 `ozz::animation::offline::AnimationOptimizer`
 ---------------------------------------------
@@ -96,21 +76,6 @@ The AnimationBuilder utility class purpose is to build a runtime animation from 
 The AnimationOptimizer strips redundant/interpolable key frames from a raw animation. It doesn't actually modify input animation, but builds a second one. Tolerances are provided as input arguments, for every key frame type: translation, rotation and scale.
 The optimizer also takes into account for each joint the error generated on its whole child hierarchy, with the hierarchical tolerance value. This allows for example to take into consideration the error generated on a finger when optimizing the shoulder. A small error on the shoulder can be magnified when propagated to the finger indeed.
 Default optimization tolerances are set in order to favor quality over runtime performances and memory footprint.
-
-- __Inputs__
-  - `ozz::animation::offline::RawAnimation raw_animation`
-  - `float translation_tolerance`: Translation optimization tolerance, defined as the distance between two values in meters.
-  - `float rotation_tolerance`: Rotation optimization tolerance, ie: the angle between two rotation values in radian.
-  - `float scale_tolerance`: Scale optimization tolerance, ie: the norm of the difference of two scales.
-  - `float hierarchical_tolerance`: Hierarchical translation optimization tolerance, ie: the maximum error (distance) that an optimization on a joint is allowed to generate on its whole child hierarchy.
-  float hierarchical_tolerance;
-- __Processing__
-  - Validates inputs.
-  - Computes the maximum length of each joint's hierarchy for the whole animation.
-  - Filters (aka removes) all key frames that can be interpolated within the specified tolerance, using joint's maximum hierarchy length.
-  - Builds output raw animation.
-- __Outputs__
-  - `ozz::animation::offline::RawAnimation raw_animation`
 
 `ozz::animation::offline::TrackBuilder`
 ---------------------------------------
