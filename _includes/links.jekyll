@@ -25,18 +25,18 @@
 [link_toolset_fbx2skel]: {{site.baseurl}}/documentation/toolset/#fbx2skel
 [link_toolset_fbx2anim]: {{site.baseurl}}/documentation/toolset/#fbx2anim
 
-[link_offline]: {{site.baseurl}}/documentation/offline/
-[link_offline_utilities]: {{site.baseurl}}/documentation/offline/#ozz-animationofflineutilities
+[link_offline]: {{site.baseurl}}/documentation/animation_offline/
+[link_offline_utilities]: {{site.baseurl}}/documentation/animation_offline/#ozz-animationofflineutilities
 
-[link_raw_skeleton]: {{site.baseurl}}/documentation/offline/#ozzanimationofflinerawskeleton
-[link_raw_animation]: {{site.baseurl}}/documentation/offline/#ozzanimationofflinerawanimation
-[link_skeleton_builder]: {{site.baseurl}}/documentation/offline/#ozzanimationofflineskeletonbuilder
-[link_animation_builder]: {{site.baseurl}}/documentation/offline/#ozzanimationofflineanimationbuilder
-[link_animation_optimizer]: {{site.baseurl}}/documentation/offline/#ozzanimationofflineanimationoptimizer
+[link_raw_skeleton]: {{site.baseurl}}/documentation/animation_offline/#ozzanimationofflinerawskeleton
+[link_raw_animation]: {{site.baseurl}}/documentation/animation_offline/#ozzanimationofflinerawanimation
+[link_skeleton_builder]: {{site.baseurl}}/documentation/animation_offline/#ozzanimationofflineskeletonbuilder
+[link_animation_builder]: {{site.baseurl}}/documentation/animation_offline/#ozzanimationofflineanimationbuilder
+[link_animation_optimizer]: {{site.baseurl}}/documentation/animation_offline/#ozzanimationofflineanimationoptimizer
 
-[link_raw_track]: {{site.baseurl}}/documentation/offline/#ozzanimationofflinerawtrack
-[link_track_builder]: {{site.baseurl}}/documentation/offline/#ozzanimationofflinetrackbuilder
-[link_track_optimizer]: {{site.baseurl}}/documentation/offline/#ozzanimationofflinetrackoptimizer
+[link_raw_track]: {{site.baseurl}}/documentation/animation_offline/#ozzanimationofflinerawtrack
+[link_track_builder]: {{site.baseurl}}/documentation/animation_offline/#ozzanimationofflinetrackbuilder
+[link_track_optimizer]: {{site.baseurl}}/documentation/animation_offline/#ozzanimationofflinetrackoptimizer
 
 [link_runtime]: {{site.baseurl}}/documentation/animation_runtime/
 [link_coordinate_system]: {{site.baseurl}}/documentation/animation_runtime/#local-space-and-model-space-coordinate-systems
@@ -68,6 +68,8 @@
 [link_git_flow]: http://nvie.com/posts/a-successful-git-branching-model/
 
 [link_src]: https://github.com/guillaumeblanc/ozz-animation/blob/master/src/
+
+[link_src_reference_json]: https://github.com/guillaumeblanc/ozz-animation/blob/master/src/animation/offline/tools/reference.json
 
 [link_src_build_options]: https://github.com/guillaumeblanc/ozz-animation/blob/master/CMakeLists.txt#L15
 
