@@ -126,7 +126,7 @@ TEST(Filled, AnimationSerialize) {
 
     // Samples and compares the two animations
     {  // Samples at t = 0
-      job.time = 0.f;
+      job.ratio = 0.f;
       job.Run();
       EXPECT_SOAFLOAT3_EQ_EST(output[0].translation, 93.f, 0.f, 0.f, 0.f,
                                                      58.f, 0.f, 0.f, 0.f,
@@ -140,7 +140,7 @@ TEST(Filled, AnimationSerialize) {
                                                14.f, 1.f, 1.f, 1.f);
     }
     {  // Samples at t = 1
-      job.time = 1.f;
+      job.ratio = 1.f;
       job.Run();
       EXPECT_SOAFLOAT3_EQ_EST(output[0].translation, 46.f, 0.f, 0.f, 0.f,
                                                      58.f, 0.f, 0.f, 0.f,

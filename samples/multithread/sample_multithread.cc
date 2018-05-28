@@ -121,7 +121,7 @@ class MultithreadSampleApplication : public ozz::sample::Application {
     ozz::animation::SamplingJob sampling_job;
     sampling_job.animation = &_animation;
     sampling_job.cache = _character->cache;
-    sampling_job.time = _character->controller.time();
+    sampling_job.ratio = _character->controller.time_ratio();
     sampling_job.output = _character->locals;
 
     // Samples animation.
@@ -258,7 +258,7 @@ class MultithreadSampleApplication : public ozz::sample::Application {
           animation_.num_tracks());
 
       // Initializes each controller start time to a different value.
-      character.controller.set_time(animation_.duration() * kWidth * c /
+      character.controller.set_time_ratio(animation_.duration() * kWidth * c /
                                     kMaxCharacters);
 
       character.locals = allocator->AllocateRange<ozz::math::SoaTransform>(

@@ -45,15 +45,15 @@ class Animation;
 // Forward declares the cache object used by the SamplingJob.
 class SamplingCache;
 
-// Samples an animation at a given time, to output the corresponding posture in
-// local-space.
+// Samples an animation at a given time ratio in the unit interval [0,1] (where
+// 0 is the beginning of the animation, 1 is the end), to output the
+// corresponding posture in local-space.
 // SamplingJob uses a cache (aka SamplingCache) to store intermediate values
 // (decompressed animation keyframes...) while sampling. This cache also stores
 // pre-computed values that allows drastic optimization while playing/sampling
 // the animation forward. Backward sampling works, but isn't optimized through
-// the cache.
-// The job does not owned the buffers (in/output) and will thus not delete them
-// during job's destruction.
+// the cache. The job does not owned the buffers (in/output) and will thus not
+// delete them during job's destruction.
 struct SamplingJob {
   // Default constructor, initializes default values.
   SamplingJob();
@@ -69,9 +69,12 @@ struct SamplingJob {
   // Returns false if *this job is not valid.
   bool Run() const;
 
-  // Time used to sample animation, clamped in range [0,duration] before
-  // job execution. This resolves approximations issues on range bounds.
-  float time;
+  // Time ratio in the unit interval [0,1] used to sample animation (where 0 is
+  // the beginning of the animation, 1 is the end). It should be computed as the
+  // current time in the animation , divided by animation duration.
+  // This ratio is clamped before job execution in order to resolves any
+  // approximation issue on range bounds.
+  float ratio;
 
   // The animation to sample.
   const Animation* animation;
@@ -110,7 +113,7 @@ class SamplingCache {
   // Invalidate the cache.
   // The SamplingJob automatically invalidates a cache when required
   // during sampling. This automatic mechanism is based on the animation
-  // address and sampling time. The weak point is that it can result in a
+  // address and sampling time ratio. The weak point is that it can result in a
   // crash if ever the address of an animation is used again with another
   // animation (could be the result of successive call to delete / new).
   // Therefore it is recommended to manually invalidate a cache when it is
@@ -129,16 +132,16 @@ class SamplingCache {
   friend struct SamplingJob;
 
   // Steps the cache in order to use it for a potentially new animation and
-  // time. If the _animation is different from the animation currently cached,
-  // or if the _time shows that the animation is played backward, then the
-  // cache is invalidated and reseted for the new _animation and _time.
-  void Step(const Animation& _animation, float _time);
+  // ratio. If the _animation is different from the animation currently cached,
+  // or if the _ratio shows that the animation is played backward, then the
+  // cache is invalidated and reseted for the new _animation and _ratio.
+  void Step(const Animation& _animation, float _ratio);
 
   // The animation this cache refers to. NULL means that the cache is invalid.
   const Animation* animation_;
 
-  // The current time in the animation.
-  float time_;
+  // The current time ratio in the animation.
+  float ratio_;
 
   // The number of soa tracks that can store this cache.
   int max_soa_tracks_;
@@ -148,7 +151,8 @@ class SamplingCache {
   internal::InterpSoaRotation* soa_rotations_;
   internal::InterpSoaScale* soa_scales_;
 
-  // Points to the keys in the animation that are valid for the current time.
+  // Points to the keys in the animation that are valid for the current time
+  // ratio.
   int* translation_keys_;
   int* rotation_keys_;
   int* scale_keys_;
