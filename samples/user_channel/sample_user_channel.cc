@@ -86,7 +86,7 @@ class LoadSampleApplication : public ozz::sample::Application {
  protected:
   // Resets everything to it's initial state.
   void ResetState() {
-    controller_.set_time(0.f);
+    controller_.set_time_ratio(0.f);
     attached_ = false;
     box_local_transform_ = ozz::math::Float4x4::identity();
     box_world_transform_ =
@@ -121,7 +121,7 @@ class LoadSampleApplication : public ozz::sample::Application {
 
   bool Update_SamplingMethod() {
     // Updates animation and computes new joints position at current frame time.
-    if (!Update_Joints(controller_.time())) {
+    if (!Update_Joints(controller_.time_ratio())) {
       return false;
     }
 
@@ -132,7 +132,7 @@ class LoadSampleApplication : public ozz::sample::Application {
     // Tracks have a unit length duration. They are thus sampled with a ratio
     // (rather than a time), which is computed based on the duration of the
     // animation they refer to.
-    job.ratio = controller_.time() / animation_.duration();
+    job.ratio = controller_.time_ratio();
     job.track = &track_;
     float attached;
     job.result = &attached;
@@ -162,14 +162,14 @@ class LoadSampleApplication : public ozz::sample::Application {
     // (rather than a time), which is computed based on the duration of the
     // animation they refer to.
     // Its important to use exact "previous time" here, because if we recompute
-    // it, we might end up useing a time range that is not exactly the previous
+    // it, we might end up using a time range that is not exactly the previous
     // one, leading to missed or redundant edges.
     // Previous_time can be higher that current time, in case of a loop. It's
     // not a problem. Edges will be triggered backward (rewinding track in
     // time), so the "attachment" state remains valid. It's not the shortest or
     // optimum path though.
-    job.from = controller_.previous_time() / animation_.duration();
-    job.to = controller_.time() / animation_.duration();
+    job.from = controller_.previous_time_ratio();
+    job.to = controller_.time_ratio();
     job.track = &track_;
     job.threshold = 0.f;  // Considered attached as soon as the value is
                           // greater than 0, aka different from 0.
@@ -196,7 +196,7 @@ class LoadSampleApplication : public ozz::sample::Application {
       // makes the algorithm frame rate independent.
       // Sampling is cached so this intermediate updates don't have a big
       // performance impact.
-      if (!Update_Joints(edge.ratio * animation_.duration())) {
+      if (!Update_Joints(edge.ratio)) {
         return false;
       }
 
@@ -215,15 +215,15 @@ class LoadSampleApplication : public ozz::sample::Application {
 
     // Finally updates animation and computes joints position at current frame
     // time.
-    return Update_Joints(controller_.time());
+    return Update_Joints(controller_.time_ratio());
   }
 
-  bool Update_Joints(float _time) {
-    // Samples animation at t = _time.
+  bool Update_Joints(float _ratio) {
+    // Samples animation at r = _ratio.
     ozz::animation::SamplingJob sampling_job;
     sampling_job.animation = &animation_;
     sampling_job.cache = cache_;
-    sampling_job.time = _time;
+    sampling_job.ratio = _ratio;
     sampling_job.output = locals_;
     if (!sampling_job.Run()) {
       return false;

@@ -43,8 +43,15 @@ class TrackBuilder;
 }
 
 namespace internal {
-// Runtime user-channel track internal implementation. See *Track for more
-// details.
+// Runtime user-channel track internal implementation.
+// The runtime track data structure exists for 1 to 4 float types (FloatTrack,
+// ..., Float4Track) and quaternions (QuaternionTrack). See RawTrack for more
+// details on track content. The runtime track data structure is optimized for
+// the processing of ozz::animation::TrackSamplingJob and
+// ozz::animation::TrackTriggeringJob. Keyframe ratios, values and interpolation
+// mode are all store as separate buffers in order to access the cache
+// coherently. Ratios are usually accessed/read alone from the jobs that all
+// start by looking up the keyframes to interpolate indeed.
 template <typename _ValueType>
 class Track {
  public:
@@ -118,7 +125,7 @@ inline math::Quaternion TrackPolicy<math::Quaternion>::identity() {
 }
 }  // namespace internal
 
-// Runtime track data structure.
+// Runtime track data structure instantiation.
 class FloatTrack : public internal::Track<float> {};
 class Float2Track : public internal::Track<math::Float2> {};
 class Float3Track : public internal::Track<math::Float3> {};

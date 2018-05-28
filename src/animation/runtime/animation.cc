@@ -120,14 +120,14 @@ void Animation::Save(ozz::io::OArchive& _archive) const {
 
   for (ptrdiff_t i = 0; i < translation_count; ++i) {
     const TranslationKey& key = translations_.begin[i];
-    _archive << key.time;
+    _archive << key.ratio;
     _archive << key.track;
     _archive << ozz::io::MakeArray(key.value);
   }
 
   for (ptrdiff_t i = 0; i < rotation_count; ++i) {
     const RotationKey& key = rotations_.begin[i];
-    _archive << key.time;
+    _archive << key.ratio;
     uint16_t track = key.track;
     _archive << track;
     uint8_t largest = key.largest;
@@ -139,7 +139,7 @@ void Animation::Save(ozz::io::OArchive& _archive) const {
 
   for (ptrdiff_t i = 0; i < scale_count; ++i) {
     const ScaleKey& key = scales_.begin[i];
-    _archive << key.time;
+    _archive << key.ratio;
     _archive << key.track;
     _archive << ozz::io::MakeArray(key.value);
   }
@@ -182,14 +182,14 @@ void Animation::Load(ozz::io::IArchive& _archive, uint32_t _version) {
 
   for (int i = 0; i < translation_count; ++i) {
     TranslationKey& key = translations_.begin[i];
-    _archive >> key.time;
+    _archive >> key.ratio;
     _archive >> key.track;
     _archive >> ozz::io::MakeArray(key.value);
   }
 
   for (int i = 0; i < rotation_count; ++i) {
     RotationKey& key = rotations_.begin[i];
-    _archive >> key.time;
+    _archive >> key.ratio;
     uint16_t track;
     _archive >> track;
     key.track = track;
@@ -204,7 +204,7 @@ void Animation::Load(ozz::io::IArchive& _archive, uint32_t _version) {
 
   for (int i = 0; i < scale_count; ++i) {
     ScaleKey& key = scales_.begin[i];
-    _archive >> key.time;
+    _archive >> key.ratio;
     _archive >> key.track;
     _archive >> ozz::io::MakeArray(key.value);
   }

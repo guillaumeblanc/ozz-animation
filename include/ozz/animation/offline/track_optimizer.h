@@ -30,7 +30,6 @@
 
 namespace ozz {
 namespace animation {
-
 namespace offline {
 
 // Forward declare offline track types.
@@ -40,9 +39,11 @@ struct RawFloat3Track;
 struct RawFloat4Track;
 struct RawQuaternionTrack;
 
-// Defines the class responsible of optimizing an offline raw track instance.
-// Default optimization tolerances are set in order to favor quality
-// over runtime performances and memory footprint.
+// TrackOptimizer is responsible for optimizing an offline raw track instance.
+// Optimization is a keyframe reduction process. Redundant and interpolable
+// keyframes (within a tolerance value) are removed from the track. Default
+// optimization tolerances are set in order to favor quality over runtime
+// performances and memory footprint.
 class TrackOptimizer {
  public:
   // Initializes the optimizer with default tolerances (favoring quality).

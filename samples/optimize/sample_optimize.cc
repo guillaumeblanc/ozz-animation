@@ -161,7 +161,7 @@ class OptimizeSampleApplication : public ozz::sample::Application {
         error_record_(64) {}
 
  protected:
-  // Updates current animation time.
+  // Updates current animation time and skeleton pose.
   virtual bool OnUpdate(float _dt) {
     // Updates current animation time.
     controller_.Update(*animation_rt_, _dt);
@@ -169,7 +169,7 @@ class OptimizeSampleApplication : public ozz::sample::Application {
     // Prepares sampling job.
     ozz::animation::SamplingJob sampling_job;
     sampling_job.cache = cache_;
-    sampling_job.time = controller_.time();
+    sampling_job.ratio = controller_.time_ratio();
 
     // Samples optimized animation (_according to the display mode).
     sampling_job.animation = animation_rt_;
@@ -179,7 +179,7 @@ class OptimizeSampleApplication : public ozz::sample::Application {
     }
 
     // Also samples non-optimized animation, from the raw animation.
-    if (!SampleRawAnimation(raw_animation_, controller_.time(), locals_raw_)) {
+    if (!SampleRawAnimation(raw_animation_, controller_.time_ratio(), locals_raw_)) {
       return false;
     }
 

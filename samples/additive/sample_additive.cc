@@ -81,7 +81,7 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
         threshold_(ozz::animation::BlendingJob().threshold) {}
 
  protected:
-  // Updates current animation time.
+  // Updates current animation time and skeleton pose.
   virtual bool OnUpdate(float _dt) {
     // Updates and samples both animations to their respective local space
     // transform buffers.
@@ -95,7 +95,7 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
       ozz::animation::SamplingJob sampling_job;
       sampling_job.animation = &sampler.animation;
       sampling_job.cache = sampler.cache;
-      sampling_job.time = sampler.controller.time();
+      sampling_job.ratio = sampler.controller.time_ratio();
       sampling_job.output = sampler.locals;
 
       // Samples animation.

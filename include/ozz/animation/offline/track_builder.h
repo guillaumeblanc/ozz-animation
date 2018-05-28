@@ -48,13 +48,13 @@ struct RawFloat4Track;
 struct RawQuaternionTrack;
 
 // Defines the class responsible of building runtime track instances from
-// offline tracks.
-// No optimization at all is performed on the data.
+// offline tracks.The input raw track is first validated. Runtime conversion of
+// a validated raw track cannot fail. Note that no optimization is performed on
+// the data at all.
 class TrackBuilder {
  public:
   // Creates a Track based on _raw_track and *this builder
   // parameters.
-  // Returns a valid Track on success
   // The returned instance will then need to be deleted using the default
   // allocator Delete() function.
   // See Raw*Track::Validate() for more details about failure reasons.

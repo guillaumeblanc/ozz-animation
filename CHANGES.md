@@ -2,6 +2,7 @@ Release version 0.10.0
 ----------------------
 
 * Library
+  - [animation] Changed ozz::animation::SamplingJob::time (in interval [0,duration]) to a ratio (in unit interval [0,1]). This is a breaking change, aiming to unify sampling of animations and tracks. To conform with this change, sampling time should simply be divided by animation duration. ozz::sample:AnimationController has been updated accordingly. Offline animations and tools aren't impacted.
   - [animation] Adds user-channel feature #4. ozz now offers tracks of float, float2, float3, float4 and quaternion for both raw/offline and runtime. A track can be used to store animated user-data, aka data that aren't joint transformations. Runtime jobs allow to query a track value for any time t (ozz::animation::TrackSamplingJob), or get all rising and falling edges that happened during a period of time (ozz::animation::TrackTriggeringJob). Utilities allow to optimize a raw track (ozz::animation::offline::TrackOptimizer) and build a runtime track (ozz::animation::offline::TrackOptimizer). fbx2ozz comes with the ability to import tracks from fbx node properties.
   - [base] Merges ozz_animation_offline_skel_tools and ozz_animation_offline_anim_tools into a single ozz_animation_tools library.
   - [base] Changes non-intrusive serialization mechanism to use a specialize template struct "Extern" instead of function overloading.
