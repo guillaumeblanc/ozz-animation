@@ -130,7 +130,7 @@ class Animation {
 }  // namespace animation
 
 namespace io {
-OZZ_IO_TYPE_VERSION(4, animation::Animation)
+OZZ_IO_TYPE_VERSION(5, animation::Animation)
 OZZ_IO_TYPE_TAG("ozz-animation", animation::Animation)
 }  // namespace io
 }  // namespace ozz

@@ -40,10 +40,12 @@ target_link_libraries(test_animation_archive_versioning
   ozz_options
   gtest)
 set_target_properties(test_animation_archive_versioning PROPERTIES FOLDER "ozz/tests/animation")
-add_test(NAME test_animation_archive_versioning_le COMMAND test_animation_archive_versioning "--file=${ozz_media_directory}/bin/versioning/animation_v4_le.ozz" "--tracks=67" "--duration=.66666667" "--name=run")
-add_test(NAME test_animation_archive_versioning_be COMMAND test_animation_archive_versioning "--file=${ozz_media_directory}/bin/versioning/animation_v4_be.ozz" "--tracks=67" "--duration=.66666667" "--name=run")
+add_test(NAME test_animation_archive_versioning_le COMMAND test_animation_archive_versioning "--file=${ozz_media_directory}/bin/versioning/animation_v5_le.ozz" "--tracks=67" "--duration=.66666667" "--name=run")
+add_test(NAME test_animation_archive_versioning_be COMMAND test_animation_archive_versioning "--file=${ozz_media_directory}/bin/versioning/animation_v5_be.ozz" "--tracks=67" "--duration=.66666667" "--name=run")
 
 # Previous versions.
+add_test(NAME test_animation_archive_versioning_le_older4 COMMAND test_animation_archive_versioning "--file=${ozz_media_directory}/bin/versioning/animation_v4_le.ozz" "--tracks=67" "--duration=.66666667" "--name=")
+set_tests_properties(test_animation_archive_versioning_le_older4 PROPERTIES WILL_FAIL true)
 add_test(NAME test_animation_archive_versioning_le_older3 COMMAND test_animation_archive_versioning "--file=${ozz_media_directory}/bin/versioning/animation_v3_le.ozz" "--tracks=67" "--duration=.66666667" "--name=")
 set_tests_properties(test_animation_archive_versioning_le_older3 PROPERTIES WILL_FAIL true)
 add_test(NAME test_animation_archive_versioning_le_older2 COMMAND test_animation_archive_versioning "--file=${ozz_media_directory}/bin/versioning/animation_v2_le.ozz" "--tracks=67" "--duration=1.33333302" "--name=")

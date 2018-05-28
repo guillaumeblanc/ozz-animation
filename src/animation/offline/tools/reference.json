@@ -26,7 +26,7 @@
   [
     {
       "clip" : "*", //  Specifies clip name (take) of the animation to import from the source file. Wildcard characters '*' and '?' are supported
-      "filename" : "*.ozz", //  Specifies animation output filename. Use a '*' character to specify part(s) of the filename that should be replaced by the animation name.
+      "filename" : "*.ozz", //  Specifies animation output filename. Use a '*' character to specify part(s) of the filename that should be replaced by the clip name.
       "raw" : false, //  Outputs raw animation.
       "additive" : false, //  Creates a delta animation that can be used for additive blending.
       "sampling_rate" : 0, //  Selects animation sampling rate in hertz. Set a value <= 0 to use imported scene default frame rate.
