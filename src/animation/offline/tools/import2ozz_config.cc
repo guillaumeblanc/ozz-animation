@@ -342,7 +342,7 @@ bool SanitizeAnimation(Json::Value& _root, bool _all_options) {
   MakeDefault(_root, "filename", "*.ozz",
               "Specifies animation output filename. Use a \'*\' character to "
               "specify part(s) of the filename that should be replaced by the "
-              "animation name.");
+              "clip name.");
 
   MakeDefault(_root, "raw", false, "Outputs raw animation.");
 

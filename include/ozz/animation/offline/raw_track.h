@@ -93,15 +93,20 @@ struct RawTrack {
 }  // namespace internal
 
 // Offline user-channel animation track type implementation.
-// This data type is not intended to be used in run time. It is used to define
-// the offline track object that can be converted to the runtime one using the a
-// TrackBuilder. This animation structure exposes a single sequence of
-// keyframes. Keyframes are defined with a ratio, a value and an interpolation
-// mode (impact the range from the keyframe to the next). Track structure is
-// then a sorted vector of keyframes. A track has no duration, keyframes ratio
-// range must be between 0 and 1. Finally the
-// RawTrack structure exposes Validate() function to check that it is
-// valid, meaning that all the following rules are respected:
+// This data type is meant to be used for user-channel tracks, aka animation of
+// variables that aren't joint transformation. It is available for tracks of 1
+// to 4 floats (RawFloatTrack, RawFloat2Track, ..., RawFloat4Track) and
+// quaternions (RawQuaternionTrack). Quaternions differ from float4 because of
+// the specific interpolation and comparison treatment they require.
+// As all other Raw data types, they are not intended to be used in run time.
+// They are used to define the offline track object that can be converted to the
+// runtime one using the a ozz::animation::offline::TrackBuilder.
+// A track has no duration. It uses ratios between 0 (beginning of the track)
+// and 1 (the end), instead of times. This allows to avoid any discrepancy
+// between the durations of tracks and the animation they match with.
+// This animation structure exposes a single sequence of keyframes. Keyframes
+// are defined with a ratio, a value and an interpolation mode. Track structure
+// is then a sorted vector of keyframes.
 //  1. Keyframes' ratios are sorted in a strict ascending order.
 //  2. Keyframes' ratios are all within [0,1] range.
 // RawTrack that would fail this validation will fail to be converted by
