@@ -12,7 +12,7 @@ Pipeline description
 
 ozz-animation provides full support for major Digital Content Creation formats, including Fbx, Collada... Those formats are heavily used by the animation industry and supported by all major DCC tools (Maya, Max, MotionBuilder, Blender...). ozz-animation offline pipeline aims to convert from these DCC offline formats (or any proprietary format) to ozz internal runtime optimized format, as illustrated below:
 
-<img src="{{site.baseurl}}/images/documentation/pipeline.png" alt="ozz-animation offline pipeline" class="w3-image">
+<img src="{{site.baseurl}}/images/documentation/pipeline.svg" alt="ozz-animation offline pipeline" class="w3-image">
 
 In a way or an other, the aim of the pipeline and importer tools is to end up with runtime data structures (`ozz::animation::Skeleton`, `ozz::animation::Animation`, ...) that can be used with the runtime libraries, on any platform. Run-time libraries provide jobs and data structures to process runtime operations like sampling, blending...
 
