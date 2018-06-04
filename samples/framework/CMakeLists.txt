@@ -13,6 +13,7 @@ add_library(sample_framework STATIC
   mesh.cc
   internal/camera.h
   internal/camera.cc
+  internal/icosphere.h
   internal/immediate.h
   internal/immediate.cc
   internal/imgui_impl.h

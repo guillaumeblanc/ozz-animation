@@ -49,15 +49,12 @@ class IArchive;
 // }
 // The Load() function receives the version _version of type _Ty at the time the
 // archive was saved.
-// This uses a polymorphism rather than template specialization to avoid
+// This uses polymorphism rather than template specialization to avoid
 // including the file that contains the template definition.
 //
 // This default function call member _Ty::Load/Save function.
 template <typename _Ty>
-inline void Save(OArchive& _archive, const _Ty* _ty, size_t _count);
-template <typename _Ty>
-inline void Load(IArchive& _archive, _Ty* _ty, size_t _count,
-                 uint32_t _version);
+struct Extern;
 
 // clang-format off
 
@@ -74,7 +71,7 @@ template<> struct Version<const _type> {     \
 
 // Declares the current (compile time) version of a template _type.
 // This macro must be used inside namespace ozz::io.
-// OZZ_IO_TYPE_VERSION_T1(46, typename, Foo<char>).
+// OZZ_IO_TYPE_VERSION_T1(46, typename _T1, Foo<_T1>).
 #define OZZ_IO_TYPE_VERSION_T1(_version, _arg0, ...) \
 OZZ_STATIC_ASSERT(_version > 0);                     \
 namespace internal {                                 \
@@ -86,7 +83,7 @@ struct Version<const __VA_ARGS__> {                  \
 
 // Declares the current (compile time) version of a template _type.
 // This macro must be used inside namespace ozz::io.
-// OZZ_IO_TYPE_VERSION_T1(46, typename, typename, Foo<char, bool>).
+// OZZ_IO_TYPE_VERSION_T2(46, typename _T1, typename _T2, Foo<_T1, _T2>).
 #define OZZ_IO_TYPE_VERSION_T2(_version, _arg0, _arg1, ...) \
 OZZ_STATIC_ASSERT(_version > 0);                            \
 namespace internal {                                        \
@@ -100,7 +97,7 @@ struct Version<const __VA_ARGS__> {                         \
 // Declares the current (compile time) version of a template _type.
 // This macro must be used inside namespace ozz::io.
 // OZZ_IO_TYPE_VERSION_T3(
-//   46, typename, typename, typename, Foo<char, bool, bool>).
+//   46, typename _T1, typename _T2, typename _T3, Foo<_T1, _T2, _T3>).
 #define OZZ_IO_TYPE_VERSION_T3(_version, _arg0, _arg1, _arg2, ...) \
 OZZ_STATIC_ASSERT(_version > 0);                                   \
 namespace internal {                                               \
@@ -114,7 +111,8 @@ struct Version<const __VA_ARGS__> {                                \
 // Declares the current (compile time) version of a template _type.
 // This macro must be used inside namespace ozz::io.
 // OZZ_IO_TYPE_VERSION_T4(
-//   46, typename, typename, typename, bool, Foo<char, bool, bool, false>).
+//   46, typename _T1, typename _T2, typename _T3, typename _T4,
+//   Foo<_T1, _T2, _T3, _T4>).
 #define OZZ_IO_TYPE_VERSION_T4(_version, _arg0, _arg1, _arg2, _arg3, ...) \
 OZZ_STATIC_ASSERT(_version > 0);                                          \
 namespace internal {                                                      \
@@ -141,7 +139,7 @@ template<> struct Version<const _type> {   \
 // braking versioning.
 // This macro must be used inside namespace ozz::io.
 // Syntax is:
-// OZZ_IO_TYPE_NOT_VERSIONABLE_T1(typename, Foo<char>).
+// OZZ_IO_TYPE_NOT_VERSIONABLE_T1(typename _T1, Foo<_T1>).
 #define OZZ_IO_TYPE_NOT_VERSIONABLE_T1(_arg0, ...) \
 namespace internal {                               \
 template<_arg0>                                    \
@@ -152,7 +150,7 @@ struct Version<const __VA_ARGS__> {                \
 
 // Decline non-versionable template declaration to 2 template arguments.
 // Syntax is:
-// OZZ_IO_TYPE_NOT_VERSIONABLE_T2(typename, bool, Foo<char, true>).
+// OZZ_IO_TYPE_NOT_VERSIONABLE_T2(typename _T1, typename _T2, Foo<_T1, _T2>).
 #define OZZ_IO_TYPE_NOT_VERSIONABLE_T2(_arg0, _arg1, ...) \
 namespace internal {                                      \
 template<_arg0, _arg1>                                    \
@@ -164,7 +162,7 @@ struct Version<const __VA_ARGS__> {                       \
 // Decline non-versionable template declaration to 3 template arguments.
 // Syntax is:
 // OZZ_IO_TYPE_NOT_VERSIONABLE_T3(
-//   typename, typename, bool, Foo<char, int, true>).
+//   typename _T1, typename _T2, typename _T3, Foo<_T1, _T2, _T3>).
 #define OZZ_IO_TYPE_NOT_VERSIONABLE_T3(_arg0, _arg1, _arg2, ...) \
 namespace internal {                                             \
 template<_arg0, _arg1, _arg2>                                    \
@@ -176,7 +174,8 @@ struct Version<const __VA_ARGS__> {                              \
 // Decline non-versionable template declaration to 4 template arguments.
 // Syntax is:
 // OZZ_IO_TYPE_NOT_VERSIONABLE_T4(
-//   typename, typename, bool, typename, Foo<char, int, true, bool>).
+//   typename _T1, typename _T2, typename _T3, typename _T4,
+//   Foo<_T1, _T2, _T3, _T4>).
 #define OZZ_IO_TYPE_NOT_VERSIONABLE_T4(_arg0, _arg1, _arg2, _arg3, ...) \
 namespace internal {                                                    \
 template<_arg0, _arg1, _arg2, _arg3>                                    \
@@ -190,7 +189,7 @@ struct Version<const __VA_ARGS__> {                                     \
 // the next object to be read from an archive. If no tag is defined, then no
 // check is performed.
 // This macro must be used inside namespace ozz::io.
-// OZZ_IO_TYPE_TAG("FourtySix", Foo).
+// OZZ_IO_TYPE_TAG("Foo", Foo).
 #define OZZ_IO_TYPE_TAG(_tag, _type)                                     \
 namespace internal {                                                     \
 template<> struct Tag<const _type> {                                     \

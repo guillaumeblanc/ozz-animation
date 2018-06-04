@@ -46,30 +46,31 @@ OZZ_IO_TYPE_VERSION(1, animation::Skeleton::JointProperties)
 // Specializes Skeleton::JointProperties. This structure's bitset isn't written
 // as-is because of endianness issues.
 template <>
-void Save(OArchive& _archive,
-          const animation::Skeleton::JointProperties* _properties,
-          size_t _count) {
-  for (size_t i = 0; i < _count; ++i) {
-    uint16_t parent = _properties[i].parent;
-    _archive << parent;
-    bool is_leaf = _properties[i].is_leaf != 0;
-    _archive << is_leaf;
+struct Extern<animation::Skeleton::JointProperties> {
+  static void Save(OArchive& _archive,
+                   const animation::Skeleton::JointProperties* _properties,
+                   size_t _count) {
+    for (size_t i = 0; i < _count; ++i) {
+      uint16_t parent = _properties[i].parent;
+      _archive << parent;
+      bool is_leaf = _properties[i].is_leaf != 0;
+      _archive << is_leaf;
+    }
   }
-}
-
-template <>
-void Load(IArchive& _archive, animation::Skeleton::JointProperties* _properties,
-          size_t _count, uint32_t _version) {
-  (void)_version;
-  for (size_t i = 0; i < _count; ++i) {
-    uint16_t parent;
-    _archive >> parent;
-    _properties[i].parent = parent;
-    bool is_leaf;
-    _archive >> is_leaf;
-    _properties[i].is_leaf = is_leaf;
+  static void Load(IArchive& _archive,
+                   animation::Skeleton::JointProperties* _properties,
+                   size_t _count, uint32_t _version) {
+    (void)_version;
+    for (size_t i = 0; i < _count; ++i) {
+      uint16_t parent;
+      _archive >> parent;
+      _properties[i].parent = parent;
+      bool is_leaf;
+      _archive >> is_leaf;
+      _properties[i].is_leaf = is_leaf;
+    }
   }
-}
+};
 }  // namespace io
 
 namespace animation {
@@ -86,8 +87,8 @@ char* Skeleton::Allocate(size_t _chars_size, size_t _num_joints) {
       OZZ_ALIGN_OF(char*) >= OZZ_ALIGN_OF(Skeleton::JointProperties) &&
       OZZ_ALIGN_OF(Skeleton::JointProperties) >= OZZ_ALIGN_OF(char));
 
-  assert(bind_pose_.Size() == 0 && joint_names_.Size() == 0 &&
-         joint_properties_.Size() == 0);
+  assert(bind_pose_.size() == 0 && joint_names_.size() == 0 &&
+         joint_properties_.size() == 0);
 
   // Early out if no joint.
   if (_num_joints == 0) {
@@ -107,6 +108,7 @@ char* Skeleton::Allocate(size_t _chars_size, size_t _num_joints) {
   char* buffer = reinterpret_cast<char*>(memory::default_allocator()->Allocate(
       buffer_size, OZZ_ALIGN_OF(math::SoaTransform)));
 
+  // Serves larger alignment values first.
   // Bind pose first, biggest alignment.
   bind_pose_.begin = reinterpret_cast<math::SoaTransform*>(buffer);
   assert(math::IsAligned(bind_pose_.begin, OZZ_ALIGN_OF(math::SoaTransform)));

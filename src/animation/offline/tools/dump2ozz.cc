@@ -25,32 +25,54 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#ifndef OZZ_ANIMATION_OFFLINE_FBX_FBX_ANIMATION_H_
-#define OZZ_ANIMATION_OFFLINE_FBX_FBX_ANIMATION_H_
+#include "ozz/animation/offline/tools/import2ozz.h"
 
-#ifndef OZZ_INCLUDE_PRIVATE_HEADER
-#error "This header is private, it cannot be included from public headers."
-#endif  // OZZ_INCLUDE_PRIVATE_HEADER
+// Mocks OzzImporter so it can be used to dump default and reference
+// configurations.
+class DumpConverter : public ozz::animation::offline::OzzImporter {
+ public:
+  DumpConverter() {}
+  ~DumpConverter() {}
 
-#include "ozz/animation/offline/fbx/fbx.h"
-#include "ozz/animation/offline/fbx/fbx_base.h"
+ private:
+  virtual bool Load(const char*) { return true; }
 
-namespace ozz {
-namespace animation {
+  virtual bool Import(ozz::animation::offline::RawSkeleton*, const NodeType&) {
+    return true;
+  }
 
-class Skeleton;
+  virtual AnimationNames GetAnimationNames() { return AnimationNames(); }
 
-namespace offline {
+  virtual bool Import(const char*, const ozz::animation::Skeleton&, float,
+                      ozz::animation::offline::RawAnimation*) {
+    return true;
+  }
 
-struct RawAnimation;
+  virtual NodeProperties GetNodeProperties(const char*) {
+    return NodeProperties();
+  }
 
-namespace fbx {
+  virtual bool Import(const char*, const char*, const char*, float,
+                      ozz::animation::offline::RawFloatTrack*) {
+    return true;
+  }
 
-bool ExtractAnimations(FbxSceneLoader* _scene_loader, const Skeleton& _skeleton,
-                       float _sampling_rate, Animations* _animations);
+  virtual bool Import(const char*, const char*, const char*, float,
+                      ozz::animation::offline::RawFloat2Track*) {
+    return true;
+  }
 
-}  // namespace fbx
-}  // namespace offline
-}  // namespace animation
-}  // namespace ozz
-#endif  // OZZ_ANIMATION_OFFLINE_FBX_FBX_ANIMATION_H_
+  virtual bool Import(const char*, const char*, const char*, float,
+                      ozz::animation::offline::RawFloat3Track*) {
+    return true;
+  }
+  virtual bool Import(const char*, const char*, const char*, float,
+                      ozz::animation::offline::RawFloat4Track*) {
+    return true;
+  }
+};
+
+int main(int _argc, const char** _argv) {
+  DumpConverter converter;
+  return converter(_argc, _argv);
+}

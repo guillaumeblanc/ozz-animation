@@ -81,7 +81,7 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
         threshold_(ozz::animation::BlendingJob().threshold) {}
 
  protected:
-  // Updates current animation time.
+  // Updates current animation time and skeleton pose.
   virtual bool OnUpdate(float _dt) {
     // Updates and samples both animations to their respective local space
     // transform buffers.
@@ -95,7 +95,7 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
       ozz::animation::SamplingJob sampling_job;
       sampling_job.animation = &sampler.animation;
       sampling_job.cache = sampler.cache;
-      sampling_job.time = sampler.controller.time();
+      sampling_job.ratio = sampler.controller.time_ratio();
       sampling_job.output = sampler.locals;
 
       // Samples animation.
@@ -156,11 +156,11 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
   // Samples animation, transforms to model space and renders.
   virtual bool OnDisplay(ozz::sample::Renderer* _renderer) {
     // Update skinning matrices latest blending stage output.
-    assert(models_.Count() == skinning_matrices_.Count() &&
-           models_.Count() == mesh_.inverse_bind_poses.size());
+    assert(models_.count() == skinning_matrices_.count() &&
+           models_.count() == mesh_.inverse_bind_poses.size());
 
     // Builds skinning matrices, based on the output of the animation stage.
-    for (size_t i = 0; i < models_.Count(); ++i) {
+    for (size_t i = 0; i < models_.count(); ++i) {
       skinning_matrices_[i] = models_[i] * mesh_.inverse_bind_poses[i];
     }
 

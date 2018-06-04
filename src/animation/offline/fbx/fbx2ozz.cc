@@ -25,27 +25,34 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#ifndef OZZ_ANIMATION_OFFLINE_FBX_FBX_SKELETON_H_
-#define OZZ_ANIMATION_OFFLINE_FBX_FBX_SKELETON_H_
+#include "animation/offline/fbx/fbx2ozz.h"
 
-#ifndef OZZ_INCLUDE_PRIVATE_HEADER
-#error "This header is private, it cannot be included from public headers."
-#endif  // OZZ_INCLUDE_PRIVATE_HEADER
+#include "ozz/base/log.h"
 
-#include "ozz/animation/offline/fbx/fbx_base.h"
+int main(int _argc, const char** _argv) {
+  Fbx2OzzImporter converter;
+  return converter(_argc, _argv);
+}
 
-namespace ozz {
-namespace animation {
-namespace offline {
+Fbx2OzzImporter::Fbx2OzzImporter()
+    : settings_(fbx_manager_), scene_loader_(NULL) {}
 
-struct RawSkeleton;
+Fbx2OzzImporter::~Fbx2OzzImporter() {
+  ozz::memory::default_allocator()->Delete(scene_loader_);
+}
 
-namespace fbx {
+bool Fbx2OzzImporter::Load(const char* _filename) {
+  ozz::memory::default_allocator()->Delete(scene_loader_);
+  scene_loader_ = ozz::memory::default_allocator()
+                      ->New<ozz::animation::offline::fbx::FbxSceneLoader>(
+                          _filename, "", fbx_manager_, settings_);
 
-bool ExtractSkeleton(FbxSceneLoader& _loader, RawSkeleton* _skeleton);
-
-}  // namespace fbx
-}  // namespace offline
-}  // namespace animation
-}  // namespace ozz
-#endif  // OZZ_ANIMATION_OFFLINE_FBX_FBX_SKELETON_H_
+  if (!scene_loader_->scene()) {
+    ozz::log::Err() << "Failed to import file " << _filename << "."
+                    << std::endl;
+    ozz::memory::default_allocator()->Delete(scene_loader_);
+    scene_loader_ = NULL;
+    return false;
+  }
+  return true;
+}

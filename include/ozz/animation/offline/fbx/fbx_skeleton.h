@@ -25,33 +25,26 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include <string.h>
+#ifndef OZZ_OZZ_ANIMATION_OFFLINE_FBX_FBX_SKELETON_H_
+#define OZZ_OZZ_ANIMATION_OFFLINE_FBX_FBX_SKELETON_H_
 
-#include "ozz/animation/offline/tools/convert2skel.h"
+#include "ozz/animation/offline/fbx/fbx.h"
+#include "ozz/animation/offline/tools/import2ozz.h"
 
-#include "ozz/base/io/stream.h"
+namespace ozz {
+namespace animation {
+namespace offline {
 
-class TestSkeletonConverter
-    : public ozz::animation::offline::SkeletonConverter {
- private:
-  // Implement SkeletonConverter::Import function.
-  virtual bool Import(const char* _filename,
-                      ozz::animation::offline::RawSkeleton* _skeleton) {
-    (void)_skeleton;
-    ozz::io::File file(_filename, "rb");
-    if (file.opened()) {
-      char buffer[256];
-      const char good_content[] = "good content 1";
-      if (file.Read(buffer, sizeof(buffer)) >= sizeof(good_content) - 1 &&
-          memcmp(buffer, good_content, sizeof(good_content) - 1) == 0) {
-        return true;
-      }
-    }
-    return false;
-  }
-};
+struct RawSkeleton;
 
-int main(int _argc, const char** _argv) {
-  TestSkeletonConverter converter;
-  return converter(_argc, _argv);
-}
+namespace fbx {
+
+bool ExtractSkeleton(FbxSceneLoader& _loader,
+                     const OzzImporter::NodeType& _types,
+                     RawSkeleton* _skeleton);
+
+}  // namespace fbx
+}  // namespace offline
+}  // namespace animation
+}  // namespace ozz
+#endif  // OZZ_OZZ_ANIMATION_OFFLINE_FBX_FBX_SKELETON_H_

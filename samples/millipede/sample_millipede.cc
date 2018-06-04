@@ -130,7 +130,7 @@ class MillipedeSampleApplication : public ozz::sample::Application {
     ozz::animation::SamplingJob sampling_job;
     sampling_job.animation = animation_;
     sampling_job.cache = cache_;
-    sampling_job.time = controller_.time();
+    sampling_job.ratio = controller_.time_ratio();
     sampling_job.output = locals_;
     if (!sampling_job.Run()) {
       return false;

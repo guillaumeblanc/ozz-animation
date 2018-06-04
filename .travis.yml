@@ -206,6 +206,7 @@ before_script:
 - if [[ -z $env_cmake_c_compiler ]]; then export env_cmake_c_compiler=$CC; fi
 - if [[ -z $env_cmake_generator ]]; then export env_cmake_generator="Unix Makefiles"; fi
 - if [[ $env_cmake_generator == "Unix Makefiles" ]]; then export env_cmake_generator_specific="-j2"; fi
+- if [[ $env_cmake_generator == "Unix Makefiles" ]]; then export env_ctest_generator_specific="-j16"; fi
 - if [[ $EMSCRIPTEN ]]; then env_cmake_toolchain="-DCMAKE_TOOLCHAIN_FILE=$EMSCRIPTEN/cmake/Modules/Platform/Emscripten.cmake"; fi
 
 # Display cmake version
@@ -221,7 +222,7 @@ script:
 # Build
 - cmake --build ./ --config $env_cmake_configuration --use-stderr -- $env_cmake_generator_specific
 # Test
-- ctest --build-config $env_cmake_configuration --output-on-failure -- $env_cmake_generator_specific
+- ctest --build-config $env_cmake_configuration --output-on-failure -- $env_ctest_generator_specific
 
 after_success:
 - echo after_success-----------------------------------------------------------

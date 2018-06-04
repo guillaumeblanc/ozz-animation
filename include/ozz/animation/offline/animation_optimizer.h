@@ -56,7 +56,7 @@ class AnimationOptimizer {
 
   // Optimizes _input using *this parameters. _skeleton is required to evaluate
   // optimization error along joint hierarchy (see hierarchical_tolerance).
-  // Returns true on success and fills _output_animation with the optimized
+  // Returns true on success and fills _output animation with the optimized
   // version of _input animation.
   // *_output must be a valid RawAnimation instance.
   // Returns false on failure and resets _output to an empty animation.

@@ -37,9 +37,14 @@
 // - The intrusive function prototypes are "void Save(ozz::io::OArchive*) const"
 // and "void Load(ozz::io::IArchive*)".
 // - The non-intrusive functions allow to work on arrays of objects. They must
-// be implemented in ozz::io namespace with these prototypes:
-// "void Save(OArchive& _archive, const _Ty* _ty, size_t _count) and
-// "void Load(IArchive& _archive, _Ty* _ty, size_t _count).
+// be implemented in ozz::io namespace, by specializing the following template
+// struct:
+// template <typename _Ty>
+// struct Extern {
+//   static void Save(OArchive& _archive, const _Ty* _ty, size_t _count);
+//   static void Load(IArchive& _archive, _Ty* _ty, size_t _count,
+//                    uint32_t _version);
+// };
 //
 // Arrays of struct/class or primitive types can be saved/loaded with the
 // helper function ozz::io::MakeArray() that is then streamed in or out using
@@ -86,7 +91,7 @@ namespace io {
 namespace internal {
 // Defines Tagger helper object struct.
 // The boolean template argument is used to automatically select a template
-// specialisation, whether _Ty has a tag or not.
+// specialization, whether _Ty has a tag or not.
 template <typename _Ty,
           bool _HasTag = internal::Tag<const _Ty>::kTagLength != 0>
 struct Tagger;
@@ -116,7 +121,7 @@ class OArchive {
   void operator<<(const _Ty& _ty) {
     internal::Tagger<const _Ty>::Write(*this);
     SaveVersion<_Ty>();
-    Save(*this, &_ty, 1);
+    Extern<_Ty>::Save(*this, &_ty, 1);
   }
 
 // Primitive type saving.
@@ -189,7 +194,7 @@ class IArchive {
 
     // Loads instance.
     uint32_t version = LoadVersion<_Ty>();
-    Load(*this, &_ty, 1, version);
+    Extern<_Ty>::Load(*this, &_ty, 1, version);
   }
 
 // Primitive type loading.
@@ -261,18 +266,19 @@ OZZ_IO_TYPE_NOT_VERSIONABLE(float)
 
 // Default loading and saving external implementation.
 template <typename _Ty>
-inline void Save(OArchive& _archive, const _Ty* _ty, size_t _count) {
-  for (size_t i = 0; i < _count; ++i) {
-    _ty[i].Save(_archive);
+struct Extern {
+  inline static void Save(OArchive& _archive, const _Ty* _ty, size_t _count) {
+    for (size_t i = 0; i < _count; ++i) {
+      _ty[i].Save(_archive);
+    }
   }
-}
-template <typename _Ty>
-inline void Load(IArchive& _archive, _Ty* _ty, size_t _count,
-                 uint32_t _version) {
-  for (size_t i = 0; i < _count; ++i) {
-    _ty[i].Load(_archive, _version);
+  inline static void Load(IArchive& _archive, _Ty* _ty, size_t _count,
+                          uint32_t _version) {
+    for (size_t i = 0; i < _count; ++i) {
+      _ty[i].Load(_archive, _version);
+    }
   }
-}
+};
 
 // Wrapper for dynamic array serialization.
 // Must be used through ozz::io::MakeArray.
@@ -280,12 +286,21 @@ namespace internal {
 template <typename _Ty>
 struct Array {
   OZZ_INLINE void Save(OArchive& _archive) const {
-    ozz::io::Save(_archive, array, count);
+    ozz::io::Extern<_Ty>::Save(_archive, array, count);
   }
   OZZ_INLINE void Load(IArchive& _archive, uint32_t _version) const {
-    ozz::io::Load(_archive, array, count, _version);
+    ozz::io::Extern<_Ty>::Load(_archive, array, count, _version);
   }
   _Ty* array;
+  size_t count;
+};
+// Specialize for const _Ty which can only be saved.
+template <typename _Ty>
+struct Array<const _Ty> {
+  OZZ_INLINE void Save(OArchive& _archive) const {
+    ozz::io::Extern<_Ty>::Save(_archive, array, count);
+  }
+  const _Ty* array;
   size_t count;
 };
 
@@ -371,12 +386,12 @@ OZZ_INLINE const internal::Array<const _Ty> MakeArray(const _Ty* _array,
 }
 template <typename _Ty>
 OZZ_INLINE const internal::Array<_Ty> MakeArray(Range<_Ty> _array) {
-  const internal::Array<_Ty> array = {_array.begin, _array.Count()};
+  const internal::Array<_Ty> array = {_array.begin, _array.count()};
   return array;
 }
 template <typename _Ty>
 OZZ_INLINE const internal::Array<const _Ty> MakeArray(Range<const _Ty> _array) {
-  const internal::Array<const _Ty> array = {_array.begin, _array.Count()};
+  const internal::Array<const _Ty> array = {_array.begin, _array.count()};
   return array;
 }
 template <typename _Ty, size_t _count>
@@ -392,7 +407,7 @@ OZZ_INLINE const internal::Array<const _Ty> MakeArray(
 }
 
 namespace internal {
-// Specialisation of the Tagger helper for tagged types.
+// Specialization of the Tagger helper for tagged types.
 template <typename _Ty>
 struct Tagger<_Ty, true> {
   static void Write(OArchive& _archive) {
@@ -415,7 +430,7 @@ struct Tagger<_Ty, true> {
   }
 };
 
-// Specialisation of the Tagger helper for types with no tag.
+// Specialization of the Tagger helper for types with no tag.
 template <typename _Ty>
 struct Tagger<_Ty, false> {
   static void Write(OArchive& /*_archive*/) {}

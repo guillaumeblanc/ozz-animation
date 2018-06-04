@@ -129,7 +129,7 @@ void CopyRaw(const _SrcTrack& _src, uint16_t _track, float _duration,
 }
 
 void CopyToAnimation(ozz::Vector<SortingTranslationKey>::Std* _src,
-                     ozz::Range<TranslationKey>* _dest) {
+                     ozz::Range<TranslationKey>* _dest, float _inv_duration) {
   const size_t src_count = _src->size();
   if (!src_count) {
     return;
@@ -143,7 +143,7 @@ void CopyToAnimation(ozz::Vector<SortingTranslationKey>::Std* _src,
   const SortingTranslationKey* src = &_src->front();
   for (size_t i = 0; i < src_count; ++i) {
     TranslationKey& key = _dest->begin[i];
-    key.time = src[i].key.time;
+    key.ratio = src[i].key.time * _inv_duration;
     key.track = src[i].track;
     key.value[0] = ozz::math::FloatToHalf(src[i].key.value.x);
     key.value[1] = ozz::math::FloatToHalf(src[i].key.value.y);
@@ -152,7 +152,7 @@ void CopyToAnimation(ozz::Vector<SortingTranslationKey>::Std* _src,
 }
 
 void CopyToAnimation(ozz::Vector<SortingScaleKey>::Std* _src,
-                     ozz::Range<ScaleKey>* _dest) {
+                     ozz::Range<ScaleKey>* _dest, float _inv_duration) {
   const size_t src_count = _src->size();
   if (!src_count) {
     return;
@@ -166,7 +166,7 @@ void CopyToAnimation(ozz::Vector<SortingScaleKey>::Std* _src,
   const SortingScaleKey* src = &_src->front();
   for (size_t i = 0; i < src_count; ++i) {
     ScaleKey& key = _dest->begin[i];
-    key.time = src[i].key.time;
+    key.ratio = src[i].key.time * _inv_duration;
     key.track = src[i].track;
     key.value[0] = ozz::math::FloatToHalf(src[i].key.value.x);
     key.value[1] = ozz::math::FloatToHalf(src[i].key.value.y);
@@ -174,7 +174,6 @@ void CopyToAnimation(ozz::Vector<SortingScaleKey>::Std* _src,
   }
 }
 
-namespace {
 // Compares float absolute values.
 bool LessAbs(float _left, float _right) {
   return std::abs(_left) < std::abs(_right);
@@ -208,13 +207,12 @@ void CompressQuat(const ozz::math::Quaternion& _src,
   _dest->value[1] = math::Clamp(-32767, b, 32767) & 0xffff;
   _dest->value[2] = math::Clamp(-32767, c, 32767) & 0xffff;
 }
-}  // namespace
 
 // Specialize for rotations in order to normalize quaternions.
 // Consecutive opposite quaternions are also fixed up in order to avoid checking
 // for the smallest path during the NLerp runtime algorithm.
 void CopyToAnimation(ozz::Vector<SortingRotationKey>::Std* _src,
-                     ozz::Range<RotationKey>* _dest) {
+                     ozz::Range<RotationKey>* _dest, float _inv_duration) {
   const size_t src_count = _src->size();
   if (!src_count) {
     return;
@@ -256,7 +254,7 @@ void CopyToAnimation(ozz::Vector<SortingRotationKey>::Std* _src,
   for (size_t i = 0; i < src_count; ++i) {
     const SortingRotationKey& skey = src[i];
     RotationKey& dkey = _dest->begin[i];
-    dkey.time = skey.key.time;
+    dkey.ratio = skey.key.time * _inv_duration;
     dkey.track = skey.track;
 
     // Compress quaternion to destination container.
@@ -281,6 +279,7 @@ Animation* AnimationBuilder::operator()(const RawAnimation& _input) const {
 
   // Sets duration.
   const float duration = _input.duration;
+  const float inv_duration = 1.f / _input.duration;
   animation->duration_ = duration;
   // A _duration == 0 would create some division by 0 during sampling.
   // Also we need at least to keys with different times, which cannot be done
@@ -337,9 +336,10 @@ Animation* AnimationBuilder::operator()(const RawAnimation& _input) const {
                       sorting_rotations.size(), sorting_scales.size());
 
   // Copy sorted keys to final animation.
-  CopyToAnimation(&sorting_translations, &animation->translations_);
-  CopyToAnimation(&sorting_rotations, &animation->rotations_);
-  CopyToAnimation(&sorting_scales, &animation->scales_);
+  CopyToAnimation(&sorting_translations, &animation->translations_,
+                  inv_duration);
+  CopyToAnimation(&sorting_rotations, &animation->rotations_, inv_duration);
+  CopyToAnimation(&sorting_scales, &animation->scales_, inv_duration);
 
   // Copy animation's name.
   strcpy(animation->name_, _input.name.c_str());

@@ -30,6 +30,7 @@ add_executable(test_fuse_base
   log_tests.cc
   platform_tests.cc
   ${PROJECT_BINARY_DIR}/src_fused/ozz_base.cc)
+add_dependencies(test_fuse_base BUILD_FUSE_ozz_base)
 target_include_directories(test_fuse_base
   PUBLIC "${PROJECT_SOURCE_DIR}/include")
 target_link_libraries(test_fuse_base

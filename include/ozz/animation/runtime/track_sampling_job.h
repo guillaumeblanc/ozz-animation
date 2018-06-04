@@ -25,30 +25,56 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/animation/offline/tools/convert2skel.h"
+#ifndef OZZ_OZZ_ANIMATION_RUNTIME_TRACK_SAMPLING_JOB_H_
+#define OZZ_OZZ_ANIMATION_RUNTIME_TRACK_SAMPLING_JOB_H_
 
-#include "ozz/animation/offline/fbx/fbx.h"
+#include "ozz/animation/runtime/track.h"
 
-// fbx2skel is a command line tool that converts a skeleton imported from a
-// Fbx document to ozz runtime format.
-//
-// fbx2skel extracts the skeleton from the Fbx document. It then builds an
-// ozz runtime skeleton, from the Fbx skeleton, and serializes it to a ozz
-// binary archive.
-//
-// Use fbx2skel integrated help command (fbx2skel --help) for more details
-// about available arguments.
+namespace ozz {
+namespace animation {
 
-class FbxSkeletonConverter : public ozz::animation::offline::SkeletonConverter {
- private:
-  // Implement SkeletonConverter::Import function.
-  virtual bool Import(const char* _filename,
-                      ozz::animation::offline::RawSkeleton* _skeleton) {
-    return ozz::animation::offline::fbx::ImportFromFile(_filename, _skeleton);
-  }
+namespace internal {
+
+// TrackSamplingJob internal implementation. See *TrackSamplingJob for more
+// details.
+template <typename _Track>
+struct TrackSamplingJob {
+  typedef typename _Track::ValueType ValueType;
+
+  TrackSamplingJob();
+
+  // Validates all parameters.
+  bool Validate() const;
+
+  // Validates and executes sampling.
+  bool Run() const;
+
+  // Ratio used to sample track, clamped in range [0,1] before job execution. 0
+  // is the beginning of the track, 1 is the end. This is a ratio rather than a
+  // ratio because tracks have no duration.
+  float ratio;
+
+  // Track to sample.
+  const _Track* track;
+
+  // Job output.
+  typename _Track::ValueType* result;
 };
+}  // namespace internal
 
-int main(int _argc, const char** _argv) {
-  FbxSkeletonConverter converter;
-  return converter(_argc, _argv);
-}
+// Track sampling job implementation. Track sampling allows to query a track
+// value for a specified ratio. This is a ratio rather than a time because
+// tracks have no duration.
+struct FloatTrackSamplingJob : public internal::TrackSamplingJob<FloatTrack> {};
+struct Float2TrackSamplingJob : public internal::TrackSamplingJob<Float2Track> {
+};
+struct Float3TrackSamplingJob : public internal::TrackSamplingJob<Float3Track> {
+};
+struct Float4TrackSamplingJob : public internal::TrackSamplingJob<Float4Track> {
+};
+struct QuaternionTrackSamplingJob
+    : public internal::TrackSamplingJob<QuaternionTrack> {};
+
+}  // namespace animation
+}  // namespace ozz
+#endif  // OZZ_OZZ_ANIMATION_RUNTIME_TRACK_SAMPLING_JOB_H_

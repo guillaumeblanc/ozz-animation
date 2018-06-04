@@ -87,7 +87,7 @@ bool LocalToModelJob::Run() const {
   // Initializes an identity matrix that will be used to compute roots model
   // matrices without requiring a branch.
   const Float4x4 identity = Float4x4::identity();
-  const Float4x4 *root_matrix = (root == NULL) ? &identity : root;
+  const Float4x4* root_matrix = (root == NULL) ? &identity : root;
 
   // Converts to matrices and applies hierarchical transformation.
   for (int joint = 0; joint < num_joints;) {

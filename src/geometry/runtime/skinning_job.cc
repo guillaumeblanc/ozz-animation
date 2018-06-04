@@ -70,7 +70,7 @@ bool SkinningJob::Validate() const {
 
   // Checks indices, required.
   valid &= joint_indices.begin != NULL;
-  valid &= joint_indices.Size() >=
+  valid &= joint_indices.size() >=
            joint_indices_stride * vertex_count_minus_1 +
                sizeof(uint16_t) * influences_count * vertex_count_at_least_1;
 
@@ -78,7 +78,7 @@ bool SkinningJob::Validate() const {
   if (influences_count != 1) {
     valid &= joint_weights.begin != NULL;
     valid &=
-        joint_weights.Size() >=
+        joint_weights.size() >=
         joint_weights_stride * vertex_count_minus_1 +
             sizeof(float) * (influences_count - 1) * vertex_count_at_least_1;
   }
@@ -86,30 +86,30 @@ bool SkinningJob::Validate() const {
   // Checks positions, mandatory.
   valid &= in_positions.begin != NULL;
   valid &=
-      in_positions.Size() >= in_positions_stride * vertex_count_minus_1 +
+      in_positions.size() >= in_positions_stride * vertex_count_minus_1 +
                                  sizeof(float) * 3 * vertex_count_at_least_1;
   valid &= out_positions.begin != NULL;
   valid &=
-      out_positions.Size() >= out_positions_stride * vertex_count_minus_1 +
+      out_positions.size() >= out_positions_stride * vertex_count_minus_1 +
                                   sizeof(float) * 3 * vertex_count_at_least_1;
 
   // Checks normals, optional.
   if (in_normals.begin) {
     valid &=
-        in_normals.Size() >= in_normals_stride * vertex_count_minus_1 +
+        in_normals.size() >= in_normals_stride * vertex_count_minus_1 +
                                  sizeof(float) * 3 * vertex_count_at_least_1;
     valid &= out_normals.begin != NULL;
     valid &=
-        out_normals.Size() >= out_normals_stride * vertex_count_minus_1 +
+        out_normals.size() >= out_normals_stride * vertex_count_minus_1 +
                                   sizeof(float) * 3 * vertex_count_at_least_1;
 
     // Checks tangents, optional but requires normals.
     if (in_tangents.begin) {
       valid &=
-          in_tangents.Size() >= in_tangents_stride * vertex_count_minus_1 +
+          in_tangents.size() >= in_tangents_stride * vertex_count_minus_1 +
                                     sizeof(float) * 3 * vertex_count_at_least_1;
       valid &= out_tangents.begin != NULL;
-      valid &= out_tangents.Size() >=
+      valid &= out_tangents.size() >=
                out_tangents_stride * vertex_count_minus_1 +
                    sizeof(float) * 3 * vertex_count_at_least_1;
     }
