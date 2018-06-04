@@ -90,7 +90,7 @@ An optional python script `build-helper.py` is available in the root directory t
 Building Fbx tools
 ------------------
 
-Ozz-animation implements a fbx toolchain (fbx2skel, fbx2anim), based on [Autodesk Fbx SDK][link_fbxsdk]. If a compatible Fbx SDK is installed, cmake will automatically detect it [using a custom module][link_fbxsdk_cmake_module] and build the tools.
+Ozz-animation implements a fbx toolchain (fbx2ozz command line tool), based on [Autodesk Fbx SDK][link_fbxsdk]. If a compatible Fbx SDK is installed, cmake will automatically detect it [using a custom module][link_fbxsdk_cmake_module] and build the tools.
 
 Running unit tests
 ------------------

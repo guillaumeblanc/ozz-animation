@@ -150,7 +150,7 @@ Now use the skeleton as you want, but don't forget to delete it in the end.
 ozz::memory::default_allocator()->Delete(skeleton);
 {% endhighlight %}
 
-If your custom importer is a command line tool like fbx2skel is, you can re-use [`ozz::animation::offline::SkeletonConverter`][link_src_convert2skel]. By overriding `SkeletonConverter::Import()` function, you'll benefit from ozz command line tools implementation, skeleton serialization and so on...
+If your custom importer is a command line tool like fbx2ozz is, you can re-use [`ozz::animation::offline::OzzImporter`][link_src_ozz_importer]. By overriding `OzzImporter::Import(*)` function, you'll benefit from ozz command line tools implementation, skeleton serialization and so on...
 
 Full sources for this how-to are available [here][link_src_howto_custom_skeleton_importer].
 
@@ -249,6 +249,6 @@ ozz::animation::Animation* animation = builder(raw_animation);
 ozz::memory::default_allocator()->Delete(animation);
 {% endhighlight %}
 
-If your custom importer is a command line tool like fbx2anim is, you can re-use [`ozz::animation::offline::AnimationConverter`][link_src_convert2anim]. By overriding `AnimationConverter::Import()` function, you'll benefit from ozz command line tools implementation, keyframe optimisation, animation serialization and so on...
+If your custom importer is a command line tool like fbx2ozz is, you can re-use [`ozz::animation::offline::OzzImporter`][link_src_ozz_importer]. By overriding `OzzImporter::Import(*)` function, you'll benefit from ozz command line tools implementation, keyframe optimisation, animation serialization and so on...
 
 Full sources for this how-to are available [here][link_src_howto_custom_animation_importer].

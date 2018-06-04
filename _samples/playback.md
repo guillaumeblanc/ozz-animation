@@ -18,7 +18,7 @@ Animation time and playback speed can be tweaked.
 
 Concept
 =======
-This sample loads ozz binary archive file, a skeleton and an animation. Ozz binary files can be produced with ozz command line tools (dae2skel tool ouputs a skeleton from a Collada document, dae2anim an animation), or with ozz serializer ([`ozz::io::OArchive`][link_io]) from your own application/converter.
+This sample loads ozz binary archive file, a skeleton and an animation. Ozz binary files can be produced with ozz command line tool fbx2ozz, or with ozz serializer (ozz::io::OArchive) from your own application/converter.
 At every frame the animation is sampled with [`ozz::animation::SamplingJob`][link_sampling_job]. Sampling local-space output is then converted to model-space matrices for rendering using [`ozz::animation::LocalToModelJob`][link_local_to_model_job].
 
 Sample usage
