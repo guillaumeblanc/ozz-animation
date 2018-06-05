@@ -44,15 +44,15 @@ namespace animation {
 
 namespace internal {
 struct InterpSoaTranslation {
-  math::SimdFloat4 time[2];
+  math::SimdFloat4 ratio[2];
   math::SoaFloat3 value[2];
 };
 struct InterpSoaRotation {
-  math::SimdFloat4 time[2];
+  math::SimdFloat4 ratio[2];
   math::SoaQuaternion value[2];
 };
 struct InterpSoaScale {
-  math::SimdFloat4 time[2];
+  math::SimdFloat4 ratio[2];
   math::SoaFloat3 value[2];
 };
 }  // namespace internal
@@ -82,7 +82,7 @@ bool SamplingJob::Validate() const {
 namespace {
 // Loops through the sorted key frames and update cache structure.
 template <typename _Key>
-void UpdateKeys(float _time, int _num_soa_tracks, ozz::Range<const _Key> _keys,
+void UpdateKeys(float _ratio, int _num_soa_tracks, ozz::Range<const _Key> _keys,
                 int* _cursor, int* _cache, unsigned char* _outdated) {
   assert(_num_soa_tracks >= 1);
   const int num_tracks = _num_soa_tracks * 4;
@@ -120,14 +120,14 @@ void UpdateKeys(float _time, int _num_soa_tracks, ozz::Range<const _Key> _keys,
     assert(cursor >= _keys.begin + num_tracks * 2 && cursor <= _keys.end);
   }
 
-  // Search for the keys that matches _time.
+  // Search for the keys that matches _ratio.
   // Iterates while the cache is not updated with left and right keys required
-  // for interpolation at time _time, for all tracks. Thanks to the keyframe
-  // sorting, the loop can end as soon as it finds a key greater that _time.
-  // It will mean that all the keys lower than _time have been processed,
+  // for interpolation at time ratio _ratio, for all tracks. Thanks to the
+  // keyframe sorting, the loop can end as soon as it finds a key greater that
+  // _ratio. It will mean that all the keys lower than _ratio have been processed,
   // meaning all cache entries are updated.
   while (cursor < _keys.end &&
-         _keys.begin[_cache[cursor->track * 2 + 1]].time <= _time) {
+         _keys.begin[_cache[cursor->track * 2 + 1]].ratio <= _ratio) {
     // Flag this soa entry as outdated.
     _outdated[cursor->track / 32] |= (1 << ((cursor->track & 0x1f) / 4));
     // Updates cache.
@@ -162,8 +162,8 @@ void UpdateSoaTranslations(int _num_soa_tracks,
       const TranslationKey& k10 = _keys.begin[_interp[base + 2]];
       const TranslationKey& k20 = _keys.begin[_interp[base + 4]];
       const TranslationKey& k30 = _keys.begin[_interp[base + 6]];
-      soa_translations_[i].time[0] =
-          math::simd_float4::Load(k00.time, k10.time, k20.time, k30.time);
+      soa_translations_[i].ratio[0] =
+          math::simd_float4::Load(k00.ratio, k10.ratio, k20.ratio, k30.ratio);
       soa_translations_[i].value[0].x = math::HalfToFloat(math::simd_int4::Load(
           k00.value[0], k10.value[0], k20.value[0], k30.value[0]));
       soa_translations_[i].value[0].y = math::HalfToFloat(math::simd_int4::Load(
@@ -176,8 +176,8 @@ void UpdateSoaTranslations(int _num_soa_tracks,
       const TranslationKey& k11 = _keys.begin[_interp[base + 3]];
       const TranslationKey& k21 = _keys.begin[_interp[base + 5]];
       const TranslationKey& k31 = _keys.begin[_interp[base + 7]];
-      soa_translations_[i].time[1] =
-          math::simd_float4::Load(k01.time, k11.time, k21.time, k31.time);
+      soa_translations_[i].ratio[1] =
+          math::simd_float4::Load(k01.ratio, k11.ratio, k21.ratio, k31.ratio);
       soa_translations_[i].value[1].x = math::HalfToFloat(math::simd_int4::Load(
           k01.value[0], k11.value[0], k21.value[0], k31.value[0]));
       soa_translations_[i].value[1].y = math::HalfToFloat(math::simd_int4::Load(
@@ -293,8 +293,8 @@ void UpdateSoaRotations(int _num_soa_tracks,
         const RotationKey& k2 = _keys.begin[_interp[base + 4]];
         const RotationKey& k3 = _keys.begin[_interp[base + 6]];
 
-        _soa_rotations[i].time[0] =
-            math::simd_float4::Load(k0.time, k1.time, k2.time, k3.time);
+        _soa_rotations[i].ratio[0] =
+            math::simd_float4::Load(k0.ratio, k1.ratio, k2.ratio, k3.ratio);
         math::SoaQuaternion& quat = _soa_rotations[i].value[0];
         DECOMPRESS_SOA_QUAT(k0, k1, k2, k3, quat);
       }
@@ -306,8 +306,8 @@ void UpdateSoaRotations(int _num_soa_tracks,
         const RotationKey& k2 = _keys.begin[_interp[base + 5]];
         const RotationKey& k3 = _keys.begin[_interp[base + 7]];
 
-        _soa_rotations[i].time[1] =
-            math::simd_float4::Load(k0.time, k1.time, k2.time, k3.time);
+        _soa_rotations[i].ratio[1] =
+            math::simd_float4::Load(k0.ratio, k1.ratio, k2.ratio, k3.ratio);
         math::SoaQuaternion& quat = _soa_rotations[i].value[1];
         DECOMPRESS_SOA_QUAT(k0, k1, k2, k3, quat);
       }
@@ -335,8 +335,8 @@ void UpdateSoaScales(int _num_soa_tracks, ozz::Range<const ScaleKey> _keys,
       const ScaleKey& k10 = _keys.begin[_interp[base + 2]];
       const ScaleKey& k20 = _keys.begin[_interp[base + 4]];
       const ScaleKey& k30 = _keys.begin[_interp[base + 6]];
-      soa_scales_[i].time[0] =
-          math::simd_float4::Load(k00.time, k10.time, k20.time, k30.time);
+      soa_scales_[i].ratio[0] =
+          math::simd_float4::Load(k00.ratio, k10.ratio, k20.ratio, k30.ratio);
       soa_scales_[i].value[0].x = math::HalfToFloat(math::simd_int4::Load(
           k00.value[0], k10.value[0], k20.value[0], k30.value[0]));
       soa_scales_[i].value[0].y = math::HalfToFloat(math::simd_int4::Load(
@@ -349,8 +349,8 @@ void UpdateSoaScales(int _num_soa_tracks, ozz::Range<const ScaleKey> _keys,
       const ScaleKey& k11 = _keys.begin[_interp[base + 3]];
       const ScaleKey& k21 = _keys.begin[_interp[base + 5]];
       const ScaleKey& k31 = _keys.begin[_interp[base + 7]];
-      soa_scales_[i].time[1] =
-          math::simd_float4::Load(k01.time, k11.time, k21.time, k31.time);
+      soa_scales_[i].ratio[1] =
+          math::simd_float4::Load(k01.ratio, k11.ratio, k21.ratio, k31.ratio);
       soa_scales_[i].value[1].x = math::HalfToFloat(math::simd_int4::Load(
           k01.value[0], k11.value[0], k21.value[0], k31.value[0]));
       soa_scales_[i].value[1].y = math::HalfToFloat(math::simd_int4::Load(
@@ -361,38 +361,38 @@ void UpdateSoaScales(int _num_soa_tracks, ozz::Range<const ScaleKey> _keys,
   }
 }
 
-void Interpolates(float _anim_time, int _num_soa_tracks,
+void Interpolates(float _anim_ratio, int _num_soa_tracks,
                   const internal::InterpSoaTranslation* _translations,
                   const internal::InterpSoaRotation* _rotations,
                   const internal::InterpSoaScale* _scales,
                   math::SoaTransform* _output) {
-  const math::SimdFloat4 anim_time = math::simd_float4::Load1(_anim_time);
+  const math::SimdFloat4 anim_ratio = math::simd_float4::Load1(_anim_ratio);
   for (int i = 0; i < _num_soa_tracks; ++i) {
     // Prepares interpolation coefficients.
-    const math::SimdFloat4 interp_t_time =
-        (anim_time - _translations[i].time[0]) *
-        math::RcpEst(_translations[i].time[1] - _translations[i].time[0]);
-    const math::SimdFloat4 interp_r_time =
-        (anim_time - _rotations[i].time[0]) *
-        math::RcpEst(_rotations[i].time[1] - _rotations[i].time[0]);
-    const math::SimdFloat4 interp_s_time =
-        (anim_time - _scales[i].time[0]) *
-        math::RcpEst(_scales[i].time[1] - _scales[i].time[0]);
+    const math::SimdFloat4 interp_t_ratio =
+        (anim_ratio - _translations[i].ratio[0]) *
+        math::RcpEst(_translations[i].ratio[1] - _translations[i].ratio[0]);
+    const math::SimdFloat4 interp_r_ratio =
+        (anim_ratio - _rotations[i].ratio[0]) *
+        math::RcpEst(_rotations[i].ratio[1] - _rotations[i].ratio[0]);
+    const math::SimdFloat4 interp_s_ratio =
+        (anim_ratio - _scales[i].ratio[0]) *
+        math::RcpEst(_scales[i].ratio[1] - _scales[i].ratio[0]);
 
     // Processes interpolations.
     // The lerp of the rotation uses the shortest path, because opposed
     // quaternions were negated during animation build stage (AnimationBuilder).
     _output[i].translation = Lerp(_translations[i].value[0],
-                                  _translations[i].value[1], interp_t_time);
+                                  _translations[i].value[1], interp_t_ratio);
     _output[i].rotation =
-        NLerpEst(_rotations[i].value[0], _rotations[i].value[1], interp_r_time);
+        NLerpEst(_rotations[i].value[0], _rotations[i].value[1], interp_r_ratio);
     _output[i].scale =
-        Lerp(_scales[i].value[0], _scales[i].value[1], interp_s_time);
+        Lerp(_scales[i].value[0], _scales[i].value[1], interp_s_ratio);
   }
 }
 }  // namespace
 
-SamplingJob::SamplingJob() : time(0.f), animation(NULL), cache(NULL) {}
+SamplingJob::SamplingJob() : ratio(0.f), animation(NULL), cache(NULL) {}
 
 bool SamplingJob::Run() const {
   if (!Validate()) {
@@ -404,37 +404,37 @@ bool SamplingJob::Run() const {
     return true;
   }
 
-  // Clamps time in range [0,duration].
-  const float anim_time = math::Clamp(0.f, time, animation->duration());
+  // Clamps ratio in range [0,duration].
+  const float anim_ratio = math::Clamp(0.f, ratio, 1.f);
 
-  // Step the cache to this potentially new animation and time.
+  // Step the cache to this potentially new animation and ratio.
   assert(cache->max_soa_tracks() >= num_soa_tracks);
-  cache->Step(*animation, anim_time);
+  cache->Step(*animation, anim_ratio);
 
-  // Fetch key frames from the animation to the cache a t = anim_time.
+  // Fetch key frames from the animation to the cache a r = anim_ratio.
   // Then updates outdated soa hot values.
-  UpdateKeys(anim_time, num_soa_tracks, animation->translations(),
+  UpdateKeys(anim_ratio, num_soa_tracks, animation->translations(),
              &cache->translation_cursor_, cache->translation_keys_,
              cache->outdated_translations_);
   UpdateSoaTranslations(num_soa_tracks, animation->translations(),
                         cache->translation_keys_, cache->outdated_translations_,
                         cache->soa_translations_);
 
-  UpdateKeys(anim_time, num_soa_tracks, animation->rotations(),
+  UpdateKeys(anim_ratio, num_soa_tracks, animation->rotations(),
              &cache->rotation_cursor_, cache->rotation_keys_,
              cache->outdated_rotations_);
   UpdateSoaRotations(num_soa_tracks, animation->rotations(),
                      cache->rotation_keys_, cache->outdated_rotations_,
                      cache->soa_rotations_);
 
-  UpdateKeys(anim_time, num_soa_tracks, animation->scales(),
+  UpdateKeys(anim_ratio, num_soa_tracks, animation->scales(),
              &cache->scale_cursor_, cache->scale_keys_,
              cache->outdated_scales_);
   UpdateSoaScales(num_soa_tracks, animation->scales(), cache->scale_keys_,
                   cache->outdated_scales_, cache->soa_scales_);
 
   // Interpolates soa hot data.
-  Interpolates(anim_time, num_soa_tracks, cache->soa_translations_,
+  Interpolates(anim_ratio, num_soa_tracks, cache->soa_translations_,
                cache->soa_rotations_, cache->soa_scales_, output.begin);
 
   return true;
@@ -442,7 +442,7 @@ bool SamplingJob::Run() const {
 
 SamplingCache::SamplingCache(int _max_tracks)
     : animation_(NULL),
-      time_(0.f),
+      ratio_(0.f),
       max_soa_tracks_((_max_tracks + 3) / 4),
       soa_translations_(NULL),
       soa_rotations_(NULL),
@@ -456,9 +456,9 @@ SamplingCache::SamplingCache(int _max_tracks)
       outdated_translations_(NULL),
       outdated_rotations_(NULL),
       outdated_scales_(NULL) {
-  using internal::InterpSoaTranslation;
   using internal::InterpSoaRotation;
   using internal::InterpSoaScale;
+  using internal::InterpSoaTranslation;
 
   // Allocate all cache data at once in a single allocation.
   // Alignment is guaranteed because memory is dispatch from the highest
@@ -512,20 +512,20 @@ SamplingCache::~SamplingCache() {
   memory::default_allocator()->Deallocate(soa_translations_);
 }
 
-void SamplingCache::Step(const Animation& _animation, float _time) {
+void SamplingCache::Step(const Animation& _animation, float _ratio) {
   // The cache is invalidated if animation has changed or if it is being rewind.
-  if (animation_ != &_animation || _time < time_) {
+  if (animation_ != &_animation || _ratio < ratio_) {
     animation_ = &_animation;
     translation_cursor_ = 0;
     rotation_cursor_ = 0;
     scale_cursor_ = 0;
   }
-  time_ = _time;
+  ratio_ = _ratio;
 }
 
 void SamplingCache::Invalidate() {
   animation_ = NULL;
-  time_ = 0.f;
+  ratio_ = 0.f;
   translation_cursor_ = 0;
   rotation_cursor_ = 0;
   scale_cursor_ = 0;

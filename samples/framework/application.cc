@@ -410,7 +410,7 @@ bool Application::Idle(bool _first_frame) {
     update_delta = 0.f;
   } else {
     if (fix_update_rate) {
-      update_delta = 1.f / fixed_update_rate;
+      update_delta = time_factor_ / fixed_update_rate;
     } else {
       update_delta = delta * time_factor_;
     }

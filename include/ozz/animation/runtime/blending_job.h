@@ -39,13 +39,16 @@ struct SoaTransform;
 
 namespace animation {
 
-// Blends multiple input layer/postures to a single output. The number of
-// transforms/joints blended by the job is defined by the number of transforms
-// of the bind pose (note that this is a SoA format). This means that all
-// buffers must be at least as big as the bind pose buffer.
+// ozz::animation::BlendingJob is in charge of blending (mixing) multiple poses
+// (the result of a sampled animation) according to their respective weight,
+// into one output pose.
+// The number of transforms/joints blended by the job is defined by the number
+// of transforms of the bind pose (note that this is a SoA format). This means
+// that all buffers must be at least as big as the bind pose buffer.
 // Partial animation blending is supported through optional joint weights that
 // can be specified with layers joint_weights buffer. Unspecified joint weights
-// are considered as a unit weight of 1.f.
+// are considered as a unit weight of 1.f, allowing to mix full and partial
+// blend operations in a single pass.
 // The job does not owned any buffers (input/output) and will thus not delete
 // them during job's destruction.
 struct BlendingJob {

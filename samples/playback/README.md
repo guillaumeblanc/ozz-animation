@@ -6,7 +6,7 @@ Loads a skeleton and an animation from ozz binary archives. Then playbacks anima
 
 ## Concept
 
-This sample loads ozz binary archive file (to read an animation and a skeleton). Ozz binary files can be produced with ozz command line tools (fbx2skel tool ouputs a skeleton from a Collada or Fbx document, fbx2anim an animation), or with ozz serializer (ozz::io::OArchive) from your own application/converter.
+This sample loads ozz binary archive file (to read an animation and a skeleton). Ozz binary files can be produced with ozz command line tool fbx2ozz, or with ozz serializer (ozz::io::OArchive) from your own application/converter.
 At every frame the animation is sampled with ozz::animation::SamplingJob. Sampled local-space output is then converted to model-space matrices for rendering using ozz::animation::LocalToModelJob.
 
 ## Sample usage

@@ -25,6 +25,7 @@ set_source_files_properties(${PROJECT_BINARY_DIR}/src_fused/ozz_options.cc PROPE
 add_executable(test_fuse_options
   options_registration_tests.cc
   ${PROJECT_BINARY_DIR}/src_fused/ozz_options.cc)
+add_dependencies(test_fuse_options BUILD_FUSE_ozz_options)
 target_include_directories(test_fuse_options
   PUBLIC "${PROJECT_SOURCE_DIR}/include")
 target_link_libraries(test_fuse_options

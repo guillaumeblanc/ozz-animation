@@ -81,7 +81,7 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
         threshold_(ozz::animation::BlendingJob().threshold) {}
 
  protected:
-  // Updates current animation time.
+  // Updates current animation time and skeleton pose.
   virtual bool OnUpdate(float _dt) {
     // Updates and samples both animations to their respective local space
     // transform buffers.
@@ -95,7 +95,7 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
       ozz::animation::SamplingJob sampling_job;
       sampling_job.animation = &sampler.animation;
       sampling_job.cache = sampler.cache;
-      sampling_job.time = sampler.controller.time();
+      sampling_job.ratio = sampler.controller.time_ratio();
       sampling_job.output = sampler.locals;
 
       // Samples animation.
@@ -157,13 +157,13 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
   virtual bool OnDisplay(ozz::sample::Renderer* _renderer) {
     // Mesh must be compatible with animation/skeleton.
     assert(
-        models_.Count() >= static_cast<size_t>(mesh_.highest_joint_index()) &&
-        skinning_matrices_.Count() >= static_cast<size_t>(mesh_.num_joints()));
+        models_.count() >= static_cast<size_t>(mesh_.highest_joint_index()) &&
+        skinning_matrices_.count() >= static_cast<size_t>(mesh_.num_joints()));
 
     // Builds skinning matrices, based on the output of the animation stage.
     // The mesh might not use (aka be skinned by) all skeleton joints. We use
     // the joint remapping table (available from the mesh object) to reorder
-    // skinning matrices.
+    // model-space matrices and build skinning ones.
     for (size_t i = 0; i < mesh_.joint_remaps.size(); ++i) {
       skinning_matrices_[i] =
           models_[mesh_.joint_remaps[i]] * mesh_.inverse_bind_poses[i];

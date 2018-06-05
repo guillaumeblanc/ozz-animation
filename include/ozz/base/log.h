@@ -35,8 +35,8 @@
 #include <cstring>
 
 // Proposes a logging interface that redirects logs to std::cout, clog and cerr
-// output streams. This interface adds a logging level functionality (Silent,
-// Standard, Verbose) to the std API, which can be set using
+// output streams. This interface adds a logging level functionality (kSilent,
+// kStandard, kVerbose) to the std API, which can be set using
 // ozz::log::GetLevel function.
 // Usage conforms to std stream usage: ozz::log::OUT() << "something to log."...
 
@@ -44,9 +44,9 @@ namespace ozz {
 namespace log {
 
 enum Level {
-  Silent,    // No output at all, even errors are muted.
-  Standard,  // Default output level.
-  Verbose,   // Most verbose output level.
+  kSilent,    // No output at all, even errors are muted.
+  kStandard,  // Default output level.
+  kVerbose,   // Most verbose output level.
 };
 
 // Sets the global logging level.

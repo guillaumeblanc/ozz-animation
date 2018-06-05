@@ -25,34 +25,47 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/animation/offline/tools/convert2anim.h"
+#ifndef OZZ_OZZ_ANIMATION_OFFLINE_TRACK_OPTIMIZER_H_
+#define OZZ_OZZ_ANIMATION_OFFLINE_TRACK_OPTIMIZER_H_
 
-#include "ozz/animation/offline/fbx/fbx.h"
+namespace ozz {
+namespace animation {
+namespace offline {
 
-// fbx2anim is a command line tool that converts an animation imported from a
-// fbx document to ozz runtime format.
-//
-// fbx2anim extracts animated joints from a fbx document. Only the animated
-// joints whose names match those of the ozz runtime skeleton given as argument
-// are selected. Keyframes are then optimized, based on command line settings,
-// and serialized as a runtime animation to an ozz binary archive.
-//
-// Use fbx2anim integrated help command (fbx2anim --help) for more details
-// about available arguments.
+// Forward declare offline track types.
+struct RawFloatTrack;
+struct RawFloat2Track;
+struct RawFloat3Track;
+struct RawFloat4Track;
+struct RawQuaternionTrack;
 
-class FbxAnimationConverter
-    : public ozz::animation::offline::AnimationConverter {
- private:
-  // Implement SkeletonConverter::Import function.
-  virtual bool Import(const char* _filename,
-                      const ozz::animation::Skeleton& _skeleton,
-                      float _sampling_rate, Animations* _animations) {
-    return ozz::animation::offline::fbx::ImportFromFile(
-        _filename, _skeleton, _sampling_rate, _animations);
-  }
+// TrackOptimizer is responsible for optimizing an offline raw track instance.
+// Optimization is a keyframe reduction process. Redundant and interpolable
+// keyframes (within a tolerance value) are removed from the track. Default
+// optimization tolerances are set in order to favor quality over runtime
+// performances and memory footprint.
+class TrackOptimizer {
+ public:
+  // Initializes the optimizer with default tolerances (favoring quality).
+  TrackOptimizer();
+
+  // Optimizes _input using *this parameters.
+  // Returns true on success and fills _output track with the optimized
+  // version of _input track.
+  // *_output must be a valid Raw*Track instance.
+  // Returns false on failure and resets _output to an empty track.
+  // See Raw*Track::Validate() for more details about failure reasons.
+  bool operator()(const RawFloatTrack& _input, RawFloatTrack* _output) const;
+  bool operator()(const RawFloat2Track& _input, RawFloat2Track* _output) const;
+  bool operator()(const RawFloat3Track& _input, RawFloat3Track* _output) const;
+  bool operator()(const RawFloat4Track& _input, RawFloat4Track* _output) const;
+  bool operator()(const RawQuaternionTrack& _input,
+                  RawQuaternionTrack* _output) const;
+
+  // Optimization tolerance.
+  float tolerance;
 };
-
-int main(int _argc, const char** _argv) {
-  FbxAnimationConverter converter;
-  return converter(_argc, _argv);
-}
+}  // namespace offline
+}  // namespace animation
+}  // namespace ozz
+#endif  // OZZ_OZZ_ANIMATION_OFFLINE_TRACK_OPTIMIZER_H_

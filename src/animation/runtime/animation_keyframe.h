@@ -36,17 +36,17 @@ namespace ozz {
 namespace animation {
 
 // Define animation key frame types (translation, rotation, scale). Every type
-// as the same base made of the key time and it's track. This is required as
-// key frames are not sorted per track, but sorted by time to favor cache
-// coherency.
-// Key frame values are compressed, according on their type. Decompression is
-// efficient because it's done on SoA data and cached during sampling.
+// as the same base made of the key time ratio and it's track index. This is
+// required as key frames are not sorted per track, but sorted by ratio to favor
+// cache coherency. Key frame values are compressed, according on their type.
+// Decompression is efficient because it's done on SoA data and cached during
+// sampling.
 
 // Defines the translation key frame type.
 // Translation values are stored as half precision floats with 16 bits per
 // component.
 struct TranslationKey {
-  float time;
+  float ratio;
   uint16_t track;
   uint16_t value[3];
 };
@@ -67,7 +67,7 @@ struct TranslationKey {
 // key frames, but in this case RotationKey structure would induce 16 bits of
 // padding.
 struct RotationKey {
-  float time;
+  float ratio;
   uint16_t track : 13;   // The track this key frame belongs to.
   uint16_t largest : 2;  // The largest component of the quaternion.
   uint16_t sign : 1;     // The sign of the largest component. 1 for negative.
@@ -78,7 +78,7 @@ struct RotationKey {
 // Scale values are stored as half precision floats with 16 bits per
 // component.
 struct ScaleKey {
-  float time;
+  float ratio;
   uint16_t track;
   uint16_t value[3];
 };

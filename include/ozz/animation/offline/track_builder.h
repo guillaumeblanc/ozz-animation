@@ -25,33 +25,50 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#ifndef OZZ_OZZ_ANIMATION_OFFLINE_TOOLS_CONVERT2ANIM_H_
-#define OZZ_OZZ_ANIMATION_OFFLINE_TOOLS_CONVERT2ANIM_H_
-
-#include "ozz/base/containers/vector.h"
-
-#include "ozz/animation/offline/raw_animation.h"
+#ifndef OZZ_OZZ_ANIMATION_OFFLINE_TRACK_BUILDER_H_
+#define OZZ_OZZ_ANIMATION_OFFLINE_TRACK_BUILDER_H_
 
 namespace ozz {
 namespace animation {
 
-class Skeleton;
+// Forward declares the runtime tracks type.
+class FloatTrack;
+class Float2Track;
+class Float3Track;
+class Float4Track;
+class QuaternionTrack;
 
 namespace offline {
 
-class AnimationConverter {
- public:
-  int operator()(int _argc, const char** _argv);
+// Forward declares the offline tracks type.
+struct RawFloatTrack;
+struct RawFloat2Track;
+struct RawFloat3Track;
+struct RawFloat4Track;
+struct RawQuaternionTrack;
 
- protected:
-  typedef Vector<RawAnimation>::Std Animations;
+// Defines the class responsible of building runtime track instances from
+// offline tracks.The input raw track is first validated. Runtime conversion of
+// a validated raw track cannot fail. Note that no optimization is performed on
+// the data at all.
+class TrackBuilder {
+ public:
+  // Creates a Track based on _raw_track and *this builder
+  // parameters.
+  // The returned instance will then need to be deleted using the default
+  // allocator Delete() function.
+  // See Raw*Track::Validate() for more details about failure reasons.
+  FloatTrack* operator()(const RawFloatTrack& _input) const;
+  Float2Track* operator()(const RawFloat2Track& _input) const;
+  Float3Track* operator()(const RawFloat3Track& _input) const;
+  Float4Track* operator()(const RawFloat4Track& _input) const;
+  QuaternionTrack* operator()(const RawQuaternionTrack& _input) const;
 
  private:
-  virtual bool Import(const char* _filename,
-                      const ozz::animation::Skeleton& _skeleton,
-                      float _sampling_rate, Animations* _animations) = 0;
+  template <typename _RawTrack, typename _Track>
+  _Track* Build(const _RawTrack& _input) const;
 };
 }  // namespace offline
 }  // namespace animation
 }  // namespace ozz
-#endif  // OZZ_OZZ_ANIMATION_OFFLINE_TOOLS_CONVERT2ANIM_H_
+#endif  // OZZ_OZZ_ANIMATION_OFFLINE_TRACK_BUILDER_H_

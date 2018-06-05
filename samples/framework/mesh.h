@@ -153,15 +153,24 @@ namespace io {
 OZZ_IO_TYPE_TAG("ozz-sample-Mesh-Part", sample::Mesh::Part)
 OZZ_IO_TYPE_VERSION(1, sample::Mesh::Part)
 
+template <>
+struct Extern<sample::Mesh::Part> {
+  static void Save(OArchive& _archive, const sample::Mesh::Part* _parts,
+                   size_t _count);
+  static void Load(IArchive& _archive, sample::Mesh::Part* _parts,
+                   size_t _count, uint32_t _version);
+};
+
 OZZ_IO_TYPE_TAG("ozz-sample-Mesh", sample::Mesh)
 OZZ_IO_TYPE_VERSION(1, sample::Mesh)
 
 template <>
-void Save(OArchive& _archive, const sample::Mesh* _meshes, size_t _count);
-
-template <>
-void Load(IArchive& _archive, sample::Mesh* _meshes, size_t _count,
-          uint32_t _version);
+struct Extern<sample::Mesh> {
+  static void Save(OArchive& _archive, const sample::Mesh* _meshes,
+                   size_t _count);
+  static void Load(IArchive& _archive, sample::Mesh* _meshes, size_t _count,
+                   uint32_t _version);
+};
 }  // namespace io
 }  // namespace ozz
 #endif  // OZZ_SAMPLES_FRAMEWORK_MESH_H_

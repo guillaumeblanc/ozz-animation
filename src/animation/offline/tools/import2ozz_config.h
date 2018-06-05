@@ -25,24 +25,14 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#ifndef OZZ_OZZ_ANIMATION_OFFLINE_TOOLS_CONVERT2SKEL_H_
-#define OZZ_OZZ_ANIMATION_OFFLINE_TOOLS_CONVERT2SKEL_H_
+#ifndef OZZ_ANIMATION_OFFLINE_TOOLS_CONFIGURATION_H_
+#define OZZ_ANIMATION_OFFLINE_TOOLS_CONFIGURATION_H_
 
-namespace ozz {
-namespace animation {
-namespace offline {
+#include "ozz/base/platform.h"
 
-struct RawSkeleton;
+#include <json/json-forwards.h>
 
-class SkeletonConverter {
- public:
-  int operator()(int _argc, const char** _argv);
+// Get the sanitized (all members are set, with the right types) configuration.
+bool ProcessConfiguration(Json::Value* _config);
 
- private:
-  virtual bool Import(const char* _filename,
-                      ozz::animation::offline::RawSkeleton* _skeleton) = 0;
-};
-}  // namespace offline
-}  // namespace animation
-}  // namespace ozz
-#endif  // OZZ_OZZ_ANIMATION_OFFLINE_TOOLS_CONVERT2SKEL_H_
+#endif  // OZZ_ANIMATION_OFFLINE_TOOLS_CONFIGURATION_H_

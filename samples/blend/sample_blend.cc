@@ -75,7 +75,7 @@ class BlendSampleApplication : public ozz::sample::Application {
         threshold_(ozz::animation::BlendingJob().threshold) {}
 
  protected:
-  // Updates current animation time.
+  // Updates current animation time and skeleton pose.
   virtual bool OnUpdate(float _dt) {
     // Updates blending parameters and synchronizes animations if control mode
     // is not manual.
@@ -100,7 +100,7 @@ class BlendSampleApplication : public ozz::sample::Application {
       ozz::animation::SamplingJob sampling_job;
       sampling_job.animation = &sampler.animation;
       sampling_job.cache = sampler.cache;
-      sampling_job.time = sampler.controller.time();
+      sampling_job.ratio = sampler.controller.time_ratio();
       sampling_job.output = sampler.locals;
 
       // Samples animation.
@@ -134,7 +134,7 @@ class BlendSampleApplication : public ozz::sample::Application {
     }
 
     // Converts from local space to model space matrices.
-    // Gets the ouput of the blending stage, and converts it to model space.
+    // Gets the output of the blending stage, and converts it to model space.
 
     // Setup local-to-model conversion job.
     ozz::animation::LocalToModelJob ltm_job;

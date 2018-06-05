@@ -60,7 +60,7 @@ class LoadSampleApplication : public ozz::sample::Application {
   LoadSampleApplication() : cache_(NULL) {}
 
  protected:
-  // Updates current animation time.
+  // Updates current animation time and skeleton pose.
   virtual bool OnUpdate(float _dt) {
     // Updates current animation time.
     controller_.Update(animation_, _dt);
@@ -69,7 +69,7 @@ class LoadSampleApplication : public ozz::sample::Application {
     ozz::animation::SamplingJob sampling_job;
     sampling_job.animation = &animation_;
     sampling_job.cache = cache_;
-    sampling_job.time = controller_.time();
+    sampling_job.ratio = controller_.time_ratio();
     sampling_job.output = locals_;
     if (!sampling_job.Run()) {
       return false;

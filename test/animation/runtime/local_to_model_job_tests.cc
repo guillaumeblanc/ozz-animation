@@ -153,6 +153,19 @@ TEST(JobValidity, LocalToModel) {
     EXPECT_TRUE(job.Validate());
     EXPECT_TRUE(job.Run());
   }
+  // Valid job with root matrix.
+  {
+    LocalToModelJob job;
+    const ozz::math::SimdFloat4 v = ozz::math::simd_float4::Load(4.f, 3.f, 2.f, 1.f);
+    ozz::math::Float4x4 world = ozz::math::Float4x4::Translation(v);
+    job.skeleton = skeleton;
+    job.root = &world;
+    job.input = input;
+    job.output.begin = output;
+    job.output.end = output + 2;
+    EXPECT_TRUE(job.Validate());
+    EXPECT_TRUE(job.Run());
+  }
   // Valid job with empty skeleton.
   {
     LocalToModelJob job;
@@ -236,42 +249,81 @@ TEST(Transformation, LocalToModel) {
         ozz::math::simd_float4::Load(1.f, -.1f, 1.f, 1.f),
         ozz::math::simd_float4::Load(1.f, -.1f, 1.f, 1.f)}}};
 
-  // Allocates output.
-  ozz::math::Float4x4 output[6];
+  {
+    // Prepares the job with root == NULL (default identity matrix)
+    ozz::math::Float4x4 output[6];
+    LocalToModelJob job;
+    job.skeleton = skeleton;
+    job.input.begin = input;
+    job.input.end = input + 2;
+    job.output.begin = output;
+    job.output.end = output + 6;
+    EXPECT_TRUE(job.Validate());
+    EXPECT_TRUE(job.Run());
+    EXPECT_FLOAT4x4_EQ(output[0], 1.f, 0.f, 0.f, 0.f,
+                                  0.f, 1.f, 0.f, 0.f,
+                                  0.f, 0.f, 1.f, 0.f,
+                                  2.f, 2.f, 2.f, 1.f);
+    EXPECT_FLOAT4x4_EQ(output[1], 0.f, 0.f, -1.f, 0.f,
+                                  0.f, 1.f, 0.f, 0.f,
+                                  1.f, 0.f, 0.f, 0.f,
+                                  2.f, 2.f, 2.f, 1.f);
+    EXPECT_FLOAT4x4_EQ(output[2], 10.f, 0.f, 0.f, 0.f,
+                                  0.f, 10.f, 0.f, 0.f,
+                                  0.f, 0.f, 10.f, 0.f,
+                                  0.f, 0.f, 0.f, 1.f);
+    EXPECT_FLOAT4x4_EQ(output[3], 0.f, 0.f, -1.f, 0.f,
+                                  0.f, 1.f, 0.f, 0.f,
+                                  1.f, 0.f, 0.f, 0.f,
+                                  6.f, 4.f, 1.f, 1.f);
+    EXPECT_FLOAT4x4_EQ(output[4], 10.f, 0.f, 0.f, 0.f,
+                                  0.f, 10.f, 0.f, 0.f,
+                                  0.f, 0.f, 10.f, 0.f,
+                                  120.f, 460.f, -120.f, 1.f);
+    EXPECT_FLOAT4x4_EQ(output[5], -1.f, 0.f, 0.f, 0.f,
+                                  0.f, -1.f, 0.f, 0.f,
+                                  0.f, 0.f, -1.f, 0.f,
+                                  0.f, 0.f, 0.f, 1.f);
+  }
 
-  // Prepares the job.
-  LocalToModelJob job;
-  job.skeleton = skeleton;
-  job.input.begin = input;
-  job.input.end = input + 2;
-  job.output.begin = output;
-  job.output.end = output + 6;
-  EXPECT_TRUE(job.Validate());
-  EXPECT_TRUE(job.Run());
-
-  EXPECT_FLOAT4x4_EQ(output[0], 1.f, 0.f, 0.f, 0.f,
-                                0.f, 1.f, 0.f, 0.f,
-                                0.f, 0.f, 1.f, 0.f,
-                                2.f, 2.f, 2.f, 1.f);
-  EXPECT_FLOAT4x4_EQ(output[1], 0.f, 0.f, -1.f, 0.f,
-                                0.f, 1.f, 0.f, 0.f,
-                                1.f, 0.f, 0.f, 0.f,
-                                2.f, 2.f, 2.f, 1.f);
-  EXPECT_FLOAT4x4_EQ(output[2], 10.f, 0.f, 0.f, 0.f,
-                                0.f, 10.f, 0.f, 0.f,
-                                0.f, 0.f, 10.f, 0.f,
-                                0.f, 0.f, 0.f, 1.f);
-  EXPECT_FLOAT4x4_EQ(output[3], 0.f, 0.f, -1.f, 0.f,
-                                0.f, 1.f, 0.f, 0.f,
-                                1.f, 0.f, 0.f, 0.f,
-                                6.f, 4.f, 1.f, 1.f);
-  EXPECT_FLOAT4x4_EQ(output[4], 10.f, 0.f, 0.f, 0.f,
-                                0.f, 10.f, 0.f, 0.f,
-                                0.f, 0.f, 10.f, 0.f,
-                                120.f, 460.f, -120.f, 1.f);
-  EXPECT_FLOAT4x4_EQ(output[5], -1.f, 0.f, 0.f, 0.f,
-                                0.f, -1.f, 0.f, 0.f,
-                                0.f, 0.f, -1.f, 0.f,
-                                0.f, 0.f, 0.f, 1.f);
+  {
+    // Prepares the job with root == Translation(4,3,2,1)
+    ozz::math::Float4x4 output[6];
+    const ozz::math::SimdFloat4 v = ozz::math::simd_float4::Load(4.f, 3.f, 2.f, 1.f);
+    ozz::math::Float4x4 world = ozz::math::Float4x4::Translation(v);
+    LocalToModelJob job;
+    job.skeleton = skeleton;
+    job.root = &world;
+    job.input.begin = input;
+    job.input.end = input + 2;
+    job.output.begin = output;
+    job.output.end = output + 6;
+    EXPECT_TRUE(job.Validate());
+    EXPECT_TRUE(job.Run());
+    EXPECT_FLOAT4x4_EQ(output[0], 1.f, 0.f, 0.f, 0.f,
+                                  0.f, 1.f, 0.f, 0.f,
+                                  0.f, 0.f, 1.f, 0.f,
+                                  6.f, 5.f, 4.f, 1.f);
+    EXPECT_FLOAT4x4_EQ(output[1], 0.f, 0.f, -1.f, 0.f,
+                                  0.f, 1.f, 0.f, 0.f,
+                                  1.f, 0.f, 0.f, 0.f,
+                                  6.f, 5.f, 4.f, 1.f);
+    EXPECT_FLOAT4x4_EQ(output[2], 10.f, 0.f, 0.f, 0.f,
+                                  0.f, 10.f, 0.f, 0.f,
+                                  0.f, 0.f, 10.f, 0.f,
+                                  4.f, 3.f, 2.f, 1.f);
+    EXPECT_FLOAT4x4_EQ(output[3], 0.f, 0.f, -1.f, 0.f,
+                                  0.f, 1.f, 0.f, 0.f,
+                                  1.f, 0.f, 0.f, 0.f,
+                                  10.f, 7.f, 3.f, 1.f);
+    EXPECT_FLOAT4x4_EQ(output[4], 10.f, 0.f, 0.f, 0.f,
+                                  0.f, 10.f, 0.f, 0.f,
+                                  0.f, 0.f, 10.f, 0.f,
+                                  124.f, 463.f, -118.f, 1.f);
+    EXPECT_FLOAT4x4_EQ(output[5], -1.f, 0.f, 0.f, 0.f,
+                                  0.f, -1.f, 0.f, 0.f,
+                                  0.f, 0.f, -1.f, 0.f,
+                                  4.f, 3.f, 2.f, 1.f);
+  }
   ozz::memory::default_allocator()->Delete(skeleton);
 }

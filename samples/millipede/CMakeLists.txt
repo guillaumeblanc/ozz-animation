@@ -1,7 +1,8 @@
 add_custom_command(
   DEPENDS "${CMAKE_CURRENT_LIST_DIR}/README.md"
   OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/README.md"
-  COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_LIST_DIR}/README.md .)
+  COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_LIST_DIR}/README.md .
+  VERBATIM)
 
 add_executable(sample_millipede
   sample_millipede.cc

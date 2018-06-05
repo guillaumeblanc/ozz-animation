@@ -25,11 +25,15 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/animation/offline/tools/convert2skel.h"
+#include "animation/offline/tools/import2ozz_skel.h"
 
 #include <cstdlib>
 #include <cstring>
 #include <iomanip>
+
+#include "animation/offline/tools/import2ozz_config.h"
+
+#include "ozz/animation/offline/tools/import2ozz.h"
 
 #include "ozz/animation/offline/raw_skeleton.h"
 #include "ozz/animation/offline/skeleton_builder.h"
@@ -44,53 +48,7 @@
 
 #include "ozz/base/log.h"
 
-#include "ozz/options/options.h"
-
-// Declares command line options.
-OZZ_OPTIONS_DECLARE_STRING(file, "Specifies input file", "", true)
-OZZ_OPTIONS_DECLARE_STRING(skeleton, "Specifies ozz skeleton ouput file", "",
-                           true)
-
-static bool ValidateEndianness(const ozz::options::Option& _option,
-                               int /*_argc*/) {
-  const ozz::options::StringOption& option =
-      static_cast<const ozz::options::StringOption&>(_option);
-  bool valid = std::strcmp(option.value(), "native") == 0 ||
-               std::strcmp(option.value(), "little") == 0 ||
-               std::strcmp(option.value(), "big") == 0;
-  if (!valid) {
-    ozz::log::Err() << "Invalid endianess option." << std::endl;
-  }
-  return valid;
-}
-
-OZZ_OPTIONS_DECLARE_STRING_FN(
-    endian,
-    "Selects output endianness mode. Can be \"native\" (same as current "
-    "platform), \"little\" or \"big\".",
-    "native", false, &ValidateEndianness)
-
-static bool ValidateLogLevel(const ozz::options::Option& _option,
-                             int /*_argc*/) {
-  const ozz::options::StringOption& option =
-      static_cast<const ozz::options::StringOption&>(_option);
-  bool valid = std::strcmp(option.value(), "verbose") == 0 ||
-               std::strcmp(option.value(), "standard") == 0 ||
-               std::strcmp(option.value(), "silent") == 0;
-  if (!valid) {
-    ozz::log::Err() << "Invalid log level option." << std::endl;
-  }
-  return valid;
-}
-
-OZZ_OPTIONS_DECLARE_STRING_FN(
-    log_level,
-    "Selects log level. Can be \"silent\", \"standard\" or \"verbose\".",
-    "standard", false, &ValidateLogLevel)
-
-OZZ_OPTIONS_DECLARE_BOOL(raw,
-                         "Outputs raw skeleton, instead of runtime skeleton.",
-                         false, false)
+#include <json/json.h>
 
 namespace ozz {
 namespace animation {
@@ -148,66 +106,56 @@ void LogHierarchy(const RawSkeleton::Joint::Children& _children,
 }
 }  // namespace
 
-int SkeletonConverter::operator()(int _argc, const char** _argv) {
-  // Parses arguments.
-  ozz::options::ParseResult parse_result = ozz::options::ParseCommandLine(
-      _argc, _argv, "1.1",
-      "Imports a skeleton from a file and converts it to ozz binary raw or "
-      "runtime skeleton format");
-  if (parse_result != ozz::options::kSuccess) {
-    return parse_result == ozz::options::kExitSuccess ? EXIT_SUCCESS
-                                                      : EXIT_FAILURE;
-  }
+bool ImportSkeleton(const Json::Value& _config, OzzImporter* _converter,
+                    const ozz::Endianness _endianness) {
+  const Json::Value& skeleton_config = _config["skeleton"];
+  const Json::Value& import_config = skeleton_config["import"];
 
-  // Initializes log level from options.
-  ozz::log::Level log_level = ozz::log::GetLevel();
-  if (std::strcmp(OPTIONS_log_level, "silent") == 0) {
-    log_level = ozz::log::Silent;
-  } else if (std::strcmp(OPTIONS_log_level, "standard") == 0) {
-    log_level = ozz::log::Standard;
-  } else if (std::strcmp(OPTIONS_log_level, "verbose") == 0) {
-    log_level = ozz::log::Verbose;
-  }
-  ozz::log::SetLevel(log_level);
-
-  // Imports skeleton from the file.
-  ozz::log::Log() << "Importing file \"" << OPTIONS_file << "\"" << std::endl;
-
-  if (!ozz::io::File::Exist(OPTIONS_file)) {
-    ozz::log::Err() << "File \"" << OPTIONS_file << "\" doesn't exist."
+  // First check that we're actually expecting to import a skeleton.
+  if (!import_config["enable"].asBool()) {
+    ozz::log::Log() << "Skeleton build disabled, import will be skipped."
                     << std::endl;
-    return EXIT_FAILURE;
+    return true;
   }
+
+  // Setup node types import properties.
+  const Json::Value& types_config = import_config["types"];
+  OzzImporter::NodeType types = {0};
+  types.skeleton = types_config["skeleton"].asBool();
+  types.marker = types_config["marker"].asBool();
+  types.camera = types_config["camera"].asBool();
+  types.geometry = types_config["geometry"].asBool();
+  types.light = types_config["light"].asBool();
+  types.any = types_config["any"].asBool();
 
   ozz::animation::offline::RawSkeleton raw_skeleton;
-  if (!Import(OPTIONS_file, &raw_skeleton)) {
-    ozz::log::Err() << "Failed to import file \"" << OPTIONS_file << "\""
-                    << std::endl;
-    return EXIT_FAILURE;
+  if (!_converter->Import(&raw_skeleton, types)) {
+    ozz::log::Err() << "Failed to import skeleton." << std::endl;
+    return false;
   }
 
   // Log skeleton hierarchy
-  if (ozz::log::GetLevel() == ozz::log::Verbose) {
+  if (ozz::log::GetLevel() == ozz::log::kVerbose) {
     LogHierarchy(raw_skeleton.roots);
   }
 
   // Non unique joint names are not supported.
   if (!(ValidateJointNamesUniqueness(raw_skeleton))) {
     // Log Err is done by the validation function.
-    return EXIT_FAILURE;
+    return false;
   }
 
   // Needs to be done before opening the output file, so that if it fails then
   // there's no invalid file outputted.
   ozz::animation::Skeleton* skeleton = NULL;
-  if (!OPTIONS_raw) {
+  if (!import_config["raw"].asBool()) {
     // Builds runtime skeleton.
     ozz::log::Log() << "Builds runtime skeleton." << std::endl;
     ozz::animation::offline::SkeletonBuilder builder;
     skeleton = builder(raw_skeleton);
     if (!skeleton) {
       ozz::log::Err() << "Failed to build runtime skeleton." << std::endl;
-      return EXIT_FAILURE;
+      return false;
     }
   }
 
@@ -216,44 +164,35 @@ int SkeletonConverter::operator()(int _argc, const char** _argv) {
   // Once the file is opened, nothing should fail as it would leave an invalid
   // file on the disk.
   {
-    ozz::log::Log() << "Opens output file: " << OPTIONS_skeleton << std::endl;
-    ozz::io::File file(OPTIONS_skeleton, "wb");
+    const char* filename = skeleton_config["filename"].asCString();
+    ozz::log::Log() << "Opens output file: " << filename << std::endl;
+    ozz::io::File file(filename, "wb");
     if (!file.opened()) {
-      ozz::log::Err() << "Failed to open output file: " << OPTIONS_skeleton
+      ozz::log::Err() << "Failed to open output file: \"" << filename << "\"."
                       << std::endl;
       ozz::memory::default_allocator()->Delete(skeleton);
-      return EXIT_FAILURE;
+      return false;
     }
-
-    // Initializes output endianness from options.
-    ozz::Endianness endianness = ozz::GetNativeEndianness();
-    if (std::strcmp(OPTIONS_endian, "little")) {
-      endianness = ozz::kLittleEndian;
-    } else if (std::strcmp(OPTIONS_endian, "big")) {
-      endianness = ozz::kBigEndian;
-    }
-    ozz::log::Log() << (endianness == ozz::kLittleEndian ? "Little" : "Big")
-                    << " Endian output binary format selected." << std::endl;
 
     // Initializes output archive.
-    ozz::io::OArchive archive(&file, endianness);
+    ozz::io::OArchive archive(&file, _endianness);
 
     // Fills output archive with the skeleton.
-    if (OPTIONS_raw) {
+    if (import_config["raw"].asBool()) {
       ozz::log::Log() << "Outputs RawSkeleton to binary archive." << std::endl;
       archive << raw_skeleton;
     } else {
       ozz::log::Log() << "Outputs Skeleton to binary archive." << std::endl;
       archive << *skeleton;
     }
-    ozz::log::Log() << "Skeleton binary archive successfully outputed."
+    ozz::log::Log() << "Skeleton binary archive successfully outputted."
                     << std::endl;
   }
 
   // Delete local objects.
   ozz::memory::default_allocator()->Delete(skeleton);
 
-  return EXIT_SUCCESS;
+  return true;
 }
 }  // namespace offline
 }  // namespace animation

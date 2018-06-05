@@ -1286,7 +1286,6 @@ float ImGuiImpl::Print(const char* _text, const math::RectFloat& _rect,
       if (IsDivisible(*spec.end)) {  // Found a divisible character.
         last_div = spec.end;
       }
-      ++spec.end;
 
       // Is this the last character of the line.
       if (*spec.end == '\n' || spec.end + 1 > spec.begin + chars_per_line) {
@@ -1320,6 +1319,8 @@ float ImGuiImpl::Print(const char* _text, const math::RectFloat& _rect,
         }
 
         spec.end = spec.begin;
+      } else {
+        ++spec.end;
       }
     }
 
