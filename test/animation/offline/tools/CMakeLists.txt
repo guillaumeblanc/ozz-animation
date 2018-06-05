@@ -129,6 +129,9 @@ add_test(NAME test2ozz_skel_simple_raw COMMAND test2ozz "--file=${ozz_temp_direc
 add_test(NAME test2ozz_skel_no_import COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"skeleton\":{\"filename\":\"${ozz_temp_directory}/skel_should_not_exist.ozz\",\"import\":{\"enable\":false}},\"animations\":[]}}")
 set_tests_properties(test2ozz_skel_no_import PROPERTIES PASS_REGULAR_EXPRESSION "Skeleton build disabled, import will be skipped")
 
+add_test(NAME test2ozz_log_hierarchy COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"skeleton\":{\"filename\":\"${ozz_temp_directory}/skeleton_${CMAKE_CURRENT_LIST_LINE}.ozz\"},\"animations\":[]}}" "--log_level=verbose")
+set_tests_properties(test2ozz_log_hierarchy PROPERTIES PASS_REGULAR_EXPRESSION ".joint0 t: 0, 0, 0 r: 0, 0, 0, 0 s: 0, 0, 0")
+
 # Ensures nothing was outputted.
 add_test(NAME test2ozz_skel_output COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/skel_should_not_exist.ozz" "${ozz_temp_directory}/skel_should_not_exist_too.ozz")
 set_tests_properties(test2ozz_skel_output PROPERTIES WILL_FAIL true)
