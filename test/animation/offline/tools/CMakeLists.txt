@@ -12,6 +12,7 @@ file(WRITE "${ozz_temp_directory}/bad.content" "bad content")
 file(WRITE "${ozz_temp_directory}/good.content0" "good content 0")
 file(WRITE "${ozz_temp_directory}/good.content1" "good content 1")
 file(WRITE "${ozz_temp_directory}/good.content2" "good content 2")
+file(WRITE "${ozz_temp_directory}/non_unique_names.content" "good content but not unique joint names")
 
 # Creates config test files.
 file(WRITE "${ozz_temp_directory}/valid_config.json" "{\"skeleton\":{\"filename\":\"${ozz_temp_directory}/skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"${ozz_temp_directory}/animation_valid_config.ozz\"}]}")
@@ -122,6 +123,9 @@ set_tests_properties(test2ozz_skel_invalid_filename PROPERTIES PASS_REGULAR_EXPR
 add_test(NAME test2ozz_skel_invalid_filename_raw COMMAND test2ozz "--config={\"skeleton\":{\"filename\":\"${ozz_temp_directory}/invalid_path/skel_should_not_exist.ozz\",\"import\":{\"enable\":true,\"raw\":true}},\"animations\":[]}}")
 set_tests_properties(test2ozz_skel_invalid_filename_raw PROPERTIES WILL_FAIL true)
 
+add_test(NAME test2ozz_skel_non_unique_names COMMAND test2ozz "--file=${ozz_temp_directory}/non_unique_names.content"  "--config={\"skeleton\":{\"filename\":\"${ozz_temp_directory}/skel_should_not_exist.ozz\",\"import\":{\"enable\":true}},\"animations\":[]}}")
+set_tests_properties(test2ozz_skel_non_unique_names PROPERTIES PASS_REGULAR_EXPRESSION "Skeleton contains at least one non-unique joint name \"jointx\", which is not supported.")
+
 # Run test2ozz skeleton passing tests
 #----------------------------
 add_test(NAME test2ozz_skel_simple COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"skeleton\":{\"filename\":\"${ozz_temp_directory}/skeleton.ozz\"},\"animations\":[]}}")
@@ -137,6 +141,7 @@ add_test(NAME test2ozz_skel_output COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_
 set_tests_properties(test2ozz_skel_output PROPERTIES WILL_FAIL true)
 set_tests_properties(test2ozz_skel_output PROPERTIES
   DEPENDS "test2ozz_skel_no_import
+           test2ozz_skel_non_unique_names
            test2ozz_skel_invalid_filename
            test2ozz_skel_invalid_filename_raw")
 

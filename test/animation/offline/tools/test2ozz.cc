@@ -63,8 +63,9 @@ class TestConverter : public ozz::animation::offline::OzzImporter {
                       const NodeType& _types) {
     (void)_types;
     if (file_ && file_->opened()) {
-      file_->Seek(0, ozz::io::File::kSet);
       char buffer[256];
+
+      file_->Seek(0, ozz::io::File::kSet);
       const char good_content[] = "good content 1";
       if (file_->Read(buffer, sizeof(buffer)) >= sizeof(good_content) - 1 &&
           memcmp(buffer, good_content, sizeof(good_content) - 1) == 0) {
@@ -79,6 +80,25 @@ class TestConverter : public ozz::animation::offline::OzzImporter {
         joint1.name = "joint1";
         ozz::animation::offline::RawSkeleton::Joint& joint2 = root.children[2];
         joint2.name = "joint2";
+
+        return true;
+      }
+
+      file_->Seek(0, ozz::io::File::kSet);
+      const char good_content_not_unique[] = "good content but not unique joint names";
+      if (file_->Read(buffer, sizeof(buffer)) >= sizeof(good_content_not_unique) - 1 &&
+          memcmp(buffer, good_content_not_unique, sizeof(good_content_not_unique) - 1) == 0) {
+        _skeleton->roots.resize(1);
+        ozz::animation::offline::RawSkeleton::Joint& root = _skeleton->roots[0];
+        root.name = "jointx";
+
+        root.children.resize(3);
+        ozz::animation::offline::RawSkeleton::Joint& joint0 = root.children[0];
+        joint0.name = "joint0";
+        ozz::animation::offline::RawSkeleton::Joint& joint1 = root.children[1];
+        joint1.name = "joint1";
+        ozz::animation::offline::RawSkeleton::Joint& joint2 = root.children[2];
+        joint2.name = "jointx";
 
         return true;
       }
