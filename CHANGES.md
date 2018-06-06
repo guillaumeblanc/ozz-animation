@@ -1,11 +1,3 @@
-
-Release version NEXT
----------------------
-
-* Samples
-  - [sample_fbx2mesh] Remaps joint indices to the smaller range of skeleton joints that are actually used by the skinning. It's now required to index skeleton matrices using ozz::sample::framework:Mesh::joint_remaps when build skinning matrices.
-
-
 Release version 0.10.0
 ----------------------
 
@@ -28,8 +20,9 @@ Release version 0.10.0
 
 * Samples
   - [user_channel] Adds new user-channel sample, demonstrating usage of user-channel tracks API and import pipeline usage.
+  - [sample_fbx2mesh] Remaps joint indices to the smaller range of skeleton joints that are actually used by the skinning. It's now required to index skeleton matrices using ozz::sample::framework:Mesh::joint_remaps when build skinning matrices.
   - [multithread] Switched from OpenMP to c++11 std::async API to implement a parallel-for loop over all computation tasks.
-
+  
 Release version 0.9.1
 ---------------------
 

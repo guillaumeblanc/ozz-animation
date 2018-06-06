@@ -5,8 +5,8 @@ project(ozz)
 
 # Current version
 set(OZZ_VERSION_MAJOR 0)
-set(OZZ_VERSION_MINOR 9)
-set(OZZ_VERSION_PATCH 1)
+set(OZZ_VERSION_MINOR 10)
+set(OZZ_VERSION_PATCH 0)
 set(OZZ_VERSION ${OZZ_VERSION_MAJOR}.${OZZ_VERSION_MINOR}.${OZZ_VERSION_PATCH})
 
 # Add project build options
