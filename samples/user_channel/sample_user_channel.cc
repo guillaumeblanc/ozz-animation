@@ -73,9 +73,9 @@ OZZ_OPTIONS_DECLARE_STRING(animation,
 OZZ_OPTIONS_DECLARE_STRING(track, "Path to the track (ozz archive format).",
                            "media/track.ozz", false)
 
-class LoadSampleApplication : public ozz::sample::Application {
+class UserChannelSampleApplication : public ozz::sample::Application {
  public:
-  LoadSampleApplication()
+  UserChannelSampleApplication()
       : cache_(NULL),
         method_(kTriggering),  // Triggering is the most robust method.
         attached_(false),
@@ -389,5 +389,5 @@ class LoadSampleApplication : public ozz::sample::Application {
 
 int main(int _argc, const char** _argv) {
   const char* title = "Ozz-animation sample: User channels";
-  return LoadSampleApplication().Run(_argc, _argv, "1.0", title);
+  return UserChannelSampleApplication().Run(_argc, _argv, "1.0", title);
 }
