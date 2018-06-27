@@ -232,7 +232,7 @@ OZZ_INLINE Quaternion Quaternion::FromVectors(const Float3& _from,
     // If _from and _to are exactly opposite, rotate 180 degrees around an
     // arbitrary orthogonal axis. Axis normalization can happen later, when we
     // normalize the quaternion.
-    quat = abs(_from.x) > abs(_from.z)
+    quat = std::abs(_from.x) > std::abs(_from.z)
                ? Quaternion(-_from.y, _from.x, 0.f, 0.f)
                : Quaternion(0.f, -_from.z, _from.y, 0.f);
   } else {
