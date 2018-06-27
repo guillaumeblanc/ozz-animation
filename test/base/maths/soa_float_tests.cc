@@ -332,7 +332,7 @@ TEST(Arithmetic3, SoaFloat) {
   const SimdFloat4 length2 = LengthSqr(a);
   EXPECT_SOAFLOAT1_EQ(length2, 80.25f, 107.f, 140.f, 179.f);
 
-  const SoaFloat3 cross = CrossProduct(a, b);
+  const SoaFloat3 cross = Cross(a, b);
   EXPECT_SOAFLOAT3_EQ(cross, 0.f, 0.f, 0.f, 0.f,
                              0.f, 0.f, 0.f, 0.f,
                              0.f, 0.f, 0.f, 0.f);
