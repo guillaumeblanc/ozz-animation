@@ -59,6 +59,12 @@ struct Quaternion {
   // Roll.
   static OZZ_INLINE Quaternion FromEuler(const Float3& _euler);
 
+  // Returns the quaternion that will rotate vector _from into vector _to,
+  // around their plan perpendicular axis.The input vectors don't need to be
+  // normalized.
+  static OZZ_INLINE Quaternion FromVectors(const Float3& _from,
+                                           const Float3& _to);
+
   // Returns the identity quaternion.
   static OZZ_INLINE Quaternion identity() {
     return Quaternion(0.f, 0.f, 0.f, 1.f);
@@ -215,14 +221,37 @@ OZZ_INLINE Float3 ToEuler(const Quaternion& _q) {
   return euler;
 }
 
-// Returns the linear interpolation of quaternion _a and _b with coefficient _f.
+OZZ_INLINE Quaternion Quaternion::FromVectors(const Float3& _from,
+                                              const Float3& _to) {
+  // http://lolengine.net/blog/2013/09/21/picking-orthogonal-vector-combing-coconuts
+
+  const float norm_from_norm_to = std::sqrt(LengthSqr(_from) * LengthSqr(_to));
+  const float real_part = norm_from_norm_to + Dot(_from, _to);
+  Quaternion quat;
+  if (real_part < 1.e-6f * norm_from_norm_to) {
+    // If _from and _to are exactly opposite, rotate 180 degrees around an
+    // arbitrary orthogonal axis. Axis normalization can happen later, when we
+    // normalize the quaternion.
+    quat = abs(_from.x) > abs(_from.z)
+               ? Quaternion(-_from.y, _from.x, 0.f, 0.f)
+               : Quaternion(0.f, -_from.z, _from.y, 0.f);
+  } else {
+    const Float3 cross = Cross(_from, _to);
+    quat = Quaternion(cross.x, cross.y, cross.z, real_part);
+  }
+  return Normalize(quat);
+}
+
+// Returns the linear interpolation of quaternion _a and _b with coefficient
+// _f.
 OZZ_INLINE Quaternion Lerp(const Quaternion& _a, const Quaternion& _b,
                            float _f) {
   return Quaternion((_b.x - _a.x) * _f + _a.x, (_b.y - _a.y) * _f + _a.y,
                     (_b.z - _a.z) * _f + _a.z, (_b.w - _a.w) * _f + _a.w);
 }
 
-// Returns the linear interpolation of quaternion _a and _b with coefficient _f.
+// Returns the linear interpolation of quaternion _a and _b with coefficient
+// _f.
 OZZ_INLINE Quaternion NLerp(const Quaternion& _a, const Quaternion& _b,
                             float _f) {
   const Float4 lerp((_b.x - _a.x) * _f + _a.x, (_b.y - _a.y) * _f + _a.y,
@@ -252,8 +281,8 @@ OZZ_INLINE Quaternion SLerp(const Quaternion& _a, const Quaternion& _b,
   const float half_theta = std::acos(cos_half_theta);
   const float sin_half_theta = std::sqrt(1.f - cos_half_theta * cos_half_theta);
 
-  // If theta = pi then result is not fully defined, we could rotate around any
-  // axis normal to _a or _b.
+  // If theta = pi then result is not fully defined, we could rotate around
+  // any axis normal to _a or _b.
   if (sin_half_theta < .001f) {
     return Quaternion((_a.x + _b.x) * .5f, (_a.y + _b.y) * .5f,
                       (_a.z + _b.z) * .5f, (_a.w + _b.w) * .5f);

@@ -32,9 +32,9 @@
 #include "ozz/base/gtest_helper.h"
 #include "ozz/base/maths/gtest_math_helper.h"
 
-using ozz::math::Quaternion;
-using ozz::math::Float4;
 using ozz::math::Float3;
+using ozz::math::Float4;
+using ozz::math::Quaternion;
 
 TEST(Constant, Quaternion) {
   EXPECT_QUATERNION_EQ(Quaternion::identity(), 0.f, 0.f, 0.f, 1.f);
@@ -113,6 +113,54 @@ TEST(QuaternionEuler, Quaternion) {
   EXPECT_FLOAT3_EQ(
       ToEuler(Quaternion(.56098551f, .092295974f, -0.43045932f, .70105737f)),
       ozz::math::kPi / 4.f, -ozz::math::kPi / 6.f, ozz::math::kPi_2);
+}
+
+TEST(FromVectors, Quaternion) {
+  // pi/2 around y
+  EXPECT_QUATERNION_EQ(
+      Quaternion::FromVectors(Float3::z_axis(), Float3::x_axis()), 0.f,
+      0.707106769f, 0.f, 0.707106769f);
+
+  // Minus pi/2 around y
+  EXPECT_QUATERNION_EQ(
+      Quaternion::FromVectors(Float3::x_axis(), Float3::z_axis()), 0.f,
+      -0.707106769f, 0.f, 0.707106769f);
+
+  // pi/2 around x
+  EXPECT_QUATERNION_EQ(
+      Quaternion::FromVectors(Float3::y_axis(), Float3::z_axis()), 0.707106769f,
+      0.f, 0.f, 0.707106769f);
+
+  // pi/2 around z
+  EXPECT_QUATERNION_EQ(
+      Quaternion::FromVectors(Float3::x_axis(), Float3::y_axis()), 0.f, 0.f,
+      0.707106769f, 0.707106769f);
+
+  // Aligned vectors
+  EXPECT_QUATERNION_EQ(
+      Quaternion::FromVectors(Float3::x_axis(), Float3::x_axis()), 0.f, 0.f,
+      0.f, 1.f);
+
+  // Non-unit aligned vectors
+  EXPECT_QUATERNION_EQ(
+      Quaternion::FromVectors(Float3::x_axis(), Float3::x_axis() * 2.f), 0.f,
+      0.f, 0.f, 1.f);
+
+  // Opposed vectors
+  EXPECT_QUATERNION_EQ(
+      Quaternion::FromVectors(Float3::x_axis(), -Float3::x_axis()), 0.f, 1.f,
+      0.f, 0);
+  EXPECT_QUATERNION_EQ(
+      Quaternion::FromVectors(Float3::y_axis(), -Float3::y_axis()), 0.f, 0.f,
+      1.f, 0);
+  EXPECT_QUATERNION_EQ(
+      Quaternion::FromVectors(Float3::z_axis(), -Float3::z_axis()), 0.f, -1.f,
+      0.f, 0);
+
+  // Non-unit opposed vectors
+  EXPECT_QUATERNION_EQ(
+      Quaternion::FromVectors(Float3(2.f, 2.f, 2.f), -Float3(2.f, 2.f, 2.f)),
+      0.f, -0.707106769f, 0.707106769f, 0);
 }
 
 TEST(Compare, Quaternion) {
