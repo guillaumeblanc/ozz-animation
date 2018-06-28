@@ -11,7 +11,6 @@ Release version 0.10.0
   - Adds options to import user-channel tracks (from node properties for fbx) using json "animations[].tracks[].properties[]" definition.
   - Adds an option while importing skeletons to choose scene node types that must be considered as skeleton joints, ie not restricting to scene joints only. This is useful for the baked sample for example, which animates mesh nodes.
 
-
 * Build pipeline
   - ozz optionnaly supports c++11 compiler.
   - Adds ozz_build_data option (OFF by default), to avoid building data on every code change. Building data takes time indeed, and isn't required on every change. It should be turned ON when output format changes to update all data again.
