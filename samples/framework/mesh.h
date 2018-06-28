@@ -82,7 +82,13 @@ struct Mesh {
   }
 
   // Returns the number of joints used to skin the mesh.
-  int num_joints() { return static_cast<int>(inverse_bind_poses.size()); }
+  int num_joints() const { return static_cast<int>(inverse_bind_poses.size()); }
+
+  // Returns the highest joint number used in the skeleton.
+  int highest_joint_index() const {
+    // Takes advantage that joint_remaps is sorted.
+    return joint_remaps.size() != 0 ? static_cast<int>(joint_remaps.back()) : 0;
+  }
 
   // Defines a portion of the mesh. A mesh is subdivided in sets of vertices
   // with the same number of joint influences.
@@ -130,6 +136,12 @@ struct Mesh {
   typedef ozz::Vector<uint16_t>::Std TriangleIndices;
   TriangleIndices triangle_indices;
 
+  // Joints remapping indices. As a skin might be influenced by a part of the
+  // skeleton only, joint indices and inverse bind pose matrices are reordered
+  // to contain only used ones. Note that this array is sorted.
+  typedef ozz::Vector<uint16_t>::Std JointRemaps;
+  JointRemaps joint_remaps;
+
   // Inverse bind-pose matrices. These are only available for skinned meshes.
   typedef ozz::Vector<ozz::math::Float4x4>::Std InversBindPoses;
   InversBindPoses inverse_bind_poses;
@@ -141,15 +153,24 @@ namespace io {
 OZZ_IO_TYPE_TAG("ozz-sample-Mesh-Part", sample::Mesh::Part)
 OZZ_IO_TYPE_VERSION(1, sample::Mesh::Part)
 
+template <>
+struct Extern<sample::Mesh::Part> {
+  static void Save(OArchive& _archive, const sample::Mesh::Part* _parts,
+                   size_t _count);
+  static void Load(IArchive& _archive, sample::Mesh::Part* _parts,
+                   size_t _count, uint32_t _version);
+};
+
 OZZ_IO_TYPE_TAG("ozz-sample-Mesh", sample::Mesh)
 OZZ_IO_TYPE_VERSION(1, sample::Mesh)
 
 template <>
-void Save(OArchive& _archive, const sample::Mesh* _meshes, size_t _count);
-
-template <>
-void Load(IArchive& _archive, sample::Mesh* _meshes, size_t _count,
-          uint32_t _version);
+struct Extern<sample::Mesh> {
+  static void Save(OArchive& _archive, const sample::Mesh* _meshes,
+                   size_t _count);
+  static void Load(IArchive& _archive, sample::Mesh* _meshes, size_t _count,
+                   uint32_t _version);
+};
 }  // namespace io
 }  // namespace ozz
 #endif  // OZZ_SAMPLES_FRAMEWORK_MESH_H_

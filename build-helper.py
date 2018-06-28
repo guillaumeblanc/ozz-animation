@@ -33,6 +33,7 @@ import multiprocessing
 import shutil
 import sys
 import os
+import os.path
 import re
 import platform
 from functools import partial
@@ -100,6 +101,8 @@ def Configure():
 
   if (enable_testing) :
     options += ['-D', 'ozz_build_tests=1']
+  else:
+    options += ['-D', 'ozz_build_tests=0']
 
   global generator
   if(generator != 'default'):
@@ -159,9 +162,9 @@ def Build(_build_dir = build_dir):
   return True
 
 def Test():
-  # Configure Test process.
+  # Configure Test process, parallelize a lot of tests in order to stress their dependencies
   print("Running unit tests.")
-  options = ['ctest' ,'--output-on-failure', '-j' + str(multiprocessing.cpu_count()), '--build-config', config]
+  options = ['ctest' ,'--output-on-failure', '-j' + str(multiprocessing.cpu_count() * 4), '--build-config', config]
   config_process = subprocess.Popen(options, cwd=build_dir)
   config_process.wait()
   if(config_process.returncode != 0):
@@ -284,12 +287,7 @@ def SelecGenerator():
 
 def DetectTesting():
   global enable_testing
-  try:
-    test_file = open(ctest_cache_file)
-  except:
-    enable_testing = False
-    return
-  enable_testing = True
+  enable_testing = os.path.isfile(ctest_cache_file)
 
 def EnableTesting():
   global enable_testing
@@ -304,9 +302,7 @@ def EnableTesting():
     if (enable_testing != wanted):
       enable_testing = wanted
       print("Testing state has changed.")
-      clean = raw_input("Do you want to clean build directory to apply the change? (y/n): ") == "y"
-      if clean:
-        return CleanBuildDir()
+      
     return True
 
 def ClearScreen():
@@ -382,7 +378,7 @@ def main():
         else:
           print("\nExecution failed.\n")
           break
-    except Exception, e:
+    except Exception as e:
       print("\nAn error occured during script execution: %s\n") % e
 
     raw_input("Press enter to continue...")

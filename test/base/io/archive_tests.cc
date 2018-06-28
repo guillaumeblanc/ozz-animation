@@ -277,3 +277,33 @@ TEST(Tag, Archive) {
   EXPECT_TRUE(i.TestTag<Tagged1>());
   EXPECT_NO_FATAL_FAILURE(i >> it1);
 }
+
+TEST(TagEOF, Archive) {
+  ozz::io::MemoryStream stream;
+  ASSERT_TRUE(stream.opened());
+
+  // Writes to archive n elements.
+  const int n_writes = 10;
+  ozz::io::OArchive o(&stream, ozz::GetNativeEndianness());
+  for (int i = 0; i < n_writes; ++i) {
+    Tagged1 ot;
+    o << ot;
+  }
+
+  // Reads from archive.
+  stream.Seek(0, ozz::io::Stream::kSet);
+  ozz::io::IArchive i(&stream);
+
+  EXPECT_FALSE(i.TestTag<Tagged2>());
+
+  // Tests and reads all objects.
+  int n_read = 0;
+  while (i.TestTag<Tagged1>()) {
+    Tagged1 it;
+    i >> it;
+    ++n_read;
+  }
+  EXPECT_EQ(n_read, n_writes);
+
+  EXPECT_FALSE(i.TestTag<Tagged2>());
+}

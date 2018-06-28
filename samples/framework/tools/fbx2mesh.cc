@@ -28,7 +28,6 @@
 #include "framework/mesh.h"
 
 #include "ozz/animation/offline/fbx/fbx.h"
-#include "ozz/animation/offline/fbx/fbx_base.h"
 
 #include "ozz/animation/runtime/skeleton.h"
 
@@ -53,7 +52,7 @@ OZZ_OPTIONS_DECLARE_STRING(file, "Specifies input file.", "", true)
 OZZ_OPTIONS_DECLARE_STRING(skeleton,
                            "Specifies the skeleton that the skin is bound to.",
                            "", true)
-OZZ_OPTIONS_DECLARE_STRING(mesh, "Specifies ozz mesh ouput file.", "", true)
+OZZ_OPTIONS_DECLARE_STRING(mesh, "Specifies ozz mesh output file.", "", true)
 OZZ_OPTIONS_DECLARE_BOOL(split,
                          "Split the skinned mesh into parts (number of joint "
                          "influences per vertex).",
@@ -168,7 +167,7 @@ bool BuildVertices(FbxMesh* _fbx_mesh,
   // Checks tangents availability.
   const FbxGeometryElementTangent* element_tangents = NULL;
   if (element_uvs) {  // UVs are needed to generate tangents.
-    // Regenerate tagents if they're not available.
+    // Regenerate tangents if they're not available.
     if (!_fbx_mesh->GenerateTangentsData(0, false)) {
       return false;
     }
@@ -351,7 +350,7 @@ bool BuildVertices(FbxMesh* _fbx_mesh,
         _output_mesh->triangle_indices[p * 3 + v] = vertex_index;
 
         // Stores vertex offset in the output vertex buffer.
-        _remap->at(ctrl_point).push_back(vertex_index);
+        remap.push_back(vertex_index);
 
         // Push vertex data.
         part.positions.push_back(position.x);
@@ -507,18 +506,20 @@ bool BuildSkin(FbxMesh* _fbx_mesh,
     for (int cpi = 0; cpi < ctrl_point_index_count; ++cpi) {
       const SkinMapping mapping = {joint,
                                    static_cast<float>(ctrl_point_weights[cpi])};
+      if (mapping.weight <= 0.f) {
+        continue;
+      }
 
-      // Sometimes, the mesh can have less points than at the time of the
-      // skinning because a smooth operator was active when skinning but has
-      // been deactivated during export.
       const int ctrl_point = ctrl_point_indices[cpi];
-      if (ctrl_point < _fbx_mesh->GetControlPointsCount() &&
-          mapping.weight > 0.f) {
-        const ControlPointRemap& remap = _remap[ctrl_point];
-        assert(remap.size() >= 1);  // At least a 1-1 mapping.
-        for (size_t v = 0; v < remap.size(); ++v) {
-          vertex_skin_mappings[remap[v]].push_back(mapping);
-        }
+      assert(ctrl_point < static_cast<int>(_remap.size()));
+
+      // remap.size() can be 0, skinned control point might not be used by any
+      // polygon of the mesh. Sometimes, the mesh can have less points than at
+      // the time of the skinning because a smooth operator was active when
+      // skinning but has been deactivated during export.
+      const ControlPointRemap& remap = _remap[ctrl_point];
+      for (size_t v = 0; v < remap.size(); ++v) {
+        vertex_skin_mappings[remap[v]].push_back(mapping);
       }
     }
   }
@@ -591,14 +592,14 @@ bool LimitInfluences(ozz::sample::Mesh& _skinned_mesh, int _limit) {
 
   ozz::sample::Mesh::Part& in_part = _skinned_mesh.parts.front();
 
-  // Check if it's actualluy needed to limit the number of influences.
+  // Check if it's actually needed to limit the number of influences.
   const int max_influences = in_part.influences_count();
   assert(max_influences > 0);
   if (max_influences <= _limit) {
     return true;
   }
 
-  // Iterate all vertices to remove unwanted weights and renormalize.
+  // Iterate all vertices to remove unwanted weights and renormalizes.
   // Note that weights are already sorted, so the last ones are the less
   // influencing.
   const size_t vertex_count = in_part.vertex_count();
@@ -610,7 +611,7 @@ bool LimitInfluences(ozz::sample::Mesh& _skinned_mesh, int _limit) {
       in_part.joint_weights[offset + j] =
           in_part.joint_weights[i * max_influences + j];
     }
-    // Renormalize weights.
+    // Renormalizes weights.
     float sum = 0.f;
     for (int j = 0; j < _limit; ++j) {
       sum += in_part.joint_weights[offset + j];
@@ -623,6 +624,49 @@ bool LimitInfluences(ozz::sample::Mesh& _skinned_mesh, int _limit) {
   // Resizes data
   in_part.joint_indices.resize(vertex_count * _limit);
   in_part.joint_weights.resize(vertex_count * _limit);
+  return true;
+}
+
+// Finds used joints and remaps joint indices to the minimal range.
+// The mesh might not use all skeleton joints, so this function remaps joint
+// indices to the subset of used joints. It also reorders inverse bin pose
+// matrices.
+bool RemapIndices(ozz::sample::Mesh* _skinned_mesh) {
+  assert(_skinned_mesh->parts.size() == 1);
+
+  ozz::sample::Mesh::Part& in_part = _skinned_mesh->parts.front();
+  assert(in_part.influences_count() > 0);
+
+  // Collects all unique indices.
+  ozz::sample::Mesh::Part::JointIndices local_indices = in_part.joint_indices;
+  std::sort(local_indices.begin(), local_indices.end());
+  local_indices.erase(std::unique(local_indices.begin(), local_indices.end()),
+                      local_indices.end());
+
+  // Build mapping table of mesh original joints to the new ones. Unused joints
+  // are set to 0.
+  ozz::sample::Mesh::Part::JointIndices original_remap(
+      _skinned_mesh->num_joints(), 0);
+  for (size_t i = 0; i < local_indices.size(); ++i) {
+    original_remap[local_indices[i]] =
+        static_cast<ozz::sample::Mesh::Part::JointIndices::value_type>(i);
+  }
+
+  // Reset all joints in the mesh.
+  for (size_t i = 0; i < in_part.joint_indices.size(); ++i) {
+    in_part.joint_indices[i] = original_remap[in_part.joint_indices[i]];
+  }
+
+  // Builds joint mapping for the mesh.
+  _skinned_mesh->joint_remaps = local_indices;
+
+  // Remaps bind poses and removes unused joints.
+  for (size_t i = 0; i < local_indices.size(); ++i) {
+    _skinned_mesh->inverse_bind_poses[i] =
+        _skinned_mesh->inverse_bind_poses[local_indices[i]];
+  }
+  _skinned_mesh->inverse_bind_poses.resize(local_indices.size());
+
   return true;
 }
 
@@ -814,6 +858,7 @@ bool SplitParts(const ozz::sample::Mesh& _skinned_mesh,
 
   // Copy bind pose matrices
   _partitionned_mesh->inverse_bind_poses = _skinned_mesh.inverse_bind_poses;
+  _partitionned_mesh->joint_remaps = _skinned_mesh.joint_remaps;
 
   return true;
 }
@@ -888,82 +933,91 @@ int main(int _argc, const char** _argv) {
     return EXIT_FAILURE;
   }
 
-  if (scene_loader.scene()->GetSrcObjectCount<FbxMesh>() == 0) {
+  const int num_meshes = scene_loader.scene()->GetSrcObjectCount<FbxMesh>();
+  if (num_meshes == 0) {
     ozz::log::Err() << "No mesh to process in this file: "
                     << OPTIONS_file.value() << "." << std::endl;
     return EXIT_FAILURE;
-  } else if (scene_loader.scene()->GetSrcObjectCount<FbxMesh>() > 1) {
+  } else if (num_meshes > 1) {
     ozz::log::Err() << "There's more than one mesh in the file: "
-                    << OPTIONS_file.value()
-                    << ". Only the first one will be processed." << std::endl;
+                    << OPTIONS_file.value() << ". All (" << num_meshes
+                    << ") meshes will be concatenated to the output file."
+                    << std::endl;
   }
 
-  {  // Triangulates the scene.
+  {  // Clean and triangulates the scene.
     ozz::log::LogV() << "Triangulating scene." << std::endl;
     FbxGeometryConverter converter(fbx_manager);
+    converter.RemoveBadPolygonsFromMeshes(scene_loader.scene());
     if (!converter.Triangulate(scene_loader.scene(), true)) {
       ozz::log::Err() << "Failed to triangulating meshes." << std::endl;
       return EXIT_FAILURE;
     }
   }
 
-  // Take the first mesh
-  FbxMesh* mesh = scene_loader.scene()->GetSrcObject<FbxMesh>(0);
-  mesh->RemoveBadPolygons();
+  // Take all meshes
+  ozz::Vector<ozz::sample::Mesh>::Std meshes;
+  meshes.resize(num_meshes);
 
-  // Allocates output mesh.
-  ozz::sample::Mesh output_mesh;
-  output_mesh.parts.resize(1);
+  for (int m = 0; m < num_meshes; ++m) {
+    FbxMesh* mesh = scene_loader.scene()->GetSrcObject<FbxMesh>(m);
 
-  ozz::log::LogV() << "Reading vertices." << std::endl;
-  ControlPointsRemap remap;
-  if (!BuildVertices(mesh, scene_loader.converter(), &remap, &output_mesh)) {
-    ozz::log::Err() << "Failed to read vertices." << std::endl;
-    return EXIT_FAILURE;
-  }
+    // Allocates output mesh.
+    ozz::sample::Mesh& output_mesh = meshes[m];
+    output_mesh.parts.resize(1);
 
-  // Finds skinning informations
-  if (mesh->GetDeformerCount(FbxDeformer::eSkin) > 0) {
-    ozz::log::LogV() << "Reading skinning data." << std::endl;
-    if (!BuildSkin(mesh, scene_loader.converter(), remap, skeleton,
-                   &output_mesh)) {
-      ozz::log::Err() << "Failed to read skinning data." << std::endl;
+    ControlPointsRemap remap;
+    if (!BuildVertices(mesh, scene_loader.converter(), &remap, &output_mesh)) {
+      ozz::log::Err() << "Failed to read vertices." << std::endl;
       return EXIT_FAILURE;
     }
 
-    // Limiting number of joint influences per vertex.
-    if (OPTIONS_max_influences > 0) {
-      ozz::log::LogV() << "Limiting number of joint influences per vertex to "
-                       << OPTIONS_max_influences << "." << std::endl;
-      ozz::sample::Mesh partitioned_meshes;
-      if (!LimitInfluences(output_mesh, OPTIONS_max_influences)) {
-        ozz::log::Err() << "Failed to limit number of joint influences."
-                        << std::endl;
-        return EXIT_FAILURE;
-      }
-    }
-
-    // Split the mesh if option is true (default)
-    if (OPTIONS_split) {
-      ozz::log::LogV() << "Partitioning meshes." << std::endl;
-      ozz::sample::Mesh partitioned_meshes;
-      if (!SplitParts(output_mesh, &partitioned_meshes)) {
-        ozz::log::Err() << "Failed to partitioned meshes." << std::endl;
+    // Finds skinning informations
+    if (mesh->GetDeformerCount(FbxDeformer::eSkin) > 0) {
+      if (!BuildSkin(mesh, scene_loader.converter(), remap, skeleton,
+                     &output_mesh)) {
+        ozz::log::Err() << "Failed to read skinning data." << std::endl;
         return EXIT_FAILURE;
       }
 
-      // Copy partitioned mesh back to the output.
-      output_mesh = partitioned_meshes;
-    }
+      // Limiting number of joint influences per vertex.
+      if (OPTIONS_max_influences > 0) {
+        ozz::sample::Mesh partitioned_meshes;
+        if (!LimitInfluences(output_mesh, OPTIONS_max_influences)) {
+          ozz::log::Err() << "Failed to limit number of joint influences."
+                          << std::endl;
+          return EXIT_FAILURE;
+        }
+      }
 
-    ozz::log::LogV() << "Stripping skinning weights." << std::endl;
-    if (!StripWeights(&output_mesh)) {
-      ozz::log::Err() << "Failed to strip weights." << std::endl;
-      return EXIT_FAILURE;
-    }
+      // Remap joint indices. The mesh might not use all skeleton joints, so
+      // this function remaps joint indices to the subset of used joints. It
+      // also reoders inverse bin pose matrices.
+      if (!RemapIndices(&output_mesh)) {
+        ozz::log::Err() << "Failed to remap joint indices." << std::endl;
+        return EXIT_FAILURE;
+      }
 
-    assert(OPTIONS_max_influences <= 0 ||
-           output_mesh.max_influences_count() <= OPTIONS_max_influences);
+      // Split the mesh if option is true (default)
+      if (OPTIONS_split) {
+        ozz::sample::Mesh partitioned_meshes;
+        if (!SplitParts(output_mesh, &partitioned_meshes)) {
+          ozz::log::Err() << "Failed to partitioned meshes." << std::endl;
+          return EXIT_FAILURE;
+        }
+
+        // Copy partitioned mesh back to the output.
+        output_mesh = partitioned_meshes;
+      }
+
+      if (!StripWeights(&output_mesh)) {
+        ozz::log::Err() << "Failed to strip weights." << std::endl;
+        return EXIT_FAILURE;
+      }
+
+      assert(OPTIONS_max_influences <= 0 ||
+             output_mesh.max_influences_count() <= OPTIONS_max_influences);
+    }
   }
 
   // Opens output file.
@@ -974,9 +1028,14 @@ int main(int _argc, const char** _argv) {
     return EXIT_FAILURE;
   }
 
-  {  // Serialize the partitioned mesh.
+  {
+    // Serialize the partitioned meshes.
+    // They aren't serialized as a vector/array as we don't know how they are
+    // going to be read.
     ozz::io::OArchive archive(&mesh_file);
-    archive << output_mesh;
+    for (size_t m = 0; m < meshes.size(); ++m) {
+      archive << meshes[m];
+    }
   }
 
   ozz::log::Log() << "Mesh binary archive successfully outputted for file "

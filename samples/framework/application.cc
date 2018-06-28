@@ -38,7 +38,7 @@
 #endif  // __APPLE__
 
 #if EMSCRIPTEN
-#include "emscripten.h"
+#include <emscripten.h>
 #endif  // EMSCRIPTEN
 
 #include "framework/image.h"
@@ -340,7 +340,7 @@ bool Application::Display() {
     Profiler profile(render_time_);
 
     GL(ClearDepth(1.f));
-    GL(ClearColor(.4f, .42f, .38f, 0.f));
+    GL(ClearColor(.4f, .42f, .38f, 1.f));
     GL(Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
     // Setup default states
@@ -410,7 +410,7 @@ bool Application::Idle(bool _first_frame) {
     update_delta = 0.f;
   } else {
     if (fix_update_rate) {
-      update_delta = 1.f / fixed_update_rate;
+      update_delta = time_factor_ / fixed_update_rate;
     } else {
       update_delta = delta * time_factor_;
     }

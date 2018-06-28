@@ -40,10 +40,12 @@ target_link_libraries(test_animation_archive_versioning
   ozz_options
   gtest)
 set_target_properties(test_animation_archive_versioning PROPERTIES FOLDER "ozz/tests/animation")
-add_test(NAME test_animation_archive_versioning_le COMMAND test_animation_archive_versioning "--file=${ozz_media_directory}/bin/versioning/animation_v4_le.ozz" "--tracks=67" "--duration=.66666667" "--name=run")
-add_test(NAME test_animation_archive_versioning_be COMMAND test_animation_archive_versioning "--file=${ozz_media_directory}/bin/versioning/animation_v4_be.ozz" "--tracks=67" "--duration=.66666667" "--name=run")
+add_test(NAME test_animation_archive_versioning_le COMMAND test_animation_archive_versioning "--file=${ozz_media_directory}/bin/versioning/animation_v5_le.ozz" "--tracks=67" "--duration=.66666667" "--name=run")
+add_test(NAME test_animation_archive_versioning_be COMMAND test_animation_archive_versioning "--file=${ozz_media_directory}/bin/versioning/animation_v5_be.ozz" "--tracks=67" "--duration=.66666667" "--name=run")
 
 # Previous versions.
+add_test(NAME test_animation_archive_versioning_le_older4 COMMAND test_animation_archive_versioning "--file=${ozz_media_directory}/bin/versioning/animation_v4_le.ozz" "--tracks=67" "--duration=.66666667" "--name=")
+set_tests_properties(test_animation_archive_versioning_le_older4 PROPERTIES WILL_FAIL true)
 add_test(NAME test_animation_archive_versioning_le_older3 COMMAND test_animation_archive_versioning "--file=${ozz_media_directory}/bin/versioning/animation_v3_le.ozz" "--tracks=67" "--duration=.66666667" "--name=")
 set_tests_properties(test_animation_archive_versioning_le_older3 PROPERTIES WILL_FAIL true)
 add_test(NAME test_animation_archive_versioning_le_older2 COMMAND test_animation_archive_versioning "--file=${ozz_media_directory}/bin/versioning/animation_v2_le.ozz" "--tracks=67" "--duration=1.33333302" "--name=")
@@ -77,10 +79,42 @@ target_link_libraries(test_skeleton_utils
 set_target_properties(test_skeleton_utils PROPERTIES FOLDER "ozz/tests/animation")
 add_test(NAME test_skeleton_utils COMMAND test_skeleton_utils)
 
+# track_sampling_job_tests
+add_executable(test_track_sampling_job
+  track_sampling_job_tests.cc)
+target_link_libraries(test_track_sampling_job
+  ozz_animation_offline
+  ozz_animation
+  ozz_base
+  gtest)
+set_target_properties(test_track_sampling_job PROPERTIES FOLDER "ozz/tests/animation")
+add_test(NAME test_track_sampling_job COMMAND test_track_sampling_job)
+
+# test_track_triggering_job
+add_executable(test_track_triggering_job
+  track_triggering_job_tests.cc
+  track_triggering_job_stl_tests.cc)
+target_link_libraries(test_track_triggering_job
+  ozz_animation_offline
+  ozz_animation
+  ozz_base
+  gtest)
+set_target_properties(test_track_triggering_job PROPERTIES FOLDER "ozz/tests/animation")
+add_test(NAME test_track_triggering_job COMMAND test_track_triggering_job)
+
+add_executable(test_track_archive
+  track_archive_tests.cc)
+target_link_libraries(test_track_archive
+  ozz_animation_offline
+  gtest)
+set_target_properties(test_track_archive PROPERTIES FOLDER "ozz/tests/animation")
+add_test(NAME test_track_archive COMMAND test_track_archive)
+
 # ozz_animation fuse tests
+set_source_files_properties(${PROJECT_BINARY_DIR}/src_fused/ozz_animation.cc PROPERTIES GENERATED 1)
 add_executable(test_fuse_animation
   sampling_job_tests.cc
-  ${PROJECT_SOURCE_DIR}/src_fused/ozz_animation.cc)
+  ${PROJECT_BINARY_DIR}/src_fused/ozz_animation.cc)
 add_dependencies(test_fuse_animation BUILD_FUSE_ozz_animation)
 target_link_libraries(test_fuse_animation
   ozz_animation_offline

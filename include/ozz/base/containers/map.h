@@ -59,8 +59,8 @@ struct str_less {
 };
 
 // Specializes std::map to use c-string as a key.
-template <class _Ty,
-          class _Allocator = ozz::StdAllocator<std::pair<const char*, _Ty> > >
+template <class _Ty, class _Allocator =
+                         ozz::StdAllocator<std::pair<const char* const, _Ty> > >
 struct CStringMap {
   typedef std::map<const char*, _Ty, str_less, _Allocator> Std;
 };

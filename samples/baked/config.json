@@ -1,0 +1,26 @@
+{
+  "skeleton":
+  {
+    "filename":"baked_skeleton.ozz",
+    "import":
+    {
+      "enable":true,  // Skeleton needs to be imported/created from the source file.
+      "types":
+      {
+        "geometry":true  // Geometry nodes will be considered as joints for the skeleton we're creating.
+      }
+    }
+  },
+  "animations":
+  [
+    {
+      "filename":"baked_animation.ozz",
+      "optimization_tolerances":  // Camera is very sensitive to optimizations.
+      {
+        "translation":0.002,
+        "rotation":0.002,
+        "hierarchical":1.0  // There's no hierarchy in the skeleton, it's flat. Hierarchical optimization can be disabled.
+      }
+    }
+  ]
+}

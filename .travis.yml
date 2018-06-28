@@ -57,7 +57,7 @@ matrix:
   - os: linux
     compiler: clang
     env:
-    - env_build_fbx=0
+    - env_build_fbx=0 
   - os: linux
     compiler: clang
     env:
@@ -84,6 +84,17 @@ matrix:
     env:
     - env_build_fbx=0
     - env_build_tests=0
+  - os: linux
+    compiler: clang
+    env:
+    - env_build_data=0
+    - env_build_fbx=0
+    - env_build_samples=0
+    - env_build_tests=0
+  - os: linux
+    compiler: clang
+    env:
+    - env_build_data=0
   - os: linux
     compiler: clang
     env:
@@ -142,6 +153,10 @@ before_install:
 
 install:
 - echo install-----------------------------------------------------------------
+# Download and install mesa dev
+- if [[ $TRAVIS_OS_NAME == "linux" ]]; then
+    sudo apt-get install libgl1-mesa-dev libglu1-mesa-dev;
+  fi
 # Download and install fbx sdk
 - if [[ $TRAVIS_OS_NAME == "linux" ]]; then
     mkdir fbx;
@@ -181,6 +196,7 @@ before_script:
 - if [[ -z $env_src_root ]]; then export env_src_root=".."; fi
 - if [[ -z $env_build_cpp11 ]]; then export env_build_cpp11=0; fi
 - if [[ -z $env_build_fbx ]]; then export env_build_fbx=1; fi
+- if [[ -z $env_build_data ]]; then export env_build_data=1; fi
 - if [[ -z $env_build_howtos ]]; then export env_build_howtos=1; fi
 - if [[ -z $env_build_samples ]]; then export env_build_samples=1; fi
 - if [[ -z $env_build_simd_ref ]]; then export env_build_simd_ref=0; fi
@@ -190,6 +206,7 @@ before_script:
 - if [[ -z $env_cmake_c_compiler ]]; then export env_cmake_c_compiler=$CC; fi
 - if [[ -z $env_cmake_generator ]]; then export env_cmake_generator="Unix Makefiles"; fi
 - if [[ $env_cmake_generator == "Unix Makefiles" ]]; then export env_cmake_generator_specific="-j2"; fi
+- if [[ $env_cmake_generator == "Unix Makefiles" ]]; then export env_ctest_generator_specific="-j16"; fi
 - if [[ $EMSCRIPTEN ]]; then env_cmake_toolchain="-DCMAKE_TOOLCHAIN_FILE=$EMSCRIPTEN/cmake/Modules/Platform/Emscripten.cmake"; fi
 
 # Display cmake version
@@ -201,11 +218,11 @@ script:
 - mkdir build
 - cd build
 - echo $env_cmake_toolchain
-- cmake -G "$env_cmake_generator" $env_cmake_toolchain -DCMAKE_CXX_COMPILER=$env_cmake_cxx_compiler -DCMAKE_C_COMPILER=$env_cmake_c_compiler -DCMAKE_BUILD_TYPE=$env_cmake_configuration -Dozz_build_cpp11=$env_build_cpp11 -Dozz_build_fbx=$env_build_fbx -Dozz_build_howtos=$env_build_howtos -Dozz_build_samples=$env_build_samples -Dozz_build_simd_ref=$env_build_simd_ref -Dozz_build_tests=$env_build_tests $env_src_root
+- cmake -G "$env_cmake_generator" $env_cmake_toolchain -DCMAKE_CXX_COMPILER=$env_cmake_cxx_compiler -DCMAKE_C_COMPILER=$env_cmake_c_compiler -DCMAKE_BUILD_TYPE=$env_cmake_configuration -Dozz_build_cpp11=$env_build_cpp11 -Dozz_build_fbx=$env_build_fbx -Dozz_build_data=$env_build_data -Dozz_build_howtos=$env_build_howtos -Dozz_build_samples=$env_build_samples -Dozz_build_simd_ref=$env_build_simd_ref -Dozz_build_tests=$env_build_tests $env_src_root
 # Build
 - cmake --build ./ --config $env_cmake_configuration --use-stderr -- $env_cmake_generator_specific
 # Test
-- ctest --build-config $env_cmake_configuration --output-on-failure -- $env_cmake_generator_specific
+- ctest --build-config $env_cmake_configuration --output-on-failure -- $env_ctest_generator_specific
 
 after_success:
 - echo after_success-----------------------------------------------------------

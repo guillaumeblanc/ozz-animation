@@ -355,8 +355,8 @@ TEST(LengthFloat, ozz_simd_math) {
 
 TEST(NormalizeFloat, ozz_simd_math) {
   const SimdFloat4 f = ozz::math::simd_float4::Load(1.f, 2.f, 4.f, 8.f);
-  const SimdFloat4 unit = ozz::math::simd_float4::Load(1.f, 0.f, 0.f, 0.f);
-  const SimdFloat4 zero = ozz::math::simd_float4::Load(0.f, 0.f, 0.f, 0.f);
+  const SimdFloat4 unit = ozz::math::simd_float4::x_axis();
+  const SimdFloat4 zero = ozz::math::simd_float4::zero();
 
   EXPECT_SIMDINT_EQ(ozz::math::IsNormalized2(f), 0, 0, 0, 0);
   const SimdFloat4 norm2 = ozz::math::Normalize2(f);

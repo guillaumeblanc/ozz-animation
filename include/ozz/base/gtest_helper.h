@@ -54,7 +54,9 @@ inline int AbortHook(int, char*, int*) { exit(EXIT_FAILURE); }
     /* During death tests executions:*/                                        \
     /* Disables popping message boxes during crt and stl assertions*/          \
     int old_mode = 0;                                                          \
+    (void)old_mode;                                                            \
     _CRT_REPORT_HOOK old_hook = NULL;                                          \
+    (void)old_hook;                                                            \
     if (testing::internal::GTEST_FLAG(internal_run_death_test).length() > 0) { \
       old_mode = _CrtSetReportMode(_CRT_ASSERT, _CRTDBG_MODE_DEBUG);           \
       old_hook = _CrtSetReportHook(&internal::AbortHook);                      \
@@ -62,7 +64,7 @@ inline int AbortHook(int, char*, int*) { exit(EXIT_FAILURE); }
     EXPECT_DEATH(_statement, _regex);                                          \
     if (testing::internal::GTEST_FLAG(internal_run_death_test).length() > 0) { \
       _CrtSetReportMode(_CRT_ASSERT, old_mode);                                \
-      _CrtSetReportHook(old_hook);                                             \
+      (void)_CrtSetReportHook(old_hook);                                       \
     }                                                                          \
                                                                                \
   } while (void(0), 0)
@@ -88,22 +90,22 @@ inline int AbortHook(int, char*, int*) { exit(EXIT_FAILURE); }
 // Specialises EXPECT_EQ_LOG* for verbose clog output type.
 #define EXPECT_EQ_LOG_LOGV(_expression, _eq, _re) \
   EXPECT_EQ_LOG(_expression, _eq, std::clog,      \
-                ozz::log::Verbose <= ozz::log::GetLevel() ? _re : NULL)
+                ozz::log::kVerbose <= ozz::log::GetLevel() ? _re : NULL)
 
 // Specialises EXPECT_EQ_LOG* for standard clog output type.
 #define EXPECT_EQ_LOG_LOG(_expression, _eq, _re) \
   EXPECT_EQ_LOG(_expression, _eq, std::clog,     \
-                ozz::log::Standard <= ozz::log::GetLevel() ? _re : NULL)
+                ozz::log::kStandard <= ozz::log::GetLevel() ? _re : NULL)
 
 // Specialises EXPECT_EQ_LOG* for standard cout output type.
 #define EXPECT_EQ_LOG_OUT(_expression, _eq, _re) \
   EXPECT_EQ_LOG(_expression, _eq, std::cout,     \
-                ozz::log::Standard <= ozz::log::GetLevel() ? _re : NULL)
+                ozz::log::kStandard <= ozz::log::GetLevel() ? _re : NULL)
 
 // Specialises EXPECT_EQ_LOG* for standard cerr output type.
 #define EXPECT_EQ_LOG_ERR(_expression, _eq, _re) \
   EXPECT_EQ_LOG(_expression, _eq, std::cerr,     \
-                ozz::log::Standard <= ozz::log::GetLevel() ? _re : NULL)
+                ozz::log::kStandard <= ozz::log::GetLevel() ? _re : NULL)
 
 // EXPECT_EQ_LOG* executes _expression while redirecting _output (ex:
 // std::clog) and then expects that the output matched the regular expression
@@ -121,22 +123,22 @@ inline int AbortHook(int, char*, int*) { exit(EXIT_FAILURE); }
 // Specialises EXPECT_LOG* for verbose clog output type.
 #define EXPECT_LOG_LOGV(_expression, _re) \
   EXPECT_LOG(_expression, std::clog,      \
-             ozz::log::Verbose <= ozz::log::GetLevel() ? _re : NULL)
+             ozz::log::kVerbose <= ozz::log::GetLevel() ? _re : NULL)
 
 // Specialises EXPECT_LOG* for standard clog output type.
 #define EXPECT_LOG_LOG(_expression, _re) \
   EXPECT_LOG(_expression, std::clog,     \
-             ozz::log::Standard <= ozz::log::GetLevel() ? _re : NULL)
+             ozz::log::kStandard <= ozz::log::GetLevel() ? _re : NULL)
 
 // Specialises EXPECT_LOG* for standard cout output type.
 #define EXPECT_LOG_OUT(_expression, _re) \
   EXPECT_LOG(_expression, std::cout,     \
-             ozz::log::Standard <= ozz::log::GetLevel() ? _re : NULL)
+             ozz::log::kStandard <= ozz::log::GetLevel() ? _re : NULL)
 
 // Specialises EXPECT_LOG* for standard cerr output type.
 #define EXPECT_LOG_ERR(_expression, _re) \
   EXPECT_LOG(_expression, std::cerr,     \
-             ozz::log::Standard <= ozz::log::GetLevel() ? _re : NULL)
+             ozz::log::kStandard <= ozz::log::GetLevel() ? _re : NULL)
 
 namespace internal {
 class RedirectOuputTester {

@@ -158,13 +158,13 @@ const char* ParsedExecutableUsage();
                                   _default, _required, _fn)
 
 #define OZZ_OPTIONS_DECLARE_VARIABLE(_type, _name, _help, _default, _required) \
-  /* Instantiates a register for an option of type _type with name _name */    \
+  /* Instantiates a registrer for an option of type _type with name _name */   \
   static ozz::options::internal::Registrer<_type> OPTIONS_##_name(             \
       #_name, _help, _default, _required);
-#define OZZ_OPTIONS_DECLARE_VARIABLE_FN(_type, _name, _help, _default,      \
-                                        _required, _fn)                     \
-  /* Instantiates a register for an option of type _type with name _name */ \
-  static ozz::options::internal::Registrer<_type> OPTIONS_##_name(          \
+#define OZZ_OPTIONS_DECLARE_VARIABLE_FN(_type, _name, _help, _default,       \
+                                        _required, _fn)                      \
+  /* Instantiates a registrer for an option of type _type with name _name */ \
+  static ozz::options::internal::Registrer<_type> OPTIONS_##_name(           \
       #_name, _help, _default, _required, _fn);
 
 // Defines option interface.

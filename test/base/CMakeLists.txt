@@ -25,10 +25,12 @@ add_test(NAME test_platform COMMAND test_platform)
 set_target_properties(test_platform PROPERTIES FOLDER "ozz/tests/base")
 
 # ozz_base fuse tests
+set_source_files_properties(${PROJECT_BINARY_DIR}/src_fused/ozz_base.cc PROPERTIES GENERATED 1)
 add_executable(test_fuse_base
   log_tests.cc
   platform_tests.cc
-  ${PROJECT_SOURCE_DIR}/src_fused/ozz_base.cc)
+  ${PROJECT_BINARY_DIR}/src_fused/ozz_base.cc)
+add_dependencies(test_fuse_base BUILD_FUSE_ozz_base)
 target_include_directories(test_fuse_base
   PUBLIC "${PROJECT_SOURCE_DIR}/include")
 target_link_libraries(test_fuse_base

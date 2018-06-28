@@ -4,7 +4,7 @@
 function(fuse_target _target_name)
 
   set(output_file_name "${_target_name}.cc")
-  set(output_file "${PROJECT_SOURCE_DIR}/src_fused/${output_file_name}")
+  set(output_file "${PROJECT_BINARY_DIR}/src_fused/${output_file_name}")
 
   # Get all target sources.
   get_property(target_source_files TARGET ${_target_name} PROPERTY SOURCES)
@@ -19,7 +19,7 @@ function(fuse_target _target_name)
   set_target_properties(BUILD_FUSE_${_target_name} PROPERTIES FOLDER "ozz/fuse")
 
   if (NOT TARGET BUILD_FUSE_ALL)
-    add_custom_target(BUILD_FUSE_ALL ALL})
+    add_custom_target(BUILD_FUSE_ALL ALL)
   endif()
 
   add_dependencies(BUILD_FUSE_ALL BUILD_FUSE_${_target_name})

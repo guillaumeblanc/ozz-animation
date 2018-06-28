@@ -40,8 +40,8 @@
 #include "ozz/animation/runtime/skeleton.h"
 
 using ozz::animation::Animation;
-using ozz::animation::offline::RawAnimation;
 using ozz::animation::offline::AnimationBuilder;
+using ozz::animation::offline::RawAnimation;
 
 TEST(Error, AnimationBuilder) {
   // Instantiates a builder objects with default parameters.
@@ -118,7 +118,7 @@ TEST(Build, AnimationBuilder) {
     raw_animation.tracks[0].translations.push_back(second_key);
 
     // Builds animation
-    EXPECT_TRUE(!builder(raw_animation));
+    EXPECT_FALSE(builder(raw_animation));
   }
 
   {  // Building an Animation with invalid key frame's time fails.
@@ -131,7 +131,7 @@ TEST(Build, AnimationBuilder) {
     raw_animation.tracks[0].translations.push_back(first_key);
 
     // Builds animation
-    EXPECT_TRUE(!builder(raw_animation));
+    EXPECT_FALSE(builder(raw_animation));
   }
 
   {  // Building an Animation with unsorted key frame's time fails.
@@ -146,7 +146,7 @@ TEST(Build, AnimationBuilder) {
     raw_animation.tracks[0].translations.push_back(second_key);
 
     // Builds animation
-    EXPECT_TRUE(!builder(raw_animation));
+    EXPECT_FALSE(builder(raw_animation));
   }
 
   {  // Building an Animation with equal key frame's time fails.
@@ -160,24 +160,25 @@ TEST(Build, AnimationBuilder) {
     raw_animation.tracks[0].translations.push_back(key);
 
     // Builds animation
-    EXPECT_TRUE(!builder(raw_animation));
+    EXPECT_FALSE(builder(raw_animation));
   }
 
   {  // Building a valid Animation with empty tracks succeeds.
     RawAnimation raw_animation;
-    raw_animation.duration = 1.f;
+    raw_animation.duration = 46.f;
     raw_animation.tracks.resize(46);
 
     // Builds animation
     Animation* anim = builder(raw_animation);
     EXPECT_TRUE(anim != NULL);
+    EXPECT_EQ(anim->duration(), 46.f);
     EXPECT_EQ(anim->num_tracks(), 46);
     ozz::memory::default_allocator()->Delete(anim);
   }
 
   {  // Building a valid Animation with 1 track succeeds.
     RawAnimation raw_animation;
-    raw_animation.duration = 1.f;
+    raw_animation.duration = 46.f;
     raw_animation.tracks.resize(1);
 
     RawAnimation::TranslationKey first_key = {0.7f, ozz::math::Float3::zero()};
@@ -186,6 +187,7 @@ TEST(Build, AnimationBuilder) {
     // Builds animation
     Animation* anim = builder(raw_animation);
     EXPECT_TRUE(anim != NULL);
+    EXPECT_EQ(anim->duration(), 46.f);
     EXPECT_EQ(anim->num_tracks(), 1);
     ozz::memory::default_allocator()->Delete(anim);
   }
@@ -250,41 +252,58 @@ TEST(Sort, AnimationBuilder) {
     // 2 - 2  6     9 14 16
     // 3 - 3  7 10 13    15
 
-    RawAnimation::TranslationKey a = {0.f, ozz::math::Float3(1.f, 0.f, 0.f)};
+    RawAnimation::TranslationKey a = {0.f * raw_animation.duration,
+                                      ozz::math::Float3(1.f, 0.f, 0.f)};
     raw_animation.tracks[0].translations.push_back(a);
-    RawAnimation::TranslationKey b = {.4f, ozz::math::Float3(3.f, 0.f, 0.f)};
+    RawAnimation::TranslationKey b = {.4f * raw_animation.duration,
+                                      ozz::math::Float3(3.f, 0.f, 0.f)};
     raw_animation.tracks[0].translations.push_back(b);
 
-    RawAnimation::TranslationKey c = {0.f, ozz::math::Float3(2.f, 0.f, 0.f)};
+    RawAnimation::TranslationKey c = {0.f * raw_animation.duration,
+                                      ozz::math::Float3(2.f, 0.f, 0.f)};
     raw_animation.tracks[1].translations.push_back(c);
-    RawAnimation::TranslationKey d = {0.2f, ozz::math::Float3(6.f, 0.f, 0.f)};
+    RawAnimation::TranslationKey d = {0.2f * raw_animation.duration,
+                                      ozz::math::Float3(6.f, 0.f, 0.f)};
     raw_animation.tracks[1].translations.push_back(d);
-    RawAnimation::TranslationKey e = {0.4f, ozz::math::Float3(8.f, 0.f, 0.f)};
+    RawAnimation::TranslationKey e = {0.4f * raw_animation.duration,
+                                      ozz::math::Float3(8.f, 0.f, 0.f)};
     raw_animation.tracks[1].translations.push_back(e);
 
-    RawAnimation::TranslationKey f = {0.f, ozz::math::Float3(12.f, 0.f, 0.f)};
+    RawAnimation::TranslationKey f = {0.f * raw_animation.duration,
+                                      ozz::math::Float3(12.f, 0.f, 0.f)};
     raw_animation.tracks[2].translations.push_back(f);
-    RawAnimation::TranslationKey g = {.2f, ozz::math::Float3(11.f, 0.f, 0.f)};
+    RawAnimation::TranslationKey g = {.2f * raw_animation.duration,
+                                      ozz::math::Float3(11.f, 0.f, 0.f)};
     raw_animation.tracks[2].translations.push_back(g);
-    RawAnimation::TranslationKey h = {.6f, ozz::math::Float3(9.f, 0.f, 0.f)};
+    RawAnimation::TranslationKey h = {.6f * raw_animation.duration,
+                                      ozz::math::Float3(9.f, 0.f, 0.f)};
     raw_animation.tracks[2].translations.push_back(h);
-    RawAnimation::TranslationKey i = {.8f, ozz::math::Float3(7.f, 0.f, 0.f)};
+    RawAnimation::TranslationKey i = {.8f * raw_animation.duration,
+                                      ozz::math::Float3(7.f, 0.f, 0.f)};
     raw_animation.tracks[2].translations.push_back(i);
-    RawAnimation::TranslationKey j = {1.f, ozz::math::Float3(5.f, 0.f, 0.f)};
+    RawAnimation::TranslationKey j = {1.f * raw_animation.duration,
+                                      ozz::math::Float3(5.f, 0.f, 0.f)};
     raw_animation.tracks[2].translations.push_back(j);
 
-    RawAnimation::TranslationKey k = {0.f, ozz::math::Float3(1.f, 0.f, 0.f)};
+    RawAnimation::TranslationKey k = {0.f * raw_animation.duration,
+                                      ozz::math::Float3(1.f, 0.f, 0.f)};
     raw_animation.tracks[3].translations.push_back(k);
-    RawAnimation::TranslationKey l = {.2f, ozz::math::Float3(2.f, 0.f, 0.f)};
+    RawAnimation::TranslationKey l = {.2f * raw_animation.duration,
+                                      ozz::math::Float3(2.f, 0.f, 0.f)};
     raw_animation.tracks[3].translations.push_back(l);
-    RawAnimation::TranslationKey m = {.4f, ozz::math::Float3(3.f, 0.f, 0.f)};
+    RawAnimation::TranslationKey m = {.4f * raw_animation.duration,
+                                      ozz::math::Float3(3.f, 0.f, 0.f)};
     raw_animation.tracks[3].translations.push_back(m);
-    RawAnimation::TranslationKey n = {.6f, ozz::math::Float3(4.f, 0.f, 0.f)};
+    RawAnimation::TranslationKey n = {.6f * raw_animation.duration,
+                                      ozz::math::Float3(4.f, 0.f, 0.f)};
     raw_animation.tracks[3].translations.push_back(n);
 
     // Builds animation
     Animation* animation = builder(raw_animation);
-    EXPECT_TRUE(animation != NULL);
+    ASSERT_TRUE(animation != NULL);
+
+    // Duration must be maintained.
+    EXPECT_EQ(animation->duration(), raw_animation.duration);
 
     // Needs to sample to test the animation.
     ozz::animation::SamplingJob job;
@@ -297,37 +316,37 @@ TEST(Sort, AnimationBuilder) {
 
     // Samples and compares the two animations
     {  // Samples at t = 0
-      job.time = 0.f;
+      job.ratio = 0.f;
       job.Run();
       EXPECT_SOAFLOAT3_EQ_EST(output[0].translation, 1.f, 2.f, 12.f, 1.f, 0.f,
                               0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
     }
     {  // Samples at t = .2
-      job.time = .2f;
+      job.ratio = .2f;
       job.Run();
       EXPECT_SOAFLOAT3_EQ_EST(output[0].translation, 2.f, 6.f, 11.f, 2.f, 0.f,
                               0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
     }
     {  // Samples at t = .4
-      job.time = .4f;
+      job.ratio = .4f;
       job.Run();
       EXPECT_SOAFLOAT3_EQ_EST(output[0].translation, 3.f, 8.f, 10.f, 3.f, 0.f,
                               0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
     }
     {  // Samples at t = .6
-      job.time = .6f;
+      job.ratio = .6f;
       job.Run();
       EXPECT_SOAFLOAT3_EQ_EST(output[0].translation, 3.f, 8.f, 9.f, 4.f, 0.f,
                               0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
     }
     {  // Samples at t = .8
-      job.time = .8f;
+      job.ratio = .8f;
       job.Run();
       EXPECT_SOAFLOAT3_EQ_EST(output[0].translation, 3.f, 8.f, 7.f, 4.f, 0.f,
                               0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
     }
     {  // Samples at t = 1
-      job.time = 1.f;
+      job.ratio = 1.f;
       job.Run();
       EXPECT_SOAFLOAT3_EQ_EST(output[0].translation, 3.f, 8.f, 5.f, 4.f, 0.f,
                               0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f);

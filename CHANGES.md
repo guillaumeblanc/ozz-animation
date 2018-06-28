@@ -1,3 +1,27 @@
+Release version 0.10.0
+----------------------
+
+* Library
+  - [animation] Adds user-channel feature #4. ozz now offers tracks of float, float2, float3, float4 and quaternion for both raw/offline and runtime. A track can be used to store animated user-data, aka data that aren't joint transformations. Runtime jobs allow to query a track value for any time t (ozz::animation::TrackSamplingJob), or to find all rising and falling edges that happened during a period of time (ozz::animation::TrackTriggeringJob). Utilities allow to optimize a raw track (ozz::animation::offline::TrackOptimizer) and build a runtime track (ozz::animation::offline::TrackOptimizer). fbx2ozz comes with the ability to import tracks from fbx node properties.
+  - [animation] Changed ozz::animation::SamplingJob::time (in interval [0,duration]) to a ratio (in unit interval [0,1]). This is a breaking change, aiming to unify sampling of animations and tracks. To conform with this change, sampling time should simply be divided by animation duration. ozz::sample:AnimationController has been updated accordingly. Offline animations and tools aren't impacted.
+  - [base] Changes non-intrusive serialization mechanism to use a specialize template struct "Extern" instead of function overloading.
+
+* Tools
+  - Merged \*2skel and \*2anim in a single tool (\*2ozz, fbx2ozz for fbx importer) where all options are specified as a json config file. List of options with default values are available in [src/animation/offline/tools/reference.json](src/animation/offline/tools/reference.json) file. Consequently, ozz_animation_offline_skel_tools and ozz_animation_offline_anim_tools are also merged into a single ozz_animation_tools library.
+  - Adds options to import user-channel tracks (from node properties for fbx) using json "animations[].tracks[].properties[]" definition.
+  - Adds an option while importing skeletons to choose scene node types that must be considered as skeleton joints, ie not restricting to scene joints only. This is useful for the baked sample for example, which animates mesh nodes.
+
+* Build pipeline
+  - ozz optionnaly supports c++11 compiler.
+  - Adds ozz_build_data option (OFF by default), to avoid building data on every code change. Building data takes time indeed, and isn't required on every change. It should be turned ON when output format changes to update all data again.
+  - Removes fused source files from the depot. Fused files are generated during build to ${PROJECT_BINARY_DIR}/src_fused/ folder. To generate fused source files without building the whole project, then build BUILD_FUSE_ALL target with "cmake --build . --target BUILD_FUSE_ALL" command.
+  - Adds support for Visual Studio 15 2017, drops Visual Studio 11 2012.
+
+* Samples
+  - [user_channel] Adds new user-channel sample, demonstrating usage of user-channel tracks API and import pipeline usage.
+  - [sample_fbx2mesh] Remaps joint indices to the smaller range of skeleton joints that are actually used by the skinning. It's now required to index skeleton matrices using ozz::sample::framework:Mesh::joint_remaps when build skinning matrices.
+  - [multithread] Switched from OpenMP to c++11 std::async API to implement a parallel-for loop over all computation tasks.
+  
 Release version 0.9.1
 ---------------------
 

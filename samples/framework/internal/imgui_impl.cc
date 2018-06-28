@@ -636,7 +636,7 @@ float FindMax(float _value) {
   }
   const float mexp = floor(log10(_value));
   const float mpow = pow(10.f, mexp);
-  return ceil(_value / mpow) * 2.f * mpow;
+  return ceil(_value / mpow) * 1.5f * mpow;
 }
 }  // namespace
 
@@ -1286,7 +1286,6 @@ float ImGuiImpl::Print(const char* _text, const math::RectFloat& _rect,
       if (IsDivisible(*spec.end)) {  // Found a divisible character.
         last_div = spec.end;
       }
-      ++spec.end;
 
       // Is this the last character of the line.
       if (*spec.end == '\n' || spec.end + 1 > spec.begin + chars_per_line) {
@@ -1320,6 +1319,8 @@ float ImGuiImpl::Print(const char* _text, const math::RectFloat& _rect,
         }
 
         spec.end = spec.begin;
+      } else {
+        ++spec.end;
       }
     }
 

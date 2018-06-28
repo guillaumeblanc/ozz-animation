@@ -1,20 +1,21 @@
-cmake_minimum_required (VERSION 3.0)
+cmake_minimum_required (VERSION 3.1)
 
 # Defines the project's name
 project(ozz)
 
 # Current version
 set(OZZ_VERSION_MAJOR 0)
-set(OZZ_VERSION_MINOR 9)
-set(OZZ_VERSION_PATCH 1)
+set(OZZ_VERSION_MINOR 10)
+set(OZZ_VERSION_PATCH 0)
 set(OZZ_VERSION ${OZZ_VERSION_MAJOR}.${OZZ_VERSION_MINOR}.${OZZ_VERSION_PATCH})
 
 # Add project build options
 option(ozz_build_fbx "Build Fbx pipeline (Requires Fbx SDK)" ON)
+option(ozz_build_data "Build data on code change" OFF)
 option(ozz_build_samples "Build samples" ON)
 option(ozz_build_howtos "Build howtos" ON)
 option(ozz_build_tests "Build unit tests" OFF)
-option(ozz_build_simd_ref "Forces SIMD math reference implementation" OFF)
+option(ozz_build_simd_ref "Force SIMD math reference implementation" OFF)
 option(ozz_build_cpp11 "Enable c++11" OFF)
 option(ozz_build_msvc_rt_dll "Select msvc DLL runtime library" ON)
 
@@ -22,6 +23,7 @@ option(ozz_build_msvc_rt_dll "Select msvc DLL runtime library" ON)
 message("-- ---------------------------------------------------------")
 message("-- Selected options:")
 message("-- - ozz_build_fbx: " ${ozz_build_fbx})
+message("-- - ozz_build_data: " ${ozz_build_data})
 message("-- - ozz_build_samples: " ${ozz_build_samples})
 message("-- - ozz_build_howtos: " ${ozz_build_howtos})
 message("-- - ozz_build_tests: " ${ozz_build_tests})

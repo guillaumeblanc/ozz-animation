@@ -161,7 +161,7 @@ class OptimizeSampleApplication : public ozz::sample::Application {
         error_record_(64) {}
 
  protected:
-  // Updates current animation time.
+  // Updates current animation time and skeleton pose.
   virtual bool OnUpdate(float _dt) {
     // Updates current animation time.
     controller_.Update(*animation_rt_, _dt);
@@ -169,7 +169,7 @@ class OptimizeSampleApplication : public ozz::sample::Application {
     // Prepares sampling job.
     ozz::animation::SamplingJob sampling_job;
     sampling_job.cache = cache_;
-    sampling_job.time = controller_.time();
+    sampling_job.ratio = controller_.time_ratio();
 
     // Samples optimized animation (_according to the display mode).
     sampling_job.animation = animation_rt_;
@@ -179,7 +179,9 @@ class OptimizeSampleApplication : public ozz::sample::Application {
     }
 
     // Also samples non-optimized animation, from the raw animation.
-    if (!SampleRawAnimation(raw_animation_, controller_.time(), locals_raw_)) {
+    if (!SampleRawAnimation(raw_animation_,
+                            controller_.time_ratio() * raw_animation_.duration,
+                            locals_raw_)) {
       return false;
     }
 
@@ -257,8 +259,8 @@ class OptimizeSampleApplication : public ozz::sample::Application {
       const ozz::animation::offline::RawAnimation& _animation, float _time,
       ozz::Range<ozz::math::SoaTransform> _locals) {
     // Ensure output is big enough.
-    if (_locals.Count() * 4 < _animation.tracks.size() &&
-        locals_raw_aos_.Count() * 4 < _animation.tracks.size()) {
+    if (_locals.count() * 4 < _animation.tracks.size() &&
+        locals_raw_aos_.count() * 4 < _animation.tracks.size()) {
       return false;
     }
 
@@ -381,7 +383,7 @@ class OptimizeSampleApplication : public ozz::sample::Application {
         bool rebuild = false;
         char label[64];
 
-        rebuild |= _im_gui->DoCheckBox("Enable optimzations", &optimize_);
+        rebuild |= _im_gui->DoCheckBox("Enable optimizations", &optimize_);
 
         std::sprintf(label, "Translation : %0.2f mm",
                      optimizer_.translation_tolerance * 1000);
@@ -432,7 +434,7 @@ class OptimizeSampleApplication : public ozz::sample::Application {
       static bool open_mode = true;
       ozz::sample::ImGui::OpenClose mode(_im_gui, "Display mode", &open_mode);
       if (open_mode) {
-        _im_gui->DoRadioButton(eRuntimeAnimation, "Rutime animation",
+        _im_gui->DoRadioButton(eRuntimeAnimation, "Runtime animation",
                                &selected_display_);
         _im_gui->DoRadioButton(eRawAnimation, "Raw animation",
                                &selected_display_);
@@ -475,20 +477,20 @@ class OptimizeSampleApplication : public ozz::sample::Application {
   bool BuildAnimations() {
     assert(!animation_rt_);
 
-    // Instantiate an aniation builder.
+    // Instantiate an animation builder.
     ozz::animation::offline::AnimationBuilder animation_builder;
 
     // Builds the optimized animation.
     if (optimize_) {
-      // Optimzes the raw animation.
+      // Optimizes the raw animation.
       ozz::animation::offline::RawAnimation optimized_animation;
       if (!optimizer_(raw_animation_, skeleton_, &optimized_animation)) {
         return false;
       }
-      // Builds runtime aniamtion from the optimized one.
+      // Builds runtime animation from the optimized one.
       animation_rt_ = animation_builder(optimized_animation);
     } else {
-      // Builds runtime aniamtion from the brut one.
+      // Builds runtime animation from the brute one.
       animation_rt_ = animation_builder(raw_animation_);
     }
 
@@ -513,7 +515,7 @@ class OptimizeSampleApplication : public ozz::sample::Application {
   };
   int selected_display_;
 
-  // Select whether optimization should be perfomed.
+  // Select whether optimization should be performed.
   bool optimize_;
 
   // Imported non-optimized animation.
@@ -529,7 +531,7 @@ class OptimizeSampleApplication : public ozz::sample::Application {
   // Runtime skeleton.
   ozz::animation::Skeleton skeleton_;
 
-  // Sampling cache, shared accros optimized and non-optimized animations. This
+  // Sampling cache, shared across optimized and non-optimized animations. This
   // is not optimal, but it's not an issue either.
   ozz::animation::SamplingCache* cache_;
 

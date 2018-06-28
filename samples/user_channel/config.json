@@ -1,0 +1,29 @@
+{
+  "skeleton":
+  {
+    "filename":"robot_skeleton.ozz",
+    "import":
+    {
+      "enable":true  // Skeleton needs to be imported/created from the source file.
+    }
+  },
+  "animations":
+  [
+    {
+      "filename":"robot_animation.ozz",
+      "tracks":
+      [
+        {
+          "properties":  // User-channel property track must be imported.
+          [
+            {
+              "joint_name":"thumb2",  // Get the property from this node
+              "property_name":"grasp",  // Name of the custom property
+              "filename":"robot_track_grasp.ozz"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

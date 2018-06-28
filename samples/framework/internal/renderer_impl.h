@@ -96,9 +96,9 @@ class RendererImpl : public Renderer {
   // See Renderer for all the details about the API.
   virtual bool Initialize();
 
-  virtual void DrawAxes(const ozz::math::Float4x4& _transform);
+  virtual bool DrawAxes(const ozz::math::Float4x4& _transform);
 
-  virtual void DrawGrid(int _cell_count, float _cell_size);
+  virtual bool DrawGrid(int _cell_count, float _cell_size);
 
   virtual bool DrawSkeleton(const animation::Skeleton& _skeleton,
                             const ozz::math::Float4x4& _transform,
@@ -116,6 +116,14 @@ class RendererImpl : public Renderer {
   virtual bool DrawBoxShaded(const ozz::math::Box& _box,
                              ozz::Range<const ozz::math::Float4x4> _transforms,
                              Color _color);
+
+  virtual bool DrawSphereIm(float _radius,
+                            const ozz::math::Float4x4& _transform,
+                            const Color _color);
+
+  virtual bool DrawSphereShaded(
+      float _radius, ozz::Range<const ozz::math::Float4x4> _transforms,
+      Color _color);
 
   virtual bool DrawSkinnedMesh(const Mesh& _mesh,
                                const Range<math::Float4x4> _skinning_matrices,
@@ -198,6 +206,7 @@ class RendererImpl : public Renderer {
   GLuint dynamic_index_bo_;
 
   // Volatile memory buffer that can be used within function scope.
+  // Minimum alignment is 16 bytes.
   class ScratchBuffer {
    public:
     ScratchBuffer();

@@ -31,6 +31,7 @@
 
 #include <cassert>
 #include <cstdio>
+#include <limits>
 
 #include "ozz/base/log.h"
 #include "ozz/base/maths/simd_math.h"
@@ -667,6 +668,10 @@ void AmbientShaderInstanced::Bind(GLsizei _models_offset,
   GL(EnableVertexAttribArray(color_attrib));
   GL(VertexAttribPointer(color_attrib, 4, GL_UNSIGNED_BYTE, GL_TRUE,
                          _color_stride, GL_PTR_OFFSET(_color_offset)));
+  if (_color_stride == 0) {
+    GL(VertexAttribDivisorARB(color_attrib,
+                              std::numeric_limits<unsigned int>::max()));
+  }
 
   // Binds mw uniform
   const GLint models_attrib = attrib(3);
@@ -702,6 +707,9 @@ void AmbientShaderInstanced::Bind(GLsizei _models_offset,
 }
 
 void AmbientShaderInstanced::Unbind() {
+  const GLint color_attrib = attrib(2);
+  GL(VertexAttribDivisorARB(color_attrib, 0));
+
   const GLint models_attrib = attrib(3);
   GL(DisableVertexAttribArray(models_attrib + 0));
   GL(DisableVertexAttribArray(models_attrib + 1));

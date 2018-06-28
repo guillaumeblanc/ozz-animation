@@ -34,43 +34,39 @@
 
 namespace ozz {
 namespace io {
-class IArchive;
-class OArchive;
 
 OZZ_IO_TYPE_NOT_VERSIONABLE_T2(class _Ty, class _Allocator,
                                std::vector<_Ty, _Allocator>)
 
 template <class _Ty, class _Allocator>
-void Save(OArchive& _archive, const std::vector<_Ty, _Allocator>* _values,
-          size_t _count) {
-  for (size_t i = 0; i < _count; i++) {
-    const std::vector<_Ty, _Allocator>& vector = _values[i];
-
-    // Get size excluding null terminating character.
-    const uint32_t size = static_cast<uint32_t>(vector.size());
-    _archive << size;
-    if (size > 0) {
-      _archive << ozz::io::MakeArray(&vector[0], size);
+struct Extern<std::vector<_Ty, _Allocator> > {
+  inline static void Save(OArchive& _archive,
+                          const std::vector<_Ty, _Allocator>* _values,
+                          size_t _count) {
+    for (size_t i = 0; i < _count; i++) {
+      const std::vector<_Ty, _Allocator>& vector = _values[i];
+      const uint32_t size = static_cast<uint32_t>(vector.size());
+      _archive << size;
+      if (size > 0) {
+        _archive << ozz::io::MakeArray(&vector[0], size);
+      }
     }
   }
-}
-
-template <class _Ty, class _Allocator>
-void Load(IArchive& _archive, std::vector<_Ty, _Allocator>* _values,
-          size_t _count, uint32_t _version) {
-  (void)_version;
-  for (size_t i = 0; i < _count; i++) {
-    std::vector<_Ty, _Allocator>& vector = _values[i];
-
-    // Get size excluding null terminating character.
-    uint32_t size;
-    _archive >> size;
-    vector.resize(size);
-    if (size > 0) {
-      _archive >> ozz::io::MakeArray(&vector[0], size);
+  inline static void Load(IArchive& _archive,
+                          std::vector<_Ty, _Allocator>* _values, size_t _count,
+                          uint32_t _version) {
+    (void)_version;
+    for (size_t i = 0; i < _count; i++) {
+      std::vector<_Ty, _Allocator>& vector = _values[i];
+      uint32_t size;
+      _archive >> size;
+      vector.resize(size);
+      if (size > 0) {
+        _archive >> ozz::io::MakeArray(&vector[0], size);
+      }
     }
   }
-}
+};
 }  // namespace io
 }  // namespace ozz
 #endif  // OZZ_OZZ_BASE_CONTAINERS_VECTOR_ARCHIVE_H_

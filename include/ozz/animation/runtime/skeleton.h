@@ -87,7 +87,7 @@ class Skeleton {
   ~Skeleton();
 
   // Returns the number of joints of *this skeleton.
-  int num_joints() const { return static_cast<int>(joint_properties_.Count()); }
+  int num_joints() const { return static_cast<int>(joint_properties_.count()); }
 
   // Returns the number of soa elements matching the number of joints of *this
   // skeleton. This value is useful to allocate SoA runtime data structures.

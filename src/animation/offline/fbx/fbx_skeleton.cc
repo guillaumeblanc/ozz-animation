@@ -25,9 +25,7 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#define OZZ_INCLUDE_PRIVATE_HEADER  // Allows to include private headers.
-
-#include "animation/offline/fbx/fbx_skeleton.h"
+#include "ozz/animation/offline/fbx/fbx_skeleton.h"
 
 #include "ozz/animation/offline/raw_skeleton.h"
 
@@ -42,24 +40,68 @@ namespace {
 
 enum RecurseReturn { kError, kSkeletonFound, kNoSkeleton };
 
+bool IsTypeSelected(const OzzImporter::NodeType& _types,
+                    FbxNodeAttribute::EType _node_type) {
+  // Early out to accept any node type
+  if (_types.any) {
+    return true;
+  }
+
+  switch (_node_type) {
+    // Skeleton
+    case FbxNodeAttribute::eSkeleton:
+      return _types.skeleton;
+
+    // Marker
+    case FbxNodeAttribute::eMarker:
+      return _types.marker;
+
+    // Geometry
+    case FbxNodeAttribute::eMesh:
+    case FbxNodeAttribute::eNurbs:
+    case FbxNodeAttribute::ePatch:
+    case FbxNodeAttribute::eNurbsCurve:
+    case FbxNodeAttribute::eTrimNurbsSurface:
+    case FbxNodeAttribute::eBoundary:
+    case FbxNodeAttribute::eNurbsSurface:
+    case FbxNodeAttribute::eShape:
+    case FbxNodeAttribute::eSubDiv:
+    case FbxNodeAttribute::eLine:
+      return _types.geometry;
+
+    // Camera
+    case FbxNodeAttribute::eCameraStereo:
+    case FbxNodeAttribute::eCamera:
+      return _types.camera;
+
+    // Light
+    case FbxNodeAttribute::eLight:
+      return _types.light;
+
+    // Others
+    case FbxNodeAttribute::eUnknown:
+    case FbxNodeAttribute::eNull:
+    case FbxNodeAttribute::eCameraSwitcher:
+    case FbxNodeAttribute::eOpticalReference:
+    case FbxNodeAttribute::eOpticalMarker:
+    case FbxNodeAttribute::eCachedEffect:
+    case FbxNodeAttribute::eLODGroup:
+    default:
+      return false;
+  }
+}
+
 RecurseReturn RecurseNode(FbxNode* _node, FbxSystemConverter* _converter,
+                          const OzzImporter::NodeType& _types,
                           RawSkeleton* _skeleton, RawSkeleton::Joint* _parent,
-                          int _depth) {
+                          FbxAMatrix _parent_global_inv) {
   bool skeleton_found = false;
   RawSkeleton::Joint* this_joint = NULL;
 
-  bool process_node = false;
-
-  // Push this node if it's below a skeleton root (aka has a parent).
-  process_node |= _parent != NULL;
-
-  // Push this node as a new joint if it has a joint compatible attribute.
+  // Process this node as a new joint if it has a joint compatible attribute.
   FbxNodeAttribute* node_attribute = _node->GetNodeAttribute();
-  process_node |= node_attribute && node_attribute->GetAttributeType() ==
-                                        FbxNodeAttribute::eSkeleton;
-
-  // Process node if required.
-  if (process_node) {
+  if (node_attribute &&
+      IsTypeSelected(_types, node_attribute->GetAttributeType())) {
     skeleton_found = true;
 
     RawSkeleton::Joint::Children* sibling = NULL;
@@ -74,30 +116,26 @@ RecurseReturn RecurseNode(FbxNode* _node, FbxSystemConverter* _converter,
     this_joint = &sibling->back();  // Will not be resized inside recursion.
     this_joint->name = _node->GetName();
 
-    // Outputs hierarchy on verbose stream.
-    for (int i = 0; i < _depth; ++i) {
-      ozz::log::LogV() << '.';
-    }
-    ozz::log::LogV() << this_joint->name.c_str() << std::endl;
-
     // Extract bind pose.
-    const FbxAMatrix matrix = _parent ? _node->EvaluateLocalTransform()
-                                      : _node->EvaluateGlobalTransform();
-    if (!_converter->ConvertTransform(matrix, &this_joint->transform)) {
+    const FbxAMatrix node_global = _node->EvaluateGlobalTransform();
+    const FbxAMatrix node_local = _parent_global_inv * node_global;
+
+    if (!_converter->ConvertTransform(node_local, &this_joint->transform)) {
       ozz::log::Err() << "Failed to extract skeleton transform for joint \""
                       << this_joint->name << "\"." << std::endl;
       return kError;
     }
 
-    // One level deeper in the hierarchy.
-    _depth++;
+    // This node is the new parent for further recursions.
+    _parent_global_inv = node_global.Inverse();
+    _parent = this_joint;
   }
 
-  // Iterate node's children.
+  // Iterate node's children, even if this one wasn't processed.
   for (int i = 0; i < _node->GetChildCount(); i++) {
     FbxNode* child = _node->GetChild(i);
-    const RecurseReturn ret =
-        RecurseNode(child, _converter, _skeleton, this_joint, _depth);
+    const RecurseReturn ret = RecurseNode(child, _converter, _types, _skeleton,
+                                          _parent, _parent_global_inv);
     if (ret == kError) {
       return ret;
     }
@@ -108,9 +146,12 @@ RecurseReturn RecurseNode(FbxNode* _node, FbxSystemConverter* _converter,
 }
 }  // namespace
 
-bool ExtractSkeleton(FbxSceneLoader& _loader, RawSkeleton* _skeleton) {
-  RecurseReturn ret = RecurseNode(_loader.scene()->GetRootNode(),
-                                  _loader.converter(), _skeleton, NULL, 0);
+bool ExtractSkeleton(FbxSceneLoader& _loader,
+                     const OzzImporter::NodeType& _types,
+                     RawSkeleton* _skeleton) {
+  RecurseReturn ret =
+      RecurseNode(_loader.scene()->GetRootNode(), _loader.converter(), _types,
+                  _skeleton, NULL, FbxAMatrix());
   if (ret == kNoSkeleton) {
     ozz::log::Err() << "No skeleton found in Fbx scene." << std::endl;
     return false;

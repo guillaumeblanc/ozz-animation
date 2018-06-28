@@ -61,11 +61,11 @@ class Renderer {
 
   // Renders coordinate system axes: X in red, Y in green and W in blue.
   // Axes size is given by _scale argument.
-  virtual void DrawAxes(const ozz::math::Float4x4& _transform) = 0;
+  virtual bool DrawAxes(const ozz::math::Float4x4& _transform) = 0;
 
   // Renders a square grid of _cell_count cells width, where each square cell
   // has a size of _cell_size.
-  virtual void DrawGrid(int _cell_count, float _cell_size) = 0;
+  virtual bool DrawGrid(int _cell_count, float _cell_size) = 0;
 
   // Renders a skeleton in its bind pose posture.
   virtual bool DrawSkeleton(const animation::Skeleton& _skeleton,
@@ -92,6 +92,16 @@ class Renderer {
   virtual bool DrawBoxShaded(const ozz::math::Box& _box,
                              ozz::Range<const ozz::math::Float4x4> _transforms,
                              Color _color) = 0;
+
+  // Renders a sphere at a specified location.
+  virtual bool DrawSphereIm(float _radius,
+                            const ozz::math::Float4x4& _transform,
+                            const Color _color) = 0;
+
+  // Renders shaded spheres at specified locations.
+  virtual bool DrawSphereShaded(
+      float _radius, ozz::Range<const ozz::math::Float4x4> _transforms,
+      Color _color) = 0;
 
   struct Options {
     bool texture;    // Show texture (default checkered texture).

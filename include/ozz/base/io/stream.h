@@ -75,8 +75,14 @@ class Stream {
   virtual size_t Size() const = 0;
 
  protected:
+  Stream() {}
+
   // Required virtual destructor.
   virtual ~Stream() {}
+
+ private:
+  Stream(const Stream&);
+  void operator=(const Stream&);
 };
 
 // Implements Stream of type File.

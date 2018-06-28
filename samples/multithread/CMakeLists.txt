@@ -1,13 +1,17 @@
-# Samples requires OpenGL package.
-find_package(OpenMP)
+# Sample requires C++11 threading
 
-if (NOT OPENMP_FOUND)
+list (FIND CMAKE_CXX_COMPILE_FEATURES "cxx_thread_local" found_index)
+if (${found_index} EQUAL -1)
+  message("Multithread sample discarded because compiler doesn't support C++11.")
   return()
 endif()
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
+# Sample requires thread libraries
+find_package(Threads)
+if (NOT Threads_FOUND)
+  message("Multithread sample discarded because threading libraries aren't available.")
+  return()
+endif()
 
 add_custom_command(
   DEPENDS $<$<BOOL:${ozz_build_fbx}>:BUILD_DATA>
@@ -20,7 +24,8 @@ add_custom_command(
   COMMAND ${CMAKE_COMMAND} -E make_directory media
   COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_LIST_DIR}/README.md" .
   COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/alain_skeleton.ozz" "./media/skeleton.ozz"
-  COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/alain_walk.ozz" "./media/animation.ozz")
+  COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/alain_walk.ozz" "./media/animation.ozz"
+  VERBATIM)
 
 add_executable(sample_multithread
   sample_multithread.cc
@@ -29,15 +34,22 @@ add_executable(sample_multithread
   "${CMAKE_CURRENT_BINARY_DIR}/media/animation.ozz")
 
 target_link_libraries(sample_multithread
-  sample_framework)
+  sample_framework
+  ${CMAKE_THREAD_LIBS_INIT})
+
+# c++11 is required
+set_property(TARGET sample_multithread PROPERTY CXX_STANDARD 11)
+set_property(TARGET sample_multithread PROPERTY CXX_STANDARD_REQUIRED ON)
 
 set_target_properties(sample_multithread
   PROPERTIES FOLDER "samples")
 
 if(EMSCRIPTEN)
+  set_target_properties(sample_multithread PROPERTIES COMPILE_FLAGS "-s USE_PTHREADS=1")
+
   # Resource files are embedded to the output file with emscripten
   set_target_properties(sample_multithread
-    PROPERTIES LINK_FLAGS "--embed-file media --embed-file README.md --memory-init-file 0")
+    PROPERTIES LINK_FLAGS "-s TOTAL_MEMORY=100663296 -s USE_PTHREADS=1 --embed-file media --embed-file README.md --memory-init-file 0")
 
   install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/sample_multithread.html

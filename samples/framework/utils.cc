@@ -37,6 +37,7 @@
 #include "ozz/animation/runtime/animation.h"
 #include "ozz/animation/runtime/local_to_model_job.h"
 #include "ozz/animation/runtime/skeleton.h"
+#include "ozz/animation/runtime/track.h"
 
 #include "ozz/geometry/runtime/skinning_job.h"
 
@@ -51,35 +52,76 @@ namespace ozz {
 namespace sample {
 
 PlaybackController::PlaybackController()
-    : time_(0.f), playback_speed_(1.f), play_(true) {}
+    : time_ratio_(0.f),
+      previous_time_ratio_(0.f),
+      playback_speed_(1.f),
+      play_(true),
+      loop_(true) {}
 
 void PlaybackController::Update(const animation::Animation& _animation,
                                 float _dt) {
-  if (!play_) {
-    return;
+  float new_time = time_ratio_;
+
+  if (play_) {
+    new_time = time_ratio_ + _dt * playback_speed_ / _animation.duration();
   }
-  const float new_time = time_ + _dt * playback_speed_;
-  const float loops = new_time / _animation.duration();
-  time_ = new_time - floorf(loops) * _animation.duration();
+
+  // Must be called even if time doesn't change, in order to update previous
+  // frame time ratio. Uses set_time_ratio function in order to update
+  // previous_time_ an wrap time value in the unit interval (depending on loop
+  // mode).
+  set_time_ratio(new_time);
+}
+
+void PlaybackController::set_time_ratio(float _time) {
+  previous_time_ratio_ = time_ratio_;
+  if (loop_) {
+    // Wraps in the unit interval [0:1], even for negative values (the reason
+    // for using floorf).
+    time_ratio_ = _time - floorf(_time);
+  } else {
+    // Clamps in the unit interval [0:1].
+    time_ratio_ = math::Clamp(0.f, _time, 1.f);
+  }
+}
+
+// Gets animation current time.
+float PlaybackController::time_ratio() const { return time_ratio_; }
+
+// Gets animation time of last update.
+float PlaybackController::previous_time_ratio() const {
+  return previous_time_ratio_;
 }
 
 void PlaybackController::Reset() {
-  time_ = 0.f;
+  previous_time_ratio_ = time_ratio_ = 0.f;
   playback_speed_ = 1.f;
   play_ = true;
 }
 
-void PlaybackController::OnGui(const animation::Animation& _animation,
-                               ImGui* _im_gui, bool _enabled) {
+bool PlaybackController::OnGui(const animation::Animation& _animation,
+                               ImGui* _im_gui, bool _enabled,
+                               bool _allow_set_time) {
+  bool time_changed = false;
+
   if (_im_gui->DoButton(play_ ? "Pause" : "Play", _enabled)) {
     play_ = !play_;
   }
+
+  _im_gui->DoCheckBox("Loop", &loop_, _enabled);
+
   char szLabel[64];
-  std::sprintf(szLabel, "Animation time: %.2f", time_);
-  if (_im_gui->DoSlider(szLabel, 0.f, _animation.duration(), &time_, 1.f,
-                        _enabled)) {
+  std::sprintf(szLabel, "Animation time: %.2f", time_ratio_);
+
+  // Uses a local copy of time_ so that set_time is used to actually apply
+  // changes. Otherwise previous time would be incorrect.
+  float time = this->time_ratio() * _animation.duration();
+  if (_im_gui->DoSlider(szLabel, 0.f, _animation.duration(), &time, 1.f,
+                        _enabled && _allow_set_time)) {
+    set_time_ratio(time / _animation.duration());
     // Pause the time if slider as moved.
     play_ = false;
+    time_changed = true;
   }
   std::sprintf(szLabel, "Playback speed: %.2f", playback_speed_);
   _im_gui->DoSlider(szLabel, -5.f, 5.f, &playback_speed_, 1.f, _enabled);
@@ -89,6 +131,7 @@ void PlaybackController::OnGui(const animation::Animation& _animation,
                         playback_speed_ != 1.f && _enabled)) {
     playback_speed_ = 1.f;
   }
+  return time_changed;
 }
 
 // Uses LocalToModelJob to compute skeleton model space posture, then forwards
@@ -210,6 +253,28 @@ bool LoadAnimation(const char* _filename,
   return true;
 }
 
+bool LoadTrack(const char* _filename, ozz::animation::FloatTrack* _track) {
+  assert(_filename && _track);
+  ozz::log::Out() << "Loading track archive: " << _filename << "." << std::endl;
+  ozz::io::File file(_filename, "rb");
+  if (!file.opened()) {
+    ozz::log::Err() << "Failed to open track file " << _filename << "."
+                    << std::endl;
+    return false;
+  }
+  ozz::io::IArchive archive(&file);
+  if (!archive.TestTag<ozz::animation::FloatTrack>()) {
+    ozz::log::Err() << "Failed to load float track instance from file "
+                    << _filename << "." << std::endl;
+    return false;
+  }
+
+  // Once the tag is validated, reading cannot fail.
+  archive >> *_track;
+
+  return true;
+}
+
 bool LoadMesh(const char* _filename, ozz::sample::Mesh* _mesh) {
   assert(_filename && _mesh);
   ozz::log::Out() << "Loading mesh archive: " << _filename << "." << std::endl;
@@ -228,6 +293,27 @@ bool LoadMesh(const char* _filename, ozz::sample::Mesh* _mesh) {
 
   // Once the tag is validated, reading cannot fail.
   archive >> *_mesh;
+
+  return true;
+}
+
+bool LoadMeshes(const char* _filename,
+                ozz::Vector<ozz::sample::Mesh>::Std* _meshes) {
+  assert(_filename && _meshes);
+  ozz::log::Out() << "Loading meshes archive: " << _filename << "."
+                  << std::endl;
+  ozz::io::File file(_filename, "rb");
+  if (!file.opened()) {
+    ozz::log::Err() << "Failed to open mesh file " << _filename << "."
+                    << std::endl;
+    return false;
+  }
+  ozz::io::IArchive archive(&file);
+
+  while (archive.TestTag<ozz::sample::Mesh>()) {
+    _meshes->resize(_meshes->size() + 1);
+    archive >> _meshes->back();
+  }
 
   return true;
 }

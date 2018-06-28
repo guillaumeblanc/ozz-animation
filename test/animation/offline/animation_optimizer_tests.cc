@@ -204,7 +204,7 @@ TEST(Optimize, AnimationOptimizer) {
     EXPECT_FLOAT_EQ(translations[4].time, .75f);    // Track 0 at .75f.
     EXPECT_FLOAT_EQ(translations[5].time, .875f);   // Track 0 at .875f.
     EXPECT_FLOAT_EQ(translations[6].time, .9999f);  // Track 0 ~end.
-    EXPECT_FLOAT_EQ(translations[7].time, 1.f);     // Track 0 end.*/
+    EXPECT_FLOAT_EQ(translations[7].time, 1.f);     // Track 0 end.
 
     const RawAnimation::JointTrack::Rotations& rotations =
         output.tracks[0].rotations;

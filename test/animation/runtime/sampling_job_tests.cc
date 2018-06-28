@@ -39,10 +39,10 @@
 #include "ozz/animation/offline/raw_animation.h"
 
 using ozz::animation::Animation;
-using ozz::animation::SamplingJob;
 using ozz::animation::SamplingCache;
-using ozz::animation::offline::RawAnimation;
+using ozz::animation::SamplingJob;
 using ozz::animation::offline::AnimationBuilder;
+using ozz::animation::offline::RawAnimation;
 
 // clang-format off
 
@@ -122,7 +122,7 @@ TEST(JobValidity, SamplingJob) {
   {  // Invalid job with smaller output.
     ozz::math::SoaTransform output[1];
     SamplingJob job;
-    job.time = 2155.f;  // Any time can be set.
+    job.ratio = 2155.f;  // Any time ratio can be set, it's clamped in unit interval.
     job.animation = animation;
     job.cache = &cache;
     job.output.begin = output;
@@ -134,7 +134,7 @@ TEST(JobValidity, SamplingJob) {
   {  // Valid job.
     ozz::math::SoaTransform output[1];
     SamplingJob job;
-    job.time = 2155.f;  // Any time can be set.
+    job.ratio = 2155.f;  // Any time can be set.
     job.animation = animation;
     job.cache = &cache;
     job.output.begin = output;
@@ -147,7 +147,7 @@ TEST(JobValidity, SamplingJob) {
     SamplingCache big_cache(2);
     ozz::math::SoaTransform output[1];
     SamplingJob job;
-    job.time = 2155.f;  // Any time can be set.
+    job.ratio = 2155.f;  // Any time can be set.
     job.animation = animation;
     job.cache = &big_cache;
     job.output.begin = output;
@@ -159,7 +159,7 @@ TEST(JobValidity, SamplingJob) {
   {  // Valid job with bigger output.
     ozz::math::SoaTransform output[2];
     SamplingJob job;
-    job.time = 2155.f;  // Any time can be set.
+    job.ratio = 2155.f;  // Any time can be set.
     job.animation = animation;
     job.cache = &cache;
     job.output.begin = output;
@@ -248,20 +248,20 @@ TEST(Sampling, SamplingJob) {
   raw_animation.tracks[3].translations.push_back(h);
 
   // Builds animation
-  ozz::animation::Animation* anim = builder(raw_animation);
-  ASSERT_TRUE(anim != NULL);
+  ozz::animation::Animation* animation = builder(raw_animation);
+  ASSERT_TRUE(animation != NULL);
 
   ozz::math::SoaTransform output[1];
 
   SamplingJob job;
-  job.animation = anim;
+  job.animation = animation;
   job.cache = &cache;
   job.output.begin = output;
   job.output.end = output + 1;
 
   for (size_t i = 0; i < OZZ_ARRAY_SIZE(result); ++i) {
     memset(output, 0xde, sizeof(output));
-    job.time = result[i].sample_time;
+    job.ratio = result[i].sample_time / animation->duration();
     EXPECT_TRUE(job.Validate());
     EXPECT_TRUE(job.Run());
 
@@ -278,12 +278,12 @@ TEST(Sampling, SamplingJob) {
                                              1.f, 1.f, 1.f, 1.f);
   }
 
-  ozz::memory::default_allocator()->Delete(anim);
+  ozz::memory::default_allocator()->Delete(animation);
 }
 
 TEST(SamplingNoTrack, SamplingJob) {
   RawAnimation raw_animation;
-  raw_animation.duration = 1.f;
+  raw_animation.duration = 46.f;
 
   SamplingCache cache(1);
 
@@ -297,7 +297,7 @@ TEST(SamplingNoTrack, SamplingJob) {
   memset(output, 0xde, sizeof(output));
 
   SamplingJob job;
-  job.time = 0.f;
+  job.ratio = 0.f;
   job.animation = animation;
   job.cache = &cache;
   job.output.begin = output;
@@ -313,7 +313,7 @@ TEST(SamplingNoTrack, SamplingJob) {
 
 TEST(Sampling1Track0Key, SamplingJob) {
   RawAnimation raw_animation;
-  raw_animation.duration = 1.f;
+  raw_animation.duration = 46.f;
   raw_animation.tracks.resize(1);  // Adds a joint.
 
   SamplingCache cache(1);
@@ -330,9 +330,9 @@ TEST(Sampling1Track0Key, SamplingJob) {
   job.output.begin = output;
   job.output.end = output + 1;
 
-  for (float t = -.2f; t < animation->duration() + .2f; t += .1f) {
+  for (float t = -.2f; t < 1.2f; t += .1f) {
     memset(output, 0xde, sizeof(output));
-    job.time = t;
+    job.ratio = t;
     EXPECT_TRUE(job.Validate());
     EXPECT_TRUE(job.Run());
     EXPECT_SOAFLOAT3_EQ_EST(output[0].translation, 0.f, 0.f, 0.f, 0.f,
@@ -352,7 +352,7 @@ TEST(Sampling1Track0Key, SamplingJob) {
 
 TEST(Sampling1Track1Key, SamplingJob) {
   RawAnimation raw_animation;
-  raw_animation.duration = 1.f;
+  raw_animation.duration = 46.f;
   raw_animation.tracks.resize(1);  // Adds a joint.
 
   SamplingCache cache(1);
@@ -373,9 +373,9 @@ TEST(Sampling1Track1Key, SamplingJob) {
   job.output.begin = output;
   job.output.end = output + 1;
 
-  for (float t = -.2f; t < animation->duration() + .2f; t += .1f) {
+  for (float t = -.2f; t < 1.2f; t += .1f) {
     memset(output, 0xde, sizeof(output));
-    job.time = t;
+    job.ratio = t;
     EXPECT_TRUE(job.Validate());
     EXPECT_TRUE(job.Run());
     EXPECT_SOAFLOAT3_EQ_EST(output[0].translation, 1.f, 0.f, 0.f, 0.f,
@@ -395,7 +395,7 @@ TEST(Sampling1Track1Key, SamplingJob) {
 
 TEST(Sampling1Track2Keys, SamplingJob) {
   RawAnimation raw_animation;
-  raw_animation.duration = 1.f;
+  raw_animation.duration = 46.f;
   raw_animation.tracks.resize(1);  // Adds a joint.
 
   SamplingCache cache(1);
@@ -421,7 +421,7 @@ TEST(Sampling1Track2Keys, SamplingJob) {
   job.output.end = output + 1;
 
   // Samples at t = 0.
-  job.time = 0.f;
+  job.ratio = 0.f;
   EXPECT_TRUE(job.Validate());
   EXPECT_TRUE(job.Run());
   EXPECT_SOAFLOAT3_EQ_EST(output[0].translation, 1.f, 0.f, 0.f, 0.f,
@@ -436,7 +436,7 @@ TEST(Sampling1Track2Keys, SamplingJob) {
                                            1.f, 1.f, 1.f, 1.f);
 
   // Samples at t = tkey0.
-  job.time = tkey0.time;
+  job.ratio = tkey0.time / animation->duration();
   EXPECT_TRUE(job.Validate());
   EXPECT_TRUE(job.Run());
   EXPECT_SOAFLOAT3_EQ_EST(output[0].translation, 1.f, 0.f, 0.f, 0.f,
@@ -451,7 +451,7 @@ TEST(Sampling1Track2Keys, SamplingJob) {
                                            1.f, 1.f, 1.f, 1.f);
 
   // Samples at t = tkey1.
-  job.time = tkey1.time;
+  job.ratio = tkey1.time / animation->duration();
   EXPECT_TRUE(job.Validate());
   EXPECT_TRUE(job.Run());
   EXPECT_SOAFLOAT3_EQ_EST(output[0].translation, 2.f, 0.f, 0.f, 0.f,
@@ -465,8 +465,8 @@ TEST(Sampling1Track2Keys, SamplingJob) {
                                            1.f, 1.f, 1.f, 1.f,
                                            1.f, 1.f, 1.f, 1.f);
 
-  // Samples at t = duration.
-  job.time = animation->duration();
+  // Samples at t = end.
+  job.ratio = 1.f;
   EXPECT_TRUE(job.Validate());
   EXPECT_TRUE(job.Run());
   EXPECT_SOAFLOAT3_EQ_EST(output[0].translation, 2.f, 0.f, 0.f, 0.f,
@@ -481,7 +481,7 @@ TEST(Sampling1Track2Keys, SamplingJob) {
                                            1.f, 1.f, 1.f, 1.f);
 
   // Samples at tkey0.time < t < tkey1.time.
-  job.time = (tkey0.time + tkey1.time) / 2.f;
+  job.ratio = (tkey0.time / animation->duration() + tkey1.time / animation->duration()) / 2.f;
   EXPECT_TRUE(job.Validate());
   EXPECT_TRUE(job.Run());
   EXPECT_SOAFLOAT3_EQ_EST(output[0].translation, 1.5f, 0.f, 0.f, 0.f,
@@ -548,7 +548,7 @@ TEST(Sampling4Track2Keys, SamplingJob) {
   job.output.end = output + 1;
 
   // Samples at t = 0.
-  job.time = 0.f;
+  job.ratio = 0.f;
   EXPECT_TRUE(job.Validate());
   EXPECT_TRUE(job.Run());
   EXPECT_SOAFLOAT3_EQ_EST(output[0].translation, 1.f, 0.f, 0.f, -1.f,
@@ -563,7 +563,7 @@ TEST(Sampling4Track2Keys, SamplingJob) {
                                            1.f, 1.f, 0.f, 1.f);
 
   // Samples at t = tkey00.
-  job.time = tkey00.time;
+  job.ratio = tkey00.time / animation->duration();
   EXPECT_TRUE(job.Validate());
   EXPECT_TRUE(job.Run());
   EXPECT_SOAFLOAT3_EQ_EST(output[0].translation, 1.f, 0.f, 0.f, -1.5f,
@@ -577,8 +577,8 @@ TEST(Sampling4Track2Keys, SamplingJob) {
                                             1.f, 1.f, 0.f, 1.f,
                                             1.f, 1.f, 0.f, 1.f);
 
-  // Samples at t = duration.
-  job.time = animation->duration();
+  // Samples at t = end.
+  job.ratio = 1.f;
   EXPECT_TRUE(job.Validate());
   EXPECT_TRUE(job.Run());
   EXPECT_SOAFLOAT3_EQ_EST(output[0].translation, 2.f, 0.f, 0.f, -2.f,
@@ -597,7 +597,7 @@ TEST(Sampling4Track2Keys, SamplingJob) {
 
 TEST(SamplingCache, SamplingJob) {
   RawAnimation raw_animation;
-  raw_animation.duration = 1.f;
+  raw_animation.duration = 46.f;
   raw_animation.tracks.resize(1);  // Adds a joint.
   const RawAnimation::TranslationKey empty_key = {
       0.f, RawAnimation::TranslationKey::identity()};
@@ -630,6 +630,7 @@ TEST(SamplingCache, SamplingJob) {
   SamplingJob job;
   job.animation = animations[0];
   job.cache = &cache;
+  job.ratio = 0.f;
   job.output.begin = output;
   job.output.end = output + 1;
 
