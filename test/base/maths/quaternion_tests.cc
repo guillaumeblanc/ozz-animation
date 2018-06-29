@@ -284,3 +284,35 @@ TEST(Arithmetic, Quaternion) {
   EXPECT_TRUE(IsNormalized(slerp_0_7));
   EXPECT_QUATERNION_EQ(slerp_0_7, .2523113f, .5463429f, 0.f, .798654f);
 }
+
+TEST(TransformVector, Quaternion) {
+  // 0 length
+  EXPECT_FLOAT3_EQ(
+      TransformVector(Quaternion::FromAxisAngle(Float4(Float3::y_axis(), 0.f)),
+                      Float3::zero()),
+      0, 0, 0);
+
+  // Unit length
+  EXPECT_FLOAT3_EQ(
+      TransformVector(Quaternion::FromAxisAngle(Float4(Float3::y_axis(), 0.f)),
+                      Float3::z_axis()),
+      0, 0, 1);
+  EXPECT_FLOAT3_EQ(TransformVector(Quaternion::FromAxisAngle(Float4(
+                                       Float3::y_axis(), ozz::math::kPi_2)),
+                                   Float3::y_axis()),
+                   0, 1, 0);
+  EXPECT_FLOAT3_EQ(TransformVector(Quaternion::FromAxisAngle(Float4(
+                                       Float3::y_axis(), ozz::math::kPi_2)),
+                                   Float3::x_axis()),
+                   0, 0, -1);
+  EXPECT_FLOAT3_EQ(TransformVector(Quaternion::FromAxisAngle(Float4(
+                                       Float3::y_axis(), ozz::math::kPi_2)),
+                                   Float3::z_axis()),
+                   1, 0, 0);
+
+  // Non unit
+  EXPECT_FLOAT3_EQ(TransformVector(Quaternion::FromAxisAngle(Float4(
+                                       Float3::z_axis(), ozz::math::kPi_2)),
+                                   Float3::x_axis() * 2),
+                   0, 2, 0);
+}

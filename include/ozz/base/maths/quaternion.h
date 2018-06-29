@@ -296,6 +296,19 @@ OZZ_INLINE Quaternion SLerp(const Quaternion& _a, const Quaternion& _b,
       ratio_a * _a.x + ratio_b * _b.x, ratio_a * _a.y + ratio_b * _b.y,
       ratio_a * _a.z + ratio_b * _b.z, ratio_a * _a.w + ratio_b * _b.w);
 }
+
+// Computes the transformation of a Quaternion and a vector _v.
+// This is equivalent to carrying out the quaternion multiplications:
+// _q.conjugate() * (*this) * _q
+OZZ_INLINE Float3 TransformVector(const Quaternion& _q, const Float3& _v) {
+  float rw = _q.x * _v.x + _q.y * _v.y + _q.z * _v.z;
+  float rx = _q.w * _v.x + _q.y * _v.z - _q.z * _v.y;
+  float ry = _q.w * _v.y + _q.z * _v.x - _q.x * _v.z;
+  float rz = _q.w * _v.z + _q.x * _v.y - _q.y * _v.x;
+  return Float3(rw * _q.x + rx * _q.w - ry * _q.z + rz * _q.y,
+                rw * _q.y + ry * _q.w - rz * _q.x + rx * _q.z,
+                rw * _q.z + rz * _q.w - rx * _q.y + ry * _q.x);
+}
 }  // namespace math
 }  // namespace ozz
 #endif  // OZZ_OZZ_BASE_MATHS_QUATERNION_H_
