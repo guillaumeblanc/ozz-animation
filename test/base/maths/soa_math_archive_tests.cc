@@ -39,7 +39,7 @@
 
 // clang-format off
 
-TEST(SoaMaths, Archive) {
+TEST(SoaMathArchive, ozz_soa_math) {
   for (int e = 0; e < 2; ++e) {
     ozz::Endianness endianess = e == 0 ? ozz::kBigEndian : ozz::kLittleEndian;
 

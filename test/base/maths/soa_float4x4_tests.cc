@@ -39,7 +39,7 @@ using ozz::math::SoaFloat4;
 
 // clang-format off
 
-TEST(Constant, SoaFloat4x4) {
+TEST(SoaFloat4x4Constant, ozz_soa_math) {
   const SoaFloat4x4 identity = SoaFloat4x4::identity();
   EXPECT_SOAFLOAT4x4_EQ(identity, 1.f, 1.f, 1.f, 1.f,
                                   0.f, 0.f, 0.f, 0.f,
@@ -59,7 +59,7 @@ TEST(Constant, SoaFloat4x4) {
                                   1.f, 1.f, 1.f, 1.f);
 }
 
-TEST(Arithmetic, SoaFloat4x4) {
+TEST(SoaFloat4x4Arithmetic, ozz_soa_math) {
   const SoaFloat4x4 m0 = {{{ozz::math::simd_float4::Load(0.f, 1.f, 0.f, 0.f),
                             ozz::math::simd_float4::Load(1.f, 0.f, -1.f, 0.f),
                             ozz::math::simd_float4::Load(2.f, 0.f, 2.f, -1.f),
@@ -246,7 +246,7 @@ TEST(Arithmetic, SoaFloat4x4) {
                                     1.f, 1.f, 1.f, 1.f);
 }
 
-TEST(Scale, SoaFloat4x4) {
+TEST(SoaFloat4x4Scale, ozz_soa_math) {
   const SoaFloat4x4 m0 = {{{ozz::math::simd_float4::Load(0.f, 1.f, 0.f, 0.f),
                             ozz::math::simd_float4::Load(1.f, 0.f, -1.f, 0.f),
                             ozz::math::simd_float4::Load(2.f, 0.f, 2.f, -1.f),
@@ -323,7 +323,7 @@ TEST(Scale, SoaFloat4x4) {
                                15.f, 1.f, 15.f, 1.f);
 }
 
-TEST(Rotate, SoaFloat4x4) {
+TEST(SoaFloat4x4Rotate, ozz_soa_math) {
 #ifndef NDEBUG
   const SoaQuaternion unormalized = SoaQuaternion::Load(
     ozz::math::simd_float4::Load(0.f, 0.f, 0.f, 0.f),
@@ -374,7 +374,7 @@ TEST(Rotate, SoaFloat4x4) {
                                 1.f, 1.f, 1.f, 1.f);
 }
 
-TEST(Affine, SoaFloat4x4) {
+TEST(SoaFloat4x4Affine, ozz_soa_math) {
   const SoaFloat4x4 identity = SoaFloat4x4::FromAffine(SoaFloat3::zero(),
                                                        SoaQuaternion::identity(),
                                                        SoaFloat3::one());

@@ -38,7 +38,7 @@
 #include "ozz/base/maths/transform.h"
 #include "ozz/base/maths/vec_float.h"
 
-TEST(Maths, Archive) {
+TEST(MathArchive, ozz_math) {
   for (int e = 0; e < 2; ++e) {
     ozz::Endianness endianess = e == 0 ? ozz::kBigEndian : ozz::kLittleEndian;
 

@@ -31,7 +31,7 @@
 
 #include "ozz/base/gtest_helper.h"
 
-TEST(Int, Rect) {
+TEST(RectInt, ozz_math) {
   ozz::math::RectInt rect(10, 20, 30, 40);
 
   EXPECT_EQ(rect.right(), 40);
@@ -46,7 +46,7 @@ TEST(Int, Rect) {
   EXPECT_FALSE(rect.is_inside(39, 60));
 }
 
-TEST(Float, Rect) {
+TEST(RectFloat, ozz_math) {
   ozz::math::RectFloat rect(10.f, 20.f, 30.f, 40.f);
 
   EXPECT_FLOAT_EQ(rect.right(), 40.f);

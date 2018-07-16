@@ -36,11 +36,11 @@ using ozz::math::Float3;
 using ozz::math::Float4;
 using ozz::math::Quaternion;
 
-TEST(Constant, Quaternion) {
+TEST(QuaternionConstant, ozz_math) {
   EXPECT_QUATERNION_EQ(Quaternion::identity(), 0.f, 0.f, 0.f, 1.f);
 }
 
-TEST(AxisAngle, Quaternion) {
+TEST(QuaternionAxisAngle, ozz_math) {
   // Expect assertions from invalid inputs
   EXPECT_ASSERTION(Quaternion::FromAxisAngle(Float4(Float3::zero(), 0.f)),
                    "IsNormalized");
@@ -78,7 +78,7 @@ TEST(AxisAngle, Quaternion) {
       .819865f, .033034f, -.571604f, 1.123f);
 }
 
-TEST(QuaternionEuler, Quaternion) {
+TEST(QuaternionQuaternionEuler, ozz_math) {
   // Identity
   EXPECT_QUATERNION_EQ(Quaternion::FromEuler(Float3(0.f, 0.f, 0.f)), 0.f, 0.f,
                        0.f, 1.f);
@@ -115,7 +115,7 @@ TEST(QuaternionEuler, Quaternion) {
       ozz::math::kPi / 4.f, -ozz::math::kPi / 6.f, ozz::math::kPi_2);
 }
 
-TEST(FromVectors, Quaternion) {
+TEST(QuaternionFromVectors, ozz_math) {
   // pi/2 around y
   EXPECT_QUATERNION_EQ(
       Quaternion::FromVectors(Float3::z_axis(), Float3::x_axis()), 0.f,
@@ -163,7 +163,7 @@ TEST(FromVectors, Quaternion) {
       0.f, -0.707106769f, 0.707106769f, 0);
 }
 
-TEST(Compare, Quaternion) {
+TEST(QuaternionCompare, ozz_math) {
   EXPECT_TRUE(Quaternion::identity() == Quaternion(0.f, 0.f, 0.f, 1.f));
   EXPECT_TRUE(Quaternion::identity() != Quaternion(1.f, 0.f, 0.f, 0.f));
   EXPECT_TRUE(Compare(Quaternion::identity(), Quaternion::identity(), 0.f));
@@ -181,7 +181,7 @@ TEST(Compare, Quaternion) {
               ozz::math::kPi / 200.f));
 }
 
-TEST(Arithmetic, Quaternion) {
+TEST(QuaternionArithmetic, ozz_math) {
   const Quaternion a(.70710677f, 0.f, 0.f, .70710677f);
   const Quaternion b(0.f, .70710677f, 0.f, .70710677f);
   const Quaternion c(0.f, .70710677f, 0.f, -.70710677f);
@@ -285,7 +285,7 @@ TEST(Arithmetic, Quaternion) {
   EXPECT_QUATERNION_EQ(slerp_0_7, .2523113f, .5463429f, 0.f, .798654f);
 }
 
-TEST(TransformVector, Quaternion) {
+TEST(QuaternionTransformVector, ozz_math) {
   // 0 length
   EXPECT_FLOAT3_EQ(
       TransformVector(Quaternion::FromAxisAngle(Float4(Float3::y_axis(), 0.f)),

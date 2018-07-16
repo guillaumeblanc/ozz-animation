@@ -36,7 +36,7 @@ using ozz::math::SoaTransform;
 
 // clang-format off
 
-TEST(SoaTransformConstant, ozz_math) {
+TEST(SoaTransformConstant, ozz_soa_math) {
   EXPECT_SOAFLOAT3_EQ(SoaTransform::identity().translation, 0.f, 0.f, 0.f,
                                                             0.f, 0.f, 0.f,
                                                             0.f, 0.f, 0.f,

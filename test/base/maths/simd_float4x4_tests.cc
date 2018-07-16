@@ -39,7 +39,7 @@ using ozz::math::Float4x4;
 
 // clang-format off
 
-TEST(Constant, Float4x4) {
+TEST(Float4x4Constant, ) {
   const Float4x4 identity = Float4x4::identity();
   EXPECT_FLOAT4x4_EQ(identity, 1.f, 0.f, 0.f, 0.f,
                                0.f, 1.f, 0.f, 0.f,
@@ -47,7 +47,7 @@ TEST(Constant, Float4x4) {
                                0.f, 0.f, 0.f, 1.f);
 }
 
-TEST(Arithmetic, Float4x4) {
+TEST(Float4x4Arithmetic, ozz_simd_math) {
   const Float4x4 m0 = {{ozz::math::simd_float4::Load(0.f, 1.f, 2.f, 3.f),
                         ozz::math::simd_float4::Load(4.f, 5.f, 6.f, 7.f),
                         ozz::math::simd_float4::Load(8.f, 9.f, 10.f, 11.f),
@@ -116,7 +116,7 @@ TEST(Arithmetic, Float4x4) {
 }
 
 
-TEST(Normal, Float4x4) {
+TEST(Float4x4Normal, ozz_simd_math) {
   const Float4x4 not_orthogonal = {{ozz::math::simd_float4::Load(1.f, 0.f, 0.f, 0.f),
                                     ozz::math::simd_float4::Load(1.f, 0.f, 0.f, 0.f),
                                     ozz::math::simd_float4::Load(0.f, 0.f, 1.f, 0.f),
@@ -133,7 +133,7 @@ TEST(Normal, Float4x4) {
     Float4x4::Translation(ozz::math::simd_float4::Load(46.f, 0.f, 0.f, 1.f)))));
 }
 
-TEST(Orthogonal, Float4x4) {
+TEST(Float4x4Orthogonal, ozz_simd_math) {
   const Float4x4 zero = {{ozz::math::simd_float4::Load(0.f, 0.f, 0.f, 0.f),
                           ozz::math::simd_float4::Load(0.f, 1.f, 0.f, 0.f),
                           ozz::math::simd_float4::Load(0.f, 0.f, 1.f, 0.f),
@@ -175,7 +175,7 @@ TEST(Orthogonal, Float4x4) {
     Float4x4::FromAxisAngle(ozz::math::simd_float4::Load(1.f, 0.f, 0.f, 1.24f)))));
 }
 
-TEST(Translate, Float4x4) {
+TEST(Float4x4Translate, ozz_simd_math) {
   const SimdFloat4 v = ozz::math::simd_float4::Load(-1.f, 1.f, 2.f, 3.f);
   const Float4x4 m0 = {{ozz::math::simd_float4::Load(0.f, 1.f, 2.f, 3.f),
                         ozz::math::simd_float4::Load(4.f, 5.f, 6.f, 7.f),
@@ -201,7 +201,7 @@ TEST(Translate, Float4x4) {
                                 32.f, 35.f, 38.f, 41.f);
 }
 
-TEST(Scale, Float4x4) {
+TEST(Float4x4Scale, ozz_simd_math) {
   const SimdFloat4 v = ozz::math::simd_float4::Load(-1.f, 1.f, 2.f, 3.f);
   const Float4x4 m0 = {{ozz::math::simd_float4::Load(0.f, 1.f, 2.f, 3.f),
                         ozz::math::simd_float4::Load(4.f, 5.f, 6.f, 7.f),
@@ -227,7 +227,7 @@ TEST(Scale, Float4x4) {
                             12.f, 13.f, 14.f, 15.f);
 }
 
-TEST(ColumnMultiply, Float4x4) {
+TEST(Float4x4ColumnMultiply, ozz_simd_math) {
   const SimdFloat4 v = ozz::math::simd_float4::Load(-1.f, -2.f, -3.f, -4.f);
   const Float4x4 m0 = {{ozz::math::simd_float4::Load(0.f, 1.f, 2.f, 3.f),
                         ozz::math::simd_float4::Load(4.f, 5.f, 6.f, 7.f),
@@ -241,7 +241,7 @@ TEST(ColumnMultiply, Float4x4) {
                                       -12.f, -26.f, -42.f, -60.f);
 }
 
-TEST(Rotate, Float4x4) {
+TEST(Float4x4Rotate, ozz_simd_math) {
   const Float4x4 euler_identity = Float4x4::FromEuler(ozz::math::simd_float4::Load(0.f, 0.f, 0.f, 0.f));
   EXPECT_FLOAT4x4_EQ(euler_identity, 1.f, 0.f, 0.f, 0.f,
                                      0.f, 1.f, 0.f, 0.f,
@@ -287,7 +287,7 @@ TEST(Rotate, Float4x4) {
   EXPECT_TRUE(ozz::math::AreAllTrue1(IsOrthogonal(axis_angle)));
 }
 
-TEST(Affine, Float4x4) {
+TEST(Float4x4Affine, ozz_simd_math) {
   EXPECT_ASSERTION(Float4x4::FromAffine(ozz::math::simd_float4::Load(0.f, 0.f, 0.f, 0.f),
                                         ozz::math::simd_float4::Load(0.f, 1.f, 0.f, 1.f),
                                         ozz::math::simd_float4::Load(1.f, 1.f, 1.f, 1.f)), "IsNormalized");
@@ -321,7 +321,7 @@ TEST(Affine, Float4x4) {
   EXPECT_FALSE(ozz::math::AreAllTrue1(IsOrthogonal(affine_reflexion)));
 }
 
-TEST(ToQuaternion, Float4x4) {
+TEST(Float4x4ToQuaternion, ozz_simd_math) {
 #ifndef NDEBUG
   const Float4x4 not_normalized = {{ozz::math::simd_float4::Load(1.1f, 0.f, 0.f, 0.f),
                                     ozz::math::simd_float4::Load(0.f, 1.f, 0.f, 0.f),
@@ -366,7 +366,7 @@ TEST(ToQuaternion, Float4x4) {
     -.6172133f, -.1543033f, 0.f, .7715167f);
 }
 
-TEST(ToAffine, Float4x4) {
+TEST(Float4x4ToAffine, ozz_simd_math) {
   SimdFloat4 translate = ozz::math::simd_float4::zero();
   SimdFloat4 rotate = ozz::math::simd_float4::zero();
   SimdFloat4 scale = ozz::math::simd_float4::zero();

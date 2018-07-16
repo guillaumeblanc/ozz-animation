@@ -38,14 +38,14 @@ using ozz::math::SoaFloat3;
 
 // clang-format off
 
-TEST(QuaternionConstant, ozz_math) {
+TEST(SoaQuaternionConstant, ozz_soa_math) {
   EXPECT_SOAQUATERNION_EQ(SoaQuaternion::identity(), 0.f, 0.f, 0.f, 0.f,
                                                      0.f, 0.f, 0.f, 0.f,
                                                      0.f, 0.f, 0.f, 0.f,
                                                      1.f, 1.f, 1.f, 1.f);
 }
 
-TEST(QuaternionArithmetic, ozz_math) {
+TEST(SoaQuaternionArithmetic, ozz_soa_math) {
   const SoaQuaternion a = SoaQuaternion::Load(
     ozz::math::simd_float4::Load(.70710677f, 0.f, 0.f, .382683432f),
     ozz::math::simd_float4::Load(0.f, 0.f, .70710677f, 0.f),

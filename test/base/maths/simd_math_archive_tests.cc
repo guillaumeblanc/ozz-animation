@@ -36,7 +36,7 @@
 
 // clang-format off
 
-TEST(SimdMaths, Archive) {
+TEST(SimdMathArchive, ozz_simd_math) {
   for (int e = 0; e < 2; ++e) {
     ozz::Endianness endianess = e == 0 ? ozz::kBigEndian : ozz::kLittleEndian;
 

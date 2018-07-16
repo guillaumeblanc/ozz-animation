@@ -39,7 +39,7 @@ using ozz::math::SoaFloat4;
 
 // clang-format off
 
-TEST(Load4, SoaFloat) {
+TEST(SoaFloatLoad4, ozz_soa_math) {
   EXPECT_SOAFLOAT4_EQ(SoaFloat4::Load(ozz::math::simd_float4::Load(0.f, 1.f, 2.f, 3.f),
                                       ozz::math::simd_float4::Load(4.f, 5.f, 6.f, 7.f),
                                       ozz::math::simd_float4::Load(8.f, 9.f, 10.f, 11.f),
@@ -68,7 +68,7 @@ TEST(Load4, SoaFloat) {
                       12.f, 13.f, 14.f, 15.f);
 }
 
-TEST(Load3, SoaFloat) {
+TEST(SoaFloatLoad3, ozz_soa_math) {
   EXPECT_SOAFLOAT3_EQ(SoaFloat3::Load(ozz::math::simd_float4::Load(0.f, 1.f, 2.f, 3.f),
                                       ozz::math::simd_float4::Load(4.f, 5.f, 6.f, 7.f),
                                       ozz::math::simd_float4::Load(8.f, 9.f, 10.f, 11.f)),
@@ -84,14 +84,14 @@ TEST(Load3, SoaFloat) {
                       8.f, 9.f, 10.f, 11.f);
 }
 
-TEST(Load2, SoaFloat) {
+TEST(SoaFloatLoad2, ozz_soa_math) {
   EXPECT_SOAFLOAT2_EQ(SoaFloat2::Load(ozz::math::simd_float4::Load(0.f, 1.f, 2.f, 3.f),
                                       ozz::math::simd_float4::Load(4.f, 5.f, 6.f, 7.f)),
                       0.f, 1.f, 2.f, 3.f,
                       4.f, 5.f, 6.f, 7.f);
 }
 
-TEST(Constant4, SoaFloat) {
+TEST(SoaFloatConstant4, ozz_soa_math) {
   EXPECT_SOAFLOAT4_EQ(SoaFloat4::zero(), 0.f, 0.f, 0.f, 0.f,
                                          0.f, 0.f, 0.f, 0.f,
                                          0.f, 0.f, 0.f, 0.f,
@@ -118,7 +118,7 @@ TEST(Constant4, SoaFloat) {
                                            1.f, 1.f, 1.f, 1.f);
 }
 
-TEST(Constant3, SoaFloat) {
+TEST(SoaFloatConstant3, ozz_soa_math) {
   EXPECT_SOAFLOAT3_EQ(SoaFloat3::zero(), 0.f, 0.f, 0.f, 0.f,
                                          0.f, 0.f, 0.f, 0.f,
                                          0.f, 0.f, 0.f, 0.f);
@@ -136,7 +136,7 @@ TEST(Constant3, SoaFloat) {
                                            1.f, 1.f, 1.f, 1.f);
 }
 
-TEST(Constant2, SoaFloat) {
+TEST(SoaFloatConstant2, ozz_soa_math) {
   EXPECT_SOAFLOAT2_EQ(SoaFloat2::zero(), 0.f, 0.f, 0.f, 0.f,
                                          0.f, 0.f, 0.f, 0.f);
   EXPECT_SOAFLOAT2_EQ(SoaFloat2::one(), 1.f, 1.f, 1.f, 1.f,
@@ -147,7 +147,7 @@ TEST(Constant2, SoaFloat) {
                                            1.f, 1.f, 1.f, 1.f);
 }
 
-TEST(Arithmetic4, SoaFloat) {
+TEST(SoaFloatArithmetic4, ozz_soa_math) {
   const SoaFloat4 a = {ozz::math::simd_float4::Load(.5f, 1.f, 2.f, 3.f),
                        ozz::math::simd_float4::Load(4.f, 5.f, 6.f, 7.f),
                        ozz::math::simd_float4::Load(8.f, 9.f, 10.f, 11.f),
@@ -269,7 +269,7 @@ TEST(Arithmetic4, SoaFloat) {
                                 0.f, 0.f, 0.f, 0.f);
 }
 
-TEST(Arithmetic3, SoaFloat) {
+TEST(SoaFloatArithmetic3, ozz_soa_math) {
   const SoaFloat3 a = {ozz::math::simd_float4::Load(.5f, 1.f, 2.f, 3.f),
                        ozz::math::simd_float4::Load(4.f, 5.f, 6.f, 7.f),
                        ozz::math::simd_float4::Load(8.f, 9.f, 10.f, 11.f)};
@@ -379,7 +379,7 @@ TEST(Arithmetic3, SoaFloat) {
                                 0.f, 0.f, 0.f, 0.f);
 }
 
-TEST(Arithmetic2, SoaFloat) {
+TEST(SoaFloatArithmetic2, ozz_soa_math) {
   const SoaFloat2 a = {ozz::math::simd_float4::Load(.5f, 1.f, 2.f, 3.f),
                        ozz::math::simd_float4::Load(4.f, 5.f, 6.f, 7.f)};
   const SoaFloat2 b = {ozz::math::simd_float4::Load(-.5f, -1.f, -2.f, -3.f),
@@ -467,7 +467,7 @@ TEST(Arithmetic2, SoaFloat) {
                                 0.f, 0.f, 0.f, 0.f);
 }
 
-TEST(Comparison4, SoaFloat) {
+TEST(SoaFloatComparison4, ozz_soa_math) {
   const SoaFloat4 a = {ozz::math::simd_float4::Load(.5f, 1.f, 2.f, 3.f),
                        ozz::math::simd_float4::Load(1.f, 5.f, 6.f, 7.f),
                        ozz::math::simd_float4::Load(2.f, 9.f, 10.f, 11.f),
@@ -516,7 +516,7 @@ TEST(Comparison4, SoaFloat) {
   EXPECT_SIMDINT_EQ(a != b, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff);
 }
 
-TEST(Comparison3, SoaFloat) {
+TEST(SoaFloatComparison3, ozz_soa_math) {
   const SoaFloat3 a = {ozz::math::simd_float4::Load(.5f, 1.f, 2.f, 3.f),
                        ozz::math::simd_float4::Load(1.f, 5.f, 6.f, 7.f),
                        ozz::math::simd_float4::Load(2.f, 9.f, 10.f, 11.f)};
@@ -558,7 +558,7 @@ TEST(Comparison3, SoaFloat) {
   EXPECT_SIMDINT_EQ(a != b, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff);
 }
 
-TEST(Comparison2, SoaFloat) {
+TEST(SoaFloatComparison2, ozz_soa_math) {
   const SoaFloat2 a = {ozz::math::simd_float4::Load(.5f, 1.f, 2.f, 3.f),
                        ozz::math::simd_float4::Load(1.f, 5.f, 6.f, 7.f)};
   const SoaFloat2 b = {ozz::math::simd_float4::Load(4.f, 3.f, 7.f, 3.f),

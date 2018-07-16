@@ -32,7 +32,7 @@
 #include "ozz/base/gtest_helper.h"
 #include "ozz/base/maths/gtest_math_helper.h"
 
-TEST(Validity, Box) {
+TEST(BoxValidity, ozz_math) {
   EXPECT_FALSE(ozz::math::Box().is_valid());
   EXPECT_FALSE(ozz::math::Box(ozz::math::Float3(0.f, 1.f, 2.f),
                               ozz::math::Float3(0.f, -1.f, 2.f))
@@ -45,7 +45,7 @@ TEST(Validity, Box) {
                   .is_valid());
 }
 
-TEST(Inside, Box) {
+TEST(BoxInside, ozz_math) {
   const ozz::math::Box invalid(ozz::math::Float3(0.f, 1.f, 2.f),
                                ozz::math::Float3(0.f, -1.f, 2.f));
   EXPECT_FALSE(invalid.is_valid());
@@ -62,7 +62,7 @@ TEST(Inside, Box) {
   EXPECT_TRUE(valid.is_inside(ozz::math::Float3(0.f, 0.f, 0.f)));
 }
 
-TEST(Merge, Box) {
+TEST(BoxMerge, ozz_math) {
   const ozz::math::Box invalid1(ozz::math::Float3(0.f, 1.f, 2.f),
                                 ozz::math::Float3(0.f, -1.f, 2.f));
   EXPECT_FALSE(invalid1.is_valid());
@@ -90,7 +90,7 @@ TEST(Merge, Box) {
   EXPECT_FLOAT3_EQ(merge.max, 1.f, 6.f, 3.f);
 }
 
-TEST(Build, Box) {
+TEST(BoxBuild, ozz_math) {
   const struct {
     ozz::math::Float3 value;
     char pad;
