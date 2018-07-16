@@ -61,7 +61,7 @@ struct Quaternion {
 
   // Returns the quaternion that will rotate vector _from into vector _to,
   // around their plan perpendicular axis.The input vectors don't need to be
-  // normalized.
+  // normalized, they must be non null though.
   static OZZ_INLINE Quaternion FromVectors(const Float3& _from,
                                            const Float3& _to);
 
@@ -223,9 +223,12 @@ OZZ_INLINE Float3 ToEuler(const Quaternion& _q) {
 
 OZZ_INLINE Quaternion Quaternion::FromVectors(const Float3& _from,
                                               const Float3& _to) {
-  // http://lolengine.net/blog/2013/09/21/picking-orthogonal-vector-combing-coconuts
+  // http://lolengine.net/blog/2014/02/24/quaternion-from-two-vectors-final
 
   const float norm_from_norm_to = std::sqrt(LengthSqr(_from) * LengthSqr(_to));
+  if(norm_from_norm_to < 1.e-5f) {
+    return Quaternion::identity();
+  }
   const float real_part = norm_from_norm_to + Dot(_from, _to);
   Quaternion quat;
   if (real_part < 1.e-6f * norm_from_norm_to) {
@@ -301,13 +304,16 @@ OZZ_INLINE Quaternion SLerp(const Quaternion& _a, const Quaternion& _b,
 // This is equivalent to carrying out the quaternion multiplications:
 // _q.conjugate() * (*this) * _q
 OZZ_INLINE Float3 TransformVector(const Quaternion& _q, const Float3& _v) {
-  float rw = _q.x * _v.x + _q.y * _v.y + _q.z * _v.z;
-  float rx = _q.w * _v.x + _q.y * _v.z - _q.z * _v.y;
-  float ry = _q.w * _v.y + _q.z * _v.x - _q.x * _v.z;
-  float rz = _q.w * _v.z + _q.x * _v.y - _q.y * _v.x;
-  return Float3(rw * _q.x + rx * _q.w - ry * _q.z + rz * _q.y,
-                rw * _q.y + ry * _q.w - rz * _q.x + rx * _q.z,
-                rw * _q.z + rz * _q.w - rx * _q.y + ry * _q.x);
+  // http://www.neil.dantam.name/note/dantam-quaternion.pdf
+  // _v + 2.f * cross(_q.xyz, cross(_q.xyz, _v) + _q.w * _v);
+  const Float3 a(_q.y * _v.z - _q.z * _v.y + _v.x * _q.w,
+                 _q.z * _v.x - _q.x * _v.z + _v.y * _q.w,
+                 _q.x * _v.y - _q.y * _v.x + _v.z * _q.w);
+  const Float3 b(_q.y * a.z - _q.z * a.y,
+                 _q.z * a.x - _q.x * a.z,
+                 _q.x * a.y - _q.y * a.x);
+  return Float3(_v.x + b.x + b.x, _v.y + b.y + b.y, _v.z + b.z + b.z);
+
 }
 }  // namespace math
 }  // namespace ozz

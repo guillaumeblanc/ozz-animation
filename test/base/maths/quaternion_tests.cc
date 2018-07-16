@@ -116,6 +116,9 @@ TEST(QuaternionQuaternionEuler, ozz_math) {
 }
 
 TEST(QuaternionFromVectors, ozz_math) {
+  // Returns identity for a 0 length vector
+  EXPECT_QUATERNION_EQ(Quaternion::FromVectors(Float3::zero(), Float3::x_axis()), 0.f, 0.f, 0.f, 1.f);
+
   // pi/2 around y
   EXPECT_QUATERNION_EQ(
       Quaternion::FromVectors(Float3::z_axis(), Float3::x_axis()), 0.f,
