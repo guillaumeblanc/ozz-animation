@@ -1661,8 +1661,9 @@ OZZ_INLINE Float4x4 Float4x4::FromEuler(_SimdFloat4 _v) {
   return ret;
 }
 
-OZZ_INLINE Float4x4 Float4x4::FromAxisAngle(_SimdFloat4 _v) {
-  assert(AreAllTrue1(IsNormalizedEst3(_v)));
+OZZ_INLINE Float4x4 Float4x4::FromAxisAngle(_SimdFloat4 _axis,
+                                            _SimdFloat4 _angle) {
+  assert(AreAllTrue1(IsNormalizedEst3(_axis)));
 
   const __m128i zero = _mm_setzero_si128();
   const __m128i ffff = _mm_cmpeq_epi32(zero, zero);
@@ -1671,19 +1672,18 @@ OZZ_INLINE Float4x4 Float4x4::FromAxisAngle(_SimdFloat4 _v) {
   const __m128 one = _mm_castsi128_ps(ione);
   const __m128 w_axis = _mm_castsi128_ps(_mm_slli_si128(ione, 12));
 
-  const __m128 angle = SplatW(_v);
-  const __m128 sin = SplatX(SinX(angle));
-  const __m128 cos = SplatX(CosX(angle));
+  const __m128 sin = SplatX(SinX(_angle));
+  const __m128 cos = SplatX(CosX(_angle));
   const __m128 one_minus_cos = _mm_sub_ps(one, cos);
 
   const __m128 v0 =
       _mm_mul_ps(_mm_mul_ps(one_minus_cos,
-                            _mm_shuffle_ps(_v, _v, _MM_SHUFFLE(3, 0, 2, 1))),
-                 _mm_shuffle_ps(_v, _v, _MM_SHUFFLE(3, 1, 0, 2)));
+                            OZZ_SHUFFLE_PS1(_axis, _MM_SHUFFLE(3, 0, 2, 1))),
+                 OZZ_SHUFFLE_PS1(_axis, _MM_SHUFFLE(3, 1, 0, 2)));
   const __m128 r0 =
-      _mm_add_ps(_mm_mul_ps(_mm_mul_ps(one_minus_cos, _v), _v), cos);
-  const __m128 r1 = _mm_add_ps(_mm_mul_ps(sin, _v), v0);
-  const __m128 r2 = _mm_sub_ps(v0, _mm_mul_ps(sin, _v));
+      _mm_add_ps(_mm_mul_ps(_mm_mul_ps(one_minus_cos, _axis), _axis), cos);
+  const __m128 r1 = _mm_add_ps(_mm_mul_ps(sin, _axis), v0);
+  const __m128 r2 = _mm_sub_ps(v0, _mm_mul_ps(sin, _axis));
   const __m128 r0fff0 = _mm_and_ps(r0, fff0);
   const __m128 r1r22120 = _mm_shuffle_ps(r1, r2, _MM_SHUFFLE(2, 1, 2, 0));
   const __m128 v1 = _mm_shuffle_ps(r1r22120, r1r22120, _MM_SHUFFLE(0, 3, 2, 1));

@@ -52,7 +52,7 @@ struct Quaternion {
   // representation.
   // Assumes the axis part (x, y, z) of _axis_angle is normalized.
   // _axis_angle.w is the angle in radian.
-  static OZZ_INLINE Quaternion FromAxisAngle(const Float4& _axis_angle);
+  static OZZ_INLINE Quaternion FromAxisAngle(const Float3& _axis, float _angle);
 
   // Returns a normalized quaternion initialized from an Euler representation.
   // Euler angles are ordered Heading, Elevation and Bank, or Yaw, Pitch and
@@ -61,9 +61,14 @@ struct Quaternion {
 
   // Returns the quaternion that will rotate vector _from into vector _to,
   // around their plan perpendicular axis.The input vectors don't need to be
-  // normalized, they must be non null though.
+  // normalized, they can be null as well.
   static OZZ_INLINE Quaternion FromVectors(const Float3& _from,
                                            const Float3& _to);
+
+  // Returns the quaternion that will rotate vector _from into vector _to,
+  // around their plan perpendicular axis. The input vectors must be normalized.
+  static OZZ_INLINE Quaternion FromUnitVectors(const Float3& _from,
+                                               const Float3& _to);
 
   // Returns the identity quaternion.
   static OZZ_INLINE Quaternion identity() {
@@ -150,13 +155,14 @@ OZZ_INLINE Quaternion NormalizeSafe(const Quaternion& _q,
                     _q.w * inv_len);
 }
 
-OZZ_INLINE Quaternion Quaternion::FromAxisAngle(const Float4& _axis_angle) {
-  assert(IsNormalized(Float3(_axis_angle.x, _axis_angle.y, _axis_angle.z)));
-  const float half_angle = _axis_angle.w * .5f;
+OZZ_INLINE Quaternion Quaternion::FromAxisAngle(const Float3& _axis,
+                                                float _angle) {
+  assert(IsNormalized(_axis));
+  const float half_angle = _angle * .5f;
   const float sin_half = std::sin(half_angle);
   const float cos_half = std::cos(half_angle);
-  return Quaternion(_axis_angle.x * sin_half, _axis_angle.y * sin_half,
-                    _axis_angle.z * sin_half, cos_half);
+  return Quaternion(_axis.x * sin_half, _axis.y * sin_half, _axis.z * sin_half,
+                    cos_half);
 }
 
 // Returns to an axis angle representation of quaternion _q.
@@ -226,7 +232,7 @@ OZZ_INLINE Quaternion Quaternion::FromVectors(const Float3& _from,
   // http://lolengine.net/blog/2014/02/24/quaternion-from-two-vectors-final
 
   const float norm_from_norm_to = std::sqrt(LengthSqr(_from) * LengthSqr(_to));
-  if(norm_from_norm_to < 1.e-5f) {
+  if (norm_from_norm_to < 1.e-5f) {
     return Quaternion::identity();
   }
   const float real_part = norm_from_norm_to + Dot(_from, _to);
@@ -243,6 +249,26 @@ OZZ_INLINE Quaternion Quaternion::FromVectors(const Float3& _from,
     quat = Quaternion(cross.x, cross.y, cross.z, real_part);
   }
   return Normalize(quat);
+}
+
+OZZ_INLINE Quaternion Quaternion::FromUnitVectors(const Float3& _from,
+                                                  const Float3& _to) {
+  assert(IsNormalized(_from) && IsNormalized(_to) &&
+         "Input vectors must be normalized.");
+
+  // http://lolengine.net/blog/2014/02/24/quaternion-from-two-vectors-final
+  const float real_part = 1.f + Dot(_from, _to);
+  if (real_part < 1.e-6f) {
+    // If _from and _to are exactly opposite, rotate 180 degrees around an
+    // arbitrary orthogonal axis.
+    // Normalisation isn't needed, as from is already.
+    return std::abs(_from.x) > std::abs(_from.z)
+               ? Quaternion(-_from.y, _from.x, 0.f, 0.f)
+               : Quaternion(0.f, -_from.z, _from.y, 0.f);
+  } else {
+    const Float3 cross = Cross(_from, _to);
+    return Normalize(Quaternion(cross.x, cross.y, cross.z, real_part));
+  }
 }
 
 // Returns the linear interpolation of quaternion _a and _b with coefficient
@@ -309,11 +335,9 @@ OZZ_INLINE Float3 TransformVector(const Quaternion& _q, const Float3& _v) {
   const Float3 a(_q.y * _v.z - _q.z * _v.y + _v.x * _q.w,
                  _q.z * _v.x - _q.x * _v.z + _v.y * _q.w,
                  _q.x * _v.y - _q.y * _v.x + _v.z * _q.w);
-  const Float3 b(_q.y * a.z - _q.z * a.y,
-                 _q.z * a.x - _q.x * a.z,
+  const Float3 b(_q.y * a.z - _q.z * a.y, _q.z * a.x - _q.x * a.z,
                  _q.x * a.y - _q.y * a.x);
   return Float3(_v.x + b.x + b.x, _v.y + b.y + b.y, _v.z + b.z + b.z);
-
 }
 }  // namespace math
 }  // namespace ozz

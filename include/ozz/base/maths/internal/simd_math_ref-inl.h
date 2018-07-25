@@ -1772,23 +1772,24 @@ OZZ_INLINE Float4x4 Float4x4::FromEuler(_SimdFloat4 _v) {
   return ret;
 }
 
-OZZ_INLINE Float4x4 Float4x4::FromAxisAngle(_SimdFloat4 _v) {
-  assert(AreAllTrue1(IsNormalizedEst3(_v)));
+OZZ_INLINE Float4x4 Float4x4::FromAxisAngle(_SimdFloat4 _axis,
+                                            _SimdFloat4 _angle) {
+  assert(AreAllTrue1(IsNormalizedEst3(_axis)));
 
-  const float cos = std::cos(_v.w);
-  const float sin = std::sin(_v.w);
+  const float cos = std::cos(_angle.x);
+  const float sin = std::sin(_angle.x);
   const float t = 1.f - cos;
 
-  const float a = _v.x * _v.y * t;
-  const float b = _v.z * sin;
-  const float c = _v.x * _v.z * t;
-  const float d = _v.y * sin;
-  const float e = _v.y * _v.z * t;
-  const float f = _v.x * sin;
+  const float a = _axis.x * _axis.y * t;
+  const float b = _axis.z * sin;
+  const float c = _axis.x * _axis.z * t;
+  const float d = _axis.y * sin;
+  const float e = _axis.y * _axis.z * t;
+  const float f = _axis.x * sin;
 
-  const Float4x4 ret = {{{cos + _v.x * _v.x * t, a + b, c - d, 0.f},
-                         {a - b, cos + _v.y * _v.y * t, e + f, 0.f},
-                         {c + d, e - f, cos + _v.z * _v.z * t, 0.f},
+  const Float4x4 ret = {{{cos + _axis.x * _axis.x * t, a + b, c - d, 0.f},
+                         {a - b, cos + _axis.y * _axis.y * t, e + f, 0.f},
+                         {c + d, e - f, cos + _axis.z * _axis.z * t, 0.f},
                          {0.f, 0.f, 0.f, 1.f}}};
   return ret;
 }

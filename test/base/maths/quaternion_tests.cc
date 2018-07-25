@@ -42,36 +42,30 @@ TEST(QuaternionConstant, ozz_math) {
 
 TEST(QuaternionAxisAngle, ozz_math) {
   // Expect assertions from invalid inputs
-  EXPECT_ASSERTION(Quaternion::FromAxisAngle(Float4(Float3::zero(), 0.f)),
+  EXPECT_ASSERTION(Quaternion::FromAxisAngle(Float3::zero(), 0.f),
                    "IsNormalized");
   EXPECT_ASSERTION(ToAxisAngle(Quaternion(0.f, 0.f, 0.f, 2.f)), "IsNormalized");
 
   // Identity
-  EXPECT_QUATERNION_EQ(Quaternion::FromAxisAngle(Float4(Float3::y_axis(), 0.f)),
-                       0.f, 0.f, 0.f, 1.f);
+  EXPECT_QUATERNION_EQ(Quaternion::FromAxisAngle(Float3::y_axis(), 0.f), 0.f,
+                       0.f, 0.f, 1.f);
   EXPECT_FLOAT4_EQ(ToAxisAngle(Quaternion::identity()), 1.f, 0.f, 0.f, 0.f);
 
   // Other axis angles
   EXPECT_QUATERNION_EQ(
-      Quaternion::FromAxisAngle(Float4(Float3::y_axis(), ozz::math::kPi_2)),
-      0.f, .70710677f, 0.f, .70710677f);
+      Quaternion::FromAxisAngle(Float3::y_axis(), ozz::math::kPi_2), 0.f,
+      .70710677f, 0.f, .70710677f);
   EXPECT_FLOAT4_EQ(ToAxisAngle(Quaternion(0.f, .70710677f, 0.f, .70710677f)),
                    0.f, 1.f, 0.f, ozz::math::kPi_2);
 
   EXPECT_QUATERNION_EQ(
-      Quaternion::FromAxisAngle(Float4(Float3::y_axis(), -ozz::math::kPi_2)),
-      0.f, -.70710677f, 0.f, .70710677f);
+      Quaternion::FromAxisAngle(Float3::y_axis(), -ozz::math::kPi_2), 0.f,
+      -.70710677f, 0.f, .70710677f);
   EXPECT_FLOAT4_EQ(ToAxisAngle(Quaternion(0.f, -.70710677f, 0.f, .70710677f)),
                    0.f, -1.f, 0.f, ozz::math::kPi_2);
 
   EXPECT_QUATERNION_EQ(
-      Quaternion::FromAxisAngle(Float4(Float3::y_axis(), -ozz::math::kPi_2)),
-      0.f, -.70710677f, 0.f, .70710677f);
-  EXPECT_FLOAT4_EQ(ToAxisAngle(Quaternion(0.f, -.70710677f, 0.f, .70710677f)),
-                   0.f, -1.f, 0.f, ozz::math::kPi_2);
-
-  EXPECT_QUATERNION_EQ(
-      Quaternion::FromAxisAngle(Float4(.819865f, .033034f, -.571604f, 1.123f)),
+      Quaternion::FromAxisAngle(Float3(.819865f, .033034f, -.571604f), 1.123f),
       .4365425f, .017589169f, -.30435428f, .84645736f);
   EXPECT_FLOAT4_EQ(
       ToAxisAngle(Quaternion(.4365425f, .017589169f, -.30435428f, .84645736f)),
@@ -117,11 +111,18 @@ TEST(QuaternionQuaternionEuler, ozz_math) {
 
 TEST(QuaternionFromVectors, ozz_math) {
   // Returns identity for a 0 length vector
-  EXPECT_QUATERNION_EQ(Quaternion::FromVectors(Float3::zero(), Float3::x_axis()), 0.f, 0.f, 0.f, 1.f);
+  EXPECT_QUATERNION_EQ(
+      Quaternion::FromVectors(Float3::zero(), Float3::x_axis()), 0.f, 0.f, 0.f,
+      1.f);
 
   // pi/2 around y
   EXPECT_QUATERNION_EQ(
       Quaternion::FromVectors(Float3::z_axis(), Float3::x_axis()), 0.f,
+      0.707106769f, 0.f, 0.707106769f);
+
+  // Non unit pi/2 around y
+  EXPECT_QUATERNION_EQ(
+      Quaternion::FromVectors(Float3::z_axis() * 7.f, Float3::x_axis()), 0.f,
       0.707106769f, 0.f, 0.707106769f);
 
   // Minus pi/2 around y
@@ -134,10 +135,21 @@ TEST(QuaternionFromVectors, ozz_math) {
       Quaternion::FromVectors(Float3::y_axis(), Float3::z_axis()), 0.707106769f,
       0.f, 0.f, 0.707106769f);
 
+  // Non unit pi/2 around x
+  EXPECT_QUATERNION_EQ(
+      Quaternion::FromVectors(Float3::y_axis() * 9.f, Float3::z_axis() * 13.f),
+      0.707106769f, 0.f, 0.f, 0.707106769f);
+
   // pi/2 around z
   EXPECT_QUATERNION_EQ(
       Quaternion::FromVectors(Float3::x_axis(), Float3::y_axis()), 0.f, 0.f,
       0.707106769f, 0.707106769f);
+
+  // pi/2 around z also
+  EXPECT_QUATERNION_EQ(
+      Quaternion::FromVectors(Float3(0.707106769f, 0.707106769f, 0.f),
+                              Float3(-0.707106769f, 0.707106769f, 0.f)),
+      0.f, 0.f, 0.707106769f, 0.707106769f);
 
   // Aligned vectors
   EXPECT_QUATERNION_EQ(
@@ -154,15 +166,108 @@ TEST(QuaternionFromVectors, ozz_math) {
       Quaternion::FromVectors(Float3::x_axis(), -Float3::x_axis()), 0.f, 1.f,
       0.f, 0);
   EXPECT_QUATERNION_EQ(
+      Quaternion::FromVectors(-Float3::x_axis(), Float3::x_axis()), 0.f, -1.f,
+      0.f, 0);
+  EXPECT_QUATERNION_EQ(
       Quaternion::FromVectors(Float3::y_axis(), -Float3::y_axis()), 0.f, 0.f,
       1.f, 0);
   EXPECT_QUATERNION_EQ(
+      Quaternion::FromVectors(-Float3::y_axis(), Float3::y_axis()), 0.f, 0.f,
+      -1.f, 0);
+  EXPECT_QUATERNION_EQ(
       Quaternion::FromVectors(Float3::z_axis(), -Float3::z_axis()), 0.f, -1.f,
       0.f, 0);
+  EXPECT_QUATERNION_EQ(
+      Quaternion::FromVectors(-Float3::z_axis(), Float3::z_axis()), 0.f, 1.f,
+      0.f, 0);
+  EXPECT_QUATERNION_EQ(
+      Quaternion::FromVectors(Float3(0.707106769f, 0.707106769f, 0.f),
+                              -Float3(0.707106769f, 0.707106769f, 0.f)),
+      -0.707106769f, 0.707106769f, 0.f, 0);
+  EXPECT_QUATERNION_EQ(
+      Quaternion::FromVectors(Float3(0.f, 0.707106769f, 0.707106769f),
+                              -Float3(0.f, 0.707106769f, 0.707106769f)),
+      0.f, -0.707106769f, 0.707106769f, 0);
 
   // Non-unit opposed vectors
   EXPECT_QUATERNION_EQ(
       Quaternion::FromVectors(Float3(2.f, 2.f, 2.f), -Float3(2.f, 2.f, 2.f)),
+      0.f, -0.707106769f, 0.707106769f, 0);
+}
+
+TEST(QuaternionFromUnitVectors, ozz_math) {
+  // assert 0 length vectors
+  EXPECT_ASSERTION(
+      Quaternion::FromUnitVectors(Float3::zero(), Float3::x_axis()),
+      "Input vectors must be normalized.");
+  EXPECT_ASSERTION(
+      Quaternion::FromUnitVectors(Float3::x_axis(), Float3::zero()),
+      "Input vectors must be normalized.");
+  // assert non unit vectors
+  EXPECT_ASSERTION(
+      Quaternion::FromUnitVectors(Float3::x_axis() * 2.f, Float3::x_axis()),
+      "Input vectors must be normalized.");
+  EXPECT_ASSERTION(
+      Quaternion::FromUnitVectors(Float3::x_axis(), Float3::x_axis() * .5f),
+      "Input vectors must be normalized.");
+
+  // pi/2 around y
+  EXPECT_QUATERNION_EQ(
+      Quaternion::FromUnitVectors(Float3::z_axis(), Float3::x_axis()), 0.f,
+      0.707106769f, 0.f, 0.707106769f);
+
+  // Minus pi/2 around y
+  EXPECT_QUATERNION_EQ(
+      Quaternion::FromUnitVectors(Float3::x_axis(), Float3::z_axis()), 0.f,
+      -0.707106769f, 0.f, 0.707106769f);
+
+  // pi/2 around x
+  EXPECT_QUATERNION_EQ(
+      Quaternion::FromUnitVectors(Float3::y_axis(), Float3::z_axis()),
+      0.707106769f, 0.f, 0.f, 0.707106769f);
+
+  // pi/2 around z
+  EXPECT_QUATERNION_EQ(
+      Quaternion::FromUnitVectors(Float3::x_axis(), Float3::y_axis()), 0.f, 0.f,
+      0.707106769f, 0.707106769f);
+
+  // pi/2 around z also
+  EXPECT_QUATERNION_EQ(
+      Quaternion::FromUnitVectors(Float3(0.707106769f, 0.707106769f, 0.f),
+                                  Float3(-0.707106769f, 0.707106769f, 0.f)),
+      0.f, 0.f, 0.707106769f, 0.707106769f);
+
+  // Aligned vectors
+  EXPECT_QUATERNION_EQ(
+      Quaternion::FromUnitVectors(Float3::x_axis(), Float3::x_axis()), 0.f, 0.f,
+      0.f, 1.f);
+
+  // Opposed vectors
+  EXPECT_QUATERNION_EQ(
+      Quaternion::FromUnitVectors(Float3::x_axis(), -Float3::x_axis()), 0.f,
+      1.f, 0.f, 0);
+  EXPECT_QUATERNION_EQ(
+      Quaternion::FromUnitVectors(-Float3::x_axis(), Float3::x_axis()), 0.f,
+      -1.f, 0.f, 0);
+  EXPECT_QUATERNION_EQ(
+      Quaternion::FromUnitVectors(Float3::y_axis(), -Float3::y_axis()), 0.f,
+      0.f, 1.f, 0);
+  EXPECT_QUATERNION_EQ(
+      Quaternion::FromUnitVectors(-Float3::y_axis(), Float3::y_axis()), 0.f,
+      0.f, -1.f, 0);
+  EXPECT_QUATERNION_EQ(
+      Quaternion::FromUnitVectors(Float3::z_axis(), -Float3::z_axis()), 0.f,
+      -1.f, 0.f, 0);
+  EXPECT_QUATERNION_EQ(
+      Quaternion::FromUnitVectors(-Float3::z_axis(), Float3::z_axis()), 0.f,
+      1.f, 0.f, 0);
+  EXPECT_QUATERNION_EQ(
+      Quaternion::FromUnitVectors(Float3(0.707106769f, 0.707106769f, 0.f),
+                                  -Float3(0.707106769f, 0.707106769f, 0.f)),
+      -0.707106769f, 0.707106769f, 0.f, 0);
+  EXPECT_QUATERNION_EQ(
+      Quaternion::FromUnitVectors(Float3(0.f, 0.707106769f, 0.707106769f),
+                                  -Float3(0.f, 0.707106769f, 0.707106769f)),
       0.f, -0.707106769f, 0.707106769f, 0);
 }
 
@@ -291,31 +396,31 @@ TEST(QuaternionArithmetic, ozz_math) {
 TEST(QuaternionTransformVector, ozz_math) {
   // 0 length
   EXPECT_FLOAT3_EQ(
-      TransformVector(Quaternion::FromAxisAngle(Float4(Float3::y_axis(), 0.f)),
+      TransformVector(Quaternion::FromAxisAngle(Float3::y_axis(), 0.f),
                       Float3::zero()),
       0, 0, 0);
 
   // Unit length
   EXPECT_FLOAT3_EQ(
-      TransformVector(Quaternion::FromAxisAngle(Float4(Float3::y_axis(), 0.f)),
+      TransformVector(Quaternion::FromAxisAngle(Float3::y_axis(), 0.f),
                       Float3::z_axis()),
       0, 0, 1);
-  EXPECT_FLOAT3_EQ(TransformVector(Quaternion::FromAxisAngle(Float4(
-                                       Float3::y_axis(), ozz::math::kPi_2)),
+  EXPECT_FLOAT3_EQ(TransformVector(Quaternion::FromAxisAngle(Float3::y_axis(),
+                                                             ozz::math::kPi_2),
                                    Float3::y_axis()),
                    0, 1, 0);
-  EXPECT_FLOAT3_EQ(TransformVector(Quaternion::FromAxisAngle(Float4(
-                                       Float3::y_axis(), ozz::math::kPi_2)),
+  EXPECT_FLOAT3_EQ(TransformVector(Quaternion::FromAxisAngle(Float3::y_axis(),
+                                                             ozz::math::kPi_2),
                                    Float3::x_axis()),
                    0, 0, -1);
-  EXPECT_FLOAT3_EQ(TransformVector(Quaternion::FromAxisAngle(Float4(
-                                       Float3::y_axis(), ozz::math::kPi_2)),
+  EXPECT_FLOAT3_EQ(TransformVector(Quaternion::FromAxisAngle(Float3::y_axis(),
+                                                             ozz::math::kPi_2),
                                    Float3::z_axis()),
                    1, 0, 0);
 
   // Non unit
-  EXPECT_FLOAT3_EQ(TransformVector(Quaternion::FromAxisAngle(Float4(
-                                       Float3::z_axis(), ozz::math::kPi_2)),
+  EXPECT_FLOAT3_EQ(TransformVector(Quaternion::FromAxisAngle(Float3::z_axis(),
+                                                             ozz::math::kPi_2),
                                    Float3::x_axis() * 2),
                    0, 2, 0);
 }

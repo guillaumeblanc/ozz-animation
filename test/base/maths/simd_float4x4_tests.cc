@@ -128,7 +128,7 @@ TEST(Float4x4Normal, ozz_simd_math) {
     Float4x4::Scaling(ozz::math::simd_float4::Load(1.f, 46.f, 1.f, 0.f)))));
   EXPECT_TRUE(ozz::math::AreAllTrue3(IsNormalized(Float4x4::identity())));
   EXPECT_TRUE(ozz::math::AreAllTrue3(IsNormalized(
-    Float4x4::FromAxisAngle(ozz::math::simd_float4::Load(1.f, 0.f, 0.f, 1.24f)))));
+    Float4x4::FromAxisAngle(ozz::math::simd_float4::x_axis(), ozz::math::simd_float4::LoadX(1.24f)))));
   EXPECT_TRUE(ozz::math::AreAllTrue3(IsNormalized(
     Float4x4::Translation(ozz::math::simd_float4::Load(46.f, 0.f, 0.f, 1.f)))));
 }
@@ -172,7 +172,7 @@ TEST(Float4x4Orthogonal, ozz_simd_math) {
   EXPECT_TRUE(ozz::math::AreAllTrue1(IsOrthogonal(
     Float4x4::Translation(ozz::math::simd_float4::Load(46.f, 0.f, 0.f, 1.f)))));
   EXPECT_TRUE(ozz::math::AreAllTrue1(IsOrthogonal(
-    Float4x4::FromAxisAngle(ozz::math::simd_float4::Load(1.f, 0.f, 0.f, 1.24f)))));
+    Float4x4::FromAxisAngle(ozz::math::simd_float4::x_axis(), ozz::math::simd_float4::LoadX(1.24f)))));
 }
 
 TEST(Float4x4Translate, ozz_simd_math) {
@@ -271,14 +271,14 @@ TEST(Float4x4Rotate, ozz_simd_math) {
                                  1.f, 0.f, 0.f, 0.f,
                                  0.f, 0.f, 0.f, 1.f);
 
-  EXPECT_ASSERTION(Float4x4::FromAxisAngle(ozz::math::simd_float4::Load(1.f, 1.f, 0.f, 0.f)), "IsNormalized");
-  const Float4x4 axis_angle_identity = Float4x4::FromAxisAngle(ozz::math::simd_float4::Load(0.f, 1.f, 0.f, 0.f));
+  EXPECT_ASSERTION(Float4x4::FromAxisAngle(ozz::math::simd_float4::Load(1.f, 1.f, 0.f, 0.f), ozz::math::simd_float4::zero()), "IsNormalized");
+    const Float4x4 axis_angle_identity = Float4x4::FromAxisAngle(ozz::math::simd_float4::y_axis(), ozz::math::simd_float4::zero());
   EXPECT_FLOAT4x4_EQ(axis_angle_identity, 1.f, 0.f, 0.f, 0.f,
                                           0.f, 1.f, 0.f, 0.f,
                                           0.f, 0.f, 1.f, 0.f,
                                           0.f, 0.f, 0.f, 1.f);
 
-  const Float4x4 axis_angle = Float4x4::FromAxisAngle(ozz::math::simd_float4::Load(0.f, 1.f, 0.f, ozz::math::kPi_2));
+  const Float4x4 axis_angle = Float4x4::FromAxisAngle(ozz::math::simd_float4::y_axis(), ozz::math::simd_float4::LoadX(ozz::math::kPi_2));
   EXPECT_FLOAT4x4_EQ(axis_angle, 0.f, 0.f, -1.f, 0.f,
                                  0.f, 1.f, 0.f, 0.f,
                                  1.f, 0.f, 0.f, 0.f,

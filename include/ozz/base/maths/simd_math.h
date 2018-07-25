@@ -1041,9 +1041,10 @@ struct Float4x4 {
   // Yaw, Pitch and Roll. _v.w is ignored.
   static OZZ_INLINE Float4x4 FromEuler(_SimdFloat4 _v);
 
-  // Returns the rotation matrix built from axis defined by x, y, z and angle w
-  // of _v.
-  static OZZ_INLINE Float4x4 FromAxisAngle(_SimdFloat4 _v);
+  // Returns the rotation matrix built from axis defined by _axis.xyz and
+  // _angle.x
+  static OZZ_INLINE Float4x4 FromAxisAngle(_SimdFloat4 _axis,
+                                           _SimdFloat4 _angle);
 
   // Returns the rotation matrix built from quaternion defined by x, y, z and w
   // components of _v.
