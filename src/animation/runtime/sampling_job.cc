@@ -124,8 +124,8 @@ void UpdateKeys(float _ratio, int _num_soa_tracks, ozz::Range<const _Key> _keys,
   // Iterates while the cache is not updated with left and right keys required
   // for interpolation at time ratio _ratio, for all tracks. Thanks to the
   // keyframe sorting, the loop can end as soon as it finds a key greater that
-  // _ratio. It will mean that all the keys lower than _ratio have been processed,
-  // meaning all cache entries are updated.
+  // _ratio. It will mean that all the keys lower than _ratio have been
+  // processed, meaning all cache entries are updated.
   while (cursor < _keys.end &&
          _keys.begin[_cache[cursor->track * 2 + 1]].ratio <= _ratio) {
     // Flag this soa entry as outdated.
@@ -384,8 +384,8 @@ void Interpolates(float _anim_ratio, int _num_soa_tracks,
     // quaternions were negated during animation build stage (AnimationBuilder).
     _output[i].translation = Lerp(_translations[i].value[0],
                                   _translations[i].value[1], interp_t_ratio);
-    _output[i].rotation =
-        NLerpEst(_rotations[i].value[0], _rotations[i].value[1], interp_r_ratio);
+    _output[i].rotation = NLerpEst(_rotations[i].value[0],
+                                   _rotations[i].value[1], interp_r_ratio);
     _output[i].scale =
         Lerp(_scales[i].value[0], _scales[i].value[1], interp_s_ratio);
   }

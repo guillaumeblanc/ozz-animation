@@ -4,8 +4,9 @@ ik
 * Library
   - [math] Changes all conversion from AxisAngle to use separate arguments for axis and angle. This is more in line with function use cases.
   - [math] Adds quaternions initialization from two vectors.
-  - [simd math] Update simd math functions to prevent unnecessary operations. Some functions now return undefined values for some components, like Dot3 that will return the dot value in x and undefined values for x, y, z. See [simd_math.h](include/ozz/base/maths/simd_math.h) for each function documentation.
-  - [simd math] Implement AVX optimizations (when AVX is enabled at compile time).
+  - [simd math] Updates simd math functions to prevent unnecessary operations. Some functions now return undefined values for some components, like Dot3 that will return the dot value in x and undefined values for x, y, z. See [simd_math.h](include/ozz/base/maths/simd_math.h) for each function documentation.
+  - [simd math] Implements AVX optimizations (when AVX is enabled at compile time).
+  - [simd math] Implements simd quaternions, making it easier to use quaternion with other simd math code.
 
 Release version 0.10.0
 ----------------------

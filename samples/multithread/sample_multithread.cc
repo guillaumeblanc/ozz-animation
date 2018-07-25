@@ -259,7 +259,7 @@ class MultithreadSampleApplication : public ozz::sample::Application {
 
       // Initializes each controller start time to a different value.
       character.controller.set_time_ratio(animation_.duration() * kWidth * c /
-                                    kMaxCharacters);
+                                          kMaxCharacters);
 
       character.locals = allocator->AllocateRange<ozz::math::SoaTransform>(
           skeleton_.num_soa_joints());

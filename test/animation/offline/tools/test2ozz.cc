@@ -85,9 +85,12 @@ class TestConverter : public ozz::animation::offline::OzzImporter {
       }
 
       file_->Seek(0, ozz::io::File::kSet);
-      const char good_content_not_unique[] = "good content but not unique joint names";
-      if (file_->Read(buffer, sizeof(buffer)) >= sizeof(good_content_not_unique) - 1 &&
-          memcmp(buffer, good_content_not_unique, sizeof(good_content_not_unique) - 1) == 0) {
+      const char good_content_not_unique[] =
+          "good content but not unique joint names";
+      if (file_->Read(buffer, sizeof(buffer)) >=
+              sizeof(good_content_not_unique) - 1 &&
+          memcmp(buffer, good_content_not_unique,
+                 sizeof(good_content_not_unique) - 1) == 0) {
         _skeleton->roots.resize(1);
         ozz::animation::offline::RawSkeleton::Joint& root = _skeleton->roots[0];
         root.name = "jointx";
