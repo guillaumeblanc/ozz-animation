@@ -108,32 +108,28 @@ TEST(LoadIntPtr, ozz_simd_math) {
 }
 
 TEST(GetInt, ozz_simd_math) {
-  const SimdInt4 i = ozz::math::simd_int4::Load(1, -1, 2, -3);
+  const SimdInt4 i = ozz::math::simd_int4::Load(1, 2, 3, 4);
 
   EXPECT_EQ(ozz::math::GetX(i), 1);
-  EXPECT_EQ(ozz::math::GetY(i), -1);
-  EXPECT_EQ(ozz::math::GetZ(i), 2);
-  EXPECT_EQ(ozz::math::GetW(i), -3);
+  EXPECT_EQ(ozz::math::GetY(i), 2);
+  EXPECT_EQ(ozz::math::GetZ(i), 3);
+  EXPECT_EQ(ozz::math::GetW(i), 4);
 }
 
 TEST(SetInt, ozz_simd_math) {
-  const SimdInt4 i = ozz::math::simd_int4::Load(1, -1, 2, -3);
+  const SimdInt4 a = ozz::math::simd_int4::Load(1, 2, 3, 4);
+  const SimdInt4 b = ozz::math::simd_int4::Load(5, 6, 7, 8);
 
-  const SimdInt4 j = ozz::math::SetX(i, 11);
-  EXPECT_SIMDINT_EQ(j, 11, -1, 2, -3);
+  EXPECT_SIMDINT_EQ(ozz::math::SetX(a, b), 5, 2, 3, 4);
+  EXPECT_SIMDINT_EQ(ozz::math::SetY(a, b), 1, 5, 3, 4);
+  EXPECT_SIMDINT_EQ(ozz::math::SetZ(a, b), 1, 2, 5, 4);
+  EXPECT_SIMDINT_EQ(ozz::math::SetW(a, b), 1, 2, 3, 5);
 
-  const SimdInt4 k = ozz::math::SetY(i, -11);
-  EXPECT_SIMDINT_EQ(k, 1, -11, 2, -3);
-
-  const SimdInt4 l = ozz::math::SetZ(i, 21);
-  EXPECT_SIMDINT_EQ(l, 1, -1, 21, -3);
-
-  const SimdInt4 m = ozz::math::SetW(i, -31);
-  EXPECT_SIMDINT_EQ(m, 1, -1, 2, -31);
-
-  EXPECT_ASSERTION(ozz::math::SetI(i, 7, 46), "range");
-  const SimdInt4 i3 = ozz::math::SetI(i, 2, 46);
-  EXPECT_SIMDINT_EQ(i3, 1, -1, 46, -3);
+  EXPECT_ASSERTION(ozz::math::SetI(a, b, 4), "Invalid index, out of range.");
+  EXPECT_SIMDINT_EQ(ozz::math::SetI(a, b, 0), 5, 2, 3, 4);
+  EXPECT_SIMDINT_EQ(ozz::math::SetI(a, b, 1), 1, 5, 3, 4);
+  EXPECT_SIMDINT_EQ(ozz::math::SetI(a, b, 2), 1, 2, 5, 4);
+  EXPECT_SIMDINT_EQ(ozz::math::SetI(a, b, 3), 1, 2, 3, 5);
 }
 
 TEST(StoreIntPtr, ozz_simd_math) {

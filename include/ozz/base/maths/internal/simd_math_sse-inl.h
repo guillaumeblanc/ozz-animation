@@ -49,17 +49,23 @@ namespace simd_float4 {
 // Unused components of the result vector are replicated from the first input
 // argument.
 
+#ifdef OZZ_SIMD_AVX
+  #define OZZ_SHUFFLE_PS1(_v, _m) _mm_permute_ps(_v,_m)
+#else  // OZZ_SIMD_AVX
+  #define OZZ_SHUFFLE_PS1(_v, _m) _mm_shuffle_ps(_v, _v, _m)
+#endif  // OZZ_SIMD_AVX
+
 #define OZZ_SSE_SPLAT_F(_v, _i) \
-  _mm_shuffle_ps(_v, _v, _MM_SHUFFLE(_i, _i, _i, _i))
+  OZZ_SHUFFLE_PS1(_v, _MM_SHUFFLE(_i, _i, _i, _i))
 
 // _v.x + _v.y, _v.y, _v.z, _v.w
 #define OZZ_SSE_HADD2_F(_v) _mm_add_ss(_v, OZZ_SSE_SPLAT_F(_v, 1))
 
 // _v.x + _v.y + _v.z, _v.y, _v.z, _v.w
 #define OZZ_SSE_HADD3_F(_v) \
-  _mm_add_ss(_mm_add_ss(_v, _mm_unpackhi_ps(_v, _v)), OZZ_SSE_SPLAT_F(_v, 1))
+  _mm_add_ss(_mm_add_ss(_v, OZZ_SSE_SPLAT_F(_v, 2)), OZZ_SSE_SPLAT_F(_v, 1))
 
-// _v.x + _v.y + _v.z, ?, ?, ?
+// _v.x + _v.y + _v.z + _v.w, ?, ?, ?
 #define OZZ_SSE_HADD4_F(_v, _r)                                    \
 do {                                                               \
     const __m128 haddxyzw = _mm_add_ps(_v, _mm_movehl_ps(_v, _v)); \
@@ -74,28 +80,46 @@ do {                                             \
   \
 } while (void(0), 0)
 
-// dot3, ?, ?, ?
-#define OZZ_SSE_DOT3_F(_a, _b, _r)        \
-do {                                      \
-    const __m128 ab = _mm_mul_ps(_a, _b); \
-    _r = OZZ_SSE_HADD3_F(ab);             \
-} while (void(0), 0)
+#ifdef OZZ_SIMD_SSE4_1
+  // dot3, ?, ?, ?
+  #define OZZ_SSE_DOT3_F(_a, _b, _r)        \
+  do {                                      \
+    _r = _mm_dp_ps(_a, _b, 0x7f);           \
+  } while (void(0), 0)
 
-// dot4, ?, ?, ?
-#define OZZ_SSE_DOT4_F(_a, _b, _r)        \
-do {                                      \
-    const __m128 ab = _mm_mul_ps(_a, _b); \
-    OZZ_SSE_HADD4_F(ab, _r);              \
-  \
-} while (void(0), 0)
+  // dot4, ?, ?, ?
+  #define OZZ_SSE_DOT4_F(_a, _b, _r)        \
+  do {                                      \
+    _r = _mm_dp_ps(_a, _b, 0xff);           \
+  } while (void(0), 0)
 
+#else  // OZZ_SIMD_SSE4_1
+  // dot3, ?, ?, ?
+  #define OZZ_SSE_DOT3_F(_a, _b, _r)        \
+  do {                                      \
+      const __m128 ab = _mm_mul_ps(_a, _b); \
+      _r = OZZ_SSE_HADD3_F(ab);             \
+  } while (void(0), 0)
+
+  // dot4, ?, ?, ?
+  #define OZZ_SSE_DOT4_F(_a, _b, _r)        \
+  do {                                      \
+    const __m128 ab = _mm_mul_ps(_a, _b);   \
+    OZZ_SSE_HADD4_F(ab, _r);                \
+  } while (void(0), 0)
+#endif  // OZZ_SIMD_SSE4_1
+
+#ifdef OZZ_SIMD_SSE4_1
+#define OZZ_SSE_SELECT_F(_b, _true, _false) \
+  _mm_blendv_ps(_false, _true, _b)
+#else  // OZZ_SIMD_SSE4_1
 #define OZZ_SSE_SELECT_F(_b, _true, _false) \
   _mm_xor_ps(_false,                        \
              _mm_and_ps(_mm_castsi128_ps(_b), _mm_xor_ps(_true, _false)))
+#endif  // OZZ_SIMD_SSE4_1
 
-#define OZZ_SSE_SPLAT_I(_v, _i)                                               \
-  _mm_castps_si128(_mm_shuffle_ps(_mm_castsi128_ps(_v), _mm_castsi128_ps(_v), \
-                                  _MM_SHUFFLE(_i, _i, _i, _i)))
+#define OZZ_SSE_SPLAT_I(_v, _i) \
+  _mm_shuffle_epi32(_v, _MM_SHUFFLE(_i, _i, _i, _i))
 
 #define OZZ_SSE_SELECT_I(_b, _true, _false) \
   _mm_xor_si128(_false, _mm_and_si128(_b, _mm_xor_si128(_true, _false)))
@@ -195,35 +219,32 @@ OZZ_INLINE float GetW(_SimdFloat4 _v) {
   return _mm_cvtss_f32(OZZ_SSE_SPLAT_F(_v, 3));
 }
 
-OZZ_INLINE SimdFloat4 SetX(_SimdFloat4 _v, float _f) {
-  return _mm_move_ss(_v, _mm_set_ss(_f));
+OZZ_INLINE SimdFloat4 SetX(_SimdFloat4 _v, _SimdFloat4 _f) {
+  return _mm_move_ss(_v, _f);
 }
 
-OZZ_INLINE SimdFloat4 SetY(_SimdFloat4 _v, float _f) {
-  const __m128 yxzw = _mm_shuffle_ps(_v, _v, _MM_SHUFFLE(3, 2, 0, 1));
-  const __m128 fxzw = _mm_move_ss(yxzw, _mm_set_ss(_f));
-  return _mm_shuffle_ps(fxzw, fxzw, _MM_SHUFFLE(3, 2, 0, 1));
+OZZ_INLINE SimdFloat4 SetY(_SimdFloat4 _v, _SimdFloat4 _f) {
+  const __m128 xfnn = _mm_unpacklo_ps(_v, _f);
+  return _mm_shuffle_ps(xfnn, _v, _MM_SHUFFLE(3, 2, 1, 0));
 }
 
-OZZ_INLINE SimdFloat4 SetZ(_SimdFloat4 _v, float _f) {
-  const __m128 yxzw = _mm_shuffle_ps(_v, _v, _MM_SHUFFLE(3, 0, 1, 2));
-  const __m128 fxzw = _mm_move_ss(yxzw, _mm_set_ss(_f));
-  return _mm_shuffle_ps(fxzw, fxzw, _MM_SHUFFLE(3, 0, 1, 2));
+OZZ_INLINE SimdFloat4 SetZ(_SimdFloat4 _v, _SimdFloat4 _f) {
+  const __m128 ffww = _mm_shuffle_ps(_f, _v, _MM_SHUFFLE(3, 3, 0, 0));
+  return _mm_shuffle_ps(_v, ffww, _MM_SHUFFLE(2, 0, 1, 0));
 }
 
-OZZ_INLINE SimdFloat4 SetW(_SimdFloat4 _v, float _f) {
-  const __m128 yxzw = _mm_shuffle_ps(_v, _v, _MM_SHUFFLE(0, 2, 1, 3));
-  const __m128 fxzw = _mm_move_ss(yxzw, _mm_set_ss(_f));
-  return _mm_shuffle_ps(fxzw, fxzw, _MM_SHUFFLE(0, 2, 1, 3));
+OZZ_INLINE SimdFloat4 SetW(_SimdFloat4 _v, _SimdFloat4 _f) {
+  const __m128 ffzz = _mm_shuffle_ps(_f, _v, _MM_SHUFFLE(2, 2, 0, 0));
+  return _mm_shuffle_ps(_v, ffzz, _MM_SHUFFLE(0, 2, 1, 0));
 }
 
-OZZ_INLINE SimdFloat4 SetI(_SimdFloat4 _v, int _ith, float _f) {
-  assert(_ith >= 0 && _ith <= 3 && "Invalid index ranges");
+OZZ_INLINE SimdFloat4 SetI(_SimdFloat4 _v, _SimdFloat4 _f, int _ith) {
+  assert(_ith >= 0 && _ith <= 3 && "Invalid index, out of range.");
   union {
     SimdFloat4 ret;
     float af[4];
   } u = {_v};
-  u.af[_ith] = _f;
+  u.af[_ith] = _mm_cvtss_f32(_f);
   return u.ret;
 }
 
@@ -397,32 +418,32 @@ OZZ_INLINE SimdFloat4 HAdd3(_SimdFloat4 _v) { return OZZ_SSE_HADD3_F(_v); }
 OZZ_INLINE SimdFloat4 HAdd4(_SimdFloat4 _v) {
   __m128 hadd4;
   OZZ_SSE_HADD4_F(_v, hadd4);
-  return _mm_move_ss(_v, hadd4);
+  return hadd4;
 }
 
 OZZ_INLINE SimdFloat4 Dot2(_SimdFloat4 _a, _SimdFloat4 _b) {
   __m128 dot2;
   OZZ_SSE_DOT2_F(_a, _b, dot2);
-  return _mm_move_ss(_a, dot2);
+  return dot2;
 }
 
 OZZ_INLINE SimdFloat4 Dot3(_SimdFloat4 _a, _SimdFloat4 _b) {
   __m128 dot3;
   OZZ_SSE_DOT3_F(_a, _b, dot3);
-  return _mm_move_ss(_a, dot3);
+  return dot3;
 }
 
 OZZ_INLINE SimdFloat4 Dot4(_SimdFloat4 _a, _SimdFloat4 _b) {
   __m128 dot4;
   OZZ_SSE_DOT4_F(_a, _b, dot4);
-  return _mm_move_ss(_a, dot4);
+  return dot4;
 }
 
 OZZ_INLINE SimdFloat4 Cross3(_SimdFloat4 _a, _SimdFloat4 _b) {
-  const __m128 left0 = _mm_shuffle_ps(_a, _a, _MM_SHUFFLE(3, 0, 2, 1));
-  const __m128 left1 = _mm_shuffle_ps(_b, _b, _MM_SHUFFLE(3, 0, 2, 1));
-  const __m128 right0 = _mm_shuffle_ps(_a, _a, _MM_SHUFFLE(3, 1, 0, 2));
-  const __m128 right1 = _mm_shuffle_ps(_b, _b, _MM_SHUFFLE(3, 1, 0, 2));
+  const __m128 left0 = OZZ_SHUFFLE_PS1(_a, _MM_SHUFFLE(3, 0, 2, 1));
+  const __m128 right1 = OZZ_SHUFFLE_PS1(_b, _MM_SHUFFLE(3, 1, 0, 2));
+  const __m128 left1 = OZZ_SHUFFLE_PS1(_b, _MM_SHUFFLE(3, 0, 2, 1));
+  const __m128 right0 = OZZ_SHUFFLE_PS1(_a, _MM_SHUFFLE(3, 1, 0, 2));
   return _mm_sub_ps(_mm_mul_ps(left0, right1), _mm_mul_ps(left1, right0));
 }
 
@@ -435,6 +456,12 @@ OZZ_INLINE SimdFloat4 RcpEstNR(_SimdFloat4 _v) {
 }
 
 OZZ_INLINE SimdFloat4 RcpEstX(_SimdFloat4 _v) { return _mm_rcp_ss(_v); }
+
+OZZ_INLINE SimdFloat4 RcpEstXNR(_SimdFloat4 _v) {
+  const __m128 nr = _mm_rcp_ss(_v);
+  // Do one more Newton-Raphson step to improve precision.
+  return _mm_sub_ss(_mm_add_ss(nr, nr), _mm_mul_ss(_mm_mul_ss(nr, nr), _v));
+}
 
 OZZ_INLINE SimdFloat4 Sqrt(_SimdFloat4 _v) { return _mm_sqrt_ps(_v); }
 
@@ -452,6 +479,14 @@ OZZ_INLINE SimdFloat4 RSqrtEstNR(_SimdFloat4 _v) {
 
 OZZ_INLINE SimdFloat4 RSqrtEstX(_SimdFloat4 _v) { return _mm_rsqrt_ss(_v); }
 
+OZZ_INLINE SimdFloat4 RSqrtEstXNR(_SimdFloat4 _v) {
+  const __m128 nr = _mm_rsqrt_ss(_v);
+  // Do one more Newton-Raphson step to improve precision.
+  const __m128 muls = _mm_mul_ss(_mm_mul_ss(_v, nr), nr);
+  return _mm_mul_ss(_mm_mul_ss(_mm_set_ps1(.5f), nr),
+                    _mm_sub_ss(_mm_set_ps1(3.f), muls));
+}
+
 OZZ_INLINE SimdFloat4 Abs(_SimdFloat4 _v) {
   return _mm_and_ps(_mm_castsi128_ps(simd_int4::mask_not_sign()), _v);
 }
@@ -463,37 +498,37 @@ OZZ_INLINE SimdInt4 Sign(_SimdFloat4 _v) {
 OZZ_INLINE SimdFloat4 Length2(_SimdFloat4 _v) {
   __m128 sq_len;
   OZZ_SSE_DOT2_F(_v, _v, sq_len);
-  return _mm_move_ss(_v, _mm_sqrt_ss(sq_len));
+  return _mm_sqrt_ss(sq_len);
 }
 
 OZZ_INLINE SimdFloat4 Length3(_SimdFloat4 _v) {
   __m128 sq_len;
   OZZ_SSE_DOT3_F(_v, _v, sq_len);
-  return _mm_move_ss(_v, _mm_sqrt_ss(sq_len));
+  return _mm_sqrt_ss(sq_len);
 }
 
 OZZ_INLINE SimdFloat4 Length4(_SimdFloat4 _v) {
   __m128 sq_len;
   OZZ_SSE_DOT4_F(_v, _v, sq_len);
-  return _mm_move_ss(_v, _mm_sqrt_ss(sq_len));
+  return _mm_sqrt_ss(sq_len);
 }
 
 OZZ_INLINE SimdFloat4 Length2Sqr(_SimdFloat4 _v) {
   __m128 sq_len;
   OZZ_SSE_DOT2_F(_v, _v, sq_len);
-  return _mm_move_ss(_v, sq_len);
+  return sq_len;
 }
 
 OZZ_INLINE SimdFloat4 Length3Sqr(_SimdFloat4 _v) {
   __m128 sq_len;
   OZZ_SSE_DOT3_F(_v, _v, sq_len);
-  return _mm_move_ss(_v, sq_len);
+  return sq_len;
 }
 
 OZZ_INLINE SimdFloat4 Length4Sqr(_SimdFloat4 _v) {
   __m128 sq_len;
   OZZ_SSE_DOT4_F(_v, _v, sq_len);
-  return _mm_move_ss(_v, sq_len);
+  return sq_len;
 }
 
 OZZ_INLINE SimdFloat4 Normalize2(_SimdFloat4 _v) {
@@ -511,10 +546,10 @@ OZZ_INLINE SimdFloat4 Normalize3(_SimdFloat4 _v) {
   OZZ_SSE_DOT3_F(_v, _v, sq_len);
   assert(_mm_cvtss_f32(sq_len) != 0.f && "_v is not normalizable");
   const __m128 inv_len = _mm_div_ss(simd_float4::one(), _mm_sqrt_ss(sq_len));
-  const __m128 vwxyz = _mm_shuffle_ps(_v, _v, _MM_SHUFFLE(0, 1, 2, 3));
+  const __m128 vwxyz = OZZ_SHUFFLE_PS1(_v, _MM_SHUFFLE(0, 1, 2, 3));
   const __m128 inv_lenxxxx = OZZ_SSE_SPLAT_F(inv_len, 0);
   const __m128 normwxyz = _mm_move_ss(_mm_mul_ps(vwxyz, inv_lenxxxx), vwxyz);
-  return _mm_shuffle_ps(normwxyz, normwxyz, _MM_SHUFFLE(0, 1, 2, 3));
+  return OZZ_SHUFFLE_PS1(normwxyz, _MM_SHUFFLE(0, 1, 2, 3));
 }
 
 OZZ_INLINE SimdFloat4 Normalize4(_SimdFloat4 _v) {
@@ -541,10 +576,10 @@ OZZ_INLINE SimdFloat4 NormalizeEst3(_SimdFloat4 _v) {
   OZZ_SSE_DOT3_F(_v, _v, sq_len);
   assert(_mm_cvtss_f32(sq_len) != 0.f && "_v is not normalizable");
   const __m128 inv_len = _mm_rsqrt_ss(sq_len);
-  const __m128 vwxyz = _mm_shuffle_ps(_v, _v, _MM_SHUFFLE(0, 1, 2, 3));
+  const __m128 vwxyz = OZZ_SHUFFLE_PS1(_v, _MM_SHUFFLE(0, 1, 2, 3));
   const __m128 inv_lenxxxx = OZZ_SSE_SPLAT_F(inv_len, 0);
   const __m128 normwxyz = _mm_move_ss(_mm_mul_ps(vwxyz, inv_lenxxxx), vwxyz);
-  return _mm_shuffle_ps(normwxyz, normwxyz, _MM_SHUFFLE(0, 1, 2, 3));
+  return OZZ_SHUFFLE_PS1(normwxyz, _MM_SHUFFLE(0, 1, 2, 3));
 }
 
 OZZ_INLINE SimdFloat4 NormalizeEst4(_SimdFloat4 _v) {
@@ -617,6 +652,7 @@ OZZ_INLINE SimdInt4 IsNormalizedEst4(_SimdFloat4 _v) {
 }
 
 OZZ_INLINE SimdFloat4 NormalizeSafe2(_SimdFloat4 _v, _SimdFloat4 _safe) {
+  // assert(AreAllTrue1(IsNormalized2(_safe)) && "_safe is not normalized");
   __m128 sq_len;
   OZZ_SSE_DOT2_F(_v, _v, sq_len);
   const __m128 inv_len = _mm_div_ss(simd_float4::one(), _mm_sqrt_ss(sq_len));
@@ -629,20 +665,21 @@ OZZ_INLINE SimdFloat4 NormalizeSafe2(_SimdFloat4 _v, _SimdFloat4 _safe) {
 }
 
 OZZ_INLINE SimdFloat4 NormalizeSafe3(_SimdFloat4 _v, _SimdFloat4 _safe) {
+  // assert(AreAllTrue1(IsNormalized3(_safe)) && "_safe is not normalized");
   __m128 sq_len;
   OZZ_SSE_DOT3_F(_v, _v, sq_len);
   const __m128 inv_len = _mm_div_ss(simd_float4::one(), _mm_sqrt_ss(sq_len));
-  const __m128 vwxyz = _mm_shuffle_ps(_v, _v, _MM_SHUFFLE(0, 1, 2, 3));
+  const __m128 vwxyz = OZZ_SHUFFLE_PS1(_v, _MM_SHUFFLE(0, 1, 2, 3));
   const __m128 inv_lenxxxx = OZZ_SSE_SPLAT_F(inv_len, 0);
   const __m128 normwxyz = _mm_move_ss(_mm_mul_ps(vwxyz, inv_lenxxxx), vwxyz);
   const __m128i cond = _mm_castps_si128(
       _mm_cmple_ps(OZZ_SSE_SPLAT_F(sq_len, 0), _mm_setzero_ps()));
-  const __m128 cfalse =
-      _mm_shuffle_ps(normwxyz, normwxyz, _MM_SHUFFLE(0, 1, 2, 3));
+  const __m128 cfalse = OZZ_SHUFFLE_PS1(normwxyz, _MM_SHUFFLE(0, 1, 2, 3));
   return OZZ_SSE_SELECT_F(cond, _safe, cfalse);
 }
 
 OZZ_INLINE SimdFloat4 NormalizeSafe4(_SimdFloat4 _v, _SimdFloat4 _safe) {
+  // assert(AreAllTrue1(IsNormalized4(_safe)) && "_safe is not normalized");
   __m128 sq_len;
   OZZ_SSE_DOT4_F(_v, _v, sq_len);
   const __m128 inv_len = _mm_div_ss(simd_float4::one(), _mm_sqrt_ss(sq_len));
@@ -654,6 +691,7 @@ OZZ_INLINE SimdFloat4 NormalizeSafe4(_SimdFloat4 _v, _SimdFloat4 _safe) {
 }
 
 OZZ_INLINE SimdFloat4 NormalizeSafeEst2(_SimdFloat4 _v, _SimdFloat4 _safe) {
+  // assert(AreAllTrue1(IsNormalizedEst2(_safe)) && "_safe is not normalized");
   __m128 sq_len;
   OZZ_SSE_DOT2_F(_v, _v, sq_len);
   const __m128 inv_len = _mm_rsqrt_ss(sq_len);
@@ -666,20 +704,21 @@ OZZ_INLINE SimdFloat4 NormalizeSafeEst2(_SimdFloat4 _v, _SimdFloat4 _safe) {
 }
 
 OZZ_INLINE SimdFloat4 NormalizeSafeEst3(_SimdFloat4 _v, _SimdFloat4 _safe) {
+  // assert(AreAllTrue1(IsNormalizedEst3(_safe)) && "_safe is not normalized");
   __m128 sq_len;
   OZZ_SSE_DOT3_F(_v, _v, sq_len);
   const __m128 inv_len = _mm_rsqrt_ss(sq_len);
-  const __m128 vwxyz = _mm_shuffle_ps(_v, _v, _MM_SHUFFLE(0, 1, 2, 3));
+  const __m128 vwxyz = OZZ_SHUFFLE_PS1(_v, _MM_SHUFFLE(0, 1, 2, 3));
   const __m128 inv_lenxxxx = OZZ_SSE_SPLAT_F(inv_len, 0);
   const __m128 normwxyz = _mm_move_ss(_mm_mul_ps(vwxyz, inv_lenxxxx), vwxyz);
   const __m128i cond = _mm_castps_si128(
       _mm_cmple_ps(OZZ_SSE_SPLAT_F(sq_len, 0), _mm_setzero_ps()));
-  const __m128 cfalse =
-      _mm_shuffle_ps(normwxyz, normwxyz, _MM_SHUFFLE(0, 1, 2, 3));
+  const __m128 cfalse = OZZ_SHUFFLE_PS1(normwxyz, _MM_SHUFFLE(0, 1, 2, 3));
   return OZZ_SSE_SELECT_F(cond, _safe, cfalse);
 }
 
 OZZ_INLINE SimdFloat4 NormalizeSafeEst4(_SimdFloat4 _v, _SimdFloat4 _safe) {
+  // assert(AreAllTrue1(IsNormalizedEst4(_safe)) && "_safe is not normalized");
   __m128 sq_len;
   OZZ_SSE_DOT4_F(_v, _v, sq_len);
   const __m128 inv_len = _mm_rsqrt_ss(sq_len);
@@ -773,7 +812,7 @@ OZZ_INLINE SimdFloat4 Cos(_SimdFloat4 _v) {
 }
 
 OZZ_INLINE SimdFloat4 CosX(_SimdFloat4 _v) {
-  return _mm_set_ps(GetW(_v), GetZ(_v), GetY(_v), std::cos(GetX(_v)));
+  return _mm_move_ss(_v, _mm_set_ps1(std::cos(GetX(_v))));
 }
 
 OZZ_INLINE SimdFloat4 ACos(_SimdFloat4 _v) {
@@ -782,7 +821,7 @@ OZZ_INLINE SimdFloat4 ACos(_SimdFloat4 _v) {
 }
 
 OZZ_INLINE SimdFloat4 ACosX(_SimdFloat4 _v) {
-  return _mm_set_ps(GetW(_v), GetZ(_v), GetY(_v), std::acos(GetX(_v)));
+  return _mm_move_ss(_v, _mm_set_ps1(std::acos(GetX(_v))));
 }
 
 OZZ_INLINE SimdFloat4 Sin(_SimdFloat4 _v) {
@@ -791,7 +830,7 @@ OZZ_INLINE SimdFloat4 Sin(_SimdFloat4 _v) {
 }
 
 OZZ_INLINE SimdFloat4 SinX(_SimdFloat4 _v) {
-  return _mm_set_ps(GetW(_v), GetZ(_v), GetY(_v), std::sin(GetX(_v)));
+  return _mm_move_ss(_v, _mm_set_ps1(std::sin(GetX(_v))));
 }
 
 OZZ_INLINE SimdFloat4 ASin(_SimdFloat4 _v) {
@@ -800,7 +839,7 @@ OZZ_INLINE SimdFloat4 ASin(_SimdFloat4 _v) {
 }
 
 OZZ_INLINE SimdFloat4 ASinX(_SimdFloat4 _v) {
-  return _mm_set_ps(GetW(_v), GetZ(_v), GetY(_v), std::asin(GetX(_v)));
+  return _mm_move_ss(_v, _mm_set_ps1(std::asin(GetX(_v))));
 }
 
 OZZ_INLINE SimdFloat4 Tan(_SimdFloat4 _v) {
@@ -809,7 +848,7 @@ OZZ_INLINE SimdFloat4 Tan(_SimdFloat4 _v) {
 }
 
 OZZ_INLINE SimdFloat4 TanX(_SimdFloat4 _v) {
-  return _mm_set_ps(GetW(_v), GetZ(_v), GetY(_v), std::tan(GetX(_v)));
+  return _mm_move_ss(_v, _mm_set_ps1(std::tan(GetX(_v))));
 }
 
 OZZ_INLINE SimdFloat4 ATan(_SimdFloat4 _v) {
@@ -818,7 +857,7 @@ OZZ_INLINE SimdFloat4 ATan(_SimdFloat4 _v) {
 }
 
 OZZ_INLINE SimdFloat4 ATanX(_SimdFloat4 _v) {
-  return _mm_set_ps(GetW(_v), GetZ(_v), GetY(_v), std::atan(GetX(_v)));
+  return _mm_move_ss(_v, _mm_set_ps1(std::atan(GetX(_v))));
 }
 
 namespace simd_int4 {
@@ -865,6 +904,12 @@ OZZ_INLINE SimdInt4 mask_sign() {
   const __m128i ffff =
       _mm_cmpeq_epi32(_mm_setzero_si128(), _mm_setzero_si128());
   return _mm_slli_epi32(ffff, 31);
+}
+
+OZZ_INLINE SimdInt4 mask_sign_xyz() {
+  const __m128i ffff =
+      _mm_cmpeq_epi32(_mm_setzero_si128(), _mm_setzero_si128());
+  return _mm_srli_si128(_mm_slli_epi32(ffff, 31), 4);
 }
 
 OZZ_INLINE SimdInt4 mask_not_sign() {
@@ -1003,42 +1048,38 @@ OZZ_INLINE int GetW(_SimdInt4 _v) {
   return _mm_cvtsi128_si32(OZZ_SSE_SPLAT_I(_v, 3));
 }
 
-OZZ_INLINE SimdInt4 SetX(_SimdInt4 _v, int _i) {
+OZZ_INLINE SimdInt4 SetX(_SimdInt4 _v, _SimdInt4 _i) {
   return _mm_castps_si128(
-      _mm_move_ss(_mm_castsi128_ps(_v), _mm_castsi128_ps(_mm_set1_epi32(_i))));
+      _mm_move_ss(_mm_castsi128_ps(_v), _mm_castsi128_ps(_i)));
 }
 
-OZZ_INLINE SimdInt4 SetY(_SimdInt4 _v, int _i) {
-  const __m128 i = _mm_castsi128_ps(_mm_set1_epi32(_i));
-  const __m128 v = _mm_castsi128_ps(_v);
-  const __m128 yxzw = _mm_shuffle_ps(v, v, _MM_SHUFFLE(3, 2, 0, 1));
-  const __m128 fxzw = _mm_move_ss(yxzw, i);
-  return _mm_castps_si128(_mm_shuffle_ps(fxzw, fxzw, _MM_SHUFFLE(3, 2, 0, 1)));
+OZZ_INLINE SimdInt4 SetY(_SimdInt4 _v, _SimdInt4 _i) {
+  const __m128i xfnn = _mm_unpacklo_epi32(_v, _i);
+  return _mm_castps_si128(
+      _mm_shuffle_ps(xfnn, _mm_castsi128_ps(_v), _MM_SHUFFLE(3, 2, 1, 0)));
 }
 
-OZZ_INLINE SimdInt4 SetZ(_SimdInt4 _v, int _i) {
-  const __m128 i = _mm_castsi128_ps(_mm_set1_epi32(_i));
-  const __m128 v = _mm_castsi128_ps(_v);
-  const __m128 yxzw = _mm_shuffle_ps(v, v, _MM_SHUFFLE(3, 0, 1, 2));
-  const __m128 fxzw = _mm_move_ss(yxzw, i);
-  return _mm_castps_si128(_mm_shuffle_ps(fxzw, fxzw, _MM_SHUFFLE(3, 0, 1, 2)));
+OZZ_INLINE SimdInt4 SetZ(_SimdInt4 _v, _SimdInt4 _i) {
+  const __m128 ffww = _mm_shuffle_ps(_mm_castsi128_ps(_i), _mm_castsi128_ps(_v),
+                                     _MM_SHUFFLE(3, 3, 0, 0));
+  return _mm_castps_si128(
+      _mm_shuffle_ps(_mm_castsi128_ps(_v), ffww, _MM_SHUFFLE(2, 0, 1, 0)));
 }
 
-OZZ_INLINE SimdInt4 SetW(_SimdInt4 _v, int _i) {
-  const __m128 i = _mm_castsi128_ps(_mm_set1_epi32(_i));
-  const __m128 v = _mm_castsi128_ps(_v);
-  const __m128 yxzw = _mm_shuffle_ps(v, v, _MM_SHUFFLE(0, 2, 1, 3));
-  const __m128 fxzw = _mm_move_ss(yxzw, i);
-  return _mm_castps_si128(_mm_shuffle_ps(fxzw, fxzw, _MM_SHUFFLE(0, 2, 1, 3)));
+OZZ_INLINE SimdInt4 SetW(_SimdInt4 _v, _SimdInt4 _i) {
+  const __m128 ffzz = _mm_shuffle_ps(_mm_castsi128_ps(_i), _mm_castsi128_ps(_v),
+                                     _MM_SHUFFLE(2, 2, 0, 0));
+  return _mm_castps_si128(
+      _mm_shuffle_ps(_mm_castsi128_ps(_v), ffzz, _MM_SHUFFLE(0, 2, 1, 0)));
 }
 
-OZZ_INLINE SimdInt4 SetI(_SimdInt4 _v, int _ith, int _i) {
-  assert(_ith >= 0 && _ith <= 3 && "Invalid index ranges");
+OZZ_INLINE SimdInt4 SetI(_SimdInt4 _v, _SimdInt4 _i, int _ith) {
+  assert(_ith >= 0 && _ith <= 3 && "Invalid index, out of range.");
   union {
     SimdInt4 ret;
     int af[4];
   } u = {_v};
-  u.af[_ith] = _i;
+  u.af[_ith] = GetX(_i);
   return u.ret;
 }
 
@@ -1294,65 +1335,65 @@ OZZ_INLINE Float4x4 Invert(const Float4x4& _m) {
 
   __m128 minor0, minor1, minor2, minor3, tmp1, tmp2;
   tmp1 = _mm_mul_ps(c2, c3);
-  tmp1 = _mm_shuffle_ps(tmp1, tmp1, 0xB1);
+  tmp1 = OZZ_SHUFFLE_PS1(tmp1, 0xB1);
   minor0 = _mm_mul_ps(c1, tmp1);
   minor1 = _mm_mul_ps(c0, tmp1);
-  tmp1 = _mm_shuffle_ps(tmp1, tmp1, 0x4E);
+  tmp1 = OZZ_SHUFFLE_PS1(tmp1, 0x4E);
   minor0 = _mm_sub_ps(_mm_mul_ps(c1, tmp1), minor0);
   minor1 = _mm_sub_ps(_mm_mul_ps(c0, tmp1), minor1);
-  minor1 = _mm_shuffle_ps(minor1, minor1, 0x4E);
+  minor1 = OZZ_SHUFFLE_PS1(minor1, 0x4E);
 
   tmp1 = _mm_mul_ps(c1, c2);
-  tmp1 = _mm_shuffle_ps(tmp1, tmp1, 0xB1);
+  tmp1 = OZZ_SHUFFLE_PS1(tmp1, 0xB1);
   minor0 = _mm_add_ps(_mm_mul_ps(c3, tmp1), minor0);
   minor3 = _mm_mul_ps(c0, tmp1);
-  tmp1 = _mm_shuffle_ps(tmp1, tmp1, 0x4E);
+  tmp1 = OZZ_SHUFFLE_PS1(tmp1, 0x4E);
   minor0 = _mm_sub_ps(minor0, _mm_mul_ps(c3, tmp1));
   minor3 = _mm_sub_ps(_mm_mul_ps(c0, tmp1), minor3);
-  minor3 = _mm_shuffle_ps(minor3, minor3, 0x4E);
+  minor3 = OZZ_SHUFFLE_PS1(minor3, 0x4E);
 
-  tmp1 = _mm_mul_ps(_mm_shuffle_ps(c1, c1, 0x4E), c3);
-  tmp1 = _mm_shuffle_ps(tmp1, tmp1, 0xB1);
-  tmp2 = _mm_shuffle_ps(c2, c2, 0x4E);
+  tmp1 = _mm_mul_ps(OZZ_SHUFFLE_PS1(c1, 0x4E), c3);
+  tmp1 = OZZ_SHUFFLE_PS1(tmp1, 0xB1);
+  tmp2 = OZZ_SHUFFLE_PS1(c2, 0x4E);
   minor0 = _mm_add_ps(_mm_mul_ps(tmp2, tmp1), minor0);
   minor2 = _mm_mul_ps(c0, tmp1);
-  tmp1 = _mm_shuffle_ps(tmp1, tmp1, 0x4E);
+  tmp1 = OZZ_SHUFFLE_PS1(tmp1, 0x4E);
   minor0 = _mm_sub_ps(minor0, _mm_mul_ps(tmp2, tmp1));
   minor2 = _mm_sub_ps(_mm_mul_ps(c0, tmp1), minor2);
-  minor2 = _mm_shuffle_ps(minor2, minor2, 0x4E);
+  minor2 = OZZ_SHUFFLE_PS1(minor2, 0x4E);
 
   tmp1 = _mm_mul_ps(c0, c1);
-  tmp1 = _mm_shuffle_ps(tmp1, tmp1, 0xB1);
+  tmp1 = OZZ_SHUFFLE_PS1(tmp1, 0xB1);
   minor2 = _mm_add_ps(_mm_mul_ps(c3, tmp1), minor2);
   minor3 = _mm_sub_ps(_mm_mul_ps(tmp2, tmp1), minor3);
-  tmp1 = _mm_shuffle_ps(tmp1, tmp1, 0x4E);
+  tmp1 = OZZ_SHUFFLE_PS1(tmp1, 0x4E);
   minor2 = _mm_sub_ps(_mm_mul_ps(c3, tmp1), minor2);
   minor3 = _mm_sub_ps(minor3, _mm_mul_ps(tmp2, tmp1));
 
   tmp1 = _mm_mul_ps(c0, c3);
-  tmp1 = _mm_shuffle_ps(tmp1, tmp1, 0xB1);
+  tmp1 = OZZ_SHUFFLE_PS1(tmp1, 0xB1);
   minor1 = _mm_sub_ps(minor1, _mm_mul_ps(tmp2, tmp1));
   minor2 = _mm_add_ps(_mm_mul_ps(c1, tmp1), minor2);
-  tmp1 = _mm_shuffle_ps(tmp1, tmp1, 0x4E);
+  tmp1 = OZZ_SHUFFLE_PS1(tmp1, 0x4E);
   minor1 = _mm_add_ps(_mm_mul_ps(tmp2, tmp1), minor1);
   minor2 = _mm_sub_ps(minor2, _mm_mul_ps(c1, tmp1));
 
   tmp1 = _mm_mul_ps(c0, tmp2);
-  tmp1 = _mm_shuffle_ps(tmp1, tmp1, 0xB1);
+  tmp1 = OZZ_SHUFFLE_PS1(tmp1, 0xB1);
   minor1 = _mm_add_ps(_mm_mul_ps(c3, tmp1), minor1);
   minor3 = _mm_sub_ps(minor3, _mm_mul_ps(c1, tmp1));
-  tmp1 = _mm_shuffle_ps(tmp1, tmp1, 0x4E);
+  tmp1 = OZZ_SHUFFLE_PS1(tmp1, 0x4E);
   minor1 = _mm_sub_ps(minor1, _mm_mul_ps(c3, tmp1));
   minor3 = _mm_add_ps(_mm_mul_ps(c1, tmp1), minor3);
 
   __m128 det;
   det = _mm_mul_ps(c0, minor0);
-  det = _mm_add_ps(_mm_shuffle_ps(det, det, 0x4E), det);
-  det = _mm_add_ss(_mm_shuffle_ps(det, det, 0xB1), det);
+  det = _mm_add_ps(OZZ_SHUFFLE_PS1(det, 0x4E), det);
+  det = _mm_add_ss(OZZ_SHUFFLE_PS1(det, 0xB1), det);
   tmp1 = _mm_rcp_ss(det);
   det = _mm_sub_ss(_mm_add_ss(tmp1, tmp1),
                    _mm_mul_ss(det, _mm_mul_ss(tmp1, tmp1)));
-  det = _mm_shuffle_ps(det, det, 0x00);
+  det = OZZ_SHUFFLE_PS1(det, 0x00);
 
   // Copy the final columns
   const Float4x4 ret = {{_mm_mul_ps(det, minor0), _mm_mul_ps(det, minor1),
@@ -1493,14 +1534,13 @@ OZZ_INLINE SimdFloat4 ToQuaternion(const Float4x4& _m) {
   const __m128i mask_00f0 = _mm_slli_si128(mask_f000, 8);
 
   const __m128 xx_yy = OZZ_SSE_SELECT_F(mask_0f00, _m.cols[1], _m.cols[0]);
-  const __m128 xx_yy_0010 =
-      _mm_shuffle_ps(xx_yy, xx_yy, _MM_SHUFFLE(0, 0, 1, 0));
+  const __m128 xx_yy_0010 = OZZ_SHUFFLE_PS1(xx_yy, _MM_SHUFFLE(0, 0, 1, 0));
   const __m128 xx_yy_zz_xx =
       OZZ_SSE_SELECT_F(mask_00f0, _m.cols[2], xx_yy_0010);
   const __m128 yy_zz_xx_yy =
-      _mm_shuffle_ps(xx_yy_zz_xx, xx_yy_zz_xx, _MM_SHUFFLE(1, 0, 2, 1));
+      OZZ_SHUFFLE_PS1(xx_yy_zz_xx, _MM_SHUFFLE(1, 0, 2, 1));
   const __m128 zz_xx_yy_zz =
-      _mm_shuffle_ps(xx_yy_zz_xx, xx_yy_zz_xx, _MM_SHUFFLE(2, 1, 0, 2));
+      OZZ_SHUFFLE_PS1(xx_yy_zz_xx, _MM_SHUFFLE(2, 1, 0, 2));
 
   const __m128 diag_sum =
       _mm_add_ps(_mm_add_ps(xx_yy_zz_xx, yy_zz_xx_yy), zz_xx_yy_zz);
@@ -1511,20 +1551,20 @@ OZZ_INLINE SimdFloat4 ToQuaternion(const Float4x4& _m) {
   const __m128 invSqrt = one / _mm_sqrt_ps(radicand);
 
   __m128 zy_xz_yx = OZZ_SSE_SELECT_F(mask_00f0, _m.cols[1], _m.cols[0]);
-  zy_xz_yx = _mm_shuffle_ps(zy_xz_yx, zy_xz_yx, _MM_SHUFFLE(0, 1, 2, 2));
+  zy_xz_yx = OZZ_SHUFFLE_PS1(zy_xz_yx, _MM_SHUFFLE(0, 1, 2, 2));
   zy_xz_yx =
       OZZ_SSE_SELECT_F(mask_0f00, OZZ_SSE_SPLAT_F(_m.cols[2], 0), zy_xz_yx);
   __m128 yz_zx_xy = OZZ_SSE_SELECT_F(mask_f000, _m.cols[1], _m.cols[0]);
-  yz_zx_xy = _mm_shuffle_ps(yz_zx_xy, yz_zx_xy, _MM_SHUFFLE(0, 0, 2, 0));
+  yz_zx_xy = OZZ_SHUFFLE_PS1(yz_zx_xy, _MM_SHUFFLE(0, 0, 2, 0));
   yz_zx_xy =
       OZZ_SSE_SELECT_F(mask_f000, OZZ_SSE_SPLAT_F(_m.cols[2], 1), yz_zx_xy);
   const __m128 sum = _mm_add_ps(zy_xz_yx, yz_zx_xy);
   const __m128 diff = _mm_sub_ps(zy_xz_yx, yz_zx_xy);
   const __m128 scale = _mm_mul_ps(invSqrt, half);
 
-  const __m128 sum0 = _mm_shuffle_ps(sum, sum, _MM_SHUFFLE(0, 1, 2, 0));
-  const __m128 sum1 = _mm_shuffle_ps(sum, sum, _MM_SHUFFLE(0, 0, 0, 2));
-  const __m128 sum2 = _mm_shuffle_ps(sum, sum, _MM_SHUFFLE(0, 0, 0, 1));
+  const __m128 sum0 = OZZ_SHUFFLE_PS1(sum, _MM_SHUFFLE(0, 1, 2, 0));
+  const __m128 sum1 = OZZ_SHUFFLE_PS1(sum, _MM_SHUFFLE(0, 0, 0, 2));
+  const __m128 sum2 = OZZ_SHUFFLE_PS1(sum, _MM_SHUFFLE(0, 0, 0, 1));
   __m128 res0 = OZZ_SSE_SELECT_F(mask_000f, OZZ_SSE_SPLAT_F(diff, 0), sum0);
   __m128 res1 = OZZ_SSE_SELECT_F(mask_000f, OZZ_SSE_SPLAT_F(diff, 1), sum1);
   __m128 res2 = OZZ_SSE_SELECT_F(mask_000f, OZZ_SSE_SPLAT_F(diff, 2), sum2);
@@ -1686,14 +1726,14 @@ OZZ_INLINE Float4x4 Float4x4::FromAxisAngle(_SimdFloat4 _axis,
   const __m128 r2 = _mm_sub_ps(v0, _mm_mul_ps(sin, _axis));
   const __m128 r0fff0 = _mm_and_ps(r0, fff0);
   const __m128 r1r22120 = _mm_shuffle_ps(r1, r2, _MM_SHUFFLE(2, 1, 2, 0));
-  const __m128 v1 = _mm_shuffle_ps(r1r22120, r1r22120, _MM_SHUFFLE(0, 3, 2, 1));
+  const __m128 v1 = OZZ_SHUFFLE_PS1(r1r22120, _MM_SHUFFLE(0, 3, 2, 1));
   const __m128 r1r20011 = _mm_shuffle_ps(r1, r2, _MM_SHUFFLE(0, 0, 1, 1));
-  const __m128 v2 = _mm_shuffle_ps(r1r20011, r1r20011, _MM_SHUFFLE(2, 0, 2, 0));
+  const __m128 v2 = OZZ_SHUFFLE_PS1(r1r20011, _MM_SHUFFLE(2, 0, 2, 0));
 
   const __m128 t0 = _mm_shuffle_ps(r0fff0, v1, _MM_SHUFFLE(1, 0, 3, 0));
   const __m128 t1 = _mm_shuffle_ps(r0fff0, v1, _MM_SHUFFLE(3, 2, 3, 1));
-  const Float4x4 ret = {{_mm_shuffle_ps(t0, t0, _MM_SHUFFLE(1, 3, 2, 0)),
-                         _mm_shuffle_ps(t1, t1, _MM_SHUFFLE(1, 3, 0, 2)),
+  const Float4x4 ret = {{OZZ_SHUFFLE_PS1(t0, _MM_SHUFFLE(1, 3, 2, 0)),
+                         OZZ_SHUFFLE_PS1(t1, _MM_SHUFFLE(1, 3, 0, 2)),
                          _mm_shuffle_ps(v2, r0fff0, _MM_SHUFFLE(3, 2, 1, 0)),
                          w_axis}};
   return ret;
@@ -1715,27 +1755,27 @@ OZZ_INLINE Float4x4 Float4x4::FromQuaternion(_SimdFloat4 _quaternion) {
   const __m128 r0 = _mm_sub_ps(
       _mm_sub_ps(
           c1110,
-          _mm_and_ps(_mm_shuffle_ps(vms, vms, _MM_SHUFFLE(3, 0, 0, 1)), fff0)),
-      _mm_and_ps(_mm_shuffle_ps(vms, vms, _MM_SHUFFLE(3, 1, 2, 2)), fff0));
-  const __m128 v0 = _mm_mul_ps(
-      _mm_shuffle_ps(_quaternion, _quaternion, _MM_SHUFFLE(3, 1, 0, 0)),
-      _mm_shuffle_ps(vsum, vsum, _MM_SHUFFLE(3, 2, 1, 2)));
-  const __m128 v1 = _mm_mul_ps(
-      _mm_shuffle_ps(_quaternion, _quaternion, _MM_SHUFFLE(3, 3, 3, 3)),
-      _mm_shuffle_ps(vsum, vsum, _MM_SHUFFLE(3, 0, 2, 1)));
+          _mm_and_ps(OZZ_SHUFFLE_PS1(vms, _MM_SHUFFLE(3, 0, 0, 1)), fff0)),
+      _mm_and_ps(OZZ_SHUFFLE_PS1(vms, _MM_SHUFFLE(3, 1, 2, 2)), fff0));
+  const __m128 v0 =
+      _mm_mul_ps(OZZ_SHUFFLE_PS1(_quaternion, _MM_SHUFFLE(3, 1, 0, 0)),
+                 OZZ_SHUFFLE_PS1(vsum, _MM_SHUFFLE(3, 2, 1, 2)));
+  const __m128 v1 =
+      _mm_mul_ps(OZZ_SHUFFLE_PS1(_quaternion, _MM_SHUFFLE(3, 3, 3, 3)),
+                 OZZ_SHUFFLE_PS1(vsum, _MM_SHUFFLE(3, 0, 2, 1)));
 
   const __m128 r1 = _mm_add_ps(v0, v1);
   const __m128 r2 = _mm_sub_ps(v0, v1);
 
   const __m128 r1r21021 = _mm_shuffle_ps(r1, r2, _MM_SHUFFLE(1, 0, 2, 1));
-  const __m128 v2 = _mm_shuffle_ps(r1r21021, r1r21021, _MM_SHUFFLE(1, 3, 2, 0));
+  const __m128 v2 = OZZ_SHUFFLE_PS1(r1r21021, _MM_SHUFFLE(1, 3, 2, 0));
   const __m128 r1r22200 = _mm_shuffle_ps(r1, r2, _MM_SHUFFLE(2, 2, 0, 0));
-  const __m128 v3 = _mm_shuffle_ps(r1r22200, r1r22200, _MM_SHUFFLE(2, 0, 2, 0));
+  const __m128 v3 = OZZ_SHUFFLE_PS1(r1r22200, _MM_SHUFFLE(2, 0, 2, 0));
 
   const __m128 q0 = _mm_shuffle_ps(r0, v2, _MM_SHUFFLE(1, 0, 3, 0));
   const __m128 q1 = _mm_shuffle_ps(r0, v2, _MM_SHUFFLE(3, 2, 3, 1));
-  const Float4x4 ret = {{_mm_shuffle_ps(q0, q0, _MM_SHUFFLE(1, 3, 2, 0)),
-                         _mm_shuffle_ps(q1, q1, _MM_SHUFFLE(1, 3, 0, 2)),
+  const Float4x4 ret = {{OZZ_SHUFFLE_PS1(q0, _MM_SHUFFLE(1, 3, 2, 0)),
+                         OZZ_SHUFFLE_PS1(q1, _MM_SHUFFLE(1, 3, 0, 2)),
                          _mm_shuffle_ps(v3, r0, _MM_SHUFFLE(3, 2, 1, 0)),
                          w_axis}};
   return ret;
@@ -1758,30 +1798,30 @@ OZZ_INLINE Float4x4 Float4x4::FromAffine(_SimdFloat4 _translation,
   const __m128 r0 = _mm_sub_ps(
       _mm_sub_ps(
           c1110,
-          _mm_and_ps(_mm_shuffle_ps(vms, vms, _MM_SHUFFLE(3, 0, 0, 1)), fff0)),
-      _mm_and_ps(_mm_shuffle_ps(vms, vms, _MM_SHUFFLE(3, 1, 2, 2)), fff0));
-  const __m128 v0 = _mm_mul_ps(
-      _mm_shuffle_ps(_quaternion, _quaternion, _MM_SHUFFLE(3, 1, 0, 0)),
-      _mm_shuffle_ps(vsum, vsum, _MM_SHUFFLE(3, 2, 1, 2)));
-  const __m128 v1 = _mm_mul_ps(
-      _mm_shuffle_ps(_quaternion, _quaternion, _MM_SHUFFLE(3, 3, 3, 3)),
-      _mm_shuffle_ps(vsum, vsum, _MM_SHUFFLE(3, 0, 2, 1)));
+          _mm_and_ps(OZZ_SHUFFLE_PS1(vms, _MM_SHUFFLE(3, 0, 0, 1)), fff0)),
+      _mm_and_ps(OZZ_SHUFFLE_PS1(vms, _MM_SHUFFLE(3, 1, 2, 2)), fff0));
+  const __m128 v0 =
+      _mm_mul_ps(OZZ_SHUFFLE_PS1(_quaternion, _MM_SHUFFLE(3, 1, 0, 0)),
+                 OZZ_SHUFFLE_PS1(vsum, _MM_SHUFFLE(3, 2, 1, 2)));
+  const __m128 v1 =
+      _mm_mul_ps(OZZ_SHUFFLE_PS1(_quaternion, _MM_SHUFFLE(3, 3, 3, 3)),
+                 OZZ_SHUFFLE_PS1(vsum, _MM_SHUFFLE(3, 0, 2, 1)));
 
   const __m128 r1 = _mm_add_ps(v0, v1);
   const __m128 r2 = _mm_sub_ps(v0, v1);
 
   const __m128 r1r21021 = _mm_shuffle_ps(r1, r2, _MM_SHUFFLE(1, 0, 2, 1));
-  const __m128 v2 = _mm_shuffle_ps(r1r21021, r1r21021, _MM_SHUFFLE(1, 3, 2, 0));
+  const __m128 v2 = OZZ_SHUFFLE_PS1(r1r21021, _MM_SHUFFLE(1, 3, 2, 0));
   const __m128 r1r22200 = _mm_shuffle_ps(r1, r2, _MM_SHUFFLE(2, 2, 0, 0));
-  const __m128 v3 = _mm_shuffle_ps(r1r22200, r1r22200, _MM_SHUFFLE(2, 0, 2, 0));
+  const __m128 v3 = OZZ_SHUFFLE_PS1(r1r22200, _MM_SHUFFLE(2, 0, 2, 0));
 
   const __m128 q0 = _mm_shuffle_ps(r0, v2, _MM_SHUFFLE(1, 0, 3, 0));
   const __m128 q1 = _mm_shuffle_ps(r0, v2, _MM_SHUFFLE(3, 2, 3, 1));
 
   const Float4x4 ret = {
-      {_mm_mul_ps(_mm_shuffle_ps(q0, q0, _MM_SHUFFLE(1, 3, 2, 0)),
+      {_mm_mul_ps(OZZ_SHUFFLE_PS1(q0, _MM_SHUFFLE(1, 3, 2, 0)),
                   OZZ_SSE_SPLAT_F(_scale, 0)),
-       _mm_mul_ps(_mm_shuffle_ps(q1, q1, _MM_SHUFFLE(1, 3, 0, 2)),
+       _mm_mul_ps(OZZ_SHUFFLE_PS1(q1, _MM_SHUFFLE(1, 3, 0, 2)),
                   OZZ_SSE_SPLAT_F(_scale, 1)),
        _mm_mul_ps(_mm_shuffle_ps(v3, r0, _MM_SHUFFLE(3, 2, 1, 0)),
                   OZZ_SSE_SPLAT_F(_scale, 2)),
@@ -1996,6 +2036,7 @@ OZZ_INLINE SimdFloat4 HalfToFloat(_SimdInt4 _h) {
 }  // namespace math
 }  // namespace ozz
 
+#undef OZZ_SHUFFLE_PS1
 #undef OZZ_SSE_SPLAT_F
 #undef OZZ_SSE_HADD2_F
 #undef OZZ_SSE_HADD3_F

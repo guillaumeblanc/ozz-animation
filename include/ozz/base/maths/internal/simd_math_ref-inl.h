@@ -198,31 +198,30 @@ OZZ_INLINE float GetY(_SimdFloat4 _v) { return _v.y; }
 OZZ_INLINE float GetZ(_SimdFloat4 _v) { return _v.z; }
 
 OZZ_INLINE float GetW(_SimdFloat4 _v) { return _v.w; }
-
-OZZ_INLINE SimdFloat4 SetX(_SimdFloat4 _v, float _f) {
-  const SimdFloat4 ret = {_f, _v.y, _v.z, _v.w};
+OZZ_INLINE SimdFloat4 SetX(_SimdFloat4 _v, _SimdFloat4 _f) {
+  const SimdFloat4 ret = {_f.x, _v.y, _v.z, _v.w};
   return ret;
 }
 
-OZZ_INLINE SimdFloat4 SetY(_SimdFloat4 _v, float _f) {
-  const SimdFloat4 ret = {_v.x, _f, _v.z, _v.w};
+OZZ_INLINE SimdFloat4 SetY(_SimdFloat4 _v, _SimdFloat4 _f) {
+  const SimdFloat4 ret = {_v.x, _f.x, _v.z, _v.w};
   return ret;
 }
 
-OZZ_INLINE SimdFloat4 SetZ(_SimdFloat4 _v, float _f) {
-  const SimdFloat4 ret = {_v.x, _v.y, _f, _v.w};
+OZZ_INLINE SimdFloat4 SetZ(_SimdFloat4 _v, _SimdFloat4 _f) {
+  const SimdFloat4 ret = {_v.x, _v.y, _f.x, _v.w};
   return ret;
 }
 
-OZZ_INLINE SimdFloat4 SetW(_SimdFloat4 _v, float _f) {
-  const SimdFloat4 ret = {_v.x, _v.y, _v.z, _f};
+OZZ_INLINE SimdFloat4 SetW(_SimdFloat4 _v, _SimdFloat4 _f) {
+  const SimdFloat4 ret = {_v.x, _v.y, _v.z, _f.x};
   return ret;
 }
 
-OZZ_INLINE SimdFloat4 SetI(_SimdFloat4 _v, int _ith, float _f) {
-  assert(_ith >= 0 && _ith <= 3 && "Invalid index ranges");
+OZZ_INLINE SimdFloat4 SetI(_SimdFloat4 _v, _SimdFloat4 _f, int _ith) {
+  assert(_ith >= 0 && _ith <= 3 && "Invalid index, out of range.");
   SimdFloat4 ret = _v;
-  (&ret.x)[_ith] = _f;
+  (&ret.x)[_ith] = _f.x;
   return ret;
 }
 
@@ -440,30 +439,30 @@ OZZ_INLINE SimdFloat4 HAdd3(_SimdFloat4 _v) {
 }
 
 OZZ_INLINE SimdFloat4 HAdd4(_SimdFloat4 _v) {
-  const SimdFloat4 ret = {_v.x + _v.y + _v.z + _v.w, _v.y, _v.z, _v.w};
+  const SimdFloat4 ret = {_v.x + _v.y + _v.z + _v.w, _v.x, _v.x, _v.x};
   return ret;
 }
 
 OZZ_INLINE SimdFloat4 Dot2(_SimdFloat4 _a, _SimdFloat4 _b) {
-  const SimdFloat4 ret = {_a.x * _b.x + _a.y * _b.y, _a.y, _a.z, _a.w};
+  const SimdFloat4 ret = {_a.x * _b.x + _a.y * _b.y, _a.x, _a.x, _a.x};
   return ret;
 }
 
 OZZ_INLINE SimdFloat4 Dot3(_SimdFloat4 _a, _SimdFloat4 _b) {
-  const SimdFloat4 ret = {_a.x * _b.x + _a.y * _b.y + _a.z * _b.z, _a.y, _a.z,
-                          _a.w};
+  const SimdFloat4 ret = {_a.x * _b.x + _a.y * _b.y + _a.z * _b.z, _a.x, _a.x,
+                          _a.x};
   return ret;
 }
 
 OZZ_INLINE SimdFloat4 Dot4(_SimdFloat4 _a, _SimdFloat4 _b) {
   const SimdFloat4 ret = {_a.x * _b.x + _a.y * _b.y + _a.z * _b.z + _a.w * _b.w,
-                          _a.y, _a.z, _a.w};
+                          _a.x, _a.x, _a.x};
   return ret;
 }
 
 OZZ_INLINE SimdFloat4 Cross3(_SimdFloat4 _a, _SimdFloat4 _b) {
   const SimdFloat4 ret = {_a.y * _b.z - _a.z * _b.y, _a.z * _b.x - _a.x * _b.z,
-                          _a.x * _b.y - _a.y * _b.x, 0.f};
+                          _a.x * _b.y - _a.y * _b.x, _a.x};
   return ret;
 }
 
@@ -491,6 +490,15 @@ OZZ_INLINE SimdFloat4 RcpEstX(_SimdFloat4 _v) {
   ret.y = _v.y;
   ret.z = _v.z;
   ret.w = _v.w;
+  return ret;
+}
+
+OZZ_INLINE SimdFloat4 RcpEstXNR(_SimdFloat4 _v) {
+  SimdFloat4 ret;
+  OZZ_RCP_EST(_v.x, ret.x);
+  ret.y = _v.x;
+  ret.z = _v.x;
+  ret.w = _v.x;
   return ret;
 }
 
@@ -532,6 +540,15 @@ OZZ_INLINE SimdFloat4 RSqrtEstX(_SimdFloat4 _v) {
   return ret;
 }
 
+OZZ_INLINE SimdFloat4 RSqrtEstXNR(_SimdFloat4 _v) {
+  SimdFloat4 ret;
+  OZZ_RSQRT_EST(_v.x, ret.x);
+  ret.y = _v.x;
+  ret.z = _v.x;
+  ret.w = _v.x;
+  return ret;
+}
+
 OZZ_INLINE SimdFloat4 Abs(_SimdFloat4 _v) {
   const SimdFloat4 ret = {std::abs(_v.x), std::abs(_v.y), std::abs(_v.z),
                           std::abs(_v.w)};
@@ -549,37 +566,37 @@ OZZ_INLINE SimdInt4 Sign(_SimdFloat4 _v) {
 
 OZZ_INLINE SimdFloat4 Length2(_SimdFloat4 _v) {
   const float sq_len = _v.x * _v.x + _v.y * _v.y;
-  const SimdFloat4 ret = {std::sqrt(sq_len), _v.y, _v.z, _v.w};
+  const SimdFloat4 ret = {std::sqrt(sq_len), _v.x, _v.x, _v.x};
   return ret;
 }
 
 OZZ_INLINE SimdFloat4 Length3(_SimdFloat4 _v) {
   const float sq_len = _v.x * _v.x + _v.y * _v.y + _v.z * _v.z;
-  const SimdFloat4 ret = {std::sqrt(sq_len), _v.y, _v.z, _v.w};
+  const SimdFloat4 ret = {std::sqrt(sq_len), _v.x, _v.x, _v.x};
   return ret;
 }
 
 OZZ_INLINE SimdFloat4 Length4(_SimdFloat4 _v) {
   const float sq_len = _v.x * _v.x + _v.y * _v.y + _v.z * _v.z + _v.w * _v.w;
-  const SimdFloat4 ret = {std::sqrt(sq_len), _v.y, _v.z, _v.w};
+  const SimdFloat4 ret = {std::sqrt(sq_len), _v.x, _v.x, _v.x};
   return ret;
 }
 
 OZZ_INLINE SimdFloat4 Length2Sqr(_SimdFloat4 _v) {
   const float sq_len = _v.x * _v.x + _v.y * _v.y;
-  const SimdFloat4 ret = {sq_len, _v.y, _v.z, _v.w};
+  const SimdFloat4 ret = {sq_len, _v.x, _v.x, _v.x};
   return ret;
 }
 
 OZZ_INLINE SimdFloat4 Length3Sqr(_SimdFloat4 _v) {
   const float sq_len = _v.x * _v.x + _v.y * _v.y + _v.z * _v.z;
-  const SimdFloat4 ret = {sq_len, _v.y, _v.z, _v.w};
+  const SimdFloat4 ret = {sq_len, _v.x, _v.x, _v.x};
   return ret;
 }
 
 OZZ_INLINE SimdFloat4 Length4Sqr(_SimdFloat4 _v) {
   const float sq_len = _v.x * _v.x + _v.y * _v.y + _v.z * _v.z + _v.w * _v.w;
-  const SimdFloat4 ret = {sq_len, _v.y, _v.z, _v.w};
+  const SimdFloat4 ret = {sq_len, _v.x, _v.x, _v.x};
   return ret;
 }
 
@@ -679,6 +696,7 @@ OZZ_INLINE SimdInt4 IsNormalizedEst4(_SimdFloat4 _v) {
 }
 
 OZZ_INLINE SimdFloat4 NormalizeSafe2(_SimdFloat4 _v, _SimdFloat4 _safe) {
+  // assert(AreAllTrue1(IsNormalized2(_safe)) && "_safe is not normalized");
   const float sq_len = _v.x * _v.x + _v.y * _v.y;
   if (sq_len == 0.f) {
     const SimdFloat4 ret = {_safe.x, _safe.y, _v.z, _v.w};
@@ -690,6 +708,7 @@ OZZ_INLINE SimdFloat4 NormalizeSafe2(_SimdFloat4 _v, _SimdFloat4 _safe) {
 }
 
 OZZ_INLINE SimdFloat4 NormalizeSafe3(_SimdFloat4 _v, _SimdFloat4 _safe) {
+  // assert(AreAllTrue1(IsNormalized3(_safe)) && "_safe is not normalized");
   const float sq_len = _v.x * _v.x + _v.y * _v.y + _v.z * _v.z;
   if (sq_len == 0.f) {
     const SimdFloat4 ret = {_safe.x, _safe.y, _safe.z, _v.w};
@@ -701,6 +720,7 @@ OZZ_INLINE SimdFloat4 NormalizeSafe3(_SimdFloat4 _v, _SimdFloat4 _safe) {
 }
 
 OZZ_INLINE SimdFloat4 NormalizeSafe4(_SimdFloat4 _v, _SimdFloat4 _safe) {
+  // assert(AreAllTrue1(IsNormalized4(_safe)) && "_safe is not normalized");
   const float sq_len = _v.x * _v.x + _v.y * _v.y + _v.z * _v.z + _v.w * _v.w;
   if (sq_len == 0.f) {
     return _safe;
@@ -712,6 +732,7 @@ OZZ_INLINE SimdFloat4 NormalizeSafe4(_SimdFloat4 _v, _SimdFloat4 _safe) {
 }
 
 OZZ_INLINE SimdFloat4 NormalizeSafeEst2(_SimdFloat4 _v, _SimdFloat4 _safe) {
+  // assert(AreAllTrue1(IsNormalizedEst2(_safe)) && "_safe is not normalized");
   const float sq_len = _v.x * _v.x + _v.y * _v.y;
   if (sq_len == 0.f) {
     const SimdFloat4 ret = {_safe.x, _safe.y, _v.z, _v.w};
@@ -724,6 +745,7 @@ OZZ_INLINE SimdFloat4 NormalizeSafeEst2(_SimdFloat4 _v, _SimdFloat4 _safe) {
 }
 
 OZZ_INLINE SimdFloat4 NormalizeSafeEst3(_SimdFloat4 _v, _SimdFloat4 _safe) {
+  // assert(AreAllTrue1(IsNormalizedEst3(_safe)) && "_safe is not normalized");
   const float sq_len = _v.x * _v.x + _v.y * _v.y + _v.z * _v.z;
   if (sq_len == 0.f) {
     const SimdFloat4 ret = {_safe.x, _safe.y, _safe.z, _v.w};
@@ -736,6 +758,7 @@ OZZ_INLINE SimdFloat4 NormalizeSafeEst3(_SimdFloat4 _v, _SimdFloat4 _safe) {
 }
 
 OZZ_INLINE SimdFloat4 NormalizeSafeEst4(_SimdFloat4 _v, _SimdFloat4 _safe) {
+  // assert(AreAllTrue1(IsNormalizedEst4(_safe)) && "_safe is not normalized");
   const float sq_len = _v.x * _v.x + _v.y * _v.y + _v.z * _v.z + _v.w * _v.w;
   if (sq_len == 0.f) {
     return _safe;
@@ -1021,6 +1044,13 @@ OZZ_INLINE SimdInt4 mask_sign() {
   return ret;
 }
 
+OZZ_INLINE SimdInt4 mask_sign_xyz() {
+  const SimdInt4 ret = {
+      static_cast<int>(0x80000000), static_cast<int>(0x80000000),
+      static_cast<int>(0x80000000), static_cast<int>(0x00000000)};
+  return ret;
+}
+
 OZZ_INLINE SimdInt4 mask_not_sign() {
   const SimdInt4 ret = {
       static_cast<int>(0x7fffffff), static_cast<int>(0x7fffffff),
@@ -1177,30 +1207,30 @@ OZZ_INLINE int GetZ(_SimdInt4 _v) { return _v.z; }
 
 OZZ_INLINE int GetW(_SimdInt4 _v) { return _v.w; }
 
-OZZ_INLINE SimdInt4 SetX(_SimdInt4 _v, int _i) {
-  const SimdInt4 ret = {_i, _v.y, _v.z, _v.w};
+OZZ_INLINE SimdInt4 SetX(_SimdInt4 _v, _SimdInt4 _i) {
+  const SimdInt4 ret = {_i.x, _v.y, _v.z, _v.w};
   return ret;
 }
 
-OZZ_INLINE SimdInt4 SetY(_SimdInt4 _v, int _i) {
-  const SimdInt4 ret = {_v.x, _i, _v.z, _v.w};
+OZZ_INLINE SimdInt4 SetY(_SimdInt4 _v, _SimdInt4 _i) {
+  const SimdInt4 ret = {_v.x, _i.x, _v.z, _v.w};
   return ret;
 }
 
-OZZ_INLINE SimdInt4 SetZ(_SimdInt4 _v, int _i) {
-  const SimdInt4 ret = {_v.x, _v.y, _i, _v.w};
+OZZ_INLINE SimdInt4 SetZ(_SimdInt4 _v, _SimdInt4 _i) {
+  const SimdInt4 ret = {_v.x, _v.y, _i.x, _v.w};
   return ret;
 }
 
-OZZ_INLINE SimdInt4 SetW(_SimdInt4 _v, int _i) {
-  const SimdInt4 ret = {_v.x, _v.y, _v.z, _i};
+OZZ_INLINE SimdInt4 SetW(_SimdInt4 _v, _SimdInt4 _i) {
+  const SimdInt4 ret = {_v.x, _v.y, _v.z, _i.x};
   return ret;
 }
 
-OZZ_INLINE SimdInt4 SetI(_SimdInt4 _v, int _ith, int _i) {
-  assert(_ith >= 0 && _ith <= 3 && "Invalid index ranges");
+OZZ_INLINE SimdInt4 SetI(_SimdInt4 _v, _SimdInt4 _i, int _ith) {
+  assert(_ith >= 0 && _ith <= 3 && "Invalid index, out of range.");
   SimdInt4 ret = _v;
-  (&ret.x)[_ith] = _i;
+  (&ret.x)[_ith] = _i.x;
   return ret;
 }
 

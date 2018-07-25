@@ -90,32 +90,28 @@ TEST(LoadFloatPtr, ozz_simd_math) {
 }
 
 TEST(GetFloat, ozz_simd_math) {
-  const SimdFloat4 f = ozz::math::simd_float4::Load(1.f, -1.f, 2.f, -3.f);
+  const SimdFloat4 f = ozz::math::simd_float4::Load(1.f, 2.f, 3.f, 4.f);
 
   EXPECT_FLOAT_EQ(ozz::math::GetX(f), 1.f);
-  EXPECT_FLOAT_EQ(ozz::math::GetY(f), -1.f);
-  EXPECT_FLOAT_EQ(ozz::math::GetZ(f), 2.f);
-  EXPECT_FLOAT_EQ(ozz::math::GetW(f), -3.f);
+  EXPECT_FLOAT_EQ(ozz::math::GetY(f), 2.f);
+  EXPECT_FLOAT_EQ(ozz::math::GetZ(f), 3.f);
+  EXPECT_FLOAT_EQ(ozz::math::GetW(f), 4.f);
 }
 
 TEST(SetFloat, ozz_simd_math) {
-  const SimdFloat4 i = ozz::math::simd_float4::Load(1.f, -1.f, 2.f, -3.f);
+  const SimdFloat4 a = ozz::math::simd_float4::Load(1.f, 2.f, 3.f, 4.f);
+  const SimdFloat4 b = ozz::math::simd_float4::Load(5.f, 6.f, 7.f, 8.f);
 
-  const SimdFloat4 j = ozz::math::SetX(i, 11.f);
-  EXPECT_SIMDFLOAT_EQ(j, 11.f, -1.f, 2.f, -3.f);
+  EXPECT_SIMDFLOAT_EQ(ozz::math::SetX(a, b), 5.f, 2.f, 3.f, 4.f);
+  EXPECT_SIMDFLOAT_EQ(ozz::math::SetY(a, b), 1.f, 5.f, 3.f, 4.f);
+  EXPECT_SIMDFLOAT_EQ(ozz::math::SetZ(a, b), 1.f, 2.f, 5.f, 4.f);
+  EXPECT_SIMDFLOAT_EQ(ozz::math::SetW(a, b), 1.f, 2.f, 3.f, 5.f);
 
-  const SimdFloat4 k = ozz::math::SetY(i, -11.f);
-  EXPECT_SIMDFLOAT_EQ(k, 1.f, -11.f, 2.f, -3.f);
-
-  const SimdFloat4 l = ozz::math::SetZ(i, 21.f);
-  EXPECT_SIMDFLOAT_EQ(l, 1.f, -1.f, 21.f, -3.f);
-
-  const SimdFloat4 m = ozz::math::SetW(i, -31.f);
-  EXPECT_SIMDFLOAT_EQ(m, 1.f, -1.f, 2.f, -31.f);
-
-  EXPECT_ASSERTION(ozz::math::SetI(i, 7, 46.f), "range");
-  const SimdFloat4 i3 = ozz::math::SetI(i, 2, 46.f);
-  EXPECT_SIMDFLOAT_EQ(i3, 1.f, -1.f, 46.f, -3.f);
+  EXPECT_ASSERTION(ozz::math::SetI(a, b, 4), "Invalid index, out of range.");
+  EXPECT_SIMDFLOAT_EQ(ozz::math::SetI(a, b, 0), 5.f, 2.f, 3.f, 4.f);
+  EXPECT_SIMDFLOAT_EQ(ozz::math::SetI(a, b, 1), 1.f, 5.f, 3.f, 4.f);
+  EXPECT_SIMDFLOAT_EQ(ozz::math::SetI(a, b, 2), 1.f, 2.f, 5.f, 4.f);
+  EXPECT_SIMDFLOAT_EQ(ozz::math::SetI(a, b, 3), 1.f, 2.f, 3.f, 5.f);
 }
 
 TEST(StoreFloatPtr, ozz_simd_math) {
@@ -284,27 +280,32 @@ TEST(ArithmeticFloat, ozz_simd_math) {
   EXPECT_SIMDFLOAT_EQ(hadd3, 3.5f, 1.f, 2.f, 3.f);
 
   const ozz::math::SimdFloat4 hadd4 = ozz::math::HAdd4(a);
-  EXPECT_SIMDFLOAT_EQ(hadd4, 6.5f, 1.f, 2.f, 3.f);
+  EXPECT_FLOAT_EQ(ozz::math::GetX(hadd4), 6.5f);
 
   const ozz::math::SimdFloat4 dot2 = ozz::math::Dot2(a, b);
-  EXPECT_SIMDFLOAT_EQ(dot2, 7.f, 1.f, 2.f, 3.f);
+  EXPECT_FLOAT_EQ(ozz::math::GetX(dot2), 7.f);
 
   const ozz::math::SimdFloat4 dot3 = ozz::math::Dot3(a, b);
-  EXPECT_SIMDFLOAT_EQ(dot3, -5.f, 1.f, 2.f, 3.f);
+  EXPECT_FLOAT_EQ(ozz::math::GetX(dot3), -5.f);
 
   const ozz::math::SimdFloat4 dot4 = ozz::math::Dot4(a, b);
-  EXPECT_SIMDFLOAT_EQ(dot4, 16.f, 1.f, 2.f, 3.f);
+  EXPECT_FLOAT_EQ(ozz::math::GetX(dot4), 16.f);
 
   const ozz::math::SimdFloat4 cross = ozz::math::Cross3(
     ozz::math::simd_float4::Load(1.f, -2.f, 3.f, 46.f),
     ozz::math::simd_float4::Load(4.f, 5.f, 6.f, 27.f));
-  EXPECT_SIMDFLOAT_EQ(cross, -27.f, 6.f, 13.f, 0.f);
-  
+  EXPECT_FLOAT_EQ(ozz::math::GetX(cross), -27.f);
+  EXPECT_FLOAT_EQ(ozz::math::GetY(cross), 6.f);
+  EXPECT_FLOAT_EQ(ozz::math::GetZ(cross), 13.f);
+
   const ozz::math::SimdFloat4 rcp = ozz::math::RcpEst(b);
   EXPECT_SIMDFLOAT_EQ_EST(rcp, 1.f/4.f, 1.f/5.f, -1.f/6.f, 1.f/7.f);
 
   const ozz::math::SimdFloat4 rcpnr = ozz::math::RcpEstNR(b);
   EXPECT_SIMDFLOAT_EQ(rcpnr, 1.f/4.f, 1.f/5.f, -1.f/6.f, 1.f/7.f);
+
+  const ozz::math::SimdFloat4 rcpxnr = ozz::math::RcpEstXNR(b);
+    EXPECT_FLOAT_EQ(ozz::math::GetX(rcpxnr), 1.f/4.f);
 
   const ozz::math::SimdFloat4 rcpx = ozz::math::RcpEstX(b);
   EXPECT_SIMDFLOAT_EQ_EST(rcpx, 1.f/4.f, 5.f, -6.f, 7.f);
@@ -324,6 +325,9 @@ TEST(ArithmeticFloat, ozz_simd_math) {
   const ozz::math::SimdFloat4 rsqrtx = ozz::math::RSqrtEstX(a);
   EXPECT_SIMDFLOAT_EQ_EST(rsqrtx, 1.f/.7071068f, 1.f, 2.f, 3.f);
 
+  const ozz::math::SimdFloat4 rsqrtxnr = ozz::math::RSqrtEstXNR(a);
+  EXPECT_FLOAT_EQ(ozz::math::GetX(rsqrtxnr), 1.f/.7071068f);
+
   const ozz::math::SimdFloat4 abs = ozz::math::Abs(b);
   EXPECT_SIMDFLOAT_EQ(abs, 4.f, 5.f, 6.f, 7.f);
 
@@ -335,22 +339,22 @@ TEST(LengthFloat, ozz_simd_math) {
   const SimdFloat4 f = ozz::math::simd_float4::Load(1.f, 2.f, 4.f, 8.f);
 
   const SimdFloat4 len2 = ozz::math::Length2(f);
-  EXPECT_SIMDFLOAT_EQ(len2, 2.236068f, 2.f, 4.f, 8.f);
+  EXPECT_FLOAT_EQ(ozz::math::GetX(len2), 2.236068f);
 
   const SimdFloat4 len3 = ozz::math::Length3(f);
-  EXPECT_SIMDFLOAT_EQ(len3, 4.5825758f, 2.f, 4.f, 8.f);
+  EXPECT_FLOAT_EQ(ozz::math::GetX(len3), 4.5825758f);
 
   const SimdFloat4 len4 = ozz::math::Length4(f);
-  EXPECT_SIMDFLOAT_EQ(len4, 9.2195444f, 2.f, 4.f, 8.f);
+  EXPECT_FLOAT_EQ(ozz::math::GetX(len4), 9.2195444f);
 
   const SimdFloat4 len2sqr = ozz::math::Length2Sqr(f);
-  EXPECT_SIMDFLOAT_EQ(len2sqr, 5.f, 2.f, 4.f, 8.f);
+  EXPECT_FLOAT_EQ(ozz::math::GetX(len2sqr), 5.f);
 
   const SimdFloat4 len3sqr = ozz::math::Length3Sqr(f);
-  EXPECT_SIMDFLOAT_EQ(len3sqr, 21.f, 2.f, 4.f, 8.f);
+  EXPECT_FLOAT_EQ(ozz::math::GetX(len3sqr), 21.f);
 
   const SimdFloat4 len4sqr = ozz::math::Length4Sqr(f);
-  EXPECT_SIMDFLOAT_EQ(len4sqr, 85.f, 2.f, 4.f, 8.f);
+  EXPECT_FLOAT_EQ(ozz::math::GetX(len4sqr), 85.f);
 }
 
 TEST(NormalizeFloat, ozz_simd_math) {
@@ -539,19 +543,20 @@ TEST(TrigonometryFloat, ozz_simd_math) {
 TEST(LogicalFloat, ozz_simd_math) {
   const SimdFloat4 a = ozz::math::simd_float4::Load(0.f, 1.f, 2.f, 3.f);
   const SimdFloat4 b = ozz::math::simd_float4::Load(1.f, -1.f, -3.f, -4.f);
-  const SimdInt4 m = ozz::math::simd_int4::Load(0xffffffff, 0, 0x80000000, 0x7fffffff);
-  const SimdFloat4 mf = ozz::math::simd_float4::Load(1.f, 0.f, -0.f, 3.f);
+  const SimdInt4 mbool = ozz::math::simd_int4::Load(0xffffffff, 0, 0, 0xffffffff);
+  const SimdInt4 mbit = ozz::math::simd_int4::Load(0xffffffff, 0, 0x80000000, 0x7fffffff);
+  const SimdFloat4 mfloat = ozz::math::simd_float4::Load(1.f, 0.f, -0.f, 3.f);
 
-  const SimdFloat4 select = ozz::math::Select(m, a , b);
-  EXPECT_SIMDFLOAT_EQ(select, 0.f, -1.f, 3.f, -3.f);
+  const SimdFloat4 select = ozz::math::Select(mbool, a , b);
+  EXPECT_SIMDFLOAT_EQ(select, 0.f, -1.f, -3.f, 3.f);
 
-  const SimdFloat4 andm = ozz::math::And(b, m);
+  const SimdFloat4 andm = ozz::math::And(b, mbit);
   EXPECT_SIMDFLOAT_EQ(andm, 1.f, 0.f, 0.f, 4.f);
 
-  const SimdFloat4 andf = ozz::math::And(b, mf);
+  const SimdFloat4 andf = ozz::math::And(b, mfloat);
   EXPECT_SIMDFLOAT_EQ(andf, 1.f, 0.f, -0.f, 2.f);
 
-  const SimdFloat4 orm = ozz::math::Or(a, m);
+  const SimdFloat4 orm = ozz::math::Or(a, mbit);
   union {float f; unsigned int i;} orx = {ozz::math::GetX(orm)};
   EXPECT_EQ(orx.i, 0xffffffff);
   EXPECT_FLOAT_EQ(ozz::math::GetY(orm), 1.f);
@@ -559,10 +564,10 @@ TEST(LogicalFloat, ozz_simd_math) {
   union {float f; int i;} orw = {ozz::math::GetW(orm)};
   EXPECT_TRUE(orw.i == 0x7fffffff);
 
-  const SimdFloat4 ormf = ozz::math::Or(a, mf);
+  const SimdFloat4 ormf = ozz::math::Or(a, mfloat);
   EXPECT_SIMDFLOAT_EQ(ormf, 1.f, 1.f, -2.f, 3.f);
 
-  const SimdFloat4 xorm = ozz::math::Xor(a, m);
+  const SimdFloat4 xorm = ozz::math::Xor(a, mbit);
   union {float f; unsigned int i;} xorx = {ozz::math::GetX(xorm)};
   EXPECT_TRUE(xorx.i == 0xffffffff);
   EXPECT_FLOAT_EQ(ozz::math::GetY(xorm), 1.f);
@@ -570,7 +575,7 @@ TEST(LogicalFloat, ozz_simd_math) {
   union {float f; unsigned int i;} xorw = {ozz::math::GetW(xorm)};
   EXPECT_TRUE(xorw.i == 0x3fbfffff);
 
-  const SimdFloat4 xormf = ozz::math::Xor(a, mf);
+  const SimdFloat4 xormf = ozz::math::Xor(a, mfloat);
   EXPECT_SIMDFLOAT_EQ(xormf, 1.f, 1.f, -2.f, 0.f);
 }
 

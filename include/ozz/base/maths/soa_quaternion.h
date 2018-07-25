@@ -48,8 +48,8 @@ struct SoaQuaternion {
 
   // Returns the identity SoaQuaternion.
   static OZZ_INLINE SoaQuaternion identity() {
-    const SoaQuaternion r = {simd_float4::zero(), simd_float4::zero(),
-                             simd_float4::zero(), simd_float4::one()};
+    const SimdFloat4 zero = simd_float4::zero();
+    const SoaQuaternion r = {zero, zero, zero, simd_float4::one()};
     return r;
   }
 };

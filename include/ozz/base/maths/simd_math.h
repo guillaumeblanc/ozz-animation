@@ -148,21 +148,21 @@ OZZ_INLINE float GetZ(_SimdFloat4 _v);
 // Returns the w component of _v as a float.
 OZZ_INLINE float GetW(_SimdFloat4 _v);
 
-// Returns _v with the x component set to _f.
-OZZ_INLINE SimdFloat4 SetX(_SimdFloat4 _v, float _f);
+// Returns _v with the x component set to x component of _f.
+OZZ_INLINE SimdFloat4 SetX(_SimdFloat4 _v, _SimdFloat4 _f);
 
-// Returns _v with the y component set to _f.
-OZZ_INLINE SimdFloat4 SetY(_SimdFloat4 _v, float _f);
+// Returns _v with the y component set to  x component of _f.
+OZZ_INLINE SimdFloat4 SetY(_SimdFloat4 _v, _SimdFloat4 _f);
 
-// Returns _v with the z component set to _f.
-OZZ_INLINE SimdFloat4 SetZ(_SimdFloat4 _v, float _f);
+// Returns _v with the z component set to  x component of _f.
+OZZ_INLINE SimdFloat4 SetZ(_SimdFloat4 _v, _SimdFloat4 _f);
 
-// Returns _v with the w component set to _f.
-OZZ_INLINE SimdFloat4 SetW(_SimdFloat4 _v, float _f);
+// Returns _v with the w component set to  x component of _f.
+OZZ_INLINE SimdFloat4 SetW(_SimdFloat4 _v, _SimdFloat4 _f);
 
 // Returns _v with the _i th component set to _f.
 // _i must be in range [0,3]
-OZZ_INLINE SimdFloat4 SetI(_SimdFloat4 _v, int _i, float _f);
+OZZ_INLINE SimdFloat4 SetI(_SimdFloat4 _v, _SimdFloat4 _f, int _i);
 
 // Stores the 4 components of _v to the four first floats of _f.
 // _f must be aligned to 16 bytes.
@@ -304,38 +304,38 @@ OZZ_INLINE SimdFloat4 HAdd4(_SimdFloat4 _v);
 
 // Computes the dot product of x and y components of _v. The result is
 // stored in the x component of the returned value. y, z, w of the returned
-// vector are the same as their respective components in _v.
+// vector are undefined.
 // r.x = _a.x * _a.x + _a.y * _a.y
-// r.y = _a.y
-// r.z = _a.z
-// r.w = _a.w
+// r.y = ?
+// r.z = ?
+// r.w = ?
 OZZ_INLINE SimdFloat4 Dot2(_SimdFloat4 _a, _SimdFloat4 _b);
 
 // Computes the dot product of x, y and z components of _v. The result is
 // stored in the x component of the returned value. y, z, w of the returned
-// vector are the same as their respective components in _a.
+// vector are undefined.
 // r.x = _a.x * _a.x + _a.y * _a.y + _a.z * _a.z
-// r.y = _a.y
-// r.z = _a.z
-// r.w = _a.w
+// r.y = ?
+// r.z = ?
+// r.w = ?
 OZZ_INLINE SimdFloat4 Dot3(_SimdFloat4 _a, _SimdFloat4 _b);
 
 // Computes the dot product of x, y, z and w components of _v. The result is
 // stored in the x component of the returned value. y, z, w of the returned
-// vector are the same as their respective components in _a.
+// vector are undefined.
 // r.x = _a.x * _a.x + _a.y * _a.y + _a.z * _a.z + _a.w * _a.w
-// r.y = _a.y
-// r.z = _a.z
-// r.w = _a.w
+// r.y = ?
+// r.z = ?
+// r.w = ?
 OZZ_INLINE SimdFloat4 Dot4(_SimdFloat4 _a, _SimdFloat4 _b);
 
 // Computes the cross product of x, y and z components of _v. The result is
 // stored in the x, y and z components of the returned value. w of the returned
-// vector is set to 0.
+// vector is undefined.
 // r.x = _a.y * _b.z - _a.z * _b.y
 // r.y = _a.z * _b.x - _a.x * _b.z
 // r.z = _a.x * _b.y - _a.y * _b.x
-// r.w = _a.w
+// r.w = ?
 OZZ_INLINE SimdFloat4 Cross3(_SimdFloat4 _a, _SimdFloat4 _b);
 
 // Returns the per component estimated reciprocal of _v.
@@ -349,6 +349,11 @@ OZZ_INLINE SimdFloat4 RcpEstNR(_SimdFloat4 _v);
 // the x component of the returned vector. y, z, w of the returned vector are
 // the same as their respective components in _v.
 OZZ_INLINE SimdFloat4 RcpEstX(_SimdFloat4 _v);
+
+// Returns the estimated reciprocal of the x component of _v, where
+// approximation is improved with one more new Newton-Raphson step. y, z, w of
+// the returned vector are undefined.
+OZZ_INLINE SimdFloat4 RcpEstXNR(_SimdFloat4 _v);
 
 // Returns the per component square root of _v.
 OZZ_INLINE SimdFloat4 Sqrt(_SimdFloat4 _v);
@@ -369,6 +374,11 @@ OZZ_INLINE SimdFloat4 RSqrtEstNR(_SimdFloat4 _v);
 // stores it in the x component of the returned vector. y, z, w of the returned
 // vector are the same as their respective components in _v.
 OZZ_INLINE SimdFloat4 RSqrtEstX(_SimdFloat4 _v);
+
+// Returns the estimated reciprocal square root of the x component of _v, where
+// approximation is improved with one more new Newton-Raphson step. y, z, w of
+// the returned vector are undefined.
+OZZ_INLINE SimdFloat4 RSqrtEstXNR(_SimdFloat4 _v);
 
 // Returns the per element absolute value of _v.
 OZZ_INLINE SimdFloat4 Abs(_SimdFloat4 _v);
@@ -393,33 +403,31 @@ OZZ_INLINE SimdFloat4 Max0(_SimdFloat4 _v);
 OZZ_INLINE SimdFloat4 Clamp(_SimdFloat4 _a, _SimdFloat4 _v, _SimdFloat4 _b);
 
 // Computes the length of the components x and y of _v, and stores it in the x
-// component of the returned vector. y, z, w of the returned vector are the
-// same as their respective components in _v.
+// component of the returned vector. y, z, w of the returned vector are
+// undefined.
 OZZ_INLINE SimdFloat4 Length2(_SimdFloat4 _v);
 
 // Computes the length of the components x, y and z of _v, and stores it in the
-// x component of the returned vector. y, z, w of the returned vector are the
-// same as their respective components in _v.
+// x component of the returned vector. undefined.
 OZZ_INLINE SimdFloat4 Length3(_SimdFloat4 _v);
 
 // Computes the length of _v, and stores it in the x component of the returned
-// vector. y, z, w of the returned vector are the same as their respective
-// components in _v.
+// vector. y, z, w of the returned vector are undefined.
 OZZ_INLINE SimdFloat4 Length4(_SimdFloat4 _v);
 
 // Computes the square length of the components x and y of _v, and stores it
 // in the x component of the returned vector. y, z, w of the returned vector are
-// the same as their respective components in _v.
+// undefined.
 OZZ_INLINE SimdFloat4 Length2Sqr(_SimdFloat4 _v);
 
 // Computes the square length of the components x, y and z of _v, and stores it
 // in the x component of the returned vector. y, z, w of the returned vector are
-// the same as their respective components in _v.
+// undefined.
 OZZ_INLINE SimdFloat4 Length3Sqr(_SimdFloat4 _v);
 
 // Computes the square length of the components x, y, z and w of _v, and stores
 // it in the x component of the returned vector. y, z, w of the returned vector
-// are the same as their respective components in _v.
+// undefined.
 OZZ_INLINE SimdFloat4 Length4Sqr(_SimdFloat4 _v);
 
 // Returns the normalized vector of the components x and y of _v, and stores
@@ -564,8 +572,9 @@ OZZ_INLINE SimdFloat4 ATan(_SimdFloat4 _v);
 // same as their respective components in _v.
 OZZ_INLINE SimdFloat4 ATanX(_SimdFloat4 _v);
 
-// Returns Per bit selection of vectors _true and _false according to _b.
-// _v[0...127] = _b[0...127] ? _true[0...127]:_false[0...127]
+// Returns boolean selection of vectors _true and _false according to _b.
+// All bits a each component of _b must have the same value (O or 0xffffffff)
+// to ensure portability.
 OZZ_INLINE SimdFloat4 Select(_SimdInt4 _b, _SimdFloat4 _true,
                              _SimdFloat4 _false);
 
@@ -645,6 +654,9 @@ OZZ_INLINE SimdInt4 mask_sign();
 
 // Returns a SimdInt4 vector with all bits set to 1 except sign.
 OZZ_INLINE SimdInt4 mask_not_sign();
+
+// Returns a SimdInt4 vector with sign bits of x, y and z components set to 1.
+OZZ_INLINE SimdInt4 mask_sign_xyz();
 
 // Returns a SimdInt4 vector with all bits set to 1.
 OZZ_INLINE SimdInt4 mask_ffff();
@@ -808,21 +820,21 @@ OZZ_INLINE int GetZ(_SimdInt4 _v);
 // Returns the w component of _v as a integer.
 OZZ_INLINE int GetW(_SimdInt4 _v);
 
-// Returns _v with the x component set to _i.
-OZZ_INLINE SimdInt4 SetX(_SimdInt4 _v, int _i);
+// Returns _v with the x component set to x component of _i.
+OZZ_INLINE SimdInt4 SetX(_SimdInt4 _v, _SimdInt4 _i);
 
-// Returns _v with the y component set to _i.
-OZZ_INLINE SimdInt4 SetY(_SimdInt4 _v, int _i);
+// Returns _v with the y component set to x component of _i.
+OZZ_INLINE SimdInt4 SetY(_SimdInt4 _v, _SimdInt4 _i);
 
-// Returns _v with the z component set to _i.
-OZZ_INLINE SimdInt4 SetZ(_SimdInt4 _v, int _i);
+// Returns _v with the z component set to x component of _i.
+OZZ_INLINE SimdInt4 SetZ(_SimdInt4 _v, _SimdInt4 _i);
 
-// Returns _v with the w component set to _i.
-OZZ_INLINE SimdInt4 SetW(_SimdInt4 _v, int _i);
+// Returns _v with the w component set to x component of _i.
+OZZ_INLINE SimdInt4 SetW(_SimdInt4 _v, _SimdInt4 _i);
 
 // Returns _v with the _ith component set to _i.
 // _i must be in range [0,3]
-OZZ_INLINE SimdInt4 SetI(_SimdInt4 _v, int _ith, int _i);
+OZZ_INLINE SimdInt4 SetI(_SimdInt4 _v, _SimdInt4 _i, int _ith);
 
 // Stores the 4 components of _v to the four first integers of _i.
 // _i must be aligned to 16 bytes.

@@ -108,6 +108,16 @@ do {                                                        \
     ExpectFloatNear(u.af[3], _w);                           \
 } while (void(0), 0)
   
+#define IMPL_EXPECT_SIMDFLOAT3_EQ_EST(_expected, _x, _y, _z)    \
+do {                                                            \
+    union {                                                     \
+      ozz::math::SimdFloat4 ret;                                \
+      float af[4];                                              \
+    } u = {_expected};                                          \
+    ExpectFloatNearEst(u.af[0], _x);                            \
+    ExpectFloatNearEst(u.af[1], _y);                            \
+    ExpectFloatNearEst(u.af[2], _z);                            \
+} while (void(0), 0)
 
 #define IMPL_EXPECT_SIMDFLOAT_EQ_EST(_expected, _x, _y, _z, _w) \
 do {                                                            \
@@ -119,6 +129,14 @@ do {                                                            \
     ExpectFloatNearEst(u.af[1], _y);                            \
     ExpectFloatNearEst(u.af[2], _z);                            \
     ExpectFloatNearEst(u.af[3], _w);                            \
+} while (void(0), 0)
+
+// Macro for testing ozz::math::simd::SimdFloat members with x, y, z, w values.
+#define EXPECT_SIMDFLOAT3_EQ(_expected, _x, _y, _z)      \
+do {                                                     \
+    SCOPED_TRACE("");                                    \
+    const ozz::math::SimdFloat4 expected(_expected);     \
+    IMPL_EXPECT_SIMDFLOAT3_EQ_EST(expected, _x, _y, _z); \
 } while (void(0), 0)
 
 // Macro for testing ozz::math::simd::SimdFloat members with x, y, z, w values.
@@ -162,6 +180,22 @@ do {                                                                          \
     IMPL_EXPECT_SIMDFLOAT_EQ(expected.cols[1], _y0, _y1, _y2, _y3);           \
     IMPL_EXPECT_SIMDFLOAT_EQ(expected.cols[2], _z0, _z1, _z2, _z3);           \
     IMPL_EXPECT_SIMDFLOAT_EQ(expected.cols[3], _w0, _w1, _w2, _w3);           \
+} while (void(0), 0)
+
+// Macro for testing ozz::math::simd::SimdQuaternion members with x, y, z, w values.
+#define EXPECT_SIMDQUATERNION_EQ(_expected, _x, _y, _z, _w)  \
+do {                                                         \
+    SCOPED_TRACE("");                                        \
+    const ozz::math::SimdFloat4 expected(_expected.xyzw);    \
+    IMPL_EXPECT_SIMDFLOAT_EQ(expected, _x, _y, _z, _w);      \
+} while (void(0), 0)
+
+// Macro for testing ozz::math::simd::SimdQuaternion members with x, y, z, w values.
+#define EXPECT_SIMDQUATERNION_EQ_EST(_expected, _x, _y, _z, _w)  \
+do {                                                         \
+    SCOPED_TRACE("");                                        \
+    const ozz::math::SimdFloat4 expected(_expected.xyzw);    \
+    IMPL_EXPECT_SIMDFLOAT_EQ_EST(expected, _x, _y, _z, _w);  \
 } while (void(0), 0)
 
 // Macro for testing ozz::math::SoaFloat4 members with x, y, z, w float values.
