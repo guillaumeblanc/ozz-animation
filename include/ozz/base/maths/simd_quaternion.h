@@ -186,7 +186,7 @@ OZZ_INLINE SimdQuaternion SimdQuaternion::FromVectors(_SimdFloat4 _from,
 OZZ_INLINE SimdQuaternion SimdQuaternion::FromUnitVectors(_SimdFloat4 _from,
                                                           _SimdFloat4 _to) {
   // http://lolengine.net/blog/2014/02/24/quaternion-from-two-vectors-final
-  assert(ozz::math::AreAllTrue1(IsNormalized3(_from) && IsNormalized3(_to)) &&
+  assert(ozz::math::AreAllTrue1(And(IsNormalized3(_from), IsNormalized3(_to))) &&
          "Input vectors must be normalized.");
 
   const SimdFloat4 real_part =
@@ -194,7 +194,7 @@ OZZ_INLINE SimdQuaternion SimdQuaternion::FromUnitVectors(_SimdFloat4 _from,
   if (GetX(real_part) < 1.e-6f) {
     // If _from and _to are exactly opposite, rotate 180 degrees around an
     // arbitrary orthogonal axis.
-    // Normalisation isn't needed, as from is already.
+    // Normalization isn't needed, as from is already.
     float from[4];
     ozz::math::StorePtrU(_from, from);
     SimdQuaternion quat = {

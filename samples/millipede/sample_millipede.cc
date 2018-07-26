@@ -52,13 +52,13 @@
 #include "framework/renderer.h"
 #include "framework/utils.h"
 
+using ozz::animation::offline::RawAnimation;
+using ozz::animation::offline::RawSkeleton;
 using ozz::math::Float3;
 using ozz::math::Float4;
+using ozz::math::Float4x4;
 using ozz::math::Quaternion;
 using ozz::math::SoaTransform;
-using ozz::math::Float4x4;
-using ozz::animation::offline::RawSkeleton;
-using ozz::animation::offline::RawAnimation;
 
 // A millipede slice is 2 legs and a spine.
 // Each slice is made of 7 joints, organized as follows.
@@ -80,15 +80,15 @@ const Float3 kTransDown = Float3(0.f, 0.f, 1.f);
 const Float3 kTransFoot = Float3(1.f, 0.f, 0.f);
 
 const Quaternion kRotLeftUp =
-    Quaternion::FromAxisAngle(Float4(0.f, 1.f, 0.f, -ozz::math::kPi_2));
+    Quaternion::FromAxisAngle(Float3::y_axis(), -ozz::math::kPi_2);
 const Quaternion kRotLeftDown =
-    Quaternion::FromAxisAngle(Float4(1.f, 0.f, 0.f, ozz::math::kPi_2)) *
-    Quaternion::FromAxisAngle(Float4(0.f, 1.f, 0.f, -ozz::math::kPi_2));
+    Quaternion::FromAxisAngle(Float3::x_axis(), ozz::math::kPi_2) *
+    Quaternion::FromAxisAngle(Float3::y_axis(), -ozz::math::kPi_2);
 const Quaternion kRotRightUp =
-    Quaternion::FromAxisAngle(Float4(0.f, 1.f, 0.f, ozz::math::kPi_2));
+    Quaternion::FromAxisAngle(Float3::y_axis(), ozz::math::kPi_2);
 const Quaternion kRotRightDown =
-    Quaternion::FromAxisAngle(Float4(1.f, 0.f, 0.f, ozz::math::kPi_2)) *
-    Quaternion::FromAxisAngle(Float4(0.f, 1.f, 0.f, -ozz::math::kPi_2));
+    Quaternion::FromAxisAngle(Float3::x_axis(), ozz::math::kPi_2) *
+    Quaternion::FromAxisAngle(Float3::y_axis(), -ozz::math::kPi_2);
 
 // Animation constants.
 const float kDuration = 6.f;
@@ -384,8 +384,7 @@ class MillipedeSampleApplication : public ozz::sample::Application {
         track.translations.push_back(skey);
 
         const RawAnimation::RotationKey rkey = {
-            0.f,
-            ozz::math::Quaternion::FromAxisAngle(Float4(0.f, 1.f, 0.f, 0.f))};
+            0.f, ozz::math::Quaternion::identity()};
         track.rotations.push_back(rkey);
       } else if (strstr(joint_name, "root")) {
         const RawAnimation::TranslationKey tkey0 = {

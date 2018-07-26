@@ -268,8 +268,10 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
       {  // Updates upper body animation sampler joint weights.
         ozz::math::SimdFloat4& weight_setting =
             upper_body_joint_weights_[joint_id / 4];
-        weight_setting = ozz::math::SetI(weight_setting, joint_id % 4,
-                                         upper_body_joint_weight_setting_);
+        weight_setting = ozz::math::SetI(
+            weight_setting,
+            ozz::math::simd_float4::Load1(upper_body_joint_weight_setting_),
+            joint_id % 4);
       }
     }
   }

@@ -1054,7 +1054,7 @@ OZZ_INLINE SimdInt4 SetX(_SimdInt4 _v, _SimdInt4 _i) {
 }
 
 OZZ_INLINE SimdInt4 SetY(_SimdInt4 _v, _SimdInt4 _i) {
-  const __m128i xfnn = _mm_unpacklo_epi32(_v, _i);
+  const __m128 xfnn = _mm_castsi128_ps(_mm_unpacklo_epi32(_v, _i));
   return _mm_castps_si128(
       _mm_shuffle_ps(xfnn, _mm_castsi128_ps(_v), _MM_SHUFFLE(3, 2, 1, 0)));
 }

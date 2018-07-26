@@ -203,9 +203,9 @@ Camera::Controls Camera::UpdateControls(float _delta_time) {
   const Float4x4 center = Float4x4::Translation(
       math::simd_float4::Load(center_.x, center_.y, center_.z, 1.f));
   const Float4x4 y_rotation = Float4x4::FromAxisAngle(
-      math::simd_float4::Load(0.f, 1.f, 0.f, angles_.y));
+      math::simd_float4::y_axis(), math::simd_float4::Load1(angles_.y));
   const Float4x4 x_rotation = Float4x4::FromAxisAngle(
-      math::simd_float4::Load(1.f, 0.f, 0.f, angles_.x));
+      math::simd_float4::x_axis(), math::simd_float4::Load1(angles_.x));
   const Float4x4 distance =
       Float4x4::Translation(math::simd_float4::Load(0.f, 0.f, distance_, 1.f));
 
