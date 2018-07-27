@@ -45,6 +45,17 @@ struct SimdQuaternion {
     return quat;
   }
 
+  // the angle in radian.
+  static OZZ_INLINE SimdQuaternion FromAxisAngle(_SimdFloat4 _axis,
+                                                 _SimdFloat4 _angle);
+
+  // Returns a normalized quaternion initialized from an axis and angle cosine
+  // representation.
+  // Assumes the axis part (x, y, z) of _axis_angle is normalized.
+  // _angle.x is the angle cosine in radian, it must be within [-1,1] range.
+  static OZZ_INLINE SimdQuaternion FromAxisCosAngle(_SimdFloat4 _axis,
+                                                    _SimdFloat4 _cos);
+
   // Returns the quaternion that will rotate vector _from into vector _to,
   // around their plan perpendicular axis.The input vectors don't need to be
   // normalized, they can be null also.
@@ -59,9 +70,6 @@ struct SimdQuaternion {
   // Returns a normalized quaternion initialized from an axis angle
   // representation.
   // Assumes the axis part (x, y, z) of _axis_angle is normalized. _angle.x is
-  // the angle in radian.
-  static OZZ_INLINE SimdQuaternion FromAxisAngle(_SimdFloat4 _axis,
-                                                 _SimdFloat4 _angle);
 };
 
 // Returns the multiplication of _a and _b. If both _a and _b are normalized,
@@ -133,9 +141,27 @@ OZZ_INLINE SimdQuaternion SimdQuaternion::FromAxisAngle(_SimdFloat4 _axis,
                                                         _SimdFloat4 _angle) {
   assert(AreAllTrue1(IsNormalizedEst3(_axis)) && "axis is not normalized.");
   const SimdFloat4 half_angle = _angle * simd_float4::Load1(.5f);
-  const SimdFloat4 sin_half = SinX(half_angle);
-  const SimdFloat4 cos_half = CosX(half_angle);
-  const SimdQuaternion quat = {SetW(_axis * SplatX(sin_half), cos_half)};
+  const SimdFloat4 half_sin = SinX(half_angle);
+  const SimdFloat4 half_cos = CosX(half_angle);
+  const SimdQuaternion quat = {SetW(_axis * SplatX(half_sin), half_cos)};
+  return quat;
+}
+
+OZZ_INLINE SimdQuaternion SimdQuaternion::FromAxisCosAngle(_SimdFloat4 _axis,
+                                                           _SimdFloat4 _cos) {
+  const SimdFloat4 one = simd_float4::one();
+  const SimdFloat4 half = simd_float4::Load1(.5f);
+
+  assert(AreAllTrue1(IsNormalizedEst3(_axis)) && "axis is not normalized.");
+  assert(AreAllTrue1(And(CmpGe(_cos, -one), CmpLe(_cos, one))) &&
+         "cos is not in [-1,1] range.");
+
+  const SimdFloat4 half_cos2 = (one + _cos) * half;
+  const SimdFloat4 half_sin2 = one - half_cos2;
+  const SimdFloat4 half_sincos2 = SetY(half_cos2, half_sin2);
+  const SimdFloat4 half_sincos = Sqrt(half_sincos2);
+  const SimdFloat4 half_sin = SplatY(half_sincos);
+  const SimdQuaternion quat = {SetW(_axis * half_sin, half_sincos)};
   return quat;
 }
 
@@ -186,8 +212,9 @@ OZZ_INLINE SimdQuaternion SimdQuaternion::FromVectors(_SimdFloat4 _from,
 OZZ_INLINE SimdQuaternion SimdQuaternion::FromUnitVectors(_SimdFloat4 _from,
                                                           _SimdFloat4 _to) {
   // http://lolengine.net/blog/2014/02/24/quaternion-from-two-vectors-final
-  assert(ozz::math::AreAllTrue1(And(IsNormalized3(_from), IsNormalized3(_to))) &&
-         "Input vectors must be normalized.");
+  assert(
+      ozz::math::AreAllTrue1(And(IsNormalized3(_from), IsNormalized3(_to))) &&
+      "Input vectors must be normalized.");
 
   const SimdFloat4 real_part =
       ozz::math::simd_float4::x_axis() + Dot3(_from, _to);
@@ -214,7 +241,7 @@ OZZ_INLINE SimdQuaternion SimdQuaternion::FromUnitVectors(_SimdFloat4 _from,
 // _q.conjugate() * (*this) * _q
 // w component of the returned vector is undefined.
 OZZ_INLINE SimdFloat4 TransformVector(const SimdQuaternion& _q,
-                                       _SimdFloat4 _v) {
+                                      _SimdFloat4 _v) {
   // http://www.neil.dantam.name/note/dantam-quaternion.pdf
   // _v + 2.f * cross(_q.xyz, cross(_q.xyz, _v) + _q.w * _v)
   const SimdFloat4 cross1 = Cross3(_q.xyzw, _v) + SplatW(_q.xyzw) * _v;

@@ -51,8 +51,14 @@ struct Quaternion {
   // Returns a normalized quaternion initialized from an axis angle
   // representation.
   // Assumes the axis part (x, y, z) of _axis_angle is normalized.
-  // _axis_angle.w is the angle in radian.
+  // _angle.x is the angle in radian.
   static OZZ_INLINE Quaternion FromAxisAngle(const Float3& _axis, float _angle);
+
+  // Returns a normalized quaternion initialized from an axis and angle cosine
+  // representation.
+  // Assumes the axis part (x, y, z) of _axis_angle is normalized.
+  // _angle.x is the angle cosine in radian, it must be within [-1,1] range.
+  static OZZ_INLINE Quaternion FromAxisCosAngle(const Float3& _axis, float _cos);
 
   // Returns a normalized quaternion initialized from an Euler representation.
   // Euler angles are ordered Heading, Elevation and Bank, or Yaw, Pitch and
@@ -157,12 +163,22 @@ OZZ_INLINE Quaternion NormalizeSafe(const Quaternion& _q,
 
 OZZ_INLINE Quaternion Quaternion::FromAxisAngle(const Float3& _axis,
                                                 float _angle) {
-  assert(IsNormalized(_axis));
+  assert(IsNormalized(_axis) && "axis is not normalized.");
   const float half_angle = _angle * .5f;
-  const float sin_half = std::sin(half_angle);
-  const float cos_half = std::cos(half_angle);
-  return Quaternion(_axis.x * sin_half, _axis.y * sin_half, _axis.z * sin_half,
-                    cos_half);
+  const float half_sin = std::sin(half_angle);
+  const float half_cos = std::cos(half_angle);
+  return Quaternion(_axis.x * half_sin, _axis.y * half_sin, _axis.z * half_sin,
+                    half_cos);
+}
+
+OZZ_INLINE Quaternion Quaternion::FromAxisCosAngle(const Float3& _axis, float _cos) {
+  assert(IsNormalized(_axis) && "axis is not normalized.");
+  assert(_cos >= -1.f && _cos <= 1.f && "cos is not in [-1,1] range.");
+
+  const float half_cos2 = (1.f + _cos) * 0.5f;
+  const float half_sin = std::sqrt(1.f - half_cos2);
+  return Quaternion(_axis.x * half_sin, _axis.y * half_sin, _axis.z * half_sin,
+                    std::sqrt(half_cos2));
 }
 
 // Returns to an axis angle representation of quaternion _q.

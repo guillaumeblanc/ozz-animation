@@ -342,6 +342,9 @@ TEST(QuaternionAxisAngle, ozz_simd_math) {
   EXPECT_SIMDQUATERNION_EQ(qy_mpi_2, 0.f, -.70710677f, 0.f, .70710677f);
   EXPECT_SIMDFLOAT_EQ(ToAxisAngle(qy_mpi_2), 0.f, -1.f, 0.f,
                       ozz::math::kPi_2);  // q = -q
+  const SimdQuaternion qmy_pi_2 =
+      SimdQuaternion::FromAxisAngle(-ozz::math::simd_float4::y_axis(), pi_2);
+  EXPECT_SIMDQUATERNION_EQ(qmy_pi_2, 0.f, -.70710677f, 0.f, .70710677f);
 
   const ozz::math::SimdFloat4 any_axis =
       ozz::math::simd_float4::Load(.819865f, .033034f, -.571604f, 99.f);
@@ -352,6 +355,52 @@ TEST(QuaternionAxisAngle, ozz_simd_math) {
   EXPECT_SIMDQUATERNION_EQ(qany, .4365425f, .017589169f, -.30435428f,
                            .84645736f);
   EXPECT_SIMDFLOAT_EQ(ToAxisAngle(qany), .819865f, .033034f, -.571604f, 1.123f);
+}
+
+TEST(QuaternionAxisCosAngle, ozz_simd_math) {
+  // Expect assertions from invalid inputs
+  EXPECT_ASSERTION(
+      SimdQuaternion::FromAxisCosAngle(ozz::math::simd_float4::zero(),
+                                       ozz::math::simd_float4::Load1(0.f)),
+      "axis is not normalized");
+  EXPECT_ASSERTION(SimdQuaternion::FromAxisCosAngle(
+                       ozz::math::simd_float4::y_axis(),
+                       ozz::math::simd_float4::Load1(-1.0000001f)),
+                   "cos is not in \\[-1,1\\] range.");
+  EXPECT_ASSERTION(SimdQuaternion::FromAxisCosAngle(
+                       ozz::math::simd_float4::y_axis(),
+                       ozz::math::simd_float4::Load1(1.0000001f)),
+                   "cos is not in \\[-1,1\\] range.");
+
+  // Identity
+  EXPECT_SIMDQUATERNION_EQ(
+      SimdQuaternion::FromAxisCosAngle(ozz::math::simd_float4::y_axis(),
+                                       ozz::math::simd_float4::Load(1.f, 99.f, 93.f, 5.f)),
+      0.f, 0.f, 0.f, 1.f);
+
+  // Other axis angles
+  EXPECT_SIMDQUATERNION_EQ(
+      SimdQuaternion::FromAxisCosAngle(
+          ozz::math::simd_float4::y_axis(),
+          ozz::math::simd_float4::Load(std::cos(ozz::math::kPi_2), 99.f, 93.f, 5.f)),
+      0.f, .70710677f, 0.f, .70710677f);
+  EXPECT_SIMDQUATERNION_EQ(
+      SimdQuaternion::FromAxisCosAngle(
+          -ozz::math::simd_float4::y_axis(),
+          ozz::math::simd_float4::Load(std::cos(ozz::math::kPi_2), 99.f, 93.f, 5.f)),
+      0.f, -.70710677f, 0.f, .70710677f);
+
+  EXPECT_SIMDQUATERNION_EQ(
+      SimdQuaternion::FromAxisCosAngle(
+          ozz::math::simd_float4::y_axis(),
+          ozz::math::simd_float4::Load(std::cos(3.f * ozz::math::kPi_4), 99.f, 93.f, 5.f)),
+      0.f, 0.923879504f, 0.f, 0.382683426f);
+
+  EXPECT_SIMDQUATERNION_EQ(
+      SimdQuaternion::FromAxisCosAngle(
+          ozz::math::simd_float4::Load(.819865f, .033034f, -.571604f, 99.f),
+          ozz::math::simd_float4::Load(std::cos(1.123f), 99.f, 93.f, 5.f)),
+      .4365425f, .017589169f, -.30435428f, .84645736f);
 }
 
 TEST(QuaternionTransformVector, ozz_simd_math) {
