@@ -58,7 +58,8 @@ struct Quaternion {
   // representation.
   // Assumes the axis part (x, y, z) of _axis_angle is normalized.
   // _angle.x is the angle cosine in radian, it must be within [-1,1] range.
-  static OZZ_INLINE Quaternion FromAxisCosAngle(const Float3& _axis, float _cos);
+  static OZZ_INLINE Quaternion FromAxisCosAngle(const Float3& _axis,
+                                                float _cos);
 
   // Returns a normalized quaternion initialized from an Euler representation.
   // Euler angles are ordered Heading, Elevation and Bank, or Yaw, Pitch and
@@ -171,7 +172,8 @@ OZZ_INLINE Quaternion Quaternion::FromAxisAngle(const Float3& _axis,
                     half_cos);
 }
 
-OZZ_INLINE Quaternion Quaternion::FromAxisCosAngle(const Float3& _axis, float _cos) {
+OZZ_INLINE Quaternion Quaternion::FromAxisCosAngle(const Float3& _axis,
+                                                   float _cos) {
   assert(IsNormalized(_axis) && "axis is not normalized.");
   assert(_cos >= -1.f && _cos <= 1.f && "cos is not in [-1,1] range.");
 

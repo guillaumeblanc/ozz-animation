@@ -70,8 +70,9 @@ TEST(QuaternionAxisAngle, ozz_math) {
   EXPECT_QUATERNION_EQ(
       Quaternion::FromAxisAngle(Float3::y_axis(), 3.f * ozz::math::kPi_4), 0.f,
       0.923879504f, 0.f, 0.382683426f);
-  EXPECT_FLOAT4_EQ(ToAxisAngle(Quaternion(0.f, 0.923879504f, 0.f, 0.382683426f)),
-                   0.f, 1.f, 0.f, 3.f * ozz::math::kPi_4);
+  EXPECT_FLOAT4_EQ(
+      ToAxisAngle(Quaternion(0.f, 0.923879504f, 0.f, 0.382683426f)), 0.f, 1.f,
+      0.f, 3.f * ozz::math::kPi_4);
 
   EXPECT_QUATERNION_EQ(
       Quaternion::FromAxisAngle(Float3(.819865f, .033034f, -.571604f), 1.123f),
@@ -95,19 +96,20 @@ TEST(QuaternionAxisCosAngle, ozz_math) {
                        0.f, 0.f, 1.f);
 
   // Other axis angles
-  EXPECT_QUATERNION_EQ(
-      Quaternion::FromAxisCosAngle(Float3::y_axis(), std::cos(ozz::math::kPi_2)), 0.f,
-      .70710677f, 0.f, .70710677f);
-  EXPECT_QUATERNION_EQ(
-      Quaternion::FromAxisCosAngle(-Float3::y_axis(), std::cos(ozz::math::kPi_2)), 0.f,
-      -.70710677f, 0.f, .70710677f);
+  EXPECT_QUATERNION_EQ(Quaternion::FromAxisCosAngle(Float3::y_axis(),
+                                                    std::cos(ozz::math::kPi_2)),
+                       0.f, .70710677f, 0.f, .70710677f);
+  EXPECT_QUATERNION_EQ(Quaternion::FromAxisCosAngle(-Float3::y_axis(),
+                                                    std::cos(ozz::math::kPi_2)),
+                       0.f, -.70710677f, 0.f, .70710677f);
+
+  EXPECT_QUATERNION_EQ(Quaternion::FromAxisCosAngle(
+                           Float3::y_axis(), std::cos(3.f * ozz::math::kPi_4)),
+                       0.f, 0.923879504f, 0.f, 0.382683426f);
 
   EXPECT_QUATERNION_EQ(
-      Quaternion::FromAxisCosAngle(Float3::y_axis(), std::cos(3.f * ozz::math::kPi_4)), 0.f,
-      0.923879504f, 0.f, 0.382683426f);
-
-  EXPECT_QUATERNION_EQ(
-      Quaternion::FromAxisCosAngle(Float3(.819865f, .033034f, -.571604f), std::cos(1.123f)),
+      Quaternion::FromAxisCosAngle(Float3(.819865f, .033034f, -.571604f),
+                                   std::cos(1.123f)),
       .4365425f, .017589169f, -.30435428f, .84645736f);
 }
 
