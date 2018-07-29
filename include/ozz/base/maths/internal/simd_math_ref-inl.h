@@ -416,10 +416,27 @@ OZZ_INLINE void Transpose16x16(const SimdFloat4 _in[16], SimdFloat4 _out[16]) {
   }
 }
 
-OZZ_INLINE SimdFloat4 MAdd(_SimdFloat4 _a, _SimdFloat4 _b,
-                           _SimdFloat4 _addend) {
-  const SimdFloat4 ret = {_a.x * _b.x + _addend.x, _a.y * _b.y + _addend.y,
-                          _a.z * _b.z + _addend.z, _a.w * _b.w + _addend.w};
+OZZ_INLINE SimdFloat4 MAdd(_SimdFloat4 _a, _SimdFloat4 _b, _SimdFloat4 _c) {
+  const SimdFloat4 ret = {_a.x * _b.x + _c.x, _a.y * _b.y + _c.y,
+                          _a.z * _b.z + _c.z, _a.w * _b.w + _c.w};
+  return ret;
+}
+
+OZZ_INLINE SimdFloat4 MSub(_SimdFloat4 _a, _SimdFloat4 _b, _SimdFloat4 _c) {
+  const SimdFloat4 ret = {_a.x * _b.x - _c.x, _a.y * _b.y - _c.y,
+                          _a.z * _b.z - _c.z, _a.w * _b.w - _c.w};
+  return ret;
+}
+
+OZZ_INLINE SimdFloat4 NMAdd(_SimdFloat4 _a, _SimdFloat4 _b, _SimdFloat4 _c) {
+  const SimdFloat4 ret = {_c.x - _a.x * _b.x, _c.y - _a.y * _b.y,
+                          _c.z - _a.z * _b.z, _c.w - _a.w * _b.w};
+  return ret;
+}
+
+OZZ_INLINE SimdFloat4 NMSub(_SimdFloat4 _a, _SimdFloat4 _b, _SimdFloat4 _c) {
+  const SimdFloat4 ret = {-_a.x * _b.x - _c.x, -_a.y * _b.y - _c.y,
+                          -_a.z * _b.z - _c.z, -_a.w * _b.w - _c.w};
   return ret;
 }
 

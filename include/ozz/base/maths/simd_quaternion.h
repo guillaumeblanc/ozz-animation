@@ -80,8 +80,9 @@ OZZ_INLINE SimdQuaternion operator*(const SimdQuaternion& _a,
   // (sa*sb-va.vb,va × vb + sa*vb + sb*va)
   const SimdFloat4 sa = SplatW(_a.xyzw);
   const SimdFloat4 sb = SplatW(_b.xyzw);
-  const SimdFloat4 vec = Cross3(_a.xyzw, _b.xyzw) + sa * _b.xyzw + sb * _a.xyzw;
-  const SimdFloat4 sca = sa * sb - Dot3(_a.xyzw, _b.xyzw);
+  const SimdFloat4 vec =
+      MAdd(sb, _a.xyzw, MAdd(sa, _b.xyzw, Cross3(_a.xyzw, _b.xyzw)));
+  const SimdFloat4 sca = MSub(sa, sb, Dot3(_a.xyzw, _b.xyzw));
   const SimdQuaternion quat = {SetW(vec, sca)};
   return quat;
 }
@@ -174,7 +175,7 @@ OZZ_INLINE SimdFloat4 ToAxisAngle(const SimdQuaternion& _q) {
   const SimdFloat4 half_angle = ACosX(clamped_w);
 
   // Assuming quaternion is normalized then s always positive.
-  const SimdFloat4 s = SplatX(SqrtX(x_axis - clamped_w * clamped_w));
+  const SimdFloat4 s = SplatX(SqrtX(NMAdd(clamped_w, clamped_w, x_axis)));
   // If s is close to zero then direction of axis is not important.
   const SimdInt4 low = CmpLt(s, simd_float4::Load1(1e-3f));
   return Select(low, x_axis,
@@ -244,7 +245,7 @@ OZZ_INLINE SimdFloat4 TransformVector(const SimdQuaternion& _q,
                                       _SimdFloat4 _v) {
   // http://www.neil.dantam.name/note/dantam-quaternion.pdf
   // _v + 2.f * cross(_q.xyz, cross(_q.xyz, _v) + _q.w * _v)
-  const SimdFloat4 cross1 = Cross3(_q.xyzw, _v) + SplatW(_q.xyzw) * _v;
+  const SimdFloat4 cross1 = MAdd(SplatW(_q.xyzw), _v, Cross3(_q.xyzw, _v));
   const SimdFloat4 cross2 = Cross3(_q.xyzw, cross1);
   return _v + cross2 + cross2;
 }

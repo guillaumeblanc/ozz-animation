@@ -166,24 +166,25 @@ namespace {
   }
 
 // Macro that defines the process of subtracting a pass.
-#define OZZ_SUB_PASS(_in, _simd_weight, _out)                                \
-  {                                                                          \
-    _out.translation = _out.translation - _in.translation * _simd_weight;    \
-    /* Interpolate quaternion between identity and src.rotation.*/           \
-    /* Quaternion sign is fixed up, so that lerp takes the shortest path.*/  \
-    const math::SimdInt4 sign = math::Sign(_in.rotation.w);                  \
-    const math::SoaQuaternion rotation = {                                   \
-        math::Xor(_in.rotation.x, sign), math::Xor(_in.rotation.y, sign),    \
-        math::Xor(_in.rotation.z, sign), math::Xor(_in.rotation.w, sign)};   \
-    const math::SoaQuaternion interp_quat = {                                \
-        rotation.x * _simd_weight, rotation.y * _simd_weight,                \
-        rotation.z * _simd_weight, (rotation.w - one) * _simd_weight + one}; \
-    _out.rotation = Conjugate(NormalizeEst(interp_quat)) * _out.rotation;    \
-    const math::SoaFloat3 rcp_scale = {                                      \
-        math::RcpEst(one_minus_weight + (_in.scale.x * _simd_weight)),       \
-        math::RcpEst(one_minus_weight + (_in.scale.y * _simd_weight)),       \
-        math::RcpEst(one_minus_weight + (_in.scale.z * _simd_weight))};      \
-    _out.scale = _out.scale * rcp_scale;                                     \
+#define OZZ_SUB_PASS(_in, _simd_weight, _out)                                  \
+  {                                                                            \
+    _out.translation = _out.translation - _in.translation * _simd_weight;      \
+    /* Interpolate quaternion between identity and src.rotation.*/             \
+    /* Quaternion sign is fixed up, so that lerp takes the shortest path.*/    \
+    const math::SimdInt4 sign = math::Sign(_in.rotation.w);                    \
+    const math::SoaQuaternion rotation = {                                     \
+        math::Xor(_in.rotation.x, sign), math::Xor(_in.rotation.y, sign),      \
+        math::Xor(_in.rotation.z, sign), math::Xor(_in.rotation.w, sign)};     \
+    const math::SoaQuaternion interp_quat = {                                  \
+        rotation.x * _simd_weight, rotation.y * _simd_weight,                  \
+        rotation.z * _simd_weight, (rotation.w - one) * _simd_weight + one};   \
+    _out.rotation = Conjugate(NormalizeEst(interp_quat)) * _out.rotation;      \
+    const math::SoaFloat3 rcp_scale = {                                        \
+        math::RcpEst(math::MAdd(_in.scale.x, _simd_weight, one_minus_weight)), \
+        math::RcpEst(math::MAdd(_in.scale.y, _simd_weight, one_minus_weight)), \
+        math::RcpEst(                                                          \
+            math::MAdd(_in.scale.z, _simd_weight, one_minus_weight))};         \
+    _out.scale = _out.scale * rcp_scale;                                       \
   }
 
 // Defines parameters that are passed through blending stages.

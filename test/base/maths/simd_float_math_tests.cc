@@ -270,6 +270,15 @@ TEST(ArithmeticFloat, ozz_simd_math) {
   const ozz::math::SimdFloat4 madd = ozz::math::MAdd(a, b, c);
   EXPECT_SIMDFLOAT_EQ(madd, -6.f, 14.f, -2.f, 32.f);
 
+  const ozz::math::SimdFloat4 msub = ozz::math::MSub(a, b, c);
+  EXPECT_SIMDFLOAT_EQ(msub, 10.f, -4.f, -22.f, 10.f);
+
+  const ozz::math::SimdFloat4 nmadd = ozz::math::NMAdd(a, b, c);
+  EXPECT_SIMDFLOAT_EQ(nmadd, -10.f, 4.f, 22.f, -10.f);
+
+  const ozz::math::SimdFloat4 nmsub = ozz::math::NMSub(a, b, c);
+  EXPECT_SIMDFLOAT_EQ(nmsub, 6.f, -14.f, 2.f, -32.f);
+
   const ozz::math::SimdFloat4 divx = ozz::math::DivX(a, b);
   EXPECT_SIMDFLOAT_EQ(divx, 0.5f/4.f, 1.f, 2.f, 3.f);
   

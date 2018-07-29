@@ -262,9 +262,21 @@ OZZ_INLINE void Transpose4x4(const SimdFloat4 _in[4], SimdFloat4 _out[4]);
 // Transposes the 16 SimdFloat4 of _in into the 16 SimdFloat4 of _out.
 OZZ_INLINE void Transpose16x16(const SimdFloat4 _in[16], SimdFloat4 _out[16]);
 
-// Multiplies _a and _b, then adds _addend.
-// v = (_a * _b) + _addend
-OZZ_INLINE SimdFloat4 MAdd(_SimdFloat4 _a, _SimdFloat4 _b, _SimdFloat4 _addend);
+// Multiplies _a and _b, then adds _c.
+// v = (_a * _b) + _c
+OZZ_INLINE SimdFloat4 MAdd(_SimdFloat4 _a, _SimdFloat4 _b, _SimdFloat4 _c);
+
+// Multiplies _a and _b, then subs _c.
+// v = (_a * _b) + _c
+OZZ_INLINE SimdFloat4 MSub(_SimdFloat4 _a, _SimdFloat4 _b, _SimdFloat4 _c);
+
+// Multiplies _a and _b, negate it, then adds _c.
+// v = -(_a * _b) + _c
+OZZ_INLINE SimdFloat4 NMAdd(_SimdFloat4 _a, _SimdFloat4 _b, _SimdFloat4 _c);
+
+// Multiplies _a and _b, negate it, then subs _c.
+// v = -(_a * _b) + _c
+OZZ_INLINE SimdFloat4 NMSub(_SimdFloat4 _a, _SimdFloat4 _b, _SimdFloat4 _c);
 
 // Divides the x component of _a by the _x component of _b and stores it in the
 // x component of the returned vector. y, z, w of the returned vector are the
