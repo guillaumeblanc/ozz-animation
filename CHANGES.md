@@ -7,6 +7,7 @@ ik
   - [simd math] Updates simd math functions to prevent unnecessary operations. Some functions now return undefined values for some components, like Dot3 that will return the dot value in x and undefined values for x, y, z. See [simd_math.h](include/ozz/base/maths/simd_math.h) for each function documentation.
   - [simd math] Implements AVX and FMA optimizations (when enabled at compile time).
   - [simd math] Implements simd quaternions, making it easier to use quaternion with other simd math code.
+  - [simd math] Exposes swizzling operations.
 
 Release version 0.10.0
 ----------------------

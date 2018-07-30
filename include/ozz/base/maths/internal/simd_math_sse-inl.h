@@ -50,7 +50,7 @@ namespace simd_float4 {
 #ifdef OZZ_SIMD_AVX
 #define OZZ_SHUFFLE_PS1(_v, _m) _mm_permute_ps(_v, _m)
 #else  // OZZ_SIMD_AVX
-#define OZZ_SHUFFLE_PS1(_v, _m) _mm_shuffle_ps(_v, _v, _m)
+#define OZZ_SHUFFLE_PS1(_v, _m) _mm_castsi128_ps(_mm_shuffle_epi32(_mm_castps_si128(_v), _m))
 #endif  // OZZ_SIMD_AVX
 
 #define OZZ_SSE_SPLAT_F(_v, _i) OZZ_SHUFFLE_PS1(_v, _MM_SHUFFLE(_i, _i, _i, _i))
@@ -320,6 +320,37 @@ OZZ_INLINE SimdFloat4 SplatY(_SimdFloat4 _v) { return OZZ_SSE_SPLAT_F(_v, 1); }
 OZZ_INLINE SimdFloat4 SplatZ(_SimdFloat4 _v) { return OZZ_SSE_SPLAT_F(_v, 2); }
 
 OZZ_INLINE SimdFloat4 SplatW(_SimdFloat4 _v) { return OZZ_SSE_SPLAT_F(_v, 3); }
+
+template <size_t _X, size_t _Y, size_t _Z, size_t _W>
+OZZ_INLINE SimdFloat4 Swizzle(_SimdFloat4 _v) {
+  OZZ_STATIC_ASSERT(_X <= 3 && _Y <= 3 && _Z <= 3 && _W <= 3);
+  return OZZ_SHUFFLE_PS1(_v, _MM_SHUFFLE(_W, _Z, _Y, _X));
+}
+
+template <>
+OZZ_INLINE SimdFloat4 Swizzle<0, 1, 2, 3>(_SimdFloat4 _v) {
+  return _v;
+}
+
+template <>
+OZZ_INLINE SimdFloat4 Swizzle<0, 1, 0, 1>(_SimdFloat4 _v) {
+  return _mm_movelh_ps(_v, _v);
+}
+
+template <>
+OZZ_INLINE SimdFloat4 Swizzle<2, 3, 2, 3>(_SimdFloat4 _v) {
+  return _mm_movehl_ps(_v, _v);
+}
+
+template <>
+OZZ_INLINE SimdFloat4 Swizzle<0, 0, 1, 1>(_SimdFloat4 _v) {
+  return _mm_unpacklo_ps(_v, _v);
+}
+
+template <>
+OZZ_INLINE SimdFloat4 Swizzle<2, 2, 3, 3>(_SimdFloat4 _v) {
+  return _mm_unpackhi_ps(_v, _v);
+}
 
 OZZ_INLINE void Transpose4x1(const SimdFloat4 _in[4], SimdFloat4 _out[1]) {
   const __m128 xz = _mm_unpacklo_ps(_in[0], _in[2]);
@@ -1158,6 +1189,17 @@ OZZ_INLINE SimdInt4 SplatY(_SimdInt4 _a) { return OZZ_SSE_SPLAT_I(_a, 1); }
 OZZ_INLINE SimdInt4 SplatZ(_SimdInt4 _a) { return OZZ_SSE_SPLAT_I(_a, 2); }
 
 OZZ_INLINE SimdInt4 SplatW(_SimdInt4 _a) { return OZZ_SSE_SPLAT_I(_a, 3); }
+
+template <size_t _X, size_t _Y, size_t _Z, size_t _W>
+OZZ_INLINE SimdInt4 Swizzle(_SimdInt4 _v) {
+  OZZ_STATIC_ASSERT(_X <= 3 && _Y <= 3 && _Z <= 3 && _W <= 3);
+  return _mm_shuffle_epi32(_v, _MM_SHUFFLE(_W, _Z, _Y, _X));
+}
+
+template <>
+OZZ_INLINE SimdInt4 Swizzle<0, 1, 2, 3>(_SimdInt4 _v) {
+  return _v;
+}
 
 OZZ_INLINE int MoveMask(_SimdInt4 _v) {
   return _mm_movemask_ps(_mm_castsi128_ps(_v));

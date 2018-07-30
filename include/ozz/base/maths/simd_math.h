@@ -228,6 +228,11 @@ OZZ_INLINE SimdFloat4 SplatZ(_SimdFloat4 _v);
 // Replicates w of _a to all the components of the returned vector.
 OZZ_INLINE SimdFloat4 SplatW(_SimdFloat4 _v);
 
+// Swizzle x, y, z and w components based on compile time arguments _X, _Y, _Z
+// and _W. Arguments can vary from 0 (x), to 3 (w).
+template <size_t _X, size_t _Y, size_t _Z, size_t _W>
+OZZ_INLINE SimdFloat4 Swizzle(_SimdFloat4 _v);
+
 // Transposes the x components of the 4 SimdFloat4 of _in into the 1
 // SimdFloat4 of _out.
 OZZ_INLINE void Transpose4x1(const SimdFloat4 _in[4], SimdFloat4 _out[1]);
@@ -911,6 +916,11 @@ OZZ_INLINE SimdInt4 SplatZ(_SimdInt4 _v);
 
 // Replicates w of _a to all the components of the returned vector.
 OZZ_INLINE SimdInt4 SplatW(_SimdInt4 _v);
+
+// Swizzle x, y, z and w components based on compile time arguments _X, _Y, _Z
+// and _W. Arguments can vary from 0 (x), to 3 (w).
+template <size_t _X, size_t _Y, size_t _Z, size_t _W>
+OZZ_INLINE SimdInt4 Swizzle(_SimdInt4 _v);
 
 // Creates a 4-bit mask from the most significant bits of each component of _v.
 // i := sign(a3)<<3 | sign(a2)<<2 | sign(a1)<<1 | sign(a0)

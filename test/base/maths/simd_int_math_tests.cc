@@ -290,6 +290,24 @@ TEST(SplatInt, ozz_simd_math) {
 
   const SimdInt4 w = ozz::math::SplatW(i);
   EXPECT_SIMDINT_EQ(w, -3, -3, -3, -3);
+
+  const SimdInt4 s3210 = ozz::math::Swizzle<3, 2, 1, 0>(i);
+  EXPECT_SIMDINT_EQ(s3210, -3, 2, -1, 1);
+
+  const SimdInt4 s0123 = ozz::math::Swizzle<0, 1, 2, 3>(i);
+  EXPECT_SIMDINT_EQ(s0123, 1, -1, 2, -3);
+
+  const SimdInt4 s0011 = ozz::math::Swizzle<0, 0, 1, 1>(i);
+  EXPECT_SIMDINT_EQ(s0011, 1, 1, -1, -1);
+
+  const SimdInt4 s2233 = ozz::math::Swizzle<2, 2, 3, 3>(i);
+  EXPECT_SIMDINT_EQ(s2233, 2, 2, -3, -3);
+
+  const SimdInt4 s0101 = ozz::math::Swizzle<0, 1, 0, 1>(i);
+  EXPECT_SIMDINT_EQ(s0101, 1, -1, 1, -1);
+
+  const SimdInt4 s2323 = ozz::math::Swizzle<2, 3, 2, 3>(i);
+  EXPECT_SIMDINT_EQ(s2323, 2, -3, 2, -3);
 }
 
 TEST(FromFloat, ozz_simd_math) {

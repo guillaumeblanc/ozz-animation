@@ -297,6 +297,14 @@ OZZ_INLINE SimdFloat4 SplatW(_SimdFloat4 _v) {
   return ret;
 }
 
+template <size_t _X, size_t _Y, size_t _Z, size_t _W>
+OZZ_INLINE SimdFloat4 Swizzle(_SimdFloat4 _v) {
+  OZZ_STATIC_ASSERT(_X <= 3 && _Y <= 3 && _Z <= 3 && _W <= 3);
+  const float* pf = &_v.x;
+  const SimdFloat4 ret = {pf[_X], pf[_Y], pf[_Z], pf[_W]};
+  return ret;
+}
+
 OZZ_INLINE void Transpose4x1(const SimdFloat4 _in[4], SimdFloat4 _out[1]) {
   _out[0].x = _in[0].x;
   _out[0].y = _in[1].x;
@@ -1320,6 +1328,14 @@ OZZ_INLINE SimdInt4 SplatZ(_SimdInt4 _a) {
 
 OZZ_INLINE SimdInt4 SplatW(_SimdInt4 _a) {
   const SimdInt4 ret = {_a.w, _a.w, _a.w, _a.w};
+  return ret;
+}
+
+template <size_t _X, size_t _Y, size_t _Z, size_t _W>
+OZZ_INLINE SimdInt4 Swizzle(_SimdInt4 _v) {
+  OZZ_STATIC_ASSERT(_X <= 3 && _Y <= 3 && _Z <= 3 && _W <= 3);
+  const int* pi = &_v.x;
+  const SimdInt4 ret = {pi[_X], pi[_Y], pi[_Z], pi[_W]};
   return ret;
 }
 

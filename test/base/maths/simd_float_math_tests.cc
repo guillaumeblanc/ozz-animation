@@ -239,6 +239,24 @@ TEST(SplatFloat, ozz_simd_math) {
 
   const SimdFloat4 w = ozz::math::SplatW(f);
   EXPECT_SIMDFLOAT_EQ(w, -3.f, -3.f, -3.f, -3.f);
+
+  const SimdFloat4 s3210 = ozz::math::Swizzle<3, 2, 1, 0>(f);
+  EXPECT_SIMDFLOAT_EQ(s3210, -3.f, 2.f, -1.f, 1.f);
+
+  const SimdFloat4 s0123 = ozz::math::Swizzle<0, 1, 2, 3>(f);
+  EXPECT_SIMDFLOAT_EQ(s0123, 1.f, -1.f, 2.f, -3.f);
+
+  const SimdFloat4 s0011 = ozz::math::Swizzle<0, 0, 1, 1>(f);
+  EXPECT_SIMDFLOAT_EQ(s0011, 1.f, 1.f, -1.f, -1.f);
+
+  const SimdFloat4 s2233 = ozz::math::Swizzle<2, 2, 3, 3>(f);
+  EXPECT_SIMDFLOAT_EQ(s2233, 2.f, 2.f, -3.f, -3.f);
+
+  const SimdFloat4 s0101 = ozz::math::Swizzle<0, 1, 0, 1>(f);
+  EXPECT_SIMDFLOAT_EQ(s0101, 1.f, -1.f, 1.f, -1.f);
+
+  const SimdFloat4 s2323 = ozz::math::Swizzle<2, 3, 2, 3>(f);
+  EXPECT_SIMDFLOAT_EQ(s2323, 2.f, -3.f, 2.f, -3.f);
 }
 
 TEST(FromInt, ozz_simd_math) {
