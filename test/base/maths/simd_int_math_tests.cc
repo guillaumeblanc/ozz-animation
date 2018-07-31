@@ -251,6 +251,12 @@ TEST(ConstantInt, ozz_simd_math) {
   const SimdInt4 mask_sign = ozz::math::simd_int4::mask_sign();
   EXPECT_SIMDINT_EQ(mask_sign, 0x80000000, 0x80000000, 0x80000000, 0x80000000);
 
+  const SimdInt4 mask_sign_xyz = ozz::math::simd_int4::mask_sign_xyz();
+  EXPECT_SIMDINT_EQ(mask_sign_xyz, 0x80000000, 0x80000000, 0x80000000, 0x00000000);
+
+  const SimdInt4 mask_sign_w = ozz::math::simd_int4::mask_sign_w();
+  EXPECT_SIMDINT_EQ(mask_sign_w, 0x00000000, 0x00000000, 0x00000000, 0x80000000);
+
   const SimdInt4 mask_not_sign = ozz::math::simd_int4::mask_not_sign();
   EXPECT_SIMDINT_EQ(mask_not_sign, 0x7fffffff, 0x7fffffff, 0x7fffffff, 0x7fffffff);
 

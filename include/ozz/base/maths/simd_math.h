@@ -675,6 +675,9 @@ OZZ_INLINE SimdInt4 mask_not_sign();
 // Returns a SimdInt4 vector with sign bits of x, y and z components set to 1.
 OZZ_INLINE SimdInt4 mask_sign_xyz();
 
+// Returns a SimdInt4 vector with sign bits of w component set to 1.
+OZZ_INLINE SimdInt4 mask_sign_w();
+
 // Returns a SimdInt4 vector with all bits set to 1.
 OZZ_INLINE SimdInt4 mask_ffff();
 

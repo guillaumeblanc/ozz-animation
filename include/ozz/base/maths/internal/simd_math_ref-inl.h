@@ -1076,6 +1076,13 @@ OZZ_INLINE SimdInt4 mask_sign_xyz() {
   return ret;
 }
 
+OZZ_INLINE SimdInt4 mask_sign_w() {
+  const SimdInt4 ret = {
+      static_cast<int>(0x00000000), static_cast<int>(0x00000000),
+      static_cast<int>(0x00000000), static_cast<int>(0x80000000)};
+  return ret;
+}
+
 OZZ_INLINE SimdInt4 mask_not_sign() {
   const SimdInt4 ret = {
       static_cast<int>(0x7fffffff), static_cast<int>(0x7fffffff),

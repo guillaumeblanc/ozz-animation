@@ -960,14 +960,18 @@ OZZ_INLINE SimdInt4 all_true() {
 OZZ_INLINE SimdInt4 all_false() { return _mm_setzero_si128(); }
 
 OZZ_INLINE SimdInt4 mask_sign() {
-  const __m128i ffff =
-      _mm_cmpeq_epi32(_mm_setzero_si128(), _mm_setzero_si128());
-  return _mm_slli_epi32(ffff, 31);
+  const __m128i zero = _mm_setzero_si128();
+  return _mm_slli_epi32(_mm_cmpeq_epi32(zero, zero), 31);
 }
 
 OZZ_INLINE SimdInt4 mask_sign_xyz() {
   const __m128i zero = _mm_setzero_si128();
   return _mm_srli_si128(_mm_slli_epi32(_mm_cmpeq_epi32(zero, zero), 31), 4);
+}
+
+OZZ_INLINE SimdInt4 mask_sign_w() {
+  const __m128i zero = _mm_setzero_si128();
+  return _mm_slli_si128(_mm_slli_epi32(_mm_cmpeq_epi32(zero, zero), 31), 12);
 }
 
 OZZ_INLINE SimdInt4 mask_not_sign() {
