@@ -69,7 +69,7 @@ matrix:
   - os: linux
     compiler: clang
     env:
-    - env_build_simdref=1
+    - env_build_simd_ref=1
   - os: linux
     compiler: clang
     env:
