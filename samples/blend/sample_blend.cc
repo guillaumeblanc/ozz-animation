@@ -101,7 +101,7 @@ class BlendSampleApplication : public ozz::sample::Application {
       sampling_job.animation = &sampler.animation;
       sampling_job.cache = sampler.cache;
       sampling_job.ratio = sampler.controller.time_ratio();
-      sampling_job.output = sampler.locals;
+      sampling_job.output = make_range(sampler.locals);
 
       // Samples animation.
       if (!sampling_job.Run()) {
@@ -117,7 +117,7 @@ class BlendSampleApplication : public ozz::sample::Application {
     // Prepares blending layers.
     ozz::animation::BlendingJob::Layer layers[kNumLayers];
     for (int i = 0; i < kNumLayers; ++i) {
-      layers[i].transform = samplers_[i].locals;
+      layers[i].transform = make_range(samplers_[i].locals);
       layers[i].weight = samplers_[i].weight;
     }
 
@@ -126,7 +126,7 @@ class BlendSampleApplication : public ozz::sample::Application {
     blend_job.threshold = threshold_;
     blend_job.layers = layers;
     blend_job.bind_pose = skeleton_.bind_pose();
-    blend_job.output = blended_locals_;
+    blend_job.output = make_range(blended_locals_);
 
     // Blends.
     if (!blend_job.Run()) {
@@ -139,8 +139,8 @@ class BlendSampleApplication : public ozz::sample::Application {
     // Setup local-to-model conversion job.
     ozz::animation::LocalToModelJob ltm_job;
     ltm_job.skeleton = &skeleton_;
-    ltm_job.input = blended_locals_;
-    ltm_job.output = models_;
+    ltm_job.input = make_range(blended_locals_);
+    ltm_job.output = make_range(models_);
 
     // Runs ltm job.
     if (!ltm_job.Run()) {
@@ -191,7 +191,7 @@ class BlendSampleApplication : public ozz::sample::Application {
 
   // Samples animation, transforms to model space and renders.
   virtual bool OnDisplay(ozz::sample::Renderer* _renderer) {
-    return _renderer->DrawPosture(skeleton_, models_,
+    return _renderer->DrawPosture(skeleton_, make_range(models_),
                                   ozz::math::Float4x4::identity());
   }
 
@@ -218,19 +218,17 @@ class BlendSampleApplication : public ozz::sample::Application {
       }
 
       // Allocates sampler runtime buffers.
-      sampler.locals =
-          allocator->AllocateRange<ozz::math::SoaTransform>(num_soa_joints);
+      sampler.locals.resize(num_soa_joints);
 
       // Allocates a cache that matches animation requirements.
       sampler.cache = allocator->New<ozz::animation::SamplingCache>(num_joints);
     }
 
     // Allocates local space runtime buffers of blended data.
-    blended_locals_ =
-        allocator->AllocateRange<ozz::math::SoaTransform>(num_soa_joints);
+    blended_locals_.resize(num_soa_joints);
 
     // Allocates model space runtime buffers of blended data.
-    models_ = allocator->AllocateRange<ozz::math::Float4x4>(num_joints);
+    models_.resize(num_joints);
 
     return true;
   }
@@ -239,11 +237,8 @@ class BlendSampleApplication : public ozz::sample::Application {
     ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
     for (int i = 0; i < kNumLayers; ++i) {
       Sampler& sampler = samplers_[i];
-      allocator->Deallocate(sampler.locals);
       allocator->Delete(sampler.cache);
     }
-    allocator->Deallocate(blended_locals_);
-    allocator->Deallocate(models_);
   }
 
   virtual bool OnGui(ozz::sample::ImGui* _im_gui) {
@@ -296,7 +291,7 @@ class BlendSampleApplication : public ozz::sample::Application {
   }
 
   virtual void GetSceneBounds(ozz::math::Box* _bound) const {
-    ozz::sample::ComputePostureBounds(models_, _bound);
+    ozz::sample::ComputePostureBounds(make_range(models_), _bound);
   }
 
  private:
@@ -336,18 +331,18 @@ class BlendSampleApplication : public ozz::sample::Application {
     ozz::animation::SamplingCache* cache;
 
     // Buffer of local transforms as sampled from animation_.
-    ozz::Range<ozz::math::SoaTransform> locals;
+    ozz::Vector<ozz::math::SoaTransform>::Std locals;
   } samplers_[kNumLayers];  // kNumLayers animations to blend.
 
   // Blending job bind pose threshold.
   float threshold_;
 
   // Buffer of local transforms which stores the blending result.
-  ozz::Range<ozz::math::SoaTransform> blended_locals_;
+  ozz::Vector<ozz::math::SoaTransform>::Std blended_locals_;
 
   // Buffer of model space matrices. These are computed by the local-to-model
   // job after the blending stage.
-  ozz::Range<ozz::math::Float4x4> models_;
+  ozz::Vector<ozz::math::Float4x4>::Std models_;
 };
 
 int main(int _argc, const char** _argv) {

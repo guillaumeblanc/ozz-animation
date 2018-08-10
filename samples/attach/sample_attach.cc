@@ -72,7 +72,7 @@ class AttachSampleApplication : public ozz::sample::Application {
     sampling_job.animation = &animation_;
     sampling_job.cache = cache_;
     sampling_job.ratio = controller_.time_ratio();
-    sampling_job.output = locals_;
+    sampling_job.output = make_range(locals_);
     if (!sampling_job.Run()) {
       return false;
     }
@@ -80,8 +80,8 @@ class AttachSampleApplication : public ozz::sample::Application {
     // Converts from local space to model space matrices.
     ozz::animation::LocalToModelJob ltm_job;
     ltm_job.skeleton = &skeleton_;
-    ltm_job.input = locals_;
-    ltm_job.output = models_;
+    ltm_job.input = make_range(locals_);
+    ltm_job.output = make_range(models_);
     if (!ltm_job.Run()) {
       return false;
     }
@@ -91,7 +91,7 @@ class AttachSampleApplication : public ozz::sample::Application {
 
   // Samples animation, transforms to model space and renders.
   virtual bool OnDisplay(ozz::sample::Renderer* _renderer) {
-    if (!_renderer->DrawPosture(skeleton_, models_,
+    if (!_renderer->DrawPosture(skeleton_, make_range(models_),
                                 ozz::math::Float4x4::identity())) {
       return false;
     }
@@ -135,8 +135,8 @@ class AttachSampleApplication : public ozz::sample::Application {
     // Allocates runtime buffers.
     const int num_joints = skeleton_.num_joints();
     const int num_soa_joints = skeleton_.num_soa_joints();
-    locals_ = allocator->AllocateRange<ozz::math::SoaTransform>(num_soa_joints);
-    models_ = allocator->AllocateRange<ozz::math::Float4x4>(num_joints);
+    locals_.resize(num_soa_joints);
+    models_.resize(num_joints);
 
     // Allocates a cache that matches animation requirements.
     cache_ = allocator->New<ozz::animation::SamplingCache>(num_joints);
@@ -154,8 +154,6 @@ class AttachSampleApplication : public ozz::sample::Application {
 
   virtual void OnDestroy() {
     ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
-    allocator->Deallocate(locals_);
-    allocator->Deallocate(models_);
     allocator->Delete(cache_);
   }
 
@@ -194,7 +192,7 @@ class AttachSampleApplication : public ozz::sample::Application {
   }
 
   virtual void GetSceneBounds(ozz::math::Box* _bound) const {
-    ozz::sample::ComputePostureBounds(models_, _bound);
+    ozz::sample::ComputePostureBounds(make_range(models_), _bound);
   }
 
  private:
@@ -212,10 +210,10 @@ class AttachSampleApplication : public ozz::sample::Application {
   ozz::animation::SamplingCache* cache_;
 
   // Buffer of local transforms as sampled from animation_.
-  ozz::Range<ozz::math::SoaTransform> locals_;
+  ozz::Vector<ozz::math::SoaTransform>::Std locals_;
 
   // Buffer of model space matrices.
-  ozz::Range<ozz::math::Float4x4> models_;
+  ozz::Vector<ozz::math::Float4x4>::Std models_;
 
   // Joint where the object is attached.
   int attachment_;

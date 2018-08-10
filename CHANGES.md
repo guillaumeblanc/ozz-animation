@@ -1,3 +1,8 @@
+
+* Library
+ - [memory] Removes (too error prone) ozz::memory::Allocator typed allocation functions.
+
+
 Release version 0.10.0
 ----------------------
 

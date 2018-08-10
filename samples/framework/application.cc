@@ -681,7 +681,7 @@ void Application::ParseReadme() {
   // Allocate enough space to store the whole file.
   const size_t read_length = file.Size();
   ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
-  char* content = allocator->Allocate<char>(read_length);
+  char* content = reinterpret_cast<char*>(allocator->Allocate(read_length, 4));
 
   // Read the content
   if (file.Read(content, read_length) == read_length) {

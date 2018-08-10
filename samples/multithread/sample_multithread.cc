@@ -122,7 +122,7 @@ class MultithreadSampleApplication : public ozz::sample::Application {
     sampling_job.animation = &_animation;
     sampling_job.cache = _character->cache;
     sampling_job.ratio = _character->controller.time_ratio();
-    sampling_job.output = _character->locals;
+    sampling_job.output = make_range(_character->locals);
 
     // Samples animation.
     if (!sampling_job.Run()) {
@@ -132,8 +132,8 @@ class MultithreadSampleApplication : public ozz::sample::Application {
     // Converts from local space to model space matrices.
     ozz::animation::LocalToModelJob ltm_job;
     ltm_job.skeleton = &_skeleton;
-    ltm_job.input = _character->locals;
-    ltm_job.output = _character->models;
+    ltm_job.input = make_range(_character->locals);
+    ltm_job.output = make_range(_character->models);
     if (!ltm_job.Run()) {
       return false;
     }
@@ -223,8 +223,8 @@ class MultithreadSampleApplication : public ozz::sample::Application {
           (((c / kWidth) % kDepth) - kDepth / 2) * kInterval, 1.f);
       const ozz::math::Float4x4 transform = ozz::math::Float4x4::Translation(
           ozz::math::simd_float4::LoadPtrU(&position.x));
-      success &= _renderer->DrawPosture(skeleton_, characters_[c].models,
-                                        transform, false);
+      success &= _renderer->DrawPosture(
+          skeleton_, make_range(characters_[c].models), transform, false);
     }
 
     return true;
@@ -259,12 +259,10 @@ class MultithreadSampleApplication : public ozz::sample::Application {
 
       // Initializes each controller start time to a different value.
       character.controller.set_time_ratio(animation_.duration() * kWidth * c /
-                                    kMaxCharacters);
+                                          kMaxCharacters);
 
-      character.locals = allocator->AllocateRange<ozz::math::SoaTransform>(
-          skeleton_.num_soa_joints());
-      character.models =
-          allocator->AllocateRange<ozz::math::Float4x4>(skeleton_.num_joints());
+      character.locals.resize(skeleton_.num_soa_joints());
+      character.models.resize(skeleton_.num_joints());
     }
 
     return true;
@@ -275,8 +273,6 @@ class MultithreadSampleApplication : public ozz::sample::Application {
     for (size_t c = 0; c < kMaxCharacters; ++c) {
       Character& character = characters_[c];
       allocator->Delete(character.cache);
-      allocator->Deallocate(character.locals);
-      allocator->Deallocate(character.models);
     }
   }
 
@@ -357,11 +353,11 @@ class MultithreadSampleApplication : public ozz::sample::Application {
     ozz::animation::SamplingCache* cache;
 
     // Buffer of local transforms which stores the blending result.
-    ozz::Range<ozz::math::SoaTransform> locals;
+    ozz::Vector<ozz::math::SoaTransform>::Std locals;
 
     // Buffer of model space matrices. These are computed by the local-to-model
     // job after the blending stage.
-    ozz::Range<ozz::math::Float4x4> models;
+    ozz::Vector<ozz::math::Float4x4>::Std models;
   };
 
   // Array of characters of the sample.

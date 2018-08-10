@@ -131,7 +131,7 @@ class MillipedeSampleApplication : public ozz::sample::Application {
     sampling_job.animation = animation_;
     sampling_job.cache = cache_;
     sampling_job.ratio = controller_.time_ratio();
-    sampling_job.output = locals_;
+    sampling_job.output = make_range(locals_);
     if (!sampling_job.Run()) {
       return false;
     }
@@ -139,14 +139,14 @@ class MillipedeSampleApplication : public ozz::sample::Application {
     // Converts from local space to model space matrices.
     ozz::animation::LocalToModelJob ltm_job;
     ltm_job.skeleton = skeleton_;
-    ltm_job.input = locals_;
-    ltm_job.output = models_;
+    ltm_job.input = make_range(locals_);
+    ltm_job.output = make_range(models_);
     return ltm_job.Run();
   }
 
   virtual bool OnDisplay(ozz::sample::Renderer* _renderer) {
     // Renders the animated posture.
-    return _renderer->DrawPosture(*skeleton_, models_,
+    return _renderer->DrawPosture(*skeleton_, make_range(models_),
                                   ozz::math::Float4x4::identity());
   }
 
@@ -210,8 +210,8 @@ class MillipedeSampleApplication : public ozz::sample::Application {
     // Allocates runtime buffers.
     ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
     const int num_soa_joints = skeleton_->num_soa_joints();
-    locals_ = allocator->AllocateRange<ozz::math::SoaTransform>(num_soa_joints);
-    models_ = allocator->AllocateRange<ozz::math::Float4x4>(num_joints);
+    locals_.resize(num_soa_joints);
+    models_.resize(num_joints);
 
     // Allocates a cache that matches new animation requirements.
     cache_ = allocator->New<ozz::animation::SamplingCache>(num_joints);
@@ -223,8 +223,6 @@ class MillipedeSampleApplication : public ozz::sample::Application {
     ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
     allocator->Delete(skeleton_);
     allocator->Delete(animation_);
-    allocator->Deallocate(locals_);
-    allocator->Deallocate(models_);
     allocator->Delete(cache_);
   }
 
@@ -421,7 +419,7 @@ class MillipedeSampleApplication : public ozz::sample::Application {
   }
 
   virtual void GetSceneBounds(ozz::math::Box* _bound) const {
-    ozz::sample::ComputePostureBounds(models_, _bound);
+    ozz::sample::ComputePostureBounds(make_range(models_), _bound);
   }
 
  private:
@@ -443,10 +441,10 @@ class MillipedeSampleApplication : public ozz::sample::Application {
 
   // Buffer of local transforms as sampled from animation_.
   // These are shared between sampling output and local-to-model input.
-  ozz::Range<ozz::math::SoaTransform> locals_;
+  ozz::Vector<ozz::math::SoaTransform>::Std locals_;
 
   // Buffer of model matrices (local-to-model output).
-  ozz::Range<ozz::math::Float4x4> models_;
+  ozz::Vector<ozz::math::Float4x4>::Std models_;
 };
 
 int main(int _argc, const char** _argv) {

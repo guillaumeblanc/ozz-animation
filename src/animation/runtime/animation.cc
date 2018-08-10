@@ -63,7 +63,8 @@ void Animation::Allocate(size_t _name_len, size_t _translation_count,
                              _translation_count * sizeof(TranslationKey) +
                              _rotation_count * sizeof(RotationKey) +
                              _scale_count * sizeof(ScaleKey);
-  char* buffer = memory::default_allocator()->Allocate<char>(buffer_size);
+  char* buffer = reinterpret_cast<char*>(memory::default_allocator()->Allocate(
+      buffer_size, OZZ_ALIGN_OF(TranslationKey)));
 
   // Fix up pointers. Serves larger alignment values first.
   translations_.begin = reinterpret_cast<TranslationKey*>(buffer);
