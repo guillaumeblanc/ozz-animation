@@ -78,7 +78,7 @@ OZZ_INLINE SimdQuaternion operator*(const SimdQuaternion& _a,
                                     const SimdQuaternion& _b) {
   // Original quaternion multiplication can be swizzled in a simd friendly way
   // if w is negated, and some w multiplications parts (1st/last) are swaped.
-  // 
+  //
   //        p1            p2            p3            p4
   //    _a.w * _b.x + _a.x * _b.w + _a.y * _b.z - _a.z * _b.y
   //    _a.w * _b.y + _a.y * _b.w + _a.z * _b.x - _a.x * _b.z
@@ -89,12 +89,14 @@ OZZ_INLINE SimdQuaternion operator*(const SimdQuaternion& _a,
   //    _a.w * _b.y + _a.y * _b.w + _a.z * _b.x - _a.x * _b.z
   //    _a.w * _b.z + _a.z * _b.w + _a.x * _b.y - _a.y * _b.x
   // - (_a.z * _b.z + _a.x * _b.x + _a.y * _b.y - _a.w * _b.w)
-  const __m128 a = _a.xyzw;
-  const __m128 b = _b.xyzw;
-  const __m128 p1 = Swizzle<3, 3, 3, 2>(a) * Swizzle<0, 1, 2, 2>(b);
-  const __m128 p2 = Swizzle<0, 1, 2, 0>(a) * Swizzle<3, 3, 3, 0>(b);
-  const __m128 p13 = MAdd(Swizzle<1, 2, 0, 1>(a), Swizzle<2, 0, 1, 1>(b), p1);
-  const __m128 p24 = NMAdd(Swizzle<2, 0, 1, 3>(a), Swizzle<1, 2, 0, 3>(b), p2);
+  const SimdFloat4 p1 =
+      Swizzle<3, 3, 3, 2>(_a.xyzw) * Swizzle<0, 1, 2, 2>(_b.xyzw);
+  const SimdFloat4 p2 =
+      Swizzle<0, 1, 2, 0>(_a.xyzw) * Swizzle<3, 3, 3, 0>(_b.xyzw);
+  const SimdFloat4 p13 =
+      MAdd(Swizzle<1, 2, 0, 1>(_a.xyzw), Swizzle<2, 0, 1, 1>(_b.xyzw), p1);
+  const SimdFloat4 p24 =
+      NMAdd(Swizzle<2, 0, 1, 3>(_a.xyzw), Swizzle<1, 2, 0, 3>(_b.xyzw), p2);
   const SimdQuaternion quat = {Xor(p13 + p24, simd_int4::mask_sign_w())};
   return quat;
 }
