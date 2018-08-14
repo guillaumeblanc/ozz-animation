@@ -156,7 +156,6 @@ class OptimizeSampleApplication : public ozz::sample::Application {
   OptimizeSampleApplication()
       : selected_display_(eRuntimeAnimation),
         optimize_(true),
-        cache_(NULL),
         animation_rt_(NULL),
         error_record_(64) {}
 
@@ -168,7 +167,7 @@ class OptimizeSampleApplication : public ozz::sample::Application {
 
     // Prepares sampling job.
     ozz::animation::SamplingJob sampling_job;
-    sampling_job.cache = cache_;
+    sampling_job.cache = &cache_;
     sampling_job.ratio = controller_.time_ratio();
 
     // Samples optimized animation (_according to the display mode).
@@ -344,7 +343,6 @@ class OptimizeSampleApplication : public ozz::sample::Application {
     }
 
     // Allocates runtime buffers.
-    ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
     const int num_joints = skeleton_.num_joints();
     const int num_soa_joints = skeleton_.num_soa_joints();
     locals_rt_.resize(num_soa_joints);
@@ -356,7 +354,7 @@ class OptimizeSampleApplication : public ozz::sample::Application {
     models_diff_.resize(num_joints);
 
     // Allocates a cache that matches animation requirements.
-    cache_ = allocator->New<ozz::animation::SamplingCache>(num_joints);
+    cache_.Resize(num_joints);
 
     return true;
   }
@@ -418,7 +416,7 @@ class OptimizeSampleApplication : public ozz::sample::Application {
           // Invalidates the cache in case the new animation has the same
           // address as the previous one. Other cases are automatic handled by
           // the cache. See SamplingCache::Invalidate for more details.
-          cache_->Invalidate();
+          cache_.Invalidate();
 
           // Rebuilds a new runtime animation.
           if (!BuildAnimations()) {
@@ -461,7 +459,6 @@ class OptimizeSampleApplication : public ozz::sample::Application {
   virtual void OnDestroy() {
     ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
     allocator->Delete(animation_rt_);
-    allocator->Delete(cache_);
   }
 
   bool BuildAnimations() {
@@ -523,7 +520,7 @@ class OptimizeSampleApplication : public ozz::sample::Application {
 
   // Sampling cache, shared across optimized and non-optimized animations. This
   // is not optimal, but it's not an issue either.
-  ozz::animation::SamplingCache* cache_;
+  ozz::animation::SamplingCache cache_;
 
   // Runtime optimized animation.
   ozz::animation::Animation* animation_rt_;

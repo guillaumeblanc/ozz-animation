@@ -32,8 +32,6 @@
 
 #include "ozz/base/log.h"
 
-#include "ozz/base/memory/allocator.h"
-
 #include "ozz/base/maths/box.h"
 #include "ozz/base/maths/simd_math.h"
 #include "ozz/base/maths/soa_transform.h"
@@ -58,7 +56,7 @@ OZZ_OPTIONS_DECLARE_STRING(animation,
 
 class BakedSampleApplication : public ozz::sample::Application {
  public:
-  BakedSampleApplication() : cache_(NULL), camera_index_(-1) {}
+  BakedSampleApplication() : camera_index_(-1) {}
 
  protected:
   // Updates current animation time and skeleton pose.
@@ -69,7 +67,7 @@ class BakedSampleApplication : public ozz::sample::Application {
     // Samples optimized animation at t = animation_time_.
     ozz::animation::SamplingJob sampling_job;
     sampling_job.animation = &animation_;
-    sampling_job.cache = cache_;
+    sampling_job.cache = &cache_;
     sampling_job.ratio = controller_.time_ratio();
     sampling_job.output = make_range(locals_);
     if (!sampling_job.Run()) {
@@ -89,8 +87,6 @@ class BakedSampleApplication : public ozz::sample::Application {
   }
 
   virtual bool OnInitialize() {
-    ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
-
     // Reading skeleton.
     if (!ozz::sample::LoadSkeleton(OPTIONS_skeleton, &skeleton_)) {
       return false;
@@ -108,7 +104,7 @@ class BakedSampleApplication : public ozz::sample::Application {
     models_.resize(num_joints);
 
     // Allocates a cache that matches animation requirements.
-    cache_ = allocator->New<ozz::animation::SamplingCache>(num_joints);
+    cache_.Resize(num_joints);
 
     // Look for a "camera" joint.
     for (int i = 0; i < num_joints; i++) {
@@ -121,10 +117,7 @@ class BakedSampleApplication : public ozz::sample::Application {
     return true;
   }
 
-  virtual void OnDestroy() {
-    ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
-    allocator->Delete(cache_);
-  }
+  virtual void OnDestroy() {}
 
   // Samples animation, transforms to model space and renders.
   virtual bool OnDisplay(ozz::sample::Renderer* _renderer) {
@@ -175,7 +168,7 @@ class BakedSampleApplication : public ozz::sample::Application {
   ozz::animation::Animation animation_;
 
   // Sampling cache.
-  ozz::animation::SamplingCache* cache_;
+  ozz::animation::SamplingCache cache_;
 
   // Buffer of local transforms as sampled from animation_.
   ozz::Vector<ozz::math::SoaTransform>::Std locals_;

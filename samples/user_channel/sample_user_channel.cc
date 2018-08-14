@@ -36,8 +36,6 @@
 
 #include "ozz/base/log.h"
 
-#include "ozz/base/memory/allocator.h"
-
 #include "ozz/base/maths/box.h"
 #include "ozz/base/maths/simd_math.h"
 #include "ozz/base/maths/soa_transform.h"
@@ -76,8 +74,7 @@ OZZ_OPTIONS_DECLARE_STRING(track, "Path to the track (ozz archive format).",
 class UserChannelSampleApplication : public ozz::sample::Application {
  public:
   UserChannelSampleApplication()
-      : cache_(NULL),
-        method_(kTriggering),  // Triggering is the most robust method.
+      : method_(kTriggering),  // Triggering is the most robust method.
         attached_(false),
         attach_joint_(0) {
     ResetState();
@@ -222,7 +219,7 @@ class UserChannelSampleApplication : public ozz::sample::Application {
     // Samples animation at r = _ratio.
     ozz::animation::SamplingJob sampling_job;
     sampling_job.animation = &animation_;
-    sampling_job.cache = cache_;
+    sampling_job.cache = &cache_;
     sampling_job.ratio = _ratio;
     sampling_job.output = make_range(locals_);
     if (!sampling_job.Run()) {
@@ -260,8 +257,6 @@ class UserChannelSampleApplication : public ozz::sample::Application {
   }
 
   virtual bool OnInitialize() {
-    ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
-
     // Reading skeleton.
     if (!ozz::sample::LoadSkeleton(OPTIONS_skeleton, &skeleton_)) {
       return false;
@@ -288,7 +283,7 @@ class UserChannelSampleApplication : public ozz::sample::Application {
     models_.resize(num_joints);
 
     // Allocates a cache that matches animation requirements.
-    cache_ = allocator->New<ozz::animation::SamplingCache>(num_joints);
+    cache_.Resize(num_joints);
 
     // Reading track.
     if (!ozz::sample::LoadTrack(OPTIONS_track, &track_)) {
@@ -298,10 +293,7 @@ class UserChannelSampleApplication : public ozz::sample::Application {
     return true;
   }
 
-  virtual void OnDestroy() {
-    ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
-    allocator->Delete(cache_);
-  }
+  virtual void OnDestroy() {}
 
   virtual bool OnGui(ozz::sample::ImGui* _im_gui) {
     // Exposes sample specific parameters.
@@ -353,7 +345,7 @@ class UserChannelSampleApplication : public ozz::sample::Application {
   ozz::animation::Animation animation_;
 
   // Sampling cache.
-  ozz::animation::SamplingCache* cache_;
+  ozz::animation::SamplingCache cache_;
 
   // Buffer of local transforms as sampled from animation_.
   ozz::Vector<ozz::math::SoaTransform>::Std locals_;

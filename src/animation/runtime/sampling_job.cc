@@ -440,25 +440,34 @@ bool SamplingJob::Run() const {
   return true;
 }
 
+SamplingCache::SamplingCache()
+    : max_soa_tracks_(0),
+      soa_translations_(NULL) {  // soa_translations_ is the allocation pointer.
+  Invalidate();
+}
+
 SamplingCache::SamplingCache(int _max_tracks)
-    : animation_(NULL),
-      ratio_(0.f),
-      max_soa_tracks_((_max_tracks + 3) / 4),
-      soa_translations_(NULL),
-      soa_rotations_(NULL),
-      soa_scales_(NULL),
-      translation_keys_(NULL),
-      rotation_keys_(NULL),
-      scale_keys_(NULL),
-      translation_cursor_(0),
-      rotation_cursor_(0),
-      scale_cursor_(0),
-      outdated_translations_(NULL),
-      outdated_rotations_(NULL),
-      outdated_scales_(NULL) {
+    : max_soa_tracks_(0),
+      soa_translations_(NULL) {  // soa_translations_ is the allocation pointer.
+  Resize(_max_tracks);
+}
+
+SamplingCache::~SamplingCache() {
+  // Deallocates everything at once.
+  memory::default_allocator()->Deallocate(soa_translations_);
+}
+
+void SamplingCache::Resize(int _max_tracks) {
   using internal::InterpSoaRotation;
   using internal::InterpSoaScale;
   using internal::InterpSoaTranslation;
+
+  // Reset existing data.
+  Invalidate();
+  memory::default_allocator()->Deallocate(soa_translations_);
+
+  // Updates maximum supported soa tracks.
+  max_soa_tracks_ = (_max_tracks + 3) / 4;
 
   // Allocate all cache data at once in a single allocation.
   // Alignment is guaranteed because memory is dispatch from the highest
@@ -505,11 +514,6 @@ SamplingCache::SamplingCache(int _max_tracks)
   alloc_cursor += sizeof(unsigned char) * num_outdated;
 
   assert(alloc_cursor == alloc_begin + size);
-}
-
-SamplingCache::~SamplingCache() {
-  // Deallocates everything at once.
-  memory::default_allocator()->Deallocate(soa_translations_);
 }
 
 void SamplingCache::Step(const Animation& _animation, float _ratio) {

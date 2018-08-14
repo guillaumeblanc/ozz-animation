@@ -38,8 +38,6 @@
 #include "ozz/base/maths/soa_transform.h"
 #include "ozz/base/maths/vec_float.h"
 
-#include "ozz/base/memory/allocator.h"
-
 #include "ozz/options/options.h"
 
 #include "framework/application.h"
@@ -99,7 +97,7 @@ class BlendSampleApplication : public ozz::sample::Application {
       // Setup sampling job.
       ozz::animation::SamplingJob sampling_job;
       sampling_job.animation = &sampler.animation;
-      sampling_job.cache = sampler.cache;
+      sampling_job.cache = &sampler.cache;
       sampling_job.ratio = sampler.controller.time_ratio();
       sampling_job.output = make_range(sampler.locals);
 
@@ -196,8 +194,6 @@ class BlendSampleApplication : public ozz::sample::Application {
   }
 
   virtual bool OnInitialize() {
-    ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
-
     // Reading skeleton.
     if (!ozz::sample::LoadSkeleton(OPTIONS_skeleton, &skeleton_)) {
       return false;
@@ -221,7 +217,7 @@ class BlendSampleApplication : public ozz::sample::Application {
       sampler.locals.resize(num_soa_joints);
 
       // Allocates a cache that matches animation requirements.
-      sampler.cache = allocator->New<ozz::animation::SamplingCache>(num_joints);
+      sampler.cache.Resize(num_joints);
     }
 
     // Allocates local space runtime buffers of blended data.
@@ -233,13 +229,7 @@ class BlendSampleApplication : public ozz::sample::Application {
     return true;
   }
 
-  virtual void OnDestroy() {
-    ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
-    for (int i = 0; i < kNumLayers; ++i) {
-      Sampler& sampler = samplers_[i];
-      allocator->Delete(sampler.cache);
-    }
-  }
+  virtual void OnDestroy() {}
 
   virtual bool OnGui(ozz::sample::ImGui* _im_gui) {
     // Exposes blending parameters.
@@ -315,7 +305,7 @@ class BlendSampleApplication : public ozz::sample::Application {
   // animation.
   struct Sampler {
     // Constructor, default initialization.
-    Sampler() : weight(1.f), cache(NULL) {}
+    Sampler() : weight(1.f) {}
 
     // Playback animation controller. This is a utility class that helps with
     // controlling animation playback time.
@@ -328,7 +318,7 @@ class BlendSampleApplication : public ozz::sample::Application {
     ozz::animation::Animation animation;
 
     // Sampling cache.
-    ozz::animation::SamplingCache* cache;
+    ozz::animation::SamplingCache cache;
 
     // Buffer of local transforms as sampled from animation_.
     ozz::Vector<ozz::math::SoaTransform>::Std locals;

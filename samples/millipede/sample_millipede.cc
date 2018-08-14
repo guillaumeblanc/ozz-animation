@@ -45,8 +45,6 @@
 #include "ozz/base/maths/soa_transform.h"
 #include "ozz/base/maths/vec_float.h"
 
-#include "ozz/base/memory/allocator.h"
-
 #include "framework/application.h"
 #include "framework/imgui.h"
 #include "framework/renderer.h"
@@ -119,7 +117,7 @@ const int kPrecomputedKeyCount = OZZ_ARRAY_SIZE(kPrecomputedKeys);
 class MillipedeSampleApplication : public ozz::sample::Application {
  public:
   MillipedeSampleApplication()
-      : slice_count_(26), skeleton_(NULL), animation_(NULL), cache_(NULL) {}
+      : slice_count_(26), skeleton_(NULL), animation_(NULL) {}
 
  protected:
   virtual bool OnUpdate(float _dt) {
@@ -129,7 +127,7 @@ class MillipedeSampleApplication : public ozz::sample::Application {
     // Samples animation at t = animation_time_.
     ozz::animation::SamplingJob sampling_job;
     sampling_job.animation = animation_;
-    sampling_job.cache = cache_;
+    sampling_job.cache = &cache_;
     sampling_job.ratio = controller_.time_ratio();
     sampling_job.output = make_range(locals_);
     if (!sampling_job.Run()) {
@@ -208,13 +206,12 @@ class MillipedeSampleApplication : public ozz::sample::Application {
     }
 
     // Allocates runtime buffers.
-    ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
     const int num_soa_joints = skeleton_->num_soa_joints();
     locals_.resize(num_soa_joints);
     models_.resize(num_joints);
 
     // Allocates a cache that matches new animation requirements.
-    cache_ = allocator->New<ozz::animation::SamplingCache>(num_joints);
+    cache_.Resize(num_joints);
 
     return true;
   }
@@ -223,7 +220,6 @@ class MillipedeSampleApplication : public ozz::sample::Application {
     ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
     allocator->Delete(skeleton_);
     allocator->Delete(animation_);
-    allocator->Delete(cache_);
   }
 
   void CreateSkeleton(ozz::animation::offline::RawSkeleton* _skeleton) {
@@ -437,7 +433,7 @@ class MillipedeSampleApplication : public ozz::sample::Application {
   ozz::animation::Animation* animation_;
 
   // Sampling cache, as used by SamplingJob.
-  ozz::animation::SamplingCache* cache_;
+  ozz::animation::SamplingCache cache_;
 
   // Buffer of local transforms as sampled from animation_.
   // These are shared between sampling output and local-to-model input.

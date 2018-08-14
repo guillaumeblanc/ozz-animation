@@ -45,8 +45,6 @@
 #include "ozz/base/maths/soa_transform.h"
 #include "ozz/base/maths/vec_float.h"
 
-#include "ozz/base/memory/allocator.h"
-
 #include "ozz/options/options.h"
 
 #include "framework/application.h"
@@ -120,7 +118,7 @@ class MultithreadSampleApplication : public ozz::sample::Application {
     // Setup sampling job.
     ozz::animation::SamplingJob sampling_job;
     sampling_job.animation = &_animation;
-    sampling_job.cache = _character->cache;
+    sampling_job.cache = &_character->cache;
     sampling_job.ratio = _character->controller.time_ratio();
     sampling_job.output = make_range(_character->locals);
 
@@ -247,15 +245,10 @@ class MultithreadSampleApplication : public ozz::sample::Application {
     return true;
   }
 
-  virtual void OnDestroy() { DeallocateCharaters(); }
-
   bool AllocateCharaters() {
     // Reallocate all characters.
-    ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
     for (size_t c = 0; c < kMaxCharacters; ++c) {
       Character& character = characters_[c];
-      character.cache = allocator->New<ozz::animation::SamplingCache>(
-          animation_.num_tracks());
 
       // Initializes each controller start time to a different value.
       character.controller.set_time_ratio(animation_.duration() * kWidth * c /
@@ -263,18 +256,13 @@ class MultithreadSampleApplication : public ozz::sample::Application {
 
       character.locals.resize(skeleton_.num_soa_joints());
       character.models.resize(skeleton_.num_joints());
+      character.cache.Resize(animation_.num_tracks());
     }
 
     return true;
   }
 
-  void DeallocateCharaters() {
-    ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
-    for (size_t c = 0; c < kMaxCharacters; ++c) {
-      Character& character = characters_[c];
-      allocator->Delete(character.cache);
-    }
-  }
+  virtual void OnDestroy() {}
 
   virtual bool OnGui(ozz::sample::ImGui* _im_gui) {
     // Exposes multi-threading parameters.
@@ -343,14 +331,12 @@ class MultithreadSampleApplication : public ozz::sample::Application {
   // Character structure contains all the data required to sample and blend a
   // character.
   struct Character {
-    Character() : cache(NULL) {}
-
     // Playback animation controller. This is a utility class that helps with
     // controlling animation playback time.
     ozz::sample::PlaybackController controller;
 
     // Sampling cache.
-    ozz::animation::SamplingCache* cache;
+    ozz::animation::SamplingCache cache;
 
     // Buffer of local transforms which stores the blending result.
     ozz::Vector<ozz::math::SoaTransform>::Std locals;
