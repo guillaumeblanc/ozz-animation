@@ -50,13 +50,36 @@ namespace ozz {
 
 // Gets alignment in bytes required for any instance of the given type.
 // Usage is OZZ_ALIGN_OF(MyStruct).
+#if __cplusplus >= 201103L
+#define OZZ_ALIGN_OF(_Ty) alignof(_Ty)
+#else  // __cplusplus
 namespace internal {
+// http://www.wambold.com/Martin/writings/alignof.html
+template <typename _Ty>
+struct AlignOf;
+
+template <typename _Ty, int _SizeDiff>
+struct AlignOfHelper {
+  enum { kValue = _SizeDiff };
+};
+
+template <typename _Ty>
+struct AlignOfHelper<_Ty, 0> {
+  enum { kValue = AlignOf<_Ty>::kValue };
+};
+
 template <typename _Ty>
 struct AlignOf {
-  static const size_t value = sizeof(_Ty) ^ (sizeof(_Ty) & (sizeof(_Ty) - 1));
+  struct Acc {
+    _Ty x;
+    char c;
+  };
+  static const size_t kValue =
+      AlignOfHelper<Acc, sizeof(Acc) - sizeof(_Ty)>::kValue;
 };
 }  // namespace internal
-#define OZZ_ALIGN_OF(_Ty) ozz::internal::AlignOf<_Ty>::value
+#define OZZ_ALIGN_OF(_Ty) ozz::internal::AlignOf<_Ty>::kValue
+#endif  // __cplusplus
 
 // Finds the number of elements of a statically allocated array.
 #define OZZ_ARRAY_SIZE(_array) (sizeof(_array) / sizeof(_array[0]))

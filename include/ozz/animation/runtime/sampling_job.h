@@ -172,9 +172,9 @@ class SamplingCache {
   int scale_cursor_;
 
   // Outdated soa entries. One bit per soa entry (32 joints per byte).
-  unsigned char* outdated_translations_;
-  unsigned char* outdated_rotations_;
-  unsigned char* outdated_scales_;
+  uint8_t* outdated_translations_;
+  uint8_t* outdated_rotations_;
+  uint8_t* outdated_scales_;
 };
 }  // namespace animation
 }  // namespace ozz
