@@ -58,7 +58,7 @@ namespace internal {
 template <typename _Ty>
 struct AlignOf;
 
-template <typename _Ty, int _SizeDiff>
+template <typename _Ty, size_t _SizeDiff>
 struct AlignOfHelper {
   enum { kValue = _SizeDiff };
 };
