@@ -79,7 +79,7 @@ struct _AlignOf {
 };
 }  // namespace internal
 #define OZZ_ALIGN_OF(_Ty) \
-  static_cast<size_t>(ozz::internal::_AlignOf<_Ty>::kValue)
+  static_cast<size_t>(ozz::internal::AlignOf<_Ty>::kValue)
 #endif  // __cplusplus
 
 // Finds the number of elements of a statically allocated array.
