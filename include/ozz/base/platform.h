@@ -71,6 +71,7 @@ struct AlignOfHelper<_Ty, 0> {
 template <typename _Ty>
 struct AlignOf {
   struct Acc {
+    Acc();  // Needs a default constructor for some compilers.
     _Ty x;
     char c;
   };
