@@ -75,7 +75,8 @@ GLuint CompileShader(GLenum _type, int _count, const char** _src) {
   GL(GetShaderiv(shader, GL_INFO_LOG_LENGTH, &infolog_length));
   if (infolog_length > 1) {
     char* info_log =
-        memory::default_allocator()->Allocate<char>(infolog_length);
+        reinterpret_cast<char*>(memory::default_allocator()->Allocate(
+            infolog_length, OZZ_ALIGN_OF(char)));
     int chars_written = 0;
     glGetShaderInfoLog(shader, infolog_length, &chars_written, info_log);
     log::Err() << info_log << std::endl;
@@ -127,7 +128,8 @@ bool Shader::BuildFromSource(int _vertex_count, const char** _vertex,
   GL(GetProgramiv(program_, GL_INFO_LOG_LENGTH, &infolog_length));
   if (infolog_length > 1) {
     char* info_log =
-        memory::default_allocator()->Allocate<char>(infolog_length);
+        reinterpret_cast<char*>(memory::default_allocator()->Allocate(
+            infolog_length, OZZ_ALIGN_OF(char)));
     int chars_written = 0;
     glGetProgramInfoLog(program_, infolog_length, &chars_written, info_log);
     log::Err() << info_log << std::endl;

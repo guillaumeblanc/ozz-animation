@@ -2,6 +2,8 @@
 ik
 ----------------------
 * Library
+  - [animation] Allows resizing SamplingCache, meaning the can be allocated without knowing the number of joints the cache needs to support.
+  - [memory] Removes (too error prone) ozz::memory::Allocator typed allocation functions.
   - [math] Changes all conversion from AxisAngle to use separate arguments for axis and angle. This is more in line with function use cases.
   - [math] Adds quaternions initialization from two vectors.
   - [simd math] Updates simd math functions to prevent unnecessary operations. Some functions now return undefined values for some components, like Dot3 that will return the dot value in x and undefined values for x, y, z. See [simd_math.h](include/ozz/base/maths/simd_math.h) for each function documentation.
@@ -21,7 +23,6 @@ Release version 0.10.0
   - Merged \*2skel and \*2anim in a single tool (\*2ozz, fbx2ozz for fbx importer) where all options are specified as a json config file. List of options with default values are available in [src/animation/offline/tools/reference.json](src/animation/offline/tools/reference.json) file. Consequently, ozz_animation_offline_skel_tools and ozz_animation_offline_anim_tools are also merged into a single ozz_animation_tools library.
   - Adds options to import user-channel tracks (from node properties for fbx) using json "animations[].tracks[].properties[]" definition.
   - Adds an option while importing skeletons to choose scene node types that must be considered as skeleton joints, ie not restricting to scene joints only. This is useful for the baked sample for example, which animates mesh nodes.
-
 
 * Build pipeline
   - ozz optionnaly supports c++11 compiler.

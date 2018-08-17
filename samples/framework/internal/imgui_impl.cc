@@ -1184,8 +1184,8 @@ void ImGuiImpl::InitalizeFont() {
          font_.pixels_size * 8);
 
   const size_t buffer_size = 4 * font_.texture_width * font_.texture_height;
-  unsigned char* pixels =
-      memory::default_allocator()->Allocate<unsigned char>(buffer_size);
+  uint8_t* pixels = reinterpret_cast<uint8_t*>(
+      memory::default_allocator()->Allocate(buffer_size, 4));
   memset(pixels, 0, buffer_size);
 
   // Unpack font data font 1 bit per pixel to 8.
@@ -1194,7 +1194,7 @@ void ImGuiImpl::InitalizeFont() {
       const int pixel = (i + j) / font_.image_width * font_.texture_width +
                         (i + j) % font_.image_width;
       const int bit = 7 - j;
-      const char cpnt = ((font_.pixels[i / 8] >> bit) & 1) * 255;
+      const uint8_t cpnt = ((font_.pixels[i / 8] >> bit) & 1) * 255;
       pixels[4 * pixel + 0] = cpnt;
       pixels[4 * pixel + 1] = cpnt;
       pixels[4 * pixel + 2] = cpnt;

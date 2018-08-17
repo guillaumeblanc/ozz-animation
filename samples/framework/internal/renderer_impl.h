@@ -191,7 +191,7 @@ class RendererImpl : public Renderer {
 
   // Array of matrices used to store model space matrices during DrawSkeleton
   // execution.
-  ozz::Range<ozz::math::Float4x4> prealloc_models_;
+  ozz::Vector<ozz::math::Float4x4>::Std prealloc_models_;
 
   // Application camera that provides rendering matrices.
   Camera* camera_;

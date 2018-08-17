@@ -44,6 +44,7 @@ using ozz::math::SimdInt4;
 // clang-format off
 
 OZZ_STATIC_ASSERT(sizeof(SimdFloat4) == 4 * sizeof(float));
+OZZ_STATIC_ASSERT(OZZ_ALIGN_OF(SimdFloat4) == 16);
 
 TEST(Name, ozz_simd_math) {
   EXPECT_TRUE(ozz::math::SimdImplementationName() != NULL);

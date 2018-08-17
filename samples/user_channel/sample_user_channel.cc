@@ -36,8 +36,6 @@
 
 #include "ozz/base/log.h"
 
-#include "ozz/base/memory/allocator.h"
-
 #include "ozz/base/maths/box.h"
 #include "ozz/base/maths/simd_math.h"
 #include "ozz/base/maths/soa_transform.h"
@@ -73,11 +71,10 @@ OZZ_OPTIONS_DECLARE_STRING(animation,
 OZZ_OPTIONS_DECLARE_STRING(track, "Path to the track (ozz archive format).",
                            "media/track.ozz", false)
 
-class LoadSampleApplication : public ozz::sample::Application {
+class UserChannelSampleApplication : public ozz::sample::Application {
  public:
-  LoadSampleApplication()
-      : cache_(NULL),
-        method_(kTriggering),  // Triggering is the most robust method.
+  UserChannelSampleApplication()
+      : method_(kTriggering),  // Triggering is the most robust method.
         attached_(false),
         attach_joint_(0) {
     ResetState();
@@ -222,9 +219,9 @@ class LoadSampleApplication : public ozz::sample::Application {
     // Samples animation at r = _ratio.
     ozz::animation::SamplingJob sampling_job;
     sampling_job.animation = &animation_;
-    sampling_job.cache = cache_;
+    sampling_job.cache = &cache_;
     sampling_job.ratio = _ratio;
-    sampling_job.output = locals_;
+    sampling_job.output = make_range(locals_);
     if (!sampling_job.Run()) {
       return false;
     }
@@ -232,8 +229,8 @@ class LoadSampleApplication : public ozz::sample::Application {
     // Converts from local space to model space matrices.
     ozz::animation::LocalToModelJob ltm_job;
     ltm_job.skeleton = &skeleton_;
-    ltm_job.input = locals_;
-    ltm_job.output = models_;
+    ltm_job.input = make_range(locals_);
+    ltm_job.output = make_range(models_);
     if (!ltm_job.Run()) {
       return false;
     }
@@ -254,14 +251,12 @@ class LoadSampleApplication : public ozz::sample::Application {
     _renderer->DrawSphereIm(.01f, models_[attach_joint_], colors[attached_]);
 
     // Draws the animated skeleton.
-    success &= _renderer->DrawPosture(skeleton_, models_,
+    success &= _renderer->DrawPosture(skeleton_, make_range(models_),
                                       ozz::math::Float4x4::identity());
     return success;
   }
 
   virtual bool OnInitialize() {
-    ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
-
     // Reading skeleton.
     if (!ozz::sample::LoadSkeleton(OPTIONS_skeleton, &skeleton_)) {
       return false;
@@ -283,12 +278,12 @@ class LoadSampleApplication : public ozz::sample::Application {
 
     // Allocates runtime buffers.
     const int num_soa_joints = skeleton_.num_soa_joints();
-    locals_ = allocator->AllocateRange<ozz::math::SoaTransform>(num_soa_joints);
+    locals_.resize(num_soa_joints);
     const int num_joints = skeleton_.num_joints();
-    models_ = allocator->AllocateRange<ozz::math::Float4x4>(num_joints);
+    models_.resize(num_joints);
 
     // Allocates a cache that matches animation requirements.
-    cache_ = allocator->New<ozz::animation::SamplingCache>(num_joints);
+    cache_.Resize(num_joints);
 
     // Reading track.
     if (!ozz::sample::LoadTrack(OPTIONS_track, &track_)) {
@@ -298,12 +293,7 @@ class LoadSampleApplication : public ozz::sample::Application {
     return true;
   }
 
-  virtual void OnDestroy() {
-    ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
-    allocator->Deallocate(locals_);
-    allocator->Deallocate(models_);
-    allocator->Delete(cache_);
-  }
+  virtual void OnDestroy() {}
 
   virtual bool OnGui(ozz::sample::ImGui* _im_gui) {
     // Exposes sample specific parameters.
@@ -340,7 +330,7 @@ class LoadSampleApplication : public ozz::sample::Application {
   }
 
   virtual void GetSceneBounds(ozz::math::Box* _bound) const {
-    ozz::sample::ComputePostureBounds(models_, _bound);
+    ozz::sample::ComputePostureBounds(make_range(models_), _bound);
   }
 
  private:
@@ -355,13 +345,13 @@ class LoadSampleApplication : public ozz::sample::Application {
   ozz::animation::Animation animation_;
 
   // Sampling cache.
-  ozz::animation::SamplingCache* cache_;
+  ozz::animation::SamplingCache cache_;
 
   // Buffer of local transforms as sampled from animation_.
-  ozz::Range<ozz::math::SoaTransform> locals_;
+  ozz::Vector<ozz::math::SoaTransform>::Std locals_;
 
   // Buffer of model space matrices.
-  ozz::Range<ozz::math::Float4x4> models_;
+  ozz::Vector<ozz::math::Float4x4>::Std models_;
 
   // Runtime float track.
   // Stores whether the box should be attached to the hand.
@@ -389,5 +379,5 @@ class LoadSampleApplication : public ozz::sample::Application {
 
 int main(int _argc, const char** _argv) {
   const char* title = "Ozz-animation sample: User channels";
-  return LoadSampleApplication().Run(_argc, _argv, "1.0", title);
+  return UserChannelSampleApplication().Run(_argc, _argv, "1.0", title);
 }
