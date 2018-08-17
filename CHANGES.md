@@ -1,3 +1,9 @@
+
+* Library
+ - [animation] Allows resizing SamplingCache, meaning the can be allocated without knowing the number of joints the cache needs to support.
+ - [memory] Removes (too error prone) ozz::memory::Allocator typed allocation functions.
+
+
 Release version 0.10.0
 ----------------------
 

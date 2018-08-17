@@ -40,8 +40,6 @@
 #include "ozz/base/maths/soa_transform.h"
 #include "ozz/base/maths/vec_float.h"
 
-#include "ozz/base/memory/allocator.h"
-
 #include "ozz/options/options.h"
 
 #include "framework/application.h"
@@ -94,9 +92,9 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
       // Setup sampling job.
       ozz::animation::SamplingJob sampling_job;
       sampling_job.animation = &sampler.animation;
-      sampling_job.cache = sampler.cache;
+      sampling_job.cache = &sampler.cache;
       sampling_job.ratio = sampler.controller.time_ratio();
-      sampling_job.output = sampler.locals;
+      sampling_job.output = make_range(sampler.locals);
 
       // Samples animation.
       if (!sampling_job.Run()) {
@@ -111,17 +109,18 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
 
     // Prepares standard blending layers.
     ozz::animation::BlendingJob::Layer layers[1];
-    layers[0].transform = samplers_[kMainAnimation].locals;
+    layers[0].transform = make_range(samplers_[kMainAnimation].locals);
     layers[0].weight = samplers_[kMainAnimation].weight_setting;
 
     // Prepares additive blending layers.
     ozz::animation::BlendingJob::Layer additive_layers[1];
-    additive_layers[0].transform = samplers_[kAdditiveAnimation].locals;
+    additive_layers[0].transform =
+        make_range(samplers_[kAdditiveAnimation].locals);
     additive_layers[0].weight = samplers_[kAdditiveAnimation].weight_setting;
 
     // Set per-joint weights for the additive blended layer.
     if (upper_body_mask_enable_) {
-      additive_layers[0].joint_weights = upper_body_joint_weights_;
+      additive_layers[0].joint_weights = make_range(upper_body_joint_weights_);
     }
 
     // Setups blending job.
@@ -130,7 +129,7 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
     blend_job.layers = layers;
     blend_job.additive_layers = additive_layers;
     blend_job.bind_pose = skeleton_.bind_pose();
-    blend_job.output = blended_locals_;
+    blend_job.output = make_range(blended_locals_);
 
     // Blends.
     if (!blend_job.Run()) {
@@ -142,8 +141,8 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
     // Setup local-to-model conversion job.
     ozz::animation::LocalToModelJob ltm_job;
     ltm_job.skeleton = &skeleton_;
-    ltm_job.input = blended_locals_;
-    ltm_job.output = models_;
+    ltm_job.input = make_range(blended_locals_);
+    ltm_job.output = make_range(models_);
 
     // Run ltm job.
     if (!ltm_job.Run()) {
@@ -156,9 +155,9 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
   // Samples animation, transforms to model space and renders.
   virtual bool OnDisplay(ozz::sample::Renderer* _renderer) {
     // Mesh must be compatible with animation/skeleton.
-    assert(
-        models_.count() >= static_cast<size_t>(mesh_.highest_joint_index()) &&
-        skinning_matrices_.count() >= static_cast<size_t>(mesh_.num_joints()));
+    assert(models_.size() >= static_cast<size_t>(mesh_.highest_joint_index()) &&
+           skinning_matrices_.size() >=
+               static_cast<size_t>(mesh_.num_joints()));
 
     // Builds skinning matrices, based on the output of the animation stage.
     // The mesh might not use (aka be skinned by) all skeleton joints. We use
@@ -170,14 +169,12 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
     }
 
     // Renders skin.
-    return _renderer->DrawSkinnedMesh(mesh_, skinning_matrices_,
+    return _renderer->DrawSkinnedMesh(mesh_, make_range(skinning_matrices_),
                                       ozz::math::Float4x4::identity(),
                                       render_options_);
   }
 
   virtual bool OnInitialize() {
-    ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
-
     // Reading skeleton.
     if (!ozz::sample::LoadSkeleton(OPTIONS_skeleton, &skeleton_)) {
       return false;
@@ -208,11 +205,10 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
       }
 
       // Allocates sampler runtime buffers.
-      sampler.locals =
-          allocator->AllocateRange<ozz::math::SoaTransform>(num_soa_joints);
+      sampler.locals.resize(num_soa_joints);
 
       // Allocates a cache that matches animation requirements.
-      sampler.cache = allocator->New<ozz::animation::SamplingCache>(num_joints);
+      sampler.cache.Resize(num_joints);
     }
 
     // Default weight settings.
@@ -222,18 +218,15 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
     samplers_[kAdditiveAnimation].weight_setting = 1.f;
 
     // Allocates local space runtime buffers of blended data.
-    blended_locals_ =
-        allocator->AllocateRange<ozz::math::SoaTransform>(num_soa_joints);
+    blended_locals_.resize(num_soa_joints);
 
     // Allocates model space runtime buffers of blended data.
-    models_ = allocator->AllocateRange<ozz::math::Float4x4>(num_joints);
-    skinning_matrices_ =
-        allocator->AllocateRange<ozz::math::Float4x4>(num_joints);
+    models_.resize(num_joints);
+    skinning_matrices_.resize(num_joints);
 
     // Allocates per-joint weights used for the partial additive animation.
     // Note that this is a Soa structure.
-    upper_body_joint_weights_ =
-        allocator->AllocateRange<ozz::math::SimdFloat4>(num_soa_joints);
+    upper_body_joint_weights_.resize(num_soa_joints);
 
     // Finds the "Spine1" joint in the joint hierarchy.
     for (int i = 0; i < num_joints; ++i) {
@@ -274,18 +267,7 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
     }
   }
 
-  virtual void OnDestroy() {
-    ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
-    for (int i = 0; i < kNumLayers; ++i) {
-      Sampler& sampler = samplers_[i];
-      allocator->Deallocate(sampler.locals);
-      allocator->Delete(sampler.cache);
-    }
-    allocator->Deallocate(upper_body_joint_weights_);
-    allocator->Deallocate(blended_locals_);
-    allocator->Deallocate(models_);
-    allocator->Deallocate(skinning_matrices_);
-  }
+  virtual void OnDestroy() {}
 
   virtual bool OnGui(ozz::sample::ImGui* _im_gui) {
     char label[64];
@@ -379,7 +361,7 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
   }
 
   virtual void GetSceneBounds(ozz::math::Box* _bound) const {
-    ozz::sample::ComputePostureBounds(models_, _bound);
+    ozz::sample::ComputePostureBounds(make_range(models_), _bound);
   }
 
  private:
@@ -397,7 +379,7 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
   // animation.
   struct Sampler {
     // Constructor, default initialization.
-    Sampler() : weight_setting(1.f), cache(NULL) {}
+    Sampler() : weight_setting(1.f) {}
 
     // Playback animation controller. This is a utility class that helps with
     // controlling animation playback time.
@@ -410,10 +392,10 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
     ozz::animation::Animation animation;
 
     // Sampling cache.
-    ozz::animation::SamplingCache* cache;
+    ozz::animation::SamplingCache cache;
 
     // Buffer of local transforms as sampled from animation_.
-    ozz::Range<ozz::math::SoaTransform> locals;
+    ozz::Vector<ozz::math::SoaTransform>::Std locals;
 
   } samplers_[kNumLayers];  // kNumLayers animations to blend.
 
@@ -431,21 +413,21 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
   // Per-joint weights used to define the partial animation mask. Allows to
   // select which joints are considered during blending, and their individual
   // weight_setting.
-  ozz::Range<ozz::math::SimdFloat4> upper_body_joint_weights_;
+  ozz::Vector<ozz::math::SimdFloat4>::Std upper_body_joint_weights_;
 
   // Blending job bind pose threshold.
   float threshold_;
 
   // Buffer of local transforms which stores the blending result.
-  ozz::Range<ozz::math::SoaTransform> blended_locals_;
+  ozz::Vector<ozz::math::SoaTransform>::Std blended_locals_;
 
   // Buffer of model space matrices. These are computed by the local-to-model
   // job after the blending stage.
-  ozz::Range<ozz::math::Float4x4> models_;
+  ozz::Vector<ozz::math::Float4x4>::Std models_;
 
   // Buffer of skinning matrices, result of the joint multiplication of the
   // inverse bind pose with the model space matrix.
-  ozz::Range<ozz::math::Float4x4> skinning_matrices_;
+  ozz::Vector<ozz::math::Float4x4>::Std skinning_matrices_;
 
   // The mesh used by the sample.
   ozz::sample::Mesh mesh_;

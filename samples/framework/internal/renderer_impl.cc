@@ -93,8 +93,6 @@ RendererImpl::RendererImpl(Camera* _camera)
 RendererImpl::~RendererImpl() {
   memory::Allocator* allocator = memory::default_allocator();
 
-  allocator->Deallocate(prealloc_models_);
-
   if (dynamic_array_bo_) {
     GL(DeleteBuffers(1, &dynamic_array_bo_));
     dynamic_array_bo_ = 0;
@@ -283,26 +281,19 @@ bool RendererImpl::DrawSkeleton(const ozz::animation::Skeleton& _skeleton,
   }
 
   // Reallocate matrix array if necessary.
-  if (prealloc_models_.size() < num_joints * sizeof(ozz::math::Float4x4)) {
-    ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
-    prealloc_models_ =
-        allocator->AllocateRange<ozz::math::Float4x4>(_skeleton.num_joints());
-  }
-  if (!prealloc_models_.begin) {
-    return false;
-  }
+  prealloc_models_.resize(num_joints);
 
   // Compute model space bind pose.
   ozz::animation::LocalToModelJob job;
   job.input = _skeleton.bind_pose();
-  job.output = prealloc_models_;
+  job.output = make_range(prealloc_models_);
   job.skeleton = &_skeleton;
   if (!job.Run()) {
     return false;
   }
 
   // Forwards to rendering.
-  return DrawPosture(_skeleton, prealloc_models_, _transform, _draw_joints);
+  return DrawPosture(_skeleton, job.output, _transform, _draw_joints);
 }
 
 bool RendererImpl::InitPostureRendering() {
@@ -427,7 +418,8 @@ bool RendererImpl::InitCheckeredTexture() {
 
   // Allocates for biggest mip level.
   const size_t buffer_size = 3 * kWidth * kWidth;
-  uint8_t* pixels = memory::default_allocator()->Allocate<uint8_t>(buffer_size);
+  uint8_t* pixels = reinterpret_cast<uint8_t*>(
+      memory::default_allocator()->Allocate(buffer_size, 16));
 
   // Create the checkered pattern on all mip levels.
   int level_width = kWidth;

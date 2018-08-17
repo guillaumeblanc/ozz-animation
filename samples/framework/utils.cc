@@ -151,24 +151,17 @@ void ComputeSkeletonBounds(const animation::Skeleton& _skeleton,
   }
 
   // Allocate matrix array, out of memory is handled by the LocalToModelJob.
-  memory::Allocator* allocator = memory::default_allocator();
-  ozz::Range<ozz::math::Float4x4> models =
-      allocator->AllocateRange<ozz::math::Float4x4>(num_joints);
-  if (!models.begin) {
-    return;
-  }
+  ozz::Vector<ozz::math::Float4x4>::Std models(num_joints);
 
   // Compute model space bind pose.
   ozz::animation::LocalToModelJob job;
   job.input = _skeleton.bind_pose();
-  job.output = models;
+  job.output = make_range(models);
   job.skeleton = &_skeleton;
   if (job.Run()) {
     // Forwards to posture function.
-    ComputePostureBounds(models, _bound);
+    ComputePostureBounds(job.output, _bound);
   }
-
-  allocator->Deallocate(models);
 }
 
 // Loop through matrices and collect min and max bounds.

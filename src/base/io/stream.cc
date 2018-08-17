@@ -203,8 +203,8 @@ bool MemoryStream::Resize(size_t _size) {
         (MemoryStream::kBufferSizeIncrement & (kBufferSizeIncrement - 1)) == 0);
 
     alloc_size_ = ozz::math::Align(_size, kBufferSizeIncrement);
-    buffer_ =
-        ozz::memory::default_allocator()->Reallocate(buffer_, alloc_size_);
+    buffer_ = reinterpret_cast<char*>(
+        ozz::memory::default_allocator()->Reallocate(buffer_, alloc_size_, 4));
   }
   return _size == 0 || buffer_ != NULL;
 }

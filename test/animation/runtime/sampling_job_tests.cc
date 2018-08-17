@@ -595,7 +595,7 @@ TEST(Sampling4Track2Keys, SamplingJob) {
   ozz::memory::default_allocator()->Delete(animation);
 }
 
-TEST(SamplingCache, SamplingJob) {
+TEST(Cache, SamplingJob) {
   RawAnimation raw_animation;
   raw_animation.duration = 46.f;
   raw_animation.tracks.resize(1);  // Adds a joint.
@@ -688,4 +688,40 @@ TEST(SamplingCache, SamplingJob) {
 
   ozz::memory::default_allocator()->Delete(animations[0]);
   ozz::memory::default_allocator()->Delete(animations[1]);
+}
+
+TEST(CacheResize, SamplingJob) {
+    RawAnimation raw_animation;
+    raw_animation.duration = 46.f;
+    raw_animation.tracks.resize(7);
+        
+    AnimationBuilder builder;
+    ozz::animation::Animation* animation = builder(raw_animation);
+    ASSERT_TRUE(animation != NULL);
+
+    // Empty cache by default
+    SamplingCache cache;
+
+    ozz::math::SoaTransform output[2];
+    
+    SamplingJob job;
+    job.animation = animation;
+    job.cache = &cache;
+    job.ratio = 0.f;
+    job.output.begin = output;
+    job.output.end = output + 7;
+    
+    // Cache is too small
+    EXPECT_FALSE(job.Validate());
+    
+    // Cache is ok.
+    cache.Resize(7);
+    EXPECT_TRUE(job.Validate());
+    EXPECT_TRUE(job.Run());
+    
+    // Cache is too small
+    cache.Resize(1);
+    EXPECT_FALSE(job.Validate());
+    
+    ozz::memory::default_allocator()->Delete(animation);
 }
