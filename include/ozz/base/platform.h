@@ -176,13 +176,7 @@ struct Range {
   operator Range<const _Ty>() const { return Range<const _Ty>(begin, end); }
 
   // Returns a const reference to element _i of range [begin,end[.
-  const _Ty& operator[](size_t _i) const {
-    assert(begin != NULL && begin + _i < end && "Index out of range.");
-    return begin[_i];
-  }
-
-  // Returns a reference to element _i of range [begin,end[.
-  _Ty& operator[](size_t _i) {
+  _Ty& operator[](size_t _i) const {
     assert(begin != NULL && begin + _i < end && "Index out of range.");
     return begin[_i];
   }
