@@ -140,8 +140,11 @@ bool Shader::BuildFromSource(int _vertex_count, const char** _vertex,
 }
 
 bool Shader::BindUniform(const char* _semantic) {
+  if (!program_) {
+    return false;
+  }
   GLint location = glGetUniformLocation(program_, _semantic);
-  if (location == -1) {  // _semantic not found.
+  if (glGetError() != GL_NO_ERROR || location == -1) {  // _semantic not found.
     return false;
   }
   uniforms_.push_back(location);
@@ -149,8 +152,11 @@ bool Shader::BindUniform(const char* _semantic) {
 }
 
 bool Shader::FindAttrib(const char* _semantic) {
+  if (!program_) {
+    return false;
+  }
   GLint location = glGetAttribLocation(program_, _semantic);
-  if (location == -1) {  // _semantic not found.
+  if (glGetError() != GL_NO_ERROR || location == -1) {  // _semantic not found.
     return false;
   }
   attribs_.push_back(location);
@@ -491,8 +497,10 @@ BoneShader* BoneShader::Build() {  // Builds a world matrix from joint uniforms,
       "  float bone_len = length(bone_dir);\n"
 
       "  // Setup rendering world matrix.\n"
-      "  float dot = dot(joint[2].xyz, bone_dir);\n"
-      "  vec3 binormal = abs(dot) < .01 ? joint[2].xyz : joint[1].xyz;\n"
+      "  float dot1 = dot(joint[2].xyz, bone_dir);\n"
+      "  vec3 binormal_temp = abs(dot1) < .5 ? joint[2].xyz : joint[1].xyz;\n"
+      "  float dot2 = dot(binormal_temp, bone_dir);\n"
+      "  vec3 binormal = abs(dot2) < .5 ? binormal_temp : joint[0].xyz;\n"
 
       "  mat4 world_matrix;\n"
       "  world_matrix[0] = vec4(bone_dir, 0.);\n"
