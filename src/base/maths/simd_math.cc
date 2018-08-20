@@ -30,25 +30,32 @@
 namespace ozz {
 namespace math {
 
-const char* SimdImplementationName() {
-#if defined(OZZ_SIMD_AVX)
-  return "AVX";
+// Select compile time name of the simd implementation
+#if defined(OZZ_SIMD_AVX2) && defined(OZZ_SIMD_FMA)
+#define _OZZ_SIMD_IMPLEMENTATION "AVX2-FMA"
+#elif defined(OZZ_SIMD_AVX2)
+#define _OZZ_SIMD_IMPLEMENTATION "AVX2"
+#elif defined(OZZ_SIMD_AVX)
+#define _OZZ_SIMD_IMPLEMENTATION "AVX"
 #elif defined(OZZ_SIMD_SSE4_2)
-  return "SSE4.2";
+#define _OZZ_SIMD_IMPLEMENTATION "SSE4.2"
 #elif defined(OZZ_SIMD_SSE4_1)
-  return "SSE4.1";
+#define _OZZ_SIMD_IMPLEMENTATION "SSE4.1"
 #elif defined(OZZ_SIMD_SSSE3)
-  return "SSSE3";
+#define _OZZ_SIMD_IMPLEMENTATION "SSSE3"
 #elif defined(OZZ_SIMD_SSE3)
-  return "SSE3";
+#define _OZZ_SIMD_IMPLEMENTATION "SSE3"
 #elif defined(OZZ_SIMD_SSEx)
-  return "SSE";
+#define _OZZ_SIMD_IMPLEMENTATION "SSE2"
 #elif defined(OZZ_SIMD_REF)
-  return "Reference";
+#define _OZZ_SIMD_IMPLEMENTATION "Reference"
 #else
-#error No simd_math implementation detected.
+// Not defined
 #endif
-}
 
+#pragma message("Ozz libraries were built with " _OZZ_SIMD_IMPLEMENTATION \
+                " SIMD math implementation")
+
+const char* SimdImplementationName() { return _OZZ_SIMD_IMPLEMENTATION; }
 }  // namespace math
 }  // namespace ozz
