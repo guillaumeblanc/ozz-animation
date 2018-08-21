@@ -451,13 +451,115 @@ TEST(NormalizeFloat, ozz_simd_math) {
   const SimdFloat4 safe4 = ozz::math::NormalizeSafe4(f, unit);
   EXPECT_SIMDFLOAT_EQ(safe4, .1084652f, .2169305f, .433861f, .8677219f);
   EXPECT_SIMDINT_EQ(ozz::math::IsNormalized4(safe4), 0xffffffff, 0, 0, 0);
-//  const SimdFloat4 safer4 = ozz::math::NormalizeSafe4(zero, unit);
-//  EXPECT_SIMDFLOAT_EQ(safer4, 1.f, 0.f, 0.f, 0.f);
+  const SimdFloat4 safer4 = ozz::math::NormalizeSafe4(zero, unit);
+  EXPECT_SIMDFLOAT_EQ(safer4, 1.f, 0.f, 0.f, 0.f);
   const SimdFloat4 safe_est4 = ozz::math::NormalizeSafeEst4(f, unit);
   EXPECT_SIMDFLOAT_EQ_EST(safe_est4, .1084652f, .2169305f, .433861f, .8677219f);
   EXPECT_SIMDINT_EQ(ozz::math::IsNormalizedEst4(safe_est4), 0xffffffff, 0, 0, 0);
-//  const SimdFloat4 safer_est4 = ozz::math::NormalizeSafeEst4(zero, unit);
-//  EXPECT_SIMDFLOAT_EQ_EST(safer_est4, 1.f, 0.f, 0.f, 0.f);
+  const SimdFloat4 safer_est4 = ozz::math::NormalizeSafeEst4(zero, unit);
+  EXPECT_SIMDFLOAT_EQ_EST(safer_est4, 1.f, 0.f, 0.f, 0.f);
+}
+
+TEST(ParallelFloat, ozz_simd_math) {
+  const ozz::math::SimdFloat4 x = ozz::math::simd_float4::x_axis();
+  const ozz::math::SimdFloat4 y = ozz::math::simd_float4::y_axis();
+  const ozz::math::SimdFloat4 z = ozz::math::simd_float4::z_axis();
+  const ozz::math::SimdFloat4 w = ozz::math::simd_float4::w_axis();
+
+  // Unit // vectors
+  EXPECT_TRUE(ozz::math::AreAllTrue1(ozz::math::IsParallel4(x, x)));
+  EXPECT_TRUE(ozz::math::AreAllTrue1(ozz::math::IsParallel4(x, -x)));
+  EXPECT_TRUE(ozz::math::AreAllTrue1(ozz::math::IsParallel4(-x, x)));
+  EXPECT_TRUE(ozz::math::AreAllTrue1(ozz::math::IsParallel4(y, y)));
+  EXPECT_TRUE(ozz::math::AreAllTrue1(ozz::math::IsParallel4(y, -y)));
+  EXPECT_TRUE(ozz::math::AreAllTrue1(ozz::math::IsParallel4(-y, y)));
+  EXPECT_TRUE(ozz::math::AreAllTrue1(ozz::math::IsParallel4(z, z)));
+  EXPECT_TRUE(ozz::math::AreAllTrue1(ozz::math::IsParallel4(z, -z)));
+  EXPECT_TRUE(ozz::math::AreAllTrue1(ozz::math::IsParallel4(-z, z)));
+  EXPECT_TRUE(ozz::math::AreAllTrue1(ozz::math::IsParallel4(w, w)));
+  EXPECT_TRUE(ozz::math::AreAllTrue1(ozz::math::IsParallel4(w, -w)));
+  EXPECT_TRUE(ozz::math::AreAllTrue1(ozz::math::IsParallel4(-w, w)));
+    
+  EXPECT_TRUE(ozz::math::AreAllTrue1(ozz::math::IsParallel3(x, x)));
+  EXPECT_TRUE(ozz::math::AreAllTrue1(ozz::math::IsParallel3(x, -x)));
+  EXPECT_TRUE(ozz::math::AreAllTrue1(ozz::math::IsParallel3(-x, x)));
+  EXPECT_TRUE(ozz::math::AreAllTrue1(ozz::math::IsParallel3(y, y)));
+  EXPECT_TRUE(ozz::math::AreAllTrue1(ozz::math::IsParallel3(y, -y)));
+  EXPECT_TRUE(ozz::math::AreAllTrue1(ozz::math::IsParallel3(-y, y)));
+  EXPECT_TRUE(ozz::math::AreAllTrue1(ozz::math::IsParallel3(z, z)));
+  EXPECT_TRUE(ozz::math::AreAllTrue1(ozz::math::IsParallel3(z, -z)));
+  EXPECT_TRUE(ozz::math::AreAllTrue1(ozz::math::IsParallel3(-z, z)));
+
+  EXPECT_TRUE(ozz::math::AreAllTrue1(ozz::math::IsParallel2(x, x)));
+  EXPECT_TRUE(ozz::math::AreAllTrue1(ozz::math::IsParallel2(x, -x)));
+  EXPECT_TRUE(ozz::math::AreAllTrue1(ozz::math::IsParallel2(-x, x)));
+  EXPECT_TRUE(ozz::math::AreAllTrue1(ozz::math::IsParallel2(y, y)));
+  EXPECT_TRUE(ozz::math::AreAllTrue1(ozz::math::IsParallel2(y, -y)));
+  EXPECT_TRUE(ozz::math::AreAllTrue1(ozz::math::IsParallel2(-y, y)));
+
+  // Non-Unit // vectors
+  EXPECT_TRUE(ozz::math::AreAllTrue1(ozz::math::IsParallel4(ozz::math::simd_float4::Load(0, 1, 2, 3), ozz::math::simd_float4::Load(0, 2, 4, 6))));
+  EXPECT_TRUE(ozz::math::AreAllTrue1(ozz::math::IsParallel4(-ozz::math::simd_float4::Load(0, 1, 2, 3), ozz::math::simd_float4::Load(0, 2, 4, 6))));
+  EXPECT_TRUE(ozz::math::AreAllTrue1(ozz::math::IsParallel4(ozz::math::simd_float4::Load(0, 1, 2, 3), -ozz::math::simd_float4::Load(0, 2, 4, 6))));
+  EXPECT_TRUE(ozz::math::AreAllTrue1(ozz::math::IsParallel4(-ozz::math::simd_float4::Load(0, 1, 2, 3), -ozz::math::simd_float4::Load(0, 2, 4, 6))));
+  EXPECT_TRUE(ozz::math::AreAllTrue1(ozz::math::IsParallel4(ozz::math::simd_float4::Load(-1, 1, 2, 3), ozz::math::simd_float4::Load(-2, 2, 4, 6))));
+  EXPECT_TRUE(ozz::math::AreAllTrue1(ozz::math::IsParallel4(ozz::math::simd_float4::Load(1, -1, 2, 3), ozz::math::simd_float4::Load(200, -200, 400, 600))));
+  EXPECT_TRUE(ozz::math::AreAllTrue1(ozz::math::IsParallel4(ozz::math::simd_float4::Load(200, -200, 400, 600), ozz::math::simd_float4::Load(1, -1, 2, 3))));
+
+  EXPECT_TRUE(ozz::math::AreAllTrue1(ozz::math::IsParallel3(ozz::math::simd_float4::Load(0, 1, 2, 99), ozz::math::simd_float4::Load(0, 2, 4, 93))));
+  EXPECT_TRUE(ozz::math::AreAllTrue1(ozz::math::IsParallel3(-ozz::math::simd_float4::Load(0, 1, 2, 99), ozz::math::simd_float4::Load(0, 2, 4, 93))));
+  EXPECT_TRUE(ozz::math::AreAllTrue1(ozz::math::IsParallel3(ozz::math::simd_float4::Load(0, 1, 2, 99), -ozz::math::simd_float4::Load(0, 2, 4, 93))));
+  EXPECT_TRUE(ozz::math::AreAllTrue1(ozz::math::IsParallel3(-ozz::math::simd_float4::Load(0, 1, 2, 99), -ozz::math::simd_float4::Load(0, 2, 4, 93))));
+  EXPECT_TRUE(ozz::math::AreAllTrue1(ozz::math::IsParallel3(ozz::math::simd_float4::Load(-1, 1, 2, 99), ozz::math::simd_float4::Load(-2, 2, 4, 93))));
+  EXPECT_TRUE(ozz::math::AreAllTrue1(ozz::math::IsParallel3(ozz::math::simd_float4::Load(1, -1, 2, 99), ozz::math::simd_float4::Load(200, -200, 400, 93))));
+  EXPECT_TRUE(ozz::math::AreAllTrue1(ozz::math::IsParallel3(ozz::math::simd_float4::Load(200, -200, 400, 99), ozz::math::simd_float4::Load(1, -1, 2, 93))));
+
+  EXPECT_TRUE(ozz::math::AreAllTrue1(ozz::math::IsParallel2(ozz::math::simd_float4::Load(0, 1, 26, 99), ozz::math::simd_float4::Load(0, 2, 99, 93))));
+  EXPECT_TRUE(ozz::math::AreAllTrue1(ozz::math::IsParallel2(-ozz::math::simd_float4::Load(0, 1, 26, 99), ozz::math::simd_float4::Load(0, 2, 99, 93))));
+  EXPECT_TRUE(ozz::math::AreAllTrue1(ozz::math::IsParallel2(ozz::math::simd_float4::Load(0, 1, 26, 99), -ozz::math::simd_float4::Load(0, 2, 99, 93))));
+  EXPECT_TRUE(ozz::math::AreAllTrue1(ozz::math::IsParallel2(-ozz::math::simd_float4::Load(0, 1, 26, 99), -ozz::math::simd_float4::Load(0, 2, 99, 93))));
+  EXPECT_TRUE(ozz::math::AreAllTrue1(ozz::math::IsParallel2(ozz::math::simd_float4::Load(-1, 1, 26, 99), ozz::math::simd_float4::Load(-2, 2, 99, 93))));
+  EXPECT_TRUE(ozz::math::AreAllTrue1(ozz::math::IsParallel2(ozz::math::simd_float4::Load(1, -1, 26, 99), ozz::math::simd_float4::Load(200, -200, 99, 93))));
+  EXPECT_TRUE(ozz::math::AreAllTrue1(ozz::math::IsParallel2(ozz::math::simd_float4::Load(200, -200, 26, 99), ozz::math::simd_float4::Load(1, -1, 99, 93))));
+
+  // Unit non-// vectors
+  EXPECT_FALSE(ozz::math::AreAllTrue1(ozz::math::IsParallel4(x, y)));
+  EXPECT_FALSE(ozz::math::AreAllTrue1(ozz::math::IsParallel4(x, z)));
+  EXPECT_FALSE(ozz::math::AreAllTrue1(ozz::math::IsParallel4(x, -y)));
+  EXPECT_FALSE(ozz::math::AreAllTrue1(ozz::math::IsParallel4(w, -y)));
+
+  EXPECT_FALSE(ozz::math::AreAllTrue1(ozz::math::IsParallel3(x, y)));
+  EXPECT_FALSE(ozz::math::AreAllTrue1(ozz::math::IsParallel3(x, z)));
+  EXPECT_FALSE(ozz::math::AreAllTrue1(ozz::math::IsParallel3(x, -y)));
+  EXPECT_FALSE(ozz::math::AreAllTrue1(ozz::math::IsParallel3(z, -y)));
+
+  EXPECT_FALSE(ozz::math::AreAllTrue1(ozz::math::IsParallel2(x, y)));
+  EXPECT_FALSE(ozz::math::AreAllTrue1(ozz::math::IsParallel2(-x, y)));
+  EXPECT_FALSE(ozz::math::AreAllTrue1(ozz::math::IsParallel2(x, -y)));
+  EXPECT_FALSE(ozz::math::AreAllTrue1(ozz::math::IsParallel2(-x, -y)));
+
+  // Non-Unit non-// vectors
+  EXPECT_FALSE(ozz::math::AreAllTrue1(ozz::math::IsParallel4(ozz::math::simd_float4::Load(0, 1, 2, 3), ozz::math::simd_float4::Load(2, 0, 4, 1))));
+  EXPECT_FALSE(ozz::math::AreAllTrue1(ozz::math::IsParallel4(ozz::math::simd_float4::Load(0, 1000, 2000, 3000), ozz::math::simd_float4::Load(2, 0, 4, 1))));
+  EXPECT_FALSE(ozz::math::AreAllTrue1(ozz::math::IsParallel4(ozz::math::simd_float4::Load(2, 0, 4, 1), ozz::math::simd_float4::Load(0, 1000, 2000, 3000))));
+    
+  EXPECT_FALSE(ozz::math::AreAllTrue1(ozz::math::IsParallel3(ozz::math::simd_float4::Load(0, 1, 2, 99), ozz::math::simd_float4::Load(2, 0, 4, 99))));
+  EXPECT_FALSE(ozz::math::AreAllTrue1(ozz::math::IsParallel3(ozz::math::simd_float4::Load(0, 1000, 2000, 99), ozz::math::simd_float4::Load(2, 0, 4, 99))));
+  EXPECT_FALSE(ozz::math::AreAllTrue1(ozz::math::IsParallel3(ozz::math::simd_float4::Load(2, 0, 4, 99), ozz::math::simd_float4::Load(0, 1000, 2000, 99))));
+
+  EXPECT_FALSE(ozz::math::AreAllTrue1(ozz::math::IsParallel2(ozz::math::simd_float4::Load(0, 1, 93, 99), ozz::math::simd_float4::Load(2, 0, 93, 99))));
+  EXPECT_FALSE(ozz::math::AreAllTrue1(ozz::math::IsParallel2(ozz::math::simd_float4::Load(0, 1000, 93, 99), ozz::math::simd_float4::Load(2, 0, 93, 99))));
+  EXPECT_FALSE(ozz::math::AreAllTrue1(ozz::math::IsParallel2(ozz::math::simd_float4::Load(2, 0, 93, 99), ozz::math::simd_float4::Load(0, 1000, 93, 99))));
+
+  // Test tolerance
+  EXPECT_FALSE(ozz::math::AreAllTrue1(ozz::math::IsParallel4(ozz::math::simd_float4::Load(0, 0, 1, 1), ozz::math::simd_float4::Load(0, 0, 1, 1.001f))));
+  EXPECT_TRUE(ozz::math::AreAllTrue1(ozz::math::IsParallel4(ozz::math::simd_float4::Load(0, 0, 1, 1), ozz::math::simd_float4::Load(0, 0, 1, 1.0001f))));
+
+  EXPECT_FALSE(ozz::math::AreAllTrue1(ozz::math::IsParallel3(ozz::math::simd_float4::Load(0, 1, 1, 1), ozz::math::simd_float4::Load(0, 1, 1.001f, 1))));
+  EXPECT_TRUE(ozz::math::AreAllTrue1(ozz::math::IsParallel3(ozz::math::simd_float4::Load(0, 1, 1, 93), ozz::math::simd_float4::Load(0, 1, 1.0001f, 99))));
+
+  EXPECT_FALSE(ozz::math::AreAllTrue1(ozz::math::IsParallel2(ozz::math::simd_float4::Load(1, 1, 1, 1), ozz::math::simd_float4::Load(1, 1.001f, 1, 1))));
+  EXPECT_TRUE(ozz::math::AreAllTrue1(ozz::math::IsParallel2(ozz::math::simd_float4::Load(1, 1, 93, 99), ozz::math::simd_float4::Load(1, 1.0001f, 93, 99))));
 }
 
 TEST(CompareFloat, ozz_simd_math) {
