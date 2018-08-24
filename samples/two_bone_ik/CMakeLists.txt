@@ -15,7 +15,8 @@ add_executable(sample_two_bone_ik
   "${CMAKE_CURRENT_BINARY_DIR}/media/skeleton.ozz")
 target_link_libraries(sample_two_bone_ik
   sample_framework
-  ozz_animation_offline)  # TEMP TEMP TEMP TEMP TEMP TEMP TEMP TEMP TEMP TEMP TEMP !!!!!!!!!!!
+  ozz_animation_offline
+  ozz_animation)
 
 set_target_properties(sample_two_bone_ik
   PROPERTIES FOLDER "samples")

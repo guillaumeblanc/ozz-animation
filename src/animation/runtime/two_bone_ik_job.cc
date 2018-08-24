@@ -35,11 +35,11 @@ namespace ozz {
 namespace animation {
 
 TwoBoneIKJob::TwoBoneIKJob()
-    : start_joint(NULL),
+    : handle(math::simd_float4::zero()),
+      pole_vector(math::simd_float4::y_axis()),
+      start_joint(NULL),
       mid_joint(NULL),
       end_joint(NULL),
-      handle(math::simd_float4::zero()),
-      pole_vector(math::simd_float4::y_axis()),
       start_joint_correction(NULL),
       mid_joint_correction(NULL) {}
 

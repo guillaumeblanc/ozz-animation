@@ -74,7 +74,7 @@ ozz::animation::Skeleton* TempBuildSkeleton() {
   start.transform.translation = ozz::math::Float3::y_axis();
   start.transform.rotation = ozz::math::Quaternion::FromAxisAngle(
       ozz::math::Float3::x_axis(), -ozz::math::kPi / 4.f);
-  //start.transform.rotation = ozz::math::Quaternion::identity();
+  // start.transform.rotation = ozz::math::Quaternion::identity();
   // start.transform.scale = ozz::math::Float3(1, 2, 1);
   start.transform.scale = ozz::math::Float3::one();
 
@@ -258,7 +258,7 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
   }
 
   virtual bool OnInitialize() {
-    // Reading skeleton.
+// Reading skeleton.
 //#define LOAD
 #ifdef LOAD
     ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
