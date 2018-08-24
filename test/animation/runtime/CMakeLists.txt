@@ -110,6 +110,14 @@ target_link_libraries(test_track_archive
 set_target_properties(test_track_archive PROPERTIES FOLDER "ozz/tests/animation")
 add_test(NAME test_track_archive COMMAND test_track_archive)
 
+add_executable(test_two_bone_ik_job
+  two_bone_ik_job_tests.cc)
+target_link_libraries(test_two_bone_ik_job
+  ozz_animation
+  gtest)
+set_target_properties(test_two_bone_ik_job PROPERTIES FOLDER "ozz/tests/animation")
+add_test(NAME test_two_bone_ik_job COMMAND test_two_bone_ik_job)
+
 # ozz_animation fuse tests
 set_source_files_properties(${PROJECT_BINARY_DIR}/src_fused/ozz_animation.cc PROPERTIES GENERATED 1)
 add_executable(test_fuse_animation
