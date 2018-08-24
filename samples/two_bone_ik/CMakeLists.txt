@@ -37,6 +37,7 @@ else()
 endif(EMSCRIPTEN)
 
 add_test(NAME sample_two_bone_ik COMMAND sample_two_bone_ik "--max_idle_loops=${ozz_sample_testing_loops}" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)
-add_test(NAME sample_two_bone_ik_path1 COMMAND sample_two_bone_ik "--skeleton=media/skeleton.ozz" "--max_idle_loops=${ozz_sample_testing_loops}" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)
-add_test(NAME sample_two_bone_ik_invalid_skeleton_path COMMAND sample_two_bone_ik "--skeleton=media/bad_skeleton.ozz" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)
-set_tests_properties(sample_two_bone_ik_invalid_skeleton_path PROPERTIES WILL_FAIL true)
+
+#add_test(NAME sample_two_bone_ik_path1 COMMAND sample_two_bone_ik "--skeleton=media/skeleton.ozz" "--max_idle_loops=${ozz_sample_testing_loops}" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)
+#add_test(NAME sample_two_bone_ik_invalid_skeleton_path COMMAND sample_two_bone_ik "--skeleton=media/bad_skeleton.ozz" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)
+#set_tests_properties(sample_two_bone_ik_invalid_skeleton_path PROPERTIES WILL_FAIL true)
