@@ -1151,6 +1151,22 @@ OZZ_INLINE ozz::math::SimdFloat4 TransformPoint(const ozz::math::Float4x4& _m,
 // of 0.
 OZZ_INLINE ozz::math::SimdFloat4 TransformVector(const ozz::math::Float4x4& _m,
                                                  ozz::math::_SimdFloat4 _v);
+
+// Computes the multiplication of matrix Float4x4 and vector _v.
+OZZ_INLINE ozz::math::SimdFloat4 operator*(const ozz::math::Float4x4& _m,
+                                           ozz::math::_SimdFloat4 _v);
+
+// Computes the multiplication of two matrices _a and _b.
+OZZ_INLINE ozz::math::Float4x4 operator*(const ozz::math::Float4x4& _a,
+                                         const ozz::math::Float4x4& _b);
+
+// Computes the per element addition of two matrices _a and _b.
+OZZ_INLINE ozz::math::Float4x4 operator+(const ozz::math::Float4x4& _a,
+                                         const ozz::math::Float4x4& _b);
+
+// Computes the per element subtraction of two matrices _a and _b.
+OZZ_INLINE ozz::math::Float4x4 operator-(const ozz::math::Float4x4& _a,
+                                         const ozz::math::Float4x4& _b);
 }  // namespace math
 }  // namespace ozz
 
@@ -1174,22 +1190,6 @@ OZZ_INLINE ozz::math::SimdFloat4 operator*(ozz::math::_SimdFloat4 _a,
 OZZ_INLINE ozz::math::SimdFloat4 operator/(ozz::math::_SimdFloat4 _a,
                                            ozz::math::_SimdFloat4 _b);
 #endif  // !defined(__GNUC__) || defined(OZZ_SIMD_REF)
-
-// Computes the multiplication of matrix Float4x4 and vector _v.
-OZZ_INLINE ozz::math::SimdFloat4 operator*(const ozz::math::Float4x4& _m,
-                                           ozz::math::_SimdFloat4 _v);
-
-// Computes the multiplication of two matrices _a and _b.
-OZZ_INLINE ozz::math::Float4x4 operator*(const ozz::math::Float4x4& _a,
-                                         const ozz::math::Float4x4& _b);
-
-// Computes the per element addition of two matrices _a and _b.
-OZZ_INLINE ozz::math::Float4x4 operator+(const ozz::math::Float4x4& _a,
-                                         const ozz::math::Float4x4& _b);
-
-// Computes the per element subtraction of two matrices _a and _b.
-OZZ_INLINE ozz::math::Float4x4 operator-(const ozz::math::Float4x4& _a,
-                                         const ozz::math::Float4x4& _b);
 
 // Implement format conversions.
 namespace ozz {

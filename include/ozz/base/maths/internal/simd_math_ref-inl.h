@@ -1933,41 +1933,6 @@ OZZ_INLINE ozz::math::SimdFloat4 TransformVector(const ozz::math::Float4x4& _m,
       _m.cols[0].w * _v.x + _m.cols[1].w * _v.y + _m.cols[2].w * _v.z};
   return ret;
 }
-}  // namespace math
-}  // namespace ozz
-
-OZZ_INLINE ozz::math::SimdFloat4 operator+(ozz::math::_SimdFloat4 _a,
-                                           ozz::math::_SimdFloat4 _b) {
-  const ozz::math::SimdFloat4 ret = {_a.x + _b.x, _a.y + _b.y, _a.z + _b.z,
-                                     _a.w + _b.w};
-  return ret;
-}
-
-OZZ_INLINE ozz::math::SimdFloat4 operator-(ozz::math::_SimdFloat4 _a,
-                                           ozz::math::_SimdFloat4 _b) {
-  const ozz::math::SimdFloat4 ret = {_a.x - _b.x, _a.y - _b.y, _a.z - _b.z,
-                                     _a.w - _b.w};
-  return ret;
-}
-
-OZZ_INLINE ozz::math::SimdFloat4 operator-(ozz::math::_SimdFloat4 _v) {
-  const ozz::math::SimdFloat4 ret = {-_v.x, -_v.y, -_v.z, -_v.w};
-  return ret;
-}
-
-OZZ_INLINE ozz::math::SimdFloat4 operator*(ozz::math::_SimdFloat4 _a,
-                                           ozz::math::_SimdFloat4 _b) {
-  const ozz::math::SimdFloat4 ret = {_a.x * _b.x, _a.y * _b.y, _a.z * _b.z,
-                                     _a.w * _b.w};
-  return ret;
-}
-
-OZZ_INLINE ozz::math::SimdFloat4 operator/(ozz::math::_SimdFloat4 _a,
-                                           ozz::math::_SimdFloat4 _b) {
-  const ozz::math::SimdFloat4 ret = {_a.x / _b.x, _a.y / _b.y, _a.z / _b.z,
-                                     _a.w / _b.w};
-  return ret;
-}
 
 OZZ_INLINE ozz::math::SimdFloat4 operator*(const ozz::math::Float4x4& _m,
                                            ozz::math::_SimdFloat4 _v) {
@@ -2015,6 +1980,41 @@ OZZ_INLINE ozz::math::Float4x4 operator-(const ozz::math::Float4x4& _a,
         _a.cols[2].z - _b.cols[2].z, _a.cols[2].w - _b.cols[2].w},
        {_a.cols[3].x - _b.cols[3].x, _a.cols[3].y - _b.cols[3].y,
         _a.cols[3].z - _b.cols[3].z, _a.cols[3].w - _b.cols[3].w}}};
+  return ret;
+}
+}  // namespace math
+}  // namespace ozz
+
+OZZ_INLINE ozz::math::SimdFloat4 operator+(ozz::math::_SimdFloat4 _a,
+                                           ozz::math::_SimdFloat4 _b) {
+  const ozz::math::SimdFloat4 ret = {_a.x + _b.x, _a.y + _b.y, _a.z + _b.z,
+                                     _a.w + _b.w};
+  return ret;
+}
+
+OZZ_INLINE ozz::math::SimdFloat4 operator-(ozz::math::_SimdFloat4 _a,
+                                           ozz::math::_SimdFloat4 _b) {
+  const ozz::math::SimdFloat4 ret = {_a.x - _b.x, _a.y - _b.y, _a.z - _b.z,
+                                     _a.w - _b.w};
+  return ret;
+}
+
+OZZ_INLINE ozz::math::SimdFloat4 operator-(ozz::math::_SimdFloat4 _v) {
+  const ozz::math::SimdFloat4 ret = {-_v.x, -_v.y, -_v.z, -_v.w};
+  return ret;
+}
+
+OZZ_INLINE ozz::math::SimdFloat4 operator*(ozz::math::_SimdFloat4 _a,
+                                           ozz::math::_SimdFloat4 _b) {
+  const ozz::math::SimdFloat4 ret = {_a.x * _b.x, _a.y * _b.y, _a.z * _b.z,
+                                     _a.w * _b.w};
+  return ret;
+}
+
+OZZ_INLINE ozz::math::SimdFloat4 operator/(ozz::math::_SimdFloat4 _a,
+                                           ozz::math::_SimdFloat4 _b) {
+  const ozz::math::SimdFloat4 ret = {_a.x / _b.x, _a.y / _b.y, _a.z / _b.z,
+                                     _a.w / _b.w};
   return ret;
 }
 
