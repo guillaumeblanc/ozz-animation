@@ -133,7 +133,8 @@ OZZ_INLINE SimdFloat4 DivX(_SimdFloat4 _a, _SimdFloat4 _b) {
 }
 
 #ifdef OZZ_SIMD_SSE4_1
-#define OZZ_SSE_SELECT_F(_b, _true, _false) _mm_blendv_ps(_false, _true, _mm_castsi128_ps(_b))
+#define OZZ_SSE_SELECT_F(_b, _true, _false) \
+  _mm_blendv_ps(_false, _true, _mm_castsi128_ps(_b))
 #else  // OZZ_SIMD_SSE4_1
 #define OZZ_SSE_SELECT_F(_b, _true, _false) \
   _mm_xor_ps(_false,                        \

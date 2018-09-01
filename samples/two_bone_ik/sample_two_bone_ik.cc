@@ -64,7 +64,7 @@ ozz::animation::Skeleton* TempBuildSkeleton() {
       ozz::math::Float3::x_axis(), ozz::math::kPi / 2.f);
   root.transform.rotation =
       ozz::math::Quaternion::FromEuler(ozz::math::Float3(1, 2, 3));
-  root.transform.rotation = ozz::math::Quaternion::identity();
+  // root.transform.rotation = ozz::math::Quaternion::identity();
   // root.transform.scale = ozz::math::Float3(1, 5, 1);
   root.transform.scale = ozz::math::Float3::one();
 
@@ -105,7 +105,7 @@ ozz::animation::Skeleton* TempBuildSkeleton() {
   mid.children.resize(1);
   ozz::animation::offline::RawSkeleton::Joint& miidt = mid.children[0];
   miidt.name = "miidt";
-  miidt.transform.translation = ozz::math::Float3::y_axis();
+  miidt.transform.translation = ozz::math::Float3::y_axis() * .5f;
   miidt.transform.rotation = ozz::math::Quaternion::FromAxisAngle(
       ozz::math::Float3::x_axis(), ozz::math::kPi / 2.f);
   // miidt.transform.rotation = ozz::math::Quaternion::identity();
@@ -117,7 +117,7 @@ ozz::animation::Skeleton* TempBuildSkeleton() {
   miidt.children.resize(1);
   ozz::animation::offline::RawSkeleton::Joint& end = miidt.children[0];
   end.name = "wrist";
-  end.transform.translation = ozz::math::Float3::y_axis();
+  end.transform.translation = ozz::math::Float3::y_axis() * .5f;
   end.transform.rotation = ozz::math::Quaternion::identity();
   end.transform.scale = ozz::math::Float3::one();
 
@@ -168,20 +168,24 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
  public:
   TwoBoneIKSampleApplication()
       : doik(true),
+        plan(true),
         scale(1.f),
         twist(0.f),
-        extent(0.f),
-        offset(.1f, .1f, 0.f),
+        extent(.4f),
+        offset(0.f, .1f, .1f),
+        pole(0.f, 1.f, 0.f),
         skeleton_(NULL),
         start_joint_(-1),
         mid_joint_(-1),
         end_joint_(-1) {}
 
   bool doik;
+  bool plan;
   float scale;
   float twist;
   float extent;
   ozz::math::Float3 offset;
+  ozz::math::Float3 pole;
 
  protected:
   virtual bool OnUpdate(float _dt) {
@@ -209,18 +213,21 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
         offset.x + extent * sinf(time), offset.y + extent * cosf(time * 2.f),
         offset.z + extent * cosf(time / 2.f), 0);
 
-    if (doik) {
-      IK();
-      if (!ltm_job.Run()) {
-        return false;
-      }
+    if (!IK()) {
+      return false;
     }
+
+    if (!ltm_job.Run()) {
+      return false;
+    }
+
     return true;
   }
 
   bool IK() {
     ozz::animation::TwoBoneIKJob ik_job;
     ik_job.handle = g_handle_pos;
+    ik_job.pole_vector = ozz::math::simd_float4::Load3PtrU(&pole.x);
     ik_job.start_joint = &models_[start_joint_];
     ik_job.mid_joint = &models_[mid_joint_];
     ik_job.end_joint = &models_[end_joint_];
@@ -232,8 +239,10 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
       return false;
     }
 
-    SetQuaternion(mid_joint_, mid_correction, make_range(locals_));
-    SetQuaternion(start_joint_, start_correction, make_range(locals_));
+    if (doik) {
+      SetQuaternion(mid_joint_, mid_correction, make_range(locals_));
+      SetQuaternion(start_joint_, start_correction, make_range(locals_));
+    }
 
     return true;
   }
@@ -254,12 +263,13 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
     // Draws the animated skeleton.
     success &= _renderer->DrawPosture(*skeleton_, make_range(models_),
                                       ozz::math::Float4x4::identity());
+
     return success;
   }
 
   virtual bool OnInitialize() {
 // Reading skeleton.
-//#define LOAD
+#define LOAD
 #ifdef LOAD
     ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
     skeleton_ = allocator->New<ozz::animation::Skeleton>();
@@ -302,6 +312,7 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
 
   virtual bool OnGui(ozz::sample::ImGui* _im_gui) {
     _im_gui->DoCheckBox("ik", &doik);
+    _im_gui->DoCheckBox("plan", &plan);
     _im_gui->DoSlider("scale", -2.f, 2.f, &scale);
     if (scale == 0.f) scale = .01f;
     _im_gui->DoSlider("twist", -5.f, 5.f, &twist);
@@ -309,6 +320,9 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
     _im_gui->DoSlider("offset x", -1.f, 1.f, &offset.x);
     _im_gui->DoSlider("offset y", -1.f, 1.f, &offset.y);
     _im_gui->DoSlider("offset z", -1.f, 1.f, &offset.z);
+    _im_gui->DoSlider("pole x", -2.f, 2.f, &pole.x);
+    _im_gui->DoSlider("pole y", -2.f, 2.f, &pole.y);
+    _im_gui->DoSlider("pole z", -2.f, 2.f, &pole.z);
 
     return true;
   }
