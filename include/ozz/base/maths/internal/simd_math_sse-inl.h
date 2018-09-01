@@ -226,7 +226,7 @@ OZZ_INLINE SimdFloat4 Load3PtrU(const float* _f) {
 }
 
 OZZ_INLINE SimdFloat4 FromInt(_SimdInt4 _i) { return _mm_cvtepi32_ps(_i); }
-}  // ozz::math::simd_float4
+}  // namespace simd_float4
 
 OZZ_INLINE float GetX(_SimdFloat4 _v) { return _mm_cvtss_f32(_v); }
 
@@ -1902,34 +1902,6 @@ OZZ_INLINE ozz::math::SimdFloat4 TransformVector(const ozz::math::Float4x4& _m,
   const __m128 a21 = OZZ_MADD(_m.cols[2], OZZ_SSE_SPLAT_F(_v, 2), xxxx);
   return _mm_add_ps(zzzz, a21);
 }
-}  // namespace math
-}  // namespace ozz
-
-#if !defined(__GNUC__)
-OZZ_INLINE ozz::math::SimdFloat4 operator+(ozz::math::_SimdFloat4 _a,
-                                           ozz::math::_SimdFloat4 _b) {
-  return _mm_add_ps(_a, _b);
-}
-
-OZZ_INLINE ozz::math::SimdFloat4 operator-(ozz::math::_SimdFloat4 _a,
-                                           ozz::math::_SimdFloat4 _b) {
-  return _mm_sub_ps(_a, _b);
-}
-
-OZZ_INLINE ozz::math::SimdFloat4 operator-(ozz::math::_SimdFloat4 _v) {
-  return _mm_sub_ps(_mm_setzero_ps(), _v);
-}
-
-OZZ_INLINE ozz::math::SimdFloat4 operator*(ozz::math::_SimdFloat4 _a,
-                                           ozz::math::_SimdFloat4 _b) {
-  return _mm_mul_ps(_a, _b);
-}
-
-OZZ_INLINE ozz::math::SimdFloat4 operator/(ozz::math::_SimdFloat4 _a,
-                                           ozz::math::_SimdFloat4 _b) {
-  return _mm_div_ps(_a, _b);
-}
-#endif  // !defined(__GNUC__)
 
 OZZ_INLINE ozz::math::SimdFloat4 operator*(const ozz::math::Float4x4& _m,
                                            ozz::math::_SimdFloat4 _v) {
@@ -1997,6 +1969,34 @@ OZZ_INLINE ozz::math::Float4x4 operator-(const ozz::math::Float4x4& _a,
        _mm_sub_ps(_a.cols[2], _b.cols[2]), _mm_sub_ps(_a.cols[3], _b.cols[3])}};
   return ret;
 }
+}  // namespace math
+}  // namespace ozz
+
+#if !defined(__GNUC__)
+OZZ_INLINE ozz::math::SimdFloat4 operator+(ozz::math::_SimdFloat4 _a,
+                                           ozz::math::_SimdFloat4 _b) {
+  return _mm_add_ps(_a, _b);
+}
+
+OZZ_INLINE ozz::math::SimdFloat4 operator-(ozz::math::_SimdFloat4 _a,
+                                           ozz::math::_SimdFloat4 _b) {
+  return _mm_sub_ps(_a, _b);
+}
+
+OZZ_INLINE ozz::math::SimdFloat4 operator-(ozz::math::_SimdFloat4 _v) {
+  return _mm_sub_ps(_mm_setzero_ps(), _v);
+}
+
+OZZ_INLINE ozz::math::SimdFloat4 operator*(ozz::math::_SimdFloat4 _a,
+                                           ozz::math::_SimdFloat4 _b) {
+  return _mm_mul_ps(_a, _b);
+}
+
+OZZ_INLINE ozz::math::SimdFloat4 operator/(ozz::math::_SimdFloat4 _a,
+                                           ozz::math::_SimdFloat4 _b) {
+  return _mm_div_ps(_a, _b);
+}
+#endif  // !defined(__GNUC__)
 
 namespace ozz {
 namespace math {
