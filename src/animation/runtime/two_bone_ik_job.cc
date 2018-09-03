@@ -48,9 +48,10 @@ bool TwoBoneIKJob::Validate() const {
   bool valid = true;
   valid &= start_joint && mid_joint && end_joint;
   valid &= start_joint_correction && mid_joint_correction;
-//   if(valid) {
-// 	  valid &= ozz::math::AreAllTrue1(ozz::math::Dot3(mid_joint->cols[3], end_joint->cols[3]));
-//   }
+  //   if(valid) {
+  // 	  valid &= ozz::math::AreAllTrue1(ozz::math::Dot3(mid_joint->cols[3],
+  // end_joint->cols[3]));
+  //   }
   return valid;
 }
 
@@ -140,12 +141,14 @@ bool TwoBoneIKJob::Run() const {
 
   // Flip rotation direction if distance to handle is longer than initial
   // distance to end_ss (aka opposite angle).
-  const SimdInt4 mid_axis_flip = SplatX(CmpLt(start_end_ss_len2, start_handle_ss_len2));
-  const SimdFloat4 mid_axis_ms_flipped = Xor(mid_axis_ms, And(mid_axis_flip, mask_sign));
+  const SimdInt4 mid_axis_flip =
+      SplatX(CmpLt(start_end_ss_len2, start_handle_ss_len2));
+  const SimdFloat4 mid_axis_ms_flipped =
+      Xor(mid_axis_ms, And(mid_axis_flip, mask_sign));
 
   // Mid joint rotation.
-  const SimdQuaternion mid_rot_ms = SimdQuaternion::FromAxisCosAngle(
-      mid_axis_ms_flipped, mid_cos_angle_diff);
+  const SimdQuaternion mid_rot_ms =
+      SimdQuaternion::FromAxisCosAngle(mid_axis_ms_flipped, mid_cos_angle_diff);
 
   // Calculates end_to_handle_rot_ss quaternion which solves for effector
   // rotating onto the handle.

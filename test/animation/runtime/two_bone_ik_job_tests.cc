@@ -332,9 +332,19 @@ TEST(PoleHandleAlignment, TwoBoneIKJob) {
   job.mid_joint_correction = &qmid;
   ASSERT_TRUE(job.Validate());
 
-  {  // Reachable
+  {  // Reachable, undefined qstart
     job.pole_vector = ozz::math::simd_float4::y_axis();
     job.handle = ozz::math::simd_float4::Load(0.f, ozz::math::kSqrt2, 0.f, 0.f);
+    ASSERT_TRUE(job.Run());
+
+    // qstart is undefined, many solutions in this case
+    EXPECT_SIMDQUATERNION_EQ_EST(qmid, 0.f, 0.f, 0.f, 1.f);
+  }
+
+  {  // Reachable, defined qstart
+    job.pole_vector = ozz::math::simd_float4::y_axis();
+    job.handle =
+        ozz::math::simd_float4::Load(.001f, ozz::math::kSqrt2, 0.f, 0.f);
     ASSERT_TRUE(job.Run());
 
     const ozz::math::Quaternion z_kPi_4 = ozz::math::Quaternion::FromAxisAngle(
@@ -344,12 +354,12 @@ TEST(PoleHandleAlignment, TwoBoneIKJob) {
     EXPECT_SIMDQUATERNION_EQ_EST(qmid, 0.f, 0.f, 0.f, 1.f);
   }
 
-  {  // Unreachable
+  {  // Full extent, undefined qstart
     job.pole_vector = ozz::math::simd_float4::y_axis();
     job.handle = ozz::math::simd_float4::Load(0.f, 3.f, 0.f, 0.f);
     ASSERT_TRUE(job.Run());
 
-    EXPECT_SIMDQUATERNION_EQ_EST(qstart, 0.f, 0.f, 0.f, 1.f);
+    // qstart is undefined, many solutions in this case
     const ozz::math::Quaternion z_kPi_2 = ozz::math::Quaternion::FromAxisAngle(
         ozz::math::Float3::z_axis(), ozz::math::kPi_2);
     EXPECT_SIMDQUATERNION_EQ_EST(qmid, z_kPi_2.x, z_kPi_2.y, z_kPi_2.z,
