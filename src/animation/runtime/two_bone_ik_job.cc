@@ -184,7 +184,7 @@ bool TwoBoneIKJob::Run() const {
   // Computes rotation axis, which is either start_handle_ss or
   // -start_handle_ss depending on rotation direction.
   // TODO start_handle_ss_len2 == 0
-  const SimdInt4 start_axis_flip =
+  const SimdFloat4 start_axis_flip =
       And(SplatX(Dot3(joint_plane_normal_ss, pole_ss)), mask_sign);
   const SimdFloat4 rotate_plane_axis =
       Xor(start_handle_ss, start_axis_flip) * SplatX(rsqrts);
