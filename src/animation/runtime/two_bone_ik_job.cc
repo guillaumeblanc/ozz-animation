@@ -48,6 +48,9 @@ bool TwoBoneIKJob::Validate() const {
   bool valid = true;
   valid &= start_joint && mid_joint && end_joint;
   valid &= start_joint_correction && mid_joint_correction;
+//   if(valid) {
+// 	  valid &= ozz::math::AreAllTrue1(ozz::math::Dot3(mid_joint->cols[3], end_joint->cols[3]));
+//   }
   return valid;
 }
 
