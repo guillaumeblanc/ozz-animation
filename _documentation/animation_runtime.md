@@ -88,7 +88,7 @@ However this strategy doesn't apply to move the time cursor backward. The curren
 `ozz::animation::*Track`
 ---------------------------
 
-The runtime track data structure exists for 1 to 4 float types (`ozz::animation::FloatTrack`, ..., `ozz::animation::Float4Track`) and quaterions (`ozz::animation::QuaternionTrack`). See [`offline track`][link_offline_track] for more details on track content.
+The runtime track data structure exists for 1 to 4 float types (`ozz::animation::FloatTrack`, ..., `ozz::animation::Float4Track`) and quaterions (`ozz::animation::QuaternionTrack`). See [`offline track`][link_raw_track] for more details on track content.
 The runtime track data structure is optimized for the processing of ozz::animation::TrackSamplingJob and ozz::animation::TrackTriggeringJob. Keyframe ratios, values and interpolation mode are all store as separate buffers in order to access the cache coherently. Ratios are usually accessed/read alone from the jobs that all start by looking up the keyframes to interpolate indeed.
 
 Mathematical structures
