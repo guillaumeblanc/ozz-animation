@@ -122,20 +122,20 @@ Dynamic memory allocations, from any ozz library, all go through a custom alloca
 To redirect memory allocations, override ozz::memory::Allocator object and implement its interface:
 {% highlight cpp %}
   // Allocates _size bytes on the specified _alignment boundaries.
-  // Allocate function conforms with standard malloc function specifications.
-  virtual void* Allocate(std::size_t _size, std::size_t _alignment) = 0;
+  // Malloc function conforms with standard malloc function specifications.
+  virtual void* Malloc(std::size_t _size, std::size_t _alignment) = 0;
 
   // Frees a block that was allocated with Allocate or Reallocate.
   // Argument _block can be NULL.
-  // Deallocate function conforms with standard free function specifications.
-  virtual void Deallocate(void* _block) = 0;
+  // Free function conforms with standard free function specifications.
+  virtual void Free(void* _block) = 0;
 
   // Changes the size of a block that was allocated with Allocate.
   // Argument _block can be NULL.
-  // Reallocate function conforms with standard realloc function specifications.
-  virtual void* Reallocate(void* _block,
-                           std::size_t _size,
-                           std::size_t _alignment) = 0;	
+  // Realloc function conforms with standard realloc function specifications.
+  virtual void* Realloc(void* _block,
+                        std::size_t _size,
+                        std::size_t _alignment) = 0;	
 {% endhighlight %}
 
 ... and replace ozz default allocator with your own, using ozz::memory::SetDefaulAllocator() function.
