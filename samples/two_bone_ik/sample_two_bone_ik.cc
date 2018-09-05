@@ -64,7 +64,7 @@ ozz::animation::Skeleton* TempBuildSkeleton() {
       ozz::math::Float3::x_axis(), ozz::math::kPi / 2.f);
   root.transform.rotation =
       ozz::math::Quaternion::FromEuler(ozz::math::Float3(1, 2, 3));
-  // root.transform.rotation = ozz::math::Quaternion::identity();
+  root.transform.rotation = ozz::math::Quaternion::identity();
   // root.transform.scale = ozz::math::Float3(1, 5, 1);
   root.transform.scale = ozz::math::Float3::one();
 
@@ -74,13 +74,24 @@ ozz::animation::Skeleton* TempBuildSkeleton() {
   start.transform.translation = ozz::math::Float3::y_axis();
   start.transform.rotation = ozz::math::Quaternion::FromAxisAngle(
       ozz::math::Float3::x_axis(), -ozz::math::kPi / 4.f);
-  // start.transform.rotation = ozz::math::Quaternion::identity();
+  start.transform.rotation = ozz::math::Quaternion::identity();
   // start.transform.scale = ozz::math::Float3(1, 2, 1);
   start.transform.scale = ozz::math::Float3::one();
 
+#define DIR
+#ifdef DIR
+  start.children.resize(start.children.size() + 1);
+  ozz::animation::offline::RawSkeleton::Joint& dir =
+      start.children[start.children.size() - 1];
+  dir.name = "dir";
+  dir.transform.translation = ozz::math::Float3::x_axis() * .25f;
+  dir.transform.rotation = ozz::math::Quaternion::identity();
+  dir.transform.scale = ozz::math::Float3::one();
+#endif
+
 //#define STARIT
 #ifdef STARIT
-  start.children.resize(1);
+  start.children.resize(start.children.size() + 1);
   ozz::animation::offline::RawSkeleton::Joint& starit = start.children[0];
   starit.name = "starit";
   starit.transform.translation = ozz::math::Float3::y_axis() * .5f;
@@ -92,15 +103,19 @@ ozz::animation::Skeleton* TempBuildSkeleton() {
   ozz::animation::offline::RawSkeleton::Joint& starit = start;
 #endif
 
-  starit.children.resize(1);
-  ozz::animation::offline::RawSkeleton::Joint& mid = starit.children[0];
+  starit.children.resize(starit.children.size() + 1);
+  ozz::animation::offline::RawSkeleton::Joint& mid =
+      starit.children[starit.children.size() - 1];
   mid.name = "forearm";
   mid.transform.translation = ozz::math::Float3::y_axis();
   mid.transform.rotation = ozz::math::Quaternion::FromAxisAngle(
-      ozz::math::Float3::x_axis(), 2.f * ozz::math::kPi / 3.f);
+      ozz::math::Float3::z_axis(), 2.f * ozz::math::kPi / 3.f);
+  mid.transform.rotation = ozz::math::Quaternion::FromAxisAngle(
+      ozz::math::Float3::z_axis(), 4.f * ozz::math::kPi / 5.f);
+  // mid.transform.rotation = ozz::math::Quaternion::identity();
   mid.transform.scale = ozz::math::Float3::one();
 
-#define MIIDT
+//#define MIIDT
 #ifdef MIIDT
   mid.children.resize(1);
   ozz::animation::offline::RawSkeleton::Joint& miidt = mid.children[0];
@@ -269,7 +284,7 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
 
   virtual bool OnInitialize() {
 // Reading skeleton.
-#define LOAD
+//#define LOAD
 #ifdef LOAD
     ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
     skeleton_ = allocator->New<ozz::animation::Skeleton>();

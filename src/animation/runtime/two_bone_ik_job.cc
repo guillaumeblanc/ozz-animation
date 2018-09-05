@@ -38,6 +38,7 @@ namespace animation {
 TwoBoneIKJob::TwoBoneIKJob()
     : handle(math::simd_float4::zero()),
       pole_vector(math::simd_float4::y_axis()),
+      mid_axis_fallback(math::simd_float4::z_axis()),
       start_joint(NULL),
       mid_joint(NULL),
       end_joint(NULL),
@@ -48,6 +49,8 @@ bool TwoBoneIKJob::Validate() const {
   bool valid = true;
   valid &= start_joint && mid_joint && end_joint;
   valid &= start_joint_correction && mid_joint_correction;
+  valid &= ozz::math::AreAllTrue1(
+      ozz::math::IsNormalizedEst3(mid_axis_fallback));
   //   if(valid) {
   // 	  valid &= ozz::math::AreAllTrue1(ozz::math::Dot3(mid_joint->cols[3],
   // end_joint->cols[3]));
@@ -136,8 +139,10 @@ bool TwoBoneIKJob::Run() const {
       Clamp(-one, mid_cos_angle_diff_unclamped, one);
 
   // Calculate mid joint axis
-  // TODO safe ?
-  const SimdFloat4 mid_axis_ms = Normalize3(Cross3(start_mid_ms, mid_end_ms));
+  // Falls back to mid_axis_fallback if cross product isn't meaningful,
+  // aka start, mid and end are aligned.
+  const SimdFloat4 mid_axis_ms = NormalizeSafeEst3(
+      Cross3(start_mid_ms, mid_end_ms), mid_axis_fallback);
 
   // Flip rotation direction if distance to handle is longer than initial
   // distance to end_ss (aka opposite angle).
@@ -173,8 +178,11 @@ bool TwoBoneIKJob::Run() const {
       Cross3(start_handle_ss, pole_ss);
   const ozz::math::SimdFloat4 ref_plane_normal_ss_len2 =
       ozz::math::Length3Sqr(ref_plane_normal_ss);
+  // TODO EXPLAIN - (cross order ??)
+  const ozz::math::SimdFloat4 mid_axis_ss = TransformVector(
+      inv_start_joint, TransformVector(*mid_joint, -mid_axis_ms));
   const ozz::math::SimdFloat4 joint_plane_normal_ss =
-      TransformVector(end_to_handle_rot_ss, Cross3(start_end_ss, start_mid_ss));
+      TransformVector(end_to_handle_rot_ss, mid_axis_ss);
   const ozz::math::SimdFloat4 joint_plane_normal_ss_len2 =
       ozz::math::Length3Sqr(joint_plane_normal_ss);
   // Computes all reciprocal square roots at once.

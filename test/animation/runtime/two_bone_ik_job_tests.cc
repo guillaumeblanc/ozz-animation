@@ -101,19 +101,19 @@ TEST(JobValidity, TwoBoneIKJob) {
     job.start_joint_correction = &quat;
     EXPECT_FALSE(job.Validate());
   }
-  /*
-  {  // Aligned start-mid and mid-end joints
+
+  {  // Unnormalized mid axis
     ozz::animation::TwoBoneIKJob job;
+    job.mid_axis_fallback =
+        ozz::math::simd_float4::Load(0.f, .70710678f, 0.f, .70710678f);
     job.start_joint = &start;
     job.mid_joint = &mid;
-    const ozz::math::Float4x4 aligned_end = ozz::math::Float4x4::Translation(
-        ozz::math::simd_float4::y_axis() * ozz::math::simd_float4::Load1(2.f));
-    job.end_joint = &aligned_end;
+    job.end_joint = &end;
     ozz::math::SimdQuaternion quat;
     job.start_joint_correction = &quat;
     job.mid_joint_correction = &quat;
     EXPECT_FALSE(job.Validate());
-  }*/
+  }
 
   {  // Valid
     ozz::animation::TwoBoneIKJob job;
@@ -143,8 +143,7 @@ TEST(StartJointCorrection, TwoBoneIKJob) {
   // Test will be executed with different root transformations
   const ozz::math::Float4x4 parents[] = {
       ozz::math::Float4x4::identity(),  // No root transformation
-      ozz::math::Float4x4::Translation(
-          ozz::math::simd_float4::y_axis()),  // Up'ed
+      ozz::math::Float4x4::Translation(ozz::math::simd_float4::y_axis()),  // Up
       ozz::math::Float4x4::FromEuler(
           ozz::math::simd_float4::Load(.78f, 0.f, 0.f, 0.f)),  // Rotated
       ozz::math::Float4x4::Scaling(ozz::math::simd_float4::Load(
@@ -187,11 +186,11 @@ TEST(StartJointCorrection, TwoBoneIKJob) {
           parent, ozz::math::simd_float4::Load(0.f, 1.f, 1.f, 0.f));
       ASSERT_TRUE(job.Run());
 
-      const ozz::math::Quaternion y_mkPi_2 =
+      const ozz::math::Quaternion y_mPi_2 =
           ozz::math::Quaternion::FromAxisAngle(ozz::math::Float3::y_axis(),
                                                -ozz::math::kPi_2);
-      EXPECT_SIMDQUATERNION_EQ_EST(qstart, y_mkPi_2.x, y_mkPi_2.y, y_mkPi_2.z,
-                                   y_mkPi_2.w);
+      EXPECT_SIMDQUATERNION_EQ_EST(qstart, y_mPi_2.x, y_mPi_2.y, y_mPi_2.z,
+                                   y_mPi_2.w);
       EXPECT_SIMDQUATERNION_EQ_EST(qmid, 0.f, 0.f, 0.f, 1.f);
     }
 
@@ -274,10 +273,10 @@ TEST(Pole, TwoBoneIKJob) {
     job.handle = ozz::math::simd_float4::Load(1.f, 0.f, -1.f, 0.f);
     ASSERT_TRUE(job.Run());
 
-    const ozz::math::Quaternion x_mkPi_2 = ozz::math::Quaternion::FromAxisAngle(
+    const ozz::math::Quaternion x_mPi_2 = ozz::math::Quaternion::FromAxisAngle(
         ozz::math::Float3::x_axis(), -ozz::math::kPi_2);
-    EXPECT_SIMDQUATERNION_EQ_EST(qstart, x_mkPi_2.x, x_mkPi_2.y, x_mkPi_2.z,
-                                 x_mkPi_2.w);
+    EXPECT_SIMDQUATERNION_EQ_EST(qstart, x_mPi_2.x, x_mPi_2.y, x_mPi_2.z,
+                                 x_mPi_2.w);
     EXPECT_SIMDQUATERNION_EQ_EST(qmid, 0.f, 0.f, 0.f, 1.f);
   }
 
@@ -287,10 +286,10 @@ TEST(Pole, TwoBoneIKJob) {
     job.handle = ozz::math::simd_float4::Load(1.f, -1.f, 0.f, 0.f);
     ASSERT_TRUE(job.Run());
 
-    const ozz::math::Quaternion z_mkPi_2 = ozz::math::Quaternion::FromAxisAngle(
+    const ozz::math::Quaternion z_mPi_2 = ozz::math::Quaternion::FromAxisAngle(
         ozz::math::Float3::z_axis(), -ozz::math::kPi_2);
-    EXPECT_SIMDQUATERNION_EQ_EST(qstart, z_mkPi_2.x, z_mkPi_2.y, z_mkPi_2.z,
-                                 z_mkPi_2.w);
+    EXPECT_SIMDQUATERNION_EQ_EST(qstart, z_mPi_2.x, z_mPi_2.y, z_mPi_2.z,
+                                 z_mPi_2.w);
     EXPECT_SIMDQUATERNION_EQ_EST(qmid, 0.f, 0.f, 0.f, 1.f);
   }
 
@@ -300,10 +299,10 @@ TEST(Pole, TwoBoneIKJob) {
     job.handle = ozz::math::simd_float4::Load(-1.f, 1.f, 0.f, 0.f);
     ASSERT_TRUE(job.Run());
 
-    const ozz::math::Quaternion z_kPi_2 = ozz::math::Quaternion::FromAxisAngle(
+    const ozz::math::Quaternion z_Pi_2 = ozz::math::Quaternion::FromAxisAngle(
         ozz::math::Float3::z_axis(), ozz::math::kPi_2);
-    EXPECT_SIMDQUATERNION_EQ_EST(qstart, z_kPi_2.x, z_kPi_2.y, z_kPi_2.z,
-                                 z_kPi_2.w);
+    EXPECT_SIMDQUATERNION_EQ_EST(qstart, z_Pi_2.x, z_Pi_2.y, z_Pi_2.z,
+                                 z_Pi_2.w);
     EXPECT_SIMDQUATERNION_EQ_EST(qmid, 0.f, 0.f, 0.f, 1.f);
   }
 }
@@ -347,10 +346,10 @@ TEST(PoleHandleAlignment, TwoBoneIKJob) {
         ozz::math::simd_float4::Load(.001f, ozz::math::kSqrt2, 0.f, 0.f);
     ASSERT_TRUE(job.Run());
 
-    const ozz::math::Quaternion z_kPi_4 = ozz::math::Quaternion::FromAxisAngle(
+    const ozz::math::Quaternion z_Pi_4 = ozz::math::Quaternion::FromAxisAngle(
         ozz::math::Float3::z_axis(), ozz::math::kPi_4);
-    EXPECT_SIMDQUATERNION_EQ_EST(qstart, z_kPi_4.x, z_kPi_4.y, z_kPi_4.z,
-                                 z_kPi_4.w);
+    EXPECT_SIMDQUATERNION_EQ_EST(qstart, z_Pi_4.x, z_Pi_4.y, z_Pi_4.z,
+                                 z_Pi_4.w);
     EXPECT_SIMDQUATERNION_EQ_EST(qmid, 0.f, 0.f, 0.f, 1.f);
   }
 
@@ -360,9 +359,81 @@ TEST(PoleHandleAlignment, TwoBoneIKJob) {
     ASSERT_TRUE(job.Run());
 
     // qstart is undefined, many solutions in this case
-    const ozz::math::Quaternion z_kPi_2 = ozz::math::Quaternion::FromAxisAngle(
+    const ozz::math::Quaternion z_Pi_2 = ozz::math::Quaternion::FromAxisAngle(
         ozz::math::Float3::z_axis(), ozz::math::kPi_2);
-    EXPECT_SIMDQUATERNION_EQ_EST(qmid, z_kPi_2.x, z_kPi_2.y, z_kPi_2.z,
-                                 z_kPi_2.w);
+    EXPECT_SIMDQUATERNION_EQ_EST(qmid, z_Pi_2.x, z_Pi_2.y, z_Pi_2.z, z_Pi_2.w);
+  }
+}
+
+TEST(MidAxis, TwoBoneIKJob) {
+  // Setup initial pose
+  const ozz::math::Float4x4 start = ozz::math::Float4x4::identity();
+  const ozz::math::Float4x4 mid = ozz::math::Float4x4::FromAffine(
+      ozz::math::simd_float4::y_axis(),
+      ozz::math::SimdQuaternion::FromAxisAngle(
+          ozz::math::simd_float4::z_axis(),
+          ozz::math::simd_float4::Load1(ozz::math::kPi_2))
+          .xyzw,
+      ozz::math::simd_float4::one());
+  const ozz::math::Float4x4 end = ozz::math::Float4x4::Translation(
+      ozz::math::simd_float4::x_axis() + ozz::math::simd_float4::y_axis());
+
+  // Prepares job.
+  ozz::animation::TwoBoneIKJob job;
+  job.pole_vector = ozz::math::simd_float4::y_axis();
+  job.handle = ozz::math::simd_float4::Load(1.f, 1.f, 0.f, 0.f);
+  job.start_joint = &start;
+  job.mid_joint = &mid;
+  job.end_joint = &end;
+  ozz::math::SimdQuaternion qstart;
+  job.start_joint_correction = &qstart;
+  ozz::math::SimdQuaternion qmid;
+  job.mid_joint_correction = &qmid;
+  ASSERT_TRUE(job.Validate());
+
+  // Computed mid joint axis
+  {
+    ASSERT_TRUE(job.Run());
+
+    EXPECT_SIMDQUATERNION_EQ_EST(qstart, 0.f, 0.f, 0.f, 1.f);
+    EXPECT_SIMDQUATERNION_EQ_EST(qmid, 0.f, 0.f, 0.f, 1.f);
+  }
+
+  // Fall back mid joint axis
+  {
+    // Replaces "end" joint matrix to align the 3 joints.
+    const ozz::math::Float4x4 aligned_end = ozz::math::Float4x4::Translation(
+        ozz::math::simd_float4::Load(0.f, 2.f, 0.f, 0.f));
+    job.end_joint = &aligned_end;
+
+    // Fixes fall back axis
+    job.mid_axis_fallback = ozz::math::simd_float4::z_axis();
+
+    ASSERT_TRUE(job.Run());
+
+    // Start rotates 180 on y, to allow Mid to turn positively on z axis.
+    EXPECT_SIMDQUATERNION_EQ_EST(qstart, 0.f, 1.f, 0.f, 0.f);
+    const ozz::math::Quaternion z_Pi_2 = ozz::math::Quaternion::FromAxisAngle(
+        ozz::math::Float3::z_axis(), ozz::math::kPi_2);
+    EXPECT_SIMDQUATERNION_EQ_EST(qmid, z_Pi_2.x, z_Pi_2.y, z_Pi_2.z,
+                                 z_Pi_2.w);
+  }
+
+  // Fall back opposite mid joint axis
+  {
+    // Replaces "end" joint matrix to align the 3 joints.
+    const ozz::math::Float4x4 aligned_end = ozz::math::Float4x4::Translation(
+        ozz::math::simd_float4::Load(0.f, 2.f, 0.f, 0.f));
+    job.end_joint = &aligned_end;
+
+    // Fixes fall back axis
+    job.mid_axis_fallback = -ozz::math::simd_float4::z_axis();
+
+    ASSERT_TRUE(job.Run());
+
+    EXPECT_SIMDQUATERNION_EQ_EST(qstart, 0.f, 0.f, 0.f, 1.f);
+    const ozz::math::Quaternion z_mPi_2 = ozz::math::Quaternion::FromAxisAngle(
+        ozz::math::Float3::z_axis(), -ozz::math::kPi_2);
+    EXPECT_SIMDQUATERNION_EQ_EST(qmid, z_mPi_2.x, z_mPi_2.y, z_mPi_2.z, z_mPi_2.w);
   }
 }
