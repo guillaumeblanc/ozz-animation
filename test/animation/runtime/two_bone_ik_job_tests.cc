@@ -415,8 +415,7 @@ TEST(MidAxis, TwoBoneIKJob) {
     EXPECT_SIMDQUATERNION_EQ_EST(qstart, 0.f, 1.f, 0.f, 0.f);
     const ozz::math::Quaternion z_Pi_2 = ozz::math::Quaternion::FromAxisAngle(
         ozz::math::Float3::z_axis(), ozz::math::kPi_2);
-    EXPECT_SIMDQUATERNION_EQ_EST(qmid, z_Pi_2.x, z_Pi_2.y, z_Pi_2.z,
-                                 z_Pi_2.w);
+    EXPECT_SIMDQUATERNION_EQ_EST(qmid, z_Pi_2.x, z_Pi_2.y, z_Pi_2.z, z_Pi_2.w);
   }
 
   // Fall back opposite mid joint axis
@@ -434,6 +433,43 @@ TEST(MidAxis, TwoBoneIKJob) {
     EXPECT_SIMDQUATERNION_EQ_EST(qstart, 0.f, 0.f, 0.f, 1.f);
     const ozz::math::Quaternion z_mPi_2 = ozz::math::Quaternion::FromAxisAngle(
         ozz::math::Float3::z_axis(), -ozz::math::kPi_2);
-    EXPECT_SIMDQUATERNION_EQ_EST(qmid, z_mPi_2.x, z_mPi_2.y, z_mPi_2.z, z_mPi_2.w);
+    EXPECT_SIMDQUATERNION_EQ_EST(qmid, z_mPi_2.x, z_mPi_2.y, z_mPi_2.z,
+                                 z_mPi_2.w);
   }
+}
+
+TEST(ZeroLengthStartHandle, TwoBoneIKJob) {
+  // Setup initial pose
+  const ozz::math::Float4x4 start = ozz::math::Float4x4::identity();
+  const ozz::math::Float4x4 mid = ozz::math::Float4x4::FromAffine(
+      ozz::math::simd_float4::y_axis(),
+      ozz::math::SimdQuaternion::FromAxisAngle(
+          ozz::math::simd_float4::z_axis(),
+          ozz::math::simd_float4::Load1(ozz::math::kPi_2))
+          .xyzw,
+      ozz::math::simd_float4::one());
+  const ozz::math::Float4x4 end = ozz::math::Float4x4::Translation(
+      ozz::math::simd_float4::x_axis() + ozz::math::simd_float4::y_axis());
+
+  // Prepares job.
+  ozz::animation::TwoBoneIKJob job;
+  job.pole_vector = ozz::math::simd_float4::y_axis();
+  job.handle = start.cols[3];  // 0 length from start to handle
+  job.start_joint = &start;
+  job.mid_joint = &mid;
+  job.end_joint = &end;
+  ozz::math::SimdQuaternion qstart;
+  job.start_joint_correction = &qstart;
+  ozz::math::SimdQuaternion qmid;
+  job.mid_joint_correction = &qmid;
+  ASSERT_TRUE(job.Validate());
+
+  ASSERT_TRUE(job.Run());
+
+  EXPECT_SIMDQUATERNION_EQ_EST(qstart, 0.f, 0.f, 0.f, 1.f);
+  // Mid joint is bent -90 degrees to reach start.
+  const ozz::math::Quaternion z_mPi_2 = ozz::math::Quaternion::FromAxisAngle(
+      ozz::math::Float3::z_axis(), -ozz::math::kPi_2);
+  EXPECT_SIMDQUATERNION_EQ_EST(qmid, z_mPi_2.x, z_mPi_2.y, z_mPi_2.z,
+                               z_mPi_2.w);
 }

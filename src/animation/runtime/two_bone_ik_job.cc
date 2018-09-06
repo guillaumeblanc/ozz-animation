@@ -49,8 +49,8 @@ bool TwoBoneIKJob::Validate() const {
   bool valid = true;
   valid &= start_joint && mid_joint && end_joint;
   valid &= start_joint_correction && mid_joint_correction;
-  valid &= ozz::math::AreAllTrue1(
-      ozz::math::IsNormalizedEst3(mid_axis_fallback));
+  valid &=
+      ozz::math::AreAllTrue1(ozz::math::IsNormalizedEst3(mid_axis_fallback));
   //   if(valid) {
   // 	  valid &= ozz::math::AreAllTrue1(ozz::math::Dot3(mid_joint->cols[3],
   // end_joint->cols[3]));
@@ -107,12 +107,12 @@ bool TwoBoneIKJob::Run() const {
   // Pythagorean).
   // c^2 = a^2 + b^2 - 2ab cosC
   // cosC = (a^2 + b^2 - c^2) / 2ab
-  // Computes both corrected and initial mid joint angles
+  // Computes both final and initial mid joint angles
   // cosine within a single SimdFloat4 (corrected is x component, initial is y).
   const SimdFloat4 start_mid_end_sum_ss_len2 =
       start_mid_ss_len2 + mid_end_ss_len2;
   const SimdFloat4 start_mid_end_ss_half_rlen =
-      half * SplatX(RSqrtEstX(start_mid_ss_len2 * mid_end_ss_len2));
+      half * SplatX(RSqrtEstXNR(start_mid_ss_len2 * mid_end_ss_len2));
   // Cos value needs to be clamped, as it will exit expected range if
   // start_handle_ss_len2 is longer than the triangle can be (start_mid_ss +
   // mid_end_ss).
@@ -123,7 +123,7 @@ bool TwoBoneIKJob::Run() const {
                 start_mid_end_ss_half_rlen,
             one);
 
-  // Computes corrected and initial angles difference.
+  // Computes final and initial angles difference.
   // Using the formulas for the differences of angles (below) and building
   // the quaternion form cosine avoids computing the 2 ACos here, and the
   // Sin and Cos in quaternion construction.
@@ -141,8 +141,8 @@ bool TwoBoneIKJob::Run() const {
   // Calculate mid joint axis
   // Falls back to mid_axis_fallback if cross product isn't meaningful,
   // aka start, mid and end are aligned.
-  const SimdFloat4 mid_axis_ms = NormalizeSafeEst3(
-      Cross3(start_mid_ms, mid_end_ms), mid_axis_fallback);
+  const SimdFloat4 mid_axis_ms =
+      NormalizeSafeEst3(Cross3(start_mid_ms, mid_end_ms), mid_axis_fallback);
 
   // Flip rotation direction if distance to handle is longer than initial
   // distance to end_ss (aka opposite angle).
@@ -155,61 +155,67 @@ bool TwoBoneIKJob::Run() const {
   const SimdQuaternion mid_rot_ms =
       SimdQuaternion::FromAxisCosAngle(mid_axis_ms_flipped, mid_cos_angle_diff);
 
+  // Output start and mid joint rotation corrections.
+  *mid_joint_correction = mid_rot_ms;
+
   // Calculates end_to_handle_rot_ss quaternion which solves for effector
   // rotating onto the handle.
   // -----------------------------------------------------------------
 
   // start_mid_ss with quaternion mid_rot_ms applied.
-  const SimdFloat4 mid_end_ss_corrected = TransformVector(
+  const SimdFloat4 mid_end_ss_final = TransformVector(
       inv_start_joint,
       TransformVector(*mid_joint, TransformVector(mid_rot_ms, mid_end_ms)));
-  const SimdFloat4 start_end_ss_corrected = start_mid_ss + mid_end_ss_corrected;
+  const SimdFloat4 start_end_ss_final = start_mid_ss + mid_end_ss_final;
 
   // Quaternion for rotating the effector onto the handle
   const SimdQuaternion end_to_handle_rot_ss =
-      SimdQuaternion::FromVectors(start_end_ss_corrected, start_handle_ss);
+      SimdQuaternion::FromVectors(start_end_ss_final, start_handle_ss);
 
   // Calculates rotate_plane_rot quaternion which aligns joint chain plane to
-  // the reference plane (pole vector).
+  // the reference plane (pole vector). This can only be computed if start
+  // handle axis is valid
   // -------------------------------------------------
+  if (AreAllTrue1(CmpGt(start_handle_ss_len2, zero))) {
+    // Computes each plane normal.
+    const ozz::math::SimdFloat4 ref_plane_normal_ss =
+        Cross3(start_handle_ss, pole_ss);
+    const ozz::math::SimdFloat4 ref_plane_normal_ss_len2 =
+        ozz::math::Length3Sqr(ref_plane_normal_ss);
+    // Computes joint chain plane normal, which is the same as mid joint axis
+    // (same triangle). Uses -mid_axis_ms because it was computed in the other
+    // direction.
+    const ozz::math::SimdFloat4 mid_axis_ss = TransformVector(
+        inv_start_joint, TransformVector(*mid_joint, -mid_axis_ms));
+    const ozz::math::SimdFloat4 joint_plane_normal_ss =
+        TransformVector(end_to_handle_rot_ss, mid_axis_ss);
+    const ozz::math::SimdFloat4 joint_plane_normal_ss_len2 =
+        ozz::math::Length3Sqr(joint_plane_normal_ss);
+    // Computes all reciprocal square roots at once.
+    const SimdFloat4 rsqrts =
+        RSqrtEstNR(SetZ(SetY(start_handle_ss_len2, ref_plane_normal_ss_len2),
+                        joint_plane_normal_ss_len2));
 
-  // Computes each plane normal.
-  const ozz::math::SimdFloat4 ref_plane_normal_ss =
-      Cross3(start_handle_ss, pole_ss);
-  const ozz::math::SimdFloat4 ref_plane_normal_ss_len2 =
-      ozz::math::Length3Sqr(ref_plane_normal_ss);
-  // TODO EXPLAIN - (cross order ??)
-  const ozz::math::SimdFloat4 mid_axis_ss = TransformVector(
-      inv_start_joint, TransformVector(*mid_joint, -mid_axis_ms));
-  const ozz::math::SimdFloat4 joint_plane_normal_ss =
-      TransformVector(end_to_handle_rot_ss, mid_axis_ss);
-  const ozz::math::SimdFloat4 joint_plane_normal_ss_len2 =
-      ozz::math::Length3Sqr(joint_plane_normal_ss);
-  // Computes all reciprocal square roots at once.
-  const SimdFloat4 rsqrts =
-      RSqrtEstNR(SetZ(SetY(start_handle_ss_len2, ref_plane_normal_ss_len2),
-                      joint_plane_normal_ss_len2));
+    // Computes angle cosine between the 2 normalized normals.
+    const SimdFloat4 rotate_plane_cos_angle =
+        ozz::math::Dot3(ref_plane_normal_ss * SplatY(rsqrts),
+                        joint_plane_normal_ss * SplatZ(rsqrts));
 
-  // Computes angle cosine between the 2 normalized normals.
-  const SimdFloat4 rotate_plane_cos_angle =
-      ozz::math::Dot3(ref_plane_normal_ss * SplatY(rsqrts),
-                      joint_plane_normal_ss * SplatZ(rsqrts));
+    // Computes rotation axis, which is either start_handle_ss or
+    // -start_handle_ss depending on rotation direction.
+    const SimdFloat4 start_axis_flip =
+        And(SplatX(Dot3(joint_plane_normal_ss, pole_ss)), mask_sign);
+    const SimdFloat4 rotate_plane_axis =
+        Xor(start_handle_ss, start_axis_flip) * SplatX(rsqrts);
 
-  // Computes rotation axis, which is either start_handle_ss or
-  // -start_handle_ss depending on rotation direction.
-  // TODO start_handle_ss_len2 == 0
-  const SimdFloat4 start_axis_flip =
-      And(SplatX(Dot3(joint_plane_normal_ss, pole_ss)), mask_sign);
-  const SimdFloat4 rotate_plane_axis =
-      Xor(start_handle_ss, start_axis_flip) * SplatX(rsqrts);
+    // Builds quaternion along rotation axis.
+    const SimdQuaternion rotate_plane_ss = SimdQuaternion::FromAxisCosAngle(
+        rotate_plane_axis, Clamp(-one, rotate_plane_cos_angle, one));
 
-  // Builds quaternion along rotation axis.
-  const SimdQuaternion rotate_plane_ss = SimdQuaternion::FromAxisCosAngle(
-      rotate_plane_axis, Clamp(-one, rotate_plane_cos_angle, one));
-
-  // Output start and mid joint rotation corrections.
-  *mid_joint_correction = mid_rot_ms;
-  *start_joint_correction = rotate_plane_ss * end_to_handle_rot_ss;
+    *start_joint_correction = rotate_plane_ss * end_to_handle_rot_ss;
+  } else {
+    *start_joint_correction = end_to_handle_rot_ss;
+  }
 
   return true;
 }
