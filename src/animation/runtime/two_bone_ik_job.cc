@@ -51,10 +51,6 @@ bool TwoBoneIKJob::Validate() const {
   valid &= start_joint_correction && mid_joint_correction;
   valid &=
       ozz::math::AreAllTrue1(ozz::math::IsNormalizedEst3(mid_axis_fallback));
-  //   if(valid) {
-  // 	  valid &= ozz::math::AreAllTrue1(ozz::math::Dot3(mid_joint->cols[3],
-  // end_joint->cols[3]));
-  //   }
   return valid;
 }
 
@@ -174,7 +170,7 @@ bool TwoBoneIKJob::Run() const {
 
   // Calculates rotate_plane_rot quaternion which aligns joint chain plane to
   // the reference plane (pole vector). This can only be computed if start
-  // handle axis is valid
+  // handle axis is valid (not 0 length)
   // -------------------------------------------------
   if (AreAllTrue1(CmpGt(start_handle_ss_len2, zero))) {
     // Computes each plane normal.
