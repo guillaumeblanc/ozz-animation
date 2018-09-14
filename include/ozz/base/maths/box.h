@@ -44,7 +44,12 @@ struct Box {
   Box(const Float3& _min, const Float3& _max) : min(_min), max(_max) {}
 
   // Constructs the smallest box that contains the _count points _points.
-  // _stride is the number of bytes points.
+  // _stride is the number of bytes between points.
+  explicit Box(const Float3& _point) : min(_point), max(_point) {}
+
+  // Constructs the smallest box that contains the _count points _points.
+  // _stride is the number of bytes between points, it must be greater or
+  // equal to sizeof(Float3).
   Box(const Float3* _points, size_t _stride, size_t _count);
 
   // Tests whether *this is a valid box.

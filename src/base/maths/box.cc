@@ -39,6 +39,9 @@ Box::Box()
       max(-std::numeric_limits<float>::max()) {}
 
 Box::Box(const Float3* _points, size_t _stride, size_t _count) {
+  assert(_stride >= sizeof(Float3) &&
+         "_stride must be greater or equal to sizeof(Float3)");
+
   Float3 local_min(std::numeric_limits<float>::max());
   Float3 local_max(-std::numeric_limits<float>::max());
 

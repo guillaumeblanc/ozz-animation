@@ -80,7 +80,7 @@ TEST(BoxMerge, ozz_math) {
   // Both boxes are invalid.
   EXPECT_FALSE(Merge(invalid1, invalid2).is_valid());
 
-  // One boxe is invalid.
+  // One box is invalid.
   EXPECT_TRUE(Merge(invalid1, valid1).is_valid());
   EXPECT_TRUE(Merge(valid1, invalid1).is_valid());
 
@@ -102,12 +102,22 @@ TEST(BoxBuild, ozz_math) {
       {ozz::math::Float3(0.f, 58.f, 0.f), 0},
   };
 
-  const ozz::math::Box invalid(&points->value, sizeof(points[0]), 0);
-  EXPECT_FALSE(invalid.is_valid());
+  // Builds from a single point
+  const ozz::math::Box single_valid(points[1].value);
+  EXPECT_TRUE(single_valid.is_valid());
+  EXPECT_FLOAT3_EQ(single_valid.min, 1.f, -1.f, 0.f);
+  EXPECT_FLOAT3_EQ(single_valid.max, 1.f, -1.f, 0.f);
 
-  const ozz::math::Box valid(&points->value, sizeof(points[0]),
+  // Builds from multiple points
+  EXPECT_ASSERTION(ozz::math::Box(&points->value, 1, OZZ_ARRAY_SIZE(points)),
+                   "_stride must be greater or equal to sizeof\\(Float3\\)");
+
+  const ozz::math::Box multi_invalid(&points->value, sizeof(points[0]), 0);
+  EXPECT_FALSE(multi_invalid.is_valid());
+
+  const ozz::math::Box multi_valid(&points->value, sizeof(points[0]),
                              OZZ_ARRAY_SIZE(points));
-  EXPECT_TRUE(valid.is_valid());
-  EXPECT_FLOAT3_EQ(valid.min, -27.f, -1.f, 0.f);
-  EXPECT_FLOAT3_EQ(valid.max, 1.f, 58.f, 46.f);
+  EXPECT_TRUE(multi_valid.is_valid());
+  EXPECT_FLOAT3_EQ(multi_valid.min, -27.f, -1.f, 0.f);
+  EXPECT_FLOAT3_EQ(multi_valid.max, 1.f, 58.f, 46.f);
 }
