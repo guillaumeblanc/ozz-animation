@@ -349,6 +349,82 @@ TEST(Pole, TwoBoneIKJob) {
   }
 }
 
+TEST(Twist, TwoBoneIKJob) {
+  // Setup initial pose
+  const ozz::math::Float4x4 start = ozz::math::Float4x4::identity();
+  const ozz::math::Float4x4 mid = ozz::math::Float4x4::FromAffine(
+      ozz::math::simd_float4::y_axis(),
+      ozz::math::SimdQuaternion::FromAxisAngle(
+          ozz::math::simd_float4::z_axis(),
+          ozz::math::simd_float4::Load1(ozz::math::kPi_2))
+          .xyzw,
+      ozz::math::simd_float4::one());
+  const ozz::math::Float4x4 end = ozz::math::Float4x4::Translation(
+      ozz::math::simd_float4::x_axis() + ozz::math::simd_float4::y_axis());
+
+  // Prepares job.
+  ozz::animation::TwoBoneIKJob job;
+  job.pole_vector = ozz::math::simd_float4::y_axis();
+  job.handle = ozz::math::simd_float4::Load(1.f, 1.f, 0.f, 0.f);
+  job.start_joint = &start;
+  job.mid_joint = &mid;
+  job.end_joint = &end;
+  ozz::math::SimdQuaternion qstart;
+  job.start_joint_correction = &qstart;
+  ozz::math::SimdQuaternion qmid;
+  job.mid_joint_correction = &qmid;
+  ASSERT_TRUE(job.Validate());
+
+  // Twist angle 0
+  {
+    job.twist_angle = 0.f;
+    ASSERT_TRUE(job.Run());
+
+    ExpectEndReached(job);
+
+    EXPECT_SIMDQUATERNION_EQ_EST(qstart, 0.f, 0.f, 0.f, 1.f);
+    EXPECT_SIMDQUATERNION_EQ_EST(qmid, 0.f, 0.f, 0.f, 1.f);
+  }
+
+  // Twist angle pi / 2
+  {
+    job.twist_angle = ozz::math::kPi_2;
+    ASSERT_TRUE(job.Run());
+
+    ExpectEndReached(job);
+
+    const ozz::math::Quaternion h_Pi_2 = ozz::math::Quaternion::FromAxisAngle(
+        ozz::math::Float3(.70710678f, .70710678f, 0.f), ozz::math::kPi_2);
+    EXPECT_SIMDQUATERNION_EQ_EST(qstart, h_Pi_2.x, h_Pi_2.y, h_Pi_2.z,
+                                 h_Pi_2.w);
+    EXPECT_SIMDQUATERNION_EQ_EST(qmid, 0.f, 0.f, 0.f, 1.f);
+  }
+
+  // Twist angle pi
+  {
+    job.twist_angle = ozz::math::kPi;
+    ASSERT_TRUE(job.Run());
+
+    ExpectEndReached(job);
+
+    const ozz::math::Quaternion h_Pi = ozz::math::Quaternion::FromAxisAngle(
+        ozz::math::Float3(.70710678f, .70710678f, 0.f), ozz::math::kPi);
+    EXPECT_SIMDQUATERNION_EQ_EST(qstart, h_Pi.x, h_Pi.y, h_Pi.z, h_Pi.w);
+    EXPECT_SIMDQUATERNION_EQ_EST(qmid, 0.f, 0.f, 0.f, 1.f);
+  }
+
+  // Twist angle 2pi
+  {
+    job.twist_angle = ozz::math::kPi * 2.f;
+    ASSERT_TRUE(job.Run());
+
+    ExpectEndReached(job);
+
+    EXPECT_SIMDQUATERNION_EQ_EST(qstart, 0.f, 0.f, 0.f, -1.f);
+    EXPECT_SIMDQUATERNION_EQ_EST(qmid, 0.f, 0.f, 0.f, 1.f);
+  }
+}
+
 TEST(PoleHandleAlignment, TwoBoneIKJob) {
   // Setup initial pose
   const ozz::math::Float4x4 start = ozz::math::Float4x4::identity();

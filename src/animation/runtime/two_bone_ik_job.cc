@@ -39,6 +39,7 @@ TwoBoneIKJob::TwoBoneIKJob()
     : handle(math::simd_float4::zero()),
       pole_vector(math::simd_float4::y_axis()),
       mid_axis_fallback(math::simd_float4::z_axis()),
+      twist_angle(0.f),
       start_joint(NULL),
       mid_joint(NULL),
       end_joint(NULL),
@@ -199,16 +200,26 @@ bool TwoBoneIKJob::Run() const {
 
     // Computes rotation axis, which is either start_handle_ss or
     // -start_handle_ss depending on rotation direction.
+    const SimdFloat4 rotate_plane_axis_ss = start_handle_ss * SplatX(rsqrts);
     const SimdFloat4 start_axis_flip =
         And(SplatX(Dot3(joint_plane_normal_ss, pole_ss)), mask_sign);
-    const SimdFloat4 rotate_plane_axis =
-        Xor(start_handle_ss, start_axis_flip) * SplatX(rsqrts);
+    const SimdFloat4 rotate_plane_axis_flipped_ss =
+        Xor(rotate_plane_axis_ss, start_axis_flip);
 
     // Builds quaternion along rotation axis.
     const SimdQuaternion rotate_plane_ss = SimdQuaternion::FromAxisCosAngle(
-        rotate_plane_axis, Clamp(-one, rotate_plane_cos_angle, one));
+        rotate_plane_axis_flipped_ss, Clamp(-one, rotate_plane_cos_angle, one));
 
-    *start_joint_correction = rotate_plane_ss * end_to_handle_rot_ss;
+    if (twist_angle != 0.f) {
+      // If a twist angle is provided, rotation plangle is rotated along
+      // rotation plane axis.
+      const SimdQuaternion twist_ss = SimdQuaternion::FromAxisAngle(
+          rotate_plane_axis_ss, simd_float4::LoadX(twist_angle));
+      *start_joint_correction =
+          twist_ss * rotate_plane_ss * end_to_handle_rot_ss;
+    } else {
+      *start_joint_correction = rotate_plane_ss * end_to_handle_rot_ss;
+    }
   } else {
     *start_joint_correction = end_to_handle_rot_ss;
   }
