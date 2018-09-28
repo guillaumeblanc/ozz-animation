@@ -323,12 +323,13 @@ void ImGuiImpl::BeginContainer(const char* _title, const math::RectFloat* _rect,
                                    container.rect.bottom + container.offset_y,
                                    container.rect.width, header_height);
 
+  const float arrow_size = _open != NULL ? kWidgetHeight : 0;
   const math::RectFloat open_close_rect(title_rect.left, title_rect.bottom,
-                                        kWidgetHeight, kWidgetHeight);
+                                        arrow_size, kWidgetHeight);
 
   const math::RectFloat label_rect(
-      title_rect.left + kWidgetHeight + kTextMarginX, title_rect.bottom,
-      title_rect.width - kWidgetHeight - kTextMarginX, kWidgetHeight);
+      title_rect.left + arrow_size + kTextMarginX, title_rect.bottom,
+      title_rect.width - arrow_size - kTextMarginX, kWidgetHeight);
 
   // Adds a margin before the next widget only if it is opened.
   if (!_open || *_open) {
