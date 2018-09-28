@@ -323,6 +323,7 @@ void ImGuiImpl::BeginContainer(const char* _title, const math::RectFloat* _rect,
                                    container.rect.bottom + container.offset_y,
                                    container.rect.width, header_height);
 
+  // Don't display any arrow if _open is NULL.
   const float arrow_size = _open != NULL ? kWidgetHeight : 0;
   const math::RectFloat open_close_rect(title_rect.left, title_rect.bottom,
                                         arrow_size, kWidgetHeight);
