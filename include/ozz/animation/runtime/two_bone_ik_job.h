@@ -51,6 +51,7 @@ struct TwoBoneIKJob {
   math::SimdFloat4 handle;
   math::SimdFloat4 pole_vector;
   math::SimdFloat4 mid_axis_fallback;
+  float soften;
   float twist_angle;
 
   const math::Float4x4* start_joint;

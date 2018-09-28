@@ -32,13 +32,15 @@
 #include "ozz/base/log.h"
 #include "ozz/base/maths/simd_quaternion.h"
 
+using namespace ozz::math;
+
 namespace ozz {
 namespace animation {
-
 TwoBoneIKJob::TwoBoneIKJob()
     : handle(math::simd_float4::zero()),
       pole_vector(math::simd_float4::y_axis()),
       mid_axis_fallback(math::simd_float4::z_axis()),
+      soften(1.f),
       twist_angle(0.f),
       start_joint(NULL),
       mid_joint(NULL),
@@ -55,16 +57,63 @@ bool TwoBoneIKJob::Validate() const {
   return valid;
 }
 
+namespace {
+// Smoothen handle position when it's further that a ratio of the joint chain
+// length, and start to handle length isn't 0.
+// Inspired from http://www.softimageblog.com/archives/108
+bool SoftenHandle(_SimdFloat4 _start_mid_ss_len2, _SimdFloat4 _mid_end_ss_len2,
+                  _SimdFloat4 _handle_ss, float _soften,
+                  SimdFloat4* _start_handle_ss,
+                  SimdFloat4* _start_handle_ss_len2) {
+  const SimdFloat4& start_handle_original_ss = _handle_ss;
+  const SimdFloat4 start_handle_original_ss_len2 = Length3Sqr(_handle_ss);
+
+  const SimdFloat4 bones_len = Sqrt(SetY(_start_mid_ss_len2, _mid_end_ss_len2));
+  const SimdFloat4 bones_chain_len = bones_len + SplatY(bones_len);
+  const SimdFloat4 da = bones_chain_len * simd_float4::LoadX(_soften);
+
+  // Needs to check start_handle_original_ss_len2 is != 0, because it's used as
+  // a denominator. Note that da.y == 0
+  if (AreAllTrue2(CmpGt(SplatX(start_handle_original_ss_len2), da * da))) {
+    // Finds interpolation ratio (aka alpha).
+    const SimdFloat4 ds = bones_chain_len - da;
+    const SimdFloat4 alpha = (start_handle_original_ss_len2 *
+                                  RSqrtEstX(start_handle_original_ss_len2) -
+                              da) *
+                             RcpEstX(ds);
+    // Approximate an exponential function with : 1-(3^4)/(alpha+3)^4
+    // The derivative must be 1 for x = 0, and y must never exceeds 1.
+    // Negative x aren't used.
+    const SimdFloat4 three = simd_float4::Load1(3.f);
+    const SimdFloat4 op = SetY(three, alpha + three);
+    const SimdFloat4 op2 = op * op;
+    const SimdFloat4 op4 = op2 * op2;
+    const SimdFloat4 smoothed_ratio =
+        simd_float4::one() - op4 * RcpEstX(SplatY(op4));
+
+    // Recomputes start_handle_ss vector and length.
+    const SimdFloat4 start_handle_ss_len = ds * smoothed_ratio + da;
+    *_start_handle_ss_len2 = start_handle_ss_len * start_handle_ss_len;
+    *_start_handle_ss =
+        start_handle_original_ss *
+        SplatX(start_handle_ss_len * RSqrtEstX(start_handle_original_ss_len2));
+    return false;
+  } else {
+    *_start_handle_ss = start_handle_original_ss;
+    *_start_handle_ss_len2 = start_handle_original_ss_len2;
+    return true;
+  }
+}
+}
+
 bool TwoBoneIKJob::Run() const {
   if (!Validate()) {
     return false;
   }
 
-  using namespace ozz::math;
-
+  // Prepares constants
   const SimdFloat4 zero = simd_float4::zero();
   const SimdFloat4 one = simd_float4::one();
-  const SimdFloat4 half = simd_float4::Load1(.5f);
   const SimdInt4 mask_sign = simd_int4::mask_sign();
 
   // Computes inverse matrices required to change to start and mid spaces.
@@ -90,11 +139,15 @@ bool TwoBoneIKJob::Run() const {
   const SimdFloat4& start_mid_ss = mid_ss;
   const SimdFloat4 mid_end_ss = end_ss - mid_ss;
   const SimdFloat4& start_end_ss = end_ss;
-  const SimdFloat4& start_handle_ss = handle_ss;
   const SimdFloat4 start_mid_ss_len2 = Length3Sqr(start_mid_ss);
   const SimdFloat4 mid_end_ss_len2 = Length3Sqr(mid_end_ss);
   const SimdFloat4 start_end_ss_len2 = Length3Sqr(start_end_ss);
-  const SimdFloat4 start_handle_ss_len2 = Length3Sqr(start_handle_ss);
+
+  // Finds soften handle position.
+  SimdFloat4 start_handle_ss;
+  SimdFloat4 start_handle_ss_len2;
+  SoftenHandle(start_mid_ss_len2, mid_end_ss_len2, handle_ss, soften,
+               &start_handle_ss, &start_handle_ss_len2);
 
   // Calculate mid_rot_local quaternion which solves for the mid_ss joint
   // rotation.
@@ -109,15 +162,15 @@ bool TwoBoneIKJob::Run() const {
   const SimdFloat4 start_mid_end_sum_ss_len2 =
       start_mid_ss_len2 + mid_end_ss_len2;
   const SimdFloat4 start_mid_end_ss_half_rlen =
-      half * SplatX(RSqrtEstXNR(start_mid_ss_len2 * mid_end_ss_len2));
+      SplatX(simd_float4::Load1(.5f) *
+             RSqrtEstXNR(start_mid_ss_len2 * mid_end_ss_len2));
   // Cos value needs to be clamped, as it will exit expected range if
   // start_handle_ss_len2 is longer than the triangle can be (start_mid_ss +
   // mid_end_ss).
   const SimdFloat4 mid_cos_angles =
-      Clamp(-one,
-            (SplatX(start_mid_end_sum_ss_len2) -
-             SetY(start_handle_ss_len2, start_end_ss_len2)) *
-                start_mid_end_ss_half_rlen,
+      Clamp(-one, (SplatX(start_mid_end_sum_ss_len2) -
+                   SetY(start_handle_ss_len2, start_end_ss_len2)) *
+                      start_mid_end_ss_half_rlen,
             one);
 
   // Computes final and initial angles difference.
@@ -211,7 +264,7 @@ bool TwoBoneIKJob::Run() const {
         rotate_plane_axis_flipped_ss, Clamp(-one, rotate_plane_cos_angle, one));
 
     if (twist_angle != 0.f) {
-      // If a twist angle is provided, rotation plangle is rotated along
+      // If a twist angle is provided, rotation angle is rotated along
       // rotation plane axis.
       const SimdQuaternion twist_ss = SimdQuaternion::FromAxisAngle(
           rotate_plane_axis_ss, simd_float4::LoadX(twist_angle));
@@ -221,6 +274,7 @@ bool TwoBoneIKJob::Run() const {
       *start_joint_correction = rotate_plane_ss * end_to_handle_rot_ss;
     }
   } else {
+    // Can't apply pole vector correction.
     *start_joint_correction = end_to_handle_rot_ss;
   }
 
