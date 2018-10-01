@@ -46,6 +46,11 @@ inline void ExpectIntEq(int _a, int _b) { EXPECT_EQ(_a, _b); }
 // optimizer when too much EXPECT_TRUE are used in a single compilation unit.
 inline void ExpectTrue(bool _b) { EXPECT_TRUE(_b); }
 
+// Macro for testing floats, dedicated to estimated functions with a lower
+// precision.
+#define EXPECT_FLOAT_EQ_EST(_expected, _x) \
+  EXPECT_NEAR(_expected, _x, kFloatNearEstTolerance)
+
 // Macro for testing ozz::math::Float4 members with x, y, z, w float values,
 // using EXPECT_FLOAT_EQ internally.
 #define EXPECT_FLOAT4_EQ(_expected, _x, _y, _z, _w) \
