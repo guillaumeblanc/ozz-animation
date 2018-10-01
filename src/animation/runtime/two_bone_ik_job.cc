@@ -30,6 +30,7 @@
 #include <cassert>
 
 #include "ozz/base/log.h"
+#include "ozz/base/maths/math_ex.h"
 #include "ozz/base/maths/simd_quaternion.h"
 
 using namespace ozz::math;
@@ -70,7 +71,8 @@ bool SoftenHandle(_SimdFloat4 _start_mid_ss_len2, _SimdFloat4 _mid_end_ss_len2,
 
   const SimdFloat4 bones_len = Sqrt(SetY(_start_mid_ss_len2, _mid_end_ss_len2));
   const SimdFloat4 bones_chain_len = bones_len + SplatY(bones_len);
-  const SimdFloat4 da = bones_chain_len * simd_float4::LoadX(_soften);
+  const SimdFloat4 da =
+      bones_chain_len * simd_float4::LoadX(Clamp(_soften, 0.f, 1.f));
   const SimdFloat4 ds = bones_chain_len - da;
 
   // Sotftens handle position if it is further than a ratio (_soften) of the
@@ -109,7 +111,7 @@ bool SoftenHandle(_SimdFloat4 _start_mid_ss_len2, _SimdFloat4 _mid_end_ss_len2,
   // reached.
   return !needs_softening;
 }
-}
+}  // namespace
 
 bool TwoBoneIKJob::Run() const {
   if (!Validate()) {
@@ -173,9 +175,10 @@ bool TwoBoneIKJob::Run() const {
   // start_handle_ss_len2 is longer than the triangle can be (start_mid_ss +
   // mid_end_ss).
   const SimdFloat4 mid_cos_angles =
-      Clamp(-one, (SplatX(start_mid_end_sum_ss_len2) -
-                   SetY(start_handle_ss_len2, start_end_ss_len2)) *
-                      start_mid_end_ss_half_rlen,
+      Clamp(-one,
+            (SplatX(start_mid_end_sum_ss_len2) -
+             SetY(start_handle_ss_len2, start_end_ss_len2)) *
+                start_mid_end_ss_half_rlen,
             one);
 
   // Computes final and initial angles difference.
