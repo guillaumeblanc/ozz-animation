@@ -385,10 +385,10 @@ TEST(Soften, TwoBoneIKJob) {
 
     const ozz::math::Quaternion z_mPi_2 = ozz::math::Quaternion::FromAxisAngle(
         ozz::math::Float3::z_axis(), -ozz::math::kPi_2);
-    EXPECT_SIMDQUATERNION_EQ_EST(qstart, z_mPi_2.x, z_mPi_2.y, z_mPi_2.z, z_mPi_2.w);
+    EXPECT_SIMDQUATERNION_EQ_TOL(qstart, z_mPi_2.x, z_mPi_2.y, z_mPi_2.z, z_mPi_2.w, 2e-3f);
     const ozz::math::Quaternion z_Pi_2 = ozz::math::Quaternion::FromAxisAngle(
         ozz::math::Float3::z_axis(), ozz::math::kPi_2);
-    EXPECT_SIMDQUATERNION_EQ_EST(qmid, z_Pi_2.x, z_Pi_2.y, z_Pi_2.z, z_Pi_2.w);
+    EXPECT_SIMDQUATERNION_EQ_TOL(qmid, z_Pi_2.x, z_Pi_2.y, z_Pi_2.z, z_Pi_2.w, 2e-3f);
   }
 
   // Reachable, softened
