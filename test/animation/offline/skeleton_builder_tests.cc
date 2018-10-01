@@ -823,6 +823,8 @@ TEST(TPose, SkeletonBuilder) {
       EXPECT_TRUE(false);
     }
   }
+
+  // Unused joint from the SoA structure must be properly initialized
   EXPECT_SIMDFLOAT_EQ(translations[3], 0.f, 0.f, 0.f, 0.f);
   EXPECT_SIMDFLOAT_EQ(rotations[3], 0.f, 0.f, 0.f, 1.f);
   EXPECT_SIMDFLOAT_EQ(scales[3], 1.f, 1.f, 1.f, 0.f);

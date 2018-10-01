@@ -229,20 +229,18 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
       {  // Updates lower body animation sampler joint weights.
         ozz::math::SimdFloat4& weight_setting =
             lower_body_sampler.joint_weights[joint_id / 4];
-        weight_setting =
-            ozz::math::SetI(weight_setting,
-                            ozz::math::simd_float4::Load1(
+        weight_setting = ozz::math::SetI(
+            weight_setting, ozz::math::simd_float4::Load1(
                                 lower_body_sampler.joint_weight_setting),
-                            joint_id % 4);
+            joint_id % 4);
       }
       {  // Updates upper body animation sampler joint weights.
         ozz::math::SimdFloat4& weight_setting =
             upper_body_sampler.joint_weights[joint_id / 4];
-        weight_setting =
-            ozz::math::SetI(weight_setting,
-                            ozz::math::simd_float4::Load1(
+        weight_setting = ozz::math::SetI(
+            weight_setting, ozz::math::simd_float4::Load1(
                                 upper_body_sampler.joint_weight_setting),
-                            joint_id % 4);
+            joint_id % 4);
       }
     }
   }

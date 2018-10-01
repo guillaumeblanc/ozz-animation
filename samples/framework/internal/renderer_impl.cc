@@ -1399,9 +1399,10 @@ bool RendererImpl::DrawSkinnedMesh(
 
     // Setup output positions, coming from the rendering output mesh buffers.
     // We need to offset the buffer every loop.
-    skinning_job.out_positions.begin = reinterpret_cast<float*>(
-        ozz::PointerStride(vbo_map, positions_offset + processed_vertex_count *
-                                                           positions_stride));
+    skinning_job.out_positions.begin =
+        reinterpret_cast<float*>(ozz::PointerStride(
+            vbo_map,
+            positions_offset + processed_vertex_count * positions_stride));
     skinning_job.out_positions.end = ozz::PointerStride(
         skinning_job.out_positions.begin, part_vertex_count * positions_stride);
     skinning_job.out_positions_stride = positions_stride;

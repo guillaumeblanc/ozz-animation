@@ -116,7 +116,7 @@ TEST(BoxBuild, ozz_math) {
   EXPECT_FALSE(multi_invalid.is_valid());
 
   const ozz::math::Box multi_valid(&points->value, sizeof(points[0]),
-                             OZZ_ARRAY_SIZE(points));
+                                   OZZ_ARRAY_SIZE(points));
   EXPECT_TRUE(multi_valid.is_valid());
   EXPECT_FLOAT3_EQ(multi_valid.min, -27.f, -1.f, 0.f);
   EXPECT_FLOAT3_EQ(multi_valid.max, 1.f, 58.f, 46.f);
