@@ -69,7 +69,7 @@ bool SoftenHandle(_SimdFloat4 _start_mid_ss_len2, _SimdFloat4 _mid_end_ss_len2,
   const SimdFloat4& start_handle_original_ss = _handle_ss;
   const SimdFloat4 start_handle_original_ss_len2 = Length3Sqr(_handle_ss);
 
-  const SimdFloat4 bones_len = Sqrt(SetY(_start_mid_ss_len2, _mid_end_ss_len2));
+  const SimdFloat4 bones_len = SqrtEst(SetY(_start_mid_ss_len2, _mid_end_ss_len2));
   const SimdFloat4 bones_chain_len = bones_len + SplatY(bones_len);
   const SimdFloat4 da =
       bones_chain_len * simd_float4::LoadX(Clamp(_soften, 0.f, 1.f));
@@ -191,8 +191,8 @@ bool TwoBoneIKJob::Run() const {
       one - mid_cos_angles * mid_cos_angles;
   const SimdFloat4 mid_cos_angle_diff_unclamped =
       mid_cos_angles * SplatY(mid_cos_angles) +
-      SqrtX(Max(zero,
-                one_minus_mid_cos_angles2 * SplatY(one_minus_mid_cos_angles2)));
+      SqrtEstXNR(Max(
+          zero, one_minus_mid_cos_angles2 * SplatY(one_minus_mid_cos_angles2)));
   const SimdFloat4 mid_cos_angle_diff =
       Clamp(-one, mid_cos_angle_diff_unclamped, one);
 

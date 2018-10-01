@@ -34,8 +34,25 @@
 #include "gtest/gtest.h"
 #include "ozz/base/maths/gtest_math_helper.h"
 
-void ExpectEndReached(const ozz::animation::TwoBoneIKJob& _job,
-                      bool _reachable = true) {
+// Implement helper macro that verify that handle was reached once ik job is
+// executed.
+#define EXPECT_REACHED(_job)    \
+  \
+do {                            \
+    SCOPED_TRACE("");           \
+    _ExpectReached(_job, true); \
+  }                             \
+  while (0)
+
+#define EXPECT_NOT_REACHED(_job) \
+  \
+do {                             \
+    SCOPED_TRACE("");            \
+    _ExpectReached(_job, false); \
+  }                              \
+  while (0)
+
+void _ExpectReached(const ozz::animation::TwoBoneIKJob& _job, bool _reachable) {
   // Computes local transforms
   const ozz::math::Float4x4 mid_local =
       Invert(*_job.start_joint) * *_job.mid_joint;
@@ -54,8 +71,8 @@ void ExpectEndReached(const ozz::animation::TwoBoneIKJob& _job,
   const ozz::math::Float4x4 end_corrected = mid_corrected * end_local;
 
   const ozz::math::SimdFloat4 diff =
-      ozz::math::Length3Sqr(end_corrected.cols[3] - _job.handle);
-  EXPECT_EQ(ozz::math::GetX(diff) < 2e-3f * 2e-3f, _reachable);
+      ozz::math::Length3(end_corrected.cols[3] - _job.handle);
+  EXPECT_EQ(ozz::math::GetX(diff) < 1e-2f, _reachable);
 }
 
 TEST(JobValidity, TwoBoneIKJob) {
@@ -168,8 +185,8 @@ TEST(StartJointCorrection, TwoBoneIKJob) {
   const ozz::math::Float4x4 parents[] = {
       ozz::math::Float4x4::identity(),  // No root transformation
       ozz::math::Float4x4::Translation(ozz::math::simd_float4::y_axis()),  // Up
-      ozz::math::Float4x4::FromEuler(
-          ozz::math::simd_float4::Load(.78f, 0.f, 0.f, 0.f)),  // Rotated
+      ozz::math::Float4x4::FromEuler(ozz::math::simd_float4::Load(
+          ozz::math::kPi / 3.f, 0.f, 0.f, 0.f)),  // Rotated
       ozz::math::Float4x4::Scaling(ozz::math::simd_float4::Load(
           2.f, 2.f, 2.f, 0.f)),  // Uniformly scaled
       ozz::math::Float4x4::Scaling(ozz::math::simd_float4::Load(
@@ -201,10 +218,10 @@ TEST(StartJointCorrection, TwoBoneIKJob) {
           parent, ozz::math::simd_float4::Load(1.f, 1.f, 0.f, 0.f));
       ASSERT_TRUE(job.Run());
 
-      ExpectEndReached(job);
+      EXPECT_REACHED(job);
 
-      EXPECT_SIMDQUATERNION_EQ_EST(qstart, 0.f, 0.f, 0.f, 1.f);
-      EXPECT_SIMDQUATERNION_EQ_EST(qmid, 0.f, 0.f, 0.f, 1.f);
+      EXPECT_SIMDQUATERNION_EQ_TOL(qstart, 0.f, 0.f, 0.f, 1.f, 2e-3f);
+      EXPECT_SIMDQUATERNION_EQ_TOL(qmid, 0.f, 0.f, 0.f, 1.f, 2e-3f);
     }
 
     {  // 90
@@ -212,7 +229,7 @@ TEST(StartJointCorrection, TwoBoneIKJob) {
           parent, ozz::math::simd_float4::Load(0.f, 1.f, 1.f, 0.f));
       ASSERT_TRUE(job.Run());
 
-      ExpectEndReached(job);
+      EXPECT_REACHED(job);
 
       const ozz::math::Quaternion y_mPi_2 =
           ozz::math::Quaternion::FromAxisAngle(ozz::math::Float3::y_axis(),
@@ -227,7 +244,7 @@ TEST(StartJointCorrection, TwoBoneIKJob) {
           parent, ozz::math::simd_float4::Load(-1.f, 1.f, 0.f, 0.f));
       ASSERT_TRUE(job.Run());
 
-      ExpectEndReached(job);
+      EXPECT_REACHED(job);
 
       const ozz::math::Quaternion y_kPi = ozz::math::Quaternion::FromAxisAngle(
           ozz::math::Float3::y_axis(), ozz::math::kPi);
@@ -241,7 +258,7 @@ TEST(StartJointCorrection, TwoBoneIKJob) {
           parent, ozz::math::simd_float4::Load(0.f, 1.f, -1.f, 0.f));
       ASSERT_TRUE(job.Run());
 
-      ExpectEndReached(job);
+      EXPECT_REACHED(job);
 
       const ozz::math::Quaternion y_kPi_2 =
           ozz::math::Quaternion::FromAxisAngle(ozz::math::Float3::y_axis(),
@@ -283,10 +300,10 @@ TEST(Pole, TwoBoneIKJob) {
     job.handle = ozz::math::simd_float4::Load(1.f, 1.f, 0.f, 0.f);
     ASSERT_TRUE(job.Run());
 
-    ExpectEndReached(job);
+    EXPECT_REACHED(job);
 
-    EXPECT_SIMDQUATERNION_EQ_EST(qstart, 0.f, 0.f, 0.f, 1.f);
-    EXPECT_SIMDQUATERNION_EQ_EST(qmid, 0.f, 0.f, 0.f, 1.f);
+    EXPECT_SIMDQUATERNION_EQ_TOL(qstart, 0.f, 0.f, 0.f, 1.f, 2e-3f);
+    EXPECT_SIMDQUATERNION_EQ_TOL(qmid, 0.f, 0.f, 0.f, 1.f, 2e-3f);
   }
 
   // Pole Z
@@ -295,7 +312,7 @@ TEST(Pole, TwoBoneIKJob) {
     job.handle = ozz::math::simd_float4::Load(1.f, 0.f, 1.f, 0.f);
     ASSERT_TRUE(job.Run());
 
-    ExpectEndReached(job);
+    EXPECT_REACHED(job);
 
     const ozz::math::Quaternion x_kPi_2 = ozz::math::Quaternion::FromAxisAngle(
         ozz::math::Float3::x_axis(), ozz::math::kPi_2);
@@ -310,7 +327,7 @@ TEST(Pole, TwoBoneIKJob) {
     job.handle = ozz::math::simd_float4::Load(1.f, 0.f, -1.f, 0.f);
     ASSERT_TRUE(job.Run());
 
-    ExpectEndReached(job);
+    EXPECT_REACHED(job);
 
     const ozz::math::Quaternion x_mPi_2 = ozz::math::Quaternion::FromAxisAngle(
         ozz::math::Float3::x_axis(), -ozz::math::kPi_2);
@@ -325,7 +342,7 @@ TEST(Pole, TwoBoneIKJob) {
     job.handle = ozz::math::simd_float4::Load(1.f, -1.f, 0.f, 0.f);
     ASSERT_TRUE(job.Run());
 
-    ExpectEndReached(job);
+    EXPECT_REACHED(job);
 
     const ozz::math::Quaternion z_mPi_2 = ozz::math::Quaternion::FromAxisAngle(
         ozz::math::Float3::z_axis(), -ozz::math::kPi_2);
@@ -340,7 +357,7 @@ TEST(Pole, TwoBoneIKJob) {
     job.handle = ozz::math::simd_float4::Load(-1.f, 1.f, 0.f, 0.f);
     ASSERT_TRUE(job.Run());
 
-    ExpectEndReached(job);
+    EXPECT_REACHED(job);
 
     const ozz::math::Quaternion z_Pi_2 = ozz::math::Quaternion::FromAxisAngle(
         ozz::math::Float3::z_axis(), ozz::math::kPi_2);
@@ -381,14 +398,16 @@ TEST(Soften, TwoBoneIKJob) {
     job.soften = 1.f;
     ASSERT_TRUE(job.Run());
 
-    ExpectEndReached(job);
+    EXPECT_REACHED(job);
 
     const ozz::math::Quaternion z_mPi_2 = ozz::math::Quaternion::FromAxisAngle(
         ozz::math::Float3::z_axis(), -ozz::math::kPi_2);
-    EXPECT_SIMDQUATERNION_EQ_TOL(qstart, z_mPi_2.x, z_mPi_2.y, z_mPi_2.z, z_mPi_2.w, 2e-3f);
+    EXPECT_SIMDQUATERNION_EQ_TOL(qstart, z_mPi_2.x, z_mPi_2.y, z_mPi_2.z,
+                                 z_mPi_2.w, 2e-3f);
     const ozz::math::Quaternion z_Pi_2 = ozz::math::Quaternion::FromAxisAngle(
         ozz::math::Float3::z_axis(), ozz::math::kPi_2);
-    EXPECT_SIMDQUATERNION_EQ_TOL(qmid, z_Pi_2.x, z_Pi_2.y, z_Pi_2.z, z_Pi_2.w, 2e-3f);
+    EXPECT_SIMDQUATERNION_EQ_TOL(qmid, z_Pi_2.x, z_Pi_2.y, z_Pi_2.z, z_Pi_2.w,
+                                 2e-3f);
   }
 
   // Reachable, softened
@@ -398,7 +417,7 @@ TEST(Soften, TwoBoneIKJob) {
     job.soften = .5f;
     ASSERT_TRUE(job.Run());
 
-    ExpectEndReached(job);
+    EXPECT_REACHED(job);
   }
 
   // Reachable, softened
@@ -408,7 +427,7 @@ TEST(Soften, TwoBoneIKJob) {
     job.soften = .5f;
     ASSERT_TRUE(job.Run());
 
-    ExpectEndReached(job);
+    EXPECT_REACHED(job);
   }
 
   // Not reachable, softened
@@ -418,7 +437,7 @@ TEST(Soften, TwoBoneIKJob) {
     job.soften = .5f;
     ASSERT_TRUE(job.Run());
 
-    ExpectEndReached(job, false);
+    EXPECT_NOT_REACHED(job);
   }
 
   // Not reachable, softened at max
@@ -428,7 +447,7 @@ TEST(Soften, TwoBoneIKJob) {
     job.soften = 0.f;
     ASSERT_TRUE(job.Run());
 
-    ExpectEndReached(job, false);
+    EXPECT_NOT_REACHED(job);
   }
 
   // Not reachable, softened
@@ -438,7 +457,7 @@ TEST(Soften, TwoBoneIKJob) {
     job.soften = .5f;
     ASSERT_TRUE(job.Run());
 
-    ExpectEndReached(job, false);
+    EXPECT_NOT_REACHED(job);
   }
 
   // Not reachable, a bit too far
@@ -448,7 +467,7 @@ TEST(Soften, TwoBoneIKJob) {
     job.soften = 1.f;
     ASSERT_TRUE(job.Run());
 
-    ExpectEndReached(job, false);
+    EXPECT_NOT_REACHED(job);
   }
 }
 
@@ -483,10 +502,10 @@ TEST(Twist, TwoBoneIKJob) {
     job.twist_angle = 0.f;
     ASSERT_TRUE(job.Run());
 
-    ExpectEndReached(job);
+    EXPECT_REACHED(job);
 
-    EXPECT_SIMDQUATERNION_EQ_EST(qstart, 0.f, 0.f, 0.f, 1.f);
-    EXPECT_SIMDQUATERNION_EQ_EST(qmid, 0.f, 0.f, 0.f, 1.f);
+    EXPECT_SIMDQUATERNION_EQ_TOL(qstart, 0.f, 0.f, 0.f, 1.f, 2e-3f);
+    EXPECT_SIMDQUATERNION_EQ_TOL(qmid, 0.f, 0.f, 0.f, 1.f, 2e-3f);
   }
 
   // Twist angle pi / 2
@@ -494,13 +513,13 @@ TEST(Twist, TwoBoneIKJob) {
     job.twist_angle = ozz::math::kPi_2;
     ASSERT_TRUE(job.Run());
 
-    ExpectEndReached(job);
+    EXPECT_REACHED(job);
 
     const ozz::math::Quaternion h_Pi_2 = ozz::math::Quaternion::FromAxisAngle(
         ozz::math::Float3(.70710678f, .70710678f, 0.f), ozz::math::kPi_2);
-    EXPECT_SIMDQUATERNION_EQ_EST(qstart, h_Pi_2.x, h_Pi_2.y, h_Pi_2.z,
-                                 h_Pi_2.w);
-    EXPECT_SIMDQUATERNION_EQ_EST(qmid, 0.f, 0.f, 0.f, 1.f);
+    EXPECT_SIMDQUATERNION_EQ_TOL(qstart, h_Pi_2.x, h_Pi_2.y, h_Pi_2.z, h_Pi_2.w,
+                                 2e-3f);
+    EXPECT_SIMDQUATERNION_EQ_TOL(qmid, 0.f, 0.f, 0.f, 1.f, 2e-3f);
   }
 
   // Twist angle pi
@@ -508,12 +527,12 @@ TEST(Twist, TwoBoneIKJob) {
     job.twist_angle = ozz::math::kPi;
     ASSERT_TRUE(job.Run());
 
-    ExpectEndReached(job);
+    EXPECT_REACHED(job);
 
     const ozz::math::Quaternion h_Pi = ozz::math::Quaternion::FromAxisAngle(
         ozz::math::Float3(.70710678f, .70710678f, 0.f), ozz::math::kPi);
-    EXPECT_SIMDQUATERNION_EQ_EST(qstart, h_Pi.x, h_Pi.y, h_Pi.z, h_Pi.w);
-    EXPECT_SIMDQUATERNION_EQ_EST(qmid, 0.f, 0.f, 0.f, 1.f);
+    EXPECT_SIMDQUATERNION_EQ_TOL(qstart, h_Pi.x, h_Pi.y, h_Pi.z, h_Pi.w, 2e-3f);
+    EXPECT_SIMDQUATERNION_EQ_TOL(qmid, 0.f, 0.f, 0.f, 1.f, 2e-3f);
   }
 
   // Twist angle 2pi
@@ -521,10 +540,10 @@ TEST(Twist, TwoBoneIKJob) {
     job.twist_angle = ozz::math::kPi * 2.f;
     ASSERT_TRUE(job.Run());
 
-    ExpectEndReached(job);
+    EXPECT_REACHED(job);
 
-    EXPECT_SIMDQUATERNION_EQ_EST(qstart, 0.f, 0.f, 0.f, -1.f);
-    EXPECT_SIMDQUATERNION_EQ_EST(qmid, 0.f, 0.f, 0.f, 1.f);
+    EXPECT_SIMDQUATERNION_EQ_TOL(qstart, 0.f, 0.f, 0.f, -1.f, 2e-3f);
+    EXPECT_SIMDQUATERNION_EQ_TOL(qmid, 0.f, 0.f, 0.f, 1.f, 2e-3f);
   }
 }
 
@@ -557,10 +576,10 @@ TEST(PoleHandleAlignment, TwoBoneIKJob) {
     job.handle = ozz::math::simd_float4::Load(0.f, ozz::math::kSqrt2, 0.f, 0.f);
     ASSERT_TRUE(job.Run());
 
-    ExpectEndReached(job);
+    EXPECT_REACHED(job);
 
     // qstart is undefined, many solutions in this case
-    EXPECT_SIMDQUATERNION_EQ_EST(qmid, 0.f, 0.f, 0.f, 1.f);
+    EXPECT_SIMDQUATERNION_EQ_TOL(qmid, 0.f, 0.f, 0.f, 1.f, 2e-3f);
   }
 
   {  // Reachable, defined qstart
@@ -569,7 +588,7 @@ TEST(PoleHandleAlignment, TwoBoneIKJob) {
         ozz::math::simd_float4::Load(.001f, ozz::math::kSqrt2, 0.f, 0.f);
     ASSERT_TRUE(job.Run());
 
-    ExpectEndReached(job);
+    EXPECT_REACHED(job);
 
     const ozz::math::Quaternion z_Pi_4 = ozz::math::Quaternion::FromAxisAngle(
         ozz::math::Float3::z_axis(), ozz::math::kPi_4);
@@ -621,10 +640,10 @@ TEST(MidAxisFallback, TwoBoneIKJob) {
   {
     ASSERT_TRUE(job.Run());
 
-    ExpectEndReached(job);
+    EXPECT_REACHED(job);
 
-    EXPECT_SIMDQUATERNION_EQ_EST(qstart, 0.f, 0.f, 0.f, 1.f);
-    EXPECT_SIMDQUATERNION_EQ_EST(qmid, 0.f, 0.f, 0.f, 1.f);
+    EXPECT_SIMDQUATERNION_EQ_TOL(qstart, 0.f, 0.f, 0.f, 1.f, 2e-3f);
+    EXPECT_SIMDQUATERNION_EQ_TOL(qmid, 0.f, 0.f, 0.f, 1.f, 2e-3f);
   }
 
   // Fall back mid joint axis
@@ -639,7 +658,7 @@ TEST(MidAxisFallback, TwoBoneIKJob) {
 
     ASSERT_TRUE(job.Run());
 
-    ExpectEndReached(job);
+    EXPECT_REACHED(job);
 
     // Restore end joint matrix
     job.end_joint = &end;
@@ -664,7 +683,7 @@ TEST(MidAxisFallback, TwoBoneIKJob) {
 
     ASSERT_TRUE(job.Run());
 
-    ExpectEndReached(job);
+    EXPECT_REACHED(job);
 
     // Restore end joint matrix
     job.end_joint = &end;
@@ -735,5 +754,5 @@ TEST(ZeroLengthBoneChain, TwoBoneIKJob) {
   // Just expecting it's not crashing
   ASSERT_TRUE(job.Run());
 
-  ExpectEndReached(job, false);
+  EXPECT_NOT_REACHED(job);
 }
