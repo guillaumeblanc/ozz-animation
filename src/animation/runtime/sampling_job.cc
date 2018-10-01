@@ -228,12 +228,11 @@ void UpdateSoaTranslations(int _num_soa_tracks,
             math::simd_float4::FromInt(math::simd_int4::LoadPtr(cmp_keys[3])), \
     };                                                                         \
                                                                                \
-    /* Get back length of 4th component. Favors performance over accuracy by*/ \
-    /* using x * RSqrtEst(x) instead of Sqrt(x).*/                             \
+    /* Get back length of 4th component. */                                    \
     const math::SimdFloat4 dot = cpnt[0] * cpnt[0] + cpnt[1] * cpnt[1] +       \
                                  cpnt[2] * cpnt[2] + cpnt[3] * cpnt[3];        \
     const math::SimdFloat4 ww0 = math::Max(eps, one - dot);                    \
-    const math::SimdFloat4 w0 = ww0 * math::RSqrtEst(ww0);                     \
+    const math::SimdFloat4 w0 = math::SqrtEst(ww0);                            \
     /* Re-applies 4th component's sign.*/                                      \
     const math::SimdInt4 sign = math::ShiftL(                                  \
         math::simd_int4::Load(_k0.sign, _k1.sign, _k2.sign, _k3.sign), 31);    \

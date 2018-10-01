@@ -356,6 +356,18 @@ TEST(ArithmeticFloat, ozz_simd_math) {
   const ozz::math::SimdFloat4 rsqrtxnr = ozz::math::RSqrtEstXNR(a);
   EXPECT_FLOAT_EQ(ozz::math::GetX(rsqrtxnr), 1.f/.7071068f);
 
+  const ozz::math::SimdFloat4 sqrtest = ozz::math::SqrtEst(a);
+  EXPECT_SIMDFLOAT_EQ_EST(sqrtest, .7071068f, 1.f, 1.4142135f, 1.7320508f);
+
+  const ozz::math::SimdFloat4 sqrtestnr = ozz::math::SqrtEstNR(a);
+  EXPECT_SIMDFLOAT_EQ(sqrtestnr, .7071068f, 1.f, 1.4142135f, 1.7320508f);
+
+  const ozz::math::SimdFloat4 sqrtestx = ozz::math::SqrtEstX(a);
+  EXPECT_FLOAT_EQ(ozz::math::GetX(sqrtestx), .7071068f);
+
+  const ozz::math::SimdFloat4 sqrtestxnr = ozz::math::SqrtEstXNR(a);
+  EXPECT_FLOAT_EQ(ozz::math::GetX(sqrtestxnr), .7071068f);
+
   const ozz::math::SimdFloat4 abs = ozz::math::Abs(b);
   EXPECT_SIMDFLOAT_EQ(abs, 4.f, 5.f, 6.f, 7.f);
 
