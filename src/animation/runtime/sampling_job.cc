@@ -255,7 +255,7 @@ void UpdateSoaTranslations(int _num_soa_tracks,
     _quat.y = cpnt[1];                                                         \
     _quat.z = cpnt[2];                                                         \
     _quat.w = cpnt[3];                                                         \
-  } while (0)
+  } while (void(0), 0)
 
 void UpdateSoaRotations(int _num_soa_tracks,
                         ozz::Range<const RotationKey> _keys, const int* _interp,
