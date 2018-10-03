@@ -75,16 +75,19 @@ bool SoftenHandle(_SimdFloat4 _start_mid_ss_len2, _SimdFloat4 _mid_end_ss_len2,
       bones_chain_len * simd_float4::LoadX(Clamp(_soften, 0.f, 1.f));
   const SimdFloat4 ds = bones_chain_len - da;
 
-  // Sotftens handle position if it is further than a ratio (_soften) of the whole bone chain length.
-  // Needs to check also ds and start_handle_original_ss_len2 are != 0, because they're used as
-  // a denominator. Note that da.yzw == 0
+  // Sotftens handle position if it is further than a ratio (_soften) of the
+  // whole bone chain length. Needs to check also ds and
+  // start_handle_original_ss_len2 are != 0, because they're used as a
+  // denominator. Note that da.yzw == 0
   const SimdFloat4 comperand = SetZ(SplatX(start_handle_original_ss_len2), ds);
   bool needs_softening = AreAllTrue3(CmpGt(comperand, da * da));
   if (needs_softening) {
     // Finds interpolation ratio (aka alpha).
-    const SimdFloat4 alpha = (start_handle_original_ss_len2 *
-                                  RSqrtEstX(start_handle_original_ss_len2) -
-                              da) * RcpEstX(ds);
+    const SimdFloat4 start_handle_original_ss_inv_len =
+        RSqrtEstX(start_handle_original_ss_len2);
+    const SimdFloat4 start_handle_original_ss_len = //  x^.5 = x^2 / (x^2)^.5
+        start_handle_original_ss_len2 * start_handle_original_ss_inv_len;
+    const SimdFloat4 alpha = (start_handle_original_ss_len - da) * RcpEstX(ds);
     // Approximate an exponential function with : 1-(3^4)/(alpha+3)^4
     // The derivative must be 1 for x = 0, and y must never exceeds 1.
     // Negative x aren't used.
@@ -100,13 +103,14 @@ bool SoftenHandle(_SimdFloat4 _start_mid_ss_len2, _SimdFloat4 _mid_end_ss_len2,
     *_start_handle_ss_len2 = start_handle_ss_len * start_handle_ss_len;
     *_start_handle_ss =
         start_handle_original_ss *
-        SplatX(start_handle_ss_len * RSqrtEstX(start_handle_original_ss_len2));
+        SplatX(start_handle_ss_len * start_handle_original_ss_inv_len);
   } else {
     *_start_handle_ss = start_handle_original_ss;
     *_start_handle_ss_len2 = start_handle_original_ss_len2;
   }
 
-  // If handle position is softened, then it means that the real handle isn't reached.
+  // If handle position is softened, then it means that the real handle isn't
+  // reached.
   return !needs_softening;
 }
 }  // namespace
@@ -189,8 +193,8 @@ bool TwoBoneIKJob::Run() const {
       one - mid_cos_angles * mid_cos_angles;
   const SimdFloat4 mid_cos_angle_diff_unclamped =
       mid_cos_angles * SplatY(mid_cos_angles) +
-      SqrtX(Max(
-          zero, one_minus_mid_cos_angles2 * SplatY(one_minus_mid_cos_angles2)));
+      SqrtX(Max(zero,
+                one_minus_mid_cos_angles2 * SplatY(one_minus_mid_cos_angles2)));
   const SimdFloat4 mid_cos_angle_diff =
       Clamp(-one, mid_cos_angle_diff_unclamped, one);
 
