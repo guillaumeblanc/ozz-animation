@@ -189,7 +189,7 @@ void UpdateSoaTranslations(int _num_soa_tracks,
 }
 
 #define DECOMPRESS_SOA_QUAT(_k0, _k1, _k2, _k3, _quat)                         \
-  {                                                                            \
+  do {                                                                         \
     /* Selects proper mapping for each key.*/                                  \
     const int* m0 = kCpntMapping[_k0.largest];                                 \
     const int* m1 = kCpntMapping[_k1.largest];                                 \
@@ -228,12 +228,14 @@ void UpdateSoaTranslations(int _num_soa_tracks,
             math::simd_float4::FromInt(math::simd_int4::LoadPtr(cmp_keys[3])), \
     };                                                                         \
                                                                                \
-    /* Get back length of 4th component. */                                    \
+    /* Get back length of 4th component. Favors performance over accuracy by*/ \
+    /* using x * RSqrtEst(x) instead of Sqrt(x).*/                             \
+    /* ww0 cannot be 0 because we 're recomputing the largest component.*/     \
     const math::SimdFloat4 dot = cpnt[0] * cpnt[0] + cpnt[1] * cpnt[1] +       \
                                  cpnt[2] * cpnt[2] + cpnt[3] * cpnt[3];        \
     const math::SimdFloat4 ww0 = math::Max(eps, one - dot);                    \
-    const math::SimdFloat4 w0 = math::SqrtEst(ww0);                            \
-    /* Re-applies 4th component's sign.*/                                      \
+    const math::SimdFloat4 w0 = ww0 * math::RSqrtEst(ww0);                     \
+    /* Re-applies 4th component' s sign.*/                                     \
     const math::SimdInt4 sign = math::ShiftL(                                  \
         math::simd_int4::Load(_k0.sign, _k1.sign, _k2.sign, _k3.sign), 31);    \
     const math::SimdFloat4 restored = math::Or(w0, sign);                      \
@@ -253,7 +255,7 @@ void UpdateSoaTranslations(int _num_soa_tracks,
     _quat.y = cpnt[1];                                                         \
     _quat.z = cpnt[2];                                                         \
     _quat.w = cpnt[3];                                                         \
-  }
+  } while (0)
 
 void UpdateSoaRotations(int _num_soa_tracks,
                         ozz::Range<const RotationKey> _keys, const int* _interp,

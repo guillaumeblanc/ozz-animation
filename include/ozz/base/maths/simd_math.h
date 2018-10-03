@@ -31,27 +31,6 @@
 #include "ozz/base/maths/internal/simd_math_config.h"
 #include "ozz/base/platform.h"
 
-#if !defined(__GNUC__) || defined(OZZ_SIMD_REF)
-// Returns per element addition of _a and _b.
-OZZ_INLINE ozz::math::SimdFloat4 operator+(ozz::math::_SimdFloat4 _a,
-                                           ozz::math::_SimdFloat4 _b);
-
-// Returns per element subtraction of _a and _b.
-OZZ_INLINE ozz::math::SimdFloat4 operator-(ozz::math::_SimdFloat4 _a,
-                                           ozz::math::_SimdFloat4 _b);
-
-// Returns per element negation of _v.
-OZZ_INLINE ozz::math::SimdFloat4 operator-(ozz::math::_SimdFloat4 _v);
-
-// Returns per element multiplication of _a and _b.
-OZZ_INLINE ozz::math::SimdFloat4 operator*(ozz::math::_SimdFloat4 _a,
-                                           ozz::math::_SimdFloat4 _b);
-
-// Returns per element division of _a and _b.
-OZZ_INLINE ozz::math::SimdFloat4 operator/(ozz::math::_SimdFloat4 _a,
-                                           ozz::math::_SimdFloat4 _b);
-#endif  // !defined(__GNUC__) || defined(OZZ_SIMD_REF)
-
 namespace ozz {
 namespace math {
 
@@ -417,25 +396,6 @@ OZZ_INLINE SimdFloat4 RSqrtEstX(_SimdFloat4 _v);
 // approximation is improved with one more new Newton-Raphson step. y, z, w of
 // the returned vector are undefined.
 OZZ_INLINE SimdFloat4 RSqrtEstXNR(_SimdFloat4 _v);
-
-// Returns the per component estimated square root of _v.
-OZZ_INLINE SimdFloat4 SqrtEst(_SimdFloat4 _v) { return _v * RSqrtEst(_v); }
-
-// Returns the per component estimated square root of _v, where
-// approximation is improved with one more new Newton-Raphson step.
-OZZ_INLINE SimdFloat4 SqrtEstNR(_SimdFloat4 _v) { return _v * RSqrtEstNR(_v); }
-
-// Returns the estimated square root of the x component of _v and
-// stores it in the x component of the returned vector. y, z, w of
-// the returned vector are undefined.
-OZZ_INLINE SimdFloat4 SqrtEstX(_SimdFloat4 _v) { return _v * RSqrtEstX(_v); }
-
-// Returns the estimated square root of the x component of _v, where
-// approximation is improved with one more new Newton-Raphson step. y, z, w of
-// the returned vector are undefined.
-OZZ_INLINE SimdFloat4 SqrtEstXNR(_SimdFloat4 _v) {
-  return _v * RSqrtEstXNR(_v);
-}
 
 // Returns the per element absolute value of _v.
 OZZ_INLINE SimdFloat4 Abs(_SimdFloat4 _v);
@@ -1207,9 +1167,33 @@ OZZ_INLINE ozz::math::Float4x4 operator+(const ozz::math::Float4x4& _a,
 // Computes the per element subtraction of two matrices _a and _b.
 OZZ_INLINE ozz::math::Float4x4 operator-(const ozz::math::Float4x4& _a,
                                          const ozz::math::Float4x4& _b);
+}  // namespace math
+}  // namespace ozz
+
+#if !defined(__GNUC__) || defined(OZZ_SIMD_REF)
+// Returns per element addition of _a and _b.
+OZZ_INLINE ozz::math::SimdFloat4 operator+(ozz::math::_SimdFloat4 _a,
+                                           ozz::math::_SimdFloat4 _b);
+
+// Returns per element subtraction of _a and _b.
+OZZ_INLINE ozz::math::SimdFloat4 operator-(ozz::math::_SimdFloat4 _a,
+                                           ozz::math::_SimdFloat4 _b);
+
+// Returns per element negation of _v.
+OZZ_INLINE ozz::math::SimdFloat4 operator-(ozz::math::_SimdFloat4 _v);
+
+// Returns per element multiplication of _a and _b.
+OZZ_INLINE ozz::math::SimdFloat4 operator*(ozz::math::_SimdFloat4 _a,
+                                           ozz::math::_SimdFloat4 _b);
+
+// Returns per element division of _a and _b.
+OZZ_INLINE ozz::math::SimdFloat4 operator/(ozz::math::_SimdFloat4 _a,
+                                           ozz::math::_SimdFloat4 _b);
+#endif  // !defined(__GNUC__) || defined(OZZ_SIMD_REF)
 
 // Implement format conversions.
-
+namespace ozz {
+namespace math {
 // Converts from a float to a half.
 OZZ_INLINE uint16_t FloatToHalf(float _f);
 
