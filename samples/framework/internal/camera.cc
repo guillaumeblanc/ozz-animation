@@ -85,8 +85,8 @@ void Camera::Update(const math::Box& _box, float _delta_time,
   // Frame the scene according to the provided box.
   if (auto_framing_ || _first_frame) {
     center_ = (_box.max + _box.min) * .5f;
-    const float radius = Length(_box.max - _box.min) * .5f;
     if (_first_frame) {
+      const float radius = Length(_box.max - _box.min) * .5f;
       distance_ = (radius * kFrameAllZoomOut) / tanf(kFovY * .5f);
     }
   }

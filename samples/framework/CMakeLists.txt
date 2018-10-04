@@ -36,7 +36,7 @@ endif()
 
 target_link_libraries(sample_framework
   ozz_geometry
-  ozz_animation
+  ozz_animation_offline
   ozz_options)
 
 if(TARGET BUILD_DATA_SAMPLE)

@@ -42,7 +42,7 @@ do {                            \
     SCOPED_TRACE("");           \
     _ExpectReached(_job, true); \
   }                             \
-  while (0)
+  while (void(0), 0)
 
 #define EXPECT_NOT_REACHED(_job) \
   \
@@ -50,7 +50,7 @@ do {                             \
     SCOPED_TRACE("");            \
     _ExpectReached(_job, false); \
   }                              \
-  while (0)
+  while (void(0), 0)
 
 void _ExpectReached(const ozz::animation::TwoBoneIKJob& _job, bool _reachable) {
   // Computes local transforms
