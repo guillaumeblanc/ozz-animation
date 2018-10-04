@@ -1,3 +1,4 @@
+# Framework library
 add_library(sample_framework STATIC
   application.h
   application.cc

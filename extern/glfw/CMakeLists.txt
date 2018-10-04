@@ -94,6 +94,8 @@ target_include_directories(glfw PUBLIC
   $<BUILD_INTERFACE:${OPENGL_INCLUDE_DIR}>)
 target_include_directories(glfw PRIVATE
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/extern/glfw/lib>)
+# Disables GL deprecation warnings on macos
+target_compile_definitions(glfw PUBLIC $<$<BOOL:APPLE>:GL_SILENCE_DEPRECATION>)
 
 target_link_libraries(glfw
   ${OPENGL_LIBRARIES}
