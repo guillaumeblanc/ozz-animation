@@ -9,12 +9,15 @@ add_library(ozz_animation_fbx STATIC
   fbx_animation.cc
   ${PROJECT_SOURCE_DIR}/include/ozz/animation/offline/fbx/fbx_skeleton.h
   fbx_skeleton.cc)
-target_include_directories(ozz_animation_fbx PUBLIC
-  $<BUILD_INTERFACE:${FBX_INCLUDE_DIRS}>)
+target_include_directories(ozz_animation_fbx
+  PUBLIC $<BUILD_INTERFACE:${FBX_INCLUDE_DIRS}>)
 target_link_libraries(ozz_animation_fbx
   ozz_animation_offline
   debug ${FBX_LIBRARIES_DEBUG}
   optimized ${FBX_LIBRARIES})
+target_compile_options(ozz_animation_fbx
+  PUBLIC $<$<BOOL:APPLE>:-Wno-null-dereference>
+  PUBLIC $<$<BOOL:APPLE>:-Wno-pragma-pack>)
 set_target_properties(ozz_animation_fbx
   PROPERTIES FOLDER "ozz/tools")
 
