@@ -71,7 +71,7 @@ bool SoftenHandle(_SimdFloat4 _start_mid_ss_len2, _SimdFloat4 _mid_end_ss_len2,
 
   const SimdFloat4 bones_len = Sqrt(SetY(_start_mid_ss_len2, _mid_end_ss_len2));
   const SimdFloat4 bones_chain_len = bones_len + SplatY(bones_len);
-  const SimdFloat4 da =
+  const SimdFloat4 da =  // da.yzw needs to be 0
       bones_chain_len * simd_float4::LoadX(Clamp(_soften, 0.f, 1.f));
   const SimdFloat4 ds = bones_chain_len - da;
 
@@ -95,11 +95,10 @@ bool SoftenHandle(_SimdFloat4 _start_mid_ss_len2, _SimdFloat4 _mid_end_ss_len2,
     const SimdFloat4 op = SetY(three, alpha + three);
     const SimdFloat4 op2 = op * op;
     const SimdFloat4 op4 = op2 * op2;
-    const SimdFloat4 smoothed_ratio =
-        simd_float4::one() - op4 * RcpEstX(SplatY(op4));
+    const SimdFloat4 ratio = op4 * RcpEstX(SplatY(op4));
 
     // Recomputes start_handle_ss vector and length.
-    const SimdFloat4 start_handle_ss_len = ds * smoothed_ratio + da;
+    const SimdFloat4 start_handle_ss_len = da + ds - ds * ratio;
     *_start_handle_ss_len2 = start_handle_ss_len * start_handle_ss_len;
     *_start_handle_ss =
         start_handle_original_ss *
@@ -277,7 +276,7 @@ bool TwoBoneIKJob::Run() const {
       // If a twist angle is provided, rotation angle is rotated along
       // rotation plane axis.
       const SimdQuaternion twist_ss = SimdQuaternion::FromAxisAngle(
-          rotate_plane_axis_ss, simd_float4::LoadX(twist_angle));
+          rotate_plane_axis_ss, simd_float4::Load1(twist_angle));
       *start_joint_correction =
           twist_ss * rotate_plane_ss * end_to_handle_rot_ss;
     } else {

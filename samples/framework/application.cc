@@ -469,7 +469,8 @@ bool Application::Gui() {
     math::RectFloat rect(kGuiMargin, kGuiMargin,
                          window_rect.width - kGuiMargin * 2.f,
                          window_rect.height - kGuiMargin * 2.f);
-    ImGui::Form form(im_gui_, "Show help", rect, &show_help_, false);
+    // Doesn't constrain form is it's opened, so it covers all screen.
+    ImGui::Form form(im_gui_, "Show help", rect, &show_help_, !show_help_);
     if (show_help_) {
       im_gui_->DoLabel(help_.c_str(), ImGui::kLeft, false);
     }

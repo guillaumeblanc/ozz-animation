@@ -39,6 +39,8 @@
 #include "ozz/animation/runtime/skeleton.h"
 #include "ozz/animation/runtime/track.h"
 
+#include "ozz/animation/offline/raw_skeleton.h"
+
 #include "ozz/geometry/runtime/skinning_job.h"
 
 #include "ozz/base/io/archive.h"
@@ -132,6 +134,71 @@ bool PlaybackController::OnGui(const animation::Animation& _animation,
     playback_speed_ = 1.f;
   }
   return time_changed;
+}
+
+namespace {
+bool OnRawSkeletonJointGui(
+    ozz::sample::ImGui* _im_gui,
+    ozz::animation::offline::RawSkeleton::Joint::Children* _children,
+    ozz::Vector<bool>::Std::iterator* _oc_state) {
+  char txt[255];
+
+  bool modified = false;
+  for (size_t i = 0; i < _children->size(); ++i) {
+    ozz::animation::offline::RawSkeleton::Joint& joint = _children->at(i);
+
+    bool opened = *(*_oc_state);
+    ozz::sample::ImGui::OpenClose oc(_im_gui, joint.name.c_str(), &opened);
+    *(*_oc_state)++ = opened;  // Updates state and increment for next joint.
+    if (opened) {
+      // Translation
+      ozz::math::Float3& translation = joint.transform.translation;
+      _im_gui->DoLabel("translation");
+      sprintf(txt, "x %.2g", translation.x);
+      modified |= _im_gui->DoSlider(txt, -1.f, 1.f, &translation.x);
+      sprintf(txt, "y %.2g", translation.y);
+      modified |= _im_gui->DoSlider(txt, -1.f, 1.f, &translation.y);
+      sprintf(txt, "z %.2g", translation.z);
+      modified |= _im_gui->DoSlider(txt, -1.f, 1.f, &translation.z);
+
+      // Rotation (in euler form)
+      ozz::math::Quaternion& rotation = joint.transform.rotation;
+      _im_gui->DoLabel("rotation");
+      ozz::math::Float3 euler = ToEuler(rotation) * ozz::math::kRadianToDegree;
+      sprintf(txt, "x %.2g", euler.x);
+      bool euler_modified = _im_gui->DoSlider(txt, -180.f, 180.f, &euler.x);
+      sprintf(txt, "y %.2g", euler.y);
+      euler_modified |= _im_gui->DoSlider(txt, -180.f, 180.f, &euler.y);
+      sprintf(txt, "z %.2g", euler.z);
+      euler_modified |= _im_gui->DoSlider(txt, -180.f, 180.f, &euler.z);
+      if (euler_modified) {
+        modified = true;
+        rotation = ozz::math::Quaternion::FromEuler(euler *
+                                                    ozz::math::kDegreeToRadian);
+      }
+
+      // Scale (must be uniform and not 0)
+      _im_gui->DoLabel("scale");
+      ozz::math::Float3& scale = joint.transform.scale;
+      sprintf(txt, "%.2g", scale.x);
+      if (_im_gui->DoSlider(txt, -1.f, 1.f, &scale.x)) {
+        modified = true;
+        scale.y = scale.z = scale.x = scale.x != 0.f ? scale.x : .01f;
+      }
+      // Recurse children
+      modified |= OnRawSkeletonJointGui(_im_gui, &joint.children, _oc_state);
+    }
+  }
+  return modified;
+}
+}  // namespace
+
+bool RawSkeletonEditor::OnGui(animation::offline::RawSkeleton* _skeleton,
+                              ImGui* _im_gui) {
+  open_close_states.resize(_skeleton->num_joints(), false);
+
+  ozz::Vector<bool>::Std::iterator begin = open_close_states.begin();
+  return OnRawSkeletonJointGui(_im_gui, &_skeleton->roots, &begin);
 }
 
 // Uses LocalToModelJob to compute skeleton model space posture, then forwards

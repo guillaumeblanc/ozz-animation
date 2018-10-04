@@ -126,6 +126,19 @@ void ComputeSkeletonBounds(const animation::Skeleton& _skeleton,
 void ComputePostureBounds(ozz::Range<const ozz::math::Float4x4> _matrices,
                           math::Box* _bound);
 
+// Allows to edit translation/rotation/scale of a skeleton pose.
+// This object should be used for a single skeleton, because it stores
+// open/close states from a frame to the next.
+class RawSkeletonEditor {
+ public:
+  // Returns true if skeleton was modified.
+  bool OnGui(animation::offline::RawSkeleton* _skeleton, ImGui* _im_gui);
+
+ private:
+  // Imgui Open/Close states for each skeleton joint.
+  ozz::Vector<bool>::Std open_close_states;
+};
+
 // Loads a skeleton from an ozz archive file named _filename.
 // This function will fail and return false if the file cannot be opened or if
 // it is not a valid ozz skeleton archive. A valid skeleton archive can be
