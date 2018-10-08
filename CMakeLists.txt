@@ -55,6 +55,7 @@ if(ozz_build_fbx)
 endif()
 
 # Include ozz cmake parameters and scripts
+include(CheckCXXCompilerFlag)
 include(${PROJECT_SOURCE_DIR}/build-utils/cmake/compiler_settings.cmake)
 include(${PROJECT_SOURCE_DIR}/build-utils/cmake/package_settings.cmake)
 include(${PROJECT_SOURCE_DIR}/build-utils/cmake/fuse_target.cmake)

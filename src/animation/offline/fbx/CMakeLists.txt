@@ -16,8 +16,8 @@ target_link_libraries(ozz_animation_fbx
   debug ${FBX_LIBRARIES_DEBUG}
   optimized ${FBX_LIBRARIES})
 target_compile_options(ozz_animation_fbx
-  PUBLIC $<$<BOOL:APPLE>:-Wno-null-dereference>
-  PUBLIC $<$<BOOL:APPLE>:-Wno-pragma-pack>)
+  PUBLIC $<$<BOOL:${W_NO_NULL_DEREFERENCE}>:-Wno-null-dereference>
+  PUBLIC $<$<BOOL:${W_NO_PRAGMA_PACK}>:-Wno-pragma-pack>)
 set_target_properties(ozz_animation_fbx
   PROPERTIES FOLDER "ozz/tools")
 
