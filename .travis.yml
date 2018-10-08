@@ -150,18 +150,51 @@ matrix:
         - ubuntu-toolchain-r-test
         packages:
         - g++-6
-  # clang
   - os: linux
-    compiler: clang-3.8
-    env:
-    - env_cmake_cxx_compiler=clang++-3.8
-    - env_cmake_c_compiler=clang-3.8
+    compiler: gcc-7
+    env: 
+    - env_cmake_cxx_compiler=g++-7
+    - env_cmake_c_compiler=gcc-7
     addons:
       apt:
         sources:
-        - llvm-toolchain-precise-3.8
+        - ubuntu-toolchain-r-test
         packages:
-        - clang-3.8
+        - g++-7
+  - os: linux
+    compiler: gcc-8
+    env: 
+    - env_cmake_cxx_compiler=g++-8
+    - env_cmake_c_compiler=gcc-8
+    addons:
+      apt:
+        sources:
+        - ubuntu-toolchain-r-test
+        packages:
+        - g++-8
+  # clang
+  - os: linux
+    compiler: clang-6
+    env:
+    - env_cmake_cxx_compiler=clang++-6
+    - env_cmake_c_compiler=clang-6
+    addons:
+      apt:
+        sources:
+        - llvm-toolchain-trusty-6.0
+        packages:
+        - clang-6
+  - os: linux
+    compiler: clang-7
+    env:
+    - env_cmake_cxx_compiler=clang++-7
+    - env_cmake_c_compiler=clang-7
+    addons:
+      apt:
+        sources:
+        - llvm-toolchain-trusty-7
+        packages:
+        - clang-7
   # older fbx sdk
   - os: linux
     compiler: gcc
@@ -171,6 +204,7 @@ matrix:
     compiler: clang
     env:
       - fbx_download=http://download.autodesk.com/us/fbx/2017/2017.1/fbx20171_fbxsdk_clang_mac.pkg.tgz
+
 
 before_install:
 - echo before_install----------------------------------------------------------
