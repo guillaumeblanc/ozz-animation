@@ -81,9 +81,17 @@ else()
   # Set warning as error
   set_property(DIRECTORY APPEND PROPERTY COMPILE_OPTIONS "-Werror")
 
-  # Check some options availibity for the targetted compiler 
-  check_cxx_compiler_flag("-Wno-null-dereference" W_NO_NULL_DEREFERENCE)
-  check_cxx_compiler_flag("-Wno-pragma-pack" W_NO_PRAGMA_PACK)
+  # GCC ignored-attributes reports issue when using _m128 as template argument
+  if(CMAKE_COMPILER_IS_GNUCXX)
+    check_cxx_compiler_flag("-Wignored-attributes" W_IGNORED_ATTRIBUTES)
+    if(W_IGNORED_ATTRIBUTES)
+      set_property(DIRECTORY APPEND PROPERTY COMPILE_OPTIONS "-Wno-ignored-attributes")
+    endif()
+  endif()
+
+  # Check some options availibity for the targetted compiler
+  check_cxx_compiler_flag("-Wnull-dereference" W_NULL_DEREFERENCE)
+  check_cxx_compiler_flag("-Wpragma-pack" W_PRAGMA_PACK)
 
   # Enables debug glibcxx if NDebug isn't defined, not supported by APPLE
   if(NOT APPLE)
