@@ -35,16 +35,6 @@ matrix:
     - env_cmake_configuration=Release
 
   # Linux
-  # Default linux gcc debug
-  - os: linux
-    compiler: gcc
-    env:
-    - env_cmake_configuration=Debug
-  # Default linux gcc release
-  - os: linux
-    compiler: gcc
-    env:
-    - env_cmake_configuration=Release
   # Default linux clang debug
   - os: linux
     compiler: clang
@@ -115,8 +105,18 @@ matrix:
     env:
     - env_src_root="../test/sub/"
 
-  # Newer compilers
-  # gcc
+  # Default linux gcc debug
+  - os: linux
+    compiler: gcc
+    env:
+    - env_cmake_configuration=Debug
+  # Default linux gcc release
+  - os: linux
+    compiler: gcc
+    env:
+    - env_cmake_configuration=Release
+
+  # Newer gcc
   - os: linux
     compiler: gcc-4.9
     env: 
@@ -172,7 +172,8 @@ matrix:
         - ubuntu-toolchain-r-test
         packages:
         - g++-8
-  # clang
+
+  # Newer clang
   - os: linux
     compiler: clang-6
     env:
@@ -195,6 +196,7 @@ matrix:
         - llvm-toolchain-trusty-7
         packages:
         - clang-7
+        
   # older fbx sdk
   - os: linux
     compiler: gcc
