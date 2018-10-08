@@ -58,7 +58,6 @@ if(MSVC)
   # Set warning as error
   set_property(DIRECTORY APPEND PROPERTY COMPILE_OPTIONS "/WX")
 
-  #---------------
   # Select whether to use the DLL version or the static library version of the Visual C++ runtime library.
   foreach(flag ${cxx_all_flags})
     if (ozz_build_msvc_rt_dll)
@@ -82,7 +81,10 @@ else()
   # Set warning as error
   set_property(DIRECTORY APPEND PROPERTY COMPILE_OPTIONS "-Werror")
 
-  #----------------------
+  # Check some options availibity for the targetted compiler 
+  check_cxx_compiler_flag("-Wno-null-dereference" W_NO_NULL_DEREFERENCE)
+  check_cxx_compiler_flag("-Wno-pragma-pack" W_NO_PRAGMA_PACK)
+
   # Enables debug glibcxx if NDebug isn't defined, not supported by APPLE
   if(NOT APPLE)
     set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS "$<$<CONFIG:Debug>:_GLIBCXX_DEBUG>")
