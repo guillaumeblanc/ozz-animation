@@ -154,8 +154,8 @@ add_dependencies(test_fuse_ozz_animation_fbx BUILD_FUSE_ozz_animation_fbx)
 target_include_directories(test_fuse_ozz_animation_fbx
   PUBLIC ${FBX_INCLUDE_DIRS})
 target_compile_options(test_fuse_ozz_animation_fbx
-  PUBLIC $<$<BOOL:${W_NO_NULL_DEREFERENCE}>:-Wno-null-dereference>
-  PUBLIC $<$<BOOL:${W_NO_PRAGMA_PACK}>:-Wno-pragma-pack>)
+  PUBLIC $<$<BOOL:${W_NULL_DEREFERENCE}>:-Wno-null-dereference>
+  PUBLIC $<$<BOOL:${W_PRAGMA_PACK}>:-Wno-pragma-pack>)
 target_link_libraries(test_fuse_ozz_animation_fbx
   debug ${FBX_LIBRARIES_DEBUG}
   optimized ${FBX_LIBRARIES}
