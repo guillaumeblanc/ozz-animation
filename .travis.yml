@@ -159,16 +159,77 @@ matrix:
         - g++-8
   # clang
   - os: linux
-    compiler: clang-6
+    compiler: clang-3.3
     env:
-    - env_cmake_cxx_compiler=clang++-6
-    - env_cmake_c_compiler=clang-6
+    - env_cmake_cxx_compiler=clang++-3.3
+    - env_cmake_c_compiler=clang-3.3
     addons:
       apt:
         sources:
+        - ubuntu-toolchain-r-test
+        - llvm-toolchain-precise-3.3
+        packages:
+        - clang-3.3
+  - os: linux
+    compiler: clang-3.4
+    env:
+    - env_cmake_cxx_compiler=clang++-3.4
+    - env_cmake_c_compiler=clang-3.4
+    addons:
+      apt:
+        sources:
+        - ubuntu-toolchain-r-test
+        - llvm-toolchain-precise-3.4
+        packages:
+        - clang-3.4
+  - os: linux
+    compiler: clang-3.9
+    env:
+    - env_cmake_cxx_compiler=clang++-3.9
+    - env_cmake_c_compiler=clang-3.9
+    addons:
+      apt:
+        sources:
+        - ubuntu-toolchain-r-test
+        - llvm-toolchain-precise-3.9
+        packages:
+        - clang-3.9
+  - os: linux
+    compiler: clang-4.0
+    env:
+    - env_cmake_cxx_compiler=clang++-4.0
+    - env_cmake_c_compiler=clang-4.0
+    addons:
+      apt:
+        sources:
+        - ubuntu-toolchain-r-test
+        - llvm-toolchain-trusty-4.0
+        packages:
+        - clang-4.0
+  - os: linux
+    compiler: clang-5.0
+    env:
+    - env_cmake_cxx_compiler=clang++-5.0
+    - env_cmake_c_compiler=clang-5.0
+    addons:
+      apt:
+        sources:
+        - ubuntu-toolchain-r-test
+        - llvm-toolchain-trusty-5.0
+        packages:
+        - clang-5.0
+  - os: linux
+    compiler: clang-6.0
+    env:
+    - env_cmake_cxx_compiler=clang++-6.0
+    - env_cmake_c_compiler=clang-6.0
+    addons:
+      apt:
+        sources:
+        - ubuntu-toolchain-r-test
         - llvm-toolchain-trusty-6.0
         packages:
-        - clang-6
+        - clang-6.0
   - os: linux
     compiler: clang-7
     env:
@@ -177,6 +238,7 @@ matrix:
     addons:
       apt:
         sources:
+        - ubuntu-toolchain-r-test
         - llvm-toolchain-trusty-7
         packages:
         - clang-7
