@@ -32,14 +32,6 @@ matrix:
     - env_cmake_configuration=Release
 
   # Linux
-  # Default linux gcc
-  - os: linux
-    compiler: gcc
-  # Default linux gcc
-  - os: linux
-    compiler: gcc
-    env:
-    - env_cmake_configuration=Release
   # Default linux clang
   - os: linux
     compiler: clang
@@ -100,8 +92,14 @@ matrix:
     env:
     - env_src_root="../test/sub/"
 
-  # Newer compilers
-  # gcc
+  # Default gcc
+  - os: linux
+    compiler: gcc
+  - os: linux
+    compiler: gcc
+    env:
+    - env_cmake_configuration=Release
+  # Newer gcc
   - os: linux
     compiler: gcc-4.9
     env: 
@@ -157,7 +155,7 @@ matrix:
         - ubuntu-toolchain-r-test
         packages:
         - g++-8
-  # clang
+  # Newer clang
   - os: linux
     compiler: clang-3.3
     env:
