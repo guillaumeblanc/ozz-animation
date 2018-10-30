@@ -448,7 +448,7 @@ TEST(LogicalInt, ozz_simd_math) {
   const SimdInt4 c = ozz::math::simd_int4::Load(0x01234567, 0x89abcdef, 0x01234567, 0x89abcdef);
  
   const SimdInt4 nota = ozz::math::Not(a);
-  EXPECT_SIMDINT_EQ(nota, 0x00000000, 0xffffffff, 0x00000000, 0x00000000);
+  EXPECT_SIMDINT_EQ(nota, 0x00000000, 0xffffffff, 0x7ffffffe, 0x80000000);
 
   const SimdInt4 andm = ozz::math::And(a, b);
   EXPECT_SIMDINT_EQ(andm, 0x80000001, 0x00000000, 0x00000001, 0x00000000);
