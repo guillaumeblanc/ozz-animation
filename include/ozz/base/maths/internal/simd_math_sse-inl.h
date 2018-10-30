@@ -1320,8 +1320,7 @@ OZZ_INLINE SimdInt4 Xor(_SimdInt4 _a, _SimdInt4 _b) {
 }
 
 OZZ_INLINE SimdInt4 Not(_SimdInt4 _v) {
-  return _mm_andnot_si128(
-      _v, _mm_cmpeq_epi32(_mm_setzero_si128(), _mm_setzero_si128()));
+  return _mm_cmpeq_epi32(_v, _mm_setzero_si128());
 }
 
 OZZ_INLINE SimdInt4 ShiftL(_SimdInt4 _v, int _bits) {
