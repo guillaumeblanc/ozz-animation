@@ -40,7 +40,7 @@ namespace animation {
 TwoBoneIKJob::TwoBoneIKJob()
     : handle(math::simd_float4::zero()),
       pole_vector(math::simd_float4::y_axis()),
-      mid_axis_fallback(math::simd_float4::z_axis()),
+      mid_axis(math::simd_float4::z_axis()),
       soften(1.f),
       twist_angle(0.f),
       start_joint(NULL),
@@ -53,8 +53,7 @@ bool TwoBoneIKJob::Validate() const {
   bool valid = true;
   valid &= start_joint && mid_joint && end_joint;
   valid &= start_joint_correction && mid_joint_correction;
-  valid &=
-      ozz::math::AreAllTrue1(ozz::math::IsNormalizedEst3(mid_axis_fallback));
+  valid &= ozz::math::AreAllTrue1(ozz::math::IsNormalizedEst3(mid_axis));
   return valid;
 }
 
@@ -85,7 +84,7 @@ bool SoftenHandle(_SimdFloat4 _start_mid_ss_len2, _SimdFloat4 _mid_end_ss_len2,
     // Finds interpolation ratio (aka alpha).
     const SimdFloat4 start_handle_original_ss_inv_len =
         RSqrtEstX(start_handle_original_ss_len2);
-    const SimdFloat4 start_handle_original_ss_len = //  x^.5 = x^2 / (x^2)^.5
+    const SimdFloat4 start_handle_original_ss_len =  //  x^.5 = x^2 / (x^2)^.5
         start_handle_original_ss_len2 * start_handle_original_ss_inv_len;
     const SimdFloat4 alpha = (start_handle_original_ss_len - da) * RcpEstX(ds);
     // Approximate an exponential function with : 1-(3^4)/(alpha+3)^4
@@ -123,6 +122,7 @@ bool TwoBoneIKJob::Run() const {
   const SimdFloat4 zero = simd_float4::zero();
   const SimdFloat4 one = simd_float4::one();
   const SimdInt4 mask_sign = simd_int4::mask_sign();
+  const SimdFloat4 m_one = Xor(one, mask_sign);
 
   // Computes inverse matrices required to change to start and mid spaces.
   const Float4x4 inv_start_joint = Invert(*start_joint);
@@ -165,7 +165,7 @@ bool TwoBoneIKJob::Run() const {
   // Pythagorean).
   // c^2 = a^2 + b^2 - 2ab cosC
   // cosC = (a^2 + b^2 - c^2) / 2ab
-  // Computes both final and initial mid joint angles
+  // Computes both corrected and initial mid joint angles
   // cosine within a single SimdFloat4 (corrected is x component, initial is y).
   const SimdFloat4 start_mid_end_sum_ss_len2 =
       start_mid_ss_len2 + mid_end_ss_len2;
@@ -175,44 +175,30 @@ bool TwoBoneIKJob::Run() const {
   // Cos value needs to be clamped, as it will exit expected range if
   // start_handle_ss_len2 is longer than the triangle can be (start_mid_ss +
   // mid_end_ss).
-  const SimdFloat4 mid_cos_angles =
-      Clamp(-one,
-            (SplatX(start_mid_end_sum_ss_len2) -
-             SetY(start_handle_ss_len2, start_end_ss_len2)) *
-                start_mid_end_ss_half_rlen,
-            one);
+  const SimdFloat4 mid_cos_angles_unclamped =
+      (SplatX(start_mid_end_sum_ss_len2) -
+       SetY(start_handle_ss_len2, start_end_ss_len2)) *
+      start_mid_end_ss_half_rlen;
+  const SimdFloat4 mid_cos_angles = Clamp(m_one, mid_cos_angles_unclamped, one);
 
-  // Computes final and initial angles difference.
-  // Using the formulas for the differences of angles (below) and building
-  // the quaternion form cosine avoids computing the 2 ACos here, and the
-  // Sin and Cos in quaternion construction.
-  // cos(A - B) = cosA * cosB + sinA * sinB
-  // cos(A - B) = cosA * cosB + Sqrt((1 - cosA^2) * (1 - cosB^2))
-  const SimdFloat4 one_minus_mid_cos_angles2 =
-      one - mid_cos_angles * mid_cos_angles;
-  const SimdFloat4 mid_cos_angle_diff_unclamped =
-      mid_cos_angles * SplatY(mid_cos_angles) +
-      SqrtX(Max(zero,
-                one_minus_mid_cos_angles2 * SplatY(one_minus_mid_cos_angles2)));
-  const SimdFloat4 mid_cos_angle_diff =
-      Clamp(-one, mid_cos_angle_diff_unclamped, one);
+  // Computes corrected angle
+  const SimdFloat4 mid_corrected_angle = ACosX(mid_cos_angles);
 
-  // Calculate mid joint axis
-  // Falls back to mid_axis_fallback if cross product isn't meaningful,
-  // aka start, mid and end are aligned.
-  const SimdFloat4 mid_axis_ms =
-      NormalizeSafeEst3(Cross3(start_mid_ms, mid_end_ms), mid_axis_fallback);
+  // Computes initial angle.
+  // The sign of this angle needs to be decided. It's considered negative if
+  // mid-to-end joint is bent backward (mid_axis direction dictates valid bent
+  // direction).
+  const SimdFloat4 bent_side_ref = Cross3(start_mid_ms, mid_axis);
+  const SimdInt4 bent_side_flip =
+      SplatX(CmpLt(Dot3(bent_side_ref, mid_end_ms), zero));
+  const SimdFloat4 mid_initial_angle =
+      Xor(ACosX(SplatY(mid_cos_angles)), And(bent_side_flip, mask_sign));
 
-  // Flip rotation direction if distance to handle is longer than initial
-  // distance to end_ss (aka opposite angle).
-  const SimdInt4 mid_axis_flip =
-      SplatX(CmpLt(start_end_ss_len2, start_handle_ss_len2));
-  const SimdFloat4 mid_axis_ms_flipped =
-      Xor(mid_axis_ms, And(mid_axis_flip, mask_sign));
+  // Finally deduces initial to corrected angle difference.
+  const SimdFloat4 mid_angles_diff = mid_corrected_angle - mid_initial_angle;
 
-  // Mid joint rotation.
   const SimdQuaternion mid_rot_ms =
-      SimdQuaternion::FromAxisCosAngle(mid_axis_ms_flipped, mid_cos_angle_diff);
+      SimdQuaternion::FromAxisAngle(mid_axis, mid_angles_diff);
 
   // Output start and mid joint rotation corrections.
   *mid_joint_correction = mid_rot_ms;
@@ -242,10 +228,9 @@ bool TwoBoneIKJob::Run() const {
     const ozz::math::SimdFloat4 ref_plane_normal_ss_len2 =
         ozz::math::Length3Sqr(ref_plane_normal_ss);
     // Computes joint chain plane normal, which is the same as mid joint axis
-    // (same triangle). Uses -mid_axis_ms because it was computed in the other
-    // direction.
+    // (same triangle).
     const ozz::math::SimdFloat4 mid_axis_ss = TransformVector(
-        inv_start_joint, TransformVector(*mid_joint, -mid_axis_ms));
+        inv_start_joint, TransformVector(*mid_joint, mid_axis));
     const ozz::math::SimdFloat4 joint_plane_normal_ss =
         TransformVector(end_to_handle_rot_ss, mid_axis_ss);
     const ozz::math::SimdFloat4 joint_plane_normal_ss_len2 =
@@ -270,7 +255,8 @@ bool TwoBoneIKJob::Run() const {
 
     // Builds quaternion along rotation axis.
     const SimdQuaternion rotate_plane_ss = SimdQuaternion::FromAxisCosAngle(
-        rotate_plane_axis_flipped_ss, Clamp(-one, rotate_plane_cos_angle, one));
+        rotate_plane_axis_flipped_ss,
+        Clamp(m_one, rotate_plane_cos_angle, one));
 
     if (twist_angle != 0.f) {
       // If a twist angle is provided, rotation angle is rotated along
