@@ -202,7 +202,7 @@ struct ProcessArgs {
 
   // Allocates enough space to store a accumulated weights per-joint.
   // It will be initialized by the first pass processed, if any.
-  // This is quite big for a stack allocation (16 byte * maximum number of
+  // This is quite big for a stack allocation (4 byte * maximum number of
   // joints). This is one of the reasons why the number of joints is limited
   // by the API.
   // Note that this array is used with SoA data.

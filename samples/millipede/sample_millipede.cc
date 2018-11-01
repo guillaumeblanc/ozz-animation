@@ -385,8 +385,9 @@ class MillipedeSampleApplication : public ozz::sample::Application {
             0.f, Float3(0.f, 1.f, -slice_count_ * kSpinLength)};
         track.translations.push_back(tkey0);
         const RawAnimation::TranslationKey tkey1 = {
-            kDuration, Float3(0.f, 1.f, kWalkCycleCount * kWalkCycleLength +
-                                            tkey0.value.z)};
+            kDuration,
+            Float3(0.f, 1.f,
+                   kWalkCycleCount * kWalkCycleLength + tkey0.value.z)};
         track.translations.push_back(tkey1);
       }
 

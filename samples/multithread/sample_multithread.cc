@@ -265,6 +265,19 @@ class MultithreadSampleApplication : public ozz::sample::Application {
   virtual void OnDestroy() {}
 
   virtual bool OnGui(ozz::sample::ImGui* _im_gui) {
+    // Exposes number of characters.
+    {
+      static bool oc_open = true;
+      ozz::sample::ImGui::OpenClose oc(_im_gui, "Sample control", &oc_open);
+      if (oc_open) {
+        char label[64];
+        std::sprintf(label, "Number of entities: %d", num_characters_);
+        _im_gui->DoSlider(label, 1, kMaxCharacters, &num_characters_, .7f);
+        const int num_joints = num_characters_ * skeleton_.num_joints();
+        std::sprintf(label, "Number of joints: %d", num_joints);
+        _im_gui->DoLabel(label);
+      }
+    }
     // Exposes multi-threading parameters.
     {
       static bool oc_open = true;
@@ -291,20 +304,6 @@ class MultithreadSampleApplication : public ozz::sample::Application {
                        monitor_.num_async_tasks.load());
           _im_gui->DoLabel(label);
         }
-      }
-    }
-
-    // Exposes characters.
-    {
-      static bool oc_open = true;
-      ozz::sample::ImGui::OpenClose oc(_im_gui, "Sample control", &oc_open);
-      if (oc_open) {
-        char label[64];
-        std::sprintf(label, "Number of entities: %d", num_characters_);
-        _im_gui->DoSlider(label, 1, kMaxCharacters, &num_characters_, .7f);
-        const int num_joints = num_characters_ * skeleton_.num_joints();
-        std::sprintf(label, "Number of joints: %d", num_joints);
-        _im_gui->DoLabel(label);
       }
     }
     return true;

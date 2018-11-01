@@ -115,7 +115,7 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
     ozz::animation::BlendingJob blend_job;
     blend_job.threshold = threshold_;
     blend_job.layers = layers;
-    blend_job.bind_pose = skeleton_.bind_pose();
+    blend_job.bind_pose = skeleton_.joint_bind_poses();
     blend_job.output = make_range(blended_locals_);
 
     // Blends.
@@ -202,6 +202,20 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
     return true;
   }
 
+  // Helper functor used to set weights while traversing joints hierarchy.
+  struct WeightSetupIterator {
+    WeightSetupIterator(ozz::Vector<ozz::math::SimdFloat4>::Std& _weights,
+                        float _weight_setting)
+        : weights(_weights),
+          weight_setting(ozz::math::simd_float4::Load1(_weight_setting)) {}
+    void operator()(int _joint, int) {
+      weights[_joint / 4] =
+          ozz::math::SetI(weights[_joint / 4], weight_setting, _joint % 4);
+    }
+    ozz::Vector<ozz::math::SimdFloat4>::Std& weights;
+    ozz::math::SimdFloat4 weight_setting;
+  };
+
   void SetupPerJointWeights() {
     // Setup partial animation mask. This mask is defined by a weight_setting
     // assigned to each joint of the hierarchy. Joint to disable are set to a
@@ -218,31 +232,15 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
       upper_body_sampler.joint_weights[i] = ozz::math::simd_float4::zero();
     }
 
-    // Extracts the list of children of the shoulder.
-    ozz::animation::JointsIterator it;
-    ozz::animation::IterateJointsDF(skeleton_, upper_body_root_, &it);
+    // Sets the weight_setting of all the joints children of the lower and upper
+    // body weights. Note that they are stored in SoA format.
+    WeightSetupIterator lower_it(lower_body_sampler.joint_weights,
+                                 lower_body_sampler.joint_weight_setting);
+    ozz::animation::IterateJointsDF(skeleton_, upper_body_root_, lower_it);
 
-    // Sets the weight_setting of all the joints children of the arm to 1. Note
-    // that weights are stored in SoA format.
-    for (int i = 0; i < it.num_joints; ++i) {
-      const int joint_id = it.joints[i];
-      {  // Updates lower body animation sampler joint weights.
-        ozz::math::SimdFloat4& weight_setting =
-            lower_body_sampler.joint_weights[joint_id / 4];
-        weight_setting = ozz::math::SetI(
-            weight_setting, ozz::math::simd_float4::Load1(
-                                lower_body_sampler.joint_weight_setting),
-            joint_id % 4);
-      }
-      {  // Updates upper body animation sampler joint weights.
-        ozz::math::SimdFloat4& weight_setting =
-            upper_body_sampler.joint_weights[joint_id / 4];
-        weight_setting = ozz::math::SetI(
-            weight_setting, ozz::math::simd_float4::Load1(
-                                upper_body_sampler.joint_weight_setting),
-            joint_id % 4);
-      }
-    }
+    WeightSetupIterator upper_it(upper_body_sampler.joint_weights,
+                                 upper_body_sampler.joint_weight_setting);
+    ozz::animation::IterateJointsDF(skeleton_, upper_body_root_, upper_it);
   }
 
   virtual void OnDestroy() {}

@@ -229,8 +229,8 @@ bool TwoBoneIKJob::Run() const {
         ozz::math::Length3Sqr(ref_plane_normal_ss);
     // Computes joint chain plane normal, which is the same as mid joint axis
     // (same triangle).
-    const ozz::math::SimdFloat4 mid_axis_ss = TransformVector(
-        inv_start_joint, TransformVector(*mid_joint, mid_axis));
+    const ozz::math::SimdFloat4 mid_axis_ss =
+        TransformVector(inv_start_joint, TransformVector(*mid_joint, mid_axis));
     const ozz::math::SimdFloat4 joint_plane_normal_ss =
         TransformVector(end_to_handle_rot_ss, mid_axis_ss);
     const ozz::math::SimdFloat4 joint_plane_normal_ss_len2 =

@@ -37,20 +37,18 @@
 // Implement helper macro that verify that handle was reached once ik job is
 // executed.
 #define EXPECT_REACHED(_job)    \
-  \
-do {                            \
+                                \
+  do {                          \
     SCOPED_TRACE("");           \
     _ExpectReached(_job, true); \
-  }                             \
-  while (void(0), 0)
+  } while (void(0), 0)
 
 #define EXPECT_NOT_REACHED(_job) \
-  \
-do {                             \
+                                 \
+  do {                           \
     SCOPED_TRACE("");            \
     _ExpectReached(_job, false); \
-  }                              \
-  while (void(0), 0)
+  } while (void(0), 0)
 
 void _ExpectReached(const ozz::animation::TwoBoneIKJob& _job, bool _reachable) {
   // Computes local transforms
@@ -680,7 +678,8 @@ TEST(MidAxis, TwoBoneIKJob) {
 
     const ozz::math::Quaternion y_Pi_2 = ozz::math::Quaternion::FromAxisAngle(
         ozz::math::Float3::y_axis(), ozz::math::kPi);
-    EXPECT_SIMDQUATERNION_EQ_TOL(qstart, y_Pi_2.x, y_Pi_2.y, y_Pi_2.z, y_Pi_2.w, 2e-3f);
+    EXPECT_SIMDQUATERNION_EQ_TOL(qstart, y_Pi_2.x, y_Pi_2.y, y_Pi_2.z, y_Pi_2.w,
+                                 2e-3f);
     const ozz::math::Quaternion z_Pi = -ozz::math::Quaternion::FromAxisAngle(
         ozz::math::Float3::z_axis(), ozz::math::kPi);
     EXPECT_SIMDQUATERNION_EQ_TOL(qmid, z_Pi.x, z_Pi.y, z_Pi.z, z_Pi.w, 2e-3f);
@@ -707,16 +706,16 @@ TEST(MidAxis, TwoBoneIKJob) {
     EXPECT_SIMDQUATERNION_EQ_TOL(qstart, 0.f, 0.f, 0.f, 1.f, 2e-3f);
     const ozz::math::Quaternion z_mPi_2 = ozz::math::Quaternion::FromAxisAngle(
         ozz::math::Float3::z_axis(), -ozz::math::kPi_2);
-    EXPECT_SIMDQUATERNION_EQ_TOL(qmid, z_mPi_2.x, z_mPi_2.y, z_mPi_2.z, z_mPi_2.w,
-                                 2e-3f);
+    EXPECT_SIMDQUATERNION_EQ_TOL(qmid, z_mPi_2.x, z_mPi_2.y, z_mPi_2.z,
+                                 z_mPi_2.w, 2e-3f);
   }
 }
 
 TEST(AlignedJointsAndHandle, TwoBoneIKJob) {
   // Setup initial pose
   const ozz::math::Float4x4 start = ozz::math::Float4x4::identity();
-  const ozz::math::Float4x4 mid = ozz::math::Float4x4::Translation(
-      ozz::math::simd_float4::x_axis());
+  const ozz::math::Float4x4 mid =
+      ozz::math::Float4x4::Translation(ozz::math::simd_float4::x_axis());
   const ozz::math::Float4x4 end = ozz::math::Float4x4::Translation(
       ozz::math::simd_float4::x_axis() + ozz::math::simd_float4::x_axis());
   const ozz::math::SimdFloat4 mid_axis = ozz::math::simd_float4::z_axis();

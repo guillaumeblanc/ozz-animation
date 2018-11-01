@@ -188,7 +188,7 @@ class OptimizeSampleApplication : public ozz::sample::Application {
     // in local space, and rebinds it to the bind pose.
     {
       const ozz::Range<const ozz::math::SoaTransform>& bind_poses =
-          skeleton_.bind_pose();
+          skeleton_.joint_bind_poses();
       const ozz::math::SoaTransform* bind_pose = bind_poses.begin;
       const ozz::math::SoaTransform* locals_raw = array_begin(locals_raw_);
       const ozz::math::SoaTransform* locals_rt = array_begin(locals_rt_);

@@ -40,13 +40,13 @@ namespace animation {
 namespace offline {
 
 namespace {
-// Stores each traversed joint to a vector.
+// Stores each traversed joint in a vector.
 struct JointLister {
   explicit JointLister(int _num_joints) { linear_joints.reserve(_num_joints); }
   void operator()(const RawSkeleton::Joint& _current,
                   const RawSkeleton::Joint* _parent) {
     // Looks for the "lister" parent.
-    int parent = Skeleton::kNoParentIndex;
+    int parent = Skeleton::kNoParent;
     if (_parent) {
       // Start searching from the last joint.
       int j = static_cast<int>(linear_joints.size()) - 1;
@@ -71,9 +71,9 @@ struct JointLister {
 }  // namespace
 
 // Validates the RawSkeleton and fills a Skeleton.
-// Uses RawSkeleton::IterateJointsBF to traverse in DAG breadth-first order.
-// This favors cache coherency (when traversing joints) and reduces
-// Load-Hit-Stores (reusing the parent that has just been computed).
+// Uses RawSkeleton::IterateJointsDF to traverse in DAG depth-first order.
+// Building skeleton hierarchy in depth first order make it easier to iterate a
+// skeleton sub-hierarchy.
 Skeleton* SkeletonBuilder::operator()(const RawSkeleton& _raw_skeleton) const {
   // Tests _raw_skeleton validity.
   if (!_raw_skeleton.Validate()) {
@@ -87,8 +87,9 @@ Skeleton* SkeletonBuilder::operator()(const RawSkeleton& _raw_skeleton) const {
 
   // Iterates through all the joint of the raw skeleton and fills a sorted joint
   // list.
+  // Iteration order defines runtime skeleton joint ordering.
   JointLister lister(num_joints);
-  _raw_skeleton.IterateJointsBF<JointLister&>(lister);
+  IterateJointsDF<JointLister&>(_raw_skeleton, lister);
   assert(static_cast<int>(lister.linear_joints.size()) == num_joints);
 
   // Computes name's buffer size.
@@ -112,9 +113,7 @@ Skeleton* SkeletonBuilder::operator()(const RawSkeleton& _raw_skeleton) const {
 
   // Transfers sorted joints hierarchy to the new skeleton.
   for (int i = 0; i < num_joints; ++i) {
-    skeleton->joint_properties_[i].parent = lister.linear_joints[i].parent;
-    skeleton->joint_properties_[i].is_leaf =
-        lister.linear_joints[i].joint->children.empty();
+    skeleton->joint_parents_[i] = lister.linear_joints[i].parent;
   }
 
   // Transfers t-poses.
@@ -143,9 +142,10 @@ Skeleton* SkeletonBuilder::operator()(const RawSkeleton& _raw_skeleton) const {
       }
     }
     // Fills the SoaTransform structure.
-    math::Transpose4x3(translations, &skeleton->bind_pose_[i].translation.x);
-    math::Transpose4x4(rotations, &skeleton->bind_pose_[i].rotation.x);
-    math::Transpose4x3(scales, &skeleton->bind_pose_[i].scale.x);
+    math::Transpose4x3(translations,
+                       &skeleton->joint_bind_poses_[i].translation.x);
+    math::Transpose4x4(rotations, &skeleton->joint_bind_poses_[i].rotation.x);
+    math::Transpose4x3(scales, &skeleton->joint_bind_poses_[i].scale.x);
   }
 
   return skeleton;  // Success.

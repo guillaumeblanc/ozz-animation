@@ -39,6 +39,9 @@
 namespace ozz {
 namespace animation {
 
+LocalToModelJob::LocalToModelJob()
+    : skeleton(NULL), root(NULL), from(Skeleton::kNoParent) {}
+
 bool LocalToModelJob::Validate() const {
   // Don't need any early out, as jobs are valid in most of the performance
   // critical cases.
@@ -49,8 +52,6 @@ bool LocalToModelJob::Validate() const {
   if (!skeleton) {
     return false;
   }
-  valid &= input.begin != NULL;
-  valid &= output.begin != NULL;
 
   const int num_joints = skeleton->num_joints();
   const int num_soa_joints = (num_joints + 3) / 4;
@@ -63,54 +64,37 @@ bool LocalToModelJob::Validate() const {
 }
 
 bool LocalToModelJob::Run() const {
-  using math::SoaTransform;
-  using math::SoaFloat4x4;
-  using math::Float4x4;
-
   if (!Validate()) {
     return false;
   }
 
-  // Early out if no joint.
-  const int num_joints = skeleton->num_joints();
-  if (num_joints == 0) {
-    return true;
-  }
-
-  // Fetch joint's properties.
-  Range<const Skeleton::JointProperties> properties =
-      skeleton->joint_properties();
-
-  // Output.
-  Float4x4* const model_matrices = output.begin;
-
   // Initializes an identity matrix that will be used to compute roots model
   // matrices without requiring a branch.
-  const Float4x4 identity = Float4x4::identity();
-  const Float4x4* root_matrix = (root == NULL) ? &identity : root;
+  const math::Float4x4 identity = math::Float4x4::identity();
+  const math::Float4x4* root_matrix = (root == NULL) ? &identity : root;
 
-  // Converts to matrices and applies hierarchical transformation.
-  for (int joint = 0; joint < num_joints;) {
+  // Applies hierarchical transformation. Note that first joint must always be
+  // processed, before checking if process.
+  const int num_joints = skeleton->num_joints();
+  const Range<const int16_t>& parents = skeleton->joint_parents();
+  for (int i = math::Max(from, 0), process = i < num_joints; process;) {
     // Builds soa matrices from soa transforms.
-    const SoaTransform& transform = input.begin[joint / 4];
-    const SoaFloat4x4 local_soa_matrices = SoaFloat4x4::FromAffine(
+    const math::SoaTransform& transform = input.begin[i / 4];
+    const math::SoaFloat4x4 local_soa_matrices = math::SoaFloat4x4::FromAffine(
         transform.translation, transform.rotation, transform.scale);
-    // Converts to aos matrices.
-    math::SimdFloat4 local_aos_matrices[16];
-    math::Transpose16x16(&local_soa_matrices.cols[0].x, local_aos_matrices);
 
-    // Applies hierarchical transformation.
-    const int proceed_up_to = joint + math::Min(4, num_joints - joint);
-    const math::SimdFloat4* local_aos_matrix = local_aos_matrices;
-    for (; joint < proceed_up_to; ++joint, local_aos_matrix += 4) {
-      const int parent = properties.begin[joint].parent;
-      const Float4x4* parent_matrix =
-          math::Select(parent == Skeleton::kNoParentIndex, root_matrix,
-                       &model_matrices[parent]);
-      const Float4x4 local_matrix = {{local_aos_matrix[0], local_aos_matrix[1],
-                                      local_aos_matrix[2],
-                                      local_aos_matrix[3]}};
-      model_matrices[joint] = (*parent_matrix) * local_matrix;
+    // Converts to aos matrices.
+    math::Float4x4 local_aos_matrices[4];
+    math::Transpose16x16(&local_soa_matrices.cols[0].x,
+                         local_aos_matrices->cols);
+
+    // parents[i] >= from is true as long as "i" is a child of "from".
+    for (const int end = (i + 4) & ~3; i < end && process;
+         ++i, process = i < num_joints && parents[i] >= from) {
+      const int parent = parents[i];
+      const math::Float4x4* parent_matrix = math::Select(
+          parent == Skeleton::kNoParent, root_matrix, &output[parent]);
+      output[i] = *parent_matrix * local_aos_matrices[i & 3];
     }
   }
   return true;

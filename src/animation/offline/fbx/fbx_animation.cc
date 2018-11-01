@@ -173,8 +173,8 @@ bool ExtractAnimation(FbxSceneLoader& _scene_loader, const SamplingInfo& _info,
       const math::Float4x4 local_matrix = math::Float4x4::FromAffine(t, q, s);
 
       ozz::Vector<math::Float4x4>::Std& node_matrices = world_matrices[i];
-      const uint16_t parent = _skeleton.joint_properties()[i].parent;
-      if (parent != Skeleton::kNoParentIndex) {
+      const int16_t parent = _skeleton.joint_parents()[i];
+      if (parent != Skeleton::kNoParent) {
         ozz::Vector<math::Float4x4>::Std& parent_matrices =
             world_matrices[parent];
         assert(num_keys == parent_matrices.size());
@@ -213,15 +213,15 @@ bool ExtractAnimation(FbxSceneLoader& _scene_loader, const SamplingInfo& _info,
     track.translations.reserve(num_keys);
     track.scales.reserve(num_keys);
 
-    const uint16_t parent = _skeleton.joint_properties()[i].parent;
+    const int16_t parent = _skeleton.joint_parents()[i];
     ozz::Vector<math::Float4x4>::Std& node_world_matrices = world_matrices[i];
     ozz::Vector<math::Float4x4>::Std& node_world_inv_matrices =
-        world_inv_matrices[parent != Skeleton::kNoParentIndex ? parent : 0];
+        world_inv_matrices[parent != Skeleton::kNoParent ? parent : 0];
 
     for (size_t n = 0; n < num_keys; ++n) {
       // Builds local matrix;
       math::Float4x4 local_matrix;
-      if (parent != Skeleton::kNoParentIndex) {
+      if (parent != Skeleton::kNoParent) {
         local_matrix = node_world_inv_matrices[n] * node_world_matrices[n];
       } else {
         local_matrix = node_world_matrices[n];

@@ -116,7 +116,7 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
     (void)_dt;
 
     for (size_t i = 0; i < locals_.size(); ++i) {
-      locals_[i] = skeleton_->bind_pose()[i];
+      locals_[i] = skeleton_->joint_bind_poses()[i];
     }
 
     sroot = ozz::math::Float4x4::Scaling(ozz::math::simd_float4::Load1(scale_));
@@ -275,7 +275,7 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
 
     // Initialize locals from skeleton bind pose
     //     for (size_t i = 0; i < locals_.size(); ++i) {
-    //       locals_[i] = skeleton_->bind_pose()[i];
+    //       locals_[i] = skeleton_->joint_bind_poses()[i];
     //     }
     return true;
   }
@@ -417,7 +417,7 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
 
   bool doik;
   float scale_;
-  
+
   // IK parameters.
 
   // TODO

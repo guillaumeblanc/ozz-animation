@@ -56,7 +56,7 @@ struct JointCounter {
 
 // Iterates through all the root children and count them.
 int RawSkeleton::num_joints() const {
-  return IterateJointsDF(JointCounter()).num_joints;
+  return IterateJointsDF(*this, JointCounter()).num_joints;
 }
 }  // namespace offline
 }  // namespace animation

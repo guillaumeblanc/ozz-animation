@@ -123,7 +123,7 @@ class BlendSampleApplication : public ozz::sample::Application {
     ozz::animation::BlendingJob blend_job;
     blend_job.threshold = threshold_;
     blend_job.layers = layers;
-    blend_job.bind_pose = skeleton_.bind_pose();
+    blend_job.bind_pose = skeleton_.joint_bind_poses();
     blend_job.output = make_range(blended_locals_);
 
     // Blends.

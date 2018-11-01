@@ -222,7 +222,7 @@ void ComputeSkeletonBounds(const animation::Skeleton& _skeleton,
 
   // Compute model space bind pose.
   ozz::animation::LocalToModelJob job;
-  job.input = _skeleton.bind_pose();
+  job.input = _skeleton.joint_bind_poses();
   job.output = make_range(models);
   job.skeleton = &_skeleton;
   if (job.Run()) {

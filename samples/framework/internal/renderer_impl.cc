@@ -31,6 +31,7 @@
 
 #include "ozz/animation/runtime/local_to_model_job.h"
 #include "ozz/animation/runtime/skeleton.h"
+#include "ozz/animation/runtime/skeleton_utils.h"
 
 #include "ozz/geometry/runtime/skinning_job.h"
 
@@ -285,7 +286,7 @@ bool RendererImpl::DrawSkeleton(const ozz::animation::Skeleton& _skeleton,
 
   // Compute model space bind pose.
   ozz::animation::LocalToModelJob job;
-  job.input = _skeleton.bind_pose();
+  job.input = _skeleton.joint_bind_poses();
   job.output = make_range(prealloc_models_);
   job.skeleton = &_skeleton;
   if (!job.Run()) {
@@ -473,14 +474,13 @@ int DrawPosture_FillUniforms(const ozz::animation::Skeleton& _skeleton,
 
   // Prepares computation constants.
   const int num_joints = _skeleton.num_joints();
-  const ozz::animation::Skeleton::JointProperties* properties =
-      _skeleton.joint_properties().begin;
+  const Range<const int16_t>& parents = _skeleton.joint_parents();
 
   int instances = 0;
   for (int i = 0; i < num_joints && instances < _max_instances; ++i) {
     // Root isn't rendered.
-    const int parent_id = properties[i].parent;
-    if (parent_id == ozz::animation::Skeleton::kNoParentIndex) {
+    const int16_t parent_id = parents[i];
+    if (parent_id == ozz::animation::Skeleton::kNoParent) {
       continue;
     }
 
@@ -512,7 +512,7 @@ int DrawPosture_FillUniforms(const ozz::animation::Skeleton& _skeleton,
     uniform += 16;
 
     // Only the joint is rendered for leaves, the bone model isn't.
-    if (properties[i].is_leaf) {
+    if (IsLeaf(_skeleton, i)) {
       // Copy current joint's raw matrix.
       uniform = _uniforms + instances * 16;
       math::StorePtr(current.cols[0], uniform + 0);
@@ -1399,10 +1399,9 @@ bool RendererImpl::DrawSkinnedMesh(
 
     // Setup output positions, coming from the rendering output mesh buffers.
     // We need to offset the buffer every loop.
-    skinning_job.out_positions.begin =
-        reinterpret_cast<float*>(ozz::PointerStride(
-            vbo_map,
-            positions_offset + processed_vertex_count * positions_stride));
+    skinning_job.out_positions.begin = reinterpret_cast<float*>(
+        ozz::PointerStride(vbo_map, positions_offset + processed_vertex_count *
+                                                           positions_stride));
     skinning_job.out_positions.end = ozz::PointerStride(
         skinning_job.out_positions.begin, part_vertex_count * positions_stride);
     skinning_job.out_positions_stride = positions_stride;
@@ -1592,18 +1591,16 @@ bool RendererImpl::DrawSkinnedMesh(
   return true;
 }
 
-// clang-format off
 // Helper macro used to initialize extension function pointer.
 #define OZZ_INIT_GL_EXT(_fct, _fct_type, _success)                        \
-do {                                                                      \
+  do {                                                                    \
     _fct = reinterpret_cast<_fct_type>(glfwGetProcAddress(#_fct));        \
     if (_fct == NULL) {                                                   \
       log::Err() << "Unable to install " #_fct " function." << std::endl; \
       _success &= false;                                                  \
     }                                                                     \
-  \
-} while (void(0), 0)
-// clang-format on
+                                                                          \
+  } while (void(0), 0)
 
 bool RendererImpl::InitOpenGLExtensions() {
   bool optional_success = true;

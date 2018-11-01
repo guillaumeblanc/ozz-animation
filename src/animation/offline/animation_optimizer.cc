@@ -66,17 +66,16 @@ JointSpec Iter(const Skeleton& _skeleton, uint16_t _joint,
                JointSpecs* _hierarchical_joint_specs) {
   JointSpec local_joint_spec = _local_joint_specs[_joint];
   JointSpec& hierarchical_joint_spec = _hierarchical_joint_specs->at(_joint);
-  const Skeleton::JointProperties* properties =
-      _skeleton.joint_properties().begin;
+  const Range<const int16_t>& parents = _skeleton.joint_parents();
 
   // Applies parent's scale to this joint.
-  uint16_t parent = properties[_joint].parent;
-  if (parent != Skeleton::kNoParentIndex) {
+  const int16_t parent = parents[_joint];
+  if (parent != Skeleton::kNoParent) {
     local_joint_spec.length *= _parent_accumulated_scale;
     local_joint_spec.scale *= _parent_accumulated_scale;
   }
 
-  if (properties[_joint].is_leaf) {
+  if (IsLeaf(_skeleton, _joint)) {
     // Set leaf length to 0, as track's own tolerance checks are enough for a
     // leaf.
     hierarchical_joint_spec.length = 0.f;
@@ -84,13 +83,13 @@ JointSpec Iter(const Skeleton& _skeleton, uint16_t _joint,
   } else {
     // Find first child.
     uint16_t child = _joint + 1;
-    for (; child < _skeleton.num_joints() && properties[child].parent != _joint;
+    for (; child < _skeleton.num_joints() && parents[child] != _joint;
          ++child) {
     }
-    assert(properties[child].parent == _joint);
+    assert(parents[child] == _joint);
 
     // Now iterate childs.
-    for (; child < _skeleton.num_joints() && properties[child].parent == _joint;
+    for (; child < _skeleton.num_joints() && parents[child] == _joint;
          ++child) {
       // Entering each child.
       const JointSpec child_spec =
@@ -153,7 +152,7 @@ void BuildHierarchicalSpecs(const RawAnimation& _animation,
   // Iterates all skeleton roots.
   for (uint16_t root = 0;
        root < _skeleton.num_joints() &&
-       _skeleton.joint_properties()[root].parent == Skeleton::kNoParentIndex;
+       _skeleton.joint_parents()[root] == Skeleton::kNoParent;
        ++root) {
     // Entering each root.
     Iter(_skeleton, root, local_joint_specs, 1.f, _hierarchical_joint_specs);

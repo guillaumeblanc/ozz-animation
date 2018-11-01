@@ -34,8 +34,6 @@
 
 using ozz::math::SimdFloat4;
 
-// clang-format off
-
 TEST(TransposeFloat, ozz_simd_math) {
   const SimdFloat4 src[4] = {
       ozz::math::simd_float4::Load(0.f, 1.f, 2.f, 3.f),

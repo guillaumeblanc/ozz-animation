@@ -136,7 +136,7 @@ struct RawAnimation {
 }  // namespace offline
 }  // namespace animation
 namespace io {
-OZZ_IO_TYPE_VERSION(2, animation::offline::RawAnimation)
+OZZ_IO_TYPE_VERSION(3, animation::offline::RawAnimation)
 OZZ_IO_TYPE_TAG("ozz-raw_animation", animation::offline::RawAnimation)
 
 // Should not be called directly but through io::Archive << and >> operators.

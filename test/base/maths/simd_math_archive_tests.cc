@@ -34,8 +34,6 @@
 #include "ozz/base/io/archive.h"
 #include "ozz/base/maths/simd_math.h"
 
-// clang-format off
-
 TEST(SimdMathArchive, ozz_simd_math) {
   for (int e = 0; e < 2; ++e) {
     ozz::Endianness endianess = e == 0 ? ozz::kBigEndian : ozz::kLittleEndian;
@@ -68,9 +66,7 @@ TEST(SimdMathArchive, ozz_simd_math) {
     EXPECT_SIMDINT_EQ(ii4, 46, 58, 14, 5);
     ozz::math::Float4x4 if44;
     i >> if44;
-    EXPECT_FLOAT4x4_EQ(if44, 46.f, 58.f, 14.f, 5.f,
-                             26.f, 35.f, 1.f, 27.f,
-                             99.f, 11.f, 4.f, 46.f,
-                             58.f, 26.f, 14.f, 99.f);
+    EXPECT_FLOAT4x4_EQ(if44, 46.f, 58.f, 14.f, 5.f, 26.f, 35.f, 1.f, 27.f, 99.f,
+                       11.f, 4.f, 46.f, 58.f, 26.f, 14.f, 99.f);
   }
 }

@@ -53,10 +53,8 @@ union SimdIF4 {
 };
 }  // namespace internal
 
-// clang-format off
-
 #define OZZ_RCP_EST(_in, _out)                 \
-do {                                           \
+  do {                                         \
     const float in = _in;                      \
     const union {                              \
       float f;                                 \
@@ -68,17 +66,17 @@ do {                                           \
     } ui = {(0x3f800000 * 2) - uf.i};          \
     const float fp = ui.f * (2.f - in * ui.f); \
     _out = fp * (2.f - in * fp);               \
-} while (void(0), 0)
+  } while (void(0), 0)
 
 #define OZZ_RCP_EST_NR(_in, _out)   \
-do {                                \
+  do {                              \
     float fp2;                      \
     OZZ_RCP_EST(_in, fp2);          \
     _out = fp2 * (2.f - _in * fp2); \
-} while (void(0), 0)
+  } while (void(0), 0)
 
 #define OZZ_RSQRT_EST(_in, _out)                               \
-do {                                                           \
+  do {                                                         \
     const float in = _in;                                      \
     union {                                                    \
       float f;                                                 \
@@ -90,16 +88,14 @@ do {                                                           \
     } ui = {0x5f3759df - (uf.i / 2)};                          \
     const float fp = ui.f * (1.5f - (in * .5f * ui.f * ui.f)); \
     _out = fp * (1.5f - (in * .5f * fp * fp));                 \
-} while (void(0), 0)
+  } while (void(0), 0)
 
 #define OZZ_RSQRT_EST_NR(_in, _out)                \
-do {                                               \
+  do {                                             \
     float fp2;                                     \
     OZZ_RSQRT_EST(_in, fp2);                       \
     _out = fp2 * (1.5f - (_in * .5f * fp2 * fp2)); \
-} while (void(0), 0)
-
-// clang-format on
+  } while (void(0), 0)
 
 namespace simd_float4 {
 

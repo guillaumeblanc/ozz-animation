@@ -147,8 +147,6 @@ OZZ_INLINE SimdFloat4 DivX(_SimdFloat4 _a, _SimdFloat4 _b) {
 #define OZZ_SSE_SELECT_I(_b, _true, _false) \
   _mm_xor_si128(_false, _mm_and_si128(_b, _mm_xor_si128(_true, _false)))
 
-// clang-format on
-
 OZZ_INLINE SimdFloat4 zero() { return _mm_setzero_ps(); }
 
 OZZ_INLINE SimdFloat4 one() {
@@ -424,35 +422,35 @@ OZZ_INLINE void Transpose4x4(const SimdFloat4 _in[4], SimdFloat4 _out[4]) {
 OZZ_INLINE void Transpose16x16(const SimdFloat4 _in[16], SimdFloat4 _out[16]) {
   const __m128 tmp0 = _mm_unpacklo_ps(_in[0], _in[2]);
   const __m128 tmp1 = _mm_unpacklo_ps(_in[1], _in[3]);
+  _out[0] = _mm_unpacklo_ps(tmp0, tmp1);
+  _out[4] = _mm_unpackhi_ps(tmp0, tmp1);
   const __m128 tmp2 = _mm_unpackhi_ps(_in[0], _in[2]);
   const __m128 tmp3 = _mm_unpackhi_ps(_in[1], _in[3]);
+  _out[8] = _mm_unpacklo_ps(tmp2, tmp3);
+  _out[12] = _mm_unpackhi_ps(tmp2, tmp3);
   const __m128 tmp4 = _mm_unpacklo_ps(_in[4], _in[6]);
   const __m128 tmp5 = _mm_unpacklo_ps(_in[5], _in[7]);
+  _out[1] = _mm_unpacklo_ps(tmp4, tmp5);
+  _out[5] = _mm_unpackhi_ps(tmp4, tmp5);
   const __m128 tmp6 = _mm_unpackhi_ps(_in[4], _in[6]);
   const __m128 tmp7 = _mm_unpackhi_ps(_in[5], _in[7]);
+  _out[9] = _mm_unpacklo_ps(tmp6, tmp7);
+  _out[13] = _mm_unpackhi_ps(tmp6, tmp7);
   const __m128 tmp8 = _mm_unpacklo_ps(_in[8], _in[10]);
   const __m128 tmp9 = _mm_unpacklo_ps(_in[9], _in[11]);
+  _out[2] = _mm_unpacklo_ps(tmp8, tmp9);
+  _out[6] = _mm_unpackhi_ps(tmp8, tmp9);
   const __m128 tmp10 = _mm_unpackhi_ps(_in[8], _in[10]);
   const __m128 tmp11 = _mm_unpackhi_ps(_in[9], _in[11]);
+  _out[10] = _mm_unpacklo_ps(tmp10, tmp11);
+  _out[14] = _mm_unpackhi_ps(tmp10, tmp11);
   const __m128 tmp12 = _mm_unpacklo_ps(_in[12], _in[14]);
   const __m128 tmp13 = _mm_unpacklo_ps(_in[13], _in[15]);
+  _out[3] = _mm_unpacklo_ps(tmp12, tmp13);
+  _out[7] = _mm_unpackhi_ps(tmp12, tmp13);
   const __m128 tmp14 = _mm_unpackhi_ps(_in[12], _in[14]);
   const __m128 tmp15 = _mm_unpackhi_ps(_in[13], _in[15]);
-  _out[0] = _mm_unpacklo_ps(tmp0, tmp1);
-  _out[1] = _mm_unpacklo_ps(tmp4, tmp5);
-  _out[2] = _mm_unpacklo_ps(tmp8, tmp9);
-  _out[3] = _mm_unpacklo_ps(tmp12, tmp13);
-  _out[4] = _mm_unpackhi_ps(tmp0, tmp1);
-  _out[5] = _mm_unpackhi_ps(tmp4, tmp5);
-  _out[6] = _mm_unpackhi_ps(tmp8, tmp9);
-  _out[7] = _mm_unpackhi_ps(tmp12, tmp13);
-  _out[8] = _mm_unpacklo_ps(tmp2, tmp3);
-  _out[9] = _mm_unpacklo_ps(tmp6, tmp7);
-  _out[10] = _mm_unpacklo_ps(tmp10, tmp11);
   _out[11] = _mm_unpacklo_ps(tmp14, tmp15);
-  _out[12] = _mm_unpackhi_ps(tmp2, tmp3);
-  _out[13] = _mm_unpackhi_ps(tmp6, tmp7);
-  _out[14] = _mm_unpackhi_ps(tmp10, tmp11);
   _out[15] = _mm_unpackhi_ps(tmp14, tmp15);
 }
 
@@ -1320,7 +1318,8 @@ OZZ_INLINE SimdInt4 Xor(_SimdInt4 _a, _SimdInt4 _b) {
 }
 
 OZZ_INLINE SimdInt4 Not(_SimdInt4 _v) {
-  return _mm_xor_si128(_v, _mm_cmpeq_epi32(_mm_setzero_si128(),_mm_setzero_si128()));
+  return _mm_xor_si128(
+      _v, _mm_cmpeq_epi32(_mm_setzero_si128(), _mm_setzero_si128()));
 }
 
 OZZ_INLINE SimdInt4 ShiftL(_SimdInt4 _v, int _bits) {
