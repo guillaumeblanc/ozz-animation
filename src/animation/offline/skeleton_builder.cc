@@ -46,10 +46,10 @@ struct JointLister {
   void operator()(const RawSkeleton::Joint& _current,
                   const RawSkeleton::Joint* _parent) {
     // Looks for the "lister" parent.
-    int parent = Skeleton::kNoParent;
+    int16_t parent = Skeleton::kNoParent;
     if (_parent) {
       // Start searching from the last joint.
-      int j = static_cast<int>(linear_joints.size()) - 1;
+      int16_t j = static_cast<int16_t>(linear_joints.size()) - 1;
       for (; j >= 0; --j) {
         if (linear_joints[j].joint == _parent) {
           parent = j;
@@ -63,7 +63,7 @@ struct JointLister {
   }
   struct Joint {
     const RawSkeleton::Joint* joint;
-    int parent;
+    int16_t parent;
   };
   // Array of joints in the traversed DAG order.
   ozz::Vector<Joint>::Std linear_joints;
