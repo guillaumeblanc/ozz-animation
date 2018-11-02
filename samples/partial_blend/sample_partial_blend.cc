@@ -206,14 +206,14 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
   struct WeightSetupIterator {
     WeightSetupIterator(ozz::Vector<ozz::math::SimdFloat4>::Std& _weights,
                         float _weight_setting)
-        : weight_setting(ozz::math::simd_float4::Load1(_weight_setting)),
-          weights(_weights) {}
+        : weights(_weights),
+          weight_setting(_weight_setting) {}
     void operator()(int _joint, int) {
       weights[_joint / 4] =
-          ozz::math::SetI(weights[_joint / 4], weight_setting, _joint % 4);
+          ozz::math::SetI(weights[_joint / 4], ozz::math::simd_float4::Load1(weight_setting), _joint % 4);
     }
-    ozz::math::SimdFloat4 weight_setting;
     ozz::Vector<ozz::math::SimdFloat4>::Std& weights;
+    float weight_setting;
   };
 
   void SetupPerJointWeights() {
