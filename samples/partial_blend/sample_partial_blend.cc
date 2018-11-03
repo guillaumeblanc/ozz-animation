@@ -204,15 +204,16 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
 
   // Helper functor used to set weights while traversing joints hierarchy.
   struct WeightSetupIterator {
-    WeightSetupIterator(ozz::Vector<ozz::math::SimdFloat4>::Std& _weights,
+    WeightSetupIterator(ozz::Vector<ozz::math::SimdFloat4>::Std* _weights,
                         float _weight_setting)
-        : weights(_weights),
-          weight_setting(_weight_setting) {}
+        : weights(_weights), weight_setting(_weight_setting) {}
     void operator()(int _joint, int) {
-      weights[_joint / 4] =
-          ozz::math::SetI(weights[_joint / 4], ozz::math::simd_float4::Load1(weight_setting), _joint % 4);
+      ozz::math::SimdFloat4& soa_weight = weights->at(_joint / 4);
+      soa_weight = ozz::math::SetI(
+          soa_weight, ozz::math::simd_float4::Load1(weight_setting),
+          _joint % 4);
     }
-    ozz::Vector<ozz::math::SimdFloat4>::Std& weights;
+    ozz::Vector<ozz::math::SimdFloat4>::Std* weights;
     float weight_setting;
   };
 
@@ -234,11 +235,11 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
 
     // Sets the weight_setting of all the joints children of the lower and upper
     // body weights. Note that they are stored in SoA format.
-    WeightSetupIterator lower_it(lower_body_sampler.joint_weights,
+    WeightSetupIterator lower_it(&lower_body_sampler.joint_weights,
                                  lower_body_sampler.joint_weight_setting);
     ozz::animation::IterateJointsDF(skeleton_, upper_body_root_, lower_it);
 
-    WeightSetupIterator upper_it(upper_body_sampler.joint_weights,
+    WeightSetupIterator upper_it(&upper_body_sampler.joint_weights,
                                  upper_body_sampler.joint_weight_setting);
     ozz::animation::IterateJointsDF(skeleton_, upper_body_root_, upper_it);
   }

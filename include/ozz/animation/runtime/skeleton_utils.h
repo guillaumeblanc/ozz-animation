@@ -45,8 +45,7 @@ ozz::math::Transform GetJointLocalBindPose(const Skeleton& _skeleton,
 // "_joint".
 inline bool IsLeaf(const Skeleton& _skeleton, int _joint) {
   const int num_joints = _skeleton.num_joints();
-  assert(_joint >= 0 && _joint < num_joints &&
-         "_joint index out of range");
+  assert(_joint >= 0 && _joint < num_joints && "_joint index out of range");
   const Range<const int16_t>& parents = _skeleton.joint_parents();
   const int next = _joint + 1;
   return next == num_joints || parents[next] != _joint;

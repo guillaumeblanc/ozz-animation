@@ -91,8 +91,7 @@ TEST(Error, AnimationBuilder) {
   {  // Building an animation with max joints succeeds.
     RawAnimation raw_animation;
     raw_animation.tracks.resize(ozz::animation::Skeleton::kMaxJoints);
-    EXPECT_EQ(raw_animation.num_tracks(),
-              ozz::animation::Skeleton::kMaxJoints);
+    EXPECT_EQ(raw_animation.num_tracks(), ozz::animation::Skeleton::kMaxJoints);
     EXPECT_TRUE(raw_animation.Validate());
 
     // Builds animation

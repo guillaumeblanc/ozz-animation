@@ -242,15 +242,16 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
 
   // Helper functor used to set weights while traversing joints hierarchy.
   struct WeightSetupIterator {
-    WeightSetupIterator(ozz::Vector<ozz::math::SimdFloat4>::Std& _weights,
+    WeightSetupIterator(ozz::Vector<ozz::math::SimdFloat4>::Std* _weights,
                         float _weight_setting)
-        : weights(_weights),
-          weight_setting(_weight_setting) {}
+        : weights(_weights), weight_setting(_weight_setting) {}
     void operator()(int _joint, int) {
-      weights[_joint / 4] =
-          ozz::math::SetI(weights[_joint / 4], ozz::math::simd_float4::Load1(weight_setting), _joint % 4);
+      ozz::math::SimdFloat4& soa_weight = weights->at(_joint / 4);
+      soa_weight = ozz::math::SetI(
+          soa_weight, ozz::math::simd_float4::Load1(weight_setting),
+          _joint % 4);
     }
-    ozz::Vector<ozz::math::SimdFloat4>::Std& weights;
+    ozz::Vector<ozz::math::SimdFloat4>::Std* weights;
     float weight_setting;
   };
 
@@ -265,7 +266,7 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
     }
 
     // Extracts the list of children of the shoulder
-    WeightSetupIterator it(upper_body_joint_weights_,
+    WeightSetupIterator it(&upper_body_joint_weights_,
                            upper_body_joint_weight_setting_);
     IterateJointsDF(skeleton_, upper_body_root_, it);
   }
