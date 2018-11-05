@@ -40,7 +40,10 @@ namespace ozz {
 namespace animation {
 
 LocalToModelJob::LocalToModelJob()
-    : skeleton(NULL), root(NULL), from(Skeleton::kNoParent) {}
+    : skeleton(NULL),
+      root(NULL),
+      from(Skeleton::kNoParent),
+      to(Skeleton::kMaxJoints) {}
 
 bool LocalToModelJob::Validate() const {
   // Don't need any early out, as jobs are valid in most of the performance
@@ -75,9 +78,9 @@ bool LocalToModelJob::Run() const {
 
   // Applies hierarchical transformation. Note that first joint must always be
   // processed, before checking if process.
-  const int num_joints = skeleton->num_joints();
   const Range<const int16_t>& parents = skeleton->joint_parents();
-  for (int i = math::Max(from, 0), process = i < num_joints; process;) {
+  const int end = math::Min(to + 1, skeleton->num_joints());
+  for (int i = math::Max(from, 0), process = i < end; process;) {
     // Builds soa matrices from soa transforms.
     const math::SoaTransform& transform = input.begin[i / 4];
     const math::SoaFloat4x4 local_soa_matrices = math::SoaFloat4x4::FromAffine(
@@ -89,8 +92,8 @@ bool LocalToModelJob::Run() const {
                          local_aos_matrices->cols);
 
     // parents[i] >= from is true as long as "i" is a child of "from".
-    for (const int end = (i + 4) & ~3; i < end && process;
-         ++i, process = i < num_joints && parents[i] >= from) {
+    for (const int soa_end = (i + 4) & ~3; i < soa_end && process;
+         ++i, process = i < end && parents[i] >= from) {
       const int parent = parents[i];
       const math::Float4x4* parent_matrix = math::Select(
           parent == Skeleton::kNoParent, root_matrix, &output[parent]);

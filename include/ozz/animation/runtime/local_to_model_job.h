@@ -72,15 +72,18 @@ struct LocalToModelJob {
   // Returns false if job is not valid. See Validate() function.
   bool Run() const;
 
+  // Job input.
+
   // The Skeleton object describing the joint hierarchy used for local to
   // model space conversion.
   const Skeleton* skeleton;
 
   // The root matrix will multiply to every model space matrices, default NULL
-  // means an identity matrix.
+  // means an identity matrix. This can be used to directly compute world-space
+  // transforms for example.
   const ozz::math::Float4x4* root;
 
-  // Defines from which joint the local-to-model conversion should start.
+  // Defines "from" which joint the local-to-model conversion should start.
   // Default valiue is ozz::Skeleton::kNoParent, meaning the whole hierarchy is
   // updated. This parameter can be used to optimize update by limiting
   // conversion to part of the joint hierarchy. Note that "from" parent should
@@ -88,11 +91,18 @@ struct LocalToModelJob {
   // hierarchy update.
   int from;
 
-  // Job input.
+  // Defines "to" which joint the local-to-model conversion should go, "to"
+  // included. Update will end before "to" joint is reached if "to" is not part
+  // of the hierarchy starting from "from". Default valiue is
+  // ozz::Skeleton::kMaxJoints, meaning the hierarchy (starting from "from") is
+  // updated to the last joint.
+  int to;
+
   // The input range that store local transforms.
   Range<const ozz::math::SoaTransform> input;
 
   // Job output.
+
   // The output range to be filled with model matrices.
   Range<ozz::math::Float4x4> output;
 };
