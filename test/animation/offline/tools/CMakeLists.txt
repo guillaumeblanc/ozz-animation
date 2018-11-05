@@ -1,3 +1,7 @@
+if(NOT ozz_build_tools)
+  return()
+endif()
+
 add_executable(test2ozz
   test2ozz.cc)
 target_link_libraries(test2ozz
