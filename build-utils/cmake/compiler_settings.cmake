@@ -145,7 +145,9 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ".")
 
 #-------------------------------
 # Set a postfix for output files
-set(CMAKE_DEBUG_POSTFIX "_d")
-set(CMAKE_RELEASE_POSTFIX "_r")
-set(CMAKE_MINSIZEREL_POSTFIX "_rs")
-set(CMAKE_RELWITHDEBINFO_POSTFIX "_rd")
+if(ozz_build_postfix)
+  set(CMAKE_DEBUG_POSTFIX "_d")
+  set(CMAKE_RELEASE_POSTFIX "_r")
+  set(CMAKE_MINSIZEREL_POSTFIX "_rs")
+  set(CMAKE_RELWITHDEBINFO_POSTFIX "_rd")
+endif()
