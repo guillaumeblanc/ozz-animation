@@ -807,6 +807,284 @@ TEST(TransformationFromTo, LocalToModel) {
   ozz::memory::default_allocator()->Delete(skeleton);
 }
 
+TEST(TransformationFromToExclude, LocalToModel) {
+  // Builds the skeleton
+  /*
+   6 joints
+         *
+       /   \
+     j0    j7
+    /  \
+   j1  j3
+    |  / \
+   j2 j4 j6
+       |
+      j5
+  */
+  RawSkeleton raw_skeleton;
+  raw_skeleton.roots.resize(2);
+  RawSkeleton::Joint& j0 = raw_skeleton.roots[0];
+  j0.name = "j0";
+  RawSkeleton::Joint& j7 = raw_skeleton.roots[1];
+  j7.name = "j7";
+
+  j0.children.resize(2);
+  j0.children[0].name = "j1";
+  j0.children[1].name = "j3";
+
+  j0.children[0].children.resize(1);
+  j0.children[0].children[0].name = "j2";
+
+  j0.children[1].children.resize(2);
+  j0.children[1].children[0].name = "j4";
+  j0.children[1].children[1].name = "j6";
+
+  j0.children[1].children[0].children.resize(1);
+  j0.children[1].children[0].children[0].name = "j5";
+
+  EXPECT_TRUE(raw_skeleton.Validate());
+  EXPECT_EQ(raw_skeleton.num_joints(), 8);
+
+  SkeletonBuilder builder;
+  Skeleton* skeleton = builder(raw_skeleton);
+  ASSERT_TRUE(skeleton != NULL);
+
+  // Initializes an input transformation.
+  ozz::math::SoaTransform input[2] = {
+      // Stores up to 8 inputs, needs 7.
+      //                             j0   j1   j2    j3
+      {{ozz::math::simd_float4::Load(2.f, 0.f, -2.f, 1.f),
+        ozz::math::simd_float4::Load(2.f, 0.f, -2.f, 2.f),
+        ozz::math::simd_float4::Load(2.f, 0.f, -2.f, 4.f)},
+       {ozz::math::simd_float4::Load(0.f, 0.f, 0.f, 0.f),
+        ozz::math::simd_float4::Load(0.f, .70710677f, 0.f, 0.f),
+        ozz::math::simd_float4::Load(0.f, 0.f, 0.f, 0.f),
+        ozz::math::simd_float4::Load(1.f, .70710677f, 1.f, 1.f)},
+       {ozz::math::simd_float4::Load(1.f, 1.f, 10.f, 1.f),
+        ozz::math::simd_float4::Load(1.f, 1.f, 10.f, 1.f),
+        ozz::math::simd_float4::Load(1.f, 1.f, 10.f, 1.f)}},
+      //                             j4    j5   j6   j7.
+      {{ozz::math::simd_float4::Load(12.f, 0.f, 3.f, 6.f),
+        ozz::math::simd_float4::Load(46.f, 0.f, 4.f, 7.f),
+        ozz::math::simd_float4::Load(-12.f, 0.f, 5.f, 8.f)},
+       {ozz::math::simd_float4::Load(0.f, 0.f, 0.f, 0.f),
+        ozz::math::simd_float4::Load(0.f, 0.f, 0.f, 0.f),
+        ozz::math::simd_float4::Load(0.f, 0.f, 0.f, 0.f),
+        ozz::math::simd_float4::Load(1.f, 1.f, 1.f, 1.f)},
+       {ozz::math::simd_float4::Load(1.f, -.1f, 1.f, 1.f),
+        ozz::math::simd_float4::Load(1.f, -.1f, 1.f, 1.f),
+        ozz::math::simd_float4::Load(1.f, -.1f, 1.f, 1.f)}}};
+
+  ozz::math::Float4x4 output[8];
+  LocalToModelJob job_full;
+  {  // Intialize whole hierarchy output
+    job_full.skeleton = skeleton;
+    job_full.from = ozz::animation::Skeleton::kNoParent;
+    job_full.from_excluded = true;
+    job_full.input.begin = input;
+    job_full.input.end = input + 2;
+    job_full.output.begin = output;
+    job_full.output.end = output + 8;
+    EXPECT_TRUE(job_full.Validate());
+    EXPECT_TRUE(job_full.Run());
+    EXPECT_FLOAT4x4_EQ(output[0], 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f,
+                       0.f, 1.f, 0.f, 2.f, 2.f, 2.f, 1.f);
+    EXPECT_FLOAT4x4_EQ(output[1], 0.f, 0.f, -1.f, 0.f, 0.f, 1.f, 0.f, 0.f, 1.f,
+                       0.f, 0.f, 0.f, 2.f, 2.f, 2.f, 1.f);
+    EXPECT_FLOAT4x4_EQ(output[2], 0.f, 0.f, -10.f, 0.f, 0.f, 10.f, 0.f, 0.f,
+                       10.f, 0.f, 0.f, 0.f, 0.f, 0.f, 4.f, 1.f);
+    EXPECT_FLOAT4x4_EQ(output[3], 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f,
+                       0.f, 1.f, 0.f, 3.f, 4.f, 6.f, 1.f);
+    EXPECT_FLOAT4x4_EQ(output[4], 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f,
+                       0.f, 1.f, 0.f, 15.f, 50.f, -6.f, 1.f);
+    EXPECT_FLOAT4x4_EQ(output[5], -.1f, 0.f, 0.f, 0.f, 0.f, -.1f, 0.f, 0.f, 0.f,
+                       0.f, -.1f, 0.f, 15.f, 50.f, -6.f, 1.f);
+    EXPECT_FLOAT4x4_EQ(output[6], 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f,
+                       0.f, 1.f, 0.f, 6.f, 8.f, 11.f, 1.f);
+    EXPECT_FLOAT4x4_EQ(output[7], 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f,
+                       0.f, 1.f, 0.f, 6.f, 7.f, 8.f, 1.f);
+  }
+
+  {  // Updates from j0 excluded, j7 shouldn't be updated
+    output[0] = ozz::math::Float4x4::Scaling(
+        ozz::math::simd_float4::Load(2.f, 2.f, 2.f, 0.f));
+    output[1] = output[2] = output[3] = output[4] = output[5] = output[6] =
+        output[7] = ozz::math::Float4x4::identity();
+
+    LocalToModelJob job;
+    job.skeleton = skeleton;
+    job.from = 0;
+    job.from_excluded = true;
+    job.input.begin = input;
+    job.input.end = input + 2;
+    job.output.begin = output;
+    job.output.end = output + 8;
+    EXPECT_TRUE(job.Validate());
+    EXPECT_TRUE(job.Run());
+
+    EXPECT_FLOAT4x4_EQ(output[0], 2.f, 0.f, 0.f, 0.f, 0.f, 2.f, 0.f, 0.f, 0.f,
+                       0.f, 2.f, 0.f, 0.f, 0.f, 0.f, 1.f);
+    EXPECT_FLOAT4x4_EQ(output[1], 0.f, 0.f, -2.f, 0.f, 0.f, 2.f, 0.f, 0.f, 2.f,
+                       0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 1.f);
+    EXPECT_FLOAT4x4_EQ(output[2], 0.f, 0.f, -20.f, 0.f, 0.f, 20.f, 0.f, 0.f,
+                       20.f, 0.f, 0.f, 0.f, -4.f, -4.f, 4.f, 1.f);
+    EXPECT_FLOAT4x4_EQ(output[3], 2.f, 0.f, 0.f, 0.f, 0.f, 2.f, 0.f, 0.f, 0.f,
+                       0.f, 2.f, 0.f, 2.f, 4.f, 8.f, 1.f);
+    EXPECT_FLOAT4x4_EQ(output[4], 2.f, 0.f, 0.f, 0.f, 0.f, 2.f, 0.f, 0.f, 0.f,
+                       0.f, 2.f, 0.f, 26.f, 96.f, -16.f, 1.f);
+    EXPECT_FLOAT4x4_EQ(output[5], -.2f, 0.f, 0.f, 0.f, 0.f, -.2f, 0.f, 0.f, 0.f,
+                       0.f, -.2f, 0.f, 26.f, 96.f, -16.f, 1.f);
+    EXPECT_FLOAT4x4_EQ(output[6], 2.f, 0.f, 0.f, 0.f, 0.f, 2.f, 0.f, 0.f, 0.f,
+                       0.f, 2.f, 0.f, 8.f, 12.f, 18.f, 1.f);
+    EXPECT_FLOAT4x4_EQ(output[7], 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f,
+                       0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f);
+  }
+
+  {  // Updates from j1 exclude, j2 should be updated
+    EXPECT_TRUE(job_full.Run());
+    output[0] = output[2] = output[3] = output[4] = output[5] = output[6] =
+        output[7] = ozz::math::Float4x4::identity();
+    output[1] = ozz::math::Float4x4::Scaling(
+        ozz::math::simd_float4::Load(2.f, 2.f, 2.f, 0.f));
+
+    LocalToModelJob job;
+    job.skeleton = skeleton;
+    job.from = 1;
+    job.from_excluded = true;
+    job.input.begin = input;
+    job.input.end = input + 2;
+    job.output.begin = output;
+    job.output.end = output + 8;
+    EXPECT_TRUE(job.Validate());
+    EXPECT_TRUE(job.Run());
+
+    EXPECT_FLOAT4x4_EQ(output[0], 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f,
+                       0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f);
+    EXPECT_FLOAT4x4_EQ(output[1], 2.f, 0.f, 0.f, 0.f, 0.f, 2.f, 0.f, 0.f, 0.f,
+                       0.f, 2.f, 0.f, 0.f, 0.f, 0.f, 1.f);
+    EXPECT_FLOAT4x4_EQ(output[2], 20.f, 0.f, 0.f, 0.f, 0.f, 20.f, 0.f, 0.f, 0.f,
+                       0.f, 20.f, 0.f, -4.f, -4.f, -4.f, 1.f);
+    EXPECT_FLOAT4x4_EQ(output[3], 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f,
+                       0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f);
+    EXPECT_FLOAT4x4_EQ(output[4], 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f,
+                       0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f);
+    EXPECT_FLOAT4x4_EQ(output[5], 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f,
+                       0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f);
+    EXPECT_FLOAT4x4_EQ(output[6], 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f,
+                       0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f);
+    EXPECT_FLOAT4x4_EQ(output[7], 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f,
+                       0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f);
+  }
+
+  {  // Updates from j2 excluded, no joint should be updated
+    EXPECT_TRUE(job_full.Run());
+    output[0] = output[1] = output[3] = output[4] = output[5] = output[6] =
+        output[7] = ozz::math::Float4x4::identity();
+    output[2] = ozz::math::Float4x4::Scaling(
+        ozz::math::simd_float4::Load(2.f, 2.f, 2.f, 0.f));
+
+    LocalToModelJob job;
+    job.skeleton = skeleton;
+    job.from = 2;
+    job.from_excluded = true;
+    job.input.begin = input;
+    job.input.end = input + 2;
+    job.output.begin = output;
+    job.output.end = output + 8;
+    EXPECT_TRUE(job.Validate());
+    EXPECT_TRUE(job.Run());
+
+    EXPECT_FLOAT4x4_EQ(output[0], 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f,
+                       0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f);
+    EXPECT_FLOAT4x4_EQ(output[1], 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f,
+                       0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f);
+    EXPECT_FLOAT4x4_EQ(output[2], 2.f, 0.f, 0.f, 0.f, 0.f, 2.f, 0.f, 0.f, 0.f,
+                       0.f, 2.f, 0.f, 0.f, 0.f, 0.f, 1.f);
+    EXPECT_FLOAT4x4_EQ(output[3], 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f,
+                       0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f);
+    EXPECT_FLOAT4x4_EQ(output[4], 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f,
+                       0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f);
+    EXPECT_FLOAT4x4_EQ(output[5], 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f,
+                       0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f);
+    EXPECT_FLOAT4x4_EQ(output[6], 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f,
+                       0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f);
+    EXPECT_FLOAT4x4_EQ(output[7], 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f,
+                       0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f);
+  }
+
+  {  // Updates from j7 excluded, no joint should be updated
+    output[0] = output[1] = output[2] = output[3] = output[4] = output[5] =
+        output[6] = ozz::math::Float4x4::identity();
+    output[7] = ozz::math::Float4x4::Scaling(
+        ozz::math::simd_float4::Load(2.f, 2.f, 2.f, 0.f));
+
+    LocalToModelJob job;
+    job.skeleton = skeleton;
+    job.from = 7;
+    job.from_excluded = true;
+    job.input.begin = input;
+    job.input.end = input + 2;
+    job.output.begin = output;
+    job.output.end = output + 8;
+    EXPECT_TRUE(job.Validate());
+    EXPECT_TRUE(job.Run());
+
+    EXPECT_FLOAT4x4_EQ(output[0], 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f,
+                       0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f);
+    EXPECT_FLOAT4x4_EQ(output[1], 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f,
+                       0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f);
+    EXPECT_FLOAT4x4_EQ(output[2], 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f,
+                       0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f);
+    EXPECT_FLOAT4x4_EQ(output[3], 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f,
+                       0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f);
+    EXPECT_FLOAT4x4_EQ(output[4], 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f,
+                       0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f);
+    EXPECT_FLOAT4x4_EQ(output[5], 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f,
+                       0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f);
+    EXPECT_FLOAT4x4_EQ(output[6], 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f,
+                       0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f);
+    EXPECT_FLOAT4x4_EQ(output[7], 2.f, 0.f, 0.f, 0.f, 0.f, 2.f, 0.f, 0.f, 0.f,
+                       0.f, 2.f, 0.f, 0.f, 0.f, 0.f, 1.f);
+  }
+
+  {  // Updates from j6 excluded, no joint should be updated
+    EXPECT_TRUE(job_full.Run());
+    output[0] = output[1] = output[2] = output[3] = output[4] = output[5] =
+        output[7] = ozz::math::Float4x4::identity();
+    output[6] = ozz::math::Float4x4::Scaling(
+        ozz::math::simd_float4::Load(2.f, 2.f, 2.f, 0.f));
+
+    LocalToModelJob job;
+    job.skeleton = skeleton;
+    job.from = 6;
+    job.from_excluded = true;
+    job.input.begin = input;
+    job.input.end = input + 2;
+    job.output.begin = output;
+    job.output.end = output + 8;
+    EXPECT_TRUE(job.Validate());
+    EXPECT_TRUE(job.Run());
+
+    EXPECT_FLOAT4x4_EQ(output[0], 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f,
+                       0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f);
+    EXPECT_FLOAT4x4_EQ(output[1], 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f,
+                       0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f);
+    EXPECT_FLOAT4x4_EQ(output[2], 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f,
+                       0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f);
+    EXPECT_FLOAT4x4_EQ(output[3], 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f,
+                       0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f);
+    EXPECT_FLOAT4x4_EQ(output[4], 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f,
+                       0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f);
+    EXPECT_FLOAT4x4_EQ(output[5], 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f,
+                       0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f);
+    EXPECT_FLOAT4x4_EQ(output[6], 2.f, 0.f, 0.f, 0.f, 0.f, 2.f, 0.f, 0.f, 0.f,
+                       0.f, 2.f, 0.f, 0.f, 0.f, 0, 1.f);
+    EXPECT_FLOAT4x4_EQ(output[7], 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f,
+                       0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f);
+  }
+  ozz::memory::default_allocator()->Delete(skeleton);
+}
+
 TEST(Empty, LocalToModel) {
   Skeleton skeleton;
 

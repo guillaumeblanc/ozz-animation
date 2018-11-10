@@ -43,7 +43,8 @@ LocalToModelJob::LocalToModelJob()
     : skeleton(NULL),
       root(NULL),
       from(Skeleton::kNoParent),
-      to(Skeleton::kMaxJoints) {}
+      to(Skeleton::kMaxJoints),
+      from_excluded(false) {}
 
 bool LocalToModelJob::Validate() const {
   // Don't need any early out, as jobs are valid in most of the performance
@@ -71,16 +72,22 @@ bool LocalToModelJob::Run() const {
     return false;
   }
 
+  const Range<const int16_t>& parents = skeleton->joint_parents();
+
   // Initializes an identity matrix that will be used to compute roots model
   // matrices without requiring a branch.
   const math::Float4x4 identity = math::Float4x4::identity();
   const math::Float4x4* root_matrix = (root == NULL) ? &identity : root;
 
-  // Applies hierarchical transformation. Note that first joint must always be
-  // processed, before checking if process.
-  const Range<const int16_t>& parents = skeleton->joint_parents();
+  // Applies hierarchical transformation.
+  // Begins iteration from "from", or the next joint if "from" is excluded.
+  const int begin = math::Max(from + from_excluded, 0);
+  // Ends after "to".
   const int end = math::Min(to + 1, skeleton->num_joints());
-  for (int i = math::Max(from, 0), process = i < end; process;) {
+  // Process next joint if end is not reach. parents[begin] >= from is true as
+  // long as "begin" is a child of "from".
+  bool process = begin < end && (!from_excluded || parents[begin] >= from);
+  for (int i = begin; process;) {
     // Builds soa matrices from soa transforms.
     const math::SoaTransform& transform = input.begin[i / 4];
     const math::SoaFloat4x4 local_soa_matrices = math::SoaFloat4x4::FromAffine(
