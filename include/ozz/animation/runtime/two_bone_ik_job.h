@@ -44,14 +44,46 @@ struct TwoBoneIKJob {
   // Default constructor, initializes default values.
   TwoBoneIKJob();
 
+  // Validates job parameters. Returns true for a valid job, or false otherwise:
+  // -if any input pointer is NULL
+  // -if mid_axis_ms isn't normalized.
   bool Validate() const;
 
+  // Runs job's sampling task.
+  // The job is validated before any operation is performed, see Validate() for
+  // more details.
+  // Returns false if *this job is not valid.
   bool Run() const;
 
+  // Tagert IK position, in model-space.
   math::SimdFloat4 handle;
+
+  // Pole vector, in model-space. The pole vector defines where the direction
+  // the middle joint should point to, allowing to control IK chain orientation.
+  // Note that IK chain orientation will flip when handle vector and the pole
+  // vector are aligned/crossing each other. It's caller responsibility to
+  // ensure that this doens't happen.
   math::SimdFloat4 pole_vector;
-  math::SimdFloat4 mid_axis;  // Positive opens arms
+
+  // Normalized middle joint rotation axis, in middle joint local-space. Default
+  // value is z axis. This axis is usually fixed for a given skeleton (as it's
+  // in middle joint space). If the two bones are not aligned, then this axis
+  // can be computed as the cross product of mid-to-start and mid_to-end
+  // vectors. Direction of this axis is defined like this: a positive rotation
+  // around this axis will open the angle between the two bones. This in turn
+  // also defines which side the two joints must bend.
+  math::SimdFloat4 mid_axis_ms;
+
+  float weight;
+
+
+  // soften ratio allows the chain to gradually fall behind the the handle
+  // position. This prevent the joint chain from snapping into the final
+  // position, softening
   float soften;
+
+  // twist_angle rotates IK chain orientation around the vector define by start
+  // to handle direction. Default is 0.
   float twist_angle;
 
   const math::Float4x4* start_joint;

@@ -40,7 +40,8 @@ namespace animation {
 TwoBoneIKJob::TwoBoneIKJob()
     : handle(math::simd_float4::zero()),
       pole_vector(math::simd_float4::y_axis()),
-      mid_axis(math::simd_float4::z_axis()),
+      mid_axis_ms(math::simd_float4::z_axis()),
+      weight(1.f),
       soften(1.f),
       twist_angle(0.f),
       start_joint(NULL),
@@ -53,7 +54,7 @@ bool TwoBoneIKJob::Validate() const {
   bool valid = true;
   valid &= start_joint && mid_joint && end_joint;
   valid &= start_joint_correction && mid_joint_correction;
-  valid &= ozz::math::AreAllTrue1(ozz::math::IsNormalizedEst3(mid_axis));
+  valid &= ozz::math::AreAllTrue1(ozz::math::IsNormalizedEst3(mid_axis_ms));
   return valid;
 }
 
@@ -186,9 +187,9 @@ bool TwoBoneIKJob::Run() const {
 
   // Computes initial angle.
   // The sign of this angle needs to be decided. It's considered negative if
-  // mid-to-end joint is bent backward (mid_axis direction dictates valid bent
-  // direction).
-  const SimdFloat4 bent_side_ref = Cross3(start_mid_ms, mid_axis);
+  // mid-to-end joint is bent backward (mid_axis_ms direction dictates valid
+  // bent direction).
+  const SimdFloat4 bent_side_ref = Cross3(start_mid_ms, mid_axis_ms);
   const SimdInt4 bent_side_flip =
       SplatX(CmpLt(Dot3(bent_side_ref, mid_end_ms), zero));
   const SimdFloat4 mid_initial_angle =
@@ -197,11 +198,9 @@ bool TwoBoneIKJob::Run() const {
   // Finally deduces initial to corrected angle difference.
   const SimdFloat4 mid_angles_diff = mid_corrected_angle - mid_initial_angle;
 
+  // Builds queternion.
   const SimdQuaternion mid_rot_ms =
-      SimdQuaternion::FromAxisAngle(mid_axis, mid_angles_diff);
-
-  // Output start and mid joint rotation corrections.
-  *mid_joint_correction = mid_rot_ms;
+      SimdQuaternion::FromAxisAngle(mid_axis_ms, mid_angles_diff);
 
   // Calculates end_to_handle_rot_ss quaternion which solves for effector
   // rotating onto the handle.
@@ -221,6 +220,7 @@ bool TwoBoneIKJob::Run() const {
   // the reference plane (pole vector). This can only be computed if start
   // handle axis is valid (not 0 length)
   // -------------------------------------------------
+  SimdQuaternion start_rot_ss = end_to_handle_rot_ss;
   if (AreAllTrue1(CmpGt(start_handle_ss_len2, zero))) {
     // Computes each plane normal.
     const ozz::math::SimdFloat4 ref_plane_normal_ss =
@@ -229,8 +229,8 @@ bool TwoBoneIKJob::Run() const {
         ozz::math::Length3Sqr(ref_plane_normal_ss);
     // Computes joint chain plane normal, which is the same as mid joint axis
     // (same triangle).
-    const ozz::math::SimdFloat4 mid_axis_ss =
-        TransformVector(inv_start_joint, TransformVector(*mid_joint, mid_axis));
+    const ozz::math::SimdFloat4 mid_axis_ss = TransformVector(
+        inv_start_joint, TransformVector(*mid_joint, mid_axis_ms));
     const ozz::math::SimdFloat4 joint_plane_normal_ss =
         TransformVector(end_to_handle_rot_ss, mid_axis_ss);
     const ozz::math::SimdFloat4 joint_plane_normal_ss_len2 =
@@ -263,14 +263,33 @@ bool TwoBoneIKJob::Run() const {
       // rotation plane axis.
       const SimdQuaternion twist_ss = SimdQuaternion::FromAxisAngle(
           rotate_plane_axis_ss, simd_float4::Load1(twist_angle));
-      *start_joint_correction =
-          twist_ss * rotate_plane_ss * end_to_handle_rot_ss;
+      start_rot_ss = twist_ss * rotate_plane_ss * end_to_handle_rot_ss;
     } else {
-      *start_joint_correction = rotate_plane_ss * end_to_handle_rot_ss;
+      start_rot_ss = rotate_plane_ss * end_to_handle_rot_ss;
     }
+  }
+
+  // Finally apply weight if required.
+  if (weight < 1.f) {
+    // Fix up quaternions so w is always positive, which is required for NLerp
+    // (with identity quaternion) to lerp the shortest path.
+    const SimdFloat4 start_rot_ss_fu =
+        Xor(start_rot_ss.xyzw,
+            And(mask_sign, CmpLt(SplatW(start_rot_ss.xyzw), zero)));
+    const SimdFloat4 mid_rot_ms_fu = Xor(
+        mid_rot_ms.xyzw, And(mask_sign, CmpLt(SplatW(mid_rot_ms.xyzw), zero)));
+
+    // NLerp start and mid joint rotations.
+    const SimdFloat4 identity = simd_float4::w_axis();
+    const SimdFloat4 simd_weight = Clamp(zero, simd_float4::Load1(weight), one);
+    start_joint_correction->xyzw =
+        NormalizeEst4(Lerp(identity, start_rot_ss_fu, simd_weight));
+    mid_joint_correction->xyzw =
+        NormalizeEst4(Lerp(identity, mid_rot_ms_fu, simd_weight));
   } else {
-    // Can't apply pole vector correction.
-    *start_joint_correction = end_to_handle_rot_ss;
+    // Quatenion don't need fixup.
+    *start_joint_correction = start_rot_ss;
+    *mid_joint_correction = mid_rot_ms;
   }
 
   return true;
