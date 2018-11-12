@@ -76,7 +76,6 @@ struct TwoBoneIKJob {
 
   float weight;
 
-
   // soften ratio allows the chain to gradually fall behind the the handle
   // position. This prevent the joint chain from snapping into the final
   // position, softening

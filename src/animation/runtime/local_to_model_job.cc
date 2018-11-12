@@ -80,14 +80,14 @@ bool LocalToModelJob::Run() const {
   const math::Float4x4* root_matrix = (root == NULL) ? &identity : root;
 
   // Applies hierarchical transformation.
-  // Begins iteration from "from", or the next joint if "from" is excluded.
-  const int begin = math::Max(from + from_excluded, 0);
-  // Ends after "to".
+  // Loop ends after "to".
   const int end = math::Min(to + 1, skeleton->num_joints());
+  // Begins iteration from "from", or the next joint if "from" is excluded.
   // Process next joint if end is not reach. parents[begin] >= from is true as
   // long as "begin" is a child of "from".
-  bool process = begin < end && (!from_excluded || parents[begin] >= from);
-  for (int i = begin; process;) {
+  for (int i = math::Max(from + from_excluded, 0),
+           process = i < end && (!from_excluded || parents[i] >= from);
+       process;) {
     // Builds soa matrices from soa transforms.
     const math::SoaTransform& transform = input.begin[i / 4];
     const math::SoaFloat4x4 local_soa_matrices = math::SoaFloat4x4::FromAffine(
@@ -102,8 +102,8 @@ bool LocalToModelJob::Run() const {
     for (const int soa_end = (i + 4) & ~3; i < soa_end && process;
          ++i, process = i < end && parents[i] >= from) {
       const int parent = parents[i];
-      const math::Float4x4* parent_matrix = math::Select(
-          parent == Skeleton::kNoParent, root_matrix, &output[parent]);
+      const math::Float4x4* parent_matrix =
+          parent == Skeleton::kNoParent ? root_matrix : &output[parent];
       output[i] = *parent_matrix * local_aos_matrices[i & 3];
     }
   }
