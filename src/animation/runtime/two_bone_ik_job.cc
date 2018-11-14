@@ -59,20 +59,79 @@ bool TwoBoneIKJob::Validate() const {
 }
 
 namespace {
+
+// Local data structure used to share constant data accross ik stages.
+struct IKConstantSetup {
+  IKConstantSetup(const TwoBoneIKJob& _job) {
+    // Prepares constants
+    one = simd_float4::one();
+    mask_sign = simd_int4::mask_sign();
+    m_one = Xor(one, mask_sign);
+
+    // Computes inverse matrices required to change to start and mid spaces.
+    inv_start_joint = Invert(*_job.start_joint);
+    const Float4x4 inv_mid_joint = Invert(*_job.mid_joint);
+
+    // Transform some positions to mid joint space (_ms)
+    const SimdFloat4 start_ms =
+        TransformPoint(inv_mid_joint, _job.start_joint->cols[3]);
+    const SimdFloat4 end_ms =
+        TransformPoint(inv_mid_joint, _job.end_joint->cols[3]);
+
+    // Transform some positions to start joint space (_ss)
+    const SimdFloat4 mid_ss =
+        TransformPoint(inv_start_joint, _job.mid_joint->cols[3]);
+    const SimdFloat4 end_ss =
+        TransformPoint(inv_start_joint, _job.end_joint->cols[3]);
+
+    // Computes bones vectors and length in mid and start spaces.
+    // Start joint position will be treated as 0 because all joints are
+    // expressed in start joint space.
+    start_mid_ms = -start_ms;
+    mid_end_ms = end_ms;
+    start_mid_ss = mid_ss;
+    const SimdFloat4 mid_end_ss = end_ss - mid_ss;
+    const SimdFloat4 start_end_ss = end_ss;
+    start_mid_ss_len2 = Length3Sqr(start_mid_ss);
+    mid_end_ss_len2 = Length3Sqr(mid_end_ss);
+    start_end_ss_len2 = Length3Sqr(start_end_ss);
+  }
+
+  // Constants
+  SimdFloat4 one;
+  SimdFloat4 m_one;
+  SimdInt4 mask_sign;
+
+  // Inverse matrices
+  Float4x4 inv_start_joint;
+
+  // Bones vectors and length in mid and start spaces (_ms and _ss).
+  SimdFloat4 start_mid_ms;
+  SimdFloat4 mid_end_ms;
+  SimdFloat4 start_mid_ss;
+  SimdFloat4 start_mid_ss_len2;
+  SimdFloat4 mid_end_ss_len2;
+  SimdFloat4 start_end_ss_len2;
+};
+
 // Smoothen handle position when it's further that a ratio of the joint chain
 // length, and start to handle length isn't 0.
 // Inspired from http://www.softimageblog.com/archives/108
-bool SoftenHandle(_SimdFloat4 _start_mid_ss_len2, _SimdFloat4 _mid_end_ss_len2,
-                  _SimdFloat4 _handle_ss, float _soften,
+bool SoftenHandle(const TwoBoneIKJob& _job, const IKConstantSetup& _setup,
                   SimdFloat4* _start_handle_ss,
                   SimdFloat4* _start_handle_ss_len2) {
-  const SimdFloat4& start_handle_original_ss = _handle_ss;
-  const SimdFloat4 start_handle_original_ss_len2 = Length3Sqr(_handle_ss);
+  // Hanlde position in start joint space (_ss)
+  const SimdFloat4 handle_ss =
+      TransformPoint(_setup.inv_start_joint, _job.handle);
 
-  const SimdFloat4 bones_len = Sqrt(SetY(_start_mid_ss_len2, _mid_end_ss_len2));
+  const SimdFloat4& start_handle_original_ss = handle_ss;
+  const SimdFloat4 start_handle_original_ss_len2 = Length3Sqr(handle_ss);
+
+  const SimdFloat4 bones_len =
+      Sqrt(SetY(_setup.start_mid_ss_len2, _setup.mid_end_ss_len2));
   const SimdFloat4 bones_chain_len = bones_len + SplatY(bones_len);
   const SimdFloat4 da =  // da.yzw needs to be 0
-      bones_chain_len * simd_float4::LoadX(Clamp(_soften, 0.f, 1.f));
+      bones_chain_len * simd_float4::LoadX(Clamp(_job.soften, 0.f, 1.f));
   const SimdFloat4 ds = bones_chain_len - da;
 
   // Sotftens handle position if it is further than a ratio (_soften) of the
@@ -112,56 +171,10 @@ bool SoftenHandle(_SimdFloat4 _start_mid_ss_len2, _SimdFloat4 _mid_end_ss_len2,
   // reached.
   return !needs_softening;
 }
-}  // namespace
 
-bool TwoBoneIKJob::Run() const {
-  if (!Validate()) {
-    return false;
-  }
-
-  // Prepares constants
-  const SimdFloat4 zero = simd_float4::zero();
-  const SimdFloat4 one = simd_float4::one();
-  const SimdInt4 mask_sign = simd_int4::mask_sign();
-  const SimdFloat4 m_one = Xor(one, mask_sign);
-
-  // Computes inverse matrices required to change to start and mid spaces.
-  const Float4x4 inv_start_joint = Invert(*start_joint);
-  const Float4x4 inv_mid_joint = Invert(*mid_joint);
-
-  // Transform some positions to mid joint space (_ms)
-  const SimdFloat4 start_ms =
-      TransformPoint(inv_mid_joint, start_joint->cols[3]);
-  const SimdFloat4 end_ms = TransformPoint(inv_mid_joint, end_joint->cols[3]);
-
-  // Transform some positions to start joint space (_ss)
-  const SimdFloat4 mid_ss = TransformPoint(inv_start_joint, mid_joint->cols[3]);
-  const SimdFloat4 end_ss = TransformPoint(inv_start_joint, end_joint->cols[3]);
-  const SimdFloat4 handle_ss = TransformPoint(inv_start_joint, handle);
-  const SimdFloat4 pole_ss = TransformVector(inv_start_joint, pole_vector);
-
-  // Computes bones vectors and length in mid and start spaces.
-  // Start joint position will be treated as 0 because all joints are
-  // expressed in start joint space.
-  const SimdFloat4 start_mid_ms = -start_ms;
-  const SimdFloat4& mid_end_ms = end_ms;
-  const SimdFloat4& start_mid_ss = mid_ss;
-  const SimdFloat4 mid_end_ss = end_ss - mid_ss;
-  const SimdFloat4& start_end_ss = end_ss;
-  const SimdFloat4 start_mid_ss_len2 = Length3Sqr(start_mid_ss);
-  const SimdFloat4 mid_end_ss_len2 = Length3Sqr(mid_end_ss);
-  const SimdFloat4 start_end_ss_len2 = Length3Sqr(start_end_ss);
-
-  // Finds soften handle position.
-  SimdFloat4 start_handle_ss;
-  SimdFloat4 start_handle_ss_len2;
-  SoftenHandle(start_mid_ss_len2, mid_end_ss_len2, handle_ss, soften,
-               &start_handle_ss, &start_handle_ss_len2);
-
-  // Calculate mid_rot_local quaternion which solves for the mid_ss joint
-  // rotation.
-  // --------------------------------------------------------------------------
-
+SimdQuaternion ComputeMidJoint(const TwoBoneIKJob& _job,
+                               const IKConstantSetup& _setup,
+                               _SimdFloat4 _start_handle_ss_len2) {
   // Computes expected angle at mid_ss joint, using law of cosine (generalized
   // Pythagorean).
   // c^2 = a^2 + b^2 - 2ab cosC
@@ -169,18 +182,19 @@ bool TwoBoneIKJob::Run() const {
   // Computes both corrected and initial mid joint angles
   // cosine within a single SimdFloat4 (corrected is x component, initial is y).
   const SimdFloat4 start_mid_end_sum_ss_len2 =
-      start_mid_ss_len2 + mid_end_ss_len2;
+      _setup.start_mid_ss_len2 + _setup.mid_end_ss_len2;
   const SimdFloat4 start_mid_end_ss_half_rlen =
       SplatX(simd_float4::Load1(.5f) *
-             RSqrtEstXNR(start_mid_ss_len2 * mid_end_ss_len2));
+             RSqrtEstXNR(_setup.start_mid_ss_len2 * _setup.mid_end_ss_len2));
   // Cos value needs to be clamped, as it will exit expected range if
   // start_handle_ss_len2 is longer than the triangle can be (start_mid_ss +
   // mid_end_ss).
   const SimdFloat4 mid_cos_angles_unclamped =
       (SplatX(start_mid_end_sum_ss_len2) -
-       SetY(start_handle_ss_len2, start_end_ss_len2)) *
+       SetY(_start_handle_ss_len2, _setup.start_end_ss_len2)) *
       start_mid_end_ss_half_rlen;
-  const SimdFloat4 mid_cos_angles = Clamp(m_one, mid_cos_angles_unclamped, one);
+  const SimdFloat4 mid_cos_angles =
+      Clamp(_setup.m_one, mid_cos_angles_unclamped, _setup.one);
 
   // Computes corrected angle
   const SimdFloat4 mid_corrected_angle = ACosX(mid_cos_angles);
@@ -189,55 +203,63 @@ bool TwoBoneIKJob::Run() const {
   // The sign of this angle needs to be decided. It's considered negative if
   // mid-to-end joint is bent backward (mid_axis_ms direction dictates valid
   // bent direction).
-  const SimdFloat4 bent_side_ref = Cross3(start_mid_ms, mid_axis_ms);
-  const SimdInt4 bent_side_flip =
-      SplatX(CmpLt(Dot3(bent_side_ref, mid_end_ms), zero));
+  const SimdFloat4 bent_side_ref =
+      Cross3(_setup.start_mid_ms, _job.mid_axis_ms);
+  const SimdInt4 bent_side_flip = SplatX(
+      CmpLt(Dot3(bent_side_ref, _setup.mid_end_ms), simd_float4::zero()));
   const SimdFloat4 mid_initial_angle =
-      Xor(ACosX(SplatY(mid_cos_angles)), And(bent_side_flip, mask_sign));
+      Xor(ACosX(SplatY(mid_cos_angles)), And(bent_side_flip, _setup.mask_sign));
 
   // Finally deduces initial to corrected angle difference.
   const SimdFloat4 mid_angles_diff = mid_corrected_angle - mid_initial_angle;
 
   // Builds queternion.
-  const SimdQuaternion mid_rot_ms =
-      SimdQuaternion::FromAxisAngle(mid_axis_ms, mid_angles_diff);
+  return SimdQuaternion::FromAxisAngle(_job.mid_axis_ms, mid_angles_diff);
+}
 
-  // Calculates end_to_handle_rot_ss quaternion which solves for effector
-  // rotating onto the handle.
-  // -----------------------------------------------------------------
+SimdQuaternion ComputeStartJoint(const TwoBoneIKJob& _job,
+                                 const IKConstantSetup& _setup,
+                                 const SimdQuaternion& _mid_rot_ms,
+                                 _SimdFloat4 _start_handle_ss,
+                                 _SimdFloat4 _start_handle_ss_len2) {
+  // Pole vector in start joint space (_ss)
+  const SimdFloat4 pole_ss =
+      TransformVector(_setup.inv_start_joint, _job.pole_vector);
 
   // start_mid_ss with quaternion mid_rot_ms applied.
   const SimdFloat4 mid_end_ss_final = TransformVector(
-      inv_start_joint,
-      TransformVector(*mid_joint, TransformVector(mid_rot_ms, mid_end_ms)));
-  const SimdFloat4 start_end_ss_final = start_mid_ss + mid_end_ss_final;
+      _setup.inv_start_joint,
+      TransformVector(*_job.mid_joint,
+                      TransformVector(_mid_rot_ms, _setup.mid_end_ms)));
+  const SimdFloat4 start_end_ss_final = _setup.start_mid_ss + mid_end_ss_final;
 
   // Quaternion for rotating the effector onto the handle
   const SimdQuaternion end_to_handle_rot_ss =
-      SimdQuaternion::FromVectors(start_end_ss_final, start_handle_ss);
+      SimdQuaternion::FromVectors(start_end_ss_final, _start_handle_ss);
 
   // Calculates rotate_plane_rot quaternion which aligns joint chain plane to
   // the reference plane (pole vector). This can only be computed if start
   // handle axis is valid (not 0 length)
   // -------------------------------------------------
   SimdQuaternion start_rot_ss = end_to_handle_rot_ss;
-  if (AreAllTrue1(CmpGt(start_handle_ss_len2, zero))) {
+  if (AreAllTrue1(CmpGt(_start_handle_ss_len2, simd_float4::zero()))) {
     // Computes each plane normal.
     const ozz::math::SimdFloat4 ref_plane_normal_ss =
-        Cross3(start_handle_ss, pole_ss);
+        Cross3(_start_handle_ss, pole_ss);
     const ozz::math::SimdFloat4 ref_plane_normal_ss_len2 =
         ozz::math::Length3Sqr(ref_plane_normal_ss);
     // Computes joint chain plane normal, which is the same as mid joint axis
     // (same triangle).
-    const ozz::math::SimdFloat4 mid_axis_ss = TransformVector(
-        inv_start_joint, TransformVector(*mid_joint, mid_axis_ms));
+    const ozz::math::SimdFloat4 mid_axis_ss =
+        TransformVector(_setup.inv_start_joint,
+                        TransformVector(*_job.mid_joint, _job.mid_axis_ms));
     const ozz::math::SimdFloat4 joint_plane_normal_ss =
         TransformVector(end_to_handle_rot_ss, mid_axis_ss);
     const ozz::math::SimdFloat4 joint_plane_normal_ss_len2 =
         ozz::math::Length3Sqr(joint_plane_normal_ss);
     // Computes all reciprocal square roots at once.
     const SimdFloat4 rsqrts =
-        RSqrtEstNR(SetZ(SetY(start_handle_ss_len2, ref_plane_normal_ss_len2),
+        RSqrtEstNR(SetZ(SetY(_start_handle_ss_len2, ref_plane_normal_ss_len2),
                         joint_plane_normal_ss_len2));
 
     // Computes angle cosine between the 2 normalized normals.
@@ -247,50 +269,92 @@ bool TwoBoneIKJob::Run() const {
 
     // Computes rotation axis, which is either start_handle_ss or
     // -start_handle_ss depending on rotation direction.
-    const SimdFloat4 rotate_plane_axis_ss = start_handle_ss * SplatX(rsqrts);
+    const SimdFloat4 rotate_plane_axis_ss = _start_handle_ss * SplatX(rsqrts);
     const SimdFloat4 start_axis_flip =
-        And(SplatX(Dot3(joint_plane_normal_ss, pole_ss)), mask_sign);
+        And(SplatX(Dot3(joint_plane_normal_ss, pole_ss)), _setup.mask_sign);
     const SimdFloat4 rotate_plane_axis_flipped_ss =
         Xor(rotate_plane_axis_ss, start_axis_flip);
 
     // Builds quaternion along rotation axis.
     const SimdQuaternion rotate_plane_ss = SimdQuaternion::FromAxisCosAngle(
         rotate_plane_axis_flipped_ss,
-        Clamp(m_one, rotate_plane_cos_angle, one));
+        Clamp(_setup.m_one, rotate_plane_cos_angle, _setup.one));
 
-    if (twist_angle != 0.f) {
+    if (_job.twist_angle != 0.f) {
       // If a twist angle is provided, rotation angle is rotated along
       // rotation plane axis.
       const SimdQuaternion twist_ss = SimdQuaternion::FromAxisAngle(
-          rotate_plane_axis_ss, simd_float4::Load1(twist_angle));
+          rotate_plane_axis_ss, simd_float4::Load1(_job.twist_angle));
       start_rot_ss = twist_ss * rotate_plane_ss * end_to_handle_rot_ss;
     } else {
       start_rot_ss = rotate_plane_ss * end_to_handle_rot_ss;
     }
   }
+  return start_rot_ss;
+}
 
-  // Finally apply weight if required.
-  if (weight < 1.f) {
-    // Fix up quaternions so w is always positive, which is required for NLerp
-    // (with identity quaternion) to lerp the shortest path.
-    const SimdFloat4 start_rot_ss_fu =
-        Xor(start_rot_ss.xyzw,
-            And(mask_sign, CmpLt(SplatW(start_rot_ss.xyzw), zero)));
-    const SimdFloat4 mid_rot_ms_fu = Xor(
-        mid_rot_ms.xyzw, And(mask_sign, CmpLt(SplatW(mid_rot_ms.xyzw), zero)));
+void WeightOutput(const TwoBoneIKJob& _job, const IKConstantSetup& _setup,
+                  const SimdQuaternion& _start_rot,
+                  const SimdQuaternion& _mid_rot) {
+  const SimdFloat4 zero = simd_float4::zero();
 
+  // Fix up quaternions so w is always positive, which is required for NLerp
+  // (with identity quaternion) to lerp the shortest path.
+  const SimdFloat4 _start_rot_fu =
+      Xor(_start_rot.xyzw,
+          And(_setup.mask_sign, CmpLt(SplatW(_start_rot.xyzw), zero)));
+  const SimdFloat4 _mid_rot_fu = Xor(
+      _mid_rot.xyzw, And(_setup.mask_sign, CmpLt(SplatW(_mid_rot.xyzw), zero)));
+
+  if (_job.weight < 1.f) {
     // NLerp start and mid joint rotations.
     const SimdFloat4 identity = simd_float4::w_axis();
-    const SimdFloat4 simd_weight = Clamp(zero, simd_float4::Load1(weight), one);
-    start_joint_correction->xyzw =
-        NormalizeEst4(Lerp(identity, start_rot_ss_fu, simd_weight));
-    mid_joint_correction->xyzw =
-        NormalizeEst4(Lerp(identity, mid_rot_ms_fu, simd_weight));
+    const SimdFloat4 simd_weight =
+        simd_float4::Load1(Clamp(0.f, _job.weight, 1.f));
+    _job.start_joint_correction->xyzw =
+        NormalizeEst4(Lerp(identity, _start_rot_fu, simd_weight));
+    _job.mid_joint_correction->xyzw =
+        NormalizeEst4(Lerp(identity, _mid_rot_fu, simd_weight));
   } else {
-    // Quatenion don't need fixup.
-    *start_joint_correction = start_rot_ss;
-    *mid_joint_correction = mid_rot_ms;
+    // Quatenions don't need interpolation
+    *_job.start_joint_correction = _start_rot;
+    *_job.mid_joint_correction = _mid_rot;
   }
+}
+}  // namespace
+
+bool TwoBoneIKJob::Run() const {
+  if (!Validate()) {
+    return false;
+  }
+
+  // Early out if weight is 0.
+  if (weight <= 0.f) {
+    *start_joint_correction = *mid_joint_correction =
+        SimdQuaternion::identity();
+    return true;
+  }
+
+  // Prepares constant ik data.
+  const IKConstantSetup setup(*this);
+
+  // Finds soften handle position.
+  SimdFloat4 start_handle_ss;
+  SimdFloat4 start_handle_ss_len2;
+  SoftenHandle(*this, setup, &start_handle_ss, &start_handle_ss_len2);
+
+  // Calculate mid_rot_local quaternion which solves for the mid_ss joint
+  // rotation.
+  const SimdQuaternion mid_rot_ms =
+      ComputeMidJoint(*this, setup, start_handle_ss_len2);
+
+  // Calculates end_to_handle_rot_ss quaternion which solves for effector
+  // rotating onto the handle.
+  const SimdQuaternion start_rot_ss = ComputeStartJoint(
+      *this, setup, mid_rot_ms, start_handle_ss, start_handle_ss_len2);
+
+  // Finally apply weight and output quaternions.
+  WeightOutput(*this, setup, start_rot_ss, mid_rot_ms);
 
   return true;
 }
