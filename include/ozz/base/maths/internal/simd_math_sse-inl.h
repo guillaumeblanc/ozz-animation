@@ -791,7 +791,7 @@ OZZ_INLINE SimdFloat4 NormalizeSafeEst4(_SimdFloat4 _v, _SimdFloat4 _safe) {
 }
 
 OZZ_INLINE SimdFloat4 Lerp(_SimdFloat4 _a, _SimdFloat4 _b, _SimdFloat4 _alpha) {
-  return _mm_add_ps(_mm_mul_ps(_alpha, _mm_sub_ps(_b, _a)), _a);
+  return OZZ_MADD(_alpha, _mm_sub_ps(_b, _a), _a);
 }
 
 OZZ_INLINE SimdFloat4 Min(_SimdFloat4 _a, _SimdFloat4 _b) {
