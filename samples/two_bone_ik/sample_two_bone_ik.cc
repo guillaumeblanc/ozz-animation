@@ -55,36 +55,19 @@ ozz::math::Float4x4 sroot;
 
 ozz::math::SimdFloat4 g_handle_pos;
 
-void SetQuaternion(int _joint, const ozz::math::SimdQuaternion& _quat,
-                   const ozz::Range<ozz::math::SoaTransform>& _transforms) {
-  const int joint_soa = _joint / 4;
-  const int joint_soa_r = _joint - joint_soa * 4;
-  const ozz::math::SimdInt4 kMasks[] = {
-      ozz::math::simd_int4::mask_f000(), ozz::math::simd_int4::mask_0f00(),
-      ozz::math::simd_int4::mask_00f0(), ozz::math::simd_int4::mask_000f()};
-  const ozz::math::SimdInt4 mask = kMasks[joint_soa_r];
-  ozz::math::SoaQuaternion& qlocal = _transforms[joint_soa].rotation;
-  /*
-  qlocal.x =
-      ozz::math::Select(mask, ozz::math::SplatX(smid_rotation), qlocal.x);
-  qlocal.y =
-      ozz::math::Select(mask, ozz::math::SplatY(smid_rotation), qlocal.y);
-  qlocal.z =
-      ozz::math::Select(mask, ozz::math::SplatZ(smid_rotation), qlocal.z);
-  qlocal.w =
-      ozz::math::Select(mask, ozz::math::SplatW(smid_rotation), qlocal.w);
-          */
-  ozz::math::SoaQuaternion q = {
-      ozz::math::Select(mask, ozz::math::SplatX(_quat.xyzw),
-                        ozz::math::simd_float4::zero()),
-      ozz::math::Select(mask, ozz::math::SplatY(_quat.xyzw),
-                        ozz::math::simd_float4::zero()),
-      ozz::math::Select(mask, ozz::math::SplatZ(_quat.xyzw),
-                        ozz::math::simd_float4::zero()),
-      ozz::math::Select(mask, ozz::math::SplatW(_quat.xyzw),
-                        ozz::math::simd_float4::one())};
+void ApplyQuaternion(int _joint, const ozz::math::SimdQuaternion& _quat,
+                     const ozz::Range<ozz::math::SoaTransform>& _transforms) {
+  // Convert soa to aos in order to perform quaternion multiplication, and gets
+  // back to soa.
 
-  qlocal = qlocal * q;
+  ozz::math::SoaTransform& soa_transform = _transforms[_joint / 4];
+  ozz::math::SimdFloat4 aos_quats[4];
+  ozz::math::SimdFloat4& aos_joint_quat_ref = aos_quats[_joint & 3];
+
+  ozz::math::Transpose4x4(&soa_transform.rotation.x, aos_quats);
+  const ozz::math::SimdQuaternion joint_quat = {aos_joint_quat_ref};
+  aos_joint_quat_ref = (joint_quat * _quat).xyzw;
+  ozz::math::Transpose4x4(aos_quats, &soa_transform.rotation.x);
 }
 
 // Skeleton archive can be specified as an option.
@@ -102,10 +85,11 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
         doik(true),
         scale_(1.f),
         pole_vector(0.f, 1.f, 0.f),
-        twist_angle_(0.f),
+        weight_(1.f),
         soften_(1.f),
+        twist_angle_(0.f),
         extent(0.f),
-        handle_offset(0.f, .1f, .1f),
+        handle_offset(1.f, .1f, 0.f),
         use_loaded_skeleton_(true),
         show_handle_(true),
         show_joints_(false),
@@ -115,15 +99,17 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
   virtual bool OnUpdate(float _dt) {
     (void)_dt;
 
+    sroot = ozz::math::Float4x4::Scaling(ozz::math::simd_float4::Load1(scale_));
+
     for (size_t i = 0; i < locals_.size(); ++i) {
       locals_[i] = skeleton_->joint_bind_poses()[i];
     }
 
-    sroot = ozz::math::Float4x4::Scaling(ozz::math::simd_float4::Load1(scale_));
-
     // Converts from local space to model space matrices.
     ozz::animation::LocalToModelJob ltm_job;
     ltm_job.skeleton = skeleton_;
+    ltm_job.from = ozz::animation::Skeleton::kNoParent;  // TODO explain
+    ltm_job.to = end_joint_;
     ltm_job.input = make_range(locals_);
     ltm_job.output = make_range(models_);
     ltm_job.root = &sroot;
@@ -142,6 +128,8 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
       return false;
     }
 
+    ltm_job.from = start_joint_;                        // TODO explain
+    ltm_job.to = ozz::animation::Skeleton::kMaxJoints;  // end_joint_;
     if (!ltm_job.Run()) {
       return false;
     }
@@ -153,6 +141,8 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
     ozz::animation::TwoBoneIKJob ik_job;
     ik_job.handle = g_handle_pos;
     ik_job.pole_vector = ozz::math::simd_float4::Load3PtrU(&pole_vector.x);
+    ik_job.mid_axis_ms = ozz::math::simd_float4::z_axis();
+    ik_job.weight = weight_;
     ik_job.soften = soften_;
     ik_job.twist_angle = twist_angle_;
     ik_job.start_joint = &models_[start_joint_];
@@ -167,8 +157,12 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
     }
 
     if (doik) {
-      SetQuaternion(mid_joint_, mid_correction, make_range(locals_));
-      SetQuaternion(start_joint_, start_correction, make_range(locals_));
+      ApplyQuaternion(mid_joint_, mid_correction, make_range(locals_));
+      ApplyQuaternion(start_joint_, start_correction, make_range(locals_));
+    } else {
+      for (size_t i = 0; i < locals_.size(); ++i) {
+        locals_[i] = skeleton_->joint_bind_poses()[i];
+      }
     }
 
     return true;
@@ -274,9 +268,9 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
     }
 
     // Initialize locals from skeleton bind pose
-    //     for (size_t i = 0; i < locals_.size(); ++i) {
-    //       locals_[i] = skeleton_->joint_bind_poses()[i];
-    //     }
+    for (size_t i = 0; i < locals_.size(); ++i) {
+      locals_[i] = skeleton_->joint_bind_poses()[i];
+    }
     return true;
   }
 
@@ -306,12 +300,13 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
       static bool opened = true;
       ozz::sample::ImGui::OpenClose oc_pole(_im_gui, "Handle position",
                                             &opened);
+      const float kOffsetRange = 2.f;
       sprintf(txt, "x %.2g", handle_offset.x);
-      _im_gui->DoSlider(txt, -1.f, 1.f, &handle_offset.x);
+      _im_gui->DoSlider(txt, -kOffsetRange, kOffsetRange, &handle_offset.x);
       sprintf(txt, "y %.2g", handle_offset.y);
-      _im_gui->DoSlider(txt, -1.f, 1.f, &handle_offset.y);
+      _im_gui->DoSlider(txt, -kOffsetRange, kOffsetRange, &handle_offset.y);
       sprintf(txt, "z %.2g", handle_offset.z);
-      _im_gui->DoSlider(txt, -1.f, 1.f, &handle_offset.z);
+      _im_gui->DoSlider(txt, -kOffsetRange, kOffsetRange, &handle_offset.z);
     }
 
     {
@@ -325,11 +320,13 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
       sprintf(txt, "z %.2g", pole_vector.z);
       _im_gui->DoSlider(txt, -1.f, 1.f, &pole_vector.z);
     }
+    sprintf(txt, "Weight: %.2g", weight_);
+    _im_gui->DoSlider(txt, 0.f, 1.f, &weight_);
+    sprintf(txt, "Soften: %.2g", soften_);
+    _im_gui->DoSlider(txt, 0.f, 1.f, &soften_, 2.f);
     sprintf(txt, "Twist angle: %.0f",
             twist_angle_ * ozz::math::kRadianToDegree);
     _im_gui->DoSlider(txt, -ozz::math::kPi, ozz::math::kPi, &twist_angle_);
-    sprintf(txt, "Soften: %.2g", soften_);
-    _im_gui->DoSlider(txt, 0.f, 1.f, &soften_, 2.f);
 
     {  // Display options
       static bool opened = true;
@@ -424,8 +421,9 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
   ozz::math::Float3 pole_vector;
 
   // TODO
-  float twist_angle_;
+  float weight_;
   float soften_;
+  float twist_angle_;
 
   // Handle positioning.
   float extent;
