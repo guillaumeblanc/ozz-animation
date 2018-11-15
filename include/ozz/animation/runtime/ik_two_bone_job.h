@@ -54,7 +54,7 @@ struct IKTwoBoneJob {
   // more details.
   // Returns false if *this job is not valid.
   bool Run() const;
-  
+
   // Job input.
 
   // Tagert IK position, in model-space.

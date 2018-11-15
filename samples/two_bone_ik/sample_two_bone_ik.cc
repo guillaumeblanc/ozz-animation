@@ -25,9 +25,9 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
+#include "ozz/animation/runtime/ik_two_bone_job.h"
 #include "ozz/animation/runtime/local_to_model_job.h"
 #include "ozz/animation/runtime/skeleton.h"
-#include "ozz/animation/runtime/ik_two_bone_job.h"
 
 #include "ozz/base/log.h"
 
@@ -60,14 +60,14 @@ void ApplyQuaternion(int _joint, const ozz::math::SimdQuaternion& _quat,
   // Convert soa to aos in order to perform quaternion multiplication, and gets
   // back to soa.
 
-  ozz::math::SoaTransform& soa_transform = _transforms[_joint / 4];
-  ozz::math::SimdFloat4 aos_quats[4];
-  ozz::math::SimdFloat4& aos_joint_quat_ref = aos_quats[_joint & 3];
+  ozz::math::SoaTransform& soa_transform_ref = _transforms[_joint / 4];
+  ozz::math::SimdQuaternion aos_quats[4];
+  ozz::math::Transpose4x4(&soa_transform_ref.rotation.x, &aos_quats->xyzw);
 
-  ozz::math::Transpose4x4(&soa_transform.rotation.x, aos_quats);
-  const ozz::math::SimdQuaternion joint_quat = {aos_joint_quat_ref};
-  aos_joint_quat_ref = (joint_quat * _quat).xyzw;
-  ozz::math::Transpose4x4(aos_quats, &soa_transform.rotation.x);
+  ozz::math::SimdQuaternion& aos_joint_quat_ref = aos_quats[_joint & 3];
+  aos_joint_quat_ref = aos_joint_quat_ref * _quat;
+
+  ozz::math::Transpose4x4(&aos_quats->xyzw, &soa_transform_ref.rotation.x);
 }
 
 // Skeleton archive can be specified as an option.

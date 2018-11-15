@@ -203,8 +203,7 @@ SimdQuaternion ComputeMidJoint(const IKTwoBoneJob& _job,
   // The sign of this angle needs to be decided. It's considered negative if
   // mid-to-end joint is bent backward (mid_axis direction dictates valid
   // bent direction).
-  const SimdFloat4 bent_side_ref =
-      Cross3(_setup.start_mid_ms, _job.mid_axis);
+  const SimdFloat4 bent_side_ref = Cross3(_setup.start_mid_ms, _job.mid_axis);
   const SimdInt4 bent_side_flip = SplatX(
       CmpLt(Dot3(bent_side_ref, _setup.mid_end_ms), simd_float4::zero()));
   const SimdFloat4 mid_initial_angle =
