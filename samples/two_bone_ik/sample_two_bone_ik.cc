@@ -141,7 +141,7 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
     ozz::animation::IKTwoBoneJob ik_job;
     ik_job.handle = g_handle_pos;
     ik_job.pole_vector = ozz::math::simd_float4::Load3PtrU(&pole_vector.x);
-    ik_job.mid_axis_ms = ozz::math::simd_float4::z_axis();
+    ik_job.mid_axis = ozz::math::simd_float4::z_axis();
     ik_job.weight = weight_;
     ik_job.soften = soften_;
     ik_job.twist_angle = twist_angle_;

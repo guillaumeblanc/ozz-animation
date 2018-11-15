@@ -46,7 +46,7 @@ struct IKTwoBoneJob {
 
   // Validates job parameters. Returns true for a valid job, or false otherwise:
   // -if any input pointer is NULL
-  // -if mid_axis_ms isn't normalized.
+  // -if mid_axis isn't normalized.
   bool Validate() const;
 
   // Runs job's sampling task.
@@ -54,6 +54,8 @@ struct IKTwoBoneJob {
   // more details.
   // Returns false if *this job is not valid.
   bool Run() const;
+  
+  // Job input.
 
   // Tagert IK position, in model-space.
   math::SimdFloat4 handle;
@@ -72,8 +74,10 @@ struct IKTwoBoneJob {
   // vectors. Direction of this axis is defined like this: a positive rotation
   // around this axis will open the angle between the two bones. This in turn
   // also defines which side the two joints must bend.
-  math::SimdFloat4 mid_axis_ms;
+  math::SimdFloat4 mid_axis;
 
+  // Weight given to the IK correction clamped in range [0,1]. This allows to
+  // blend / interpolate from no IK (0 weight) to full IK (1).
   float weight;
 
   // soften ratio allows the chain to gradually fall behind the the handle
@@ -85,11 +89,17 @@ struct IKTwoBoneJob {
   // to handle direction. Default is 0.
   float twist_angle;
 
+  // Model-space matrices of the start, middle and end joints of the chain.
+  // The 3 joints should be in the same hierarchy. They don't need to be direct
+  // children though.
   const math::Float4x4* start_joint;
   const math::Float4x4* mid_joint;
   const math::Float4x4* end_joint;
 
   // Job output.
+
+  // Local spaces correction to apply to start and middle joints in order for
+  // end joint to reach handle position.
   math::SimdQuaternion* start_joint_correction;
   math::SimdQuaternion* mid_joint_correction;
 };

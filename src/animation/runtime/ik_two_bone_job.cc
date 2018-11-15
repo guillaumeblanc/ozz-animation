@@ -40,7 +40,7 @@ namespace animation {
 IKTwoBoneJob::IKTwoBoneJob()
     : handle(math::simd_float4::zero()),
       pole_vector(math::simd_float4::y_axis()),
-      mid_axis_ms(math::simd_float4::z_axis()),
+      mid_axis(math::simd_float4::z_axis()),
       weight(1.f),
       soften(1.f),
       twist_angle(0.f),
@@ -54,7 +54,7 @@ bool IKTwoBoneJob::Validate() const {
   bool valid = true;
   valid &= start_joint && mid_joint && end_joint;
   valid &= start_joint_correction && mid_joint_correction;
-  valid &= ozz::math::AreAllTrue1(ozz::math::IsNormalizedEst3(mid_axis_ms));
+  valid &= ozz::math::AreAllTrue1(ozz::math::IsNormalizedEst3(mid_axis));
   return valid;
 }
 
@@ -201,10 +201,10 @@ SimdQuaternion ComputeMidJoint(const IKTwoBoneJob& _job,
 
   // Computes initial angle.
   // The sign of this angle needs to be decided. It's considered negative if
-  // mid-to-end joint is bent backward (mid_axis_ms direction dictates valid
+  // mid-to-end joint is bent backward (mid_axis direction dictates valid
   // bent direction).
   const SimdFloat4 bent_side_ref =
-      Cross3(_setup.start_mid_ms, _job.mid_axis_ms);
+      Cross3(_setup.start_mid_ms, _job.mid_axis);
   const SimdInt4 bent_side_flip = SplatX(
       CmpLt(Dot3(bent_side_ref, _setup.mid_end_ms), simd_float4::zero()));
   const SimdFloat4 mid_initial_angle =
@@ -214,7 +214,7 @@ SimdQuaternion ComputeMidJoint(const IKTwoBoneJob& _job,
   const SimdFloat4 mid_angles_diff = mid_corrected_angle - mid_initial_angle;
 
   // Builds queternion.
-  return SimdQuaternion::FromAxisAngle(_job.mid_axis_ms, mid_angles_diff);
+  return SimdQuaternion::FromAxisAngle(_job.mid_axis, mid_angles_diff);
 }
 
 SimdQuaternion ComputeStartJoint(const IKTwoBoneJob& _job,
@@ -252,7 +252,7 @@ SimdQuaternion ComputeStartJoint(const IKTwoBoneJob& _job,
     // (same triangle).
     const ozz::math::SimdFloat4 mid_axis_ss =
         TransformVector(_setup.inv_start_joint,
-                        TransformVector(*_job.mid_joint, _job.mid_axis_ms));
+                        TransformVector(*_job.mid_joint, _job.mid_axis));
     const ozz::math::SimdFloat4 joint_plane_normal_ss =
         TransformVector(end_to_handle_rot_ss, mid_axis_ss);
     const ozz::math::SimdFloat4 joint_plane_normal_ss_len2 =
