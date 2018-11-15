@@ -143,7 +143,7 @@ TEST(JobValidity, IKTwoBoneJob) {
 
   {  // Unnormalized mid axis
     ozz::animation::IKTwoBoneJob job;
-    job.mid_axis_ms =
+    job.mid_axis =
         ozz::math::simd_float4::Load(0.f, .70710678f, 0.f, .70710678f);
     job.start_joint = &start;
     job.mid_joint = &mid;
@@ -179,7 +179,7 @@ TEST(StartJointCorrection, IKTwoBoneJob) {
   const ozz::math::Float4x4 base_end = ozz::math::Float4x4::Translation(
       ozz::math::simd_float4::x_axis() + ozz::math::simd_float4::y_axis());
 
-  const ozz::math::SimdFloat4 mid_axis_ms =
+  const ozz::math::SimdFloat4 mid_axis =
       ozz::math::Cross3(base_start.cols[3] - base_mid.cols[3],
                         base_end.cols[3] - base_mid.cols[3]);
 
@@ -206,7 +206,7 @@ TEST(StartJointCorrection, IKTwoBoneJob) {
     // Prepares job.
     ozz::animation::IKTwoBoneJob job;
     job.pole_vector = TransformVector(parent, ozz::math::simd_float4::y_axis());
-    job.mid_axis_ms = mid_axis_ms;
+    job.mid_axis = mid_axis;
     job.start_joint = &start;
     job.mid_joint = &mid;
     job.end_joint = &end;
@@ -286,7 +286,7 @@ TEST(Pole, IKTwoBoneJob) {
   const ozz::math::Float4x4 end = ozz::math::Float4x4::Translation(
       ozz::math::simd_float4::x_axis() + ozz::math::simd_float4::y_axis());
 
-  const ozz::math::SimdFloat4 mid_axis_ms =
+  const ozz::math::SimdFloat4 mid_axis =
       ozz::math::Cross3(start.cols[3] - mid.cols[3], end.cols[3] - mid.cols[3]);
 
   // Prepares job.
@@ -294,7 +294,7 @@ TEST(Pole, IKTwoBoneJob) {
   job.start_joint = &start;
   job.mid_joint = &mid;
   job.end_joint = &end;
-  job.mid_axis_ms = mid_axis_ms;
+  job.mid_axis = mid_axis;
   ozz::math::SimdQuaternion qstart;
   job.start_joint_correction = &qstart;
   ozz::math::SimdQuaternion qmid;
@@ -386,7 +386,7 @@ TEST(Soften, IKTwoBoneJob) {
       ozz::math::simd_float4::one());
   const ozz::math::Float4x4 end = ozz::math::Float4x4::Translation(
       ozz::math::simd_float4::x_axis() + ozz::math::simd_float4::y_axis());
-  const ozz::math::SimdFloat4 mid_axis_ms =
+  const ozz::math::SimdFloat4 mid_axis =
       ozz::math::Cross3(start.cols[3] - mid.cols[3], end.cols[3] - mid.cols[3]);
 
   // Prepares job.
@@ -394,7 +394,7 @@ TEST(Soften, IKTwoBoneJob) {
   job.start_joint = &start;
   job.mid_joint = &mid;
   job.end_joint = &end;
-  job.mid_axis_ms = mid_axis_ms;
+  job.mid_axis = mid_axis;
   ozz::math::SimdQuaternion qstart;
   job.start_joint_correction = &qstart;
   ozz::math::SimdQuaternion qmid;
@@ -493,7 +493,7 @@ TEST(Twist, IKTwoBoneJob) {
       ozz::math::simd_float4::one());
   const ozz::math::Float4x4 end = ozz::math::Float4x4::Translation(
       ozz::math::simd_float4::x_axis() + ozz::math::simd_float4::y_axis());
-  const ozz::math::SimdFloat4 mid_axis_ms =
+  const ozz::math::SimdFloat4 mid_axis =
       ozz::math::Cross3(start.cols[3] - mid.cols[3], end.cols[3] - mid.cols[3]);
 
   // Prepares job.
@@ -503,7 +503,7 @@ TEST(Twist, IKTwoBoneJob) {
   job.start_joint = &start;
   job.mid_joint = &mid;
   job.end_joint = &end;
-  job.mid_axis_ms = mid_axis_ms;
+  job.mid_axis = mid_axis;
   ozz::math::SimdQuaternion qstart;
   job.start_joint_correction = &qstart;
   ozz::math::SimdQuaternion qmid;
@@ -572,7 +572,7 @@ TEST(Weight, IKTwoBoneJob) {
       ozz::math::simd_float4::one());
   const ozz::math::Float4x4 end = ozz::math::Float4x4::Translation(
       ozz::math::simd_float4::x_axis() + ozz::math::simd_float4::y_axis());
-  const ozz::math::SimdFloat4 mid_axis_ms =
+  const ozz::math::SimdFloat4 mid_axis =
       ozz::math::Cross3(start.cols[3] - mid.cols[3], end.cols[3] - mid.cols[3]);
 
   // Prepares job.
@@ -580,7 +580,7 @@ TEST(Weight, IKTwoBoneJob) {
   job.start_joint = &start;
   job.mid_joint = &mid;
   job.end_joint = &end;
-  job.mid_axis_ms = mid_axis_ms;
+  job.mid_axis = mid_axis;
   ozz::math::SimdQuaternion qstart;
   job.start_joint_correction = &qstart;
   ozz::math::SimdQuaternion qmid;
@@ -683,7 +683,7 @@ TEST(PoleHandleAlignment, IKTwoBoneJob) {
       ozz::math::simd_float4::one());
   const ozz::math::Float4x4 end = ozz::math::Float4x4::Translation(
       ozz::math::simd_float4::x_axis() + ozz::math::simd_float4::y_axis());
-  const ozz::math::SimdFloat4 mid_axis_ms =
+  const ozz::math::SimdFloat4 mid_axis =
       ozz::math::Cross3(start.cols[3] - mid.cols[3], end.cols[3] - mid.cols[3]);
 
   // Prepares job.
@@ -691,7 +691,7 @@ TEST(PoleHandleAlignment, IKTwoBoneJob) {
   job.start_joint = &start;
   job.mid_joint = &mid;
   job.end_joint = &end;
-  job.mid_axis_ms = mid_axis_ms;
+  job.mid_axis = mid_axis;
   ozz::math::SimdQuaternion qstart;
   job.start_joint_correction = &qstart;
   ozz::math::SimdQuaternion qmid;
@@ -749,7 +749,7 @@ TEST(MidAxis, IKTwoBoneJob) {
       ozz::math::simd_float4::one());
   const ozz::math::Float4x4 end = ozz::math::Float4x4::Translation(
       ozz::math::simd_float4::x_axis() + ozz::math::simd_float4::y_axis());
-  const ozz::math::SimdFloat4 mid_axis_ms =
+  const ozz::math::SimdFloat4 mid_axis =
       ozz::math::Cross3(start.cols[3] - mid.cols[3], end.cols[3] - mid.cols[3]);
 
   // Prepares job.
@@ -765,9 +765,9 @@ TEST(MidAxis, IKTwoBoneJob) {
   job.mid_joint_correction = &qmid;
   ASSERT_TRUE(job.Validate());
 
-  // Positive mid_axis_ms
+  // Positive mid_axis
   {
-    job.mid_axis_ms = mid_axis_ms;
+    job.mid_axis = mid_axis;
     job.handle = ozz::math::simd_float4::Load(1.f, 1.f, 0.f, 0.f);
 
     ASSERT_TRUE(job.Run());
@@ -778,9 +778,9 @@ TEST(MidAxis, IKTwoBoneJob) {
     EXPECT_SIMDQUATERNION_EQ_TOL(qmid, 0.f, 0.f, 0.f, 1.f, 2e-3f);
   }
 
-  // Negative mid_axis_ms
+  // Negative mid_axis
   {
-    job.mid_axis_ms = -mid_axis_ms;
+    job.mid_axis = -mid_axis;
     job.handle = ozz::math::simd_float4::Load(1.f, 1.f, 0.f, 0.f);
 
     ASSERT_TRUE(job.Run());
@@ -803,7 +803,7 @@ TEST(MidAxis, IKTwoBoneJob) {
         ozz::math::simd_float4::Load(0.f, 2.f, 0.f, 0.f));
     job.end_joint = &aligned_end;
 
-    job.mid_axis_ms = mid_axis_ms;
+    job.mid_axis = mid_axis;
     job.handle = ozz::math::simd_float4::Load(1.f, 1.f, 0.f, 0.f);
 
     ASSERT_TRUE(job.Run());
@@ -829,12 +829,12 @@ TEST(AlignedJointsAndHandle, IKTwoBoneJob) {
       ozz::math::Float4x4::Translation(ozz::math::simd_float4::x_axis());
   const ozz::math::Float4x4 end = ozz::math::Float4x4::Translation(
       ozz::math::simd_float4::x_axis() + ozz::math::simd_float4::x_axis());
-  const ozz::math::SimdFloat4 mid_axis_ms = ozz::math::simd_float4::z_axis();
+  const ozz::math::SimdFloat4 mid_axis = ozz::math::simd_float4::z_axis();
 
   // Prepares job.
   ozz::animation::IKTwoBoneJob job;
   job.pole_vector = ozz::math::simd_float4::y_axis();
-  job.mid_axis_ms = mid_axis_ms;
+  job.mid_axis = mid_axis;
   job.start_joint = &start;
   job.mid_joint = &mid;
   job.end_joint = &end;
