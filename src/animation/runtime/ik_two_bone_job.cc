@@ -25,7 +25,7 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/animation/runtime/two_bone_ik_job.h"
+#include "ozz/animation/runtime/ik_two_bone_job.h"
 
 #include <cassert>
 
@@ -37,7 +37,7 @@ using namespace ozz::math;
 
 namespace ozz {
 namespace animation {
-TwoBoneIKJob::TwoBoneIKJob()
+IKTwoBoneJob::IKTwoBoneJob()
     : handle(math::simd_float4::zero()),
       pole_vector(math::simd_float4::y_axis()),
       mid_axis_ms(math::simd_float4::z_axis()),
@@ -50,7 +50,7 @@ TwoBoneIKJob::TwoBoneIKJob()
       start_joint_correction(NULL),
       mid_joint_correction(NULL) {}
 
-bool TwoBoneIKJob::Validate() const {
+bool IKTwoBoneJob::Validate() const {
   bool valid = true;
   valid &= start_joint && mid_joint && end_joint;
   valid &= start_joint_correction && mid_joint_correction;
@@ -62,7 +62,7 @@ namespace {
 
 // Local data structure used to share constant data accross ik stages.
 struct IKConstantSetup {
-  IKConstantSetup(const TwoBoneIKJob& _job) {
+  IKConstantSetup(const IKTwoBoneJob& _job) {
     // Prepares constants
     one = simd_float4::one();
     mask_sign = simd_int4::mask_sign();
@@ -117,7 +117,7 @@ struct IKConstantSetup {
 // Smoothen handle position when it's further that a ratio of the joint chain
 // length, and start to handle length isn't 0.
 // Inspired from http://www.softimageblog.com/archives/108
-bool SoftenHandle(const TwoBoneIKJob& _job, const IKConstantSetup& _setup,
+bool SoftenHandle(const IKTwoBoneJob& _job, const IKConstantSetup& _setup,
                   SimdFloat4* _start_handle_ss,
                   SimdFloat4* _start_handle_ss_len2) {
   // Hanlde position in start joint space (_ss)
@@ -172,7 +172,7 @@ bool SoftenHandle(const TwoBoneIKJob& _job, const IKConstantSetup& _setup,
   return !needs_softening;
 }
 
-SimdQuaternion ComputeMidJoint(const TwoBoneIKJob& _job,
+SimdQuaternion ComputeMidJoint(const IKTwoBoneJob& _job,
                                const IKConstantSetup& _setup,
                                _SimdFloat4 _start_handle_ss_len2) {
   // Computes expected angle at mid_ss joint, using law of cosine (generalized
@@ -217,7 +217,7 @@ SimdQuaternion ComputeMidJoint(const TwoBoneIKJob& _job,
   return SimdQuaternion::FromAxisAngle(_job.mid_axis_ms, mid_angles_diff);
 }
 
-SimdQuaternion ComputeStartJoint(const TwoBoneIKJob& _job,
+SimdQuaternion ComputeStartJoint(const IKTwoBoneJob& _job,
                                  const IKConstantSetup& _setup,
                                  const SimdQuaternion& _mid_rot_ms,
                                  _SimdFloat4 _start_handle_ss,
@@ -293,7 +293,7 @@ SimdQuaternion ComputeStartJoint(const TwoBoneIKJob& _job,
   return start_rot_ss;
 }
 
-void WeightOutput(const TwoBoneIKJob& _job, const IKConstantSetup& _setup,
+void WeightOutput(const IKTwoBoneJob& _job, const IKConstantSetup& _setup,
                   const SimdQuaternion& _start_rot,
                   const SimdQuaternion& _mid_rot) {
   const SimdFloat4 zero = simd_float4::zero();
@@ -323,7 +323,7 @@ void WeightOutput(const TwoBoneIKJob& _job, const IKConstantSetup& _setup,
 }
 }  // namespace
 
-bool TwoBoneIKJob::Run() const {
+bool IKTwoBoneJob::Run() const {
   if (!Validate()) {
     return false;
   }

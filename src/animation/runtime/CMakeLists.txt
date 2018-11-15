@@ -19,8 +19,8 @@ add_library(ozz_animation STATIC
   ${PROJECT_SOURCE_DIR}/include/ozz/animation/runtime/track_triggering_job.h
   ${PROJECT_SOURCE_DIR}/include/ozz/animation/runtime/track_triggering_job_stl.h
   track_triggering_job.cc
-  ${PROJECT_SOURCE_DIR}/include/ozz/animation/runtime/two_bone_ik_job.h
-  two_bone_ik_job.cc)
+  ${PROJECT_SOURCE_DIR}/include/ozz/animation/runtime/ik_two_bone_job.h
+  ik_two_bone_job.cc)
 target_link_libraries(ozz_animation
   ozz_base)
 

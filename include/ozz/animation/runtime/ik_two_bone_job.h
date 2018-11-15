@@ -40,9 +40,9 @@ struct SimdQuaternion;
 
 namespace animation {
 
-struct TwoBoneIKJob {
+struct IKTwoBoneJob {
   // Default constructor, initializes default values.
-  TwoBoneIKJob();
+  IKTwoBoneJob();
 
   // Validates job parameters. Returns true for a valid job, or false otherwise:
   // -if any input pointer is NULL

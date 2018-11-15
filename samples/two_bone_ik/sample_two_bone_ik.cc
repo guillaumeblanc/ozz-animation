@@ -27,7 +27,7 @@
 
 #include "ozz/animation/runtime/local_to_model_job.h"
 #include "ozz/animation/runtime/skeleton.h"
-#include "ozz/animation/runtime/two_bone_ik_job.h"
+#include "ozz/animation/runtime/ik_two_bone_job.h"
 
 #include "ozz/base/log.h"
 
@@ -138,7 +138,7 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
   }
 
   bool IK() {
-    ozz::animation::TwoBoneIKJob ik_job;
+    ozz::animation::IKTwoBoneJob ik_job;
     ik_job.handle = g_handle_pos;
     ik_job.pole_vector = ozz::math::simd_float4::Load3PtrU(&pole_vector.x);
     ik_job.mid_axis_ms = ozz::math::simd_float4::z_axis();
