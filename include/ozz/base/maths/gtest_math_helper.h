@@ -417,5 +417,4 @@ inline void ExpectTrue(bool _b) { EXPECT_TRUE(_b); }
                               col3ww);                                         \
                                                                                \
   } while (void(0), 0)
-
 #endif  // OZZ_OZZ_BASE_MATHS_GTEST_MATH_HELPER_H_

@@ -25,8 +25,8 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#ifndef OZZ_ANIMATION_OFFLINE_TOOLS_import2ozz_SKEL_H_
-#define OZZ_ANIMATION_OFFLINE_TOOLS_import2ozz_SKEL_H_
+#ifndef OZZ_ANIMATION_OFFLINE_TOOLS_IMPORT2OZZ_SKEL_H_
+#define OZZ_ANIMATION_OFFLINE_TOOLS_IMPORT2OZZ_SKEL_H_
 
 #include "ozz/base/endianness.h"
 #include "ozz/base/platform.h"
@@ -47,4 +47,4 @@ bool ImportSkeleton(const Json::Value& _config, OzzImporter* _converter,
 }  // namespace offline
 }  // namespace animation
 }  // namespace ozz
-#endif  // OZZ_ANIMATION_OFFLINE_TOOLS_import2ozz_SKEL_H_
+#endif  // OZZ_ANIMATION_OFFLINE_TOOLS_IMPORT2OZZ_SKEL_H_

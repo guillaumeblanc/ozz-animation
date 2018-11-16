@@ -25,8 +25,8 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#ifndef OZZ_OZZ_ANIMATION_RUNTIME_TWO_BONE_IK_JOB_H_
-#define OZZ_OZZ_ANIMATION_RUNTIME_TWO_BONE_IK_JOB_H_
+#ifndef OZZ_OZZ_ANIMATION_RUNTIME_IK_TWO_BONE_JOB_H_
+#define OZZ_OZZ_ANIMATION_RUNTIME_IK_TWO_BONE_JOB_H_
 
 #include "ozz/base/platform.h"
 
@@ -105,4 +105,4 @@ struct IKTwoBoneJob {
 };
 }  // namespace animation
 }  // namespace ozz
-#endif  // OZZ_OZZ_ANIMATION_RUNTIME_TWO_BONE_IK_JOB_H_
+#endif  // OZZ_OZZ_ANIMATION_RUNTIME_IK_TWO_BONE_JOB_H_

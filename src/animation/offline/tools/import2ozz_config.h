@@ -25,8 +25,8 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#ifndef OZZ_ANIMATION_OFFLINE_TOOLS_CONFIGURATION_H_
-#define OZZ_ANIMATION_OFFLINE_TOOLS_CONFIGURATION_H_
+#ifndef OZZ_ANIMATION_OFFLINE_TOOLS_IMPORT2OZZ_CONFIG_H_
+#define OZZ_ANIMATION_OFFLINE_TOOLS_IMPORT2OZZ_CONFIG_H_
 
 #include "ozz/base/platform.h"
 
@@ -34,5 +34,4 @@
 
 // Get the sanitized (all members are set, with the right types) configuration.
 bool ProcessConfiguration(Json::Value* _config);
-
-#endif  // OZZ_ANIMATION_OFFLINE_TOOLS_CONFIGURATION_H_
+#endif  // OZZ_ANIMATION_OFFLINE_TOOLS_IMPORT2OZZ_CONFIG_H_

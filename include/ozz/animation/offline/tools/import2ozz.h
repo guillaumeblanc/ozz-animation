@@ -25,8 +25,8 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#ifndef OZZ_OZZ_ANIMATION_OFFLINE_TOOLS_import2ozz_H_
-#define OZZ_OZZ_ANIMATION_OFFLINE_TOOLS_import2ozz_H_
+#ifndef OZZ_OZZ_ANIMATION_OFFLINE_TOOLS_IMPORT2OZZ_H_
+#define OZZ_OZZ_ANIMATION_OFFLINE_TOOLS_IMPORT2OZZ_H_
 
 #include "ozz/base/containers/vector.h"
 
@@ -126,4 +126,4 @@ class OzzImporter {
 }  // namespace offline
 }  // namespace animation
 }  // namespace ozz
-#endif  // OZZ_OZZ_ANIMATION_OFFLINE_TOOLS_import2ozz_H_
+#endif  // OZZ_OZZ_ANIMATION_OFFLINE_TOOLS_IMPORT2OZZ_H_

@@ -48,5 +48,4 @@ struct iterator_traits<ozz::animation::TrackTriggeringJob::Iterator> {
   typedef forward_iterator_tag iterator_category;
 };
 }  // namespace std
-
 #endif  // OZZ_OZZ_ANIMATION_RUNTIME_TRACK_TRIGGERING_JOB_STL_H_
