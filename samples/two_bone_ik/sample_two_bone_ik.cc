@@ -51,8 +51,6 @@
 #include "ozz/animation/offline/raw_skeleton.h"
 #include "ozz/animation/offline/skeleton_builder.h"
 
-ozz::math::Float4x4 sroot;
-
 ozz::math::SimdFloat4 g_handle_pos;
 
 void ApplyQuaternion(int _joint, const ozz::math::SimdQuaternion& _quat,
@@ -83,7 +81,9 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
         mid_joint_(-1),
         end_joint_(-1),
         doik(true),
-        scale_(1.f),
+        root_translation_(0.f, 0.f, 0.f),
+        root_euler_(0.f, 0.f, 0.f),
+        root_scale_(1.f),
         pole_vector(0.f, 1.f, 0.f),
         weight_(1.f),
         soften_(1.f),
@@ -99,11 +99,13 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
   virtual bool OnUpdate(float _dt) {
     (void)_dt;
 
-    sroot = ozz::math::Float4x4::Scaling(ozz::math::simd_float4::Load1(scale_));
-
+    // Reset locals to skeleton bind pose (for sample purpose).
     for (size_t i = 0; i < locals_.size(); ++i) {
       locals_[i] = skeleton_->joint_bind_poses()[i];
     }
+
+    // Build root matrix
+    using ozz::math::Float4x4;
 
     // Converts from local space to model space matrices.
     ozz::animation::LocalToModelJob ltm_job;
@@ -112,7 +114,6 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
     ltm_job.to = end_joint_;
     ltm_job.input = make_range(locals_);
     ltm_job.output = make_range(models_);
-    ltm_job.root = &sroot;
     if (!ltm_job.Run()) {
       return false;
     }
@@ -138,8 +139,18 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
   }
 
   bool IK() {
+    // Get root matrix, which is used at render time to convert object from
+    // model-space to world space.
+    const ozz::math::Float4x4 root = ComputeRootTransform();
+
+    // Target should be in model-space, so it must be converted from
+    // wolrd-space.
+    const ozz::math::Float4x4 invert_root = Invert(root);
+    const ozz::math::SimdFloat4 target_ls =
+        TransformPoint(invert_root, g_handle_pos);
+
     ozz::animation::IKTwoBoneJob ik_job;
-    ik_job.handle = g_handle_pos;
+    ik_job.handle = target_ls;
     ik_job.pole_vector = ozz::math::simd_float4::Load3PtrU(&pole_vector.x);
     ik_job.mid_axis = ozz::math::simd_float4::z_axis();
     ik_job.weight = weight_;
@@ -215,8 +226,8 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
     }
 
     // Draws the animated skeleton posture.
-    success &= _renderer->DrawPosture(*skeleton_, make_range(models_),
-                                      ozz::math::Float4x4::identity());
+    const ozz::math::Float4x4 root = ComputeRootTransform();
+    success &= _renderer->DrawPosture(*skeleton_, make_range(models_), root);
 
     return success;
   }
@@ -288,10 +299,8 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
   }
 
   virtual bool OnGui(ozz::sample::ImGui* _im_gui) {
-    char txt[255];
-    _im_gui->DoCheckBox("ik", &doik);
-    _im_gui->DoSlider("scale_", -2.f, 2.f, &scale_);
-    if (scale_ == 0.f) scale_ = .01f;
+    char txt[32];
+
     _im_gui->DoSlider("extent", 0.f, 5.f, &extent);
 
     // IK parameters
@@ -328,6 +337,39 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
             twist_angle_ * ozz::math::kRadianToDegree);
     _im_gui->DoSlider(txt, -ozz::math::kPi, ozz::math::kPi, &twist_angle_);
 
+    {  // Root
+
+      static bool opened = false;
+      ozz::sample::ImGui::OpenClose oc_pole(_im_gui, "Root transformation",
+                                            &opened);
+      if (opened) {
+        // Translation
+        _im_gui->DoLabel("Translation");
+        sprintf(txt, "x %.2g", root_translation_.x);
+        _im_gui->DoSlider(txt, -1.f, 1.f, &root_translation_.x);
+        sprintf(txt, "y %.2g", root_translation_.y);
+        _im_gui->DoSlider(txt, -1.f, 1.f, &root_translation_.y);
+        sprintf(txt, "z %.2g", root_translation_.z);
+        _im_gui->DoSlider(txt, -1.f, 1.f, &root_translation_.z);
+
+        // Rotation (in euler form)
+        _im_gui->DoLabel("Rotation");
+        ozz::math::Float3 euler = root_euler_ * ozz::math::kRadianToDegree;
+        sprintf(txt, "x %.3g", euler.x);
+        _im_gui->DoSlider(txt, -180.f, 180.f, &euler.x);
+        sprintf(txt, "y %.3g", euler.y);
+        _im_gui->DoSlider(txt, -180.f, 180.f, &euler.y);
+        sprintf(txt, "z %.3g", euler.z);
+        _im_gui->DoSlider(txt, -180.f, 180.f, &euler.z);
+        root_euler_ = euler * ozz::math::kDegreeToRadian;
+
+        // Scale (must be uniform and not 0)
+        _im_gui->DoLabel("Scale");
+        sprintf(txt, "%.2g", root_scale_);
+        _im_gui->DoSlider(txt, -1.f, 1.f, &root_scale_);
+        // root_scale_ = root_scale_ != 0.f ? scale.x : .01f;
+      }
+    }
     {  // Display options
       static bool opened = true;
       ozz::sample::ImGui::OpenClose oc_pole(_im_gui, "Display options",
@@ -397,6 +439,15 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
     *_bound = Merge(*_bound, ozz::math::Box(handle_offset));
   }
 
+  ozz::math::Float4x4 ComputeRootTransform() const {
+    return ozz::math::Float4x4::Translation(
+               ozz::math::simd_float4::Load3PtrU(&root_translation_.x)) *
+           ozz::math::Float4x4::FromEuler(
+               ozz::math::simd_float4::Load3PtrU(&root_euler_.x)) *
+           ozz::math::Float4x4::Scaling(
+               ozz::math::simd_float4::Load1(root_scale_));
+  }
+
  private:
   // Runtime skeleton.
   ozz::animation::Skeleton* skeleton_;
@@ -413,7 +464,11 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
   int end_joint_;
 
   bool doik;
-  float scale_;
+
+  // Root transformation.
+  ozz::math::Float3 root_translation_;
+  ozz::math::Float3 root_euler_;
+  float root_scale_;
 
   // IK parameters.
 
