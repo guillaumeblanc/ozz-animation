@@ -153,7 +153,7 @@ bool OnRawSkeletonJointGui(
     if (opened) {
       // Translation
       ozz::math::Float3& translation = joint.transform.translation;
-      _im_gui->DoLabel("translation");
+      _im_gui->DoLabel("Translation");
       sprintf(txt, "x %.2g", translation.x);
       modified |= _im_gui->DoSlider(txt, -1.f, 1.f, &translation.x);
       sprintf(txt, "y %.2g", translation.y);
@@ -163,13 +163,13 @@ bool OnRawSkeletonJointGui(
 
       // Rotation (in euler form)
       ozz::math::Quaternion& rotation = joint.transform.rotation;
-      _im_gui->DoLabel("rotation");
+      _im_gui->DoLabel("Rotation");
       ozz::math::Float3 euler = ToEuler(rotation) * ozz::math::kRadianToDegree;
-      sprintf(txt, "x %.2g", euler.x);
+      sprintf(txt, "x %.3g", euler.x);
       bool euler_modified = _im_gui->DoSlider(txt, -180.f, 180.f, &euler.x);
-      sprintf(txt, "y %.2g", euler.y);
+      sprintf(txt, "y %.3g", euler.y);
       euler_modified |= _im_gui->DoSlider(txt, -180.f, 180.f, &euler.y);
-      sprintf(txt, "z %.2g", euler.z);
+      sprintf(txt, "z %.3g", euler.z);
       euler_modified |= _im_gui->DoSlider(txt, -180.f, 180.f, &euler.z);
       if (euler_modified) {
         modified = true;
@@ -178,7 +178,7 @@ bool OnRawSkeletonJointGui(
       }
 
       // Scale (must be uniform and not 0)
-      _im_gui->DoLabel("scale");
+      _im_gui->DoLabel("Scale");
       ozz::math::Float3& scale = joint.transform.scale;
       sprintf(txt, "%.2g", scale.x);
       if (_im_gui->DoSlider(txt, -1.f, 1.f, &scale.x)) {
