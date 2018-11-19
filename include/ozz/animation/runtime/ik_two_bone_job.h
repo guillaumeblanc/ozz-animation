@@ -58,11 +58,11 @@ struct IKTwoBoneJob {
   // Job input.
 
   // Tagert IK position, in model-space.
-  math::SimdFloat4 handle;
+  math::SimdFloat4 target;
 
   // Pole vector, in model-space. The pole vector defines where the direction
   // the middle joint should point to, allowing to control IK chain orientation.
-  // Note that IK chain orientation will flip when handle vector and the pole
+  // Note that IK chain orientation will flip when target vector and the pole
   // vector are aligned/crossing each other. It's caller responsibility to
   // ensure that this doens't happen.
   math::SimdFloat4 pole_vector;
@@ -80,13 +80,13 @@ struct IKTwoBoneJob {
   // blend / interpolate from no IK (0 weight) to full IK (1).
   float weight;
 
-  // soften ratio allows the chain to gradually fall behind the the handle
+  // soften ratio allows the chain to gradually fall behind the the target
   // position. This prevent the joint chain from snapping into the final
   // position, softening
   float soften;
 
   // twist_angle rotates IK chain orientation around the vector define by start
-  // to handle direction. Default is 0.
+  // to target direction. Default is 0.
   float twist_angle;
 
   // Model-space matrices of the start, middle and end joints of the chain.
@@ -99,7 +99,7 @@ struct IKTwoBoneJob {
   // Job output.
 
   // Local spaces correction to apply to start and middle joints in order for
-  // end joint to reach handle position.
+  // end joint to reach target position.
   math::SimdQuaternion* start_joint_correction;
   math::SimdQuaternion* mid_joint_correction;
 };

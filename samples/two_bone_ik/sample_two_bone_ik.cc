@@ -53,7 +53,7 @@
 
 ozz::math::Float4x4 sroot;
 
-ozz::math::SimdFloat4 g_handle_pos;
+ozz::math::SimdFloat4 g_target_pos;
 
 void ApplyQuaternion(int _joint, const ozz::math::SimdQuaternion& _quat,
                      const ozz::Range<ozz::math::SoaTransform>& _transforms) {
@@ -89,9 +89,9 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
         soften_(1.f),
         twist_angle_(0.f),
         extent(0.f),
-        handle_offset(1.f, .1f, 0.f),
+        target_offset(1.f, .1f, 0.f),
         use_loaded_skeleton_(true),
-        show_handle_(true),
+        show_target_(true),
         show_joints_(false),
         show_pole_vector_(false) {}
 
@@ -119,10 +119,10 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
 
     static float time = 0.f;
     time += _dt;
-    g_handle_pos = ozz::math::simd_float4::Load(
-        handle_offset.x + extent * sinf(time),
-        handle_offset.y + extent * cosf(time * 2.f),
-        handle_offset.z + extent * cosf(time / 2.f), 0);
+    g_target_pos = ozz::math::simd_float4::Load(
+        target_offset.x + extent * sinf(time),
+        target_offset.y + extent * cosf(time * 2.f),
+        target_offset.z + extent * cosf(time / 2.f), 0);
 
     if (!IK()) {
       return false;
@@ -139,7 +139,7 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
 
   bool IK() {
     ozz::animation::IKTwoBoneJob ik_job;
-    ik_job.handle = g_handle_pos;
+    ik_job.target = g_target_pos;
     ik_job.pole_vector = ozz::math::simd_float4::Load3PtrU(&pole_vector.x);
     ik_job.mid_axis = ozz::math::simd_float4::z_axis();
     ik_job.weight = weight_;
@@ -176,14 +176,14 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
     const ozz::math::Float4x4 kAxesScale =
         ozz::math::Float4x4::Scaling(ozz::math::simd_float4::Load1(.1f));
 
-    // Displays handle
-    if (show_handle_) {
+    // Displays target
+    if (show_target_) {
       const ozz::sample::Renderer::Color colors[2] = {{0xff, 0xff, 0xff, 0xff},
                                                       {0xff, 0, 0, 0xff}};
       success &= _renderer->DrawBoxIm(
           ozz::math::Box(ozz::math::Float3(-kBoxHalfSize),
                          ozz::math::Float3(kBoxHalfSize)),
-          ozz::math::Float4x4::Translation(g_handle_pos), colors);
+          ozz::math::Float4x4::Translation(g_target_pos), colors);
     }
 
     // Displays pole vector
@@ -301,12 +301,12 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
       ozz::sample::ImGui::OpenClose oc_pole(_im_gui, "Handle position",
                                             &opened);
       const float kOffsetRange = 2.f;
-      sprintf(txt, "x %.2g", handle_offset.x);
-      _im_gui->DoSlider(txt, -kOffsetRange, kOffsetRange, &handle_offset.x);
-      sprintf(txt, "y %.2g", handle_offset.y);
-      _im_gui->DoSlider(txt, -kOffsetRange, kOffsetRange, &handle_offset.y);
-      sprintf(txt, "z %.2g", handle_offset.z);
-      _im_gui->DoSlider(txt, -kOffsetRange, kOffsetRange, &handle_offset.z);
+      sprintf(txt, "x %.2g", target_offset.x);
+      _im_gui->DoSlider(txt, -kOffsetRange, kOffsetRange, &target_offset.x);
+      sprintf(txt, "y %.2g", target_offset.y);
+      _im_gui->DoSlider(txt, -kOffsetRange, kOffsetRange, &target_offset.y);
+      sprintf(txt, "z %.2g", target_offset.z);
+      _im_gui->DoSlider(txt, -kOffsetRange, kOffsetRange, &target_offset.z);
     }
 
     {
@@ -332,7 +332,7 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
       static bool opened = true;
       ozz::sample::ImGui::OpenClose oc_pole(_im_gui, "Display options",
                                             &opened);
-      _im_gui->DoCheckBox("Show handle", &show_handle_);
+      _im_gui->DoCheckBox("Show target", &show_target_);
       _im_gui->DoCheckBox("Show joints", &show_joints_);
       _im_gui->DoCheckBox("Show pole vector", &show_pole_vector_);
     }
@@ -393,8 +393,8 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
     // Computes skeleton bound
     ozz::sample::ComputePostureBounds(make_range(models_), _bound);
 
-    // Adds handle in the bounds
-    *_bound = Merge(*_bound, ozz::math::Box(handle_offset));
+    // Adds target in the bounds
+    *_bound = Merge(*_bound, ozz::math::Box(target_offset));
   }
 
  private:
@@ -427,7 +427,7 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
 
   // Handle positioning.
   float extent;
-  ozz::math::Float3 handle_offset;
+  ozz::math::Float3 target_offset;
 
   // Sample skeleton mode option.
 
@@ -439,7 +439,7 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
   ozz::sample::RawSkeletonEditor raw_skeleton_editor;
 
   // Sample display options
-  bool show_handle_;
+  bool show_target_;
   bool show_joints_;
   bool show_pole_vector_;
 };

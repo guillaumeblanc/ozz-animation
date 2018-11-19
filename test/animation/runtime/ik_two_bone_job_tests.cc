@@ -34,7 +34,7 @@
 #include "gtest/gtest.h"
 #include "ozz/base/maths/gtest_math_helper.h"
 
-// Implement helper macro that verify that handle was reached once ik job is
+// Implement helper macro that verify that target was reached once ik job is
 // executed.
 #define EXPECT_REACHED(_job)    \
                                 \
@@ -69,7 +69,7 @@ void _ExpectReached(const ozz::animation::IKTwoBoneJob& _job, bool _reachable) {
   const ozz::math::Float4x4 end_corrected = mid_corrected * end_local;
 
   const ozz::math::SimdFloat4 diff =
-      ozz::math::Length3(end_corrected.cols[3] - _job.handle);
+      ozz::math::Length3(end_corrected.cols[3] - _job.target);
   EXPECT_EQ(ozz::math::GetX(diff) < 1e-2f, _reachable);
 }
 
@@ -217,7 +217,7 @@ TEST(StartJointCorrection, IKTwoBoneJob) {
     ASSERT_TRUE(job.Validate());
 
     {  // No correction expected
-      job.handle = TransformPoint(
+      job.target = TransformPoint(
           parent, ozz::math::simd_float4::Load(1.f, 1.f, 0.f, 0.f));
       ASSERT_TRUE(job.Run());
 
@@ -228,7 +228,7 @@ TEST(StartJointCorrection, IKTwoBoneJob) {
     }
 
     {  // 90
-      job.handle = TransformPoint(
+      job.target = TransformPoint(
           parent, ozz::math::simd_float4::Load(0.f, 1.f, 1.f, 0.f));
       ASSERT_TRUE(job.Run());
 
@@ -243,7 +243,7 @@ TEST(StartJointCorrection, IKTwoBoneJob) {
     }
 
     {  // 180 behind
-      job.handle = TransformPoint(
+      job.target = TransformPoint(
           parent, ozz::math::simd_float4::Load(-1.f, 1.f, 0.f, 0.f));
       ASSERT_TRUE(job.Run());
 
@@ -257,7 +257,7 @@ TEST(StartJointCorrection, IKTwoBoneJob) {
     }
 
     {  // 270
-      job.handle = TransformPoint(
+      job.target = TransformPoint(
           parent, ozz::math::simd_float4::Load(0.f, 1.f, -1.f, 0.f));
       ASSERT_TRUE(job.Run());
 
@@ -304,7 +304,7 @@ TEST(Pole, IKTwoBoneJob) {
   // Pole Y
   {
     job.pole_vector = ozz::math::simd_float4::y_axis();
-    job.handle = ozz::math::simd_float4::Load(1.f, 1.f, 0.f, 0.f);
+    job.target = ozz::math::simd_float4::Load(1.f, 1.f, 0.f, 0.f);
     ASSERT_TRUE(job.Run());
 
     EXPECT_REACHED(job);
@@ -316,7 +316,7 @@ TEST(Pole, IKTwoBoneJob) {
   // Pole Z
   {
     job.pole_vector = ozz::math::simd_float4::z_axis();
-    job.handle = ozz::math::simd_float4::Load(1.f, 0.f, 1.f, 0.f);
+    job.target = ozz::math::simd_float4::Load(1.f, 0.f, 1.f, 0.f);
     ASSERT_TRUE(job.Run());
 
     EXPECT_REACHED(job);
@@ -331,7 +331,7 @@ TEST(Pole, IKTwoBoneJob) {
   // Pole -Z
   {
     job.pole_vector = -ozz::math::simd_float4::z_axis();
-    job.handle = ozz::math::simd_float4::Load(1.f, 0.f, -1.f, 0.f);
+    job.target = ozz::math::simd_float4::Load(1.f, 0.f, -1.f, 0.f);
     ASSERT_TRUE(job.Run());
 
     EXPECT_REACHED(job);
@@ -346,7 +346,7 @@ TEST(Pole, IKTwoBoneJob) {
   // Pole X
   {
     job.pole_vector = ozz::math::simd_float4::x_axis();
-    job.handle = ozz::math::simd_float4::Load(1.f, -1.f, 0.f, 0.f);
+    job.target = ozz::math::simd_float4::Load(1.f, -1.f, 0.f, 0.f);
     ASSERT_TRUE(job.Run());
 
     EXPECT_REACHED(job);
@@ -361,7 +361,7 @@ TEST(Pole, IKTwoBoneJob) {
   // Pole -X
   {
     job.pole_vector = -ozz::math::simd_float4::x_axis();
-    job.handle = ozz::math::simd_float4::Load(-1.f, 1.f, 0.f, 0.f);
+    job.target = ozz::math::simd_float4::Load(-1.f, 1.f, 0.f, 0.f);
     ASSERT_TRUE(job.Run());
 
     EXPECT_REACHED(job);
@@ -404,7 +404,7 @@ TEST(Soften, IKTwoBoneJob) {
   // Reachable
   {
     job.pole_vector = ozz::math::simd_float4::y_axis();
-    job.handle = ozz::math::simd_float4::Load(2.f, 0.f, 0.f, 0.f);
+    job.target = ozz::math::simd_float4::Load(2.f, 0.f, 0.f, 0.f);
     job.soften = 1.f;
     ASSERT_TRUE(job.Run());
 
@@ -423,7 +423,7 @@ TEST(Soften, IKTwoBoneJob) {
   // Reachable, softened
   {
     job.pole_vector = ozz::math::simd_float4::y_axis();
-    job.handle = ozz::math::simd_float4::Load(2.f * .5f, 0.f, 0.f, 0.f);
+    job.target = ozz::math::simd_float4::Load(2.f * .5f, 0.f, 0.f, 0.f);
     job.soften = .5f;
     ASSERT_TRUE(job.Run());
 
@@ -433,7 +433,7 @@ TEST(Soften, IKTwoBoneJob) {
   // Reachable, softened
   {
     job.pole_vector = ozz::math::simd_float4::y_axis();
-    job.handle = ozz::math::simd_float4::Load(2.f * .4f, 0.f, 0.f, 0.f);
+    job.target = ozz::math::simd_float4::Load(2.f * .4f, 0.f, 0.f, 0.f);
     job.soften = .5f;
     ASSERT_TRUE(job.Run());
 
@@ -443,7 +443,7 @@ TEST(Soften, IKTwoBoneJob) {
   // Not reachable, softened
   {
     job.pole_vector = ozz::math::simd_float4::y_axis();
-    job.handle = ozz::math::simd_float4::Load(2.f * .6f, 0.f, 0.f, 0.f);
+    job.target = ozz::math::simd_float4::Load(2.f * .6f, 0.f, 0.f, 0.f);
     job.soften = .5f;
     ASSERT_TRUE(job.Run());
 
@@ -453,7 +453,7 @@ TEST(Soften, IKTwoBoneJob) {
   // Not reachable, softened at max
   {
     job.pole_vector = ozz::math::simd_float4::y_axis();
-    job.handle = ozz::math::simd_float4::Load(2.f * .6f, 0.f, 0.f, 0.f);
+    job.target = ozz::math::simd_float4::Load(2.f * .6f, 0.f, 0.f, 0.f);
     job.soften = 0.f;
     ASSERT_TRUE(job.Run());
 
@@ -463,7 +463,7 @@ TEST(Soften, IKTwoBoneJob) {
   // Not reachable, softened
   {
     job.pole_vector = ozz::math::simd_float4::y_axis();
-    job.handle = ozz::math::simd_float4::Load(2.f, 0.f, 0.f, 0.f);
+    job.target = ozz::math::simd_float4::Load(2.f, 0.f, 0.f, 0.f);
     job.soften = .5f;
     ASSERT_TRUE(job.Run());
 
@@ -473,7 +473,7 @@ TEST(Soften, IKTwoBoneJob) {
   // Not reachable, a bit too far
   {
     job.pole_vector = ozz::math::simd_float4::y_axis();
-    job.handle = ozz::math::simd_float4::Load(3.f, 0.f, 0.f, 0.f);
+    job.target = ozz::math::simd_float4::Load(3.f, 0.f, 0.f, 0.f);
     job.soften = 1.f;
     ASSERT_TRUE(job.Run());
 
@@ -499,7 +499,7 @@ TEST(Twist, IKTwoBoneJob) {
   // Prepares job.
   ozz::animation::IKTwoBoneJob job;
   job.pole_vector = ozz::math::simd_float4::y_axis();
-  job.handle = ozz::math::simd_float4::Load(1.f, 1.f, 0.f, 0.f);
+  job.target = ozz::math::simd_float4::Load(1.f, 1.f, 0.f, 0.f);
   job.start_joint = &start;
   job.mid_joint = &mid;
   job.end_joint = &end;
@@ -590,7 +590,7 @@ TEST(Weight, IKTwoBoneJob) {
   // Maximum weight
   {
     job.pole_vector = ozz::math::simd_float4::y_axis();
-    job.handle = ozz::math::simd_float4::Load(2.f, 0.f, 0.f, 0.f);
+    job.target = ozz::math::simd_float4::Load(2.f, 0.f, 0.f, 0.f);
     job.weight = 1.f;
     ASSERT_TRUE(job.Run());
 
@@ -609,7 +609,7 @@ TEST(Weight, IKTwoBoneJob) {
   // Weight > 1 is clamped
   {
     job.pole_vector = ozz::math::simd_float4::y_axis();
-    job.handle = ozz::math::simd_float4::Load(2.f, 0.f, 0.f, 0.f);
+    job.target = ozz::math::simd_float4::Load(2.f, 0.f, 0.f, 0.f);
     job.weight = 1.1f;
     ASSERT_TRUE(job.Run());
 
@@ -628,7 +628,7 @@ TEST(Weight, IKTwoBoneJob) {
   // 0 weight
   {
     job.pole_vector = ozz::math::simd_float4::y_axis();
-    job.handle = ozz::math::simd_float4::Load(2.f, 0.f, 0.f, 0.f);
+    job.target = ozz::math::simd_float4::Load(2.f, 0.f, 0.f, 0.f);
     job.weight = 0.f;
     ASSERT_TRUE(job.Run());
 
@@ -641,7 +641,7 @@ TEST(Weight, IKTwoBoneJob) {
   // Weight < 0 is clamped
   {
     job.pole_vector = ozz::math::simd_float4::y_axis();
-    job.handle = ozz::math::simd_float4::Load(2.f, 0.f, 0.f, 0.f);
+    job.target = ozz::math::simd_float4::Load(2.f, 0.f, 0.f, 0.f);
     job.weight = -.1f;
     ASSERT_TRUE(job.Run());
 
@@ -654,7 +654,7 @@ TEST(Weight, IKTwoBoneJob) {
   // .5 weight
   {
     job.pole_vector = ozz::math::simd_float4::y_axis();
-    job.handle = ozz::math::simd_float4::Load(2.f, 0.f, 0.f, 0.f);
+    job.target = ozz::math::simd_float4::Load(2.f, 0.f, 0.f, 0.f);
     job.weight = .5f;
     ASSERT_TRUE(job.Run());
 
@@ -671,7 +671,7 @@ TEST(Weight, IKTwoBoneJob) {
   }
 }
 
-TEST(PoleHandleAlignment, IKTwoBoneJob) {
+TEST(PoleTargetAlignment, IKTwoBoneJob) {
   // Setup initial pose
   const ozz::math::Float4x4 start = ozz::math::Float4x4::identity();
   const ozz::math::Float4x4 mid = ozz::math::Float4x4::FromAffine(
@@ -700,7 +700,7 @@ TEST(PoleHandleAlignment, IKTwoBoneJob) {
 
   {  // Reachable, undefined qstart
     job.pole_vector = ozz::math::simd_float4::y_axis();
-    job.handle = ozz::math::simd_float4::Load(0.f, ozz::math::kSqrt2, 0.f, 0.f);
+    job.target = ozz::math::simd_float4::Load(0.f, ozz::math::kSqrt2, 0.f, 0.f);
     ASSERT_TRUE(job.Run());
 
     EXPECT_REACHED(job);
@@ -711,7 +711,7 @@ TEST(PoleHandleAlignment, IKTwoBoneJob) {
 
   {  // Reachable, defined qstart
     job.pole_vector = ozz::math::simd_float4::y_axis();
-    job.handle =
+    job.target =
         ozz::math::simd_float4::Load(.001f, ozz::math::kSqrt2, 0.f, 0.f);
     ASSERT_TRUE(job.Run());
 
@@ -726,7 +726,7 @@ TEST(PoleHandleAlignment, IKTwoBoneJob) {
 
   {  // Full extent, undefined qstart, end not reached
     job.pole_vector = ozz::math::simd_float4::y_axis();
-    job.handle = ozz::math::simd_float4::Load(0.f, 3.f, 0.f, 0.f);
+    job.target = ozz::math::simd_float4::Load(0.f, 3.f, 0.f, 0.f);
     ASSERT_TRUE(job.Run());
 
     // qstart is undefined, many solutions in this case
@@ -755,7 +755,7 @@ TEST(MidAxis, IKTwoBoneJob) {
   // Prepares job.
   ozz::animation::IKTwoBoneJob job;
   job.pole_vector = ozz::math::simd_float4::y_axis();
-  job.handle = ozz::math::simd_float4::Load(1.f, 1.f, 0.f, 0.f);
+  job.target = ozz::math::simd_float4::Load(1.f, 1.f, 0.f, 0.f);
   job.start_joint = &start;
   job.mid_joint = &mid;
   job.end_joint = &end;
@@ -768,7 +768,7 @@ TEST(MidAxis, IKTwoBoneJob) {
   // Positive mid_axis
   {
     job.mid_axis = mid_axis;
-    job.handle = ozz::math::simd_float4::Load(1.f, 1.f, 0.f, 0.f);
+    job.target = ozz::math::simd_float4::Load(1.f, 1.f, 0.f, 0.f);
 
     ASSERT_TRUE(job.Run());
 
@@ -781,7 +781,7 @@ TEST(MidAxis, IKTwoBoneJob) {
   // Negative mid_axis
   {
     job.mid_axis = -mid_axis;
-    job.handle = ozz::math::simd_float4::Load(1.f, 1.f, 0.f, 0.f);
+    job.target = ozz::math::simd_float4::Load(1.f, 1.f, 0.f, 0.f);
 
     ASSERT_TRUE(job.Run());
 
@@ -804,7 +804,7 @@ TEST(MidAxis, IKTwoBoneJob) {
     job.end_joint = &aligned_end;
 
     job.mid_axis = mid_axis;
-    job.handle = ozz::math::simd_float4::Load(1.f, 1.f, 0.f, 0.f);
+    job.target = ozz::math::simd_float4::Load(1.f, 1.f, 0.f, 0.f);
 
     ASSERT_TRUE(job.Run());
 
@@ -822,7 +822,7 @@ TEST(MidAxis, IKTwoBoneJob) {
   }
 }
 
-TEST(AlignedJointsAndHandle, IKTwoBoneJob) {
+TEST(AlignedJointsAndTarget, IKTwoBoneJob) {
   // Setup initial pose
   const ozz::math::Float4x4 start = ozz::math::Float4x4::identity();
   const ozz::math::Float4x4 mid =
@@ -846,7 +846,7 @@ TEST(AlignedJointsAndHandle, IKTwoBoneJob) {
 
   // Aligned and reachable
   {
-    job.handle = ozz::math::simd_float4::Load(2.f, 0.f, 0.f, 0.f);
+    job.target = ozz::math::simd_float4::Load(2.f, 0.f, 0.f, 0.f);
 
     ASSERT_TRUE(job.Run());
 
@@ -859,7 +859,7 @@ TEST(AlignedJointsAndHandle, IKTwoBoneJob) {
 
   // Aligned and unreachable
   {
-    job.handle = ozz::math::simd_float4::Load(3.f, 0.f, 0.f, 0.f);
+    job.target = ozz::math::simd_float4::Load(3.f, 0.f, 0.f, 0.f);
 
     ASSERT_TRUE(job.Run());
 
@@ -871,7 +871,7 @@ TEST(AlignedJointsAndHandle, IKTwoBoneJob) {
   }
 }
 
-TEST(ZeroLengthStartHandle, IKTwoBoneJob) {
+TEST(ZeroLengthStartTarget, IKTwoBoneJob) {
   // Setup initial pose
   const ozz::math::Float4x4 start = ozz::math::Float4x4::identity();
   const ozz::math::Float4x4 mid = ozz::math::Float4x4::FromAffine(
@@ -887,7 +887,7 @@ TEST(ZeroLengthStartHandle, IKTwoBoneJob) {
   // Prepares job.
   ozz::animation::IKTwoBoneJob job;
   job.pole_vector = ozz::math::simd_float4::y_axis();
-  job.handle = start.cols[3];  // 0 length from start to handle
+  job.target = start.cols[3];  // 0 length from start to target
   job.start_joint = &start;
   job.mid_joint = &mid;
   job.end_joint = &end;
@@ -916,7 +916,7 @@ TEST(ZeroLengthBoneChain, IKTwoBoneJob) {
   // Prepares job.
   ozz::animation::IKTwoBoneJob job;
   job.pole_vector = ozz::math::simd_float4::y_axis();
-  job.handle = ozz::math::simd_float4::x_axis();
+  job.target = ozz::math::simd_float4::x_axis();
   job.start_joint = &start;
   job.mid_joint = &mid;
   job.end_joint = &end;
