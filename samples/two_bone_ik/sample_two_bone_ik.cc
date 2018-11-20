@@ -148,10 +148,12 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
     const ozz::math::Float4x4 invert_root = Invert(root);
     const ozz::math::SimdFloat4 target_ls =
         TransformPoint(invert_root, g_target_pos);
+    const ozz::math::SimdFloat4 pole_vector_ls = TransformPoint(
+        invert_root, ozz::math::simd_float4::Load3PtrU(&pole_vector.x));
 
     ozz::animation::IKTwoBoneJob ik_job;
     ik_job.target = target_ls;
-    ik_job.pole_vector = ozz::math::simd_float4::Load3PtrU(&pole_vector.x);
+    ik_job.pole_vector = pole_vector_ls;
     ik_job.mid_axis = ozz::math::simd_float4::z_axis();
     ik_job.weight = weight_;
     ik_job.soften = soften_;
@@ -187,6 +189,8 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
     const ozz::math::Float4x4 kAxesScale =
         ozz::math::Float4x4::Scaling(ozz::math::simd_float4::Load1(.1f));
 
+    const ozz::math::Float4x4 root = ComputeRootTransform();
+
     // Displays target
     if (show_target_) {
       const ozz::sample::Renderer::Color colors[2] = {{0xff, 0xff, 0xff, 0xff},
@@ -216,7 +220,7 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
             {0, 0xff, 0, 0xff}, {0xff, 0xff, 0xff, 0xff},
             {0, 0, 0xff, 0xff}, {0xff, 0xff, 0xff, 0xff}};
         const int joints[3] = {start_joint_, mid_joint_, end_joint_};
-        const ozz::math::Float4x4& transform = models_[joints[i]];
+        const ozz::math::Float4x4& transform = root * models_[joints[i]];
         success &= _renderer->DrawBoxIm(
             ozz::math::Box(ozz::math::Float3(-kBoxHalfSize),
                            ozz::math::Float3(kBoxHalfSize)),
@@ -226,7 +230,6 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
     }
 
     // Draws the animated skeleton posture.
-    const ozz::math::Float4x4 root = ComputeRootTransform();
     success &= _renderer->DrawPosture(*skeleton_, make_range(models_), root);
 
     return success;
