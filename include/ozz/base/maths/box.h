@@ -35,6 +35,9 @@
 namespace ozz {
 namespace math {
 
+// Matrix forward declaration.
+struct Float4x4;
+
 // Defines an axis aligned box.
 struct Box {
   // Constructs an invalid box.
@@ -73,6 +76,9 @@ OZZ_INLINE Box Merge(const Box& _a, const Box& _b) {
   }
   return Box(Min(_a.min, _b.min), Max(_a.max, _b.max));
 }
+
+// Compute box transformation by a matrix.
+Box TransformBox(const Float4x4& _matrix, const Box& _box);
 }  // namespace math
 }  // namespace ozz
 #endif  // OZZ_OZZ_BASE_MATHS_BOX_H_

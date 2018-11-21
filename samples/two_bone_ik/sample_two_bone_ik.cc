@@ -435,11 +435,14 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
   }
 
   virtual void GetSceneBounds(ozz::math::Box* _bound) const {
+    ozz::math::Box posture_bound;
+
     // Computes skeleton bound
-    ozz::sample::ComputePostureBounds(make_range(models_), _bound);
+    ozz::sample::ComputePostureBounds(make_range(models_), &posture_bound);
+    posture_bound = TransformBox(ComputeRootTransform(), posture_bound);
 
     // Adds target in the bounds
-    *_bound = Merge(*_bound, ozz::math::Box(target_offset));
+    *_bound = Merge(posture_bound, ozz::math::Box(target_offset));
   }
 
   ozz::math::Float4x4 ComputeRootTransform() const {

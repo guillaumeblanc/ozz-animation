@@ -30,6 +30,7 @@
 #include <limits>
 
 #include "ozz/base/maths/math_ex.h"
+#include "ozz/base/maths/simd_math.h"
 
 namespace ozz {
 namespace math {
@@ -54,5 +55,21 @@ Box::Box(const Float3* _points, size_t _stride, size_t _count) {
   min = local_min;
   max = local_max;
 }
+
+Box TransformBox(const Float4x4& _matrix, const Box& _box) {
+  const SimdFloat4 min = simd_float4::Load3PtrU(&_box.min.x);
+  const SimdFloat4 max = simd_float4::Load3PtrU(&_box.max.x);
+
+  // Transforms min and max.
+  const SimdFloat4 ta = TransformPoint(_matrix, min);
+  const SimdFloat4 tb = TransformPoint(_matrix, max);
+
+  // Finds new min and max and store them in box.
+  Box tbox;
+  math::Store3PtrU(Min(ta, tb), &tbox.min.x);
+  math::Store3PtrU(Max(ta, tb), &tbox.max.x);
+  return tbox;
+}
+
 }  // namespace math
 }  // namespace ozz
