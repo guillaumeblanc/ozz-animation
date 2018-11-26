@@ -148,7 +148,7 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
     const ozz::math::Float4x4 invert_root = Invert(root);
     const ozz::math::SimdFloat4 target_ls =
         TransformPoint(invert_root, g_target_pos);
-    const ozz::math::SimdFloat4 pole_vector_ls = TransformPoint(
+    const ozz::math::SimdFloat4 pole_vector_ls = TransformVector(
         invert_root, ozz::math::simd_float4::Load3PtrU(&pole_vector.x));
 
     ozz::animation::IKTwoBoneJob ik_job;
@@ -189,6 +189,7 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
     const ozz::math::Float4x4 kAxesScale =
         ozz::math::Float4x4::Scaling(ozz::math::simd_float4::Load1(.1f));
 
+    // Get skeleton root transform.
     const ozz::math::Float4x4 root = ComputeRootTransform();
 
     // Displays target
@@ -205,7 +206,8 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
     if (show_pole_vector_) {
       const ozz::sample::Renderer::Color color = {0xff, 0xff, 0xff, 0xff};
       float pos[3];
-      ozz::math::Store3PtrU(models_[start_joint_].cols[3], pos);
+      ozz::math::Store3PtrU(TransformPoint(root, models_[start_joint_].cols[3]),
+                            pos);
       success &= _renderer->DrawVectors(
           ozz::Range<const float>(pos, 3), 6,
           ozz::Range<const float>(&pole_vector.x, 3), 6, 1, 1.f, color,
