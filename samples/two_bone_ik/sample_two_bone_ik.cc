@@ -74,7 +74,7 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
         root_scale_(1.f),
         target_time_(0.f),
         target_extent_(.2f),
-        target_offset_(.3f, .1f, 0.f),
+        target_offset_(.3f, .2f, 0.f),
         target_(0.f, 0.f, 0.f),
         start_joint_(-1),
         mid_joint_(-1),
@@ -252,35 +252,8 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
   virtual bool OnGui(ozz::sample::ImGui* _im_gui) {
     char txt[32];
 
-    _im_gui->DoSlider("extent", -1.f, 1.f, &target_extent_);
-
     // IK parameters
     _im_gui->DoCheckBox("Fix initial transform", &fix_initial_transform_);
-
-    {  // Target position
-      static bool opened = true;
-      ozz::sample::ImGui::OpenClose oc_pole(_im_gui, "Target position",
-                                            &opened);
-      const float kOffsetRange = 2.f;
-      sprintf(txt, "x %.2g", target_offset_.x);
-      _im_gui->DoSlider(txt, -kOffsetRange, kOffsetRange, &target_offset_.x);
-      sprintf(txt, "y %.2g", target_offset_.y);
-      _im_gui->DoSlider(txt, -kOffsetRange, kOffsetRange, &target_offset_.y);
-      sprintf(txt, "z %.2g", target_offset_.z);
-      _im_gui->DoSlider(txt, -kOffsetRange, kOffsetRange, &target_offset_.z);
-    }
-
-    {
-      // Pole vector
-      static bool opened = false;
-      ozz::sample::ImGui::OpenClose oc_pole(_im_gui, "Pole vector", &opened);
-      sprintf(txt, "x %.2g", pole_vector.x);
-      _im_gui->DoSlider(txt, -1.f, 1.f, &pole_vector.x);
-      sprintf(txt, "y %.2g", pole_vector.y);
-      _im_gui->DoSlider(txt, -1.f, 1.f, &pole_vector.y);
-      sprintf(txt, "z %.2g", pole_vector.z);
-      _im_gui->DoSlider(txt, -1.f, 1.f, &pole_vector.z);
-    }
     sprintf(txt, "Weight: %.2g", weight_);
     _im_gui->DoSlider(txt, 0.f, 1.f, &weight_);
     sprintf(txt, "Soften: %.2g", soften_);
@@ -289,8 +262,40 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
             twist_angle_ * ozz::math::kRadianToDegree);
     _im_gui->DoSlider(txt, -ozz::math::kPi, ozz::math::kPi, &twist_angle_);
 
-    {  // Root
+    {  // Target position
+      static bool opened = true;
+      ozz::sample::ImGui::OpenClose oc_pole(_im_gui, "Target position",
+                                            &opened);
+      if (opened) {
+        _im_gui->DoLabel("Animated extent");
+        sprintf(txt, "%.2g", target_extent_);
+        _im_gui->DoSlider(txt, 0.f, 1.f, &target_extent_);
 
+        _im_gui->DoLabel("Offset");
+        const float kOffsetRange = 2.f;
+        sprintf(txt, "x %.2g", target_offset_.x);
+        _im_gui->DoSlider(txt, -kOffsetRange, kOffsetRange, &target_offset_.x);
+        sprintf(txt, "y %.2g", target_offset_.y);
+        _im_gui->DoSlider(txt, -kOffsetRange, kOffsetRange, &target_offset_.y);
+        sprintf(txt, "z %.2g", target_offset_.z);
+        _im_gui->DoSlider(txt, -kOffsetRange, kOffsetRange, &target_offset_.z);
+      }
+    }
+    {
+      // Pole vector
+      static bool opened = true;
+      ozz::sample::ImGui::OpenClose oc_pole(_im_gui, "Pole vector", &opened);
+      if (opened) {
+        sprintf(txt, "x %.2g", pole_vector.x);
+        _im_gui->DoSlider(txt, -1.f, 1.f, &pole_vector.x);
+        sprintf(txt, "y %.2g", pole_vector.y);
+        _im_gui->DoSlider(txt, -1.f, 1.f, &pole_vector.y);
+        sprintf(txt, "z %.2g", pole_vector.z);
+        _im_gui->DoSlider(txt, -1.f, 1.f, &pole_vector.z);
+      }
+    }
+
+    {  // Root
       static bool opened = false;
       ozz::sample::ImGui::OpenClose oc_pole(_im_gui, "Root transformation",
                                             &opened);
@@ -326,9 +331,11 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
       static bool opened = true;
       ozz::sample::ImGui::OpenClose oc_pole(_im_gui, "Display options",
                                             &opened);
-      _im_gui->DoCheckBox("Show target", &show_target_);
-      _im_gui->DoCheckBox("Show joints", &show_joints_);
-      _im_gui->DoCheckBox("Show pole vector", &show_pole_vector_);
+      if (opened) {
+        _im_gui->DoCheckBox("Show target", &show_target_);
+        _im_gui->DoCheckBox("Show joints", &show_joints_);
+        _im_gui->DoCheckBox("Show pole vector", &show_pole_vector_);
+      }
     }
 
     return true;
