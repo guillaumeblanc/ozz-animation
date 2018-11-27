@@ -236,7 +236,7 @@ SimdQuaternion ComputeStartJoint(const IKTwoBoneJob& _job,
   const SimdQuaternion end_to_target_rot_ss =
       SimdQuaternion::FromVectors(start_end_ss_final, _start_target_ss);
 
-  // Calculates rotate_plane_rot quaternion which aligns joint chain plane to
+  // Calculates rotate_plane_ss quaternion which aligns joint chain plane to
   // the reference plane (pole vector). This can only be computed if start
   // target axis is valid (not 0 length)
   // -------------------------------------------------
@@ -310,10 +310,18 @@ void WeightOutput(const IKTwoBoneJob& _job, const IKConstantSetup& _setup,
     const SimdFloat4 identity = simd_float4::w_axis();
     const SimdFloat4 simd_weight =
         simd_float4::Load1(Clamp(0.f, _job.weight, 1.f));
-    _job.start_joint_correction->xyzw =
+
+    // Lerp
+    const SimdFloat4 start_lerp =
         NormalizeEst4(Lerp(identity, _start_rot_fu, simd_weight));
-    _job.mid_joint_correction->xyzw =
+    const SimdFloat4 mid_lerp =
         NormalizeEst4(Lerp(identity, _mid_rot_fu, simd_weight));
+
+    // Normalize
+    const SimdFloat4 rsqrts =
+        RSqrtEstNR(SetY(Length4Sqr(start_lerp), Length4Sqr(mid_lerp)));
+    _job.start_joint_correction->xyzw = start_lerp * SplatX(rsqrts);
+    _job.mid_joint_correction->xyzw = mid_lerp * SplatY(rsqrts);
   } else {
     // Quatenions don't need interpolation
     *_job.start_joint_correction = _start_rot;
