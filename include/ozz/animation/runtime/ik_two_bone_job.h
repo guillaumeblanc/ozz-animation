@@ -70,13 +70,6 @@ struct IKTwoBoneJob {
   // joint chain will try to reach.
   math::SimdFloat4 target;
 
-  // Pole vector, in model-space. The pole vector defines where the direction
-  // the middle joint should point to, allowing to control IK chain orientation.
-  // Note that IK chain orientation will flip when target vector and the pole
-  // vector are aligned/crossing each other. It's caller responsibility to
-  // ensure that this doesn't happen.
-  math::SimdFloat4 pole_vector;
-
   // Normalized middle joint rotation axis, in middle joint local-space. Default
   // value is z axis. This axis is usually fixed for a given skeleton (as it's
   // in middle joint space). If the two bones are not aligned, then this axis
@@ -86,22 +79,29 @@ struct IKTwoBoneJob {
   // also defines which side the two joints must bend.
   math::SimdFloat4 mid_axis;
 
-  // weight given to the IK correction clamped in range [0,1]. This allows to
-  // blend / interpolate from no IK applied (0 weight) to full IK (1).
-  float weight;
+  // Pole vector, in model-space. The pole vector defines where the direction
+  // the middle joint should point to, allowing to control IK chain orientation.
+  // Note that IK chain orientation will flip when target vector and the pole
+  // vector are aligned/crossing each other. It's caller responsibility to
+  // ensure that this doesn't happen.
+  math::SimdFloat4 pole_vector;
 
-  // soften ratio allows the chain to gradually fall behind the target
+  // Twist_angle rotates IK chain around the vector define by start-to-target
+  // vector. Default is 0.
+  float twist_angle;
+
+  // Soften ratio allows the chain to gradually fall behind the target
   // position. This prevents the joint chain from snapping into the final
   // position, softening the final degrees before the joint chain becomes flat.
   // This ratio represents the distance to the end, from which softening is
   // starting.
   float soften;
 
-  // twist_angle rotates IK chain orientation around the vector define by start
-  // to target direction. Default is 0.
-  float twist_angle;
+  // Weight given to the IK correction clamped in range [0,1]. This allows to
+  // blend / interpolate from no IK applied (0 weight) to full IK (1).
+  float weight;
 
-  // Model-space matrices of the start, middle and end joints of the chain. 
+  // Model-space matrices of the start, middle and end joints of the chain.
   // The 3 joints should be ancestors. They don't need to be direct
   // ancestors though.
   const math::Float4x4* start_joint;

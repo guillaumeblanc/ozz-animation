@@ -39,11 +39,11 @@ namespace ozz {
 namespace animation {
 IKTwoBoneJob::IKTwoBoneJob()
     : target(math::simd_float4::zero()),
-      pole_vector(math::simd_float4::y_axis()),
       mid_axis(math::simd_float4::z_axis()),
-      weight(1.f),
-      soften(1.f),
+      pole_vector(math::simd_float4::y_axis()),
       twist_angle(0.f),
+      soften(1.f),
+      weight(1.f),
       start_joint(NULL),
       mid_joint(NULL),
       end_joint(NULL),
