@@ -1,0 +1,90 @@
+//----------------------------------------------------------------------------//
+//                                                                            //
+// ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
+// and distributed under the MIT License (MIT).                               //
+//                                                                            //
+// Copyright (c) 2017 Guillaume Blanc                                         //
+//                                                                            //
+// Permission is hereby granted, free of charge, to any person obtaining a    //
+// copy of this software and associated documentation files (the "Software"), //
+// to deal in the Software without restriction, including without limitation  //
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,   //
+// and/or sell copies of the Software, and to permit persons to whom the      //
+// Software is furnished to do so, subject to the following conditions:       //
+//                                                                            //
+// The above copyright notice and this permission notice shall be included in //
+// all copies or substantial portions of the Software.                        //
+//                                                                            //
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR //
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,   //
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL    //
+// THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER //
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING    //
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER        //
+// DEALINGS IN THE SOFTWARE.                                                  //
+//                                                                            //
+//----------------------------------------------------------------------------//
+
+#ifndef OZZ_OZZ_ANIMATION_RUNTIME_IK_AIM_JOB_H_
+#define OZZ_OZZ_ANIMATION_RUNTIME_IK_AIM_JOB_H_
+
+#include "ozz/base/platform.h"
+
+#include "ozz/base/maths/simd_math.h"
+
+namespace ozz {
+// Forward declaration of math structures.
+namespace math {
+struct SimdQuaternion;
+}
+
+namespace animation {
+
+struct IKAimJob {
+  // Default constructor, initializes default values.
+  IKAimJob();
+
+  // Validates job parameters. Returns true for a valid job, or false otherwise:
+  // -if any input pointer is NULL
+  bool Validate() const;
+
+  // Runs job's sampling task.
+  // The job is validated before any operation is performed, see Validate() for
+  // more details.
+  // Returns false if *this job is not valid.
+  bool Run() const;
+
+  // Job input.
+
+  // in model-space
+  math::SimdFloat4 target;
+
+  // The axis in joint local-space to be aimed at target position. Default is x
+  // axis.
+  math::SimdFloat4 aim;
+
+  // Default is y axis.
+  math::SimdFloat4 up;
+
+  // Pole vector, in model-space.
+  math::SimdFloat4 pole_vector;
+
+  // Twist_angle rotates IK chain around the joint-to-target vector.
+  // Default is 0.
+  float twist_angle;
+
+  // Weight given to the IK correction clamped in range [0,1]. This allows to
+  // blend / interpolate from no IK applied (0 weight) to full IK (1).
+  float weight;
+
+  // Joint model-space matrix.
+  const math::Float4x4* joint;
+
+  // Job output.
+
+  // Output local-space joint correction quaternion.
+  math::SimdQuaternion* joint_correction;
+};
+}  // namespace animation
+}  // namespace ozz
+#endif  // OZZ_OZZ_ANIMATION_RUNTIME_IK_AIM_JOB_H_
