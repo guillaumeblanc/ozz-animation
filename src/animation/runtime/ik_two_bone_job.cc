@@ -321,8 +321,8 @@ void WeightOutput(const IKTwoBoneJob& _job, const IKConstantSetup& _setup,
     _job.mid_joint_correction->xyzw = mid_lerp * SplatY(rsqrts);
   } else {
     // Quatenions don't need interpolation
-    *_job.start_joint_correction = _start_rot;
-    *_job.mid_joint_correction = _mid_rot;
+    _job.start_joint_correction->xyzw = start_rot_fu;
+    _job.mid_joint_correction->xyzw = mid_rot_fu;
   }
 }
 }  // namespace
