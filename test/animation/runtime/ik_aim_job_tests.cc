@@ -348,8 +348,6 @@ TEST(Twist, IKAimJob) {
     job.pole_vector = ozz::math::simd_float4::z_axis();
     job.twist_angle = ozz::math::kPi_2;
     EXPECT_TRUE(job.Run());
-    const ozz::math::Quaternion x_Pi_2 = ozz::math::Quaternion::FromAxisAngle(
-        ozz::math::Float3::x_axis(), ozz::math::kPi_2);
     const ozz::math::Quaternion x_Pi = ozz::math::Quaternion::FromAxisAngle(
         ozz::math::Float3::x_axis(), ozz::math::kPi);
     EXPECT_SIMDQUATERNION_EQ_TOL(quat, x_Pi.x, x_Pi.y, x_Pi.z, x_Pi.w, 2e-3f);
