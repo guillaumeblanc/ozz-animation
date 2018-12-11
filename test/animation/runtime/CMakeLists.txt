@@ -118,6 +118,14 @@ target_link_libraries(test_track_archive
 set_target_properties(test_track_archive PROPERTIES FOLDER "ozz/tests/animation")
 add_test(NAME test_track_archive COMMAND test_track_archive)
 
+add_executable(test_ik_aim_job
+  ik_aim_job_tests.cc)
+target_link_libraries(test_ik_aim_job
+  ozz_animation
+  gtest)
+set_target_properties(test_ik_aim_job PROPERTIES FOLDER "ozz/tests/animation")
+add_test(NAME test_ik_aim_job COMMAND test_ik_aim_job)
+
 add_executable(test_ik_two_bone_job
   ik_two_bone_job_tests.cc)
 target_link_libraries(test_ik_two_bone_job

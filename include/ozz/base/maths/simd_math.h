@@ -1106,7 +1106,10 @@ struct Float4x4 {
 OZZ_INLINE Float4x4 Transpose(const Float4x4& _m);
 
 // Returns the inverse of matrix _m.
-OZZ_INLINE Float4x4 Invert(const Float4x4& _m);
+// If _invertible is not NULL, its x component will be set to true if matrix is
+// invertible. If _invertible is NULL, then an assert is triggered in case the
+// matrix isn't invertible.
+OZZ_INLINE Float4x4 Invert(const Float4x4& _m, SimdInt4* _invertible = NULL);
 
 // Translates matrix _m along the axis defined by _v components.
 // _v.w is ignored.

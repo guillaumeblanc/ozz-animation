@@ -25,8 +25,8 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#ifndef OZZ_OZZ_ANIMATION_RUNTIME_IK_TWO_BONE_JOB_H_
-#define OZZ_OZZ_ANIMATION_RUNTIME_IK_TWO_BONE_JOB_H_
+#ifndef OZZ_OZZ_ANIMATION_RUNTIME_IK_AIM_JOB_H_
+#define OZZ_OZZ_ANIMATION_RUNTIME_IK_AIM_JOB_H_
 
 #include "ozz/base/platform.h"
 
@@ -40,22 +40,12 @@ struct SimdQuaternion;
 
 namespace animation {
 
-// ozz::animation::IKTwoBoneJob performs inverse kinematic on a three joints
-// chain (two bones).
-// The job computes the transformations (rotations) that needs to be applied to
-// the first two joints of the chain (named start and middle joints) such that
-// the third joint (named end) reaches the provided target position (if
-// possible). The job outputs start and middle joint rotation corrections as
-// quaternions.
-// The three joints must be ancestors, but don't need to be direct
-// ancestors (joints in-between will simply remain fixed).
-struct IKTwoBoneJob {
-  // Constructor, initializes default values.
-  IKTwoBoneJob();
+struct IKAimJob {
+  // Default constructor, initializes default values.
+  IKAimJob();
 
   // Validates job parameters. Returns true for a valid job, or false otherwise:
   // -if any input pointer is NULL
-  // -if mid_axis isn't normalized.
   bool Validate() const;
 
   // Runs job's sampling task.
@@ -66,57 +56,35 @@ struct IKTwoBoneJob {
 
   // Job input.
 
-  // Target IK position, in model-space. This is the position the end of the
-  // joint chain will try to reach.
+  // in model-space
   math::SimdFloat4 target;
 
-  // Normalized middle joint rotation axis, in middle joint local-space. Default
-  // value is z axis. This axis is usually fixed for a given skeleton (as it's
-  // in middle joint space). If the two bones are not aligned, then this axis
-  // can be computed as the cross product of mid-to-start and mid_to-end
-  // vectors. Direction of this axis is defined like this: a positive rotation
-  // around this axis will open the angle between the two bones. This in turn
-  // also defines which side the two joints must bend.
-  math::SimdFloat4 mid_axis;
+  // The axis in joint local-space to be aimed at target position. Default is x
+  // axis.
+  math::SimdFloat4 aim;
 
-  // Pole vector, in model-space. The pole vector defines where the direction
-  // the middle joint should point to, allowing to control IK chain orientation.
-  // Note that IK chain orientation will flip when target vector and the pole
-  // vector are aligned/crossing each other. It's caller responsibility to
-  // ensure that this doesn't happen.
+  // Default is y axis.
+  math::SimdFloat4 up;
+
+  // Pole vector, in model-space.
   math::SimdFloat4 pole_vector;
 
-  // Twist_angle rotates IK chain around the vector define by start-to-target
-  // vector. Default is 0.
+  // Twist_angle rotates IK chain around the joint-to-target vector.
+  // Default is 0.
   float twist_angle;
-
-  // Soften ratio allows the chain to gradually fall behind the target
-  // position. This prevents the joint chain from snapping into the final
-  // position, softening the final degrees before the joint chain becomes flat.
-  // This ratio represents the distance to the end, from which softening is
-  // starting.
-  float soften;
 
   // Weight given to the IK correction clamped in range [0,1]. This allows to
   // blend / interpolate from no IK applied (0 weight) to full IK (1).
   float weight;
 
-  // Model-space matrices of the start, middle and end joints of the chain.
-  // The 3 joints should be ancestors. They don't need to be direct
-  // ancestors though.
-  const math::Float4x4* start_joint;
-  const math::Float4x4* mid_joint;
-  const math::Float4x4* end_joint;
+  // Joint model-space matrix.
+  const math::Float4x4* joint;
 
   // Job output.
 
-  // Local-space corrections to apply to start and middle joints in order for
-  // end joint to reach target position.
-  // These quaternions must be multiplied to the local-space quaternion of their
-  // respective joints.
-  math::SimdQuaternion* start_joint_correction;
-  math::SimdQuaternion* mid_joint_correction;
+  // Output local-space joint correction quaternion.
+  math::SimdQuaternion* joint_correction;
 };
 }  // namespace animation
 }  // namespace ozz
-#endif  // OZZ_OZZ_ANIMATION_RUNTIME_IK_TWO_BONE_JOB_H_
+#endif  // OZZ_OZZ_ANIMATION_RUNTIME_IK_AIM_JOB_H_

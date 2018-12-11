@@ -39,11 +39,11 @@ namespace ozz {
 namespace animation {
 IKTwoBoneJob::IKTwoBoneJob()
     : target(math::simd_float4::zero()),
-      pole_vector(math::simd_float4::y_axis()),
       mid_axis(math::simd_float4::z_axis()),
-      weight(1.f),
-      soften(1.f),
+      pole_vector(math::simd_float4::y_axis()),
       twist_angle(0.f),
+      soften(1.f),
+      weight(1.f),
       start_joint(NULL),
       mid_joint(NULL),
       end_joint(NULL),
@@ -299,23 +299,20 @@ void WeightOutput(const IKTwoBoneJob& _job, const IKConstantSetup& _setup,
 
   // Fix up quaternions so w is always positive, which is required for NLerp
   // (with identity quaternion) to lerp the shortest path.
-  const SimdFloat4 _start_rot_fu =
+  const SimdFloat4 start_rot_fu =
       Xor(_start_rot.xyzw,
           And(_setup.mask_sign, CmpLt(SplatW(_start_rot.xyzw), zero)));
-  const SimdFloat4 _mid_rot_fu = Xor(
+  const SimdFloat4 mid_rot_fu = Xor(
       _mid_rot.xyzw, And(_setup.mask_sign, CmpLt(SplatW(_mid_rot.xyzw), zero)));
 
   if (_job.weight < 1.f) {
     // NLerp start and mid joint rotations.
     const SimdFloat4 identity = simd_float4::w_axis();
-    const SimdFloat4 simd_weight =
-        simd_float4::Load1(Clamp(0.f, _job.weight, 1.f));
+    const SimdFloat4 simd_weight = Max(zero, simd_float4::Load1(_job.weight));
 
     // Lerp
-    const SimdFloat4 start_lerp =
-        NormalizeEst4(Lerp(identity, _start_rot_fu, simd_weight));
-    const SimdFloat4 mid_lerp =
-        NormalizeEst4(Lerp(identity, _mid_rot_fu, simd_weight));
+    const SimdFloat4 start_lerp = Lerp(identity, start_rot_fu, simd_weight);
+    const SimdFloat4 mid_lerp = Lerp(identity, mid_rot_fu, simd_weight);
 
     // Normalize
     const SimdFloat4 rsqrts =
@@ -324,8 +321,8 @@ void WeightOutput(const IKTwoBoneJob& _job, const IKConstantSetup& _setup,
     _job.mid_joint_correction->xyzw = mid_lerp * SplatY(rsqrts);
   } else {
     // Quatenions don't need interpolation
-    *_job.start_joint_correction = _start_rot;
-    *_job.mid_joint_correction = _mid_rot;
+    _job.start_joint_correction->xyzw = start_rot_fu;
+    _job.mid_joint_correction->xyzw = mid_rot_fu;
   }
 }
 }  // namespace

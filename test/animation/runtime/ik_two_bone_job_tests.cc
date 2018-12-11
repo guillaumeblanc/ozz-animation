@@ -543,7 +543,7 @@ TEST(Twist, IKTwoBoneJob) {
     EXPECT_REACHED(job);
 
     const ozz::math::Quaternion h_Pi = ozz::math::Quaternion::FromAxisAngle(
-        ozz::math::Float3(.70710678f, .70710678f, 0.f), ozz::math::kPi);
+        ozz::math::Float3(.70710678f, .70710678f, 0.f), -ozz::math::kPi);
     EXPECT_SIMDQUATERNION_EQ_TOL(qstart, h_Pi.x, h_Pi.y, h_Pi.z, h_Pi.w, 2e-3f);
     EXPECT_SIMDQUATERNION_EQ_TOL(qmid, 0.f, 0.f, 0.f, 1.f, 2e-3f);
   }
@@ -555,7 +555,7 @@ TEST(Twist, IKTwoBoneJob) {
 
     EXPECT_REACHED(job);
 
-    EXPECT_SIMDQUATERNION_EQ_TOL(qstart, 0.f, 0.f, 0.f, -1.f, 2e-3f);
+    EXPECT_SIMDQUATERNION_EQ_TOL(qstart, 0.f, 0.f, 0.f, 1.f, 2e-3f);
     EXPECT_SIMDQUATERNION_EQ_TOL(qmid, 0.f, 0.f, 0.f, 1.f, 2e-3f);
   }
 }
@@ -787,11 +787,10 @@ TEST(MidAxis, IKTwoBoneJob) {
 
     EXPECT_REACHED(job);
 
-    const ozz::math::Quaternion y_Pi_2 = ozz::math::Quaternion::FromAxisAngle(
+    const ozz::math::Quaternion y_Pi = ozz::math::Quaternion::FromAxisAngle(
         ozz::math::Float3::y_axis(), ozz::math::kPi);
-    EXPECT_SIMDQUATERNION_EQ_TOL(qstart, y_Pi_2.x, y_Pi_2.y, y_Pi_2.z, y_Pi_2.w,
-                                 2e-3f);
-    const ozz::math::Quaternion z_Pi = -ozz::math::Quaternion::FromAxisAngle(
+    EXPECT_SIMDQUATERNION_EQ_TOL(qstart, y_Pi.x, y_Pi.y, y_Pi.z, y_Pi.w, 2e-3f);
+    const ozz::math::Quaternion z_Pi = ozz::math::Quaternion::FromAxisAngle(
         ozz::math::Float3::z_axis(), ozz::math::kPi);
     EXPECT_SIMDQUATERNION_EQ_TOL(qmid, z_Pi.x, z_Pi.y, z_Pi.z, z_Pi.w, 2e-3f);
   }

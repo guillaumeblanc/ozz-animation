@@ -1410,7 +1410,7 @@ OZZ_INLINE Float4x4 Transpose(const Float4x4& _m) {
   return ret;
 }
 
-inline Float4x4 Invert(const Float4x4& _m) {
+inline Float4x4 Invert(const Float4x4& _m, SimdInt4* _invertible) {
   const __m128 _t0 =
       _mm_shuffle_ps(_m.cols[0], _m.cols[1], _MM_SHUFFLE(1, 0, 1, 0));
   const __m128 _t1 =
@@ -1481,7 +1481,12 @@ inline Float4x4 Invert(const Float4x4& _m) {
   det = _mm_mul_ps(c0, minor0);
   det = _mm_add_ps(OZZ_SHUFFLE_PS1(det, 0x4E), det);
   det = _mm_add_ss(OZZ_SHUFFLE_PS1(det, 0xB1), det);
-  tmp1 = _mm_rcp_ss(det);
+  const SimdInt4 invertible = CmpNe(det, simd_float4::zero());
+  assert(_invertible || AreAllTrue1(invertible) && "Matrix is not invertible");
+  if (_invertible != NULL) {
+    *_invertible = invertible;
+  }
+  tmp1 = OZZ_SSE_SELECT_F(invertible, RcpEstNR(det), simd_float4::zero());
   det = OZZ_NMADDX(det, _mm_mul_ss(tmp1, tmp1), _mm_add_ss(tmp1, tmp1));
   det = OZZ_SHUFFLE_PS1(det, 0x00);
 
