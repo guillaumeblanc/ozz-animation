@@ -1573,7 +1573,7 @@ OZZ_INLINE Float4x4 Transpose(const Float4x4& _m) {
   return ret;
 }
 
-OZZ_INLINE Float4x4 Invert(const Float4x4& _m) {
+OZZ_INLINE Float4x4 Invert(const Float4x4& _m, SimdInt4* _invertible) {
   const SimdFloat4* cols = _m.cols;
   const float a00 = cols[2].z * cols[3].w - cols[3].z * cols[2].w;
   const float a01 = cols[2].y * cols[3].w - cols[3].y * cols[2].w;
@@ -1617,8 +1617,12 @@ OZZ_INLINE Float4x4 Invert(const Float4x4& _m) {
 
   const float det =
       cols[0].x * b0x + cols[0].y * b1x + cols[0].z * b2x + cols[0].w * b3x;
-  assert(det != 0.f && "Matrix is not invertible");
-  const float inv_det = 1.f / det;
+  const bool invertible = det != 0.f;
+  assert(_invertible || invertible && "Matrix is not invertible");
+  if (_invertible != NULL) {
+    *_invertible = simd_int4::LoadX(invertible);
+  }
+  const float inv_det = invertible ? 1.f / det : 0.f;
 
   const Float4x4 ret = {
       {{b0x * inv_det, b0y * inv_det, b0z * inv_det, b0w * inv_det},

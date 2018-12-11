@@ -34,8 +34,8 @@
 #include "ozz/base/maths/math_constant.h"
 #include "ozz/base/maths/math_ex.h"
 
-using ozz::math::SimdFloat4;
 using ozz::math::Float4x4;
+using ozz::math::SimdFloat4;
 
 TEST(Float4x4Constant, ) {
   const Float4x4 identity = Float4x4::identity();
@@ -86,11 +86,11 @@ TEST(Float4x4Arithmetic, ozz_simd_math) {
   EXPECT_FLOAT4x4_EQ(transpose, 0.f, 4.f, 8.f, 12.f, 1.f, 5.f, 9.f, 13.f, 2.f,
                      6.f, 10.f, 14.f, 3.f, 7.f, 11.f, 15.f);
 
+  // Invertible
   const Float4x4 invert_ident = Invert(Float4x4::identity());
   EXPECT_FLOAT4x4_EQ(invert_ident, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f,
                      0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f);
 
-  // EXPECT_ASSERTION(Invert(m0), "Matrix is not invertible");
   const Float4x4 invert = Invert(m2);
   EXPECT_FLOAT4x4_EQ(invert, .216667f, 2.75f, 1.6f, .066666f, .2f, 2.5f, 1.4f,
                      .1f, .25f, .5f, .25f, 0.f, .233333f, .5f, .3f, .03333f);
@@ -98,6 +98,20 @@ TEST(Float4x4Arithmetic, ozz_simd_math) {
   const Float4x4 invert_mul = m2 * invert;
   EXPECT_FLOAT4x4_EQ(invert_mul, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f,
                      0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f);
+
+  ozz::math::SimdInt4 invertible;
+  EXPECT_FLOAT4x4_EQ(Invert(m2, &invertible), 0.216667f, 2.75f, 1.6f, .066666f,
+                     .2f, 2.5f, 1.4f, .1f, .25f, .5f, .25f, 0.f, .233333f, .5f,
+                     .3f, .03333f);
+  EXPECT_TRUE(ozz::math::AreAllTrue1(invertible));
+
+  // Non invertible
+  EXPECT_ASSERTION(Invert(m0), "Matrix is not invertible");
+
+  ozz::math::SimdInt4 not_invertible;
+  EXPECT_FLOAT4x4_EQ(Invert(m0, &not_invertible), 0.f, 0.f, 0.f, 0.f, 0.f, 0.f,
+                     0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
+  EXPECT_FALSE(ozz::math::AreAllTrue1(not_invertible));
 }
 
 TEST(Float4x4Normal, ozz_simd_math) {
