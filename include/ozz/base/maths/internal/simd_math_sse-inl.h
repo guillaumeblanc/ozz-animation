@@ -549,7 +549,8 @@ OZZ_INLINE SimdFloat4 RSqrtEstXNR(_SimdFloat4 _v) {
 }
 
 OZZ_INLINE SimdFloat4 Abs(_SimdFloat4 _v) {
-  return _mm_and_ps(_mm_castsi128_ps(simd_int4::mask_not_sign()), _v);
+  return _mm_and_ps(
+      _mm_castsi128_ps(_mm_srli_epi32(_mm_cmpeq_epi32(_v, _v), 1)), _v);
 }
 
 OZZ_INLINE SimdInt4 Sign(_SimdFloat4 _v) {
@@ -857,6 +858,10 @@ OZZ_INLINE SimdFloat4 Xor(_SimdFloat4 _a, _SimdFloat4 _b) {
 
 OZZ_INLINE SimdFloat4 And(_SimdFloat4 _a, _SimdInt4 _b) {
   return _mm_and_ps(_a, _mm_castsi128_ps(_b));
+}
+
+OZZ_INLINE SimdFloat4 AndNot(_SimdFloat4 _a, _SimdInt4 _b) {
+  return _mm_andnot_ps(_mm_castsi128_ps(_b), _a);
 }
 
 OZZ_INLINE SimdFloat4 Or(_SimdFloat4 _a, _SimdInt4 _b) {
@@ -1264,9 +1269,12 @@ OZZ_INLINE SimdInt4 HAdd4(_SimdInt4 _v) {
 }
 
 OZZ_INLINE SimdInt4 Abs(_SimdInt4 _v) {
+#ifdef OZZ_SIMD_SSSE3
+  return _mm_abs_epi32(_v);
+#else  // OZZ_SIMD_SSSE3
   const __m128i zero = _mm_setzero_si128();
-  return OZZ_SSE_SELECT_I(_mm_cmplt_epi32(_v, zero), _mm_sub_epi32(zero, _v),
-                          _v);
+  return _mm_abs_epi32(_mm_cmplt_epi32(_v, zero), _mm_sub_epi32(zero, _v), _v);
+#endif  // OZZ_SIMD_SSSE3
 }
 
 OZZ_INLINE SimdInt4 Sign(_SimdInt4 _v) {
@@ -1274,31 +1282,46 @@ OZZ_INLINE SimdInt4 Sign(_SimdInt4 _v) {
 }
 
 OZZ_INLINE SimdInt4 Min(_SimdInt4 _a, _SimdInt4 _b) {
-  // SSE4 _mm_min_epi32
+#ifdef OZZ_SIMD_SSE4_1
+  return _mm_min_epi32(_a, _b);
+#else  // OZZ_SIMD_SSE4_1
   return OZZ_SSE_SELECT_I(_mm_cmplt_epi32(_a, _b), _a, _b);
+#endif  // OZZ_SIMD_SSE4_1
 }
 
 OZZ_INLINE SimdInt4 Max(_SimdInt4 _a, _SimdInt4 _b) {
-  // SSE4 _mm_max_epi32
+#ifdef OZZ_SIMD_SSE4_1
+  return _mm_max_epi32(_a, _b);
+#else  // OZZ_SIMD_SSE4_1
   return OZZ_SSE_SELECT_I(_mm_cmpgt_epi32(_a, _b), _a, _b);
+#endif  // OZZ_SIMD_SSE4_1
 }
 
 OZZ_INLINE SimdInt4 Min0(_SimdInt4 _v) {
-  // SSE4 _mm_min_epi32
   const __m128i zero = _mm_setzero_si128();
+#ifdef OZZ_SIMD_SSE4_1
+  return _mm_min_epi32(zero, _v);
+#else  // OZZ_SIMD_SSE4_1
   return OZZ_SSE_SELECT_I(_mm_cmplt_epi32(zero, _v), zero, _v);
+#endif  // OZZ_SIMD_SSE4_1
 }
 
 OZZ_INLINE SimdInt4 Max0(_SimdInt4 _v) {
-  // SSE4 _mm_max_epi32
   const __m128i zero = _mm_setzero_si128();
+#ifdef OZZ_SIMD_SSE4_1
+  return _mm_max_epi32(zero, _v);
+#else  // OZZ_SIMD_SSE4_1
   return OZZ_SSE_SELECT_I(_mm_cmpgt_epi32(zero, _v), zero, _v);
+#endif  // OZZ_SIMD_SSE4_1
 }
 
 OZZ_INLINE SimdInt4 Clamp(_SimdInt4 _a, _SimdInt4 _v, _SimdInt4 _b) {
-  // SSE4 _mm_min_epi32/_mm_max_epi32
+#ifdef OZZ_SIMD_SSE4_1
+  return _mm_min_epi32(_mm_max_epi32(_a, _v), _b);
+#else  // OZZ_SIMD_SSE4_1
   const __m128i min = OZZ_SSE_SELECT_I(_mm_cmplt_epi32(_v, _b), _v, _b);
   return OZZ_SSE_SELECT_I(_mm_cmpgt_epi32(_a, min), _a, min);
+#endif  // OZZ_SIMD_SSE4_1
 }
 
 OZZ_INLINE SimdInt4 Select(_SimdInt4 _b, _SimdInt4 _true, _SimdInt4 _false) {
@@ -1307,6 +1330,10 @@ OZZ_INLINE SimdInt4 Select(_SimdInt4 _b, _SimdInt4 _true, _SimdInt4 _false) {
 
 OZZ_INLINE SimdInt4 And(_SimdInt4 _a, _SimdInt4 _b) {
   return _mm_and_si128(_a, _b);
+}
+
+OZZ_INLINE SimdInt4 AndNot(_SimdInt4 _a, _SimdInt4 _b) {
+  return _mm_andnot_si128(_b, _a);
 }
 
 OZZ_INLINE SimdInt4 Or(_SimdInt4 _a, _SimdInt4 _b) {
@@ -1318,8 +1345,7 @@ OZZ_INLINE SimdInt4 Xor(_SimdInt4 _a, _SimdInt4 _b) {
 }
 
 OZZ_INLINE SimdInt4 Not(_SimdInt4 _v) {
-  return _mm_xor_si128(
-      _v, _mm_cmpeq_epi32(_mm_setzero_si128(), _mm_setzero_si128()));
+  return _mm_xor_si128(_v, _mm_cmpeq_epi32(_v, _v));
 }
 
 OZZ_INLINE SimdInt4 ShiftL(_SimdInt4 _v, int _bits) {
@@ -1339,18 +1365,17 @@ OZZ_INLINE SimdInt4 CmpEq(_SimdInt4 _a, _SimdInt4 _b) {
 }
 
 OZZ_INLINE SimdInt4 CmpNe(_SimdInt4 _a, _SimdInt4 _b) {
-  return _mm_castps_si128(
-      _mm_cmpneq_ps(_mm_castsi128_ps(_a), _mm_castsi128_ps(_b)));
+  const __m128i eq = _mm_cmpeq_epi32(_a, _b);
+  return _mm_xor_si128(eq, _mm_cmpeq_epi32(_a, _a));
 }
 
 OZZ_INLINE SimdInt4 CmpLt(_SimdInt4 _a, _SimdInt4 _b) {
-  return _mm_cmplt_epi32(_a, _b);
+  return _mm_cmpgt_epi32(_b, _a);
 }
 
 OZZ_INLINE SimdInt4 CmpLe(_SimdInt4 _a, _SimdInt4 _b) {
-  return _mm_andnot_si128(
-      _mm_cmpgt_epi32(_a, _b),
-      _mm_cmpeq_epi32(_mm_setzero_si128(), _mm_setzero_si128()));
+  const __m128i gt = _mm_cmpgt_epi32(_a, _b);
+  return _mm_xor_si128(gt, _mm_cmpeq_epi32(_a, _a));
 }
 
 OZZ_INLINE SimdInt4 CmpGt(_SimdInt4 _a, _SimdInt4 _b) {
@@ -1358,9 +1383,8 @@ OZZ_INLINE SimdInt4 CmpGt(_SimdInt4 _a, _SimdInt4 _b) {
 }
 
 OZZ_INLINE SimdInt4 CmpGe(_SimdInt4 _a, _SimdInt4 _b) {
-  return _mm_andnot_si128(
-      _mm_cmplt_epi32(_a, _b),
-      _mm_cmpeq_epi32(_mm_setzero_si128(), _mm_setzero_si128()));
+  const __m128i lt = _mm_cmpgt_epi32(_b, _a);
+  return _mm_xor_si128(lt, _mm_cmpeq_epi32(_a, _a));
 }
 
 OZZ_INLINE Float4x4 Float4x4::identity() {
@@ -1368,7 +1392,6 @@ OZZ_INLINE Float4x4 Float4x4::identity() {
   const __m128i ffff = _mm_cmpeq_epi32(zero, zero);
   const __m128i one = _mm_srli_epi32(_mm_slli_epi32(ffff, 25), 2);
   const __m128i x = _mm_srli_si128(one, 12);
-
   const Float4x4 ret = {{_mm_castsi128_ps(x),
                          _mm_castsi128_ps(_mm_slli_si128(x, 4)),
                          _mm_castsi128_ps(_mm_slli_si128(x, 8)),

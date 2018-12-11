@@ -930,6 +930,15 @@ OZZ_INLINE SimdFloat4 And(_SimdFloat4 _a, _SimdInt4 _b) {
   return ret.f;
 }
 
+OZZ_INLINE SimdFloat4 AndNot(_SimdFloat4 _a, _SimdInt4 _b) {
+  using internal::SimdFI4;
+
+  const SimdFI4 a = {_a};
+  const SimdIF4 ret = {
+      {a.i.x & ~b.i.x, a.i.y & ~b.i.y, a.i.z & ~b.i.z, a.i.w & ~b.i.w}};
+  return ret.f;
+}
+
 OZZ_INLINE SimdFloat4 Or(_SimdFloat4 _a, _SimdInt4 _b) {
   using internal::SimdFI4;
   using internal::SimdIF4;
@@ -1470,6 +1479,11 @@ OZZ_INLINE SimdInt4 Select(_SimdInt4 _b, _SimdInt4 _true, _SimdInt4 _false) {
 
 OZZ_INLINE SimdInt4 And(_SimdInt4 _a, _SimdInt4 _b) {
   const SimdInt4 ret = {_a.x & _b.x, _a.y & _b.y, _a.z & _b.z, _a.w & _b.w};
+  return ret;
+}
+
+OZZ_INLINE SimdInt4 AndNot(_SimdInt4 _a, _SimdInt4 _b) {
+  const SimdInt4 ret = {_a.x & ~_b.x, _a.y & ~_b.y, _a.z & ~_b.z, _a.w & ~_b.w};
   return ret;
 }
 

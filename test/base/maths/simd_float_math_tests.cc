@@ -660,6 +660,9 @@ TEST(LogicalFloat, ozz_simd_math) {
   const SimdFloat4 andm = ozz::math::And(b, mbit);
   EXPECT_SIMDFLOAT_EQ(andm, 1.f, 0.f, 0.f, 4.f);
 
+  const SimdFloat4 andnm = ozz::math::AndNot(b, mbit);
+  EXPECT_SIMDFLOAT_EQ(andnm, 0.f, -1.f, 3.f, -0.f);
+
   const SimdFloat4 andf = ozz::math::And(b, mfloat);
   EXPECT_SIMDFLOAT_EQ(andf, 1.f, 0.f, -0.f, 2.f);
 

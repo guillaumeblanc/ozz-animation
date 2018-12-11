@@ -491,6 +491,9 @@ TEST(LogicalInt, ozz_simd_math) {
   const SimdInt4 andm = ozz::math::And(a, b);
   EXPECT_SIMDINT_EQ(andm, 0x80000001, 0x00000000, 0x00000001, 0x00000000);
 
+  const SimdInt4 andnm = ozz::math::AndNot(a, b);
+  EXPECT_SIMDINT_EQ(andnm, 0x7ffffffe, 0x00000000, 0x80000000, 0x7fffffff);
+
   const SimdInt4 orm = ozz::math::Or(a, b);
   EXPECT_SIMDINT_EQ(orm, 0xffffffff, 0xffffffff, 0xffffffff, 0x7fffffff);
 
