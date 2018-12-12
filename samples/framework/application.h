@@ -73,6 +73,10 @@ class Application {
   // returned.
   int Run(int _argc, const char** _argv, const char* _version,
           const char* _title);
+ protected:
+
+  // Get Current frame camera views matrix.
+  math::Float4x4 GetCameraViewMatrix() const;
 
  private:
   // Provides initialization event to the inheriting application. Called while

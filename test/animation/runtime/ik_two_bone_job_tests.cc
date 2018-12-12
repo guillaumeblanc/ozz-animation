@@ -374,6 +374,30 @@ TEST(Pole, IKTwoBoneJob) {
   }
 }
 
+TEST(ZeroScale, IKTwoBoneJob) {
+  // Setup initial pose
+  const ozz::math::Float4x4 start =
+      ozz::math::Float4x4::Scaling(ozz::math::simd_float4::zero());
+  const ozz::math::Float4x4 mid = start;
+  const ozz::math::Float4x4 end = start;
+
+  // Prepares job.
+  ozz::animation::IKTwoBoneJob job;
+  job.start_joint = &start;
+  job.mid_joint = &mid;
+  job.end_joint = &end;
+  ozz::math::SimdQuaternion qstart;
+  job.start_joint_correction = &qstart;
+  ozz::math::SimdQuaternion qmid;
+  job.mid_joint_correction = &qmid;
+  ASSERT_TRUE(job.Validate());
+
+  ASSERT_TRUE(job.Run());
+
+  EXPECT_SIMDQUATERNION_EQ_TOL(qstart, 0.f, 0.f, 0.f, 1.f, 2e-3f);
+  EXPECT_SIMDQUATERNION_EQ_TOL(qmid, 0.f, 0.f, 0.f, 1.f, 2e-3f);
+}
+
 TEST(Soften, IKTwoBoneJob) {
   // Setup initial pose
   const ozz::math::Float4x4 start = ozz::math::Float4x4::identity();

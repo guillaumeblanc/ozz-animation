@@ -499,3 +499,15 @@ TEST(Weight, IKAimJob) {
     EXPECT_SIMDQUATERNION_EQ_TOL(quat, 0.f, 0.f, 0.f, 1.f, 2e-3f);
   }
 }
+
+TEST(ZeroScale, IKAimJob) {
+  ozz::animation::IKAimJob job;
+  ozz::math::SimdQuaternion quat;
+  job.joint_correction = &quat;
+  const ozz::math::Float4x4 joint =
+      ozz::math::Float4x4::Scaling(ozz::math::simd_float4::zero());
+  job.joint = &joint;
+
+  EXPECT_TRUE(job.Run());
+  EXPECT_SIMDQUATERNION_EQ_TOL(quat, 0.f, 0.f, 0.f, 1.f, 2e-3f);
+}
