@@ -1273,7 +1273,7 @@ OZZ_INLINE SimdInt4 Abs(_SimdInt4 _v) {
   return _mm_abs_epi32(_v);
 #else  // OZZ_SIMD_SSSE3
   const __m128i zero = _mm_setzero_si128();
-  return _mm_abs_epi32(_mm_cmplt_epi32(_v, zero), _mm_sub_epi32(zero, _v), _v);
+  return OZZ_SSE_SELECT_I(_mm_cmplt_epi32(_v, zero), _mm_sub_epi32(zero, _v), _v);
 #endif  // OZZ_SIMD_SSSE3
 }
 
