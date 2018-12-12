@@ -644,14 +644,6 @@ bool Application::FrameworkGui() {
   return true;
 }
 
-math::Float4x4 Application::GetCameraViewMatrix() const {
-  if (camera_) {
-    return camera_->view();
-  } else {
-    return math::Float4x4::identity();
-  }
-}
-
 // Default implementation doesn't override camera location.
 bool Application::GetCameraOverride(math::Float4x4* _transform) const {
   (void)_transform;

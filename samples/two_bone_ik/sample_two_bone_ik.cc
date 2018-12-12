@@ -87,7 +87,7 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
         soften_(.97f),
         twist_angle_(0.f),
         aim_target_offset_(0.f, 0.f, 0.f),
-        aim_target_(0.f, 0.f, 0.f),
+        aim_target_es_(0.f, 0.f, 0.f),
         show_target_(true),
         show_aim_target_(true),
         show_joints_(false),
@@ -140,7 +140,7 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
   bool ApplyAimIK(const ozz::math::Float4x4& _invert_root) {
     const ozz::math::SimdFloat4 aim_target_ms = TransformPoint(
         _invert_root, models_[end_joint_].cols[3] +
-                          ozz::math::simd_float4::Load3PtrU(&aim_target_.x));
+                          ozz::math::simd_float4::Load3PtrU(&aim_target_es_.x));
     const ozz::math::SimdFloat4 pole_vector_ms = TransformVector(
         _invert_root, ozz::math::simd_float4::Load3PtrU(&pole_vector.x));
 
@@ -206,10 +206,8 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
 
     // Target and pole should be in model-space, so they must be converted from
     // wolrd-space.
-    // IK jobs must support non invertible matrices.
     const ozz::math::Float4x4 root = GetRootTransform();
-    ozz::math::SimdInt4 invertible;
-    const ozz::math::Float4x4 invert_root = Invert(root, &invertible);
+    const ozz::math::Float4x4 invert_root = Invert(root);
 
     // Setup and run IK job.
     if (two_bone_ik_) {
@@ -254,7 +252,7 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
                          ozz::math::Float3(kBoxHalfSize)),
           ozz::math::Float4x4::Translation(
               models_[end_joint_].cols[3] +
-              ozz::math::simd_float4::Load3PtrU(&aim_target_.x)),
+              ozz::math::simd_float4::Load3PtrU(&aim_target_es_.x)),
           colors);
     }
     // Displays pole vector
@@ -456,15 +454,14 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
     // Updates two bone ik target position.
     target_ = ozz::math::Float3(
         target_offset_.x + target_extent_ * sinf(target_time_),
-        target_offset_.y + target_extent_ * cosf((.1f + target_time_) * .8f),
-        target_offset_.z + target_extent_ * sinf((.7f + target_time_) * 1.3f));
+        target_offset_.y + target_extent_ * cosf(target_time_ * 2.f),
+        target_offset_.z + target_extent_ * sinf(.1f + target_time_ * .5f));
 
-    // Updates aim target position, maintaining it in line with target
-    // direction.
-    aim_target_ = aim_target_offset_ +
-                  NormalizeSafe(ozz::math::Float3(target_.x, 0.f, target_.z),
-                                ozz::math::Float3::x_axis()) *
-                      .2f;
+    // Updates aim target position, maintaining it in line with target direction.
+    aim_target_es_ = aim_target_offset_ +
+                     NormalizeSafe(ozz::math::Float3(target_.x, 0.f, target_.z),
+                                   ozz::math::Float3::x_axis()) *
+                         .2f;
   }
 
   ozz::math::Float4x4 GetRootTransform() const {
@@ -518,7 +515,7 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
   // Aim IK
 
   ozz::math::Float3 aim_target_offset_;
-  ozz::math::Float3 aim_target_;
+  ozz::math::Float3 aim_target_es_;
 
   // Sample display options
   bool show_target_;
