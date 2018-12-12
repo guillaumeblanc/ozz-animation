@@ -190,7 +190,7 @@ OZZ_INLINE SoaFloat4x4 Invert(const SoaFloat4x4& _m,
   const SimdFloat4 det =
       cols[0].x * b0x + cols[0].y * b1x + cols[0].z * b2x + cols[0].w * b3x;
   const SimdInt4 invertible = CmpNe(det, simd_float4::zero());
-  assert(_invertible || AreAllTrue(invertible) && "Matrix is not invertible");
+  assert((_invertible || AreAllTrue(invertible)) && "Matrix is not invertible");
   if (_invertible != NULL) {
     *_invertible = invertible;
   }

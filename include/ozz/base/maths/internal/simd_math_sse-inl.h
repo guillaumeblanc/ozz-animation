@@ -1482,7 +1482,7 @@ inline Float4x4 Invert(const Float4x4& _m, SimdInt4* _invertible) {
   det = _mm_add_ps(OZZ_SHUFFLE_PS1(det, 0x4E), det);
   det = _mm_add_ss(OZZ_SHUFFLE_PS1(det, 0xB1), det);
   const SimdInt4 invertible = CmpNe(det, simd_float4::zero());
-  assert(_invertible || AreAllTrue1(invertible) && "Matrix is not invertible");
+  assert((_invertible || AreAllTrue1(invertible)) && "Matrix is not invertible");
   if (_invertible != NULL) {
     *_invertible = invertible;
   }
