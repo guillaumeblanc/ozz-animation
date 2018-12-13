@@ -29,16 +29,13 @@
 
 #include <cassert>
 
-//TEMP
+// TEMP
 
 #include "ozz/base/maths/quaternion.h"
 
 #include "ozz/base/log.h"
 #include "ozz/base/maths/math_ex.h"
 #include "ozz/base/maths/simd_quaternion.h"
-
-size_t num_vectors = 0;
-float ik_vectors[4 * 3];
 
 using namespace ozz::math;
 
@@ -70,37 +67,32 @@ bool IKAimJob::Run() const {
   using math::SimdFloat4;
   using math::SimdQuaternion;
 
-  const SimdFloat4 zero = simd_float4::zero();
+  // If matrices aren't invertible, they'll be all 0 (ozz::math
+  // implementation), which will result in identity correction quaternions.
+  SimdInt4 invertible;
+  const Float4x4 inv_joint = Invert(*joint, &invertible);
 
-  const Float4x4 inv_joint = Invert(*joint);
-
-  // Calculates joint_to_target_rot_ss quaternion which solves for joint
-  // rotating onto the target.
+  // Computes joint to target vector, in joint space.
   const SimdFloat4 joint_to_target_js = TransformPoint(inv_joint, target);
   const SimdFloat4 joint_to_target_js_len2 = Length3Sqr(joint_to_target_js);
 
-  if (AreAllTrue1(CmpEq(joint_to_target_js_len2, zero))) {
+  if (AreAllTrue1(CmpEq(joint_to_target_js_len2, simd_float4::zero()))) {
     // Target is too close to joint position to find a direction.
     *joint_correction = SimdQuaternion::identity();
   } else {
+    // Calculates joint_to_target_rot_ss quaternion which solves for aim vector
+    // rotating onto the target.
     const SimdQuaternion joint_to_target_rot_js =
         SimdQuaternion::FromVectors(aim, joint_to_target_js);
 
     // Calculates rotate_plane_js quaternion which aligns joint up to the pole
     // vector.
-
     const SimdFloat4 corrected_up_js =
         TransformVector(joint_to_target_rot_js, up);
 
     const SimdFloat4 pole_vector_js = TransformVector(inv_joint, pole_vector);
     const SimdFloat4 curr_js = Cross3(pole_vector_js, joint_to_target_js);
     const SimdFloat4 ref_js = Cross3(corrected_up_js, joint_to_target_js);
-
-    Store3PtrU(TransformVector(*joint, joint_to_target_js), ik_vectors + 0);
-    Store3PtrU(TransformVector(*joint, curr_js), ik_vectors + 3);
-    Store3PtrU(TransformVector(*joint, ref_js), ik_vectors + 6);
-    Store3PtrU(TransformVector(*joint, corrected_up_js), ik_vectors + 9);
-    num_vectors = 4;
 
     const SimdFloat4 curr_js_len2 = Length3Sqr(curr_js);
     const SimdFloat4 ref_js_len2 = Length3Sqr(ref_js);
@@ -138,14 +130,14 @@ bool IKAimJob::Run() const {
 
     // Fix up quaternions so w is always positive, which is required for NLerp
     // (with identity quaternion) to lerp the shortest path.
-    const SimdFloat4 twisted_fu =
-        Xor(twisted.xyzw,
-            And(simd_int4::mask_sign(), CmpLt(SplatW(twisted.xyzw), zero)));
+    const SimdFloat4 twisted_fu = Xor(
+        twisted.xyzw, And(simd_int4::mask_sign(),
+                          CmpLt(SplatW(twisted.xyzw), simd_float4::zero())));
 
     if (weight < 1.f) {
       // NLerp start and mid joint rotations.
       const SimdFloat4 identity = simd_float4::w_axis();
-      const SimdFloat4 simd_weight = Max(zero, simd_float4::Load1(weight));
+      const SimdFloat4 simd_weight = Max0(simd_float4::Load1(weight));
 
       // NLerp
       joint_correction->xyzw =

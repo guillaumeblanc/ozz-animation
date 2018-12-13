@@ -69,8 +69,12 @@ struct IKConstantSetup {
     m_one = Xor(one, mask_sign);
 
     // Computes inverse matrices required to change to start and mid spaces.
-    inv_start_joint = Invert(*_job.start_joint);
-    const Float4x4 inv_mid_joint = Invert(*_job.mid_joint);
+    // If matrices aren't invertible, they'll be all 0 (ozz::math
+    // implementation), which will result in identity correction quaternions.
+    SimdInt4 invertible;
+    (void)invertible;
+    inv_start_joint = Invert(*_job.start_joint, &invertible);
+    const Float4x4 inv_mid_joint = Invert(*_job.mid_joint, &invertible);
 
     // Transform some positions to mid joint space (_ms)
     const SimdFloat4 start_ms =
