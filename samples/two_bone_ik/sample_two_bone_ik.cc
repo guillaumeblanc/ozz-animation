@@ -72,6 +72,7 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
       : fix_initial_transform_(true),
         two_bone_ik_(true),
         aim_ik_(true),
+        reached(false),
         root_translation_(0.f, 0.f, 0.f),
         root_euler_(0.f, 0.f, 0.f),
         root_scale_(1.f),
@@ -114,6 +115,7 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
     ik_job.start_joint_correction = &start_correction;
     ozz::math::SimdQuaternion mid_correction;
     ik_job.mid_joint_correction = &mid_correction;
+    ik_job.reached = &reached;
     if (!ik_job.Run()) {
       return false;
     }
@@ -235,16 +237,19 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
 
     const float kBoxHalfSize = .005f;
     if (show_target_) {
-      const ozz::sample::Renderer::Color colors[2] = {{0xff, 0xff, 0xff, 0xff},
-                                                      {0xff, 0, 0, 0xff}};
       // Displays target
+      const float kBoxHalfSize = .005f;
+      const ozz::sample::Renderer::Color colors[2][2] = {
+          {{0xff, 0xff, 0xff, 0xff}, {0xff, 0, 0, 0xff}},
+          {{0xff, 0xff, 0xff, 0xff}, {0, 0xff, 0, 0xff}}};
       success &= _renderer->DrawBoxIm(
           ozz::math::Box(ozz::math::Float3(-kBoxHalfSize),
                          ozz::math::Float3(kBoxHalfSize)),
           ozz::math::Float4x4::Translation(
               ozz::math::simd_float4::Load3PtrU(&target_.x)),
-          colors);
+          colors[reached]);
     }
+    
     if (show_aim_target_) {
       const ozz::sample::Renderer::Color colors[2] = {{0, 0xff, 0, 0xff},
                                                       {0xff, 0, 0, 0xff}};
@@ -257,6 +262,7 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
               ozz::math::simd_float4::Load3PtrU(&aim_target_.x)),
           colors);
     }
+
     // Displays pole vector
     if (show_pole_vector_) {
       const ozz::sample::Renderer::Color color = {0xff, 0xff, 0xff, 0xff};
@@ -488,6 +494,7 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
   bool fix_initial_transform_;
   bool two_bone_ik_;
   bool aim_ik_;
+  bool reached; // outpout
 
   // Root transformation.
   ozz::math::Float3 root_translation_;

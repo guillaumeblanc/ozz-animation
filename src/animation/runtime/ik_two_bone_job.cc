@@ -48,7 +48,8 @@ IKTwoBoneJob::IKTwoBoneJob()
       mid_joint(NULL),
       end_joint(NULL),
       start_joint_correction(NULL),
-      mid_joint_correction(NULL) {}
+      mid_joint_correction(NULL),
+      reached(NULL) {}
 
 bool IKTwoBoneJob::Validate() const {
   bool valid = true;
@@ -120,36 +121,46 @@ struct IKConstantSetup {
 
 // Smoothen target position when it's further that a ratio of the joint chain
 // length, and start to target length isn't 0.
-// Inspired from http://www.softimageblog.com/archives/108
+// Inspired by http://www.softimageblog.com/archives/108
+// and http://www.ryanjuckett.com/programming/analytic-two-bone-ik-in-2d/
 bool SoftenTarget(const IKTwoBoneJob& _job, const IKConstantSetup& _setup,
                   SimdFloat4* _start_target_ss,
                   SimdFloat4* _start_target_ss_len2) {
   // Hanlde position in start joint space (_ss)
-  const SimdFloat4 target_ss =
+  const SimdFloat4 start_target_original_ss =
       TransformPoint(_setup.inv_start_joint, _job.target);
-
-  const SimdFloat4& start_target_original_ss = target_ss;
-  const SimdFloat4 start_target_original_ss_len2 = Length3Sqr(target_ss);
-
-  const SimdFloat4 bones_len =
-      Sqrt(SetY(_setup.start_mid_ss_len2, _setup.mid_end_ss_len2));
-  const SimdFloat4 bones_chain_len = bones_len + SplatY(bones_len);
+  const SimdFloat4 start_target_original_ss_len2 =
+      Length3Sqr(start_target_original_ss);
+  const SimdFloat4 lengths =
+      Sqrt(SetZ(SetY(_setup.start_mid_ss_len2, _setup.mid_end_ss_len2),
+                start_target_original_ss_len2));
+  const SimdFloat4 start_mid_ss_len = lengths;
+  const SimdFloat4 mid_end_ss_len = SplatY(lengths);
+  const SimdFloat4 start_target_original_ss_len = SplatZ(lengths);
+  const SimdFloat4 bone_len_diff_abs =
+      AndNot(start_mid_ss_len - mid_end_ss_len, _setup.mask_sign);
+  const SimdFloat4 bones_chain_len = start_mid_ss_len + mid_end_ss_len;
   const SimdFloat4 da =  // da.yzw needs to be 0
-      bones_chain_len * simd_float4::LoadX(Clamp(_job.soften, 0.f, 1.f));
+      bones_chain_len *
+      Clamp(simd_float4::zero(), simd_float4::LoadX(_job.soften), _setup.one);
   const SimdFloat4 ds = bones_chain_len - da;
 
   // Sotftens target position if it is further than a ratio (_soften) of the
-  // whole bone chain length. Needs to check also ds and
+  // whole bone chain length. Needs to check also that ds and
   // start_target_original_ss_len2 are != 0, because they're used as a
-  // denominator. Note that da.yzw == 0
-  const SimdFloat4 comperand = SetZ(SplatX(start_target_original_ss_len2), ds);
-  bool needs_softening = AreAllTrue3(CmpGt(comperand, da * da));
-  if (needs_softening) {
+  // denominator.
+  // x = start_target_original_ss_len > da
+  // y = start_target_original_ss_len > 0
+  // z = start_target_original_ss_len > bone_len_diff_abs
+  // w = ds                           > 0
+  const SimdFloat4 left = SetW(start_target_original_ss_len, ds);
+  const SimdFloat4 right = SetZ(da, bone_len_diff_abs);
+  const SimdInt4 comp = CmpGt(left, right);
+  const int comp_mask = MoveMask(comp);
+
+  // xyw all 1, z is untested.
+  if ((comp_mask & 0xb) == 0xb) {
     // Finds interpolation ratio (aka alpha).
-    const SimdFloat4 start_target_original_ss_inv_len =
-        RSqrtEstX(start_target_original_ss_len2);
-    const SimdFloat4 start_target_original_ss_len =  //  x^.5 = x^2 / (x^2)^.5
-        start_target_original_ss_len2 * start_target_original_ss_inv_len;
     const SimdFloat4 alpha = (start_target_original_ss_len - da) * RcpEstX(ds);
     // Approximate an exponential function with : 1-(3^4)/(alpha+3)^4
     // The derivative must be 1 for x = 0, and y must never exceeds 1.
@@ -165,15 +176,15 @@ bool SoftenTarget(const IKTwoBoneJob& _job, const IKConstantSetup& _setup,
     *_start_target_ss_len2 = start_target_ss_len * start_target_ss_len;
     *_start_target_ss =
         start_target_original_ss *
-        SplatX(start_target_ss_len * start_target_original_ss_inv_len);
+        SplatX(start_target_ss_len * RcpEstX(start_target_original_ss_len));
   } else {
     *_start_target_ss = start_target_original_ss;
     *_start_target_ss_len2 = start_target_original_ss_len2;
   }
 
-  // If target position is softened, then it means that the real target isn't
-  // reached.
-  return !needs_softening;
+  // The maximum distance we can reach is the soften bone chain length: da (stored in !x). The minimum distance we can reach is the absolute value of the difference of the 2 bone lengths, |d1−d2| (stored in z).
+  // x is 0 and z is 1, yw are untested.
+  return (comp_mask & 0x5) == 0x4;
 }
 
 SimdQuaternion ComputeMidJoint(const IKTwoBoneJob& _job,
@@ -338,8 +349,13 @@ bool IKTwoBoneJob::Run() const {
 
   // Early out if weight is 0.
   if (weight <= 0.f) {
+    // No correction.
     *start_joint_correction = *mid_joint_correction =
         SimdQuaternion::identity();
+    // Target isn't reached.
+    if (reached) {
+      *reached = false;
+    }
     return true;
   }
 
@@ -349,7 +365,11 @@ bool IKTwoBoneJob::Run() const {
   // Finds soften target position.
   SimdFloat4 start_target_ss;
   SimdFloat4 start_target_ss_len2;
-  SoftenTarget(*this, setup, &start_target_ss, &start_target_ss_len2);
+  const bool lreached =
+      SoftenTarget(*this, setup, &start_target_ss, &start_target_ss_len2);
+  if (reached) {
+    *reached = lreached && weight >= 1.f;
+  }
 
   // Calculate mid_rot_local quaternion which solves for the mid_ss joint
   // rotation.

@@ -116,6 +116,11 @@ struct IKTwoBoneJob {
   // respective joints.
   math::SimdQuaternion* start_joint_correction;
   math::SimdQuaternion* mid_joint_correction;
+
+  // Optional boolean output value, set to true if target can be reached with IK
+  // computations. Reachability is driven by bone chain length, soften ratio and
+  // target distance. Target is considered unreached if weight is less than 1. 
+  bool* reached;
 };
 }  // namespace animation
 }  // namespace ozz

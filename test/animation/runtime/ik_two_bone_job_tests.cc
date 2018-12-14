@@ -71,6 +71,8 @@ void _ExpectReached(const ozz::animation::IKTwoBoneJob& _job, bool _reachable) {
   const ozz::math::SimdFloat4 diff =
       ozz::math::Length3(end_corrected.cols[3] - _job.target);
   EXPECT_EQ(ozz::math::GetX(diff) < 1e-2f, _reachable);
+
+  EXPECT_TRUE(_job.reached == NULL || *_job.reached == _reachable);
 }
 
 TEST(JobValidity, IKTwoBoneJob) {
@@ -214,6 +216,8 @@ TEST(StartJointCorrection, IKTwoBoneJob) {
     job.start_joint_correction = &qstart;
     ozz::math::SimdQuaternion qmid;
     job.mid_joint_correction = &qmid;
+      bool reached;
+      job.reached = &reached;
     ASSERT_TRUE(job.Validate());
 
     {  // No correction expected
@@ -299,6 +303,8 @@ TEST(Pole, IKTwoBoneJob) {
   job.start_joint_correction = &qstart;
   ozz::math::SimdQuaternion qmid;
   job.mid_joint_correction = &qmid;
+    bool reached;
+    job.reached = &reached;
   ASSERT_TRUE(job.Validate());
 
   // Pole Y
@@ -423,6 +429,8 @@ TEST(Soften, IKTwoBoneJob) {
   job.start_joint_correction = &qstart;
   ozz::math::SimdQuaternion qmid;
   job.mid_joint_correction = &qmid;
+    bool reached;
+    job.reached = &reached;
   ASSERT_TRUE(job.Validate());
 
   // Reachable
@@ -532,6 +540,8 @@ TEST(Twist, IKTwoBoneJob) {
   job.start_joint_correction = &qstart;
   ozz::math::SimdQuaternion qmid;
   job.mid_joint_correction = &qmid;
+    bool reached;
+    job.reached = &reached;
   ASSERT_TRUE(job.Validate());
 
   // Twist angle 0
@@ -609,6 +619,8 @@ TEST(Weight, IKTwoBoneJob) {
   job.start_joint_correction = &qstart;
   ozz::math::SimdQuaternion qmid;
   job.mid_joint_correction = &qmid;
+    bool reached;
+    job.reached = &reached;
   ASSERT_TRUE(job.Validate());
 
   // Maximum weight
@@ -720,6 +732,8 @@ TEST(PoleTargetAlignment, IKTwoBoneJob) {
   job.start_joint_correction = &qstart;
   ozz::math::SimdQuaternion qmid;
   job.mid_joint_correction = &qmid;
+    bool reached;
+    job.reached = &reached;
   ASSERT_TRUE(job.Validate());
 
   {  // Reachable, undefined qstart
@@ -787,6 +801,8 @@ TEST(MidAxis, IKTwoBoneJob) {
   job.start_joint_correction = &qstart;
   ozz::math::SimdQuaternion qmid;
   job.mid_joint_correction = &qmid;
+    bool reached;
+    job.reached = &reached;
   ASSERT_TRUE(job.Validate());
 
   // Positive mid_axis
@@ -865,6 +881,8 @@ TEST(AlignedJointsAndTarget, IKTwoBoneJob) {
   job.start_joint_correction = &qstart;
   ozz::math::SimdQuaternion qmid;
   job.mid_joint_correction = &qmid;
+    bool reached;
+    job.reached = &reached;
   ASSERT_TRUE(job.Validate());
 
   // Aligned and reachable
@@ -918,6 +936,8 @@ TEST(ZeroLengthStartTarget, IKTwoBoneJob) {
   job.start_joint_correction = &qstart;
   ozz::math::SimdQuaternion qmid;
   job.mid_joint_correction = &qmid;
+    bool reached;
+    job.reached = &reached;
   ASSERT_TRUE(job.Validate());
 
   ASSERT_TRUE(job.Run());
