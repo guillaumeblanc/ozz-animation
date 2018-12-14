@@ -1286,7 +1286,7 @@ OZZ_INLINE SimdInt4 Sign(_SimdInt4 _v) {
 OZZ_INLINE SimdInt4 Min(_SimdInt4 _a, _SimdInt4 _b) {
 #ifdef OZZ_SIMD_SSE4_1
   return _mm_min_epi32(_a, _b);
-#else   // OZZ_SIMD_SSE4_1
+#else  // OZZ_SIMD_SSE4_1
   return OZZ_SSE_SELECT_I(_mm_cmplt_epi32(_a, _b), _a, _b);
 #endif  // OZZ_SIMD_SSE4_1
 }
@@ -1294,7 +1294,7 @@ OZZ_INLINE SimdInt4 Min(_SimdInt4 _a, _SimdInt4 _b) {
 OZZ_INLINE SimdInt4 Max(_SimdInt4 _a, _SimdInt4 _b) {
 #ifdef OZZ_SIMD_SSE4_1
   return _mm_max_epi32(_a, _b);
-#else   // OZZ_SIMD_SSE4_1
+#else  // OZZ_SIMD_SSE4_1
   return OZZ_SSE_SELECT_I(_mm_cmpgt_epi32(_a, _b), _a, _b);
 #endif  // OZZ_SIMD_SSE4_1
 }
@@ -1484,7 +1484,8 @@ inline Float4x4 Invert(const Float4x4& _m, SimdInt4* _invertible) {
   det = _mm_add_ps(OZZ_SHUFFLE_PS1(det, 0x4E), det);
   det = _mm_add_ss(OZZ_SHUFFLE_PS1(det, 0xB1), det);
   const SimdInt4 invertible = CmpNe(det, simd_float4::zero());
-  assert((_invertible || AreAllTrue1(invertible)) && "Matrix is not invertible");
+  assert((_invertible || AreAllTrue1(invertible)) &&
+         "Matrix is not invertible");
   if (_invertible != NULL) {
     *_invertible = invertible;
   }
