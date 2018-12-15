@@ -238,7 +238,6 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
     const float kBoxHalfSize = .005f;
     if (show_target_) {
       // Displays target
-      const float kBoxHalfSize = .005f;
       const ozz::sample::Renderer::Color colors[2][2] = {
           {{0xff, 0xff, 0xff, 0xff}, {0xff, 0, 0, 0xff}},
           {{0xff, 0xff, 0xff, 0xff}, {0, 0xff, 0, 0xff}}};
