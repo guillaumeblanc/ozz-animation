@@ -40,6 +40,12 @@ struct SimdQuaternion;
 
 namespace animation {
 
+// ozz::animation::IKAimJob rotates a joint so it aims at a target. Joint aim
+// direction and up vectors can be different from joint axis. The job computes
+// the transformations (rotations) that needs to be applied to the joints such
+// that a provided aim vector in joint local-space aims at the target position.
+// A up vector (joint local-space) is also used to keep the joint oriented in
+// the same direction as the pole vector.
 struct IKAimJob {
   // Default constructor, initializes default values.
   IKAimJob();
@@ -56,20 +62,21 @@ struct IKAimJob {
 
   // Job input.
 
-  // in model-space
+  // Target position to aim at, in model-space
   math::SimdFloat4 target;
 
-  // The axis in joint local-space to be aimed at target position. Default is x
-  // axis.
+  // Joint aiming axis, in joint local-space, to be aimed at target position.
+  // Default is x axis.
   math::SimdFloat4 aim;
 
-  // Default is y axis.
+  // Joint up axis, in joint local-space, used to keep the joint oriented in the
+  // same direction as the pole vector. Default is y axis.
   math::SimdFloat4 up;
 
   // Pole vector, in model-space.
   math::SimdFloat4 pole_vector;
 
-  // Twist_angle rotates IK chain around the joint-to-target vector.
+  // Twist_angle rotates joint around the aim (joint to target) vector.
   // Default is 0.
   float twist_angle;
 
@@ -82,7 +89,8 @@ struct IKAimJob {
 
   // Job output.
 
-  // Output local-space joint correction quaternion.
+  // Output local-space joint correction quaternion. It needs to be multiplied
+  // with joint local-space quaternion.
   math::SimdQuaternion* joint_correction;
 };
 }  // namespace animation

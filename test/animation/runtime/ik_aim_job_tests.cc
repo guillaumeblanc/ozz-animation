@@ -331,7 +331,8 @@ TEST(Twist, IKAimJob) {
     EXPECT_TRUE(job.Run());
     const ozz::math::Quaternion x_mPi = ozz::math::Quaternion::FromAxisAngle(
         ozz::math::Float3::x_axis(), -ozz::math::kPi);
-    EXPECT_SIMDQUATERNION_EQ_TOL(quat, x_mPi.x, x_mPi.y, x_mPi.z, x_mPi.w, 2e-3f);
+    EXPECT_SIMDQUATERNION_EQ_TOL(quat, x_mPi.x, x_mPi.y, x_mPi.z, x_mPi.w,
+                                 2e-3f);
   }
 
   {  // Pole y, twist pi/2

@@ -72,7 +72,7 @@ bool IKAimJob::Run() const {
   SimdInt4 invertible;
   const Float4x4 inv_joint = Invert(*joint, &invertible);
 
-  // Computes joint to target vector, in joint space.
+  // Computes joint to target vector, in joint local-space (js).
   const SimdFloat4 joint_to_target_js = TransformPoint(inv_joint, target);
   const SimdFloat4 joint_to_target_js_len2 = Length3Sqr(joint_to_target_js);
 
@@ -90,25 +90,28 @@ bool IKAimJob::Run() const {
     const SimdFloat4 corrected_up_js =
         TransformVector(joint_to_target_rot_js, up);
 
+    // Compute (and normalize) reference and pole planes normals.
     const SimdFloat4 pole_vector_js = TransformVector(inv_joint, pole_vector);
-    const SimdFloat4 curr_js = Cross3(pole_vector_js, joint_to_target_js);
-    const SimdFloat4 ref_js = Cross3(corrected_up_js, joint_to_target_js);
+    const SimdFloat4 ref_joint_normal_js =
+        Cross3(pole_vector_js, joint_to_target_js);
+    const SimdFloat4 joint_normal_js =
+        Cross3(corrected_up_js, joint_to_target_js);
+    const SimdFloat4 ref_joint_normal_js_len2 = Length3Sqr(ref_joint_normal_js);
+    const SimdFloat4 joint_normal_js_len2 = Length3Sqr(joint_normal_js);
+    const SimdFloat4 rsqrts =
+        RSqrtEstNR(SetZ(SetY(joint_to_target_js_len2, joint_normal_js_len2),
+                        ref_joint_normal_js_len2));
 
-    const SimdFloat4 curr_js_len2 = Length3Sqr(curr_js);
-    const SimdFloat4 ref_js_len2 = Length3Sqr(ref_js);
+    // Computes angle cosine between the 2 normalized plane normals.
+    const SimdFloat4 rotate_plane_cos_angle = ozz::math::Dot3(
+        joint_normal_js * SplatY(rsqrts), ref_joint_normal_js * SplatZ(rsqrts));
 
-    const SimdFloat4 rsqrts = RSqrtEstNR(
-        SetZ(SetY(joint_to_target_js_len2, ref_js_len2), curr_js_len2));
-
-    // Computes angle cosine between the 2 normalized normals.
-    const SimdFloat4 rotate_plane_cos_angle =
-        ozz::math::Dot3(ref_js * SplatY(rsqrts), curr_js * SplatZ(rsqrts));
-
-    // Computes rotation axis, which is either start_target_ss or
-    // -start_target_ss depending on rotation direction.
+    // Computes rotation axis, which is either joint_to_target_js or
+    // -joint_to_target_js depending on rotation direction.
     const SimdFloat4 rotate_plane_axis_js = joint_to_target_js * SplatX(rsqrts);
-    const SimdFloat4 axis_flip = And(SplatX(Dot3(curr_js, corrected_up_js)),
-                                     ozz::math::simd_int4::mask_sign());
+    const SimdFloat4 axis_flip =
+        And(SplatX(Dot3(ref_joint_normal_js, corrected_up_js)),
+            ozz::math::simd_int4::mask_sign());
     const SimdFloat4 rotate_plane_axis_flipped_js =
         Xor(rotate_plane_axis_js, axis_flip);
 
@@ -118,6 +121,7 @@ bool IKAimJob::Run() const {
         Clamp(-ozz::math::simd_float4::one(), rotate_plane_cos_angle,
               ozz::math::simd_float4::one()));
 
+    // Twists rotation plane.
     SimdQuaternion twisted;
     if (twist_angle != 0.f) {
       // If a twist angle is provided, rotation angle is rotated aim vector.
@@ -127,6 +131,8 @@ bool IKAimJob::Run() const {
     } else {
       twisted = rotate_plane_js * joint_to_target_rot_js;
     }
+
+    // Weights output quaternion.
 
     // Fix up quaternions so w is always positive, which is required for NLerp
     // (with identity quaternion) to lerp the shortest path.
@@ -138,8 +144,6 @@ bool IKAimJob::Run() const {
       // NLerp start and mid joint rotations.
       const SimdFloat4 identity = simd_float4::w_axis();
       const SimdFloat4 simd_weight = Max0(simd_float4::Load1(weight));
-
-      // NLerp
       joint_correction->xyzw =
           NormalizeEst4(Lerp(identity, twisted.xyzw, simd_weight));
     } else {
