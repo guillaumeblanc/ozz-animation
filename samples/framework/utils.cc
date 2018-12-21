@@ -313,7 +313,9 @@ bool LoadAnimation(const char* _filename,
   return true;
 }
 
-bool LoadTrack(const char* _filename, ozz::animation::FloatTrack* _track) {
+namespace {
+template <typename _Track>
+bool LoadTrackImpl(const char* _filename, _Track* _track) {
   assert(_filename && _track);
   ozz::log::Out() << "Loading track archive: " << _filename << "." << std::endl;
   ozz::io::File file(_filename, "rb");
@@ -323,7 +325,7 @@ bool LoadTrack(const char* _filename, ozz::animation::FloatTrack* _track) {
     return false;
   }
   ozz::io::IArchive archive(&file);
-  if (!archive.TestTag<ozz::animation::FloatTrack>()) {
+  if (!archive.TestTag<_Track>()) {
     ozz::log::Err() << "Failed to load float track instance from file "
                     << _filename << "." << std::endl;
     return false;
@@ -333,6 +335,23 @@ bool LoadTrack(const char* _filename, ozz::animation::FloatTrack* _track) {
   archive >> *_track;
 
   return true;
+}
+}  // namespace
+
+bool LoadTrack(const char* _filename, ozz::animation::FloatTrack* _track) {
+  return LoadTrackImpl(_filename, _track);
+}
+bool LoadTrack(const char* _filename, ozz::animation::Float2Track* _track) {
+  return LoadTrackImpl(_filename, _track);
+}
+bool LoadTrack(const char* _filename, ozz::animation::Float3Track* _track) {
+  return LoadTrackImpl(_filename, _track);
+}
+bool LoadTrack(const char* _filename, ozz::animation::Float4Track* _track) {
+  return LoadTrackImpl(_filename, _track);
+}
+bool LoadTrack(const char* _filename, ozz::animation::QuaternionTrack* _track) {
+  return LoadTrackImpl(_filename, _track);
 }
 
 bool LoadMesh(const char* _filename, ozz::sample::Mesh* _mesh) {

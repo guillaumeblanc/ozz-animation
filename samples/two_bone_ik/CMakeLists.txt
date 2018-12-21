@@ -3,16 +3,28 @@ add_custom_command(
   DEPENDS $<$<BOOL:${ozz_build_fbx}>:BUILD_DATA>
           "${CMAKE_CURRENT_LIST_DIR}/README.md"
           "${ozz_media_directory}/bin/robot_skeleton.ozz"
+          "${ozz_media_directory}/bin/robot_track_target.ozz"
+          "${ozz_media_directory}/bin/robot_track_aim.ozz"
   OUTPUT  "${CMAKE_CURRENT_BINARY_DIR}/README.md"
           "${CMAKE_CURRENT_BINARY_DIR}/media/skeleton.ozz"
+          "${CMAKE_CURRENT_BINARY_DIR}/media/skeleton.ozz"
+          "${CMAKE_CURRENT_BINARY_DIR}/media/track_target.ozz"
+          "${CMAKE_CURRENT_BINARY_DIR}/media/track_aim.ozz"
+  COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/robot_skeleton.ozz" "./media/skeleton.ozz"
+  COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/robot_track_target.ozz" "./media/track_target.ozz"
+  COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/robot_track_aim.ozz" "./media/track_aim.ozz"
   COMMAND ${CMAKE_COMMAND} -E make_directory media
   COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_LIST_DIR}/README.md" .
-  COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/robot_skeleton.ozz" "./media/skeleton.ozz")
+  COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/robot_skeleton.ozz" "./media/skeleton.ozz"
+  COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/robot_track_target.ozz" "./media/track_target.ozz"
+  COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/robot_track_aim.ozz" "./media/track_aim.ozz")
 
 add_executable(sample_two_bone_ik
   sample_two_bone_ik.cc
   "${CMAKE_CURRENT_BINARY_DIR}/README.md"
-  "${CMAKE_CURRENT_BINARY_DIR}/media/skeleton.ozz")
+  "${CMAKE_CURRENT_BINARY_DIR}/media/skeleton.ozz"
+  "${CMAKE_CURRENT_BINARY_DIR}/media/track_target.ozz"
+  "${CMAKE_CURRENT_BINARY_DIR}/media/track_aim.ozz")
 target_link_libraries(sample_two_bone_ik
   sample_framework
   ozz_animation_offline

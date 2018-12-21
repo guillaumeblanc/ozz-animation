@@ -41,6 +41,10 @@ namespace animation {
 class Animation;
 class Skeleton;
 class FloatTrack;
+class Float2Track;
+class Float3Track;
+class Float4Track;
+class QuaternionTrack;
 namespace offline {
 struct RawAnimation;
 struct RawSkeleton;
@@ -160,6 +164,10 @@ bool LoadAnimation(const char* _filename,
 // produced with ozz tools (fbx2ozz) or using ozz serialization API.
 // _filename and _track must be non-NULL.
 bool LoadTrack(const char* _filename, ozz::animation::FloatTrack* _track);
+bool LoadTrack(const char* _filename, ozz::animation::Float2Track* _track);
+bool LoadTrack(const char* _filename, ozz::animation::Float3Track* _track);
+bool LoadTrack(const char* _filename, ozz::animation::Float4Track* _track);
+bool LoadTrack(const char* _filename, ozz::animation::QuaternionTrack* _track);
 
 // Loads a sample::Mesh from an ozz archive file named _filename.
 // This function will fail and return false if the file cannot be opened or if

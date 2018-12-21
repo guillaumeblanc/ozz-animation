@@ -446,6 +446,8 @@ bool ProcessImportTrack(OzzImporter& _converter, const char* _animation_name,
       const OzzImporter::NodeProperty& property = properties[p];
       // Checks property name matches
       const char* property_name = property.name.c_str();
+      ozz::log::Log() << "Inspecting property " << joint_name << ":"
+                      << property_name << "\"." << std::endl;
       if (!strmatch(property_name, ppt_name_match)) {
         continue;
       }
