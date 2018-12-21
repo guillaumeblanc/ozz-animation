@@ -589,9 +589,9 @@ OZZ_INLINE SimdFloat4 ATan(_SimdFloat4 _v);
 // same as their respective components in _v.
 OZZ_INLINE SimdFloat4 ATanX(_SimdFloat4 _v);
 
-// Returns boolean selection of vectors _true and _false according to _b.
-// All bits a each component of _b must have the same value (O or 0xffffffff)
-// to ensure portability.
+// Returns boolean selection of vectors _true and _false according to condition
+// _b. All bits a each component of _b must have the same value (O or
+// 0xffffffff) to ensure portability.
 OZZ_INLINE SimdFloat4 Select(_SimdInt4 _b, _SimdFloat4 _true,
                              _SimdFloat4 _false);
 
@@ -1006,8 +1006,9 @@ OZZ_INLINE SimdInt4 Max0(_SimdInt4 _v);
 // Result is unknown if _a is not less or equal to _b.
 OZZ_INLINE SimdInt4 Clamp(_SimdInt4 _a, _SimdInt4 _v, _SimdInt4 _b);
 
-// Returns Per bit selection of vectors _true and _false according to _b.
-// _v[0...127] = _b[0...127] ? _true[0...127]:_false[0...127]
+// Returns boolean selection of vectors _true and _false according to consition
+// _b. All bits a each component of _b must have the same value (O or
+// 0xffffffff) to ensure portability.
 OZZ_INLINE SimdInt4 Select(_SimdInt4 _b, _SimdInt4 _true, _SimdInt4 _false);
 
 // Returns per element binary and operation of _a and _b.

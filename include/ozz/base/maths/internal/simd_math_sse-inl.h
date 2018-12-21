@@ -56,6 +56,9 @@ namespace simd_float4 {
 
 #define OZZ_SSE_SPLAT_F(_v, _i) OZZ_SHUFFLE_PS1(_v, _MM_SHUFFLE(_i, _i, _i, _i))
 
+#define OZZ_SSE_SPLAT_I(_v, _i) \
+  _mm_shuffle_epi32(_v, _MM_SHUFFLE(_i, _i, _i, _i))
+
 // _v.x + _v.y, _v.y, _v.z, _v.w
 #define OZZ_SSE_HADD2_F(_v) _mm_add_ss(_v, OZZ_SSE_SPLAT_F(_v, 1))
 
@@ -133,19 +136,22 @@ OZZ_INLINE SimdFloat4 DivX(_SimdFloat4 _a, _SimdFloat4 _b) {
 }
 
 #ifdef OZZ_SIMD_SSE4_1
+
 #define OZZ_SSE_SELECT_F(_b, _true, _false) \
   _mm_blendv_ps(_false, _true, _mm_castsi128_ps(_b))
-#else  // OZZ_SIMD_SSE4_1
-#define OZZ_SSE_SELECT_F(_b, _true, _false) \
-  _mm_xor_ps(_false,                        \
-             _mm_and_ps(_mm_castsi128_ps(_b), _mm_xor_ps(_true, _false)))
-#endif  // OZZ_SIMD_SSE4_1
 
-#define OZZ_SSE_SPLAT_I(_v, _i) \
-  _mm_shuffle_epi32(_v, _MM_SHUFFLE(_i, _i, _i, _i))
+#define OZZ_SSE_SELECT_I(_b, _true, _false) _mm_blendv_epi8(_false, _true, _b)
+
+#else  // OZZ_SIMD_SSE4_1
+
+#define OZZ_SSE_SELECT_F(_b, _true, _false)          \
+  _mm_or_ps(_mm_and_ps(_true, _mm_castsi128_ps(_b)), \
+            _mm_andnot_ps(_mm_castsi128_ps(_b), _false))
 
 #define OZZ_SSE_SELECT_I(_b, _true, _false) \
-  _mm_xor_si128(_false, _mm_and_si128(_b, _mm_xor_si128(_true, _false)))
+  _mm_or_si128(_mm_and_si128(_true, _b), _mm_andnot_si128(_b, _false))
+
+#endif  // OZZ_SIMD_SSE4_1
 
 OZZ_INLINE SimdFloat4 zero() { return _mm_setzero_ps(); }
 

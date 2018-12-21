@@ -487,6 +487,8 @@ TEST(LogicalInt, ozz_simd_math) {
                                                 0x7fffffff, 0x00000000);
   const SimdInt4 c = ozz::math::simd_int4::Load(0x01234567, 0x89abcdef,
                                                 0x01234567, 0x89abcdef);
+  const SimdInt4 cond = ozz::math::simd_int4::Load(0xffffffff, 0x00000000,
+                                                   0xffffffff, 0x00000000);
 
   const SimdInt4 andm = ozz::math::And(a, b);
   EXPECT_SIMDINT_EQ(andm, 0x80000001, 0x00000000, 0x00000001, 0x00000000);
@@ -500,8 +502,8 @@ TEST(LogicalInt, ozz_simd_math) {
   const SimdInt4 xorm = ozz::math::Xor(a, b);
   EXPECT_SIMDINT_EQ(xorm, 0x7ffffffe, 0xffffffff, 0xfffffffe, 0x7fffffff);
 
-  const SimdInt4 select = ozz::math::Select(a, b, c);
-  EXPECT_SIMDINT_EQ(select, 0x80000001, 0x89abcdef, 0x01234567, 0x80000000);
+  const SimdInt4 select = ozz::math::Select(cond, b, c);
+  EXPECT_SIMDINT_EQ(select, 0x80000001, 0x89abcdef, 0x7fffffff, 0x89abcdef);
 }
 
 TEST(ShiftInt, ozz_simd_math) {
