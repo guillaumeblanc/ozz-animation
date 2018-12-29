@@ -43,15 +43,17 @@ namespace animation {
 // ozz::animation::IKAimJob rotates a joint so it aims at a target. Joint aim
 // direction and up vectors can be different from joint axis. The job computes
 // the transformations (rotations) that needs to be applied to the joints such
-// that a provided aim vector in joint local-space aims at the target position.
-// A up vector (joint local-space) is also used to keep the joint oriented in
-// the same direction as the pole vector.
+// that a provided aim vector in joint local-space aims at the target position
+// in skeleton model-space. Up vector (in joint local-space) is also used to
+// keep the joint oriented in the same direction as the pole vector.
+// Result is unstable if joint-to-target direction is parallel to pole vector,
+// or if target is too close to joint position.
 struct IKAimJob {
   // Default constructor, initializes default values.
   IKAimJob();
 
   // Validates job parameters. Returns true for a valid job, or false otherwise:
-  // -if any input pointer is NULL
+  // -if output quaternion pointer is NULL
   bool Validate() const;
 
   // Runs job's sampling task.
