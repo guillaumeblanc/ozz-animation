@@ -86,12 +86,12 @@ bool IsCompatiblePropertyType(OzzImporter::NodeProperty::Type _src,
     return true;
   }
   switch (_src) {
-    case OzzImporter::NodeProperty::Type::kFloat3:
-      return _dest == OzzImporter::NodeProperty::Type::kPoint ||
-             _dest == OzzImporter::NodeProperty::Type::kVector;
-    case OzzImporter::NodeProperty::Type::kPoint:
-    case OzzImporter::NodeProperty::Type::kVector:
-      return _dest == OzzImporter::NodeProperty::Type::kFloat3;
+    case OzzImporter::NodeProperty::kFloat3:
+      return _dest == OzzImporter::NodeProperty::kPoint ||
+             _dest == OzzImporter::NodeProperty::kVector;
+    case OzzImporter::NodeProperty::kPoint:
+    case OzzImporter::NodeProperty::kVector:
+      return _dest == OzzImporter::NodeProperty::kFloat3;
     default:
       return false;
   }

@@ -273,7 +273,7 @@ bool GetValue(FbxSceneLoader& _scene_loader, FbxPropertyValue& _property_value,
   // Only supported types are enumerated, so this function should not be called
   // for something else but kFloat1.
   (void)_type;
-  assert(_type == OzzImporter::NodeProperty::Type::kFloat1);
+  assert(_type == OzzImporter::NodeProperty::kFloat1);
 
   switch (_fbx_type) {
     case eFbxBool: {
@@ -330,7 +330,7 @@ bool GetValue(FbxSceneLoader& _scene_loader, FbxPropertyValue& _property_value,
   (void)_type;
   (void)_fbx_type;
   assert(_fbx_type == eFbxDouble2 &&
-         _type == OzzImporter::NodeProperty::Type::kFloat2);
+         _type == OzzImporter::NodeProperty::kFloat2);
 
   double dvalue[2];
   if (!_property_value.Get(&dvalue, eFbxDouble2)) {
@@ -350,9 +350,9 @@ bool GetValue(FbxSceneLoader& _scene_loader, FbxPropertyValue& _property_value,
   (void)_type;
   (void)_fbx_type;
   assert(_fbx_type == eFbxDouble3 &&
-         (_type == OzzImporter::NodeProperty::Type::kFloat3 ||
-          _type == OzzImporter::NodeProperty::Type::kPoint ||
-          _type == OzzImporter::NodeProperty::Type::kVector));
+         (_type == OzzImporter::NodeProperty::kFloat3 ||
+          _type == OzzImporter::NodeProperty::kPoint ||
+          _type == OzzImporter::NodeProperty::kVector));
 
   FbxVector4 vec4;
   if (!_property_value.Get(vec4.Buffer(), eFbxDouble3)) {
@@ -369,11 +369,11 @@ bool GetValue(FbxSceneLoader& _scene_loader, FbxPropertyValue& _property_value,
       _value->z = static_cast<float>(vec4[2]);
       break;
     }
-    case OzzImporter::NodeProperty::Type::kPoint: {
+    case OzzImporter::NodeProperty::kPoint: {
       *_value = conv->ConvertPoint(vec4);
       break;
     }
-    case OzzImporter::NodeProperty::Type::kVector: {
+    case OzzImporter::NodeProperty::kVector: {
       *_value = conv->ConvertVector(vec4);
       break;
     }
@@ -391,7 +391,7 @@ bool GetValue(FbxSceneLoader& _scene_loader, FbxPropertyValue& _property_value,
   (void)_type;
   (void)_fbx_type;
   assert(_fbx_type == eFbxDouble4 &&
-         _type == OzzImporter::NodeProperty::Type::kFloat4);
+         _type == OzzImporter::NodeProperty::kFloat4);
 
   double dvalue[4];
   if (!_property_value.Get(&dvalue, eFbxDouble4)) {

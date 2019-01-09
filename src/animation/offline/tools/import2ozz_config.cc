@@ -30,8 +30,8 @@
 #include <fstream>
 #include <sstream>
 
-#include "ozz/animation/offline/tools/import2ozz.h"
 #include "animation/offline/tools/import2ozz_anim.h"
+#include "ozz/animation/offline/tools/import2ozz.h"
 
 #include "ozz/animation/offline/animation_optimizer.h"
 #include "ozz/animation/offline/track_optimizer.h"
