@@ -51,7 +51,7 @@ set(build_configurations
   "/fbx/robot.fbx\;\;config_file:${PROJECT_SOURCE_DIR}/samples/user_channel/config.json\;output:robot_skeleton.ozz\;output:robot_animation.ozz\;output:robot_track_grasp.ozz"
 
   # Robot ik user channels
-  "/fbx/robot.fbx\;\;config_file:${PROJECT_SOURCE_DIR}/samples/two_bone_ik/config.json\;output:robot_track_target.ozz\;output:robot_track_aim.ozz\;option:--log_level=verbose"
+  "/fbx/robot.fbx\;\;config_file:${PROJECT_SOURCE_DIR}/samples/two_bone_ik/config.json\;output:robot_track_target.ozz\;output:robot_track_aim.ozz"
 
   # Baked animation
   "/fbx/baked.fbx\;\;config_file:${PROJECT_SOURCE_DIR}/samples/baked/config.json\;output:baked_skeleton.ozz\;output:baked_animation.ozz"

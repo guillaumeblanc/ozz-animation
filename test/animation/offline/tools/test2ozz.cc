@@ -199,9 +199,11 @@ class TestConverter : public ozz::animation::offline::OzzImporter {
   }
 
   virtual bool Import(const char* _animation_name, const char* _node_name,
-                      const char* _track_name, float _sampling_rate,
+                      const char* _track_name, NodeProperty::Type _track_type,
+                      float _sampling_rate,
                       ozz::animation::offline::RawFloatTrack* _track) {
     (void)_animation_name;
+    (void)_track_type;
     (void)_sampling_rate;
     (void)_track;
 
@@ -214,9 +216,11 @@ class TestConverter : public ozz::animation::offline::OzzImporter {
   }
 
   virtual bool Import(const char* _animation_name, const char* _node_name,
-                      const char* _track_name, float _sampling_rate,
+                      const char* _track_name, NodeProperty::Type _track_type,
+                      float _sampling_rate,
                       ozz::animation::offline::RawFloat2Track* _track) {
     (void)_animation_name;
+    (void)_track_type;
     (void)_sampling_rate;
     (void)_track;
 
@@ -228,9 +232,11 @@ class TestConverter : public ozz::animation::offline::OzzImporter {
   }
 
   virtual bool Import(const char* _animation_name, const char* _node_name,
-                      const char* _track_name, float _sampling_rate,
+                      const char* _track_name, NodeProperty::Type _track_type,
+                      float _sampling_rate,
                       ozz::animation::offline::RawFloat3Track* _track) {
     (void)_animation_name;
+    (void)_track_type;
     (void)_sampling_rate;
     (void)_track;
 
@@ -240,10 +246,13 @@ class TestConverter : public ozz::animation::offline::OzzImporter {
                  strcmp(_track_name, "property3") == 0;
     return found;
   }
+
   virtual bool Import(const char* _animation_name, const char* _node_name,
-                      const char* _track_name, float _sampling_rate,
+                      const char* _track_name, NodeProperty::Type _track_type,
+                      float _sampling_rate,
                       ozz::animation::offline::RawFloat4Track* _track) {
     (void)_animation_name;
+    (void)_track_type;
     (void)_sampling_rate;
     (void)_track;
 

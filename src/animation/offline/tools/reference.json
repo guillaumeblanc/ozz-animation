@@ -50,7 +50,7 @@
               "filename" : "*.ozz", //  Specifies track output filename(s). Use a '*' character to specify part(s) of the filename that should be replaced by the track (aka "joint_name-property_name") name.
               "joint_name" : "*", //  Name of the joint that contains the property to import. Wildcard characters '*' and '?' are supported.
               "property_name" : "*", //  Name of the property to import. Wildcard characters '*' and '?' are supported.
-              "type" : 1, //  Type of the property, aka the number of floating point components. 1 to 4 components are supported.
+              "type" : "float1", //  Type of the property, can be float1 to float4, point and vector (aka float3 with scene unit and axis conversion).
               "raw" : false, //  Outputs raw track.
               "optimize" : true, //  Activates keyframes optimization.
               "optimization_tolerance" : 0.001 //  Optimization tolerance

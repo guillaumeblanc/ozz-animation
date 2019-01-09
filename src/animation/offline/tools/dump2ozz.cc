@@ -52,22 +52,22 @@ class DumpConverter : public ozz::animation::offline::OzzImporter {
     return NodeProperties();
   }
 
-  virtual bool Import(const char*, const char*, const char*, float,
-                      ozz::animation::offline::RawFloatTrack*) {
+  virtual bool Import(const char*, const char*, const char*, NodeProperty::Type,
+                      float, ozz::animation::offline::RawFloatTrack*) {
     return true;
   }
 
-  virtual bool Import(const char*, const char*, const char*, float,
-                      ozz::animation::offline::RawFloat2Track*) {
+  virtual bool Import(const char*, const char*, const char*, NodeProperty::Type,
+                      float, ozz::animation::offline::RawFloat2Track*) {
     return true;
   }
 
-  virtual bool Import(const char*, const char*, const char*, float,
-                      ozz::animation::offline::RawFloat3Track*) {
+  virtual bool Import(const char*, const char*, const char*, NodeProperty::Type,
+                      float, ozz::animation::offline::RawFloat3Track*) {
     return true;
   }
-  virtual bool Import(const char*, const char*, const char*, float,
-                      ozz::animation::offline::RawFloat4Track*) {
+  virtual bool Import(const char*, const char*, const char*, NodeProperty::Type,
+                      float, ozz::animation::offline::RawFloat4Track*) {
     return true;
   }
 };

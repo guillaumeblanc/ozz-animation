@@ -99,7 +99,8 @@ class OzzImporter {
   // joint transforms.
   struct NodeProperty {
     ozz::String::Std name;
-    enum Type { kFloat1 = 1, kFloat2 = 2, kFloat3 = 3, kFloat4 = 4 };
+
+    enum Type { kFloat1, kFloat2, kFloat3, kFloat4, kPoint, kVector };
     Type type;
   };
 
@@ -111,17 +112,17 @@ class OzzImporter {
   // _animation_name/_node_name/_track_name.
   // Returning false will report and error.
   virtual bool Import(const char* _animation_name, const char* _node_name,
-                      const char* _track_name, float _sampling_rate,
-                      RawFloatTrack* _track) = 0;
+                      const char* _track_name, NodeProperty::Type _track_type,
+                      float _sampling_rate, RawFloatTrack* _track) = 0;
   virtual bool Import(const char* _animation_name, const char* _node_name,
-                      const char* _track_name, float _sampling_rate,
-                      RawFloat2Track* _track) = 0;
+                      const char* _track_name, NodeProperty::Type _track_type,
+                      float _sampling_rate, RawFloat2Track* _track) = 0;
   virtual bool Import(const char* _animation_name, const char* _node_name,
-                      const char* _track_name, float _sampling_rate,
-                      RawFloat3Track* _track) = 0;
+                      const char* _track_name, NodeProperty::Type _track_type,
+                      float _sampling_rate, RawFloat3Track* _track) = 0;
   virtual bool Import(const char* _animation_name, const char* _node_name,
-                      const char* _track_name, float _sampling_rate,
-                      RawFloat4Track* _track) = 0;
+                      const char* _track_name, NodeProperty::Type _track_type,
+                      float _sampling_rate, RawFloat4Track* _track) = 0;
 };
 }  // namespace offline
 }  // namespace animation

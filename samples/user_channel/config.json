@@ -17,9 +17,10 @@
           "properties":  // User-channel property track must be imported.
           [
             {
+              "type" : "float1", //  Type of the property.
               "joint_name":"thumb2",  // Get the property from this node
               "property_name":"grasp",  // Name of the custom property
-              "filename":"robot_track_grasp.ozz"
+              "filename":"robot_track_grasp.ozz"  // Output filename
             }
           ]
         }

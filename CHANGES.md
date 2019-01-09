@@ -13,6 +13,9 @@ Next version
   - [simd math] Implements simd quaternions, making it easier and more efficient to use quaternion with other simd math code.
   - [simd math] Exposes swizzling operations.
 
+* Tools
+  - Adds point and vector property types (used to import tracks). These two types are actually float3 types, with scene axis and unit conversion applied.
+
 Release version 0.10.0
 ----------------------
 

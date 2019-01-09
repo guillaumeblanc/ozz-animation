@@ -30,6 +30,9 @@
 #include <fstream>
 #include <sstream>
 
+#include "ozz/animation/offline/tools/import2ozz.h"
+#include "animation/offline/tools/import2ozz_anim.h"
+
 #include "ozz/animation/offline/animation_optimizer.h"
 #include "ozz/animation/offline/track_optimizer.h"
 
@@ -280,17 +283,19 @@ bool SanitizeTrackImport(Json::Value& _root) {
   MakeDefault(_root, "property_name", "*",
               "Name of the property to import. Wildcard characters '*' and '?' "
               "are supported.");
-  MakeDefault(_root, "type", 1,
-              "Type of the property, aka the number of floating point "
-              "components. 1 to 4 components are supported.");
-  const int components = _root["type"].asInt();
-  if (components < 1 || components > 4) {
-    ozz::log::Err() << "Invalid value \"" << components
-                    << "\" for import track type property. 1 to 4 components "
-                       "are supported."
+  MakeDefault(_root, "type", "float1",
+              "Type of the property, can be float1 to float4, point and vector "
+              "(aka float3 with scene unit and axis conversion).");
+  const char* type_name = _root["type"].asCString();
+  if (!ozz::animation::offline::IsValidPropertyTypeName(type_name)) {
+    ozz::log::Err() << "Invalid value \"" << type_name
+                    << "\" for import track type property. Type can be float1 "
+                       "to float4, point and vector (aka float3 with scene "
+                       "unit and axis conversion)."
                     << std::endl;
     return false;
   }
+
   MakeDefault(_root, "raw", false, "Outputs raw track.");
   MakeDefault(_root, "optimize", true, "Activates keyframes optimization.");
   MakeDefault(_root, "optimization_tolerance",

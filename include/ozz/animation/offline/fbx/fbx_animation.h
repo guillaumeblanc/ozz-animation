@@ -61,21 +61,28 @@ OzzImporter::NodeProperties GetNodeProperties(FbxSceneLoader& _scene_loader,
                                               const char* _node_name);
 
 bool ExtractTrack(const char* _animation_name, const char* _node_name,
-                  const char* _track_name, FbxSceneLoader& _scene_loader,
-                  float _sampling_rate, RawFloatTrack* _track);
+                  const char* _track_name,
+                  OzzImporter::NodeProperty::Type _type,
+                  FbxSceneLoader& _scene_loader, float _sampling_rate,
+                  RawFloatTrack* _track);
 
 bool ExtractTrack(const char* _animation_name, const char* _node_name,
-                  const char* _track_name, FbxSceneLoader& _scene_loader,
-                  float _sampling_rate, RawFloat2Track* _track);
+                  const char* _track_name,
+                  OzzImporter::NodeProperty::Type _type,
+                  FbxSceneLoader& _scene_loader, float _sampling_rate,
+                  RawFloat2Track* _track);
 
 bool ExtractTrack(const char* _animation_name, const char* _node_name,
-                  const char* _track_name, FbxSceneLoader& _scene_loader,
-                  float _sampling_rate, RawFloat3Track* _track);
+                  const char* _track_name,
+                  OzzImporter::NodeProperty::Type _type,
+                  FbxSceneLoader& _scene_loader, float _sampling_rate,
+                  RawFloat3Track* _track);
 
 bool ExtractTrack(const char* _animation_name, const char* _node_name,
-                  const char* _track_name, FbxSceneLoader& _scene_loader,
-                  float _sampling_rate, RawFloat4Track* _track);
-
+                  const char* _track_name,
+                  OzzImporter::NodeProperty::Type _type,
+                  FbxSceneLoader& _scene_loader, float _sampling_rate,
+                  RawFloat4Track* _track);
 }  // namespace fbx
 }  // namespace offline
 }  // namespace animation

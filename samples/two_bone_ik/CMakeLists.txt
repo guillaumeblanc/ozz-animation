@@ -21,6 +21,7 @@ add_custom_command(
 
 add_executable(sample_two_bone_ik
   sample_two_bone_ik.cc
+  config.json
   "${CMAKE_CURRENT_BINARY_DIR}/README.md"
   "${CMAKE_CURRENT_BINARY_DIR}/media/skeleton.ozz"
   "${CMAKE_CURRENT_BINARY_DIR}/media/track_target.ozz"

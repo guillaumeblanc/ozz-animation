@@ -25,13 +25,13 @@
               "joint_name":"target",  // Get the property from this node
               "filename":"robot_track_target.ozz",
               "property_name":"Lcl Translation",  // Name of the custom property
-              "type" : 3 //  Type of the property, aka the number of floating point components. 1 to 4 components are supported.
+              "type" : "point" //  Use a float3 point, in ozz coordinate system
             },
             {
               "joint_name":"aim",  // Get the property from this node
               "filename":"robot_track_aim.ozz",
               "property_name":"Lcl Translation",  // Name of the custom property
-              "type" : 3 //  Type of the property, aka the number of floating point components. 1 to 4 components are supported.
+              "type" : "point" //  Use a float3 point, in ozz coordinate system
             }
           ]
         }

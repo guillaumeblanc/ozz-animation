@@ -290,7 +290,7 @@ math::Float3 FbxSystemConverter::ConvertPoint(const FbxVector4& _p) const {
   return ret;
 }
 
-math::Float3 FbxSystemConverter::ConvertNormal(const FbxVector4& _p) const {
+math::Float3 FbxSystemConverter::ConvertVector(const FbxVector4& _p) const {
   const math::SimdFloat4 p_in = math::simd_float4::Load(
       static_cast<float>(_p[0]), static_cast<float>(_p[1]),
       static_cast<float>(_p[2]), 0.f);

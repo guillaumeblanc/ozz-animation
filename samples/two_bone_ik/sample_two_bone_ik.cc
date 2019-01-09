@@ -501,14 +501,17 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
     if (!job.Run()) {
       return false;
     }
-    target_ = target_offset_ + target_ * .01f;
+    target_ = target_offset_ + target_;
 
     job.track = &track_aim_;
     job.result = &aim_target_;
     if (!job.Run()) {
       return false;
     }
-    aim_target_ = target_offset_ + aim_target_offset_ + aim_target_ * .01f;
+    //aim_target_ = target_offset_ + aim_target_offset_ + aim_target_ * .01f;
+	ozz::math::Float3 local_aim = target_;
+	local_aim.y = 0.f;
+	aim_target_ = target_ + local_aim;
 
     return true;
   }

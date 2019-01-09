@@ -16,25 +16,37 @@
               "filename":"${ozz_temp_directory}/fbx_properties_track1_*.ozz",
               "joint_name":"*",
               "property_name":"ozz_*",
-              "type":1
+              "type":"float1"
             },
             {
               "filename":"${ozz_temp_directory}/fbx_properties_track2_*.ozz",
               "joint_name":"*",
               "property_name":"ozz_*",
-              "type":2
+              "type":"float2"
             },
             {
               "filename":"${ozz_temp_directory}/fbx_properties_track3_*.ozz",
               "joint_name":"*",
               "property_name":"ozz_*",
-              "type":3
+              "type":"float3"
+            },
+            {
+              "filename":"${ozz_temp_directory}/fbx_properties_track3p_*.ozz",
+              "joint_name":"*",
+              "property_name":"ozz_*",
+              "type":"point"
+            },
+            {
+              "filename":"${ozz_temp_directory}/fbx_properties_track3v_*.ozz",
+              "joint_name":"*",
+              "property_name":"ozz_*",
+              "type":"vector"
             },
             {
               "filename":"${ozz_temp_directory}/fbx_properties_track4_*.ozz",
               "joint_name":"*",
               "property_name":"ozz_*",
-              "type":4
+              "type":"float4"
             }
           ]
         }

@@ -114,11 +114,11 @@ class FbxSystemConverter {
   // systems, using _p' = C * _p operation.
   math::Float3 ConvertPoint(const FbxVector4& _p) const;
 
-  // Converts fbx FbxVector4 normal to an ozz Float3, in ozz axis and unit
+  // Converts fbx FbxVector4 vector to an ozz Float3, in ozz axis and unit
   // systems, using _p' = ((C-1)-T) * _p operation. Normals are converted
   // using the inverse transpose matrix to support non-uniform scale
   // transformations.
-  math::Float3 ConvertNormal(const FbxVector4& _p) const;
+  math::Float3 ConvertVector(const FbxVector4& _p) const;
 
  private:
   // The matrix used to convert from "from" axis/unit to ozz coordinate system

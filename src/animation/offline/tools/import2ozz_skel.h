@@ -41,7 +41,7 @@ namespace offline {
 
 class OzzImporter;
 
-bool ImportSkeleton(const Json::Value& _config, OzzImporter* _converter,
+bool ImportSkeleton(const Json::Value& _config, OzzImporter* _importer,
                     const ozz::Endianness _endianness);
 
 }  // namespace offline

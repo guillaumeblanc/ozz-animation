@@ -17,6 +17,7 @@ add_custom_command(
 
 add_executable(sample_user_channel
   sample_user_channel.cc
+  config.json
   "${CMAKE_CURRENT_BINARY_DIR}/README.md"
   "${CMAKE_CURRENT_BINARY_DIR}/media/skeleton.ozz"
   "${CMAKE_CURRENT_BINARY_DIR}/media/animation.ozz"

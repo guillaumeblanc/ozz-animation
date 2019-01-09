@@ -106,7 +106,7 @@ void LogHierarchy(const RawSkeleton::Joint::Children& _children,
 }
 }  // namespace
 
-bool ImportSkeleton(const Json::Value& _config, OzzImporter* _converter,
+bool ImportSkeleton(const Json::Value& _config, OzzImporter* _importer,
                     const ozz::Endianness _endianness) {
   const Json::Value& skeleton_config = _config["skeleton"];
   const Json::Value& import_config = skeleton_config["import"];
@@ -129,7 +129,7 @@ bool ImportSkeleton(const Json::Value& _config, OzzImporter* _converter,
   types.any = types_config["any"].asBool();
 
   ozz::animation::offline::RawSkeleton raw_skeleton;
-  if (!_converter->Import(&raw_skeleton, types)) {
+  if (!_importer->Import(&raw_skeleton, types)) {
     ozz::log::Err() << "Failed to import skeleton." << std::endl;
     return false;
   }

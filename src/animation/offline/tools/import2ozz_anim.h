@@ -41,9 +41,10 @@ namespace offline {
 
 class OzzImporter;
 
-bool ImportAnimations(const Json::Value& _config, OzzImporter* _converter,
+bool ImportAnimations(const Json::Value& _config, OzzImporter* _importer,
                       const ozz::Endianness _endianness);
 
+bool IsValidPropertyTypeName(const char* _type_name);
 }  // namespace offline
 }  // namespace animation
 }  // namespace ozz
