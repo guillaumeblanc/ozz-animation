@@ -16,6 +16,10 @@ Next version
 * Tools
   - Adds point and vector property types (used to import tracks). These two types are actually float3 types, with scene axis and unit conversion applied.
 
+* Build pipeline
+  - #40 Adds ozz_build_postfix option.
+  - #41 dds ozz_build_tools option.
+
 Release version 0.10.0
 ----------------------
 
