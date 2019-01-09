@@ -77,6 +77,7 @@ bool GetPropertyTypeFromName(const char* _type_name,
       return true;
     }
   }
+  *_type = OzzImporter::NodeProperty::kFloat1;
   return false;
 }
 
