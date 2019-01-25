@@ -31,14 +31,17 @@
 #include <cstddef>
 
 #include "ozz/animation/offline/raw_animation.h"
+#include "ozz/base/maths/transform.h"
 
 namespace ozz {
 namespace animation {
 namespace offline {
 
 namespace {
-template <typename _RawTrack, typename _MakeDelta>
-void MakeDelta(const _RawTrack& _src, const _MakeDelta& _make_delta,
+template <typename _RawTrack, typename _RefType, typename _MakeDelta>
+void MakeDelta(const _RawTrack& _src, 
+               const _RefType& reference,
+               const _MakeDelta& _make_delta,
                _RawTrack* _dest) {
   _dest->reserve(_src.size());
 
@@ -47,13 +50,10 @@ void MakeDelta(const _RawTrack& _src, const _MakeDelta& _make_delta,
     return;
   }
 
-  // Stores reference value.
-  typename _RawTrack::const_reference reference = _src[0];
-
   // Copy animation keys.
   for (size_t i = 0; i < _src.size(); ++i) {
     const typename _RawTrack::value_type delta = {
-        _src[i].time, _make_delta(reference.value, _src[i].value)};
+        _src[i].time, _make_delta(reference, _src[i].value)};
     _dest->push_back(delta);
   }
 }
@@ -95,17 +95,83 @@ bool AdditiveAnimationBuilder::operator()(const RawAnimation& _input,
   _output->tracks.resize(_input.tracks.size());
 
   for (size_t i = 0; i < _input.tracks.size(); ++i) {
-    MakeDelta(_input.tracks[i].translations, MakeDeltaTranslation,
-              &_output->tracks[i].translations);
-    MakeDelta(_input.tracks[i].rotations, MakeDeltaRotation,
-              &_output->tracks[i].rotations);
-    MakeDelta(_input.tracks[i].scales, MakeDeltaScale,
-              &_output->tracks[i].scales);
+    math::Float3 ref_translation;
+    math::Quaternion ref_rotation;
+    math::Float3 ref_scale;
+
+    if (_input.tracks[i].translations.size() > 0) {
+       ref_translation = _input.tracks[i].translations[0].value;
+    }
+    else {
+      ref_translation = math::Float3::zero();
+    }
+
+    if (_input.tracks[i].rotations.size() > 0) {
+      ref_rotation = _input.tracks[i].rotations[0].value;
+    }
+    else {
+      ref_rotation = math::Quaternion::identity();
+    }
+
+    if (_input.tracks[i].scales.size() > 0) {
+      ref_scale = _input.tracks[i].scales[0].value;
+    }
+    else {
+      ref_scale = math::Float3::one();
+    }
+
+    MakeDelta(_input.tracks[i].translations, ref_translation, 
+              MakeDeltaTranslation, &_output->tracks[i].translations);
+    MakeDelta(_input.tracks[i].rotations, ref_rotation,
+              MakeDeltaRotation, &_output->tracks[i].rotations);
+    MakeDelta(_input.tracks[i].scales, ref_scale,
+              MakeDeltaScale, &_output->tracks[i].scales);
   }
 
   // Output animation is always valid though.
   return _output->Validate();
 }
+
+bool AdditiveAnimationBuilder::operator()(const RawAnimation& _input,
+                                          const Range<math::Transform>& _reference_pose,
+                                          RawAnimation* _output ) const {
+
+ if (!_output) {
+    return false;
+  }
+
+  // Reset output animation to default.
+  *_output = RawAnimation();
+
+  // Validate animation.
+  if (!_input.Validate()) {
+    return false;
+  }
+
+  // The reference pose must have at least the same number of 
+  // tracks as the raw animation.
+  if( _input.num_tracks() > (int)_reference_pose.count() ) {
+    return false;
+  }
+
+  // Rebuilds output animation.
+  _output->duration = _input.duration;
+  _output->tracks.resize(_input.tracks.size());
+
+  for (size_t i = 0; i < _input.tracks.size(); ++i) {
+    MakeDelta(_input.tracks[i].translations, _reference_pose[i].translation,
+              MakeDeltaTranslation, &_output->tracks[i].translations);
+    MakeDelta(_input.tracks[i].rotations, _reference_pose[i].rotation,
+              MakeDeltaRotation, &_output->tracks[i].rotations);
+    MakeDelta(_input.tracks[i].scales, _reference_pose[i].scale, 
+              MakeDeltaScale, &_output->tracks[i].scales);
+  }
+
+  // Output animation is always valid though.
+  return _output->Validate();
+
+}
+
 }  // namespace offline
 }  // namespace animation
 }  // namespace ozz
