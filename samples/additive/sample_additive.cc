@@ -154,11 +154,6 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
 
   // Samples animation, transforms to model space and renders.
   virtual bool OnDisplay(ozz::sample::Renderer* _renderer) {
-    // Mesh must be compatible with animation/skeleton.
-    assert(models_.size() >= static_cast<size_t>(mesh_.highest_joint_index()) &&
-           skinning_matrices_.size() >=
-               static_cast<size_t>(mesh_.num_joints()));
-
     // Builds skinning matrices, based on the output of the animation stage.
     // The mesh might not use (aka be skinned by) all skeleton joints. We use
     // the joint remapping table (available from the mesh object) to reorder
