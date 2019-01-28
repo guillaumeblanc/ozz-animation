@@ -31,6 +31,7 @@
 
 #include "ozz/base/maths/gtest_math_helper.h"
 #include "ozz/base/maths/math_constant.h"
+#include "ozz/base/maths/transform.h"
 
 #include "ozz/animation/offline/raw_animation.h"
 
@@ -58,6 +59,24 @@ TEST(Error, AdditiveAnimationBuilder) {
     output.duration = -1.f;
     output.tracks.resize(1);
     EXPECT_FALSE(builder(input, &output));
+    EXPECT_FLOAT_EQ(output.duration, RawAnimation().duration);
+    EXPECT_EQ(output.num_tracks(), 0);
+  }
+
+  {  // Invalid input animation with custom refpose
+    RawAnimation input;
+    input.duration = 1.f;
+    input.tracks.resize(1);
+
+    // Builds animation
+    RawAnimation output;
+    output.duration = -1.f;
+    output.tracks.resize(1);
+
+    ozz::math::Transform empty = ozz::math::Transform::identity();
+    ozz::Range<ozz::math::Transform> ref_pose_range(&empty, (size_t)0);
+
+    EXPECT_FALSE(builder(input, ref_pose_range, &output));
     EXPECT_FLOAT_EQ(output.duration, RawAnimation().duration);
     EXPECT_EQ(output.num_tracks(), 0);
   }
@@ -122,6 +141,72 @@ TEST(Build, AdditiveAnimationBuilder) {
   {
     RawAnimation output;
     ASSERT_TRUE(builder(input, &output));
+    EXPECT_EQ(output.num_tracks(), 3);
+
+    // 1st track.
+    {
+      EXPECT_EQ(output.tracks[0].translations.size(), 0u);
+      EXPECT_EQ(output.tracks[0].rotations.size(), 0u);
+      EXPECT_EQ(output.tracks[0].scales.size(), 0u);
+    }
+
+    // 2nd track.
+    {
+      const RawAnimation::JointTrack::Translations& translations =
+          output.tracks[1].translations;
+      EXPECT_EQ(translations.size(), 1u);
+      EXPECT_FLOAT_EQ(translations[0].time, 0.f);
+      EXPECT_FLOAT3_EQ(translations[0].value, 0.f, 0.f, 0.f);
+      const RawAnimation::JointTrack::Rotations& rotations =
+          output.tracks[1].rotations;
+      EXPECT_EQ(rotations.size(), 1u);
+      EXPECT_FLOAT_EQ(rotations[0].time, 0.f);
+      EXPECT_QUATERNION_EQ(rotations[0].value, 0.f, 0.f, 0.f, 1.f);
+      const RawAnimation::JointTrack::Scales& scales = output.tracks[1].scales;
+      EXPECT_EQ(scales.size(), 1u);
+      EXPECT_FLOAT_EQ(scales[0].time, 0.f);
+      EXPECT_FLOAT3_EQ(scales[0].value, 1.f, 1.f, 1.f);
+    }
+
+    // 3rd track.
+    {
+      const RawAnimation::JointTrack::Translations& translations =
+          output.tracks[2].translations;
+      EXPECT_EQ(translations.size(), 2u);
+      EXPECT_FLOAT_EQ(translations[0].time, .5f);
+      EXPECT_FLOAT3_EQ(translations[0].value, 0.f, 0.f, 0.f);
+      EXPECT_FLOAT_EQ(translations[1].time, .7f);
+      EXPECT_FLOAT3_EQ(translations[1].value, 18.f, 27.f, 36.f);
+      const RawAnimation::JointTrack::Rotations& rotations =
+          output.tracks[2].rotations;
+      EXPECT_EQ(rotations.size(), 2u);
+      EXPECT_FLOAT_EQ(rotations[0].time, .5f);
+      EXPECT_QUATERNION_EQ(rotations[0].value, 0.f, 0.f, 0.f, 1.f);
+      EXPECT_FLOAT_EQ(rotations[1].time, .7f);
+      EXPECT_QUATERNION_EQ(rotations[1].value, -1.f, 0.f, 0.f, 0.f);
+      const RawAnimation::JointTrack::Scales& scales = output.tracks[2].scales;
+      EXPECT_EQ(scales.size(), 2u);
+      EXPECT_FLOAT_EQ(scales[0].time, .5f);
+      EXPECT_FLOAT3_EQ(scales[0].value, 1.f, 1.f, 1.f);
+      EXPECT_FLOAT_EQ(scales[1].time, .7f);
+      EXPECT_FLOAT3_EQ(scales[1].value, 10.f, 10.f, 10.f);
+    }
+  }
+
+  // Builds animation with a custom refpose & very little tolerance 
+  {
+    ozz::math::Transform ref_pose[3];
+    ref_pose[0] = ozz::math::Transform::identity();
+    ref_pose[1].translation = input.tracks[1].translations[0].value;
+    ref_pose[1].rotation = input.tracks[1].rotations[0].value;
+    ref_pose[1].scale = input.tracks[1].scales[0].value;
+    ref_pose[2].translation = input.tracks[2].translations[0].value;
+    ref_pose[2].rotation = input.tracks[2].rotations[0].value;
+    ref_pose[2].scale = input.tracks[2].scales[0].value;
+
+
+    RawAnimation output;
+    ASSERT_TRUE(builder(input, ozz::Range<ozz::math::Transform>(ref_pose, ref_pose+3), &output));
     EXPECT_EQ(output.num_tracks(), 3);
 
     // 1st track.
