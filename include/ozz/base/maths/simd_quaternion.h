@@ -227,9 +227,9 @@ OZZ_INLINE SimdQuaternion SimdQuaternion::FromVectors(_SimdFloat4 _from,
 OZZ_INLINE SimdQuaternion SimdQuaternion::FromUnitVectors(_SimdFloat4 _from,
                                                           _SimdFloat4 _to) {
   // http://lolengine.net/blog/2014/02/24/quaternion-from-two-vectors-final
-  assert(
-      ozz::math::AreAllTrue1(And(IsNormalizedEst3(_from), IsNormalizedEst3(_to))) &&
-      "Input vectors must be normalized.");
+  assert(ozz::math::AreAllTrue1(
+             And(IsNormalizedEst3(_from), IsNormalizedEst3(_to))) &&
+         "Input vectors must be normalized.");
 
   const SimdFloat4 real_part =
       ozz::math::simd_float4::x_axis() + Dot3(_from, _to);

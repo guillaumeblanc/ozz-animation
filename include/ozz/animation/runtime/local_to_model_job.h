@@ -94,8 +94,8 @@ struct LocalToModelJob {
   // Defines "to" which joint the local-to-model conversion should go, "to"
   // included. Update will end before "to" joint is reached if "to" is not part
   // of the hierarchy starting from "from". Default value is
-  // ozz::Skeleton::kMaxJoints, meaning the hierarchy (starting from "from") is
-  // updated to the last joint.
+  // ozz::animation::Skeleton::kMaxJoints, meaning the hierarchy (starting from
+  // "from") is updated to the last joint.
   int to;
 
   // If true, "from" joint is not updated during job execution. Update starts

@@ -472,7 +472,7 @@ bool ProcessImportTrack(OzzImporter& _importer, const char* _animation_name,
       // Checks property type matches
       const char* expected_type_name = _import_config["type"].asCString();
       OzzImporter::NodeProperty::Type expected_type =
-        OzzImporter::NodeProperty::kFloat1;
+          OzzImporter::NodeProperty::kFloat1;
       bool valid_type =
           GetPropertyTypeFromName(expected_type_name, &expected_type);
       (void)valid_type;
