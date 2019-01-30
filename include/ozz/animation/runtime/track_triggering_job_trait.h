@@ -25,8 +25,8 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#ifndef OZZ_OZZ_ANIMATION_RUNTIME_TRACK_TRIGGERING_JOB_STL_H_
-#define OZZ_OZZ_ANIMATION_RUNTIME_TRACK_TRIGGERING_JOB_STL_H_
+#ifndef OZZ_OZZ_ANIMATION_RUNTIME_TRACK_TRIGGERING_JOB_TRAIT_H_
+#define OZZ_OZZ_ANIMATION_RUNTIME_TRACK_TRIGGERING_JOB_TRAIT_H_
 
 // Defines iterator traits required to use TrackTriggeringJob::Iterator
 // with stl algorithms.
@@ -48,4 +48,4 @@ struct iterator_traits<ozz::animation::TrackTriggeringJob::Iterator> {
   typedef forward_iterator_tag iterator_category;
 };
 }  // namespace std
-#endif  // OZZ_OZZ_ANIMATION_RUNTIME_TRACK_TRIGGERING_JOB_STL_H_
+#endif  // OZZ_OZZ_ANIMATION_RUNTIME_TRACK_TRIGGERING_JOB_TRAIT_H_

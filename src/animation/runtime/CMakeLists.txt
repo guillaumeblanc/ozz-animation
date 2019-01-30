@@ -21,7 +21,7 @@ add_library(ozz_animation STATIC
   ${PROJECT_SOURCE_DIR}/include/ozz/animation/runtime/track_sampling_job.h
   track_sampling_job.cc
   ${PROJECT_SOURCE_DIR}/include/ozz/animation/runtime/track_triggering_job.h
-  ${PROJECT_SOURCE_DIR}/include/ozz/animation/runtime/track_triggering_job_stl.h
+  ${PROJECT_SOURCE_DIR}/include/ozz/animation/runtime/track_triggering_job_trait.h
   track_triggering_job.cc)
 target_link_libraries(ozz_animation
   ozz_base)

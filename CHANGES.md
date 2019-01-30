@@ -5,6 +5,7 @@ Next version
   - [animation] Allows resizing SamplingCache, meaning the can be allocated without knowing the number of joints the cache needs to support.
   - [animation] Allow ozz::animation::LocalToModelJob to partially update a hierarchy, aka all children of a joint. This is useful when changes to a local-space pose has been limited to part of the joint hierarchy, like when applying IK or modifying model-space matrices independently from local-space transform.
   - [animation] Changes ozz::animation::Skeleton joints from breadth-first to depth-first. This change breaks compatibility of previous ozz::animation::offline::RawAnimation, ozz::animation::Animation and ozz::animation::Skeleton archives.
+  - [animation] Renames track_triggering_job_stl.h to track_triggering_job_trait.h.
   - [memory] Removes (too error prone) ozz::memory::Allocator typed allocation functions.
   - [math] Changes all conversion from AxisAngle to use separate arguments for axis and angle. This is more in line with function use cases.
   - [math] Adds quaternions initialization from two vectors.

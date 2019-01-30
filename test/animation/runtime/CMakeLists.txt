@@ -101,7 +101,7 @@ add_test(NAME test_track_sampling_job COMMAND test_track_sampling_job)
 # test_track_triggering_job
 add_executable(test_track_triggering_job
   track_triggering_job_tests.cc
-  track_triggering_job_stl_tests.cc)
+  track_triggering_job_trait_tests.cc)
 target_link_libraries(test_track_triggering_job
   ozz_animation_offline
   ozz_animation

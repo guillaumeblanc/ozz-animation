@@ -25,7 +25,7 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/animation/runtime/track_triggering_job_stl.h"
+#include "ozz/animation/runtime/track_triggering_job_trait.h"
 
 #include "gtest/gtest.h"
 #include "ozz/base/gtest_helper.h"
