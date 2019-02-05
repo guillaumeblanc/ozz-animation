@@ -42,8 +42,10 @@ namespace animation {
 namespace offline {
 
 // Additive reference enum to config string conversions.
-enum AdditiveReferenceEnum { kAnimation, kSkeleton };
-struct AdditiveReference : JsonEnum<AdditiveReference, AdditiveReferenceEnum> {
+struct AdditiveReferenceEnum {
+  enum Value { kAnimation, kSkeleton };
+};
+struct AdditiveReference : JsonEnum<AdditiveReference, AdditiveReferenceEnum::Value> {
   static EnumNames GetNames();
 };
 

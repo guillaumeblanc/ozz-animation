@@ -197,7 +197,7 @@ bool Export(const RawAnimation& _raw_animation, const Skeleton& _skeleton,
     AdditiveAnimationBuilder additive_builder;
     RawAnimation raw_additive;
 
-    AdditiveReferenceEnum reference;
+    AdditiveReferenceEnum::Value reference;
     bool enum_found = AdditiveReference::GetEnumFromName(
         _config["additive_reference"].asCString(), &reference);
     assert(enum_found);  // Already checked on config side.
