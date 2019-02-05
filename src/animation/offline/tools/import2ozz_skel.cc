@@ -128,7 +128,7 @@ bool ImportSkeleton(const Json::Value& _config, OzzImporter* _converter,
   types.light = types_config["light"].asBool();
   types.any = types_config["any"].asBool();
 
-  ozz::animation::offline::RawSkeleton raw_skeleton;
+  RawSkeleton raw_skeleton;
   if (!_converter->Import(&raw_skeleton, types)) {
     ozz::log::Err() << "Failed to import skeleton." << std::endl;
     return false;
@@ -147,11 +147,11 @@ bool ImportSkeleton(const Json::Value& _config, OzzImporter* _converter,
 
   // Needs to be done before opening the output file, so that if it fails then
   // there's no invalid file outputted.
-  ozz::animation::Skeleton* skeleton = NULL;
+  Skeleton* skeleton = NULL;
   if (!import_config["raw"].asBool()) {
     // Builds runtime skeleton.
     ozz::log::Log() << "Builds runtime skeleton." << std::endl;
-    ozz::animation::offline::SkeletonBuilder builder;
+    SkeletonBuilder builder;
     skeleton = builder(raw_skeleton);
     if (!skeleton) {
       ozz::log::Err() << "Failed to build runtime skeleton." << std::endl;

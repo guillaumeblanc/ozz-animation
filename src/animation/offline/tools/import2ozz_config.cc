@@ -30,6 +30,8 @@
 #include <fstream>
 #include <sstream>
 
+#include "animation/offline/tools/import2ozz_anim.h"
+
 #include "ozz/animation/offline/animation_optimizer.h"
 #include "ozz/animation/offline/track_optimizer.h"
 
@@ -67,6 +69,9 @@ OZZ_OPTIONS_DECLARE_STRING(
     config_dump_reference,
     "Dumps reference json configuration to specified file.", "", false)
 
+namespace ozz {
+namespace animation {
+namespace offline {
 namespace {
 
 template <typename _Type>
@@ -244,24 +249,20 @@ bool SanitizeSkeleton(Json::Value& _root, bool _all_options) {
 
 bool SanitizeOptimizationTolerances(Json::Value& _root) {
   MakeDefault(
-      _root, "translation",
-      ozz::animation::offline::AnimationOptimizer().translation_tolerance,
+      _root, "translation", AnimationOptimizer().translation_tolerance,
       "Translation optimization tolerance, defined as the distance between two "
       "translation values in meters.");
 
-  MakeDefault(_root, "rotation",
-              ozz::animation::offline::AnimationOptimizer().rotation_tolerance,
+  MakeDefault(_root, "rotation", AnimationOptimizer().rotation_tolerance,
               "Rotation optimization tolerance, ie: the angle between two "
               "rotation values in radian.");
 
-  MakeDefault(_root, "scale",
-              ozz::animation::offline::AnimationOptimizer().scale_tolerance,
+  MakeDefault(_root, "scale", AnimationOptimizer().scale_tolerance,
               "Scale optimization tolerance, ie: the norm of the difference of "
               "two scales.");
 
   MakeDefault(
-      _root, "hierarchical",
-      ozz::animation::offline::AnimationOptimizer().hierarchical_tolerance,
+      _root, "hierarchical", AnimationOptimizer().hierarchical_tolerance,
       "Hierarchical translation optimization tolerance, ie: the maximum error "
       "(distance) that an optimization on a joint is allowed to generate on "
       "its whole child hierarchy.");
@@ -293,8 +294,7 @@ bool SanitizeTrackImport(Json::Value& _root) {
   }
   MakeDefault(_root, "raw", false, "Outputs raw track.");
   MakeDefault(_root, "optimize", true, "Activates keyframes optimization.");
-  MakeDefault(_root, "optimization_tolerance",
-              ozz::animation::offline::TrackOptimizer().tolerance,
+  MakeDefault(_root, "optimization_tolerance", TrackOptimizer().tolerance,
               "Optimization tolerance");
 
   return true;
@@ -309,7 +309,7 @@ bool SanitizeTrackMotion(Json::Value& _root) {
               "specify part(s) of the filename that should be replaced by the "
               "joint_name.");
   MakeDefault(_root, "optimization_tolerance",
-              ozz::animation::offline::TrackOptimizer().tolerance,
+              TrackOptimizer().tolerance,
               "Optimization tolerance");
   return true;
 }*/
@@ -349,6 +349,21 @@ bool SanitizeAnimation(Json::Value& _root, bool _all_options) {
   MakeDefault(
       _root, "additive", false,
       "Creates a delta animation that can be used for additive blending.");
+  MakeDefault(_root, "additive_reference", "animation",
+              "Select reference pose to use to build additive/delta animation. "
+              "Can be \"animation\" to use the 1st animation keyframe as "
+              "reference, or \"skeleton\" to use skeleton bind pose.");
+
+  if (!AdditiveReference::IsValidEnumName(
+          _root["additive_reference"].asCString())) {
+    ozz::log::Err() << "Invalid additive reference pose \""
+                    << _root["additive_reference"].asCString() << "\". \""
+                    << "Can be \"animation\" to use the 1st animation keyframe "
+                       "as reference, or \"skeleton\" to use skeleton bind "
+                       "pose."
+                    << std::endl;
+    return false;
+  }
 
   MakeDefault(_root, "sampling_rate", 0.f,
               "Selects animation sampling rate in hertz. Set a value <= 0 to "
@@ -517,3 +532,6 @@ bool ProcessConfiguration(Json::Value* _config) {
 
   return true;
 }
+}  // namespace offline
+}  // namespace animation
+}  // namespace ozz

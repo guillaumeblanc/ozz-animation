@@ -175,6 +175,9 @@ set_tests_properties(test2ozz_anim_invalid_filename PROPERTIES PASS_REGULAR_EXPR
 add_test(NAME test2ozz_anim_no_match COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"skeleton\":{\"filename\":\"${ozz_temp_directory}/skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"clip\":\"won_t_match\",\"filename\":\"${ozz_temp_directory}/invalid_path/anim_should_not_exist.ozz\"}]}")
 set_tests_properties(test2ozz_anim_no_match PROPERTIES PASS_REGULAR_EXPRESSION "No matching animation found for \"won_t_match\"." DEPENDS test2ozz_skel_simple)
 
+add_test(NAME test2ozz_anim_additive_wrong_ref COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"skeleton\":{\"filename\":\"${ozz_temp_directory}/skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"${ozz_temp_directory}/animation_${CMAKE_CURRENT_LIST_LINE}.ozz\",\"additive\":true,\"additive_reference\":\"anim\"}]}")
+set_tests_properties(test2ozz_anim_additive_wrong_ref PROPERTIES PASS_REGULAR_EXPRESSION "Invalid additive reference pose \"anim\"." DEPENDS test2ozz_skel_simple)
+
 # Run test2ozz track import failing tests
 #----------------------------
 
@@ -246,6 +249,12 @@ set_tests_properties(test2ozz_anim_additive PROPERTIES DEPENDS test2ozz_skel_sim
 
 add_test(NAME test2ozz_anim_additive_raw COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"skeleton\":{\"filename\":\"${ozz_temp_directory}/skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"${ozz_temp_directory}/animation_${CMAKE_CURRENT_LIST_LINE}.ozz\",\"raw\":false,\"additive\":true}]}")
 set_tests_properties(test2ozz_anim_additive_raw PROPERTIES DEPENDS test2ozz_skel_simple)
+
+add_test(NAME test2ozz_anim_additive_ref_anim COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"skeleton\":{\"filename\":\"${ozz_temp_directory}/skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"${ozz_temp_directory}/animation_${CMAKE_CURRENT_LIST_LINE}.ozz\",\"additive\":true,\"additive_reference\":\"animation\"}]}")
+set_tests_properties(test2ozz_anim_additive_ref_anim PROPERTIES DEPENDS test2ozz_skel_simple)
+
+add_test(NAME test2ozz_anim_additive_ref_skel COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"skeleton\":{\"filename\":\"${ozz_temp_directory}/skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"${ozz_temp_directory}/animation_${CMAKE_CURRENT_LIST_LINE}.ozz\",\"additive\":true,\"additive_reference\":\"skeleton\"}]}")
+set_tests_properties(test2ozz_anim_additive_ref_skel PROPERTIES DEPENDS test2ozz_skel_simple)
 
 add_test(NAME test2ozz_anim_native COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"skeleton\":{\"filename\":\"${ozz_temp_directory}/skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"${ozz_temp_directory}/animation_native_${CMAKE_CURRENT_LIST_LINE}.ozz\"}]}" "--endian=native")
 set_tests_properties(test2ozz_anim_native PROPERTIES DEPENDS test2ozz_skel_simple)

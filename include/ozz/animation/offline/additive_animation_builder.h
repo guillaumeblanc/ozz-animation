@@ -65,7 +65,7 @@ class AdditiveAnimationBuilder {
   // *_reference_pose used as the base pose to calculate deltas from
   // Returns false on failure and resets _output to an empty animation.
   bool operator()(const RawAnimation& _input,
-                  const Range<math::Transform>& _reference_pose,
+                  const Range<const math::Transform>& _reference_pose,
                   RawAnimation* _output ) const;
 
 };

@@ -1,8 +1,11 @@
 
 * Library
+ - [offline] #62 Adds an a way to specify additive animation reference pose to ozz::animation::offline::AdditiveAnimationBuilder.
  - [animation] Allows resizing SamplingCache, meaning the can be allocated without knowing the number of joints the cache needs to support.
  - [memory] Removes (too error prone) ozz::memory::Allocator typed allocation functions.
 
+* Tools
+ - Adds an option to importer tools to select additive animation reference pose.
 
 Release version 0.10.0
 ----------------------

@@ -39,10 +39,8 @@ namespace offline {
 
 namespace {
 template <typename _RawTrack, typename _RefType, typename _MakeDelta>
-void MakeDelta(const _RawTrack& _src, 
-               const _RefType& reference,
-               const _MakeDelta& _make_delta,
-               _RawTrack* _dest) {
+void MakeDelta(const _RawTrack& _src, const _RefType& reference,
+               const _MakeDelta& _make_delta, _RawTrack* _dest) {
   _dest->reserve(_src.size());
 
   // Early out if no key.
@@ -95,48 +93,38 @@ bool AdditiveAnimationBuilder::operator()(const RawAnimation& _input,
   _output->tracks.resize(_input.tracks.size());
 
   for (size_t i = 0; i < _input.tracks.size(); ++i) {
-    math::Float3 ref_translation;
-    math::Quaternion ref_rotation;
-    math::Float3 ref_scale;
+    const RawAnimation::JointTrack& track_in = _input.tracks[i];
+    RawAnimation::JointTrack& track_out = _output->tracks[i];
 
-    if (_input.tracks[i].translations.size() > 0) {
-       ref_translation = _input.tracks[i].translations[0].value;
-    }
-    else {
-      ref_translation = math::Float3::zero();
-    }
+    const RawAnimation::JointTrack::Translations& translations =
+        track_in.translations;
+    const math::Float3 ref_translation =
+        translations.size() > 0 ? translations[0].value : math::Float3::zero();
 
-    if (_input.tracks[i].rotations.size() > 0) {
-      ref_rotation = _input.tracks[i].rotations[0].value;
-    }
-    else {
-      ref_rotation = math::Quaternion::identity();
-    }
+    const RawAnimation::JointTrack::Rotations& rotations = track_in.rotations;
+    const math::Quaternion ref_rotation = rotations.size() > 0
+                                              ? rotations[0].value
+                                              : math::Quaternion::identity();
 
-    if (_input.tracks[i].scales.size() > 0) {
-      ref_scale = _input.tracks[i].scales[0].value;
-    }
-    else {
-      ref_scale = math::Float3::one();
-    }
+    const RawAnimation::JointTrack::Scales& scales = track_in.scales;
+    const math::Float3 ref_scale =
+        scales.size() > 0 ? scales[0].value : math::Float3::one();
 
-    MakeDelta(_input.tracks[i].translations, ref_translation, 
-              MakeDeltaTranslation, &_output->tracks[i].translations);
-    MakeDelta(_input.tracks[i].rotations, ref_rotation,
-              MakeDeltaRotation, &_output->tracks[i].rotations);
-    MakeDelta(_input.tracks[i].scales, ref_scale,
-              MakeDeltaScale, &_output->tracks[i].scales);
+    MakeDelta(translations, ref_translation, MakeDeltaTranslation,
+              &track_out.translations);
+    MakeDelta(rotations, ref_rotation, MakeDeltaRotation, &track_out.rotations);
+    MakeDelta(scales, ref_scale, MakeDeltaScale, &track_out.scales);
   }
 
   // Output animation is always valid though.
   return _output->Validate();
 }
 
-bool AdditiveAnimationBuilder::operator()(const RawAnimation& _input,
-                                          const Range<math::Transform>& _reference_pose,
-                                          RawAnimation* _output ) const {
-
- if (!_output) {
+bool AdditiveAnimationBuilder::operator()(
+    const RawAnimation& _input,
+    const Range<const math::Transform>& _reference_pose,
+    RawAnimation* _output) const {
+  if (!_output) {
     return false;
   }
 
@@ -148,9 +136,9 @@ bool AdditiveAnimationBuilder::operator()(const RawAnimation& _input,
     return false;
   }
 
-  // The reference pose must have at least the same number of 
+  // The reference pose must have at least the same number of
   // tracks as the raw animation.
-  if( _input.num_tracks() > (int)_reference_pose.count() ) {
+  if (_input.num_tracks() > static_cast<int>(_reference_pose.count())) {
     return false;
   }
 
@@ -163,13 +151,12 @@ bool AdditiveAnimationBuilder::operator()(const RawAnimation& _input,
               MakeDeltaTranslation, &_output->tracks[i].translations);
     MakeDelta(_input.tracks[i].rotations, _reference_pose[i].rotation,
               MakeDeltaRotation, &_output->tracks[i].rotations);
-    MakeDelta(_input.tracks[i].scales, _reference_pose[i].scale, 
-              MakeDeltaScale, &_output->tracks[i].scales);
+    MakeDelta(_input.tracks[i].scales, _reference_pose[i].scale, MakeDeltaScale,
+              &_output->tracks[i].scales);
   }
 
   // Output animation is always valid though.
   return _output->Validate();
-
 }
 
 }  // namespace offline

@@ -30,6 +30,7 @@
 #include <cstdlib>
 #include <cstring>
 
+#include "animation/offline/tools/import2ozz_anim.h"
 #include "animation/offline/tools/import2ozz_config.h"
 
 #include "ozz/animation/offline/additive_animation_builder.h"
@@ -48,6 +49,8 @@
 
 #include "ozz/base/io/archive.h"
 #include "ozz/base/io/stream.h"
+
+#include "ozz/base/maths/soa_transform.h"
 
 #include "ozz/base/log.h"
 
@@ -101,9 +104,9 @@ void DisplaysOptimizationstatistics(const RawAnimation& _non_optimized,
                    << "%" << std::endl;
 }
 
-ozz::animation::Skeleton* LoadSkeleton(const char* _path) {
+Skeleton* LoadSkeleton(const char* _path) {
   // Reads the skeleton from the binary ozz stream.
-  ozz::animation::Skeleton* skeleton = NULL;
+  Skeleton* skeleton = NULL;
   {
     if (*_path == 0) {
       ozz::log::Err() << "Missing input skeleton file from json config."
@@ -121,26 +124,25 @@ ozz::animation::Skeleton* LoadSkeleton(const char* _path) {
     ozz::io::IArchive archive(&file);
 
     // File could contain a RawSkeleton or a Skeleton.
-    if (archive.TestTag<ozz::animation::offline::RawSkeleton>()) {
+    if (archive.TestTag<RawSkeleton>()) {
       ozz::log::LogV() << "Reading RawSkeleton from file." << std::endl;
 
       // Reading the skeleton cannot file.
-      ozz::animation::offline::RawSkeleton raw_skeleton;
+      RawSkeleton raw_skeleton;
       archive >> raw_skeleton;
 
       // Builds runtime skeleton.
       ozz::log::LogV() << "Builds runtime skeleton." << std::endl;
-      ozz::animation::offline::SkeletonBuilder builder;
+      SkeletonBuilder builder;
       skeleton = builder(raw_skeleton);
       if (!skeleton) {
         ozz::log::Err() << "Failed to build runtime skeleton." << std::endl;
         return NULL;
       }
-    } else if (archive.TestTag<ozz::animation::Skeleton>()) {
+    } else if (archive.TestTag<Skeleton>()) {
       // Reads input archive to the runtime skeleton.
       // This operation cannot fail.
-      skeleton =
-          ozz::memory::default_allocator()->New<ozz::animation::Skeleton>();
+      skeleton = ozz::memory::default_allocator()->New<Skeleton>();
       archive >> *skeleton;
     } else {
       ozz::log::Err() << "Failed to read input skeleton from binary file: "
@@ -161,22 +163,61 @@ ozz::String::Std BuildFilename(const char* _filename, const char* _data_name) {
   return output;
 }
 
-bool Export(const ozz::animation::offline::RawAnimation& _raw_animation,
-            const ozz::animation::Skeleton& _skeleton,
+Vector<math::Transform>::Std SkeletonBindPoseSoAToAoS(
+    const Skeleton& _skeleton) {
+  // Copy skeleton bind pose to AoS form.
+  Vector<math::Transform>::Std transforms(_skeleton.num_joints());
+  for (int i = 0; i < _skeleton.num_soa_joints(); ++i) {
+    const math::SoaTransform& soa_transform = _skeleton.bind_pose()[i];
+    math::SimdFloat4 translation[4];
+    math::SimdFloat4 rotation[4];
+    math::SimdFloat4 scale[4];
+    math::Transpose3x4(&soa_transform.translation.x, translation);
+    math::Transpose4x4(&soa_transform.rotation.x, rotation);
+    math::Transpose3x4(&soa_transform.scale.x, scale);
+    for (int j = 0; j < 4 && i * 4 + j < _skeleton.num_joints(); ++j) {
+      math::Transform& out = transforms[i * 4 + j];
+      math::Store3PtrU(translation[j], &out.translation.x);
+      math::StorePtrU(rotation[j], &out.rotation.x);
+      math::Store3PtrU(scale[j], &out.scale.x);
+    }
+  }
+  return transforms;
+}
+
+bool Export(const RawAnimation& _raw_animation, const Skeleton& _skeleton,
             const Json::Value& _config, const ozz::Endianness _endianness) {
   // Raw animation to build and output.
-  ozz::animation::offline::RawAnimation raw_animation;
+  RawAnimation raw_animation;
 
   // Make delta animation if requested.
   if (_config["additive"].asBool()) {
     ozz::log::Log() << "Makes additive animation." << std::endl;
-    ozz::animation::offline::AdditiveAnimationBuilder additive_builder;
+
+    AdditiveAnimationBuilder additive_builder;
     RawAnimation raw_additive;
-    if (!additive_builder(_raw_animation, &raw_additive)) {
+
+    AdditiveReferenceEnum reference;
+    bool enum_found = AdditiveReference::GetEnumFromName(
+        _config["additive_reference"].asCString(), &reference);
+    assert(enum_found);  // Already checked on config side.
+
+    bool succeeded = false;
+    if (enum_found && reference == AdditiveReferenceEnum::kSkeleton) {
+      const Vector<math::Transform>::Std transforms =
+          SkeletonBindPoseSoAToAoS(_skeleton);
+      succeeded = additive_builder(_raw_animation, make_range(transforms),
+                                   &raw_additive);
+    } else {
+      succeeded = additive_builder(_raw_animation, &raw_additive);
+    }
+
+    if (!succeeded) {
       ozz::log::Err() << "Failed to make additive animation." << std::endl;
       return false;
     }
-    // checker animation.
+
+    // Now use additive animation.
     raw_animation = raw_additive;
   } else {
     raw_animation = _raw_animation;
@@ -185,7 +226,7 @@ bool Export(const ozz::animation::offline::RawAnimation& _raw_animation,
   // Optimizes animation if option is enabled.
   if (_config["optimize"].asBool()) {
     ozz::log::Log() << "Optimizing animation." << std::endl;
-    ozz::animation::offline::AnimationOptimizer optimizer;
+    AnimationOptimizer optimizer;
 
     // Setup optimizer from config parameters.
     const Json::Value& tolerances = _config["optimization_tolerances"];
@@ -194,7 +235,7 @@ bool Export(const ozz::animation::offline::RawAnimation& _raw_animation,
     optimizer.scale_tolerance = tolerances["scale"].asFloat();
     optimizer.hierarchical_tolerance = tolerances["hierarchical"].asFloat();
 
-    ozz::animation::offline::RawAnimation raw_optimized_animation;
+    RawAnimation raw_optimized_animation;
     if (!optimizer(raw_animation, _skeleton, &raw_optimized_animation)) {
       ozz::log::Err() << "Failed to optimize animation." << std::endl;
       return false;
@@ -208,10 +249,10 @@ bool Export(const ozz::animation::offline::RawAnimation& _raw_animation,
   }
 
   // Builds runtime animation.
-  ozz::animation::Animation* animation = NULL;
+  Animation* animation = NULL;
   if (!_config["raw"].asBool()) {
     ozz::log::Log() << "Builds runtime animation." << std::endl;
-    ozz::animation::offline::AnimationBuilder builder;
+    AnimationBuilder builder;
     animation = builder(raw_animation);
     if (!animation) {
       ozz::log::Err() << "Failed to build runtime animation." << std::endl;
@@ -257,11 +298,10 @@ bool Export(const ozz::animation::offline::RawAnimation& _raw_animation,
   ozz::memory::default_allocator()->Delete(animation);
 
   return true;
-}
+}  // namespace
 
 bool ProcessAnimation(OzzImporter& _converter, const char* _animation_name,
-                      const ozz::animation::Skeleton& _skeleton,
-                      const Json::Value& _config,
+                      const Skeleton& _skeleton, const Json::Value& _config,
                       const ozz::Endianness _endianness) {
   RawAnimation animation;
   if (!_converter.Import(_animation_name, _skeleton,
@@ -282,19 +322,19 @@ struct RawTrackToTrack;
 
 template <>
 struct RawTrackToTrack<RawFloatTrack> {
-  typedef ozz::animation::FloatTrack Track;
+  typedef FloatTrack Track;
 };
 template <>
 struct RawTrackToTrack<RawFloat2Track> {
-  typedef ozz::animation::Float2Track Track;
+  typedef Float2Track Track;
 };
 template <>
 struct RawTrackToTrack<RawFloat3Track> {
-  typedef ozz::animation::Float3Track Track;
+  typedef Float3Track Track;
 };
 template <>
 struct RawTrackToTrack<RawFloat4Track> {
-  typedef ozz::animation::Float4Track Track;
+  typedef Float4Track Track;
 };
 
 template <typename _RawTrack>
@@ -306,7 +346,7 @@ bool Export(const _RawTrack& _raw_track, const Json::Value& _config,
   // Optimizes track if option is enabled.
   if (_config["optimize"].asBool()) {
     ozz::log::LogV() << "Optimizing track." << std::endl;
-    ozz::animation::offline::TrackOptimizer optimizer;
+    TrackOptimizer optimizer;
     optimizer.tolerance = _config["optimization_tolerance"].asFloat();
     _RawTrack raw_optimized_track;
     if (!optimizer(_raw_track, &raw_optimized_track)) {
@@ -325,7 +365,7 @@ bool Export(const _RawTrack& _raw_track, const Json::Value& _config,
   typename RawTrackToTrack<_RawTrack>::Track* track = NULL;
   if (!_config["raw"].asBool()) {
     ozz::log::LogV() << "Builds runtime track." << std::endl;
-    ozz::animation::offline::TrackBuilder builder;
+    TrackBuilder builder;
     track = builder(raw_track);
     if (!track) {
       ozz::log::Err() << "Failed to build runtime track." << std::endl;
@@ -541,6 +581,12 @@ bool ProcessTracks(OzzImporter& _converter, const char* _animation_name,
 }
 }  // namespace
 
+AdditiveReference::EnumNames AdditiveReference::GetNames() {
+  static const char* kNames[] = {"animation", "skeleton"};
+  const EnumNames enum_names = {OZZ_ARRAY_SIZE(kNames), kNames};
+  return enum_names;
+}
+
 bool ImportAnimations(const Json::Value& _config, OzzImporter* _converter,
                       const ozz::Endianness _endianness) {
   const Json::Value& skeleton_config = _config["skeleton"];
@@ -567,8 +613,7 @@ bool ImportAnimations(const Json::Value& _config, OzzImporter* _converter,
   bool success = true;
 
   // Import skeleton instance.
-  ozz::animation::Skeleton* skeleton =
-      LoadSkeleton(skeleton_config["filename"].asCString());
+  Skeleton* skeleton = LoadSkeleton(skeleton_config["filename"].asCString());
   success &= skeleton != NULL;
 
   // Loop though all existing animations, and export those who match
@@ -611,7 +656,7 @@ bool ImportAnimations(const Json::Value& _config, OzzImporter* _converter,
   ozz::memory::default_allocator()->Delete(skeleton);
 
   return success;
-}  // namespace animation
+}
 }  // namespace offline
 }  // namespace animation
 }  // namespace ozz

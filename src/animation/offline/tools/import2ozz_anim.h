@@ -31,6 +31,8 @@
 #include "ozz/base/endianness.h"
 #include "ozz/base/platform.h"
 
+#include "animation/offline/tools/import2ozz_config.h"
+
 namespace Json {
 class Value;
 }
@@ -39,8 +41,13 @@ namespace ozz {
 namespace animation {
 namespace offline {
 
-class OzzImporter;
+// Additive reference enum to config string conversions.
+enum AdditiveReferenceEnum { kAnimation, kSkeleton };
+struct AdditiveReference : JsonEnum<AdditiveReference, AdditiveReferenceEnum> {
+  static EnumNames GetNames();
+};
 
+class OzzImporter;
 bool ImportAnimations(const Json::Value& _config, OzzImporter* _converter,
                       const ozz::Endianness _endianness);
 
