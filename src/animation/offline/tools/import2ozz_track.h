@@ -25,8 +25,8 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#ifndef OZZ_ANIMATION_OFFLINE_TOOLS_IMPORT2OZZ_ANIM_H_
-#define OZZ_ANIMATION_OFFLINE_TOOLS_IMPORT2OZZ_ANIM_H_
+#ifndef OZZ_ANIMATION_OFFLINE_TOOLS_IMPORT2OZZ_TRACK_H_
+#define OZZ_ANIMATION_OFFLINE_TOOLS_IMPORT2OZZ_TRACK_H_
 
 #include "ozz/base/endianness.h"
 #include "ozz/base/platform.h"
@@ -40,21 +40,20 @@ class Value;
 
 namespace ozz {
 namespace animation {
+class Skeleton;
 namespace offline {
 
 class OzzImporter;
-bool ImportAnimations(const Json::Value& _config, OzzImporter* _importer,
-                      const ozz::Endianness _endianness);
+bool ProcessTracks(OzzImporter& _importer, const char* _animation_name,
+                   const Skeleton& _skeleton, const Json::Value& _config,
+                   const ozz::Endianness _endianness);
 
-// Additive reference enum to config string conversions.
-struct AdditiveReferenceEnum {
-  enum Value { kAnimation, kSkeleton };
-};
-struct AdditiveReference
-    : JsonEnum<AdditiveReference, AdditiveReferenceEnum::Value> {
+// Property type enum to config string conversions.
+struct PropertyTypeConfig
+    : JsonEnum<PropertyTypeConfig, OzzImporter::NodeProperty::Type> {
   static EnumNames GetNames();
 };
 }  // namespace offline
 }  // namespace animation
 }  // namespace ozz
-#endif  // OZZ_ANIMATION_OFFLINE_TOOLS_IMPORT2OZZ_ANIM_H_
+#endif  // OZZ_ANIMATION_OFFLINE_TOOLS_IMPORT2OZZ_TRACK_H_

@@ -8,7 +8,9 @@ add_library(ozz_animation_tools STATIC
   import2ozz_config.h
   import2ozz_config.cc
   import2ozz_skel.h
-  import2ozz_skel.cc)
+  import2ozz_skel.cc
+  import2ozz_track.h
+  import2ozz_track.cc)
 target_link_libraries(ozz_animation_tools
   ozz_animation_offline
   ozz_options

@@ -28,6 +28,7 @@
 #ifndef OZZ_OZZ_ANIMATION_OFFLINE_TOOLS_IMPORT2OZZ_H_
 #define OZZ_OZZ_ANIMATION_OFFLINE_TOOLS_IMPORT2OZZ_H_
 
+#include "ozz/base/containers/string.h"
 #include "ozz/base/containers/vector.h"
 
 #include "ozz/animation/offline/raw_animation.h"
@@ -123,6 +124,9 @@ class OzzImporter {
   virtual bool Import(const char* _animation_name, const char* _node_name,
                       const char* _track_name, NodeProperty::Type _track_type,
                       float _sampling_rate, RawFloat4Track* _track) = 0;
+
+  // Build a filename from a wildcard string.
+  ozz::String::Std BuildFilename(const char* _filename, const char* _data_name) const;
 };
 }  // namespace offline
 }  // namespace animation
