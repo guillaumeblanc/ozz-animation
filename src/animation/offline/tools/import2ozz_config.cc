@@ -27,6 +27,7 @@
 
 #include "animation/offline/tools/import2ozz_config.h"
 
+#include <cstring>
 #include <fstream>
 #include <sstream>
 
@@ -469,6 +470,10 @@ bool DumpConfig(const char* _path, const Json::Value& _config) {
   return true;
 }
 }  // namespace
+
+bool CompareName(const char* _a, const char* _b) {
+  return std::strcmp(_a, _b) == 0;
+}
 
 bool ProcessConfiguration(Json::Value* _config) {
   if (!_config) {

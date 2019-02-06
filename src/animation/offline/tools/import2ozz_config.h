@@ -39,6 +39,10 @@ namespace offline {
 // Get the sanitized (all members are set, with the right types) configuration.
 bool ProcessConfiguration(Json::Value* _config);
 
+// Internal function used to compare enum names.
+bool CompareName(const char* _a, const char* _b);
+
+  // Struct allowing inheriting class to provide enum names.
 template <typename _Type, typename _Enum>
 struct JsonEnum {
   // Struct allowing inheriting class to provide enum names.
@@ -50,7 +54,7 @@ struct JsonEnum {
   static bool GetEnumFromName(const char* _name, _Enum* _enum) {
     const EnumNames enums = _Type::GetNames();
     for (size_t i = 0; i < enums.count; ++i) {
-      if (strcmp(enums.names[i], _name) == 0) {
+      if (CompareName(enums.names[i], _name)) {
         *_enum = static_cast<_Enum>(i);
         return true;
       }
@@ -68,7 +72,7 @@ struct JsonEnum {
     const EnumNames enums = _Type::GetNames();
     bool valid = false;
     for (size_t i = 0; !valid && i < enums.count; ++i) {
-      valid = strcmp(enums.names[i], _name) == 0;
+      valid = CompareName(enums.names[i], _name);
     }
     return valid;
   }
