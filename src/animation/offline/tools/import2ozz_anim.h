@@ -31,6 +31,7 @@
 #include "ozz/base/endianness.h"
 #include "ozz/base/platform.h"
 
+#include "ozz/animation/offline/tools/import2ozz.h"
 #include "animation/offline/tools/import2ozz_config.h"
 
 namespace Json {
@@ -41,19 +42,24 @@ namespace ozz {
 namespace animation {
 namespace offline {
 
-// Additive reference enum to config string conversions.
-struct AdditiveReferenceEnum {
-  enum Value { kAnimation, kSkeleton };
-};
-struct AdditiveReference : JsonEnum<AdditiveReference, AdditiveReferenceEnum::Value> {
-  static EnumNames GetNames();
-};
-
 class OzzImporter;
 bool ImportAnimations(const Json::Value& _config, OzzImporter* _importer,
                       const ozz::Endianness _endianness);
 
-bool IsValidPropertyTypeName(const char* _type_name);
+// Additive reference enum to config string conversions.
+struct AdditiveReferenceEnum {
+  enum Value { kAnimation, kSkeleton };
+};
+struct AdditiveReference
+    : JsonEnum<AdditiveReference, AdditiveReferenceEnum::Value> {
+  static EnumNames GetNames();
+};
+
+// Property type enum to config string conversions.
+struct PropertyTypeConfig
+    : JsonEnum<PropertyTypeConfig, OzzImporter::NodeProperty::Type> {
+  static EnumNames GetNames();
+};
 }  // namespace offline
 }  // namespace animation
 }  // namespace ozz

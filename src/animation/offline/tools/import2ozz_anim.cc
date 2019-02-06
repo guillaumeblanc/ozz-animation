@@ -62,27 +62,6 @@ namespace ozz {
 namespace animation {
 namespace offline {
 namespace {
-const char* kValidPropertyTypeNames[] = {"float1", "float2", "float3",
-                                         "float4", "point",  "vector"};
-const size_t kValidPropertyTypeNamesCount =
-    OZZ_ARRAY_SIZE(kValidPropertyTypeNames);
-
-const char* GetPropertyTypeName(OzzImporter::NodeProperty::Type _type) {
-  assert(static_cast<size_t>(_type) < kValidPropertyTypeNamesCount);
-  return kValidPropertyTypeNames[_type];
-}
-
-bool GetPropertyTypeFromName(const char* _type_name,
-                             OzzImporter::NodeProperty::Type* _type) {
-  for (size_t i = 0; i < kValidPropertyTypeNamesCount; ++i) {
-    if (strcmp(kValidPropertyTypeNames[i], _type_name) == 0) {
-      *_type = static_cast<OzzImporter::NodeProperty::Type>(i);
-      return true;
-    }
-  }
-  *_type = OzzImporter::NodeProperty::kFloat1;
-  return false;
-}
 
 bool IsCompatiblePropertyType(OzzImporter::NodeProperty::Type _src,
                               OzzImporter::NodeProperty::Type _dest) {
@@ -514,7 +493,7 @@ bool ProcessImportTrack(OzzImporter& _importer, const char* _animation_name,
       OzzImporter::NodeProperty::Type expected_type =
           OzzImporter::NodeProperty::kFloat1;
       bool valid_type =
-          GetPropertyTypeFromName(expected_type_name, &expected_type);
+          PropertyTypeConfig::GetEnumFromName(expected_type_name, &expected_type);
       (void)valid_type;
       assert(valid_type &&
              "Type should have been checked during config validation");
@@ -525,14 +504,14 @@ bool ProcessImportTrack(OzzImporter& _importer, const char* _animation_name,
         ozz::log::Log() << "Incompatible type \"" << expected_type_name
                         << "\" for matching property \"" << joint_name << ":"
                         << property_name << "\" of type \""
-                        << GetPropertyTypeName(property.type) << "\"."
+                        << PropertyTypeConfig::GetEnumName(property.type) << "\"."
                         << std::endl;
         continue;
       }
 
       ozz::log::LogV() << "Found matching property \"" << joint_name << ":"
                        << property_name << "\" of type \""
-                       << GetPropertyTypeName(property.type) << "\"."
+                       << PropertyTypeConfig::GetEnumName(property.type) << "\"."
                        << std::endl;
 
       // A property has been found.
@@ -624,6 +603,13 @@ AdditiveReference::EnumNames AdditiveReference::GetNames() {
   return enum_names;
 }
 
+PropertyTypeConfig::EnumNames PropertyTypeConfig::GetNames() {
+  static const char* kNames[] = {"float1", "float2", "float3",
+                                 "float4", "point",  "vector"};
+  const EnumNames enum_names = {OZZ_ARRAY_SIZE(kNames), kNames};
+  return enum_names;
+}
+
 bool ImportAnimations(const Json::Value& _config, OzzImporter* _importer,
                       const ozz::Endianness _endianness) {
   const Json::Value& skeleton_config = _config["skeleton"];
@@ -693,14 +679,6 @@ bool ImportAnimations(const Json::Value& _config, OzzImporter* _importer,
   ozz::memory::default_allocator()->Delete(skeleton);
 
   return success;
-}
-
-bool IsValidPropertyTypeName(const char* _type_name) {
-  bool valid = false;
-  for (size_t i = 0; !valid && i < kValidPropertyTypeNamesCount; ++i) {
-    valid = strcmp(kValidPropertyTypeNames[i], _type_name) == 0;
-  }
-  return valid;
 }
 }  // namespace offline
 }  // namespace animation

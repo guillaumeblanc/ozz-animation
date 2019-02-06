@@ -287,7 +287,7 @@ bool SanitizeTrackImport(Json::Value& _root) {
               "Type of the property, can be float1 to float4, point and vector "
               "(aka float3 with scene unit and axis conversion).");
   const char* type_name = _root["type"].asCString();
-  if (!ozz::animation::offline::IsValidPropertyTypeName(type_name)) {
+  if (!PropertyTypeConfig::IsValidEnumName(type_name)) {
     ozz::log::Err() << "Invalid value \"" << type_name
                     << "\" for import track type property. Type can be float1 "
                        "to float4, point and vector (aka float3 with scene "
