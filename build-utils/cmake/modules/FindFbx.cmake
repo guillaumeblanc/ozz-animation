@@ -61,7 +61,9 @@ function(FindFbxLibrariesGeneric _FBX_ROOT_DIR _OUT_FBX_LIBRARIES _OUT_FBX_LIBRA
   # Figures out matching compiler/os directory.
   
   if("x${CMAKE_CXX_COMPILER_ID}" STREQUAL "xMSVC")
-    if(NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS 19)
+    if(NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS 19.15)
+      set(FBX_CP_PATH "vs2017")
+    elseif(NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS 19)
       set(FBX_CP_PATH "vs2015")
     elseif(NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS 18)
       set(FBX_CP_PATH "vs2013")
@@ -112,11 +114,6 @@ function(FindFbxLibrariesGeneric _FBX_ROOT_DIR _OUT_FBX_LIBRARIES _OUT_FBX_LIBRA
       ${FBX_SEARCH_LIB_NAMES}
       HINTS "${FBX_SEARCH_LIB_PATH}/debug/")
 
-    if(FBX_LIB_DEBUG)
-    else()
-      set(LIBS_DEBUG ${FBX_LIB} PARENT_SCOPE)
-    endif()
-
     if(UNIX)
       if(APPLE) # APPLE requires to link with Carbon framework
         find_library(CARBON_FRAMEWORK Carbon)
@@ -129,13 +126,50 @@ function(FindFbxLibrariesGeneric _FBX_ROOT_DIR _OUT_FBX_LIBRARIES _OUT_FBX_LIBRA
       endif()
     endif()
 
+    FindFbxVersion(${FBX_ROOT_DIR} PATH_VERSION)
+   
+    # 2019 SDK needs to link against bundled libxml and zlib on windows
+    if("x${CMAKE_CXX_COMPILER_ID}" STREQUAL "xMSVC" AND "${FBX_VERSION_MAJOR}" STREQUAL "2019")
+      if (NOT DEFINED FBX_MSVC_RT_DLL OR FBX_MSVC_RT_DLL)
+        set(XML_SEARCH_LIB_NAMES libxml2-md.lib)
+        set(Z_SEARCH_LIB_NAMES zlib-md.lib)
+      else()
+        set(XML_SEARCH_LIB_NAMES libxml2-mt.lib)
+        set(Z_SEARCH_LIB_NAMES zlib-mt.lib)
+      endif()
+
+      find_library(XML_LIB
+        ${XML_SEARCH_LIB_NAMES}
+        HINTS "${FBX_SEARCH_LIB_PATH}/release/")
+      find_library(Z_LIB
+        ${Z_SEARCH_LIB_NAMES}
+        HINTS "${FBX_SEARCH_LIB_PATH}/release/")
+
+      if(XML_LIB AND Z_LIB)
+        # Searches debug version also
+        find_library(XML_LIB_DEBUG
+          ${XML_SEARCH_LIB_NAMES}
+          HINTS "${FBX_SEARCH_LIB_PATH}/debug/")
+
+        find_library(Z_LIB_DEBUG
+          ${Z_SEARCH_LIB_NAMES}
+          HINTS "${FBX_SEARCH_LIB_PATH}/debug/")
+
+        list(APPEND FBX_LIB ${XML_LIB} ${Z_LIB})
+        list(APPEND FBX_LIB_DEBUG ${XML_LIB_DEBUG} ${Z_LIB_DEBUG})
+      endif()
+    endif()
     set(${_OUT_FBX_LIBRARIES} ${FBX_LIB} PARENT_SCOPE)
     set(${_OUT_FBX_LIBRARIES_DEBUG} ${FBX_LIB_DEBUG} PARENT_SCOPE)
   else()
     message ("A Fbx SDK was found, but doesn't match your compiler settings.")
   endif()
-
+  # Deduce fbx sdk version
 endfunction()
+
+###############################################################################
+# Find release and debug lib
+###############################################################################
 
 ###############################################################################
 # Deduce Fbx sdk version
@@ -174,7 +208,7 @@ function(FindFbxVersion _FBX_ROOT_DIR _OUT_FBX_VERSION)
     message(SEND_ERROR "Unable to deduce Fbx version for root dir ${_FBX_ROOT_DIR}")
     set(${_OUT_FBX_VERSION} "unknown" PARENT_SCOPE)
   endif()
-
+  set(FBX_VERSION_MAJOR ${fbx_version_file_major} PARENT_SCOPE)
 endfunction()
 
 ###############################################################################
@@ -202,9 +236,6 @@ if(FBX_INCLUDE_DIR)
 
   # Searches libraries according to the current compiler
   FindFbxLibrariesGeneric(${FBX_ROOT_DIR} FBX_LIBRARIES FBX_LIBRARIES_DEBUG)
-
-  # Deduce fbx sdk version
-  FindFbxVersion(${FBX_ROOT_DIR} PATH_VERSION)
 endif()
 
 # Handles find_package arguments and set FBX_FOUND to TRUE if all listed variables and version are valid.
