@@ -25,12 +25,9 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/animation/runtime/ik_aim_job.h"
 #include "ozz/animation/runtime/ik_two_bone_job.h"
 #include "ozz/animation/runtime/local_to_model_job.h"
 #include "ozz/animation/runtime/skeleton.h"
-#include "ozz/animation/runtime/track.h"
-#include "ozz/animation/runtime/track_sampling_job.h"
 
 #include "ozz/base/log.h"
 
@@ -70,37 +67,26 @@ OZZ_OPTIONS_DECLARE_STRING(skeleton,
                            "Path to the skeleton (ozz archive format).",
                            "media/skeleton.ozz", false)
 
-OZZ_OPTIONS_DECLARE_STRING(
-    track_target, "Path to the 2 bone ik target track (ozz archive format).",
-    "media/track_target.ozz", false)
-
-OZZ_OPTIONS_DECLARE_STRING(
-    track_aim, "Path to the aim ik target track (ozz archive format).",
-    "media/track_aim.ozz", false)
-
 class TwoBoneIKSampleApplication : public ozz::sample::Application {
  public:
   TwoBoneIKSampleApplication()
       : fix_initial_transform_(true),
         two_bone_ik_(true),
-        aim_ik_(true),
         reached(false),
         root_translation_(0.f, 0.f, 0.f),
         root_euler_(0.f, 0.f, 0.f),
         root_scale_(1.f),
         target_time_(0.f),
-        target_extent_(.3f),
-        target_offset_(0.f, 0.f, 0.f),
+        target_extent_(.6f),
+        target_offset_(0.f, .2f, .15f),
         target_(0.f, 0.f, 0.f),
         start_joint_(-1),
         mid_joint_(-1),
         end_joint_(-1),
         pole_vector(0.f, 1.f, 0.f),
         weight_(1.f),
-        soften_(.97f),
+        soften_(.96f),
         twist_angle_(0.f),
-        aim_target_offset_(0.f, 0.f, 0.f),
-        aim_target_(0.f, 0.f, 0.f),
         show_target_(true),
         show_joints_(false),
         show_pole_vector_(false) {}
@@ -131,8 +117,8 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
       return false;
     }
     // Apply IK quaternions to their respective local-space transforms.
-    ApplyQuaternion(mid_joint_, mid_correction, make_range(locals_));
     ApplyQuaternion(start_joint_, start_correction, make_range(locals_));
+    ApplyQuaternion(mid_joint_, mid_correction, make_range(locals_));
 
     // Updates model-space matrices now IK has been applied. All the ancestors
     // of the start of the IK chain must be computed.
@@ -141,53 +127,6 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
     ltm_job.input = make_range(locals_);
     ltm_job.output = make_range(models_);
     ltm_job.from = start_joint_;  // Locals haven't changed before start_joint_.
-    ltm_job.to = ozz::animation::Skeleton::kMaxJoints;
-    if (!ltm_job.Run()) {
-      return false;
-    }
-
-    return true;
-  }
-
-  bool ApplyAimIK(const ozz::math::Float4x4& _invert_root) {
-    const ozz::math::SimdFloat4 aim_target_ms =
-        TransformPoint(_invert_root, /*models_[end_joint_].cols[3] +*/
-                       ozz::math::simd_float4::Load3PtrU(&aim_target_.x));
-    const ozz::math::SimdFloat4 pole_vector_ms = TransformVector(
-        _invert_root, ozz::math::simd_float4::Load3PtrU(&pole_vector.x));
-
-    // TODO
-    const ozz::math::SimdFloat4 aim_pole_ms = pole_vector_ms; /*TransformVector(
-         _invert_root, -models_[end_joint_].cols[1]);*/
-
-    ozz::animation::IKAimJob ik_job;
-    ik_job.target = aim_target_ms;
-    ik_job.pole_vector = aim_pole_ms;
-    ik_job.twist_angle = twist_angle_;
-    ik_job.weight = weight_;
-
-    // TODO doc: Depends on the skeleton setup.
-    ik_job.aim = ozz::math::simd_float4::y_axis();
-    ik_job.up = ozz::math::simd_float4::x_axis();
-
-    ik_job.joint = &models_[end_joint_];
-    ozz::math::SimdQuaternion joint_correction;
-    ik_job.joint_correction = &joint_correction;
-    if (!ik_job.Run()) {
-      return false;
-    }
-    // Apply IK quaternions to their respective local-space transforms.
-    ApplyQuaternion(end_joint_, joint_correction, make_range(locals_));
-
-    // Updates model-space matrices after start_joint_, now aim IK has been
-    // applied.
-    // Update needs to restart at start_joint_, because only the direct
-    // ancestors from start_joint_ to end_joint_ are up to date.
-    ozz::animation::LocalToModelJob ltm_job;
-    ltm_job.skeleton = &skeleton_;
-    ltm_job.input = make_range(locals_);
-    ltm_job.output = make_range(models_);
-    ltm_job.from = end_joint_;  // Only joints after end_joint_ are affected.
     ltm_job.to = ozz::animation::Skeleton::kMaxJoints;
     if (!ltm_job.Run()) {
       return false;
@@ -230,15 +169,8 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
     const ozz::math::Float4x4 invert_root = Invert(root, &invertible);
 
     // Setup and run IK job.
-    if (two_bone_ik_) {
-      if (!ApplyTwoBoneIK(invert_root)) {
+    if (two_bone_ik_ && !ApplyTwoBoneIK(invert_root)) {
         return false;
-      }
-    }
-    if (aim_ik_) {
-      if (!ApplyAimIK(invert_root)) {
-        return false;
-      }
     }
 
     return true;
@@ -265,18 +197,6 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
           ozz::math::Float4x4::Translation(
               ozz::math::simd_float4::Load3PtrU(&target_.x)),
           colors[reached]);
-    }
-
-    if (show_target_ && aim_ik_) {
-      const ozz::sample::Renderer::Color colors[2] = {{0, 0xff, 0, 0xff},
-                                                      {0xff, 0, 0, 0xff}};
-      // Displays aim target
-      success &= _renderer->DrawBoxIm(
-          box,
-          ozz::math::Float4x4::Translation(
-              /*models_[end_joint_].cols[3] +*/
-              ozz::math::simd_float4::Load3PtrU(&aim_target_.x)),
-          colors);
     }
 
     // Displays pole vector
@@ -345,14 +265,6 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
       locals_[i] = skeleton_.joint_bind_poses()[i];
     }
 
-    // Reading tracks.
-    if (!ozz::sample::LoadTrack(OPTIONS_track_target, &track_target_)) {
-      return false;
-    }
-    if (!ozz::sample::LoadTrack(OPTIONS_track_aim, &track_aim_)) {
-      return false;
-    }
-
     return true;
   }
 
@@ -364,7 +276,6 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
     // IK parameters
     _im_gui->DoCheckBox("Fix initial transform", &fix_initial_transform_);
     _im_gui->DoCheckBox("Enable two bone ik", &two_bone_ik_);
-    _im_gui->DoCheckBox("Enable aim ik", &aim_ik_);
     {
       static bool opened = true;
       ozz::sample::ImGui::OpenClose oc(_im_gui, "IK parameters", &opened);
@@ -409,19 +320,6 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
         sprintf(txt, "z %.2g", target_offset_.z);
         _im_gui->DoSlider(txt, -kOffsetRange, kOffsetRange, &target_offset_.z);
       }
-      {
-        _im_gui->DoLabel("Aim target offset");
-        const float kOffsetRange = 1.f;
-        sprintf(txt, "x %.2g", aim_target_offset_.x);
-        _im_gui->DoSlider(txt, -kOffsetRange, kOffsetRange,
-                          &aim_target_offset_.x);
-        sprintf(txt, "y %.2g", aim_target_offset_.y);
-        _im_gui->DoSlider(txt, -kOffsetRange, kOffsetRange,
-                          &aim_target_offset_.y);
-        sprintf(txt, "z %.2g", aim_target_offset_.z);
-        _im_gui->DoSlider(txt, -kOffsetRange, kOffsetRange,
-                          &aim_target_offset_.z);
-      }
     }
     {  // Root
       static bool opened = false;
@@ -439,11 +337,11 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
         // Rotation (in euler form)
         _im_gui->DoLabel("Rotation");
         ozz::math::Float3 euler = root_euler_ * ozz::math::kRadianToDegree;
-        sprintf(txt, "x %.3g", euler.x);
+        sprintf(txt, "yaw %.3g", euler.x);
         _im_gui->DoSlider(txt, -180.f, 180.f, &euler.x);
-        sprintf(txt, "y %.3g", euler.y);
+        sprintf(txt, "pitch %.3g", euler.y);
         _im_gui->DoSlider(txt, -180.f, 180.f, &euler.y);
-        sprintf(txt, "z %.3g", euler.z);
+        sprintf(txt, "roll %.3g", euler.z);
         _im_gui->DoSlider(txt, -180.f, 180.f, &euler.z);
         root_euler_ = euler * ozz::math::kDegreeToRadian;
 
@@ -451,7 +349,6 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
         _im_gui->DoLabel("Scale");
         sprintf(txt, "%.2g", root_scale_);
         _im_gui->DoSlider(txt, -1.f, 1.f, &root_scale_);
-        // root_scale_ = root_scale_ != 0.f ? scale.x : .01f;
       }
     }
     {  // Display options
@@ -476,43 +373,19 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
         TransformBox(GetRootTransform(), posture_bound);
 
     // Adds target in the bounds
-    *_bound = Merge(posture_bound_ws, ozz::math::Box(target_offset_));
+    *_bound = Merge(posture_bound_ws, ozz::math::Box(target_));
   }
 
  private:
-  struct Keyframe {
-    ozz::math::Float3 value;
-    float time;
-  };
-  static bool pred(const Keyframe& _a, const Keyframe& _b) {
-    return _a.time < _b.time;
-  }
-
   bool MoveTarget(float _dt) {
-    // TODO
-    target_time_ = fmodf(target_time_ + _dt / 10.f, 1.f);
-
-    ozz::animation::Float3TrackSamplingJob job;
-
-    // TODO Tracks have a unit length duration.
-    job.ratio = target_time_;
-    job.track = &track_target_;
-    job.result = &target_;
-    if (!job.Run()) {
-      return false;
-    }
-    target_ = target_offset_ + target_;
-
-    job.track = &track_aim_;
-    job.result = &aim_target_;
-    if (!job.Run()) {
-      return false;
-    }
-    //aim_target_ = target_offset_ + aim_target_offset_ + aim_target_ * .01f;
-	ozz::math::Float3 local_aim = target_;
-	local_aim.y = 0.f;
-	aim_target_ = target_ + local_aim;
-
+      target_ = target_offset_;
+      const float anim_extent = std::sin(target_time_) * target_extent_;
+      if(std::fmod(target_time_ * .5f, ozz::math::k2Pi) < ozz::math::kPi) {
+        target_.x += anim_extent;
+      }else {
+        target_.y += anim_extent;
+      }
+      target_time_ += _dt;
     return true;
   }
 
@@ -536,7 +409,6 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
 
   bool fix_initial_transform_;
   bool two_bone_ik_;
-  bool aim_ik_;
   bool reached;  // outpout
 
   // Root transformation.
@@ -549,10 +421,6 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
   float target_extent_;
   ozz::math::Float3 target_offset_;
   ozz::math::Float3 target_;
-
-  // TODO
-  ozz::animation::Float3Track track_target_;
-  ozz::animation::Float3Track track_aim_;
 
   // Two bone IK parameters.
 
@@ -568,11 +436,6 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
   float weight_;
   float soften_;
   float twist_angle_;
-
-  // Aim IK
-
-  ozz::math::Float3 aim_target_offset_;
-  ozz::math::Float3 aim_target_;
 
   // Sample display options
   bool show_target_;
