@@ -120,7 +120,7 @@ class MillipedeSampleApplication : public ozz::sample::Application {
       : slice_count_(26), skeleton_(NULL), animation_(NULL) {}
 
  protected:
-  virtual bool OnUpdate(float _dt) {
+  virtual bool OnUpdate(float _dt, float) {
     // Updates current animation time
     controller_.Update(*animation_, _dt);
 

@@ -70,26 +70,25 @@ OZZ_OPTIONS_DECLARE_STRING(skeleton,
 class TwoBoneIKSampleApplication : public ozz::sample::Application {
  public:
   TwoBoneIKSampleApplication()
-      : fix_initial_transform_(true),
-        two_bone_ik_(true),
-        reached(false),
-        root_translation_(0.f, 0.f, 0.f),
-        root_euler_(0.f, 0.f, 0.f),
-        root_scale_(1.f),
-        target_time_(0.f),
-        target_extent_(.6f),
-        target_offset_(0.f, .2f, .15f),
-        target_(0.f, 0.f, 0.f),
-        start_joint_(-1),
+      : start_joint_(-1),
         mid_joint_(-1),
         end_joint_(-1),
         pole_vector(0.f, 1.f, 0.f),
         weight_(1.f),
         soften_(.96f),
         twist_angle_(0.f),
+        reached(false),
+        fix_initial_transform_(true),
+        two_bone_ik_(true),
         show_target_(true),
         show_joints_(false),
-        show_pole_vector_(false) {}
+        show_pole_vector_(false),
+        root_translation_(0.f, 0.f, 0.f),
+        root_euler_(0.f, 0.f, 0.f),
+        root_scale_(1.f),
+        target_extent_(.3f),
+        target_offset_(0.f, .2f, .1f),
+        target_(0.f, 0.f, 0.f) {}
 
  protected:
   bool ApplyTwoBoneIK(const ozz::math::Float4x4& _invert_root) {
@@ -135,9 +134,9 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
     return true;
   }
 
-  virtual bool OnUpdate(float _dt) {
+  virtual bool OnUpdate(float, float _time) {
     // Updates sample target position.
-    if (!MoveTarget(_dt)) {
+    if (!MoveTarget(_time)) {
       return false;
     }
 
@@ -170,7 +169,7 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
 
     // Setup and run IK job.
     if (two_bone_ik_ && !ApplyTwoBoneIK(invert_root)) {
-        return false;
+      return false;
     }
 
     return true;
@@ -377,15 +376,12 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
   }
 
  private:
-  bool MoveTarget(float _dt) {
-      target_ = target_offset_;
-      const float anim_extent = std::sin(target_time_) * target_extent_;
-      if(std::fmod(target_time_ * .5f, ozz::math::k2Pi) < ozz::math::kPi) {
-        target_.x += anim_extent;
-      }else {
-        target_.y += anim_extent;
-      }
-      target_time_ += _dt;
+  bool MoveTarget(float _time) {
+    const float anim_extent = (1.f - std::cos(_time)) * target_extent_;
+    const int floor = static_cast<int>(std::fabs(_time) / ozz::math::k2Pi);
+
+    target_ = target_offset_;
+    (&target_.x)[floor % 3] += anim_extent;
     return true;
   }
 
@@ -407,40 +403,38 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
   // Buffer of model space matrices.
   ozz::Vector<ozz::math::Float4x4>::Std models_;
 
+  // Two bone IK setup. Indices of the relevant joints in the chain.
+  int start_joint_;
+  int mid_joint_;
+  int end_joint_;
+
+  // Two bone IK parameters.
+  ozz::math::Float3 pole_vector;
+  float weight_;
+  float soften_;
+  float twist_angle_;
+
+  // Two bone IK job "reched" output value.
+  bool reached;
+
+  // Sample options
   bool fix_initial_transform_;
   bool two_bone_ik_;
-  bool reached;  // outpout
+
+  // Sample display options
+  bool show_target_;
+  bool show_joints_;
+  bool show_pole_vector_;
 
   // Root transformation.
   ozz::math::Float3 root_translation_;
   ozz::math::Float3 root_euler_;
   float root_scale_;
 
-  // Target positioning.
-  float target_time_;
+  // Target positioning and animation.
   float target_extent_;
   ozz::math::Float3 target_offset_;
   ozz::math::Float3 target_;
-
-  // Two bone IK parameters.
-
-  // Indices of the joints in the chain.
-  int start_joint_;
-  int mid_joint_;
-  int end_joint_;
-
-  // TODO
-  ozz::math::Float3 pole_vector;
-
-  // TODO
-  float weight_;
-  float soften_;
-  float twist_angle_;
-
-  // Sample display options
-  bool show_target_;
-  bool show_joints_;
-  bool show_pole_vector_;
 };
 
 int main(int _argc, const char** _argv) {

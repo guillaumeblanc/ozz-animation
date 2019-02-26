@@ -94,6 +94,7 @@ Application::Application()
       fix_update_rate(false),
       fixed_update_rate(60.f),
       time_factor_(1.f),
+      time_(0.f),
       last_idle_time_(0.),
       camera_(NULL),
       shooter_(NULL),
@@ -416,16 +417,19 @@ bool Application::Idle(bool _first_frame) {
     }
   }
 
-  // Updates screen shooter object.
-  if (shooter_) {
-    shooter_->Update();
-  }
+  // Increment current application time
+  time_ += update_delta;
 
   // Forwards update event to the inheriting application.
   bool update_result;
   {  // Profiles update scope.
     Profiler profile(update_time_);
-    update_result = OnUpdate(update_delta);
+    update_result = OnUpdate(update_delta, time_);
+  }
+
+  // Updates screen shooter object.
+  if (shooter_) {
+    shooter_->Update();
   }
 
   // Update camera model-view matrix.

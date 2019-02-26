@@ -60,7 +60,7 @@ class BakedSampleApplication : public ozz::sample::Application {
 
  protected:
   // Updates current animation time and skeleton pose.
-  virtual bool OnUpdate(float _dt) {
+  virtual bool OnUpdate(float _dt, float) {
     // Updates current animation time.
     controller_.Update(animation_, _dt);
 

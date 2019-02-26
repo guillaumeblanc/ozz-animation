@@ -193,7 +193,7 @@ class MultithreadSampleApplication : public ozz::sample::Application {
   }
 
   // Updates current animation time.
-  virtual bool OnUpdate(float _dt) {
+  virtual bool OnUpdate(float _dt, float) {
     bool success = true;
     if (enable_theading_) {
       // Initialize task counter. It's only used to monitor threading behavior.

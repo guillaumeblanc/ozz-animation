@@ -74,7 +74,7 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
 
  protected:
   // Updates current animation time and skeleton pose.
-  virtual bool OnUpdate(float _dt) {
+  virtual bool OnUpdate(float _dt, float) {
     // Updates and samples both animations to their respective local space
     // transform buffers.
     for (int i = 0; i < kNumLayers; ++i) {

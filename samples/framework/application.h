@@ -87,10 +87,11 @@ class Application {
   virtual void OnDestroy() = 0;
 
   // Provides update event to the inheriting application.
-  // Argument _dt is the elapsed time (in seconds) since the last update.
+  // _dt is the elapsed time (in seconds) since the last update.
+  // _time is application time including scaling (aka accumulated _dt).
   // OnUpdate can return false which will in turn stop the loop and exit the
   // application with EXIT_FAILURE. Note that OnDestroy is called in any case.
-  virtual bool OnUpdate(float _dt) = 0;
+  virtual bool OnUpdate(float _dt, float _time) = 0;
 
   // Provides immediate mode gui display event to the inheriting application.
   // This function is called in between the OnDisplay and swap functions.
@@ -174,6 +175,9 @@ class Application {
 
   // Update time scale factor.
   float time_factor_;
+
+  // Current application time, including scaling and freezes..
+  float time_;
 
   // Last time the idle function was called, in seconds.
   // This is a double value in order to maintain enough accuracy when the

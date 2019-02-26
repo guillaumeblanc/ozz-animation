@@ -74,7 +74,7 @@ class BlendSampleApplication : public ozz::sample::Application {
 
  protected:
   // Updates current animation time and skeleton pose.
-  virtual bool OnUpdate(float _dt) {
+  virtual bool OnUpdate(float _dt, float) {
     // Updates blending parameters and synchronizes animations if control mode
     // is not manual.
     if (!manual_) {

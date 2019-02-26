@@ -90,7 +90,7 @@ class UserChannelSampleApplication : public ozz::sample::Application {
         ozz::math::Float4x4::Translation(kBoxInitialPosition);
   }
 
-  virtual bool OnUpdate(float _dt) {
+  virtual bool OnUpdate(float _dt, float) {
     // Updates current animation time.
     controller_.Update(animation_, _dt);
 
