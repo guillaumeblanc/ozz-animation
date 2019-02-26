@@ -34,48 +34,6 @@
 #include "gtest/gtest.h"
 #include "ozz/base/maths/gtest_math_helper.h"
 
-// Implement helper macro that verify that target was reached once ik job is
-// executed.
-#define EXPECT_REACHED(_job)    \
-                                \
-  do {                          \
-    SCOPED_TRACE("");           \
-    _ExpectReached(_job, true); \
-  } while (void(0), 0)
-
-#define EXPECT_NOT_REACHED(_job) \
-                                 \
-  do {                           \
-    SCOPED_TRACE("");            \
-    _ExpectReached(_job, false); \
-  } while (void(0), 0)
-
-void _ExpectReached(const ozz::animation::IKAimJob& /*_job*/,
-                    bool /*_reachable*/) {
-  /*
-  // Computes local transforms
-  const ozz::math::Float4x4 mid_local =
-      Invert(*_job.start_joint) * *_job.mid_joint;
-  const ozz::math::Float4x4 end_local =
-      Invert(*_job.mid_joint) * *_job.end_joint;
-
-  // Rebuild corrected model transforms
-  const ozz::math::Float4x4 start_correction =
-      ozz::math::Float4x4::FromQuaternion(_job.start_joint_correction->xyzw);
-  const ozz::math::Float4x4 start_corrected =
-      *_job.start_joint * start_correction;
-  const ozz::math::Float4x4 mid_correction =
-      ozz::math::Float4x4::FromQuaternion(_job.mid_joint_correction->xyzw);
-  const ozz::math::Float4x4 mid_corrected =
-      start_corrected * mid_local * mid_correction;
-  const ozz::math::Float4x4 end_corrected = mid_corrected * end_local;
-
-  const ozz::math::SimdFloat4 diff =
-      ozz::math::Length3(end_corrected.cols[3] - _job.target);
-  EXPECT_EQ(ozz::math::GetX(diff) < 1e-2f, _reachable);
-  */
-}
-
 TEST(JobValidity, IKAimJob) {
   const ozz::math::Float4x4 joint = ozz::math::Float4x4::identity();
   ozz::math::SimdQuaternion quat;
@@ -138,13 +96,13 @@ TEST(Correction, IKAimJob) {
     job.pole_vector = TransformVector(parent, ozz::math::simd_float4::y_axis());
 
     {  // x
-      job.target = TransformPoint(parent, ozz::math::simd_float4::x_axis());
+      job.target = TransformVector(parent, ozz::math::simd_float4::x_axis());
       EXPECT_TRUE(job.Run());
       EXPECT_SIMDQUATERNION_EQ_TOL(quat, 0.f, 0.f, 0.f, 1.f, 2e-3f);
     }
 
     {  // -x
-      job.target = TransformPoint(parent, -ozz::math::simd_float4::x_axis());
+      job.target = TransformVector(parent, -ozz::math::simd_float4::x_axis());
       EXPECT_TRUE(job.Run());
       const ozz::math::Quaternion y_Pi = ozz::math::Quaternion::FromAxisAngle(
           ozz::math::Float3::y_axis(), ozz::math::kPi);
@@ -152,7 +110,7 @@ TEST(Correction, IKAimJob) {
     }
 
     {  // z
-      job.target = TransformPoint(parent, ozz::math::simd_float4::z_axis());
+      job.target = TransformVector(parent, ozz::math::simd_float4::z_axis());
       EXPECT_TRUE(job.Run());
       const ozz::math::Quaternion y_mPi_2 =
           ozz::math::Quaternion::FromAxisAngle(ozz::math::Float3::y_axis(),
@@ -162,7 +120,7 @@ TEST(Correction, IKAimJob) {
     }
 
     {  // -z
-      job.target = TransformPoint(parent, -ozz::math::simd_float4::z_axis());
+      job.target = TransformVector(parent, -ozz::math::simd_float4::z_axis());
       EXPECT_TRUE(job.Run());
       const ozz::math::Quaternion y_Pi_2 = ozz::math::Quaternion::FromAxisAngle(
           ozz::math::Float3::y_axis(), ozz::math::kPi_2);
@@ -171,7 +129,7 @@ TEST(Correction, IKAimJob) {
     }
 
     {  // 45 up y
-      job.target = TransformPoint(
+      job.target = TransformVector(
           parent, ozz::math::simd_float4::Load(1.f, 1.f, 0.f, 0.f));
       EXPECT_TRUE(job.Run());
       const ozz::math::Quaternion z_Pi_4 = ozz::math::Quaternion::FromAxisAngle(
@@ -181,7 +139,7 @@ TEST(Correction, IKAimJob) {
     }
 
     {  // 45 up y, further
-      job.target = TransformPoint(
+      job.target = TransformVector(
           parent, ozz::math::simd_float4::Load(2.f, 2.f, 0.f, 0.f));
       EXPECT_TRUE(job.Run());
       const ozz::math::Quaternion z_Pi_4 = ozz::math::Quaternion::FromAxisAngle(

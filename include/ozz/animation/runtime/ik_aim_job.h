@@ -64,7 +64,7 @@ struct IKAimJob {
 
   // Job input.
 
-  // Target position to aim at, in model-space
+  // Target direction to aim at, in model-space
   math::SimdFloat4 target;
 
   // Joint aiming axis, in joint local-space, to be aimed at target position.
