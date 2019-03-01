@@ -186,8 +186,8 @@ install:
     sudo wget $FBX_DOWNLOAD -O fbx.tar.gz;
     sudo tar -xf "fbx.tar.gz";
     (yes yes | sudo ./*_fbxsdk_linux /usr/local) || true;
-    sudo chmod -R 755 /usr/local/lib
-    sudo chmod -R 755 /usr/local/include
+    sudo chmod -R 755 /usr/local/lib;
+    sudo chmod -R 755 /usr/local/include;
     cd ..;
   fi
 - if [[ $TRAVIS_OS_NAME == "osx" ]]; then
