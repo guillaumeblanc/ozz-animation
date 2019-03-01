@@ -32,6 +32,9 @@
 
 #include "ozz/base/maths/box.h"
 #include "ozz/base/maths/simd_math.h"
+#include "ozz/base/maths/simd_quaternion.h"
+#include "ozz/base/maths/soa_transform.h"
+
 #include "ozz/base/memory/allocator.h"
 
 #include "ozz/animation/runtime/animation.h"
@@ -264,6 +267,24 @@ void ComputePostureBounds(ozz::Range<const ozz::math::Float4x4> _matrices,
   math::Store3PtrU(max, &_bound->max.x);
 
   return;
+}
+
+void MultiplySoATransformQuaternion(
+    int _index, const ozz::math::SimdQuaternion& _quat,
+    const ozz::Range<ozz::math::SoaTransform>& _transforms) {
+  assert(_index >= 0 && static_cast<size_t>(_index) < _transforms.count() * 4 &&
+         "joint index out of bound.");
+
+  // Convert soa to aos in order to perform quaternion multiplication, and gets
+  // back to soa.
+  ozz::math::SoaTransform& soa_transform_ref = _transforms[_index / 4];
+  ozz::math::SimdQuaternion aos_quats[4];
+  ozz::math::Transpose4x4(&soa_transform_ref.rotation.x, &aos_quats->xyzw);
+
+  ozz::math::SimdQuaternion& aos_quat_ref = aos_quats[_index & 3];
+  aos_quat_ref = aos_quat_ref * _quat;
+
+  ozz::math::Transpose4x4(&aos_quats->xyzw, &soa_transform_ref.rotation.x);
 }
 
 bool LoadSkeleton(const char* _filename, ozz::animation::Skeleton* _skeleton) {

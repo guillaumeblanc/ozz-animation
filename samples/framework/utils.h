@@ -36,6 +36,8 @@ namespace ozz {
 namespace math {
 struct Box;
 struct Float4x4;
+struct SimdQuaternion;
+struct SoaTransform;
 }  // namespace math
 namespace animation {
 class Animation;
@@ -142,6 +144,11 @@ class RawSkeletonEditor {
   // Imgui Open/Close states for each skeleton joint.
   ozz::Vector<bool>::Std open_close_states;
 };
+
+// Multiplies a single quaternion at a specific index in a SoA transform range.
+void MultiplySoATransformQuaternion(
+    int _index, const ozz::math::SimdQuaternion& _quat,
+    const ozz::Range<ozz::math::SoaTransform>& _transforms);
 
 // Loads a skeleton from an ozz archive file named _filename.
 // This function will fail and return false if the file cannot be opened or if
