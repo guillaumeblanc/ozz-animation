@@ -200,7 +200,7 @@ install:
   fi
 - if [[ $TRAVIS_OS_NAME == "osx" ]]; then
     if [ -z "$fbx_download" ]; then
-      FBX_DOWNLOAD="https://www.autodesk.com/content/dam/autodesk/www/adn/fbx/20192/fbx20192_fbxsdk_clang_mac.pkg.tgz";
+      FBX_DOWNLOAD=${fbx_download:-"https://www.autodesk.com/content/dam/autodesk/www/adn/fbx/20192/fbx20192_fbxsdk_clang_mac.pkg.tgz"};
     else
       FBX_DOWNLOAD="$fbx_download";
     fi;
