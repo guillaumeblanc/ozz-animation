@@ -35,6 +35,17 @@ environment:
     env_cmake_configuration: Release
     env_fbxsdk_path: "http://download.autodesk.com/us/fbx/2017/2017.1/fbx20171_fbxsdk_vs2015_win.exe"
     env_build_msvc_rt_dll: "0"
+  - env_cmake_generator: "Visual Studio 15 2017 Win64"
+    env_cmake_configuration: Debug
+    env_fbxsdk_path: "https://www.autodesk.com/content/dam/autodesk/www/adn/fbx/20192/fbx20192_fbxsdk_vs2017_win.exe"
+  - env_cmake_generator: "Visual Studio 15 2017 Win64"
+    env_cmake_configuration: Release
+    env_fbxsdk_path: "https://www.autodesk.com/content/dam/autodesk/www/adn/fbx/20192/fbx20192_fbxsdk_vs2017_win.exe"
+    env_build_msvc_rt_dll: "1"
+  - env_cmake_generator: "Visual Studio 15 2017 Win64"
+    env_cmake_configuration: Release
+    env_fbxsdk_path: "https://www.autodesk.com/content/dam/autodesk/www/adn/fbx/20192/fbx20192_fbxsdk_vs2017_win.exe"
+    env_build_msvc_rt_dll: "0"
 
   # No fbx sdk
   - env_cmake_generator: "Visual Studio 15 2017"
