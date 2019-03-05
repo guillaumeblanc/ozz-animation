@@ -35,17 +35,21 @@ matrix:
     - env_cmake_configuration=Release
 
   # Linux
-  # Default linux gcc
+  # Default linux gcc debug
   - os: linux
     compiler: gcc
-  # Default linux gcc
+    env:
+    - env_cmake_configuration=Debug
+  # Default linux gcc release
   - os: linux
     compiler: gcc
     env:
     - env_cmake_configuration=Release
-  # Default linux clang
+  # Default linux clang debug
   - os: linux
     compiler: clang
+    env:
+    - env_cmake_configuration=Debug
   # Default linux release clang
   - os: linux
     compiler: clang
@@ -160,22 +164,12 @@ matrix:
         - clang-3.8
   # older fbx sdk
   - os: linux
-    compiler: gcc-6
-    addons:
-      apt:
-        sources:
-        - ubuntu-toolchain-r-test
-        packages:
-        - g++-6
+    compiler: gcc
     env:
-      - env_build_cpp11=1
-      - env_cmake_cxx_compiler=g++-6
-      - env_cmake_c_compiler=gcc-6
       - fbx_download=http://download.autodesk.com/us/fbx/2017/2017.1/fbx20171_fbxsdk_linux.tar.gz
   - os: osx
     compiler: clang
     env:
-      - env_build_cpp11=1
       - fbx_download=http://download.autodesk.com/us/fbx/2017/2017.1/fbx20171_fbxsdk_clang_mac.pkg.tgz
 
 before_install:
