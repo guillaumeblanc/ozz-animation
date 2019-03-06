@@ -4,6 +4,10 @@
  - [animation] Allows resizing SamplingCache, meaning the can be allocated without knowing the number of joints the cache needs to support.
  - [memory] Removes (too error prone) ozz::memory::Allocator typed allocation functions.
 
+* Build pipeline
+ - Adds support for fbx sdk 2019. This version is now mandatory for vs2017 builds.
+ - Add support to macos 10.14 Mojave and Xcode 10.0.
+
 * Tools
  - Adds an option to importer tools to select additive animation reference pose.
 
