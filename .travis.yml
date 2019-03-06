@@ -175,16 +175,17 @@ matrix:
 
   # Newer clang
   - os: linux
-    compiler: clang-6
+    compiler: clang-6.0
     env:
-    - env_cmake_cxx_compiler=clang++-6
-    - env_cmake_c_compiler=clang-6
+    - env_cmake_cxx_compiler=clang++-6.0
+    - env_cmake_c_compiler=clang-6.0
     addons:
       apt:
         sources:
+        - ubuntu-toolchain-r-test
         - llvm-toolchain-trusty-6.0
         packages:
-        - clang-6
+        - clang-6.0
   - os: linux
     compiler: clang-7
     env:
@@ -193,6 +194,7 @@ matrix:
     addons:
       apt:
         sources:
+        - ubuntu-toolchain-r-test
         - llvm-toolchain-trusty-7
         packages:
         - clang-7
