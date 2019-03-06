@@ -15,6 +15,10 @@ Next version
   - [simd math] Implements simd quaternions, making it easier and more efficient to use quaternion with other simd math code.
   - [simd math] Exposes swizzling operations.
 
+* Build pipeline
+ - Adds support for fbx sdk 2019. This version is now mandatory for vs2017 builds.
+ - Add support to macos 10.14 Mojave and Xcode 10.0.
+
 * Tools
   - Adds point and vector property types (used to import tracks). These two types are actually float3 types, with scene axis and unit conversion applied.
   - Adds an option to importer tools to select additive animation reference pose.

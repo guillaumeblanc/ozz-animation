@@ -35,9 +35,11 @@ matrix:
     - env_cmake_configuration=Release
 
   # Linux
-  # Default linux clang
+  # Default linux clang debug
   - os: linux
     compiler: clang
+    env:
+    - env_cmake_configuration=Debug
   # Default linux release clang
   - os: linux
     compiler: clang
@@ -72,7 +74,7 @@ matrix:
   - os: linux
     compiler: clang
     env:
-    - env_build_simdref=1
+    - env_build_simd_ref=1
   - os: linux
     compiler: clang
     env:
@@ -103,13 +105,17 @@ matrix:
     env:
     - env_src_root="../test/sub/"
 
-  # Default gcc
+  # Default linux gcc debug
   - os: linux
     compiler: gcc
+    env:
+    - env_cmake_configuration=Debug
+  # Default linux gcc release
   - os: linux
     compiler: gcc
     env:
     - env_cmake_configuration=Release
+
   # Newer gcc
   - os: linux
     compiler: gcc-4.9
@@ -166,6 +172,7 @@ matrix:
         - ubuntu-toolchain-r-test
         packages:
         - g++-8
+
   # Newer clang
   - os: linux
     compiler: clang-3.5
@@ -239,6 +246,16 @@ matrix:
         - llvm-toolchain-trusty-7
         packages:
         - clang-7
+        
+  # older fbx sdk
+  - os: linux
+    compiler: gcc
+    env:
+      - fbx_download=http://download.autodesk.com/us/fbx/2017/2017.1/fbx20171_fbxsdk_linux.tar.gz
+  - os: osx
+    compiler: clang
+    env:
+      - fbx_download=http://download.autodesk.com/us/fbx/2017/2017.1/fbx20171_fbxsdk_clang_mac.pkg.tgz
 
 before_install:
 - echo before_install----------------------------------------------------------
@@ -250,20 +267,34 @@ install:
     sudo apt-get install libgl1-mesa-dev libglu1-mesa-dev;
   fi
 # Download and install fbx sdk
+# "|| true" because 2019 sdk would return code 130 when reading the readme
+# chmod because fbx2019 will install with 700
 - if [[ $TRAVIS_OS_NAME == "linux" ]]; then
+    if [ -z "$fbx_download" ]; then
+      FBX_DOWNLOAD=${fbx_download:-"http://www.autodesk.com/content/dam/autodesk/www/adn/fbx/20192/fbx20192_fbxsdk_linux.tar.gz"};
+    else
+      FBX_DOWNLOAD="$fbx_download";
+    fi;
     mkdir fbx;
     cd fbx;
-    sudo wget http://download.autodesk.com/us/fbx/2017/2017.1/fbx20171_fbxsdk_linux.tar.gz;
-    sudo tar -xf "fbx20171_fbxsdk_linux.tar.gz";
-    yes yes | sudo ./fbx20171_fbxsdk_linux /usr/local;
+    sudo wget $FBX_DOWNLOAD -O fbx.tar.gz;
+    sudo tar -xf "fbx.tar.gz";
+    (yes yes | sudo ./*_fbxsdk_linux /usr/local) || true;
+    sudo chmod -R 755 /usr/local/lib;
+    sudo chmod -R 755 /usr/local/include;
     cd ..;
   fi
 - if [[ $TRAVIS_OS_NAME == "osx" ]]; then
+    if [ -z "$fbx_download" ]; then
+      FBX_DOWNLOAD=${fbx_download:-"http://www.autodesk.com/content/dam/autodesk/www/adn/fbx/20192/fbx20192_fbxsdk_clang_mac.pkg.tgz"};
+    else
+      FBX_DOWNLOAD="$fbx_download";
+    fi;
     mkdir fbx;
     cd fbx;
-    sudo wget http://download.autodesk.com/us/fbx/2017/2017.1/fbx20171_fbxsdk_clang_mac.pkg.tgz;
-    sudo tar -xf "fbx20171_fbxsdk_clang_mac.pkg.tgz";
-    sudo installer -pkg fbx20171_fbxsdk_clang_macos.pkg -target /;
+    sudo wget $FBX_DOWNLOAD -O fbx.tgz;
+    sudo tar -xf "fbx.tgz";
+    sudo installer -pkg *_fbxsdk_clang_macos.pkg -target /;
     cd ..;
   fi
 # Download and install emscripten sdk  
