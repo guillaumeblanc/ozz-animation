@@ -888,73 +888,53 @@ OZZ_INLINE SimdInt4 CmpGe(_SimdFloat4 _a, _SimdFloat4 _b) {
 }
 
 OZZ_INLINE SimdFloat4 And(_SimdFloat4 _a, _SimdFloat4 _b) {
-  using internal::SimdFI4;
-  using internal::SimdIF4;
-
-  const SimdFI4 a = {_a};
-  const SimdFI4 b = {_b};
-  const SimdIF4 ret = {
+  const internal::SimdFI4 a = {_a};
+  const internal::SimdFI4 b = {_b};
+  const internal::SimdIF4 ret = {
       {a.i.x & b.i.x, a.i.y & b.i.y, a.i.z & b.i.z, a.i.w & b.i.w}};
   return ret.f;
 }
 
 OZZ_INLINE SimdFloat4 Or(_SimdFloat4 _a, _SimdFloat4 _b) {
-  using internal::SimdFI4;
-  using internal::SimdIF4;
-
-  const SimdFI4 a = {_a};
-  const SimdFI4 b = {_b};
-  const SimdIF4 ret = {
+  const internal::SimdFI4 a = {_a};
+  const internal::SimdFI4 b = {_b};
+  const internal::SimdIF4 ret = {
       {a.i.x | b.i.x, a.i.y | b.i.y, a.i.z | b.i.z, a.i.w | b.i.w}};
   return ret.f;
 }
 
 OZZ_INLINE SimdFloat4 Xor(_SimdFloat4 _a, _SimdFloat4 _b) {
-  using internal::SimdFI4;
-  using internal::SimdIF4;
-
-  const SimdFI4 a = {_a};
-  const SimdFI4 b = {_b};
-  const SimdIF4 ret = {
+  const internal::SimdFI4 a = {_a};
+  const internal::SimdFI4 b = {_b};
+  const internal::SimdIF4 ret = {
       {a.i.x ^ b.i.x, a.i.y ^ b.i.y, a.i.z ^ b.i.z, a.i.w ^ b.i.w}};
   return ret.f;
 }
 
 OZZ_INLINE SimdFloat4 And(_SimdFloat4 _a, _SimdInt4 _b) {
-  using internal::SimdFI4;
-  using internal::SimdIF4;
-
-  const SimdFI4 a = {_a};
-  const SimdIF4 ret = {
+  const internal::SimdFI4 a = {_a};
+  const internal::SimdIF4 ret = {
       {a.i.x & _b.x, a.i.y & _b.y, a.i.z & _b.z, a.i.w & _b.w}};
   return ret.f;
 }
 
 OZZ_INLINE SimdFloat4 AndNot(_SimdFloat4 _a, _SimdInt4 _b) {
-  using internal::SimdFI4;
-
-  const SimdFI4 a = {_a};
-  const SimdIF4 ret = {
-      {a.i.x & ~b.i.x, a.i.y & ~b.i.y, a.i.z & ~b.i.z, a.i.w & ~b.i.w}};
+  const internal::SimdFI4 a = {_a};
+  const internal::SimdIF4 ret = {
+      {a.i.x & ~_b.x, a.i.y & ~_b.y, a.i.z & ~_b.z, a.i.w & ~_b.w}};
   return ret.f;
 }
 
 OZZ_INLINE SimdFloat4 Or(_SimdFloat4 _a, _SimdInt4 _b) {
-  using internal::SimdFI4;
-  using internal::SimdIF4;
-
-  const SimdFI4 a = {_a};
-  const SimdIF4 ret = {
+  const internal::SimdFI4 a = {_a};
+  const internal::SimdIF4 ret = {
       {a.i.x | _b.x, a.i.y | _b.y, a.i.z | _b.z, a.i.w | _b.w}};
   return ret.f;
 }
 
 OZZ_INLINE SimdFloat4 Xor(_SimdFloat4 _a, _SimdInt4 _b) {
-  using internal::SimdFI4;
-  using internal::SimdIF4;
-
-  const SimdFI4 a = {_a};
-  const SimdIF4 ret = {
+  const internal::SimdFI4 a = {_a};
+  const internal::SimdIF4 ret = {
       {a.i.x ^ _b.x, a.i.y ^ _b.y, a.i.z ^ _b.z, a.i.w ^ _b.w}};
   return ret.f;
 }
