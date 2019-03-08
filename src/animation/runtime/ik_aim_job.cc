@@ -96,27 +96,41 @@ bool IKAimJob::Run() const {
     const SimdFloat4 joint_normal_js = Cross3(corrected_up_js, target_js);
     const SimdFloat4 ref_joint_normal_js_len2 = Length3Sqr(ref_joint_normal_js);
     const SimdFloat4 joint_normal_js_len2 = Length3Sqr(joint_normal_js);
-    const SimdFloat4 rsqrts = RSqrtEstNR(SetZ(
-        SetY(target_js_len2, joint_normal_js_len2), ref_joint_normal_js_len2));
 
-    // Computes angle cosine between the 2 normalized plane normals.
-    const SimdFloat4 rotate_plane_cos_angle = ozz::math::Dot3(
-        joint_normal_js * SplatY(rsqrts), ref_joint_normal_js * SplatZ(rsqrts));
+    const SimdFloat4 denoms = SetZ(SetY(target_js_len2, joint_normal_js_len2),
+                                   ref_joint_normal_js_len2);
 
-    // Computes rotation axis, which is either joint_to_target_js or
-    // -joint_to_target_js depending on rotation direction.
-    const SimdFloat4 rotate_plane_axis_js = target_js * SplatX(rsqrts);
-    const SimdFloat4 axis_flip =
-        And(SplatX(Dot3(ref_joint_normal_js, corrected_up_js)),
-            ozz::math::simd_int4::mask_sign());
-    const SimdFloat4 rotate_plane_axis_flipped_js =
-        Xor(rotate_plane_axis_js, axis_flip);
+    SimdFloat4 rotate_plane_axis_js;
+    SimdQuaternion rotate_plane_js;
+    // Copmuting rotation axis and plane requires valid normals.
+    if (AreAllTrue3(CmpNe(denoms, simd_float4::zero()))) {
+      const SimdFloat4 rsqrts =
+          RSqrtEstNR(SetZ(SetY(target_js_len2, joint_normal_js_len2),
+                          ref_joint_normal_js_len2));
 
-    // Builds quaternion along rotation axis.
-    const SimdQuaternion rotate_plane_js = SimdQuaternion::FromAxisCosAngle(
-        rotate_plane_axis_flipped_js,
-        Clamp(-ozz::math::simd_float4::one(), rotate_plane_cos_angle,
-              ozz::math::simd_float4::one()));
+      // Computes rotation axis, which is either joint_to_target_js or
+      // -joint_to_target_js depending on rotation direction.
+      rotate_plane_axis_js = target_js * SplatX(rsqrts);
+
+      // Computes angle cosine between the 2 normalized plane normals.
+      const SimdFloat4 rotate_plane_cos_angle =
+          ozz::math::Dot3(joint_normal_js * SplatY(rsqrts),
+                          ref_joint_normal_js * SplatZ(rsqrts));
+      const SimdFloat4 axis_flip =
+          And(SplatX(Dot3(ref_joint_normal_js, corrected_up_js)),
+              ozz::math::simd_int4::mask_sign());
+      const SimdFloat4 rotate_plane_axis_flipped_js =
+          Xor(rotate_plane_axis_js, axis_flip);
+
+      // Builds quaternion along rotation axis.
+      rotate_plane_js = SimdQuaternion::FromAxisCosAngle(
+          rotate_plane_axis_flipped_js,
+          Clamp(-ozz::math::simd_float4::one(), rotate_plane_cos_angle,
+                ozz::math::simd_float4::one()));
+    } else {
+      rotate_plane_axis_js = target_js * SplatX(RSqrtEstXNR(denoms));
+      rotate_plane_js = SimdQuaternion::identity();
+    }
 
     // Twists rotation plane.
     SimdQuaternion twisted;
