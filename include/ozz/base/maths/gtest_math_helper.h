@@ -143,6 +143,49 @@ inline void ExpectTrue(bool _b) { EXPECT_TRUE(_b); }
                                                               \
   } while (void(0), 0)
 
+// Macro for testing ozz::math::simd::SimdFloat members with x, y values with
+// a user defined precision.
+#define _IMPL_EXPECT_SIMDFLOAT2_EQ_TOL(_expected, _x, _y, _tol) \
+                                                                \
+  do {                                                          \
+    union {                                                     \
+      ozz::math::SimdFloat4 ret;                                \
+      float af[4];                                              \
+    } u = {_expected};                                          \
+    ExpectFloatNear(u.af[0], _x, _tol);                         \
+    ExpectFloatNear(u.af[1], _y, _tol);                         \
+                                                                \
+  } while (void(0), 0)
+
+// Macro for testing ozz::math::simd::SimdFloat members with x, y values.
+#define EXPECT_SIMDFLOAT2_EQ(_expected, _x, _y)                             \
+                                                                            \
+  do {                                                                      \
+    SCOPED_TRACE("");                                                       \
+    _IMPL_EXPECT_SIMDFLOAT2_EQ_TOL(_expected, _x, _y, kFloatNearTolerance); \
+                                                                            \
+  } while (void(0), 0)
+
+// Macro for testing ozz::math::simd::SimdFloat members with x, y values.
+// Dedicated to estimated functions with a lower precision.
+#define EXPECT_SIMDFLOAT2_EQ_EST(_expected, _x, _y)                            \
+                                                                               \
+  do {                                                                         \
+    SCOPED_TRACE("");                                                          \
+    _IMPL_EXPECT_SIMDFLOAT2_EQ_TOL(_expected, _x, _y, kFloatNearEstTolerance); \
+                                                                               \
+  } while (void(0), 0)
+
+// Macro for testing ozz::math::simd::SimdFloat members with x, y, z values.
+// Dedicated to estimated functions with a user defined precision.
+#define EXPECT_SIMDFLOAT3_EQ_TOL(_expected, _x, _y, _z, _tol)    \
+                                                                 \
+  do {                                                           \
+    SCOPED_TRACE("");                                            \
+    _IMPL_EXPECT_SIMDFLOAT3_EQ_TOL(_expected, _x, _y, _z, _tol); \
+                                                                 \
+  } while (void(0), 0)
+
 // Macro for testing ozz::math::simd::SimdFloat members with x, y, z values with
 // a user defined precision.
 #define _IMPL_EXPECT_SIMDFLOAT3_EQ_TOL(_expected, _x, _y, _z, _tol) \

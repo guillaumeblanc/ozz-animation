@@ -298,36 +298,36 @@ TEST(ArithmeticFloat, ozz_simd_math) {
   const ozz::math::SimdFloat4 a =
       ozz::math::simd_float4::Load(0.5f, 1.f, 2.f, 3.f);
   const ozz::math::SimdFloat4 b =
-      ozz::math::simd_float4::Load(4.f, 5.f, -6.f, 7.f);
+      ozz::math::simd_float4::Load(4.f, 5.f, -6.f, 0.f);
   const ozz::math::SimdFloat4 c =
       ozz::math::simd_float4::Load(-8.f, 9.f, 10.f, 11.f);
 
   const ozz::math::SimdFloat4 add = a + b;
-  EXPECT_SIMDFLOAT_EQ(add, 4.5f, 6.f, -4.f, 10.f);
+  EXPECT_SIMDFLOAT_EQ(add, 4.5f, 6.f, -4.f, 3.f);
 
   const ozz::math::SimdFloat4 sub = a - b;
-  EXPECT_SIMDFLOAT_EQ(sub, -3.5f, -4.f, 8.f, -4.f);
+  EXPECT_SIMDFLOAT_EQ(sub, -3.5f, -4.f, 8.f, 3.f);
 
   const ozz::math::SimdFloat4 neg = -b;
-  EXPECT_SIMDFLOAT_EQ(neg, -4.f, -5.f, 6.f, -7.f);
+  EXPECT_SIMDFLOAT_EQ(neg, -4.f, -5.f, 6.f, -0.f);
 
   const ozz::math::SimdFloat4 mul = a * b;
-  EXPECT_SIMDFLOAT_EQ(mul, 2.f, 5.f, -12.f, 21.f);
+  EXPECT_SIMDFLOAT_EQ(mul, 2.f, 5.f, -12.f, 0.f);
 
   const ozz::math::SimdFloat4 div = a / b;
-  EXPECT_SIMDFLOAT_EQ(div, 0.5f / 4.f, 1.f / 5.f, -2.f / 6.f, 3.f / 7.f);
+  EXPECT_SIMDFLOAT3_EQ(div, 0.5f / 4.f, 1.f / 5.f, -2.f / 6.f);
 
   const ozz::math::SimdFloat4 madd = ozz::math::MAdd(a, b, c);
-  EXPECT_SIMDFLOAT_EQ(madd, -6.f, 14.f, -2.f, 32.f);
+  EXPECT_SIMDFLOAT_EQ(madd, -6.f, 14.f, -2.f, 11.f);
 
   const ozz::math::SimdFloat4 msub = ozz::math::MSub(a, b, c);
-  EXPECT_SIMDFLOAT_EQ(msub, 10.f, -4.f, -22.f, 10.f);
+  EXPECT_SIMDFLOAT_EQ(msub, 10.f, -4.f, -22.f, -11.f);
 
   const ozz::math::SimdFloat4 nmadd = ozz::math::NMAdd(a, b, c);
-  EXPECT_SIMDFLOAT_EQ(nmadd, -10.f, 4.f, 22.f, -10.f);
+  EXPECT_SIMDFLOAT_EQ(nmadd, -10.f, 4.f, 22.f, 11.f);
 
   const ozz::math::SimdFloat4 nmsub = ozz::math::NMSub(a, b, c);
-  EXPECT_SIMDFLOAT_EQ(nmsub, 6.f, -14.f, 2.f, -32.f);
+  EXPECT_SIMDFLOAT_EQ(nmsub, 6.f, -14.f, 2.f, -11.f);
 
   const ozz::math::SimdFloat4 divx = ozz::math::DivX(a, b);
   EXPECT_SIMDFLOAT_EQ(divx, 0.5f / 4.f, 1.f, 2.f, 3.f);
@@ -348,7 +348,7 @@ TEST(ArithmeticFloat, ozz_simd_math) {
   EXPECT_FLOAT_EQ(ozz::math::GetX(dot3), -5.f);
 
   const ozz::math::SimdFloat4 dot4 = ozz::math::Dot4(a, b);
-  EXPECT_FLOAT_EQ(ozz::math::GetX(dot4), 16.f);
+  EXPECT_FLOAT_EQ(ozz::math::GetX(dot4), -5.f);
 
   const ozz::math::SimdFloat4 cross =
       ozz::math::Cross3(ozz::math::simd_float4::Load(1.f, -2.f, 3.f, 46.f),
@@ -358,30 +358,28 @@ TEST(ArithmeticFloat, ozz_simd_math) {
   EXPECT_FLOAT_EQ(ozz::math::GetZ(cross), 13.f);
 
   const ozz::math::SimdFloat4 rcp = ozz::math::RcpEst(b);
-  EXPECT_SIMDFLOAT_EQ_EST(rcp, 1.f / 4.f, 1.f / 5.f, -1.f / 6.f, 1.f / 7.f);
+  EXPECT_SIMDFLOAT3_EQ_EST(rcp, 1.f / 4.f, 1.f / 5.f, -1.f / 6.f);
 
   const ozz::math::SimdFloat4 rcpnr = ozz::math::RcpEstNR(b);
-  EXPECT_SIMDFLOAT_EQ(rcpnr, 1.f / 4.f, 1.f / 5.f, -1.f / 6.f, 1.f / 7.f);
+  EXPECT_SIMDFLOAT3_EQ(rcpnr, 1.f / 4.f, 1.f / 5.f, -1.f / 6.f);
 
   const ozz::math::SimdFloat4 rcpxnr = ozz::math::RcpEstXNR(b);
   EXPECT_FLOAT_EQ(ozz::math::GetX(rcpxnr), 1.f / 4.f);
 
   const ozz::math::SimdFloat4 rcpx = ozz::math::RcpEstX(b);
-  EXPECT_SIMDFLOAT_EQ_EST(rcpx, 1.f / 4.f, 5.f, -6.f, 7.f);
+  EXPECT_SIMDFLOAT_EQ_EST(rcpx, 1.f / 4.f, 5.f, -6.f, 0.f);
 
   const ozz::math::SimdFloat4 sqrt = ozz::math::Sqrt(a);
   EXPECT_SIMDFLOAT_EQ(sqrt, .7071068f, 1.f, 1.4142135f, 1.7320508f);
 
-  const ozz::math::SimdFloat4 sqrtx = ozz::math::SqrtX(a);
-  EXPECT_SIMDFLOAT_EQ(sqrtx, .7071068f, 1.f, 2.f, 3.f);
+  const ozz::math::SimdFloat4 sqrtx = ozz::math::SqrtX(b);
+  EXPECT_SIMDFLOAT_EQ(sqrtx, 2.f, 5.f, -6.f, 0.f);
 
-  const ozz::math::SimdFloat4 rsqrt = ozz::math::RSqrtEst(a);
-  EXPECT_SIMDFLOAT_EQ_EST(rsqrt, 1.f / .7071068f, 1.f, 1.f / 1.4142135f,
-                          1.f / 1.7320508f);
+  const ozz::math::SimdFloat4 rsqrt = ozz::math::RSqrtEst(b);
+  EXPECT_SIMDFLOAT2_EQ_EST(rsqrt, 1.f / 2.f, 1.f / 2.23606798f);
 
-  const ozz::math::SimdFloat4 rsqrtnr = ozz::math::RSqrtEstNR(a);
-  EXPECT_SIMDFLOAT_EQ(rsqrtnr, 1.f / .7071068f, 1.f, 1.f / 1.4142135f,
-                      1.f / 1.7320508f);
+  const ozz::math::SimdFloat4 rsqrtnr = ozz::math::RSqrtEstNR(b);
+  EXPECT_SIMDFLOAT2_EQ_EST(rsqrtnr, 1.f / 2.f, 1.f / 2.23606798f);
 
   const ozz::math::SimdFloat4 rsqrtx = ozz::math::RSqrtEstX(a);
   EXPECT_SIMDFLOAT_EQ_EST(rsqrtx, 1.f / .7071068f, 1.f, 2.f, 3.f);
@@ -390,7 +388,7 @@ TEST(ArithmeticFloat, ozz_simd_math) {
   EXPECT_FLOAT_EQ(ozz::math::GetX(rsqrtxnr), 1.f / .7071068f);
 
   const ozz::math::SimdFloat4 abs = ozz::math::Abs(b);
-  EXPECT_SIMDFLOAT_EQ(abs, 4.f, 5.f, 6.f, 7.f);
+  EXPECT_SIMDFLOAT_EQ(abs, 4.f, 5.f, 6.f, 0.f);
 
   const SimdInt4 sign = ozz::math::Sign(b);
   EXPECT_SIMDINT_EQ(sign, 0, 0, 0x80000000, 0);
