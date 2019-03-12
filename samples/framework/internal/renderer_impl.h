@@ -134,6 +134,10 @@ class RendererImpl : public Renderer {
                         const ozz::math::Float4x4& _transform,
                         const Options& _options = Options());
 
+  virtual bool DrawSegment(const math::Float3& _begin, const math::Float3& _end,
+                           Renderer::Color _color,
+                           const ozz::math::Float4x4& _transform);
+
   virtual bool DrawVectors(ozz::Range<const float> _positions,
                            size_t _positions_stride,
                            ozz::Range<const float> _directions,

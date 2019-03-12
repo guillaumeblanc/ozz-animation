@@ -140,6 +140,11 @@ class Renderer {
                         const ozz::math::Float4x4& _transform,
                         const Options& _options = Options()) = 0;
 
+  // Renders a segment from begin to end.
+  virtual bool DrawSegment(const math::Float3& _begin, const math::Float3& _end,
+                           Renderer::Color _color,
+                           const ozz::math::Float4x4& _transform) = 0;
+
   // Renders vectors, defined by their starting point and a direction.
   virtual bool DrawVectors(ozz::Range<const float> _positions,
                            size_t _positions_stride,

@@ -977,6 +977,15 @@ bool RendererImpl::DrawSphereShaded(
   return true;
 }
 
+bool RendererImpl::DrawSegment(const math::Float3& _begin,
+                               const math::Float3& _end, Renderer::Color _color,
+                               const ozz::math::Float4x4& _transform) {
+  const math::Float3 dir(_end - _begin);
+  return DrawVectors(ozz::Range<const float>(&_begin.x, 3), 12,
+                     ozz::Range<const float>(&dir.x, 3), 12, 1, 1.f, _color,
+                     _transform);
+}
+
 bool RendererImpl::DrawVectors(ozz::Range<const float> _positions,
                                size_t _positions_stride,
                                ozz::Range<const float> _directions,

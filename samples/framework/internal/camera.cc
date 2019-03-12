@@ -246,7 +246,7 @@ void Camera::Resize(int _width, int _height) {
 
   // Compute the 3D projection matrix.
   const float ratio = 1.f * _width / _height;
-  const float h = tan((kFovY * .5f)) * kNear;
+  const float h = tan(kFovY * .5f) * kNear;
   const float w = h * ratio;
 
   projection_.cols[0] = math::simd_float4::Load(kNear / w, 0.f, 0.f, 0.f);
