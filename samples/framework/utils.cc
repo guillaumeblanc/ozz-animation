@@ -478,7 +478,7 @@ bool RayIntersectsMesh(const ozz::math::Float3& _ray_origin,
 
   const float* vertices = array_begin(_mesh.parts[0].positions);
   const uint16_t* indices = array_begin(_mesh.triangle_indices);
-  for (size_t i = 0; i < _mesh.triangle_index_count(); i += 3) {
+  for (int i = 0; i < _mesh.triangle_index_count(); i += 3) {
     const float* pf0 = vertices + indices[i + 0] * 3;
     const float* pf1 = vertices + indices[i + 1] * 3;
     const float* pf2 = vertices + indices[i + 2] * 3;

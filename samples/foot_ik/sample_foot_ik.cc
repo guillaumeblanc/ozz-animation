@@ -159,9 +159,9 @@ class FootIKSampleApplication : public ozz::sample::Application {
     const ozz::math::Float3 foot_height(0.f, .12f, 0.f);
     const ozz::math::Float3 height_offset(0.f, .5f, 0.f);
 
-    for (size_t i = 0; i < kLegsCount; ++i) {
-      const LegSetup& leg = legs_setup_[i];
-      LegRayInfo& ray = rays_info_[i];
+    for (size_t l = 0; l < kLegsCount; ++l) {
+      const LegSetup& leg = legs_setup_[l];
+      LegRayInfo& ray = rays_info_[l];
 
       // Start ray from ankle position, down y axis.
       ozz::math::Float3 ankle_pos_ws;
@@ -181,7 +181,7 @@ class FootIKSampleApplication : public ozz::sample::Application {
     pelvis_offset = ozz::math::Float3(0.f);
     if (any_leg_hit) {
       if (pelvis_correction_) {
-        float max_dot;
+        float max_dot = 0.f;
         for (size_t i = 0; i < kLegsCount; ++i) {
           const LegRayInfo& ray = rays_info_[i];
           const ozz::math::Float3 ankle_to_ground =
@@ -340,8 +340,8 @@ class FootIKSampleApplication : public ozz::sample::Application {
       const ozz::math::Float4x4 kAxesScale = ozz::math::Float4x4::Scaling(
           ozz::math::simd_float4::Load1(kAxeScale));
 
-      for (size_t i = 0; i < kLegsCount; ++i) {
-        const LegSetup& leg = legs_setup_[i];
+      for (size_t l = 0; l < kLegsCount; ++l) {
+        const LegSetup& leg = legs_setup_[l];
         for (size_t i = 0; i < 3; ++i) {
           const int joints[3] = {leg.hip, leg.knee, leg.ankle};
           const ozz::math::Float4x4& transform =
@@ -353,8 +353,8 @@ class FootIKSampleApplication : public ozz::sample::Application {
 
     // Shows raycast results
     if (show_raycast_) {
-      for (size_t i = 0; i < kLegsCount; ++i) {
-        const LegRayInfo& ray = rays_info_[i];
+      for (size_t l = 0; l < kLegsCount; ++l) {
+        const LegRayInfo& ray = rays_info_[l];
         if (ray.hit) {
           const ozz::sample::Renderer::Color color = {0, 0xff, 0, 0xff};
           success &=
