@@ -31,8 +31,8 @@
 #include "ozz/base/endianness.h"
 #include "ozz/base/platform.h"
 
-#include "ozz/animation/offline/tools/import2ozz.h"
 #include "animation/offline/tools/import2ozz_config.h"
+#include "ozz/animation/offline/tools/import2ozz.h"
 
 namespace Json {
 class Value;

@@ -190,8 +190,9 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
       const ozz::math::Box box(ozz::math::Float3(-kBoxHalfSize),
                                ozz::math::Float3(kBoxHalfSize));
       success &= _renderer->DrawBoxIm(
-          box, ozz::math::Float4x4::Translation(
-                   ozz::math::simd_float4::Load3PtrU(&target_.x)),
+          box,
+          ozz::math::Float4x4::Translation(
+              ozz::math::simd_float4::Load3PtrU(&target_.x)),
           colors[reached]);
     }
 

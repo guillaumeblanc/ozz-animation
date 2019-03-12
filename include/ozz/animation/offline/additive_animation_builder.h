@@ -53,9 +53,10 @@ class AdditiveAnimationBuilder {
   // Builds delta animation from _input..
   // Returns true on success and fills _output_animation with the delta
   // version of _input animation.
-  // *_output must be a valid RawAnimation instance. Uses first frame as reference pose
-  // Returns false on failure and resets _output to an empty animation.
-  // See RawAnimation::Validate() for more details about failure reasons.
+  // *_output must be a valid RawAnimation instance. Uses first frame as
+  // reference pose Returns false on failure and resets _output to an empty
+  // animation. See RawAnimation::Validate() for more details about failure
+  // reasons.
   bool operator()(const RawAnimation& _input, RawAnimation* _output) const;
 
   // Builds delta animation from _input..
@@ -66,8 +67,7 @@ class AdditiveAnimationBuilder {
   // Returns false on failure and resets _output to an empty animation.
   bool operator()(const RawAnimation& _input,
                   const Range<const math::Transform>& _reference_pose,
-                  RawAnimation* _output ) const;
-
+                  RawAnimation* _output) const;
 };
 }  // namespace offline
 }  // namespace animation
