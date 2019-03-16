@@ -51,21 +51,6 @@
 #include "framework/renderer.h"
 #include "framework/utils.h"
 
-void ApplyQuaternion(int _joint, const ozz::math::SimdQuaternion& _quat,
-                     const ozz::Range<ozz::math::SoaTransform>& _transforms) {
-  // Convert soa to aos in order to perform quaternion multiplication, and gets
-  // back to soa.
-
-  ozz::math::SoaTransform& soa_transform_ref = _transforms[_joint / 4];
-  ozz::math::SimdQuaternion aos_quats[4];
-  ozz::math::Transpose4x4(&soa_transform_ref.rotation.x, &aos_quats->xyzw);
-
-  ozz::math::SimdQuaternion& aos_joint_quat_ref = aos_quats[_joint & 3];
-  aos_joint_quat_ref = aos_joint_quat_ref * _quat;
-
-  ozz::math::Transpose4x4(&aos_quats->xyzw, &soa_transform_ref.rotation.x);
-}
-
 // Skeleton archive can be specified as an option.
 OZZ_OPTIONS_DECLARE_STRING(skeleton,
                            "Path to the skeleton (ozz archive format).",
@@ -275,8 +260,8 @@ class FootIKSampleApplication : public ozz::sample::Application {
       return false;
     }
     // Apply IK quaternions to their respective local-space transforms.
-    ApplyQuaternion(_leg.hip, start_correction, make_range(locals_));
-    ApplyQuaternion(_leg.knee, mid_correction, make_range(locals_));
+    ozz::sample::MultiplySoATransformQuaternion(_leg.hip, start_correction, make_range(locals_));
+    ozz::sample::MultiplySoATransformQuaternion(_leg.knee, mid_correction, make_range(locals_));
 
     return true;
   }
@@ -298,7 +283,7 @@ class FootIKSampleApplication : public ozz::sample::Application {
       return false;
     }
     // Apply IK quaternions to their respective local-space transforms.
-    ApplyQuaternion(_leg.ankle, correction, make_range(locals_));
+    ozz::sample::MultiplySoATransformQuaternion(_leg.ankle, correction, make_range(locals_));
 
     return true;
   }
