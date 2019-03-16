@@ -274,7 +274,7 @@ class FootIKSampleApplication : public ozz::sample::Application {
         TransformVector(_inv_root,
                         ozz::math::simd_float4::Load3PtrU(&_aim_ws.x));  // TODO
     ik_job.up = ozz::math::simd_float4::y_axis();
-    ik_job.pole_vector = models_[_leg.knee].cols[1];
+    ik_job.pole_vector = models_[_leg.ankle].cols[1];
     ik_job.joint = &models_[_leg.ankle];
     ozz::math::SimdQuaternion correction;
     ik_job.joint_correction = &correction;
