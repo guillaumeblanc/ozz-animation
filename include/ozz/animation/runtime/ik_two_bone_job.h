@@ -49,6 +49,8 @@ namespace animation {
 // quaternions.
 // The three joints must be ancestors, but don't need to be direct
 // ancestors (joints in-between will simply remain fixed).
+// Implementation is inspired by Autodesk Maya 2 bone IK, improved stability
+// wise and extended with Soften IK.
 struct IKTwoBoneJob {
   // Constructor, initializes default values.
   IKTwoBoneJob();
