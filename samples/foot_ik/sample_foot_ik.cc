@@ -432,7 +432,7 @@ class FootIKSampleApplication : public ozz::sample::Application {
     }
 
     {  // Root
-      static bool opened = false;
+      static bool opened = true;
       ozz::sample::ImGui::OpenClose oc(_im_gui, "Root transformation", &opened);
       if (opened) {
         // Translation
@@ -446,7 +446,7 @@ class FootIKSampleApplication : public ozz::sample::Application {
 
         // Rotation (in euler form)
         _im_gui->DoLabel("Rotation");
-        sprintf(txt, "yaw %.2g", root_yaw_ * ozz::math::kRadianToDegree);
+        sprintf(txt, "yaw %.3g", root_yaw_ * ozz::math::kRadianToDegree);
         _im_gui->DoSlider(txt, -ozz::math::kPi, ozz::math::kPi, &root_yaw_);
       }
     }
