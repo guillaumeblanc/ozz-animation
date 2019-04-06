@@ -125,7 +125,7 @@ void UpdateKeys(float _ratio, int _num_soa_tracks, ozz::Range<const _Key> _keys,
   // for interpolation at time ratio _ratio, for all tracks. Thanks to the
   // keyframe sorting, the loop can end as soon as it finds a key greater that
   // _ratio. It will mean that all the keys lower than _ratio have been
-  // processed, meaning all cache entries are updated.
+  // processed, meaning all cache entries are up to date.
   while (cursor < _keys.end &&
          _keys.begin[_cache[cursor->track * 2 + 1]].ratio <= _ratio) {
     // Flag this soa entry as outdated.
