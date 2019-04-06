@@ -85,17 +85,16 @@ void Camera::Update(const math::Box& _box, float _delta_time,
   // Frame the scene according to the provided box.
   if (auto_framing_ || _first_frame) {
     center_ = (_box.max + _box.min) * .5f;
-    if (_first_frame) {
-      const float radius = Length(_box.max - _box.min) * .5f;
-      distance_ = (radius * kFrameAllZoomOut) / tanf(kFovY * .5f);
-    }
+    const float radius = Length(_box.max - _box.min) * .5f;
+    distance_ = radius * kFrameAllZoomOut / tanf(kFovY * .5f);
   }
 
   // Update manual controls.
   const Controls controls = UpdateControls(_delta_time);
 
   // Disable autoframing according to inputs.
-  auto_framing_ &= !controls.panning;
+  auto_framing_ &=
+      !controls.panning && !controls.zooming && !controls.zooming_wheel;
 }
 
 void Camera::Update(const math::Float4x4& _transform, const math::Box& _box,
