@@ -176,9 +176,7 @@ class FootIKSampleApplication : public ozz::sample::Application {
       if (!ray.hit) {
         continue;
       }
-
-      const ozz::math::Float3 ankle = ray.start - height_offset;
-
+      
       const ozz::math::Float3 dist_to_hit = ray.hit_point - ray.start;
       const float proj_dist =
           Dot(dist_to_hit, ray.hit_normal);  // ray.hit_normal is normalized
