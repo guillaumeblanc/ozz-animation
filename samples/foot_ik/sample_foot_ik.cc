@@ -90,7 +90,7 @@ struct LegRayInfo {
 class FootIKSampleApplication : public ozz::sample::Application {
  public:
   FootIKSampleApplication()
-      : pelvis_offset(0.f),
+      : pelvis_offset(0.f, 0.f, 0.f),
         root_translation_(1.f, 2.f, 0.f),
         root_yaw_(0.f),
         auto_character_height_(true),
@@ -104,6 +104,7 @@ class FootIKSampleApplication : public ozz::sample::Application {
         show_offseted_root_(false) {}
 
  protected:
+
   // Updates current animation time and skeleton pose.
   virtual bool OnUpdate(float _dt, float) {
     const ozz::math::Float3 down(0.f, -1.f, 0.f);
@@ -141,9 +142,11 @@ class FootIKSampleApplication : public ozz::sample::Application {
 
     // Raycast down from the ankle to the floor.
     bool any_leg_hit = false;
-    const ozz::math::Float3 foot_height(0.f, .12f, 0.f);
+    const float foot_heigh_y = .12f;
+    const ozz::math::Float3 foot_height(0.f, foot_heigh_y, 0.f);
     const ozz::math::Float3 height_offset(0.f, .5f, 0.f);
 
+    // TODO Raycast...
     for (size_t l = 0; l < kLegsCount; ++l) {
       const LegSetup& leg = legs_setup_[l];
       LegRayInfo& ray = rays_info_[l];
@@ -159,57 +162,111 @@ class FootIKSampleApplication : public ozz::sample::Application {
       any_leg_hit |= ray.hit;
     }
 
+    // TODO elsewhere
+    pelvis_offset = ozz::math::Float3(0.f, 0.f, 0.f);
+
+    // Early out if no leg hit the ground
+    if (!any_leg_hit) {
+      return true;
+    }
+
+    // Finds "real" ankle (2 bone ik target) position
+    for (size_t l = 0; l < kLegsCount; ++l) {
+      LegRayInfo& ray = rays_info_[l];  // TODO const
+      if (!ray.hit) {
+        continue;
+      }
+
+      const ozz::math::Float3 ankle = ray.start - height_offset;
+
+      const ozz::math::Float3 dist_to_hit = ray.hit_point - ray.start;
+      const float proj_dist =
+          Dot(dist_to_hit, ray.hit_normal);  // ray.hit_normal is normalized
+
+      // ???? Perpandiclar to raycast normal
+      if (proj_dist == 0.f) {
+        continue;
+      }
+
+      const ozz::math::Float3 B =
+          ray.start + ray.hit_normal * proj_dist;  // sign !!!
+
+      const ozz::math::Float3 HB = B - ray.hit_point;
+      const float HBl = Length(HB);
+
+      // TODO B is at raycast hit_point position
+      ozz::math::Float3 P;
+      if (HBl <= 0.f) {
+        P = ray.hit_point + ray.hit_normal * foot_heigh_y;
+      } else {
+        // Thales....
+        const float HCl = HBl * foot_heigh_y / proj_dist;
+        const ozz::math::Float3 HC = HB * (HCl / HBl);
+        const ozz::math::Float3 C = ray.hit_point - HC;  // sign !!!!
+        P = C + ray.hit_normal * foot_heigh_y;
+      }
+
+      // TODO
+      ray.hit_point = P;
+    }
+
     // Recomputes pelvis offset.
     // Strategy is to move the pelvis along "down" axis (ray axis), enough for
     // the foot lowest from its original position to touch the floor. The other
     // foot will be ik-ed.
-    pelvis_offset = ozz::math::Float3(0.f);
-    if (any_leg_hit) {
-      if (pelvis_correction_) {
-        float max_dot = 0.f;
-        for (size_t i = 0; i < kLegsCount; ++i) {
-          const LegRayInfo& ray = rays_info_[i];
-          const ozz::math::Float3 ankle_to_ground =
-              foot_height + ray.hit_point - (ray.start - height_offset);
-          const float dot = Dot(ankle_to_ground, down);
-          if (i == 0 || dot > max_dot) {
-            max_dot = dot;
-            pelvis_offset = ankle_to_ground;
-          }
-        }
-      }
-
-      // Perform IK
-      for (size_t i = 0; i < kLegsCount; ++i) {
-        const LegRayInfo& ray = rays_info_[i];
+    float max_dot = std::numeric_limits<float>::min();
+    if (pelvis_correction_) {
+      for (size_t l = 0; l < kLegsCount; ++l) {
+        const LegRayInfo& ray = rays_info_[l];
         if (!ray.hit) {
           continue;
         }
 
-        const LegSetup& leg = legs_setup_[i];
-        const ozz::math::Float3 target(foot_height + ray.hit_point -
-                                       pelvis_offset);
-        if (two_bone_ik_ && !ApplyLegTwoBoneIK(leg, target, inv_root)) {
-          return false;
-        }
+        const ozz::math::Float3 ankle = ray.start - height_offset;
+        const ozz::math::Float3 ankle_to_target =
+            ray.hit_point - ankle;  // TODO ray.hit_point <- target
 
-        // TODO comment
-        ltm_job.from = leg.hip;
-        ltm_job.to = leg.ankle;
-        if (!ltm_job.Run()) {
-          return false;
+        const float dot = Dot(ankle_to_target, down);
+        if (dot > max_dot) {
+          max_dot = dot;
         }
+      }
+    }
 
-        if (aim_ik_ && !ApplyAnkleAimIK(leg, ray.hit_normal, inv_root)) {
-          return false;
-        }
+    // Compute offset using the maximum displacement that the legs should have
+    // to touch ground.
+    pelvis_offset = down * max_dot;
 
-        // TODO comment
-        ltm_job.from = leg.ankle;
-        ltm_job.to = ozz::animation::Skeleton::kMaxJoints;
-        if (!ltm_job.Run()) {
-          return false;
-        }
+    // Perform IK
+    for (size_t l = 0; l < kLegsCount; ++l) {
+      const LegRayInfo& ray = rays_info_[l];
+      if (!ray.hit) {
+        continue;
+      }
+
+      const LegSetup& leg = legs_setup_[l];
+      // TODO target (ray.hit_point) was computed before pelvis is offseted
+      const ozz::math::Float3 target(ray.hit_point - pelvis_offset);
+      if (two_bone_ik_ && !ApplyLegTwoBoneIK(leg, target, inv_root)) {
+        return false;
+      }
+
+      // TODO comment
+      ltm_job.from = leg.hip;
+      ltm_job.to = leg.ankle;
+      if (!ltm_job.Run()) {
+        return false;
+      }
+
+      if (aim_ik_ && !ApplyAnkleAimIK(leg, ray.hit_normal, inv_root)) {
+        return false;
+      }
+
+      // TODO comment
+      ltm_job.from = leg.ankle;
+      ltm_job.to = ozz::animation::Skeleton::kMaxJoints;
+      if (!ltm_job.Run()) {
+        return false;
       }
     }
 
@@ -260,8 +317,10 @@ class FootIKSampleApplication : public ozz::sample::Application {
       return false;
     }
     // Apply IK quaternions to their respective local-space transforms.
-    ozz::sample::MultiplySoATransformQuaternion(_leg.hip, start_correction, make_range(locals_));
-    ozz::sample::MultiplySoATransformQuaternion(_leg.knee, mid_correction, make_range(locals_));
+    ozz::sample::MultiplySoATransformQuaternion(_leg.hip, start_correction,
+                                                make_range(locals_));
+    ozz::sample::MultiplySoATransformQuaternion(_leg.knee, mid_correction,
+                                                make_range(locals_));
 
     return true;
   }
@@ -283,7 +342,8 @@ class FootIKSampleApplication : public ozz::sample::Application {
       return false;
     }
     // Apply IK quaternions to their respective local-space transforms.
-    ozz::sample::MultiplySoATransformQuaternion(_leg.ankle, correction, make_range(locals_));
+    ozz::sample::MultiplySoATransformQuaternion(_leg.ankle, correction,
+                                                make_range(locals_));
 
     return true;
   }
