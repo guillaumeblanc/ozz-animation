@@ -51,6 +51,8 @@
 #include "framework/renderer.h"
 #include "framework/utils.h"
 
+#include <limits>
+
 // Skeleton archive can be specified as an option.
 OZZ_OPTIONS_DECLARE_STRING(skeleton,
                            "Path to the skeleton (ozz archive format).",
