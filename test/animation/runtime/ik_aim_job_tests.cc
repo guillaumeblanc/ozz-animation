@@ -89,7 +89,7 @@ TEST(Correction, IKAimJob) {
     job.joint = &parent;
 
     // These are in joint local-space
-    job.aim = ozz::math::simd_float4::x_axis();
+    job.forward = ozz::math::simd_float4::x_axis();
     job.up = ozz::math::simd_float4::y_axis();
 
     // Pole vector is in model space
@@ -150,7 +150,7 @@ TEST(Correction, IKAimJob) {
   }
 }
 
-TEST(Aim, IKAimJob) {
+TEST(Forward, IKAimJob) {
   ozz::animation::IKAimJob job;
   ozz::math::SimdQuaternion quat;
   job.joint_correction = &quat;
@@ -161,22 +161,22 @@ TEST(Aim, IKAimJob) {
   job.up = ozz::math::simd_float4::y_axis();
   job.pole_vector = ozz::math::simd_float4::y_axis();
 
-  {  // aim x
-    job.aim = ozz::math::simd_float4::x_axis();
+  {  // forward x
+    job.forward = ozz::math::simd_float4::x_axis();
     EXPECT_TRUE(job.Run());
     EXPECT_SIMDQUATERNION_EQ_TOL(quat, 0.f, 0.f, 0.f, 1.f, 2e-3f);
   }
 
-  {  // aim -x
-    job.aim = -ozz::math::simd_float4::x_axis();
+  {  // forward -x
+    job.forward = -ozz::math::simd_float4::x_axis();
     EXPECT_TRUE(job.Run());
     const ozz::math::Quaternion y_Pi = ozz::math::Quaternion::FromAxisAngle(
         ozz::math::Float3::y_axis(), -ozz::math::kPi);
     EXPECT_SIMDQUATERNION_EQ_TOL(quat, y_Pi.x, y_Pi.y, y_Pi.z, y_Pi.w, 2e-3f);
   }
 
-  {  // aim z
-    job.aim = ozz::math::simd_float4::z_axis();
+  {  // forward z
+    job.forward = ozz::math::simd_float4::z_axis();
     EXPECT_TRUE(job.Run());
     const ozz::math::Quaternion y_Pi_2 = ozz::math::Quaternion::FromAxisAngle(
         ozz::math::Float3::y_axis(), ozz::math::kPi_2);
@@ -184,8 +184,8 @@ TEST(Aim, IKAimJob) {
                                  2e-3f);
   }
 
-  {  // aim 2*z
-    job.aim =
+  {  // forward 2*z
+    job.forward =
         ozz::math::simd_float4::z_axis() * ozz::math::simd_float4::Load1(2.f);
     EXPECT_TRUE(job.Run());
     const ozz::math::Quaternion y_Pi_2 = ozz::math::Quaternion::FromAxisAngle(
@@ -194,8 +194,8 @@ TEST(Aim, IKAimJob) {
                                  2e-3f);
   }
 
-  {  // aim very small z
-    job.aim =
+  {  // forward very small z
+    job.forward =
         ozz::math::simd_float4::z_axis() * ozz::math::simd_float4::Load1(1e-6f);
     EXPECT_TRUE(job.Run());
     const ozz::math::Quaternion y_Pi_2 = ozz::math::Quaternion::FromAxisAngle(
@@ -204,8 +204,8 @@ TEST(Aim, IKAimJob) {
                                  2e-3f);
   }
 
-  {  // aim is zero
-    job.aim = ozz::math::simd_float4::zero();
+  {  // forward is zero
+    job.forward = ozz::math::simd_float4::zero();
     EXPECT_TRUE(job.Run());
     EXPECT_SIMDQUATERNION_EQ_TOL(quat, 0.f, 0.f, 0.f, 1.f, 2e-3f);
   }
@@ -219,7 +219,7 @@ TEST(Up, IKAimJob) {
   job.joint = &joint;
 
   job.target = ozz::math::simd_float4::x_axis();
-  job.aim = ozz::math::simd_float4::x_axis();
+  job.forward = ozz::math::simd_float4::x_axis();
   job.up = ozz::math::simd_float4::y_axis();
   job.pole_vector = ozz::math::simd_float4::y_axis();
 
@@ -281,7 +281,7 @@ TEST(Pole, IKAimJob) {
   job.joint = &joint;
 
   job.target = ozz::math::simd_float4::x_axis();
-  job.aim = ozz::math::simd_float4::x_axis();
+  job.forward = ozz::math::simd_float4::x_axis();
   job.up = ozz::math::simd_float4::y_axis();
 
   {  // Pole y
@@ -336,7 +336,7 @@ TEST(Twist, IKAimJob) {
   job.joint = &joint;
 
   job.target = ozz::math::simd_float4::x_axis();
-  job.aim = ozz::math::simd_float4::x_axis();
+  job.forward = ozz::math::simd_float4::x_axis();
   job.up = ozz::math::simd_float4::y_axis();
 
   {  // Pole y, twist 0
@@ -392,7 +392,7 @@ TEST(AlignedTargetUp, IKAimJob) {
   const ozz::math::Float4x4 joint = ozz::math::Float4x4::identity();
   job.joint = &joint;
 
-  job.aim = ozz::math::simd_float4::x_axis();
+  job.forward = ozz::math::simd_float4::x_axis();
   job.pole_vector = ozz::math::simd_float4::y_axis();
 
   {  // Not aligned
@@ -442,7 +442,7 @@ TEST(AlignedTargetPole, IKAimJob) {
   const ozz::math::Float4x4 joint = ozz::math::Float4x4::identity();
   job.joint = &joint;
 
-  job.aim = ozz::math::simd_float4::x_axis();
+  job.forward = ozz::math::simd_float4::x_axis();
   job.up = ozz::math::simd_float4::y_axis();
 
   {  // Not aligned
@@ -471,7 +471,7 @@ TEST(TargetTooClose, IKAimJob) {
   job.joint = &joint;
 
   job.target = ozz::math::simd_float4::zero();
-  job.aim = ozz::math::simd_float4::x_axis();
+  job.forward = ozz::math::simd_float4::x_axis();
   job.up = ozz::math::simd_float4::y_axis();
   job.pole_vector = ozz::math::simd_float4::y_axis();
 
@@ -487,7 +487,7 @@ TEST(Weight, IKAimJob) {
   job.joint = &joint;
 
   job.target = ozz::math::simd_float4::z_axis();
-  job.aim = ozz::math::simd_float4::x_axis();
+  job.forward = ozz::math::simd_float4::x_axis();
   job.up = ozz::math::simd_float4::y_axis();
   job.pole_vector = ozz::math::simd_float4::y_axis();
 

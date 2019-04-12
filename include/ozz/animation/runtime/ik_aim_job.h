@@ -42,10 +42,10 @@ namespace animation {
 
 // ozz::animation::IKAimJob rotates a joint so it aims at a target. Joint aim
 // direction and up vectors can be different from joint axis. The job computes
-// the transformations (rotations) that needs to be applied to the joints such
-// that a provided aim vector in joint local-space aims at the target position
-// in skeleton model-space. Up vector (in joint local-space) is also used to
-// keep the joint oriented in the same direction as the pole vector.
+// the transformation (rotation) that needs to be applied to the joints such
+// that a provided forward vector (in joint local-space) aims at the target
+// position (in skeleton model-space). Up vector (in joint local-space) is also
+// used to keep the joint oriented in the same direction as the pole vector.
 // Result is unstable if joint-to-target direction is parallel to pole vector,
 // or if target is too close to joint position.
 struct IKAimJob {
@@ -67,9 +67,9 @@ struct IKAimJob {
   // Target direction to aim at, in model-space
   math::SimdFloat4 target;
 
-  // Joint aiming axis, in joint local-space, to be aimed at target position.
+  // Joint forward axis, in joint local-space, to be aimed at target position.
   // Default is x axis.
-  math::SimdFloat4 aim;
+  math::SimdFloat4 forward;
 
   // Joint up axis, in joint local-space, used to keep the joint oriented in the
   // same direction as the pole vector. Default is y axis.
@@ -78,7 +78,7 @@ struct IKAimJob {
   // Pole vector, in model-space.
   math::SimdFloat4 pole_vector;
 
-  // Twist_angle rotates joint around the aim (joint to target) vector.
+  // Twist_angle rotates joint around the target vector.
   // Default is 0.
   float twist_angle;
 

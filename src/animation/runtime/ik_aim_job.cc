@@ -43,7 +43,7 @@ namespace ozz {
 namespace animation {
 IKAimJob::IKAimJob()
     : target(math::simd_float4::x_axis()),
-      aim(math::simd_float4::x_axis()),
+      forward(math::simd_float4::x_axis()),
       up(math::simd_float4::y_axis()),
       pole_vector(math::simd_float4::y_axis()),
       twist_angle(0.f),
@@ -80,10 +80,10 @@ bool IKAimJob::Run() const {
     // Target is too close to joint position to find a direction.
     *joint_correction = SimdQuaternion::identity();
   } else {
-    // Calculates joint_to_target_rot_ss quaternion which solves for aim vector
-    // rotating onto the target.
+    // Calculates joint_to_target_rot_ss quaternion which solves for forward
+    // vector rotating onto the target.
     const SimdQuaternion joint_to_target_rot_js =
-        SimdQuaternion::FromVectors(aim, target_js);
+        SimdQuaternion::FromVectors(forward, target_js);
 
     // Calculates rotate_plane_js quaternion which aligns joint up to the pole
     // vector.
@@ -135,7 +135,8 @@ bool IKAimJob::Run() const {
     // Twists rotation plane.
     SimdQuaternion twisted;
     if (twist_angle != 0.f) {
-      // If a twist angle is provided, rotation angle is rotated aim vector.
+      // If a twist angle is provided, rotation angle is rotated around joint to
+      // target vector.
       const SimdQuaternion twist_ss = SimdQuaternion::FromAxisAngle(
           rotate_plane_axis_js, simd_float4::Load1(twist_angle));
       twisted = twist_ss * rotate_plane_js * joint_to_target_rot_js;

@@ -104,7 +104,6 @@ class FootIKSampleApplication : public ozz::sample::Application {
         show_offseted_root_(false) {}
 
  protected:
-
   // Updates current animation time and skeleton pose.
   virtual bool OnUpdate(float _dt, float) {
     const ozz::math::Float3 down(0.f, -1.f, 0.f);
@@ -176,7 +175,7 @@ class FootIKSampleApplication : public ozz::sample::Application {
       if (!ray.hit) {
         continue;
       }
-      
+
       const ozz::math::Float3 dist_to_hit = ray.hit_point - ray.start;
       const float proj_dist =
           Dot(dist_to_hit, ray.hit_normal);  // ray.hit_normal is normalized
@@ -326,7 +325,7 @@ class FootIKSampleApplication : public ozz::sample::Application {
   bool ApplyAnkleAimIK(const LegSetup& _leg, const ozz::math::Float3& _aim_ws,
                        const ozz::math::Float4x4& _inv_root) {
     ozz::animation::IKAimJob ik_job;
-    ik_job.aim = -ozz::math::simd_float4::x_axis();
+    ik_job.forward = -ozz::math::simd_float4::x_axis();
     ik_job.target =
         TransformVector(_inv_root,
                         ozz::math::simd_float4::Load3PtrU(&_aim_ws.x));  // TODO
