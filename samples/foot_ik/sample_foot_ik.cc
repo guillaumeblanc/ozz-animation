@@ -366,13 +366,16 @@ class FootIKSampleApplication : public ozz::sample::Application {
       // The mesh might not use (aka be skinned by) all skeleton joints. We
       // use the joint remapping table (available from the mesh object) to
       // reorder model-space matrices and build skinning ones.
-      for (size_t i = 0; i < mesh_.joint_remaps.size(); ++i) {
-        skinning_matrices_[i] =
-            models_[mesh_.joint_remaps[i]] * mesh_.inverse_bind_poses[i];
-      }
+      for (size_t m = 0; m < meshes_.size(); ++m) {
+        const ozz::sample::Mesh& mesh = meshes_[m];
+        for (size_t i = 0; i < mesh.joint_remaps.size(); ++i) {
+          skinning_matrices_[i] =
+              models_[mesh.joint_remaps[i]] * mesh.inverse_bind_poses[i];
+        }
 
-      success &= _renderer->DrawSkinnedMesh(
-          mesh_, make_range(skinning_matrices_), offseted_root);
+        success &= _renderer->DrawSkinnedMesh(
+            mesh, make_range(skinning_matrices_), offseted_root);
+      }
     } else {
       success &=
           _renderer->DrawPosture(skeleton_, make_range(models_), offseted_root);
@@ -456,16 +459,19 @@ class FootIKSampleApplication : public ozz::sample::Application {
     }
 
     // Reading character mesh.
-    if (!ozz::sample::LoadMesh(OPTIONS_mesh, &mesh_)) {
+    if (!ozz::sample::LoadMeshes(OPTIONS_mesh, &meshes_)) {
       return false;
     }
 
     // The number of joints of the mesh needs to match skeleton.
-    if (num_joints < mesh_.highest_joint_index()) {
-      ozz::log::Err() << "The provided mesh doesn't match skeleton "
-                         "(joint count mismatch)."
-                      << std::endl;
-      return false;
+    for (size_t m = 0; m < meshes_.size(); ++m) {
+      const ozz::sample::Mesh& mesh = meshes_[m];
+      if (num_joints < mesh.highest_joint_index()) {
+        ozz::log::Err() << "The provided mesh doesn't match skeleton "
+                           "(joint count mismatch)."
+                        << std::endl;
+        return false;
+      }
     }
     skinning_matrices_.resize(num_joints);
 
@@ -578,7 +584,7 @@ class FootIKSampleApplication : public ozz::sample::Application {
   ozz::Vector<ozz::math::Float4x4>::Std skinning_matrices_;
 
   // The mesh used by the sample.
-  ozz::sample::Mesh mesh_;
+  ozz::Vector<ozz::sample::Mesh>::Std meshes_;
 
   enum { kLeft, kRight };
   enum { kLegsCount = 2 };
