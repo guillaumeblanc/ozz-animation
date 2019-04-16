@@ -201,6 +201,14 @@ bool RayIntersectsMesh(const ozz::math::Float3& _ray_origin,
                        const ozz::sample::Mesh& _mesh,
                        ozz::math::Float3* _intersect,
                        ozz::math::Float3* _normal);
+
+// Intersect _meshes with the half-line extending from _ray_origin indefinitely
+// in _ray_direction only. See RayIntersectsMesh.
+bool RayIntersectsMeshes(const ozz::math::Float3& _ray_origin,
+                         const ozz::math::Float3& _ray_direction,
+                         const ozz::Range<const ozz::sample::Mesh>& _meshes,
+                         ozz::math::Float3* _intersect,
+                         ozz::math::Float3* _normal);
 }  // namespace sample
 }  // namespace ozz
 #endif  // OZZ_SAMPLES_FRAMEWORK_UTILS_H_

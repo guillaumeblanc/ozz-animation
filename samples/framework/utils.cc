@@ -418,6 +418,7 @@ bool LoadMeshes(const char* _filename,
   return true;
 }
 
+namespace {
 // Moller–Trumbore intersection algorithm
 // https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm
 bool RayIntersectsTriangle(const ozz::math::Float3& _ray_origin,
@@ -468,6 +469,7 @@ bool RayIntersectsTriangle(const ozz::math::Float3& _ray_origin,
     return false;
   }
 }
+}  // namespace
 
 bool RayIntersectsMesh(const ozz::math::Float3& _ray_origin,
                        const ozz::math::Float3& _ray_direction,
@@ -487,6 +489,21 @@ bool RayIntersectsMesh(const ozz::math::Float3& _ray_origin,
                               ozz::math::Float3(pf1[0], pf1[1], pf1[2]),
                               ozz::math::Float3(pf2[0], pf2[1], pf2[2]),
                               _intersect, _normal)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool RayIntersectsMeshes(const ozz::math::Float3& _ray_origin,
+                         const ozz::math::Float3& _ray_direction,
+                         const ozz::Range<const ozz::sample::Mesh>& _meshes,
+                         ozz::math::Float3* _intersect,
+                         ozz::math::Float3* _normal) {
+  for (size_t i = 0; i < _meshes.count(); ++i) {
+    bool intersect = RayIntersectsMesh(_ray_origin, _ray_direction, _meshes[i],
+                                       _intersect, _normal);
+    if (intersect) {
       return true;
     }
   }
