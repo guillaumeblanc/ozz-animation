@@ -97,8 +97,8 @@ class FootIKSampleApplication : public ozz::sample::Application {
  public:
   FootIKSampleApplication()
       : pelvis_offset(0.f, 0.f, 0.f),
-        root_translation_(1.f, 2.f, 0.f),
-        root_yaw_(0.f),
+        root_translation_(5.1f, 2.f, -2.1f),
+        root_yaw_(1.f),
         foot_heigh_(.12f),
         auto_character_height_(true),
         pelvis_correction_(true),
