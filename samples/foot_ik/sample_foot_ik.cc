@@ -96,10 +96,12 @@ const ozz::math::Float3 height_offset(0.f, .5f, 0.f);
 class FootIKSampleApplication : public ozz::sample::Application {
  public:
   FootIKSampleApplication()
-      : pelvis_offset(0.f, 0.f, 0.f),
+      : pelvis_offset_(0.f, 0.f, 0.f),
         root_translation_(5.1f, 2.f, -2.1f),
         root_yaw_(1.f),
         foot_heigh_(.12f),
+        weight_(1.f),
+        soften_(1.f),
         auto_character_height_(true),
         pelvis_correction_(true),
         two_bone_ik_(true),
@@ -160,7 +162,7 @@ class FootIKSampleApplication : public ozz::sample::Application {
       const LegSetup& leg = legs_setup_[l];
 
       // TODO target was computed before pelvis is offseted
-      const ozz::math::Float3 target(ankles_target_ws[l] - pelvis_offset);
+      const ozz::math::Float3 target(ankles_target_ws[l] - pelvis_offset_);
       if (two_bone_ik_ && !ApplyLegTwoBoneIK(leg, target, inv_root)) {
         return false;
       }
@@ -193,6 +195,7 @@ class FootIKSampleApplication : public ozz::sample::Application {
     }
 
     // Raycast down from the current position to find character height.
+    // Updates root translation as output.
     ozz::sample::RayIntersectsMeshes(root_translation_ + height_offset, down,
                                      make_range(floors_), &root_translation_,
                                      NULL);
@@ -257,7 +260,7 @@ class FootIKSampleApplication : public ozz::sample::Application {
   }
 
   void UpdatePelvisOffset(ozz::math::Float3* _ankles_target_ws) {
-    pelvis_offset = ozz::math::Float3(0.f, 0.f, 0.f);
+    pelvis_offset_ = ozz::math::Float3(0.f, 0.f, 0.f);
 
     // Recomputes pelvis offset.
     // Strategy is to move the pelvis along "down" axis (ray axis), enough for
@@ -281,7 +284,7 @@ class FootIKSampleApplication : public ozz::sample::Application {
 
           // Compute offset using the maximum displacement that the legs should
           // have to touch ground.
-          pelvis_offset = down * dot;
+          pelvis_offset_ = down * dot;
         }
       }
     }
@@ -299,9 +302,8 @@ class FootIKSampleApplication : public ozz::sample::Application {
     ik_job.target = target_ms;
     ik_job.pole_vector = pole_vector_ms;
     ik_job.mid_axis = ozz::math::simd_float4::z_axis();
-    // ik_job.weight = weight_;
-    // ik_job.soften = soften_;
-    // ik_job.twist_angle = twist_angle_;
+    ik_job.weight = weight_;
+    ik_job.soften = soften_;
     ik_job.start_joint = &models_[_leg.hip];
     ik_job.mid_joint = &models_[_leg.knee];
     ik_job.end_joint = &models_[_leg.ankle];
@@ -309,7 +311,6 @@ class FootIKSampleApplication : public ozz::sample::Application {
     ik_job.start_joint_correction = &start_correction;
     ozz::math::SimdQuaternion mid_correction;
     ik_job.mid_joint_correction = &mid_correction;
-    // ik_job.reached = &reached;
     if (!ik_job.Run()) {
       return false;
     }
@@ -332,9 +333,9 @@ class FootIKSampleApplication : public ozz::sample::Application {
     ik_job.up = ozz::math::simd_float4::y_axis();
     ik_job.pole_vector = models_[_leg.ankle].cols[1];
     ik_job.joint = &models_[_leg.ankle];
+    ik_job.weight = weight_;
     ozz::math::SimdQuaternion correction;
     ik_job.joint_correction = &correction;
-    // ik_job.reached = &reached;
     if (!ik_job.Run()) {
       return false;
     }
@@ -546,6 +547,10 @@ class FootIKSampleApplication : public ozz::sample::Application {
     {
       sprintf(txt, "Foot height %.2g", foot_heigh_);
       _im_gui->DoSlider(txt, 0.f, .3f, &foot_heigh_);
+      sprintf(txt, "Weight %.2g", weight_);
+      _im_gui->DoSlider(txt, 0.f, 1.f, &weight_);
+      sprintf(txt, "Soften %.2g", soften_);
+      _im_gui->DoSlider(txt, 0.f, 1.f, &soften_, 1.f, two_bone_ik_);
     }
 
     // Options
@@ -578,7 +583,7 @@ class FootIKSampleApplication : public ozz::sample::Application {
     }
 
     const ozz::math::Float3 offseted_translation =
-        pelvis_offset + root_translation_;
+        pelvis_offset_ + root_translation_;
 
     return ozz::math::Float4x4::Translation(
                ozz::math::simd_float4::Load3PtrU(&offseted_translation.x)) *
@@ -621,7 +626,7 @@ class FootIKSampleApplication : public ozz::sample::Application {
 
   LegRayInfo capsule;
 
-  ozz::math::Float3 pelvis_offset;
+  ozz::math::Float3 pelvis_offset_;
 
   // The floor meshes used by the sample.
   ozz::Vector<ozz::sample::Mesh>::Std floors_;
@@ -633,10 +638,14 @@ class FootIKSampleApplication : public ozz::sample::Application {
   // Foot height setting
   float foot_heigh_;
 
+  float weight_;
+  float soften_;
+
   bool auto_character_height_;
   bool pelvis_correction_;
   bool two_bone_ik_;
   bool aim_ik_;
+
 
   bool show_skin_;
   bool show_joints_;
