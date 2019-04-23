@@ -274,7 +274,7 @@ class FootIKSampleApplication : public ozz::sample::Application {
     // Strategy is to move the pelvis along "down" axis (ray axis), enough for
     // the foot lowest from its original position to touch the floor. The other
     // foot will be ik-ed.
-    float max_dot = std::numeric_limits<float>::lowest();
+    float max_dot = -std::numeric_limits<float>::max();
     if (pelvis_correction_) {
       for (size_t l = 0; l < kLegsCount; ++l) {
         const LegRayInfo& ray = rays_info_[l];
