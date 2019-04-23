@@ -91,7 +91,8 @@ struct LegRayInfo {
 
 // TODO
 const ozz::math::Float3 down(0.f, -1.f, 0.f);
-const ozz::math::Float3 height_offset(0.f, .5f, 0.f);
+const ozz::math::Float3 character_height_offset(0.f, 10.f, 0.f);
+const ozz::math::Float3 foot_height_offset(0.f, .5f, 0.f);
 
 class FootIKSampleApplication : public ozz::sample::Application {
  public:
@@ -109,6 +110,7 @@ class FootIKSampleApplication : public ozz::sample::Application {
         show_skin_(true),
         show_joints_(false),
         show_raycast_(false),
+        show_ankle_target_(false),
         show_root_(false),
         show_offseted_root_(false) {}
 
@@ -147,10 +149,9 @@ class FootIKSampleApplication : public ozz::sample::Application {
     RaycastLegs(root);
 
     // TODO
-    ozz::math::Float3 ankles_target_ws[kLegsCount];
-    UpdateAnklesTarget(ankles_target_ws);
+    UpdateAnklesTarget();
 
-    UpdatePelvisOffset(ankles_target_ws);
+    UpdatePelvisOffset();
 
     // Perform IK
     for (size_t l = 0; l < kLegsCount; ++l) {
@@ -162,12 +163,15 @@ class FootIKSampleApplication : public ozz::sample::Application {
       const LegSetup& leg = legs_setup_[l];
 
       // TODO target was computed before pelvis is offseted
-      const ozz::math::Float3 target(ankles_target_ws[l] - pelvis_offset_);
+      const ozz::math::Float3 target(ankles_target_ws_[l] - pelvis_offset_);
       if (two_bone_ik_ && !ApplyLegTwoBoneIK(leg, target, inv_root)) {
         return false;
       }
 
       // TODO comment
+
+      // Update will go from hip to ankle. Ankle's siblings might no be updated
+      // as local-to-model will stop as soon as ankle joint is reached.
       ltm_job.from = leg.hip;
       ltm_job.to = leg.ankle;
       if (!ltm_job.Run()) {
@@ -179,7 +183,11 @@ class FootIKSampleApplication : public ozz::sample::Application {
       }
 
       // TODO comment
-      ltm_job.from = leg.ankle;
+
+      // Ankle has already been updated, but its siblings (or it's parent
+      // siblings) might are not. So we must local-to-model update must be
+      // complete starting from hip.
+      ltm_job.from = leg.hip;
       ltm_job.to = ozz::animation::Skeleton::kMaxJoints;
       if (!ltm_job.Run()) {
         return false;
@@ -196,7 +204,7 @@ class FootIKSampleApplication : public ozz::sample::Application {
 
     // Raycast down from the current position to find character height.
     // Updates root translation as output.
-    ozz::sample::RayIntersectsMeshes(root_translation_ + height_offset, down,
+    ozz::sample::RayIntersectsMeshes(root_translation_ + character_height_offset, down,
                                      make_range(floors_), &root_translation_,
                                      NULL);
   }
@@ -213,7 +221,7 @@ class FootIKSampleApplication : public ozz::sample::Application {
                             &ankles_ws.x);
 
       // Builds ray.
-      ray.start = ankles_ws + height_offset;
+      ray.start = ankles_ws + foot_height_offset;
       ray.dir = down;
 
       // Raycast
@@ -223,7 +231,7 @@ class FootIKSampleApplication : public ozz::sample::Application {
     }
   }
 
-  void UpdateAnklesTarget(ozz::math::Float3* _ankles_target_ws) {
+  void UpdateAnklesTarget() {
     for (size_t l = 0; l < kLegsCount; ++l) {
       const LegRayInfo& ray = rays_info_[l];
       if (!ray.hit) {
@@ -248,18 +256,18 @@ class FootIKSampleApplication : public ozz::sample::Application {
       // TODO B is at raycast hit_point position
       // Recompute finale ankle position in world space.
       if (HBl <= 0.f) {
-        _ankles_target_ws[l] = ray.hit_point + ray.hit_normal * foot_heigh_;
+        ankles_target_ws_[l] = ray.hit_point + ray.hit_normal * foot_heigh_;
       } else {
         // Thales....
         const float HCl = HBl * foot_heigh_ / proj_dist;
         const ozz::math::Float3 HC = HB * (HCl / HBl);
         const ozz::math::Float3 C = ray.hit_point - HC;  // sign !!!!
-        _ankles_target_ws[l] = C + ray.hit_normal * foot_heigh_;
+        ankles_target_ws_[l] = C + ray.hit_normal * foot_heigh_;
       }
     }
   }
 
-  void UpdatePelvisOffset(ozz::math::Float3* _ankles_target_ws) {
+  void UpdatePelvisOffset() {
     pelvis_offset_ = ozz::math::Float3(0.f, 0.f, 0.f);
 
     // Recomputes pelvis offset.
@@ -274,9 +282,9 @@ class FootIKSampleApplication : public ozz::sample::Application {
           continue;
         }
 
-        const ozz::math::Float3 ankle = ray.start - height_offset;
+        const ozz::math::Float3 ankle = ray.start - foot_height_offset;
         const ozz::math::Float3 ankle_to_target =
-            _ankles_target_ws[l] - ankle;  // TODO ray.hit_point <- target
+            ankles_target_ws_[l] - ankle;  // TODO ray.hit_point <- target
 
         const float dot = Dot(ankle_to_target, down);
         if (dot > max_dot) {
@@ -348,6 +356,9 @@ class FootIKSampleApplication : public ozz::sample::Application {
 
   // Samples animation, transforms to model space and renders.
   virtual bool OnDisplay(ozz::sample::Renderer* _renderer) {
+    const float kAxeScale = .1f;
+    const ozz::math::Float4x4 kAxesScale =
+        ozz::math::Float4x4::Scaling(ozz::math::simd_float4::Load1(kAxeScale));
     const ozz::math::Float4x4 identity = ozz::math::Float4x4::identity();
 
     bool success = true;
@@ -384,10 +395,6 @@ class FootIKSampleApplication : public ozz::sample::Application {
 
     // Showing joints
     if (show_joints_) {
-      const float kAxeScale = .1f;
-      const ozz::math::Float4x4 kAxesScale = ozz::math::Float4x4::Scaling(
-          ozz::math::simd_float4::Load1(kAxeScale));
-
       for (size_t l = 0; l < kLegsCount; ++l) {
         const LegSetup& leg = legs_setup_[l];
         for (size_t i = 0; i < 3; ++i) {
@@ -415,6 +422,19 @@ class FootIKSampleApplication : public ozz::sample::Application {
           const ozz::sample::Renderer::Color color = {0xff, 0xff, 0xff, 0xff};
           success &= _renderer->DrawSegment(
               ray.start, ray.start + ray.dir * 10.f, color, identity);
+        }
+      }
+    }
+
+    // Shows two bone ik ankle target
+    if (show_ankle_target_) {
+      for (size_t l = 0; l < kLegsCount; ++l) {
+        const LegRayInfo& ray = rays_info_[l];
+        if (ray.hit) {
+          const ozz::math::Float4x4& transform =
+              ozz::math::Float4x4::Translation(
+                  ozz::math::simd_float4::Load3PtrU(&ankles_target_ws_[l].x));
+          success &= _renderer->DrawAxes(transform * kAxesScale);
         }
       }
     }
@@ -532,7 +552,8 @@ class FootIKSampleApplication : public ozz::sample::Application {
         sprintf(txt, "x %.2g", root_translation_.x);
         _im_gui->DoSlider(txt, -10.f, 10.f, &root_translation_.x);
         sprintf(txt, "y %.2g", root_translation_.y);
-        _im_gui->DoSlider(txt, -1.f, 3.f, &root_translation_.y);
+        _im_gui->DoSlider(txt, -1.f, 3.f, &root_translation_.y, 1.,
+                          !auto_character_height_);
         sprintf(txt, "z %.2g", root_translation_.z);
         _im_gui->DoSlider(txt, -10.f, 10.f, &root_translation_.z);
 
@@ -558,6 +579,7 @@ class FootIKSampleApplication : public ozz::sample::Application {
       _im_gui->DoCheckBox("Show skin", &show_skin_);
       _im_gui->DoCheckBox("Show joints", &show_joints_);
       _im_gui->DoCheckBox("Show raycasts", &show_raycast_);
+      _im_gui->DoCheckBox("Show ankle target", &show_ankle_target_);
       _im_gui->DoCheckBox("Show root", &show_root_);
       _im_gui->DoCheckBox("Show offseted root", &show_offseted_root_);
     }
@@ -623,6 +645,7 @@ class FootIKSampleApplication : public ozz::sample::Application {
 
   LegSetup legs_setup_[kLegsCount];
   LegRayInfo rays_info_[kLegsCount];
+  ozz::math::Float3 ankles_target_ws_[kLegsCount];
 
   LegRayInfo capsule;
 
@@ -646,10 +669,10 @@ class FootIKSampleApplication : public ozz::sample::Application {
   bool two_bone_ik_;
   bool aim_ik_;
 
-
   bool show_skin_;
   bool show_joints_;
   bool show_raycast_;
+  bool show_ankle_target_;
   bool show_root_;
   bool show_offseted_root_;
 };
