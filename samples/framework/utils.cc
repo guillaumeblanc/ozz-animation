@@ -457,12 +457,8 @@ bool RayIntersectsTriangle(const ozz::math::Float3& _ray_origin,
   const float t = Dot(edge2, q) * inv_a;
 
   if (t > kEpsilon) {  // Ray intersection
-    if (_intersect) {
-      *_intersect = _ray_origin + _ray_direction * t;
-    }
-    if (_normal) {
-      *_normal = Normalize(Cross(edge1, edge2));
-    }
+    *_intersect = _ray_origin + _ray_direction * t;
+    *_normal = Normalize(Cross(edge1, edge2));
     return true;
   } else {  // This means that there is a line intersection but not a ray
             // intersection.
@@ -478,21 +474,40 @@ bool RayIntersectsMesh(const ozz::math::Float3& _ray_origin,
                        ozz::math::Float3* _normal) {
   assert(_mesh.parts.size() == 1 && !_mesh.skinned());
 
+  bool intersected = false;
+  ozz::math::Float3 intersect, normal;
   const float* vertices = array_begin(_mesh.parts[0].positions);
   const uint16_t* indices = array_begin(_mesh.triangle_indices);
   for (int i = 0; i < _mesh.triangle_index_count(); i += 3) {
     const float* pf0 = vertices + indices[i + 0] * 3;
     const float* pf1 = vertices + indices[i + 1] * 3;
     const float* pf2 = vertices + indices[i + 2] * 3;
+    ozz::math::Float3 lcl_intersect, lcl_normal;
     if (RayIntersectsTriangle(_ray_origin, _ray_direction,
                               ozz::math::Float3(pf0[0], pf0[1], pf0[2]),
                               ozz::math::Float3(pf1[0], pf1[1], pf1[2]),
                               ozz::math::Float3(pf2[0], pf2[1], pf2[2]),
-                              _intersect, _normal)) {
-      return true;
+                              &lcl_intersect, &lcl_normal)) {
+      // Is it closer to start point than the previous intersection.
+      if (!intersected || LengthSqr(lcl_intersect - _ray_origin) <
+                              LengthSqr(intersect - _ray_origin)) {
+        intersect = lcl_intersect;
+        normal = lcl_normal;
+      }
+      intersected = true;
     }
   }
-  return false;
+
+  // Copy output
+  if (intersected) {
+    if (_intersect) {
+      *_intersect = intersect;
+    }
+    if (_normal) {
+      *_normal = normal;
+    }
+  }
+  return intersected;
 }
 
 bool RayIntersectsMeshes(const ozz::math::Float3& _ray_origin,
@@ -500,14 +515,32 @@ bool RayIntersectsMeshes(const ozz::math::Float3& _ray_origin,
                          const ozz::Range<const ozz::sample::Mesh>& _meshes,
                          ozz::math::Float3* _intersect,
                          ozz::math::Float3* _normal) {
+  bool intersected = false;
+  ozz::math::Float3 intersect, normal;
   for (size_t i = 0; i < _meshes.count(); ++i) {
-    bool intersect = RayIntersectsMesh(_ray_origin, _ray_direction, _meshes[i],
-                                       _intersect, _normal);
-    if (intersect) {
-      return true;
+    ozz::math::Float3 lcl_intersect, lcl_normal;
+    if (RayIntersectsMesh(_ray_origin, _ray_direction, _meshes[i],
+                          &lcl_intersect, &lcl_normal)) {
+      // Is it closer to start point than the previous intersection.
+      if (!intersected || LengthSqr(lcl_intersect - _ray_origin) <
+                              LengthSqr(intersect - _ray_origin)) {
+        intersect = lcl_intersect;
+        normal = lcl_normal;
+      }
+      intersected = true;
     }
   }
-  return false;
+
+  // Copy output
+  if (intersected) {
+    if (_intersect) {
+      *_intersect = intersect;
+    }
+    if (_normal) {
+      *_normal = normal;
+    }
+  }
+  return intersected;
 }
 }  // namespace sample
 }  // namespace ozz

@@ -194,8 +194,8 @@ bool LoadMeshes(const char* _filename,
 
 // Intersect _mesh with the half-line extending from _ray_origin indefinitely in
 // _ray_direction only. Returns true if there was an intersection. Fills
-// intersection point and normal if provided, with the first intersecting
-// triangle. Only supports non-skinned, single part meshes.
+// intersection point and normal if provided, with the closest intersecting
+// triangle from _ray_origin. Only supports non-skinned, single part meshes.
 bool RayIntersectsMesh(const ozz::math::Float3& _ray_origin,
                        const ozz::math::Float3& _ray_direction,
                        const ozz::sample::Mesh& _mesh,
