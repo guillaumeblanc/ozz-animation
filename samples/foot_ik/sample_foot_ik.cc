@@ -195,12 +195,11 @@ class FootIKSampleApplication : public ozz::sample::Application {
       LegRayInfo& ray = rays_info_[l];
 
       // Finds ankle world space position
-      ozz::math::Float3 ankles_ws;
       ozz::math::Store3PtrU(TransformPoint(_root, models_[leg.ankle].cols[3]),
-                            &ankles_ws.x);
+                            &ankles_target_ws_[l].x);
 
       // Builds ray.
-      ray.start = ankles_ws + foot_height_offset;
+      ray.start = ankles_target_ws_[l] + foot_height_offset;
       ray.dir = down;
 
       // Raycast
@@ -283,7 +282,7 @@ class FootIKSampleApplication : public ozz::sample::Application {
     return true;
   }
 
-  bool UpdateFootIK(const ozz::math::Float4x4 _root) {
+  bool UpdateFootIK(const ozz::math::Float4x4& _root) {
     const ozz::math::Float4x4 inv_root = Invert(_root);
 
     ozz::animation::LocalToModelJob ltm_job;
