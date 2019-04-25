@@ -87,7 +87,7 @@ void DisplaysOptimizationstatistics(const RawAnimation& _non_optimized,
   float scale_ratio =
       non_opt_scales != 0 ? 100.f * opt_scales / non_opt_scales : 0;
 
-  ozz::log::LogV() << "Optimization stage results (\% of remaining keys):"
+  ozz::log::LogV() << "Optimization stage results (% of remaining keys):"
                    << std::endl;
   ozz::log::LogV() << " - Translations: " << translation_ratio << "%"
                    << std::endl;
