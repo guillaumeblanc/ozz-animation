@@ -64,7 +64,8 @@ struct Quaternion {
   // Returns a normalized quaternion initialized from an Euler representation.
   // Euler angles are ordered Heading, Elevation and Bank, or Yaw, Pitch and
   // Roll.
-  static OZZ_INLINE Quaternion FromEuler(const Float3& _euler);
+  static OZZ_INLINE Quaternion FromEuler(const float& _yaw, float _pitch,
+                                         float _roll);
 
   // Returns the quaternion that will rotate vector _from into vector _to,
   // around their plan perpendicular axis.The input vectors don't need to be
@@ -202,14 +203,17 @@ OZZ_INLINE Float4 ToAxisAngle(const Quaternion& _q) {
   }
 }
 
-OZZ_INLINE Quaternion Quaternion::FromEuler(const Float3& _euler) {
-  const Float3 half_euler = _euler * .5f;
-  const float c1 = std::cos(half_euler.x);
-  const float s1 = std::sin(half_euler.x);
-  const float c2 = std::cos(half_euler.y);
-  const float s2 = std::sin(half_euler.y);
-  const float c3 = std::cos(half_euler.z);
-  const float s3 = std::sin(half_euler.z);
+OZZ_INLINE Quaternion Quaternion::FromEuler(const float& _yaw, float _pitch,
+                                            float _roll) {
+  const float half_yaw = _yaw * .5f;
+  const float c1 = std::cos(half_yaw);
+  const float s1 = std::sin(half_yaw);
+  const float half_pitch = _pitch * .5f;
+  const float c2 = std::cos(half_pitch);
+  const float s2 = std::sin(half_pitch);
+  const float half_roll = _roll * .5f;
+  const float c3 = std::cos(half_roll);
+  const float s3 = std::sin(half_roll);
   const float c1c2 = c1 * c2;
   const float s1s2 = s1 * s2;
   return Quaternion(c1c2 * s3 + s1s2 * c3, s1 * c2 * c3 + c1 * s2 * s3,

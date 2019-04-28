@@ -76,8 +76,8 @@ class AnimationOptimizer {
   float scale_tolerance;
 
   // Hierarchical translation optimization tolerance, ie: the maximum error
-  // (distance) that an optimization on a joint is allowed to generate on its
-  // whole child hierarchy.
+  // (distance) that an optimization is allowed to generate on a whole joint
+  // hierarchy.
   float hierarchical_tolerance;
 };
 }  // namespace offline

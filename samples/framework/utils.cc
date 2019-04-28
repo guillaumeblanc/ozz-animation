@@ -176,8 +176,9 @@ bool OnRawSkeletonJointGui(
       euler_modified |= _im_gui->DoSlider(txt, -180.f, 180.f, &euler.z);
       if (euler_modified) {
         modified = true;
-        rotation = ozz::math::Quaternion::FromEuler(euler *
-                                                    ozz::math::kDegreeToRadian);
+        ozz::math::Float3 euler_rad = euler * ozz::math::kDegreeToRadian;
+        rotation = ozz::math::Quaternion::FromEuler(euler_rad.x, euler_rad.y,
+                                                    euler_rad.z);
       }
 
       // Scale (must be uniform and not 0)

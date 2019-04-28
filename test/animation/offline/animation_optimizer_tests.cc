@@ -39,10 +39,10 @@
 #include "ozz/animation/runtime/skeleton.h"
 
 using ozz::animation::Skeleton;
+using ozz::animation::offline::AnimationOptimizer;
+using ozz::animation::offline::RawAnimation;
 using ozz::animation::offline::RawSkeleton;
 using ozz::animation::offline::SkeletonBuilder;
-using ozz::animation::offline::RawAnimation;
-using ozz::animation::offline::AnimationOptimizer;
 
 TEST(Error, AnimationOptimizer) {
   AnimationOptimizer optimizer;
@@ -173,14 +173,14 @@ TEST(Optimize, AnimationOptimizer) {
   }
   {
     RawAnimation::RotationKey key = {
-        .5f, ozz::math::Quaternion::FromEuler(
-                 ozz::math::Float3(1.1f * ozz::math::kPi / 180.f, 0, 0))};
+        .5f,
+        ozz::math::Quaternion::FromEuler(1.1f * ozz::math::kPi / 180.f, 0, 0)};
     input.tracks[0].rotations.push_back(key);
   }
   {
     RawAnimation::RotationKey key = {
-        1.f, ozz::math::Quaternion::FromEuler(
-                 ozz::math::Float3(2.f * ozz::math::kPi / 180.f, 0, 0))};
+        1.f,
+        ozz::math::Quaternion::FromEuler(2.f * ozz::math::kPi / 180.f, 0, 0)};
     input.tracks[0].rotations.push_back(key);
   }
 
@@ -190,6 +190,11 @@ TEST(Optimize, AnimationOptimizer) {
   {
     optimizer.translation_tolerance = 0.f;
     optimizer.rotation_tolerance = 0.f;
+    optimizer.scale_tolerance = 0.f;
+
+    // Disables hierarchical tolerance.
+    optimizer.hierarchical_tolerance = 1e9f;
+
     RawAnimation output;
     ASSERT_TRUE(optimizer(input, *skeleton, &output));
     EXPECT_EQ(output.num_tracks(), 1);
@@ -247,145 +252,298 @@ TEST(OptimizeHierarchical, AnimationOptimizer) {
   raw_skeleton.roots.resize(1);
   raw_skeleton.roots[0].children.resize(1);
   raw_skeleton.roots[0].children[0].children.resize(1);
+  raw_skeleton.roots[0].children[0].children[0].children.resize(2);
   SkeletonBuilder skeleton_builder;
   Skeleton* skeleton = skeleton_builder(raw_skeleton);
   ASSERT_TRUE(skeleton != NULL);
 
+  // Disable non hierarchical optimizations
   AnimationOptimizer optimizer;
+  optimizer.translation_tolerance = 1e9f;
+  optimizer.rotation_tolerance = 1e9f;
+  optimizer.scale_tolerance = 1e9f;
 
   RawAnimation input;
   input.duration = 1.f;
-  input.tracks.resize(3);
+  input.tracks.resize(5);
 
   // Translations on track 0.
   {
+    RawAnimation::TranslationKey key = {0.f, ozz::math::Float3(4.f, 0.f, 0.f)};
+    input.tracks[0].translations.push_back(key);
+  }
+
+  // Translations on track 1.
+  {
     RawAnimation::TranslationKey key = {0.f, ozz::math::Float3(0.f, 0.f, 0.f)};
-    input.tracks[0].translations.push_back(key);
-  }
-  {
-    RawAnimation::TranslationKey key = {.1f, ozz::math::Float3(1.f, 0.f, 0.f)};
-    input.tracks[0].translations.push_back(key);
-  }
-  {
-    RawAnimation::TranslationKey key = {.2f, ozz::math::Float3(2.f, 0.f, 0.f)};
-    input.tracks[0].translations.push_back(key);
-  }
-  {
-    RawAnimation::TranslationKey key = {
-        .3f, ozz::math::Float3(3.0009f, 0.f, 0.f)};  // Creates an error.
-    input.tracks[0].translations.push_back(key);
-  }
-  {
-    RawAnimation::TranslationKey key = {.4f, ozz::math::Float3(4.f, 0.f, 0.f)};
-    input.tracks[0].translations.push_back(key);
+    input.tracks[1].translations.push_back(key);
   }
 
-  // Rotations on track 0.
+  // Translations on track 2.
   {
-    RawAnimation::RotationKey key = {
-        0.f,
-        ozz::math::Quaternion::FromEuler(ozz::math::Float3(0.f, 0.f, 0.f))};
-    input.tracks[0].rotations.push_back(key);
+    RawAnimation::TranslationKey key = {0.f, ozz::math::Float3(5.f, 0.f, 0.f)};
+    input.tracks[2].translations.push_back(key);
   }
   {
-    RawAnimation::RotationKey key = {
-        .1f, -ozz::math::Quaternion::FromEuler(
-                 ozz::math::Float3(ozz::math::kPi_4, 0.f, 0.f))};
-    input.tracks[0].rotations.push_back(key);
+    RawAnimation::TranslationKey key = {.1f, ozz::math::Float3(6.f, 0.f, 0.f)};
+    input.tracks[2].translations.push_back(key);
+  }
+  {  // Creates an variation.
+    RawAnimation::TranslationKey key = {.2f, ozz::math::Float3(7.1f, 0.f, 0.f)};
+    input.tracks[2].translations.push_back(key);
   }
   {
-    RawAnimation::RotationKey key = {
-        .2f, ozz::math::Quaternion::FromEuler(
-                 ozz::math::Float3(ozz::math::kPi_2, 0.f, 0.f))};
-    input.tracks[0].rotations.push_back(key);
-  }
-  {
-    RawAnimation::RotationKey key = {
-        // Creates an error.
-        .3f, ozz::math::Quaternion::FromEuler(ozz::math::Float3(
-                 ozz::math::kPi_4 + ozz::math::kPi / 100.f, 0.f, 0.f))};
-    input.tracks[0].rotations.push_back(key);
-  }
-  {
-    RawAnimation::RotationKey key = {
-        .4f,
-        ozz::math::Quaternion::FromEuler(ozz::math::Float3(0.f, 0.f, 0.f))};
-    input.tracks[0].rotations.push_back(key);
-  }
-
-  // Scales on track 0.
-  {
-    RawAnimation::ScaleKey key = {0.f, ozz::math::Float3(0.f, 1.f, 1.f)};
-    input.tracks[0].scales.push_back(key);
-  }
-  {
-    RawAnimation::ScaleKey key = {.1f, ozz::math::Float3(1.f, 1.f, 1.f)};
-    input.tracks[0].scales.push_back(key);
-  }
-  {
-    RawAnimation::ScaleKey key = {.2f, ozz::math::Float3(2.f, 1.f, 1.f)};
-    input.tracks[0].scales.push_back(key);
-  }
-  {
-    RawAnimation::ScaleKey key = {.3f, ozz::math::Float3(3.001f, 1.f, 1.f)};
-    input.tracks[0].scales.push_back(key);
-  }
-  {
-    RawAnimation::ScaleKey key = {.4f, ozz::math::Float3(4.f, 1.f, 1.f)};
-    input.tracks[0].scales.push_back(key);
-  }
-
-  // Scales on track 1 have a big scale which impacts translation
-  // optimizations.
-  {
-    RawAnimation::ScaleKey key = {0.f, ozz::math::Float3(3.f, 3.f, 3.f)};
-    input.tracks[1].scales.push_back(key);
-  }
-
-  // Translations on track 2 have a big length which impacts rotation
-  // optimizations.
-  {
-    RawAnimation::TranslationKey key = {0.f, ozz::math::Float3(0.f, 0.f, 2.f)};
+    RawAnimation::TranslationKey key = {.3f, ozz::math::Float3(8.f, 0.f, 0.f)};
     input.tracks[2].translations.push_back(key);
   }
 
-  // Push a scale on track 2.
+  // Translations on track 3.
   {
-    RawAnimation::ScaleKey key = {0.f, ozz::math::Float3(2.f, 2.f, 2.f)};
-    input.tracks[2].scales.push_back(key);
+    RawAnimation::TranslationKey key = {0.f, ozz::math::Float3(16.f, 0.f, 0.f)};
+    input.tracks[3].translations.push_back(key);
+  }
+  // Translations on track 4.
+  {
+    RawAnimation::TranslationKey key = {0.f, ozz::math::Float3(32.f, 0.f, 0.f)};
+    input.tracks[4].translations.push_back(key);
   }
 
   ASSERT_TRUE(input.Validate());
 
-  // Builds animation with very default tolerance.
+  // Small translation tolerance -> all key maintained
   {
     RawAnimation output;
+    optimizer.hierarchical_tolerance = .01f;
     ASSERT_TRUE(optimizer(input, *skeleton, &output));
-    EXPECT_EQ(output.num_tracks(), 3);
+    EXPECT_EQ(output.num_tracks(), 5);
 
     const RawAnimation::JointTrack::Translations& translations =
-        output.tracks[0].translations;
+        output.tracks[2].translations;
     ASSERT_EQ(translations.size(), 4u);
     EXPECT_FLOAT_EQ(translations[0].time, 0.f);
-    EXPECT_FLOAT_EQ(translations[1].time, .2f);
-    EXPECT_FLOAT_EQ(translations[2].time, .3f);
-    EXPECT_FLOAT_EQ(translations[3].time, .4f);
+    EXPECT_FLOAT_EQ(translations[1].time, .1f);
+    EXPECT_FLOAT_EQ(translations[2].time, .2f);
+    EXPECT_FLOAT_EQ(translations[3].time, .3f);
+  }
+
+  // High translation tolerance -> all key interpolated
+  {
+    RawAnimation output;
+    optimizer.hierarchical_tolerance = .1f;
+    ASSERT_TRUE(optimizer(input, *skeleton, &output));
+    EXPECT_EQ(output.num_tracks(), 5);
+
+    const RawAnimation::JointTrack::Translations& translations =
+        output.tracks[2].translations;
+    ASSERT_EQ(translations.size(), 2u);
+    EXPECT_FLOAT_EQ(translations[0].time, 0.f);
+    EXPECT_FLOAT_EQ(translations[1].time, .3f);
+  }
+
+  // Introduces a 10x scaling upstream that amplifies error
+  // Scaling on track 0
+  {
+    RawAnimation::ScaleKey key = {0.f, ozz::math::Float3(10.f, 0.f, 0.f)};
+    input.tracks[0].scales.push_back(key);
+  }
+
+  // High translation tolerance -> keys aren't interpolated because of scale
+  // effect.
+  {
+    RawAnimation output;
+    optimizer.hierarchical_tolerance = .1f;
+    ASSERT_TRUE(optimizer(input, *skeleton, &output));
+    EXPECT_EQ(output.num_tracks(), 5);
+
+    const RawAnimation::JointTrack::Translations& translations =
+        output.tracks[2].translations;
+    ASSERT_EQ(translations.size(), 4u);
+  }
+
+  // Very high translation tolerance
+  {
+    RawAnimation output;
+    optimizer.hierarchical_tolerance = 1.f;
+    ASSERT_TRUE(optimizer(input, *skeleton, &output));
+    EXPECT_EQ(output.num_tracks(), 5);
+
+    const RawAnimation::JointTrack::Translations& translations =
+        output.tracks[2].translations;
+    ASSERT_EQ(translations.size(), 2u);
+  }
+
+  // Introduces a -10x scaling upstream that amplifies error
+  // Scaling on track 0
+  { input.tracks[0].scales[0].value = ozz::math::Float3(0.f, -10.f, 0.f);
+  }
+
+  // High translation tolerance -> keys aren't interpolated because of scale
+  // effect.
+  {
+    RawAnimation output;
+    optimizer.hierarchical_tolerance = .1f;
+    ASSERT_TRUE(optimizer(input, *skeleton, &output));
+    EXPECT_EQ(output.num_tracks(), 5);
+
+    const RawAnimation::JointTrack::Translations& translations =
+        output.tracks[2].translations;
+    ASSERT_EQ(translations.size(), 4u);
+    EXPECT_FLOAT_EQ(translations[0].time, 0.f);
+    EXPECT_FLOAT_EQ(translations[1].time, .1f);
+    EXPECT_FLOAT_EQ(translations[2].time, .2f);
+    EXPECT_FLOAT_EQ(translations[3].time, .3f);
+  }
+
+  // Very high translation tolerance
+  {
+    RawAnimation output;
+    optimizer.hierarchical_tolerance = 1.f;
+    ASSERT_TRUE(optimizer(input, *skeleton, &output));
+    EXPECT_EQ(output.num_tracks(), 5);
+
+    const RawAnimation::JointTrack::Translations& translations =
+        output.tracks[2].translations;
+    ASSERT_EQ(translations.size(), 2u);
+    EXPECT_FLOAT_EQ(translations[0].time, 0.f);
+    EXPECT_FLOAT_EQ(translations[1].time, .3f);
+  }
+
+  // Compenstate scale on next joint
+  {
+    RawAnimation::ScaleKey key = {0.f, ozz::math::Float3(.1f, 0.f, 0.f)};
+    input.tracks[1].scales.push_back(key);
+  }
+
+  // High translation tolerance -> keys ar interpolated because of scale
+  // compensation.
+  {
+    RawAnimation output;
+    optimizer.hierarchical_tolerance = 1.f;
+    ASSERT_TRUE(optimizer(input, *skeleton, &output));
+    EXPECT_EQ(output.num_tracks(), 5);
+
+    const RawAnimation::JointTrack::Translations& translations =
+        output.tracks[2].translations;
+    ASSERT_EQ(translations.size(), 2u);
+  }
+
+  // Remove scaling compensation
+  { input.tracks[1].scales.clear(); }
+
+  // Introduces a .1x scaling upstream that amplifies error
+  // Scaling on track 0
+  { input.tracks[0].scales[0].value = ozz::math::Float3(0.f, 0.f, .1f); }
+
+  // High translation tolerance -> keys aren't interpolated because of scale
+  // effect.
+  {
+    RawAnimation output;
+    optimizer.hierarchical_tolerance = .001f;
+    ASSERT_TRUE(optimizer(input, *skeleton, &output));
+    EXPECT_EQ(output.num_tracks(), 5);
+
+    const RawAnimation::JointTrack::Translations& translations =
+        output.tracks[2].translations;
+    ASSERT_EQ(translations.size(), 4u);
+    EXPECT_FLOAT_EQ(translations[0].time, 0.f);
+    EXPECT_FLOAT_EQ(translations[1].time, .1f);
+    EXPECT_FLOAT_EQ(translations[2].time, .2f);
+    EXPECT_FLOAT_EQ(translations[3].time, .3f);
+  }
+
+  // Very high translation tolerance
+  {
+    RawAnimation output;
+    optimizer.hierarchical_tolerance = .01f;
+    ASSERT_TRUE(optimizer(input, *skeleton, &output));
+    EXPECT_EQ(output.num_tracks(), 5);
+
+    const RawAnimation::JointTrack::Translations& translations =
+        output.tracks[2].translations;
+    ASSERT_EQ(translations.size(), 2u);
+    EXPECT_FLOAT_EQ(translations[0].time, 0.f);
+    EXPECT_FLOAT_EQ(translations[1].time, .3f);
+  }
+
+  // Remove scaling
+  { input.tracks[0].scales.clear(); }
+
+  // Rotations on track 0.
+  {
+    RawAnimation::RotationKey key = {
+        0.f, ozz::math::Quaternion::FromEuler(0.f, 0.f, 0.f)};
+    input.tracks[0].rotations.push_back(key);
+  }
+  { // Include error
+    const float angle_error = 2.5e-3f; // creates an arc of .1m at 40m.
+    RawAnimation::RotationKey key = {
+        .1f, ozz::math::Quaternion::FromEuler(ozz::math::kPi_4 + angle_error,
+                                              0.f, 0.f)};
+    input.tracks[0].rotations.push_back(key);
+  }
+  {
+    RawAnimation::RotationKey key = {
+        .2f, ozz::math::Quaternion::FromEuler(ozz::math::kPi_2, 0.f, 0.f)};
+    input.tracks[0].rotations.push_back(key);
+  }
+
+  // Big enough translation tolerance -> keys rejected
+  {
+    RawAnimation output;
+    optimizer.hierarchical_tolerance = .1f;
+    ASSERT_TRUE(optimizer(input, *skeleton, &output));
+    EXPECT_EQ(output.num_tracks(), 5);
 
     const RawAnimation::JointTrack::Rotations& rotations =
         output.tracks[0].rotations;
-    ASSERT_EQ(rotations.size(), 4u);
-    EXPECT_FLOAT_EQ(rotations[0].time, 0.f);
-    EXPECT_FLOAT_EQ(rotations[1].time, .2f);
-    EXPECT_FLOAT_EQ(rotations[2].time, .3f);
-    EXPECT_FLOAT_EQ(rotations[3].time, .4f);
+    ASSERT_EQ(rotations.size(), 2u);
 
-    const RawAnimation::JointTrack::Scales& scales = output.tracks[0].scales;
-    ASSERT_EQ(rotations.size(), 4u);
-    EXPECT_FLOAT_EQ(scales[0].time, 0.f);
-    EXPECT_FLOAT_EQ(scales[1].time, .2f);
-    EXPECT_FLOAT_EQ(scales[2].time, .3f);
-    EXPECT_FLOAT_EQ(scales[3].time, .4f);
+    const RawAnimation::JointTrack::Translations& translations =
+        output.tracks[2].translations;
+    ASSERT_EQ(translations.size(), 2u);
   }
+
+  // Small translation tolerance -> all key maintained
+  {
+    RawAnimation output;
+    optimizer.hierarchical_tolerance = .01f;
+    ASSERT_TRUE(optimizer(input, *skeleton, &output));
+    EXPECT_EQ(output.num_tracks(), 5);
+
+    const RawAnimation::JointTrack::Rotations& rotations =
+        output.tracks[0].rotations;
+    ASSERT_EQ(rotations.size(), 3u);
+
+    const RawAnimation::JointTrack::Translations& translations =
+        output.tracks[2].translations;
+    ASSERT_EQ(translations.size(), 4u);
+  }
+
+  // Introduces a .1x scaling upstream that lowers error
+  // Scaling on track 0
+  {
+    RawAnimation::ScaleKey key = {0.f, ozz::math::Float3(0.f, .1f, 0.f)};
+    input.tracks[1].scales.push_back(key);
+  }
+
+  // Small translation tolerance, but scaled down -> keys rejected
+  {
+    RawAnimation output;
+    optimizer.hierarchical_tolerance = .01f;
+    ASSERT_TRUE(optimizer(input, *skeleton, &output));
+    EXPECT_EQ(output.num_tracks(), 5);
+
+    const RawAnimation::JointTrack::Rotations& rotations =
+        output.tracks[0].rotations;
+    ASSERT_EQ(rotations.size(), 2u);
+
+    const RawAnimation::JointTrack::Translations& translations =
+        output.tracks[2].translations;
+    ASSERT_EQ(translations.size(), 2u);
+  }
+
+  // Remove scaling
+  { input.tracks[2].scales.clear(); }
 
   ozz::memory::default_allocator()->Delete(skeleton);
 }
