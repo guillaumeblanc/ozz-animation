@@ -55,9 +55,9 @@ namespace {
 
 struct HierarchyBuilder {
   HierarchyBuilder(const RawAnimation* _animation, const Skeleton* _skeleton)
-      : animation(_animation),
-        lengths(_animation->tracks.size()),
-        scales(_animation->tracks.size()) {
+      : lengths(_animation->tracks.size()),
+        scales(_animation->tracks.size()),
+        animation(_animation) {
     assert(_animation->num_tracks() == _skeleton->num_joints());
 
     // Computes hierarchycal scale, iterating skeleton forward (root to
@@ -124,6 +124,11 @@ struct HierarchyBuilder {
     // Leaf length is set to 0 during vector initialization.
   }
 
+  // Disables copy and assignment.
+  HierarchyBuilder(const HierarchyBuilder&);
+  void operator = (const HierarchyBuilder&);
+
+  // Targetted animation.
   const RawAnimation* animation;
 };
 
