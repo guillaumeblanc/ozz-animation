@@ -189,20 +189,19 @@ class FootIKSampleApplication : public ozz::sample::Application {
   }
 
   bool RaycastLegs(const ozz::math::Float4x4& _root) {
-    // TODO Raycast...
+    // Raycast down for each leg to find the intersection point with the floor.
     for (size_t l = 0; l < kLegsCount; ++l) {
       const LegSetup& leg = legs_setup_[l];
       LegRayInfo& ray = rays_info_[l];
 
       // Finds ankle world space position
+      // Updates at the same time ankles_target_ws_
       ozz::math::Store3PtrU(TransformPoint(_root, models_[leg.ankle].cols[3]),
                             &ankles_target_ws_[l].x);
 
-      // Builds ray.
+      // Builds ray, from ankle and going downward.
       ray.start = ankles_target_ws_[l] + foot_height_offset;
       ray.dir = down;
-
-      // Raycast
       ray.hit = ozz::sample::RayIntersectsMeshes(
           ray.start, ray.dir, make_range(floors_), &ray.hit_point,
           &ray.hit_normal);
@@ -211,6 +210,8 @@ class FootIKSampleApplication : public ozz::sample::Application {
     return true;
   }
 
+  // Comptutes ankle target position, so that the foot is in contact with the
+  // floor. This needs to consider slope angle (floor normal) and foot height.
   bool UpdateAnklesTarget() {
     for (size_t l = 0; l < kLegsCount; ++l) {
       const LegRayInfo& ray = rays_info_[l];
@@ -218,44 +219,52 @@ class FootIKSampleApplication : public ozz::sample::Application {
         continue;
       }
 
-      const ozz::math::Float3 dist_to_hit = ray.hit_point - ray.start;
-      const float proj_dist =
-          Dot(dist_to_hit, ray.hit_normal);  // ray.hit_normal is normalized
-
-      // ???? Perpandiclar to raycast normal
-      if (proj_dist == 0.f) {
+      // Computes projection of the ray AI (from start to floor intersection
+      // point) onto floor normal. This gives the length of segment AB.
+      // Note that ray.hit_normal is normalized already.
+      const float ABl = Dot(ray.start - ray.hit_point, ray.hit_normal);
+      if (ABl == 0.f) {
+        // Early out if the two are perpandicular.
         continue;
       }
 
-      const ozz::math::Float3 B =
-          ray.start + ray.hit_normal * proj_dist;  // sign !!!
+      // Knowing A, AB length and direction, we can compute B position.
+      const ozz::math::Float3 B = ray.start - ray.hit_normal * ABl;
 
-      const ozz::math::Float3 HB = B - ray.hit_point;
-      const float HBl = Length(HB);
+      // Computes sebgment IB and its length (IBl)
+      const ozz::math::Float3 IB = B - ray.hit_point;
+      const float IBl = Length(IB);
 
-      // TODO B is at raycast hit_point position
-      // Recompute finale ankle position in world space.
-      if (HBl <= 0.f) {
+      if (IBl <= 0.f) {
+        // If B is at raycast intersection (I), then we still need to update
+        // corrected ankle position (world-space) to take into account foot
+        // height.
         ankles_target_ws_[l] = ray.hit_point + ray.hit_normal * foot_heigh_;
       } else {
-        // Thales....
-        const float HCl = HBl * foot_heigh_ / proj_dist;
-        const ozz::math::Float3 HC = HB * (HCl / HBl);
-        const ozz::math::Float3 C = ray.hit_point - HC;  // sign !!!!
-        ankles_target_ws_[l] = C + ray.hit_normal * foot_heigh_;
+        // HC length is known (as foot height). So we're using Thales theorem to
+        // find H position.
+        const float IHl = IBl * foot_heigh_ / ABl;
+        const ozz::math::Float3 IH = IB * (IHl / IBl);
+        const ozz::math::Float3 H = ray.hit_point + IH;
+
+        // C (Corrected ankle) position can now be found.
+        const ozz::math::Float3 C = H + ray.hit_normal * foot_heigh_;
+
+        // Override ankle position with result.
+        ankles_target_ws_[l] = C;
       }
     }
 
     return true;
   }
 
+  // Recomputes pelvis offset.
+  // Strategy is to move the pelvis along "down" axis (ray axis), enough for
+  // the lowest foot (lowest from its original position) to touch the floor.
+  // The other foot will be ik-ed.
   bool UpdatePelvisOffset() {
     pelvis_offset_ = ozz::math::Float3(0.f, 0.f, 0.f);
 
-    // Recomputes pelvis offset.
-    // Strategy is to move the pelvis along "down" axis (ray axis), enough for
-    // the foot lowest from its original position to touch the floor. The other
-    // foot will be ik-ed.
     float max_dot = -std::numeric_limits<float>::max();
     if (pelvis_correction_) {
       for (size_t l = 0; l < kLegsCount; ++l) {
@@ -264,10 +273,11 @@ class FootIKSampleApplication : public ozz::sample::Application {
           continue;
         }
 
-        const ozz::math::Float3 ankle = ray.start - foot_height_offset;
-        const ozz::math::Float3 ankle_to_target =
-            ankles_target_ws_[l] - ankle;  // TODO ray.hit_point <- target
+        const ozz::math::Float3 ankle = ray.start - foot_height_offset;  // TODO
+        const ozz::math::Float3 ankle_to_target = ankles_target_ws_[l] - ankle;
 
+        // Check if this ankle is lower (in down direction) compared to the
+        // previous one.
         const float dot = Dot(ankle_to_target, down);
         if (dot > max_dot) {
           max_dot = dot;
@@ -282,6 +292,7 @@ class FootIKSampleApplication : public ozz::sample::Application {
     return true;
   }
 
+  // Applies two bone IK to the leg, and aim IK to the ankle
   bool UpdateFootIK(const ozz::math::Float4x4& _root) {
     const ozz::math::Float4x4 inv_root = Invert(_root);
 
@@ -296,17 +307,27 @@ class FootIKSampleApplication : public ozz::sample::Application {
       if (!ray.hit) {
         continue;
       }
-
       const LegSetup& leg = legs_setup_[l];
 
-      // TODO target was computed before pelvis is offseted
+      /*
+      // Computes
+  // TODO target was computed before pelvis is offseted
+
+
+  // Computes
+  // TODO target was computed before pelvis is offseted
+          // Ankle target positions needs to be corrected with the correction
+applied
+// to pelvis.
+
+  ankles_target_ws_[l] = ankles_target_ws_[l] - pelvis_offset_;*/
       const ozz::math::Float3 target(ankles_target_ws_[l] - pelvis_offset_);
+
       if (two_bone_ik_ && !ApplyLegTwoBoneIK(leg, target, inv_root)) {
         return false;
       }
 
-      // TODO comment
-
+      // Updates leg joints model-space transforms.
       // Update will go from hip to ankle. Ankle's siblings might no be updated
       // as local-to-model will stop as soon as ankle joint is reached.
       ltm_job.from = leg.hip;
@@ -315,15 +336,15 @@ class FootIKSampleApplication : public ozz::sample::Application {
         return false;
       }
 
+      // Computes ankle correction.
       if (aim_ik_ && !ApplyAnkleAimIK(leg, ray.hit_normal, inv_root)) {
         return false;
       }
 
-      // TODO comment
-
-      // Ankle has already been updated, but its siblings (or it's parent
-      // siblings) might are not. So we must local-to-model update must be
-      // complete starting from hip.
+      // Updates model-space transformation now ankle local changes is done.
+      // Ankle rotation has already been updated, but its siblings (or it's
+      // parent siblings) might are not. So we local-to-model update must
+      // be complete starting from hip.
       ltm_job.from = leg.hip;
       ltm_job.to = ozz::animation::Skeleton::kMaxJoints;
       if (!ltm_job.Run()) {
@@ -336,14 +357,20 @@ class FootIKSampleApplication : public ozz::sample::Application {
   bool ApplyLegTwoBoneIK(const LegSetup& _leg,
                          const ozz::math::Float3& _target_ws,
                          const ozz::math::Float4x4& _inv_root) {
-    // TODO model space
+    // This function will compute two bone IK on the leg, updating hip and knee
+    // rotations so that ankle can reach its targetted position.
+
+    // Target position and pole vectors must be in model space.
     const ozz::math::SimdFloat4 target_ms = TransformPoint(
         _inv_root, ozz::math::simd_float4::Load3PtrU(&_target_ws.x));
     const ozz::math::SimdFloat4 pole_vector_ms = models_[_leg.knee].cols[1];
 
+    // Builds two bone iIK job.
     ozz::animation::IKTwoBoneJob ik_job;
     ik_job.target = target_ms;
     ik_job.pole_vector = pole_vector_ms;
+    // Mid axis (knee) is constant (usualy), and arbitratry defined by
+    // skeleton/rig setup.
     ik_job.mid_axis = ozz::math::simd_float4::z_axis();
     ik_job.weight = weight_;
     ik_job.soften = soften_;
@@ -358,6 +385,8 @@ class FootIKSampleApplication : public ozz::sample::Application {
       return false;
     }
     // Apply IK quaternions to their respective local-space transforms.
+    // Model-space transformations needs to be updated after a call to this
+    // function.
     ozz::sample::MultiplySoATransformQuaternion(_leg.hip, start_correction,
                                                 make_range(locals_));
     ozz::sample::MultiplySoATransformQuaternion(_leg.knee, mid_correction,
@@ -366,15 +395,33 @@ class FootIKSampleApplication : public ozz::sample::Application {
     return true;
   }
 
-  bool ApplyAnkleAimIK(const LegSetup& _leg, const ozz::math::Float3& _aim_ws,
+  bool ApplyAnkleAimIK(const LegSetup& _leg,
+                       const ozz::math::Float3& _target_ws,
                        const ozz::math::Float4x4& _inv_root) {
+    // This function will compute aim IK on the ankle, updating its rotations so
+    // it can be aligned with the floor.
+    // The strategy is to align ankle up vector in the direction of the floor
+    // normal. The forward direction of the foot is then driven by the pole
+    // vector, which polls the foot (ankle forward vector) toward it's original
+    // (animated) direction.
+
+    // Target position and pole vectors must be in model space.
+    const ozz::math::SimdFloat4 target_ms = TransformVector(
+        _inv_root, ozz::math::simd_float4::Load3PtrU(&_target_ws.x));
+
     ozz::animation::IKAimJob ik_job;
+    // Forward and up vectors are constant (usualy), and arbitratry defined by
+    // skeleton/rig setup.
     ik_job.forward = -ozz::math::simd_float4::x_axis();
-    ik_job.target =
-        TransformVector(_inv_root,
-                        ozz::math::simd_float4::Load3PtrU(&_aim_ws.x));  // TODO
     ik_job.up = ozz::math::simd_float4::y_axis();
+
+    // Model space targetted direction (floor normal in this case).
+    ik_job.target = target_ms;
+
+    // Uses constant ankle Y (skeleton/rig setup dependent) as pole vector. That
+    // allows to maintain foot direction.
     ik_job.pole_vector = models_[_leg.ankle].cols[1];
+
     ik_job.joint = &models_[_leg.ankle];
     ik_job.weight = weight_;
     ozz::math::SimdQuaternion correction;
@@ -383,13 +430,14 @@ class FootIKSampleApplication : public ozz::sample::Application {
       return false;
     }
     // Apply IK quaternions to their respective local-space transforms.
+    // Model-space transformations needs to be updated after a call to this
+    // function.
     ozz::sample::MultiplySoATransformQuaternion(_leg.ankle, correction,
                                                 make_range(locals_));
 
     return true;
   }
 
-  // Samples animation, transforms to model space and renders.
   virtual bool OnDisplay(ozz::sample::Renderer* _renderer) {
     const float kAxeScale = .1f;
     const ozz::math::Float4x4 kAxesScale =
@@ -586,7 +634,7 @@ class FootIKSampleApplication : public ozz::sample::Application {
         sprintf(txt, "x %.2g", root_translation_.x);
         _im_gui->DoSlider(txt, -10.f, 10.f, &root_translation_.x);
         sprintf(txt, "y %.2g", root_translation_.y);
-        _im_gui->DoSlider(txt, -1.f, 3.f, &root_translation_.y, 1.,
+        _im_gui->DoSlider(txt, 0.f, 5.f, &root_translation_.y, 1.f,
                           !auto_character_height_);
         sprintf(txt, "z %.2g", root_translation_.z);
         _im_gui->DoSlider(txt, -10.f, 10.f, &root_translation_.z);
