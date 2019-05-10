@@ -67,8 +67,6 @@ namespace {
 bool ComputeOffsettedForward(_SimdFloat4 _forward, _SimdFloat4 _offset,
                              _SimdFloat4 _target,
                              SimdFloat4* _offsetted_forward) {
-  const SimdFloat4 zero = simd_float4::zero();
-
   // AO is projected offset vector onto the normalized forward vector.
   assert(ozz::math::AreAllTrue1(ozz::math::IsNormalizedEst3(_forward)));
   const SimdFloat4 AOl = Dot3(_forward, _offset);
