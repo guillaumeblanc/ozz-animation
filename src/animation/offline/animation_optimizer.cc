@@ -126,7 +126,7 @@ struct HierarchyBuilder {
 
   // Disables copy and assignment.
   HierarchyBuilder(const HierarchyBuilder&);
-  void operator = (const HierarchyBuilder&);
+  void operator=(const HierarchyBuilder&);
 
   // Targetted animation.
   const RawAnimation* animation;

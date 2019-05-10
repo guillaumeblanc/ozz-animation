@@ -313,18 +313,15 @@ TEST(QuaternionCompare, ozz_math) {
   EXPECT_TRUE(Quaternion::identity() == Quaternion(0.f, 0.f, 0.f, 1.f));
   EXPECT_TRUE(Quaternion::identity() != Quaternion(1.f, 0.f, 0.f, 0.f));
   EXPECT_TRUE(Compare(Quaternion::identity(), Quaternion::identity(), 0.f));
-  EXPECT_TRUE(
-      Compare(Quaternion::identity(),
-              Quaternion::FromEuler(0.f, 0.f, ozz::math::kPi / 100.f),
-              ozz::math::kPi / 50.f));
-  EXPECT_TRUE(
-      Compare(Quaternion::identity(),
-              -Quaternion::FromEuler(0.f, 0.f, ozz::math::kPi / 100.f),
-              ozz::math::kPi / 50.f));
-  EXPECT_FALSE(
-      Compare(Quaternion::identity(),
-              Quaternion::FromEuler(0.f, 0.f, ozz::math::kPi / 100.f),
-              ozz::math::kPi / 200.f));
+  EXPECT_TRUE(Compare(Quaternion::identity(),
+                      Quaternion::FromEuler(0.f, 0.f, ozz::math::kPi / 100.f),
+                      ozz::math::kPi / 50.f));
+  EXPECT_TRUE(Compare(Quaternion::identity(),
+                      -Quaternion::FromEuler(0.f, 0.f, ozz::math::kPi / 100.f),
+                      ozz::math::kPi / 50.f));
+  EXPECT_FALSE(Compare(Quaternion::identity(),
+                       Quaternion::FromEuler(0.f, 0.f, ozz::math::kPi / 100.f),
+                       ozz::math::kPi / 200.f));
 }
 
 TEST(QuaternionArithmetic, ozz_math) {

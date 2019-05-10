@@ -157,8 +157,7 @@ class OptimizeSampleApplication : public ozz::sample::Application {
       : selected_display_(eRuntimeAnimation),
         optimize_(true),
         animation_rt_(NULL),
-        error_record_(64) {
-  }
+        error_record_(64) {}
 
  protected:
   // Updates current animation time and skeleton pose.

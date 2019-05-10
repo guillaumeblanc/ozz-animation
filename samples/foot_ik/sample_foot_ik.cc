@@ -128,7 +128,7 @@ class FootIKSampleApplication : public ozz::sample::Application {
       return false;
     }
 
-    // Raycast down from the ankle to the floor.
+    // Raycast down from each ankle to the floor.
     if (!RaycastLegs(root)) {
       return false;
     }

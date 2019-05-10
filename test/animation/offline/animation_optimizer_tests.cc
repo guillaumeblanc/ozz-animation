@@ -374,8 +374,7 @@ TEST(OptimizeHierarchical, AnimationOptimizer) {
 
   // Introduces a -10x scaling upstream that amplifies error
   // Scaling on track 0
-  { input.tracks[0].scales[0].value = ozz::math::Float3(0.f, -10.f, 0.f);
-  }
+  { input.tracks[0].scales[0].value = ozz::math::Float3(0.f, -10.f, 0.f); }
 
   // High translation tolerance -> keys aren't interpolated because of scale
   // effect.
@@ -474,8 +473,8 @@ TEST(OptimizeHierarchical, AnimationOptimizer) {
         0.f, ozz::math::Quaternion::FromEuler(0.f, 0.f, 0.f)};
     input.tracks[0].rotations.push_back(key);
   }
-  { // Include error
-    const float angle_error = 2.5e-3f; // creates an arc of .1m at 40m.
+  {                                     // Include error
+    const float angle_error = 2.5e-3f;  // creates an arc of .1m at 40m.
     RawAnimation::RotationKey key = {
         .1f, ozz::math::Quaternion::FromEuler(ozz::math::kPi_4 + angle_error,
                                               0.f, 0.f)};
