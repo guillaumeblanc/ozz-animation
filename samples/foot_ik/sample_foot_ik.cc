@@ -212,6 +212,7 @@ class FootIKSampleApplication : public ozz::sample::Application {
 
   // Comptutes ankle target position, so that the foot is in contact with the
   // floor. This needs to consider slope angle (floor normal) and foot height.
+  // See geogebra diagram for more details: media/doc/samples/sample_foot_ik_ankle.ggb
   bool UpdateAnklesTarget() {
     for (size_t l = 0; l < kLegsCount; ++l) {
       const LegRayInfo& ray = rays_info_[l];
