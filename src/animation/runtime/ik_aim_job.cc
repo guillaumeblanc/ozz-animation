@@ -61,8 +61,8 @@ namespace {
 // When there's an offset, the forward vector needs to be recomputed.
 // The idea is to find the vector that will allow the point at offset position
 // to aim at target position. This vector starts at joint position. It ends on a
-// line perpandicular to pivot-offset line, at the intersection with the sphere
-// defined by target position (centered on joint poistion). See geogebra
+// line perpendicular to pivot-offset line, at the intersection with the sphere
+// defined by target position (centered on joint position). See geogebra
 // diagram: media/doc/src/ik_aim_offset.ggb
 bool ComputeOffsettedForward(_SimdFloat4 _forward, _SimdFloat4 _offset,
                              _SimdFloat4 _target,
