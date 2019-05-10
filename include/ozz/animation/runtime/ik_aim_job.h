@@ -64,12 +64,15 @@ struct IKAimJob {
 
   // Job input.
 
-  // Target direction to aim at, in model-space
+  // Target position to aim at, in model-space
   math::SimdFloat4 target;
 
   // Joint forward axis, in joint local-space, to be aimed at target position.
   // Default is x axis.
   math::SimdFloat4 forward;
+
+  // Offset position from the joint in local-space, that will aim at target.
+  math::SimdFloat4 offset;
 
   // Joint up axis, in joint local-space, used to keep the joint oriented in the
   // same direction as the pole vector. Default is y axis.
@@ -94,6 +97,10 @@ struct IKAimJob {
   // Output local-space joint correction quaternion. It needs to be multiplied
   // with joint local-space quaternion.
   math::SimdQuaternion* joint_correction;
+
+  // Optional boolean output value, set to true if target can be reached with IK
+  // computations. Reachability is TODO.
+  bool* reached;
 };
 }  // namespace animation
 }  // namespace ozz

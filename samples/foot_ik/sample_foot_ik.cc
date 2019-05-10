@@ -212,7 +212,8 @@ class FootIKSampleApplication : public ozz::sample::Application {
 
   // Comptutes ankle target position, so that the foot is in contact with the
   // floor. This needs to consider slope angle (floor normal) and foot height.
-  // See geogebra diagram for more details: media/doc/samples/sample_foot_ik_ankle.ggb
+  // See geogebra diagram for more details:
+  // media/doc/samples/sample_foot_ik_ankle.ggb
   bool UpdateAnklesTarget() {
     for (size_t l = 0; l < kLegsCount; ++l) {
       const LegRayInfo& ray = rays_info_[l];
@@ -314,7 +315,6 @@ class FootIKSampleApplication : public ozz::sample::Application {
       // Computes
   // TODO target was computed before pelvis is offseted
 
-
   // Computes
   // TODO target was computed before pelvis is offseted
           // Ankle target positions needs to be corrected with the correction
@@ -322,9 +322,10 @@ applied
 // to pelvis.
 
   ankles_target_ws_[l] = ankles_target_ws_[l] - pelvis_offset_;*/
-      const ozz::math::Float3 target(ankles_target_ws_[l] - pelvis_offset_);
-
-      if (two_bone_ik_ && !ApplyLegTwoBoneIK(leg, target, inv_root)) {
+      const ozz::math::Float3 two_bone_ik_target(ankles_target_ws_[l] -
+                                                 pelvis_offset_);
+      if (two_bone_ik_ &&
+          !ApplyLegTwoBoneIK(leg, two_bone_ik_target, inv_root)) {
         return false;
       }
 
@@ -338,7 +339,8 @@ applied
       }
 
       // Computes ankle correction.
-      if (aim_ik_ && !ApplyAnkleAimIK(leg, ray.hit_normal, inv_root)) {
+      const ozz::math::Float3 aim_ik_target(two_bone_ik_target + ray.hit_normal);
+      if (aim_ik_ && !ApplyAnkleAimIK(leg, aim_ik_target, inv_root)) {
         return false;
       }
 
@@ -407,7 +409,7 @@ applied
     // (animated) direction.
 
     // Target position and pole vectors must be in model space.
-    const ozz::math::SimdFloat4 target_ms = TransformVector(
+    const ozz::math::SimdFloat4 target_ms = TransformPoint(
         _inv_root, ozz::math::simd_float4::Load3PtrU(&_target_ws.x));
 
     ozz::animation::IKAimJob ik_job;

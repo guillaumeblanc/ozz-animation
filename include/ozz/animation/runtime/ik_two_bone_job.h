@@ -79,6 +79,7 @@ struct IKTwoBoneJob {
   // vectors. Direction of this axis is defined like this: a positive rotation
   // around this axis will open the angle between the two bones. This in turn
   // also defines which side the two joints must bend.
+  // Job validation will fail if mid_axis isn't normalized.
   math::SimdFloat4 mid_axis;
 
   // Pole vector, in model-space. The pole vector defines where the direction
