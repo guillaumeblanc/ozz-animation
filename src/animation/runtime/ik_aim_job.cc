@@ -29,11 +29,6 @@
 
 #include <cassert>
 
-// TEMP
-
-#include "ozz/base/maths/quaternion.h"
-
-#include "ozz/base/log.h"
 #include "ozz/base/maths/math_ex.h"
 #include "ozz/base/maths/simd_quaternion.h"
 
@@ -57,42 +52,45 @@ bool IKAimJob::Validate() const {
   bool valid = true;
   valid &= joint != NULL;
   valid &= joint_correction != NULL;
+  valid &= ozz::math::AreAllTrue1(ozz::math::IsNormalizedEst3(forward));
   return valid;
 }
 
 namespace {
 
-// When there's an offset, the forward vector is recomputed.
-// See geogebra diagram: media/doc/src/ik_aim_offset.ggb
+// When there's an offset, the forward vector needs to be recomputed.
+// The idea is to find the vector that will allow the point at offset position
+// to aim at target position. This vector starts at joint position. It ends on a
+// line perpandicular to pivot-offset line, at the intersection with the sphere
+// defined by target position (centered on joint poistion). See geogebra
+// diagram: media/doc/src/ik_aim_offset.ggb
 bool ComputeOffsettedForward(_SimdFloat4 _forward, _SimdFloat4 _offset,
                              _SimdFloat4 _target,
                              SimdFloat4* _offsetted_forward) {
   const SimdFloat4 zero = simd_float4::zero();
 
-  // ao is projected offset vector onto the normalized forward vector.
-  const SimdFloat4 forward_len2 = Length3Sqr(_forward);
-  const SimdFloat4 ao =
-      Dot3(_forward, _offset) *
-      Select(CmpEq(forward_len2, zero), zero, RSqrtEstXNR(forward_len2));
+  // AO is projected offset vector onto the normalized forward vector.
+  assert(ozz::math::AreAllTrue1(ozz::math::IsNormalizedEst3(_forward)));
+  const SimdFloat4 AOl = Dot3(_forward, _offset);
 
   // Compute square length of ac using Pythagorean theorem.
-  const SimdFloat4 ac2 = Length3Sqr(_offset) - ao * ao;
+  const SimdFloat4 ACl2 = Length3Sqr(_offset) - AOl * AOl;
 
   // Square length of target vector, aka circle radius.
   const SimdFloat4 r2 = Length3Sqr(_target);
 
   // If offset is outside of the sphere defined by target length, the target
   // isn't reachable.
-  if (AreAllTrue1(CmpGt(ac2, r2))) {
+  if (AreAllTrue1(CmpGt(ACl2, r2))) {
     return false;
   }
 
-  // ai is the length of the vector from offset to sphere intersection.
-  const SimdFloat4 ai = SqrtX(r2 - ac2);
+  // AIl is the length of the vector from offset to sphere intersection.
+  const SimdFloat4 AIl = SqrtX(r2 - ACl2);
 
   // The distance from offset position to the intersection with the sphere is
-  // (ai - ao) Intersection point on the sphere can thus be computed.
-  *_offsetted_forward = _offset + _forward * SplatX(ai - ao);
+  // (AIl - AOl) Intersection point on the sphere can thus be computed.
+  *_offsetted_forward = _offset + _forward * SplatX(AIl - AOl);
 
   return true;
 }
@@ -117,6 +115,7 @@ bool IKAimJob::Run() const {
   const SimdFloat4 joint_to_target_js_len2 = Length3Sqr(joint_to_target_js);
 
   // Recomputes forward vector to account for offset.
+  // If the offset is further than target, it won't be reachable.
   SimdFloat4 offsetted_forward;
   bool lreached = ComputeOffsettedForward(forward, offset, joint_to_target_js,
                                           &offsetted_forward);

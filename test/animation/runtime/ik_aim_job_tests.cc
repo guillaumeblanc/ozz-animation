@@ -55,6 +55,13 @@ TEST(JobValidity, IKAimJob) {
     EXPECT_FALSE(job.Validate());
   }
 
+  {  // Invalid non normalized forward vector.
+    ozz::animation::IKAimJob job;
+    job.forward = ozz::math::simd_float4::Load(.5f, 0.f, 0.f, 0.f);
+    EXPECT_FALSE(job.Validate());
+  }
+
+
   {  // Valid
     ozz::animation::IKAimJob job;
     job.joint = &joint;
@@ -181,54 +188,6 @@ TEST(Forward, IKAimJob) {
     const ozz::math::Quaternion y_Pi_2 = ozz::math::Quaternion::FromAxisAngle(
         ozz::math::Float3::y_axis(), ozz::math::kPi_2);
     EXPECT_SIMDQUATERNION_EQ_TOL(quat, y_Pi_2.x, y_Pi_2.y, y_Pi_2.z, y_Pi_2.w,
-                                 2e-3f);
-  }
-
-  {  // forward 2*z
-    job.forward =
-        ozz::math::simd_float4::z_axis() * ozz::math::simd_float4::Load1(2.f);
-    EXPECT_TRUE(job.Run());
-    const ozz::math::Quaternion y_Pi_2 = ozz::math::Quaternion::FromAxisAngle(
-        ozz::math::Float3::y_axis(), ozz::math::kPi_2);
-    EXPECT_SIMDQUATERNION_EQ_TOL(quat, y_Pi_2.x, y_Pi_2.y, y_Pi_2.z, y_Pi_2.w,
-                                 2e-3f);
-  }
-
-  {  // forward very small z
-    job.forward =
-        ozz::math::simd_float4::z_axis() * ozz::math::simd_float4::Load1(1e-6f);
-    EXPECT_TRUE(job.Run());
-    const ozz::math::Quaternion y_Pi_2 = ozz::math::Quaternion::FromAxisAngle(
-        ozz::math::Float3::y_axis(), ozz::math::kPi_2);
-    EXPECT_SIMDQUATERNION_EQ_TOL(quat, y_Pi_2.x, y_Pi_2.y, y_Pi_2.z, y_Pi_2.w,
-                                 2e-3f);
-  }
-
-  {  // forward is zero
-    job.forward = ozz::math::simd_float4::zero();
-    EXPECT_TRUE(job.Run());
-    EXPECT_SIMDQUATERNION_EQ_TOL(quat, 0.f, 0.f, 0.f, 1.f, 2e-3f);
-  }
-
-  {  // forward is zero, with x offset
-    bool reached;
-    job.reached = &reached;
-    job.forward = ozz::math::simd_float4::zero();
-    job.offset = ozz::math::simd_float4::x_axis();
-    EXPECT_TRUE(job.Run());
-    EXPECT_SIMDQUATERNION_EQ_TOL(quat, 0.f, 0.f, 0.f, 1.f, 2e-3f);
-    EXPECT_TRUE(reached);
-  }
-
-  {  // forward is zero, with y offset
-    bool reached;
-    job.reached = &reached;
-    job.forward = ozz::math::simd_float4::zero();
-    job.offset = ozz::math::simd_float4::y_axis();
-    EXPECT_TRUE(job.Run());
-    const ozz::math::Quaternion z_Pi_2 = ozz::math::Quaternion::FromAxisAngle(
-        ozz::math::Float3::z_axis(), -ozz::math::kPi_2);
-    EXPECT_SIMDQUATERNION_EQ_TOL(quat, z_Pi_2.x, z_Pi_2.y, z_Pi_2.z, z_Pi_2.w,
                                  2e-3f);
   }
 }

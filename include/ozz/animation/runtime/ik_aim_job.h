@@ -68,6 +68,7 @@ struct IKAimJob {
   math::SimdFloat4 target;
 
   // Joint forward axis, in joint local-space, to be aimed at target position.
+  // This vector shall be normalized, otherwise validation will fail.
   // Default is x axis.
   math::SimdFloat4 forward;
 
