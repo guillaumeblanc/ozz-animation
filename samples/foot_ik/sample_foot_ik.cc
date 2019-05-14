@@ -192,7 +192,6 @@ class FootIKSampleApplication : public ozz::sample::Application {
     // Pelvis offset isn't updated yet, it shouldn't be considered. So we're
     // using "unoffsetted" root transform.
     const ozz::math::Float4x4 root = GetRootTransform();
-    const ozz::math::Float4x4 inv_root = Invert(root);
 
     // Raycast down for each leg to find the intersection point with the floor.
     for (size_t l = 0; l < kLegsCount; ++l) {
