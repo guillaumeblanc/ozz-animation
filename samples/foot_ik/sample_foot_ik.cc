@@ -112,13 +112,11 @@ class FootIKSampleApplication : public ozz::sample::Application {
         show_raycast_(false),
         show_ankle_target_(false),
         show_root_(false),
-        show_offseted_root_(false) {}
+        show_offsetted_root_(false) {}
 
  protected:
   // Updates current animation time and foot ik.
   virtual bool OnUpdate(float _dt, float) {
-    const ozz::math::Float4x4 root = GetRootTransform();
-
     // TODO
     if (!UpdateCharacterHeight()) {
       return false;
@@ -129,7 +127,8 @@ class FootIKSampleApplication : public ozz::sample::Application {
     }
 
     // Raycast down from each ankle to the floor.
-    if (!RaycastLegs(root)) {
+    // TODO use root
+    if (!RaycastLegs()) {
       return false;
     }
 
@@ -142,7 +141,8 @@ class FootIKSampleApplication : public ozz::sample::Application {
       return false;
     }
 
-    if (!UpdateFootIK(root)) {
+    // TODO use offset root
+    if (!UpdateFootIK()) {
       return false;
     }
 
@@ -188,7 +188,12 @@ class FootIKSampleApplication : public ozz::sample::Application {
     return true;
   }
 
-  bool RaycastLegs(const ozz::math::Float4x4& _root) {
+  bool RaycastLegs() {
+    // Pelvis offset isn't updated yet, it shouldn't be considered. So we're
+    // using "unoffsetted" root transform.
+    const ozz::math::Float4x4 root = GetRootTransform();
+    const ozz::math::Float4x4 inv_root = Invert(root);
+
     // Raycast down for each leg to find the intersection point with the floor.
     for (size_t l = 0; l < kLegsCount; ++l) {
       const LegSetup& leg = legs_setup_[l];
@@ -196,7 +201,7 @@ class FootIKSampleApplication : public ozz::sample::Application {
 
       // Finds ankle world space position
       // Updates at the same time ankles_target_ws_
-      ozz::math::Store3PtrU(TransformPoint(_root, models_[leg.ankle].cols[3]),
+      ozz::math::Store3PtrU(TransformPoint(root, models_[leg.ankle].cols[3]),
                             &ankles_target_ws_[l].x);
 
       // Builds ray, from ankle and going downward.
@@ -295,8 +300,11 @@ class FootIKSampleApplication : public ozz::sample::Application {
   }
 
   // Applies two bone IK to the leg, and aim IK to the ankle
-  bool UpdateFootIK(const ozz::math::Float4x4& _root) {
-    const ozz::math::Float4x4 inv_root = Invert(_root);
+  bool UpdateFootIK() {
+    // Pelvis offset needs to be considered when converting to medel space. So
+    // we're using "offsetted" root transform.
+    const ozz::math::Float4x4 root = GetOffsettedRootTransform();
+    const ozz::math::Float4x4 inv_root = Invert(root);
 
     ozz::animation::LocalToModelJob ltm_job;
     ltm_job.skeleton = &skeleton_;
@@ -311,21 +319,9 @@ class FootIKSampleApplication : public ozz::sample::Application {
       }
       const LegSetup& leg = legs_setup_[l];
 
-      /*
-      // Computes
-  // TODO target was computed before pelvis is offseted
-
-  // Computes
-  // TODO target was computed before pelvis is offseted
-          // Ankle target positions needs to be corrected with the correction
-applied
-// to pelvis.
-
-  ankles_target_ws_[l] = ankles_target_ws_[l] - pelvis_offset_;*/
-      const ozz::math::Float3 two_bone_ik_target(ankles_target_ws_[l] -
-                                                 pelvis_offset_);
+      // Updates leg joint chain so ankle reaches its targetted position.
       if (two_bone_ik_ &&
-          !ApplyLegTwoBoneIK(leg, two_bone_ik_target, inv_root)) {
+          !ApplyLegTwoBoneIK(leg, ankles_target_ws_[l], inv_root)) {
         return false;
       }
 
@@ -338,8 +334,9 @@ applied
         return false;
       }
 
-      // Computes ankle correction.
-      const ozz::math::Float3 aim_ik_target(two_bone_ik_target + ray.hit_normal);
+      // Computes ankle orientation so it's aligned to the floor normal.
+      const ozz::math::Float3 aim_ik_target(ankles_target_ws_[l] +
+                                            ray.hit_normal);
       if (aim_ik_ && !ApplyAnkleAimIK(leg, aim_ik_target, inv_root)) {
         return false;
       }
@@ -357,12 +354,11 @@ applied
     return true;
   }
 
+  // This function will compute two bone IK on the leg, updating hip and knee
+  // rotations so that ankle can reach its targetted position.
   bool ApplyLegTwoBoneIK(const LegSetup& _leg,
                          const ozz::math::Float3& _target_ws,
                          const ozz::math::Float4x4& _inv_root) {
-    // This function will compute two bone IK on the leg, updating hip and knee
-    // rotations so that ankle can reach its targetted position.
-
     // Target position and pole vectors must be in model space.
     const ozz::math::SimdFloat4 target_ms = TransformPoint(
         _inv_root, ozz::math::simd_float4::Load3PtrU(&_target_ws.x));
@@ -398,16 +394,15 @@ applied
     return true;
   }
 
+  // This function will compute aim IK on the ankle, updating its rotations so
+  // it can be aligned with the floor.
+  // The strategy is to align ankle up vector in the direction of the floor
+  // normal. The forward direction of the foot is then driven by the pole
+  // vector, which polls the foot (ankle forward vector) toward it's original
+  // (animated) direction.
   bool ApplyAnkleAimIK(const LegSetup& _leg,
                        const ozz::math::Float3& _target_ws,
                        const ozz::math::Float4x4& _inv_root) {
-    // This function will compute aim IK on the ankle, updating its rotations so
-    // it can be aligned with the floor.
-    // The strategy is to align ankle up vector in the direction of the floor
-    // normal. The forward direction of the foot is then driven by the pole
-    // vector, which polls the foot (ankle forward vector) toward it's original
-    // (animated) direction.
-
     // Target position and pole vectors must be in model space.
     const ozz::math::SimdFloat4 target_ms = TransformPoint(
         _inv_root, ozz::math::simd_float4::Load3PtrU(&_target_ws.x));
@@ -447,7 +442,7 @@ applied
         ozz::math::Float4x4::Scaling(ozz::math::simd_float4::Load1(kAxeScale));
     const ozz::math::Float4x4 identity = ozz::math::Float4x4::identity();
     const ozz::math::Float4x4 root = GetRootTransform();
-    const ozz::math::Float4x4 offseted_root = GetOffsetedRootTransform();
+    const ozz::math::Float4x4 offsetted_root = GetOffsettedRootTransform();
 
     bool success = true;
 
@@ -470,12 +465,12 @@ applied
         }
 
         success &= _renderer->DrawSkinnedMesh(
-            mesh, make_range(skinning_matrices_), offseted_root);
+            mesh, make_range(skinning_matrices_), offsetted_root);
       }
     } else {
       // Renders skeleton only.
-      success &=
-          _renderer->DrawPosture(skeleton_, make_range(models_), offseted_root);
+      success &= _renderer->DrawPosture(skeleton_, make_range(models_),
+                                        offsetted_root);
     }
 
     // Showing joints
@@ -485,7 +480,7 @@ applied
         for (size_t i = 0; i < 3; ++i) {
           const int joints[3] = {leg.hip, leg.knee, leg.ankle};
           const ozz::math::Float4x4& transform =
-              offseted_root * models_[joints[i]];
+              offsetted_root * models_[joints[i]];
           success &= _renderer->DrawAxes(transform * kAxesScale);
         }
       }
@@ -527,8 +522,8 @@ applied
     if (show_root_) {
       success &= _renderer->DrawAxes(root);
     }
-    if (show_offseted_root_) {
-      success &= _renderer->DrawAxes(offseted_root);
+    if (show_offsetted_root_) {
+      success &= _renderer->DrawAxes(offsetted_root);
     }
 
     return success;
@@ -613,10 +608,14 @@ applied
 
     // Main options
     {
-      _im_gui->DoCheckBox("Auto character height", &auto_character_height_);
-      _im_gui->DoCheckBox("Pelvis correction", &pelvis_correction_);
-      _im_gui->DoCheckBox("Two bone IK (legs)", &two_bone_ik_);
-      _im_gui->DoCheckBox("Aim IK (ankles)", &aim_ik_);
+      static bool opened = true;
+      ozz::sample::ImGui::OpenClose oc(_im_gui, "Sample options", &opened);
+      if (opened) {
+        _im_gui->DoCheckBox("Auto character height", &auto_character_height_);
+        _im_gui->DoCheckBox("Pelvis correction", &pelvis_correction_);
+        _im_gui->DoCheckBox("Two bone IK (legs)", &two_bone_ik_);
+        _im_gui->DoCheckBox("Aim IK (ankles)", &aim_ik_);
+      }
     }
 
     // Exposes animation runtime playback controls.
@@ -628,45 +627,62 @@ applied
       }
     }
 
+    // Settings
+    {
+      static bool opened = true;
+      ozz::sample::ImGui::OpenClose oc(_im_gui, "IK settings", &opened);
+      if (opened) {
+        sprintf(txt, "Foot height %.2g", foot_heigh_);
+        _im_gui->DoSlider(txt, 0.f, .3f, &foot_heigh_);
+        sprintf(txt, "Weight %.2g", weight_);
+        _im_gui->DoSlider(txt, 0.f, 1.f, &weight_);
+        sprintf(txt, "Soften %.2g", soften_);
+        _im_gui->DoSlider(txt, 0.f, 1.f, &soften_, 1.f, two_bone_ik_);
+      }
+    }
+
     {  // Root
       static bool opened = true;
       ozz::sample::ImGui::OpenClose oc(_im_gui, "Root transformation", &opened);
       if (opened) {
+        bool moved = false;
         // Translation
         _im_gui->DoLabel("Translation");
         sprintf(txt, "x %.2g", root_translation_.x);
-        _im_gui->DoSlider(txt, -10.f, 10.f, &root_translation_.x);
+        moved |= _im_gui->DoSlider(txt, -10.f, 10.f, &root_translation_.x);
         sprintf(txt, "y %.2g", root_translation_.y);
-        _im_gui->DoSlider(txt, 0.f, 5.f, &root_translation_.y, 1.f,
-                          !auto_character_height_);
+        moved |= _im_gui->DoSlider(txt, 0.f, 5.f, &root_translation_.y, 1.f,
+                                   !auto_character_height_);
         sprintf(txt, "z %.2g", root_translation_.z);
-        _im_gui->DoSlider(txt, -10.f, 10.f, &root_translation_.z);
+        moved |= _im_gui->DoSlider(txt, -10.f, 10.f, &root_translation_.z);
 
         // Rotation (in euler form)
         _im_gui->DoLabel("Rotation");
         sprintf(txt, "yaw %.3g", root_yaw_ * ozz::math::kRadianToDegree);
-        _im_gui->DoSlider(txt, -ozz::math::kPi, ozz::math::kPi, &root_yaw_);
-      }
-    }
+        moved |=
+            _im_gui->DoSlider(txt, -ozz::math::kPi, ozz::math::kPi, &root_yaw_);
 
-    // Settings
-    {
-      sprintf(txt, "Foot height %.2g", foot_heigh_);
-      _im_gui->DoSlider(txt, 0.f, .3f, &foot_heigh_);
-      sprintf(txt, "Weight %.2g", weight_);
-      _im_gui->DoSlider(txt, 0.f, 1.f, &weight_);
-      sprintf(txt, "Soften %.2g", soften_);
-      _im_gui->DoSlider(txt, 0.f, 1.f, &soften_, 1.f, two_bone_ik_);
+        // Character position shouldn't be changed after the update. In this
+        // case, because UI is updated after "game" update, we need to recompute
+        // character offset and IK.
+        if (moved && auto_character_height_) {
+          OnUpdate(0.f, 0.f);
+        }
+      }
     }
 
     // Options
     {
-      _im_gui->DoCheckBox("Show skin", &show_skin_);
-      _im_gui->DoCheckBox("Show joints", &show_joints_);
-      _im_gui->DoCheckBox("Show raycasts", &show_raycast_);
-      _im_gui->DoCheckBox("Show ankle target", &show_ankle_target_);
-      _im_gui->DoCheckBox("Show root", &show_root_);
-      _im_gui->DoCheckBox("Show offseted root", &show_offseted_root_);
+      static bool opened = true;
+      ozz::sample::ImGui::OpenClose oc(_im_gui, "Debug options", &opened);
+      if (opened) {
+        _im_gui->DoCheckBox("Show skin", &show_skin_);
+        _im_gui->DoCheckBox("Show joints", &show_joints_);
+        _im_gui->DoCheckBox("Show raycasts", &show_raycast_);
+        _im_gui->DoCheckBox("Show ankle target", &show_ankle_target_);
+        _im_gui->DoCheckBox("Show root", &show_root_);
+        _im_gui->DoCheckBox("Show offsetted root", &show_offsetted_root_);
+      }
     }
     return true;
   }
@@ -684,16 +700,16 @@ applied
                ozz::math::simd_float4::LoadX(root_yaw_));
   }
 
-  ozz::math::Float4x4 GetOffsetedRootTransform() const {
+  ozz::math::Float4x4 GetOffsettedRootTransform() const {
     if (!pelvis_correction_) {
       return GetRootTransform();
     }
 
-    const ozz::math::Float3 offseted_translation =
+    const ozz::math::Float3 offsetted_translation =
         pelvis_offset_ + root_translation_;
 
     return ozz::math::Float4x4::Translation(
-               ozz::math::simd_float4::Load3PtrU(&offseted_translation.x)) *
+               ozz::math::simd_float4::Load3PtrU(&offsetted_translation.x)) *
            ozz::math::Float4x4::FromEuler(
                ozz::math::simd_float4::LoadX(root_yaw_));
   }
@@ -759,7 +775,7 @@ applied
   bool show_raycast_;
   bool show_ankle_target_;
   bool show_root_;
-  bool show_offseted_root_;
+  bool show_offsetted_root_;
 };
 
 int main(int _argc, const char** _argv) {
