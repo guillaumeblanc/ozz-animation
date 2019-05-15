@@ -444,7 +444,6 @@ class FootIKSampleApplication : public ozz::sample::Application {
     const ozz::math::Float4x4 kAxesScale =
         ozz::math::Float4x4::Scaling(ozz::math::simd_float4::Load1(kAxeScale));
     const ozz::math::Float4x4 identity = ozz::math::Float4x4::identity();
-    const ozz::math::Float4x4 root = GetRootTransform();
     const ozz::math::Float4x4 offsetted_root = GetOffsettedRootTransform();
 
     bool success = true;
@@ -523,6 +522,7 @@ class FootIKSampleApplication : public ozz::sample::Application {
     }
 
     if (show_root_) {
+      const ozz::math::Float4x4 root = GetRootTransform();
       success &= _renderer->DrawAxes(root);
     }
     if (show_offsetted_root_) {
