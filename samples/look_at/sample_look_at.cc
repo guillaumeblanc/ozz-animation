@@ -61,13 +61,22 @@ OZZ_OPTIONS_DECLARE_STRING(mesh,
                            "Path to the skinned mesh (ozz archive format).",
                            "media/mesh.ozz", false)
 
+// Defines IK chain joint names.
+// Joints should be from the same hierarchy, ordered from child to parent.
+const char* kJointNames[] = {"Head", "Spine3", "Spine2", "Spine1"};
+const size_t kMaxChainLength = OZZ_ARRAY_SIZE(kJointNames);
+
 class LookAtSampleApplication : public ozz::sample::Application {
  public:
   LookAtSampleApplication()
       : target_(0.f, 1.f, 1.f),
         offset_(.07f, .1f, 0.f),
         do_ik_(true),
+        chain_length_(kMaxChainLength),
+        joint_weight_(.5f),
+        chain_weight_(1.f),
         show_skin_(true),
+        show_joints_(false),
         show_target_(true),
         show_offset_(false),
         show_forward_(false) {}
@@ -97,36 +106,66 @@ class LookAtSampleApplication : public ozz::sample::Application {
       return false;
     }
 
+    // Early out if IK is disabled.
+    if (!do_ik_) {
+      return true;
+    }
+
     ozz::animation::IKAimJob ik_job;
 
-    ik_job.offset = ozz::math::simd_float4::Load3PtrU(&offset_.x);
-    ik_job.forward = ozz::math::simd_float4::y_axis();
-
-    // TODO local space
-    ik_job.target = ozz::math::simd_float4::Load3PtrU(&target_.x);
-
+    // Constant, skeleton setup
     ik_job.up = ozz::math::simd_float4::x_axis();
     ik_job.pole_vector = ozz::math::simd_float4::y_axis();
-    ik_job.joint = &models_[head_];
-    ik_job.weight = 1.f;
+
+    // Constant model space
+    ik_job.target = ozz::math::simd_float4::Load3PtrU(&target_.x);
+
     ozz::math::SimdQuaternion correction;
     ik_job.joint_correction = &correction;
-    if (!ik_job.Run()) {
+
+    // TODO, explain algo
+    int last_joint;
+    for (int i = 0, joint = joints_chain_[0]; i < chain_length_;
+         ++i, last_joint = joint, joint = joints_chain_[i]) {
+      if (i == 0) {
+        // TODO
+        // First joint
+        ik_job.offset = ozz::math::simd_float4::Load3PtrU(&offset_.x);
+        ik_job.forward = ozz::math::simd_float4::y_axis();
+      } else {
+        // TODO
+        // Following joints
+        // Applies previous correction to "forward" and "offset", before
+        // bringing them to model space.
+        const ozz::math::SimdFloat4 corrected_forward_ms = TransformVector(
+            models_[last_joint], TransformVector(correction, ik_job.forward));
+        const ozz::math::SimdFloat4 corrected_offset_ms = TransformPoint(
+            models_[last_joint], TransformVector(correction, ik_job.offset));
+
+        // Brings "forward" and "offset" to parent local space
+        const ozz::math::Float4x4 inv_joint = Invert(models_[joint]);
+        ik_job.forward = TransformVector(inv_joint, corrected_forward_ms);
+        ik_job.offset = TransformPoint(inv_joint, corrected_offset_ms);
+      }
+
+      ik_job.joint = &models_[joint];
+      const bool last = i == chain_length_ - 1;
+      ik_job.weight = chain_weight_ * (last ? 1.f : joint_weight_);
+      if (!ik_job.Run()) {
+        return false;
+      }
+
+      // Apply IK quaternions to their respective local-space transforms.
+      ozz::sample::MultiplySoATransformQuaternion(joint, correction,
+                                                  make_range(locals_));
+    }
+
+    // TODO comment
+    ltm_job.from = last_joint;
+    if (!ltm_job.Run()) {
       return false;
     }
 
-    // TODO temp
-    if (do_ik_) {
-      // Apply IK quaternions to their respective local-space transforms.
-      ozz::sample::MultiplySoATransformQuaternion(head_, correction,
-                                                  make_range(locals_));
-
-      // TODO comment
-      ltm_job.from = head_;
-      if (!ltm_job.Run()) {
-        return false;
-      }
-    }
     return true;
   }
 
@@ -160,6 +199,14 @@ class LookAtSampleApplication : public ozz::sample::Application {
           _renderer->DrawPosture(skeleton_, make_range(models_), identity);
     }
 
+    // Showing joints
+    if (show_joints_) {
+      for (int i = 0; i < kMaxChainLength; ++i) {
+        const ozz::math::Float4x4& transform = models_[joints_chain_[i]];
+        success &= _renderer->DrawAxes(transform * kAxesScale);
+      }
+    }
+
     if (show_target_) {
       const ozz::math::Float4x4 target = ozz::math::Float4x4::Translation(
           ozz::math::simd_float4::Load3PtrU(&target_.x));
@@ -167,9 +214,10 @@ class LookAtSampleApplication : public ozz::sample::Application {
     }
 
     if (show_offset_ || show_forward_) {
+      const int head = joints_chain_[0];
       const ozz::math::Float4x4 offset =
-          models_[head_] * ozz::math::Float4x4::Translation(
-                               ozz::math::simd_float4::Load3PtrU(&offset_.x));
+          models_[head] * ozz::math::Float4x4::Translation(
+                              ozz::math::simd_float4::Load3PtrU(&offset_.x));
       if (show_offset_) {
         success &= _renderer->DrawAxes(offset * kAxesScale);
       }
@@ -193,15 +241,22 @@ class LookAtSampleApplication : public ozz::sample::Application {
       return false;
     }
 
-    // Look for head joint.
-    head_ = -1;
-    for (int i = 0; i < skeleton_.num_joints(); ++i) {
+    // Look for each joint in the chain.
+    int found = 0;
+    for (int i = 0; i < skeleton_.num_joints() && found != kMaxChainLength;
+         ++i) {
       const char* joint_name = skeleton_.joint_names()[i];
-      if (std::strcmp(joint_name, "Head") == 0) {
-        head_ = i;
+      if (std::strcmp(joint_name, kJointNames[found]) == 0) {
+        joints_chain_[found] = i;
+
+        // Restart search
+        ++found;
+        i = 0;
       }
     }
-    if (head_ == -1) {
+
+    // Exit if all joints weren't found.
+    if (found != kMaxChainLength) {
       return false;
     }
 
@@ -245,6 +300,12 @@ class LookAtSampleApplication : public ozz::sample::Application {
     char txt[64];
 
     _im_gui->DoCheckBox("do ik", &do_ik_);
+    sprintf(txt, "IK chain length: %d", chain_length_);
+    _im_gui->DoSlider(txt, 1, kMaxChainLength, &chain_length_);
+    sprintf(txt, "Joint weight %.2g", joint_weight_);
+    _im_gui->DoSlider(txt, 0.f, 1.f, &joint_weight_);
+    sprintf(txt, "Chain weight %.2g", chain_weight_);
+    _im_gui->DoSlider(txt, 0.f, 1.f, &chain_weight_);
 
     // Exposes animation runtime playback controls.
     {
@@ -259,7 +320,7 @@ class LookAtSampleApplication : public ozz::sample::Application {
       static bool opened = true;
       ozz::sample::ImGui::OpenClose oc(_im_gui, "Target position", &opened);
       if (opened) {
-        const float kTargetRange = 2.f;
+        const float kTargetRange = 20.f;
         sprintf(txt, "x %.2g", target_.x);
         _im_gui->DoSlider(txt, -kTargetRange, kTargetRange, &target_.x);
         sprintf(txt, "y %.2g", target_.y);
@@ -286,6 +347,7 @@ class LookAtSampleApplication : public ozz::sample::Application {
     // Options
     {
       _im_gui->DoCheckBox("Show skin", &show_skin_);
+      _im_gui->DoCheckBox("Show joints", &show_joints_);
       _im_gui->DoCheckBox("Show target", &show_target_);
       _im_gui->DoCheckBox("Show offset", &show_offset_);
       _im_gui->DoCheckBox("Show forward", &show_forward_);
@@ -326,14 +388,18 @@ class LookAtSampleApplication : public ozz::sample::Application {
   ozz::Vector<ozz::sample::Mesh>::Std meshes_;
 
   // TODO
-  int head_;
+  int joints_chain_[kMaxChainLength];
 
   ozz::math::Float3 target_;
   ozz::math::Float3 offset_;
 
   bool do_ik_;
+  int chain_length_;
+  float joint_weight_;
+  float chain_weight_;
 
   bool show_skin_;
+  bool show_joints_;
   bool show_target_;
   bool show_offset_;
   bool show_forward_;
