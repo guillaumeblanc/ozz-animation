@@ -201,7 +201,7 @@ class LookAtSampleApplication : public ozz::sample::Application {
 
     // Showing joints
     if (show_joints_) {
-      for (int i = 0; i < kMaxChainLength; ++i) {
+      for (size_t i = 0; i < kMaxChainLength; ++i) {
         const ozz::math::Float4x4& transform = models_[joints_chain_[i]];
         success &= _renderer->DrawAxes(transform * kAxesScale);
       }
@@ -242,7 +242,7 @@ class LookAtSampleApplication : public ozz::sample::Application {
     }
 
     // Look for each joint in the chain.
-    int found = 0;
+    size_t found = 0;
     for (int i = 0; i < skeleton_.num_joints() && found != kMaxChainLength;
          ++i) {
       const char* joint_name = skeleton_.joint_names()[i];
