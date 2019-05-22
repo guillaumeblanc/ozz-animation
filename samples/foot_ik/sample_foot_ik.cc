@@ -73,6 +73,14 @@ OZZ_OPTIONS_DECLARE_STRING(floor,
                            "Path to the floor mesh (ozz archive format).",
                            "media/floor.ozz", false)
 
+const char* kLeftJointNames[] = {"LeftUpLeg", "LeftLeg", "LeftFoot"};
+const char* kRightJointNames[] = {"RightUpLeg", "RightLeg", "RightFoot"};
+
+const ozz::math::SimdFloat4 kKneeAxis = ozz::math::simd_float4::z_axis();
+
+const ozz::math::SimdFloat4 kAnkleForward = -ozz::math::simd_float4::x_axis();
+const ozz::math::SimdFloat4 kAnkleUp = ozz::math::simd_float4::y_axis();
+
 // Structure used to store each leg setup data.
 struct LegSetup {
   int hip;
@@ -373,7 +381,7 @@ class FootIKSampleApplication : public ozz::sample::Application {
     ik_job.pole_vector = pole_vector_ms;
     // Mid axis (knee) is constant (usualy), and arbitratry defined by
     // skeleton/rig setup.
-    ik_job.mid_axis = ozz::math::simd_float4::z_axis();
+    ik_job.mid_axis = kKneeAxis;
     ik_job.weight = weight_;
     ik_job.soften = soften_;
     ik_job.start_joint = &models_[_leg.hip];
@@ -413,8 +421,8 @@ class FootIKSampleApplication : public ozz::sample::Application {
     ozz::animation::IKAimJob ik_job;
     // Forward and up vectors are constant (usualy), and arbitratry defined by
     // skeleton/rig setup.
-    ik_job.forward = -ozz::math::simd_float4::x_axis();
-    ik_job.up = ozz::math::simd_float4::y_axis();
+    ik_job.forward = kAnkleForward;
+    ik_job.up = kAnkleUp;
 
     // Model space targetted direction (floor normal in this case).
     ik_job.target = target_ms;
@@ -553,12 +561,10 @@ class FootIKSampleApplication : public ozz::sample::Application {
     cache_.Resize(num_joints);
 
     // Finds left and right joints.
-    const char* left_joints[] = {"LeftUpLeg", "LeftLeg", "LeftFoot"};
-    if (!SetupLeg(skeleton_, left_joints, &legs_setup_[kLeft])) {
+    if (!SetupLeg(skeleton_, kLeftJointNames, &legs_setup_[kLeft])) {
       return false;
     }
-    const char* right_joints[] = {"RightUpLeg", "RightLeg", "RightFoot"};
-    if (!SetupLeg(skeleton_, right_joints, &legs_setup_[kRight])) {
+    if (!SetupLeg(skeleton_, kRightJointNames, &legs_setup_[kRight])) {
       return false;
     }
 
