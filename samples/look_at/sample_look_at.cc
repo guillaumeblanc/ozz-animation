@@ -124,7 +124,7 @@ class LookAtSampleApplication : public ozz::sample::Application {
     ik_job.joint_correction = &correction;
 
     // TODO, explain algo
-    int last_joint;
+    int last_joint = ozz::animation::Skeleton::kNoParent;
     for (int i = 0, joint = joints_chain_[0]; i < chain_length_;
          ++i, last_joint = joint, joint = joints_chain_[i]) {
       if (i == 0) {
@@ -301,7 +301,7 @@ class LookAtSampleApplication : public ozz::sample::Application {
 
     _im_gui->DoCheckBox("do ik", &do_ik_);
     sprintf(txt, "IK chain length: %d", chain_length_);
-    _im_gui->DoSlider(txt, 1, kMaxChainLength, &chain_length_);
+    _im_gui->DoSlider(txt, 0, kMaxChainLength, &chain_length_);
     sprintf(txt, "Joint weight %.2g", joint_weight_);
     _im_gui->DoSlider(txt, 0.f, 1.f, &joint_weight_);
     sprintf(txt, "Chain weight %.2g", chain_weight_);
