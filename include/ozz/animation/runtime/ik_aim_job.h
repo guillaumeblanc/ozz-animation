@@ -79,7 +79,10 @@ struct IKAimJob {
   // same direction as the pole vector. Default is y axis.
   math::SimdFloat4 up;
 
-  // Pole vector, in model-space.
+  // Pole vector, in model-space. The pole vector defines the direction
+  // the up should point to.  Note that IK chain orientation will flip when
+  // target vector and the pole vector are aligned/crossing each other. It's
+  // caller responsibility to ensure that this doesn't happen.
   math::SimdFloat4 pole_vector;
 
   // Twist_angle rotates joint around the target vector.

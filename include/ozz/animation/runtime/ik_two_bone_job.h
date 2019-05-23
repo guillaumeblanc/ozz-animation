@@ -82,8 +82,8 @@ struct IKTwoBoneJob {
   // Job validation will fail if mid_axis isn't normalized.
   math::SimdFloat4 mid_axis;
 
-  // Pole vector, in model-space. The pole vector defines where the direction
-  // the middle joint should point to, allowing to control IK chain orientation.
+  // Pole vector, in model-space. The pole vector defines the direction the
+  // middle joint should point to, allowing to control IK chain orientation.
   // Note that IK chain orientation will flip when target vector and the pole
   // vector are aligned/crossing each other. It's caller responsibility to
   // ensure that this doesn't happen.
