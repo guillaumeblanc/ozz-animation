@@ -66,10 +66,13 @@ OZZ_OPTIONS_DECLARE_STRING(mesh,
 const char* kJointNames[] = {"Head", "Spine3", "Spine2", "Spine1"};
 const size_t kMaxChainLength = OZZ_ARRAY_SIZE(kJointNames);
 
+const ozz::math::SimdFloat4 kJointUpAxis = ozz::math::simd_float4::x_axis();
+
 class LookAtSampleApplication : public ozz::sample::Application {
  public:
   LookAtSampleApplication()
-      : target_(0.f, 1.f, 1.f),
+      : target_offset_(0.f, 1.f, 1.f),
+        target_extent_(2.f),
         offset_(.07f, .1f, 0.f),
         do_ik_(true),
         chain_length_(kMaxChainLength),
@@ -83,7 +86,10 @@ class LookAtSampleApplication : public ozz::sample::Application {
 
  protected:
   // Updates current animation time and skeleton pose.
-  virtual bool OnUpdate(float _dt, float) {
+  virtual bool OnUpdate(float _dt, float _time) {
+    // Animates target position.
+    MoveTarget(_time);
+
     // Updates current animation time.
     controller_.Update(animation_, _dt);
 
@@ -114,10 +120,10 @@ class LookAtSampleApplication : public ozz::sample::Application {
     ozz::animation::IKAimJob ik_job;
 
     // Constant, skeleton setup
-    ik_job.up = ozz::math::simd_float4::x_axis();
-    ik_job.pole_vector = ozz::math::simd_float4::y_axis();
+    ik_job.up = kJointUpAxis;
 
     // Constant model space
+    ik_job.pole_vector = ozz::math::simd_float4::y_axis();
     ik_job.target = ozz::math::simd_float4::Load3PtrU(&target_.x);
 
     ozz::math::SimdQuaternion correction;
@@ -166,6 +172,15 @@ class LookAtSampleApplication : public ozz::sample::Application {
       return false;
     }
 
+    return true;
+  }
+
+  bool MoveTarget(float _time) {
+    const float anim_extent = (1.f - std::cos(_time)) * target_extent_;
+    const int floor = static_cast<int>(std::fabs(_time) / ozz::math::k2Pi);
+
+    target_ = target_offset_;
+    (&target_.x)[floor % 3] += anim_extent;
     return true;
   }
 
@@ -316,17 +331,23 @@ class LookAtSampleApplication : public ozz::sample::Application {
       }
     }
 
+    {  // Target extent
+      _im_gui->DoLabel("Target animation extent");
+      sprintf(txt, "%.2g", target_extent_);
+      _im_gui->DoSlider(txt, 0.f, 3.f, &target_extent_);
+    }
+
     {  // Target position
       static bool opened = true;
-      ozz::sample::ImGui::OpenClose oc(_im_gui, "Target position", &opened);
+      ozz::sample::ImGui::OpenClose oc(_im_gui, "Target offset", &opened);
       if (opened) {
-        const float kTargetRange = 20.f;
-        sprintf(txt, "x %.2g", target_.x);
-        _im_gui->DoSlider(txt, -kTargetRange, kTargetRange, &target_.x);
-        sprintf(txt, "y %.2g", target_.y);
-        _im_gui->DoSlider(txt, -kTargetRange, kTargetRange, &target_.y);
-        sprintf(txt, "z %.2g", target_.z);
-        _im_gui->DoSlider(txt, -kTargetRange, kTargetRange, &target_.z);
+        const float kTargetRange = 10.f;
+        sprintf(txt, "x %.2g", target_offset_.x);
+        _im_gui->DoSlider(txt, -kTargetRange, kTargetRange, &target_offset_.x);
+        sprintf(txt, "y %.2g", target_offset_.y);
+        _im_gui->DoSlider(txt, -kTargetRange, kTargetRange, &target_offset_.y);
+        sprintf(txt, "z %.2g", target_offset_.z);
+        _im_gui->DoSlider(txt, -kTargetRange, kTargetRange, &target_offset_.z);
       }
     }
 
@@ -390,7 +411,10 @@ class LookAtSampleApplication : public ozz::sample::Application {
   // TODO
   int joints_chain_[kMaxChainLength];
 
+  ozz::math::Float3 target_offset_;
+  float target_extent_;
   ozz::math::Float3 target_;
+
   ozz::math::Float3 offset_;
 
   bool do_ik_;
