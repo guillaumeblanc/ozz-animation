@@ -46,6 +46,8 @@ namespace animation {
 // that a provided forward vector (in joint local-space) aims at the target
 // position (in skeleton model-space). Up vector (in joint local-space) is also
 // used to keep the joint oriented in the same direction as the pole vector.
+// The job also exposes an offset (in joint local-space) from where the forward
+// vector should aim the target.
 // Result is unstable if joint-to-target direction is parallel to pole vector,
 // or if target is too close to joint position.
 struct IKAimJob {
