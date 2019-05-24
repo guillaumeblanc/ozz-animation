@@ -243,7 +243,7 @@ class UserChannelSampleApplication : public ozz::sample::Application {
     bool success = true;
 
     // Draw box at the position computed during update.
-    success &= _renderer->DrawBoxShaded(kBox, box_world_transform_, kBoxColor);
+    success &= _renderer->DrawBoxShaded(kBox, ozz::make_range(box_world_transform_), kBoxColor);
 
     // Draws a sphere at hand position, which shows "attached" flag status.
     const ozz::sample::Renderer::Color colors[] = {{0, 0xff, 0, 0xff},
