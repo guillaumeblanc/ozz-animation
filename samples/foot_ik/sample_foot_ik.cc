@@ -561,10 +561,11 @@ class FootIKSampleApplication : public ozz::sample::Application {
     cache_.Resize(num_joints);
 
     // Finds left and right joints.
-    if (!SetupLeg(skeleton_, kLeftJointNames, &legs_setup_[kLeft])) {
-      return false;
-    }
-    if (!SetupLeg(skeleton_, kRightJointNames, &legs_setup_[kRight])) {
+    if (!SetupLeg(skeleton_, kLeftJointNames, &legs_setup_[kLeft]) ||
+        !SetupLeg(skeleton_, kRightJointNames, &legs_setup_[kRight])) {
+      ozz::log::Err()
+          << "At least a joint wasn't found in the skeleton hierarchy."
+          << std::endl;
       return false;
     }
 
