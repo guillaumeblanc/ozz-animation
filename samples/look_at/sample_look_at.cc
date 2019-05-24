@@ -62,11 +62,19 @@ OZZ_OPTIONS_DECLARE_STRING(mesh,
                            "media/mesh.ozz", false)
 
 // Defines IK chain joint names.
-// Joints should be from the same hierarchy, ordered from child to parent.
+// Joints must be from the same hierarchy (all ancestors of the first joint
+// listed) and ordered from child to parent.
 const char* kJointNames[] = {"Head", "Spine3", "Spine2", "Spine1"};
 const size_t kMaxChainLength = OZZ_ARRAY_SIZE(kJointNames);
 
-const ozz::math::SimdFloat4 kJointUpAxis = ozz::math::simd_float4::x_axis();
+// Forward vector in head local-space.
+const ozz::math::SimdFloat4 kHeadForward = ozz::math::simd_float4::y_axis();
+
+// Defines Up vectors for each joint. This is skeleton/rig dependant.
+const ozz::math::SimdFloat4 kJointUpVectors[] = {
+    ozz::math::simd_float4::x_axis(), ozz::math::simd_float4::x_axis(),
+    ozz::math::simd_float4::x_axis(), ozz::math::simd_float4::x_axis()};
+OZZ_STATIC_ASSERT(OZZ_ARRAY_SIZE(kJointUpVectors) == kMaxChainLength);
 
 class LookAtSampleApplication : public ozz::sample::Application {
  public:
@@ -103,7 +111,7 @@ class LookAtSampleApplication : public ozz::sample::Application {
       return false;
     }
 
-    // Converts from local space to model space matrices.
+    // Converts from local-space to model-space matrices.
     ozz::animation::LocalToModelJob ltm_job;
     ltm_job.skeleton = &skeleton_;
     ltm_job.input = make_range(locals_);
@@ -117,46 +125,72 @@ class LookAtSampleApplication : public ozz::sample::Application {
       return true;
     }
 
+    // IK aim job setup.
     ozz::animation::IKAimJob ik_job;
 
-    // Constant, skeleton setup
-    ik_job.up = kJointUpAxis;
-
-    // Constant model space
+    // Pole vector and target position are constant for the whole algorithm, in
+    // model-space.
     ik_job.pole_vector = ozz::math::simd_float4::y_axis();
     ik_job.target = ozz::math::simd_float4::Load3PtrU(&target_.x);
 
+    // The same quaternion will be used each time the job is run.
     ozz::math::SimdQuaternion correction;
     ik_job.joint_correction = &correction;
 
-    // TODO, explain algo
-    int last_joint = ozz::animation::Skeleton::kNoParent;
+    // The algorithm iteratively updates from the first joint (closer to the
+    // leaf) to the last (the further ancestor). Joints order is already
+    // validated.
+    // For the first joint, aim IK is applied with the global forward and
+    // offset, so the forward vector aligns in direction of the target. If a
+    // weight lower that 1 is provided, then the joint will not fully align to
+    // the target. In this case further joint will need to be updated.
+    // For the remaining joints, forward vector and offset position will be
+    // computed in each joint local-space, before IK is applied:
+    // 1. Rotates forward and offset position based on the result of the
+    // previous joint IK.
+    // 2. Brings forward and offset back in joint local-space.
+    // Aim is iteratively applied to the last selected joint of the hierarchy. A
+    // weight of 1 is given to the last joint so we can guarantee target is
+    // reached.
+    // Note that model-space transform of each joint doesn't need to be updated
+    // between each pass, as joints are ordered from child to parent.
+    int previous_joint = ozz::animation::Skeleton::kNoParent;
     for (int i = 0, joint = joints_chain_[0]; i < chain_length_;
-         ++i, last_joint = joint, joint = joints_chain_[i]) {
-      if (i == 0) {
-        // TODO
-        // First joint
-        ik_job.offset = ozz::math::simd_float4::Load3PtrU(&offset_.x);
-        ik_job.forward = ozz::math::simd_float4::y_axis();
-      } else {
-        // TODO
-        // Following joints
-        // Applies previous correction to "forward" and "offset", before
-        // bringing them to model space.
-        const ozz::math::SimdFloat4 corrected_forward_ms = TransformVector(
-            models_[last_joint], TransformVector(correction, ik_job.forward));
-        const ozz::math::SimdFloat4 corrected_offset_ms = TransformPoint(
-            models_[last_joint], TransformVector(correction, ik_job.offset));
+         ++i, previous_joint = joint, joint = joints_chain_[i]) {
+      // Setups the model-space matrix of the joint being processed by IK.
+      ik_job.joint = &models_[joint];
 
-        // Brings "forward" and "offset" to parent local space
+      // Setups joint local-space up vector.
+      ik_job.up = kJointUpVectors[i];
+
+      // Setups weights of IK job.
+      // the last joint being processed needs a full weight (1.f) to ensure
+      // target is reached.
+      const bool last = i == chain_length_ - 1;
+      ik_job.weight = chain_weight_ * (last ? 1.f : joint_weight_);
+
+      // Setup offset and forward vector for the current joint being processed.
+      if (i == 0) {
+        // First joint, uses global forward and offset.
+        ik_job.offset = ozz::math::simd_float4::Load3PtrU(&offset_.x);
+        ik_job.forward = kHeadForward;
+      } else {
+        // Applies previous correction to "forward" and "offset", before
+        // bringing them to model-space (_ms).
+        const ozz::math::SimdFloat4 corrected_forward_ms =
+            TransformVector(models_[previous_joint],
+                            TransformVector(correction, ik_job.forward));
+        const ozz::math::SimdFloat4 corrected_offset_ms =
+            TransformPoint(models_[previous_joint],
+                           TransformVector(correction, ik_job.offset));
+
+        // Brings "forward" and "offset" to joint local-space
         const ozz::math::Float4x4 inv_joint = Invert(models_[joint]);
         ik_job.forward = TransformVector(inv_joint, corrected_forward_ms);
         ik_job.offset = TransformPoint(inv_joint, corrected_offset_ms);
       }
 
-      ik_job.joint = &models_[joint];
-      const bool last = i == chain_length_ - 1;
-      ik_job.weight = chain_weight_ * (last ? 1.f : joint_weight_);
+      // Runs IK aim job.
       if (!ik_job.Run()) {
         return false;
       }
@@ -166,8 +200,10 @@ class LookAtSampleApplication : public ozz::sample::Application {
                                                   make_range(locals_));
     }
 
-    // TODO comment
-    ltm_job.from = last_joint;
+    // Skeleton model-space matrices need to be updated again. This re-uses the
+    // already setup job, but limits the update to childs of the last joint (the
+    // parent-iest of the chain).
+    ltm_job.from = previous_joint;
     if (!ltm_job.Run()) {
       return false;
     }
@@ -175,6 +211,7 @@ class LookAtSampleApplication : public ozz::sample::Application {
     return true;
   }
 
+  // Sample arbitrary target animation implementation.
   bool MoveTarget(float _time) {
     const float anim_extent = (1.f - std::cos(_time)) * target_extent_;
     const int floor = static_cast<int>(std::fabs(_time) / ozz::math::k2Pi);
@@ -239,11 +276,10 @@ class LookAtSampleApplication : public ozz::sample::Application {
       if (show_forward_) {
         ozz::math::Float3 begin;
         ozz::math::Store3PtrU(offset.cols[3], &begin.x);
-        // TODO share setting.
-        const ozz::math::Float3 forward = ozz::math::Float3::y_axis() * 10.f;
-
+        ozz::math::Float3 forward;
+        ozz::math::Store3PtrU(kHeadForward, &forward.x);
         ozz::sample::Renderer::Color color = {0xff, 0xff, 0xff, 0xff};
-        success &= _renderer->DrawSegment(ozz::math::Float3::zero(), forward,
+        success &= _renderer->DrawSegment(ozz::math::Float3::zero(), forward * 10.f,
                                           color, offset);
       }
     }
@@ -257,7 +293,7 @@ class LookAtSampleApplication : public ozz::sample::Application {
     }
 
     // Look for each joint in the chain.
-    size_t found = 0;
+    int found = 0;
     for (int i = 0; i < skeleton_.num_joints() && found != kMaxChainLength;
          ++i) {
       const char* joint_name = skeleton_.joint_names()[i];
@@ -272,11 +308,18 @@ class LookAtSampleApplication : public ozz::sample::Application {
 
     // Exit if all joints weren't found.
     if (found != kMaxChainLength) {
+      ozz::log::Err()
+          << "At least a joint wasn't found in the skeleton hierarchy."
+          << std::endl;
       return false;
     }
 
-    // Reading animation.
-    if (!ozz::sample::LoadAnimation(OPTIONS_animation, &animation_)) {
+    // Validates joints are order from child to parent of the same hierarchy.
+    if (!ValidateJointsOrder(skeleton_, joints_chain_)) {
+      ozz::log::Err() << "Joints aren't properly ordered, they must be from "
+                         "the same hierarchy (all ancestors of the first joint "
+                         "listed) and ordered from child to parent."
+                      << std::endl;
       return false;
     }
 
@@ -288,6 +331,11 @@ class LookAtSampleApplication : public ozz::sample::Application {
 
     // Allocates a cache that matches animation requirements.
     cache_.Resize(num_joints);
+
+    // Reading animation.
+    if (!ozz::sample::LoadAnimation(OPTIONS_animation, &animation_)) {
+      return false;
+    }
 
     // Reading character mesh.
     if (!ozz::sample::LoadMeshes(OPTIONS_mesh, &meshes_)) {
@@ -307,6 +355,27 @@ class LookAtSampleApplication : public ozz::sample::Application {
     skinning_matrices_.resize(num_joints);
 
     return true;
+  }
+
+  // Traverses the hierarchy from the first joint to the root, to check if
+  // joints are all ancestors (same branch), and ordered.
+  bool ValidateJointsOrder(const ozz::animation::Skeleton& _skeleton,
+                           ozz::Range<const int> _joints) {
+    const size_t count = _joints.count();
+    if (count == 0) {
+      return true;
+    }
+
+    size_t i = 1;
+    for (int joint = _joints[0], parent = _skeleton.joint_parents()[joint];
+         i != count && joint != ozz::animation::Skeleton::kNoParent;
+         joint = parent, parent = _skeleton.joint_parents()[joint]) {
+      if (parent == _joints[i]) {
+        ++i;
+      }
+    }
+
+    return count == i;
   }
 
   virtual void OnDestroy() {}
@@ -398,11 +467,11 @@ class LookAtSampleApplication : public ozz::sample::Application {
   // Buffer of local transforms as sampled from animation_.
   ozz::Vector<ozz::math::SoaTransform>::Std locals_;
 
-  // Buffer of model space matrices.
+  // Buffer of model-space matrices.
   ozz::Vector<ozz::math::Float4x4>::Std models_;
 
   // Buffer of skinning matrices, result of the joint multiplication of the
-  // inverse bind pose with the model space matrix.
+  // inverse bind pose with the model-space matrix.
   ozz::Vector<ozz::math::Float4x4>::Std skinning_matrices_;
 
   // The mesh used by the sample.
