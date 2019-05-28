@@ -135,14 +135,13 @@ class RendererImpl : public Renderer {
                         const Options& _options = Options());
 
   virtual bool DrawSegment(const math::Float3& _begin, const math::Float3& _end,
-                           Renderer::Color _color,
-                           const ozz::math::Float4x4& _transform);
+                           Color _color, const ozz::math::Float4x4& _transform);
 
   virtual bool DrawVectors(ozz::Range<const float> _positions,
                            size_t _positions_stride,
                            ozz::Range<const float> _directions,
                            size_t _directions_stride, int _num_vectors,
-                           float _vector_length, Renderer::Color _color,
+                           float _vector_length, Color _color,
                            const ozz::math::Float4x4& _transform);
 
   virtual bool DrawBinormals(
@@ -150,7 +149,7 @@ class RendererImpl : public Renderer {
       ozz::Range<const float> _normals, size_t _normals_stride,
       ozz::Range<const float> _tangents, size_t _tangents_stride,
       ozz::Range<const float> _handenesses, size_t _handenesses_stride,
-      int _num_vectors, float _vector_length, Renderer::Color _color,
+      int _num_vectors, float _vector_length, Color _color,
       const ozz::math::Float4x4& _transform);
 
   // Get GL immediate renderer implementation;

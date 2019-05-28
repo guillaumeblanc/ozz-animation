@@ -278,7 +278,7 @@ class LookAtSampleApplication : public ozz::sample::Application {
         ozz::math::Store3PtrU(offset.cols[3], &begin.x);
         ozz::math::Float3 forward;
         ozz::math::Store3PtrU(kHeadForward, &forward.x);
-        ozz::sample::Renderer::Color color = {0xff, 0xff, 0xff, 0xff};
+        ozz::sample::Color color = {0xff, 0xff, 0xff, 0xff};
         success &= _renderer->DrawSegment(ozz::math::Float3::zero(),
                                           forward * 10.f, color, offset);
       }

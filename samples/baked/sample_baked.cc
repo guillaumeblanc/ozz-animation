@@ -123,10 +123,10 @@ class BakedSampleApplication : public ozz::sample::Application {
   virtual bool OnDisplay(ozz::sample::Renderer* _renderer) {
     // Render a 1m size boxes for every joint. The scale of each box come from
     // the animation.
-    const ozz::sample::Renderer::Color color = {0xff, 0xff, 0xff, 0xff};
     const float size = .5f;
     const ozz::math::Box box(ozz::math::Float3(-size), ozz::math::Float3(size));
-    return _renderer->DrawBoxShaded(box, make_range(models_), color);
+    return _renderer->DrawBoxShaded(box, make_range(models_),
+                                    ozz::sample::kWhite);
   }
 
   virtual bool OnGui(ozz::sample::ImGui* _im_gui) {

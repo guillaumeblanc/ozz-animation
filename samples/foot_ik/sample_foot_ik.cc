@@ -501,17 +501,15 @@ class FootIKSampleApplication : public ozz::sample::Application {
       for (size_t l = 0; l < kLegsCount; ++l) {
         const LegRayInfo& ray = rays_info_[l];
         if (ray.hit) {
-          const ozz::sample::Renderer::Color color = {0, 0xff, 0, 0xff};
-          success &=
-              _renderer->DrawSegment(ray.start, ray.hit_point, color, identity);
-          const ozz::sample::Renderer::Color color_n = {0xff, 0, 0, 0xff};
+          success &= _renderer->DrawSegment(ray.start, ray.hit_point,
+                                            ozz::sample::kGreen, identity);
           success &= _renderer->DrawSegment(
-              ray.hit_point, ray.hit_point + ray.hit_normal * .5f, color_n,
-              identity);
+              ray.hit_point, ray.hit_point + ray.hit_normal * .5f,
+              ozz::sample::kRed, identity);
         } else {
-          const ozz::sample::Renderer::Color color = {0xff, 0xff, 0xff, 0xff};
-          success &= _renderer->DrawSegment(
-              ray.start, ray.start + ray.dir * 10.f, color, identity);
+          success &=
+              _renderer->DrawSegment(ray.start, ray.start + ray.dir * 10.f,
+                                     ozz::sample::kWhite, identity);
         }
       }
     }

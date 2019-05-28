@@ -63,7 +63,7 @@ namespace {
 struct VertexPNC {
   math::Float3 pos;
   math::Float3 normal;
-  Renderer::Color color;
+  Color color;
 };
 }  // namespace
 
@@ -978,7 +978,7 @@ bool RendererImpl::DrawSphereShaded(
 }
 
 bool RendererImpl::DrawSegment(const math::Float3& _begin,
-                               const math::Float3& _end, Renderer::Color _color,
+                               const math::Float3& _end, Color _color,
                                const ozz::math::Float4x4& _transform) {
   const math::Float3 dir(_end - _begin);
   return DrawVectors(ozz::Range<const float>(&_begin.x, 3), 12,
@@ -990,7 +990,7 @@ bool RendererImpl::DrawVectors(ozz::Range<const float> _positions,
                                size_t _positions_stride,
                                ozz::Range<const float> _directions,
                                size_t _directions_stride, int _num_vectors,
-                               float _vector_length, Renderer::Color _color,
+                               float _vector_length, Color _color,
                                const ozz::math::Float4x4& _transform) {
   // Invalid range length.
   if (PointerStride(_positions.begin, _positions_stride * _num_vectors) >
@@ -1028,7 +1028,7 @@ bool RendererImpl::DrawBinormals(
     ozz::Range<const float> _normals, size_t _normals_stride,
     ozz::Range<const float> _tangents, size_t _tangents_stride,
     ozz::Range<const float> _handenesses, size_t _handenesses_stride,
-    int _num_vectors, float _vector_length, Renderer::Color _color,
+    int _num_vectors, float _vector_length, Color _color,
     const ozz::math::Float4x4& _transform) {
   // Invalid range length.
   if (PointerStride(_positions.begin, _positions_stride * _num_vectors) >
@@ -1280,20 +1280,18 @@ bool RendererImpl::DrawMesh(const Mesh& _mesh,
 
   // Renders debug normals.
   if (_options.normals) {
-    const Renderer::Color green = {0, 255, 0, 255};
     for (size_t i = 0; i < _mesh.parts.size(); ++i) {
       const Mesh::Part& part = _mesh.parts[i];
       DrawVectors(make_range(part.positions),
                   ozz::sample::Mesh::Part::kPositionsCpnts * sizeof(float),
                   make_range(part.normals),
                   ozz::sample::Mesh::Part::kNormalsCpnts * sizeof(float),
-                  part.vertex_count(), .03f, green, _transform);
+                  part.vertex_count(), .03f, ozz::sample::kGreen, _transform);
     }
   }
 
   // Renders debug tangents.
   if (_options.tangents) {
-    const Renderer::Color red = {255, 0, 0, 255};
     for (size_t i = 0; i < _mesh.parts.size(); ++i) {
       const Mesh::Part& part = _mesh.parts[i];
       if (part.normals.size() != 0) {
@@ -1301,7 +1299,7 @@ bool RendererImpl::DrawMesh(const Mesh& _mesh,
                     ozz::sample::Mesh::Part::kPositionsCpnts * sizeof(float),
                     make_range(part.tangents),
                     ozz::sample::Mesh::Part::kTangentsCpnts * sizeof(float),
-                    part.vertex_count(), .03f, red, _transform);
+                    part.vertex_count(), .03f, ozz::sample::kRed, _transform);
       }
     }
   }
@@ -1310,7 +1308,6 @@ bool RendererImpl::DrawMesh(const Mesh& _mesh,
   if (_options.binormals) {
     for (size_t i = 0; i < _mesh.parts.size(); ++i) {
       const Mesh::Part& part = _mesh.parts[i];
-      const Renderer::Color blue = {0, 0, 255, 255};
       if (part.normals.size() != 0 && part.tangents.size() != 0) {
         DrawBinormals(
             make_range(part.positions),
@@ -1321,7 +1318,7 @@ bool RendererImpl::DrawMesh(const Mesh& _mesh,
             ozz::sample::Mesh::Part::kTangentsCpnts * sizeof(float),
             ozz::Range<const float>(&part.tangents[3], part.tangents.size()),
             ozz::sample::Mesh::Part::kTangentsCpnts * sizeof(float),
-            part.vertex_count(), .03f, blue, _transform);
+            part.vertex_count(), .03f, ozz::sample::kBlue, _transform);
       }
     }
   }
@@ -1478,24 +1475,23 @@ bool RendererImpl::DrawSkinnedMesh(
 
     // Renders debug normals.
     if (_options.normals && skinning_job.out_normals.count() > 0) {
-      const Renderer::Color green = {0, 255, 0, 255};
       DrawVectors(skinning_job.out_positions, skinning_job.out_positions_stride,
                   skinning_job.out_normals, skinning_job.out_normals_stride,
-                  skinning_job.vertex_count, .03f, green, _transform);
+                  skinning_job.vertex_count, .03f, ozz::sample::kGreen,
+                  _transform);
     }
 
     // Renders debug tangents.
     if (_options.tangents && skinning_job.out_tangents.count() > 0) {
-      const Renderer::Color red = {255, 0, 0, 255};
       DrawVectors(skinning_job.out_positions, skinning_job.out_positions_stride,
                   skinning_job.out_tangents, skinning_job.out_tangents_stride,
-                  skinning_job.vertex_count, .03f, red, _transform);
+                  skinning_job.vertex_count, .03f, ozz::sample::kRed,
+                  _transform);
     }
 
     // Renders debug binormals.
     if (_options.binormals && skinning_job.out_normals.count() > 0 &&
         skinning_job.out_tangents.count() > 0) {
-      const Renderer::Color blue = {0, 0, 255, 255};
       DrawBinormals(skinning_job.out_positions,
                     skinning_job.out_positions_stride, skinning_job.out_normals,
                     skinning_job.out_normals_stride, skinning_job.out_tangents,
@@ -1503,7 +1499,7 @@ bool RendererImpl::DrawSkinnedMesh(
                     ozz::Range<const float>(skinning_job.in_tangents.begin + 3,
                                             skinning_job.in_tangents.end + 3),
                     skinning_job.in_tangents_stride, skinning_job.vertex_count,
-                    .03f, blue, _transform);
+                    .03f, ozz::sample::kBlue, _transform);
     }
 
     // Handles colors which aren't affected by skinning.

@@ -55,8 +55,6 @@ const ozz::math::Box kBox(ozz::math::Float3(-.01f, -.1f, -.05f),
 const ozz::math::SimdFloat4 kBoxInitialPosition =
     ozz::math::simd_float4::Load(0.f, .1f, .3f, 0.f);
 
-const ozz::sample::Renderer::Color kBoxColor = {0x80, 0x80, 0x80, 0xff};
-
 // Skeleton archive can be specified as an option.
 OZZ_OPTIONS_DECLARE_STRING(skeleton,
                            "Path to the skeleton (ozz archive format).",
@@ -243,11 +241,12 @@ class UserChannelSampleApplication : public ozz::sample::Application {
     bool success = true;
 
     // Draw box at the position computed during update.
-    success &= _renderer->DrawBoxShaded(kBox, ozz::make_range(box_world_transform_), kBoxColor);
+    success &= _renderer->DrawBoxShaded(
+        kBox, ozz::make_range(box_world_transform_), ozz::sample::kGrey);
 
     // Draws a sphere at hand position, which shows "attached" flag status.
-    const ozz::sample::Renderer::Color colors[] = {{0, 0xff, 0, 0xff},
-                                                   {0xff, 0, 0, 0xff}};
+    const ozz::sample::Color colors[] = {{0, 0xff, 0, 0xff},
+                                         {0xff, 0, 0, 0xff}};
     _renderer->DrawSphereIm(.01f, models_[attach_joint_], colors[attached_]);
 
     // Draws the animated skeleton.

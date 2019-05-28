@@ -182,9 +182,9 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
 
     if (show_target_ && two_bone_ik_) {
       // Displays target
-      const ozz::sample::Renderer::Color colors[2][2] = {
-          {{0xff, 0xff, 0xff, 0xff}, {0xff, 0, 0, 0xff}},
-          {{0xff, 0xff, 0xff, 0xff}, {0, 0xff, 0, 0xff}}};
+      const ozz::sample::Color colors[2][2] = {
+          {ozz::sample::kWhite, ozz::sample::kRed},
+          {ozz::sample::kWhite, ozz::sample::kGreen}};
 
       const float kBoxHalfSize = .005f;
       const ozz::math::Box box(ozz::math::Float3(-kBoxHalfSize),
@@ -198,14 +198,12 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
 
     // Displays pole vector
     if (show_pole_vector_) {
-      const ozz::sample::Renderer::Color color = {0xff, 0xff, 0xff, 0xff};
-      float pos[3];
+      ozz::math::Float3 begin;
       ozz::math::Store3PtrU(TransformPoint(root, models_[mid_joint_].cols[3]),
-                            pos);
-      success &= _renderer->DrawVectors(
-          ozz::Range<const float>(pos, 3), 6,
-          ozz::Range<const float>(&pole_vector.x, 3), 6, 1, 1.f, color,
-          ozz::math::Float4x4::identity());
+                            &begin.x);
+      success &= _renderer->DrawSegment(begin, begin + pole_vector,
+                                        ozz::sample::kWhite,
+                                        ozz::math::Float4x4::identity());
     }
 
     // Showing joints

@@ -337,7 +337,8 @@ bool BuildVertices(FbxMesh* _fbx_mesh,
           ozz::log::Err() << "Mesh uses too many vertices (> "
                           << std::numeric_limits<uint16_t>::max()
                           << ") to fit in the index "
-                             "buffer." << std::endl;
+                             "buffer."
+                          << std::endl;
           return false;
         }
 
