@@ -33,6 +33,7 @@
 
 #include "ozz/base/log.h"
 
+#include "ozz/base/maths/box.h"
 #include "ozz/base/maths/simd_math.h"
 #include "ozz/base/maths/simd_quaternion.h"
 #include "ozz/base/maths/soa_transform.h"
@@ -79,12 +80,12 @@ OZZ_STATIC_ASSERT(OZZ_ARRAY_SIZE(kJointUpVectors) == kMaxChainLength);
 class LookAtSampleApplication : public ozz::sample::Application {
  public:
   LookAtSampleApplication()
-      : target_offset_(0.f, 1.f, 1.f),
-        target_extent_(2.f),
+      : target_offset_(.3f, 1.5f, -.3f),
+        target_extent_(1.f),
         offset_(.07f, .1f, 0.f),
         enable_ik_(true),
         chain_length_(kMaxChainLength),
-        joint_weight_(.5f),
+        joint_weight_(.6f),
         chain_weight_(1.f),
         show_skin_(true),
         show_joints_(false),
@@ -195,7 +196,7 @@ class LookAtSampleApplication : public ozz::sample::Application {
         return false;
       }
 
-      // Apply IK quaternions to their respective local-space transforms.
+      // Apply IK quaternion to its respective local-space transforms.
       ozz::sample::MultiplySoATransformQuaternion(joint, correction,
                                                   make_range(locals_));
     }
@@ -213,11 +214,10 @@ class LookAtSampleApplication : public ozz::sample::Application {
 
   // Sample arbitrary target animation implementation.
   bool MoveTarget(float _time) {
-    const float anim_extent = (1.f - std::cos(_time)) * target_extent_;
-    const int floor = static_cast<int>(std::fabs(_time) / ozz::math::k2Pi);
-
-    target_ = target_offset_;
-    (&target_.x)[floor % 3] += anim_extent;
+    const ozz::math::Float3 animated_target(std::sin(_time * .5f),
+                                            std::cos(_time * .25f),
+                                            std::cos(_time) * .5f + .5f);
+    target_ = target_offset_ + animated_target * target_extent_;
     return true;
   }
 
@@ -410,7 +410,7 @@ class LookAtSampleApplication : public ozz::sample::Application {
       static bool opened = true;
       ozz::sample::ImGui::OpenClose oc(_im_gui, "Target offset", &opened);
       if (opened) {
-        const float kTargetRange = 10.f;
+        const float kTargetRange = 5.f;
         sprintf(txt, "x %.2g", target_offset_.x);
         _im_gui->DoSlider(txt, -kTargetRange, kTargetRange, &target_offset_.x);
         sprintf(txt, "y %.2g", target_offset_.y);
@@ -447,7 +447,12 @@ class LookAtSampleApplication : public ozz::sample::Application {
   }
 
   virtual void GetSceneBounds(ozz::math::Box* _bound) const {
-    ozz::sample::ComputePostureBounds(make_range(models_), _bound);
+    // Computes skeleton bound
+    ozz::math::Box posture_bound;
+    ozz::sample::ComputePostureBounds(make_range(models_), &posture_bound);
+
+    // Adds target in the bounds
+    *_bound = Merge(posture_bound, ozz::math::Box(target_));
   }
 
  private:
