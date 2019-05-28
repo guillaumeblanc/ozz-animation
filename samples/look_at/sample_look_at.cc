@@ -82,7 +82,7 @@ class LookAtSampleApplication : public ozz::sample::Application {
       : target_offset_(0.f, 1.f, 1.f),
         target_extent_(2.f),
         offset_(.07f, .1f, 0.f),
-        do_ik_(true),
+        enable_ik_(true),
         chain_length_(kMaxChainLength),
         joint_weight_(.5f),
         chain_weight_(1.f),
@@ -121,7 +121,7 @@ class LookAtSampleApplication : public ozz::sample::Application {
     }
 
     // Early out if IK is disabled.
-    if (!do_ik_) {
+    if (!enable_ik_) {
       return true;
     }
 
@@ -279,8 +279,8 @@ class LookAtSampleApplication : public ozz::sample::Application {
         ozz::math::Float3 forward;
         ozz::math::Store3PtrU(kHeadForward, &forward.x);
         ozz::sample::Renderer::Color color = {0xff, 0xff, 0xff, 0xff};
-        success &= _renderer->DrawSegment(ozz::math::Float3::zero(), forward * 10.f,
-                                          color, offset);
+        success &= _renderer->DrawSegment(ozz::math::Float3::zero(),
+                                          forward * 10.f, color, offset);
       }
     }
     return success;
@@ -383,7 +383,7 @@ class LookAtSampleApplication : public ozz::sample::Application {
   virtual bool OnGui(ozz::sample::ImGui* _im_gui) {
     char txt[64];
 
-    _im_gui->DoCheckBox("do ik", &do_ik_);
+    _im_gui->DoCheckBox("Enable ik", &enable_ik_);
     sprintf(txt, "IK chain length: %d", chain_length_);
     _im_gui->DoSlider(txt, 0, kMaxChainLength, &chain_length_);
     sprintf(txt, "Joint weight %.2g", joint_weight_);
@@ -477,20 +477,38 @@ class LookAtSampleApplication : public ozz::sample::Application {
   // The mesh used by the sample.
   ozz::Vector<ozz::sample::Mesh>::Std meshes_;
 
-  // TODO
+  // Indices of the joints that are IKed for look-at purpose.
+  // Joints must be from the same hierarchy (all ancestors of the first joint
+  // listed) and ordered from child to parent.
   int joints_chain_[kMaxChainLength];
 
+  // Sample settings
+
+  // Target position management.
   ozz::math::Float3 target_offset_;
   float target_extent_;
   ozz::math::Float3 target_;
 
+  // Offset of the look at position in (head) joint local-space.
   ozz::math::Float3 offset_;
 
-  bool do_ik_;
+  // IK settings
+
+  // Enable IK look at.
+  bool enable_ik_;
+
+  // Set length of the chain that is IKed, between 0 and kMaxChainLength.
   int chain_length_;
+
+  // Weight given to every joint of the chain. If any joint has a weight of 1,
+  // no other following joint will contribute (as the target will be reached).
   float joint_weight_;
+
+  // Overall weight given to the IK on the full chain. This allows blending in
+  // and out of IK.
   float chain_weight_;
 
+  // Options
   bool show_skin_;
   bool show_joints_;
   bool show_target_;
