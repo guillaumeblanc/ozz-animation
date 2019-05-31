@@ -62,8 +62,8 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
         weight_(1.f),
         soften_(.96f),
         twist_angle_(0.f),
-        reached(false),
         fix_initial_transform_(true),
+        reached_(false),
         two_bone_ik_(true),
         show_target_(true),
         show_joints_(false),
@@ -111,7 +111,7 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
     ik_job.start_joint_correction = &start_correction;
     ozz::math::SimdQuaternion mid_correction;
     ik_job.mid_joint_correction = &mid_correction;
-    ik_job.reached = &reached;
+    ik_job.reached = &reached_;
 
     if (!ik_job.Run()) {
       return false;
@@ -193,7 +193,7 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
           box,
           ozz::math::Float4x4::Translation(
               ozz::math::simd_float4::Load3PtrU(&target_.x)),
-          colors[reached]);
+          colors[reached_]);
     }
 
     // Displays pole vector
@@ -411,7 +411,7 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
   float twist_angle_;
 
   // Two bone IK job "reched" output value.
-  bool reached;
+  bool reached_;
 
   // Sample options
   bool fix_initial_transform_;
