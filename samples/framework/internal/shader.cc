@@ -498,9 +498,8 @@ BoneShader* BoneShader::Build() {  // Builds a world matrix from joint uniforms,
 
       "  // Setup rendering world matrix.\n"
       "  float dot1 = dot(joint[2].xyz, bone_dir);\n"
-      "  vec3 binormal_temp = abs(dot1) < .5 ? joint[2].xyz : joint[1].xyz;\n"
-      "  float dot2 = dot(binormal_temp, bone_dir);\n"
-      "  vec3 binormal = abs(dot2) < .5 ? binormal_temp : joint[0].xyz;\n"
+      "  float dot2 = dot(joint[0].xyz, bone_dir);\n"
+      "  vec3 binormal = abs(dot1) < abs(dot2) ? joint[2].xyz : joint[0].xyz;\n"
 
       "  mat4 world_matrix;\n"
       "  world_matrix[0] = vec4(bone_dir, 0.);\n"
