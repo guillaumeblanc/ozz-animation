@@ -71,7 +71,7 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
         root_translation_(0.f, 0.f, 0.f),
         root_euler_(0.f, 0.f, 0.f),
         root_scale_(1.f),
-        target_extent_(.3f),
+        target_extent_(.5f),
         target_offset_(0.f, .2f, .1f),
         target_(0.f, 0.f, 0.f) {}
 
@@ -373,7 +373,7 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
 
  private:
   bool MoveTarget(float _time) {
-    const float anim_extent = (1.f - std::cos(_time)) * target_extent_;
+    const float anim_extent = (1.f - std::cos(_time)) * .5f * target_extent_;
     const int floor = static_cast<int>(std::fabs(_time) / ozz::math::k2Pi);
 
     target_ = target_offset_;
