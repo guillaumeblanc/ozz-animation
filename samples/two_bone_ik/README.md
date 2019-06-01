@@ -30,4 +30,4 @@ Target position is animated by the sample, but can also be tweaked manually, as 
   2. Target and pole vectors are converted to skeleton model space.
   3. Setup IKTwoBoneJob with sample parameters, providing the three joints model-space matrices.
   4. Once run, the job outputs two quaternions for the two first joints of the chain. The samples multiplies them to their respective local-space rotations.
-  5. Model-space matrices can be updated again, before rendering.
+  5. Model-space matrices must be updated again. Only the children of the first joint of the chain need to be updated again.

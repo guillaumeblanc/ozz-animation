@@ -55,6 +55,7 @@ static const Color kGreen = {0, 0xff, 0, 0xff};
 static const Color kBlue = {0, 0, 0xff, 0xff};
 static const Color kWhite = {0xff, 0xff, 0xff, 0xff};
 static const Color kGrey = {0x80, 0x80, 0x80, 0xff};
+static const Color kBlack = {0x80, 0x80, 0x80, 0xff};
 
 // Defines renderer abstract interface.
 class Renderer {

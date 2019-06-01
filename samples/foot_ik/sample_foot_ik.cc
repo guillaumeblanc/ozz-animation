@@ -125,17 +125,18 @@ class FootIKSampleApplication : public ozz::sample::Application {
  protected:
   // Updates current animation time and foot ik.
   virtual bool OnUpdate(float _dt, float) {
-    // 1. Finds character height on the floor, evaluted at its root position.
-    if (!UpdateCharacterHeight()) {
-      return false;
-    }
-
-    // 2. Updates character main animation.
+    // 1. Updates character main animation.
     if (!UpdateBaseAnimation(_dt)) {
       return false;
     }
 
-    // 3. Projects legs (actually ankles) to the floor.
+    // 2. Finds character height on the floor, evaluted at its root position.
+    if (!UpdateCharacterHeight()) {
+      return false;
+    }
+
+    // 3. For each leg, raycasts a vector going down from the ankle position.
+    // This allows to find the intersection point with the floor.
     if (!RaycastLegs()) {
       return false;
     }
@@ -146,8 +147,9 @@ class FootIKSampleApplication : public ozz::sample::Application {
       return false;
     }
 
-    // 5. Computes how mush the character shall be offseted, so that its lowest
-    // leg touches the floor.
+    // 5. Offsets the character down, so that the lowest ankle (lowest from its
+    // original position) reaches its targetted position. The other leg(s) will
+    // be ik-ed.
     if (!UpdatePelvisOffset()) {
       return false;
     }
@@ -227,10 +229,10 @@ class FootIKSampleApplication : public ozz::sample::Application {
     return true;
   }
 
-  // Comptutes ankle target position, so that the foot is in contact with the
-  // floor. This needs to consider slope angle (floor normal) and foot height.
-  // See geogebra diagram for more details:
-  // media/doc/samples/sample_foot_ik_ankle.ggb
+  // Comptutes ankle target position (C), so that the foot is in contact with
+  // the floor. Because of floor slope (defined by raycast intersection normal),
+  // ankle position cannot be simply be offseted by foot offset. See geogebra
+  // diagram for more details: media/doc/samples/foot_ik_ankle.ggb
   bool UpdateAnklesTarget() {
     for (size_t l = 0; l < kLegsCount; ++l) {
       const LegRayInfo& ray = rays_info_[l];
@@ -279,8 +281,8 @@ class FootIKSampleApplication : public ozz::sample::Application {
 
   // Recomputes pelvis offset.
   // Strategy is to move the pelvis along "down" axis (ray axis), enough for
-  // the lowest foot (lowest from its original position) to touch the floor.
-  // The other foot will be ik-ed.
+  // the lowest foot (lowest from its original position) to reaches ankle
+  // target. The other foot will be ik-ed.
   bool UpdatePelvisOffset() {
     pelvis_offset_ = ozz::math::Float3(0.f, 0.f, 0.f);
 
