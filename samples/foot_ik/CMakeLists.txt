@@ -41,11 +41,11 @@ if(EMSCRIPTEN)
   install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/sample_foot_ik.html
     ${CMAKE_CURRENT_BINARY_DIR}/sample_foot_ik.js
-    DESTINATION bin/samples/playback)
+    DESTINATION bin/samples/foot_ik)
 else()
-  install(TARGETS sample_foot_ik DESTINATION bin/samples/playback)
-  install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/media DESTINATION bin/samples/playback)
-  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/README.md DESTINATION bin/samples/playback)
+  install(TARGETS sample_foot_ik DESTINATION bin/samples/foot_ik)
+  install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/media DESTINATION bin/samples/foot_ik)
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/README.md DESTINATION bin/samples/foot_ik)
 endif(EMSCRIPTEN)
 
 add_test(NAME sample_foot_ik COMMAND sample_foot_ik "--max_idle_loops=${ozz_sample_testing_loops}" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)

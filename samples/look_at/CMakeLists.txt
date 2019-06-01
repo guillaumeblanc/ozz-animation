@@ -37,11 +37,11 @@ if(EMSCRIPTEN)
   install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/sample_look_at.html
     ${CMAKE_CURRENT_BINARY_DIR}/sample_look_at.js
-    DESTINATION bin/samples/playback)
+    DESTINATION bin/samples/look_at)
 else()
-  install(TARGETS sample_look_at DESTINATION bin/samples/playback)
-  install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/media DESTINATION bin/samples/playback)
-  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/README.md DESTINATION bin/samples/playback)
+  install(TARGETS sample_look_at DESTINATION bin/samples/look_at)
+  install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/media DESTINATION bin/samples/look_at)
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/README.md DESTINATION bin/samples/look_at)
 endif(EMSCRIPTEN)
 
 add_test(NAME sample_look_at COMMAND sample_look_at "--max_idle_loops=${ozz_sample_testing_loops}" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)
