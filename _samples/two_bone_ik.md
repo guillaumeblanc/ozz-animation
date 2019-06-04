@@ -2,7 +2,7 @@
 title: Two bone IK
 layout: full
 keywords: sample,skeleton,hierarchy,joint,ik,two,bone,chain,fast,maya,mobu,motion,builder,rotate,plane,soa,local,model,space
-order: 60
+order: 65
 level: 2
 ---
 

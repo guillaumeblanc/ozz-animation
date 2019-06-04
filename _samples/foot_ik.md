@@ -1,9 +1,9 @@
 ---
-title: Animation playback
+title: Foot ik
 layout: full
 keywords: load,playback,sample,skeleton,hierarchy,joint,fbx,collada,3d,soa,local,model,space
-order: 62
-level: 2
+order: 72
+level: 3
 ---
 
 {% include links.jekyll %}

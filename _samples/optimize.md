@@ -2,7 +2,7 @@
 title: Keyframe reduction
 layout: full
 keywords: sample,optimize,quantize,compress,memory,error,accumulation,hierarchy,keyframe,reduction,offline
-order: 70
+order: 60
 level: 2
 ---
 
