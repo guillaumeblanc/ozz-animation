@@ -11,14 +11,12 @@ level: 2
 
 Description
 ===========
-
 This samples shows a physic simulation baked into an animation. This scene contains more than 1000 cuboids. Baking complex scenes offline into animations in a common technique to render cpu intensive simulations.
 
 {% include emscripten.jekyll emscripten_path="samples/emscripten/sample_baked.js" %}
 
 Concept
 =======
-
 This sample has two fundamental parts:
 1. Extract a skeleton from the baked scene using fxb2ozz. There's no hierarchy between objects, but it's still required to define a skeleton to be able to animate it. The baked scene is made of animated meshes/cubes, which are considered as joints while importing the skeleton. See [config.json][link_baked_sample_config] for more details of this setting.
 2. Animation extraction is using fbx2ozz as usual.
@@ -28,11 +26,9 @@ This sample also introduces camera animation. The camera is considered as a join
 
 Sample usage
 ============
-
 The sample exposes animation time and playback speed.
 
 Implementation
 ==============
-
 1. Load animation and skeleton, sample animation to get local-space transformations, and convert local-space transformations to model-space matrices. See Playback sample for more details about these steps.
 2. Render a unit size cube for each joint, transformed by each joint matrix which contains the scale to restore original mesh size. The sample uses instanced rendering to improve performances.

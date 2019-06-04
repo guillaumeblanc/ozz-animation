@@ -20,7 +20,7 @@ Concept
 =======
 Additive blending is different to normal blending because it does not interpolate from a pose to an other. Instead it combines poses, meaning you can see the two animations at the same time. In this example the walk cycle is never altered. The cracking head and shoulder movements from the additive animation are simply (visually speaking) added.
 
-Additive blending is performed by ozz::animation::BlendingJob. ozz::animation::BlendingJob exposes additive layers with the same input as normal blending layers: per joint local transforms, a global layer weight and optional per-joint weights. The main differences are that additive blending is done at the end of the normal blending pass, with a different equation.
+Additive blending is performed by [`ozz::animation::BlendingJob`][link_blending_job]. ozz::animation::BlendingJob exposes additive layers with the same input as normal blending layers: per joint local transforms, a global layer weight and optional per-joint weights. The main differences are that additive blending is done at the end of the normal blending pass, with a different equation.
 
 The additive (or delta) animation is created by subtracting a reference pose from a source animation. ozz proposes a ozz::animation::offline::AdditiveAnimationBuilder utility to build additive animations. It uses the first frame of the animation as the reference pose. fbx2ozz supports additive configuration option to export delta animations from a source file.
 

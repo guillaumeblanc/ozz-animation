@@ -11,7 +11,6 @@ level: 1
 
 Description
 ===========
-
 Blending is the key concept in run-time animation:
 
 - To create smooth transitions between animations. In this case blending is used to go from an "idle" animation to a "walk" animation for example. Blending coefficient will go from 0 (idle) to 1 (walk) from the beginning to the end of the transition.
@@ -23,14 +22,12 @@ This sample demonstrates the composition blending case (2). It blends three anim
 
 Concept
 =======
-
 Runtime blending is performed using a [`ozz::animation::BlendingJob`][link_blending_job] to process the blending of multiple animation layers. Each layer is assigned an animation and a weight that sets its influence in the final blended result.
 The idea of this sample is to compute the blending weight of each animation layer (walk, jog and run) according to the single "speed" parameter. This can done with a simple proportional calculation. Those blending coefficients are provided as input to the `ozz::animation::BlendingJob`, along with [local-space transformations][link_coordinate_system] for the 3 layers. Output will also be in local-space.
 Note that the 3 animations duration also need to be synchronized such that foot steps remain synced. This is done by adapting each animation's playback speed according to their respecting weight.
 
 Sample usage
 ============
-
 There are two ways to use the sample:
 - The first one is to use the single blending parameter provided by the "Blend ratio" slider. This parameter automatically controls all the other parameters to perfectly match/synchronize all animation layers: playback speeds, blending weights...
 - Setting "manual setting" option to "on" will allow to manually tweak all the sampling and blending parameters from the GUI, bypassing automatic weighting and synchronization.
