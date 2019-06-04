@@ -139,22 +139,22 @@ class LookAtSampleApplication : public ozz::sample::Application {
     ik_job.joint_correction = &correction;
 
     // The algorithm iteratively updates from the first joint (closer to the
-    // leaf) to the last (the further ancestor). Joints order is already
-    // validated.
-    // For the first joint, aim IK is applied with the global forward and
-    // offset, so the forward vector aligns in direction of the target. If a
-    // weight lower that 1 is provided, then the joint will not fully align to
-    // the target. In this case further joint will need to be updated.
-    // For the remaining joints, forward vector and offset position will be
-    // computed in each joint local-space, before IK is applied:
+    // head) to the last (the further ancestor, closer to the pelvis). Joints
+    // order is already validated. For the first joint, aim IK is applied with
+    // the global forward and offset, so the forward vector aligns in direction
+    // of the target. If a weight lower that 1 is provided to the first joint,
+    // then it will not fully align to the target. In this case further joint
+    // will need to be updated. For the remaining joints, forward vector and
+    // offset position are computed in each joint local-space, before IK is
+    // applied:
     // 1. Rotates forward and offset position based on the result of the
     // previous joint IK.
     // 2. Brings forward and offset back in joint local-space.
-    // Aim is iteratively applied to the last selected joint of the hierarchy. A
-    // weight of 1 is given to the last joint so we can guarantee target is
-    // reached.
-    // Note that model-space transform of each joint doesn't need to be updated
-    // between each pass, as joints are ordered from child to parent.
+    // Aim is iteratively applied up to the last selected joint of the
+    // hierarchy. A weight of 1 is given to the last joint so we can guarantee
+    // target is reached. Note that model-space transform of each joint doesn't
+    // need to be updated between each pass, as joints are ordered from child to
+    // parent.
     int previous_joint = ozz::animation::Skeleton::kNoParent;
     for (int i = 0, joint = joints_chain_[0]; i < chain_length_;
          ++i, previous_joint = joint, joint = joints_chain_[i]) {
