@@ -1,7 +1,7 @@
 ---
 title: Look-at
 layout: full
-keywords: load,playback,sample,skeleton,hierarchy,joint,fbx,collada,3d,soa,local,model,space
+keywords: sample,inverse,kinematic,skeleton,hierarchy,joint,look,at,aim,ik,weapon,head,neck,spine,target,soa,local,model,space
 order: 71
 level: 3
 ---

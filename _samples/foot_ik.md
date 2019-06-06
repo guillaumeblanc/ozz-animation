@@ -1,7 +1,7 @@
 ---
 title: Foot ik
 layout: full
-keywords: load,playback,sample,skeleton,hierarchy,joint,fbx,collada,3d,soa,local,model,space
+keywords: sample,inverse,kinematic,skeleton,hierarchy,joint,foot,planting,ik,two,bone,aim,raycast,hip,knee,ankle,soa,local,model,space
 order: 72
 level: 3
 ---
@@ -50,5 +50,5 @@ Implementation
 ![ankle correction]({{site.baseurl}}/images/samples/foot_ik_ankle.svg)
 
    6. Offsets the character down, so that the lowest ankle (lowest from its original position) reaches its targetted position. The other leg(s) will be ik-ed.
-   7. Applies two bone IK to each leg, so the ankles reache their targetted position. This in computed in character model-space.
-   8. Applies aim IK to each ankle, so the footis correctly aligned to the floor. Uses floor normal as a reference to align ankle up vector. The forward direction of the foot is then driven by the pole vector, which polls the foot (ankle forward vector) toward it's original (animated) direction.
+   7. Applies two bone IK to each leg, so the ankles reache their targetted position. This in computed in character model-space. Pole vector is given by original knee forward vector, such that the result remains close to original animation.
+   8. Applies aim IK to each ankle, so the foot is correctly aligned to the floor. Uses floor normal as a reference to align ankle up vector. The forward direction of the foot (pole vector) is then driven by the ankle forward vector, which polls the foot toward it's original (animated) direction.
