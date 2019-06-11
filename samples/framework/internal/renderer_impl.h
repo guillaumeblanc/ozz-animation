@@ -41,6 +41,12 @@
 // Including glfw includes gl.h
 #include "GL/glfw.h"
 
+#ifdef EMSCRIPTEN
+// include features as core functions.
+#include <GLES2/gl2.h>
+
+#else  // EMSCRIPTEN
+
 // Detects already defined GL_VERSION and deduces required extensions.
 #ifndef GL_VERSION_1_5
 #define OZZ_GL_VERSION_1_5_EXT
@@ -49,6 +55,9 @@
 #define OZZ_GL_VERSION_2_0_EXT
 #endif  // GL_VERSION_2_0
 
+#endif  // EMSCRIPTEN
+
+// Include features as extentions
 #include "GL/glext.h"
 
 #include "framework/renderer.h"
