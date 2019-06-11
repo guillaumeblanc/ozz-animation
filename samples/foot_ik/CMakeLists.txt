@@ -41,6 +41,7 @@ if(EMSCRIPTEN)
   install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/sample_foot_ik.html
     ${CMAKE_CURRENT_BINARY_DIR}/sample_foot_ik.js
+    ${CMAKE_CURRENT_BINARY_DIR}/sample_foot_ik.wasm
     DESTINATION bin/samples/foot_ik)
 else()
   install(TARGETS sample_foot_ik DESTINATION bin/samples/foot_ik)

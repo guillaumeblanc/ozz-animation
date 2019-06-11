@@ -156,7 +156,7 @@ bool RendererImpl::Initialize() {
   }
 
   // Instantiate instanced ambient rendering shader.
-  if (GL_ARB_instanced_arrays) {
+  if (GL_ARB_instanced_arrays_supported) {
     ambient_shader_instanced = AmbientShaderInstanced::Build();
     if (!ambient_shader_instanced) {
       return false;
@@ -621,9 +621,9 @@ void RendererImpl::DrawPosture_InstancedImpl(
   }
 }
 
-// Uses GL_ARB_instanced_arrays as a first choice to render the whole skeleton
-// in a single draw call.
-// Does a draw call per joint if no extension can help.
+// Uses GL_ARB_instanced_arrays_supported as a first choice to render the whole
+// skeleton in a single draw call. Does a draw call per joint if no extension
+// can help.
 bool RendererImpl::DrawPosture(const ozz::animation::Skeleton& _skeleton,
                                ozz::Range<const ozz::math::Float4x4> _matrices,
                                const ozz::math::Float4x4& _transform,
@@ -645,7 +645,7 @@ bool RendererImpl::DrawPosture(const ozz::animation::Skeleton& _skeleton,
       _skeleton, _matrices, uniforms, max_skeleton_pieces);
   assert(instance_count <= max_skeleton_pieces);
 
-  if (GL_ARB_instanced_arrays) {
+  if (GL_ARB_instanced_arrays_supported) {
     DrawPosture_InstancedImpl(_transform, uniforms, instance_count,
                               _draw_joints);
   } else {
@@ -810,7 +810,7 @@ bool RendererImpl::DrawBoxShaded(
   const GLsizei normals_offset = positions_offset + sizeof(float) * 3;
   const GLsizei colors_offset = normals_offset + sizeof(float) * 3;
 
-  if (GL_ARB_instanced_arrays) {
+  if (GL_ARB_instanced_arrays_supported) {
     // Buffer object will contain vertices and model matrices.
     const size_t bo_size = sizeof(vertices) + _transforms.size();
     GL(BindBuffer(GL_ARRAY_BUFFER, dynamic_array_bo_));
@@ -905,7 +905,7 @@ bool RendererImpl::DrawSphereShaded(
   const GLsizei normals_stride = positions_stride;
   const GLsizei colors_offset = sizeof(icosphere::kVertices);
 
-  if (GL_ARB_instanced_arrays) {
+  if (GL_ARB_instanced_arrays_supported) {
     const GLsizei colors_stride = 0;
     const GLsizei colors_size = sizeof(uint8_t) * 4;
     const GLsizei models_offset = sizeof(icosphere::kVertices) + colors_size;
@@ -1693,9 +1693,9 @@ bool RendererImpl::InitOpenGLExtensions() {
                << std::endl;
   }
 
-  GL_ARB_instanced_arrays =
+  GL_ARB_instanced_arrays_supported =
       glfwExtensionSupported("GL_ARB_instanced_arrays") != 0;
-  if (GL_ARB_instanced_arrays) {
+  if (GL_ARB_instanced_arrays_supported) {
     log::Log() << "Optional GL_ARB_instanced_arrays extensions found."
                << std::endl;
     success = true;
@@ -1709,7 +1709,7 @@ bool RendererImpl::InitOpenGLExtensions() {
       log::Err()
           << "Failed to setup GL_ARB_instanced_arrays, feature is disabled."
           << std::endl;
-      GL_ARB_instanced_arrays = false;
+      GL_ARB_instanced_arrays_supported = false;
     }
   } else {
     log::Log() << "Optional GL_ARB_instanced_arrays extensions not found."
@@ -1811,7 +1811,7 @@ OZZ_DECL_GL_EXT(glVertexAttrib4fv, PFNGLVERTEXATTRIB4FVPROC);
 OZZ_DECL_GL_EXT(glVertexAttribPointer, PFNGLVERTEXATTRIBPOINTERPROC);
 #endif  // OZZ_GL_VERSION_2_0_EXT
 
-bool GL_ARB_instanced_arrays = false;
+bool GL_ARB_instanced_arrays_supported = false;
 OZZ_DECL_GL_EXT(glVertexAttribDivisorARB, PFNGLVERTEXATTRIBDIVISORARBPROC);
 OZZ_DECL_GL_EXT(glDrawArraysInstancedARB, PFNGLDRAWARRAYSINSTANCEDARBPROC);
 OZZ_DECL_GL_EXT(glDrawElementsInstancedARB, PFNGLDRAWELEMENTSINSTANCEDARBPROC);

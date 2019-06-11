@@ -29,6 +29,7 @@ if(EMSCRIPTEN)
   install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/sample_two_bone_ik.html
     ${CMAKE_CURRENT_BINARY_DIR}/sample_two_bone_ik.js
+    ${CMAKE_CURRENT_BINARY_DIR}/sample_two_bone_ik.wasm
     DESTINATION bin/samples/two_bone_ik)
 else()
   install(TARGETS sample_two_bone_ik DESTINATION bin/samples/two_bone_ik)

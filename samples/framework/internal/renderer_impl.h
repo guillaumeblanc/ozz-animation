@@ -315,8 +315,7 @@ extern PFNGLVERTEXATTRIBPOINTERPROC glVertexAttribPointer;
 #endif  // OZZ_GL_VERSION_2_0_EXT
 
 // OpenGL ARB_instanced_arrays extension, optional.
-#undef GL_ARB_instanced_arrays
-extern bool GL_ARB_instanced_arrays;
+extern bool GL_ARB_instanced_arrays_supported;
 extern PFNGLVERTEXATTRIBDIVISORARBPROC glVertexAttribDivisorARB;
 extern PFNGLDRAWARRAYSINSTANCEDARBPROC glDrawArraysInstancedARB;
 extern PFNGLDRAWELEMENTSINSTANCEDARBPROC glDrawElementsInstancedARB;

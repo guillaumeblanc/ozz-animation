@@ -451,8 +451,9 @@ JointShader* JointShader::Build() {
       "  return world_matrix;\n"
       "}\n";
   const char* vs[] = {kPlatformSpecivicVSHeader, kPassNoUv,
-                      GL_ARB_instanced_arrays ? "attribute mat4 joint;\n"
-                                              : "uniform mat4 joint;\n",
+                      GL_ARB_instanced_arrays_supported
+                          ? "attribute mat4 joint;\n"
+                          : "uniform mat4 joint;\n",
                       vs_joint_to_world_matrix, kShaderUberVS};
   const char* fs[] = {kPlatformSpecivicFSHeader, kShaderAmbientFct,
                       kShaderAmbientFS};
@@ -469,7 +470,7 @@ JointShader* JointShader::Build() {
   // Binds default uniforms
   success &= shader->BindUniform("u_mvp");
 
-  if (GL_ARB_instanced_arrays) {
+  if (GL_ARB_instanced_arrays_supported) {
     success &= shader->FindAttrib("joint");
   } else {
     success &= shader->BindUniform("joint");
@@ -512,8 +513,9 @@ BoneShader* BoneShader::Build() {  // Builds a world matrix from joint uniforms,
       "  return world_matrix;\n"
       "}\n";
   const char* vs[] = {kPlatformSpecivicVSHeader, kPassNoUv,
-                      GL_ARB_instanced_arrays ? "attribute mat4 joint;\n"
-                                              : "uniform mat4 joint;\n",
+                      GL_ARB_instanced_arrays_supported
+                          ? "attribute mat4 joint;\n"
+                          : "uniform mat4 joint;\n",
                       vs_joint_to_world_matrix, kShaderUberVS};
   const char* fs[] = {kPlatformSpecivicFSHeader, kShaderAmbientFct,
                       kShaderAmbientFS};
@@ -530,7 +532,7 @@ BoneShader* BoneShader::Build() {  // Builds a world matrix from joint uniforms,
   // Binds default uniforms
   success &= shader->BindUniform("u_mvp");
 
-  if (GL_ARB_instanced_arrays) {
+  if (GL_ARB_instanced_arrays_supported) {
     success &= shader->FindAttrib("joint");
   } else {
     success &= shader->BindUniform("joint");

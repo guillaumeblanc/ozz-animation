@@ -32,6 +32,7 @@ if(EMSCRIPTEN)
   install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/sample_playback.html
     ${CMAKE_CURRENT_BINARY_DIR}/sample_playback.js
+    ${CMAKE_CURRENT_BINARY_DIR}/sample_playback.wasm
     DESTINATION bin/samples/playback)
 else()
   install(TARGETS sample_playback DESTINATION bin/samples/playback)

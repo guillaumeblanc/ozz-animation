@@ -54,6 +54,7 @@ if(EMSCRIPTEN)
   install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/sample_multithread.html
     ${CMAKE_CURRENT_BINARY_DIR}/sample_multithread.js
+    ${CMAKE_CURRENT_BINARY_DIR}/sample_multithread.wasm
     DESTINATION bin/samples/multithread)
 else()
   install(TARGETS sample_multithread DESTINATION bin/samples/multithread)

@@ -43,6 +43,7 @@ if(EMSCRIPTEN)
   install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/sample_blend.html
     ${CMAKE_CURRENT_BINARY_DIR}/sample_blend.js
+    ${CMAKE_CURRENT_BINARY_DIR}/sample_blend.wasm
     DESTINATION bin/samples/blend)
 else()
   install(TARGETS sample_blend DESTINATION bin/samples/blend)

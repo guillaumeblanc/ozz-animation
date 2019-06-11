@@ -37,6 +37,7 @@ if(EMSCRIPTEN)
   install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/sample_look_at.html
     ${CMAKE_CURRENT_BINARY_DIR}/sample_look_at.js
+    ${CMAKE_CURRENT_BINARY_DIR}/sample_look_at.wasm
     DESTINATION bin/samples/look_at)
 else()
   install(TARGETS sample_look_at DESTINATION bin/samples/look_at)
