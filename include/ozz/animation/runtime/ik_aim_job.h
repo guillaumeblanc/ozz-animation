@@ -58,7 +58,7 @@ struct IKAimJob {
   // -if output quaternion pointer is NULL
   bool Validate() const;
 
-  // Runs job's sampling task.
+  // Runs job's execution task.
   // The job is validated before any operation is performed, see Validate() for
   // more details.
   // Returns false if *this job is not valid.
