@@ -35,16 +35,23 @@ B. Reachable target: A target in a reachable range is provided. S and M angles (
 
 C. Non reachable target: Target position is further than joint chain length (femur + tibia). S and M rotations are corrected so the chain (start, middle and end joints) aligns in target direction.
 
-If the two joints have different lengths, then there can be other situations where target is not reachable.
+If the two joints have different lengths, then there can be other situations where target is not reachable. Reachability can be obtained as an output of the the job, by providing a valid "reached" boolean pointer.
 
-Reachability can be obtained as an output of the the job.
+Rotation axis at middle joint is provided as an input to job, whereas some other implementation tend to compute it. The reasoning is that this axis is usually constant, defined by the skeleton / rig setup. It also prevents from issues when the three joints are aligned, as the axis can't be automatically computed in this case.
 
 The plane (defined by the three joints) can be rotated using the pole vector and twist angle. The pole vector defines a direction in which the middle joint will be pulled. Twist angles defines a rotation around start joint to end joint vector.
 
+When the three joints are closed to be aligned, then any move in target position is resulting in a very fast angle change. 
+
+TODO: http://www.softimageblog.com/archives/108
 This animation shows how softening affects IK, and reduces the snapping effect when the chain is getting aligned / flat. Softening ratio is defined as the distance to the chain end, from which softening is starting. Note that target is considered as not reached as soon as softening starts.
 
+See [two bone ik sample][link_two_bone_ik_sample] to test and play with all the parameters exposed by the job. See [foot ik sample][link_foot_ik_sample] for a more integrated/automatized use of two bone ik technique.
+
+> ozz implementation is inspired by Autodesk Maya 2 bone IK (available open source), improved stability wise and extended with soft IK.
+
 `ozz::animation::IKAimJob`
-==============================
+=========================
 
 Aim IK solver acts on a single joint to orientate (aim) a forward vector (in joint local-space) to a target position (in model-space): Aim a head joint so it looks at a target, aim a weapon... Up vector (in joint local-space) is also used to keep the joint oriented in the same direction as the pole vector (provided as input to the job).
 The job also exposes an offset (in joint local-space) from where the forward vector should aim the target (like eyes position relative to the neck). This allows high precision aiming, or as illustrated in [look at sample][link_look_at_sample], to iteratively distribute aiming to a chain of joints.

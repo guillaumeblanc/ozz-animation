@@ -15,6 +15,9 @@
 [link_baked_sample_config]: https://github.com/guillaumeblanc/ozz-animation/blob/master/samples/baked/config.json
 [link_user_channel_sample]: {{site.baseurl}}/samples/user_channel/
 [link_user_channel_sample_config]: https://github.com/guillaumeblanc/ozz-animation/blob/master/samples/user_channel/config.json
+[link_two_bone_ik_sample]: {{site.baseurl}}/samples/two_bone_ik/
+[link_look_at_sample]: {{site.baseurl}}/samples/look_at/
+[link_foot_ik_sample]: {{site.baseurl}}/samples/foot_ik/
 
 [link_how_to]: {{site.baseurl}}/documentation/howtos/
 [link_how_to_load]: {{site.baseurl}}/documentation/howtos/#how-to-load-an-object-from-a-file
