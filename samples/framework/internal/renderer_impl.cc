@@ -592,10 +592,10 @@ void RendererImpl::DrawPosture_InstancedImpl(
     GL(EnableVertexAttribArray(joint_attrib + 1));
     GL(EnableVertexAttribArray(joint_attrib + 2));
     GL(EnableVertexAttribArray(joint_attrib + 3));
-    GL(VertexAttribDivisorARB(joint_attrib + 0, 1));
-    GL(VertexAttribDivisorARB(joint_attrib + 1, 1));
-    GL(VertexAttribDivisorARB(joint_attrib + 2, 1));
-    GL(VertexAttribDivisorARB(joint_attrib + 3, 1));
+    GL(VertexAttribDivisor_(joint_attrib + 0, 1));
+    GL(VertexAttribDivisor_(joint_attrib + 1, 1));
+    GL(VertexAttribDivisor_(joint_attrib + 2, 1));
+    GL(VertexAttribDivisor_(joint_attrib + 3, 1));
     GL(VertexAttribPointer(joint_attrib + 0, 4, GL_FLOAT, GL_FALSE,
                            sizeof(math::Float4x4), GL_PTR_OFFSET(0)));
     GL(VertexAttribPointer(joint_attrib + 1, 4, GL_FLOAT, GL_FALSE,
@@ -606,16 +606,16 @@ void RendererImpl::DrawPosture_InstancedImpl(
                            sizeof(math::Float4x4), GL_PTR_OFFSET(48)));
     GL(BindBuffer(GL_ARRAY_BUFFER, 0));
 
-    GL(DrawArraysInstancedARB(model.mode, 0, model.count, _instance_count));
+    GL(DrawArraysInstanced_(model.mode, 0, model.count, _instance_count));
 
     GL(DisableVertexAttribArray(joint_attrib + 0));
     GL(DisableVertexAttribArray(joint_attrib + 1));
     GL(DisableVertexAttribArray(joint_attrib + 2));
     GL(DisableVertexAttribArray(joint_attrib + 3));
-    GL(VertexAttribDivisorARB(joint_attrib + 0, 0));
-    GL(VertexAttribDivisorARB(joint_attrib + 1, 0));
-    GL(VertexAttribDivisorARB(joint_attrib + 2, 0));
-    GL(VertexAttribDivisorARB(joint_attrib + 3, 0));
+    GL(VertexAttribDivisor_(joint_attrib + 0, 0));
+    GL(VertexAttribDivisor_(joint_attrib + 1, 0));
+    GL(VertexAttribDivisor_(joint_attrib + 2, 0));
+    GL(VertexAttribDivisor_(joint_attrib + 3, 0));
 
     model.shader->Unbind();
   }
@@ -828,8 +828,8 @@ bool RendererImpl::DrawBoxShaded(
                                    stride, colors_offset);
     GL(BindBuffer(GL_ARRAY_BUFFER, 0));
 
-    GL(DrawArraysInstancedARB(GL_TRIANGLES, 0, OZZ_ARRAY_SIZE(vertices),
-                              static_cast<GLsizei>(_transforms.count())));
+    GL(DrawArraysInstanced_(GL_TRIANGLES, 0, OZZ_ARRAY_SIZE(vertices),
+                            static_cast<GLsizei>(_transforms.count())));
 
     // Unbinds.
     ambient_shader_instanced->Unbind();
@@ -932,9 +932,9 @@ bool RendererImpl::DrawSphereShaded(
                                    colors_stride, colors_offset);
 
     OZZ_STATIC_ASSERT(sizeof(icosphere::kIndices[0]) == 2);
-    GL(DrawElementsInstancedARB(
-        GL_TRIANGLES, OZZ_ARRAY_SIZE(icosphere::kIndices), GL_UNSIGNED_SHORT, 0,
-        static_cast<GLsizei>(_transforms.count())));
+    GL(DrawElementsInstanced_(GL_TRIANGLES, OZZ_ARRAY_SIZE(icosphere::kIndices),
+                              GL_UNSIGNED_SHORT, 0,
+                              static_cast<GLsizei>(_transforms.count())));
 
     // Unbinds.
     ambient_shader_instanced->Unbind();
@@ -1597,15 +1597,18 @@ bool RendererImpl::DrawSkinnedMesh(
 }
 
 // Helper macro used to initialize extension function pointer.
-#define OZZ_INIT_GL_EXT(_fct, _fct_type, _success)                        \
-  do {                                                                    \
-    _fct = reinterpret_cast<_fct_type>(glfwGetProcAddress(#_fct));        \
-    if (_fct == NULL) {                                                   \
-      log::Err() << "Unable to install " #_fct " function." << std::endl; \
-      _success &= false;                                                  \
-    }                                                                     \
-                                                                          \
+#define OZZ_INIT_GL_EXT_N(_fct, _fct_name, _fct_type, _success)               \
+  do {                                                                        \
+    _fct = reinterpret_cast<_fct_type>(glfwGetProcAddress(_fct_name));        \
+    if (_fct == NULL) {                                                       \
+      log::Err() << "Unable to install " _fct_name " function." << std::endl; \
+      _success &= false;                                                      \
+    }                                                                         \
+                                                                              \
   } while (void(0), 0)
+
+#define OZZ_INIT_GL_EXT(_fct, _fct_type, _success) \
+  OZZ_INIT_GL_EXT_N(_fct, #_fct, _fct_type, _success)
 
 bool RendererImpl::InitOpenGLExtensions() {
   bool optional_success = true;
@@ -1699,12 +1702,12 @@ bool RendererImpl::InitOpenGLExtensions() {
     log::Log() << "Optional GL_ARB_instanced_arrays extensions found."
                << std::endl;
     success = true;
-    OZZ_INIT_GL_EXT(glVertexAttribDivisorARB, PFNGLVERTEXATTRIBDIVISORARBPROC,
-                    success);
-    OZZ_INIT_GL_EXT(glDrawArraysInstancedARB, PFNGLDRAWARRAYSINSTANCEDARBPROC,
-                    success);
-    OZZ_INIT_GL_EXT(glDrawElementsInstancedARB,
-                    PFNGLDRAWELEMENTSINSTANCEDARBPROC, success);
+    OZZ_INIT_GL_EXT_N(glVertexAttribDivisor_, "glVertexAttribDivisorARB",
+                      PFNGLVERTEXATTRIBDIVISORARBPROC, success);
+    OZZ_INIT_GL_EXT_N(glDrawArraysInstanced_, "glDrawArraysInstancedARB",
+                      PFNGLDRAWARRAYSINSTANCEDARBPROC, success);
+    OZZ_INIT_GL_EXT_N(glDrawElementsInstanced_, "glDrawElementsInstancedARB",
+                      PFNGLDRAWELEMENTSINSTANCEDARBPROC, success);
     if (!success) {
       log::Err()
           << "Failed to setup GL_ARB_instanced_arrays, feature is disabled."
@@ -1812,8 +1815,6 @@ OZZ_DECL_GL_EXT(glVertexAttribPointer, PFNGLVERTEXATTRIBPOINTERPROC);
 #endif  // OZZ_GL_VERSION_2_0_EXT
 
 bool GL_ARB_instanced_arrays_supported = false;
-#ifndef EMSCRIPTEN  // emscripten also defines those symbols
-OZZ_DECL_GL_EXT(glVertexAttribDivisorARB, PFNGLVERTEXATTRIBDIVISORARBPROC);
-OZZ_DECL_GL_EXT(glDrawArraysInstancedARB, PFNGLDRAWARRAYSINSTANCEDARBPROC);
-OZZ_DECL_GL_EXT(glDrawElementsInstancedARB, PFNGLDRAWELEMENTSINSTANCEDARBPROC);
-#endif  // EMSCRIPTEN
+OZZ_DECL_GL_EXT(glVertexAttribDivisor_, PFNGLVERTEXATTRIBDIVISORARBPROC);
+OZZ_DECL_GL_EXT(glDrawArraysInstanced_, PFNGLDRAWARRAYSINSTANCEDARBPROC);
+OZZ_DECL_GL_EXT(glDrawElementsInstanced_, PFNGLDRAWELEMENTSINSTANCEDARBPROC);
