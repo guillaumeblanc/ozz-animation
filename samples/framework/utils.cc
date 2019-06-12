@@ -176,8 +176,9 @@ bool OnRawSkeletonJointGui(
       euler_modified |= _im_gui->DoSlider(txt, -180.f, 180.f, &euler.z);
       if (euler_modified) {
         modified = true;
-        rotation = ozz::math::Quaternion::FromEuler(euler *
-                                                    ozz::math::kDegreeToRadian);
+        ozz::math::Float3 euler_rad = euler * ozz::math::kDegreeToRadian;
+        rotation = ozz::math::Quaternion::FromEuler(euler_rad.x, euler_rad.y,
+                                                    euler_rad.z);
       }
 
       // Scale (must be uniform and not 0)
@@ -416,6 +417,131 @@ bool LoadMeshes(const char* _filename,
   }
 
   return true;
+}
+
+namespace {
+// Moller–Trumbore intersection algorithm
+// https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm
+bool RayIntersectsTriangle(const ozz::math::Float3& _ray_origin,
+                           const ozz::math::Float3& _ray_direction,
+                           const ozz::math::Float3& _p0,
+                           const ozz::math::Float3& _p1,
+                           const ozz::math::Float3& _p2,
+                           ozz::math::Float3* _intersect,
+                           ozz::math::Float3* _normal) {
+  const float kEpsilon = 0.0000001f;
+
+  const ozz::math::Float3 edge1 = _p1 - _p0;
+  const ozz::math::Float3 edge2 = _p2 - _p0;
+  const ozz::math::Float3 h = Cross(_ray_direction, edge2);
+
+  const float a = Dot(edge1, h);
+  if (a > -kEpsilon && a < kEpsilon) {
+    return false;  // This ray is parallel to this triangle.
+  }
+
+  const float inv_a = 1.f / a;
+  const ozz::math::Float3 s = _ray_origin - _p0;
+  const float u = Dot(s, h) * inv_a;
+  if (u < 0.f || u > 1.f) {
+    return false;
+  }
+
+  const ozz::math::Float3 q = Cross(s, edge1);
+  const float v = ozz::math::Dot(_ray_direction, q) * inv_a;
+  if (v < 0.f || u + v > 1.f) {
+    return false;
+  }
+
+  // At this stage we can compute t to find out where the intersection point is
+  // on the line.
+  const float t = Dot(edge2, q) * inv_a;
+
+  if (t > kEpsilon) {  // Ray intersection
+    *_intersect = _ray_origin + _ray_direction * t;
+    *_normal = Normalize(Cross(edge1, edge2));
+    return true;
+  } else {  // This means that there is a line intersection but not a ray
+            // intersection.
+    return false;
+  }
+}
+}  // namespace
+
+bool RayIntersectsMesh(const ozz::math::Float3& _ray_origin,
+                       const ozz::math::Float3& _ray_direction,
+                       const ozz::sample::Mesh& _mesh,
+                       ozz::math::Float3* _intersect,
+                       ozz::math::Float3* _normal) {
+  assert(_mesh.parts.size() == 1 && !_mesh.skinned());
+
+  bool intersected = false;
+  ozz::math::Float3 intersect, normal;
+  const float* vertices = array_begin(_mesh.parts[0].positions);
+  const uint16_t* indices = array_begin(_mesh.triangle_indices);
+  for (int i = 0; i < _mesh.triangle_index_count(); i += 3) {
+    const float* pf0 = vertices + indices[i + 0] * 3;
+    const float* pf1 = vertices + indices[i + 1] * 3;
+    const float* pf2 = vertices + indices[i + 2] * 3;
+    ozz::math::Float3 lcl_intersect, lcl_normal;
+    if (RayIntersectsTriangle(_ray_origin, _ray_direction,
+                              ozz::math::Float3(pf0[0], pf0[1], pf0[2]),
+                              ozz::math::Float3(pf1[0], pf1[1], pf1[2]),
+                              ozz::math::Float3(pf2[0], pf2[1], pf2[2]),
+                              &lcl_intersect, &lcl_normal)) {
+      // Is it closer to start point than the previous intersection.
+      if (!intersected || LengthSqr(lcl_intersect - _ray_origin) <
+                              LengthSqr(intersect - _ray_origin)) {
+        intersect = lcl_intersect;
+        normal = lcl_normal;
+      }
+      intersected = true;
+    }
+  }
+
+  // Copy output
+  if (intersected) {
+    if (_intersect) {
+      *_intersect = intersect;
+    }
+    if (_normal) {
+      *_normal = normal;
+    }
+  }
+  return intersected;
+}
+
+bool RayIntersectsMeshes(const ozz::math::Float3& _ray_origin,
+                         const ozz::math::Float3& _ray_direction,
+                         const ozz::Range<const ozz::sample::Mesh>& _meshes,
+                         ozz::math::Float3* _intersect,
+                         ozz::math::Float3* _normal) {
+  bool intersected = false;
+  ozz::math::Float3 intersect, normal;
+  for (size_t i = 0; i < _meshes.count(); ++i) {
+    ozz::math::Float3 lcl_intersect, lcl_normal;
+    if (RayIntersectsMesh(_ray_origin, _ray_direction, _meshes[i],
+                          &lcl_intersect, &lcl_normal)) {
+      // Is it closer to start point than the previous intersection.
+      if (!intersected || LengthSqr(lcl_intersect - _ray_origin) <
+                              LengthSqr(intersect - _ray_origin)) {
+        intersect = lcl_intersect;
+        normal = lcl_normal;
+      }
+      intersected = true;
+    }
+  }
+
+  // Copy output
+  if (intersected) {
+    if (_intersect) {
+      *_intersect = intersect;
+    }
+    if (_normal) {
+      *_normal = normal;
+    }
+  }
+  return intersected;
 }
 }  // namespace sample
 }  // namespace ozz

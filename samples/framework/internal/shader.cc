@@ -451,8 +451,9 @@ JointShader* JointShader::Build() {
       "  return world_matrix;\n"
       "}\n";
   const char* vs[] = {kPlatformSpecivicVSHeader, kPassNoUv,
-                      GL_ARB_instanced_arrays ? "attribute mat4 joint;\n"
-                                              : "uniform mat4 joint;\n",
+                      GL_ARB_instanced_arrays_supported
+                          ? "attribute mat4 joint;\n"
+                          : "uniform mat4 joint;\n",
                       vs_joint_to_world_matrix, kShaderUberVS};
   const char* fs[] = {kPlatformSpecivicFSHeader, kShaderAmbientFct,
                       kShaderAmbientFS};
@@ -469,7 +470,7 @@ JointShader* JointShader::Build() {
   // Binds default uniforms
   success &= shader->BindUniform("u_mvp");
 
-  if (GL_ARB_instanced_arrays) {
+  if (GL_ARB_instanced_arrays_supported) {
     success &= shader->FindAttrib("joint");
   } else {
     success &= shader->BindUniform("joint");
@@ -498,9 +499,8 @@ BoneShader* BoneShader::Build() {  // Builds a world matrix from joint uniforms,
 
       "  // Setup rendering world matrix.\n"
       "  float dot1 = dot(joint[2].xyz, bone_dir);\n"
-      "  vec3 binormal_temp = abs(dot1) < .5 ? joint[2].xyz : joint[1].xyz;\n"
-      "  float dot2 = dot(binormal_temp, bone_dir);\n"
-      "  vec3 binormal = abs(dot2) < .5 ? binormal_temp : joint[0].xyz;\n"
+      "  float dot2 = dot(joint[0].xyz, bone_dir);\n"
+      "  vec3 binormal = abs(dot1) < abs(dot2) ? joint[2].xyz : joint[0].xyz;\n"
 
       "  mat4 world_matrix;\n"
       "  world_matrix[0] = vec4(bone_dir, 0.);\n"
@@ -513,8 +513,9 @@ BoneShader* BoneShader::Build() {  // Builds a world matrix from joint uniforms,
       "  return world_matrix;\n"
       "}\n";
   const char* vs[] = {kPlatformSpecivicVSHeader, kPassNoUv,
-                      GL_ARB_instanced_arrays ? "attribute mat4 joint;\n"
-                                              : "uniform mat4 joint;\n",
+                      GL_ARB_instanced_arrays_supported
+                          ? "attribute mat4 joint;\n"
+                          : "uniform mat4 joint;\n",
                       vs_joint_to_world_matrix, kShaderUberVS};
   const char* fs[] = {kPlatformSpecivicFSHeader, kShaderAmbientFct,
                       kShaderAmbientFS};
@@ -531,7 +532,7 @@ BoneShader* BoneShader::Build() {  // Builds a world matrix from joint uniforms,
   // Binds default uniforms
   success &= shader->BindUniform("u_mvp");
 
-  if (GL_ARB_instanced_arrays) {
+  if (GL_ARB_instanced_arrays_supported) {
     success &= shader->FindAttrib("joint");
   } else {
     success &= shader->BindUniform("joint");
@@ -679,8 +680,8 @@ void AmbientShaderInstanced::Bind(GLsizei _models_offset,
   GL(VertexAttribPointer(color_attrib, 4, GL_UNSIGNED_BYTE, GL_TRUE,
                          _color_stride, GL_PTR_OFFSET(_color_offset)));
   if (_color_stride == 0) {
-    GL(VertexAttribDivisorARB(color_attrib,
-                              std::numeric_limits<unsigned int>::max()));
+    GL(VertexAttribDivisor_(color_attrib,
+                            std::numeric_limits<unsigned int>::max()));
   }
 
   // Binds mw uniform
@@ -689,10 +690,10 @@ void AmbientShaderInstanced::Bind(GLsizei _models_offset,
   GL(EnableVertexAttribArray(models_attrib + 1));
   GL(EnableVertexAttribArray(models_attrib + 2));
   GL(EnableVertexAttribArray(models_attrib + 3));
-  GL(VertexAttribDivisorARB(models_attrib + 0, 1));
-  GL(VertexAttribDivisorARB(models_attrib + 1, 1));
-  GL(VertexAttribDivisorARB(models_attrib + 2, 1));
-  GL(VertexAttribDivisorARB(models_attrib + 3, 1));
+  GL(VertexAttribDivisor_(models_attrib + 0, 1));
+  GL(VertexAttribDivisor_(models_attrib + 1, 1));
+  GL(VertexAttribDivisor_(models_attrib + 2, 1));
+  GL(VertexAttribDivisor_(models_attrib + 3, 1));
   GL(VertexAttribPointer(models_attrib + 0, 4, GL_FLOAT, GL_FALSE,
                          sizeof(math::Float4x4),
                          GL_PTR_OFFSET(0 + _models_offset)));
@@ -718,17 +719,17 @@ void AmbientShaderInstanced::Bind(GLsizei _models_offset,
 
 void AmbientShaderInstanced::Unbind() {
   const GLint color_attrib = attrib(2);
-  GL(VertexAttribDivisorARB(color_attrib, 0));
+  GL(VertexAttribDivisor_(color_attrib, 0));
 
   const GLint models_attrib = attrib(3);
   GL(DisableVertexAttribArray(models_attrib + 0));
   GL(DisableVertexAttribArray(models_attrib + 1));
   GL(DisableVertexAttribArray(models_attrib + 2));
   GL(DisableVertexAttribArray(models_attrib + 3));
-  GL(VertexAttribDivisorARB(models_attrib + 0, 0));
-  GL(VertexAttribDivisorARB(models_attrib + 1, 0));
-  GL(VertexAttribDivisorARB(models_attrib + 2, 0));
-  GL(VertexAttribDivisorARB(models_attrib + 3, 0));
+  GL(VertexAttribDivisor_(models_attrib + 0, 0));
+  GL(VertexAttribDivisor_(models_attrib + 1, 0));
+  GL(VertexAttribDivisor_(models_attrib + 2, 0));
+  GL(VertexAttribDivisor_(models_attrib + 3, 0));
   Shader::Unbind();
 }
 

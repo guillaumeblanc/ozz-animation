@@ -49,6 +49,8 @@ namespace animation {
 // quaternions.
 // The three joints must be ancestors, but don't need to be direct
 // ancestors (joints in-between will simply remain fixed).
+// Implementation is inspired by Autodesk Maya 2 bone IK, improved stability
+// wise and extended with Soften IK.
 struct IKTwoBoneJob {
   // Constructor, initializes default values.
   IKTwoBoneJob();
@@ -58,7 +60,7 @@ struct IKTwoBoneJob {
   // -if mid_axis isn't normalized.
   bool Validate() const;
 
-  // Runs job's sampling task.
+  // Runs job's execution task.
   // The job is validated before any operation is performed, see Validate() for
   // more details.
   // Returns false if *this job is not valid.
@@ -77,10 +79,11 @@ struct IKTwoBoneJob {
   // vectors. Direction of this axis is defined like this: a positive rotation
   // around this axis will open the angle between the two bones. This in turn
   // also defines which side the two joints must bend.
+  // Job validation will fail if mid_axis isn't normalized.
   math::SimdFloat4 mid_axis;
 
-  // Pole vector, in model-space. The pole vector defines where the direction
-  // the middle joint should point to, allowing to control IK chain orientation.
+  // Pole vector, in model-space. The pole vector defines the direction the
+  // middle joint should point to, allowing to control IK chain orientation.
   // Note that IK chain orientation will flip when target vector and the pole
   // vector are aligned/crossing each other. It's caller responsibility to
   // ensure that this doesn't happen.

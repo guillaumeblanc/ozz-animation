@@ -22,6 +22,7 @@ if(EMSCRIPTEN)
   install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/sample_millipede.html
     ${CMAKE_CURRENT_BINARY_DIR}/sample_millipede.js
+    ${CMAKE_CURRENT_BINARY_DIR}/sample_millipede.wasm
     DESTINATION bin/samples/millipede)
 else()
   install(TARGETS sample_millipede DESTINATION bin/samples/millipede)

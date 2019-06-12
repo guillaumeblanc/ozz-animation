@@ -125,7 +125,7 @@ void UpdateKeys(float _ratio, int _num_soa_tracks, ozz::Range<const _Key> _keys,
   // for interpolation at time ratio _ratio, for all tracks. Thanks to the
   // keyframe sorting, the loop can end as soon as it finds a key greater that
   // _ratio. It will mean that all the keys lower than _ratio have been
-  // processed, meaning all cache entries are updated.
+  // processed, meaning all cache entries are up to date.
   while (cursor < _keys.end &&
          _keys.begin[_cache[cursor->track * 2 + 1]].ratio <= _ratio) {
     // Flag this soa entry as outdated.
@@ -483,7 +483,7 @@ void SamplingCache::Resize(int _max_tracks) {
       sizeof(InterpSoaRotation) * max_soa_tracks_ +
       sizeof(InterpSoaScale) * max_soa_tracks_ +
       sizeof(int) * max_tracks * 2 * 3 +  // 2 keys * (trans + rot + scale).
-      sizeof(unsigned char) * 3 * num_outdated;
+      sizeof(uint8_t) * 3 * num_outdated;
 
   // Allocates all at once.
   memory::Allocator* allocator = memory::default_allocator();
@@ -519,7 +519,7 @@ void SamplingCache::Resize(int _max_tracks) {
   alloc_cursor += sizeof(int) * max_tracks * 2;
 
   outdated_translations_ = reinterpret_cast<uint8_t*>(alloc_cursor);
-  assert(math::IsAligned(outdated_translations_, OZZ_ALIGN_OF(unsigned char)));
+  assert(math::IsAligned(outdated_translations_, OZZ_ALIGN_OF(uint8_t)));
   alloc_cursor += sizeof(uint8_t) * num_outdated;
   outdated_rotations_ = reinterpret_cast<uint8_t*>(alloc_cursor);
   alloc_cursor += sizeof(uint8_t) * num_outdated;

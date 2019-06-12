@@ -62,7 +62,7 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
         weight_(1.f),
         soften_(.96f),
         twist_angle_(0.f),
-        reached(false),
+        reached_(false),
         fix_initial_transform_(true),
         two_bone_ik_(true),
         show_target_(true),
@@ -71,49 +71,68 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
         root_translation_(0.f, 0.f, 0.f),
         root_euler_(0.f, 0.f, 0.f),
         root_scale_(1.f),
-        target_extent_(.3f),
+        target_extent_(.5f),
         target_offset_(0.f, .2f, .1f),
         target_(0.f, 0.f, 0.f) {}
 
  protected:
-  bool ApplyTwoBoneIK(const ozz::math::Float4x4& _invert_root) {
-    const ozz::math::SimdFloat4 target_ms = TransformPoint(
-        _invert_root, ozz::math::simd_float4::Load3PtrU(&target_.x));
-    const ozz::math::SimdFloat4 pole_vector_ms = TransformVector(
-        _invert_root, ozz::math::simd_float4::Load3PtrU(&pole_vector.x));
+  bool ApplyTwoBoneIK() {
+    // Target and pole should be in model-space, so they must be converted from
+    // world-space using character inverse root matrix.
+    // IK jobs must support non invertible matrices (like 0 scale matrices).
+    ozz::math::SimdInt4 invertible;
+    const ozz::math::Float4x4 invert_root =
+        Invert(GetRootTransform(), &invertible);
 
+    const ozz::math::SimdFloat4 target_ms = TransformPoint(
+        invert_root, ozz::math::simd_float4::Load3PtrU(&target_.x));
+    const ozz::math::SimdFloat4 pole_vector_ms = TransformVector(
+        invert_root, ozz::math::simd_float4::Load3PtrU(&pole_vector.x));
+
+    // Setup IK job.
     ozz::animation::IKTwoBoneJob ik_job;
     ik_job.target = target_ms;
     ik_job.pole_vector = pole_vector_ms;
-    ik_job.mid_axis = ozz::math::simd_float4::z_axis();
+    ik_job.mid_axis = ozz::math::simd_float4::z_axis();  // Middle joint
+                                                         // rotation axis is
+                                                         // fixed, and depends
+                                                         // on skeleton rig.
     ik_job.weight = weight_;
     ik_job.soften = soften_;
     ik_job.twist_angle = twist_angle_;
+
+    // Provides start, middle and end joints model space matrices.
     ik_job.start_joint = &models_[start_joint_];
     ik_job.mid_joint = &models_[mid_joint_];
     ik_job.end_joint = &models_[end_joint_];
+
+    // Setup output pointers.
     ozz::math::SimdQuaternion start_correction;
     ik_job.start_joint_correction = &start_correction;
     ozz::math::SimdQuaternion mid_correction;
     ik_job.mid_joint_correction = &mid_correction;
-    ik_job.reached = &reached;
+    ik_job.reached = &reached_;
+
     if (!ik_job.Run()) {
       return false;
     }
+
     // Apply IK quaternions to their respective local-space transforms.
     ozz::sample::MultiplySoATransformQuaternion(start_joint_, start_correction,
                                                 make_range(locals_));
     ozz::sample::MultiplySoATransformQuaternion(mid_joint_, mid_correction,
                                                 make_range(locals_));
 
-    // Updates model-space matrices now IK has been applied. All the ancestors
-    // of the start of the IK chain must be computed.
+    // Updates model-space matrices now IK has been applied to local transforms.
+    // All the ancestors of the start of the IK chain must be computed.
     ozz::animation::LocalToModelJob ltm_job;
     ltm_job.skeleton = &skeleton_;
     ltm_job.input = make_range(locals_);
     ltm_job.output = make_range(models_);
-    ltm_job.from = start_joint_;  // Locals haven't changed before start_joint_.
+    ltm_job.from =
+        start_joint_;  // Local transforms haven't changed before start_joint_.
     ltm_job.to = ozz::animation::Skeleton::kMaxJoints;
+
     if (!ltm_job.Run()) {
       return false;
     }
@@ -129,14 +148,14 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
 
     // Reset locals to skeleton bind pose if option is true.
     // This allows to always start IK from a fix position (required to test
-    // weighting), or do IK from the latest computed pose.
+    // weighting), or do IK from the latest computed pose
     if (fix_initial_transform_) {
       for (size_t i = 0; i < locals_.size(); ++i) {
         locals_[i] = skeleton_.joint_bind_poses()[i];
       }
     }
 
-    // Updates model-space matrices from cuurent local-space setup.
+    // Updates model-space matrices from current local-space setup.
     // Model-space matrices needs to be updated up to the end joint. Any joint
     // after that will need to be recomputed after IK indeed.
     ozz::animation::LocalToModelJob ltm_job;
@@ -147,54 +166,44 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
       return false;
     }
 
-    // Target and pole should be in model-space, so they must be converted from
-    // wolrd-space.
-    // IK jobs must support non invertible matrices.
-    const ozz::math::Float4x4 root = GetRootTransform();
-    ozz::math::SimdInt4 invertible;
-    const ozz::math::Float4x4 invert_root = Invert(root, &invertible);
-
     // Setup and run IK job.
-    if (two_bone_ik_ && !ApplyTwoBoneIK(invert_root)) {
+    if (two_bone_ik_ && !ApplyTwoBoneIK()) {
       return false;
     }
 
     return true;
   }
 
-  // Samples animation, transforms to model space and renders.
   virtual bool OnDisplay(ozz::sample::Renderer* _renderer) {
     bool success = true;
 
     // Get skeleton root transform.
     const ozz::math::Float4x4 root = GetRootTransform();
 
-    const float kBoxHalfSize = .005f;
-    const ozz::math::Box box(ozz::math::Float3(-kBoxHalfSize),
-                             ozz::math::Float3(kBoxHalfSize));
-
     if (show_target_ && two_bone_ik_) {
       // Displays target
-      const ozz::sample::Renderer::Color colors[2][2] = {
-          {{0xff, 0xff, 0xff, 0xff}, {0xff, 0, 0, 0xff}},
-          {{0xff, 0xff, 0xff, 0xff}, {0, 0xff, 0, 0xff}}};
+      const ozz::sample::Color colors[2][2] = {
+          {ozz::sample::kWhite, ozz::sample::kRed},
+          {ozz::sample::kWhite, ozz::sample::kGreen}};
+
+      const float kBoxHalfSize = .005f;
+      const ozz::math::Box box(ozz::math::Float3(-kBoxHalfSize),
+                               ozz::math::Float3(kBoxHalfSize));
       success &= _renderer->DrawBoxIm(
           box,
           ozz::math::Float4x4::Translation(
               ozz::math::simd_float4::Load3PtrU(&target_.x)),
-          colors[reached]);
+          colors[reached_]);
     }
 
     // Displays pole vector
     if (show_pole_vector_) {
-      const ozz::sample::Renderer::Color color = {0xff, 0xff, 0xff, 0xff};
-      float pos[3];
+      ozz::math::Float3 begin;
       ozz::math::Store3PtrU(TransformPoint(root, models_[mid_joint_].cols[3]),
-                            pos);
-      success &= _renderer->DrawVectors(
-          ozz::Range<const float>(pos, 3), 6,
-          ozz::Range<const float>(&pole_vector.x, 3), 6, 1, 1.f, color,
-          ozz::math::Float4x4::identity());
+                            &begin.x);
+      success &= _renderer->DrawSegment(begin, begin + pole_vector,
+                                        ozz::sample::kWhite,
+                                        ozz::math::Float4x4::identity());
     }
 
     // Showing joints
@@ -364,7 +373,7 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
 
  private:
   bool MoveTarget(float _time) {
-    const float anim_extent = (1.f - std::cos(_time)) * target_extent_;
+    const float anim_extent = (1.f - std::cos(_time)) * .5f * target_extent_;
     const int floor = static_cast<int>(std::fabs(_time) / ozz::math::k2Pi);
 
     target_ = target_offset_;
@@ -402,7 +411,7 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
   float twist_angle_;
 
   // Two bone IK job "reched" output value.
-  bool reached;
+  bool reached_;
 
   // Sample options
   bool fix_initial_transform_;

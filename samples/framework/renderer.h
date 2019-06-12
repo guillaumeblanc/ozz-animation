@@ -44,14 +44,22 @@ namespace sample {
 // Sample framework mesh type.
 struct Mesh;
 
+// Defines render Color structure.
+struct Color {
+  unsigned char r, g, b, a;
+};
+
+// Color constants.
+static const Color kRed = {0xff, 0, 0, 0xff};
+static const Color kGreen = {0, 0xff, 0, 0xff};
+static const Color kBlue = {0, 0, 0xff, 0xff};
+static const Color kWhite = {0xff, 0xff, 0xff, 0xff};
+static const Color kGrey = {0x80, 0x80, 0x80, 0xff};
+static const Color kBlack = {0x80, 0x80, 0x80, 0xff};
+
 // Defines renderer abstract interface.
 class Renderer {
  public:
-  // Defines render Color structure.
-  struct Color {
-    unsigned char r, g, b, a;
-  };
-
   // Declares a virtual destructor to allow proper destruction.
   virtual ~Renderer() {}
 
@@ -140,12 +148,17 @@ class Renderer {
                         const ozz::math::Float4x4& _transform,
                         const Options& _options = Options()) = 0;
 
+  // Renders a segment from begin to end.
+  virtual bool DrawSegment(const math::Float3& _begin, const math::Float3& _end,
+                           Color _color,
+                           const ozz::math::Float4x4& _transform) = 0;
+
   // Renders vectors, defined by their starting point and a direction.
   virtual bool DrawVectors(ozz::Range<const float> _positions,
                            size_t _positions_stride,
                            ozz::Range<const float> _directions,
                            size_t _directions_stride, int _num_vectors,
-                           float _vector_length, Renderer::Color _color,
+                           float _vector_length, Color _color,
                            const ozz::math::Float4x4& _transform) = 0;
 
   // Compute binormals from normals and tangents, before displaying them.
@@ -154,7 +167,7 @@ class Renderer {
       ozz::Range<const float> _normals, size_t _normals_stride,
       ozz::Range<const float> _tangents, size_t _tangents_stride,
       ozz::Range<const float> _handenesses, size_t _handenesses_stride,
-      int _num_vectors, float _vector_length, Renderer::Color _color,
+      int _num_vectors, float _vector_length, Color _color,
       const ozz::math::Float4x4& _transform) = 0;
 };
 }  // namespace sample

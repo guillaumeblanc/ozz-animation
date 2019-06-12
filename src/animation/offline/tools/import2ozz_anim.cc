@@ -80,25 +80,19 @@ void DisplaysOptimizationstatistics(const RawAnimation& _non_optimized,
   // Computes optimization ratios.
   float translation_ratio =
       non_opt_translations != 0
-          ? 100.f * (non_opt_translations - opt_translations) /
-                non_opt_translations
+          ? 100.f * opt_translations / non_opt_translations
           : 0;
   float rotation_ratio =
-      non_opt_rotations != 0
-          ? 100.f * (non_opt_rotations - opt_rotations) / non_opt_rotations
-          : 0;
+      non_opt_rotations != 0 ? 100.f * opt_rotations / non_opt_rotations : 0;
   float scale_ratio =
-      non_opt_scales != 0
-          ? 100.f * (non_opt_scales - opt_scales) / non_opt_scales
-          : 0;
+      non_opt_scales != 0 ? 100.f * opt_scales / non_opt_scales : 0;
 
-  ozz::log::LogV() << "Optimization stage results:" << std::endl;
-  ozz::log::LogV() << " - Translations key frames optimization: "
-                   << translation_ratio << "%" << std::endl;
-  ozz::log::LogV() << " - Rotations key frames optimization: " << rotation_ratio
-                   << "%" << std::endl;
-  ozz::log::LogV() << " - Scaling key frames optimization: " << scale_ratio
-                   << "%" << std::endl;
+  ozz::log::LogV() << "Optimization stage results (% of remaining keys):"
+                   << std::endl;
+  ozz::log::LogV() << " - Translations: " << translation_ratio << "%"
+                   << std::endl;
+  ozz::log::LogV() << " - Rotations: " << rotation_ratio << "%" << std::endl;
+  ozz::log::LogV() << " - Scales: " << scale_ratio << "%" << std::endl;
 }
 
 Skeleton* LoadSkeleton(const char* _path) {

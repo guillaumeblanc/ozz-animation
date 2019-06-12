@@ -41,6 +41,7 @@ if(EMSCRIPTEN)
   install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/sample_additive.html
     ${CMAKE_CURRENT_BINARY_DIR}/sample_additive.js
+    ${CMAKE_CURRENT_BINARY_DIR}/sample_additive.wasm
     DESTINATION bin/samples/additive)
 else()
   install(TARGETS sample_additive DESTINATION bin/samples/additive)

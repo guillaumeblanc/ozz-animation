@@ -36,6 +36,7 @@ if(EMSCRIPTEN)
   install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/sample_user_channel.html
     ${CMAKE_CURRENT_BINARY_DIR}/sample_user_channel.js
+    ${CMAKE_CURRENT_BINARY_DIR}/sample_user_channel.wasm
     DESTINATION bin/samples/user_channel)
 else()
   install(TARGETS sample_user_channel DESTINATION bin/samples/user_channel)

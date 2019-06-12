@@ -42,7 +42,7 @@ bool ProcessConfiguration(Json::Value* _config);
 // Internal function used to compare enum names.
 bool CompareName(const char* _a, const char* _b);
 
-  // Struct allowing inheriting class to provide enum names.
+// Struct allowing inheriting class to provide enum names.
 template <typename _Type, typename _Enum>
 struct JsonEnum {
   // Struct allowing inheriting class to provide enum names.

@@ -28,6 +28,7 @@
 #include "ozz/animation/offline/raw_skeleton.h"
 #include "ozz/animation/offline/skeleton_builder.h"
 
+#include <algorithm>
 #include <cstring>
 
 #include "gtest/gtest.h"
@@ -252,6 +253,98 @@ TEST(InterateDFEmpty, SkeletonUtils) {
   IterateJointsDF(empty, ozz::animation::Skeleton::kNoParent,
                   IterateDFFailTester());
   IterateJointsDF(empty, 0, IterateDFFailTester());
+}
+
+namespace {
+
+class IterateDFReverseTester {
+ public:
+  IterateDFReverseTester(const ozz::animation::Skeleton* _skeleton)
+      : skeleton_(_skeleton), num_iterations_(0) {}
+
+  void operator()(int _current, int _parent) {
+    if (num_iterations_ == 0) {
+      EXPECT_TRUE(ozz::animation::IsLeaf(*skeleton_, _current));
+    }
+
+    // A joint is traversed once.
+    ozz::Vector<int>::Std::const_iterator itc =
+        std::find(processed_joints_.begin(), processed_joints_.end(), _current);
+    EXPECT_TRUE(itc == processed_joints_.end());
+
+    // A parent can't be traversed before a child.
+    ozz::Vector<int>::Std::const_iterator itp =
+        std::find(processed_joints_.begin(), processed_joints_.end(), _parent);
+    EXPECT_TRUE(itp == processed_joints_.end());
+
+    // joint processed
+    processed_joints_.push_back(_current);
+
+    // Validates parent id.
+    EXPECT_EQ(skeleton_->joint_parents()[_current], _parent);
+
+    ++num_iterations_;
+  }
+
+  int num_iterations() const { return num_iterations_; }
+
+ private:
+  // Iterated skeleton.
+  const ozz::animation::Skeleton* skeleton_;
+
+  // Number of iterations completed.
+  int num_iterations_;
+
+  // Already processed joints
+  ozz::Vector<int>::Std processed_joints_;
+};
+}  // namespace
+
+TEST(InterateDFReverse, SkeletonUtils) {
+  // Instantiates a builder objects with default parameters.
+  SkeletonBuilder builder;
+
+  RawSkeleton raw_skeleton;
+  raw_skeleton.roots.resize(2);
+  RawSkeleton::Joint& j0 = raw_skeleton.roots[0];
+  j0.name = "j0";
+  RawSkeleton::Joint& j8 = raw_skeleton.roots[1];
+  j8.name = "j8";
+
+  j0.children.resize(2);
+  j0.children[0].name = "j1";
+  j0.children[1].name = "j4";
+
+  j0.children[0].children.resize(1);
+  j0.children[0].children[0].name = "j2";
+
+  j0.children[0].children[0].children.resize(1);
+  j0.children[0].children[0].children[0].name = "j3";
+
+  j0.children[1].children.resize(2);
+  j0.children[1].children[0].name = "j5";
+  j0.children[1].children[1].name = "j6";
+
+  j0.children[1].children[1].children.resize(1);
+  j0.children[1].children[1].children[0].name = "j7";
+
+  j8.children.resize(1);
+  j8.children[0].name = "j9";
+
+  EXPECT_TRUE(raw_skeleton.Validate());
+  EXPECT_EQ(raw_skeleton.num_joints(), 10);
+
+  Skeleton* skeleton = builder(raw_skeleton);
+  ASSERT_TRUE(skeleton != NULL);
+  EXPECT_EQ(skeleton->num_joints(), 10);
+
+  {
+    IterateDFReverseTester fct =
+        IterateJointsDFReverse(*skeleton, IterateDFReverseTester(skeleton));
+    EXPECT_EQ(fct.num_iterations(), 10);
+  }
+
+  ozz::memory::default_allocator()->Delete(skeleton);
 }
 
 /* Definition of the skeleton used by the tests.

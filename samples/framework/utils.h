@@ -35,6 +35,7 @@ namespace ozz {
 // Forward declarations.
 namespace math {
 struct Box;
+struct Float3;
 struct Float4x4;
 struct SimdQuaternion;
 struct SoaTransform;
@@ -190,6 +191,24 @@ bool LoadMesh(const char* _filename, ozz::sample::Mesh* _mesh);
 // _filename and _mesh must be non-NULL.
 bool LoadMeshes(const char* _filename,
                 ozz::Vector<ozz::sample::Mesh>::Std* _meshes);
+
+// Intersect _mesh with the half-line extending from _ray_origin indefinitely in
+// _ray_direction only. Returns true if there was an intersection. Fills
+// intersection point and normal if provided, with the closest intersecting
+// triangle from _ray_origin. Only supports non-skinned, single part meshes.
+bool RayIntersectsMesh(const ozz::math::Float3& _ray_origin,
+                       const ozz::math::Float3& _ray_direction,
+                       const ozz::sample::Mesh& _mesh,
+                       ozz::math::Float3* _intersect,
+                       ozz::math::Float3* _normal);
+
+// Intersect _meshes with the half-line extending from _ray_origin indefinitely
+// in _ray_direction only. See RayIntersectsMesh.
+bool RayIntersectsMeshes(const ozz::math::Float3& _ray_origin,
+                         const ozz::math::Float3& _ray_direction,
+                         const ozz::Range<const ozz::sample::Mesh>& _meshes,
+                         ozz::math::Float3* _intersect,
+                         ozz::math::Float3* _normal);
 }  // namespace sample
 }  // namespace ozz
 #endif  // OZZ_SAMPLES_FRAMEWORK_UTILS_H_

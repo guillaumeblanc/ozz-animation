@@ -55,6 +55,13 @@ TEST(JobValidity, IKAimJob) {
     EXPECT_FALSE(job.Validate());
   }
 
+  {  // Invalid non normalized forward vector.
+    ozz::animation::IKAimJob job;
+    job.forward = ozz::math::simd_float4::Load(.5f, 0.f, 0.f, 0.f);
+    EXPECT_FALSE(job.Validate());
+  }
+
+
   {  // Valid
     ozz::animation::IKAimJob job;
     job.joint = &joint;
@@ -89,20 +96,20 @@ TEST(Correction, IKAimJob) {
     job.joint = &parent;
 
     // These are in joint local-space
-    job.aim = ozz::math::simd_float4::x_axis();
+    job.forward = ozz::math::simd_float4::x_axis();
     job.up = ozz::math::simd_float4::y_axis();
 
     // Pole vector is in model space
     job.pole_vector = TransformVector(parent, ozz::math::simd_float4::y_axis());
 
     {  // x
-      job.target = TransformVector(parent, ozz::math::simd_float4::x_axis());
+      job.target = TransformPoint(parent, ozz::math::simd_float4::x_axis());
       EXPECT_TRUE(job.Run());
       EXPECT_SIMDQUATERNION_EQ_TOL(quat, 0.f, 0.f, 0.f, 1.f, 2e-3f);
     }
 
     {  // -x
-      job.target = TransformVector(parent, -ozz::math::simd_float4::x_axis());
+      job.target = TransformPoint(parent, -ozz::math::simd_float4::x_axis());
       EXPECT_TRUE(job.Run());
       const ozz::math::Quaternion y_Pi = ozz::math::Quaternion::FromAxisAngle(
           ozz::math::Float3::y_axis(), ozz::math::kPi);
@@ -110,7 +117,7 @@ TEST(Correction, IKAimJob) {
     }
 
     {  // z
-      job.target = TransformVector(parent, ozz::math::simd_float4::z_axis());
+      job.target = TransformPoint(parent, ozz::math::simd_float4::z_axis());
       EXPECT_TRUE(job.Run());
       const ozz::math::Quaternion y_mPi_2 =
           ozz::math::Quaternion::FromAxisAngle(ozz::math::Float3::y_axis(),
@@ -120,7 +127,7 @@ TEST(Correction, IKAimJob) {
     }
 
     {  // -z
-      job.target = TransformVector(parent, -ozz::math::simd_float4::z_axis());
+      job.target = TransformPoint(parent, -ozz::math::simd_float4::z_axis());
       EXPECT_TRUE(job.Run());
       const ozz::math::Quaternion y_Pi_2 = ozz::math::Quaternion::FromAxisAngle(
           ozz::math::Float3::y_axis(), ozz::math::kPi_2);
@@ -129,7 +136,7 @@ TEST(Correction, IKAimJob) {
     }
 
     {  // 45 up y
-      job.target = TransformVector(
+      job.target = TransformPoint(
           parent, ozz::math::simd_float4::Load(1.f, 1.f, 0.f, 0.f));
       EXPECT_TRUE(job.Run());
       const ozz::math::Quaternion z_Pi_4 = ozz::math::Quaternion::FromAxisAngle(
@@ -139,7 +146,7 @@ TEST(Correction, IKAimJob) {
     }
 
     {  // 45 up y, further
-      job.target = TransformVector(
+      job.target = TransformPoint(
           parent, ozz::math::simd_float4::Load(2.f, 2.f, 0.f, 0.f));
       EXPECT_TRUE(job.Run());
       const ozz::math::Quaternion z_Pi_4 = ozz::math::Quaternion::FromAxisAngle(
@@ -150,7 +157,7 @@ TEST(Correction, IKAimJob) {
   }
 }
 
-TEST(Aim, IKAimJob) {
+TEST(Forward, IKAimJob) {
   ozz::animation::IKAimJob job;
   ozz::math::SimdQuaternion quat;
   job.joint_correction = &quat;
@@ -161,53 +168,27 @@ TEST(Aim, IKAimJob) {
   job.up = ozz::math::simd_float4::y_axis();
   job.pole_vector = ozz::math::simd_float4::y_axis();
 
-  {  // aim x
-    job.aim = ozz::math::simd_float4::x_axis();
+  {  // forward x
+    job.forward = ozz::math::simd_float4::x_axis();
     EXPECT_TRUE(job.Run());
     EXPECT_SIMDQUATERNION_EQ_TOL(quat, 0.f, 0.f, 0.f, 1.f, 2e-3f);
   }
 
-  {  // aim -x
-    job.aim = -ozz::math::simd_float4::x_axis();
+  {  // forward -x
+    job.forward = -ozz::math::simd_float4::x_axis();
     EXPECT_TRUE(job.Run());
     const ozz::math::Quaternion y_Pi = ozz::math::Quaternion::FromAxisAngle(
         ozz::math::Float3::y_axis(), -ozz::math::kPi);
     EXPECT_SIMDQUATERNION_EQ_TOL(quat, y_Pi.x, y_Pi.y, y_Pi.z, y_Pi.w, 2e-3f);
   }
 
-  {  // aim z
-    job.aim = ozz::math::simd_float4::z_axis();
+  {  // forward z
+    job.forward = ozz::math::simd_float4::z_axis();
     EXPECT_TRUE(job.Run());
     const ozz::math::Quaternion y_Pi_2 = ozz::math::Quaternion::FromAxisAngle(
         ozz::math::Float3::y_axis(), ozz::math::kPi_2);
     EXPECT_SIMDQUATERNION_EQ_TOL(quat, y_Pi_2.x, y_Pi_2.y, y_Pi_2.z, y_Pi_2.w,
                                  2e-3f);
-  }
-
-  {  // aim 2*z
-    job.aim =
-        ozz::math::simd_float4::z_axis() * ozz::math::simd_float4::Load1(2.f);
-    EXPECT_TRUE(job.Run());
-    const ozz::math::Quaternion y_Pi_2 = ozz::math::Quaternion::FromAxisAngle(
-        ozz::math::Float3::y_axis(), ozz::math::kPi_2);
-    EXPECT_SIMDQUATERNION_EQ_TOL(quat, y_Pi_2.x, y_Pi_2.y, y_Pi_2.z, y_Pi_2.w,
-                                 2e-3f);
-  }
-
-  {  // aim very small z
-    job.aim =
-        ozz::math::simd_float4::z_axis() * ozz::math::simd_float4::Load1(1e-6f);
-    EXPECT_TRUE(job.Run());
-    const ozz::math::Quaternion y_Pi_2 = ozz::math::Quaternion::FromAxisAngle(
-        ozz::math::Float3::y_axis(), ozz::math::kPi_2);
-    EXPECT_SIMDQUATERNION_EQ_TOL(quat, y_Pi_2.x, y_Pi_2.y, y_Pi_2.z, y_Pi_2.w,
-                                 2e-3f);
-  }
-
-  {  // aim is zero
-    job.aim = ozz::math::simd_float4::zero();
-    EXPECT_TRUE(job.Run());
-    EXPECT_SIMDQUATERNION_EQ_TOL(quat, 0.f, 0.f, 0.f, 1.f, 2e-3f);
   }
 }
 
@@ -219,7 +200,7 @@ TEST(Up, IKAimJob) {
   job.joint = &joint;
 
   job.target = ozz::math::simd_float4::x_axis();
-  job.aim = ozz::math::simd_float4::x_axis();
+  job.forward = ozz::math::simd_float4::x_axis();
   job.up = ozz::math::simd_float4::y_axis();
   job.pole_vector = ozz::math::simd_float4::y_axis();
 
@@ -281,7 +262,7 @@ TEST(Pole, IKAimJob) {
   job.joint = &joint;
 
   job.target = ozz::math::simd_float4::x_axis();
-  job.aim = ozz::math::simd_float4::x_axis();
+  job.forward = ozz::math::simd_float4::x_axis();
   job.up = ozz::math::simd_float4::y_axis();
 
   {  // Pole y
@@ -328,6 +309,108 @@ TEST(Pole, IKAimJob) {
   }
 }
 
+TEST(Offset, IKAimJob) {
+  ozz::animation::IKAimJob job;
+  ozz::math::SimdQuaternion quat;
+  job.joint_correction = &quat;
+  const ozz::math::Float4x4 joint = ozz::math::Float4x4::identity();
+  job.joint = &joint;
+  bool reached;
+  job.reached = &reached;
+
+  job.target = ozz::math::simd_float4::x_axis();
+  job.forward = ozz::math::simd_float4::x_axis();
+  job.up = ozz::math::simd_float4::y_axis();
+  job.pole_vector = ozz::math::simd_float4::y_axis();
+
+  {  // No offset
+    reached = false;
+    job.offset = ozz::math::simd_float4::zero();
+    EXPECT_TRUE(job.Run());
+    EXPECT_SIMDQUATERNION_EQ_TOL(quat, 0.f, 0.f, 0.f, 1.f, 2e-3f);
+    EXPECT_TRUE(reached);
+  }
+
+  {  // Offset inside target sphere
+    reached = false;
+    job.offset =
+        ozz::math::simd_float4::Load(0.f, ozz::math::kSqrt2_2, 0.f, 0.f);
+    EXPECT_TRUE(job.Run());
+    const ozz::math::Quaternion z_Pi_4 = ozz::math::Quaternion::FromAxisAngle(
+        ozz::math::Float3::z_axis(), -ozz::math::kPi_4);
+    EXPECT_SIMDQUATERNION_EQ_TOL(quat, z_Pi_4.x, z_Pi_4.y, z_Pi_4.z, z_Pi_4.w,
+                                 2e-3f);
+    EXPECT_TRUE(reached);
+  }
+
+  {  // Offset inside target sphere
+    reached = false;
+    job.offset = ozz::math::simd_float4::Load(.5f, .5f, 0.f, 0.f);
+    EXPECT_TRUE(job.Run());
+    const ozz::math::Quaternion z_Pi_6 = ozz::math::Quaternion::FromAxisAngle(
+        ozz::math::Float3::z_axis(), -ozz::math::kPi / 6.f);
+    EXPECT_SIMDQUATERNION_EQ_TOL(quat, z_Pi_6.x, z_Pi_6.y, z_Pi_6.z, z_Pi_6.w,
+                                 2e-3f);
+    EXPECT_TRUE(reached);
+  }
+
+  {  // Offset inside target sphere
+    reached = false;
+    job.offset = ozz::math::simd_float4::Load(-.5f, .5f, 0.f, 0.f);
+    EXPECT_TRUE(job.Run());
+    const ozz::math::Quaternion z_Pi_6 = ozz::math::Quaternion::FromAxisAngle(
+        ozz::math::Float3::z_axis(), -ozz::math::kPi / 6.f);
+    EXPECT_SIMDQUATERNION_EQ_TOL(quat, z_Pi_6.x, z_Pi_6.y, z_Pi_6.z, z_Pi_6.w,
+                                 2e-3f);
+    EXPECT_TRUE(reached);
+  }
+
+  {  // Offset inside target sphere
+    reached = false;
+    job.offset = ozz::math::simd_float4::Load(.5f, 0.f, .5f, 0.f);
+    EXPECT_TRUE(job.Run());
+    const ozz::math::Quaternion y_Pi_6 = ozz::math::Quaternion::FromAxisAngle(
+        ozz::math::Float3::y_axis(), ozz::math::kPi / 6.f);
+    EXPECT_SIMDQUATERNION_EQ_TOL(quat, y_Pi_6.x, y_Pi_6.y, y_Pi_6.z, y_Pi_6.w,
+                                 2e-3f);
+    EXPECT_TRUE(reached);
+  }
+
+  {  // Offset on target sphere
+    reached = false;
+    job.offset = ozz::math::simd_float4::Load(0.f, 1.f, 0.f, 0.f);
+    EXPECT_TRUE(job.Run());
+    const ozz::math::Quaternion z_Pi_2 = ozz::math::Quaternion::FromAxisAngle(
+        ozz::math::Float3::z_axis(), -ozz::math::kPi_2);
+    EXPECT_SIMDQUATERNION_EQ_TOL(quat, z_Pi_2.x, z_Pi_2.y, z_Pi_2.z, z_Pi_2.w,
+                                 2e-3f);
+    EXPECT_TRUE(reached);
+  }
+
+  {  // Offset outside of target sphere, unreachable
+    reached = true;
+    job.offset = ozz::math::simd_float4::Load(0.f, 2.f, 0.f, 0.f);
+    EXPECT_TRUE(job.Run());
+    EXPECT_SIMDQUATERNION_EQ_TOL(quat, 0.f, 0.f, 0.f, 1.f, 2e-3f);
+    EXPECT_FALSE(reached);
+  }
+
+  const ozz::math::Float4x4 translated_joint =
+      ozz::math::Float4x4::Translation(ozz::math::simd_float4::y_axis());
+  job.joint = &translated_joint;
+
+  {  // Offset inside of target sphere, unreachable
+    reached = false;
+    job.offset = ozz::math::simd_float4::y_axis();
+    EXPECT_TRUE(job.Run());
+    const ozz::math::Quaternion z_Pi_2 = ozz::math::Quaternion::FromAxisAngle(
+        ozz::math::Float3::z_axis(), -ozz::math::kPi_2);
+    EXPECT_SIMDQUATERNION_EQ_TOL(quat, z_Pi_2.x, z_Pi_2.y, z_Pi_2.z, z_Pi_2.w,
+                                 2e-3f);
+    EXPECT_TRUE(reached);
+  }
+}
+
 TEST(Twist, IKAimJob) {
   ozz::animation::IKAimJob job;
   ozz::math::SimdQuaternion quat;
@@ -336,7 +419,7 @@ TEST(Twist, IKAimJob) {
   job.joint = &joint;
 
   job.target = ozz::math::simd_float4::x_axis();
-  job.aim = ozz::math::simd_float4::x_axis();
+  job.forward = ozz::math::simd_float4::x_axis();
   job.up = ozz::math::simd_float4::y_axis();
 
   {  // Pole y, twist 0
@@ -392,7 +475,7 @@ TEST(AlignedTargetUp, IKAimJob) {
   const ozz::math::Float4x4 joint = ozz::math::Float4x4::identity();
   job.joint = &joint;
 
-  job.aim = ozz::math::simd_float4::x_axis();
+  job.forward = ozz::math::simd_float4::x_axis();
   job.pole_vector = ozz::math::simd_float4::y_axis();
 
   {  // Not aligned
@@ -442,7 +525,7 @@ TEST(AlignedTargetPole, IKAimJob) {
   const ozz::math::Float4x4 joint = ozz::math::Float4x4::identity();
   job.joint = &joint;
 
-  job.aim = ozz::math::simd_float4::x_axis();
+  job.forward = ozz::math::simd_float4::x_axis();
   job.up = ozz::math::simd_float4::y_axis();
 
   {  // Not aligned
@@ -471,7 +554,7 @@ TEST(TargetTooClose, IKAimJob) {
   job.joint = &joint;
 
   job.target = ozz::math::simd_float4::zero();
-  job.aim = ozz::math::simd_float4::x_axis();
+  job.forward = ozz::math::simd_float4::x_axis();
   job.up = ozz::math::simd_float4::y_axis();
   job.pole_vector = ozz::math::simd_float4::y_axis();
 
@@ -487,7 +570,7 @@ TEST(Weight, IKAimJob) {
   job.joint = &joint;
 
   job.target = ozz::math::simd_float4::z_axis();
-  job.aim = ozz::math::simd_float4::x_axis();
+  job.forward = ozz::math::simd_float4::x_axis();
   job.up = ozz::math::simd_float4::y_axis();
   job.pole_vector = ozz::math::simd_float4::y_axis();
 

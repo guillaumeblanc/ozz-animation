@@ -110,8 +110,8 @@ class AttachSampleApplication : public ozz::sample::Application {
     const float length = .5f;
     const ozz::math::Box box(ozz::math::Float3(-thickness, -thickness, -length),
                              ozz::math::Float3(thickness, thickness, 0.f));
-    const ozz::sample::Renderer::Color colors[2] = {{0xff, 0, 0, 0xff},
-                                                    {0, 0xff, 0, 0xff}};
+    const ozz::sample::Color colors[2] = {ozz::sample::kRed,
+                                          ozz::sample::kGreen};
 
     return _renderer->DrawBoxIm(box, transform, colors);
   }

@@ -126,7 +126,8 @@ class OzzImporter {
                       float _sampling_rate, RawFloat4Track* _track) = 0;
 
   // Build a filename from a wildcard string.
-  ozz::String::Std BuildFilename(const char* _filename, const char* _data_name) const;
+  ozz::String::Std BuildFilename(const char* _filename,
+                                 const char* _data_name) const;
 };
 }  // namespace offline
 }  // namespace animation

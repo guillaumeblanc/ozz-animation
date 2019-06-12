@@ -30,8 +30,8 @@
 #include <cstdlib>
 #include <cstring>
 
-#include "animation/offline/tools/import2ozz_track.h"
 #include "animation/offline/tools/import2ozz_config.h"
+#include "animation/offline/tools/import2ozz_track.h"
 
 #include "ozz/animation/offline/raw_track.h"
 #include "ozz/animation/offline/track_builder.h"
@@ -92,8 +92,8 @@ struct RawTrackToTrack<RawFloat4Track> {
 };
 
 template <typename _RawTrack>
-bool Export(OzzImporter& _importer, const _RawTrack& _raw_track, const Json::Value& _config,
-            const ozz::Endianness _endianness) {
+bool Export(OzzImporter& _importer, const _RawTrack& _raw_track,
+            const Json::Value& _config, const ozz::Endianness _endianness) {
   // Raw track to build and output.
   _RawTrack raw_track;
 
@@ -132,8 +132,8 @@ bool Export(OzzImporter& _importer, const _RawTrack& _raw_track, const Json::Val
     // it would leave an invalid file on the disk.
 
     // Builds output filename.
-    const ozz::String::Std filename =
-        _importer.BuildFilename(_config["filename"].asCString(), _raw_track.name.c_str());
+    const ozz::String::Std filename = _importer.BuildFilename(
+        _config["filename"].asCString(), _raw_track.name.c_str());
 
     ozz::log::LogV() << "Opens output file: " << filename << std::endl;
     ozz::io::File file(filename.c_str(), "wb");
@@ -229,8 +229,8 @@ bool ProcessImportTrack(OzzImporter& _importer, const char* _animation_name,
       const char* expected_type_name = _import_config["type"].asCString();
       OzzImporter::NodeProperty::Type expected_type =
           OzzImporter::NodeProperty::kFloat1;
-      bool valid_type =
-          PropertyTypeConfig::GetEnumFromName(expected_type_name, &expected_type);
+      bool valid_type = PropertyTypeConfig::GetEnumFromName(expected_type_name,
+                                                            &expected_type);
       (void)valid_type;
       assert(valid_type &&
              "Type should have been checked during config validation");
@@ -241,15 +241,15 @@ bool ProcessImportTrack(OzzImporter& _importer, const char* _animation_name,
         ozz::log::Log() << "Incompatible type \"" << expected_type_name
                         << "\" for matching property \"" << joint_name << ":"
                         << property_name << "\" of type \""
-                        << PropertyTypeConfig::GetEnumName(property.type) << "\"."
-                        << std::endl;
+                        << PropertyTypeConfig::GetEnumName(property.type)
+                        << "\"." << std::endl;
         continue;
       }
 
       ozz::log::LogV() << "Found matching property \"" << joint_name << ":"
                        << property_name << "\" of type \""
-                       << PropertyTypeConfig::GetEnumName(property.type) << "\"."
-                       << std::endl;
+                       << PropertyTypeConfig::GetEnumName(property.type)
+                       << "\"." << std::endl;
 
       // A property has been found.
       ppt_found = true;

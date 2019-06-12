@@ -33,6 +33,7 @@ if(EMSCRIPTEN)
   install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/sample_attach.html
     ${CMAKE_CURRENT_BINARY_DIR}/sample_attach.js
+    ${CMAKE_CURRENT_BINARY_DIR}/sample_attach.wasm
     DESTINATION bin/samples/attach)
 else()
   install(TARGETS sample_attach DESTINATION bin/samples/attach)

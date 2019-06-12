@@ -152,7 +152,7 @@ struct Range {
   Range(_Ty* _begin, size_t _size) : begin(_begin), end(_begin + _size) {}
 
   // Construct a range from a single element.
-  Range(_Ty& _element) : begin(&_element), end((&_element) + 1) {}
+  explicit Range(_Ty& _element) : begin(&_element), end((&_element) + 1) {}
 
   // Construct a range from an array, its size is automatically deduced.
   // It isn't declared explicit as conversion is free and safe.
@@ -201,5 +201,18 @@ struct Range {
   // Range end pointer, declared as const as it should never be dereferenced.
   const _Ty* end;
 };
+
+// Returns a mutable ozz::Range from a single object, as this isn't implicitly
+// exposed by Range object.
+template <typename _Ty>
+inline Range<_Ty> make_range(_Ty& _object) {
+  return Range<_Ty>(_object);
+}
+
+// Returns a mutable ozz::Range from a single object.
+template <typename _Ty>
+inline Range<const _Ty> make_range(const _Ty& _object) {
+  return Range<const _Ty>(_object);
+}
 }  // namespace ozz
 #endif  // OZZ_OZZ_BASE_PLATFORM_H_

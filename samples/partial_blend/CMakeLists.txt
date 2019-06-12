@@ -35,6 +35,7 @@ if(EMSCRIPTEN)
   install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/sample_partial_blend.html
     ${CMAKE_CURRENT_BINARY_DIR}/sample_partial_blend.js
+    ${CMAKE_CURRENT_BINARY_DIR}/sample_partial_blend.wasm
     DESTINATION bin/samples/partial_blend)
 else()
   install(TARGETS sample_partial_blend DESTINATION bin/samples/partial_blend)

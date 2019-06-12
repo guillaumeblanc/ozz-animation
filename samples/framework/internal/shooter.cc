@@ -153,6 +153,9 @@ bool Shooter::Process() {
 
     // Processes this shot.
     GL(BindBuffer(GL_PIXEL_PACK_BUFFER, shot.pbo));
+#ifdef EMSCRIPTEN
+    (void)shot_number_;
+#else   // EMSCRIPTEN
     const void* pixels = glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
     if (pixels) {
       char name[16];
@@ -164,6 +167,7 @@ bool Shooter::Process() {
       GL(UnmapBuffer(GL_PIXEL_PACK_BUFFER));
     }
     GL(BindBuffer(GL_PIXEL_PACK_BUFFER, 0));
+#endif  // EMSCRIPTEN
   }
   return true;
 }

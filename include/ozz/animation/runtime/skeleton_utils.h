@@ -70,6 +70,28 @@ inline _Fct IterateJointsDF(const Skeleton& _skeleton, int _from, _Fct _fct) {
   }
   return _fct;
 }
+
+// Applies a specified functor to each joint in a reverse (from leaves to root)
+// depth-first order. _Fct is of type void(int _current, int _parent) where the
+// first argument is the child of the second argument. _parent is kNoParent if
+// the _current joint is a root.
+template <typename _Fct>
+inline _Fct IterateJointsDFReverse(const Skeleton& _skeleton, _Fct _fct) {
+  const Range<const int16_t>& parents = _skeleton.joint_parents();
+  for (int i = _skeleton.num_joints() - 1; i >= 0; --i) {
+    _fct(i, parents[i]);
+  }
+  return _fct;
+}
+
+// Helper struct to bind a member function as a functor for skeleton iteration
+// functions.
+template <typename _T, void (_T::*p)(int, int)>
+struct IterateMemFun {
+  IterateMemFun(_T& _t) : t_(&_t) {}
+  void operator()(int _a, int _b) const { (t_->*p)(_a, _b); }
+  _T* t_;
+};
 }  // namespace animation
 }  // namespace ozz
 #endif  // OZZ_OZZ_ANIMATION_RUNTIME_SKELETON_UTILS_H_

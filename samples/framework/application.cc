@@ -275,13 +275,6 @@ Application::LoopStatus Application::OneLoop(int _loops) {
 
     return kContinue;  // ...but don't do anything.
   }
-#else   // EMSCRIPTEN
-  // Detect canvas resizing which isn't automatically detected.
-  int width, height, fullscreen;
-  emscripten_get_canvas_size(&width, &height, &fullscreen);
-  if (width != resolution_.width || height != resolution_.height) {
-    ResizeCbk(width, height);
-  }
 #endif  // EMSCRIPTEN
 
   // Enable/disable help on F1 key.
