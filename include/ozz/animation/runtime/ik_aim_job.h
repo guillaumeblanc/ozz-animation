@@ -105,7 +105,8 @@ struct IKAimJob {
   math::SimdQuaternion* joint_correction;
 
   // Optional boolean output value, set to true if target can be reached with IK
-  // computations. Reachability is TODO.
+  // computations. Target is considered not reachable when target is between
+  // joint and offset position.
   bool* reached;
 };
 }  // namespace animation
