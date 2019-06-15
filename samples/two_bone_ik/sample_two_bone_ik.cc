@@ -183,8 +183,8 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
     if (show_target_ && two_bone_ik_) {
       // Displays target
       const ozz::sample::Color colors[2][2] = {
-          {ozz::sample::kWhite, ozz::sample::kRed},
-          {ozz::sample::kWhite, ozz::sample::kGreen}};
+          {ozz::sample::kRed, ozz::sample::kBlack},
+          {ozz::sample::kGreen, ozz::sample::kBlack}};
 
       const float kBoxHalfSize = .005f;
       const ozz::math::Box box(ozz::math::Float3(-kBoxHalfSize),
