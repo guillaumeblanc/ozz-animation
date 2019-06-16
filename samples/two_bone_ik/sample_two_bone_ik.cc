@@ -60,7 +60,7 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
         end_joint_(-1),
         pole_vector(0.f, 1.f, 0.f),
         weight_(1.f),
-        soften_(.96f),
+        soften_(.97f),
         twist_angle_(0.f),
         reached_(false),
         fix_initial_transform_(true),
@@ -186,7 +186,7 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
           {ozz::sample::kRed, ozz::sample::kBlack},
           {ozz::sample::kGreen, ozz::sample::kBlack}};
 
-      const float kBoxHalfSize = .005f;
+      const float kBoxHalfSize = .006f;
       const ozz::math::Box box(ozz::math::Float3(-kBoxHalfSize),
                                ozz::math::Float3(kBoxHalfSize));
       success &= _renderer->DrawBoxIm(
@@ -209,12 +209,15 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
     // Showing joints
     if (show_joints_) {
       const float kAxeScale = .1f;
+      const float kSphereRadius = .009f;
       const ozz::math::Float4x4 kAxesScale = ozz::math::Float4x4::Scaling(
           ozz::math::simd_float4::Load1(kAxeScale));
       for (size_t i = 0; i < 3; ++i) {
         const int joints[3] = {start_joint_, mid_joint_, end_joint_};
         const ozz::math::Float4x4& transform = root * models_[joints[i]];
         success &= _renderer->DrawAxes(transform * kAxesScale);
+        success &= _renderer->DrawSphereIm(kSphereRadius, transform,
+                                           ozz::sample::kWhite);
       }
     }
 
