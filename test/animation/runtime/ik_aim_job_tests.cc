@@ -61,7 +61,6 @@ TEST(JobValidity, IKAimJob) {
     EXPECT_FALSE(job.Validate());
   }
 
-
   {  // Valid
     ozz::animation::IKAimJob job;
     job.joint = &joint;

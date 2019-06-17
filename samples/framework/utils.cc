@@ -490,8 +490,9 @@ bool RayIntersectsMesh(const ozz::math::Float3& _ray_origin,
                               ozz::math::Float3(pf2[0], pf2[1], pf2[2]),
                               &lcl_intersect, &lcl_normal)) {
       // Is it closer to start point than the previous intersection.
-      if (!intersected || LengthSqr(lcl_intersect - _ray_origin) <
-                              LengthSqr(intersect - _ray_origin)) {
+      if (!intersected ||
+          LengthSqr(lcl_intersect - _ray_origin) <
+              LengthSqr(intersect - _ray_origin)) {
         intersect = lcl_intersect;
         normal = lcl_normal;
       }
@@ -523,8 +524,9 @@ bool RayIntersectsMeshes(const ozz::math::Float3& _ray_origin,
     if (RayIntersectsMesh(_ray_origin, _ray_direction, _meshes[i],
                           &lcl_intersect, &lcl_normal)) {
       // Is it closer to start point than the previous intersection.
-      if (!intersected || LengthSqr(lcl_intersect - _ray_origin) <
-                              LengthSqr(intersect - _ray_origin)) {
+      if (!intersected ||
+          LengthSqr(lcl_intersect - _ray_origin) <
+              LengthSqr(intersect - _ray_origin)) {
         intersect = lcl_intersect;
         normal = lcl_normal;
       }
