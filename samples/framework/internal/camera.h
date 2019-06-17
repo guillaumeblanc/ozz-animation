@@ -62,6 +62,10 @@ class Camera {
   void Update(const math::Float4x4& _transform, const math::Box& _box,
               float _delta_time, bool _first_frame);
 
+  // Resets camera center, angles and distance.
+  void Reset(const math::Float3& _center, const math::Float2& _angles,
+             float _distance);
+
   // Provides immediate mode gui display event.
   void OnGui(ImGui* _im_gui);
 

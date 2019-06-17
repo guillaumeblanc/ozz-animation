@@ -190,9 +190,8 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
       const ozz::math::Box box(ozz::math::Float3(-kBoxHalfSize),
                                ozz::math::Float3(kBoxHalfSize));
       success &= _renderer->DrawBoxIm(
-          box,
-          ozz::math::Float4x4::Translation(
-              ozz::math::simd_float4::Load3PtrU(&target_.x)),
+          box, ozz::math::Float4x4::Translation(
+                   ozz::math::simd_float4::Load3PtrU(&target_.x)),
           colors[reached_]);
     }
 
@@ -363,15 +362,9 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
   }
 
   virtual void GetSceneBounds(ozz::math::Box* _bound) const {
-    ozz::math::Box posture_bound;
-
-    // Computes skeleton bound
-    ozz::sample::ComputePostureBounds(make_range(models_), &posture_bound);
-    const ozz::math::Box posture_bound_ws =
-        TransformBox(GetRootTransform(), posture_bound);
-
-    // Adds target in the bounds
-    *_bound = Merge(posture_bound_ws, ozz::math::Box(target_));
+    const ozz::math::Float3 radius(target_extent_ * .5f);
+    _bound->min = target_offset_ - radius;
+    _bound->max = target_offset_ + radius;
   }
 
  private:

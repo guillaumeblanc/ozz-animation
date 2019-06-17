@@ -106,8 +106,8 @@ class FootIKSampleApplication : public ozz::sample::Application {
  public:
   FootIKSampleApplication()
       : pelvis_offset_(0.f, 0.f, 0.f),
-        root_translation_(5.1f, 2.f, -2.1f),
-        root_yaw_(1.f),
+        root_translation_(2.17f, 2.f, -2.06f),
+        root_yaw_(2.f),
         foot_heigh_(.12f),
         weight_(1.f),
         soften_(1.f),
@@ -697,10 +697,17 @@ class FootIKSampleApplication : public ozz::sample::Application {
     return true;
   }
 
-  virtual void GetSceneBounds(ozz::math::Box* _bound) const {
-    ozz::math::Box posture_bound;
-    ozz::sample::ComputePostureBounds(make_range(models_), &posture_bound);
-    *_bound = TransformBox(GetRootTransform(), posture_bound);
+  virtual bool GetCameraInitialSetup(ozz::math::Float3* _center,
+                                     ozz::math::Float2* _angles,
+                                     float* _distance) const {
+    *_center = ozz::math::Float3(4.7f, 2.3f, -.13f);
+    *_angles = ozz::math::Float2(-.14f, -2.1f);
+    *_distance = 5.9f;
+    return true;
+  }
+
+  virtual void GetSceneBounds(ozz::math::Box* _box) const {
+    *_box = ozz::math::Box();
   }
 
   ozz::math::Float4x4 GetRootTransform() const {

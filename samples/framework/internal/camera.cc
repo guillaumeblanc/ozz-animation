@@ -35,6 +35,7 @@
 #include "ozz/base/maths/math_ex.h"
 #include "ozz/base/platform.h"
 
+#include "framework/application.h"
 #include "framework/imgui.h"
 
 #include "renderer_impl.h"
@@ -60,7 +61,7 @@ const float kKeyboardFactor = 500.f;
 const float kNear = .01f;
 const float kFar = 1000.f;
 const float kFovY = ozz::math::kPi / 3.f;
-const float kFrameAllZoomOut = 1.4f;  // 40% bigger than the scene.
+const float kFrameAllZoomOut = 1.3f;  // 30% bigger than the scene.
 
 // Setups initial values.
 Camera::Camera()
@@ -80,13 +81,15 @@ Camera::~Camera() {}
 
 void Camera::Update(const math::Box& _box, float _delta_time,
                     bool _first_frame) {
-  assert(_box.is_valid());
-
   // Frame the scene according to the provided box.
-  if (auto_framing_ || _first_frame) {
-    center_ = (_box.max + _box.min) * .5f;
-    const float radius = Length(_box.max - _box.min) * .5f;
-    distance_ = radius * kFrameAllZoomOut / tanf(kFovY * .5f);
+  if (_box.is_valid()) {
+    if (auto_framing_ || _first_frame) {
+      center_ = (_box.max + _box.min) * .5f;
+      if (_first_frame) {
+        const float radius = Length(_box.max - _box.min) * .5f;
+        distance_ = radius * kFrameAllZoomOut / tanf(kFovY * .5f);
+      }
+    }
   }
 
   // Update manual controls.
@@ -101,21 +104,23 @@ void Camera::Update(const math::Float4x4& _transform, const math::Box& _box,
                     float _delta_time, bool _first_frame) {
   // Extract distance and angles such that theu are coherent when switching out
   // of auto_framing_.
-  if (auto_framing_ || _first_frame) {
-    // Extract components from the view martrix.
-    ozz::math::Float3 camera_dir;
-    ozz::math::Store3PtrU(-ozz::math::Normalize3(_transform.cols[2]),
-                          &camera_dir.x);
-    ozz::math::Float3 camera_pos;
-    ozz::math::Store3PtrU(_transform.cols[3], &camera_pos.x);
+  if (_box.is_valid()) {
+    if (auto_framing_ || _first_frame) {
+      // Extract components from the view martrix.
+      ozz::math::Float3 camera_dir;
+      ozz::math::Store3PtrU(-ozz::math::Normalize3(_transform.cols[2]),
+                            &camera_dir.x);
+      ozz::math::Float3 camera_pos;
+      ozz::math::Store3PtrU(_transform.cols[3], &camera_pos.x);
 
-    // Arbitrary decides that distance (focus point) is from camera to scene
-    // center.
-    const ozz::math::Float3 box_center_ = (_box.max + _box.min) * .5f;
-    distance_ = Length(box_center_ - camera_pos);
-    center_ = camera_pos + camera_dir * distance_;
-    angles_.x = asinf(camera_dir.y);
-    angles_.y = atan2(-camera_dir.x, -camera_dir.z);
+      // Arbitrary decides that distance (focus point) is from camera to scene
+      // center.
+      const ozz::math::Float3 box_center_ = (_box.max + _box.min) * .5f;
+      distance_ = Length(box_center_ - camera_pos);
+      center_ = camera_pos + camera_dir * distance_;
+      angles_.x = asinf(camera_dir.y);
+      angles_.y = atan2(-camera_dir.x, -camera_dir.z);
+    }
   }
 
   // Update manual controls.
@@ -212,6 +217,13 @@ Camera::Controls Camera::UpdateControls(float _delta_time) {
   view_ = Invert(center * y_rotation * x_rotation * distance);
 
   return controls;
+}
+
+void Camera::Reset(const math::Float3& _center, const math::Float2& _angles,
+                   float _distance) {
+  center_ = _center;
+  angles_ = _angles;
+  distance_ = _distance;
 }
 
 void Camera::OnGui(ImGui* _im_gui) {

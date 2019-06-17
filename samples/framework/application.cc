@@ -194,8 +194,16 @@ int Application::Run(int _argc, const char** _argv, const char* _version,
       log::Out() << "Successfully opened OpenGL window version \""
                  << glGetString(GL_VERSION) << "\"." << std::endl;
 
-      // Allocates and initializes internal objects.
+      // Allocates and initializes camera
       camera_ = memory::default_allocator()->New<internal::Camera>();
+      math::Float3 camera_center;
+      math::Float2 camera_angles;
+      float distance;
+      if (GetCameraInitialSetup(&camera_center, &camera_angles, &distance)) {
+        camera_->Reset(camera_center, camera_angles, distance);
+      }
+
+      // Allocates and initializes renderer.
       renderer_ =
           memory::default_allocator()->New<internal::RendererImpl>(camera_);
       success = renderer_->Initialize();
@@ -639,6 +647,15 @@ bool Application::FrameworkGui() {
     }
   }
   return true;
+}
+
+bool Application::GetCameraInitialSetup(math::Float3* _center,
+                                        math::Float2* _angles,
+                                        float* _distance) const {
+  (void)_center;
+  (void)_angles;
+  (void)_distance;
+  return false;
 }
 
 // Default implementation doesn't override camera location.

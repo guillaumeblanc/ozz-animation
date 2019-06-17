@@ -447,12 +447,9 @@ class LookAtSampleApplication : public ozz::sample::Application {
   }
 
   virtual void GetSceneBounds(ozz::math::Box* _bound) const {
-    // Computes skeleton bound
-    ozz::math::Box posture_bound;
-    ozz::sample::ComputePostureBounds(make_range(models_), &posture_bound);
-
-    // Adds target in the bounds
-    *_bound = Merge(posture_bound, ozz::math::Box(target_));
+    const ozz::math::Float3 radius(target_extent_ * .8f);
+    _bound->min = target_offset_ - radius;
+    _bound->max = target_offset_ + radius;
   }
 
  private:

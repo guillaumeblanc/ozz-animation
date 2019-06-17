@@ -34,6 +34,8 @@
 namespace ozz {
 namespace math {
 struct Box;
+struct Float2;
+struct Float3;
 struct Float4x4;
 }  // namespace math
 namespace sample {
@@ -105,6 +107,12 @@ class Application {
   // application with EXIT_FAILURE. Note that OnDestroy is called in any case.
   virtual bool OnDisplay(Renderer* _renderer) = 0;
 
+  // Initial camera values. These will only be considered if function returns
+  // true;
+  virtual bool GetCameraInitialSetup(math::Float3* _center,
+                                     math::Float2* _angles,
+                                     float* _distance) const;
+
   // Allows the inheriting application to override camera location.
   // Application should return true (false by default) if it wants to override
   // Camera location, and fills in this case _transform matrix.
@@ -114,6 +122,7 @@ class Application {
   // Requires the inheriting application to provide scene bounds. It is used by
   // the camera to frame all the scene.
   // This function is never called before a first OnUpdate.
+  // If _bound is set to "invalid", then camera won't be updated.
   virtual void GetSceneBounds(math::Box* _bound) const = 0;
 
   // Implements framework internal loop function.
