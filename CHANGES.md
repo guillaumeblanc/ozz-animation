@@ -2,6 +2,7 @@
 Next version
 ----------------------
 * Library
+  - [animation] Adds two-bone and aim inverse kinematic solvers. They can be used at runtime to procedurally affect joint local-space transforms.
   - [animation] Allows resizing SamplingCache, meaning the can be allocated without knowing the number of joints the cache needs to support.
   - [animation] Allow ozz::animation::LocalToModelJob to partially update a hierarchy, aka all children of a joint. This is useful when changes to a local-space pose has been limited to part of the joint hierarchy, like when applying IK or modifying model-space matrices independently from local-space transform.
   - [animation] Changes ozz::animation::Skeleton joints from breadth-first to depth-first. This change breaks compatibility of previous ozz::animation::offline::RawAnimation, ozz::animation::Animation and ozz::animation::Skeleton archives.
@@ -14,6 +15,11 @@ Next version
   - [simd math] Implements AVX and FMA optimizations (when enabled at compile time).
   - [simd math] Implements simd quaternions, making it easier and more efficient to use quaternion with other simd math code.
   - [simd math] Exposes swizzling operations.
+
+* Samples
+  - [two bone ik] Adds two-bone ik sample, showing how ozz::animation::IKTwoBoneJob can be used on a robot arm.
+  - [look at] Adds a look-at sample, using ozz::animation::IKAimJob on a chain of bones to distribute aiming contribution to more than a single joint.
+  - [foot_ik] Adds foot-ik sample, which corrects character legs and ankles procedurally at runtime, as well as character/pelvis height, so that the feet can touch and adapt to the ground.
 
 * Build pipeline
  - Adds support for fbx sdk 2019. This version is now mandatory for vs2017 builds.
