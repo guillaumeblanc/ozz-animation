@@ -1,5 +1,5 @@
 
-Next version
+Release version 0.11.0
 ----------------------
 * Library
   - [animation] Adds two-bone and aim inverse kinematic solvers. They can be used at runtime to procedurally affect joint local-space transforms.
