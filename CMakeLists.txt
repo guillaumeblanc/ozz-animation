@@ -22,11 +22,6 @@ option(ozz_build_cpp11 "Enable c++11" OFF)
 option(ozz_build_msvc_rt_dll "Select msvc DLL runtime library" ON)
 option(ozz_build_postfix "Use per config postfix name" ON)
 
-if(ozz_build_gltf AND NOT ozz_build_cpp11)
-  message(WARNING "ozz_build_gltf requires ozz_build_cpp11=ON")
-  set(ozz_build_gltf OFF)
-endif()
-
 # Outputs selected options (can be modified by the command line)
 message("-- ---------------------------------------------------------")
 message("-- Selected options:")
