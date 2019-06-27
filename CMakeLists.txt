@@ -22,6 +22,13 @@ option(ozz_build_cpp11 "Enable c++11" ON)
 option(ozz_build_msvc_rt_dll "Select msvc DLL runtime library" ON)
 option(ozz_build_postfix "Use per config postfix name" ON)
 
+# Include ozz cmake parameters and scripts
+include(CheckCXXCompilerFlag)
+include(${PROJECT_SOURCE_DIR}/build-utils/cmake/compiler_settings.cmake)
+include(${PROJECT_SOURCE_DIR}/build-utils/cmake/package_settings.cmake)
+include(${PROJECT_SOURCE_DIR}/build-utils/cmake/fuse_target.cmake)
+include(${PROJECT_SOURCE_DIR}/build-utils/cmake/clang_format.cmake)
+
 # Add project execution options
 option(ozz_run_tests_headless "Run samples without rendering (used for unit tests)" ON)
 set(ozz_sample_testing_loops 20 CACHE INT "Number of loops while running sample tests (used for unit tests)")
@@ -52,13 +59,6 @@ endif()
 if(ozz_build_gltf AND NOT ozz_build_cpp11)
   set(ozz_build_gltf OFF)
 endif()
-
-# Include ozz cmake parameters and scripts
-include(CheckCXXCompilerFlag)
-include(${PROJECT_SOURCE_DIR}/build-utils/cmake/compiler_settings.cmake)
-include(${PROJECT_SOURCE_DIR}/build-utils/cmake/package_settings.cmake)
-include(${PROJECT_SOURCE_DIR}/build-utils/cmake/fuse_target.cmake)
-include(${PROJECT_SOURCE_DIR}/build-utils/cmake/clang_format.cmake)
 
 # Enables unit tests.
 if(ozz_build_tests)
