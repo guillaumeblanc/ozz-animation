@@ -50,7 +50,7 @@ matrix:
   - os: linux
     compiler: clang
     env:
-    - env_build_cpp11=1
+    - env_build_cpp11=0
   - os: linux
     compiler: clang
     env:
@@ -312,7 +312,7 @@ before_script:
 
 # Setup default environment variables
 - if [[ -z $env_src_root ]]; then export env_src_root=".."; fi
-- if [[ -z $env_build_cpp11 ]]; then export env_build_cpp11=0; fi
+- if [[ -z $env_build_cpp11 ]]; then export env_build_cpp11=1; fi
 - if [[ -z $env_build_fbx ]]; then export env_build_fbx=1; fi
 - if [[ -z $env_build_gltf ]]; then export env_build_gltf=1; fi
 - if [[ -z $env_build_data ]]; then export env_build_data=1; fi

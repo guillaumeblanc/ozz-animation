@@ -29,6 +29,12 @@ set(cxx_all_flags
 #--------------------------------------
 # Cross compiler compilation flags
 
+# Disables cpp11 if it's not available.
+if(NOT "cxx_std_11" IN_LIST CMAKE_CXX_COMPILE_FEATURES)
+  message(C++11 compiler feature is not available, disabling it for the project.)
+  set(ozz_build_cpp11 OFF)
+endif()
+
 if(ozz_build_cpp11)
   set(CMAKE_CXX_STANDARD 11)
   set(CMAKE_CXX_STANDARD_REQUIRED ON)

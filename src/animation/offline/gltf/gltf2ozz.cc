@@ -15,14 +15,17 @@
 #include <unordered_map>
 
 #define TINYGLTF_IMPLEMENTATION
-#define TINYGLTF_NO_STB_IMAGE        //
-#define TINYGLTF_NO_STB_IMAGE_WRITE  // skip loading the image libraries
-#define TINYGLTF_NO_EXTERNAL_IMAGE   //
+
+// No support for image loading or writing
+#define TINYGLTF_NO_STB_IMAGE
+#define TINYGLTF_NO_STB_IMAGE_WRITE
+#define TINYGLTF_NO_EXTERNAL_IMAGE
 
 #ifdef _MSC_VER
 #pragma warning(push)
-#pragma warning(disable : 4702)
-#endif  // _MSC_VER
+#pragma warning(disable : 4702)  // unreachable code
+#pragma warning(disable : 4267)  // conversion from 'size_t' to 'type'
+#endif                           // _MSC_VER
 
 #include "extern/tiny_gltf.h"
 
