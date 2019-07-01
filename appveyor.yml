@@ -3,7 +3,6 @@ image: Visual Studio 2017
 environment:
   matrix:
   # Comilers matrix
-    env_fbxsdk_path: "http://www.autodesk.com/content/dam/autodesk/www/adn/fbx/20192/fbx20192_fbxsdk_vs2013_win.exe"
   - env_cmake_generator: "Visual Studio 14 2015"
     env_cmake_configuration: Debug
     env_fbxsdk_path: "http://www.autodesk.com/content/dam/autodesk/www/adn/fbx/20192/fbx20192_fbxsdk_vs2015_win.exe"
