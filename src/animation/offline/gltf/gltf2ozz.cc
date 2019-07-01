@@ -396,7 +396,7 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
     assert(output.type == TINYGLTF_TYPE_VEC3 ||
            output.type == TINYGLTF_TYPE_VEC4);
 
-    float* timestamps = BufferView<float>(input);
+    const float* timestamps = BufferView<float>(input);
     if (timestamps == nullptr) {
       return false;
     }
@@ -465,10 +465,10 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
   // everything over
   template <typename KeyType>
   bool SampleLinearChannel(
-      const tinygltf::Accessor& output, float* timestamps,
+      const tinygltf::Accessor& output, const float* timestamps,
       std::vector<KeyType, ozz::StdAllocator<KeyType>>& keyframes) {
     using ValueType = typename KeyType::Value;
-    ValueType* values = BufferView<ValueType>(output);
+    const ValueType* values = BufferView<ValueType>(output);
     if (values == nullptr) {
       return false;
     }
@@ -488,10 +488,10 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
   // there are twice as many ozz keyframes as gltf keyframes
   template <typename KeyType>
   bool SampleStepChannel(
-      const tinygltf::Accessor& output, float* timestamps,
+      const tinygltf::Accessor& output, const float* timestamps,
       std::vector<KeyType, ozz::StdAllocator<KeyType>>& keyframes) {
     using ValueType = typename KeyType::Value;
-    ValueType* values = BufferView<ValueType>(output);
+    const ValueType* values = BufferView<ValueType>(output);
     if (values == nullptr) {
       return false;
     }
@@ -521,11 +521,11 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
   // sample rate
   template <typename KeyType>
   bool SampleCubicSplineChannel(
-      const tinygltf::Accessor& output, float* timestamps,
+      const tinygltf::Accessor& output, const float* timestamps,
       std::vector<KeyType, ozz::StdAllocator<KeyType>>& keyframes,
       float samplingRate, float duration) {
     using ValueType = typename KeyType::Value;
-    ValueType* values = BufferView<ValueType>(output);
+    const ValueType* values = BufferView<ValueType>(output);
     if (values == nullptr) {
       return false;
     }
@@ -546,10 +546,10 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
       float nextTime = timestamps[currentKey + 1];  // next keyframe time
 
       float t = (time - currentTime) / (nextTime - currentTime);
-      ValueType& p0 = values[currentKey * 3 + 1];
-      ValueType m0 = values[currentKey * 3 + 2] * (nextTime - currentTime);
-      ValueType& p1 = values[(currentKey + 1) * 3 + 1];
-      ValueType m1 = values[(currentKey + 1) * 3] * (nextTime - currentTime);
+      const ValueType& p0 = values[currentKey * 3 + 1];
+      const ValueType m0 = values[currentKey * 3 + 2] * (nextTime - currentTime);
+      const ValueType& p1 = values[(currentKey + 1) * 3 + 1];
+      const ValueType m1 = values[(currentKey + 1) * 3] * (nextTime - currentTime);
 
       KeyType& key = keyframes[i];
       key.time = time;
@@ -712,7 +712,7 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
   // returns the address of a gltf buffer given an accessor
   // performs basic checks to ensure the data is in the correct format
   template <typename T>
-  T* BufferView(const tinygltf::Accessor& accessor) {
+  const T* BufferView(const tinygltf::Accessor& accessor) {
     int32_t componentSize =
         tinygltf::GetComponentSizeInBytes(accessor.componentType);
     int32_t elementSize =
@@ -726,7 +726,7 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
 
     auto& bufferView = m_model.bufferViews[accessor.bufferView];
     auto& buffer = m_model.buffers[bufferView.buffer];
-    return (T*)(buffer.data.data() + bufferView.byteOffset +
+    return reinterpret_cast<const T*>(buffer.data.data() + bufferView.byteOffset +
                 accessor.byteOffset);
   }
 
