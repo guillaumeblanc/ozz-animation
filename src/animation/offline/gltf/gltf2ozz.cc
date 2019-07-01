@@ -547,9 +547,11 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
 
       float t = (time - currentTime) / (nextTime - currentTime);
       const ValueType& p0 = values[currentKey * 3 + 1];
-      const ValueType m0 = values[currentKey * 3 + 2] * (nextTime - currentTime);
+      const ValueType m0 =
+          values[currentKey * 3 + 2] * (nextTime - currentTime);
       const ValueType& p1 = values[(currentKey + 1) * 3 + 1];
-      const ValueType m1 = values[(currentKey + 1) * 3] * (nextTime - currentTime);
+      const ValueType m1 =
+          values[(currentKey + 1) * 3] * (nextTime - currentTime);
 
       KeyType& key = keyframes[i];
       key.time = time;
@@ -694,7 +696,7 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
     return skins;
   }
 
-  tinygltf::Node* FindNodeByName(const string& name) {
+  const tinygltf::Node* FindNodeByName(const string& name) {
     for (size_t nodeIndex = 0u; nodeIndex < m_model.nodes.size(); nodeIndex++) {
       auto it = m_nodeNames.find(nodeIndex);
       if (it == m_nodeNames.end()) {
