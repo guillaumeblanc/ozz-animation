@@ -773,7 +773,7 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
   tinygltf::TinyGLTF m_loader;
   tinygltf::Model m_model;
 
-  unordered_map<int, string> m_nodeNames;
+  unordered_map<size_t, string> m_nodeNames;
 };
 
 int main(int _argc, const char** _argv) {
