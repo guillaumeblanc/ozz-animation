@@ -46,10 +46,10 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
   GltfImporter() {
     // We don't care about image data but we have to provide this callback
     // because we're not loading the stb library
-    m_loader.SetImageLoader(
-        [](tinygltf::Image*, const int, std::string*, std::string*, int, int,
-           const unsigned char*, int, void*) { return true; },
-        NULL);
+    auto image_loader = [](tinygltf::Image*, const int, std::string*,
+                           std::string*, int, int, const unsigned char*, int,
+                           void*) { return true; };
+    m_loader.SetImageLoader(image_loader, NULL);
   }
 
  private:
@@ -66,9 +66,10 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
       success =
           m_loader.LoadBinaryFromFile(&m_model, &errors, &warnings, filename);
     } else {
-      if (ext != "gltf")
-        ozz::log::Log() << "Warning: Unknown file extension '" << ext
+      if (ext != "gltf") {
+        ozz::log::Log() << "Unknown file extension '" << ext
                         << "', assuming a JSON-formatted gltf." << std::endl;
+      }
 
       success =
           m_loader.LoadASCIIFromFile(&m_model, &errors, &warnings, filename);
@@ -95,12 +96,12 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
     (void)types;
 
     if (m_model.scenes.empty()) {
-      ozz::log::Err() << "Error: No scenes found, bailing out." << std::endl;
+      ozz::log::Err() << "No scenes found." << std::endl;
       return false;
     }
 
     if (m_model.skins.empty()) {
-      ozz::log::Err() << "Error: No skins found, bailing out." << std::endl;
+      ozz::log::Err() << "No skins found." << std::endl;
       return false;
     }
 
@@ -117,15 +118,14 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
                     << scene.name << ")." << std::endl;
 
     if (scene.nodes.empty()) {
-      ozz::log::Err() << "Error: Scene has no nodes, bailing out." << std::endl;
+      ozz::log::Err() << "Scene has no node." << std::endl;
       return false;
     }
 
     // get all the skins belonging to this scene
     auto skins = GetSkinsForScene(scene);
     if (skins.empty()) {
-      ozz::log::Err() << "Error: No skins exist in the scene, bailing out."
-                      << std::endl;
+      ozz::log::Err() << "No skin exist in the scene." << std::endl;
       return false;
     }
 
@@ -156,14 +156,14 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
       skeleton->roots.push_back(std::move(rootJoint));
     }
 
-    ozz::log::Log() << "Printing joint hierarchy:" << std::endl;
+    ozz::log::LogV() << "Printing joint hierarchy:" << std::endl;
     for (auto& root : skeleton->roots) {
       PrintSkeletonInfo(root);
     }
 
     if (!skeleton->Validate()) {
       ozz::log::Err()
-          << "Error: Output skeleton failed validation. This is likely a bug."
+          << "Output skeleton failed validation. This is likely a bug."
           << std::endl;
       return false;
     }
@@ -183,9 +183,9 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
       s << "gltf_node_" << nodeIndex;
       name = s.str();
 
-      ozz::log::Log() << "Warning: Joint at node #" << nodeIndex
-                      << " has no name. Setting name to \"" << name << "\"."
-                      << std::endl;
+      ozz::log::LogV() << "Joint at node #" << nodeIndex
+                       << " has no name. Setting name to \"" << name << "\"."
+                       << std::endl;
     }
 
     auto it = existingNames.find(name);
@@ -194,9 +194,9 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
       s << name << "_" << nodeIndex;
       name = s.str().c_str();
 
-      ozz::log::Log()
-          << "Warning: Joint at node #" << nodeIndex
-          << " has the same name as node #" << it->second
+      ozz::log::LogV()
+          << "Joint at node #" << nodeIndex << " has the same name as node #"
+          << it->second
           << "This is unsupported by ozz and the joint will be renamed to \""
           << name << "\".";
     }
@@ -256,10 +256,10 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
 
     for (auto& animation : m_model.animations) {
       if (animation.name.length() == 0) {
-        ozz::log::Log() << "Warning: Found an animation without a name. All "
-                           "animations must have valid and unique names. The "
-                           "animation will be skipped."
-                        << std::endl;
+        ozz::log::LogV() << "Found an animation without a name. All animations "
+                            "must have valid and unique names. The animation "
+                            "will be skipped."
+                         << std::endl;
         continue;
       }
 
@@ -277,7 +277,7 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
 
       static bool samplingRateWarn = false;
       if (!samplingRateWarn) {
-        ozz::log::Log() << "Warning: The animation sampling rate is set to 0 "
+        ozz::log::Log() << "The animation sampling rate is set to 0 "
                            "(automatic) but glTF does not carry scene frame "
                            "rate information. Assuming a sampling rate of "
                         << samplingRate << "hz." << std::endl;
@@ -295,8 +295,8 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
 
     // this shouldn't be possible but check anyway
     if (animationIt == end(m_model.animations)) {
-      ozz::log::Err() << "Error: Animation '" << animationName
-                      << "' requested but not found in glTF." << std::endl;
+      ozz::log::Err() << "Animation '" << animationName
+                      << "' requested not found in glTF." << std::endl;
       return false;
     }
 
@@ -357,13 +357,13 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
       }
     }
 
-    ozz::log::Log() << "Processed animation '" << animation->name
-                    << "' (tracks: " << animation->tracks.size()
-                    << ", duration: " << animation->duration << "s)."
-                    << std::endl;
+    ozz::log::LogV() << "Processed animation '" << animation->name
+                     << "' (tracks: " << animation->tracks.size()
+                     << ", duration: " << animation->duration << "s)."
+                     << std::endl;
 
     if (!animation->Validate()) {
-      ozz::log::Err() << "Error: Animation '" << animation->name
+      ozz::log::Err() << "Animation '" << animation->name
                       << "' failed validation." << std::endl;
       return false;
     }
@@ -596,7 +596,7 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
       // From the spec: "When a node is targeted for animation (referenced by an
       // animation.channel.target), only TRS properties may be present; matrix
       // will not be present."
-      ozz::log::Err() << "Error: Node \"" << node.name
+      ozz::log::Err() << "Node \"" << node.name
                       << "\" transformation matrix is not empty. This is "
                          "disallowed by the glTF spec as this node is an "
                          "animation target."
@@ -720,7 +720,7 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
     int32_t elementSize =
         componentSize * tinygltf::GetTypeSizeInBytes(accessor.type);
     if (elementSize != sizeof(T)) {
-      ozz::log::Err{} << "Invalid buffer view access. Expected element size '"
+      ozz::log::Err() << "Invalid buffer view access. Expected element size '"
                       << sizeof(T) << " got " << elementSize << " instead."
                       << std::endl;
       return nullptr;
@@ -728,19 +728,19 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
 
     auto& bufferView = m_model.bufferViews[accessor.bufferView];
     auto& buffer = m_model.buffers[bufferView.buffer];
-    return reinterpret_cast<const T*>(buffer.data.data() + bufferView.byteOffset +
-                accessor.byteOffset);
+    return reinterpret_cast<const T*>(
+        buffer.data.data() + bufferView.byteOffset + accessor.byteOffset);
   }
 
   void PrintSkeletonInfo(
       const ozz::animation::offline::RawSkeleton::Joint& joint, int ident = 0) {
     for (int i = 0; i < ident; i++) {
-      ozz::log::Log() << " ";
+      ozz::log::Log() << "  ";
     }
     ozz::log::Log() << joint.name << std::endl;
 
     for (auto& child : joint.children) {
-      PrintSkeletonInfo(child, ident + 2);
+      PrintSkeletonInfo(child, ident + 1);
     }
   }
 
