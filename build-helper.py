@@ -224,7 +224,7 @@ def FindGenerators():
   process = subprocess.Popen(['cmake', '--help'], stdout=subprocess.PIPE)
   stdout = process.communicate()[0]
   sub_stdout = stdout[stdout.rfind('Generators'):]
-  matches = re.findall(r"\s*(.+)\s*=.+", sub_stdout, re.MULTILINE)
+  matches = re.findall(r"\s*\**\s*(.+)\s*=.+", sub_stdout, re.MULTILINE)
   # Fills generators list
   global generators  
   for match in matches:
