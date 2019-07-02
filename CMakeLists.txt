@@ -37,7 +37,7 @@ set(ozz_sample_testing_loops 20 CACHE INT "Number of loops while running sample 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/build-utils/cmake/modules/")
 
 # Detects Fbx SDK, required to build Fbx pipeline.
-if(ozz_build_tools AND ozz_build_fbx AND NOT ozz_build_cpp11)
+if(ozz_build_tools AND ozz_build_fbx AND ozz_build_cpp11)
 
   # Select a msvc runtime compatible with ozz_build_msvc_rt_dll
   set(FBX_MSVC_RT_DLL ${ozz_build_msvc_rt_dll})
@@ -56,7 +56,8 @@ else()
 endif()
 
 # gltf requires c++11
-if(ozz_build_gltf AND NOT ozz_build_cpp11)
+if(ozz_build_tools AND ozz_build_gltf AND ozz_build_cpp11)
+else()
   set(ozz_build_gltf OFF)
 endif()
 
