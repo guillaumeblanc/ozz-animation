@@ -30,6 +30,8 @@
 
 #include <sstream>
 
+#include "gtest/gtest.h"
+
 // EXPECT_ASSERTION expands to real death test if assertions are enabled.
 // Parameters:
 //   statement -  A statement that a macro such as EXPECT_DEATH would test

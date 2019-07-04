@@ -31,7 +31,7 @@
 
 #include "ozz/base/maths/gtest_math_helper.h"
 #include "ozz/base/maths/soa_transform.h"
-#include "ozz/base/memory/allocator.h"
+#include "ozz/base/memory/scoped_ptr.h"
 
 #include "ozz/animation/runtime/animation.h"
 
@@ -50,8 +50,8 @@ TEST(JobValidity, SamplingJob) {
   raw_animation.tracks.resize(1);
 
   AnimationBuilder builder;
-  Animation* animation = builder(raw_animation);
-  ASSERT_TRUE(animation != NULL);
+  ozz::ScopedPtr<Animation> animation(builder(raw_animation));
+  ASSERT_TRUE(animation);
 
   // Allocates cache.
   SamplingCache cache(1);
@@ -178,7 +178,6 @@ TEST(JobValidity, SamplingJob) {
     EXPECT_TRUE(job.Validate());
     EXPECT_TRUE(job.Run());
   }
-  ozz::memory::default_allocator()->Delete(animation);
 }
 
 TEST(Sampling, SamplingJob) {
@@ -257,8 +256,8 @@ TEST(Sampling, SamplingJob) {
   raw_animation.tracks[3].translations.push_back(h);
 
   // Builds animation
-  ozz::animation::Animation* animation = builder(raw_animation);
-  ASSERT_TRUE(animation != NULL);
+  ozz::ScopedPtr<Animation> animation(builder(raw_animation));
+  ASSERT_TRUE(animation);
 
   ozz::math::SoaTransform output[1];
 
@@ -286,8 +285,6 @@ TEST(Sampling, SamplingJob) {
     EXPECT_SOAFLOAT3_EQ_EST(output[0].scale, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f,
                             1.f, 1.f, 1.f, 1.f, 1.f);
   }
-
-  ozz::memory::default_allocator()->Delete(animation);
 }
 
 TEST(SamplingNoTrack, SamplingJob) {
@@ -297,8 +294,8 @@ TEST(SamplingNoTrack, SamplingJob) {
   SamplingCache cache(1);
 
   AnimationBuilder builder;
-  ozz::animation::Animation* animation = builder(raw_animation);
-  ASSERT_TRUE(animation != NULL);
+  ozz::ScopedPtr<Animation> animation(builder(raw_animation));
+  ASSERT_TRUE(animation);
 
   ozz::math::SoaTransform test_output[1];
   ozz::math::SoaTransform output[1];
@@ -316,8 +313,6 @@ TEST(SamplingNoTrack, SamplingJob) {
 
   // Tests output.
   EXPECT_EQ(memcmp(test_output, output, sizeof(output)), 0);
-
-  ozz::memory::default_allocator()->Delete(animation);
 }
 
 TEST(Sampling1Track0Key, SamplingJob) {
@@ -328,8 +323,8 @@ TEST(Sampling1Track0Key, SamplingJob) {
   SamplingCache cache(1);
 
   AnimationBuilder builder;
-  ozz::animation::Animation* animation = builder(raw_animation);
-  ASSERT_TRUE(animation != NULL);
+  ozz::ScopedPtr<Animation> animation(builder(raw_animation));
+  ASSERT_TRUE(animation);
 
   ozz::math::SoaTransform output[1];
 
@@ -352,8 +347,6 @@ TEST(Sampling1Track0Key, SamplingJob) {
     EXPECT_SOAFLOAT3_EQ_EST(output[0].scale, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f,
                             1.f, 1.f, 1.f, 1.f, 1.f);
   }
-
-  ozz::memory::default_allocator()->Delete(animation);
 }
 
 TEST(Sampling1Track1Key, SamplingJob) {
@@ -368,8 +361,8 @@ TEST(Sampling1Track1Key, SamplingJob) {
   raw_animation.tracks[0].translations.push_back(tkey);  // Adds a key.
 
   AnimationBuilder builder;
-  ozz::animation::Animation* animation = builder(raw_animation);
-  ASSERT_TRUE(animation != NULL);
+  ozz::ScopedPtr<Animation> animation(builder(raw_animation));
+  ASSERT_TRUE(animation);
 
   ozz::math::SoaTransform output[1];
 
@@ -392,8 +385,6 @@ TEST(Sampling1Track1Key, SamplingJob) {
     EXPECT_SOAFLOAT3_EQ_EST(output[0].scale, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f,
                             1.f, 1.f, 1.f, 1.f, 1.f);
   }
-
-  ozz::memory::default_allocator()->Delete(animation);
 }
 
 TEST(Sampling1Track2Keys, SamplingJob) {
@@ -411,8 +402,8 @@ TEST(Sampling1Track2Keys, SamplingJob) {
   raw_animation.tracks[0].translations.push_back(tkey1);  // Adds a key.
 
   AnimationBuilder builder;
-  ozz::animation::Animation* animation = builder(raw_animation);
-  ASSERT_TRUE(animation != NULL);
+  ozz::ScopedPtr<Animation> animation(builder(raw_animation));
+  ASSERT_TRUE(animation);
 
   ozz::math::SoaTransform output[1];
   memset(output, 0xde, sizeof(output));
@@ -479,8 +470,6 @@ TEST(Sampling1Track2Keys, SamplingJob) {
                               0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 1.f, 1.f, 1.f, 1.f);
   EXPECT_SOAFLOAT3_EQ_EST(output[0].scale, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f,
                           1.f, 1.f, 1.f, 1.f, 1.f);
-
-  ozz::memory::default_allocator()->Delete(animation);
 }
 
 TEST(Sampling4Track2Keys, SamplingJob) {
@@ -520,8 +509,8 @@ TEST(Sampling4Track2Keys, SamplingJob) {
   raw_animation.tracks[3].translations.push_back(tkey31);  // Adds a key.
 
   AnimationBuilder builder;
-  ozz::animation::Animation* animation = builder(raw_animation);
-  ASSERT_TRUE(animation != NULL);
+  ozz::ScopedPtr<Animation> animation(builder(raw_animation));
+  ASSERT_TRUE(animation);
 
   ozz::math::SoaTransform output[1];
   memset(output, 0xde, sizeof(output));
@@ -565,8 +554,6 @@ TEST(Sampling4Track2Keys, SamplingJob) {
                               0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 1.f, 1.f);
   EXPECT_SOAFLOAT3_EQ_EST(output[0].scale, 1.f, 1.f, -1.f, 1.f, 1.f, 1.f, -1.f,
                           1.f, 1.f, 1.f, -1.f, 1.f);
-
-  ozz::memory::default_allocator()->Delete(animation);
 }
 
 TEST(Cache, SamplingJob) {
@@ -578,7 +565,7 @@ TEST(Cache, SamplingJob) {
   raw_animation.tracks[0].translations.push_back(empty_key);
 
   SamplingCache cache(1);
-  ozz::animation::Animation* animations[2] = {};
+  ozz::ScopedPtr<Animation> animations[2];
 
   {
     const RawAnimation::TranslationKey tkey = {
@@ -587,7 +574,7 @@ TEST(Cache, SamplingJob) {
 
     AnimationBuilder builder;
     animations[0] = builder(raw_animation);
-    ASSERT_TRUE(animations[0] != NULL);
+    ASSERT_TRUE(animations[0]);
   }
   {
     const RawAnimation::TranslationKey tkey = {
@@ -596,7 +583,7 @@ TEST(Cache, SamplingJob) {
 
     AnimationBuilder builder;
     animations[1] = builder(raw_animation);
-    ASSERT_TRUE(animations[1] != NULL);
+    ASSERT_TRUE(animations[1]);
   }
 
   ozz::math::SoaTransform output[1];
@@ -648,9 +635,6 @@ TEST(Cache, SamplingJob) {
   EXPECT_TRUE(job.Run());
   EXPECT_SOAFLOAT3_EQ_EST(output[0].translation, -1.f, 0.f, 0.f, 0.f, 1.f, 0.f,
                           0.f, 0.f, -5.f, 0.f, 0.f, 0.f);
-
-  ozz::memory::default_allocator()->Delete(animations[0]);
-  ozz::memory::default_allocator()->Delete(animations[1]);
 }
 
 TEST(CacheResize, SamplingJob) {
@@ -659,8 +643,8 @@ TEST(CacheResize, SamplingJob) {
   raw_animation.tracks.resize(7);
 
   AnimationBuilder builder;
-  ozz::animation::Animation* animation = builder(raw_animation);
-  ASSERT_TRUE(animation != NULL);
+  ozz::ScopedPtr<Animation> animation(builder(raw_animation));
+  ASSERT_TRUE(animation);
 
   // Empty cache by default
   SamplingCache cache;
@@ -685,6 +669,4 @@ TEST(CacheResize, SamplingJob) {
   // Cache is too small
   cache.Resize(1);
   EXPECT_FALSE(job.Validate());
-
-  ozz::memory::default_allocator()->Delete(animation);
 }

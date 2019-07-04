@@ -30,7 +30,7 @@
 #include "gtest/gtest.h"
 #include "ozz/base/gtest_helper.h"
 #include "ozz/base/maths/gtest_math_helper.h"
-#include "ozz/base/memory/allocator.h"
+#include "ozz/base/memory/scoped_ptr.h"
 
 #include "ozz/animation/offline/raw_track.h"
 #include "ozz/animation/offline/track_builder.h"
@@ -66,8 +66,8 @@ TEST(Algorithm, TrackEdgeTriggerJob) {
   raw_track.keyframes.push_back(key2);
 
   // Builds track
-  ozz::animation::FloatTrack* track = builder(raw_track);
-  ASSERT_TRUE(track != NULL);
+  ozz::ScopedPtr<FloatTrack> track(builder(raw_track));
+  ASSERT_TRUE(track);
 
   TrackTriggeringJob job;
   job.track = track;
@@ -107,6 +107,4 @@ TEST(Algorithm, TrackEdgeTriggerJob) {
         std::find_if(iterator, job.end(), IsRising);
     EXPECT_TRUE(it_if->rising);
   }
-
-  ozz::memory::default_allocator()->Delete(track);
 }

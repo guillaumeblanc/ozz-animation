@@ -42,13 +42,7 @@ namespace sample {
 namespace internal {
 
 GlImmediateRenderer::GlImmediateRenderer(RendererImpl* _renderer)
-    : vbo_(0),
-      buffer_(NULL),
-      max_size_(0),
-      size_(0),
-      immediate_pc_shader(NULL),
-      immediate_ptc_shader(NULL),
-      renderer_(_renderer) {}
+    : vbo_(0), buffer_(NULL), max_size_(0), size_(0), renderer_(_renderer) {}
 
 GlImmediateRenderer::~GlImmediateRenderer() {
   assert(size_ == 0 && "Immediate rendering still in use.");
@@ -59,13 +53,6 @@ GlImmediateRenderer::~GlImmediateRenderer() {
   }
   ozz::memory::default_allocator()->Deallocate(buffer_);
   buffer_ = NULL;
-
-  ozz::memory::default_allocator()->Delete(immediate_pc_shader);
-  immediate_pc_shader = NULL;
-  ozz::memory::default_allocator()->Delete(immediate_ptc_shader);
-  immediate_ptc_shader = NULL;
-
-  renderer_ = NULL;
 }
 
 bool GlImmediateRenderer::Initialize() {

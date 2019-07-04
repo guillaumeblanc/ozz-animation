@@ -119,11 +119,7 @@ Application::Application()
 #endif  //  NDEBUG
 }
 
-Application::~Application() {
-  memory::default_allocator()->Delete(fps_);
-  memory::default_allocator()->Delete(update_time_);
-  memory::default_allocator()->Delete(render_time_);
-}
+Application::~Application() {}
 
 int Application::Run(int _argc, const char** _argv, const char* _version,
                      const char* _title) {

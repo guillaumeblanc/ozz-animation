@@ -35,7 +35,7 @@
 #include "ozz/animation/runtime/skeleton.h"
 #include "ozz/base/maths/simd_math.h"
 #include "ozz/base/maths/soa_transform.h"
-#include "ozz/base/memory/allocator.h"
+#include "ozz/base/memory/scoped_ptr.h"
 
 #include "ozz/base/maths/gtest_math_helper.h"
 
@@ -53,11 +53,9 @@ TEST(Error, SkeletonBuilder) {
     EXPECT_TRUE(raw_skeleton.Validate());
     EXPECT_EQ(raw_skeleton.num_joints(), 0);
 
-    Skeleton* skeleton = builder(raw_skeleton);
-    ASSERT_TRUE(skeleton != NULL);
+    ozz::ScopedPtr<Skeleton> skeleton(builder(raw_skeleton));
+    ASSERT_TRUE(skeleton);
     EXPECT_EQ(skeleton->num_joints(), 0);
-
-    ozz::memory::default_allocator()->Delete(skeleton);
   }
 }
 
@@ -196,12 +194,10 @@ TEST(Build, SkeletonBuilder) {
     EXPECT_TRUE(raw_skeleton.Validate());
     EXPECT_EQ(raw_skeleton.num_joints(), 1);
 
-    Skeleton* skeleton = builder(raw_skeleton);
-    ASSERT_TRUE(skeleton != NULL);
+    ozz::ScopedPtr<Skeleton> skeleton(builder(raw_skeleton));
+    ASSERT_TRUE(skeleton);
     EXPECT_EQ(skeleton->num_joints(), 1);
     EXPECT_EQ(skeleton->joint_parents()[0], Skeleton::kNoParent);
-
-    ozz::memory::default_allocator()->Delete(skeleton);
   }
 
   /*
@@ -225,8 +221,8 @@ TEST(Build, SkeletonBuilder) {
     EXPECT_TRUE(raw_skeleton.Validate());
     EXPECT_EQ(raw_skeleton.num_joints(), 2);
 
-    Skeleton* skeleton = builder(raw_skeleton);
-    ASSERT_TRUE(skeleton != NULL);
+    ozz::ScopedPtr<Skeleton> skeleton(builder(raw_skeleton));
+    ASSERT_TRUE(skeleton);
     EXPECT_EQ(skeleton->num_joints(), 2);
     for (int i = 0; i < skeleton->num_joints(); ++i) {
       const int parent_index = skeleton->joint_parents()[i];
@@ -239,8 +235,6 @@ TEST(Build, SkeletonBuilder) {
         EXPECT_TRUE(false);
       }
     }
-
-    ozz::memory::default_allocator()->Delete(skeleton);
   }
 
   /*
@@ -265,8 +259,8 @@ TEST(Build, SkeletonBuilder) {
     EXPECT_TRUE(raw_skeleton.Validate());
     EXPECT_EQ(raw_skeleton.num_joints(), 3);
 
-    Skeleton* skeleton = builder(raw_skeleton);
-    ASSERT_TRUE(skeleton != NULL);
+    ozz::ScopedPtr<Skeleton> skeleton(builder(raw_skeleton));
+    ASSERT_TRUE(skeleton);
     EXPECT_EQ(skeleton->num_joints(), 3);
     for (int i = 0; i < skeleton->num_joints(); ++i) {
       const int parent_index = skeleton->joint_parents()[i];
@@ -280,8 +274,6 @@ TEST(Build, SkeletonBuilder) {
         EXPECT_TRUE(false);
       }
     }
-
-    ozz::memory::default_allocator()->Delete(skeleton);
   }
 
   /*
@@ -311,8 +303,8 @@ TEST(Build, SkeletonBuilder) {
     EXPECT_TRUE(raw_skeleton.Validate());
     EXPECT_EQ(raw_skeleton.num_joints(), 4);
 
-    Skeleton* skeleton = builder(raw_skeleton);
-    ASSERT_TRUE(skeleton != NULL);
+    ozz::ScopedPtr<Skeleton> skeleton(builder(raw_skeleton));
+    ASSERT_TRUE(skeleton);
     EXPECT_EQ(skeleton->num_joints(), 4);
     for (int i = 0; i < skeleton->num_joints(); ++i) {
       const int parent_index = skeleton->joint_parents()[i];
@@ -328,8 +320,6 @@ TEST(Build, SkeletonBuilder) {
         EXPECT_TRUE(false);
       }
     }
-
-    ozz::memory::default_allocator()->Delete(skeleton);
   }
 
   /*
@@ -359,8 +349,8 @@ TEST(Build, SkeletonBuilder) {
     EXPECT_TRUE(raw_skeleton.Validate());
     EXPECT_EQ(raw_skeleton.num_joints(), 4);
 
-    Skeleton* skeleton = builder(raw_skeleton);
-    ASSERT_TRUE(skeleton != NULL);
+    ozz::ScopedPtr<Skeleton> skeleton(builder(raw_skeleton));
+    ASSERT_TRUE(skeleton);
     EXPECT_EQ(skeleton->num_joints(), 4);
     for (int i = 0; i < skeleton->num_joints(); ++i) {
       const int parent_index = skeleton->joint_parents()[i];
@@ -376,8 +366,6 @@ TEST(Build, SkeletonBuilder) {
         EXPECT_TRUE(false);
       }
     }
-
-    ozz::memory::default_allocator()->Delete(skeleton);
   }
 
   /*
@@ -408,8 +396,8 @@ TEST(Build, SkeletonBuilder) {
     EXPECT_TRUE(raw_skeleton.Validate());
     EXPECT_EQ(raw_skeleton.num_joints(), 5);
 
-    Skeleton* skeleton = builder(raw_skeleton);
-    ASSERT_TRUE(skeleton != NULL);
+    ozz::ScopedPtr<Skeleton> skeleton(builder(raw_skeleton));
+    ASSERT_TRUE(skeleton);
     EXPECT_EQ(skeleton->num_joints(), 5);
     for (int i = 0; i < skeleton->num_joints(); ++i) {
       const int parent_index = skeleton->joint_parents()[i];
@@ -427,8 +415,6 @@ TEST(Build, SkeletonBuilder) {
         EXPECT_TRUE(false);
       }
     }
-
-    ozz::memory::default_allocator()->Delete(skeleton);
   }
 
   /*
@@ -462,8 +448,8 @@ TEST(Build, SkeletonBuilder) {
     EXPECT_TRUE(raw_skeleton.Validate());
     EXPECT_EQ(raw_skeleton.num_joints(), 6);
 
-    Skeleton* skeleton = builder(raw_skeleton);
-    ASSERT_TRUE(skeleton != NULL);
+    ozz::ScopedPtr<Skeleton> skeleton(builder(raw_skeleton));
+    ASSERT_TRUE(skeleton);
     EXPECT_EQ(skeleton->num_joints(), 6);
     for (int i = 0; i < skeleton->num_joints(); ++i) {
       const int parent_index = skeleton->joint_parents()[i];
@@ -498,8 +484,6 @@ TEST(Build, SkeletonBuilder) {
     EXPECT_STREQ(skeleton->joint_names()[4], "j4");
     EXPECT_EQ(skeleton->joint_parents()[5], 3);
     EXPECT_STREQ(skeleton->joint_names()[5], "j5");
-
-    ozz::memory::default_allocator()->Delete(skeleton);
   }
 }
 
@@ -543,8 +527,8 @@ TEST(JointOrder, SkeletonBuilder) {
   EXPECT_TRUE(raw_skeleton.Validate());
   EXPECT_EQ(raw_skeleton.num_joints(), 8);
 
-  Skeleton* skeleton = builder(raw_skeleton);
-  ASSERT_TRUE(skeleton != NULL);
+  ozz::ScopedPtr<Skeleton> skeleton(builder(raw_skeleton));
+  ASSERT_TRUE(skeleton);
   EXPECT_EQ(skeleton->num_joints(), 8);
 
   // Skeleton joints should be sorted "per parent" and maintain original
@@ -565,8 +549,6 @@ TEST(JointOrder, SkeletonBuilder) {
   EXPECT_STREQ(skeleton->joint_names()[5], "j5");
   EXPECT_EQ(skeleton->joint_parents()[6], 5);
   EXPECT_STREQ(skeleton->joint_names()[6], "j6");
-
-  ozz::memory::default_allocator()->Delete(skeleton);
 }
 
 TEST(MultiRoots, SkeletonBuilder) {
@@ -601,8 +583,8 @@ TEST(MultiRoots, SkeletonBuilder) {
   EXPECT_TRUE(raw_skeleton.Validate());
   EXPECT_EQ(raw_skeleton.num_joints(), 6);
 
-  Skeleton* skeleton = builder(raw_skeleton);
-  ASSERT_TRUE(skeleton != NULL);
+  ozz::ScopedPtr<Skeleton> skeleton(builder(raw_skeleton));
+  ASSERT_TRUE(skeleton);
   EXPECT_EQ(skeleton->num_joints(), 6);
   for (int i = 0; i < skeleton->num_joints(); i++) {
     const int parent_index = skeleton->joint_parents()[i];
@@ -622,8 +604,6 @@ TEST(MultiRoots, SkeletonBuilder) {
       EXPECT_TRUE(false);
     }
   }
-
-  ozz::memory::default_allocator()->Delete(skeleton);
 }
 
 TEST(BindPose, SkeletonBuilder) {
@@ -666,8 +646,8 @@ TEST(BindPose, SkeletonBuilder) {
   EXPECT_TRUE(raw_skeleton.Validate());
   EXPECT_EQ(raw_skeleton.num_joints(), 3);
 
-  Skeleton* skeleton = builder(raw_skeleton);
-  ASSERT_TRUE(skeleton != NULL);
+  ozz::ScopedPtr<Skeleton> skeleton(builder(raw_skeleton));
+  ASSERT_TRUE(skeleton);
 
   // Convert bind pose back to aos.
   ozz::math::SimdFloat4 translations[4];
@@ -700,8 +680,6 @@ TEST(BindPose, SkeletonBuilder) {
   EXPECT_SIMDFLOAT_EQ(translations[3], 0.f, 0.f, 0.f, 0.f);
   EXPECT_SIMDFLOAT_EQ(rotations[3], 0.f, 0.f, 0.f, 1.f);
   EXPECT_SIMDFLOAT_EQ(scales[3], 1.f, 1.f, 1.f, 0.f);
-
-  ozz::memory::default_allocator()->Delete(skeleton);
 }
 
 TEST(MaxJoints, SkeletonBuilder) {
@@ -715,9 +693,8 @@ TEST(MaxJoints, SkeletonBuilder) {
     EXPECT_TRUE(raw_skeleton.Validate());
     EXPECT_EQ(raw_skeleton.num_joints(), Skeleton::kMaxJoints);
 
-    Skeleton* skeleton = builder(raw_skeleton);
-    EXPECT_TRUE(skeleton != NULL);
-    ozz::memory::default_allocator()->Delete(skeleton);
+    ozz::ScopedPtr<Skeleton> skeleton(builder(raw_skeleton));
+    EXPECT_TRUE(skeleton);
   }
 
   {  // Outside of the domain.

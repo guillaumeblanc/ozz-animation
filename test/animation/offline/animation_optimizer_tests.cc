@@ -31,6 +31,8 @@
 
 #include "ozz/base/maths/math_constant.h"
 
+#include "ozz/base/memory/scoped_ptr.h"
+
 #include "ozz/animation/offline/animation_builder.h"
 #include "ozz/animation/offline/raw_animation.h"
 
@@ -60,8 +62,8 @@ TEST(Error, AnimationOptimizer) {
     RawSkeleton raw_skeleton;
     raw_skeleton.roots.resize(1);
     SkeletonBuilder skeleton_builder;
-    Skeleton* skeleton = skeleton_builder(raw_skeleton);
-    ASSERT_TRUE(skeleton != NULL);
+    ozz::ScopedPtr<Skeleton> skeleton(skeleton_builder(raw_skeleton));
+    ASSERT_TRUE(skeleton);
 
     RawAnimation input;
     input.duration = -1.f;
@@ -74,8 +76,6 @@ TEST(Error, AnimationOptimizer) {
     EXPECT_FALSE(optimizer(input, *skeleton, &output));
     EXPECT_FLOAT_EQ(output.duration, RawAnimation().duration);
     EXPECT_EQ(output.num_tracks(), 0);
-
-    ozz::memory::default_allocator()->Delete(skeleton);
   }
 
   {  // Invalid skeleton.
@@ -97,8 +97,8 @@ TEST(Name, AnimationOptimizer) {
   // Prepares a skeleton.
   RawSkeleton raw_skeleton;
   SkeletonBuilder skeleton_builder;
-  Skeleton* skeleton = skeleton_builder(raw_skeleton);
-  ASSERT_TRUE(skeleton != NULL);
+  ozz::ScopedPtr<Skeleton> skeleton(skeleton_builder(raw_skeleton));
+  ASSERT_TRUE(skeleton);
 
   AnimationOptimizer optimizer;
 
@@ -112,8 +112,6 @@ TEST(Name, AnimationOptimizer) {
   ASSERT_TRUE(optimizer(input, *skeleton, &output));
   EXPECT_EQ(output.num_tracks(), 0);
   EXPECT_STRCASEEQ(output.name.c_str(), "Test_Animation");
-
-  ozz::memory::default_allocator()->Delete(skeleton);
 }
 
 TEST(Optimize, AnimationOptimizer) {
@@ -121,8 +119,8 @@ TEST(Optimize, AnimationOptimizer) {
   RawSkeleton raw_skeleton;
   raw_skeleton.roots.resize(1);
   SkeletonBuilder skeleton_builder;
-  Skeleton* skeleton = skeleton_builder(raw_skeleton);
-  ASSERT_TRUE(skeleton != NULL);
+  ozz::ScopedPtr<Skeleton> skeleton(skeleton_builder(raw_skeleton));
+  ASSERT_TRUE(skeleton);
 
   AnimationOptimizer optimizer;
 
@@ -242,8 +240,6 @@ TEST(Optimize, AnimationOptimizer) {
     EXPECT_FLOAT_EQ(rotations[0].time, 0.f);  // Track 0 begin.
     EXPECT_FLOAT_EQ(rotations[1].time, 1.f);  // Track 0 end.
   }
-
-  ozz::memory::default_allocator()->Delete(skeleton);
 }
 
 TEST(OptimizeHierarchical, AnimationOptimizer) {
@@ -254,8 +250,8 @@ TEST(OptimizeHierarchical, AnimationOptimizer) {
   raw_skeleton.roots[0].children[0].children.resize(1);
   raw_skeleton.roots[0].children[0].children[0].children.resize(2);
   SkeletonBuilder skeleton_builder;
-  Skeleton* skeleton = skeleton_builder(raw_skeleton);
-  ASSERT_TRUE(skeleton != NULL);
+  ozz::ScopedPtr<Skeleton> skeleton(skeleton_builder(raw_skeleton));
+  ASSERT_TRUE(skeleton);
 
   // Disable non hierarchical optimizations
   AnimationOptimizer optimizer;
@@ -543,6 +539,4 @@ TEST(OptimizeHierarchical, AnimationOptimizer) {
 
   // Remove scaling
   { input.tracks[2].scales.clear(); }
-
-  ozz::memory::default_allocator()->Delete(skeleton);
 }

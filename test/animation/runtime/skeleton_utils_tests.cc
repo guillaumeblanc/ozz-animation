@@ -37,7 +37,7 @@
 
 #include "ozz/animation/runtime/skeleton.h"
 #include "ozz/animation/runtime/skeleton_utils.h"
-#include "ozz/base/memory/allocator.h"
+#include "ozz/base/memory/scoped_ptr.h"
 
 using ozz::animation::Skeleton;
 using ozz::animation::offline::RawSkeleton;
@@ -71,8 +71,8 @@ TEST(JointBindPose, SkeletonUtils) {
   EXPECT_TRUE(raw_skeleton.Validate());
   EXPECT_EQ(raw_skeleton.num_joints(), 3);
 
-  Skeleton* skeleton = builder(raw_skeleton);
-  ASSERT_TRUE(skeleton != NULL);
+  ozz::ScopedPtr<Skeleton> skeleton(builder(raw_skeleton));
+  ASSERT_TRUE(skeleton);
   EXPECT_EQ(skeleton->num_joints(), 3);
 
   // Out of range.
@@ -93,8 +93,6 @@ TEST(JointBindPose, SkeletonUtils) {
   EXPECT_FLOAT3_EQ(bind_pose2.translation, 0.f, 0.f, 1.f);
   EXPECT_QUATERNION_EQ(bind_pose2.rotation, -0.f, -0.f, -0.f, 1.f);
   EXPECT_FLOAT3_EQ(bind_pose2.scale, 1.f, 1.f, 1.f);
-
-  ozz::memory::default_allocator()->Delete(skeleton);
 }
 
 /* Definition of the skeleton used by the tests.
@@ -178,8 +176,8 @@ TEST(InterateDF, SkeletonUtils) {
   EXPECT_TRUE(raw_skeleton.Validate());
   EXPECT_EQ(raw_skeleton.num_joints(), 10);
 
-  Skeleton* skeleton = builder(raw_skeleton);
-  ASSERT_TRUE(skeleton != NULL);
+  ozz::ScopedPtr<Skeleton> skeleton(builder(raw_skeleton));
+  ASSERT_TRUE(skeleton);
   EXPECT_EQ(skeleton->num_joints(), 10);
 
   {
@@ -244,8 +242,6 @@ TEST(InterateDF, SkeletonUtils) {
   }
   IterateJointsDF(*skeleton, 10, IterateDFFailTester());
   IterateJointsDF(*skeleton, 99, IterateDFFailTester());
-
-  ozz::memory::default_allocator()->Delete(skeleton);
 }
 
 TEST(InterateDFEmpty, SkeletonUtils) {
@@ -334,8 +330,8 @@ TEST(InterateDFReverse, SkeletonUtils) {
   EXPECT_TRUE(raw_skeleton.Validate());
   EXPECT_EQ(raw_skeleton.num_joints(), 10);
 
-  Skeleton* skeleton = builder(raw_skeleton);
-  ASSERT_TRUE(skeleton != NULL);
+  ozz::ScopedPtr<Skeleton> skeleton(builder(raw_skeleton));
+  ASSERT_TRUE(skeleton);
   EXPECT_EQ(skeleton->num_joints(), 10);
 
   {
@@ -343,8 +339,6 @@ TEST(InterateDFReverse, SkeletonUtils) {
         IterateJointsDFReverse(*skeleton, IterateDFReverseTester(skeleton));
     EXPECT_EQ(fct.num_iterations(), 10);
   }
-
-  ozz::memory::default_allocator()->Delete(skeleton);
 }
 
 /* Definition of the skeleton used by the tests.
@@ -395,8 +389,8 @@ TEST(IsLeaf, SkeletonUtils) {
   EXPECT_TRUE(raw_skeleton.Validate());
   EXPECT_EQ(raw_skeleton.num_joints(), 10);
 
-  Skeleton* skeleton = builder(raw_skeleton);
-  ASSERT_TRUE(skeleton != NULL);
+  ozz::ScopedPtr<Skeleton> skeleton(builder(raw_skeleton));
+  ASSERT_TRUE(skeleton);
   EXPECT_EQ(skeleton->num_joints(), 10);
 
   // Out of bound
@@ -415,6 +409,4 @@ TEST(IsLeaf, SkeletonUtils) {
   EXPECT_TRUE(IsLeaf(*skeleton, 7));
   EXPECT_FALSE(IsLeaf(*skeleton, 8));
   EXPECT_TRUE(IsLeaf(*skeleton, 9));
-
-  ozz::memory::default_allocator()->Delete(skeleton);
 }
