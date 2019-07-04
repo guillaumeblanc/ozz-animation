@@ -1,4 +1,3 @@
-
 Release version 0.11.0
 ----------------------
 * Library
@@ -22,8 +21,8 @@ Release version 0.11.0
   - [foot_ik] Adds foot-ik sample, which corrects character legs and ankles procedurally at runtime, as well as character/pelvis height, so that the feet can touch and adapt to the ground.
 
 * Build pipeline
- - Adds support for fbx sdk 2019. This version is now mandatory for vs2017 builds.
- - Add support to macos 10.14 Mojave and Xcode 10.0.
+  - Adds support for fbx sdk 2019. This version is now mandatory for vs2017 builds.
+  - Add support to macos 10.14 Mojave and Xcode 10.0.
 
 * Tools
   - Adds point and vector property types (used to import tracks). These two types are actually float3 types, with scene axis and unit conversion applied.
