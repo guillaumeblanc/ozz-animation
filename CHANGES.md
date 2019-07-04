@@ -30,7 +30,7 @@ Release version 0.11.0
 
 * Build pipeline
   - #40 Adds ozz_build_postfix option.
-  - #41 dds ozz_build_tools option.
+  - #41 Adds ozz_build_tools option.
 
 Release version 0.10.0
 ----------------------
