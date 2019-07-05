@@ -74,12 +74,10 @@ struct IKTwoBoneJob {
 
   // Normalized middle joint rotation axis, in middle joint local-space. Default
   // value is z axis. This axis is usually fixed for a given skeleton (as it's
-  // in middle joint space). If the two bones are not aligned, then this axis
-  // can be computed as the cross product of mid-to-start and mid_to-end
-  // vectors. Direction of this axis is defined like this: a positive rotation
-  // around this axis will open the angle between the two bones. This in turn
-  // also defines which side the two joints must bend.
-  // Job validation will fail if mid_axis isn't normalized.
+  // in middle joint space). Its direction is defined like this: a positive
+  // rotation around this axis will open the angle between the two bones. This
+  // in turn also to define which side the two joints must bend. Job validation
+  // will fail if mid_axis isn't normalized.
   math::SimdFloat4 mid_axis;
 
   // Pole vector, in model-space. The pole vector defines the direction the
