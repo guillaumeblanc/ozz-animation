@@ -39,6 +39,7 @@
 
 #if EMSCRIPTEN
 #include <emscripten.h>
+#include <emscripten/html5.h>
 #endif  // EMSCRIPTEN
 
 #include "framework/image.h"
@@ -282,6 +283,15 @@ Application::LoopStatus Application::OneLoop(int _loops) {
     last_idle_time_ = glfwGetTime();
 
     return kContinue;  // ...but don't do anything.
+  }
+#else
+  int width, height;
+  if (emscripten_get_canvas_element_size(NULL, &width, &height) !=
+      EMSCRIPTEN_RESULT_SUCCESS) {
+    return kBreakFailure;
+  }
+  if (width != resolution_.width || height != resolution_.height) {
+    ResizeCbk(width, height);
   }
 #endif  // EMSCRIPTEN
 
