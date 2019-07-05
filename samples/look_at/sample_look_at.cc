@@ -253,9 +253,12 @@ class LookAtSampleApplication : public ozz::sample::Application {
 
     // Showing joints
     if (show_joints_) {
-      for (size_t i = 0; i < kMaxChainLength; ++i) {
+      const float kSphereRadius = .02f;
+      for (size_t i = 0; i < chain_length_; ++i) {
         const ozz::math::Float4x4& transform = models_[joints_chain_[i]];
         success &= _renderer->DrawAxes(transform * kAxesScale);
+        success &= _renderer->DrawSphereIm(kSphereRadius, transform,
+                                           ozz::sample::kWhite);
       }
     }
 
