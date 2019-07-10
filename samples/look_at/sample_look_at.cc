@@ -262,10 +262,15 @@ class LookAtSampleApplication : public ozz::sample::Application {
       }
     }
 
+    // Showing target, as a box or axes depending on show_forward_ option.
     if (show_target_) {
       const ozz::math::Float4x4 target = ozz::math::Float4x4::Translation(
           ozz::math::simd_float4::Load3PtrU(&target_.x));
-      success &= _renderer->DrawAxes(target * kAxesScale);
+      if (show_forward_) {
+        success &= _renderer->DrawAxes(target * kAxesScale);
+      } else {
+        success &= _renderer->DrawSphereIm(.02f, target, ozz::sample::kGreen);
+      }
     }
 
     if (show_eyes_offset_ || show_forward_) {
