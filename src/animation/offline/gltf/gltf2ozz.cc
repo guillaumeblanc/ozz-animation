@@ -401,14 +401,17 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
       return false;
     }
 
-    if (sampler.interpolation.empty() || sampler.interpolation == "LINEAR") {
+    if (sampler.interpolation.empty()) {
+      ozz::log::Err() << "Invalid sampler interpolation." << std::endl;
+      return false;
+    } else if (sampler.interpolation == "LINEAR") {
       assert(input.count == output.count);
 
       if (targetPath == "translation") {
         return SampleLinearChannel(output, timestamps, track.translations);
       } else if (targetPath == "rotation") {
         return SampleLinearChannel(output, timestamps, track.rotations);
-      } else if (targetPath == "scale}") {
+      } else if (targetPath == "scale") {
         return SampleLinearChannel(output, timestamps, track.scales);
       }
       ozz::log::Err() << "Invalid or unknown channel target path '"
