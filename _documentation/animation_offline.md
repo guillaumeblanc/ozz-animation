@@ -77,6 +77,10 @@ The AnimationOptimizer strips redundant/interpolable key frames from a raw anima
 The optimizer also takes into account for each joint the error generated on its whole child hierarchy, with the hierarchical tolerance value. This allows for example to take into consideration the error generated on a finger when optimizing the shoulder. A small error on the shoulder can be magnified when propagated to the finger indeed.
 Default optimization tolerances are set in order to favor quality over runtime performances and memory footprint.
 
+The following sample allows to experiment with optimizer parameters.
+
+{% include emscripten.jekyll emscripten_path="samples/emscripten/sample_optimize.js" %}
+
 `ozz::animation::offline::TrackBuilder`
 ---------------------------------------
 

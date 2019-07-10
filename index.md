@@ -72,7 +72,7 @@ collection: home
         <div class="w3-center w3-xxlarge w3-wide">Samples</div>
         <p>Try the samples to evaluate ozz-animation runtime features.</p>
       </a>
-      {% include emscripten.jekyll emscripten_path="samples/emscripten/sample_user_channel.js" %}
+      {% include emscripten.jekyll emscripten_path="samples/emscripten/sample_two_bone_ik.js" %}
     </div>
   </div>
 </div>
