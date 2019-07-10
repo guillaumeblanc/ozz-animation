@@ -2,8 +2,8 @@
 title: Offline libraries usage 
 layout: full
 keywords: optimisation,offline,build,convert
-order: 100
-level: 3
+order: 30
+level: 2
 ---
 
 {% include links.jekyll %}
