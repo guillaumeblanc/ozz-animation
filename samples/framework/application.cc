@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -39,6 +39,7 @@
 
 #if EMSCRIPTEN
 #include <emscripten.h>
+#include <emscripten/html5.h>
 #endif  // EMSCRIPTEN
 
 #include "framework/image.h"
@@ -282,6 +283,15 @@ Application::LoopStatus Application::OneLoop(int _loops) {
     last_idle_time_ = glfwGetTime();
 
     return kContinue;  // ...but don't do anything.
+  }
+#else
+  int width, height;
+  if (emscripten_get_canvas_element_size(NULL, &width, &height) !=
+      EMSCRIPTEN_RESULT_SUCCESS) {
+    return kBreakFailure;
+  }
+  if (width != resolution_.width || height != resolution_.height) {
+    ResizeCbk(width, height);
   }
 #endif  // EMSCRIPTEN
 

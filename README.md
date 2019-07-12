@@ -40,7 +40,8 @@ Contributions are welcome: code review, bug fix, feature implementation...
 ozz branching strategy follows [gitflow model](http://nvie.com/posts/a-successful-git-branching-model/). When submitting patches, please:
   - Make pull requests to develop branch for features, to release branch for hotfixes.
   - Do not include merge commits in pull requests; include only commits with the new relevant code.
-  - Add all relevant unit tests.
+  - Respect [Google c++ coding style](https://google.github.io/styleguide/cppguide.html) and run clang-format.
+  - Implement all relevant unit tests.
   - Run all the tests and make sure they pass.
 
 License

@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -190,8 +190,9 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
       const ozz::math::Box box(ozz::math::Float3(-kBoxHalfSize),
                                ozz::math::Float3(kBoxHalfSize));
       success &= _renderer->DrawBoxIm(
-          box, ozz::math::Float4x4::Translation(
-                   ozz::math::simd_float4::Load3PtrU(&target_.x)),
+          box,
+          ozz::math::Float4x4::Translation(
+              ozz::math::simd_float4::Load3PtrU(&target_.x)),
           colors[reached_]);
     }
 
@@ -277,13 +278,13 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
       static bool opened = true;
       ozz::sample::ImGui::OpenClose oc(_im_gui, "IK parameters", &opened);
       if (opened) {
-        sprintf(txt, "Weight: %.2g", weight_);
-        _im_gui->DoSlider(txt, 0.f, 1.f, &weight_);
         sprintf(txt, "Soften: %.2g", soften_);
         _im_gui->DoSlider(txt, 0.f, 1.f, &soften_, 2.f);
         sprintf(txt, "Twist angle: %.0f",
                 twist_angle_ * ozz::math::kRadianToDegree);
         _im_gui->DoSlider(txt, -ozz::math::kPi, ozz::math::kPi, &twist_angle_);
+        sprintf(txt, "Weight: %.2g", weight_);
+        _im_gui->DoSlider(txt, 0.f, 1.f, &weight_);
         {
           // Pole vector
           static bool pole_opened = true;

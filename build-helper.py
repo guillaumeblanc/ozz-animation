@@ -4,7 +4,7 @@
 # ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  #
 # and distributed under the MIT License (MIT).                               #
 #                                                                            #
-# Copyright (c) 2017 Guillaume Blanc                                         #
+# Copyright (c) 2019 Guillaume Blanc                                         #
 #                                                                            #
 # Permission is hereby granted, free of charge, to any person obtaining a    #
 # copy of this software and associated documentation files (the "Software"), #
@@ -224,7 +224,7 @@ def FindGenerators():
   process = subprocess.Popen(['cmake', '--help'], stdout=subprocess.PIPE)
   stdout = process.communicate()[0]
   sub_stdout = stdout[stdout.rfind('Generators'):]
-  matches = re.findall(r"\s*(.+)\s*=.+", sub_stdout, re.MULTILINE)
+  matches = re.findall(r"\s*\**\s*(.+)\s*=.+", sub_stdout, re.MULTILINE)
   # Fills generators list
   global generators  
   for match in matches:

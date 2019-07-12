@@ -2,7 +2,7 @@
 
 ## Description
 
-Foot IK, or foot planting, is a technique used to correct character legs and ankles procedurally at runtime, as well as character/pelvis height, so that the feet can touch ground.
+Foot IK, or foot planting, is a technique used to correct character legs and ankles procedurally at runtime, as well as character/pelvis height, so that the feet can touch and adapt to the ground.
 
 ## Concept
 
