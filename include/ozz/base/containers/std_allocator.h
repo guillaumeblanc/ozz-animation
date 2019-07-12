@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -52,10 +52,10 @@ class StdAllocator {
   };
 
   // Returns address of mutable _val.
-  pointer address(reference _val) const { return (&_val); }
+  pointer address(reference _val) const { return &_val; }
 
   // Returns address of non-mutable _val.
-  const_pointer address(const_reference _val) const { return (&_val); }
+  const_pointer address(const_reference _val) const { return &_val; }
 
   // Constructs default allocator (does nothing).
   StdAllocator() {}
@@ -73,18 +73,21 @@ class StdAllocator {
     return (*this);
   }
 
+  // Allocates array of _Count elements.
+  pointer allocate(size_type _count) {
+    // Makes sure to a use c like allocator, to avoid duplicated constructor
+    // calls.
+    return reinterpret_cast<pointer>(memory::default_allocator()->Allocate(
+        sizeof(_Ty) * _count, OZZ_ALIGN_OF(_Ty)));
+  }
+
+  // Allocates array of _Count elements, ignores hint.
+  pointer allocate(size_type _count, const void*) { return allocate(_count); }
+
   // Deallocates object at _Ptr, ignores size.
   void deallocate(pointer _ptr, size_type) {
     memory::default_allocator()->Deallocate(_ptr);
   }
-
-  // Allocates array of _Count elements.
-  pointer allocate(size_type _count) {
-    return memory::default_allocator()->Allocate<_Ty>(_count);
-  }
-
-  // Allocates array of _Count elements, ignores hint.
-  pointer allocate(size_type _count, const void*) { return (allocate(_count)); }
 
   // Constructs object at _Ptr with value _val.
   void construct(pointer _ptr, const _Ty& _val) {

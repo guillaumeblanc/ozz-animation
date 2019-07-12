@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -32,13 +32,13 @@
 
 #include "ozz/base/gtest_helper.h"
 
-TEST(Trigonometry, MathEx) {
+TEST(Trigonometry, ozz_math_ex) {
   EXPECT_FLOAT_EQ(ozz::math::kPi, 3.1415926535897932384626433832795f);
   EXPECT_FLOAT_EQ(ozz::math::kPi * ozz::math::kRadianToDegree, 180.f);
   EXPECT_FLOAT_EQ(180.f * ozz::math::kDegreeToRadian, ozz::math::kPi);
 }
 
-TEST(FloatArithmetic, MathEx) {
+TEST(FloatArithmetic, ozz_math_ex) {
   EXPECT_FLOAT_EQ(ozz::math::Lerp(0.f, 1.f, 0.f), 0.f);
   EXPECT_FLOAT_EQ(ozz::math::Lerp(0.f, 1.f, 1.f), 1.f);
   EXPECT_FLOAT_EQ(ozz::math::Lerp(0.f, 1.f, .3f), .3f);
@@ -46,7 +46,7 @@ TEST(FloatArithmetic, MathEx) {
   EXPECT_FLOAT_EQ(ozz::math::Lerp(0.f, 1.f, -12.f), -12.f);
 }
 
-TEST(FloatComparison, MathEx) {
+TEST(FloatComparison, ozz_math_ex) {
   const float a = {.5f};
   const float b = {4.f};
   const float c = {2.f};
@@ -67,7 +67,7 @@ TEST(FloatComparison, MathEx) {
   EXPECT_FLOAT_EQ(clamp1, c);
 }
 
-TEST(Select, MathEx) {
+TEST(Select, ozz_math_ex) {
   int a = -27, b = 46;
   int *pa = &a, *pb = &b;
   int *cpa = &a, *cpb = &b;

@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -34,7 +34,7 @@
 
 using ozz::math::Transform;
 
-TEST(Constant, Transform) {
+TEST(TransformConstant, ozz_math) {
   EXPECT_FLOAT3_EQ(Transform::identity().translation, 0.f, 0.f, 0.f);
   EXPECT_QUATERNION_EQ(Transform::identity().rotation, 0.f, 0.f, 0.f, 1.f);
   EXPECT_FLOAT3_EQ(Transform::identity().scale, 1.f, 1.f, 1.f);

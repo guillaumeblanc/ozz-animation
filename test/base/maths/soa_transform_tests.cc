@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -34,19 +34,12 @@
 
 using ozz::math::SoaTransform;
 
-// clang-format off
-
-TEST(SoaTransformConstant, ozz_math) {
-  EXPECT_SOAFLOAT3_EQ(SoaTransform::identity().translation, 0.f, 0.f, 0.f,
-                                                            0.f, 0.f, 0.f,
-                                                            0.f, 0.f, 0.f,
-                                                            0.f, 0.f, 0.f);
+TEST(SoaTransformConstant, ozz_soa_math) {
+  EXPECT_SOAFLOAT3_EQ(SoaTransform::identity().translation, 0.f, 0.f, 0.f, 0.f,
+                      0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
   EXPECT_SOAQUATERNION_EQ(SoaTransform::identity().rotation, 0.f, 0.f, 0.f, 0.f,
-                                                             0.f, 0.f, 0.f, 0.f,
-                                                             0.f, 0.f, 0.f, 0.f,
-                                                             1.f, 1.f, 1.f, 1.f);
-  EXPECT_SOAFLOAT3_EQ(SoaTransform::identity().scale, 1.f, 1.f, 1.f,
-                                                      1.f, 1.f, 1.f,
-                                                      1.f, 1.f, 1.f,
-                                                      1.f, 1.f, 1.f);
+                          0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 1.f, 1.f, 1.f,
+                          1.f);
+  EXPECT_SOAFLOAT3_EQ(SoaTransform::identity().scale, 1.f, 1.f, 1.f, 1.f, 1.f,
+                      1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f);
 }

@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -141,7 +141,11 @@ OZZ_INLINE SoaFloat4x4 Transpose(const SoaFloat4x4& _m) {
 }
 
 // Returns the inverse of matrix _m.
-OZZ_INLINE SoaFloat4x4 Invert(const SoaFloat4x4& _m) {
+// If _invertible is not NULL, each component will be set to true if its
+// respective matrix is invertible. If _invertible is NULL, then an assert is
+// triggered in case any of the 4 matrices isn't invertible.
+OZZ_INLINE SoaFloat4x4 Invert(const SoaFloat4x4& _m,
+                              SimdInt4* _invertible = NULL) {
   const SoaFloat4* cols = _m.cols;
   const SimdFloat4 a00 = cols[2].z * cols[3].w - cols[3].z * cols[2].w;
   const SimdFloat4 a01 = cols[2].y * cols[3].w - cols[3].y * cols[2].w;
@@ -185,15 +189,20 @@ OZZ_INLINE SoaFloat4x4 Invert(const SoaFloat4x4& _m) {
 
   const SimdFloat4 det =
       cols[0].x * b0x + cols[0].y * b1x + cols[0].z * b2x + cols[0].w * b3x;
-  assert(AreAllTrue(CmpNe(det, simd_float4::zero())) &&
-         "Matrix is not invertible");
-  const SimdFloat4 inv_det = simd_float4::one() / det;
+  const SimdInt4 invertible = CmpNe(det, simd_float4::zero());
+  assert((_invertible || AreAllTrue(invertible)) && "Matrix is not invertible");
+  if (_invertible != NULL) {
+    *_invertible = invertible;
+  }
+  const SimdFloat4 inv_det =
+      Select(invertible, RcpEstNR(det), simd_float4::zero());
 
   const SoaFloat4x4 ret = {
       {{b0x * inv_det, b0y * inv_det, b0z * inv_det, b0w * inv_det},
        {b1x * inv_det, b1y * inv_det, b1z * inv_det, b1w * inv_det},
        {b2x * inv_det, b2y * inv_det, b2z * inv_det, b2w * inv_det},
        {b3x * inv_det, b3y * inv_det, b3z * inv_det, b3w * inv_det}}};
+
   return ret;
 }
 

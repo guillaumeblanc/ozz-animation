@@ -4,6 +4,10 @@ add_library(ozz_animation STATIC
   animation_keyframe.h
   ${PROJECT_SOURCE_DIR}/include/ozz/animation/runtime/blending_job.h
   blending_job.cc
+  ${PROJECT_SOURCE_DIR}/include/ozz/animation/runtime/ik_aim_job.h
+  ik_aim_job.cc
+  ${PROJECT_SOURCE_DIR}/include/ozz/animation/runtime/ik_two_bone_job.h
+  ik_two_bone_job.cc
   ${PROJECT_SOURCE_DIR}/include/ozz/animation/runtime/local_to_model_job.h
   local_to_model_job.cc
   ${PROJECT_SOURCE_DIR}/include/ozz/animation/runtime/sampling_job.h
@@ -17,7 +21,7 @@ add_library(ozz_animation STATIC
   ${PROJECT_SOURCE_DIR}/include/ozz/animation/runtime/track_sampling_job.h
   track_sampling_job.cc
   ${PROJECT_SOURCE_DIR}/include/ozz/animation/runtime/track_triggering_job.h
-  ${PROJECT_SOURCE_DIR}/include/ozz/animation/runtime/track_triggering_job_stl.h
+  ${PROJECT_SOURCE_DIR}/include/ozz/animation/runtime/track_triggering_job_trait.h
   track_triggering_job.cc)
 target_link_libraries(ozz_animation
   ozz_base)

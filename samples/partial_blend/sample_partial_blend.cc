@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -40,8 +40,6 @@
 #include "ozz/base/maths/soa_transform.h"
 #include "ozz/base/maths/vec_float.h"
 
-#include "ozz/base/memory/allocator.h"
-
 #include "ozz/options/options.h"
 
 #include "framework/application.h"
@@ -76,7 +74,7 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
 
  protected:
   // Updates current animation time and skeleton pose.
-  virtual bool OnUpdate(float _dt) {
+  virtual bool OnUpdate(float _dt, float) {
     // Updates and samples both animations to their respective local space
     // transform buffers.
     for (int i = 0; i < kNumLayers; ++i) {
@@ -88,9 +86,9 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
       // Setup sampling job.
       ozz::animation::SamplingJob sampling_job;
       sampling_job.animation = &sampler.animation;
-      sampling_job.cache = sampler.cache;
+      sampling_job.cache = &sampler.cache;
       sampling_job.ratio = sampler.controller.time_ratio();
-      sampling_job.output = sampler.locals;
+      sampling_job.output = make_range(sampler.locals);
 
       // Samples animation.
       if (!sampling_job.Run()) {
@@ -106,19 +104,19 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
     // Prepares blending layers.
     ozz::animation::BlendingJob::Layer layers[kNumLayers];
     for (int i = 0; i < kNumLayers; ++i) {
-      layers[i].transform = samplers_[i].locals;
+      layers[i].transform = make_range(samplers_[i].locals);
       layers[i].weight = samplers_[i].weight_setting;
 
       // Set per-joint weights for the partially blended layer.
-      layers[i].joint_weights = samplers_[i].joint_weights;
+      layers[i].joint_weights = make_range(samplers_[i].joint_weights);
     }
 
     // Setups blending job.
     ozz::animation::BlendingJob blend_job;
     blend_job.threshold = threshold_;
     blend_job.layers = layers;
-    blend_job.bind_pose = skeleton_.bind_pose();
-    blend_job.output = blended_locals_;
+    blend_job.bind_pose = skeleton_.joint_bind_poses();
+    blend_job.output = make_range(blended_locals_);
 
     // Blends.
     if (!blend_job.Run()) {
@@ -131,8 +129,8 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
     // Setup local-to-model conversion job.
     ozz::animation::LocalToModelJob ltm_job;
     ltm_job.skeleton = &skeleton_;
-    ltm_job.input = blended_locals_;
-    ltm_job.output = models_;
+    ltm_job.input = make_range(blended_locals_);
+    ltm_job.output = make_range(models_);
 
     // Run ltm job.
     if (!ltm_job.Run()) {
@@ -144,13 +142,11 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
 
   // Samples animation, transforms to model space and renders.
   virtual bool OnDisplay(ozz::sample::Renderer* _renderer) {
-    return _renderer->DrawPosture(skeleton_, models_,
+    return _renderer->DrawPosture(skeleton_, make_range(models_),
                                   ozz::math::Float4x4::identity());
   }
 
   virtual bool OnInitialize() {
-    ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
-
     // Reading skeleton.
     if (!ozz::sample::LoadSkeleton(OPTIONS_skeleton, &skeleton_)) {
       return false;
@@ -169,16 +165,14 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
       }
 
       // Allocates sampler runtime buffers.
-      sampler.locals =
-          allocator->AllocateRange<ozz::math::SoaTransform>(num_soa_joints);
+      sampler.locals.resize(num_soa_joints);
 
       // Allocates per-joint weights used for the partial animation. Note that
       // this is a Soa structure.
-      sampler.joint_weights =
-          allocator->AllocateRange<ozz::math::SimdFloat4>(num_soa_joints);
+      sampler.joint_weights.resize(num_soa_joints);
 
       // Allocates a cache that matches animation requirements.
-      sampler.cache = allocator->New<ozz::animation::SamplingCache>(num_joints);
+      sampler.cache.Resize(num_joints);
     }
 
     // Default weight settings.
@@ -191,11 +185,10 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
     upper_body_sampler.joint_weight_setting = 1.f;
 
     // Allocates local space runtime buffers of blended data.
-    blended_locals_ =
-        allocator->AllocateRange<ozz::math::SoaTransform>(num_soa_joints);
+    blended_locals_.resize(num_soa_joints);
 
     // Allocates model space runtime buffers of blended data.
-    models_ = allocator->AllocateRange<ozz::math::Float4x4>(num_joints);
+    models_.resize(num_joints);
 
     // Finds the "Spine1" joint in the joint hierarchy.
     for (int i = 0; i < num_joints; ++i) {
@@ -208,6 +201,21 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
 
     return true;
   }
+
+  // Helper functor used to set weights while traversing joints hierarchy.
+  struct WeightSetupIterator {
+    WeightSetupIterator(ozz::Vector<ozz::math::SimdFloat4>::Std* _weights,
+                        float _weight_setting)
+        : weights(_weights), weight_setting(_weight_setting) {}
+    void operator()(int _joint, int) {
+      ozz::math::SimdFloat4& soa_weight = weights->at(_joint / 4);
+      soa_weight = ozz::math::SetI(
+          soa_weight, ozz::math::simd_float4::Load1(weight_setting),
+          _joint % 4);
+    }
+    ozz::Vector<ozz::math::SimdFloat4>::Std* weights;
+    float weight_setting;
+  };
 
   void SetupPerJointWeights() {
     // Setup partial animation mask. This mask is defined by a weight_setting
@@ -225,42 +233,18 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
       upper_body_sampler.joint_weights[i] = ozz::math::simd_float4::zero();
     }
 
-    // Extracts the list of children of the shoulder.
-    ozz::animation::JointsIterator it;
-    ozz::animation::IterateJointsDF(skeleton_, upper_body_root_, &it);
+    // Sets the weight_setting of all the joints children of the lower and upper
+    // body weights. Note that they are stored in SoA format.
+    WeightSetupIterator lower_it(&lower_body_sampler.joint_weights,
+                                 lower_body_sampler.joint_weight_setting);
+    ozz::animation::IterateJointsDF(skeleton_, upper_body_root_, lower_it);
 
-    // Sets the weight_setting of all the joints children of the arm to 1. Note
-    // that weights are stored in SoA format.
-    for (int i = 0; i < it.num_joints; ++i) {
-      const int joint_id = it.joints[i];
-      {  // Updates lower body animation sampler joint weights.
-        ozz::math::SimdFloat4& weight_setting =
-            lower_body_sampler.joint_weights[joint_id / 4];
-        weight_setting =
-            ozz::math::SetI(weight_setting, joint_id % 4,
-                            lower_body_sampler.joint_weight_setting);
-      }
-      {  // Updates upper body animation sampler joint weights.
-        ozz::math::SimdFloat4& weight_setting =
-            upper_body_sampler.joint_weights[joint_id / 4];
-        weight_setting =
-            ozz::math::SetI(weight_setting, joint_id % 4,
-                            upper_body_sampler.joint_weight_setting);
-      }
-    }
+    WeightSetupIterator upper_it(&upper_body_sampler.joint_weights,
+                                 upper_body_sampler.joint_weight_setting);
+    ozz::animation::IterateJointsDF(skeleton_, upper_body_root_, upper_it);
   }
 
-  virtual void OnDestroy() {
-    ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
-    for (int i = 0; i < kNumLayers; ++i) {
-      Sampler& sampler = samplers_[i];
-      allocator->Deallocate(sampler.locals);
-      allocator->Deallocate(sampler.joint_weights);
-      allocator->Delete(sampler.cache);
-    }
-    allocator->Deallocate(blended_locals_);
-    allocator->Deallocate(models_.begin);
-  }
+  virtual void OnDestroy() {}
 
   virtual bool OnGui(ozz::sample::ImGui* _im_gui) {
     // Exposes blending parameters.
@@ -354,7 +338,7 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
   }
 
   virtual void GetSceneBounds(ozz::math::Box* _bound) const {
-    ozz::sample::ComputePostureBounds(models_, _bound);
+    ozz::sample::ComputePostureBounds(make_range(models_), _bound);
   }
 
  private:
@@ -372,7 +356,7 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
   // animation.
   struct Sampler {
     // Constructor, default initialization.
-    Sampler() : weight_setting(1.f), joint_weight_setting(1.f), cache(NULL) {}
+    Sampler() : weight_setting(1.f), joint_weight_setting(1.f) {}
 
     // Playback animation controller. This is a utility class that helps with
     // controlling animation playback time.
@@ -390,15 +374,15 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
     ozz::animation::Animation animation;
 
     // Sampling cache.
-    ozz::animation::SamplingCache* cache;
+    ozz::animation::SamplingCache cache;
 
     // Buffer of local transforms as sampled from animation_.
-    ozz::Range<ozz::math::SoaTransform> locals;
+    ozz::Vector<ozz::math::SoaTransform>::Std locals;
 
     // Per-joint weights used to define the partial animation mask. Allows to
     // select which joints are considered during blending, and their individual
     // weight_setting.
-    ozz::Range<ozz::math::SimdFloat4> joint_weights;
+    ozz::Vector<ozz::math::SimdFloat4>::Std joint_weights;
   } samplers_[kNumLayers];  // kNumLayers animations to blend.
 
   // Index of the joint at the base of the upper body hierarchy.
@@ -408,11 +392,11 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
   float threshold_;
 
   // Buffer of local transforms which stores the blending result.
-  ozz::Range<ozz::math::SoaTransform> blended_locals_;
+  ozz::Vector<ozz::math::SoaTransform>::Std blended_locals_;
 
   // Buffer of model space matrices. These are computed by the local-to-model
   // job after the blending stage.
-  ozz::Range<ozz::math::Float4x4> models_;
+  ozz::Vector<ozz::math::Float4x4>::Std models_;
 };
 
 int main(int _argc, const char** _argv) {

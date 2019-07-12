@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -76,8 +76,8 @@ class AnimationOptimizer {
   float scale_tolerance;
 
   // Hierarchical translation optimization tolerance, ie: the maximum error
-  // (distance) that an optimization on a joint is allowed to generate on its
-  // whole child hierarchy.
+  // (distance) that an optimization is allowed to generate on a whole joint
+  // hierarchy.
   float hierarchical_tolerance;
 };
 }  // namespace offline

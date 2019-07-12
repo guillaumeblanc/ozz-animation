@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -31,6 +31,7 @@
 
 #include "ozz/animation/runtime/local_to_model_job.h"
 #include "ozz/animation/runtime/skeleton.h"
+#include "ozz/animation/runtime/skeleton_utils.h"
 
 #include "ozz/geometry/runtime/skinning_job.h"
 
@@ -62,7 +63,7 @@ namespace {
 struct VertexPNC {
   math::Float3 pos;
   math::Float3 normal;
-  Renderer::Color color;
+  Color color;
 };
 }  // namespace
 
@@ -92,8 +93,6 @@ RendererImpl::RendererImpl(Camera* _camera)
 
 RendererImpl::~RendererImpl() {
   memory::Allocator* allocator = memory::default_allocator();
-
-  allocator->Deallocate(prealloc_models_);
 
   if (dynamic_array_bo_) {
     GL(DeleteBuffers(1, &dynamic_array_bo_));
@@ -157,7 +156,7 @@ bool RendererImpl::Initialize() {
   }
 
   // Instantiate instanced ambient rendering shader.
-  if (GL_ARB_instanced_arrays) {
+  if (GL_ARB_instanced_arrays_supported) {
     ambient_shader_instanced = AmbientShaderInstanced::Build();
     if (!ambient_shader_instanced) {
       return false;
@@ -283,26 +282,19 @@ bool RendererImpl::DrawSkeleton(const ozz::animation::Skeleton& _skeleton,
   }
 
   // Reallocate matrix array if necessary.
-  if (prealloc_models_.size() < num_joints * sizeof(ozz::math::Float4x4)) {
-    ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
-    prealloc_models_ =
-        allocator->AllocateRange<ozz::math::Float4x4>(_skeleton.num_joints());
-  }
-  if (!prealloc_models_.begin) {
-    return false;
-  }
+  prealloc_models_.resize(num_joints);
 
   // Compute model space bind pose.
   ozz::animation::LocalToModelJob job;
-  job.input = _skeleton.bind_pose();
-  job.output = prealloc_models_;
+  job.input = _skeleton.joint_bind_poses();
+  job.output = make_range(prealloc_models_);
   job.skeleton = &_skeleton;
   if (!job.Run()) {
     return false;
   }
 
   // Forwards to rendering.
-  return DrawPosture(_skeleton, prealloc_models_, _transform, _draw_joints);
+  return DrawPosture(_skeleton, job.output, _transform, _draw_joints);
 }
 
 bool RendererImpl::InitPostureRendering() {
@@ -427,7 +419,8 @@ bool RendererImpl::InitCheckeredTexture() {
 
   // Allocates for biggest mip level.
   const size_t buffer_size = 3 * kWidth * kWidth;
-  uint8_t* pixels = memory::default_allocator()->Allocate<uint8_t>(buffer_size);
+  uint8_t* pixels = reinterpret_cast<uint8_t*>(
+      memory::default_allocator()->Allocate(buffer_size, 16));
 
   // Create the checkered pattern on all mip levels.
   int level_width = kWidth;
@@ -481,14 +474,13 @@ int DrawPosture_FillUniforms(const ozz::animation::Skeleton& _skeleton,
 
   // Prepares computation constants.
   const int num_joints = _skeleton.num_joints();
-  const ozz::animation::Skeleton::JointProperties* properties =
-      _skeleton.joint_properties().begin;
+  const Range<const int16_t>& parents = _skeleton.joint_parents();
 
   int instances = 0;
   for (int i = 0; i < num_joints && instances < _max_instances; ++i) {
     // Root isn't rendered.
-    const int parent_id = properties[i].parent;
-    if (parent_id == ozz::animation::Skeleton::kNoParentIndex) {
+    const int16_t parent_id = parents[i];
+    if (parent_id == ozz::animation::Skeleton::kNoParent) {
       continue;
     }
 
@@ -520,7 +512,7 @@ int DrawPosture_FillUniforms(const ozz::animation::Skeleton& _skeleton,
     uniform += 16;
 
     // Only the joint is rendered for leaves, the bone model isn't.
-    if (properties[i].is_leaf) {
+    if (IsLeaf(_skeleton, i)) {
       // Copy current joint's raw matrix.
       uniform = _uniforms + instances * 16;
       math::StorePtr(current.cols[0], uniform + 0);
@@ -600,10 +592,10 @@ void RendererImpl::DrawPosture_InstancedImpl(
     GL(EnableVertexAttribArray(joint_attrib + 1));
     GL(EnableVertexAttribArray(joint_attrib + 2));
     GL(EnableVertexAttribArray(joint_attrib + 3));
-    GL(VertexAttribDivisorARB(joint_attrib + 0, 1));
-    GL(VertexAttribDivisorARB(joint_attrib + 1, 1));
-    GL(VertexAttribDivisorARB(joint_attrib + 2, 1));
-    GL(VertexAttribDivisorARB(joint_attrib + 3, 1));
+    GL(VertexAttribDivisor_(joint_attrib + 0, 1));
+    GL(VertexAttribDivisor_(joint_attrib + 1, 1));
+    GL(VertexAttribDivisor_(joint_attrib + 2, 1));
+    GL(VertexAttribDivisor_(joint_attrib + 3, 1));
     GL(VertexAttribPointer(joint_attrib + 0, 4, GL_FLOAT, GL_FALSE,
                            sizeof(math::Float4x4), GL_PTR_OFFSET(0)));
     GL(VertexAttribPointer(joint_attrib + 1, 4, GL_FLOAT, GL_FALSE,
@@ -614,24 +606,24 @@ void RendererImpl::DrawPosture_InstancedImpl(
                            sizeof(math::Float4x4), GL_PTR_OFFSET(48)));
     GL(BindBuffer(GL_ARRAY_BUFFER, 0));
 
-    GL(DrawArraysInstancedARB(model.mode, 0, model.count, _instance_count));
+    GL(DrawArraysInstanced_(model.mode, 0, model.count, _instance_count));
 
     GL(DisableVertexAttribArray(joint_attrib + 0));
     GL(DisableVertexAttribArray(joint_attrib + 1));
     GL(DisableVertexAttribArray(joint_attrib + 2));
     GL(DisableVertexAttribArray(joint_attrib + 3));
-    GL(VertexAttribDivisorARB(joint_attrib + 0, 0));
-    GL(VertexAttribDivisorARB(joint_attrib + 1, 0));
-    GL(VertexAttribDivisorARB(joint_attrib + 2, 0));
-    GL(VertexAttribDivisorARB(joint_attrib + 3, 0));
+    GL(VertexAttribDivisor_(joint_attrib + 0, 0));
+    GL(VertexAttribDivisor_(joint_attrib + 1, 0));
+    GL(VertexAttribDivisor_(joint_attrib + 2, 0));
+    GL(VertexAttribDivisor_(joint_attrib + 3, 0));
 
     model.shader->Unbind();
   }
 }
 
-// Uses GL_ARB_instanced_arrays as a first choice to render the whole skeleton
-// in a single draw call.
-// Does a draw call per joint if no extension can help.
+// Uses GL_ARB_instanced_arrays_supported as a first choice to render the whole
+// skeleton in a single draw call. Does a draw call per joint if no extension
+// can help.
 bool RendererImpl::DrawPosture(const ozz::animation::Skeleton& _skeleton,
                                ozz::Range<const ozz::math::Float4x4> _matrices,
                                const ozz::math::Float4x4& _transform,
@@ -653,7 +645,7 @@ bool RendererImpl::DrawPosture(const ozz::animation::Skeleton& _skeleton,
       _skeleton, _matrices, uniforms, max_skeleton_pieces);
   assert(instance_count <= max_skeleton_pieces);
 
-  if (GL_ARB_instanced_arrays) {
+  if (GL_ARB_instanced_arrays_supported) {
     DrawPosture_InstancedImpl(_transform, uniforms, instance_count,
                               _draw_joints);
   } else {
@@ -818,7 +810,7 @@ bool RendererImpl::DrawBoxShaded(
   const GLsizei normals_offset = positions_offset + sizeof(float) * 3;
   const GLsizei colors_offset = normals_offset + sizeof(float) * 3;
 
-  if (GL_ARB_instanced_arrays) {
+  if (GL_ARB_instanced_arrays_supported) {
     // Buffer object will contain vertices and model matrices.
     const size_t bo_size = sizeof(vertices) + _transforms.size();
     GL(BindBuffer(GL_ARRAY_BUFFER, dynamic_array_bo_));
@@ -836,8 +828,8 @@ bool RendererImpl::DrawBoxShaded(
                                    stride, colors_offset);
     GL(BindBuffer(GL_ARRAY_BUFFER, 0));
 
-    GL(DrawArraysInstancedARB(GL_TRIANGLES, 0, OZZ_ARRAY_SIZE(vertices),
-                              static_cast<GLsizei>(_transforms.count())));
+    GL(DrawArraysInstanced_(GL_TRIANGLES, 0, OZZ_ARRAY_SIZE(vertices),
+                            static_cast<GLsizei>(_transforms.count())));
 
     // Unbinds.
     ambient_shader_instanced->Unbind();
@@ -913,7 +905,7 @@ bool RendererImpl::DrawSphereShaded(
   const GLsizei normals_stride = positions_stride;
   const GLsizei colors_offset = sizeof(icosphere::kVertices);
 
-  if (GL_ARB_instanced_arrays) {
+  if (GL_ARB_instanced_arrays_supported) {
     const GLsizei colors_stride = 0;
     const GLsizei colors_size = sizeof(uint8_t) * 4;
     const GLsizei models_offset = sizeof(icosphere::kVertices) + colors_size;
@@ -940,9 +932,9 @@ bool RendererImpl::DrawSphereShaded(
                                    colors_stride, colors_offset);
 
     OZZ_STATIC_ASSERT(sizeof(icosphere::kIndices[0]) == 2);
-    GL(DrawElementsInstancedARB(
-        GL_TRIANGLES, OZZ_ARRAY_SIZE(icosphere::kIndices), GL_UNSIGNED_SHORT, 0,
-        static_cast<GLsizei>(_transforms.count())));
+    GL(DrawElementsInstanced_(GL_TRIANGLES, OZZ_ARRAY_SIZE(icosphere::kIndices),
+                              GL_UNSIGNED_SHORT, 0,
+                              static_cast<GLsizei>(_transforms.count())));
 
     // Unbinds.
     ambient_shader_instanced->Unbind();
@@ -985,11 +977,20 @@ bool RendererImpl::DrawSphereShaded(
   return true;
 }
 
+bool RendererImpl::DrawSegment(const math::Float3& _begin,
+                               const math::Float3& _end, Color _color,
+                               const ozz::math::Float4x4& _transform) {
+  const math::Float3 dir(_end - _begin);
+  return DrawVectors(ozz::Range<const float>(&_begin.x, 3), 12,
+                     ozz::Range<const float>(&dir.x, 3), 12, 1, 1.f, _color,
+                     _transform);
+}
+
 bool RendererImpl::DrawVectors(ozz::Range<const float> _positions,
                                size_t _positions_stride,
                                ozz::Range<const float> _directions,
                                size_t _directions_stride, int _num_vectors,
-                               float _vector_length, Renderer::Color _color,
+                               float _vector_length, Color _color,
                                const ozz::math::Float4x4& _transform) {
   // Invalid range length.
   if (PointerStride(_positions.begin, _positions_stride * _num_vectors) >
@@ -1027,7 +1028,7 @@ bool RendererImpl::DrawBinormals(
     ozz::Range<const float> _normals, size_t _normals_stride,
     ozz::Range<const float> _tangents, size_t _tangents_stride,
     ozz::Range<const float> _handenesses, size_t _handenesses_stride,
-    int _num_vectors, float _vector_length, Renderer::Color _color,
+    int _num_vectors, float _vector_length, Color _color,
     const ozz::math::Float4x4& _transform) {
   // Invalid range length.
   if (PointerStride(_positions.begin, _positions_stride * _num_vectors) >
@@ -1279,20 +1280,18 @@ bool RendererImpl::DrawMesh(const Mesh& _mesh,
 
   // Renders debug normals.
   if (_options.normals) {
-    const Renderer::Color green = {0, 255, 0, 255};
     for (size_t i = 0; i < _mesh.parts.size(); ++i) {
       const Mesh::Part& part = _mesh.parts[i];
       DrawVectors(make_range(part.positions),
                   ozz::sample::Mesh::Part::kPositionsCpnts * sizeof(float),
                   make_range(part.normals),
                   ozz::sample::Mesh::Part::kNormalsCpnts * sizeof(float),
-                  part.vertex_count(), .03f, green, _transform);
+                  part.vertex_count(), .03f, ozz::sample::kGreen, _transform);
     }
   }
 
   // Renders debug tangents.
   if (_options.tangents) {
-    const Renderer::Color red = {255, 0, 0, 255};
     for (size_t i = 0; i < _mesh.parts.size(); ++i) {
       const Mesh::Part& part = _mesh.parts[i];
       if (part.normals.size() != 0) {
@@ -1300,7 +1299,7 @@ bool RendererImpl::DrawMesh(const Mesh& _mesh,
                     ozz::sample::Mesh::Part::kPositionsCpnts * sizeof(float),
                     make_range(part.tangents),
                     ozz::sample::Mesh::Part::kTangentsCpnts * sizeof(float),
-                    part.vertex_count(), .03f, red, _transform);
+                    part.vertex_count(), .03f, ozz::sample::kRed, _transform);
       }
     }
   }
@@ -1309,7 +1308,6 @@ bool RendererImpl::DrawMesh(const Mesh& _mesh,
   if (_options.binormals) {
     for (size_t i = 0; i < _mesh.parts.size(); ++i) {
       const Mesh::Part& part = _mesh.parts[i];
-      const Renderer::Color blue = {0, 0, 255, 255};
       if (part.normals.size() != 0 && part.tangents.size() != 0) {
         DrawBinormals(
             make_range(part.positions),
@@ -1320,7 +1318,7 @@ bool RendererImpl::DrawMesh(const Mesh& _mesh,
             ozz::sample::Mesh::Part::kTangentsCpnts * sizeof(float),
             ozz::Range<const float>(&part.tangents[3], part.tangents.size()),
             ozz::sample::Mesh::Part::kTangentsCpnts * sizeof(float),
-            part.vertex_count(), .03f, blue, _transform);
+            part.vertex_count(), .03f, ozz::sample::kBlue, _transform);
       }
     }
   }
@@ -1407,9 +1405,10 @@ bool RendererImpl::DrawSkinnedMesh(
 
     // Setup output positions, coming from the rendering output mesh buffers.
     // We need to offset the buffer every loop.
-    skinning_job.out_positions.begin = reinterpret_cast<float*>(
-        ozz::PointerStride(vbo_map, positions_offset + processed_vertex_count *
-                                                           positions_stride));
+    skinning_job.out_positions.begin =
+        reinterpret_cast<float*>(ozz::PointerStride(
+            vbo_map,
+            positions_offset + processed_vertex_count * positions_stride));
     skinning_job.out_positions.end = ozz::PointerStride(
         skinning_job.out_positions.begin, part_vertex_count * positions_stride);
     skinning_job.out_positions_stride = positions_stride;
@@ -1477,24 +1476,23 @@ bool RendererImpl::DrawSkinnedMesh(
 
     // Renders debug normals.
     if (_options.normals && skinning_job.out_normals.count() > 0) {
-      const Renderer::Color green = {0, 255, 0, 255};
       DrawVectors(skinning_job.out_positions, skinning_job.out_positions_stride,
                   skinning_job.out_normals, skinning_job.out_normals_stride,
-                  skinning_job.vertex_count, .03f, green, _transform);
+                  skinning_job.vertex_count, .03f, ozz::sample::kGreen,
+                  _transform);
     }
 
     // Renders debug tangents.
     if (_options.tangents && skinning_job.out_tangents.count() > 0) {
-      const Renderer::Color red = {255, 0, 0, 255};
       DrawVectors(skinning_job.out_positions, skinning_job.out_positions_stride,
                   skinning_job.out_tangents, skinning_job.out_tangents_stride,
-                  skinning_job.vertex_count, .03f, red, _transform);
+                  skinning_job.vertex_count, .03f, ozz::sample::kRed,
+                  _transform);
     }
 
     // Renders debug binormals.
     if (_options.binormals && skinning_job.out_normals.count() > 0 &&
         skinning_job.out_tangents.count() > 0) {
-      const Renderer::Color blue = {0, 0, 255, 255};
       DrawBinormals(skinning_job.out_positions,
                     skinning_job.out_positions_stride, skinning_job.out_normals,
                     skinning_job.out_normals_stride, skinning_job.out_tangents,
@@ -1502,7 +1500,7 @@ bool RendererImpl::DrawSkinnedMesh(
                     ozz::Range<const float>(skinning_job.in_tangents.begin + 3,
                                             skinning_job.in_tangents.end + 3),
                     skinning_job.in_tangents_stride, skinning_job.vertex_count,
-                    .03f, blue, _transform);
+                    .03f, ozz::sample::kBlue, _transform);
     }
 
     // Handles colors which aren't affected by skinning.
@@ -1599,18 +1597,19 @@ bool RendererImpl::DrawSkinnedMesh(
   return true;
 }
 
-// clang-format off
 // Helper macro used to initialize extension function pointer.
-#define OZZ_INIT_GL_EXT(_fct, _fct_type, _success)                        \
-do {                                                                      \
-    _fct = reinterpret_cast<_fct_type>(glfwGetProcAddress(#_fct));        \
-    if (_fct == NULL) {                                                   \
-      log::Err() << "Unable to install " #_fct " function." << std::endl; \
-      _success &= false;                                                  \
-    }                                                                     \
-  \
-} while (void(0), 0)
-// clang-format on
+#define OZZ_INIT_GL_EXT_N(_fct, _fct_name, _fct_type, _success)               \
+  do {                                                                        \
+    _fct = reinterpret_cast<_fct_type>(glfwGetProcAddress(_fct_name));        \
+    if (_fct == NULL) {                                                       \
+      log::Err() << "Unable to install " _fct_name " function." << std::endl; \
+      _success &= false;                                                      \
+    }                                                                         \
+                                                                              \
+  } while (void(0), 0)
+
+#define OZZ_INIT_GL_EXT(_fct, _fct_type, _success) \
+  OZZ_INIT_GL_EXT_N(_fct, #_fct, _fct_type, _success)
 
 bool RendererImpl::InitOpenGLExtensions() {
   bool optional_success = true;
@@ -1698,23 +1697,23 @@ bool RendererImpl::InitOpenGLExtensions() {
                << std::endl;
   }
 
-  GL_ARB_instanced_arrays =
+  GL_ARB_instanced_arrays_supported =
       glfwExtensionSupported("GL_ARB_instanced_arrays") != 0;
-  if (GL_ARB_instanced_arrays) {
+  if (GL_ARB_instanced_arrays_supported) {
     log::Log() << "Optional GL_ARB_instanced_arrays extensions found."
                << std::endl;
     success = true;
-    OZZ_INIT_GL_EXT(glVertexAttribDivisorARB, PFNGLVERTEXATTRIBDIVISORARBPROC,
-                    success);
-    OZZ_INIT_GL_EXT(glDrawArraysInstancedARB, PFNGLDRAWARRAYSINSTANCEDARBPROC,
-                    success);
-    OZZ_INIT_GL_EXT(glDrawElementsInstancedARB,
-                    PFNGLDRAWELEMENTSINSTANCEDARBPROC, success);
+    OZZ_INIT_GL_EXT_N(glVertexAttribDivisor_, "glVertexAttribDivisorARB",
+                      PFNGLVERTEXATTRIBDIVISORARBPROC, success);
+    OZZ_INIT_GL_EXT_N(glDrawArraysInstanced_, "glDrawArraysInstancedARB",
+                      PFNGLDRAWARRAYSINSTANCEDARBPROC, success);
+    OZZ_INIT_GL_EXT_N(glDrawElementsInstanced_, "glDrawElementsInstancedARB",
+                      PFNGLDRAWELEMENTSINSTANCEDARBPROC, success);
     if (!success) {
       log::Err()
           << "Failed to setup GL_ARB_instanced_arrays, feature is disabled."
           << std::endl;
-      GL_ARB_instanced_arrays = false;
+      GL_ARB_instanced_arrays_supported = false;
     }
   } else {
     log::Log() << "Optional GL_ARB_instanced_arrays extensions not found."
@@ -1816,7 +1815,7 @@ OZZ_DECL_GL_EXT(glVertexAttrib4fv, PFNGLVERTEXATTRIB4FVPROC);
 OZZ_DECL_GL_EXT(glVertexAttribPointer, PFNGLVERTEXATTRIBPOINTERPROC);
 #endif  // OZZ_GL_VERSION_2_0_EXT
 
-bool GL_ARB_instanced_arrays = false;
-OZZ_DECL_GL_EXT(glVertexAttribDivisorARB, PFNGLVERTEXATTRIBDIVISORARBPROC);
-OZZ_DECL_GL_EXT(glDrawArraysInstancedARB, PFNGLDRAWARRAYSINSTANCEDARBPROC);
-OZZ_DECL_GL_EXT(glDrawElementsInstancedARB, PFNGLDRAWELEMENTSINSTANCEDARBPROC);
+bool GL_ARB_instanced_arrays_supported = false;
+OZZ_DECL_GL_EXT(glVertexAttribDivisor_, PFNGLVERTEXATTRIBDIVISORARBPROC);
+OZZ_DECL_GL_EXT(glDrawArraysInstanced_, PFNGLDRAWARRAYSINSTANCEDARBPROC);
+OZZ_DECL_GL_EXT(glDrawElementsInstanced_, PFNGLDRAWELEMENTSINSTANCEDARBPROC);

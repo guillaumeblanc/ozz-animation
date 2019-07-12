@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -311,12 +311,10 @@ struct Version<const Array<_Ty> > {
   enum { kValue = Version<const _Ty>::kValue };
 };
 
-// clang-format off
 // Specializes Array Save/Load for primitive types.
 #define _OZZ_IO_PRIMITIVE_TYPE(_type)                                       \
-template<>                                                                  \
-inline void                                                                 \
-      Array<const _type>::Save(OArchive& _archive) const {                  \
+  template <>                                                               \
+  inline void Array<const _type>::Save(OArchive& _archive) const {          \
     if (_archive.endian_swap()) {                                           \
       /* Save element by element as swapping in place the whole buffer is*/ \
       /* not possible.*/                                                    \
@@ -328,11 +326,10 @@ inline void                                                                 \
       _archive.SaveBinary(array, count * sizeof(_type));                    \
       assert(size == count * sizeof(_type));                                \
     }                                                                       \
-}                                                                           \
+  }                                                                         \
                                                                             \
-template<>                                                                  \
-inline void                                                                 \
-      Array<_type>::Save(OArchive& _archive) const {                        \
+  template <>                                                               \
+  inline void Array<_type>::Save(OArchive& _archive) const {                \
     if (_archive.endian_swap()) {                                           \
       /* Save element by element as swapping in place the whole buffer is*/ \
       /* not possible.*/                                                    \
@@ -344,19 +341,18 @@ inline void                                                                 \
       _archive.SaveBinary(array, count * sizeof(_type));                    \
       assert(size == count * sizeof(_type));                                \
     }                                                                       \
-}                                                                           \
+  }                                                                         \
                                                                             \
-template<>                                                                  \
-inline void                                                                 \
-      Array<_type>::Load(IArchive& _archive, uint32_t /*_version*/) const { \
+  template <>                                                               \
+  inline void Array<_type>::Load(IArchive& _archive, uint32_t /*_version*/) \
+      const {                                                               \
     OZZ_IF_DEBUG(size_t size =)                                             \
     _archive.LoadBinary(array, count * sizeof(_type));                      \
     assert(size == count * sizeof(_type));                                  \
     if (_archive.endian_swap()) { /*Can swap in-place.*/                    \
       EndianSwapper<_type>::Swap(array, count);                             \
     }                                                                       \
-}
-// clang-format on
+  }
 
 _OZZ_IO_PRIMITIVE_TYPE(char)
 _OZZ_IO_PRIMITIVE_TYPE(int8_t)

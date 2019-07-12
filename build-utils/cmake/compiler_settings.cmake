@@ -58,7 +58,6 @@ if(MSVC)
   # Set warning as error
   set_property(DIRECTORY APPEND PROPERTY COMPILE_OPTIONS "/WX")
 
-  #---------------
   # Select whether to use the DLL version or the static library version of the Visual C++ runtime library.
   foreach(flag ${cxx_all_flags})
     if (ozz_build_msvc_rt_dll)
@@ -79,18 +78,21 @@ else()
   # Enable extra level of warning
   #set_property(DIRECTORY APPEND PROPERTY COMPILE_OPTIONS "-Wextra")
 
-  # Template arguments cannot have the aligned attributes
-  set_property(DIRECTORY APPEND PROPERTY COMPILE_OPTIONS "-Wno-ignored-attributes")
-
-  # Null pointer dereferencing (required by fbx)
-  if(ozz_build_fbx)
-    set_property(DIRECTORY APPEND PROPERTY COMPILE_OPTIONS "-Wno-null-dereference")
-  endif()
-
   # Set warning as error
   set_property(DIRECTORY APPEND PROPERTY COMPILE_OPTIONS "-Werror")
 
-  #----------------------
+  # GCC ignored-attributes reports issue when using _m128 as template argument
+  if(CMAKE_COMPILER_IS_GNUCXX)
+    check_cxx_compiler_flag("-Wignored-attributes" W_IGNORED_ATTRIBUTES)
+    if(W_IGNORED_ATTRIBUTES)
+      set_property(DIRECTORY APPEND PROPERTY COMPILE_OPTIONS "-Wno-ignored-attributes")
+    endif()
+  endif()
+
+  # Check some options availibity for the targetted compiler
+  check_cxx_compiler_flag("-Wnull-dereference" W_NULL_DEREFERENCE)
+  check_cxx_compiler_flag("-Wpragma-pack" W_PRAGMA_PACK)
+
   # Enables debug glibcxx if NDebug isn't defined, not supported by APPLE
   if(NOT APPLE)
     set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS "$<$<CONFIG:Debug>:_GLIBCXX_DEBUG>")
@@ -145,7 +147,9 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ".")
 
 #-------------------------------
 # Set a postfix for output files
-set(CMAKE_DEBUG_POSTFIX "_d")
-set(CMAKE_RELEASE_POSTFIX "_r")
-set(CMAKE_MINSIZEREL_POSTFIX "_rs")
-set(CMAKE_RELWITHDEBINFO_POSTFIX "_rd")
+if(ozz_build_postfix)
+  set(CMAKE_DEBUG_POSTFIX "_d")
+  set(CMAKE_RELEASE_POSTFIX "_r")
+  set(CMAKE_MINSIZEREL_POSTFIX "_rs")
+  set(CMAKE_RELWITHDEBINFO_POSTFIX "_rd")
+endif()

@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -52,24 +52,21 @@ class SkeletonBuilder;
 // Joint names, bind-poses and hierarchy information are all stored in separate
 // arrays of data (as opposed to joint structures for the RawSkeleton), in order
 // to closely match with the way runtime algorithms use them. Joint hierarchy is
-// packed as an array of 16 bits element (JointProperties) per joint, stored in
-// breadth-first order. JointProperties::parent member is enough to traverse the
-// whole joint hierarchy in breadth-first order. JointProperties::is_leaf is a
-// helper that is used to speed-up some algorithms: See IterateJointsDF() from
-// skeleton_utils.h that implements a depth-first traversal utility.
+// packed as an array of parent jont indices (16 bits), stored in depth-first
+// order. This is enough to traverse the whole joint hierarchy. See
+// IterateJointsDF() from skeleton_utils.h that implements a depth-first
+// traversal utility.
 class Skeleton {
  public:
   // Defines Skeleton constant values.
   enum Constants {
-    // Limits the number of joints in order to control the number of bits
-    // required to store a joint index. Limiting the number of joints also helps
-    // handling worst size cases, like when it is required to allocate an array
-    // of joints on the stack.
-    kMaxJointsNumBits = 10,
 
     // Defines the maximum number of joints.
-    // Reserves one index (the last) for kNoParentIndex value.
-    kMaxJoints = (1 << kMaxJointsNumBits) - 1,
+    // This is limited in order to control the number of bits required to store
+    // a joint index. Limiting the number of joints also helps handling worst
+    // size cases, like when it is required to allocate an array of joints on
+    // the stack.
+    kMaxJoints = 1024,
 
     // Defines the maximum number of SoA elements required to store the maximum
     // number of joints.
@@ -77,7 +74,7 @@ class Skeleton {
 
     // Defines the index of the parent of the root joint (which has no parent in
     // fact).
-    kNoParentIndex = kMaxJoints,
+    kNoParent = -1,
   };
 
   // Builds a default skeleton.
@@ -87,28 +84,19 @@ class Skeleton {
   ~Skeleton();
 
   // Returns the number of joints of *this skeleton.
-  int num_joints() const { return static_cast<int>(joint_properties_.count()); }
+  int num_joints() const { return static_cast<int>(joint_parents_.count()); }
 
   // Returns the number of soa elements matching the number of joints of *this
   // skeleton. This value is useful to allocate SoA runtime data structures.
   int num_soa_joints() const { return (num_joints() + 3) / 4; }
 
-  // Per joint properties.
-  struct JointProperties {
-    // Parent's index, kNoParentIndex for the root.
-    uint16_t parent : Skeleton::kMaxJointsNumBits;
-
-    // Set to 1 for a leaf, 0 for a branch.
-    uint16_t is_leaf : 1;
-  };
-
-  // Returns joint's parent indices range.
-  Range<const JointProperties> joint_properties() const {
-    return joint_properties_;
+  // Returns joint's bind poses. Bind poses are stored in soa format.
+  Range<const math::SoaTransform> joint_bind_poses() const {
+    return joint_bind_poses_;
   }
 
-  // Returns joint's bind poses. Bind poses are stored in soa format.
-  Range<const math::SoaTransform> bind_pose() const { return bind_pose_; }
+  // Returns joint's parent indices range.
+  Range<const int16_t> joint_parents() const { return joint_parents_; }
 
   // Returns joint's name collection.
   Range<const char* const> joint_names() const {
@@ -133,14 +121,14 @@ class Skeleton {
   // SkeletonBuilder class is allowed to instantiate an Skeleton.
   friend class offline::SkeletonBuilder;
 
-  // Buffers below store joint informations in DAG order. Their size is equal to
-  // the number of joints of the skeleton.
-
-  // Array of joint properties.
-  Range<JointProperties> joint_properties_;
+  // Buffers below store joint informations in joing depth first order. Their
+  // size is equal to the number of joints of the skeleton.
 
   // Bind pose of every joint in local space.
-  Range<math::SoaTransform> bind_pose_;
+  Range<math::SoaTransform> joint_bind_poses_;
+
+  // Array of joint parent indexes.
+  Range<int16_t> joint_parents_;
 
   // Stores the name of every joint in an array of c-strings.
   Range<char*> joint_names_;
@@ -148,7 +136,7 @@ class Skeleton {
 }  // namespace animation
 
 namespace io {
-OZZ_IO_TYPE_VERSION(1, animation::Skeleton)
+OZZ_IO_TYPE_VERSION(2, animation::Skeleton)
 OZZ_IO_TYPE_TAG("ozz-skeleton", animation::Skeleton)
 }  // namespace io
 }  // namespace ozz

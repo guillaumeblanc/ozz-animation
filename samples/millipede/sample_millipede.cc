@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -45,20 +45,18 @@
 #include "ozz/base/maths/soa_transform.h"
 #include "ozz/base/maths/vec_float.h"
 
-#include "ozz/base/memory/allocator.h"
-
 #include "framework/application.h"
 #include "framework/imgui.h"
 #include "framework/renderer.h"
 #include "framework/utils.h"
 
+using ozz::animation::offline::RawAnimation;
+using ozz::animation::offline::RawSkeleton;
 using ozz::math::Float3;
 using ozz::math::Float4;
+using ozz::math::Float4x4;
 using ozz::math::Quaternion;
 using ozz::math::SoaTransform;
-using ozz::math::Float4x4;
-using ozz::animation::offline::RawSkeleton;
-using ozz::animation::offline::RawAnimation;
 
 // A millipede slice is 2 legs and a spine.
 // Each slice is made of 7 joints, organized as follows.
@@ -80,15 +78,15 @@ const Float3 kTransDown = Float3(0.f, 0.f, 1.f);
 const Float3 kTransFoot = Float3(1.f, 0.f, 0.f);
 
 const Quaternion kRotLeftUp =
-    Quaternion::FromAxisAngle(Float4(0.f, 1.f, 0.f, -ozz::math::kPi_2));
+    Quaternion::FromAxisAngle(Float3::y_axis(), -ozz::math::kPi_2);
 const Quaternion kRotLeftDown =
-    Quaternion::FromAxisAngle(Float4(1.f, 0.f, 0.f, ozz::math::kPi_2)) *
-    Quaternion::FromAxisAngle(Float4(0.f, 1.f, 0.f, -ozz::math::kPi_2));
+    Quaternion::FromAxisAngle(Float3::x_axis(), ozz::math::kPi_2) *
+    Quaternion::FromAxisAngle(Float3::y_axis(), -ozz::math::kPi_2);
 const Quaternion kRotRightUp =
-    Quaternion::FromAxisAngle(Float4(0.f, 1.f, 0.f, ozz::math::kPi_2));
+    Quaternion::FromAxisAngle(Float3::y_axis(), ozz::math::kPi_2);
 const Quaternion kRotRightDown =
-    Quaternion::FromAxisAngle(Float4(1.f, 0.f, 0.f, ozz::math::kPi_2)) *
-    Quaternion::FromAxisAngle(Float4(0.f, 1.f, 0.f, -ozz::math::kPi_2));
+    Quaternion::FromAxisAngle(Float3::x_axis(), ozz::math::kPi_2) *
+    Quaternion::FromAxisAngle(Float3::y_axis(), -ozz::math::kPi_2);
 
 // Animation constants.
 const float kDuration = 6.f;
@@ -119,19 +117,19 @@ const int kPrecomputedKeyCount = OZZ_ARRAY_SIZE(kPrecomputedKeys);
 class MillipedeSampleApplication : public ozz::sample::Application {
  public:
   MillipedeSampleApplication()
-      : slice_count_(26), skeleton_(NULL), animation_(NULL), cache_(NULL) {}
+      : slice_count_(26), skeleton_(NULL), animation_(NULL) {}
 
  protected:
-  virtual bool OnUpdate(float _dt) {
+  virtual bool OnUpdate(float _dt, float) {
     // Updates current animation time
     controller_.Update(*animation_, _dt);
 
     // Samples animation at t = animation_time_.
     ozz::animation::SamplingJob sampling_job;
     sampling_job.animation = animation_;
-    sampling_job.cache = cache_;
+    sampling_job.cache = &cache_;
     sampling_job.ratio = controller_.time_ratio();
-    sampling_job.output = locals_;
+    sampling_job.output = make_range(locals_);
     if (!sampling_job.Run()) {
       return false;
     }
@@ -139,14 +137,14 @@ class MillipedeSampleApplication : public ozz::sample::Application {
     // Converts from local space to model space matrices.
     ozz::animation::LocalToModelJob ltm_job;
     ltm_job.skeleton = skeleton_;
-    ltm_job.input = locals_;
-    ltm_job.output = models_;
+    ltm_job.input = make_range(locals_);
+    ltm_job.output = make_range(models_);
     return ltm_job.Run();
   }
 
   virtual bool OnDisplay(ozz::sample::Renderer* _renderer) {
     // Renders the animated posture.
-    return _renderer->DrawPosture(*skeleton_, models_,
+    return _renderer->DrawPosture(*skeleton_, make_range(models_),
                                   ozz::math::Float4x4::identity());
   }
 
@@ -208,13 +206,12 @@ class MillipedeSampleApplication : public ozz::sample::Application {
     }
 
     // Allocates runtime buffers.
-    ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
     const int num_soa_joints = skeleton_->num_soa_joints();
-    locals_ = allocator->AllocateRange<ozz::math::SoaTransform>(num_soa_joints);
-    models_ = allocator->AllocateRange<ozz::math::Float4x4>(num_joints);
+    locals_.resize(num_soa_joints);
+    models_.resize(num_joints);
 
     // Allocates a cache that matches new animation requirements.
-    cache_ = allocator->New<ozz::animation::SamplingCache>(num_joints);
+    cache_.Resize(num_joints);
 
     return true;
   }
@@ -223,9 +220,6 @@ class MillipedeSampleApplication : public ozz::sample::Application {
     ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
     allocator->Delete(skeleton_);
     allocator->Delete(animation_);
-    allocator->Deallocate(locals_);
-    allocator->Deallocate(models_);
-    allocator->Delete(cache_);
   }
 
   void CreateSkeleton(ozz::animation::offline::RawSkeleton* _skeleton) {
@@ -384,17 +378,15 @@ class MillipedeSampleApplication : public ozz::sample::Application {
         track.translations.push_back(skey);
 
         const RawAnimation::RotationKey rkey = {
-            0.f,
-            ozz::math::Quaternion::FromAxisAngle(Float4(0.f, 1.f, 0.f, 0.f))};
+            0.f, ozz::math::Quaternion::identity()};
         track.rotations.push_back(rkey);
       } else if (strstr(joint_name, "root")) {
         const RawAnimation::TranslationKey tkey0 = {
             0.f, Float3(0.f, 1.f, -slice_count_ * kSpinLength)};
         track.translations.push_back(tkey0);
         const RawAnimation::TranslationKey tkey1 = {
-            kDuration,
-            Float3(0.f, 1.f,
-                   kWalkCycleCount * kWalkCycleLength + tkey0.value.z)};
+            kDuration, Float3(0.f, 1.f, kWalkCycleCount * kWalkCycleLength +
+                                            tkey0.value.z)};
         track.translations.push_back(tkey1);
       }
 
@@ -421,7 +413,7 @@ class MillipedeSampleApplication : public ozz::sample::Application {
   }
 
   virtual void GetSceneBounds(ozz::math::Box* _bound) const {
-    ozz::sample::ComputePostureBounds(models_, _bound);
+    ozz::sample::ComputePostureBounds(make_range(models_), _bound);
   }
 
  private:
@@ -439,14 +431,14 @@ class MillipedeSampleApplication : public ozz::sample::Application {
   ozz::animation::Animation* animation_;
 
   // Sampling cache, as used by SamplingJob.
-  ozz::animation::SamplingCache* cache_;
+  ozz::animation::SamplingCache cache_;
 
   // Buffer of local transforms as sampled from animation_.
   // These are shared between sampling output and local-to-model input.
-  ozz::Range<ozz::math::SoaTransform> locals_;
+  ozz::Vector<ozz::math::SoaTransform>::Std locals_;
 
   // Buffer of model matrices (local-to-model output).
-  ozz::Range<ozz::math::Float4x4> models_;
+  ozz::Vector<ozz::math::Float4x4>::Std models_;
 };
 
 int main(int _argc, const char** _argv) {

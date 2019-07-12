@@ -87,6 +87,10 @@ add_test(NAME fbx2ozz_anim_properties_output COMMAND ${CMAKE_COMMAND} -E copy
   "${ozz_temp_directory}/fbx_properties_track1_constant-ozz_number.ozz"
   "${ozz_temp_directory}/fbx_properties_track3_animated-ozz_curve_vector.ozz"
   "${ozz_temp_directory}/fbx_properties_track3_constant-ozz_vector.ozz"
+  "${ozz_temp_directory}/fbx_properties_track3p_animated-ozz_curve_vector.ozz"
+  "${ozz_temp_directory}/fbx_properties_track3p_constant-ozz_vector.ozz"
+  "${ozz_temp_directory}/fbx_properties_track3v_animated-ozz_curve_vector.ozz"
+  "${ozz_temp_directory}/fbx_properties_track3v_constant-ozz_vector.ozz"
   "${ozz_temp_directory}/fbx_properties_track4_animated-ozz_curve_color.ozz"
   "${ozz_temp_directory}/fbx_properties_track4_constant-ozz_color.ozz"
   "${ozz_temp_directory}/fbx_properties_tracks_cp/"
@@ -153,6 +157,10 @@ add_executable(test_fuse_ozz_animation_fbx
 add_dependencies(test_fuse_ozz_animation_fbx BUILD_FUSE_ozz_animation_fbx)
 target_include_directories(test_fuse_ozz_animation_fbx
   PUBLIC ${FBX_INCLUDE_DIRS})
+target_compile_options(test_fuse_ozz_animation_fbx
+  PUBLIC $<$<BOOL:${W_NULL_DEREFERENCE}>:-Wno-null-dereference>
+  PUBLIC $<$<BOOL:${W_PRAGMA_PACK}>:-Wno-pragma-pack>)
+target_compile_features(test_fuse_ozz_animation_fbx PRIVATE cxx_std_11)
 target_link_libraries(test_fuse_ozz_animation_fbx
   debug ${FBX_LIBRARIES_DEBUG}
   optimized ${FBX_LIBRARIES}

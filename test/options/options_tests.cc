@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -621,26 +621,22 @@ TEST(MultipleCall, Options) {
   }
 }
 
-// clang-format off
-
 // Internal test EXPECT_ macro. Ensures parse failed, display usage and exit.
 #define EXPECT_FLAG_INVALID(_parser, _arg)                               \
-do {                                                                     \
+  do {                                                                   \
     const char* argv[] = {"c:/a path/test.exe", _arg};                   \
     const int argc = OZZ_ARRAY_SIZE(argv);                               \
     EXPECT_EQ_LOG(_parser.Parse(argc, argv), ozz::options::kExitFailure, \
                   std::cout, "Usage");                                   \
-} while (void(0), 0)
+  } while (void(0), 0)
 
 // Internal test EXPECT_ macro. Ensures parse succeed.
 #define EXPECT_FLAG_VALID(_parser, _arg)                          \
-do {                                                              \
+  do {                                                            \
     const char* argv[] = {"c:/a path/test.exe", _arg};            \
     const int argc = OZZ_ARRAY_SIZE(argv);                        \
     EXPECT_EQ(_parser.Parse(argc, argv), ozz::options::kSuccess); \
-} while (void(0), 0)
-
-// clang-format on
+  } while (void(0), 0)
 
 TEST(ParseBool, Options) {
   {  // Invalid options

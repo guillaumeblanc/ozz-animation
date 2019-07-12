@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -111,8 +111,9 @@ bool WriteTGA(const char* _filename, int _width, int _height,
   const uint8_t* mapping = mappings[_src_format];
 
   // Allocates enough space to store RLE packets for the worst case scenario.
-  uint8_t* dest_buffer = ozz::memory::default_allocator()->Allocate<uint8_t>(
-      (1 + (_write_alpha ? 4 : 3)) * _width * _height);
+  uint8_t* dest_buffer =
+      reinterpret_cast<uint8_t*>(ozz::memory::default_allocator()->Allocate(
+          (1 + (_write_alpha ? 4 : 3)) * _width * _height, 4));
 
   size_t dest_size = 0;
   if (HasAlpha(_src_format)) {

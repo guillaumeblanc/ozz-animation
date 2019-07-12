@@ -86,11 +86,12 @@ target_link_libraries(test_raw_animation_archive_versioning
   gtest)
 set_target_properties(test_raw_animation_archive_versioning PROPERTIES FOLDER "ozz/tests/animation_offline")
 
-add_test(NAME test_raw_animation_archive_versioning_le COMMAND test_raw_animation_archive_versioning "--file=${ozz_media_directory}/bin/versioning/raw_animation_v2_le.ozz" "--tracks=67" "--duration=.66666667" "--name=run")
-add_test(NAME test_raw_animation_archive_versioning_be COMMAND test_raw_animation_archive_versioning "--file=${ozz_media_directory}/bin/versioning/raw_animation_v2_be.ozz" "--tracks=67" "--duration=.66666667" "--name=run")
+add_test(NAME test_raw_animation_archive_versioning_le COMMAND test_raw_animation_archive_versioning "--file=${ozz_media_directory}/bin/versioning/raw_animation_v3_le.ozz" "--tracks=67" "--duration=.66666667" "--name=run")
+add_test(NAME test_raw_animation_archive_versioning_be COMMAND test_raw_animation_archive_versioning "--file=${ozz_media_directory}/bin/versioning/raw_animation_v3_be.ozz" "--tracks=67" "--duration=.66666667" "--name=run")
 
-# Previous versions.
-add_test(NAME test_raw_animation_archive_versioning_le_older1 COMMAND test_raw_animation_archive_versioning "--file=${ozz_media_directory}/bin/versioning/raw_animation_v1_le.ozz" "--tracks=67" "--duration=1.3333333" "--name=")
+# Previous incompatbile versions.
+add_test(NAME test_raw_animation_archive_versioning_le_older2 COMMAND test_raw_animation_archive_versioning "--file=${ozz_media_directory}/bin/versioning/raw_animation_v2_le.ozz" "--tracks=0" "--duration=1" "--name=")
+add_test(NAME test_raw_animation_archive_versioning_le_older1 COMMAND test_raw_animation_archive_versioning "--file=${ozz_media_directory}/bin/versioning/raw_animation_v1_le.ozz" "--tracks=0" "--duration=1" "--name=")
 
 # RawTrack
 add_executable(test_raw_track_archive

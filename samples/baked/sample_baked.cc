@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -32,8 +32,6 @@
 
 #include "ozz/base/log.h"
 
-#include "ozz/base/memory/allocator.h"
-
 #include "ozz/base/maths/box.h"
 #include "ozz/base/maths/simd_math.h"
 #include "ozz/base/maths/soa_transform.h"
@@ -58,20 +56,20 @@ OZZ_OPTIONS_DECLARE_STRING(animation,
 
 class BakedSampleApplication : public ozz::sample::Application {
  public:
-  BakedSampleApplication() : cache_(NULL), camera_index_(-1) {}
+  BakedSampleApplication() : camera_index_(-1) {}
 
  protected:
   // Updates current animation time and skeleton pose.
-  virtual bool OnUpdate(float _dt) {
+  virtual bool OnUpdate(float _dt, float) {
     // Updates current animation time.
     controller_.Update(animation_, _dt);
 
     // Samples optimized animation at t = animation_time_.
     ozz::animation::SamplingJob sampling_job;
     sampling_job.animation = &animation_;
-    sampling_job.cache = cache_;
+    sampling_job.cache = &cache_;
     sampling_job.ratio = controller_.time_ratio();
-    sampling_job.output = locals_;
+    sampling_job.output = make_range(locals_);
     if (!sampling_job.Run()) {
       return false;
     }
@@ -79,8 +77,8 @@ class BakedSampleApplication : public ozz::sample::Application {
     // Converts from local space to model space matrices.
     ozz::animation::LocalToModelJob ltm_job;
     ltm_job.skeleton = &skeleton_;
-    ltm_job.input = locals_;
-    ltm_job.output = models_;
+    ltm_job.input = make_range(locals_);
+    ltm_job.output = make_range(models_);
     if (!ltm_job.Run()) {
       return false;
     }
@@ -89,8 +87,6 @@ class BakedSampleApplication : public ozz::sample::Application {
   }
 
   virtual bool OnInitialize() {
-    ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
-
     // Reading skeleton.
     if (!ozz::sample::LoadSkeleton(OPTIONS_skeleton, &skeleton_)) {
       return false;
@@ -104,11 +100,11 @@ class BakedSampleApplication : public ozz::sample::Application {
     // Allocates runtime buffers.
     const int num_joints = skeleton_.num_joints();
     const int num_soa_joints = skeleton_.num_soa_joints();
-    locals_ = allocator->AllocateRange<ozz::math::SoaTransform>(num_soa_joints);
-    models_ = allocator->AllocateRange<ozz::math::Float4x4>(num_joints);
+    locals_.resize(num_soa_joints);
+    models_.resize(num_joints);
 
     // Allocates a cache that matches animation requirements.
-    cache_ = allocator->New<ozz::animation::SamplingCache>(num_joints);
+    cache_.Resize(num_joints);
 
     // Look for a "camera" joint.
     for (int i = 0; i < num_joints; i++) {
@@ -121,21 +117,16 @@ class BakedSampleApplication : public ozz::sample::Application {
     return true;
   }
 
-  virtual void OnDestroy() {
-    ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
-    allocator->Deallocate(locals_);
-    allocator->Deallocate(models_);
-    allocator->Delete(cache_);
-  }
+  virtual void OnDestroy() {}
 
   // Samples animation, transforms to model space and renders.
   virtual bool OnDisplay(ozz::sample::Renderer* _renderer) {
     // Render a 1m size boxes for every joint. The scale of each box come from
     // the animation.
-    const ozz::sample::Renderer::Color color = {0xff, 0xff, 0xff, 0xff};
     const float size = .5f;
     const ozz::math::Box box(ozz::math::Float3(-size), ozz::math::Float3(size));
-    return _renderer->DrawBoxShaded(box, models_, color);
+    return _renderer->DrawBoxShaded(box, make_range(models_),
+                                    ozz::sample::kWhite);
   }
 
   virtual bool OnGui(ozz::sample::ImGui* _im_gui) {
@@ -162,7 +153,7 @@ class BakedSampleApplication : public ozz::sample::Application {
   }
 
   virtual void GetSceneBounds(ozz::math::Box* _bound) const {
-    ozz::sample::ComputePostureBounds(models_, _bound);
+    ozz::sample::ComputePostureBounds(make_range(models_), _bound);
   }
 
  private:
@@ -177,13 +168,13 @@ class BakedSampleApplication : public ozz::sample::Application {
   ozz::animation::Animation animation_;
 
   // Sampling cache.
-  ozz::animation::SamplingCache* cache_;
+  ozz::animation::SamplingCache cache_;
 
   // Buffer of local transforms as sampled from animation_.
-  ozz::Range<ozz::math::SoaTransform> locals_;
+  ozz::Vector<ozz::math::SoaTransform>::Std locals_;
 
   // Buffer of model space matrices.
-  ozz::Range<ozz::math::Float4x4> models_;
+  ozz::Vector<ozz::math::Float4x4>::Std models_;
 
   // Camera joint index. -1 if not found.
   int camera_index_;

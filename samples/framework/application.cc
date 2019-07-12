@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -39,6 +39,7 @@
 
 #if EMSCRIPTEN
 #include <emscripten.h>
+#include <emscripten/html5.h>
 #endif  // EMSCRIPTEN
 
 #include "framework/image.h"
@@ -94,6 +95,7 @@ Application::Application()
       fix_update_rate(false),
       fixed_update_rate(60.f),
       time_factor_(1.f),
+      time_(0.f),
       last_idle_time_(0.),
       camera_(NULL),
       shooter_(NULL),
@@ -193,8 +195,16 @@ int Application::Run(int _argc, const char** _argv, const char* _version,
       log::Out() << "Successfully opened OpenGL window version \""
                  << glGetString(GL_VERSION) << "\"." << std::endl;
 
-      // Allocates and initializes internal objects.
+      // Allocates and initializes camera
       camera_ = memory::default_allocator()->New<internal::Camera>();
+      math::Float3 camera_center;
+      math::Float2 camera_angles;
+      float distance;
+      if (GetCameraInitialSetup(&camera_center, &camera_angles, &distance)) {
+        camera_->Reset(camera_center, camera_angles, distance);
+      }
+
+      // Allocates and initializes renderer.
       renderer_ =
           memory::default_allocator()->New<internal::RendererImpl>(camera_);
       success = renderer_->Initialize();
@@ -274,10 +284,12 @@ Application::LoopStatus Application::OneLoop(int _loops) {
 
     return kContinue;  // ...but don't do anything.
   }
-#else   // EMSCRIPTEN
-  // Detect canvas resizing which isn't automatically detected.
-  int width, height, fullscreen;
-  emscripten_get_canvas_size(&width, &height, &fullscreen);
+#else
+  int width, height;
+  if (emscripten_get_canvas_element_size(NULL, &width, &height) !=
+      EMSCRIPTEN_RESULT_SUCCESS) {
+    return kBreakFailure;
+  }
   if (width != resolution_.width || height != resolution_.height) {
     ResizeCbk(width, height);
   }
@@ -416,16 +428,19 @@ bool Application::Idle(bool _first_frame) {
     }
   }
 
-  // Updates screen shooter object.
-  if (shooter_) {
-    shooter_->Update();
-  }
+  // Increment current application time
+  time_ += update_delta;
 
   // Forwards update event to the inheriting application.
   bool update_result;
   {  // Profiles update scope.
     Profiler profile(update_time_);
-    update_result = OnUpdate(update_delta);
+    update_result = OnUpdate(update_delta, time_);
+  }
+
+  // Updates screen shooter object.
+  if (shooter_) {
+    shooter_->Update();
   }
 
   // Update camera model-view matrix.
@@ -469,7 +484,8 @@ bool Application::Gui() {
     math::RectFloat rect(kGuiMargin, kGuiMargin,
                          window_rect.width - kGuiMargin * 2.f,
                          window_rect.height - kGuiMargin * 2.f);
-    ImGui::Form form(im_gui_, "Show help", rect, &show_help_, false);
+    // Doesn't constrain form is it's opened, so it covers all screen.
+    ImGui::Form form(im_gui_, "Show help", rect, &show_help_, !show_help_);
     if (show_help_) {
       im_gui_->DoLabel(help_.c_str(), ImGui::kLeft, false);
     }
@@ -643,6 +659,15 @@ bool Application::FrameworkGui() {
   return true;
 }
 
+bool Application::GetCameraInitialSetup(math::Float3* _center,
+                                        math::Float2* _angles,
+                                        float* _distance) const {
+  (void)_center;
+  (void)_angles;
+  (void)_distance;
+  return false;
+}
+
 // Default implementation doesn't override camera location.
 bool Application::GetCameraOverride(math::Float4x4* _transform) const {
   (void)_transform;
@@ -681,7 +706,7 @@ void Application::ParseReadme() {
   // Allocate enough space to store the whole file.
   const size_t read_length = file.Size();
   ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
-  char* content = allocator->Allocate<char>(read_length);
+  char* content = reinterpret_cast<char*>(allocator->Allocate(read_length, 4));
 
   // Read the content
   if (file.Read(content, read_length) == read_length) {

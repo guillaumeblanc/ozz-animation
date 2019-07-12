@@ -37,6 +37,7 @@ add_library(ozz_base STATIC
   ${PROJECT_SOURCE_DIR}/include/ozz/base/maths/rect.h
   ${PROJECT_SOURCE_DIR}/include/ozz/base/maths/simd_math.h
   maths/simd_math.cc
+  ${PROJECT_SOURCE_DIR}/include/ozz/base/maths/simd_quaternion.h
   ${PROJECT_SOURCE_DIR}/include/ozz/base/maths/soa_float.h
   ${PROJECT_SOURCE_DIR}/include/ozz/base/maths/soa_quaternion.h
   ${PROJECT_SOURCE_DIR}/include/ozz/base/maths/soa_transform.h

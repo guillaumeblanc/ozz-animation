@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -54,10 +54,10 @@ struct Aligned {
 }  // namespace
 
 TEST(Alignment, Platform) {
-  OZZ_STATIC_ASSERT(OZZ_ALIGN_OF(char) >= 1);
-  OZZ_STATIC_ASSERT(OZZ_ALIGN_OF(double) >= 8);
-  OZZ_STATIC_ASSERT(OZZ_ALIGN_OF(Misc) >= 8);
-  OZZ_STATIC_ASSERT(OZZ_ALIGN_OF(Aligned) >= 128);
+  OZZ_STATIC_ASSERT(OZZ_ALIGN_OF(char) == 1);
+  OZZ_STATIC_ASSERT(OZZ_ALIGN_OF(double) == 8);
+  OZZ_STATIC_ASSERT(OZZ_ALIGN_OF(Misc) == 8);
+  OZZ_STATIC_ASSERT(OZZ_ALIGN_OF(Aligned) == 128);
 
   Aligned alined;
   EXPECT_EQ(reinterpret_cast<uintptr_t>(&alined) & (128 - 1), 0u);

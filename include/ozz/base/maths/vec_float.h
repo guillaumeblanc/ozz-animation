@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -51,10 +51,10 @@ struct Float2 {
   OZZ_INLINE Float2(float _x, float _y) : x(_x), y(_y) {}
 
   // Returns a vector with all components set to 0.
-  static OZZ_INLINE Float2 zero() { return Float2(0.f, 0.f); }
+  static OZZ_INLINE Float2 zero() { return Float2(0.f); }
 
   // Returns a vector with all components set to 1.
-  static OZZ_INLINE Float2 one() { return Float2(1.f, 1.f); }
+  static OZZ_INLINE Float2 one() { return Float2(1.f); }
 
   // Returns a unitary vector x.
   static OZZ_INLINE Float2 x_axis() { return Float2(1.f, 0.f); }
@@ -80,10 +80,10 @@ struct Float3 {
   OZZ_INLINE Float3(Float2 _v, float _z) : x(_v.x), y(_v.y), z(_z) {}
 
   // Returns a vector with all components set to 0.
-  static OZZ_INLINE Float3 zero() { return Float3(0.f, 0.f, 0.f); }
+  static OZZ_INLINE Float3 zero() { return Float3(0.f); }
 
   // Returns a vector with all components set to 1.
-  static OZZ_INLINE Float3 one() { return Float3(1.f, 1.f, 1.f); }
+  static OZZ_INLINE Float3 one() { return Float3(1.f); }
 
   // Returns a unitary vector x.
   static OZZ_INLINE Float3 x_axis() { return Float3(1.f, 0.f, 0.f); }
@@ -117,10 +117,10 @@ struct Float4 {
       : x(_v.x), y(_v.y), z(_z), w(_w) {}
 
   // Returns a vector with all components set to 0.
-  static OZZ_INLINE Float4 zero() { return Float4(0.f, 0.f, 0.f, 0.f); }
+  static OZZ_INLINE Float4 zero() { return Float4(0.f); }
 
   // Returns a vector with all components set to 1.
-  static OZZ_INLINE Float4 one() { return Float4(1.f, 1.f, 1.f, 1.f); }
+  static OZZ_INLINE Float4 one() { return Float4(1.f); }
 
   // Returns a unitary vector x.
   static OZZ_INLINE Float4 x_axis() { return Float4(1.f, 0.f, 0.f, 0.f); }

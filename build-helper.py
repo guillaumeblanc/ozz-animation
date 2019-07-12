@@ -4,7 +4,7 @@
 # ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  #
 # and distributed under the MIT License (MIT).                               #
 #                                                                            #
-# Copyright (c) 2017 Guillaume Blanc                                         #
+# Copyright (c) 2019 Guillaume Blanc                                         #
 #                                                                            #
 # Permission is hereby granted, free of charge, to any person obtaining a    #
 # copy of this software and associated documentation files (the "Software"), #
@@ -29,7 +29,6 @@
 # CMake python helper script.
 
 import subprocess
-import multiprocessing
 import shutil
 import sys
 import os
@@ -152,7 +151,7 @@ def Build(_build_dir = build_dir):
   options = ['cmake', '--build', _build_dir, '--config', config, '--use-stderr'];
   # Appends parallel build option if supported by the generator.
   if "Unix Makefiles" in generator:
-    options += ['--', '-j' + str(multiprocessing.cpu_count())]
+    options += ['--', '-j4']
   config_process = subprocess.Popen(options, cwd=_build_dir)
   config_process.wait()
   if(config_process.returncode != 0):
@@ -164,7 +163,7 @@ def Build(_build_dir = build_dir):
 def Test():
   # Configure Test process, parallelize a lot of tests in order to stress their dependencies
   print("Running unit tests.")
-  options = ['ctest' ,'--output-on-failure', '-j' + str(multiprocessing.cpu_count() * 4), '--build-config', config]
+  options = ['ctest' ,'--output-on-failure', '-j8', '--build-config', config]
   config_process = subprocess.Popen(options, cwd=build_dir)
   config_process.wait()
   if(config_process.returncode != 0):
@@ -225,7 +224,7 @@ def FindGenerators():
   process = subprocess.Popen(['cmake', '--help'], stdout=subprocess.PIPE)
   stdout = process.communicate()[0]
   sub_stdout = stdout[stdout.rfind('Generators'):]
-  matches = re.findall(r"\s*(.+)\s*=.+", sub_stdout, re.MULTILINE)
+  matches = re.findall(r"\s*\**\s*(.+)\s*=.+", sub_stdout, re.MULTILINE)
   # Fills generators list
   global generators  
   for match in matches:

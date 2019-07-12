@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -31,7 +31,7 @@
 
 #include "ozz/base/gtest_helper.h"
 
-TEST(Int, Rect) {
+TEST(RectInt, ozz_math) {
   ozz::math::RectInt rect(10, 20, 30, 40);
 
   EXPECT_EQ(rect.right(), 40);
@@ -46,7 +46,7 @@ TEST(Int, Rect) {
   EXPECT_FALSE(rect.is_inside(39, 60));
 }
 
-TEST(Float, Rect) {
+TEST(RectFloat, ozz_math) {
   ozz::math::RectFloat rect(10.f, 20.f, 30.f, 40.f);
 
   EXPECT_FLOAT_EQ(rect.right(), 40.f);

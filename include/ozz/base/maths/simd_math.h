@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -148,21 +148,21 @@ OZZ_INLINE float GetZ(_SimdFloat4 _v);
 // Returns the w component of _v as a float.
 OZZ_INLINE float GetW(_SimdFloat4 _v);
 
-// Returns _v with the x component set to _f.
-OZZ_INLINE SimdFloat4 SetX(_SimdFloat4 _v, float _f);
+// Returns _v with the x component set to x component of _f.
+OZZ_INLINE SimdFloat4 SetX(_SimdFloat4 _v, _SimdFloat4 _f);
 
-// Returns _v with the y component set to _f.
-OZZ_INLINE SimdFloat4 SetY(_SimdFloat4 _v, float _f);
+// Returns _v with the y component set to  x component of _f.
+OZZ_INLINE SimdFloat4 SetY(_SimdFloat4 _v, _SimdFloat4 _f);
 
-// Returns _v with the z component set to _f.
-OZZ_INLINE SimdFloat4 SetZ(_SimdFloat4 _v, float _f);
+// Returns _v with the z component set to  x component of _f.
+OZZ_INLINE SimdFloat4 SetZ(_SimdFloat4 _v, _SimdFloat4 _f);
 
-// Returns _v with the w component set to _f.
-OZZ_INLINE SimdFloat4 SetW(_SimdFloat4 _v, float _f);
+// Returns _v with the w component set to  x component of _f.
+OZZ_INLINE SimdFloat4 SetW(_SimdFloat4 _v, _SimdFloat4 _f);
 
 // Returns _v with the _i th component set to _f.
 // _i must be in range [0,3]
-OZZ_INLINE SimdFloat4 SetI(_SimdFloat4 _v, int _i, float _f);
+OZZ_INLINE SimdFloat4 SetI(_SimdFloat4 _v, _SimdFloat4 _f, int _i);
 
 // Stores the 4 components of _v to the four first floats of _f.
 // _f must be aligned to 16 bytes.
@@ -228,6 +228,11 @@ OZZ_INLINE SimdFloat4 SplatZ(_SimdFloat4 _v);
 // Replicates w of _a to all the components of the returned vector.
 OZZ_INLINE SimdFloat4 SplatW(_SimdFloat4 _v);
 
+// Swizzle x, y, z and w components based on compile time arguments _X, _Y, _Z
+// and _W. Arguments can vary from 0 (x), to 3 (w).
+template <size_t _X, size_t _Y, size_t _Z, size_t _W>
+OZZ_INLINE SimdFloat4 Swizzle(_SimdFloat4 _v);
+
 // Transposes the x components of the 4 SimdFloat4 of _in into the 1
 // SimdFloat4 of _out.
 OZZ_INLINE void Transpose4x1(const SimdFloat4 _in[4], SimdFloat4 _out[1]);
@@ -262,9 +267,21 @@ OZZ_INLINE void Transpose4x4(const SimdFloat4 _in[4], SimdFloat4 _out[4]);
 // Transposes the 16 SimdFloat4 of _in into the 16 SimdFloat4 of _out.
 OZZ_INLINE void Transpose16x16(const SimdFloat4 _in[16], SimdFloat4 _out[16]);
 
-// Multiplies _a and _b, then adds _addend.
-// v = (_a * _b) + _addend
-OZZ_INLINE SimdFloat4 MAdd(_SimdFloat4 _a, _SimdFloat4 _b, _SimdFloat4 _addend);
+// Multiplies _a and _b, then adds _c.
+// v = (_a * _b) + _c
+OZZ_INLINE SimdFloat4 MAdd(_SimdFloat4 _a, _SimdFloat4 _b, _SimdFloat4 _c);
+
+// Multiplies _a and _b, then subs _c.
+// v = (_a * _b) + _c
+OZZ_INLINE SimdFloat4 MSub(_SimdFloat4 _a, _SimdFloat4 _b, _SimdFloat4 _c);
+
+// Multiplies _a and _b, negate it, then adds _c.
+// v = -(_a * _b) + _c
+OZZ_INLINE SimdFloat4 NMAdd(_SimdFloat4 _a, _SimdFloat4 _b, _SimdFloat4 _c);
+
+// Multiplies _a and _b, negate it, then subs _c.
+// v = -(_a * _b) + _c
+OZZ_INLINE SimdFloat4 NMSub(_SimdFloat4 _a, _SimdFloat4 _b, _SimdFloat4 _c);
 
 // Divides the x component of _a by the _x component of _b and stores it in the
 // x component of the returned vector. y, z, w of the returned vector are the
@@ -304,38 +321,38 @@ OZZ_INLINE SimdFloat4 HAdd4(_SimdFloat4 _v);
 
 // Computes the dot product of x and y components of _v. The result is
 // stored in the x component of the returned value. y, z, w of the returned
-// vector are the same as their respective components in _v.
+// vector are undefined.
 // r.x = _a.x * _a.x + _a.y * _a.y
-// r.y = _a.y
-// r.z = _a.z
-// r.w = _a.w
+// r.y = ?
+// r.z = ?
+// r.w = ?
 OZZ_INLINE SimdFloat4 Dot2(_SimdFloat4 _a, _SimdFloat4 _b);
 
 // Computes the dot product of x, y and z components of _v. The result is
 // stored in the x component of the returned value. y, z, w of the returned
-// vector are the same as their respective components in _a.
+// vector are undefined.
 // r.x = _a.x * _a.x + _a.y * _a.y + _a.z * _a.z
-// r.y = _a.y
-// r.z = _a.z
-// r.w = _a.w
+// r.y = ?
+// r.z = ?
+// r.w = ?
 OZZ_INLINE SimdFloat4 Dot3(_SimdFloat4 _a, _SimdFloat4 _b);
 
 // Computes the dot product of x, y, z and w components of _v. The result is
 // stored in the x component of the returned value. y, z, w of the returned
-// vector are the same as their respective components in _a.
+// vector are undefined.
 // r.x = _a.x * _a.x + _a.y * _a.y + _a.z * _a.z + _a.w * _a.w
-// r.y = _a.y
-// r.z = _a.z
-// r.w = _a.w
+// r.y = ?
+// r.z = ?
+// r.w = ?
 OZZ_INLINE SimdFloat4 Dot4(_SimdFloat4 _a, _SimdFloat4 _b);
 
 // Computes the cross product of x, y and z components of _v. The result is
 // stored in the x, y and z components of the returned value. w of the returned
-// vector is set to 0.
+// vector is undefined.
 // r.x = _a.y * _b.z - _a.z * _b.y
 // r.y = _a.z * _b.x - _a.x * _b.z
 // r.z = _a.x * _b.y - _a.y * _b.x
-// r.w = _a.w
+// r.w = ?
 OZZ_INLINE SimdFloat4 Cross3(_SimdFloat4 _a, _SimdFloat4 _b);
 
 // Returns the per component estimated reciprocal of _v.
@@ -349,6 +366,11 @@ OZZ_INLINE SimdFloat4 RcpEstNR(_SimdFloat4 _v);
 // the x component of the returned vector. y, z, w of the returned vector are
 // the same as their respective components in _v.
 OZZ_INLINE SimdFloat4 RcpEstX(_SimdFloat4 _v);
+
+// Returns the estimated reciprocal of the x component of _v, where
+// approximation is improved with one more new Newton-Raphson step. y, z, w of
+// the returned vector are undefined.
+OZZ_INLINE SimdFloat4 RcpEstXNR(_SimdFloat4 _v);
 
 // Returns the per component square root of _v.
 OZZ_INLINE SimdFloat4 Sqrt(_SimdFloat4 _v);
@@ -369,6 +391,11 @@ OZZ_INLINE SimdFloat4 RSqrtEstNR(_SimdFloat4 _v);
 // stores it in the x component of the returned vector. y, z, w of the returned
 // vector are the same as their respective components in _v.
 OZZ_INLINE SimdFloat4 RSqrtEstX(_SimdFloat4 _v);
+
+// Returns the estimated reciprocal square root of the x component of _v, where
+// approximation is improved with one more new Newton-Raphson step. y, z, w of
+// the returned vector are undefined.
+OZZ_INLINE SimdFloat4 RSqrtEstXNR(_SimdFloat4 _v);
 
 // Returns the per element absolute value of _v.
 OZZ_INLINE SimdFloat4 Abs(_SimdFloat4 _v);
@@ -393,33 +420,31 @@ OZZ_INLINE SimdFloat4 Max0(_SimdFloat4 _v);
 OZZ_INLINE SimdFloat4 Clamp(_SimdFloat4 _a, _SimdFloat4 _v, _SimdFloat4 _b);
 
 // Computes the length of the components x and y of _v, and stores it in the x
-// component of the returned vector. y, z, w of the returned vector are the
-// same as their respective components in _v.
+// component of the returned vector. y, z, w of the returned vector are
+// undefined.
 OZZ_INLINE SimdFloat4 Length2(_SimdFloat4 _v);
 
 // Computes the length of the components x, y and z of _v, and stores it in the
-// x component of the returned vector. y, z, w of the returned vector are the
-// same as their respective components in _v.
+// x component of the returned vector. undefined.
 OZZ_INLINE SimdFloat4 Length3(_SimdFloat4 _v);
 
 // Computes the length of _v, and stores it in the x component of the returned
-// vector. y, z, w of the returned vector are the same as their respective
-// components in _v.
+// vector. y, z, w of the returned vector are undefined.
 OZZ_INLINE SimdFloat4 Length4(_SimdFloat4 _v);
 
 // Computes the square length of the components x and y of _v, and stores it
 // in the x component of the returned vector. y, z, w of the returned vector are
-// the same as their respective components in _v.
+// undefined.
 OZZ_INLINE SimdFloat4 Length2Sqr(_SimdFloat4 _v);
 
 // Computes the square length of the components x, y and z of _v, and stores it
 // in the x component of the returned vector. y, z, w of the returned vector are
-// the same as their respective components in _v.
+// undefined.
 OZZ_INLINE SimdFloat4 Length3Sqr(_SimdFloat4 _v);
 
 // Computes the square length of the components x, y, z and w of _v, and stores
 // it in the x component of the returned vector. y, z, w of the returned vector
-// are the same as their respective components in _v.
+// undefined.
 OZZ_INLINE SimdFloat4 Length4Sqr(_SimdFloat4 _v);
 
 // Returns the normalized vector of the components x and y of _v, and stores
@@ -564,8 +589,9 @@ OZZ_INLINE SimdFloat4 ATan(_SimdFloat4 _v);
 // same as their respective components in _v.
 OZZ_INLINE SimdFloat4 ATanX(_SimdFloat4 _v);
 
-// Returns Per bit selection of vectors _true and _false according to _b.
-// _v[0...127] = _b[0...127] ? _true[0...127]:_false[0...127]
+// Returns boolean selection of vectors _true and _false according to condition
+// _b. All bits a each component of _b must have the same value (O or
+// 0xffffffff) to ensure portability.
 OZZ_INLINE SimdFloat4 Select(_SimdInt4 _b, _SimdFloat4 _true,
                              _SimdFloat4 _false);
 
@@ -602,6 +628,10 @@ OZZ_INLINE SimdFloat4 Xor(_SimdFloat4 _a, _SimdFloat4 _b);
 // Returns per element binary and operation of _a and _b.
 // _v[0...127] = _a[0...127] & _b[0...127]
 OZZ_INLINE SimdFloat4 And(_SimdFloat4 _a, _SimdInt4 _b);
+
+// Returns per element binary and operation of _a and ~_b.
+// _v[0...127] = _a[0...127] & ~_b[0...127]
+OZZ_INLINE SimdFloat4 AndNot(_SimdFloat4 _a, _SimdInt4 _b);
 
 // Returns per element binary or operation of _a and _b.
 // _v[0...127] = _a[0...127] | _b[0...127]
@@ -645,6 +675,12 @@ OZZ_INLINE SimdInt4 mask_sign();
 
 // Returns a SimdInt4 vector with all bits set to 1 except sign.
 OZZ_INLINE SimdInt4 mask_not_sign();
+
+// Returns a SimdInt4 vector with sign bits of x, y and z components set to 1.
+OZZ_INLINE SimdInt4 mask_sign_xyz();
+
+// Returns a SimdInt4 vector with sign bits of w component set to 1.
+OZZ_INLINE SimdInt4 mask_sign_w();
 
 // Returns a SimdInt4 vector with all bits set to 1.
 OZZ_INLINE SimdInt4 mask_ffff();
@@ -808,21 +844,21 @@ OZZ_INLINE int GetZ(_SimdInt4 _v);
 // Returns the w component of _v as a integer.
 OZZ_INLINE int GetW(_SimdInt4 _v);
 
-// Returns _v with the x component set to _i.
-OZZ_INLINE SimdInt4 SetX(_SimdInt4 _v, int _i);
+// Returns _v with the x component set to x component of _i.
+OZZ_INLINE SimdInt4 SetX(_SimdInt4 _v, _SimdInt4 _i);
 
-// Returns _v with the y component set to _i.
-OZZ_INLINE SimdInt4 SetY(_SimdInt4 _v, int _i);
+// Returns _v with the y component set to x component of _i.
+OZZ_INLINE SimdInt4 SetY(_SimdInt4 _v, _SimdInt4 _i);
 
-// Returns _v with the z component set to _i.
-OZZ_INLINE SimdInt4 SetZ(_SimdInt4 _v, int _i);
+// Returns _v with the z component set to x component of _i.
+OZZ_INLINE SimdInt4 SetZ(_SimdInt4 _v, _SimdInt4 _i);
 
-// Returns _v with the w component set to _i.
-OZZ_INLINE SimdInt4 SetW(_SimdInt4 _v, int _i);
+// Returns _v with the w component set to x component of _i.
+OZZ_INLINE SimdInt4 SetW(_SimdInt4 _v, _SimdInt4 _i);
 
 // Returns _v with the _ith component set to _i.
 // _i must be in range [0,3]
-OZZ_INLINE SimdInt4 SetI(_SimdInt4 _v, int _ith, int _i);
+OZZ_INLINE SimdInt4 SetI(_SimdInt4 _v, _SimdInt4 _i, int _ith);
 
 // Stores the 4 components of _v to the four first integers of _i.
 // _i must be aligned to 16 bytes.
@@ -887,6 +923,11 @@ OZZ_INLINE SimdInt4 SplatZ(_SimdInt4 _v);
 
 // Replicates w of _a to all the components of the returned vector.
 OZZ_INLINE SimdInt4 SplatW(_SimdInt4 _v);
+
+// Swizzle x, y, z and w components based on compile time arguments _X, _Y, _Z
+// and _W. Arguments can vary from 0 (x), to 3 (w).
+template <size_t _X, size_t _Y, size_t _Z, size_t _W>
+OZZ_INLINE SimdInt4 Swizzle(_SimdInt4 _v);
 
 // Creates a 4-bit mask from the most significant bits of each component of _v.
 // i := sign(a3)<<3 | sign(a2)<<2 | sign(a1)<<1 | sign(a0)
@@ -965,13 +1006,18 @@ OZZ_INLINE SimdInt4 Max0(_SimdInt4 _v);
 // Result is unknown if _a is not less or equal to _b.
 OZZ_INLINE SimdInt4 Clamp(_SimdInt4 _a, _SimdInt4 _v, _SimdInt4 _b);
 
-// Returns Per bit selection of vectors _true and _false according to _b.
-// _v[0...127] = _b[0...127] ? _true[0...127]:_false[0...127]
+// Returns boolean selection of vectors _true and _false according to consition
+// _b. All bits a each component of _b must have the same value (O or
+// 0xffffffff) to ensure portability.
 OZZ_INLINE SimdInt4 Select(_SimdInt4 _b, _SimdInt4 _true, _SimdInt4 _false);
 
 // Returns per element binary and operation of _a and _b.
 // _v[0...127] = _a[0...127] & _b[0...127]
 OZZ_INLINE SimdInt4 And(_SimdInt4 _a, _SimdInt4 _b);
+
+// Returns per element binary and operation of _a and ~_b.
+// _v[0...127] = _a[0...127] & ~_b[0...127]
+OZZ_INLINE SimdInt4 AndNot(_SimdInt4 _a, _SimdInt4 _b);
 
 // Returns per element binary or operation of _a and _b.
 // _v[0...127] = _a[0...127] | _b[0...127]
@@ -1041,9 +1087,10 @@ struct Float4x4 {
   // Yaw, Pitch and Roll. _v.w is ignored.
   static OZZ_INLINE Float4x4 FromEuler(_SimdFloat4 _v);
 
-  // Returns the rotation matrix built from axis defined by x, y, z and angle w
-  // of _v.
-  static OZZ_INLINE Float4x4 FromAxisAngle(_SimdFloat4 _v);
+  // Returns the rotation matrix built from axis defined by _axis.xyz and
+  // _angle.x
+  static OZZ_INLINE Float4x4 FromAxisAngle(_SimdFloat4 _axis,
+                                           _SimdFloat4 _angle);
 
   // Returns the rotation matrix built from quaternion defined by x, y, z and w
   // components of _v.
@@ -1060,7 +1107,10 @@ struct Float4x4 {
 OZZ_INLINE Float4x4 Transpose(const Float4x4& _m);
 
 // Returns the inverse of matrix _m.
-OZZ_INLINE Float4x4 Invert(const Float4x4& _m);
+// If _invertible is not NULL, its x component will be set to true if matrix is
+// invertible. If _invertible is NULL, then an assert is triggered in case the
+// matrix isn't invertible.
+OZZ_INLINE Float4x4 Invert(const Float4x4& _m, SimdInt4* _invertible = NULL);
 
 // Translates matrix _m along the axis defined by _v components.
 // _v.w is ignored.
@@ -1113,6 +1163,22 @@ OZZ_INLINE ozz::math::SimdFloat4 TransformPoint(const ozz::math::Float4x4& _m,
 // of 0.
 OZZ_INLINE ozz::math::SimdFloat4 TransformVector(const ozz::math::Float4x4& _m,
                                                  ozz::math::_SimdFloat4 _v);
+
+// Computes the multiplication of matrix Float4x4 and vector _v.
+OZZ_INLINE ozz::math::SimdFloat4 operator*(const ozz::math::Float4x4& _m,
+                                           ozz::math::_SimdFloat4 _v);
+
+// Computes the multiplication of two matrices _a and _b.
+OZZ_INLINE ozz::math::Float4x4 operator*(const ozz::math::Float4x4& _a,
+                                         const ozz::math::Float4x4& _b);
+
+// Computes the per element addition of two matrices _a and _b.
+OZZ_INLINE ozz::math::Float4x4 operator+(const ozz::math::Float4x4& _a,
+                                         const ozz::math::Float4x4& _b);
+
+// Computes the per element subtraction of two matrices _a and _b.
+OZZ_INLINE ozz::math::Float4x4 operator-(const ozz::math::Float4x4& _a,
+                                         const ozz::math::Float4x4& _b);
 }  // namespace math
 }  // namespace ozz
 
@@ -1136,22 +1202,6 @@ OZZ_INLINE ozz::math::SimdFloat4 operator*(ozz::math::_SimdFloat4 _a,
 OZZ_INLINE ozz::math::SimdFloat4 operator/(ozz::math::_SimdFloat4 _a,
                                            ozz::math::_SimdFloat4 _b);
 #endif  // !defined(__GNUC__) || defined(OZZ_SIMD_REF)
-
-// Computes the multiplication of matrix Float4x4 and vector _v.
-OZZ_INLINE ozz::math::SimdFloat4 operator*(const ozz::math::Float4x4& _m,
-                                           ozz::math::_SimdFloat4 _v);
-
-// Computes the multiplication of two matrices _a and _b.
-OZZ_INLINE ozz::math::Float4x4 operator*(const ozz::math::Float4x4& _a,
-                                         const ozz::math::Float4x4& _b);
-
-// Computes the per element addition of two matrices _a and _b.
-OZZ_INLINE ozz::math::Float4x4 operator+(const ozz::math::Float4x4& _a,
-                                         const ozz::math::Float4x4& _b);
-
-// Computes the per element subtraction of two matrices _a and _b.
-OZZ_INLINE ozz::math::Float4x4 operator-(const ozz::math::Float4x4& _a,
-                                         const ozz::math::Float4x4& _b);
 
 // Implement format conversions.
 namespace ozz {

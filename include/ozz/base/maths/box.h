@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -35,6 +35,9 @@
 namespace ozz {
 namespace math {
 
+// Matrix forward declaration.
+struct Float4x4;
+
 // Defines an axis aligned box.
 struct Box {
   // Constructs an invalid box.
@@ -44,7 +47,12 @@ struct Box {
   Box(const Float3& _min, const Float3& _max) : min(_min), max(_max) {}
 
   // Constructs the smallest box that contains the _count points _points.
-  // _stride is the number of bytes points.
+  // _stride is the number of bytes between points.
+  explicit Box(const Float3& _point) : min(_point), max(_point) {}
+
+  // Constructs the smallest box that contains the _count points _points.
+  // _stride is the number of bytes between points, it must be greater or
+  // equal to sizeof(Float3).
   Box(const Float3* _points, size_t _stride, size_t _count);
 
   // Tests whether *this is a valid box.
@@ -68,6 +76,9 @@ OZZ_INLINE Box Merge(const Box& _a, const Box& _b) {
   }
   return Box(Min(_a.min, _b.min), Max(_a.max, _b.max));
 }
+
+// Compute box transformation by a matrix.
+Box TransformBox(const Float4x4& _matrix, const Box& _box);
 }  // namespace math
 }  // namespace ozz
 #endif  // OZZ_OZZ_BASE_MATHS_BOX_H_

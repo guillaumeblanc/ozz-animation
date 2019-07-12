@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -35,6 +35,17 @@
 #if !defined(OZZ_BUILD_SIMD_REF)
 
 // Try to match a SSE2+ version.
+#if defined(__AVX2__) || defined(OZZ_SIMD_AVX2)
+#include <immintrin.h>
+#define OZZ_SIMD_AVX2
+#define OZZ_SIMD_AVX  // avx is available if avx2 is.
+#endif
+
+#if defined(__FMA__) || defined(OZZ_SIMD_FMA)
+#include <immintrin.h>
+#define OZZ_SIMD_FMA
+#endif
+
 #if defined(__AVX__) || defined(OZZ_SIMD_AVX)
 #include <immintrin.h>
 #define OZZ_SIMD_AVX

@@ -17,6 +17,7 @@ add_custom_command(
 
 add_executable(sample_user_channel
   sample_user_channel.cc
+  config.json
   "${CMAKE_CURRENT_BINARY_DIR}/README.md"
   "${CMAKE_CURRENT_BINARY_DIR}/media/skeleton.ozz"
   "${CMAKE_CURRENT_BINARY_DIR}/media/animation.ozz"
@@ -35,6 +36,7 @@ if(EMSCRIPTEN)
   install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/sample_user_channel.html
     ${CMAKE_CURRENT_BINARY_DIR}/sample_user_channel.js
+    ${CMAKE_CURRENT_BINARY_DIR}/sample_user_channel.wasm
     DESTINATION bin/samples/user_channel)
 else()
   install(TARGETS sample_user_channel DESTINATION bin/samples/user_channel)

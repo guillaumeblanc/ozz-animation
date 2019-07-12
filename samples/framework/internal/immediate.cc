@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -133,7 +133,8 @@ void GlImmediateRenderer::End<VertexPTC>(
 void GlImmediateRenderer::ResizeVbo(size_t _new_size) {
   if (_new_size > max_size_) {
     max_size_ = ozz::math::Max(max_size_ * 2, _new_size);
-    buffer_ = ozz::memory::default_allocator()->Reallocate(buffer_, max_size_);
+    buffer_ = reinterpret_cast<char*>(
+        ozz::memory::default_allocator()->Reallocate(buffer_, max_size_, 16));
 
     GL(BindBuffer(GL_ARRAY_BUFFER, vbo_));
     GL(BufferData(GL_ARRAY_BUFFER, max_size_, NULL, GL_STREAM_DRAW));

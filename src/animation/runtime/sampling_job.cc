@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -124,8 +124,8 @@ void UpdateKeys(float _ratio, int _num_soa_tracks, ozz::Range<const _Key> _keys,
   // Iterates while the cache is not updated with left and right keys required
   // for interpolation at time ratio _ratio, for all tracks. Thanks to the
   // keyframe sorting, the loop can end as soon as it finds a key greater that
-  // _ratio. It will mean that all the keys lower than _ratio have been processed,
-  // meaning all cache entries are updated.
+  // _ratio. It will mean that all the keys lower than _ratio have been
+  // processed, meaning all cache entries are up to date.
   while (cursor < _keys.end &&
          _keys.begin[_cache[cursor->track * 2 + 1]].ratio <= _ratio) {
     // Flag this soa entry as outdated.
@@ -145,11 +145,11 @@ void UpdateKeys(float _ratio, int _num_soa_tracks, ozz::Range<const _Key> _keys,
 
 void UpdateSoaTranslations(int _num_soa_tracks,
                            ozz::Range<const TranslationKey> _keys,
-                           const int* _interp, unsigned char* _outdated,
+                           const int* _interp, uint8_t* _outdated,
                            internal::InterpSoaTranslation* soa_translations_) {
   const int num_outdated_flags = (_num_soa_tracks + 7) / 8;
   for (int j = 0; j < num_outdated_flags; ++j) {
-    unsigned char outdated = _outdated[j];
+    uint8_t outdated = _outdated[j];
     _outdated[j] = 0;  // Reset outdated entries as all will be processed.
     for (int i = j * 8; outdated; ++i, outdated >>= 1) {
       if (!(outdated & 1)) {
@@ -189,7 +189,7 @@ void UpdateSoaTranslations(int _num_soa_tracks,
 }
 
 #define DECOMPRESS_SOA_QUAT(_k0, _k1, _k2, _k3, _quat)                         \
-  {                                                                            \
+  do {                                                                         \
     /* Selects proper mapping for each key.*/                                  \
     const int* m0 = kCpntMapping[_k0.largest];                                 \
     const int* m1 = kCpntMapping[_k1.largest];                                 \
@@ -230,11 +230,12 @@ void UpdateSoaTranslations(int _num_soa_tracks,
                                                                                \
     /* Get back length of 4th component. Favors performance over accuracy by*/ \
     /* using x * RSqrtEst(x) instead of Sqrt(x).*/                             \
+    /* ww0 cannot be 0 because we 're recomputing the largest component.*/     \
     const math::SimdFloat4 dot = cpnt[0] * cpnt[0] + cpnt[1] * cpnt[1] +       \
                                  cpnt[2] * cpnt[2] + cpnt[3] * cpnt[3];        \
     const math::SimdFloat4 ww0 = math::Max(eps, one - dot);                    \
     const math::SimdFloat4 w0 = ww0 * math::RSqrtEst(ww0);                     \
-    /* Re-applies 4th component's sign.*/                                      \
+    /* Re-applies 4th component' s sign.*/                                     \
     const math::SimdInt4 sign = math::ShiftL(                                  \
         math::simd_int4::Load(_k0.sign, _k1.sign, _k2.sign, _k3.sign), 31);    \
     const math::SimdFloat4 restored = math::Or(w0, sign);                      \
@@ -254,11 +255,11 @@ void UpdateSoaTranslations(int _num_soa_tracks,
     _quat.y = cpnt[1];                                                         \
     _quat.z = cpnt[2];                                                         \
     _quat.w = cpnt[3];                                                         \
-  }
+  } while (void(0), 0)
 
 void UpdateSoaRotations(int _num_soa_tracks,
                         ozz::Range<const RotationKey> _keys, const int* _interp,
-                        unsigned char* _outdated,
+                        uint8_t* _outdated,
                         internal::InterpSoaRotation* _soa_rotations) {
   // Prepares constants.
   const math::SimdFloat4 one = math::simd_float4::one();
@@ -277,7 +278,7 @@ void UpdateSoaRotations(int _num_soa_tracks,
 
   const int num_outdated_flags = (_num_soa_tracks + 7) / 8;
   for (int j = 0; j < num_outdated_flags; ++j) {
-    unsigned char outdated = _outdated[j];
+    uint8_t outdated = _outdated[j];
     _outdated[j] = 0;  // Reset outdated entries as all will be processed.
     for (int i = j * 8; outdated; ++i, outdated >>= 1) {
       if (!(outdated & 1)) {
@@ -318,11 +319,11 @@ void UpdateSoaRotations(int _num_soa_tracks,
 #undef DECOMPRESS_SOA_QUAT
 
 void UpdateSoaScales(int _num_soa_tracks, ozz::Range<const ScaleKey> _keys,
-                     const int* _interp, unsigned char* _outdated,
+                     const int* _interp, uint8_t* _outdated,
                      internal::InterpSoaScale* soa_scales_) {
   const int num_outdated_flags = (_num_soa_tracks + 7) / 8;
   for (int j = 0; j < num_outdated_flags; ++j) {
-    unsigned char outdated = _outdated[j];
+    uint8_t outdated = _outdated[j];
     _outdated[j] = 0;  // Reset outdated entries as all will be processed.
     for (int i = j * 8; outdated; ++i, outdated >>= 1) {
       if (!(outdated & 1)) {
@@ -384,8 +385,8 @@ void Interpolates(float _anim_ratio, int _num_soa_tracks,
     // quaternions were negated during animation build stage (AnimationBuilder).
     _output[i].translation = Lerp(_translations[i].value[0],
                                   _translations[i].value[1], interp_t_ratio);
-    _output[i].rotation =
-        NLerpEst(_rotations[i].value[0], _rotations[i].value[1], interp_r_ratio);
+    _output[i].rotation = NLerpEst(_rotations[i].value[0],
+                                   _rotations[i].value[1], interp_r_ratio);
     _output[i].scale =
         Lerp(_scales[i].value[0], _scales[i].value[1], interp_s_ratio);
   }
@@ -440,25 +441,34 @@ bool SamplingJob::Run() const {
   return true;
 }
 
+SamplingCache::SamplingCache()
+    : max_soa_tracks_(0),
+      soa_translations_(NULL) {  // soa_translations_ is the allocation pointer.
+  Invalidate();
+}
+
 SamplingCache::SamplingCache(int _max_tracks)
-    : animation_(NULL),
-      ratio_(0.f),
-      max_soa_tracks_((_max_tracks + 3) / 4),
-      soa_translations_(NULL),
-      soa_rotations_(NULL),
-      soa_scales_(NULL),
-      translation_keys_(NULL),
-      rotation_keys_(NULL),
-      scale_keys_(NULL),
-      translation_cursor_(0),
-      rotation_cursor_(0),
-      scale_cursor_(0),
-      outdated_translations_(NULL),
-      outdated_rotations_(NULL),
-      outdated_scales_(NULL) {
+    : max_soa_tracks_(0),
+      soa_translations_(NULL) {  // soa_translations_ is the allocation pointer.
+  Resize(_max_tracks);
+}
+
+SamplingCache::~SamplingCache() {
+  // Deallocates everything at once.
+  memory::default_allocator()->Deallocate(soa_translations_);
+}
+
+void SamplingCache::Resize(int _max_tracks) {
   using internal::InterpSoaRotation;
   using internal::InterpSoaScale;
   using internal::InterpSoaTranslation;
+
+  // Reset existing data.
+  Invalidate();
+  memory::default_allocator()->Deallocate(soa_translations_);
+
+  // Updates maximum supported soa tracks.
+  max_soa_tracks_ = (_max_tracks + 3) / 4;
 
   // Allocate all cache data at once in a single allocation.
   // Alignment is guaranteed because memory is dispatch from the highest
@@ -473,7 +483,7 @@ SamplingCache::SamplingCache(int _max_tracks)
       sizeof(InterpSoaRotation) * max_soa_tracks_ +
       sizeof(InterpSoaScale) * max_soa_tracks_ +
       sizeof(int) * max_tracks * 2 * 3 +  // 2 keys * (trans + rot + scale).
-      sizeof(unsigned char) * 3 * num_outdated;
+      sizeof(uint8_t) * 3 * num_outdated;
 
   // Allocates all at once.
   memory::Allocator* allocator = memory::default_allocator();
@@ -481,35 +491,42 @@ SamplingCache::SamplingCache(int _max_tracks)
       allocator->Allocate(size, OZZ_ALIGN_OF(InterpSoaTranslation)));
   char* alloc_cursor = alloc_begin;
 
-  // Dispatches allocated memory, from the highest alignment requirement to the
-  // lowest.
+  // Distributes buffer memory while ensuring proper alignment (serves larger
+  // alignment values first).
+  OZZ_STATIC_ASSERT(
+      OZZ_ALIGN_OF(InterpSoaTranslation) >= OZZ_ALIGN_OF(InterpSoaRotation) &&
+      OZZ_ALIGN_OF(InterpSoaRotation) >= OZZ_ALIGN_OF(InterpSoaScale) &&
+      OZZ_ALIGN_OF(InterpSoaScale) >= OZZ_ALIGN_OF(int) &&
+      OZZ_ALIGN_OF(int) >= OZZ_ALIGN_OF(uint8_t));
+
   soa_translations_ = reinterpret_cast<InterpSoaTranslation*>(alloc_cursor);
+  assert(
+      math::IsAligned(soa_translations_, OZZ_ALIGN_OF(InterpSoaTranslation)));
   alloc_cursor += sizeof(InterpSoaTranslation) * max_soa_tracks_;
   soa_rotations_ = reinterpret_cast<InterpSoaRotation*>(alloc_cursor);
+  assert(math::IsAligned(soa_rotations_, OZZ_ALIGN_OF(InterpSoaRotation)));
   alloc_cursor += sizeof(InterpSoaRotation) * max_soa_tracks_;
   soa_scales_ = reinterpret_cast<InterpSoaScale*>(alloc_cursor);
+  assert(math::IsAligned(soa_scales_, OZZ_ALIGN_OF(InterpSoaScale)));
   alloc_cursor += sizeof(InterpSoaScale) * max_soa_tracks_;
 
   translation_keys_ = reinterpret_cast<int*>(alloc_cursor);
+  assert(math::IsAligned(translation_keys_, OZZ_ALIGN_OF(int)));
   alloc_cursor += sizeof(int) * max_tracks * 2;
   rotation_keys_ = reinterpret_cast<int*>(alloc_cursor);
   alloc_cursor += sizeof(int) * max_tracks * 2;
   scale_keys_ = reinterpret_cast<int*>(alloc_cursor);
   alloc_cursor += sizeof(int) * max_tracks * 2;
 
-  outdated_translations_ = reinterpret_cast<unsigned char*>(alloc_cursor);
-  alloc_cursor += sizeof(unsigned char) * num_outdated;
-  outdated_rotations_ = reinterpret_cast<unsigned char*>(alloc_cursor);
-  alloc_cursor += sizeof(unsigned char) * num_outdated;
-  outdated_scales_ = reinterpret_cast<unsigned char*>(alloc_cursor);
-  alloc_cursor += sizeof(unsigned char) * num_outdated;
+  outdated_translations_ = reinterpret_cast<uint8_t*>(alloc_cursor);
+  assert(math::IsAligned(outdated_translations_, OZZ_ALIGN_OF(uint8_t)));
+  alloc_cursor += sizeof(uint8_t) * num_outdated;
+  outdated_rotations_ = reinterpret_cast<uint8_t*>(alloc_cursor);
+  alloc_cursor += sizeof(uint8_t) * num_outdated;
+  outdated_scales_ = reinterpret_cast<uint8_t*>(alloc_cursor);
+  alloc_cursor += sizeof(uint8_t) * num_outdated;
 
   assert(alloc_cursor == alloc_begin + size);
-}
-
-SamplingCache::~SamplingCache() {
-  // Deallocates everything at once.
-  memory::default_allocator()->Deallocate(soa_translations_);
 }
 
 void SamplingCache::Step(const Animation& _animation, float _ratio) {

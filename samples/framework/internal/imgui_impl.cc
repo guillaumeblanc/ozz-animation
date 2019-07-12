@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -323,12 +323,14 @@ void ImGuiImpl::BeginContainer(const char* _title, const math::RectFloat* _rect,
                                    container.rect.bottom + container.offset_y,
                                    container.rect.width, header_height);
 
+  // Don't display any arrow if _open is NULL.
+  const float arrow_size = _open != NULL ? kWidgetHeight : 0;
   const math::RectFloat open_close_rect(title_rect.left, title_rect.bottom,
-                                        kWidgetHeight, kWidgetHeight);
+                                        arrow_size, kWidgetHeight);
 
   const math::RectFloat label_rect(
-      title_rect.left + kWidgetHeight + kTextMarginX, title_rect.bottom,
-      title_rect.width - kWidgetHeight - kTextMarginX, kWidgetHeight);
+      title_rect.left + arrow_size + kTextMarginX, title_rect.bottom,
+      title_rect.width - arrow_size - kTextMarginX, kWidgetHeight);
 
   // Adds a margin before the next widget only if it is opened.
   if (!_open || *_open) {
@@ -1184,8 +1186,8 @@ void ImGuiImpl::InitalizeFont() {
          font_.pixels_size * 8);
 
   const size_t buffer_size = 4 * font_.texture_width * font_.texture_height;
-  unsigned char* pixels =
-      memory::default_allocator()->Allocate<unsigned char>(buffer_size);
+  uint8_t* pixels = reinterpret_cast<uint8_t*>(
+      memory::default_allocator()->Allocate(buffer_size, 4));
   memset(pixels, 0, buffer_size);
 
   // Unpack font data font 1 bit per pixel to 8.
@@ -1194,7 +1196,7 @@ void ImGuiImpl::InitalizeFont() {
       const int pixel = (i + j) / font_.image_width * font_.texture_width +
                         (i + j) % font_.image_width;
       const int bit = 7 - j;
-      const char cpnt = ((font_.pixels[i / 8] >> bit) & 1) * 255;
+      const uint8_t cpnt = ((font_.pixels[i / 8] >> bit) & 1) * 255;
       pixels[4 * pixel + 0] = cpnt;
       pixels[4 * pixel + 1] = cpnt;
       pixels[4 * pixel + 2] = cpnt;

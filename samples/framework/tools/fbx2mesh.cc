@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -229,7 +229,7 @@ bool BuildVertices(FbxMesh* _fbx_mesh,
         return false;
       }
       const ozz::math::Float3 normal = NormalizeSafe(
-          _converter->ConvertNormal(src_normal), ozz::math::Float3::y_axis());
+          _converter->ConvertVector(src_normal), ozz::math::Float3::y_axis());
 
       // Get vertex tangent.
       FbxVector4 src_tangent(1.f, 0.f, 0.f, 0.f);
@@ -240,7 +240,7 @@ bool BuildVertices(FbxMesh* _fbx_mesh,
         }
       }
       const ozz::math::Float3 tangent3 = NormalizeSafe(
-          _converter->ConvertNormal(src_tangent), ozz::math::Float3::x_axis());
+          _converter->ConvertVector(src_tangent), ozz::math::Float3::x_axis());
       const ozz::math::Float4 tangent(tangent3,
                                       static_cast<float>(src_tangent[3]));
 

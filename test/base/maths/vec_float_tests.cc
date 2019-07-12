@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -36,7 +36,7 @@ using ozz::math::Float2;
 using ozz::math::Float3;
 using ozz::math::Float4;
 
-TEST(Load4, Vector) {
+TEST(VectorLoad4, ozz_math) {
   EXPECT_FLOAT4_EQ(Float4(46.f), 46.f, 46.f, 46.f, 46.f);
   EXPECT_FLOAT4_EQ(Float4(-1.f, 0.f, 1.f, 2.f), -1.f, 0.f, 1.f, 2.f);
   const Float3 f3(-1.f, 0.f, 1.f);
@@ -45,19 +45,19 @@ TEST(Load4, Vector) {
   EXPECT_FLOAT4_EQ(Float4(f2, 1.f, 2.f), -1.f, 0.f, 1.f, 2.f);
 }
 
-TEST(Load3, Vector) {
+TEST(VectorLoad3, ozz_math) {
   EXPECT_FLOAT3_EQ(Float3(46.f), 46.f, 46.f, 46.f);
   EXPECT_FLOAT3_EQ(Float3(-1.f, 0.f, 1.f), -1.f, 0.f, 1.f);
   const Float2 f2(-1.f, 0.f);
   EXPECT_FLOAT3_EQ(Float3(f2, 1.f), -1.f, 0.f, 1.f);
 }
 
-TEST(Load2, Vector) {
+TEST(VectorLoad2, ozz_math) {
   EXPECT_FLOAT2_EQ(Float2(46.f), 46.f, 46.f);
   EXPECT_FLOAT2_EQ(Float2(-1.f, 0.f), -1.f, 0.f);
 }
 
-TEST(Constant4, Vector) {
+TEST(VectorConstant4, ozz_math) {
   EXPECT_FLOAT4_EQ(Float4::zero(), 0.f, 0.f, 0.f, 0.f);
   EXPECT_FLOAT4_EQ(Float4::one(), 1.f, 1.f, 1.f, 1.f);
   EXPECT_FLOAT4_EQ(Float4::x_axis(), 1.f, 0.f, 0.f, 0.f);
@@ -66,7 +66,7 @@ TEST(Constant4, Vector) {
   EXPECT_FLOAT4_EQ(Float4::w_axis(), 0.f, 0.f, 0.f, 1.f);
 }
 
-TEST(Constant3, Vector) {
+TEST(VectorConstant3, ozz_math) {
   EXPECT_FLOAT3_EQ(Float3::zero(), 0.f, 0.f, 0.f);
   EXPECT_FLOAT3_EQ(Float3::one(), 1.f, 1.f, 1.f);
   EXPECT_FLOAT3_EQ(Float3::x_axis(), 1.f, 0.f, 0.f);
@@ -74,14 +74,14 @@ TEST(Constant3, Vector) {
   EXPECT_FLOAT3_EQ(Float3::z_axis(), 0.f, 0.f, 1.f);
 }
 
-TEST(Constant2, Vector) {
+TEST(VectorConstant2, ozz_math) {
   EXPECT_FLOAT2_EQ(Float2::zero(), 0.f, 0.f);
   EXPECT_FLOAT2_EQ(Float2::one(), 1.f, 1.f);
   EXPECT_FLOAT2_EQ(Float2::x_axis(), 1.f, 0.f);
   EXPECT_FLOAT2_EQ(Float2::y_axis(), 0.f, 1.f);
 }
 
-TEST(Arithmetic4, Vector) {
+TEST(VectorArithmetic4, ozz_math) {
   const Float4 a(.5f, 1.f, 2.f, 3.f);
   const Float4 b(4.f, 5.f, -6.f, 7.f);
 
@@ -150,7 +150,7 @@ TEST(Arithmetic4, Vector) {
                    2.f * b.w - a.w);
 }
 
-TEST(Arithmetic3, Vector) {
+TEST(VectorArithmetic3, ozz_math) {
   const Float3 a(.5f, 1.f, 2.f);
   const Float3 b(4.f, 5.f, -6.f);
 
@@ -220,7 +220,7 @@ TEST(Arithmetic3, Vector) {
   EXPECT_FLOAT3_EQ(lerp_2, 2.f * b.x - a.x, 2.f * b.y - a.y, 2.f * b.z - a.z);
 }
 
-TEST(Arithmetic2, Vector) {
+TEST(VectorArithmetic2, ozz_math) {
   const Float2 a(.5f, 1.f);
   const Float2 b(4.f, 5.f);
 
@@ -285,7 +285,7 @@ TEST(Arithmetic2, Vector) {
   EXPECT_FLOAT2_EQ(lerp_2, 2.f * b.x - a.x, 2.f * b.y - a.y);
 }
 
-TEST(Comparison4, Vector) {
+TEST(VectorComparison4, ozz_math) {
   const Float4 a(.5f, 1.f, 2.f, 3.f);
   const Float4 b(4.f, 5.f, -6.f, 7.f);
   const Float4 c(4.f, 5.f, 6.f, 7.f);
@@ -316,7 +316,7 @@ TEST(Comparison4, Vector) {
   EXPECT_FALSE(Compare(c, d, .05f));
 }
 
-TEST(Comparison3, Vector) {
+TEST(VectorComparison3, ozz_math) {
   const Float3 a(.5f, -1.f, 2.f);
   const Float3 b(4.f, 5.f, -6.f);
   const Float3 c(4.f, 5.f, 6.f);
@@ -346,7 +346,7 @@ TEST(Comparison3, Vector) {
   EXPECT_FALSE(Compare(c, d, .05f));
 }
 
-TEST(Comparison2, Vector) {
+TEST(VectorComparison2, ozz_math) {
   const Float2 a(.5f, 1.f);
   const Float2 b(4.f, -5.f);
   const Float2 c(4.f, 5.f);

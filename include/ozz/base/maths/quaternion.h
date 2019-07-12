@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -51,13 +51,32 @@ struct Quaternion {
   // Returns a normalized quaternion initialized from an axis angle
   // representation.
   // Assumes the axis part (x, y, z) of _axis_angle is normalized.
-  // _axis_angle.w is the angle in radian.
-  static OZZ_INLINE Quaternion FromAxisAngle(const Float4& _axis_angle);
+  // _angle.x is the angle in radian.
+  static OZZ_INLINE Quaternion FromAxisAngle(const Float3& _axis, float _angle);
+
+  // Returns a normalized quaternion initialized from an axis and angle cosine
+  // representation.
+  // Assumes the axis part (x, y, z) of _axis_angle is normalized.
+  // _angle.x is the angle cosine in radian, it must be within [-1,1] range.
+  static OZZ_INLINE Quaternion FromAxisCosAngle(const Float3& _axis,
+                                                float _cos);
 
   // Returns a normalized quaternion initialized from an Euler representation.
   // Euler angles are ordered Heading, Elevation and Bank, or Yaw, Pitch and
   // Roll.
-  static OZZ_INLINE Quaternion FromEuler(const Float3& _euler);
+  static OZZ_INLINE Quaternion FromEuler(const float& _yaw, float _pitch,
+                                         float _roll);
+
+  // Returns the quaternion that will rotate vector _from into vector _to,
+  // around their plan perpendicular axis.The input vectors don't need to be
+  // normalized, they can be null as well.
+  static OZZ_INLINE Quaternion FromVectors(const Float3& _from,
+                                           const Float3& _to);
+
+  // Returns the quaternion that will rotate vector _from into vector _to,
+  // around their plan perpendicular axis. The input vectors must be normalized.
+  static OZZ_INLINE Quaternion FromUnitVectors(const Float3& _from,
+                                               const Float3& _to);
 
   // Returns the identity quaternion.
   static OZZ_INLINE Quaternion identity() {
@@ -144,13 +163,25 @@ OZZ_INLINE Quaternion NormalizeSafe(const Quaternion& _q,
                     _q.w * inv_len);
 }
 
-OZZ_INLINE Quaternion Quaternion::FromAxisAngle(const Float4& _axis_angle) {
-  assert(IsNormalized(Float3(_axis_angle.x, _axis_angle.y, _axis_angle.z)));
-  const float half_angle = _axis_angle.w * .5f;
-  const float sin_half = std::sin(half_angle);
-  const float cos_half = std::cos(half_angle);
-  return Quaternion(_axis_angle.x * sin_half, _axis_angle.y * sin_half,
-                    _axis_angle.z * sin_half, cos_half);
+OZZ_INLINE Quaternion Quaternion::FromAxisAngle(const Float3& _axis,
+                                                float _angle) {
+  assert(IsNormalized(_axis) && "axis is not normalized.");
+  const float half_angle = _angle * .5f;
+  const float half_sin = std::sin(half_angle);
+  const float half_cos = std::cos(half_angle);
+  return Quaternion(_axis.x * half_sin, _axis.y * half_sin, _axis.z * half_sin,
+                    half_cos);
+}
+
+OZZ_INLINE Quaternion Quaternion::FromAxisCosAngle(const Float3& _axis,
+                                                   float _cos) {
+  assert(IsNormalized(_axis) && "axis is not normalized.");
+  assert(_cos >= -1.f && _cos <= 1.f && "cos is not in [-1,1] range.");
+
+  const float half_cos2 = (1.f + _cos) * 0.5f;
+  const float half_sin = std::sqrt(1.f - half_cos2);
+  return Quaternion(_axis.x * half_sin, _axis.y * half_sin, _axis.z * half_sin,
+                    std::sqrt(half_cos2));
 }
 
 // Returns to an axis angle representation of quaternion _q.
@@ -172,14 +203,17 @@ OZZ_INLINE Float4 ToAxisAngle(const Quaternion& _q) {
   }
 }
 
-OZZ_INLINE Quaternion Quaternion::FromEuler(const Float3& _euler) {
-  const Float3 half_euler = _euler * .5f;
-  const float c1 = std::cos(half_euler.x);
-  const float s1 = std::sin(half_euler.x);
-  const float c2 = std::cos(half_euler.y);
-  const float s2 = std::sin(half_euler.y);
-  const float c3 = std::cos(half_euler.z);
-  const float s3 = std::sin(half_euler.z);
+OZZ_INLINE Quaternion Quaternion::FromEuler(const float& _yaw, float _pitch,
+                                            float _roll) {
+  const float half_yaw = _yaw * .5f;
+  const float c1 = std::cos(half_yaw);
+  const float s1 = std::sin(half_yaw);
+  const float half_pitch = _pitch * .5f;
+  const float c2 = std::cos(half_pitch);
+  const float s2 = std::sin(half_pitch);
+  const float half_roll = _roll * .5f;
+  const float c3 = std::cos(half_roll);
+  const float s3 = std::sin(half_roll);
   const float c1c2 = c1 * c2;
   const float s1s2 = s1 * s2;
   return Quaternion(c1c2 * s3 + s1s2 * c3, s1 * c2 * c3 + c1 * s2 * s3,
@@ -215,14 +249,60 @@ OZZ_INLINE Float3 ToEuler(const Quaternion& _q) {
   return euler;
 }
 
-// Returns the linear interpolation of quaternion _a and _b with coefficient _f.
+OZZ_INLINE Quaternion Quaternion::FromVectors(const Float3& _from,
+                                              const Float3& _to) {
+  // http://lolengine.net/blog/2014/02/24/quaternion-from-two-vectors-final
+
+  const float norm_from_norm_to = std::sqrt(LengthSqr(_from) * LengthSqr(_to));
+  if (norm_from_norm_to < 1.e-5f) {
+    return Quaternion::identity();
+  }
+  const float real_part = norm_from_norm_to + Dot(_from, _to);
+  Quaternion quat;
+  if (real_part < 1.e-6f * norm_from_norm_to) {
+    // If _from and _to are exactly opposite, rotate 180 degrees around an
+    // arbitrary orthogonal axis. Axis normalization can happen later, when we
+    // normalize the quaternion.
+    quat = std::abs(_from.x) > std::abs(_from.z)
+               ? Quaternion(-_from.y, _from.x, 0.f, 0.f)
+               : Quaternion(0.f, -_from.z, _from.y, 0.f);
+  } else {
+    const Float3 cross = Cross(_from, _to);
+    quat = Quaternion(cross.x, cross.y, cross.z, real_part);
+  }
+  return Normalize(quat);
+}
+
+OZZ_INLINE Quaternion Quaternion::FromUnitVectors(const Float3& _from,
+                                                  const Float3& _to) {
+  assert(IsNormalized(_from) && IsNormalized(_to) &&
+         "Input vectors must be normalized.");
+
+  // http://lolengine.net/blog/2014/02/24/quaternion-from-two-vectors-final
+  const float real_part = 1.f + Dot(_from, _to);
+  if (real_part < 1.e-6f) {
+    // If _from and _to are exactly opposite, rotate 180 degrees around an
+    // arbitrary orthogonal axis.
+    // Normalisation isn't needed, as from is already.
+    return std::abs(_from.x) > std::abs(_from.z)
+               ? Quaternion(-_from.y, _from.x, 0.f, 0.f)
+               : Quaternion(0.f, -_from.z, _from.y, 0.f);
+  } else {
+    const Float3 cross = Cross(_from, _to);
+    return Normalize(Quaternion(cross.x, cross.y, cross.z, real_part));
+  }
+}
+
+// Returns the linear interpolation of quaternion _a and _b with coefficient
+// _f.
 OZZ_INLINE Quaternion Lerp(const Quaternion& _a, const Quaternion& _b,
                            float _f) {
   return Quaternion((_b.x - _a.x) * _f + _a.x, (_b.y - _a.y) * _f + _a.y,
                     (_b.z - _a.z) * _f + _a.z, (_b.w - _a.w) * _f + _a.w);
 }
 
-// Returns the linear interpolation of quaternion _a and _b with coefficient _f.
+// Returns the linear interpolation of quaternion _a and _b with coefficient
+// _f.
 OZZ_INLINE Quaternion NLerp(const Quaternion& _a, const Quaternion& _b,
                             float _f) {
   const Float4 lerp((_b.x - _a.x) * _f + _a.x, (_b.y - _a.y) * _f + _a.y,
@@ -252,8 +332,8 @@ OZZ_INLINE Quaternion SLerp(const Quaternion& _a, const Quaternion& _b,
   const float half_theta = std::acos(cos_half_theta);
   const float sin_half_theta = std::sqrt(1.f - cos_half_theta * cos_half_theta);
 
-  // If theta = pi then result is not fully defined, we could rotate around any
-  // axis normal to _a or _b.
+  // If theta = pi then result is not fully defined, we could rotate around
+  // any axis normal to _a or _b.
   if (sin_half_theta < .001f) {
     return Quaternion((_a.x + _b.x) * .5f, (_a.y + _b.y) * .5f,
                       (_a.z + _b.z) * .5f, (_a.w + _b.w) * .5f);
@@ -266,6 +346,20 @@ OZZ_INLINE Quaternion SLerp(const Quaternion& _a, const Quaternion& _b,
   return Quaternion(
       ratio_a * _a.x + ratio_b * _b.x, ratio_a * _a.y + ratio_b * _b.y,
       ratio_a * _a.z + ratio_b * _b.z, ratio_a * _a.w + ratio_b * _b.w);
+}
+
+// Computes the transformation of a Quaternion and a vector _v.
+// This is equivalent to carrying out the quaternion multiplications:
+// _q.conjugate() * (*this) * _q
+OZZ_INLINE Float3 TransformVector(const Quaternion& _q, const Float3& _v) {
+  // http://www.neil.dantam.name/note/dantam-quaternion.pdf
+  // _v + 2.f * cross(_q.xyz, cross(_q.xyz, _v) + _q.w * _v);
+  const Float3 a(_q.y * _v.z - _q.z * _v.y + _v.x * _q.w,
+                 _q.z * _v.x - _q.x * _v.z + _v.y * _q.w,
+                 _q.x * _v.y - _q.y * _v.x + _v.z * _q.w);
+  const Float3 b(_q.y * a.z - _q.z * a.y, _q.z * a.x - _q.x * a.z,
+                 _q.x * a.y - _q.y * a.x);
+  return Float3(_v.x + b.x + b.x, _v.y + b.y + b.y, _v.z + b.z + b.z);
 }
 }  // namespace math
 }  // namespace ozz

@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -203,8 +203,8 @@ bool MemoryStream::Resize(size_t _size) {
         (MemoryStream::kBufferSizeIncrement & (kBufferSizeIncrement - 1)) == 0);
 
     alloc_size_ = ozz::math::Align(_size, kBufferSizeIncrement);
-    buffer_ =
-        ozz::memory::default_allocator()->Reallocate(buffer_, alloc_size_);
+    buffer_ = reinterpret_cast<char*>(
+        ozz::memory::default_allocator()->Reallocate(buffer_, alloc_size_, 4));
   }
   return _size == 0 || buffer_ != NULL;
 }

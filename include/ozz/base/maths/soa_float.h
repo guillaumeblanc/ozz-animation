@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -480,7 +480,7 @@ OZZ_INLINE SimdFloat4 Dot(const SoaFloat2& _a, const SoaFloat2& _b) {
 }
 
 // Returns the cross product of _a and _b.
-OZZ_INLINE SoaFloat3 CrossProduct(const SoaFloat3& _a, const SoaFloat3& _b) {
+OZZ_INLINE SoaFloat3 Cross(const SoaFloat3& _a, const SoaFloat3& _b) {
   const SoaFloat3 r = {_a.y * _b.z - _b.y * _a.z, _a.z * _b.x - _b.z * _a.x,
                        _a.x * _b.y - _b.x * _a.y};
   return r;

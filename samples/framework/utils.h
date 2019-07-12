@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -35,12 +35,19 @@ namespace ozz {
 // Forward declarations.
 namespace math {
 struct Box;
+struct Float3;
 struct Float4x4;
+struct SimdQuaternion;
+struct SoaTransform;
 }  // namespace math
 namespace animation {
 class Animation;
 class Skeleton;
 class FloatTrack;
+class Float2Track;
+class Float3Track;
+class Float4Track;
+class QuaternionTrack;
 namespace offline {
 struct RawAnimation;
 struct RawSkeleton;
@@ -126,6 +133,24 @@ void ComputeSkeletonBounds(const animation::Skeleton& _skeleton,
 void ComputePostureBounds(ozz::Range<const ozz::math::Float4x4> _matrices,
                           math::Box* _bound);
 
+// Allows to edit translation/rotation/scale of a skeleton pose.
+// This object should be used for a single skeleton, because it stores
+// open/close states from a frame to the next.
+class RawSkeletonEditor {
+ public:
+  // Returns true if skeleton was modified.
+  bool OnGui(animation::offline::RawSkeleton* _skeleton, ImGui* _im_gui);
+
+ private:
+  // Imgui Open/Close states for each skeleton joint.
+  ozz::Vector<bool>::Std open_close_states;
+};
+
+// Multiplies a single quaternion at a specific index in a SoA transform range.
+void MultiplySoATransformQuaternion(
+    int _index, const ozz::math::SimdQuaternion& _quat,
+    const ozz::Range<ozz::math::SoaTransform>& _transforms);
+
 // Loads a skeleton from an ozz archive file named _filename.
 // This function will fail and return false if the file cannot be opened or if
 // it is not a valid ozz skeleton archive. A valid skeleton archive can be
@@ -147,6 +172,10 @@ bool LoadAnimation(const char* _filename,
 // produced with ozz tools (fbx2ozz) or using ozz serialization API.
 // _filename and _track must be non-NULL.
 bool LoadTrack(const char* _filename, ozz::animation::FloatTrack* _track);
+bool LoadTrack(const char* _filename, ozz::animation::Float2Track* _track);
+bool LoadTrack(const char* _filename, ozz::animation::Float3Track* _track);
+bool LoadTrack(const char* _filename, ozz::animation::Float4Track* _track);
+bool LoadTrack(const char* _filename, ozz::animation::QuaternionTrack* _track);
 
 // Loads a sample::Mesh from an ozz archive file named _filename.
 // This function will fail and return false if the file cannot be opened or if
@@ -162,6 +191,24 @@ bool LoadMesh(const char* _filename, ozz::sample::Mesh* _mesh);
 // _filename and _mesh must be non-NULL.
 bool LoadMeshes(const char* _filename,
                 ozz::Vector<ozz::sample::Mesh>::Std* _meshes);
+
+// Intersect _mesh with the half-line extending from _ray_origin indefinitely in
+// _ray_direction only. Returns true if there was an intersection. Fills
+// intersection point and normal if provided, with the closest intersecting
+// triangle from _ray_origin. Only supports non-skinned, single part meshes.
+bool RayIntersectsMesh(const ozz::math::Float3& _ray_origin,
+                       const ozz::math::Float3& _ray_direction,
+                       const ozz::sample::Mesh& _mesh,
+                       ozz::math::Float3* _intersect,
+                       ozz::math::Float3* _normal);
+
+// Intersect _meshes with the half-line extending from _ray_origin indefinitely
+// in _ray_direction only. See RayIntersectsMesh.
+bool RayIntersectsMeshes(const ozz::math::Float3& _ray_origin,
+                         const ozz::math::Float3& _ray_direction,
+                         const ozz::Range<const ozz::sample::Mesh>& _meshes,
+                         ozz::math::Float3* _intersect,
+                         ozz::math::Float3* _normal);
 }  // namespace sample
 }  // namespace ozz
 #endif  // OZZ_SAMPLES_FRAMEWORK_UTILS_H_

@@ -14,8 +14,9 @@ set_target_properties(test_math PROPERTIES FOLDER "ozz/tests/base")
 add_executable(test_simd_math
   simd_int_math_tests.cc
   simd_float_math_tests.cc
-  simd_math_transpose_tests.cc
-  simd_float4x4_tests.cc)
+  simd_float4x4_tests.cc
+  simd_quaternion_math_tests.cc
+  simd_math_transpose_tests.cc)
 target_link_libraries(test_simd_math
   ozz_base
   gtest)

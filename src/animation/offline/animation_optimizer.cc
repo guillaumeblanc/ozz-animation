@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -53,112 +53,84 @@ AnimationOptimizer::AnimationOptimizer()
 
 namespace {
 
-struct JointSpec {
-  float length;
-  float scale;
-};
+struct HierarchyBuilder {
+  HierarchyBuilder(const RawAnimation* _animation, const Skeleton* _skeleton)
+      : lengths(_animation->tracks.size()),
+        scales(_animation->tracks.size()),
+        animation(_animation) {
+    assert(_animation->num_tracks() == _skeleton->num_joints());
 
-typedef ozz::Vector<JointSpec>::Std JointSpecs;
+    // Computes hierarchycal scale, iterating skeleton forward (root to
+    // leaf).
+    IterateJointsDF(
+        *_skeleton, 0,
+        IterateMemFun<HierarchyBuilder, &HierarchyBuilder::ComputeScaleForward>(
+            *this));
 
-JointSpec Iter(const Skeleton& _skeleton, uint16_t _joint,
-               const JointSpecs& _local_joint_specs,
-               float _parent_accumulated_scale,
-               JointSpecs* _hierarchical_joint_specs) {
-  JointSpec local_joint_spec = _local_joint_specs[_joint];
-  JointSpec& hierarchical_joint_spec = _hierarchical_joint_specs->at(_joint);
-  const Skeleton::JointProperties* properties =
-      _skeleton.joint_properties().begin;
-
-  // Applies parent's scale to this joint.
-  uint16_t parent = properties[_joint].parent;
-  if (parent != Skeleton::kNoParentIndex) {
-    local_joint_spec.length *= _parent_accumulated_scale;
-    local_joint_spec.scale *= _parent_accumulated_scale;
+    // Computes hierarchycal length, iterating skeleton backbard (leaf to root).
+    IterateJointsDFReverse(
+        *_skeleton,
+        IterateMemFun<HierarchyBuilder,
+                      &HierarchyBuilder::ComputeLengthBackward>(*this));
   }
 
-  if (properties[_joint].is_leaf) {
-    // Set leaf length to 0, as track's own tolerance checks are enough for a
-    // leaf.
-    hierarchical_joint_spec.length = 0.f;
-    hierarchical_joint_spec.scale = 1.f;
-  } else {
-    // Find first child.
-    uint16_t child = _joint + 1;
-    for (; child < _skeleton.num_joints() && properties[child].parent != _joint;
-         ++child) {
-    }
-    assert(properties[child].parent == _joint);
+  // Defines the length of a joint hierarchy (of all child).
+  ozz::Vector<float>::Std lengths;
 
-    // Now iterate childs.
-    for (; child < _skeleton.num_joints() && properties[child].parent == _joint;
-         ++child) {
-      // Entering each child.
-      const JointSpec child_spec =
-          Iter(_skeleton, child, _local_joint_specs, local_joint_spec.scale,
-               _hierarchical_joint_specs);
+  // Defines the scale of a joint hierarchy (from all parents).
+  ozz::Vector<float>::Std scales;
 
-      // Accumulated each child specs to this joint.
-      hierarchical_joint_spec.length =
-          math::Max(hierarchical_joint_spec.length, child_spec.length);
-      hierarchical_joint_spec.scale =
-          math::Max(hierarchical_joint_spec.scale, child_spec.scale);
-    }
-  }
-
-  // Returns accumulated specs for this joint.
-  const JointSpec spec = {
-      hierarchical_joint_spec.length + local_joint_spec.length,
-      hierarchical_joint_spec.scale * _local_joint_specs[_joint].scale};
-  return spec;
-}
-
-void BuildHierarchicalSpecs(const RawAnimation& _animation,
-                            const Skeleton& _skeleton,
-                            JointSpecs* _hierarchical_joint_specs) {
-  assert(_animation.num_tracks() == _skeleton.num_joints());
-
-  // Early out if no joint.
-  if (_animation.num_tracks() == 0) {
-    return;
-  }
-
-  // Extracts maximum translations and scales for each track.
-  JointSpecs local_joint_specs;
-  local_joint_specs.resize(_animation.tracks.size());
-  _hierarchical_joint_specs->resize(_animation.tracks.size());
-
-  for (size_t i = 0; i < _animation.tracks.size(); ++i) {
-    const RawAnimation::JointTrack& track = _animation.tracks[i];
-
-    float max_length = 0.f;
-    for (size_t j = 0; j < track.translations.size(); ++j) {
-      max_length =
-          math::Max(max_length, LengthSqr(track.translations[j].value));
-    }
-    local_joint_specs[i].length = std::sqrt(max_length);
-
+ private:
+  // Extracts maximum translations and scales for each track/joint.
+  void ComputeScaleForward(int _joint, int _parent) {
+    // Compute joint maximum animated scale.
     float max_scale = 0.f;
+    const RawAnimation::JointTrack& track = animation->tracks[_joint];
     if (track.scales.size() != 0) {
+      float max_scale_sq = 0.f;
       for (size_t j = 0; j < track.scales.size(); ++j) {
-        max_scale = math::Max(max_scale, track.scales[j].value.x);
-        max_scale = math::Max(max_scale, track.scales[j].value.y);
-        max_scale = math::Max(max_scale, track.scales[j].value.z);
+        max_scale_sq = math::Max(max_scale, LengthSqr(track.scales[j].value));
       }
+      max_scale = std::sqrt(max_scale_sq);
     } else {
-      max_scale = 1.f;
+      max_scale = 1.f;  // Default scale.
     }
-    local_joint_specs[i].scale = max_scale;
+
+    // Accumulate with parent scale.
+    scales[_joint] = max_scale;
+    if (_parent != Skeleton::kNoParent) {
+      scales[_joint] *= scales[_parent];
+    }
   }
 
-  // Iterates all skeleton roots.
-  for (uint16_t root = 0;
-       root < _skeleton.num_joints() &&
-       _skeleton.joint_properties()[root].parent == Skeleton::kNoParentIndex;
-       ++root) {
-    // Entering each root.
-    Iter(_skeleton, root, local_joint_specs, 1.f, _hierarchical_joint_specs);
+  // Propagate child translations back to the root.
+  void ComputeLengthBackward(int _joint, int _parent) {
+    // Compute joint maximum animated length.
+    float max_length_sq = 0.f;
+    const RawAnimation::JointTrack& track = animation->tracks[_joint];
+    for (size_t j = 0; j < track.translations.size(); ++j) {
+      max_length_sq =
+          math::Max(max_length_sq, LengthSqr(track.translations[j].value));
+    }
+    float max_length = std::sqrt(max_length_sq);
+
+    // Set parent hierarchical spec to its most impacting child.
+    if (_parent != Skeleton::kNoParent) {
+      const float joint_hierarchy_length =
+          lengths[_joint] + max_length * scales[_parent];
+      lengths[_parent] = math::Max(lengths[_parent], joint_hierarchy_length);
+    }
+
+    // Leaf length is set to 0 during vector initialization.
   }
-}
+
+  // Disables copy and assignment.
+  HierarchyBuilder(const HierarchyBuilder&);
+  void operator=(const HierarchyBuilder&);
+
+  // Targetted animation.
+  const RawAnimation* animation;
+};
 
 // Copy _src keys to _dest but except the ones that can be interpolated.
 template <typename _RawTrack, typename _Comparator, typename _Lerp>
@@ -268,8 +240,7 @@ bool AnimationOptimizer::operator()(const RawAnimation& _input,
   }
 
   // First computes bone lengths, that will be used when filtering.
-  JointSpecs hierarchical_joint_specs;
-  BuildHierarchicalSpecs(_input, _skeleton, &hierarchical_joint_specs);
+  HierarchyBuilder specs(&_input, &_skeleton);
 
   // Rebuilds output animation.
   _output->name = _input.name;
@@ -277,15 +248,22 @@ bool AnimationOptimizer::operator()(const RawAnimation& _input,
   _output->tracks.resize(_input.tracks.size());
 
   for (size_t i = 0; i < _input.tracks.size(); ++i) {
-    Filter(_input.tracks[i].translations, CompareTranslation, LerpTranslation,
-           translation_tolerance, hierarchical_tolerance,
-           hierarchical_joint_specs[i].scale, &_output->tracks[i].translations);
-    Filter(_input.tracks[i].rotations, CompareRotation, LerpRotation,
-           rotation_tolerance, hierarchical_tolerance,
-           hierarchical_joint_specs[i].length, &_output->tracks[i].rotations);
-    Filter(_input.tracks[i].scales, CompareScale, LerpScale, scale_tolerance,
-           hierarchical_tolerance, hierarchical_joint_specs[i].length,
-           &_output->tracks[i].scales);
+    const RawAnimation::JointTrack& input_track = _input.tracks[i];
+    RawAnimation::JointTrack& output_track = _output->tracks[i];
+
+    const float hierarchical_length = specs.lengths[i];
+    const int parent = _skeleton.joint_parents()[i];
+    const float hierarchical_scale =
+        (parent != Skeleton::kNoParent) ? specs.scales[parent] : 1.f;
+
+    Filter(input_track.translations, CompareTranslation, LerpTranslation,
+           translation_tolerance, hierarchical_tolerance, hierarchical_scale,
+           &output_track.translations);
+    Filter(input_track.rotations, CompareRotation, LerpRotation,
+           rotation_tolerance, hierarchical_tolerance, hierarchical_length,
+           &output_track.rotations);
+    Filter(input_track.scales, CompareScale, LerpScale, scale_tolerance,
+           hierarchical_tolerance, hierarchical_length, &output_track.scales);
   }
 
   // Output animation is always valid though.

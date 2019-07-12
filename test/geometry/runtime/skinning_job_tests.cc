@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -29,10 +29,10 @@
 
 #include "gtest/gtest.h"
 
+#include "ozz/base/containers/vector.h"
 #include "ozz/base/log.h"
 #include "ozz/base/maths/gtest_math_helper.h"
 #include "ozz/base/maths/simd_math.h"
-#include "ozz/base/memory/allocator.h"
 
 using ozz::geometry::SkinningJob;
 
@@ -1133,16 +1133,13 @@ TEST(Benchmark, SkinningJob) {
   const int joint_count = 100;
 
   // Prepares matrices.
-  ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
-  ozz::Range<ozz::math::Float4x4> matrices =
-      allocator->AllocateRange<ozz::math::Float4x4>(joint_count);
+  ozz::Vector<ozz::math::Float4x4>::Std matrices(joint_count);
   for (int i = 0; i < joint_count; ++i) {
     matrices[i] = ozz::math::Float4x4::identity();
   }
 
   // Prepares vertices.
-  ozz::Range<BenchVertexIn> in_vertices =
-      allocator->AllocateRange<BenchVertexIn>(vertex_count + 1);
+  ozz::Vector<BenchVertexIn>::Std in_vertices(vertex_count + 1);
   for (int i = 0; i < vertex_count; ++i) {
     BenchVertexIn& vertex = in_vertices[i];
     for (size_t j = 0; j < OZZ_ARRAY_SIZE(vertex.indices); ++j) {
@@ -1159,24 +1156,29 @@ TEST(Benchmark, SkinningJob) {
       vertex.tangents[j] = cpnt;
     }
   }
-  ozz::Range<BenchVertexOut> out_vertices =
-      allocator->AllocateRange<BenchVertexOut>(vertex_count + 1);
+  ozz::Vector<BenchVertexOut>::Std out_vertices(vertex_count + 1);
+
+  const float* in_vertices_end =
+      reinterpret_cast<const float*>(array_end(in_vertices));
+  const float* out_vertices_end =
+      reinterpret_cast<const float*>(array_end(out_vertices));
 
   SkinningJob base_job;
   base_job.vertex_count = vertex_count;
-  base_job.joint_matrices = matrices;
-  base_job.joint_indices.begin = in_vertices.begin->indices;
+  base_job.joint_matrices = make_range(matrices);
+  base_job.joint_indices.begin = array_begin(in_vertices)->indices;
   base_job.joint_indices.end =
-      reinterpret_cast<const uint16_t*>(in_vertices.end);
+      reinterpret_cast<const uint16_t*>(array_end(in_vertices));
+  ;
   base_job.joint_indices_stride = sizeof(BenchVertexIn);
-  base_job.joint_weights.begin = in_vertices.begin->weights;
-  base_job.joint_weights.end = reinterpret_cast<const float*>(in_vertices.end);
+  base_job.joint_weights.begin = array_begin(in_vertices)->weights;
+  base_job.joint_weights.end = in_vertices_end;
   base_job.joint_weights_stride = sizeof(BenchVertexIn);
-  base_job.in_positions.begin = in_vertices.begin->pos;
-  base_job.in_positions.end = reinterpret_cast<const float*>(in_vertices.end);
+  base_job.in_positions.begin = array_begin(in_vertices)->pos;
+  base_job.in_positions.end = in_vertices_end;
   base_job.in_positions_stride = sizeof(BenchVertexIn);
-  base_job.out_positions.begin = out_vertices.begin->pos;
-  base_job.out_positions.end = reinterpret_cast<const float*>(out_vertices.end);
+  base_job.out_positions.begin = array_begin(out_vertices)->pos;
+  base_job.out_positions.end = out_vertices_end;
   base_job.out_positions_stride = sizeof(BenchVertexOut);
 
   for (int i = 1; i <= 8; ++i) {
@@ -1188,11 +1190,11 @@ TEST(Benchmark, SkinningJob) {
 
     // PNi
     {
-      job.in_normals.begin = in_vertices.begin->normals;
-      job.in_normals.end = reinterpret_cast<const float*>(in_vertices.end);
+      job.in_normals.begin = array_begin(in_vertices)->normals;
+      job.in_normals.end = in_vertices_end;
       job.in_normals_stride = sizeof(BenchVertexIn);
-      job.out_normals.begin = out_vertices.begin->normals;
-      job.out_normals.end = reinterpret_cast<const float*>(out_vertices.end);
+      job.out_normals.begin = array_begin(out_vertices)->normals;
+      job.out_normals.end = out_vertices_end;
       job.out_normals_stride = sizeof(BenchVertexOut);
 
       EXPECT_TRUE(job.Run());
@@ -1200,12 +1202,12 @@ TEST(Benchmark, SkinningJob) {
 
     // PitNi
     {
-      job.joint_inverse_transpose_matrices = matrices;
-      job.in_normals.begin = in_vertices.begin->normals;
-      job.in_normals.end = reinterpret_cast<const float*>(in_vertices.end);
+      job.joint_inverse_transpose_matrices = make_range(matrices);
+      job.in_normals.begin = array_begin(in_vertices)->normals;
+      job.in_normals.end = in_vertices_end;
       job.in_normals_stride = sizeof(BenchVertexIn);
-      job.out_normals.begin = out_vertices.begin->normals;
-      job.out_normals.end = reinterpret_cast<const float*>(out_vertices.end);
+      job.out_normals.begin = array_begin(out_vertices)->normals;
+      job.out_normals.end = out_vertices_end;
       job.out_normals_stride = sizeof(BenchVertexOut);
 
       EXPECT_TRUE(job.Run());
@@ -1213,11 +1215,11 @@ TEST(Benchmark, SkinningJob) {
 
     // PNTi
     {
-      job.in_tangents.begin = in_vertices.begin->tangents;
-      job.in_tangents.end = reinterpret_cast<const float*>(in_vertices.end);
+      job.in_tangents.begin = array_begin(in_vertices)->tangents;
+      job.in_tangents.end = in_vertices_end;
       job.in_tangents_stride = sizeof(BenchVertexIn);
-      job.out_tangents.begin = out_vertices.begin->tangents;
-      job.out_tangents.end = reinterpret_cast<const float*>(out_vertices.end);
+      job.out_tangents.begin = array_begin(out_vertices)->tangents;
+      job.out_tangents.end = out_vertices_end;
       job.out_tangents_stride = sizeof(BenchVertexOut);
 
       EXPECT_TRUE(job.Run());
@@ -1225,19 +1227,15 @@ TEST(Benchmark, SkinningJob) {
 
     // PitNTi
     {
-      job.joint_inverse_transpose_matrices = matrices;
-      job.in_tangents.begin = in_vertices.begin->tangents;
-      job.in_tangents.end = reinterpret_cast<const float*>(in_vertices.end);
+      job.joint_inverse_transpose_matrices = make_range(matrices);
+      job.in_tangents.begin = array_begin(in_vertices)->tangents;
+      job.in_tangents.end = in_vertices_end;
       job.in_tangents_stride = sizeof(BenchVertexIn);
-      job.out_tangents.begin = out_vertices.begin->tangents;
-      job.out_tangents.end = reinterpret_cast<const float*>(out_vertices.end);
+      job.out_tangents.begin = array_begin(out_vertices)->tangents;
+      job.out_tangents.end = out_vertices_end;
       job.out_tangents_stride = sizeof(BenchVertexOut);
 
       EXPECT_TRUE(job.Run());
     }
   }
-
-  allocator->Deallocate(matrices);
-  allocator->Deallocate(in_vertices);
-  allocator->Deallocate(out_vertices);
 }

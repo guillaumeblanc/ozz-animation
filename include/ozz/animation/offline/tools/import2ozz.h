@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -25,9 +25,10 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#ifndef OZZ_OZZ_ANIMATION_OFFLINE_TOOLS_import2ozz_H_
-#define OZZ_OZZ_ANIMATION_OFFLINE_TOOLS_import2ozz_H_
+#ifndef OZZ_OZZ_ANIMATION_OFFLINE_TOOLS_IMPORT2OZZ_H_
+#define OZZ_OZZ_ANIMATION_OFFLINE_TOOLS_IMPORT2OZZ_H_
 
+#include "ozz/base/containers/string.h"
 #include "ozz/base/containers/vector.h"
 
 #include "ozz/animation/offline/raw_animation.h"
@@ -99,7 +100,8 @@ class OzzImporter {
   // joint transforms.
   struct NodeProperty {
     ozz::String::Std name;
-    enum Type { kFloat1 = 1, kFloat2 = 2, kFloat3 = 3, kFloat4 = 4 };
+
+    enum Type { kFloat1, kFloat2, kFloat3, kFloat4, kPoint, kVector };
     Type type;
   };
 
@@ -111,19 +113,23 @@ class OzzImporter {
   // _animation_name/_node_name/_track_name.
   // Returning false will report and error.
   virtual bool Import(const char* _animation_name, const char* _node_name,
-                      const char* _track_name, float _sampling_rate,
-                      RawFloatTrack* _track) = 0;
+                      const char* _track_name, NodeProperty::Type _track_type,
+                      float _sampling_rate, RawFloatTrack* _track) = 0;
   virtual bool Import(const char* _animation_name, const char* _node_name,
-                      const char* _track_name, float _sampling_rate,
-                      RawFloat2Track* _track) = 0;
+                      const char* _track_name, NodeProperty::Type _track_type,
+                      float _sampling_rate, RawFloat2Track* _track) = 0;
   virtual bool Import(const char* _animation_name, const char* _node_name,
-                      const char* _track_name, float _sampling_rate,
-                      RawFloat3Track* _track) = 0;
+                      const char* _track_name, NodeProperty::Type _track_type,
+                      float _sampling_rate, RawFloat3Track* _track) = 0;
   virtual bool Import(const char* _animation_name, const char* _node_name,
-                      const char* _track_name, float _sampling_rate,
-                      RawFloat4Track* _track) = 0;
+                      const char* _track_name, NodeProperty::Type _track_type,
+                      float _sampling_rate, RawFloat4Track* _track) = 0;
+
+  // Build a filename from a wildcard string.
+  ozz::String::Std BuildFilename(const char* _filename,
+                                 const char* _data_name) const;
 };
 }  // namespace offline
 }  // namespace animation
 }  // namespace ozz
-#endif  // OZZ_OZZ_ANIMATION_OFFLINE_TOOLS_import2ozz_H_
+#endif  // OZZ_OZZ_ANIMATION_OFFLINE_TOOLS_IMPORT2OZZ_H_

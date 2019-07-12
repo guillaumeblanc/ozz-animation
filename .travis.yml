@@ -15,6 +15,9 @@ matrix:
   # mac os
   # Default mac os clang build
   - os: osx
+    osx_image: xcode10
+    compiler: clang
+  - os: osx
     compiler: clang
   - os: osx
     compiler: clang
@@ -32,17 +35,11 @@ matrix:
     - env_cmake_configuration=Release
 
   # Linux
-  # Default linux gcc
-  - os: linux
-    compiler: gcc
-  # Default linux gcc
-  - os: linux
-    compiler: gcc
-    env:
-    - env_cmake_configuration=Release
-  # Default linux clang
+  # Default linux clang debug
   - os: linux
     compiler: clang
+    env:
+    - env_cmake_configuration=Debug
   # Default linux release clang
   - os: linux
     compiler: clang
@@ -69,7 +66,15 @@ matrix:
   - os: linux
     compiler: clang
     env:
-    - env_build_simdref=1
+    - env_build_tools=0
+  - os: linux
+    compiler: clang
+    env:
+    - env_build_postfix=0
+  - os: linux
+    compiler: clang
+    env:
+    - env_build_simd_ref=1
   - os: linux
     compiler: clang
     env:
@@ -100,8 +105,18 @@ matrix:
     env:
     - env_src_root="../test/sub/"
 
-  # Newer compilers
-  # gcc
+  # Default linux gcc debug
+  - os: linux
+    compiler: gcc
+    env:
+    - env_cmake_configuration=Debug
+  # Default linux gcc release
+  - os: linux
+    compiler: gcc
+    env:
+    - env_cmake_configuration=Release
+
+  # Newer gcc
   - os: linux
     compiler: gcc-4.9
     env: 
@@ -135,18 +150,112 @@ matrix:
         - ubuntu-toolchain-r-test
         packages:
         - g++-6
-  # clang
   - os: linux
-    compiler: clang-3.8
-    env:
-    - env_cmake_cxx_compiler=clang++-3.8
-    - env_cmake_c_compiler=clang-3.8
+    compiler: gcc-7
+    env: 
+    - env_cmake_cxx_compiler=g++-7
+    - env_cmake_c_compiler=gcc-7
     addons:
       apt:
         sources:
-        - llvm-toolchain-precise-3.8
+        - ubuntu-toolchain-r-test
         packages:
-        - clang-3.8
+        - g++-7
+  - os: linux
+    compiler: gcc-8
+    env: 
+    - env_cmake_cxx_compiler=g++-8
+    - env_cmake_c_compiler=gcc-8
+    addons:
+      apt:
+        sources:
+        - ubuntu-toolchain-r-test
+        packages:
+        - g++-8
+
+  # Newer clang
+  - os: linux
+    compiler: clang-3.5
+    env:
+    - env_cmake_cxx_compiler=clang++-3.5
+    - env_cmake_c_compiler=clang-3.5
+    addons:
+      apt:
+        sources:
+        - ubuntu-toolchain-r-test
+        - llvm-toolchain-precise-3.5
+        packages:
+        - clang-3.5
+  - os: linux
+    compiler: clang-3.9
+    env:
+    - env_cmake_cxx_compiler=clang++-3.9
+    - env_cmake_c_compiler=clang-3.9
+    addons:
+      apt:
+        sources:
+        - ubuntu-toolchain-r-test
+        - llvm-toolchain-precise-3.9
+        packages:
+        - clang-3.9
+  - os: linux
+    compiler: clang-4.0
+    env:
+    - env_cmake_cxx_compiler=clang++-4.0
+    - env_cmake_c_compiler=clang-4.0
+    addons:
+      apt:
+        sources:
+        - ubuntu-toolchain-r-test
+        - llvm-toolchain-trusty-4.0
+        packages:
+        - clang-4.0
+  - os: linux
+    compiler: clang-5.0
+    env:
+    - env_cmake_cxx_compiler=clang++-5.0
+    - env_cmake_c_compiler=clang-5.0
+    addons:
+      apt:
+        sources:
+        - ubuntu-toolchain-r-test
+        - llvm-toolchain-trusty-5.0
+        packages:
+        - clang-5.0
+  - os: linux
+    compiler: clang-6.0
+    env:
+    - env_cmake_cxx_compiler=clang++-6.0
+    - env_cmake_c_compiler=clang-6.0
+    addons:
+      apt:
+        sources:
+        - ubuntu-toolchain-r-test
+        - llvm-toolchain-trusty-6.0
+        packages:
+        - clang-6.0
+  - os: linux
+    compiler: clang-7
+    env:
+    - env_cmake_cxx_compiler=clang++-7
+    - env_cmake_c_compiler=clang-7
+    addons:
+      apt:
+        sources:
+        - ubuntu-toolchain-r-test
+        - llvm-toolchain-trusty-7
+        packages:
+        - clang-7
+        
+  # older fbx sdk
+  - os: linux
+    compiler: gcc
+    env:
+      - fbx_download=http://download.autodesk.com/us/fbx/2017/2017.1/fbx20171_fbxsdk_linux.tar.gz
+  - os: osx
+    compiler: clang
+    env:
+      - fbx_download=http://download.autodesk.com/us/fbx/2017/2017.1/fbx20171_fbxsdk_clang_mac.pkg.tgz
 
 before_install:
 - echo before_install----------------------------------------------------------
@@ -158,20 +267,34 @@ install:
     sudo apt-get install libgl1-mesa-dev libglu1-mesa-dev;
   fi
 # Download and install fbx sdk
+# "|| true" because 2019 sdk would return code 130 when reading the readme
+# chmod because fbx2019 will install with 700
 - if [[ $TRAVIS_OS_NAME == "linux" ]]; then
+    if [ -z "$fbx_download" ]; then
+      FBX_DOWNLOAD=${fbx_download:-"http://www.autodesk.com/content/dam/autodesk/www/adn/fbx/20192/fbx20192_fbxsdk_linux.tar.gz"};
+    else
+      FBX_DOWNLOAD="$fbx_download";
+    fi;
     mkdir fbx;
     cd fbx;
-    sudo wget http://download.autodesk.com/us/fbx/2017/2017.1/fbx20171_fbxsdk_linux.tar.gz;
-    sudo tar -xf "fbx20171_fbxsdk_linux.tar.gz";
-    yes yes | sudo ./fbx20171_fbxsdk_linux /usr/local;
+    sudo wget $FBX_DOWNLOAD -O fbx.tar.gz;
+    sudo tar -xf "fbx.tar.gz";
+    (yes yes | sudo ./*_fbxsdk_linux /usr/local) || true;
+    sudo chmod -R 755 /usr/local/lib;
+    sudo chmod -R 755 /usr/local/include;
     cd ..;
   fi
 - if [[ $TRAVIS_OS_NAME == "osx" ]]; then
+    if [ -z "$fbx_download" ]; then
+      FBX_DOWNLOAD=${fbx_download:-"http://www.autodesk.com/content/dam/autodesk/www/adn/fbx/20192/fbx20192_fbxsdk_clang_mac.pkg.tgz"};
+    else
+      FBX_DOWNLOAD="$fbx_download";
+    fi;
     mkdir fbx;
     cd fbx;
-    sudo wget http://download.autodesk.com/us/fbx/2017/2017.1/fbx20171_fbxsdk_clang_mac.pkg.tgz;
-    sudo tar -xf "fbx20171_fbxsdk_clang_mac.pkg.tgz";
-    sudo installer -pkg fbx20171_fbxsdk_clang_macos.pkg -target /;
+    sudo wget $FBX_DOWNLOAD -O fbx.tgz;
+    sudo tar -xf "fbx.tgz";
+    sudo installer -pkg *_fbxsdk_clang_macos.pkg -target /;
     cd ..;
   fi
 # Download and install emscripten sdk  
@@ -198,6 +321,8 @@ before_script:
 - if [[ -z $env_build_fbx ]]; then export env_build_fbx=1; fi
 - if [[ -z $env_build_data ]]; then export env_build_data=1; fi
 - if [[ -z $env_build_howtos ]]; then export env_build_howtos=1; fi
+- if [[ -z $env_build_tools ]]; then export env_build_tools=1; fi
+- if [[ -z $env_build_postfix ]]; then export env_build_postfix=1; fi
 - if [[ -z $env_build_samples ]]; then export env_build_samples=1; fi
 - if [[ -z $env_build_simd_ref ]]; then export env_build_simd_ref=0; fi
 - if [[ -z $env_build_tests ]]; then export env_build_tests=1; fi
@@ -218,7 +343,7 @@ script:
 - mkdir build
 - cd build
 - echo $env_cmake_toolchain
-- cmake -G "$env_cmake_generator" $env_cmake_toolchain -DCMAKE_CXX_COMPILER=$env_cmake_cxx_compiler -DCMAKE_C_COMPILER=$env_cmake_c_compiler -DCMAKE_BUILD_TYPE=$env_cmake_configuration -Dozz_build_cpp11=$env_build_cpp11 -Dozz_build_fbx=$env_build_fbx -Dozz_build_data=$env_build_data -Dozz_build_howtos=$env_build_howtos -Dozz_build_samples=$env_build_samples -Dozz_build_simd_ref=$env_build_simd_ref -Dozz_build_tests=$env_build_tests $env_src_root
+- cmake -G "$env_cmake_generator" $env_cmake_toolchain -DCMAKE_CXX_COMPILER=$env_cmake_cxx_compiler -DCMAKE_C_COMPILER=$env_cmake_c_compiler -DCMAKE_BUILD_TYPE=$env_cmake_configuration -Dozz_build_cpp11=$env_build_cpp11 -Dozz_build_fbx=$env_build_fbx -Dozz_build_data=$env_build_data -Dozz_build_howtos=$env_build_howtos -Dozz_build_samples=$env_build_samples -Dozz_build_postfix=$env_build_postfix -Dozz_build_tools=$env_build_tools -Dozz_build_simd_ref=$env_build_simd_ref -Dozz_build_tests=$env_build_tests $env_src_root
 # Build
 - cmake --build ./ --config $env_cmake_configuration --use-stderr -- $env_cmake_generator_specific
 # Test

@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -50,8 +50,10 @@ Profiler::~Profiler() {
 
 Record::Record(int _max_records)
     : max_records_(_max_records < 1 ? 1 : _max_records),
-      records_end_(memory::default_allocator()->Allocate<float>(_max_records) +
-                   max_records_),
+      records_end_(
+          reinterpret_cast<float*>(memory::default_allocator()->Allocate(
+              _max_records * sizeof(float), OZZ_ALIGN_OF(float))) +
+          max_records_),
       records_begin_(records_end_),
       cursor_(records_end_) {}
 

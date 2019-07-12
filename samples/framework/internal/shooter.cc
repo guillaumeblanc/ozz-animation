@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -153,6 +153,9 @@ bool Shooter::Process() {
 
     // Processes this shot.
     GL(BindBuffer(GL_PIXEL_PACK_BUFFER, shot.pbo));
+#ifdef EMSCRIPTEN
+    (void)shot_number_;
+#else   // EMSCRIPTEN
     const void* pixels = glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
     if (pixels) {
       char name[16];
@@ -164,6 +167,7 @@ bool Shooter::Process() {
       GL(UnmapBuffer(GL_PIXEL_PACK_BUFFER));
     }
     GL(BindBuffer(GL_PIXEL_PACK_BUFFER, 0));
+#endif  // EMSCRIPTEN
   }
   return true;
 }

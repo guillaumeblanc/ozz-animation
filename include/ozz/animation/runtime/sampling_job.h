@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -102,13 +102,22 @@ struct InterpSoaScale;
 // frame coherency of animation sampling.
 class SamplingCache {
  public:
-  // Construct a cache that can be used to sample any animation with at most
-  // _max_tracks tracks. _num_tracks is internally aligned to a multiple of
-  // soa size.
-  SamplingCache(int _max_tracks);
+  // Constructs an empty cache. The cache needs to be resized with the
+  // appropriate number of tracks before it can be used with a SamplingJob.
+  SamplingCache();
 
-  // Deallocate cache.
+  // Constructs a cache that can be used to sample any animation with at most
+  // _max_tracks tracks. _num_tracks is internally aligned to a multiple of
+  // soa size, which means max_tracks() can return a different (but bigger)
+  // value than _max_tracks.
+  explicit SamplingCache(int _max_tracks);
+
+  // Deallocates cache.
   ~SamplingCache();
+
+  // Resize the number of joints that the cache can support.
+  // This also implicitly invalidate the cache.
+  void Resize(int _max_tracks);
 
   // Invalidate the cache.
   // The SamplingJob automatically invalidates a cache when required
@@ -163,9 +172,9 @@ class SamplingCache {
   int scale_cursor_;
 
   // Outdated soa entries. One bit per soa entry (32 joints per byte).
-  unsigned char* outdated_translations_;
-  unsigned char* outdated_rotations_;
-  unsigned char* outdated_scales_;
+  uint8_t* outdated_translations_;
+  uint8_t* outdated_rotations_;
+  uint8_t* outdated_scales_;
 };
 }  // namespace animation
 }  // namespace ozz

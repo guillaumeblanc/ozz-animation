@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -31,7 +31,7 @@
 
 #include "ozz/base/maths/math_ex.h"
 
-TEST(Malloc, Memory) {
+TEST(Allocate, Memory) {
   void* p = ozz::memory::default_allocator()->Allocate(12, 1024);
   EXPECT_TRUE(p != NULL);
   EXPECT_TRUE(ozz::math::IsAligned(p, 1024));
@@ -47,28 +47,6 @@ TEST(Malloc, Memory) {
   memset(p, 0, 46);
 
   ozz::memory::default_allocator()->Deallocate(p);
-}
-
-TEST(Range, Memory) {
-  ozz::Range<int> range =
-      ozz::memory::default_allocator()->AllocateRange<int>(12);
-  EXPECT_TRUE(range.begin != NULL);
-  EXPECT_EQ(range.end, range.begin + 12);
-
-  // Fills allocated memory.
-  memset(range.begin, 0, sizeof(int) * 12);
-
-  ozz::memory::default_allocator()->Reallocate(range, 46);
-  EXPECT_TRUE(range.begin != NULL);
-  EXPECT_EQ(range.end, range.begin + 46);
-
-  // Fills allocated memory.
-  memset(range.begin, 0, sizeof(int) * 46);
-
-  ozz::memory::default_allocator()->Deallocate(range);
-
-  EXPECT_TRUE(range.begin == NULL);
-  EXPECT_TRUE(range.end == NULL);
 }
 
 TEST(MallocCompliance, Memory) {
@@ -127,22 +105,6 @@ struct AlignedInts {
   static const int array_size = 517;
   OZZ_ALIGN(64) int array[array_size];
 };
-
-TEST(TypedMalloc, Memory) {
-  AlignedInts* p = ozz::memory::default_allocator()->Allocate<AlignedInts>(3);
-  EXPECT_TRUE(p != NULL);
-  EXPECT_TRUE(ozz::math::IsAligned(p, OZZ_ALIGN_OF(AlignedInts)));
-
-  memset(p, 0, sizeof(AlignedInts) * 3);
-
-  p = ozz::memory::default_allocator()->Reallocate<AlignedInts>(p, 46);
-  EXPECT_TRUE(p != NULL);
-  EXPECT_TRUE(ozz::math::IsAligned(p, OZZ_ALIGN_OF(AlignedInts)));
-
-  memset(p, 0, sizeof(AlignedInts) * 46);
-
-  ozz::memory::default_allocator()->Deallocate(p);
-}
 
 TEST(NewDelete, Memory) {
   AlignedInts* ai0 = ozz::memory::default_allocator()->New<AlignedInts>();

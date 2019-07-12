@@ -33,6 +33,7 @@ if(EMSCRIPTEN)
   install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/sample_optimize.html
     ${CMAKE_CURRENT_BINARY_DIR}/sample_optimize.js
+    ${CMAKE_CURRENT_BINARY_DIR}/sample_optimize.wasm
     DESTINATION bin/samples/optimize)
 else()
   install(TARGETS sample_optimize DESTINATION bin/samples/optimize)

@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -33,8 +33,6 @@
 #include "ozz/base/maths/gtest_math_helper.h"
 
 using ozz::math::SimdFloat4;
-
-// clang-format off
 
 TEST(TransposeFloat, ozz_simd_math) {
   const SimdFloat4 src[4] = {

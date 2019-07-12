@@ -34,6 +34,7 @@ if(EMSCRIPTEN)
   install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/sample_baked.html
     ${CMAKE_CURRENT_BINARY_DIR}/sample_baked.js
+    ${CMAKE_CURRENT_BINARY_DIR}/sample_baked.wasm
     DESTINATION bin/samples/baked)
 else()
   install(TARGETS sample_baked DESTINATION bin/samples/baked)

@@ -9,14 +9,17 @@ add_library(ozz_animation_fbx STATIC
   fbx_animation.cc
   ${PROJECT_SOURCE_DIR}/include/ozz/animation/offline/fbx/fbx_skeleton.h
   fbx_skeleton.cc)
-target_include_directories(ozz_animation_fbx PUBLIC
-  $<BUILD_INTERFACE:${FBX_INCLUDE_DIRS}>)
+target_include_directories(ozz_animation_fbx
+  PUBLIC $<BUILD_INTERFACE:${FBX_INCLUDE_DIRS}>)
 target_link_libraries(ozz_animation_fbx
   ozz_animation_offline
   debug ${FBX_LIBRARIES_DEBUG}
   optimized ${FBX_LIBRARIES})
-set_target_properties(ozz_animation_fbx
-  PROPERTIES FOLDER "ozz/tools")
+target_compile_options(ozz_animation_fbx
+  PUBLIC $<$<BOOL:${W_NULL_DEREFERENCE}>:-Wno-null-dereference>
+  PUBLIC $<$<BOOL:${W_PRAGMA_PACK}>:-Wno-pragma-pack>)
+target_compile_features(ozz_animation_fbx PUBLIC cxx_std_11)
+set_target_properties(ozz_animation_fbx PROPERTIES FOLDER "ozz/tools")
 
 install(TARGETS ozz_animation_fbx DESTINATION lib)
 
@@ -53,12 +56,12 @@ set(build_configurations
   # Versioning
   "/fbx/alain/skeleton.fbx\;{\"skeleton\":{\"filename\":\"versioning/raw_skeleton_v1_le.ozz\",\"import\":{\"enable\":true,\"raw\":true}},\"animations\":[]}\;output:versioning/raw_skeleton_v1_le.ozz\;option:--endian=little"
   "/fbx/alain/skeleton.fbx\;{\"skeleton\":{\"filename\":\"versioning/raw_skeleton_v1_be.ozz\",\"import\":{\"enable\":true,\"raw\":true}},\"animations\":[]}\;output:versioning/raw_skeleton_v1_be.ozz\;option:--endian=big"
-  "/fbx/alain/skeleton.fbx\;{\"skeleton\":{\"filename\":\"versioning/skeleton_v1_le.ozz\",\"import\":{\"enable\":true}},\"animations\":[]}\;output:versioning/skeleton_v1_le.ozz\;option:--endian=little"
-  "/fbx/alain/skeleton.fbx\;{\"skeleton\":{\"filename\":\"versioning/skeleton_v1_be.ozz\",\"import\":{\"enable\":true}},\"animations\":[]}\;output:versioning/skeleton_v1_be.ozz\;option:--endian=big"
-  "/fbx/alain/run.fbx\;{\"skeleton\":{\"filename\":\"alain_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"versioning/raw_animation_v2_le.ozz\",\"raw\":true}]}\;output:versioning/raw_animation_v2_le.ozz\;option:--endian=little\;depend:alain_skeleton.ozz"
-  "/fbx/alain/run.fbx\;{\"skeleton\":{\"filename\":\"alain_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"versioning/raw_animation_v2_be.ozz\",\"raw\":true}]}\;output:versioning/raw_animation_v2_be.ozz\;option:--endian=big\;depend:alain_skeleton.ozz"
-  "/fbx/alain/run.fbx\;{\"skeleton\":{\"filename\":\"alain_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"versioning/animation_v5_le.ozz\"}]}\;output:versioning/animation_v5_le.ozz\;option:--endian=little\;depend:alain_skeleton.ozz"
-  "/fbx/alain/run.fbx\;{\"skeleton\":{\"filename\":\"alain_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"versioning/animation_v5_be.ozz\"}]}\;output:versioning/animation_v5_be.ozz\;option:--endian=big\;depend:alain_skeleton.ozz"
+  "/fbx/alain/skeleton.fbx\;{\"skeleton\":{\"filename\":\"versioning/skeleton_v2_le.ozz\",\"import\":{\"enable\":true}},\"animations\":[]}\;output:versioning/skeleton_v2_le.ozz\;option:--endian=little"
+  "/fbx/alain/skeleton.fbx\;{\"skeleton\":{\"filename\":\"versioning/skeleton_v2_be.ozz\",\"import\":{\"enable\":true}},\"animations\":[]}\;output:versioning/skeleton_v2_be.ozz\;option:--endian=big"
+  "/fbx/alain/run.fbx\;{\"skeleton\":{\"filename\":\"alain_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"versioning/raw_animation_v3_le.ozz\",\"raw\":true}]}\;output:versioning/raw_animation_v3_le.ozz\;option:--endian=little\;depend:alain_skeleton.ozz"
+  "/fbx/alain/run.fbx\;{\"skeleton\":{\"filename\":\"alain_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"versioning/raw_animation_v3_be.ozz\",\"raw\":true}]}\;output:versioning/raw_animation_v3_be.ozz\;option:--endian=big\;depend:alain_skeleton.ozz"
+  "/fbx/alain/run.fbx\;{\"skeleton\":{\"filename\":\"alain_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"versioning/animation_v6_le.ozz\"}]}\;output:versioning/animation_v6_le.ozz\;option:--endian=little\;depend:alain_skeleton.ozz"
+  "/fbx/alain/run.fbx\;{\"skeleton\":{\"filename\":\"alain_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"versioning/animation_v6_be.ozz\"}]}\;output:versioning/animation_v6_be.ozz\;option:--endian=big\;depend:alain_skeleton.ozz"
 
   # Collada
   "/collada/astro_max.dae\;{\"skeleton\":{\"filename\":\"astro_max_skeleton.ozz\",\"import\":{\"enable\":true}},\"animations\":[{\"filename\":\"astro_max_animation.ozz\"}]}\;output:astro_max_animation.ozz\;output:astro_max_skeleton.ozz"

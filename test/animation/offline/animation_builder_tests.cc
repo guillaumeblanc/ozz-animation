@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -91,8 +91,7 @@ TEST(Error, AnimationBuilder) {
   {  // Building an animation with max joints succeeds.
     RawAnimation raw_animation;
     raw_animation.tracks.resize(ozz::animation::Skeleton::kMaxJoints);
-    EXPECT_EQ(raw_animation.tracks.size(),
-              ozz::animation::Skeleton::kMaxJoints);
+    EXPECT_EQ(raw_animation.num_tracks(), ozz::animation::Skeleton::kMaxJoints);
     EXPECT_TRUE(raw_animation.Validate());
 
     // Builds animation

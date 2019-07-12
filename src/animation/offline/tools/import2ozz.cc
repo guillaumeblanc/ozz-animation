@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -161,6 +161,17 @@ int OzzImporter::operator()(int _argc, const char** _argv) {
   }
 
   return EXIT_SUCCESS;
+}
+
+ozz::String::Std OzzImporter::BuildFilename(const char* _filename,
+                                            const char* _data_name) const {
+  ozz::String::Std output(_filename);
+
+  for (size_t asterisk = output.find('*'); asterisk != std::string::npos;
+       asterisk = output.find('*')) {
+    output.replace(asterisk, 1, _data_name);
+  }
+  return output;
 }
 }  // namespace offline
 }  // namespace animation

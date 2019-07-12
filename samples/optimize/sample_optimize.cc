@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -156,24 +156,23 @@ class OptimizeSampleApplication : public ozz::sample::Application {
   OptimizeSampleApplication()
       : selected_display_(eRuntimeAnimation),
         optimize_(true),
-        cache_(NULL),
         animation_rt_(NULL),
         error_record_(64) {}
 
  protected:
   // Updates current animation time and skeleton pose.
-  virtual bool OnUpdate(float _dt) {
+  virtual bool OnUpdate(float _dt, float) {
     // Updates current animation time.
     controller_.Update(*animation_rt_, _dt);
 
     // Prepares sampling job.
     ozz::animation::SamplingJob sampling_job;
-    sampling_job.cache = cache_;
+    sampling_job.cache = &cache_;
     sampling_job.ratio = controller_.time_ratio();
 
     // Samples optimized animation (_according to the display mode).
     sampling_job.animation = animation_rt_;
-    sampling_job.output = locals_rt_;
+    sampling_job.output = make_range(locals_rt_);
     if (!sampling_job.Run()) {
       return false;
     }
@@ -181,23 +180,25 @@ class OptimizeSampleApplication : public ozz::sample::Application {
     // Also samples non-optimized animation, from the raw animation.
     if (!SampleRawAnimation(raw_animation_,
                             controller_.time_ratio() * raw_animation_.duration,
-                            locals_raw_)) {
+                            make_range(locals_raw_))) {
       return false;
     }
 
     // Computes difference between the optimized and non-optimized animations
     // in local space, and rebinds it to the bind pose.
     {
-      const ozz::math::SoaTransform* locals_raw = locals_raw_.begin;
-      const ozz::math::SoaTransform* locals_rt = locals_rt_.begin;
-      ozz::math::SoaTransform* locals_diff = locals_diff_.begin;
-      ozz::Range<const ozz::math::SoaTransform> bind_poses =
-          skeleton_.bind_pose();
+      const ozz::Range<const ozz::math::SoaTransform>& bind_poses =
+          skeleton_.joint_bind_poses();
       const ozz::math::SoaTransform* bind_pose = bind_poses.begin;
+      const ozz::math::SoaTransform* locals_raw = array_begin(locals_raw_);
+      const ozz::math::SoaTransform* locals_rt = array_begin(locals_rt_);
+      ozz::math::SoaTransform* locals_diff = array_begin(locals_diff_);
       for (; bind_pose < bind_poses.end;
            ++locals_raw, ++locals_rt, ++locals_diff, ++bind_pose) {
-        assert(locals_raw < locals_raw_.end && locals_rt < locals_rt_.end &&
-               locals_diff < locals_diff_.end && bind_pose < bind_poses.end);
+        assert(locals_raw < array_end(locals_raw_) &&
+               locals_rt < array_end(locals_rt_) &&
+               locals_diff < array_end(locals_diff_) &&
+               bind_pose < bind_poses.end);
 
         // Computes difference.
         const ozz::math::SoaTransform diff = {
@@ -217,22 +218,22 @@ class OptimizeSampleApplication : public ozz::sample::Application {
     ltm_job.skeleton = &skeleton_;
 
     // Optimized samples.
-    ltm_job.input = locals_rt_;
-    ltm_job.output = models_rt_;
+    ltm_job.input = make_range(locals_rt_);
+    ltm_job.output = make_range(models_rt_);
     if (!ltm_job.Run()) {
       return false;
     }
 
     // Non-optimized samples (from the raw animation).
-    ltm_job.input = locals_raw_;
-    ltm_job.output = models_raw_;
+    ltm_job.input = make_range(locals_raw_);
+    ltm_job.output = make_range(models_raw_);
     if (!ltm_job.Run()) {
       return false;
     }
 
     // Difference between optimized and non-optimized samples.
-    ltm_job.input = locals_diff_;
-    ltm_job.output = models_diff_;
+    ltm_job.input = make_range(locals_diff_);
+    ltm_job.output = make_range(models_diff_);
     if (!ltm_job.Run()) {
       return false;
     }
@@ -240,9 +241,9 @@ class OptimizeSampleApplication : public ozz::sample::Application {
     // Computes the absolute error, aka the difference between the raw and
     // runtime model space transformation.
     float error = 0.f;
-    const ozz::math::Float4x4* models_rt = models_rt_.begin;
-    const ozz::math::Float4x4* models_raw = models_raw_.begin;
-    for (; models_rt < models_rt_.end; ++models_rt, ++models_raw) {
+    const ozz::math::Float4x4* models_rt = array_begin(models_rt_);
+    const ozz::math::Float4x4* models_raw = array_begin(models_raw_);
+    for (; models_rt < array_end(models_rt_); ++models_rt, ++models_raw) {
       // Computes the translation difference.
       const ozz::math::SimdFloat4 diff =
           models_rt->cols[3] - models_raw->cols[3];
@@ -260,7 +261,7 @@ class OptimizeSampleApplication : public ozz::sample::Application {
       ozz::Range<ozz::math::SoaTransform> _locals) {
     // Ensure output is big enough.
     if (_locals.count() * 4 < _animation.tracks.size() &&
-        locals_raw_aos_.count() * 4 < _animation.tracks.size()) {
+        locals_raw_aos_.size() * 4 < _animation.tracks.size()) {
       return false;
     }
 
@@ -305,14 +306,14 @@ class OptimizeSampleApplication : public ozz::sample::Application {
   ozz::Range<const ozz::math::Float4x4> models() const {
     switch (selected_display_) {
       case eRuntimeAnimation:
-        return models_rt_;
+        return make_range(models_rt_);
       case eRawAnimation:
-        return models_raw_;
+        return make_range(models_raw_);
       case eAbsoluteError:
-        return models_diff_;
+        return make_range(models_diff_);
       default: {
         assert(false && "Invalid display mode");
-        return models_rt_;
+        return make_range(models_rt_);
       }
     }
   }
@@ -342,24 +343,18 @@ class OptimizeSampleApplication : public ozz::sample::Application {
     }
 
     // Allocates runtime buffers.
-    ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
     const int num_joints = skeleton_.num_joints();
     const int num_soa_joints = skeleton_.num_soa_joints();
-
-    locals_rt_ =
-        allocator->AllocateRange<ozz::math::SoaTransform>(num_soa_joints);
-    models_rt_ = allocator->AllocateRange<ozz::math::Float4x4>(num_joints);
-    locals_raw_aos_ =
-        allocator->AllocateRange<ozz::math::Transform>(num_joints);
-    locals_raw_ =
-        allocator->AllocateRange<ozz::math::SoaTransform>(num_soa_joints);
-    models_raw_ = allocator->AllocateRange<ozz::math::Float4x4>(num_joints);
-    locals_diff_ =
-        allocator->AllocateRange<ozz::math::SoaTransform>(num_soa_joints);
-    models_diff_ = allocator->AllocateRange<ozz::math::Float4x4>(num_joints);
+    locals_rt_.resize(num_soa_joints);
+    models_rt_.resize(num_joints);
+    locals_raw_aos_.resize(num_joints);
+    locals_raw_.resize(num_soa_joints);
+    models_raw_.resize(num_joints);
+    locals_diff_.resize(num_soa_joints);
+    models_diff_.resize(num_joints);
 
     // Allocates a cache that matches animation requirements.
-    cache_ = allocator->New<ozz::animation::SamplingCache>(num_joints);
+    cache_.Resize(num_joints);
 
     return true;
   }
@@ -421,7 +416,7 @@ class OptimizeSampleApplication : public ozz::sample::Application {
           // Invalidates the cache in case the new animation has the same
           // address as the previous one. Other cases are automatic handled by
           // the cache. See SamplingCache::Invalidate for more details.
-          cache_->Invalidate();
+          cache_.Invalidate();
 
           // Rebuilds a new runtime animation.
           if (!BuildAnimations()) {
@@ -464,14 +459,6 @@ class OptimizeSampleApplication : public ozz::sample::Application {
   virtual void OnDestroy() {
     ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
     allocator->Delete(animation_rt_);
-    allocator->Deallocate(locals_rt_);
-    allocator->Deallocate(models_rt_);
-    allocator->Deallocate(locals_raw_aos_);
-    allocator->Deallocate(locals_raw_);
-    allocator->Deallocate(models_raw_);
-    allocator->Deallocate(locals_diff_);
-    allocator->Deallocate(models_diff_);
-    allocator->Delete(cache_);
   }
 
   bool BuildAnimations() {
@@ -533,28 +520,28 @@ class OptimizeSampleApplication : public ozz::sample::Application {
 
   // Sampling cache, shared across optimized and non-optimized animations. This
   // is not optimal, but it's not an issue either.
-  ozz::animation::SamplingCache* cache_;
+  ozz::animation::SamplingCache cache_;
 
   // Runtime optimized animation.
   ozz::animation::Animation* animation_rt_;
 
   // Buffer of local and model space transformations as sampled from the
   // rutime (optimized and compressed) animation.
-  ozz::Range<ozz::math::SoaTransform> locals_rt_;
-  ozz::Range<ozz::math::Float4x4> models_rt_;
+  ozz::Vector<ozz::math::SoaTransform>::Std locals_rt_;
+  ozz::Vector<ozz::math::Float4x4>::Std models_rt_;
 
   // Buffer of local and model space transformations as sampled from the
   // non-optimized (raw) animation.
   // Sampling the raw animation results in AoS data, meaning we have to
   // allocate AoS data and do the SoA conversion by hand.
-  ozz::Range<ozz::math::Transform> locals_raw_aos_;
-  ozz::Range<ozz::math::SoaTransform> locals_raw_;
-  ozz::Range<ozz::math::Float4x4> models_raw_;
+  ozz::Vector<ozz::math::Transform>::Std locals_raw_aos_;
+  ozz::Vector<ozz::math::SoaTransform>::Std locals_raw_;
+  ozz::Vector<ozz::math::Float4x4>::Std models_raw_;
 
   // Buffer of local and model space transformations storing samples from the
   // difference between optimized and non-optimized animations.
-  ozz::Range<ozz::math::SoaTransform> locals_diff_;
-  ozz::Range<ozz::math::Float4x4> models_diff_;
+  ozz::Vector<ozz::math::SoaTransform>::Std locals_diff_;
+  ozz::Vector<ozz::math::Float4x4>::Std models_diff_;
 
   // Record of accuracy errors produced by animation compression and
   // optimization.

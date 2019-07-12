@@ -700,6 +700,7 @@ int  _glfwPlatformOpenWindow( int width, int height,
     // Aux buffers probably aren't accelerated either
 
     CFDictionaryRef fullscreenMode = NULL;
+    /*
     if( wndconfig->mode == GLFW_FULLSCREEN )
     {
         fullscreenMode =
@@ -718,7 +719,7 @@ int  _glfwPlatformOpenWindow( int width, int height,
 
         width = [[(id)fullscreenMode objectForKey:(id)kCGDisplayWidth] intValue];
         height = [[(id)fullscreenMode objectForKey:(id)kCGDisplayHeight] intValue];
-    }
+    }*/
 
     unsigned int styleMask = 0;
     if( wndconfig->mode == GLFW_WINDOW )
@@ -965,6 +966,7 @@ void _glfwPlatformSwapBuffers( void )
 {
     // ARP appears to be unnecessary, but this is future-proof
     [_glfwWin.context flushBuffer];
+    [_glfwWin.context update];
 }
 
 

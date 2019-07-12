@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -43,98 +43,149 @@ namespace math {
 
 namespace simd_float4 {
 
-// clang-format off
-
 // Internal macros.
 // Unused components of the result vector are replicated from the first input
 // argument.
 
-#define OZZ_SSE_SPLAT_F(_v, _i) \
-  _mm_shuffle_ps(_v, _v, _MM_SHUFFLE(_i, _i, _i, _i))
+#ifdef OZZ_SIMD_AVX
+#define OZZ_SHUFFLE_PS1(_v, _m) _mm_permute_ps(_v, _m)
+#else  // OZZ_SIMD_AVX
+#define OZZ_SHUFFLE_PS1(_v, _m) \
+  _mm_castsi128_ps(_mm_shuffle_epi32(_mm_castps_si128(_v), _m))
+#endif  // OZZ_SIMD_AVX
+
+#define OZZ_SSE_SPLAT_F(_v, _i) OZZ_SHUFFLE_PS1(_v, _MM_SHUFFLE(_i, _i, _i, _i))
+
+#define OZZ_SSE_SPLAT_I(_v, _i) \
+  _mm_shuffle_epi32(_v, _MM_SHUFFLE(_i, _i, _i, _i))
 
 // _v.x + _v.y, _v.y, _v.z, _v.w
 #define OZZ_SSE_HADD2_F(_v) _mm_add_ss(_v, OZZ_SSE_SPLAT_F(_v, 1))
 
 // _v.x + _v.y + _v.z, _v.y, _v.z, _v.w
 #define OZZ_SSE_HADD3_F(_v) \
-  _mm_add_ss(_mm_add_ss(_v, _mm_unpackhi_ps(_v, _v)), OZZ_SSE_SPLAT_F(_v, 1))
+  _mm_add_ss(_mm_add_ss(_v, OZZ_SSE_SPLAT_F(_v, 2)), OZZ_SSE_SPLAT_F(_v, 1))
 
-// _v.x + _v.y + _v.z, ?, ?, ?
+// _v.x + _v.y + _v.z + _v.w, ?, ?, ?
 #define OZZ_SSE_HADD4_F(_v, _r)                                    \
-do {                                                               \
+  do {                                                             \
     const __m128 haddxyzw = _mm_add_ps(_v, _mm_movehl_ps(_v, _v)); \
     _r = _mm_add_ss(haddxyzw, OZZ_SSE_SPLAT_F(haddxyzw, 1));       \
-} while (void(0), 0)
+  } while (void(0), 0)
 
 // dot2, ?, ?, ?
 #define OZZ_SSE_DOT2_F(_a, _b, _r)               \
-do {                                             \
+  do {                                           \
     const __m128 ab = _mm_mul_ps(_a, _b);        \
     _r = _mm_add_ss(ab, OZZ_SSE_SPLAT_F(ab, 1)); \
-  \
-} while (void(0), 0)
+                                                 \
+  } while (void(0), 0)
 
+#ifdef OZZ_SIMD_SSE4_1
+// dot3, ?, ?, ?
+#define OZZ_SSE_DOT3_F(_a, _b, _r) \
+  do {                             \
+    _r = _mm_dp_ps(_a, _b, 0x7f);  \
+  } while (void(0), 0)
+
+// dot4, ?, ?, ?
+#define OZZ_SSE_DOT4_F(_a, _b, _r) \
+  do {                             \
+    _r = _mm_dp_ps(_a, _b, 0xff);  \
+  } while (void(0), 0)
+
+#else  // OZZ_SIMD_SSE4_1
 // dot3, ?, ?, ?
 #define OZZ_SSE_DOT3_F(_a, _b, _r)        \
-do {                                      \
+  do {                                    \
     const __m128 ab = _mm_mul_ps(_a, _b); \
     _r = OZZ_SSE_HADD3_F(ab);             \
-} while (void(0), 0)
+  } while (void(0), 0)
 
 // dot4, ?, ?, ?
 #define OZZ_SSE_DOT4_F(_a, _b, _r)        \
-do {                                      \
+  do {                                    \
     const __m128 ab = _mm_mul_ps(_a, _b); \
     OZZ_SSE_HADD4_F(ab, _r);              \
-  \
-} while (void(0), 0)
+  } while (void(0), 0)
+#endif  // OZZ_SIMD_SSE4_1
+
+// FMA operations
+#ifdef OZZ_SIMD_FMA
+#define OZZ_MADD(_a, _b, _c) _mm_fmadd_ps(_a, _b, _c)
+#define OZZ_MSUB(_a, _b, _c) _mm_fmsub_ps(_a, _b, _c)
+#define OZZ_NMADD(_a, _b, _c) _mm_fnmadd_ps(_a, _b, _c)
+#define OZZ_NMSUB(_a, _b, _c) _mm_fnmsub_ps(_a, _b, _c)
+#define OZZ_MADDX(_a, _b, _c) _mm_fmadd_ss(_a, _b, _c)
+#define OZZ_MSUBX(_a, _b, _c) _mm_fmsub_ss(_a, _b, _c)
+#define OZZ_NMADDX(_a, _b, _c) _mm_fnmadd_ss(_a, _b, _c)
+#define OZZ_NMSUBX(_a, _b, _c) _mm_fnmsub_ss(_a, _b, _c)
+#else  //  OZZ_SIMD_FMA
+#define OZZ_MADD(_a, _b, _c) _mm_add_ps(_mm_mul_ps(_a, _b), _c)
+#define OZZ_MSUB(_a, _b, _c) _mm_sub_ps(_mm_mul_ps(_a, _b), _c)
+#define OZZ_NMADD(_a, _b, _c) _mm_sub_ps(_c, _mm_mul_ps(_a, _b))
+#define OZZ_NMSUB(_a, _b, _c) (-_mm_add_ps(_mm_mul_ps(_a, _b), _c))
+#define OZZ_MADDX(_a, _b, _c) _mm_add_ss(_mm_mul_ss(_a, _b), _c)
+#define OZZ_MSUBX(_a, _b, _c) _mm_sub_ss(_mm_mul_ss(_a, _b), _c)
+#define OZZ_NMADDX(_a, _b, _c) _mm_sub_ss(_c, _mm_mul_ss(_a, _b))
+#define OZZ_NMSUBX(_a, _b, _c) (-_mm_add_ss(_mm_mul_ss(_a, _b), _c))
+#endif  // OZZ_SIMD_FMA
+
+OZZ_INLINE SimdFloat4 DivX(_SimdFloat4 _a, _SimdFloat4 _b) {
+  return _mm_div_ss(_a, _b);
+}
+
+#ifdef OZZ_SIMD_SSE4_1
 
 #define OZZ_SSE_SELECT_F(_b, _true, _false) \
-  _mm_xor_ps(_false,                        \
-             _mm_and_ps(_mm_castsi128_ps(_b), _mm_xor_ps(_true, _false)))
+  _mm_blendv_ps(_false, _true, _mm_castsi128_ps(_b))
 
-#define OZZ_SSE_SPLAT_I(_v, _i)                                               \
-  _mm_castps_si128(_mm_shuffle_ps(_mm_castsi128_ps(_v), _mm_castsi128_ps(_v), \
-                                  _MM_SHUFFLE(_i, _i, _i, _i)))
+#define OZZ_SSE_SELECT_I(_b, _true, _false) _mm_blendv_epi8(_false, _true, _b)
+
+#else  // OZZ_SIMD_SSE4_1
+
+#define OZZ_SSE_SELECT_F(_b, _true, _false)          \
+  _mm_or_ps(_mm_and_ps(_true, _mm_castsi128_ps(_b)), \
+            _mm_andnot_ps(_mm_castsi128_ps(_b), _false))
 
 #define OZZ_SSE_SELECT_I(_b, _true, _false) \
-  _mm_xor_si128(_false, _mm_and_si128(_b, _mm_xor_si128(_true, _false)))
+  _mm_or_si128(_mm_and_si128(_true, _b), _mm_andnot_si128(_b, _false))
 
-// clang-format on
+#endif  // OZZ_SIMD_SSE4_1
 
 OZZ_INLINE SimdFloat4 zero() { return _mm_setzero_ps(); }
 
 OZZ_INLINE SimdFloat4 one() {
   const __m128i zero = _mm_setzero_si128();
-  const __m128i ffff = _mm_cmpeq_epi32(zero, zero);
-  return _mm_castsi128_ps(_mm_srli_epi32(_mm_slli_epi32(ffff, 25), 2));
+  return _mm_castsi128_ps(
+      _mm_srli_epi32(_mm_slli_epi32(_mm_cmpeq_epi32(zero, zero), 25), 2));
 }
 
 OZZ_INLINE SimdFloat4 x_axis() {
   const __m128i zero = _mm_setzero_si128();
-  const __m128i ffff = _mm_cmpeq_epi32(zero, zero);
-  const __m128i one = _mm_srli_epi32(_mm_slli_epi32(ffff, 25), 2);
+  const __m128i one =
+      _mm_srli_epi32(_mm_slli_epi32(_mm_cmpeq_epi32(zero, zero), 25), 2);
   return _mm_castsi128_ps(_mm_srli_si128(one, 12));
 }
 
 OZZ_INLINE SimdFloat4 y_axis() {
   const __m128i zero = _mm_setzero_si128();
-  const __m128i ffff = _mm_cmpeq_epi32(zero, zero);
-  const __m128i one = _mm_srli_epi32(_mm_slli_epi32(ffff, 25), 2);
+  const __m128i one =
+      _mm_srli_epi32(_mm_slli_epi32(_mm_cmpeq_epi32(zero, zero), 25), 2);
   return _mm_castsi128_ps(_mm_slli_si128(_mm_srli_si128(one, 12), 4));
 }
 
 OZZ_INLINE SimdFloat4 z_axis() {
   const __m128i zero = _mm_setzero_si128();
-  const __m128i ffff = _mm_cmpeq_epi32(zero, zero);
-  const __m128i one = _mm_srli_epi32(_mm_slli_epi32(ffff, 25), 2);
+  const __m128i one =
+      _mm_srli_epi32(_mm_slli_epi32(_mm_cmpeq_epi32(zero, zero), 25), 2);
   return _mm_castsi128_ps(_mm_slli_si128(_mm_srli_si128(one, 12), 8));
 }
 
 OZZ_INLINE SimdFloat4 w_axis() {
   const __m128i zero = _mm_setzero_si128();
-  const __m128i ffff = _mm_cmpeq_epi32(zero, zero);
-  const __m128i one = _mm_srli_epi32(_mm_slli_epi32(ffff, 25), 2);
+  const __m128i one =
+      _mm_srli_epi32(_mm_slli_epi32(_mm_cmpeq_epi32(zero, zero), 25), 2);
   return _mm_castsi128_ps(_mm_slli_si128(one, 12));
 }
 
@@ -179,7 +230,7 @@ OZZ_INLINE SimdFloat4 Load3PtrU(const float* _f) {
 }
 
 OZZ_INLINE SimdFloat4 FromInt(_SimdInt4 _i) { return _mm_cvtepi32_ps(_i); }
-}  // ozz::math::simd_float4
+}  // namespace simd_float4
 
 OZZ_INLINE float GetX(_SimdFloat4 _v) { return _mm_cvtss_f32(_v); }
 
@@ -195,35 +246,32 @@ OZZ_INLINE float GetW(_SimdFloat4 _v) {
   return _mm_cvtss_f32(OZZ_SSE_SPLAT_F(_v, 3));
 }
 
-OZZ_INLINE SimdFloat4 SetX(_SimdFloat4 _v, float _f) {
-  return _mm_move_ss(_v, _mm_set_ss(_f));
+OZZ_INLINE SimdFloat4 SetX(_SimdFloat4 _v, _SimdFloat4 _f) {
+  return _mm_move_ss(_v, _f);
 }
 
-OZZ_INLINE SimdFloat4 SetY(_SimdFloat4 _v, float _f) {
-  const __m128 yxzw = _mm_shuffle_ps(_v, _v, _MM_SHUFFLE(3, 2, 0, 1));
-  const __m128 fxzw = _mm_move_ss(yxzw, _mm_set_ss(_f));
-  return _mm_shuffle_ps(fxzw, fxzw, _MM_SHUFFLE(3, 2, 0, 1));
+OZZ_INLINE SimdFloat4 SetY(_SimdFloat4 _v, _SimdFloat4 _f) {
+  const __m128 xfnn = _mm_unpacklo_ps(_v, _f);
+  return _mm_shuffle_ps(xfnn, _v, _MM_SHUFFLE(3, 2, 1, 0));
 }
 
-OZZ_INLINE SimdFloat4 SetZ(_SimdFloat4 _v, float _f) {
-  const __m128 yxzw = _mm_shuffle_ps(_v, _v, _MM_SHUFFLE(3, 0, 1, 2));
-  const __m128 fxzw = _mm_move_ss(yxzw, _mm_set_ss(_f));
-  return _mm_shuffle_ps(fxzw, fxzw, _MM_SHUFFLE(3, 0, 1, 2));
+OZZ_INLINE SimdFloat4 SetZ(_SimdFloat4 _v, _SimdFloat4 _f) {
+  const __m128 ffww = _mm_shuffle_ps(_f, _v, _MM_SHUFFLE(3, 3, 0, 0));
+  return _mm_shuffle_ps(_v, ffww, _MM_SHUFFLE(2, 0, 1, 0));
 }
 
-OZZ_INLINE SimdFloat4 SetW(_SimdFloat4 _v, float _f) {
-  const __m128 yxzw = _mm_shuffle_ps(_v, _v, _MM_SHUFFLE(0, 2, 1, 3));
-  const __m128 fxzw = _mm_move_ss(yxzw, _mm_set_ss(_f));
-  return _mm_shuffle_ps(fxzw, fxzw, _MM_SHUFFLE(0, 2, 1, 3));
+OZZ_INLINE SimdFloat4 SetW(_SimdFloat4 _v, _SimdFloat4 _f) {
+  const __m128 ffzz = _mm_shuffle_ps(_f, _v, _MM_SHUFFLE(2, 2, 0, 0));
+  return _mm_shuffle_ps(_v, ffzz, _MM_SHUFFLE(0, 2, 1, 0));
 }
 
-OZZ_INLINE SimdFloat4 SetI(_SimdFloat4 _v, int _ith, float _f) {
-  assert(_ith >= 0 && _ith <= 3 && "Invalid index ranges");
+OZZ_INLINE SimdFloat4 SetI(_SimdFloat4 _v, _SimdFloat4 _f, int _ith) {
+  assert(_ith >= 0 && _ith <= 3 && "Invalid index, out of range.");
   union {
     SimdFloat4 ret;
     float af[4];
   } u = {_v};
-  u.af[_ith] = _f;
+  u.af[_ith] = _mm_cvtss_f32(_f);
   return u.ret;
 }
 
@@ -278,6 +326,37 @@ OZZ_INLINE SimdFloat4 SplatY(_SimdFloat4 _v) { return OZZ_SSE_SPLAT_F(_v, 1); }
 OZZ_INLINE SimdFloat4 SplatZ(_SimdFloat4 _v) { return OZZ_SSE_SPLAT_F(_v, 2); }
 
 OZZ_INLINE SimdFloat4 SplatW(_SimdFloat4 _v) { return OZZ_SSE_SPLAT_F(_v, 3); }
+
+template <size_t _X, size_t _Y, size_t _Z, size_t _W>
+OZZ_INLINE SimdFloat4 Swizzle(_SimdFloat4 _v) {
+  OZZ_STATIC_ASSERT(_X <= 3 && _Y <= 3 && _Z <= 3 && _W <= 3);
+  return OZZ_SHUFFLE_PS1(_v, _MM_SHUFFLE(_W, _Z, _Y, _X));
+}
+
+template <>
+OZZ_INLINE SimdFloat4 Swizzle<0, 1, 2, 3>(_SimdFloat4 _v) {
+  return _v;
+}
+
+template <>
+OZZ_INLINE SimdFloat4 Swizzle<0, 1, 0, 1>(_SimdFloat4 _v) {
+  return _mm_movelh_ps(_v, _v);
+}
+
+template <>
+OZZ_INLINE SimdFloat4 Swizzle<2, 3, 2, 3>(_SimdFloat4 _v) {
+  return _mm_movehl_ps(_v, _v);
+}
+
+template <>
+OZZ_INLINE SimdFloat4 Swizzle<0, 0, 1, 1>(_SimdFloat4 _v) {
+  return _mm_unpacklo_ps(_v, _v);
+}
+
+template <>
+OZZ_INLINE SimdFloat4 Swizzle<2, 2, 3, 3>(_SimdFloat4 _v) {
+  return _mm_unpackhi_ps(_v, _v);
+}
 
 OZZ_INLINE void Transpose4x1(const SimdFloat4 _in[4], SimdFloat4 _out[1]) {
   const __m128 xz = _mm_unpacklo_ps(_in[0], _in[2]);
@@ -349,41 +428,52 @@ OZZ_INLINE void Transpose4x4(const SimdFloat4 _in[4], SimdFloat4 _out[4]) {
 OZZ_INLINE void Transpose16x16(const SimdFloat4 _in[16], SimdFloat4 _out[16]) {
   const __m128 tmp0 = _mm_unpacklo_ps(_in[0], _in[2]);
   const __m128 tmp1 = _mm_unpacklo_ps(_in[1], _in[3]);
+  _out[0] = _mm_unpacklo_ps(tmp0, tmp1);
+  _out[4] = _mm_unpackhi_ps(tmp0, tmp1);
   const __m128 tmp2 = _mm_unpackhi_ps(_in[0], _in[2]);
   const __m128 tmp3 = _mm_unpackhi_ps(_in[1], _in[3]);
+  _out[8] = _mm_unpacklo_ps(tmp2, tmp3);
+  _out[12] = _mm_unpackhi_ps(tmp2, tmp3);
   const __m128 tmp4 = _mm_unpacklo_ps(_in[4], _in[6]);
   const __m128 tmp5 = _mm_unpacklo_ps(_in[5], _in[7]);
+  _out[1] = _mm_unpacklo_ps(tmp4, tmp5);
+  _out[5] = _mm_unpackhi_ps(tmp4, tmp5);
   const __m128 tmp6 = _mm_unpackhi_ps(_in[4], _in[6]);
   const __m128 tmp7 = _mm_unpackhi_ps(_in[5], _in[7]);
+  _out[9] = _mm_unpacklo_ps(tmp6, tmp7);
+  _out[13] = _mm_unpackhi_ps(tmp6, tmp7);
   const __m128 tmp8 = _mm_unpacklo_ps(_in[8], _in[10]);
   const __m128 tmp9 = _mm_unpacklo_ps(_in[9], _in[11]);
+  _out[2] = _mm_unpacklo_ps(tmp8, tmp9);
+  _out[6] = _mm_unpackhi_ps(tmp8, tmp9);
   const __m128 tmp10 = _mm_unpackhi_ps(_in[8], _in[10]);
   const __m128 tmp11 = _mm_unpackhi_ps(_in[9], _in[11]);
+  _out[10] = _mm_unpacklo_ps(tmp10, tmp11);
+  _out[14] = _mm_unpackhi_ps(tmp10, tmp11);
   const __m128 tmp12 = _mm_unpacklo_ps(_in[12], _in[14]);
   const __m128 tmp13 = _mm_unpacklo_ps(_in[13], _in[15]);
+  _out[3] = _mm_unpacklo_ps(tmp12, tmp13);
+  _out[7] = _mm_unpackhi_ps(tmp12, tmp13);
   const __m128 tmp14 = _mm_unpackhi_ps(_in[12], _in[14]);
   const __m128 tmp15 = _mm_unpackhi_ps(_in[13], _in[15]);
-  _out[0] = _mm_unpacklo_ps(tmp0, tmp1);
-  _out[1] = _mm_unpacklo_ps(tmp4, tmp5);
-  _out[2] = _mm_unpacklo_ps(tmp8, tmp9);
-  _out[3] = _mm_unpacklo_ps(tmp12, tmp13);
-  _out[4] = _mm_unpackhi_ps(tmp0, tmp1);
-  _out[5] = _mm_unpackhi_ps(tmp4, tmp5);
-  _out[6] = _mm_unpackhi_ps(tmp8, tmp9);
-  _out[7] = _mm_unpackhi_ps(tmp12, tmp13);
-  _out[8] = _mm_unpacklo_ps(tmp2, tmp3);
-  _out[9] = _mm_unpacklo_ps(tmp6, tmp7);
-  _out[10] = _mm_unpacklo_ps(tmp10, tmp11);
   _out[11] = _mm_unpacklo_ps(tmp14, tmp15);
-  _out[12] = _mm_unpackhi_ps(tmp2, tmp3);
-  _out[13] = _mm_unpackhi_ps(tmp6, tmp7);
-  _out[14] = _mm_unpackhi_ps(tmp10, tmp11);
   _out[15] = _mm_unpackhi_ps(tmp14, tmp15);
 }
 
-OZZ_INLINE SimdFloat4 MAdd(_SimdFloat4 _a, _SimdFloat4 _b,
-                           _SimdFloat4 _addend) {
-  return _mm_add_ps(_mm_mul_ps(_a, _b), _addend);
+OZZ_INLINE SimdFloat4 MAdd(_SimdFloat4 _a, _SimdFloat4 _b, _SimdFloat4 _c) {
+  return OZZ_MADD(_a, _b, _c);
+}
+
+OZZ_INLINE SimdFloat4 MSub(_SimdFloat4 _a, _SimdFloat4 _b, _SimdFloat4 _c) {
+  return OZZ_MSUB(_a, _b, _c);
+}
+
+OZZ_INLINE SimdFloat4 NMAdd(_SimdFloat4 _a, _SimdFloat4 _b, _SimdFloat4 _c) {
+  return OZZ_NMADD(_a, _b, _c);
+}
+
+OZZ_INLINE SimdFloat4 NMSub(_SimdFloat4 _a, _SimdFloat4 _b, _SimdFloat4 _c) {
+  return OZZ_NMSUB(_a, _b, _c);
 }
 
 OZZ_INLINE SimdFloat4 DivX(_SimdFloat4 _a, _SimdFloat4 _b) {
@@ -397,33 +487,33 @@ OZZ_INLINE SimdFloat4 HAdd3(_SimdFloat4 _v) { return OZZ_SSE_HADD3_F(_v); }
 OZZ_INLINE SimdFloat4 HAdd4(_SimdFloat4 _v) {
   __m128 hadd4;
   OZZ_SSE_HADD4_F(_v, hadd4);
-  return _mm_move_ss(_v, hadd4);
+  return hadd4;
 }
 
 OZZ_INLINE SimdFloat4 Dot2(_SimdFloat4 _a, _SimdFloat4 _b) {
   __m128 dot2;
   OZZ_SSE_DOT2_F(_a, _b, dot2);
-  return _mm_move_ss(_a, dot2);
+  return dot2;
 }
 
 OZZ_INLINE SimdFloat4 Dot3(_SimdFloat4 _a, _SimdFloat4 _b) {
   __m128 dot3;
   OZZ_SSE_DOT3_F(_a, _b, dot3);
-  return _mm_move_ss(_a, dot3);
+  return dot3;
 }
 
 OZZ_INLINE SimdFloat4 Dot4(_SimdFloat4 _a, _SimdFloat4 _b) {
   __m128 dot4;
   OZZ_SSE_DOT4_F(_a, _b, dot4);
-  return _mm_move_ss(_a, dot4);
+  return dot4;
 }
 
 OZZ_INLINE SimdFloat4 Cross3(_SimdFloat4 _a, _SimdFloat4 _b) {
-  const __m128 left0 = _mm_shuffle_ps(_a, _a, _MM_SHUFFLE(3, 0, 2, 1));
-  const __m128 left1 = _mm_shuffle_ps(_b, _b, _MM_SHUFFLE(3, 0, 2, 1));
-  const __m128 right0 = _mm_shuffle_ps(_a, _a, _MM_SHUFFLE(3, 1, 0, 2));
-  const __m128 right1 = _mm_shuffle_ps(_b, _b, _MM_SHUFFLE(3, 1, 0, 2));
-  return _mm_sub_ps(_mm_mul_ps(left0, right1), _mm_mul_ps(left1, right0));
+  const __m128 left1 = OZZ_SHUFFLE_PS1(_b, _MM_SHUFFLE(3, 0, 2, 1));
+  const __m128 right0 = OZZ_SHUFFLE_PS1(_a, _MM_SHUFFLE(3, 1, 0, 2));
+  const __m128 left0 = OZZ_SHUFFLE_PS1(_a, _MM_SHUFFLE(3, 0, 2, 1));
+  const __m128 right1 = OZZ_SHUFFLE_PS1(_b, _MM_SHUFFLE(3, 1, 0, 2));
+  return OZZ_MSUB(left0, right1, _mm_mul_ps(left1, right0));
 }
 
 OZZ_INLINE SimdFloat4 RcpEst(_SimdFloat4 _v) { return _mm_rcp_ps(_v); }
@@ -431,10 +521,16 @@ OZZ_INLINE SimdFloat4 RcpEst(_SimdFloat4 _v) { return _mm_rcp_ps(_v); }
 OZZ_INLINE SimdFloat4 RcpEstNR(_SimdFloat4 _v) {
   const __m128 nr = _mm_rcp_ps(_v);
   // Do one more Newton-Raphson step to improve precision.
-  return _mm_sub_ps(_mm_add_ps(nr, nr), _mm_mul_ps(_mm_mul_ps(nr, nr), _v));
+  return OZZ_NMADD(_mm_mul_ps(nr, nr), _v, _mm_add_ps(nr, nr));
 }
 
 OZZ_INLINE SimdFloat4 RcpEstX(_SimdFloat4 _v) { return _mm_rcp_ss(_v); }
+
+OZZ_INLINE SimdFloat4 RcpEstXNR(_SimdFloat4 _v) {
+  const __m128 nr = _mm_rcp_ss(_v);
+  // Do one more Newton-Raphson step to improve precision.
+  return OZZ_NMADDX(_mm_mul_ss(nr, nr), _v, _mm_add_ss(nr, nr));
+}
 
 OZZ_INLINE SimdFloat4 Sqrt(_SimdFloat4 _v) { return _mm_sqrt_ps(_v); }
 
@@ -445,15 +541,23 @@ OZZ_INLINE SimdFloat4 RSqrtEst(_SimdFloat4 _v) { return _mm_rsqrt_ps(_v); }
 OZZ_INLINE SimdFloat4 RSqrtEstNR(_SimdFloat4 _v) {
   const __m128 nr = _mm_rsqrt_ps(_v);
   // Do one more Newton-Raphson step to improve precision.
-  const __m128 muls = _mm_mul_ps(_mm_mul_ps(_v, nr), nr);
   return _mm_mul_ps(_mm_mul_ps(_mm_set_ps1(.5f), nr),
-                    _mm_sub_ps(_mm_set_ps1(3.f), muls));
+                    OZZ_NMADD(_mm_mul_ps(_v, nr), nr, _mm_set_ps1(3.f)));
 }
 
 OZZ_INLINE SimdFloat4 RSqrtEstX(_SimdFloat4 _v) { return _mm_rsqrt_ss(_v); }
 
+OZZ_INLINE SimdFloat4 RSqrtEstXNR(_SimdFloat4 _v) {
+  const __m128 nr = _mm_rsqrt_ss(_v);
+  // Do one more Newton-Raphson step to improve precision.
+  return _mm_mul_ss(_mm_mul_ss(_mm_set_ps1(.5f), nr),
+                    OZZ_NMADDX(_mm_mul_ss(_v, nr), nr, _mm_set_ps1(3.f)));
+}
+
 OZZ_INLINE SimdFloat4 Abs(_SimdFloat4 _v) {
-  return _mm_and_ps(_mm_castsi128_ps(simd_int4::mask_not_sign()), _v);
+  const __m128i zero = _mm_setzero_si128();
+  return _mm_and_ps(
+      _mm_castsi128_ps(_mm_srli_epi32(_mm_cmpeq_epi32(zero, zero), 1)), _v);
 }
 
 OZZ_INLINE SimdInt4 Sign(_SimdFloat4 _v) {
@@ -463,37 +567,37 @@ OZZ_INLINE SimdInt4 Sign(_SimdFloat4 _v) {
 OZZ_INLINE SimdFloat4 Length2(_SimdFloat4 _v) {
   __m128 sq_len;
   OZZ_SSE_DOT2_F(_v, _v, sq_len);
-  return _mm_move_ss(_v, _mm_sqrt_ss(sq_len));
+  return _mm_sqrt_ss(sq_len);
 }
 
 OZZ_INLINE SimdFloat4 Length3(_SimdFloat4 _v) {
   __m128 sq_len;
   OZZ_SSE_DOT3_F(_v, _v, sq_len);
-  return _mm_move_ss(_v, _mm_sqrt_ss(sq_len));
+  return _mm_sqrt_ss(sq_len);
 }
 
 OZZ_INLINE SimdFloat4 Length4(_SimdFloat4 _v) {
   __m128 sq_len;
   OZZ_SSE_DOT4_F(_v, _v, sq_len);
-  return _mm_move_ss(_v, _mm_sqrt_ss(sq_len));
+  return _mm_sqrt_ss(sq_len);
 }
 
 OZZ_INLINE SimdFloat4 Length2Sqr(_SimdFloat4 _v) {
   __m128 sq_len;
   OZZ_SSE_DOT2_F(_v, _v, sq_len);
-  return _mm_move_ss(_v, sq_len);
+  return sq_len;
 }
 
 OZZ_INLINE SimdFloat4 Length3Sqr(_SimdFloat4 _v) {
   __m128 sq_len;
   OZZ_SSE_DOT3_F(_v, _v, sq_len);
-  return _mm_move_ss(_v, sq_len);
+  return sq_len;
 }
 
 OZZ_INLINE SimdFloat4 Length4Sqr(_SimdFloat4 _v) {
   __m128 sq_len;
   OZZ_SSE_DOT4_F(_v, _v, sq_len);
-  return _mm_move_ss(_v, sq_len);
+  return sq_len;
 }
 
 OZZ_INLINE SimdFloat4 Normalize2(_SimdFloat4 _v) {
@@ -511,10 +615,10 @@ OZZ_INLINE SimdFloat4 Normalize3(_SimdFloat4 _v) {
   OZZ_SSE_DOT3_F(_v, _v, sq_len);
   assert(_mm_cvtss_f32(sq_len) != 0.f && "_v is not normalizable");
   const __m128 inv_len = _mm_div_ss(simd_float4::one(), _mm_sqrt_ss(sq_len));
-  const __m128 vwxyz = _mm_shuffle_ps(_v, _v, _MM_SHUFFLE(0, 1, 2, 3));
+  const __m128 vwxyz = OZZ_SHUFFLE_PS1(_v, _MM_SHUFFLE(0, 1, 2, 3));
   const __m128 inv_lenxxxx = OZZ_SSE_SPLAT_F(inv_len, 0);
   const __m128 normwxyz = _mm_move_ss(_mm_mul_ps(vwxyz, inv_lenxxxx), vwxyz);
-  return _mm_shuffle_ps(normwxyz, normwxyz, _MM_SHUFFLE(0, 1, 2, 3));
+  return OZZ_SHUFFLE_PS1(normwxyz, _MM_SHUFFLE(0, 1, 2, 3));
 }
 
 OZZ_INLINE SimdFloat4 Normalize4(_SimdFloat4 _v) {
@@ -541,10 +645,10 @@ OZZ_INLINE SimdFloat4 NormalizeEst3(_SimdFloat4 _v) {
   OZZ_SSE_DOT3_F(_v, _v, sq_len);
   assert(_mm_cvtss_f32(sq_len) != 0.f && "_v is not normalizable");
   const __m128 inv_len = _mm_rsqrt_ss(sq_len);
-  const __m128 vwxyz = _mm_shuffle_ps(_v, _v, _MM_SHUFFLE(0, 1, 2, 3));
+  const __m128 vwxyz = OZZ_SHUFFLE_PS1(_v, _MM_SHUFFLE(0, 1, 2, 3));
   const __m128 inv_lenxxxx = OZZ_SSE_SPLAT_F(inv_len, 0);
   const __m128 normwxyz = _mm_move_ss(_mm_mul_ps(vwxyz, inv_lenxxxx), vwxyz);
-  return _mm_shuffle_ps(normwxyz, normwxyz, _MM_SHUFFLE(0, 1, 2, 3));
+  return OZZ_SHUFFLE_PS1(normwxyz, _MM_SHUFFLE(0, 1, 2, 3));
 }
 
 OZZ_INLINE SimdFloat4 NormalizeEst4(_SimdFloat4 _v) {
@@ -617,6 +721,7 @@ OZZ_INLINE SimdInt4 IsNormalizedEst4(_SimdFloat4 _v) {
 }
 
 OZZ_INLINE SimdFloat4 NormalizeSafe2(_SimdFloat4 _v, _SimdFloat4 _safe) {
+  // assert(AreAllTrue1(IsNormalized2(_safe)) && "_safe is not normalized");
   __m128 sq_len;
   OZZ_SSE_DOT2_F(_v, _v, sq_len);
   const __m128 inv_len = _mm_div_ss(simd_float4::one(), _mm_sqrt_ss(sq_len));
@@ -629,20 +734,21 @@ OZZ_INLINE SimdFloat4 NormalizeSafe2(_SimdFloat4 _v, _SimdFloat4 _safe) {
 }
 
 OZZ_INLINE SimdFloat4 NormalizeSafe3(_SimdFloat4 _v, _SimdFloat4 _safe) {
+  // assert(AreAllTrue1(IsNormalized3(_safe)) && "_safe is not normalized");
   __m128 sq_len;
   OZZ_SSE_DOT3_F(_v, _v, sq_len);
   const __m128 inv_len = _mm_div_ss(simd_float4::one(), _mm_sqrt_ss(sq_len));
-  const __m128 vwxyz = _mm_shuffle_ps(_v, _v, _MM_SHUFFLE(0, 1, 2, 3));
+  const __m128 vwxyz = OZZ_SHUFFLE_PS1(_v, _MM_SHUFFLE(0, 1, 2, 3));
   const __m128 inv_lenxxxx = OZZ_SSE_SPLAT_F(inv_len, 0);
   const __m128 normwxyz = _mm_move_ss(_mm_mul_ps(vwxyz, inv_lenxxxx), vwxyz);
   const __m128i cond = _mm_castps_si128(
       _mm_cmple_ps(OZZ_SSE_SPLAT_F(sq_len, 0), _mm_setzero_ps()));
-  const __m128 cfalse =
-      _mm_shuffle_ps(normwxyz, normwxyz, _MM_SHUFFLE(0, 1, 2, 3));
+  const __m128 cfalse = OZZ_SHUFFLE_PS1(normwxyz, _MM_SHUFFLE(0, 1, 2, 3));
   return OZZ_SSE_SELECT_F(cond, _safe, cfalse);
 }
 
 OZZ_INLINE SimdFloat4 NormalizeSafe4(_SimdFloat4 _v, _SimdFloat4 _safe) {
+  // assert(AreAllTrue1(IsNormalized4(_safe)) && "_safe is not normalized");
   __m128 sq_len;
   OZZ_SSE_DOT4_F(_v, _v, sq_len);
   const __m128 inv_len = _mm_div_ss(simd_float4::one(), _mm_sqrt_ss(sq_len));
@@ -654,6 +760,7 @@ OZZ_INLINE SimdFloat4 NormalizeSafe4(_SimdFloat4 _v, _SimdFloat4 _safe) {
 }
 
 OZZ_INLINE SimdFloat4 NormalizeSafeEst2(_SimdFloat4 _v, _SimdFloat4 _safe) {
+  // assert(AreAllTrue1(IsNormalizedEst2(_safe)) && "_safe is not normalized");
   __m128 sq_len;
   OZZ_SSE_DOT2_F(_v, _v, sq_len);
   const __m128 inv_len = _mm_rsqrt_ss(sq_len);
@@ -666,20 +773,21 @@ OZZ_INLINE SimdFloat4 NormalizeSafeEst2(_SimdFloat4 _v, _SimdFloat4 _safe) {
 }
 
 OZZ_INLINE SimdFloat4 NormalizeSafeEst3(_SimdFloat4 _v, _SimdFloat4 _safe) {
+  // assert(AreAllTrue1(IsNormalizedEst3(_safe)) && "_safe is not normalized");
   __m128 sq_len;
   OZZ_SSE_DOT3_F(_v, _v, sq_len);
   const __m128 inv_len = _mm_rsqrt_ss(sq_len);
-  const __m128 vwxyz = _mm_shuffle_ps(_v, _v, _MM_SHUFFLE(0, 1, 2, 3));
+  const __m128 vwxyz = OZZ_SHUFFLE_PS1(_v, _MM_SHUFFLE(0, 1, 2, 3));
   const __m128 inv_lenxxxx = OZZ_SSE_SPLAT_F(inv_len, 0);
   const __m128 normwxyz = _mm_move_ss(_mm_mul_ps(vwxyz, inv_lenxxxx), vwxyz);
   const __m128i cond = _mm_castps_si128(
       _mm_cmple_ps(OZZ_SSE_SPLAT_F(sq_len, 0), _mm_setzero_ps()));
-  const __m128 cfalse =
-      _mm_shuffle_ps(normwxyz, normwxyz, _MM_SHUFFLE(0, 1, 2, 3));
+  const __m128 cfalse = OZZ_SHUFFLE_PS1(normwxyz, _MM_SHUFFLE(0, 1, 2, 3));
   return OZZ_SSE_SELECT_F(cond, _safe, cfalse);
 }
 
 OZZ_INLINE SimdFloat4 NormalizeSafeEst4(_SimdFloat4 _v, _SimdFloat4 _safe) {
+  // assert(AreAllTrue1(IsNormalizedEst4(_safe)) && "_safe is not normalized");
   __m128 sq_len;
   OZZ_SSE_DOT4_F(_v, _v, sq_len);
   const __m128 inv_len = _mm_rsqrt_ss(sq_len);
@@ -691,7 +799,7 @@ OZZ_INLINE SimdFloat4 NormalizeSafeEst4(_SimdFloat4 _v, _SimdFloat4 _safe) {
 }
 
 OZZ_INLINE SimdFloat4 Lerp(_SimdFloat4 _a, _SimdFloat4 _b, _SimdFloat4 _alpha) {
-  return _mm_add_ps(_mm_mul_ps(_alpha, _mm_sub_ps(_b, _a)), _a);
+  return OZZ_MADD(_alpha, _mm_sub_ps(_b, _a), _a);
 }
 
 OZZ_INLINE SimdFloat4 Min(_SimdFloat4 _a, _SimdFloat4 _b) {
@@ -759,6 +867,10 @@ OZZ_INLINE SimdFloat4 And(_SimdFloat4 _a, _SimdInt4 _b) {
   return _mm_and_ps(_a, _mm_castsi128_ps(_b));
 }
 
+OZZ_INLINE SimdFloat4 AndNot(_SimdFloat4 _a, _SimdInt4 _b) {
+  return _mm_andnot_ps(_mm_castsi128_ps(_b), _a);
+}
+
 OZZ_INLINE SimdFloat4 Or(_SimdFloat4 _a, _SimdInt4 _b) {
   return _mm_or_ps(_a, _mm_castsi128_ps(_b));
 }
@@ -773,7 +885,7 @@ OZZ_INLINE SimdFloat4 Cos(_SimdFloat4 _v) {
 }
 
 OZZ_INLINE SimdFloat4 CosX(_SimdFloat4 _v) {
-  return _mm_set_ps(GetW(_v), GetZ(_v), GetY(_v), std::cos(GetX(_v)));
+  return _mm_move_ss(_v, _mm_set_ps1(std::cos(GetX(_v))));
 }
 
 OZZ_INLINE SimdFloat4 ACos(_SimdFloat4 _v) {
@@ -782,7 +894,7 @@ OZZ_INLINE SimdFloat4 ACos(_SimdFloat4 _v) {
 }
 
 OZZ_INLINE SimdFloat4 ACosX(_SimdFloat4 _v) {
-  return _mm_set_ps(GetW(_v), GetZ(_v), GetY(_v), std::acos(GetX(_v)));
+  return _mm_move_ss(_v, _mm_set_ps1(std::acos(GetX(_v))));
 }
 
 OZZ_INLINE SimdFloat4 Sin(_SimdFloat4 _v) {
@@ -791,7 +903,7 @@ OZZ_INLINE SimdFloat4 Sin(_SimdFloat4 _v) {
 }
 
 OZZ_INLINE SimdFloat4 SinX(_SimdFloat4 _v) {
-  return _mm_set_ps(GetW(_v), GetZ(_v), GetY(_v), std::sin(GetX(_v)));
+  return _mm_move_ss(_v, _mm_set_ps1(std::sin(GetX(_v))));
 }
 
 OZZ_INLINE SimdFloat4 ASin(_SimdFloat4 _v) {
@@ -800,7 +912,7 @@ OZZ_INLINE SimdFloat4 ASin(_SimdFloat4 _v) {
 }
 
 OZZ_INLINE SimdFloat4 ASinX(_SimdFloat4 _v) {
-  return _mm_set_ps(GetW(_v), GetZ(_v), GetY(_v), std::asin(GetX(_v)));
+  return _mm_move_ss(_v, _mm_set_ps1(std::asin(GetX(_v))));
 }
 
 OZZ_INLINE SimdFloat4 Tan(_SimdFloat4 _v) {
@@ -809,7 +921,7 @@ OZZ_INLINE SimdFloat4 Tan(_SimdFloat4 _v) {
 }
 
 OZZ_INLINE SimdFloat4 TanX(_SimdFloat4 _v) {
-  return _mm_set_ps(GetW(_v), GetZ(_v), GetY(_v), std::tan(GetX(_v)));
+  return _mm_move_ss(_v, _mm_set_ps1(std::tan(GetX(_v))));
 }
 
 OZZ_INLINE SimdFloat4 ATan(_SimdFloat4 _v) {
@@ -818,7 +930,7 @@ OZZ_INLINE SimdFloat4 ATan(_SimdFloat4 _v) {
 }
 
 OZZ_INLINE SimdFloat4 ATanX(_SimdFloat4 _v) {
-  return _mm_set_ps(GetW(_v), GetZ(_v), GetY(_v), std::atan(GetX(_v)));
+  return _mm_move_ss(_v, _mm_set_ps1(std::atan(GetX(_v))));
 }
 
 namespace simd_int4 {
@@ -827,85 +939,87 @@ OZZ_INLINE SimdInt4 zero() { return _mm_setzero_si128(); }
 
 OZZ_INLINE SimdInt4 one() {
   const __m128i zero = _mm_setzero_si128();
-  const __m128i ffff = _mm_cmpeq_epi32(zero, zero);
-  return _mm_srli_epi32(ffff, 31);
+  return _mm_sub_epi32(zero, _mm_cmpeq_epi32(zero, zero));
 }
 
 OZZ_INLINE SimdInt4 x_axis() {
   const __m128i zero = _mm_setzero_si128();
-  const __m128i ffff = _mm_cmpeq_epi32(zero, zero);
-  return _mm_srli_si128(_mm_srli_epi32(ffff, 31), 12);
+  return _mm_srli_si128(_mm_sub_epi32(zero, _mm_cmpeq_epi32(zero, zero)), 12);
 }
 
 OZZ_INLINE SimdInt4 y_axis() {
   const __m128i zero = _mm_setzero_si128();
-  const __m128i ffff = _mm_cmpeq_epi32(zero, zero);
-  return _mm_slli_si128(_mm_srli_si128(_mm_srli_epi32(ffff, 31), 12), 4);
+  return _mm_slli_si128(
+      _mm_srli_si128(_mm_sub_epi32(zero, _mm_cmpeq_epi32(zero, zero)), 12), 4);
 }
 
 OZZ_INLINE SimdInt4 z_axis() {
   const __m128i zero = _mm_setzero_si128();
-  const __m128i ffff = _mm_cmpeq_epi32(zero, zero);
-  return _mm_slli_si128(_mm_srli_si128(_mm_srli_epi32(ffff, 31), 12), 8);
+  return _mm_slli_si128(
+      _mm_srli_si128(_mm_sub_epi32(zero, _mm_cmpeq_epi32(zero, zero)), 12), 8);
 }
 
 OZZ_INLINE SimdInt4 w_axis() {
   const __m128i zero = _mm_setzero_si128();
-  const __m128i ffff = _mm_cmpeq_epi32(zero, zero);
-  return _mm_slli_si128(_mm_srli_epi32(ffff, 31), 12);
+  return _mm_slli_si128(_mm_sub_epi32(zero, _mm_cmpeq_epi32(zero, zero)), 12);
 }
 
 OZZ_INLINE SimdInt4 all_true() {
-  return _mm_cmpeq_epi32(_mm_setzero_si128(), _mm_setzero_si128());
+  const __m128i zero = _mm_setzero_si128();
+  return _mm_cmpeq_epi32(zero, zero);
 }
 
 OZZ_INLINE SimdInt4 all_false() { return _mm_setzero_si128(); }
 
 OZZ_INLINE SimdInt4 mask_sign() {
-  const __m128i ffff =
-      _mm_cmpeq_epi32(_mm_setzero_si128(), _mm_setzero_si128());
-  return _mm_slli_epi32(ffff, 31);
+  const __m128i zero = _mm_setzero_si128();
+  return _mm_slli_epi32(_mm_cmpeq_epi32(zero, zero), 31);
+}
+
+OZZ_INLINE SimdInt4 mask_sign_xyz() {
+  const __m128i zero = _mm_setzero_si128();
+  return _mm_srli_si128(_mm_slli_epi32(_mm_cmpeq_epi32(zero, zero), 31), 4);
+}
+
+OZZ_INLINE SimdInt4 mask_sign_w() {
+  const __m128i zero = _mm_setzero_si128();
+  return _mm_slli_si128(_mm_slli_epi32(_mm_cmpeq_epi32(zero, zero), 31), 12);
 }
 
 OZZ_INLINE SimdInt4 mask_not_sign() {
-  const __m128i ffff =
-      _mm_cmpeq_epi32(_mm_setzero_si128(), _mm_setzero_si128());
-  return _mm_srli_epi32(ffff, 1);
+  const __m128i zero = _mm_setzero_si128();
+  return _mm_srli_epi32(_mm_cmpeq_epi32(zero, zero), 1);
 }
 
 OZZ_INLINE SimdInt4 mask_ffff() {
-  return _mm_cmpeq_epi32(_mm_setzero_si128(), _mm_setzero_si128());
+  const __m128i zero = _mm_setzero_si128();
+  return _mm_cmpeq_epi32(zero, zero);
 }
 OZZ_INLINE SimdInt4 mask_0000() { return _mm_setzero_si128(); }
 
 OZZ_INLINE SimdInt4 mask_fff0() {
   const __m128i zero = _mm_setzero_si128();
-  const __m128i ffff = _mm_cmpeq_epi32(zero, zero);
-  return _mm_srli_si128(ffff, 4);
+  return _mm_srli_si128(_mm_cmpeq_epi32(zero, zero), 4);
 }
 
 OZZ_INLINE SimdInt4 mask_f000() {
   const __m128i zero = _mm_setzero_si128();
-  const __m128i ffff = _mm_cmpeq_epi32(zero, zero);
-  return _mm_srli_si128(ffff, 12);
+  return _mm_srli_si128(_mm_cmpeq_epi32(zero, zero), 12);
 }
 
 OZZ_INLINE SimdInt4 mask_0f00() {
   const __m128i zero = _mm_setzero_si128();
-  const __m128i ffff = _mm_cmpeq_epi32(zero, zero);
-  return _mm_srli_si128(_mm_slli_si128(ffff, 12), 8);
+  return _mm_srli_si128(_mm_slli_si128(_mm_cmpeq_epi32(zero, zero), 12), 8);
 }
 
 OZZ_INLINE SimdInt4 mask_00f0() {
   const __m128i zero = _mm_setzero_si128();
-  const __m128i ffff = _mm_cmpeq_epi32(zero, zero);
-  return _mm_srli_si128(_mm_slli_si128(ffff, 12), 4);
+  return _mm_srli_si128(_mm_slli_si128(_mm_cmpeq_epi32(zero, zero), 12), 4);
 }
 
 OZZ_INLINE SimdInt4 mask_000f() {
   const __m128i zero = _mm_setzero_si128();
-  const __m128i ffff = _mm_cmpeq_epi32(zero, zero);
-  return _mm_slli_si128(ffff, 12);
+  return _mm_slli_si128(_mm_cmpeq_epi32(zero, zero), 12);
 }
 
 OZZ_INLINE SimdInt4 Load(int _x, int _y, int _z, int _w) {
@@ -1003,42 +1117,38 @@ OZZ_INLINE int GetW(_SimdInt4 _v) {
   return _mm_cvtsi128_si32(OZZ_SSE_SPLAT_I(_v, 3));
 }
 
-OZZ_INLINE SimdInt4 SetX(_SimdInt4 _v, int _i) {
+OZZ_INLINE SimdInt4 SetX(_SimdInt4 _v, _SimdInt4 _i) {
   return _mm_castps_si128(
-      _mm_move_ss(_mm_castsi128_ps(_v), _mm_castsi128_ps(_mm_set1_epi32(_i))));
+      _mm_move_ss(_mm_castsi128_ps(_v), _mm_castsi128_ps(_i)));
 }
 
-OZZ_INLINE SimdInt4 SetY(_SimdInt4 _v, int _i) {
-  const __m128 i = _mm_castsi128_ps(_mm_set1_epi32(_i));
-  const __m128 v = _mm_castsi128_ps(_v);
-  const __m128 yxzw = _mm_shuffle_ps(v, v, _MM_SHUFFLE(3, 2, 0, 1));
-  const __m128 fxzw = _mm_move_ss(yxzw, i);
-  return _mm_castps_si128(_mm_shuffle_ps(fxzw, fxzw, _MM_SHUFFLE(3, 2, 0, 1)));
+OZZ_INLINE SimdInt4 SetY(_SimdInt4 _v, _SimdInt4 _i) {
+  const __m128 xfnn = _mm_castsi128_ps(_mm_unpacklo_epi32(_v, _i));
+  return _mm_castps_si128(
+      _mm_shuffle_ps(xfnn, _mm_castsi128_ps(_v), _MM_SHUFFLE(3, 2, 1, 0)));
 }
 
-OZZ_INLINE SimdInt4 SetZ(_SimdInt4 _v, int _i) {
-  const __m128 i = _mm_castsi128_ps(_mm_set1_epi32(_i));
-  const __m128 v = _mm_castsi128_ps(_v);
-  const __m128 yxzw = _mm_shuffle_ps(v, v, _MM_SHUFFLE(3, 0, 1, 2));
-  const __m128 fxzw = _mm_move_ss(yxzw, i);
-  return _mm_castps_si128(_mm_shuffle_ps(fxzw, fxzw, _MM_SHUFFLE(3, 0, 1, 2)));
+OZZ_INLINE SimdInt4 SetZ(_SimdInt4 _v, _SimdInt4 _i) {
+  const __m128 ffww = _mm_shuffle_ps(_mm_castsi128_ps(_i), _mm_castsi128_ps(_v),
+                                     _MM_SHUFFLE(3, 3, 0, 0));
+  return _mm_castps_si128(
+      _mm_shuffle_ps(_mm_castsi128_ps(_v), ffww, _MM_SHUFFLE(2, 0, 1, 0)));
 }
 
-OZZ_INLINE SimdInt4 SetW(_SimdInt4 _v, int _i) {
-  const __m128 i = _mm_castsi128_ps(_mm_set1_epi32(_i));
-  const __m128 v = _mm_castsi128_ps(_v);
-  const __m128 yxzw = _mm_shuffle_ps(v, v, _MM_SHUFFLE(0, 2, 1, 3));
-  const __m128 fxzw = _mm_move_ss(yxzw, i);
-  return _mm_castps_si128(_mm_shuffle_ps(fxzw, fxzw, _MM_SHUFFLE(0, 2, 1, 3)));
+OZZ_INLINE SimdInt4 SetW(_SimdInt4 _v, _SimdInt4 _i) {
+  const __m128 ffzz = _mm_shuffle_ps(_mm_castsi128_ps(_i), _mm_castsi128_ps(_v),
+                                     _MM_SHUFFLE(2, 2, 0, 0));
+  return _mm_castps_si128(
+      _mm_shuffle_ps(_mm_castsi128_ps(_v), ffzz, _MM_SHUFFLE(0, 2, 1, 0)));
 }
 
-OZZ_INLINE SimdInt4 SetI(_SimdInt4 _v, int _ith, int _i) {
-  assert(_ith >= 0 && _ith <= 3 && "Invalid index ranges");
+OZZ_INLINE SimdInt4 SetI(_SimdInt4 _v, _SimdInt4 _i, int _ith) {
+  assert(_ith >= 0 && _ith <= 3 && "Invalid index, out of range.");
   union {
     SimdInt4 ret;
     int af[4];
   } u = {_v};
-  u.af[_ith] = _i;
+  u.af[_ith] = GetX(_i);
   return u.ret;
 }
 
@@ -1095,6 +1205,17 @@ OZZ_INLINE SimdInt4 SplatY(_SimdInt4 _a) { return OZZ_SSE_SPLAT_I(_a, 1); }
 OZZ_INLINE SimdInt4 SplatZ(_SimdInt4 _a) { return OZZ_SSE_SPLAT_I(_a, 2); }
 
 OZZ_INLINE SimdInt4 SplatW(_SimdInt4 _a) { return OZZ_SSE_SPLAT_I(_a, 3); }
+
+template <size_t _X, size_t _Y, size_t _Z, size_t _W>
+OZZ_INLINE SimdInt4 Swizzle(_SimdInt4 _v) {
+  OZZ_STATIC_ASSERT(_X <= 3 && _Y <= 3 && _Z <= 3 && _W <= 3);
+  return _mm_shuffle_epi32(_v, _MM_SHUFFLE(_W, _Z, _Y, _X));
+}
+
+template <>
+OZZ_INLINE SimdInt4 Swizzle<0, 1, 2, 3>(_SimdInt4 _v) {
+  return _v;
+}
 
 OZZ_INLINE int MoveMask(_SimdInt4 _v) {
   return _mm_movemask_ps(_mm_castsi128_ps(_v));
@@ -1155,9 +1276,13 @@ OZZ_INLINE SimdInt4 HAdd4(_SimdInt4 _v) {
 }
 
 OZZ_INLINE SimdInt4 Abs(_SimdInt4 _v) {
+#ifdef OZZ_SIMD_SSSE3
+  return _mm_abs_epi32(_v);
+#else   // OZZ_SIMD_SSSE3
   const __m128i zero = _mm_setzero_si128();
   return OZZ_SSE_SELECT_I(_mm_cmplt_epi32(_v, zero), _mm_sub_epi32(zero, _v),
                           _v);
+#endif  // OZZ_SIMD_SSSE3
 }
 
 OZZ_INLINE SimdInt4 Sign(_SimdInt4 _v) {
@@ -1165,31 +1290,46 @@ OZZ_INLINE SimdInt4 Sign(_SimdInt4 _v) {
 }
 
 OZZ_INLINE SimdInt4 Min(_SimdInt4 _a, _SimdInt4 _b) {
-  // SSE4 _mm_min_epi32
+#ifdef OZZ_SIMD_SSE4_1
+  return _mm_min_epi32(_a, _b);
+#else  // OZZ_SIMD_SSE4_1
   return OZZ_SSE_SELECT_I(_mm_cmplt_epi32(_a, _b), _a, _b);
+#endif  // OZZ_SIMD_SSE4_1
 }
 
 OZZ_INLINE SimdInt4 Max(_SimdInt4 _a, _SimdInt4 _b) {
-  // SSE4 _mm_max_epi32
+#ifdef OZZ_SIMD_SSE4_1
+  return _mm_max_epi32(_a, _b);
+#else  // OZZ_SIMD_SSE4_1
   return OZZ_SSE_SELECT_I(_mm_cmpgt_epi32(_a, _b), _a, _b);
+#endif  // OZZ_SIMD_SSE4_1
 }
 
 OZZ_INLINE SimdInt4 Min0(_SimdInt4 _v) {
-  // SSE4 _mm_min_epi32
   const __m128i zero = _mm_setzero_si128();
+#ifdef OZZ_SIMD_SSE4_1
+  return _mm_min_epi32(zero, _v);
+#else   // OZZ_SIMD_SSE4_1
   return OZZ_SSE_SELECT_I(_mm_cmplt_epi32(zero, _v), zero, _v);
+#endif  // OZZ_SIMD_SSE4_1
 }
 
 OZZ_INLINE SimdInt4 Max0(_SimdInt4 _v) {
-  // SSE4 _mm_max_epi32
   const __m128i zero = _mm_setzero_si128();
+#ifdef OZZ_SIMD_SSE4_1
+  return _mm_max_epi32(zero, _v);
+#else   // OZZ_SIMD_SSE4_1
   return OZZ_SSE_SELECT_I(_mm_cmpgt_epi32(zero, _v), zero, _v);
+#endif  // OZZ_SIMD_SSE4_1
 }
 
 OZZ_INLINE SimdInt4 Clamp(_SimdInt4 _a, _SimdInt4 _v, _SimdInt4 _b) {
-  // SSE4 _mm_min_epi32/_mm_max_epi32
+#ifdef OZZ_SIMD_SSE4_1
+  return _mm_min_epi32(_mm_max_epi32(_a, _v), _b);
+#else   // OZZ_SIMD_SSE4_1
   const __m128i min = OZZ_SSE_SELECT_I(_mm_cmplt_epi32(_v, _b), _v, _b);
   return OZZ_SSE_SELECT_I(_mm_cmpgt_epi32(_a, min), _a, min);
+#endif  // OZZ_SIMD_SSE4_1
 }
 
 OZZ_INLINE SimdInt4 Select(_SimdInt4 _b, _SimdInt4 _true, _SimdInt4 _false) {
@@ -1198,6 +1338,10 @@ OZZ_INLINE SimdInt4 Select(_SimdInt4 _b, _SimdInt4 _true, _SimdInt4 _false) {
 
 OZZ_INLINE SimdInt4 And(_SimdInt4 _a, _SimdInt4 _b) {
   return _mm_and_si128(_a, _b);
+}
+
+OZZ_INLINE SimdInt4 AndNot(_SimdInt4 _a, _SimdInt4 _b) {
+  return _mm_andnot_si128(_b, _a);
 }
 
 OZZ_INLINE SimdInt4 Or(_SimdInt4 _a, _SimdInt4 _b) {
@@ -1209,8 +1353,7 @@ OZZ_INLINE SimdInt4 Xor(_SimdInt4 _a, _SimdInt4 _b) {
 }
 
 OZZ_INLINE SimdInt4 Not(_SimdInt4 _v) {
-  return _mm_andnot_si128(
-      _v, _mm_cmpeq_epi32(_mm_setzero_si128(), _mm_setzero_si128()));
+  return _mm_xor_si128(_v, _mm_cmpeq_epi32(_v, _v));
 }
 
 OZZ_INLINE SimdInt4 ShiftL(_SimdInt4 _v, int _bits) {
@@ -1230,18 +1373,17 @@ OZZ_INLINE SimdInt4 CmpEq(_SimdInt4 _a, _SimdInt4 _b) {
 }
 
 OZZ_INLINE SimdInt4 CmpNe(_SimdInt4 _a, _SimdInt4 _b) {
-  return _mm_castps_si128(
-      _mm_cmpneq_ps(_mm_castsi128_ps(_a), _mm_castsi128_ps(_b)));
+  const __m128i eq = _mm_cmpeq_epi32(_a, _b);
+  return _mm_xor_si128(eq, _mm_cmpeq_epi32(_a, _a));
 }
 
 OZZ_INLINE SimdInt4 CmpLt(_SimdInt4 _a, _SimdInt4 _b) {
-  return _mm_cmplt_epi32(_a, _b);
+  return _mm_cmpgt_epi32(_b, _a);
 }
 
 OZZ_INLINE SimdInt4 CmpLe(_SimdInt4 _a, _SimdInt4 _b) {
-  return _mm_andnot_si128(
-      _mm_cmpgt_epi32(_a, _b),
-      _mm_cmpeq_epi32(_mm_setzero_si128(), _mm_setzero_si128()));
+  const __m128i gt = _mm_cmpgt_epi32(_a, _b);
+  return _mm_xor_si128(gt, _mm_cmpeq_epi32(_a, _a));
 }
 
 OZZ_INLINE SimdInt4 CmpGt(_SimdInt4 _a, _SimdInt4 _b) {
@@ -1249,9 +1391,8 @@ OZZ_INLINE SimdInt4 CmpGt(_SimdInt4 _a, _SimdInt4 _b) {
 }
 
 OZZ_INLINE SimdInt4 CmpGe(_SimdInt4 _a, _SimdInt4 _b) {
-  return _mm_andnot_si128(
-      _mm_cmplt_epi32(_a, _b),
-      _mm_cmpeq_epi32(_mm_setzero_si128(), _mm_setzero_si128()));
+  const __m128i lt = _mm_cmpgt_epi32(_b, _a);
+  return _mm_xor_si128(lt, _mm_cmpeq_epi32(_a, _a));
 }
 
 OZZ_INLINE Float4x4 Float4x4::identity() {
@@ -1259,7 +1400,6 @@ OZZ_INLINE Float4x4 Float4x4::identity() {
   const __m128i ffff = _mm_cmpeq_epi32(zero, zero);
   const __m128i one = _mm_srli_epi32(_mm_slli_epi32(ffff, 25), 2);
   const __m128i x = _mm_srli_si128(one, 12);
-
   const Float4x4 ret = {{_mm_castsi128_ps(x),
                          _mm_castsi128_ps(_mm_slli_si128(x, 4)),
                          _mm_castsi128_ps(_mm_slli_si128(x, 8)),
@@ -1278,7 +1418,7 @@ OZZ_INLINE Float4x4 Transpose(const Float4x4& _m) {
   return ret;
 }
 
-OZZ_INLINE Float4x4 Invert(const Float4x4& _m) {
+inline Float4x4 Invert(const Float4x4& _m, SimdInt4* _invertible) {
   const __m128 _t0 =
       _mm_shuffle_ps(_m.cols[0], _m.cols[1], _MM_SHUFFLE(1, 0, 1, 0));
   const __m128 _t1 =
@@ -1294,65 +1434,70 @@ OZZ_INLINE Float4x4 Invert(const Float4x4& _m) {
 
   __m128 minor0, minor1, minor2, minor3, tmp1, tmp2;
   tmp1 = _mm_mul_ps(c2, c3);
-  tmp1 = _mm_shuffle_ps(tmp1, tmp1, 0xB1);
+  tmp1 = OZZ_SHUFFLE_PS1(tmp1, 0xB1);
   minor0 = _mm_mul_ps(c1, tmp1);
   minor1 = _mm_mul_ps(c0, tmp1);
-  tmp1 = _mm_shuffle_ps(tmp1, tmp1, 0x4E);
-  minor0 = _mm_sub_ps(_mm_mul_ps(c1, tmp1), minor0);
-  minor1 = _mm_sub_ps(_mm_mul_ps(c0, tmp1), minor1);
-  minor1 = _mm_shuffle_ps(minor1, minor1, 0x4E);
+  tmp1 = OZZ_SHUFFLE_PS1(tmp1, 0x4E);
+  minor0 = OZZ_MSUB(c1, tmp1, minor0);
+  minor1 = OZZ_MSUB(c0, tmp1, minor1);
+  minor1 = OZZ_SHUFFLE_PS1(minor1, 0x4E);
 
   tmp1 = _mm_mul_ps(c1, c2);
-  tmp1 = _mm_shuffle_ps(tmp1, tmp1, 0xB1);
-  minor0 = _mm_add_ps(_mm_mul_ps(c3, tmp1), minor0);
+  tmp1 = OZZ_SHUFFLE_PS1(tmp1, 0xB1);
+  minor0 = OZZ_MADD(c3, tmp1, minor0);
   minor3 = _mm_mul_ps(c0, tmp1);
-  tmp1 = _mm_shuffle_ps(tmp1, tmp1, 0x4E);
-  minor0 = _mm_sub_ps(minor0, _mm_mul_ps(c3, tmp1));
-  minor3 = _mm_sub_ps(_mm_mul_ps(c0, tmp1), minor3);
-  minor3 = _mm_shuffle_ps(minor3, minor3, 0x4E);
+  tmp1 = OZZ_SHUFFLE_PS1(tmp1, 0x4E);
+  minor0 = OZZ_NMADD(c3, tmp1, minor0);
+  minor3 = OZZ_MSUB(c0, tmp1, minor3);
+  minor3 = OZZ_SHUFFLE_PS1(minor3, 0x4E);
 
-  tmp1 = _mm_mul_ps(_mm_shuffle_ps(c1, c1, 0x4E), c3);
-  tmp1 = _mm_shuffle_ps(tmp1, tmp1, 0xB1);
-  tmp2 = _mm_shuffle_ps(c2, c2, 0x4E);
-  minor0 = _mm_add_ps(_mm_mul_ps(tmp2, tmp1), minor0);
+  tmp1 = _mm_mul_ps(OZZ_SHUFFLE_PS1(c1, 0x4E), c3);
+  tmp1 = OZZ_SHUFFLE_PS1(tmp1, 0xB1);
+  tmp2 = OZZ_SHUFFLE_PS1(c2, 0x4E);
+  minor0 = OZZ_MADD(tmp2, tmp1, minor0);
   minor2 = _mm_mul_ps(c0, tmp1);
-  tmp1 = _mm_shuffle_ps(tmp1, tmp1, 0x4E);
-  minor0 = _mm_sub_ps(minor0, _mm_mul_ps(tmp2, tmp1));
-  minor2 = _mm_sub_ps(_mm_mul_ps(c0, tmp1), minor2);
-  minor2 = _mm_shuffle_ps(minor2, minor2, 0x4E);
+  tmp1 = OZZ_SHUFFLE_PS1(tmp1, 0x4E);
+  minor0 = OZZ_NMADD(tmp2, tmp1, minor0);
+  minor2 = OZZ_MSUB(c0, tmp1, minor2);
+  minor2 = OZZ_SHUFFLE_PS1(minor2, 0x4E);
 
   tmp1 = _mm_mul_ps(c0, c1);
-  tmp1 = _mm_shuffle_ps(tmp1, tmp1, 0xB1);
-  minor2 = _mm_add_ps(_mm_mul_ps(c3, tmp1), minor2);
-  minor3 = _mm_sub_ps(_mm_mul_ps(tmp2, tmp1), minor3);
-  tmp1 = _mm_shuffle_ps(tmp1, tmp1, 0x4E);
-  minor2 = _mm_sub_ps(_mm_mul_ps(c3, tmp1), minor2);
-  minor3 = _mm_sub_ps(minor3, _mm_mul_ps(tmp2, tmp1));
+  tmp1 = OZZ_SHUFFLE_PS1(tmp1, 0xB1);
+  minor2 = OZZ_MADD(c3, tmp1, minor2);
+  minor3 = OZZ_MSUB(tmp2, tmp1, minor3);
+  tmp1 = OZZ_SHUFFLE_PS1(tmp1, 0x4E);
+  minor2 = OZZ_MSUB(c3, tmp1, minor2);
+  minor3 = OZZ_NMADD(tmp2, tmp1, minor3);
 
   tmp1 = _mm_mul_ps(c0, c3);
-  tmp1 = _mm_shuffle_ps(tmp1, tmp1, 0xB1);
-  minor1 = _mm_sub_ps(minor1, _mm_mul_ps(tmp2, tmp1));
-  minor2 = _mm_add_ps(_mm_mul_ps(c1, tmp1), minor2);
-  tmp1 = _mm_shuffle_ps(tmp1, tmp1, 0x4E);
-  minor1 = _mm_add_ps(_mm_mul_ps(tmp2, tmp1), minor1);
-  minor2 = _mm_sub_ps(minor2, _mm_mul_ps(c1, tmp1));
+  tmp1 = OZZ_SHUFFLE_PS1(tmp1, 0xB1);
+  minor1 = OZZ_NMADD(tmp2, tmp1, minor1);
+  minor2 = OZZ_MADD(c1, tmp1, minor2);
+  tmp1 = OZZ_SHUFFLE_PS1(tmp1, 0x4E);
+  minor1 = OZZ_MADD(tmp2, tmp1, minor1);
+  minor2 = OZZ_NMADD(c1, tmp1, minor2);
 
   tmp1 = _mm_mul_ps(c0, tmp2);
-  tmp1 = _mm_shuffle_ps(tmp1, tmp1, 0xB1);
-  minor1 = _mm_add_ps(_mm_mul_ps(c3, tmp1), minor1);
-  minor3 = _mm_sub_ps(minor3, _mm_mul_ps(c1, tmp1));
-  tmp1 = _mm_shuffle_ps(tmp1, tmp1, 0x4E);
-  minor1 = _mm_sub_ps(minor1, _mm_mul_ps(c3, tmp1));
-  minor3 = _mm_add_ps(_mm_mul_ps(c1, tmp1), minor3);
+  tmp1 = OZZ_SHUFFLE_PS1(tmp1, 0xB1);
+  minor1 = OZZ_MADD(c3, tmp1, minor1);
+  minor3 = OZZ_NMADD(c1, tmp1, minor3);
+  tmp1 = OZZ_SHUFFLE_PS1(tmp1, 0x4E);
+  minor1 = OZZ_NMADD(c3, tmp1, minor1);
+  minor3 = OZZ_MADD(c1, tmp1, minor3);
 
   __m128 det;
   det = _mm_mul_ps(c0, minor0);
-  det = _mm_add_ps(_mm_shuffle_ps(det, det, 0x4E), det);
-  det = _mm_add_ss(_mm_shuffle_ps(det, det, 0xB1), det);
-  tmp1 = _mm_rcp_ss(det);
-  det = _mm_sub_ss(_mm_add_ss(tmp1, tmp1),
-                   _mm_mul_ss(det, _mm_mul_ss(tmp1, tmp1)));
-  det = _mm_shuffle_ps(det, det, 0x00);
+  det = _mm_add_ps(OZZ_SHUFFLE_PS1(det, 0x4E), det);
+  det = _mm_add_ss(OZZ_SHUFFLE_PS1(det, 0xB1), det);
+  const SimdInt4 invertible = CmpNe(det, simd_float4::zero());
+  assert((_invertible || AreAllTrue1(invertible)) &&
+         "Matrix is not invertible");
+  if (_invertible != NULL) {
+    *_invertible = invertible;
+  }
+  tmp1 = OZZ_SSE_SELECT_F(invertible, RcpEstNR(det), simd_float4::zero());
+  det = OZZ_NMADDX(det, _mm_mul_ss(tmp1, tmp1), _mm_add_ss(tmp1, tmp1));
+  det = OZZ_SHUFFLE_PS1(det, 0x00);
 
   // Copy the final columns
   const Float4x4 ret = {{_mm_mul_ps(det, minor0), _mm_mul_ps(det, minor1),
@@ -1387,17 +1532,11 @@ Float4x4 Float4x4::Scaling(_SimdFloat4 _v) {
 }  // math
 
 OZZ_INLINE Float4x4 Translate(const Float4x4& _m, _SimdFloat4 _v) {
-  const __m128 vxxxx = OZZ_SSE_SPLAT_F(_v, 0);
-  const __m128 vyyyy = OZZ_SSE_SPLAT_F(_v, 1);
-  const __m128 m0 = _mm_mul_ps(_m.cols[0], vxxxx);
-  const __m128 m1 = _mm_mul_ps(_m.cols[1], vyyyy);
-  const __m128 vzzzz = OZZ_SSE_SPLAT_F(_v, 2);
-  const __m128 a01 = _mm_add_ps(m0, m1);
-  const __m128 m2 = _mm_mul_ps(_m.cols[2], vzzzz);
-  const __m128 m3 = _mm_add_ps(m2, _m.cols[3]);
-  const __m128 col3 = _mm_add_ps(a01, m3);
-
-  const Float4x4 ret = {{_m.cols[0], _m.cols[1], _m.cols[2], col3}};
+  const __m128 a01 = OZZ_MADD(_m.cols[0], OZZ_SSE_SPLAT_F(_v, 0),
+                              _mm_mul_ps(_m.cols[1], OZZ_SSE_SPLAT_F(_v, 1)));
+  const __m128 m3 = OZZ_MADD(_m.cols[2], OZZ_SSE_SPLAT_F(_v, 2), _m.cols[3]);
+  const Float4x4 ret = {
+      {_m.cols[0], _m.cols[1], _m.cols[2], _mm_add_ps(a01, m3)}};
   return ret;
 }
 
@@ -1416,7 +1555,7 @@ OZZ_INLINE Float4x4 ColumnMultiply(const Float4x4& _m, _SimdFloat4 _v) {
   return ret;
 }
 
-OZZ_INLINE SimdInt4 IsNormalized(const Float4x4& _m) {
+inline SimdInt4 IsNormalized(const Float4x4& _m) {
   const __m128 max = _mm_set_ps1(1.f + kNormalizationToleranceSq);
   const __m128 min = _mm_set_ps1(1.f - kNormalizationToleranceSq);
 
@@ -1429,15 +1568,14 @@ OZZ_INLINE SimdInt4 IsNormalized(const Float4x4& _m) {
   const __m128 row2 = _mm_unpacklo_ps(tmp2, tmp3);
 
   const __m128 dot =
-      _mm_add_ps(_mm_add_ps(_mm_mul_ps(row0, row0), _mm_mul_ps(row1, row1)),
-                 _mm_mul_ps(row2, row2));
+      OZZ_MADD(row0, row0, OZZ_MADD(row1, row1, _mm_mul_ps(row2, row2)));
   const __m128 normalized =
       _mm_and_ps(_mm_cmplt_ps(dot, max), _mm_cmpgt_ps(dot, min));
   return _mm_castps_si128(
       _mm_and_ps(normalized, _mm_castsi128_ps(simd_int4::mask_fff0())));
 }
 
-OZZ_INLINE SimdInt4 IsNormalizedEst(const Float4x4& _m) {
+inline SimdInt4 IsNormalizedEst(const Float4x4& _m) {
   const __m128 max = _mm_set_ps1(1.f + kNormalizationToleranceEstSq);
   const __m128 min = _mm_set_ps1(1.f - kNormalizationToleranceEstSq);
 
@@ -1450,8 +1588,7 @@ OZZ_INLINE SimdInt4 IsNormalizedEst(const Float4x4& _m) {
   const __m128 row2 = _mm_unpacklo_ps(tmp2, tmp3);
 
   const __m128 dot =
-      _mm_add_ps(_mm_add_ps(_mm_mul_ps(row0, row0), _mm_mul_ps(row1, row1)),
-                 _mm_mul_ps(row2, row2));
+      OZZ_MADD(row0, row0, OZZ_MADD(row1, row1, _mm_mul_ps(row2, row2)));
 
   const __m128 normalized =
       _mm_and_ps(_mm_cmplt_ps(dot, max), _mm_cmpgt_ps(dot, min));
@@ -1477,7 +1614,7 @@ OZZ_INLINE SimdInt4 IsOrthogonal(const Float4x4& _m) {
       _mm_and_ps(_mm_cmplt_ss(dotx000, max), _mm_cmpgt_ss(dotx000, min)));
 }
 
-OZZ_INLINE SimdFloat4 ToQuaternion(const Float4x4& _m) {
+inline SimdFloat4 ToQuaternion(const Float4x4& _m) {
   assert(AreAllTrue3(IsNormalizedEst(_m)));
   assert(AreAllTrue1(IsOrthogonal(_m)));
 
@@ -1493,14 +1630,13 @@ OZZ_INLINE SimdFloat4 ToQuaternion(const Float4x4& _m) {
   const __m128i mask_00f0 = _mm_slli_si128(mask_f000, 8);
 
   const __m128 xx_yy = OZZ_SSE_SELECT_F(mask_0f00, _m.cols[1], _m.cols[0]);
-  const __m128 xx_yy_0010 =
-      _mm_shuffle_ps(xx_yy, xx_yy, _MM_SHUFFLE(0, 0, 1, 0));
+  const __m128 xx_yy_0010 = OZZ_SHUFFLE_PS1(xx_yy, _MM_SHUFFLE(0, 0, 1, 0));
   const __m128 xx_yy_zz_xx =
       OZZ_SSE_SELECT_F(mask_00f0, _m.cols[2], xx_yy_0010);
   const __m128 yy_zz_xx_yy =
-      _mm_shuffle_ps(xx_yy_zz_xx, xx_yy_zz_xx, _MM_SHUFFLE(1, 0, 2, 1));
+      OZZ_SHUFFLE_PS1(xx_yy_zz_xx, _MM_SHUFFLE(1, 0, 2, 1));
   const __m128 zz_xx_yy_zz =
-      _mm_shuffle_ps(xx_yy_zz_xx, xx_yy_zz_xx, _MM_SHUFFLE(2, 1, 0, 2));
+      OZZ_SHUFFLE_PS1(xx_yy_zz_xx, _MM_SHUFFLE(2, 1, 0, 2));
 
   const __m128 diag_sum =
       _mm_add_ps(_mm_add_ps(xx_yy_zz_xx, yy_zz_xx_yy), zz_xx_yy_zz);
@@ -1511,20 +1647,20 @@ OZZ_INLINE SimdFloat4 ToQuaternion(const Float4x4& _m) {
   const __m128 invSqrt = one / _mm_sqrt_ps(radicand);
 
   __m128 zy_xz_yx = OZZ_SSE_SELECT_F(mask_00f0, _m.cols[1], _m.cols[0]);
-  zy_xz_yx = _mm_shuffle_ps(zy_xz_yx, zy_xz_yx, _MM_SHUFFLE(0, 1, 2, 2));
+  zy_xz_yx = OZZ_SHUFFLE_PS1(zy_xz_yx, _MM_SHUFFLE(0, 1, 2, 2));
   zy_xz_yx =
       OZZ_SSE_SELECT_F(mask_0f00, OZZ_SSE_SPLAT_F(_m.cols[2], 0), zy_xz_yx);
   __m128 yz_zx_xy = OZZ_SSE_SELECT_F(mask_f000, _m.cols[1], _m.cols[0]);
-  yz_zx_xy = _mm_shuffle_ps(yz_zx_xy, yz_zx_xy, _MM_SHUFFLE(0, 0, 2, 0));
+  yz_zx_xy = OZZ_SHUFFLE_PS1(yz_zx_xy, _MM_SHUFFLE(0, 0, 2, 0));
   yz_zx_xy =
       OZZ_SSE_SELECT_F(mask_f000, OZZ_SSE_SPLAT_F(_m.cols[2], 1), yz_zx_xy);
   const __m128 sum = _mm_add_ps(zy_xz_yx, yz_zx_xy);
   const __m128 diff = _mm_sub_ps(zy_xz_yx, yz_zx_xy);
   const __m128 scale = _mm_mul_ps(invSqrt, half);
 
-  const __m128 sum0 = _mm_shuffle_ps(sum, sum, _MM_SHUFFLE(0, 1, 2, 0));
-  const __m128 sum1 = _mm_shuffle_ps(sum, sum, _MM_SHUFFLE(0, 0, 0, 2));
-  const __m128 sum2 = _mm_shuffle_ps(sum, sum, _MM_SHUFFLE(0, 0, 0, 1));
+  const __m128 sum0 = OZZ_SHUFFLE_PS1(sum, _MM_SHUFFLE(0, 1, 2, 0));
+  const __m128 sum1 = OZZ_SHUFFLE_PS1(sum, _MM_SHUFFLE(0, 0, 0, 2));
+  const __m128 sum2 = OZZ_SHUFFLE_PS1(sum, _MM_SHUFFLE(0, 0, 0, 1));
   __m128 res0 = OZZ_SSE_SELECT_F(mask_000f, OZZ_SSE_SPLAT_F(diff, 0), sum0);
   __m128 res1 = OZZ_SSE_SELECT_F(mask_000f, OZZ_SSE_SPLAT_F(diff, 1), sum1);
   __m128 res2 = OZZ_SSE_SELECT_F(mask_000f, OZZ_SSE_SPLAT_F(diff, 2), sum2);
@@ -1553,8 +1689,8 @@ OZZ_INLINE SimdFloat4 ToQuaternion(const Float4x4& _m) {
   return res;
 }
 
-OZZ_INLINE bool ToAffine(const Float4x4& _m, SimdFloat4* _translation,
-                         SimdFloat4* _quaternion, SimdFloat4* _scale) {
+inline bool ToAffine(const Float4x4& _m, SimdFloat4* _translation,
+                     SimdFloat4* _quaternion, SimdFloat4* _scale) {
   const __m128 zero = _mm_setzero_ps();
   const __m128 one = simd_float4::one();
   const __m128i fff0 = simd_int4::mask_fff0();
@@ -1573,9 +1709,8 @@ OZZ_INLINE bool ToAffine(const Float4x4& _m, SimdFloat4* _translation,
   const __m128 m_row1 = _mm_unpackhi_ps(m_tmp0, m_tmp1);
   const __m128 m_row2 = _mm_unpacklo_ps(m_tmp2, m_tmp3);
 
-  const __m128 dot = _mm_add_ps(
-      _mm_add_ps(_mm_mul_ps(m_row0, m_row0), _mm_mul_ps(m_row1, m_row1)),
-      _mm_mul_ps(m_row2, m_row2));
+  const __m128 dot = OZZ_MADD(
+      m_row0, m_row0, OZZ_MADD(m_row1, m_row1, _mm_mul_ps(m_row2, m_row2)));
   const __m128 abs_scale = _mm_sqrt_ps(dot);
 
   const __m128 zero_axis =
@@ -1624,9 +1759,8 @@ OZZ_INLINE bool ToAffine(const Float4x4& _m, SimdFloat4* _translation,
   const __m128 o_row1 = _mm_unpackhi_ps(o_tmp0, o_tmp1);
   const __m128 o_row2 = _mm_unpacklo_ps(o_tmp2, o_tmp3);
 
-  const __m128 scale_dot = _mm_add_ps(
-      _mm_add_ps(_mm_mul_ps(o_row0, m_row0), _mm_mul_ps(o_row1, m_row1)),
-      _mm_mul_ps(o_row2, m_row2));
+  const __m128 scale_dot = OZZ_MADD(
+      o_row0, m_row0, OZZ_MADD(o_row1, m_row1, _mm_mul_ps(o_row2, m_row2)));
 
   const __m128i cond = _mm_castps_si128(_mm_cmpgt_ps(scale_dot, zero));
   const __m128 cfalse = _mm_sub_ps(zero, abs_scale);
@@ -1638,7 +1772,7 @@ OZZ_INLINE bool ToAffine(const Float4x4& _m, SimdFloat4* _translation,
   return true;
 }
 
-OZZ_INLINE Float4x4 Float4x4::FromEuler(_SimdFloat4 _v) {
+inline Float4x4 Float4x4::FromEuler(_SimdFloat4 _v) {
   const __m128 cos = Cos(_v);
   const __m128 sin = Sin(_v);
 
@@ -1661,8 +1795,8 @@ OZZ_INLINE Float4x4 Float4x4::FromEuler(_SimdFloat4 _v) {
   return ret;
 }
 
-OZZ_INLINE Float4x4 Float4x4::FromAxisAngle(_SimdFloat4 _v) {
-  assert(AreAllTrue1(IsNormalizedEst3(_v)));
+inline Float4x4 Float4x4::FromAxisAngle(_SimdFloat4 _axis, _SimdFloat4 _angle) {
+  assert(AreAllTrue1(IsNormalizedEst3(_axis)));
 
   const __m128i zero = _mm_setzero_si128();
   const __m128i ffff = _mm_cmpeq_epi32(zero, zero);
@@ -1671,35 +1805,34 @@ OZZ_INLINE Float4x4 Float4x4::FromAxisAngle(_SimdFloat4 _v) {
   const __m128 one = _mm_castsi128_ps(ione);
   const __m128 w_axis = _mm_castsi128_ps(_mm_slli_si128(ione, 12));
 
-  const __m128 angle = SplatW(_v);
-  const __m128 sin = SplatX(SinX(angle));
-  const __m128 cos = SplatX(CosX(angle));
+  const __m128 sin = SplatX(SinX(_angle));
+  const __m128 cos = SplatX(CosX(_angle));
   const __m128 one_minus_cos = _mm_sub_ps(one, cos);
 
   const __m128 v0 =
       _mm_mul_ps(_mm_mul_ps(one_minus_cos,
-                            _mm_shuffle_ps(_v, _v, _MM_SHUFFLE(3, 0, 2, 1))),
-                 _mm_shuffle_ps(_v, _v, _MM_SHUFFLE(3, 1, 0, 2)));
+                            OZZ_SHUFFLE_PS1(_axis, _MM_SHUFFLE(3, 0, 2, 1))),
+                 OZZ_SHUFFLE_PS1(_axis, _MM_SHUFFLE(3, 1, 0, 2)));
   const __m128 r0 =
-      _mm_add_ps(_mm_mul_ps(_mm_mul_ps(one_minus_cos, _v), _v), cos);
-  const __m128 r1 = _mm_add_ps(_mm_mul_ps(sin, _v), v0);
-  const __m128 r2 = _mm_sub_ps(v0, _mm_mul_ps(sin, _v));
+      _mm_add_ps(_mm_mul_ps(_mm_mul_ps(one_minus_cos, _axis), _axis), cos);
+  const __m128 r1 = _mm_add_ps(_mm_mul_ps(sin, _axis), v0);
+  const __m128 r2 = _mm_sub_ps(v0, _mm_mul_ps(sin, _axis));
   const __m128 r0fff0 = _mm_and_ps(r0, fff0);
   const __m128 r1r22120 = _mm_shuffle_ps(r1, r2, _MM_SHUFFLE(2, 1, 2, 0));
-  const __m128 v1 = _mm_shuffle_ps(r1r22120, r1r22120, _MM_SHUFFLE(0, 3, 2, 1));
+  const __m128 v1 = OZZ_SHUFFLE_PS1(r1r22120, _MM_SHUFFLE(0, 3, 2, 1));
   const __m128 r1r20011 = _mm_shuffle_ps(r1, r2, _MM_SHUFFLE(0, 0, 1, 1));
-  const __m128 v2 = _mm_shuffle_ps(r1r20011, r1r20011, _MM_SHUFFLE(2, 0, 2, 0));
+  const __m128 v2 = OZZ_SHUFFLE_PS1(r1r20011, _MM_SHUFFLE(2, 0, 2, 0));
 
   const __m128 t0 = _mm_shuffle_ps(r0fff0, v1, _MM_SHUFFLE(1, 0, 3, 0));
   const __m128 t1 = _mm_shuffle_ps(r0fff0, v1, _MM_SHUFFLE(3, 2, 3, 1));
-  const Float4x4 ret = {{_mm_shuffle_ps(t0, t0, _MM_SHUFFLE(1, 3, 2, 0)),
-                         _mm_shuffle_ps(t1, t1, _MM_SHUFFLE(1, 3, 0, 2)),
+  const Float4x4 ret = {{OZZ_SHUFFLE_PS1(t0, _MM_SHUFFLE(1, 3, 2, 0)),
+                         OZZ_SHUFFLE_PS1(t1, _MM_SHUFFLE(1, 3, 0, 2)),
                          _mm_shuffle_ps(v2, r0fff0, _MM_SHUFFLE(3, 2, 1, 0)),
                          w_axis}};
   return ret;
 }
 
-OZZ_INLINE Float4x4 Float4x4::FromQuaternion(_SimdFloat4 _quaternion) {
+inline Float4x4 Float4x4::FromQuaternion(_SimdFloat4 _quaternion) {
   assert(AreAllTrue1(IsNormalizedEst4(_quaternion)));
 
   const __m128i zero = _mm_setzero_si128();
@@ -1715,35 +1848,35 @@ OZZ_INLINE Float4x4 Float4x4::FromQuaternion(_SimdFloat4 _quaternion) {
   const __m128 r0 = _mm_sub_ps(
       _mm_sub_ps(
           c1110,
-          _mm_and_ps(_mm_shuffle_ps(vms, vms, _MM_SHUFFLE(3, 0, 0, 1)), fff0)),
-      _mm_and_ps(_mm_shuffle_ps(vms, vms, _MM_SHUFFLE(3, 1, 2, 2)), fff0));
-  const __m128 v0 = _mm_mul_ps(
-      _mm_shuffle_ps(_quaternion, _quaternion, _MM_SHUFFLE(3, 1, 0, 0)),
-      _mm_shuffle_ps(vsum, vsum, _MM_SHUFFLE(3, 2, 1, 2)));
-  const __m128 v1 = _mm_mul_ps(
-      _mm_shuffle_ps(_quaternion, _quaternion, _MM_SHUFFLE(3, 3, 3, 3)),
-      _mm_shuffle_ps(vsum, vsum, _MM_SHUFFLE(3, 0, 2, 1)));
+          _mm_and_ps(OZZ_SHUFFLE_PS1(vms, _MM_SHUFFLE(3, 0, 0, 1)), fff0)),
+      _mm_and_ps(OZZ_SHUFFLE_PS1(vms, _MM_SHUFFLE(3, 1, 2, 2)), fff0));
+  const __m128 v0 =
+      _mm_mul_ps(OZZ_SHUFFLE_PS1(_quaternion, _MM_SHUFFLE(3, 1, 0, 0)),
+                 OZZ_SHUFFLE_PS1(vsum, _MM_SHUFFLE(3, 2, 1, 2)));
+  const __m128 v1 =
+      _mm_mul_ps(OZZ_SHUFFLE_PS1(_quaternion, _MM_SHUFFLE(3, 3, 3, 3)),
+                 OZZ_SHUFFLE_PS1(vsum, _MM_SHUFFLE(3, 0, 2, 1)));
 
   const __m128 r1 = _mm_add_ps(v0, v1);
   const __m128 r2 = _mm_sub_ps(v0, v1);
 
   const __m128 r1r21021 = _mm_shuffle_ps(r1, r2, _MM_SHUFFLE(1, 0, 2, 1));
-  const __m128 v2 = _mm_shuffle_ps(r1r21021, r1r21021, _MM_SHUFFLE(1, 3, 2, 0));
+  const __m128 v2 = OZZ_SHUFFLE_PS1(r1r21021, _MM_SHUFFLE(1, 3, 2, 0));
   const __m128 r1r22200 = _mm_shuffle_ps(r1, r2, _MM_SHUFFLE(2, 2, 0, 0));
-  const __m128 v3 = _mm_shuffle_ps(r1r22200, r1r22200, _MM_SHUFFLE(2, 0, 2, 0));
+  const __m128 v3 = OZZ_SHUFFLE_PS1(r1r22200, _MM_SHUFFLE(2, 0, 2, 0));
 
   const __m128 q0 = _mm_shuffle_ps(r0, v2, _MM_SHUFFLE(1, 0, 3, 0));
   const __m128 q1 = _mm_shuffle_ps(r0, v2, _MM_SHUFFLE(3, 2, 3, 1));
-  const Float4x4 ret = {{_mm_shuffle_ps(q0, q0, _MM_SHUFFLE(1, 3, 2, 0)),
-                         _mm_shuffle_ps(q1, q1, _MM_SHUFFLE(1, 3, 0, 2)),
+  const Float4x4 ret = {{OZZ_SHUFFLE_PS1(q0, _MM_SHUFFLE(1, 3, 2, 0)),
+                         OZZ_SHUFFLE_PS1(q1, _MM_SHUFFLE(1, 3, 0, 2)),
                          _mm_shuffle_ps(v3, r0, _MM_SHUFFLE(3, 2, 1, 0)),
                          w_axis}};
   return ret;
 }
 
-OZZ_INLINE Float4x4 Float4x4::FromAffine(_SimdFloat4 _translation,
-                                         _SimdFloat4 _quaternion,
-                                         _SimdFloat4 _scale) {
+inline Float4x4 Float4x4::FromAffine(_SimdFloat4 _translation,
+                                     _SimdFloat4 _quaternion,
+                                     _SimdFloat4 _scale) {
   assert(AreAllTrue1(IsNormalizedEst4(_quaternion)));
 
   const __m128i zero = _mm_setzero_si128();
@@ -1758,30 +1891,30 @@ OZZ_INLINE Float4x4 Float4x4::FromAffine(_SimdFloat4 _translation,
   const __m128 r0 = _mm_sub_ps(
       _mm_sub_ps(
           c1110,
-          _mm_and_ps(_mm_shuffle_ps(vms, vms, _MM_SHUFFLE(3, 0, 0, 1)), fff0)),
-      _mm_and_ps(_mm_shuffle_ps(vms, vms, _MM_SHUFFLE(3, 1, 2, 2)), fff0));
-  const __m128 v0 = _mm_mul_ps(
-      _mm_shuffle_ps(_quaternion, _quaternion, _MM_SHUFFLE(3, 1, 0, 0)),
-      _mm_shuffle_ps(vsum, vsum, _MM_SHUFFLE(3, 2, 1, 2)));
-  const __m128 v1 = _mm_mul_ps(
-      _mm_shuffle_ps(_quaternion, _quaternion, _MM_SHUFFLE(3, 3, 3, 3)),
-      _mm_shuffle_ps(vsum, vsum, _MM_SHUFFLE(3, 0, 2, 1)));
+          _mm_and_ps(OZZ_SHUFFLE_PS1(vms, _MM_SHUFFLE(3, 0, 0, 1)), fff0)),
+      _mm_and_ps(OZZ_SHUFFLE_PS1(vms, _MM_SHUFFLE(3, 1, 2, 2)), fff0));
+  const __m128 v0 =
+      _mm_mul_ps(OZZ_SHUFFLE_PS1(_quaternion, _MM_SHUFFLE(3, 1, 0, 0)),
+                 OZZ_SHUFFLE_PS1(vsum, _MM_SHUFFLE(3, 2, 1, 2)));
+  const __m128 v1 =
+      _mm_mul_ps(OZZ_SHUFFLE_PS1(_quaternion, _MM_SHUFFLE(3, 3, 3, 3)),
+                 OZZ_SHUFFLE_PS1(vsum, _MM_SHUFFLE(3, 0, 2, 1)));
 
   const __m128 r1 = _mm_add_ps(v0, v1);
   const __m128 r2 = _mm_sub_ps(v0, v1);
 
   const __m128 r1r21021 = _mm_shuffle_ps(r1, r2, _MM_SHUFFLE(1, 0, 2, 1));
-  const __m128 v2 = _mm_shuffle_ps(r1r21021, r1r21021, _MM_SHUFFLE(1, 3, 2, 0));
+  const __m128 v2 = OZZ_SHUFFLE_PS1(r1r21021, _MM_SHUFFLE(1, 3, 2, 0));
   const __m128 r1r22200 = _mm_shuffle_ps(r1, r2, _MM_SHUFFLE(2, 2, 0, 0));
-  const __m128 v3 = _mm_shuffle_ps(r1r22200, r1r22200, _MM_SHUFFLE(2, 0, 2, 0));
+  const __m128 v3 = OZZ_SHUFFLE_PS1(r1r22200, _MM_SHUFFLE(2, 0, 2, 0));
 
   const __m128 q0 = _mm_shuffle_ps(r0, v2, _MM_SHUFFLE(1, 0, 3, 0));
   const __m128 q1 = _mm_shuffle_ps(r0, v2, _MM_SHUFFLE(3, 2, 3, 1));
 
   const Float4x4 ret = {
-      {_mm_mul_ps(_mm_shuffle_ps(q0, q0, _MM_SHUFFLE(1, 3, 2, 0)),
+      {_mm_mul_ps(OZZ_SHUFFLE_PS1(q0, _MM_SHUFFLE(1, 3, 2, 0)),
                   OZZ_SSE_SPLAT_F(_scale, 0)),
-       _mm_mul_ps(_mm_shuffle_ps(q1, q1, _MM_SHUFFLE(1, 3, 0, 2)),
+       _mm_mul_ps(OZZ_SHUFFLE_PS1(q1, _MM_SHUFFLE(1, 3, 0, 2)),
                   OZZ_SSE_SPLAT_F(_scale, 1)),
        _mm_mul_ps(_mm_shuffle_ps(v3, r0, _MM_SHUFFLE(3, 2, 1, 0)),
                   OZZ_SSE_SPLAT_F(_scale, 2)),
@@ -1791,27 +1924,85 @@ OZZ_INLINE Float4x4 Float4x4::FromAffine(_SimdFloat4 _translation,
 
 OZZ_INLINE ozz::math::SimdFloat4 TransformPoint(const ozz::math::Float4x4& _m,
                                                 ozz::math::_SimdFloat4 _v) {
-  const __m128 vxxxx = OZZ_SSE_SPLAT_F(_v, 0);
-  const __m128 vyyyy = OZZ_SSE_SPLAT_F(_v, 1);
-  const __m128 vzzzz = OZZ_SSE_SPLAT_F(_v, 2);
-  const __m128 m0 = _mm_mul_ps(_m.cols[0], vxxxx);
-  const __m128 m1 = _mm_mul_ps(_m.cols[1], vyyyy);
-  const __m128 m2 = _mm_mul_ps(_m.cols[2], vzzzz);
-  const __m128 a01 = _mm_add_ps(m0, m1);
-  const __m128 a23 = _mm_add_ps(m2, _m.cols[3]);
+  const __m128 xxxx = _mm_mul_ps(OZZ_SSE_SPLAT_F(_v, 0), _m.cols[0]);
+  const __m128 a23 = OZZ_MADD(OZZ_SSE_SPLAT_F(_v, 2), _m.cols[2], _m.cols[3]);
+  const __m128 a01 = OZZ_MADD(OZZ_SSE_SPLAT_F(_v, 1), _m.cols[1], xxxx);
   return _mm_add_ps(a01, a23);
 }
 
 OZZ_INLINE ozz::math::SimdFloat4 TransformVector(const ozz::math::Float4x4& _m,
                                                  ozz::math::_SimdFloat4 _v) {
-  const __m128 vxxxx = OZZ_SSE_SPLAT_F(_v, 0);
-  const __m128 vyyyy = OZZ_SSE_SPLAT_F(_v, 1);
-  const __m128 vzzzz = OZZ_SSE_SPLAT_F(_v, 2);
-  const __m128 m0 = _mm_mul_ps(_m.cols[0], vxxxx);
-  const __m128 m1 = _mm_mul_ps(_m.cols[1], vyyyy);
-  const __m128 m2 = _mm_mul_ps(_m.cols[2], vzzzz);
-  const __m128 a01 = _mm_add_ps(m0, m1);
-  return _mm_add_ps(a01, m2);
+  const __m128 xxxx = _mm_mul_ps(_m.cols[0], OZZ_SSE_SPLAT_F(_v, 0));
+  const __m128 zzzz = _mm_mul_ps(_m.cols[1], OZZ_SSE_SPLAT_F(_v, 1));
+  const __m128 a21 = OZZ_MADD(_m.cols[2], OZZ_SSE_SPLAT_F(_v, 2), xxxx);
+  return _mm_add_ps(zzzz, a21);
+}
+
+OZZ_INLINE ozz::math::SimdFloat4 operator*(const ozz::math::Float4x4& _m,
+                                           ozz::math::_SimdFloat4 _v) {
+  const __m128 xxxx = _mm_mul_ps(OZZ_SSE_SPLAT_F(_v, 0), _m.cols[0]);
+  const __m128 zzzz = _mm_mul_ps(OZZ_SSE_SPLAT_F(_v, 2), _m.cols[2]);
+  const __m128 a01 = OZZ_MADD(OZZ_SSE_SPLAT_F(_v, 1), _m.cols[1], xxxx);
+  const __m128 a23 = OZZ_MADD(OZZ_SSE_SPLAT_F(_v, 3), _m.cols[3], zzzz);
+  return _mm_add_ps(a01, a23);
+}
+
+inline ozz::math::Float4x4 operator*(const ozz::math::Float4x4& _a,
+                                     const ozz::math::Float4x4& _b) {
+  ozz::math::Float4x4 ret;
+  {
+    const __m128 xxxx = _mm_mul_ps(OZZ_SSE_SPLAT_F(_b.cols[0], 0), _a.cols[0]);
+    const __m128 zzzz = _mm_mul_ps(OZZ_SSE_SPLAT_F(_b.cols[0], 2), _a.cols[2]);
+    const __m128 a01 =
+        OZZ_MADD(OZZ_SSE_SPLAT_F(_b.cols[0], 1), _a.cols[1], xxxx);
+    const __m128 a23 =
+        OZZ_MADD(OZZ_SSE_SPLAT_F(_b.cols[0], 3), _a.cols[3], zzzz);
+    ret.cols[0] = _mm_add_ps(a01, a23);
+  }
+  {
+    const __m128 xxxx = _mm_mul_ps(OZZ_SSE_SPLAT_F(_b.cols[1], 0), _a.cols[0]);
+    const __m128 zzzz = _mm_mul_ps(OZZ_SSE_SPLAT_F(_b.cols[1], 2), _a.cols[2]);
+    const __m128 a01 =
+        OZZ_MADD(OZZ_SSE_SPLAT_F(_b.cols[1], 1), _a.cols[1], xxxx);
+    const __m128 a23 =
+        OZZ_MADD(OZZ_SSE_SPLAT_F(_b.cols[1], 3), _a.cols[3], zzzz);
+    ret.cols[1] = _mm_add_ps(a01, a23);
+  }
+  {
+    const __m128 xxxx = _mm_mul_ps(OZZ_SSE_SPLAT_F(_b.cols[2], 0), _a.cols[0]);
+    const __m128 zzzz = _mm_mul_ps(OZZ_SSE_SPLAT_F(_b.cols[2], 2), _a.cols[2]);
+    const __m128 a01 =
+        OZZ_MADD(OZZ_SSE_SPLAT_F(_b.cols[2], 1), _a.cols[1], xxxx);
+    const __m128 a23 =
+        OZZ_MADD(OZZ_SSE_SPLAT_F(_b.cols[2], 3), _a.cols[3], zzzz);
+    ret.cols[2] = _mm_add_ps(a01, a23);
+  }
+  {
+    const __m128 xxxx = _mm_mul_ps(OZZ_SSE_SPLAT_F(_b.cols[3], 0), _a.cols[0]);
+    const __m128 zzzz = _mm_mul_ps(OZZ_SSE_SPLAT_F(_b.cols[3], 2), _a.cols[2]);
+    const __m128 a01 =
+        OZZ_MADD(OZZ_SSE_SPLAT_F(_b.cols[3], 1), _a.cols[1], xxxx);
+    const __m128 a23 =
+        OZZ_MADD(OZZ_SSE_SPLAT_F(_b.cols[3], 3), _a.cols[3], zzzz);
+    ret.cols[3] = _mm_add_ps(a01, a23);
+  }
+  return ret;
+}
+
+OZZ_INLINE ozz::math::Float4x4 operator+(const ozz::math::Float4x4& _a,
+                                         const ozz::math::Float4x4& _b) {
+  const ozz::math::Float4x4 ret = {
+      {_mm_add_ps(_a.cols[0], _b.cols[0]), _mm_add_ps(_a.cols[1], _b.cols[1]),
+       _mm_add_ps(_a.cols[2], _b.cols[2]), _mm_add_ps(_a.cols[3], _b.cols[3])}};
+  return ret;
+}
+
+OZZ_INLINE ozz::math::Float4x4 operator-(const ozz::math::Float4x4& _a,
+                                         const ozz::math::Float4x4& _b) {
+  const ozz::math::Float4x4 ret = {
+      {_mm_sub_ps(_a.cols[0], _b.cols[0]), _mm_sub_ps(_a.cols[1], _b.cols[1]),
+       _mm_sub_ps(_a.cols[2], _b.cols[2]), _mm_sub_ps(_a.cols[3], _b.cols[3])}};
+  return ret;
 }
 }  // namespace math
 }  // namespace ozz
@@ -1842,95 +2033,6 @@ OZZ_INLINE ozz::math::SimdFloat4 operator/(ozz::math::_SimdFloat4 _a,
 }
 #endif  // !defined(__GNUC__)
 
-OZZ_INLINE ozz::math::SimdFloat4 operator*(const ozz::math::Float4x4& _m,
-                                           ozz::math::_SimdFloat4 _v) {
-  const __m128 vxxxx = OZZ_SSE_SPLAT_F(_v, 0);
-  const __m128 vyyyy = OZZ_SSE_SPLAT_F(_v, 1);
-  const __m128 m0 = _mm_mul_ps(_m.cols[0], vxxxx);
-  const __m128 m1 = _mm_mul_ps(_m.cols[1], vyyyy);
-  const __m128 vzzzz = OZZ_SSE_SPLAT_F(_v, 2);
-  const __m128 vwwww = OZZ_SSE_SPLAT_F(_v, 3);
-  const __m128 a01 = _mm_add_ps(m0, m1);
-  const __m128 m2 = _mm_mul_ps(_m.cols[2], vzzzz);
-  const __m128 m3 = _mm_mul_ps(_m.cols[3], vwwww);
-  const __m128 a012 = _mm_add_ps(a01, m2);
-  return _mm_add_ps(a012, m3);
-}
-
-OZZ_INLINE ozz::math::Float4x4 operator*(const ozz::math::Float4x4& _a,
-                                         const ozz::math::Float4x4& _b) {
-  ozz::math::Float4x4 ret;
-  {
-    const __m128 vxxxx = OZZ_SSE_SPLAT_F(_b.cols[0], 0);
-    const __m128 vyyyy = OZZ_SSE_SPLAT_F(_b.cols[0], 1);
-    const __m128 m0 = _mm_mul_ps(_a.cols[0], vxxxx);
-    const __m128 m1 = _mm_mul_ps(_a.cols[1], vyyyy);
-    const __m128 vzzzz = OZZ_SSE_SPLAT_F(_b.cols[0], 2);
-    const __m128 vwwww = OZZ_SSE_SPLAT_F(_b.cols[0], 3);
-    const __m128 a01 = _mm_add_ps(m0, m1);
-    const __m128 m2 = _mm_mul_ps(_a.cols[2], vzzzz);
-    const __m128 m3 = _mm_mul_ps(_a.cols[3], vwwww);
-    const __m128 a012 = _mm_add_ps(a01, m2);
-    ret.cols[0] = _mm_add_ps(a012, m3);
-  }
-  {
-    const __m128 vxxxx = OZZ_SSE_SPLAT_F(_b.cols[1], 0);
-    const __m128 vyyyy = OZZ_SSE_SPLAT_F(_b.cols[1], 1);
-    const __m128 m0 = _mm_mul_ps(_a.cols[0], vxxxx);
-    const __m128 m1 = _mm_mul_ps(_a.cols[1], vyyyy);
-    const __m128 vzzzz = OZZ_SSE_SPLAT_F(_b.cols[1], 2);
-    const __m128 vwwww = OZZ_SSE_SPLAT_F(_b.cols[1], 3);
-    const __m128 a01 = _mm_add_ps(m0, m1);
-    const __m128 m2 = _mm_mul_ps(_a.cols[2], vzzzz);
-    const __m128 m3 = _mm_mul_ps(_a.cols[3], vwwww);
-    const __m128 a012 = _mm_add_ps(a01, m2);
-    ret.cols[1] = _mm_add_ps(a012, m3);
-  }
-  {
-    const __m128 vxxxx = OZZ_SSE_SPLAT_F(_b.cols[2], 0);
-    const __m128 vyyyy = OZZ_SSE_SPLAT_F(_b.cols[2], 1);
-    const __m128 m0 = _mm_mul_ps(_a.cols[0], vxxxx);
-    const __m128 m1 = _mm_mul_ps(_a.cols[1], vyyyy);
-    const __m128 vzzzz = OZZ_SSE_SPLAT_F(_b.cols[2], 2);
-    const __m128 vwwww = OZZ_SSE_SPLAT_F(_b.cols[2], 3);
-    const __m128 a01 = _mm_add_ps(m0, m1);
-    const __m128 m2 = _mm_mul_ps(_a.cols[2], vzzzz);
-    const __m128 m3 = _mm_mul_ps(_a.cols[3], vwwww);
-    const __m128 a012 = _mm_add_ps(a01, m2);
-    ret.cols[2] = _mm_add_ps(a012, m3);
-  }
-  {
-    const __m128 vxxxx = OZZ_SSE_SPLAT_F(_b.cols[3], 0);
-    const __m128 vyyyy = OZZ_SSE_SPLAT_F(_b.cols[3], 1);
-    const __m128 m0 = _mm_mul_ps(_a.cols[0], vxxxx);
-    const __m128 m1 = _mm_mul_ps(_a.cols[1], vyyyy);
-    const __m128 vzzzz = OZZ_SSE_SPLAT_F(_b.cols[3], 2);
-    const __m128 vwwww = OZZ_SSE_SPLAT_F(_b.cols[3], 3);
-    const __m128 a01 = _mm_add_ps(m0, m1);
-    const __m128 m2 = _mm_mul_ps(_a.cols[2], vzzzz);
-    const __m128 m3 = _mm_mul_ps(_a.cols[3], vwwww);
-    const __m128 a012 = _mm_add_ps(a01, m2);
-    ret.cols[3] = _mm_add_ps(a012, m3);
-  }
-  return ret;
-}
-
-OZZ_INLINE ozz::math::Float4x4 operator+(const ozz::math::Float4x4& _a,
-                                         const ozz::math::Float4x4& _b) {
-  const ozz::math::Float4x4 ret = {
-      {_mm_add_ps(_a.cols[0], _b.cols[0]), _mm_add_ps(_a.cols[1], _b.cols[1]),
-       _mm_add_ps(_a.cols[2], _b.cols[2]), _mm_add_ps(_a.cols[3], _b.cols[3])}};
-  return ret;
-}
-
-OZZ_INLINE ozz::math::Float4x4 operator-(const ozz::math::Float4x4& _a,
-                                         const ozz::math::Float4x4& _b) {
-  const ozz::math::Float4x4 ret = {
-      {_mm_sub_ps(_a.cols[0], _b.cols[0]), _mm_sub_ps(_a.cols[1], _b.cols[1]),
-       _mm_sub_ps(_a.cols[2], _b.cols[2]), _mm_sub_ps(_a.cols[3], _b.cols[3])}};
-  return ret;
-}
-
 namespace ozz {
 namespace math {
 OZZ_INLINE uint16_t FloatToHalf(float _f) {
@@ -1944,7 +2046,7 @@ OZZ_INLINE float HalfToFloat(uint16_t _h) {
 
 // Half <-> Float implementation is based on:
 // http://fgiesen.wordpress.com/2012/03/28/half-to-float-done-quic/.
-OZZ_INLINE SimdInt4 FloatToHalf(_SimdFloat4 _f) {
+inline SimdInt4 FloatToHalf(_SimdFloat4 _f) {
   const __m128i mask_sign = _mm_set1_epi32(0x80000000u);
   const __m128i mask_round = _mm_set1_epi32(~0xfffu);
   const __m128i f32infty = _mm_set1_epi32(255 << 23);
@@ -1996,6 +2098,7 @@ OZZ_INLINE SimdFloat4 HalfToFloat(_SimdInt4 _h) {
 }  // namespace math
 }  // namespace ozz
 
+#undef OZZ_SHUFFLE_PS1
 #undef OZZ_SSE_SPLAT_F
 #undef OZZ_SSE_HADD2_F
 #undef OZZ_SSE_HADD3_F
@@ -2003,6 +2106,14 @@ OZZ_INLINE SimdFloat4 HalfToFloat(_SimdInt4 _h) {
 #undef OZZ_SSE_DOT2_F
 #undef OZZ_SSE_DOT3_F
 #undef OZZ_SSE_DOT4_F
+#undef OZZ_MADD
+#undef OZZ_MSUB
+#undef OZZ_NMADD
+#undef OZZ_NMSUB
+#undef OZZ_MADDX
+#undef OZZ_MSUBX
+#undef OZZ_NMADDX
+#undef OZZ_NMSUBX
 #undef OZZ_SSE_SELECT_F
 #undef OZZ_SSE_SPLAT_I
 #undef OZZ_SSE_SELECT_I
