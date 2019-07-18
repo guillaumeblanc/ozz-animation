@@ -1,3 +1,9 @@
+
+Next next version
+----------------------
+* Library
+  - [memory] Implements ScopedPtr smart pointer. ScopedPtr implementation guarantees the pointed object will be deleted, either on destruction of the ScopedPtr, or via an explicit reset / reassignation. 
+
 Release version 0.11.0
 ----------------------
 * Library

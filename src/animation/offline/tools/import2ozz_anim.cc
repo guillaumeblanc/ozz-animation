@@ -51,6 +51,8 @@
 
 #include "ozz/base/log.h"
 
+#include "ozz/base/memory/scoped_ptr.h"
+
 #include "ozz/options/options.h"
 
 #include <json/json.h>
@@ -231,7 +233,7 @@ bool Export(OzzImporter& _importer, const RawAnimation& _raw_animation,
   }
 
   // Builds runtime animation.
-  Animation* animation = NULL;
+  ozz::ScopedPtr<Animation> animation;
   if (!_config["raw"].asBool()) {
     ozz::log::Log() << "Builds runtime animation." << std::endl;
     AnimationBuilder builder;
@@ -256,7 +258,6 @@ bool Export(OzzImporter& _importer, const RawAnimation& _raw_animation,
     if (!file.opened()) {
       ozz::log::Err() << "Failed to open output file: \"" << filename << "\""
                       << std::endl;
-      ozz::memory::default_allocator()->Delete(animation);
       return false;
     }
 
@@ -275,9 +276,6 @@ bool Export(OzzImporter& _importer, const RawAnimation& _raw_animation,
 
   ozz::log::LogV() << "Animation binary archive successfully outputted."
                    << std::endl;
-
-  // Delete local objects.
-  ozz::memory::default_allocator()->Delete(animation);
 
   return true;
 }  // namespace
@@ -332,8 +330,9 @@ bool ImportAnimations(const Json::Value& _config, OzzImporter* _importer,
   bool success = true;
 
   // Import skeleton instance.
-  Skeleton* skeleton = LoadSkeleton(skeleton_config["filename"].asCString());
-  success &= skeleton != NULL;
+  ozz::ScopedPtr<Skeleton> skeleton(
+      LoadSkeleton(skeleton_config["filename"].asCString()));
+  success &= skeleton;
 
   // Loop though all existing animations, and export those who match
   // configuration.
@@ -371,8 +370,6 @@ bool ImportAnimations(const Json::Value& _config, OzzImporter* _importer,
                       << "\"." << std::endl;
     }
   }
-
-  ozz::memory::default_allocator()->Delete(skeleton);
 
   return success;
 }

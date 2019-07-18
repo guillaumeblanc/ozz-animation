@@ -45,6 +45,8 @@
 
 #include "ozz/base/log.h"
 
+#include "ozz/base/memory/scoped_ptr.h"
+
 #include "ozz/options/options.h"
 
 #include <json/json.h>
@@ -116,7 +118,7 @@ bool Export(OzzImporter& _importer, const _RawTrack& _raw_track,
   }
 
   // Builds runtime track.
-  typename RawTrackToTrack<_RawTrack>::Track* track = NULL;
+  ozz::ScopedPtr<typename RawTrackToTrack<_RawTrack>::Track> track;
   if (!_config["raw"].asBool()) {
     ozz::log::LogV() << "Builds runtime track." << std::endl;
     TrackBuilder builder;
@@ -140,7 +142,6 @@ bool Export(OzzImporter& _importer, const _RawTrack& _raw_track,
     if (!file.opened()) {
       ozz::log::Err() << "Failed to open output file: " << filename
                       << std::endl;
-      ozz::memory::default_allocator()->Delete(track);
       return false;
     }
 
@@ -159,9 +160,6 @@ bool Export(OzzImporter& _importer, const _RawTrack& _raw_track,
 
   ozz::log::LogV() << "Track binary archive successfully outputted."
                    << std::endl;
-
-  // Delete local objects.
-  ozz::memory::default_allocator()->Delete(track);
 
   return true;
 }

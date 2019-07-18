@@ -37,7 +37,7 @@
 #include "ozz/animation/offline/raw_animation.h"
 #include "ozz/animation/offline/raw_animation_utils.h"
 
-#include "ozz/base/memory/allocator.h"
+#include "ozz/base/memory/scoped_ptr.h"
 
 #include "ozz/base/io/archive.h"
 #include "ozz/base/io/stream.h"
@@ -156,7 +156,6 @@ class OptimizeSampleApplication : public ozz::sample::Application {
   OptimizeSampleApplication()
       : selected_display_(eRuntimeAnimation),
         optimize_(true),
-        animation_rt_(NULL),
         error_record_(64) {}
 
  protected:
@@ -409,10 +408,6 @@ class OptimizeSampleApplication : public ozz::sample::Application {
         _im_gui->DoLabel(label);
 
         if (rebuild) {
-          // Delete current animation and rebuild one with the new tolerances.
-          ozz::memory::default_allocator()->Delete(animation_rt_);
-          animation_rt_ = NULL;
-
           // Invalidates the cache in case the new animation has the same
           // address as the previous one. Other cases are automatic handled by
           // the cache. See SamplingCache::Invalidate for more details.
@@ -456,10 +451,7 @@ class OptimizeSampleApplication : public ozz::sample::Application {
     return true;
   }
 
-  virtual void OnDestroy() {
-    ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
-    allocator->Delete(animation_rt_);
-  }
+  virtual void OnDestroy() {}
 
   bool BuildAnimations() {
     assert(!animation_rt_);
@@ -523,7 +515,7 @@ class OptimizeSampleApplication : public ozz::sample::Application {
   ozz::animation::SamplingCache cache_;
 
   // Runtime optimized animation.
-  ozz::animation::Animation* animation_rt_;
+  ozz::ScopedPtr<ozz::animation::Animation> animation_rt_;
 
   // Buffer of local and model space transformations as sampled from the
   // rutime (optimized and compressed) animation.
