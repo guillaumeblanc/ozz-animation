@@ -59,6 +59,11 @@ static bool ValidateTrack(const typename ozz::Vector<_Key>::Std& _track,
   return true;  // Validated.
 }
 }  // namespace
+bool RawAnimation::JointTrack::Validate(float _duration) const {
+  return ValidateTrack<TranslationKey>(translations, _duration) &&
+         ValidateTrack<RotationKey>(rotations, _duration) &&
+         ValidateTrack<ScaleKey>(scales, _duration);
+}
 
 bool RawAnimation::Validate() const {
   if (duration <= 0.f) {  // Tests duration is valid.
@@ -69,16 +74,11 @@ bool RawAnimation::Validate() const {
   }
   // Ensures that all key frames' time are valid, ie: in a strict ascending
   // order and within range [0:duration].
-  for (size_t j = 0; j < tracks.size(); ++j) {
-    const RawAnimation::JointTrack& track = tracks[j];
-    if (!ValidateTrack<TranslationKey>(track.translations, duration) ||
-        !ValidateTrack<RotationKey>(track.rotations, duration) ||
-        !ValidateTrack<ScaleKey>(track.scales, duration)) {
-      return false;
-    }
+  bool valid = true;
+  for (size_t i = 0; valid && i < tracks.size(); ++i) {
+    valid = tracks[i].Validate(duration);
   }
-
-  return true;  // *this is valid.
+  return valid;  // *this is valid.
 }
 }  // namespace offline
 }  // namespace animation

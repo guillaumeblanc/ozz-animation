@@ -25,8 +25,6 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include <algorithm>
-
 #include "ozz/animation/runtime/animation.h"
 #include "ozz/animation/runtime/local_to_model_job.h"
 #include "ozz/animation/runtime/sampling_job.h"
@@ -64,65 +62,6 @@ OZZ_OPTIONS_DECLARE_STRING(animation, "Path to the raw animation file.",
                            "media/animation_raw.ozz", false)
 
 namespace {
-
-// The next functions are used to sample a RawAnimation. This feature is not
-// part of ozz sdk, as RawAnimation is a intermediate format used to build the
-// runtime animation.
-
-// Less comparator, used by search algorithm to walk through track sorted
-// keyframes
-template <typename _Key>
-bool Less(const _Key& _left, const _Key& _right) {
-  return _left.time < _right.time;
-}
-
-// Samples a component (translation, rotation or scale) of a track.
-template <typename _Track, typename _Lerp>
-typename _Track::value_type::Value SampleComponent(const _Track& _track,
-                                                   const _Lerp& _lerp,
-                                                   float _time) {
-  if (_track.size() == 0) {
-    // Return identity if there's no key for this track.
-    return _Track::value_type::identity();
-  } else if (_time <= _track.front().time) {
-    // Returns the first keyframe if _time is before the first keyframe.
-    return _track.front().value;
-  } else if (_time >= _track.back().time) {
-    // Returns the last keyframe if _time is before the last keyframe.
-    return _track.back().value;
-  } else {
-    // Needs to interpolate the 2 keyframes before and after _time.
-    assert(_track.size() >= 2);
-    // First find the 2 keys.
-    const typename _Track::value_type cmp = {_time,
-                                             _Track::value_type::identity()};
-    typename _Track::const_pointer it =
-        std::lower_bound(array_begin(_track), array_end(_track), cmp,
-                         Less<typename _Track::value_type>);
-    assert(it > array_begin(_track) && it < array_end(_track));
-
-    // Then interpolate them at t = _time.
-    const typename _Track::const_reference right = it[0];
-    const typename _Track::const_reference left = it[-1];
-    const float alpha = (_time - left.time) / (right.time - left.time);
-    return _lerp(left.value, right.value, alpha);
-  }
-}
-
-// Samples all 3 components of a track.
-ozz::math::Transform SampleTrack(
-    const ozz::animation::offline::RawAnimation::JointTrack& _track,
-    float _time) {
-  // Samples each track's component.
-  ozz::math::Transform transform;
-  transform.translation = SampleComponent(
-      _track.translations, ozz::animation::offline::LerpTranslation, _time);
-  transform.rotation = SampleComponent(
-      _track.rotations, ozz::animation::offline::LerpRotation, _time);
-  transform.scale =
-      SampleComponent(_track.scales, ozz::animation::offline::LerpScale, _time);
-  return transform;
-}
 
 // Loads a raw animation from a file.
 bool LoadAnimation(const char* _filename,
@@ -266,7 +205,8 @@ class OptimizeSampleApplication : public ozz::sample::Application {
 
     // Sample raw animation and converts AoS transforms to SoA transform array.
     assert(_animation.Validate() && "Animation should be valid.");
-    for (int i = 0; i < _animation.num_tracks(); i += 4) {
+    bool success = true;
+    for (int i = 0; success && i < _animation.num_tracks(); i += 4) {
       ozz::math::SimdFloat4 translations[4];
       ozz::math::SimdFloat4 rotations[4];
       ozz::math::SimdFloat4 scales[4];
@@ -274,10 +214,10 @@ class OptimizeSampleApplication : public ozz::sample::Application {
       // Works on 4 consecutive tracks, or what remains to be processed if it's
       // lower than 4.
       const int jmax = ozz::math::Min(_animation.num_tracks() - i, 4);
-      for (int j = 0; j < jmax; ++j) {
+      for (int j = 0; success && j < jmax; ++j) {
         // Samples raw animation.
-        const ozz::math::Transform transform =
-            SampleTrack(_animation.tracks[i + j], _time);
+        ozz::math::Transform transform;
+        success &= SampleTrack(_animation.tracks[i + j], _time, &transform);
 
         // Convert transform to AoS SimdFloat4 values.
         translations[j] =
@@ -298,7 +238,7 @@ class OptimizeSampleApplication : public ozz::sample::Application {
       ozz::math::Transpose4x3(scales, &output.scale.x);
     }
 
-    return true;
+    return success;
   }
 
   // Selects model space matrices according to the display mode.
