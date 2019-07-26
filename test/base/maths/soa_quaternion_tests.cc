@@ -94,6 +94,9 @@ TEST(SoaQuaternionArithmetic, ozz_soa_math) {
                           0.f, 0.f, 0.f, 1.f, 1.f, 1.f, 1.f);
   EXPECT_TRUE(ozz::math::AreAllTrue(IsNormalized(mul1)));
 
+  const ozz::math::SimdFloat4 dot = Dot(a, b);
+  EXPECT_SOAFLOAT1_EQ(dot, .70710677f, .70710677f, 1.f, .70710677f);
+
   const SoaQuaternion normalize = Normalize(denorm);
   EXPECT_TRUE(ozz::math::AreAllTrue(IsNormalized(normalize)));
   EXPECT_SOAQUATERNION_EQ(normalize, .033389f, 0.f, .1091089f, .1492555f,

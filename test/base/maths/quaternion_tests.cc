@@ -431,6 +431,9 @@ TEST(QuaternionArithmetic, ozz_math) {
   const Quaternion slerp_0_7 = SLerp(a, b, .7f);
   EXPECT_TRUE(IsNormalized(slerp_0_7));
   EXPECT_QUATERNION_EQ(slerp_0_7, .2523113f, .5463429f, 0.f, .798654f);
+
+  const float dot = Dot(a, b);
+  EXPECT_FLOAT_EQ(dot, .5f);
 }
 
 TEST(QuaternionTransformVector, ozz_math) {

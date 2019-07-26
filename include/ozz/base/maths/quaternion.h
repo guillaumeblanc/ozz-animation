@@ -293,6 +293,11 @@ OZZ_INLINE Quaternion Quaternion::FromUnitVectors(const Float3& _from,
   }
 }
 
+// Returns the dot product of _a and _b.
+OZZ_INLINE float Dot(const Quaternion& _a, const Quaternion& _b) {
+  return _a.x * _b.x + _a.y * _b.y + _a.z * _b.z + _a.w * _b.w;
+}
+
 // Returns the linear interpolation of quaternion _a and _b with coefficient
 // _f.
 OZZ_INLINE Quaternion Lerp(const Quaternion& _a, const Quaternion& _b,
@@ -302,7 +307,7 @@ OZZ_INLINE Quaternion Lerp(const Quaternion& _a, const Quaternion& _b,
 }
 
 // Returns the linear interpolation of quaternion _a and _b with coefficient
-// _f.
+// _f. _a and _n must be from the same hemisphere (aka dot(_a, _b) >= 0).
 OZZ_INLINE Quaternion NLerp(const Quaternion& _a, const Quaternion& _b,
                             float _f) {
   const Float4 lerp((_b.x - _a.x) * _f + _a.x, (_b.y - _a.y) * _f + _a.y,
