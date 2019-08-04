@@ -454,8 +454,6 @@ class OptimizeSampleApplication : public ozz::sample::Application {
   virtual void OnDestroy() {}
 
   bool BuildAnimations() {
-    assert(!animation_rt_);
-
     // Instantiate an animation builder.
     ozz::animation::offline::AnimationBuilder animation_builder;
 
