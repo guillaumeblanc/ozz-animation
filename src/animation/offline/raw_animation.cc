@@ -80,6 +80,25 @@ bool RawAnimation::Validate() const {
   }
   return valid;  // *this is valid.
 }
+
+size_t RawAnimation::size() const {
+  size_t size = sizeof(*this);
+
+  // Accumulates keyframes size.
+  const size_t tracks_count = tracks.size();
+  for (size_t i = 0; i < tracks_count; ++i) {
+    size += tracks[i].translations.size() * sizeof(TranslationKey);
+    size += tracks[i].rotations.size() * sizeof(RotationKey);
+    size += tracks[i].scales.size() * sizeof(ScaleKey);
+  }
+
+  // Accumulates tracks.
+  size += tracks_count * sizeof(JointTrack);
+  size += name.size();
+
+  return size;
+}
+
 }  // namespace offline
 }  // namespace animation
 }  // namespace ozz

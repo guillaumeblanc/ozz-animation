@@ -69,6 +69,9 @@ struct RawAnimation {
   //  3. Keyframes' time are all within [0,animation duration] range.
   bool Validate() const;
 
+  // Get the estimated animation's size in bytes.
+  size_t size() const;
+
   // Defines a raw translation key frame.
   struct TranslationKey {
     // Key frame time.
