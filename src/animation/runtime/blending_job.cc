@@ -125,7 +125,7 @@ namespace {
     _out->translation = _in.translation * _simd_weight; \
     _out->rotation = _in.rotation * _simd_weight;       \
     _out->scale = _in.scale * _simd_weight;             \
-  } while (0)
+  } while (void(0), 0)
 
 // Macro that defines the process of blending any pass but the first.
 #define OZZ_BLEND_N_PASS(_in, _simd_weight, _out)                              \
@@ -141,7 +141,7 @@ namespace {
     _out->rotation = _out->rotation + rotation * _simd_weight;                 \
     /* Blends scales.*/                                                        \
     _out->scale = _out->scale + _in.scale * _simd_weight;                      \
-  } while (0)
+  } while (void(0), 0)
 
 // Macro that defines the process of adding a pass.
 #define OZZ_ADD_PASS(_in, _simd_weight, _out)                                \
@@ -159,7 +159,7 @@ namespace {
     _out.rotation = NormalizeEst(interp_quat) * _out.rotation;               \
     _out.scale =                                                             \
         _out.scale * (one_minus_weight_f3 + (_in.scale * _simd_weight));     \
-  } while (0)
+  } while (void(0), 0)
 
 // Macro that defines the process of subtracting a pass.
 #define OZZ_SUB_PASS(_in, _simd_weight, _out)                                  \
@@ -181,7 +181,7 @@ namespace {
         math::RcpEst(                                                          \
             math::MAdd(_in.scale.z, _simd_weight, one_minus_weight))};         \
     _out.scale = _out.scale * rcp_scale;                                       \
-  } while (0)
+  } while (void(0), 0)
 
 // Defines parameters that are passed through blending stages.
 struct ProcessArgs {
