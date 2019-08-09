@@ -33,6 +33,8 @@
 #include "ozz/base/containers/set.h"
 #include "ozz/base/containers/stack.h"
 #include "ozz/base/containers/string.h"
+#include "ozz/base/containers/unordered_map.h"
+#include "ozz/base/containers/unordered_set.h"
 #include "ozz/base/containers/vector.h"
 #include "ozz/base/gtest_helper.h"
 #include "ozz/base/span.h"
@@ -163,12 +165,14 @@ TEST(Set, Containers) {
   {
     typedef ozz::set<int> Container;
     Container container;
-    container.insert('c');
-    container.insert('a');
-    container.insert('b');
+    EXPECT_TRUE(container.insert('c').second);
+    EXPECT_TRUE(container.insert('a').second);
+    EXPECT_TRUE(container.insert('b').second);
+    EXPECT_FALSE(container.insert('b').second);
     EXPECT_TRUE(container.find('a') == container.begin());
     EXPECT_TRUE(container.find('c') == --container.end());
-    container.erase('c');
+    EXPECT_EQ(container.erase('c'), 1);
+
     EXPECT_TRUE(container.find('b') == --container.end());
     container.clear();
 
@@ -184,8 +188,41 @@ TEST(Set, Containers) {
     EXPECT_TRUE(container.find('a') == container.begin() ||
                 container.find('a') == ++container.begin());
     EXPECT_TRUE(container.find('c') == --container.end());
-    container.erase('c');
-    EXPECT_TRUE(container.find('b') == --container.end());
+    EXPECT_EQ(container.erase('c'), 1);
+    EXPECT_TRUE(container.find('c') == container.end());
+    EXPECT_EQ(container.erase('a'), 2);
+    EXPECT_TRUE(container.find('a') == container.end());
+    container.clear();
+  }
+}
+
+TEST(UnorderedSet, Containers) {
+  {
+    typedef ozz::unordered_set<int> Container;
+    Container container;
+    EXPECT_TRUE(container.insert('c').second);
+    EXPECT_TRUE(container.insert('a').second);
+    EXPECT_TRUE(container.insert('b').second);
+    EXPECT_FALSE(container.insert('a').second);
+    EXPECT_TRUE(container.find('a') != container.end());
+    EXPECT_TRUE(container.find('c') != container.end());
+    EXPECT_EQ(container.erase('c'), 1);
+    EXPECT_TRUE(container.find('c') == container.end());
+    container.clear();
+  }
+  {
+    typedef ozz::unordered_multiset<int> Container;
+    Container container;
+    container.insert('c');
+    container.insert('a');
+    container.insert('b');
+    container.insert('a');
+    EXPECT_TRUE(container.find('a') != container.end());
+    EXPECT_TRUE(container.find('c') != container.end());
+    EXPECT_EQ(container.erase('c'), 1);
+    EXPECT_TRUE(container.find('c') == container.end());
+    EXPECT_EQ(container.erase('a'), 2);
+    EXPECT_TRUE(container.find('a') == container.end());
     container.clear();
   }
 }
@@ -202,6 +239,8 @@ TEST(Map, Containers) {
     EXPECT_EQ(container['b'], -2);
     EXPECT_EQ(container['c'], -1);
     EXPECT_EQ(container['d'], 1);
+    EXPECT_EQ(container.erase('d'), 1);
+    EXPECT_TRUE(container.find('d') == container.end());
     container.clear();
 
     Container container2 = std::move(container);
@@ -219,6 +258,43 @@ TEST(Map, Containers) {
     EXPECT_EQ(container.find('c')->second, -1);
     EXPECT_TRUE(container.find('d')->second == 1 ||
                 container.find('d')->second == 2);
+    EXPECT_EQ(container.erase('d'), 2);
+    EXPECT_TRUE(container.find('d') == container.end());
+    container.clear();
+  }
+}
+
+TEST(UnorderedMap, Containers) {
+  {
+    typedef ozz::unordered_map<char, int> Container;
+    Container container;
+    container['a'] = -3;
+    container['c'] = -1;
+    container['b'] = -2;
+    container['d'] = 1;
+    EXPECT_EQ(container['a'], -3);
+    EXPECT_EQ(container['b'], -2);
+    EXPECT_EQ(container['c'], -1);
+    EXPECT_EQ(container['d'], 1);
+    EXPECT_EQ(container.erase('d'), 1);
+    EXPECT_TRUE(container.find('d') == container.end());
+    container.clear();
+  }
+  {
+    typedef ozz::unordered_multimap<char, int> Container;
+    Container container;
+    container.insert(std::pair<char, int>('a', -3));
+    container.insert(std::pair<char, int>('c', -1));
+    container.insert(std::pair<char, int>('b', -2));
+    container.insert(std::pair<char, int>('d', 1));
+    container.insert(std::pair<char, int>('d', 2));
+    EXPECT_EQ(container.find('a')->second, -3);
+    EXPECT_EQ(container.find('b')->second, -2);
+    EXPECT_EQ(container.find('c')->second, -1);
+    EXPECT_TRUE(container.find('d')->second == 1 ||
+                container.find('d')->second == 2);
+    EXPECT_EQ(container.erase('d'), 2);
+    EXPECT_TRUE(container.find('d') == container.end());
     container.clear();
   }
 }
@@ -229,8 +305,10 @@ TEST(string, Containers) {
   EXPECT_EQ(str.size(), 0u);
   str += "a string";
   EXPECT_STREQ(str.c_str(), "a string");
-  str.clear();
-  EXPECT_EQ(str.size(), 0u);
 
   string str2 = std::move(str);
+  EXPECT_STREQ(str2.c_str(), "a string");
+
+  str2.clear();
+  EXPECT_EQ(str2.size(), 0u);
 }

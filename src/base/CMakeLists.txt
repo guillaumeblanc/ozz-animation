@@ -18,6 +18,8 @@ add_library(ozz_base STATIC
   ${PROJECT_SOURCE_DIR}/include/ozz/base/containers/stack.h
   ${PROJECT_SOURCE_DIR}/include/ozz/base/containers/string.h
   ${PROJECT_SOURCE_DIR}/include/ozz/base/containers/string_archive.h
+  ${PROJECT_SOURCE_DIR}/include/ozz/base/containers/unordered_map.h
+  ${PROJECT_SOURCE_DIR}/include/ozz/base/containers/unordered_set.h
   containers/string_archive.cc
   ${PROJECT_SOURCE_DIR}/include/ozz/base/containers/vector.h
   ${PROJECT_SOURCE_DIR}/include/ozz/base/containers/vector_archive.h
