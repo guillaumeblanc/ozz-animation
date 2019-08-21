@@ -63,7 +63,7 @@ struct HierarchyBuilder {
     // Computes hierarchycal scale, iterating skeleton forward (root to
     // leaf).
     IterateJointsDF(
-        *_skeleton, 0,
+        *_skeleton, Skeleton::kNoParent,
         IterateMemFun<HierarchyBuilder, &HierarchyBuilder::ComputeScaleForward>(
             *this));
 
