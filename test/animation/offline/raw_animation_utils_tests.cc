@@ -115,7 +115,7 @@ TEST(SamplingTrack, Utils) {
   EXPECT_FLOAT3_EQ(output.scale, -1.f, -2.f, -4.f);
 
   // t = .4999999
-  ASSERT_TRUE(ozz::animation::offline::SampleTrack(track, .4999999, &output));
+  ASSERT_TRUE(ozz::animation::offline::SampleTrack(track, .4999999f, &output));
   EXPECT_FLOAT3_EQ(output.translation, 1.5f, 3.f, 6.f);
   EXPECT_QUATERNION_EQ(output.rotation, 0.f, .70710677f, 0.f, .70710677f);
   EXPECT_FLOAT3_EQ(output.scale, -1.f, -2.f, -4.f);
