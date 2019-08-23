@@ -182,6 +182,7 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
       std::stringstream s;
       s << "gltf_node_" << nodeIndex;
       name = s.str();
+      node.name = name;
 
       ozz::log::LogV() << "Joint at node #" << nodeIndex
                        << " has no name. Setting name to \"" << name << "\"."
@@ -193,6 +194,7 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
       std::stringstream s;
       s << name << "_" << nodeIndex;
       name = s.str().c_str();
+      node.name = name;
 
       ozz::log::LogV()
           << "Joint at node #" << nodeIndex << " has the same name as node #"
