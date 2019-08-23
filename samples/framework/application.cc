@@ -250,10 +250,14 @@ int Application::Run(int _argc, const char** _argv, const char* _version,
   return success ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
-void OneLoopCbk(void* _arg) {
-  Application* app = reinterpret_cast<Application*>(_arg);
-  static int loops = 0;
-  app->OneLoop(loops++);
+// Helper function to detecte key pressed and released.
+template <int _Key>
+bool KeyPressed() {
+  static int previous_key = glfwGetKey(_Key);
+  const int key = glfwGetKey(_Key);
+  const bool pressed = previous_key == GLFW_PRESS && key == GLFW_RELEASE;
+  previous_key = key;
+  return pressed;
 }
 
 Application::LoopStatus Application::OneLoop(int _loops) {
@@ -292,12 +296,11 @@ Application::LoopStatus Application::OneLoop(int _loops) {
 #endif  // EMSCRIPTEN
 
   // Enable/disable help on F1 key.
-  static int previous_f1 = glfwGetKey(GLFW_KEY_F1);
-  const int f1 = glfwGetKey(GLFW_KEY_F1);
-  if (previous_f1 == GLFW_RELEASE && f1 == GLFW_PRESS) {
-    show_help_ = !show_help_;
-  }
-  previous_f1 = f1;
+  show_help_ = show_help_ ^ KeyPressed<GLFW_KEY_F1>();
+
+  // Capture screenshot or video.
+  capture_screenshot_ = KeyPressed<'S'>();
+  capture_video_ = capture_video_ ^ KeyPressed<'V'>();
 
   // Do the main loop.
   if (!Idle(_loops == 0)) {
@@ -312,6 +315,12 @@ Application::LoopStatus Application::OneLoop(int _loops) {
   }
 
   return kContinue;
+}
+
+void OneLoopCbk(void* _arg) {
+  Application* app = reinterpret_cast<Application*>(_arg);
+  static int loops = 0;
+  app->OneLoop(loops++);
 }
 
 bool Application::Loop() {
@@ -386,6 +395,7 @@ bool Application::Display() {
   // Capture back buffer.
   if (capture_screenshot_ || capture_video_) {
     shooter_->Capture(GL_BACK);
+    capture_screenshot_ = false;
   }
 
   // Swaps current window.
@@ -640,8 +650,8 @@ bool Application::FrameworkGui() {
     ImGui::OpenClose controls(im_gui_, "Capture", &open);
     if (open) {
       im_gui_->DoButton("Capture video", true, &capture_video_);
-      capture_screenshot_ =
-          im_gui_->DoButton("Capture screenshot", !capture_video_);
+      capture_screenshot_ |= im_gui_->DoButton(
+          "Capture screenshot", !capture_video_, &capture_screenshot_);
     }
   }
 
