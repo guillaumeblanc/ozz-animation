@@ -229,8 +229,20 @@ set_tests_properties(test2ozz_anim_simple_config_file PROPERTIES DEPENDS test2oz
 add_test(NAME test2ozz_anim_optimize COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"skeleton\":{\"filename\":\"${ozz_temp_directory}/skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"${ozz_temp_directory}/animation_${CMAKE_CURRENT_LIST_LINE}.ozz\",\"optimize\":true}]}")
 set_tests_properties(test2ozz_anim_optimize PROPERTIES DEPENDS test2ozz_skel_simple)
 
-add_test(NAME test2ozz_anim_optimize_tol COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"skeleton\":{\"filename\":\"${ozz_temp_directory}/skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"${ozz_temp_directory}/animation_${CMAKE_CURRENT_LIST_LINE}.ozz\",\"optimize\":true,\"optimization_tolerances\":{\"translation\":0.002,\"rotation\":0.002,\"scale\":0.002,\"hierarchical\":0.002}}]}")
+add_test(NAME test2ozz_anim_optimize_tol COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"skeleton\":{\"filename\":\"${ozz_temp_directory}/skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"${ozz_temp_directory}/animation_${CMAKE_CURRENT_LIST_LINE}.ozz\",\"optimize\":true,\"optimization_settings\":{\"tolerance\":0.002,\"distance\":0.002}}]}")
 set_tests_properties(test2ozz_anim_optimize_tol PROPERTIES DEPENDS test2ozz_skel_simple)
+
+add_test(NAME test2ozz_anim_optimize_joints_tol COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"skeleton\":{\"filename\":\"${ozz_temp_directory}/skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"${ozz_temp_directory}/animation_${CMAKE_CURRENT_LIST_LINE}.ozz\",\"optimize\":true,\"optimization_settings\":{\"override\":[{\"name\":\"joint?\",\"tolerance\":0.002,\"distance\":0.002}]}}]}")
+set_tests_properties(test2ozz_anim_optimize_joints_tol PROPERTIES DEPENDS test2ozz_skel_simple)
+
+add_test(NAME test2ozz_anim_optimize_joints_tol_verbose COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"skeleton\":{\"filename\":\"${ozz_temp_directory}/skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"${ozz_temp_directory}/animation_${CMAKE_CURRENT_LIST_LINE}.ozz\",\"optimize\":true,\"optimization_settings\":{\"override\":[{\"name\":\"joint?\",\"tolerance\":0.002,\"distance\":0.002}]}}]}" "--log_level=verbose")
+set_tests_properties(test2ozz_anim_optimize_joints_tol_verbose PROPERTIES PASS_REGULAR_EXPRESSION "Found joint \"joint2\" matching pattern" DEPENDS test2ozz_skel_simple)
+
+add_test(NAME test2ozz_anim_optimize_joints_not_found_tol COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"skeleton\":{\"filename\":\"${ozz_temp_directory}/skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"${ozz_temp_directory}/animation_${CMAKE_CURRENT_LIST_LINE}.ozz\",\"optimize\":true,\"optimization_settings\":{\"override\":[{\"name\":\"joint_won_t_find\",\"tolerance\":0.002,\"distance\":0.002}]}}]}")
+set_tests_properties(test2ozz_anim_optimize_joints_not_found_tol PROPERTIES PASS_REGULAR_EXPRESSION "No joint found for optimization setting" DEPENDS test2ozz_skel_simple)
+
+add_test(NAME test2ozz_anim_optimize_joints_redundant_tol COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"skeleton\":{\"filename\":\"${ozz_temp_directory}/skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"${ozz_temp_directory}/animation_${CMAKE_CURRENT_LIST_LINE}.ozz\",\"optimize\":true,\"optimization_settings\":{\"override\":[{\"name\":\"joint1\"},{\"name\":\"joint?\"}]}}]}")
+set_tests_properties(test2ozz_anim_optimize_joints_redundant_tol PROPERTIES PASS_REGULAR_EXPRESSION "Redundant optimization setting for pattern" DEPENDS test2ozz_skel_simple)
 
 add_test(NAME test2ozz_anim_no_opt COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"skeleton\":{\"filename\":\"${ozz_temp_directory}/skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"${ozz_temp_directory}/animation_${CMAKE_CURRENT_LIST_LINE}.ozz\"}]},\"optimize\":false}]}")
 set_tests_properties(test2ozz_anim_no_opt PROPERTIES DEPENDS test2ozz_skel_simple)

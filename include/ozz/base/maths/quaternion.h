@@ -126,12 +126,11 @@ OZZ_INLINE Quaternion operator-(const Quaternion& _q) {
 
 // Returns true if the angle between _a and _b is less than _tolerance.
 OZZ_INLINE bool Compare(const math::Quaternion& _a, const math::Quaternion& _b,
-                        float _tolerance) {
+                        float _cos_half_tolerance) {
   // Computes w component of a-1 * b.
-  const float diff_w = _a.x * _b.x + _a.y * _b.y + _a.z * _b.z + _a.w * _b.w;
-  // Converts w back to an angle.
-  const float angle = 2.f * std::acos(Min(std::abs(diff_w), 1.f));
-  return std::abs(angle) <= _tolerance;
+  const float cos_half_angle =
+      _a.x * _b.x + _a.y * _b.y + _a.z * _b.z + _a.w * _b.w;
+  return std::abs(cos_half_angle) >= _cos_half_tolerance;
 }
 
 // Returns true if _q is a normalized quaternion.
