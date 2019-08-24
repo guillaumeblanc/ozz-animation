@@ -395,8 +395,8 @@ TEST(Quaternion, TrackOptimizer) {
   EXPECT_QUATERNION_EQ(output.keyframes[0].value, key0.value.x, key0.value.y,
                        key0.value.z, key0.value.w);
 
-  EXPECT_EQ(output.keyframes[1].interpolation, key3.interpolation);
-  EXPECT_FLOAT_EQ(output.keyframes[1].ratio, key3.ratio);
-  EXPECT_QUATERNION_EQ(output.keyframes[1].value, key3.value.x, key3.value.y,
-                       key3.value.z, key3.value.w);
+  EXPECT_EQ(output.keyframes[1].interpolation, key2.interpolation);
+  EXPECT_FLOAT_EQ(output.keyframes[1].ratio, key2.ratio);
+  EXPECT_QUATERNION_EQ(output.keyframes[1].value, key2.value.x, key2.value.y,
+                       key2.value.z, key2.value.w);
 }

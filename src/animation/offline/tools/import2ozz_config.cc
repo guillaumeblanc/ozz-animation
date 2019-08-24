@@ -222,7 +222,6 @@ bool SanitizeSkeletonJointTypes(Json::Value& _root, bool _all_options) {
   MakeDefault(_root, "any", false,
               "Uses any node type as skeleton joints, including those listed "
               "above and any other.");
-
   return true;
 }
 
@@ -246,29 +245,38 @@ bool SanitizeSkeleton(Json::Value& _root, bool _all_options) {
               "reference during animations import.");
   MakeDefaultObject(_root, "import", "Define skeleton import settings.");
   SanitizeSkeletonImport(_root["import"], _all_options);
-
   return true;
 }
 
-bool SanitizeOptimizationTolerances(Json::Value& _root) {
-  MakeDefault(
-      _root, "translation", AnimationOptimizer().translation_tolerance,
-      "Translation optimization tolerance, defined as the distance between two "
-      "translation values in meters.");
+bool SanitizeOptimizationSetting(Json::Value& _root) {
+  const AnimationOptimizer::Setting default_setting;
+  MakeDefault(_root, "tolerance", default_setting.tolerance,
+              "The maximum error that an optimization is allowed to generate "
+              "on a whole joint hierarchy.");
+  MakeDefault(_root, "distance", default_setting.distance,
+              "The distance (from the joint) at which error is measured. This "
+              "allows to emulate effect on skinning.");
+  return true;
+}
 
-  MakeDefault(_root, "rotation", AnimationOptimizer().rotation_tolerance,
-              "Rotation optimization tolerance, ie: the angle between two "
-              "rotation values in radian.");
+bool SanitizeJointsSetting(Json::Value& _root) {
+  MakeDefault(_root, "name", "*",
+              "Joint name. Wildcard characters \'*\' and \'?\' are supported");
+  SanitizeOptimizationSetting(_root);
+  return true;
+}
 
-  MakeDefault(_root, "scale", AnimationOptimizer().scale_tolerance,
-              "Scale optimization tolerance, ie: the norm of the difference of "
-              "two scales.");
+bool SanitizeOptimizationSettings(Json::Value& _root, bool _all_options) {
+  SanitizeOptimizationSetting(_root);
 
-  MakeDefault(
-      _root, "hierarchical", AnimationOptimizer().hierarchical_tolerance,
-      "Hierarchical translation optimization tolerance, ie: the maximum error "
-      "(distance) that an optimization on a joint is allowed to generate on "
-      "its whole child hierarchy.");
+  MakeDefaultArray(_root, "override", "Per joint optimization setting override",
+                   !_all_options);
+  Json::Value& joints = _root["override"];
+  for (Json::ArrayIndex i = 0; i < joints.size(); ++i) {
+    if (!SanitizeJointsSetting(joints[i])) {
+      return false;
+    }
+  }
 
   return true;
 }
@@ -377,9 +385,7 @@ bool SanitizeAnimation(Json::Value& _root, bool _all_options) {
   MakeDefault(_root, "optimize", true,
               "Activates keyframes reduction optimization.");
 
-  MakeDefaultObject(_root, "optimization_tolerances",
-                    "Optimization tolerances.");
-  SanitizeOptimizationTolerances(_root["optimization_tolerances"]);
+  SanitizeOptimizationSettings(_root["optimization_settings"], _all_options);
 
   MakeDefaultArray(_root, "tracks", "Tracks to build.", !_all_options);
   Json::Value& tracks = _root["tracks"];

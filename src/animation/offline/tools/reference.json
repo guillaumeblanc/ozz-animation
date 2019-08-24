@@ -32,13 +32,19 @@
       "additive_reference" : "animation", //  Select reference pose to use to build additive/delta animation. Can be "animation" to use the 1st animation keyframe as reference, or "skeleton" to use skeleton bind pose.
       "sampling_rate" : 0, //  Selects animation sampling rate in hertz. Set a value <= 0 to use imported scene default frame rate.
       "optimize" : true, //  Activates keyframes reduction optimization.
-      //  Optimization tolerances.
-      "optimization_tolerances" : 
+      "optimization_settings" : 
       {
-        "translation" : 0.001, //  Translation optimization tolerance, defined as the distance between two translation values in meters.
-        "rotation" : 0.001745, //  Rotation optimization tolerance, ie: the angle between two rotation values in radian.
-        "scale" : 0.001, //  Scale optimization tolerance, ie: the norm of the difference of two scales.
-        "hierarchical" : 0.001 //  Hierarchical translation optimization tolerance, ie: the maximum error (distance) that an optimization on a joint is allowed to generate on its whole child hierarchy.
+        "tolerance" : 0.001, //  The maximum error that an optimization is allowed to generate on a whole joint hierarchy.
+        "distance" : 0.1, //  The distance (from the joint) at which error is measured. This allows to emulate effect on skinning.
+        //  Per joint optimization setting override
+        "override" : 
+        [
+          {
+            "name" : "*", //  Joint name. Wildcard characters '*' and '?' are supported
+            "tolerance" : 0.001, //  The maximum error that an optimization is allowed to generate on a whole joint hierarchy.
+            "distance" : 0.1 //  The distance (from the joint) at which error is measured. This allows to emulate effect on skinning.
+          }
+        ]
       },
       //  Tracks to build.
       "tracks" : 

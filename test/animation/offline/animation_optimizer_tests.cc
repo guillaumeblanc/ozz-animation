@@ -114,134 +114,6 @@ TEST(Name, AnimationOptimizer) {
   EXPECT_STRCASEEQ(output.name.c_str(), "Test_Animation");
 }
 
-TEST(Optimize, AnimationOptimizer) {
-  // Prepares a skeleton.
-  RawSkeleton raw_skeleton;
-  raw_skeleton.roots.resize(1);
-  SkeletonBuilder skeleton_builder;
-  ozz::ScopedPtr<Skeleton> skeleton(skeleton_builder(raw_skeleton));
-  ASSERT_TRUE(skeleton);
-
-  AnimationOptimizer optimizer;
-
-  RawAnimation input;
-  input.duration = 1.f;
-  input.tracks.resize(1);
-  {
-    RawAnimation::TranslationKey key = {0.f, ozz::math::Float3(0.f, 0.f, 0.f)};
-    input.tracks[0].translations.push_back(key);
-  }
-  {
-    RawAnimation::TranslationKey key = {
-        .25f, ozz::math::Float3(.1f, 0.f, 0.f)};  // Not interpolable.
-    input.tracks[0].translations.push_back(key);
-  }
-  {
-    RawAnimation::TranslationKey key = {.5f, ozz::math::Float3(0.f, 0.f, 0.f)};
-    input.tracks[0].translations.push_back(key);
-  }
-  {
-    RawAnimation::TranslationKey key = {
-        .625f, ozz::math::Float3(.1f, 0.f, 0.f)};  // Interpolable.
-    input.tracks[0].translations.push_back(key);
-  }
-  {
-    RawAnimation::TranslationKey key = {
-        .75f, ozz::math::Float3(.21f, 0.f, 0.f)};  // Interpolable.
-    input.tracks[0].translations.push_back(key);
-  }
-  {
-    RawAnimation::TranslationKey key = {
-        .875f, ozz::math::Float3(.29f, 0.f, 0.f)};  // Interpolable.
-    input.tracks[0].translations.push_back(key);
-  }
-  {
-    RawAnimation::TranslationKey key = {.9999f,
-                                        ozz::math::Float3(.4f, 0.f, 0.f)};
-    input.tracks[0].translations.push_back(key);
-  }
-  {
-    RawAnimation::TranslationKey key = {
-        1.f, ozz::math::Float3(0.f, 0.f, 0.f)};  // Last key.
-    input.tracks[0].translations.push_back(key);
-  }
-  {
-    RawAnimation::RotationKey key = {0.f, ozz::math::Quaternion::identity()};
-    input.tracks[0].rotations.push_back(key);
-  }
-  {
-    RawAnimation::RotationKey key = {
-        .5f,
-        ozz::math::Quaternion::FromEuler(1.1f * ozz::math::kPi / 180.f, 0, 0)};
-    input.tracks[0].rotations.push_back(key);
-  }
-  {
-    RawAnimation::RotationKey key = {
-        1.f,
-        ozz::math::Quaternion::FromEuler(2.f * ozz::math::kPi / 180.f, 0, 0)};
-    input.tracks[0].rotations.push_back(key);
-  }
-
-  ASSERT_TRUE(input.Validate());
-
-  // Builds animation with very little tolerance.
-  {
-    optimizer.translation_tolerance = 0.f;
-    optimizer.rotation_tolerance = 0.f;
-    optimizer.scale_tolerance = 0.f;
-
-    // Disables hierarchical tolerance.
-    optimizer.hierarchical_tolerance = 1e9f;
-
-    RawAnimation output;
-    ASSERT_TRUE(optimizer(input, *skeleton, &output));
-    EXPECT_EQ(output.num_tracks(), 1);
-
-    const RawAnimation::JointTrack::Translations& translations =
-        output.tracks[0].translations;
-    ASSERT_EQ(translations.size(), 8u);
-    EXPECT_FLOAT_EQ(translations[0].time, 0.f);     // Track 0 begin.
-    EXPECT_FLOAT_EQ(translations[1].time, .25f);    // Track 0 at .25f.
-    EXPECT_FLOAT_EQ(translations[2].time, .5f);     // Track 0 at .5f.
-    EXPECT_FLOAT_EQ(translations[3].time, .625f);   // Track 0 at .625f.
-    EXPECT_FLOAT_EQ(translations[4].time, .75f);    // Track 0 at .75f.
-    EXPECT_FLOAT_EQ(translations[5].time, .875f);   // Track 0 at .875f.
-    EXPECT_FLOAT_EQ(translations[6].time, .9999f);  // Track 0 ~end.
-    EXPECT_FLOAT_EQ(translations[7].time, 1.f);     // Track 0 end.
-
-    const RawAnimation::JointTrack::Rotations& rotations =
-        output.tracks[0].rotations;
-    ASSERT_EQ(rotations.size(), 3u);
-    EXPECT_FLOAT_EQ(rotations[0].time, 0.f);  // Track 0 begin.
-    EXPECT_FLOAT_EQ(rotations[1].time, .5f);  // Track 0 at .5f.
-    EXPECT_FLOAT_EQ(rotations[2].time, 1.f);  // Track 0 end.
-  }
-  {
-    // Rebuilds with tolerance.
-    optimizer.translation_tolerance = .02f;
-    optimizer.rotation_tolerance = .2f * 3.14159f / 180.f;  // .2 degree.
-    optimizer.hierarchical_tolerance = .02f;
-    RawAnimation output;
-    ASSERT_TRUE(optimizer(input, *skeleton, &output));
-    EXPECT_EQ(output.num_tracks(), 1);
-
-    const RawAnimation::JointTrack::Translations& translations =
-        output.tracks[0].translations;
-    ASSERT_EQ(translations.size(), 5u);
-    EXPECT_FLOAT_EQ(translations[0].time, 0.f);     // Track 0 begin.
-    EXPECT_FLOAT_EQ(translations[1].time, .25f);    // Track 0 at .25f.
-    EXPECT_FLOAT_EQ(translations[2].time, .5f);     // Track 0 at .5f.
-    EXPECT_FLOAT_EQ(translations[3].time, .9999f);  // Track 0 at ~1.f.
-    EXPECT_FLOAT_EQ(translations[4].time, 1.f);     // Track 0 end.
-
-    const RawAnimation::JointTrack::Rotations& rotations =
-        output.tracks[0].rotations;
-    ASSERT_EQ(rotations.size(), 2u);
-    EXPECT_FLOAT_EQ(rotations[0].time, 0.f);  // Track 0 begin.
-    EXPECT_FLOAT_EQ(rotations[1].time, 1.f);  // Track 0 end.
-  }
-}
-
 TEST(OptimizeHierarchical, AnimationOptimizer) {
   // Prepares a skeleton.
   RawSkeleton raw_skeleton;
@@ -255,9 +127,9 @@ TEST(OptimizeHierarchical, AnimationOptimizer) {
 
   // Disable non hierarchical optimizations
   AnimationOptimizer optimizer;
-  optimizer.translation_tolerance = 1e9f;
-  optimizer.rotation_tolerance = 1e9f;
-  optimizer.scale_tolerance = 1e9f;
+
+  // Disables vertex distance.
+  optimizer.setting.distance = 0.f;
 
   RawAnimation input;
   input.duration = 1.f;
@@ -309,7 +181,7 @@ TEST(OptimizeHierarchical, AnimationOptimizer) {
   // Small translation tolerance -> all key maintained
   {
     RawAnimation output;
-    optimizer.hierarchical_tolerance = .01f;
+    optimizer.setting.tolerance = .01f;
     ASSERT_TRUE(optimizer(input, *skeleton, &output));
     EXPECT_EQ(output.num_tracks(), 5);
 
@@ -325,7 +197,7 @@ TEST(OptimizeHierarchical, AnimationOptimizer) {
   // High translation tolerance -> all key interpolated
   {
     RawAnimation output;
-    optimizer.hierarchical_tolerance = .1f;
+    optimizer.setting.tolerance = .1f;
     ASSERT_TRUE(optimizer(input, *skeleton, &output));
     EXPECT_EQ(output.num_tracks(), 5);
 
@@ -347,7 +219,7 @@ TEST(OptimizeHierarchical, AnimationOptimizer) {
   // effect.
   {
     RawAnimation output;
-    optimizer.hierarchical_tolerance = .1f;
+    optimizer.setting.tolerance = .1f;
     ASSERT_TRUE(optimizer(input, *skeleton, &output));
     EXPECT_EQ(output.num_tracks(), 5);
 
@@ -356,10 +228,10 @@ TEST(OptimizeHierarchical, AnimationOptimizer) {
     ASSERT_EQ(translations.size(), 4u);
   }
 
-  // Very high translation tolerance
+  // Very high tolerance
   {
     RawAnimation output;
-    optimizer.hierarchical_tolerance = 1.f;
+    optimizer.setting.tolerance = 1.f;
     ASSERT_TRUE(optimizer(input, *skeleton, &output));
     EXPECT_EQ(output.num_tracks(), 5);
 
@@ -376,7 +248,7 @@ TEST(OptimizeHierarchical, AnimationOptimizer) {
   // effect.
   {
     RawAnimation output;
-    optimizer.hierarchical_tolerance = .1f;
+    optimizer.setting.tolerance = .1f;
     ASSERT_TRUE(optimizer(input, *skeleton, &output));
     EXPECT_EQ(output.num_tracks(), 5);
 
@@ -389,10 +261,10 @@ TEST(OptimizeHierarchical, AnimationOptimizer) {
     EXPECT_FLOAT_EQ(translations[3].time, .3f);
   }
 
-  // Very high translation tolerance
+  // Very high tolerance
   {
     RawAnimation output;
-    optimizer.hierarchical_tolerance = 1.f;
+    optimizer.setting.tolerance = 1.f;
     ASSERT_TRUE(optimizer(input, *skeleton, &output));
     EXPECT_EQ(output.num_tracks(), 5);
 
@@ -413,7 +285,7 @@ TEST(OptimizeHierarchical, AnimationOptimizer) {
   // compensation.
   {
     RawAnimation output;
-    optimizer.hierarchical_tolerance = 1.f;
+    optimizer.setting.tolerance = 1.f;
     ASSERT_TRUE(optimizer(input, *skeleton, &output));
     EXPECT_EQ(output.num_tracks(), 5);
 
@@ -433,7 +305,7 @@ TEST(OptimizeHierarchical, AnimationOptimizer) {
   // effect.
   {
     RawAnimation output;
-    optimizer.hierarchical_tolerance = .001f;
+    optimizer.setting.tolerance = .001f;
     ASSERT_TRUE(optimizer(input, *skeleton, &output));
     EXPECT_EQ(output.num_tracks(), 5);
 
@@ -449,7 +321,7 @@ TEST(OptimizeHierarchical, AnimationOptimizer) {
   // Very high translation tolerance
   {
     RawAnimation output;
-    optimizer.hierarchical_tolerance = .01f;
+    optimizer.setting.tolerance = .01f;
     ASSERT_TRUE(optimizer(input, *skeleton, &output));
     EXPECT_EQ(output.num_tracks(), 5);
 
@@ -485,7 +357,7 @@ TEST(OptimizeHierarchical, AnimationOptimizer) {
   // Big enough translation tolerance -> keys rejected
   {
     RawAnimation output;
-    optimizer.hierarchical_tolerance = .1f;
+    optimizer.setting.tolerance = .1f;
     ASSERT_TRUE(optimizer(input, *skeleton, &output));
     EXPECT_EQ(output.num_tracks(), 5);
 
@@ -501,7 +373,7 @@ TEST(OptimizeHierarchical, AnimationOptimizer) {
   // Small translation tolerance -> all key maintained
   {
     RawAnimation output;
-    optimizer.hierarchical_tolerance = .01f;
+    optimizer.setting.tolerance = .01f;
     ASSERT_TRUE(optimizer(input, *skeleton, &output));
     EXPECT_EQ(output.num_tracks(), 5);
 
@@ -524,13 +396,30 @@ TEST(OptimizeHierarchical, AnimationOptimizer) {
   // Small translation tolerance, but scaled down -> keys rejected
   {
     RawAnimation output;
-    optimizer.hierarchical_tolerance = .01f;
+    optimizer.setting.tolerance = .01f;
     ASSERT_TRUE(optimizer(input, *skeleton, &output));
     EXPECT_EQ(output.num_tracks(), 5);
 
     const RawAnimation::JointTrack::Rotations& rotations =
         output.tracks[0].rotations;
     ASSERT_EQ(rotations.size(), 2u);
+
+    const RawAnimation::JointTrack::Translations& translations =
+        output.tracks[2].translations;
+    ASSERT_EQ(translations.size(), 2u);
+  }
+
+  // More vertex distance -> keys are maintained (translation unaffected)
+  {
+    RawAnimation output;
+    optimizer.setting.tolerance = .01f;
+    optimizer.setting.distance = 1.f;
+    ASSERT_TRUE(optimizer(input, *skeleton, &output));
+    EXPECT_EQ(output.num_tracks(), 5);
+
+    const RawAnimation::JointTrack::Rotations& rotations =
+        output.tracks[0].rotations;
+    ASSERT_EQ(rotations.size(), 3u);
 
     const RawAnimation::JointTrack::Translations& translations =
         output.tracks[2].translations;

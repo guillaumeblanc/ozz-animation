@@ -30,6 +30,13 @@
 #include <cassert>
 #include <cstddef>
 
+// Internal include file
+#define OZZ_INCLUDE_PRIVATE_HEADER  // Allows to include private headers.
+#include "animation/offline/decimate.h"
+
+#include "ozz/base/containers/stack.h"
+#include "ozz/base/containers/vector.h"
+
 #include "ozz/base/maths/math_constant.h"
 #include "ozz/base/maths/math_ex.h"
 
@@ -44,63 +51,84 @@ namespace animation {
 namespace offline {
 
 // Setup default values (favoring quality).
-AnimationOptimizer::AnimationOptimizer()
-    : translation_tolerance(1e-3f),                 // 1 mm.
-      rotation_tolerance(.1f * math::kPi / 180.f),  // 0.1 degree.
-      scale_tolerance(1e-3f),                       // 0.1%.
-      hierarchical_tolerance(1e-3f) {               // 1 mm.
-}
+AnimationOptimizer::AnimationOptimizer() {}
 
 namespace {
 
+AnimationOptimizer::Setting GetJointSetting(
+    const AnimationOptimizer& _optimizer, int _joint) {
+  AnimationOptimizer::Setting setting = _optimizer.setting;
+  AnimationOptimizer::JointsSetting::const_iterator it =
+      _optimizer.joints_setting_override.find(_joint);
+  if (it != _optimizer.joints_setting_override.end()) {
+    setting = it->second;
+  }
+  return setting;
+}
+
 struct HierarchyBuilder {
-  HierarchyBuilder(const RawAnimation* _animation, const Skeleton* _skeleton)
-      : lengths(_animation->tracks.size()),
-        scales(_animation->tracks.size()),
-        animation(_animation) {
+  HierarchyBuilder(const RawAnimation* _animation, const Skeleton* _skeleton,
+                   const AnimationOptimizer* _optimizer)
+      : specs(_animation->tracks.size()),
+        animation(_animation),
+        optimizer(_optimizer) {
     assert(_animation->num_tracks() == _skeleton->num_joints());
 
-    // Computes hierarchycal scale, iterating skeleton forward (root to
+    // Computes hierarchical scale, iterating skeleton forward (root to
     // leaf).
     IterateJointsDF(
         *_skeleton, Skeleton::kNoParent,
         IterateMemFun<HierarchyBuilder, &HierarchyBuilder::ComputeScaleForward>(
             *this));
 
-    // Computes hierarchycal length, iterating skeleton backbard (leaf to root).
+    // Computes hierarchical length, iterating skeleton backward (leaf to root).
     IterateJointsDFReverse(
         *_skeleton,
         IterateMemFun<HierarchyBuilder,
                       &HierarchyBuilder::ComputeLengthBackward>(*this));
   }
 
-  // Defines the length of a joint hierarchy (of all child).
-  ozz::Vector<float>::Std lengths;
+  struct Spec {
+    float length;  // Length of a joint hierarchy (max of all child).
+    float scale;   // Scale of a joint hierarchy (accumulated from all parents).
+    float tolerance;  // Tolerance of a joint hierarchy (min of all child).
+  };
 
-  // Defines the scale of a joint hierarchy (from all parents).
-  ozz::Vector<float>::Std scales;
+  // Defines the length of a joint hierarchy (of all child).
+  ozz::Vector<Spec>::Std specs;
 
  private:
   // Extracts maximum translations and scales for each track/joint.
   void ComputeScaleForward(int _joint, int _parent) {
+    Spec& joint_spec = specs[_joint];
+
     // Compute joint maximum animated scale.
     float max_scale = 0.f;
     const RawAnimation::JointTrack& track = animation->tracks[_joint];
     if (track.scales.size() != 0) {
-      float max_scale_sq = 0.f;
       for (size_t j = 0; j < track.scales.size(); ++j) {
-        max_scale_sq = math::Max(max_scale, LengthSqr(track.scales[j].value));
+        const math::Float3& scale = track.scales[j].value;
+        const float max_element = math::Max(
+            math::Max(std::abs(scale.x), std::abs(scale.y)), std::abs(scale.z));
+        max_scale = math::Max(max_scale, max_element);
       }
-      max_scale = std::sqrt(max_scale_sq);
     } else {
       max_scale = 1.f;  // Default scale.
     }
 
     // Accumulate with parent scale.
-    scales[_joint] = max_scale;
+    joint_spec.scale = max_scale;
     if (_parent != Skeleton::kNoParent) {
-      scales[_joint] *= scales[_parent];
+      const Spec& parent_spec = specs[_parent];
+      joint_spec.scale *= parent_spec.scale;
     }
+
+    // Computes self setting distance and tolerance.
+    // Distance is now scaled with accumulated parent scale.
+    const AnimationOptimizer::Setting setting =
+        GetJointSetting(*optimizer, _joint);
+    joint_spec.length = setting.distance * specs[_joint].scale;
+    joint_spec.tolerance = setting.tolerance;
   }
 
   // Propagate child translations back to the root.
@@ -112,112 +140,111 @@ struct HierarchyBuilder {
       max_length_sq =
           math::Max(max_length_sq, LengthSqr(track.translations[j].value));
     }
-    float max_length = std::sqrt(max_length_sq);
+    const float max_length = std::sqrt(max_length_sq);
 
-    // Set parent hierarchical spec to its most impacting child.
     if (_parent != Skeleton::kNoParent) {
-      const float joint_hierarchy_length =
-          lengths[_joint] + max_length * scales[_parent];
-      lengths[_parent] = math::Max(lengths[_parent], joint_hierarchy_length);
-    }
+      const Spec& joint_spec = specs[_joint];
+      Spec& parent_spec = specs[_parent];
 
-    // Leaf length is set to 0 during vector initialization.
+      // Set parent hierarchical spec to its most impacting child, aka max
+      // length and min tolerance.
+      const float joint_hierarchy_length =
+          joint_spec.length + max_length * parent_spec.scale;
+
+      parent_spec.length =
+          math::Max(parent_spec.length, joint_hierarchy_length);
+
+      parent_spec.tolerance =
+          math::Min(parent_spec.tolerance, joint_spec.tolerance);
+    }
   }
 
   // Disables copy and assignment.
   HierarchyBuilder(const HierarchyBuilder&);
   void operator=(const HierarchyBuilder&);
 
-  // Targetted animation.
+  // Targeted animation.
   const RawAnimation* animation;
+
+  // Usefull to access settings and compute hierarchy length.
+  const AnimationOptimizer* optimizer;
 };
 
-// Copy _src keys to _dest but except the ones that can be interpolated.
-template <typename _RawTrack, typename _Comparator, typename _Lerp>
-void Filter(const _RawTrack& _src, const _Comparator& _comparator,
-            const _Lerp& _lerp, float _tolerance, float _hierarchical_tolerance,
-            float _hierarchy_length, _RawTrack* _dest) {
-  _dest->reserve(_src.size());
-
-  // Only copies the key that cannot be interpolated from the others.
-  size_t last_src_pushed = 0;  // Index (in src) of the last pushed key.
-  for (size_t i = 0; i < _src.size(); ++i) {
-    // First and last keys are always pushed.
-    if (i == 0) {
-      _dest->push_back(_src[i]);
-      last_src_pushed = i;
-    } else if (i == _src.size() - 1) {
-      // Don't push the last value if it's the same as last_src_pushed.
-      typename _RawTrack::const_reference left = _src[last_src_pushed];
-      typename _RawTrack::const_reference right = _src[i];
-      if (!_comparator(left.value, right.value, _tolerance,
-                       _hierarchical_tolerance, _hierarchy_length)) {
-        _dest->push_back(right);
-        last_src_pushed = i;
-      }
-    } else {
-      // Only inserts i key if keys in range ]last_src_pushed,i] cannot be
-      // interpolated from keys last_src_pushed and i + 1.
-      typename _RawTrack::const_reference left = _src[last_src_pushed];
-      typename _RawTrack::const_reference right = _src[i + 1];
-      for (size_t j = last_src_pushed + 1; j <= i; ++j) {
-        typename _RawTrack::const_reference test = _src[j];
-        const float alpha = (test.time - left.time) / (right.time - left.time);
-        assert(alpha >= 0.f && alpha <= 1.f);
-        if (!_comparator(_lerp(left.value, right.value, alpha), test.value,
-                         _tolerance, _hierarchical_tolerance,
-                         _hierarchy_length)) {
-          _dest->push_back(_src[i]);
-          last_src_pushed = i;
-          break;
-        }
-      }
-    }
+class PositionAdapter {
+ public:
+  PositionAdapter(float _scale) : scale_(_scale) {}
+  bool Decimable(const RawAnimation::TranslationKey&) const { return true; }
+  RawAnimation::TranslationKey Lerp(
+      const RawAnimation::TranslationKey& _left,
+      const RawAnimation::TranslationKey& _right,
+      const RawAnimation::TranslationKey& _ref) const {
+    const float alpha = (_ref.time - _left.time) / (_right.time - _left.time);
+    assert(alpha >= 0.f && alpha <= 1.f);
+    const RawAnimation::TranslationKey key = {
+        _ref.time, LerpTranslation(_left.value, _right.value, alpha)};
+    return key;
   }
-  assert(_dest->size() <= _src.size());
-}
-
-// Translation filtering comparator.
-bool CompareTranslation(const math::Float3& _a, const math::Float3& _b,
-                        float _tolerance, float _hierarchical_tolerance,
-                        float _hierarchy_scale) {
-  if (!Compare(_a, _b, _tolerance)) {
-    return false;
+  float Distance(const RawAnimation::TranslationKey& _a,
+                 const RawAnimation::TranslationKey& _b) const {
+    return Length(_a.value - _b.value) * scale_;
   }
 
-  // Compute the position of the end of the hierarchy.
-  const math::Float3 s(_hierarchy_scale);
-  return Compare(_a * s, _b * s, _hierarchical_tolerance);
-}
+ private:
+  float scale_;
+};
 
-// Rotation filtering comparator.
-bool CompareRotation(const math::Quaternion& _a, const math::Quaternion& _b,
-                     float _tolerance, float _hierarchical_tolerance,
-                     float _hierarchy_length) {
-  // Compute the shortest unsigned angle between the 2 quaternions.
-  // diff_w is w component of a-1 * b.
-  const float diff_w = _a.x * _b.x + _a.y * _b.y + _a.z * _b.z + _a.w * _b.w;
-  const float angle = 2.f * std::acos(math::Min(std::abs(diff_w), 1.f));
-  if (std::abs(angle) > _tolerance) {
-    return false;
+class RotationAdapter {
+ public:
+  RotationAdapter(float _radius) : radius_(_radius) {}
+  bool Decimable(const RawAnimation::RotationKey&) const { return true; }
+  RawAnimation::RotationKey Lerp(const RawAnimation::RotationKey& _left,
+                                 const RawAnimation::RotationKey& _right,
+                                 const RawAnimation::RotationKey& _ref) const {
+    const float alpha = (_ref.time - _left.time) / (_right.time - _left.time);
+    assert(alpha >= 0.f && alpha <= 1.f);
+    const RawAnimation::RotationKey key = {
+        _ref.time, LerpRotation(_left.value, _right.value, alpha)};
+    return key;
+  }
+  float Distance(const RawAnimation::RotationKey& _left,
+                 const RawAnimation::RotationKey& _right) const {
+    // Compute the shortest unsigned angle between the 2 quaternions.
+    // diff_w is w component of a-1 * b.
+    const float cos_half_angle = Dot(_left.value, _right.value);
+    const float sine_half_angle =
+        std::sqrt(1.f - math::Max(1.f, cos_half_angle * cos_half_angle));
+    // Deduces distance between 2 points on a circle with radius and a given
+    // angle. Using half angle helps as it allows to have a right-angle
+    // triangle.
+    const float distance = 2.f * sine_half_angle * radius_;
+    return distance;
   }
 
-  // Deduces the length of the opposite segment at a distance _hierarchy_length.
-  const float arc_length = std::sin(angle) * _hierarchy_length;
-  return std::abs(arc_length) < _hierarchical_tolerance;
-}
+ private:
+  float radius_;
+};
 
-// Scale filtering comparator.
-bool CompareScale(const math::Float3& _a, const math::Float3& _b,
-                  float _tolerance, float _hierarchical_tolerance,
-                  float _hierarchy_length) {
-  if (!Compare(_a, _b, _tolerance)) {
-    return false;
+class ScaleAdapter {
+ public:
+  ScaleAdapter(float _scale) : scale_(_scale) {}
+  bool Decimable(const RawAnimation::ScaleKey&) const { return true; }
+  typename RawAnimation::ScaleKey Lerp(
+      const RawAnimation::ScaleKey& _left, const RawAnimation::ScaleKey& _right,
+      const RawAnimation::ScaleKey& _ref) const {
+    const float alpha = (_ref.time - _left.time) / (_right.time - _left.time);
+    assert(alpha >= 0.f && alpha <= 1.f);
+    const RawAnimation::ScaleKey key = {
+        _ref.time, LerpTranslation(_left.value, _right.value, alpha)};
+    return key;
   }
-  // Compute the position of the end of the hierarchy, in both cases _a and _b.
-  const math::Float3 l(_hierarchy_length);
-  return Compare(_a * l, _b * l, _hierarchical_tolerance);
-}
+  float Distance(const RawAnimation::ScaleKey& _left,
+                 const RawAnimation::ScaleKey& _right) const {
+    return Length(_left.value - _right.value) * scale_;
+  }
+
+ private:
+  float scale_;
+};
 }  // namespace
 
 bool AnimationOptimizer::operator()(const RawAnimation& _input,
@@ -240,7 +267,7 @@ bool AnimationOptimizer::operator()(const RawAnimation& _input,
   }
 
   // First computes bone lengths, that will be used when filtering.
-  HierarchyBuilder specs(&_input, &_skeleton);
+  const HierarchyBuilder specs(&_input, &_skeleton, this);
 
   // Rebuilds output animation.
   _output->name = _input.name;
@@ -251,19 +278,30 @@ bool AnimationOptimizer::operator()(const RawAnimation& _input,
     const RawAnimation::JointTrack& input_track = _input.tracks[i];
     RawAnimation::JointTrack& output_track = _output->tracks[i];
 
-    const float hierarchical_length = specs.lengths[i];
+    // Gets joint specs back.
+    const float hierarchical_length = specs.specs[i].length;
     const int parent = _skeleton.joint_parents()[i];
     const float hierarchical_scale =
-        (parent != Skeleton::kNoParent) ? specs.scales[parent] : 1.f;
+        (parent != Skeleton::kNoParent) ? specs.specs[parent].scale : 1.f;
 
-    Filter(input_track.translations, CompareTranslation, LerpTranslation,
-           translation_tolerance, hierarchical_tolerance, hierarchical_scale,
-           &output_track.translations);
-    Filter(input_track.rotations, CompareRotation, LerpRotation,
-           rotation_tolerance, hierarchical_tolerance, hierarchical_length,
-           &output_track.rotations);
-    Filter(input_track.scales, CompareScale, LerpScale, scale_tolerance,
-           hierarchical_tolerance, hierarchical_length, &output_track.scales);
+    // Gets joint settings back. Use default ones if no specific setting is
+    // available.
+    Setting joint_setting = setting;
+    JointsSetting::const_iterator it = joints_setting_override.find(i);
+    if (it != joints_setting_override.end()) {
+      joint_setting = it->second;
+    }
+
+    // Filters independently T, R and S tracks.
+    const PositionAdapter tadap(hierarchical_scale);
+    Decimate(input_track.translations, tadap, specs.specs[i].tolerance,
+             &output_track.translations);
+    const RotationAdapter radap(hierarchical_length);
+    Decimate(input_track.rotations, radap, specs.specs[i].tolerance,
+             &output_track.rotations);
+    const ScaleAdapter sadap(hierarchical_length);
+    Decimate(input_track.scales, sadap, specs.specs[i].tolerance,
+             &output_track.scales);
   }
 
   // Output animation is always valid though.
