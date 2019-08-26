@@ -55,11 +55,15 @@ template <typename _KeyFrame>
 struct Adapter {
   typedef typename _KeyFrame::ValueType ValueType;
   typedef typename animation::internal::TrackPolicy<ValueType> Policy;
+
+  Adapter() {}
+
   bool Decimable(const _KeyFrame& _key) const {
     // RawTrackInterpolation::kStep keyframes aren't optimized, as steps can't
     // be interpolated.
     return _key.interpolation != RawTrackInterpolation::kStep;
   }
+
   _KeyFrame Lerp(const _KeyFrame& _left, const _KeyFrame& _right,
                  const _KeyFrame& _ref) const {
     assert(Decimable(_ref));
@@ -70,6 +74,7 @@ struct Adapter {
                            Policy::Lerp(_left.value, _right.value, alpha)};
     return key;
   }
+
   float Distance(const _KeyFrame& _a, const _KeyFrame& _b) const {
     return Policy::Distance(_a.value, _b.value);
   }
