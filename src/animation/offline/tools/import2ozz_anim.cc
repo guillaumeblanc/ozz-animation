@@ -264,6 +264,9 @@ bool Export(OzzImporter& _importer, const RawAnimation& _input_animation,
 
     // Brings data back to the raw animation.
     raw_animation = raw_optimized_animation;
+  } else {
+    ozz::log::LogV() << "Optimization for animation \"" << _input_animation.name
+                     << "\" is disabled." << std::endl;
   }
 
   // Make delta animation if requested.
