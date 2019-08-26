@@ -228,9 +228,9 @@ class ScaleAdapter {
  public:
   ScaleAdapter(float _scale) : scale_(_scale) {}
   bool Decimable(const RawAnimation::ScaleKey&) const { return true; }
-  typename RawAnimation::ScaleKey Lerp(
-      const RawAnimation::ScaleKey& _left, const RawAnimation::ScaleKey& _right,
-      const RawAnimation::ScaleKey& _ref) const {
+  RawAnimation::ScaleKey Lerp(const RawAnimation::ScaleKey& _left,
+                              const RawAnimation::ScaleKey& _right,
+                              const RawAnimation::ScaleKey& _ref) const {
     const float alpha = (_ref.time - _left.time) / (_right.time - _left.time);
     assert(alpha >= 0.f && alpha <= 1.f);
     const RawAnimation::ScaleKey key = {
