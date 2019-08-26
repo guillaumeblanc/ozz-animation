@@ -190,7 +190,7 @@ class OptimizeSampleApplication : public ozz::sample::Application {
       // Computes maximum error.
       error_sqr = ozz::math::Max(error_sqr, joint_error_sqr);
 
-      if (i == joint_) {
+      if (static_cast<int>(i) == joint_) {
         joint_error_record_.Push(std::sqrt(joint_error_sqr) * 1000.f);
       }
     }
