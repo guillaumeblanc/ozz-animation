@@ -261,8 +261,10 @@ bool AnimationOptimizer::operator()(const RawAnimation& _input,
     return false;
   }
 
+  const int num_tracks = _input.num_tracks();
+
   // Validates the skeleton matches the animation.
-  if (_input.num_tracks() != _skeleton.num_joints()) {
+  if (num_tracks != _skeleton.num_joints()) {
     return false;
   }
 
@@ -272,9 +274,9 @@ bool AnimationOptimizer::operator()(const RawAnimation& _input,
   // Rebuilds output animation.
   _output->name = _input.name;
   _output->duration = _input.duration;
-  _output->tracks.resize(_input.tracks.size());
+  _output->tracks.resize(num_tracks);
 
-  for (size_t i = 0; i < _input.tracks.size(); ++i) {
+  for (int i = 0; i < num_tracks; ++i) {
     const RawAnimation::JointTrack& input_track = _input.tracks[i];
     RawAnimation::JointTrack& output_track = _output->tracks[i];
 
