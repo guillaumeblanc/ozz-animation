@@ -64,7 +64,7 @@ struct Quaternion {
   // Returns a normalized quaternion initialized from an Euler representation.
   // Euler angles are ordered Heading, Elevation and Bank, or Yaw, Pitch and
   // Roll.
-  static OZZ_INLINE Quaternion FromEuler(const float& _yaw, float _pitch,
+  static OZZ_INLINE Quaternion FromEuler(float _yaw, float _pitch,
                                          float _roll);
 
   // Returns the quaternion that will rotate vector _from into vector _to,
@@ -202,7 +202,7 @@ OZZ_INLINE Float4 ToAxisAngle(const Quaternion& _q) {
   }
 }
 
-OZZ_INLINE Quaternion Quaternion::FromEuler(const float& _yaw, float _pitch,
+OZZ_INLINE Quaternion Quaternion::FromEuler(float _yaw, float _pitch,
                                             float _roll) {
   const float half_yaw = _yaw * .5f;
   const float c1 = std::cos(half_yaw);
