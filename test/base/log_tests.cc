@@ -49,8 +49,21 @@ void TestLogLevel(ozz::log::Level _level) {
   EXPECT_EQ_LOG_ERR(TestFunction(ozz::log::Err(), "err"), 46, "err");
 }
 
-TEST(Log, Silent) { TestLogLevel(ozz::log::kSilent); }
+TEST(Silent, Log) { TestLogLevel(ozz::log::kSilent); }
 
-TEST(Log, Standard) { TestLogLevel(ozz::log::kStandard); }
+TEST(Standard, Log) { TestLogLevel(ozz::log::kStandard); }
 
-TEST(Log, Verbose) { TestLogLevel(ozz::log::kVerbose); }
+TEST(Verbose, Log) { TestLogLevel(ozz::log::kVerbose); }
+
+TEST(FloatPrecision, Log) {
+  const float number = 46.9352099f;
+  ozz::log::Log log;
+
+  ozz::log::FloatPrecision mod0(log, 0);
+  EXPECT_LOG_LOG(log << number << '-' << std::endl, "47-");
+  {
+    ozz::log::FloatPrecision mod2(log, 2);
+    EXPECT_LOG_LOG(log << number << '-' << std::endl, "46.94-");
+  }
+  EXPECT_LOG_LOG(log << number << '-' << std::endl, "47-");
+}
