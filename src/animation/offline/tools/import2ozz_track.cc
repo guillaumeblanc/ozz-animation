@@ -63,10 +63,11 @@ void DisplaysOptimizationstatistics(const _Track& _non_optimized,
   const size_t non_opt = _non_optimized.keyframes.size();
 
   // Computes optimization ratios.
-  float ratio = opt != 0 ? non_opt / opt : 0;
+  float ratio = opt != 0 ? 1.f * non_opt / opt : 0.f;
 
-  ozz::log::Log() << "Optimization stage results: " << ratio << ":1"
-                  << std::endl;
+  ozz::log::LogV log;
+  ozz::log::FloatPrecision precision_scope(log, 1);
+  log << "Optimization stage results: " << ratio << ":1" << std::endl;
 }
 
 bool IsCompatiblePropertyType(OzzImporter::NodeProperty::Type _src,

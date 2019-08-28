@@ -80,17 +80,19 @@ void DisplaysOptimizationstatistics(const RawAnimation& _non_optimized,
   }
 
   // Computes optimization ratios.
-  float translation_ratio =
-      opt_translations != 0 ? non_opt_translations / opt_translations : 0;
+  float translation_ratio = opt_translations != 0
+                                ? 1.f * non_opt_translations / opt_translations
+                                : 0.f;
   float rotation_ratio =
-      opt_rotations != 0 ? non_opt_rotations / opt_rotations : 0;
-  float scale_ratio = opt_scales != 0 ? non_opt_scales / opt_scales : 0;
+      opt_rotations != 0 ? 1.f * non_opt_rotations / opt_rotations : 0.f;
+  float scale_ratio = opt_scales != 0 ? 1.f * non_opt_scales / opt_scales : 0.f;
 
-  ozz::log::LogV() << "Optimization stage results:" << std::endl;
-  ozz::log::LogV() << " - Translations: " << translation_ratio << ":1"
-                   << std::endl;
-  ozz::log::LogV() << " - Rotations: " << rotation_ratio << ":1" << std::endl;
-  ozz::log::LogV() << " - Scales: " << scale_ratio << ":1" << std::endl;
+  ozz::log::LogV log;
+  ozz::log::FloatPrecision precision_scope(log, 1);
+  log << "Optimization stage results:" << std::endl;
+  log << " - Translations: " << translation_ratio << ":1" << std::endl;
+  log << " - Rotations: " << rotation_ratio << ":1" << std::endl;
+  log << " - Scales: " << scale_ratio << ":1" << std::endl;
 }
 
 Skeleton* LoadSkeleton(const char* _path) {
