@@ -98,8 +98,12 @@ void Decimate(const _Track& _src, const _Adapter& _adapter, float _tolerance,
     // after the new point).
     if (candidate != segment.first) {
       included[candidate] = true;
-      segments.push(Segment(segment.first, candidate));
-      segments.push(Segment(candidate, segment.second));
+      if (candidate - segment.first > 1) {
+        segments.push(Segment(segment.first, candidate));
+      }
+      if (segment.second - candidate > 1) {
+        segments.push(Segment(candidate, segment.second));
+      }
     }
   }
 
