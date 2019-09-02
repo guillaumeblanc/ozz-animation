@@ -114,7 +114,7 @@ TEST(Name, AnimationOptimizer) {
   EXPECT_STRCASEEQ(output.name.c_str(), "Test_Animation");
 }
 
-TEST(OptimizeHierarchical, AnimationOptimizer) {
+TEST(Optimize, AnimationOptimizer) {
   // Prepares a skeleton.
   RawSkeleton raw_skeleton;
   raw_skeleton.roots.resize(1);
@@ -449,4 +449,243 @@ TEST(OptimizeHierarchical, AnimationOptimizer) {
 
   // Remove scaling
   { input.tracks[2].scales.clear(); }
+}
+
+TEST(OptimizeOverride, AnimationOptimizer) {
+  // Prepares a skeleton.
+  RawSkeleton raw_skeleton;
+  raw_skeleton.roots.resize(1);
+  raw_skeleton.roots[0].children.resize(1);
+  raw_skeleton.roots[0].children[0].children.resize(1);
+  raw_skeleton.roots[0].children[0].children[0].children.resize(2);
+  SkeletonBuilder skeleton_builder;
+  ozz::ScopedPtr<Skeleton> skeleton(skeleton_builder(raw_skeleton));
+  ASSERT_TRUE(skeleton);
+
+  // Disable non hierarchical optimizations
+  AnimationOptimizer optimizer;
+  const AnimationOptimizer::Setting default_setting;
+  // Disables vertex distance.
+  optimizer.setting.distance = 0.f;
+
+  RawAnimation input;
+  input.duration = 1.f;
+  input.tracks.resize(5);
+
+  // Translations on track 0.
+  {
+    RawAnimation::TranslationKey key = {0.f, ozz::math::Float3(.4f, 0.f, 0.f)};
+    input.tracks[0].translations.push_back(key);
+  }
+
+  // Rotations on track 0.
+  {
+    RawAnimation::RotationKey key = {
+        0.f, ozz::math::Quaternion::FromEuler(0.f, 0.f, 0.f)};
+    input.tracks[1].rotations.push_back(key);
+  }
+  {                                   // TODO Includes an error that
+    const float angle_error = 1e-3f;  // creates an arc of 1mm at 1m.
+    RawAnimation::RotationKey key = {
+        .1f, ozz::math::Quaternion::FromEuler(ozz::math::kPi_4 + angle_error,
+                                              0.f, 0.f)};
+    input.tracks[1].rotations.push_back(key);
+  }
+  {
+    RawAnimation::RotationKey key = {
+        .2f, ozz::math::Quaternion::FromEuler(ozz::math::kPi_2, 0.f, 0.f)};
+    input.tracks[1].rotations.push_back(key);
+  }
+
+  // Translations on track 1.
+  {
+    RawAnimation::TranslationKey key = {0.f, ozz::math::Float3(0.f, 0.f, 0.f)};
+    input.tracks[1].translations.push_back(key);
+  }
+
+  // Translations on track 2.
+  {
+    RawAnimation::TranslationKey key = {0.f, ozz::math::Float3(.05f, 0.f, 0.f)};
+    input.tracks[2].translations.push_back(key);
+  }
+  {
+    RawAnimation::TranslationKey key = {.1f, ozz::math::Float3(.06f, 0.f, 0.f)};
+    input.tracks[2].translations.push_back(key);
+  }
+  {  // Creates a variation.
+    const float trans_err = 5e-4f;
+    RawAnimation::TranslationKey key = {
+        .2f, ozz::math::Float3(.07f + trans_err, 0.f, 0.f)};
+    input.tracks[2].translations.push_back(key);
+  }
+  {
+    RawAnimation::TranslationKey key = {.3f, ozz::math::Float3(.08f, 0.f, 0.f)};
+    input.tracks[2].translations.push_back(key);
+  }
+
+  // Translations on track 3.
+  {
+    RawAnimation::TranslationKey key = {0.f, ozz::math::Float3(.16f, 0.f, 0.f)};
+    input.tracks[3].translations.push_back(key);
+  }
+  // Translations on track 4.
+  {
+    RawAnimation::TranslationKey key = {0.f, ozz::math::Float3(.32f, 0.f, 0.f)};
+    input.tracks[4].translations.push_back(key);
+  }
+
+  ASSERT_TRUE(input.Validate());
+
+  // Default global tolerances
+  {
+    RawAnimation output;
+    optimizer.setting = default_setting;
+    ASSERT_TRUE(optimizer(input, *skeleton, &output));
+    ASSERT_EQ(output.num_tracks(), 5);
+
+    const RawAnimation::JointTrack::Rotations& rotations =
+        output.tracks[1].rotations;
+    ASSERT_EQ(rotations.size(), 2u);
+    EXPECT_FLOAT_EQ(rotations[0].time, 0.f);
+    EXPECT_FLOAT_EQ(rotations[1].time, .2f);
+
+    const RawAnimation::JointTrack::Translations& translations =
+        output.tracks[2].translations;
+    ASSERT_EQ(translations.size(), 2u);
+    EXPECT_FLOAT_EQ(translations[0].time, 0.f);
+    EXPECT_FLOAT_EQ(translations[1].time, .3f);
+  }
+
+  // Overriding root has no effect on its child, even with small tolerance.
+  {
+    RawAnimation output;
+    optimizer.setting = default_setting;
+    const AnimationOptimizer::Setting joint_override(1e-6f, 1e6f);
+    optimizer.joints_setting_override[0] = joint_override;
+    ASSERT_TRUE(optimizer(input, *skeleton, &output));
+    ASSERT_EQ(output.num_tracks(), 5);
+
+    const RawAnimation::JointTrack::Rotations& rotations =
+        output.tracks[1].rotations;
+    EXPECT_EQ(rotations.size(), 2u);
+
+    const RawAnimation::JointTrack::Translations& translations =
+        output.tracks[2].translations;
+    EXPECT_EQ(translations.size(), 2u);
+
+    optimizer.joints_setting_override.clear();
+  }
+
+  // Overriding a joint has effect on itself.
+  {
+    RawAnimation output;
+    optimizer.setting = default_setting;
+    const AnimationOptimizer::Setting joint_override(.9e-3f,  // < 1mm
+                                                     1.f);    // 1m
+    optimizer.joints_setting_override[1] = joint_override;
+    ASSERT_TRUE(optimizer(input, *skeleton, &output));
+    EXPECT_EQ(output.num_tracks(), 5);
+
+    const RawAnimation::JointTrack::Rotations& rotations =
+        output.tracks[1].rotations;
+    EXPECT_EQ(rotations.size(), 3u);
+
+    const RawAnimation::JointTrack::Translations& translations =
+        output.tracks[2].translations;
+    EXPECT_EQ(translations.size(), 2u);
+
+    optimizer.joints_setting_override.clear();
+  }
+
+  // Overriding a joint has effect on itself, unless too hig tolerance.
+  {
+    RawAnimation output;
+    optimizer.setting = default_setting;
+    const AnimationOptimizer::Setting joint_override(1.1e-3f,  // < 1mm
+                                                     1.f);     // 1m
+    optimizer.joints_setting_override[1] = joint_override;
+    ASSERT_TRUE(optimizer(input, *skeleton, &output));
+    EXPECT_EQ(output.num_tracks(), 5);
+
+    const RawAnimation::JointTrack::Rotations& rotations =
+        output.tracks[1].rotations;
+    EXPECT_EQ(rotations.size(), 2u);
+
+    const RawAnimation::JointTrack::Translations& translations =
+        output.tracks[2].translations;
+    EXPECT_EQ(translations.size(), 2u);
+
+    optimizer.joints_setting_override.clear();
+  }
+
+  // Overriding leaf has effect up to the root though.
+  {
+    RawAnimation output;
+    optimizer.setting = default_setting;
+    const AnimationOptimizer::Setting joint_override(1e-3f,  // 1mm
+                                                     1.f);   // 1m
+    optimizer.joints_setting_override[2] = joint_override;
+    ASSERT_TRUE(optimizer(input, *skeleton, &output));
+    EXPECT_EQ(output.num_tracks(), 5);
+
+    const RawAnimation::JointTrack::Rotations& rotations =
+        output.tracks[1].rotations;
+    ASSERT_EQ(rotations.size(), 3u);
+
+    const RawAnimation::JointTrack::Translations& translations =
+        output.tracks[2].translations;
+    ASSERT_EQ(translations.size(), 2u);
+
+    optimizer.joints_setting_override.clear();
+  }
+
+  // Scale at root affects rotation and translation.
+  {
+    RawAnimation::ScaleKey key = {0.f, ozz::math::Float3(.1f, 2.f, .1f)};
+    input.tracks[0].scales.push_back(key);
+
+    RawAnimation output;
+    optimizer.setting = default_setting;
+    const AnimationOptimizer::Setting joint_override(1.1e-3f,  // > 1mm
+                                                     1.f);     // 1m
+    optimizer.joints_setting_override[1] = joint_override;
+    ASSERT_TRUE(optimizer(input, *skeleton, &output));
+    EXPECT_EQ(output.num_tracks(), 5);
+
+    const RawAnimation::JointTrack::Rotations& rotations =
+        output.tracks[1].rotations;
+    EXPECT_EQ(rotations.size(), 3u);
+
+    const RawAnimation::JointTrack::Translations& translations =
+        output.tracks[2].translations;
+    EXPECT_EQ(translations.size(), 3u);
+
+    optimizer.joints_setting_override.clear();
+    input.tracks[0].scales.clear();
+  }
+
+  // Scale at leaf doesn't affect anything but the leaf.
+  {
+    RawAnimation::ScaleKey key = {0.f, ozz::math::Float3(.1f, 2.f, .1f)};
+    input.tracks[4].scales.push_back(key);
+
+    RawAnimation output;
+    optimizer.setting = default_setting;
+    const AnimationOptimizer::Setting joint_override(1.1e-3f,  // > 1mm
+                                                     1.f);     // 1m
+    optimizer.joints_setting_override[1] = joint_override;
+    ASSERT_TRUE(optimizer(input, *skeleton, &output));
+    EXPECT_EQ(output.num_tracks(), 5);
+
+    const RawAnimation::JointTrack::Rotations& rotations =
+        output.tracks[1].rotations;
+    EXPECT_EQ(rotations.size(), 2u);
+
+    const RawAnimation::JointTrack::Translations& translations =
+        output.tracks[2].translations;
+    EXPECT_EQ(translations.size(), 2u);
+
+    optimizer.joints_setting_override.clear();
+    input.tracks[4].scales.clear();
+  }
 }

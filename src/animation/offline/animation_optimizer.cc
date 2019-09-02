@@ -133,6 +133,11 @@ struct HierarchyBuilder {
 
   // Propagate child translations back to the root.
   void ComputeLengthBackward(int _joint, int _parent) {
+    // Self translation doesn't matter if joint has no parent.
+    if (_parent == Skeleton::kNoParent) {
+      return;
+    }
+
     // Compute joint maximum animated length.
     float max_length_sq = 0.f;
     const RawAnimation::JointTrack& track = animation->tracks[_joint];
@@ -142,21 +147,15 @@ struct HierarchyBuilder {
     }
     const float max_length = std::sqrt(max_length_sq);
 
-    if (_parent != Skeleton::kNoParent) {
-      const Spec& joint_spec = specs[_joint];
-      Spec& parent_spec = specs[_parent];
+    const Spec& joint_spec = specs[_joint];
+    Spec& parent_spec = specs[_parent];
 
-      // Set parent hierarchical spec to its most impacting child, aka max
-      // length and min tolerance.
-      const float joint_hierarchy_length =
-          joint_spec.length + max_length * parent_spec.scale;
-
-      parent_spec.length =
-          math::Max(parent_spec.length, joint_hierarchy_length);
-
-      parent_spec.tolerance =
-          math::Min(parent_spec.tolerance, joint_spec.tolerance);
-    }
+    // Set parent hierarchical spec to its most impacting child, aka max
+    // length and min tolerance.
+    parent_spec.length = math::Max(
+        parent_spec.length, joint_spec.length + max_length * parent_spec.scale);
+    parent_spec.tolerance =
+        math::Min(parent_spec.tolerance, joint_spec.tolerance);
   }
 
   // Disables copy and assignment.
@@ -226,7 +225,7 @@ class RotationAdapter {
 
 class ScaleAdapter {
  public:
-  ScaleAdapter(float _scale) : scale_(_scale) {}
+  ScaleAdapter(float _length) : length_(_length) {}
   bool Decimable(const RawAnimation::ScaleKey&) const { return true; }
   RawAnimation::ScaleKey Lerp(const RawAnimation::ScaleKey& _left,
                               const RawAnimation::ScaleKey& _right,
@@ -234,16 +233,16 @@ class ScaleAdapter {
     const float alpha = (_ref.time - _left.time) / (_right.time - _left.time);
     assert(alpha >= 0.f && alpha <= 1.f);
     const RawAnimation::ScaleKey key = {
-        _ref.time, LerpTranslation(_left.value, _right.value, alpha)};
+        _ref.time, LerpScale(_left.value, _right.value, alpha)};
     return key;
   }
   float Distance(const RawAnimation::ScaleKey& _left,
                  const RawAnimation::ScaleKey& _right) const {
-    return Length(_left.value - _right.value) * scale_;
+    return Length(_left.value - _right.value) * length_;
   }
 
  private:
-  float scale_;
+  float length_;
 };
 }  // namespace
 
@@ -269,7 +268,7 @@ bool AnimationOptimizer::operator()(const RawAnimation& _input,
   }
 
   // First computes bone lengths, that will be used when filtering.
-  const HierarchyBuilder specs(&_input, &_skeleton, this);
+  const HierarchyBuilder hierarchy(&_input, &_skeleton, this);
 
   // Rebuilds output animation.
   _output->name = _input.name;
@@ -277,33 +276,26 @@ bool AnimationOptimizer::operator()(const RawAnimation& _input,
   _output->tracks.resize(num_tracks);
 
   for (int i = 0; i < num_tracks; ++i) {
-    const RawAnimation::JointTrack& input_track = _input.tracks[i];
-    RawAnimation::JointTrack& output_track = _output->tracks[i];
+    const RawAnimation::JointTrack& input = _input.tracks[i];
+    RawAnimation::JointTrack& output = _output->tracks[i];
 
     // Gets joint specs back.
-    const float hierarchical_length = specs.specs[i].length;
+    const float joint_length = hierarchy.specs[i].length;
     const int parent = _skeleton.joint_parents()[i];
-    const float hierarchical_scale =
-        (parent != Skeleton::kNoParent) ? specs.specs[parent].scale : 1.f;
-
-    // Gets joint settings back. Use default ones if no specific setting is
-    // available.
-    Setting joint_setting = setting;
-    JointsSetting::const_iterator it = joints_setting_override.find(i);
-    if (it != joints_setting_override.end()) {
-      joint_setting = it->second;
-    }
+    const float parent_scale =
+        (parent != Skeleton::kNoParent) ? hierarchy.specs[parent].scale : 1.f;
+    const float tolerance = hierarchy.specs[i].tolerance;
 
     // Filters independently T, R and S tracks.
-    const PositionAdapter tadap(hierarchical_scale);
-    Decimate(input_track.translations, tadap, specs.specs[i].tolerance,
-             &output_track.translations);
-    const RotationAdapter radap(hierarchical_length);
-    Decimate(input_track.rotations, radap, specs.specs[i].tolerance,
-             &output_track.rotations);
-    const ScaleAdapter sadap(hierarchical_length);
-    Decimate(input_track.scales, sadap, specs.specs[i].tolerance,
-             &output_track.scales);
+    // This joint translation is affected by parent scale.
+    const PositionAdapter tadap(parent_scale);
+    Decimate(input.translations, tadap, tolerance, &output.translations);
+    // This joint rotation affects children translations/length.
+    const RotationAdapter radap(joint_length);
+    Decimate(input.rotations, radap, tolerance, &output.rotations);
+    // This joint scale affects children translations/length.
+    const ScaleAdapter sadap(joint_length);
+    Decimate(input.scales, sadap, tolerance, &output.scales);
   }
 
   // Output animation is always valid though.

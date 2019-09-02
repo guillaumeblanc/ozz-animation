@@ -71,10 +71,14 @@ class AnimationOptimizer {
 
   // Optimization settings.
   struct Setting {
+    // Default settings
     Setting()
         : tolerance(1e-3f),  // 1mm
           distance(1e-1f)    // 10cm
     {}
+
+    Setting(float _tolerance, float _distance)
+        : tolerance(_tolerance), distance(_distance) {}
 
     // The maximum error that an optimization is allowed to generate on a whole
     // joint hierarchy.
