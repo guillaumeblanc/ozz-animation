@@ -87,6 +87,14 @@ target_link_libraries(test_skeleton_utils
 set_target_properties(test_skeleton_utils PROPERTIES FOLDER "ozz/tests/animation")
 add_test(NAME test_skeleton_utils COMMAND test_skeleton_utils)
 
+add_executable(test_animation_utils
+  animation_utils_tests.cc)
+target_link_libraries(test_animation_utils
+  ozz_animation_offline
+  gtest)
+set_target_properties(test_animation_utils PROPERTIES FOLDER "ozz/tests/animation")
+add_test(NAME test_animation_utils COMMAND test_skeleton_utils)
+
 # track_sampling_job_tests
 add_executable(test_track_sampling_job
   track_sampling_job_tests.cc)
