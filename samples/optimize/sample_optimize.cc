@@ -300,7 +300,7 @@ class OptimizeSampleApplication : public ozz::sample::Application {
 
     // Finds the joint where the object should be attached.
     for (int i = 0; i < num_joints; i++) {
-      if (std::strstr(skeleton_.joint_names()[i], "LeftHandMiddle")) {
+      if (std::strstr(skeleton_.joint_names()[i], "L Finger2Nub")) {
         joint_ = i;
         break;
       }
@@ -355,23 +355,24 @@ class OptimizeSampleApplication : public ozz::sample::Application {
         rebuild |= _im_gui->DoSlider(label, 0.f, 1.f, &setting_.distance, .5f,
                                      optimize_);
 
-        rebuild |=
-            _im_gui->DoCheckBox("Enable joint setting", &joint_setting_enable_);
+        rebuild |= _im_gui->DoCheckBox("Enable joint setting",
+                                       &joint_setting_enable_, optimize_);
 
         char label[64];
         std::sprintf(label, "%s (%d)", skeleton_.joint_names()[joint_], joint_);
-        rebuild |= _im_gui->DoSlider(label, 0, skeleton_.num_joints() - 1,
-                                     &joint_, 1.f, joint_setting_enable_);
+        rebuild |=
+            _im_gui->DoSlider(label, 0, skeleton_.num_joints() - 1, &joint_,
+                              1.f, joint_setting_enable_ && optimize_);
 
         std::sprintf(label, "Tolerance: %0.2f mm",
                      joint_setting_.tolerance * 1000);
         rebuild |= _im_gui->DoSlider(label, 0.f, .1f, &joint_setting_.tolerance,
-                                     .5f, joint_setting_enable_);
+                                     .5f, joint_setting_enable_ && optimize_);
 
         std::sprintf(label, "Distance: %0.2f mm",
                      joint_setting_.distance * 1000);
         rebuild |= _im_gui->DoSlider(label, 0.f, 1.f, &joint_setting_.distance,
-                                     .5f, joint_setting_enable_);
+                                     .5f, joint_setting_enable_ && optimize_);
 
         if (rebuild) {
           // Invalidates the cache in case the new animation has the same
