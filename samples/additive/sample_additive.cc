@@ -263,7 +263,7 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
     // Extracts the list of children of the shoulder
     WeightSetupIterator it(&upper_body_joint_weights_,
                            upper_body_joint_weight_setting_);
-    IterateJointsDF(skeleton_, upper_body_root_, it);
+    IterateJointsDF(skeleton_, it, upper_body_root_);
   }
 
   virtual void OnDestroy() {}

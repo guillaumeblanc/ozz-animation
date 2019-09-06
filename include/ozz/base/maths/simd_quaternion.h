@@ -108,6 +108,12 @@ OZZ_INLINE SimdQuaternion Conjugate(const SimdQuaternion& _q) {
   return quat;
 }
 
+// Returns the negate of _q. This represent the same rotation as q.
+OZZ_INLINE SimdQuaternion operator-(const SimdQuaternion& _q) {
+  const SimdQuaternion quat = {Xor(_q.xyzw, simd_int4::mask_sign())};
+  return quat;
+}
+
 // Returns the normalized quaternion _q.
 OZZ_INLINE SimdQuaternion Normalize(const SimdQuaternion& _q) {
   const SimdQuaternion quat = {Normalize4(_q.xyzw)};

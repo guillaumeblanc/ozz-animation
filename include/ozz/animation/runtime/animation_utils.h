@@ -25,45 +25,19 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/base/log.h"
+#ifndef OZZ_OZZ_ANIMATION_RUNTIME_ANIMATION_UTILS_H_
+#define OZZ_OZZ_ANIMATION_RUNTIME_ANIMATION_UTILS_H_
 
-#include "gtest/gtest.h"
-#include "ozz/base/gtest_helper.h"
+#include "ozz/animation/runtime/animation.h"
 
-int TestFunction(std::ostream& _stream, const char* _log) {
-  _stream << _log << std::endl;
-  return 46;
-}
+namespace ozz {
+namespace animation {
 
-void TestLogLevel(ozz::log::Level _level) {
-  ozz::log::SetLevel(_level);
-
-  EXPECT_LOG_LOGV(TestFunction(ozz::log::LogV(), "logv"), "logv");
-  EXPECT_LOG_LOG(TestFunction(ozz::log::Log(), "log"), "log");
-  EXPECT_LOG_OUT(TestFunction(ozz::log::Out(), "out"), "out");
-  EXPECT_LOG_ERR(TestFunction(ozz::log::Err(), "err"), "err");
-
-  EXPECT_EQ_LOG_LOGV(TestFunction(ozz::log::LogV(), "logv"), 46, "logv");
-  EXPECT_EQ_LOG_LOG(TestFunction(ozz::log::Log(), "log"), 46, "log");
-  EXPECT_EQ_LOG_OUT(TestFunction(ozz::log::Out(), "out"), 46, "out");
-  EXPECT_EQ_LOG_ERR(TestFunction(ozz::log::Err(), "err"), 46, "err");
-}
-
-TEST(Silent, Log) { TestLogLevel(ozz::log::kSilent); }
-
-TEST(Standard, Log) { TestLogLevel(ozz::log::kStandard); }
-
-TEST(Verbose, Log) { TestLogLevel(ozz::log::kVerbose); }
-
-TEST(FloatPrecision, Log) {
-  const float number = 46.9352099f;
-  ozz::log::Log log;
-
-  ozz::log::FloatPrecision mod0(log, 0);
-  EXPECT_LOG_LOG(log << number << '-' << std::endl, "47-");
-  {
-    ozz::log::FloatPrecision mod2(log, 2);
-    EXPECT_LOG_LOG(log << number << '-' << std::endl, "46.94-");
-  }
-  EXPECT_LOG_LOG(log << number << '-' << std::endl, "47-");
-}
+// Count translation, rotation or scale keyframes for a given track number. Use
+// a negative _track value to count all tracks.
+int CountTranslationKeyframes(const Animation& _animation, int _track = -1);
+int CountRotationKeyframes(const Animation& _animation, int _track = -1);
+int CountScaleKeyframes(const Animation& _animation, int _track = -1);
+}  // namespace animation
+}  // namespace ozz
+#endif  // OZZ_OZZ_ANIMATION_RUNTIME_ANIMATION_UTILS_H_

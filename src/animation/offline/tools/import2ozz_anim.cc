@@ -80,21 +80,19 @@ void DisplaysOptimizationstatistics(const RawAnimation& _non_optimized,
   }
 
   // Computes optimization ratios.
-  float translation_ratio =
-      non_opt_translations != 0
-          ? 100.f * opt_translations / non_opt_translations
-          : 0;
+  float translation_ratio = opt_translations != 0
+                                ? 1.f * non_opt_translations / opt_translations
+                                : 0.f;
   float rotation_ratio =
-      non_opt_rotations != 0 ? 100.f * opt_rotations / non_opt_rotations : 0;
-  float scale_ratio =
-      non_opt_scales != 0 ? 100.f * opt_scales / non_opt_scales : 0;
+      opt_rotations != 0 ? 1.f * non_opt_rotations / opt_rotations : 0.f;
+  float scale_ratio = opt_scales != 0 ? 1.f * non_opt_scales / opt_scales : 0.f;
 
-  ozz::log::LogV() << "Optimization stage results (% of remaining keys):"
-                   << std::endl;
-  ozz::log::LogV() << " - Translations: " << translation_ratio << "%"
-                   << std::endl;
-  ozz::log::LogV() << " - Rotations: " << rotation_ratio << "%" << std::endl;
-  ozz::log::LogV() << " - Scales: " << scale_ratio << "%" << std::endl;
+  ozz::log::LogV log;
+  ozz::log::FloatPrecision precision_scope(log, 1);
+  log << "Optimization stage results:" << std::endl;
+  log << " - Translations: " << translation_ratio << ":1" << std::endl;
+  log << " - Rotations: " << rotation_ratio << ":1" << std::endl;
+  log << " - Scales: " << scale_ratio << ":1" << std::endl;
 }
 
 Skeleton* LoadSkeleton(const char* _path) {
@@ -168,11 +166,80 @@ Vector<math::Transform>::Std SkeletonBindPoseSoAToAoS(
   return transforms;
 }
 
-bool Export(OzzImporter& _importer, const RawAnimation& _raw_animation,
+bool Export(OzzImporter& _importer, const RawAnimation& _input_animation,
             const Skeleton& _skeleton, const Json::Value& _config,
             const ozz::Endianness _endianness) {
-  // Raw animation to build and output.
-  RawAnimation raw_animation;
+  // Raw animation to build and output. Initial setup is just a copy.
+  RawAnimation raw_animation = _input_animation;
+
+  // Optimizes animation if option is enabled.
+  // Must be done before converting to additive, to be sure hierarchy length is
+  // valid when optimizing.
+  if (_config["optimize"].asBool()) {
+    ozz::log::Log() << "Optimizing animation." << std::endl;
+    AnimationOptimizer optimizer;
+
+    // Setup optimizer from config parameters.
+    const Json::Value& tolerances = _config["optimization_settings"];
+    optimizer.setting.tolerance = tolerances["tolerance"].asFloat();
+    optimizer.setting.distance = tolerances["distance"].asFloat();
+
+    // Builds per joint settings.
+    const Json::Value& joints_config = tolerances["override"];
+    for (Json::ArrayIndex i = 0; i < joints_config.size(); ++i) {
+      const Json::Value& joint_config = joints_config[i];
+
+      // Prepares setting.
+      AnimationOptimizer::Setting setting;
+      setting.tolerance = joint_config["tolerance"].asFloat();
+      setting.distance = joint_config["distance"].asFloat();
+
+      // Push it for all matching joints.
+      // Settings are overwritten if one has already been pushed.
+      bool found = false;
+      const char* name_pattern = joint_config["name"].asCString();
+      for (int i = 0; i < _skeleton.num_joints(); ++i) {
+        const char* joint_name = _skeleton.joint_names()[i];
+        if (strmatch(joint_name, name_pattern)) {
+          found = true;
+
+          ozz::log::LogV() << "Found joint \"" << joint_name
+                           << "\" matching pattern \"" << name_pattern
+                           << "\" for joint optimization setting override."
+                           << std::endl;
+
+          const AnimationOptimizer::JointsSetting::value_type entry(i, setting);
+          const bool newly =
+              optimizer.joints_setting_override.insert(entry).second;
+          if (!newly) {
+            ozz::log::Log() << "Redundant optimization setting for pattern \""
+                            << name_pattern << "\"" << std::endl;
+          }
+        }
+      }
+
+      if (!found) {
+        ozz::log::Log()
+            << "No joint found for optimization setting for pattern \""
+            << name_pattern << "\"" << std::endl;
+      }
+    }
+
+    RawAnimation raw_optimized_animation;
+    if (!optimizer(raw_animation, _skeleton, &raw_optimized_animation)) {
+      ozz::log::Err() << "Failed to optimize animation." << std::endl;
+      return false;
+    }
+
+    // Displays optimization statistics.
+    DisplaysOptimizationstatistics(raw_animation, raw_optimized_animation);
+
+    // Brings data back to the raw animation.
+    raw_animation = raw_optimized_animation;
+  } else {
+    ozz::log::LogV() << "Optimization for animation \"" << _input_animation.name
+                     << "\" is disabled." << std::endl;
+  }
 
   // Make delta animation if requested.
   if (_config["additive"].asBool()) {
@@ -190,10 +257,10 @@ bool Export(OzzImporter& _importer, const RawAnimation& _raw_animation,
     if (enum_found && reference == AdditiveReferenceEnum::kSkeleton) {
       const Vector<math::Transform>::Std transforms =
           SkeletonBindPoseSoAToAoS(_skeleton);
-      succeeded = additive_builder(_raw_animation, make_range(transforms),
+      succeeded = additive_builder(raw_animation, make_range(transforms),
                                    &raw_additive);
     } else {
-      succeeded = additive_builder(_raw_animation, &raw_additive);
+      succeeded = additive_builder(raw_animation, &raw_additive);
     }
 
     if (!succeeded) {
@@ -203,33 +270,6 @@ bool Export(OzzImporter& _importer, const RawAnimation& _raw_animation,
 
     // Now use additive animation.
     raw_animation = raw_additive;
-  } else {
-    raw_animation = _raw_animation;
-  }
-
-  // Optimizes animation if option is enabled.
-  if (_config["optimize"].asBool()) {
-    ozz::log::Log() << "Optimizing animation." << std::endl;
-    AnimationOptimizer optimizer;
-
-    // Setup optimizer from config parameters.
-    const Json::Value& tolerances = _config["optimization_tolerances"];
-    optimizer.translation_tolerance = tolerances["translation"].asFloat();
-    optimizer.rotation_tolerance = tolerances["rotation"].asFloat();
-    optimizer.scale_tolerance = tolerances["scale"].asFloat();
-    optimizer.hierarchical_tolerance = tolerances["hierarchical"].asFloat();
-
-    RawAnimation raw_optimized_animation;
-    if (!optimizer(raw_animation, _skeleton, &raw_optimized_animation)) {
-      ozz::log::Err() << "Failed to optimize animation." << std::endl;
-      return false;
-    }
-
-    // Displays optimization statistics.
-    DisplaysOptimizationstatistics(raw_animation, raw_optimized_animation);
-
-    // Brings data back to the raw animation.
-    raw_animation = raw_optimized_animation;
   }
 
   // Builds runtime animation.
@@ -251,7 +291,7 @@ bool Export(OzzImporter& _importer, const RawAnimation& _raw_animation,
 
     // Builds output filename.
     ozz::String::Std filename = _importer.BuildFilename(
-        _config["filename"].asCString(), _raw_animation.name.c_str());
+        _config["filename"].asCString(), raw_animation.name.c_str());
 
     ozz::log::LogV() << "Opens output file: " << filename << std::endl;
     ozz::io::File file(filename.c_str(), "wb");

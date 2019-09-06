@@ -312,16 +312,16 @@ TEST(QuaternionFromUnitVectors, ozz_math) {
 TEST(QuaternionCompare, ozz_math) {
   EXPECT_TRUE(Quaternion::identity() == Quaternion(0.f, 0.f, 0.f, 1.f));
   EXPECT_TRUE(Quaternion::identity() != Quaternion(1.f, 0.f, 0.f, 0.f));
-  EXPECT_TRUE(Compare(Quaternion::identity(), Quaternion::identity(), 0.f));
+  EXPECT_TRUE(Compare(Quaternion::identity(), Quaternion::identity(), std::cos(.5f * 0.f)));
   EXPECT_TRUE(Compare(Quaternion::identity(),
                       Quaternion::FromEuler(0.f, 0.f, ozz::math::kPi / 100.f),
-                      ozz::math::kPi / 50.f));
+                      std::cos(.5f * ozz::math::kPi / 50.f)));
   EXPECT_TRUE(Compare(Quaternion::identity(),
                       -Quaternion::FromEuler(0.f, 0.f, ozz::math::kPi / 100.f),
-                      ozz::math::kPi / 50.f));
+                      std::cos(.5f * ozz::math::kPi / 50.f)));
   EXPECT_FALSE(Compare(Quaternion::identity(),
                        Quaternion::FromEuler(0.f, 0.f, ozz::math::kPi / 100.f),
-                       ozz::math::kPi / 200.f));
+                       std::cos(.5f * ozz::math::kPi / 200.f)));
 }
 
 TEST(QuaternionArithmetic, ozz_math) {
@@ -431,6 +431,9 @@ TEST(QuaternionArithmetic, ozz_math) {
   const Quaternion slerp_0_7 = SLerp(a, b, .7f);
   EXPECT_TRUE(IsNormalized(slerp_0_7));
   EXPECT_QUATERNION_EQ(slerp_0_7, .2523113f, .5463429f, 0.f, .798654f);
+
+  const float dot = Dot(a, b);
+  EXPECT_FLOAT_EQ(dot, .5f);
 }
 
 TEST(QuaternionTransformVector, ozz_math) {

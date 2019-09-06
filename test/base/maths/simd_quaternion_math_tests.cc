@@ -61,6 +61,9 @@ TEST(QuaternionArithmetic, ozz_simd_math) {
   const SimdQuaternion conjugate = Conjugate(a);
   EXPECT_SIMDQUATERNION_EQ(conjugate, -.70710677f, 0.f, 0.f, .70710677f);
 
+  const SimdQuaternion negate = -a;
+  EXPECT_SIMDQUATERNION_EQ(negate, -.70710677f, 0.f, 0.f, -.70710677f);
+
   const SimdQuaternion mul0 = a * conjugate;
   EXPECT_SIMDQUATERNION_EQ(mul0, 0.f, 0.f, 0.f, 1.f);
 

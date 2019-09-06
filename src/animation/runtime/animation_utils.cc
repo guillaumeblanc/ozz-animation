@@ -25,45 +25,38 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/base/log.h"
+#include "ozz/animation/runtime/animation_utils.h"
 
-#include "gtest/gtest.h"
-#include "ozz/base/gtest_helper.h"
+// Internal include file
+#define OZZ_INCLUDE_PRIVATE_HEADER  // Allows to include private headers.
+#include "animation/runtime/animation_keyframe.h"
 
-int TestFunction(std::ostream& _stream, const char* _log) {
-  _stream << _log << std::endl;
-  return 46;
-}
+namespace ozz {
+namespace animation {
 
-void TestLogLevel(ozz::log::Level _level) {
-  ozz::log::SetLevel(_level);
-
-  EXPECT_LOG_LOGV(TestFunction(ozz::log::LogV(), "logv"), "logv");
-  EXPECT_LOG_LOG(TestFunction(ozz::log::Log(), "log"), "log");
-  EXPECT_LOG_OUT(TestFunction(ozz::log::Out(), "out"), "out");
-  EXPECT_LOG_ERR(TestFunction(ozz::log::Err(), "err"), "err");
-
-  EXPECT_EQ_LOG_LOGV(TestFunction(ozz::log::LogV(), "logv"), 46, "logv");
-  EXPECT_EQ_LOG_LOG(TestFunction(ozz::log::Log(), "log"), 46, "log");
-  EXPECT_EQ_LOG_OUT(TestFunction(ozz::log::Out(), "out"), 46, "out");
-  EXPECT_EQ_LOG_ERR(TestFunction(ozz::log::Err(), "err"), 46, "err");
-}
-
-TEST(Silent, Log) { TestLogLevel(ozz::log::kSilent); }
-
-TEST(Standard, Log) { TestLogLevel(ozz::log::kStandard); }
-
-TEST(Verbose, Log) { TestLogLevel(ozz::log::kVerbose); }
-
-TEST(FloatPrecision, Log) {
-  const float number = 46.9352099f;
-  ozz::log::Log log;
-
-  ozz::log::FloatPrecision mod0(log, 0);
-  EXPECT_LOG_LOG(log << number << '-' << std::endl, "47-");
-  {
-    ozz::log::FloatPrecision mod2(log, 2);
-    EXPECT_LOG_LOG(log << number << '-' << std::endl, "46.94-");
+template <typename _Key>
+inline int CountKeyframesImpl(const Range<const _Key>& _keys, int _track) {
+  if (_track < 0) {
+    return static_cast<int>(_keys.count());
   }
-  EXPECT_LOG_LOG(log << number << '-' << std::endl, "47-");
+
+  int count = 0;
+  for (const _Key* key = _keys.begin; key < _keys.end; ++key) {
+    if (key->track == _track) {
+      ++count;
+    }
+  }
+  return count;
 }
+
+int CountTranslationKeyframes(const Animation& _animation, int _track) {
+  return CountKeyframesImpl(_animation.translations(), _track);
+}
+int CountRotationKeyframes(const Animation& _animation, int _track) {
+  return CountKeyframesImpl(_animation.rotations(), _track);
+}
+int CountScaleKeyframes(const Animation& _animation, int _track) {
+  return CountKeyframesImpl(_animation.scales(), _track);
+}
+}  // namespace animation
+}  // namespace ozz

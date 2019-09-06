@@ -2,6 +2,8 @@ add_library(ozz_animation STATIC
   ${PROJECT_SOURCE_DIR}/include/ozz/animation/runtime/animation.h
   animation.cc
   animation_keyframe.h
+  ${PROJECT_SOURCE_DIR}/include/ozz/animation/runtime/animation_utils.h
+  animation_utils.cc
   ${PROJECT_SOURCE_DIR}/include/ozz/animation/runtime/blending_job.h
   blending_job.cc
   ${PROJECT_SOURCE_DIR}/include/ozz/animation/runtime/ik_aim_job.h
