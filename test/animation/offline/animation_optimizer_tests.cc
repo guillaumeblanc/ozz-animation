@@ -484,7 +484,7 @@ TEST(OptimizeOverride, AnimationOptimizer) {
         0.f, ozz::math::Quaternion::FromEuler(0.f, 0.f, 0.f)};
     input.tracks[1].rotations.push_back(key);
   }
-  {                                   // TODO Includes an error that
+  {                                   // Includes an error that
     const float angle_error = 1e-3f;  // creates an arc of 1mm at 1m.
     RawAnimation::RotationKey key = {
         .1f, ozz::math::Quaternion::FromEuler(ozz::math::kPi_4 + angle_error,

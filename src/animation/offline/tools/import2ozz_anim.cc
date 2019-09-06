@@ -166,42 +166,12 @@ Vector<math::Transform>::Std SkeletonBindPoseSoAToAoS(
   return transforms;
 }
 
-template <typename _Keys>
-bool OptimizeConstantTrack(_Keys* _keys, float _tolerance) {
-  bool constant = true;
-  if (_keys->size() > 1) {
-    // Checks if all successive keys have values in tolerance range.
-    const typename _Keys::value_type::Value& first = _keys->begin()->value;
-    for (size_t n = 1; constant && n < _keys->size(); ++n) {
-      constant = Compare(first, _keys->at(n).value, _tolerance);
-    }
-
-    // Keeps only the fist key if constant.
-    if (constant) {
-      _keys->resize(1);
-      _keys->begin()->time = 0.f;
-    }
-  }
-  return constant;
-}
-
 bool Export(OzzImporter& _importer, const RawAnimation& _input_animation,
             const Skeleton& _skeleton, const Json::Value& _config,
             const ozz::Endianness _endianness) {
   // Raw animation to build and output. Initial setup is just a copy.
   RawAnimation raw_animation = _input_animation;
 
-  /*
-    // Optimizes constant tracks.
-    // TODO
-    for (int i = 0; i < raw_animation.tracks.size(); i++) {
-      ozz::animation::offline::RawAnimation::JointTrack& track =
-          raw_animation.tracks[i];
-      OptimizeConstantTrack(&track.translations, 1e-6f);
-      OptimizeConstantTrack(&track.rotations, std::cos(.5f * 1e-6f));
-      OptimizeConstantTrack(&track.scales, 1e-6f);
-    }
-  */
   // Optimizes animation if option is enabled.
   // Must be done before converting to additive, to be sure hierarchy length is
   // valid when optimizing.
