@@ -392,17 +392,17 @@ class OptimizeSampleApplication : public ozz::sample::Application {
         static bool open = true;
         ozz::sample::ImGui::OpenClose ocb(_im_gui, "Memory size", &open);
         if (open) {
-          std::sprintf(label, "Original: %dKB",
+          std::sprintf(label, "Original: %dK",
                        static_cast<int>(raw_animation_.size() >> 10));
           _im_gui->DoLabel(label);
 
-          std::sprintf(label, "Optimized: %dKB (%.1f:1)",
+          std::sprintf(label, "Optimized: %dK (%.1f:1)",
                        static_cast<int>(raw_optimized_animation_.size() >> 10),
                        static_cast<float>(raw_animation_.size()) /
                            raw_optimized_animation_.size());
           _im_gui->DoLabel(label);
 
-          std::sprintf(label, "Compressed: %dKB (%.1f:1)",
+          std::sprintf(label, "Compressed: %dK (%.1f:1)",
                        static_cast<int>(animation_rt_->size() >> 10),
                        static_cast<float>(raw_animation_.size()) /
                            animation_rt_->size());
