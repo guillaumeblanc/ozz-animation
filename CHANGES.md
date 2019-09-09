@@ -7,7 +7,7 @@ Next next version
   - [offline] Switches AnimationOptimizer and TrackOptimizer to Ramer–Douglas–Peucker decimation algorithm which delivers better precision than original one. It also ensures that first and last points are preserved, avoiding artefact for looping animations.
   - [offline] Changes order of parameters for IterateJointsDF so it's less error prone.
   - [memory] Implements ScopedPtr smart pointer. ScopedPtr implementation guarantees the pointed object will be deleted, either on destruction of the ScopedPtr, or via an explicit reset / reassignation.
-  - [math] Quaternion compare function now takes cosine of half angle as argument, to avoid computing arc cosine as the tolerance is usualy constant.
+  - [math] Quaternion compare function now takes cosine of half angle as argument, to avoid computing arc cosine for every comparison as the tolerance is usualy constant.
 
 * Samples
   - [optimize] Exposes joint setting overriding option (from AnimationOptimizer) to sample gui.

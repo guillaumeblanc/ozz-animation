@@ -198,8 +198,8 @@ bool Export(OzzImporter& _importer, const RawAnimation& _input_animation,
       // Settings are overwritten if one has already been pushed.
       bool found = false;
       const char* name_pattern = joint_config["name"].asCString();
-      for (int i = 0; i < _skeleton.num_joints(); ++i) {
-        const char* joint_name = _skeleton.joint_names()[i];
+      for (int j = 0; j < _skeleton.num_joints(); ++j) {
+        const char* joint_name = _skeleton.joint_names()[j];
         if (strmatch(joint_name, name_pattern)) {
           found = true;
 
@@ -208,7 +208,7 @@ bool Export(OzzImporter& _importer, const RawAnimation& _input_animation,
                            << "\" for joint optimization setting override."
                            << std::endl;
 
-          const AnimationOptimizer::JointsSetting::value_type entry(i, setting);
+          const AnimationOptimizer::JointsSetting::value_type entry(j, setting);
           const bool newly =
               optimizer.joints_setting_override.insert(entry).second;
           if (!newly) {
