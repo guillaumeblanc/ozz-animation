@@ -358,7 +358,6 @@ class OptimizeSampleApplication : public ozz::sample::Application {
         rebuild |= _im_gui->DoCheckBox("Enable joint setting",
                                        &joint_setting_enable_, optimize_);
 
-        char label[64];
         std::sprintf(label, "%s (%d)", skeleton_.joint_names()[joint_], joint_);
         rebuild |=
             _im_gui->DoSlider(label, 0, skeleton_.num_joints() - 1, &joint_,
@@ -387,67 +386,67 @@ class OptimizeSampleApplication : public ozz::sample::Application {
           }
         }
       }
+    }
+    {
+      static bool open = true;
+      ozz::sample::ImGui::OpenClose ocb(_im_gui, "Memory size", &open);
+      if (open) {
+        std::sprintf(label, "Original: %dKB",
+                     static_cast<int>(raw_animation_.size() >> 10));
+        _im_gui->DoLabel(label);
 
-      {
-        static bool open = true;
-        ozz::sample::ImGui::OpenClose ocb(_im_gui, "Memory size", &open);
-        if (open) {
-          std::sprintf(label, "Original: %dK",
-                       static_cast<int>(raw_animation_.size() >> 10));
-          _im_gui->DoLabel(label);
+        std::sprintf(label, "Optimized: %dKB (%.1f:1)",
+                     static_cast<int>(raw_optimized_animation_.size() >> 10),
+                     static_cast<float>(raw_animation_.size()) /
+                         raw_optimized_animation_.size());
+        _im_gui->DoLabel(label);
 
-          std::sprintf(label, "Optimized: %dK (%.1f:1)",
-                       static_cast<int>(raw_optimized_animation_.size() >> 10),
-                       static_cast<float>(raw_animation_.size()) /
-                           raw_optimized_animation_.size());
-          _im_gui->DoLabel(label);
-
-          std::sprintf(label, "Compressed: %dK (%.1f:1)",
-                       static_cast<int>(animation_rt_->size() >> 10),
-                       static_cast<float>(raw_animation_.size()) /
-                           animation_rt_->size());
-          _im_gui->DoLabel(label);
-        }
-      }
-
-      // Selects display mode.
-      static bool open_mode = true;
-      ozz::sample::ImGui::OpenClose mode(_im_gui, "Display mode", &open_mode);
-      if (open_mode) {
-        _im_gui->DoRadioButton(eRuntimeAnimation, "Runtime animation",
-                               &selected_display_);
-        _im_gui->DoRadioButton(eRawAnimation, "Raw animation",
-                               &selected_display_);
-        _im_gui->DoRadioButton(eAbsoluteError, "Absolute error",
-                               &selected_display_);
-      }
-
-      // Show absolute error.
-      {  // FPS
-        char szLabel[64];
-        static bool error_open = true;
-        ozz::sample::ImGui::OpenClose oc_stats(_im_gui, "Absolute error",
-                                               &error_open);
-        if (error_open) {
-          std::sprintf(szLabel, "Skeleton error: %.2f mm",
-                       *error_record_.cursor());
-          const ozz::sample::Record::Statistics error_stats =
-              error_record_.GetStatistics();
-          _im_gui->DoGraph(szLabel, 0.f, error_stats.max, error_stats.latest,
-                           error_record_.cursor(), error_record_.record_begin(),
-                           error_record_.record_end());
-
-          std::sprintf(szLabel, "Joint error: %.2f mm",
-                       *joint_error_record_.cursor());
-          const ozz::sample::Record::Statistics joint_error_stats =
-              joint_error_record_.GetStatistics();
-          _im_gui->DoGraph(
-              szLabel, 0.f, joint_error_stats.max, joint_error_stats.latest,
-              joint_error_record_.cursor(), joint_error_record_.record_begin(),
-              joint_error_record_.record_end());
-        }
+        std::sprintf(
+            label, "Compressed: %dKB (%.1f:1)",
+            static_cast<int>(animation_rt_->size() >> 10),
+            static_cast<float>(raw_animation_.size()) / animation_rt_->size());
+        _im_gui->DoLabel(label);
       }
     }
+
+    // Selects display mode.
+    static bool open_mode = true;
+    ozz::sample::ImGui::OpenClose mode(_im_gui, "Display mode", &open_mode);
+    if (open_mode) {
+      _im_gui->DoRadioButton(eRuntimeAnimation, "Runtime animation",
+                             &selected_display_);
+      _im_gui->DoRadioButton(eRawAnimation, "Raw animation",
+                             &selected_display_);
+      _im_gui->DoRadioButton(eAbsoluteError, "Absolute error",
+                             &selected_display_);
+    }
+
+    // Show absolute error.
+    {  // FPS
+      char szLabel[64];
+      static bool error_open = true;
+      ozz::sample::ImGui::OpenClose oc_stats(_im_gui, "Absolute error",
+                                             &error_open);
+      if (error_open) {
+        std::sprintf(szLabel, "Skeleton error: %.2f mm",
+                     *error_record_.cursor());
+        const ozz::sample::Record::Statistics error_stats =
+            error_record_.GetStatistics();
+        _im_gui->DoGraph(szLabel, 0.f, error_stats.max, error_stats.latest,
+                         error_record_.cursor(), error_record_.record_begin(),
+                         error_record_.record_end());
+
+        std::sprintf(szLabel, "Joint error: %.2f mm",
+                     *joint_error_record_.cursor());
+        const ozz::sample::Record::Statistics joint_error_stats =
+            joint_error_record_.GetStatistics();
+        _im_gui->DoGraph(szLabel, 0.f, joint_error_stats.max,
+                         joint_error_stats.latest, joint_error_record_.cursor(),
+                         joint_error_record_.record_begin(),
+                         joint_error_record_.record_end());
+      }
+    }
+
     return true;
   }
 
