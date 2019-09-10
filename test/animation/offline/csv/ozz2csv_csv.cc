@@ -27,15 +27,17 @@
 
 #include "ozz2csv_csv.h"
 
+#include <cstdio>
+
+#include "ozz/base/containers/string.h"
 #include "ozz/base/log.h"
 #include "ozz/base/maths/transform.h"
-#include "ozz/base/containers/string.h"
 
 CsvFile::CsvFile(const char* _name, const char* _hearder)
     : ozz::io::File(_name, "wt"), first_(true) {
   if (!opened()) {
-    ozz::log::Err() << "Failed opening csv file \"" << _name
-                    << "\"." << std::endl;
+    ozz::log::Err() << "Failed opening csv file \"" << _name << "\"."
+                    << std::endl;
     return;
   }
   const size_t len = strlen(_hearder);
