@@ -27,6 +27,8 @@
 
 #include "ozz2csv.h"
 
+#include <cstdlib>
+
 #include "ozz2csv_generators.h"
 
 #include "ozz/base/log.h"
