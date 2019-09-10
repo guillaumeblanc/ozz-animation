@@ -31,7 +31,6 @@
 #include "ozz/base/containers/map.h"
 #include "ozz/base/containers/string.h"
 #include "ozz/base/io/stream.h"
-#include "ozz/base/memory/scoped_ptr.h"
 #include "ozz/base/platform.h"
 
 namespace ozz {
@@ -85,15 +84,13 @@ class Ozz2Csv {
 
  protected:
   virtual bool RunExperiences(const ozz::animation::Skeleton& _skeleton,
-                              Generator* _generator,
-                              const Json::Value& _config);
+                              Generator* _generator);
 
  private:
   Generator* FindGenerator(const char* _name) const;
 
   // Registered generators.
-  typedef ozz::Map<ozz::String::Std, ozz::ScopedPtr<Generator> >::Std
-      Generators;
+  typedef ozz::CStringMap<Generator*>::Std Generators;
   Generators generators;
 };
 

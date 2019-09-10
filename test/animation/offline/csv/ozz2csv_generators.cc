@@ -38,6 +38,7 @@
 #include "ozz/animation/runtime/skeleton.h"
 
 #include "ozz/base/containers/vector.h"
+#include "ozz/base/memory/scoped_ptr.h"
 
 #include "ozz/base/maths/soa_transform.h"
 #include "ozz/base/maths/transform.h"
@@ -203,22 +204,21 @@ class OzzRuntime : public Generator {
 
   virtual bool ReadBack(
       const ozz::Range<ozz::math::Transform>& _transforms) const {
-    if (_transforms.count() < animation_->num_tracks()) {
+    if (_transforms.count() < static_cast<size_t>(animation_->num_tracks())) {
       return false;
     }
 
     ozz::math::SimdFloat4 translations[4];
     ozz::math::SimdFloat4 rotations[4];
     ozz::math::SimdFloat4 scales[4];
-    for (size_t i = 0; i < animation_->num_soa_tracks(); ++i) {
+    for (int i = 0; i < animation_->num_soa_tracks(); ++i) {
       // Unpack SoA to AoS
       ozz::math::Transpose3x4(&samples_[i].translation.x, translations);
       ozz::math::Transpose4x4(&samples_[i].rotation.x, rotations);
       ozz::math::Transpose3x4(&samples_[i].scale.x, scales);
       // Copy to output
-      const size_t loops =
-          ozz::math::Min(animation_->num_tracks() - i * 4, 4ul);
-      for (size_t j = 0; j < loops; ++j) {
+      const int loops = ozz::math::Min(animation_->num_tracks() - i * 4, 4);
+      for (int j = 0; j < loops; ++j) {
         ozz::math::Transform& transform = _transforms[i * 4 + j];
         ozz::math::Store3PtrU(translations[j], &transform.translation.x);
         ozz::math::StorePtrU(rotations[j], &transform.rotation.x);
@@ -234,15 +234,13 @@ class OzzRuntime : public Generator {
 };
 
 bool RegisterDefaultGenerators(Ozz2Csv* _ozz2csv) {
-  ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
-
   bool success = true;
-  success &= _ozz2csv->RegisterGenerator(allocator->New<OzzPassthrough>(),
-                                         "passthrough");
-  success &=
-      _ozz2csv->RegisterGenerator(allocator->New<OzzOptimizer>(), "optimize");
-  success &=
-      _ozz2csv->RegisterGenerator(allocator->New<OzzRuntime>(), "runtime");
+  static OzzPassthrough passthrough;
+  success &= _ozz2csv->RegisterGenerator(&passthrough, "passthrough");
+  static OzzOptimizer optimize;
+  success &= _ozz2csv->RegisterGenerator(&optimize, "optimize");
+  static OzzRuntime runtime;
+  success &= _ozz2csv->RegisterGenerator(&runtime, "runtime");
 
   return success;
 }

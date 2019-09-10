@@ -95,6 +95,10 @@ struct LTMIterator {
   LTMIterator(const ozz::Range<const ozz::math::Transform>& _locals,
               const ozz::Range<ozz::math::Transform>& _models)
       : locals_(_locals), models_(_models) {}
+
+  LTMIterator(const LTMIterator& _it)
+      : locals_(_it.locals_), models_(_it.models_) {}
+
   void operator()(int _joint, int _parent) {
     if (_parent == ozz::animation::Skeleton::kNoParent) {
       models_[_joint] = locals_[_joint];
@@ -112,6 +116,9 @@ struct LTMIterator {
   }
   const ozz::Range<const ozz::math::Transform>& locals_;
   const ozz::Range<ozz::math::Transform>& models_;
+
+ private:
+  void operator=(const LTMIterator&);
 };
 
 // Reimplement local to model-space because ozz runtime version isn't based on
@@ -119,7 +126,7 @@ struct LTMIterator {
 bool LocalToModel(const ozz::animation::Skeleton& _skeleton,
                   const ozz::Range<const ozz::math::Transform>& _locals,
                   const ozz::Range<ozz::math::Transform>& _models) {
-  assert(_skeleton.num_joints() == _locals.count() &&
+  assert(static_cast<size_t>(_skeleton.num_joints()) == _locals.count() &&
          _locals.count() == _models.count());
 
   ozz::animation::IterateJointsDF(_skeleton, LTMIterator(_locals, _models));
@@ -312,7 +319,7 @@ int Ozz2Csv::Run(int _argc, char const* _argv[]) {
 
   // Runs all experiences
   ozz::log::Log() << "Running experiences." << std::endl;
-  if (!RunExperiences(skeleton, generator, config)) {
+  if (!RunExperiences(skeleton, generator)) {
     return EXIT_FAILURE;
   }
 
@@ -320,8 +327,7 @@ int Ozz2Csv::Run(int _argc, char const* _argv[]) {
 }
 
 bool Ozz2Csv::RunExperiences(const ozz::animation::Skeleton& _skeleton,
-                             Generator* _generator,
-                             const Json::Value& _config) {
+                             Generator* _generator) {
   // Skeleton info
   if (!PushCsvSkeleton(_skeleton)) {
     ozz::log::Err() << "Operation failed while writing skeleton data."
