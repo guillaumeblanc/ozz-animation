@@ -112,14 +112,10 @@ class OzzOptimizer : public OzzPassthrough {
                      const ozz::animation::Skeleton& _skeleton,
                      const Json::Value& _config) {
     ozz::animation::offline::AnimationOptimizer optimizer;
-
-    // Get config.
-    if (_config.isMember("tolerance")) {
-      optimizer.setting.tolerance = _config["tolerance"].asFloat();
-    }
-    if (_config.isMember("distance")) {
-      optimizer.setting.distance = _config["distance"].asFloat();
-    }
+    optimizer.setting.tolerance =
+        _config.get("tolerance", optimizer.setting.tolerance).asFloat();
+    optimizer.setting.distance =
+        _config.get("distance", optimizer.setting.distance).asFloat();
 
     ozz::animation::offline::RawAnimation optimized;
     if (!optimizer(_animation, _skeleton, &optimized)) {
@@ -139,23 +135,23 @@ class OzzRuntime : public Generator {
       return false;
     }
 
-    ozz::animation::offline::AnimationOptimizer optimizer;
+    ozz::animation::offline::RawAnimation raw;
+    if (_config.get("optimize", true).asBool()) {
+      ozz::animation::offline::AnimationOptimizer optimizer;
+      optimizer.setting.tolerance =
+          _config.get("tolerance", optimizer.setting.tolerance).asFloat();
+      optimizer.setting.distance =
+          _config.get("distance", optimizer.setting.distance).asFloat();
 
-    // Get config.
-    if (_config.isMember("tolerance")) {
-      optimizer.setting.tolerance = _config["tolerance"].asFloat();
-    }
-    if (_config.isMember("distance")) {
-      optimizer.setting.distance = _config["distance"].asFloat();
-    }
-
-    ozz::animation::offline::RawAnimation optimized;
-    if (!optimizer(_animation, _skeleton, &optimized)) {
-      return false;
+      if (!optimizer(_animation, _skeleton, &raw)) {
+        return false;
+      }
+    } else {
+      raw = _animation;
     }
 
     ozz::animation::offline::AnimationBuilder builder;
-    animation_ = builder(optimized);
+    animation_ = builder(raw);
     if (!animation_) {
       return false;
     }
