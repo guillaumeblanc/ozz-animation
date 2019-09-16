@@ -77,7 +77,7 @@ bool CsvFile::Push(float _value) {
 
 bool CsvFile::Push(const ozz::math::Float3& _value) {
   char line[1024];
-  sprintf(line, "%s" F ";" F ";" F, first_ ? "" : ",", _value.x, _value.y,
+  sprintf(line, "%s" F "," F "," F, first_ ? "" : ",", _value.x, _value.y,
           _value.z);
   first_ = false;
 
