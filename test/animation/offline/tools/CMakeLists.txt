@@ -9,7 +9,7 @@ target_link_libraries(test2ozz
   ozz_options)
 
 set_target_properties(test2ozz
-  PROPERTIES FOLDER "ozz/tests/animation_offline")
+  PROPERTIES FOLDER "ozz/tests/tools")
 
 # Creates content test files
 file(WRITE "${ozz_temp_directory}/bad.content" "bad content")

@@ -67,7 +67,7 @@ class Generator {
   virtual int GetKeyframesCount(Transformation _transformation, int joint) = 0;
 
   // Sample animation to local samples data.
-  virtual bool Sample(float _ratio) = 0;
+  virtual bool Sample(float _ratio, bool _reset = false) = 0;
 
   // Copy local samples data back to _transforms output.
   virtual bool ReadBack(
@@ -83,8 +83,9 @@ class Ozz2Csv {
   int Run(int _argc, char const* _argv[]);
 
  protected:
-  virtual bool RunExperiences(const ozz::animation::Skeleton& _skeleton,
-                              Generator* _generator);
+  virtual bool RunExperiences(
+      const ozz::animation::offline::RawAnimation& _animation,
+      const ozz::animation::Skeleton& _skeleton, Generator* _generator);
 
  private:
   Generator* FindGenerator(const char* _name) const;

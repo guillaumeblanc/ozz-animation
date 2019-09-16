@@ -11,7 +11,9 @@ target_link_libraries(ozz2csv
   ozz_options
   json)
 set_target_properties(ozz2csv
-  PROPERTIES FOLDER "ozz/tools")
+  PROPERTIES FOLDER "ozz/tests/tools")
+
+target_compile_features(ozz2csv PUBLIC cxx_std_11)
 
 install(TARGETS ozz2csv DESTINATION lib)
 

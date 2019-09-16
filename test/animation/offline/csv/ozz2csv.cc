@@ -48,6 +48,9 @@
 
 #include "ozz/options/options.h"
 
+#include <chrono>
+#include <random>
+
 #include <json/json.h>
 
 // Concept is to read a non optimized animation, build and sample it, compute
@@ -134,7 +137,23 @@ bool LocalToModel(const ozz::animation::Skeleton& _skeleton,
   return true;
 }
 
-namespace {
+class Timer {
+ public:
+  Timer() { Reset(); }
+  void Reset() { start_ = std::chrono::high_resolution_clock::now(); }
+  float Elapsed() {
+    const time_point end = std::chrono::high_resolution_clock::now();
+    const float duration =
+        std::chrono::duration<float, std::micro>(end - start_).count();
+    start_ = end;
+    return duration;
+  }
+
+ private:
+  typedef std::chrono::high_resolution_clock::time_point time_point;
+  time_point start_;
+};
+
 ozz::String::Std CsvFileName(const char* _name) {
   ozz::String::Std filename = OPTIONS_path.value();
   filename += '/';
@@ -144,7 +163,6 @@ ozz::String::Std CsvFileName(const char* _name) {
   filename += ".csv";
   return filename;
 }
-}  // namespace
 
 bool PushCsvMemory(Generator* _generator) {
   // Open csv file.
@@ -237,7 +255,7 @@ bool PushCsvTransforms(const ozz::animation::Skeleton& _skeleton,
 
     // Generatorized animation sampling
     // --------------------------------------------
-    success &= _generator->Sample(t / duration);
+    success &= _generator->Sample(t);
     success &= _generator->ReadBack(make_range(locals));
     success &= LocalToModel(_skeleton, make_range(locals), make_range(models));
 
@@ -251,6 +269,105 @@ bool PushCsvTransforms(const ozz::animation::Skeleton& _skeleton,
       success &= csv.LineEnd();
     }
   }
+  return success;
+}
+
+bool PushProfile(const char* _mode, Generator* _generator, float _time,
+                 float _delta, float _duration, bool _reset, CsvFile* _csv) {
+  bool success = true;
+
+  float execution;
+  Timer timer;
+  {
+    timer.Reset();
+
+    success &= _generator->Sample(_time, _reset);
+
+    execution = timer.Elapsed();
+  }
+
+  _csv->Push(_mode);
+  _csv->Push(_time);
+  _csv->Push(_delta);
+  _csv->Push(execution);
+  _csv->LineEnd();
+
+  return success;
+}
+
+bool PushCsvPerformance(const ozz::animation::offline::RawAnimation _animation,
+                        const ozz::animation::Skeleton& _skeleton,
+                        Generator* _generator) {
+  bool success = true;
+
+  // Open csv file.
+  CsvFile csv(CsvFileName("performance").c_str(),
+              "mode,time,delta,execution\n");
+  if (!csv.opened()) {
+    return EXIT_FAILURE;
+  }
+
+  const float duration = _animation.duration;
+
+  // Samples forward
+  {
+    const float step = 1.f / OPTIONS_rate.value();
+    bool end = false;
+    for (float t = 0.f; success && !end; t += step) {
+      // Condition for last execution
+      if (t >= duration) {
+        t = duration;
+        end = true;
+      }
+      success &=
+          PushProfile("forward", _generator, t, step, duration, t == 0.f, &csv);
+    }
+  }
+
+  // Samples backward
+  {
+    const float step = 1.f / OPTIONS_rate.value();
+    bool end = false;
+    for (float t = duration; success && !end; t -= step) {
+      // Condition for last execution
+      if (t <= 0.f) {
+        t = 0;
+        end = true;
+      }
+
+      success &= PushProfile("backward", _generator, t, -step, duration,
+                             t == duration, &csv);
+    }
+  }
+
+  // Samples random
+  {
+    std::mt19937 gen(0);
+    std::uniform_real_distribution<float> dist(0.f, duration);
+
+    float prev = 0.f;
+    for (size_t i = 0; success && i < 200; ++i) {
+      const float time = dist(gen);
+      success &= PushProfile("random", _generator, time, time - prev, duration,
+                             false, &csv);
+      prev = time;
+    }
+  }
+
+  // Samples random reset
+  {
+    std::mt19937 gen(0);
+    std::uniform_real_distribution<float> dist(0.f, duration);
+
+    float prev = 0.f;
+    for (size_t i = 0; success && i < 200; ++i) {
+      const float time = dist(gen);
+      success &= PushProfile("reset", _generator, time, time - prev, duration,
+                             true, &csv);
+      prev = time;
+    }
+  }
+
   return success;
 }
 
@@ -319,15 +436,16 @@ int Ozz2Csv::Run(int _argc, char const* _argv[]) {
 
   // Runs all experiences
   ozz::log::Log() << "Running experiences." << std::endl;
-  if (!RunExperiences(skeleton, generator)) {
+  if (!RunExperiences(animation, skeleton, generator)) {
     return EXIT_FAILURE;
   }
 
   return EXIT_SUCCESS;
 }
 
-bool Ozz2Csv::RunExperiences(const ozz::animation::Skeleton& _skeleton,
-                             Generator* _generator) {
+bool Ozz2Csv::RunExperiences(
+    const ozz::animation::offline::RawAnimation& _animation,
+    const ozz::animation::Skeleton& _skeleton, Generator* _generator) {
   // Skeleton info
   if (!PushCsvSkeleton(_skeleton)) {
     ozz::log::Err() << "Operation failed while writing skeleton data."
@@ -355,6 +473,14 @@ bool Ozz2Csv::RunExperiences(const ozz::animation::Skeleton& _skeleton,
                     << std::endl;
     return false;
   }
+
+  // Performance stat.
+  if (!PushCsvPerformance(_animation, _skeleton, _generator)) {
+    ozz::log::Err() << "Operation failed while writing performance data."
+                    << std::endl;
+    return false;
+  }
+
   return true;
 }
 

@@ -87,9 +87,8 @@ class OzzPassthrough : public Generator {
     return 0;
   }
 
-  virtual bool Sample(float _ratio) {
-    return SampleAnimation(animation_, _ratio * animation_.duration,
-                           make_range(samples_));
+  virtual bool Sample(float _time, bool) {
+    return SampleAnimation(animation_, _time, make_range(samples_));
   }
 
   virtual bool ReadBack(
@@ -189,11 +188,15 @@ class OzzRuntime : public Generator {
     return 0;
   }
 
-  virtual bool Sample(float _ratio) {
+  virtual bool Sample(float _time, bool _reset) {
+    if (_reset) {
+      cache.Invalidate();
+    }
+
     ozz::animation::SamplingJob job;
     job.animation = animation_;
     job.cache = &cache;
-    job.ratio = _ratio;
+    job.ratio = _time / animation_->duration();
     job.output = make_range(samples_);
     return job.Run();
   }
