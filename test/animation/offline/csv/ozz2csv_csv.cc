@@ -33,16 +33,11 @@
 #include "ozz/base/log.h"
 #include "ozz/base/maths/transform.h"
 
-CsvFile::CsvFile(const char* _name, const char* _hearder)
-    : ozz::io::File(_name, "wt"), first_(true) {
+CsvFile::CsvFile(const char* _name) : ozz::io::File(_name, "wt"), first_(true) {
   if (!opened()) {
     ozz::log::Err() << "Failed opening csv file \"" << _name << "\"."
                     << std::endl;
     return;
-  }
-  const size_t len = strlen(_hearder);
-  if (len != Write(_hearder, len)) {
-    Close();
   }
 }
 

@@ -25,28 +25,11 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz2csv.h"
+#ifndef OZZ_ANIMATION_OFFLINE_CVS_OZZ2CSV_EXPERIENCES_H_
+#define OZZ_ANIMATION_OFFLINE_CVS_OZZ2CSV_EXPERIENCES_H_
 
-#include <cstdlib>
+class Ozz2Csv;
 
-#include "ozz2csv_experiences.h"
-#include "ozz2csv_generators.h"
+bool RegisterDefaultExperiences(Ozz2Csv* _ozz2csv);
 
-#include "ozz/base/log.h"
-
-int main(int _argc, char const* _argv[]) {
-  Ozz2Csv ozz2csv;
-
-  // Register default generators
-  if (!RegisterDefaultGenerators(&ozz2csv)) {
-    ozz::log::Err() << "Failed registering default generators." << std::endl;
-    return EXIT_FAILURE;
-  }
-
-  if (!RegisterDefaultExperiences(&ozz2csv)) {
-    ozz::log::Err() << "Failed registering default experiences." << std::endl;
-    return EXIT_FAILURE;
-  }
-
-  return ozz2csv.Run(_argc, _argv);
-}
+#endif  // OZZ_ANIMATION_OFFLINE_CVS_OZZ2CSV_EXPERIENCES_H_

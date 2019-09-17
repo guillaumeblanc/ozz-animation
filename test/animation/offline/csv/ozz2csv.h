@@ -48,6 +48,8 @@ namespace Json {
 class Value;
 }
 
+class CsvFile;
+
 class Generator {
  public:
   virtual ~Generator() {}
@@ -78,21 +80,32 @@ class Ozz2Csv {
  public:
   Ozz2Csv() {}
 
-  bool RegisterGenerator(Generator* _generator, const char* _name);
-
+  // Main execution function.
   int Run(int _argc, char const* _argv[]);
 
- protected:
-  virtual bool RunExperiences(
-      const ozz::animation::offline::RawAnimation& _animation,
-      const ozz::animation::Skeleton& _skeleton, Generator* _generator);
+  // Pushes generators to main.
+  bool RegisterGenerator(Generator* _generator, const char* _name);
+
+  // Pushes experiences
+  typedef bool (*ExperienceFct)(CsvFile* _csv,
+                                const ozz::animation::offline::RawAnimation&,
+                                const ozz::animation::Skeleton&, Generator*);
+  bool RegisterExperience(ExperienceFct _experience, const char* _name);
 
  private:
+  bool RunExperiences(const ozz::animation::offline::RawAnimation& _animation,
+                      const ozz::animation::Skeleton& _skeleton,
+                      Generator* _generator);
+
   Generator* FindGenerator(const char* _name) const;
 
   // Registered generators.
   typedef ozz::CStringMap<Generator*>::Std Generators;
-  Generators generators;
+  Generators generators_;
+
+  // Registered experiences
+  typedef ozz::CStringMap<ExperienceFct>::Std Experiences;
+  Experiences experiences_;
 };
 
 #endif  // OZZ_ANIMATION_OFFLINE_CVS_OZZ2CSV_H_

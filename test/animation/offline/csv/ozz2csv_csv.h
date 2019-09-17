@@ -40,7 +40,7 @@ struct Transform;
 
 class CsvFile : private ozz::io::File {
  public:
-  CsvFile(const char* _name, const char* _hearder);
+  CsvFile(const char* _name);
 
   bool opened() const { return ozz::io::File::opened(); }
 

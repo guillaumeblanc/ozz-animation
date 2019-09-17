@@ -3,6 +3,8 @@ add_executable(ozz2csv
   ozz2csv.cc
   ozz2csv_csv.h
   ozz2csv_csv.cc
+  ozz2csv_experiences.h
+  ozz2csv_experiences.cc
   ozz2csv_generators.h
   ozz2csv_generators.cc
   ozz2csv_main.cc)
