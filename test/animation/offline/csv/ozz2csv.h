@@ -67,7 +67,7 @@ class Generator {
   virtual int GetKeyframesCount(Transformation _transformation, int joint) = 0;
 
   // Sample animation to local samples data.
-  virtual bool Sample(float _ratio, bool _reset = false) = 0;
+  virtual bool Sample(float _time, bool _reset = false) = 0;
 
   // Copy local samples data back to _transforms output.
   virtual bool ReadBack(

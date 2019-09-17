@@ -273,7 +273,7 @@ bool PushCsvTransforms(const ozz::animation::Skeleton& _skeleton,
 }
 
 bool PushProfile(const char* _mode, Generator* _generator, float _time,
-                 float _delta, float _duration, bool _reset, CsvFile* _csv) {
+                 float _delta, bool _reset, CsvFile* _csv) {
   bool success = true;
 
   float execution;
@@ -296,7 +296,6 @@ bool PushProfile(const char* _mode, Generator* _generator, float _time,
 }
 
 bool PushCsvPerformance(const ozz::animation::offline::RawAnimation _animation,
-                        const ozz::animation::Skeleton& _skeleton,
                         Generator* _generator) {
   bool success = true;
 
@@ -319,8 +318,7 @@ bool PushCsvPerformance(const ozz::animation::offline::RawAnimation _animation,
         t = duration;
         end = true;
       }
-      success &=
-          PushProfile("forward", _generator, t, step, duration, t == 0.f, &csv);
+      success &= PushProfile("forward", _generator, t, step, t == 0.f, &csv);
     }
   }
 
@@ -335,8 +333,8 @@ bool PushCsvPerformance(const ozz::animation::offline::RawAnimation _animation,
         end = true;
       }
 
-      success &= PushProfile("backward", _generator, t, -step, duration,
-                             t == duration, &csv);
+      success &=
+          PushProfile("backward", _generator, t, -step, t == duration, &csv);
     }
   }
 
@@ -348,8 +346,8 @@ bool PushCsvPerformance(const ozz::animation::offline::RawAnimation _animation,
     float prev = 0.f;
     for (size_t i = 0; success && i < 200; ++i) {
       const float time = dist(gen);
-      success &= PushProfile("random", _generator, time, time - prev, duration,
-                             false, &csv);
+      success &=
+          PushProfile("random", _generator, time, time - prev, false, &csv);
       prev = time;
     }
   }
@@ -362,8 +360,8 @@ bool PushCsvPerformance(const ozz::animation::offline::RawAnimation _animation,
     float prev = 0.f;
     for (size_t i = 0; success && i < 200; ++i) {
       const float time = dist(gen);
-      success &= PushProfile("reset", _generator, time, time - prev, duration,
-                             true, &csv);
+      success &=
+          PushProfile("reset", _generator, time, time - prev, true, &csv);
       prev = time;
     }
   }
@@ -475,7 +473,7 @@ bool Ozz2Csv::RunExperiences(
   }
 
   // Performance stat.
-  if (!PushCsvPerformance(_animation, _skeleton, _generator)) {
+  if (!PushCsvPerformance(_animation, _generator)) {
     ozz::log::Err() << "Operation failed while writing performance data."
                     << std::endl;
     return false;
