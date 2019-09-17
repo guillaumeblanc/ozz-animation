@@ -18,7 +18,7 @@ collection: home
         <div class="w3-container w3-margin">
           <div class="w3-xxlarge w3-wide">Features</div>
           <div class="w3-text-theme">
-            <i class="fa fa-superpowers w3-padding-8" style="font-size:128px"></i>
+            <i class="fab fa-superpowers w3-padding-8" style="font-size:128px"></i>
           </div>
           <p>Sampling</p>
           <p>Blending</p>
@@ -35,7 +35,7 @@ collection: home
         <div class="w3-container w3-margin">
           <div class="w3-xxlarge w3-wide">Toolset</div>
           <div class="w3-text-theme">
-            <i class="fa fa-wrench w3-padding-8" style="font-size:128px"></i>
+            <i class="fas fa-wrench w3-padding-8" style="font-size:128px"></i>
           </div>
           <p>Fbx, Collada, Obj, 3ds, dxf</p>
           <p>Compression</p>
@@ -52,7 +52,7 @@ collection: home
         <div class="w3-container w3-margin">
           <div class="w3-xxlarge w3-wide">Code</div>
           <div class="w3-text-theme">
-            <i class="fa fa-pencil w3-padding-8" style="font-size:128px"></i>
+            <i class="fas fa-pencil-alt w3-padding-8" style="font-size:128px"></i>
           </div>
           <p>Engine agnostic</p>
           <p>Cache friendly</p>
@@ -84,7 +84,7 @@ collection: home
       <div class="w3-container w3-margin">
         <div class="w3-xxlarge w3-wide">Getting started</div>
         <div class="w3-text-theme">
-          <i class="fa fa-forward w3-padding-8" style="font-size:128px"></i>
+          <i class="fas fa-forward w3-padding-8" style="font-size:128px"></i>
         </div>
       </div>  
     </div>
@@ -94,7 +94,7 @@ collection: home
       <div class="w3-container w3-margin">
         <div class="w3-xxlarge w3-wide">View on Github</div>
         <div class="w3-text-theme">
-          <i class="fa fa-github w3-padding-8" style="font-size:128px"></i>
+          <i class="fab fa-github w3-padding-8" style="font-size:128px"></i>
         </div>
       </div>
     </div>

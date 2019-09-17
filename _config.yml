@@ -8,10 +8,9 @@ collections:
     display_name: Samples
     output: true
     permalink: /:collection/:path/
+    order: 2
   documentation:
     display_name: Documentation
     output: true
+    order: 1
     permalink: /:collection/:path/
-  faqs:
-    display_name: FAQ
-    output: false

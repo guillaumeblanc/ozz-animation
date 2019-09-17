@@ -1,24 +1,29 @@
     <footer class="w3-container w3-section w3-padding-32 w3-card-2 w3-theme w3-center">
       <div class="w3-row-padding w3-center">
-        <div class="w3-col" style="width:33%">
+        <div class="w3-col" style="width:25%">
           <a class="a_reject" href="https://github.com/guillaumeblanc/ozz-animation/">
-            <i class="fa fa-github" aria-hidden="true"></i> Github
+            <i class="fab fa-github" aria-hidden="true"></i> Github
           </a>
         </div>  
-        <div class="w3-col" style="width:34%">
+        <div class="w3-col" style="width:25%">
           <a class="a_reject" href="https://twitter.com/jozz_sc/">
-            <i class="fa fa-twitter" aria-hidden="true"></i> Twitter
+            <i class="fab fa-twitter" aria-hidden="true"></i> Twitter
           </a>
         </div>
-        <div class="w3-col" style="width:33%">
+        <div class="w3-col" style="width:25%">
+          <a class="a_reject" href="https://gitter.im/ozz-animation/">
+            <i class="fab fa-gitter" aria-hidden="true"></i> Gitter
+          </a>
+        </div>
+        <div class="w3-col" style="width:25%">
           <a class="a_reject" href="{{site.baseurl}}/documentation/dashboard/">
-            <i class="fa fa-thermometer-full" aria-hidden="true"></i> Dashboard
+            <i class="fas fa-thermometer-full" aria-hidden="true"></i> Dashboard
           </a>
         </div>
       </div>
       <div class="w3-small"> 
-        <p>ozz-animation software and site is hosted at github and distributed under the MIT License.</p>
-        <p>Copyright© 2014-2017 ozz-animation</p>
+        <p>ozz-animation software and site are hosted at github and distributed under the MIT License.</p>
+        <p>Copyright© 2014-2019 ozz-animation</p>
       </div>
     </footer>
 

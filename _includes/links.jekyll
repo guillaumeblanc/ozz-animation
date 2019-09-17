@@ -61,7 +61,10 @@
 
 [link_dashboard]: {{site.baseurl}}/documentation/dashboard/
 
+[link_gitter]: https://gitter.im/ozz-animation/
+
 [link_github]: https://github.com/guillaumeblanc/ozz-animation/
+[link_github_pr]: https://github.com/guillaumeblanc/ozz-animation/pulls/
 [link_github_issues]: https://github.com/guillaumeblanc/ozz-animation/issues/
 [link_latest_changes]: https://github.com/guillaumeblanc/ozz-animation/blob/master/CHANGES.md
 [link_latest_release]: https://github.com/guillaumeblanc/ozz-animation/releases/
