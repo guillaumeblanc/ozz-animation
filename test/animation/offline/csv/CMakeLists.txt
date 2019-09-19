@@ -24,7 +24,8 @@ install(TARGETS ozz2csv DESTINATION lib)
 file(MAKE_DIRECTORY ${ozz_temp_directory}/atlas_analysis)
 
 add_custom_command(
-    DEPENDS "${ozz_media_directory}/bin/alain_atlas_raw.ozz"
+    DEPENDS $<$<BOOL:${ozz_build_fbx}>:BUILD_DATA>
+            "${ozz_media_directory}/bin/alain_atlas_raw.ozz"
             "${ozz_media_directory}/bin/alain_skeleton.ozz"
             $<$<BOOL:${ozz_build_data}>:ozz2csv>
     OUTPUT  "${ozz_temp_directory}/atlas_analysis/reference_transforms.csv"
