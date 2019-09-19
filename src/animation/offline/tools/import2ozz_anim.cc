@@ -293,7 +293,8 @@ bool Export(OzzImporter& _importer, const RawAnimation& _input_animation,
     ozz::String::Std filename = _importer.BuildFilename(
         _config["filename"].asCString(), raw_animation.name.c_str());
 
-    ozz::log::LogV() << "Opens output file: " << filename << std::endl;
+    ozz::log::LogV() << "Opens output file: \"" << filename << "\""
+                     << std::endl;
     ozz::io::File file(filename.c_str(), "wb");
     if (!file.opened()) {
       ozz::log::Err() << "Failed to open output file: \"" << filename << "\""
@@ -309,7 +310,7 @@ bool Export(OzzImporter& _importer, const RawAnimation& _input_animation,
       ozz::log::Log() << "Outputs RawAnimation to binary archive." << std::endl;
       archive << raw_animation;
     } else {
-      ozz::log::LogV() << "Outputs Animation to binary archive." << std::endl;
+      ozz::log::Log() << "Outputs Animation to binary archive." << std::endl;
       archive << *animation;
     }
   }
