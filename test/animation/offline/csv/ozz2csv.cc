@@ -50,8 +50,6 @@ OZZ_OPTIONS_DECLARE_STRING(animation, "Raw animation input file", "", true)
 OZZ_OPTIONS_DECLARE_STRING(path, "csv output path", ".", false)
 OZZ_OPTIONS_DECLARE_STRING(experience, "Experience name", "experience", false)
 
-OZZ_OPTIONS_DECLARE_FLOAT(rate, "Sampling rate", 30, false)
-
 OZZ_OPTIONS_DECLARE_STRING(
     generator,
     "Selects generator. Can be \"passtrhough\", \"optimize\" or \"runtime\"...",
