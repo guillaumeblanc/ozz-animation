@@ -54,6 +54,8 @@
 #include "framework/renderer.h"
 #include "framework/utils.h"
 
+#include <algorithm>
+
 // Skeleton and animation file can be specified as an option.
 OZZ_OPTIONS_DECLARE_STRING(skeleton, "Path to the runtime skeleton file.",
                            "media/skeleton.ozz", false)
