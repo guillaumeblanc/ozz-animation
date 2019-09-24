@@ -501,7 +501,8 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
       return false;
     }
 
-    size_t numKeyframes = output.count * 2;
+    // A step is created with 2 consecutive keys. Last step is a single key.
+    size_t numKeyframes = output.count * 2 - 1;
     keyframes.resize(numKeyframes);
 
     const float eps = 1e-6f;
