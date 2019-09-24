@@ -2,7 +2,7 @@ Thanks a lot for considering a contribution to ozz-animation! All contributions 
 
 # Submitting bugs
 
-To report bugs please use [project's issues tracker](https://github.com/guillaumeblanc/ozz-animation/issues). To help with debugging and understanding, please provide a simple repro case, ideally a modified [sample](https://github.com/guillaumeblanc/ozz-animation/tree/master/howtos) or [howto](https://github.com/guillaumeblanc/ozz-animation/tree/master/samples) with minimal changes.
+To report bugs please use [project's issues tracker](https://github.com/guillaumeblanc/ozz-animation/issues). To help with debugging and understanding, please provide a simple repro case, ideally a modified [sample](https://github.com/guillaumeblanc/ozz-animation/tree/master/samples) or [howto](https://github.com/guillaumeblanc/ozz-animation/tree/master/howtos) with minimal changes.
 
 # Contributing to the code
 
