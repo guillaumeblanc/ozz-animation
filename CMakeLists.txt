@@ -5,7 +5,7 @@ project(ozz)
 
 # Current version
 set(OZZ_VERSION_MAJOR 0)
-set(OZZ_VERSION_MINOR 10)
+set(OZZ_VERSION_MINOR 11)
 set(OZZ_VERSION_PATCH 0)
 set(OZZ_VERSION ${OZZ_VERSION_MAJOR}.${OZZ_VERSION_MINOR}.${OZZ_VERSION_PATCH})
 
@@ -105,3 +105,10 @@ endif()
 if(ozz_build_tests AND NOT EMSCRIPTEN)
   add_subdirectory(test)
 endif()
+
+
+install(FILES
+  ${PROJECT_SOURCE_DIR}/CHANGES.md
+  ${PROJECT_SOURCE_DIR}/LICENSE.md
+  ${PROJECT_SOURCE_DIR}/README.md
+  DESTINATION ./)

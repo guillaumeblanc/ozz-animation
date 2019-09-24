@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -64,7 +64,7 @@ struct Quaternion {
   // Returns a normalized quaternion initialized from an Euler representation.
   // Euler angles are ordered Heading, Elevation and Bank, or Yaw, Pitch and
   // Roll.
-  static OZZ_INLINE Quaternion FromEuler(const float& _yaw, float _pitch,
+  static OZZ_INLINE Quaternion FromEuler(float _yaw, float _pitch,
                                          float _roll);
 
   // Returns the quaternion that will rotate vector _from into vector _to,
@@ -126,12 +126,11 @@ OZZ_INLINE Quaternion operator-(const Quaternion& _q) {
 
 // Returns true if the angle between _a and _b is less than _tolerance.
 OZZ_INLINE bool Compare(const math::Quaternion& _a, const math::Quaternion& _b,
-                        float _tolerance) {
+                        float _cos_half_tolerance) {
   // Computes w component of a-1 * b.
-  const float diff_w = _a.x * _b.x + _a.y * _b.y + _a.z * _b.z + _a.w * _b.w;
-  // Converts w back to an angle.
-  const float angle = 2.f * std::acos(Min(std::abs(diff_w), 1.f));
-  return std::abs(angle) <= _tolerance;
+  const float cos_half_angle =
+      _a.x * _b.x + _a.y * _b.y + _a.z * _b.z + _a.w * _b.w;
+  return std::abs(cos_half_angle) >= _cos_half_tolerance;
 }
 
 // Returns true if _q is a normalized quaternion.
@@ -203,7 +202,7 @@ OZZ_INLINE Float4 ToAxisAngle(const Quaternion& _q) {
   }
 }
 
-OZZ_INLINE Quaternion Quaternion::FromEuler(const float& _yaw, float _pitch,
+OZZ_INLINE Quaternion Quaternion::FromEuler(float _yaw, float _pitch,
                                             float _roll) {
   const float half_yaw = _yaw * .5f;
   const float c1 = std::cos(half_yaw);
@@ -293,6 +292,11 @@ OZZ_INLINE Quaternion Quaternion::FromUnitVectors(const Float3& _from,
   }
 }
 
+// Returns the dot product of _a and _b.
+OZZ_INLINE float Dot(const Quaternion& _a, const Quaternion& _b) {
+  return _a.x * _b.x + _a.y * _b.y + _a.z * _b.z + _a.w * _b.w;
+}
+
 // Returns the linear interpolation of quaternion _a and _b with coefficient
 // _f.
 OZZ_INLINE Quaternion Lerp(const Quaternion& _a, const Quaternion& _b,
@@ -302,7 +306,7 @@ OZZ_INLINE Quaternion Lerp(const Quaternion& _a, const Quaternion& _b,
 }
 
 // Returns the linear interpolation of quaternion _a and _b with coefficient
-// _f.
+// _f. _a and _n must be from the same hemisphere (aka dot(_a, _b) >= 0).
 OZZ_INLINE Quaternion NLerp(const Quaternion& _a, const Quaternion& _b,
                             float _f) {
   const Float4 lerp((_b.x - _a.x) * _f + _a.x, (_b.y - _a.y) * _f + _a.y,

@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -263,7 +263,7 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
     // Extracts the list of children of the shoulder
     WeightSetupIterator it(&upper_body_joint_weights_,
                            upper_body_joint_weight_setting_);
-    IterateJointsDF(skeleton_, upper_body_root_, it);
+    IterateJointsDF(skeleton_, it, upper_body_root_);
   }
 
   virtual void OnDestroy() {}

@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -62,6 +62,7 @@
 
 #include "framework/renderer.h"
 #include "ozz/base/containers/vector.h"
+#include "ozz/base/memory/scoped_ptr.h"
 
 // Provides helper macro to test for glGetError on a gl call.
 #ifndef NDEBUG
@@ -176,7 +177,7 @@ class RendererImpl : public Renderer {
     GLuint vbo;
     GLenum mode;
     GLsizei count;
-    SkeletonShader* shader;
+    ozz::ScopedPtr<SkeletonShader> shader;
   };
 
   // Detects and initializes all OpenGL extension.
@@ -234,12 +235,12 @@ class RendererImpl : public Renderer {
   ScratchBuffer scratch_buffer_;
 
   // Immediate renderer implementation.
-  GlImmediateRenderer* immediate_;
+  ozz::ScopedPtr<GlImmediateRenderer> immediate_;
 
   // Ambient rendering shader.
-  AmbientShader* ambient_shader;
-  AmbientTexturedShader* ambient_textured_shader;
-  AmbientShaderInstanced* ambient_shader_instanced;
+  ozz::ScopedPtr<AmbientShader> ambient_shader;
+  ozz::ScopedPtr<AmbientTexturedShader> ambient_textured_shader;
+  ozz::ScopedPtr<AmbientShaderInstanced> ambient_shader_instanced;
 
   // Checkered texture
   unsigned int checkered_texture_;

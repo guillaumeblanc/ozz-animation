@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -38,7 +38,7 @@
 // output streams. This interface adds a logging level functionality (kSilent,
 // kStandard, kVerbose) to the std API, which can be set using
 // ozz::log::GetLevel function.
-// Usage conforms to std stream usage: ozz::log::OUT() << "something to log."...
+// Usage conforms to std stream usage: ozz::log::Log() << "something to log."...
 
 namespace ozz {
 namespace log {
@@ -54,8 +54,6 @@ Level SetLevel(Level _level);
 
 // Gets the global logging level.
 Level GetLevel();
-
-namespace internal {
 
 // Implements logging base class.
 // This class is not intended to be used publicly, it is derived by user
@@ -73,11 +71,11 @@ class Logger {
   std::ostream& operator<<(std::ostream& (*_Pfn)(std::ostream&)) {
     return ((*_Pfn)(stream_));
   }
-  // Cast operator.
-  operator std::ostream&() { return stream_; }
+  // Implicit cast operator.
+  operator std::ostream&() const { return stream_; }
 
-  // Cast operator.
-  std::ostream& stream() { return stream_; }
+  // Explicit cast function.
+  std::ostream& stream() const { return stream_; }
 
  protected:
   // Specifies the global stream and the output level.
@@ -100,34 +98,54 @@ class Logger {
   // in the destructor.
   bool local_stream_;
 };
-}  // namespace internal
 
 // Logs verbose output to the standard error stream (std::clog).
 // Enabled if logging level is Verbose.
-class LogV : public internal::Logger {
+class LogV : public Logger {
  public:
   LogV();
 };
 
 // Logs output to the standard error stream (std::clog).
 // Enabled if logging level is not Silent.
-class Log : public internal::Logger {
+class Log : public Logger {
  public:
   Log();
 };
 
 // Logs output to the standard output (std::cout).
 // Enabled if logging level is not Silent.
-class Out : public internal::Logger {
+class Out : public Logger {
  public:
   Out();
 };
 
 // Logs error to the standard error stream (std::cerr).
 // Enabled if logging level is not Silent.
-class Err : public internal::Logger {
+class Err : public Logger {
  public:
   Err();
+};
+
+// RAII helper that modifies float logging precision, and restores default
+// settings when exiting scope.
+// User is reponsible for making sure stream still exist upon RAII destruction.
+// See std::setprecision() for more details.
+class FloatPrecision {
+ public:
+  FloatPrecision(const Logger& _logger, int _precision);
+  ~FloatPrecision();
+
+ private:
+  FloatPrecision(FloatPrecision const&);
+  void operator=(FloatPrecision const&);
+
+  // Original precision and format.
+  const std::streamsize precision_;
+  const std::ios_base::fmtflags format_;
+
+  // Stream on which original precision must be restored.
+  std::ostream& stream_;
 };
 }  // namespace log
 }  // namespace ozz

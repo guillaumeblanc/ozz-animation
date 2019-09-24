@@ -35,13 +35,9 @@ The dashboard for all branches is available [here](http://guillaumeblanc.github.
 Contributing
 ------------
 
-Contributions are welcome: code review, bug fix, feature implementation...
+All contributions are welcome: code reviews, bug reports, bug fixes, samples, features, platforms, testing, documentation, optimizations...
 
-ozz branching strategy follows [gitflow model](http://nvie.com/posts/a-successful-git-branching-model/). When submitting patches, please:
-  - Make pull requests to develop branch for features, to release branch for hotfixes.
-  - Do not include merge commits in pull requests; include only commits with the new relevant code.
-  - Add all relevant unit tests.
-  - Run all the tests and make sure they pass.
+Please read [CONTRIBUTING](CONTRIBUTING.md) file for more details about how to submit bugs or contribute to the code.
 
 License
 -------

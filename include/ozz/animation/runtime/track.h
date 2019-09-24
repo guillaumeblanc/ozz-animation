@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -108,8 +108,18 @@ struct TrackPolicy {
                                 float _alpha) {
     return math::Lerp(_a, _b, _alpha);
   }
+  inline static float Distance(const _ValueType& _a, const _ValueType& _b) {
+    return math::Length(_a - _b);
+  }
   inline static _ValueType identity() { return _ValueType(0.f); }
 };
+
+// Specialization for float policy.
+template <>
+inline float TrackPolicy<float>::Distance(const float& _a, const float& _b) {
+  return std::abs(_a - _b);
+}
+
 // Specialization for quaternions policy.
 template <>
 inline math::Quaternion TrackPolicy<math::Quaternion>::Lerp(
@@ -118,6 +128,15 @@ inline math::Quaternion TrackPolicy<math::Quaternion>::Lerp(
   // curve (key frame reduction), so "constant speed" interpolation can still be
   // approximated with a lower tolerance value if it matters.
   return math::NLerp(_a, _b, _alpha);
+}
+template <>
+inline float TrackPolicy<math::Quaternion>::Distance(
+    const math::Quaternion& _a, const math::Quaternion& _b) {
+  const float cos_half_angle =
+      _a.x * _b.x + _a.y * _b.y + _a.z * _b.z + _a.w * _b.w;
+  // Return value is 1 - half cosine, so the closer the quaternions, the closer
+  // to 0.
+  return 1.f - math::Min(1.f, std::abs(cos_half_angle));
 }
 template <>
 inline math::Quaternion TrackPolicy<math::Quaternion>::identity() {

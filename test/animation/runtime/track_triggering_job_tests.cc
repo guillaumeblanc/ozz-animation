@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -30,7 +30,7 @@
 #include "gtest/gtest.h"
 #include "ozz/base/gtest_helper.h"
 #include "ozz/base/maths/gtest_math_helper.h"
-#include "ozz/base/memory/allocator.h"
+#include "ozz/base/memory/scoped_ptr.h"
 
 #include "ozz/animation/offline/raw_track.h"
 #include "ozz/animation/offline/track_builder.h"
@@ -47,8 +47,8 @@ TEST(JobValidity, TrackTriggeringJob) {
   // Builds track
   ozz::animation::offline::RawFloatTrack raw_track;
   TrackBuilder builder;
-  ozz::animation::FloatTrack* track = builder(raw_track);
-  ASSERT_TRUE(track != NULL);
+  ozz::ScopedPtr<FloatTrack> track(builder(raw_track));
+  ASSERT_TRUE(track);
 
   {  // Default is invalid
     TrackTriggeringJob job;
@@ -99,7 +99,6 @@ TEST(JobValidity, TrackTriggeringJob) {
     EXPECT_TRUE(job.Validate());
     EXPECT_TRUE(job.Run());
   }
-  ozz::memory::default_allocator()->Delete(track);
 }
 
 TEST(Default, TrackEdgeTriggerJob) {
@@ -117,8 +116,8 @@ TEST(Empty, TrackEdgeTriggerJob) {
 
   // Builds track
   ozz::animation::offline::RawFloatTrack raw_track;
-  ozz::animation::FloatTrack* track = builder(raw_track);
-  ASSERT_TRUE(track != NULL);
+  ozz::ScopedPtr<FloatTrack> track(builder(raw_track));
+  ASSERT_TRUE(track);
 
   TrackTriggeringJob job;
   job.track = track;
@@ -130,8 +129,6 @@ TEST(Empty, TrackEdgeTriggerJob) {
 
   ASSERT_TRUE(job.Run());
   EXPECT_EQ(iterator, job.end());
-
-  ozz::memory::default_allocator()->Delete(track);
 }
 
 TEST(Iterator, TrackEdgeTriggerJob) {
@@ -151,8 +148,8 @@ TEST(Iterator, TrackEdgeTriggerJob) {
   raw_track.keyframes.push_back(key2);
 
   // Builds track
-  ozz::animation::FloatTrack* track = builder(raw_track);
-  ASSERT_TRUE(track != NULL);
+  ozz::ScopedPtr<FloatTrack> track(builder(raw_track));
+  ASSERT_TRUE(track);
 
   TrackTriggeringJob job;
   job.track = track;
@@ -271,8 +268,6 @@ TEST(Iterator, TrackEdgeTriggerJob) {
     }
     EXPECT_TRUE(iterator_cpy2 == job.end());
   }
-
-  ozz::memory::default_allocator()->Delete(track);
 }
 
 TEST(NoRange, TrackEdgeTriggerJob) {
@@ -292,8 +287,8 @@ TEST(NoRange, TrackEdgeTriggerJob) {
   raw_track.keyframes.push_back(key2);
 
   // Builds track
-  ozz::animation::FloatTrack* track = builder(raw_track);
-  ASSERT_TRUE(track != NULL);
+  ozz::ScopedPtr<FloatTrack> track(builder(raw_track));
+  ASSERT_TRUE(track);
 
   TrackTriggeringJob job;
   job.track = track;
@@ -348,8 +343,6 @@ TEST(NoRange, TrackEdgeTriggerJob) {
 
     EXPECT_TRUE(iterator == job.end());
   }
-
-  ozz::memory::default_allocator()->Delete(track);
 }
 
 size_t CountEdges(TrackTriggeringJob::Iterator _begin,
@@ -391,8 +384,8 @@ void TestEdgesExpectation(
   assert(_size >= 2);
 
   // Builds track
-  ozz::animation::FloatTrack* track = TrackBuilder()(_raw_track);
-  ASSERT_TRUE(track != NULL);
+  ozz::ScopedPtr<FloatTrack> track(TrackBuilder()(_raw_track));
+  ASSERT_TRUE(track);
 
   TrackTriggeringJob job;
   job.track = track;
@@ -932,7 +925,6 @@ void TestEdgesExpectation(
       }
     }
   }
-  ozz::memory::default_allocator()->Delete(track);
 }
 
 template <size_t _size>
@@ -1168,8 +1160,8 @@ TEST(StepThreshold, TrackEdgeTriggerJob) {
   raw_track.keyframes.push_back(key2);
 
   // Builds track
-  ozz::animation::FloatTrack* track = builder(raw_track);
-  ASSERT_TRUE(track != NULL);
+  ozz::ScopedPtr<FloatTrack> track(builder(raw_track));
+  ASSERT_TRUE(track);
 
   TrackTriggeringJob job;
   job.track = track;
@@ -1245,8 +1237,6 @@ TEST(StepThreshold, TrackEdgeTriggerJob) {
 
     ASSERT_EQ(CountEdges(iterator, job.end()), 0u);
   }
-
-  ozz::memory::default_allocator()->Delete(track);
 }
 
 TEST(StepThresholdBool, TrackEdgeTriggerJob) {
@@ -1267,8 +1257,8 @@ TEST(StepThresholdBool, TrackEdgeTriggerJob) {
   raw_track.keyframes.push_back(key2);
 
   // Builds track
-  ozz::animation::FloatTrack* track = builder(raw_track);
-  ASSERT_TRUE(track != NULL);
+  ozz::ScopedPtr<FloatTrack> track(builder(raw_track));
+  ASSERT_TRUE(track);
 
   TrackTriggeringJob job;
   job.track = track;
@@ -1316,8 +1306,6 @@ TEST(StepThresholdBool, TrackEdgeTriggerJob) {
     EXPECT_FLOAT_EQ(iterator->ratio, 1.f);
     EXPECT_EQ(iterator->rising, false);
   }
-
-  ozz::memory::default_allocator()->Delete(track);
 }
 
 TEST(LinearThreshold, TrackEdgeTriggerJob) {
@@ -1338,8 +1326,8 @@ TEST(LinearThreshold, TrackEdgeTriggerJob) {
   raw_track.keyframes.push_back(key2);
 
   // Builds track
-  ozz::animation::FloatTrack* track = builder(raw_track);
-  ASSERT_TRUE(track != NULL);
+  ozz::ScopedPtr<FloatTrack> track(builder(raw_track));
+  ASSERT_TRUE(track);
 
   TrackTriggeringJob job;
   job.track = track;
@@ -1415,6 +1403,4 @@ TEST(LinearThreshold, TrackEdgeTriggerJob) {
 
     ASSERT_EQ(CountEdges(iterator, job.end()), 0u);
   }
-
-  ozz::memory::default_allocator()->Delete(track);
 }

@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -253,16 +253,24 @@ class LookAtSampleApplication : public ozz::sample::Application {
 
     // Showing joints
     if (show_joints_) {
-      for (size_t i = 0; i < kMaxChainLength; ++i) {
+      const float kSphereRadius = .02f;
+      for (int i = 0; i < chain_length_; ++i) {
         const ozz::math::Float4x4& transform = models_[joints_chain_[i]];
         success &= _renderer->DrawAxes(transform * kAxesScale);
+        success &= _renderer->DrawSphereIm(kSphereRadius, transform,
+                                           ozz::sample::kWhite);
       }
     }
 
+    // Showing target, as a box or axes depending on show_forward_ option.
     if (show_target_) {
       const ozz::math::Float4x4 target = ozz::math::Float4x4::Translation(
           ozz::math::simd_float4::Load3PtrU(&target_.x));
-      success &= _renderer->DrawAxes(target * kAxesScale);
+      if (show_forward_) {
+        success &= _renderer->DrawAxes(target * kAxesScale);
+      } else {
+        success &= _renderer->DrawSphereIm(.02f, target, ozz::sample::kGreen);
+      }
     }
 
     if (show_eyes_offset_ || show_forward_) {

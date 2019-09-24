@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -37,7 +37,7 @@
 
 #include "ozz/animation/runtime/skeleton.h"
 #include "ozz/animation/runtime/skeleton_utils.h"
-#include "ozz/base/memory/allocator.h"
+#include "ozz/base/memory/scoped_ptr.h"
 
 using ozz::animation::Skeleton;
 using ozz::animation::offline::RawSkeleton;
@@ -71,8 +71,8 @@ TEST(JointBindPose, SkeletonUtils) {
   EXPECT_TRUE(raw_skeleton.Validate());
   EXPECT_EQ(raw_skeleton.num_joints(), 3);
 
-  Skeleton* skeleton = builder(raw_skeleton);
-  ASSERT_TRUE(skeleton != NULL);
+  ozz::ScopedPtr<Skeleton> skeleton(builder(raw_skeleton));
+  ASSERT_TRUE(skeleton);
   EXPECT_EQ(skeleton->num_joints(), 3);
 
   // Out of range.
@@ -93,8 +93,6 @@ TEST(JointBindPose, SkeletonUtils) {
   EXPECT_FLOAT3_EQ(bind_pose2.translation, 0.f, 0.f, 1.f);
   EXPECT_QUATERNION_EQ(bind_pose2.rotation, -0.f, -0.f, -0.f, 1.f);
   EXPECT_FLOAT3_EQ(bind_pose2.scale, 1.f, 1.f, 1.f);
-
-  ozz::memory::default_allocator()->Delete(skeleton);
 }
 
 /* Definition of the skeleton used by the tests.
@@ -178,81 +176,84 @@ TEST(InterateDF, SkeletonUtils) {
   EXPECT_TRUE(raw_skeleton.Validate());
   EXPECT_EQ(raw_skeleton.num_joints(), 10);
 
-  Skeleton* skeleton = builder(raw_skeleton);
-  ASSERT_TRUE(skeleton != NULL);
+  ozz::ScopedPtr<Skeleton> skeleton(builder(raw_skeleton));
+  ASSERT_TRUE(skeleton);
   EXPECT_EQ(skeleton->num_joints(), 10);
 
   {
     IterateDFTester fct =
-        IterateJointsDF(*skeleton, -12, IterateDFTester(skeleton, 0));
-    EXPECT_EQ(fct.num_iterations(), 10);
-  }
-  {
-    IterateDFTester fct = IterateJointsDF(*skeleton, Skeleton::kNoParent,
-                                          IterateDFTester(skeleton, 0));
+        IterateJointsDF(*skeleton, IterateDFTester(skeleton, 0), -12);
     EXPECT_EQ(fct.num_iterations(), 10);
   }
   {
     IterateDFTester fct =
-        IterateJointsDF(*skeleton, 0, IterateDFTester(skeleton, 0));
+        IterateJointsDF(*skeleton, IterateDFTester(skeleton, 0));
+    EXPECT_EQ(fct.num_iterations(), 10);
+  }
+  {
+    IterateDFTester fct = IterateJointsDF(
+        *skeleton, IterateDFTester(skeleton, 0), Skeleton::kNoParent);
+    EXPECT_EQ(fct.num_iterations(), 10);
+  }
+  {
+    IterateDFTester fct =
+        IterateJointsDF(*skeleton, IterateDFTester(skeleton, 0), 0);
     EXPECT_EQ(fct.num_iterations(), 8);
   }
   {
     IterateDFTester fct =
-        IterateJointsDF(*skeleton, 1, IterateDFTester(skeleton, 1));
+        IterateJointsDF(*skeleton, IterateDFTester(skeleton, 1), 1);
     EXPECT_EQ(fct.num_iterations(), 3);
   }
   {
     IterateDFTester fct =
-        IterateJointsDF(*skeleton, 2, IterateDFTester(skeleton, 2));
+        IterateJointsDF(*skeleton, IterateDFTester(skeleton, 2), 2);
     EXPECT_EQ(fct.num_iterations(), 2);
   }
   {
     IterateDFTester fct =
-        IterateJointsDF(*skeleton, 3, IterateDFTester(skeleton, 3));
+        IterateJointsDF(*skeleton, IterateDFTester(skeleton, 3), 3);
     EXPECT_EQ(fct.num_iterations(), 1);
   }
   {
     IterateDFTester fct =
-        IterateJointsDF(*skeleton, 4, IterateDFTester(skeleton, 4));
+        IterateJointsDF(*skeleton, IterateDFTester(skeleton, 4), 4);
     EXPECT_EQ(fct.num_iterations(), 4);
   }
   {
     IterateDFTester fct =
-        IterateJointsDF(*skeleton, 5, IterateDFTester(skeleton, 5));
+        IterateJointsDF(*skeleton, IterateDFTester(skeleton, 5), 5);
     EXPECT_EQ(fct.num_iterations(), 1);
   }
   {
     IterateDFTester fct =
-        IterateJointsDF(*skeleton, 6, IterateDFTester(skeleton, 6));
+        IterateJointsDF(*skeleton, IterateDFTester(skeleton, 6), 6);
     EXPECT_EQ(fct.num_iterations(), 2);
   }
   {
     IterateDFTester fct =
-        IterateJointsDF(*skeleton, 7, IterateDFTester(skeleton, 7));
+        IterateJointsDF(*skeleton, IterateDFTester(skeleton, 7), 7);
     EXPECT_EQ(fct.num_iterations(), 1);
   }
   {
     IterateDFTester fct =
-        IterateJointsDF(*skeleton, 8, IterateDFTester(skeleton, 8));
+        IterateJointsDF(*skeleton, IterateDFTester(skeleton, 8), 8);
     EXPECT_EQ(fct.num_iterations(), 2);
   }
   {
     IterateDFTester fct =
-        IterateJointsDF(*skeleton, 9, IterateDFTester(skeleton, 9));
+        IterateJointsDF(*skeleton, IterateDFTester(skeleton, 9), 9);
     EXPECT_EQ(fct.num_iterations(), 1);
   }
-  IterateJointsDF(*skeleton, 10, IterateDFFailTester());
-  IterateJointsDF(*skeleton, 99, IterateDFFailTester());
-
-  ozz::memory::default_allocator()->Delete(skeleton);
+  IterateJointsDF(*skeleton, IterateDFFailTester(), 10);
+  IterateJointsDF(*skeleton, IterateDFFailTester(), 99);
 }
 
 TEST(InterateDFEmpty, SkeletonUtils) {
   ozz::animation::Skeleton empty;
-  IterateJointsDF(empty, ozz::animation::Skeleton::kNoParent,
-                  IterateDFFailTester());
-  IterateJointsDF(empty, 0, IterateDFFailTester());
+  IterateJointsDF(empty, IterateDFFailTester(),
+                  ozz::animation::Skeleton::kNoParent);
+  IterateJointsDF(empty, IterateDFFailTester(), 0);
 }
 
 namespace {
@@ -334,8 +335,8 @@ TEST(InterateDFReverse, SkeletonUtils) {
   EXPECT_TRUE(raw_skeleton.Validate());
   EXPECT_EQ(raw_skeleton.num_joints(), 10);
 
-  Skeleton* skeleton = builder(raw_skeleton);
-  ASSERT_TRUE(skeleton != NULL);
+  ozz::ScopedPtr<Skeleton> skeleton(builder(raw_skeleton));
+  ASSERT_TRUE(skeleton);
   EXPECT_EQ(skeleton->num_joints(), 10);
 
   {
@@ -343,8 +344,6 @@ TEST(InterateDFReverse, SkeletonUtils) {
         IterateJointsDFReverse(*skeleton, IterateDFReverseTester(skeleton));
     EXPECT_EQ(fct.num_iterations(), 10);
   }
-
-  ozz::memory::default_allocator()->Delete(skeleton);
 }
 
 /* Definition of the skeleton used by the tests.
@@ -395,8 +394,8 @@ TEST(IsLeaf, SkeletonUtils) {
   EXPECT_TRUE(raw_skeleton.Validate());
   EXPECT_EQ(raw_skeleton.num_joints(), 10);
 
-  Skeleton* skeleton = builder(raw_skeleton);
-  ASSERT_TRUE(skeleton != NULL);
+  ozz::ScopedPtr<Skeleton> skeleton(builder(raw_skeleton));
+  ASSERT_TRUE(skeleton);
   EXPECT_EQ(skeleton->num_joints(), 10);
 
   // Out of bound
@@ -415,6 +414,4 @@ TEST(IsLeaf, SkeletonUtils) {
   EXPECT_TRUE(IsLeaf(*skeleton, 7));
   EXPECT_FALSE(IsLeaf(*skeleton, 8));
   EXPECT_TRUE(IsLeaf(*skeleton, 9));
-
-  ozz::memory::default_allocator()->Delete(skeleton);
 }

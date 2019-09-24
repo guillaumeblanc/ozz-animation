@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -47,6 +47,21 @@ math::Quaternion LerpRotation(const math::Quaternion& _a,
 // Scale interpolation method.
 math::Float3 LerpScale(const math::Float3& _a, const math::Float3& _b,
                        float _alpha);
+
+// Samples a RawAnimation track. This function shall be used for offline
+// purpose. Use ozz::animation::Animation and ozz::animation::SamplingJob for
+// runtime purpose.
+// Returns false if track is invalid.
+bool SampleTrack(const RawAnimation::JointTrack& _track, float _time,
+                 ozz::math::Transform* _transform);
+
+// Samples a RawAnimation. This function shall be used for offline
+// purpose. Use ozz::animation::Animation and ozz::animation::SamplingJob for
+// runtime purpose.
+// _animation must be valid.
+// Returns false output range is too small or animation is invalid.
+bool SampleAnimation(const RawAnimation& _animation, float _time,
+                     const Range<ozz::math::Transform>& _transforms);
 }  // namespace offline
 }  // namespace animation
 }  // namespace ozz

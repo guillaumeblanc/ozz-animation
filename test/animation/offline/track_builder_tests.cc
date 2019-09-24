@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -30,6 +30,8 @@
 #include "gtest/gtest.h"
 #include "ozz/base/maths/gtest_math_helper.h"
 
+#include "ozz/base/memory/scoped_ptr.h"
+
 #include "ozz/animation/offline/raw_track.h"
 #include "ozz/animation/runtime/track.h"
 #include "ozz/animation/runtime/track_sampling_job.h"
@@ -37,6 +39,10 @@
 #include <limits>
 
 using ozz::animation::FloatTrack;
+using ozz::animation::Float2Track;
+using ozz::animation::Float3Track;
+using ozz::animation::Float4Track;
+using ozz::animation::QuaternionTrack;
 using ozz::animation::FloatTrackSamplingJob;
 using ozz::animation::offline::RawFloatTrack;
 using ozz::animation::offline::RawTrackInterpolation;
@@ -51,9 +57,8 @@ TEST(Default, TrackBuilder) {
     EXPECT_TRUE(raw_float_track.Validate());
 
     // Builds track
-    FloatTrack* track = builder(raw_float_track);
-    EXPECT_TRUE(track != NULL);
-    ozz::memory::default_allocator()->Delete(track);
+    ozz::ScopedPtr<FloatTrack> track(builder(raw_float_track));
+    EXPECT_TRUE(track);
   }
 }
 
@@ -114,9 +119,8 @@ TEST(Build, TrackBuilder) {
     EXPECT_TRUE(raw_float_track.Validate());
 
     // Builds track
-    FloatTrack* track = builder(raw_float_track);
-    EXPECT_TRUE(track != NULL);
-    ozz::memory::default_allocator()->Delete(track);
+    ozz::ScopedPtr<FloatTrack> track(builder(raw_float_track));
+    EXPECT_TRUE(track);
   }
 }
 
@@ -127,24 +131,20 @@ TEST(Name, TrackBuilder) {
   {  // No name
     RawFloatTrack raw_float_track;
 
-    FloatTrack* track = builder(raw_float_track);
-    ASSERT_TRUE(track != NULL);
+    ozz::ScopedPtr<FloatTrack> track(builder(raw_float_track));
+    EXPECT_TRUE(track);
 
     EXPECT_STREQ(track->name(), "");
-
-    ozz::memory::default_allocator()->Delete(track);
   }
 
   {  // A name
     RawFloatTrack raw_float_track;
     raw_float_track.name = "test name";
 
-    FloatTrack* track = builder(raw_float_track);
-    ASSERT_TRUE(track != NULL);
+    ozz::ScopedPtr<FloatTrack> track(builder(raw_float_track));
+    EXPECT_TRUE(track);
 
     EXPECT_STREQ(track->name(), raw_float_track.name.c_str());
-
-    ozz::memory::default_allocator()->Delete(track);
   }
 }
 
@@ -155,8 +155,8 @@ TEST(Build0Keys, TrackBuilder) {
   RawFloatTrack raw_float_track;
 
   // Builds track
-  FloatTrack* track = builder(raw_float_track);
-  ASSERT_TRUE(track != NULL);
+  ozz::ScopedPtr<FloatTrack> track(builder(raw_float_track));
+  EXPECT_TRUE(track);
 
   // Samples to verify build output.
   FloatTrackSamplingJob sampling;
@@ -166,8 +166,6 @@ TEST(Build0Keys, TrackBuilder) {
   sampling.ratio = 0.f;
   ASSERT_TRUE(sampling.Run());
   EXPECT_FLOAT_EQ(result, 0.f);
-
-  ozz::memory::default_allocator()->Delete(track);
 }
 
 TEST(BuildLinear, TrackBuilder) {
@@ -183,8 +181,8 @@ TEST(BuildLinear, TrackBuilder) {
     raw_float_track.keyframes.push_back(first_key);
 
     // Builds track
-    FloatTrack* track = builder(raw_float_track);
-    ASSERT_TRUE(track != NULL);
+    ozz::ScopedPtr<FloatTrack> track(builder(raw_float_track));
+    EXPECT_TRUE(track);
 
     // Samples to verify build output.
     FloatTrackSamplingJob sampling;
@@ -202,8 +200,6 @@ TEST(BuildLinear, TrackBuilder) {
     sampling.ratio = 1.f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 46.f);
-
-    ozz::memory::default_allocator()->Delete(track);
   }
 
   {  // 1 key in the middle
@@ -214,8 +210,8 @@ TEST(BuildLinear, TrackBuilder) {
     raw_float_track.keyframes.push_back(first_key);
 
     // Builds track
-    FloatTrack* track = builder(raw_float_track);
-    ASSERT_TRUE(track != NULL);
+    ozz::ScopedPtr<FloatTrack> track(builder(raw_float_track));
+    EXPECT_TRUE(track);
 
     // Samples to verify build output.
     FloatTrackSamplingJob sampling;
@@ -233,8 +229,6 @@ TEST(BuildLinear, TrackBuilder) {
     sampling.ratio = 1.f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 46.f);
-
-    ozz::memory::default_allocator()->Delete(track);
   }
 
   {  // 1 key at the end
@@ -245,8 +239,8 @@ TEST(BuildLinear, TrackBuilder) {
     raw_float_track.keyframes.push_back(first_key);
 
     // Builds track
-    FloatTrack* track = builder(raw_float_track);
-    ASSERT_TRUE(track != NULL);
+    ozz::ScopedPtr<FloatTrack> track(builder(raw_float_track));
+    EXPECT_TRUE(track);
 
     // Samples to verify build output.
     FloatTrackSamplingJob sampling;
@@ -264,8 +258,6 @@ TEST(BuildLinear, TrackBuilder) {
     sampling.ratio = 1.f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 46.f);
-
-    ozz::memory::default_allocator()->Delete(track);
   }
 
   {  // 2 keys
@@ -279,8 +271,8 @@ TEST(BuildLinear, TrackBuilder) {
     raw_float_track.keyframes.push_back(second_key);
 
     // Builds track
-    FloatTrack* track = builder(raw_float_track);
-    ASSERT_TRUE(track != NULL);
+    ozz::ScopedPtr<FloatTrack> track(builder(raw_float_track));
+    EXPECT_TRUE(track);
 
     // Samples to verify build output.
     FloatTrackSamplingJob sampling;
@@ -306,8 +298,6 @@ TEST(BuildLinear, TrackBuilder) {
     sampling.ratio = 1.f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 0.f);
-
-    ozz::memory::default_allocator()->Delete(track);
   }
 
   {  // n keys with same value
@@ -324,8 +314,8 @@ TEST(BuildLinear, TrackBuilder) {
     raw_float_track.keyframes.push_back(key3);
 
     // Builds track
-    FloatTrack* track = builder(raw_float_track);
-    ASSERT_TRUE(track != NULL);
+    ozz::ScopedPtr<FloatTrack> track(builder(raw_float_track));
+    EXPECT_TRUE(track);
 
     // Samples to verify build output.
     FloatTrackSamplingJob sampling;
@@ -355,8 +345,6 @@ TEST(BuildLinear, TrackBuilder) {
     sampling.ratio = 1.f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 46.f);
-
-    ozz::memory::default_allocator()->Delete(track);
   }
 }
 
@@ -373,8 +361,8 @@ TEST(BuildStep, TrackBuilder) {
     raw_float_track.keyframes.push_back(first_key);
 
     // Builds track
-    FloatTrack* track = builder(raw_float_track);
-    ASSERT_TRUE(track != NULL);
+    ozz::ScopedPtr<FloatTrack> track(builder(raw_float_track));
+    EXPECT_TRUE(track);
 
     // Samples to verify build output.
     FloatTrackSamplingJob sampling;
@@ -392,8 +380,6 @@ TEST(BuildStep, TrackBuilder) {
     sampling.ratio = 1.f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 46.f);
-
-    ozz::memory::default_allocator()->Delete(track);
   }
 
   {  // 1 key in the middle
@@ -404,8 +390,8 @@ TEST(BuildStep, TrackBuilder) {
     raw_float_track.keyframes.push_back(first_key);
 
     // Builds track
-    FloatTrack* track = builder(raw_float_track);
-    ASSERT_TRUE(track != NULL);
+    ozz::ScopedPtr<FloatTrack> track(builder(raw_float_track));
+    EXPECT_TRUE(track);
 
     // Samples to verify build output.
     FloatTrackSamplingJob sampling;
@@ -423,8 +409,6 @@ TEST(BuildStep, TrackBuilder) {
     sampling.ratio = 1.f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 46.f);
-
-    ozz::memory::default_allocator()->Delete(track);
   }
 
   {  // 1 key at the end
@@ -435,8 +419,8 @@ TEST(BuildStep, TrackBuilder) {
     raw_float_track.keyframes.push_back(first_key);
 
     // Builds track
-    FloatTrack* track = builder(raw_float_track);
-    ASSERT_TRUE(track != NULL);
+    ozz::ScopedPtr<FloatTrack> track(builder(raw_float_track));
+    EXPECT_TRUE(track);
 
     // Samples to verify build output.
     FloatTrackSamplingJob sampling;
@@ -454,8 +438,6 @@ TEST(BuildStep, TrackBuilder) {
     sampling.ratio = 1.f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 46.f);
-
-    ozz::memory::default_allocator()->Delete(track);
   }
 
   {  // 1 key at the beginning
@@ -466,8 +448,8 @@ TEST(BuildStep, TrackBuilder) {
     raw_float_track.keyframes.push_back(first_key);
 
     // Builds track
-    FloatTrack* track = builder(raw_float_track);
-    ASSERT_TRUE(track != NULL);
+    ozz::ScopedPtr<FloatTrack> track(builder(raw_float_track));
+    EXPECT_TRUE(track);
 
     // Samples to verify build output.
     FloatTrackSamplingJob sampling;
@@ -485,8 +467,6 @@ TEST(BuildStep, TrackBuilder) {
     sampling.ratio = 1.f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 46.f);
-
-    ozz::memory::default_allocator()->Delete(track);
   }
 
   {  // 2 keys
@@ -500,8 +480,8 @@ TEST(BuildStep, TrackBuilder) {
     raw_float_track.keyframes.push_back(second_key);
 
     // Builds track
-    FloatTrack* track = builder(raw_float_track);
-    ASSERT_TRUE(track != NULL);
+    ozz::ScopedPtr<FloatTrack> track(builder(raw_float_track));
+    EXPECT_TRUE(track);
 
     // Samples to verify build output.
     FloatTrackSamplingJob sampling;
@@ -535,8 +515,6 @@ TEST(BuildStep, TrackBuilder) {
     sampling.ratio = 1.f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 0.f);
-
-    ozz::memory::default_allocator()->Delete(track);
   }
 
   {  // 3 keys
@@ -553,8 +531,8 @@ TEST(BuildStep, TrackBuilder) {
     raw_float_track.keyframes.push_back(third_key);
 
     // Builds track
-    FloatTrack* track = builder(raw_float_track);
-    ASSERT_TRUE(track != NULL);
+    ozz::ScopedPtr<FloatTrack> track(builder(raw_float_track));
+    EXPECT_TRUE(track);
 
     // Samples to verify build output.
     FloatTrackSamplingJob sampling;
@@ -592,8 +570,6 @@ TEST(BuildStep, TrackBuilder) {
     sampling.ratio = 1.f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 99.f);
-
-    ozz::memory::default_allocator()->Delete(track);
   }
 
   {  // 2 close keys
@@ -608,8 +584,8 @@ TEST(BuildStep, TrackBuilder) {
     raw_float_track.keyframes.push_back(second_key);
 
     // Builds track
-    FloatTrack* track = builder(raw_float_track);
-    ASSERT_TRUE(track != NULL);
+    ozz::ScopedPtr<FloatTrack> track(builder(raw_float_track));
+    EXPECT_TRUE(track);
 
     // Samples to verify build output.
     FloatTrackSamplingJob sampling;
@@ -635,8 +611,6 @@ TEST(BuildStep, TrackBuilder) {
     sampling.ratio = .7f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 0.f);
-
-    ozz::memory::default_allocator()->Delete(track);
   }
 
   {  // 3 keys
@@ -653,8 +627,8 @@ TEST(BuildStep, TrackBuilder) {
     raw_float_track.keyframes.push_back(third_key);
 
     // Builds track
-    FloatTrack* track = builder(raw_float_track);
-    ASSERT_TRUE(track != NULL);
+    ozz::ScopedPtr<FloatTrack> track(builder(raw_float_track));
+    EXPECT_TRUE(track);
 
     // Samples to verify build output.
     FloatTrackSamplingJob sampling;
@@ -696,8 +670,6 @@ TEST(BuildStep, TrackBuilder) {
     sampling.ratio = 1.f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 99.f);
-
-    ozz::memory::default_allocator()->Delete(track);
   }
 }
 
@@ -719,8 +691,8 @@ TEST(BuildMixed, TrackBuilder) {
   raw_float_track.keyframes.push_back(key2);
 
   // Builds track
-  FloatTrack* track = builder(raw_float_track);
-  ASSERT_TRUE(track != NULL);
+  ozz::ScopedPtr<FloatTrack> track(builder(raw_float_track));
+  EXPECT_TRUE(track);
 
   // Samples to verify build output.
   FloatTrackSamplingJob sampling;
@@ -758,8 +730,6 @@ TEST(BuildMixed, TrackBuilder) {
   sampling.ratio = 1.f;
   ASSERT_TRUE(sampling.Run());
   EXPECT_FLOAT_EQ(result, 0.f);
-
-  ozz::memory::default_allocator()->Delete(track);
 }
 
 TEST(Float, TrackBuilder) {
@@ -768,8 +738,8 @@ TEST(Float, TrackBuilder) {
 
   {
     // Default value for quaternion is identity.
-    ozz::animation::FloatTrack* track = builder(raw_track);
-    ASSERT_TRUE(track != NULL);
+    ozz::ScopedPtr<FloatTrack> track(builder(raw_track));
+    EXPECT_TRUE(track);
 
     // Samples to verify build output.
     float result;
@@ -780,8 +750,6 @@ TEST(Float, TrackBuilder) {
     sampling.ratio = .5f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 0.f);
-
-    ozz::memory::default_allocator()->Delete(track);
   }
 
   {
@@ -793,8 +761,8 @@ TEST(Float, TrackBuilder) {
     raw_track.keyframes.push_back(second_key);
 
     // Builds track
-    ozz::animation::FloatTrack* track = builder(raw_track);
-    ASSERT_TRUE(track != NULL);
+    ozz::ScopedPtr<FloatTrack> track(builder(raw_track));
+    ASSERT_TRUE(track);
 
     // Samples to verify build output.
     float result;
@@ -821,8 +789,6 @@ TEST(Float, TrackBuilder) {
     sampling.ratio = 1.f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 46.f);
-
-    ozz::memory::default_allocator()->Delete(track);
   }
 }
 
@@ -832,8 +798,8 @@ TEST(Float2, TrackBuilder) {
 
   {
     // Default value for quaternion is identity.
-    ozz::animation::Float2Track* track = builder(raw_track);
-    ASSERT_TRUE(track != NULL);
+    ozz::ScopedPtr<Float2Track> track(builder(raw_track));
+    EXPECT_TRUE(track);
 
     // Samples to verify build output.
     ozz::math::Float2 result;
@@ -844,8 +810,6 @@ TEST(Float2, TrackBuilder) {
     sampling.ratio = .5f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT2_EQ(result, 0.f, 0.f);
-
-    ozz::memory::default_allocator()->Delete(track);
   }
 
   {
@@ -857,8 +821,8 @@ TEST(Float2, TrackBuilder) {
     raw_track.keyframes.push_back(second_key);
 
     // Builds track
-    ozz::animation::Float2Track* track = builder(raw_track);
-    ASSERT_TRUE(track != NULL);
+    ozz::ScopedPtr<Float2Track> track(builder(raw_track));
+    ASSERT_TRUE(track);
 
     // Samples to verify build output.
     ozz::math::Float2 result;
@@ -885,8 +849,6 @@ TEST(Float2, TrackBuilder) {
     sampling.ratio = 1.f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT2_EQ(result, 23.f, 46.f);
-
-    ozz::memory::default_allocator()->Delete(track);
   }
 }
 
@@ -896,8 +858,8 @@ TEST(Float3, TrackBuilder) {
 
   {
     // Default value for quaternion is identity.
-    ozz::animation::Float3Track* track = builder(raw_track);
-    ASSERT_TRUE(track != NULL);
+    ozz::ScopedPtr<Float3Track> track(builder(raw_track));
+    EXPECT_TRUE(track);
 
     // Samples to verify build output.
     ozz::math::Float3 result;
@@ -908,8 +870,6 @@ TEST(Float3, TrackBuilder) {
     sampling.ratio = .5f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT3_EQ(result, 0.f, 0.f, 0.f);
-
-    ozz::memory::default_allocator()->Delete(track);
   }
 
   {
@@ -923,8 +883,8 @@ TEST(Float3, TrackBuilder) {
     raw_track.keyframes.push_back(second_key);
 
     // Builds track
-    ozz::animation::Float3Track* track = builder(raw_track);
-    ASSERT_TRUE(track != NULL);
+    ozz::ScopedPtr<Float3Track> track(builder(raw_track));
+    EXPECT_TRUE(track);
 
     // Samples to verify build output.
     ozz::math::Float3 result;
@@ -951,8 +911,6 @@ TEST(Float3, TrackBuilder) {
     sampling.ratio = 1.f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT3_EQ(result, 23.f, 46.f, 92.f);
-
-    ozz::memory::default_allocator()->Delete(track);
   }
 }
 
@@ -962,8 +920,8 @@ TEST(Float4, TrackBuilder) {
 
   {
     // Default value for quaternion is identity.
-    ozz::animation::Float4Track* track = builder(raw_track);
-    ASSERT_TRUE(track != NULL);
+    ozz::ScopedPtr<Float4Track> track(builder(raw_track));
+    EXPECT_TRUE(track);
 
     // Samples to verify build output.
     ozz::math::Float4 result;
@@ -974,8 +932,6 @@ TEST(Float4, TrackBuilder) {
     sampling.ratio = .5f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT4_EQ(result, 0.f, 0.f, 0.f, 0.f);
-
-    ozz::memory::default_allocator()->Delete(track);
   }
 
   {
@@ -989,8 +945,8 @@ TEST(Float4, TrackBuilder) {
     raw_track.keyframes.push_back(second_key);
 
     // Builds track
-    ozz::animation::Float4Track* track = builder(raw_track);
-    ASSERT_TRUE(track != NULL);
+    ozz::ScopedPtr<Float4Track> track(builder(raw_track));
+    EXPECT_TRUE(track);
 
     // Samples to verify build output.
     ozz::math::Float4 result;
@@ -1017,8 +973,6 @@ TEST(Float4, TrackBuilder) {
     sampling.ratio = 1.f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT4_EQ(result, 23.f, 46.f, 92.f, 25.f);
-
-    ozz::memory::default_allocator()->Delete(track);
   }
 }
 
@@ -1028,8 +982,8 @@ TEST(Quaternion, TrackBuilder) {
 
   {
     // Default value for quaternion is identity.
-    ozz::animation::QuaternionTrack* track = builder(raw_track);
-    ASSERT_TRUE(track != NULL);
+    ozz::ScopedPtr<QuaternionTrack> track(builder(raw_track));
+    EXPECT_TRUE(track);
 
     // Samples to verify build output.
     ozz::math::Quaternion result;
@@ -1040,8 +994,6 @@ TEST(Quaternion, TrackBuilder) {
     sampling.ratio = .5f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_QUATERNION_EQ(result, 0.f, 0.f, 0.f, 1.f);
-
-    ozz::memory::default_allocator()->Delete(track);
   }
 
   {
@@ -1061,8 +1013,8 @@ TEST(Quaternion, TrackBuilder) {
     raw_track.keyframes.push_back(key2);
 
     // Builds track
-    ozz::animation::QuaternionTrack* track = builder(raw_track);
-    ASSERT_TRUE(track != NULL);
+    ozz::ScopedPtr<QuaternionTrack> track(builder(raw_track));
+    EXPECT_TRUE(track);
 
     // Samples to verify build output.
     ozz::math::Quaternion result;
@@ -1097,7 +1049,5 @@ TEST(Quaternion, TrackBuilder) {
     sampling.ratio = 1.f;
     ASSERT_TRUE(sampling.Run());
     EXPECT_QUATERNION_EQ(result, 0.f, .70710677f, 0.f, .70710677f);
-
-    ozz::memory::default_allocator()->Delete(track);
   }
 }

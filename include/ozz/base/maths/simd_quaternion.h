@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -105,6 +105,12 @@ OZZ_INLINE SimdQuaternion operator*(const SimdQuaternion& _a,
 // normalized. Otherwise the magnitude of the inverse is 1.f/|_q|.
 OZZ_INLINE SimdQuaternion Conjugate(const SimdQuaternion& _q) {
   const SimdQuaternion quat = {Xor(_q.xyzw, simd_int4::mask_sign_xyz())};
+  return quat;
+}
+
+// Returns the negate of _q. This represent the same rotation as q.
+OZZ_INLINE SimdQuaternion operator-(const SimdQuaternion& _q) {
+  const SimdQuaternion quat = {Xor(_q.xyzw, simd_int4::mask_sign())};
   return quat;
 }
 

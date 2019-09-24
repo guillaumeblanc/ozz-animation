@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -45,6 +45,8 @@
 
 #include "ozz/base/log.h"
 
+#include "ozz/base/memory/scoped_ptr.h"
+
 #include "ozz/options/options.h"
 
 #include <json/json.h>
@@ -53,6 +55,20 @@ namespace ozz {
 namespace animation {
 namespace offline {
 namespace {
+
+template <typename _Track>
+void DisplaysOptimizationstatistics(const _Track& _non_optimized,
+                                    const _Track& _optimized) {
+  const size_t opt = _optimized.keyframes.size();
+  const size_t non_opt = _non_optimized.keyframes.size();
+
+  // Computes optimization ratios.
+  float ratio = opt != 0 ? 1.f * non_opt / opt : 0.f;
+
+  ozz::log::LogV log;
+  ozz::log::FloatPrecision precision_scope(log, 1);
+  log << "Optimization stage results: " << ratio << ":1" << std::endl;
+}
 
 bool IsCompatiblePropertyType(OzzImporter::NodeProperty::Type _src,
                               OzzImporter::NodeProperty::Type _dest) {
@@ -109,14 +125,17 @@ bool Export(OzzImporter& _importer, const _RawTrack& _raw_track,
     }
 
     // Displays optimization statistics.
-    // DisplaysOptimizationstatistics(raw_animation, raw_optimized_animation);
+    DisplaysOptimizationstatistics(_raw_track, raw_optimized_track);
 
     // Brings data back to the raw track.
     raw_track = raw_optimized_track;
+  } else {
+    ozz::log::LogV() << "Optimization for track \"" << _raw_track.name
+                     << "\" is disabled." << std::endl;
   }
 
   // Builds runtime track.
-  typename RawTrackToTrack<_RawTrack>::Track* track = NULL;
+  ozz::ScopedPtr<typename RawTrackToTrack<_RawTrack>::Track> track;
   if (!_config["raw"].asBool()) {
     ozz::log::LogV() << "Builds runtime track." << std::endl;
     TrackBuilder builder;
@@ -140,7 +159,6 @@ bool Export(OzzImporter& _importer, const _RawTrack& _raw_track,
     if (!file.opened()) {
       ozz::log::Err() << "Failed to open output file: " << filename
                       << std::endl;
-      ozz::memory::default_allocator()->Delete(track);
       return false;
     }
 
@@ -159,9 +177,6 @@ bool Export(OzzImporter& _importer, const _RawTrack& _raw_track,
 
   ozz::log::LogV() << "Track binary archive successfully outputted."
                    << std::endl;
-
-  // Delete local objects.
-  ozz::memory::default_allocator()->Delete(track);
 
   return true;
 }

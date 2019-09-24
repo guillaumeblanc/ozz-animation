@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -53,11 +53,11 @@ const float kDefaultDistance = 8.f;
 const Float3 kDefaultCenter = Float3(0.f, .5f, 0.f);
 const Float2 kDefaultAngle =
     Float2(-ozz::math::kPi * 1.f / 12.f, ozz::math::kPi * 1.f / 5.f);
-const float kAngleFactor = .002f;
+const float kAngleFactor = .01f;
 const float kDistanceFactor = .1f;
 const float kScrollFactor = .03f;
-const float kPanFactor = .01f;
-const float kKeyboardFactor = 500.f;
+const float kPanFactor = .05f;
+const float kKeyboardFactor = 100.f;
 const float kNear = .01f;
 const float kFar = 1000.f;
 const float kFovY = ozz::math::kPi / 3.f;
@@ -167,7 +167,7 @@ Camera::Controls Camera::UpdateControls(float _delta_time) {
   const int timed_factor =
       ozz::math::Max(1, static_cast<int>(kKeyboardFactor * _delta_time));
   const int kdx =
-      timed_factor * (glfwGetKey(GLFW_KEY_RIGHT) - glfwGetKey(GLFW_KEY_LEFT));
+      timed_factor * (glfwGetKey(GLFW_KEY_LEFT) - glfwGetKey(GLFW_KEY_RIGHT));
   const int kdy =
       timed_factor * (glfwGetKey(GLFW_KEY_DOWN) - glfwGetKey(GLFW_KEY_UP));
   const bool keyboard_interact = kdx || kdy;
@@ -183,11 +183,11 @@ Camera::Controls Camera::UpdateControls(float _delta_time) {
       controls.zooming = true;
 
       distance_ += dy * kDistanceFactor;
-    } else if (glfwGetKey(GLFW_KEY_LCTRL) == GLFW_PRESS) {  // Pan mode.
+    } else if (glfwGetKey(GLFW_KEY_LALT) == GLFW_PRESS) {  // Pan mode.
       controls.panning = true;
 
       const float dx_pan = -dx * kPanFactor;
-      const float dy_pan = dy * kPanFactor;
+      const float dy_pan = -dy * kPanFactor;
 
       // Moves along camera axes.
       math::Float4x4 transpose = Transpose(view_);
@@ -231,7 +231,7 @@ void Camera::OnGui(ImGui* _im_gui) {
       "-RMB: Rotate\n"
       "-Shift + Wheel: Zoom\n"
       "-Shift + RMB: Zoom\n"
-      "-Ctr + RMB: Pan\n";
+      "-Alt + RMB: Pan\n";
   _im_gui->DoLabel(controls_label, ImGui::kLeft, false);
 
   _im_gui->DoCheckBox("Automatic", &auto_framing_);

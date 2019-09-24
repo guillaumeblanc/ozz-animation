@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -38,6 +38,8 @@
 
 #include "ozz/base/maths/math_ex.h"
 #include "ozz/base/maths/simd_math.h"
+
+#include "ozz/base/memory/scoped_ptr.h"
 
 namespace ozz {
 namespace sample {
@@ -126,8 +128,8 @@ class GlImmediateRenderer {
   size_t size_;
 
   // Immediate mode shaders;
-  ImmediatePCShader* immediate_pc_shader;
-  ImmediatePTCShader* immediate_ptc_shader;
+  ozz::ScopedPtr<ImmediatePCShader> immediate_pc_shader;
+  ozz::ScopedPtr<ImmediatePTCShader> immediate_ptc_shader;
 
   // The renderer object.
   RendererImpl* renderer_;

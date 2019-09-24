@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -30,7 +30,7 @@
 #include "gtest/gtest.h"
 
 #include "ozz/base/maths/gtest_math_helper.h"
-#include "ozz/base/memory/allocator.h"
+#include "ozz/base/memory/scoped_ptr.h"
 
 #include "ozz/animation/offline/raw_track.h"
 #include "ozz/animation/offline/track_builder.h"
@@ -38,6 +38,10 @@
 #include "ozz/animation/runtime/track.h"
 
 using ozz::animation::FloatTrack;
+using ozz::animation::Float2Track;
+using ozz::animation::Float3Track;
+using ozz::animation::Float4Track;
+using ozz::animation::QuaternionTrack;
 using ozz::animation::FloatTrackSamplingJob;
 using ozz::animation::offline::RawFloatTrack;
 using ozz::animation::offline::TrackBuilder;
@@ -52,8 +56,8 @@ TEST(JobValidity, TrackSamplingJob) {
   EXPECT_TRUE(raw_float_track.Validate());
 
   // Builds track
-  FloatTrack* track = builder(raw_float_track);
-  EXPECT_TRUE(track != NULL);
+  ozz::ScopedPtr<FloatTrack> track(builder(raw_float_track));
+  ASSERT_TRUE(track);
 
   {  // Empty/default job
     FloatTrackSamplingJob job;
@@ -84,7 +88,6 @@ TEST(JobValidity, TrackSamplingJob) {
     EXPECT_TRUE(job.Validate());
     EXPECT_TRUE(job.Run());
   }
-  ozz::memory::default_allocator()->Delete(track);
 }
 
 TEST(Default, TrackSamplingJob) {
@@ -115,8 +118,8 @@ TEST(Bounds, TrackSamplingJob) {
   raw_float_track.keyframes.push_back(key2);
 
   // Builds track
-  FloatTrack* track = builder(raw_float_track);
-  ASSERT_TRUE(track != NULL);
+  ozz::ScopedPtr<FloatTrack> track(builder(raw_float_track));
+  ASSERT_TRUE(track);
 
   // Samples to verify build output.
   FloatTrackSamplingJob sampling;
@@ -146,8 +149,6 @@ TEST(Bounds, TrackSamplingJob) {
   sampling.ratio = 1.5f;
   ASSERT_TRUE(sampling.Run());
   EXPECT_FLOAT_EQ(result, 0.f);
-
-  ozz::memory::default_allocator()->Delete(track);
 }
 
 TEST(Float, TrackSamplingJob) {
@@ -170,8 +171,8 @@ TEST(Float, TrackSamplingJob) {
   raw_track.keyframes.push_back(key3);
 
   // Builds track
-  ozz::animation::FloatTrack* track = builder(raw_track);
-  ASSERT_TRUE(track != NULL);
+  ozz::ScopedPtr<FloatTrack> track(builder(raw_track));
+  ASSERT_TRUE(track);
 
   // Samples to verify build output.
   ozz::animation::FloatTrackSamplingJob sampling;
@@ -209,8 +210,6 @@ TEST(Float, TrackSamplingJob) {
   sampling.ratio = 1.f;
   ASSERT_TRUE(sampling.Run());
   EXPECT_FLOAT_EQ(result, 0.f);
-
-  ozz::memory::default_allocator()->Delete(track);
 }
 
 TEST(Float2, TrackSamplingJob) {
@@ -233,8 +232,8 @@ TEST(Float2, TrackSamplingJob) {
   raw_track.keyframes.push_back(key3);
 
   // Builds track
-  ozz::animation::Float2Track* track = builder(raw_track);
-  ASSERT_TRUE(track != NULL);
+  ozz::ScopedPtr<Float2Track> track(builder(raw_track));
+  ASSERT_TRUE(track);
 
   // Samples to verify build output.
   ozz::animation::Float2TrackSamplingJob sampling;
@@ -272,8 +271,6 @@ TEST(Float2, TrackSamplingJob) {
   sampling.ratio = 1.f;
   ASSERT_TRUE(sampling.Run());
   EXPECT_FLOAT2_EQ(result, 0.f, 0.f);
-
-  ozz::memory::default_allocator()->Delete(track);
 }
 
 TEST(Float3, TrackSamplingJob) {
@@ -296,8 +293,8 @@ TEST(Float3, TrackSamplingJob) {
   raw_track.keyframes.push_back(key3);
 
   // Builds track
-  ozz::animation::Float3Track* track = builder(raw_track);
-  ASSERT_TRUE(track != NULL);
+  ozz::ScopedPtr<Float3Track> track(builder(raw_track));
+  ASSERT_TRUE(track);
 
   // Samples to verify build output.
   ozz::animation::Float3TrackSamplingJob sampling;
@@ -335,8 +332,6 @@ TEST(Float3, TrackSamplingJob) {
   sampling.ratio = 1.f;
   ASSERT_TRUE(sampling.Run());
   EXPECT_FLOAT3_EQ(result, 0.f, 0.f, 0.f);
-
-  ozz::memory::default_allocator()->Delete(track);
 }
 
 TEST(Float4, TrackSamplingJob) {
@@ -363,8 +358,8 @@ TEST(Float4, TrackSamplingJob) {
   raw_track.keyframes.push_back(key3);
 
   // Builds track
-  ozz::animation::Float4Track* track = builder(raw_track);
-  ASSERT_TRUE(track != NULL);
+  ozz::ScopedPtr<Float4Track> track(builder(raw_track));
+  ASSERT_TRUE(track);
 
   // Samples to verify build output.
   ozz::animation::Float4TrackSamplingJob sampling;
@@ -402,8 +397,6 @@ TEST(Float4, TrackSamplingJob) {
   sampling.ratio = 1.f;
   ASSERT_TRUE(sampling.Run());
   EXPECT_FLOAT4_EQ(result, 0.f, 0.f, 0.f, 0.f);
-
-  ozz::memory::default_allocator()->Delete(track);
 }
 
 TEST(Quaternion, TrackSamplingJob) {
@@ -429,9 +422,8 @@ TEST(Quaternion, TrackSamplingJob) {
   raw_track.keyframes.push_back(key3);
 
   // Builds track
-  ozz::animation::QuaternionTrack* track = builder(raw_track);
-  ASSERT_TRUE(track != NULL);
-
+  ozz::ScopedPtr<QuaternionTrack> track(builder(raw_track));
+  ASSERT_TRUE(track);
   // Samples to verify build output.
   ozz::animation::QuaternionTrackSamplingJob sampling;
   sampling.track = track;
@@ -472,6 +464,4 @@ TEST(Quaternion, TrackSamplingJob) {
   sampling.ratio = 1.f;
   ASSERT_TRUE(sampling.Run());
   EXPECT_QUATERNION_EQ(result, 0.f, 0.f, 0.f, 1.f);
-
-  ozz::memory::default_allocator()->Delete(track);
 }

@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -93,6 +93,9 @@ TEST(SoaQuaternionArithmetic, ozz_soa_math) {
   EXPECT_SOAQUATERNION_EQ(mul1, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f,
                           0.f, 0.f, 0.f, 1.f, 1.f, 1.f, 1.f);
   EXPECT_TRUE(ozz::math::AreAllTrue(IsNormalized(mul1)));
+
+  const ozz::math::SimdFloat4 dot = Dot(a, b);
+  EXPECT_SOAFLOAT1_EQ(dot, .70710677f, .70710677f, 1.f, .70710677f);
 
   const SoaQuaternion normalize = Normalize(denorm);
   EXPECT_TRUE(ozz::math::AreAllTrue(IsNormalized(normalize)));

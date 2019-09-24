@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -59,6 +59,11 @@ static bool ValidateTrack(const typename ozz::Vector<_Key>::Std& _track,
   return true;  // Validated.
 }
 }  // namespace
+bool RawAnimation::JointTrack::Validate(float _duration) const {
+  return ValidateTrack<TranslationKey>(translations, _duration) &&
+         ValidateTrack<RotationKey>(rotations, _duration) &&
+         ValidateTrack<ScaleKey>(scales, _duration);
+}
 
 bool RawAnimation::Validate() const {
   if (duration <= 0.f) {  // Tests duration is valid.
@@ -69,17 +74,31 @@ bool RawAnimation::Validate() const {
   }
   // Ensures that all key frames' time are valid, ie: in a strict ascending
   // order and within range [0:duration].
-  for (size_t j = 0; j < tracks.size(); ++j) {
-    const RawAnimation::JointTrack& track = tracks[j];
-    if (!ValidateTrack<TranslationKey>(track.translations, duration) ||
-        !ValidateTrack<RotationKey>(track.rotations, duration) ||
-        !ValidateTrack<ScaleKey>(track.scales, duration)) {
-      return false;
-    }
+  bool valid = true;
+  for (size_t i = 0; valid && i < tracks.size(); ++i) {
+    valid = tracks[i].Validate(duration);
+  }
+  return valid;  // *this is valid.
+}
+
+size_t RawAnimation::size() const {
+  size_t size = sizeof(*this);
+
+  // Accumulates keyframes size.
+  const size_t tracks_count = tracks.size();
+  for (size_t i = 0; i < tracks_count; ++i) {
+    size += tracks[i].translations.size() * sizeof(TranslationKey);
+    size += tracks[i].rotations.size() * sizeof(RotationKey);
+    size += tracks[i].scales.size() * sizeof(ScaleKey);
   }
 
-  return true;  // *this is valid.
+  // Accumulates tracks.
+  size += tracks_count * sizeof(JointTrack);
+  size += name.size();
+
+  return size;
 }
+
 }  // namespace offline
 }  // namespace animation
 }  // namespace ozz

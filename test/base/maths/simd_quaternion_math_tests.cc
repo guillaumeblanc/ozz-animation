@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -60,6 +60,9 @@ TEST(QuaternionArithmetic, ozz_simd_math) {
 
   const SimdQuaternion conjugate = Conjugate(a);
   EXPECT_SIMDQUATERNION_EQ(conjugate, -.70710677f, 0.f, 0.f, .70710677f);
+
+  const SimdQuaternion negate = -a;
+  EXPECT_SIMDQUATERNION_EQ(negate, -.70710677f, 0.f, 0.f, -.70710677f);
 
   const SimdQuaternion mul0 = a * conjugate;
   EXPECT_SIMDQUATERNION_EQ(mul0, 0.f, 0.f, 0.f, 1.f);

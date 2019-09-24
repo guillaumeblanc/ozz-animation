@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -31,7 +31,7 @@
 
 #include "ozz/base/maths/gtest_math_helper.h"
 #include "ozz/base/maths/soa_transform.h"
-#include "ozz/base/memory/allocator.h"
+#include "ozz/base/memory/scoped_ptr.h"
 
 #include "ozz/animation/offline/raw_skeleton.h"
 #include "ozz/animation/offline/skeleton_builder.h"
@@ -47,8 +47,8 @@ TEST(JobValidity, LocalToModel) {
   SkeletonBuilder builder;
 
   // Empty skeleton.
-  Skeleton* empty_skeleton = builder(raw_skeleton);
-  ASSERT_TRUE(empty_skeleton != NULL);
+  ozz::ScopedPtr<Skeleton> empty_skeleton(builder(raw_skeleton));
+  ASSERT_TRUE(empty_skeleton);
 
   // Adds 2 joints.
   raw_skeleton.roots.resize(1);
@@ -56,8 +56,8 @@ TEST(JobValidity, LocalToModel) {
   root.name = "root";
   root.children.resize(1);
 
-  Skeleton* skeleton = builder(raw_skeleton);
-  ASSERT_TRUE(skeleton != NULL);
+  ozz::ScopedPtr<Skeleton> skeleton(builder(raw_skeleton));
+  ASSERT_TRUE(skeleton);
 
   ozz::math::SoaTransform input[2] = {ozz::math::SoaTransform::identity(),
                                       ozz::math::SoaTransform::identity()};
@@ -229,9 +229,6 @@ TEST(JobValidity, LocalToModel) {
     EXPECT_TRUE(job.Validate());
     EXPECT_TRUE(job.Run());
   }
-
-  ozz::memory::default_allocator()->Delete(empty_skeleton);
-  ozz::memory::default_allocator()->Delete(skeleton);
 }
 
 TEST(Transformation, LocalToModel) {
@@ -264,8 +261,8 @@ TEST(Transformation, LocalToModel) {
   EXPECT_EQ(raw_skeleton.num_joints(), 6);
 
   SkeletonBuilder builder;
-  Skeleton* skeleton = builder(raw_skeleton);
-  ASSERT_TRUE(skeleton != NULL);
+  ozz::ScopedPtr<Skeleton> skeleton(builder(raw_skeleton));
+  ASSERT_TRUE(skeleton);
 
   // Initializes an input transformation.
   ozz::math::SoaTransform input[2] = {
@@ -344,7 +341,6 @@ TEST(Transformation, LocalToModel) {
     EXPECT_FLOAT4x4_EQ(output[5], -1.f, 0.f, 0.f, 0.f, 0.f, -1.f, 0.f, 0.f, 0.f,
                        0.f, -1.f, 0.f, 4.f, 3.f, 2.f, 1.f);
   }
-  ozz::memory::default_allocator()->Delete(skeleton);
 }
 
 TEST(TransformationFromTo, LocalToModel) {
@@ -386,8 +382,8 @@ TEST(TransformationFromTo, LocalToModel) {
   EXPECT_EQ(raw_skeleton.num_joints(), 8);
 
   SkeletonBuilder builder;
-  Skeleton* skeleton = builder(raw_skeleton);
-  ASSERT_TRUE(skeleton != NULL);
+  ozz::ScopedPtr<Skeleton> skeleton(builder(raw_skeleton));
+  ASSERT_TRUE(skeleton);
 
   // Initializes an input transformation.
   ozz::math::SoaTransform input[2] = {
@@ -804,7 +800,6 @@ TEST(TransformationFromTo, LocalToModel) {
     EXPECT_FLOAT4x4_EQ(output[7], 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f,
                        0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f);
   }
-  ozz::memory::default_allocator()->Delete(skeleton);
 }
 
 TEST(TransformationFromToExclude, LocalToModel) {
@@ -846,8 +841,8 @@ TEST(TransformationFromToExclude, LocalToModel) {
   EXPECT_EQ(raw_skeleton.num_joints(), 8);
 
   SkeletonBuilder builder;
-  Skeleton* skeleton = builder(raw_skeleton);
-  ASSERT_TRUE(skeleton != NULL);
+  ozz::ScopedPtr<Skeleton> skeleton(builder(raw_skeleton));
+  ASSERT_TRUE(skeleton);
 
   // Initializes an input transformation.
   ozz::math::SoaTransform input[2] = {
@@ -1082,7 +1077,6 @@ TEST(TransformationFromToExclude, LocalToModel) {
     EXPECT_FLOAT4x4_EQ(output[7], 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f,
                        0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f);
   }
-  ozz::memory::default_allocator()->Delete(skeleton);
 }
 
 TEST(Empty, LocalToModel) {

@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -69,6 +69,9 @@ struct RawAnimation {
   //  3. Keyframes' time are all within [0,animation duration] range.
   bool Validate() const;
 
+  // Get the estimated animation's size in bytes.
+  size_t size() const;
+
   // Defines a raw translation key frame.
   struct TranslationKey {
     // Key frame time.
@@ -117,6 +120,11 @@ struct RawAnimation {
     Rotations rotations;
     typedef ozz::Vector<ScaleKey>::Std Scales;
     Scales scales;
+
+    // Validates track. See RawAnimation::Validate for more details.
+    // Use an infinite value for _duration if unknown. This will validate
+    // keyframe orders, but not maximum duration.
+    bool Validate(float _duration) const;
   };
 
   // Returns the number of tracks of this animation.

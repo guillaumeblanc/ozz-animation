@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -45,6 +45,8 @@
 
 #include "ozz/base/io/archive.h"
 #include "ozz/base/io/stream.h"
+
+#include "ozz/base/memory/scoped_ptr.h"
 
 #include "ozz/base/log.h"
 
@@ -147,7 +149,7 @@ bool ImportSkeleton(const Json::Value& _config, OzzImporter* _importer,
 
   // Needs to be done before opening the output file, so that if it fails then
   // there's no invalid file outputted.
-  Skeleton* skeleton = NULL;
+  ozz::ScopedPtr<Skeleton> skeleton;
   if (!import_config["raw"].asBool()) {
     // Builds runtime skeleton.
     ozz::log::Log() << "Builds runtime skeleton." << std::endl;
@@ -170,7 +172,6 @@ bool ImportSkeleton(const Json::Value& _config, OzzImporter* _importer,
     if (!file.opened()) {
       ozz::log::Err() << "Failed to open output file: \"" << filename << "\"."
                       << std::endl;
-      ozz::memory::default_allocator()->Delete(skeleton);
       return false;
     }
 
@@ -188,9 +189,6 @@ bool ImportSkeleton(const Json::Value& _config, OzzImporter* _importer,
     ozz::log::Log() << "Skeleton binary archive successfully outputted."
                     << std::endl;
   }
-
-  // Delete local objects.
-  ozz::memory::default_allocator()->Delete(skeleton);
 
   return true;
 }

@@ -1,5 +1,21 @@
 
-Next version
+Next next version
+----------------------
+* Library
+  - [offline] Simplified AnimationOptimizer settings to a single tolerance and distance. Tolerance is the maximum error that an optimization is allowed to generate on a whole joint hierarchy, while the other parameter is the distance (from the joint) at which error is measured. This second paramater allows to emulate effect on skinning or a long object (sword) attached to a joint (hand).
+  - [offline] Adds options to AnimationOptimizer to override optimization settings for a joint. This implicitely have an effect on the whole chain, up to that joint. This allows for example to have aggressive optimization for a whole skeleton, except for the chain that leads to the hand if user wants it to be precise.
+  - [offline] Switches AnimationOptimizer and TrackOptimizer to Ramer–Douglas–Peucker decimation algorithm which delivers better precision than original one. It also ensures that first and last points are preserved, avoiding artefact for looping animations.
+  - [offline] Changes order of parameters for IterateJointsDF so it's less error prone.
+  - [memory] Implements ScopedPtr smart pointer. ScopedPtr implementation guarantees the pointed object will be deleted, either on destruction of the ScopedPtr, or via an explicit reset / reassignation.
+  - [math] Quaternion compare function now takes cosine of half angle as argument, to avoid computing arc cosine for every comparison as the tolerance is usualy constant.
+
+* Samples
+  - [optimize] Exposes joint setting overriding option (from AnimationOptimizer) to sample gui.
+
+* Tools
+  - Moves keyframe reduction stage for additive animations before computing delta with reference pose. This ensures whole skeleton hierarchy is known before decimating keyframes.
+
+Release version 0.11.0
 ----------------------
 * Library
   - [animation] Adds two-bone and aim inverse kinematic solvers. They can be used at runtime to procedurally affect joint local-space transforms.
@@ -22,8 +38,8 @@ Next version
   - [foot_ik] Adds foot-ik sample, which corrects character legs and ankles procedurally at runtime, as well as character/pelvis height, so that the feet can touch and adapt to the ground.
 
 * Build pipeline
- - Adds support for fbx sdk 2019. This version is now mandatory for vs2017 builds.
- - Add support to macos 10.14 Mojave and Xcode 10.0.
+  - Adds support for fbx sdk 2019. This version is now mandatory for vs2017 builds.
+  - Adds support to macos 10.14 Mojave and Xcode 10.0.
 
 * Tools
   - Adds point and vector property types (used to import tracks). These two types are actually float3 types, with scene axis and unit conversion applied.
@@ -31,7 +47,7 @@ Next version
 
 * Build pipeline
   - #40 Adds ozz_build_postfix option.
-  - #41 dds ozz_build_tools option.
+  - #41 Adds ozz_build_tools option.
 
 Release version 0.10.0
 ----------------------

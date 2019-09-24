@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -32,21 +32,19 @@
 #include "ozz/animation/runtime/skeleton.h"
 
 #include "ozz/base/io/stream.h"
-#include "ozz/base/memory/allocator.h"
+#include "ozz/base/memory/scoped_ptr.h"
 
 class TestConverter : public ozz::animation::offline::OzzImporter {
  public:
-  TestConverter() : file_(NULL) {}
-  ~TestConverter() { ozz::memory::default_allocator()->Delete(file_); }
+  TestConverter() {}
+  ~TestConverter() {}
 
  private:
   virtual bool Load(const char* _filename) {
-    ozz::memory::default_allocator()->Delete(file_);
-    file_ =
-        ozz::memory::default_allocator()->New<ozz::io::File>(_filename, "rb");
+    file_.reset(
+        ozz::memory::default_allocator()->New<ozz::io::File>(_filename, "rb"));
     if (!file_->opened()) {
-      ozz::memory::default_allocator()->Delete(file_);
-      file_ = NULL;
+      file_.reset(NULL);
       return false;
     }
 
@@ -263,7 +261,7 @@ class TestConverter : public ozz::animation::offline::OzzImporter {
     return found;
   }
 
-  ozz::io::File* file_;
+  ozz::ScopedPtr<ozz::io::File> file_;
 };
 
 int main(int _argc, const char** _argv) {

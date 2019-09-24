@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -32,7 +32,7 @@
 
 #include "ozz/base/io/archive.h"
 #include "ozz/base/io/stream.h"
-#include "ozz/base/memory/allocator.h"
+#include "ozz/base/memory/scoped_ptr.h"
 
 #include "ozz/animation/runtime/track_sampling_job.h"
 
@@ -85,8 +85,8 @@ TEST(Name, TrackSerialize) {
   {  // No name
     RawFloatTrack raw_float_track;
 
-    FloatTrack* o_track = builder(raw_float_track);
-    ASSERT_TRUE(o_track != NULL);
+    ozz::ScopedPtr<FloatTrack> o_track(builder(raw_float_track));
+    ASSERT_TRUE(o_track);
 
     // Streams out.
     {
@@ -103,16 +103,14 @@ TEST(Name, TrackSerialize) {
     i >> i_track;
 
     EXPECT_STREQ(o_track->name(), i_track.name());
-
-    ozz::memory::default_allocator()->Delete(o_track);
   }
 
   {  // A name
     RawFloatTrack raw_float_track;
     raw_float_track.name = "test name";
 
-    FloatTrack* o_track = builder(raw_float_track);
-    ASSERT_TRUE(o_track != NULL);
+    ozz::ScopedPtr<FloatTrack> o_track(builder(raw_float_track));
+    ASSERT_TRUE(o_track);
 
     // Streams out.
     {
@@ -129,14 +127,12 @@ TEST(Name, TrackSerialize) {
     i >> i_track;
 
     EXPECT_STREQ(o_track->name(), i_track.name());
-
-    ozz::memory::default_allocator()->Delete(o_track);
   }
 }
 
 TEST(FilledFloat, TrackSerialize) {
   // Builds a valid animation.
-  FloatTrack* o_track = NULL;
+  ozz::ScopedPtr<FloatTrack> o_track;
   {
     TrackBuilder builder;
     RawFloatTrack raw_float_track;
@@ -153,7 +149,7 @@ TEST(FilledFloat, TrackSerialize) {
 
     // Builds track
     o_track = builder(raw_float_track);
-    ASSERT_TRUE(o_track != NULL);
+    ASSERT_TRUE(o_track);
   }
 
   for (int e = 0; e < 2; ++e) {
@@ -191,7 +187,6 @@ TEST(FilledFloat, TrackSerialize) {
     ASSERT_TRUE(sampling.Run());
     EXPECT_FLOAT_EQ(result, 0.f);
   }
-  ozz::memory::default_allocator()->Delete(o_track);
 }
 
 TEST(FilledFloat2, TrackSerialize) {
@@ -209,8 +204,8 @@ TEST(FilledFloat2, TrackSerialize) {
   raw_float2_track.keyframes.push_back(key2);
 
   // Builds track
-  Float2Track* o_track = builder(raw_float2_track);
-  ASSERT_TRUE(o_track != NULL);
+  ozz::ScopedPtr<Float2Track> o_track(builder(raw_float2_track));
+  ASSERT_TRUE(o_track);
 
   ozz::io::MemoryStream stream;
 
@@ -244,8 +239,6 @@ TEST(FilledFloat2, TrackSerialize) {
   sampling.ratio = 1.f;
   ASSERT_TRUE(sampling.Run());
   EXPECT_FLOAT2_EQ(result, 0.f, 5.f);
-
-  ozz::memory::default_allocator()->Delete(o_track);
 }
 
 TEST(FilledFloat3, TrackSerialize) {
@@ -263,8 +256,8 @@ TEST(FilledFloat3, TrackSerialize) {
   raw_float3_track.keyframes.push_back(key2);
 
   // Builds track
-  Float3Track* o_track = builder(raw_float3_track);
-  ASSERT_TRUE(o_track != NULL);
+  ozz::ScopedPtr<Float3Track> o_track(builder(raw_float3_track));
+  ASSERT_TRUE(o_track);
 
   ozz::io::MemoryStream stream;
 
@@ -298,8 +291,6 @@ TEST(FilledFloat3, TrackSerialize) {
   sampling.ratio = 1.f;
   ASSERT_TRUE(sampling.Run());
   EXPECT_FLOAT3_EQ(result, 0.f, 5.f, 0.f);
-
-  ozz::memory::default_allocator()->Delete(o_track);
 }
 
 TEST(FilledFloat4, TrackSerialize) {
@@ -319,8 +310,8 @@ TEST(FilledFloat4, TrackSerialize) {
   raw_float4_track.keyframes.push_back(key2);
 
   // Builds track
-  Float4Track* o_track = builder(raw_float4_track);
-  ASSERT_TRUE(o_track != NULL);
+  ozz::ScopedPtr<Float4Track> o_track(builder(raw_float4_track));
+  ASSERT_TRUE(o_track);
 
   ozz::io::MemoryStream stream;
 
@@ -354,8 +345,6 @@ TEST(FilledFloat4, TrackSerialize) {
   sampling.ratio = 1.f;
   ASSERT_TRUE(sampling.Run());
   EXPECT_FLOAT4_EQ(result, 0.f, 5.f, 0.f, 0.f);
-
-  ozz::memory::default_allocator()->Delete(o_track);
 }
 
 TEST(FilledQuaternion, TrackSerialize) {
@@ -376,8 +365,8 @@ TEST(FilledQuaternion, TrackSerialize) {
   raw_quat_track.keyframes.push_back(key2);
 
   // Builds track
-  QuaternionTrack* o_track = builder(raw_quat_track);
-  ASSERT_TRUE(o_track != NULL);
+  ozz::ScopedPtr<QuaternionTrack> o_track(builder(raw_quat_track));
+  ASSERT_TRUE(o_track);
 
   ozz::io::MemoryStream stream;
 
@@ -411,8 +400,6 @@ TEST(FilledQuaternion, TrackSerialize) {
   sampling.ratio = 1.f;
   ASSERT_TRUE(sampling.Run());
   EXPECT_QUATERNION_EQ(result, 1.f, 0.f, 0.f, 0.f);
-
-  ozz::memory::default_allocator()->Delete(o_track);
 }
 
 TEST(AlreadyInitialized, TrackSerialize) {
@@ -435,11 +422,10 @@ TEST(AlreadyInitialized, TrackSerialize) {
     raw_float_track.keyframes.push_back(key2);
 
     // Builds track
-    FloatTrack* o_track = builder(raw_float_track);
-    ASSERT_TRUE(o_track != NULL);
+    ozz::ScopedPtr<FloatTrack> o_track(builder(raw_float_track));
+    ASSERT_TRUE(o_track);
 
     o << *o_track;
-    ozz::memory::default_allocator()->Delete(o_track);
 
     // Builds 2nd track
     const RawFloatTrack::Keyframe key3 = {RawTrackInterpolation::kStep, .9f,
@@ -447,9 +433,8 @@ TEST(AlreadyInitialized, TrackSerialize) {
     raw_float_track.keyframes.push_back(key3);
 
     o_track = builder(raw_float_track);
-    ASSERT_TRUE(o_track != NULL);
+    ASSERT_TRUE(o_track);
     o << *o_track;
-    ozz::memory::default_allocator()->Delete(o_track);
   }
 
   {

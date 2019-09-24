@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -237,11 +237,11 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
     // body weights. Note that they are stored in SoA format.
     WeightSetupIterator lower_it(&lower_body_sampler.joint_weights,
                                  lower_body_sampler.joint_weight_setting);
-    ozz::animation::IterateJointsDF(skeleton_, upper_body_root_, lower_it);
+    ozz::animation::IterateJointsDF(skeleton_, lower_it, upper_body_root_);
 
     WeightSetupIterator upper_it(&upper_body_sampler.joint_weights,
                                  upper_body_sampler.joint_weight_setting);
-    ozz::animation::IterateJointsDF(skeleton_, upper_body_root_, upper_it);
+    ozz::animation::IterateJointsDF(skeleton_, upper_it, upper_body_root_);
   }
 
   virtual void OnDestroy() {}

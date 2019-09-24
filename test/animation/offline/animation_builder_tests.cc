@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -31,7 +31,7 @@
 #include "ozz/base/maths/gtest_math_helper.h"
 
 #include "ozz/base/maths/soa_transform.h"
-#include "ozz/base/memory/allocator.h"
+#include "ozz/base/memory/scoped_ptr.h"
 
 #include "ozz/animation/offline/raw_animation.h"
 
@@ -83,9 +83,8 @@ TEST(Error, AnimationBuilder) {
     EXPECT_TRUE(raw_animation.Validate());
 
     // Builds animation
-    Animation* anim = builder(raw_animation);
-    EXPECT_TRUE(anim != NULL);
-    ozz::memory::default_allocator()->Delete(anim);
+    ozz::ScopedPtr<Animation> anim(builder(raw_animation));
+    EXPECT_TRUE(anim);
   }
 
   {  // Building an animation with max joints succeeds.
@@ -95,9 +94,8 @@ TEST(Error, AnimationBuilder) {
     EXPECT_TRUE(raw_animation.Validate());
 
     // Builds animation
-    Animation* anim = builder(raw_animation);
-    EXPECT_TRUE(anim != NULL);
-    ozz::memory::default_allocator()->Delete(anim);
+    ozz::ScopedPtr<Animation> anim(builder(raw_animation));
+    EXPECT_TRUE(anim);
   }
 }
 
@@ -168,11 +166,10 @@ TEST(Build, AnimationBuilder) {
     raw_animation.tracks.resize(46);
 
     // Builds animation
-    Animation* anim = builder(raw_animation);
-    EXPECT_TRUE(anim != NULL);
+    ozz::ScopedPtr<Animation> anim(builder(raw_animation));
+    EXPECT_TRUE(anim);
     EXPECT_EQ(anim->duration(), 46.f);
     EXPECT_EQ(anim->num_tracks(), 46);
-    ozz::memory::default_allocator()->Delete(anim);
   }
 
   {  // Building a valid Animation with 1 track succeeds.
@@ -184,11 +181,10 @@ TEST(Build, AnimationBuilder) {
     raw_animation.tracks[0].translations.push_back(first_key);
 
     // Builds animation
-    Animation* anim = builder(raw_animation);
-    EXPECT_TRUE(anim != NULL);
+    ozz::ScopedPtr<Animation> anim(builder(raw_animation));
+    EXPECT_TRUE(anim);
     EXPECT_EQ(anim->duration(), 46.f);
     EXPECT_EQ(anim->num_tracks(), 1);
-    ozz::memory::default_allocator()->Delete(anim);
   }
 }
 
@@ -202,12 +198,11 @@ TEST(Name, AnimationBuilder) {
     raw_animation.tracks.resize(46);
 
     // Builds animation
-    Animation* anim = builder(raw_animation);
-    EXPECT_TRUE(anim != NULL);
+    ozz::ScopedPtr<Animation> anim(builder(raw_animation));
+    EXPECT_TRUE(anim);
 
     // Should
     EXPECT_STREQ(anim->name(), "");
-    ozz::memory::default_allocator()->Delete(anim);
   }
 
   {  // Building an unnamed animation.
@@ -217,12 +212,11 @@ TEST(Name, AnimationBuilder) {
     raw_animation.name = "46";
 
     // Builds animation
-    Animation* anim = builder(raw_animation);
-    EXPECT_TRUE(anim != NULL);
+    ozz::ScopedPtr<Animation> anim(builder(raw_animation));
+    EXPECT_TRUE(anim);
 
     // Should
     EXPECT_STREQ(anim->name(), "46");
-    ozz::memory::default_allocator()->Delete(anim);
   }
 }
 
@@ -298,8 +292,8 @@ TEST(Sort, AnimationBuilder) {
     raw_animation.tracks[3].translations.push_back(n);
 
     // Builds animation
-    Animation* animation = builder(raw_animation);
-    ASSERT_TRUE(animation != NULL);
+    ozz::ScopedPtr<Animation> animation(builder(raw_animation));
+    ASSERT_TRUE(animation);
 
     // Duration must be maintained.
     EXPECT_EQ(animation->duration(), raw_animation.duration);
@@ -350,7 +344,5 @@ TEST(Sort, AnimationBuilder) {
       EXPECT_SOAFLOAT3_EQ_EST(output[0].translation, 3.f, 8.f, 5.f, 4.f, 0.f,
                               0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
     }
-
-    ozz::memory::default_allocator()->Delete(animation);
   }
 }
