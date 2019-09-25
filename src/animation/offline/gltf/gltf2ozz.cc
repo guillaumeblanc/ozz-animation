@@ -124,7 +124,7 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
     ozz::Set<std::string>::Std names;
     for (size_t i = 0; i < _data.size(); ++i) {
       bool renamed = false;
-      _VectorType::const_reference data = _data[i];
+      typename _VectorType::const_reference data = _data[i];
 
       std::string name(data.name.c_str());
 
@@ -508,7 +508,7 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
 
     _keyframes.resize(_output.count);
     for (size_t i = 0; i < _output.count; ++i) {
-      _KeyframesType::reference key = _keyframes[i];
+      typename _KeyframesType::reference key = _keyframes[i];
       key.time = _timestamps[i];
       key.value = values[i];
     }
@@ -534,12 +534,12 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
     const float eps = 1e-6f;
 
     for (size_t i = 0; i < _output.count; i++) {
-      _KeyframesType::reference key = _keyframes[i * 2];
+      typename _KeyframesType::reference key = _keyframes[i * 2];
       key.time = timestamps[i];
       key.value = values[i];
 
       if (i < _output.count - 1) {
-        _KeyframesType::reference next_key = _keyframes[i * 2 + 1];
+        typename _KeyframesType::reference next_key = _keyframes[i * 2 + 1];
         next_key.time = timestamps[i + 1] - eps;
         next_key.value = values[i];
       }
@@ -587,7 +587,7 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
       const ValueType m1 =
           values[(currentKey + 1) * 3] * (nextTime - currentTime);
 
-      _KeyframesType::reference key = _keyframes[i];
+      typename _KeyframesType::reference key = _keyframes[i];
       key.time = time;
       key.value = SampleHermiteSpline(t, p0, m0, p1, m1);
     }
