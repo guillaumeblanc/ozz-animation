@@ -24,7 +24,7 @@
           {
             "name" : "camera", //  Specific setting for the camera.
             "tolerance" : 0.001,
-            "distance" : 1.  // 2m, x10 as camera is scaled to .1
+            "distance" : 20.  // 2m, x10 as camera is scaled to .1
           }
         ]
       }
