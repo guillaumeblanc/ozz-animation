@@ -183,6 +183,33 @@ bool SampleStepChannel(const tinygltf::Model& _model,
   return true;
 }
 
+// Samples a hermite spline in the form
+// p(t) = (2t^3 - 3t^2 + 1)p0 + (t^3 - 2t^2 + t)m0 + (-2t^3 + 3t^2)p1 + (t^3 -
+// t^2)m1 where t is a value between 0 and 1 p0 is the starting point at t = 0
+// m0 is the scaled starting tangent at t = 0
+// p1 is the ending point at t = 1
+// m1 is the scaled ending tangent at t = 1
+// p(t) is the resulting point value
+template <typename T>
+T SampleHermiteSpline(float t, const T& p0, const T& m0, const T& p1,
+                      const T& m1) {
+  const float t2 = t * t;
+  const float t3 = t2 * t;
+
+  // a = 2t^3 - 3t^2 + 1
+  const float a = 2.0f * t3 - 3.0f * t2 + 1.0f;
+  // b = t^3 - 2t^2 + t
+  const float b = t3 - 2.0f * t2 + t;
+  // c = -2t^3 + 3t^2
+  const float c = -2.0f * t3 + 3.0f * t2;
+  // d = t^3 - t^2
+  const float d = t3 - t2;
+
+  // p(t) = a * p0 + b * m0 + c * p1 + d * m1
+  T pt = p0 * a + m0 * b + p1 * c + m1 * d;
+  return pt;
+}
+
 // Samples a cubic-spline channel
 // the number of keyframes is determined from the animation duration and given
 // sample rate
@@ -228,33 +255,6 @@ bool SampleCubicSplineChannel(const tinygltf::Model& _model,
   }
 
   return true;
-}
-
-// Samples a hermite spline in the form
-// p(t) = (2t^3 - 3t^2 + 1)p0 + (t^3 - 2t^2 + t)m0 + (-2t^3 + 3t^2)p1 + (t^3 -
-// t^2)m1 where t is a value between 0 and 1 p0 is the starting point at t = 0
-// m0 is the scaled starting tangent at t = 0
-// p1 is the ending point at t = 1
-// m1 is the scaled ending tangent at t = 1
-// p(t) is the resulting point value
-template <typename T>
-T SampleHermiteSpline(float t, const T& p0, const T& m0, const T& p1,
-                      const T& m1) {
-  const float t2 = t * t;
-  const float t3 = t2 * t;
-
-  // a = 2t^3 - 3t^2 + 1
-  const float a = 2.0f * t3 - 3.0f * t2 + 1.0f;
-  // b = t^3 - 2t^2 + t
-  const float b = t3 - 2.0f * t2 + t;
-  // c = -2t^3 + 3t^2
-  const float c = -2.0f * t3 + 3.0f * t2;
-  // d = t^3 - t^2
-  const float d = t3 - t2;
-
-  // p(t) = a * p0 + b * m0 + c * p1 + d * m1
-  T pt = p0 * a + m0 * b + p1 * c + m1 * d;
-  return pt;
 }
 
 ozz::animation::offline::RawAnimation::TranslationKey
