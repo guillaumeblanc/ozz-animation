@@ -50,8 +50,7 @@ namespace simd_float4 {
 #ifdef OZZ_SIMD_AVX
 #define OZZ_SHUFFLE_PS1(_v, _m) _mm_permute_ps(_v, _m)
 #else  // OZZ_SIMD_AVX
-#define OZZ_SHUFFLE_PS1(_v, _m) \
-  _mm_castsi128_ps(_mm_shuffle_epi32(_mm_castps_si128(_v), _m))
+#define OZZ_SHUFFLE_PS1(_v, _m) _mm_shuffle_ps(_v, _v, _m)
 #endif  // OZZ_SIMD_AVX
 
 #define OZZ_SSE_SPLAT_F(_v, _i) OZZ_SHUFFLE_PS1(_v, _MM_SHUFFLE(_i, _i, _i, _i))
