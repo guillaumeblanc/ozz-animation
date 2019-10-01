@@ -1,3 +1,5 @@
-build/
-build-cc/
+build/**
+build-cc/**
 .DS_Store
+.R*
+

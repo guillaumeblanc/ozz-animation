@@ -1,0 +1,361 @@
+---
+title: "ozz-animation comparative report"
+author: "Guillaume Blanc"
+date: "7/30/2019"
+output:
+  html_document:
+    keep_md: yes
+    self_contained: yes
+params:
+  path: "."
+  reference: "reference"
+  vertex_distance: .1
+  subset_data: FALSE
+  details: TRUE
+---
+
+```{r setup, include=FALSE, echo = FALSE}
+library("ggplot2")
+library("reshape2")
+library("dplyr")
+library("gganimate")
+library("gifski")
+library("grid")
+library("RColorBrewer")
+
+#, dev = "svglite", fig.ext = ".svg"
+
+knitr::opts_chunk$set(results = "asis", fig.width = 6, fig.asp = 0.618, fig.align = "center", echo = FALSE)
+
+# Finds and load all relevant experiences in path
+ldf <- ozzr::LoadExperiences(params$path, params$reference)
+experiences <- ldf$experiences
+models <- ldf$models
+locals <- ldf$locals
+memory <- ldf$memory
+tracks <- ldf$tracks
+
+# Computes errors
+locals_ref <- locals %>% dplyr::filter(experience == params$reference)
+models_ref <- models %>% dplyr::filter(experience == params$reference)
+
+models$skinning_error <- ozzr::ComputeSkinningError(models, models_ref, params$vertex_distance)
+
+locals$t.e <- ozzr::ComputeTranslationError(locals, locals_ref)
+models$t.e <- ozzr::ComputeTranslationError(models, models_ref)
+
+locals$r.e <- ozzr::ComputeRotationError(locals, locals_ref, params$vertex_distance)
+models$r.e <- ozzr::ComputeRotationError(models, models_ref, params$vertex_distance)
+
+locals$s.e <- ozzr::ComputeScaleError(locals, locals_ref)
+models$s.e <- ozzr::ComputeScaleError(models, models_ref)
+
+rotation_error_msg <- paste("Rotation error (transformation error in mm at a distance of", params$vertex_distance, "m)")
+
+# Rebuilds refs
+locals_ref <- locals %>% dplyr::filter(experience == params$reference)
+models_ref <- models %>% dplyr::filter(experience == params$reference)
+locals_nref <- locals %>% dplyr::filter(experience != params$reference)
+models_nref <- models %>% dplyr::filter(experience != params$reference)
+
+# Plotting helpers
+
+# Give palette entries a name so the color of each experience is the same for every graph
+palette_experiences <- setNames(brewer.pal(length(experiences),"Set2"), experiences)
+
+plot_error_density <- function(df, col, xlabel = "Error value") {
+  p1 <- df %>%
+    ggplot() +
+      geom_density(aes(x=col, color=experience, fill=experience), alpha = .5) +
+      labs(color = "Experience name", fill = "Experience name") +
+      xlab(NULL) +
+      ylab("Density") +
+      scale_fill_manual(values = palette_experiences) +
+      scale_colour_manual(values = palette_experiences)
+  
+  p2 <- df %>%
+    ggplot() +
+      geom_boxplot(aes(x=experience, y=col, color=experience, fill=experience), alpha = .5) +
+      scale_colour_manual(values = palette_experiences) +
+      scale_fill_manual(values = palette_experiences) +
+      labs(color = "Experience name", fill = "Experience name") +
+      xlab("Experience name") +
+      ylab(xlabel) +
+      coord_flip()
+  
+  grid.newpage()
+  grid.draw(rbind(ggplotGrob(p1), ggplotGrob(p2), size = "last"))
+}
+
+plot_error_per_joint <- function(df, col, xlabel = "Error value") {
+  p <- df %>%
+    ggplot(aes(x=name, y=col, color=experience)) +
+      geom_boxplot() +
+      labs(color = "Experience name") +
+      xlab("Joint name") +
+      ylab(xlabel) +
+      scale_colour_manual(values = palette_experiences) +
+      coord_flip()
+  plot(p)
+}
+
+plot_details <- function(df, cols, err, ylabel1, ylabel2) {
+    
+  for (n in levels(df$name)) {
+    
+    cat('\n\n')
+    cat("##### ", n, '\n')
+    cat('\n\n')
+    
+    filtered <- df %>% filter(name == n)
+    
+    melted <- filtered %>%
+      select(name, experience, time, cols) %>%
+      melt(id = c("name", "experience", "time"), variable="axis")
+    
+    p1 <- melted %>%
+      ggplot() +
+        geom_line(aes(x = time, y = value, color=experience)) +
+        scale_colour_manual(values = palette_experiences) +
+        labs(color = "Experience name") +
+        xlab("Animation time") +
+        ylab(ylabel1) +
+        facet_wrap(vars(axis), scales="free_y")
+    plot(p1)
+    
+    p2 <- filtered %>%
+      select(experience, time, y = err) %>%
+      ggplot() +
+        geom_line(aes(x = time, y = y, color=experience)) +
+        labs(color = "Experience name") +
+        xlab("Animation time") +
+        ylab(ylabel2) +
+        scale_colour_manual(values = palette_experiences)
+    plot(p2)
+  }
+}
+
+figure_aspect <- function(n = 1) {
+  return (0.614 + n * 0.04)
+}
+```
+
+# Comparative report {.tabset}
+
+This report compares memory footprint, precision and performance of `r nlevels(models$experience)` experiences:
+
+`r paste0("  - ", levels(models$experience), "\n", collapse="")`
+
+"`r params$reference`" experience is considered as the reference one.
+
+## Overview
+
+The following graphs shows model-space xy translation values for each experience.
+
+```{r xy animation}
+duration <- as.double(max(models$time))
+nframes <- as.integer(duration * 30)
+renderer = gifski_renderer()
+
+p_xy <- models %>%
+  ggplot() +
+  geom_point(aes(x = t.x, y = t.y, color=skinning_error)) +
+    scale_colour_gradient(low = "green", high = "red") + 
+    facet_wrap(vars(experience), nrow=1) +
+    ggtitle("Model-space xy translations for each experience") +
+    labs(title = "Time {frame_time}", color="Skinning error (mm)") +
+    xlab("Model-space x") +
+    ylab("Model-space y") +
+    transition_time(time) +
+    shadow_null()
+plot(p_xy)
+#animate(p_xy, renderer = renderer, nframes=nframes, duration=duration)
+```
+
+### Memory footprint
+
+Displays animation size (in byte) for each experience.
+
+```{r memory}
+bp <- memory %>%
+  ggplot(aes(x=experience, y=size / 1024, color=experience, fill=experience)) +
+  geom_bar(stat="identity", alpha = 0.1) +
+  labs(color = "Experience name", fill = "Experience name") +
+  xlab("Experience name") +
+  ylab("Animation size (KB)") +
+  scale_colour_manual(values = palette_experiences) +
+  scale_fill_manual(values = palette_experiences)
+plot(bp)
+```
+
+### Skinning error estimation
+
+Simulates skinning computation for a vertex at a distance 'r params$vertex_distance'm from each joint. This defines a model-space error metric, that takes into account translations, rotations and scales at once.
+Error is measured compared to the reference experience.
+
+```{r virtual vertex error density, fig.asp = figure_aspect(2)}
+plot_error_density(models_nref, models_nref$skinning_error, xlabel = "Skinning error (mm)")
+```
+
+The same skinning error metric is then rendered per joint, allowing to understand which joints contribute to the global error density.
+Note that this error metric is model-space, so the error can actually be built from the accumulated error of the whole hierarchy. It is recommended to look at local-space metrics for a deeper understanding.
+
+```{r virtual vertex error per joint, fig.asp = figure_aspect(nlevels(models$joint))}
+plot_error_per_joint(models_nref, models_nref$skinning_error, xlabel = "Skinning error (mm)")
+```
+
+### Tracks distibution {.tabset}
+
+This section allows to see how tracks were decimated in term of keyframe quantity. One should look at details section for qualitative metrics.
+
+#### Translations
+```{r Translation tracks, fig.asp = figure_aspect(nlevels(models$joint))}
+bp <- tracks %>%
+  ggplot(aes(x=name, y=translations, color=experience, fill=experience)) +
+  geom_col(position = "dodge", alpha = 0.1) +
+  labs(color = "Experience name", fill = "Experience name") +
+  xlab("Joint name") +
+  ylab("Keys count") +
+  scale_colour_manual(values = palette_experiences) +
+  scale_fill_manual(values = palette_experiences) +
+  coord_flip()
+plot(bp)
+```
+
+#### Rotations
+```{r Rotation tracks, fig.asp = figure_aspect(nlevels(models$joint))}
+bp <- tracks %>%
+  ggplot(aes(x=name, y=rotations, color=experience, fill=experience)) +
+  geom_col(position = "dodge", alpha = 0.1) +
+  labs(color = "Experience name", fill = "Experience name") +
+  xlab("Joint name") +
+  ylab("Keys count") +
+  scale_colour_manual(values = palette_experiences) +
+  scale_fill_manual(values = palette_experiences) +
+  coord_flip()
+plot(bp)
+```
+
+#### Scales
+```{r Scale tracks, fig.asp = figure_aspect(nlevels(models$joint))}
+bp <- tracks %>%
+  ggplot(aes(x=name, y=scales, color=experience, fill=experience)) +
+  geom_col(position = "dodge", alpha = 0.1) +
+  labs(color = "Experience name", fill = "Experience name") +
+  xlab("Joint name") +
+  ylab("Keys count") +
+  scale_colour_manual(values = palette_experiences) +
+  scale_fill_manual(values = palette_experiences) +
+  coord_flip()
+plot(bp)
+```
+
+## Details {.tabset}
+
+Show curves for translations, rotations and scales components, alongside the error compared to the reference experience, in both model and local space.
+This allows to dive into error metrics for every joint and component type, allowing to properly understand where decimation/quantization error comes from.
+
+### Translations {.tabset}
+
+#### Model-space
+
+Distribution of model-space translation error (distance in meters with reference experience).
+
+```{r model-space translation error density}
+plot_error_density(models_nref, models_nref$t.e, xlabel = "Translation error (mm)")
+```
+
+```{r model-space translation error per joint, fig.asp = figure_aspect(nlevels(models$joint))}
+plot_error_per_joint(models_nref, models_nref$t.e, xlabel = "Translation error (mm)")
+```
+
+```{r model-space translation curves, eval = params$details}
+plot_details(models, c("t.x", "t.y", "t.z"), "t.e", ylabel1="Translation components (m)", ylabel2="Translation error (mm)")
+```
+
+#### Local-space
+
+Distribution of local-space translation error (distance in meters with reference experience).
+
+```{r local-space translation error density}
+plot_error_density(locals_nref, locals_nref$t.e, xlabel = "Translation error (mm)")
+```
+
+```{r local-space translation error per joint, fig.asp = figure_aspect(nlevels(models$joint))}
+plot_error_per_joint(locals_nref, locals_nref$t.e, xlabel = "Translation error (mm)")
+```
+
+```{r local-space translation curves, eval = params$details}
+plot_details(locals, c("t.x", "t.y", "t.z"), "t.e", ylabel1="Translation components (m)", ylabel2="Translation error (mm)")
+```
+
+### Rotations {.tabset}
+
+Rotation error is not computed as an angle. Computing an angle from a quaternion requires it to be normalized with high precision, which is not guaranteed from the input data. So instead we're computing the transformation of a vertex by said quaternion, which allows to compare quaternions from each others.
+
+#### Model-space
+
+Distribution of model-space 'rotation_error_msg'.
+
+```{r model-space rotation error density}
+plot_error_density(models_nref, models_nref$r.e, xlabel = rotation_error_msg)
+```
+
+```{r model-space rotation error per joint, fig.asp = figure_aspect(nlevels(models$joint))}
+plot_error_per_joint(models_nref, models_nref$r.e, xlabel = rotation_error_msg)
+```
+
+```{r model-space rotation curves, eval = params$details}
+plot_details(models, c("r.x", "r.y", "r.z", "r.w"), "r.e", ylabel1="Quaternion components", ylabel2=rotation_error_msg)
+```
+
+#### Local-space
+
+Distribution of local-space 'rotation_error_msg'.
+
+```{r local-space rotation error density}
+plot_error_density(locals_nref, locals_nref$r.e, xlabel = rotation_error_msg)
+```
+
+```{r local-space rotation error per joint, fig.asp = figure_aspect(nlevels(models$joint))}
+plot_error_per_joint(locals_nref, locals_nref$r.e, xlabel = rotation_error_msg)
+```
+
+```{r local-space rotation curves, eval = params$details}
+plot_details(locals, c("r.x", "r.y", "r.z", "r.w"), "r.e", ylabel1="Quaternion components", ylabel2=rotation_error_msg)
+```
+
+### Scales {.tabset}
+
+#### Model-space
+
+Distribution of models-space scale error (ratio with reference experience).
+
+```{r model-space scale error density}
+plot_error_density(models_nref, models_nref$s.e, xlabel = "Scale error (ratio)")
+```
+
+```{r model-space scale error per joint, fig.asp = figure_aspect(nlevels(models$joint))}
+plot_error_per_joint(models_nref, models_nref$s.e, xlabel = "Scale error (ratio)")
+```
+
+```{r model-space scale curves, eval = params$details}
+plot_details(models, c("s.x", "s.y", "s.z"), "s.e", ylabel1="Scale components", ylabel2="Scale difference")
+```
+
+#### Local-space
+
+Distribution of local-space scale error (ratio with reference experience).
+
+```{r local-space scale error density}
+plot_error_density(locals_nref, locals_nref$s.e, xlabel = "Scale error (ratio)")
+```
+
+```{r local-space scale error per joint, fig.asp = figure_aspect(nlevels(models$joint))}
+plot_error_per_joint(locals_nref, locals_nref$s.e, xlabel = "Scale error (ratio)")
+```
+
+```{r local-space scale curves, eval = params$details}
+plot_details(locals, c("s.x", "s.y", "s.z"), "s.e", ylabel1="Scale components", ylabel2="Scale difference")
+```
+

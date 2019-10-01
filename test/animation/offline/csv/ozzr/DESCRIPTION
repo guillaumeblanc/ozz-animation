@@ -1,0 +1,12 @@
+Package: ozzr
+Type: Package
+Title: Compares ozz csv files
+Version: 0.1.0
+Date: 2019-08-01
+Authors@R: person("Guillaume", "Blanc", email = "guillaumeblanc.sc@gmail.com", role = c("aut", "cre", "cph"))
+Description: Performs data analysis of csv files generated from ozz2csv.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Imports: ggplot2, dplyr, reshape2, gganimate, gifski, png, rmarkdown, RColorBrewer, grid
+Suggests: testthat
