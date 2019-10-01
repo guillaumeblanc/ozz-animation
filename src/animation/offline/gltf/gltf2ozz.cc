@@ -60,6 +60,291 @@
 #pragma warning(pop)
 #endif  // _MSC_VER
 
+namespace {
+
+template <typename _VectorType>
+bool FixupNames(_VectorType& _data, const char* _pretty_name,
+                const char* _prefix_name) {
+  ozz::Set<std::string>::Std names;
+  for (size_t i = 0; i < _data.size(); ++i) {
+    bool renamed = false;
+    typename _VectorType::const_reference data = _data[i];
+
+    std::string name(data.name.c_str());
+
+    // Fixes unnamed animations.
+    if (name.length() == 0) {
+      renamed = true;
+      name = _prefix_name;
+      name += std::to_string(i);
+    }
+
+    // Fixes duplicated names, while it has duplicates
+    for (auto it = names.find(name); it != names.end(); it = names.find(name)) {
+      renamed = true;
+      name += "_";
+      name += std::to_string(i);
+    }
+
+    // Update names index.
+    if (!names.insert(name).second) {
+      assert(false && "Algorithm must ensure no duplicated animation names.");
+    }
+
+    if (renamed) {
+      ozz::log::LogV() << _pretty_name << " #" << i << " with name \""
+                       << data.name << "\" was renamed to \"" << name
+                       << "\" in order to avoid duplicates." << std::endl;
+
+      // Actually renames tinygltf data.
+      _data[i].name = name;
+    }
+  }
+
+  return true;
+}
+
+// Returns the address of a gltf buffer given an accessor.
+// Performs basic checks to ensure the data is in the correct format
+template <typename T>
+const T* BufferView(const tinygltf::Model& _model,
+                    const tinygltf::Accessor& _accessor) {
+  const int32_t component_size =
+      tinygltf::GetComponentSizeInBytes(_accessor.componentType);
+  const int32_t element_size =
+      component_size * tinygltf::GetTypeSizeInBytes(_accessor.type);
+  if (element_size != sizeof(T)) {
+    ozz::log::Err() << "Invalid buffer view access. Expected element size '"
+                    << sizeof(T) << " got " << element_size << " instead."
+                    << std::endl;
+    return nullptr;
+  }
+
+  const tinygltf::BufferView& bufferView = _model.bufferViews[_accessor.bufferView];
+  const tinygltf::Buffer& buffer = _model.buffers[bufferView.buffer];
+  return reinterpret_cast<const T*>(buffer.data.data() + bufferView.byteOffset +
+                                    _accessor.byteOffset);
+}
+
+// Samples a linear animation channel
+// There is an exact mapping between gltf and ozz keyframes so we just copy
+// everything over.
+template <typename _KeyframesType>
+bool SampleLinearChannel(const tinygltf::Model& _model,
+                         const tinygltf::Accessor& _output,
+                         const float* _timestamps, _KeyframesType* _keyframes) {
+  typedef typename _KeyframesType::value_type::Value ValueType;
+
+  const ValueType* values = BufferView<ValueType>(_model, _output);
+  if (values == nullptr) {
+    return false;
+  }
+
+  _keyframes->resize(_output.count);
+  for (size_t i = 0; i < _output.count; ++i) {
+    typename _KeyframesType::reference key = _keyframes->at(i);
+    key.time = _timestamps[i];
+    key.value = values[i];
+  }
+
+  return true;
+}
+
+// Samples a step animation channel
+// There are twice as many ozz keyframes as gltf keyframes
+template <typename _KeyframesType>
+bool SampleStepChannel(const tinygltf::Model& _model,
+                       const tinygltf::Accessor& _output,
+                       const float* timestamps, _KeyframesType* _keyframes) {
+  typedef typename _KeyframesType::value_type::Value ValueType;
+  const ValueType* values = BufferView<ValueType>(_model, _output);
+  if (values == nullptr) {
+    return false;
+  }
+
+  // A step is created with 2 consecutive keys. Last step is a single key.
+  size_t numKeyframes = _output.count * 2 - 1;
+  _keyframes->resize(numKeyframes);
+
+  const float eps = 1e-6f;
+
+  for (size_t i = 0; i < _output.count; i++) {
+    typename _KeyframesType::reference key = _keyframes->at(i * 2);
+    key.time = timestamps[i];
+    key.value = values[i];
+
+    if (i < _output.count - 1) {
+      typename _KeyframesType::reference next_key = _keyframes->at(i * 2 + 1);
+      next_key.time = timestamps[i + 1] - eps;
+      next_key.value = values[i];
+    }
+  }
+
+  return true;
+}
+
+// Samples a cubic-spline channel
+// the number of keyframes is determined from the animation duration and given
+// sample rate
+template <typename _KeyframesType>
+bool SampleCubicSplineChannel(const tinygltf::Model& _model,
+                              const tinygltf::Accessor& _output,
+                              const float* _timestamps,
+                              _KeyframesType* _keyframes, float _sampling_rate,
+                              float duration) {
+  typedef typename _KeyframesType::value_type::Value ValueType;
+  const ValueType* values = BufferView<ValueType>(_model, _output);
+  if (values == nullptr) {
+    return false;
+  }
+
+  assert(_output.count % 3 == 0);
+  size_t numKeyframes = _output.count / 3;
+
+  // TODO check size matches
+  _keyframes->resize(
+      static_cast<size_t>(floor(duration * _sampling_rate) + 1.f));
+  size_t currentKey = 0;
+
+  for (size_t i = 0; i < _keyframes->size(); i++) {
+    float time = (float)i / _sampling_rate;
+    while (_timestamps[currentKey] > time && currentKey < numKeyframes - 1) {
+      currentKey++;
+    }
+
+    float currentTime = _timestamps[currentKey];   // current keyframe time
+    float nextTime = _timestamps[currentKey + 1];  // next keyframe time
+
+    float t = (time - currentTime) / (nextTime - currentTime);
+    const ValueType& p0 = values[currentKey * 3 + 1];
+    const ValueType m0 = values[currentKey * 3 + 2] * (nextTime - currentTime);
+    const ValueType& p1 = values[(currentKey + 1) * 3 + 1];
+    const ValueType m1 =
+        values[(currentKey + 1) * 3] * (nextTime - currentTime);
+
+    typename _KeyframesType::reference key = _keyframes->at(i);
+    key.time = time;
+    key.value = SampleHermiteSpline(t, p0, m0, p1, m1);
+  }
+
+  return true;
+}
+
+// Samples a hermite spline in the form
+// p(t) = (2t^3 - 3t^2 + 1)p0 + (t^3 - 2t^2 + t)m0 + (-2t^3 + 3t^2)p1 + (t^3 -
+// t^2)m1 where t is a value between 0 and 1 p0 is the starting point at t = 0
+// m0 is the scaled starting tangent at t = 0
+// p1 is the ending point at t = 1
+// m1 is the scaled ending tangent at t = 1
+// p(t) is the resulting point value
+template <typename T>
+T SampleHermiteSpline(float t, const T& p0, const T& m0, const T& p1,
+                      const T& m1) {
+  const float t2 = t * t;
+  const float t3 = t2 * t;
+
+  // a = 2t^3 - 3t^2 + 1
+  const float a = 2.0f * t3 - 3.0f * t2 + 1.0f;
+  // b = t^3 - 2t^2 + t
+  const float b = t3 - 2.0f * t2 + t;
+  // c = -2t^3 + 3t^2
+  const float c = -2.0f * t3 + 3.0f * t2;
+  // d = t^3 - t^2
+  const float d = t3 - t2;
+
+  // p(t) = a * p0 + b * m0 + c * p1 + d * m1
+  T pt = p0 * a + m0 * b + p1 * c + m1 * d;
+  return pt;
+}
+
+ozz::animation::offline::RawAnimation::TranslationKey
+CreateTranslationBindPoseKey(const tinygltf::Node& _node) {
+  ozz::animation::offline::RawAnimation::TranslationKey key;
+  key.time = 0.0f;
+
+  if (_node.translation.empty()) {
+    key.value = ozz::math::Float3::zero();
+  } else {
+    key.value = ozz::math::Float3(static_cast<float>(_node.translation[0]),
+                                  static_cast<float>(_node.translation[1]),
+                                  static_cast<float>(_node.translation[2]));
+  }
+
+  return key;
+}
+
+ozz::animation::offline::RawAnimation::RotationKey CreateRotationBindPoseKey(
+    const tinygltf::Node& _node) {
+  ozz::animation::offline::RawAnimation::RotationKey key;
+  key.time = 0.0f;
+
+  if (_node.rotation.empty()) {
+    key.value = ozz::math::Quaternion::identity();
+  } else {
+    key.value = ozz::math::Quaternion(static_cast<float>(_node.rotation[0]),
+                                      static_cast<float>(_node.rotation[1]),
+                                      static_cast<float>(_node.rotation[2]),
+                                      static_cast<float>(_node.rotation[3]));
+  }
+  return key;
+}
+
+ozz::animation::offline::RawAnimation::ScaleKey CreateScaleBindPoseKey(
+    const tinygltf::Node& _node) {
+  ozz::animation::offline::RawAnimation::ScaleKey key;
+  key.time = 0.0f;
+
+  if (_node.scale.empty()) {
+    key.value = ozz::math::Float3::one();
+  } else {
+    key.value = ozz::math::Float3(static_cast<float>(_node.scale[0]),
+                                  static_cast<float>(_node.scale[1]),
+                                  static_cast<float>(_node.scale[2]));
+  }
+  return key;
+}
+
+// Creates the default transform for a gltf node
+bool CreateNodeTransform(const tinygltf::Node& _node,
+                         ozz::math::Transform* _transform) {
+  if (_node.matrix.size() != 0) {
+    // For animated nodes matrix should never be set
+    // From the spec: "When a node is targeted for animation (referenced by an
+    // animation.channel.target), only TRS properties may be present; matrix
+    // will not be present."
+    ozz::log::Err() << "Node \"" << _node.name
+                    << "\" transformation matrix is not empty. This is "
+                       "disallowed by the glTF spec as this node is an "
+                       "animation target."
+                    << std::endl;
+    return false;
+  }
+
+  *_transform = ozz::math::Transform::identity();
+
+  if (!_node.translation.empty()) {
+    _transform->translation =
+        ozz::math::Float3(static_cast<float>(_node.translation[0]),
+                          static_cast<float>(_node.translation[1]),
+                          static_cast<float>(_node.translation[2]));
+  }
+  if (!_node.rotation.empty()) {
+    _transform->rotation =
+        ozz::math::Quaternion(static_cast<float>(_node.rotation[0]),
+                              static_cast<float>(_node.rotation[1]),
+                              static_cast<float>(_node.rotation[2]),
+                              static_cast<float>(_node.rotation[3]));
+  }
+  if (!_node.scale.empty()) {
+    _transform->scale = ozz::math::Float3(static_cast<float>(_node.scale[0]),
+                                          static_cast<float>(_node.scale[1]),
+                                          static_cast<float>(_node.scale[2]));
+  }
+
+  return true;
+}
+}  // namespace
+
 class GltfImporter : public ozz::animation::offline::OzzImporter {
  public:
   GltfImporter() {
@@ -116,49 +401,6 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
     }
 
     return success;
-  }
-
-  template <typename _VectorType>
-  bool FixupNames(_VectorType& _data, const char* _pretty_name,
-                  const char* _prefix_name) {
-    ozz::Set<std::string>::Std names;
-    for (size_t i = 0; i < _data.size(); ++i) {
-      bool renamed = false;
-      typename _VectorType::const_reference data = _data[i];
-
-      std::string name(data.name.c_str());
-
-      // Fixes unnamed animations.
-      if (name.length() == 0) {
-        renamed = true;
-        name = _prefix_name;
-        name += std::to_string(i);
-      }
-
-      // Fixes duplicated names, while it has duplicates
-      for (auto it = names.find(name); it != names.end();
-           it = names.find(name)) {
-        renamed = true;
-        name += "_";
-        name += std::to_string(i);
-      }
-
-      // Update names index.
-      if (!names.insert(name).second) {
-        assert(false && "Algorithm must ensure no duplicated animation names.");
-      }
-
-      if (renamed) {
-        ozz::log::LogV() << _pretty_name << " #" << i << " with name \""
-                         << data.name << "\" was renamed to \"" << name
-                         << "\" in order to avoid duplicates." << std::endl;
-
-        // Actually renames tinygltf data.
-        _data[i].name = name;
-      }
-    }
-
-    return true;
   }
 
   // Given a skin find which of its joints is the skeleton root and return it
@@ -272,7 +514,7 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
     _joint->name = _node.name.c_str();
 
     // Fills transform.
-    if (!CreateNodeTransform(_node, _joint->transform)) {
+    if (!CreateNodeTransform(_node, &_joint->transform)) {
       return false;
     }
 
@@ -364,9 +606,9 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
 
       for (auto& channel : channels) {
         auto& sampler = gltf_animation->samplers[channel->sampler];
-        if (!SampleAnimationChannel(sampler, channel->target_path,
-                                    _animation->duration, track,
-                                    _sampling_rate)) {
+        if (!SampleAnimationChannel(m_model, sampler, channel->target_path,
+                                    _sampling_rate, &_animation->duration,
+                                    &track)) {
           return false;
         }
       }
@@ -402,23 +644,22 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
   }
 
   bool SampleAnimationChannel(
-      const tinygltf::AnimationSampler& _sampler,
-      const std::string& _target_path, float& _outDuration,
-      ozz::animation::offline::RawAnimation::JointTrack& _track,
-      float _sampling_rate) {
+      const tinygltf::Model& _model, const tinygltf::AnimationSampler& _sampler,
+      const std::string& _target_path, float _sampling_rate, float* _duration,
+      ozz::animation::offline::RawAnimation::JointTrack* _track) {
     auto& input = m_model.accessors[_sampler.input];
     assert(input.maxValues.size() == 1);
 
-    // the max[0] property of the input accessor is the animation duration
+    // The max[0] property of the input accessor is the animation duration
     // this is required to be present by the spec:
     // "Animation Sampler's input accessor must have min and max properties
     // defined."
     const float duration = static_cast<float>(input.maxValues[0]);
 
-    // if this channel's duration is larger than the animation's duration
+    // If this channel's duration is larger than the animation's duration
     // then increase the animation duration to match
-    if (duration > _outDuration) {
-      _outDuration = duration;
+    if (duration > *_duration) {
+      *_duration = duration;
     }
 
     assert(input.type == TINYGLTF_TYPE_SCALAR);
@@ -426,7 +667,7 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
     assert(_output.type == TINYGLTF_TYPE_VEC3 ||
            _output.type == TINYGLTF_TYPE_VEC4);
 
-    const float* timestamps = BufferView<float>(input);
+    const float* timestamps = BufferView<float>(_model, input);
     if (timestamps == nullptr) {
       return false;
     }
@@ -438,11 +679,14 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
       assert(input.count == _output.count);
 
       if (_target_path == "translation") {
-        return SampleLinearChannel(_output, timestamps, _track.translations);
+        return SampleLinearChannel(m_model, _output, timestamps,
+                                   &_track->translations);
       } else if (_target_path == "rotation") {
-        return SampleLinearChannel(_output, timestamps, _track.rotations);
+        return SampleLinearChannel(m_model, _output, timestamps,
+                                   &_track->rotations);
       } else if (_target_path == "scale") {
-        return SampleLinearChannel(_output, timestamps, _track.scales);
+        return SampleLinearChannel(m_model, _output, timestamps,
+                                   &_track->scales);
       }
       ozz::log::Err() << "Invalid or unknown channel target path '"
                       << _target_path << "'." << std::endl;
@@ -451,11 +695,13 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
       assert(input.count == _output.count);
 
       if (_target_path == "translation") {
-        return SampleStepChannel(_output, timestamps, _track.translations);
+        return SampleStepChannel(m_model, _output, timestamps,
+                                 &_track->translations);
       } else if (_target_path == "rotation") {
-        return SampleStepChannel(_output, timestamps, _track.rotations);
+        return SampleStepChannel(m_model, _output, timestamps,
+                                 &_track->rotations);
       } else if (_target_path == "scale") {
-        return SampleStepChannel(_output, timestamps, _track.scales);
+        return SampleStepChannel(m_model, _output, timestamps, &_track->scales);
       }
       ozz::log::Err() << "Invalid or unknown channel target path '"
                       << _target_path << "'." << std::endl;
@@ -464,23 +710,26 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
       assert(input.count * 3 == _output.count);
 
       if (_target_path == "translation") {
-        return SampleCubicSplineChannel(
-            _output, timestamps, _track.translations, _sampling_rate, duration);
+        return SampleCubicSplineChannel(m_model, _output, timestamps,
+                                        &_track->translations, _sampling_rate,
+                                        duration);
       } else if (_target_path == "rotation") {
-        if (!SampleCubicSplineChannel(_output, timestamps, _track.rotations,
-                                      _sampling_rate, duration)) {
+        if (!SampleCubicSplineChannel(m_model, _output, timestamps,
+                                      &_track->rotations, _sampling_rate,
+                                      duration)) {
           return false;
         }
 
         // normalize all resulting quaternions per spec
-        for (auto& key : _track.rotations) {
+        for (auto& key : _track->rotations) {
           key.value = ozz::math::Normalize(key.value);
         }
 
         return true;
       } else if (_target_path == "scale") {
-        return SampleCubicSplineChannel(_output, timestamps, _track.scales,
-                                        _sampling_rate, duration);
+        return SampleCubicSplineChannel(m_model, _output, timestamps,
+                                        &_track->scales, _sampling_rate,
+                                        duration);
       }
       ozz::log::Err() << "Invalid or unknown channel target path '"
                       << _target_path << "'." << std::endl;
@@ -492,224 +741,7 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
     return false;
   }
 
-  // Samples a linear animation channel
-  // There is an exact mapping between gltf and ozz keyframes so we just copy
-  // everything over.
-  template <typename _KeyframesType>
-  bool SampleLinearChannel(const tinygltf::Accessor& _output,
-                           const float* _timestamps,
-                           _KeyframesType& _keyframes) {
-    typedef typename _KeyframesType::value_type::Value ValueType;
-
-    const ValueType* values = BufferView<ValueType>(_output);
-    if (values == nullptr) {
-      return false;
-    }
-
-    _keyframes.resize(_output.count);
-    for (size_t i = 0; i < _output.count; ++i) {
-      typename _KeyframesType::reference key = _keyframes[i];
-      key.time = _timestamps[i];
-      key.value = values[i];
-    }
-
-    return true;
-  }
-
-  // Samples a step animation channel
-  // There are twice as many ozz keyframes as gltf keyframes
-  template <typename _KeyframesType>
-  bool SampleStepChannel(const tinygltf::Accessor& _output,
-                         const float* timestamps, _KeyframesType& _keyframes) {
-    typedef typename _KeyframesType::value_type::Value ValueType;
-    const ValueType* values = BufferView<ValueType>(_output);
-    if (values == nullptr) {
-      return false;
-    }
-
-    // A step is created with 2 consecutive keys. Last step is a single key.
-    size_t numKeyframes = _output.count * 2 - 1;
-    _keyframes.resize(numKeyframes);
-
-    const float eps = 1e-6f;
-
-    for (size_t i = 0; i < _output.count; i++) {
-      typename _KeyframesType::reference key = _keyframes[i * 2];
-      key.time = timestamps[i];
-      key.value = values[i];
-
-      if (i < _output.count - 1) {
-        typename _KeyframesType::reference next_key = _keyframes[i * 2 + 1];
-        next_key.time = timestamps[i + 1] - eps;
-        next_key.value = values[i];
-      }
-    }
-
-    return true;
-  }
-
-  // samples a cubic-spline channel
-  // the number of keyframes is determined from the animation duration and given
-  // sample rate
-  template <typename _KeyframesType>
-  bool SampleCubicSplineChannel(const tinygltf::Accessor& _output,
-                                const float* _timestamps,
-                                _KeyframesType& _keyframes,
-                                float _sampling_rate, float duration) {
-    typedef typename _KeyframesType::value_type::Value ValueType;
-    const ValueType* values = BufferView<ValueType>(_output);
-    if (values == nullptr) {
-      return false;
-    }
-
-    assert(_output.count % 3 == 0);
-    size_t numKeyframes = _output.count / 3;
-
-    // TODO check size matches
-    _keyframes.resize(
-        static_cast<size_t>(floor(duration * _sampling_rate) + 1.f));
-    size_t currentKey = 0;
-
-    for (size_t i = 0; i < _keyframes.size(); i++) {
-      float time = (float)i / _sampling_rate;
-      while (_timestamps[currentKey] > time && currentKey < numKeyframes - 1) {
-        currentKey++;
-      }
-
-      float currentTime = _timestamps[currentKey];   // current keyframe time
-      float nextTime = _timestamps[currentKey + 1];  // next keyframe time
-
-      float t = (time - currentTime) / (nextTime - currentTime);
-      const ValueType& p0 = values[currentKey * 3 + 1];
-      const ValueType m0 =
-          values[currentKey * 3 + 2] * (nextTime - currentTime);
-      const ValueType& p1 = values[(currentKey + 1) * 3 + 1];
-      const ValueType m1 =
-          values[(currentKey + 1) * 3] * (nextTime - currentTime);
-
-      typename _KeyframesType::reference key = _keyframes[i];
-      key.time = time;
-      key.value = SampleHermiteSpline(t, p0, m0, p1, m1);
-    }
-
-    return true;
-  }
-
-  // Samples a hermite spline in the form
-  // p(t) = (2t^3 - 3t^2 + 1)p0 + (t^3 - 2t^2 + t)m0 + (-2t^3 + 3t^2)p1 + (t^3 -
-  // t^2)m1 where t is a value between 0 and 1 p0 is the starting point at t = 0
-  // m0 is the scaled starting tangent at t = 0
-  // p1 is the ending point at t = 1
-  // m1 is the scaled ending tangent at t = 1
-  // p(t) is the resulting point value
-  template <typename T>
-  T SampleHermiteSpline(float t, const T& p0, const T& m0, const T& p1,
-                        const T& m1) {
-    const float t2 = t * t;
-    const float t3 = t2 * t;
-
-    // a = 2t^3 - 3t^2 + 1
-    const float a = 2.0f * t3 - 3.0f * t2 + 1.0f;
-    // b = t^3 - 2t^2 + t
-    const float b = t3 - 2.0f * t2 + t;
-    // c = -2t^3 + 3t^2
-    const float c = -2.0f * t3 + 3.0f * t2;
-    // d = t^3 - t^2
-    const float d = t3 - t2;
-
-    // p(t) = a * p0 + b * m0 + c * p1 + d * m1
-    T pt = p0 * a + m0 * b + p1 * c + m1 * d;
-    return pt;
-  }
-
-  // create the default transform for a gltf node
-  bool CreateNodeTransform(const tinygltf::Node& _node,
-                           ozz::math::Transform& _transform) {
-    if (_node.matrix.size() != 0) {
-      // For animated nodes matrix should never be set
-      // From the spec: "When a node is targeted for animation (referenced by an
-      // animation.channel.target), only TRS properties may be present; matrix
-      // will not be present."
-      ozz::log::Err() << "Node \"" << _node.name
-                      << "\" transformation matrix is not empty. This is "
-                         "disallowed by the glTF spec as this node is an "
-                         "animation target."
-                      << std::endl;
-      return false;
-    }
-
-    _transform = ozz::math::Transform::identity();
-
-    if (!_node.translation.empty()) {
-      _transform.translation =
-          ozz::math::Float3(static_cast<float>(_node.translation[0]),
-                            static_cast<float>(_node.translation[1]),
-                            static_cast<float>(_node.translation[2]));
-    }
-    if (!_node.rotation.empty()) {
-      _transform.rotation =
-          ozz::math::Quaternion(static_cast<float>(_node.rotation[0]),
-                                static_cast<float>(_node.rotation[1]),
-                                static_cast<float>(_node.rotation[2]),
-                                static_cast<float>(_node.rotation[3]));
-    }
-    if (!_node.scale.empty()) {
-      _transform.scale = ozz::math::Float3(static_cast<float>(_node.scale[0]),
-                                           static_cast<float>(_node.scale[1]),
-                                           static_cast<float>(_node.scale[2]));
-    }
-
-    return true;
-  }
-
-  ozz::animation::offline::RawAnimation::TranslationKey
-  CreateTranslationBindPoseKey(const tinygltf::Node& _node) {
-    ozz::animation::offline::RawAnimation::TranslationKey key;
-    key.time = 0.0f;
-
-    if (_node.translation.empty()) {
-      key.value = ozz::math::Float3::zero();
-    } else {
-      key.value = ozz::math::Float3(static_cast<float>(_node.translation[0]),
-                                    static_cast<float>(_node.translation[1]),
-                                    static_cast<float>(_node.translation[2]));
-    }
-
-    return key;
-  }
-
-  ozz::animation::offline::RawAnimation::RotationKey CreateRotationBindPoseKey(
-      const tinygltf::Node& _node) {
-    ozz::animation::offline::RawAnimation::RotationKey key;
-    key.time = 0.0f;
-
-    if (_node.rotation.empty()) {
-      key.value = ozz::math::Quaternion::identity();
-    } else {
-      key.value = ozz::math::Quaternion(static_cast<float>(_node.rotation[0]),
-                                        static_cast<float>(_node.rotation[1]),
-                                        static_cast<float>(_node.rotation[2]),
-                                        static_cast<float>(_node.rotation[3]));
-    }
-    return key;
-  }
-
-  ozz::animation::offline::RawAnimation::ScaleKey CreateScaleBindPoseKey(
-      const tinygltf::Node& _node) {
-    ozz::animation::offline::RawAnimation::ScaleKey key;
-    key.time = 0.0f;
-
-    if (_node.scale.empty()) {
-      key.value = ozz::math::Float3::one();
-    } else {
-      key.value = ozz::math::Float3(static_cast<float>(_node.scale[0]),
-                                    static_cast<float>(_node.scale[1]),
-                                    static_cast<float>(_node.scale[2]));
-    }
-    return key;
-  }
-
-  // returns all skins belonging to a given gltf scene
+  // Returns all skins belonging to a given gltf scene
   ozz::Vector<tinygltf::Skin>::Std GetSkinsForScene(
       const tinygltf::Scene& _scene) const {
     ozz::Set<int>::Std open;
@@ -748,39 +780,6 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
     }
 
     return nullptr;
-  }
-
-  // Returns the address of a gltf buffer given an accessor
-  // performs basic checks to ensure the data is in the correct format
-  template <typename T>
-  const T* BufferView(const tinygltf::Accessor& _accessor) {
-    int32_t componentSize =
-        tinygltf::GetComponentSizeInBytes(_accessor.componentType);
-    int32_t elementSize =
-        componentSize * tinygltf::GetTypeSizeInBytes(_accessor.type);
-    if (elementSize != sizeof(T)) {
-      ozz::log::Err() << "Invalid buffer view access. Expected element size '"
-                      << sizeof(T) << " got " << elementSize << " instead."
-                      << std::endl;
-      return nullptr;
-    }
-
-    auto& bufferView = m_model.bufferViews[_accessor.bufferView];
-    auto& buffer = m_model.buffers[bufferView.buffer];
-    return reinterpret_cast<const T*>(
-        buffer.data.data() + bufferView.byteOffset + _accessor.byteOffset);
-  }
-
-  void PrintSkeletonInfo(
-      const ozz::animation::offline::RawSkeleton::Joint& joint, int ident = 0) {
-    for (int i = 0; i < ident; i++) {
-      ozz::log::LogV() << "  ";
-    }
-    ozz::log::LogV() << joint.name << std::endl;
-
-    for (auto& child : joint.children) {
-      PrintSkeletonInfo(child, ident + 1);
-    }
   }
 
   // no support for user-defined tracks
