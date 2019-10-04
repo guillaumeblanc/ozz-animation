@@ -37,6 +37,7 @@
 #include "ozz/base/containers/set.h"
 
 #include "ozz/base/log.h"
+#include "ozz/base/maths/math_ex.h"
 
 #include <cassert>
 #include <cstring>
@@ -107,8 +108,8 @@ bool FixupNames(_VectorType& _data, const char* _pretty_name,
 // Returns the address of a gltf buffer given an accessor.
 // Performs basic checks to ensure the data is in the correct format
 template <typename T>
-const T* BufferView(const tinygltf::Model& _model,
-                    const tinygltf::Accessor& _accessor) {
+ozz::Range<const T> BufferView(const tinygltf::Model& _model,
+                               const tinygltf::Accessor& _accessor) {
   const int32_t component_size =
       tinygltf::GetComponentSizeInBytes(_accessor.componentType);
   const int32_t element_size =
@@ -117,13 +118,16 @@ const T* BufferView(const tinygltf::Model& _model,
     ozz::log::Err() << "Invalid buffer view access. Expected element size '"
                     << sizeof(T) << " got " << element_size << " instead."
                     << std::endl;
-    return nullptr;
+    return ozz::Range<const T>();
   }
 
-  const tinygltf::BufferView& bufferView = _model.bufferViews[_accessor.bufferView];
+  const tinygltf::BufferView& bufferView =
+      _model.bufferViews[_accessor.bufferView];
   const tinygltf::Buffer& buffer = _model.buffers[bufferView.buffer];
-  return reinterpret_cast<const T*>(buffer.data.data() + bufferView.byteOffset +
-                                    _accessor.byteOffset);
+  const T* begin = reinterpret_cast<const T*>(
+      buffer.data.data() + bufferView.byteOffset + _accessor.byteOffset);
+  const size_t size = bufferView.byteLength / element_size;
+  return ozz::Range<const T>(begin, size);
 }
 
 // Samples a linear animation channel
@@ -132,11 +136,17 @@ const T* BufferView(const tinygltf::Model& _model,
 template <typename _KeyframesType>
 bool SampleLinearChannel(const tinygltf::Model& _model,
                          const tinygltf::Accessor& _output,
-                         const float* _timestamps, _KeyframesType* _keyframes) {
-  typedef typename _KeyframesType::value_type::Value ValueType;
+                         const ozz::Range<const float>& _timestamps,
+                         _KeyframesType* _keyframes) {
+  const size_t gltf_keys_count = _output.count;
 
-  const ValueType* values = BufferView<ValueType>(_model, _output);
-  if (values == nullptr) {
+  typedef typename _KeyframesType::value_type::Value ValueType;
+  const ozz::Range<const ValueType> values =
+      BufferView<ValueType>(_model, _output);
+  if (values.size() / sizeof(ValueType) != gltf_keys_count ||
+      _timestamps.count() != gltf_keys_count) {
+    ozz::log::Err() << "gltf format error, inconsistent number of keys."
+                    << std::endl;
     return false;
   }
 
@@ -151,31 +161,36 @@ bool SampleLinearChannel(const tinygltf::Model& _model,
 }
 
 // Samples a step animation channel
-// There are twice as many ozz keyframes as gltf keyframes
+// There are twice-1 as many ozz keyframes as gltf keyframes
 template <typename _KeyframesType>
 bool SampleStepChannel(const tinygltf::Model& _model,
                        const tinygltf::Accessor& _output,
-                       const float* timestamps, _KeyframesType* _keyframes) {
+                       const ozz::Range<const float>& _timestamps,
+                       _KeyframesType* _keyframes) {
+  const size_t gltf_keys_count = _output.count;
+
   typedef typename _KeyframesType::value_type::Value ValueType;
-  const ValueType* values = BufferView<ValueType>(_model, _output);
-  if (values == nullptr) {
+  const ozz::Range<const ValueType> values =
+      BufferView<ValueType>(_model, _output);
+  if (values.size() / sizeof(ValueType) != gltf_keys_count ||
+      _timestamps.count() != gltf_keys_count) {
+    ozz::log::Err() << "gltf format error, inconsistent number of keys."
+                    << std::endl;
     return false;
   }
 
   // A step is created with 2 consecutive keys. Last step is a single key.
-  size_t numKeyframes = _output.count * 2 - 1;
+  size_t numKeyframes = gltf_keys_count * 2 - 1;
   _keyframes->resize(numKeyframes);
-
-  const float eps = 1e-6f;
 
   for (size_t i = 0; i < _output.count; i++) {
     typename _KeyframesType::reference key = _keyframes->at(i * 2);
-    key.time = timestamps[i];
+    key.time = _timestamps[i];
     key.value = values[i];
 
     if (i < _output.count - 1) {
       typename _KeyframesType::reference next_key = _keyframes->at(i * 2 + 1);
-      next_key.time = timestamps[i + 1] - eps;
+      next_key.time = nexttowardf(_timestamps[i + 1], 0.f);
       next_key.value = values[i];
     }
   }
@@ -191,15 +206,18 @@ bool SampleStepChannel(const tinygltf::Model& _model,
 // m1 is the scaled ending tangent at t = 1
 // p(t) is the resulting point value
 template <typename T>
-T SampleHermiteSpline(float t, const T& p0, const T& m0, const T& p1,
+T SampleHermiteSpline(float _alpha, const T& p0, const T& m0, const T& p1,
                       const T& m1) {
-  const float t2 = t * t;
-  const float t3 = t2 * t;
+  assert(_alpha >= 0.f && _alpha <= 1.f);
+
+  const float t1 = _alpha;
+  const float t2 = _alpha * _alpha;
+  const float t3 = t2 * _alpha;
 
   // a = 2t^3 - 3t^2 + 1
   const float a = 2.0f * t3 - 3.0f * t2 + 1.0f;
   // b = t^3 - 2t^2 + t
-  const float b = t3 - 2.0f * t2 + t;
+  const float b = t3 - 2.0f * t2 + t1;
   // c = -2t^3 + 3t^2
   const float c = -2.0f * t3 + 3.0f * t2;
   // d = t^3 - t^2
@@ -216,42 +234,62 @@ T SampleHermiteSpline(float t, const T& p0, const T& m0, const T& p1,
 template <typename _KeyframesType>
 bool SampleCubicSplineChannel(const tinygltf::Model& _model,
                               const tinygltf::Accessor& _output,
-                              const float* _timestamps,
-                              _KeyframesType* _keyframes, float _sampling_rate,
-                              float duration) {
+                              const ozz::Range<const float>& _timestamps,
+                              float _sampling_rate, float _duration,
+                              _KeyframesType* _keyframes) {
+  assert(_output.count % 3 == 0);
+  size_t gltf_keys_count = _output.count / 3;
+
   typedef typename _KeyframesType::value_type::Value ValueType;
-  const ValueType* values = BufferView<ValueType>(_model, _output);
-  if (values == nullptr) {
+  const ozz::Range<const ValueType> values =
+      BufferView<ValueType>(_model, _output);
+  if (values.size() / (sizeof(ValueType) * 3) != gltf_keys_count ||
+      _timestamps.count() != gltf_keys_count) {
+    ozz::log::Err() << "gltf format error, inconsistent number of keys."
+                    << std::endl;
     return false;
   }
 
-  assert(_output.count % 3 == 0);
-  size_t numKeyframes = _output.count / 3;
+  // Reserves maximum keyframe count
+  _keyframes->reserve(
+      static_cast<size_t>(floor(_duration * _sampling_rate) + 1.f));
 
-  // TODO check size matches
-  _keyframes->resize(
-      static_cast<size_t>(floor(duration * _sampling_rate) + 1.f));
-  size_t currentKey = 0;
-
-  for (size_t i = 0; i < _keyframes->size(); i++) {
-    float time = (float)i / _sampling_rate;
-    while (_timestamps[currentKey] > time && currentKey < numKeyframes - 1) {
-      currentKey++;
+  // Iterate keyframes at _sampling_rate steps, between first and last time
+  // stamps.
+  size_t cubic_key0 = 0;
+  bool loop = true;
+  for (float time = _timestamps[0], end = _timestamps[gltf_keys_count - 1],
+             step = 1.f / _sampling_rate;
+       loop; time += step) {
+    // Handles sampling loop end.
+    if (time >= end) {
+      time = end;
+      loop = false;
     }
 
-    float currentTime = _timestamps[currentKey];   // current keyframe time
-    float nextTime = _timestamps[currentKey + 1];  // next keyframe time
-
-    float t = (time - currentTime) / (nextTime - currentTime);
-    const ValueType& p0 = values[currentKey * 3 + 1];
-    const ValueType m0 = values[currentKey * 3 + 2] * (nextTime - currentTime);
-    const ValueType& p1 = values[(currentKey + 1) * 3 + 1];
-    const ValueType m1 =
-        values[(currentKey + 1) * 3] * (nextTime - currentTime);
-
-    typename _KeyframesType::reference key = _keyframes->at(i);
+    // Creates output key.
+    typename _KeyframesType::value_type key;
     key.time = time;
-    key.value = SampleHermiteSpline(t, p0, m0, p1, m1);
+
+    // Makes sure time is in between the correct cubic keyframes.
+    while (_timestamps[cubic_key0 + 1] < time) {
+      cubic_key0++;
+    }
+    assert(_timestamps[cubic_key0] <= time &&
+           time <= _timestamps[cubic_key0 + 1]);
+
+    // Interpolate cubic key
+    const float t0 = _timestamps[cubic_key0];      // keyframe before time
+    const float t1 = _timestamps[cubic_key0 + 1];  // keyframe after time
+    const float alpha = (time - t0) / (t1 - t0);
+    const ValueType& p0 = values[cubic_key0 * 3 + 1];
+    const ValueType m0 = values[cubic_key0 * 3 + 2] * (t1 - t0);
+    const ValueType& p1 = values[(cubic_key0 + 1) * 3 + 1];
+    const ValueType m1 = values[(cubic_key0 + 1) * 3] * (t1 - t0);
+    key.value = SampleHermiteSpline(alpha, p0, m0, p1, m1);
+
+    // Pushes interpolated key.
+    _keyframes->push_back(key);
   }
 
   return true;
@@ -667,8 +705,8 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
     assert(_output.type == TINYGLTF_TYPE_VEC3 ||
            _output.type == TINYGLTF_TYPE_VEC4);
 
-    const float* timestamps = BufferView<float>(_model, input);
-    if (timestamps == nullptr) {
+    const ozz::Range<const float> timestamps = BufferView<float>(_model, input);
+    if (timestamps.size() == 0) {
       return false;
     }
 
@@ -711,12 +749,12 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
 
       if (_target_path == "translation") {
         return SampleCubicSplineChannel(m_model, _output, timestamps,
-                                        &_track->translations, _sampling_rate,
-                                        duration);
+                                        _sampling_rate, duration,
+                                        &_track->translations);
       } else if (_target_path == "rotation") {
         if (!SampleCubicSplineChannel(m_model, _output, timestamps,
-                                      &_track->rotations, _sampling_rate,
-                                      duration)) {
+                                      _sampling_rate, duration,
+                                      &_track->rotations)) {
           return false;
         }
 
@@ -728,8 +766,8 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
         return true;
       } else if (_target_path == "scale") {
         return SampleCubicSplineChannel(m_model, _output, timestamps,
-                                        &_track->scales, _sampling_rate,
-                                        duration);
+                                        _sampling_rate, duration,
+                                        &_track->scales);
       }
       ozz::log::Err() << "Invalid or unknown channel target path '"
                       << _target_path << "'." << std::endl;
