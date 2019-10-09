@@ -1,0 +1,105 @@
+---
+title: "ozz-animation - Comparative report overview"
+author: "Guillaume Blanc"
+date: "7/30/2019"
+output:
+  html_document:
+    keep_md: yes
+    self_contained: yes
+params:
+  path: "E:/Perso/Dev/ozz-animation/build/temp/atlas_analysis"
+  reference: "reference"
+  vertex_distance: .1
+  subset_data: FALSE
+  fast: TRUE
+---
+
+```{r setup, include=FALSE, echo = FALSE}
+`%>%` <- magrittr::`%>%`
+
+#, dev = "svglite", fig.ext = ".svg"
+knitr::opts_chunk$set(results = "asis", fig.width = 6, fig.asp = 0.618, fig.align = "center", echo = FALSE)
+
+# Finds and load all relevant experiences in path
+ldf <- ozzr::LoadExperiences(params$path, params$reference)
+experiences <- ldf$experiences
+models <- ldf$models
+locals <- ldf$locals
+memory <- ldf$memory
+performance <- ldf$performance
+
+# Rebuilds refs
+locals_ref <- locals %>% dplyr::filter(experience == params$reference)
+models_ref <- models %>% dplyr::filter(experience == params$reference)
+locals_nref <- locals %>% dplyr::filter(experience != params$reference)
+models_nref <- models %>% dplyr::filter(experience != params$reference)
+
+palette_experiences <- ozzr::plot_palette(experiences)
+```
+
+# Comparative report {.tabset}
+
+This report gives an overview of memory footprint, performance and accuracy of experiences data generated with [ozz2csv](https://github.com/guillaumeblanc/ozz-animation/tree/master/src/animation/offline/csv) tool.
+It compares per joint precision of `r nlevels(models$experience)` experiences:
+
+`r paste0("  - ", levels(models$experience), "\n", collapse="")`
+
+"`r params$reference`" experience is considered as the reference one.
+
+## Overview
+
+The following graphs shows model-space xy translation values for each experience.
+
+```{r xy animation}
+ozzr::plot_animations(models, !params$fast)
+```
+
+### Memory footprint
+
+Displays animation size (in byte) for each experience.
+
+```{r memory}
+bp <- memory %>%
+  ggplot2::ggplot(ggplot2::aes(x=experience, y=size / 1024, color=experience, fill=experience)) +
+    ggplot2::geom_bar(stat="identity", alpha = 0.1) +
+    ggplot2::labs(color = "Experience name", fill = "Experience name") +
+    ggplot2::xlab("Experience name") +
+    ggplot2::ylab("Animation size (KB)") +
+    ggplot2::scale_colour_manual(values = palette_experiences) +
+    ggplot2::scale_fill_manual(values = palette_experiences)
+plot(bp)
+```
+
+### Performance
+
+Displays performance indicator for each experience.
+
+```{r performance, fig.asp = ozzr::plot_aspect_graphs(nlevels(performance$mode) / 2)}
+bp <- performance %>%
+  #dplyr::filter(experience!=params$reference) %>%
+  ggplot2::ggplot(ggplot2::aes(x=time, y=execution, color=experience)) +
+    ggplot2::geom_point(size = .5, alpha = .2) +
+    ggplot2::geom_smooth(method="lm", se=TRUE, level=.95) +
+    ggplot2::labs(color = "Experience name") +
+    ggplot2::xlab("Time") +
+    ggplot2::ylab("Execution time (µs)") +
+    ggplot2::scale_colour_manual(values = palette_experiences) +
+    ggplot2::facet_wrap(ggplot2::vars(mode), ncol=2)
+plot(bp)
+```
+
+### Skinning error estimation
+
+Simulates skinning computation for a vertex at a distance 'r params$vertex_distance'm from each joint. This defines a model-space error metric, that takes into account translations, rotations and scales at once.
+Error is measured compared to the reference experience.
+
+```{r virtual vertex error density, fig.asp = ozzr::plot_aspect(2)}
+ozzr::plot_error_density(models_nref, models_nref$skinning_error, xlabel = "Skinning error (mm)")
+```
+
+The same skinning error metric is then rendered per joint, allowing to understand which joints contribute to the global error density.
+Note that this error metric is model-space, so the error can actually be built from the accumulated error of the whole hierarchy. It is recommended to look at local-space metrics for a deeper understanding.
+
+```{r virtual vertex error per joint, fig.asp = ozzr::plot_aspect(nlevels(models$joint))}
+ozzr::plot_error_per_joint(models_nref, models_nref$skinning_error, xlabel = "Skinning error (mm)")
+```

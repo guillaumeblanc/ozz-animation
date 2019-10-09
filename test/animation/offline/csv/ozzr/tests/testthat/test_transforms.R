@@ -1,6 +1,6 @@
 library(testthat)
 
-context("cozzr transforms")
+context("ozzr transforms")
 
 test_that("float3_distance", {
   a <- data.frame(x = 1., y = 2., z = 3.)

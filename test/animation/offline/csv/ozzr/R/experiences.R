@@ -1,3 +1,5 @@
+`%>%` <- magrittr::`%>%`
+
 LoadExperience <- function(experience, path) {
   # Transforms data
   filename <- file.path(path, paste(experience, "_transforms.csv", sep=""))
@@ -18,19 +20,25 @@ LoadExperience <- function(experience, path) {
   dftr <- read.csv(filename)
   dftr$experience <- as.factor(experience)
 
-  return (list(skeleton=dfs, transforms=dft, memory=dfm, tracks=dftr))
+  # Performance info
+  filename <- file.path(path, paste(experience, "_performance.csv", sep=""))
+  dfp <- read.csv(filename)
+  dfp$experience <- as.factor(experience)
+
+  return (list(skeleton=dfs, transforms=dft, memory=dfm, tracks=dftr, performance=dfp))
 }
 
 LoadExperiences <- function(path, reference) {
-  # Finds and load all relevant experiences in path
-  experiences <- strsplit(list.files(path = path, pattern = "_memory.csv$"), "_memory.csv")
 
+  # Finds and load all relevant experiences in path
+  #------------------------------------------------
+  experiences <- strsplit(list.files(path = path, pattern = "_memory.csv$"), "_memory.csv")
   # Moves reference first
   experiences <- c(reference, experiences[experiences != reference])
-
-  # Loads all experiences
   ldf <- lapply(experiences, LoadExperience, path)
 
+  # Prepare skeleton dataframe
+  #---------------------------
   # Ensure all skeleton experiences are the same
   #if(!all(df1$skeleton == df2$skeleton && df1$skeleton == df3$skeleton)) {
   #  message("skeleton data are not consistent between experiences.")
@@ -38,7 +46,8 @@ LoadExperiences <- function(path, reference) {
   #}
   skeleton <- ldf[[1]]$skeleton
 
-  # Prepares dataframe with transorms
+  # Prepares dataframe with transforms
+  #-----------------------------------
   transforms <- dplyr::left_join(do.call(rbind, lapply(ldf, function(i) i$transforms)), skeleton, by="joint")
 
   #if(params$subset_data) {
@@ -59,14 +68,36 @@ LoadExperiences <- function(path, reference) {
   models <- transforms %>%
     dplyr::select(joint, name, time, experience, t.x=mt.x, t.y=mt.y, t.z=mt.z, r.x=mr.x, r.y=mr.y, r.z=mr.z, r.w=mr.w, s.x=ms.x, s.y=ms.y, s.z=ms.z)
 
+  # Computes errors
+  #----------------
+  locals_ref <- locals %>% dplyr::filter(experience == reference)
+  models_ref <- models %>% dplyr::filter(experience == reference)
+
+  models$skinning_error <- ozzr::ComputeSkinningError(models, models_ref, params$vertex_distance)
+
+  locals$t.e <- ozzr::ComputeTranslationError(locals, locals_ref)
+  models$t.e <- ozzr::ComputeTranslationError(models, models_ref)
+
+  locals$r.e <- ozzr::ComputeRotationError(locals, locals_ref, params$vertex_distance)
+  models$r.e <- ozzr::ComputeRotationError(models, models_ref, params$vertex_distance)
+
+  locals$s.e <- ozzr::ComputeScaleError(locals, locals_ref)
+  models$s.e <- ozzr::ComputeScaleError(models, models_ref)
+
   # Memory size dataframe
+  #----------------------
   memory <- do.call(rbind, lapply(ldf, function(i) i$memory))
 
   # Tracks dataframe
+  #-----------------
   tracks <- dplyr::left_join(do.call(rbind, lapply(ldf, function(i) i$tracks)), dplyr::select(skeleton, c("joint", "name")), by="joint")
 
+  # Performance dataframe
+  #----------------------
+  performance <- do.call(rbind, lapply(ldf, function(i) i$performance))
+
   # Returns
-  return (list(experiences=experiences, locals=locals, models=models, memory=memory, tracks=tracks))
+  return (list(experiences=experiences, locals=locals, models=models, memory=memory, tracks=tracks, performance=performance))
 }
 
 ComputeSkinningError <- function(df, df_ref, distance) {

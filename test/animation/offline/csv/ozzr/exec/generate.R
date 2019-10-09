@@ -22,5 +22,5 @@ parse_commandline <- function() {
 
 options <- parse_commandline()
 
-rmd_file <- system.file("rmd", "report.Rmd", package = "cozzr")
+rmd_file <- system.file("rmd", "report.Rmd", package = "ozzr")
 rmarkdown::render(input = rmd_file, output_file=options$out, params=list(path=options$path))
