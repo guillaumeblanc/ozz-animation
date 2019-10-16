@@ -40,6 +40,8 @@
 #include "ozz/base/maths/math_constant.h"
 #include "ozz/base/maths/math_ex.h"
 
+#include "ozz/base/log.h"
+
 #include "ozz/animation/offline/raw_animation.h"
 #include "ozz/animation/offline/raw_animation_utils.h"
 
@@ -207,6 +209,7 @@ class RotationAdapter {
   }
   float Distance(const RawAnimation::RotationKey& _left,
                  const RawAnimation::RotationKey& _right) const {
+    /*
     // Compute the shortest unsigned angle between the 2 quaternions.
     // diff_w is w component of a-1 * b.
     const float cos_half_angle = Dot(_left.value, _right.value);
@@ -217,6 +220,28 @@ class RotationAdapter {
     // triangle.
     const float distance = 2.f * sine_half_angle * radius_;
     return distance;
+    */
+
+    const ozz::math::Quaternion diff = Conjugate(_left.value) * _right.value;
+    const ozz::math::Float3 axis(diff.x, diff.y, diff.z);
+    ozz::math::Float3 binormal;
+    if (std::abs(axis.x) < std::abs(axis.y)) {
+      if (std::abs(axis.x) < std::abs(axis.z)) {
+        binormal = ozz::math::Float3::x_axis();
+      } else {
+        binormal = ozz::math::Float3::z_axis();
+      }
+    } else {
+      if (std::abs(axis.y) < std::abs(axis.z)) {
+        binormal = ozz::math::Float3::y_axis();
+      } else {
+        binormal = ozz::math::Float3::z_axis();
+      }
+    }
+    ozz::math::Float3 normal = Cross(binormal, axis);
+    normal = NormalizeSafe(normal, ozz::math::Float3::x_axis());
+
+    return Length(TransformVector(diff, normal) - normal) * radius_;
   }
 
  private:
@@ -244,6 +269,110 @@ class ScaleAdapter {
  private:
   float length_;
 };
+
+struct LTMIterator {
+  LTMIterator(const ozz::Range<const ozz::math::Transform>& _locals,
+              const ozz::Range<ozz::math::Transform>& _models)
+      : locals_(_locals), models_(_models) {}
+
+  LTMIterator(const LTMIterator& _it)
+      : locals_(_it.locals_), models_(_it.models_) {}
+
+  void operator()(int _joint, int _parent) {
+    if (_parent == ozz::animation::Skeleton::kNoParent) {
+      models_[_joint] = locals_[_joint];
+    } else {
+      const ozz::math::Transform& local = locals_[_joint];
+      const ozz::math::Transform& parent = models_[_parent];
+      ozz::math::Transform& model = models_[_joint];
+
+      model.translation =
+          parent.translation +
+          TransformVector(parent.rotation, local.translation * parent.scale);
+      model.rotation = parent.rotation * local.rotation;
+      model.scale = parent.scale * local.scale;
+    }
+  }
+  const ozz::Range<const ozz::math::Transform>& locals_;
+  const ozz::Range<ozz::math::Transform>& models_;
+
+ private:
+  void operator=(const LTMIterator&);
+};
+
+// Reimplement local to model-space because ozz runtime version isn't based on
+// ozz::math::Transform
+bool LocalToModel(const ozz::animation::Skeleton& _skeleton,
+                  const ozz::Range<const ozz::math::Transform>& _locals,
+                  const ozz::Range<ozz::math::Transform>& _models) {
+  assert(static_cast<size_t>(_skeleton.num_joints()) <= _locals.count() &&
+         static_cast<size_t>(_skeleton.num_joints()) <= _models.count());
+
+  ozz::animation::IterateJointsDF(_skeleton, LTMIterator(_locals, _models));
+
+  return true;
+}
+
+ozz::math::Float3 TransformPoint(const ozz::math::Transform& _transform,
+                                 const ozz::math::Float3& _point) {
+  return _transform.translation +
+         TransformVector(_transform.rotation, _point * _transform.scale);
+}
+
+float Compare(const ozz::math::Transform& _reference,
+              const ozz::math::Transform& _test) {
+  const float kDist = .0f;
+  ozz::math::Float3 points[] = {ozz::math::Float3::x_axis() * kDist,
+                                ozz::math::Float3::y_axis() * kDist,
+                                ozz::math::Float3::z_axis() * kDist};
+  float mlen2 = 0.f;
+  for (size_t i = 0; i < OZZ_ARRAY_SIZE(points); ++i) {
+    ozz::math::Float3 ref = TransformPoint(_reference, points[i]);
+    ozz::math::Float3 test = TransformPoint(_test, points[i]);
+    const float len2 = LengthSqr(ref - test);
+    mlen2 = ozz::math::Max(mlen2, len2);
+  }
+  return std::sqrt(mlen2);
+}
+
+float Compare(const RawAnimation& _reference, const RawAnimation& _test,
+              float _time, const Skeleton& _skeleton) {
+  ozz::math::Transform locals[ozz::animation::Skeleton::kMaxJoints];
+  ozz::math::Transform ref_models[ozz::animation::Skeleton::kMaxJoints];
+  ozz::math::Transform test_models[ozz::animation::Skeleton::kMaxJoints];
+
+  assert(_reference.duration == _test.duration);
+
+  bool success = true;
+  success &=
+      ozz::animation::offline::SampleAnimation(_reference, _time, locals);
+  success &= LocalToModel(_skeleton, locals, ref_models);
+  success &= ozz::animation::offline::SampleAnimation(_test, _time, locals);
+  success &= LocalToModel(_skeleton, locals, test_models);
+  assert(success);
+
+  float mcmp = 0.f;
+  for (int i = 0; i < _skeleton.num_joints(); ++i) {
+    const float icmp = Compare(ref_models[i], test_models[i]);
+    mcmp = ozz::math::Max(mcmp, icmp);
+  }
+
+  return mcmp;
+}  // namespace
+
+float Compare(const RawAnimation& _reference, const RawAnimation& _test,
+              const Skeleton& _skeleton) {
+  float mcmp = 0.f;
+  const float step = 1.f / 30.f;
+  for (float t = 0.f; t <= _reference.duration;
+       t += step, ozz::math::Min(t, _reference.duration)) {
+    const float icmp = Compare(_reference, _test, t, _skeleton);
+    mcmp = ozz::math::Max(mcmp, icmp);
+  }
+
+  return mcmp;
+}
+
 }  // namespace
 
 bool AnimationOptimizer::operator()(const RawAnimation& _input,
@@ -275,27 +404,39 @@ bool AnimationOptimizer::operator()(const RawAnimation& _input,
   _output->duration = _input.duration;
   _output->tracks.resize(num_tracks);
 
-  for (int i = 0; i < num_tracks; ++i) {
-    const RawAnimation::JointTrack& input = _input.tracks[i];
-    RawAnimation::JointTrack& output = _output->tracks[i];
+  const float kDescent = .8f;
+  for (float factor = 1.f;;/* factor *= kDescent*/) {
+    for (int i = 0; i < num_tracks; ++i) {
+      const RawAnimation::JointTrack& input = _input.tracks[i];
+      RawAnimation::JointTrack& output = _output->tracks[i];
+      output.translations.clear();
+      output.rotations.clear();
+      output.scales.clear();
 
-    // Gets joint specs back.
-    const float joint_length = hierarchy.specs[i].length;
-    const int parent = _skeleton.joint_parents()[i];
-    const float parent_scale =
-        (parent != Skeleton::kNoParent) ? hierarchy.specs[parent].scale : 1.f;
-    const float tolerance = hierarchy.specs[i].tolerance;
+      // Gets joint specs back.
+      const float joint_length = hierarchy.specs[i].length;
+      const int parent = _skeleton.joint_parents()[i];
+      const float parent_scale =
+          (parent != Skeleton::kNoParent) ? hierarchy.specs[parent].scale : 1.f;
+      const float tolerance = hierarchy.specs[i].tolerance * factor;
 
-    // Filters independently T, R and S tracks.
-    // This joint translation is affected by parent scale.
-    const PositionAdapter tadap(parent_scale);
-    Decimate(input.translations, tadap, tolerance, &output.translations);
-    // This joint rotation affects children translations/length.
-    const RotationAdapter radap(joint_length);
-    Decimate(input.rotations, radap, tolerance, &output.rotations);
-    // This joint scale affects children translations/length.
-    const ScaleAdapter sadap(joint_length);
-    Decimate(input.scales, sadap, tolerance, &output.scales);
+      // Filters independently T, R and S tracks.
+      // This joint translation is affected by parent scale.
+      const PositionAdapter tadap(parent_scale);
+      Decimate(input.translations, tadap, tolerance, &output.translations);
+      // This joint rotation affects children translations/length.
+      const RotationAdapter radap(joint_length);
+      Decimate(input.rotations, radap, tolerance, &output.rotations);
+      // This joint scale affects children translations/length.
+      const ScaleAdapter sadap(joint_length);
+      Decimate(input.scales, sadap, tolerance, &output.scales);
+    }
+    /*
+    const float cmp = Compare(_input, *_output, _skeleton);
+    ozz::log::Log() << "factor / error : " << factor << '/' << cmp << std::endl;
+    if (cmp < setting.tolerance)*/ {
+      break;
+    }
   }
 
   // Output animation is always valid though.
