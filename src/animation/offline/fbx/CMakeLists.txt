@@ -47,6 +47,8 @@ set(build_configurations
   "/fbx/alain/crossarms.fbx\;{\"skeleton\":{\"filename\":\"alain_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"alain_crossarms.ozz\"}]}\;output:alain_crossarms.ozz\;depend:alain_skeleton.ozz"
   "/fbx/alain/crackhead.fbx\;{\"skeleton\":{\"filename\":\"alain_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"alain_crackhead.ozz\"},{\"filename\":\"alain_crackhead_additive.ozz\",\"additive\":true}]}\;output:alain_crackhead_additive.ozz\;output:alain_crackhead.ozz\;depend:alain_skeleton.ozz"
   
+   "/fbx/alain/walk.fbx\;{\"skeleton\":{\"filename\":\"alain_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"alain_walk_raw.ozz\",\"raw\":true,\"optimize\":false}]}\;output:alain_walk_raw.ozz\;depend:alain_skeleton.ozz"
+
   # Robot user channels
   "/fbx/robot.fbx\;\;config_file:${PROJECT_SOURCE_DIR}/samples/user_channel/config.json\;output:robot_skeleton.ozz\;output:robot_animation.ozz\;output:robot_track_grasp.ozz"
 

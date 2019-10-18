@@ -92,6 +92,8 @@ bool LoadAnimation(const char* _filename,
 }
 }  // namespace
 
+extern int mode;
+
 class OptimizeSampleApplication : public ozz::sample::Application {
  public:
   OptimizeSampleApplication()
@@ -345,6 +347,12 @@ class OptimizeSampleApplication : public ozz::sample::Application {
       if (open) {
         bool rebuild = false;
 
+        rebuild |= _im_gui->DoRadioButton(-1, "no constant", &mode);
+        rebuild |= _im_gui->DoRadioButton(0, "rdp", &mode);
+        rebuild |= _im_gui->DoRadioButton(1, "iter rdp", &mode);
+        rebuild |= _im_gui->DoRadioButton(2, "random", &mode);
+        rebuild |= _im_gui->DoRadioButton(3, "vis", &mode);
+
         rebuild |= _im_gui->DoCheckBox("Enable optimizations", &optimize_);
 
         std::sprintf(label, "Tolerance: %0.2f mm", setting_.tolerance * 1000);
@@ -411,7 +419,7 @@ class OptimizeSampleApplication : public ozz::sample::Application {
 
     // Selects display mode.
     static bool open_mode = true;
-    ozz::sample::ImGui::OpenClose mode(_im_gui, "Display mode", &open_mode);
+    ozz::sample::ImGui::OpenClose dmode(_im_gui, "Display mode", &open_mode);
     if (open_mode) {
       _im_gui->DoRadioButton(eRuntimeAnimation, "Runtime animation",
                              &selected_display_);

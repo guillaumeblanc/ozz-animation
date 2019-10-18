@@ -29,6 +29,7 @@
 
 #include <cassert>
 #include <cstddef>
+#include <random>
 
 // Internal include file
 #define OZZ_INCLUDE_PRIVATE_HEADER  // Allows to include private headers.
@@ -47,6 +48,13 @@
 
 #include "ozz/animation/runtime/skeleton.h"
 #include "ozz/animation/runtime/skeleton_utils.h"
+
+// -1 -> constant
+// 0 -> base
+// 1 -> iterate base
+// 2 -> random
+// 3 -> vis
+int mode = -1;
 
 namespace ozz {
 namespace animation {
@@ -321,18 +329,21 @@ ozz::math::Float3 TransformPoint(const ozz::math::Transform& _transform,
 
 float Compare(const ozz::math::Transform& _reference,
               const ozz::math::Transform& _test) {
-  const float kDist = .0f;
-  ozz::math::Float3 points[] = {ozz::math::Float3::x_axis() * kDist,
-                                ozz::math::Float3::y_axis() * kDist,
-                                ozz::math::Float3::z_axis() * kDist};
-  float mlen2 = 0.f;
-  for (size_t i = 0; i < OZZ_ARRAY_SIZE(points); ++i) {
-    ozz::math::Float3 ref = TransformPoint(_reference, points[i]);
-    ozz::math::Float3 test = TransformPoint(_test, points[i]);
-    const float len2 = LengthSqr(ref - test);
-    mlen2 = ozz::math::Max(mlen2, len2);
-  }
-  return std::sqrt(mlen2);
+  /*
+const float kDist = .0f;
+ozz::math::Float3 points[] = {ozz::math::Float3::x_axis() * kDist,
+                          ozz::math::Float3::y_axis() * kDist,
+                          ozz::math::Float3::z_axis() * kDist};
+float mlen2 = 0.f;
+for (size_t i = 0; i < OZZ_ARRAY_SIZE(points); ++i) {
+ozz::math::Float3 ref = TransformPoint(_reference, points[i]);
+ozz::math::Float3 test = TransformPoint(_test, points[i]);
+const float len2 = LengthSqr(ref - test);
+mlen2 = ozz::math::Max(mlen2, len2);
+}
+return std::sqrt(mlen2);
+*/
+  return Length(_reference.translation - _test.translation);
 }
 
 float Compare(const RawAnimation& _reference, const RawAnimation& _test,
@@ -358,7 +369,22 @@ float Compare(const RawAnimation& _reference, const RawAnimation& _test,
   }
 
   return mcmp;
-}  // namespace
+}
+
+float Compare(const RawAnimation& _reference, const RawAnimation& _test,
+              float _from, float _to, const Skeleton& _skeleton) {
+  _from = ozz::math::Max(_from, 0.f);
+  _to = ozz::math::Max(_to, _reference.duration);
+
+  float mcmp = 0.f;
+  const float step = 1.f / 30.f;
+  for (float t = _from; t <= _to; t += step, ozz::math::Min(t, _to)) {
+    const float icmp = Compare(_reference, _test, t, _skeleton);
+    mcmp = ozz::math::Max(mcmp, icmp);
+  }
+
+  return mcmp;
+}
 
 float Compare(const RawAnimation& _reference, const RawAnimation& _test,
               const Skeleton& _skeleton) {
@@ -373,7 +399,99 @@ float Compare(const RawAnimation& _reference, const RawAnimation& _test,
   return mcmp;
 }
 
+struct GlobalRdpKey {
+  bool decimable;
+  int type;
+  float time;
+};
+/*
+class GlobalRdpAdapter {
+ public:
+  GlobalRdpAdapter() {}
+  bool Decimable(const GlobalRdpKey&) const { return true; }
+
+  GlobalRdpKey Lerp(const GlobalRdpKey& _left, const GlobalRdpKey& _right,
+                    const GlobalRdpKey& _ref) const {}
+
+  float Distance(const GlobalRdpKey& _left, const GlobalRdpKey& _right) const {
+    return 0.f;
+  }
+
+ private:
+};
+*/
 }  // namespace
+
+bool TrackKeysEnd(const RawAnimation::JointTrack& _track, size_t t, size_t k) {
+  if (t == 0) {
+    return k >= _track.translations.size();
+  } else if (t == 1) {
+    return k >= _track.rotations.size();
+  } else {
+    return k >= _track.scales.size();
+  }
+}
+
+float TrackKeyTime(const RawAnimation::JointTrack& _track, size_t t, size_t k) {
+  if (t == 0) {
+    return _track.translations[k].time;
+  } else if (t == 1) {
+    return _track.rotations[k].time;
+  } else {
+    return _track.scales[k].time;
+  }
+}
+
+void RemoveKey(RawAnimation::JointTrack& _track, size_t t, size_t k) {
+  if (t == 0) {
+    _track.translations.erase(_track.translations.begin() + k);
+  } else if (t == 1) {
+    _track.rotations.erase(_track.rotations.begin() + k);
+  } else {
+    _track.scales.erase(_track.scales.begin() + k);
+  }
+}
+
+template <typename _Track>
+bool IsConstant(const _Track& _track, float _tolerance) {
+  if (_track.size() <= 1) {
+    return true;
+  }
+  bool constant = true;
+  for (size_t i = 1; constant && i < _track.size(); ++i) {
+    constant &= Compare(_track[i - 1].value, _track[i].value, _tolerance);
+  }
+  return constant;
+}
+template <typename _Track>
+bool DecimateConstant(const _Track& _input, _Track* _output, float _tolerance) {
+  const bool constant = IsConstant(_input, _tolerance);
+  if (constant) {
+    _output->clear();
+    if (_input.size() > 0) {
+      _output->push_back(_input[0]);
+      _output->at(0).time = 0.f;
+    }
+  } else {
+    *_output = _input;
+  }
+  return constant;
+}
+
+void DecimateConstants(const RawAnimation& _input, RawAnimation* _output) {
+  const int num_tracks = _input.num_tracks();
+  _output->name = _input.name;
+  _output->duration = _input.duration;
+  _output->tracks.resize(num_tracks);
+
+  for (int i = 0; i < num_tracks; ++i) {
+    const RawAnimation::JointTrack& input = _input.tracks[i];
+    RawAnimation::JointTrack& output = _output->tracks[i];
+    DecimateConstant(input.translations, &output.translations, 1e-6f);
+    DecimateConstant(input.rotations, &output.rotations, std::cos(1e-6f * .5f));
+    DecimateConstant(input.scales, &output.scales, 1e-6f);
+  }
+}
 
 bool AnimationOptimizer::operator()(const RawAnimation& _input,
                                     const Skeleton& _skeleton,
@@ -404,40 +522,173 @@ bool AnimationOptimizer::operator()(const RawAnimation& _input,
   _output->duration = _input.duration;
   _output->tracks.resize(num_tracks);
 
-  const float kDescent = .8f;
-  for (float factor = 1.f;;/* factor *= kDescent*/) {
-    for (int i = 0; i < num_tracks; ++i) {
-      const RawAnimation::JointTrack& input = _input.tracks[i];
-      RawAnimation::JointTrack& output = _output->tracks[i];
-      output.translations.clear();
-      output.rotations.clear();
-      output.scales.clear();
+  RawAnimation no_constant;
+  DecimateConstants(_input, &no_constant);
 
-      // Gets joint specs back.
-      const float joint_length = hierarchy.specs[i].length;
-      const int parent = _skeleton.joint_parents()[i];
-      const float parent_scale =
-          (parent != Skeleton::kNoParent) ? hierarchy.specs[parent].scale : 1.f;
-      const float tolerance = hierarchy.specs[i].tolerance * factor;
+  if (mode == -1) {
+    *_output = no_constant;
+  } else if (mode <= 1) {
+    const float kDescent = .8f;
+    for (float factor = 1.f;; factor *= kDescent) {
+      for (int i = 0; i < num_tracks; ++i) {
+        const RawAnimation::JointTrack& input = no_constant.tracks[i];
+        RawAnimation::JointTrack& output = _output->tracks[i];
+        output.translations.clear();
+        output.rotations.clear();
+        output.scales.clear();
 
-      // Filters independently T, R and S tracks.
-      // This joint translation is affected by parent scale.
-      const PositionAdapter tadap(parent_scale);
-      Decimate(input.translations, tadap, tolerance, &output.translations);
-      // This joint rotation affects children translations/length.
-      const RotationAdapter radap(joint_length);
-      Decimate(input.rotations, radap, tolerance, &output.rotations);
-      // This joint scale affects children translations/length.
-      const ScaleAdapter sadap(joint_length);
-      Decimate(input.scales, sadap, tolerance, &output.scales);
-    }
-    /*
-    const float cmp = Compare(_input, *_output, _skeleton);
-    ozz::log::Log() << "factor / error : " << factor << '/' << cmp << std::endl;
-    if (cmp < setting.tolerance)*/ {
-      break;
+        // Gets joint specs back.
+        const float joint_length = hierarchy.specs[i].length;
+        const int parent = _skeleton.joint_parents()[i];
+        const float parent_scale = (parent != Skeleton::kNoParent)
+                                       ? hierarchy.specs[parent].scale
+                                       : 1.f;
+        const float tolerance = hierarchy.specs[i].tolerance * factor;
+
+        // Filters independently T, R and S tracks.
+        // This joint translation is affected by parent scale.
+        const PositionAdapter tadap(parent_scale);
+        Decimate(input.translations, tadap, tolerance, &output.translations);
+        // This joint rotation affects children translations/length.
+        const RotationAdapter radap(joint_length);
+        Decimate(input.rotations, radap, tolerance, &output.rotations);
+        // This joint scale affects children translations/length.
+        const ScaleAdapter sadap(joint_length);
+        Decimate(input.scales, sadap, tolerance, &output.scales);
+      }
+
+      if (mode == 0) {
+        break;
+      }
+
+      const float cmp = Compare(no_constant, *_output, _skeleton);
+      ozz::log::Log() << "factor / error : " << factor << '/' << cmp
+                      << std::endl;
+      if (cmp < setting.tolerance) {
+        break;
+      }
     }
   }
+
+  if (mode == 2) {
+    int tries = 0;
+    RawAnimation current = no_constant;
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+
+    for (size_t i = 0;; ++i) {
+      RawAnimation candidate = current;
+
+      const int rj =
+          std::uniform_int_distribution<>(0, _skeleton.num_joints() - 1)(gen);
+      const int rt = std::uniform_int_distribution<>(0, 3 - 1)(gen);
+      float keytime;
+      if (rt == 0) {
+        RawAnimation::JointTrack::Translations& keys =
+            candidate.tracks[rj].translations;
+        if (keys.size() <= 1) {
+          continue;
+        }
+        const int rk = std::uniform_int_distribution<>(0, keys.size() - 1)(gen);
+        keytime = (keys.begin() + rk)->time;
+        keys.erase(keys.begin() + rk);
+      } else if (rt == 1) {
+        RawAnimation::JointTrack::Rotations& keys =
+            candidate.tracks[rj].rotations;
+        if (keys.size() <= 1) {
+          continue;
+        }
+        const int rk = std::uniform_int_distribution<>(0, keys.size() - 1)(gen);
+        keytime = (keys.begin() + rk)->time;
+        keys.erase(keys.begin() + rk);
+      } else {
+        RawAnimation::JointTrack::Scales& keys = candidate.tracks[rj].scales;
+        if (keys.size() <= 1) {
+          continue;
+        }
+        const int rk = std::uniform_int_distribution<>(0, keys.size() - 1)(gen);
+        keytime = (keys.begin() + rk)->time;
+        keys.erase(keys.begin() + rk);
+      }
+
+      const float cmp = Compare(no_constant, candidate, keytime - .1f,
+                                keytime + .1f, _skeleton);
+
+      ozz::log::Log() << i << "\t" << tries << "\t" << cmp << std::endl;
+      if (cmp > setting.tolerance) {
+        if (tries >= 1000) {
+          *_output = current;
+          break;
+        }
+        ++tries;
+      } else {
+        current = candidate;
+        tries = 0;
+      }
+    }
+  }
+
+  if (mode == 3) {
+    RawAnimation current = no_constant;
+
+    for (size_t i = 0;; ++i) {
+      bool mfound = false;
+      size_t mj = 0, mt = 0, mk = 0;
+      float mincmp = 1e9f;
+      const size_t num_joints = static_cast<size_t>(_skeleton.num_joints());
+      for (size_t j = 0, t = 0, k = 0;;) {
+        RawAnimation candidate = current;
+
+        for (++k; TrackKeysEnd(candidate.tracks[j], t, k); ++k) {
+          k = 0;
+          ++t;
+
+          if (t >= 3) {
+            t = 0;
+            ++j;
+            if (j >= num_joints) {
+              break;
+            }
+          }
+        }
+
+        if (j >= num_joints) {
+          break;
+        }
+
+        const float keytime = TrackKeyTime(candidate.tracks[j], t, k);
+        RemoveKey(candidate.tracks[j], t, k);
+
+        const float cmp = Compare(no_constant, candidate, keytime - .1f,
+                                  keytime + .1f, _skeleton);
+        if (cmp < mincmp) {
+          mincmp = cmp;
+          mj = j;
+          mt = t;
+          mk = k;
+          mfound = true;
+        }
+
+        if (mincmp == 0.f) {
+          break;
+        }
+      }
+
+      ozz::log::Log() << i << "\t" << mincmp << "\t" << mj << "\t" << mt << "\t"
+                      << mk << std::endl;
+
+      if (mfound && mincmp < setting.tolerance) {
+        RemoveKey(current.tracks[mj], mt, mk);
+      } else {
+        break;
+      }
+    }
+    *_output = current;
+  }
+
+  const float cmp = Compare(_input, *_output, _skeleton);
+  ozz::log::Log() << "Final error: " << cmp << std::endl;
 
   // Output animation is always valid though.
   return _output->Validate();

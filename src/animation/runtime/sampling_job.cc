@@ -234,7 +234,7 @@ void UpdateSoaTranslations(int _num_soa_tracks,
     const math::SimdFloat4 dot = cpnt[0] * cpnt[0] + cpnt[1] * cpnt[1] +       \
                                  cpnt[2] * cpnt[2] + cpnt[3] * cpnt[3];        \
     const math::SimdFloat4 ww0 = math::Max(eps, one - dot);                    \
-    const math::SimdFloat4 w0 = ww0 * math::RSqrtEst(ww0);                     \
+    const math::SimdFloat4 w0 = math::Sqrt(ww0);                     \
     /* Re-applies 4th component' s sign.*/                                     \
     const math::SimdInt4 sign = math::ShiftL(                                  \
         math::simd_int4::Load(_k0.sign, _k1.sign, _k2.sign, _k3.sign), 31);    \
@@ -371,21 +371,21 @@ void Interpolates(float _anim_ratio, int _num_soa_tracks,
   for (int i = 0; i < _num_soa_tracks; ++i) {
     // Prepares interpolation coefficients.
     const math::SimdFloat4 interp_t_ratio =
-        (anim_ratio - _translations[i].ratio[0]) *
-        math::RcpEst(_translations[i].ratio[1] - _translations[i].ratio[0]);
+        (anim_ratio - _translations[i].ratio[0]) 
+        /(_translations[i].ratio[1] - _translations[i].ratio[0]);
     const math::SimdFloat4 interp_r_ratio =
-        (anim_ratio - _rotations[i].ratio[0]) *
-        math::RcpEst(_rotations[i].ratio[1] - _rotations[i].ratio[0]);
+        (anim_ratio - _rotations[i].ratio[0]) 
+        /(_rotations[i].ratio[1] - _rotations[i].ratio[0]);
     const math::SimdFloat4 interp_s_ratio =
-        (anim_ratio - _scales[i].ratio[0]) *
-        math::RcpEst(_scales[i].ratio[1] - _scales[i].ratio[0]);
+        (anim_ratio - _scales[i].ratio[0]) 
+        /(_scales[i].ratio[1] - _scales[i].ratio[0]);
 
     // Processes interpolations.
     // The lerp of the rotation uses the shortest path, because opposed
     // quaternions were negated during animation build stage (AnimationBuilder).
     _output[i].translation = Lerp(_translations[i].value[0],
                                   _translations[i].value[1], interp_t_ratio);
-    _output[i].rotation = NLerpEst(_rotations[i].value[0],
+    _output[i].rotation = NLerp(_rotations[i].value[0],
                                    _rotations[i].value[1], interp_r_ratio);
     _output[i].scale =
         Lerp(_scales[i].value[0], _scales[i].value[1], interp_s_ratio);
