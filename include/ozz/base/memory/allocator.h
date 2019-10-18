@@ -72,83 +72,44 @@ class Allocator {
   // Argument _block can be NULL.
   // Reallocate function conforms with standard realloc function specifications.
   virtual void* Reallocate(void* _block, size_t _size, size_t _alignment) = 0;
-
-  // Next functions are helper functions used to provide typed and ranged
-  // allocations.
-
-  // Replaces operator new with no argument.
-  // New function conforms with standard operator new specifications.
-  template <typename _Ty>
-  _Ty* New() {
-    void* alloc =
-        memory::default_allocator()->Allocate(sizeof(_Ty), OZZ_ALIGN_OF(_Ty));
-    if (alloc) {
-      return new (alloc) _Ty;
-    }
-    return NULL;
-  }
-
-  // Replaces operator new with one argument.
-  // New function conforms with standard operator new specifications.
-  template <typename _Ty, typename _Arg0>
-  _Ty* New(const _Arg0& _arg0) {
-    void* alloc =
-        memory::default_allocator()->Allocate(sizeof(_Ty), OZZ_ALIGN_OF(_Ty));
-    if (alloc) {
-      return new (alloc) _Ty(_arg0);
-    }
-    return NULL;
-  }
-
-  // Replaces operator new with two arguments.
-  // New function conforms with standard operator new specifications.
-  template <typename _Ty, typename _Arg0, typename _Arg1>
-  _Ty* New(const _Arg0& _arg0, const _Arg1& _arg1) {
-    void* alloc =
-        memory::default_allocator()->Allocate(sizeof(_Ty), OZZ_ALIGN_OF(_Ty));
-    if (alloc) {
-      return new (alloc) _Ty(_arg0, _arg1);
-    }
-    return NULL;
-  }
-
-  // Replaces operator new with three arguments.
-  // New function conforms with standard operator new specifications.
-  template <typename _Ty, typename _Arg0, typename _Arg1, typename _Arg2>
-  _Ty* New(const _Arg0& _arg0, const _Arg1& _arg1, const _Arg2& _arg2) {
-    void* alloc =
-        memory::default_allocator()->Allocate(sizeof(_Ty), OZZ_ALIGN_OF(_Ty));
-    if (alloc) {
-      return new (alloc) _Ty(_arg0, _arg1, _arg2);
-    }
-    return NULL;
-  }
-
-  // Replaces operator new with four arguments.
-  // New function conforms with standard operator new specifications.
-  template <typename _Ty, typename _Arg0, typename _Arg1, typename _Arg2,
-            typename _Arg3>
-  _Ty* New(const _Arg0& _arg0, const _Arg1& _arg1, const _Arg2& _arg2,
-           const _Arg3& _arg3) {
-    void* alloc =
-        memory::default_allocator()->Allocate(sizeof(_Ty), OZZ_ALIGN_OF(_Ty));
-    if (alloc) {
-      return new (alloc) _Ty(_arg0, _arg1, _arg2, _arg3);
-    }
-    return NULL;
-  }
-
-  // Replaces operator delete for objects allocated using one of the New
-  // functions ot *this allocator.
-  // Delete function conforms with standard operator delete specifications.
-  template <typename _Ty>
-  void Delete(_Ty* _object) {
-    if (_object) {
-      _object->~_Ty();
-      Deallocate(_object);
-    }
-  }
 };
+
+// ozz replacement for c++ operator new with, used to allocate with an
+// ozz::memory::Allocator. OZZ_DELETE must be used to deallocate such object.
+// It can be used for constructor with no argument:
+// Type* object = OZZ_NEW(allocator, Type)
+// or any number of argument:
+// Type* object = OZZ_NEW(allocator, Type)(1,2,3,4)
+// Using a macro is motivated by the fact that it's not possible prior to c++11
+// to forward every possible type of argument (&, const&, rvalue, ...) to
+// constructors, especially if big number of arguments is required.
+#define OZZ_NEW(x_allocator, x_type) \
+  new ((x_allocator)->Allocate(sizeof(x_type), OZZ_ALIGN_OF(x_type))) x_type
+
+// ozz replacement for c++ delete. Must be used for objects allocated with
+// OZZ_NEW and the same ozz::memory::Allocator.
+// OZZ_DELETE conforms with standard operator delete specifications.
+#define OZZ_DELETE(x_allocator, x_object)              \
+                                                       \
+  do {                                                 \
+    if ((x_object) != NULL) {                          \
+      ozz::memory::internal::CallDestructor(x_object); \
+      (x_allocator)->Deallocate(x_object);             \
+    }                                                  \
+  }                                                    \
+                                                       \
+  while (void(0), 0)
+
+// Function used internally to deduce object type and thus be able to call its
+// destructor.
+namespace internal {
+template <typename _Ty>
+void CallDestructor(_Ty* _object) {
+  (void)_object;  // prevents from false "unreferenced parameter" warning when
+                  // _Ty has no explicit destructor.
+  _object->~_Ty();
+}
+}  // namespace internal
 }  // namespace memory
 }  // namespace ozz
 #endif  // OZZ_OZZ_BASE_MEMORY_ALLOCATOR_H_

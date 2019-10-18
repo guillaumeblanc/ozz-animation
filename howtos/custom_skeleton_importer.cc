@@ -100,7 +100,7 @@ int main(int argc, char const* argv[]) {
   // ...use the skeleton as you want...
 
   // In the end the skeleton needs to be deleted.
-  ozz::memory::default_allocator()->Delete(skeleton);
+  OZZ_DELETE(ozz::memory::default_allocator(), skeleton);
 
   return EXIT_SUCCESS;
 }
