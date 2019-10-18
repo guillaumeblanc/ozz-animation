@@ -41,8 +41,8 @@ class TestConverter : public ozz::animation::offline::OzzImporter {
 
  private:
   virtual bool Load(const char* _filename) {
-    file_.reset(
-        ozz::memory::default_allocator()->New<ozz::io::File>(_filename, "rb"));
+    file_.reset(OZZ_NEW(ozz::memory::default_allocator(), ozz::io::File)(
+        _filename, "rb"));
     if (!file_->opened()) {
       file_.reset(NULL);
       return false;
