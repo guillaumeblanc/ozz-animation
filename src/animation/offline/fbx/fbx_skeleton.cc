@@ -91,7 +91,9 @@ bool IsTypeSelected(const OzzImporter::NodeType& _types,
   }
 }
 
-RecurseReturn RecurseNode(FbxNode* _node, FbxSystemConverter* _converter,
+RecurseReturn RecurseNode(FbxNode* _node,
+                          const ozz::Vector<FbxCluster*>::Std& _clusters,
+                          FbxSceneLoader& _loader,
                           const OzzImporter::NodeType& _types,
                           RawSkeleton* _skeleton, RawSkeleton::Joint* _parent,
                           FbxAMatrix _parent_global_inv) {
@@ -117,10 +119,36 @@ RecurseReturn RecurseNode(FbxNode* _node, FbxSystemConverter* _converter,
     this_joint->name = _node->GetName();
 
     // Extract bind pose.
-    const FbxAMatrix node_global = _node->EvaluateGlobalTransform();
+    FbxAMatrix node_global = _node->EvaluateGlobalTransform();
+
+    bool node_global_found = false;
+    for (int cluster_index = 0; cluster_index < _clusters.size(); ++cluster_index) {
+      FbxCluster* cluster = _clusters[cluster_index];
+      if (cluster->GetLink() == _node) {
+        cluster->GetTransformLinkMatrix(node_global);
+        node_global_found = true;
+        break;
+      }
+    }
+
+    if (!node_global_found) {
+      const int pose_count = _loader.scene()->GetPoseCount();
+      for (int i = 0; i < pose_count; ++i) {
+        auto pose = _loader.scene()->GetPose(i);
+        if (pose && pose->IsBindPose()) {
+          int found_node = pose->Find(_node);
+          if (found_node >= 0) {
+            FbxMatrix none_affine_matrix = pose->GetMatrix(found_node);
+            node_global = *(FbxAMatrix*)(double*)&none_affine_matrix;
+            break;
+          }
+        }
+      }
+    }
+
     const FbxAMatrix node_local = _parent_global_inv * node_global;
 
-    if (!_converter->ConvertTransform(node_local, &this_joint->transform)) {
+    if (!_loader.converter()->ConvertTransform(node_local, &this_joint->transform)) {
       ozz::log::Err() << "Failed to extract skeleton transform for joint \""
                       << this_joint->name << "\"." << std::endl;
       return kError;
@@ -134,8 +162,8 @@ RecurseReturn RecurseNode(FbxNode* _node, FbxSystemConverter* _converter,
   // Iterate node's children, even if this one wasn't processed.
   for (int i = 0; i < _node->GetChildCount(); i++) {
     FbxNode* child = _node->GetChild(i);
-    const RecurseReturn ret = RecurseNode(child, _converter, _types, _skeleton,
-                                          _parent, _parent_global_inv);
+    const RecurseReturn ret = RecurseNode(child, _clusters, _loader, _types,
+                                          _skeleton, _parent, _parent_global_inv);
     if (ret == kError) {
       return ret;
     }
@@ -144,14 +172,38 @@ RecurseReturn RecurseNode(FbxNode* _node, FbxSystemConverter* _converter,
 
   return skeleton_found ? kSkeletonFound : kNoSkeleton;
 }
+
+void CollectClusters(FbxNode* _node, ozz::Vector<FbxCluster*>::Std& _clusters) {
+  FbxMesh* fbx_mesh = _node->GetMesh();
+  if (fbx_mesh) {
+    const int skin_deformer_count = fbx_mesh->GetDeformerCount(FbxDeformer::eSkin);
+    for (int deformer_index = 0; deformer_index < skin_deformer_count; ++deformer_index) {
+      FbxSkin* skin = (FbxSkin*)fbx_mesh->GetDeformer(deformer_index, FbxDeformer::eSkin);
+      for (int cluster_index = 0; cluster_index < skin->GetClusterCount(); ++cluster_index) {
+        FbxCluster* cluster = skin->GetCluster(cluster_index);
+        if (cluster) {
+          _clusters.push_back(cluster);
+        }
+      }
+    }
+  }
+
+  // Iterate node's children, even if this one wasn't processed.
+  for (int i = 0; i < _node->GetChildCount(); i++) {
+    FbxNode* child = _node->GetChild(i);
+    CollectClusters(child, _clusters);
+  }
+}
 }  // namespace
 
 bool ExtractSkeleton(FbxSceneLoader& _loader,
                      const OzzImporter::NodeType& _types,
                      RawSkeleton* _skeleton) {
+  ozz::Vector<FbxCluster*>::Std clusters;
+  CollectClusters(_loader.scene()->GetRootNode(), clusters);
   RecurseReturn ret =
-      RecurseNode(_loader.scene()->GetRootNode(), _loader.converter(), _types,
-                  _skeleton, NULL, FbxAMatrix());
+      RecurseNode(_loader.scene()->GetRootNode(), clusters, _loader,
+                  _types, _skeleton, NULL, FbxAMatrix());
   if (ret == kNoSkeleton) {
     ozz::log::Err() << "No skeleton found in Fbx scene." << std::endl;
     return false;
