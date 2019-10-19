@@ -54,7 +54,7 @@
 // 1 -> iterate base
 // 2 -> random
 // 3 -> vis
-int mode = -1;
+int mode = 0;
 
 namespace ozz {
 namespace animation {
@@ -452,6 +452,27 @@ void RemoveKey(RawAnimation::JointTrack& _track, size_t t, size_t k) {
   }
 }
 
+struct J {
+  float cmp;
+  size_t j, t, k;
+};
+
+typedef ozz::Vector<J>::Std JS;
+
+void RemoveKeys(RawAnimation& _animation, const JS& _js) {
+  for (size_t i = 0; i < _js.size(); ++i) {
+    const J& j = _js[i];
+    RawAnimation::JointTrack& _track = _animation.tracks[j.j];
+    if (j.t == 0) {
+      _track.translations.erase(_track.translations.begin() + j.k);
+    } else if (j.t == 1) {
+      _track.rotations.erase(_track.rotations.begin() + j.k);
+    } else {
+      _track.scales.erase(_track.scales.begin() + j.k);
+    }
+  }
+}
+
 template <typename _Track>
 bool IsConstant(const _Track& _track, float _tolerance) {
   if (_track.size() <= 1) {
@@ -612,8 +633,8 @@ bool AnimationOptimizer::operator()(const RawAnimation& _input,
         keys.erase(keys.begin() + rk);
       }
 
-      const float cmp = Compare(no_constant, candidate, keytime - .1f,
-                                keytime + .1f, _skeleton);
+      const float cmp = Compare(no_constant, candidate, keytime - .04f,
+                                keytime + .04f, _skeleton);
 
       ozz::log::Log() << i << "\t" << tries << "\t" << cmp << std::endl;
       if (cmp > setting.tolerance) {
@@ -631,58 +652,87 @@ bool AnimationOptimizer::operator()(const RawAnimation& _input,
 
   if (mode == 3) {
     RawAnimation current = no_constant;
+    const size_t kTries = 40;
+    for (size_t i = 0; i < kTries; ++i) {
 
-    for (size_t i = 0;; ++i) {
-      bool mfound = false;
-      size_t mj = 0, mt = 0, mk = 0;
-      float mincmp = 1e9f;
+      float maxerr = setting.tolerance * i / kTries;
+
+      JS js;
+      //      bool mfound = false;
+      J mj = {0};
+      //      float mincmp = 1e9f;
       const size_t num_joints = static_cast<size_t>(_skeleton.num_joints());
-      for (size_t j = 0, t = 0, k = 0;;) {
+      for (J j = {0};;) {
         RawAnimation candidate = current;
 
-        for (++k; TrackKeysEnd(candidate.tracks[j], t, k); ++k) {
-          k = 0;
-          ++t;
+        for (++j.k; TrackKeysEnd(candidate.tracks[j.j], j.t, j.k); ++j.k) {
+          j.k = 0;
+          ++j.t;
 
-          if (t >= 3) {
-            t = 0;
-            ++j;
-            if (j >= num_joints) {
+          if (j.t >= 3) {
+            j.t = 0;
+            ++j.j;
+            if (j.j >= num_joints) {
               break;
             }
           }
         }
 
-        if (j >= num_joints) {
+        if (j.j >= num_joints) {
           break;
         }
 
-        const float keytime = TrackKeyTime(candidate.tracks[j], t, k);
-        RemoveKey(candidate.tracks[j], t, k);
+        const float keytime = TrackKeyTime(candidate.tracks[j.j], j.t, j.k);
+        RemoveKey(candidate.tracks[j.j], j.t, j.k);
 
-        const float cmp = Compare(no_constant, candidate, keytime - .1f,
-                                  keytime + .1f, _skeleton);
-        if (cmp < mincmp) {
-          mincmp = cmp;
-          mj = j;
-          mt = t;
-          mk = k;
-          mfound = true;
-        }
+        j.cmp = Compare(no_constant, candidate, keytime, _skeleton);
+        // if (j.cmp < mincmp) {
+        //  mincmp = cmp;
+        js.push_back(j);
+        //  mfound = true;
+        //}
 
-        if (mincmp == 0.f) {
-          break;
-        }
+        // if (mincmp < 1e-5f) {
+        //   break;
+        // }
       }
 
-      ozz::log::Log() << i << "\t" << mincmp << "\t" << mj << "\t" << mt << "\t"
-                      << mk << std::endl;
+      std::sort(js.begin(), js.end(),
+                [](const J& a, const J& b) { return (a.cmp < b.cmp); });
 
-      if (mfound && mincmp < setting.tolerance) {
-        RemoveKey(current.tracks[mj], mt, mk);
+      JS::iterator lastcmp =
+          std::find_if(js.begin(), js.end(),
+                       [maxerr](const J& a) -> bool { return a.cmp > maxerr; });
+
+    //  if (lastcmp == js.begin()) {
+    //    break;
+    //  }
+
+      std::sort(js.begin(), lastcmp,
+                [](const J& a, const J& b) { return (a.k > b.k); });
+
+      js.erase(lastcmp, js.end());
+
+      RawAnimation candidate = current;
+      RemoveKeys(candidate, js);
+
+      const float cmp = Compare(_input, candidate, _skeleton);
+      ozz::log::Log() << "i error: " << i << "\t" << cmp << std::endl;
+      if (cmp < setting.tolerance) {
+        current = candidate;
       } else {
         break;
       }
+
+      /*
+      ozz::log::Log() << i << "\t" << mincmp << "\t" << mj.j << "\t" << mj.t
+                      << "\t" << mj.k << std::endl;
+      if (mfound && mincmp < setting.tolerance) {
+        RemoveKey(current.tracks[mj.j], mj.t, mj.k);
+      } else {
+        break;
+      }*/
+
     }
     *_output = current;
   }
