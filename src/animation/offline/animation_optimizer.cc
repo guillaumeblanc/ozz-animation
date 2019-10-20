@@ -514,6 +514,61 @@ void DecimateConstants(const RawAnimation& _input, RawAnimation* _output) {
   }
 }
 
+bool VisGlobal(const Skeleton& _skeleton, const RawAnimation& _input,
+               RawAnimation* _output, float _maxerr) {
+  JS js;
+  //      bool mfound = false;
+  J mj = {0};
+  //      float mincmp = 1e9f;
+  const size_t num_joints = static_cast<size_t>(_skeleton.num_joints());
+  for (J j = {0};;) {
+    *_output = _input;
+
+    for (++j.k; TrackKeysEnd(_output->tracks[j.j], j.t, j.k); ++j.k) {
+      j.k = 0;
+      ++j.t;
+
+      if (j.t >= 3) {
+        j.t = 0;
+        ++j.j;
+        if (j.j >= num_joints) {
+          break;
+        }
+      }
+    }
+
+    if (j.j >= num_joints) {
+      break;
+    }
+
+    const float keytime = TrackKeyTime(_output->tracks[j.j], j.t, j.k);
+    RemoveKey(_output->tracks[j.j], j.t, j.k);
+
+    j.cmp = Compare(_input, *_output, keytime, _skeleton);
+    if (j.cmp < _maxerr) {
+      //  mincmp = cmp;
+      js.push_back(j);
+      //  mfound = true;
+    }
+
+    // if (mincmp < 1e-5f) {
+    //   break;
+    // }
+  }
+
+  if (js.size() == 0) {
+    return false;
+  }
+
+  std::sort(js.begin(), js.end(),
+            [](const J& a, const J& b) { return (a.k > b.k); });
+
+  *_output = _input;
+  RemoveKeys(*_output, js);
+
+  return true;
+}
+
 bool AnimationOptimizer::operator()(const RawAnimation& _input,
                                     const Skeleton& _skeleton,
                                     RawAnimation* _output) const {
@@ -601,8 +656,8 @@ bool AnimationOptimizer::operator()(const RawAnimation& _input,
     for (size_t i = 0;; ++i) {
       RawAnimation candidate = current;
 
-      const int rj =
-          std::uniform_int_distribution<>(0, _skeleton.num_joints() - 1)(gen);
+      const size_t rj = std::uniform_int_distribution<size_t>(
+          0, _skeleton.num_joints() - 1)(gen);
       const int rt = std::uniform_int_distribution<>(0, 3 - 1)(gen);
       float keytime;
       if (rt == 0) {
@@ -611,7 +666,8 @@ bool AnimationOptimizer::operator()(const RawAnimation& _input,
         if (keys.size() <= 1) {
           continue;
         }
-        const int rk = std::uniform_int_distribution<>(0, keys.size() - 1)(gen);
+        const size_t rk =
+            std::uniform_int_distribution<size_t>(0, keys.size() - 1)(gen);
         keytime = (keys.begin() + rk)->time;
         keys.erase(keys.begin() + rk);
       } else if (rt == 1) {
@@ -620,7 +676,8 @@ bool AnimationOptimizer::operator()(const RawAnimation& _input,
         if (keys.size() <= 1) {
           continue;
         }
-        const int rk = std::uniform_int_distribution<>(0, keys.size() - 1)(gen);
+        const size_t rk =
+            std::uniform_int_distribution<size_t>(0, keys.size() - 1)(gen);
         keytime = (keys.begin() + rk)->time;
         keys.erase(keys.begin() + rk);
       } else {
@@ -628,7 +685,8 @@ bool AnimationOptimizer::operator()(const RawAnimation& _input,
         if (keys.size() <= 1) {
           continue;
         }
-        const int rk = std::uniform_int_distribution<>(0, keys.size() - 1)(gen);
+        const size_t rk =
+            std::uniform_int_distribution<size_t>(0, keys.size() - 1)(gen);
         keytime = (keys.begin() + rk)->time;
         keys.erase(keys.begin() + rk);
       }
@@ -651,88 +709,33 @@ bool AnimationOptimizer::operator()(const RawAnimation& _input,
   }
 
   if (mode == 3) {
-    RawAnimation current = no_constant;
     const size_t kTries = 40;
+    float rate = setting.tolerance / 10.f;
+    float gradient = 1.f;
+
+    float prevcmp;
+    float maxerr = setting.tolerance / 10.f;
+    RawAnimation current;
+    VisGlobal(_skeleton, no_constant, &current, maxerr);
+    prevcmp = Compare(_input, current, _skeleton);
+
+	maxerr -= gradient * rate;
+
     for (size_t i = 0; i < kTries; ++i) {
+      RawAnimation test;
+      VisGlobal(_skeleton, no_constant, &test, maxerr);
+      const float cmp = Compare(_input, test, _skeleton);
+	  
+      gradient = (cmp - prevcmp) / (gradient * rate);
+      maxerr -= gradient * rate;
+      prevcmp = cmp;
 
-      float maxerr = setting.tolerance * i / kTries;
+      ozz::log::Log() << "i error gradient maxerr: " << i << "\t" << cmp << "\t"
+                      << gradient << "\t" << maxerr << std::endl;
 
-      JS js;
-      //      bool mfound = false;
-      J mj = {0};
-      //      float mincmp = 1e9f;
-      const size_t num_joints = static_cast<size_t>(_skeleton.num_joints());
-      for (J j = {0};;) {
-        RawAnimation candidate = current;
-
-        for (++j.k; TrackKeysEnd(candidate.tracks[j.j], j.t, j.k); ++j.k) {
-          j.k = 0;
-          ++j.t;
-
-          if (j.t >= 3) {
-            j.t = 0;
-            ++j.j;
-            if (j.j >= num_joints) {
-              break;
-            }
-          }
-        }
-
-        if (j.j >= num_joints) {
-          break;
-        }
-
-        const float keytime = TrackKeyTime(candidate.tracks[j.j], j.t, j.k);
-        RemoveKey(candidate.tracks[j.j], j.t, j.k);
-
-        j.cmp = Compare(no_constant, candidate, keytime, _skeleton);
-        // if (j.cmp < mincmp) {
-        //  mincmp = cmp;
-        js.push_back(j);
-        //  mfound = true;
-        //}
-
-        // if (mincmp < 1e-5f) {
-        //   break;
-        // }
-      }
-
-      std::sort(js.begin(), js.end(),
-                [](const J& a, const J& b) { return (a.cmp < b.cmp); });
-
-      JS::iterator lastcmp =
-          std::find_if(js.begin(), js.end(),
-                       [maxerr](const J& a) -> bool { return a.cmp > maxerr; });
-
-    //  if (lastcmp == js.begin()) {
-    //    break;
-    //  }
-
-      std::sort(js.begin(), lastcmp,
-                [](const J& a, const J& b) { return (a.k > b.k); });
-
-      js.erase(lastcmp, js.end());
-
-      RawAnimation candidate = current;
-      RemoveKeys(candidate, js);
-
-      const float cmp = Compare(_input, candidate, _skeleton);
-      ozz::log::Log() << "i error: " << i << "\t" << cmp << std::endl;
-      if (cmp < setting.tolerance) {
-        current = candidate;
-      } else {
-        break;
-      }
-
-      /*
-      ozz::log::Log() << i << "\t" << mincmp << "\t" << mj.j << "\t" << mj.t
-                      << "\t" << mj.k << std::endl;
-      if (mfound && mincmp < setting.tolerance) {
-        RemoveKey(current.tracks[mj.j], mj.t, mj.k);
-      } else {
-        break;
-      }*/
-
+      // if (mfound && mincmp < setting.tolerance) {
+      //  RemoveKey(current.tracks[mj.j], mj.t, mj.k);
+      //}
     }
     *_output = current;
   }
