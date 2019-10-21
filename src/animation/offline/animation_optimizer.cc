@@ -29,6 +29,7 @@
 
 #include <cassert>
 #include <cstddef>
+#include <numeric>
 #include <random>
 
 // Internal include file
@@ -346,6 +347,19 @@ return std::sqrt(mlen2);
   return Length(_reference.translation - _test.translation);
 }
 
+bool SampleModelSpace(const RawAnimation& _animation, const Skeleton& _skeleton,
+                      float _time,
+                      const ozz::Range<ozz::math::Transform>& _models) {
+  ozz::math::Transform locals[ozz::animation::Skeleton::kMaxJoints];
+
+  bool success = true;
+  success &=
+      ozz::animation::offline::SampleAnimation(_animation, _time, locals);
+  success &= LocalToModel(_skeleton, locals, _models);
+
+  return success;
+}
+
 float Compare(const RawAnimation& _reference, const RawAnimation& _test,
               float _time, const Skeleton& _skeleton) {
   ozz::math::Transform locals[ozz::animation::Skeleton::kMaxJoints];
@@ -524,6 +538,7 @@ bool VisGlobal(const Skeleton& _skeleton, const RawAnimation& _input,
   for (J j = {0};;) {
     *_output = _input;
 
+    // Finds next key to process
     for (++j.k; TrackKeysEnd(_output->tracks[j.j], j.t, j.k); ++j.k) {
       j.k = 0;
       ++j.t;
@@ -544,7 +559,7 @@ bool VisGlobal(const Skeleton& _skeleton, const RawAnimation& _input,
     const float keytime = TrackKeyTime(_output->tracks[j.j], j.t, j.k);
     RemoveKey(_output->tracks[j.j], j.t, j.k);
 
-    j.cmp = Compare(_input, *_output, keytime, _skeleton);
+    j.cmp = Compare(_input, *_output, _skeleton);
     if (j.cmp < _maxerr) {
       //  mincmp = cmp;
       js.push_back(j);
@@ -567,6 +582,89 @@ bool VisGlobal(const Skeleton& _skeleton, const RawAnimation& _input,
   RemoveKeys(*_output, js);
 
   return true;
+}
+
+typedef ozz::Vector<float>::Std KeyTimes;
+
+template <typename _Track>
+void CopyKeyTimes(const _Track& _track, KeyTimes* _key_times) {
+  for (int i = 0; i < _track.size(); ++i) {
+    _key_times->push_back(_track[i].time);
+  }
+}
+
+KeyTimes FindAllKeyTimes(const RawAnimation& _animation) {
+  KeyTimes key_times;
+  for (int i = 0; i < _animation.num_tracks(); ++i) {
+    const RawAnimation::JointTrack& track = _animation.tracks[i];
+    CopyKeyTimes(track.translations, &key_times);
+    CopyKeyTimes(track.rotations, &key_times);
+    CopyKeyTimes(track.scales, &key_times);
+  }
+
+  std::sort(key_times.begin(), key_times.end());
+  key_times.erase(std::unique(key_times.begin(), key_times.end()),
+                  key_times.end());
+
+  return key_times;
+}
+
+typedef ozz::Vector<ozz::math::Transform>::Std JointTransformKeys;
+typedef ozz::Vector<JointTransformKeys>::Std TransformMatrix;
+
+struct RemainingTrackKeys {
+  ozz::Vector<size_t>::Std types[3];  // T R S
+};
+typedef ozz::Vector<RemainingTrackKeys>::Std RemainingKeys;
+
+struct RemainingKeysIt {
+  RemainingKeysIt(const RemainingKeys& _keys)
+      : track(0), type(0), key(0), keys_(_keys) {
+    ++(*this);
+  }
+
+  RemainingKeysIt& operator++() {
+    do {
+      ++key;
+      if (key == keys_[track].types[type].size()) {
+        key = 0;
+        ++type;
+        if (type == 3) {
+          type = 0;
+          ++track;
+          if (track == keys_.size()) {
+            track = ~size_t(0);
+            break;
+          }
+        }
+      }
+    } while (key == keys_[track].types[type].size());
+    return *this;
+  }
+  operator bool() const { return track != ~size_t(0); }
+
+  size_t track, type, key;
+  const RemainingKeys& keys_;
+};
+
+template <typename _ITrack, typename _OTrack>
+void SetupRemainingTrackKeys(const _ITrack& _track, _OTrack* _remaining) {
+  _remaining->resize(_track.size());
+  std::iota(_remaining->begin(), _remaining->end(), 0);
+}
+
+RemainingKeys SetupRemainingKeys(const RawAnimation& _animation) {
+  RemainingKeys remaining_keys(_animation.tracks.size());
+
+  for (int i = 0; i < _animation.num_tracks(); ++i) {
+    const RawAnimation::JointTrack& track = _animation.tracks[i];
+    RemainingTrackKeys& remaining = remaining_keys[i];
+    SetupRemainingTrackKeys(track.translations, &remaining.types[0]);
+    SetupRemainingTrackKeys(track.rotations, &remaining.types[1]);
+    SetupRemainingTrackKeys(track.scales, &remaining.types[2]);
+  }
+
+  return remaining_keys;
 }
 
 bool AnimationOptimizer::operator()(const RawAnimation& _input,
@@ -656,7 +754,7 @@ bool AnimationOptimizer::operator()(const RawAnimation& _input,
     for (size_t i = 0;; ++i) {
       RawAnimation candidate = current;
 
-      const size_t rj = std::uniform_int_distribution<size_t>(
+      const int rj = std::uniform_int_distribution<int>(
           0, _skeleton.num_joints() - 1)(gen);
       const int rt = std::uniform_int_distribution<>(0, 3 - 1)(gen);
       float keytime;
@@ -709,36 +807,58 @@ bool AnimationOptimizer::operator()(const RawAnimation& _input,
   }
 
   if (mode == 3) {
-    const size_t kTries = 40;
-    float rate = setting.tolerance / 10.f;
-    float gradient = 1.f;
+    const KeyTimes& key_times = FindAllKeyTimes(no_constant);
+    ozz::log::Log() << "Unique keyframe times: " << key_times.size()
+                    << std::endl;
 
-    float prevcmp;
-    float maxerr = setting.tolerance / 10.f;
-    RawAnimation current;
-    VisGlobal(_skeleton, no_constant, &current, maxerr);
-    prevcmp = Compare(_input, current, _skeleton);
+    // Allocates matrix cache.
+    TransformMatrix matrix(key_times.size(),
+                           JointTransformKeys(_input.num_tracks()));
+    TransformMatrix reference_matrix(key_times.size(),
+                                     JointTransformKeys(_input.num_tracks()));
 
-	maxerr -= gradient * rate;
-
-    for (size_t i = 0; i < kTries; ++i) {
-      RawAnimation test;
-      VisGlobal(_skeleton, no_constant, &test, maxerr);
-      const float cmp = Compare(_input, test, _skeleton);
-	  
-      gradient = (cmp - prevcmp) / (gradient * rate);
-      maxerr -= gradient * rate;
-      prevcmp = cmp;
-
-      ozz::log::Log() << "i error gradient maxerr: " << i << "\t" << cmp << "\t"
-                      << gradient << "\t" << maxerr << std::endl;
-
-      // if (mfound && mincmp < setting.tolerance) {
-      //  RemoveKey(current.tracks[mj.j], mj.t, mj.k);
-      //}
+    // Populates reference model space transforms.
+    for (size_t i = 0; i < key_times.size(); ++i) {
+      SampleModelSpace(no_constant, _skeleton, key_times[i],
+                       ozz::make_range(reference_matrix[i]));
     }
-    *_output = current;
+
+    // Copy first key frames as an initial state.
+    RawAnimation current;
+    current.tracks.resize(no_constant.num_tracks());
+    RemainingKeys remaining_keys = SetupRemainingKeys(no_constant);
+
+    int iter = 0;
+    // float from = 0.f, to = no_constant.duration;
+    for (; iter < 1; ++iter) {
+      for (RemainingKeysIt it(remaining_keys); it; ++it) {
+        // Next keyframe time
+        float time =
+            TrackKeyTime(no_constant.tracks[it.track], it.type, it.key);
+
+        // Time index in matrix
+        size_t id = std::find(key_times.begin(), key_times.end(), time) -
+                    key_times.begin();
+
+        SampleModelSpace(no_constant, _skeleton, time,
+                         ozz::make_range(matrix[id]));
+      }
+    }
+
+    ozz::log::Log() << "Number of iterations: " << iter << std::endl;
+
+    *_output = no_constant;
   }
+
+  /*
+  // contribution of each track to global error
+   for (float e = 0.f; e < 1e-3f; e += 1e-4f) {
+RawAnimation truc;
+VisGlobal(_skeleton, no_constant, &truc, e);
+float truccmp = Compare(_input, truc, _skeleton);
+ozz::log::Log() << e << "\t" << truccmp << std::endl;
+}
+  */
 
   const float cmp = Compare(_input, *_output, _skeleton);
   ozz::log::Log() << "Final error: " << cmp << std::endl;
