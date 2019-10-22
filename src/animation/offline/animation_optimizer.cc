@@ -480,7 +480,7 @@ template <typename _Track>
 typename _Track::iterator FindInsertion(_Track& _dest, float _time) {
   return std::lower_bound(_dest.begin(), _dest.end(), _time,
                           [](_Track::const_reference _key, float _time) {
-                            return _key.time > _time;
+                            return _key.time < _time;
                           });
 }
 
@@ -657,7 +657,7 @@ typedef ozz::Vector<ErrorKey>::Std JointErrorKeys;
 typedef ozz::Vector<JointErrorKeys>::Std ErrorMatrix;
 
 struct RemainingTrackKeys {
-  ozz::Vector<size_t>::Std types[3];  // T R S
+  ozz::Vector<int>::Std types[3];  // T R S
 };
 typedef ozz::Vector<RemainingTrackKeys>::Std RemainingKeys;
 
@@ -668,10 +668,10 @@ struct RemainingKeysIt {
   }
 
   RemainingKeysIt& operator++() {
-    do {
+    for (;;) {
       ++index;
-      if (index >= static_cast<int>(keys_[track].types[type].size())) {
-        index = 0;
+      if (index == static_cast<int>(keys_[track].types[type].size())) {
+        index = -1;
         ++type;
         if (type == 3) {
           type = 0;
@@ -681,8 +681,11 @@ struct RemainingKeysIt {
             break;
           }
         }
+      } else {
+        break;
       }
-    } while (index == static_cast<int>(keys_[track].types[type].size()));
+    }
+
     if (track != -1) {
       key = keys_[track].types[type][index];
     }
@@ -868,13 +871,15 @@ bool AnimationOptimizer::operator()(const RawAnimation& _input,
                                      JointTransformKeys(_input.num_tracks()));
 
     // Populates reference model space transforms.
-    for (size_t i = 0; i < key_times.size(); ++i) {
-      SampleModelSpace(no_constant, _skeleton, key_times[i],
-                       ozz::make_range(reference_matrix[i]));
-    }
+    // for (size_t i = 0; i < key_times.size(); ++i) {
+    //  SampleModelSpace(no_constant, _skeleton, key_times[i],
+    //                   ozz::make_range(reference_matrix[i]));
+    //}
 
     // Copy first key frames as an initial state.
     RawAnimation current;
+    current.duration = no_constant.duration;
+    current.name = no_constant.name;
     current.tracks.resize(no_constant.num_tracks());
     RemainingKeys remaining_keys = SetupRemainingKeys(no_constant);
 
@@ -882,6 +887,25 @@ bool AnimationOptimizer::operator()(const RawAnimation& _input,
     // float from = 0.f, to = no_constant.duration;
 
     for (;; ++iter) {
+      {
+        // Populates reference model space transforms.
+        float maxcmp = 0.f;
+        for (size_t i = 0; i < key_times.size(); ++i) {
+          SampleModelSpace(current, _skeleton, key_times[i],
+                           ozz::make_range(reference_matrix[i]));
+          SampleModelSpace(no_constant, _skeleton, key_times[i],
+                           ozz::make_range(candidate_matrix[i]));
+          const float cmp = Compare(ozz::make_range(reference_matrix[i]),
+                                    ozz::make_range(candidate_matrix[i]));
+          if (cmp > maxcmp) {
+            maxcmp = cmp;
+          }
+        }
+        if (maxcmp < .001f) {
+          *_output = current;
+          break;
+        }
+      }
       size_t track = 0, type = 0, key = 0;
       int index = 0;
       float maxcmp = 0.f;
@@ -905,11 +929,11 @@ bool AnimationOptimizer::operator()(const RawAnimation& _input,
                          ozz::make_range(candidate_matrix[time_id]));
         const float cmp = Compare(ozz::make_range(reference_matrix[time_id]),
                                   ozz::make_range(candidate_matrix[time_id]));
-        error_matrix[time_id][it.track].types[it.type] = cmp;
+        // error_matrix[time_id][it.track].types[it.type] = cmp;
 
         if (cmp > maxcmp) {
           maxcmp = cmp;
-          // Use iterator instead
+          // TODO Use iterator instead
           track = it.track;
           type = it.type;
           key = it.key;
@@ -920,13 +944,8 @@ bool AnimationOptimizer::operator()(const RawAnimation& _input,
 
       ozz::log::Log() << "Iter, err: " << iter << ", " << maxcmp << std::endl;
 
-      if (maxcmp < 1.f) {
-        *_output = current;
-        break;
-      }
-
       if (found) {
-        ozz::Vector<size_t>::Std& remaining = remaining_keys[track].types[type];
+        ozz::Vector<int>::Std& remaining = remaining_keys[track].types[type];
         remaining.erase(remaining.begin() + index);
         PushKey(no_constant.tracks[track], type, key, &current.tracks[track]);
       }
@@ -971,8 +990,10 @@ ozz::log::Log() << e << "\t" << truccmp << std::endl;
 
   // Output animation is always valid though.
   bool valid = _output->Validate();
-  if(!valid) {
-	  ozz::log::Err() << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Failed to validate output animation" << std::endl;
+  if (!valid) {
+    ozz::log::Err() << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Failed to "
+                       "validate output animation"
+                    << std::endl;
   }
   return valid;
 }
