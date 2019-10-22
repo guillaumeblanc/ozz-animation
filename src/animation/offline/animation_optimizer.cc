@@ -55,7 +55,7 @@
 // 1 -> iterate base
 // 2 -> random
 // 3 -> vis
-int mode = 0;
+int mode = -1;
 
 namespace ozz {
 namespace animation {
@@ -347,6 +347,16 @@ return std::sqrt(mlen2);
   return Length(_reference.translation - _test.translation);
 }
 
+float Compare(const ozz::Range<const ozz::math::Transform>& _reference,
+              const ozz::Range<const ozz::math::Transform>& _candidate) {
+  float mcmp = 0.f;
+  for (size_t i = 0; i < _reference.count(); ++i) {
+    const float icmp = Compare(_reference[i], _candidate[i]);
+    mcmp = ozz::math::Max(mcmp, icmp);
+  }
+  return mcmp;
+}
+
 bool SampleModelSpace(const RawAnimation& _animation, const Skeleton& _skeleton,
                       float _time,
                       const ozz::Range<ozz::math::Transform>& _models) {
@@ -463,6 +473,34 @@ void RemoveKey(RawAnimation::JointTrack& _track, size_t t, size_t k) {
     _track.rotations.erase(_track.rotations.begin() + k);
   } else {
     _track.scales.erase(_track.scales.begin() + k);
+  }
+}
+
+template <typename _Track>
+typename _Track::iterator FindInsertion(_Track& _dest, float _time) {
+  return std::lower_bound(_dest.begin(), _dest.end(), _time,
+                          [](_Track::const_reference _key, float _time) {
+                            return _key.time > _time;
+                          });
+}
+
+void PushKey(const RawAnimation::JointTrack& _src, size_t t, size_t k,
+             RawAnimation::JointTrack* _dest) {
+  if (t == 0) {
+    const RawAnimation::TranslationKey& key = _src.translations[k];
+    RawAnimation::JointTrack::Translations::iterator it =
+        FindInsertion(_dest->translations, key.time);
+    _dest->translations.insert(it, key);
+  } else if (t == 1) {
+    const RawAnimation::RotationKey& key = _src.rotations[k];
+    RawAnimation::JointTrack::Rotations::iterator it =
+        FindInsertion(_dest->rotations, key.time);
+    _dest->rotations.insert(it, key);
+  } else {
+    const RawAnimation::ScaleKey& key = _src.scales[k];
+    RawAnimation::JointTrack::Scales::iterator it =
+        FindInsertion(_dest->scales, key.time);
+    _dest->scales.insert(it, key);
   }
 }
 
@@ -588,7 +626,7 @@ typedef ozz::Vector<float>::Std KeyTimes;
 
 template <typename _Track>
 void CopyKeyTimes(const _Track& _track, KeyTimes* _key_times) {
-  for (int i = 0; i < _track.size(); ++i) {
+  for (size_t i = 0; i < _track.size(); ++i) {
     _key_times->push_back(_track[i].time);
   }
 }
@@ -612,6 +650,12 @@ KeyTimes FindAllKeyTimes(const RawAnimation& _animation) {
 typedef ozz::Vector<ozz::math::Transform>::Std JointTransformKeys;
 typedef ozz::Vector<JointTransformKeys>::Std TransformMatrix;
 
+struct ErrorKey {
+  float types[3];  // T R S
+};
+typedef ozz::Vector<ErrorKey>::Std JointErrorKeys;
+typedef ozz::Vector<JointErrorKeys>::Std ErrorMatrix;
+
 struct RemainingTrackKeys {
   ozz::Vector<size_t>::Std types[3];  // T R S
 };
@@ -619,31 +663,35 @@ typedef ozz::Vector<RemainingTrackKeys>::Std RemainingKeys;
 
 struct RemainingKeysIt {
   RemainingKeysIt(const RemainingKeys& _keys)
-      : track(0), type(0), key(0), keys_(_keys) {
-    ++(*this);
+      : track(0), type(0), key(0), index(-1), keys_(_keys) {
+    ++(*this);  // Setup initial state
   }
 
   RemainingKeysIt& operator++() {
     do {
-      ++key;
-      if (key == keys_[track].types[type].size()) {
-        key = 0;
+      ++index;
+      if (index >= static_cast<int>(keys_[track].types[type].size())) {
+        index = 0;
         ++type;
         if (type == 3) {
           type = 0;
           ++track;
-          if (track == keys_.size()) {
-            track = ~size_t(0);
+          if (track == static_cast<int>(keys_.size())) {
+            track = -1;
             break;
           }
         }
       }
-    } while (key == keys_[track].types[type].size());
+    } while (index == static_cast<int>(keys_[track].types[type].size()));
+    if (track != -1) {
+      key = keys_[track].types[type][index];
+    }
     return *this;
   }
-  operator bool() const { return track != ~size_t(0); }
+  operator bool() const { return track != -1; }
 
-  size_t track, type, key;
+  int track, type, key;
+  int index;
   const RemainingKeys& keys_;
 };
 
@@ -812,8 +860,10 @@ bool AnimationOptimizer::operator()(const RawAnimation& _input,
                     << std::endl;
 
     // Allocates matrix cache.
-    TransformMatrix matrix(key_times.size(),
-                           JointTransformKeys(_input.num_tracks()));
+    ErrorMatrix error_matrix(key_times.size(),
+                             JointErrorKeys(_input.num_tracks()));
+    TransformMatrix candidate_matrix(key_times.size(),
+                                     JointTransformKeys(_input.num_tracks()));
     TransformMatrix reference_matrix(key_times.size(),
                                      JointTransformKeys(_input.num_tracks()));
 
@@ -830,24 +880,80 @@ bool AnimationOptimizer::operator()(const RawAnimation& _input,
 
     int iter = 0;
     // float from = 0.f, to = no_constant.duration;
-    for (; iter < 1; ++iter) {
+
+    for (;; ++iter) {
+      size_t track = 0, type = 0, key = 0;
+      int index = 0;
+      float maxcmp = 0.f;
+      bool found = false;
       for (RemainingKeysIt it(remaining_keys); it; ++it) {
         // Next keyframe time
         float time =
             TrackKeyTime(no_constant.tracks[it.track], it.type, it.key);
 
         // Time index in matrix
-        size_t id = std::find(key_times.begin(), key_times.end(), time) -
-                    key_times.begin();
+        const size_t time_id =
+            std::find(key_times.begin(), key_times.end(), time) -
+            key_times.begin();
 
-        SampleModelSpace(no_constant, _skeleton, time,
-                         ozz::make_range(matrix[id]));
+        RawAnimation candidate = current;
+        PushKey(no_constant.tracks[it.track], it.type, it.key,
+                &candidate.tracks[it.track]);
+
+        // Updates error generated by this key (it)
+        SampleModelSpace(candidate, _skeleton, time,
+                         ozz::make_range(candidate_matrix[time_id]));
+        const float cmp = Compare(ozz::make_range(reference_matrix[time_id]),
+                                  ozz::make_range(candidate_matrix[time_id]));
+        error_matrix[time_id][it.track].types[it.type] = cmp;
+
+        if (cmp > maxcmp) {
+          maxcmp = cmp;
+          // Use iterator instead
+          track = it.track;
+          type = it.type;
+          key = it.key;
+          index = it.index;
+          found = true;
+        }
       }
+
+      ozz::log::Log() << "Iter, err: " << iter << ", " << maxcmp << std::endl;
+
+      if (maxcmp < 1.f) {
+        *_output = current;
+        break;
+      }
+
+      if (found) {
+        ozz::Vector<size_t>::Std& remaining = remaining_keys[track].types[type];
+        remaining.erase(remaining.begin() + index);
+        PushKey(no_constant.tracks[track], type, key, &current.tracks[track]);
+      }
+
+      /*
+  float maxcmp = 0.f;
+  size_t track, type, key;
+  bool found = false;
+  for (size_t i = 0; i < error_matrix.size(); ++i) {
+    const JointErrorKeys& joint_errors = error_matrix[i];
+    for (size_t j = 0; j < joint_errors.size(); ++j) {
+      const ErrorKey& error_key = joint_errors[j];
+      for (size_t t = 0; t < 3; ++t) {
+        if (error_key.types[t] > maxcmp) {
+          track = j;
+          type = t;
+          key = i;
+          maxcmp = error_key.types[t];
+          found = true;
+        }
+      }
+    }
+  }
+      */
     }
 
     ozz::log::Log() << "Number of iterations: " << iter << std::endl;
-
-    *_output = no_constant;
   }
 
   /*
@@ -861,10 +967,14 @@ ozz::log::Log() << e << "\t" << truccmp << std::endl;
   */
 
   const float cmp = Compare(_input, *_output, _skeleton);
-  ozz::log::Log() << "Final error: " << cmp << std::endl;
+  ozz::log::Log() << "Final cmp: " << cmp << std::endl;
 
   // Output animation is always valid though.
-  return _output->Validate();
+  bool valid = _output->Validate();
+  if(!valid) {
+	  ozz::log::Err() << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Failed to validate output animation" << std::endl;
+  }
+  return valid;
 }
 }  // namespace offline
 }  // namespace animation
