@@ -351,7 +351,9 @@ class OptimizeSampleApplication : public ozz::sample::Application {
         rebuild |= _im_gui->DoRadioButton(0, "rdp", &mode);
         rebuild |= _im_gui->DoRadioButton(1, "iter rdp", &mode);
         rebuild |= _im_gui->DoRadioButton(2, "random", &mode);
-        rebuild |= _im_gui->DoRadioButton(3, "vis", &mode);
+        rebuild |= _im_gui->DoRadioButton(3, "global rdp", &mode);
+        rebuild |= _im_gui->DoRadioButton(4, "global vis", &mode);
+        rebuild |= _im_gui->DoRadioButton(5, "greedy", &mode);
 
         rebuild |= _im_gui->DoCheckBox("Enable optimizations", &optimize_);
 
