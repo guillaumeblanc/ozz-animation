@@ -37,6 +37,10 @@
 
 #include <cassert>
 
+namespace ozz {
+namespace animation {
+namespace offline {
+
 // Decimation algorithm based on Ramer–Douglas–Peucker.
 // https://en.wikipedia.org/wiki/Ramer%E2%80%93Douglas%E2%80%93Peucker_algorithm
 // _Track must have std::vector interface.
@@ -54,6 +58,7 @@ void Decimate(const _Track& _src, const _Adapter& _adapter, float _tolerance,
     *_dest = _src;
     return;
   }
+  _dest->clear();
 
   // Stack of segments to process.
   typedef std::pair<size_t, size_t> Segment;
@@ -125,4 +130,7 @@ void Decimate(const _Track& _src, const _Adapter& _adapter, float _tolerance,
     }
   }
 }
+}  // namespace offline
+}  // namespace animation
+}  // namespace ozz
 #endif  // OZZ_ANIMATION_OFFLINE_DECIMATE_H_
