@@ -315,11 +315,13 @@ struct LTMIterator {
 // ozz::math::Transform
 bool LocalToModel(const ozz::animation::Skeleton& _skeleton,
                   const ozz::Range<const ozz::math::Transform>& _locals,
-                  const ozz::Range<ozz::math::Transform>& _models) {
+                  const ozz::Range<ozz::math::Transform>& _models,
+                  int from = -1) {
   assert(static_cast<size_t>(_skeleton.num_joints()) <= _locals.count() &&
          static_cast<size_t>(_skeleton.num_joints()) <= _models.count());
 
-  ozz::animation::IterateJointsDF(_skeleton, LTMIterator(_locals, _models));
+  ozz::animation::IterateJointsDF(_skeleton, LTMIterator(_locals, _models),
+                                  from);
 
   return true;
 }
@@ -814,6 +816,9 @@ class Comparer {
       LocalToModel(skeleton_, ozz::make_range(cached_locals_[i]),
                    ozz::make_range(cached_models_[i]));
 
+      // LocalToModel(skeleton_, ozz::make_range(cached_locals_[i]),
+      //             ozz::make_range(cached_models_[i]), int(_track));
+
       float err = ozz::animation::offline::Compare(
           ozz::make_range(reference_models_[i]),
           ozz::make_range(cached_models_[i]));
@@ -839,34 +844,29 @@ class Comparer {
 class VTrack {
  public:
   VTrack(size_t _track)
-      : tolerance_(.0002f), candidate_err_(0.f), track_(_track), dirty_(true) {}
+      : track_(_track), tolerance_(.00005f), candidate_err_(0.f), dirty_(true) {}
   virtual ~VTrack() {}
 
   float Transition(Comparer& _comparer) {
     const size_t original = OriginalSize();
-    if (original <= 1) {
+    const float solution = static_cast<float>(SolutionSize());
+    if (original <= 1 || solution <= 1.f) {
       dirty_ = false;
       return 0.f;
     }
 
-    const float solution = static_cast<float>(SolutionSize());
     float candidate = static_cast<float>(CandidateSize());
-    if (dirty_) {
-      for (size_t i = 0;
-           candidate == solution && solution > 1.f && candidate_err_ <= .001f;
-           ++i) {
-        tolerance_ *= 1.1f;
+    if (dirty_ && candidate_err_ < .001f) {
+      for (size_t i = 0; candidate == solution && solution > 1.f; ++i) {
+        tolerance_ *= 1.2f;
         Decimate(tolerance_);
         candidate = static_cast<float>(CandidateSize());
-        candidate_err_ = Compare(_comparer);
 
         ozz::log::Log() << "--" << track() << ", " << i << ": " << tolerance_
                         << " / " << candidate << " / " << candidate_err_
                         << std::endl;
       }
-
       dirty_ = false;
-    } else {
       candidate_err_ = Compare(_comparer);
     }
 
@@ -884,21 +884,22 @@ class VTrack {
 
   size_t track() const { return track_; }
 
+  void set_dirty() { dirty_ = true; }
+
  private:
   virtual void Decimate(float _tolerance) = 0;
   virtual float Compare(Comparer& _comparer) const = 0;
   virtual void ValidateCandidate() = 0;
-  // virtual float Compare() const = 0;
 
   virtual size_t CandidateSize() const = 0;
   virtual size_t SolutionSize() const = 0;
   virtual size_t OriginalSize() const = 0;
 
+  const size_t track_;
   float tolerance_;
   float candidate_err_;
-  const size_t track_;
   bool dirty_;
-};
+};  // namespace offline
 
 template <typename _Track, typename _Adapter>
 class TTrack : public VTrack {
@@ -949,15 +950,33 @@ void Comparer::UpdateCurrent(const VTrack& _vtrack) {
   _vtrack.Copy(&test_);
 
   for (size_t i = 0; i < key_times_.size(); ++i) {
-    ozz::animation::offline::SampleAnimation(
-        test_, key_times_[i], ozz::make_range(cached_locals_[i]));
+    ozz::animation::offline::SampleTrack(test_.tracks[_vtrack.track()],
+                                         key_times_[i],
+                                         &cached_locals_[i][_vtrack.track()]);
   }
 }
 
+struct DirtyIterator {
+  DirtyIterator(const ozz::Range<VTrack*>& _vtracks) : vtracks_(_vtracks) {}
+
+  DirtyIterator(const DirtyIterator& _it) : vtracks_(_it.vtracks_) {}
+
+  void operator()(int _joint, int) {
+    vtracks_[_joint * 3 + 0]->set_dirty();
+    vtracks_[_joint * 3 + 1]->set_dirty();
+    vtracks_[_joint * 3 + 2]->set_dirty();
+  }
+  ozz::Range<VTrack*> vtracks_;
+
+ private:
+  void operator=(const DirtyIterator&);
+};
+
 class Stepper {
  public:
-  Stepper(const RawAnimation& _original, Comparer& _comparer)
-      : original_(_original), comparer_(_comparer) {
+  Stepper(const RawAnimation& _original, const Skeleton& _skeleton,
+          Comparer& _comparer)
+      : original_(_original), skeleton_(_skeleton), comparer_(_comparer) {
     ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
     const int num_tracks = original_.num_tracks();
     for (int i = 0; i < num_tracks; ++i) {
@@ -1001,11 +1020,24 @@ class Stepper {
 
     // Validates best candidate
     if (delta_max < 0.f) {
-      vtracks_[i_max]->Validate();
-      comparer_.UpdateCurrent(*vtracks_[i_max]);
+      VTrack& selected = *vtracks_[i_max];
+      selected.Validate();
 
-      ozz::log::Log() << vtracks_[i_max]->track() << ", " << i_max << ": "
-                      << delta_max << std::endl;
+      // Flag whole hierarchy of selected track, children and parents
+      ozz::animation::IterateJointsDF(skeleton_,
+                                      DirtyIterator(ozz::make_range(vtracks_)),
+                                      static_cast<int>(selected.track()));
+      for (int parent = skeleton_.joint_parents()[selected.track()];
+           parent != ozz::animation::Skeleton::kNoParent;
+           parent = skeleton_.joint_parents()[parent]) {
+        vtracks_[parent * 3 + 0]->set_dirty();
+        vtracks_[parent * 3 + 1]->set_dirty();
+        vtracks_[parent * 3 + 2]->set_dirty();
+      }
+      comparer_.UpdateCurrent(selected);
+
+      ozz::log::Log() << selected.track() << ", " << i_max << ": " << delta_max
+                      << std::endl;
     }
 
     RawAnimation solution;
@@ -1026,14 +1058,15 @@ class Stepper {
 
  private:
   const RawAnimation& original_;
+  const Skeleton& skeleton_;
   Comparer& comparer_;
   ozz::Vector<VTrack*>::Std vtracks_;
-};
+};  // namespace offline
 
 void HillClimb(const RawAnimation& _orignal, const Skeleton& _skeleton,
                RawAnimation* _output) {
   Comparer comparer(_orignal, _skeleton);
-  Stepper stepper(_orignal, comparer);
+  Stepper stepper(_orignal, _skeleton, comparer);
   for (;;) {
     float delta = stepper.Transition();
     if (delta >= 0.f) {
