@@ -361,6 +361,80 @@ float Compare(const ozz::Range<const ozz::math::Transform>& _reference,
   return mcmp;
 }
 
+struct PartialLTMCompareIterator {
+  PartialLTMCompareIterator(
+      const ozz::Range<const ozz::math::Transform>& _reference_models,
+      const ozz::Range<const ozz::math::Transform>& _cached_locals,
+      const ozz::Range<const ozz::math::Transform>& _cached_models,
+      const ozz::math::Transform& _local, int _track)
+      : reference_models_(_reference_models),
+        cached_locals_(_cached_locals),
+        cached_models_(_cached_models),
+        local_(_local),
+        track_(_track),
+        done(false),
+        err_(0.f) {}
+
+  void operator()(int _joint, int _parent) {
+    // TODO comment
+    // parents[i] >= _from is true as long as "i" is a child of "_from".
+    if (!done) {
+      done = _joint > track_ && _parent < track_;
+    }
+
+    float joint_err;
+    if (track_ == _joint) {
+      if (_parent == ozz::animation::Skeleton::kNoParent) {
+        models_[_joint] = local_;
+      } else {
+        const ozz::math::Transform& local = local_;
+        const ozz::math::Transform& parent = cached_models_[_parent];
+
+        // To model space
+        ozz::math::Transform& model = models_[_joint];
+        model.translation =
+            parent.translation +
+            TransformVector(parent.rotation, local.translation * parent.scale),
+        model.rotation = parent.rotation * local.rotation;
+        model.scale = parent.scale * local.scale;
+      }
+      joint_err = Compare(models_[_joint], reference_models_[_joint]);
+    } else if (_parent >= track_ && !done) {
+      const ozz::math::Transform& local = cached_locals_[_joint];
+      const ozz::math::Transform& parent = models_[_parent];
+
+      // To model space
+      ozz::math::Transform& model = models_[_joint];
+      model.translation =
+          parent.translation +
+          TransformVector(parent.rotation, local.translation * parent.scale),
+      model.rotation = parent.rotation * local.rotation;
+      model.scale = parent.scale * local.scale;
+
+      joint_err = Compare(models_[_joint], reference_models_[_joint]);
+    } else {
+      joint_err = Compare(cached_models_[_joint], reference_models_[_joint]);
+    }
+
+    err_ = ozz::math::Max(err_, joint_err);
+  }
+
+  // TODO private
+  float err_;
+
+ private:
+  void operator=(const PartialLTMCompareIterator&);
+
+  const ozz::Range<const ozz::math::Transform>& reference_models_;
+  const ozz::Range<const ozz::math::Transform>& cached_locals_;
+  const ozz::Range<const ozz::math::Transform>& cached_models_;
+  const ozz::math::Transform& local_;
+  int track_;
+  bool done;
+
+  ozz::math::Transform models_[ozz::animation::Skeleton::kMaxJoints];
+};  // namespace
+
 bool SampleModelSpace(const RawAnimation& _animation, const Skeleton& _skeleton,
                       float _time,
                       const ozz::Range<ozz::math::Transform>& _models) {
@@ -776,9 +850,13 @@ class Comparer {
       SampleModelSpace(_reference, _skeleton, key_times_[i],
                        ozz::make_range(reference_models_[i]));
     }
+
+    // TODO, copy from reference
     for (size_t i = 0; i < key_times_.size(); ++i) {
       ozz::animation::offline::SampleAnimation(
           test_, key_times_[i], ozz::make_range(cached_locals_[i]));
+      LocalToModel(skeleton_, ozz::make_range(cached_locals_[i]),
+                   ozz::make_range(cached_models_[i]));
     }
   }
 
@@ -804,12 +882,23 @@ class Comparer {
   void UpdateCurrent(const VTrack& _vtrack);
 
  private:
-  float Compare(const RawAnimation::JointTrack& _test, size_t _track) {
+  float Compare(const RawAnimation::JointTrack& _test,
+                size_t _track) /*const*/ {
     float max_err = 0.f;
 
     ozz::math::Transform local;
     for (size_t i = 0; i < key_times_.size(); ++i) {
       ozz::animation::offline::SampleTrack(_test, key_times_[i], &local);
+
+      const float err =
+          ozz::animation::IterateJointsDF(
+              skeleton_, PartialLTMCompareIterator(
+                             ozz::make_range(reference_models_[i]),
+                             ozz::make_range(cached_locals_[i]),
+                             ozz::make_range(cached_models_[i]), local, _track))
+              .err_;
+      max_err = ozz::math::Max(max_err, err);
+
       const ozz::math::Transform temp = cached_locals_[i][_track];
       cached_locals_[i][_track] = local;
 
@@ -819,12 +908,10 @@ class Comparer {
       // LocalToModel(skeleton_, ozz::make_range(cached_locals_[i]),
       //             ozz::make_range(cached_models_[i]), int(_track));
 
-      float err = ozz::animation::offline::Compare(
+      float err2 = ozz::animation::offline::Compare(
           ozz::make_range(reference_models_[i]),
           ozz::make_range(cached_models_[i]));
-
-      max_err = ozz::math::Max(max_err, err);
-
+      max_err = ozz::math::Max(max_err, err2);
       cached_locals_[i][_track] = temp;
     }
     return max_err;
@@ -844,7 +931,10 @@ class Comparer {
 class VTrack {
  public:
   VTrack(size_t _track)
-      : track_(_track), tolerance_(.00005f), candidate_err_(0.f), dirty_(true) {}
+      : track_(_track),
+        tolerance_(.00005f),
+        candidate_err_(0.f),
+        dirty_(true) {}
   virtual ~VTrack() {}
 
   float Transition(Comparer& _comparer) {
@@ -953,6 +1043,10 @@ void Comparer::UpdateCurrent(const VTrack& _vtrack) {
     ozz::animation::offline::SampleTrack(test_.tracks[_vtrack.track()],
                                          key_times_[i],
                                          &cached_locals_[i][_vtrack.track()]);
+
+    // TODO, from current track
+    LocalToModel(skeleton_, ozz::make_range(cached_locals_[i]),
+                 ozz::make_range(cached_models_[i]));
   }
 }
 
@@ -1039,9 +1133,6 @@ class Stepper {
       ozz::log::Log() << selected.track() << ", " << i_max << ": " << delta_max
                       << std::endl;
     }
-
-    RawAnimation solution;
-    Copy(&solution);
 
     return delta_max;
   }
