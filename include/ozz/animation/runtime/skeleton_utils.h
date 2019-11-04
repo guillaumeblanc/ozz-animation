@@ -58,7 +58,7 @@ inline bool IsLeaf(const Skeleton& _skeleton, int _joint) {
 // hierarchy traversal begins. Use Skeleton::kNoParent to traverse the
 // whole hierarchy, in case there are multiple roots.
 template <typename _Fct>
-inline _Fct IterateJointsDF(const Skeleton& _skeleton, _Fct _fct,
+inline _Fct& IterateJointsDF(const Skeleton& _skeleton, _Fct& _fct,
                             int _from = Skeleton::kNoParent) {
   const Range<const int16_t>& parents = _skeleton.joint_parents();
   const int num_joints = _skeleton.num_joints();
@@ -77,7 +77,7 @@ inline _Fct IterateJointsDF(const Skeleton& _skeleton, _Fct _fct,
 // first argument is the child of the second argument. _parent is kNoParent if
 // the _current joint is a root.
 template <typename _Fct>
-inline _Fct IterateJointsDFReverse(const Skeleton& _skeleton, _Fct _fct) {
+inline _Fct& IterateJointsDFReverse(const Skeleton& _skeleton, _Fct& _fct) {
   const Range<const int16_t>& parents = _skeleton.joint_parents();
   for (int i = _skeleton.num_joints() - 1; i >= 0; --i) {
     _fct(i, parents[i]);

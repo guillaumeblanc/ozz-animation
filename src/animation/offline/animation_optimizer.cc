@@ -89,16 +89,14 @@ struct HierarchyBuilder {
 
     // Computes hierarchical scale, iterating skeleton forward (root to
     // leaf).
-    IterateJointsDF(
-        *_skeleton,
-        IterateMemFun<HierarchyBuilder, &HierarchyBuilder::ComputeScaleForward>(
-            *this));
+    IterateMemFun<HierarchyBuilder, &HierarchyBuilder::ComputeScaleForward> it(
+        *this);
+    IterateJointsDF(*_skeleton, it);
 
     // Computes hierarchical length, iterating skeleton backward (leaf to root).
-    IterateJointsDFReverse(
-        *_skeleton,
-        IterateMemFun<HierarchyBuilder,
-                      &HierarchyBuilder::ComputeLengthBackward>(*this));
+    IterateMemFun<HierarchyBuilder, &HierarchyBuilder::ComputeLengthBackward>
+        itr(*this);
+    IterateJointsDFReverse(*_skeleton, itr);
   }
 
   struct Spec {
@@ -320,8 +318,8 @@ bool LocalToModel(const ozz::animation::Skeleton& _skeleton,
   assert(static_cast<size_t>(_skeleton.num_joints()) <= _locals.count() &&
          static_cast<size_t>(_skeleton.num_joints()) <= _models.count());
 
-  ozz::animation::IterateJointsDF(_skeleton, LTMIterator(_locals, _models),
-                                  from);
+  LTMIterator it(_locals, _models);
+  ozz::animation::IterateJointsDF(_skeleton, it, from);
 
   return true;
 }
@@ -382,15 +380,18 @@ struct PartialLTMCompareIterator {
       done = _joint > track_ && _parent < track_;
     }
 
-    float joint_err;
-    if (track_ == _joint) {
-      if (_parent == ozz::animation::Skeleton::kNoParent) {
-        models_[_joint] = local_;
-      } else {
-        const ozz::math::Transform& local = local_;
-        const ozz::math::Transform& parent = cached_models_[_parent];
+    const ozz::math::Transform* model_cmp;
+    if (!done && _joint >= track_) {
+      model_cmp = &models_[_joint];
+      const ozz::math::Transform& local =
+          (track_ == _joint) ? local_ : cached_locals_[_joint];
 
-        // To model space
+      if (_parent == ozz::animation::Skeleton::kNoParent) {
+        models_[_joint] = local;
+      } else {
+        const ozz::math::Transform& parent =
+            (track_ == _joint) ? cached_models_[_parent] : models_[_parent];
+
         ozz::math::Transform& model = models_[_joint];
         model.translation =
             parent.translation +
@@ -398,24 +399,11 @@ struct PartialLTMCompareIterator {
         model.rotation = parent.rotation * local.rotation;
         model.scale = parent.scale * local.scale;
       }
-      joint_err = Compare(models_[_joint], reference_models_[_joint]);
-    } else if (_parent >= track_ && !done) {
-      const ozz::math::Transform& local = cached_locals_[_joint];
-      const ozz::math::Transform& parent = models_[_parent];
-
-      // To model space
-      ozz::math::Transform& model = models_[_joint];
-      model.translation =
-          parent.translation +
-          TransformVector(parent.rotation, local.translation * parent.scale),
-      model.rotation = parent.rotation * local.rotation;
-      model.scale = parent.scale * local.scale;
-
-      joint_err = Compare(models_[_joint], reference_models_[_joint]);
     } else {
-      joint_err = Compare(cached_models_[_joint], reference_models_[_joint]);
+      model_cmp = &cached_models_[_joint];
     }
 
+    const float joint_err = Compare(*model_cmp, reference_models_[_joint]);
     err_ = ozz::math::Max(err_, joint_err);
   }
 
@@ -423,6 +411,7 @@ struct PartialLTMCompareIterator {
   float err_;
 
  private:
+  PartialLTMCompareIterator(const PartialLTMCompareIterator&);
   void operator=(const PartialLTMCompareIterator&);
 
   const ozz::Range<const ozz::math::Transform>& reference_models_;
@@ -882,23 +871,21 @@ class Comparer {
   void UpdateCurrent(const VTrack& _vtrack);
 
  private:
-  float Compare(const RawAnimation::JointTrack& _test,
-                size_t _track) /*const*/ {
+  float Compare(const RawAnimation::JointTrack& _test, size_t _track) const {
     float max_err = 0.f;
 
     ozz::math::Transform local;
     for (size_t i = 0; i < key_times_.size(); ++i) {
       ozz::animation::offline::SampleTrack(_test, key_times_[i], &local);
 
-      const float err =
-          ozz::animation::IterateJointsDF(
-              skeleton_, PartialLTMCompareIterator(
-                             ozz::make_range(reference_models_[i]),
-                             ozz::make_range(cached_locals_[i]),
-                             ozz::make_range(cached_models_[i]), local, _track))
-              .err_;
-      max_err = ozz::math::Max(max_err, err);
+      PartialLTMCompareIterator cmp(ozz::make_range(reference_models_[i]),
+                                    ozz::make_range(cached_locals_[i]),
+                                    ozz::make_range(cached_models_[i]), local,
+                                    static_cast<int>(_track));
 
+      const float err = ozz::animation::IterateJointsDF(skeleton_, cmp).err_;
+      max_err = ozz::math::Max(max_err, err);
+      /*
       const ozz::math::Transform temp = cached_locals_[i][_track];
       cached_locals_[i][_track] = local;
 
@@ -913,6 +900,7 @@ class Comparer {
           ozz::make_range(cached_models_[i]));
       max_err = ozz::math::Max(max_err, err2);
       cached_locals_[i][_track] = temp;
+      */
     }
     return max_err;
   }
@@ -951,10 +939,10 @@ class VTrack {
         tolerance_ *= 1.2f;
         Decimate(tolerance_);
         candidate = static_cast<float>(CandidateSize());
-
+        /*
         ozz::log::Log() << "--" << track() << ", " << i << ": " << tolerance_
                         << " / " << candidate << " / " << candidate_err_
-                        << std::endl;
+                        << std::endl;*/
       }
       dirty_ = false;
       candidate_err_ = Compare(_comparer);
@@ -1053,8 +1041,6 @@ void Comparer::UpdateCurrent(const VTrack& _vtrack) {
 struct DirtyIterator {
   DirtyIterator(const ozz::Range<VTrack*>& _vtracks) : vtracks_(_vtracks) {}
 
-  DirtyIterator(const DirtyIterator& _it) : vtracks_(_it.vtracks_) {}
-
   void operator()(int _joint, int) {
     vtracks_[_joint * 3 + 0]->set_dirty();
     vtracks_[_joint * 3 + 1]->set_dirty();
@@ -1063,6 +1049,7 @@ struct DirtyIterator {
   ozz::Range<VTrack*> vtracks_;
 
  private:
+  DirtyIterator(const DirtyIterator& _it);
   void operator=(const DirtyIterator&);
 };
 
@@ -1118,8 +1105,8 @@ class Stepper {
       selected.Validate();
 
       // Flag whole hierarchy of selected track, children and parents
-      ozz::animation::IterateJointsDF(skeleton_,
-                                      DirtyIterator(ozz::make_range(vtracks_)),
+      DirtyIterator it(ozz::make_range(vtracks_));
+      ozz::animation::IterateJointsDF(skeleton_, it,
                                       static_cast<int>(selected.track()));
       for (int parent = skeleton_.joint_parents()[selected.track()];
            parent != ozz::animation::Skeleton::kNoParent;
