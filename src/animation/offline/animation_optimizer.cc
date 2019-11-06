@@ -843,6 +843,7 @@ class Stepper {
       const float kInitialFactor = .1f;
 
       // Gets joint specs back.
+      /*
       const float joint_length = _hierarchy.specs[i].length;
       const int parent = _skeleton.joint_parents()[i];
       const float parent_scale = (parent != Skeleton::kNoParent)
@@ -855,9 +856,13 @@ class Stepper {
                            (void)_hierarchy;
                        const float joint_length = .1f;
                            const float parent_scale = 1.f;
-                       const float tolerance =  _hierarchy.specs[i].tolerance * kInitialFactor;// /
-                       ozz::math::Max(1.f, _hierarchy.specs[i].length);
+                       const float tolerance =  _hierarchy.specs[i].tolerance *
+      kInitialFactor;// / ozz::math::Max(1.f, _hierarchy.specs[i].length);
                            */
+      const float tolerance = _hierarchy.specs[i].tolerance * kInitialFactor;
+      const float joint_length = .1f;
+      const float parent_scale = 1.f;
+
       const RawAnimation::JointTrack& track = _original.tracks[i];
       const PositionAdapter padap(joint_length);
       vtracks_.push_back(OZZ_NEW(allocator, TranslationTrack)(
