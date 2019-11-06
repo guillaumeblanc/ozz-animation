@@ -99,7 +99,7 @@ class OptimizeSampleApplication : public ozz::sample::Application {
   OptimizeSampleApplication()
       : selected_display_(eRuntimeAnimation),
         optimize_(true),
-        joint_setting_enable_(true),
+        joint_setting_enable_(false),
         joint_(0),
         error_record_med_(64),
         error_record_max_(64),
@@ -353,7 +353,7 @@ class OptimizeSampleApplication : public ozz::sample::Application {
         rebuild |= _im_gui->DoRadioButton(2, "random", &mode);
         rebuild |= _im_gui->DoRadioButton(3, "global rdp", &mode);
         rebuild |= _im_gui->DoRadioButton(4, "global vis", &mode);
-        rebuild |= _im_gui->DoRadioButton(5, "greedy", &mode);
+        rebuild |= _im_gui->DoRadioButton(5, "hill climbing", &mode);
 
         rebuild |= _im_gui->DoCheckBox("Enable optimizations", &optimize_);
 
