@@ -43,6 +43,8 @@
 #include "ozz/base/maths/math_constant.h"
 #include "ozz/base/maths/math_ex.h"
 
+#include "ozz/base/io/stream.h"
+
 #include "ozz/base/log.h"
 
 #include "ozz/animation/offline/raw_animation.h"
@@ -58,6 +60,87 @@
 // 3 -> vis
 // 3 -> hill
 int mode = -1;
+int iteration;
+
+namespace {
+class CsvFile : private ozz::io::File {
+ public:
+  CsvFile(const char* _name) : ozz::io::File(_name, "wt"), first_(true) {
+    if (!opened()) {
+      ozz::log::Err() << "Failed opening csv file \"" << _name << "\"."
+                      << std::endl;
+      return;
+    }
+  }
+
+  bool opened() const { return ozz::io::File::opened(); }
+
+#define F "%f"
+
+  bool Push(int _value) {
+    char line[1024];
+    sprintf(line, "%s%d", first_ ? "" : ",", _value);
+    first_ = false;
+
+    const size_t len = strlen(line);
+    return len == Write(line, len);
+  }
+  bool Push(const char* _value) {
+    char line[1024];
+    sprintf(line, "%s%s", first_ ? "" : ",", _value);
+    first_ = false;
+
+    const size_t len = strlen(line);
+    return len == Write(line, len);
+  }
+  bool Push(float _value) {
+    char line[1024];
+    sprintf(line, "%s" F, first_ ? "" : ",", _value);
+    first_ = false;
+
+    const size_t len = strlen(line);
+    return len == Write(line, len);
+  }
+  bool Push(const ozz::math::Float3& _value) {
+    char line[1024];
+    sprintf(line, "%s" F "," F "," F, first_ ? "" : ",", _value.x, _value.y,
+            _value.z);
+    first_ = false;
+
+    const size_t len = strlen(line);
+    return len == Write(line, len);
+  }
+  bool Push(const ozz::math::Quaternion& _value) {
+    char line[1024];
+    sprintf(line, "%s" F "," F "," F "," F, first_ ? "" : ",", _value.w,
+            _value.x, _value.y, _value.z);
+    first_ = false;
+
+    const size_t len = strlen(line);
+    return len == Write(line, len);
+  }
+
+  bool Push(const ozz::math::Transform& _value) {
+    bool success = true;
+    success &= Push(_value.translation);
+    success &= Push(_value.rotation);
+    success &= Push(_value.scale);
+    return success;
+  }
+
+  bool LineEnd() {
+    first_ = true;
+    return Write("\n", 1) == 1;
+  }
+
+ private:
+  // First line element.
+  bool first_;
+};
+}  // namespace
+
+CsvFile* csv = NULL;
+#define GENERATE_CSV ;
 
 namespace ozz {
 namespace animation {
@@ -349,7 +432,6 @@ return std::sqrt(mlen2);
   return Length(_reference.translation - _test.translation);
 }
 
-
 float Compare(const ozz::Range<const ozz::math::Transform>& _reference,
               const ozz::Range<const ozz::math::Transform>& _candidate) {
   float mcmp = 0.f;
@@ -541,6 +623,7 @@ bool IsConstant(const _Track& _track, float _tolerance) {
   }
   return constant;
 }
+
 template <typename _Track>
 bool DecimateConstant(const _Track& _input, _Track* _output, float _tolerance) {
   const bool constant = IsConstant(_input, _tolerance);
@@ -709,24 +792,31 @@ class VTrack {
   float Transition(Comparer& _comparer) {
     const size_t original = OriginalSize();
     const float solution = static_cast<float>(SolutionSize());
+
+    float delta = 0.f;
     if (original <= 1 || solution <= 1.f) {
       dirty_ = false;
-      return 0.f;
-    }
-
-    float candidate = static_cast<float>(CandidateSize());
-    if (dirty_ && candidate_err_ < .001f) {
+    } else if (dirty_ && candidate_err_ < .001f) {
+      float candidate = static_cast<float>(CandidateSize());
       for (size_t i = 0; candidate == solution && solution > 1.f; ++i) {
-        const float f = 1.f; //(.001f - candidate_err_) / .001f;
+        const float f = 1.f;  //(.001f - candidate_err_) / .001f;
         tolerance_ *= 1.2f * f;
         Decimate(tolerance_);
         candidate = static_cast<float>(CandidateSize());
       }
       dirty_ = false;
       candidate_err_ = Compare(_comparer);
+      delta = (candidate - solution) / original;
     }
 
-    const float delta = (candidate - solution) / original;
+    if (csv) {
+      csv->Push(static_cast<int>(original));
+      csv->Push(solution);
+      csv->Push(static_cast<float>(CandidateSize()));
+      csv->Push(tolerance_);
+      csv->Push(delta);
+      csv->Push(candidate_err_);
+    }
 
     return candidate_err_ <= .001f ? delta : 0.f;
   }
@@ -890,10 +980,22 @@ class Stepper {
     // Test all candidates independently
     for (size_t i = 0; i < vtracks_.size(); ++i) {
       VTrack* vtrack = vtracks_[i];
+
+      if (csv) {
+        csv->Push(iteration);
+        int ii = static_cast<int>(i);
+        csv->Push(ii / 3);  // joint
+        csv->Push(ii % 3);  // track type
+      }
+
       float delta = vtrack->Transition(comparer_);
 
       // ozz::log::Log() << "-" << vtrack->track() << ", " << i << ": " << delta
       //                << std::endl;
+
+      if (csv) {
+        csv->LineEnd();
+      }
 
       if (delta < delta_max) {
         delta_max = delta;
@@ -947,15 +1049,16 @@ void HillClimb(const RawAnimation& _orignal, const Skeleton& _skeleton,
                const HierarchyBuilder& _hierarchy, RawAnimation* _output) {
   Comparer comparer(_orignal, _skeleton);
   Stepper stepper(_orignal, _skeleton, _hierarchy, comparer);
-  int iter = 0;
-  for (;; ++iter) {
+  iteration = 0;
+  for (;; ++iteration) {
     float delta = stepper.Transition();
+
     if (delta >= 0.f) {
       stepper.Copy(_output);
       break;
     }
   }
-  ozz::log::Log() << "Iterations count: " << iter << std::endl;
+  ozz::log::Log() << "Iterations count: " << iteration << std::endl;
 }
 
 bool AnimationOptimizer::operator()(const RawAnimation& _input,
@@ -980,6 +1083,16 @@ bool AnimationOptimizer::operator()(const RawAnimation& _input,
   if (num_tracks != _skeleton.num_joints()) {
     return false;
   }
+
+#ifdef GENERATE_CSV
+  CsvFile out("hill_climbing.cvs");
+  csv = &out;
+
+  csv->Push(
+      "iteration,joint,type,original,solution,candidate,tolerance,delta,err");
+  csv->LineEnd();
+
+#endif  // GENERATE_CSV
 
   // First computes bone lengths, that will be used when filtering.
   const HierarchyBuilder hierarchy(&_input, &_skeleton, this);
@@ -1033,7 +1146,7 @@ bool AnimationOptimizer::operator()(const RawAnimation& _input,
       }
     }
   }
-  
+
   if (mode == 5) {
     HillClimb(no_constant, _skeleton, hierarchy, _output);
   }
