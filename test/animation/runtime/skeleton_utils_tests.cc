@@ -141,7 +141,7 @@ class IterateDFTester {
   int num_iterations_;
 };
 }  // namespace
-
+/*
 TEST(InterateDF, SkeletonUtils) {
   // Instantiates a builder objects with default parameters.
   SkeletonBuilder builder;
@@ -247,6 +247,7 @@ TEST(InterateDF, SkeletonUtils) {
   }
   IterateJointsDF(*skeleton, IterateDFFailTester(), 10);
   IterateJointsDF(*skeleton, IterateDFFailTester(), 99);
+
 }
 
 TEST(InterateDFEmpty, SkeletonUtils) {
@@ -360,6 +361,7 @@ TEST(InterateDFReverse, SkeletonUtils) {
  j3    j7
  */
 
+/*
 TEST(IsLeaf, SkeletonUtils) {
   // Instantiates a builder objects with default parameters.
   SkeletonBuilder builder;
@@ -415,3 +417,4 @@ TEST(IsLeaf, SkeletonUtils) {
   EXPECT_FALSE(IsLeaf(*skeleton, 8));
   EXPECT_TRUE(IsLeaf(*skeleton, 9));
 }
+*/

@@ -91,7 +91,8 @@ bool LocalToModel(const ozz::animation::Skeleton& _skeleton,
   assert(static_cast<size_t>(_skeleton.num_joints()) == _locals.count() &&
          _locals.count() == _models.count());
 
-  ozz::animation::IterateJointsDF(_skeleton, LTMIterator(_locals, _models));
+  LTMIterator it(_locals, _models);
+  ozz::animation::IterateJointsDF(_skeleton, it);
 
   return true;
 }
