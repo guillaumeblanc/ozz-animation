@@ -806,7 +806,10 @@ class VTrack {
       }
       dirty_ = false;
       candidate_err_ = Compare(_comparer);
-      delta = (candidate - solution) / original;
+
+	  float err_ratio = (.001f - candidate_err_) / .001f;
+
+      delta =  -err_ratio ;//* (candidate - solution) / (original);
     }
 
     if (csv) {
