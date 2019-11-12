@@ -418,7 +418,7 @@ ozz::math::Float3 TransformPoint(const ozz::math::Transform& _transform,
 // < 0 if better than target
 // = 0 if on target
 // > 0 if worst than target
-float ErrorToRatio(float _err, float _target) {
+inline float ErrorToRatio(float _err, float _target) {
   return (_err - _target) / _target;
 }
 
@@ -449,7 +449,7 @@ float Compare(const ozz::Range<const ozz::math::Transform>& _reference,
   }
   return mcmp;
 }
-o
+
 float Compare(const ozz::Range<const ozz::math::Transform>& _reference,
               const ozz::Range<const ozz::math::Transform>& _candidate,
               const ozz::Range<float>& _targets) {
@@ -463,6 +463,10 @@ float Compare(const ozz::Range<const ozz::math::Transform>& _reference,
   }
   return mratio;
 }
+
+struct Res {
+  float err, ratio;
+};
 
 struct PartialLTMCompareIterator {
   PartialLTMCompareIterator(
@@ -478,7 +482,7 @@ struct PartialLTMCompareIterator {
         targets_(_targets),
         track_(_track),
         done(false),
-        err_(std::numeric_limits<float>::lowest()) {}
+        err_{0.f, std::numeric_limits<float>::lowest()} {}
 
   void operator()(int _joint, int _parent) {
     // TODO comment
@@ -514,11 +518,12 @@ struct PartialLTMCompareIterator {
     const float target = targets_[_joint];
     const float ratio = ErrorToRatio(joint_err, target);
 
-    err_ = ozz::math::Max(err_, ratio);
+    err_.err = ozz::math::Max(err_.err, joint_err);
+    err_.ratio = ozz::math::Max(err_.ratio, ratio);
   }
 
   // TODO private
-  float err_;
+  Res err_;
 
  private:
   PartialLTMCompareIterator(const PartialLTMCompareIterator&);
@@ -757,20 +762,20 @@ class Comparer {
     }
   }
 
-  float operator()(const RawAnimation::JointTrack::Translations& _translations,
-                   size_t _track, const ozz::Range<float>& _targets) {
+  Res operator()(const RawAnimation::JointTrack::Translations& _translations,
+                 size_t _track, const ozz::Range<float>& _targets) {
     RawAnimation::JointTrack test = test_.tracks[_track];
     test.translations = _translations;
     return Compare(test, _track, _targets);
   }
-  float operator()(const RawAnimation::JointTrack::Rotations& _rotations,
-                   size_t _track, const ozz::Range<float>& _targets) {
+  Res operator()(const RawAnimation::JointTrack::Rotations& _rotations,
+                 size_t _track, const ozz::Range<float>& _targets) {
     RawAnimation::JointTrack test = test_.tracks[_track];
     test.rotations = _rotations;
     return Compare(test, _track, _targets);
   }
-  float operator()(const RawAnimation::JointTrack::Scales& _scales,
-                   size_t _track, const ozz::Range<float>& _targets) {
+  Res operator()(const RawAnimation::JointTrack::Scales& _scales, size_t _track,
+                 const ozz::Range<float>& _targets) {
     RawAnimation::JointTrack test = test_.tracks[_track];
     test.scales = _scales;
     return Compare(test, _track, _targets);
@@ -779,9 +784,9 @@ class Comparer {
   float UpdateCurrent(const VTrack& _vtrack, const ozz::Range<float>& _targets);
 
  private:
-  float Compare(const RawAnimation::JointTrack& _test, size_t _track,
-                const ozz::Range<float>& _targets) const {
-    float max_err = std::numeric_limits<float>::lowest();
+  Res Compare(const RawAnimation::JointTrack& _test, size_t _track,
+              const ozz::Range<float>& _targets) const {
+    Res res = {0.f, std::numeric_limits<float>::lowest()};
 
     ozz::math::Transform local;
     for (size_t i = 0; i < key_times_.size(); ++i) {
@@ -796,12 +801,13 @@ class Comparer {
       // err) is a possible optimisation. It considers error can only increase
       // from a step to the next. It's generally true, but not always due to
       // track compensating error from others.
-      const float err = ozz::animation::IterateJointsDF(
-                            skeleton_, cmp /*, static_cast<int>(_track)*/)
-                            .err_;
-      max_err = ozz::math::Max(max_err, err);
+      const Res ret = ozz::animation::IterateJointsDF(skeleton_, cmp,
+                                                      static_cast<int>(_track))
+                          .err_;
+      res.err = ozz::math::Max(res.err, ret.err);
+      res.ratio = ozz::math::Max(res.ratio, ret.ratio);
     }
-    return max_err;
+    return res;
   }
 
   const Skeleton& skeleton_;
@@ -820,7 +826,7 @@ class VTrack {
   VTrack(float _tolerance, size_t _track)
       : track_(_track),
         tolerance_(_tolerance),
-        candidate_err_(std::numeric_limits<float>::lowest()),
+        candidate_err_{0.f, std::numeric_limits<float>::lowest()},
         dirty_(true) {}
   virtual ~VTrack() {}
 
@@ -831,9 +837,9 @@ class VTrack {
 
     if (original <= 1 || solution <= 1.f) {
       dirty_ = false;
-    } else if (dirty_ && candidate_err_ < 0) {
+    } else if (dirty_ && candidate_err_.ratio < 0) {
       for (size_t i = 0; candidate >= solution && solution > 1.f; ++i) {
-        const float mul = 1.1f;  // + f * .5f;  // * f * 1.f;
+        const float mul = 1.2f;  // + f * .5f;  // * f * 1.f;
         tolerance_ *= mul;
         Decimate(tolerance_);
         candidate = static_cast<float>(CandidateSize());
@@ -844,7 +850,7 @@ class VTrack {
     }
 
     // Delta must be computed whever track is dirty or not
-    float err_ratio = candidate_err_;
+    float err_ratio = candidate_err_.ratio;
     //  - ozz::math::Max(0.f, (target_err_ - candidate_err_) / target_err_);
     float delta = solution > 1.f ? err_ratio : 0;  //(candidate - solution) /
     // (original);
@@ -857,7 +863,9 @@ class VTrack {
       csv->Push(static_cast<float>(CandidateSize()));
       csv->Push(tolerance_);
       csv->Push(delta);
-      csv->Push(candidate_err_);
+      const float target = _targets[track()];
+      csv->Push(target);
+      csv->Push(candidate_err_.err);
     }
 
     // TODO Use ratio instead
@@ -877,8 +885,8 @@ class VTrack {
 
  private:
   virtual void Decimate(float _tolerance) = 0;
-  virtual float Compare(Comparer& _comparer,
-                        const ozz::Range<float>& _targets) const = 0;
+  virtual Res Compare(Comparer& _comparer,
+                      const ozz::Range<float>& _targets) const = 0;
   virtual void ValidateCandidate() = 0;
 
   virtual size_t CandidateSize() const = 0;
@@ -887,7 +895,7 @@ class VTrack {
 
   const size_t track_;
   float tolerance_;
-  float candidate_err_;
+  Res candidate_err_;
   bool dirty_;
 };  // namespace offline
 
@@ -909,8 +917,8 @@ class TTrack : public VTrack {
                                       &candidate_);
   }
 
-  virtual float Compare(Comparer& _comparer,
-                        const ozz::Range<float>& _targets) const {
+  virtual Res Compare(Comparer& _comparer,
+                      const ozz::Range<float>& _targets) const {
     return _comparer(candidate_, track(), _targets);
   }
 
@@ -939,7 +947,7 @@ typedef TTrack<RawAnimation::JointTrack::Rotations, RotationAdapter>
 typedef TTrack<RawAnimation::JointTrack::Scales, ScaleAdapter> ScaleTrack;
 
 float Comparer::UpdateCurrent(const VTrack& _vtrack,
-                              const ozz::Range<float>& _targets) {
+                              const ozz::Range<float>& /*_targets*/) {
   _vtrack.Copy(&test_);
 
   gsize = static_cast<int>(test_.size());
@@ -952,12 +960,14 @@ float Comparer::UpdateCurrent(const VTrack& _vtrack,
 
     // TODO, from current track
     LocalToModel(skeleton_, ozz::make_range(cached_locals_[i]),
-                 ozz::make_range(cached_models_[i]));
+                 ozz::make_range(cached_models_[i]), static_cast<int>(_vtrack.track()));
 
+    // TODO this is just to be able to log global error
+    /*
     const float err = ozz::animation::offline::Compare(
         ozz::make_range(cached_models_[i]),
         ozz::make_range(reference_models_[i]), _targets);
-    max_err = ozz::math::Max(max_err, err);
+    max_err = ozz::math::Max(max_err, err);*/
   }
 
   return max_err;
@@ -1143,7 +1153,8 @@ bool AnimationOptimizer::operator()(const RawAnimation& _input,
   csv = &out;
 
   csv->Push(
-      "iteration,joint,type,original,solution,candidate,tolerance,delta,terr,"
+      "iteration,joint,type,original,solution,candidate,tolerance,delta,target,"
+      "terr,"
       "gerr,gsize");
   csv->LineEnd();
 
