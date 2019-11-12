@@ -826,7 +826,7 @@ class VTrack {
   VTrack(float _tolerance, size_t _track)
       : track_(_track),
         tolerance_(_tolerance),
-        candidate_err_{0.f, std::numeric_limits<float>::lowest()},
+        candidate_err_{0.f, -1.f},
         dirty_(true) {}
   virtual ~VTrack() {}
 
@@ -836,10 +836,12 @@ class VTrack {
     float candidate = static_cast<float>(CandidateSize());
 
     if (original <= 1 || solution <= 1.f) {
+      candidate_err_.ratio = 0.f;
       dirty_ = false;
     } else if (dirty_ && candidate_err_.ratio < 0) {
       for (size_t i = 0; candidate >= solution && solution > 1.f; ++i) {
-        const float mul = 1.2f;  // + f * .5f;  // * f * 1.f;
+        const float mul = 1.1f + candidate_err_.ratio * candidate_err_.ratio *
+                                     .3f;  // * f * 1.f;
         tolerance_ *= mul;
         Decimate(tolerance_);
         candidate = static_cast<float>(CandidateSize());
