@@ -194,10 +194,10 @@ class OptimizeSampleApplication : public ozz::sample::Application {
           models_rt_[i].cols[3] - models_raw_[i].cols[3]));
     }
 
+    joint_error_record_.Push(std::sqrt(errors_sq[joint_]) * 1000.f);
     std::sort(errors_sq, errors_sq + models_rt_.size());
     error_record_med_.Push(std::sqrt(errors_sq[num_joints / 2]) * 1000.f);
     error_record_max_.Push(std::sqrt(errors_sq[num_joints - 1]) * 1000.f);
-    joint_error_record_.Push(std::sqrt(errors_sq[joint_]) * 1000.f);
 
     return true;
   }
