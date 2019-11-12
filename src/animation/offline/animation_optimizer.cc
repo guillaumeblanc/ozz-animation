@@ -60,7 +60,9 @@
 // 3 -> vis
 // 3 -> hill
 int mode = -1;
-int iteration;
+static int iteration;
+static float gerr = 0.f;
+static int gsize = 0;
 
 namespace {
 class CsvFile : private ozz::io::File {
@@ -414,22 +416,21 @@ ozz::math::Float3 TransformPoint(const ozz::math::Transform& _transform,
 }
 
 float Compare(const ozz::math::Transform& _reference,
-              const ozz::math::Transform& _test) {
-  /*
-const float kDist = .0f;
-ozz::math::Float3 points[] = {ozz::math::Float3::x_axis() * kDist,
-                          ozz::math::Float3::y_axis() * kDist,
-                          ozz::math::Float3::z_axis() * kDist};
-float mlen2 = 0.f;
-for (size_t i = 0; i < OZZ_ARRAY_SIZE(points); ++i) {
-ozz::math::Float3 ref = TransformPoint(_reference, points[i]);
-ozz::math::Float3 test = TransformPoint(_test, points[i]);
-const float len2 = LengthSqr(ref - test);
-mlen2 = ozz::math::Max(mlen2, len2);
-}
-return std::sqrt(mlen2);
-*/
-  return Length(_reference.translation - _test.translation);
+              const ozz::math::Transform& _test) { /*
+  const float kDist = 1.f;
+  ozz::math::Float3 points[] = {ozz::math::Float3::x_axis() * kDist,
+                                ozz::math::Float3::y_axis() * kDist,
+                                ozz::math::Float3::z_axis() * kDist};
+  float mlen2 = 0.f;
+  for (size_t i = 0; i < OZZ_ARRAY_SIZE(points); ++i) {
+    ozz::math::Float3 ref = TransformPoint(_reference, points[i]);
+    ozz::math::Float3 test = TransformPoint(_test, points[i]);
+    const float len2 = LengthSqr(ref - test);
+    mlen2 = ozz::math::Max(mlen2, len2);
+  }
+  return std::sqrt(mlen2);*/
+
+   return Length(_reference.translation - _test.translation);
 }
 
 float Compare(const ozz::Range<const ozz::math::Transform>& _reference,
@@ -748,7 +749,7 @@ class Comparer {
     return Compare(test, _track);
   }
 
-  void UpdateCurrent(const VTrack& _vtrack);
+  float UpdateCurrent(const VTrack& _vtrack);
 
  private:
   float Compare(const RawAnimation::JointTrack& _test, size_t _track) const {
@@ -763,7 +764,9 @@ class Comparer {
                                     ozz::make_range(cached_models_[i]), local,
                                     static_cast<int>(_track));
 
-      const float err = ozz::animation::IterateJointsDF(skeleton_, cmp).err_;
+      const float err = ozz::animation::IterateJointsDF(
+                            skeleton_, cmp/*, static_cast<int>(_track)*/)
+                            .err_;
       max_err = ozz::math::Max(max_err, err);
     }
     return max_err;
@@ -792,25 +795,29 @@ class VTrack {
   float Transition(Comparer& _comparer) {
     const size_t original = OriginalSize();
     const float solution = static_cast<float>(SolutionSize());
+    float candidate = static_cast<float>(CandidateSize());
 
-    float delta = 0.f;
     if (original <= 1 || solution <= 1.f) {
       dirty_ = false;
     } else if (dirty_ && candidate_err_ < .001f) {
-      float candidate = static_cast<float>(CandidateSize());
-      for (size_t i = 0; candidate == solution && solution > 1.f; ++i) {
-        const float f = 1.f;  //(.001f - candidate_err_) / .001f;
-        tolerance_ *= 1.2f * f;
+      for (size_t i = 0; candidate >= solution && solution > 1.f; ++i) {
+        const float f =
+            /*ozz::math::Max(0.f,*/ (.001f - candidate_err_) / .001f /*)*/;
+        const float mul = 1.1f + f * .5f;  // * f * 1.f;
+        tolerance_ *= mul;
         Decimate(tolerance_);
         candidate = static_cast<float>(CandidateSize());
       }
       dirty_ = false;
-      candidate_err_ = Compare(_comparer);
-
-	  float err_ratio = (.001f - candidate_err_) / .001f;
-
-      delta =  -err_ratio ;//* (candidate - solution) / (original);
+      candidate_err_ = /*ozz::math::Max(candidate_err_,*/ Compare(_comparer)/*)*/;
     }
+
+    // Delta must be computed whever track is dirty or not
+     float err_ratio = ozz::math::Max(0.f, (.001f - candidate_err_) / .001f);
+     float delta =solution > 1.f ? -err_ratio : 0;  //(candidate - solution) /
+    // (original);
+    // float delta = err_ratio * (candidate - solution) / (original);
+    //float delta = (candidate - solution) / (original);
 
     if (csv) {
       csv->Push(static_cast<int>(original));
@@ -896,9 +903,12 @@ typedef TTrack<RawAnimation::JointTrack::Rotations, RotationAdapter>
     RotationTrack;
 typedef TTrack<RawAnimation::JointTrack::Scales, ScaleAdapter> ScaleTrack;
 
-void Comparer::UpdateCurrent(const VTrack& _vtrack) {
+float Comparer::UpdateCurrent(const VTrack& _vtrack) {
   _vtrack.Copy(&test_);
 
+  gsize = static_cast<int>(test_.size());
+
+  float max_err = 0.f;
   for (size_t i = 0; i < key_times_.size(); ++i) {
     ozz::animation::offline::SampleTrack(test_.tracks[_vtrack.track()],
                                          key_times_[i],
@@ -907,7 +917,14 @@ void Comparer::UpdateCurrent(const VTrack& _vtrack) {
     // TODO, from current track
     LocalToModel(skeleton_, ozz::make_range(cached_locals_[i]),
                  ozz::make_range(cached_models_[i]));
+
+    const float err =
+        ozz::animation::offline::Compare(ozz::make_range(cached_models_[i]),
+                                         ozz::make_range(reference_models_[i]));
+    max_err = ozz::math::Max(max_err, err);
   }
+
+  return max_err;
 }
 
 struct DirtyIterator {
@@ -933,10 +950,9 @@ class Stepper {
     ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
     const int num_tracks = original_.num_tracks();
     for (int i = 0; i < num_tracks; ++i) {
-      const float kInitialFactor = .1f;
+      const float kInitialFactor = .2f;
 
       // Gets joint specs back.
-      /*
       const float joint_length = _hierarchy.specs[i].length;
       const int parent = _skeleton.joint_parents()[i];
       const float parent_scale = (parent != Skeleton::kNoParent)
@@ -951,19 +967,19 @@ class Stepper {
                            const float parent_scale = 1.f;
                        const float tolerance =  _hierarchy.specs[i].tolerance *
       kInitialFactor;// / ozz::math::Max(1.f, _hierarchy.specs[i].length);
-                           */
+      
       const float tolerance = _hierarchy.specs[i].tolerance * kInitialFactor;
       const float joint_length = .1f;
-      const float parent_scale = 1.f;
+      const float parent_scale = 1.f;*/
 
       const RawAnimation::JointTrack& track = _original.tracks[i];
-      const PositionAdapter padap(joint_length);
+      const PositionAdapter padap(parent_scale);
       vtracks_.push_back(OZZ_NEW(allocator, TranslationTrack)(
           track.translations, padap, tolerance, i));
-      const RotationAdapter radap(parent_scale);
+      const RotationAdapter radap(joint_length);
       vtracks_.push_back(OZZ_NEW(allocator, RotationTrack)(
           track.rotations, radap, tolerance, i));
-      const ScaleAdapter sadap(parent_scale);
+      const ScaleAdapter sadap(joint_length);
       vtracks_.push_back(
           OZZ_NEW(allocator, ScaleTrack)(track.scales, sadap, tolerance, i));
     }
@@ -993,10 +1009,9 @@ class Stepper {
 
       float delta = vtrack->Transition(comparer_);
 
-      // ozz::log::Log() << "-" << vtrack->track() << ", " << i << ": " << delta
-      //                << std::endl;
-
       if (csv) {
+        csv->Push(gerr);
+        csv->Push(gsize);
         csv->LineEnd();
       }
 
@@ -1012,23 +1027,30 @@ class Stepper {
       selected.Validate();
 
       // Flag whole hierarchy of selected track, children and parents
-      DirtyIterator it(ozz::make_range(vtracks_));
-      ozz::animation::IterateJointsDF(skeleton_, it,
-                                      static_cast<int>(selected.track()));
-      for (int parent = skeleton_.joint_parents()[selected.track()];
-           parent != ozz::animation::Skeleton::kNoParent;
-           parent = skeleton_.joint_parents()[parent]) {
-        vtracks_[parent * 3 + 0]->set_dirty();
-        vtracks_[parent * 3 + 1]->set_dirty();
-        vtracks_[parent * 3 + 2]->set_dirty();
-      }
-      comparer_.UpdateCurrent(selected);
+      FlagDirty(static_cast<int>(selected.track()));
+
+      gerr = comparer_.UpdateCurrent(selected);
 
       ozz::log::Log() << selected.track() << ", " << i_max << ": " << delta_max
                       << std::endl;
     }
 
     return delta_max;
+  }
+
+  void FlagDirty(int _track) {
+    // Flag whole children hierarchy of selected track
+    DirtyIterator it(ozz::make_range(vtracks_));
+    ozz::animation::IterateJointsDF(skeleton_, it, _track);
+
+    // Now parents, as their error can change due to a children track change.
+    for (int parent = skeleton_.joint_parents()[_track];
+         parent != ozz::animation::Skeleton::kNoParent;
+         parent = skeleton_.joint_parents()[parent]) {
+      vtracks_[parent * 3 + 0]->set_dirty();
+      vtracks_[parent * 3 + 1]->set_dirty();
+      vtracks_[parent * 3 + 2]->set_dirty();
+    }
   }
 
   void Copy(RawAnimation* _output) const {
@@ -1092,7 +1114,8 @@ bool AnimationOptimizer::operator()(const RawAnimation& _input,
   csv = &out;
 
   csv->Push(
-      "iteration,joint,type,original,solution,candidate,tolerance,delta,err");
+      "iteration,joint,type,original,solution,candidate,tolerance,delta,terr,"
+      "gerr,gsize");
   csv->LineEnd();
 
 #endif  // GENERATE_CSV
