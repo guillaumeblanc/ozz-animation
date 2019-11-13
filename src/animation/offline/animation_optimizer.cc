@@ -962,7 +962,8 @@ float Comparer::UpdateCurrent(const VTrack& _vtrack,
 
     // TODO, from current track
     LocalToModel(skeleton_, ozz::make_range(cached_locals_[i]),
-                 ozz::make_range(cached_models_[i]), static_cast<int>(_vtrack.track()));
+                 ozz::make_range(cached_models_[i]),
+                 static_cast<int>(_vtrack.track()));
 
     // TODO this is just to be able to log global error
     /*
@@ -1000,11 +1001,16 @@ class Stepper {
 
     const int num_tracks = original_.num_tracks();
     for (int i = 0; i < num_tracks; ++i) {
-      const float kInitialFactor = .1f;
+      const float kInitialFactor = .2f;
 
-      // Gets joint specs back.
-      // const float joint_length = _hierarchy.specs[i].length;
-      const float joint_length = .1f;
+      // Using hierarchy spec for joint_length (aka comparing rotations) is
+      // important as it prevents from optimizing too quickly joints at the
+      // root. This length helps RotationAdapter at computing/simulating the
+      // tolerance at hierarchy end. Hill climbing will have the last word,
+      // figuring out if this decimation is ok or not in the end.
+      const float joint_length = _hierarchy.specs[i].length;
+
+      // const float joint_length = .1f;
       /*     const int parent = _skeleton.joint_parents()[i];
   const float parent_scale = (parent != Skeleton::kNoParent)
                                  ? _hierarchy.specs[parent].scale
