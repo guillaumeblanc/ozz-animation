@@ -315,6 +315,7 @@ class RotationAdapter {
     const float distance = 2.f * sine_half_angle * radius_;
     return distance;
     */
+    /*
 
     const ozz::math::Quaternion diff = Conjugate(_left.value) * _right.value;
     const ozz::math::Float3 axis(diff.x, diff.y, diff.z);
@@ -336,6 +337,19 @@ class RotationAdapter {
     normal = NormalizeSafe(normal, ozz::math::Float3::x_axis());
 
     return Length(TransformVector(diff, normal) - normal) * radius_;
+    */
+    const math::Quaternion diff = _left.value * Conjugate(_right.value);
+    const math::Float3 axis = (diff.x == 0.f && diff.y == 0.f && diff.z == 0.f)
+                                  ? math::Float3::x_axis()
+                                  : math::Float3(diff.x, diff.y, diff.z);
+    const math::Float3 abs(std::abs(axis.x), std::abs(axis.y),
+                           std::abs(axis.z));
+    const size_t smallest =
+        abs.x < abs.y ? (abs.x < abs.z ? 0 : 2) : (abs.y < abs.z ? 1 : 2);
+    const math::Float3 binormal(smallest == 0, smallest == 1, smallest == 2);
+    const math::Float3 normal = Normalize(Cross(binormal, axis));
+    const float error = Length(TransformVector(diff, normal) - normal);
+    return error * radius_;
   }
 
  private:
@@ -423,21 +437,23 @@ inline float ErrorToRatio(float _err, float _target) {
 }
 
 float Compare(const ozz::math::Transform& _reference,
-              const ozz::math::Transform& _test) { /*
-  const float kDist = 1.f;
-  ozz::math::Float3 points[] = {ozz::math::Float3::x_axis() * kDist,
-                                ozz::math::Float3::y_axis() * kDist,
-                                ozz::math::Float3::z_axis() * kDist};
-  float mlen2 = 0.f;
-  for (size_t i = 0; i < OZZ_ARRAY_SIZE(points); ++i) {
-    ozz::math::Float3 ref = TransformPoint(_reference, points[i]);
-    ozz::math::Float3 test = TransformPoint(_test, points[i]);
-    const float len2 = LengthSqr(ref - test);
-    mlen2 = ozz::math::Max(mlen2, len2);
-  }
-  return std::sqrt(mlen2);*/
+              const ozz::math::Transform& _test) {
+  const float kRadius = .1f;
+  // return Length(_reference.translation - _test.translation);
 
-  return Length(_reference.translation - _test.translation);
+  const math::Quaternion diff = _reference.rotation * Conjugate(_test.rotation);
+  const math::Float3 axis = (diff.x == 0.f && diff.y == 0.f && diff.z == 0.f)
+                                ? math::Float3::x_axis()
+                                : math::Float3(diff.x, diff.y, diff.z);
+  const math::Float3 abs(std::abs(axis.x), std::abs(axis.y), std::abs(axis.z));
+  const size_t smallest =
+      abs.x < abs.y ? (abs.x < abs.z ? 0 : 2) : (abs.y < abs.z ? 1 : 2);
+  const math::Float3 binormal(smallest == 0, smallest == 1, smallest == 2);
+  const math::Float3 normal = Normalize(Cross(binormal, axis));
+  const float error = Length(
+      (_reference.translation + TransformVector(diff, normal) * kRadius) -
+      (_test.translation + normal * kRadius));
+  return error;
 }
 
 float Compare(const ozz::Range<const ozz::math::Transform>& _reference,
