@@ -774,23 +774,19 @@ class Comparer {
         reference_(_reference),
         test_(_reference),
         key_times_(CopyKeyTimes(_reference)),
-        reference_models_(key_times_.size(),
-                          JointTransformKeys(_reference.num_tracks())),
-        cached_locals_(reference_models_),
-        cached_models_(reference_models_) {
-    // Populates reference model space transforms.
-    for (size_t i = 0; i < key_times_.size(); ++i) {
-      SampleModelSpace(_reference, _skeleton, key_times_[i],
-                       ozz::make_range(reference_models_[i]));
-    }
-
-    // TODO, copy from reference
+        cached_locals_(key_times_.size(),
+                       JointTransformKeys(_reference.num_tracks())),
+        cached_models_(cached_locals_) {
+    // Populates test local & model space transforms.
     for (size_t i = 0; i < key_times_.size(); ++i) {
       ozz::animation::offline::SampleAnimation(
           test_, key_times_[i], ozz::make_range(cached_locals_[i]));
       LocalToModel(skeleton_, ozz::make_range(cached_locals_[i]),
                    ozz::make_range(cached_models_[i]));
     }
+
+    // Copy to reference
+    reference_models_ = cached_models_;
   }
 
   Res operator()(const RawAnimation::JointTrack::Translations& _translations,
