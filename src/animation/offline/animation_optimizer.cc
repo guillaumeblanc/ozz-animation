@@ -498,7 +498,7 @@ struct PartialLTMCompareIterator {
         targets_(_targets),
         track_(_track),
         done(false),
-        err_{0.f, std::numeric_limits<float>::lowest()} {}
+        err_{-1.f, std::numeric_limits<float>::lowest()} {}
 
   void operator()(int _joint, int _parent) {
     // TODO comment
@@ -534,7 +534,10 @@ struct PartialLTMCompareIterator {
     const float target = targets_[_joint];
     const float ratio = ErrorToRatio(joint_err, target);
 
-    err_.err = ozz::math::Max(err_.err, joint_err);
+    if (_joint == track_) {
+      assert(err_.err == -1.f);  // Should be set once only
+      err_.err = joint_err;
+    }
     err_.ratio = ozz::math::Max(err_.ratio, ratio);
   }
 
