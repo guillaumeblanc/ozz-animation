@@ -338,6 +338,12 @@ class RotationAdapter {
 
     return Length(TransformVector(diff, normal) - normal) * radius_;
     */
+
+    // The idea is to find the rotation axis of the rotation defined by the
+    // difference of the two quaternion we're comparing. This will allow to find
+    // a normal to this axis. Transforming this normal by the quaternion of the
+    // difference will produce the worst case transformation, hence give the
+    // error.
     const math::Quaternion diff = _left.value * Conjugate(_right.value);
     const math::Float3 axis = (diff.x == 0.f && diff.y == 0.f && diff.z == 0.f)
                                   ? math::Float3::x_axis()
@@ -438,8 +444,9 @@ inline float ErrorToRatio(float _err, float _target) {
 
 float Compare(const ozz::math::Transform& _reference,
               const ozz::math::Transform& _test) {
+  //return Length(_reference.translation - _test.translation);
+  
   const float kRadius = .1f;
-  // return Length(_reference.translation - _test.translation);
 
   const math::Quaternion diff = _reference.rotation * Conjugate(_test.rotation);
   const math::Float3 axis = (diff.x == 0.f && diff.y == 0.f && diff.z == 0.f)
@@ -450,9 +457,14 @@ float Compare(const ozz::math::Transform& _reference,
       abs.x < abs.y ? (abs.x < abs.z ? 0 : 2) : (abs.y < abs.z ? 1 : 2);
   const math::Float3 binormal(smallest == 0, smallest == 1, smallest == 2);
   const math::Float3 normal = Normalize(Cross(binormal, axis));
-  const float error = Length(
-      (_reference.translation + TransformVector(diff, normal) * kRadius) -
-      (_test.translation + normal * kRadius));
+
+  const float rotation_error = Length(TransformVector(diff, normal) - normal);
+  const float translation_error =
+      Length(_reference.translation - _test.translation);
+  //  const float scale_error =
+  //      kRadius * Length(_reference.scale - _test.scale);
+
+  const float error = translation_error + rotation_error * kRadius;
   return error;
 }
 
