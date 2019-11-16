@@ -208,7 +208,7 @@ class RotationAdapter {
   float Distance(const RawAnimation::RotationKey& _left,
                  const RawAnimation::RotationKey& _right) const {
     // Compute the shortest unsigned angle between the 2 quaternions.
-    // diff_w is w component of a-1 * b.
+    // cos_half_angle is w component of a-1 * b.
     const float cos_half_angle = Dot(_left.value, _right.value);
     const float sine_half_angle =
         std::sqrt(1.f - math::Min(1.f, cos_half_angle * cos_half_angle));
