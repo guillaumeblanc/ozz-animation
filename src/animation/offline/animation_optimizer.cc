@@ -338,6 +338,12 @@ class RotationAdapter {
 
     return Length(TransformVector(diff, normal) - normal) * radius_;
     */
+
+    // The idea is to find the rotation axis of the rotation defined by the
+    // difference of the two quaternion we're comparing. This will allow to find
+    // a normal to this axis. Transforming this normal by the quaternion of the
+    // difference will produce the worst case transformation, hence give the
+    // error.
     const math::Quaternion diff = _left.value * Conjugate(_right.value);
     const math::Float3 axis = (diff.x == 0.f && diff.y == 0.f && diff.z == 0.f)
                                   ? math::Float3::x_axis()
@@ -438,8 +444,9 @@ inline float ErrorToRatio(float _err, float _target) {
 
 float Compare(const ozz::math::Transform& _reference,
               const ozz::math::Transform& _test) {
+  //return Length(_reference.translation - _test.translation);
+  
   const float kRadius = .1f;
-  // return Length(_reference.translation - _test.translation);
 
   const math::Quaternion diff = _reference.rotation * Conjugate(_test.rotation);
   const math::Float3 axis = (diff.x == 0.f && diff.y == 0.f && diff.z == 0.f)
@@ -450,9 +457,14 @@ float Compare(const ozz::math::Transform& _reference,
       abs.x < abs.y ? (abs.x < abs.z ? 0 : 2) : (abs.y < abs.z ? 1 : 2);
   const math::Float3 binormal(smallest == 0, smallest == 1, smallest == 2);
   const math::Float3 normal = Normalize(Cross(binormal, axis));
-  const float error = Length(
-      (_reference.translation + TransformVector(diff, normal) * kRadius) -
-      (_test.translation + normal * kRadius));
+
+  const float rotation_error = Length(TransformVector(diff, normal) - normal);
+  const float translation_error =
+      Length(_reference.translation - _test.translation);
+  //  const float scale_error =
+  //      kRadius * Length(_reference.scale - _test.scale);
+
+  const float error = translation_error + rotation_error * kRadius;
   return error;
 }
 
@@ -498,7 +510,7 @@ struct PartialLTMCompareIterator {
         targets_(_targets),
         track_(_track),
         done(false),
-        err_{0.f, std::numeric_limits<float>::lowest()} {}
+        err_{-1.f, std::numeric_limits<float>::lowest()} {}
 
   void operator()(int _joint, int _parent) {
     // TODO comment
@@ -534,7 +546,10 @@ struct PartialLTMCompareIterator {
     const float target = targets_[_joint];
     const float ratio = ErrorToRatio(joint_err, target);
 
-    err_.err = ozz::math::Max(err_.err, joint_err);
+    if (_joint == track_) {
+      assert(err_.err == -1.f);  // Should be set once only
+      err_.err = joint_err;
+    }
     err_.ratio = ozz::math::Max(err_.ratio, ratio);
   }
 
@@ -759,23 +774,19 @@ class Comparer {
         reference_(_reference),
         test_(_reference),
         key_times_(CopyKeyTimes(_reference)),
-        reference_models_(key_times_.size(),
-                          JointTransformKeys(_reference.num_tracks())),
-        cached_locals_(reference_models_),
-        cached_models_(reference_models_) {
-    // Populates reference model space transforms.
-    for (size_t i = 0; i < key_times_.size(); ++i) {
-      SampleModelSpace(_reference, _skeleton, key_times_[i],
-                       ozz::make_range(reference_models_[i]));
-    }
-
-    // TODO, copy from reference
+        cached_locals_(key_times_.size(),
+                       JointTransformKeys(_reference.num_tracks())),
+        cached_models_(cached_locals_) {
+    // Populates test local & model space transforms.
     for (size_t i = 0; i < key_times_.size(); ++i) {
       ozz::animation::offline::SampleAnimation(
           test_, key_times_[i], ozz::make_range(cached_locals_[i]));
       LocalToModel(skeleton_, ozz::make_range(cached_locals_[i]),
                    ozz::make_range(cached_models_[i]));
     }
+
+    // Copy to reference
+    reference_models_ = cached_models_;
   }
 
   Res operator()(const RawAnimation::JointTrack::Translations& _translations,
