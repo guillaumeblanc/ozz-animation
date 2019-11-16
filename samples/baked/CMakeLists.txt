@@ -16,6 +16,7 @@ add_custom_command(
 
 add_executable(sample_baked
   sample_baked.cc
+  "${CMAKE_CURRENT_LIST_DIR}/config.json"
   "${CMAKE_CURRENT_BINARY_DIR}/README.md"
   "${CMAKE_CURRENT_BINARY_DIR}/media/skeleton.ozz"
   "${CMAKE_CURRENT_BINARY_DIR}/media/animation.ozz")
