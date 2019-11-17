@@ -73,8 +73,17 @@ The AnimationBuilder utility class purpose is to build a runtime animation from 
 `ozz::animation::offline::AnimationOptimizer`
 ---------------------------------------------
 
-The AnimationOptimizer strips redundant/interpolable key frames from a raw animation. It doesn't actually modify input animation, but builds a second one. Tolerances are provided as input arguments, for every key frame type: translation, rotation and scale.
+The AnimationOptimizer decimates redundant/interpolable key frames from a raw animation. Decimation is based on a non-recursive implementation of [Ramer–Douglas–Peucker algorithm](https://en.wikipedia.org/wiki/Ramer%E2%80%93Douglas%E2%80%93Peucker_algorithm).
+
+Allowed optimization error is defined by two input arguments:
+
+- Tolerance: The maximum error that an optimization is allowed to generate on a whole joint hierarchy.
+- Distance: The distance (from the joint) at which error is measured. This allows to emulate effect on skinning or a long object (like a sword) attached to a joint (hand).
+
+It's possible to override optimization settings for a joint. This implicitly have an effect on the whole chain, up to that joint. This allows for example to have aggressive optimization for a whole skeleton, except for the chain that leads to the hand if user wants it to be precise. 
+
 The optimizer also takes into account for each joint the error generated on its whole child hierarchy, with the hierarchical tolerance value. This allows for example to take into consideration the error generated on a finger when optimizing the shoulder. A small error on the shoulder can be magnified when propagated to the finger indeed.
+
 Default optimization tolerances are set in order to favor quality over runtime performances and memory footprint.
 
 The following sample allows to experiment with optimizer parameters.
