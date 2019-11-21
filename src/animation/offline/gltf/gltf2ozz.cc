@@ -126,8 +126,7 @@ ozz::Range<const T> BufferView(const tinygltf::Model& _model,
   const tinygltf::Buffer& buffer = _model.buffers[bufferView.buffer];
   const T* begin = reinterpret_cast<const T*>(
       buffer.data.data() + bufferView.byteOffset + _accessor.byteOffset);
-  const size_t size = bufferView.byteLength / element_size;
-  return ozz::Range<const T>(begin, size);
+  return ozz::Range<const T>(begin, _accessor.count);
 }
 
 // Samples a linear animation channel
