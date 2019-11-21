@@ -444,8 +444,13 @@ inline float ErrorToRatio(float _err, float _target) {
 
 float Compare(const ozz::math::Transform& _reference,
               const ozz::math::Transform& _test) {
-  //return Length(_reference.translation - _test.translation);
-  
+  // return Length(_reference.translation - _test.translation);
+
+  // Translation error in model space takes intrinsically into account
+  // translation rotation and scale of its parents. Rotation error is only
+  // impacting local space, hence the use of a distance paramete simulating
+  // skinning (or any user defined requirement). Its impact on children will be
+  // measured as a translation error indeed.
   const float kRadius = .1f;
 
   const math::Quaternion diff = _reference.rotation * Conjugate(_test.rotation);
@@ -867,8 +872,7 @@ class VTrack {
       dirty_ = false;
     } else if (dirty_ && candidate_err_.ratio < 0) {
       for (size_t i = 0; candidate >= solution && solution > 1.f; ++i) {
-        const float mul = 1.1f + candidate_err_.ratio * candidate_err_.ratio *
-                                     .3f;  // * f * 1.f;
+        const float mul = 1.1f + -candidate_err_.ratio * .3f;  // * f * 1.f;
         tolerance_ *= mul;
         Decimate(tolerance_);
         candidate = static_cast<float>(CandidateSize());
