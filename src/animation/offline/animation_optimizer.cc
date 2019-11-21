@@ -884,10 +884,9 @@ class VTrack {
 
     // Delta must be computed whever track is dirty or not
     float err_ratio = candidate_err_.ratio;
-    //  - ozz::math::Max(0.f, (target_err_ - candidate_err_) / target_err_);
-    float delta = solution > 1.f ? err_ratio : 0;  //(candidate - solution) /
+   // float delta = solution > 1.f ? err_ratio : 0;  //(candidate - solution) /
     // (original);
-    // float delta = err_ratio * (candidate - solution) / (original);
+    float delta = err_ratio * (solution - candidate) / (original);
     // float delta = (candidate - solution) / (original);
 
     if (csv) {
