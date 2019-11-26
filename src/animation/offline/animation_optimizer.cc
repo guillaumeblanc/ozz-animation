@@ -610,7 +610,8 @@ float Compare(const RawAnimation& _reference, const RawAnimation& _test,
 
   float mcmp = 0.f;
   for (int i = 0; i < _skeleton.num_joints(); ++i) {
-    const float icmp = Compare(ref_models[i], test_models[i], _settings[i].distance);
+    const float icmp =
+        Compare(ref_models[i], test_models[i], _settings[i].distance);
     mcmp = ozz::math::Max(mcmp, icmp);
   }
 
@@ -1037,23 +1038,14 @@ class Stepper {
       // tolerance at hierarchy end. Hill climbing will have the last word,
       // figuring out if this decimation is ok or not in the end.
       const float joint_length = _hierarchy.specs[i].length;
-
       // const float joint_length = .1f;
-      /*     const int parent = _skeleton.joint_parents()[i];
-  const float parent_scale = (parent != Skeleton::kNoParent)
+
+      /*
+      const int parent = _skeleton.joint_parents()[i];
+      const float parent_scale = (parent != Skeleton::kNoParent)
                                  ? _hierarchy.specs[parent].scale
                                  : 1.f;*/
       const float parent_scale = 1.f;
-      // / (1.f + _hierarchy.specs[i].length);
-      /*
-      (void)_hierarchy;
-  const float joint_length = .1f;
-      const float parent_scale = 1.f;
-  const float tolerance =  _hierarchy.specs[i].tolerance *
-kInitialFactor;// / ozz::math::Max(1.f, _hierarchy.specs[i].length);
-
-const float tolerance = _hierarchy.specs[i].tolerance * kInitialFactor;
-const float parent_scale = 1.f;*/
 
       const AnimationOptimizer::Setting& setting =
           GetJointSetting(_optimizer, i);
