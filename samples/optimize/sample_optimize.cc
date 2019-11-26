@@ -358,7 +358,7 @@ class OptimizeSampleApplication : public ozz::sample::Application {
         rebuild |= _im_gui->DoCheckBox("Enable optimizations", &optimize_);
 
         std::sprintf(label, "Tolerance: %0.2f mm", setting_.tolerance * 1000);
-        rebuild |= _im_gui->DoSlider(label, 0.f, .1f, &setting_.tolerance, .5f,
+        rebuild |= _im_gui->DoSlider(label, 0.f, .1f, &setting_.tolerance, .4f,
                                      optimize_);
 
         std::sprintf(label, "Distance: %0.2f mm", setting_.distance * 1000);
@@ -376,7 +376,7 @@ class OptimizeSampleApplication : public ozz::sample::Application {
         std::sprintf(label, "Tolerance: %0.2f mm",
                      joint_setting_.tolerance * 1000);
         rebuild |= _im_gui->DoSlider(label, 0.f, .1f, &joint_setting_.tolerance,
-                                     .5f, joint_setting_enable_ && optimize_);
+                                     .4f, joint_setting_enable_ && optimize_);
 
         std::sprintf(label, "Distance: %0.2f mm",
                      joint_setting_.distance * 1000);
