@@ -443,7 +443,7 @@ inline float ErrorToRatio(float _err, float _target) {
 }
 
 float Compare(const ozz::math::Transform& _reference,
-              const ozz::math::Transform& _test) {
+              const ozz::math::Transform& _test, float _distance) {
   // return Length(_reference.translation - _test.translation);
 
   // Translation error in model space takes intrinsically into account
@@ -451,7 +451,6 @@ float Compare(const ozz::math::Transform& _reference,
   // impacting local space, hence the use of a distance paramete simulating
   // skinning (or any user defined requirement). Its impact on children will be
   // measured as a translation error indeed.
-  const float kRadius = .1f;
 
   const math::Quaternion diff = _reference.rotation * Conjugate(_test.rotation);
   const math::Float3 axis = (diff.x == 0.f && diff.y == 0.f && diff.z == 0.f)
@@ -469,10 +468,10 @@ float Compare(const ozz::math::Transform& _reference,
   //  const float scale_error =
   //      kRadius * Length(_reference.scale - _test.scale);
 
-  const float error = translation_error + rotation_error * kRadius;
+  const float error = translation_error + rotation_error * _distance;
   return error;
 }
-
+/*
 float Compare(const ozz::Range<const ozz::math::Transform>& _reference,
               const ozz::Range<const ozz::math::Transform>& _candidate) {
   float mcmp = 0.f;
@@ -481,16 +480,16 @@ float Compare(const ozz::Range<const ozz::math::Transform>& _reference,
     mcmp = ozz::math::Max(mcmp, icmp);
   }
   return mcmp;
-}
+}*/
 
 float Compare(const ozz::Range<const ozz::math::Transform>& _reference,
               const ozz::Range<const ozz::math::Transform>& _candidate,
-              const ozz::Range<float>& _targets) {
+              const ozz::Range<AnimationOptimizer::Setting>& _settings) {
   float mratio = std::numeric_limits<float>::lowest();
   for (size_t i = 0; i < _reference.count(); ++i) {
-    const float err = Compare(_reference[i], _candidate[i]);
-
-    const float target = _targets[i];
+    const float distance = _settings[i].distance;
+    const float err = Compare(_reference[i], _candidate[i], distance);
+    const float target = _settings[i].tolerance;
     const float ratio = ErrorToRatio(err, target);
     mratio = ozz::math::Max(mratio, ratio);
   }
@@ -506,49 +505,38 @@ struct PartialLTMCompareIterator {
       const ozz::Range<const ozz::math::Transform>& _reference_models,
       const ozz::Range<const ozz::math::Transform>& _cached_locals,
       const ozz::Range<const ozz::math::Transform>& _cached_models,
-      const ozz::math::Transform& _local, const ozz::Range<float>& _targets,
-      int _track)
+      const ozz::math::Transform& _local,
+      const ozz::Range<AnimationOptimizer::Setting>& _settings, int _track)
       : reference_models_(_reference_models),
         cached_locals_(_cached_locals),
         cached_models_(_cached_models),
         local_(_local),
-        targets_(_targets),
+        settings_(_settings),
         track_(_track),
-        done(false),
         err_{-1.f, std::numeric_limits<float>::lowest()} {}
 
   void operator()(int _joint, int _parent) {
-    // TODO comment
-    // parents[i] >= _from is true as long as "i" is a child of "_from".
-    if (!done) {
-      done = _joint > track_ && _parent < track_;
-    }
+    ozz::math::Transform& model = models_[_joint];
 
-    const ozz::math::Transform* model_cmp;
-    if (!done && _joint >= track_) {
-      model_cmp = &models_[_joint];
-      const ozz::math::Transform& local =
-          (track_ == _joint) ? local_ : cached_locals_[_joint];
+    const ozz::math::Transform& local =
+        (track_ == _joint) ? local_ : cached_locals_[_joint];
 
-      if (_parent == ozz::animation::Skeleton::kNoParent) {
-        models_[_joint] = local;
-      } else {
-        const ozz::math::Transform& parent =
-            (track_ == _joint) ? cached_models_[_parent] : models_[_parent];
-
-        ozz::math::Transform& model = models_[_joint];
-        model.translation =
-            parent.translation +
-            TransformVector(parent.rotation, local.translation * parent.scale),
-        model.rotation = parent.rotation * local.rotation;
-        model.scale = parent.scale * local.scale;
-      }
+    if (_parent == ozz::animation::Skeleton::kNoParent) {
+      model = local;
     } else {
-      model_cmp = &cached_models_[_joint];
+      const ozz::math::Transform& parent =
+          (track_ == _joint) ? cached_models_[_parent] : models_[_parent];
+
+      model.translation =
+          parent.translation +
+          TransformVector(parent.rotation, local.translation * parent.scale),
+      model.rotation = parent.rotation * local.rotation;
+      model.scale = parent.scale * local.scale;
     }
 
-    const float joint_err = Compare(*model_cmp, reference_models_[_joint]);
-    const float target = targets_[_joint];
+    const float distance = settings_[_joint].distance;
+    const float joint_err = Compare(model, reference_models_[_joint], distance);
+    const float target = settings_[_joint].tolerance;
     const float ratio = ErrorToRatio(joint_err, target);
 
     if (_joint == track_) {
@@ -569,9 +557,8 @@ struct PartialLTMCompareIterator {
   const ozz::Range<const ozz::math::Transform>& cached_locals_;
   const ozz::Range<const ozz::math::Transform>& cached_models_;
   const ozz::math::Transform& local_;
-  ozz::Range<float> targets_;
+  ozz::Range<AnimationOptimizer::Setting> settings_;
   int track_;
-  bool done;
 
   ozz::math::Transform models_[ozz::animation::Skeleton::kMaxJoints];
 };  // namespace
@@ -605,7 +592,8 @@ bool SampleModelSpace(const RawAnimation& _animation,
 }
 
 float Compare(const RawAnimation& _reference, const RawAnimation& _test,
-              float _time, const Skeleton& _skeleton) {
+              float _time, const Skeleton& _skeleton,
+              const ozz::Range<AnimationOptimizer::Setting>& _settings) {
   ozz::math::Transform locals[ozz::animation::Skeleton::kMaxJoints];
   ozz::math::Transform ref_models[ozz::animation::Skeleton::kMaxJoints];
   ozz::math::Transform test_models[ozz::animation::Skeleton::kMaxJoints];
@@ -622,13 +610,14 @@ float Compare(const RawAnimation& _reference, const RawAnimation& _test,
 
   float mcmp = 0.f;
   for (int i = 0; i < _skeleton.num_joints(); ++i) {
-    const float icmp = Compare(ref_models[i], test_models[i]);
+    const float icmp = Compare(ref_models[i], test_models[i], _settings[i].distance);
     mcmp = ozz::math::Max(mcmp, icmp);
   }
 
   return mcmp;
 }
 
+/*
 float Compare(const RawAnimation& _reference, const RawAnimation& _test,
               float _from, float _to, const Skeleton& _skeleton) {
   _from = ozz::math::Max(_from, 0.f);
@@ -643,20 +632,21 @@ float Compare(const RawAnimation& _reference, const RawAnimation& _test,
 
   return mcmp;
 }
+*/
 
 float Compare(const RawAnimation& _reference, const RawAnimation& _test,
-              const Skeleton& _skeleton) {
+              const Skeleton& _skeleton,
+              const ozz::Range<AnimationOptimizer::Setting>& _settings) {
   float mcmp = 0.f;
   const float step = 1.f / 30.f;
   for (float t = 0.f; t <= _reference.duration;
        t += step, ozz::math::Min(t, _reference.duration)) {
-    const float icmp = Compare(_reference, _test, t, _skeleton);
+    const float icmp = Compare(_reference, _test, t, _skeleton, _settings);
     mcmp = ozz::math::Max(mcmp, icmp);
   }
 
   return mcmp;
 }
-
 }  // namespace
 
 size_t Decimate(const RawAnimation& _animation, int _track, int _type,
@@ -795,29 +785,32 @@ class Comparer {
   }
 
   Res operator()(const RawAnimation::JointTrack::Translations& _translations,
-                 size_t _track, const ozz::Range<float>& _targets) {
+                 size_t _track,
+                 const ozz::Range<AnimationOptimizer::Setting>& _settings) {
     RawAnimation::JointTrack test = test_.tracks[_track];
     test.translations = _translations;
-    return Compare(test, _track, _targets);
+    return Compare(test, _track, _settings);
   }
   Res operator()(const RawAnimation::JointTrack::Rotations& _rotations,
-                 size_t _track, const ozz::Range<float>& _targets) {
+                 size_t _track,
+                 const ozz::Range<AnimationOptimizer::Setting>& _settings) {
     RawAnimation::JointTrack test = test_.tracks[_track];
     test.rotations = _rotations;
-    return Compare(test, _track, _targets);
+    return Compare(test, _track, _settings);
   }
   Res operator()(const RawAnimation::JointTrack::Scales& _scales, size_t _track,
-                 const ozz::Range<float>& _targets) {
+                 const ozz::Range<AnimationOptimizer::Setting>& _settings) {
     RawAnimation::JointTrack test = test_.tracks[_track];
     test.scales = _scales;
-    return Compare(test, _track, _targets);
+    return Compare(test, _track, _settings);
   }
 
-  float UpdateCurrent(const VTrack& _vtrack, const ozz::Range<float>& _targets);
+  float UpdateCurrent(const VTrack& _vtrack,
+                      const ozz::Range<AnimationOptimizer::Setting>& _settings);
 
  private:
   Res Compare(const RawAnimation::JointTrack& _test, size_t _track,
-              const ozz::Range<float>& _targets) const {
+              const ozz::Range<AnimationOptimizer::Setting>& _settings) const {
     Res res = {0.f, std::numeric_limits<float>::lowest()};
 
     ozz::math::Transform local;
@@ -827,7 +820,7 @@ class Comparer {
       PartialLTMCompareIterator cmp(ozz::make_range(reference_models_[i]),
                                     ozz::make_range(cached_locals_[i]),
                                     ozz::make_range(cached_models_[i]), local,
-                                    _targets, static_cast<int>(_track));
+                                    _settings, static_cast<int>(_track));
 
       // TODO, iterating children of track only (and doing a mx with current
       // err) is a possible optimisation. It considers error can only increase
@@ -862,7 +855,8 @@ class VTrack {
         dirty_(true) {}
   virtual ~VTrack() {}
 
-  float Transition(Comparer& _comparer, const ozz::Range<float>& _targets) {
+  float Transition(Comparer& _comparer,
+                   const ozz::Range<AnimationOptimizer::Setting>& _settings) {
     const size_t original = OriginalSize();
     const float solution = static_cast<float>(SolutionSize());
     float candidate = static_cast<float>(CandidateSize());
@@ -879,12 +873,13 @@ class VTrack {
       }
       dirty_ = false;
       candidate_err_ =
-          /*ozz::math::Max(candidate_err_,*/ Compare(_comparer, _targets) /*)*/;
+          /*ozz::math::Max(candidate_err_,*/ Compare(_comparer,
+                                                     _settings) /*)*/;
     }
 
     // Delta must be computed whever track is dirty or not
     float err_ratio = candidate_err_.ratio;
-   // float delta = solution > 1.f ? err_ratio : 0;  //(candidate - solution) /
+    // float delta = solution > 1.f ? err_ratio : 0;  //(candidate - solution) /
     // (original);
     float delta = err_ratio * (solution - candidate) / (original);
     // float delta = (candidate - solution) / (original);
@@ -895,7 +890,7 @@ class VTrack {
       csv->Push(static_cast<float>(CandidateSize()));
       csv->Push(tolerance_);
       csv->Push(delta);
-      const float target = _targets[track()];
+      const float target = _settings[track()].tolerance;
       csv->Push(target);
       csv->Push(candidate_err_.err);
     }
@@ -917,8 +912,9 @@ class VTrack {
 
  private:
   virtual void Decimate(float _tolerance) = 0;
-  virtual Res Compare(Comparer& _comparer,
-                      const ozz::Range<float>& _targets) const = 0;
+  virtual Res Compare(
+      Comparer& _comparer,
+      const ozz::Range<AnimationOptimizer::Setting>& _settings) const = 0;
   virtual void ValidateCandidate() = 0;
 
   virtual size_t CandidateSize() const = 0;
@@ -949,9 +945,10 @@ class TTrack : public VTrack {
                                       &candidate_);
   }
 
-  virtual Res Compare(Comparer& _comparer,
-                      const ozz::Range<float>& _targets) const {
-    return _comparer(candidate_, track(), _targets);
+  virtual Res Compare(
+      Comparer& _comparer,
+      const ozz::Range<AnimationOptimizer::Setting>& _settings) const {
+    return _comparer(candidate_, track(), _settings);
   }
 
   virtual void ValidateCandidate() { solution_ = candidate_; }
@@ -978,8 +975,9 @@ typedef TTrack<RawAnimation::JointTrack::Rotations, RotationAdapter>
     RotationTrack;
 typedef TTrack<RawAnimation::JointTrack::Scales, ScaleAdapter> ScaleTrack;
 
-float Comparer::UpdateCurrent(const VTrack& _vtrack,
-                              const ozz::Range<float>& /*_targets*/) {
+float Comparer::UpdateCurrent(
+    const VTrack& _vtrack,
+    const ozz::Range<AnimationOptimizer::Setting>& /*_settings*/) {
   _vtrack.Copy(&test_);
 
   gsize = static_cast<int>(test_.size());
@@ -999,7 +997,7 @@ float Comparer::UpdateCurrent(const VTrack& _vtrack,
     /*
     const float err = ozz::animation::offline::Compare(
         ozz::make_range(cached_models_[i]),
-        ozz::make_range(reference_models_[i]), _targets);
+        ozz::make_range(reference_models_[i]), _settings);
     max_err = ozz::math::Max(max_err, err);*/
   }
 
@@ -1057,11 +1055,9 @@ kInitialFactor;// / ozz::math::Max(1.f, _hierarchy.specs[i].length);
 const float tolerance = _hierarchy.specs[i].tolerance * kInitialFactor;
 const float parent_scale = 1.f;*/
 
-      const AnimationOptimizer::Setting setting =
+      const AnimationOptimizer::Setting& setting =
           GetJointSetting(_optimizer, i);
-
-      const float target = setting.tolerance;
-      vtargets_.push_back(target);
+      vsettings_.push_back(setting);
 
       const float initial = _hierarchy.specs[i].tolerance * kInitialFactor;
       const RawAnimation::JointTrack& track = _original.tracks[i];
@@ -1099,7 +1095,7 @@ const float parent_scale = 1.f;*/
         csv->Push(ii % 3);  // track type
       }
 
-      float delta = vtrack->Transition(comparer_, ozz::make_range(vtargets_));
+      float delta = vtrack->Transition(comparer_, ozz::make_range(vsettings_));
 
       if (csv) {
         csv->Push(gerr);
@@ -1121,7 +1117,7 @@ const float parent_scale = 1.f;*/
       // Flag whole hierarchy of selected track, children and parents
       FlagDirty(static_cast<int>(selected.track()));
 
-      gerr = comparer_.UpdateCurrent(selected, ozz::make_range(vtargets_));
+      gerr = comparer_.UpdateCurrent(selected, ozz::make_range(vsettings_));
 
       ozz::log::Log() << selected.track() << ", " << i_max << ": " << delta_max
                       << std::endl;
@@ -1160,7 +1156,7 @@ const float parent_scale = 1.f;*/
   const Skeleton& skeleton_;
   Comparer& comparer_;
   ozz::Vector<VTrack*>::Std vtracks_;
-  ozz::Vector<float>::Std vtargets_;
+  ozz::Vector<AnimationOptimizer::Setting>::Std vsettings_;
 };  // namespace offline
 
 bool AnimationOptimizer::operator()(const RawAnimation& _input,
@@ -1200,6 +1196,13 @@ bool AnimationOptimizer::operator()(const RawAnimation& _input,
 
   // First computes bone lengths, that will be used when filtering.
   const HierarchyBuilder hierarchy(&_input, &_skeleton, this);
+
+  // TEMP
+  ozz::Vector<AnimationOptimizer::Setting>::Std vsettings(
+      _skeleton.num_joints());
+  for (size_t i = 0; i < vsettings.size(); ++i) {
+    vsettings[i] = GetJointSetting(*this, i);
+  }
 
   // Rebuilds output animation.
   _output->name = _input.name;
@@ -1242,7 +1245,8 @@ bool AnimationOptimizer::operator()(const RawAnimation& _input,
         break;
       }
 
-      const float cmp = Compare(no_constant, *_output, _skeleton);
+      const float cmp =
+          Compare(no_constant, *_output, _skeleton, ozz::make_range(vsettings));
       ozz::log::Log() << "factor / error : " << factor << '/' << cmp
                       << std::endl;
       if (cmp < setting.tolerance) {
@@ -1266,7 +1270,8 @@ bool AnimationOptimizer::operator()(const RawAnimation& _input,
     ozz::log::Log() << "Iterations count: " << iteration << std::endl;
   }
 
-  const float cmp = Compare(_input, *_output, _skeleton);
+  const float cmp =
+      Compare(_input, *_output, _skeleton, ozz::make_range(vsettings));
   ozz::log::Log() << "Final cmp: " << cmp << std::endl;
 
   auto end = std::chrono::system_clock::now();
