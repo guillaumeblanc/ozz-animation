@@ -1190,10 +1190,9 @@ bool AnimationOptimizer::operator()(const RawAnimation& _input,
   const HierarchyBuilder hierarchy(&_input, &_skeleton, this);
 
   // TEMP
-  ozz::Vector<AnimationOptimizer::Setting>::Std vsettings(
-      _skeleton.num_joints());
-  for (size_t i = 0; i < vsettings.size(); ++i) {
-    vsettings[i] = GetJointSetting(*this, i);
+  ozz::Vector<AnimationOptimizer::Setting>::Std vsettings;
+  for (int i = 0; i < _skeleton.num_joints(); ++i) {
+    vsettings.push_back(GetJointSetting(*this, i));
   }
 
   // Rebuilds output animation.
