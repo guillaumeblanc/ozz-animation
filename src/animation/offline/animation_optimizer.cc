@@ -742,6 +742,9 @@ KeyTimes CopyKeyTimes(const RawAnimation& _animation) {
 typedef ozz::Vector<ozz::math::Transform>::Std JointTransformKeys;
 typedef ozz::Vector<JointTransformKeys>::Std TransformMatrix;
 
+typedef ozz::Vector<Res>::Std ErrorKeys;
+typedef ozz::Vector<ErrorKeys>::Std ErrorMatrix;
+
 template <typename _Track>
 _Track* GetTypeTrack(RawAnimation::JointTrack* _joint_track);
 
@@ -772,7 +775,8 @@ class Comparer {
         key_times_(CopyKeyTimes(_reference)),
         cached_locals_(key_times_.size(),
                        JointTransformKeys(_reference.num_tracks())),
-        cached_models_(cached_locals_) {
+        cached_models_(cached_locals_),
+        cached_errors_(key_times_.size(), ErrorKeys(_reference.num_tracks())) {
     // Populates test local & model space transforms.
     for (size_t i = 0; i < key_times_.size(); ++i) {
       ozz::animation::offline::SampleAnimation(
@@ -785,25 +789,32 @@ class Comparer {
     reference_models_ = cached_models_;
   }
 
+  struct Span {
+    float begin, end;
+  };
+  typedef ozz::Vector<Span>::Std Spans;
   Res operator()(const RawAnimation::JointTrack::Translations& _translations,
                  size_t _track,
-                 const ozz::Range<AnimationOptimizer::Setting>& _settings) {
+                 const ozz::Range<AnimationOptimizer::Setting>& _settings,
+                 const Spans& _spans) {
     RawAnimation::JointTrack test = test_.tracks[_track];
     test.translations = _translations;
-    return Compare(test, _track, _settings);
+    return Compare(test, _track, _settings, _spans);
   }
   Res operator()(const RawAnimation::JointTrack::Rotations& _rotations,
                  size_t _track,
-                 const ozz::Range<AnimationOptimizer::Setting>& _settings) {
+                 const ozz::Range<AnimationOptimizer::Setting>& _settings,
+                 const Spans& _spans) {
     RawAnimation::JointTrack test = test_.tracks[_track];
     test.rotations = _rotations;
-    return Compare(test, _track, _settings);
+    return Compare(test, _track, _settings, _spans);
   }
   Res operator()(const RawAnimation::JointTrack::Scales& _scales, size_t _track,
-                 const ozz::Range<AnimationOptimizer::Setting>& _settings) {
+                 const ozz::Range<AnimationOptimizer::Setting>& _settings,
+                 const Spans& _spans) {
     RawAnimation::JointTrack test = test_.tracks[_track];
     test.scales = _scales;
-    return Compare(test, _track, _settings);
+    return Compare(test, _track, _settings, _spans);
   }
 
   float UpdateCurrent(const VTrack& _vtrack,
@@ -811,25 +822,41 @@ class Comparer {
 
  private:
   Res Compare(const RawAnimation::JointTrack& _test, size_t _track,
-              const ozz::Range<AnimationOptimizer::Setting>& _settings) const {
+              const ozz::Range<AnimationOptimizer::Setting>& _settings,
+              const Spans& _spans) const {
+    (void)_spans;
     Res res = {0.f, std::numeric_limits<float>::lowest()};
 
     ozz::math::Transform local;
+    //size_t s = 0;
     for (size_t i = 0; i < key_times_.size(); ++i) {
-      ozz::animation::offline::SampleTrack(_test, key_times_[i], &local);
+      Res ret;/*
+      if (s == _spans.size()) {
+        ret = cached_errors_[i][_track];
+        continue;
+      } else if (key_times_[i] <= _spans[s].begin) {
+        ret = cached_errors_[i][_track];
+        continue;
+      } else if (key_times_[i] == _spans[s].end) {
+        ret = cached_errors_[i][_track];
+        ++s;
+        continue;
+      } else {*/
+        ozz::animation::offline::SampleTrack(_test, key_times_[i], &local);
 
-      PartialLTMCompareIterator cmp(ozz::make_range(reference_models_[i]),
-                                    ozz::make_range(cached_locals_[i]),
-                                    ozz::make_range(cached_models_[i]), local,
-                                    _settings, static_cast<int>(_track));
+        PartialLTMCompareIterator cmp(ozz::make_range(reference_models_[i]),
+                                      ozz::make_range(cached_locals_[i]),
+                                      ozz::make_range(cached_models_[i]), local,
+                                      _settings, static_cast<int>(_track));
 
-      // TODO, iterating children of track only (and doing a mx with current
-      // err) is a possible optimisation. It considers error can only increase
-      // from a step to the next. It's generally true, but not always due to
-      // track compensating error from others.
-      const Res ret = ozz::animation::IterateJointsDF(skeleton_, cmp,
-                                                      static_cast<int>(_track))
-                          .err_;
+        // TODO, iterating children of track only (and doing a mx with current
+        // err) is a possible optimisation. It considers error can only increase
+        // from a step to the next. It's generally true, but not always due to
+        // track compensating error from others.
+        ret = ozz::animation::IterateJointsDF(skeleton_, cmp,
+                                              static_cast<int>(_track))
+                  .err_;
+      //}
       res.err = ozz::math::Max(res.err, ret.err);
       res.ratio = ozz::math::Max(res.ratio, ret.ratio);
     }
@@ -845,6 +872,7 @@ class Comparer {
   TransformMatrix reference_models_;
   TransformMatrix cached_locals_;
   TransformMatrix cached_models_;
+  ErrorMatrix cached_errors_;
 };  // namespace offline
 
 class VTrack {
@@ -949,32 +977,29 @@ class TTrack : public VTrack {
   virtual Res Compare(
       Comparer& _comparer,
       const ozz::Range<AnimationOptimizer::Setting>& _settings) const {
-    struct Span {
-      size_t begin, end;
-    };
-    ozz::Vector<Span>::Std spans;
+    Comparer::Spans spans;
     bool in = false;
-    Span next;
-    for (size_t o = 0, c = 0; o < original_.size() && c < candidate_.size();
+    Comparer::Span next;
+    for (size_t o = 0, c = 0; o < solution_.size() && c < candidate_.size();
          ++o) {
       if (solution_[o].time == candidate_[c].time) {
         if (in) {
-          next.end = o;
+          next.end = solution_[o].time;
           spans.push_back(next);
           in = false;
         }
-        next.begin = o;
+        next.begin = solution_[o].time;
         ++c;
       } else {
         in = true;
       }
     }
     if (in) {
-      next.end = solution_.size() - 1;
+      next.end = solution_.back().time;
       spans.push_back(next);
     }
 
-    return _comparer(candidate_, track(), _settings);
+    return _comparer(candidate_, track(), _settings, spans);
   }
 
   virtual void ValidateCandidate() { solution_ = candidate_; }
@@ -1003,21 +1028,33 @@ typedef TTrack<RawAnimation::JointTrack::Scales, ScaleAdapter> ScaleTrack;
 
 float Comparer::UpdateCurrent(
     const VTrack& _vtrack,
-    const ozz::Range<AnimationOptimizer::Setting>& /*_settings*/) {
+    const ozz::Range<AnimationOptimizer::Setting>& _settings) {
   _vtrack.Copy(&test_);
 
   gsize = static_cast<int>(test_.size());
 
+  // Res res = { 0.f, 0.f};
   float max_err = std::numeric_limits<float>::lowest();
-  for (size_t i = 0; i < key_times_.size(); ++i) {
-    ozz::animation::offline::SampleTrack(test_.tracks[_vtrack.track()],
-                                         key_times_[i],
-                                         &cached_locals_[i][_vtrack.track()]);
 
-    // TODO, from current track
+  for (size_t i = 0; i < key_times_.size(); ++i) {
+    const size_t track = _vtrack.track();
+
+    ozz::animation::offline::SampleTrack(test_.tracks[track], key_times_[i],
+                                         &cached_locals_[i][track]);
+
     LocalToModel(skeleton_, ozz::make_range(cached_locals_[i]),
-                 ozz::make_range(cached_models_[i]),
-                 static_cast<int>(_vtrack.track()));
+                 ozz::make_range(cached_models_[i]), static_cast<int>(track));
+
+    for (int j = 0; j < skeleton_.num_joints(); ++j) {
+      const float distance = _settings[j].distance;
+      const float err = ozz::animation::offline::Compare(
+          cached_models_[i][j], reference_models_[i][j], distance);
+      const float target = _settings[j].tolerance;
+      const float ratio = ErrorToRatio(err, target);
+
+      cached_errors_[i][j].err = err;
+      cached_errors_[i][j].ratio = ratio;
+    }
 
     // TODO this is just to be able to log global error
     /*
