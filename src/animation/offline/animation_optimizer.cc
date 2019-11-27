@@ -949,6 +949,31 @@ class TTrack : public VTrack {
   virtual Res Compare(
       Comparer& _comparer,
       const ozz::Range<AnimationOptimizer::Setting>& _settings) const {
+    struct Span {
+      size_t begin, end;
+    };
+    ozz::Vector<Span>::Std spans;
+    bool in = false;
+    Span next;
+    for (size_t o = 0, c = 0; o < original_.size() && c < candidate_.size();
+         ++o) {
+      if (solution_[o].time == candidate_[c].time) {
+        if (in) {
+          next.end = o;
+          spans.push_back(next);
+          in = false;
+        }
+        next.begin = o;
+        ++c;
+      } else {
+        in = true;
+      }
+    }
+    if (in) {
+      next.end = solution_.size() - 1;
+      spans.push_back(next);
+    }
+
     return _comparer(candidate_, track(), _settings);
   }
 
