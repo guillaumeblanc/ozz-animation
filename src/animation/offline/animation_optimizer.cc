@@ -561,6 +561,75 @@ struct PartialLTMCompareIterator {
   int track_;
 
   ozz::math::Transform models_[ozz::animation::Skeleton::kMaxJoints];
+};
+
+struct LTMCompareIterator {
+  LTMCompareIterator(
+      const ozz::Range<const ozz::math::Transform>& _reference_models,
+      const ozz::Range<const ozz::math::Transform>& _locals,
+      const ozz::Range<ozz::math::Transform>& _models,
+      const ozz::Range<AnimationOptimizer::Setting>& _settings,
+      const ozz::Range<Res>& _errors)
+      : reference_models_(_reference_models),
+        locals_(_locals),
+        models_(_models),
+        settings_(_settings),
+        errors_(_errors),
+        err_{-1.f, std::numeric_limits<float>::lowest()} {}
+
+  void operator()(int _joint, int _parent) {
+    ozz::math::Transform& model = models_[_joint];
+    const ozz::math::Transform& local = locals_[_joint];
+
+    if (_parent == ozz::animation::Skeleton::kNoParent) {
+      model = local;
+    } else {
+      const ozz::math::Transform& parent = models_[_parent];
+      model.translation =
+          parent.translation +
+          TransformVector(parent.rotation, local.translation * parent.scale),
+      model.rotation = parent.rotation * local.rotation;
+      model.scale = parent.scale * local.scale;
+    }
+
+    const float distance = settings_[_joint].distance;
+    const float joint_err = Compare(model, reference_models_[_joint], distance);
+    const float target = settings_[_joint].tolerance;
+    const float ratio = ErrorToRatio(joint_err, target);
+
+    errors_[_joint].err = joint_err;
+    errors_[_joint].ratio = ratio;
+  }
+
+  // TODO private
+  Res err_;
+
+ private:
+  LTMCompareIterator(const LTMCompareIterator&);
+  void operator=(const LTMCompareIterator&);
+
+  const ozz::Range<const ozz::math::Transform>& reference_models_;
+  const ozz::Range<const ozz::math::Transform>& locals_;
+  const ozz::Range<ozz::math::Transform>& models_;
+  const ozz::Range<AnimationOptimizer::Setting>& settings_;
+  const ozz::Range<Res>& errors_;
+};
+
+struct RatioBack {
+  RatioBack(const ozz::Range<Res>& _errors) : errors_(_errors) {}
+
+  void operator()(int _joint, int _parent) {
+    if (_parent != ozz::animation::Skeleton::kNoParent) {
+      errors_[_parent].ratio =
+          ozz::math::Max(errors_[_parent].ratio, errors_[_joint].ratio);
+    }
+  }
+
+ private:
+  RatioBack(const RatioBack&);
+  void operator=(const RatioBack&);
+
+  const ozz::Range<Res>& errors_;
 };  // namespace
 
 bool SampleModelSpace(const RawAnimation& _animation, const Skeleton& _skeleton,
@@ -828,20 +897,34 @@ class Comparer {
     Res res = {0.f, std::numeric_limits<float>::lowest()};
 
     ozz::math::Transform local;
-    //size_t s = 0;
+    size_t s = 0;
     for (size_t i = 0; i < key_times_.size(); ++i) {
-      Res ret;/*
-      if (s == _spans.size()) {
+      Res ret;
+      if (s < _spans.size() && (key_times_[i] <= _spans[s].begin ||
+                                key_times_[i] == _spans[s].end)) {
         ret = cached_errors_[i][_track];
+        ret.ratio = -1.f;  // Consider only newly removed keyframes will create
+                           // the biggest error
+        /*
+        PartialLTMCompareIterator cmp(ozz::make_range(reference_models_[i]),
+                                      ozz::make_range(cached_locals_[i]),
+                                      ozz::make_range(cached_models_[i]),
+                                      cached_locals_[i][_track],
+                                      _settings, static_cast<int>(_track));
+
+        // TODO, iterating children of track only (and doing a mx with current
+        // err) is a possible optimisation. It considers error can only increase
+        // from a step to the next. It's generally true, but not always due to
+        // track compensating error from others.
+        ret = ozz::animation::IterateJointsDF(skeleton_, cmp,
+                                              static_cast<int>(_track))
+
+                  .err_;*/
+        if (key_times_[i] == _spans[s].end) {
+          ++s;
+        }
         continue;
-      } else if (key_times_[i] <= _spans[s].begin) {
-        ret = cached_errors_[i][_track];
-        continue;
-      } else if (key_times_[i] == _spans[s].end) {
-        ret = cached_errors_[i][_track];
-        ++s;
-        continue;
-      } else {*/
+      } else {
         ozz::animation::offline::SampleTrack(_test, key_times_[i], &local);
 
         PartialLTMCompareIterator cmp(ozz::make_range(reference_models_[i]),
@@ -856,7 +939,7 @@ class Comparer {
         ret = ozz::animation::IterateJointsDF(skeleton_, cmp,
                                               static_cast<int>(_track))
                   .err_;
-      //}
+      }
       res.err = ozz::math::Max(res.err, ret.err);
       res.ratio = ozz::math::Max(res.ratio, ret.ratio);
     }
@@ -978,6 +1061,7 @@ class TTrack : public VTrack {
       Comparer& _comparer,
       const ozz::Range<AnimationOptimizer::Setting>& _settings) const {
     Comparer::Spans spans;
+
     bool in = false;
     Comparer::Span next;
     for (size_t o = 0, c = 0; o < solution_.size() && c < candidate_.size();
@@ -998,6 +1082,8 @@ class TTrack : public VTrack {
       next.end = solution_.back().time;
       spans.push_back(next);
     }
+    //Comparer::Span s = {solution_.front().time, solution_.back().time};
+    //spans.push_back(s);
 
     return _comparer(candidate_, track(), _settings, spans);
   }
@@ -1018,7 +1104,7 @@ class TTrack : public VTrack {
   _Track candidate_;
   _Track solution_;
   const _Track& original_;
-};
+};  // namespace offline
 
 typedef TTrack<RawAnimation::JointTrack::Translations, PositionAdapter>
     TranslationTrack;
@@ -1041,7 +1127,7 @@ float Comparer::UpdateCurrent(
 
     ozz::animation::offline::SampleTrack(test_.tracks[track], key_times_[i],
                                          &cached_locals_[i][track]);
-
+    /*
     LocalToModel(skeleton_, ozz::make_range(cached_locals_[i]),
                  ozz::make_range(cached_models_[i]), static_cast<int>(track));
 
@@ -1055,6 +1141,17 @@ float Comparer::UpdateCurrent(
       cached_errors_[i][j].err = err;
       cached_errors_[i][j].ratio = ratio;
     }
+    */
+
+    LTMCompareIterator cmp(ozz::make_range(reference_models_[i]),
+                           ozz::make_range(cached_locals_[i]),
+                           ozz::make_range(cached_models_[i]), _settings,
+                           ozz::make_range(cached_errors_[i]));
+
+    ozz::animation::IterateJointsDF(skeleton_, cmp, static_cast<int>(track));
+
+    RatioBack bck(ozz::make_range(cached_errors_[i]));
+    ozz::animation::IterateJointsDFReverse(skeleton_, bck);
 
     // TODO this is just to be able to log global error
     /*
