@@ -616,12 +616,15 @@ struct LTMCompareIterator {
 };
 
 struct RatioBack {
-  RatioBack(const ozz::Range<Res>& _errors) : errors_(_errors) {}
+  RatioBack(const ozz::Range<AnimationOptimizer::Setting>& _settings,
+            const ozz::Range<Res>& _errors)
+      : settings_(_settings), errors_(_errors) {}
 
   void operator()(int _joint, int _parent) {
+    errors_[_joint].ratio =
+        ErrorToRatio(errors_[_joint].err, settings_[_joint].tolerance);
     if (_parent != ozz::animation::Skeleton::kNoParent) {
-      errors_[_parent].ratio =
-          ozz::math::Max(errors_[_parent].ratio, errors_[_joint].ratio);
+      errors_[_parent].ratio = ozz::math::Max(errors_[_parent].ratio, errors_[_joint].ratio);
     }
   }
 
@@ -629,6 +632,7 @@ struct RatioBack {
   RatioBack(const RatioBack&);
   void operator=(const RatioBack&);
 
+  const ozz::Range<AnimationOptimizer::Setting>& settings_;
   const ozz::Range<Res>& errors_;
 };  // namespace
 
@@ -903,14 +907,15 @@ class Comparer {
       if (s < _spans.size() && (key_times_[i] <= _spans[s].begin ||
                                 key_times_[i] == _spans[s].end)) {
         ret = cached_errors_[i][_track];
-        ret.ratio = -1.f;  // Consider only newly removed keyframes will create
-                           // the biggest error
-        /*
+        // ret.ratio = -1.f;  // Consider only newly removed keyframes will
+        // create
+        // the biggest error
+/*
         PartialLTMCompareIterator cmp(ozz::make_range(reference_models_[i]),
                                       ozz::make_range(cached_locals_[i]),
                                       ozz::make_range(cached_models_[i]),
-                                      cached_locals_[i][_track],
-                                      _settings, static_cast<int>(_track));
+                                      cached_locals_[i][_track], _settings,
+                                      static_cast<int>(_track));
 
         // TODO, iterating children of track only (and doing a mx with current
         // err) is a possible optimisation. It considers error can only increase
@@ -1082,8 +1087,8 @@ class TTrack : public VTrack {
       next.end = solution_.back().time;
       spans.push_back(next);
     }
-    //Comparer::Span s = {solution_.front().time, solution_.back().time};
-    //spans.push_back(s);
+    // Comparer::Span s = {solution_.front().time, solution_.back().time};
+    // spans.push_back(s);
 
     return _comparer(candidate_, track(), _settings, spans);
   }
@@ -1131,16 +1136,6 @@ float Comparer::UpdateCurrent(
     LocalToModel(skeleton_, ozz::make_range(cached_locals_[i]),
                  ozz::make_range(cached_models_[i]), static_cast<int>(track));
 
-    for (int j = 0; j < skeleton_.num_joints(); ++j) {
-      const float distance = _settings[j].distance;
-      const float err = ozz::animation::offline::Compare(
-          cached_models_[i][j], reference_models_[i][j], distance);
-      const float target = _settings[j].tolerance;
-      const float ratio = ErrorToRatio(err, target);
-
-      cached_errors_[i][j].err = err;
-      cached_errors_[i][j].ratio = ratio;
-    }
     */
 
     LTMCompareIterator cmp(ozz::make_range(reference_models_[i]),
@@ -1150,15 +1145,8 @@ float Comparer::UpdateCurrent(
 
     ozz::animation::IterateJointsDF(skeleton_, cmp, static_cast<int>(track));
 
-    RatioBack bck(ozz::make_range(cached_errors_[i]));
+    RatioBack bck(_settings, ozz::make_range(cached_errors_[i]));
     ozz::animation::IterateJointsDFReverse(skeleton_, bck);
-
-    // TODO this is just to be able to log global error
-    /*
-    const float err = ozz::animation::offline::Compare(
-        ozz::make_range(cached_models_[i]),
-        ozz::make_range(reference_models_[i]), _settings);
-    max_err = ozz::math::Max(max_err, err);*/
   }
 
   return max_err;
