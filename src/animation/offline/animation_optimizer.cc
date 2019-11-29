@@ -624,7 +624,8 @@ struct RatioBack {
     errors_[_joint].ratio =
         ErrorToRatio(errors_[_joint].err, settings_[_joint].tolerance);
     if (_parent != ozz::animation::Skeleton::kNoParent) {
-      errors_[_parent].ratio = ozz::math::Max(errors_[_parent].ratio, errors_[_joint].ratio);
+      errors_[_parent].ratio =
+          ozz::math::Max(errors_[_parent].ratio, errors_[_joint].ratio);
     }
   }
 
@@ -907,24 +908,7 @@ class Comparer {
       if (s < _spans.size() && (key_times_[i] <= _spans[s].begin ||
                                 key_times_[i] == _spans[s].end)) {
         ret = cached_errors_[i][_track];
-        // ret.ratio = -1.f;  // Consider only newly removed keyframes will
-        // create
-        // the biggest error
-/*
-        PartialLTMCompareIterator cmp(ozz::make_range(reference_models_[i]),
-                                      ozz::make_range(cached_locals_[i]),
-                                      ozz::make_range(cached_models_[i]),
-                                      cached_locals_[i][_track], _settings,
-                                      static_cast<int>(_track));
 
-        // TODO, iterating children of track only (and doing a mx with current
-        // err) is a possible optimisation. It considers error can only increase
-        // from a step to the next. It's generally true, but not always due to
-        // track compensating error from others.
-        ret = ozz::animation::IterateJointsDF(skeleton_, cmp,
-                                              static_cast<int>(_track))
-
-                  .err_;*/
         if (key_times_[i] == _spans[s].end) {
           ++s;
         }
@@ -1054,11 +1038,12 @@ class TTrack : public VTrack {
         adapter_(_adapter),
         candidate_(_original),
         solution_(_original),
-        original_(_original) {}
+        original_size_(_original.size()) {}
 
  private:
   virtual void Decimate(float _tolerance) {
-    ozz::animation::offline::Decimate(original_, adapter_, _tolerance,
+    // TODO proove decimate doesn't need original track
+    ozz::animation::offline::Decimate(solution_, adapter_, _tolerance,
                                       &candidate_);
   }
 
@@ -1102,13 +1087,13 @@ class TTrack : public VTrack {
 
   virtual size_t CandidateSize() const { return candidate_.size(); }
   virtual size_t SolutionSize() const { return solution_.size(); }
-  virtual size_t OriginalSize() const { return original_.size(); }
+  virtual size_t OriginalSize() const { return original_size_; }
 
   _Adapter adapter_;
 
   _Track candidate_;
   _Track solution_;
-  const _Track& original_;
+  size_t original_size_;
 };  // namespace offline
 
 typedef TTrack<RawAnimation::JointTrack::Translations, PositionAdapter>
