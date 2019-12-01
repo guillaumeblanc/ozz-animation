@@ -460,15 +460,19 @@ float Compare(const ozz::math::Transform& _reference,
   const size_t smallest =
       abs.x < abs.y ? (abs.x < abs.z ? 0 : 2) : (abs.y < abs.z ? 1 : 2);
   const math::Float3 binormal(smallest == 0, smallest == 1, smallest == 2);
-  const math::Float3 normal = Normalize(Cross(binormal, axis));
+  const math::Float3 normal =
+      Normalize(Cross(binormal, axis)) * _reference.scale;
 
-  const float rotation_error = Length(TransformVector(diff, normal) - normal);
+  const float rotation_error =
+      Length(TransformVector(diff, normal) - normal) * _distance;
+
   const float translation_error =
       Length(_reference.translation - _test.translation);
-  //  const float scale_error =
-  //      kRadius * Length(_reference.scale - _test.scale);
 
-  const float error = translation_error + rotation_error * _distance;
+  // const float scale_error = _distance * Length(_reference.scale -
+  // _test.scale);
+
+  const float error = translation_error + rotation_error /*+ scale_error*/;
   return error;
 }
 /*
