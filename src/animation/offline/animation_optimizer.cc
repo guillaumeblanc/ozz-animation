@@ -971,7 +971,7 @@ class VTrack {
       dirty_ = false;
     } else if (dirty_ && candidate_err_.ratio < 0) {
       for (size_t i = 0; candidate >= solution && solution > 1.f; ++i) {
-        const float mul = 1.1f + -candidate_err_.ratio * .3f;  // * f * 1.f;
+        const float mul = 1.2f + -candidate_err_.ratio * .3f;  // * f * 1.f;
         tolerance_ *= mul;
         Decimate(tolerance_);
         candidate = static_cast<float>(CandidateSize());
@@ -1012,6 +1012,7 @@ class VTrack {
   virtual void Copy(RawAnimation* _dest) const = 0;
 
   size_t track() const { return track_; }
+  virtual int type() const = 0;
 
   void set_dirty() { dirty_ = true; }
 
@@ -1032,7 +1033,7 @@ class VTrack {
   bool dirty_;
 };  // namespace offline
 
-template <typename _Track, typename _Adapter>
+template <typename _Track, typename _Adapter, int _Type>
 class TTrack : public VTrack {
  public:
   // TODO find better initial case
@@ -1093,6 +1094,8 @@ class TTrack : public VTrack {
   virtual size_t SolutionSize() const { return solution_.size(); }
   virtual size_t OriginalSize() const { return original_size_; }
 
+  virtual int type() const { return _Type; }
+
   _Adapter adapter_;
 
   _Track candidate_;
@@ -1100,11 +1103,11 @@ class TTrack : public VTrack {
   size_t original_size_;
 };  // namespace offline
 
-typedef TTrack<RawAnimation::JointTrack::Translations, PositionAdapter>
+typedef TTrack<RawAnimation::JointTrack::Translations, PositionAdapter, 0>
     TranslationTrack;
-typedef TTrack<RawAnimation::JointTrack::Rotations, RotationAdapter>
+typedef TTrack<RawAnimation::JointTrack::Rotations, RotationAdapter, 1>
     RotationTrack;
-typedef TTrack<RawAnimation::JointTrack::Scales, ScaleAdapter> ScaleTrack;
+typedef TTrack<RawAnimation::JointTrack::Scales, ScaleAdapter, 2> ScaleTrack;
 
 float Comparer::UpdateCurrent(
     const VTrack& _vtrack,
@@ -1199,6 +1202,7 @@ class Stepper {
       vtracks_.push_back(
           OZZ_NEW(allocator, ScaleTrack)(track.scales, sadap, initial, i));
     }
+    vremainings_ = vtracks_;
   }
   ~Stepper() {
     ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
@@ -1206,21 +1210,21 @@ class Stepper {
       OZZ_DELETE(allocator, vtracks_[i]);
     }
     vtracks_.clear();
+    vremainings_.clear();
   }
 
   float Transition() {
     float delta_max = 0.f;
-    size_t i_max = 0;
+    VTrack* t_max = NULL;
 
     // Test all candidates independently
-    for (size_t i = 0; i < vtracks_.size(); ++i) {
-      VTrack* vtrack = vtracks_[i];
+    for (auto it = vremainings_.begin(); it != vremainings_.end();) {
+      VTrack* vtrack = *it;
 
       if (csv) {
         csv->Push(iteration);
-        int ii = static_cast<int>(i);
-        csv->Push(ii / 3);  // joint
-        csv->Push(ii % 3);  // track type
+        csv->Push(static_cast<int>(vtrack->track()));  // joint
+        csv->Push(vtrack->type());                     // track type
       }
 
       float delta = vtrack->Transition(comparer_, ozz::make_range(vsettings_));
@@ -1231,15 +1235,20 @@ class Stepper {
         csv->LineEnd();
       }
 
-      if (delta < delta_max) {
-        delta_max = delta;
-        i_max = i;
+      if (delta >= 0.f) {
+        it = vremainings_.erase(it);
+      } else {
+        ++it;
+        if (delta < delta_max) {
+          delta_max = delta;
+          t_max = vtrack;
+        }
       }
     }
 
     // Validates best candidate
-    if (delta_max < 0.f) {
-      VTrack& selected = *vtracks_[i_max];
+    if (t_max) {
+      VTrack& selected = *t_max;
       selected.Validate();
 
       // Flag whole hierarchy of selected track, children and parents
@@ -1247,8 +1256,7 @@ class Stepper {
 
       gerr = comparer_.UpdateCurrent(selected, ozz::make_range(vsettings_));
 
-      ozz::log::Log() << selected.track() << ", " << i_max << ": " << delta_max
-                      << std::endl;
+      ozz::log::Log() << selected.track() << ": " << delta_max << std::endl;
     }
 
     return delta_max;
@@ -1284,6 +1292,7 @@ class Stepper {
   const Skeleton& skeleton_;
   Comparer& comparer_;
   ozz::Vector<VTrack*>::Std vtracks_;
+  ozz::Vector<VTrack*>::Std vremainings_;
   ozz::Vector<AnimationOptimizer::Setting>::Std vsettings_;
 };  // namespace offline
 
@@ -1315,7 +1324,8 @@ bool AnimationOptimizer::operator()(const RawAnimation& _input,
   csv = &out;
 
   csv->Push(
-      "iteration,joint,type,original,solution,candidate,tolerance,delta,target,"
+      "iteration,joint,type,original,solution,candidate,tolerance,delta,"
+      "target,"
       "terr,"
       "gerr,gsize");
   csv->LineEnd();
