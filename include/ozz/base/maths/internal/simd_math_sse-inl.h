@@ -2008,6 +2008,7 @@ OZZ_INLINE ozz::math::Float4x4 operator-(const ozz::math::Float4x4& _a,
 }  // namespace ozz
 
 #if !defined(__GNUC__)
+#if !defined(OZZ_DISABLE_SSE_NATIVE_OPERATORS)
 OZZ_INLINE ozz::math::SimdFloat4 operator+(ozz::math::_SimdFloat4 _a,
                                            ozz::math::_SimdFloat4 _b) {
   return _mm_add_ps(_a, _b);
@@ -2031,6 +2032,7 @@ OZZ_INLINE ozz::math::SimdFloat4 operator/(ozz::math::_SimdFloat4 _a,
                                            ozz::math::_SimdFloat4 _b) {
   return _mm_div_ps(_a, _b);
 }
+#endif  // !defined(OZZ_DISABLE_SSE_NATIVE_OPERATORS)
 #endif  // !defined(__GNUC__)
 
 namespace ozz {
