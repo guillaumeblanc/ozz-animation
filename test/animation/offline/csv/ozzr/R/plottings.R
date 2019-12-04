@@ -17,7 +17,7 @@ plot_animations <- function(models, animate) {
   if(animate) {
     duration <- as.double(max(models$time))
     nframes <- as.integer(duration * 30)
-    renderer = gifski::gifski_renderer()
+    renderer = gganimate::gifski_renderer()
     gganimate::animate(p_xy, renderer = renderer, nframes=nframes, duration=duration)
   } else {
     plot(p_xy)
