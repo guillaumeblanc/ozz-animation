@@ -1,4 +1,3 @@
-
 Release version 0.12.0
 ----------------------
 
@@ -10,6 +9,7 @@ Release version 0.12.0
   - [memory] Implements ScopedPtr smart pointer. ScopedPtr implementation guarantees the pointed object will be deleted, either on destruction of the ScopedPtr, or via an explicit reset / reassignation.
   - [math] Quaternion compare function now takes cosine of half angle as argument, to avoid computing arc cosine for every comparison as the tolerance is usually constant.
   - [base] Replaces ozz::memory::Allocator New and Delete function with OZZ_NEW and OZZ_DELETE macros, in order to provide an interface that supports any type and number of arguments (without requiring c++11).
+  - [base] #83 Allows user code to disable definition of global namespace sse \_m128 +-/* operators, as they might conflict with other sse math libraries.
 
 * Samples
   - [optimize] Exposes joint setting overriding option (from AnimationOptimizer) to sample gui. Displays median and maximum error values.
