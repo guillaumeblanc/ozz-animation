@@ -218,8 +218,8 @@ class MillipedeSampleApplication : public ozz::sample::Application {
 
   void Destroy() {
     ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
-    allocator->Delete(skeleton_);
-    allocator->Delete(animation_);
+    OZZ_DELETE(allocator, skeleton_);
+    OZZ_DELETE(allocator, animation_);
   }
 
   void CreateSkeleton(ozz::animation::offline::RawSkeleton* _skeleton) {

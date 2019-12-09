@@ -270,8 +270,8 @@ bool GetValue(FbxSceneLoader& _scene_loader, FbxPropertyValue& _property_value,
               EFbxType _fbx_type, OzzImporter::NodeProperty::Type _type,
               float* _value) {
   (void)_scene_loader;
-  // Only supported types are enumerated, so this function should not be called
-  // for something else but kFloat1.
+  // Only supported types are enumerated, so this function should not be
+  // called for something else but kFloat1.
   (void)_type;
   assert(_type == OzzImporter::NodeProperty::kFloat1);
 

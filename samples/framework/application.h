@@ -30,6 +30,7 @@
 
 #include <cstddef>
 #include "ozz/base/containers/string.h"
+#include "ozz/base/memory/scoped_ptr.h"
 
 namespace ozz {
 namespace math {
@@ -217,9 +218,9 @@ class Application {
   ImGui* im_gui_;
 
   // Timing records.
-  Record* fps_;
-  Record* update_time_;
-  Record* render_time_;
+  ozz::ScopedPtr<Record> fps_;
+  ozz::ScopedPtr<Record> update_time_;
+  ozz::ScopedPtr<Record> render_time_;
 
   // Current screen resolution.
   Resolution resolution_;

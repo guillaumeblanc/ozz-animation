@@ -28,9 +28,6 @@
 #ifndef OZZ_OZZ_ANIMATION_OFFLINE_SKELETON_BUILDER_H_
 #define OZZ_OZZ_ANIMATION_OFFLINE_SKELETON_BUILDER_H_
 
-#include "ozz/base/containers/string.h"
-#include "ozz/base/containers/vector.h"
-
 #include "ozz/base/maths/transform.h"
 
 namespace ozz {

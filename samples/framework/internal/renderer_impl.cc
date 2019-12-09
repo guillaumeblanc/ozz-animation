@@ -67,17 +67,12 @@ struct VertexPNC {
 };
 }  // namespace
 
-RendererImpl::Model::Model()
-    : vbo(0), mode(GL_POINTS), count(0), shader(NULL) {}
+RendererImpl::Model::Model() : vbo(0), mode(GL_POINTS), count(0) {}
 
 RendererImpl::Model::~Model() {
   if (vbo) {
     GL(DeleteBuffers(1, &vbo));
     vbo = 0;
-  }
-  if (shader) {
-    memory::default_allocator()->Delete(shader);
-    shader = NULL;
   }
 }
 
@@ -85,15 +80,9 @@ RendererImpl::RendererImpl(Camera* _camera)
     : camera_(_camera),
       dynamic_array_bo_(0),
       dynamic_index_bo_(0),
-      immediate_(NULL),
-      ambient_shader(NULL),
-      ambient_textured_shader(NULL),
-      ambient_shader_instanced(NULL),
       checkered_texture_(0) {}
 
 RendererImpl::~RendererImpl() {
-  memory::Allocator* allocator = memory::default_allocator();
-
   if (dynamic_array_bo_) {
     GL(DeleteBuffers(1, &dynamic_array_bo_));
     dynamic_array_bo_ = 0;
@@ -103,18 +92,6 @@ RendererImpl::~RendererImpl() {
     GL(DeleteBuffers(1, &dynamic_index_bo_));
     dynamic_index_bo_ = 0;
   }
-
-  allocator->Delete(immediate_);
-  immediate_ = NULL;
-
-  allocator->Delete(ambient_shader);
-  ambient_shader = NULL;
-
-  allocator->Delete(ambient_textured_shader);
-  ambient_textured_shader = NULL;
-
-  allocator->Delete(ambient_shader_instanced);
-  ambient_shader_instanced = NULL;
 
   if (checkered_texture_) {
     GL(DeleteTextures(1, &checkered_texture_));
@@ -138,7 +115,7 @@ bool RendererImpl::Initialize() {
   GL(GenBuffers(1, &dynamic_index_bo_));
 
   // Allocate immediate mode renderer;
-  immediate_ = memory::default_allocator()->New<GlImmediateRenderer>(this);
+  immediate_ = OZZ_NEW(memory::default_allocator(), GlImmediateRenderer)(this);
   if (!immediate_->Initialize()) {
     return false;
   }
@@ -1405,10 +1382,9 @@ bool RendererImpl::DrawSkinnedMesh(
 
     // Setup output positions, coming from the rendering output mesh buffers.
     // We need to offset the buffer every loop.
-    skinning_job.out_positions.begin =
-        reinterpret_cast<float*>(ozz::PointerStride(
-            vbo_map,
-            positions_offset + processed_vertex_count * positions_stride));
+    skinning_job.out_positions.begin = reinterpret_cast<float*>(
+        ozz::PointerStride(vbo_map, positions_offset + processed_vertex_count *
+                                                           positions_stride));
     skinning_job.out_positions.end = ozz::PointerStride(
         skinning_job.out_positions.begin, part_vertex_count * positions_stride);
     skinning_job.out_positions_stride = positions_stride;

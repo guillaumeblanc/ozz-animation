@@ -107,32 +107,33 @@ struct AlignedInts {
 };
 
 TEST(NewDelete, Memory) {
-  AlignedInts* ai0 = ozz::memory::default_allocator()->New<AlignedInts>();
+  ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
+
+  AlignedInts* ai0 = OZZ_NEW(allocator, AlignedInts);
   ASSERT_TRUE(ai0 != NULL);
   for (int i = 0; i < ai0->array_size; ++i) {
     EXPECT_EQ(ai0->array[i], i);
   }
-  ozz::memory::default_allocator()->Delete(ai0);
+  OZZ_DELETE(allocator, ai0);
 
-  AlignedInts* ai1 = ozz::memory::default_allocator()->New<AlignedInts>(46);
+  AlignedInts* ai1 = OZZ_NEW(allocator, AlignedInts)(46);
   ASSERT_TRUE(ai1 != NULL);
   EXPECT_EQ(ai1->array[0], 46);
   for (int i = 1; i < ai1->array_size; ++i) {
     EXPECT_EQ(ai1->array[i], i);
   }
-  ozz::memory::default_allocator()->Delete(ai1);
+  OZZ_DELETE(allocator, ai1);
 
-  AlignedInts* ai2 = ozz::memory::default_allocator()->New<AlignedInts>(46, 69);
+  AlignedInts* ai2 = OZZ_NEW(allocator, AlignedInts)(46, 69);
   ASSERT_TRUE(ai2 != NULL);
   EXPECT_EQ(ai2->array[0], 46);
   EXPECT_EQ(ai2->array[1], 69);
   for (int i = 2; i < ai2->array_size; ++i) {
     EXPECT_EQ(ai2->array[i], i);
   }
-  ozz::memory::default_allocator()->Delete(ai2);
+  OZZ_DELETE(allocator, ai2);
 
-  AlignedInts* ai3 =
-      ozz::memory::default_allocator()->New<AlignedInts>(46, 69, 58);
+  AlignedInts* ai3 = OZZ_NEW(allocator, AlignedInts)(46, 69, 58);
   ASSERT_TRUE(ai3 != NULL);
   EXPECT_EQ(ai3->array[0], 46);
   EXPECT_EQ(ai3->array[1], 69);
@@ -140,7 +141,7 @@ TEST(NewDelete, Memory) {
   for (int i = 3; i < ai3->array_size; ++i) {
     EXPECT_EQ(ai3->array[i], i);
   }
-  ozz::memory::default_allocator()->Delete(ai3);
+  OZZ_DELETE(allocator, ai3);
 }
 
 class TestAllocator : public ozz::memory::Allocator {

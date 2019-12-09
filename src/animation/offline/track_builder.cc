@@ -107,7 +107,7 @@ _Track* TrackBuilder::Build(const _RawTrack& _input) const {
 
   // Everything is fine, allocates and fills the animation.
   // Nothing can fail now.
-  _Track* track = memory::default_allocator()->New<_Track>();
+  _Track* track = OZZ_NEW(memory::default_allocator(), _Track);
 
   // Copy data to temporary prepared data structure
   typename _RawTrack::Keyframes keyframes;

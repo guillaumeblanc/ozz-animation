@@ -25,57 +25,19 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/base/log.h"
+#ifndef OZZ_OZZ_ANIMATION_RUNTIME_ANIMATION_UTILS_H_
+#define OZZ_OZZ_ANIMATION_RUNTIME_ANIMATION_UTILS_H_
 
-#include <iomanip>
-#include <sstream>
-
-#include "ozz/base/memory/allocator.h"
+#include "ozz/animation/runtime/animation.h"
 
 namespace ozz {
-namespace log {
+namespace animation {
 
-// Default log level initialization.
-namespace {
-Level log_level = kStandard;
-}
-
-Level SetLevel(Level _level) {
-  const Level previous_level = log_level;
-  log_level = _level;
-  return previous_level;
-}
-
-Level GetLevel() { return log_level; }
-
-LogV::LogV() : Logger(std::clog, kVerbose) {}
-
-Log::Log() : Logger(std::clog, kStandard) {}
-
-Out::Out() : Logger(std::cout, kStandard) {}
-
-Err::Err() : Logger(std::cerr, kStandard) {}
-
-Logger::Logger(std::ostream& _stream, Level _level)
-    : stream_(_level <= GetLevel() ? _stream
-                                   : *OZZ_NEW(ozz::memory::default_allocator(),
-                                              std::ostringstream)()),
-      local_stream_(&stream_ != &_stream) {}
-Logger::~Logger() {
-  if (local_stream_) {
-    OZZ_DELETE(ozz::memory::default_allocator(), &stream_);
-  }
-}
-
-FloatPrecision::FloatPrecision(const Logger& _logger, int _precision)
-    : precision_(_logger.stream().precision(_precision)),
-      format_(_logger.stream().setf(std::ios_base::fixed,
-                                    std::ios_base::floatfield)),
-      stream_(_logger.stream()) {}
-FloatPrecision::~FloatPrecision() {
-  stream_.precision(precision_);
-  stream_.setf(format_, std::ios_base::floatfield);
-}
-
-}  // namespace log
+// Count translation, rotation or scale keyframes for a given track number. Use
+// a negative _track value to count all tracks.
+int CountTranslationKeyframes(const Animation& _animation, int _track = -1);
+int CountRotationKeyframes(const Animation& _animation, int _track = -1);
+int CountScaleKeyframes(const Animation& _animation, int _track = -1);
+}  // namespace animation
 }  // namespace ozz
+#endif  // OZZ_OZZ_ANIMATION_RUNTIME_ANIMATION_UTILS_H_
