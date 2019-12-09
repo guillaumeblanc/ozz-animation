@@ -1,3 +1,5 @@
+  - [base] #83 Allows user code to disable definition of global namespace sse \_m128 +-/* operators, as they might conflict with other sse math libraries.
+
 Release version 0.11.0
 ----------------------
 * Library
