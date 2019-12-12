@@ -418,10 +418,9 @@ bool ExtractCurve(FbxSceneLoader& _scene_loader, FbxProperty& _property,
         evaluator->GetPropertyValue(_property, FbxTimeSeconds(0.));
 
     typename _Track::ValueType value;
-    bool success =
-        GetValue(_scene_loader, property_value, _fbx_type, _type, &value);
-    (void)success;
-    assert(success);
+    if (!GetValue(_scene_loader, property_value, _fbx_type, _type, &value)) {
+      return false;
+    }
 
     // Build and push keyframe
     const typename _Track::Keyframe key = {RawTrackInterpolation::kStep, 0.f,
@@ -442,10 +441,9 @@ bool ExtractCurve(FbxSceneLoader& _scene_loader, FbxProperty& _property,
 
       // It shouldn't fail as property type is known.
       typename _Track::ValueType value;
-      bool success =
-          GetValue(_scene_loader, property_value, _fbx_type, _type, &value);
-      (void)success;
-      assert(success);
+      if (!GetValue(_scene_loader, property_value, _fbx_type, _type, &value)) {
+        return false;
+      }
 
       // Build and push keyframe
       const typename _Track::Keyframe key = {RawTrackInterpolation::kLinear,
