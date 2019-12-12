@@ -78,15 +78,15 @@ void PlaybackController::Update(const animation::Animation& _animation,
   set_time_ratio(new_time);
 }
 
-void PlaybackController::set_time_ratio(float _time) {
+void PlaybackController::set_time_ratio(float _ratio) {
   previous_time_ratio_ = time_ratio_;
   if (loop_) {
     // Wraps in the unit interval [0:1], even for negative values (the reason
     // for using floorf).
-    time_ratio_ = _time - floorf(_time);
+    time_ratio_ = _ratio - floorf(_ratio);
   } else {
     // Clamps in the unit interval [0:1].
-    time_ratio_ = math::Clamp(0.f, _time, 1.f);
+    time_ratio_ = math::Clamp(0.f, _ratio, 1.f);
   }
 }
 
@@ -116,14 +116,14 @@ bool PlaybackController::OnGui(const animation::Animation& _animation,
   _im_gui->DoCheckBox("Loop", &loop_, _enabled);
 
   char szLabel[64];
-  std::sprintf(szLabel, "Animation time: %.2f", time_ratio_);
 
   // Uses a local copy of time_ so that set_time is used to actually apply
   // changes. Otherwise previous time would be incorrect.
-  float time = this->time_ratio() * _animation.duration();
-  if (_im_gui->DoSlider(szLabel, 0.f, _animation.duration(), &time, 1.f,
+  float ratio = time_ratio();
+  std::sprintf(szLabel, "Animation time: %.2f", ratio * _animation.duration());
+  if (_im_gui->DoSlider(szLabel, 0.f, 1.f, &ratio, 1.f,
                         _enabled && _allow_set_time)) {
-    set_time_ratio(time / _animation.duration());
+    set_time_ratio(ratio);
     // Pause the time if slider as moved.
     play_ = false;
     time_changed = true;
