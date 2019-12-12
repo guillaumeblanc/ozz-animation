@@ -121,7 +121,7 @@ bool ExtractAnimation(FbxSceneLoader& _scene_loader, const SamplingInfo& _info,
   // Preallocates and initializes world matrices.
   // +1 for converting number of intervals to number of points.
   const size_t num_keys =
-      static_cast<size_t>(std::ceilf(1.f + _info.duration * _info.frequency));
+      static_cast<size_t>(std::ceil(1.f + _info.duration * _info.frequency));
   ozz::Vector<float>::Std times;
   times.resize(num_keys);
   ozz::Vector<ozz::Vector<ozz::math::Float4x4>::Std>::Std world_matrices;
@@ -429,7 +429,7 @@ bool ExtractCurve(FbxSceneLoader& _scene_loader, FbxProperty& _property,
     _track->keyframes.push_back(key);
   } else {
     const size_t num_keys =
-        static_cast<size_t>(std::ceilf(1.f + _info.duration * _info.frequency));
+        static_cast<size_t>(std::ceil(1.f + _info.duration * _info.frequency));
     _track->keyframes.resize(num_keys);
 
     // Evaluate values at the specified time.
