@@ -1406,14 +1406,14 @@ bool AnimationOptimizer::operator()(const RawAnimation& _input,
     }
     ozz::log::Log() << "Iterations count: " << iteration << std::endl;
   }
+  
+  auto end = std::chrono::system_clock::now();
+  std::chrono::duration<float> elapsed_seconds = end - start;
+  std::cout << "Elapsed time: " << elapsed_seconds.count() << "s\n";
 
   const float cmp =
       Compare(_input, *_output, _skeleton, ozz::make_range(vsettings));
   ozz::log::Log() << "Final cmp: " << cmp << std::endl;
-
-  auto end = std::chrono::system_clock::now();
-  std::chrono::duration<float> elapsed_seconds = end - start;
-  std::cout << "Elapsed time: " << elapsed_seconds.count() << "s\n";
 
   // Output animation is always valid though.
   bool valid = _output->Validate();
