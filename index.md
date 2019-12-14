@@ -24,6 +24,7 @@ collection: home
           <p>Blending</p>
           <p>Partial blending</p>
           <p>Additive blending</p>
+          <p>Inverse kinematic</p>
           <p>Software skinning</p>
         </div>  
       </div>
@@ -37,7 +38,7 @@ collection: home
           <div class="w3-text-theme">
             <i class="fas fa-wrench w3-padding-8" style="font-size:128px"></i>
           </div>
-          <p>Fbx, Collada, Obj, 3ds, dxf</p>
+          <p>Fbx, Collada / dae, Obj, 3ds, dxf, bhv, mud...</p>
           <p>Compression</p>
           <p>Keyframe reduction</p>
           <p>Command line tools</p>
@@ -54,9 +55,10 @@ collection: home
           <div class="w3-text-theme">
             <i class="fas fa-pencil-alt w3-padding-8" style="font-size:128px"></i>
           </div>
+          <p>C++</p>
           <p>Engine agnostic</p>
           <p>Cache friendly</p>
-          <p>Thread safety</p>
+          <p>Thread safe</p>
           <p>SIMD SOA math</p>
           <p>MIT license</p>
         </div>
