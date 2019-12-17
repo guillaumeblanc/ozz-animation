@@ -67,6 +67,11 @@ OZZ_INLINE SoaQuaternion operator-(const SoaQuaternion& _q) {
   return r;
 }
 
+// Returns the 4D dot product of quaternion _a and _b.
+OZZ_INLINE SimdFloat4 Dot(const SoaQuaternion& _a, const SoaQuaternion& _b) {
+  return _a.x * _b.x + _a.y * _b.y + _a.z * _b.z + _a.w * _b.w;
+}
+
 // Returns the normalized SoaQuaternion _q.
 OZZ_INLINE SoaQuaternion Normalize(const SoaQuaternion& _q) {
   const SimdFloat4 len2 = _q.x * _q.x + _q.y * _q.y + _q.z * _q.z + _q.w * _q.w;

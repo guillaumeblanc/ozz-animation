@@ -15,11 +15,18 @@
   [
     {
       "filename":"baked_animation.ozz",
-      "optimization_tolerances":  // Camera is very sensitive to optimizations.
+      "optimization_settings":  // Camera is very sensitive to optimizations.
       {
-        "translation":0.002,
-        "rotation":0.002,
-        "hierarchical":1.0  // There's no hierarchy in the skeleton, it's flat. Hierarchical optimization can be disabled.
+        "tolerance" : 0.002, // Global setting, for all boxes.
+        "distance" : 0.707,  // Every box is 1m wide, so a corner is at .707m from center.
+        "override" : 
+        [
+          {
+            "name" : "camera", // Specific setting for the camera.
+            "tolerance" : 0.001,
+            "distance" : 20.  // 2m, x10 as camera is scaled to .1
+          }
+        ]
       }
     }
   ]

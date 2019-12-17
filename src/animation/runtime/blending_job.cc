@@ -121,35 +121,31 @@ namespace {
 
 // Macro that defines the process of blending the 1st pass.
 #define OZZ_BLEND_1ST_PASS(_in, _simd_weight, _out)     \
-  {                                                     \
+  do {                                                  \
     _out->translation = _in.translation * _simd_weight; \
     _out->rotation = _in.rotation * _simd_weight;       \
     _out->scale = _in.scale * _simd_weight;             \
-  }
+  } while (void(0), 0)
 
 // Macro that defines the process of blending any pass but the first.
-#define OZZ_BLEND_N_PASS(_in, _simd_weight, _out)                           \
-  {                                                                         \
-    /* Blends translation. */                                               \
-    _out->translation = _out->translation + _in.translation * _simd_weight; \
-    /* Blends rotations, negates opposed quaternions to be sure to choose*/ \
-    /* the shortest path between the two.*/                                 \
-    const math::SimdFloat4 dot = _out->rotation.x * _in.rotation.x +        \
-                                 _out->rotation.y * _in.rotation.y +        \
-                                 _out->rotation.z * _in.rotation.z +        \
-                                 _out->rotation.w * _in.rotation.w;         \
-    const math::SimdInt4 sign = math::Sign(dot);                            \
-    const math::SoaQuaternion rotation = {                                  \
-        math::Xor(_in.rotation.x, sign), math::Xor(_in.rotation.y, sign),   \
-        math::Xor(_in.rotation.z, sign), math::Xor(_in.rotation.w, sign)};  \
-    _out->rotation = _out->rotation + rotation * _simd_weight;              \
-    /* Blends scales.*/                                                     \
-    _out->scale = _out->scale + _in.scale * _simd_weight;                   \
-  }
+#define OZZ_BLEND_N_PASS(_in, _simd_weight, _out)                              \
+  do {                                                                         \
+    /* Blends translation. */                                                  \
+    _out->translation = _out->translation + _in.translation * _simd_weight;    \
+    /* Blends rotations, negates opposed quaternions to be sure to choose*/    \
+    /* the shortest path between the two.*/                                    \
+    const math::SimdInt4 sign = math::Sign(Dot(_out->rotation, _in.rotation)); \
+    const math::SoaQuaternion rotation = {                                     \
+        math::Xor(_in.rotation.x, sign), math::Xor(_in.rotation.y, sign),      \
+        math::Xor(_in.rotation.z, sign), math::Xor(_in.rotation.w, sign)};     \
+    _out->rotation = _out->rotation + rotation * _simd_weight;                 \
+    /* Blends scales.*/                                                        \
+    _out->scale = _out->scale + _in.scale * _simd_weight;                      \
+  } while (void(0), 0)
 
 // Macro that defines the process of adding a pass.
 #define OZZ_ADD_PASS(_in, _simd_weight, _out)                                \
-  {                                                                          \
+  do {                                                                       \
     _out.translation = _out.translation + _in.translation * _simd_weight;    \
     /* Interpolate quaternion between identity and src.rotation.*/           \
     /* Quaternion sign is fixed up, so that lerp takes the shortest path.*/  \
@@ -163,11 +159,11 @@ namespace {
     _out.rotation = NormalizeEst(interp_quat) * _out.rotation;               \
     _out.scale =                                                             \
         _out.scale * (one_minus_weight_f3 + (_in.scale * _simd_weight));     \
-  }
+  } while (void(0), 0)
 
 // Macro that defines the process of subtracting a pass.
 #define OZZ_SUB_PASS(_in, _simd_weight, _out)                                  \
-  {                                                                            \
+  do {                                                                         \
     _out.translation = _out.translation - _in.translation * _simd_weight;      \
     /* Interpolate quaternion between identity and src.rotation.*/             \
     /* Quaternion sign is fixed up, so that lerp takes the shortest path.*/    \
@@ -185,7 +181,7 @@ namespace {
         math::RcpEst(                                                          \
             math::MAdd(_in.scale.z, _simd_weight, one_minus_weight))};         \
     _out.scale = _out.scale * rcp_scale;                                       \
-  }
+  } while (void(0), 0)
 
 // Defines parameters that are passed through blending stages.
 struct ProcessArgs {

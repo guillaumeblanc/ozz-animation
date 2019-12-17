@@ -2,6 +2,7 @@ add_library(ozz_base STATIC
   ${PROJECT_SOURCE_DIR}/include/ozz/base/endianness.h
   ${PROJECT_SOURCE_DIR}/include/ozz/base/gtest_helper.h
   ${PROJECT_SOURCE_DIR}/include/ozz/base/memory/allocator.h
+  ${PROJECT_SOURCE_DIR}/include/ozz/base/memory/scoped_ptr.h
   memory/allocator.cc
   ${PROJECT_SOURCE_DIR}/include/ozz/base/platform.h
   platform.cc

@@ -152,8 +152,9 @@ void FbxSceneLoader::ImportScene(FbxImporter* _importer,
     // Setup axis and system converter.
     if (imported) {
       FbxGlobalSettings& settings = scene_->GetGlobalSettings();
-      converter_ = ozz::memory::default_allocator()->New<FbxSystemConverter>(
-          settings.GetAxisSystem(), settings.GetSystemUnit());
+      converter_ =
+          OZZ_NEW(ozz::memory::default_allocator(), FbxSystemConverter)(
+              settings.GetAxisSystem(), settings.GetSystemUnit());
     }
 
     // Clear the scene if import failed.
@@ -171,7 +172,7 @@ FbxSceneLoader::~FbxSceneLoader() {
   }
 
   if (converter_) {
-    ozz::memory::default_allocator()->Delete(converter_);
+    OZZ_DELETE(ozz::memory::default_allocator(), converter_);
     converter_ = NULL;
   }
 }

@@ -197,7 +197,7 @@ ImmediatePCShader* ImmediatePCShader::Build() {
   const char* fs[] = {kPlatformSpecivicFSHeader, kSimplePCPS};
 
   ImmediatePCShader* shader =
-      memory::default_allocator()->New<ImmediatePCShader>();
+      OZZ_NEW(memory::default_allocator(), ImmediatePCShader);
   success &=
       shader->BuildFromSource(OZZ_ARRAY_SIZE(vs), vs, OZZ_ARRAY_SIZE(fs), fs);
 
@@ -209,7 +209,7 @@ ImmediatePCShader* ImmediatePCShader::Build() {
   success &= shader->BindUniform("u_mvp");
 
   if (!success) {
-    memory::default_allocator()->Delete(shader);
+    OZZ_DELETE(memory::default_allocator(), shader);
     shader = NULL;
   }
 
@@ -273,7 +273,7 @@ ImmediatePTCShader* ImmediatePTCShader::Build() {
   const char* fs[] = {kPlatformSpecivicFSHeader, kSimplePCPS};
 
   ImmediatePTCShader* shader =
-      memory::default_allocator()->New<ImmediatePTCShader>();
+      OZZ_NEW(memory::default_allocator(), ImmediatePTCShader);
   success &=
       shader->BuildFromSource(OZZ_ARRAY_SIZE(vs), vs, OZZ_ARRAY_SIZE(fs), fs);
 
@@ -287,7 +287,7 @@ ImmediatePTCShader* ImmediatePTCShader::Build() {
   success &= shader->BindUniform("u_texture");
 
   if (!success) {
-    memory::default_allocator()->Delete(shader);
+    OZZ_DELETE(memory::default_allocator(), shader);
     shader = NULL;
   }
 
@@ -458,7 +458,7 @@ JointShader* JointShader::Build() {
   const char* fs[] = {kPlatformSpecivicFSHeader, kShaderAmbientFct,
                       kShaderAmbientFS};
 
-  JointShader* shader = memory::default_allocator()->New<JointShader>();
+  JointShader* shader = OZZ_NEW(memory::default_allocator(), JointShader);
   success &=
       shader->BuildFromSource(OZZ_ARRAY_SIZE(vs), vs, OZZ_ARRAY_SIZE(fs), fs);
 
@@ -477,7 +477,7 @@ JointShader* JointShader::Build() {
   }
 
   if (!success) {
-    memory::default_allocator()->Delete(shader);
+    OZZ_DELETE(memory::default_allocator(), shader);
     shader = NULL;
   }
 
@@ -520,7 +520,7 @@ BoneShader* BoneShader::Build() {  // Builds a world matrix from joint uniforms,
   const char* fs[] = {kPlatformSpecivicFSHeader, kShaderAmbientFct,
                       kShaderAmbientFS};
 
-  BoneShader* shader = memory::default_allocator()->New<BoneShader>();
+  BoneShader* shader = OZZ_NEW(memory::default_allocator(), BoneShader);
   success &=
       shader->BuildFromSource(OZZ_ARRAY_SIZE(vs), vs, OZZ_ARRAY_SIZE(fs), fs);
 
@@ -539,7 +539,7 @@ BoneShader* BoneShader::Build() {  // Builds a world matrix from joint uniforms,
   }
 
   if (!success) {
-    memory::default_allocator()->Delete(shader);
+    OZZ_DELETE(memory::default_allocator(), shader);
     shader = NULL;
   }
 
@@ -554,12 +554,12 @@ AmbientShader* AmbientShader::Build() {
   const char* fs[] = {kPlatformSpecivicFSHeader, kShaderAmbientFct,
                       kShaderAmbientFS};
 
-  AmbientShader* shader = memory::default_allocator()->New<AmbientShader>();
+  AmbientShader* shader = OZZ_NEW(memory::default_allocator(), AmbientShader);
   bool success =
       shader->InternalBuild(OZZ_ARRAY_SIZE(vs), vs, OZZ_ARRAY_SIZE(fs), fs);
 
   if (!success) {
-    memory::default_allocator()->Delete(shader);
+    OZZ_DELETE(memory::default_allocator(), shader);
     shader = NULL;
   }
 
@@ -636,7 +636,7 @@ AmbientShaderInstanced* AmbientShaderInstanced::Build() {
                       kShaderAmbientFS};
 
   AmbientShaderInstanced* shader =
-      memory::default_allocator()->New<AmbientShaderInstanced>();
+      OZZ_NEW(memory::default_allocator(), AmbientShaderInstanced);
   success &=
       shader->BuildFromSource(OZZ_ARRAY_SIZE(vs), vs, OZZ_ARRAY_SIZE(fs), fs);
 
@@ -650,7 +650,7 @@ AmbientShaderInstanced* AmbientShaderInstanced::Build() {
   success &= shader->BindUniform("u_mvp");
 
   if (!success) {
-    memory::default_allocator()->Delete(shader);
+    OZZ_DELETE(memory::default_allocator(), shader);
     shader = NULL;
   }
 
@@ -742,14 +742,14 @@ AmbientTexturedShader* AmbientTexturedShader::Build() {
                       kShaderAmbientTexturedFS};
 
   AmbientTexturedShader* shader =
-      memory::default_allocator()->New<AmbientTexturedShader>();
+      OZZ_NEW(memory::default_allocator(), AmbientTexturedShader);
   bool success =
       shader->InternalBuild(OZZ_ARRAY_SIZE(vs), vs, OZZ_ARRAY_SIZE(fs), fs);
 
   success &= shader->FindAttrib("a_uv");
 
   if (!success) {
-    memory::default_allocator()->Delete(shader);
+    OZZ_DELETE(memory::default_allocator(), shader);
     shader = NULL;
   }
 

@@ -106,9 +106,9 @@ Application::Application()
       capture_screenshot_(false),
       renderer_(NULL),
       im_gui_(NULL),
-      fps_(memory::default_allocator()->New<Record>(128)),
-      update_time_(memory::default_allocator()->New<Record>(128)),
-      render_time_(memory::default_allocator()->New<Record>(128)),
+      fps_(OZZ_NEW(memory::default_allocator(), Record)(128)),
+      update_time_(OZZ_NEW(memory::default_allocator(), Record)(128)),
+      render_time_(OZZ_NEW(memory::default_allocator(), Record)(128)),
       resolution_(resolution_presets[0]) {
 #ifndef NDEBUG
   // Assert presets are correctly sorted.
@@ -120,11 +120,7 @@ Application::Application()
 #endif  //  NDEBUG
 }
 
-Application::~Application() {
-  memory::default_allocator()->Delete(fps_);
-  memory::default_allocator()->Delete(update_time_);
-  memory::default_allocator()->Delete(render_time_);
-}
+Application::~Application() {}
 
 int Application::Run(int _argc, const char** _argv, const char* _version,
                      const char* _title) {
@@ -196,7 +192,7 @@ int Application::Run(int _argc, const char** _argv, const char* _version,
                  << glGetString(GL_VERSION) << "\"." << std::endl;
 
       // Allocates and initializes camera
-      camera_ = memory::default_allocator()->New<internal::Camera>();
+      camera_ = OZZ_NEW(memory::default_allocator(), internal::Camera);
       math::Float3 camera_center;
       math::Float2 camera_angles;
       float distance;
@@ -206,12 +202,12 @@ int Application::Run(int _argc, const char** _argv, const char* _version,
 
       // Allocates and initializes renderer.
       renderer_ =
-          memory::default_allocator()->New<internal::RendererImpl>(camera_);
+          OZZ_NEW(memory::default_allocator(), internal::RendererImpl)(camera_);
       success = renderer_->Initialize();
 
       if (success) {
-        shooter_ = memory::default_allocator()->New<internal::Shooter>();
-        im_gui_ = memory::default_allocator()->New<internal::ImGuiImpl>();
+        shooter_ = OZZ_NEW(memory::default_allocator(), internal::Shooter);
+        im_gui_ = OZZ_NEW(memory::default_allocator(), internal::ImGuiImpl);
 
 #ifndef EMSCRIPTEN  // Better not rename web page.
         glfwSetWindowTitle(_title);
@@ -225,14 +221,14 @@ int Application::Run(int _argc, const char** _argv, const char* _version,
         // Loop the sample.
         success = Loop();
 
-        memory::default_allocator()->Delete(shooter_);
+        OZZ_DELETE(memory::default_allocator(), shooter_);
         shooter_ = NULL;
-        memory::default_allocator()->Delete(im_gui_);
+        OZZ_DELETE(memory::default_allocator(), im_gui_);
         im_gui_ = NULL;
       }
-      memory::default_allocator()->Delete(renderer_);
+      OZZ_DELETE(memory::default_allocator(), renderer_);
       renderer_ = NULL;
-      memory::default_allocator()->Delete(camera_);
+      OZZ_DELETE(memory::default_allocator(), camera_);
       camera_ = NULL;
     }
 
@@ -254,10 +250,14 @@ int Application::Run(int _argc, const char** _argv, const char* _version,
   return success ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
-void OneLoopCbk(void* _arg) {
-  Application* app = reinterpret_cast<Application*>(_arg);
-  static int loops = 0;
-  app->OneLoop(loops++);
+// Helper function to detecte key pressed and released.
+template <int _Key>
+bool KeyPressed() {
+  static int previous_key = glfwGetKey(_Key);
+  const int key = glfwGetKey(_Key);
+  const bool pressed = previous_key == GLFW_PRESS && key == GLFW_RELEASE;
+  previous_key = key;
+  return pressed;
 }
 
 Application::LoopStatus Application::OneLoop(int _loops) {
@@ -296,12 +296,11 @@ Application::LoopStatus Application::OneLoop(int _loops) {
 #endif  // EMSCRIPTEN
 
   // Enable/disable help on F1 key.
-  static int previous_f1 = glfwGetKey(GLFW_KEY_F1);
-  const int f1 = glfwGetKey(GLFW_KEY_F1);
-  if (previous_f1 == GLFW_RELEASE && f1 == GLFW_PRESS) {
-    show_help_ = !show_help_;
-  }
-  previous_f1 = f1;
+  show_help_ = show_help_ ^ KeyPressed<GLFW_KEY_F1>();
+
+  // Capture screenshot or video.
+  capture_screenshot_ = KeyPressed<'S'>();
+  capture_video_ = capture_video_ ^ KeyPressed<'V'>();
 
   // Do the main loop.
   if (!Idle(_loops == 0)) {
@@ -316,6 +315,12 @@ Application::LoopStatus Application::OneLoop(int _loops) {
   }
 
   return kContinue;
+}
+
+void OneLoopCbk(void* _arg) {
+  Application* app = reinterpret_cast<Application*>(_arg);
+  static int loops = 0;
+  app->OneLoop(loops++);
 }
 
 bool Application::Loop() {
@@ -390,6 +395,7 @@ bool Application::Display() {
   // Capture back buffer.
   if (capture_screenshot_ || capture_video_) {
     shooter_->Capture(GL_BACK);
+    capture_screenshot_ = false;
   }
 
   // Swaps current window.
@@ -476,8 +482,8 @@ bool Application::Gui() {
   input.lmb_pressed = glfwGetMouseButton(GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
 
   // Starts frame
-  static_cast<internal::ImGuiImpl*>(im_gui_)->BeginFrame(input, window_rect,
-                                                         renderer_);
+  static_cast<internal::ImGuiImpl*>(im_gui_)
+      ->BeginFrame(input, window_rect, renderer_);
 
   // Help gui.
   {
@@ -644,8 +650,8 @@ bool Application::FrameworkGui() {
     ImGui::OpenClose controls(im_gui_, "Capture", &open);
     if (open) {
       im_gui_->DoButton("Capture video", true, &capture_video_);
-      capture_screenshot_ =
-          im_gui_->DoButton("Capture screenshot", !capture_video_);
+      capture_screenshot_ |= im_gui_->DoButton(
+          "Capture screenshot", !capture_video_, &capture_screenshot_);
     }
   }
 

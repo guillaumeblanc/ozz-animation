@@ -32,21 +32,19 @@
 #include "ozz/animation/runtime/skeleton.h"
 
 #include "ozz/base/io/stream.h"
-#include "ozz/base/memory/allocator.h"
+#include "ozz/base/memory/scoped_ptr.h"
 
 class TestConverter : public ozz::animation::offline::OzzImporter {
  public:
-  TestConverter() : file_(NULL) {}
-  ~TestConverter() { ozz::memory::default_allocator()->Delete(file_); }
+  TestConverter() {}
+  ~TestConverter() {}
 
  private:
   virtual bool Load(const char* _filename) {
-    ozz::memory::default_allocator()->Delete(file_);
-    file_ =
-        ozz::memory::default_allocator()->New<ozz::io::File>(_filename, "rb");
+    file_.reset(OZZ_NEW(ozz::memory::default_allocator(), ozz::io::File)(
+        _filename, "rb"));
     if (!file_->opened()) {
-      ozz::memory::default_allocator()->Delete(file_);
-      file_ = NULL;
+      file_.reset(NULL);
       return false;
     }
 
@@ -263,7 +261,7 @@ class TestConverter : public ozz::animation::offline::OzzImporter {
     return found;
   }
 
-  ozz::io::File* file_;
+  ozz::ScopedPtr<ozz::io::File> file_;
 };
 
 int main(int _argc, const char** _argv) {
