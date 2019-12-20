@@ -99,15 +99,22 @@ The file [reference.json][link_src_reference_json] (automatically generated duri
       "filename" : "*.ozz", //  Specifies animation output filename. Use a '*' character to specify part(s) of the filename that should be replaced by the clip name.
       "raw" : false, //  Outputs raw animation.
       "additive" : false, //  Creates a delta animation that can be used for additive blending.
+      "additive_reference" : "animation", //  Select reference pose to use to build additive/delta animation. Can be "animation" to use the 1st animation keyframe as reference, or "skeleton" to use skeleton bind pose.
       "sampling_rate" : 0, //  Selects animation sampling rate in hertz. Set a value <= 0 to use imported scene default frame rate.
       "optimize" : true, //  Activates keyframes reduction optimization.
-      //  Optimization tolerances.
-      "optimization_tolerances" : 
+      "optimization_settings" : 
       {
-        "translation" : 0.001, //  Translation optimization tolerance, defined as the distance between two translation values in meters.
-        "rotation" : 0.001745, //  Rotation optimization tolerance, ie: the angle between two rotation values in radian.
-        "scale" : 0.001, //  Scale optimization tolerance, ie: the norm of the difference of two scales.
-        "hierarchical" : 0.001 //  Hierarchical translation optimization tolerance, ie: the maximum error (distance) that an optimization on a joint is allowed to generate on its whole child hierarchy.
+        "tolerance" : 0.001, //  The maximum error that an optimization is allowed to generate on a whole joint hierarchy.
+        "distance" : 0.1, //  The distance (from the joint) at which error is measured. This allows to emulate effect on skinning.
+        //  Per joint optimization setting override
+        "override" : 
+        [
+          {
+            "name" : "*", //  Joint name. Wildcard characters '*' and '?' are supported
+            "tolerance" : 0.001, //  The maximum error that an optimization is allowed to generate on a whole joint hierarchy.
+            "distance" : 0.1 //  The distance (from the joint) at which error is measured. This allows to emulate effect on skinning.
+          }
+        ]
       },
       //  Tracks to build.
       "tracks" : 
@@ -120,7 +127,7 @@ The file [reference.json][link_src_reference_json] (automatically generated duri
               "filename" : "*.ozz", //  Specifies track output filename(s). Use a '*' character to specify part(s) of the filename that should be replaced by the track (aka "joint_name-property_name") name.
               "joint_name" : "*", //  Name of the joint that contains the property to import. Wildcard characters '*' and '?' are supported.
               "property_name" : "*", //  Name of the property to import. Wildcard characters '*' and '?' are supported.
-              "type" : 1, //  Type of the property, aka the number of floating point components. 1 to 4 components are supported.
+              "type" : "float1", //  Type of the property, can be float1 to float4, point and vector (aka float3 with scene unit and axis conversion).
               "raw" : false, //  Outputs raw track.
               "optimize" : true, //  Activates keyframes optimization.
               "optimization_tolerance" : 0.001 //  Optimization tolerance

@@ -17,27 +17,17 @@ Ozz-animation runtime data structures cannot be modified programmatically, all d
 --------------------------
 
 The runtime skeleton data structure represents a skeletal hierarchy of joints, with a bind-pose (rest pose of the skeleton). This structure is filled by the `ozz::animation::SkeletonBuilder` (usually offline) and deserialized/loaded at runtime.
-Joint names, joint bind-poses and hierarchical informations are all stored in separate arrays of data (as opposed to joint structures for the `ozz::animation::offline::RawSkeleton`), in order to closely match with the way runtime algorithms use them. Joint hierarchy is packed as an array of 16 bits element per joint (see `JointProperties` below), stored in breadth-first order.
+Joint names, joint bind-poses and hierarchical informations are all stored in separate arrays of data (as opposed to joint structures for the `ozz::animation::offline::RawSkeleton`), in order to closely match with the way runtime algorithms use them. Joint hierarchy is defined by an array of indices to each joint parent, in depth-first order. It is enough to traverse the whole joint hierarchy in indeed.
 
-{% highlight cpp %}
-struct JointProperties {
-  // Parent's index, kNoParentIndex for the root.
-  uint16 parent: Skeleton::kMaxJointsNumBits;
-  
-  // Set to 1 for a leaf, 0 for a branch.
-  uint16 is_leaf: 1;
-};
-{% endhighlight %}
-
-`JointProperties::parent` member is enough to traverse the whole joint hierarchy in breadth-first order. `JointProperties::is_leaf` is a helper that is used to speed-up some algorithms: See `IterateJointsDF()` from `ozz/animation/runtime/skeleton_utils.h` that implements a depth-first traversal utility.
+Helper functions are available from from `ozz/animation/runtime/skeleton_utils.h` to traverse joint hierarchy in depth first order from the root to the leaves, or in revrese order.
 
 `ozz::animation::Animation`
 ---------------------------
 
 The runtime animation data structure stores compressed animation keyframes, for all the joints of a skeleton. Translations and scales are stored using 3 half floats (3 * 16bits) while rotations (a quaternion) are quantized on 3 16bits integers. Quaternion are normalized indeed, so the 4th compenent can be restored at runtime from the 3 others and a sign. Ozz restores the biggest of the 4 components, improving numerical accuracy which gets very bad for small values (√(x + ϵ) for small x). It also allows to pre-multiply each of the 3 smallest components by sqrt(2), maximizing quantization range by over 41%.
 
-This structure is usually filled by the `ozz::animation::offline::AnimationBuilder' and deserialized/loaded at runtime.
-For each transformation type (translation, rotation and scale), animation structure stores a single array of keyframes that contains all the tracks required to animate all the joints of a skeleton, matching breadth-first joints order of the runtime skeleton structure. Keyframes in this array are sorted by time, then by track number. This is the comparison function "less" used be the sorting algorithm of the AnimationBuilder implementation:
+This structure is filled by the `ozz::animation::offline::AnimationBuilder' and deserialized/loaded at runtime.
+For each transformation type (translation, rotation and scale), animation structure stores a single array of keyframes that contains all the tracks required to animate all the joints of a skeleton, matching depth-first joints order of the runtime skeleton structure. Keyframes in this array are sorted by time, then by track number. This is the comparison function "less" used be the sorting algorithm of the AnimationBuilder implementation:
 
 {% highlight cpp %}
 bool SortingKeyLess(const _Key& _left, const _Key& _right) {

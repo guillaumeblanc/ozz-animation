@@ -5,7 +5,8 @@
       <a class="a_reject w3-bar-item w3-button w3-large w3-wide w3-hide-large w3-hide-medium" href="javascript:void(0)" onclick="w3_open()">&#9776;</a>
       <a class="a_reject w3-bar-item w3-button w3-large w3-wide w3-hide-small {% if {{page.layout}} == "home" %}w3-text-orange{% endif %}" href="{{site.baseurl}}/">Home</a>
 
-      {% for collection in site.collections %}
+      {% assign collections = site.collections | sort:"order" %}
+      {% for collection in collections %}
         {% if collection.label == 'posts' or collection.output == false %}
           {% continue %}
         {% endif %}
@@ -22,7 +23,7 @@
         </div>
       {% endfor %}
 
-      <a class="a_reject w3-bar-item w3-button w3-large w3-wide w3-hide-small" href="https://github.com/guillaumeblanc/ozz-animation/">Github</a>
+      <a class="a_reject w3-bar-item w3-button w3-large w3-wide w3-hide-small" href="https://github.com/guillaumeblanc/ozz-animation/"><i class="fab fa-github" aria-hidden="true"></i> Github</a>
 
       {% if {{page.layout}} != "home" %}
         <div class="w3-right w3-padding-8 w3-margin-right">
@@ -40,19 +41,22 @@
   <a href="javascript:void(0)" onclick="w3_close()" class="a_reject w3-right w3-xlarge w3-padding-large" title="Close">&times;</a>
 
   <a class="a_reject w3-bar-item w3-button {% if {{page.layout}} == "home" %}w3-orange{% endif %}" href="{{site.baseurl}}/">Home</a>
-  {% for collection in site.collections %}
-    {% if collection.label == 'posts' or collection.output == false %}
-      {% continue %}
-    {% endif %}
-    <a class="a_reject w3-bar-item w3-button w3-medium" href="{{site.baseurl}}/{{collection.label}}/">{{collection.display_name}}</a>
-    {% assign collection_id = collection.label %}
-    {% if {{collection_id}} == {{page.collection}} or ({{page.layout}} == "home" and {{collection_id}} == "documentation") %}
-      {% assign pages = site[{{collection_id}}] | sort:"order" %}
-      {% for cpage in pages %}
-        <a class="a_reject w3-bar-item w3-button w3-margin-left w3-small {% if page.url == cpage.url %} w3-orange {% endif %}" href="{{site.baseurl}}{{cpage.url}}">{{cpage.title}}</a>
-      {% endfor %}
-    {% endif %}
-  {% endfor %}
+    {% assign collections = site.collections | sort:"order" %}
+    {% for collection in collections %}
+      {% if collection.label == 'posts' or collection.output == false %}
+        {% continue %}
+      {% endif %}
+      <a class="a_reject w3-bar-item w3-button w3-medium" href="{{site.baseurl}}/{{collection.label}}/">{{collection.display_name}}</a>
+      {% assign collection_id = collection.label %}
+      {% if {{collection_id}} == {{page.collection}} or ({{page.layout}} == "home" and {{collection_id}} == "documentation") %}
+        {% assign pages = site[{{collection_id}}] | sort:"order" %}
+        {% for cpage in pages %}
+          <a class="a_reject w3-bar-item w3-button w3-margin-left w3-small {% if page.url == cpage.url %} w3-orange {% endif %}" href="{{site.baseurl}}{{cpage.url}}">{{cpage.title}}</a>
+        {% endfor %}
+      {% endif %}
+    {% endfor %}
+
+    <a class="a_reject w3-bar-item w3-button w3-medium" href="https://github.com/guillaumeblanc/ozz-animation/"><i class="fab fa-github" aria-hidden="true"></i>Github</a>
   <br />
   <br />
 </div>
