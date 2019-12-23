@@ -82,7 +82,7 @@ Allowed optimization error is defined by two input arguments:
 
 It's possible to override optimization settings for a joint. This implicitly have an effect on the whole chain, up to that joint. This allows for example to have aggressive optimization for a whole skeleton, except for the chain that leads to the hand if user wants it to be precise. 
 
-The optimizer also takes into account for each joint the error generated on its whole child hierarchy, with the hierarchical tolerance value. This allows for example to take into consideration the error generated on a finger when optimizing the shoulder. A small error on the shoulder can be magnified when propagated to the finger indeed.
+The optimizer also takes into account for each joint the error generated on its whole child hierarchy. This allows for example to take into consideration the error generated on a finger when optimizing the shoulder. A small error on the shoulder can be magnified when propagated to the finger indeed.
 
 Default optimization tolerances are set in order to favor quality over runtime performances and memory footprint.
 
