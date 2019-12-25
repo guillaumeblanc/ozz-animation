@@ -54,6 +54,8 @@
 #include "framework/renderer.h"
 #include "framework/utils.h"
 
+#include <algorithm>
+
 // Skeleton and animation file can be specified as an option.
 OZZ_OPTIONS_DECLARE_STRING(skeleton, "Path to the runtime skeleton file.",
                            "media/skeleton.ozz", false)
@@ -97,7 +99,8 @@ class OptimizeSampleApplication : public ozz::sample::Application {
         optimize_(true),
         joint_setting_enable_(true),
         joint_(0),
-        error_record_(64),
+        error_record_med_(64),
+        error_record_max_(64),
         joint_error_record_(64) {}
 
  protected:
@@ -181,21 +184,18 @@ class OptimizeSampleApplication : public ozz::sample::Application {
 
     // Computes the absolute error, aka the difference between the raw and
     // runtime model space transformation.
-    float error_sqr = 0.f;
-    for (size_t i = 0; i < models_rt_.size(); ++i) {
+    const size_t num_joints = models_rt_.size();
+    float errors_sq[ozz::animation::Skeleton::kMaxJoints];
+    for (size_t i = 0; i < num_joints; ++i) {
       // Computes error based on the translation difference.
-      const float joint_error_sqr = ozz::math::GetX(ozz::math::Length3Sqr(
+      errors_sq[i] = ozz::math::GetX(ozz::math::Length3Sqr(
           models_rt_[i].cols[3] - models_raw_[i].cols[3]));
-
-      // Computes maximum error.
-      error_sqr = ozz::math::Max(error_sqr, joint_error_sqr);
-
-      if (static_cast<int>(i) == joint_) {
-        joint_error_record_.Push(std::sqrt(joint_error_sqr) * 1000.f);
-      }
     }
-    error_record_.Push(std::sqrt(error_sqr) *
-                       1000.f);  // Error is in millimeters.
+
+    std::sort(errors_sq, errors_sq + models_rt_.size());
+    error_record_med_.Push(std::sqrt(errors_sq[num_joints / 2]) * 1000.f);
+    error_record_max_.Push(std::sqrt(errors_sq[num_joints - 1]) * 1000.f);
+    joint_error_record_.Push(std::sqrt(errors_sq[joint_]) * 1000.f);
 
     return true;
   }
@@ -422,28 +422,42 @@ class OptimizeSampleApplication : public ozz::sample::Application {
     }
 
     // Show absolute error.
-    {  // FPS
+    {
       char szLabel[64];
       static bool error_open = true;
       ozz::sample::ImGui::OpenClose oc_stats(_im_gui, "Absolute error",
                                              &error_open);
       if (error_open) {
-        std::sprintf(szLabel, "Skeleton error: %.2f mm",
-                     *error_record_.cursor());
-        const ozz::sample::Record::Statistics error_stats =
-            error_record_.GetStatistics();
-        _im_gui->DoGraph(szLabel, 0.f, error_stats.max, error_stats.latest,
-                         error_record_.cursor(), error_record_.record_begin(),
-                         error_record_.record_end());
-
-        std::sprintf(szLabel, "Joint error: %.2f mm",
-                     *joint_error_record_.cursor());
-        const ozz::sample::Record::Statistics joint_error_stats =
-            joint_error_record_.GetStatistics();
-        _im_gui->DoGraph(szLabel, 0.f, joint_error_stats.max,
-                         joint_error_stats.latest, joint_error_record_.cursor(),
-                         joint_error_record_.record_begin(),
-                         joint_error_record_.record_end());
+        {
+          std::sprintf(szLabel, "Median error: %.2fmm",
+                       *error_record_med_.cursor());
+          const ozz::sample::Record::Statistics error_stats =
+              error_record_med_.GetStatistics();
+          _im_gui->DoGraph(szLabel, 0.f, error_stats.max, error_stats.latest,
+                           error_record_med_.cursor(),
+                           error_record_med_.record_begin(),
+                           error_record_med_.record_end());
+        }
+        {
+          std::sprintf(szLabel, "Maximum error: %.2fmm",
+                       *error_record_max_.cursor());
+          const ozz::sample::Record::Statistics error_stats =
+              error_record_max_.GetStatistics();
+          _im_gui->DoGraph(szLabel, 0.f, error_stats.max, error_stats.latest,
+                           error_record_max_.cursor(),
+                           error_record_max_.record_begin(),
+                           error_record_max_.record_end());
+        }
+        {
+          std::sprintf(szLabel, "Joint %d error: %.2fmm", joint_,
+                       *joint_error_record_.cursor());
+          const ozz::sample::Record::Statistics error_stats =
+              joint_error_record_.GetStatistics();
+          _im_gui->DoGraph(szLabel, 0.f, error_stats.max, error_stats.latest,
+                           joint_error_record_.cursor(),
+                           joint_error_record_.record_begin(),
+                           joint_error_record_.record_end());
+        }
       }
     }
 
@@ -553,7 +567,8 @@ class OptimizeSampleApplication : public ozz::sample::Application {
 
   // Record of accuracy errors produced by animation compression and
   // optimization.
-  ozz::sample::Record error_record_;
+  ozz::sample::Record error_record_med_;
+  ozz::sample::Record error_record_max_;
   ozz::sample::Record joint_error_record_;
 };
 

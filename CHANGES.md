@@ -1,22 +1,25 @@
-
-Next next version
+Release version 0.12.0
 ----------------------
+
 * Library
-  - [offline] Simplified AnimationOptimizer settings to a single tolerance and distance. Tolerance is the maximum error that an optimization is allowed to generate on a whole joint hierarchy, while the other parameter is the distance (from the joint) at which error is measured. This second paramater allows to emulate effect on skinning or a long object (sword) attached to a joint (hand).
-  - [offline] Adds options to AnimationOptimizer to override optimization settings for a joint. This implicitely have an effect on the whole chain, up to that joint. This allows for example to have aggressive optimization for a whole skeleton, except for the chain that leads to the hand if user wants it to be precise.
-  - [offline] Switches AnimationOptimizer and TrackOptimizer to Ramer–Douglas–Peucker decimation algorithm which delivers better precision than original one. It also ensures that first and last points are preserved, avoiding artefact for looping animations.
+  - [offline] Simplified AnimationOptimizer settings to a single tolerance and distance. Tolerance is the maximum error that an optimization is allowed to generate on a whole joint hierarchy, while the other parameter is the distance (from the joint) at which error is measured. This second parameter allows to emulate effect on skinning or a long object (sword) attached to a joint (hand).
+  - [offline] Adds options to AnimationOptimizer to override optimization settings for a joint. This implicitly have an effect on the whole chain, up to that joint. This allows for example to have aggressive optimization for a whole skeleton, except for the chain that leads to the hand if user wants it to be precise.
+  - [offline] Switches AnimationOptimizer and TrackOptimizer to Ramer–Douglas–Peucker decimation algorithm which delivers better precision than original one. It also ensures that first and last points are preserved, avoiding visual issues for looping animations.
   - [offline] Changes order of parameters for IterateJointsDF so it's less error prone.
   - [memory] Implements ScopedPtr smart pointer. ScopedPtr implementation guarantees the pointed object will be deleted, either on destruction of the ScopedPtr, or via an explicit reset / reassignation.
-  - [math] Quaternion compare function now takes cosine of half angle as argument, to avoid computing arc cosine for every comparison as the tolerance is usualy constant.
+  - [math] Quaternion compare function now takes cosine of half angle as argument, to avoid computing arc cosine for every comparison as the tolerance is usually constant.
+  - [base] Replaces ozz::memory::Allocator New and Delete function with OZZ_NEW and OZZ_DELETE macros, in order to provide an interface that supports any type and number of arguments (without requiring c++11).
+  - [base] #83 Allows user code to disable definition of global namespace sse \_m128 +-/* operators, as they might conflict with other sse math libraries.
 
 * Samples
-  - [optimize] Exposes joint setting overriding option (from AnimationOptimizer) to sample gui.
+  - [optimize] Exposes joint setting overriding option (from AnimationOptimizer) to sample gui. Displays median and maximum error values.
 
 * Tools
   - Moves keyframe reduction stage for additive animations before computing delta with reference pose. This ensures whole skeleton hierarchy is known before decimating keyframes.
 
 Release version 0.11.0
 ----------------------
+
 * Library
   - [animation] Adds two-bone and aim inverse kinematic solvers. They can be used at runtime to procedurally affect joint local-space transforms.
   - [animation] Allows resizing SamplingCache, meaning the can be allocated without knowing the number of joints the cache needs to support.

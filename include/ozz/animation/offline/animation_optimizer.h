@@ -84,8 +84,8 @@ class AnimationOptimizer {
     // joint hierarchy.
     float tolerance;
 
-    // The distance (from the joint) at which error is measured. This allows to
-    // emulate effect on skinning.
+    // The distance (from the joint) at which error is measured (if bigger that
+    // joint hierarchy). This allows to emulate effect on skinning.
     float distance;
   };
 

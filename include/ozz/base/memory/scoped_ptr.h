@@ -36,8 +36,7 @@ namespace ozz {
 
 // ScopedPtr is a smart pointer implementation that guarantees the object will
 // be deleted, either on destruction of the ScopedPtr, or via an explicit reset
-// / assignation. Object must have been allocated with ozz allocator New()
-// function, as it will be deleted by ozz default allocator Delete().
+// / assignation. Object must have been allocated with OZZ_NEW with the default allocator, as it will be deleted by OZZ_DELTE with default allocator.
 // In order to mimic raw pointer behavior, ScopedPtr provides assignation
 // operator and implicit cast to pointer type. This is motivated by the fact
 // that ScopePtr are used in simple cases. I isn't a safety choice, as it
@@ -46,11 +45,11 @@ template <typename _Type>
 class ScopedPtr {
  public:
   // Construct a NULL or valid ScopedPtr.
-  // _pointer must have been allocated with ozz allocator New() function.
+  // _pointer must have been allocated with OZZ_NEW with the default allocator.
   explicit ScopedPtr(_Type* _pointer = NULL) : pointer_(_pointer) {}
 
   // Deletes pointed object if any.
-  ~ScopedPtr() { ozz::memory::default_allocator()->Delete(pointer_); }
+  ~ScopedPtr() { OZZ_DELETE(ozz::memory::default_allocator(), pointer_); }
 
   // Dereferences pointed object. Function will assert if NULL.
   _Type& operator*() const {
@@ -88,7 +87,7 @@ class ScopedPtr {
     // Reseting to the same value would deallocate twice.
     assert((_pointer == NULL || _pointer != pointer_) &&
            "ScopedPtr cannot be reseted to the same value.");
-    ozz::memory::default_allocator()->Delete(pointer_);
+    OZZ_DELETE(ozz::memory::default_allocator(), pointer_);
     pointer_ = _pointer;
   }
 

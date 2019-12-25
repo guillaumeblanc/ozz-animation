@@ -17,12 +17,12 @@
       "filename":"baked_animation.ozz",
       "optimization_settings":  // Camera is very sensitive to optimizations.
       {
-        "tolerance" : 0.005, //  Global setting, for all boxes.
-        "distance" : 1.0,
+        "tolerance" : 0.002, // Global setting, for all boxes.
+        "distance" : 0.707,  // Every box is 1m wide, so a corner is at .707m from center.
         "override" : 
         [
           {
-            "name" : "camera", //  Specific setting for the camera.
+            "name" : "camera", // Specific setting for the camera.
             "tolerance" : 0.001,
             "distance" : 20.  // 2m, x10 as camera is scaled to .1
           }

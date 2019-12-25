@@ -50,8 +50,7 @@ namespace simd_float4 {
 #ifdef OZZ_SIMD_AVX
 #define OZZ_SHUFFLE_PS1(_v, _m) _mm_permute_ps(_v, _m)
 #else  // OZZ_SIMD_AVX
-#define OZZ_SHUFFLE_PS1(_v, _m) \
-  _mm_castsi128_ps(_mm_shuffle_epi32(_mm_castps_si128(_v), _m))
+#define OZZ_SHUFFLE_PS1(_v, _m) _mm_shuffle_ps(_v, _v, _m)
 #endif  // OZZ_SIMD_AVX
 
 #define OZZ_SSE_SPLAT_F(_v, _i) OZZ_SHUFFLE_PS1(_v, _MM_SHUFFLE(_i, _i, _i, _i))
@@ -509,11 +508,12 @@ OZZ_INLINE SimdFloat4 Dot4(_SimdFloat4 _a, _SimdFloat4 _b) {
 }
 
 OZZ_INLINE SimdFloat4 Cross3(_SimdFloat4 _a, _SimdFloat4 _b) {
-  const __m128 left1 = OZZ_SHUFFLE_PS1(_b, _MM_SHUFFLE(3, 0, 2, 1));
-  const __m128 right0 = OZZ_SHUFFLE_PS1(_a, _MM_SHUFFLE(3, 1, 0, 2));
-  const __m128 left0 = OZZ_SHUFFLE_PS1(_a, _MM_SHUFFLE(3, 0, 2, 1));
-  const __m128 right1 = OZZ_SHUFFLE_PS1(_b, _MM_SHUFFLE(3, 1, 0, 2));
-  return OZZ_MSUB(left0, right1, _mm_mul_ps(left1, right0));
+  // Implementation with 3 shuffles only is based on:
+  // https://geometrian.com/programming/tutorials/cross-product
+  const __m128 shufa = OZZ_SHUFFLE_PS1(_a, _MM_SHUFFLE(3, 0, 2, 1));
+  const __m128 shufb = OZZ_SHUFFLE_PS1(_b, _MM_SHUFFLE(3, 0, 2, 1));
+  const __m128 shufc = OZZ_MSUB(_a, shufb, _mm_mul_ps(_b, shufa));
+  return OZZ_SHUFFLE_PS1(shufc, _MM_SHUFFLE(3, 0, 2, 1));
 }
 
 OZZ_INLINE SimdFloat4 RcpEst(_SimdFloat4 _v) { return _mm_rcp_ps(_v); }
@@ -2008,6 +2008,7 @@ OZZ_INLINE ozz::math::Float4x4 operator-(const ozz::math::Float4x4& _a,
 }  // namespace ozz
 
 #if !defined(__GNUC__)
+#if !defined(OZZ_DISABLE_SSE_NATIVE_OPERATORS)
 OZZ_INLINE ozz::math::SimdFloat4 operator+(ozz::math::_SimdFloat4 _a,
                                            ozz::math::_SimdFloat4 _b) {
   return _mm_add_ps(_a, _b);
@@ -2031,6 +2032,7 @@ OZZ_INLINE ozz::math::SimdFloat4 operator/(ozz::math::_SimdFloat4 _a,
                                            ozz::math::_SimdFloat4 _b) {
   return _mm_div_ps(_a, _b);
 }
+#endif  // !defined(OZZ_DISABLE_SSE_NATIVE_OPERATORS)
 #endif  // !defined(__GNUC__)
 
 namespace ozz {
