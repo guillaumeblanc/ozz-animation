@@ -106,9 +106,9 @@ Application::Application()
       capture_screenshot_(false),
       renderer_(NULL),
       im_gui_(NULL),
-      fps_(memory::default_allocator()->New<Record>(128)),
-      update_time_(memory::default_allocator()->New<Record>(128)),
-      render_time_(memory::default_allocator()->New<Record>(128)),
+      fps_(OZZ_NEW(memory::default_allocator(), Record)(128)),
+      update_time_(OZZ_NEW(memory::default_allocator(), Record)(128)),
+      render_time_(OZZ_NEW(memory::default_allocator(), Record)(128)),
       resolution_(resolution_presets[0]) {
 #ifndef NDEBUG
   // Assert presets are correctly sorted.
@@ -192,7 +192,7 @@ int Application::Run(int _argc, const char** _argv, const char* _version,
                  << glGetString(GL_VERSION) << "\"." << std::endl;
 
       // Allocates and initializes camera
-      camera_ = memory::default_allocator()->New<internal::Camera>();
+      camera_ = OZZ_NEW(memory::default_allocator(), internal::Camera);
       math::Float3 camera_center;
       math::Float2 camera_angles;
       float distance;
@@ -202,12 +202,12 @@ int Application::Run(int _argc, const char** _argv, const char* _version,
 
       // Allocates and initializes renderer.
       renderer_ =
-          memory::default_allocator()->New<internal::RendererImpl>(camera_);
+          OZZ_NEW(memory::default_allocator(), internal::RendererImpl)(camera_);
       success = renderer_->Initialize();
 
       if (success) {
-        shooter_ = memory::default_allocator()->New<internal::Shooter>();
-        im_gui_ = memory::default_allocator()->New<internal::ImGuiImpl>();
+        shooter_ = OZZ_NEW(memory::default_allocator(), internal::Shooter);
+        im_gui_ = OZZ_NEW(memory::default_allocator(), internal::ImGuiImpl);
 
 #ifndef EMSCRIPTEN  // Better not rename web page.
         glfwSetWindowTitle(_title);
@@ -221,14 +221,14 @@ int Application::Run(int _argc, const char** _argv, const char* _version,
         // Loop the sample.
         success = Loop();
 
-        memory::default_allocator()->Delete(shooter_);
+        OZZ_DELETE(memory::default_allocator(), shooter_);
         shooter_ = NULL;
-        memory::default_allocator()->Delete(im_gui_);
+        OZZ_DELETE(memory::default_allocator(), im_gui_);
         im_gui_ = NULL;
       }
-      memory::default_allocator()->Delete(renderer_);
+      OZZ_DELETE(memory::default_allocator(), renderer_);
       renderer_ = NULL;
-      memory::default_allocator()->Delete(camera_);
+      OZZ_DELETE(memory::default_allocator(), camera_);
       camera_ = NULL;
     }
 
@@ -482,8 +482,8 @@ bool Application::Gui() {
   input.lmb_pressed = glfwGetMouseButton(GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
 
   // Starts frame
-  static_cast<internal::ImGuiImpl*>(im_gui_)->BeginFrame(input, window_rect,
-                                                         renderer_);
+  static_cast<internal::ImGuiImpl*>(im_gui_)
+      ->BeginFrame(input, window_rect, renderer_);
 
   // Help gui.
   {

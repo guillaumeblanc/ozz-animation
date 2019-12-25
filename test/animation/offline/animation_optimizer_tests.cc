@@ -354,10 +354,10 @@ TEST(Optimize, AnimationOptimizer) {
     input.tracks[0].rotations.push_back(key);
   }
 
-  // Big enough translation tolerance -> keys rejected
+  // Big enough tolerance -> keys rejected
   {
     RawAnimation output;
-    optimizer.setting.tolerance = .2f;
+    optimizer.setting.tolerance = .3f;
     optimizer.setting.distance = 40.f;
     ASSERT_TRUE(optimizer(input, *skeleton, &output));
     EXPECT_EQ(output.num_tracks(), 5);
@@ -371,7 +371,7 @@ TEST(Optimize, AnimationOptimizer) {
     ASSERT_EQ(translations.size(), 2u);
   }
 
-  // Samll enough translation tolerance -> keys rejected
+  // Small enough tolerance -> keys rejected
   {
     RawAnimation output;
     optimizer.setting.tolerance = .05f;
@@ -417,7 +417,7 @@ TEST(Optimize, AnimationOptimizer) {
   // Small translation tolerance, but scaled down -> keys rejected
   {
     RawAnimation output;
-    optimizer.setting.tolerance = .01f;
+    optimizer.setting.tolerance = .011f;
     ASSERT_TRUE(optimizer(input, *skeleton, &output));
     EXPECT_EQ(output.num_tracks(), 5);
 
@@ -464,7 +464,8 @@ TEST(OptimizeOverride, AnimationOptimizer) {
 
   // Disable non hierarchical optimizations
   AnimationOptimizer optimizer;
-  const AnimationOptimizer::Setting default_setting;
+  const AnimationOptimizer::Setting loose_setting(1e-2f,   // 1cm
+                                                  1e-3f);  // 1mm
   // Disables vertex distance.
   optimizer.setting.distance = 0.f;
 
@@ -539,7 +540,7 @@ TEST(OptimizeOverride, AnimationOptimizer) {
   // Default global tolerances
   {
     RawAnimation output;
-    optimizer.setting = default_setting;
+    optimizer.setting = loose_setting;
     ASSERT_TRUE(optimizer(input, *skeleton, &output));
     ASSERT_EQ(output.num_tracks(), 5);
 
@@ -559,7 +560,7 @@ TEST(OptimizeOverride, AnimationOptimizer) {
   // Overriding root has no effect on its child, even with small tolerance.
   {
     RawAnimation output;
-    optimizer.setting = default_setting;
+    optimizer.setting = loose_setting;
     const AnimationOptimizer::Setting joint_override(1e-6f, 1e6f);
     optimizer.joints_setting_override[0] = joint_override;
     ASSERT_TRUE(optimizer(input, *skeleton, &output));
@@ -579,30 +580,9 @@ TEST(OptimizeOverride, AnimationOptimizer) {
   // Overriding a joint has effect on itself.
   {
     RawAnimation output;
-    optimizer.setting = default_setting;
-    const AnimationOptimizer::Setting joint_override(.9e-3f,  // < 1mm
-                                                     1.f);    // 1m
-    optimizer.joints_setting_override[1] = joint_override;
-    ASSERT_TRUE(optimizer(input, *skeleton, &output));
-    EXPECT_EQ(output.num_tracks(), 5);
-
-    const RawAnimation::JointTrack::Rotations& rotations =
-        output.tracks[1].rotations;
-    EXPECT_EQ(rotations.size(), 3u);
-
-    const RawAnimation::JointTrack::Translations& translations =
-        output.tracks[2].translations;
-    EXPECT_EQ(translations.size(), 2u);
-
-    optimizer.joints_setting_override.clear();
-  }
-
-  // Overriding a joint has effect on itself, unless too hig tolerance.
-  {
-    RawAnimation output;
-    optimizer.setting = default_setting;
-    const AnimationOptimizer::Setting joint_override(1.1e-3f,  // < 1mm
-                                                     1.f);     // 1m
+    optimizer.setting = loose_setting;
+    const AnimationOptimizer::Setting joint_override(1e-3f,  // 1mm
+                                                     .01f);  // 10m
     optimizer.joints_setting_override[1] = joint_override;
     ASSERT_TRUE(optimizer(input, *skeleton, &output));
     EXPECT_EQ(output.num_tracks(), 5);
@@ -621,7 +601,7 @@ TEST(OptimizeOverride, AnimationOptimizer) {
   // Overriding leaf has effect up to the root though.
   {
     RawAnimation output;
-    optimizer.setting = default_setting;
+    optimizer.setting = loose_setting;
     const AnimationOptimizer::Setting joint_override(1e-3f,  // 1mm
                                                      1.f);   // 1m
     optimizer.joints_setting_override[2] = joint_override;
@@ -645,10 +625,11 @@ TEST(OptimizeOverride, AnimationOptimizer) {
     input.tracks[0].scales.push_back(key);
 
     RawAnimation output;
-    optimizer.setting = default_setting;
-    const AnimationOptimizer::Setting joint_override(1.1e-3f,  // > 1mm
-                                                     1.f);     // 1m
+    optimizer.setting = loose_setting;
+    const AnimationOptimizer::Setting joint_override(1.e-3f,  // > 1mm
+                                                     .5f);     // .5m
     optimizer.joints_setting_override[1] = joint_override;
+      optimizer.joints_setting_override[2] = joint_override;
     ASSERT_TRUE(optimizer(input, *skeleton, &output));
     EXPECT_EQ(output.num_tracks(), 5);
 
@@ -670,9 +651,9 @@ TEST(OptimizeOverride, AnimationOptimizer) {
     input.tracks[4].scales.push_back(key);
 
     RawAnimation output;
-    optimizer.setting = default_setting;
-    const AnimationOptimizer::Setting joint_override(1.1e-3f,  // > 1mm
-                                                     1.f);     // 1m
+    optimizer.setting = loose_setting;
+    const AnimationOptimizer::Setting joint_override(1e-3f,  // < 1mm
+                                                     .5f);   // .5m
     optimizer.joints_setting_override[1] = joint_override;
     ASSERT_TRUE(optimizer(input, *skeleton, &output));
     EXPECT_EQ(output.num_tracks(), 5);

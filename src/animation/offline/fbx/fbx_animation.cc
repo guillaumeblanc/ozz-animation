@@ -36,6 +36,7 @@
 
 #include "ozz/base/log.h"
 
+#include "ozz/base/maths/math_ex.h"
 #include "ozz/base/maths/transform.h"
 
 namespace ozz {
@@ -48,6 +49,7 @@ struct SamplingInfo {
   float start;
   float end;
   float duration;
+  float frequency;
   float period;
 };
 
@@ -83,6 +85,7 @@ SamplingInfo ExtractSamplingInfo(FbxScene* _scene, FbxAnimStack* _anim_stack,
     log::LogV() << "Using scene sampling rate of " << sampling_rate << "hz."
                 << std::endl;
   }
+  info.frequency = sampling_rate;
   info.period = 1.f / sampling_rate;
 
   // Get scene start and end.
@@ -116,43 +119,38 @@ bool ExtractAnimation(FbxSceneLoader& _scene_loader, const SamplingInfo& _info,
   }
 
   // Preallocates and initializes world matrices.
-  const size_t max_keys =
-      static_cast<size_t>(3.f + (_info.end - _info.start) / _info.period);
+  // +1 for converting number of intervals to number of points.
+  const size_t num_keys =
+      static_cast<size_t>(std::ceil(1.f + _info.duration * _info.frequency));
   ozz::Vector<float>::Std times;
-  times.reserve(max_keys);
+  times.resize(num_keys);
   ozz::Vector<ozz::Vector<ozz::math::Float4x4>::Std>::Std world_matrices;
   world_matrices.resize(_skeleton.num_joints());
   for (int i = 0; i < _skeleton.num_joints(); i++) {
-    world_matrices[i].reserve(max_keys);
+    world_matrices[i].resize(num_keys);
   }
 
   // Goes through the whole timeline to compute animated word matrices.
   // Fbx sdk seems to compute nodes transformation for the whole scene, so it's
   // much faster to query all nodes at once for the same time t.
   FbxAnimEvaluator* evaluator = scene->GetAnimationEvaluator();
-  bool loop_again = true;
-  size_t num_keys = 0;
-  for (float t = _info.start; loop_again; t += _info.period) {
-    if (t >= _info.end) {
-      t = _info.end;
-      loop_again = false;
-    }
-    times.push_back(t - _info.start);
-    ++num_keys;
+  for (size_t k = 0; k < num_keys; ++k) {
+    // It's important to have exact [0, duration] range.
+    const float t = ozz::math::Min(k * _info.period, _info.duration);
+    times[k] = t;
 
     // Goes through all nodes.
     for (int i = 0; i < _skeleton.num_joints(); i++) {
       FbxNode* node = nodes[i];
       if (node) {
-        const FbxAMatrix fbx_matrix =
-            evaluator->GetNodeGlobalTransform(node, FbxTimeSeconds(t));
+        const FbxAMatrix fbx_matrix = evaluator->GetNodeGlobalTransform(
+            node, FbxTimeSeconds(t + _info.start));
         const math::Float4x4 matrix =
             _scene_loader.converter()->ConvertMatrix(fbx_matrix);
-        world_matrices[i].push_back(matrix);
+        world_matrices[i][k] = matrix;
       }
     }
   }
-  assert(num_keys <= max_keys);
 
   // Builds world matrices for non-animated joints.
   // Skeleton is order with parents first, so it can be traversed in order.
@@ -180,12 +178,12 @@ bool ExtractAnimation(FbxSceneLoader& _scene_loader, const SamplingInfo& _info,
         ozz::Vector<math::Float4x4>::Std& parent_matrices =
             world_matrices[parent];
         assert(num_keys == parent_matrices.size());
-        for (size_t p = 0; p < num_keys; ++p) {
-          node_matrices.push_back(parent_matrices[p] * local_matrix);
+        for (size_t k = 0; k < num_keys; ++k) {
+          node_matrices[k] = parent_matrices[k] * local_matrix;
         }
       } else {
-        for (size_t p = 0; p < num_keys; ++p) {
-          node_matrices.push_back(local_matrix);
+        for (size_t k = 0; k < num_keys; ++k) {
+          node_matrices[k] = local_matrix;
         }
       }
     }
@@ -420,45 +418,37 @@ bool ExtractCurve(FbxSceneLoader& _scene_loader, FbxProperty& _property,
         evaluator->GetPropertyValue(_property, FbxTimeSeconds(0.));
 
     typename _Track::ValueType value;
-    bool success =
-        GetValue(_scene_loader, property_value, _fbx_type, _type, &value);
-    (void)success;
-    assert(success);
+    if (!GetValue(_scene_loader, property_value, _fbx_type, _type, &value)) {
+      return false;
+    }
 
     // Build and push keyframe
     const typename _Track::Keyframe key = {RawTrackInterpolation::kStep, 0.f,
                                            value};
     _track->keyframes.push_back(key);
   } else {
-    // Reserve keys
-    const int max_keys =
-        static_cast<int>(3.f + (_info.end - _info.start) / _info.period);
-    _track->keyframes.reserve(max_keys);
+    const size_t num_keys =
+        static_cast<size_t>(std::ceil(1.f + _info.duration * _info.frequency));
+    _track->keyframes.resize(num_keys);
 
     // Evaluate values at the specified time.
-    // Make sure to include "end" time, and enter the loop once at least.
-    bool loop_again = true;
-    for (float t = _info.start; loop_again; t += _info.period) {
-      if (t >= _info.end) {
-        t = _info.end;
-        loop_again = false;
-      }
+    for (size_t k = 0; k < num_keys; ++k) {
+      // It's important to have exact [0, duration] range.
+      const float t = ozz::math::Min(k * _info.period, _info.duration);
 
-      FbxPropertyValue& property_value =
-          evaluator->GetPropertyValue(_property, FbxTimeSeconds(t));
+      FbxPropertyValue& property_value = evaluator->GetPropertyValue(
+          _property, FbxTimeSeconds(t + _info.start));
 
       // It shouldn't fail as property type is known.
       typename _Track::ValueType value;
-      bool success =
-          GetValue(_scene_loader, property_value, _fbx_type, _type, &value);
-      (void)success;
-      assert(success);
+      if (!GetValue(_scene_loader, property_value, _fbx_type, _type, &value)) {
+        return false;
+      }
 
       // Build and push keyframe
       const typename _Track::Keyframe key = {RawTrackInterpolation::kLinear,
-                                             (t - _info.start) / _info.duration,
-                                             value};
-      _track->keyframes.push_back(key);
+                                             t / _info.duration, value};
+      _track->keyframes[k] = key;
     }
   }
 
