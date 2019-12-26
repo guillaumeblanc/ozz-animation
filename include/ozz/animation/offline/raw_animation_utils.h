@@ -62,6 +62,26 @@ bool SampleTrack(const RawAnimation::JointTrack& _track, float _time,
 // Returns false output range is too small or animation is invalid.
 bool SampleAnimation(const RawAnimation& _animation, float _time,
                      const Range<ozz::math::Transform>& _transforms);
+
+// Implement fixed rate keyframe time iteration. This utility purpose is to
+// ensure that sampling goes strictly from 0 to duration, and that period
+// between consecutive time samples have a fixed period.
+// This sounds trivial, but floating point error could occur if keyframe time
+// was accumulated for a long duration.
+struct FixedRateSamplingTime {
+  FixedRateSamplingTime(float _duration, float _frequency)
+      : duration(_duration),
+        period(1.f / _frequency),
+        num_keys(static_cast<size_t>(std::ceil(1.f + duration * _frequency))) {}
+
+  float time(size_t _key) const {
+    assert(_key < num_keys);
+    return ozz::math::Min(_key * period, duration);
+  }
+  const float duration;
+  const float period;
+  const size_t num_keys;
+};
 }  // namespace offline
 }  // namespace animation
 }  // namespace ozz
