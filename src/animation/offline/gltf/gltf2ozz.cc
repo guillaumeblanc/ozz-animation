@@ -31,6 +31,9 @@
 //----------------------------------------------------------------------------//
 
 #include "ozz/animation/offline/tools/import2ozz.h"
+
+#include "ozz/animation/offline/raw_animation_utils.h"
+
 #include "ozz/animation/runtime/skeleton.h"
 
 #include "ozz/base/containers/map.h"
@@ -139,6 +142,11 @@ bool SampleLinearChannel(const tinygltf::Model& _model,
                          _KeyframesType* _keyframes) {
   const size_t gltf_keys_count = _output.count;
 
+  if (gltf_keys_count == 0) {
+    _keyframes->clear();
+    return true;
+  }
+
   typedef typename _KeyframesType::value_type::Value ValueType;
   const ozz::Range<const ValueType> values =
       BufferView<ValueType>(_model, _output);
@@ -167,6 +175,11 @@ bool SampleStepChannel(const tinygltf::Model& _model,
                        const ozz::Range<const float>& _timestamps,
                        _KeyframesType* _keyframes) {
   const size_t gltf_keys_count = _output.count;
+
+  if (gltf_keys_count == 0) {
+    _keyframes->clear();
+    return true;
+  }
 
   typedef typename _KeyframesType::value_type::Value ValueType;
   const ozz::Range<const ValueType> values =
@@ -239,6 +252,11 @@ bool SampleCubicSplineChannel(const tinygltf::Model& _model,
   assert(_output.count % 3 == 0);
   size_t gltf_keys_count = _output.count / 3;
 
+  if (gltf_keys_count == 0) {
+    _keyframes->clear();
+    return true;
+  }
+
   typedef typename _KeyframesType::value_type::Value ValueType;
   const ozz::Range<const ValueType> values =
       BufferView<ValueType>(_model, _output);
@@ -249,22 +267,14 @@ bool SampleCubicSplineChannel(const tinygltf::Model& _model,
     return false;
   }
 
-  // Reserves maximum keyframe count
-  _keyframes->reserve(
-      static_cast<size_t>(floor(_duration * _sampling_rate) + 1.f));
-
   // Iterate keyframes at _sampling_rate steps, between first and last time
   // stamps.
+  ozz::animation::offline::FixedRateSamplingTime fixed_it(
+      _timestamps[gltf_keys_count - 1] - _timestamps[0], _sampling_rate);
+  _keyframes->resize(fixed_it.num_keys());
   size_t cubic_key0 = 0;
-  bool loop = true;
-  for (float time = _timestamps[0], end = _timestamps[gltf_keys_count - 1],
-             step = 1.f / _sampling_rate;
-       loop; time += step) {
-    // Handles sampling loop end.
-    if (time >= end) {
-      time = end;
-      loop = false;
-    }
+  for (size_t k = 0; k < fixed_it.num_keys(); ++k) {
+    const float time = fixed_it.time(k) + _timestamps[0];
 
     // Creates output key.
     typename _KeyframesType::value_type key;
@@ -288,7 +298,7 @@ bool SampleCubicSplineChannel(const tinygltf::Model& _model,
     key.value = SampleHermiteSpline(alpha, p0, m0, p1, m1);
 
     // Pushes interpolated key.
-    _keyframes->push_back(key);
+    _keyframes->at(k) = key;
   }
 
   return true;
@@ -694,7 +704,7 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
     const float duration = static_cast<float>(input.maxValues[0]);
 
     // If this channel's duration is larger than the animation's duration
-    // then increase the animation duration to match
+    // then increase the animation duration to match.
     if (duration > *_duration) {
       *_duration = duration;
     }
