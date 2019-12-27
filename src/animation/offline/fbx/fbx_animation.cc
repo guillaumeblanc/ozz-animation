@@ -121,18 +121,18 @@ bool ExtractAnimation(FbxSceneLoader& _scene_loader, const SamplingInfo& _info,
   const FixedRateSamplingTime fixed_it(_info.duration, _info.frequency);
 
   ozz::Vector<float>::Std times;
-  times.resize(fixed_it.num_keys);
+  times.resize(fixed_it.num_keys());
   ozz::Vector<ozz::Vector<ozz::math::Float4x4>::Std>::Std world_matrices;
   world_matrices.resize(_skeleton.num_joints());
   for (int i = 0; i < _skeleton.num_joints(); i++) {
-    world_matrices[i].resize(fixed_it.num_keys);
+    world_matrices[i].resize(fixed_it.num_keys());
   }
 
   // Goes through the whole timeline to compute animated word matrices.
   // Fbx sdk seems to compute nodes transformation for the whole scene, so it's
   // much faster to query all nodes at once for the same time t.
   FbxAnimEvaluator* evaluator = scene->GetAnimationEvaluator();
-  for (size_t k = 0; k < fixed_it.num_keys; ++k) {
+  for (size_t k = 0; k < fixed_it.num_keys(); ++k) {
     const float t = fixed_it.time(k);
     times[k] = t;
 
@@ -174,12 +174,12 @@ bool ExtractAnimation(FbxSceneLoader& _scene_loader, const SamplingInfo& _info,
       if (parent != Skeleton::kNoParent) {
         const ozz::Vector<math::Float4x4>::Std& parent_matrices =
             world_matrices[parent];
-        assert(fixed_it.num_keys == parent_matrices.size());
-        for (size_t k = 0; k < fixed_it.num_keys; ++k) {
+        assert(fixed_it.num_keys() == parent_matrices.size());
+        for (size_t k = 0; k < fixed_it.num_keys(); ++k) {
           node_matrices[k] = parent_matrices[k] * local_matrix;
         }
       } else {
-        for (size_t k = 0; k < fixed_it.num_keys; ++k) {
+        for (size_t k = 0; k < fixed_it.num_keys(); ++k) {
           node_matrices[k] = local_matrix;
         }
       }
@@ -194,8 +194,8 @@ bool ExtractAnimation(FbxSceneLoader& _scene_loader, const SamplingInfo& _info,
         world_matrices[i];
     ozz::Vector<math::Float4x4>::Std& node_world_inv_matrices =
         world_inv_matrices[i];
-    node_world_inv_matrices.resize(fixed_it.num_keys);
-    for (size_t p = 0; p < fixed_it.num_keys; ++p) {
+    node_world_inv_matrices.resize(fixed_it.num_keys());
+    for (size_t p = 0; p < fixed_it.num_keys(); ++p) {
       node_world_inv_matrices[p] = Invert(node_world_matrices[p]);
     }
   }
@@ -207,16 +207,16 @@ bool ExtractAnimation(FbxSceneLoader& _scene_loader, const SamplingInfo& _info,
   _animation->tracks.resize(_skeleton.num_joints());
   for (int i = 0; i < _skeleton.num_joints(); i++) {
     RawAnimation::JointTrack& track = _animation->tracks[i];
-    track.rotations.resize(fixed_it.num_keys);
-    track.translations.resize(fixed_it.num_keys);
-    track.scales.resize(fixed_it.num_keys);
+    track.rotations.resize(fixed_it.num_keys());
+    track.translations.resize(fixed_it.num_keys());
+    track.scales.resize(fixed_it.num_keys());
 
     const int16_t parent = _skeleton.joint_parents()[i];
     ozz::Vector<math::Float4x4>::Std& node_world_matrices = world_matrices[i];
     ozz::Vector<math::Float4x4>::Std& node_world_inv_matrices =
         world_inv_matrices[parent != Skeleton::kNoParent ? parent : 0];
 
-    for (size_t n = 0; n < fixed_it.num_keys; ++n) {
+    for (size_t n = 0; n < fixed_it.num_keys(); ++n) {
       // Builds local matrix;
       math::Float4x4 local_matrix;
       if (parent != Skeleton::kNoParent) {
@@ -426,10 +426,10 @@ bool ExtractCurve(FbxSceneLoader& _scene_loader, FbxProperty& _property,
     _track->keyframes.push_back(key);
   } else {
     const FixedRateSamplingTime fixed_it(_info.duration, _info.frequency);
-    _track->keyframes.resize(fixed_it.num_keys);
+    _track->keyframes.resize(fixed_it.num_keys());
 
     // Evaluate values at the specified time.
-    for (size_t k = 0; k < fixed_it.num_keys; ++k) {
+    for (size_t k = 0; k < fixed_it.num_keys(); ++k) {
       const float t = fixed_it.time(k);
 
       FbxPropertyValue& property_value = evaluator->GetPropertyValue(

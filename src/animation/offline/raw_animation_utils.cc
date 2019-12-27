@@ -141,6 +141,12 @@ bool SampleAnimation(const RawAnimation& _animation, float _time,
   }
   return true;
 }
+
+FixedRateSamplingTime::FixedRateSamplingTime(float _duration, float _frequency)
+    : duration_(_duration),
+      period_(1.f / _frequency),
+      num_keys_(static_cast<size_t>(std::ceil(1.f + _duration * _frequency))) {}
+
 }  // namespace offline
 }  // namespace animation
 }  // namespace ozz
