@@ -228,9 +228,7 @@ TEST(SamplingAnimation, Utils) {
 TEST(FixedRateSamplingTime, Utils) {
   {  // From 0
     ozz::animation::offline::FixedRateSamplingTime it(1.f, 30.f);
-    EXPECT_EQ(it.duration, 1.f);
-    EXPECT_FLOAT_EQ(it.period, 1.f / 30.f);
-    EXPECT_EQ(it.num_keys, 31u);
+    EXPECT_EQ(it.num_keys(), 31u);
 
     EXPECT_EQ(it.time(0), 0.f);
     EXPECT_FLOAT_EQ(it.time(1), 1.f / 30.f);
@@ -242,9 +240,7 @@ TEST(FixedRateSamplingTime, Utils) {
 
   {  // Offset
     ozz::animation::offline::FixedRateSamplingTime it(3.f, 100.f);
-    EXPECT_EQ(it.duration, 3.f);
-    EXPECT_FLOAT_EQ(it.period, 1.f / 100.f);
-    EXPECT_EQ(it.num_keys, 301u);
+    EXPECT_EQ(it.num_keys(), 301u);
 
     EXPECT_EQ(it.time(0), 0.f);
     EXPECT_FLOAT_EQ(it.time(1), 1.f / 100.f);
@@ -255,9 +251,7 @@ TEST(FixedRateSamplingTime, Utils) {
 
   {  // Ceil
     ozz::animation::offline::FixedRateSamplingTime it(1.001f, 30.f);
-    EXPECT_EQ(it.duration, 1.001f);
-    EXPECT_FLOAT_EQ(it.period, 1.f / 30.f);
-    EXPECT_EQ(it.num_keys, 32u);
+    EXPECT_EQ(it.num_keys(), 32u);
 
     EXPECT_EQ(it.time(0), 0.f);
     EXPECT_FLOAT_EQ(it.time(1), 1.f / 30.f);
@@ -269,9 +263,7 @@ TEST(FixedRateSamplingTime, Utils) {
 
   {  // Long
     ozz::animation::offline::FixedRateSamplingTime it(1000.f, 30.f);
-    EXPECT_EQ(it.duration, 1000.f);
-    EXPECT_FLOAT_EQ(it.period, 1.f / 30.f);
-    EXPECT_EQ(it.num_keys, 30001u);
+    EXPECT_EQ(it.num_keys(), 30001u);
 
     EXPECT_EQ(it.time(0), 0.f);
     EXPECT_FLOAT_EQ(it.time(1), 1.f / 30.f);

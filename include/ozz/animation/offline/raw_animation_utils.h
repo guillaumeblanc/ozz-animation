@@ -68,19 +68,21 @@ bool SampleAnimation(const RawAnimation& _animation, float _time,
 // between consecutive time samples have a fixed period.
 // This sounds trivial, but floating point error could occur if keyframe time
 // was accumulated for a long duration.
-struct FixedRateSamplingTime {
-  FixedRateSamplingTime(float _duration, float _frequency)
-      : duration(_duration),
-        period(1.f / _frequency),
-        num_keys(static_cast<size_t>(std::ceil(1.f + duration * _frequency))) {}
+class FixedRateSamplingTime {
+ public:
+  FixedRateSamplingTime(float _duration, float _frequency);
 
   float time(size_t _key) const {
     assert(_key < num_keys);
-    return ozz::math::Min(_key * period, duration);
+    return ozz::math::Min(_key * period_, duration_);
   }
-  const float duration;
-  const float period;
-  const size_t num_keys;
+
+  size_t num_keys() const { return num_keys_; }
+
+ private:
+  float duration_;
+  float period_;
+  size_t num_keys_;
 };
 }  // namespace offline
 }  // namespace animation
