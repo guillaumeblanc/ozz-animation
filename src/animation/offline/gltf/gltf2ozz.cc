@@ -249,6 +249,8 @@ bool SampleCubicSplineChannel(const tinygltf::Model& _model,
                               const ozz::Range<const float>& _timestamps,
                               float _sampling_rate, float _duration,
                               _KeyframesType* _keyframes) {
+  (void)_duration;
+
   assert(_output.count % 3 == 0);
   size_t gltf_keys_count = _output.count / 3;
 
