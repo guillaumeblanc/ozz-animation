@@ -82,7 +82,7 @@ Skeleton* SkeletonBuilder::operator()(const RawSkeleton& _raw_skeleton) const {
 
   // Everything is fine, allocates and fills the skeleton.
   // Will not fail.
-  Skeleton* skeleton = memory::default_allocator()->New<Skeleton>();
+  Skeleton* skeleton = OZZ_NEW(memory::default_allocator(), Skeleton);
   const int num_joints = _raw_skeleton.num_joints();
 
   // Iterates through all the joint of the raw skeleton and fills a sorted joint

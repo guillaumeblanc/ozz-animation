@@ -114,7 +114,7 @@ int main(int argc, char const* argv[]) {
   // ...use the animation as you want...
 
   // In the end the animation needs to be deleted.
-  ozz::memory::default_allocator()->Delete(animation);
+  OZZ_DELETE(ozz::memory::default_allocator(), animation);
 
   return EXIT_SUCCESS;
 }

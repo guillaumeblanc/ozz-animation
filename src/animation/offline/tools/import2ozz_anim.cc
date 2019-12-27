@@ -133,7 +133,7 @@ Skeleton* LoadSkeleton(const char* _path) {
     } else if (archive.TestTag<Skeleton>()) {
       // Reads input archive to the runtime skeleton.
       // This operation cannot fail.
-      skeleton = ozz::memory::default_allocator()->New<Skeleton>();
+      skeleton = OZZ_NEW(ozz::memory::default_allocator(), Skeleton);
       archive >> *skeleton;
     } else {
       ozz::log::Err() << "Failed to read input skeleton from binary file: "

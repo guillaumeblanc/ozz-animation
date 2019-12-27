@@ -275,7 +275,7 @@ Animation* AnimationBuilder::operator()(const RawAnimation& _input) const {
 
   // Everything is fine, allocates and fills the animation.
   // Nothing can fail now.
-  Animation* animation = memory::default_allocator()->New<Animation>();
+  Animation* animation = OZZ_NEW(memory::default_allocator(), Animation);
 
   // Sets duration.
   const float duration = _input.duration;
