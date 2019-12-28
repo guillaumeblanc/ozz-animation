@@ -38,15 +38,15 @@
 
 TEST(Error, Archive) {
   {  // Invalid NULL stream.
-    EXPECT_ASSERTION(ozz::io::OArchive o(NULL, ozz::GetNativeEndianness()),
+    EXPECT_ASSERTION(ozz::io::OArchive(NULL, ozz::GetNativeEndianness()),
                      "valid opened stream");
-    EXPECT_ASSERTION(ozz::io::IArchive i(NULL), "valid opened stream");
+    EXPECT_ASSERTION(ozz::io::IArchive(NULL), "valid opened stream");
   }
   {  // Invalid not opened streams.
     ozz::io::File stream("root_that_does_not_exist:/file.ozz", "r");
-    EXPECT_ASSERTION(ozz::io::OArchive o(&stream, ozz::GetNativeEndianness()),
+    EXPECT_ASSERTION(ozz::io::OArchive(&stream, ozz::GetNativeEndianness()),
                      "valid opened stream");
-    EXPECT_ASSERTION(ozz::io::IArchive i(&stream), "valid opened stream");
+    EXPECT_ASSERTION(ozz::io::IArchive(&stream), "valid opened stream");
   }
 }
 

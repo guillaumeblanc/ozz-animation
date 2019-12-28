@@ -46,6 +46,7 @@
 #else  // NDEBUG
 #ifdef _WIN32
 #include <crtdbg.h>
+
 #include <cstdlib>
 namespace internal {
 // Provides a hook during abort to ensure EXIT_FAILURE is returned.
@@ -63,7 +64,7 @@ inline int AbortHook(int, char*, int*) { exit(EXIT_FAILURE); }
       old_mode = _CrtSetReportMode(_CRT_ASSERT, _CRTDBG_MODE_DEBUG);           \
       old_hook = _CrtSetReportHook(&internal::AbortHook);                      \
     }                                                                          \
-    EXPECT_DEATH(_statement, _regex);                                          \
+    EXPECT_DEATH((void)(_statement), _regex);                                  \
     if (testing::internal::GTEST_FLAG(internal_run_death_test).length() > 0) { \
       _CrtSetReportMode(_CRT_ASSERT, old_mode);                                \
       (void)_CrtSetReportHook(old_hook);                                       \

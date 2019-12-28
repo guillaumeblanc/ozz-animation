@@ -42,7 +42,6 @@
 #include <functional>
 
 #include "gtest/gtest.h"
-
 #include "ozz/base/gtest_helper.h"
 
 // using-declaration of IntrusiveList type and its options
@@ -446,15 +445,12 @@ struct ComplianceIterator {
 
     if (void(0), TestAssertCompliance<_List>::kValue) {
       // Test comparing iterators of different lists
-      EXPECT_ASSERTION(void(typename _List::iterator() == l1.begin()), "");
-      EXPECT_ASSERTION(void(typename _List::const_iterator() == l1.begin()),
-                       "");
-      EXPECT_ASSERTION(
-          void(l1.begin() != static_cast<const _List&>(l2).begin()), "");
-      EXPECT_ASSERTION(void(l1.end() != static_cast<const _List&>(l2).end()),
-                       "");
-      EXPECT_ASSERTION(void(rcosnt_l1.begin() != l2.begin()), "");
-      EXPECT_ASSERTION(void(rcosnt_l1.end() != l2.end()), "");
+      EXPECT_ASSERTION(typename _List::iterator() == l1.begin(), "");
+      EXPECT_ASSERTION(typename _List::const_iterator() == l1.begin(), "");
+      EXPECT_ASSERTION(l1.begin() != static_cast<const _List&>(l2).begin(), "");
+      EXPECT_ASSERTION(l1.end() != static_cast<const _List&>(l2).end(), "");
+      EXPECT_ASSERTION(rcosnt_l1.begin() != l2.begin(), "");
+      EXPECT_ASSERTION(rcosnt_l1.end() != l2.end(), "");
 
       // Test iterators bound cases
       EXPECT_ASSERTION(--l1.begin(), "");
@@ -1542,21 +1538,14 @@ TEST(SafeLink, IntrusiveList) {
   }
 
   // Destroy the list before the hook
-  EXPECT_ASSERTION(
-      {
-        List l;
-        l.push_front(obj);
-      },
-      "");
+  EXPECT_ASSERTION(List().push_front(obj), "");
 
   {  // Destroy the hook before the list
     List l;
-    EXPECT_ASSERTION(
-        {
-          LocalTestObj obj2;
-          l.push_front(obj2);
-        },
-        "");
+    LocalTestObj obj2;
+    l.push_front(obj2);
+    EXPECT_ASSERTION(obj2.~LocalTestObj(), "");
+    obj2.unlink();
   }
 }
 
