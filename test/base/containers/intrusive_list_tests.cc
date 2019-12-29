@@ -445,12 +445,15 @@ struct ComplianceIterator {
 
     if (void(0), TestAssertCompliance<_List>::kValue) {
       // Test comparing iterators of different lists
-      EXPECT_ASSERTION(typename _List::iterator() == l1.begin(), "");
-      EXPECT_ASSERTION(typename _List::const_iterator() == l1.begin(), "");
-      EXPECT_ASSERTION(l1.begin() != static_cast<const _List&>(l2).begin(), "");
-      EXPECT_ASSERTION(l1.end() != static_cast<const _List&>(l2).end(), "");
-      EXPECT_ASSERTION(rcosnt_l1.begin() != l2.begin(), "");
-      EXPECT_ASSERTION(rcosnt_l1.end() != l2.end(), "");
+      EXPECT_ASSERTION(void(typename _List::iterator() == l1.begin()), "");
+      EXPECT_ASSERTION(void(typename _List::const_iterator() == l1.begin()),
+                       "");
+      EXPECT_ASSERTION(
+          void(l1.begin() != static_cast<const _List&>(l2).begin()), "");
+      EXPECT_ASSERTION(void(l1.end() != static_cast<const _List&>(l2).end()),
+                       "");
+      EXPECT_ASSERTION(void(rcosnt_l1.begin() != l2.begin()), "");
+      EXPECT_ASSERTION(void(rcosnt_l1.end() != l2.end()), "");
 
       // Test iterators bound cases
       EXPECT_ASSERTION(--l1.begin(), "");
