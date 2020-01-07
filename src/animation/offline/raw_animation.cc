@@ -26,6 +26,7 @@
 //----------------------------------------------------------------------------//
 
 #include "ozz/animation/offline/raw_animation.h"
+#include "ozz/animation/offline/raw_animation_utils.h"
 #include "ozz/animation/runtime/skeleton.h"
 
 namespace ozz {
@@ -35,35 +36,6 @@ namespace offline {
 RawAnimation::RawAnimation() : duration(1.f) {}
 
 RawAnimation::~RawAnimation() {}
-
-namespace {
-
-// Implements key frames' time range and ordering checks.
-// See AnimationBuilder::Create for more details.
-template <typename _Key>
-static bool ValidateTrack(const typename ozz::Vector<_Key>::Std& _track,
-                          float _duration) {
-  float previous_time = -1.f;
-  for (size_t k = 0; k < _track.size(); ++k) {
-    const float frame_time = _track[k].time;
-    // Tests frame's time is in range [0:duration].
-    if (frame_time < 0.f || frame_time > _duration) {
-      return false;
-    }
-    // Tests that frames are sorted.
-    if (frame_time <= previous_time) {
-      return false;
-    }
-    previous_time = frame_time;
-  }
-  return true;  // Validated.
-}
-}  // namespace
-bool RawAnimation::JointTrack::Validate(float _duration) const {
-  return ValidateTrack<TranslationKey>(translations, _duration) &&
-         ValidateTrack<RotationKey>(rotations, _duration) &&
-         ValidateTrack<ScaleKey>(scales, _duration);
-}
 
 bool RawAnimation::Validate() const {
   if (duration <= 0.f) {  // Tests duration is valid.
@@ -76,7 +48,7 @@ bool RawAnimation::Validate() const {
   // order and within range [0:duration].
   bool valid = true;
   for (size_t i = 0; valid && i < tracks.size(); ++i) {
-    valid = tracks[i].Validate(duration);
+    valid = ValidateTrack(tracks[i], duration);
   }
   return valid;  // *this is valid.
 }

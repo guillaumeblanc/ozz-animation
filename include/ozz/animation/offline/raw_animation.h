@@ -120,11 +120,6 @@ struct RawAnimation {
     Rotations rotations;
     typedef ozz::Vector<ScaleKey>::Std Scales;
     Scales scales;
-
-    // Validates track. See RawAnimation::Validate for more details.
-    // Use an infinite value for _duration if unknown. This will validate
-    // keyframe orders, but not maximum duration.
-    bool Validate(float _duration) const;
   };
 
   // Returns the number of tracks of this animation.

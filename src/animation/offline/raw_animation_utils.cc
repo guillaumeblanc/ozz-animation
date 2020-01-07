@@ -34,6 +34,49 @@ namespace ozz {
 namespace animation {
 namespace offline {
 
+namespace {
+// Implements key frames' time range and ordering checks.
+// See AnimationBuilder::Create for more details.
+template <typename _Key>
+static bool _ValidateTrackComponent(
+    const typename ozz::Range<const _Key>& _track, float _duration) {
+  float previous_time = -1.f;
+  for (size_t k = 0; k < _track.count(); ++k) {
+    const float frame_time = _track[k].time;
+    // Tests frame's time is in range [0:duration].
+    if (frame_time < 0.f || frame_time > _duration) {
+      return false;
+    }
+    // Tests that frames are sorted.
+    if (frame_time <= previous_time) {
+      return false;
+    }
+    previous_time = frame_time;
+  }
+  return true;  // Validated.
+}
+}  // namespace
+
+bool ValidateTrackComponent(
+    const RawAnimation::JointTrack::Translations& _translations,
+    float _duration) {
+  return _ValidateTrackComponent(make_range(_translations), _duration);
+}
+bool ValidateTrackComponent(
+    const RawAnimation::JointTrack::Rotations& _rotations, float _duration) {
+  return _ValidateTrackComponent(make_range(_rotations), _duration);
+}
+bool ValidateTrackComponent(const RawAnimation::JointTrack::Scales& _scales,
+                            float _duration) {
+  return _ValidateTrackComponent(make_range(_scales), _duration);
+}
+
+bool ValidateTrack(const RawAnimation::JointTrack& _track, float _duration) {
+  return _ValidateTrackComponent(make_range(_track.translations), _duration) &&
+         _ValidateTrackComponent(make_range(_track.rotations), _duration) &&
+         _ValidateTrackComponent(make_range(_track.scales), _duration);
+}
+
 // Translation interpolation method.
 // This must be the same Lerp as the one used by the sampling job.
 math::Float3 LerpTranslation(const math::Float3& _a, const math::Float3& _b,
@@ -77,9 +120,8 @@ bool Less(const _Key& _left, const _Key& _right) {
 
 // Samples a component (translation, rotation or scale) of a track.
 template <typename _Track, typename _Lerp>
-typename _Track::value_type::Value SampleComponent(const _Track& _track,
-                                                   const _Lerp& _lerp,
-                                                   float _time) {
+typename _Track::value_type::Value SampleComponent_NoValidate(
+    const _Track& _track, const _Lerp& _lerp, float _time) {
   if (_track.size() == 0) {
     // Return identity if there's no key for this track.
     return _Track::value_type::identity();
@@ -111,15 +153,52 @@ typename _Track::value_type::Value SampleComponent(const _Track& _track,
 void SampleTrack_NoValidate(const RawAnimation::JointTrack& _track, float _time,
                             ozz::math::Transform* _transform) {
   _transform->translation =
-      SampleComponent(_track.translations, LerpTranslation, _time);
-  _transform->rotation = SampleComponent(_track.rotations, LerpRotation, _time);
-  _transform->scale = SampleComponent(_track.scales, LerpScale, _time);
+      SampleComponent_NoValidate(_track.translations, LerpTranslation, _time);
+  _transform->rotation =
+      SampleComponent_NoValidate(_track.rotations, LerpRotation, _time);
+  _transform->scale =
+      SampleComponent_NoValidate(_track.scales, LerpScale, _time);
 }
 }  // namespace
 
+bool SampleTrackComponent(
+    const RawAnimation::JointTrack::Translations& _translations, float _time,
+    ozz::math::Float3* _translation, bool _validate) {
+  if (_validate && !ValidateTrackComponent(
+                       _translations, std::numeric_limits<float>::infinity())) {
+    return false;
+  }
+  *_translation =
+      SampleComponent_NoValidate(_translations, LerpTranslation, _time);
+  return true;
+}
+
+bool SampleTrackComponent(const RawAnimation::JointTrack::Rotations& _rotations,
+                          float _time, ozz::math::Quaternion* _rotation,
+                          bool _validate) {
+  if (_validate && !ValidateTrackComponent(
+                       _rotations, std::numeric_limits<float>::infinity())) {
+    return false;
+  }
+  *_rotation = SampleComponent_NoValidate(_rotations, LerpRotation, _time);
+  return true;
+}
+
+bool SampleTrackComponent(const RawAnimation::JointTrack::Scales& _scales,
+                          float _time, ozz::math::Float3* _scale,
+                          bool _validate) {
+  if (_validate && !ValidateTrackComponent(
+                       _scales, std::numeric_limits<float>::infinity())) {
+    return false;
+  }
+  *_scale = SampleComponent_NoValidate(_scales, LerpScale, _time);
+  return true;
+}
+
 bool SampleTrack(const RawAnimation::JointTrack& _track, float _time,
-                 ozz::math::Transform* _transform) {
-  if (!_track.Validate(std::numeric_limits<float>::infinity())) {
+                 ozz::math::Transform* _transform, bool _validate) {
+  if (_validate &&
+      !ValidateTrack(_track, std::numeric_limits<float>::infinity())) {
     return false;
   }
 
@@ -128,8 +207,9 @@ bool SampleTrack(const RawAnimation::JointTrack& _track, float _time,
 }
 
 bool SampleAnimation(const RawAnimation& _animation, float _time,
-                     const Range<ozz::math::Transform>& _transforms) {
-  if (!_animation.Validate()) {
+                     const Range<ozz::math::Transform>& _transforms,
+                     bool _validate) {
+  if (_validate && !_animation.Validate()) {
     return false;
   }
   if (_animation.tracks.size() > _transforms.count()) {

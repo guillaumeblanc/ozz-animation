@@ -36,6 +36,24 @@ namespace ozz {
 namespace animation {
 namespace offline {
 
+// Validates that a RawAnimation::JointTrack is valid.
+// Returns true if animation data (duration, tracks) is valid:
+//  1. Animation duration is greater than 0.
+//  2. Keyframes' time are sorted in a strict ascending order.
+//  3. Keyframes' time are all within [0,animation duration] range.
+bool ValidateTrack(const RawAnimation::JointTrack& _track, float _duration);
+
+// Validates that a RawAnimation::JointTrack component (aka , translation or
+// rotation or scale) is valid.
+// See ValidateTrack for more info.
+bool ValidateTrackComponent(
+    const RawAnimation::JointTrack::Translations& _translations,
+    float _duration);
+bool ValidateTrackComponent(
+    const RawAnimation::JointTrack::Rotations& _rotations, float _duration);
+bool ValidateTrackComponent(const RawAnimation::JointTrack::Scales& _scales,
+                            float _duration);
+
 // Translation interpolation method.
 math::Float3 LerpTranslation(const math::Float3& _a, const math::Float3& _b,
                              float _alpha);
@@ -48,20 +66,38 @@ math::Quaternion LerpRotation(const math::Quaternion& _a,
 math::Float3 LerpScale(const math::Float3& _a, const math::Float3& _b,
                        float _alpha);
 
+// Samples a RawAnimation track component. This function shall be used for
+// offline purpose. Use ozz::animation::Animation and
+// ozz::animation::SamplingJob for runtime purpose.
+// Behavior is undetermined if track is invalid but _validate is set to false.
+// Returns false if track is invalid.
+bool SampleTrackComponent(
+    const RawAnimation::JointTrack::Translations& _translations, float _time,
+    ozz::math::Float3* _translation, bool _validate = true);
+bool SampleTrackComponent(const RawAnimation::JointTrack::Rotations& _rotations,
+                          float _time, ozz::math::Quaternion* _rotation,
+                          bool _validate = true);
+bool SampleTrackComponent(const RawAnimation::JointTrack::Scales& _scales,
+                          float _time, ozz::math::Float3* _scale,
+                          bool _validate = true);
+
 // Samples a RawAnimation track. This function shall be used for offline
 // purpose. Use ozz::animation::Animation and ozz::animation::SamplingJob for
 // runtime purpose.
+// Behavior is undetermined if track is invalid but _validate is set to false.
 // Returns false if track is invalid.
 bool SampleTrack(const RawAnimation::JointTrack& _track, float _time,
-                 ozz::math::Transform* _transform);
+                 ozz::math::Transform* _transform, bool _validate = true);
 
 // Samples a RawAnimation. This function shall be used for offline
 // purpose. Use ozz::animation::Animation and ozz::animation::SamplingJob for
 // runtime purpose.
 // _animation must be valid.
+// Behavior is undetermined if track is invalid but _validate is set to false.
 // Returns false output range is too small or animation is invalid.
 bool SampleAnimation(const RawAnimation& _animation, float _time,
-                     const Range<ozz::math::Transform>& _transforms);
+                     const Range<ozz::math::Transform>& _transforms,
+                     bool _validate = true);
 
 // Implement fixed rate keyframe time iteration. This utility purpose is to
 // ensure that sampling goes strictly from 0 to duration, and that period
