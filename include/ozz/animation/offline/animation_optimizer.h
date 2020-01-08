@@ -89,6 +89,8 @@ class AnimationOptimizer {
     float distance;
   };
 
+  bool fast;
+
   // Golbal optimization settings. These settings apply to all joints of the
   // hierarchy, unless overriden by joint specific settings.
   Setting setting;

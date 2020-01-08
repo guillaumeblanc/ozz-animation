@@ -97,8 +97,9 @@ inline bool Optimize(float _tolerance, const _Track& _input, _Track* _output) {
   _output->name = _input.name;
 
   // Optimizes.
+    ozz::Vector<bool>::Std included;
   const Adapter<typename _Track::Keyframe> adapter;
-  Decimate(_input.keyframes, adapter, _tolerance, &_output->keyframes);
+  Decimate(_input.keyframes, adapter, _tolerance, &_output->keyframes, &included);
 
   // Output animation is always valid though.
   return _output->Validate();

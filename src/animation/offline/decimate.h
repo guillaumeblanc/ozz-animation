@@ -50,12 +50,18 @@ namespace offline {
 //  Key Lerp(const Key& _left, const Key& _right, const Key& _ref) const;
 //  float Distance(const Key& _a, const Key& _b) const;
 // };
+// Provided _included vector can be used to know which keyframe are
+// maintained/included in the decimated track.
 template <typename _Track, typename _Adapter>
 void Decimate(const _Track& _src, const _Adapter& _adapter, float _tolerance,
-              _Track* _dest) {
+              _Track* _dest, ozz::Vector<bool>::Std* _included) {
+  // Empties vector so every element is initialized when resize is called.
+  _included->clear();
+
   // Early out if not enough data.
   if (_src.size() < 2) {
     *_dest = _src;
+    _included->resize(_src.size(), true);
     return;
   }
 
@@ -64,12 +70,12 @@ void Decimate(const _Track& _src, const _Adapter& _adapter, float _tolerance,
   ozz::Stack<Segment>::Std segments;
 
   // Bit vector of all points to included.
-  ozz::Vector<bool>::Std included(_src.size(), false);
+  _included->resize(_src.size(), false);
 
   // Pushes segment made from first and last points.
   segments.push(Segment(0, _src.size() - 1));
-  included[0] = true;
-  included[_src.size() - 1] = true;
+  _included->front() = true;
+  _included->back() = true;
 
   // Empties segments stack.
   while (!segments.empty()) {
@@ -83,7 +89,8 @@ void Decimate(const _Track& _src, const _Adapter& _adapter, float _tolerance,
     typename _Track::const_reference left = _src[segment.first];
     typename _Track::const_reference right = _src[segment.second];
     for (size_t i = segment.first + 1; i < segment.second; ++i) {
-      assert(!included[i] && "Included points should be processed once only.");
+      assert(!_included->at(i) &&
+             "Included points should be processed once only.");
       typename _Track::const_reference test = _src[i];
       if (!_adapter.Decimable(test)) {
         candidate = i;
@@ -101,7 +108,7 @@ void Decimate(const _Track& _src, const _Adapter& _adapter, float _tolerance,
     // If found, include the point and pushes the 2 new segments (before and
     // after the new point).
     if (candidate != segment.first) {
-      included[candidate] = true;
+      _included->at(candidate) = true;
       if (candidate - segment.first > 1) {
         segments.push(Segment(segment.first, candidate));
       }
@@ -114,7 +121,7 @@ void Decimate(const _Track& _src, const _Adapter& _adapter, float _tolerance,
   // Copy all included points.
   _dest->clear();
   for (size_t i = 0; i < _src.size(); ++i) {
-    if (included[i]) {
+    if (_included->at(i)) {
       _dest->push_back(_src[i]);
     }
   }
@@ -127,6 +134,7 @@ void Decimate(const _Track& _src, const _Adapter& _adapter, float _tolerance,
     const float distance = _adapter.Distance(penultimate, last);
     if (_adapter.Decimable(last) && distance <= _tolerance) {
       _dest->pop_back();
+      _included->back() = false;
     }
   }
 }
