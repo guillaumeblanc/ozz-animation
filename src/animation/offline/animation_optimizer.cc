@@ -474,6 +474,9 @@ class Spanner {
   }
 
  private:
+  Spanner(const Spanner&);
+  void operator=(const Spanner&);
+
   Spanner& operator++() {
     const size_t size = included_.size();
 
@@ -568,12 +571,16 @@ class Comparer {
     Spanner<_Track> spanner(
         TrackComponent<_Track>::Get(solution_.tracks[_joint]), _included);
 
+    static int inl = 0;
+    static int outl = 0;
+
     float worst_ratio = std::numeric_limits<float>::lowest();
     // TODO Loops though all time range, but exits as soon as worst_ratio is
     // past the limit.
     for (size_t i = 0; i < key_times_.size() /* && worst_ratio < 0.f*/; ++i) {
       const float key_time = key_times_[i];
       if (!spanner.Update(key_time)) {
+        ++outl;
         // Reuses precomputed errors
         const float ratio =
             IterateJointsDF(
@@ -584,6 +591,7 @@ class Comparer {
 
         worst_ratio = ozz::math::Max(worst_ratio, ratio);
       } else {
+        ++inl;
         // Error value needs to be recomputed.
         // Update joint local and model space.
         locals = solution_locals_[i];
@@ -618,6 +626,9 @@ class Comparer {
   }
 
  private:
+  Comparer(const Comparer&);
+  void operator=(const Comparer&);
+
   const RawAnimation& solution_;
   const Skeleton& skeleton_;
 
@@ -737,6 +748,8 @@ class TTrack : public VTrack {
   }
 
  private:
+  void operator=(const TTrack&);
+
   virtual float EstimateCandidateError(
       const Comparer& _comparer,
       const ozz::Range<const AnimationOptimizer::Setting>& _settings) const {
@@ -923,6 +936,9 @@ class HillClimber {
   }
 
  private:
+  HillClimber(const HillClimber&);
+  void operator=(const HillClimber&);
+
   Comparer comparer_;
   const RawAnimation& original_;
   const Skeleton& skeleton_;
