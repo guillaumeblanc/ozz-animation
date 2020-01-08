@@ -27,6 +27,8 @@
 
 #include "ozz/animation/offline/raw_animation_utils.h"
 
+#include <limits>
+
 #include "gtest/gtest.h"
 #include "ozz/base/gtest_helper.h"
 
@@ -58,9 +60,9 @@ TEST(ValidateTrack, Utils) {
     track.translations.push_back(t1);
 
     EXPECT_FALSE(ozz::animation::offline::ValidateTrackComponent(
-        track.translations, std::numeric_limits<float>::infinity()));
+        track.translations, std::numeric_limits<float>::max()));
     EXPECT_FALSE(ozz::animation::offline::ValidateTrack(
-        track, std::numeric_limits<float>::infinity()));
+        track, std::numeric_limits<float>::max()));
   }
 
   // Out of duration
@@ -197,18 +199,21 @@ TEST(SamplingTrack, Utils) {
     EXPECT_QUATERNION_EQ(output.rotation, 0.f, .70710677f, 0.f, .70710677f);
     EXPECT_FLOAT3_EQ(output.scale, -1.f, -2.f, -4.f);
   }
-  
+
   {
     ozz::math::Transform output;
 
     // t = .1
-    ASSERT_TRUE(ozz::animation::offline::SampleTrackComponent(track.translations, .1f, &output.translation));
+    ASSERT_TRUE(ozz::animation::offline::SampleTrackComponent(
+        track.translations, .1f, &output.translation));
     EXPECT_FLOAT3_EQ(output.translation, 1.f, 2.f, 4.f);
 
-    ASSERT_TRUE(ozz::animation::offline::SampleTrackComponent(track.rotations, .1f, &output.rotation));
+    ASSERT_TRUE(ozz::animation::offline::SampleTrackComponent(
+        track.rotations, .1f, &output.rotation));
     EXPECT_QUATERNION_EQ(output.rotation, .6172133f, .1543033f, 0.f, .7715167f);
 
-    ASSERT_TRUE(ozz::animation::offline::SampleTrackComponent(track.scales, .1f, &output.scale));
+    ASSERT_TRUE(ozz::animation::offline::SampleTrackComponent(track.scales, .1f,
+                                                              &output.scale));
     EXPECT_FLOAT3_EQ(output.scale, -1.f, -2.f, -4.f);
   }
 }

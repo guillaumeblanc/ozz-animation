@@ -381,7 +381,7 @@ class RatioIterator {
                 const ozz::Range<const float>& _errors)
       : settings_(_settings),
         errors_(_errors),
-        ratio_(std::numeric_limits<float>::lowest()) {
+        ratio_(-std::numeric_limits<float>::max()) {
     assert(settings_.count() == errors_.count());
   }
 
@@ -574,7 +574,7 @@ class Comparer {
     static int inl = 0;
     static int outl = 0;
 
-    float worst_ratio = std::numeric_limits<float>::lowest();
+    float worst_ratio = -std::numeric_limits<float>::max();
     // TODO Loops though all time range, but exits as soon as worst_ratio is
     // past the limit.
     for (size_t i = 0; i < key_times_.size() /* && worst_ratio < 0.f*/; ++i) {
@@ -860,7 +860,7 @@ class HillClimber {
     // Collects all remaining tracks to process. Doing this at this point
     // ensures tracks won't be reallocated/moved.
     remainings_.reserve(num_tracks * 3);
-    for (size_t i = 0; i < num_tracks; ++i) {
+    for (int i = 0; i < num_tracks; ++i) {
       remainings_.push_back(&translations_[i]);
       remainings_.push_back(&rotations_[i]);
       remainings_.push_back(&scales_[i]);
@@ -874,7 +874,7 @@ class HillClimber {
 
   void operator()() {
     // Loops as long as there's still optimizable tracks to process.
-    for (; true;) {
+    for (;;) {
       // Within a single loop over all remaining tracks, finds the one
       // that has the best bang for the buck.
       VTrack* best_track = NULL;
