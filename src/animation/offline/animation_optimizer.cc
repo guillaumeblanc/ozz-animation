@@ -30,6 +30,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cstddef>
+#include <limits>
 
 // Internal include file
 #define OZZ_INCLUDE_PRIVATE_HEADER  // Allows to include private headers.
@@ -490,7 +491,7 @@ class Spanner {
     }
 
     // Span ends at next keyframe.
-    end_ = span_end_ >= size ? std::numeric_limits<float>::infinity()
+    end_ = span_end_ >= size ? std::numeric_limits<float>::max()
                              : track_[span_end_].time;
     return *this;
   }
@@ -793,13 +794,13 @@ class HillClimber {
     const HierarchyBuilder hierarchy(original_, _skeleton, _optimizer);
 
     // Setup virtual tracks and parameters.
-    const size_t num_tracks = original_.num_tracks();
+    const int num_tracks = original_.num_tracks();
     translations_.reserve(num_tracks);
     rotations_.reserve(num_tracks);
     scales_.reserve(num_tracks);
     settings_.reserve(num_tracks);
 
-    for (size_t i = 0; i < num_tracks; ++i) {
+    for (int i = 0; i < num_tracks; ++i) {
       const float kInitialFactor = .2f;
 
       // Using hierarchy spec for joint_length (aka comparing rotations)

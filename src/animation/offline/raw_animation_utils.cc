@@ -164,8 +164,8 @@ void SampleTrack_NoValidate(const RawAnimation::JointTrack& _track, float _time,
 bool SampleTrackComponent(
     const RawAnimation::JointTrack::Translations& _translations, float _time,
     ozz::math::Float3* _translation, bool _validate) {
-  if (_validate && !ValidateTrackComponent(
-                       _translations, std::numeric_limits<float>::infinity())) {
+  if (_validate && !ValidateTrackComponent(_translations,
+                                           std::numeric_limits<float>::max())) {
     return false;
   }
   *_translation =
@@ -176,8 +176,8 @@ bool SampleTrackComponent(
 bool SampleTrackComponent(const RawAnimation::JointTrack::Rotations& _rotations,
                           float _time, ozz::math::Quaternion* _rotation,
                           bool _validate) {
-  if (_validate && !ValidateTrackComponent(
-                       _rotations, std::numeric_limits<float>::infinity())) {
+  if (_validate &&
+      !ValidateTrackComponent(_rotations, std::numeric_limits<float>::max())) {
     return false;
   }
   *_rotation = SampleComponent_NoValidate(_rotations, LerpRotation, _time);
@@ -187,8 +187,8 @@ bool SampleTrackComponent(const RawAnimation::JointTrack::Rotations& _rotations,
 bool SampleTrackComponent(const RawAnimation::JointTrack::Scales& _scales,
                           float _time, ozz::math::Float3* _scale,
                           bool _validate) {
-  if (_validate && !ValidateTrackComponent(
-                       _scales, std::numeric_limits<float>::infinity())) {
+  if (_validate &&
+      !ValidateTrackComponent(_scales, std::numeric_limits<float>::max())) {
     return false;
   }
   *_scale = SampleComponent_NoValidate(_scales, LerpScale, _time);
@@ -197,8 +197,7 @@ bool SampleTrackComponent(const RawAnimation::JointTrack::Scales& _scales,
 
 bool SampleTrack(const RawAnimation::JointTrack& _track, float _time,
                  ozz::math::Transform* _transform, bool _validate) {
-  if (_validate &&
-      !ValidateTrack(_track, std::numeric_limits<float>::infinity())) {
+  if (_validate && !ValidateTrack(_track, std::numeric_limits<float>::max())) {
     return false;
   }
 
