@@ -740,15 +740,16 @@ class TTrack : public VTrack {
          float _initial_tolerance, int _joint)
       : VTrack(_initial_tolerance, _joint),
         adapter_(_adapter),
-        original_(_original),
+        original_(&_original),
         validated_(_solution) {
     // Initialize validated track with a copy of original.
     assert(validated_ && "Destination track must be provided");
-    *validated_ = original_;
+            
+            // TODO check were it's better to initialize
+    *validated_ = *original_;
   }
 
  private:
-  void operator=(const TTrack&);
 
   virtual float EstimateCandidateError(
       const Comparer& _comparer,
@@ -772,12 +773,12 @@ class TTrack : public VTrack {
                                       &candidate_, &included_);
   }
 
-  virtual size_t OriginalSize() const { return original_.size(); }
+  virtual size_t OriginalSize() const { return original_->size(); }
   virtual size_t ValidatedSize() const { return validated_->size(); }
   virtual size_t CandidateSize() const { return candidate_.size(); }
 
   const _Adapter adapter_;
-  const _Track& original_;
+  const _Track* original_;
   _Track* validated_;
   _Track candidate_;
 
