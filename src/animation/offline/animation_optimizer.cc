@@ -560,7 +560,7 @@ class Comparer {
 
   template <typename _Track>
   float EstimateError(
-      _Track _track, size_t _joint,
+      const _Track& _track, size_t _joint,
       const ozz::Range<const AnimationOptimizer::Setting>& _settings,
       const ozz::Vector<bool>::Std& _included) const {
     // TODO use better allocation & copy strategy for models (partial ??)
@@ -669,12 +669,17 @@ class VTrack {
   void Transition(
       const ozz::Range<const AnimationOptimizer::Setting>& /*_settings*/) {
     const size_t validated_size = ValidatedSize();
+
+    // TODO, no guarantee this loop exits.
     for (size_t candidate_size = CandidateSize();
          candidate_size > 1 && candidate_size == validated_size;
          candidate_size = CandidateSize()) {
       // TODO should first try with initial tolerance.
       // Computes next tolerance to use for decimation.
       tolerance_ *= 1.2f;
+
+      //const float mul = 1.2f + -candidate_error_ * .3f;  // * f * 1.f;
+      //tolerance_ *= mul;
 
       // Decimates validated track in order to find next candidate track.
       Decimate(tolerance_);
