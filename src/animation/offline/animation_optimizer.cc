@@ -953,6 +953,48 @@ class HillClimber {
   ozz::Vector<AnimationOptimizer::Setting>::Std settings_;
   ozz::Vector<VTrack*>::Std remainings_;
 };
+
+template <typename _Track>
+bool IsConstant(const _Track& _track, float _tolerance) {
+  if (_track.size() <= 1) {
+    return true;
+  }
+  bool constant = true;
+  for (size_t i = 1; constant && i < _track.size(); ++i) {
+    constant &= Compare(_track[i - 1].value, _track[i].value, _tolerance);
+  }
+  return constant;
+}
+
+template <typename _Track>
+bool DecimateConstant(const _Track& _input, _Track* _output, float _tolerance) {
+  const bool constant = IsConstant(_input, _tolerance);
+  if (constant) {
+    _output->clear();
+    if (_input.size() > 0) {
+      _output->push_back(_input[0]);
+      _output->at(0).time = 0.f;
+    }
+  } else {
+    *_output = _input;
+  }
+  return constant;
+}
+
+void DecimateConstants(const RawAnimation& _input, RawAnimation* _output) {
+  const int num_tracks = _input.num_tracks();
+  _output->name = _input.name;
+  _output->duration = _input.duration;
+  _output->tracks.resize(num_tracks);
+
+  for (int i = 0; i < num_tracks; ++i) {
+    const RawAnimation::JointTrack& input = _input.tracks[i];
+    RawAnimation::JointTrack& output = _output->tracks[i];
+    DecimateConstant(input.translations, &output.translations, 1e-5f);
+    DecimateConstant(input.rotations, &output.rotations, std::cos(1e-5f * .5f));
+    DecimateConstant(input.scales, &output.scales, 1e-5f);
+  }
+}
 }  // namespace
 
 bool AnimationOptimizer::operator()(const RawAnimation& _input,
@@ -976,9 +1018,13 @@ bool AnimationOptimizer::operator()(const RawAnimation& _input,
     return false;
   }
 
+  // TODO, this could be done outside.
+  RawAnimation no_constant;
+  DecimateConstants(_input, &no_constant);
+
   // Setups output animation.
-  _output->name = _input.name;
-  _output->duration = _input.duration;
+  _output->name = no_constant.name;
+  _output->duration = no_constant.duration;
   _output->tracks.resize(num_tracks);
 
   if (fast) {
@@ -986,10 +1032,10 @@ bool AnimationOptimizer::operator()(const RawAnimation& _input,
     ozz::Vector<bool>::Std included;
 
     // First computes bone lengths, that will be used when filtering.
-    const HierarchyBuilder hierarchy(_input, _skeleton, *this);
+    const HierarchyBuilder hierarchy(no_constant, _skeleton, *this);
 
     for (int i = 0; i < num_tracks; ++i) {
-      const RawAnimation::JointTrack& input = _input.tracks[i];
+      const RawAnimation::JointTrack& input = no_constant.tracks[i];
       RawAnimation::JointTrack& output = _output->tracks[i];
 
       // Gets joint specs back.
@@ -1012,7 +1058,7 @@ bool AnimationOptimizer::operator()(const RawAnimation& _input,
       Decimate(input.scales, sadap, tolerance, &output.scales, &included);
     }
   } else {
-    HillClimber climber(*this, _input, _skeleton, _output);
+    HillClimber climber(*this, no_constant, _skeleton, _output);
     climber();
   }
 
