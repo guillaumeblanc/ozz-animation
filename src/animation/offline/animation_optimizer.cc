@@ -204,6 +204,7 @@ class RotationAdapter {
   }
   float Distance(const RawAnimation::RotationKey& _left,
                  const RawAnimation::RotationKey& _right) const {
+    /*
     // Compute the shortest unsigned angle between the 2 quaternions.
     // cos_half_angle is w component of a-1 * b.
     const float cos_half_angle = Dot(_left.value, _right.value);
@@ -214,6 +215,25 @@ class RotationAdapter {
     // triangle.
     const float distance = 2.f * sine_half_angle * radius_;
     return distance;
+    */
+
+    // The idea is to find the rotation axis of the rotation defined by the
+    // difference of the two quaternion we're comparing. This will allow to find
+    // a normal to this axis. Transforming this normal by the quaternion of the
+    // difference will produce the worst case transformation, hence give the
+    // error.
+    const math::Quaternion diff = _left.value * Conjugate(_right.value);
+    const math::Float3 axis = (diff.x == 0.f && diff.y == 0.f && diff.z == 0.f)
+                                  ? math::Float3::x_axis()
+                                  : math::Float3(diff.x, diff.y, diff.z);
+    const math::Float3 abs(std::abs(axis.x), std::abs(axis.y),
+                           std::abs(axis.z));
+    const size_t smallest =
+        abs.x < abs.y ? (abs.x < abs.z ? 0 : 2) : (abs.y < abs.z ? 1 : 2);
+    const math::Float3 binormal(smallest == 0, smallest == 1, smallest == 2);
+    const math::Float3 normal = Normalize(Cross(binormal, axis));
+    const float error = Length(TransformVector(diff, normal) - normal);
+    return error * radius_;
   }
 
  private:
