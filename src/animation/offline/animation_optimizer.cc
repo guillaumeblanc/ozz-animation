@@ -29,19 +29,23 @@
 
 #include <algorithm>
 #include <cassert>
-#include <cstddef>
 #include <limits>
 
 // Internal include file
-#define OZZ_INCLUDE_PRIVATE_HEADER  // Allows to include private headers.
-#include "animation/offline/decimate.h"
 #include "ozz/animation/offline/raw_animation.h"
 #include "ozz/animation/offline/raw_animation_utils.h"
 #include "ozz/animation/runtime/skeleton.h"
 #include "ozz/animation/runtime/skeleton_utils.h"
 #include "ozz/base/containers/vector.h"
+#include "ozz/base/io/stream.h"
 #include "ozz/base/maths/math_constant.h"
 #include "ozz/base/maths/math_ex.h"
+
+#define OZZ_INCLUDE_PRIVATE_HEADER  // Allows to include private headers.
+#include "animation/offline/decimate.h"
+
+// Temp tracking
+#include "ozz/base/log.h"
 
 namespace ozz {
 namespace animation {
@@ -595,12 +599,14 @@ class Comparer {
     static int outl = 0;
 
     float worst_ratio = -std::numeric_limits<float>::max();
+    // Checking worst_ratio < 0.f is an early out optimization. It prevents from
+    // knowing the real error ratio though.
+    // TODO be careful if real error ratio is needed.
     // TODO Loops though all time range, but exits as soon as worst_ratio is
     // past the limit.
-    for (size_t i = 0; i < key_times_.size() /* && worst_ratio < 0.f*/; ++i) {
+    for (size_t i = 0; i < key_times_.size() && worst_ratio < 0.f; ++i) {
       const float key_time = key_times_[i];
       if (!spanner.Update(key_time)) {
-        ++outl;
         // Reuses precomputed errors
         const float ratio =
             IterateJointsDF(
@@ -611,7 +617,6 @@ class Comparer {
 
         worst_ratio = ozz::math::Max(worst_ratio, ratio);
       } else {
-        ++inl;
         // Error value needs to be recomputed.
         // Update joint local and model space.
         locals = solution_locals_[i];
@@ -642,6 +647,7 @@ class Comparer {
         worst_ratio = ozz::math::Max(worst_ratio, ratio);
       }
     }
+
     return worst_ratio;
   }
 
@@ -674,7 +680,10 @@ class Comparer {
 class VTrack {
  public:
   VTrack(float _initial_tolerance, int _joint)
-      : tolerance_(_initial_tolerance), candidate_ratio_(0.f), joint_(_joint) {
+      : joint_(_joint),
+        tolerance_(_initial_tolerance),
+        error_ratio_(-1.f),
+        delta_(-1.f) {
     // TODO update initial error.
   }
   virtual ~VTrack() {}
@@ -696,10 +705,10 @@ class VTrack {
          candidate_size = CandidateSize()) {
       // TODO should first try with initial tolerance.
       // Computes next tolerance to use for decimation.
-      tolerance_ *= 1.2f;
+      // tolerance_ *= 1.2f;
 
-      // const float mul = 1.2f + -candidate_ratio_ * .3f;  // * f * 1.f;
-      // tolerance_ *= mul;
+      const float mul = 1.2f + -error_ratio_ * .3f;  // * f * 1.f;
+      tolerance_ *= mul;
 
       // Decimates validated track in order to find next candidate track.
       Decimate(tolerance_);
@@ -710,7 +719,29 @@ class VTrack {
   void UpdateCandidateError(
       const Comparer& _comparer,
       const ozz::Range<const AnimationOptimizer::Setting>& _settings) {
-    candidate_ratio_ = EstimateCandidateError(_comparer, _settings);
+    // This is an optimization that prevents rebuilding error for constant
+    // tracks. They haven't been decimated, so they don't own any error.
+
+    // TODO find a way to do it (flag/reject track) at initialization time.
+    // TODO wouldn't work with quantization taken into account.
+
+    // error_ratio_ >= 0.f is an optimization. If error is already too big,
+    // don't mid updating it.
+    // TODO check if part of remaining tracks.
+    const size_t original_size = OriginalSize();
+    if (original_size > 1 && error_ratio_ < 0.f) {
+      error_ratio_ = EstimateCandidateError(_comparer, _settings);
+
+      const size_t validated_size = ValidatedSize();
+      const size_t candidate_size = CandidateSize();
+      const float size_ratio =
+          static_cast<float>(validated_size - candidate_size) /
+          static_cast<float>(original_size);
+      delta_ = error_ratio_ * size_ratio;
+    } else {
+      error_ratio_ = 0.f;
+      delta_ = 0.f;
+    }
   }
 
   // Proposed candidate was validated, must be retained as a solution.
@@ -718,29 +749,21 @@ class VTrack {
       Comparer& _comparer,
       const ozz::Range<const AnimationOptimizer::Setting>& _settings) = 0;
 
-  // -1 < x < 0 if transition pass is within tolerance range. The minimum
-  // the better.
-  // x >= 0 if transition pass is exceeding tolerance range.
-  float delta() const {
-    // TODO precompute this delta value.
-    const size_t original_size = OriginalSize();
-    if (original_size == 0) {
-      return 0.f;
-    }
-    const size_t validated_size = ValidatedSize();
-    const size_t candidate_size = CandidateSize();
-    const float size_ratio =
-        static_cast<float>(validated_size - candidate_size) /
-        static_cast<float>(original_size);
-    return candidate_ratio_ * size_ratio;
-  }
-  int joint() const { return joint_; }
-
- private:
   virtual size_t OriginalSize() const = 0;
   virtual size_t ValidatedSize() const = 0;
   virtual size_t CandidateSize() const = 0;
 
+  // -1 < x < 0 if transition pass is within tolerance range. The minimum
+  // the better.
+  // x >= 0 if transition pass is exceeding tolerance range.
+  float delta() const { return delta_; }
+
+  int joint() const { return joint_; }
+
+  float tolerance() const { return tolerance_; }
+  float error_ratio() const { return error_ratio_; }
+
+ private:
   virtual float EstimateCandidateError(
       const Comparer& _comparer,
       const ozz::Range<const AnimationOptimizer::Setting>& _settings) const = 0;
@@ -748,15 +771,19 @@ class VTrack {
   // Decimates track at given _tolerance;
   virtual void Decimate(float _tolerance) = 0;
 
+  // Joint that this track applies to.
+  int joint_;
+
   // Error tolerance of candidate track.
   float tolerance_;
 
   // TODO removes
   // Error value for candidate track.
-  float candidate_ratio_;
+  // Takes into account its whole hierarchy.
+  float error_ratio_;
 
-  // Joint that this track applies to.
-  int joint_;
+  // Optimization delta for candidate track.
+  float delta_;
 };
 
 template <typename _Track, typename _Adapter>
@@ -818,14 +845,77 @@ typedef TTrack<RawAnimation::JointTrack::Rotations, RotationAdapter>
     RotationTrack;
 typedef TTrack<RawAnimation::JointTrack::Scales, ScaleAdapter> ScaleTrack;
 
+class Tracking {
+ public:
+  struct Data {
+    int iteration;
+    int joint;
+    int type;
+    float target;
+    float distance;
+    int original;
+    int validated;
+    int candidate;
+    float tolerance;
+    float error;
+    float ratio;
+    float delta;
+  };
+
+  virtual bool Push(const Data& _data) = 0;
+};
+
+class CsvTracking : public Tracking, protected ozz::io::File {
+ public:
+  CsvTracking(const char* _name) : ozz::io::File(_name, "wt") {
+    if (!opened()) {
+      ozz::log::Err() << "Failed opening csv file \"" << _name << "\"."
+                      << std::endl;
+      return;
+    }
+
+    const char header[] =
+        "iteration,joint,type,target,distance,original,validated,candidate,"
+        "tolerance,"
+        "error,ratio,delta\n";
+    const size_t len = OZZ_ARRAY_SIZE(header) - 1;
+    if (Write(header, len) != len) {
+      ozz::log::Err() << "Failed writing csv file \"" << _name << "\"."
+                      << std::endl;
+      Close();
+    }
+  }
+
+ protected:
+  bool Push(const Data& _data) {
+    if (!opened()) {
+      return false;
+    }
+
+    char line[256];
+    const int len = std::snprintf(
+        line, OZZ_ARRAY_SIZE(line), "%d,%d,%d,%f,%f,%d,%d,%d,%f,%f,%f,%f\n",
+        _data.iteration, _data.joint, _data.type, _data.target, _data.distance,
+        _data.original, _data.validated, _data.candidate, _data.tolerance,
+        _data.error, _data.ratio, _data.delta);
+    if (len < 0 || len >= OZZ_ARRAY_SIZE(line) || Write(line, len) != len) {
+      ozz::log::Err() << "Failed writing csv file." << std::endl;
+      Close();
+      return false;
+    }
+    return true;
+  }
+};
+
 class HillClimber {
  public:
   HillClimber(const AnimationOptimizer& _optimizer,
               const RawAnimation& _original, const Skeleton& _skeleton,
-              RawAnimation* _output)
+              RawAnimation* _output, Tracking* _tracking)
       : comparer_(_original, *_output, _skeleton),
         original_(_original),
-        skeleton_(_skeleton) {
+        skeleton_(_skeleton),
+        tracking_(_tracking) {
     // Checks output
     assert(_output->tracks.size() == original_.tracks.size());
 
@@ -900,7 +990,7 @@ class HillClimber {
 
   void operator()() {
     // Loops as long as there's still optimizable tracks to process.
-    for (;;) {
+    for (int iteration = 0;; ++iteration) {
       // Within a single loop over all remaining tracks, finds the one
       // that has the best bang for the buck.
       VTrack* best_track = NULL;
@@ -911,6 +1001,26 @@ class HillClimber {
 
         // Gets this track optimization delta.
         float delta = track->delta();
+
+        if (tracking_) {
+          // Fills up tracking data.
+          Tracking::Data data;
+          data.iteration = iteration;
+          data.joint = track->joint();
+          data.type = 0;
+          data.target = settings_[data.joint].tolerance;
+          data.distance = settings_[data.joint].distance;
+          data.original = static_cast<int>(track->OriginalSize());
+          data.validated = static_cast<int>(track->ValidatedSize());
+          data.candidate = static_cast<int>(track->CandidateSize());
+          data.tolerance = track->tolerance();
+          data.error = 0.f;
+          data.ratio = track->error_ratio();
+          data.delta = delta;
+
+          // Push tracking data.
+          tracking_->Push(data);
+        }
 
         // Track can be removed from those to process if it can't be
         // optimized anymore.
@@ -973,6 +1083,8 @@ class HillClimber {
   ozz::Vector<ScaleTrack>::Std scales_;
   ozz::Vector<AnimationOptimizer::Setting>::Std settings_;
   ozz::Vector<VTrack*>::Std remainings_;
+
+  Tracking* tracking_;
 };
 
 template <typename _Track>
@@ -1079,7 +1191,8 @@ bool AnimationOptimizer::operator()(const RawAnimation& _input,
       Decimate(input.scales, sadap, tolerance, &output.scales, &included);
     }
   } else {
-    HillClimber(*this, no_constant, _skeleton, _output)();
+    CsvTracking tracking("hill_climbing.cvs");
+    HillClimber(*this, no_constant, _skeleton, _output, &tracking)();
   }
 
   // Output animation is always valid though.
