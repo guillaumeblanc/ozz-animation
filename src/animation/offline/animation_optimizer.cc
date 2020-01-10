@@ -981,10 +981,10 @@ bool AnimationOptimizer::operator()(const RawAnimation& _input,
   _output->duration = _input.duration;
   _output->tracks.resize(num_tracks);
 
-  // Temporary vector used to store included keyframes during decimation.
-  ozz::Vector<bool>::Std included;
-
   if (fast) {
+    // Temporary vector used to store included keyframes during decimation.
+    ozz::Vector<bool>::Std included;
+
     // First computes bone lengths, that will be used when filtering.
     const HierarchyBuilder hierarchy(_input, _skeleton, *this);
 
