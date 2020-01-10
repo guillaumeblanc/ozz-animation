@@ -744,13 +744,12 @@ class TTrack : public VTrack {
         validated_(_solution) {
     // Initialize validated track with a copy of original.
     assert(validated_ && "Destination track must be provided");
-            
-            // TODO check were it's better to initialize
+
+    // TODO check were it's better to initialize
     *validated_ = *original_;
   }
 
  private:
-
   virtual float EstimateCandidateError(
       const Comparer& _comparer,
       const ozz::Range<const AnimationOptimizer::Setting>& _settings) const {
@@ -777,7 +776,7 @@ class TTrack : public VTrack {
   virtual size_t ValidatedSize() const { return validated_->size(); }
   virtual size_t CandidateSize() const { return candidate_.size(); }
 
-  const _Adapter adapter_;
+  _Adapter adapter_;
   const _Track* original_;
   _Track* validated_;
   _Track candidate_;
