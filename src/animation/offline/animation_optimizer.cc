@@ -670,7 +670,7 @@ class VTrack {
       const ozz::Range<const AnimationOptimizer::Setting>& /*_settings*/) {
     const size_t validated_size = ValidatedSize();
 
-    // TODO, no guarantee this loop exits.
+    // TODO, there's no guarantee this loop exits.
     for (size_t candidate_size = CandidateSize();
          candidate_size > 1 && candidate_size == validated_size;
          candidate_size = CandidateSize()) {
