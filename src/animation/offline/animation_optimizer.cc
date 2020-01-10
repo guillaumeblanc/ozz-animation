@@ -654,7 +654,7 @@ class Comparer {
 class VTrack {
  public:
   VTrack(float _initial_tolerance, int _joint)
-      : tolerance_(_initial_tolerance), candidate_error_(0.f), joint_(_joint) {
+      : tolerance_(_initial_tolerance), candidate_ratio_(0.f), joint_(_joint) {
     // TODO update initial error.
   }
   virtual ~VTrack() {}
@@ -678,8 +678,8 @@ class VTrack {
       // Computes next tolerance to use for decimation.
       tolerance_ *= 1.2f;
 
-      //const float mul = 1.2f + -candidate_error_ * .3f;  // * f * 1.f;
-      //tolerance_ *= mul;
+      // const float mul = 1.2f + -candidate_ratio_ * .3f;  // * f * 1.f;
+      // tolerance_ *= mul;
 
       // Decimates validated track in order to find next candidate track.
       Decimate(tolerance_);
@@ -690,7 +690,7 @@ class VTrack {
   void UpdateCandidateError(
       const Comparer& _comparer,
       const ozz::Range<const AnimationOptimizer::Setting>& _settings) {
-    candidate_error_ = EstimateCandidateError(_comparer, _settings);
+    candidate_ratio_ = EstimateCandidateError(_comparer, _settings);
   }
 
   // Proposed candidate was validated, must be retained as a solution.
@@ -699,7 +699,8 @@ class VTrack {
       const ozz::Range<const AnimationOptimizer::Setting>& _settings) = 0;
 
   // -1 < x < 0 if transition pass is within tolerance range. The minimum
-  // the better. x >= 0 if transition pass is exceeding tolerance range.
+  // the better.
+  // x >= 0 if transition pass is exceeding tolerance range.
   float delta() const {
     // TODO precompute this delta value.
     const size_t original_size = OriginalSize();
@@ -711,7 +712,7 @@ class VTrack {
     const float size_ratio =
         static_cast<float>(validated_size - candidate_size) /
         static_cast<float>(original_size);
-    return candidate_error_ * size_ratio;
+    return candidate_ratio_ * size_ratio;
   }
   int joint() const { return joint_; }
 
@@ -732,7 +733,7 @@ class VTrack {
 
   // TODO removes
   // Error value for candidate track.
-  float candidate_error_;
+  float candidate_ratio_;
 
   // Joint that this track applies to.
   int joint_;
@@ -1058,8 +1059,7 @@ bool AnimationOptimizer::operator()(const RawAnimation& _input,
       Decimate(input.scales, sadap, tolerance, &output.scales, &included);
     }
   } else {
-    HillClimber climber(*this, no_constant, _skeleton, _output);
-    climber();
+    HillClimber(*this, no_constant, _skeleton, _output)();
   }
 
   // Output animation is always valid though.
