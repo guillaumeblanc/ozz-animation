@@ -727,8 +727,10 @@ class VTrack {
     // TODO check if part of remaining tracks.
     const size_t original_size = OriginalSize();
     if (original_size > 1 && error_ratio_ < 0.f) {
+      // Computes error ratio of this track and its hierarchy.
       error_ratio_ = EstimateCandidateError(_comparer, _settings);
 
+      // Computes optimization delta from error.
       const size_t validated_size = ValidatedSize();
       const size_t candidate_size = CandidateSize();
       const float size_ratio =
@@ -749,6 +751,8 @@ class VTrack {
   virtual size_t OriginalSize() const = 0;
   virtual size_t ValidatedSize() const = 0;
   virtual size_t CandidateSize() const = 0;
+
+  virtual int Type() const = 0;
 
   // -1 < x < 0 if transition pass is within tolerance range. The minimum
   // the better.
@@ -783,7 +787,7 @@ class VTrack {
   float delta_;
 };
 
-template <typename _Track, typename _Adapter>
+template <typename _Track, typename _Adapter, int _Type>
 class TTrack : public VTrack {
  public:
   TTrack(const _Track& _original, _Track* _solution, const _Adapter& _adapter,
@@ -826,6 +830,8 @@ class TTrack : public VTrack {
   virtual size_t ValidatedSize() const { return validated_->size(); }
   virtual size_t CandidateSize() const { return candidate_.size(); }
 
+  virtual int Type() const { return _Type; }
+
   _Adapter adapter_;
   const _Track* original_;
   _Track* validated_;
@@ -836,11 +842,11 @@ class TTrack : public VTrack {
   ozz::Vector<bool>::Std included_;
 };
 
-typedef TTrack<RawAnimation::JointTrack::Translations, PositionAdapter>
+typedef TTrack<RawAnimation::JointTrack::Translations, PositionAdapter, 0>
     TranslationTrack;
-typedef TTrack<RawAnimation::JointTrack::Rotations, RotationAdapter>
+typedef TTrack<RawAnimation::JointTrack::Rotations, RotationAdapter, 1>
     RotationTrack;
-typedef TTrack<RawAnimation::JointTrack::Scales, ScaleAdapter> ScaleTrack;
+typedef TTrack<RawAnimation::JointTrack::Scales, ScaleAdapter, 2> ScaleTrack;
 
 class Tracking {
  public:
@@ -1004,7 +1010,7 @@ class HillClimber {
           Tracking::Data data;
           data.iteration = iteration;
           data.joint = track->joint();
-          data.type = 0;
+          data.type = track->Type();
           data.target = settings_[data.joint].tolerance;
           data.distance = settings_[data.joint].distance;
           data.original = static_cast<int>(track->OriginalSize());
