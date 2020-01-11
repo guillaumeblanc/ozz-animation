@@ -595,9 +595,6 @@ class Comparer {
     Spanner<_Track> spanner(
         TrackComponent<_Track>::Get(solution_.tracks[_joint]), _included);
 
-    static int inl = 0;
-    static int outl = 0;
-
     float worst_ratio = -std::numeric_limits<float>::max();
     // Checking worst_ratio < 0.f is an early out optimization. It prevents from
     // knowing the real error ratio though.
