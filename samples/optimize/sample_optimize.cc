@@ -98,11 +98,11 @@ class OptimizeSampleApplication : public ozz::sample::Application {
       : selected_display_(eRuntimeAnimation),
         optimize_(true),
         fast_(true),
-        joint_setting_enable_(true),
-        joint_(0),
+        override_joint_(true),
+        overridden_joint_(0),
         error_record_med_(64),
         error_record_max_(64),
-        joint_error_record_(64) {}
+        overridden_joint_error_record_(64) {}
 
  protected:
   // Updates current animation time and skeleton pose.
@@ -193,10 +193,14 @@ class OptimizeSampleApplication : public ozz::sample::Application {
           models_rt_[i].cols[3] - models_raw_[i].cols[3]));
     }
 
-    std::sort(errors_sq, errors_sq + models_rt_.size());
+    // Stores overriden joint error before modifying errors_sq order.
+    overridden_joint_error_record_.Push(
+        std::sqrt(errors_sq[overridden_joint_]) * 1000.f);
+
+    // Sorts errors_sq to find median and max values.
+    std::sort(errors_sq, errors_sq + num_joints);
     error_record_med_.Push(std::sqrt(errors_sq[num_joints / 2]) * 1000.f);
     error_record_max_.Push(std::sqrt(errors_sq[num_joints - 1]) * 1000.f);
-    joint_error_record_.Push(std::sqrt(errors_sq[joint_]) * 1000.f);
 
     return true;
   }
@@ -274,11 +278,12 @@ class OptimizeSampleApplication : public ozz::sample::Application {
     success &= _renderer->DrawPosture(skeleton_, transforms,
                                       ozz::math::Float4x4::identity());
 
-    if (joint_setting_enable_) {
+    if (override_joint_) {
       // Renders an axes with targetted joint transform.
       const ozz::math::Float4x4 axes_scale = ozz::math::Float4x4::Scaling(
-          ozz::math::simd_float4::Load1(joint_setting_.distance));
-      success &= _renderer->DrawAxes(transforms[joint_] * axes_scale);
+          ozz::math::simd_float4::Load1(overridden_joint_setting_.distance));
+      success &=
+          _renderer->DrawAxes(transforms[overridden_joint_] * axes_scale);
     }
 
     return success;
@@ -302,7 +307,7 @@ class OptimizeSampleApplication : public ozz::sample::Application {
     // Finds the joint where the object should be attached.
     for (int i = 0; i < num_joints; i++) {
       if (std::strstr(skeleton_.joint_names()[i], "L Finger2Nub")) {
-        joint_ = i;
+        overridden_joint_ = i;
         break;
       }
     }
@@ -358,23 +363,27 @@ class OptimizeSampleApplication : public ozz::sample::Application {
         rebuild |= _im_gui->DoSlider(label, 0.f, 1.f, &setting_.distance, .5f,
                                      optimize_);
 
-        rebuild |= _im_gui->DoCheckBox("Enable joint setting",
-                                       &joint_setting_enable_, optimize_);
+        rebuild |= _im_gui->DoCheckBox("Enable joint setting", &override_joint_,
+                                       optimize_);
 
-        std::sprintf(label, "%s (%d)", skeleton_.joint_names()[joint_], joint_);
-        rebuild |=
-            _im_gui->DoSlider(label, 0, skeleton_.num_joints() - 1, &joint_,
-                              1.f, joint_setting_enable_ && optimize_);
+        std::sprintf(label, "%s (%d)",
+                     skeleton_.joint_names()[overridden_joint_],
+                     overridden_joint_);
+        rebuild |= _im_gui->DoSlider(label, 0, skeleton_.num_joints() - 1,
+                                     &overridden_joint_, 1.f,
+                                     override_joint_ && optimize_);
 
         std::sprintf(label, "Tolerance: %0.2f mm",
-                     joint_setting_.tolerance * 1000);
-        rebuild |= _im_gui->DoSlider(label, 0.f, .1f, &joint_setting_.tolerance,
-                                     .5f, joint_setting_enable_ && optimize_);
+                     overridden_joint_setting_.tolerance * 1000);
+        rebuild |= _im_gui->DoSlider(label, 0.f, .1f,
+                                     &overridden_joint_setting_.tolerance, .5f,
+                                     override_joint_ && optimize_);
 
         std::sprintf(label, "Distance: %0.2f mm",
-                     joint_setting_.distance * 1000);
-        rebuild |= _im_gui->DoSlider(label, 0.f, 1.f, &joint_setting_.distance,
-                                     .5f, joint_setting_enable_ && optimize_);
+                     overridden_joint_setting_.distance * 1000);
+        rebuild |= _im_gui->DoSlider(label, 0.f, 1.f,
+                                     &overridden_joint_setting_.distance, .5f,
+                                     override_joint_ && optimize_);
 
         if (rebuild) {
           // Invalidates the cache in case the new animation has the same
@@ -452,14 +461,14 @@ class OptimizeSampleApplication : public ozz::sample::Application {
                            error_record_max_.record_end());
         }
         {
-          std::sprintf(szLabel, "Joint %d error: %.2fmm", joint_,
-                       *joint_error_record_.cursor());
+          std::sprintf(szLabel, "Joint %d error: %.2fmm", overridden_joint_,
+                       *overridden_joint_error_record_.cursor());
           const ozz::sample::Record::Statistics error_stats =
-              joint_error_record_.GetStatistics();
+              overridden_joint_error_record_.GetStatistics();
           _im_gui->DoGraph(szLabel, 0.f, error_stats.max, error_stats.latest,
-                           joint_error_record_.cursor(),
-                           joint_error_record_.record_begin(),
-                           joint_error_record_.record_end());
+                           overridden_joint_error_record_.cursor(),
+                           overridden_joint_error_record_.record_begin(),
+                           overridden_joint_error_record_.record_end());
         }
       }
     }
@@ -476,16 +485,17 @@ class OptimizeSampleApplication : public ozz::sample::Application {
     // Builds the optimized animation.
     if (optimize_) {
       ozz::animation::offline::AnimationOptimizer optimizer;
-        
-        //TODO
-        optimizer.fast = fast_;
-        
+
+      // TODO
+      optimizer.fast = fast_;
+
       // Setup global optimization settings.
-        optimizer.setting = setting_;
-        
+      optimizer.setting = setting_;
+
       // Setup joint specific optimization settings.
-      if (joint_setting_enable_) {
-        optimizer.joints_setting_override[joint_] = joint_setting_;
+      if (override_joint_) {
+        optimizer.joints_setting_override[overridden_joint_] =
+            overridden_joint_setting_;
       } else {
         optimizer.joints_setting_override.clear();
       }
@@ -536,10 +546,11 @@ class OptimizeSampleApplication : public ozz::sample::Application {
   // Optimizer global settings.
   ozz::animation::offline::AnimationOptimizer::Setting setting_;
 
-  // Optimizer joint specific settings.
-  bool joint_setting_enable_;
-  int joint_;
-  ozz::animation::offline::AnimationOptimizer::Setting joint_setting_;
+  // Optimizer overridden joint specific settings.
+  bool override_joint_;
+  int overridden_joint_;
+  ozz::animation::offline::AnimationOptimizer::Setting
+      overridden_joint_setting_;
 
   // Playback animation controller. This is a utility class that helps with
   // controlling animation playback time.
@@ -577,7 +588,7 @@ class OptimizeSampleApplication : public ozz::sample::Application {
   // optimization.
   ozz::sample::Record error_record_med_;
   ozz::sample::Record error_record_max_;
-  ozz::sample::Record joint_error_record_;
+  ozz::sample::Record overridden_joint_error_record_;
 };
 
 int main(int _argc, const char** _argv) {
