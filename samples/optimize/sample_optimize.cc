@@ -97,14 +97,12 @@ class OptimizeSampleApplication : public ozz::sample::Application {
   OptimizeSampleApplication()
       : selected_display_(eRuntimeAnimation),
         optimize_(true),
-        fast_(false),
+        fast_(true),
         override_joint_(true),
         overridden_joint_(0),
         error_record_med_(64),
         error_record_max_(64),
-        overridden_joint_error_record_(64) {
-    setting_.tolerance = .01f;
-  }
+        overridden_joint_error_record_(64) {}
 
  protected:
   // Updates current animation time and skeleton pose.
@@ -505,7 +503,6 @@ class OptimizeSampleApplication : public ozz::sample::Application {
       if (!optimizer(raw_animation_, skeleton_, &raw_optimized_animation_)) {
         return false;
       }
-      return false;
     } else {
       // Builds runtime animation from the brute one.
       raw_optimized_animation_ = raw_animation_;
