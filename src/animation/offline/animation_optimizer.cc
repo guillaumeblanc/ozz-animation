@@ -476,7 +476,9 @@ struct TrackComponent<RawAnimation::JointTrack::Scales> {
   }
 };
 
-// TODO comment
+// Helper class around _included vector. It allows to detect know whever a time
+// value is with a span of time that must be updated (aka, whoses keyframes were
+// decimated since last update).
 template <typename _Track>
 class Spanner {
  public:
@@ -599,7 +601,7 @@ class Comparer {
       const _Track& _track, size_t _joint,
       const ozz::Range<const AnimationOptimizer::Setting>& _settings,
       const ozz::Vector<bool>::Std& _included) const {
-    // TODO use better allocation & copy strategy for models (partial ??)
+    // TODO use better allocation & copy strategy (partial ??)
     SkeletonTransforms locals;
     SkeletonTransforms models;
     SkeletonErrors errors;
@@ -692,16 +694,14 @@ class VTrack {
       : joint_(_joint),
         tolerance_(_initial_tolerance),
         error_ratio_(-1.f),
-        delta_(-1.f) {
-    // TODO update initial error.
-  }
+        delta_(-1.f) {}
   virtual ~VTrack() {}
   void Initialize(
       const Comparer& _comparer,
       const ozz::Range<const AnimationOptimizer::Setting>& _settings) {
     // Decimates  size in order to find next candidate track.
     Decimate(tolerance_);
-    UpdateCandidateError(_comparer, _settings);
+    UpdateDelta(_comparer, _settings);
   }
   // Computes transition to next solution.
   void Transition(
@@ -712,10 +712,8 @@ class VTrack {
     for (size_t candidate_size = CandidateSize();
          candidate_size > 1 && candidate_size == validated_size;
          candidate_size = CandidateSize()) {
-      // TODO should first try with initial tolerance.
       // Computes next tolerance to use for decimation.
       // tolerance_ *= 1.2f;
-
       const float mul = 1.2f + -error_ratio_ * .3f;  // * f * 1.f;
       tolerance_ *= mul;
 
@@ -725,18 +723,18 @@ class VTrack {
   }
 
   // Updates error ratio of the candidate track compared to original.
-  void UpdateCandidateError(
+  void UpdateDelta(
       const Comparer& _comparer,
       const ozz::Range<const AnimationOptimizer::Setting>& _settings) {
-    // This is an optimization that prevents rebuilding error for constant
-    // tracks. They haven't been decimated, so they don't own any error.
-
     // TODO find a way to do it (flag/reject track) at initialization time.
     // TODO wouldn't work with quantization taken into account.
-
-    // error_ratio_ >= 0.f is an optimization. If error is already too big,
-    // don't mid updating it.
     // TODO check if part of remaining tracks.
+
+    // (original_size > 1) is an optimization that prevents rebuilding error for
+    // constant tracks. They haven't been decimated, so they don't own any
+    // error.
+    // (error_ratio_ < 0.f) is an optimization. If error is already too big,
+    // don't mind updating it.
     const size_t original_size = OriginalSize();
     if (original_size > 1 && error_ratio_ < 0.f) {
       // Computes error ratio of this track and its hierarchy.
@@ -1093,22 +1091,20 @@ class HillClimber {
       // Updates all dependent tracks of the hierarchy.
       IterateJointsDF(
           skeleton_,
-          IterateMemFun<HillClimber, &HillClimber::UpdateCandidateError>(*this),
+          IterateMemFun<HillClimber, &HillClimber::UpdateDelta>(*this),
           best_track->joint());
     }
   }
 
-  void UpdateCandidateError(int _joint, int) {
-    // !!!! TODO check if tracks that aren't part of the remaining ones
-    // still need to be updated.
+  void UpdateDelta(int _joint, int) {
     // TODO check if all types of tracks really need to be updated
     // for the first joint, or if for example translations don't need when
     // optimized/modified track is a rotation.
     const ozz::Range<const AnimationOptimizer::Setting> settings =
         make_range(settings_);
-    translations_[_joint]->UpdateCandidateError(comparer_, settings);
-    rotations_[_joint]->UpdateCandidateError(comparer_, settings);
-    scales_[_joint]->UpdateCandidateError(comparer_, settings);
+    translations_[_joint]->UpdateDelta(comparer_, settings);
+    rotations_[_joint]->UpdateDelta(comparer_, settings);
+    scales_[_joint]->UpdateDelta(comparer_, settings);
   }
 
  private:
