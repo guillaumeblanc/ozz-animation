@@ -482,7 +482,7 @@ class Spanner {
  public:
   Spanner(const _Track& _track, const ozz::Vector<bool>::Std& _included)
       : track_(_track), included_(_included), span_end_(0), inside_(false) {
-    assert(included_.empty() || track_.size() == included_.size());
+    assert(track_.size() == included_.size());
     ++*this;
   }
 
@@ -562,23 +562,35 @@ class Comparer {
 
   // Updates cached error matrix following an update of _joint
   // Solution animation track shall have already been update.
-  void Update(size_t _joint,
-              const ozz::Range<const AnimationOptimizer::Setting>& _settings) {
+  template <typename _Track>
+  void UpdateError(
+      const _Track& _track, size_t _joint,
+      const ozz::Range<const AnimationOptimizer::Setting>& _settings,
+      const ozz::Vector<bool>::Std& _included) {
+    Spanner<_Track> spanner(
+        TrackComponent<_Track>::Get(solution_.tracks[_joint]), _included);
+
     for (size_t i = 0; i < key_times_.size(); ++i) {
-      // Update joint local and model space
-      SampleTrack(solution_.tracks[_joint], key_times_[i],
-                  &solution_locals_[i][_joint], false);
+      const float key_time = key_times_[i];
+      if (spanner.Update(key_time)) {
+        // Update joint local and model space
+        SampleTrackComponent(
+            _track, key_time,
+            TransformComponent<_Track>::Get(&solution_locals_[i][_joint]),
+            false);
 
-      LocalToModel(skeleton_, ozz::make_range(solution_locals_[i]),
-                   ozz::make_range(solution_models_[i]),
-                   static_cast<int>(_joint));
+        LocalToModel(skeleton_, ozz::make_range(solution_locals_[i]),
+                     ozz::make_range(solution_models_[i]),
+                     static_cast<int>(_joint));
 
-      // Compare
-      IterateJointsDF(skeleton_,
-                      CompareIterator(make_range(reference_models_[i]),
-                                      make_range(solution_models_[i]),
-                                      _settings, make_range(cached_errors_[i])),
-                      static_cast<int>(_joint));
+        // Compare
+        IterateJointsDF(
+            skeleton_,
+            CompareIterator(make_range(reference_models_[i]),
+                            make_range(solution_models_[i]), _settings,
+                            make_range(cached_errors_[i])),
+            static_cast<int>(_joint));
+      }
     }
   }
 
@@ -790,20 +802,21 @@ class VTrack {
 template <typename _Track, typename _Adapter, int _Type>
 class TTrack : public VTrack {
  public:
-  TTrack(const _Track& _original, _Track* _solution, const _Adapter& _adapter,
+  TTrack(const _Track& _original, _Track& _solution, const _Adapter& _adapter,
          float _initial_tolerance, int _joint)
       : VTrack(_initial_tolerance, _joint),
         adapter_(_adapter),
         original_(&_original),
         validated_(_solution) {
     // Initialize validated track with a copy of original.
-    assert(validated_ && "Destination track must be provided");
-
     // TODO check were it's better to initialize
-    *validated_ = *original_;
+    validated_ = *original_;
   }
 
  private:
+  TTrack(const TTrack&);
+  TTrack& operator=(const TTrack&);
+
   virtual float EstimateCandidateError(
       const Comparer& _comparer,
       const ozz::Range<const AnimationOptimizer::Setting>& _settings) const {
@@ -813,28 +826,29 @@ class TTrack : public VTrack {
   virtual void Validate(
       Comparer& _comparer,
       const ozz::Range<const AnimationOptimizer::Setting>& _settings) {
-    *validated_ = candidate_;
-    _comparer.Update(joint(), _settings);
+    _comparer.UpdateError(candidate_, joint(), _settings, included_);
 
-    // TODO explain outdated bits
+    validated_ = candidate_;
+
+    // included_ keyframes vector is now outdated.
     included_.clear();
   }
 
   virtual void Decimate(float _tolerance) {
     // TODO Need to prove decimate doesn't need original track
-    ozz::animation::offline::Decimate(*validated_, adapter_, _tolerance,
+    ozz::animation::offline::Decimate(validated_, adapter_, _tolerance,
                                       &candidate_, &included_);
   }
 
   virtual size_t OriginalSize() const { return original_->size(); }
-  virtual size_t ValidatedSize() const { return validated_->size(); }
+  virtual size_t ValidatedSize() const { return validated_.size(); }
   virtual size_t CandidateSize() const { return candidate_.size(); }
 
   virtual int Type() const { return _Type; }
 
-  _Adapter adapter_;
+  const _Adapter adapter_;
   const _Track* original_;
-  _Track* validated_;
+  _Track& validated_;
   _Track candidate_;
 
   // Vector used to store keyframes from candidate_ that are included from
@@ -866,6 +880,9 @@ class Tracking {
   };
 
   virtual bool Push(const Data& _data) = 0;
+
+  // virtual void Begin() = 0;
+  // virtual void End() = 0;
 };
 
 class CsvTracking : public Tracking, protected ozz::io::File {
@@ -897,16 +914,17 @@ class CsvTracking : public Tracking, protected ozz::io::File {
 
     char line[256];
     const int ret = std::sprintf(
-        line, "%d,%d,%d,%f,%f,%d,%d,%d,%f,%f,%f,%f\n",
-        _data.iteration, _data.joint, _data.type, _data.target, _data.distance,
-        _data.original, _data.validated, _data.candidate, _data.tolerance,
-        _data.error, _data.ratio, _data.delta);
+        line, "%d,%d,%d,%f,%f,%d,%d,%d,%f,%f,%f,%f\n", _data.iteration,
+        _data.joint, _data.type, _data.target, _data.distance, _data.original,
+        _data.validated, _data.candidate, _data.tolerance, _data.error,
+        _data.ratio, _data.delta);
     // Can only assert as no point trying to recover from a memory overwrite.
     // Should use std::snprintf, but only available from c++11.
     assert(ret > 0 && "Fromatting failed");
 
     const size_t len = static_cast<size_t>(ret);
-    assert(len > 0 && len < OZZ_ARRAY_SIZE(line) && "Output buffer is too small");
+    assert(len > 0 && len < OZZ_ARRAY_SIZE(line) &&
+           "Output buffer is too small");
 
     if (Write(line, len) != len) {
       ozz::log::Err() << "Failed writing csv file." << std::endl;
@@ -928,6 +946,8 @@ class HillClimber {
         tracking_(_tracking) {
     // Checks output
     assert(_output->tracks.size() == original_.tracks.size());
+
+    ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
 
     // Computes skeleton hierarchy specs, used to find initial settings.
     const HierarchyBuilder hierarchy(original_, _skeleton, _optimizer);
@@ -966,19 +986,20 @@ class HillClimber {
 
       {  // Translation track, translation is affected by parent scale.
         const PositionAdapter adap(parent_scale);
-        const TranslationTrack track(itrack.translations, &otrack.translations,
-                                     adap, initial, i);
+        TranslationTrack* track = OZZ_NEW(allocator, TranslationTrack)(
+            itrack.translations, otrack.translations, adap, initial, i);
         translations_.push_back(track);
       }
       {  // Rotation track, rotation affects children translations/length.
         const RotationAdapter adap(joint_length);
-        const RotationTrack track(itrack.rotations, &otrack.rotations, adap,
-                                  initial, i);
+        RotationTrack* track = OZZ_NEW(allocator, RotationTrack)(
+            itrack.rotations, otrack.rotations, adap, initial, i);
         rotations_.push_back(track);
       }
       {  // Scale track, scale affects children translations/length.
         const ScaleAdapter adap(joint_length);
-        const ScaleTrack track(itrack.scales, &otrack.scales, adap, initial, i);
+        ScaleTrack* track = OZZ_NEW(allocator, ScaleTrack)(
+            itrack.scales, otrack.scales, adap, initial, i);
         scales_.push_back(track);
       }
     }
@@ -987,9 +1008,9 @@ class HillClimber {
     // ensures tracks won't be reallocated/moved.
     remainings_.reserve(num_tracks * 3);
     for (int i = 0; i < num_tracks; ++i) {
-      remainings_.push_back(&translations_[i]);
-      remainings_.push_back(&rotations_[i]);
-      remainings_.push_back(&scales_[i]);
+      remainings_.push_back(translations_[i]);
+      remainings_.push_back(rotations_[i]);
+      remainings_.push_back(scales_[i]);
     }
 
     // Initialize all tracks with a decimation based on initial tolerance.
@@ -998,6 +1019,15 @@ class HillClimber {
     }
   }
 
+  ~HillClimber() {
+    ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
+    const int num_tracks = original_.num_tracks();
+    for (int i = 0; i < num_tracks; ++i) {
+      OZZ_DELETE(allocator, translations_[i]);
+      OZZ_DELETE(allocator, rotations_[i]);
+      OZZ_DELETE(allocator, scales_[i]);
+    }
+  }
   void operator()() {
     // Loops as long as there's still optimizable tracks to process.
     for (int iteration = 0;; ++iteration) {
@@ -1076,9 +1106,9 @@ class HillClimber {
     // optimized/modified track is a rotation.
     const ozz::Range<const AnimationOptimizer::Setting> settings =
         make_range(settings_);
-    translations_[_joint].UpdateCandidateError(comparer_, settings);
-    rotations_[_joint].UpdateCandidateError(comparer_, settings);
-    scales_[_joint].UpdateCandidateError(comparer_, settings);
+    translations_[_joint]->UpdateCandidateError(comparer_, settings);
+    rotations_[_joint]->UpdateCandidateError(comparer_, settings);
+    scales_[_joint]->UpdateCandidateError(comparer_, settings);
   }
 
  private:
@@ -1088,9 +1118,9 @@ class HillClimber {
   Comparer comparer_;
   const RawAnimation& original_;
   const Skeleton& skeleton_;
-  ozz::Vector<TranslationTrack>::Std translations_;
-  ozz::Vector<RotationTrack>::Std rotations_;
-  ozz::Vector<ScaleTrack>::Std scales_;
+  ozz::Vector<TranslationTrack*>::Std translations_;
+  ozz::Vector<RotationTrack*>::Std rotations_;
+  ozz::Vector<ScaleTrack*>::Std scales_;
   ozz::Vector<AnimationOptimizer::Setting>::Std settings_;
   ozz::Vector<VTrack*>::Std remainings_;
 
