@@ -29,6 +29,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cstdio>
 #include <limits>
 
 // Internal include file
