@@ -896,12 +896,19 @@ class CsvTracking : public Tracking, protected ozz::io::File {
     }
 
     char line[256];
-    const int len = std::snprintf(
-        line, OZZ_ARRAY_SIZE(line), "%d,%d,%d,%f,%f,%d,%d,%d,%f,%f,%f,%f\n",
+    const int ret = std::sprintf(
+        line, "%d,%d,%d,%f,%f,%d,%d,%d,%f,%f,%f,%f\n",
         _data.iteration, _data.joint, _data.type, _data.target, _data.distance,
         _data.original, _data.validated, _data.candidate, _data.tolerance,
         _data.error, _data.ratio, _data.delta);
-    if (len < 0 || len >= OZZ_ARRAY_SIZE(line) || Write(line, len) != len) {
+    // Can only assert as no point trying to recover from a memory overwrite.
+    // Should use std::snprintf, but only available from c++11.
+    assert(ret > 0 && "Fromatting failed");
+
+    const size_t len = static_cast<size_t>(ret);
+    assert(len > 0 && len < OZZ_ARRAY_SIZE(line) && "Output buffer is too small");
+
+    if (Write(line, len) != len) {
       ozz::log::Err() << "Failed writing csv file." << std::endl;
       Close();
       return false;
