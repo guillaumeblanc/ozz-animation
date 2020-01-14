@@ -269,48 +269,51 @@ class ScaleAdapter {
 
 struct LTMIterator {
   LTMIterator(const ozz::Range<const ozz::math::Transform>& _locals,
-              const ozz::Range<ozz::math::Transform>& _models)
-      : locals_(_locals), models_(_models) {}
+              const ozz::math::Transform& _local_joint, int _joint,
+              const ozz::Range<const ozz::math::Transform>& _models,
+              const ozz::Range<ozz::math::Transform>& _models_out)
+      : locals_(_locals),
+        local_from_(_local_joint),
+        joint_(_joint),
+        models_(_models),
+        models_out_(_models_out) {}
 
   LTMIterator(const LTMIterator& _it)
-      : locals_(_it.locals_), models_(_it.models_) {}
+      : locals_(_it.locals_),
+        local_from_(_it.local_from_),
+        joint_(_it.joint_),
+        models_(_it.models_),
+        models_out_(_it.models_out_) {}
 
   void operator()(int _joint, int _parent) {
-    if (_parent == ozz::animation::Skeleton::kNoParent) {
-      models_[_joint] = locals_[_joint];
-    } else {
-      const ozz::math::Transform& local = locals_[_joint];
-      const ozz::math::Transform& parent = models_[_parent];
-      ozz::math::Transform& model = models_[_joint];
+    const ozz::math::Transform& local =
+        joint_ == _joint ? local_from_ : locals_[_joint];
 
-      model.translation =
+    ozz::math::Transform& model_out = models_out_[_joint];
+    if (_parent == ozz::animation::Skeleton::kNoParent) {
+      model_out = local;
+    } else {
+      // Picks parent's transform from precomputed model space transforms, or
+      // newly updated ones.
+      const ozz::math::Transform& parent =
+          joint_ == _joint ? models_[_parent] : models_out_[_parent];
+
+      model_out.translation =
           parent.translation +
           TransformVector(parent.rotation, local.translation * parent.scale);
-      model.rotation = parent.rotation * local.rotation;
-      model.scale = parent.scale * local.scale;
+      model_out.rotation = parent.rotation * local.rotation;
+      model_out.scale = parent.scale * local.scale;
     }
   }
   const ozz::Range<const ozz::math::Transform>& locals_;
-  const ozz::Range<ozz::math::Transform>& models_;
+  const ozz::math::Transform& local_from_;
+  int joint_;
+  const ozz::Range<const ozz::math::Transform>& models_;
+  const ozz::Range<ozz::math::Transform>& models_out_;
 
  private:
   void operator=(const LTMIterator&);
 };
-
-// Reimplement local to model-space because ozz runtime version isn't based on
-// ozz::math::Transform
-bool LocalToModel(const ozz::animation::Skeleton& _skeleton,
-                  const ozz::Range<const ozz::math::Transform>& _locals,
-                  const ozz::Range<ozz::math::Transform>& _models,
-                  int from = -1) {
-  assert(static_cast<size_t>(_skeleton.num_joints()) <= _locals.count() &&
-         static_cast<size_t>(_skeleton.num_joints()) <= _models.count());
-
-  LTMIterator it(_locals, _models);
-  ozz::animation::IterateJointsDF(_skeleton, it, from);
-
-  return true;
-}
 
 template <typename _Track, typename _Times>
 void CopyKeyTimes(const _Track& _track, _Times* _key_times) {
@@ -554,8 +557,12 @@ class Comparer {
       ozz::animation::offline::SampleAnimation(
           _original, key_times_[i], ozz::make_range(solution_locals_[i]),
           false);
-      LocalToModel(skeleton_, ozz::make_range(solution_locals_[i]),
-                   ozz::make_range(solution_models_[i]));
+
+      ozz::animation::IterateJointsDF(
+          _skeleton, LTMIterator(ozz::make_range(solution_locals_[i]),
+                                 solution_locals_[i][0], 0,
+                                 ozz::make_range(solution_models_[i]),
+                                 ozz::make_range(solution_models_[i])));
     }
 
     // Solution animation equals reference at initialization time.
@@ -582,9 +589,14 @@ class Comparer {
             TransformComponent<_Track>::Get(&solution_locals_[i][_joint]),
             false);
 
-        LocalToModel(skeleton_, ozz::make_range(solution_locals_[i]),
-                     ozz::make_range(solution_models_[i]),
-                     static_cast<int>(_joint));
+        // Updates model space
+        ozz::animation::IterateJointsDF(
+            skeleton_,
+            LTMIterator(ozz::make_range(solution_locals_[i]),
+                        solution_locals_[i][_joint], static_cast<int>(_joint),
+                        ozz::make_range(solution_models_[i]),
+                        ozz::make_range(solution_models_[i])),
+            static_cast<int>(_joint));
 
         // Compare
         IterateJointsDF(
@@ -602,10 +614,13 @@ class Comparer {
       const _Track& _track, size_t _joint,
       const ozz::Range<const AnimationOptimizer::Setting>& _settings,
       const ozz::Vector<bool>::Std& _included) const {
-    // TODO use better allocation & copy strategy (partial ??)
-    SkeletonTransforms locals;
-    SkeletonTransforms models;
-    SkeletonErrors errors;
+    // Temporary arrays used to store estimated values without modyfing current
+    // ones (ensured for const function).
+    // Only a subrange of those array might be actually used, depending on
+    // _joint hierarchy. A 10x optimization factor was measured compared to
+    // copying the full array each test.
+    SkeletonTransforms models(solution_.tracks.size());
+    SkeletonErrors errors(solution_.tracks.size());
 
     Spanner<_Track> spanner(
         TrackComponent<_Track>::Get(solution_.tracks[_joint]), _included);
@@ -629,26 +644,32 @@ class Comparer {
 
         worst_ratio = ozz::math::Max(worst_ratio, ratio);
       } else {
-        // Error value needs to be recomputed.
-        // Update joint local and model space.
-        locals = solution_locals_[i];
+        // Error value needs to be recomputed, as some keyframes were modified
+        // for this key_time.
+
+        // Samples new local.
+        ozz::math::Transform local = solution_locals_[i][_joint];
         SampleTrackComponent(_track, key_time,
-                             TransformComponent<_Track>::Get(&locals[_joint]),
-                             false);
+                             TransformComponent<_Track>::Get(&local), false);
 
-        models = solution_models_[i];
-        LocalToModel(skeleton_, ozz::make_range(locals),
-                     ozz::make_range(models), static_cast<int>(_joint));
+        // Updates LTM, only the relevant ones for _joint hierarchy are written.
+        ozz::animation::IterateJointsDF(
+            skeleton_,
+            LTMIterator(ozz::make_range(solution_locals_[i]), local,
+                        static_cast<int>(_joint),
+                        ozz::make_range(solution_models_[i]),
+                        ozz::make_range(models)),
+            static_cast<int>(_joint));
 
-        // Compare
-        errors = cached_errors_[i];
+        // Compare, only the relevant ones for _joint hierarchy are written.
         IterateJointsDF(
             skeleton_,
             CompareIterator(make_range(reference_models_[i]),
                             make_range(models), _settings, make_range(errors)),
             static_cast<int>(_joint));
 
-        // Gets joint error ratio, which the worst of its hierarchy.
+        // Gets joint error ratio, which is the worst ratio of _joint's
+        // hierarchy.
         const float ratio =
             IterateJointsDF(skeleton_,
                             RatioIterator(_settings, make_range(errors)),
@@ -705,8 +726,7 @@ class VTrack {
     UpdateDelta(_comparer, _settings);
   }
   // Computes transition to next solution.
-  void Transition(
-      const ozz::Range<const AnimationOptimizer::Setting>& /*_settings*/) {
+  void Transition() {
     const size_t validated_size = ValidatedSize();
 
     // TODO, there's no guarantee this loop exits.
@@ -829,8 +849,12 @@ class TTrack : public VTrack {
 
     validated_ = candidate_;
 
+    // TODO
     // included_ keyframes vector is now outdated.
+    // Outdated is reset to true (all keyframe maintained), as decimate might
+    // not be call (if keyframe number is too small for instance).
     included_.clear();
+    included_.resize(validated_.size(), true);
   }
 
   virtual void Decimate(float _tolerance) {
@@ -863,6 +887,9 @@ typedef TTrack<RawAnimation::JointTrack::Scales, ScaleAdapter, 2> ScaleTrack;
 
 class Tracking {
  public:
+  virtual void Begin() {}
+  virtual void End() {}
+
   struct Data {
     int iteration;
     int joint;
@@ -878,10 +905,7 @@ class Tracking {
     float delta;
   };
 
-  virtual bool Push(const Data& _data) = 0;
-
-  // virtual void Begin() = 0;
-  // virtual void End() = 0;
+  virtual bool Push(const Data&) { return true; }
 };
 
 class CsvTracking : public Tracking, protected ozz::io::File {
@@ -945,6 +969,10 @@ class HillClimber {
         tracking_(_tracking) {
     // Checks output
     assert(_output->tracks.size() == original_.tracks.size());
+
+    if (_tracking) {
+      _tracking->Begin();
+    }
 
     ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
 
@@ -1026,7 +1054,12 @@ class HillClimber {
       OZZ_DELETE(allocator, rotations_[i]);
       OZZ_DELETE(allocator, scales_[i]);
     }
+
+    if (tracking_) {
+      tracking_->End();
+    }
   }
+
   void operator()() {
     // Loops as long as there's still optimizable tracks to process.
     for (int iteration = 0;; ++iteration) {
@@ -1087,7 +1120,7 @@ class HillClimber {
       best_track->Validate(comparer_, ozz::make_range(settings_));
 
       // Computes next candidate for track.
-      best_track->Transition(ozz::make_range(settings_));
+      best_track->Transition();
 
       // Updates all dependent tracks of the hierarchy.
       IterateJointsDF(
