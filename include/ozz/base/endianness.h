@@ -49,7 +49,7 @@ inline Endianness GetNativeEndianness() {
     uint16_t s;
     uint8_t c[2];
   } u = {1};  // Initializes u.s -> then read u.c.
-  return Endianness(u.c[0]);
+  return static_cast<Endianness>(u.c[0]);
 }
 
 // Declare the endian swapper struct that is aimed to be specialized (template

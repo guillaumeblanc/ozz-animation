@@ -33,8 +33,6 @@
 
 #include "ozz/base/platform.h"
 
-#include <cstddef>
-
 namespace ozz {
 namespace io {
 

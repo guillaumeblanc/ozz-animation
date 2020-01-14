@@ -44,12 +44,16 @@ namespace io {
 // Specializes Extrusive type external Save and Load functions.
 void Extern<Extrusive>::Save(OArchive& _archive, const Extrusive* _test,
                              size_t _count) {
-  _archive << ozz::io::MakeArray(&_test->i, _count);
+  for (size_t i = 0; i < _count; ++i) {
+    _archive << _test[i].i;
+  }
 }
 void Extern<Extrusive>::Load(IArchive& _archive, Extrusive* _test,
                              size_t _count, uint32_t _version) {
   EXPECT_EQ(_version, 0u);
-  _archive >> ozz::io::MakeArray(&_test->i, _count);
+  for (size_t i = 0; i < _count; ++i) {
+    _archive >> _test[i].i;
+  }
 }
 }  // namespace io
 }  // namespace ozz
