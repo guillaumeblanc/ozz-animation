@@ -271,19 +271,19 @@ struct LTMIterator {
   LTMIterator(const ozz::Range<const ozz::math::Transform>& _locals,
               const ozz::Range<ozz::math::Transform>& _models)
       : locals_(_locals),
-        joint_overload_(-1),
         models_(_models),
-        models_out_(_models) {}
+        models_out_(_models),
+        joint_overload_(-1) {}
 
   LTMIterator(const ozz::Range<const ozz::math::Transform>& _locals,
               const ozz::math::Transform& _local_overload, int _joint_overload,
               const ozz::Range<const ozz::math::Transform>& _models,
               const ozz::Range<ozz::math::Transform>& _models_out)
       : locals_(_locals),
-        local_overload_(_local_overload),
-        joint_overload_(_joint_overload),
         models_(_models),
-        models_out_(_models_out) {}
+        models_out_(_models_out),
+        local_overload_(_local_overload),
+        joint_overload_(_joint_overload) {}
 
   void operator()(int _joint, int _parent) {
     // Test if overloaded local shall be used.
