@@ -215,7 +215,6 @@ class OptimizeSampleApplication : public ozz::sample::Application {
     }
 
     // Sample raw animation and converts AoS transforms to SoA transform array.
-    assert(_animation.Validate() && "Animation should be valid.");
     bool success = true;
     for (int i = 0; success && i < _animation.num_tracks(); i += 4) {
       ozz::math::SimdFloat4 translations[4];
@@ -226,9 +225,11 @@ class OptimizeSampleApplication : public ozz::sample::Application {
       // lower than 4.
       const int jmax = ozz::math::Min(_animation.num_tracks() - i, 4);
       for (int j = 0; success && j < jmax; ++j) {
-        // Samples raw animation.
+        // Samples raw animation. Validation can be skipped as it was already
+        // done before.
         ozz::math::Transform transform;
-        success &= SampleTrack(_animation.tracks[i + j], _time, &transform);
+        success &=
+            SampleTrack(_animation.tracks[i + j], _time, &transform, false);
 
         // Convert transform to AoS SimdFloat4 values.
         translations[j] =
