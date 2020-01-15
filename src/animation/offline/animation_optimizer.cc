@@ -269,25 +269,26 @@ class ScaleAdapter {
 
 struct LTMIterator {
   LTMIterator(const ozz::Range<const ozz::math::Transform>& _locals,
-              const ozz::math::Transform& _local_joint, int _joint,
+              const ozz::Range<ozz::math::Transform>& _models)
+      : locals_(_locals),
+        joint_overload_(-1),
+        models_(_models),
+        models_out_(_models) {}
+
+  LTMIterator(const ozz::Range<const ozz::math::Transform>& _locals,
+              const ozz::math::Transform& _local_overload, int _joint_overload,
               const ozz::Range<const ozz::math::Transform>& _models,
               const ozz::Range<ozz::math::Transform>& _models_out)
       : locals_(_locals),
-        local_from_(_local_joint),
-        joint_(_joint),
+        local_overload_(_local_overload),
+        joint_overload_(_joint_overload),
         models_(_models),
         models_out_(_models_out) {}
 
-  LTMIterator(const LTMIterator& _it)
-      : locals_(_it.locals_),
-        local_from_(_it.local_from_),
-        joint_(_it.joint_),
-        models_(_it.models_),
-        models_out_(_it.models_out_) {}
-
   void operator()(int _joint, int _parent) {
+    // Test if overloaded local shall be used.
     const ozz::math::Transform& local =
-        joint_ == _joint ? local_from_ : locals_[_joint];
+        joint_overload_ == _joint ? local_overload_ : locals_[_joint];
 
     ozz::math::Transform& model_out = models_out_[_joint];
     if (_parent == ozz::animation::Skeleton::kNoParent) {
@@ -296,8 +297,9 @@ struct LTMIterator {
       // Picks parent's transform from precomputed model space transforms, or
       // newly updated ones.
       const ozz::math::Transform& parent =
-          joint_ == _joint ? models_[_parent] : models_out_[_parent];
+          joint_overload_ == _joint ? models_[_parent] : models_out_[_parent];
 
+      // Computes model space TRS transform.
       model_out.translation =
           parent.translation +
           TransformVector(parent.rotation, local.translation * parent.scale);
@@ -305,25 +307,26 @@ struct LTMIterator {
       model_out.scale = parent.scale * local.scale;
     }
   }
-  const ozz::Range<const ozz::math::Transform>& locals_;
-  const ozz::math::Transform& local_from_;
-  int joint_;
-  const ozz::Range<const ozz::math::Transform>& models_;
-  const ozz::Range<ozz::math::Transform>& models_out_;
 
  private:
   void operator=(const LTMIterator&);
+
+  ozz::Range<const ozz::math::Transform> locals_;
+  ozz::Range<const ozz::math::Transform> models_;
+  ozz::Range<ozz::math::Transform> models_out_;
+  const ozz::math::Transform local_overload_;
+  int joint_overload_;
 };
 
 template <typename _Track, typename _Times>
-void CopyKeyTimes(const _Track& _track, _Times* _key_times) {
+inline void CopyKeyTimes(const _Track& _track, _Times* _key_times) {
   for (size_t i = 0; i < _track.size(); ++i) {
     _key_times->push_back(_track[i].time);
   }
 }
 
 template <typename _Times>
-void SetupKeyTimes(const RawAnimation& _animation, _Times* _key_times) {
+inline void SetupKeyTimes(const RawAnimation& _animation, _Times* _key_times) {
   // Gets union of all possible keyframe times.
   for (int i = 0; i < _animation.num_tracks(); ++i) {
     const RawAnimation::JointTrack& track = _animation.tracks[i];
@@ -336,8 +339,8 @@ void SetupKeyTimes(const RawAnimation& _animation, _Times* _key_times) {
                     _key_times->end());
 }
 
-float Compare(const ozz::math::Transform& _reference,
-              const ozz::math::Transform& _test, float _distance) {
+inline float Compare(const ozz::math::Transform& _reference,
+                     const ozz::math::Transform& _test, float _distance) {
   // return Length(_reference.translation - _test.translation);
 
   // Translation error in model space takes intrinsically into account
@@ -560,8 +563,6 @@ class Comparer {
 
       ozz::animation::IterateJointsDF(
           _skeleton, LTMIterator(ozz::make_range(solution_locals_[i]),
-                                 solution_locals_[i][0], 0,
-                                 ozz::make_range(solution_models_[i]),
                                  ozz::make_range(solution_models_[i])));
     }
 
@@ -593,8 +594,6 @@ class Comparer {
         ozz::animation::IterateJointsDF(
             skeleton_,
             LTMIterator(ozz::make_range(solution_locals_[i]),
-                        solution_locals_[i][_joint], static_cast<int>(_joint),
-                        ozz::make_range(solution_models_[i]),
                         ozz::make_range(solution_models_[i])),
             static_cast<int>(_joint));
 
