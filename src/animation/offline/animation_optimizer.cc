@@ -995,12 +995,10 @@ class HillClimber {
       // climbing will have the last word, figuring out if this decimation
       // is OK or not in the end.
       const float joint_length = hierarchy.specs[i].length;
-      /*
+
       const int parent = _skeleton.joint_parents()[i];
-      const float parent_scale = (parent != Skeleton::kNoParent)
-                                 ? _hierarchy.specs[parent].scale
-                                 : 1.f;*/
-      const float parent_scale = 1.f;
+      const float parent_scale =
+          (parent != Skeleton::kNoParent) ? hierarchy.specs[parent].scale : 1.f;
 
       const AnimationOptimizer::Setting& setting =
           GetJointSetting(_optimizer, i);
