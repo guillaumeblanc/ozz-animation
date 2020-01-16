@@ -38,4 +38,11 @@ set_tests_properties(gltf2ozz_skel_output PROPERTIES
 # Run gltf2ozz skeleton passing tests
 #----------------------------
 
-add_test(NAME gltf2ozz_skel_simple COMMAND gltf2ozz "--file=${ozz_media_directory}/gltf/khronos/interpolation_test.gltf" "--config={\"skeleton\":{\"filename\":\"${ozz_temp_directory}/gltf_interpolation_test_skeleton.ozz\",\"import\":{\"enable\":true}},\"animations\":[{\"filename\":\"${ozz_temp_directory}/gltf_interpolation_test_*.ozz\"}]}")
+add_test(NAME gltf2ozz_skel_simple COMMAND gltf2ozz "--file=${ozz_media_directory}/gltf/khronos/interpolation_test.gltf" "--config={\"skeleton\":{\"filename\":\"${ozz_temp_directory}/gltf_interpolation_test_skeleton.ozz\",\"import\":{\"enable\":true}}}")
+
+# Run gltf2ozz animation passing tests
+#----------------------------
+
+add_test(NAME gltf2ozz_animation_multiple COMMAND gltf2ozz "--file=${ozz_media_directory}/gltf/khronos/interpolation_test.gltf" "--config={\"skeleton\":{\"filename\":\"${ozz_temp_directory}/gltf_interpolation_test_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"${ozz_temp_directory}/gltf_interpolation_test_*.ozz\"}]}")
+set_tests_properties(gltf2ozz_animation_multiple PROPERTIES DEPENDS gltf2ozz_skel_simple)
+
