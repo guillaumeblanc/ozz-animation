@@ -42,7 +42,6 @@
 #include <functional>
 
 #include "gtest/gtest.h"
-
 #include "ozz/base/gtest_helper.h"
 
 // using-declaration of IntrusiveList type and its options
@@ -1542,21 +1541,14 @@ TEST(SafeLink, IntrusiveList) {
   }
 
   // Destroy the list before the hook
-  EXPECT_ASSERTION(
-      {
-        List l;
-        l.push_front(obj);
-      },
-      "");
+  EXPECT_ASSERTION(List().push_front(obj), "");
 
   {  // Destroy the hook before the list
     List l;
-    EXPECT_ASSERTION(
-        {
-          LocalTestObj obj2;
-          l.push_front(obj2);
-        },
-        "");
+    LocalTestObj obj2;
+    l.push_front(obj2);
+    EXPECT_ASSERTION(obj2.~LocalTestObj(), "");
+    obj2.unlink();
   }
 }
 
