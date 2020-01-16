@@ -39,9 +39,3 @@ set_tests_properties(gltf2ozz_skel_output PROPERTIES
 #----------------------------
 
 add_test(NAME gltf2ozz_skel_simple COMMAND gltf2ozz "--file=${ozz_media_directory}/gltf/khronos/interpolation_test.gltf" "--config={\"skeleton\":{\"filename\":\"${ozz_temp_directory}/gltf_interpolation_test_skeleton.ozz\",\"import\":{\"enable\":true}},\"animations\":[{\"filename\":\"${ozz_temp_directory}/gltf_interpolation_test_*.ozz\"}]}")
-
-add_test(NAME gltf2ozz_multiple_roots COMMAND gltf2ozz "--file=${ozz_media_directory}/gltf/multiple_roots.gltf" "--config={\"skeleton\":{\"filename\":\"${ozz_temp_directory}/gltf_multiple_roots_skeleton.ozz\",\"import\":{\"enable\":true}},\"animations\":[{\"filename\":\"${ozz_temp_directory}/gltf_multiple_roots_*.ozz\"}]}")
-
-add_test(NAME gltf2ozz_cubic COMMAND gltf2ozz "--file=${ozz_media_directory}/gltf/cubicspline.gltf" "--config={\"skeleton\":{\"filename\":\"${ozz_temp_directory}/gltf_cubicspline_skeleton.ozz\",\"import\":{\"enable\":true}},\"animations\":[{\"filename\":\"${ozz_temp_directory}/gltf_cubicspline_*.ozz\"}]}")
-
-add_test(NAME gltf2ozz_character_walk COMMAND gltf2ozz "--file=${ozz_media_directory}/gltf/character_walk.gltf" "--config={\"skeleton\":{\"filename\":\"${ozz_temp_directory}/gltf_character_walk_skeleton.ozz\",\"import\":{\"enable\":true}},\"animations\":[{\"filename\":\"${ozz_temp_directory}/gltf_character_walk_*.ozz\"}]}")
