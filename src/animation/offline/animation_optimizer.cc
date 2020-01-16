@@ -273,6 +273,7 @@ struct LTMIterator {
       : locals_(_locals),
         models_(_models),
         models_out_(_models),
+        local_overload_(),
         joint_overload_(-1) {}
 
   LTMIterator(const ozz::Range<const ozz::math::Transform>& _locals,
