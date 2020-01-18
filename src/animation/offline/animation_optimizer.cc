@@ -41,6 +41,7 @@
 #include "ozz/base/io/stream.h"
 #include "ozz/base/maths/math_constant.h"
 #include "ozz/base/maths/math_ex.h"
+#include "ozz/base/memory/scoped_ptr.h"
 
 #define OZZ_INCLUDE_PRIVATE_HEADER  // Allows to include private headers.
 #include "animation/offline/decimate.h"
@@ -545,8 +546,9 @@ class Spanner {
 class Comparer {
  public:
   Comparer(const RawAnimation& _original, const RawAnimation& _solution,
-           const Skeleton& _skeleton)
-      : solution_(_solution), skeleton_(_skeleton) {
+           const Skeleton& _skeleton,
+           const ozz::Range<const AnimationOptimizer::Setting>& _settings)
+      : solution_(_solution), skeleton_(_skeleton), settings_(_settings) {
     // Comparison only needs to happen at each of the keyframe times.
     // So we get the union of all possible keyframe times
     SetupKeyTimes(_original, &key_times_);
@@ -575,10 +577,8 @@ class Comparer {
   // Updates cached error matrix following an update of _joint
   // Solution animation track shall have already been update.
   template <typename _Track>
-  void UpdateError(
-      const _Track& _track, size_t _joint,
-      const ozz::Range<const AnimationOptimizer::Setting>& _settings,
-      const ozz::Vector<bool>::Std& _included) {
+  void UpdateError(const _Track& _track, size_t _joint,
+                   const ozz::Vector<bool>::Std& _included) {
     Spanner<_Track> spanner(
         TrackComponent<_Track>::Get(solution_.tracks[_joint]), _included);
 
@@ -602,7 +602,7 @@ class Comparer {
         IterateJointsDF(
             skeleton_,
             CompareIterator(make_range(reference_models_[i]),
-                            make_range(solution_models_[i]), _settings,
+                            make_range(solution_models_[i]), settings_,
                             make_range(cached_errors_[i])),
             static_cast<int>(_joint));
       }
@@ -610,10 +610,8 @@ class Comparer {
   }
 
   template <typename _Track>
-  float EstimateError(
-      const _Track& _track, size_t _joint,
-      const ozz::Range<const AnimationOptimizer::Setting>& _settings,
-      const ozz::Vector<bool>::Std& _included) const {
+  float EstimateError(const _Track& _track, size_t _joint,
+                      const ozz::Vector<bool>::Std& _included) const {
     // Temporary arrays used to store estimated values without modyfing current
     // ones (ensured for const function).
     // Only a subrange of those array might be actually used, depending on
@@ -638,7 +636,7 @@ class Comparer {
         const float ratio =
             IterateJointsDF(
                 skeleton_,
-                RatioIterator(_settings, make_range(cached_errors_[i])),
+                RatioIterator(settings_, make_range(cached_errors_[i])),
                 static_cast<int>(_joint))
                 .ratio();
 
@@ -665,14 +663,14 @@ class Comparer {
         IterateJointsDF(
             skeleton_,
             CompareIterator(make_range(reference_models_[i]),
-                            make_range(models), _settings, make_range(errors)),
+                            make_range(models), settings_, make_range(errors)),
             static_cast<int>(_joint));
 
         // Gets joint error ratio, which is the worst ratio of _joint's
         // hierarchy.
         const float ratio =
             IterateJointsDF(skeleton_,
-                            RatioIterator(_settings, make_range(errors)),
+                            RatioIterator(settings_, make_range(errors)),
                             static_cast<int>(_joint))
                 .ratio();
 
@@ -690,6 +688,7 @@ class Comparer {
 
   const RawAnimation& solution_;
   const Skeleton& skeleton_;
+  const ozz::Range<const AnimationOptimizer::Setting> settings_;
 
   typedef ozz::Vector<ozz::math::Transform>::Std SkeletonTransforms;
   typedef ozz::Vector<SkeletonTransforms>::Std SkeletonTransformKeys;
@@ -718,12 +717,10 @@ class VTrack {
         error_ratio_(-1.f),
         delta_(-1.f) {}
   virtual ~VTrack() {}
-  void Initialize(
-      const Comparer& _comparer,
-      const ozz::Range<const AnimationOptimizer::Setting>& _settings) {
+  void Initialize(const Comparer& _comparer) {
     // Decimates  size in order to find next candidate track.
     Decimate(tolerance_);
-    UpdateDelta(_comparer, _settings);
+    UpdateDelta(_comparer);
   }
   // Computes transition to next solution.
   void Transition() {
@@ -744,9 +741,7 @@ class VTrack {
   }
 
   // Updates error ratio of the candidate track compared to original.
-  void UpdateDelta(
-      const Comparer& _comparer,
-      const ozz::Range<const AnimationOptimizer::Setting>& _settings) {
+  void UpdateDelta(const Comparer& _comparer) {
     // TODO find a way to do it (flag/reject track) at initialization time.
     // TODO wouldn't work with quantization taken into account.
     // TODO check if part of remaining tracks.
@@ -759,7 +754,7 @@ class VTrack {
     const size_t original_size = OriginalSize();
     if (original_size > 1 && error_ratio_ < 0.f) {
       // Computes error ratio of this track and its hierarchy.
-      error_ratio_ = EstimateCandidateError(_comparer, _settings);
+      error_ratio_ = EstimateCandidateError(_comparer);
 
       // Computes optimization delta from error.
       const size_t validated_size = ValidatedSize();
@@ -775,9 +770,7 @@ class VTrack {
   }
 
   // Proposed candidate was validated, must be retained as a solution.
-  virtual void Validate(
-      Comparer& _comparer,
-      const ozz::Range<const AnimationOptimizer::Setting>& _settings) = 0;
+  virtual void Validate(Comparer& _comparer) = 0;
 
   virtual size_t OriginalSize() const = 0;
   virtual size_t ValidatedSize() const = 0;
@@ -796,9 +789,7 @@ class VTrack {
   float error_ratio() const { return error_ratio_; }
 
  private:
-  virtual float EstimateCandidateError(
-      const Comparer& _comparer,
-      const ozz::Range<const AnimationOptimizer::Setting>& _settings) const = 0;
+  virtual float EstimateCandidateError(const Comparer& _comparer) const = 0;
 
   // Decimates track at given _tolerance;
   virtual void Decimate(float _tolerance) = 0;
@@ -836,16 +827,12 @@ class TTrack : public VTrack {
   TTrack(const TTrack&);
   TTrack& operator=(const TTrack&);
 
-  virtual float EstimateCandidateError(
-      const Comparer& _comparer,
-      const ozz::Range<const AnimationOptimizer::Setting>& _settings) const {
-    return _comparer.EstimateError(candidate_, joint(), _settings, included_);
+  virtual float EstimateCandidateError(const Comparer& _comparer) const {
+    return _comparer.EstimateError(candidate_, joint(), included_);
   }
 
-  virtual void Validate(
-      Comparer& _comparer,
-      const ozz::Range<const AnimationOptimizer::Setting>& _settings) {
-    _comparer.UpdateError(candidate_, joint(), _settings, included_);
+  virtual void Validate(Comparer& _comparer) {
+    _comparer.UpdateError(candidate_, joint(), included_);
 
     validated_ = candidate_;
 
@@ -963,10 +950,7 @@ class HillClimber {
   HillClimber(const AnimationOptimizer& _optimizer,
               const RawAnimation& _original, const Skeleton& _skeleton,
               RawAnimation* _output, Tracking* _tracking)
-      : comparer_(_original, *_output, _skeleton),
-        original_(_original),
-        skeleton_(_skeleton),
-        tracking_(_tracking) {
+      : original_(_original), skeleton_(_skeleton), tracking_(_tracking) {
     // Checks output
     assert(_output->tracks.size() == original_.tracks.size());
 
@@ -1038,9 +1022,13 @@ class HillClimber {
       remainings_.push_back(scales_[i]);
     }
 
+    // Setup comparer
+    comparer_ = OZZ_NEW(allocator, Comparer)(_original, *_output, _skeleton,
+                                             ozz::make_range(settings_));
+
     // Initialize all tracks with a decimation based on initial tolerance.
-    for (size_t i = 0; i < remainings_.size(); ++i) {
-      remainings_[i]->Initialize(comparer_, ozz::make_range(settings_));
+        for (size_t i = 0; i < remainings_.size(); ++i) {
+      remainings_[i]->Initialize(*comparer_);
     }
   }
 
@@ -1115,7 +1103,7 @@ class HillClimber {
       }
 
       // Retains best track option
-      best_track->Validate(comparer_, ozz::make_range(settings_));
+      best_track->Validate(*comparer_);
 
       // Computes next candidate for track.
       best_track->Transition();
@@ -1132,18 +1120,16 @@ class HillClimber {
     // TODO check if all types of tracks really need to be updated
     // for the first joint, or if for example translations don't need when
     // optimized/modified track is a rotation.
-    const ozz::Range<const AnimationOptimizer::Setting> settings =
-        make_range(settings_);
-    translations_[_joint]->UpdateDelta(comparer_, settings);
-    rotations_[_joint]->UpdateDelta(comparer_, settings);
-    scales_[_joint]->UpdateDelta(comparer_, settings);
+    translations_[_joint]->UpdateDelta(*comparer_);
+    rotations_[_joint]->UpdateDelta(*comparer_);
+    scales_[_joint]->UpdateDelta(*comparer_);
   }
 
  private:
   HillClimber(const HillClimber&);
   void operator=(const HillClimber&);
 
-  Comparer comparer_;
+  ScopedPtr<Comparer> comparer_;
   const RawAnimation& original_;
   const Skeleton& skeleton_;
   ozz::Vector<TranslationTrack*>::Std translations_;
