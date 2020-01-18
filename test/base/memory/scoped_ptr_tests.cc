@@ -121,13 +121,13 @@ TEST(Bool, ScopedPtr) {
 TEST(Cast, ScopedPtr) {
   {
     const ozz::ScopedPtr<int> pi;
-    int* i = pi;
+    int* i = pi.get();
     EXPECT_TRUE(i == NULL);
   }
   {
     const ozz::ScopedPtr<int> pi(
         OZZ_NEW(ozz::memory::default_allocator(), int)(46));
-    int* i = pi;
+    int* i = pi.get();
     EXPECT_TRUE(i != NULL);
   }
 }

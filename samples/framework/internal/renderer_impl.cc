@@ -1226,7 +1226,7 @@ bool RendererImpl::DrawMesh(const Mesh& _mesh,
                                   positions_stride, positions_offset,
                                   normals_stride, normals_offset, colors_stride,
                                   colors_offset, uvs_stride, uvs_offset);
-    shader = ambient_textured_shader;
+    shader = ambient_textured_shader.get();
 
     // Binds default texture
     GL(BindTexture(GL_TEXTURE_2D, checkered_texture_));
@@ -1234,7 +1234,7 @@ bool RendererImpl::DrawMesh(const Mesh& _mesh,
     ambient_shader->Bind(_transform, camera()->view_proj(), positions_stride,
                          positions_offset, normals_stride, normals_offset,
                          colors_stride, colors_offset);
-    shader = ambient_shader;
+    shader = ambient_shader.get();
   }
 
   // Maps the index dynamic buffer and update it.
@@ -1541,7 +1541,7 @@ bool RendererImpl::DrawSkinnedMesh(
                                   positions_stride, positions_offset,
                                   normals_stride, normals_offset, colors_stride,
                                   colors_offset, uvs_stride, uvs_offset);
-    shader = ambient_textured_shader;
+    shader = ambient_textured_shader.get();
 
     // Binds default texture
     GL(BindTexture(GL_TEXTURE_2D, checkered_texture_));
@@ -1549,7 +1549,7 @@ bool RendererImpl::DrawSkinnedMesh(
     ambient_shader->Bind(_transform, camera()->view_proj(), positions_stride,
                          positions_offset, normals_stride, normals_offset,
                          colors_stride, colors_offset);
-    shader = ambient_shader;
+    shader = ambient_shader.get();
   }
 
   // Maps the index dynamic buffer and update it.

@@ -302,7 +302,7 @@ TEST(Sort, AnimationBuilder) {
     ozz::animation::SamplingJob job;
     ozz::animation::SamplingCache cache(1);
     ozz::math::SoaTransform output[1];
-    job.animation = animation;
+    job.animation = animation.get();
     job.cache = &cache;
     job.output.begin = output;
     job.output.end = output + 1;

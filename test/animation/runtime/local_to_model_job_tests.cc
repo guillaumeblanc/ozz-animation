@@ -73,7 +73,7 @@ TEST(JobValidity, LocalToModel) {
   // NULL output
   {
     LocalToModelJob job;
-    job.skeleton = skeleton;
+    job.skeleton = skeleton.get();
     job.input.begin = input;
     job.input.end = input + 1;
     EXPECT_FALSE(job.Validate());
@@ -82,7 +82,7 @@ TEST(JobValidity, LocalToModel) {
   // NULL input
   {
     LocalToModelJob job;
-    job.skeleton = skeleton;
+    job.skeleton = skeleton.get();
     job.output.begin = output;
     job.output.end = output + 2;
     EXPECT_FALSE(job.Validate());
@@ -101,7 +101,7 @@ TEST(JobValidity, LocalToModel) {
   // Invalid output range: end < begin.
   {
     LocalToModelJob job;
-    job.skeleton = skeleton;
+    job.skeleton = skeleton.get();
     job.input.begin = input;
     job.input.end = input + 1;
     job.output.begin = output + 1;
@@ -112,7 +112,7 @@ TEST(JobValidity, LocalToModel) {
   // Invalid output range: too small.
   {
     LocalToModelJob job;
-    job.skeleton = skeleton;
+    job.skeleton = skeleton.get();
     job.input.begin = input;
     job.input.end = input + 1;
     job.output.begin = output;
@@ -123,7 +123,7 @@ TEST(JobValidity, LocalToModel) {
   // Invalid input range: end < begin.
   {
     LocalToModelJob job;
-    job.skeleton = skeleton;
+    job.skeleton = skeleton.get();
     job.input.begin = input + 1;
     job.input.end = input;
     job.output.begin = output;
@@ -134,7 +134,7 @@ TEST(JobValidity, LocalToModel) {
   // Invalid input range: too small.
   {
     LocalToModelJob job;
-    job.skeleton = skeleton;
+    job.skeleton = skeleton.get();
     job.input.begin = input;
     job.input.end = input;
     job.output = output;
@@ -144,7 +144,7 @@ TEST(JobValidity, LocalToModel) {
   // Valid job.
   {
     LocalToModelJob job;
-    job.skeleton = skeleton;
+    job.skeleton = skeleton.get();
     job.input = input;
     job.output.begin = output;
     job.output.end = output + 2;
@@ -157,7 +157,7 @@ TEST(JobValidity, LocalToModel) {
     const ozz::math::SimdFloat4 v =
         ozz::math::simd_float4::Load(4.f, 3.f, 2.f, 1.f);
     ozz::math::Float4x4 world = ozz::math::Float4x4::Translation(v);
-    job.skeleton = skeleton;
+    job.skeleton = skeleton.get();
     job.root = &world;
     job.input = input;
     job.output.begin = output;
@@ -168,7 +168,7 @@ TEST(JobValidity, LocalToModel) {
   // Valid out-of-bound from.
   {
     LocalToModelJob job;
-    job.skeleton = skeleton;
+    job.skeleton = skeleton.get();
     job.from = 93;
     job.input = input;
     job.output.begin = output;
@@ -179,7 +179,7 @@ TEST(JobValidity, LocalToModel) {
   // Valid out-of-bound from.
   {
     LocalToModelJob job;
-    job.skeleton = skeleton;
+    job.skeleton = skeleton.get();
     job.from = -93;
     job.input = input;
     job.output.begin = output;
@@ -190,7 +190,7 @@ TEST(JobValidity, LocalToModel) {
   // Valid out-of-bound to.
   {
     LocalToModelJob job;
-    job.skeleton = skeleton;
+    job.skeleton = skeleton.get();
     job.from = 93;
     job.input = input;
     job.output.begin = output;
@@ -201,7 +201,7 @@ TEST(JobValidity, LocalToModel) {
   // Valid out-of-bound to.
   {
     LocalToModelJob job;
-    job.skeleton = skeleton;
+    job.skeleton = skeleton.get();
     job.from = -93;
     job.input = input;
     job.output.begin = output;
@@ -212,7 +212,7 @@ TEST(JobValidity, LocalToModel) {
   // Valid job with empty skeleton.
   {
     LocalToModelJob job;
-    job.skeleton = empty_skeleton;
+    job.skeleton = empty_skeleton.get();
     job.input.begin = input;
     job.input.end = input + 0;
     job.output.begin = output;
@@ -223,7 +223,7 @@ TEST(JobValidity, LocalToModel) {
   // Valid job. Bigger input & output
   {
     LocalToModelJob job;
-    job.skeleton = skeleton;
+    job.skeleton = skeleton.get();
     job.input = input;
     job.output = output;
     EXPECT_TRUE(job.Validate());
@@ -292,7 +292,7 @@ TEST(Transformation, LocalToModel) {
     // Prepares the job with root == NULL (default identity matrix)
     ozz::math::Float4x4 output[6];
     LocalToModelJob job;
-    job.skeleton = skeleton;
+    job.skeleton = skeleton.get();
     job.input.begin = input;
     job.input.end = input + 2;
     job.output.begin = output;
@@ -320,7 +320,7 @@ TEST(Transformation, LocalToModel) {
         ozz::math::simd_float4::Load(4.f, 3.f, 2.f, 1.f);
     ozz::math::Float4x4 world = ozz::math::Float4x4::Translation(v);
     LocalToModelJob job;
-    job.skeleton = skeleton;
+    job.skeleton = skeleton.get();
     job.root = &world;
     job.input.begin = input;
     job.input.end = input + 2;
@@ -414,7 +414,7 @@ TEST(TransformationFromTo, LocalToModel) {
   ozz::math::Float4x4 output[8];
   LocalToModelJob job_full;
   {  // Intialize whole hierarchy output
-    job_full.skeleton = skeleton;
+    job_full.skeleton = skeleton.get();
     job_full.from = ozz::animation::Skeleton::kNoParent;
     job_full.input.begin = input;
     job_full.input.end = input + 2;
@@ -445,7 +445,7 @@ TEST(TransformationFromTo, LocalToModel) {
         output[6] = output[7] = ozz::math::Float4x4::identity();
 
     LocalToModelJob job;
-    job.skeleton = skeleton;
+    job.skeleton = skeleton.get();
     job.from = 0;
     job.input.begin = input;
     job.input.end = input + 2;
@@ -477,7 +477,7 @@ TEST(TransformationFromTo, LocalToModel) {
         output[6] = output[7] = ozz::math::Float4x4::identity();
 
     LocalToModelJob job;
-    job.skeleton = skeleton;
+    job.skeleton = skeleton.get();
     job.from = 7;
     job.input.begin = input;
     job.input.end = input + 2;
@@ -510,7 +510,7 @@ TEST(TransformationFromTo, LocalToModel) {
         output[7] = ozz::math::Float4x4::identity();
 
     LocalToModelJob job;
-    job.skeleton = skeleton;
+    job.skeleton = skeleton.get();
     job.from = 1;
     job.input.begin = input;
     job.input.end = input + 2;
@@ -543,7 +543,7 @@ TEST(TransformationFromTo, LocalToModel) {
         output[7] = ozz::math::Float4x4::identity();
 
     LocalToModelJob job;
-    job.skeleton = skeleton;
+    job.skeleton = skeleton.get();
     job.from = 3;
     job.input.begin = input;
     job.input.end = input + 2;
@@ -576,7 +576,7 @@ TEST(TransformationFromTo, LocalToModel) {
         output[7] = ozz::math::Float4x4::identity();
 
     LocalToModelJob job;
-    job.skeleton = skeleton;
+    job.skeleton = skeleton.get();
     job.from = 5;
     job.input.begin = input;
     job.input.end = input + 2;
@@ -609,7 +609,7 @@ TEST(TransformationFromTo, LocalToModel) {
         output[7] = ozz::math::Float4x4::identity();
 
     LocalToModelJob job;
-    job.skeleton = skeleton;
+    job.skeleton = skeleton.get();
     job.from = 6;
     job.input.begin = input;
     job.input.end = input + 2;
@@ -641,7 +641,7 @@ TEST(TransformationFromTo, LocalToModel) {
         output[6] = output[7] = ozz::math::Float4x4::identity();
 
     LocalToModelJob job;
-    job.skeleton = skeleton;
+    job.skeleton = skeleton.get();
     job.from = 0;
     job.to = 2;
     job.input.begin = input;
@@ -674,7 +674,7 @@ TEST(TransformationFromTo, LocalToModel) {
         output[6] = output[7] = ozz::math::Float4x4::identity();
 
     LocalToModelJob job;
-    job.skeleton = skeleton;
+    job.skeleton = skeleton.get();
     job.from = 0;
     job.to = 6;
     job.input.begin = input;
@@ -707,7 +707,7 @@ TEST(TransformationFromTo, LocalToModel) {
         output[6] = output[7] = ozz::math::Float4x4::identity();
 
     LocalToModelJob job;
-    job.skeleton = skeleton;
+    job.skeleton = skeleton.get();
     job.from = 0;
     job.to = 46;
     job.input.begin = input;
@@ -740,7 +740,7 @@ TEST(TransformationFromTo, LocalToModel) {
         output[6] = output[7] = ozz::math::Float4x4::identity();
 
     LocalToModelJob job;
-    job.skeleton = skeleton;
+    job.skeleton = skeleton.get();
     job.from = 0;
     job.to = -99;
     job.input.begin = input;
@@ -774,7 +774,7 @@ TEST(TransformationFromTo, LocalToModel) {
         output[6] = output[7] = ozz::math::Float4x4::identity();
 
     LocalToModelJob job;
-    job.skeleton = skeleton;
+    job.skeleton = skeleton.get();
     job.from = 93;
     job.input.begin = input;
     job.input.end = input + 2;
@@ -873,7 +873,7 @@ TEST(TransformationFromToExclude, LocalToModel) {
   ozz::math::Float4x4 output[8];
   LocalToModelJob job_full;
   {  // Intialize whole hierarchy output
-    job_full.skeleton = skeleton;
+    job_full.skeleton = skeleton.get();
     job_full.from = ozz::animation::Skeleton::kNoParent;
     job_full.from_excluded = true;
     job_full.input.begin = input;
@@ -907,7 +907,7 @@ TEST(TransformationFromToExclude, LocalToModel) {
         output[7] = ozz::math::Float4x4::identity();
 
     LocalToModelJob job;
-    job.skeleton = skeleton;
+    job.skeleton = skeleton.get();
     job.from = 0;
     job.from_excluded = true;
     job.input.begin = input;
@@ -943,7 +943,7 @@ TEST(TransformationFromToExclude, LocalToModel) {
         ozz::math::simd_float4::Load(2.f, 2.f, 2.f, 0.f));
 
     LocalToModelJob job;
-    job.skeleton = skeleton;
+    job.skeleton = skeleton.get();
     job.from = 1;
     job.from_excluded = true;
     job.input.begin = input;
@@ -979,7 +979,7 @@ TEST(TransformationFromToExclude, LocalToModel) {
         ozz::math::simd_float4::Load(2.f, 2.f, 2.f, 0.f));
 
     LocalToModelJob job;
-    job.skeleton = skeleton;
+    job.skeleton = skeleton.get();
     job.from = 2;
     job.from_excluded = true;
     job.input.begin = input;
@@ -1014,7 +1014,7 @@ TEST(TransformationFromToExclude, LocalToModel) {
         ozz::math::simd_float4::Load(2.f, 2.f, 2.f, 0.f));
 
     LocalToModelJob job;
-    job.skeleton = skeleton;
+    job.skeleton = skeleton.get();
     job.from = 7;
     job.from_excluded = true;
     job.input.begin = input;
@@ -1050,7 +1050,7 @@ TEST(TransformationFromToExclude, LocalToModel) {
         ozz::math::simd_float4::Load(2.f, 2.f, 2.f, 0.f));
 
     LocalToModelJob job;
-    job.skeleton = skeleton;
+    job.skeleton = skeleton.get();
     job.from = 6;
     job.from_excluded = true;
     job.input.begin = input;

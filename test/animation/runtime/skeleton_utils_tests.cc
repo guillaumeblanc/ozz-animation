@@ -182,67 +182,67 @@ TEST(InterateDF, SkeletonUtils) {
 
   {
     IterateDFTester fct =
-        IterateJointsDF(*skeleton, IterateDFTester(skeleton, 0), -12);
+        IterateJointsDF(*skeleton, IterateDFTester(skeleton.get(), 0), -12);
     EXPECT_EQ(fct.num_iterations(), 10);
   }
   {
     IterateDFTester fct =
-        IterateJointsDF(*skeleton, IterateDFTester(skeleton, 0));
+        IterateJointsDF(*skeleton, IterateDFTester(skeleton.get(), 0));
     EXPECT_EQ(fct.num_iterations(), 10);
   }
   {
     IterateDFTester fct = IterateJointsDF(
-        *skeleton, IterateDFTester(skeleton, 0), Skeleton::kNoParent);
+        *skeleton, IterateDFTester(skeleton.get(), 0), Skeleton::kNoParent);
     EXPECT_EQ(fct.num_iterations(), 10);
   }
   {
     IterateDFTester fct =
-        IterateJointsDF(*skeleton, IterateDFTester(skeleton, 0), 0);
+        IterateJointsDF(*skeleton, IterateDFTester(skeleton.get(), 0), 0);
     EXPECT_EQ(fct.num_iterations(), 8);
   }
   {
     IterateDFTester fct =
-        IterateJointsDF(*skeleton, IterateDFTester(skeleton, 1), 1);
+        IterateJointsDF(*skeleton, IterateDFTester(skeleton.get(), 1), 1);
     EXPECT_EQ(fct.num_iterations(), 3);
   }
   {
     IterateDFTester fct =
-        IterateJointsDF(*skeleton, IterateDFTester(skeleton, 2), 2);
+        IterateJointsDF(*skeleton, IterateDFTester(skeleton.get(), 2), 2);
     EXPECT_EQ(fct.num_iterations(), 2);
   }
   {
     IterateDFTester fct =
-        IterateJointsDF(*skeleton, IterateDFTester(skeleton, 3), 3);
+        IterateJointsDF(*skeleton, IterateDFTester(skeleton.get(), 3), 3);
     EXPECT_EQ(fct.num_iterations(), 1);
   }
   {
     IterateDFTester fct =
-        IterateJointsDF(*skeleton, IterateDFTester(skeleton, 4), 4);
+        IterateJointsDF(*skeleton, IterateDFTester(skeleton.get(), 4), 4);
     EXPECT_EQ(fct.num_iterations(), 4);
   }
   {
     IterateDFTester fct =
-        IterateJointsDF(*skeleton, IterateDFTester(skeleton, 5), 5);
+        IterateJointsDF(*skeleton, IterateDFTester(skeleton.get(), 5), 5);
     EXPECT_EQ(fct.num_iterations(), 1);
   }
   {
     IterateDFTester fct =
-        IterateJointsDF(*skeleton, IterateDFTester(skeleton, 6), 6);
+        IterateJointsDF(*skeleton, IterateDFTester(skeleton.get(), 6), 6);
     EXPECT_EQ(fct.num_iterations(), 2);
   }
   {
     IterateDFTester fct =
-        IterateJointsDF(*skeleton, IterateDFTester(skeleton, 7), 7);
+        IterateJointsDF(*skeleton, IterateDFTester(skeleton.get(), 7), 7);
     EXPECT_EQ(fct.num_iterations(), 1);
   }
   {
     IterateDFTester fct =
-        IterateJointsDF(*skeleton, IterateDFTester(skeleton, 8), 8);
+        IterateJointsDF(*skeleton, IterateDFTester(skeleton.get(), 8), 8);
     EXPECT_EQ(fct.num_iterations(), 2);
   }
   {
     IterateDFTester fct =
-        IterateJointsDF(*skeleton, IterateDFTester(skeleton, 9), 9);
+        IterateJointsDF(*skeleton, IterateDFTester(skeleton.get(), 9), 9);
     EXPECT_EQ(fct.num_iterations(), 1);
   }
   IterateJointsDF(*skeleton, IterateDFFailTester(), 10);
@@ -341,7 +341,7 @@ TEST(InterateDFReverse, SkeletonUtils) {
 
   {
     IterateDFReverseTester fct =
-        IterateJointsDFReverse(*skeleton, IterateDFReverseTester(skeleton));
+        IterateJointsDFReverse(*skeleton, IterateDFReverseTester(skeleton.get()));
     EXPECT_EQ(fct.num_iterations(), 10);
   }
 }
