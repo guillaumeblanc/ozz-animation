@@ -67,7 +67,7 @@ TEST(JobValidity, TrackSamplingJob) {
 
   {  // Invalid output
     FloatTrackSamplingJob job;
-    job.track = track;
+    job.track = track.get();
     EXPECT_FALSE(job.Validate());
     EXPECT_FALSE(job.Run());
   }
@@ -82,7 +82,7 @@ TEST(JobValidity, TrackSamplingJob) {
 
   {  // Valid
     FloatTrackSamplingJob job;
-    job.track = track;
+    job.track = track.get();
     float result;
     job.result = &result;
     EXPECT_TRUE(job.Validate());
@@ -123,7 +123,7 @@ TEST(Bounds, TrackSamplingJob) {
 
   // Samples to verify build output.
   FloatTrackSamplingJob sampling;
-  sampling.track = track;
+  sampling.track = track.get();
   sampling.result = &result;
 
   sampling.ratio = 0.f - 1e-7f;
@@ -176,7 +176,7 @@ TEST(Float, TrackSamplingJob) {
 
   // Samples to verify build output.
   ozz::animation::FloatTrackSamplingJob sampling;
-  sampling.track = track;
+  sampling.track = track.get();
   sampling.result = &result;
 
   sampling.ratio = 0.f;
@@ -237,7 +237,7 @@ TEST(Float2, TrackSamplingJob) {
 
   // Samples to verify build output.
   ozz::animation::Float2TrackSamplingJob sampling;
-  sampling.track = track;
+  sampling.track = track.get();
   sampling.result = &result;
 
   sampling.ratio = 0.f;
@@ -298,7 +298,7 @@ TEST(Float3, TrackSamplingJob) {
 
   // Samples to verify build output.
   ozz::animation::Float3TrackSamplingJob sampling;
-  sampling.track = track;
+  sampling.track = track.get();
   sampling.result = &result;
 
   sampling.ratio = 0.f;
@@ -363,7 +363,7 @@ TEST(Float4, TrackSamplingJob) {
 
   // Samples to verify build output.
   ozz::animation::Float4TrackSamplingJob sampling;
-  sampling.track = track;
+  sampling.track = track.get();
   sampling.result = &result;
 
   sampling.ratio = 0.f;
@@ -426,7 +426,7 @@ TEST(Quaternion, TrackSamplingJob) {
   ASSERT_TRUE(track);
   // Samples to verify build output.
   ozz::animation::QuaternionTrackSamplingJob sampling;
-  sampling.track = track;
+  sampling.track = track.get();
   sampling.result = &result;
 
   sampling.ratio = 0.f;

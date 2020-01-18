@@ -36,11 +36,12 @@ namespace ozz {
 
 // ScopedPtr is a smart pointer implementation that guarantees the object will
 // be deleted, either on destruction of the ScopedPtr, or via an explicit reset
-// / assignation. Object must have been allocated with OZZ_NEW with the default allocator, as it will be deleted by OZZ_DELTE with default allocator.
-// In order to mimic raw pointer behavior, ScopedPtr provides assignation
-// operator and implicit cast to pointer type. This is motivated by the fact
-// that ScopePtr are used in simple cases. I isn't a safety choice, as it
-// requires more care if using ScopedPtr in non trivial cases.
+// / assignation. Object must have been allocated with OZZ_NEW with the default
+// allocator, as it will be deleted by OZZ_DELTE with default allocator. In
+// order to mimic raw pointer behavior, ScopedPtr provides assignation operator
+// and implicit cast to pointer type. This is motivated by the fact that
+// ScopePtr are used in simple cases. I isn't a safety choice, as it requires
+// more care if using ScopedPtr in non trivial cases.
 template <typename _Type>
 class ScopedPtr {
  public:
@@ -62,9 +63,6 @@ class ScopedPtr {
     assert(pointer_ != NULL && "Dereferencing NULL pointer.");
     return pointer_;
   }
-
-  // Implicit cast to the referenced object
-  operator _Type*() const { return pointer_; }
 
   // Explicit get of the object pointer.
   _Type* get() const { return pointer_; }

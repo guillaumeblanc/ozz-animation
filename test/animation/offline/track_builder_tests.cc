@@ -160,7 +160,7 @@ TEST(Build0Keys, TrackBuilder) {
 
   // Samples to verify build output.
   FloatTrackSamplingJob sampling;
-  sampling.track = track;
+  sampling.track = track.get();
   float result;
   sampling.result = &result;
   sampling.ratio = 0.f;
@@ -186,7 +186,7 @@ TEST(BuildLinear, TrackBuilder) {
 
     // Samples to verify build output.
     FloatTrackSamplingJob sampling;
-    sampling.track = track;
+    sampling.track = track.get();
     sampling.result = &result;
 
     sampling.ratio = 0.f;
@@ -215,7 +215,7 @@ TEST(BuildLinear, TrackBuilder) {
 
     // Samples to verify build output.
     FloatTrackSamplingJob sampling;
-    sampling.track = track;
+    sampling.track = track.get();
     sampling.result = &result;
 
     sampling.ratio = 0.f;
@@ -244,7 +244,7 @@ TEST(BuildLinear, TrackBuilder) {
 
     // Samples to verify build output.
     FloatTrackSamplingJob sampling;
-    sampling.track = track;
+    sampling.track = track.get();
     sampling.result = &result;
 
     sampling.ratio = 0.f;
@@ -276,7 +276,7 @@ TEST(BuildLinear, TrackBuilder) {
 
     // Samples to verify build output.
     FloatTrackSamplingJob sampling;
-    sampling.track = track;
+    sampling.track = track.get();
     sampling.result = &result;
 
     sampling.ratio = 0.f;
@@ -319,7 +319,7 @@ TEST(BuildLinear, TrackBuilder) {
 
     // Samples to verify build output.
     FloatTrackSamplingJob sampling;
-    sampling.track = track;
+    sampling.track = track.get();
     sampling.result = &result;
 
     sampling.ratio = 0.f;
@@ -366,7 +366,7 @@ TEST(BuildStep, TrackBuilder) {
 
     // Samples to verify build output.
     FloatTrackSamplingJob sampling;
-    sampling.track = track;
+    sampling.track = track.get();
     sampling.result = &result;
 
     sampling.ratio = 0.f;
@@ -395,7 +395,7 @@ TEST(BuildStep, TrackBuilder) {
 
     // Samples to verify build output.
     FloatTrackSamplingJob sampling;
-    sampling.track = track;
+    sampling.track = track.get();
     sampling.result = &result;
 
     sampling.ratio = 0.f;
@@ -424,7 +424,7 @@ TEST(BuildStep, TrackBuilder) {
 
     // Samples to verify build output.
     FloatTrackSamplingJob sampling;
-    sampling.track = track;
+    sampling.track = track.get();
     sampling.result = &result;
 
     sampling.ratio = 0.f;
@@ -453,7 +453,7 @@ TEST(BuildStep, TrackBuilder) {
 
     // Samples to verify build output.
     FloatTrackSamplingJob sampling;
-    sampling.track = track;
+    sampling.track = track.get();
     sampling.result = &result;
 
     sampling.ratio = 0.f;
@@ -485,7 +485,7 @@ TEST(BuildStep, TrackBuilder) {
 
     // Samples to verify build output.
     FloatTrackSamplingJob sampling;
-    sampling.track = track;
+    sampling.track = track.get();
     sampling.result = &result;
 
     sampling.ratio = 0.f;
@@ -536,7 +536,7 @@ TEST(BuildStep, TrackBuilder) {
 
     // Samples to verify build output.
     FloatTrackSamplingJob sampling;
-    sampling.track = track;
+    sampling.track = track.get();
     sampling.result = &result;
 
     sampling.ratio = 0.f;
@@ -589,7 +589,7 @@ TEST(BuildStep, TrackBuilder) {
 
     // Samples to verify build output.
     FloatTrackSamplingJob sampling;
-    sampling.track = track;
+    sampling.track = track.get();
     sampling.result = &result;
 
     sampling.ratio = 0.f;
@@ -632,7 +632,7 @@ TEST(BuildStep, TrackBuilder) {
 
     // Samples to verify build output.
     FloatTrackSamplingJob sampling;
-    sampling.track = track;
+    sampling.track = track.get();
     sampling.result = &result;
 
     sampling.ratio = 0.f;
@@ -696,7 +696,7 @@ TEST(BuildMixed, TrackBuilder) {
 
   // Samples to verify build output.
   FloatTrackSamplingJob sampling;
-  sampling.track = track;
+  sampling.track = track.get();
   sampling.result = &result;
 
   sampling.ratio = 0.f;
@@ -744,7 +744,7 @@ TEST(Float, TrackBuilder) {
     // Samples to verify build output.
     float result;
     ozz::animation::FloatTrackSamplingJob sampling;
-    sampling.track = track;
+    sampling.track = track.get();
     sampling.result = &result;
 
     sampling.ratio = .5f;
@@ -767,7 +767,7 @@ TEST(Float, TrackBuilder) {
     // Samples to verify build output.
     float result;
     ozz::animation::FloatTrackSamplingJob sampling;
-    sampling.track = track;
+    sampling.track = track.get();
     sampling.result = &result;
 
     sampling.ratio = 0.f;
@@ -804,7 +804,7 @@ TEST(Float2, TrackBuilder) {
     // Samples to verify build output.
     ozz::math::Float2 result;
     ozz::animation::Float2TrackSamplingJob sampling;
-    sampling.track = track;
+    sampling.track = track.get();
     sampling.result = &result;
 
     sampling.ratio = .5f;
@@ -827,7 +827,7 @@ TEST(Float2, TrackBuilder) {
     // Samples to verify build output.
     ozz::math::Float2 result;
     ozz::animation::Float2TrackSamplingJob sampling;
-    sampling.track = track;
+    sampling.track = track.get();
     sampling.result = &result;
 
     sampling.ratio = 0.f;
@@ -864,7 +864,7 @@ TEST(Float3, TrackBuilder) {
     // Samples to verify build output.
     ozz::math::Float3 result;
     ozz::animation::Float3TrackSamplingJob sampling;
-    sampling.track = track;
+    sampling.track = track.get();
     sampling.result = &result;
 
     sampling.ratio = .5f;
@@ -889,7 +889,7 @@ TEST(Float3, TrackBuilder) {
     // Samples to verify build output.
     ozz::math::Float3 result;
     ozz::animation::Float3TrackSamplingJob sampling;
-    sampling.track = track;
+    sampling.track = track.get();
     sampling.result = &result;
 
     sampling.ratio = 0.f;
@@ -926,7 +926,7 @@ TEST(Float4, TrackBuilder) {
     // Samples to verify build output.
     ozz::math::Float4 result;
     ozz::animation::Float4TrackSamplingJob sampling;
-    sampling.track = track;
+    sampling.track = track.get();
     sampling.result = &result;
 
     sampling.ratio = .5f;
@@ -951,7 +951,7 @@ TEST(Float4, TrackBuilder) {
     // Samples to verify build output.
     ozz::math::Float4 result;
     ozz::animation::Float4TrackSamplingJob sampling;
-    sampling.track = track;
+    sampling.track = track.get();
     sampling.result = &result;
 
     sampling.ratio = 0.f;
@@ -988,7 +988,7 @@ TEST(Quaternion, TrackBuilder) {
     // Samples to verify build output.
     ozz::math::Quaternion result;
     ozz::animation::QuaternionTrackSamplingJob sampling;
-    sampling.track = track;
+    sampling.track = track.get();
     sampling.result = &result;
 
     sampling.ratio = .5f;
@@ -1019,7 +1019,7 @@ TEST(Quaternion, TrackBuilder) {
     // Samples to verify build output.
     ozz::math::Quaternion result;
     ozz::animation::QuaternionTrackSamplingJob sampling;
-    sampling.track = track;
+    sampling.track = track.get();
     sampling.result = &result;
 
     sampling.ratio = 0.f;

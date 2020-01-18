@@ -194,7 +194,7 @@ class OzzRuntime : public Generator {
     }
 
     ozz::animation::SamplingJob job;
-    job.animation = animation_;
+    job.animation = animation_.get();
     job.cache = &cache;
     job.ratio = _time / animation_->duration();
     job.output = make_range(samples_);

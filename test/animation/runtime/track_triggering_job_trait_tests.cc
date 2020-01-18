@@ -70,7 +70,7 @@ TEST(Algorithm, TrackEdgeTriggerJob) {
   ASSERT_TRUE(track);
 
   TrackTriggeringJob job;
-  job.track = track;
+  job.track = track.get();
   job.threshold = 1.f;
 
   job.from = 0.f;

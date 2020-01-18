@@ -64,7 +64,7 @@ TEST(JobValidity, SamplingJob) {
 
   {  // Invalid output
     SamplingJob job;
-    job.animation = animation;
+    job.animation = animation.get();
     job.cache = &cache;
     EXPECT_FALSE(job.Validate());
     EXPECT_FALSE(job.Run());
@@ -85,7 +85,7 @@ TEST(JobValidity, SamplingJob) {
     ozz::math::SoaTransform output[1];
 
     SamplingJob job;
-    job.animation = animation;
+    job.animation = animation.get();
     job.output.begin = output;
     job.output.end = output + 1;
     EXPECT_FALSE(job.Validate());
@@ -97,7 +97,7 @@ TEST(JobValidity, SamplingJob) {
     ozz::math::SoaTransform output[1];
 
     SamplingJob job;
-    job.animation = animation;
+    job.animation = animation.get();
     job.cache = &zero_cache;
     job.output.begin = output;
     job.output.end = output + 1;
@@ -109,7 +109,7 @@ TEST(JobValidity, SamplingJob) {
     ozz::math::SoaTransform output[1];
 
     SamplingJob job;
-    job.animation = animation;
+    job.animation = animation.get();
     job.cache = &cache;
     job.output.begin = output + 1;
     job.output.end = output;
@@ -122,7 +122,7 @@ TEST(JobValidity, SamplingJob) {
     SamplingJob job;
     job.ratio =
         2155.f;  // Any time ratio can be set, it's clamped in unit interval.
-    job.animation = animation;
+    job.animation = animation.get();
     job.cache = &cache;
     job.output.begin = output;
     job.output.end = output + 0;
@@ -134,7 +134,7 @@ TEST(JobValidity, SamplingJob) {
     ozz::math::SoaTransform output[1];
     SamplingJob job;
     job.ratio = 2155.f;  // Any time can be set.
-    job.animation = animation;
+    job.animation = animation.get();
     job.cache = &cache;
     job.output.begin = output;
     job.output.end = output + 1;
@@ -147,7 +147,7 @@ TEST(JobValidity, SamplingJob) {
     ozz::math::SoaTransform output[1];
     SamplingJob job;
     job.ratio = 2155.f;  // Any time can be set.
-    job.animation = animation;
+    job.animation = animation.get();
     job.cache = &big_cache;
     job.output.begin = output;
     job.output.end = output + 1;
@@ -159,7 +159,7 @@ TEST(JobValidity, SamplingJob) {
     ozz::math::SoaTransform output[2];
     SamplingJob job;
     job.ratio = 2155.f;  // Any time can be set.
-    job.animation = animation;
+    job.animation = animation.get();
     job.cache = &cache;
     job.output.begin = output;
     job.output.end = output + 2;
@@ -262,7 +262,7 @@ TEST(Sampling, SamplingJob) {
   ozz::math::SoaTransform output[1];
 
   SamplingJob job;
-  job.animation = animation;
+  job.animation = animation.get();
   job.cache = &cache;
   job.output.begin = output;
   job.output.end = output + 1;
@@ -304,7 +304,7 @@ TEST(SamplingNoTrack, SamplingJob) {
 
   SamplingJob job;
   job.ratio = 0.f;
-  job.animation = animation;
+  job.animation = animation.get();
   job.cache = &cache;
   job.output.begin = output;
   job.output.end = output + 1;
@@ -329,7 +329,7 @@ TEST(Sampling1Track0Key, SamplingJob) {
   ozz::math::SoaTransform output[1];
 
   SamplingJob job;
-  job.animation = animation;
+  job.animation = animation.get();
   job.cache = &cache;
   job.output.begin = output;
   job.output.end = output + 1;
@@ -367,7 +367,7 @@ TEST(Sampling1Track1Key, SamplingJob) {
   ozz::math::SoaTransform output[1];
 
   SamplingJob job;
-  job.animation = animation;
+  job.animation = animation.get();
   job.cache = &cache;
   job.output.begin = output;
   job.output.end = output + 1;
@@ -409,7 +409,7 @@ TEST(Sampling1Track2Keys, SamplingJob) {
   memset(output, 0xde, sizeof(output));
 
   SamplingJob job;
-  job.animation = animation;
+  job.animation = animation.get();
   job.cache = &cache;
   job.output.begin = output;
   job.output.end = output + 1;
@@ -516,7 +516,7 @@ TEST(Sampling4Track2Keys, SamplingJob) {
   memset(output, 0xde, sizeof(output));
 
   SamplingJob job;
-  job.animation = animation;
+  job.animation = animation.get();
   job.cache = &cache;
   job.output.begin = output;
   job.output.end = output + 1;
@@ -589,7 +589,7 @@ TEST(Cache, SamplingJob) {
   ozz::math::SoaTransform output[1];
 
   SamplingJob job;
-  job.animation = animations[0];
+  job.animation = animations[0].get();
   job.cache = &cache;
   job.ratio = 0.f;
   job.output.begin = output;
@@ -619,7 +619,7 @@ TEST(Cache, SamplingJob) {
                           0.f, 0.f, 5.f, 0.f, 0.f, 0.f);
 
   // Changes animation.
-  job.animation = animations[1];
+  job.animation = animations[1].get();
   EXPECT_TRUE(job.Validate());
   EXPECT_TRUE(job.Run());
   EXPECT_SOAFLOAT3_EQ_EST(output[0].translation, -1.f, 0.f, 0.f, 0.f, 1.f, 0.f,
@@ -630,7 +630,7 @@ TEST(Cache, SamplingJob) {
                           1.f, 1.f, 1.f, 1.f, 1.f);
 
   // Invalidates and changes animation.
-  job.animation = animations[1];
+  job.animation = animations[1].get();
   EXPECT_TRUE(job.Validate());
   EXPECT_TRUE(job.Run());
   EXPECT_SOAFLOAT3_EQ_EST(output[0].translation, -1.f, 0.f, 0.f, 0.f, 1.f, 0.f,
@@ -652,7 +652,7 @@ TEST(CacheResize, SamplingJob) {
   ozz::math::SoaTransform output[2];
 
   SamplingJob job;
-  job.animation = animation;
+  job.animation = animation.get();
   job.cache = &cache;
   job.ratio = 0.f;
   job.output.begin = output;

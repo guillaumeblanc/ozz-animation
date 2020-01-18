@@ -1,7 +1,9 @@
 Next version
 ----------------------
-- [offline] Moved RawAnimation::JointTrack::Validate() to raw_animation_utils.h ValidateTrack().
-- [offline] Added an option to skip validation when sampling RawAnimtion through raw_animation_utils.h functions. This can be used to prevent redundant validations. Note that RawAnimation sampling behavior is undefined if using an invalid RawAnimation with validate parameter set to false.
+* Library
+  - [offline] Moved RawAnimation::JointTrack::Validate() to raw_animation_utils.h ValidateTrack().
+  - [offline] Added an option to skip validation when sampling RawAnimtion through raw_animation_utils.h functions. This can be used to prevent redundant validations. Note that RawAnimation sampling behavior is undefined if using an invalid RawAnimation with validate parameter set to false.
+  - [base] Removes ScopedPtr implicit cast operator to pointer type. It avoids risking duplicating ownership, and complies with unique_ptr specification.
 
 Release version 0.12.0
 ----------------------
