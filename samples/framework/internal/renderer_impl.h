@@ -163,7 +163,7 @@ class RendererImpl : public Renderer {
       const ozz::math::Float4x4& _transform);
 
   // Get GL immediate renderer implementation;
-  GlImmediateRenderer* immediate_renderer() const { return immediate_; }
+  GlImmediateRenderer* immediate_renderer() const { return immediate_.get(); }
 
   // Get application camera that provides rendering matrices.
   Camera* camera() const { return camera_; }

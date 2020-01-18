@@ -115,7 +115,7 @@ class OptimizeSampleApplication : public ozz::sample::Application {
     sampling_job.ratio = controller_.time_ratio();
 
     // Samples optimized animation (_according to the display mode).
-    sampling_job.animation = animation_rt_;
+    sampling_job.animation = animation_rt_.get();
     sampling_job.output = make_range(locals_rt_);
     if (!sampling_job.Run()) {
       return false;

@@ -195,10 +195,10 @@ class Application {
   double last_idle_time_;
 
   // The camera object used by the application.
-  internal::Camera* camera_;
+  ScopedPtr<internal::Camera> camera_;
 
   // The screen shooter object used by the application.
-  internal::Shooter* shooter_;
+  ScopedPtr<internal::Shooter> shooter_;
 
   // Set to true to display help.
   bool show_help_;
@@ -212,10 +212,10 @@ class Application {
   bool capture_screenshot_;
 
   // The renderer utility object used by the application.
-  internal::RendererImpl* renderer_;
+  ScopedPtr<internal::RendererImpl> renderer_;
 
   // Immediate mode gui interface.
-  ImGui* im_gui_;
+  ScopedPtr<ImGui> im_gui_;
 
   // Timing records.
   ozz::ScopedPtr<Record> fps_;

@@ -1,3 +1,9 @@
+Next release
+------------
+
+* Library
+  - [base] Removes ScopedPtr implicit cast operator to pointer type. It avoids risking duplicating ownership, and complies with unique_ptr specification.
+
 Release version 0.12.0
 ----------------------
 

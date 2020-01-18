@@ -66,14 +66,14 @@ TEST(JobValidity, TrackTriggeringJob) {
 
   {  // No output
     TrackTriggeringJob job;
-    job.track = track;
+    job.track = track.get();
     EXPECT_FALSE(job.Validate());
     EXPECT_FALSE(job.Run());
   }
 
   {  // Valid
     TrackTriggeringJob job;
-    job.track = track;
+    job.track = track.get();
     TrackTriggeringJob::Iterator iterator;
     job.iterator = &iterator;
     EXPECT_TRUE(job.Validate());
@@ -84,7 +84,7 @@ TEST(JobValidity, TrackTriggeringJob) {
     TrackTriggeringJob job;
     job.from = 0.f;
     job.to = 1.f;
-    job.track = track;
+    job.track = track.get();
     TrackTriggeringJob::Iterator iterator;
     job.iterator = &iterator;
     EXPECT_TRUE(job.Validate());
@@ -93,7 +93,7 @@ TEST(JobValidity, TrackTriggeringJob) {
 
   {  // Empty output is valid
     TrackTriggeringJob job;
-    job.track = track;
+    job.track = track.get();
     TrackTriggeringJob::Iterator iterator;
     job.iterator = &iterator;
     EXPECT_TRUE(job.Validate());
@@ -120,7 +120,7 @@ TEST(Empty, TrackEdgeTriggerJob) {
   ASSERT_TRUE(track);
 
   TrackTriggeringJob job;
-  job.track = track;
+  job.track = track.get();
   job.threshold = 1.f;
   job.from = 0.f;
   job.to = 1.f;
@@ -152,7 +152,7 @@ TEST(Iterator, TrackEdgeTriggerJob) {
   ASSERT_TRUE(track);
 
   TrackTriggeringJob job;
-  job.track = track;
+  job.track = track.get();
   job.threshold = 1.f;
 
   job.from = 0.f;
@@ -182,7 +182,7 @@ TEST(Iterator, TrackEdgeTriggerJob) {
 
   {  // Other jobs
     TrackTriggeringJob job2;
-    job2.track = track;
+    job2.track = track.get();
     job2.threshold = 1.f;
 
     job2.from = 0.f;
@@ -291,7 +291,7 @@ TEST(NoRange, TrackEdgeTriggerJob) {
   ASSERT_TRUE(track);
 
   TrackTriggeringJob job;
-  job.track = track;
+  job.track = track.get();
   job.threshold = 1.f;
 
   {  // Forward [0., 0.[
@@ -388,7 +388,7 @@ void TestEdgesExpectation(
   ASSERT_TRUE(track);
 
   TrackTriggeringJob job;
-  job.track = track;
+  job.track = track.get();
   job.threshold = _threshold;
 
   {  // Forward [0, 1]
@@ -1164,7 +1164,7 @@ TEST(StepThreshold, TrackEdgeTriggerJob) {
   ASSERT_TRUE(track);
 
   TrackTriggeringJob job;
-  job.track = track;
+  job.track = track.get();
   job.from = 0.f;
   job.to = 1.f;
 
@@ -1261,7 +1261,7 @@ TEST(StepThresholdBool, TrackEdgeTriggerJob) {
   ASSERT_TRUE(track);
 
   TrackTriggeringJob job;
-  job.track = track;
+  job.track = track.get();
   job.from = 0.f;
   job.to = 1.f;
 
@@ -1330,7 +1330,7 @@ TEST(LinearThreshold, TrackEdgeTriggerJob) {
   ASSERT_TRUE(track);
 
   TrackTriggeringJob job;
-  job.track = track;
+  job.track = track.get();
   job.from = 0.f;
   job.to = 1.f;
 
