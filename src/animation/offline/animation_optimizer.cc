@@ -580,7 +580,7 @@ class Comparer {
   // Updates cached error matrix following an update of _joint
   // Solution animation track shall have already been update.
   template <typename _Track>
-  void UpdateError(const _Track& _track, size_t _joint,
+  void UpdateError(const _Track& _track, int _joint,
                    const ozz::Vector<bool>::Std& _included) {
     Spanner<_Track> spanner(
         TrackComponent<_Track>::Get(solution_.tracks[_joint]), _included);
@@ -603,7 +603,7 @@ class Comparer {
             skeleton_,
             LTMIterator(ozz::make_range(solution_locals_[i]),
                         ozz::make_range(solution_models_[i])),
-            static_cast<int>(_joint));
+            _joint);
 
         // Compare
         IterateJointsDF(
@@ -611,7 +611,7 @@ class Comparer {
             CompareIterator(make_range(reference_models_[i]),
                             make_range(solution_models_[i]), settings_,
                             make_range(cached_errors_[i])),
-            static_cast<int>(_joint));
+            _joint);
       }
 
       track_own_error = math::Max(track_own_error, cached_errors_[i][_joint]);
@@ -620,7 +620,7 @@ class Comparer {
   }
 
   template <typename _Track>
-  float EstimateError(const _Track& _track, size_t _joint,
+  float EstimateError(const _Track& _track, int _joint,
                       const ozz::Vector<bool>::Std& _included) const {
     // Temporary arrays used to store estimated values without modyfing current
     // ones (ensured for const function).
@@ -646,8 +646,7 @@ class Comparer {
         const float ratio =
             IterateJointsDF(
                 skeleton_,
-                RatioIterator(settings_, make_range(cached_errors_[i])),
-                static_cast<int>(_joint))
+                RatioIterator(settings_, make_range(cached_errors_[i])), _joint)
                 .ratio();
 
         worst_ratio = ozz::math::Max(worst_ratio, ratio);
@@ -663,25 +662,23 @@ class Comparer {
         // Updates LTM, only the relevant ones for _joint hierarchy are written.
         ozz::animation::IterateJointsDF(
             skeleton_,
-            LTMIterator(ozz::make_range(solution_locals_[i]), local,
-                        static_cast<int>(_joint),
+            LTMIterator(ozz::make_range(solution_locals_[i]), local, _joint,
                         ozz::make_range(solution_models_[i]),
                         ozz::make_range(models)),
-            static_cast<int>(_joint));
+            _joint);
 
         // Compare, only the relevant ones for _joint hierarchy are written.
         IterateJointsDF(
             skeleton_,
             CompareIterator(make_range(reference_models_[i]),
                             make_range(models), settings_, make_range(errors)),
-            static_cast<int>(_joint));
+            _joint);
 
         // Gets joint error ratio, which is the worst ratio of _joint's
         // hierarchy.
         const float ratio =
-            IterateJointsDF(skeleton_,
-                            RatioIterator(settings_, make_range(errors)),
-                            static_cast<int>(_joint))
+            IterateJointsDF(
+                skeleton_, RatioIterator(settings_, make_range(errors)), _joint)
                 .ratio();
 
         // Stores worst ratio of whole time range.
@@ -946,12 +943,12 @@ class CsvTracking : public Tracking, protected ozz::io::File {
     }
 
     char line[256];
-    const int ret =
-        std::sprintf(line, "%d,%d,%d,%f,%f,%d,%d,%d,%f,%f,%f,%f\n",
-                     _data.iteration, _data.joint, _data.type, _data.target_error,
-                     _data.distance, _data.original_size, _data.validated_size,
-                     _data.candidate_size, _data.own_tolerance, _data.own_error,
-                     _data.ratio, _data.optimization_delta);
+    const int ret = std::sprintf(
+        line, "%d,%d,%d,%f,%f,%d,%d,%d,%f,%f,%f,%f\n", _data.iteration,
+        _data.joint, _data.type, _data.target_error, _data.distance,
+        _data.original_size, _data.validated_size, _data.candidate_size,
+        _data.own_tolerance, _data.own_error, _data.ratio,
+        _data.optimization_delta);
     // Can only assert as no point trying to recover from a memory overwrite.
     // Should use std::snprintf, but only available from c++11.
     assert(ret > 0 && "Fromatting failed");
