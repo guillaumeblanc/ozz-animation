@@ -569,6 +569,9 @@ class Comparer {
                                  ozz::make_range(solution_models_[i])));
     }
 
+    // All tracks have 0 error.
+    track_own_errors_.resize(joints_count, 0.f);
+
     // Solution animation equals reference at initialization time.
     reference_models_ = solution_models_;
     cached_errors_.resize(key_times_count, SkeletonErrors(joints_count, 0.f));
@@ -582,6 +585,10 @@ class Comparer {
     Spanner<_Track> spanner(
         TrackComponent<_Track>::Get(solution_.tracks[_joint]), _included);
 
+    // Store maximum of this track error.
+    float track_own_error = 0.f;
+
+    // Iterates all keyframe times and update relevant ones.
     for (size_t i = 0; i < key_times_.size(); ++i) {
       const float key_time = key_times_[i];
       if (spanner.Update(key_time)) {
@@ -606,7 +613,10 @@ class Comparer {
                             make_range(cached_errors_[i])),
             static_cast<int>(_joint));
       }
+
+      track_own_error = math::Max(track_own_error, cached_errors_[i][_joint]);
     }
+    track_own_errors_[_joint] = track_own_error;
   }
 
   template <typename _Track>
@@ -682,6 +692,11 @@ class Comparer {
     return worst_ratio;
   }
 
+  // Gets track current error
+  float track_own_error(size_t _joint) const {
+    return track_own_errors_[_joint];
+  }
+
  private:
   Comparer(const Comparer&);
   void operator=(const Comparer&);
@@ -700,7 +715,14 @@ class Comparer {
   SkeletonTransformKeys solution_locals_;
   SkeletonTransformKeys solution_models_;
 
+  // Error metric of each track, independently. Index is track index.
+  typedef ozz::Vector<float>::Std TrackErrors;
+  TrackErrors track_own_errors_;
+
+  // Error metric for a given keyframe time, Index is keyframe time.
   typedef ozz::Vector<float>::Std SkeletonErrors;
+
+  // Index is track number.
   typedef ozz::Vector<SkeletonErrors>::Std SkeletonErrorKeys;
   SkeletonErrorKeys cached_errors_;
 
@@ -878,18 +900,18 @@ class Tracking {
   virtual void End() {}
 
   struct Data {
-    int iteration;
-    int joint;
-    int type;
-    float target;
-    float distance;
-    int original;
-    int validated;
-    int candidate;
-    float tolerance;
-    float error;
-    float ratio;
-    float delta;
+    int iteration;             // Iteration number.
+    int joint;                 // Joint number
+    int type;                  // Track type (Translation, rotation, scale).
+    float target_error;        // Target error value.
+    float distance;            // Distance at which error is measured.
+    int original_size;         // Original track size.
+    int validated_size;        // Last validated track size.
+    int candidate_size;        // Candidate track size.
+    float own_tolerance;       // Current decimation tolerance.
+    float own_error;           // Track own error metric .
+    float ratio;               // Error ratio for track hierarchy.
+    float optimization_delta;  // Optimization delta for this candidate.
   };
 
   virtual bool Push(const Data&) { return true; }
@@ -905,9 +927,10 @@ class CsvTracking : public Tracking, protected ozz::io::File {
     }
 
     const char header[] =
-        "iteration,joint,type,target,distance,original,validated,candidate,"
-        "tolerance,"
-        "error,ratio,delta\n";
+        "iteration,joint,type,target_error,distance,original_size,validated_"
+        "size,"
+        "candidate_size,"
+        "own_tolerance,own_error,ratio,delta\n";
     const size_t len = OZZ_ARRAY_SIZE(header) - 1;
     if (Write(header, len) != len) {
       ozz::log::Err() << "Failed writing csv file \"" << _name << "\"."
@@ -923,11 +946,12 @@ class CsvTracking : public Tracking, protected ozz::io::File {
     }
 
     char line[256];
-    const int ret = std::sprintf(
-        line, "%d,%d,%d,%f,%f,%d,%d,%d,%f,%f,%f,%f\n", _data.iteration,
-        _data.joint, _data.type, _data.target, _data.distance, _data.original,
-        _data.validated, _data.candidate, _data.tolerance, _data.error,
-        _data.ratio, _data.delta);
+    const int ret =
+        std::sprintf(line, "%d,%d,%d,%f,%f,%d,%d,%d,%f,%f,%f,%f\n",
+                     _data.iteration, _data.joint, _data.type, _data.target_error,
+                     _data.distance, _data.original_size, _data.validated_size,
+                     _data.candidate_size, _data.own_tolerance, _data.own_error,
+                     _data.ratio, _data.optimization_delta);
     // Can only assert as no point trying to recover from a memory overwrite.
     // Should use std::snprintf, but only available from c++11.
     assert(ret > 0 && "Fromatting failed");
@@ -1027,7 +1051,7 @@ class HillClimber {
                                              ozz::make_range(settings_));
 
     // Initialize all tracks with a decimation based on initial tolerance.
-        for (size_t i = 0; i < remainings_.size(); ++i) {
+    for (size_t i = 0; i < remainings_.size(); ++i) {
       remainings_[i]->Initialize(*comparer_);
     }
   }
@@ -1058,7 +1082,7 @@ class HillClimber {
         VTrack* track = *it;
 
         // Gets this track optimization delta.
-        float delta = track->delta();
+        const float delta = track->delta();
 
         if (tracking_) {
           // Fills up tracking data.
@@ -1066,15 +1090,15 @@ class HillClimber {
           data.iteration = iteration;
           data.joint = track->joint();
           data.type = track->Type();
-          data.target = settings_[data.joint].tolerance;
+          data.target_error = settings_[data.joint].tolerance;
           data.distance = settings_[data.joint].distance;
-          data.original = static_cast<int>(track->OriginalSize());
-          data.validated = static_cast<int>(track->ValidatedSize());
-          data.candidate = static_cast<int>(track->CandidateSize());
-          data.tolerance = track->tolerance();
-          data.error = 0.f;
+          data.original_size = static_cast<int>(track->OriginalSize());
+          data.validated_size = static_cast<int>(track->ValidatedSize());
+          data.candidate_size = static_cast<int>(track->CandidateSize());
+          data.own_tolerance = track->tolerance();
+          data.own_error = comparer_->track_own_error(data.joint);
           data.ratio = track->error_ratio();
-          data.delta = delta;
+          data.optimization_delta = delta;
 
           // Push tracking data.
           tracking_->Push(data);
