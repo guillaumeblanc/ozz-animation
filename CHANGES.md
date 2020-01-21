@@ -4,6 +4,9 @@ Next release
 * Library
   - [base] Removes ScopedPtr implicit cast operator to pointer type. It avoids risking duplicating ownership, and complies with unique_ptr specification.
 
+* Tools
+  - [gltf2ozz] Support for importing animations and skeletons from gltf files, using gltf2ozz command line executable. gltf2ozz can be configured via command line options and [json configuration files](src/animation/offline/tools/reference.json), in the exact same way as fbx2ozz.
+
 Release version 0.12.0
 ----------------------
 
