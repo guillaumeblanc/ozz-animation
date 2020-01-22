@@ -95,7 +95,7 @@ bool WriteTGA(const char* _filename, int _width, int _height,
       static_cast<uint8_t>((_height >> 8) & 0xff),
       static_cast<uint8_t>(_write_alpha ? 32 : 24),  // Pixel depth
       0};                                            // Image descriptor
-  OZZ_STATIC_ASSERT(sizeof(header) == 18);
+  static_assert(sizeof(header) == 18, "Expects 18 bytes structure.");
   file.Write(header, sizeof(header));
 
   // Early out if no pixel to write.

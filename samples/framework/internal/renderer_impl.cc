@@ -908,7 +908,8 @@ bool RendererImpl::DrawSphereShaded(
                                    normals_stride, normals_offset,
                                    colors_stride, colors_offset);
 
-    OZZ_STATIC_ASSERT(sizeof(icosphere::kIndices[0]) == 2);
+    static_assert(sizeof(icosphere::kIndices[0]) == 2,
+                  "Indices must be 2 bytes");
     GL(DrawElementsInstanced_(GL_TRIANGLES, OZZ_ARRAY_SIZE(icosphere::kIndices),
                               GL_UNSIGNED_SHORT, 0,
                               static_cast<GLsizei>(_transforms.count())));
@@ -940,7 +941,8 @@ bool RendererImpl::DrawSphereShaded(
                            positions_offset, normals_stride, normals_offset,
                            colors_stride, colors_offset);
 
-      OZZ_STATIC_ASSERT(sizeof(icosphere::kIndices[0]) == 2);
+      static_assert(sizeof(icosphere::kIndices[0]) == 2,
+                    "Indices must be 2 bytes");
       GL(DrawElements(GL_TRIANGLES, OZZ_ARRAY_SIZE(icosphere::kIndices),
                       GL_UNSIGNED_SHORT, 0));
 
@@ -1159,7 +1161,8 @@ bool RendererImpl::DrawMesh(const Mesh& _mesh,
           part_normal_count * normals_stride, array_begin(part.normals)));
     } else {
       // Un-optimal path used when the right number of normals is not provided.
-      OZZ_STATIC_ASSERT(sizeof(kDefaultNormalsArray[0]) == normals_stride);
+      static_assert(sizeof(kDefaultNormalsArray[0]) == normals_stride,
+                    "Stride mismatch");
       for (size_t j = 0; j < part_vertex_count;
            j += OZZ_ARRAY_SIZE(kDefaultNormalsArray)) {
         const size_t this_loop_count = math::Min(
@@ -1181,7 +1184,8 @@ bool RendererImpl::DrawMesh(const Mesh& _mesh,
           part_color_count * colors_stride, array_begin(part.colors)));
     } else {
       // Un-optimal path used when the right number of colors is not provided.
-      OZZ_STATIC_ASSERT(sizeof(kDefaultColorsArray[0]) == colors_stride);
+      static_assert(sizeof(kDefaultColorsArray[0]) == colors_stride,
+                    "Stride mismatch");
       for (size_t j = 0; j < part_vertex_count;
            j += OZZ_ARRAY_SIZE(kDefaultColorsArray)) {
         const size_t this_loop_count = math::Min(
@@ -1245,7 +1249,8 @@ bool RendererImpl::DrawMesh(const Mesh& _mesh,
                 array_begin(indices), GL_STREAM_DRAW));
 
   // Draws the mesh.
-  OZZ_STATIC_ASSERT(sizeof(Mesh::TriangleIndices::value_type) == 2);
+  static_assert(sizeof(Mesh::TriangleIndices::value_type) == 2,
+                "Expects 2 bytes indices.");
   GL(DrawElements(GL_TRIANGLES, static_cast<GLsizei>(indices.size()),
                   GL_UNSIGNED_SHORT, 0));
 
@@ -1490,7 +1495,9 @@ bool RendererImpl::DrawSkinnedMesh(
           array_begin(part.colors), part_vertex_count * colors_stride);
     } else {
       // Un-optimal path used when the right number of colors is not provided.
-      OZZ_STATIC_ASSERT(sizeof(kDefaultColorsArray[0]) == colors_stride);
+      static_assert(sizeof(kDefaultColorsArray[0]) == colors_stride,
+                    "Stride mismatch");
+
       for (size_t j = 0; j < part_vertex_count;
            j += OZZ_ARRAY_SIZE(kDefaultColorsArray)) {
         const size_t this_loop_count = math::Min(
@@ -1560,7 +1567,8 @@ bool RendererImpl::DrawSkinnedMesh(
                 array_begin(indices), GL_STREAM_DRAW));
 
   // Draws the mesh.
-  OZZ_STATIC_ASSERT(sizeof(Mesh::TriangleIndices::value_type) == 2);
+  static_assert(sizeof(Mesh::TriangleIndices::value_type) == 2,
+                "Expects 2 bytes indices.");
   GL(DrawElements(GL_TRIANGLES, static_cast<GLsizei>(indices.size()),
                   GL_UNSIGNED_SHORT, 0));
 

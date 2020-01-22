@@ -64,7 +64,8 @@ inline _Fct IterateJointsDF(const Skeleton& _skeleton, _Fct _fct,
   const int num_joints = _skeleton.num_joints();
   //
   // parents[i] >= _from is true as long as "i" is a child of "_from".
-  OZZ_STATIC_ASSERT(Skeleton::kNoParent < 0);
+  static_assert(Skeleton::kNoParent < 0,
+                "Algorithm relies on kNoParent being negative");
   for (int i = _from < 0 ? 0 : _from, process = i < num_joints; process;
        ++i, process = i < num_joints && parents[i] >= _from) {
     _fct(i, parents[i]);

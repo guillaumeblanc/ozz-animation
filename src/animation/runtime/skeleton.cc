@@ -46,9 +46,10 @@ Skeleton::~Skeleton() { Deallocate(); }
 char* Skeleton::Allocate(size_t _chars_size, size_t _num_joints) {
   // Distributes buffer memory while ensuring proper alignment (serves larger
   // alignment values first).
-  OZZ_STATIC_ASSERT(alignof(math::SoaTransform) >= alignof(char*) &&
+  static_assert(alignof(math::SoaTransform) >= alignof(char*) &&
                     alignof(char*) >= alignof(int16_t) &&
-                    alignof(int16_t) >= alignof(char));
+                    alignof(int16_t) >= alignof(char),
+                "Must serve larger alignment values first)");
 
   assert(joint_bind_poses_.size() == 0 && joint_names_.size() == 0 &&
          joint_parents_.size() == 0);

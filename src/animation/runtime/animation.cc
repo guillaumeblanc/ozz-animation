@@ -51,9 +51,10 @@ void Animation::Allocate(size_t _name_len, size_t _translation_count,
                          size_t _rotation_count, size_t _scale_count) {
   // Distributes buffer memory while ensuring proper alignment (serves larger
   // alignment values first).
-  OZZ_STATIC_ASSERT(alignof(TranslationKey) >= alignof(RotationKey) &&
+  static_assert(alignof(TranslationKey) >= alignof(RotationKey) &&
                     alignof(RotationKey) >= alignof(ScaleKey) &&
-                    alignof(ScaleKey) >= alignof(char));
+                    alignof(ScaleKey) >= alignof(char),
+                "Must serve larger alignment values first)");
 
   assert(name_ == NULL && translations_.size() == 0 && rotations_.size() == 0 &&
          scales_.size() == 0);

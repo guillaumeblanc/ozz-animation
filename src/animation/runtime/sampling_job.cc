@@ -493,11 +493,11 @@ void SamplingCache::Resize(int _max_tracks) {
 
   // Distributes buffer memory while ensuring proper alignment (serves larger
   // alignment values first).
-  OZZ_STATIC_ASSERT(alignof(InterpSoaTranslation) >=
-                        alignof(InterpSoaRotation) &&
+  static_assert(alignof(InterpSoaTranslation) >= alignof(InterpSoaRotation) &&
                     alignof(InterpSoaRotation) >= alignof(InterpSoaScale) &&
                     alignof(InterpSoaScale) >= alignof(int) &&
-                    alignof(int) >= alignof(uint8_t));
+                    alignof(int) >= alignof(uint8_t),
+                "Must serve larger alignment values first)");
 
   soa_translations_ = reinterpret_cast<InterpSoaTranslation*>(alloc_cursor);
   assert(math::IsAligned(soa_translations_, alignof(InterpSoaTranslation)));

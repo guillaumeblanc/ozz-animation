@@ -223,7 +223,8 @@ class IArchive {
   bool TestTag() {
     // Only tagged types can be tested. If compilations fails here, it can
     // mean the file containing tag declaration is not included.
-    OZZ_STATIC_ASSERT(internal::Tag<const _Ty>::kTagLength != 0);
+    static_assert(internal::Tag<const _Ty>::kTagLength != 0,
+                  "Tag unknown for type.");
 
     const int tell = stream_->Tell();
     bool valid = internal::Tagger<const _Ty>::Validate(*this);

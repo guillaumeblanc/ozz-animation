@@ -199,8 +199,9 @@ bool MemoryStream::Resize(size_t _size) {
   if (_size > alloc_size_) {
     // Resize to the next multiple of kBufferSizeIncrement, requires
     // kBufferSizeIncrement to be a power of 2.
-    OZZ_STATIC_ASSERT(
-        (MemoryStream::kBufferSizeIncrement & (kBufferSizeIncrement - 1)) == 0);
+    static_assert(
+        (MemoryStream::kBufferSizeIncrement & (kBufferSizeIncrement - 1)) == 0,
+        "kBufferSizeIncrement must be a power of 2");
 
     alloc_size_ = ozz::math::Align(_size, kBufferSizeIncrement);
     buffer_ = reinterpret_cast<char*>(

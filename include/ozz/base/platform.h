@@ -40,14 +40,6 @@ namespace ozz {
 #define _OZZ_JOIN(_a, _b) _OZZ_JOIN2(_a, _b)
 #define _OZZ_JOIN2(_a, _b) _a##_b
 
-// Compile time assertion. Breaks compiling if _condition is false.
-// Defines an array with a negative number of elements if _condition is false,
-// which generates a compiler error.
-#define OZZ_STATIC_ASSERT(_condition)           \
-  struct OZZ_JOIN(_StaticAssert, __COUNTER__) { \
-    char x[(_condition) ? 1 : -1];              \
-  }
-
 // Finds the number of elements of a statically allocated array.
 #define OZZ_ARRAY_SIZE(_array) (sizeof(_array) / sizeof(_array[0]))
 

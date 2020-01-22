@@ -38,7 +38,10 @@
 
 using ozz::math::SimdInt4;
 
-OZZ_STATIC_ASSERT(sizeof(SimdInt4) == 4 * sizeof(int32_t));
+static_assert(sizeof(SimdInt4) == 4 * sizeof(int32_t),
+              "Expects SimdInt4 to be the size of 4 int32_t.");
+static_assert(alignof(SimdInt4) == 16,
+              "Expects SimdInt4 to be the size of 16 bytes.");
 
 TEST(LoadInt, ozz_simd_math) {
   const SimdInt4 iX = ozz::math::simd_int4::LoadX(15);

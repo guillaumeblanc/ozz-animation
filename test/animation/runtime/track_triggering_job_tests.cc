@@ -931,7 +931,7 @@ template <size_t _size>
 inline void TestEdgesExpectation(
     const ozz::animation::offline::RawFloatTrack& _raw_track, float _threshold,
     const TrackTriggeringJob::Edge (&_expected)[_size]) {
-  OZZ_STATIC_ASSERT(_size >= 2);
+  static_assert(_size >= 2, "Minimum 2 edges.");
   TestEdgesExpectation(_raw_track, _threshold, _expected, _size);
 }
 

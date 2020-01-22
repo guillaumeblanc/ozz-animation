@@ -75,7 +75,8 @@ const ozz::math::SimdFloat4 kHeadForward = ozz::math::simd_float4::y_axis();
 const ozz::math::SimdFloat4 kJointUpVectors[] = {
     ozz::math::simd_float4::x_axis(), ozz::math::simd_float4::x_axis(),
     ozz::math::simd_float4::x_axis(), ozz::math::simd_float4::x_axis()};
-OZZ_STATIC_ASSERT(OZZ_ARRAY_SIZE(kJointUpVectors) == kMaxChainLength);
+static_assert(OZZ_ARRAY_SIZE(kJointUpVectors) == kMaxChainLength,
+              "Array size mismatch.");
 
 class LookAtSampleApplication : public ozz::sample::Application {
  public:

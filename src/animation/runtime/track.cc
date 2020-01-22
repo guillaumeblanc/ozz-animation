@@ -54,8 +54,9 @@ void Track<_ValueType>::Allocate(size_t _keys_count, size_t _name_len) {
 
   // Distributes buffer memory while ensuring proper alignment (serves larger
   // alignment values first).
-  OZZ_STATIC_ASSERT(alignof(_ValueType) >= alignof(float));
-  OZZ_STATIC_ASSERT(alignof(float) >= alignof(uint8_t));
+  static_assert(alignof(_ValueType) >= alignof(float) &&
+                    alignof(float) >= alignof(uint8_t),
+                "Must serve larger alignment values first)");
 
   // Compute overall size and allocate a single buffer for all the data.
   const size_t buffer_size = _keys_count * sizeof(_ValueType) +  // values

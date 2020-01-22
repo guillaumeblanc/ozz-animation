@@ -295,7 +295,8 @@ OZZ_INLINE SimdFloat4 SplatW(_SimdFloat4 _v) {
 
 template <size_t _X, size_t _Y, size_t _Z, size_t _W>
 OZZ_INLINE SimdFloat4 Swizzle(_SimdFloat4 _v) {
-  OZZ_STATIC_ASSERT(_X <= 3 && _Y <= 3 && _Z <= 3 && _W <= 3);
+  static_assert(_X <= 3 && _Y <= 3 && _Z <= 3 && _W <= 3,
+                "Indices must be between 0 and 3");
   const float* pf = &_v.x;
   const SimdFloat4 ret = {pf[_X], pf[_Y], pf[_Z], pf[_W]};
   return ret;
@@ -1325,7 +1326,8 @@ OZZ_INLINE SimdInt4 SplatW(_SimdInt4 _a) {
 
 template <size_t _X, size_t _Y, size_t _Z, size_t _W>
 OZZ_INLINE SimdInt4 Swizzle(_SimdInt4 _v) {
-  OZZ_STATIC_ASSERT(_X <= 3 && _Y <= 3 && _Z <= 3 && _W <= 3);
+  static_assert(_X <= 3 && _Y <= 3 && _Z <= 3 && _W <= 3,
+                "Indices must be between 0 and 3");
   const int* pi = &_v.x;
   const SimdInt4 ret = {pi[_X], pi[_Y], pi[_Z], pi[_W]};
   return ret;
