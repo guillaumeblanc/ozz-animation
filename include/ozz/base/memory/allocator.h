@@ -84,7 +84,7 @@ class Allocator {
 // to forward every possible type of argument (&, const&, rvalue, ...) to
 // constructors, especially if big number of arguments is required.
 #define OZZ_NEW(x_allocator, x_type) \
-  new ((x_allocator)->Allocate(sizeof(x_type), OZZ_ALIGN_OF(x_type))) x_type
+  new ((x_allocator)->Allocate(sizeof(x_type), alignof(x_type))) x_type
 
 // ozz replacement for c++ delete. Must be used for objects allocated with
 // OZZ_NEW and the same ozz::memory::Allocator.

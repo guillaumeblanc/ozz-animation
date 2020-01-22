@@ -54,10 +54,10 @@ struct Aligned {
 }  // namespace
 
 TEST(Alignment, Platform) {
-  OZZ_STATIC_ASSERT(OZZ_ALIGN_OF(char) == 1);
-  OZZ_STATIC_ASSERT(OZZ_ALIGN_OF(double) == 8);
-  OZZ_STATIC_ASSERT(OZZ_ALIGN_OF(Misc) == 8);
-  OZZ_STATIC_ASSERT(OZZ_ALIGN_OF(Aligned) == 128);
+  OZZ_STATIC_ASSERT(alignof(char) == 1);
+  OZZ_STATIC_ASSERT(alignof(double) == 8);
+  OZZ_STATIC_ASSERT(alignof(Misc) == 8);
+  OZZ_STATIC_ASSERT(alignof(Aligned) == 128);
 
   Aligned alined;
   EXPECT_EQ(reinterpret_cast<uintptr_t>(&alined) & (128 - 1), 0u);

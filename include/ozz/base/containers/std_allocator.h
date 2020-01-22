@@ -78,7 +78,7 @@ class StdAllocator {
     // Makes sure to a use c like allocator, to avoid duplicated constructor
     // calls.
     return reinterpret_cast<pointer>(memory::default_allocator()->Allocate(
-        sizeof(_Ty) * _count, OZZ_ALIGN_OF(_Ty)));
+        sizeof(_Ty) * _count, alignof(_Ty)));
   }
 
   // Allocates array of _Count elements, ignores hint.

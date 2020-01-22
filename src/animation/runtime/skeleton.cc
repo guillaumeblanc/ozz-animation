@@ -46,9 +46,9 @@ Skeleton::~Skeleton() { Deallocate(); }
 char* Skeleton::Allocate(size_t _chars_size, size_t _num_joints) {
   // Distributes buffer memory while ensuring proper alignment (serves larger
   // alignment values first).
-  OZZ_STATIC_ASSERT(OZZ_ALIGN_OF(math::SoaTransform) >= OZZ_ALIGN_OF(char*) &&
-                    OZZ_ALIGN_OF(char*) >= OZZ_ALIGN_OF(int16_t) &&
-                    OZZ_ALIGN_OF(int16_t) >= OZZ_ALIGN_OF(char));
+  OZZ_STATIC_ASSERT(alignof(math::SoaTransform) >= alignof(char*) &&
+                    alignof(char*) >= alignof(int16_t) &&
+                    alignof(int16_t) >= alignof(char));
 
   assert(joint_bind_poses_.size() == 0 && joint_names_.size() == 0 &&
          joint_parents_.size() == 0);
@@ -68,25 +68,24 @@ char* Skeleton::Allocate(size_t _chars_size, size_t _num_joints) {
 
   // Allocates whole buffer.
   char* buffer = reinterpret_cast<char*>(memory::default_allocator()->Allocate(
-      buffer_size, OZZ_ALIGN_OF(math::SoaTransform)));
+      buffer_size, alignof(math::SoaTransform)));
 
   // Serves larger alignment values first.
   // Bind pose first, biggest alignment.
   joint_bind_poses_.begin = reinterpret_cast<math::SoaTransform*>(buffer);
-  assert(math::IsAligned(joint_bind_poses_.begin,
-                         OZZ_ALIGN_OF(math::SoaTransform)));
+  assert(math::IsAligned(joint_bind_poses_.begin, alignof(math::SoaTransform)));
   buffer += joint_bind_poses_size;
   joint_bind_poses_.end = reinterpret_cast<math::SoaTransform*>(buffer);
 
   // Then names array, second biggest alignment.
   joint_names_.begin = reinterpret_cast<char**>(buffer);
-  assert(math::IsAligned(joint_names_.begin, OZZ_ALIGN_OF(char**)));
+  assert(math::IsAligned(joint_names_.begin, alignof(char**)));
   buffer += names_size;
   joint_names_.end = reinterpret_cast<char**>(buffer);
 
   // Parents, third biggest alignment.
   joint_parents_.begin = reinterpret_cast<int16_t*>(buffer);
-  assert(math::IsAligned(joint_parents_.begin, OZZ_ALIGN_OF(int16_t)));
+  assert(math::IsAligned(joint_parents_.begin, alignof(int16_t)));
   buffer += joint_parents_size;
   joint_parents_.end = reinterpret_cast<int16_t*>(buffer);
 
