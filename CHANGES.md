@@ -1,6 +1,9 @@
 Next release
 ------------
 
+* Build pipeline
+  - Enables c++11 feature by default for all targets.
+
 * Library
   - [base] Removes ScopedPtr implicit cast operator to pointer type. It avoids risking duplicating ownership, and complies with unique_ptr specification.
 

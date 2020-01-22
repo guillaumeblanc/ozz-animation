@@ -29,10 +29,10 @@ set(cxx_all_flags
 #--------------------------------------
 # Cross compiler compilation flags
 
-if(ozz_build_cpp11)
-  set(CMAKE_CXX_STANDARD 11)
-  set(CMAKE_CXX_STANDARD_REQUIRED ON)
-endif()
+# Requires C++11
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Simd math force ref
 if(ozz_build_simd_ref)
