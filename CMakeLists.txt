@@ -35,7 +35,7 @@ message("-- - ozz_build_postfix: " ${ozz_build_postfix})
 
 # Add project execution options
 option(ozz_run_tests_headless "Run samples without rendering (used for unit tests)" ON)
-set(ozz_sample_testing_loops 20 CACHE INT "Number of loops while running sample tests (used for unit tests)")
+set(ozz_sample_testing_loops 20 CACHE STRING "Number of loops while running sample tests (used for unit tests)")
 
 # Configure CMake module path
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/build-utils/cmake/modules/")
