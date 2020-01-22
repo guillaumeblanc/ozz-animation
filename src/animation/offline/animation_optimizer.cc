@@ -574,7 +574,7 @@ class Comparer {
 
     // Solution animation equals reference at initialization time.
     reference_models_ = solution_models_;
-    cached_errors_.resize(key_times_count, SkeletonErrors(joints_count, 0.f));
+    cached_errors_.resize(key_times_count, TrackErrors(joints_count, 0.f));
   }
 
   // Updates cached error matrix following an update of _joint
@@ -628,7 +628,7 @@ class Comparer {
     // _joint hierarchy. A 10x optimization factor was measured compared to
     // copying the full array each test.
     SkeletonTransforms models(solution_.tracks.size());
-    SkeletonErrors errors(solution_.tracks.size());
+    TrackErrors errors(solution_.tracks.size());
 
     Spanner<_Track> spanner(
         TrackComponent<_Track>::Get(solution_.tracks[_joint]), _included);
@@ -712,17 +712,15 @@ class Comparer {
   SkeletonTransformKeys solution_locals_;
   SkeletonTransformKeys solution_models_;
 
-  // Error metric of each track, independently. Index is track index.
+  // Error metric of each track, independently. Index is track number.
   typedef ozz::Vector<float>::Std TrackErrors;
   TrackErrors track_own_errors_;
 
-  // Error metric for a given keyframe time, Index is keyframe time.
-  typedef ozz::Vector<float>::Std SkeletonErrors;
+  // Index is keyframe time.
+  typedef ozz::Vector<TrackErrors>::Std TrackErrorKeys;
+  TrackErrorKeys cached_errors_;
 
-  // Index is track number.
-  typedef ozz::Vector<SkeletonErrors>::Std SkeletonErrorKeys;
-  SkeletonErrorKeys cached_errors_;
-
+  // Union of all keyframe times.
   typedef ozz::Vector<float>::Std KeyTimes;
   ozz::Vector<float>::Std key_times_;
 };
@@ -733,8 +731,8 @@ class VTrack {
   VTrack(float _initial_tolerance, int _joint)
       : joint_(_joint),
         tolerance_(_initial_tolerance),
-        error_ratio_(-1.f),
-        delta_(-1.f) {}
+        hierarchy_error_ratio_(-1.f),
+        optimization_delta_(-1.f) {}
   virtual ~VTrack() {}
   void Initialize(const Comparer& _comparer) {
     // Decimates  size in order to find next candidate track.
@@ -751,7 +749,7 @@ class VTrack {
          candidate_size = CandidateSize()) {
       // Computes next tolerance to use for decimation.
       // tolerance_ *= 1.2f;
-      const float mul = 1.2f + -error_ratio_ * .3f;  // * f * 1.f;
+      const float mul = 1.2f + -hierarchy_error_ratio_ * .3f;  // * f * 1.f;
       tolerance_ *= mul;
 
       // Decimates validated track in order to find next candidate track.
@@ -768,12 +766,12 @@ class VTrack {
     // (original_size > 1) is an optimization that prevents rebuilding error for
     // constant tracks. They haven't been decimated, so they don't own any
     // error.
-    // (error_ratio_ < 0.f) is an optimization. If error is already too big,
-    // don't mind updating it.
+    // (hierarchy_error_ratio__ < 0.f) is an optimization. If error is already
+    // too big, don't mind updating it.
     const size_t original_size = OriginalSize();
-    if (original_size > 1 && error_ratio_ < 0.f) {
+    if (original_size > 1 && hierarchy_error_ratio_ < 0.f) {
       // Computes error ratio of this track and its hierarchy.
-      error_ratio_ = EstimateCandidateError(_comparer);
+      hierarchy_error_ratio_ = EstimateCandidateError(_comparer);
 
       // Computes optimization delta from error.
       const size_t validated_size = ValidatedSize();
@@ -781,10 +779,10 @@ class VTrack {
       const float size_ratio =
           static_cast<float>(validated_size - candidate_size) /
           static_cast<float>(original_size);
-      delta_ = error_ratio_ * size_ratio;
+      optimization_delta_ = hierarchy_error_ratio_ * size_ratio;
     } else {
-      error_ratio_ = 0.f;
-      delta_ = 0.f;
+      hierarchy_error_ratio_ = 0.f;
+      optimization_delta_ = 0.f;
     }
   }
 
@@ -800,12 +798,12 @@ class VTrack {
   // -1 < x < 0 if transition pass is within tolerance range. The minimum
   // the better.
   // x >= 0 if transition pass is exceeding tolerance range.
-  float delta() const { return delta_; }
+  float optimization_delta() const { return optimization_delta_; }
 
   int joint() const { return joint_; }
 
   float tolerance() const { return tolerance_; }
-  float error_ratio() const { return error_ratio_; }
+  float hierarchy_error_ratio() const { return hierarchy_error_ratio_; }
 
  private:
   virtual float EstimateCandidateError(const Comparer& _comparer) const = 0;
@@ -822,10 +820,10 @@ class VTrack {
   // TODO removes
   // Error value for candidate track.
   // Takes into account its whole hierarchy.
-  float error_ratio_;
+  float hierarchy_error_ratio_;
 
   // Optimization delta for candidate track.
-  float delta_;
+  float optimization_delta_;
 };
 
 template <typename _Track, typename _Adapter, int _Type>
@@ -897,18 +895,18 @@ class Tracking {
   virtual void End() {}
 
   struct Data {
-    int iteration;             // Iteration number.
-    int joint;                 // Joint number
-    int type;                  // Track type (Translation, rotation, scale).
-    float target_error;        // Target error value.
-    float distance;            // Distance at which error is measured.
-    int original_size;         // Original track size.
-    int validated_size;        // Last validated track size.
-    int candidate_size;        // Candidate track size.
-    float own_tolerance;       // Current decimation tolerance.
-    float own_error;           // Track own error metric .
-    float ratio;               // Error ratio for track hierarchy.
-    float optimization_delta;  // Optimization delta for this candidate.
+    int iteration;                // Iteration number.
+    int joint;                    // Joint number
+    int type;                     // Track type (Translation, rotation, scale).
+    float target_error;           // Target error value.
+    float distance;               // Distance at which error is measured.
+    int original_size;            // Original track size.
+    int validated_size;           // Last validated track size.
+    int candidate_size;           // Candidate track size.
+    float own_tolerance;          // Current decimation tolerance.
+    float own_error;              // Track own error metric .
+    float hierarchy_error_ratio;  // Error ratio for track hierarchy.
+    float optimization_delta;     // Optimization delta for this candidate.
   };
 
   virtual bool Push(const Data&) { return true; }
@@ -925,9 +923,8 @@ class CsvTracking : public Tracking, protected ozz::io::File {
 
     const char header[] =
         "iteration,joint,type,target_error,distance,original_size,validated_"
-        "size,"
-        "candidate_size,"
-        "own_tolerance,own_error,ratio,delta\n";
+        "size,candidate_size,own_tolerance,own_error,hierarchy_error_ratio,"
+        "optimization_delta\n";
     const size_t len = OZZ_ARRAY_SIZE(header) - 1;
     if (Write(header, len) != len) {
       ozz::log::Err() << "Failed writing csv file \"" << _name << "\"."
@@ -947,7 +944,7 @@ class CsvTracking : public Tracking, protected ozz::io::File {
         line, "%d,%d,%d,%f,%f,%d,%d,%d,%f,%f,%f,%f\n", _data.iteration,
         _data.joint, _data.type, _data.target_error, _data.distance,
         _data.original_size, _data.validated_size, _data.candidate_size,
-        _data.own_tolerance, _data.own_error, _data.ratio,
+        _data.own_tolerance, _data.own_error, _data.hierarchy_error_ratio,
         _data.optimization_delta);
     // Can only assert as no point trying to recover from a memory overwrite.
     // Should use std::snprintf, but only available from c++11.
@@ -1079,7 +1076,7 @@ class HillClimber {
         VTrack* track = *it;
 
         // Gets this track optimization delta.
-        const float delta = track->delta();
+        const float delta = track->optimization_delta();
 
         if (tracking_) {
           // Fills up tracking data.
@@ -1094,7 +1091,7 @@ class HillClimber {
           data.candidate_size = static_cast<int>(track->CandidateSize());
           data.own_tolerance = track->tolerance();
           data.own_error = comparer_->track_own_error(data.joint);
-          data.ratio = track->error_ratio();
+          data.hierarchy_error_ratio = track->hierarchy_error_ratio();
           data.optimization_delta = delta;
 
           // Push tracking data.
