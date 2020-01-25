@@ -28,6 +28,10 @@
 #ifndef OZZ_OZZ_BASE_PLATFORM_H_
 #define OZZ_OZZ_BASE_PLATFORM_H_
 
+#if __cplusplus < 201103L
+#error "ozz-animation requires c++11 language standards."
+#endif  // __cplusplus
+
 #include <stdint.h>
 #include <cassert>
 #include <cstddef>
