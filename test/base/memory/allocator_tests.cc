@@ -103,7 +103,7 @@ struct AlignedInts {
   }
 
   static const int array_size = 517;
-  OZZ_ALIGN(64) int array[array_size];
+  alignas(64) int array[array_size];
 };
 
 TEST(NewDelete, Memory) {

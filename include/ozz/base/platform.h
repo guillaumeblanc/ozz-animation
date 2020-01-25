@@ -38,23 +38,8 @@
 
 namespace ozz {
 
-// Compile time string concatenation.
-#define OZZ_JOIN(_a, _b) _OZZ_JOIN(_a, _b)
-// Compile time string concatenation implementation details.
-#define _OZZ_JOIN(_a, _b) _OZZ_JOIN2(_a, _b)
-#define _OZZ_JOIN2(_a, _b) _a##_b
-
 // Finds the number of elements of a statically allocated array.
 #define OZZ_ARRAY_SIZE(_array) (sizeof(_array) / sizeof(_array[0]))
-
-// Specifies a minimum alignment (in bytes) for variables.
-// Syntax is: "OZZ_ALIGN(16) int i;" which aligns "i" variable address to 16
-// bytes.
-#if defined(_MSC_VER)
-#define OZZ_ALIGN(_alignment) __declspec(align(_alignment))
-#else
-#define OZZ_ALIGN(_alignment) __attribute__((aligned(_alignment)))
-#endif
 
 // Instructs the compiler to try to inline a function, regardless cost/benefit
 // compiler analysis.

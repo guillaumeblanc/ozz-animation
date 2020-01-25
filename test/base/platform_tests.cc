@@ -49,7 +49,7 @@ struct Misc {
 
 // Declares an aligned structure in order to test OZZ_ALIGN and AlignOf.
 struct Aligned {
-  OZZ_ALIGN(128) char c;
+  alignas(128) char c;
 };
 }  // namespace
 

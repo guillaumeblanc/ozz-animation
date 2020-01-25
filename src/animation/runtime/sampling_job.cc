@@ -198,8 +198,7 @@ void UpdateSoaTranslations(int _num_soa_tracks,
                                                                                \
     /* Prepares an array of input values, according to the mapping required */ \
     /* to restore quaternion largest component.*/                              \
-    OZZ_ALIGN(16)                                                              \
-    int cmp_keys[4][4] = {                                                     \
+    alignas(16) int cmp_keys[4][4] = {                                         \
         {_k0.value[m0[0]], _k1.value[m1[0]], _k2.value[m2[0]],                 \
          _k3.value[m3[0]]},                                                    \
         {_k0.value[m0[1]], _k1.value[m1[1]], _k2.value[m2[1]],                 \
