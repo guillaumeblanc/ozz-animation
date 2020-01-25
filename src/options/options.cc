@@ -107,10 +107,10 @@ Registrer<_Option>::~Registrer() {
 }
 
 // Explicit instantiation of all supported types of Registrer.
-template class Registrer<TypedOption<bool> >;
-template class Registrer<TypedOption<int> >;
-template class Registrer<TypedOption<float> >;
-template class Registrer<TypedOption<const char*> >;
+template class Registrer<TypedOption<bool>>;
+template class Registrer<TypedOption<int>>;
+template class Registrer<TypedOption<float>>;
+template class Registrer<TypedOption<const char*>>;
 }  // namespace internal
 
 // Construct the parser if no option is registered.

@@ -46,10 +46,8 @@ namespace ozz {
 // Redirects std::map to ozz::Map in order to replace std default allocator by
 // ozz::StdAllocator.
 template <class _Key, class _Ty, class _Pred = std::less<_Key>,
-          class _Allocator = ozz::StdAllocator<std::pair<const _Key, _Ty> > >
-struct Map {
-  typedef std::map<_Key, _Ty, _Pred, _Allocator> Std;
-};
+          class _Allocator = ozz::StdAllocator<std::pair<const _Key, _Ty>>>
+using Map = std::map<_Key, _Ty, _Pred, _Allocator>;
 
 // Implements a string comparator that can be used by std algorithm like maps.
 struct str_less {
@@ -60,17 +58,13 @@ struct str_less {
 
 // Specializes std::map to use c-string as a key.
 template <class _Ty, class _Allocator =
-                         ozz::StdAllocator<std::pair<const char* const, _Ty> > >
-struct CStringMap {
-  typedef std::map<const char*, _Ty, str_less, _Allocator> Std;
-};
+                         ozz::StdAllocator<std::pair<const char* const, _Ty>>>
+using CStringMap = std::map<const char*, _Ty, str_less, _Allocator>;
 
 // Redirects std::multimap to ozz::MultiMap in order to replace std default
 // allocator by ozz::StdAllocator.
 template <class _Key, class _Ty, class _Pred = std::less<_Key>,
-          class _Allocator = ozz::StdAllocator<std::pair<const _Key, _Ty> > >
-struct MultiMap {
-  typedef std::multimap<_Key, _Ty, _Pred, _Allocator> Std;
-};
+          class _Allocator = ozz::StdAllocator<std::pair<const _Key, _Ty>>>
+using MultiMap = std::multimap<_Key, _Ty, _Pred, _Allocator>;
 }  // namespace ozz
 #endif  // OZZ_OZZ_BASE_CONTAINERS_MAP_H_

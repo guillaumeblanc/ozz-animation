@@ -37,16 +37,14 @@ namespace ozz {
 // allocator by ozz::StdAllocator.
 // Extends std::vector with two functions that gives access to the begin and the
 // end of its array of elements.
-template <class _Ty, class _Allocator = ozz::StdAllocator<_Ty> >
-struct Vector {
-  typedef std::vector<_Ty, _Allocator> Std;
-};
+template <class _Ty, class _Allocator = ozz::StdAllocator<_Ty>>
+using Vector = std::vector<_Ty, _Allocator>;
 
 // Returns the mutable begin of the array of elements, or NULL if
 // vector's empty.
 template <class _Ty, class _Allocator>
 inline _Ty* array_begin(std::vector<_Ty, _Allocator>& _vector) {
-  size_t size = _vector.size();
+  const size_t size = _vector.size();
   return size != 0 ? &_vector[0] : NULL;
 }
 
@@ -54,7 +52,7 @@ inline _Ty* array_begin(std::vector<_Ty, _Allocator>& _vector) {
 // vector's empty.
 template <class _Ty, class _Allocator>
 inline const _Ty* array_begin(const std::vector<_Ty, _Allocator>& _vector) {
-  size_t size = _vector.size();
+  const size_t size = _vector.size();
   return size != 0 ? &_vector[0] : NULL;
 }
 
@@ -63,7 +61,7 @@ inline const _Ty* array_begin(const std::vector<_Ty, _Allocator>& _vector) {
 // array, it cannot be dereferenced.
 template <class _Ty, class _Allocator>
 inline _Ty* array_end(std::vector<_Ty, _Allocator>& _vector) {
-  size_t size = _vector.size();
+  const size_t size = _vector.size();
   return size != 0 ? (&_vector[size - 1]) + 1 : NULL;
 }
 
@@ -72,7 +70,7 @@ inline _Ty* array_end(std::vector<_Ty, _Allocator>& _vector) {
 // array, it cannot be dereferenced.
 template <class _Ty, class _Allocator>
 inline const _Ty* array_end(const std::vector<_Ty, _Allocator>& _vector) {
-  size_t size = _vector.size();
+  const size_t size = _vector.size();
   return size != 0 ? (&_vector[size - 1]) + 1 : NULL;
 }
 

@@ -151,7 +151,7 @@ bool Export(OzzImporter& _importer, const _RawTrack& _raw_track,
     // it would leave an invalid file on the disk.
 
     // Builds output filename.
-    const ozz::String::Std filename = _importer.BuildFilename(
+    const ozz::String filename = _importer.BuildFilename(
         _config["filename"].asCString(), _raw_track.name.c_str());
 
     ozz::log::LogV() << "Opens output file: " << filename << std::endl;

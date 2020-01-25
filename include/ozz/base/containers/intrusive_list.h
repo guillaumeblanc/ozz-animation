@@ -87,7 +87,7 @@ struct Option {
 // O(1) capabilities of the intrusive list. The size() function is NOT constant
 // time though, but linear O(n). If you wish to test whether a list is empty,
 // you should use empty() rather than size() == 0.
-template <typename _Ty, typename _Option = Option<> >
+template <typename _Ty, typename _Option = Option<>>
 class IntrusiveList;
 
 // Enters the internal namespace that encloses private implementation details.
@@ -497,22 +497,22 @@ class IntrusiveList : public internal::IntrusiveNodeList {
 
   // Iterator used to iterate through a list;
   typedef internal::IntrusiveListIterator<IntrusiveList,
-                                          internal::MutableCfg<IntrusiveList> >
+                                          internal::MutableCfg<IntrusiveList>>
       iterator;
 
   // Const iterator used to iterate through a list.
   typedef internal::IntrusiveListIterator<IntrusiveList,
-                                          internal::ConstCfg<IntrusiveList> >
+                                          internal::ConstCfg<IntrusiveList>>
       const_iterator;
 
   // Iterator used to iterate backwards through a list.
   typedef internal::IntrusiveListIterator<
-      IntrusiveList, internal::MutableReverseCfg<IntrusiveList> >
+      IntrusiveList, internal::MutableReverseCfg<IntrusiveList>>
       reverse_iterator;
 
   // Const iterator used to iterate backwards through a list.
   typedef internal::IntrusiveListIterator<
-      IntrusiveList, internal::ConstReverseCfg<IntrusiveList> >
+      IntrusiveList, internal::ConstReverseCfg<IntrusiveList>>
       const_reverse_iterator;
 
   // Constructs an empty list.

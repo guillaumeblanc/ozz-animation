@@ -143,7 +143,7 @@ namespace {
 bool OnRawSkeletonJointGui(
     ozz::sample::ImGui* _im_gui,
     ozz::animation::offline::RawSkeleton::Joint::Children* _children,
-    ozz::Vector<bool>::Std::iterator* _oc_state) {
+    ozz::Vector<bool>::iterator* _oc_state) {
   char txt[255];
 
   bool modified = false;
@@ -201,7 +201,7 @@ bool RawSkeletonEditor::OnGui(animation::offline::RawSkeleton* _skeleton,
                               ImGui* _im_gui) {
   open_close_states.resize(_skeleton->num_joints(), false);
 
-  ozz::Vector<bool>::Std::iterator begin = open_close_states.begin();
+  ozz::Vector<bool>::iterator begin = open_close_states.begin();
   return OnRawSkeletonJointGui(_im_gui, &_skeleton->roots, &begin);
 }
 
@@ -222,7 +222,7 @@ void ComputeSkeletonBounds(const animation::Skeleton& _skeleton,
   }
 
   // Allocate matrix array, out of memory is handled by the LocalToModelJob.
-  ozz::Vector<ozz::math::Float4x4>::Std models(num_joints);
+  ozz::Vector<ozz::math::Float4x4> models(num_joints);
 
   // Compute model space bind pose.
   ozz::animation::LocalToModelJob job;
@@ -399,7 +399,7 @@ bool LoadMesh(const char* _filename, ozz::sample::Mesh* _mesh) {
 }
 
 bool LoadMeshes(const char* _filename,
-                ozz::Vector<ozz::sample::Mesh>::Std* _meshes) {
+                ozz::Vector<ozz::sample::Mesh>* _meshes) {
   assert(_filename && _meshes);
   ozz::log::Out() << "Loading meshes archive: " << _filename << "."
                   << std::endl;
@@ -490,9 +490,8 @@ bool RayIntersectsMesh(const ozz::math::Float3& _ray_origin,
                               ozz::math::Float3(pf2[0], pf2[1], pf2[2]),
                               &lcl_intersect, &lcl_normal)) {
       // Is it closer to start point than the previous intersection.
-      if (!intersected ||
-          LengthSqr(lcl_intersect - _ray_origin) <
-              LengthSqr(intersect - _ray_origin)) {
+      if (!intersected || LengthSqr(lcl_intersect - _ray_origin) <
+                              LengthSqr(intersect - _ray_origin)) {
         intersect = lcl_intersect;
         normal = lcl_normal;
       }
@@ -524,9 +523,8 @@ bool RayIntersectsMeshes(const ozz::math::Float3& _ray_origin,
     if (RayIntersectsMesh(_ray_origin, _ray_direction, _meshes[i],
                           &lcl_intersect, &lcl_normal)) {
       // Is it closer to start point than the previous intersection.
-      if (!intersected ||
-          LengthSqr(lcl_intersect - _ray_origin) <
-              LengthSqr(intersect - _ray_origin)) {
+      if (!intersected || LengthSqr(lcl_intersect - _ray_origin) <
+                              LengthSqr(intersect - _ray_origin)) {
         intersect = lcl_intersect;
         normal = lcl_normal;
       }

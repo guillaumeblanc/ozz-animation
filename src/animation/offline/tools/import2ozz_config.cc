@@ -417,7 +417,7 @@ bool SanitizeRoot(Json::Value& _root, bool _all_options) {
 }
 
 bool RecursiveCheck(const Json::Value& _root, const Json::Value& _expected,
-                    ozz::String::Std _name) {
+                    ozz::String _name) {
   if (!IsCompatibleType(_root.type(), _expected.type())) {
     // It's a failure to have a wrong member type.
     ozz::log::Err() << "Invalid type \"" << JsonTypeToString(_root.type())

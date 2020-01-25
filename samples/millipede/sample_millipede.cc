@@ -385,8 +385,9 @@ class MillipedeSampleApplication : public ozz::sample::Application {
             0.f, Float3(0.f, 1.f, -slice_count_ * kSpinLength)};
         track.translations.push_back(tkey0);
         const RawAnimation::TranslationKey tkey1 = {
-            kDuration, Float3(0.f, 1.f, kWalkCycleCount * kWalkCycleLength +
-                                            tkey0.value.z)};
+            kDuration,
+            Float3(0.f, 1.f,
+                   kWalkCycleCount * kWalkCycleLength + tkey0.value.z)};
         track.translations.push_back(tkey1);
       }
 
@@ -435,10 +436,10 @@ class MillipedeSampleApplication : public ozz::sample::Application {
 
   // Buffer of local transforms as sampled from animation_.
   // These are shared between sampling output and local-to-model input.
-  ozz::Vector<ozz::math::SoaTransform>::Std locals_;
+  ozz::Vector<ozz::math::SoaTransform> locals_;
 
   // Buffer of model matrices (local-to-model output).
-  ozz::Vector<ozz::math::Float4x4>::Std models_;
+  ozz::Vector<ozz::math::Float4x4> models_;
 };
 
 int main(int _argc, const char** _argv) {

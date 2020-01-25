@@ -391,10 +391,10 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
   ozz::animation::Skeleton skeleton_;
 
   // Buffer of local transforms as sampled from animation_.
-  ozz::Vector<ozz::math::SoaTransform>::Std locals_;
+  ozz::Vector<ozz::math::SoaTransform> locals_;
 
   // Buffer of model space matrices.
-  ozz::Vector<ozz::math::Float4x4>::Std models_;
+  ozz::Vector<ozz::math::Float4x4> models_;
 
   // Two bone IK setup. Indices of the relevant joints in the chain.
   int start_joint_;

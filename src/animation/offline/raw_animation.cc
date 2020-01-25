@@ -41,7 +41,7 @@ namespace {
 // Implements key frames' time range and ordering checks.
 // See AnimationBuilder::Create for more details.
 template <typename _Key>
-static bool ValidateTrack(const typename ozz::Vector<_Key>::Std& _track,
+static bool ValidateTrack(const typename ozz::Vector<_Key>& _track,
                           float _duration) {
   float previous_time = -1.f;
   for (size_t k = 0; k < _track.size(); ++k) {

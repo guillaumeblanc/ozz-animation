@@ -35,13 +35,13 @@
 namespace ozz {
 namespace io {
 
-OZZ_IO_TYPE_NOT_VERSIONABLE(ozz::String::Std)
+OZZ_IO_TYPE_NOT_VERSIONABLE(ozz::String)
 
 template <>
-struct Extern<ozz::String::Std> {
-  static void Save(OArchive& _archive, const ozz::String::Std* _values,
+struct Extern<ozz::String> {
+  static void Save(OArchive& _archive, const ozz::String* _values,
                    size_t _count);
-  static void Load(IArchive& _archive, ozz::String::Std* _values, size_t _count,
+  static void Load(IArchive& _archive, ozz::String* _values, size_t _count,
                    uint32_t _version);
 };
 }  // namespace io

@@ -66,7 +66,7 @@ struct JointLister {
     int16_t parent;
   };
   // Array of joints in the traversed DAG order.
-  ozz::Vector<Joint>::Std linear_joints;
+  ozz::Vector<Joint> linear_joints;
 };
 }  // namespace
 

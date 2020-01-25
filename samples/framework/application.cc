@@ -708,7 +708,7 @@ void Application::ParseReadme() {
 
   // Read the content
   if (file.Read(content, read_length) == read_length) {
-    help_ = ozz::String::Std(content, content + read_length);
+    help_ = ozz::String(content, content + read_length);
   } else {
     help_ = error_message;
   }

@@ -308,7 +308,7 @@ struct Array<const _Ty> {
 // Array copies version from the type it contains.
 // Definition of Array of _Ty version: _Ty version.
 template <typename _Ty>
-struct Version<const Array<_Ty> > {
+struct Version<const Array<_Ty>> {
   enum { kValue = Version<const _Ty>::kValue };
 };
 

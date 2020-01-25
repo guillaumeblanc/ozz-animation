@@ -161,7 +161,7 @@ class MultithreadSampleApplication : public ozz::sample::Application {
       thread_ids_.resize(max_tasks);
       num_async_tasks.store(0);
     }
-    ozz::Vector<std::thread::id>::Std thread_ids_;
+    ozz::Vector<std::thread::id> thread_ids_;
     std::atomic_uint num_async_tasks;
   };
 
@@ -338,15 +338,15 @@ class MultithreadSampleApplication : public ozz::sample::Application {
     ozz::animation::SamplingCache cache;
 
     // Buffer of local transforms which stores the blending result.
-    ozz::Vector<ozz::math::SoaTransform>::Std locals;
+    ozz::Vector<ozz::math::SoaTransform> locals;
 
     // Buffer of model space matrices. These are computed by the local-to-model
     // job after the blending stage.
-    ozz::Vector<ozz::math::Float4x4>::Std models;
+    ozz::Vector<ozz::math::Float4x4> models;
   };
 
   // Array of characters of the sample.
-  ozz::Vector<Character>::Std characters_;
+  ozz::Vector<Character> characters_;
 
   // Number of used characters.
   int num_characters_;

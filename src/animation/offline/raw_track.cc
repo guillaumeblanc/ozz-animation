@@ -43,7 +43,7 @@ OZZ_IO_TYPE_VERSION_T1(1, typename _ValueType,
                        animation::offline::RawTrackKeyframe<_ValueType>)
 
 template <typename _ValueType>
-struct Extern<animation::offline::RawTrackKeyframe<_ValueType> > {
+struct Extern<animation::offline::RawTrackKeyframe<_ValueType>> {
   static void Save(
       OArchive& _archive,
       const animation::offline::RawTrackKeyframe<_ValueType>* _keyframes,
