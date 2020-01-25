@@ -28,11 +28,16 @@
 #ifndef OZZ_OZZ_BASE_PLATFORM_H_
 #define OZZ_OZZ_BASE_PLATFORM_H_
 
-#if __cplusplus < 201103L
+// Ensures compiler supports c++11 language standards, to help user understand
+// compilation error in case it's not supported.
+// Unfortunately MSVC doesn't update __cplusplus, so test compiler version
+// instead.
+#if !((__cplusplus >= 201103L) || (_MSC_VER >= 1900))
 #error "ozz-animation requires c++11 language standards."
 #endif  // __cplusplus
 
 #include <stdint.h>
+
 #include <cassert>
 #include <cstddef>
 
