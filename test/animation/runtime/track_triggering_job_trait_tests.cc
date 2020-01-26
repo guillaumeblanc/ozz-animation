@@ -30,7 +30,7 @@
 #include "gtest/gtest.h"
 #include "ozz/base/gtest_helper.h"
 #include "ozz/base/maths/gtest_math_helper.h"
-#include "ozz/base/memory/scoped_ptr.h"
+#include "ozz/base/memory/unique_ptr.h"
 
 #include "ozz/animation/offline/raw_track.h"
 #include "ozz/animation/offline/track_builder.h"
@@ -66,7 +66,7 @@ TEST(Algorithm, TrackEdgeTriggerJob) {
   raw_track.keyframes.push_back(key2);
 
   // Builds track
-  ozz::ScopedPtr<FloatTrack> track(builder(raw_track));
+  ozz::UniquePtr<FloatTrack> track(builder(raw_track));
   ASSERT_TRUE(track);
 
   TrackTriggeringJob job;

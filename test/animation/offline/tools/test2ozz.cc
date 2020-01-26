@@ -32,7 +32,7 @@
 #include "ozz/animation/runtime/skeleton.h"
 
 #include "ozz/base/io/stream.h"
-#include "ozz/base/memory/scoped_ptr.h"
+#include "ozz/base/memory/unique_ptr.h"
 
 class TestConverter : public ozz::animation::offline::OzzImporter {
  public:
@@ -261,7 +261,7 @@ class TestConverter : public ozz::animation::offline::OzzImporter {
     return found;
   }
 
-  ozz::ScopedPtr<ozz::io::File> file_;
+  ozz::UniquePtr<ozz::io::File> file_;
 };
 
 int main(int _argc, const char** _argv) {

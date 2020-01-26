@@ -31,7 +31,7 @@
 #include "ozz/base/maths/gtest_math_helper.h"
 
 #include "ozz/base/maths/soa_transform.h"
-#include "ozz/base/memory/scoped_ptr.h"
+#include "ozz/base/memory/unique_ptr.h"
 
 #include "ozz/animation/offline/raw_animation.h"
 
@@ -83,7 +83,7 @@ TEST(Error, AnimationBuilder) {
     EXPECT_TRUE(raw_animation.Validate());
 
     // Builds animation
-    ozz::ScopedPtr<Animation> anim(builder(raw_animation));
+    ozz::UniquePtr<Animation> anim(builder(raw_animation));
     EXPECT_TRUE(anim);
   }
 
@@ -94,7 +94,7 @@ TEST(Error, AnimationBuilder) {
     EXPECT_TRUE(raw_animation.Validate());
 
     // Builds animation
-    ozz::ScopedPtr<Animation> anim(builder(raw_animation));
+    ozz::UniquePtr<Animation> anim(builder(raw_animation));
     EXPECT_TRUE(anim);
   }
 }
@@ -166,7 +166,7 @@ TEST(Build, AnimationBuilder) {
     raw_animation.tracks.resize(46);
 
     // Builds animation
-    ozz::ScopedPtr<Animation> anim(builder(raw_animation));
+    ozz::UniquePtr<Animation> anim(builder(raw_animation));
     EXPECT_TRUE(anim);
     EXPECT_EQ(anim->duration(), 46.f);
     EXPECT_EQ(anim->num_tracks(), 46);
@@ -181,7 +181,7 @@ TEST(Build, AnimationBuilder) {
     raw_animation.tracks[0].translations.push_back(first_key);
 
     // Builds animation
-    ozz::ScopedPtr<Animation> anim(builder(raw_animation));
+    ozz::UniquePtr<Animation> anim(builder(raw_animation));
     EXPECT_TRUE(anim);
     EXPECT_EQ(anim->duration(), 46.f);
     EXPECT_EQ(anim->num_tracks(), 1);
@@ -198,7 +198,7 @@ TEST(Name, AnimationBuilder) {
     raw_animation.tracks.resize(46);
 
     // Builds animation
-    ozz::ScopedPtr<Animation> anim(builder(raw_animation));
+    ozz::UniquePtr<Animation> anim(builder(raw_animation));
     EXPECT_TRUE(anim);
 
     // Should
@@ -212,7 +212,7 @@ TEST(Name, AnimationBuilder) {
     raw_animation.name = "46";
 
     // Builds animation
-    ozz::ScopedPtr<Animation> anim(builder(raw_animation));
+    ozz::UniquePtr<Animation> anim(builder(raw_animation));
     EXPECT_TRUE(anim);
 
     // Should
@@ -292,7 +292,7 @@ TEST(Sort, AnimationBuilder) {
     raw_animation.tracks[3].translations.push_back(n);
 
     // Builds animation
-    ozz::ScopedPtr<Animation> animation(builder(raw_animation));
+    ozz::UniquePtr<Animation> animation(builder(raw_animation));
     ASSERT_TRUE(animation);
 
     // Duration must be maintained.

@@ -30,7 +30,7 @@
 
 #include <cstddef>
 #include "ozz/base/containers/string.h"
-#include "ozz/base/memory/scoped_ptr.h"
+#include "ozz/base/memory/unique_ptr.h"
 
 namespace ozz {
 namespace math {
@@ -46,6 +46,7 @@ class Renderer;
 class Record;
 
 namespace internal {
+class ImGuiImpl;
 class RendererImpl;
 class Camera;
 class Shooter;
@@ -195,10 +196,10 @@ class Application {
   double last_idle_time_;
 
   // The camera object used by the application.
-  ScopedPtr<internal::Camera> camera_;
+  UniquePtr<internal::Camera> camera_;
 
   // The screen shooter object used by the application.
-  ScopedPtr<internal::Shooter> shooter_;
+  UniquePtr<internal::Shooter> shooter_;
 
   // Set to true to display help.
   bool show_help_;
@@ -212,15 +213,15 @@ class Application {
   bool capture_screenshot_;
 
   // The renderer utility object used by the application.
-  ScopedPtr<internal::RendererImpl> renderer_;
+  UniquePtr<internal::RendererImpl> renderer_;
 
   // Immediate mode gui interface.
-  ScopedPtr<ImGui> im_gui_;
+  UniquePtr<internal::ImGuiImpl> im_gui_;
 
   // Timing records.
-  ozz::ScopedPtr<Record> fps_;
-  ozz::ScopedPtr<Record> update_time_;
-  ozz::ScopedPtr<Record> render_time_;
+  ozz::UniquePtr<Record> fps_;
+  ozz::UniquePtr<Record> update_time_;
+  ozz::UniquePtr<Record> render_time_;
 
   // Current screen resolution.
   Resolution resolution_;

@@ -37,7 +37,7 @@
 
 #include "ozz/base/maths/soa_transform.h"
 
-#include "ozz/base/memory/scoped_ptr.h"
+#include "ozz/base/memory/unique_ptr.h"
 
 using ozz::animation::Skeleton;
 using ozz::animation::offline::RawSkeleton;
@@ -63,7 +63,7 @@ TEST(Empty, SkeletonSerialize) {
 }
 
 TEST(Filled, SkeletonSerialize) {
-  ozz::ScopedPtr<Skeleton> o_skeleton;
+  ozz::UniquePtr<Skeleton> o_skeleton;
   /* Builds output skeleton.
    3 joints
 
@@ -128,7 +128,7 @@ TEST(Filled, SkeletonSerialize) {
 }
 
 TEST(AlreadyInitialized, SkeletonSerialize) {
-  ozz::ScopedPtr<Skeleton> o_skeleton[2];
+  ozz::UniquePtr<Skeleton> o_skeleton[2];
   /* Builds output skeleton.
    3 joints
 

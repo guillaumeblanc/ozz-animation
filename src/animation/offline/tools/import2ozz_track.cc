@@ -45,7 +45,7 @@
 
 #include "ozz/base/log.h"
 
-#include "ozz/base/memory/scoped_ptr.h"
+#include "ozz/base/memory/unique_ptr.h"
 
 #include "ozz/options/options.h"
 
@@ -135,7 +135,7 @@ bool Export(OzzImporter& _importer, const _RawTrack& _raw_track,
   }
 
   // Builds runtime track.
-  ozz::ScopedPtr<typename RawTrackToTrack<_RawTrack>::Track> track;
+  ozz::UniquePtr<typename RawTrackToTrack<_RawTrack>::Track> track;
   if (!_config["raw"].asBool()) {
     ozz::log::LogV() << "Builds runtime track." << std::endl;
     TrackBuilder builder;

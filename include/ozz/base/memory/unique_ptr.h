@@ -25,35 +25,38 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#ifndef OZZ_OZZ_ANIMATION_OFFLINE_SKELETON_BUILDER_H_
-#define OZZ_OZZ_ANIMATION_OFFLINE_SKELETON_BUILDER_H_
+#ifndef OZZ_OZZ_BASE_MEMORY_UNIQUE_PTR_H_
+#define OZZ_OZZ_BASE_MEMORY_UNIQUE_PTR_H_
 
-#include "ozz/base/maths/transform.h"
-#include "ozz/base/memory/unique_ptr.h"
+#include "ozz/base/memory/allocator.h"
+
+#include <memory>
+#include <utility>
 
 namespace ozz {
-namespace animation {
 
-// Forward declares the runtime skeleton type.
-class Skeleton;
+// Defaut deleter for ozz UniquePtr, uses redirected memory allocator.
+template <typename _Ty>
+struct Deleter {
+  Deleter() {}
 
-namespace offline {
+  template <class _Up>
+  Deleter(const Deleter<_Up>&, _Ty* = NULL) {}
 
-// Forward declares the offline skeleton type.
-struct RawSkeleton;
-
-// Defines the class responsible of building Skeleton instances.
-class SkeletonBuilder {
- public:
-  // Creates a Skeleton based on _raw_skeleton and *this builder parameters.
-  // Returns a Skeleton instance on success which will then be deleted using
-  // the default allocator Delete() function.
-  // Returns NULL on failure. See RawSkeleton::Validate() for more details about
-  // failure reasons.
-  ozz::UniquePtr<ozz::animation::Skeleton> operator()(
-      const RawSkeleton& _raw_skeleton) const;
+  void operator()(_Ty* _ptr) const {
+    OZZ_DELETE(ozz::memory::default_allocator(), _ptr);
+  }
 };
-}  // namespace offline
-}  // namespace animation
+
+// Defines ozz::UniquePtr to use ozz default deleter.
+template <typename _Ty, typename _Deleter = ozz::Deleter<_Ty>>
+using UniquePtr = std::unique_ptr<_Ty, _Deleter>;
+
+// Implements make_unique to use ozz redirected memory allocator.
+template <typename _Ty, typename... _Args>
+UniquePtr<_Ty> make_unique(_Args&&... _args) {
+  return UniquePtr<_Ty>(OZZ_NEW(ozz::memory::default_allocator(),
+                                _Ty)(std::forward<_Args>(_args)...));
+}
 }  // namespace ozz
-#endif  // OZZ_OZZ_ANIMATION_OFFLINE_SKELETON_BUILDER_H_
+#endif  // OZZ_OZZ_BASE_MEMORY_UNIQUE_PTR_H_

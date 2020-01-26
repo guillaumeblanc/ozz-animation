@@ -267,7 +267,8 @@ void CopyToAnimation(ozz::Vector<SortingRotationKey>* _src,
 // An animation needs to have at least two key frames per joint, the first at
 // t = 0 and the last at t = duration. If at least one of those keys are not
 // in the RawAnimation then the builder creates it.
-Animation* AnimationBuilder::operator()(const RawAnimation& _input) const {
+UniquePtr<Animation> AnimationBuilder::operator()(
+    const RawAnimation& _input) const {
   // Tests _raw_animation validity.
   if (!_input.Validate()) {
     return NULL;
@@ -275,7 +276,7 @@ Animation* AnimationBuilder::operator()(const RawAnimation& _input) const {
 
   // Everything is fine, allocates and fills the animation.
   // Nothing can fail now.
-  Animation* animation = OZZ_NEW(memory::default_allocator(), Animation);
+  UniquePtr<Animation> animation = make_unique<Animation>();
 
   // Sets duration.
   const float duration = _input.duration;

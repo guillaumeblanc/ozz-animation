@@ -35,7 +35,7 @@
 #include "ozz/animation/offline/raw_animation.h"
 #include "ozz/animation/offline/raw_animation_utils.h"
 
-#include "ozz/base/memory/scoped_ptr.h"
+#include "ozz/base/memory/unique_ptr.h"
 
 #include "ozz/base/io/archive.h"
 #include "ozz/base/io/stream.h"
@@ -545,7 +545,7 @@ class OptimizeSampleApplication : public ozz::sample::Application {
   ozz::animation::SamplingCache cache_;
 
   // Runtime optimized animation.
-  ozz::ScopedPtr<ozz::animation::Animation> animation_rt_;
+  ozz::UniquePtr<ozz::animation::Animation> animation_rt_;
 
   // Buffer of local and model space transformations as sampled from the
   // rutime (optimized and compressed) animation.

@@ -117,7 +117,7 @@ const int kPrecomputedKeyCount = OZZ_ARRAY_SIZE(kPrecomputedKeys);
 class MillipedeSampleApplication : public ozz::sample::Application {
  public:
   MillipedeSampleApplication()
-      : slice_count_(26), skeleton_(NULL), animation_(NULL) {}
+      : slice_count_(26) {}
 
  protected:
   virtual bool OnUpdate(float _dt, float) {
@@ -126,7 +126,7 @@ class MillipedeSampleApplication : public ozz::sample::Application {
 
     // Samples animation at t = animation_time_.
     ozz::animation::SamplingJob sampling_job;
-    sampling_job.animation = animation_;
+    sampling_job.animation = animation_.get();
     sampling_job.cache = &cache_;
     sampling_job.ratio = controller_.time_ratio();
     sampling_job.output = make_range(locals_);
@@ -136,7 +136,7 @@ class MillipedeSampleApplication : public ozz::sample::Application {
 
     // Converts from local space to model space matrices.
     ozz::animation::LocalToModelJob ltm_job;
-    ltm_job.skeleton = skeleton_;
+    ltm_job.skeleton = skeleton_.get();
     ltm_job.input = make_range(locals_);
     ltm_job.output = make_range(models_);
     return ltm_job.Run();
@@ -150,7 +150,7 @@ class MillipedeSampleApplication : public ozz::sample::Application {
 
   virtual bool OnInitialize() { return Build(); }
 
-  virtual void OnDestroy() { Destroy(); }
+  virtual void OnDestroy() {}
 
   virtual bool OnGui(ozz::sample::ImGui* _im_gui) {
     // Rebuilds all if the number of joints has changed.
@@ -166,7 +166,6 @@ class MillipedeSampleApplication : public ozz::sample::Application {
       // Slider use floats, we need to check if it has really changed.
       if (new_slice_count != slice_count_) {
         slice_count_ = new_slice_count;
-        Destroy();
         if (!Build()) {
           return false;
         }
@@ -214,12 +213,6 @@ class MillipedeSampleApplication : public ozz::sample::Application {
     cache_.Resize(num_joints);
 
     return true;
-  }
-
-  void Destroy() {
-    ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
-    OZZ_DELETE(allocator, skeleton_);
-    OZZ_DELETE(allocator, animation_);
   }
 
   void CreateSkeleton(ozz::animation::offline::RawSkeleton* _skeleton) {
@@ -426,10 +419,10 @@ class MillipedeSampleApplication : public ozz::sample::Application {
   int slice_count_;
 
   // The millipede skeleton.
-  ozz::animation::Skeleton* skeleton_;
+  ozz::UniquePtr<ozz::animation::Skeleton> skeleton_;
 
   // The millipede procedural walk animation.
-  ozz::animation::Animation* animation_;
+  ozz::UniquePtr<ozz::animation::Animation> animation_;
 
   // Sampling cache, as used by SamplingJob.
   ozz::animation::SamplingCache cache_;

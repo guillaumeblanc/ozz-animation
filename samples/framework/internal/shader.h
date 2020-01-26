@@ -28,6 +28,7 @@
 #ifndef OZZ_SAMPLES_FRAMEWORK_INTERNAL_SHADER_H_
 #define OZZ_SAMPLES_FRAMEWORK_INTERNAL_SHADER_H_
 
+#include "ozz/base/memory/unique_ptr.h"
 #include "renderer_impl.h"
 
 namespace ozz {
@@ -100,7 +101,7 @@ class ImmediatePCShader : public Shader {
   // Returns NULL if shader compilation failed or a valid Shader pointer on
   // success. The shader must then be deleted using default allocator Delete
   // function.
-  static ImmediatePCShader* Build();
+  static ozz::UniquePtr<ImmediatePCShader> Build();
 
   // Binds the shader.
   void Bind(const math::Float4x4& _model, const math::Float4x4& _view_proj,
@@ -117,7 +118,7 @@ class ImmediatePTCShader : public Shader {
   // Returns NULL if shader compilation failed or a valid Shader pointer on
   // success. The shader must then be deleted using default allocator Delete
   // function.
-  static ImmediatePTCShader* Build();
+  static ozz::UniquePtr<ImmediatePTCShader> Build();
 
   // Binds the shader.
   void Bind(const math::Float4x4& _model, const math::Float4x4& _view_proj,
@@ -152,7 +153,7 @@ class JointShader : public SkeletonShader {
   // Returns NULL if shader compilation failed or a valid Shader pointer on
   // success. The shader must then be deleted using default allocator Delete
   // function.
-  static JointShader* Build();
+  static ozz::UniquePtr<JointShader> Build();
 };
 
 class BoneShader : public SkeletonShader {
@@ -164,7 +165,7 @@ class BoneShader : public SkeletonShader {
   // Returns NULL if shader compilation failed or a valid Shader pointer on
   // success. The shader must then be deleted using default allocator Delete
   // function.
-  static BoneShader* Build();
+  static ozz::UniquePtr<BoneShader> Build();
 };
 
 class AmbientShader : public Shader {
@@ -176,7 +177,7 @@ class AmbientShader : public Shader {
   // Returns NULL if shader compilation failed or a valid Shader pointer on
   // success. The shader must then be deleted using default allocator Delete
   // function.
-  static AmbientShader* Build();
+  static ozz::UniquePtr<AmbientShader> Build();
 
   // Binds the shader.
   void Bind(const math::Float4x4& _model, const math::Float4x4& _view_proj,
@@ -198,7 +199,7 @@ class AmbientShaderInstanced : public Shader {
   // Returns NULL if shader compilation failed or a valid Shader pointer on
   // success. The shader must then be deleted using default allocator Delete
   // function.
-  static AmbientShaderInstanced* Build();
+  static ozz::UniquePtr<AmbientShaderInstanced> Build();
 
   // Binds the shader.
   void Bind(GLsizei _models_offset, const math::Float4x4& _view_proj,
@@ -215,7 +216,7 @@ class AmbientTexturedShader : public AmbientShader {
   // Returns NULL if shader compilation failed or a valid Shader pointer on
   // success. The shader must then be deleted using default allocator Delete
   // function.
-  static AmbientTexturedShader* Build();
+  static ozz::UniquePtr<AmbientTexturedShader> Build();
 
   // Binds the shader.
   void Bind(const math::Float4x4& _model, const math::Float4x4& _view_proj,

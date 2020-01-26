@@ -39,7 +39,7 @@
 #include "ozz/base/maths/math_ex.h"
 #include "ozz/base/maths/simd_math.h"
 
-#include "ozz/base/memory/scoped_ptr.h"
+#include "ozz/base/memory/unique_ptr.h"
 
 namespace ozz {
 namespace sample {
@@ -128,8 +128,8 @@ class GlImmediateRenderer {
   size_t size_;
 
   // Immediate mode shaders;
-  ozz::ScopedPtr<ImmediatePCShader> immediate_pc_shader;
-  ozz::ScopedPtr<ImmediatePTCShader> immediate_ptc_shader;
+  ozz::UniquePtr<ImmediatePCShader> immediate_pc_shader;
+  ozz::UniquePtr<ImmediatePTCShader> immediate_ptc_shader;
 
   // The renderer object.
   RendererImpl* renderer_;

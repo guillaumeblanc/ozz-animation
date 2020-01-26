@@ -3,12 +3,12 @@ Next release
 
 * Build pipeline
   - Enables c++11 feature by default for all targets.
-  - Uses template aliasing (using keywork) to redirect ozz to std containers. This allows to get rid of ::Std when using ozz containers.
+  - Uses template aliasing (using keyword) to redirect ozz to std containers. This allows to get rid of ::Std when using ozz containers.
   - Replaces OZZ_ALIGN_OF and OZZ_ALIGN by standard alignof and alignas keywords.
   - Replaces OZZ_STATIC_ASSERT by standard static_assert keyword.
 
 * Library
-  - [base] Removes ScopedPtr implicit cast operator to pointer type. It avoids risking duplicating ownership, and complies with unique_ptr specification.
+  - [base] Removes ScopedPtr in favor of an alias to standard unique_ptr. Implements make_unique using ozz allocator.
 
 Release version 0.12.0
 ----------------------

@@ -74,7 +74,8 @@ struct JointLister {
 // Uses RawSkeleton::IterateJointsDF to traverse in DAG depth-first order.
 // Building skeleton hierarchy in depth first order make it easier to iterate a
 // skeleton sub-hierarchy.
-Skeleton* SkeletonBuilder::operator()(const RawSkeleton& _raw_skeleton) const {
+ozz::UniquePtr<ozz::animation::Skeleton> SkeletonBuilder::operator()(
+    const RawSkeleton& _raw_skeleton) const {
   // Tests _raw_skeleton validity.
   if (!_raw_skeleton.Validate()) {
     return NULL;
@@ -82,7 +83,8 @@ Skeleton* SkeletonBuilder::operator()(const RawSkeleton& _raw_skeleton) const {
 
   // Everything is fine, allocates and fills the skeleton.
   // Will not fail.
-  Skeleton* skeleton = OZZ_NEW(memory::default_allocator(), Skeleton);
+  ozz::UniquePtr<ozz::animation::Skeleton> skeleton =
+      ozz::make_unique<Skeleton>();
   const int num_joints = _raw_skeleton.num_joints();
 
   // Iterates through all the joint of the raw skeleton and fills a sorted joint

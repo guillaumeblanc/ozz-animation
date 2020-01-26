@@ -28,6 +28,8 @@
 #ifndef OZZ_OZZ_ANIMATION_OFFLINE_TRACK_BUILDER_H_
 #define OZZ_OZZ_ANIMATION_OFFLINE_TRACK_BUILDER_H_
 
+#include "ozz/base/memory/unique_ptr.h"
+
 namespace ozz {
 namespace animation {
 
@@ -58,15 +60,16 @@ class TrackBuilder {
   // The returned instance will then need to be deleted using the default
   // allocator Delete() function.
   // See Raw*Track::Validate() for more details about failure reasons.
-  FloatTrack* operator()(const RawFloatTrack& _input) const;
-  Float2Track* operator()(const RawFloat2Track& _input) const;
-  Float3Track* operator()(const RawFloat3Track& _input) const;
-  Float4Track* operator()(const RawFloat4Track& _input) const;
-  QuaternionTrack* operator()(const RawQuaternionTrack& _input) const;
+  ozz::UniquePtr<FloatTrack> operator()(const RawFloatTrack& _input) const;
+  ozz::UniquePtr<Float2Track> operator()(const RawFloat2Track& _input) const;
+  ozz::UniquePtr<Float3Track> operator()(const RawFloat3Track& _input) const;
+  ozz::UniquePtr<Float4Track> operator()(const RawFloat4Track& _input) const;
+  ozz::UniquePtr<QuaternionTrack> operator()(
+      const RawQuaternionTrack& _input) const;
 
  private:
   template <typename _RawTrack, typename _Track>
-  _Track* Build(const _RawTrack& _input) const;
+  ozz::UniquePtr<_Track> Build(const _RawTrack& _input) const;
 };
 }  // namespace offline
 }  // namespace animation

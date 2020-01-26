@@ -30,7 +30,7 @@
 #include "gtest/gtest.h"
 #include "ozz/base/maths/gtest_math_helper.h"
 
-#include "ozz/base/memory/scoped_ptr.h"
+#include "ozz/base/memory/unique_ptr.h"
 
 #include "ozz/animation/offline/raw_track.h"
 #include "ozz/animation/runtime/track.h"
@@ -57,7 +57,7 @@ TEST(Default, TrackBuilder) {
     EXPECT_TRUE(raw_float_track.Validate());
 
     // Builds track
-    ozz::ScopedPtr<FloatTrack> track(builder(raw_float_track));
+    ozz::UniquePtr<FloatTrack> track(builder(raw_float_track));
     EXPECT_TRUE(track);
   }
 }
@@ -119,7 +119,7 @@ TEST(Build, TrackBuilder) {
     EXPECT_TRUE(raw_float_track.Validate());
 
     // Builds track
-    ozz::ScopedPtr<FloatTrack> track(builder(raw_float_track));
+    ozz::UniquePtr<FloatTrack> track(builder(raw_float_track));
     EXPECT_TRUE(track);
   }
 }
@@ -131,7 +131,7 @@ TEST(Name, TrackBuilder) {
   {  // No name
     RawFloatTrack raw_float_track;
 
-    ozz::ScopedPtr<FloatTrack> track(builder(raw_float_track));
+    ozz::UniquePtr<FloatTrack> track(builder(raw_float_track));
     EXPECT_TRUE(track);
 
     EXPECT_STREQ(track->name(), "");
@@ -141,7 +141,7 @@ TEST(Name, TrackBuilder) {
     RawFloatTrack raw_float_track;
     raw_float_track.name = "test name";
 
-    ozz::ScopedPtr<FloatTrack> track(builder(raw_float_track));
+    ozz::UniquePtr<FloatTrack> track(builder(raw_float_track));
     EXPECT_TRUE(track);
 
     EXPECT_STREQ(track->name(), raw_float_track.name.c_str());
@@ -155,7 +155,7 @@ TEST(Build0Keys, TrackBuilder) {
   RawFloatTrack raw_float_track;
 
   // Builds track
-  ozz::ScopedPtr<FloatTrack> track(builder(raw_float_track));
+  ozz::UniquePtr<FloatTrack> track(builder(raw_float_track));
   EXPECT_TRUE(track);
 
   // Samples to verify build output.
@@ -181,7 +181,7 @@ TEST(BuildLinear, TrackBuilder) {
     raw_float_track.keyframes.push_back(first_key);
 
     // Builds track
-    ozz::ScopedPtr<FloatTrack> track(builder(raw_float_track));
+    ozz::UniquePtr<FloatTrack> track(builder(raw_float_track));
     EXPECT_TRUE(track);
 
     // Samples to verify build output.
@@ -210,7 +210,7 @@ TEST(BuildLinear, TrackBuilder) {
     raw_float_track.keyframes.push_back(first_key);
 
     // Builds track
-    ozz::ScopedPtr<FloatTrack> track(builder(raw_float_track));
+    ozz::UniquePtr<FloatTrack> track(builder(raw_float_track));
     EXPECT_TRUE(track);
 
     // Samples to verify build output.
@@ -239,7 +239,7 @@ TEST(BuildLinear, TrackBuilder) {
     raw_float_track.keyframes.push_back(first_key);
 
     // Builds track
-    ozz::ScopedPtr<FloatTrack> track(builder(raw_float_track));
+    ozz::UniquePtr<FloatTrack> track(builder(raw_float_track));
     EXPECT_TRUE(track);
 
     // Samples to verify build output.
@@ -271,7 +271,7 @@ TEST(BuildLinear, TrackBuilder) {
     raw_float_track.keyframes.push_back(second_key);
 
     // Builds track
-    ozz::ScopedPtr<FloatTrack> track(builder(raw_float_track));
+    ozz::UniquePtr<FloatTrack> track(builder(raw_float_track));
     EXPECT_TRUE(track);
 
     // Samples to verify build output.
@@ -314,7 +314,7 @@ TEST(BuildLinear, TrackBuilder) {
     raw_float_track.keyframes.push_back(key3);
 
     // Builds track
-    ozz::ScopedPtr<FloatTrack> track(builder(raw_float_track));
+    ozz::UniquePtr<FloatTrack> track(builder(raw_float_track));
     EXPECT_TRUE(track);
 
     // Samples to verify build output.
@@ -361,7 +361,7 @@ TEST(BuildStep, TrackBuilder) {
     raw_float_track.keyframes.push_back(first_key);
 
     // Builds track
-    ozz::ScopedPtr<FloatTrack> track(builder(raw_float_track));
+    ozz::UniquePtr<FloatTrack> track(builder(raw_float_track));
     EXPECT_TRUE(track);
 
     // Samples to verify build output.
@@ -390,7 +390,7 @@ TEST(BuildStep, TrackBuilder) {
     raw_float_track.keyframes.push_back(first_key);
 
     // Builds track
-    ozz::ScopedPtr<FloatTrack> track(builder(raw_float_track));
+    ozz::UniquePtr<FloatTrack> track(builder(raw_float_track));
     EXPECT_TRUE(track);
 
     // Samples to verify build output.
@@ -419,7 +419,7 @@ TEST(BuildStep, TrackBuilder) {
     raw_float_track.keyframes.push_back(first_key);
 
     // Builds track
-    ozz::ScopedPtr<FloatTrack> track(builder(raw_float_track));
+    ozz::UniquePtr<FloatTrack> track(builder(raw_float_track));
     EXPECT_TRUE(track);
 
     // Samples to verify build output.
@@ -448,7 +448,7 @@ TEST(BuildStep, TrackBuilder) {
     raw_float_track.keyframes.push_back(first_key);
 
     // Builds track
-    ozz::ScopedPtr<FloatTrack> track(builder(raw_float_track));
+    ozz::UniquePtr<FloatTrack> track(builder(raw_float_track));
     EXPECT_TRUE(track);
 
     // Samples to verify build output.
@@ -480,7 +480,7 @@ TEST(BuildStep, TrackBuilder) {
     raw_float_track.keyframes.push_back(second_key);
 
     // Builds track
-    ozz::ScopedPtr<FloatTrack> track(builder(raw_float_track));
+    ozz::UniquePtr<FloatTrack> track(builder(raw_float_track));
     EXPECT_TRUE(track);
 
     // Samples to verify build output.
@@ -531,7 +531,7 @@ TEST(BuildStep, TrackBuilder) {
     raw_float_track.keyframes.push_back(third_key);
 
     // Builds track
-    ozz::ScopedPtr<FloatTrack> track(builder(raw_float_track));
+    ozz::UniquePtr<FloatTrack> track(builder(raw_float_track));
     EXPECT_TRUE(track);
 
     // Samples to verify build output.
@@ -584,7 +584,7 @@ TEST(BuildStep, TrackBuilder) {
     raw_float_track.keyframes.push_back(second_key);
 
     // Builds track
-    ozz::ScopedPtr<FloatTrack> track(builder(raw_float_track));
+    ozz::UniquePtr<FloatTrack> track(builder(raw_float_track));
     EXPECT_TRUE(track);
 
     // Samples to verify build output.
@@ -627,7 +627,7 @@ TEST(BuildStep, TrackBuilder) {
     raw_float_track.keyframes.push_back(third_key);
 
     // Builds track
-    ozz::ScopedPtr<FloatTrack> track(builder(raw_float_track));
+    ozz::UniquePtr<FloatTrack> track(builder(raw_float_track));
     EXPECT_TRUE(track);
 
     // Samples to verify build output.
@@ -691,7 +691,7 @@ TEST(BuildMixed, TrackBuilder) {
   raw_float_track.keyframes.push_back(key2);
 
   // Builds track
-  ozz::ScopedPtr<FloatTrack> track(builder(raw_float_track));
+  ozz::UniquePtr<FloatTrack> track(builder(raw_float_track));
   EXPECT_TRUE(track);
 
   // Samples to verify build output.
@@ -738,7 +738,7 @@ TEST(Float, TrackBuilder) {
 
   {
     // Default value for quaternion is identity.
-    ozz::ScopedPtr<FloatTrack> track(builder(raw_track));
+    ozz::UniquePtr<FloatTrack> track(builder(raw_track));
     EXPECT_TRUE(track);
 
     // Samples to verify build output.
@@ -761,7 +761,7 @@ TEST(Float, TrackBuilder) {
     raw_track.keyframes.push_back(second_key);
 
     // Builds track
-    ozz::ScopedPtr<FloatTrack> track(builder(raw_track));
+    ozz::UniquePtr<FloatTrack> track(builder(raw_track));
     ASSERT_TRUE(track);
 
     // Samples to verify build output.
@@ -798,7 +798,7 @@ TEST(Float2, TrackBuilder) {
 
   {
     // Default value for quaternion is identity.
-    ozz::ScopedPtr<Float2Track> track(builder(raw_track));
+    ozz::UniquePtr<Float2Track> track(builder(raw_track));
     EXPECT_TRUE(track);
 
     // Samples to verify build output.
@@ -821,7 +821,7 @@ TEST(Float2, TrackBuilder) {
     raw_track.keyframes.push_back(second_key);
 
     // Builds track
-    ozz::ScopedPtr<Float2Track> track(builder(raw_track));
+    ozz::UniquePtr<Float2Track> track(builder(raw_track));
     ASSERT_TRUE(track);
 
     // Samples to verify build output.
@@ -858,7 +858,7 @@ TEST(Float3, TrackBuilder) {
 
   {
     // Default value for quaternion is identity.
-    ozz::ScopedPtr<Float3Track> track(builder(raw_track));
+    ozz::UniquePtr<Float3Track> track(builder(raw_track));
     EXPECT_TRUE(track);
 
     // Samples to verify build output.
@@ -883,7 +883,7 @@ TEST(Float3, TrackBuilder) {
     raw_track.keyframes.push_back(second_key);
 
     // Builds track
-    ozz::ScopedPtr<Float3Track> track(builder(raw_track));
+    ozz::UniquePtr<Float3Track> track(builder(raw_track));
     EXPECT_TRUE(track);
 
     // Samples to verify build output.
@@ -920,7 +920,7 @@ TEST(Float4, TrackBuilder) {
 
   {
     // Default value for quaternion is identity.
-    ozz::ScopedPtr<Float4Track> track(builder(raw_track));
+    ozz::UniquePtr<Float4Track> track(builder(raw_track));
     EXPECT_TRUE(track);
 
     // Samples to verify build output.
@@ -945,7 +945,7 @@ TEST(Float4, TrackBuilder) {
     raw_track.keyframes.push_back(second_key);
 
     // Builds track
-    ozz::ScopedPtr<Float4Track> track(builder(raw_track));
+    ozz::UniquePtr<Float4Track> track(builder(raw_track));
     EXPECT_TRUE(track);
 
     // Samples to verify build output.
@@ -982,7 +982,7 @@ TEST(Quaternion, TrackBuilder) {
 
   {
     // Default value for quaternion is identity.
-    ozz::ScopedPtr<QuaternionTrack> track(builder(raw_track));
+    ozz::UniquePtr<QuaternionTrack> track(builder(raw_track));
     EXPECT_TRUE(track);
 
     // Samples to verify build output.
@@ -1013,7 +1013,7 @@ TEST(Quaternion, TrackBuilder) {
     raw_track.keyframes.push_back(key2);
 
     // Builds track
-    ozz::ScopedPtr<QuaternionTrack> track(builder(raw_track));
+    ozz::UniquePtr<QuaternionTrack> track(builder(raw_track));
     EXPECT_TRUE(track);
 
     // Samples to verify build output.

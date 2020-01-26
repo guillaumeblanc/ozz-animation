@@ -28,6 +28,8 @@
 #ifndef OZZ_OZZ_ANIMATION_OFFLINE_ANIMATION_BUILDER_H_
 #define OZZ_OZZ_ANIMATION_OFFLINE_ANIMATION_BUILDER_H_
 
+#include "ozz/base/memory/unique_ptr.h"
+
 namespace ozz {
 namespace animation {
 
@@ -49,7 +51,7 @@ class AnimationBuilder {
   // The returned animation will then need to be deleted using the default
   // allocator Delete() function.
   // See RawAnimation::Validate() for more details about failure reasons.
-  Animation* operator()(const RawAnimation& _raw_animation) const;
+  UniquePtr<Animation> operator()(const RawAnimation& _raw_animation) const;
 };
 }  // namespace offline
 }  // namespace animation
