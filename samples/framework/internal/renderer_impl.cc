@@ -115,7 +115,7 @@ bool RendererImpl::Initialize() {
   GL(GenBuffers(1, &dynamic_index_bo_));
 
   // Allocate immediate mode renderer;
-  immediate_ = ozz::make_unique<GlImmediateRenderer>(this);
+  immediate_ = make_unique<GlImmediateRenderer>(this);
   if (!immediate_->Initialize()) {
     return false;
   }

@@ -188,7 +188,7 @@ int Application::Run(int _argc, const char** _argv, const char* _version,
                  << glGetString(GL_VERSION) << "\"." << std::endl;
 
       // Allocates and initializes camera
-      camera_ = ozz::make_unique<internal::Camera>();
+      camera_ = make_unique<internal::Camera>();
       math::Float3 camera_center;
       math::Float2 camera_angles;
       float distance;
@@ -197,12 +197,12 @@ int Application::Run(int _argc, const char** _argv, const char* _version,
       }
 
       // Allocates and initializes renderer.
-      renderer_ = ozz::make_unique<internal::RendererImpl>(camera_.get());
+      renderer_ = make_unique<internal::RendererImpl>(camera_.get());
       success = renderer_->Initialize();
 
       if (success) {
-        shooter_ = ozz::make_unique<internal::Shooter>();
-        im_gui_ = ozz::make_unique<internal::ImGuiImpl>();
+        shooter_ = make_unique<internal::Shooter>();
+        im_gui_ = make_unique<internal::ImGuiImpl>();
 
 #ifndef EMSCRIPTEN  // Better not rename web page.
         glfwSetWindowTitle(_title);

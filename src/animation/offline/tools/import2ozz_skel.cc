@@ -149,7 +149,7 @@ bool ImportSkeleton(const Json::Value& _config, OzzImporter* _importer,
 
   // Needs to be done before opening the output file, so that if it fails then
   // there's no invalid file outputted.
-  ozz::UniquePtr<Skeleton> skeleton;
+  UniquePtr<Skeleton> skeleton;
   if (!import_config["raw"].asBool()) {
     // Builds runtime skeleton.
     ozz::log::Log() << "Builds runtime skeleton." << std::endl;
