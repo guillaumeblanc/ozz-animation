@@ -31,10 +31,7 @@
 
 TEST(Construction, UniquePtr) {
   { const ozz::UniquePtr<int> pi; }
-  {
-    const ozz::UniquePtr<int> pi(
-        OZZ_NEW(ozz::memory::default_allocator(), int));
-  }
+  { const ozz::UniquePtr<int> pi(ozz::New<int>()); }
 }
 
 TEST(Reset, UniquePtr) {
@@ -42,18 +39,12 @@ TEST(Reset, UniquePtr) {
     ozz::UniquePtr<int> pi;
     pi.reset(NULL);
 
-    pi.reset(OZZ_NEW(ozz::memory::default_allocator(), int));
+    pi.reset(ozz::New<int>());
   }
   {
-    ozz::UniquePtr<int> pi(OZZ_NEW(ozz::memory::default_allocator(), int));
-    pi.reset(OZZ_NEW(ozz::memory::default_allocator(), int));
+    ozz::UniquePtr<int> pi(ozz::New<int>());
+    pi.reset(ozz::New<int>());
     pi.reset(NULL);
-  }
-  {
-    int* i = OZZ_NEW(ozz::memory::default_allocator(), int)(46);
-    ozz::UniquePtr<int> pi(i);
-    EXPECT_ASSERTION(pi.reset(i),
-                     "UniquePtr cannot be reseted to the same value.");
   }
 }
 
@@ -64,23 +55,17 @@ struct A {
 TEST(Dereference, UniquePtr) {
   {
     const ozz::UniquePtr<int> pi;
-    EXPECT_ASSERTION(*pi, "Dereferencing NULL pointer.");
     EXPECT_TRUE(pi.get() == NULL);
     EXPECT_FALSE(pi);
   }
   {
-    const ozz::UniquePtr<int> pi(
-        OZZ_NEW(ozz::memory::default_allocator(), int)(46));
+    const ozz::UniquePtr<int> pi(ozz::New<int>(46));
     EXPECT_EQ(*pi, 46);
     EXPECT_TRUE(pi.get() != NULL);
     EXPECT_TRUE(pi);
   }
   {
-    const ozz::UniquePtr<A> pa;
-    EXPECT_ASSERTION(pa->i = 99, "Dereferencing NULL pointer.");
-  }
-  {
-    const ozz::UniquePtr<A> pa(OZZ_NEW(ozz::memory::default_allocator(), A));
+    const ozz::UniquePtr<A> pa(ozz::New<A>());
     pa->i = 46;
     EXPECT_EQ((*pa).i, 46);
   }
@@ -93,8 +78,7 @@ TEST(Bool, UniquePtr) {
     EXPECT_FALSE(pi);
   }
   {
-    const ozz::UniquePtr<int> pi(
-        OZZ_NEW(ozz::memory::default_allocator(), int)(46));
+    const ozz::UniquePtr<int> pi(ozz::New<int>(46));
     EXPECT_FALSE(!pi);
     EXPECT_TRUE(pi);
   }
@@ -102,7 +86,7 @@ TEST(Bool, UniquePtr) {
 
 TEST(Swap, UniquePtr) {
   {
-    int* i = OZZ_NEW(ozz::memory::default_allocator(), int)(46);
+    int* i = ozz::New<int>(46);
     ozz::UniquePtr<int> pi;
     ozz::UniquePtr<int> pii(i);
     EXPECT_TRUE(pi.get() == NULL);
@@ -113,7 +97,7 @@ TEST(Swap, UniquePtr) {
     EXPECT_TRUE(pi.get() == i);
   }
   {
-    int* i = OZZ_NEW(ozz::memory::default_allocator(), int)(46);
+    int* i = ozz::New<int>(46);
     ozz::UniquePtr<int> pi;
     ozz::UniquePtr<int> pii(i);
     EXPECT_TRUE(pi.get() == NULL);
@@ -127,11 +111,11 @@ TEST(Swap, UniquePtr) {
 
 TEST(Release, UniquePtr) {
   {
-    int* i = OZZ_NEW(ozz::memory::default_allocator(), int)(46);
+    int* i = ozz::New<int>(46);
     ozz::UniquePtr<int> pi(i);
     int* ri = pi.release();
     EXPECT_EQ(i, ri);
-    OZZ_DELETE(ozz::memory::default_allocator(), ri);
+    ozz::Delete(ri);
   }
 }
 

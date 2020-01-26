@@ -57,13 +57,11 @@ Out::Out() : Logger(std::cout, kStandard) {}
 Err::Err() : Logger(std::cerr, kStandard) {}
 
 Logger::Logger(std::ostream& _stream, Level _level)
-    : stream_(_level <= GetLevel() ? _stream
-                                   : *OZZ_NEW(ozz::memory::default_allocator(),
-                                              std::ostringstream)()),
+    : stream_(_level <= GetLevel() ? _stream : *ozz::New<std::ostringstream>()),
       local_stream_(&stream_ != &_stream) {}
 Logger::~Logger() {
   if (local_stream_) {
-    OZZ_DELETE(ozz::memory::default_allocator(), &stream_);
+      ozz::Delete(&stream_);
   }
 }
 

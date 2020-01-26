@@ -44,7 +44,7 @@ struct Deleter {
   Deleter(const Deleter<_Up>&, _Ty* = NULL) {}
 
   void operator()(_Ty* _ptr) const {
-    OZZ_DELETE(ozz::memory::default_allocator(), _ptr);
+    ozz::Delete(_ptr);
   }
 };
 
@@ -55,8 +55,7 @@ using UniquePtr = std::unique_ptr<_Ty, _Deleter>;
 // Implements make_unique to use ozz redirected memory allocator.
 template <typename _Ty, typename... _Args>
 UniquePtr<_Ty> make_unique(_Args&&... _args) {
-  return UniquePtr<_Ty>(OZZ_NEW(ozz::memory::default_allocator(),
-                                _Ty)(std::forward<_Args>(_args)...));
+  return UniquePtr<_Ty>(New<_Ty>(std::forward<_Args>(_args)...));
 }
 }  // namespace ozz
 #endif  // OZZ_OZZ_BASE_MEMORY_UNIQUE_PTR_H_

@@ -102,9 +102,9 @@ Application::Application()
       show_axes_(true),
       capture_video_(false),
       capture_screenshot_(false),
-      fps_(OZZ_NEW(memory::default_allocator(), Record)(128)),
-      update_time_(OZZ_NEW(memory::default_allocator(), Record)(128)),
-      render_time_(OZZ_NEW(memory::default_allocator(), Record)(128)),
+      fps_(New<Record>(128)),
+      update_time_(New<Record>(128)),
+      render_time_(New<Record>(128)),
       resolution_(resolution_presets[0]) {
 #ifndef NDEBUG
   // Assert presets are correctly sorted.

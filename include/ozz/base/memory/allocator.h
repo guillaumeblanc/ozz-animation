@@ -30,6 +30,7 @@
 
 #include <cstddef>
 #include <new>
+#include <utility>
 
 #include "ozz/base/platform.h"
 
@@ -73,43 +74,31 @@ class Allocator {
   // Reallocate function conforms with standard realloc function specifications.
   virtual void* Reallocate(void* _block, size_t _size, size_t _alignment) = 0;
 };
+}  // namespace memory
 
 // ozz replacement for c++ operator new with, used to allocate with an
-// ozz::memory::Allocator. OZZ_DELETE must be used to deallocate such object.
+// ozz::memory::Allocator. Delete must be used to deallocate such object.
 // It can be used for constructor with no argument:
-// Type* object = OZZ_NEW(allocator, Type)
+// Type* object = New<Type>();
 // or any number of argument:
-// Type* object = OZZ_NEW(allocator, Type)(1,2,3,4)
-// Using a macro is motivated by the fact that it's not possible prior to c++11
-// to forward every possible type of argument (&, const&, rvalue, ...) to
-// constructors, especially if big number of arguments is required.
-#define OZZ_NEW(x_allocator, x_type) \
-  new ((x_allocator)->Allocate(sizeof(x_type), alignof(x_type))) x_type
-
-// ozz replacement for c++ delete. Must be used for objects allocated with
-// OZZ_NEW and the same ozz::memory::Allocator.
-// OZZ_DELETE conforms with standard operator delete specifications.
-#define OZZ_DELETE(x_allocator, x_object)              \
-                                                       \
-  do {                                                 \
-    if ((x_object) != NULL) {                          \
-      ozz::memory::internal::CallDestructor(x_object); \
-      (x_allocator)->Deallocate(x_object);             \
-    }                                                  \
-  }                                                    \
-                                                       \
-  while (void(0), 0)
-
-// Function used internally to deduce object type and thus be able to call its
-// destructor.
-namespace internal {
-template <typename _Ty>
-void CallDestructor(_Ty* _object) {
-  (void)_object;  // prevents from false "unreferenced parameter" warning when
-                  // _Ty has no explicit destructor.
-  _object->~_Ty();
+// Type* object = New<Type>(1,2,3,4);
+template <typename _Ty, typename... _Args>
+_Ty* New(_Args&&... _args) {
+  void* alloc =
+      memory::default_allocator()->Allocate(sizeof(_Ty), alignof(_Ty));
+  return new (alloc) _Ty(std::forward<_Args>(_args)...);
 }
-}  // namespace internal
-}  // namespace memory
+
+template <typename _Ty>
+void Delete(_Ty* _object) {
+  if (_object) {
+    // Prevents from false "unreferenced parameter" warning when _Ty has no
+    // explicit destructor.
+    (void)_object;
+    _object->~_Ty();
+    memory::default_allocator()->Deallocate(_object);
+  }
+}
+
 }  // namespace ozz
 #endif  // OZZ_OZZ_BASE_MEMORY_ALLOCATOR_H_

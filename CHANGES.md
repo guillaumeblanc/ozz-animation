@@ -8,6 +8,7 @@ Next release
   - Replaces OZZ_STATIC_ASSERT by standard static_assert keyword.
 
 * Library
+  - [base] Replaces OZZ_NEW and OZZ_DELETE macros with template functions ozz::New and ozz::Delete.
   - [base] Removes ScopedPtr in favor of an alias to standard unique_ptr. Implements make_unique using ozz allocator.
 
 Release version 0.12.0
