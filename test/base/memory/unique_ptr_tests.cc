@@ -110,18 +110,37 @@ TEST(Swap, UniquePtr) {
 }
 
 TEST(Release, UniquePtr) {
+  int* i = ozz::New<int>(46);
   {
-    int* i = ozz::New<int>(46);
     ozz::UniquePtr<int> pi(i);
     int* ri = pi.release();
     EXPECT_EQ(i, ri);
-    ozz::Delete(ri);
   }
+  ozz::Delete(i);
 }
 
 struct B : public A {};
 
-TEST(Cast, UniquePtr) {
+TEST(Upcast, UniquePtr) {
   ozz::UniquePtr<A> a = ozz::UniquePtr<B>();
   a = ozz::UniquePtr<B>();
+}
+
+TEST(make_unique, UniquePtr) {
+  {  // No argument
+    EXPECT_TRUE(ozz::make_unique<int>());
+    EXPECT_EQ(*ozz::make_unique<int>(), 0);
+  }
+
+  {  // 1 argument
+    EXPECT_TRUE(ozz::make_unique<int>(46));
+    EXPECT_EQ(*ozz::make_unique<int>(46), 46);
+  }
+
+  {  // N arguments
+    auto p5 =
+        ozz::make_unique<std::tuple<int, int, int, int, int>>(0, 1, 2, 3, 4);
+    EXPECT_TRUE(p5);
+    EXPECT_EQ(*p5, std::make_tuple(0, 1, 2, 3, 4));
+  }
 }
