@@ -47,10 +47,10 @@ struct RawAnimation;
 class AnimationBuilder {
  public:
   // Creates an Animation based on _raw_animation and *this builder parameters.
-  // Returns a valid Animation on success
-  // The returned animation will then need to be deleted using the default
-  // allocator Delete() function.
+  // Returns a valid Animation on success.
   // See RawAnimation::Validate() for more details about failure reasons.
+  // The animation is returned as an unique_ptr as ownership is given back to
+  // the caller.
   UniquePtr<Animation> operator()(const RawAnimation& _raw_animation) const;
 };
 }  // namespace offline

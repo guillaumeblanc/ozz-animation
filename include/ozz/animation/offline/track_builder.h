@@ -55,11 +55,11 @@ struct RawQuaternionTrack;
 // the data at all.
 class TrackBuilder {
  public:
-  // Creates a Track based on _raw_track and *this builder
-  // parameters.
-  // The returned instance will then need to be deleted using the default
-  // allocator Delete() function.
-  // See Raw*Track::Validate() for more details about failure reasons.
+  // Creates a Track based on _raw_track and *this builder parameters.
+  // Returns a track instance on success, NULL on failure. See
+  // Raw*Track::Validate() for more details about failure reasons.
+  // The track is returned as an unique_ptr as ownership is given back to the
+  // caller.
   ozz::UniquePtr<FloatTrack> operator()(const RawFloatTrack& _input) const;
   ozz::UniquePtr<Float2Track> operator()(const RawFloat2Track& _input) const;
   ozz::UniquePtr<Float3Track> operator()(const RawFloat3Track& _input) const;
