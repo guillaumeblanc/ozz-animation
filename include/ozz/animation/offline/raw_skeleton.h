@@ -57,13 +57,13 @@ struct RawSkeleton {
   // Offline skeleton joint type.
   struct Joint {
     // Type of the list of children joints.
-    typedef ozz::Vector<Joint> Children;
+    typedef ozz::vector<Joint> Children;
 
     // Children joints.
     Children children;
 
     // The name of the joint.
-    ozz::String name;
+    ozz::string name;
 
     // Joint bind pose transformation in local space.
     math::Transform transform;

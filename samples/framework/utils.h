@@ -143,7 +143,7 @@ class RawSkeletonEditor {
 
  private:
   // Imgui Open/Close states for each skeleton joint.
-  ozz::Vector<bool> open_close_states;
+  ozz::vector<bool> open_close_states;
 };
 
 // Multiplies a single quaternion at a specific index in a SoA transform range.
@@ -189,7 +189,7 @@ bool LoadMesh(const char* _filename, ozz::sample::Mesh* _mesh);
 // it is not a valid ozz mesh archive. A valid mesh archive can be
 // produced with ozz tools (fbx2skin) or using ozz animation serialization API.
 // _filename and _mesh must be non-NULL.
-bool LoadMeshes(const char* _filename, ozz::Vector<ozz::sample::Mesh>* _meshes);
+bool LoadMeshes(const char* _filename, ozz::vector<ozz::sample::Mesh>* _meshes);
 
 // Intersect _mesh with the half-line extending from _ray_origin indefinitely in
 // _ray_direction only. Returns true if there was an intersection. Fills

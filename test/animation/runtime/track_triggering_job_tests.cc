@@ -356,7 +356,7 @@ size_t CountEdges(TrackTriggeringJob::Iterator _begin,
 void TestEdgesExpectationBackward(TrackTriggeringJob::Iterator _fw_iterator,
                                   const TrackTriggeringJob& _fw_job) {
   // Compute forward edges;
-  ozz::Vector<TrackTriggeringJob::Edge> fw_edges;
+  ozz::vector<TrackTriggeringJob::Edge> fw_edges;
   for (; _fw_iterator != _fw_job.end(); ++_fw_iterator) {
     fw_edges.push_back(*_fw_iterator);
   }
@@ -370,7 +370,7 @@ void TestEdgesExpectationBackward(TrackTriggeringJob::Iterator _fw_iterator,
 
   // Compare forward and backward iterations.
   ASSERT_EQ(fw_edges.size(), CountEdges(bw_iterator, bw_job.end()));
-  for (ozz::Vector<TrackTriggeringJob::Edge>::const_reverse_iterator
+  for (ozz::vector<TrackTriggeringJob::Edge>::const_reverse_iterator
            fw_rit = fw_edges.rbegin();
        fw_rit != fw_edges.rend(); ++fw_rit, ++bw_iterator) {
     EXPECT_FLOAT_EQ(fw_rit->ratio, bw_iterator->ratio);

@@ -33,27 +33,26 @@
 #include "ozz/base/containers/std_allocator.h"
 
 namespace ozz {
-// Redirects std::vector to ozz::Vector in order to replace std default
+// Redirects std::vector to ozz::vector in order to replace std default
 // allocator by ozz::StdAllocator.
+template <class _Ty, class _Allocator = ozz::StdAllocator<_Ty>>
+using vector = std::vector<_Ty, _Allocator>;
+
 // Extends std::vector with two functions that gives access to the begin and the
 // end of its array of elements.
-template <class _Ty, class _Allocator = ozz::StdAllocator<_Ty>>
-using Vector = std::vector<_Ty, _Allocator>;
 
 // Returns the mutable begin of the array of elements, or NULL if
 // vector's empty.
 template <class _Ty, class _Allocator>
 inline _Ty* array_begin(std::vector<_Ty, _Allocator>& _vector) {
-  const size_t size = _vector.size();
-  return size != 0 ? &_vector[0] : NULL;
+  return _vector.data();
 }
 
 // Returns the non-mutable begin of the array of elements, or NULL if
 // vector's empty.
 template <class _Ty, class _Allocator>
 inline const _Ty* array_begin(const std::vector<_Ty, _Allocator>& _vector) {
-  const size_t size = _vector.size();
-  return size != 0 ? &_vector[0] : NULL;
+  return _vector.data();
 }
 
 // Returns the mutable end of the array of elements, or NULL if
@@ -61,8 +60,7 @@ inline const _Ty* array_begin(const std::vector<_Ty, _Allocator>& _vector) {
 // array, it cannot be dereferenced.
 template <class _Ty, class _Allocator>
 inline _Ty* array_end(std::vector<_Ty, _Allocator>& _vector) {
-  const size_t size = _vector.size();
-  return size != 0 ? (&_vector[size - 1]) + 1 : NULL;
+  return _vector.data() + _vector.size();
 }
 
 // Returns the non-mutable end of the array of elements, or NULL if
@@ -70,8 +68,7 @@ inline _Ty* array_end(std::vector<_Ty, _Allocator>& _vector) {
 // array, it cannot be dereferenced.
 template <class _Ty, class _Allocator>
 inline const _Ty* array_end(const std::vector<_Ty, _Allocator>& _vector) {
-  const size_t size = _vector.size();
-  return size != 0 ? (&_vector[size - 1]) + 1 : NULL;
+  return _vector.data() + _vector.size();
 }
 
 // Returns a mutable ozz::Range from a vector.

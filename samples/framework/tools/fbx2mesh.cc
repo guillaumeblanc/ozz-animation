@@ -65,8 +65,8 @@ OZZ_OPTIONS_DECLARE_INT(
 namespace {
 
 // Control point to vertex buffer remapping.
-typedef ozz::Vector<uint16_t> ControlPointRemap;
-typedef ozz::Vector<ControlPointRemap> ControlPointsRemap;
+typedef ozz::vector<uint16_t> ControlPointRemap;
+typedef ozz::vector<ControlPointRemap> ControlPointsRemap;
 
 // Triangle indices naive sort function.
 int SortTriangles(const void* _left, const void* _right) {
@@ -395,8 +395,8 @@ struct SkinMapping {
   float weight;
 };
 
-typedef ozz::Vector<SkinMapping> SkinMappings;
-typedef ozz::Vector<SkinMappings> VertexSkinMappings;
+typedef ozz::vector<SkinMapping> SkinMappings;
+typedef ozz::vector<SkinMappings> VertexSkinMappings;
 
 // Sort highest weight first.
 bool SortInfluenceWeights(const SkinMapping& _left, const SkinMapping& _right) {
@@ -434,7 +434,7 @@ bool BuildSkin(FbxMesh* _fbx_mesh,
   }
 
   // Builds joints names map.
-  typedef ozz::CStringMap<uint16_t> JointsMap;
+  typedef ozz::cstring_map<uint16_t> JointsMap;
   JointsMap joints_map;
   for (int i = 0; i < _skeleton.num_joints(); ++i) {
     joints_map[_skeleton.joint_names()[i]] = static_cast<uint16_t>(i);
@@ -685,7 +685,7 @@ bool SplitParts(const ozz::sample::Mesh& _skinned_mesh,
   assert(max_influences > 0);
 
   // Bucket-sort vertices per influence count.
-  typedef ozz::Vector<ozz::Vector<size_t>> BuckedVertices;
+  typedef ozz::vector<ozz::vector<size_t>> BuckedVertices;
   BuckedVertices bucked_vertices;
   bucked_vertices.resize(max_influences);
   if (max_influences > 1) {
@@ -724,7 +724,7 @@ bool SplitParts(const ozz::sample::Mesh& _skinned_mesh,
   // Fills mesh parts.
   _partitionned_mesh->parts.reserve(max_influences);
   for (int i = 0; i < max_influences; ++i) {
-    const ozz::Vector<size_t>& bucket = bucked_vertices[i];
+    const ozz::vector<size_t>& bucket = bucked_vertices[i];
     const size_t bucket_vertex_count = bucket.size();
     if (bucket_vertex_count == 0) {
       // No Mesh part if no vertices.
@@ -836,11 +836,11 @@ bool SplitParts(const ozz::sample::Mesh& _skinned_mesh,
   }
 
   // Builds a vertex remapping table to help rebuild triangle indices.
-  ozz::Vector<uint16_t> vertices_remap;
+  ozz::vector<uint16_t> vertices_remap;
   vertices_remap.resize(vertex_count);
   uint16_t processed_vertices = 0;
   for (size_t i = 0; i < bucked_vertices.size(); ++i) {
-    const ozz::Vector<size_t>& bucket = bucked_vertices[i];
+    const ozz::vector<size_t>& bucket = bucked_vertices[i];
     const uint16_t bucket_vertex_count = static_cast<uint16_t>(bucket.size());
     for (uint16_t j = 0; j < bucket_vertex_count; ++j) {
       vertices_remap[bucket[j]] = j + processed_vertices;
@@ -873,7 +873,7 @@ bool StripWeights(ozz::sample::Mesh* _mesh) {
     if (influence_count <= 1) {
       part.joint_weights.clear();
     } else {
-      const ozz::Vector<float> copy = part.joint_weights;
+      const ozz::vector<float> copy = part.joint_weights;
       part.joint_weights.clear();
       part.joint_weights.reserve(vertex_count * (influence_count - 1));
 
@@ -956,7 +956,7 @@ int main(int _argc, const char** _argv) {
   }
 
   // Take all meshes
-  ozz::Vector<ozz::sample::Mesh> meshes;
+  ozz::vector<ozz::sample::Mesh> meshes;
   meshes.resize(num_meshes);
 
   for (int m = 0; m < num_meshes; ++m) {

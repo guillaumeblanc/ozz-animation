@@ -86,10 +86,10 @@ class Shader {
   GLuint fragment_;
 
   // Uniform locations, in the order they were requested.
-  ozz::Vector<GLint> uniforms_;
+  ozz::vector<GLint> uniforms_;
 
   // Varying locations, in the order they were requested.
-  ozz::Vector<GLint> attribs_;
+  ozz::vector<GLint> attribs_;
 };
 
 class ImmediatePCShader : public Shader {

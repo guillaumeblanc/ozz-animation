@@ -227,7 +227,7 @@ class Application {
   Resolution resolution_;
 
   // Help message.
-  ozz::String help_;
+  ozz::string help_;
 };
 }  // namespace sample
 }  // namespace ozz

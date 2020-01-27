@@ -237,7 +237,7 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
 
   // Helper functor used to set weights while traversing joints hierarchy.
   struct WeightSetupIterator {
-    WeightSetupIterator(ozz::Vector<ozz::math::SimdFloat4>* _weights,
+    WeightSetupIterator(ozz::vector<ozz::math::SimdFloat4>* _weights,
                         float _weight_setting)
         : weights(_weights), weight_setting(_weight_setting) {}
     void operator()(int _joint, int) {
@@ -246,7 +246,7 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
           soa_weight, ozz::math::simd_float4::Load1(weight_setting),
           _joint % 4);
     }
-    ozz::Vector<ozz::math::SimdFloat4>* weights;
+    ozz::vector<ozz::math::SimdFloat4>* weights;
     float weight_setting;
   };
 
@@ -394,7 +394,7 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
     ozz::animation::SamplingCache cache;
 
     // Buffer of local transforms as sampled from animation_.
-    ozz::Vector<ozz::math::SoaTransform> locals;
+    ozz::vector<ozz::math::SoaTransform> locals;
 
   } samplers_[kNumLayers];  // kNumLayers animations to blend.
 
@@ -412,21 +412,21 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
   // Per-joint weights used to define the partial animation mask. Allows to
   // select which joints are considered during blending, and their individual
   // weight_setting.
-  ozz::Vector<ozz::math::SimdFloat4> upper_body_joint_weights_;
+  ozz::vector<ozz::math::SimdFloat4> upper_body_joint_weights_;
 
   // Blending job bind pose threshold.
   float threshold_;
 
   // Buffer of local transforms which stores the blending result.
-  ozz::Vector<ozz::math::SoaTransform> blended_locals_;
+  ozz::vector<ozz::math::SoaTransform> blended_locals_;
 
   // Buffer of model space matrices. These are computed by the local-to-model
   // job after the blending stage.
-  ozz::Vector<ozz::math::Float4x4> models_;
+  ozz::vector<ozz::math::Float4x4> models_;
 
   // Buffer of skinning matrices, result of the joint multiplication of the
   // inverse bind pose with the model space matrix.
-  ozz::Vector<ozz::math::Float4x4> skinning_matrices_;
+  ozz::vector<ozz::math::Float4x4> skinning_matrices_;
 
   // The mesh used by the sample.
   ozz::sample::Mesh mesh_;

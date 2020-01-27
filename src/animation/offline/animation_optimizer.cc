@@ -95,7 +95,7 @@ struct HierarchyBuilder {
   };
 
   // Defines the length of a joint hierarchy (of all child).
-  ozz::Vector<Spec> specs;
+  ozz::vector<Spec> specs;
 
  private:
   // Extracts maximum translations and scales for each track/joint.

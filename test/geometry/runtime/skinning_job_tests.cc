@@ -1133,13 +1133,13 @@ TEST(Benchmark, SkinningJob) {
   const int joint_count = 100;
 
   // Prepares matrices.
-  ozz::Vector<ozz::math::Float4x4> matrices(joint_count);
+  ozz::vector<ozz::math::Float4x4> matrices(joint_count);
   for (int i = 0; i < joint_count; ++i) {
     matrices[i] = ozz::math::Float4x4::identity();
   }
 
   // Prepares vertices.
-  ozz::Vector<BenchVertexIn> in_vertices(vertex_count + 1);
+  ozz::vector<BenchVertexIn> in_vertices(vertex_count + 1);
   for (int i = 0; i < vertex_count; ++i) {
     BenchVertexIn& vertex = in_vertices[i];
     for (size_t j = 0; j < OZZ_ARRAY_SIZE(vertex.indices); ++j) {
@@ -1156,7 +1156,7 @@ TEST(Benchmark, SkinningJob) {
       vertex.tangents[j] = cpnt;
     }
   }
-  ozz::Vector<BenchVertexOut> out_vertices(vertex_count + 1);
+  ozz::vector<BenchVertexOut> out_vertices(vertex_count + 1);
 
   const float* in_vertices_end =
       reinterpret_cast<const float*>(array_end(in_vertices));

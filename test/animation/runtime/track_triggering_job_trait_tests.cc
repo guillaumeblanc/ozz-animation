@@ -80,13 +80,13 @@ TEST(Algorithm, TrackEdgeTriggerJob) {
   ASSERT_TRUE(job.Run());
 
   {  // copy
-    ozz::Vector<TrackTriggeringJob::Edge> edges;
+    ozz::vector<TrackTriggeringJob::Edge> edges;
     std::copy(iterator, job.end(), std::back_inserter(edges));
     EXPECT_EQ(edges.size(), 4u);
   }
 
   {  // count
-    ozz::Vector<TrackTriggeringJob::Edge> edges;
+    ozz::vector<TrackTriggeringJob::Edge> edges;
     std::iterator_traits<TrackTriggeringJob::Iterator>::difference_type count =
         std::count_if(iterator, job.end(), IsRising);
     EXPECT_EQ(count, 2);
@@ -97,12 +97,12 @@ TEST(Algorithm, TrackEdgeTriggerJob) {
   }
 
   {  // for_each
-    ozz::Vector<TrackTriggeringJob::Edge> edges;
+    ozz::vector<TrackTriggeringJob::Edge> edges;
     std::for_each(iterator, job.end(), IsRising);
   }
 
   {  // find_if
-    ozz::Vector<TrackTriggeringJob::Edge> edges;
+    ozz::vector<TrackTriggeringJob::Edge> edges;
     TrackTriggeringJob::Iterator it_if =
         std::find_if(iterator, job.end(), IsRising);
     EXPECT_TRUE(it_if->rising);

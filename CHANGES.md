@@ -3,13 +3,14 @@ Next release
 
 * Build pipeline
   - Enables c++11 feature by default for all targets.
-  - Uses template aliasing (using keyword) to redirect ozz to std containers. This allows to get rid of ::Std when using ozz containers.
-  - Replaces OZZ_ALIGN_OF and OZZ_ALIGN by standard alignof and alignas keywords.
-  - Replaces OZZ_STATIC_ASSERT by standard static_assert keyword.
 
 * Library
   - [base] Replaces OZZ_NEW and OZZ_DELETE macros with template functions ozz::New and ozz::Delete.
   - [base] Removes ScopedPtr in favor of an alias to standard unique_ptr. Implements make_unique using ozz allocator.
+  - [base] Uses template aliasing (using keyword) to redirect ozz to std containers. This allows to get rid of ::Std when using ozz containers.
+  - [base] Renames all aliased ozz containers to there orignal std name: vector, map etc... 
+  - [base] Replaces OZZ_ALIGN_OF and OZZ_ALIGN by standard alignof and alignas keywords.
+  - [base] Replaces OZZ_STATIC_ASSERT by standard static_assert keyword.
 
 Release version 0.12.0
 ----------------------

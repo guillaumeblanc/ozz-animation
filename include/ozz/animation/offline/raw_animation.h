@@ -114,11 +114,11 @@ struct RawAnimation {
   // Defines a track of key frames for a bone, including translation, rotation
   // and scale.
   struct JointTrack {
-    typedef ozz::Vector<TranslationKey> Translations;
+    typedef ozz::vector<TranslationKey> Translations;
     Translations translations;
-    typedef ozz::Vector<RotationKey> Rotations;
+    typedef ozz::vector<RotationKey> Rotations;
     Rotations rotations;
-    typedef ozz::Vector<ScaleKey> Scales;
+    typedef ozz::vector<ScaleKey> Scales;
     Scales scales;
 
     // Validates track. See RawAnimation::Validate for more details.
@@ -132,14 +132,14 @@ struct RawAnimation {
 
   // Stores per joint JointTrack, ie: per joint animation key-frames.
   // tracks_.size() gives the number of animated joints.
-  ozz::Vector<JointTrack> tracks;
+  ozz::vector<JointTrack> tracks;
 
   // The duration of the animation. All the keys of a valid RawAnimation are in
   // the range [0,duration].
   float duration;
 
   // Name of the animation.
-  ozz::String name;
+  ozz::string name;
 };
 }  // namespace offline
 }  // namespace animation

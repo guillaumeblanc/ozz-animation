@@ -269,12 +269,12 @@ class IterateDFReverseTester {
     }
 
     // A joint is traversed once.
-    ozz::Vector<int>::const_iterator itc =
+    ozz::vector<int>::const_iterator itc =
         std::find(processed_joints_.begin(), processed_joints_.end(), _current);
     EXPECT_TRUE(itc == processed_joints_.end());
 
     // A parent can't be traversed before a child.
-    ozz::Vector<int>::const_iterator itp =
+    ozz::vector<int>::const_iterator itp =
         std::find(processed_joints_.begin(), processed_joints_.end(), _parent);
     EXPECT_TRUE(itp == processed_joints_.end());
 
@@ -297,7 +297,7 @@ class IterateDFReverseTester {
   int num_iterations_;
 
   // Already processed joints
-  ozz::Vector<int> processed_joints_;
+  ozz::vector<int> processed_joints_;
 };
 }  // namespace
 

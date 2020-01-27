@@ -58,7 +58,7 @@ namespace offline {
 namespace {
 
 // Uses a set to detect names uniqueness.
-typedef ozz::Set<const char*, ozz::str_less> Names;
+typedef ozz::set<const char*, ozz::str_less> Names;
 
 bool ValidateJointNamesUniquenessRecurse(
     const RawSkeleton::Joint::Children& _joints, Names* _names) {

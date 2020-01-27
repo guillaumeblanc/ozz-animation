@@ -106,11 +106,11 @@ struct RawTrack {
   void Load(io::IArchive& _archive, uint32_t _version);
 
   // Sequence of keyframes, expected to be sorted.
-  typedef typename ozz::Vector<Keyframe> Keyframes;
+  typedef typename ozz::vector<Keyframe> Keyframes;
   Keyframes keyframes;
 
   // Name of the track.
-  String name;
+  string name;
 };
 }  // namespace internal
 

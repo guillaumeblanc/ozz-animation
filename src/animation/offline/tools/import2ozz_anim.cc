@@ -144,9 +144,9 @@ UniquePtr<ozz::animation::Skeleton> LoadSkeleton(const char* _path) {
   return skeleton;
 }
 
-Vector<math::Transform> SkeletonBindPoseSoAToAoS(const Skeleton& _skeleton) {
+vector<math::Transform> SkeletonBindPoseSoAToAoS(const Skeleton& _skeleton) {
   // Copy skeleton bind pose to AoS form.
-  Vector<math::Transform> transforms(_skeleton.num_joints());
+  vector<math::Transform> transforms(_skeleton.num_joints());
   for (int i = 0; i < _skeleton.num_soa_joints(); ++i) {
     const math::SoaTransform& soa_transform = _skeleton.joint_bind_poses()[i];
     math::SimdFloat4 translation[4];
@@ -254,7 +254,7 @@ bool Export(OzzImporter& _importer, const RawAnimation& _input_animation,
 
     bool succeeded = false;
     if (enum_found && reference == AdditiveReferenceEnum::kSkeleton) {
-      const Vector<math::Transform> transforms =
+      const vector<math::Transform> transforms =
           SkeletonBindPoseSoAToAoS(_skeleton);
       succeeded = additive_builder(raw_animation, make_range(transforms),
                                    &raw_additive);
@@ -289,7 +289,7 @@ bool Export(OzzImporter& _importer, const RawAnimation& _input_animation,
     // as it would leave an invalid file on the disk.
 
     // Builds output filename.
-    ozz::String filename = _importer.BuildFilename(
+    ozz::string filename = _importer.BuildFilename(
         _config["filename"].asCString(), raw_animation.name.c_str());
 
     ozz::log::LogV() << "Opens output file: \"" << filename << "\""

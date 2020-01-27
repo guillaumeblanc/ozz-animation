@@ -116,8 +116,7 @@ const int kPrecomputedKeyCount = OZZ_ARRAY_SIZE(kPrecomputedKeys);
 
 class MillipedeSampleApplication : public ozz::sample::Application {
  public:
-  MillipedeSampleApplication()
-      : slice_count_(26) {}
+  MillipedeSampleApplication() : slice_count_(26) {}
 
  protected:
   virtual bool OnUpdate(float _dt, float) {
@@ -429,10 +428,10 @@ class MillipedeSampleApplication : public ozz::sample::Application {
 
   // Buffer of local transforms as sampled from animation_.
   // These are shared between sampling output and local-to-model input.
-  ozz::Vector<ozz::math::SoaTransform> locals_;
+  ozz::vector<ozz::math::SoaTransform> locals_;
 
   // Buffer of model matrices (local-to-model output).
-  ozz::Vector<ozz::math::Float4x4> models_;
+  ozz::vector<ozz::math::Float4x4> models_;
 };
 
 int main(int _argc, const char** _argv) {

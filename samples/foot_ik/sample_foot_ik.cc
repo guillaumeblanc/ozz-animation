@@ -746,17 +746,17 @@ class FootIKSampleApplication : public ozz::sample::Application {
   ozz::animation::SamplingCache cache_;
 
   // Buffer of local transforms as sampled from animation_.
-  ozz::Vector<ozz::math::SoaTransform> locals_;
+  ozz::vector<ozz::math::SoaTransform> locals_;
 
   // Buffer of model space matrices.
-  ozz::Vector<ozz::math::Float4x4> models_;
+  ozz::vector<ozz::math::Float4x4> models_;
 
   // Buffer of skinning matrices, result of the joint multiplication of the
   // inverse bind pose with the model space matrix.
-  ozz::Vector<ozz::math::Float4x4> skinning_matrices_;
+  ozz::vector<ozz::math::Float4x4> skinning_matrices_;
 
   // The mesh used by the sample.
-  ozz::Vector<ozz::sample::Mesh> meshes_;
+  ozz::vector<ozz::sample::Mesh> meshes_;
 
   enum { kLeft, kRight };
   enum { kLegsCount = 2 };
@@ -771,7 +771,7 @@ class FootIKSampleApplication : public ozz::sample::Application {
   ozz::math::Float3 pelvis_offset_;
 
   // The floor meshes used by the sample (collision and rendering).
-  ozz::Vector<ozz::sample::Mesh> floors_;
+  ozz::vector<ozz::sample::Mesh> floors_;
 
   // Root transformation.
   ozz::math::Float3 root_translation_;

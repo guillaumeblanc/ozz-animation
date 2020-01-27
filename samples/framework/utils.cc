@@ -143,7 +143,7 @@ namespace {
 bool OnRawSkeletonJointGui(
     ozz::sample::ImGui* _im_gui,
     ozz::animation::offline::RawSkeleton::Joint::Children* _children,
-    ozz::Vector<bool>::iterator* _oc_state) {
+    ozz::vector<bool>::iterator* _oc_state) {
   char txt[255];
 
   bool modified = false;
@@ -201,7 +201,7 @@ bool RawSkeletonEditor::OnGui(animation::offline::RawSkeleton* _skeleton,
                               ImGui* _im_gui) {
   open_close_states.resize(_skeleton->num_joints(), false);
 
-  ozz::Vector<bool>::iterator begin = open_close_states.begin();
+  ozz::vector<bool>::iterator begin = open_close_states.begin();
   return OnRawSkeletonJointGui(_im_gui, &_skeleton->roots, &begin);
 }
 
@@ -222,7 +222,7 @@ void ComputeSkeletonBounds(const animation::Skeleton& _skeleton,
   }
 
   // Allocate matrix array, out of memory is handled by the LocalToModelJob.
-  ozz::Vector<ozz::math::Float4x4> models(num_joints);
+  ozz::vector<ozz::math::Float4x4> models(num_joints);
 
   // Compute model space bind pose.
   ozz::animation::LocalToModelJob job;
@@ -399,7 +399,7 @@ bool LoadMesh(const char* _filename, ozz::sample::Mesh* _mesh) {
 }
 
 bool LoadMeshes(const char* _filename,
-                ozz::Vector<ozz::sample::Mesh>* _meshes) {
+                ozz::vector<ozz::sample::Mesh>* _meshes) {
   assert(_filename && _meshes);
   ozz::log::Out() << "Loading meshes archive: " << _filename << "."
                   << std::endl;

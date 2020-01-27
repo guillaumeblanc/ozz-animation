@@ -111,7 +111,7 @@ bool ExtractAnimation(FbxSceneLoader& _scene_loader, const SamplingInfo& _info,
   _animation->duration = _info.duration;
 
   // Locates all skeleton nodes in the fbx scene. Some might be NULL.
-  ozz::Vector<FbxNode*> nodes;
+  ozz::vector<FbxNode*> nodes;
   for (int i = 0; i < _skeleton.num_joints(); i++) {
     const char* joint_name = _skeleton.joint_names()[i];
     nodes.push_back(scene->FindNodeByName(joint_name));
@@ -120,9 +120,9 @@ bool ExtractAnimation(FbxSceneLoader& _scene_loader, const SamplingInfo& _info,
   // Preallocates and initializes world matrices.
   const FixedRateSamplingTime fixed_it(_info.duration, _info.frequency);
 
-  ozz::Vector<float> times;
+  ozz::vector<float> times;
   times.resize(fixed_it.num_keys());
-  ozz::Vector<ozz::Vector<ozz::math::Float4x4>> world_matrices;
+  ozz::vector<ozz::vector<ozz::math::Float4x4>> world_matrices;
   world_matrices.resize(_skeleton.num_joints());
   for (int i = 0; i < _skeleton.num_joints(); i++) {
     world_matrices[i].resize(fixed_it.num_keys());
@@ -169,10 +169,10 @@ bool ExtractAnimation(FbxSceneLoader& _scene_loader, const SamplingInfo& _info,
           math::simd_float4::Load3PtrU(&bind_pose.scale.x);
       const math::Float4x4 local_matrix = math::Float4x4::FromAffine(t, q, s);
 
-      ozz::Vector<math::Float4x4>& node_matrices = world_matrices[i];
+      ozz::vector<math::Float4x4>& node_matrices = world_matrices[i];
       const int16_t parent = _skeleton.joint_parents()[i];
       if (parent != Skeleton::kNoParent) {
-        const ozz::Vector<math::Float4x4>& parent_matrices =
+        const ozz::vector<math::Float4x4>& parent_matrices =
             world_matrices[parent];
         assert(fixed_it.num_keys() == parent_matrices.size());
         for (size_t k = 0; k < fixed_it.num_keys(); ++k) {
@@ -187,11 +187,11 @@ bool ExtractAnimation(FbxSceneLoader& _scene_loader, const SamplingInfo& _info,
   }
 
   // Builds world inverse matrices.
-  ozz::Vector<ozz::Vector<ozz::math::Float4x4>> world_inv_matrices;
+  ozz::vector<ozz::vector<ozz::math::Float4x4>> world_inv_matrices;
   world_inv_matrices.resize(_skeleton.num_joints());
   for (int i = 0; i < _skeleton.num_joints(); i++) {
-    const ozz::Vector<math::Float4x4>& node_world_matrices = world_matrices[i];
-    ozz::Vector<math::Float4x4>& node_world_inv_matrices =
+    const ozz::vector<math::Float4x4>& node_world_matrices = world_matrices[i];
+    ozz::vector<math::Float4x4>& node_world_inv_matrices =
         world_inv_matrices[i];
     node_world_inv_matrices.resize(fixed_it.num_keys());
     for (size_t p = 0; p < fixed_it.num_keys(); ++p) {
@@ -211,8 +211,8 @@ bool ExtractAnimation(FbxSceneLoader& _scene_loader, const SamplingInfo& _info,
     track.scales.resize(fixed_it.num_keys());
 
     const int16_t parent = _skeleton.joint_parents()[i];
-    ozz::Vector<math::Float4x4>& node_world_matrices = world_matrices[i];
-    ozz::Vector<math::Float4x4>& node_world_inv_matrices =
+    ozz::vector<math::Float4x4>& node_world_matrices = world_matrices[i];
+    ozz::vector<math::Float4x4>& node_world_inv_matrices =
         world_inv_matrices[parent != Skeleton::kNoParent ? parent : 0];
 
     for (size_t n = 0; n < fixed_it.num_keys(); ++n) {
@@ -491,7 +491,7 @@ const char* FbxTypeToString(EFbxType _type) {
     case eFbxEnumM:
       return "eFbxEnumM - Enumeration allowing duplicated items";
     case eFbxString:
-      return "eFbxString - String";
+      return "eFbxString - string";
     case eFbxTime:
       return "eFbxTime - Time value";
     case eFbxReference:
@@ -638,7 +638,7 @@ OzzImporter::AnimationNames GetAnimationNames(FbxSceneLoader& _scene_loader) {
   const FbxScene* scene = _scene_loader.scene();
   for (int i = 0; i < scene->GetSrcObjectCount<FbxAnimStack>(); ++i) {
     FbxAnimStack* anim_stack = scene->GetSrcObject<FbxAnimStack>(i);
-    names.push_back(ozz::String(anim_stack->GetName()));
+    names.push_back(ozz::string(anim_stack->GetName()));
   }
 
   return names;

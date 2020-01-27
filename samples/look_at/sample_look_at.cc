@@ -476,17 +476,17 @@ class LookAtSampleApplication : public ozz::sample::Application {
   ozz::animation::SamplingCache cache_;
 
   // Buffer of local transforms as sampled from animation_.
-  ozz::Vector<ozz::math::SoaTransform> locals_;
+  ozz::vector<ozz::math::SoaTransform> locals_;
 
   // Buffer of model-space matrices.
-  ozz::Vector<ozz::math::Float4x4> models_;
+  ozz::vector<ozz::math::Float4x4> models_;
 
   // Buffer of skinning matrices, result of the joint multiplication of the
   // inverse bind pose with the model-space matrix.
-  ozz::Vector<ozz::math::Float4x4> skinning_matrices_;
+  ozz::vector<ozz::math::Float4x4> skinning_matrices_;
 
   // The mesh used by the sample.
-  ozz::Vector<ozz::sample::Mesh> meshes_;
+  ozz::vector<ozz::sample::Mesh> meshes_;
 
   // Indices of the joints that are IKed for look-at purpose.
   // Joints must be from the same hierarchy (all ancestors of the first joint

@@ -32,10 +32,10 @@
 
 namespace ozz {
 namespace io {
-void Extern<String>::Save(OArchive& _archive, const String* _values,
+void Extern<string>::Save(OArchive& _archive, const string* _values,
                           size_t _count) {
   for (size_t i = 0; i < _count; i++) {
-    const ozz::String& string = _values[i];
+    const ozz::string& string = _values[i];
 
     // Get size excluding null terminating character.
     uint32_t size = static_cast<uint32_t>(string.size());
@@ -44,11 +44,11 @@ void Extern<String>::Save(OArchive& _archive, const String* _values,
   }
 }
 
-void Extern<String>::Load(IArchive& _archive, String* _values, size_t _count,
+void Extern<string>::Load(IArchive& _archive, string* _values, size_t _count,
                           uint32_t _version) {
   (void)_version;
   for (size_t i = 0; i < _count; i++) {
-    ozz::String& string = _values[i];
+    ozz::string& string = _values[i];
 
     // Ensure an existing string is reseted.
     string.clear();

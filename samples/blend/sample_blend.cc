@@ -323,18 +323,18 @@ class BlendSampleApplication : public ozz::sample::Application {
     ozz::animation::SamplingCache cache;
 
     // Buffer of local transforms as sampled from animation_.
-    ozz::Vector<ozz::math::SoaTransform> locals;
+    ozz::vector<ozz::math::SoaTransform> locals;
   } samplers_[kNumLayers];  // kNumLayers animations to blend.
 
   // Blending job bind pose threshold.
   float threshold_;
 
   // Buffer of local transforms which stores the blending result.
-  ozz::Vector<ozz::math::SoaTransform> blended_locals_;
+  ozz::vector<ozz::math::SoaTransform> blended_locals_;
 
   // Buffer of model space matrices. These are computed by the local-to-model
   // job after the blending stage.
-  ozz::Vector<ozz::math::Float4x4> models_;
+  ozz::vector<ozz::math::Float4x4> models_;
 };
 
 int main(int _argc, const char** _argv) {

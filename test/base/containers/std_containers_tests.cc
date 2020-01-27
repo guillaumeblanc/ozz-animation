@@ -39,7 +39,7 @@
 #include "ozz/base/gtest_helper.h"
 
 TEST(Vector, Containers) {
-  typedef ozz::Vector<int> Container;
+  typedef ozz::vector<int> Container;
   Container container;
   container.push_back(1);
   container.insert(container.begin(), 0);
@@ -51,7 +51,7 @@ TEST(Vector, Containers) {
 }
 
 TEST(VectorExtensions, Containers) {
-  typedef ozz::Vector<int> Container;
+  typedef ozz::vector<int> Container;
   Container container;
   int* null = NULL;
 
@@ -90,7 +90,7 @@ TEST(VectorExtensions, Containers) {
 }
 
 TEST(Deque, Containers) {
-  typedef ozz::Deque<int> Container;
+  typedef ozz::deque<int> Container;
   Container container;
   container.push_back(1);
   container.push_front(0);
@@ -102,7 +102,7 @@ TEST(Deque, Containers) {
 }
 
 TEST(List, Containers) {
-  typedef ozz::List<int> Container;
+  typedef ozz::list<int> Container;
   Container container;
   container.push_back(1);
   container.push_front(0);
@@ -113,7 +113,7 @@ TEST(List, Containers) {
 }
 
 TEST(Stack, Containers) {
-  typedef ozz::Stack<int> Container;
+  typedef ozz::stack<int> Container;
   Container container;
   container.push(1);
   container.push(2);
@@ -125,7 +125,7 @@ TEST(Stack, Containers) {
 
 TEST(Queue, Containers) {
   {
-    typedef ozz::Queue<int> Container;
+    typedef ozz::queue<int> Container;
     Container container;
     container.push(1);
     container.push(2);
@@ -136,7 +136,7 @@ TEST(Queue, Containers) {
     container.pop();
   }
   {
-    typedef ozz::PriorityQueue<int> Container;
+    typedef ozz::priority_queue<int> Container;
     Container container;
     container.push(1);
     container.push(2);
@@ -152,7 +152,7 @@ TEST(Queue, Containers) {
 
 TEST(Set, Containers) {
   {
-    typedef ozz::Set<int> Container;
+    typedef ozz::set<int> Container;
     Container container;
     container.insert('c');
     container.insert('a');
@@ -164,7 +164,7 @@ TEST(Set, Containers) {
     container.clear();
   }
   {
-    typedef ozz::MultiSet<int> Container;
+    typedef ozz::multiset<int> Container;
     Container container;
     container.insert('c');
     container.insert('a');
@@ -181,7 +181,7 @@ TEST(Set, Containers) {
 
 TEST(Map, Containers) {
   {
-    typedef ozz::Map<char, int> Container;
+    typedef ozz::map<char, int> Container;
     Container container;
     container['a'] = -3;
     container['c'] = -1;
@@ -194,7 +194,7 @@ TEST(Map, Containers) {
     container.clear();
   }
   {
-    typedef ozz::MultiMap<char, int> Container;
+    typedef ozz::multimap<char, int> Container;
     Container container;
     container.insert(std::pair<char, int>('a', -3));
     container.insert(std::pair<char, int>('c', -1));
@@ -210,9 +210,9 @@ TEST(Map, Containers) {
   }
 }
 
-TEST(String, Containers) {
-  typedef ozz::String String;
-  String str;
+TEST(string, Containers) {
+  typedef ozz::string string;
+  string str;
   EXPECT_EQ(str.size(), 0u);
   str += "a string";
   EXPECT_STREQ(str.c_str(), "a string");

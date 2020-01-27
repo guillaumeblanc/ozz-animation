@@ -94,7 +94,7 @@ class AnimationOptimizer {
   Setting setting;
 
   // Per joint override of optimization settings.
-  typedef ozz::Map<int, Setting> JointsSetting;
+  typedef ozz::map<int, Setting> JointsSetting;
   JointsSetting joints_setting_override;
 };
 }  // namespace offline
