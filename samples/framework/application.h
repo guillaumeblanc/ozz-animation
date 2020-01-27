@@ -219,9 +219,9 @@ class Application {
   UniquePtr<internal::ImGuiImpl> im_gui_;
 
   // Timing records.
-  ozz::UniquePtr<Record> fps_;
-  ozz::UniquePtr<Record> update_time_;
-  ozz::UniquePtr<Record> render_time_;
+  UniquePtr<Record> fps_;
+  UniquePtr<Record> update_time_;
+  UniquePtr<Record> render_time_;
 
   // Current screen resolution.
   Resolution resolution_;
