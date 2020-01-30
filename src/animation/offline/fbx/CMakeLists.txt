@@ -44,7 +44,6 @@ set(build_configurations
   "/fbx/alain/skeleton.fbx\;{\"skeleton\":{\"filename\":\"alain_skeleton.ozz\",\"import\":{\"enable\":true}},\"animations\":[]}\;output:alain_skeleton.ozz"
   "/fbx/alain/atlas.fbx\;{\"skeleton\":{\"filename\":\"alain_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"alain_atlas_raw.ozz\",\"raw\":true,\"optimize\":false}]}\;output:alain_atlas_raw.ozz\;depend:alain_skeleton.ozz"
   "/fbx/alain/locomotions.fbx\;{\"skeleton\":{\"filename\":\"alain_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"alain_*.ozz\"}]}\;output:alain_walk.ozz\;output:alain_jog.ozz\;output:alain_run.ozz\;depend:alain_skeleton.ozz"
-  "/fbx/alain/walk.fbx\;{\"skeleton\":{\"filename\":\"alain_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"alain_walk_raw.ozz\",\"raw\":true,\"optimize\":false}]}\;output:alain_walk_raw.ozz\;depend:alain_skeleton.ozz"
   "/fbx/alain/crossarms.fbx\;{\"skeleton\":{\"filename\":\"alain_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"alain_crossarms.ozz\"}]}\;output:alain_crossarms.ozz\;depend:alain_skeleton.ozz"
   "/fbx/alain/crackhead.fbx\;{\"skeleton\":{\"filename\":\"alain_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"alain_crackhead.ozz\"},{\"filename\":\"alain_crackhead_additive.ozz\",\"additive\":true}]}\;output:alain_crackhead_additive.ozz\;output:alain_crackhead.ozz\;depend:alain_skeleton.ozz"
   
