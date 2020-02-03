@@ -21,27 +21,39 @@ install(TARGETS ozz2csv DESTINATION lib)
 
 # Atlas animation analysis
 #-------------------------
+file(MAKE_DIRECTORY ${ozz_temp_directory}/walk_analysis)
 file(MAKE_DIRECTORY ${ozz_temp_directory}/atlas_analysis)
 
+# Walk
+add_custom_command(
+    DEPENDS $<$<BOOL:${ozz_build_fbx}>:BUILD_DATA>
+            "${ozz_media_directory}/bin/alain_walk_raw.ozz"
+            "${ozz_media_directory}/bin/alain_skeleton.ozz"
+            $<$<BOOL:${ozz_build_data}>:ozz2csv>
+    OUTPUT  "${ozz_temp_directory}/walk_analysis/reference_transforms.csv"
+    COMMAND ozz2csv "--experience=reference" "--generator=passthrough" "--skeleton=${ozz_media_directory}/bin/alain_skeleton.ozz" "--animation=${ozz_media_directory}/bin/alain_walk_raw.ozz"
+    COMMAND ozz2csv "--experience=decimate" "--generator=optimize" "--skeleton=${ozz_media_directory}/bin/alain_skeleton.ozz" "--animation=${ozz_media_directory}/bin/alain_walk_raw.ozz"
+    COMMAND ozz2csv "--experience=hill" "--generator=optimize" "--skeleton=${ozz_media_directory}/bin/alain_skeleton.ozz" "--animation=${ozz_media_directory}/bin/alain_walk_raw.ozz" "--config={\"fast\":false}"
+    WORKING_DIRECTORY "${ozz_temp_directory}/walk_analysis"
+    VERBATIM)
+
+# Atlas
 add_custom_command(
     DEPENDS $<$<BOOL:${ozz_build_fbx}>:BUILD_DATA>
             "${ozz_media_directory}/bin/alain_atlas_raw.ozz"
             "${ozz_media_directory}/bin/alain_skeleton.ozz"
             $<$<BOOL:${ozz_build_data}>:ozz2csv>
     OUTPUT  "${ozz_temp_directory}/atlas_analysis/reference_transforms.csv"
-            "${ozz_temp_directory}/atlas_analysis/decimate_transforms.csv"
-            "${ozz_temp_directory}/atlas_analysis/quantize_transforms.csv"
     COMMAND ozz2csv "--experience=reference" "--generator=passthrough" "--skeleton=${ozz_media_directory}/bin/alain_skeleton.ozz" "--animation=${ozz_media_directory}/bin/alain_atlas_raw.ozz"
     COMMAND ozz2csv "--experience=decimate" "--generator=optimize" "--skeleton=${ozz_media_directory}/bin/alain_skeleton.ozz" "--animation=${ozz_media_directory}/bin/alain_atlas_raw.ozz"
-    COMMAND ozz2csv "--experience=quantize" "--generator=runtime" "--skeleton=${ozz_media_directory}/bin/alain_skeleton.ozz" "--animation=${ozz_media_directory}/bin/alain_atlas_raw.ozz"
+    COMMAND ozz2csv "--experience=hill" "--generator=optimize" "--skeleton=${ozz_media_directory}/bin/alain_skeleton.ozz" "--animation=${ozz_media_directory}/bin/alain_atlas_raw.ozz" "--config={\"fast\":false}"
     WORKING_DIRECTORY "${ozz_temp_directory}/atlas_analysis"
     VERBATIM)
 
 # Creates a target to build analysis data
 add_custom_target(BUILD_ANALYSIS ALL
+  DEPENDS "${ozz_temp_directory}/walk_analysis/reference_transforms.csv"
   DEPENDS "${ozz_temp_directory}/atlas_analysis/reference_transforms.csv"
-          "${ozz_temp_directory}/atlas_analysis/decimate_transforms.csv"
-          "${ozz_temp_directory}/atlas_analysis/quantize_transforms.csv"
   VERBATIM)
 
 # Invalid cases

@@ -115,6 +115,8 @@ class OzzOptimizer : public OzzPassthrough {
         _config.get("tolerance", optimizer.setting.tolerance).asFloat();
     optimizer.setting.distance =
         _config.get("distance", optimizer.setting.distance).asFloat();
+    optimizer.fast =
+        _config.get("fast", optimizer.fast).asBool();
 
     ozz::animation::offline::RawAnimation optimized;
     if (!optimizer(_animation, _skeleton, &optimized)) {
@@ -141,7 +143,9 @@ class OzzRuntime : public Generator {
           _config.get("tolerance", optimizer.setting.tolerance).asFloat();
       optimizer.setting.distance =
           _config.get("distance", optimizer.setting.distance).asFloat();
-
+    optimizer.fast =
+        _config.get("fast", optimizer.fast).asBool();
+        
       if (!optimizer(_animation, _skeleton, &raw)) {
         return false;
       }
