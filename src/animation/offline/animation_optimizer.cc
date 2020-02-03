@@ -1158,48 +1158,6 @@ class HillClimber {
 
   Tracking* tracking_;
 };
-
-template <typename _Track>
-bool IsConstant(const _Track& _track, float _tolerance) {
-  if (_track.size() <= 1) {
-    return true;
-  }
-  bool constant = true;
-  for (size_t i = 1; constant && i < _track.size(); ++i) {
-    constant &= Compare(_track[i - 1].value, _track[i].value, _tolerance);
-  }
-  return constant;
-}
-
-template <typename _Track>
-bool DecimateConstant(const _Track& _input, _Track* _output, float _tolerance) {
-  const bool constant = IsConstant(_input, _tolerance);
-  if (constant) {
-    _output->clear();
-    if (_input.size() > 0) {
-      _output->push_back(_input[0]);
-      _output->at(0).time = 0.f;
-    }
-  } else {
-    *_output = _input;
-  }
-  return constant;
-}
-
-void DecimateConstants(const RawAnimation& _input, RawAnimation* _output) {
-  const int num_tracks = _input.num_tracks();
-  _output->name = _input.name;
-  _output->duration = _input.duration;
-  _output->tracks.resize(num_tracks);
-
-  for (int i = 0; i < num_tracks; ++i) {
-    const RawAnimation::JointTrack& input = _input.tracks[i];
-    RawAnimation::JointTrack& output = _output->tracks[i];
-    DecimateConstant(input.translations, &output.translations, 1e-5f);
-    DecimateConstant(input.rotations, &output.rotations, std::cos(1e-5f * .5f));
-    DecimateConstant(input.scales, &output.scales, 1e-5f);
-  }
-}
 }  // namespace
 
 bool AnimationOptimizer::operator()(const RawAnimation& _input,
@@ -1208,24 +1166,24 @@ bool AnimationOptimizer::operator()(const RawAnimation& _input,
   if (!_output) {
     return false;
   }
+
   // Reset output animation to default.
   *_output = RawAnimation();
 
-  // Validate animation.
-  if (!_input.Validate()) {
-    return false;
-  }
-
-  const int num_tracks = _input.num_tracks();
-
   // Validates the skeleton matches the animation.
+  const int num_tracks = _input.num_tracks();
   if (num_tracks != _skeleton.num_joints()) {
     return false;
   }
 
-  // TODO, this could be done outside.
+  // _input validation is handled by AnimationConstantOptimizer.
+  // Removing constants from the starts allows to efficiently reduces number of
+  // combinatorial search iterations.
   RawAnimation no_constant;
-  DecimateConstants(_input, &no_constant);
+  AnimationConstantOptimizer constant_optimizer;
+  if (!constant_optimizer(_input, &no_constant)) {
+    return false;
+  }
 
   // Setups output animation.
   _output->name = no_constant.name;
@@ -1270,6 +1228,69 @@ bool AnimationOptimizer::operator()(const RawAnimation& _input,
   // Output animation is always valid though.
   return _output->Validate();
 }
+
+namespace {
+template <typename _Track>
+bool IsConstant(const _Track& _track, float _tolerance) {
+  if (_track.size() <= 1) {
+    return true;
+  }
+  bool constant = true;
+  for (size_t i = 1; constant && i < _track.size(); ++i) {
+    constant &= Compare(_track[i - 1].value, _track[i].value, _tolerance);
+  }
+  return constant;
+}
+
+template <typename _Track>
+bool DecimateConstant(const _Track& _input, _Track* _output, float _tolerance) {
+  assert(_output->empty());
+  const bool constant = IsConstant(_input, _tolerance);
+  if (constant) {
+    if (_input.size() > 0) {
+      _output->push_back(_input[0]);
+      _output->at(0).time = 0.f;
+    }
+  } else {
+    *_output = _input;
+  }
+  return constant;
+}
+}  // namespace
+
+AnimationConstantOptimizer::AnimationConstantOptimizer()
+    : translation_tolerance(1e-5f),
+      rotation_tolerance(1.f - 5e-6f),  // cosinse of half angle.
+      scale_tolerance(1e-5f) {}
+
+bool AnimationConstantOptimizer::operator()(const RawAnimation& _input,
+                                            RawAnimation* _output) const {
+  if (!_output) {
+    return false;
+  }
+  // Reset output animation to default.
+  *_output = RawAnimation();
+
+  // Validate animation.
+  if (!_input.Validate()) {
+    return false;
+  }
+
+  const int num_tracks = _input.num_tracks();
+  _output->name = _input.name;
+  _output->duration = _input.duration;
+  _output->tracks.resize(num_tracks);
+
+  for (int i = 0; i < num_tracks; ++i) {
+    const RawAnimation::JointTrack& input = _input.tracks[i];
+    RawAnimation::JointTrack& output = _output->tracks[i];
+    DecimateConstant(input.translations, &output.translations,
+                     translation_tolerance);
+    DecimateConstant(input.rotations, &output.rotations, rotation_tolerance);
+    DecimateConstant(input.scales, &output.scales, scale_tolerance);
+  }
+  return true;
+};
 }  // namespace offline
 }  // namespace animation
 }  // namespace ozz

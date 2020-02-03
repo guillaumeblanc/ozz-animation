@@ -99,6 +99,31 @@ class AnimationOptimizer {
   typedef ozz::Map<int, Setting>::Std JointsSetting;
   JointsSetting joints_setting_override;
 };
+
+// Defines the class responsible of stripping constant keyframes from an offline
+// raw animation instance.
+class AnimationConstantOptimizer {
+ public:
+  // Initializes the optimizer with default tolerances.
+  AnimationConstantOptimizer();
+
+  // Optimizes _input using *this parameters.
+  // *_output must be a valid RawAnimation instance.
+  // Returns false on failure and resets _output to an empty animation.
+  // See RawAnimation::Validate() for more details about failure reasons.
+  bool operator()(const RawAnimation& _input, RawAnimation* _output) const;
+
+  // Translation tolerance in meters. Uses euclidean distance.
+  float translation_tolerance;
+
+  // Rotation tolerance, as the cosine of half tolerance angle.
+  // Uses ozz::math::Quaternion::Compare functions.
+  // This allows to provide small numbers that cos function would round to 1.
+  float rotation_tolerance;
+
+  // Scale tolerance. Uses euclidean distance.
+  float scale_tolerance;
+};
 }  // namespace offline
 }  // namespace animation
 }  // namespace ozz

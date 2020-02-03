@@ -72,9 +72,11 @@ TEST(Error, AnimationOptimizer) {
     // Builds animation
     RawAnimation output;
     output.duration = -1.f;
+    output.name = "invalid";
     output.tracks.resize(1);
     EXPECT_FALSE(optimizer(input, *skeleton, &output));
-    EXPECT_FLOAT_EQ(output.duration, RawAnimation().duration);
+    EXPECT_FLOAT_EQ(output.duration, 1.f);
+    EXPECT_TRUE(output.name.empty());
     EXPECT_EQ(output.num_tracks(), 0);
   }
 
@@ -125,7 +127,6 @@ TEST(Optimize, AnimationOptimizer) {
   ozz::ScopedPtr<Skeleton> skeleton(skeleton_builder(raw_skeleton));
   ASSERT_TRUE(skeleton);
 
-  // Disable non hierarchical optimizations
   AnimationOptimizer optimizer;
 
   // Disables vertex distance.
@@ -627,9 +628,9 @@ TEST(OptimizeOverride, AnimationOptimizer) {
     RawAnimation output;
     optimizer.setting = loose_setting;
     const AnimationOptimizer::Setting joint_override(1.e-3f,  // > 1mm
-                                                     .5f);     // .5m
+                                                     .5f);    // .5m
     optimizer.joints_setting_override[1] = joint_override;
-      optimizer.joints_setting_override[2] = joint_override;
+    optimizer.joints_setting_override[2] = joint_override;
     ASSERT_TRUE(optimizer(input, *skeleton, &output));
     EXPECT_EQ(output.num_tracks(), 5);
 
