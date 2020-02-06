@@ -172,63 +172,79 @@ bool Export(OzzImporter& _importer, const RawAnimation& _input_animation,
   // Raw animation to build and output. Initial setup is just a copy.
   RawAnimation raw_animation = _input_animation;
 
-  // Optimizes animation if option is enabled.
-  // Must be done before converting to additive, to be sure hierarchy length is
-  // valid when optimizing.
-  if (_config["optimize"].asBool()) {
-    ozz::log::Log() << "Optimizing animation." << std::endl;
-    AnimationOptimizer optimizer;
+  {
+    // Optimizes animation if option is enabled.
+    // Must be done before converting to additive, to be sure hierarchy length
+    // is valid when optimizing.
 
-    // Setup optimizer from config parameters.
-    const Json::Value& tolerances = _config["optimization_settings"];
-    optimizer.setting.tolerance = tolerances["tolerance"].asFloat();
-    optimizer.setting.distance = tolerances["distance"].asFloat();
+    RawAnimation raw_optimized_animation;
+    if (_config["optimize"].asBool()) {
+      ozz::log::Log() << "Optimizing animation." << std::endl;
+      AnimationOptimizer optimizer;
 
-    // Builds per joint settings.
-    const Json::Value& joints_config = tolerances["override"];
-    for (Json::ArrayIndex i = 0; i < joints_config.size(); ++i) {
-      const Json::Value& joint_config = joints_config[i];
+      // Setup optimizer from config parameters.
+      const Json::Value& tolerances = _config["optimization_settings"];
+      optimizer.setting.tolerance = tolerances["tolerance"].asFloat();
+      optimizer.setting.distance = tolerances["distance"].asFloat();
 
-      // Prepares setting.
-      AnimationOptimizer::Setting setting;
-      setting.tolerance = joint_config["tolerance"].asFloat();
-      setting.distance = joint_config["distance"].asFloat();
+      // Builds per joint settings.
+      const Json::Value& joints_config = tolerances["override"];
+      for (Json::ArrayIndex i = 0; i < joints_config.size(); ++i) {
+        const Json::Value& joint_config = joints_config[i];
 
-      // Push it for all matching joints.
-      // Settings are overwritten if one has already been pushed.
-      bool found = false;
-      const char* name_pattern = joint_config["name"].asCString();
-      for (int j = 0; j < _skeleton.num_joints(); ++j) {
-        const char* joint_name = _skeleton.joint_names()[j];
-        if (strmatch(joint_name, name_pattern)) {
-          found = true;
+        // Prepares setting.
+        AnimationOptimizer::Setting setting;
+        setting.tolerance = joint_config["tolerance"].asFloat();
+        setting.distance = joint_config["distance"].asFloat();
 
-          ozz::log::LogV() << "Found joint \"" << joint_name
-                           << "\" matching pattern \"" << name_pattern
-                           << "\" for joint optimization setting override."
-                           << std::endl;
+        // Push it for all matching joints.
+        // Settings are overwritten if one has already been pushed.
+        bool found = false;
+        const char* name_pattern = joint_config["name"].asCString();
+        for (int j = 0; j < _skeleton.num_joints(); ++j) {
+          const char* joint_name = _skeleton.joint_names()[j];
+          if (strmatch(joint_name, name_pattern)) {
+            found = true;
 
-          const AnimationOptimizer::JointsSetting::value_type entry(j, setting);
-          const bool newly =
-              optimizer.joints_setting_override.insert(entry).second;
-          if (!newly) {
-            ozz::log::Log() << "Redundant optimization setting for pattern \""
-                            << name_pattern << "\"" << std::endl;
+            ozz::log::LogV()
+                << "Found joint \"" << joint_name << "\" matching pattern \""
+                << name_pattern << "\" for joint optimization setting override."
+                << std::endl;
+
+            const AnimationOptimizer::JointsSetting::value_type entry(j,
+                                                                      setting);
+            const bool newly =
+                optimizer.joints_setting_override.insert(entry).second;
+            if (!newly) {
+              ozz::log::Log() << "Redundant optimization setting for pattern \""
+                              << name_pattern << "\"" << std::endl;
+            }
           }
+        }
+
+        if (!found) {
+          ozz::log::Log()
+              << "No joint found for optimization setting for pattern \""
+              << name_pattern << "\"" << std::endl;
         }
       }
 
-      if (!found) {
-        ozz::log::Log()
-            << "No joint found for optimization setting for pattern \""
-            << name_pattern << "\"" << std::endl;
+      if (!optimizer(raw_animation, _skeleton, &raw_optimized_animation)) {
+        ozz::log::Err() << "Failed to optimize animation." << std::endl;
+        return false;
       }
-    }
+    } else {
+      ozz::log::LogV() << "Optimization for animation \""
+                       << _input_animation.name
+                       << "\" is disabled. Stripping constant joints only"
+                       << std::endl;
 
-    RawAnimation raw_optimized_animation;
-    if (!optimizer(raw_animation, _skeleton, &raw_optimized_animation)) {
-      ozz::log::Err() << "Failed to optimize animation." << std::endl;
-      return false;
+      AnimationConstantOptimizer optimizer;
+      if (!optimizer(raw_animation, &raw_optimized_animation)) {
+        ozz::log::Err() << "Failed to strip constant animation tracks."
+                        << std::endl;
+        return false;
+      }
     }
 
     // Displays optimization statistics.
@@ -236,9 +252,6 @@ bool Export(OzzImporter& _importer, const RawAnimation& _input_animation,
 
     // Brings data back to the raw animation.
     raw_animation = raw_optimized_animation;
-  } else {
-    ozz::log::LogV() << "Optimization for animation \"" << _input_animation.name
-                     << "\" is disabled." << std::endl;
   }
 
   // Make delta animation if requested.

@@ -3,7 +3,11 @@ Next version
 * Library
   - [offline] Moved RawAnimation::JointTrack::Validate() to raw_animation_utils.h ValidateTrack().
   - [offline] Added an option to skip validation when sampling RawAnimtion through raw_animation_utils.h functions. This can be used to prevent redundant validations. Note that RawAnimation sampling behavior is undefined if using an invalid RawAnimation with validate parameter set to false.
+  - [offline] Added a constant track optimizer (ozz::animation::offline::AnimationConstantOptimizer), useful to strip constant tracks (only) without impacting overall animation accuracy.
   - [base] Removes ScopedPtr implicit cast operator to pointer type. It avoids risking duplicating ownership, and complies with unique_ptr specification.
+
+* Tools
+  - Strips constant animation tracks even when optimization is turned off. This allows to reduce animations size without affecting accuracy.
 
 Release version 0.12.0
 ----------------------
