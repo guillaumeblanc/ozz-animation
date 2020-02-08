@@ -98,6 +98,32 @@ class AnimationOptimizer {
   // Per joint override of optimization settings.
   typedef ozz::Map<int, Setting>::Std JointsSetting;
   JointsSetting joints_setting_override;
+
+  // Optionnal observer class, used to report optimization algorithm steps and
+  // progress.
+  class Observer;
+  Observer* observer;
+};
+
+// Observer interface.
+class AnimationOptimizer::Observer {
+ public:
+  struct Data {
+    int iteration;                // Iteration number.
+    int joint;                    // Joint number
+    int type;                     // Track type (Translation, rotation, scale).
+    float target_error;           // Target error value.
+    float distance;               // Distance at which error is measured.
+    int original_size;            // Original track size.
+    int validated_size;           // Last validated track size.
+    int candidate_size;           // Candidate track size.
+    float own_tolerance;          // Current decimation tolerance.
+    float own_error;              // Track own error metric .
+    float hierarchy_error_ratio;  // Error ratio for track hierarchy.
+    float optimization_delta;     // Optimization delta for this candidate.
+  };
+
+  virtual bool Push(const Data&) = 0;
 };
 
 // Defines the class responsible of stripping constant keyframes from an offline

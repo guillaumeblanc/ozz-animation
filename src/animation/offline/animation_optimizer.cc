@@ -46,15 +46,12 @@
 #define OZZ_INCLUDE_PRIVATE_HEADER  // Allows to include private headers.
 #include "animation/offline/decimate.h"
 
-// Temp tracking
-#include "ozz/base/log.h"
-
 namespace ozz {
 namespace animation {
 namespace offline {
 
 // Setup default values (favoring quality).
-AnimationOptimizer::AnimationOptimizer() : fast(true) {}
+AnimationOptimizer::AnimationOptimizer() : fast(true), observer(NULL) {}
 
 namespace {
 
@@ -889,92 +886,16 @@ typedef TTrack<RawAnimation::JointTrack::Rotations, RotationAdapter, 1>
     RotationTrack;
 typedef TTrack<RawAnimation::JointTrack::Scales, ScaleAdapter, 2> ScaleTrack;
 
-class Tracking {
- public:
-  virtual void Begin() {}
-  virtual void End() {}
-
-  struct Data {
-    int iteration;                // Iteration number.
-    int joint;                    // Joint number
-    int type;                     // Track type (Translation, rotation, scale).
-    float target_error;           // Target error value.
-    float distance;               // Distance at which error is measured.
-    int original_size;            // Original track size.
-    int validated_size;           // Last validated track size.
-    int candidate_size;           // Candidate track size.
-    float own_tolerance;          // Current decimation tolerance.
-    float own_error;              // Track own error metric .
-    float hierarchy_error_ratio;  // Error ratio for track hierarchy.
-    float optimization_delta;     // Optimization delta for this candidate.
-  };
-
-  virtual bool Push(const Data&) { return true; }
-};
-
-class CsvTracking : public Tracking, protected ozz::io::File {
- public:
-  CsvTracking(const char* _name) : ozz::io::File(_name, "wt") {
-    if (!opened()) {
-      ozz::log::Err() << "Failed opening csv file \"" << _name << "\"."
-                      << std::endl;
-      return;
-    }
-
-    const char header[] =
-        "iteration,joint,type,target_error,distance,original_size,validated_"
-        "size,candidate_size,own_tolerance,own_error,hierarchy_error_ratio,"
-        "optimization_delta\n";
-    const size_t len = OZZ_ARRAY_SIZE(header) - 1;
-    if (Write(header, len) != len) {
-      ozz::log::Err() << "Failed writing csv file \"" << _name << "\"."
-                      << std::endl;
-      Close();
-    }
-  }
-
- protected:
-  bool Push(const Data& _data) {
-    if (!opened()) {
-      return false;
-    }
-
-    char line[256];
-    const int ret = std::sprintf(
-        line, "%d,%d,%d,%f,%f,%d,%d,%d,%f,%f,%f,%f\n", _data.iteration,
-        _data.joint, _data.type, _data.target_error, _data.distance,
-        _data.original_size, _data.validated_size, _data.candidate_size,
-        _data.own_tolerance, _data.own_error, _data.hierarchy_error_ratio,
-        _data.optimization_delta);
-    // Can only assert as no point trying to recover from a memory overwrite.
-    // Should use std::snprintf, but only available from c++11.
-    assert(ret > 0 && "Fromatting failed");
-
-    const size_t len = static_cast<size_t>(ret);
-    assert(len > 0 && len < OZZ_ARRAY_SIZE(line) &&
-           "Output buffer is too small");
-
-    if (Write(line, len) != len) {
-      ozz::log::Err() << "Failed writing csv file." << std::endl;
-      Close();
-      return false;
-    }
-    return true;
-  }
-};
-
 class HillClimber {
  public:
   HillClimber(const AnimationOptimizer& _optimizer,
               const RawAnimation& _original, const Skeleton& _skeleton,
-              RawAnimation* _output, Tracking* _tracking)
-      : original_(_original), skeleton_(_skeleton), tracking_(_tracking) {
+              RawAnimation* _output)
+      : original_(_original),
+        skeleton_(_skeleton),
+        observer_(_optimizer.observer) {
     // Checks output
     assert(_output->tracks.size() == original_.tracks.size());
-
-    if (_tracking) {
-      _tracking->Begin();
-    }
 
     ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
 
@@ -1058,10 +979,6 @@ class HillClimber {
       OZZ_DELETE(allocator, rotations_[i]);
       OZZ_DELETE(allocator, scales_[i]);
     }
-
-    if (tracking_) {
-      tracking_->End();
-    }
   }
 
   void operator()() {
@@ -1078,9 +995,9 @@ class HillClimber {
         // Gets this track optimization delta.
         const float delta = track->optimization_delta();
 
-        if (tracking_) {
+        if (observer_) {
           // Fills up tracking data.
-          Tracking::Data data;
+          AnimationOptimizer::Observer::Data data;
           data.iteration = iteration;
           data.joint = track->joint();
           data.type = track->Type();
@@ -1095,7 +1012,7 @@ class HillClimber {
           data.optimization_delta = delta;
 
           // Push tracking data.
-          tracking_->Push(data);
+          observer_->Push(data);
         }
 
         // Track can be removed from those to process if it can't be
@@ -1156,7 +1073,7 @@ class HillClimber {
   ozz::Vector<AnimationOptimizer::Setting>::Std settings_;
   ozz::Vector<VTrack*>::Std remainings_;
 
-  Tracking* tracking_;
+  AnimationOptimizer::Observer* observer_;
 };
 }  // namespace
 
@@ -1221,8 +1138,8 @@ bool AnimationOptimizer::operator()(const RawAnimation& _input,
       Decimate(input.scales, sadap, tolerance, &output.scales, &included);
     }
   } else {
-    CsvTracking tracking("hill_climbing.cvs");
-    HillClimber(*this, no_constant, _skeleton, _output, &tracking)();
+    // CsvTracking tracking("hill_climbing.cvs");
+    HillClimber(*this, no_constant, _skeleton, _output)();
   }
 
   // Output animation is always valid though.

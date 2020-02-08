@@ -43,6 +43,10 @@
 #include "ozz/base/maths/soa_transform.h"
 #include "ozz/base/maths/transform.h"
 
+#include "ozz/base/io/stream.h"
+
+#include "ozz/base/log.h"
+
 #include <json/json.h>
 
 class OzzPassthrough : public Generator {
@@ -106,6 +110,61 @@ class OzzPassthrough : public Generator {
   ozz::animation::offline::RawAnimation animation_;
 };
 
+class CsvObserver
+    : public ozz::animation::offline::AnimationOptimizer::Observer,
+      protected ozz::io::File {
+ public:
+  CsvObserver(const char* _name) : ozz::io::File(_name, "wt") {
+    if (!opened()) {
+      ozz::log::Err() << "Failed opening csv file \"" << _name << "\"."
+                      << std::endl;
+      return;
+    }
+
+    const char header[] =
+        "iteration,joint,type,target_error,distance,original_size,validated_"
+        "size,candidate_size,own_tolerance,own_error,hierarchy_error_ratio,"
+        "optimization_delta\n";
+    const size_t len = OZZ_ARRAY_SIZE(header) - 1;
+    if (Write(header, len) != len) {
+      ozz::log::Err() << "Failed writing csv file \"" << _name << "\"."
+                      << std::endl;
+      Close();
+    }
+  }
+
+  bool opened() const { return File::opened(); }
+
+ protected:
+  bool Push(const Data& _data) {
+    if (!opened()) {
+      return false;
+    }
+
+    char line[256];
+    const int ret = std::sprintf(
+        line, "%d,%d,%d,%f,%f,%d,%d,%d,%f,%f,%f,%f\n", _data.iteration,
+        _data.joint, _data.type, _data.target_error, _data.distance,
+        _data.original_size, _data.validated_size, _data.candidate_size,
+        _data.own_tolerance, _data.own_error, _data.hierarchy_error_ratio,
+        _data.optimization_delta);
+    // Can only assert as no point trying to recover from a memory overwrite.
+    // Should use std::snprintf, but only available from c++11.
+    assert(ret > 0 && "Formatting failed");
+
+    const size_t len = static_cast<size_t>(ret);
+    assert(len > 0 && len < OZZ_ARRAY_SIZE(line) &&
+           "Output buffer is too small");
+
+    if (Write(line, len) != len) {
+      ozz::log::Err() << "Failed writing csv file." << std::endl;
+      Close();
+      return false;
+    }
+    return true;
+  }
+};
+
 class OzzOptimizer : public OzzPassthrough {
   virtual bool Build(const ozz::animation::offline::RawAnimation& _animation,
                      const ozz::animation::Skeleton& _skeleton,
@@ -115,8 +174,14 @@ class OzzOptimizer : public OzzPassthrough {
         _config.get("tolerance", optimizer.setting.tolerance).asFloat();
     optimizer.setting.distance =
         _config.get("distance", optimizer.setting.distance).asFloat();
-    optimizer.fast =
-        _config.get("fast", optimizer.fast).asBool();
+    optimizer.fast = _config.get("fast", optimizer.fast).asBool();
+
+    // Tries to open an observer csv file.
+    const char* observer_filename = _config.get("observer", "").asCString();
+    CsvObserver observer(observer_filename);
+    if (observer.opened()) {
+      optimizer.observer = &observer;
+    }
 
     ozz::animation::offline::RawAnimation optimized;
     if (!optimizer(_animation, _skeleton, &optimized)) {
@@ -143,9 +208,15 @@ class OzzRuntime : public Generator {
           _config.get("tolerance", optimizer.setting.tolerance).asFloat();
       optimizer.setting.distance =
           _config.get("distance", optimizer.setting.distance).asFloat();
-    optimizer.fast =
-        _config.get("fast", optimizer.fast).asBool();
-        
+      optimizer.fast = _config.get("fast", optimizer.fast).asBool();
+
+      // Tries to open an observer csv file.
+      const char* observer_filename = _config.get("observer", "").asCString();
+      CsvObserver observer(observer_filename);
+      if (observer.opened()) {
+        optimizer.observer = &observer;
+      }
+
       if (!optimizer(_animation, _skeleton, &raw)) {
         return false;
       }
