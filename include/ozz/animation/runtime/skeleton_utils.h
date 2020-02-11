@@ -85,15 +85,6 @@ inline _Fct IterateJointsDFReverse(const Skeleton& _skeleton, _Fct _fct) {
   }
   return _fct;
 }
-
-// Helper struct to bind a member function as a functor for skeleton iteration
-// functions.
-template <typename _T, void (_T::*p)(int, int)>
-struct IterateMemFun {
-  IterateMemFun(_T& _t) : t_(&_t) {}
-  void operator()(int _a, int _b) const { (t_->*p)(_a, _b); }
-  _T* t_;
-};
 }  // namespace animation
 }  // namespace ozz
 #endif  // OZZ_OZZ_ANIMATION_RUNTIME_SKELETON_UTILS_H_

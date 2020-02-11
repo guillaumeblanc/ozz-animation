@@ -5,6 +5,7 @@ Next release
   - Enables c++11 feature by default for all targets.
 
 * Library
+  - [animation] Removes skeleton_utils.h IterateMemFun helper that can be replaced by std::bind.
   - [base] Replaces OZZ_NEW and OZZ_DELETE macros with template functions ozz::New and ozz::Delete.
   - [base] Removes ScopedPtr in favor of an alias to standard unique_ptr. Implements make_unique using ozz allocator.
   - [base] Uses template aliasing (using keyword) to redirect ozz to std containers. This allows to get rid of ::Std when using ozz containers.
