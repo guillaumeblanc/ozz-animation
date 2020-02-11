@@ -108,6 +108,8 @@ class AnimationOptimizer {
 // Observer interface.
 class AnimationOptimizer::Observer {
  public:
+  virtual ~Observer() {}
+
   struct Data {
     int iteration;                // Iteration number.
     int joint;                    // Joint number
