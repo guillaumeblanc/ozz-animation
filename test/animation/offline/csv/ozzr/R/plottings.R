@@ -9,11 +9,12 @@ plot_animations <- function(models, animate) {
     ggplot2::scale_colour_gradient(low = "green", high = "red") +
     ggplot2::facet_wrap(ggplot2::vars(experience), nrow=1) +
     ggplot2::ggtitle("Model-space xy translations for each experience") +
-    ggplot2::labs(title = "Time {frame_time}", color="Skinning error (mm)") +
+    ggplot2::labs(title = "Time {frame_time}", color="Estimated skinning error (mm)") +
     ggplot2::xlab("Model-space x") +
     ggplot2::ylab("Model-space y") +
     gganimate::transition_time(time) +
     gganimate::shadow_null()
+
   if(animate) {
     duration <- as.double(max(models$time))
     nframes <- as.integer(duration * 30)
@@ -27,7 +28,7 @@ plot_animations <- function(models, animate) {
 plot_error_density <- function(df, col, xlabel = "Error value") {
   p1 <- df %>%
     ggplot2::ggplot() +
-    ggplot2::geom_density(ggplot2::aes(x=col, color=experience, fill=experience), alpha = .5) +
+    ggplot2::geom_density(ggplot2::aes(x=col, color=experience, fill=experience), alpha = .8) +
     ggplot2::labs(color = "Experience name", fill = "Experience name") +
     ggplot2::xlab(NULL) +
     ggplot2::ylab("Density") +
@@ -36,7 +37,7 @@ plot_error_density <- function(df, col, xlabel = "Error value") {
 
   p2 <- df %>%
     ggplot2::ggplot() +
-    ggplot2::geom_boxplot(ggplot2::aes(x=experience, y=col, color=experience, fill=experience), alpha = .5) +
+    ggplot2::geom_boxplot(ggplot2::aes(x=experience, y=col, color=experience, fill=experience), alpha = .8) +
     ggplot2::scale_colour_manual(values = palette_experiences) +
     ggplot2::scale_fill_manual(values = palette_experiences) +
     ggplot2::labs(color = "Experience name", fill = "Experience name") +

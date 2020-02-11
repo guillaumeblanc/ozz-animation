@@ -59,20 +59,24 @@ LoadExperiences <- function(path, reference) {
   transforms$name <- factor(transforms$name)
 
   # Sorted by joint
-  transforms$name <- reorder(transforms$name, as.numeric(transforms$joint))
+  #transforms$name <- reorder(transforms$name, as.numeric(transforms$joint))
   # Sorted by depth
-  #transforms$name <- reorder(transforms$name, -transforms$depth)
+  transforms$name <- reorder(transforms$name, -transforms$depth)
+
+  transforms$depth <- as.factor(transforms$depth)
+  transforms$depth <- reorder(transforms$depth, -as.integer(transforms$depth))
 
   locals <- transforms %>%
-    dplyr::select(joint, name, time, experience, t.x=lt.x, t.y=lt.y, t.z=lt.z, r.x=lr.x, r.y=lr.y, r.z=lr.z, r.w=lr.w, s.x=ls.x, s.y=ls.y, s.z=ls.z)
+    dplyr::select(joint, depth, name, time, experience, t.x=lt.x, t.y=lt.y, t.z=lt.z, r.x=lr.x, r.y=lr.y, r.z=lr.z, r.w=lr.w, s.x=ls.x, s.y=ls.y, s.z=ls.z)
   models <- transforms %>%
-    dplyr::select(joint, name, time, experience, t.x=mt.x, t.y=mt.y, t.z=mt.z, r.x=mr.x, r.y=mr.y, r.z=mr.z, r.w=mr.w, s.x=ms.x, s.y=ms.y, s.z=ms.z)
+    dplyr::select(joint, depth, name, time, experience, t.x=mt.x, t.y=mt.y, t.z=mt.z, r.x=mr.x, r.y=mr.y, r.z=mr.z, r.w=mr.w, s.x=ms.x, s.y=ms.y, s.z=ms.z)
 
   # Computes errors
   #----------------
   locals_ref <- locals %>% dplyr::filter(experience == reference)
   models_ref <- models %>% dplyr::filter(experience == reference)
 
+  locals$skinning_error <- ozzr::ComputeSkinningError(locals, locals_ref, params$vertex_distance)
   models$skinning_error <- ozzr::ComputeSkinningError(models, models_ref, params$vertex_distance)
 
   locals$t.e <- ozzr::ComputeTranslationError(locals, locals_ref)
