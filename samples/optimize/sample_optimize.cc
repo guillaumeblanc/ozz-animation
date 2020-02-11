@@ -545,7 +545,7 @@ class OptimizeSampleApplication : public ozz::sample::Application {
   ozz::animation::SamplingCache cache_;
 
   // Runtime optimized animation.
-  ozz::UniquePtr<ozz::animation::Animation> animation_rt_;
+  ozz::unique_ptr<ozz::animation::Animation> animation_rt_;
 
   // Buffer of local and model space transformations as sampled from the
   // rutime (optimized and compressed) animation.

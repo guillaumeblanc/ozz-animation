@@ -196,10 +196,10 @@ class Application {
   double last_idle_time_;
 
   // The camera object used by the application.
-  UniquePtr<internal::Camera> camera_;
+  unique_ptr<internal::Camera> camera_;
 
   // The screen shooter object used by the application.
-  UniquePtr<internal::Shooter> shooter_;
+  unique_ptr<internal::Shooter> shooter_;
 
   // Set to true to display help.
   bool show_help_;
@@ -213,15 +213,15 @@ class Application {
   bool capture_screenshot_;
 
   // The renderer utility object used by the application.
-  UniquePtr<internal::RendererImpl> renderer_;
+  unique_ptr<internal::RendererImpl> renderer_;
 
   // Immediate mode gui interface.
-  UniquePtr<internal::ImGuiImpl> im_gui_;
+  unique_ptr<internal::ImGuiImpl> im_gui_;
 
   // Timing records.
-  UniquePtr<Record> fps_;
-  UniquePtr<Record> update_time_;
-  UniquePtr<Record> render_time_;
+  unique_ptr<Record> fps_;
+  unique_ptr<Record> update_time_;
+  unique_ptr<Record> render_time_;
 
   // Current screen resolution.
   Resolution resolution_;

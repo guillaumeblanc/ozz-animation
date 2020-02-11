@@ -62,7 +62,7 @@ TEST(Error, AnimationOptimizer) {
     RawSkeleton raw_skeleton;
     raw_skeleton.roots.resize(1);
     SkeletonBuilder skeleton_builder;
-    ozz::UniquePtr<Skeleton> skeleton(skeleton_builder(raw_skeleton));
+    ozz::unique_ptr<Skeleton> skeleton(skeleton_builder(raw_skeleton));
     ASSERT_TRUE(skeleton);
 
     RawAnimation input;
@@ -97,7 +97,7 @@ TEST(Name, AnimationOptimizer) {
   // Prepares a skeleton.
   RawSkeleton raw_skeleton;
   SkeletonBuilder skeleton_builder;
-  ozz::UniquePtr<Skeleton> skeleton(skeleton_builder(raw_skeleton));
+  ozz::unique_ptr<Skeleton> skeleton(skeleton_builder(raw_skeleton));
   ASSERT_TRUE(skeleton);
 
   AnimationOptimizer optimizer;
@@ -122,7 +122,7 @@ TEST(Optimize, AnimationOptimizer) {
   raw_skeleton.roots[0].children[0].children.resize(1);
   raw_skeleton.roots[0].children[0].children[0].children.resize(2);
   SkeletonBuilder skeleton_builder;
-  ozz::UniquePtr<Skeleton> skeleton(skeleton_builder(raw_skeleton));
+  ozz::unique_ptr<Skeleton> skeleton(skeleton_builder(raw_skeleton));
   ASSERT_TRUE(skeleton);
 
   // Disable non hierarchical optimizations
@@ -459,7 +459,7 @@ TEST(OptimizeOverride, AnimationOptimizer) {
   raw_skeleton.roots[0].children[0].children.resize(1);
   raw_skeleton.roots[0].children[0].children[0].children.resize(2);
   SkeletonBuilder skeleton_builder;
-  ozz::UniquePtr<Skeleton> skeleton(skeleton_builder(raw_skeleton));
+  ozz::unique_ptr<Skeleton> skeleton(skeleton_builder(raw_skeleton));
   ASSERT_TRUE(skeleton);
 
   // Disable non hierarchical optimizations

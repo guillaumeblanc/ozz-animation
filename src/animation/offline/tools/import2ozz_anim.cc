@@ -95,9 +95,9 @@ void DisplaysOptimizationstatistics(const RawAnimation& _non_optimized,
   log << " - Scales: " << scale_ratio << ":1" << std::endl;
 }
 
-UniquePtr<ozz::animation::Skeleton> LoadSkeleton(const char* _path) {
+unique_ptr<ozz::animation::Skeleton> LoadSkeleton(const char* _path) {
   // Reads the skeleton from the binary ozz stream.
-  UniquePtr<ozz::animation::Skeleton> skeleton;
+  unique_ptr<ozz::animation::Skeleton> skeleton;
   {
     if (*_path == 0) {
       ozz::log::Err() << "Missing input skeleton file from json config."
@@ -272,7 +272,7 @@ bool Export(OzzImporter& _importer, const RawAnimation& _input_animation,
   }
 
   // Builds runtime animation.
-  UniquePtr<Animation> animation;
+  unique_ptr<Animation> animation;
   if (!_config["raw"].asBool()) {
     ozz::log::Log() << "Builds runtime animation." << std::endl;
     AnimationBuilder builder;
@@ -370,7 +370,7 @@ bool ImportAnimations(const Json::Value& _config, OzzImporter* _importer,
   bool success = true;
 
   // Import skeleton instance.
-  UniquePtr<Skeleton> skeleton(
+  unique_ptr<Skeleton> skeleton(
       LoadSkeleton(skeleton_config["filename"].asCString()));
   success &= skeleton.get() != nullptr;
 

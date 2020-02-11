@@ -66,7 +66,7 @@ TEST(Algorithm, TrackEdgeTriggerJob) {
   raw_track.keyframes.push_back(key2);
 
   // Builds track
-  ozz::UniquePtr<FloatTrack> track(builder(raw_track));
+  ozz::unique_ptr<FloatTrack> track(builder(raw_track));
   ASSERT_TRUE(track);
 
   TrackTriggeringJob job;

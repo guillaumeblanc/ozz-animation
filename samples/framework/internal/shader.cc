@@ -172,7 +172,7 @@ void Shader::Unbind() {
   GL(UseProgram(0));
 }
 
-ozz::UniquePtr<ImmediatePCShader> ImmediatePCShader::Build() {
+ozz::unique_ptr<ImmediatePCShader> ImmediatePCShader::Build() {
   bool success = true;
 
   const char* kSimplePCVS =
@@ -194,7 +194,7 @@ ozz::UniquePtr<ImmediatePCShader> ImmediatePCShader::Build() {
   const char* vs[] = {kPlatformSpecivicVSHeader, kSimplePCVS};
   const char* fs[] = {kPlatformSpecivicFSHeader, kSimplePCPS};
 
-  ozz::UniquePtr<ImmediatePCShader> shader = make_unique<ImmediatePCShader>();
+  ozz::unique_ptr<ImmediatePCShader> shader = make_unique<ImmediatePCShader>();
   success &=
       shader->BuildFromSource(OZZ_ARRAY_SIZE(vs), vs, OZZ_ARRAY_SIZE(fs), fs);
 
@@ -239,7 +239,7 @@ void ImmediatePCShader::Bind(const math::Float4x4& _model,
   GL(UniformMatrix4fv(mvp_uniform, 1, false, values));
 }
 
-ozz::UniquePtr<ImmediatePTCShader> ImmediatePTCShader::Build() {
+ozz::unique_ptr<ImmediatePTCShader> ImmediatePTCShader::Build() {
   bool success = true;
 
   const char* kSimplePCVS =
@@ -268,7 +268,7 @@ ozz::UniquePtr<ImmediatePTCShader> ImmediatePTCShader::Build() {
   const char* vs[] = {kPlatformSpecivicVSHeader, kSimplePCVS};
   const char* fs[] = {kPlatformSpecivicFSHeader, kSimplePCPS};
 
-  ozz::UniquePtr<ImmediatePTCShader> shader = make_unique<ImmediatePTCShader>();
+  ozz::unique_ptr<ImmediatePTCShader> shader = make_unique<ImmediatePTCShader>();
   success &=
       shader->BuildFromSource(OZZ_ARRAY_SIZE(vs), vs, OZZ_ARRAY_SIZE(fs), fs);
 
@@ -420,7 +420,7 @@ void SkeletonShader::Bind(const math::Float4x4& _model,
   GL(UniformMatrix4fv(mvp_uniform, 1, false, values));
 }
 
-ozz::UniquePtr<JointShader> JointShader::Build() {
+ozz::unique_ptr<JointShader> JointShader::Build() {
   bool success = true;
 
   const char* vs_joint_to_world_matrix =
@@ -452,7 +452,7 @@ ozz::UniquePtr<JointShader> JointShader::Build() {
   const char* fs[] = {kPlatformSpecivicFSHeader, kShaderAmbientFct,
                       kShaderAmbientFS};
 
-  ozz::UniquePtr<JointShader> shader = make_unique<JointShader>();
+  ozz::unique_ptr<JointShader> shader = make_unique<JointShader>();
   success &=
       shader->BuildFromSource(OZZ_ARRAY_SIZE(vs), vs, OZZ_ARRAY_SIZE(fs), fs);
 
@@ -477,7 +477,7 @@ ozz::UniquePtr<JointShader> JointShader::Build() {
   return shader;
 }
 
-ozz::UniquePtr<BoneShader>
+ozz::unique_ptr<BoneShader>
 BoneShader::Build() {  // Builds a world matrix from joint uniforms,
                        // sticking bone model between
   bool success = true;
@@ -514,7 +514,7 @@ BoneShader::Build() {  // Builds a world matrix from joint uniforms,
   const char* fs[] = {kPlatformSpecivicFSHeader, kShaderAmbientFct,
                       kShaderAmbientFS};
 
-  ozz::UniquePtr<BoneShader> shader = make_unique<BoneShader>();
+  ozz::unique_ptr<BoneShader> shader = make_unique<BoneShader>();
   success &=
       shader->BuildFromSource(OZZ_ARRAY_SIZE(vs), vs, OZZ_ARRAY_SIZE(fs), fs);
 
@@ -539,7 +539,7 @@ BoneShader::Build() {  // Builds a world matrix from joint uniforms,
   return shader;
 }
 
-ozz::UniquePtr<AmbientShader> AmbientShader::Build() {
+ozz::unique_ptr<AmbientShader> AmbientShader::Build() {
   const char* vs[] = {
       kPlatformSpecivicVSHeader, kPassNoUv,
       "uniform mat4 u_mw;\n mat4 GetWorldMatrix() {return u_mw;}\n",
@@ -547,7 +547,7 @@ ozz::UniquePtr<AmbientShader> AmbientShader::Build() {
   const char* fs[] = {kPlatformSpecivicFSHeader, kShaderAmbientFct,
                       kShaderAmbientFS};
 
-  ozz::UniquePtr<AmbientShader> shader = make_unique<AmbientShader>();
+  ozz::unique_ptr<AmbientShader> shader = make_unique<AmbientShader>();
   bool success =
       shader->InternalBuild(OZZ_ARRAY_SIZE(vs), vs, OZZ_ARRAY_SIZE(fs), fs);
 
@@ -617,7 +617,7 @@ void AmbientShader::Bind(const math::Float4x4& _model,
   GL(UniformMatrix4fv(mvp_uniform, 1, false, values));
 }
 
-ozz::UniquePtr<AmbientShaderInstanced> AmbientShaderInstanced::Build() {
+ozz::unique_ptr<AmbientShaderInstanced> AmbientShaderInstanced::Build() {
   bool success = true;
 
   const char* vs[] = {
@@ -627,7 +627,7 @@ ozz::UniquePtr<AmbientShaderInstanced> AmbientShaderInstanced::Build() {
   const char* fs[] = {kPlatformSpecivicFSHeader, kShaderAmbientFct,
                       kShaderAmbientFS};
 
-  ozz::UniquePtr<AmbientShaderInstanced> shader =
+  ozz::unique_ptr<AmbientShaderInstanced> shader =
       make_unique<AmbientShaderInstanced>();
   success &=
       shader->BuildFromSource(OZZ_ARRAY_SIZE(vs), vs, OZZ_ARRAY_SIZE(fs), fs);
@@ -724,7 +724,7 @@ void AmbientShaderInstanced::Unbind() {
   Shader::Unbind();
 }
 
-ozz::UniquePtr<AmbientTexturedShader> AmbientTexturedShader::Build() {
+ozz::unique_ptr<AmbientTexturedShader> AmbientTexturedShader::Build() {
   const char* vs[] = {
       kPlatformSpecivicVSHeader, kPassUv,
       "uniform mat4 u_mw;\n mat4 GetWorldMatrix() {return u_mw;}\n",
@@ -732,7 +732,7 @@ ozz::UniquePtr<AmbientTexturedShader> AmbientTexturedShader::Build() {
   const char* fs[] = {kPlatformSpecivicFSHeader, kShaderAmbientFct,
                       kShaderAmbientTexturedFS};
 
-  ozz::UniquePtr<AmbientTexturedShader> shader =
+  ozz::unique_ptr<AmbientTexturedShader> shader =
       make_unique<AmbientTexturedShader>();
   bool success =
       shader->InternalBuild(OZZ_ARRAY_SIZE(vs), vs, OZZ_ARRAY_SIZE(fs), fs);

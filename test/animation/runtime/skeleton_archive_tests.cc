@@ -63,7 +63,7 @@ TEST(Empty, SkeletonSerialize) {
 }
 
 TEST(Filled, SkeletonSerialize) {
-  ozz::UniquePtr<Skeleton> o_skeleton;
+  ozz::unique_ptr<Skeleton> o_skeleton;
   /* Builds output skeleton.
    3 joints
 
@@ -128,7 +128,7 @@ TEST(Filled, SkeletonSerialize) {
 }
 
 TEST(AlreadyInitialized, SkeletonSerialize) {
-  ozz::UniquePtr<Skeleton> o_skeleton[2];
+  ozz::unique_ptr<Skeleton> o_skeleton[2];
   /* Builds output skeleton.
    3 joints
 

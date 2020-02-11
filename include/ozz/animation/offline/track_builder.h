@@ -56,20 +56,20 @@ struct RawQuaternionTrack;
 class TrackBuilder {
  public:
   // Creates a Track based on _raw_track and *this builder parameters.
-  // Returns a track instance on success, an empty UniquePtr on failure. See
+  // Returns a track instance on success, an empty unique_ptr on failure. See
   // Raw*Track::Validate() for more details about failure reasons.
   // The track is returned as an unique_ptr as ownership is given back to the
   // caller.
-  ozz::UniquePtr<FloatTrack> operator()(const RawFloatTrack& _input) const;
-  ozz::UniquePtr<Float2Track> operator()(const RawFloat2Track& _input) const;
-  ozz::UniquePtr<Float3Track> operator()(const RawFloat3Track& _input) const;
-  ozz::UniquePtr<Float4Track> operator()(const RawFloat4Track& _input) const;
-  ozz::UniquePtr<QuaternionTrack> operator()(
+  ozz::unique_ptr<FloatTrack> operator()(const RawFloatTrack& _input) const;
+  ozz::unique_ptr<Float2Track> operator()(const RawFloat2Track& _input) const;
+  ozz::unique_ptr<Float3Track> operator()(const RawFloat3Track& _input) const;
+  ozz::unique_ptr<Float4Track> operator()(const RawFloat4Track& _input) const;
+  ozz::unique_ptr<QuaternionTrack> operator()(
       const RawQuaternionTrack& _input) const;
 
  private:
   template <typename _RawTrack, typename _Track>
-  ozz::UniquePtr<_Track> Build(const _RawTrack& _input) const;
+  ozz::unique_ptr<_Track> Build(const _RawTrack& _input) const;
 };
 }  // namespace offline
 }  // namespace animation

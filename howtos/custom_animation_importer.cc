@@ -108,9 +108,9 @@ int main(int argc, char const* argv[]) {
 
   // Executes the builder on the previously prepared RawAnimation, which returns
   // a new runtime animation instance.
-  // This operation will fail and return an empty UniquePtr if the RawAnimation
+  // This operation will fail and return an empty unique_ptr if the RawAnimation
   // isn't valid.
-  ozz::UniquePtr<ozz::animation::Animation> animation = builder(raw_animation);
+  ozz::unique_ptr<ozz::animation::Animation> animation = builder(raw_animation);
 
   // ...use the animation as you want...
 

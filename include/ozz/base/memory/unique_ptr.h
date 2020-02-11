@@ -35,7 +35,7 @@
 
 namespace ozz {
 
-// Defaut deleter for ozz UniquePtr, uses redirected memory allocator.
+// Defaut deleter for ozz unique_ptr, uses redirected memory allocator.
 template <typename _Ty>
 struct Deleter {
   Deleter() {}
@@ -48,14 +48,14 @@ struct Deleter {
   }
 };
 
-// Defines ozz::UniquePtr to use ozz default deleter.
+// Defines ozz::unique_ptr to use ozz default deleter.
 template <typename _Ty, typename _Deleter = ozz::Deleter<_Ty>>
-using UniquePtr = std::unique_ptr<_Ty, _Deleter>;
+using unique_ptr = std::unique_ptr<_Ty, _Deleter>;
 
 // Implements make_unique to use ozz redirected memory allocator.
 template <typename _Ty, typename... _Args>
-UniquePtr<_Ty> make_unique(_Args&&... _args) {
-  return UniquePtr<_Ty>(New<_Ty>(std::forward<_Args>(_args)...));
+unique_ptr<_Ty> make_unique(_Args&&... _args) {
+  return unique_ptr<_Ty>(New<_Ty>(std::forward<_Args>(_args)...));
 }
 }  // namespace ozz
 #endif  // OZZ_OZZ_BASE_MEMORY_UNIQUE_PTR_H_

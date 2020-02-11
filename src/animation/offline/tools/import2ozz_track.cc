@@ -135,7 +135,7 @@ bool Export(OzzImporter& _importer, const _RawTrack& _raw_track,
   }
 
   // Builds runtime track.
-  UniquePtr<typename RawTrackToTrack<_RawTrack>::Track> track;
+  unique_ptr<typename RawTrackToTrack<_RawTrack>::Track> track;
   if (!_config["raw"].asBool()) {
     ozz::log::LogV() << "Builds runtime track." << std::endl;
     TrackBuilder builder;

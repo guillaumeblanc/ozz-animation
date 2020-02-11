@@ -260,7 +260,7 @@ class TestConverter : public ozz::animation::offline::OzzImporter {
     return found;
   }
 
-  ozz::UniquePtr<ozz::io::File> file_;
+  ozz::unique_ptr<ozz::io::File> file_;
 };
 
 int main(int _argc, const char** _argv) {

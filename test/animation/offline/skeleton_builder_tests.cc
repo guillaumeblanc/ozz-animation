@@ -53,7 +53,7 @@ TEST(Error, SkeletonBuilder) {
     EXPECT_TRUE(raw_skeleton.Validate());
     EXPECT_EQ(raw_skeleton.num_joints(), 0);
 
-    ozz::UniquePtr<Skeleton> skeleton(builder(raw_skeleton));
+    ozz::unique_ptr<Skeleton> skeleton(builder(raw_skeleton));
     ASSERT_TRUE(skeleton);
     EXPECT_EQ(skeleton->num_joints(), 0);
   }
@@ -194,7 +194,7 @@ TEST(Build, SkeletonBuilder) {
     EXPECT_TRUE(raw_skeleton.Validate());
     EXPECT_EQ(raw_skeleton.num_joints(), 1);
 
-    ozz::UniquePtr<Skeleton> skeleton(builder(raw_skeleton));
+    ozz::unique_ptr<Skeleton> skeleton(builder(raw_skeleton));
     ASSERT_TRUE(skeleton);
     EXPECT_EQ(skeleton->num_joints(), 1);
     EXPECT_EQ(skeleton->joint_parents()[0], Skeleton::kNoParent);
@@ -221,7 +221,7 @@ TEST(Build, SkeletonBuilder) {
     EXPECT_TRUE(raw_skeleton.Validate());
     EXPECT_EQ(raw_skeleton.num_joints(), 2);
 
-    ozz::UniquePtr<Skeleton> skeleton(builder(raw_skeleton));
+    ozz::unique_ptr<Skeleton> skeleton(builder(raw_skeleton));
     ASSERT_TRUE(skeleton);
     EXPECT_EQ(skeleton->num_joints(), 2);
     for (int i = 0; i < skeleton->num_joints(); ++i) {
@@ -259,7 +259,7 @@ TEST(Build, SkeletonBuilder) {
     EXPECT_TRUE(raw_skeleton.Validate());
     EXPECT_EQ(raw_skeleton.num_joints(), 3);
 
-    ozz::UniquePtr<Skeleton> skeleton(builder(raw_skeleton));
+    ozz::unique_ptr<Skeleton> skeleton(builder(raw_skeleton));
     ASSERT_TRUE(skeleton);
     EXPECT_EQ(skeleton->num_joints(), 3);
     for (int i = 0; i < skeleton->num_joints(); ++i) {
@@ -303,7 +303,7 @@ TEST(Build, SkeletonBuilder) {
     EXPECT_TRUE(raw_skeleton.Validate());
     EXPECT_EQ(raw_skeleton.num_joints(), 4);
 
-    ozz::UniquePtr<Skeleton> skeleton(builder(raw_skeleton));
+    ozz::unique_ptr<Skeleton> skeleton(builder(raw_skeleton));
     ASSERT_TRUE(skeleton);
     EXPECT_EQ(skeleton->num_joints(), 4);
     for (int i = 0; i < skeleton->num_joints(); ++i) {
@@ -349,7 +349,7 @@ TEST(Build, SkeletonBuilder) {
     EXPECT_TRUE(raw_skeleton.Validate());
     EXPECT_EQ(raw_skeleton.num_joints(), 4);
 
-    ozz::UniquePtr<Skeleton> skeleton(builder(raw_skeleton));
+    ozz::unique_ptr<Skeleton> skeleton(builder(raw_skeleton));
     ASSERT_TRUE(skeleton);
     EXPECT_EQ(skeleton->num_joints(), 4);
     for (int i = 0; i < skeleton->num_joints(); ++i) {
@@ -396,7 +396,7 @@ TEST(Build, SkeletonBuilder) {
     EXPECT_TRUE(raw_skeleton.Validate());
     EXPECT_EQ(raw_skeleton.num_joints(), 5);
 
-    ozz::UniquePtr<Skeleton> skeleton(builder(raw_skeleton));
+    ozz::unique_ptr<Skeleton> skeleton(builder(raw_skeleton));
     ASSERT_TRUE(skeleton);
     EXPECT_EQ(skeleton->num_joints(), 5);
     for (int i = 0; i < skeleton->num_joints(); ++i) {
@@ -448,7 +448,7 @@ TEST(Build, SkeletonBuilder) {
     EXPECT_TRUE(raw_skeleton.Validate());
     EXPECT_EQ(raw_skeleton.num_joints(), 6);
 
-    ozz::UniquePtr<Skeleton> skeleton(builder(raw_skeleton));
+    ozz::unique_ptr<Skeleton> skeleton(builder(raw_skeleton));
     ASSERT_TRUE(skeleton);
     EXPECT_EQ(skeleton->num_joints(), 6);
     for (int i = 0; i < skeleton->num_joints(); ++i) {
@@ -527,7 +527,7 @@ TEST(JointOrder, SkeletonBuilder) {
   EXPECT_TRUE(raw_skeleton.Validate());
   EXPECT_EQ(raw_skeleton.num_joints(), 8);
 
-  ozz::UniquePtr<Skeleton> skeleton(builder(raw_skeleton));
+  ozz::unique_ptr<Skeleton> skeleton(builder(raw_skeleton));
   ASSERT_TRUE(skeleton);
   EXPECT_EQ(skeleton->num_joints(), 8);
 
@@ -583,7 +583,7 @@ TEST(MultiRoots, SkeletonBuilder) {
   EXPECT_TRUE(raw_skeleton.Validate());
   EXPECT_EQ(raw_skeleton.num_joints(), 6);
 
-  ozz::UniquePtr<Skeleton> skeleton(builder(raw_skeleton));
+  ozz::unique_ptr<Skeleton> skeleton(builder(raw_skeleton));
   ASSERT_TRUE(skeleton);
   EXPECT_EQ(skeleton->num_joints(), 6);
   for (int i = 0; i < skeleton->num_joints(); i++) {
@@ -646,7 +646,7 @@ TEST(BindPose, SkeletonBuilder) {
   EXPECT_TRUE(raw_skeleton.Validate());
   EXPECT_EQ(raw_skeleton.num_joints(), 3);
 
-  ozz::UniquePtr<Skeleton> skeleton(builder(raw_skeleton));
+  ozz::unique_ptr<Skeleton> skeleton(builder(raw_skeleton));
   ASSERT_TRUE(skeleton);
 
   // Convert bind pose back to aos.
@@ -693,7 +693,7 @@ TEST(MaxJoints, SkeletonBuilder) {
     EXPECT_TRUE(raw_skeleton.Validate());
     EXPECT_EQ(raw_skeleton.num_joints(), Skeleton::kMaxJoints);
 
-    ozz::UniquePtr<Skeleton> skeleton(builder(raw_skeleton));
+    ozz::unique_ptr<Skeleton> skeleton(builder(raw_skeleton));
     EXPECT_TRUE(skeleton);
   }
 

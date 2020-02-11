@@ -177,7 +177,7 @@ class RendererImpl : public Renderer {
     GLuint vbo;
     GLenum mode;
     GLsizei count;
-    ozz::UniquePtr<SkeletonShader> shader;
+    ozz::unique_ptr<SkeletonShader> shader;
   };
 
   // Detects and initializes all OpenGL extension.
@@ -235,12 +235,12 @@ class RendererImpl : public Renderer {
   ScratchBuffer scratch_buffer_;
 
   // Immediate renderer implementation.
-  ozz::UniquePtr<GlImmediateRenderer> immediate_;
+  ozz::unique_ptr<GlImmediateRenderer> immediate_;
 
   // Ambient rendering shader.
-  ozz::UniquePtr<AmbientShader> ambient_shader;
-  ozz::UniquePtr<AmbientTexturedShader> ambient_textured_shader;
-  ozz::UniquePtr<AmbientShaderInstanced> ambient_shader_instanced;
+  ozz::unique_ptr<AmbientShader> ambient_shader;
+  ozz::unique_ptr<AmbientTexturedShader> ambient_textured_shader;
+  ozz::unique_ptr<AmbientShaderInstanced> ambient_shader_instanced;
 
   // Checkered texture
   unsigned int checkered_texture_;

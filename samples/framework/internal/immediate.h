@@ -128,8 +128,8 @@ class GlImmediateRenderer {
   size_t size_;
 
   // Immediate mode shaders;
-  ozz::UniquePtr<ImmediatePCShader> immediate_pc_shader;
-  ozz::UniquePtr<ImmediatePTCShader> immediate_ptc_shader;
+  ozz::unique_ptr<ImmediatePCShader> immediate_pc_shader;
+  ozz::unique_ptr<ImmediatePTCShader> immediate_ptc_shader;
 
   // The renderer object.
   RendererImpl* renderer_;

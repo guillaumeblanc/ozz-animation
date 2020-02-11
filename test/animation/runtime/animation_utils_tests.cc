@@ -44,7 +44,7 @@ using ozz::animation::offline::AnimationBuilder;
 
 TEST(CountKeyframes, AnimationUtils) {
   // Builds a valid animation.
-  ozz::UniquePtr<Animation> animation;
+  ozz::unique_ptr<Animation> animation;
 
   {
     RawAnimation raw_animation;

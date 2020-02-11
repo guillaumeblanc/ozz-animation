@@ -69,7 +69,7 @@ TEST(Empty, AnimationSerialize) {
 
 TEST(Filled, AnimationSerialize) {
   // Builds a valid animation.
-  ozz::UniquePtr<Animation> o_animation;
+  ozz::unique_ptr<Animation> o_animation;
   {
     RawAnimation raw_animation;
     raw_animation.duration = 1.f;
@@ -159,7 +159,7 @@ TEST(AlreadyInitialized, AnimationSerialize) {
     raw_animation.tracks.resize(1);
 
     AnimationBuilder builder;
-    ozz::UniquePtr<Animation> o_animation(builder(raw_animation));
+    ozz::unique_ptr<Animation> o_animation(builder(raw_animation));
     ASSERT_TRUE(o_animation);
     o << *o_animation;
 

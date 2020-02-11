@@ -99,15 +99,15 @@ void Fixup(_Keyframes* _keyframes) {
 // t = 0 and the last at t = 1. If at least one of those keys are not
 // in the RawAnimation then the builder creates it.
 template <typename _RawTrack, typename _Track>
-UniquePtr<_Track> TrackBuilder::Build(const _RawTrack& _input) const {
+unique_ptr<_Track> TrackBuilder::Build(const _RawTrack& _input) const {
   // Tests _raw_animation validity.
   if (!_input.Validate()) {
-    return UniquePtr<_Track>();
+    return unique_ptr<_Track>();
   }
 
   // Everything is fine, allocates and fills the animation.
   // Nothing can fail now.
-  UniquePtr<_Track> track = make_unique<_Track>();
+  unique_ptr<_Track> track = make_unique<_Track>();
 
   // Copy data to temporary prepared data structure
   typename _RawTrack::Keyframes keyframes;
@@ -150,19 +150,19 @@ UniquePtr<_Track> TrackBuilder::Build(const _RawTrack& _input) const {
   return track;  // Success.
 }
 
-UniquePtr<FloatTrack> TrackBuilder::operator()(
+unique_ptr<FloatTrack> TrackBuilder::operator()(
     const RawFloatTrack& _input) const {
   return Build<RawFloatTrack, FloatTrack>(_input);
 }
-UniquePtr<Float2Track> TrackBuilder::operator()(
+unique_ptr<Float2Track> TrackBuilder::operator()(
     const RawFloat2Track& _input) const {
   return Build<RawFloat2Track, Float2Track>(_input);
 }
-UniquePtr<Float3Track> TrackBuilder::operator()(
+unique_ptr<Float3Track> TrackBuilder::operator()(
     const RawFloat3Track& _input) const {
   return Build<RawFloat3Track, Float3Track>(_input);
 }
-UniquePtr<Float4Track> TrackBuilder::operator()(
+unique_ptr<Float4Track> TrackBuilder::operator()(
     const RawFloat4Track& _input) const {
   return Build<RawFloat4Track, Float4Track>(_input);
 }
@@ -199,7 +199,7 @@ void Fixup<RawQuaternionTrack::Keyframes>(
 }
 }  // namespace
 
-UniquePtr<QuaternionTrack> TrackBuilder::operator()(
+unique_ptr<QuaternionTrack> TrackBuilder::operator()(
     const RawQuaternionTrack& _input) const {
   return Build<RawQuaternionTrack, QuaternionTrack>(_input);
 }

@@ -418,10 +418,10 @@ class MillipedeSampleApplication : public ozz::sample::Application {
   int slice_count_;
 
   // The millipede skeleton.
-  ozz::UniquePtr<ozz::animation::Skeleton> skeleton_;
+  ozz::unique_ptr<ozz::animation::Skeleton> skeleton_;
 
   // The millipede procedural walk animation.
-  ozz::UniquePtr<ozz::animation::Animation> animation_;
+  ozz::unique_ptr<ozz::animation::Animation> animation_;
 
   // Sampling cache, as used by SamplingJob.
   ozz::animation::SamplingCache cache_;

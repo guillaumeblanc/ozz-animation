@@ -47,7 +47,7 @@ TEST(JobValidity, LocalToModel) {
   SkeletonBuilder builder;
 
   // Empty skeleton.
-  ozz::UniquePtr<Skeleton> empty_skeleton(builder(raw_skeleton));
+  ozz::unique_ptr<Skeleton> empty_skeleton(builder(raw_skeleton));
   ASSERT_TRUE(empty_skeleton);
 
   // Adds 2 joints.
@@ -56,7 +56,7 @@ TEST(JobValidity, LocalToModel) {
   root.name = "root";
   root.children.resize(1);
 
-  ozz::UniquePtr<Skeleton> skeleton(builder(raw_skeleton));
+  ozz::unique_ptr<Skeleton> skeleton(builder(raw_skeleton));
   ASSERT_TRUE(skeleton);
 
   ozz::math::SoaTransform input[2] = {ozz::math::SoaTransform::identity(),
@@ -261,7 +261,7 @@ TEST(Transformation, LocalToModel) {
   EXPECT_EQ(raw_skeleton.num_joints(), 6);
 
   SkeletonBuilder builder;
-  ozz::UniquePtr<Skeleton> skeleton(builder(raw_skeleton));
+  ozz::unique_ptr<Skeleton> skeleton(builder(raw_skeleton));
   ASSERT_TRUE(skeleton);
 
   // Initializes an input transformation.
@@ -382,7 +382,7 @@ TEST(TransformationFromTo, LocalToModel) {
   EXPECT_EQ(raw_skeleton.num_joints(), 8);
 
   SkeletonBuilder builder;
-  ozz::UniquePtr<Skeleton> skeleton(builder(raw_skeleton));
+  ozz::unique_ptr<Skeleton> skeleton(builder(raw_skeleton));
   ASSERT_TRUE(skeleton);
 
   // Initializes an input transformation.
@@ -841,7 +841,7 @@ TEST(TransformationFromToExclude, LocalToModel) {
   EXPECT_EQ(raw_skeleton.num_joints(), 8);
 
   SkeletonBuilder builder;
-  ozz::UniquePtr<Skeleton> skeleton(builder(raw_skeleton));
+  ozz::unique_ptr<Skeleton> skeleton(builder(raw_skeleton));
   ASSERT_TRUE(skeleton);
 
   // Initializes an input transformation.

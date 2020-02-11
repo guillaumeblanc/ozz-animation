@@ -51,7 +51,7 @@ class AnimationBuilder {
   // See RawAnimation::Validate() for more details about failure reasons.
   // The animation is returned as an unique_ptr as ownership is given back to
   // the caller.
-  UniquePtr<Animation> operator()(const RawAnimation& _raw_animation) const;
+  unique_ptr<Animation> operator()(const RawAnimation& _raw_animation) const;
 };
 }  // namespace offline
 }  // namespace animation

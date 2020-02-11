@@ -47,7 +47,7 @@ TEST(JobValidity, TrackTriggeringJob) {
   // Builds track
   ozz::animation::offline::RawFloatTrack raw_track;
   TrackBuilder builder;
-  ozz::UniquePtr<FloatTrack> track(builder(raw_track));
+  ozz::unique_ptr<FloatTrack> track(builder(raw_track));
   ASSERT_TRUE(track);
 
   {  // Default is invalid
@@ -116,7 +116,7 @@ TEST(Empty, TrackEdgeTriggerJob) {
 
   // Builds track
   ozz::animation::offline::RawFloatTrack raw_track;
-  ozz::UniquePtr<FloatTrack> track(builder(raw_track));
+  ozz::unique_ptr<FloatTrack> track(builder(raw_track));
   ASSERT_TRUE(track);
 
   TrackTriggeringJob job;
@@ -148,7 +148,7 @@ TEST(Iterator, TrackEdgeTriggerJob) {
   raw_track.keyframes.push_back(key2);
 
   // Builds track
-  ozz::UniquePtr<FloatTrack> track(builder(raw_track));
+  ozz::unique_ptr<FloatTrack> track(builder(raw_track));
   ASSERT_TRUE(track);
 
   TrackTriggeringJob job;
@@ -287,7 +287,7 @@ TEST(NoRange, TrackEdgeTriggerJob) {
   raw_track.keyframes.push_back(key2);
 
   // Builds track
-  ozz::UniquePtr<FloatTrack> track(builder(raw_track));
+  ozz::unique_ptr<FloatTrack> track(builder(raw_track));
   ASSERT_TRUE(track);
 
   TrackTriggeringJob job;
@@ -384,7 +384,7 @@ void TestEdgesExpectation(
   assert(_size >= 2);
 
   // Builds track
-  ozz::UniquePtr<FloatTrack> track(TrackBuilder()(_raw_track));
+  ozz::unique_ptr<FloatTrack> track(TrackBuilder()(_raw_track));
   ASSERT_TRUE(track);
 
   TrackTriggeringJob job;
@@ -1160,7 +1160,7 @@ TEST(StepThreshold, TrackEdgeTriggerJob) {
   raw_track.keyframes.push_back(key2);
 
   // Builds track
-  ozz::UniquePtr<FloatTrack> track(builder(raw_track));
+  ozz::unique_ptr<FloatTrack> track(builder(raw_track));
   ASSERT_TRUE(track);
 
   TrackTriggeringJob job;
@@ -1257,7 +1257,7 @@ TEST(StepThresholdBool, TrackEdgeTriggerJob) {
   raw_track.keyframes.push_back(key2);
 
   // Builds track
-  ozz::UniquePtr<FloatTrack> track(builder(raw_track));
+  ozz::unique_ptr<FloatTrack> track(builder(raw_track));
   ASSERT_TRUE(track);
 
   TrackTriggeringJob job;
@@ -1326,7 +1326,7 @@ TEST(LinearThreshold, TrackEdgeTriggerJob) {
   raw_track.keyframes.push_back(key2);
 
   // Builds track
-  ozz::UniquePtr<FloatTrack> track(builder(raw_track));
+  ozz::unique_ptr<FloatTrack> track(builder(raw_track));
   ASSERT_TRUE(track);
 
   TrackTriggeringJob job;
