@@ -1615,7 +1615,7 @@ OZZ_INLINE Float4x4 Invert(const Float4x4& _m, SimdInt4* _invertible) {
       cols[0].x * b0x + cols[0].y * b1x + cols[0].z * b2x + cols[0].w * b3x;
   const bool invertible = det != 0.f;
   assert((_invertible || invertible) && "Matrix is not invertible");
-  if (_invertible != NULL) {
+  if (_invertible != nullptr) {
     *_invertible = simd_int4::LoadX(invertible);
   }
   const float inv_det = invertible ? 1.f / det : 0.f;

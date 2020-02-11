@@ -92,7 +92,7 @@ _Ty* PointerStride(_Ty* _ty, size_t _stride) {
 template <typename _Ty>
 struct Range {
   // Default constructor initializes range to empty.
-  Range() : begin(NULL), end(NULL) {}
+  Range() : begin(nullptr), end(nullptr) {}
 
   // Constructs a range from its extreme values.
   Range(_Ty* _begin, const _Ty* _end) : begin(_begin), end(_end) {
@@ -113,8 +113,8 @@ struct Range {
 
   // Reset range to empty.
   void Clear() {
-    begin = NULL;
-    end = NULL;
+    begin = nullptr;
+    end = nullptr;
   }
 
   // Reinitialized from an array, its size is automatically deduced.
@@ -129,7 +129,7 @@ struct Range {
 
   // Returns a const reference to element _i of range [begin,end[.
   _Ty& operator[](size_t _i) const {
-    assert(begin != NULL && begin + _i < end && "Index out of range.");
+    assert(begin != nullptr && begin + _i < end && "Index out of range.");
     return begin[_i];
   }
 

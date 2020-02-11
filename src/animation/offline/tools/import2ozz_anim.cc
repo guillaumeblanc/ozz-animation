@@ -102,7 +102,7 @@ UniquePtr<ozz::animation::Skeleton> LoadSkeleton(const char* _path) {
     if (*_path == 0) {
       ozz::log::Err() << "Missing input skeleton file from json config."
                       << std::endl;
-      return NULL;
+      return nullptr;
     }
     ozz::log::LogV() << "Opens input skeleton ozz binary file: " << _path
                      << std::endl;
@@ -110,7 +110,7 @@ UniquePtr<ozz::animation::Skeleton> LoadSkeleton(const char* _path) {
     if (!file.opened()) {
       ozz::log::Err() << "Failed to open input skeleton ozz binary file: \""
                       << _path << "\"" << std::endl;
-      return NULL;
+      return nullptr;
     }
     ozz::io::IArchive archive(&file);
 
@@ -128,7 +128,7 @@ UniquePtr<ozz::animation::Skeleton> LoadSkeleton(const char* _path) {
       skeleton = builder(raw_skeleton);
       if (!skeleton) {
         ozz::log::Err() << "Failed to build runtime skeleton." << std::endl;
-        return NULL;
+        return nullptr;
       }
     } else if (archive.TestTag<Skeleton>()) {
       // Reads input archive to the runtime skeleton.
@@ -138,7 +138,7 @@ UniquePtr<ozz::animation::Skeleton> LoadSkeleton(const char* _path) {
     } else {
       ozz::log::Err() << "Failed to read input skeleton from binary file: "
                       << _path << std::endl;
-      return NULL;
+      return nullptr;
     }
   }
   return skeleton;
@@ -372,7 +372,7 @@ bool ImportAnimations(const Json::Value& _config, OzzImporter* _importer,
   // Import skeleton instance.
   UniquePtr<Skeleton> skeleton(
       LoadSkeleton(skeleton_config["filename"].asCString()));
-  success &= skeleton.get() != NULL;
+  success &= skeleton.get() != nullptr;
 
   // Loop though all existing animations, and export those who match
   // configuration.

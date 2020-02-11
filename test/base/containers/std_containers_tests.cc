@@ -53,7 +53,7 @@ TEST(Vector, Containers) {
 TEST(VectorExtensions, Containers) {
   typedef ozz::vector<int> Container;
   Container container;
-  int* null = NULL;
+  int* null = nullptr;
 
   // Non-mutable access.
   EXPECT_EQ(array_begin(container), null);

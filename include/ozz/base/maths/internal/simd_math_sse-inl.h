@@ -1494,7 +1494,7 @@ inline Float4x4 Invert(const Float4x4& _m, SimdInt4* _invertible) {
   const SimdInt4 invertible = CmpNe(det, simd_float4::zero());
   assert((_invertible || AreAllTrue1(invertible)) &&
          "Matrix is not invertible");
-  if (_invertible != NULL) {
+  if (_invertible != nullptr) {
     *_invertible = invertible;
   }
   tmp1 = OZZ_SSE_SELECT_F(invertible, RcpEstNR(det), simd_float4::zero());

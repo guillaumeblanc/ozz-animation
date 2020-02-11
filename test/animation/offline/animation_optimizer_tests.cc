@@ -49,13 +49,13 @@ using ozz::animation::offline::SkeletonBuilder;
 TEST(Error, AnimationOptimizer) {
   AnimationOptimizer optimizer;
 
-  {  // NULL output.
+  {  // nullptr output.
     RawAnimation input;
     Skeleton skeleton;
     EXPECT_TRUE(input.Validate());
 
     // Builds animation
-    EXPECT_FALSE(optimizer(input, skeleton, NULL));
+    EXPECT_FALSE(optimizer(input, skeleton, nullptr));
   }
 
   {  // Invalid input animation.

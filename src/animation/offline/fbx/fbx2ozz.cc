@@ -35,7 +35,7 @@ int main(int _argc, const char** _argv) {
 }
 
 Fbx2OzzImporter::Fbx2OzzImporter()
-    : settings_(fbx_manager_), scene_loader_(NULL) {}
+    : settings_(fbx_manager_), scene_loader_(nullptr) {}
 
 Fbx2OzzImporter::~Fbx2OzzImporter() { ozz::Delete(scene_loader_); }
 
@@ -48,7 +48,7 @@ bool Fbx2OzzImporter::Load(const char* _filename) {
     ozz::log::Err() << "Failed to import file " << _filename << "."
                     << std::endl;
     ozz::Delete(scene_loader_);
-    scene_loader_ = NULL;
+    scene_loader_ = nullptr;
     return false;
   }
   return true;

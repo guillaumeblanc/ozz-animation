@@ -41,7 +41,7 @@ namespace animation {
 namespace internal {
 
 template <typename _ValueType>
-Track<_ValueType>::Track() : name_(NULL) {}
+Track<_ValueType>::Track() : name_(nullptr) {}
 
 template <typename _ValueType>
 Track<_ValueType>::~Track() {
@@ -82,9 +82,9 @@ void Track<_ValueType>::Allocate(size_t _keys_count, size_t _name_len) {
   buffer += (_keys_count + 7) * sizeof(uint8_t) / 8;
   steps_.end = reinterpret_cast<uint8_t*>(buffer);
 
-  // Let name be NULL if track has no name. Allows to avoid allocating this
+  // Let name be nullptr if track has no name. Allows to avoid allocating this
   // buffer in the constructor of empty animations.
-  name_ = reinterpret_cast<char*>(_name_len > 0 ? buffer : NULL);
+  name_ = reinterpret_cast<char*>(_name_len > 0 ? buffer : nullptr);
   assert(math::IsAligned(name_, alignof(char)));
 }
 
@@ -96,7 +96,7 @@ void Track<_ValueType>::Deallocate() {
   values_.Clear();
   ratios_.Clear();
   steps_.Clear();
-  name_ = NULL;
+  name_ = nullptr;
 }
 
 template <typename _ValueType>
@@ -143,7 +143,7 @@ void Track<_ValueType>::Load(ozz::io::IArchive& _archive, uint32_t _version) {
   _archive >> ozz::io::MakeArray(values_);
   _archive >> ozz::io::MakeArray(steps_);
 
-  if (name_) {  // NULL name_ is supported.
+  if (name_) {  // nullptr name_ is supported.
     _archive >> ozz::io::MakeArray(name_, name_len);
     name_[name_len] = 0;
   }

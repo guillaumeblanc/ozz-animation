@@ -37,14 +37,14 @@ TEST(Construction, UniquePtr) {
 TEST(Reset, UniquePtr) {
   {
     ozz::UniquePtr<int> pi;
-    pi.reset(NULL);
+    pi.reset(nullptr);
 
     pi.reset(ozz::New<int>());
   }
   {
     ozz::UniquePtr<int> pi(ozz::New<int>());
     pi.reset(ozz::New<int>());
-    pi.reset(NULL);
+    pi.reset(nullptr);
   }
 }
 
@@ -55,13 +55,13 @@ struct A {
 TEST(Dereference, UniquePtr) {
   {
     const ozz::UniquePtr<int> pi;
-    EXPECT_TRUE(pi.get() == NULL);
+    EXPECT_TRUE(pi.get() == nullptr);
     EXPECT_FALSE(pi);
   }
   {
     const ozz::UniquePtr<int> pi(ozz::New<int>(46));
     EXPECT_EQ(*pi, 46);
-    EXPECT_TRUE(pi.get() != NULL);
+    EXPECT_TRUE(pi.get() != nullptr);
     EXPECT_TRUE(pi);
   }
   {
@@ -89,22 +89,22 @@ TEST(Swap, UniquePtr) {
     int* i = ozz::New<int>(46);
     ozz::UniquePtr<int> pi;
     ozz::UniquePtr<int> pii(i);
-    EXPECT_TRUE(pi.get() == NULL);
+    EXPECT_TRUE(pi.get() == nullptr);
     EXPECT_TRUE(pii.get() == i);
 
     pi.swap(pii);
-    EXPECT_TRUE(pii.get() == NULL);
+    EXPECT_TRUE(pii.get() == nullptr);
     EXPECT_TRUE(pi.get() == i);
   }
   {
     int* i = ozz::New<int>(46);
     ozz::UniquePtr<int> pi;
     ozz::UniquePtr<int> pii(i);
-    EXPECT_TRUE(pi.get() == NULL);
+    EXPECT_TRUE(pi.get() == nullptr);
     EXPECT_TRUE(pii.get() == i);
 
     swap(pi, pii);
-    EXPECT_TRUE(pii.get() == NULL);
+    EXPECT_TRUE(pii.get() == nullptr);
     EXPECT_TRUE(pi.get() == i);
   }
 }

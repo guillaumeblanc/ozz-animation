@@ -70,7 +70,7 @@ TEST(JobValidity, LocalToModel) {
     EXPECT_FALSE(job.Run());
   }
 
-  // NULL output
+  // nullptr output
   {
     LocalToModelJob job;
     job.skeleton = skeleton.get();
@@ -79,7 +79,7 @@ TEST(JobValidity, LocalToModel) {
     EXPECT_FALSE(job.Validate());
     EXPECT_FALSE(job.Run());
   }
-  // NULL input
+  // nullptr input
   {
     LocalToModelJob job;
     job.skeleton = skeleton.get();
@@ -289,7 +289,7 @@ TEST(Transformation, LocalToModel) {
         ozz::math::simd_float4::Load(1.f, -.1f, 1.f, 1.f)}}};
 
   {
-    // Prepares the job with root == NULL (default identity matrix)
+    // Prepares the job with root == nullptr (default identity matrix)
     ozz::math::Float4x4 output[6];
     LocalToModelJob job;
     job.skeleton = skeleton.get();

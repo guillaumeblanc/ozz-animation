@@ -98,7 +98,7 @@ class ImmediatePCShader : public Shader {
   virtual ~ImmediatePCShader() {}
 
   // Constructs the shader.
-  // Returns NULL if shader compilation failed or a valid Shader pointer on
+  // Returns nullptr if shader compilation failed or a valid Shader pointer on
   // success. The shader must then be deleted using default allocator Delete
   // function.
   static ozz::UniquePtr<ImmediatePCShader> Build();
@@ -115,7 +115,7 @@ class ImmediatePTCShader : public Shader {
   virtual ~ImmediatePTCShader() {}
 
   // Constructs the shader.
-  // Returns NULL if shader compilation failed or a valid Shader pointer on
+  // Returns nullptr if shader compilation failed or a valid Shader pointer on
   // success. The shader must then be deleted using default allocator Delete
   // function.
   static ozz::UniquePtr<ImmediatePTCShader> Build();
@@ -150,7 +150,7 @@ class JointShader : public SkeletonShader {
   virtual ~JointShader() {}
 
   // Constructs the shader.
-  // Returns NULL if shader compilation failed or a valid Shader pointer on
+  // Returns nullptr if shader compilation failed or a valid Shader pointer on
   // success. The shader must then be deleted using default allocator Delete
   // function.
   static ozz::UniquePtr<JointShader> Build();
@@ -162,7 +162,7 @@ class BoneShader : public SkeletonShader {
   virtual ~BoneShader() {}
 
   // Constructs the shader.
-  // Returns NULL if shader compilation failed or a valid Shader pointer on
+  // Returns nullptr if shader compilation failed or a valid Shader pointer on
   // success. The shader must then be deleted using default allocator Delete
   // function.
   static ozz::UniquePtr<BoneShader> Build();
@@ -174,7 +174,7 @@ class AmbientShader : public Shader {
   virtual ~AmbientShader() {}
 
   // Constructs the shader.
-  // Returns NULL if shader compilation failed or a valid Shader pointer on
+  // Returns nullptr if shader compilation failed or a valid Shader pointer on
   // success. The shader must then be deleted using default allocator Delete
   // function.
   static ozz::UniquePtr<AmbientShader> Build();
@@ -196,7 +196,7 @@ class AmbientShaderInstanced : public Shader {
   virtual ~AmbientShaderInstanced() {}
 
   // Constructs the shader.
-  // Returns NULL if shader compilation failed or a valid Shader pointer on
+  // Returns nullptr if shader compilation failed or a valid Shader pointer on
   // success. The shader must then be deleted using default allocator Delete
   // function.
   static ozz::UniquePtr<AmbientShaderInstanced> Build();
@@ -213,7 +213,7 @@ class AmbientShaderInstanced : public Shader {
 class AmbientTexturedShader : public AmbientShader {
  public:
   // Constructs the shader.
-  // Returns NULL if shader compilation failed or a valid Shader pointer on
+  // Returns nullptr if shader compilation failed or a valid Shader pointer on
   // success. The shader must then be deleted using default allocator Delete
   // function.
   static ozz::UniquePtr<AmbientTexturedShader> Build();
@@ -229,7 +229,7 @@ class AmbientTexturedShaderInstanced : public AmbientShaderInstanced {
 public:
 
   // Constructs the shader.
-  // Returns NULL if shader compilation failed or a valid Shader pointer on
+  // Returns nullptr if shader compilation failed or a valid Shader pointer on
   // success. The shader must then be deleted using default allocator Delete
   // function.
   static AmbientTexturedShaderInstanced* Build();

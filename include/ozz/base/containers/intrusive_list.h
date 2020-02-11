@@ -124,7 +124,7 @@ class Node {
   // Constructs an unlinked node.
   Node()
 #ifndef NDEBUG
-      : list_(NULL)
+      : list_(nullptr)
 #endif  // NDEBUG
   {
     prev_ = this;
@@ -348,8 +348,8 @@ class IntrusiveListIterator {
   typedef typename _Config::ListNode ListNode;
 
   // Constructs an iterator pointing _node.
-  // _node can be NULL which creates a default un-dereferencable iterator.
-  explicit IntrusiveListIterator(ListNode* _node = NULL) : node_(_node) {
+  // _node can be nullptr which creates a default un-dereferencable iterator.
+  explicit IntrusiveListIterator(ListNode* _node = nullptr) : node_(_node) {
     assert((!_node || _node->list_) &&
            "Cannot build an iterator from a node that's unlinked");
   }
@@ -449,7 +449,7 @@ class IntrusiveListIterator {
   friend class IntrusiveListIterator;
 
   // The list Node designated by *this iterator, which can be the end Node of a
-  // list. A default iterator has a NULL designated Node.
+  // list. A default iterator has a nullptr designated Node.
   ListNode* node_;
 };
 }  // namespace internal
@@ -844,7 +844,7 @@ inline void Node::unlink() {
   next_ = this;
 
 #ifndef NDEBUG
-  list_ = NULL;
+  list_ = nullptr;
 #endif  // NDEBUG
 }
 

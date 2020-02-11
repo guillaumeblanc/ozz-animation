@@ -327,7 +327,7 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
                                             "Upper body animation"};
         for (int i = 0; i < kNumLayers; ++i) {
           Sampler& sampler = samplers_[i];
-          ozz::sample::ImGui::OpenClose loc(_im_gui, oc_names[i], NULL);
+          ozz::sample::ImGui::OpenClose loc(_im_gui, oc_names[i], nullptr);
           if (open[i]) {
             sampler.controller.OnGui(sampler.animation, _im_gui);
           }

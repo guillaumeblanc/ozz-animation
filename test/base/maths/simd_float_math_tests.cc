@@ -47,7 +47,7 @@ static_assert(alignof(SimdFloat4) == 16,
               "Expects SimdFloat4 to be the size of 16 bytes.");
 
 TEST(Name, ozz_simd_math) {
-  EXPECT_TRUE(ozz::math::SimdImplementationName() != NULL);
+  EXPECT_TRUE(ozz::math::SimdImplementationName() != nullptr);
 }
 
 TEST(LoadFloat, ozz_simd_math) {

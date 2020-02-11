@@ -791,7 +791,7 @@ bool RendererImpl::DrawBoxShaded(
     // Buffer object will contain vertices and model matrices.
     const size_t bo_size = sizeof(vertices) + _transforms.size();
     GL(BindBuffer(GL_ARRAY_BUFFER, dynamic_array_bo_));
-    GL(BufferData(GL_ARRAY_BUFFER, bo_size, NULL, GL_STREAM_DRAW));
+    GL(BufferData(GL_ARRAY_BUFFER, bo_size, nullptr, GL_STREAM_DRAW));
 
     // Pushes vertices
     GL(BufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices));
@@ -890,7 +890,7 @@ bool RendererImpl::DrawSphereShaded(
         models_offset + static_cast<GLsizei>(_transforms.size());
 
     GL(BindBuffer(GL_ARRAY_BUFFER, dynamic_array_bo_));
-    GL(BufferData(GL_ARRAY_BUFFER, bo_size, NULL, GL_STREAM_DRAW));
+    GL(BufferData(GL_ARRAY_BUFFER, bo_size, nullptr, GL_STREAM_DRAW));
     GL(BufferSubData(GL_ARRAY_BUFFER, positions_offset,
                      sizeof(icosphere::kVertices), icosphere::kVertices));
     GL(BufferSubData(GL_ARRAY_BUFFER, colors_offset, colors_size, &_color));
@@ -925,7 +925,7 @@ bool RendererImpl::DrawSphereShaded(
 
     // Reallocate vertex buffer.
     GL(BindBuffer(GL_ARRAY_BUFFER, dynamic_array_bo_));
-    GL(BufferData(GL_ARRAY_BUFFER, bo_size, NULL, GL_STREAM_DRAW));
+    GL(BufferData(GL_ARRAY_BUFFER, bo_size, nullptr, GL_STREAM_DRAW));
     GL(BufferSubData(GL_ARRAY_BUFFER, positions_offset,
                      sizeof(icosphere::kVertices), icosphere::kVertices));
     Color* colors = static_cast<Color*>(scratch_buffer_.Resize(colors_size));
@@ -1138,7 +1138,7 @@ bool RendererImpl::DrawMesh(const Mesh& _mesh,
   const GLsizei vbo_size =
       positions_size + normals_size + colors_size + uvs_size;
   GL(BindBuffer(GL_ARRAY_BUFFER, dynamic_array_bo_));
-  GL(BufferData(GL_ARRAY_BUFFER, vbo_size, NULL, GL_STREAM_DRAW));
+  GL(BufferData(GL_ARRAY_BUFFER, vbo_size, nullptr, GL_STREAM_DRAW));
 
   // Iterate mesh parts and fills vbo.
   size_t vertex_offset = 0;
@@ -1224,7 +1224,7 @@ bool RendererImpl::DrawMesh(const Mesh& _mesh,
   }
 
   // Binds shader with this array buffer, depending on rendering options.
-  Shader* shader = NULL;
+  Shader* shader = nullptr;
   if (_options.texture) {
     ambient_textured_shader->Bind(_transform, camera()->view_proj(),
                                   positions_stride, positions_offset,
@@ -1538,11 +1538,11 @@ bool RendererImpl::DrawSkinnedMesh(
 
   // Updates dynamic vertex buffer with skinned data.
   GL(BindBuffer(GL_ARRAY_BUFFER, dynamic_array_bo_));
-  GL(BufferData(GL_ARRAY_BUFFER, vbo_size, NULL, GL_STREAM_DRAW));
+  GL(BufferData(GL_ARRAY_BUFFER, vbo_size, nullptr, GL_STREAM_DRAW));
   GL(BufferSubData(GL_ARRAY_BUFFER, 0, vbo_size, vbo_map));
 
   // Binds shader with this array buffer, depending on rendering options.
-  Shader* shader = NULL;
+  Shader* shader = nullptr;
   if (_options.texture) {
     ambient_textured_shader->Bind(_transform, camera()->view_proj(),
                                   positions_stride, positions_offset,
@@ -1585,7 +1585,7 @@ bool RendererImpl::DrawSkinnedMesh(
 #define OZZ_INIT_GL_EXT_N(_fct, _fct_name, _fct_type, _success)               \
   do {                                                                        \
     _fct = reinterpret_cast<_fct_type>(glfwGetProcAddress(_fct_name));        \
-    if (_fct == NULL) {                                                       \
+    if (_fct == nullptr) {                                                       \
       log::Err() << "Unable to install " _fct_name " function." << std::endl; \
       _success &= false;                                                      \
     }                                                                         \
@@ -1706,7 +1706,7 @@ bool RendererImpl::InitOpenGLExtensions() {
   return true;
 }
 
-RendererImpl::ScratchBuffer::ScratchBuffer() : buffer_(NULL), size_(0) {}
+RendererImpl::ScratchBuffer::ScratchBuffer() : buffer_(nullptr), size_(0) {}
 
 RendererImpl::ScratchBuffer::~ScratchBuffer() {
   memory::default_allocator()->Deallocate(buffer_);
@@ -1724,7 +1724,7 @@ void* RendererImpl::ScratchBuffer::Resize(size_t _size) {
 }  // namespace ozz
 
 // Helper macro used to declare extension function pointer.
-#define OZZ_DECL_GL_EXT(_fct, _fct_type) _fct_type _fct = NULL
+#define OZZ_DECL_GL_EXT(_fct, _fct_type) _fct_type _fct = nullptr
 
 #ifdef OZZ_GL_VERSION_1_5_EXT
 OZZ_DECL_GL_EXT(glBindBuffer, PFNGLBINDBUFFERPROC);

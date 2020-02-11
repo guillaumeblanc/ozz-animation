@@ -63,13 +63,13 @@ bool SamplingJob::Validate() const {
   // Tests are written in multiple lines in order to avoid branches.
   bool valid = true;
 
-  // Test for NULL pointers.
+  // Test for nullptr pointers.
   if (!animation || !cache) {
     return false;
   }
-  valid &= output.begin != NULL;
+  valid &= output.begin != nullptr;
 
-  // Tests output range, implicitly tests output.end != NULL.
+  // Tests output range, implicitly tests output.end != nullptr.
   const ptrdiff_t num_soa_tracks = animation->num_soa_tracks();
   valid &= output.end - output.begin >= num_soa_tracks;
 
@@ -392,7 +392,7 @@ void Interpolates(float _anim_ratio, int _num_soa_tracks,
 }
 }  // namespace
 
-SamplingJob::SamplingJob() : ratio(0.f), animation(NULL), cache(NULL) {}
+SamplingJob::SamplingJob() : ratio(0.f), animation(nullptr), cache(nullptr) {}
 
 bool SamplingJob::Run() const {
   if (!Validate()) {
@@ -442,13 +442,13 @@ bool SamplingJob::Run() const {
 
 SamplingCache::SamplingCache()
     : max_soa_tracks_(0),
-      soa_translations_(NULL) {  // soa_translations_ is the allocation pointer.
+      soa_translations_(nullptr) {  // soa_translations_ is the allocation pointer.
   Invalidate();
 }
 
 SamplingCache::SamplingCache(int _max_tracks)
     : max_soa_tracks_(0),
-      soa_translations_(NULL) {  // soa_translations_ is the allocation pointer.
+      soa_translations_(nullptr) {  // soa_translations_ is the allocation pointer.
   Resize(_max_tracks);
 }
 
@@ -539,7 +539,7 @@ void SamplingCache::Step(const Animation& _animation, float _ratio) {
 }
 
 void SamplingCache::Invalidate() {
-  animation_ = NULL;
+  animation_ = nullptr;
   ratio_ = 0.f;
   translation_cursor_ = 0;
   rotation_cursor_ = 0;

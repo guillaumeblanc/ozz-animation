@@ -59,7 +59,7 @@ struct LocalToModelJob {
   LocalToModelJob();
 
   // Validates job parameters. Returns true for a valid job, or false otherwise:
-  // -if any input pointer, including ranges, is NULL.
+  // -if any input pointer, including ranges, is nullptr.
   // -if the size of the input is smaller than the skeleton's number of joints.
   // Note that this input has a SoA format.
   // -if the size of of the output is smaller than the skeleton's number of
@@ -78,7 +78,7 @@ struct LocalToModelJob {
   // model space conversion.
   const Skeleton* skeleton;
 
-  // The root matrix will multiply to every model space matrices, default NULL
+  // The root matrix will multiply to every model space matrices, default nullptr
   // means an identity matrix. This can be used to directly compute world-space
   // transforms for example.
   const ozz::math::Float4x4* root;

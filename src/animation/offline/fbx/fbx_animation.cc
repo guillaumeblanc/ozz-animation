@@ -110,7 +110,7 @@ bool ExtractAnimation(FbxSceneLoader& _scene_loader, const SamplingInfo& _info,
   // Set animation data.
   _animation->duration = _info.duration;
 
-  // Locates all skeleton nodes in the fbx scene. Some might be NULL.
+  // Locates all skeleton nodes in the fbx scene. Some might be nullptr.
   ozz::vector<FbxNode*> nodes;
   for (int i = 0; i < _skeleton.num_joints(); i++) {
     const char* joint_name = _skeleton.joint_names()[i];
@@ -154,7 +154,7 @@ bool ExtractAnimation(FbxSceneLoader& _scene_loader, const SamplingInfo& _info,
   for (int i = 0; i < _skeleton.num_joints(); i++) {
     // Initializes non-animated joints.
     FbxNode* node = nodes[i];
-    if (node == NULL) {
+    if (node == nullptr) {
       ozz::log::LogV() << "No animation track found for joint \""
                        << _skeleton.joint_names()[i]
                        << "\". Using skeleton bind pose instead." << std::endl;

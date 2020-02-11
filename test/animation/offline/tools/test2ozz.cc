@@ -43,7 +43,7 @@ class TestConverter : public ozz::animation::offline::OzzImporter {
   virtual bool Load(const char* _filename) {
     file_ = ozz::make_unique<ozz::io::File>(_filename, "rb");
     if (!file_->opened()) {
-      file_.reset(NULL);
+      file_.reset(nullptr);
       return false;
     }
 

@@ -159,13 +159,13 @@ bool BuildVertices(FbxMesh* _fbx_mesh,
   assert(element_normals);
 
   // Checks uvs availability.
-  const FbxGeometryElementUV* element_uvs = NULL;
+  const FbxGeometryElementUV* element_uvs = nullptr;
   if (_fbx_mesh->GetElementUVCount() > 0) {
     element_uvs = _fbx_mesh->GetElementUV(0);
   }
 
   // Checks tangents availability.
-  const FbxGeometryElementTangent* element_tangents = NULL;
+  const FbxGeometryElementTangent* element_tangents = nullptr;
   if (element_uvs) {  // UVs are needed to generate tangents.
     // Regenerate tangents if they're not available.
     if (!_fbx_mesh->GenerateTangentsData(0, false)) {
@@ -177,7 +177,7 @@ bool BuildVertices(FbxMesh* _fbx_mesh,
   }
 
   // Checks vertex colors availability.
-  const FbxGeometryElementVertexColor* element_colors = NULL;
+  const FbxGeometryElementVertexColor* element_colors = nullptr;
   if (_fbx_mesh->GetElementVertexColorCount() > 0) {
     element_colors = _fbx_mesh->GetElementVertexColor(0);
   }

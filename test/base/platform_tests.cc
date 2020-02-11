@@ -119,8 +119,8 @@ TEST(Range, Memory) {
   const size_t array_size = OZZ_ARRAY_SIZE(ai);
 
   ozz::Range<int> empty;
-  EXPECT_TRUE(empty.begin == NULL);
-  EXPECT_TRUE(empty.end == NULL);
+  EXPECT_TRUE(empty.begin == nullptr);
+  EXPECT_TRUE(empty.end == nullptr);
   EXPECT_EQ(empty.count(), 0u);
   EXPECT_EQ(empty.size(), 0u);
 

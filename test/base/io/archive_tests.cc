@@ -37,10 +37,11 @@
 #include "archive_tests_objects.h"
 
 TEST(Error, Archive) {
-  {  // Invalid NULL stream.
-    EXPECT_ASSERTION(void(ozz::io::OArchive(NULL, ozz::GetNativeEndianness())),
-                     "valid opened stream");
-    EXPECT_ASSERTION(void(ozz::io::IArchive(NULL)), "valid opened stream");
+  {  // Invalid nullptr stream.
+    EXPECT_ASSERTION(
+        void(ozz::io::OArchive(nullptr, ozz::GetNativeEndianness())),
+        "valid opened stream");
+    EXPECT_ASSERTION(void(ozz::io::IArchive(nullptr)), "valid opened stream");
   }
   {  // Invalid not opened streams.
     ozz::io::File stream("root_that_does_not_exist:/file.ozz", "r");
@@ -146,7 +147,7 @@ TEST(PrimitiveArrays, Archive) {
     o << ozz::io::MakeArray(bo);
     const float fo[] = {46.f, 26.f, 14.f, 58.f, 99.f, 27.f};
     o << ozz::io::MakeArray(fo);
-    const uint32_t* po_null = NULL;
+    const uint32_t* po_null = nullptr;
     o << ozz::io::MakeArray(po_null, 0);
     const ozz::Range<const float> rfo(fo);
     o << ozz::io::MakeArray(rfo);
@@ -184,7 +185,7 @@ TEST(PrimitiveArrays, Archive) {
     float fi[OZZ_ARRAY_SIZE(fo)];
     i >> ozz::io::MakeArray(fi);
     EXPECT_EQ(std::memcmp(fi, fo, sizeof(fo)), 0);
-    uint32_t* pi_null = NULL;
+    uint32_t* pi_null = nullptr;
     i >> ozz::io::MakeArray(pi_null, 0);
     float fi2[OZZ_ARRAY_SIZE(fo)];
     ozz::Range<float> rfi(fi2);

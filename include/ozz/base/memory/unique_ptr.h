@@ -41,7 +41,7 @@ struct Deleter {
   Deleter() {}
 
   template <class _Up>
-  Deleter(const Deleter<_Up>&, _Ty* = NULL) {}
+  Deleter(const Deleter<_Up>&, _Ty* = nullptr) {}
 
   void operator()(_Ty* _ptr) const {
     ozz::Delete(_ptr);

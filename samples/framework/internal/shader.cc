@@ -68,7 +68,7 @@ Shader::~Shader() {
 namespace {
 GLuint CompileShader(GLenum _type, int _count, const char** _src) {
   GLuint shader = glCreateShader(_type);
-  GL(ShaderSource(shader, _count, _src, NULL));
+  GL(ShaderSource(shader, _count, _src, nullptr));
   GL(CompileShader(shader));
 
   int infolog_length = 0;

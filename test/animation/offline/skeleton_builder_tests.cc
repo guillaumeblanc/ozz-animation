@@ -68,7 +68,7 @@ class RawSkeletonIterateDFTester {
                   const RawSkeleton::Joint* _parent) {
     switch (num_joint_) {
       case 0: {
-        EXPECT_TRUE(_current.name == "root" && _parent == NULL);
+        EXPECT_TRUE(_current.name == "root" && _parent == nullptr);
         break;
       }
       case 1: {
@@ -111,7 +111,7 @@ class RawSkeletonIterateBFTester {
                   const RawSkeleton::Joint* _parent) {
     switch (num_joint_) {
       case 0: {
-        EXPECT_TRUE(_current.name == "root" && _parent == NULL);
+        EXPECT_TRUE(_current.name == "root" && _parent == nullptr);
         break;
       }
       case 1: {

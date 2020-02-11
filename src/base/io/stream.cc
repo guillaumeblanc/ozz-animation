@@ -60,11 +60,11 @@ void File::Close() {
   if (file_) {
     std::FILE* file = reinterpret_cast<std::FILE*>(file_);
     std::fclose(file);
-    file_ = NULL;
+    file_ = nullptr;
   }
 }
 
-bool File::opened() const { return file_ != NULL; }
+bool File::opened() const { return file_ != nullptr; }
 
 size_t File::Read(void* _buffer, size_t _size) {
   std::FILE* file = reinterpret_cast<std::FILE*>(file_);
@@ -111,11 +111,11 @@ const size_t MemoryStream::kBufferSizeIncrement = 16 << 10;
 const size_t MemoryStream::kMaxSize = std::numeric_limits<int>::max();
 
 MemoryStream::MemoryStream()
-    : buffer_(NULL), alloc_size_(0), end_(0), tell_(0) {}
+    : buffer_(nullptr), alloc_size_(0), end_(0), tell_(0) {}
 
 MemoryStream::~MemoryStream() {
   ozz::memory::default_allocator()->Deallocate(buffer_);
-  buffer_ = NULL;
+  buffer_ = nullptr;
 }
 
 bool MemoryStream::opened() const { return true; }
@@ -207,7 +207,7 @@ bool MemoryStream::Resize(size_t _size) {
     buffer_ = reinterpret_cast<char*>(
         ozz::memory::default_allocator()->Reallocate(buffer_, alloc_size_, 4));
   }
-  return _size == 0 || buffer_ != NULL;
+  return _size == 0 || buffer_ != nullptr;
 }
 }  // namespace io
 }  // namespace ozz

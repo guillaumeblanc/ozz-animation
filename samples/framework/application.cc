@@ -87,7 +87,7 @@ OZZ_OPTIONS_DECLARE_INT_FN(resolution, "Resolution index (0 to 17).", 5, false,
 
 namespace ozz {
 namespace sample {
-Application* Application::application_ = NULL;
+Application* Application::application_ = nullptr;
 
 Application::Application()
     : exit_(false),
@@ -163,7 +163,7 @@ int Application::Run(int _argc, const char** _argv, const char* _version,
   if (OPTIONS_render) {
     // Initialize GLFW
     if (!glfwInit()) {
-      application_ = NULL;
+      application_ = nullptr;
       return EXIT_FAILURE;
     }
 
@@ -235,7 +235,7 @@ int Application::Run(int _argc, const char** _argv, const char* _version,
     log::Err() << "An error occurred during sample execution." << std::endl;
   }
 
-  application_ = NULL;
+  application_ = nullptr;
 
   return success ? EXIT_SUCCESS : EXIT_FAILURE;
 }
@@ -276,7 +276,7 @@ Application::LoopStatus Application::OneLoop(int _loops) {
   }
 #else
   int width, height;
-  if (emscripten_get_canvas_element_size(NULL, &width, &height) !=
+  if (emscripten_get_canvas_element_size(nullptr, &width, &height) !=
       EMSCRIPTEN_RESULT_SUCCESS) {
     return kBreakFailure;
   }
@@ -546,7 +546,7 @@ bool Application::FrameworkGui() {
         static bool update_open = true;  // This is the most relevant for ozz.
         ImGui::OpenClose stats(im_gui, szLabel, &update_open);
         if (update_open) {
-          im_gui->DoGraph(NULL, 0.f, statistics.max, statistics.latest,
+          im_gui->DoGraph(nullptr, 0.f, statistics.max, statistics.latest,
                           update_time_->cursor(), update_time_->record_begin(),
                           update_time_->record_end());
         }
@@ -557,7 +557,7 @@ bool Application::FrameworkGui() {
         static bool render_open = false;
         ImGui::OpenClose stats(im_gui, szLabel, &render_open);
         if (render_open) {
-          im_gui->DoGraph(NULL, 0.f, statistics.max, statistics.latest,
+          im_gui->DoGraph(nullptr, 0.f, statistics.max, statistics.latest,
                           render_time_->cursor(), render_time_->record_begin(),
                           render_time_->record_end());
         }

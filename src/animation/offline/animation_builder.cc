@@ -271,7 +271,7 @@ UniquePtr<Animation> AnimationBuilder::operator()(
     const RawAnimation& _input) const {
   // Tests _raw_animation validity.
   if (!_input.Validate()) {
-    return NULL;
+    return nullptr;
   }
 
   // Everything is fine, allocates and fills the animation.

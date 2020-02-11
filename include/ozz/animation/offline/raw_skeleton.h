@@ -118,7 +118,7 @@ inline void _IterHierarchyRecurseBF(
 // _current joint is the root.
 template <typename _Fct>
 inline _Fct IterateJointsDF(const RawSkeleton& _skeleton, _Fct _fct) {
-  _IterHierarchyRecurseDF(_skeleton.roots, NULL, _fct);
+  _IterHierarchyRecurseDF(_skeleton.roots, nullptr, _fct);
   return _fct;
 }
 
@@ -128,7 +128,7 @@ inline _Fct IterateJointsDF(const RawSkeleton& _skeleton, _Fct _fct) {
 // _current joint is the root.
 template <typename _Fct>
 inline _Fct IterateJointsBF(const RawSkeleton& _skeleton, _Fct _fct) {
-  _IterHierarchyRecurseBF(_skeleton.roots, NULL, _fct);
+  _IterHierarchyRecurseBF(_skeleton.roots, nullptr, _fct);
   return _fct;
 }
 }  // namespace offline

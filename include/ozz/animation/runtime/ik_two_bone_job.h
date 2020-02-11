@@ -56,7 +56,7 @@ struct IKTwoBoneJob {
   IKTwoBoneJob();
 
   // Validates job parameters. Returns true for a valid job, or false otherwise:
-  // -if any input pointer is NULL
+  // -if any input pointer is nullptr
   // -if mid_axis isn't normalized.
   bool Validate() const;
 

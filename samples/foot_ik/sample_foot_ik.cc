@@ -174,7 +174,7 @@ class FootIKSampleApplication : public ozz::sample::Application {
     // position.
     ozz::sample::RayIntersectsMeshes(
         root_translation_ + kCharacterRayHeightOffset, kDown,
-        make_range(floors_), &root_translation_, NULL);
+        make_range(floors_), &root_translation_, nullptr);
 
     return true;
   }

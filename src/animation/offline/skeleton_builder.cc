@@ -78,7 +78,7 @@ UniquePtr<ozz::animation::Skeleton> SkeletonBuilder::operator()(
     const RawSkeleton& _raw_skeleton) const {
   // Tests _raw_skeleton validity.
   if (!_raw_skeleton.Validate()) {
-    return NULL;
+    return nullptr;
   }
 
   // Everything is fine, allocates and fills the skeleton.

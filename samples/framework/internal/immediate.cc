@@ -42,7 +42,7 @@ namespace sample {
 namespace internal {
 
 GlImmediateRenderer::GlImmediateRenderer(RendererImpl* _renderer)
-    : vbo_(0), buffer_(NULL), max_size_(0), size_(0), renderer_(_renderer) {}
+    : vbo_(0), buffer_(nullptr), max_size_(0), size_(0), renderer_(_renderer) {}
 
 GlImmediateRenderer::~GlImmediateRenderer() {
   assert(size_ == 0 && "Immediate rendering still in use.");
@@ -52,7 +52,7 @@ GlImmediateRenderer::~GlImmediateRenderer() {
     vbo_ = 0;
   }
   ozz::memory::default_allocator()->Deallocate(buffer_);
-  buffer_ = NULL;
+  buffer_ = nullptr;
 }
 
 bool GlImmediateRenderer::Initialize() {
@@ -124,7 +124,7 @@ void GlImmediateRenderer::ResizeVbo(size_t _new_size) {
         ozz::memory::default_allocator()->Reallocate(buffer_, max_size_, 16));
 
     GL(BindBuffer(GL_ARRAY_BUFFER, vbo_));
-    GL(BufferData(GL_ARRAY_BUFFER, max_size_, NULL, GL_STREAM_DRAW));
+    GL(BufferData(GL_ARRAY_BUFFER, max_size_, nullptr, GL_STREAM_DRAW));
     GL(BindBuffer(GL_ARRAY_BUFFER, 0));
   }
 }

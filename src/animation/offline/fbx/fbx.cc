@@ -36,7 +36,7 @@ namespace animation {
 namespace offline {
 namespace fbx {
 
-FbxManagerInstance::FbxManagerInstance() : fbx_manager_(NULL) {
+FbxManagerInstance::FbxManagerInstance() : fbx_manager_(nullptr) {
   // Instantiate Fbx manager, mostly a memory manager.
   fbx_manager_ = FbxManager::Create();
 
@@ -48,11 +48,11 @@ FbxManagerInstance::FbxManagerInstance() : fbx_manager_(NULL) {
 FbxManagerInstance::~FbxManagerInstance() {
   // Destroy the manager and all associated objects.
   fbx_manager_->Destroy();
-  fbx_manager_ = NULL;
+  fbx_manager_ = nullptr;
 }
 
 FbxDefaultIOSettings::FbxDefaultIOSettings(const FbxManagerInstance& _manager)
-    : io_settings_(NULL) {
+    : io_settings_(nullptr) {
   io_settings_ = FbxIOSettings::Create(_manager, IOSROOT);
   io_settings_->SetBoolProp(IMP_FBX_MATERIAL, false);
   io_settings_->SetBoolProp(IMP_FBX_TEXTURE, false);
@@ -64,7 +64,7 @@ FbxDefaultIOSettings::FbxDefaultIOSettings(const FbxManagerInstance& _manager)
 
 FbxDefaultIOSettings::~FbxDefaultIOSettings() {
   io_settings_->Destroy();
-  io_settings_ = NULL;
+  io_settings_ = nullptr;
 }
 
 FbxAnimationIOSettings::FbxAnimationIOSettings(
@@ -79,7 +79,7 @@ FbxSkeletonIOSettings::FbxSkeletonIOSettings(const FbxManagerInstance& _manager)
 FbxSceneLoader::FbxSceneLoader(const char* _filename, const char* _password,
                                const FbxManagerInstance& _manager,
                                const FbxDefaultIOSettings& _io_settings)
-    : scene_(NULL), converter_(NULL) {
+    : scene_(nullptr), converter_(nullptr) {
   // Create an importer.
   FbxImporter* importer = FbxImporter::Create(_manager, "ozz file importer");
   const bool initialized = importer->Initialize(_filename, -1, _io_settings);
@@ -93,11 +93,11 @@ FbxSceneLoader::FbxSceneLoader(const char* _filename, const char* _password,
 FbxSceneLoader::FbxSceneLoader(FbxStream* _stream, const char* _password,
                                const FbxManagerInstance& _manager,
                                const FbxDefaultIOSettings& _io_settings)
-    : scene_(NULL), converter_(NULL) {
+    : scene_(nullptr), converter_(nullptr) {
   // Create an importer.
   FbxImporter* importer = FbxImporter::Create(_manager, "ozz stream importer");
   const bool initialized =
-      importer->Initialize(_stream, NULL, -1, _io_settings);
+      importer->Initialize(_stream, nullptr, -1, _io_settings);
 
   ImportScene(importer, initialized, _password, _manager, _io_settings);
 
@@ -159,7 +159,7 @@ void FbxSceneLoader::ImportScene(FbxImporter* _importer,
     // Clear the scene if import failed.
     if (!imported) {
       scene_->Destroy();
-      scene_ = NULL;
+      scene_ = nullptr;
     }
   }
 }
@@ -167,12 +167,12 @@ void FbxSceneLoader::ImportScene(FbxImporter* _importer,
 FbxSceneLoader::~FbxSceneLoader() {
   if (scene_) {
     scene_->Destroy();
-    scene_ = NULL;
+    scene_ = nullptr;
   }
 
   if (converter_) {
     ozz::Delete(converter_);
-    converter_ = NULL;
+    converter_ = nullptr;
   }
 }
 

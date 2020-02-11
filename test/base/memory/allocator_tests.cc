@@ -33,14 +33,14 @@
 
 TEST(Allocate, Memory) {
   void* p = ozz::memory::default_allocator()->Allocate(12, 1024);
-  EXPECT_TRUE(p != NULL);
+  EXPECT_TRUE(p != nullptr);
   EXPECT_TRUE(ozz::math::IsAligned(p, 1024));
 
   // Fills allocated memory.
   memset(p, 0, 12);
 
   p = ozz::memory::default_allocator()->Reallocate(p, 46, 4096);
-  EXPECT_TRUE(p != NULL);
+  EXPECT_TRUE(p != nullptr);
   EXPECT_TRUE(ozz::math::IsAligned(p, 4096));
 
   // Fills allocated memory.
@@ -52,17 +52,17 @@ TEST(Allocate, Memory) {
 TEST(MallocCompliance, Memory) {
   {  // Allocating 0 byte gives a valid pointer.
     void* p = ozz::memory::default_allocator()->Allocate(0, 1024);
-    EXPECT_TRUE(p != NULL);
+    EXPECT_TRUE(p != nullptr);
     ozz::memory::default_allocator()->Deallocate(p);
   }
 
-  {  // Freeing of a NULL pointer is valid.
-    ozz::memory::default_allocator()->Deallocate(NULL);
+  {  // Freeing of a nullptr pointer is valid.
+    ozz::memory::default_allocator()->Deallocate(nullptr);
   }
 
-  {  // Reallocating NULL pointer is valid
-    void* p = ozz::memory::default_allocator()->Reallocate(NULL, 12, 1024);
-    EXPECT_TRUE(p != NULL);
+  {  // Reallocating nullptr pointer is valid
+    void* p = ozz::memory::default_allocator()->Reallocate(nullptr, 12, 1024);
+    EXPECT_TRUE(p != nullptr);
 
     // Fills allocated memory.
     memset(p, 0, 12);
@@ -108,14 +108,14 @@ struct AlignedInts {
 
 TEST(NewDelete, Memory) {
   AlignedInts* ai0 = ozz::New<AlignedInts>();
-  ASSERT_TRUE(ai0 != NULL);
+  ASSERT_TRUE(ai0 != nullptr);
   for (int i = 0; i < ai0->array_size; ++i) {
     EXPECT_EQ(ai0->array[i], i);
   }
   ozz::Delete(ai0);
 
   AlignedInts* ai1 = ozz::New<AlignedInts>(46);
-  ASSERT_TRUE(ai1 != NULL);
+  ASSERT_TRUE(ai1 != nullptr);
   EXPECT_EQ(ai1->array[0], 46);
   for (int i = 1; i < ai1->array_size; ++i) {
     EXPECT_EQ(ai1->array[i], i);
@@ -123,7 +123,7 @@ TEST(NewDelete, Memory) {
   ozz::Delete(ai1);
 
   AlignedInts* ai2 = ozz::New<AlignedInts>(46, 69);
-  ASSERT_TRUE(ai2 != NULL);
+  ASSERT_TRUE(ai2 != nullptr);
   EXPECT_EQ(ai2->array[0], 46);
   EXPECT_EQ(ai2->array[1], 69);
   for (int i = 2; i < ai2->array_size; ++i) {
@@ -132,7 +132,7 @@ TEST(NewDelete, Memory) {
   ozz::Delete(ai2);
 
   AlignedInts* ai3 = ozz::New<AlignedInts>(46, 69, 58);
-  ASSERT_TRUE(ai3 != NULL);
+  ASSERT_TRUE(ai3 != nullptr);
   EXPECT_EQ(ai3->array[0], 46);
   EXPECT_EQ(ai3->array[1], 69);
   EXPECT_EQ(ai3->array[2], 58);
@@ -159,7 +159,7 @@ class TestAllocator : public ozz::memory::Allocator {
     (void)_block;
     (void)_size;
     (void)_alignment;
-    return NULL;
+    return nullptr;
   }
 
   void* hard_coded_address_;

@@ -56,7 +56,7 @@ char* Skeleton::Allocate(size_t _chars_size, size_t _num_joints) {
 
   // Early out if no joint.
   if (_num_joints == 0) {
-    return NULL;
+    return nullptr;
   }
 
   // Bind poses have SoA format
