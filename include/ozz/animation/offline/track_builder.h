@@ -56,7 +56,7 @@ struct RawQuaternionTrack;
 class TrackBuilder {
  public:
   // Creates a Track based on _raw_track and *this builder parameters.
-  // Returns a track instance on success, NULL on failure. See
+  // Returns a track instance on success, an empty UniquePtr on failure. See
   // Raw*Track::Validate() for more details about failure reasons.
   // The track is returned as an unique_ptr as ownership is given back to the
   // caller.

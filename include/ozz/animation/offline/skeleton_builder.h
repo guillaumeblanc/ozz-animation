@@ -46,7 +46,7 @@ struct RawSkeleton;
 class SkeletonBuilder {
  public:
   // Creates a Skeleton based on _raw_skeleton and *this builder parameters.
-  // Returns a Skeleton instance on success, NULL on failure. See
+  // Returns a Skeleton instance on success, an empty UniquePtr on failure. See
   // RawSkeleton::Validate() for more details about failure reasons.
   // The skeleton is returned as an unique_ptr as ownership is given back to the
   // caller.
