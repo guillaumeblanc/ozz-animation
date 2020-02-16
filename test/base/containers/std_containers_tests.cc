@@ -25,6 +25,7 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
+#include "gtest/gtest.h"
 #include "ozz/base/containers/deque.h"
 #include "ozz/base/containers/list.h"
 #include "ozz/base/containers/map.h"
@@ -33,9 +34,6 @@
 #include "ozz/base/containers/stack.h"
 #include "ozz/base/containers/string.h"
 #include "ozz/base/containers/vector.h"
-
-#include "gtest/gtest.h"
-
 #include "ozz/base/gtest_helper.h"
 
 TEST(Vector, Containers) {
@@ -44,10 +42,13 @@ TEST(Vector, Containers) {
   container.push_back(1);
   container.insert(container.begin(), 0);
   container.push_back(2);
+  container.push_back(std::move(3));
   EXPECT_EQ(container[0], 0);
   EXPECT_EQ(container[1], 1);
   EXPECT_EQ(container[2], 2);
-  container.clear();
+  EXPECT_EQ(container[3], 3);
+
+  Container container2 = std::move(container);
 }
 
 TEST(VectorExtensions, Containers) {
@@ -99,6 +100,8 @@ TEST(Deque, Containers) {
   EXPECT_EQ(container[1], 1);
   EXPECT_EQ(container[2], 2);
   container.clear();
+
+  Container container2 = std::move(container);
 }
 
 TEST(List, Containers) {
@@ -110,6 +113,8 @@ TEST(List, Containers) {
   EXPECT_EQ(container.front(), 0);
   EXPECT_EQ(container.back(), 2);
   container.clear();
+
+  Container container2 = std::move(container);
 }
 
 TEST(Stack, Containers) {
@@ -121,6 +126,8 @@ TEST(Stack, Containers) {
   container.pop();
   EXPECT_EQ(container.top(), 1);
   container.pop();
+
+  Container container2 = std::move(container);
 }
 
 TEST(Queue, Containers) {
@@ -134,6 +141,8 @@ TEST(Queue, Containers) {
     container.pop();
     EXPECT_EQ(container.back(), 2);
     container.pop();
+
+    Container container2 = std::move(container);
   }
   {
     typedef ozz::priority_queue<int> Container;
@@ -162,6 +171,8 @@ TEST(Set, Containers) {
     container.erase('c');
     EXPECT_TRUE(container.find('b') == --container.end());
     container.clear();
+
+    Container container2 = std::move(container);
   }
   {
     typedef ozz::multiset<int> Container;
@@ -192,6 +203,8 @@ TEST(Map, Containers) {
     EXPECT_EQ(container['c'], -1);
     EXPECT_EQ(container['d'], 1);
     container.clear();
+
+    Container container2 = std::move(container);
   }
   {
     typedef ozz::multimap<char, int> Container;
@@ -218,4 +231,6 @@ TEST(string, Containers) {
   EXPECT_STREQ(str.c_str(), "a string");
   str.clear();
   EXPECT_EQ(str.size(), 0u);
+
+  string str2 = std::move(str);
 }
