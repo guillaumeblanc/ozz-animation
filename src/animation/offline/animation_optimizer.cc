@@ -931,21 +931,18 @@ class HillClimber {
 
       {  // Translation track, translation is affected by parent scale.
         const PositionAdapter adap(parent_scale);
-        TranslationTrack* track = ozz::New<TranslationTrack>(
-            itrack.translations, otrack.translations, adap, initial, i);
-        translations_.push_back(track);
+        translations_.push_back(ozz::make_unique<TranslationTrack>(
+            itrack.translations, otrack.translations, adap, initial, i));
       }
       {  // Rotation track, rotation affects children translations/length.
         const RotationAdapter adap(joint_length);
-        RotationTrack* track = ozz::New<RotationTrack>(
-            itrack.rotations, otrack.rotations, adap, initial, i);
-        rotations_.push_back(track);
+        rotations_.push_back(ozz::make_unique<RotationTrack>(
+            itrack.rotations, otrack.rotations, adap, initial, i));
       }
       {  // Scale track, scale affects children translations/length.
         const ScaleAdapter adap(joint_length);
-        ScaleTrack* track = ozz::New<ScaleTrack>(itrack.scales, otrack.scales,
-                                                 adap, initial, i);
-        scales_.push_back(track);
+        scales_.push_back(ozz::make_unique<ScaleTrack>(
+            itrack.scales, otrack.scales, adap, initial, i));
       }
     }
 
@@ -953,9 +950,9 @@ class HillClimber {
     // ensures tracks won't be reallocated/moved.
     remainings_.reserve(num_tracks * 3);
     for (int i = 0; i < num_tracks; ++i) {
-      remainings_.push_back(translations_[i]);
-      remainings_.push_back(rotations_[i]);
-      remainings_.push_back(scales_[i]);
+      remainings_.push_back(translations_[i].get());
+      remainings_.push_back(rotations_[i].get());
+      remainings_.push_back(scales_[i].get());
     }
 
     // Setup comparer
@@ -965,15 +962,6 @@ class HillClimber {
     // Initialize all tracks with a decimation based on initial tolerance.
     for (size_t i = 0; i < remainings_.size(); ++i) {
       remainings_[i]->Initialize(*comparer_);
-    }
-  }
-
-  ~HillClimber() {
-    const int num_tracks = original_.num_tracks();
-    for (int i = 0; i < num_tracks; ++i) {
-      ozz::Delete(translations_[i]);
-      ozz::Delete(rotations_[i]);
-      ozz::Delete(scales_[i]);
     }
   }
 
@@ -1063,9 +1051,9 @@ class HillClimber {
   ozz::unique_ptr<Comparer> comparer_;
   const RawAnimation& original_;
   const Skeleton& skeleton_;
-  ozz::vector<TranslationTrack*> translations_;
-  ozz::vector<RotationTrack*> rotations_;
-  ozz::vector<ScaleTrack*> scales_;
+  ozz::vector<unique_ptr<TranslationTrack>> translations_;
+  ozz::vector<unique_ptr<RotationTrack>> rotations_;
+  ozz::vector<unique_ptr<ScaleTrack>> scales_;
   ozz::vector<AnimationOptimizer::Setting> settings_;
   ozz::vector<VTrack*> remainings_;
 
