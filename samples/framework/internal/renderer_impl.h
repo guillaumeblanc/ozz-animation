@@ -62,7 +62,7 @@
 
 #include "framework/renderer.h"
 #include "ozz/base/containers/vector.h"
-#include "ozz/base/memory/scoped_ptr.h"
+#include "ozz/base/memory/unique_ptr.h"
 
 // Provides helper macro to test for glGetError on a gl call.
 #ifndef NDEBUG
@@ -177,7 +177,7 @@ class RendererImpl : public Renderer {
     GLuint vbo;
     GLenum mode;
     GLsizei count;
-    ozz::ScopedPtr<SkeletonShader> shader;
+    ozz::unique_ptr<SkeletonShader> shader;
   };
 
   // Detects and initializes all OpenGL extension.
@@ -204,7 +204,7 @@ class RendererImpl : public Renderer {
 
   // Array of matrices used to store model space matrices during DrawSkeleton
   // execution.
-  ozz::Vector<ozz::math::Float4x4>::Std prealloc_models_;
+  ozz::vector<ozz::math::Float4x4> prealloc_models_;
 
   // Application camera that provides rendering matrices.
   Camera* camera_;
@@ -235,12 +235,12 @@ class RendererImpl : public Renderer {
   ScratchBuffer scratch_buffer_;
 
   // Immediate renderer implementation.
-  ozz::ScopedPtr<GlImmediateRenderer> immediate_;
+  ozz::unique_ptr<GlImmediateRenderer> immediate_;
 
   // Ambient rendering shader.
-  ozz::ScopedPtr<AmbientShader> ambient_shader;
-  ozz::ScopedPtr<AmbientTexturedShader> ambient_textured_shader;
-  ozz::ScopedPtr<AmbientShaderInstanced> ambient_shader_instanced;
+  ozz::unique_ptr<AmbientShader> ambient_shader;
+  ozz::unique_ptr<AmbientTexturedShader> ambient_textured_shader;
+  ozz::unique_ptr<AmbientShaderInstanced> ambient_shader_instanced;
 
   // Checkered texture
   unsigned int checkered_texture_;

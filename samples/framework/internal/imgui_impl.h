@@ -184,7 +184,7 @@ class ImGuiImpl : public ImGui {
   };
 
   // Container stack.
-  ozz::Vector<Container>::Std containers_;
+  ozz::vector<Container> containers_;
 
   // Round rendering.
 

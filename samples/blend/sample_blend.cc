@@ -205,7 +205,7 @@ class BlendSampleApplication : public ozz::sample::Application {
     // Reading animations.
     const char* filenames[] = {OPTIONS_animation1, OPTIONS_animation2,
                                OPTIONS_animation3};
-    OZZ_STATIC_ASSERT(OZZ_ARRAY_SIZE(filenames) == kNumLayers);
+    static_assert(OZZ_ARRAY_SIZE(filenames) == kNumLayers, "Arrays mistmatch.");
     for (int i = 0; i < kNumLayers; ++i) {
       Sampler& sampler = samplers_[i];
 
@@ -265,12 +265,14 @@ class BlendSampleApplication : public ozz::sample::Application {
       ozz::sample::ImGui::OpenClose oc(_im_gui, "Animation control", &oc_open);
       if (oc_open) {
         static bool open[] = {true, true, true};
-        OZZ_STATIC_ASSERT(OZZ_ARRAY_SIZE(open) == kNumLayers);
+        static_assert(OZZ_ARRAY_SIZE(open) == kNumLayers,
+                      "Arrays size mismatch");
         const char* oc_names[] = {"Animation 1", "Animation 2", "Animation 3"};
-        OZZ_STATIC_ASSERT(OZZ_ARRAY_SIZE(oc_names) == kNumLayers);
+        static_assert(OZZ_ARRAY_SIZE(oc_names) == kNumLayers,
+                      "Arrays size mismatch");
         for (int i = 0; i < kNumLayers; ++i) {
           Sampler& sampler = samplers_[i];
-          ozz::sample::ImGui::OpenClose loc(_im_gui, oc_names[i], NULL);
+          ozz::sample::ImGui::OpenClose loc(_im_gui, oc_names[i], nullptr);
           if (open[i]) {
             sampler.controller.OnGui(sampler.animation, _im_gui, manual_);
           }
@@ -321,18 +323,18 @@ class BlendSampleApplication : public ozz::sample::Application {
     ozz::animation::SamplingCache cache;
 
     // Buffer of local transforms as sampled from animation_.
-    ozz::Vector<ozz::math::SoaTransform>::Std locals;
+    ozz::vector<ozz::math::SoaTransform> locals;
   } samplers_[kNumLayers];  // kNumLayers animations to blend.
 
   // Blending job bind pose threshold.
   float threshold_;
 
   // Buffer of local transforms which stores the blending result.
-  ozz::Vector<ozz::math::SoaTransform>::Std blended_locals_;
+  ozz::vector<ozz::math::SoaTransform> blended_locals_;
 
   // Buffer of model space matrices. These are computed by the local-to-model
   // job after the blending stage.
-  ozz::Vector<ozz::math::Float4x4>::Std models_;
+  ozz::vector<ozz::math::Float4x4> models_;
 };
 
 int main(int _argc, const char** _argv) {

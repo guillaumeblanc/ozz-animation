@@ -31,7 +31,7 @@
 
 #include "ozz/base/maths/gtest_math_helper.h"
 #include "ozz/base/maths/soa_transform.h"
-#include "ozz/base/memory/scoped_ptr.h"
+#include "ozz/base/memory/unique_ptr.h"
 
 #include "ozz/animation/runtime/animation.h"
 
@@ -50,7 +50,7 @@ TEST(JobValidity, SamplingJob) {
   raw_animation.tracks.resize(1);
 
   AnimationBuilder builder;
-  ozz::ScopedPtr<Animation> animation(builder(raw_animation));
+  ozz::unique_ptr<Animation> animation(builder(raw_animation));
   ASSERT_TRUE(animation);
 
   // Allocates cache.
@@ -256,7 +256,7 @@ TEST(Sampling, SamplingJob) {
   raw_animation.tracks[3].translations.push_back(h);
 
   // Builds animation
-  ozz::ScopedPtr<Animation> animation(builder(raw_animation));
+  ozz::unique_ptr<Animation> animation(builder(raw_animation));
   ASSERT_TRUE(animation);
 
   ozz::math::SoaTransform output[1];
@@ -294,7 +294,7 @@ TEST(SamplingNoTrack, SamplingJob) {
   SamplingCache cache(1);
 
   AnimationBuilder builder;
-  ozz::ScopedPtr<Animation> animation(builder(raw_animation));
+  ozz::unique_ptr<Animation> animation(builder(raw_animation));
   ASSERT_TRUE(animation);
 
   ozz::math::SoaTransform test_output[1];
@@ -323,7 +323,7 @@ TEST(Sampling1Track0Key, SamplingJob) {
   SamplingCache cache(1);
 
   AnimationBuilder builder;
-  ozz::ScopedPtr<Animation> animation(builder(raw_animation));
+  ozz::unique_ptr<Animation> animation(builder(raw_animation));
   ASSERT_TRUE(animation);
 
   ozz::math::SoaTransform output[1];
@@ -361,7 +361,7 @@ TEST(Sampling1Track1Key, SamplingJob) {
   raw_animation.tracks[0].translations.push_back(tkey);  // Adds a key.
 
   AnimationBuilder builder;
-  ozz::ScopedPtr<Animation> animation(builder(raw_animation));
+  ozz::unique_ptr<Animation> animation(builder(raw_animation));
   ASSERT_TRUE(animation);
 
   ozz::math::SoaTransform output[1];
@@ -402,7 +402,7 @@ TEST(Sampling1Track2Keys, SamplingJob) {
   raw_animation.tracks[0].translations.push_back(tkey1);  // Adds a key.
 
   AnimationBuilder builder;
-  ozz::ScopedPtr<Animation> animation(builder(raw_animation));
+  ozz::unique_ptr<Animation> animation(builder(raw_animation));
   ASSERT_TRUE(animation);
 
   ozz::math::SoaTransform output[1];
@@ -509,7 +509,7 @@ TEST(Sampling4Track2Keys, SamplingJob) {
   raw_animation.tracks[3].translations.push_back(tkey31);  // Adds a key.
 
   AnimationBuilder builder;
-  ozz::ScopedPtr<Animation> animation(builder(raw_animation));
+  ozz::unique_ptr<Animation> animation(builder(raw_animation));
   ASSERT_TRUE(animation);
 
   ozz::math::SoaTransform output[1];
@@ -565,7 +565,7 @@ TEST(Cache, SamplingJob) {
   raw_animation.tracks[0].translations.push_back(empty_key);
 
   SamplingCache cache(1);
-  ozz::ScopedPtr<Animation> animations[2];
+  ozz::unique_ptr<Animation> animations[2];
 
   {
     const RawAnimation::TranslationKey tkey = {
@@ -643,7 +643,7 @@ TEST(CacheResize, SamplingJob) {
   raw_animation.tracks.resize(7);
 
   AnimationBuilder builder;
-  ozz::ScopedPtr<Animation> animation(builder(raw_animation));
+  ozz::unique_ptr<Animation> animation(builder(raw_animation));
   ASSERT_TRUE(animation);
 
   // Empty cache by default

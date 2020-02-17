@@ -100,11 +100,11 @@ class Ozz2Csv {
   Generator* FindGenerator(const char* _name) const;
 
   // Registered generators.
-  typedef ozz::CStringMap<Generator*>::Std Generators;
+  typedef ozz::cstring_map<Generator*> Generators;
   Generators generators_;
 
   // Registered experiences
-  typedef ozz::CStringMap<ExperienceFct>::Std Experiences;
+  typedef ozz::cstring_map<ExperienceFct> Experiences;
   Experiences experiences_;
 };
 

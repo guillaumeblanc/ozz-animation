@@ -35,7 +35,7 @@
 #include "ozz/animation/offline/raw_animation.h"
 #include "ozz/animation/offline/raw_animation_utils.h"
 
-#include "ozz/base/memory/scoped_ptr.h"
+#include "ozz/base/memory/unique_ptr.h"
 
 #include "ozz/base/io/archive.h"
 #include "ozz/base/io/stream.h"
@@ -565,25 +565,25 @@ class OptimizeSampleApplication : public ozz::sample::Application {
   ozz::animation::SamplingCache cache_;
 
   // Runtime optimized animation.
-  ozz::ScopedPtr<ozz::animation::Animation> animation_rt_;
+  ozz::unique_ptr<ozz::animation::Animation> animation_rt_;
 
   // Buffer of local and model space transformations as sampled from the
   // rutime (optimized and compressed) animation.
-  ozz::Vector<ozz::math::SoaTransform>::Std locals_rt_;
-  ozz::Vector<ozz::math::Float4x4>::Std models_rt_;
+  ozz::vector<ozz::math::SoaTransform> locals_rt_;
+  ozz::vector<ozz::math::Float4x4> models_rt_;
 
   // Buffer of local and model space transformations as sampled from the
   // non-optimized (raw) animation.
   // Sampling the raw animation results in AoS data, meaning we have to
   // allocate AoS data and do the SoA conversion by hand.
-  ozz::Vector<ozz::math::Transform>::Std locals_raw_aos_;
-  ozz::Vector<ozz::math::SoaTransform>::Std locals_raw_;
-  ozz::Vector<ozz::math::Float4x4>::Std models_raw_;
+  ozz::vector<ozz::math::Transform> locals_raw_aos_;
+  ozz::vector<ozz::math::SoaTransform> locals_raw_;
+  ozz::vector<ozz::math::Float4x4> models_raw_;
 
   // Buffer of local and model space transformations storing samples from the
   // difference between optimized and non-optimized animations.
-  ozz::Vector<ozz::math::SoaTransform>::Std locals_diff_;
-  ozz::Vector<ozz::math::Float4x4>::Std models_diff_;
+  ozz::vector<ozz::math::SoaTransform> locals_diff_;
+  ozz::vector<ozz::math::Float4x4> models_diff_;
 
   // Record of accuracy errors produced by animation compression and
   // optimization.

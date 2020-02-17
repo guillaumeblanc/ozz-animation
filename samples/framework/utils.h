@@ -143,7 +143,7 @@ class RawSkeletonEditor {
 
  private:
   // Imgui Open/Close states for each skeleton joint.
-  ozz::Vector<bool>::Std open_close_states;
+  ozz::vector<bool> open_close_states;
 };
 
 // Multiplies a single quaternion at a specific index in a SoA transform range.
@@ -155,14 +155,14 @@ void MultiplySoATransformQuaternion(
 // This function will fail and return false if the file cannot be opened or if
 // it is not a valid ozz skeleton archive. A valid skeleton archive can be
 // produced with ozz tools (fbx2ozz) or using ozz skeleton serialization API.
-// _filename and _skeleton must be non-NULL.
+// _filename and _skeleton must be non-nullptr.
 bool LoadSkeleton(const char* _filename, ozz::animation::Skeleton* _skeleton);
 
 // Loads an animation from an ozz archive file named _filename.
 // This function will fail and return false if the file cannot be opened or if
 // it is not a valid ozz animation archive. A valid animation archive can be
 // produced with ozz tools (fbx2ozz) or using ozz animation serialization API.
-// _filename and _animation must be non-NULL.
+// _filename and _animation must be non-nullptr.
 bool LoadAnimation(const char* _filename,
                    ozz::animation::Animation* _animation);
 
@@ -170,7 +170,7 @@ bool LoadAnimation(const char* _filename,
 // This function will fail and return false if the file cannot be opened or if
 // it is not a valid ozz float track archive. A valid float track archive can be
 // produced with ozz tools (fbx2ozz) or using ozz serialization API.
-// _filename and _track must be non-NULL.
+// _filename and _track must be non-nullptr.
 bool LoadTrack(const char* _filename, ozz::animation::FloatTrack* _track);
 bool LoadTrack(const char* _filename, ozz::animation::Float2Track* _track);
 bool LoadTrack(const char* _filename, ozz::animation::Float3Track* _track);
@@ -181,16 +181,15 @@ bool LoadTrack(const char* _filename, ozz::animation::QuaternionTrack* _track);
 // This function will fail and return false if the file cannot be opened or if
 // it is not a valid ozz mesh archive. A valid mesh archive can be
 // serialization API.
-// _filename and _mesh must be non-NULL.
+// _filename and _mesh must be non-nullptr.
 bool LoadMesh(const char* _filename, ozz::sample::Mesh* _mesh);
 
 // Loads n sample::Mesh from an ozz archive file named _filename.
 // This function will fail and return false if the file cannot be opened or if
 // it is not a valid ozz mesh archive. A valid mesh archive can be
 // produced with ozz tools (fbx2skin) or using ozz animation serialization API.
-// _filename and _mesh must be non-NULL.
-bool LoadMeshes(const char* _filename,
-                ozz::Vector<ozz::sample::Mesh>::Std* _meshes);
+// _filename and _mesh must be non-nullptr.
+bool LoadMeshes(const char* _filename, ozz::vector<ozz::sample::Mesh>* _meshes);
 
 // Intersect _mesh with the half-line extending from _ray_origin indefinitely in
 // _ray_direction only. Returns true if there was an intersection. Fills

@@ -29,7 +29,7 @@
 
 #include <algorithm>
 #include <cassert>
-#include <cstdio>
+#include <functional>
 #include <limits>
 
 // Internal include file
@@ -37,11 +37,12 @@
 #include "ozz/animation/offline/raw_animation_utils.h"
 #include "ozz/animation/runtime/skeleton.h"
 #include "ozz/animation/runtime/skeleton_utils.h"
+#include "ozz/base/containers/stack.h"
 #include "ozz/base/containers/vector.h"
 #include "ozz/base/io/stream.h"
 #include "ozz/base/maths/math_constant.h"
 #include "ozz/base/maths/math_ex.h"
-#include "ozz/base/memory/scoped_ptr.h"
+#include "ozz/base/memory/unique_ptr.h"
 
 #define OZZ_INCLUDE_PRIVATE_HEADER  // Allows to include private headers.
 #include "animation/offline/decimate.h"
@@ -76,16 +77,14 @@ struct HierarchyBuilder {
 
     // Computes hierarchical scale, iterating skeleton forward (root to
     // leaf).
-    IterateJointsDF(
-        _skeleton,
-        IterateMemFun<HierarchyBuilder, &HierarchyBuilder::ComputeScaleForward>(
-            *this));
+    IterateJointsDF(_skeleton,
+                    std::bind(&HierarchyBuilder::ComputeScaleForward, this,
+                              std::placeholders::_1, std::placeholders::_2));
 
     // Computes hierarchical length, iterating skeleton backward (leaf to root).
     IterateJointsDFReverse(
-        _skeleton,
-        IterateMemFun<HierarchyBuilder,
-                      &HierarchyBuilder::ComputeLengthBackward>(*this));
+        _skeleton, std::bind(&HierarchyBuilder::ComputeLengthBackward, this,
+                             std::placeholders::_1, std::placeholders::_2));
   }
 
   struct Spec {
@@ -95,7 +94,7 @@ struct HierarchyBuilder {
   };
 
   // Defines the length of a joint hierarchy (of all child).
-  ozz::Vector<Spec>::Std specs;
+  ozz::vector<Spec> specs;
 
  private:
   // Extracts maximum translations and scales for each track/joint.
@@ -488,7 +487,7 @@ struct TrackComponent<RawAnimation::JointTrack::Scales> {
 template <typename _Track>
 class Spanner {
  public:
-  Spanner(const _Track& _track, const ozz::Vector<bool>::Std& _included)
+  Spanner(const _Track& _track, const ozz::vector<bool>& _included)
       : track_(_track), included_(_included), span_end_(0), inside_(false) {
     assert(track_.size() == included_.size());
     ++*this;
@@ -532,7 +531,7 @@ class Spanner {
   }
 
   const _Track& track_;
-  const ozz::Vector<bool>::Std& included_;
+  const ozz::vector<bool>& included_;
 
   size_t span_end_;
   bool inside_;
@@ -578,7 +577,7 @@ class Comparer {
   // Solution animation track shall have already been update.
   template <typename _Track>
   void UpdateError(const _Track& _track, int _joint,
-                   const ozz::Vector<bool>::Std& _included) {
+                   const ozz::vector<bool>& _included) {
     Spanner<_Track> spanner(
         TrackComponent<_Track>::Get(solution_.tracks[_joint]), _included);
 
@@ -618,7 +617,7 @@ class Comparer {
 
   template <typename _Track>
   float EstimateError(const _Track& _track, int _joint,
-                      const ozz::Vector<bool>::Std& _included) const {
+                      const ozz::vector<bool>& _included) const {
     // Temporary arrays used to store estimated values without modyfing current
     // ones (ensured for const function).
     // Only a subrange of those array might be actually used, depending on
@@ -699,8 +698,8 @@ class Comparer {
   const Skeleton& skeleton_;
   const ozz::Range<const AnimationOptimizer::Setting> settings_;
 
-  typedef ozz::Vector<ozz::math::Transform>::Std SkeletonTransforms;
-  typedef ozz::Vector<SkeletonTransforms>::Std SkeletonTransformKeys;
+  typedef ozz::vector<ozz::math::Transform> SkeletonTransforms;
+  typedef ozz::vector<SkeletonTransforms> SkeletonTransformKeys;
 
   // All model-space transforms for the reference animation.
   SkeletonTransformKeys reference_models_;
@@ -710,16 +709,16 @@ class Comparer {
   SkeletonTransformKeys solution_models_;
 
   // Error metric of each track, independently. Index is track number.
-  typedef ozz::Vector<float>::Std TrackErrors;
+  typedef ozz::vector<float> TrackErrors;
   TrackErrors track_own_errors_;
 
   // Index is keyframe time.
-  typedef ozz::Vector<TrackErrors>::Std TrackErrorKeys;
+  typedef ozz::vector<TrackErrors> TrackErrorKeys;
   TrackErrorKeys cached_errors_;
 
   // Union of all keyframe times.
-  typedef ozz::Vector<float>::Std KeyTimes;
-  ozz::Vector<float>::Std key_times_;
+  typedef ozz::vector<float> KeyTimes;
+  ozz::vector<float> key_times_;
 };
 
 // Abstract class used for hill climbing algorithm
@@ -875,9 +874,9 @@ class TTrack : public VTrack {
   _Track& validated_;
   _Track candidate_;
 
-  // Vector used to store keyframes from candidate_ that are included from
+  // vector used to store keyframes from candidate_ that are included from
   // validated_.
-  ozz::Vector<bool>::Std included_;
+  ozz::vector<bool> included_;
 };
 
 typedef TTrack<RawAnimation::JointTrack::Translations, PositionAdapter, 0>
@@ -896,8 +895,6 @@ class HillClimber {
         observer_(_optimizer.observer) {
     // Checks output
     assert(_output->tracks.size() == original_.tracks.size());
-
-    ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
 
     // Computes skeleton hierarchy specs, used to find initial settings.
     const HierarchyBuilder hierarchy(original_, _skeleton, _optimizer);
@@ -934,20 +931,20 @@ class HillClimber {
 
       {  // Translation track, translation is affected by parent scale.
         const PositionAdapter adap(parent_scale);
-        TranslationTrack* track = OZZ_NEW(allocator, TranslationTrack)(
+        TranslationTrack* track = ozz::New<TranslationTrack>(
             itrack.translations, otrack.translations, adap, initial, i);
         translations_.push_back(track);
       }
       {  // Rotation track, rotation affects children translations/length.
         const RotationAdapter adap(joint_length);
-        RotationTrack* track = OZZ_NEW(allocator, RotationTrack)(
+        RotationTrack* track = ozz::New<RotationTrack>(
             itrack.rotations, otrack.rotations, adap, initial, i);
         rotations_.push_back(track);
       }
       {  // Scale track, scale affects children translations/length.
         const ScaleAdapter adap(joint_length);
-        ScaleTrack* track = OZZ_NEW(allocator, ScaleTrack)(
-            itrack.scales, otrack.scales, adap, initial, i);
+        ScaleTrack* track = ozz::New<ScaleTrack>(itrack.scales, otrack.scales,
+                                                 adap, initial, i);
         scales_.push_back(track);
       }
     }
@@ -962,8 +959,8 @@ class HillClimber {
     }
 
     // Setup comparer
-    comparer_ = OZZ_NEW(allocator, Comparer)(_original, *_output, _skeleton,
-                                             ozz::make_range(settings_));
+    comparer_ = ozz::make_unique<Comparer>(_original, *_output, _skeleton,
+                                           ozz::make_range(settings_));
 
     // Initialize all tracks with a decimation based on initial tolerance.
     for (size_t i = 0; i < remainings_.size(); ++i) {
@@ -972,12 +969,11 @@ class HillClimber {
   }
 
   ~HillClimber() {
-    ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
     const int num_tracks = original_.num_tracks();
     for (int i = 0; i < num_tracks; ++i) {
-      OZZ_DELETE(allocator, translations_[i]);
-      OZZ_DELETE(allocator, rotations_[i]);
-      OZZ_DELETE(allocator, scales_[i]);
+      ozz::Delete(translations_[i]);
+      ozz::Delete(rotations_[i]);
+      ozz::Delete(scales_[i]);
     }
   }
 
@@ -988,7 +984,7 @@ class HillClimber {
       // that has the best bang for the buck.
       VTrack* best_track = NULL;
       float best_delta = 0.f;
-      for (ozz::Vector<VTrack*>::Std::iterator it = remainings_.begin();
+      for (ozz::vector<VTrack*>::iterator it = remainings_.begin();
            it != remainings_.end();) {
         VTrack* track = *it;
 
@@ -1044,10 +1040,10 @@ class HillClimber {
       best_track->Transition();
 
       // Updates all dependent tracks of the hierarchy.
-      IterateJointsDF(
-          skeleton_,
-          IterateMemFun<HillClimber, &HillClimber::UpdateDelta>(*this),
-          best_track->joint());
+      IterateJointsDF(skeleton_,
+                      std::bind(&HillClimber::UpdateDelta, this,
+                                std::placeholders::_1, std::placeholders::_2),
+                      best_track->joint());
     }
   }
 
@@ -1064,14 +1060,14 @@ class HillClimber {
   HillClimber(const HillClimber&);
   void operator=(const HillClimber&);
 
-  ScopedPtr<Comparer> comparer_;
+  ozz::unique_ptr<Comparer> comparer_;
   const RawAnimation& original_;
   const Skeleton& skeleton_;
-  ozz::Vector<TranslationTrack*>::Std translations_;
-  ozz::Vector<RotationTrack*>::Std rotations_;
-  ozz::Vector<ScaleTrack*>::Std scales_;
-  ozz::Vector<AnimationOptimizer::Setting>::Std settings_;
-  ozz::Vector<VTrack*>::Std remainings_;
+  ozz::vector<TranslationTrack*> translations_;
+  ozz::vector<RotationTrack*> rotations_;
+  ozz::vector<ScaleTrack*> scales_;
+  ozz::vector<AnimationOptimizer::Setting> settings_;
+  ozz::vector<VTrack*> remainings_;
 
   AnimationOptimizer::Observer* observer_;
 };
@@ -1109,7 +1105,7 @@ bool AnimationOptimizer::operator()(const RawAnimation& _input,
 
   if (fast) {
     // Temporary vector used to store included keyframes during decimation.
-    ozz::Vector<bool>::Std included;
+    ozz::vector<bool> included;
 
     // First computes bone lengths, that will be used when filtering.
     const HierarchyBuilder hierarchy(no_constant, _skeleton, *this);

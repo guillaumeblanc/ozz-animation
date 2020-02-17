@@ -328,7 +328,8 @@ OZZ_INLINE SimdFloat4 SplatW(_SimdFloat4 _v) { return OZZ_SSE_SPLAT_F(_v, 3); }
 
 template <size_t _X, size_t _Y, size_t _Z, size_t _W>
 OZZ_INLINE SimdFloat4 Swizzle(_SimdFloat4 _v) {
-  OZZ_STATIC_ASSERT(_X <= 3 && _Y <= 3 && _Z <= 3 && _W <= 3);
+  static_assert(_X <= 3 && _Y <= 3 && _Z <= 3 && _W <= 3,
+                "Indices must be between 0 and 3");
   return OZZ_SHUFFLE_PS1(_v, _MM_SHUFFLE(_W, _Z, _Y, _X));
 }
 
@@ -1208,7 +1209,8 @@ OZZ_INLINE SimdInt4 SplatW(_SimdInt4 _a) { return OZZ_SSE_SPLAT_I(_a, 3); }
 
 template <size_t _X, size_t _Y, size_t _Z, size_t _W>
 OZZ_INLINE SimdInt4 Swizzle(_SimdInt4 _v) {
-  OZZ_STATIC_ASSERT(_X <= 3 && _Y <= 3 && _Z <= 3 && _W <= 3);
+  static_assert(_X <= 3 && _Y <= 3 && _Z <= 3 && _W <= 3,
+                "Indices must be between 0 and 3");
   return _mm_shuffle_epi32(_v, _MM_SHUFFLE(_W, _Z, _Y, _X));
 }
 
@@ -1492,7 +1494,7 @@ inline Float4x4 Invert(const Float4x4& _m, SimdInt4* _invertible) {
   const SimdInt4 invertible = CmpNe(det, simd_float4::zero());
   assert((_invertible || AreAllTrue1(invertible)) &&
          "Matrix is not invertible");
-  if (_invertible != NULL) {
+  if (_invertible != nullptr) {
     *_invertible = invertible;
   }
   tmp1 = OZZ_SSE_SELECT_F(invertible, RcpEstNR(det), simd_float4::zero());

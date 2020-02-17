@@ -54,12 +54,12 @@ bool SkinningJob::Validate() const {
   valid &= influences_count > 0;
 
   // Checks joints matrices, required.
-  valid &= joint_matrices.begin != NULL;
+  valid &= joint_matrices.begin != nullptr;
   valid &= joint_matrices.end >= joint_matrices.begin;
 
   // Checks optional inverse transpose matrices.
   if (joint_inverse_transpose_matrices.begin) {
-    valid &= joint_inverse_transpose_matrices.begin != NULL;
+    valid &= joint_inverse_transpose_matrices.begin != nullptr;
     valid &= joint_inverse_transpose_matrices.end >=
              joint_inverse_transpose_matrices.begin;
   }
@@ -69,14 +69,14 @@ bool SkinningJob::Validate() const {
   const int vertex_count_at_least_1 = vertex_count > 0;
 
   // Checks indices, required.
-  valid &= joint_indices.begin != NULL;
+  valid &= joint_indices.begin != nullptr;
   valid &= joint_indices.size() >=
            joint_indices_stride * vertex_count_minus_1 +
                sizeof(uint16_t) * influences_count * vertex_count_at_least_1;
 
   // Checks weights, required if influences_count > 1.
   if (influences_count != 1) {
-    valid &= joint_weights.begin != NULL;
+    valid &= joint_weights.begin != nullptr;
     valid &=
         joint_weights.size() >=
         joint_weights_stride * vertex_count_minus_1 +
@@ -84,11 +84,11 @@ bool SkinningJob::Validate() const {
   }
 
   // Checks positions, mandatory.
-  valid &= in_positions.begin != NULL;
+  valid &= in_positions.begin != nullptr;
   valid &=
       in_positions.size() >= in_positions_stride * vertex_count_minus_1 +
                                  sizeof(float) * 3 * vertex_count_at_least_1;
-  valid &= out_positions.begin != NULL;
+  valid &= out_positions.begin != nullptr;
   valid &=
       out_positions.size() >= out_positions_stride * vertex_count_minus_1 +
                                   sizeof(float) * 3 * vertex_count_at_least_1;
@@ -98,7 +98,7 @@ bool SkinningJob::Validate() const {
     valid &=
         in_normals.size() >= in_normals_stride * vertex_count_minus_1 +
                                  sizeof(float) * 3 * vertex_count_at_least_1;
-    valid &= out_normals.begin != NULL;
+    valid &= out_normals.begin != nullptr;
     valid &=
         out_normals.size() >= out_normals_stride * vertex_count_minus_1 +
                                   sizeof(float) * 3 * vertex_count_at_least_1;
@@ -108,15 +108,15 @@ bool SkinningJob::Validate() const {
       valid &=
           in_tangents.size() >= in_tangents_stride * vertex_count_minus_1 +
                                     sizeof(float) * 3 * vertex_count_at_least_1;
-      valid &= out_tangents.begin != NULL;
+      valid &= out_tangents.begin != nullptr;
       valid &= out_tangents.size() >=
                out_tangents_stride * vertex_count_minus_1 +
                    sizeof(float) * 3 * vertex_count_at_least_1;
     }
   } else {
     // Tangents are not supported if normals are not there.
-    valid &= in_tangents.begin == NULL;
-    valid &= in_tangents.end == NULL;
+    valid &= in_tangents.begin == nullptr;
+    valid &= in_tangents.end == nullptr;
   }
 
   return valid;
@@ -494,14 +494,14 @@ bool SkinningJob::Run() const {
   }
 
   // Find skinning function index.
-  const size_t it = joint_inverse_transpose_matrices.begin != NULL;
+  const size_t it = joint_inverse_transpose_matrices.begin != nullptr;
   assert(it < OZZ_ARRAY_SIZE(kSkinningFct));
   const size_t inf =
       static_cast<size_t>(influences_count) > OZZ_ARRAY_SIZE(kSkinningFct[0])
           ? OZZ_ARRAY_SIZE(kSkinningFct[0]) - 1
           : influences_count - 1;
   assert(inf < OZZ_ARRAY_SIZE(kSkinningFct[0]));
-  const size_t fct = (in_normals.begin != NULL) + (in_tangents.begin != NULL);
+  const size_t fct = (in_normals.begin != nullptr) + (in_tangents.begin != nullptr);
   assert(fct < OZZ_ARRAY_SIZE(kSkinningFct[0][0]));
 
   // Calls skinning function. Cannot fail because job is valid.

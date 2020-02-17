@@ -47,7 +47,7 @@ Shooter::Shooter()
   // these functions are part of the library (don't need extensions).
   supported_ = true;
 #ifdef OZZ_GL_VERSION_1_5_EXT
-  supported_ &= glMapBuffer != NULL && glUnmapBuffer != NULL;
+  supported_ &= glMapBuffer != nullptr && glUnmapBuffer != nullptr;
 #endif  // OZZ_GL_VERSION_1_5_EXT
 
   // Initializes shots

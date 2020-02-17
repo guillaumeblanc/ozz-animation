@@ -47,17 +47,17 @@ bool ValidateLayer(const BlendingJob::Layer& _layer, ptrdiff_t _min_range) {
   bool valid = true;
 
   // Tests transforms validity.
-  valid &= _layer.transform.begin != NULL;
+  valid &= _layer.transform.begin != nullptr;
   valid &= _layer.transform.end >= _layer.transform.begin;
   valid &= _layer.transform.end - _layer.transform.begin >= _min_range;
 
   // Joint weights are optional.
-  if (_layer.joint_weights.begin != NULL) {
+  if (_layer.joint_weights.begin != nullptr) {
     valid &= _layer.joint_weights.end >= _layer.joint_weights.begin;
     valid &=
         _layer.joint_weights.end - _layer.joint_weights.begin >= _min_range;
   } else {
-    valid &= _layer.joint_weights.end == NULL;
+    valid &= _layer.joint_weights.end == nullptr;
   }
   return valid;
 }
@@ -72,12 +72,12 @@ bool BlendingJob::Validate() const {
   // Test for valid threshold).
   valid &= threshold > 0.f;
 
-  // Test for NULL begin pointers.
+  // Test for nullptr begin pointers.
   // Blending layers are mandatory, additive aren't.
-  valid &= bind_pose.begin != NULL;
-  valid &= output.begin != NULL;
+  valid &= bind_pose.begin != nullptr;
+  valid &= output.begin != nullptr;
 
-  // Test ranges are valid (implicitly test for NULL end pointers).
+  // Test ranges are valid (implicitly test for nullptr end pointers).
   valid &= bind_pose.end >= bind_pose.begin;
   valid &= output.end >= output.begin;
 
@@ -87,10 +87,10 @@ bool BlendingJob::Validate() const {
   valid &= output.end - output.begin >= min_range;
 
   // Blend layers are optional.
-  if (layers.begin != NULL) {
+  if (layers.begin != nullptr) {
     valid &= layers.end >= layers.begin;
   } else {
-    valid &= layers.end == NULL;
+    valid &= layers.end == nullptr;
   }
 
   // Validates layers.
@@ -100,16 +100,16 @@ bool BlendingJob::Validate() const {
   }
 
   // Additive layers are optional.
-  if (additive_layers.begin != NULL) {
+  if (additive_layers.begin != nullptr) {
     valid &= additive_layers.end >= additive_layers.begin;
   } else {
-    valid &= additive_layers.end == NULL;
+    valid &= additive_layers.end == nullptr;
   }
 
   // Validates additive layers.
   for (const Layer* layer = additive_layers.begin;
        additive_layers.begin &&
-       layer < additive_layers.end;  // Handles NULL pointers.
+       layer < additive_layers.end;  // Handles nullptr pointers.
        ++layer) {
     valid &= ValidateLayer(*layer, min_range);
   }

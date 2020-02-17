@@ -40,8 +40,8 @@ namespace ozz {
 namespace animation {
 
 LocalToModelJob::LocalToModelJob()
-    : skeleton(NULL),
-      root(NULL),
+    : skeleton(nullptr),
+      root(nullptr),
       from(Skeleton::kNoParent),
       to(Skeleton::kMaxJoints),
       from_excluded(false) {}
@@ -52,7 +52,7 @@ bool LocalToModelJob::Validate() const {
   // Tests are written in multiple lines in order to avoid branches.
   bool valid = true;
 
-  // Test for NULL begin pointers.
+  // Test for nullptr begin pointers.
   if (!skeleton) {
     return false;
   }
@@ -60,7 +60,7 @@ bool LocalToModelJob::Validate() const {
   const int num_joints = skeleton->num_joints();
   const int num_soa_joints = (num_joints + 3) / 4;
 
-  // Test input and output ranges, implicitly tests for NULL end pointers.
+  // Test input and output ranges, implicitly tests for nullptr end pointers.
   valid &= input.end - input.begin >= num_soa_joints;
   valid &= output.end - output.begin >= num_joints;
 
@@ -77,7 +77,7 @@ bool LocalToModelJob::Run() const {
   // Initializes an identity matrix that will be used to compute roots model
   // matrices without requiring a branch.
   const math::Float4x4 identity = math::Float4x4::identity();
-  const math::Float4x4* root_matrix = (root == NULL) ? &identity : root;
+  const math::Float4x4* root_matrix = (root == nullptr) ? &identity : root;
 
   // Applies hierarchical transformation.
   // Loop ends after "to".

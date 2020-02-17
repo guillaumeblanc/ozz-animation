@@ -1,10 +1,20 @@
 Next version
 ----------------------
+
 * Library
   - [offline] Moved RawAnimation::JointTrack::Validate() to raw_animation_utils.h ValidateTrack().
   - [offline] Added an option to skip validation when sampling RawAnimtion through raw_animation_utils.h functions. This can be used to prevent redundant validations. Note that RawAnimation sampling behavior is undefined if using an invalid RawAnimation with validate parameter set to false.
   - [offline] Added a constant track optimizer (ozz::animation::offline::AnimationConstantOptimizer), useful to strip constant tracks (only) without impacting overall animation accuracy.
-  - [base] Removes ScopedPtr implicit cast operator to pointer type. It avoids risking duplicating ownership, and complies with unique_ptr specification.
+  - [animation] Removes skeleton_utils.h IterateMemFun helper that can be replaced by std::bind.
+  - [base] Replaces OZZ_NEW and OZZ_DELETE macros with template functions ozz::New and ozz::Delete.
+  - [base] Removes ScopedPtr in favor of an alias to standard unique_ptr that remaps to ozz deallocator. Implements make_unique using ozz allocator.
+  - [base] Uses template aliasing (using keyword) to redirect ozz to std containers. This allows to get rid of ::Std when using ozz containers.
+  - [base] Renames all aliased ozz containers to there orignal std name: vector, map etc... 
+  - [base] Replaces OZZ_ALIGN_OF and OZZ_ALIGN by standard alignof and alignas keywords.
+  - [base] Replaces OZZ_STATIC_ASSERT by standard static_assert keyword.
+
+* Build pipeline
+  - Enables c++11 feature by default for all targets.
 
 * Tools
   - Strips constant animation tracks even when optimization is turned off. This allows to reduce animations size without affecting accuracy.

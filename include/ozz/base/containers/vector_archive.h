@@ -39,7 +39,7 @@ OZZ_IO_TYPE_NOT_VERSIONABLE_T2(class _Ty, class _Allocator,
                                std::vector<_Ty, _Allocator>)
 
 template <class _Ty, class _Allocator>
-struct Extern<std::vector<_Ty, _Allocator> > {
+struct Extern<std::vector<_Ty, _Allocator>> {
   inline static void Save(OArchive& _archive,
                           const std::vector<_Ty, _Allocator>* _values,
                           size_t _count) {

@@ -25,27 +25,37 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#ifndef OZZ_OZZ_BASE_CONTAINERS_LIST_H_
-#define OZZ_OZZ_BASE_CONTAINERS_LIST_H_
+#ifndef OZZ_OZZ_BASE_MEMORY_UNIQUE_PTR_H_
+#define OZZ_OZZ_BASE_MEMORY_UNIQUE_PTR_H_
 
-#ifdef _MSC_VER
-#pragma warning(push)
-// Removes constant conditional expression warning.
-#pragma warning(disable : 4127)
-#endif  // _MSC_VER
+#include "ozz/base/memory/allocator.h"
 
-#include <list>
-
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif  // _MSC_VER
-
-#include "ozz/base/containers/std_allocator.h"
+#include <memory>
+#include <utility>
 
 namespace ozz {
-// Redirects std::list to ozz::list in order to replace std default allocator by
-// ozz::StdAllocator.
-template <class _Ty, class _Allocator = ozz::StdAllocator<_Ty>>
-using list = std::list<_Ty, _Allocator>;
+
+// Defaut deleter for ozz unique_ptr, uses redirected memory allocator.
+template <typename _Ty>
+struct Deleter {
+  Deleter() {}
+
+  template <class _Up>
+  Deleter(const Deleter<_Up>&, _Ty* = nullptr) {}
+
+  void operator()(_Ty* _ptr) const {
+    ozz::Delete(_ptr);
+  }
+};
+
+// Defines ozz::unique_ptr to use ozz default deleter.
+template <typename _Ty, typename _Deleter = ozz::Deleter<_Ty>>
+using unique_ptr = std::unique_ptr<_Ty, _Deleter>;
+
+// Implements make_unique to use ozz redirected memory allocator.
+template <typename _Ty, typename... _Args>
+unique_ptr<_Ty> make_unique(_Args&&... _args) {
+  return unique_ptr<_Ty>(New<_Ty>(std::forward<_Args>(_args)...));
+}
 }  // namespace ozz
-#endif  // OZZ_OZZ_BASE_CONTAINERS_LIST_H_
+#endif  // OZZ_OZZ_BASE_MEMORY_UNIQUE_PTR_H_

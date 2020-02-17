@@ -115,7 +115,7 @@ bool RendererImpl::Initialize() {
   GL(GenBuffers(1, &dynamic_index_bo_));
 
   // Allocate immediate mode renderer;
-  immediate_ = OZZ_NEW(memory::default_allocator(), GlImmediateRenderer)(this);
+  immediate_ = make_unique<GlImmediateRenderer>(this);
   if (!immediate_->Initialize()) {
     return false;
   }
@@ -447,7 +447,7 @@ namespace {
 int DrawPosture_FillUniforms(const ozz::animation::Skeleton& _skeleton,
                              ozz::Range<const ozz::math::Float4x4> _matrices,
                              float* _uniforms, int _max_instances) {
-  assert(math::IsAligned(_uniforms, OZZ_ALIGN_OF(math::SimdFloat4)));
+  assert(math::IsAligned(_uniforms, alignof(math::SimdFloat4)));
 
   // Prepares computation constants.
   const int num_joints = _skeleton.num_joints();
@@ -791,7 +791,7 @@ bool RendererImpl::DrawBoxShaded(
     // Buffer object will contain vertices and model matrices.
     const size_t bo_size = sizeof(vertices) + _transforms.size();
     GL(BindBuffer(GL_ARRAY_BUFFER, dynamic_array_bo_));
-    GL(BufferData(GL_ARRAY_BUFFER, bo_size, NULL, GL_STREAM_DRAW));
+    GL(BufferData(GL_ARRAY_BUFFER, bo_size, nullptr, GL_STREAM_DRAW));
 
     // Pushes vertices
     GL(BufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices));
@@ -890,7 +890,7 @@ bool RendererImpl::DrawSphereShaded(
         models_offset + static_cast<GLsizei>(_transforms.size());
 
     GL(BindBuffer(GL_ARRAY_BUFFER, dynamic_array_bo_));
-    GL(BufferData(GL_ARRAY_BUFFER, bo_size, NULL, GL_STREAM_DRAW));
+    GL(BufferData(GL_ARRAY_BUFFER, bo_size, nullptr, GL_STREAM_DRAW));
     GL(BufferSubData(GL_ARRAY_BUFFER, positions_offset,
                      sizeof(icosphere::kVertices), icosphere::kVertices));
     GL(BufferSubData(GL_ARRAY_BUFFER, colors_offset, colors_size, &_color));
@@ -908,7 +908,8 @@ bool RendererImpl::DrawSphereShaded(
                                    normals_stride, normals_offset,
                                    colors_stride, colors_offset);
 
-    OZZ_STATIC_ASSERT(sizeof(icosphere::kIndices[0]) == 2);
+    static_assert(sizeof(icosphere::kIndices[0]) == 2,
+                  "Indices must be 2 bytes");
     GL(DrawElementsInstanced_(GL_TRIANGLES, OZZ_ARRAY_SIZE(icosphere::kIndices),
                               GL_UNSIGNED_SHORT, 0,
                               static_cast<GLsizei>(_transforms.count())));
@@ -924,7 +925,7 @@ bool RendererImpl::DrawSphereShaded(
 
     // Reallocate vertex buffer.
     GL(BindBuffer(GL_ARRAY_BUFFER, dynamic_array_bo_));
-    GL(BufferData(GL_ARRAY_BUFFER, bo_size, NULL, GL_STREAM_DRAW));
+    GL(BufferData(GL_ARRAY_BUFFER, bo_size, nullptr, GL_STREAM_DRAW));
     GL(BufferSubData(GL_ARRAY_BUFFER, positions_offset,
                      sizeof(icosphere::kVertices), icosphere::kVertices));
     Color* colors = static_cast<Color*>(scratch_buffer_.Resize(colors_size));
@@ -940,7 +941,8 @@ bool RendererImpl::DrawSphereShaded(
                            positions_offset, normals_stride, normals_offset,
                            colors_stride, colors_offset);
 
-      OZZ_STATIC_ASSERT(sizeof(icosphere::kIndices[0]) == 2);
+      static_assert(sizeof(icosphere::kIndices[0]) == 2,
+                    "Indices must be 2 bytes");
       GL(DrawElements(GL_TRIANGLES, OZZ_ARRAY_SIZE(icosphere::kIndices),
                       GL_UNSIGNED_SHORT, 0));
 
@@ -1136,7 +1138,7 @@ bool RendererImpl::DrawMesh(const Mesh& _mesh,
   const GLsizei vbo_size =
       positions_size + normals_size + colors_size + uvs_size;
   GL(BindBuffer(GL_ARRAY_BUFFER, dynamic_array_bo_));
-  GL(BufferData(GL_ARRAY_BUFFER, vbo_size, NULL, GL_STREAM_DRAW));
+  GL(BufferData(GL_ARRAY_BUFFER, vbo_size, nullptr, GL_STREAM_DRAW));
 
   // Iterate mesh parts and fills vbo.
   size_t vertex_offset = 0;
@@ -1159,7 +1161,8 @@ bool RendererImpl::DrawMesh(const Mesh& _mesh,
           part_normal_count * normals_stride, array_begin(part.normals)));
     } else {
       // Un-optimal path used when the right number of normals is not provided.
-      OZZ_STATIC_ASSERT(sizeof(kDefaultNormalsArray[0]) == normals_stride);
+      static_assert(sizeof(kDefaultNormalsArray[0]) == normals_stride,
+                    "Stride mismatch");
       for (size_t j = 0; j < part_vertex_count;
            j += OZZ_ARRAY_SIZE(kDefaultNormalsArray)) {
         const size_t this_loop_count = math::Min(
@@ -1181,7 +1184,8 @@ bool RendererImpl::DrawMesh(const Mesh& _mesh,
           part_color_count * colors_stride, array_begin(part.colors)));
     } else {
       // Un-optimal path used when the right number of colors is not provided.
-      OZZ_STATIC_ASSERT(sizeof(kDefaultColorsArray[0]) == colors_stride);
+      static_assert(sizeof(kDefaultColorsArray[0]) == colors_stride,
+                    "Stride mismatch");
       for (size_t j = 0; j < part_vertex_count;
            j += OZZ_ARRAY_SIZE(kDefaultColorsArray)) {
         const size_t this_loop_count = math::Min(
@@ -1220,7 +1224,7 @@ bool RendererImpl::DrawMesh(const Mesh& _mesh,
   }
 
   // Binds shader with this array buffer, depending on rendering options.
-  Shader* shader = NULL;
+  Shader* shader = nullptr;
   if (_options.texture) {
     ambient_textured_shader->Bind(_transform, camera()->view_proj(),
                                   positions_stride, positions_offset,
@@ -1245,7 +1249,8 @@ bool RendererImpl::DrawMesh(const Mesh& _mesh,
                 array_begin(indices), GL_STREAM_DRAW));
 
   // Draws the mesh.
-  OZZ_STATIC_ASSERT(sizeof(Mesh::TriangleIndices::value_type) == 2);
+  static_assert(sizeof(Mesh::TriangleIndices::value_type) == 2,
+                "Expects 2 bytes indices.");
   GL(DrawElements(GL_TRIANGLES, static_cast<GLsizei>(indices.size()),
                   GL_UNSIGNED_SHORT, 0));
 
@@ -1490,7 +1495,9 @@ bool RendererImpl::DrawSkinnedMesh(
           array_begin(part.colors), part_vertex_count * colors_stride);
     } else {
       // Un-optimal path used when the right number of colors is not provided.
-      OZZ_STATIC_ASSERT(sizeof(kDefaultColorsArray[0]) == colors_stride);
+      static_assert(sizeof(kDefaultColorsArray[0]) == colors_stride,
+                    "Stride mismatch");
+
       for (size_t j = 0; j < part_vertex_count;
            j += OZZ_ARRAY_SIZE(kDefaultColorsArray)) {
         const size_t this_loop_count = math::Min(
@@ -1531,11 +1538,11 @@ bool RendererImpl::DrawSkinnedMesh(
 
   // Updates dynamic vertex buffer with skinned data.
   GL(BindBuffer(GL_ARRAY_BUFFER, dynamic_array_bo_));
-  GL(BufferData(GL_ARRAY_BUFFER, vbo_size, NULL, GL_STREAM_DRAW));
+  GL(BufferData(GL_ARRAY_BUFFER, vbo_size, nullptr, GL_STREAM_DRAW));
   GL(BufferSubData(GL_ARRAY_BUFFER, 0, vbo_size, vbo_map));
 
   // Binds shader with this array buffer, depending on rendering options.
-  Shader* shader = NULL;
+  Shader* shader = nullptr;
   if (_options.texture) {
     ambient_textured_shader->Bind(_transform, camera()->view_proj(),
                                   positions_stride, positions_offset,
@@ -1560,7 +1567,8 @@ bool RendererImpl::DrawSkinnedMesh(
                 array_begin(indices), GL_STREAM_DRAW));
 
   // Draws the mesh.
-  OZZ_STATIC_ASSERT(sizeof(Mesh::TriangleIndices::value_type) == 2);
+  static_assert(sizeof(Mesh::TriangleIndices::value_type) == 2,
+                "Expects 2 bytes indices.");
   GL(DrawElements(GL_TRIANGLES, static_cast<GLsizei>(indices.size()),
                   GL_UNSIGNED_SHORT, 0));
 
@@ -1577,7 +1585,7 @@ bool RendererImpl::DrawSkinnedMesh(
 #define OZZ_INIT_GL_EXT_N(_fct, _fct_name, _fct_type, _success)               \
   do {                                                                        \
     _fct = reinterpret_cast<_fct_type>(glfwGetProcAddress(_fct_name));        \
-    if (_fct == NULL) {                                                       \
+    if (_fct == nullptr) {                                                       \
       log::Err() << "Unable to install " _fct_name " function." << std::endl; \
       _success &= false;                                                      \
     }                                                                         \
@@ -1698,7 +1706,7 @@ bool RendererImpl::InitOpenGLExtensions() {
   return true;
 }
 
-RendererImpl::ScratchBuffer::ScratchBuffer() : buffer_(NULL), size_(0) {}
+RendererImpl::ScratchBuffer::ScratchBuffer() : buffer_(nullptr), size_(0) {}
 
 RendererImpl::ScratchBuffer::~ScratchBuffer() {
   memory::default_allocator()->Deallocate(buffer_);
@@ -1716,7 +1724,7 @@ void* RendererImpl::ScratchBuffer::Resize(size_t _size) {
 }  // namespace ozz
 
 // Helper macro used to declare extension function pointer.
-#define OZZ_DECL_GL_EXT(_fct, _fct_type) _fct_type _fct = NULL
+#define OZZ_DECL_GL_EXT(_fct, _fct_type) _fct_type _fct = nullptr
 
 #ifdef OZZ_GL_VERSION_1_5_EXT
 OZZ_DECL_GL_EXT(glBindBuffer, PFNGLBINDBUFFERPROC);

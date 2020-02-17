@@ -27,19 +27,15 @@
 
 #include "ozz2csv.h"
 
-#include "ozz2csv_csv.h"
+#include <json/json.h>
 
 #include "ozz/animation/offline/raw_animation.h"
-
 #include "ozz/animation/runtime/skeleton.h"
-
 #include "ozz/base/io/archive.h"
 #include "ozz/base/io/stream.h"
 #include "ozz/base/log.h"
-
 #include "ozz/options/options.h"
-
-#include <json/json.h>
+#include "ozz2csv_csv.h"
 
 // Concept is to read a non optimized animation, build and sample it, compute
 // model space transforms and output everything to a csv file for analysis.
@@ -80,8 +76,8 @@ bool Load(const char* _filename, _Type* _object) {
   return true;
 }
 
-ozz::String::Std CsvFileName(const char* _name) {
-  ozz::String::Std filename = OPTIONS_path.value();
+ozz::string CsvFileName(const char* _name) {
+  ozz::string filename = OPTIONS_path.value();
   filename += '/';
   filename += OPTIONS_experience.value();
   filename += "_";
@@ -167,7 +163,7 @@ bool Ozz2Csv::RunExperiences(
   for (Experiences::const_iterator it = experiences_.begin();
        it != experiences_.end(); ++it) {
     // Opens csv file.
-    const ozz::String::Std filename = CsvFileName(it->first);
+    const ozz::string filename = CsvFileName(it->first);
     CsvFile csv(filename.c_str());
     if (!csv.opened()) {
       return false;

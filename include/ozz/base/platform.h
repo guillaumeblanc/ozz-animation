@@ -28,71 +28,23 @@
 #ifndef OZZ_OZZ_BASE_PLATFORM_H_
 #define OZZ_OZZ_BASE_PLATFORM_H_
 
+// Ensures compiler supports c++11 language standards, to help user understand
+// compilation error in case it's not supported.
+// Unfortunately MSVC doesn't update __cplusplus, so test compiler version
+// instead.
+#if !((__cplusplus >= 201103L) || (_MSC_VER >= 1900))
+#error "ozz-animation requires c++11 language standards."
+#endif  // __cplusplus
+
 #include <stdint.h>
+
 #include <cassert>
 #include <cstddef>
 
 namespace ozz {
 
-// Compile time string concatenation.
-#define OZZ_JOIN(_a, _b) _OZZ_JOIN(_a, _b)
-// Compile time string concatenation implementation details.
-#define _OZZ_JOIN(_a, _b) _OZZ_JOIN2(_a, _b)
-#define _OZZ_JOIN2(_a, _b) _a##_b
-
-// Compile time assertion. Breaks compiling if _condition is false.
-// Defines an array with a negative number of elements if _condition is false,
-// which generates a compiler error.
-#define OZZ_STATIC_ASSERT(_condition)           \
-  struct OZZ_JOIN(_StaticAssert, __COUNTER__) { \
-    char x[(_condition) ? 1 : -1];              \
-  }
-
-// Gets alignment in bytes required for any instance of the given type.
-// Usage is OZZ_ALIGN_OF(MyStruct).
-#if __cplusplus >= 201103L
-#define OZZ_ALIGN_OF(_Ty) alignof(_Ty)
-#else  // __cplusplus
-namespace internal {
-// http://www.wambold.com/Martin/writings/alignof.html
-template <typename _Ty>
-struct _AlignOf;
-
-template <typename _Ty, size_t _SizeDiff>
-struct _AlignOfHelper {
-  enum { kValue = _SizeDiff };
-};
-
-template <typename _Ty>
-struct _AlignOfHelper<_Ty, 0> {
-  enum { kValue = _AlignOf<_Ty>::kValue };
-};
-
-template <typename _Ty>
-struct _AlignOf {
-  struct Acc {
-    Acc();  // Needs a default constructor for some compilers.
-    _Ty x;
-    char c;
-  };
-  enum { kValue = _AlignOfHelper<Acc, sizeof(Acc) - sizeof(_Ty)>::kValue };
-};
-}  // namespace internal
-#define OZZ_ALIGN_OF(_Ty) \
-  static_cast<size_t>(ozz::internal::_AlignOf<_Ty>::kValue)
-#endif  // __cplusplus
-
 // Finds the number of elements of a statically allocated array.
 #define OZZ_ARRAY_SIZE(_array) (sizeof(_array) / sizeof(_array[0]))
-
-// Specifies a minimum alignment (in bytes) for variables.
-// Syntax is: "OZZ_ALIGN(16) int i;" which aligns "i" variable address to 16
-// bytes.
-#if defined(_MSC_VER)
-#define OZZ_ALIGN(_alignment) __declspec(align(_alignment))
-#else
-#define OZZ_ALIGN(_alignment) __attribute__((aligned(_alignment)))
-#endif
 
 // Instructs the compiler to try to inline a function, regardless cost/benefit
 // compiler analysis.
@@ -140,7 +92,7 @@ _Ty* PointerStride(_Ty* _ty, size_t _stride) {
 template <typename _Ty>
 struct Range {
   // Default constructor initializes range to empty.
-  Range() : begin(NULL), end(NULL) {}
+  Range() : begin(nullptr), end(nullptr) {}
 
   // Constructs a range from its extreme values.
   Range(_Ty* _begin, const _Ty* _end) : begin(_begin), end(_end) {
@@ -161,8 +113,8 @@ struct Range {
 
   // Reset range to empty.
   void Clear() {
-    begin = NULL;
-    end = NULL;
+    begin = nullptr;
+    end = nullptr;
   }
 
   // Reinitialized from an array, its size is automatically deduced.
@@ -177,7 +129,7 @@ struct Range {
 
   // Returns a const reference to element _i of range [begin,end[.
   _Ty& operator[](size_t _i) const {
-    assert(begin != NULL && begin + _i < end && "Index out of range.");
+    assert(begin != nullptr && begin + _i < end && "Index out of range.");
     return begin[_i];
   }
 

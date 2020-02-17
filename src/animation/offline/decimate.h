@@ -54,7 +54,7 @@ namespace offline {
 // maintained/included in the decimated track.
 template <typename _Track, typename _Adapter>
 void Decimate(const _Track& _src, const _Adapter& _adapter, float _tolerance,
-              _Track* _dest, ozz::Vector<bool>::Std* _included) {
+              _Track* _dest, ozz::vector<bool>* _included) {
   // Empties vector so every element is initialized when resize is called.
   _included->clear();
 
@@ -67,7 +67,7 @@ void Decimate(const _Track& _src, const _Adapter& _adapter, float _tolerance,
 
   // Stack of segments to process.
   typedef std::pair<size_t, size_t> Segment;
-  ozz::Stack<Segment>::Std segments;
+  ozz::stack<Segment> segments;
 
   // Bit vector of all points to included.
   _included->resize(_src.size(), false);

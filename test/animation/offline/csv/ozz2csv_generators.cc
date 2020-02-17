@@ -38,7 +38,7 @@
 #include "ozz/animation/runtime/skeleton.h"
 
 #include "ozz/base/containers/vector.h"
-#include "ozz/base/memory/scoped_ptr.h"
+#include "ozz/base/memory/unique_ptr.h"
 
 #include "ozz/base/maths/soa_transform.h"
 #include "ozz/base/maths/transform.h"
@@ -106,7 +106,7 @@ class OzzPassthrough : public Generator {
     return true;
   }
 
-  ozz::Vector<ozz::math::Transform>::Std samples_;
+  ozz::vector<ozz::math::Transform> samples_;
   ozz::animation::offline::RawAnimation animation_;
 };
 
@@ -302,8 +302,8 @@ class OzzRuntime : public Generator {
     return true;
   }
 
-  ozz::Vector<ozz::math::SoaTransform>::Std samples_;
-  ozz::ScopedPtr<ozz::animation::Animation> animation_;
+  ozz::vector<ozz::math::SoaTransform> samples_;
+  ozz::unique_ptr<ozz::animation::Animation> animation_;
   ozz::animation::SamplingCache cache;
 };
 

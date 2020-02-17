@@ -31,7 +31,7 @@
 
 #include "ozz/base/maths/gtest_math_helper.h"
 #include "ozz/base/maths/soa_transform.h"
-#include "ozz/base/memory/scoped_ptr.h"
+#include "ozz/base/memory/unique_ptr.h"
 
 #include "ozz/animation/offline/raw_skeleton.h"
 #include "ozz/animation/offline/skeleton_builder.h"
@@ -47,7 +47,7 @@ TEST(JobValidity, LocalToModel) {
   SkeletonBuilder builder;
 
   // Empty skeleton.
-  ozz::ScopedPtr<Skeleton> empty_skeleton(builder(raw_skeleton));
+  ozz::unique_ptr<Skeleton> empty_skeleton(builder(raw_skeleton));
   ASSERT_TRUE(empty_skeleton);
 
   // Adds 2 joints.
@@ -56,7 +56,7 @@ TEST(JobValidity, LocalToModel) {
   root.name = "root";
   root.children.resize(1);
 
-  ozz::ScopedPtr<Skeleton> skeleton(builder(raw_skeleton));
+  ozz::unique_ptr<Skeleton> skeleton(builder(raw_skeleton));
   ASSERT_TRUE(skeleton);
 
   ozz::math::SoaTransform input[2] = {ozz::math::SoaTransform::identity(),
@@ -70,7 +70,7 @@ TEST(JobValidity, LocalToModel) {
     EXPECT_FALSE(job.Run());
   }
 
-  // NULL output
+  // nullptr output
   {
     LocalToModelJob job;
     job.skeleton = skeleton.get();
@@ -79,7 +79,7 @@ TEST(JobValidity, LocalToModel) {
     EXPECT_FALSE(job.Validate());
     EXPECT_FALSE(job.Run());
   }
-  // NULL input
+  // nullptr input
   {
     LocalToModelJob job;
     job.skeleton = skeleton.get();
@@ -261,7 +261,7 @@ TEST(Transformation, LocalToModel) {
   EXPECT_EQ(raw_skeleton.num_joints(), 6);
 
   SkeletonBuilder builder;
-  ozz::ScopedPtr<Skeleton> skeleton(builder(raw_skeleton));
+  ozz::unique_ptr<Skeleton> skeleton(builder(raw_skeleton));
   ASSERT_TRUE(skeleton);
 
   // Initializes an input transformation.
@@ -289,7 +289,7 @@ TEST(Transformation, LocalToModel) {
         ozz::math::simd_float4::Load(1.f, -.1f, 1.f, 1.f)}}};
 
   {
-    // Prepares the job with root == NULL (default identity matrix)
+    // Prepares the job with root == nullptr (default identity matrix)
     ozz::math::Float4x4 output[6];
     LocalToModelJob job;
     job.skeleton = skeleton.get();
@@ -382,7 +382,7 @@ TEST(TransformationFromTo, LocalToModel) {
   EXPECT_EQ(raw_skeleton.num_joints(), 8);
 
   SkeletonBuilder builder;
-  ozz::ScopedPtr<Skeleton> skeleton(builder(raw_skeleton));
+  ozz::unique_ptr<Skeleton> skeleton(builder(raw_skeleton));
   ASSERT_TRUE(skeleton);
 
   // Initializes an input transformation.
@@ -841,7 +841,7 @@ TEST(TransformationFromToExclude, LocalToModel) {
   EXPECT_EQ(raw_skeleton.num_joints(), 8);
 
   SkeletonBuilder builder;
-  ozz::ScopedPtr<Skeleton> skeleton(builder(raw_skeleton));
+  ozz::unique_ptr<Skeleton> skeleton(builder(raw_skeleton));
   ASSERT_TRUE(skeleton);
 
   // Initializes an input transformation.

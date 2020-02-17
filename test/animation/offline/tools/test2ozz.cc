@@ -32,7 +32,7 @@
 #include "ozz/animation/runtime/skeleton.h"
 
 #include "ozz/base/io/stream.h"
-#include "ozz/base/memory/scoped_ptr.h"
+#include "ozz/base/memory/unique_ptr.h"
 
 class TestConverter : public ozz::animation::offline::OzzImporter {
  public:
@@ -41,10 +41,9 @@ class TestConverter : public ozz::animation::offline::OzzImporter {
 
  private:
   virtual bool Load(const char* _filename) {
-    file_.reset(OZZ_NEW(ozz::memory::default_allocator(), ozz::io::File)(
-        _filename, "rb"));
+    file_ = ozz::make_unique<ozz::io::File>(_filename, "rb");
     if (!file_->opened()) {
-      file_.reset(NULL);
+      file_.reset(nullptr);
       return false;
     }
 
@@ -261,7 +260,7 @@ class TestConverter : public ozz::animation::offline::OzzImporter {
     return found;
   }
 
-  ozz::ScopedPtr<ozz::io::File> file_;
+  ozz::unique_ptr<ozz::io::File> file_;
 };
 
 int main(int _argc, const char** _argv) {

@@ -92,18 +92,16 @@ struct BlendingJob {
 
     // Optional range [begin,end[ of blending weight for each joint in this
     // layer.
-    // If both pointers are NULL (default case) then per joint weight blending
-    // is disabled.
-    // A valid range is defined as being at least as big as the bind pose
-    // buffer, even though only the number of transforms defined by the
-    // bind pose buffer will be processed.
-    // When a layer doesn't specifies per joint weights, then it is implicitly
-    // considered as being 1.f. This default value is a reference value for
-    // the normalization process, which implies that the range of values for
-    // joint weights should be [0,1].
-    // Negative weight values are considered as 0, but positive ones aren't
-    // clamped because they could exceed 1.f if all layers contains valid joint
-    // weights.
+    // If both pointers are nullptr (default case) then per joint weight
+    // blending is disabled. A valid range is defined as being at least as big
+    // as the bind pose buffer, even though only the number of transforms
+    // defined by the bind pose buffer will be processed. When a layer doesn't
+    // specifies per joint weights, then it is implicitly considered as
+    // being 1.f. This default value is a reference value for the normalization
+    // process, which implies that the range of values for joint weights should
+    // be [0,1]. Negative weight values are considered as 0, but positive ones
+    // aren't clamped because they could exceed 1.f if all layers contains valid
+    // joint weights.
     Range<const math::SimdFloat4> joint_weights;
   };
 
@@ -112,11 +110,11 @@ struct BlendingJob {
   // Must be greater than 0.f.
   float threshold;
 
-  // Job input layers, can be empty or NULL.
+  // Job input layers, can be empty or nullptr.
   // The range of layers that must be blended.
   Range<const Layer> layers;
 
-  // Job input additive layers, can be empty or NULL.
+  // Job input additive layers, can be empty or nullptr.
   // The range of layers that must be added to the output.
   Range<const Layer> additive_layers;
 

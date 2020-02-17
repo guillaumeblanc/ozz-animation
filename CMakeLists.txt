@@ -17,7 +17,6 @@ option(ozz_build_samples "Build samples" ON)
 option(ozz_build_howtos "Build howtos" ON)
 option(ozz_build_tests "Build unit tests" OFF)
 option(ozz_build_simd_ref "Force SIMD math reference implementation" OFF)
-option(ozz_build_cpp11 "Enable c++11" OFF)
 option(ozz_build_msvc_rt_dll "Select msvc DLL runtime library" ON)
 option(ozz_build_postfix "Use per config postfix name" ON)
 
@@ -31,13 +30,12 @@ message("-- - ozz_build_samples: " ${ozz_build_samples})
 message("-- - ozz_build_howtos: " ${ozz_build_howtos})
 message("-- - ozz_build_tests: " ${ozz_build_tests})
 message("-- - ozz_build_simd_ref: " ${ozz_build_simd_ref})
-message("-- - ozz_build_cpp11: " ${ozz_build_cpp11})
 message("-- - ozz_build_msvc_rt_dll: " ${ozz_build_msvc_rt_dll})
 message("-- - ozz_build_postfix: " ${ozz_build_postfix})
 
 # Add project execution options
 option(ozz_run_tests_headless "Run samples without rendering (used for unit tests)" ON)
-set(ozz_sample_testing_loops 20 CACHE INT "Number of loops while running sample tests (used for unit tests)")
+set(ozz_sample_testing_loops 20 CACHE STRING "Number of loops while running sample tests (used for unit tests)")
 
 # Configure CMake module path
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/build-utils/cmake/modules/")

@@ -31,7 +31,7 @@
 
 #include "ozz/base/maths/math_constant.h"
 
-#include "ozz/base/memory/scoped_ptr.h"
+#include "ozz/base/memory/unique_ptr.h"
 
 #include "ozz/animation/offline/animation_builder.h"
 #include "ozz/animation/offline/raw_animation.h"
@@ -49,20 +49,20 @@ using ozz::animation::offline::SkeletonBuilder;
 TEST(Error, AnimationOptimizer) {
   AnimationOptimizer optimizer;
 
-  {  // NULL output.
+  {  // nullptr output.
     RawAnimation input;
     Skeleton skeleton;
     EXPECT_TRUE(input.Validate());
 
     // Builds animation
-    EXPECT_FALSE(optimizer(input, skeleton, NULL));
+    EXPECT_FALSE(optimizer(input, skeleton, nullptr));
   }
 
   {  // Invalid input animation.
     RawSkeleton raw_skeleton;
     raw_skeleton.roots.resize(1);
     SkeletonBuilder skeleton_builder;
-    ozz::ScopedPtr<Skeleton> skeleton(skeleton_builder(raw_skeleton));
+    ozz::unique_ptr<Skeleton> skeleton(skeleton_builder(raw_skeleton));
     ASSERT_TRUE(skeleton);
 
     RawAnimation input;
@@ -99,7 +99,7 @@ TEST(Name, AnimationOptimizer) {
   // Prepares a skeleton.
   RawSkeleton raw_skeleton;
   SkeletonBuilder skeleton_builder;
-  ozz::ScopedPtr<Skeleton> skeleton(skeleton_builder(raw_skeleton));
+  ozz::unique_ptr<Skeleton> skeleton(skeleton_builder(raw_skeleton));
   ASSERT_TRUE(skeleton);
 
   AnimationOptimizer optimizer;
@@ -124,7 +124,7 @@ TEST(Optimize, AnimationOptimizer) {
   raw_skeleton.roots[0].children[0].children.resize(1);
   raw_skeleton.roots[0].children[0].children[0].children.resize(2);
   SkeletonBuilder skeleton_builder;
-  ozz::ScopedPtr<Skeleton> skeleton(skeleton_builder(raw_skeleton));
+  ozz::unique_ptr<Skeleton> skeleton(skeleton_builder(raw_skeleton));
   ASSERT_TRUE(skeleton);
 
   AnimationOptimizer optimizer;
@@ -460,7 +460,7 @@ TEST(OptimizeOverride, AnimationOptimizer) {
   raw_skeleton.roots[0].children[0].children.resize(1);
   raw_skeleton.roots[0].children[0].children[0].children.resize(2);
   SkeletonBuilder skeleton_builder;
-  ozz::ScopedPtr<Skeleton> skeleton(skeleton_builder(raw_skeleton));
+  ozz::unique_ptr<Skeleton> skeleton(skeleton_builder(raw_skeleton));
   ASSERT_TRUE(skeleton);
 
   // Disable non hierarchical optimizations

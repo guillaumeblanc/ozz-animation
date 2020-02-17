@@ -43,7 +43,7 @@
 namespace ozz {
 namespace animation {
 
-Animation::Animation() : duration_(0.f), num_tracks_(0), name_(NULL) {}
+Animation::Animation() : duration_(0.f), num_tracks_(0), name_(nullptr) {}
 
 Animation::~Animation() { Deallocate(); }
 
@@ -51,11 +51,12 @@ void Animation::Allocate(size_t _name_len, size_t _translation_count,
                          size_t _rotation_count, size_t _scale_count) {
   // Distributes buffer memory while ensuring proper alignment (serves larger
   // alignment values first).
-  OZZ_STATIC_ASSERT(OZZ_ALIGN_OF(TranslationKey) >= OZZ_ALIGN_OF(RotationKey) &&
-                    OZZ_ALIGN_OF(RotationKey) >= OZZ_ALIGN_OF(ScaleKey) &&
-                    OZZ_ALIGN_OF(ScaleKey) >= OZZ_ALIGN_OF(char));
+  static_assert(alignof(TranslationKey) >= alignof(RotationKey) &&
+                    alignof(RotationKey) >= alignof(ScaleKey) &&
+                    alignof(ScaleKey) >= alignof(char),
+                "Must serve larger alignment values first)");
 
-  assert(name_ == NULL && translations_.size() == 0 && rotations_.size() == 0 &&
+  assert(name_ == nullptr && translations_.size() == 0 && rotations_.size() == 0 &&
          scales_.size() == 0);
 
   // Compute overall size and allocate a single buffer for all the data.
@@ -64,34 +65,34 @@ void Animation::Allocate(size_t _name_len, size_t _translation_count,
                              _rotation_count * sizeof(RotationKey) +
                              _scale_count * sizeof(ScaleKey);
   char* buffer = reinterpret_cast<char*>(memory::default_allocator()->Allocate(
-      buffer_size, OZZ_ALIGN_OF(TranslationKey)));
+      buffer_size, alignof(TranslationKey)));
 
   // Fix up pointers. Serves larger alignment values first.
   translations_.begin = reinterpret_cast<TranslationKey*>(buffer);
-  assert(math::IsAligned(translations_.begin, OZZ_ALIGN_OF(TranslationKey)));
+  assert(math::IsAligned(translations_.begin, alignof(TranslationKey)));
   buffer += _translation_count * sizeof(TranslationKey);
   translations_.end = reinterpret_cast<TranslationKey*>(buffer);
 
   rotations_.begin = reinterpret_cast<RotationKey*>(buffer);
-  assert(math::IsAligned(rotations_.begin, OZZ_ALIGN_OF(RotationKey)));
+  assert(math::IsAligned(rotations_.begin, alignof(RotationKey)));
   buffer += _rotation_count * sizeof(RotationKey);
   rotations_.end = reinterpret_cast<RotationKey*>(buffer);
 
   scales_.begin = reinterpret_cast<ScaleKey*>(buffer);
-  assert(math::IsAligned(scales_.begin, OZZ_ALIGN_OF(ScaleKey)));
+  assert(math::IsAligned(scales_.begin, alignof(ScaleKey)));
   buffer += _scale_count * sizeof(ScaleKey);
   scales_.end = reinterpret_cast<ScaleKey*>(buffer);
 
-  // Let name be NULL if animation has no name. Allows to avoid allocating this
+  // Let name be nullptr if animation has no name. Allows to avoid allocating this
   // buffer in the constructor of empty animations.
-  name_ = reinterpret_cast<char*>(_name_len > 0 ? buffer : NULL);
-  assert(math::IsAligned(name_, OZZ_ALIGN_OF(char)));
+  name_ = reinterpret_cast<char*>(_name_len > 0 ? buffer : nullptr);
+  assert(math::IsAligned(name_, alignof(char)));
 }
 
 void Animation::Deallocate() {
   memory::default_allocator()->Deallocate(translations_.begin);
 
-  name_ = NULL;
+  name_ = nullptr;
   translations_ = ozz::Range<TranslationKey>();
   rotations_ = ozz::Range<RotationKey>();
   scales_ = ozz::Range<ScaleKey>();
@@ -176,7 +177,7 @@ void Animation::Load(ozz::io::IArchive& _archive, uint32_t _version) {
 
   Allocate(name_len, translation_count, rotation_count, scale_count);
 
-  if (name_) {  // NULL name_ is supported.
+  if (name_) {  // nullptr name_ is supported.
     _archive >> ozz::io::MakeArray(name_, name_len);
     name_[name_len] = 0;
   }

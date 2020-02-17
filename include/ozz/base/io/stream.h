@@ -97,7 +97,7 @@ class File : public Stream {
   File(const char* _filename, const char* _mode);
 
   // Gives _file ownership to the FileStream, which will be in charge of closing
-  // it. _file must be NULL or a valid std::FILE pointer.
+  // it. _file must be nullptr or a valid std::FILE pointer.
   explicit File(void* _file);
 
   // Close the file if it is opened.

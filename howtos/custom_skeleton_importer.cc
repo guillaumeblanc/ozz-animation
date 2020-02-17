@@ -94,13 +94,11 @@ int main(int argc, char const* argv[]) {
 
   // Executes the builder on the previously prepared RawSkeleton, which returns
   // a new runtime skeleton instance.
-  // This operation will fail and return NULL if the RawSkeleton isn't valid.
-  ozz::animation::Skeleton* skeleton = builder(raw_skeleton);
+  // This operation will fail and return an empty unique_ptr if the RawSkeleton
+  // isn't valid.
+  ozz::unique_ptr<ozz::animation::Skeleton> skeleton = builder(raw_skeleton);
 
   // ...use the skeleton as you want...
-
-  // In the end the skeleton needs to be deleted.
-  OZZ_DELETE(ozz::memory::default_allocator(), skeleton);
 
   return EXIT_SUCCESS;
 }

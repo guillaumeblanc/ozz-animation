@@ -25,29 +25,22 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz2csv.h"
-
 #include "ozz2csv_experiences.h"
-
-#include "ozz2csv_csv.h"
-
-#include "ozz/animation/offline/raw_animation.h"
-
-#include "ozz/animation/runtime/skeleton.h"
-#include "ozz/animation/runtime/skeleton_utils.h"
-
-#include "ozz/base/log.h"
-
-#include "ozz/base/containers/vector.h"
-
-#include "ozz/base/maths/math_ex.h"
-#include "ozz/base/maths/soa_transform.h"
-#include "ozz/base/maths/transform.h"
 
 #include <chrono>
 #include <random>
 
+#include "ozz/animation/offline/raw_animation.h"
+#include "ozz/animation/runtime/skeleton.h"
+#include "ozz/animation/runtime/skeleton_utils.h"
+#include "ozz/base/containers/vector.h"
+#include "ozz/base/log.h"
+#include "ozz/base/maths/math_ex.h"
+#include "ozz/base/maths/soa_transform.h"
+#include "ozz/base/maths/transform.h"
 #include "ozz/options/options.h"
+#include "ozz2csv.h"
+#include "ozz2csv_csv.h"
 
 OZZ_OPTIONS_DECLARE_FLOAT(rate, "Sampling rate", 30, false)
 
@@ -182,8 +175,8 @@ bool TransformsExperience(CsvFile* _csv,
 
   // Allocates transforms
   const int num_joints = _skeleton.num_joints();
-  ozz::Vector<ozz::math::Transform>::Std locals(num_joints);
-  ozz::Vector<ozz::math::Transform>::Std models(num_joints);
+  ozz::vector<ozz::math::Transform> locals(num_joints);
+  ozz::vector<ozz::math::Transform> models(num_joints);
 
   const float duration = _generator->Duration();
   const float step = 1.f / OPTIONS_rate.value();

@@ -55,7 +55,7 @@ TEST(JobValidity, BlendingJob) {
     EXPECT_FALSE(job.Run());
   }
 
-  {  // Invalid NULL output.
+  {  // Invalid nullptr output.
     BlendingJob job;
     job.layers.begin = layers;
     job.layers.end = layers + 2;
@@ -64,7 +64,7 @@ TEST(JobValidity, BlendingJob) {
     EXPECT_FALSE(job.Validate());
     EXPECT_FALSE(job.Run());
   }
-  {  // Invalid NULL input begin.
+  {  // Invalid nullptr input begin.
     BlendingJob job;
     job.layers.end = layers + 2;
     job.bind_pose.begin = bind_poses;
@@ -74,22 +74,22 @@ TEST(JobValidity, BlendingJob) {
     EXPECT_FALSE(job.Validate());
     EXPECT_FALSE(job.Run());
   }
-  {  // Invalid NULL bind_pose.
+  {  // Invalid nullptr bind_pose.
     BlendingJob job;
     job.layers.begin = layers;
     job.layers.end = layers + 2;
     job.bind_pose.begin = bind_poses;
-    job.bind_pose.end = NULL;
+    job.bind_pose.end = nullptr;
     job.output.begin = output_transforms;
     job.output.end = output_transforms + 2;
     EXPECT_FALSE(job.Validate());
     EXPECT_FALSE(job.Run());
   }
-  {  // Invalid NULL bind_pose.
+  {  // Invalid nullptr bind_pose.
     BlendingJob job;
     job.layers.begin = layers;
     job.layers.end = layers + 2;
-    job.bind_pose.begin = NULL;
+    job.bind_pose.begin = nullptr;
     job.bind_pose.end = bind_poses + 2;
     job.output.begin = output_transforms;
     job.output.end = output_transforms + 2;
@@ -125,9 +125,9 @@ TEST(JobValidity, BlendingJob) {
     EXPECT_FALSE(job.Validate());
     EXPECT_FALSE(job.Run());
   }
-  {  // Invalid layer input range, NULL.
+  {  // Invalid layer input range, nullptr.
     BlendingJob::Layer invalid_layers[1];
-    invalid_layers[0].transform.begin = NULL;
+    invalid_layers[0].transform.begin = nullptr;
     invalid_layers[0].transform.end = input_transforms + 2;
 
     BlendingJob job;
@@ -140,10 +140,10 @@ TEST(JobValidity, BlendingJob) {
     EXPECT_FALSE(job.Validate());
     EXPECT_FALSE(job.Run());
   }
-  {  // Invalid layer input range, NULL.
+  {  // Invalid layer input range, nullptr.
     BlendingJob::Layer invalid_layers[1];
     invalid_layers[0].transform.begin = input_transforms;
-    invalid_layers[0].transform.end = NULL;
+    invalid_layers[0].transform.end = nullptr;
 
     BlendingJob job;
     job.layers.begin = invalid_layers;
@@ -233,7 +233,7 @@ TEST(JobValidity, BlendingJob) {
   }
 
   {  // Invalid joint weights range.
-    layers[0].joint_weights.begin = NULL;
+    layers[0].joint_weights.begin = nullptr;
     layers[0].joint_weights.end = joint_weights + 2;
 
     BlendingJob job;
@@ -248,8 +248,8 @@ TEST(JobValidity, BlendingJob) {
   }
 
   {  // Valid job.
-    layers[0].joint_weights.begin = NULL;
-    layers[0].joint_weights.end = NULL;
+    layers[0].joint_weights.begin = nullptr;
+    layers[0].joint_weights.end = nullptr;
 
     BlendingJob job;
     job.layers.begin = layers;
@@ -367,13 +367,13 @@ TEST(JobValidityAdditive, BlendingJob) {
     EXPECT_FALSE(job.Run());
   }
 
-  {  // Invalid additive range (NULL).
+  {  // Invalid additive range (nullptr).
 
     BlendingJob job;
     job.layers.begin = layers;
     job.layers.end = layers + 2;
     job.additive_layers.begin = additive_layers;
-    job.additive_layers.end = NULL;
+    job.additive_layers.end = nullptr;
     job.bind_pose.begin = bind_poses;
     job.bind_pose.end = bind_poses + 3;
     job.output.begin = output_transforms;
@@ -417,7 +417,7 @@ TEST(JobValidityAdditive, BlendingJob) {
     EXPECT_TRUE(job.Run());
   }
   {  // Invalid additive job, bad per-joint weights.
-    additive_layers[0].joint_weights.begin = NULL;
+    additive_layers[0].joint_weights.begin = nullptr;
     additive_layers[0].joint_weights.end = joint_weights + 2;
 
     BlendingJob job;
@@ -432,7 +432,7 @@ TEST(JobValidityAdditive, BlendingJob) {
   }
   {  // Invalid additive job, bad per-joint weights.
     additive_layers[0].joint_weights.begin = joint_weights;
-    additive_layers[0].joint_weights.end = NULL;
+    additive_layers[0].joint_weights.end = nullptr;
 
     BlendingJob job;
     job.additive_layers.begin = additive_layers;

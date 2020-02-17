@@ -44,12 +44,12 @@ using ozz::animation::offline::TrackOptimizer;
 TEST(Error, TrackOptimizer) {
   TrackOptimizer optimizer;
 
-  {  // NULL output.
+  {  // nullptr output.
     RawFloatTrack input;
     EXPECT_TRUE(input.Validate());
 
     // Builds animation
-    EXPECT_FALSE(optimizer(input, NULL));
+    EXPECT_FALSE(optimizer(input, nullptr));
   }
 
   {  // Invalid input animation.
