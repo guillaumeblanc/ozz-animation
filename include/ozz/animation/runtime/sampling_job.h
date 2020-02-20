@@ -59,7 +59,7 @@ struct SamplingJob {
   SamplingJob();
 
   // Validates job parameters. Returns true for a valid job, or false otherwise:
-  // -if any input pointer is NULL
+  // -if any input pointer is nullptr
   // -if output range is invalid.
   bool Validate() const;
 
@@ -146,7 +146,7 @@ class SamplingCache {
   // cache is invalidated and reseted for the new _animation and _ratio.
   void Step(const Animation& _animation, float _ratio);
 
-  // The animation this cache refers to. NULL means that the cache is invalid.
+  // The animation this cache refers to. nullptr means that the cache is invalid.
   const Animation* animation_;
 
   // The current time ratio in the animation.

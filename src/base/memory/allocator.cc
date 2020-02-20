@@ -28,9 +28,7 @@
 #include "ozz/base/memory/allocator.h"
 
 #include <memory.h>
-#if __cplusplus >= 201103L
 #include <atomic>
-#endif  // __cplusplus
 #include <cassert>
 #include <cstdlib>
 
@@ -50,19 +48,9 @@ struct Header {
 // Will trace allocation count and assert in case of a memory leak.
 class HeapAllocator : public Allocator {
  public:
-  HeapAllocator() {
-#if __cplusplus >= 201103L
-    allocation_count_.store(0);
-#else  // __cplusplus
-    allocation_count_ = 0;
-#endif
-  }
+  HeapAllocator() { allocation_count_.store(0); }
   ~HeapAllocator() {
-#if __cplusplus >= 201103L
     assert(allocation_count_.load() == 0 && "Memory leak detected");
-#else  // __cplusplus
-    assert(allocation_count_ == 0 && "Memory leak detected");
-#endif
   }
 
  protected:
@@ -71,7 +59,7 @@ class HeapAllocator : public Allocator {
     const size_t to_allocate = _size + sizeof(Header) + _alignment - 1;
     char* unaligned = reinterpret_cast<char*>(malloc(to_allocate));
     if (!unaligned) {
-      return NULL;
+      return nullptr;
     }
     char* aligned = ozz::math::Align(unaligned + sizeof(Header), _alignment);
     assert(aligned + _size <= unaligned + to_allocate);  // Don't overrun.
@@ -111,13 +99,9 @@ class HeapAllocator : public Allocator {
   }
 
  private:
-// Internal allocation count used to track memory leaks.
-// Should equals 0 at destruction time.
-#if __cplusplus >= 201103L
+  // Internal allocation count used to track memory leaks.
+  // Should equals 0 at destruction time.
   std::atomic_int allocation_count_;
-#else   // __cplusplus
-  int allocation_count_;
-#endif  // __cplusplus
 };
 
 namespace {

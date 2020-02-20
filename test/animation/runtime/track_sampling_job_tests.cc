@@ -30,7 +30,7 @@
 #include "gtest/gtest.h"
 
 #include "ozz/base/maths/gtest_math_helper.h"
-#include "ozz/base/memory/scoped_ptr.h"
+#include "ozz/base/memory/unique_ptr.h"
 
 #include "ozz/animation/offline/raw_track.h"
 #include "ozz/animation/offline/track_builder.h"
@@ -56,7 +56,7 @@ TEST(JobValidity, TrackSamplingJob) {
   EXPECT_TRUE(raw_float_track.Validate());
 
   // Builds track
-  ozz::ScopedPtr<FloatTrack> track(builder(raw_float_track));
+  ozz::unique_ptr<FloatTrack> track(builder(raw_float_track));
   ASSERT_TRUE(track);
 
   {  // Empty/default job
@@ -118,7 +118,7 @@ TEST(Bounds, TrackSamplingJob) {
   raw_float_track.keyframes.push_back(key2);
 
   // Builds track
-  ozz::ScopedPtr<FloatTrack> track(builder(raw_float_track));
+  ozz::unique_ptr<FloatTrack> track(builder(raw_float_track));
   ASSERT_TRUE(track);
 
   // Samples to verify build output.
@@ -171,7 +171,7 @@ TEST(Float, TrackSamplingJob) {
   raw_track.keyframes.push_back(key3);
 
   // Builds track
-  ozz::ScopedPtr<FloatTrack> track(builder(raw_track));
+  ozz::unique_ptr<FloatTrack> track(builder(raw_track));
   ASSERT_TRUE(track);
 
   // Samples to verify build output.
@@ -232,7 +232,7 @@ TEST(Float2, TrackSamplingJob) {
   raw_track.keyframes.push_back(key3);
 
   // Builds track
-  ozz::ScopedPtr<Float2Track> track(builder(raw_track));
+  ozz::unique_ptr<Float2Track> track(builder(raw_track));
   ASSERT_TRUE(track);
 
   // Samples to verify build output.
@@ -293,7 +293,7 @@ TEST(Float3, TrackSamplingJob) {
   raw_track.keyframes.push_back(key3);
 
   // Builds track
-  ozz::ScopedPtr<Float3Track> track(builder(raw_track));
+  ozz::unique_ptr<Float3Track> track(builder(raw_track));
   ASSERT_TRUE(track);
 
   // Samples to verify build output.
@@ -358,7 +358,7 @@ TEST(Float4, TrackSamplingJob) {
   raw_track.keyframes.push_back(key3);
 
   // Builds track
-  ozz::ScopedPtr<Float4Track> track(builder(raw_track));
+  ozz::unique_ptr<Float4Track> track(builder(raw_track));
   ASSERT_TRUE(track);
 
   // Samples to verify build output.
@@ -422,7 +422,7 @@ TEST(Quaternion, TrackSamplingJob) {
   raw_track.keyframes.push_back(key3);
 
   // Builds track
-  ozz::ScopedPtr<QuaternionTrack> track(builder(raw_track));
+  ozz::unique_ptr<QuaternionTrack> track(builder(raw_track));
   ASSERT_TRUE(track);
   // Samples to verify build output.
   ozz::animation::QuaternionTrackSamplingJob sampling;

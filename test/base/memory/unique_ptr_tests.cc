@@ -25,53 +25,26 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/base/memory/scoped_ptr.h"
+#include "ozz/base/memory/unique_ptr.h"
 
 #include "ozz/base/gtest_helper.h"
 
-TEST(Construction, ScopedPtr) {
-  { const ozz::ScopedPtr<int> pi; }
-  {
-    const ozz::ScopedPtr<int> pi(
-        OZZ_NEW(ozz::memory::default_allocator(), int));
-  }
+TEST(Construction, unique_ptr) {
+  { const ozz::unique_ptr<int> pi; }
+  { const ozz::unique_ptr<int> pi(ozz::New<int>()); }
 }
 
-TEST(Assignment, ScopedPtr) {
+TEST(Reset, unique_ptr) {
   {
-    ozz::ScopedPtr<int> pi;
-    pi = NULL;
-    pi = OZZ_NEW(ozz::memory::default_allocator(), int);
-  }
-  {
-    ozz::ScopedPtr<int> pi(OZZ_NEW(ozz::memory::default_allocator(), int));
-    pi = OZZ_NEW(ozz::memory::default_allocator(), int);
-    pi = NULL;
-  }
-  {
-    int* i = OZZ_NEW(ozz::memory::default_allocator(), int)(46);
-    ozz::ScopedPtr<int> pi(i);
-    EXPECT_ASSERTION(pi = i, "ScopedPtr cannot be reseted to the same value.");
-  }
-}
+    ozz::unique_ptr<int> pi;
+    pi.reset(nullptr);
 
-TEST(Reset, ScopedPtr) {
-  {
-    ozz::ScopedPtr<int> pi;
-    pi.reset(NULL);
-
-    pi.reset(OZZ_NEW(ozz::memory::default_allocator(), int));
+    pi.reset(ozz::New<int>());
   }
   {
-    ozz::ScopedPtr<int> pi(OZZ_NEW(ozz::memory::default_allocator(), int));
-    pi.reset(OZZ_NEW(ozz::memory::default_allocator(), int));
-    pi.reset(NULL);
-  }
-  {
-    int* i = OZZ_NEW(ozz::memory::default_allocator(), int)(46);
-    ozz::ScopedPtr<int> pi(i);
-    EXPECT_ASSERTION(pi.reset(i),
-                     "ScopedPtr cannot be reseted to the same value.");
+    ozz::unique_ptr<int> pi(ozz::New<int>());
+    pi.reset(ozz::New<int>());
+    pi.reset(nullptr);
   }
 }
 
@@ -79,90 +52,95 @@ struct A {
   int i;
 };
 
-TEST(Dereference, ScopedPtr) {
+TEST(Dereference, unique_ptr) {
   {
-    const ozz::ScopedPtr<int> pi;
-    EXPECT_ASSERTION(*pi, "Dereferencing NULL pointer.");
-    EXPECT_TRUE(pi.get() == NULL);
+    const ozz::unique_ptr<int> pi;
+    EXPECT_TRUE(pi.get() == nullptr);
     EXPECT_FALSE(pi);
   }
   {
-    const ozz::ScopedPtr<int> pi(
-        OZZ_NEW(ozz::memory::default_allocator(), int)(46));
+    const ozz::unique_ptr<int> pi(ozz::New<int>(46));
     EXPECT_EQ(*pi, 46);
-    EXPECT_TRUE(pi.get() != NULL);
+    EXPECT_TRUE(pi.get() != nullptr);
     EXPECT_TRUE(pi);
   }
   {
-    const ozz::ScopedPtr<A> pa;
-    EXPECT_ASSERTION(pa->i = 99, "Dereferencing NULL pointer.");
-  }
-  {
-    const ozz::ScopedPtr<A> pa(OZZ_NEW(ozz::memory::default_allocator(), A));
+    const ozz::unique_ptr<A> pa(ozz::New<A>());
     pa->i = 46;
     EXPECT_EQ((*pa).i, 46);
   }
 }
 
-TEST(Bool, ScopedPtr) {
+TEST(Bool, unique_ptr) {
   {
-    const ozz::ScopedPtr<int> pi;
+    const ozz::unique_ptr<int> pi;
     EXPECT_TRUE(!pi);
     EXPECT_FALSE(pi);
   }
   {
-    const ozz::ScopedPtr<int> pi(
-        OZZ_NEW(ozz::memory::default_allocator(), int)(46));
+    const ozz::unique_ptr<int> pi(ozz::New<int>(46));
     EXPECT_FALSE(!pi);
     EXPECT_TRUE(pi);
   }
 }
 
-TEST(Cast, ScopedPtr) {
+TEST(Swap, unique_ptr) {
   {
-    const ozz::ScopedPtr<int> pi;
-    int* i = pi.get();
-    EXPECT_TRUE(i == NULL);
-  }
-  {
-    const ozz::ScopedPtr<int> pi(
-        OZZ_NEW(ozz::memory::default_allocator(), int)(46));
-    int* i = pi.get();
-    EXPECT_TRUE(i != NULL);
-  }
-}
-
-TEST(Swap, ScopedPtr) {
-  {
-    int* i = OZZ_NEW(ozz::memory::default_allocator(), int)(46);
-    ozz::ScopedPtr<int> pi;
-    ozz::ScopedPtr<int> pii(i);
-    EXPECT_TRUE(pi.get() == NULL);
+    int* i = ozz::New<int>(46);
+    ozz::unique_ptr<int> pi;
+    ozz::unique_ptr<int> pii(i);
+    EXPECT_TRUE(pi.get() == nullptr);
     EXPECT_TRUE(pii.get() == i);
 
     pi.swap(pii);
-    EXPECT_TRUE(pii.get() == NULL);
+    EXPECT_TRUE(pii.get() == nullptr);
     EXPECT_TRUE(pi.get() == i);
   }
   {
-    int* i = OZZ_NEW(ozz::memory::default_allocator(), int)(46);
-    ozz::ScopedPtr<int> pi;
-    ozz::ScopedPtr<int> pii(i);
-    EXPECT_TRUE(pi.get() == NULL);
+    int* i = ozz::New<int>(46);
+    ozz::unique_ptr<int> pi;
+    ozz::unique_ptr<int> pii(i);
+    EXPECT_TRUE(pi.get() == nullptr);
     EXPECT_TRUE(pii.get() == i);
 
     swap(pi, pii);
-    EXPECT_TRUE(pii.get() == NULL);
+    EXPECT_TRUE(pii.get() == nullptr);
     EXPECT_TRUE(pi.get() == i);
   }
 }
 
-TEST(Release, ScopedPtr) {
+TEST(Release, unique_ptr) {
+  int* i = ozz::New<int>(46);
   {
-    int* i = OZZ_NEW(ozz::memory::default_allocator(), int)(46);
-    ozz::ScopedPtr<int> pi(i);
+    ozz::unique_ptr<int> pi(i);
     int* ri = pi.release();
     EXPECT_EQ(i, ri);
-    OZZ_DELETE(ozz::memory::default_allocator(), ri);
+  }
+  ozz::Delete(i);
+}
+
+struct B : public A {};
+
+TEST(Upcast, unique_ptr) {
+  ozz::unique_ptr<A> a = ozz::unique_ptr<B>();
+  a = ozz::unique_ptr<B>();
+}
+
+TEST(make_unique, unique_ptr) {
+  {  // No argument
+    EXPECT_TRUE(ozz::make_unique<int>());
+    EXPECT_EQ(*ozz::make_unique<int>(), 0);
+  }
+
+  {  // 1 argument
+    EXPECT_TRUE(ozz::make_unique<int>(46));
+    EXPECT_EQ(*ozz::make_unique<int>(46), 46);
+  }
+
+  {  // N arguments
+    auto p5 =
+        ozz::make_unique<std::tuple<int, int, int, int, int>>(0, 1, 2, 3, 4);
+    EXPECT_TRUE(p5);
+    EXPECT_EQ(*p5, std::make_tuple(0, 1, 2, 3, 4));
   }
 }

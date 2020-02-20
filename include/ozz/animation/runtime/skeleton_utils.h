@@ -64,7 +64,8 @@ inline _Fct IterateJointsDF(const Skeleton& _skeleton, _Fct _fct,
   const int num_joints = _skeleton.num_joints();
   //
   // parents[i] >= _from is true as long as "i" is a child of "_from".
-  OZZ_STATIC_ASSERT(Skeleton::kNoParent < 0);
+  static_assert(Skeleton::kNoParent < 0,
+                "Algorithm relies on kNoParent being negative");
   for (int i = _from < 0 ? 0 : _from, process = i < num_joints; process;
        ++i, process = i < num_joints && parents[i] >= _from) {
     _fct(i, parents[i]);
@@ -84,15 +85,6 @@ inline _Fct IterateJointsDFReverse(const Skeleton& _skeleton, _Fct _fct) {
   }
   return _fct;
 }
-
-// Helper struct to bind a member function as a functor for skeleton iteration
-// functions.
-template <typename _T, void (_T::*p)(int, int)>
-struct IterateMemFun {
-  IterateMemFun(_T& _t) : t_(&_t) {}
-  void operator()(int _a, int _b) const { (t_->*p)(_a, _b); }
-  _T* t_;
-};
 }  // namespace animation
 }  // namespace ozz
 #endif  // OZZ_OZZ_ANIMATION_RUNTIME_SKELETON_UTILS_H_

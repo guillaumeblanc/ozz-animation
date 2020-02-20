@@ -30,7 +30,7 @@
 #include "gtest/gtest.h"
 #include "ozz/base/maths/gtest_math_helper.h"
 
-#include "ozz/base/memory/scoped_ptr.h"
+#include "ozz/base/memory/unique_ptr.h"
 
 #include "ozz/animation/offline/animation_builder.h"
 #include "ozz/animation/offline/raw_animation.h"
@@ -44,7 +44,7 @@ using ozz::animation::offline::AnimationBuilder;
 
 TEST(CountKeyframes, AnimationUtils) {
   // Builds a valid animation.
-  ozz::ScopedPtr<Animation> animation;
+  ozz::unique_ptr<Animation> animation;
 
   {
     RawAnimation raw_animation;

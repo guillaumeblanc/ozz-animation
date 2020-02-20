@@ -46,7 +46,7 @@
 #include "ozz/base/io/archive.h"
 #include "ozz/base/io/stream.h"
 
-#include "ozz/base/memory/scoped_ptr.h"
+#include "ozz/base/memory/unique_ptr.h"
 
 #include "ozz/base/log.h"
 
@@ -58,7 +58,7 @@ namespace offline {
 namespace {
 
 // Uses a set to detect names uniqueness.
-typedef ozz::Set<const char*, ozz::str_less>::Std Names;
+typedef ozz::set<const char*, ozz::str_less> Names;
 
 bool ValidateJointNamesUniquenessRecurse(
     const RawSkeleton::Joint::Children& _joints, Names* _names) {
@@ -149,7 +149,7 @@ bool ImportSkeleton(const Json::Value& _config, OzzImporter* _importer,
 
   // Needs to be done before opening the output file, so that if it fails then
   // there's no invalid file outputted.
-  ozz::ScopedPtr<Skeleton> skeleton;
+  unique_ptr<Skeleton> skeleton;
   if (!import_config["raw"].asBool()) {
     // Builds runtime skeleton.
     ozz::log::Log() << "Builds runtime skeleton." << std::endl;

@@ -32,7 +32,7 @@
 
 #include "ozz/base/io/archive.h"
 #include "ozz/base/io/stream.h"
-#include "ozz/base/memory/scoped_ptr.h"
+#include "ozz/base/memory/unique_ptr.h"
 
 #include "ozz/base/maths/soa_transform.h"
 
@@ -69,7 +69,7 @@ TEST(Empty, AnimationSerialize) {
 
 TEST(Filled, AnimationSerialize) {
   // Builds a valid animation.
-  ozz::ScopedPtr<Animation> o_animation;
+  ozz::unique_ptr<Animation> o_animation;
   {
     RawAnimation raw_animation;
     raw_animation.duration = 1.f;
@@ -159,7 +159,7 @@ TEST(AlreadyInitialized, AnimationSerialize) {
     raw_animation.tracks.resize(1);
 
     AnimationBuilder builder;
-    ozz::ScopedPtr<Animation> o_animation(builder(raw_animation));
+    ozz::unique_ptr<Animation> o_animation(builder(raw_animation));
     ASSERT_TRUE(o_animation);
     o << *o_animation;
 

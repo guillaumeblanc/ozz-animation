@@ -51,7 +51,7 @@
 
 #include "ozz/base/log.h"
 
-#include "ozz/base/memory/scoped_ptr.h"
+#include "ozz/base/memory/unique_ptr.h"
 
 #include "ozz/options/options.h"
 
@@ -95,14 +95,14 @@ void DisplaysOptimizationstatistics(const RawAnimation& _non_optimized,
   log << " - Scales: " << scale_ratio << ":1" << std::endl;
 }
 
-Skeleton* LoadSkeleton(const char* _path) {
+unique_ptr<ozz::animation::Skeleton> LoadSkeleton(const char* _path) {
   // Reads the skeleton from the binary ozz stream.
-  Skeleton* skeleton = NULL;
+  unique_ptr<ozz::animation::Skeleton> skeleton;
   {
     if (*_path == 0) {
       ozz::log::Err() << "Missing input skeleton file from json config."
                       << std::endl;
-      return NULL;
+      return nullptr;
     }
     ozz::log::LogV() << "Opens input skeleton ozz binary file: " << _path
                      << std::endl;
@@ -110,7 +110,7 @@ Skeleton* LoadSkeleton(const char* _path) {
     if (!file.opened()) {
       ozz::log::Err() << "Failed to open input skeleton ozz binary file: \""
                       << _path << "\"" << std::endl;
-      return NULL;
+      return nullptr;
     }
     ozz::io::IArchive archive(&file);
 
@@ -128,26 +128,25 @@ Skeleton* LoadSkeleton(const char* _path) {
       skeleton = builder(raw_skeleton);
       if (!skeleton) {
         ozz::log::Err() << "Failed to build runtime skeleton." << std::endl;
-        return NULL;
+        return nullptr;
       }
     } else if (archive.TestTag<Skeleton>()) {
       // Reads input archive to the runtime skeleton.
       // This operation cannot fail.
-      skeleton = OZZ_NEW(ozz::memory::default_allocator(), Skeleton);
+      skeleton = make_unique<Skeleton>();
       archive >> *skeleton;
     } else {
       ozz::log::Err() << "Failed to read input skeleton from binary file: "
                       << _path << std::endl;
-      return NULL;
+      return nullptr;
     }
   }
   return skeleton;
 }
 
-Vector<math::Transform>::Std SkeletonBindPoseSoAToAoS(
-    const Skeleton& _skeleton) {
+vector<math::Transform> SkeletonBindPoseSoAToAoS(const Skeleton& _skeleton) {
   // Copy skeleton bind pose to AoS form.
-  Vector<math::Transform>::Std transforms(_skeleton.num_joints());
+  vector<math::Transform> transforms(_skeleton.num_joints());
   for (int i = 0; i < _skeleton.num_soa_joints(); ++i) {
     const math::SoaTransform& soa_transform = _skeleton.joint_bind_poses()[i];
     math::SimdFloat4 translation[4];
@@ -255,7 +254,7 @@ bool Export(OzzImporter& _importer, const RawAnimation& _input_animation,
 
     bool succeeded = false;
     if (enum_found && reference == AdditiveReferenceEnum::kSkeleton) {
-      const Vector<math::Transform>::Std transforms =
+      const vector<math::Transform> transforms =
           SkeletonBindPoseSoAToAoS(_skeleton);
       succeeded = additive_builder(raw_animation, make_range(transforms),
                                    &raw_additive);
@@ -273,7 +272,7 @@ bool Export(OzzImporter& _importer, const RawAnimation& _input_animation,
   }
 
   // Builds runtime animation.
-  ozz::ScopedPtr<Animation> animation;
+  unique_ptr<Animation> animation;
   if (!_config["raw"].asBool()) {
     ozz::log::Log() << "Builds runtime animation." << std::endl;
     AnimationBuilder builder;
@@ -290,7 +289,7 @@ bool Export(OzzImporter& _importer, const RawAnimation& _input_animation,
     // as it would leave an invalid file on the disk.
 
     // Builds output filename.
-    ozz::String::Std filename = _importer.BuildFilename(
+    ozz::string filename = _importer.BuildFilename(
         _config["filename"].asCString(), raw_animation.name.c_str());
 
     ozz::log::LogV() << "Opens output file: \"" << filename << "\""
@@ -371,9 +370,9 @@ bool ImportAnimations(const Json::Value& _config, OzzImporter* _importer,
   bool success = true;
 
   // Import skeleton instance.
-  ozz::ScopedPtr<Skeleton> skeleton(
+  unique_ptr<Skeleton> skeleton(
       LoadSkeleton(skeleton_config["filename"].asCString()));
-  success &= skeleton;
+  success &= skeleton.get() != nullptr;
 
   // Loop though all existing animations, and export those who match
   // configuration.

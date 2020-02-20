@@ -3,6 +3,11 @@ cmake_minimum_required (VERSION 3.0)
 # Defines the project's name
 project(ozz_sub)
 
+# ozz requires C++11
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
 # Activates unit tests
 enable_testing()
 

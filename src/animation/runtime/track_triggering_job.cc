@@ -35,12 +35,12 @@ namespace ozz {
 namespace animation {
 
 TrackTriggeringJob::TrackTriggeringJob()
-    : from(0.f), to(0.f), threshold(0.f), track(NULL), iterator(NULL) {}
+    : from(0.f), to(0.f), threshold(0.f), track(nullptr), iterator(nullptr) {}
 
 bool TrackTriggeringJob::Validate() const {
   bool valid = true;
-  valid &= track != NULL;
-  valid &= iterator != NULL;
+  valid &= track != nullptr;
+  valid &= iterator != nullptr;
   return valid;
 }
 

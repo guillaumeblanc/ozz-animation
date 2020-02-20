@@ -67,7 +67,7 @@ struct TestAssertCompliance {
 
 // Specializes for std::list,  according to compilation settings.
 template <typename _Ty>
-struct TestAssertCompliance<std::list<_Ty> > {
+struct TestAssertCompliance<std::list<_Ty>> {
   enum { kValue = HAS_STD_ASSERTION };
 };
 
@@ -75,7 +75,7 @@ struct TestAssertCompliance<std::list<_Ty> > {
 // listed by an IntrusiveList.
 // Every instance is assigned a value (obtained for a global instance counter)
 // used for instance sorting and comparison.
-template <typename _Options0 = Option<> >
+template <typename _Options0 = Option<>>
 class TestObj1 : public IntrusiveList<TestObj1<_Options0>, _Options0>::Hook {
  public:
   // Constructs a TestObj1 and increments global TestObj1 counter.
@@ -128,28 +128,28 @@ class TestObj2
 template <template <typename> class _Test>
 void BindTypes() {
   // std::list
-  _Test<std::list<TestObj1<> > >()();
+  _Test<std::list<TestObj1<>>>()();
 
   // kAuto link mode
   typedef Option<ozz::containers::LinkMode::kAuto, 0> _OptionsAuto0;
   typedef TestObj1<_OptionsAuto0> AutoTestObj0;
-  _Test<IntrusiveList<AutoTestObj0, _OptionsAuto0> >()();
+  _Test<IntrusiveList<AutoTestObj0, _OptionsAuto0>>()();
 
   // kSafe link mode
   typedef Option<ozz::containers::LinkMode::kSafe, 0> _OptionsSafe0;
   typedef TestObj1<_OptionsSafe0> SafeTestObj0;
-  _Test<IntrusiveList<SafeTestObj0, _OptionsSafe0> >()();
+  _Test<IntrusiveList<SafeTestObj0, _OptionsSafe0>>()();
 
   // kUnsafe link mode
   typedef Option<ozz::containers::LinkMode::kUnsafe, 0> _OptionsUnsafe0;
   typedef TestObj1<_OptionsUnsafe0> UnsafeTestObj0;
-  _Test<IntrusiveList<UnsafeTestObj0, _OptionsUnsafe0> >()();
+  _Test<IntrusiveList<UnsafeTestObj0, _OptionsUnsafe0>>()();
 
   // Auto link mode and safe link mode of a single object in two different
   // lists.
   typedef Option<ozz::containers::LinkMode::kSafe, 1> _OptionsSafe1;
   typedef TestObj2<_OptionsAuto0, _OptionsSafe1> LocalTestObj01;
-  _Test<IntrusiveList<LocalTestObj01, _OptionsSafe1> >()();
+  _Test<IntrusiveList<LocalTestObj01, _OptionsSafe1>>()();
 }
 
 // Tests compliance with "front" push/pop function specifications.

@@ -63,13 +63,13 @@ bool SamplingJob::Validate() const {
   // Tests are written in multiple lines in order to avoid branches.
   bool valid = true;
 
-  // Test for NULL pointers.
+  // Test for nullptr pointers.
   if (!animation || !cache) {
     return false;
   }
-  valid &= output.begin != NULL;
+  valid &= output.begin != nullptr;
 
-  // Tests output range, implicitly tests output.end != NULL.
+  // Tests output range, implicitly tests output.end != nullptr.
   const ptrdiff_t num_soa_tracks = animation->num_soa_tracks();
   valid &= output.end - output.begin >= num_soa_tracks;
 
@@ -198,8 +198,7 @@ void UpdateSoaTranslations(int _num_soa_tracks,
                                                                                \
     /* Prepares an array of input values, according to the mapping required */ \
     /* to restore quaternion largest component.*/                              \
-    OZZ_ALIGN(16)                                                              \
-    int cmp_keys[4][4] = {                                                     \
+    alignas(16) int cmp_keys[4][4] = {                                         \
         {_k0.value[m0[0]], _k1.value[m1[0]], _k2.value[m2[0]],                 \
          _k3.value[m3[0]]},                                                    \
         {_k0.value[m0[1]], _k1.value[m1[1]], _k2.value[m2[1]],                 \
@@ -393,7 +392,7 @@ void Interpolates(float _anim_ratio, int _num_soa_tracks,
 }
 }  // namespace
 
-SamplingJob::SamplingJob() : ratio(0.f), animation(NULL), cache(NULL) {}
+SamplingJob::SamplingJob() : ratio(0.f), animation(nullptr), cache(nullptr) {}
 
 bool SamplingJob::Run() const {
   if (!Validate()) {
@@ -443,13 +442,13 @@ bool SamplingJob::Run() const {
 
 SamplingCache::SamplingCache()
     : max_soa_tracks_(0),
-      soa_translations_(NULL) {  // soa_translations_ is the allocation pointer.
+      soa_translations_(nullptr) {  // soa_translations_ is the allocation pointer.
   Invalidate();
 }
 
 SamplingCache::SamplingCache(int _max_tracks)
     : max_soa_tracks_(0),
-      soa_translations_(NULL) {  // soa_translations_ is the allocation pointer.
+      soa_translations_(nullptr) {  // soa_translations_ is the allocation pointer.
   Resize(_max_tracks);
 }
 
@@ -488,30 +487,29 @@ void SamplingCache::Resize(int _max_tracks) {
   // Allocates all at once.
   memory::Allocator* allocator = memory::default_allocator();
   char* alloc_begin = reinterpret_cast<char*>(
-      allocator->Allocate(size, OZZ_ALIGN_OF(InterpSoaTranslation)));
+      allocator->Allocate(size, alignof(InterpSoaTranslation)));
   char* alloc_cursor = alloc_begin;
 
   // Distributes buffer memory while ensuring proper alignment (serves larger
   // alignment values first).
-  OZZ_STATIC_ASSERT(
-      OZZ_ALIGN_OF(InterpSoaTranslation) >= OZZ_ALIGN_OF(InterpSoaRotation) &&
-      OZZ_ALIGN_OF(InterpSoaRotation) >= OZZ_ALIGN_OF(InterpSoaScale) &&
-      OZZ_ALIGN_OF(InterpSoaScale) >= OZZ_ALIGN_OF(int) &&
-      OZZ_ALIGN_OF(int) >= OZZ_ALIGN_OF(uint8_t));
+  static_assert(alignof(InterpSoaTranslation) >= alignof(InterpSoaRotation) &&
+                    alignof(InterpSoaRotation) >= alignof(InterpSoaScale) &&
+                    alignof(InterpSoaScale) >= alignof(int) &&
+                    alignof(int) >= alignof(uint8_t),
+                "Must serve larger alignment values first)");
 
   soa_translations_ = reinterpret_cast<InterpSoaTranslation*>(alloc_cursor);
-  assert(
-      math::IsAligned(soa_translations_, OZZ_ALIGN_OF(InterpSoaTranslation)));
+  assert(math::IsAligned(soa_translations_, alignof(InterpSoaTranslation)));
   alloc_cursor += sizeof(InterpSoaTranslation) * max_soa_tracks_;
   soa_rotations_ = reinterpret_cast<InterpSoaRotation*>(alloc_cursor);
-  assert(math::IsAligned(soa_rotations_, OZZ_ALIGN_OF(InterpSoaRotation)));
+  assert(math::IsAligned(soa_rotations_, alignof(InterpSoaRotation)));
   alloc_cursor += sizeof(InterpSoaRotation) * max_soa_tracks_;
   soa_scales_ = reinterpret_cast<InterpSoaScale*>(alloc_cursor);
-  assert(math::IsAligned(soa_scales_, OZZ_ALIGN_OF(InterpSoaScale)));
+  assert(math::IsAligned(soa_scales_, alignof(InterpSoaScale)));
   alloc_cursor += sizeof(InterpSoaScale) * max_soa_tracks_;
 
   translation_keys_ = reinterpret_cast<int*>(alloc_cursor);
-  assert(math::IsAligned(translation_keys_, OZZ_ALIGN_OF(int)));
+  assert(math::IsAligned(translation_keys_, alignof(int)));
   alloc_cursor += sizeof(int) * max_tracks * 2;
   rotation_keys_ = reinterpret_cast<int*>(alloc_cursor);
   alloc_cursor += sizeof(int) * max_tracks * 2;
@@ -519,7 +517,7 @@ void SamplingCache::Resize(int _max_tracks) {
   alloc_cursor += sizeof(int) * max_tracks * 2;
 
   outdated_translations_ = reinterpret_cast<uint8_t*>(alloc_cursor);
-  assert(math::IsAligned(outdated_translations_, OZZ_ALIGN_OF(uint8_t)));
+  assert(math::IsAligned(outdated_translations_, alignof(uint8_t)));
   alloc_cursor += sizeof(uint8_t) * num_outdated;
   outdated_rotations_ = reinterpret_cast<uint8_t*>(alloc_cursor);
   alloc_cursor += sizeof(uint8_t) * num_outdated;
@@ -541,7 +539,7 @@ void SamplingCache::Step(const Animation& _animation, float _ratio) {
 }
 
 void SamplingCache::Invalidate() {
-  animation_ = NULL;
+  animation_ = nullptr;
   ratio_ = 0.f;
   translation_cursor_ = 0;
   rotation_cursor_ = 0;

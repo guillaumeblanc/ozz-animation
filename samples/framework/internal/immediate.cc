@@ -42,7 +42,7 @@ namespace sample {
 namespace internal {
 
 GlImmediateRenderer::GlImmediateRenderer(RendererImpl* _renderer)
-    : vbo_(0), buffer_(NULL), max_size_(0), size_(0), renderer_(_renderer) {}
+    : vbo_(0), buffer_(nullptr), max_size_(0), size_(0), renderer_(_renderer) {}
 
 GlImmediateRenderer::~GlImmediateRenderer() {
   assert(size_ == 0 && "Immediate rendering still in use.");
@@ -52,7 +52,7 @@ GlImmediateRenderer::~GlImmediateRenderer() {
     vbo_ = 0;
   }
   ozz::memory::default_allocator()->Deallocate(buffer_);
-  buffer_ = NULL;
+  buffer_ = nullptr;
 }
 
 bool GlImmediateRenderer::Initialize() {
@@ -80,7 +80,7 @@ template <>
 void GlImmediateRenderer::End<VertexPC>(GLenum _mode,
                                         const ozz::math::Float4x4& _transform) {
   GL(BindBuffer(GL_ARRAY_BUFFER, vbo_));
-  GL(BufferSubData(GL_ARRAY_BUFFER, 0, size_, buffer_));
+  GL(BufferData(GL_ARRAY_BUFFER, size_, buffer_, GL_STREAM_DRAW));
 
   immediate_pc_shader->Bind(_transform, renderer_->camera()->view_proj(),
                             sizeof(VertexPC), 0, sizeof(VertexPC), 12);
@@ -100,7 +100,7 @@ template <>
 void GlImmediateRenderer::End<VertexPTC>(
     GLenum _mode, const ozz::math::Float4x4& _transform) {
   GL(BindBuffer(GL_ARRAY_BUFFER, vbo_));
-  GL(BufferSubData(GL_ARRAY_BUFFER, 0, size_, buffer_));
+  GL(BufferData(GL_ARRAY_BUFFER, size_, buffer_, GL_STREAM_DRAW));
 
   immediate_ptc_shader->Bind(_transform, renderer_->camera()->view_proj(),
                              sizeof(VertexPTC), 0, sizeof(VertexPTC), 12,
@@ -122,10 +122,6 @@ void GlImmediateRenderer::ResizeVbo(size_t _new_size) {
     max_size_ = ozz::math::Max(max_size_ * 2, _new_size);
     buffer_ = reinterpret_cast<char*>(
         ozz::memory::default_allocator()->Reallocate(buffer_, max_size_, 16));
-
-    GL(BindBuffer(GL_ARRAY_BUFFER, vbo_));
-    GL(BufferData(GL_ARRAY_BUFFER, max_size_, NULL, GL_STREAM_DRAW));
-    GL(BindBuffer(GL_ARRAY_BUFFER, 0));
   }
 }
 }  // namespace internal

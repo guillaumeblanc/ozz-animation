@@ -35,23 +35,20 @@ int main(int _argc, const char** _argv) {
 }
 
 Fbx2OzzImporter::Fbx2OzzImporter()
-    : settings_(fbx_manager_), scene_loader_(NULL) {}
+    : settings_(fbx_manager_), scene_loader_(nullptr) {}
 
-Fbx2OzzImporter::~Fbx2OzzImporter() {
-  OZZ_DELETE(ozz::memory::default_allocator(), scene_loader_);
-}
+Fbx2OzzImporter::~Fbx2OzzImporter() { ozz::Delete(scene_loader_); }
 
 bool Fbx2OzzImporter::Load(const char* _filename) {
-  OZZ_DELETE(ozz::memory::default_allocator(), scene_loader_);
-  scene_loader_ = OZZ_NEW(ozz::memory::default_allocator(),
-                          ozz::animation::offline::fbx::FbxSceneLoader)(
+  ozz::Delete(scene_loader_);
+  scene_loader_ = ozz::New<ozz::animation::offline::fbx::FbxSceneLoader>(
       _filename, "", fbx_manager_, settings_);
 
   if (!scene_loader_->scene()) {
     ozz::log::Err() << "Failed to import file " << _filename << "."
                     << std::endl;
-    OZZ_DELETE(ozz::memory::default_allocator(), scene_loader_);
-    scene_loader_ = NULL;
+    ozz::Delete(scene_loader_);
+    scene_loader_ = nullptr;
     return false;
   }
   return true;

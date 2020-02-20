@@ -36,10 +36,6 @@ target_link_libraries(sample_multithread
   sample_framework
   ${CMAKE_THREAD_LIBS_INIT})
 
-# c++11 is required
-set_property(TARGET sample_multithread PROPERTY CXX_STANDARD 11)
-set_property(TARGET sample_multithread PROPERTY CXX_STANDARD_REQUIRED ON)
-
 set_target_properties(sample_multithread
   PROPERTIES FOLDER "samples")
 

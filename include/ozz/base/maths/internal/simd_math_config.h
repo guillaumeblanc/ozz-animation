@@ -119,7 +119,7 @@ typedef const __m128i _SimdInt4;
 
 // Vector of four floating point values.
 struct SimdFloat4Def {
-  OZZ_ALIGN(16) float x;
+  alignas(16) float x;
   float y;
   float z;
   float w;
@@ -127,7 +127,7 @@ struct SimdFloat4Def {
 
 // Vector of four integer values.
 struct SimdInt4Def {
-  OZZ_ALIGN(16) int x;
+  alignas(16) int x;
   int y;
   int z;
   int w;

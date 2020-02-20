@@ -163,9 +163,9 @@ int OzzImporter::operator()(int _argc, const char** _argv) {
   return EXIT_SUCCESS;
 }
 
-ozz::String::Std OzzImporter::BuildFilename(const char* _filename,
-                                            const char* _data_name) const {
-  ozz::String::Std output(_filename);
+ozz::string OzzImporter::BuildFilename(const char* _filename,
+                                       const char* _data_name) const {
+  ozz::string output(_filename);
 
   for (size_t asterisk = output.find('*'); asterisk != std::string::npos;
        asterisk = output.find('*')) {

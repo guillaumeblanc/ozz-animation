@@ -108,13 +108,11 @@ int main(int argc, char const* argv[]) {
 
   // Executes the builder on the previously prepared RawAnimation, which returns
   // a new runtime animation instance.
-  // This operation will fail and return NULL if the RawAnimation isn't valid.
-  ozz::animation::Animation* animation = builder(raw_animation);
+  // This operation will fail and return an empty unique_ptr if the RawAnimation
+  // isn't valid.
+  ozz::unique_ptr<ozz::animation::Animation> animation = builder(raw_animation);
 
   // ...use the animation as you want...
-
-  // In the end the animation needs to be deleted.
-  OZZ_DELETE(ozz::memory::default_allocator(), animation);
 
   return EXIT_SUCCESS;
 }

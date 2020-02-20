@@ -37,7 +37,7 @@
 
 #include "ozz/animation/runtime/skeleton.h"
 #include "ozz/animation/runtime/skeleton_utils.h"
-#include "ozz/base/memory/scoped_ptr.h"
+#include "ozz/base/memory/unique_ptr.h"
 
 using ozz::animation::Skeleton;
 using ozz::animation::offline::RawSkeleton;
@@ -71,7 +71,7 @@ TEST(JointBindPose, SkeletonUtils) {
   EXPECT_TRUE(raw_skeleton.Validate());
   EXPECT_EQ(raw_skeleton.num_joints(), 3);
 
-  ozz::ScopedPtr<Skeleton> skeleton(builder(raw_skeleton));
+  ozz::unique_ptr<Skeleton> skeleton(builder(raw_skeleton));
   ASSERT_TRUE(skeleton);
   EXPECT_EQ(skeleton->num_joints(), 3);
 
@@ -176,7 +176,7 @@ TEST(InterateDF, SkeletonUtils) {
   EXPECT_TRUE(raw_skeleton.Validate());
   EXPECT_EQ(raw_skeleton.num_joints(), 10);
 
-  ozz::ScopedPtr<Skeleton> skeleton(builder(raw_skeleton));
+  ozz::unique_ptr<Skeleton> skeleton(builder(raw_skeleton));
   ASSERT_TRUE(skeleton);
   EXPECT_EQ(skeleton->num_joints(), 10);
 
@@ -269,12 +269,12 @@ class IterateDFReverseTester {
     }
 
     // A joint is traversed once.
-    ozz::Vector<int>::Std::const_iterator itc =
+    ozz::vector<int>::const_iterator itc =
         std::find(processed_joints_.begin(), processed_joints_.end(), _current);
     EXPECT_TRUE(itc == processed_joints_.end());
 
     // A parent can't be traversed before a child.
-    ozz::Vector<int>::Std::const_iterator itp =
+    ozz::vector<int>::const_iterator itp =
         std::find(processed_joints_.begin(), processed_joints_.end(), _parent);
     EXPECT_TRUE(itp == processed_joints_.end());
 
@@ -297,7 +297,7 @@ class IterateDFReverseTester {
   int num_iterations_;
 
   // Already processed joints
-  ozz::Vector<int>::Std processed_joints_;
+  ozz::vector<int> processed_joints_;
 };
 }  // namespace
 
@@ -335,13 +335,13 @@ TEST(InterateDFReverse, SkeletonUtils) {
   EXPECT_TRUE(raw_skeleton.Validate());
   EXPECT_EQ(raw_skeleton.num_joints(), 10);
 
-  ozz::ScopedPtr<Skeleton> skeleton(builder(raw_skeleton));
+  ozz::unique_ptr<Skeleton> skeleton(builder(raw_skeleton));
   ASSERT_TRUE(skeleton);
   EXPECT_EQ(skeleton->num_joints(), 10);
 
   {
-    IterateDFReverseTester fct =
-        IterateJointsDFReverse(*skeleton, IterateDFReverseTester(skeleton.get()));
+    IterateDFReverseTester fct = IterateJointsDFReverse(
+        *skeleton, IterateDFReverseTester(skeleton.get()));
     EXPECT_EQ(fct.num_iterations(), 10);
   }
 }
@@ -394,7 +394,7 @@ TEST(IsLeaf, SkeletonUtils) {
   EXPECT_TRUE(raw_skeleton.Validate());
   EXPECT_EQ(raw_skeleton.num_joints(), 10);
 
-  ozz::ScopedPtr<Skeleton> skeleton(builder(raw_skeleton));
+  ozz::unique_ptr<Skeleton> skeleton(builder(raw_skeleton));
   ASSERT_TRUE(skeleton);
   EXPECT_EQ(skeleton->num_joints(), 10);
 

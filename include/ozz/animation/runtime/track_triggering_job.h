@@ -97,7 +97,7 @@ struct TrackTriggeringJob {
 // last edge has been reached.
 class TrackTriggeringJob::Iterator {
  public:
-  Iterator() : job_(NULL), outer_(0.f), inner_(0) {}
+  Iterator() : job_(nullptr), outer_(0.f), inner_(0) {}
 
   // Evaluate next edge.
   // Calling this function on an end iterator results in an assertion in debug,

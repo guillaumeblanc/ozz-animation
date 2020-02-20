@@ -38,13 +38,13 @@ namespace internal {
 
 template <typename _Track>
 TrackSamplingJob<_Track>::TrackSamplingJob()
-    : ratio(0.f), track(NULL), result(NULL) {}
+    : ratio(0.f), track(nullptr), result(nullptr) {}
 
 template <typename _Track>
 bool TrackSamplingJob<_Track>::Validate() const {
   bool success = true;
-  success &= result != NULL;
-  success &= track != NULL;
+  success &= result != nullptr;
+  success &= track != nullptr;
   return success;
 }
 

@@ -69,7 +69,7 @@ namespace {
 template <typename _VectorType>
 bool FixupNames(_VectorType& _data, const char* _pretty_name,
                 const char* _prefix_name) {
-  ozz::Set<std::string>::Std names;
+  ozz::set<std::string> names;
   for (size_t i = 0; i < _data.size(); ++i) {
     bool renamed = false;
     typename _VectorType::const_reference data = _data[i];
@@ -463,7 +463,7 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
       return skin.skeleton;
     }
 
-    ozz::Map<int, int>::Std parents;
+    ozz::map<int, int> parents;
     for (int node : skin.joints) {
       for (int child : m_model.nodes[node].children) {
         parents[child] = node;
@@ -506,8 +506,8 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
 
     // Get all the skins belonging to this scene
     // TODO other than a set !!
-    ozz::Set<int>::Std roots;
-    ozz::Vector<tinygltf::Skin>::Std skins = GetSkinsForScene(scene);
+    ozz::set<int> roots;
+    ozz::vector<tinygltf::Skin> skins = GetSkinsForScene(scene);
     if (skins.empty()) {
       ozz::log::LogV() << "No skin exists in the scene, the whole scene graph "
                           "will be considered as a skeleton."
@@ -634,7 +634,7 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
     // where each channel targets a node's property i.e. translation, rotation
     // or scale. ozz expects animations to be stored per joint so we create a
     // map where we record the associated channels for each joint
-    ozz::CStringMap<std::vector<const tinygltf::AnimationChannel*>>::Std
+    ozz::cstring_map<std::vector<const tinygltf::AnimationChannel*>>
         channels_per_joint;
 
     for (const tinygltf::AnimationChannel& channel : gltf_animation->channels) {
@@ -791,10 +791,10 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
   }
 
   // Returns all skins belonging to a given gltf scene
-  ozz::Vector<tinygltf::Skin>::Std GetSkinsForScene(
+  ozz::vector<tinygltf::Skin> GetSkinsForScene(
       const tinygltf::Scene& _scene) const {
-    ozz::Set<int>::Std open;
-    ozz::Set<int>::Std found;
+    ozz::set<int> open;
+    ozz::set<int> found;
 
     for (int nodeIndex : _scene.nodes) {
       open.insert(nodeIndex);
@@ -811,7 +811,7 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
       }
     }
 
-    ozz::Vector<tinygltf::Skin>::Std skins;
+    ozz::vector<tinygltf::Skin> skins;
     for (const tinygltf::Skin& skin : m_model.skins) {
       if (!skin.joints.empty() && found.find(skin.joints[0]) != found.end()) {
         skins.push_back(skin);

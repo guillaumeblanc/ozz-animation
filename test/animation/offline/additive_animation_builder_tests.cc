@@ -41,12 +41,12 @@ using ozz::animation::offline::RawAnimation;
 TEST(Error, AdditiveAnimationBuilder) {
   AdditiveAnimationBuilder builder;
 
-  {  // NULL output.
+  {  // nullptr output.
     RawAnimation input;
     EXPECT_TRUE(input.Validate());
 
     // Builds animation
-    EXPECT_FALSE(builder(input, NULL));
+    EXPECT_FALSE(builder(input, nullptr));
   }
 
   {  // Invalid input animation.

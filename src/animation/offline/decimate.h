@@ -61,10 +61,10 @@ void Decimate(const _Track& _src, const _Adapter& _adapter, float _tolerance,
 
   // Stack of segments to process.
   typedef std::pair<size_t, size_t> Segment;
-  ozz::Stack<Segment>::Std segments;
+  ozz::stack<Segment> segments;
 
   // Bit vector of all points to included.
-  ozz::Vector<bool>::Std included(_src.size(), false);
+  ozz::vector<bool> included(_src.size(), false);
 
   // Pushes segment made from first and last points.
   segments.push(Segment(0, _src.size() - 1));

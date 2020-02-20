@@ -171,10 +171,10 @@ class BakedSampleApplication : public ozz::sample::Application {
   ozz::animation::SamplingCache cache_;
 
   // Buffer of local transforms as sampled from animation_.
-  ozz::Vector<ozz::math::SoaTransform>::Std locals_;
+  ozz::vector<ozz::math::SoaTransform> locals_;
 
   // Buffer of model space matrices.
-  ozz::Vector<ozz::math::Float4x4>::Std models_;
+  ozz::vector<ozz::math::Float4x4> models_;
 
   // Camera joint index. -1 if not found.
   int camera_index_;
