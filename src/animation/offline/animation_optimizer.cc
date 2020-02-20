@@ -356,7 +356,7 @@ inline float Compare(const ozz::math::Transform& _reference,
       abs.x < abs.y ? (abs.x < abs.z ? 0 : 2) : (abs.y < abs.z ? 1 : 2);
   const math::Float3 binormal(smallest == 0, smallest == 1, smallest == 2);
   const math::Float3 normal =
-      Normalize(Cross(binormal, axis)) * _reference.scale;
+      NormalizeSafe(Cross(binormal, axis), binormal) * _reference.scale;
 
   const float rotation_error =
       Length(TransformVector(diff, normal) - normal) * _distance;
