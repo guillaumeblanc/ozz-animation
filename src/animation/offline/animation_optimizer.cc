@@ -729,12 +729,9 @@ class VTrack {
         tolerance_(_initial_tolerance),
         hierarchy_error_ratio_(-1.f),
         optimization_delta_(-1.f) {}
+
   virtual ~VTrack() {}
-  void Initialize(const Comparer& _comparer) {
-    // Decimates  size in order to find next candidate track.
-    Decimate(tolerance_);
-    UpdateDelta(_comparer);
-  }
+
   // Computes transition to next solution.
   void Transition() {
     const size_t validated_size = ValidatedSize();
@@ -743,13 +740,14 @@ class VTrack {
     for (size_t candidate_size = CandidateSize();
          candidate_size > 1 && candidate_size == validated_size;
          candidate_size = CandidateSize()) {
-      // Computes next tolerance to use for decimation.
-      // tolerance_ *= 1.2f;
-      const float mul = 1.2f + -hierarchy_error_ratio_ * .3f;  // * f * 1.f;
-      tolerance_ *= mul;
-
       // Decimates validated track in order to find next candidate track.
       Decimate(tolerance_);
+
+      // Computes next tolerance to use for decimation.
+      // tolerance_ *= 1.2f;
+      assert(hierarchy_error_ratio_ < 0.f);
+      const float mul = 1.2f + -hierarchy_error_ratio_ * .3f;  // * f * 1.f;
+      tolerance_ *= mul;
     }
   }
 
@@ -825,15 +823,16 @@ class VTrack {
 template <typename _Track, typename _Adapter, int _Type>
 class TTrack : public VTrack {
  public:
-  TTrack(const _Track& _original, _Track& _solution, const _Adapter& _adapter,
+  TTrack(const _Track& _original, _Track* _solution, const _Adapter& _adapter,
          float _initial_tolerance, int _joint)
       : VTrack(_initial_tolerance, _joint),
         adapter_(_adapter),
         original_(&_original),
-        validated_(_solution) {
+        validated_(_solution),
+        candidate_(_original) {
     // Initialize validated track with a copy of original.
     // TODO check were it's better to initialize
-    validated_ = *original_;
+    *validated_ = _original;
   }
 
  private:
@@ -847,31 +846,31 @@ class TTrack : public VTrack {
   virtual void Validate(Comparer& _comparer) {
     _comparer.UpdateError(candidate_, joint(), included_);
 
-    validated_ = candidate_;
+    *validated_ = candidate_;
 
     // TODO
     // included_ keyframes vector is now outdated.
     // Outdated is reset to true (all keyframe maintained), as decimate might
     // not be call (if keyframe number is too small for instance).
     included_.clear();
-    included_.resize(validated_.size(), true);
+    included_.resize(validated_->size(), true);
   }
 
   virtual void Decimate(float _tolerance) {
     // TODO Need to prove decimate doesn't need original track
-    ozz::animation::offline::Decimate(validated_, adapter_, _tolerance,
+    ozz::animation::offline::Decimate(*validated_, adapter_, _tolerance,
                                       &candidate_, &included_);
   }
 
   virtual size_t OriginalSize() const { return original_->size(); }
-  virtual size_t ValidatedSize() const { return validated_.size(); }
+  virtual size_t ValidatedSize() const { return validated_->size(); }
   virtual size_t CandidateSize() const { return candidate_.size(); }
 
   virtual int Type() const { return _Type; }
 
   const _Adapter adapter_;
   const _Track* original_;
-  _Track& validated_;
+  _Track* validated_;
   _Track candidate_;
 
   // vector used to store keyframes from candidate_ that are included from
@@ -907,7 +906,7 @@ class HillClimber {
     settings_.reserve(num_tracks);
 
     for (int i = 0; i < num_tracks; ++i) {
-      const float kInitialFactor = .2f;
+      const float kInitialFactor = .25f;
 
       // Using hierarchy spec for joint_length (aka comparing rotations)
       // is important as it prevents from optimizing too quickly joints at
@@ -932,17 +931,17 @@ class HillClimber {
       {  // Translation track, translation is affected by parent scale.
         const PositionAdapter adap(parent_scale);
         translations_.push_back(ozz::make_unique<TranslationTrack>(
-            itrack.translations, otrack.translations, adap, initial, i));
+            itrack.translations, &otrack.translations, adap, initial, i));
       }
       {  // Rotation track, rotation affects children translations/length.
         const RotationAdapter adap(joint_length);
         rotations_.push_back(ozz::make_unique<RotationTrack>(
-            itrack.rotations, otrack.rotations, adap, initial, i));
+            itrack.rotations, &otrack.rotations, adap, initial, i));
       }
       {  // Scale track, scale affects children translations/length.
         const ScaleAdapter adap(joint_length);
         scales_.push_back(ozz::make_unique<ScaleTrack>(
-            itrack.scales, otrack.scales, adap, initial, i));
+            itrack.scales, &otrack.scales, adap, initial, i));
       }
     }
 
@@ -958,14 +957,15 @@ class HillClimber {
     // Setup comparer
     comparer_ = ozz::make_unique<Comparer>(_original, *_output, _skeleton,
                                            ozz::make_range(settings_));
-
-    // Initialize all tracks with a decimation based on initial tolerance.
-    for (size_t i = 0; i < remainings_.size(); ++i) {
-      remainings_[i]->Initialize(*comparer_);
-    }
   }
 
   void operator()() {
+    // Initializes all tracks with a decimated candidate.
+    for (VTrack* track : remainings_) {
+      track->Transition();
+      track->UpdateDelta(*comparer_);
+    }
+
     // Loops as long as there's still optimizable tracks to process.
     for (int iteration = 0;; ++iteration) {
       // Within a single loop over all remaining tracks, finds the one
@@ -999,8 +999,7 @@ class HillClimber {
           observer_->Push(data);
         }
 
-        // Track can be removed from those to process if it can't be
-        // optimized anymore.
+        // Removes track from those to process if it can't be optimized anymore.
         if (delta >= 0) {
           it = remainings_.erase(it);
           continue;
