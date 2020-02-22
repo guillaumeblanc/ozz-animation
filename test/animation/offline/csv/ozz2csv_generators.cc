@@ -165,26 +165,40 @@ class CsvObserver
   }
 };
 
+bool BuildOzzOptimized(const ozz::animation::offline::RawAnimation& _animation,
+                       const ozz::animation::Skeleton& _skeleton,
+                       const Json::Value& _config,
+                       ozz::animation::offline::RawAnimation* _optimized) {
+  ozz::animation::offline::AnimationOptimizer optimizer;
+  optimizer.setting.tolerance =
+      _config.get("tolerance", optimizer.setting.tolerance).asFloat();
+  optimizer.setting.distance =
+      _config.get("distance", optimizer.setting.distance).asFloat();
+  optimizer.fast = _config.get("fast", optimizer.fast).asBool();
+
+  // Tries to open an observer csv file.
+  const Json::Value observer_filename = _config.get("observer", "");
+  CsvObserver observer(observer_filename.asCString());
+  if (observer.opened()) {
+    optimizer.observer = &observer;
+  }
+
+  if (!optimizer(_animation, _skeleton, _optimized)) {
+    return false;
+  }
+  return true;
+}
+
 class OzzOptimizer : public OzzPassthrough {
   virtual bool Build(const ozz::animation::offline::RawAnimation& _animation,
                      const ozz::animation::Skeleton& _skeleton,
                      const Json::Value& _config) {
-    ozz::animation::offline::AnimationOptimizer optimizer;
-    optimizer.setting.tolerance =
-        _config.get("tolerance", optimizer.setting.tolerance).asFloat();
-    optimizer.setting.distance =
-        _config.get("distance", optimizer.setting.distance).asFloat();
-    optimizer.fast = _config.get("fast", optimizer.fast).asBool();
-
-    // Tries to open an observer csv file.
-    const char* observer_filename = _config.get("observer", "").asCString();
-    CsvObserver observer(observer_filename);
-    if (observer.opened()) {
-      optimizer.observer = &observer;
+    if (_skeleton.num_joints() != _animation.num_tracks()) {
+      return false;
     }
 
     ozz::animation::offline::RawAnimation optimized;
-    if (!optimizer(_animation, _skeleton, &optimized)) {
+    if (!BuildOzzOptimized(_animation, _skeleton, _config, &optimized)) {
       return false;
     }
 
@@ -203,21 +217,7 @@ class OzzRuntime : public Generator {
 
     ozz::animation::offline::RawAnimation raw;
     if (_config.get("optimize", true).asBool()) {
-      ozz::animation::offline::AnimationOptimizer optimizer;
-      optimizer.setting.tolerance =
-          _config.get("tolerance", optimizer.setting.tolerance).asFloat();
-      optimizer.setting.distance =
-          _config.get("distance", optimizer.setting.distance).asFloat();
-      optimizer.fast = _config.get("fast", optimizer.fast).asBool();
-
-      // Tries to open an observer csv file.
-      const char* observer_filename = _config.get("observer", "").asCString();
-      CsvObserver observer(observer_filename);
-      if (observer.opened()) {
-        optimizer.observer = &observer;
-      }
-
-      if (!optimizer(_animation, _skeleton, &raw)) {
+      if (!BuildOzzOptimized(_animation, _skeleton, _config, &raw)) {
         return false;
       }
     } else {
