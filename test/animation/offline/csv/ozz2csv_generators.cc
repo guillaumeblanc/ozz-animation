@@ -177,7 +177,7 @@ class OzzOptimizer : public OzzPassthrough {
     optimizer.fast = _config.get("fast", optimizer.fast).asBool();
 
     // Tries to open an observer csv file.
-    const char* observer_filename = _config.get("observer", "").asCString();
+    const char* observer_filename = _config["observer"].asCString();
     CsvObserver observer(observer_filename);
     if (observer.opened()) {
       optimizer.observer = &observer;
@@ -211,7 +211,7 @@ class OzzRuntime : public Generator {
       optimizer.fast = _config.get("fast", optimizer.fast).asBool();
 
       // Tries to open an observer csv file.
-      const char* observer_filename = _config.get("observer", "").asCString();
+      const char* observer_filename = _config["observer"].asCString();
       CsvObserver observer(observer_filename);
       if (observer.opened()) {
         optimizer.observer = &observer;
