@@ -129,7 +129,7 @@ void CopyRaw(const _SrcTrack& _src, uint16_t _track, float _duration,
 }
 
 void CopyToAnimation(ozz::vector<SortingTranslationKey>* _src,
-                     ozz::Range<TranslationKey>* _dest, float _inv_duration) {
+                     ozz::Range<Float3Key>* _dest, float _inv_duration) {
   const size_t src_count = _src->size();
   if (!src_count) {
     return;
@@ -142,7 +142,7 @@ void CopyToAnimation(ozz::vector<SortingTranslationKey>* _src,
   // Fills output.
   const SortingTranslationKey* src = &_src->front();
   for (size_t i = 0; i < src_count; ++i) {
-    TranslationKey& key = _dest->begin[i];
+    Float3Key& key = _dest->begin[i];
     key.ratio = src[i].key.time * _inv_duration;
     key.track = src[i].track;
     key.value[0] = ozz::math::FloatToHalf(src[i].key.value.x);
@@ -152,7 +152,7 @@ void CopyToAnimation(ozz::vector<SortingTranslationKey>* _src,
 }
 
 void CopyToAnimation(ozz::vector<SortingScaleKey>* _src,
-                     ozz::Range<ScaleKey>* _dest, float _inv_duration) {
+                     ozz::Range<Float3Key>* _dest, float _inv_duration) {
   const size_t src_count = _src->size();
   if (!src_count) {
     return;
@@ -165,7 +165,7 @@ void CopyToAnimation(ozz::vector<SortingScaleKey>* _src,
   // Fills output.
   const SortingScaleKey* src = &_src->front();
   for (size_t i = 0; i < src_count; ++i) {
-    ScaleKey& key = _dest->begin[i];
+    Float3Key& key = _dest->begin[i];
     key.ratio = src[i].key.time * _inv_duration;
     key.track = src[i].track;
     key.value[0] = ozz::math::FloatToHalf(src[i].key.value.x);
@@ -186,7 +186,7 @@ bool LessAbs(float _left, float _right) {
 // their value cannot be greater than sqrt(2)/2. Thus quantization quality is
 // improved by pre-multiplying each componenent by sqrt(2).
 void CompressQuat(const ozz::math::Quaternion& _src,
-                  ozz::animation::RotationKey* _dest) {
+                  ozz::animation::QuaternionKey* _dest) {
   // Finds the largest quaternion component.
   const float quat[4] = {_src.x, _src.y, _src.z, _src.w};
   const size_t largest = std::max_element(quat, quat + 4, LessAbs) - quat;
@@ -212,7 +212,7 @@ void CompressQuat(const ozz::math::Quaternion& _src,
 // Consecutive opposite quaternions are also fixed up in order to avoid checking
 // for the smallest path during the NLerp runtime algorithm.
 void CopyToAnimation(ozz::vector<SortingRotationKey>* _src,
-                     ozz::Range<RotationKey>* _dest, float _inv_duration) {
+                     ozz::Range<QuaternionKey>* _dest, float _inv_duration) {
   const size_t src_count = _src->size();
   if (!src_count) {
     return;
@@ -253,7 +253,7 @@ void CopyToAnimation(ozz::vector<SortingRotationKey>* _src,
   // Fills rotation keys output.
   for (size_t i = 0; i < src_count; ++i) {
     const SortingRotationKey& skey = src[i];
-    RotationKey& dkey = _dest->begin[i];
+    QuaternionKey& dkey = _dest->begin[i];
     dkey.ratio = skey.key.time * _inv_duration;
     dkey.track = skey.track;
 
