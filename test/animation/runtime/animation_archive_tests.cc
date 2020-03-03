@@ -42,9 +42,6 @@
 #include "ozz/animation/offline/raw_animation.h"
 
 using ozz::animation::Animation;
-using ozz::animation::TranslationKey;
-using ozz::animation::RotationKey;
-using ozz::animation::ScaleKey;
 using ozz::animation::offline::RawAnimation;
 using ozz::animation::offline::AnimationBuilder;
 

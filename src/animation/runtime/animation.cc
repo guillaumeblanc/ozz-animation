@@ -27,14 +27,14 @@
 
 #include "ozz/animation/runtime/animation.h"
 
+#include <cassert>
+#include <cstring>
+
 #include "ozz/base/io/archive.h"
 #include "ozz/base/log.h"
 #include "ozz/base/maths/math_archive.h"
 #include "ozz/base/maths/math_ex.h"
 #include "ozz/base/memory/allocator.h"
-
-#include <cassert>
-#include <cstring>
 
 // Internal include file
 #define OZZ_INCLUDE_PRIVATE_HEADER  // Allows to include private headers.
@@ -51,40 +51,40 @@ void Animation::Allocate(size_t _name_len, size_t _translation_count,
                          size_t _rotation_count, size_t _scale_count) {
   // Distributes buffer memory while ensuring proper alignment (serves larger
   // alignment values first).
-  static_assert(alignof(TranslationKey) >= alignof(RotationKey) &&
-                    alignof(RotationKey) >= alignof(ScaleKey) &&
-                    alignof(ScaleKey) >= alignof(char),
+  static_assert(alignof(Float3Key) >= alignof(QuaternionKey) &&
+                    alignof(QuaternionKey) >= alignof(Float3Key) &&
+                    alignof(Float3Key) >= alignof(char),
                 "Must serve larger alignment values first)");
 
-  assert(name_ == nullptr && translations_.size() == 0 && rotations_.size() == 0 &&
-         scales_.size() == 0);
+  assert(name_ == nullptr && translations_.size() == 0 &&
+         rotations_.size() == 0 && scales_.size() == 0);
 
   // Compute overall size and allocate a single buffer for all the data.
   const size_t buffer_size = (_name_len > 0 ? _name_len + 1 : 0) +
-                             _translation_count * sizeof(TranslationKey) +
-                             _rotation_count * sizeof(RotationKey) +
-                             _scale_count * sizeof(ScaleKey);
-  char* buffer = reinterpret_cast<char*>(memory::default_allocator()->Allocate(
-      buffer_size, alignof(TranslationKey)));
+                             _translation_count * sizeof(Float3Key) +
+                             _rotation_count * sizeof(QuaternionKey) +
+                             _scale_count * sizeof(Float3Key);
+  char* buffer = reinterpret_cast<char*>(
+      memory::default_allocator()->Allocate(buffer_size, alignof(Float3Key)));
 
   // Fix up pointers. Serves larger alignment values first.
-  translations_.begin = reinterpret_cast<TranslationKey*>(buffer);
-  assert(math::IsAligned(translations_.begin, alignof(TranslationKey)));
-  buffer += _translation_count * sizeof(TranslationKey);
-  translations_.end = reinterpret_cast<TranslationKey*>(buffer);
+  translations_.begin = reinterpret_cast<Float3Key*>(buffer);
+  assert(math::IsAligned(translations_.begin, alignof(Float3Key)));
+  buffer += _translation_count * sizeof(Float3Key);
+  translations_.end = reinterpret_cast<Float3Key*>(buffer);
 
-  rotations_.begin = reinterpret_cast<RotationKey*>(buffer);
-  assert(math::IsAligned(rotations_.begin, alignof(RotationKey)));
-  buffer += _rotation_count * sizeof(RotationKey);
-  rotations_.end = reinterpret_cast<RotationKey*>(buffer);
+  rotations_.begin = reinterpret_cast<QuaternionKey*>(buffer);
+  assert(math::IsAligned(rotations_.begin, alignof(QuaternionKey)));
+  buffer += _rotation_count * sizeof(QuaternionKey);
+  rotations_.end = reinterpret_cast<QuaternionKey*>(buffer);
 
-  scales_.begin = reinterpret_cast<ScaleKey*>(buffer);
-  assert(math::IsAligned(scales_.begin, alignof(ScaleKey)));
-  buffer += _scale_count * sizeof(ScaleKey);
-  scales_.end = reinterpret_cast<ScaleKey*>(buffer);
+  scales_.begin = reinterpret_cast<Float3Key*>(buffer);
+  assert(math::IsAligned(scales_.begin, alignof(Float3Key)));
+  buffer += _scale_count * sizeof(Float3Key);
+  scales_.end = reinterpret_cast<Float3Key*>(buffer);
 
-  // Let name be nullptr if animation has no name. Allows to avoid allocating this
-  // buffer in the constructor of empty animations.
+  // Let name be nullptr if animation has no name. Allows to avoid allocating
+  // this buffer in the constructor of empty animations.
   name_ = reinterpret_cast<char*>(_name_len > 0 ? buffer : nullptr);
   assert(math::IsAligned(name_, alignof(char)));
 }
@@ -93,9 +93,9 @@ void Animation::Deallocate() {
   memory::default_allocator()->Deallocate(translations_.begin);
 
   name_ = nullptr;
-  translations_ = ozz::Range<TranslationKey>();
-  rotations_ = ozz::Range<RotationKey>();
-  scales_ = ozz::Range<ScaleKey>();
+  translations_ = ozz::Range<Float3Key>();
+  rotations_ = ozz::Range<QuaternionKey>();
+  scales_ = ozz::Range<Float3Key>();
 }
 
 size_t Animation::size() const {
@@ -121,14 +121,14 @@ void Animation::Save(ozz::io::OArchive& _archive) const {
   _archive << ozz::io::MakeArray(name_, name_len);
 
   for (ptrdiff_t i = 0; i < translation_count; ++i) {
-    const TranslationKey& key = translations_.begin[i];
+    const Float3Key& key = translations_.begin[i];
     _archive << key.ratio;
     _archive << key.track;
     _archive << ozz::io::MakeArray(key.value);
   }
 
   for (ptrdiff_t i = 0; i < rotation_count; ++i) {
-    const RotationKey& key = rotations_.begin[i];
+    const QuaternionKey& key = rotations_.begin[i];
     _archive << key.ratio;
     uint16_t track = key.track;
     _archive << track;
@@ -140,7 +140,7 @@ void Animation::Save(ozz::io::OArchive& _archive) const {
   }
 
   for (ptrdiff_t i = 0; i < scale_count; ++i) {
-    const ScaleKey& key = scales_.begin[i];
+    const Float3Key& key = scales_.begin[i];
     _archive << key.ratio;
     _archive << key.track;
     _archive << ozz::io::MakeArray(key.value);
@@ -183,14 +183,14 @@ void Animation::Load(ozz::io::IArchive& _archive, uint32_t _version) {
   }
 
   for (int i = 0; i < translation_count; ++i) {
-    TranslationKey& key = translations_.begin[i];
+    Float3Key& key = translations_.begin[i];
     _archive >> key.ratio;
     _archive >> key.track;
     _archive >> ozz::io::MakeArray(key.value);
   }
 
   for (int i = 0; i < rotation_count; ++i) {
-    RotationKey& key = rotations_.begin[i];
+    QuaternionKey& key = rotations_.begin[i];
     _archive >> key.ratio;
     uint16_t track;
     _archive >> track;
@@ -205,7 +205,7 @@ void Animation::Load(ozz::io::IArchive& _archive, uint32_t _version) {
   }
 
   for (int i = 0; i < scale_count; ++i) {
-    ScaleKey& key = scales_.begin[i];
+    Float3Key& key = scales_.begin[i];
     _archive >> key.ratio;
     _archive >> key.track;
     _archive >> ozz::io::MakeArray(key.value);
