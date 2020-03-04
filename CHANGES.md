@@ -6,6 +6,7 @@ Next release
 
 * Library
   - [animation] Removes skeleton_utils.h IterateMemFun helper that can be replaced by std::bind.
+  - [base] Fixes memory overwriting issue when reallocating a buffer of smaller size.
   - [base] Replaces OZZ_NEW and OZZ_DELETE macros with template functions ozz::New and ozz::Delete.
   - [base] Removes ScopedPtr in favor of an alias to standard unique_ptr that remaps to ozz deallocator. Implements make_unique using ozz allocator.
   - [base] Uses template aliasing (using keyword) to redirect ozz to std containers. This allows to get rid of ::Std when using ozz containers.
