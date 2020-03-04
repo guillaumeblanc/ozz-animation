@@ -1,3 +1,9 @@
+Release version 0.12.1
+----------------------
+
+* Library
+  - [base] Fixes memory overwrite when reallocating a buffer of smaller size using ozz default memory allocator.
+
 Release version 0.12.0
 ----------------------
 
