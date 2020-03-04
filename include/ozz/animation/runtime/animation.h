@@ -46,6 +46,8 @@ class AnimationBuilder;
 // Forward declaration of key frame's type.
 struct Float3Key;
 struct QuaternionKey;
+struct Float3ConstKey;
+struct QuaternionConstKey;
 
 // Defines a runtime skeletal animation clip.
 // The runtime animation data structure stores animation keyframes, for all the
@@ -79,9 +81,7 @@ class Animation {
   const char* name() const { return name_ ? name_ : ""; }
 
   // Gets the buffer of translations keys.
-  ozz::Range<const Float3Key> translations() const {
-    return translations_;
-  }
+  ozz::Range<const Float3Key> translations() const { return translations_; }
 
   // Gets the buffer of rotation keys.
   Range<const QuaternionKey> rotations() const { return rotations_; }
@@ -106,9 +106,13 @@ class Animation {
   // AnimationBuilder class is allowed to instantiate an Animation.
   friend class offline::AnimationBuilder;
 
+  // SamplinJob class is allowed to access keyframes.
+  friend struct SamplingJob;
+
   // Internal destruction function.
   void Allocate(size_t _name_len, size_t _translation_count,
-                size_t _rotation_count, size_t _scale_count);
+                size_t _rotation_count, size_t _scale_count,
+                uint16_t _track_count);
   void Deallocate();
 
   // Duration of the animation clip.
@@ -125,6 +129,15 @@ class Animation {
   Range<Float3Key> translations_;
   Range<QuaternionKey> rotations_;
   Range<Float3Key> scales_;
+
+  // Stores all constant transforms.
+  Range<Float3ConstKey> const_translations_;
+  Range<QuaternionConstKey> const_rotations_;
+  Range<Float3ConstKey> const_scales_;
+
+  Range<uint8_t> translation_types;
+  Range<uint8_t> rotation_types;
+  Range<uint8_t> scale_types;
 };
 }  // namespace animation
 

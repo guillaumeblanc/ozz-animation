@@ -29,6 +29,8 @@
 #define OZZ_ANIMATION_RUNTIME_ANIMATION_KEYFRAME_H_
 
 #include "ozz/base/platform.h"
+#include "ozz/base/maths/soa_quaternion.h"
+
 #ifndef OZZ_INCLUDE_PRIVATE_HEADER
 #error "This header is private, it cannot be included from public headers."
 #endif  // OZZ_INCLUDE_PRIVATE_HEADER
@@ -74,6 +76,10 @@ struct QuaternionKey {
   uint16_t sign : 1;     // The sign of the largest component. 1 for negative.
   int16_t value[3];      // The quantized value of the 3 smallest components.
 };
+
+struct Float3ConstKey : public math::SoaFloat3 {};
+
+struct QuaternionConstKey : public math::SoaQuaternion {};
 
 }  // namespace animation
 }  // namespace ozz

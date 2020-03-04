@@ -48,22 +48,28 @@ Animation::Animation() : duration_(0.f), num_tracks_(0), name_(nullptr) {}
 Animation::~Animation() { Deallocate(); }
 
 void Animation::Allocate(size_t _name_len, size_t _translation_count,
-                         size_t _rotation_count, size_t _scale_count) {
+                         size_t _rotation_count, size_t _scale_count,
+                         uint16_t _track_count) {
+  num_tracks_ = _track_count;
+
   // Distributes buffer memory while ensuring proper alignment (serves larger
   // alignment values first).
   static_assert(alignof(Float3Key) >= alignof(QuaternionKey) &&
                     alignof(QuaternionKey) >= alignof(Float3Key) &&
-                    alignof(Float3Key) >= alignof(char),
+                    alignof(Float3Key) >= alignof(uint8_t) &&
+                    alignof(uint8_t) >= alignof(char),
                 "Must serve larger alignment values first)");
 
   assert(name_ == nullptr && translations_.size() == 0 &&
          rotations_.size() == 0 && scales_.size() == 0);
 
   // Compute overall size and allocate a single buffer for all the data.
-  const size_t buffer_size = (_name_len > 0 ? _name_len + 1 : 0) +
-                             _translation_count * sizeof(Float3Key) +
-                             _rotation_count * sizeof(QuaternionKey) +
-                             _scale_count * sizeof(Float3Key);
+  const size_t buffer_size =
+      (_name_len > 0 ? _name_len + 1 : 0) +
+      _translation_count * sizeof(Float3Key) +
+      _rotation_count * sizeof(QuaternionKey) +
+      _scale_count * sizeof(Float3Key) +
+      ((_track_count + 3) / 4) * 3;  // 2bits bet joint TRS
   char* buffer = reinterpret_cast<char*>(
       memory::default_allocator()->Allocate(buffer_size, alignof(Float3Key)));
 
@@ -82,6 +88,22 @@ void Animation::Allocate(size_t _name_len, size_t _translation_count,
   assert(math::IsAligned(scales_.begin, alignof(Float3Key)));
   buffer += _scale_count * sizeof(Float3Key);
   scales_.end = reinterpret_cast<Float3Key*>(buffer);
+
+  // Types
+  translation_types.begin = reinterpret_cast<uint8_t*>(buffer);
+  assert(math::IsAligned(translation_types.begin, alignof(uint8_t)));
+  buffer += ((_track_count + 3) / 4) * sizeof(uint8_t);
+  translation_types.end = reinterpret_cast<uint8_t*>(buffer);
+
+  rotation_types.begin = reinterpret_cast<uint8_t*>(buffer);
+  assert(math::IsAligned(rotation_types.begin, alignof(uint8_t)));
+  buffer += ((_track_count + 3) / 4) * sizeof(uint8_t);
+  rotation_types.end = reinterpret_cast<uint8_t*>(buffer);
+
+  scale_types.begin = reinterpret_cast<uint8_t*>(buffer);
+  assert(math::IsAligned(scale_types.begin, alignof(uint8_t)));
+  buffer += ((_track_count + 3) / 4) * sizeof(uint8_t);
+  scale_types.end = reinterpret_cast<uint8_t*>(buffer);
 
   // Let name be nullptr if animation has no name. Allows to avoid allocating
   // this buffer in the constructor of empty animations.
@@ -175,7 +197,8 @@ void Animation::Load(ozz::io::IArchive& _archive, uint32_t _version) {
   int32_t scale_count;
   _archive >> scale_count;
 
-  Allocate(name_len, translation_count, rotation_count, scale_count);
+  Allocate(name_len, translation_count, rotation_count, scale_count,
+           num_tracks);
 
   if (name_) {  // nullptr name_ is supported.
     _archive >> ozz::io::MakeArray(name_, name_len);

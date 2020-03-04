@@ -290,7 +290,6 @@ unique_ptr<Animation> AnimationBuilder::operator()(
   // Sets tracks count. Can be safely casted to uint16_t as number of tracks as
   // already been validated.
   const uint16_t num_tracks = static_cast<uint16_t>(_input.num_tracks());
-  animation->num_tracks_ = num_tracks;
   const uint16_t num_soa_tracks = math::Align(num_tracks, 4);
 
   // Declares and preallocates tracks to sort.
@@ -334,7 +333,8 @@ unique_ptr<Animation> AnimationBuilder::operator()(
 
   // Allocate animation members.
   animation->Allocate(_input.name.length() + 1, sorting_translations.size(),
-                      sorting_rotations.size(), sorting_scales.size());
+                      sorting_rotations.size(), sorting_scales.size(),
+                      num_tracks);
 
   // Copy sorted keys to final animation.
   CopyToAnimation(&sorting_translations, &animation->translations_,
