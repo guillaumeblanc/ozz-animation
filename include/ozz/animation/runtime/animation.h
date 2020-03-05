@@ -112,7 +112,7 @@ class Animation {
   // Internal destruction function.
   void Allocate(size_t _name_len, size_t _translation_count,
                 size_t _rotation_count, size_t _scale_count,
-                uint16_t _track_count);
+                size_t _track_count);
   void Deallocate();
 
   // Duration of the animation clip.
