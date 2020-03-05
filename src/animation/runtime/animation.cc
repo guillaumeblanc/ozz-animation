@@ -49,8 +49,8 @@ Animation::~Animation() { Deallocate(); }
 
 void Animation::Allocate(size_t _name_len, size_t _translation_count,
                          size_t _rotation_count, size_t _scale_count,
-                         uint16_t _track_count) {
-  num_tracks_ = _track_count;
+                         size_t _track_count) {
+  num_tracks_ = static_cast<int>(_track_count);
 
   // Distributes buffer memory while ensuring proper alignment (serves larger
   // alignment values first).
@@ -121,8 +121,9 @@ void Animation::Deallocate() {
 }
 
 size_t Animation::size() const {
-  const size_t size =
-      sizeof(*this) + translations_.size() + rotations_.size() + scales_.size();
+  const size_t size = sizeof(*this) + translations_.size() + rotations_.size() +
+                      scales_.size() + translation_types.size() +
+                      rotation_types.size() + scale_types.size();
   return size;
 }
 
@@ -186,8 +187,6 @@ void Animation::Load(ozz::io::IArchive& _archive, uint32_t _version) {
 
   int32_t num_tracks;
   _archive >> num_tracks;
-  num_tracks_ = num_tracks;
-
   int32_t name_len;
   _archive >> name_len;
   int32_t translation_count;

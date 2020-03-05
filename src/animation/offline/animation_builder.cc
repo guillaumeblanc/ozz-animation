@@ -33,14 +33,11 @@
 #include <cstring>
 #include <limits>
 
-#include "ozz/base/containers/vector.h"
-#include "ozz/base/memory/allocator.h"
-
-#include "ozz/base/maths/simd_math.h"
-
 #include "ozz/animation/offline/raw_animation.h"
-
 #include "ozz/animation/runtime/animation.h"
+#include "ozz/base/containers/vector.h"
+#include "ozz/base/maths/simd_math.h"
+#include "ozz/base/memory/allocator.h"
 
 // Internal include file
 #define OZZ_INCLUDE_PRIVATE_HEADER  // Allows to include private headers.
@@ -78,50 +75,55 @@ bool SortingKeyLess(const _Key& _left, const _Key& _right) {
 }
 
 template <typename _SrcKey, typename _DestTrack>
-void PushBackIdentityKey(uint16_t _track, float _time, _DestTrack* _dest) {
+void PushBackIdentityKey(size_t _track, float _time, _DestTrack* _dest) {
+  const uint16_t track_id = static_cast<uint16_t>(_track);
+
   typedef typename _DestTrack::value_type DestKey;
   float prev_time = -1.f;
-  if (!_dest->empty() && _dest->back().track == _track) {
+  if (!_dest->empty() && _dest->back().track == track_id) {
     prev_time = _dest->back().key.time;
   }
-  const DestKey key = {_track, prev_time, {_time, _SrcKey::identity()}};
+  const DestKey key = {track_id, prev_time, {_time, _SrcKey::identity()}};
   _dest->push_back(key);
 }
 
 // Copies a track from a RawAnimation to an Animation.
 // Also fixes up the front (t = 0) and back keys (t = duration).
 template <typename _SrcTrack, typename _DestTrack>
-void CopyRaw(const _SrcTrack& _src, uint16_t _track, float _duration,
+void CopyRaw(const _SrcTrack& _src, size_t _track, float _duration,
              _DestTrack* _dest) {
+  const uint16_t track_id = static_cast<uint16_t>(_track);
+
   typedef typename _SrcTrack::value_type SrcKey;
   typedef typename _DestTrack::value_type DestKey;
 
   if (_src.size() == 0) {  // Adds 2 new keys.
-    PushBackIdentityKey<SrcKey, _DestTrack>(_track, 0.f, _dest);
-    PushBackIdentityKey<SrcKey, _DestTrack>(_track, _duration, _dest);
+    PushBackIdentityKey<SrcKey, _DestTrack>(track_id, 0.f, _dest);
+    PushBackIdentityKey<SrcKey, _DestTrack>(track_id, _duration, _dest);
   } else if (_src.size() == 1) {  // Adds 1 new key.
     const SrcKey& raw_key = _src.front();
     assert(raw_key.time >= 0 && raw_key.time <= _duration);
-    const DestKey first = {_track, -1.f, {0.f, raw_key.value}};
+    const DestKey first = {track_id, -1.f, {0.f, raw_key.value}};
     _dest->push_back(first);
-    const DestKey last = {_track, 0.f, {_duration, raw_key.value}};
+    const DestKey last = {track_id, 0.f, {_duration, raw_key.value}};
     _dest->push_back(last);
   } else {  // Copies all keys, and fixes up first and last keys.
     float prev_time = -1.f;
     if (_src.front().time != 0.f) {  // Needs a key at t = 0.f.
-      const DestKey first = {_track, prev_time, {0.f, _src.front().value}};
+      const DestKey first = {track_id, prev_time, {0.f, _src.front().value}};
       _dest->push_back(first);
       prev_time = 0.f;
     }
     for (size_t k = 0; k < _src.size(); ++k) {  // Copies all keys.
       const SrcKey& raw_key = _src[k];
       assert(raw_key.time >= 0 && raw_key.time <= _duration);
-      const DestKey key = {_track, prev_time, {raw_key.time, raw_key.value}};
+      const DestKey key = {track_id, prev_time, {raw_key.time, raw_key.value}};
       _dest->push_back(key);
       prev_time = raw_key.time;
     }
     if (_src.back().time != _duration) {  // Needs a key at t = _duration.
-      const DestKey last = {_track, prev_time, {_duration, _src.back().value}};
+      const DestKey last = {
+          track_id, prev_time, {_duration, _src.back().value}};
       _dest->push_back(last);
     }
   }
@@ -289,8 +291,8 @@ unique_ptr<Animation> AnimationBuilder::operator()(
 
   // Sets tracks count. Can be safely casted to uint16_t as number of tracks as
   // already been validated.
-  const uint16_t num_tracks = static_cast<uint16_t>(_input.num_tracks());
-  const uint16_t num_soa_tracks = math::Align(num_tracks, 4);
+  const size_t num_tracks = static_cast<size_t>(_input.num_tracks());
+  const size_t num_soa_tracks = math::Align(num_tracks, 4);
 
   // Declares and preallocates tracks to sort.
   size_t translations = 0, rotations = 0, scales = 0;
@@ -308,7 +310,7 @@ unique_ptr<Animation> AnimationBuilder::operator()(
   sorting_scales.reserve(scales);
 
   // Filters RawAnimation keys and copies them to the output sorting structure.
-  uint16_t i = 0;
+  size_t i = 0;
   for (; i < num_tracks; ++i) {
     const RawAnimation::JointTrack& raw_track = _input.tracks[i];
     CopyRaw(raw_track.translations, i, duration, &sorting_translations);
