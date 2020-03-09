@@ -103,6 +103,10 @@ struct span {
   // elements.
   span(_Ty* _begin, size_t _size) : begin(_begin), end(_begin + _size) {}
 
+  // Copy constructor.
+  span& operator=(const span& _other)
+      : begin(_other.begin), end(_other.end) {}
+
   // Construct a range from a single element.
   explicit span(_Ty& _element) : begin(&_element), end((&_element) + 1) {}
 
@@ -110,12 +114,6 @@ struct span {
   // It isn't declared explicit as conversion is free and safe.
   template <size_t _size>
   span(_Ty (&_array)[_size]) : begin(_array), end(_array + _size) {}
-
-  // Reset range to empty.
-  void Clear() {
-    begin = nullptr;
-    end = nullptr;
-  }
 
   // Reinitialized from an array, its size is automatically deduced.
   template <size_t _size>
@@ -133,6 +131,11 @@ struct span {
     return begin[_i];
   }
 
+  bool empty() const noexcept { return begin == end; }
+
+  // Complies with other contiguous containers.
+  constexpr _Ty* data() const noexcept { return data_; }
+
   // Gets the number of elements of the range.
   // This size isn't stored but computed from begin and end pointers.
   size_t size() const {
@@ -147,6 +150,10 @@ struct span {
                                reinterpret_cast<uintptr_t>(begin));
   }
 
+  // Iterator support
+  constexpr iterator begin() const noexcept { return {data_}; }
+  constexpr iterator end() const noexcept { return {data_ + size_}; }
+
   // span begin pointer.
   _Ty* begin;
 
@@ -157,13 +164,13 @@ struct span {
 // Returns a mutable ozz::span from a single object, as this isn't implicitly
 // exposed by span object.
 template <typename _Ty>
-inline span<_Ty> make_range(_Ty& _object) {
+inline span<_Ty> make_span(_Ty& _object) {
   return span<_Ty>(_object);
 }
 
 // Returns a mutable ozz::span from a single object.
 template <typename _Ty>
-inline span<const _Ty> make_range(const _Ty& _object) {
+inline span<const _Ty> make_span(const _Ty& _object) {
   return span<const _Ty>(_object);
 }
 }  // namespace ozz

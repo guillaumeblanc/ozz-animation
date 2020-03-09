@@ -1165,7 +1165,7 @@ TEST(Benchmark, SkinningJob) {
 
   SkinningJob base_job;
   base_job.vertex_count = vertex_count;
-  base_job.joint_matrices = make_range(matrices);
+  base_job.joint_matrices = make_span(matrices);
   base_job.joint_indices.begin = array_begin(in_vertices)->indices;
   base_job.joint_indices.end =
       reinterpret_cast<const uint16_t*>(array_end(in_vertices));
@@ -1202,7 +1202,7 @@ TEST(Benchmark, SkinningJob) {
 
     // PitNi
     {
-      job.joint_inverse_transpose_matrices = make_range(matrices);
+      job.joint_inverse_transpose_matrices = make_span(matrices);
       job.in_normals.begin = array_begin(in_vertices)->normals;
       job.in_normals.end = in_vertices_end;
       job.in_normals_stride = sizeof(BenchVertexIn);
@@ -1227,7 +1227,7 @@ TEST(Benchmark, SkinningJob) {
 
     // PitNTi
     {
-      job.joint_inverse_transpose_matrices = make_range(matrices);
+      job.joint_inverse_transpose_matrices = make_span(matrices);
       job.in_tangents.begin = array_begin(in_vertices)->tangents;
       job.in_tangents.end = in_vertices_end;
       job.in_tangents_stride = sizeof(BenchVertexIn);

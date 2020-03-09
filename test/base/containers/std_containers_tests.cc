@@ -60,8 +60,8 @@ TEST(VectorExtensions, Containers) {
   EXPECT_EQ(array_begin(container), null);
   EXPECT_EQ(array_end(container), null);
   EXPECT_EQ(array_end(container), array_begin(container));
-  EXPECT_EQ(make_range(container).begin, null);
-  EXPECT_EQ(make_range(container).end, null);
+  EXPECT_EQ(make_span(container).begin, null);
+  EXPECT_EQ(make_span(container).end, null);
 
   container.push_back(1);
   container.push_back(2);
@@ -71,8 +71,8 @@ TEST(VectorExtensions, Containers) {
   EXPECT_NE(array_end(container), null);
   EXPECT_EQ(*(array_end(container) - 2), 1);
   EXPECT_EQ(array_end(container) - array_begin(container), 2);
-  EXPECT_EQ(make_range(container).begin, array_begin(container));
-  EXPECT_EQ(make_range(container).end, array_end(container));
+  EXPECT_EQ(make_span(container).begin, array_begin(container));
+  EXPECT_EQ(make_span(container).end, array_end(container));
 
   const Container const_container(container);
   EXPECT_EQ(*array_begin(const_container), 1);
@@ -81,8 +81,8 @@ TEST(VectorExtensions, Containers) {
   EXPECT_NE(array_end(const_container), null);
   EXPECT_EQ(*(array_end(const_container) - 2), 1);
   EXPECT_EQ(array_end(const_container) - array_begin(const_container), 2);
-  EXPECT_EQ(make_range(const_container).begin, array_begin(const_container));
-  EXPECT_EQ(make_range(const_container).end, array_end(const_container));
+  EXPECT_EQ(make_span(const_container).begin, array_begin(const_container));
+  EXPECT_EQ(make_span(const_container).end, array_end(const_container));
 
   // Mutable access.
   *array_begin(container) = 0;

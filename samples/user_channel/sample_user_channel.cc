@@ -219,7 +219,7 @@ class UserChannelSampleApplication : public ozz::sample::Application {
     sampling_job.animation = &animation_;
     sampling_job.cache = &cache_;
     sampling_job.ratio = _ratio;
-    sampling_job.output = make_range(locals_);
+    sampling_job.output = make_span(locals_);
     if (!sampling_job.Run()) {
       return false;
     }
@@ -227,8 +227,8 @@ class UserChannelSampleApplication : public ozz::sample::Application {
     // Converts from local space to model space matrices.
     ozz::animation::LocalToModelJob ltm_job;
     ltm_job.skeleton = &skeleton_;
-    ltm_job.input = make_range(locals_);
-    ltm_job.output = make_range(models_);
+    ltm_job.input = make_span(locals_);
+    ltm_job.output = make_span(models_);
     if (!ltm_job.Run()) {
       return false;
     }
@@ -242,7 +242,7 @@ class UserChannelSampleApplication : public ozz::sample::Application {
 
     // Draw box at the position computed during update.
     success &= _renderer->DrawBoxShaded(
-        kBox, ozz::make_range(box_world_transform_), ozz::sample::kGrey);
+        kBox, ozz::make_span(box_world_transform_), ozz::sample::kGrey);
 
     // Draws a sphere at hand position, which shows "attached" flag status.
     const ozz::sample::Color colors[] = {{0, 0xff, 0, 0xff},
@@ -250,7 +250,7 @@ class UserChannelSampleApplication : public ozz::sample::Application {
     _renderer->DrawSphereIm(.01f, models_[attach_joint_], colors[attached_]);
 
     // Draws the animated skeleton.
-    success &= _renderer->DrawPosture(skeleton_, make_range(models_),
+    success &= _renderer->DrawPosture(skeleton_, make_span(models_),
                                       ozz::math::Float4x4::identity());
     return success;
   }
@@ -329,7 +329,7 @@ class UserChannelSampleApplication : public ozz::sample::Application {
   }
 
   virtual void GetSceneBounds(ozz::math::Box* _bound) const {
-    ozz::sample::ComputePostureBounds(make_range(models_), _bound);
+    ozz::sample::ComputePostureBounds(make_span(models_), _bound);
   }
 
  private:
