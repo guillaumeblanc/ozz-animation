@@ -71,15 +71,15 @@ inline const _Ty* array_end(const std::vector<_Ty, _Allocator>& _vector) {
   return _vector.data() + _vector.size();
 }
 
-// Returns a mutable ozz::Range from a vector.
+// Returns a mutable ozz::span from a vector.
 template <typename _Ty, class _Allocator>
-inline Range<_Ty> make_range(std::vector<_Ty, _Allocator>& _vector) {
+inline span<_Ty> make_range(std::vector<_Ty, _Allocator>& _vector) {
   return {_vector.data(), _vector.size()};
 }
 
-// Returns a non mutable ozz::Range from a vector.
+// Returns a non mutable ozz::span from a vector.
 template <typename _Ty, class _Allocator>
-inline Range<const _Ty> make_range(
+inline span<const _Ty> make_range(
     const std::vector<_Ty, _Allocator>& _vector) {
   return {_vector.data(), _vector.size()};
 }

@@ -72,7 +72,7 @@ bool LocalToModelJob::Run() const {
     return false;
   }
 
-  const Range<const int16_t>& parents = skeleton->joint_parents();
+  const span<const int16_t>& parents = skeleton->joint_parents();
 
   // Initializes an identity matrix that will be used to compute roots model
   // matrices without requiring a branch.

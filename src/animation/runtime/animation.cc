@@ -56,8 +56,8 @@ void Animation::Allocate(size_t _name_len, size_t _translation_count,
                     alignof(ScaleKey) >= alignof(char),
                 "Must serve larger alignment values first)");
 
-  assert(name_ == nullptr && translations_.size() == 0 && rotations_.size() == 0 &&
-         scales_.size() == 0);
+  assert(name_ == nullptr && translations_.size() == 0 &&
+         rotations_.size() == 0 && scales_.size() == 0);
 
   // Compute overall size and allocate a single buffer for all the data.
   const size_t buffer_size = (_name_len > 0 ? _name_len + 1 : 0) +
@@ -93,14 +93,14 @@ void Animation::Deallocate() {
   memory::default_allocator()->Deallocate(translations_.begin);
 
   name_ = nullptr;
-  translations_ = ozz::Range<TranslationKey>();
-  rotations_ = ozz::Range<RotationKey>();
-  scales_ = ozz::Range<ScaleKey>();
+  translations_ = ozz::span<TranslationKey>();
+  rotations_ = ozz::span<RotationKey>();
+  scales_ = ozz::span<ScaleKey>();
 }
 
 size_t Animation::size() const {
   const size_t size =
-      sizeof(*this) + translations_.size() + rotations_.size() + scales_.size();
+      sizeof(*this) + translations_.size_bytes() + rotations_.size_bytes() + scales_.size_bytes();
   return size;
 }
 
@@ -111,11 +111,11 @@ void Animation::Save(ozz::io::OArchive& _archive) const {
   const size_t name_len = name_ ? std::strlen(name_) : 0;
   _archive << static_cast<int32_t>(name_len);
 
-  const ptrdiff_t translation_count = translations_.count();
+  const ptrdiff_t translation_count = translations_.size();
   _archive << static_cast<int32_t>(translation_count);
-  const ptrdiff_t rotation_count = rotations_.count();
+  const ptrdiff_t rotation_count = rotations_.size();
   _archive << static_cast<int32_t>(rotation_count);
-  const ptrdiff_t scale_count = scales_.count();
+  const ptrdiff_t scale_count = scales_.size();
   _archive << static_cast<int32_t>(scale_count);
 
   _archive << ozz::io::MakeArray(name_, name_len);

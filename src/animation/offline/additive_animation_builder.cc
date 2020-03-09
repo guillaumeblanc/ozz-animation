@@ -122,7 +122,7 @@ bool AdditiveAnimationBuilder::operator()(const RawAnimation& _input,
 
 bool AdditiveAnimationBuilder::operator()(
     const RawAnimation& _input,
-    const Range<const math::Transform>& _reference_pose,
+    const span<const math::Transform>& _reference_pose,
     RawAnimation* _output) const {
   if (!_output) {
     return false;
@@ -138,7 +138,7 @@ bool AdditiveAnimationBuilder::operator()(
 
   // The reference pose must have at least the same number of
   // tracks as the raw animation.
-  if (_input.num_tracks() > static_cast<int>(_reference_pose.count())) {
+  if (_input.num_tracks() > static_cast<int>(_reference_pose.size())) {
     return false;
   }
 

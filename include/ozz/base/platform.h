@@ -90,26 +90,26 @@ _Ty* PointerStride(_Ty* _ty, size_t _stride) {
 
 // Defines a range [begin,end[ of objects ot type _Ty.
 template <typename _Ty>
-struct Range {
+struct span {
   // Default constructor initializes range to empty.
-  Range() : begin(nullptr), end(nullptr) {}
+  span() : begin(nullptr), end(nullptr) {}
 
   // Constructs a range from its extreme values.
-  Range(_Ty* _begin, const _Ty* _end) : begin(_begin), end(_end) {
+  span(_Ty* _begin, const _Ty* _end) : begin(_begin), end(_end) {
     assert(_begin <= _end && "Invalid range.");
   }
 
   // Construct a range from a pointer to a buffer and its size, ie its number of
   // elements.
-  Range(_Ty* _begin, size_t _size) : begin(_begin), end(_begin + _size) {}
+  span(_Ty* _begin, size_t _size) : begin(_begin), end(_begin + _size) {}
 
   // Construct a range from a single element.
-  explicit Range(_Ty& _element) : begin(&_element), end((&_element) + 1) {}
+  explicit span(_Ty& _element) : begin(&_element), end((&_element) + 1) {}
 
   // Construct a range from an array, its size is automatically deduced.
   // It isn't declared explicit as conversion is free and safe.
   template <size_t _size>
-  Range(_Ty (&_array)[_size]) : begin(_array), end(_array + _size) {}
+  span(_Ty (&_array)[_size]) : begin(_array), end(_array + _size) {}
 
   // Reset range to empty.
   void Clear() {
@@ -124,8 +124,8 @@ struct Range {
     end = _array + _size;
   }
 
-  // Implement cast operator to allow conversions to Range<const _Ty>.
-  operator Range<const _Ty>() const { return Range<const _Ty>(begin, end); }
+  // Implement cast operator to allow conversions to span<const _Ty>.
+  operator span<const _Ty>() const { return span<const _Ty>(begin, end); }
 
   // Returns a const reference to element _i of range [begin,end[.
   _Ty& operator[](size_t _i) const {
@@ -135,36 +135,36 @@ struct Range {
 
   // Gets the number of elements of the range.
   // This size isn't stored but computed from begin and end pointers.
-  size_t count() const {
+  size_t size() const {
     assert(begin <= end && "Invalid range.");
     return static_cast<size_t>(end - begin);
   }
 
   // Gets the size in byte of the range.
-  size_t size() const {
+  size_t size_bytes() const {
     assert(begin <= end && "Invalid range.");
     return static_cast<size_t>(reinterpret_cast<uintptr_t>(end) -
                                reinterpret_cast<uintptr_t>(begin));
   }
 
-  // Range begin pointer.
+  // span begin pointer.
   _Ty* begin;
 
-  // Range end pointer, declared as const as it should never be dereferenced.
+  // span end pointer, declared as const as it should never be dereferenced.
   const _Ty* end;
 };
 
-// Returns a mutable ozz::Range from a single object, as this isn't implicitly
-// exposed by Range object.
+// Returns a mutable ozz::span from a single object, as this isn't implicitly
+// exposed by span object.
 template <typename _Ty>
-inline Range<_Ty> make_range(_Ty& _object) {
-  return Range<_Ty>(_object);
+inline span<_Ty> make_range(_Ty& _object) {
+  return span<_Ty>(_object);
 }
 
-// Returns a mutable ozz::Range from a single object.
+// Returns a mutable ozz::span from a single object.
 template <typename _Ty>
-inline Range<const _Ty> make_range(const _Ty& _object) {
-  return Range<const _Ty>(_object);
+inline span<const _Ty> make_range(const _Ty& _object) {
+  return span<const _Ty>(_object);
 }
 }  // namespace ozz
 #endif  // OZZ_OZZ_BASE_PLATFORM_H_

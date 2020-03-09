@@ -82,7 +82,7 @@ bool SamplingJob::Validate() const {
 namespace {
 // Loops through the sorted key frames and update cache structure.
 template <typename _Key>
-void UpdateKeys(float _ratio, int _num_soa_tracks, ozz::Range<const _Key> _keys,
+void UpdateKeys(float _ratio, int _num_soa_tracks, ozz::span<const _Key> _keys,
                 int* _cursor, int* _cache, unsigned char* _outdated) {
   assert(_num_soa_tracks >= 1);
   const int num_tracks = _num_soa_tracks * 4;
@@ -144,7 +144,7 @@ void UpdateKeys(float _ratio, int _num_soa_tracks, ozz::Range<const _Key> _keys,
 }
 
 void UpdateSoaTranslations(int _num_soa_tracks,
-                           ozz::Range<const TranslationKey> _keys,
+                           ozz::span<const TranslationKey> _keys,
                            const int* _interp, uint8_t* _outdated,
                            internal::InterpSoaTranslation* soa_translations_) {
   const int num_outdated_flags = (_num_soa_tracks + 7) / 8;
@@ -257,7 +257,7 @@ void UpdateSoaTranslations(int _num_soa_tracks,
   } while (void(0), 0)
 
 void UpdateSoaRotations(int _num_soa_tracks,
-                        ozz::Range<const RotationKey> _keys, const int* _interp,
+                        ozz::span<const RotationKey> _keys, const int* _interp,
                         uint8_t* _outdated,
                         internal::InterpSoaRotation* _soa_rotations) {
   // Prepares constants.
@@ -317,7 +317,7 @@ void UpdateSoaRotations(int _num_soa_tracks,
 
 #undef DECOMPRESS_SOA_QUAT
 
-void UpdateSoaScales(int _num_soa_tracks, ozz::Range<const ScaleKey> _keys,
+void UpdateSoaScales(int _num_soa_tracks, ozz::span<const ScaleKey> _keys,
                      const int* _interp, uint8_t* _outdated,
                      internal::InterpSoaScale* soa_scales_) {
   const int num_outdated_flags = (_num_soa_tracks + 7) / 8;

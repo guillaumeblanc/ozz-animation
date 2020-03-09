@@ -61,7 +61,7 @@ bool SampleTrack(const RawAnimation::JointTrack& _track, float _time,
 // _animation must be valid.
 // Returns false output range is too small or animation is invalid.
 bool SampleAnimation(const RawAnimation& _animation, float _time,
-                     const Range<ozz::math::Transform>& _transforms);
+                     const span<ozz::math::Transform>& _transforms);
 
 // Implement fixed rate keyframe time iteration. This utility purpose is to
 // ensure that sampling goes strictly from 0 to duration, and that period

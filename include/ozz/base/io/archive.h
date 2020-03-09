@@ -382,13 +382,13 @@ OZZ_INLINE const internal::Array<const _Ty> MakeArray(const _Ty* _array,
   return array;
 }
 template <typename _Ty>
-OZZ_INLINE const internal::Array<_Ty> MakeArray(Range<_Ty> _array) {
-  const internal::Array<_Ty> array = {_array.begin, _array.count()};
+OZZ_INLINE const internal::Array<_Ty> MakeArray(span<_Ty> _array) {
+  const internal::Array<_Ty> array = {_array.begin, _array.size()};
   return array;
 }
 template <typename _Ty>
-OZZ_INLINE const internal::Array<const _Ty> MakeArray(Range<const _Ty> _array) {
-  const internal::Array<const _Ty> array = {_array.begin, _array.count()};
+OZZ_INLINE const internal::Array<const _Ty> MakeArray(span<const _Ty> _array) {
+  const internal::Array<const _Ty> array = {_array.begin, _array.size()};
   return array;
 }
 template <typename _Ty, size_t _count>

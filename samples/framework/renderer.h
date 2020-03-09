@@ -88,7 +88,7 @@ class Renderer {
   // Returns true on success, or false if _matrices range does not match with
   // the _skeleton.
   virtual bool DrawPosture(const animation::Skeleton& _skeleton,
-                           ozz::Range<const ozz::math::Float4x4> _matrices,
+                           ozz::span<const ozz::math::Float4x4> _matrices,
                            const ozz::math::Float4x4& _transform,
                            bool _draw_joints = true) = 0;
 
@@ -101,7 +101,7 @@ class Renderer {
 
   // Renders shaded boxes at specified locations.
   virtual bool DrawBoxShaded(const ozz::math::Box& _box,
-                             ozz::Range<const ozz::math::Float4x4> _transforms,
+                             ozz::span<const ozz::math::Float4x4> _transforms,
                              Color _color) = 0;
 
   // Renders a sphere at a specified location.
@@ -111,7 +111,7 @@ class Renderer {
 
   // Renders shaded spheres at specified locations.
   virtual bool DrawSphereShaded(
-      float _radius, ozz::Range<const ozz::math::Float4x4> _transforms,
+      float _radius, ozz::span<const ozz::math::Float4x4> _transforms,
       Color _color) = 0;
 
   struct Options {
@@ -142,7 +142,7 @@ class Renderer {
 
   // Renders a skinned mesh at a specified location.
   virtual bool DrawSkinnedMesh(const Mesh& _mesh,
-                               const Range<math::Float4x4> _skinning_matrices,
+                               const span<math::Float4x4> _skinning_matrices,
                                const ozz::math::Float4x4& _transform,
                                const Options& _options = Options()) = 0;
 
@@ -157,19 +157,19 @@ class Renderer {
                            const ozz::math::Float4x4& _transform) = 0;
 
   // Renders vectors, defined by their starting point and a direction.
-  virtual bool DrawVectors(ozz::Range<const float> _positions,
+  virtual bool DrawVectors(ozz::span<const float> _positions,
                            size_t _positions_stride,
-                           ozz::Range<const float> _directions,
+                           ozz::span<const float> _directions,
                            size_t _directions_stride, int _num_vectors,
                            float _vector_length, Color _color,
                            const ozz::math::Float4x4& _transform) = 0;
 
   // Compute binormals from normals and tangents, before displaying them.
   virtual bool DrawBinormals(
-      ozz::Range<const float> _positions, size_t _positions_stride,
-      ozz::Range<const float> _normals, size_t _normals_stride,
-      ozz::Range<const float> _tangents, size_t _tangents_stride,
-      ozz::Range<const float> _handenesses, size_t _handenesses_stride,
+      ozz::span<const float> _positions, size_t _positions_stride,
+      ozz::span<const float> _normals, size_t _normals_stride,
+      ozz::span<const float> _tangents, size_t _tangents_stride,
+      ozz::span<const float> _handenesses, size_t _handenesses_stride,
       int _num_vectors, float _vector_length, Color _color,
       const ozz::math::Float4x4& _transform) = 0;
 };

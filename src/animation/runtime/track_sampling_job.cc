@@ -58,13 +58,13 @@ bool TrackSamplingJob<_Track>::Run() const {
   const float clamped_ratio = math::Clamp(0.f, ratio, 1.f);
 
   // Search keyframes to interpolate.
-  const Range<const float> ratios = track->ratios();
-  const Range<const ValueType> values = track->values();
-  assert(ratios.count() == values.count() &&
-         track->steps().count() * 8 >= values.count());
+  const span<const float> ratios = track->ratios();
+  const span<const ValueType> values = track->values();
+  assert(ratios.size() == values.size() &&
+         track->steps().size() * 8 >= values.size());
 
   // Default track returns identity.
-  if (ratios.count() == 0) {
+  if (ratios.size() == 0) {
     *result = internal::TrackPolicy<ValueType>::identity();
     return true;
   }

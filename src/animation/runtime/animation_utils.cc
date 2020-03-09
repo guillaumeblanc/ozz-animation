@@ -35,9 +35,9 @@ namespace ozz {
 namespace animation {
 
 template <typename _Key>
-inline int CountKeyframesImpl(const Range<const _Key>& _keys, int _track) {
+inline int CountKeyframesImpl(const span<const _Key>& _keys, int _track) {
   if (_track < 0) {
-    return static_cast<int>(_keys.count());
+    return static_cast<int>(_keys.size());
   }
 
   int count = 0;

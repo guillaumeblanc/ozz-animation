@@ -129,7 +129,7 @@ void CopyRaw(const _SrcTrack& _src, uint16_t _track, float _duration,
 }
 
 void CopyToAnimation(ozz::vector<SortingTranslationKey>* _src,
-                     ozz::Range<TranslationKey>* _dest, float _inv_duration) {
+                     ozz::span<TranslationKey>* _dest, float _inv_duration) {
   const size_t src_count = _src->size();
   if (!src_count) {
     return;
@@ -152,7 +152,7 @@ void CopyToAnimation(ozz::vector<SortingTranslationKey>* _src,
 }
 
 void CopyToAnimation(ozz::vector<SortingScaleKey>* _src,
-                     ozz::Range<ScaleKey>* _dest, float _inv_duration) {
+                     ozz::span<ScaleKey>* _dest, float _inv_duration) {
   const size_t src_count = _src->size();
   if (!src_count) {
     return;
@@ -212,7 +212,7 @@ void CompressQuat(const ozz::math::Quaternion& _src,
 // Consecutive opposite quaternions are also fixed up in order to avoid checking
 // for the smallest path during the NLerp runtime algorithm.
 void CopyToAnimation(ozz::vector<SortingRotationKey>* _src,
-                     ozz::Range<RotationKey>* _dest, float _inv_duration) {
+                     ozz::span<RotationKey>* _dest, float _inv_duration) {
   const size_t src_count = _src->size();
   if (!src_count) {
     return;

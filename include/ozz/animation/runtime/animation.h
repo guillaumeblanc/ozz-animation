@@ -80,15 +80,15 @@ class Animation {
   const char* name() const { return name_ ? name_ : ""; }
 
   // Gets the buffer of translations keys.
-  ozz::Range<const TranslationKey> translations() const {
+  ozz::span<const TranslationKey> translations() const {
     return translations_;
   }
 
   // Gets the buffer of rotation keys.
-  Range<const RotationKey> rotations() const { return rotations_; }
+  span<const RotationKey> rotations() const { return rotations_; }
 
   // Gets the buffer of scale keys.
-  Range<const ScaleKey> scales() const { return scales_; }
+  span<const ScaleKey> scales() const { return scales_; }
 
   // Get the estimated animation's size in bytes.
   size_t size() const;
@@ -123,9 +123,9 @@ class Animation {
   char* name_;
 
   // Stores all translation/rotation/scale keys begin and end of buffers.
-  Range<TranslationKey> translations_;
-  Range<RotationKey> rotations_;
-  Range<ScaleKey> scales_;
+  span<TranslationKey> translations_;
+  span<RotationKey> rotations_;
+  span<ScaleKey> scales_;
 };
 }  // namespace animation
 

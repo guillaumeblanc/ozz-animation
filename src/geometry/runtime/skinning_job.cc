@@ -70,7 +70,7 @@ bool SkinningJob::Validate() const {
 
   // Checks indices, required.
   valid &= joint_indices.begin != nullptr;
-  valid &= joint_indices.size() >=
+  valid &= joint_indices.size_bytes() >=
            joint_indices_stride * vertex_count_minus_1 +
                sizeof(uint16_t) * influences_count * vertex_count_at_least_1;
 
@@ -78,7 +78,7 @@ bool SkinningJob::Validate() const {
   if (influences_count != 1) {
     valid &= joint_weights.begin != nullptr;
     valid &=
-        joint_weights.size() >=
+        joint_weights.size_bytes() >=
         joint_weights_stride * vertex_count_minus_1 +
             sizeof(float) * (influences_count - 1) * vertex_count_at_least_1;
   }
@@ -86,30 +86,30 @@ bool SkinningJob::Validate() const {
   // Checks positions, mandatory.
   valid &= in_positions.begin != nullptr;
   valid &=
-      in_positions.size() >= in_positions_stride * vertex_count_minus_1 +
+      in_positions.size_bytes() >= in_positions_stride * vertex_count_minus_1 +
                                  sizeof(float) * 3 * vertex_count_at_least_1;
   valid &= out_positions.begin != nullptr;
   valid &=
-      out_positions.size() >= out_positions_stride * vertex_count_minus_1 +
+      out_positions.size_bytes() >= out_positions_stride * vertex_count_minus_1 +
                                   sizeof(float) * 3 * vertex_count_at_least_1;
 
   // Checks normals, optional.
   if (in_normals.begin) {
     valid &=
-        in_normals.size() >= in_normals_stride * vertex_count_minus_1 +
+        in_normals.size_bytes() >= in_normals_stride * vertex_count_minus_1 +
                                  sizeof(float) * 3 * vertex_count_at_least_1;
     valid &= out_normals.begin != nullptr;
     valid &=
-        out_normals.size() >= out_normals_stride * vertex_count_minus_1 +
+        out_normals.size_bytes() >= out_normals_stride * vertex_count_minus_1 +
                                   sizeof(float) * 3 * vertex_count_at_least_1;
 
     // Checks tangents, optional but requires normals.
     if (in_tangents.begin) {
       valid &=
-          in_tangents.size() >= in_tangents_stride * vertex_count_minus_1 +
+          in_tangents.size_bytes() >= in_tangents_stride * vertex_count_minus_1 +
                                     sizeof(float) * 3 * vertex_count_at_least_1;
       valid &= out_tangents.begin != nullptr;
-      valid &= out_tangents.size() >=
+      valid &= out_tangents.size_bytes() >=
                out_tangents_stride * vertex_count_minus_1 +
                    sizeof(float) * 3 * vertex_count_at_least_1;
     }

@@ -61,9 +61,9 @@ class Track {
   ~Track();
 
   // Keyframe accessors.
-  Range<const float> ratios() const { return ratios_; }
-  Range<const _ValueType> values() const { return values_; }
-  Range<const uint8_t> steps() const { return steps_; }
+  span<const float> ratios() const { return ratios_; }
+  span<const _ValueType> values() const { return values_; }
+  span<const uint8_t> steps() const { return steps_; }
 
   // Get the estimated track's size in bytes.
   size_t size() const;
@@ -89,13 +89,13 @@ class Track {
   void Deallocate();
 
   // Keyframe ratios (0 is the beginning of the track, 1 is the end).
-  Range<float> ratios_;
+  span<float> ratios_;
 
   // Keyframe values.
-  Range<_ValueType> values_;
+  span<_ValueType> values_;
 
   // Keyframe modes (1 bit per key): 1 for step, 0 for linear.
-  Range<uint8_t> steps_;
+  span<uint8_t> steps_;
 
   // Track name.
   char* name_;

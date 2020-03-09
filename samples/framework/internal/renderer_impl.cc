@@ -445,13 +445,13 @@ bool RendererImpl::InitCheckeredTexture() {
 
 namespace {
 int DrawPosture_FillUniforms(const ozz::animation::Skeleton& _skeleton,
-                             ozz::Range<const ozz::math::Float4x4> _matrices,
+                             ozz::span<const ozz::math::Float4x4> _matrices,
                              float* _uniforms, int _max_instances) {
   assert(math::IsAligned(_uniforms, alignof(math::SimdFloat4)));
 
   // Prepares computation constants.
   const int num_joints = _skeleton.num_joints();
-  const Range<const int16_t>& parents = _skeleton.joint_parents();
+  const span<const int16_t>& parents = _skeleton.joint_parents();
 
   int instances = 0;
   for (int i = 0; i < num_joints && instances < _max_instances; ++i) {
@@ -602,7 +602,7 @@ void RendererImpl::DrawPosture_InstancedImpl(
 // skeleton in a single draw call. Does a draw call per joint if no extension
 // can help.
 bool RendererImpl::DrawPosture(const ozz::animation::Skeleton& _skeleton,
-                               ozz::Range<const ozz::math::Float4x4> _matrices,
+                               ozz::span<const ozz::math::Float4x4> _matrices,
                                const ozz::math::Float4x4& _transform,
                                bool _draw_joints) {
   if (!_matrices.begin || !_matrices.end) {
@@ -744,7 +744,7 @@ bool RendererImpl::DrawBoxIm(const ozz::math::Box& _box,
 
 bool RendererImpl::DrawBoxShaded(
     const ozz::math::Box& _box,
-    ozz::Range<const ozz::math::Float4x4> _transforms, Color _color) {
+    ozz::span<const ozz::math::Float4x4> _transforms, Color _color) {
   // Early out if no instance to render.
   if (_transforms.size() == 0) {
     return true;
@@ -789,7 +789,7 @@ bool RendererImpl::DrawBoxShaded(
 
   if (GL_ARB_instanced_arrays_supported) {
     // Buffer object will contain vertices and model matrices.
-    const size_t bo_size = sizeof(vertices) + _transforms.size();
+    const size_t bo_size = sizeof(vertices) + _transforms.size_bytes();
     GL(BindBuffer(GL_ARRAY_BUFFER, dynamic_array_bo_));
     GL(BufferData(GL_ARRAY_BUFFER, bo_size, nullptr, GL_STREAM_DRAW));
 
@@ -797,7 +797,7 @@ bool RendererImpl::DrawBoxShaded(
     GL(BufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices));
     // Pushes matrices
     const size_t models_offset = sizeof(vertices);
-    GL(BufferSubData(GL_ARRAY_BUFFER, models_offset, _transforms.size(),
+    GL(BufferSubData(GL_ARRAY_BUFFER, models_offset, _transforms.size_bytes(),
                      _transforms.begin));
 
     ambient_shader_instanced->Bind(models_offset, camera()->view_proj(), stride,
@@ -806,7 +806,7 @@ bool RendererImpl::DrawBoxShaded(
     GL(BindBuffer(GL_ARRAY_BUFFER, 0));
 
     GL(DrawArraysInstanced_(GL_TRIANGLES, 0, OZZ_ARRAY_SIZE(vertices),
-                            static_cast<GLsizei>(_transforms.count())));
+                            static_cast<GLsizei>(_transforms.size())));
 
     // Unbinds.
     ambient_shader_instanced->Unbind();
@@ -815,7 +815,7 @@ bool RendererImpl::DrawBoxShaded(
     GL(BindBuffer(GL_ARRAY_BUFFER, dynamic_array_bo_));
     GL(BufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STREAM_DRAW));
 
-    for (size_t i = 0; i < _transforms.count(); i++) {
+    for (size_t i = 0; i < _transforms.size(); i++) {
       const ozz::math::Float4x4& transform = _transforms[i];
 
       ambient_shader->Bind(transform, camera()->view_proj(), stride,
@@ -859,7 +859,7 @@ bool RendererImpl::DrawSphereIm(float _radius,
 
 // Renders shaded spheres at specified locations.
 bool RendererImpl::DrawSphereShaded(
-    float _radius, ozz::Range<const ozz::math::Float4x4> _transforms,
+    float _radius, ozz::span<const ozz::math::Float4x4> _transforms,
     Color _color) {
   // Early out if no instance to render.
   if (_transforms.size() == 0) {
@@ -887,7 +887,7 @@ bool RendererImpl::DrawSphereShaded(
     const GLsizei colors_size = sizeof(uint8_t) * 4;
     const GLsizei models_offset = sizeof(icosphere::kVertices) + colors_size;
     const GLsizei bo_size =
-        models_offset + static_cast<GLsizei>(_transforms.size());
+        models_offset + static_cast<GLsizei>(_transforms.size_bytes());
 
     GL(BindBuffer(GL_ARRAY_BUFFER, dynamic_array_bo_));
     GL(BufferData(GL_ARRAY_BUFFER, bo_size, nullptr, GL_STREAM_DRAW));
@@ -896,11 +896,11 @@ bool RendererImpl::DrawSphereShaded(
     GL(BufferSubData(GL_ARRAY_BUFFER, colors_offset, colors_size, &_color));
 
     ozz::math::Float4x4* models = static_cast<ozz::math::Float4x4*>(
-        scratch_buffer_.Resize(_transforms.size()));
-    for (size_t i = 0; i < _transforms.count(); ++i) {
+        scratch_buffer_.Resize(_transforms.size_bytes()));
+    for (size_t i = 0; i < _transforms.size(); ++i) {
       models[i] = Scale(_transforms[i], radius);
     }
-    GL(BufferSubData(GL_ARRAY_BUFFER, models_offset, _transforms.size(),
+    GL(BufferSubData(GL_ARRAY_BUFFER, models_offset, _transforms.size_bytes(),
                      models));
 
     ambient_shader_instanced->Bind(models_offset, camera()->view_proj(),
@@ -912,7 +912,7 @@ bool RendererImpl::DrawSphereShaded(
                   "Indices must be 2 bytes");
     GL(DrawElementsInstanced_(GL_TRIANGLES, OZZ_ARRAY_SIZE(icosphere::kIndices),
                               GL_UNSIGNED_SHORT, 0,
-                              static_cast<GLsizei>(_transforms.count())));
+                              static_cast<GLsizei>(_transforms.size())));
 
     // Unbinds.
     ambient_shader_instanced->Unbind();
@@ -934,7 +934,7 @@ bool RendererImpl::DrawSphereShaded(
     }
     GL(BufferSubData(GL_ARRAY_BUFFER, colors_offset, colors_size, colors));
 
-    for (size_t i = 0; i < _transforms.count(); i++) {
+    for (size_t i = 0; i < _transforms.size(); i++) {
       const ozz::math::Float4x4& transform = Scale(_transforms[i], radius);
 
       ambient_shader->Bind(transform, camera()->view_proj(), positions_stride,
@@ -960,14 +960,14 @@ bool RendererImpl::DrawSegment(const math::Float3& _begin,
                                const math::Float3& _end, Color _color,
                                const ozz::math::Float4x4& _transform) {
   const math::Float3 dir(_end - _begin);
-  return DrawVectors(ozz::Range<const float>(&_begin.x, 3), 12,
-                     ozz::Range<const float>(&dir.x, 3), 12, 1, 1.f, _color,
+  return DrawVectors(ozz::span<const float>(&_begin.x, 3), 12,
+                     ozz::span<const float>(&dir.x, 3), 12, 1, 1.f, _color,
                      _transform);
 }
 
-bool RendererImpl::DrawVectors(ozz::Range<const float> _positions,
+bool RendererImpl::DrawVectors(ozz::span<const float> _positions,
                                size_t _positions_stride,
-                               ozz::Range<const float> _directions,
+                               ozz::span<const float> _directions,
                                size_t _directions_stride, int _num_vectors,
                                float _vector_length, Color _color,
                                const ozz::math::Float4x4& _transform) {
@@ -1003,10 +1003,10 @@ bool RendererImpl::DrawVectors(ozz::Range<const float> _positions,
 }
 
 bool RendererImpl::DrawBinormals(
-    ozz::Range<const float> _positions, size_t _positions_stride,
-    ozz::Range<const float> _normals, size_t _normals_stride,
-    ozz::Range<const float> _tangents, size_t _tangents_stride,
-    ozz::Range<const float> _handenesses, size_t _handenesses_stride,
+    ozz::span<const float> _positions, size_t _positions_stride,
+    ozz::span<const float> _normals, size_t _normals_stride,
+    ozz::span<const float> _tangents, size_t _tangents_stride,
+    ozz::span<const float> _handenesses, size_t _handenesses_stride,
     int _num_vectors, float _vector_length, Color _color,
     const ozz::math::Float4x4& _transform) {
   // Invalid range length.
@@ -1298,7 +1298,7 @@ bool RendererImpl::DrawMesh(const Mesh& _mesh,
             ozz::sample::Mesh::Part::kNormalsCpnts * sizeof(float),
             make_range(part.tangents),
             ozz::sample::Mesh::Part::kTangentsCpnts * sizeof(float),
-            ozz::Range<const float>(&part.tangents[3], part.tangents.size()),
+            ozz::span<const float>(&part.tangents[3], part.tangents.size()),
             ozz::sample::Mesh::Part::kTangentsCpnts * sizeof(float),
             part.vertex_count(), .03f, ozz::sample::kBlue, _transform);
       }
@@ -1309,7 +1309,7 @@ bool RendererImpl::DrawMesh(const Mesh& _mesh,
 }
 
 bool RendererImpl::DrawSkinnedMesh(
-    const Mesh& _mesh, const Range<math::Float4x4> _skinning_matrices,
+    const Mesh& _mesh, const span<math::Float4x4> _skinning_matrices,
     const ozz::math::Float4x4& _transform, const Options& _options) {
   // Forward to DrawMesh function is skinning is disabled.
   if (_options.skip_skinning) {
@@ -1456,7 +1456,7 @@ bool RendererImpl::DrawSkinnedMesh(
     }
 
     // Renders debug normals.
-    if (_options.normals && skinning_job.out_normals.count() > 0) {
+    if (_options.normals && skinning_job.out_normals.size() > 0) {
       DrawVectors(skinning_job.out_positions, skinning_job.out_positions_stride,
                   skinning_job.out_normals, skinning_job.out_normals_stride,
                   skinning_job.vertex_count, .03f, ozz::sample::kGreen,
@@ -1464,7 +1464,7 @@ bool RendererImpl::DrawSkinnedMesh(
     }
 
     // Renders debug tangents.
-    if (_options.tangents && skinning_job.out_tangents.count() > 0) {
+    if (_options.tangents && skinning_job.out_tangents.size() > 0) {
       DrawVectors(skinning_job.out_positions, skinning_job.out_positions_stride,
                   skinning_job.out_tangents, skinning_job.out_tangents_stride,
                   skinning_job.vertex_count, .03f, ozz::sample::kRed,
@@ -1472,13 +1472,13 @@ bool RendererImpl::DrawSkinnedMesh(
     }
 
     // Renders debug binormals.
-    if (_options.binormals && skinning_job.out_normals.count() > 0 &&
-        skinning_job.out_tangents.count() > 0) {
+    if (_options.binormals && skinning_job.out_normals.size() > 0 &&
+        skinning_job.out_tangents.size() > 0) {
       DrawBinormals(skinning_job.out_positions,
                     skinning_job.out_positions_stride, skinning_job.out_normals,
                     skinning_job.out_normals_stride, skinning_job.out_tangents,
                     skinning_job.out_tangents_stride,
-                    ozz::Range<const float>(skinning_job.in_tangents.begin + 3,
+                    ozz::span<const float>(skinning_job.in_tangents.begin + 3,
                                             skinning_job.in_tangents.end + 3),
                     skinning_job.in_tangents_stride, skinning_job.vertex_count,
                     .03f, ozz::sample::kBlue, _transform);

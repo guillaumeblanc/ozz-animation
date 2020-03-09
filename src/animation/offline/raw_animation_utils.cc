@@ -128,11 +128,11 @@ bool SampleTrack(const RawAnimation::JointTrack& _track, float _time,
 }
 
 bool SampleAnimation(const RawAnimation& _animation, float _time,
-                     const Range<ozz::math::Transform>& _transforms) {
+                     const span<ozz::math::Transform>& _transforms) {
   if (!_animation.Validate()) {
     return false;
   }
-  if (_animation.tracks.size() > _transforms.count()) {
+  if (_animation.tracks.size() > _transforms.size()) {
     return false;
   }
 

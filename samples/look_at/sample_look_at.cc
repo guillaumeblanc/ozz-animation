@@ -370,8 +370,8 @@ class LookAtSampleApplication : public ozz::sample::Application {
   // Traverses the hierarchy from the first joint to the root, to check if
   // joints are all ancestors (same branch), and ordered.
   bool ValidateJointsOrder(const ozz::animation::Skeleton& _skeleton,
-                           ozz::Range<const int> _joints) {
-    const size_t count = _joints.count();
+                           ozz::span<const int> _joints) {
+    const size_t count = _joints.size();
     if (count == 0) {
       return true;
     }

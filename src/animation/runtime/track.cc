@@ -102,13 +102,13 @@ void Track<_ValueType>::Deallocate() {
 template <typename _ValueType>
 size_t Track<_ValueType>::size() const {
   const size_t size =
-      sizeof(*this) + values_.size() + ratios_.size() + steps_.size();
+      sizeof(*this) + values_.size_bytes() + ratios_.size_bytes() + steps_.size_bytes();
   return size;
 }
 
 template <typename _ValueType>
 void Track<_ValueType>::Save(ozz::io::OArchive& _archive) const {
-  uint32_t num_keys = static_cast<uint32_t>(ratios_.count());
+  uint32_t num_keys = static_cast<uint32_t>(ratios_.size());
   _archive << num_keys;
 
   const size_t name_len = name_ ? std::strlen(name_) : 0;

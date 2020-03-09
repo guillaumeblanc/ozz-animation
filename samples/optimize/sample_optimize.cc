@@ -131,7 +131,7 @@ class OptimizeSampleApplication : public ozz::sample::Application {
     // Computes difference between the optimized and non-optimized animations
     // in local space, and rebinds it to the bind pose.
     {
-      const ozz::Range<const ozz::math::SoaTransform>& bind_poses =
+      const ozz::span<const ozz::math::SoaTransform>& bind_poses =
           skeleton_.joint_bind_poses();
       const ozz::math::SoaTransform* bind_pose = bind_poses.begin;
       const ozz::math::SoaTransform* locals_raw = array_begin(locals_raw_);
@@ -202,9 +202,9 @@ class OptimizeSampleApplication : public ozz::sample::Application {
 
   bool SampleRawAnimation(
       const ozz::animation::offline::RawAnimation& _animation, float _time,
-      ozz::Range<ozz::math::SoaTransform> _locals) {
+      ozz::span<ozz::math::SoaTransform> _locals) {
     // Ensure output is big enough.
-    if (_locals.count() * 4 < _animation.tracks.size() &&
+    if (_locals.size() * 4 < _animation.tracks.size() &&
         locals_raw_aos_.size() * 4 < _animation.tracks.size()) {
       return false;
     }
@@ -248,7 +248,7 @@ class OptimizeSampleApplication : public ozz::sample::Application {
   }
 
   // Selects model space matrices according to the display mode.
-  ozz::Range<const ozz::math::Float4x4> models() const {
+  ozz::span<const ozz::math::Float4x4> models() const {
     switch (selected_display_) {
       case eRuntimeAnimation:
         return make_range(models_rt_);
@@ -267,7 +267,7 @@ class OptimizeSampleApplication : public ozz::sample::Application {
   virtual bool OnDisplay(ozz::sample::Renderer* _renderer) {
     bool success = true;
 
-    const ozz::Range<const ozz::math::Float4x4> transforms = models();
+    const ozz::span<const ozz::math::Float4x4> transforms = models();
 
     // Renders posture.
     success &= _renderer->DrawPosture(skeleton_, transforms,

@@ -130,7 +130,7 @@ void ComputeSkeletonBounds(const animation::Skeleton& _skeleton,
 
 // Computes the bounding box of posture defines be _matrices range.
 // _bound must be a valid math::Box instance.
-void ComputePostureBounds(ozz::Range<const ozz::math::Float4x4> _matrices,
+void ComputePostureBounds(ozz::span<const ozz::math::Float4x4> _matrices,
                           math::Box* _bound);
 
 // Allows to edit translation/rotation/scale of a skeleton pose.
@@ -149,7 +149,7 @@ class RawSkeletonEditor {
 // Multiplies a single quaternion at a specific index in a SoA transform range.
 void MultiplySoATransformQuaternion(
     int _index, const ozz::math::SimdQuaternion& _quat,
-    const ozz::Range<ozz::math::SoaTransform>& _transforms);
+    const ozz::span<ozz::math::SoaTransform>& _transforms);
 
 // Loads a skeleton from an ozz archive file named _filename.
 // This function will fail and return false if the file cannot be opened or if
@@ -205,7 +205,7 @@ bool RayIntersectsMesh(const ozz::math::Float3& _ray_origin,
 // in _ray_direction only. See RayIntersectsMesh.
 bool RayIntersectsMeshes(const ozz::math::Float3& _ray_origin,
                          const ozz::math::Float3& _ray_direction,
-                         const ozz::Range<const ozz::sample::Mesh>& _meshes,
+                         const ozz::span<const ozz::sample::Mesh>& _meshes,
                          ozz::math::Float3* _intersect,
                          ozz::math::Float3* _normal);
 }  // namespace sample
