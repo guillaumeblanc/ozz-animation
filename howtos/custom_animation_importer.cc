@@ -54,7 +54,7 @@ int main(int argc, char const* argv[]) {
   // this animation targets.
   raw_animation.tracks.resize(3);
 
-  // Fills each track with keyframes.
+  // Fills each track with keyframes, in joint local-space.
   // Tracks should be ordered in the same order as joints in the
   // ozz::animation::Skeleton. Joint's names can be used to find joint's
   // index in the skeleton.
