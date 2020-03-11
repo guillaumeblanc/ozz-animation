@@ -95,9 +95,9 @@ root.name = "root";
 {% endhighlight %}
 
 {% highlight cpp %}
-// Setup root joints bind-pose/rest transformation. It's kind of the default
-// skeleton posture (most of the time a T-pose). It's used as a fallback when
-// there's no animation for a joint.
+// Setup root joints bind-pose/rest transformation, in joint local-space.
+// This is the default skeleton posture (most of the time a T-pose). It's
+// used as a fallback when there's no animation for a joint.
 root.transform.translation = ozz::math::Float3(0.f, 1.f, 0.f);
 root.transform.rotation = ozz::math::Quaternion(0.f, 0.f, 0.f, 1.f);
 root.transform.scale = ozz::math::Float3(1.f, 1.f, 1.f);
