@@ -178,7 +178,7 @@ raw_animation.duration = 1.4f;
 raw_animation.tracks.resize(3);
 {% endhighlight %}
 
-Fills each track with keyframes. Tracks should be ordered in the same order as joints in the `ozz::animation::Skeleton`. Joint's names can be used to find joint's index in the skeleton.
+Fills each track with keyframes, in joint local-space. Tracks should be ordered in the same order as joints in the `ozz::animation::Skeleton`. Joint's names can be used to find joint's index in the skeleton.
 
 {% highlight cpp %}
 // Fills 1st track with 2 translation keyframes.
