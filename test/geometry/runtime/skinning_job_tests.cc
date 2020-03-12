@@ -1160,8 +1160,8 @@ TEST(Benchmark, SkinningJob) {
 
   const float* in_vertices_end =
       reinterpret_cast<const float*>(array_end(in_vertices));
-  const float* out_vertices_end =
-      reinterpret_cast<const float*>(array_end(out_vertices));
+  float* out_vertices_end =
+      reinterpret_cast<float*>(array_end(out_vertices));
 
   SkinningJob base_job;
   base_job.vertex_count = vertex_count;

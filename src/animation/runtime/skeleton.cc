@@ -96,9 +96,9 @@ char* Skeleton::Allocate(size_t _chars_size, size_t _num_joints) {
 
 void Skeleton::Deallocate() {
   memory::default_allocator()->Deallocate(joint_bind_poses_.begin);
-  joint_bind_poses_.Clear();
-  joint_names_.Clear();
-  joint_parents_.Clear();
+  joint_bind_poses_ = Range<math::SoaTransform>();
+  joint_parents_ = Range<int16_t>();
+    joint_names_ = Range<char*>();
 }
 
 void Skeleton::Save(ozz::io::OArchive& _archive) const {

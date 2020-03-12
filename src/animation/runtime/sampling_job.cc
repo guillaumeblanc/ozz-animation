@@ -76,23 +76,60 @@ bool SamplingJob::Validate() const {
 }
 
 namespace {
+
+class Typer {
+ public:
+  Typer(const Range<const uint8_t>& _types, TrackType _type)
+      : types_(_types), type_(static_cast<uint8_t>(_type)), current_(0) {}
+  size_t operator++() {
+    // Out of bound is asserted by types_ Range.
+    for (uint8_t type = 0xff; type != type_; ++current_) {
+      const size_t byte_offset = current_ / 4;
+      const size_t bit_offset = (current_ - byte_offset * 4) * 2;
+      type = (types_[byte_offset] >> bit_offset) & 0x3;
+    }
+    return current_ - 1;
+  }
+
+ private:
+  Range<const uint8_t> types_;
+  uint8_t type_;
+  size_t current_;
+};
+
 // Loops through the sorted key frames and update cache structure.
 template <typename _Key>
-void UpdateCacheCursor(float _ratio, int _num_soa_tracks,
-                       ozz::Range<const _Key> _keys, int* _cursor, int* _cache,
-                       unsigned char* _outdated) {
-  assert(_num_soa_tracks >= 1);
-  const int num_tracks = _num_soa_tracks * 4;
-  assert(_keys.begin + num_tracks * 2 <= _keys.end);
+void UpdateCacheCursor(float _ratio, const ozz::Range<const _Key>& _keys,
+                       int* _cursor, int* _cache, unsigned char* _outdated,
+                       int* _count) {
+  if (_keys.count() == 0) {
+    *_count = 0;
+    return;
+  }
+  assert(_keys.count() >= 2 &&
+         "There must always be a first and a last key minimum");
+  //  assert(_keys.begin + num_tracks * 2 <= _keys.end);
 
   const _Key* cursor = &_keys.begin[*_cursor];
   if (!*_cursor) {
-    // Initializes interpolated entries with the first 2 sets of key frames.
-    // The sorting algorithm ensures that the first 2 key frames of a track
+    // This first loop computes animation track count. This forces to load
+    // keyframes to cache, but this keyframes will be needed right after anyway
+    // for interpolation.
+    int num_animated_tracks = 1;
+    for (uint16_t prev = _keys[0].track, next = _keys[1].track; prev < next;
+         prev = next, next = _keys[++num_animated_tracks].track) {
+    }
+    const int num_animated_soa_tracks = (num_animated_tracks + 3) / 4;
+
+    // Updates cache animtated track count;
+    *_count = num_animated_soa_tracks;
+
+    // Initializes interpolated entries with the first 2 sets of keyframes.
+    // The sorting algorithm ensures that the first 2 keyframes of a track
     // are consecutive.
-    for (int i = 0; i < _num_soa_tracks; ++i) {
-      const int in_index0 = i * 4;                   // * soa size
-      const int in_index1 = in_index0 + num_tracks;  // 2nd row.
+    for (int i = 0; i < num_animated_soa_tracks; ++i) {
+      const int in_index0 = i * 4;                            // * soa size
+      const int in_index1 = in_index0 + num_animated_tracks;  // 2nd row.
       const int out_index = i * 4 * 2;
       _cache[out_index + 0] = in_index0 + 0;
       _cache[out_index + 1] = in_index1 + 0;
@@ -103,18 +140,28 @@ void UpdateCacheCursor(float _ratio, int _num_soa_tracks,
       _cache[out_index + 6] = in_index0 + 3;
       _cache[out_index + 7] = in_index1 + 3;
     }
-    cursor = _keys.begin + num_tracks * 2;  // New cursor position.
+
+    // Patches soa tracks, reuse previous track. This prevents from filling
+    // animation with useless keyframes.
+    for (int i = num_animated_tracks; i < num_animated_soa_tracks * 4; ++i) {
+      const int out_index = i * 2;
+      _cache[out_index + 0] = _cache[out_index - 2];
+      _cache[out_index + 1] = _cache[out_index - 1];
+    }
+
+    cursor = _keys.begin + num_animated_tracks * 2;  // New cursor position.
 
     // All entries are outdated. It cares to only flag valid soa entries as
     // this is the exit condition of other algorithms.
-    const int num_outdated_flags = (_num_soa_tracks + 7) / 8;
+    const int num_outdated_flags = (num_animated_soa_tracks + 7) / 8;
     for (int i = 0; i < num_outdated_flags - 1; ++i) {
       _outdated[i] = 0xff;
     }
     _outdated[num_outdated_flags - 1] =
-        0xff >> (num_outdated_flags * 8 - _num_soa_tracks);
+        0xff >> (num_outdated_flags * 8 - num_animated_soa_tracks);
   } else {
-    assert(cursor >= _keys.begin + num_tracks * 2 && cursor <= _keys.end);
+    // TODO
+    // assert(cursor >= _keys.begin + num_tracks * 2 && cursor <= _keys.end);
   }
 
   // Search for the keys that matches _ratio.
@@ -124,7 +171,7 @@ void UpdateCacheCursor(float _ratio, int _num_soa_tracks,
   // _ratio. It will mean that all the keys lower than _ratio have been
   // processed, meaning all cache entries are up to date.
   while (cursor < _keys.end &&
-         _keys.begin[_cache[cursor->track * 2 + 1]].ratio <= _ratio) {
+         _keys[_cache[cursor->track * 2 + 1]].ratio <= _ratio) {
     // Flag this soa entry as outdated.
     _outdated[cursor->track / 32] |= (1 << ((cursor->track & 0x1f) / 4));
     // Updates cache.
@@ -263,113 +310,104 @@ inline void DecompressQuaternion(const QuaternionKey& _k0,
   _quaternion->w = cpnt[3];
 }
 
-class Typer {
- public:
-  Typer(const Range<const uint8_t>& _types) : types_(_types), current_(0) {}
-  size_t operator++() {
-    // Out of bound is asserted by types_ Range.
-    for (uint8_t type = 0xff; type != 0; ++current_) {
-      const size_t byte_offset = current_ / 4;
-      const size_t bit_offset = (current_ - byte_offset * 4) * 2;
-      type = (types_[byte_offset] >> bit_offset) & 0x3;
-    }
-    return current_ - 1;
-  }
-
- private:
-  const Range<const uint8_t> types_;
-  size_t current_;
-};
-
-void Interpolate(float _anim_ratio,
-                 const internal::InterpSoaFloat3* _translations,
-                 const Range<int>& _translations_map,
-                 const internal::InterpSoaQuaternion* _rotations,
-                 const Range<int>& _rotations_map,
-                 const internal::InterpSoaFloat3* _scales,
-                 const Range<int>& _scales_map,
-                 const Range<math::SoaTransform>& _output) {
+void Interpolate(float _anim_ratio, size_t _num_soa_tracks,
+                 const internal::InterpSoaFloat3* _interp_soa,
+                 const Range<uint8_t>& _types, math::SoaFloat3* _output,
+                 size_t _stride) {
   /* TODO
-  assert(_translations.count() == _translations_map.count() &&
-         _rotations.count() == _rotations_map.count() &&
-         _scales.count() == _scales_map.count());
-         */
+   assert(_translations.count() == _translations_map.count() &&
+   _rotations.count() == _rotations_map.count() &&
+   _scales.count() == _scales_map.count());
+   */
   const math::SimdFloat4 anim_ratio = math::simd_float4::Load1(_anim_ratio);
 
-  uint8_t ai[1024] = {};
-  const Range<const uint8_t> fi(ai, (_translations_map.count() + 3) / 4);
-  Typer typer(fi);
-  for (size_t i = 0; i < _translations_map.count(); ++i) {
+  Typer typer(_types, TrackType::kAnimated);
+  for (size_t i = 0; i < _num_soa_tracks; ++i) {
     const math::SimdFloat4 ratio =
-        (anim_ratio - _translations[i].ratio[0]) *
-        math::RcpEst(_translations[i].ratio[1] - _translations[i].ratio[0]);
-
-    size_t j = ++typer;
-
-    _output[j].translation =
-        Lerp(_translations[i].value[0], _translations[i].value[1], ratio);
-  }
-
-  for (size_t i = 0; i < _rotations_map.count(); ++i) {
-    const math::SimdFloat4 ratio =
-        (anim_ratio - _rotations[i].ratio[0]) *
-        math::RcpEst(_rotations[i].ratio[1] - _rotations[i].ratio[0]);
-    // The lerp of the rotation uses the shortest path, because opposed
-    // quaternions were negated during animation build stage (AnimationBuilder).
-    _output[_rotations_map[i]].rotation =
-        NLerpEst(_rotations[i].value[0], _rotations[i].value[1], ratio);
-  }
-
-  for (size_t i = 0; i < _scales_map.count(); ++i) {
-    const math::SimdFloat4 ratio =
-        (anim_ratio - _scales[i].ratio[0]) *
-        math::RcpEst(_scales[i].ratio[1] - _scales[i].ratio[0]);
-    _output[_scales_map[i]].scale =
-        Lerp(_scales[i].value[0], _scales[i].value[1], ratio);
+        (anim_ratio - _interp_soa[i].ratio[0]) *
+        math::RcpEst(_interp_soa[i].ratio[1] - _interp_soa[i].ratio[0]);
+    *PointerStride(_output, (++typer) * _stride) =
+        Lerp(_interp_soa[i].value[0], _interp_soa[i].value[1], ratio);
   }
 }
 
-    /*
-void CopyConst(const Range<const Float3ConstKey>& _translations,
-               const Range<int>& _translations_map,
-               const Range<const QuaternionConstKey>& _rotations,
-               const Range<int>& _rotations_map,
-               const Range<const Float3ConstKey>& _scales,
-               const Range<int>& _scales_map,
-               const Range<math::SoaTransform>& _output) {
-  assert(_translations.count() == _translations_map.count() &&
-         _rotations.count() == _rotations_map.count() &&
-         _scales.count() == _scales_map.count());
-  for (size_t i = 0; i < _translations.count(); ++i) {
-    _output[_translations_map[i]].translation = _translations[i];
-  }
-  for (size_t i = 0; i < _rotations.count(); ++i) {
-    _output[_rotations_map[i]].rotation = _rotations[i];
-  }
-  for (size_t i = 0; i < _scales.count(); ++i) {
-    _output[_scales_map[i]].scale = _scales[i];
+void Interpolate(float _anim_ratio, size_t _num_soa_tracks,
+                 const internal::InterpSoaQuaternion* _interp_soa,
+                 const Range<uint8_t>& _types, math::SoaQuaternion* _output,
+                 size_t _stride) {
+  const math::SimdFloat4 anim_ratio = math::simd_float4::Load1(_anim_ratio);
+
+  Typer typer(_types, TrackType::kAnimated);
+  for (size_t i = 0; i < _num_soa_tracks; ++i) {
+    const math::SimdFloat4 ratio =
+        (anim_ratio - _interp_soa[i].ratio[0]) *
+        math::RcpEst(_interp_soa[i].ratio[1] - _interp_soa[i].ratio[0]);
+    *PointerStride(_output, (++typer) * _stride) =
+        NLerpEst(_interp_soa[i].value[0], _interp_soa[i].value[1], ratio);
   }
 }
-     */
 
-void CopyIdentity(const Range<int>& _translations_map,
-                  const Range<int>& _rotations_map,
-                  const Range<int>& _scales_map,
+void CopyConst(const Range<const Float3ConstKey>& _constkeys,
+               const Range<uint8_t>& _types, math::SoaFloat3* _output,
+               size_t _stride) {
+  size_t s = _constkeys.count();
+  if (s == 0) {
+    return;
+  }
+  math::SimdFloat4 aos[4];
+  Typer typer(_types, TrackType::kConstant);
+  for (size_t i = 0; i < _constkeys.count(); i += 4) {
+    aos[0] = math::simd_float4::Load3PtrU(_constkeys[i + 0].values);
+    aos[1] = math::simd_float4::Load3PtrU(_constkeys[i + 1].values);
+    aos[2] = math::simd_float4::Load3PtrU(_constkeys[i + 2].values);
+    aos[3] = math::simd_float4::Load3PtrU(_constkeys[i + 3].values);
+
+    math::SoaFloat3& output = *PointerStride(_output, (++typer) * _stride);
+    math::Transpose4x3(aos, &output.x);
+  }
+}
+
+void CopyConst(const Range<const QuaternionConstKey>& _constkeys,
+               const Range<uint8_t>& _types, math::SoaQuaternion* _output,
+               size_t _stride) {
+  if (_constkeys.count() == 0) {
+    return;
+  }
+  math::SimdFloat4 aos[4];
+  Typer typer(_types, TrackType::kConstant);
+  for (size_t i = 0; i < _constkeys.count(); i += 4) {
+    aos[0] = math::simd_float4::LoadPtrU(_constkeys[i + 0].values);
+    aos[1] = math::simd_float4::LoadPtrU(_constkeys[i + 1].values);
+    aos[2] = math::simd_float4::LoadPtrU(_constkeys[i + 2].values);
+    aos[3] = math::simd_float4::LoadPtrU(_constkeys[i + 3].values);
+
+    math::SoaQuaternion& output = *PointerStride(_output, (++typer) * _stride);
+    math::Transpose4x4(aos, &output.x);
+  }
+}
+
+void CopyIdentity(int _soa_translastion,
+                  const Range<uint8_t>& _translation_types, int _soa_rotation,
+                  const Range<uint8_t>& _rotation_types, int _soa_scale,
+                  const Range<uint8_t>& _scale_types,
                   const Range<math::SoaTransform>& _output) {
   const math::SimdFloat4 zero = math::simd_float4::zero();
   const math::SimdFloat4 one = math::simd_float4::one();
 
-  for (size_t i = 0; i < _translations_map.count(); ++i) {
-    math::SoaFloat3& translation = _output[_translations_map[i]].translation;
+  Typer ttyper(_translation_types, TrackType::kIdentity);
+  for (int i = 0; i < _soa_translastion; ++i) {
+    math::SoaFloat3& translation = _output[++ttyper].translation;
     translation.x = translation.y = translation.z = zero;
   }
-  for (size_t i = 0; i < _rotations_map.count(); ++i) {
-    math::SoaQuaternion& rotation = _output[_rotations_map[i]].rotation;
+  Typer rtyper(_rotation_types, TrackType::kIdentity);
+  for (int i = 0; i < _soa_rotation; ++i) {
+    math::SoaQuaternion& rotation = _output[++rtyper].rotation;
     rotation.x = rotation.y = rotation.z = zero;
     rotation.w = one;
   }
-  for (size_t i = 0; i < _scales_map.count(); ++i) {
-    math::SoaFloat3& scale = _output[_scales_map[i]].scale;
+  Typer styper(_scale_types, TrackType::kIdentity);
+  for (int i = 0; i < _soa_scale; ++i) {
+    math::SoaFloat3& scale = _output[++styper].scale;
     scale.x = scale.y = scale.z = one;
   }
 }
@@ -382,8 +420,8 @@ bool SamplingJob::Run() const {
     return false;
   }
 
-  const int num_soa_tracks = animation->num_soa_tracks();
-  if (num_soa_tracks == 0) {  // Early out if animation contains no joint.
+  const int num_tracks = animation->num_tracks();
+  if (num_tracks == 0) {  // Early out if animation contains no joint.
     return true;
   }
 
@@ -391,42 +429,66 @@ bool SamplingJob::Run() const {
   const float anim_ratio = math::Clamp(0.f, ratio, 1.f);
 
   // Step the cache to this potentially new animation and ratio.
-  assert(cache->max_soa_tracks() >= num_soa_tracks);
   cache->Step(*animation, anim_ratio);
 
   // Fetch key frames from the animation to the cache at r = anim_ratio.
   // Then updates outdated soa hot values.
-  UpdateCacheCursor(anim_ratio, num_soa_tracks, animation->translations(),
+  UpdateCacheCursor(anim_ratio, animation->translations(),
                     &cache->translation_cursor_, cache->translation_keys_,
-                    cache->outdated_translations_);
-  UpdateCacheKeyframes(num_soa_tracks, animation->translations(),
-                       cache->translation_keys_, cache->outdated_translations_,
-                       cache->soa_translations_, &DecompressFloat3);
-
-  UpdateCacheCursor(anim_ratio, num_soa_tracks, animation->rotations(),
-                    &cache->rotation_cursor_, cache->rotation_keys_,
-                    cache->outdated_rotations_);
-  UpdateCacheKeyframes(num_soa_tracks, animation->rotations(),
-                       cache->rotation_keys_, cache->outdated_rotations_,
-                       cache->soa_rotations_, &DecompressQuaternion);
-
-  UpdateCacheCursor(anim_ratio, num_soa_tracks, animation->scales(),
-                    &cache->scale_cursor_, cache->scale_keys_,
-                    cache->outdated_scales_);
-  UpdateCacheKeyframes(num_soa_tracks, animation->scales(), cache->scale_keys_,
-                       cache->outdated_scales_, cache->soa_scales_,
+                    cache->outdated_translations_,
+                    &cache->animated_translations_soa_count_);
+  UpdateCacheKeyframes(cache->animated_translations_soa_count_,
+                       animation->translations(), cache->translation_keys_,
+                       cache->outdated_translations_, cache->soa_translations_,
                        &DecompressFloat3);
 
+  UpdateCacheCursor(anim_ratio, animation->rotations(),
+                    &cache->rotation_cursor_, cache->rotation_keys_,
+                    cache->outdated_rotations_,
+                    &cache->animated_rotations_soa_count_);
+  UpdateCacheKeyframes(cache->animated_rotations_soa_count_,
+                       animation->rotations(), cache->rotation_keys_,
+                       cache->outdated_rotations_, cache->soa_rotations_,
+                       &DecompressQuaternion);
+
+  UpdateCacheCursor(anim_ratio, animation->scales(), &cache->scale_cursor_,
+                    cache->scale_keys_, cache->outdated_scales_,
+                    &cache->animated_scales_soa_count_);
+  UpdateCacheKeyframes(cache->animated_scales_soa_count_, animation->scales(),
+                       cache->scale_keys_, cache->outdated_scales_,
+                       cache->soa_scales_, &DecompressFloat3);
+
   // Interpolates soa hot data.
-  int ai[] = {0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14,
-              15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30};
-  const Range<int> fi(ai, num_soa_tracks);
-  Interpolate(anim_ratio, cache->soa_translations_, fi, cache->soa_rotations_,
-              fi, cache->soa_scales_, fi, output);
-  const Range<int> ri;
-  //CopyConst(animation->const_translations(), ri, animation->const_rotations(),
-  //          ri, animation->const_scales(), ri, output);
-  CopyIdentity(ri, ri, ri, output);
+  Interpolate(anim_ratio, cache->animated_translations_soa_count_,
+              cache->soa_translations_, animation->translation_types,
+              &output.begin->translation, sizeof(math::SoaTransform));
+  Interpolate(anim_ratio, cache->animated_rotations_soa_count_,
+              cache->soa_rotations_, animation->rotation_types,
+              &output.begin->rotation, sizeof(math::SoaTransform));
+  Interpolate(anim_ratio, cache->animated_scales_soa_count_, cache->soa_scales_,
+              animation->scale_types, &output.begin->scale,
+              sizeof(math::SoaTransform));
+
+  CopyConst(animation->const_translations_, animation->translation_types,
+            &output.begin->translation, sizeof(math::SoaTransform));
+  CopyConst(animation->const_rotations_, animation->rotation_types,
+            &output.begin->rotation, sizeof(math::SoaTransform));
+  CopyConst(animation->const_scales_, animation->scale_types,
+            &output.begin->scale, sizeof(math::SoaTransform));
+
+  const int num_soa_tracks = animation->num_soa_tracks();
+  const int num_identity_soa_translation =
+      num_soa_tracks - (animation->const_translations_.count() + 3) / 4 -
+      cache->animated_translations_soa_count_;
+  const int num_identity_soa_rotation =
+      num_soa_tracks - (animation->const_rotations_.count() + 3) / 4 -
+      cache->animated_rotations_soa_count_;
+  const int num_identity_soa_scale =
+      num_soa_tracks - (animation->const_scales_.count() + 3) / 4 -
+      cache->animated_scales_soa_count_;
+  CopyIdentity(num_identity_soa_translation, animation->translation_types,
+               num_identity_soa_rotation, animation->rotation_types,
+               num_identity_soa_scale, animation->scale_types, output);
 
   return true;
 }

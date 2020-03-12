@@ -145,7 +145,8 @@ class SamplingCache {
   // cache is invalidated and reseted for the new _animation and _ratio.
   void Step(const Animation& _animation, float _ratio);
 
-  // The animation this cache refers to. nullptr means that the cache is invalid.
+  // The animation this cache refers to. nullptr means that the cache is
+  // invalid.
   const Animation* animation_;
 
   // The current time ratio in the animation.
@@ -153,6 +154,11 @@ class SamplingCache {
 
   // The number of soa tracks that can store this cache.
   int max_soa_tracks_;
+
+  // TODO
+  int animated_translations_soa_count_;
+  int animated_rotations_soa_count_;
+  int animated_scales_soa_count_;
 
   // Soa hot data to interpolate.
   internal::InterpSoaFloat3* soa_translations_;

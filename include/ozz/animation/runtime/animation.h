@@ -112,6 +112,8 @@ class Animation {
   // Internal destruction function.
   void Allocate(size_t _name_len, size_t _translation_count,
                 size_t _rotation_count, size_t _scale_count,
+                size_t _const_translation_soa_count,
+                size_t _const_rotation_soa_count, size_t _const_scale_soa_count,
                 size_t _track_count);
   void Deallocate();
 
@@ -135,6 +137,8 @@ class Animation {
   Range<QuaternionConstKey> const_rotations_;
   Range<Float3ConstKey> const_scales_;
 
+  // TODO
+  // 2 bits per soa joint means 64 byte max for 1024 joints.
   Range<uint8_t> translation_types;
   Range<uint8_t> rotation_types;
   Range<uint8_t> scale_types;
@@ -142,7 +146,7 @@ class Animation {
 }  // namespace animation
 
 namespace io {
-OZZ_IO_TYPE_VERSION(6, animation::Animation)
+OZZ_IO_TYPE_VERSION(7, animation::Animation)
 OZZ_IO_TYPE_TAG("ozz-animation", animation::Animation)
 }  // namespace io
 }  // namespace ozz

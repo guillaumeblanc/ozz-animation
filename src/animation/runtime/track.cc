@@ -92,10 +92,9 @@ template <typename _ValueType>
 void Track<_ValueType>::Deallocate() {
   // Deallocate everything at once.
   memory::default_allocator()->Deallocate(values_.begin);
-
-  values_.Clear();
-  ratios_.Clear();
-  steps_.Clear();
+  values_ = Range<_ValueType>();
+  ratios_ = Range<float>();
+  steps_ = Range<uint8_t>();
   name_ = nullptr;
 }
 

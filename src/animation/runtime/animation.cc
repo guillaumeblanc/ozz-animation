@@ -47,82 +47,93 @@ Animation::Animation() : duration_(0.f), num_tracks_(0), name_(nullptr) {}
 
 Animation::~Animation() { Deallocate(); }
 
+namespace {
+template <typename _T>
+ozz::Range<char> DispatchRange(const ozz::Range<char>& _buffer, size_t _count,
+                               ozz::Range<_T>* _out) {
+  *_out = Range<_T>(reinterpret_cast<_T*>(_buffer.begin), _count);
+  assert(reinterpret_cast<const char*>(_out->end) <= _buffer.end);
+  assert(math::IsAligned(_out->begin, alignof(_T)));
+  return Range<char>(reinterpret_cast<char*>(_out->end), _buffer.end);
+}
+}  // namespace
+
 void Animation::Allocate(size_t _name_len, size_t _translation_count,
                          size_t _rotation_count, size_t _scale_count,
-                         uint16_t _track_count) {
+                         size_t _const_translation_soa_count,
+                         size_t _const_rotation_soa_count,
+                         size_t _const_scale_soa_count, size_t _track_count) {
   num_tracks_ = _track_count;
+  const size_t num_soa_tracks_ = (_track_count + 3) / 4;
 
   // Distributes buffer memory while ensuring proper alignment (serves larger
   // alignment values first).
-  static_assert(alignof(Float3Key) >= alignof(QuaternionKey) &&
+  static_assert(alignof(Float3ConstKey) >= alignof(QuaternionConstKey) &&
+                    alignof(QuaternionConstKey) >= alignof(Float3ConstKey) &&
+                    alignof(Float3ConstKey) >= alignof(Float3Key) &&
+                    alignof(Float3Key) >= alignof(QuaternionKey) &&
                     alignof(QuaternionKey) >= alignof(Float3Key) &&
                     alignof(Float3Key) >= alignof(uint8_t) &&
                     alignof(uint8_t) >= alignof(char),
                 "Must serve larger alignment values first)");
 
-  assert(name_ == nullptr && translations_.size() == 0 &&
-         rotations_.size() == 0 && scales_.size() == 0);
-
   // Compute overall size and allocate a single buffer for all the data.
+  const size_t name_size = _name_len > 0 ? _name_len + 1 : 0;
+  const size_t types_size = (num_soa_tracks_ + 3) / 4;  // 2 bits per soa joint
   const size_t buffer_size =
-      (_name_len > 0 ? _name_len + 1 : 0) +
-      _translation_count * sizeof(Float3Key) +
+      name_size + _translation_count * sizeof(Float3Key) +
       _rotation_count * sizeof(QuaternionKey) +
       _scale_count * sizeof(Float3Key) +
-      ((_track_count + 3) / 4) * 3;  // 2bits bet joint TRS
-  char* buffer = reinterpret_cast<char*>(
-      memory::default_allocator()->Allocate(buffer_size, alignof(Float3Key)));
+      _const_translation_soa_count * sizeof(Float3ConstKey) * 4 +
+      _const_rotation_soa_count * sizeof(QuaternionConstKey) * 4 +
+      _const_scale_soa_count * sizeof(Float3ConstKey) * 4 + types_size * 3;
+  Range<char> buffer(
+      reinterpret_cast<char*>(memory::default_allocator()->Allocate(
+          buffer_size, alignof(Float3Key))),
+      buffer_size);
 
   // Fix up pointers. Serves larger alignment values first.
-  translations_.begin = reinterpret_cast<Float3Key*>(buffer);
-  assert(math::IsAligned(translations_.begin, alignof(Float3Key)));
-  buffer += _translation_count * sizeof(Float3Key);
-  translations_.end = reinterpret_cast<Float3Key*>(buffer);
-
-  rotations_.begin = reinterpret_cast<QuaternionKey*>(buffer);
-  assert(math::IsAligned(rotations_.begin, alignof(QuaternionKey)));
-  buffer += _rotation_count * sizeof(QuaternionKey);
-  rotations_.end = reinterpret_cast<QuaternionKey*>(buffer);
-
-  scales_.begin = reinterpret_cast<Float3Key*>(buffer);
-  assert(math::IsAligned(scales_.begin, alignof(Float3Key)));
-  buffer += _scale_count * sizeof(Float3Key);
-  scales_.end = reinterpret_cast<Float3Key*>(buffer);
+  buffer = DispatchRange(buffer, _const_translation_soa_count * 4,
+                         &const_translations_);
+  buffer =
+      DispatchRange(buffer, _const_rotation_soa_count * 4, &const_rotations_);
+  buffer = DispatchRange(buffer, _const_scale_soa_count * 4, &const_scales_);
+  buffer = DispatchRange(buffer, _translation_count, &translations_);
+  buffer = DispatchRange(buffer, _rotation_count, &rotations_);
+  buffer = DispatchRange(buffer, _scale_count, &scales_);
 
   // Types
-  translation_types.begin = reinterpret_cast<uint8_t*>(buffer);
-  assert(math::IsAligned(translation_types.begin, alignof(uint8_t)));
-  buffer += ((_track_count + 3) / 4) * sizeof(uint8_t);
-  translation_types.end = reinterpret_cast<uint8_t*>(buffer);
-
-  rotation_types.begin = reinterpret_cast<uint8_t*>(buffer);
-  assert(math::IsAligned(rotation_types.begin, alignof(uint8_t)));
-  buffer += ((_track_count + 3) / 4) * sizeof(uint8_t);
-  rotation_types.end = reinterpret_cast<uint8_t*>(buffer);
-
-  scale_types.begin = reinterpret_cast<uint8_t*>(buffer);
-  assert(math::IsAligned(scale_types.begin, alignof(uint8_t)));
-  buffer += ((_track_count + 3) / 4) * sizeof(uint8_t);
-  scale_types.end = reinterpret_cast<uint8_t*>(buffer);
+  buffer = DispatchRange(buffer, types_size, &translation_types);
+  buffer = DispatchRange(buffer, types_size, &rotation_types);
+  buffer = DispatchRange(buffer, types_size, &scale_types);
 
   // Let name be nullptr if animation has no name. Allows to avoid allocating
   // this buffer in the constructor of empty animations.
-  name_ = reinterpret_cast<char*>(_name_len > 0 ? buffer : nullptr);
-  assert(math::IsAligned(name_, alignof(char)));
+  assert(buffer.size() == name_size);
+  name_ = name_size == 0 ? nullptr : buffer.begin;
 }
 
 void Animation::Deallocate() {
-  memory::default_allocator()->Deallocate(translations_.begin);
+  memory::default_allocator()->Deallocate(const_translations_.begin);
 
   name_ = nullptr;
-  translations_ = ozz::Range<Float3Key>();
-  rotations_ = ozz::Range<QuaternionKey>();
-  scales_ = ozz::Range<Float3Key>();
+  translations_ = {};
+  rotations_ = {};
+  scales_ = {};
+  const_translations_ = {};
+  const_rotations_ = {};
+  const_scales_ = {};
+  translation_types = {};
+  rotation_types = {};
+  scale_types = {};
 }
 
 size_t Animation::size() const {
-  const size_t size =
-      sizeof(*this) + translations_.size() + rotations_.size() + scales_.size();
+  const size_t size = sizeof(*this) + translations_.size() + rotations_.size() +
+                      scales_.size() + const_translations_.size() +
+                      const_rotations_.size() + const_scales_.size() +
+                      translation_types.size() + rotation_types.size() +
+                      scale_types.size();
   return size;
 }
 
@@ -140,8 +151,16 @@ void Animation::Save(ozz::io::OArchive& _archive) const {
   const ptrdiff_t scale_count = scales_.count();
   _archive << static_cast<int32_t>(scale_count);
 
+  const ptrdiff_t const_translation_count = const_translations_.count();
+  _archive << static_cast<int32_t>(const_translation_count);
+  const ptrdiff_t const_rotation_count = const_rotations_.count();
+  _archive << static_cast<int32_t>(const_rotation_count);
+  const ptrdiff_t const_scale_count = const_scales_.count();
+  _archive << static_cast<int32_t>(const_scale_count);
+
   _archive << ozz::io::MakeArray(name_, name_len);
 
+  // Animated keys.
   for (ptrdiff_t i = 0; i < translation_count; ++i) {
     const Float3Key& key = translations_.begin[i];
     _archive << key.ratio;
@@ -167,6 +186,19 @@ void Animation::Save(ozz::io::OArchive& _archive) const {
     _archive << key.track;
     _archive << ozz::io::MakeArray(key.value);
   }
+
+  // Const keys
+  _archive << ozz::io::MakeArray(const_translations_.begin->values,
+                                 const_translation_count * 3);
+  _archive << ozz::io::MakeArray(const_rotations_.begin->values,
+                                 const_rotation_count * 4);
+  _archive << ozz::io::MakeArray(const_scales_.begin->values,
+                                 const_scale_count * 3);
+  // Types
+  _archive << ozz::io::MakeArray(translation_types.begin,
+                                 translation_types.count());
+  _archive << ozz::io::MakeArray(rotation_types.begin, rotation_types.count());
+  _archive << ozz::io::MakeArray(scale_types.begin, scale_types.count());
 }
 
 void Animation::Load(ozz::io::IArchive& _archive, uint32_t _version) {
@@ -176,7 +208,7 @@ void Animation::Load(ozz::io::IArchive& _archive, uint32_t _version) {
   num_tracks_ = 0;
 
   // No retro-compatibility with anterior versions.
-  if (_version != 6) {
+  if (_version != 7) {
     log::Err() << "Unsupported Animation version " << _version << "."
                << std::endl;
     return;
@@ -186,7 +218,6 @@ void Animation::Load(ozz::io::IArchive& _archive, uint32_t _version) {
 
   int32_t num_tracks;
   _archive >> num_tracks;
-  num_tracks_ = num_tracks;
 
   int32_t name_len;
   _archive >> name_len;
@@ -196,9 +227,16 @@ void Animation::Load(ozz::io::IArchive& _archive, uint32_t _version) {
   _archive >> rotation_count;
   int32_t scale_count;
   _archive >> scale_count;
+  int32_t const_translation_count;
+  _archive >> const_translation_count;
+  int32_t const_rotation_count;
+  _archive >> const_rotation_count;
+  int32_t const_scale_count;
+  _archive >> const_scale_count;
 
   Allocate(name_len, translation_count, rotation_count, scale_count,
-           num_tracks);
+           (const_translation_count + 3) / 4, (const_rotation_count + 3) / 4,
+           (const_scale_count + 3) / 4, num_tracks);
 
   if (name_) {  // nullptr name_ is supported.
     _archive >> ozz::io::MakeArray(name_, name_len);
@@ -233,6 +271,20 @@ void Animation::Load(ozz::io::IArchive& _archive, uint32_t _version) {
     _archive >> key.track;
     _archive >> ozz::io::MakeArray(key.value);
   }
+
+  // Constant
+  _archive >> ozz::io::MakeArray(const_translations_.begin->values,
+                                 const_translation_count * 3);
+  _archive >> ozz::io::MakeArray(const_rotations_.begin->values,
+                                 const_rotation_count * 4);
+  _archive >>
+      ozz::io::MakeArray(const_scales_.begin->values, const_scale_count * 3);
+
+  // Types
+  _archive >>
+      ozz::io::MakeArray(translation_types.begin, translation_types.count());
+  _archive >> ozz::io::MakeArray(rotation_types.begin, rotation_types.count());
+  _archive >> ozz::io::MakeArray(scale_types.begin, scale_types.count());
 }
 }  // namespace animation
 }  // namespace ozz

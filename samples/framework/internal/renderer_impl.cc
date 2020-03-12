@@ -1397,7 +1397,7 @@ bool RendererImpl::DrawSkinnedMesh(
     // Setup normals if input are provided.
     float* out_normal_begin = reinterpret_cast<float*>(ozz::PointerStride(
         vbo_map, normals_offset + processed_vertex_count * normals_stride));
-    const float* out_normal_end = ozz::PointerStride(
+    float* out_normal_end = ozz::PointerStride(
         out_normal_begin, part_vertex_count * normals_stride);
 
     if (part.normals.size() / ozz::sample::Mesh::Part::kNormalsCpnts ==
@@ -1425,7 +1425,7 @@ bool RendererImpl::DrawSkinnedMesh(
     // Setup tangents if input are provided.
     float* out_tangent_begin = reinterpret_cast<float*>(ozz::PointerStride(
         vbo_map, tangents_offset + processed_vertex_count * tangents_stride));
-    const float* out_tangent_end = ozz::PointerStride(
+    float* out_tangent_end = ozz::PointerStride(
         out_tangent_begin, part_vertex_count * tangents_stride);
 
     if (part.tangents.size() / ozz::sample::Mesh::Part::kTangentsCpnts ==

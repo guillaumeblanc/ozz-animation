@@ -28,8 +28,9 @@
 #ifndef OZZ_ANIMATION_RUNTIME_ANIMATION_KEYFRAME_H_
 #define OZZ_ANIMATION_RUNTIME_ANIMATION_KEYFRAME_H_
 
+#include "ozz/base/maths/quaternion.h"
+#include "ozz/base/maths/vec_float.h"
 #include "ozz/base/platform.h"
-#include "ozz/base/maths/soa_quaternion.h"
 
 #ifndef OZZ_INCLUDE_PRIVATE_HEADER
 #error "This header is private, it cannot be included from public headers."
@@ -37,6 +38,15 @@
 
 namespace ozz {
 namespace animation {
+
+// Define how the track is animated. Order is important as lowest enum can
+// represent data from all above, but the opposite isn't true. Like an animated
+// track can represent a default one.
+enum class TrackType : uint8_t {
+  kAnimated,  // Animated keyframes are stored.
+  kConstant,  // A single constant keyframe is stored
+  kIdentity   // No keyframe is needed.
+};
 
 // Define animation key frame types (translation, rotation, scale). Every type
 // as the same base made of the key time ratio and it's track index. This is
@@ -77,10 +87,24 @@ struct QuaternionKey {
   int16_t value[3];      // The quantized value of the 3 smallest components.
 };
 
-struct Float3ConstKey : public math::SoaFloat3 {};
+struct Float3ConstKey {
+  void operator=(const math::Float3& _v) {
+    values[0] = _v.x;
+    values[1] = _v.y;
+    values[2] = _v.z;
+  }
+  float values[3];
+};
 
-struct QuaternionConstKey : public math::SoaQuaternion {};
-
+struct QuaternionConstKey {
+  void operator=(const math::Quaternion& _q) {
+    values[0] = _q.x;
+    values[1] = _q.y;
+    values[2] = _q.z;
+    values[3] = _q.w;
+  }
+  float values[4];
+};
 }  // namespace animation
 }  // namespace ozz
 #endif  // OZZ_ANIMATION_RUNTIME_ANIMATION_KEYFRAME_H_

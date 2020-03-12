@@ -94,9 +94,14 @@ struct Range {
   // Default constructor initializes range to empty.
   Range() : begin(nullptr), end(nullptr) {}
 
+  // Copy constructor
+  Range(const Range<_Ty>& _other) : begin(_other.begin), end(_other.end) {
+    assert(begin <= end && "Invalid range.");
+  }
+
   // Constructs a range from its extreme values.
-  Range(_Ty* _begin, const _Ty* _end) : begin(_begin), end(_end) {
-    assert(_begin <= _end && "Invalid range.");
+  Range(_Ty* _begin, _Ty* _end) : begin(_begin), end(_end) {
+    assert(begin <= end && "Invalid range.");
   }
 
   // Construct a range from a pointer to a buffer and its size, ie its number of
@@ -122,6 +127,11 @@ struct Range {
   void operator=(_Ty (&_array)[_size]) {
     begin = _array;
     end = _array + _size;
+  }
+
+  void operator=(const Range<_Ty>& _other) {
+    begin = _other.begin;
+    end = _other.end;
   }
 
   // Implement cast operator to allow conversions to Range<const _Ty>.
@@ -151,7 +161,7 @@ struct Range {
   _Ty* begin;
 
   // Range end pointer, declared as const as it should never be dereferenced.
-  const _Ty* end;
+  _Ty* end;
 };
 
 // Returns a mutable ozz::Range from a single object, as this isn't implicitly
