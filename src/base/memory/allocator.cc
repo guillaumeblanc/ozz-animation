@@ -91,10 +91,12 @@ class HeapAllocator : public Allocator {
     if (_block) {
       Header* old_header = reinterpret_cast<Header*>(
           reinterpret_cast<char*>(_block) - sizeof(Header));
-      memcpy(new_block, _block, old_header->size);
-      free(old_header->unaligned);
+
+      // Copy previous content, which might not fit in the new one.
+      memcpy(new_block, _block, math::Min(_size, old_header->size));
 
       // Deallocation completed.
+      free(old_header->unaligned);
       --allocation_count_;
     }
     return new_block;
