@@ -13,6 +13,12 @@ Next release
   - [base] Replaces OZZ_ALIGN_OF and OZZ_ALIGN by standard alignof and alignas keywords.
   - [base] Replaces OZZ_STATIC_ASSERT by standard static_assert keyword.
 
+Release version 0.12.1
+----------------------
+
+* Library
+  - [base] Fixes memory overwrite when reallocating a buffer of smaller size using ozz default memory allocator.
+
 Release version 0.12.0
 ----------------------
 
