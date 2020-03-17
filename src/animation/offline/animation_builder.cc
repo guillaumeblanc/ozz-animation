@@ -128,7 +128,8 @@ void CopyRaw(const _SrcTrack& _src, uint16_t _track, float _duration,
   assert(_dest->front().key.time == 0.f && _dest->back().key.time == _duration);
 }
 
-void CopyToAnimation(ozz::vector<SortingTranslationKey>* _src,
+template <typename _SortingKey>
+void CopyToAnimation(ozz::vector<_SortingKey>* _src,
                      ozz::Range<Float3Key>* _dest, float _inv_duration) {
   const size_t src_count = _src->size();
   if (!src_count) {
@@ -136,34 +137,10 @@ void CopyToAnimation(ozz::vector<SortingTranslationKey>* _src,
   }
 
   // Sort animation keys to favor cache coherency.
-  std::sort(&_src->front(), (&_src->back()) + 1,
-            &SortingKeyLess<SortingTranslationKey>);
+  std::sort(&_src->front(), (&_src->back()) + 1, &SortingKeyLess<_SortingKey>);
 
   // Fills output.
-  const SortingTranslationKey* src = &_src->front();
-  for (size_t i = 0; i < src_count; ++i) {
-    Float3Key& key = _dest->begin[i];
-    key.ratio = src[i].key.time * _inv_duration;
-    key.track = src[i].track;
-    key.value[0] = ozz::math::FloatToHalf(src[i].key.value.x);
-    key.value[1] = ozz::math::FloatToHalf(src[i].key.value.y);
-    key.value[2] = ozz::math::FloatToHalf(src[i].key.value.z);
-  }
-}
-
-void CopyToAnimation(ozz::vector<SortingScaleKey>* _src,
-                     ozz::Range<Float3Key>* _dest, float _inv_duration) {
-  const size_t src_count = _src->size();
-  if (!src_count) {
-    return;
-  }
-
-  // Sort animation keys to favor cache coherency.
-  std::sort(&_src->front(), (&_src->back()) + 1,
-            &SortingKeyLess<SortingScaleKey>);
-
-  // Fills output.
-  const SortingScaleKey* src = &_src->front();
+  const _SortingKey* src = &_src->front();
   for (size_t i = 0; i < src_count; ++i) {
     Float3Key& key = _dest->begin[i];
     key.ratio = src[i].key.time * _inv_duration;
