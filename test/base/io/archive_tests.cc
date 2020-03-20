@@ -190,7 +190,7 @@ TEST(PrimitiveArrays, Archive) {
     float fi2[OZZ_ARRAY_SIZE(fo)];
     ozz::span<float> rfi(fi2);
     i >> ozz::io::MakeArray(rfi);
-    EXPECT_EQ(std::memcmp(rfi.begin, fo, sizeof(fo)), 0);
+    EXPECT_EQ(std::memcmp(rfi.data(), fo, sizeof(fo)), 0);
   }
 }
 

@@ -25,28 +25,23 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/animation/runtime/animation.h"
-#include "ozz/animation/runtime/local_to_model_job.h"
-#include "ozz/animation/runtime/sampling_job.h"
-#include "ozz/animation/runtime/skeleton.h"
-
-#include "ozz/animation/runtime/track.h"
-#include "ozz/animation/runtime/track_sampling_job.h"
-#include "ozz/animation/runtime/track_triggering_job.h"
-
-#include "ozz/base/log.h"
-
-#include "ozz/base/maths/box.h"
-#include "ozz/base/maths/simd_math.h"
-#include "ozz/base/maths/soa_transform.h"
-#include "ozz/base/maths/vec_float.h"
-
-#include "ozz/options/options.h"
-
 #include "framework/application.h"
 #include "framework/imgui.h"
 #include "framework/renderer.h"
 #include "framework/utils.h"
+#include "ozz/animation/runtime/animation.h"
+#include "ozz/animation/runtime/local_to_model_job.h"
+#include "ozz/animation/runtime/sampling_job.h"
+#include "ozz/animation/runtime/skeleton.h"
+#include "ozz/animation/runtime/track.h"
+#include "ozz/animation/runtime/track_sampling_job.h"
+#include "ozz/animation/runtime/track_triggering_job.h"
+#include "ozz/base/log.h"
+#include "ozz/base/maths/box.h"
+#include "ozz/base/maths/simd_math.h"
+#include "ozz/base/maths/soa_transform.h"
+#include "ozz/base/maths/vec_float.h"
+#include "ozz/options/options.h"
 
 // Some scene constants.
 const ozz::math::Box kBox(ozz::math::Float3(-.01f, -.1f, -.05f),
@@ -242,7 +237,8 @@ class UserChannelSampleApplication : public ozz::sample::Application {
 
     // Draw box at the position computed during update.
     success &= _renderer->DrawBoxShaded(
-        kBox, ozz::make_span(box_world_transform_), ozz::sample::kGrey);
+        kBox, ozz::span<ozz::math::Float4x4>(box_world_transform_),
+        ozz::sample::kGrey);
 
     // Draws a sphere at hand position, which shows "attached" flag status.
     const ozz::sample::Color colors[] = {{0, 0xff, 0, 0xff},

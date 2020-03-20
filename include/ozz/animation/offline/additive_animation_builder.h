@@ -29,6 +29,7 @@
 #define OZZ_OZZ_ANIMATION_OFFLINE_ADDITIVE_ANIMATION_BUILDER_H_
 
 #include "ozz/base/platform.h"
+#include "ozz/base/span.h"
 
 namespace ozz {
 

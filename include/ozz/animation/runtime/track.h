@@ -30,6 +30,7 @@
 
 #include "ozz/base/io/archive_traits.h"
 #include "ozz/base/platform.h"
+#include "ozz/base/span.h"
 
 #include "ozz/base/maths/quaternion.h"
 #include "ozz/base/maths/vec_float.h"

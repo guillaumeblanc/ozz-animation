@@ -29,6 +29,7 @@
 #define OZZ_OZZ_GEOMETRY_RUNTIME_SKINNING_JOB_H_
 
 #include "ozz/base/platform.h"
+#include "ozz/base/span.h"
 
 namespace ozz {
 namespace math {

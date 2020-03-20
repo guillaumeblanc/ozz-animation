@@ -109,20 +109,20 @@ TEST(Filled, SkeletonSerialize) {
     // Compares skeletons.
     EXPECT_EQ(o_skeleton->num_joints(), i_skeleton.num_joints());
     for (int i = 0; i < i_skeleton.num_joints(); ++i) {
-      EXPECT_EQ(i_skeleton.joint_parents().begin[i],
-                o_skeleton->joint_parents().begin[i]);
+      EXPECT_EQ(i_skeleton.joint_parents()[i],
+                o_skeleton->joint_parents()[i]);
       EXPECT_STREQ(i_skeleton.joint_names()[i], o_skeleton->joint_names()[i]);
     }
     for (int i = 0; i < (i_skeleton.num_joints() + 3) / 4; ++i) {
       EXPECT_TRUE(ozz::math::AreAllTrue(
-          i_skeleton.joint_bind_poses().begin[i].translation ==
-          o_skeleton->joint_bind_poses().begin[i].translation));
+          i_skeleton.joint_bind_poses()[i].translation ==
+          o_skeleton->joint_bind_poses()[i].translation));
       EXPECT_TRUE(ozz::math::AreAllTrue(
-          i_skeleton.joint_bind_poses().begin[i].rotation ==
-          o_skeleton->joint_bind_poses().begin[i].rotation));
+          i_skeleton.joint_bind_poses()[i].rotation ==
+          o_skeleton->joint_bind_poses()[i].rotation));
       EXPECT_TRUE(
-          ozz::math::AreAllTrue(i_skeleton.joint_bind_poses().begin[i].scale ==
-                                o_skeleton->joint_bind_poses().begin[i].scale));
+          ozz::math::AreAllTrue(i_skeleton.joint_bind_poses()[i].scale ==
+                                o_skeleton->joint_bind_poses()[i].scale));
     }
   }
 }

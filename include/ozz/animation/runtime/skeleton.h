@@ -30,6 +30,7 @@
 
 #include "ozz/base/io/archive_traits.h"
 #include "ozz/base/platform.h"
+#include "ozz/base/span.h"
 
 namespace ozz {
 namespace io {
@@ -100,7 +101,7 @@ class Skeleton {
 
   // Returns joint's name collection.
   span<const char* const> joint_names() const {
-    return span<const char* const>(joint_names_.begin, joint_names_.end);
+    return span<const char* const>(joint_names_.begin(), joint_names_.end());
   }
 
   // Serialization functions.

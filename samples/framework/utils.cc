@@ -227,7 +227,7 @@ void ComputeSkeletonBounds(const animation::Skeleton& _skeleton,
   // Compute model space bind pose.
   ozz::animation::LocalToModelJob job;
   job.input = _skeleton.joint_bind_poses();
-  job.output = make_range(models);
+  job.output = make_span(models);
   job.skeleton = &_skeleton;
   if (job.Run()) {
     // Forwards to posture function.
@@ -243,21 +243,18 @@ void ComputePostureBounds(ozz::span<const ozz::math::Float4x4> _matrices,
   // Set a default box.
   *_bound = ozz::math::Box();
 
-  if (!_matrices.begin || !_matrices.end) {
-    return;
-  }
-  if (_matrices.begin > _matrices.end) {
+  if (_matrices.empty()) {
     return;
   }
 
   // Loops through matrices and stores min/max.
   // Matrices array cannot be empty, it was checked at the beginning of the
   // function.
-  const ozz::math::Float4x4* current = _matrices.begin;
+  const ozz::math::Float4x4* current = _matrices.begin();
   math::SimdFloat4 min = current->cols[3];
   math::SimdFloat4 max = current->cols[3];
   ++current;
-  while (current < _matrices.end) {
+  while (current < _matrices.end()) {
     min = math::Min(min, current->cols[3]);
     max = math::Max(max, current->cols[3]);
     ++current;

@@ -25,18 +25,14 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/animation/runtime/sampling_job.h"
-
 #include "gtest/gtest.h"
-
+#include "ozz/animation/offline/animation_builder.h"
+#include "ozz/animation/offline/raw_animation.h"
+#include "ozz/animation/runtime/animation.h"
+#include "ozz/animation/runtime/sampling_job.h"
 #include "ozz/base/maths/gtest_math_helper.h"
 #include "ozz/base/maths/soa_transform.h"
 #include "ozz/base/memory/unique_ptr.h"
-
-#include "ozz/animation/runtime/animation.h"
-
-#include "ozz/animation/offline/animation_builder.h"
-#include "ozz/animation/offline/raw_animation.h"
 
 using ozz::animation::Animation;
 using ozz::animation::SamplingCache;
@@ -75,8 +71,7 @@ TEST(JobValidity, SamplingJob) {
 
     SamplingJob job;
     job.cache = &cache;
-    job.output.begin = output;
-    job.output.end = output + 1;
+    job.output = output;
     EXPECT_FALSE(job.Validate());
     EXPECT_FALSE(job.Run());
   }
@@ -86,8 +81,7 @@ TEST(JobValidity, SamplingJob) {
 
     SamplingJob job;
     job.animation = animation.get();
-    job.output.begin = output;
-    job.output.end = output + 1;
+    job.output = output;
     EXPECT_FALSE(job.Validate());
     EXPECT_FALSE(job.Run());
   }
@@ -99,33 +93,19 @@ TEST(JobValidity, SamplingJob) {
     SamplingJob job;
     job.animation = animation.get();
     job.cache = &zero_cache;
-    job.output.begin = output;
-    job.output.end = output + 1;
-    EXPECT_FALSE(job.Validate());
-    EXPECT_FALSE(job.Run());
-  }
-
-  {  // Invalid output range: end < begin.
-    ozz::math::SoaTransform output[1];
-
-    SamplingJob job;
-    job.animation = animation.get();
-    job.cache = &cache;
-    job.output.begin = output + 1;
-    job.output.end = output;
+    job.output = output;
     EXPECT_FALSE(job.Validate());
     EXPECT_FALSE(job.Run());
   }
 
   {  // Invalid job with smaller output.
-    ozz::math::SoaTransform output[1];
+    ozz::math::SoaTransform* output = nullptr;
     SamplingJob job;
     job.ratio =
         2155.f;  // Any time ratio can be set, it's clamped in unit interval.
     job.animation = animation.get();
     job.cache = &cache;
-    job.output.begin = output;
-    job.output.end = output + 0;
+    job.output = ozz::span<ozz::math::SoaTransform>(output, size_t(0));
     EXPECT_FALSE(job.Validate());
     EXPECT_FALSE(job.Run());
   }
@@ -136,8 +116,7 @@ TEST(JobValidity, SamplingJob) {
     job.ratio = 2155.f;  // Any time can be set.
     job.animation = animation.get();
     job.cache = &cache;
-    job.output.begin = output;
-    job.output.end = output + 1;
+    job.output = output;
     EXPECT_TRUE(job.Validate());
     EXPECT_TRUE(job.Run());
   }
@@ -149,8 +128,7 @@ TEST(JobValidity, SamplingJob) {
     job.ratio = 2155.f;  // Any time can be set.
     job.animation = animation.get();
     job.cache = &big_cache;
-    job.output.begin = output;
-    job.output.end = output + 1;
+    job.output = output;
     EXPECT_TRUE(job.Validate());
     EXPECT_TRUE(job.Run());
   }
@@ -161,8 +139,7 @@ TEST(JobValidity, SamplingJob) {
     job.ratio = 2155.f;  // Any time can be set.
     job.animation = animation.get();
     job.cache = &cache;
-    job.output.begin = output;
-    job.output.end = output + 2;
+    job.output = output;
     EXPECT_TRUE(job.Validate());
     EXPECT_TRUE(job.Run());
   }
@@ -173,8 +150,7 @@ TEST(JobValidity, SamplingJob) {
     SamplingJob job;
     job.animation = &default_animation;
     job.cache = &cache;
-    job.output.begin = output;
-    job.output.end = output + 1;
+    job.output = output;
     EXPECT_TRUE(job.Validate());
     EXPECT_TRUE(job.Run());
   }
@@ -264,8 +240,7 @@ TEST(Sampling, SamplingJob) {
   SamplingJob job;
   job.animation = animation.get();
   job.cache = &cache;
-  job.output.begin = output;
-  job.output.end = output + 1;
+  job.output = output;
 
   for (size_t i = 0; i < OZZ_ARRAY_SIZE(result); ++i) {
     memset(output, 0xde, sizeof(output));
@@ -306,8 +281,7 @@ TEST(SamplingNoTrack, SamplingJob) {
   job.ratio = 0.f;
   job.animation = animation.get();
   job.cache = &cache;
-  job.output.begin = output;
-  job.output.end = output + 1;
+  job.output = output;
   EXPECT_TRUE(job.Validate());
   EXPECT_TRUE(job.Run());
 
@@ -331,8 +305,7 @@ TEST(Sampling1Track0Key, SamplingJob) {
   SamplingJob job;
   job.animation = animation.get();
   job.cache = &cache;
-  job.output.begin = output;
-  job.output.end = output + 1;
+  job.output = output;
 
   for (float t = -.2f; t < 1.2f; t += .1f) {
     memset(output, 0xde, sizeof(output));
@@ -369,8 +342,7 @@ TEST(Sampling1Track1Key, SamplingJob) {
   SamplingJob job;
   job.animation = animation.get();
   job.cache = &cache;
-  job.output.begin = output;
-  job.output.end = output + 1;
+  job.output = output;
 
   for (float t = -.2f; t < 1.2f; t += .1f) {
     memset(output, 0xde, sizeof(output));
@@ -411,8 +383,7 @@ TEST(Sampling1Track2Keys, SamplingJob) {
   SamplingJob job;
   job.animation = animation.get();
   job.cache = &cache;
-  job.output.begin = output;
-  job.output.end = output + 1;
+  job.output = output;
 
   // Samples at t = 0.
   job.ratio = 0.f;
@@ -518,8 +489,7 @@ TEST(Sampling4Track2Keys, SamplingJob) {
   SamplingJob job;
   job.animation = animation.get();
   job.cache = &cache;
-  job.output.begin = output;
-  job.output.end = output + 1;
+  job.output = output;
 
   // Samples at t = 0.
   job.ratio = 0.f;
@@ -592,8 +562,7 @@ TEST(Cache, SamplingJob) {
   job.animation = animations[0].get();
   job.cache = &cache;
   job.ratio = 0.f;
-  job.output.begin = output;
-  job.output.end = output + 1;
+  job.output = output;
 
   EXPECT_TRUE(job.Validate());
   EXPECT_TRUE(job.Run());
@@ -649,14 +618,13 @@ TEST(CacheResize, SamplingJob) {
   // Empty cache by default
   SamplingCache cache;
 
-  ozz::math::SoaTransform output[2];
+  ozz::math::SoaTransform output[7];
 
   SamplingJob job;
   job.animation = animation.get();
   job.cache = &cache;
   job.ratio = 0.f;
-  job.output.begin = output;
-  job.output.end = output + 7;
+  job.output = output;
 
   // Cache is too small
   EXPECT_FALSE(job.Validate());

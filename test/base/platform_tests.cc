@@ -25,14 +25,14 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/base/platform.h"
-
 #include <stdint.h>
+
 #include <cassert>
 #include <climits>
 
 #include "gtest/gtest.h"
 #include "ozz/base/gtest_helper.h"
+#include "ozz/base/platform.h"
 
 TEST(StaticAssertion, Platform) {
   static_assert(2 == 2, "Must compile.");
@@ -61,6 +61,29 @@ TEST(Alignment, Platform) {
 
   Aligned alined;
   EXPECT_EQ(reinterpret_cast<uintptr_t>(&alined) & (128 - 1), 0u);
+}
+
+TEST(IntegerAlignment, Platform) {
+  {
+    short s = 0x1234;
+    int aligned_s = ozz::Align(s, 128);
+    EXPECT_TRUE(aligned_s == 0x1280);
+    EXPECT_TRUE(ozz::IsAligned(aligned_s, 128));
+  }
+
+  {
+    int i = 0x00a01234;
+    int aligned_i = ozz::Align(i, 1024);
+    EXPECT_TRUE(aligned_i == 0x00a01400);
+    EXPECT_TRUE(ozz::IsAligned(aligned_i, 1024));
+  }
+}
+
+TEST(PointerAlignment, Platform) {
+  void* p = reinterpret_cast<void*>(0x00a01234);
+  void* aligned_p = ozz::Align(p, 1024);
+  EXPECT_TRUE(aligned_p == reinterpret_cast<void*>(0x00a01400));
+  EXPECT_TRUE(ozz::IsAligned(aligned_p, 1024));
 }
 
 TEST(TypeSize, Platform) {
@@ -111,82 +134,6 @@ TEST(ArraySize, Platform) {
   char ac[] = "forty six";
   (void)ac;
   static_assert(OZZ_ARRAY_SIZE(ac) == 10, "Unexpected array size");
-}
-
-TEST(span, Memory) {
-  int i = 46;
-  int ai[46];
-  const size_t array_size = OZZ_ARRAY_SIZE(ai);
-
-  ozz::span<int> empty;
-  EXPECT_TRUE(empty.begin == nullptr);
-  EXPECT_TRUE(empty.end == nullptr);
-  EXPECT_EQ(empty.size(), 0u);
-  EXPECT_EQ(empty.size_bytes(), 0u);
-
-  EXPECT_ASSERTION(empty[46], "Index out of range.");
-
-  ozz::span<int> single(i);
-  EXPECT_TRUE(single.begin == &i);
-  EXPECT_TRUE(single.end == (&i) + 1);
-  EXPECT_EQ(single.size(), 1u);
-  EXPECT_EQ(single.size_bytes(), sizeof(i));
-
-  EXPECT_ASSERTION(single[46], "Index out of range.");
-
-  ozz::span<int> cs1(ai, ai + array_size);
-  EXPECT_EQ(cs1.begin, ai);
-  EXPECT_EQ(cs1.end, ai + array_size);
-  EXPECT_EQ(cs1.size(), array_size);
-  EXPECT_EQ(cs1.size_bytes(), sizeof(ai));
-
-  // Re-inint
-  ozz::span<int> reinit;
-  reinit = ai;
-  EXPECT_EQ(reinit.begin, ai);
-  EXPECT_EQ(reinit.end, ai + array_size);
-  EXPECT_EQ(reinit.size(), array_size);
-  EXPECT_EQ(reinit.size_bytes(), sizeof(ai));
-
-  // Clear
-  reinit.Clear();
-  EXPECT_EQ(reinit.size(), 0u);
-  EXPECT_EQ(reinit.size_bytes(), 0u);
-
-  cs1[12] = 46;
-  EXPECT_EQ(cs1[12], 46);
-  EXPECT_ASSERTION(cs1[46], "Index out of range.");
-
-  ozz::span<int> cs2(ai, array_size);
-  EXPECT_EQ(cs2.begin, ai);
-  EXPECT_EQ(cs2.end, ai + array_size);
-  EXPECT_EQ(cs2.size(), array_size);
-  EXPECT_EQ(cs2.size_bytes(), sizeof(ai));
-
-  ozz::span<int> carray(ai);
-  EXPECT_EQ(carray.begin, ai);
-  EXPECT_EQ(carray.end, ai + array_size);
-  EXPECT_EQ(carray.size(), array_size);
-  EXPECT_EQ(carray.size_bytes(), sizeof(ai));
-
-  ozz::span<int> copy(cs2);
-  EXPECT_EQ(cs2.begin, copy.begin);
-  EXPECT_EQ(cs2.end, copy.end);
-  EXPECT_EQ(cs2.size_bytes(), copy.size_bytes());
-
-  ozz::span<const int> const_copy(cs2);
-  EXPECT_EQ(cs2.begin, const_copy.begin);
-  EXPECT_EQ(cs2.end, const_copy.end);
-  EXPECT_EQ(cs2.size_bytes(), const_copy.size_bytes());
-
-  EXPECT_EQ(cs2[12], 46);
-  EXPECT_ASSERTION(cs2[46], "Index out of range.");
-
-  // Invalid range
-  cs1.end = cs1.begin - 1;
-  EXPECT_ASSERTION(cs1.size(), "Invalid range.");
-  EXPECT_ASSERTION(cs1.size_bytes(), "Invalid range.");
-  EXPECT_ASSERTION(ozz::span<int>(ai, ai - array_size), "Invalid range.");
 }
 
 TEST(StrMatch, Platform) {

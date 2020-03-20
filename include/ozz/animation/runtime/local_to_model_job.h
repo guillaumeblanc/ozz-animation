@@ -29,6 +29,7 @@
 #define OZZ_OZZ_ANIMATION_RUNTIME_LOCAL_TO_MODEL_JOB_H_
 
 #include "ozz/base/platform.h"
+#include "ozz/base/span.h"
 
 namespace ozz {
 

@@ -29,6 +29,7 @@
 #define OZZ_SAMPLES_FRAMEWORK_RENDERER_H_
 
 #include "ozz/base/platform.h"
+#include "ozz/base/span.h"
 
 namespace ozz {
 namespace animation {

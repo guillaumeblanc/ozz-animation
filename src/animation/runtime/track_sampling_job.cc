@@ -71,14 +71,14 @@ bool TrackSamplingJob<_Track>::Run() const {
 
   // Search for the first key frame with a ratio value greater than input ratio.
   // Our ratio is between this one and the previous one.
-  const float* ptk1 = std::upper_bound(ratios.begin, ratios.end, clamped_ratio);
+  const float* ptk1 = std::upper_bound(ratios.begin(), ratios.end(), clamped_ratio);
 
   // Deduce keys indices.
-  const size_t id1 = ptk1 - ratios.begin;
+  const size_t id1 = ptk1 - ratios.begin();
   const size_t id0 = id1 - 1;
 
   const bool id0step = (track->steps()[id0 / 8] & (1 << (id0 & 7))) != 0;
-  if (id0step || ptk1 == ratios.end) {
+  if (id0step || ptk1 == ratios.end()) {
     *result = values[id0];
   } else {
     // Lerp relevant keys.

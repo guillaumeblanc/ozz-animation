@@ -60,45 +60,40 @@ char* Skeleton::Allocate(size_t _chars_size, size_t _num_joints) {
   }
 
   // Bind poses have SoA format
+  const size_t num_soa_joints = (_num_joints + 3) / 4;
   const size_t joint_bind_poses_size =
-      (_num_joints + 3) / 4 * sizeof(math::SoaTransform);
+      num_soa_joints * sizeof(math::SoaTransform);
   const size_t names_size = _num_joints * sizeof(char*);
   const size_t joint_parents_size = _num_joints * sizeof(int16_t);
   const size_t buffer_size =
       names_size + _chars_size + joint_parents_size + joint_bind_poses_size;
 
   // Allocates whole buffer.
-  char* buffer = reinterpret_cast<char*>(memory::default_allocator()->Allocate(
-      buffer_size, alignof(math::SoaTransform)));
+  span<char> buffer = {static_cast<char*>(memory::default_allocator()->Allocate(
+                           buffer_size, alignof(math::SoaTransform))),
+                       buffer_size};
 
   // Serves larger alignment values first.
   // Bind pose first, biggest alignment.
-  joint_bind_poses_.begin = reinterpret_cast<math::SoaTransform*>(buffer);
-  assert(math::IsAligned(joint_bind_poses_.begin, alignof(math::SoaTransform)));
-  buffer += joint_bind_poses_size;
-  joint_bind_poses_.end = reinterpret_cast<math::SoaTransform*>(buffer);
+  joint_bind_poses_ = fill_span<math::SoaTransform>(buffer, num_soa_joints);
 
   // Then names array, second biggest alignment.
-  joint_names_.begin = reinterpret_cast<char**>(buffer);
-  assert(math::IsAligned(joint_names_.begin, alignof(char**)));
-  buffer += names_size;
-  joint_names_.end = reinterpret_cast<char**>(buffer);
+  joint_names_ = fill_span<char*>(buffer, _num_joints);
 
   // Parents, third biggest alignment.
-  joint_parents_.begin = reinterpret_cast<int16_t*>(buffer);
-  assert(math::IsAligned(joint_parents_.begin, alignof(int16_t)));
-  buffer += joint_parents_size;
-  joint_parents_.end = reinterpret_cast<int16_t*>(buffer);
+  joint_parents_ = fill_span<int16_t>(buffer, _num_joints);
 
   // Remaning buffer will be used to store joint names.
-  return buffer;
+  assert(buffer.size_bytes() == _chars_size &&
+         "Whole buffer should be consumned");
+  return buffer.data();
 }
 
 void Skeleton::Deallocate() {
-  memory::default_allocator()->Deallocate(joint_bind_poses_.begin);
-  joint_bind_poses_.Clear();
-  joint_names_.Clear();
-  joint_parents_.Clear();
+  memory::default_allocator()->Deallocate(as_writable_bytes(joint_bind_poses_).data());
+  joint_bind_poses_ = {};
+  joint_names_ = {};
+  joint_parents_ = {};
 }
 
 void Skeleton::Save(ozz::io::OArchive& _archive) const {

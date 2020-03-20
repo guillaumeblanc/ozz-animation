@@ -67,11 +67,10 @@ bool SamplingJob::Validate() const {
   if (!animation || !cache) {
     return false;
   }
-  valid &= output.begin != nullptr;
+  valid &= !output.empty();
 
-  // Tests output range, implicitly tests output.end != nullptr.
-  const ptrdiff_t num_soa_tracks = animation->num_soa_tracks();
-  valid &= output.end - output.begin >= num_soa_tracks;
+  const int num_soa_tracks = animation->num_soa_tracks();
+  valid &= output.size() >= static_cast<size_t>(num_soa_tracks);
 
   // Tests cache size.
   valid &= cache->max_soa_tracks() >= num_soa_tracks;
@@ -86,9 +85,9 @@ void UpdateKeys(float _ratio, int _num_soa_tracks, ozz::span<const _Key> _keys,
                 int* _cursor, int* _cache, unsigned char* _outdated) {
   assert(_num_soa_tracks >= 1);
   const int num_tracks = _num_soa_tracks * 4;
-  assert(_keys.begin + num_tracks * 2 <= _keys.end);
+  assert(_keys.begin() + num_tracks * 2 <= _keys.end());
 
-  const _Key* cursor = &_keys.begin[*_cursor];
+  const _Key* cursor = nullptr;
   if (!*_cursor) {
     // Initializes interpolated entries with the first 2 sets of key frames.
     // The sorting algorithm ensures that the first 2 key frames of a track
@@ -106,7 +105,7 @@ void UpdateKeys(float _ratio, int _num_soa_tracks, ozz::span<const _Key> _keys,
       _cache[out_index + 6] = in_index0 + 3;
       _cache[out_index + 7] = in_index1 + 3;
     }
-    cursor = _keys.begin + num_tracks * 2;  // New cursor position.
+    cursor = _keys.begin() + num_tracks * 2;  // New cursor position.
 
     // All entries are outdated. It cares to only flag valid soa entries as
     // this is the exit condition of other algorithms.
@@ -117,7 +116,8 @@ void UpdateKeys(float _ratio, int _num_soa_tracks, ozz::span<const _Key> _keys,
     _outdated[num_outdated_flags - 1] =
         0xff >> (num_outdated_flags * 8 - _num_soa_tracks);
   } else {
-    assert(cursor >= _keys.begin + num_tracks * 2 && cursor <= _keys.end);
+    cursor = _keys.begin() + *_cursor;  // Might be == end()
+    assert(cursor >= _keys.begin() + num_tracks * 2 && cursor <= _keys.end());
   }
 
   // Search for the keys that matches _ratio.
@@ -126,21 +126,21 @@ void UpdateKeys(float _ratio, int _num_soa_tracks, ozz::span<const _Key> _keys,
   // keyframe sorting, the loop can end as soon as it finds a key greater that
   // _ratio. It will mean that all the keys lower than _ratio have been
   // processed, meaning all cache entries are up to date.
-  while (cursor < _keys.end &&
-         _keys.begin[_cache[cursor->track * 2 + 1]].ratio <= _ratio) {
+  while (cursor < _keys.end() &&
+         _keys[_cache[cursor->track * 2 + 1]].ratio <= _ratio) {
     // Flag this soa entry as outdated.
     _outdated[cursor->track / 32] |= (1 << ((cursor->track & 0x1f) / 4));
     // Updates cache.
     const int base = cursor->track * 2;
     _cache[base] = _cache[base + 1];
-    _cache[base + 1] = static_cast<int>(cursor - _keys.begin);
+    _cache[base + 1] = static_cast<int>(cursor - _keys.begin());
     // Process next key.
     ++cursor;
   }
-  assert(cursor <= _keys.end);
+  assert(cursor <= _keys.end());
 
   // Updates cursor output.
-  *_cursor = static_cast<int>(cursor - _keys.begin);
+  *_cursor = static_cast<int>(cursor - _keys.begin());
 }
 
 void UpdateSoaTranslations(int _num_soa_tracks,
@@ -158,10 +158,10 @@ void UpdateSoaTranslations(int _num_soa_tracks,
       const int base = i * 4 * 2;  // * soa size * 2 keys
 
       // Decompress left side keyframes and store them in soa structures.
-      const TranslationKey& k00 = _keys.begin[_interp[base + 0]];
-      const TranslationKey& k10 = _keys.begin[_interp[base + 2]];
-      const TranslationKey& k20 = _keys.begin[_interp[base + 4]];
-      const TranslationKey& k30 = _keys.begin[_interp[base + 6]];
+      const TranslationKey& k00 = _keys[_interp[base + 0]];
+      const TranslationKey& k10 = _keys[_interp[base + 2]];
+      const TranslationKey& k20 = _keys[_interp[base + 4]];
+      const TranslationKey& k30 = _keys[_interp[base + 6]];
       soa_translations_[i].ratio[0] =
           math::simd_float4::Load(k00.ratio, k10.ratio, k20.ratio, k30.ratio);
       soa_translations_[i].value[0].x = math::HalfToFloat(math::simd_int4::Load(
@@ -172,10 +172,10 @@ void UpdateSoaTranslations(int _num_soa_tracks,
           k00.value[2], k10.value[2], k20.value[2], k30.value[2]));
 
       // Decompress right side keyframes and store them in soa structures.
-      const TranslationKey& k01 = _keys.begin[_interp[base + 1]];
-      const TranslationKey& k11 = _keys.begin[_interp[base + 3]];
-      const TranslationKey& k21 = _keys.begin[_interp[base + 5]];
-      const TranslationKey& k31 = _keys.begin[_interp[base + 7]];
+      const TranslationKey& k01 = _keys[_interp[base + 1]];
+      const TranslationKey& k11 = _keys[_interp[base + 3]];
+      const TranslationKey& k21 = _keys[_interp[base + 5]];
+      const TranslationKey& k31 = _keys[_interp[base + 7]];
       soa_translations_[i].ratio[1] =
           math::simd_float4::Load(k01.ratio, k11.ratio, k21.ratio, k31.ratio);
       soa_translations_[i].value[1].x = math::HalfToFloat(math::simd_int4::Load(
@@ -256,9 +256,8 @@ void UpdateSoaTranslations(int _num_soa_tracks,
     _quat.w = cpnt[3];                                                         \
   } while (void(0), 0)
 
-void UpdateSoaRotations(int _num_soa_tracks,
-                        ozz::span<const RotationKey> _keys, const int* _interp,
-                        uint8_t* _outdated,
+void UpdateSoaRotations(int _num_soa_tracks, ozz::span<const RotationKey> _keys,
+                        const int* _interp, uint8_t* _outdated,
                         internal::InterpSoaRotation* _soa_rotations) {
   // Prepares constants.
   const math::SimdFloat4 one = math::simd_float4::one();
@@ -288,10 +287,10 @@ void UpdateSoaRotations(int _num_soa_tracks,
 
       // Decompress left side keyframes and store them in soa structures.
       {
-        const RotationKey& k0 = _keys.begin[_interp[base + 0]];
-        const RotationKey& k1 = _keys.begin[_interp[base + 2]];
-        const RotationKey& k2 = _keys.begin[_interp[base + 4]];
-        const RotationKey& k3 = _keys.begin[_interp[base + 6]];
+        const RotationKey& k0 = _keys[_interp[base + 0]];
+        const RotationKey& k1 = _keys[_interp[base + 2]];
+        const RotationKey& k2 = _keys[_interp[base + 4]];
+        const RotationKey& k3 = _keys[_interp[base + 6]];
 
         _soa_rotations[i].ratio[0] =
             math::simd_float4::Load(k0.ratio, k1.ratio, k2.ratio, k3.ratio);
@@ -301,10 +300,10 @@ void UpdateSoaRotations(int _num_soa_tracks,
 
       // Decompress right side keyframes and store them in soa structures.
       {
-        const RotationKey& k0 = _keys.begin[_interp[base + 1]];
-        const RotationKey& k1 = _keys.begin[_interp[base + 3]];
-        const RotationKey& k2 = _keys.begin[_interp[base + 5]];
-        const RotationKey& k3 = _keys.begin[_interp[base + 7]];
+        const RotationKey& k0 = _keys[_interp[base + 1]];
+        const RotationKey& k1 = _keys[_interp[base + 3]];
+        const RotationKey& k2 = _keys[_interp[base + 5]];
+        const RotationKey& k3 = _keys[_interp[base + 7]];
 
         _soa_rotations[i].ratio[1] =
             math::simd_float4::Load(k0.ratio, k1.ratio, k2.ratio, k3.ratio);
@@ -331,10 +330,10 @@ void UpdateSoaScales(int _num_soa_tracks, ozz::span<const ScaleKey> _keys,
       const int base = i * 4 * 2;  // * soa size * 2 keys
 
       // Decompress left side keyframes and store them in soa structures.
-      const ScaleKey& k00 = _keys.begin[_interp[base + 0]];
-      const ScaleKey& k10 = _keys.begin[_interp[base + 2]];
-      const ScaleKey& k20 = _keys.begin[_interp[base + 4]];
-      const ScaleKey& k30 = _keys.begin[_interp[base + 6]];
+      const ScaleKey& k00 = _keys[_interp[base + 0]];
+      const ScaleKey& k10 = _keys[_interp[base + 2]];
+      const ScaleKey& k20 = _keys[_interp[base + 4]];
+      const ScaleKey& k30 = _keys[_interp[base + 6]];
       soa_scales_[i].ratio[0] =
           math::simd_float4::Load(k00.ratio, k10.ratio, k20.ratio, k30.ratio);
       soa_scales_[i].value[0].x = math::HalfToFloat(math::simd_int4::Load(
@@ -345,10 +344,10 @@ void UpdateSoaScales(int _num_soa_tracks, ozz::span<const ScaleKey> _keys,
           k00.value[2], k10.value[2], k20.value[2], k30.value[2]));
 
       // Decompress right side keyframes and store them in soa structures.
-      const ScaleKey& k01 = _keys.begin[_interp[base + 1]];
-      const ScaleKey& k11 = _keys.begin[_interp[base + 3]];
-      const ScaleKey& k21 = _keys.begin[_interp[base + 5]];
-      const ScaleKey& k31 = _keys.begin[_interp[base + 7]];
+      const ScaleKey& k01 = _keys[_interp[base + 1]];
+      const ScaleKey& k11 = _keys[_interp[base + 3]];
+      const ScaleKey& k21 = _keys[_interp[base + 5]];
+      const ScaleKey& k31 = _keys[_interp[base + 7]];
       soa_scales_[i].ratio[1] =
           math::simd_float4::Load(k01.ratio, k11.ratio, k21.ratio, k31.ratio);
       soa_scales_[i].value[1].x = math::HalfToFloat(math::simd_int4::Load(
@@ -435,20 +434,22 @@ bool SamplingJob::Run() const {
 
   // Interpolates soa hot data.
   Interpolates(anim_ratio, num_soa_tracks, cache->soa_translations_,
-               cache->soa_rotations_, cache->soa_scales_, output.begin);
+               cache->soa_rotations_, cache->soa_scales_, output.begin());
 
   return true;
 }
 
 SamplingCache::SamplingCache()
     : max_soa_tracks_(0),
-      soa_translations_(nullptr) {  // soa_translations_ is the allocation pointer.
+      soa_translations_(
+          nullptr) {  // soa_translations_ is the allocation pointer.
   Invalidate();
 }
 
 SamplingCache::SamplingCache(int _max_tracks)
     : max_soa_tracks_(0),
-      soa_translations_(nullptr) {  // soa_translations_ is the allocation pointer.
+      soa_translations_(
+          nullptr) {  // soa_translations_ is the allocation pointer.
   Resize(_max_tracks);
 }
 
@@ -499,17 +500,17 @@ void SamplingCache::Resize(int _max_tracks) {
                 "Must serve larger alignment values first)");
 
   soa_translations_ = reinterpret_cast<InterpSoaTranslation*>(alloc_cursor);
-  assert(math::IsAligned(soa_translations_, alignof(InterpSoaTranslation)));
+  assert(IsAligned(soa_translations_, alignof(InterpSoaTranslation)));
   alloc_cursor += sizeof(InterpSoaTranslation) * max_soa_tracks_;
   soa_rotations_ = reinterpret_cast<InterpSoaRotation*>(alloc_cursor);
-  assert(math::IsAligned(soa_rotations_, alignof(InterpSoaRotation)));
+  assert(IsAligned(soa_rotations_, alignof(InterpSoaRotation)));
   alloc_cursor += sizeof(InterpSoaRotation) * max_soa_tracks_;
   soa_scales_ = reinterpret_cast<InterpSoaScale*>(alloc_cursor);
-  assert(math::IsAligned(soa_scales_, alignof(InterpSoaScale)));
+  assert(IsAligned(soa_scales_, alignof(InterpSoaScale)));
   alloc_cursor += sizeof(InterpSoaScale) * max_soa_tracks_;
 
   translation_keys_ = reinterpret_cast<int*>(alloc_cursor);
-  assert(math::IsAligned(translation_keys_, alignof(int)));
+  assert(IsAligned(translation_keys_, alignof(int)));
   alloc_cursor += sizeof(int) * max_tracks * 2;
   rotation_keys_ = reinterpret_cast<int*>(alloc_cursor);
   alloc_cursor += sizeof(int) * max_tracks * 2;
@@ -517,7 +518,7 @@ void SamplingCache::Resize(int _max_tracks) {
   alloc_cursor += sizeof(int) * max_tracks * 2;
 
   outdated_translations_ = reinterpret_cast<uint8_t*>(alloc_cursor);
-  assert(math::IsAligned(outdated_translations_, alignof(uint8_t)));
+  assert(IsAligned(outdated_translations_, alignof(uint8_t)));
   alloc_cursor += sizeof(uint8_t) * num_outdated;
   outdated_rotations_ = reinterpret_cast<uint8_t*>(alloc_cursor);
   alloc_cursor += sizeof(uint8_t) * num_outdated;

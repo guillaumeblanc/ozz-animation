@@ -27,13 +27,13 @@
 
 #include "ozz/animation/runtime/track.h"
 
+#include <cassert>
+
 #include "ozz/base/io/archive.h"
 #include "ozz/base/log.h"
 #include "ozz/base/maths/math_archive.h"
 #include "ozz/base/maths/math_ex.h"
 #include "ozz/base/memory/allocator.h"
-
-#include <cassert>
 
 namespace ozz {
 namespace animation {
@@ -63,46 +63,38 @@ void Track<_ValueType>::Allocate(size_t _keys_count, size_t _name_len) {
                              _keys_count * sizeof(float) +       // ratios
                              (_keys_count + 7) * sizeof(uint8_t) / 8 +  // steps
                              (_name_len > 0 ? _name_len + 1 : 0);
-  char* buffer = reinterpret_cast<char*>(
-      memory::default_allocator()->Allocate(buffer_size, alignof(_ValueType)));
+  span<char> buffer = {static_cast<char*>(memory::default_allocator()->Allocate(
+                           buffer_size, alignof(_ValueType))),
+                       buffer_size};
 
   // Fix up pointers. Serves larger alignment values first.
-  values_.begin = reinterpret_cast<_ValueType*>(buffer);
-  assert(math::IsAligned(values_.begin, alignof(_ValueType)));
-  buffer += _keys_count * sizeof(_ValueType);
-  values_.end = reinterpret_cast<_ValueType*>(buffer);
-
-  ratios_.begin = reinterpret_cast<float*>(buffer);
-  assert(math::IsAligned(ratios_.begin, alignof(float)));
-  buffer += _keys_count * sizeof(float);
-  ratios_.end = reinterpret_cast<float*>(buffer);
-
-  steps_.begin = reinterpret_cast<uint8_t*>(buffer);
-  assert(math::IsAligned(steps_.begin, alignof(uint8_t)));
-  buffer += (_keys_count + 7) * sizeof(uint8_t) / 8;
-  steps_.end = reinterpret_cast<uint8_t*>(buffer);
+  values_ = fill_span<_ValueType>(buffer, _keys_count);
+  ratios_ = fill_span<float>(buffer, _keys_count);
+  steps_ = fill_span<uint8_t>(buffer, (_keys_count + 7) / 8);
 
   // Let name be nullptr if track has no name. Allows to avoid allocating this
   // buffer in the constructor of empty animations.
-  name_ = reinterpret_cast<char*>(_name_len > 0 ? buffer : nullptr);
-  assert(math::IsAligned(name_, alignof(char)));
+  name_ =
+      _name_len > 0 ? fill_span<char>(buffer, _name_len + 1).data() : nullptr;
+
+  assert(buffer.empty() && "Whole buffer should be consumned");
 }
 
 template <typename _ValueType>
 void Track<_ValueType>::Deallocate() {
   // Deallocate everything at once.
-  memory::default_allocator()->Deallocate(values_.begin);
+  memory::default_allocator()->Deallocate(as_writable_bytes(values_).data());
 
-  values_.Clear();
-  ratios_.Clear();
-  steps_.Clear();
+  values_ = {};
+  ratios_ = {};
+  steps_ = {};
   name_ = nullptr;
 }
 
 template <typename _ValueType>
 size_t Track<_ValueType>::size() const {
-  const size_t size =
-      sizeof(*this) + values_.size_bytes() + ratios_.size_bytes() + steps_.size_bytes();
+  const size_t size = sizeof(*this) + values_.size_bytes() +
+                      ratios_.size_bytes() + steps_.size_bytes();
   return size;
 }
 

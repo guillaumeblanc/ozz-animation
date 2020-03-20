@@ -30,6 +30,7 @@
 
 #include "ozz/base/io/archive_traits.h"
 #include "ozz/base/platform.h"
+#include "ozz/base/span.h"
 
 namespace ozz {
 namespace io {

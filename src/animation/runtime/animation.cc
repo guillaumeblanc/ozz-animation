@@ -27,20 +27,21 @@
 
 #include "ozz/animation/runtime/animation.h"
 
+#include <cassert>
+#include <cstring>
+
 #include "ozz/base/io/archive.h"
 #include "ozz/base/log.h"
 #include "ozz/base/maths/math_archive.h"
 #include "ozz/base/maths/math_ex.h"
 #include "ozz/base/memory/allocator.h"
 
-#include <cassert>
-#include <cstring>
-
 // Internal include file
 #define OZZ_INCLUDE_PRIVATE_HEADER  // Allows to include private headers.
 #include "animation/runtime/animation_keyframe.h"
 
 namespace ozz {
+
 namespace animation {
 
 Animation::Animation() : duration_(0.f), num_tracks_(0), name_(nullptr) {}
@@ -64,33 +65,25 @@ void Animation::Allocate(size_t _name_len, size_t _translation_count,
                              _translation_count * sizeof(TranslationKey) +
                              _rotation_count * sizeof(RotationKey) +
                              _scale_count * sizeof(ScaleKey);
-  char* buffer = reinterpret_cast<char*>(memory::default_allocator()->Allocate(
-      buffer_size, alignof(TranslationKey)));
+  span<char> buffer = {static_cast<char*>(memory::default_allocator()->Allocate(
+                           buffer_size, alignof(TranslationKey))),
+                       buffer_size};
 
   // Fix up pointers. Serves larger alignment values first.
-  translations_.begin = reinterpret_cast<TranslationKey*>(buffer);
-  assert(math::IsAligned(translations_.begin, alignof(TranslationKey)));
-  buffer += _translation_count * sizeof(TranslationKey);
-  translations_.end = reinterpret_cast<TranslationKey*>(buffer);
+  translations_ = fill_span<TranslationKey>(buffer, _translation_count);
+  rotations_ = fill_span<RotationKey>(buffer, _rotation_count);
+  scales_ = fill_span<ScaleKey>(buffer, _scale_count);
 
-  rotations_.begin = reinterpret_cast<RotationKey*>(buffer);
-  assert(math::IsAligned(rotations_.begin, alignof(RotationKey)));
-  buffer += _rotation_count * sizeof(RotationKey);
-  rotations_.end = reinterpret_cast<RotationKey*>(buffer);
+  // Let name be nullptr if animation has no name. Allows to avoid allocating
+  // this buffer in the constructor of empty animations.
+  name_ = _name_len > 0 ? fill_span<char>(buffer, _name_len+1).data() : nullptr;
 
-  scales_.begin = reinterpret_cast<ScaleKey*>(buffer);
-  assert(math::IsAligned(scales_.begin, alignof(ScaleKey)));
-  buffer += _scale_count * sizeof(ScaleKey);
-  scales_.end = reinterpret_cast<ScaleKey*>(buffer);
-
-  // Let name be nullptr if animation has no name. Allows to avoid allocating this
-  // buffer in the constructor of empty animations.
-  name_ = reinterpret_cast<char*>(_name_len > 0 ? buffer : nullptr);
-  assert(math::IsAligned(name_, alignof(char)));
+  assert(buffer.empty() && "Whole buffer should be consumned");
 }
 
 void Animation::Deallocate() {
-  memory::default_allocator()->Deallocate(translations_.begin);
+  memory::default_allocator()->Deallocate(
+      as_writable_bytes(translations_).data());
 
   name_ = nullptr;
   translations_ = ozz::span<TranslationKey>();
@@ -99,8 +92,8 @@ void Animation::Deallocate() {
 }
 
 size_t Animation::size() const {
-  const size_t size =
-      sizeof(*this) + translations_.size_bytes() + rotations_.size_bytes() + scales_.size_bytes();
+  const size_t size = sizeof(*this) + translations_.size_bytes() +
+                      rotations_.size_bytes() + scales_.size_bytes();
   return size;
 }
 
@@ -120,15 +113,13 @@ void Animation::Save(ozz::io::OArchive& _archive) const {
 
   _archive << ozz::io::MakeArray(name_, name_len);
 
-  for (ptrdiff_t i = 0; i < translation_count; ++i) {
-    const TranslationKey& key = translations_.begin[i];
+  for (const TranslationKey& key : translations_) {
     _archive << key.ratio;
     _archive << key.track;
     _archive << ozz::io::MakeArray(key.value);
   }
 
-  for (ptrdiff_t i = 0; i < rotation_count; ++i) {
-    const RotationKey& key = rotations_.begin[i];
+  for (const RotationKey& key : rotations_) {
     _archive << key.ratio;
     uint16_t track = key.track;
     _archive << track;
@@ -139,8 +130,7 @@ void Animation::Save(ozz::io::OArchive& _archive) const {
     _archive << ozz::io::MakeArray(key.value);
   }
 
-  for (ptrdiff_t i = 0; i < scale_count; ++i) {
-    const ScaleKey& key = scales_.begin[i];
+  for (const ScaleKey& key : scales_) {
     _archive << key.ratio;
     _archive << key.track;
     _archive << ozz::io::MakeArray(key.value);
@@ -182,15 +172,13 @@ void Animation::Load(ozz::io::IArchive& _archive, uint32_t _version) {
     name_[name_len] = 0;
   }
 
-  for (int i = 0; i < translation_count; ++i) {
-    TranslationKey& key = translations_.begin[i];
+  for (TranslationKey& key : translations_) {
     _archive >> key.ratio;
     _archive >> key.track;
     _archive >> ozz::io::MakeArray(key.value);
   }
 
-  for (int i = 0; i < rotation_count; ++i) {
-    RotationKey& key = rotations_.begin[i];
+  for (RotationKey& key : rotations_) {
     _archive >> key.ratio;
     uint16_t track;
     _archive >> track;
@@ -204,8 +192,7 @@ void Animation::Load(ozz::io::IArchive& _archive, uint32_t _version) {
     _archive >> ozz::io::MakeArray(key.value);
   }
 
-  for (int i = 0; i < scale_count; ++i) {
-    ScaleKey& key = scales_.begin[i];
+  for (ScaleKey& key : scales_) {
     _archive >> key.ratio;
     _archive >> key.track;
     _archive >> ozz::io::MakeArray(key.value);

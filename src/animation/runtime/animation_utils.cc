@@ -41,8 +41,8 @@ inline int CountKeyframesImpl(const span<const _Key>& _keys, int _track) {
   }
 
   int count = 0;
-  for (const _Key* key = _keys.begin; key < _keys.end; ++key) {
-    if (key->track == _track) {
+  for (const _Key& key : _keys) {
+    if (key.track == _track) {
       ++count;
     }
   }

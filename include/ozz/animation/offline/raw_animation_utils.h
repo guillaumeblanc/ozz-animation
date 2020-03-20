@@ -31,6 +31,7 @@
 #include "ozz/animation/offline/raw_animation.h"
 
 #include "ozz/base/maths/transform.h"
+#include "ozz/base/span.h"
 
 namespace ozz {
 namespace animation {

@@ -46,8 +46,8 @@ Box::Box(const Float3* _points, size_t _stride, size_t _count) {
   Float3 local_min(std::numeric_limits<float>::max());
   Float3 local_max(-std::numeric_limits<float>::max());
 
-  const Float3* end = Stride(_points, _stride * _count);
-  for (; _points < end; _points = Stride(_points, _stride)) {
+  const Float3* end = PointerStride(_points, _stride * _count);
+  for (; _points < end; _points = PointerStride(_points, _stride)) {
     local_min = Min(local_min, *_points);
     local_max = Max(local_max, *_points);
   }

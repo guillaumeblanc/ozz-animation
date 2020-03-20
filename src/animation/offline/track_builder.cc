@@ -133,7 +133,7 @@ unique_ptr<_Track> TrackBuilder::Build(const _RawTrack& _input) const {
   assert(keyframes.size() == track->ratios_.size() &&
          keyframes.size() == track->values_.size() &&
          keyframes.size() <= track->steps_.size() * 8);
-  memset(track->steps_.begin, 0, track->steps_.size_bytes());
+  memset(track->steps_.data(), 0, track->steps_.size_bytes());
   for (size_t i = 0; i < keyframes.size(); ++i) {
     const typename _RawTrack::Keyframe& src_key = keyframes[i];
     track->ratios_[i] = src_key.ratio;

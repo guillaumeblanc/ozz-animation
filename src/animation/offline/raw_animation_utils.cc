@@ -137,7 +137,7 @@ bool SampleAnimation(const RawAnimation& _animation, float _time,
   }
 
   for (size_t i = 0; i < _animation.tracks.size(); ++i) {
-    SampleTrack_NoValidate(_animation.tracks[i], _time, _transforms.begin + i);
+    SampleTrack_NoValidate(_animation.tracks[i], _time, _transforms.begin() + i);
   }
   return true;
 }
