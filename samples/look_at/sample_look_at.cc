@@ -108,7 +108,7 @@ class LookAtSampleApplication : public ozz::sample::Application {
     sampling_job.animation = &animation_;
     sampling_job.cache = &cache_;
     sampling_job.ratio = controller_.time_ratio();
-    sampling_job.output = make_range(locals_);
+    sampling_job.output = make_span(locals_);
     if (!sampling_job.Run()) {
       return false;
     }
@@ -116,8 +116,8 @@ class LookAtSampleApplication : public ozz::sample::Application {
     // Converts from local-space to model-space matrices.
     ozz::animation::LocalToModelJob ltm_job;
     ltm_job.skeleton = &skeleton_;
-    ltm_job.input = make_range(locals_);
-    ltm_job.output = make_range(models_);
+    ltm_job.input = make_span(locals_);
+    ltm_job.output = make_span(models_);
     if (!ltm_job.Run()) {
       return false;
     }
@@ -199,7 +199,7 @@ class LookAtSampleApplication : public ozz::sample::Application {
 
       // Apply IK quaternion to its respective local-space transforms.
       ozz::sample::MultiplySoATransformQuaternion(joint, correction,
-                                                  make_range(locals_));
+                                                  make_span(locals_));
     }
 
     // Skeleton model-space matrices need to be updated again. This re-uses the
@@ -244,12 +244,12 @@ class LookAtSampleApplication : public ozz::sample::Application {
         }
 
         success &= _renderer->DrawSkinnedMesh(
-            mesh, make_range(skinning_matrices_), identity);
+            mesh, make_span(skinning_matrices_), identity);
       }
     } else {
       // Renders skeleton only.
       success &=
-          _renderer->DrawPosture(skeleton_, make_range(models_), identity);
+          _renderer->DrawPosture(skeleton_, make_span(models_), identity);
     }
 
     // Showing joints
@@ -370,8 +370,8 @@ class LookAtSampleApplication : public ozz::sample::Application {
   // Traverses the hierarchy from the first joint to the root, to check if
   // joints are all ancestors (same branch), and ordered.
   bool ValidateJointsOrder(const ozz::animation::Skeleton& _skeleton,
-                           ozz::Range<const int> _joints) {
-    const size_t count = _joints.count();
+                           ozz::span<const int> _joints) {
+    const size_t count = _joints.size();
     if (count == 0) {
       return true;
     }

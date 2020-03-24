@@ -70,18 +70,5 @@ template <class _Ty, class _Allocator>
 inline const _Ty* array_end(const std::vector<_Ty, _Allocator>& _vector) {
   return _vector.data() + _vector.size();
 }
-
-// Returns a mutable ozz::Range from a vector.
-template <typename _Ty, class _Allocator>
-inline Range<_Ty> make_range(std::vector<_Ty, _Allocator>& _vector) {
-  return {_vector.data(), _vector.size()};
-}
-
-// Returns a non mutable ozz::Range from a vector.
-template <typename _Ty, class _Allocator>
-inline Range<const _Ty> make_range(
-    const std::vector<_Ty, _Allocator>& _vector) {
-  return {_vector.data(), _vector.size()};
-}
 }  // namespace ozz
 #endif  // OZZ_OZZ_BASE_CONTAINERS_VECTOR_H_

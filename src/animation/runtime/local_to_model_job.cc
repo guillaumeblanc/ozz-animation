@@ -57,12 +57,12 @@ bool LocalToModelJob::Validate() const {
     return false;
   }
 
-  const int num_joints = skeleton->num_joints();
-  const int num_soa_joints = (num_joints + 3) / 4;
+  const size_t num_joints = static_cast<size_t>(skeleton->num_joints());
+  const size_t num_soa_joints = (num_joints + 3) / 4;
 
   // Test input and output ranges, implicitly tests for nullptr end pointers.
-  valid &= input.end - input.begin >= num_soa_joints;
-  valid &= output.end - output.begin >= num_joints;
+  valid &= input.size() >= num_soa_joints;
+  valid &= output.size() >= num_joints;
 
   return valid;
 }
@@ -72,7 +72,7 @@ bool LocalToModelJob::Run() const {
     return false;
   }
 
-  const Range<const int16_t>& parents = skeleton->joint_parents();
+  const span<const int16_t>& parents = skeleton->joint_parents();
 
   // Initializes an identity matrix that will be used to compute roots model
   // matrices without requiring a branch.
@@ -89,7 +89,7 @@ bool LocalToModelJob::Run() const {
            process = i < end && (!from_excluded || parents[i] >= from);
        process;) {
     // Builds soa matrices from soa transforms.
-    const math::SoaTransform& transform = input.begin[i / 4];
+    const math::SoaTransform& transform = input[i / 4];
     const math::SoaFloat4x4 local_soa_matrices = math::SoaFloat4x4::FromAffine(
         transform.translation, transform.rotation, transform.scale);
 

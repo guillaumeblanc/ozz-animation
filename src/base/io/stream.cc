@@ -203,7 +203,7 @@ bool MemoryStream::Resize(size_t _size) {
         (MemoryStream::kBufferSizeIncrement & (kBufferSizeIncrement - 1)) == 0,
         "kBufferSizeIncrement must be a power of 2");
 
-    alloc_size_ = ozz::math::Align(_size, kBufferSizeIncrement);
+    alloc_size_ = ozz::Align(_size, kBufferSizeIncrement);
     buffer_ = reinterpret_cast<char*>(
         ozz::memory::default_allocator()->Reallocate(buffer_, alloc_size_, 4));
   }

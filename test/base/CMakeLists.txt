@@ -17,7 +17,9 @@ target_link_libraries(test_log
 add_test(NAME test_log COMMAND test_log)
 set_target_properties(test_log PROPERTIES FOLDER "ozz/tests/base")
 
-add_executable(test_platform platform_tests.cc)
+add_executable(test_platform
+  platform_tests.cc
+  span_tests.cc)
 target_link_libraries(test_platform
   ozz_base
   gtest)

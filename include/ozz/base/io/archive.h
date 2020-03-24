@@ -80,6 +80,7 @@
 #include "ozz/base/endianness.h"
 #include "ozz/base/io/stream.h"
 #include "ozz/base/platform.h"
+#include "ozz/base/span.h"
 
 #include <stdint.h>
 #include <cassert>
@@ -382,13 +383,13 @@ OZZ_INLINE const internal::Array<const _Ty> MakeArray(const _Ty* _array,
   return array;
 }
 template <typename _Ty>
-OZZ_INLINE const internal::Array<_Ty> MakeArray(Range<_Ty> _array) {
-  const internal::Array<_Ty> array = {_array.begin, _array.count()};
+OZZ_INLINE const internal::Array<_Ty> MakeArray(span<_Ty> _array) {
+  const internal::Array<_Ty> array = {_array.data(), _array.size()};
   return array;
 }
 template <typename _Ty>
-OZZ_INLINE const internal::Array<const _Ty> MakeArray(Range<const _Ty> _array) {
-  const internal::Array<const _Ty> array = {_array.begin, _array.count()};
+OZZ_INLINE const internal::Array<const _Ty> MakeArray(span<const _Ty> _array) {
+  const internal::Array<const _Ty> array = {_array.data(), _array.size()};
   return array;
 }
 template <typename _Ty, size_t _count>

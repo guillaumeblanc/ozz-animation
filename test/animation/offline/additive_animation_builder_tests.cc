@@ -73,7 +73,7 @@ TEST(Error, AdditiveAnimationBuilder) {
     output.duration = -1.f;
     output.tracks.resize(1);
 
-    ozz::Range<ozz::math::Transform> empty_ref_pose_range;
+    ozz::span<ozz::math::Transform> empty_ref_pose_range;
 
     EXPECT_FALSE(builder(input, empty_ref_pose_range, &output));
     EXPECT_FLOAT_EQ(output.duration, RawAnimation().duration);
@@ -262,7 +262,7 @@ TEST(BuildRefPose, AdditiveAnimationBuilder) {
 
     RawAnimation output;
     ASSERT_TRUE(
-        builder(input, ozz::Range<ozz::math::Transform>(ref_pose), &output));
+        builder(input, ozz::span<ozz::math::Transform>(ref_pose), &output));
     EXPECT_EQ(output.num_tracks(), 3);
 
     // 1st track.

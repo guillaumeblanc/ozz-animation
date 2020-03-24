@@ -227,7 +227,7 @@ void ComputeSkeletonBounds(const animation::Skeleton& _skeleton,
   // Compute model space bind pose.
   ozz::animation::LocalToModelJob job;
   job.input = _skeleton.joint_bind_poses();
-  job.output = make_range(models);
+  job.output = make_span(models);
   job.skeleton = &_skeleton;
   if (job.Run()) {
     // Forwards to posture function.
@@ -236,28 +236,25 @@ void ComputeSkeletonBounds(const animation::Skeleton& _skeleton,
 }
 
 // Loop through matrices and collect min and max bounds.
-void ComputePostureBounds(ozz::Range<const ozz::math::Float4x4> _matrices,
+void ComputePostureBounds(ozz::span<const ozz::math::Float4x4> _matrices,
                           math::Box* _bound) {
   assert(_bound);
 
   // Set a default box.
   *_bound = ozz::math::Box();
 
-  if (!_matrices.begin || !_matrices.end) {
-    return;
-  }
-  if (_matrices.begin > _matrices.end) {
+  if (_matrices.empty()) {
     return;
   }
 
   // Loops through matrices and stores min/max.
   // Matrices array cannot be empty, it was checked at the beginning of the
   // function.
-  const ozz::math::Float4x4* current = _matrices.begin;
+  const ozz::math::Float4x4* current = _matrices.begin();
   math::SimdFloat4 min = current->cols[3];
   math::SimdFloat4 max = current->cols[3];
   ++current;
-  while (current < _matrices.end) {
+  while (current < _matrices.end()) {
     min = math::Min(min, current->cols[3]);
     max = math::Max(max, current->cols[3]);
     ++current;
@@ -272,8 +269,8 @@ void ComputePostureBounds(ozz::Range<const ozz::math::Float4x4> _matrices,
 
 void MultiplySoATransformQuaternion(
     int _index, const ozz::math::SimdQuaternion& _quat,
-    const ozz::Range<ozz::math::SoaTransform>& _transforms) {
-  assert(_index >= 0 && static_cast<size_t>(_index) < _transforms.count() * 4 &&
+    const ozz::span<ozz::math::SoaTransform>& _transforms) {
+  assert(_index >= 0 && static_cast<size_t>(_index) < _transforms.size() * 4 &&
          "joint index out of bound.");
 
   // Convert soa to aos in order to perform quaternion multiplication, and gets
@@ -513,12 +510,12 @@ bool RayIntersectsMesh(const ozz::math::Float3& _ray_origin,
 
 bool RayIntersectsMeshes(const ozz::math::Float3& _ray_origin,
                          const ozz::math::Float3& _ray_direction,
-                         const ozz::Range<const ozz::sample::Mesh>& _meshes,
+                         const ozz::span<const ozz::sample::Mesh>& _meshes,
                          ozz::math::Float3* _intersect,
                          ozz::math::Float3* _normal) {
   bool intersected = false;
   ozz::math::Float3 intersect, normal;
-  for (size_t i = 0; i < _meshes.count(); ++i) {
+  for (size_t i = 0; i < _meshes.size(); ++i) {
     ozz::math::Float3 lcl_intersect, lcl_normal;
     if (RayIntersectsMesh(_ray_origin, _ray_direction, _meshes[i],
                           &lcl_intersect, &lcl_normal)) {

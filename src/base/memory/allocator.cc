@@ -61,7 +61,7 @@ class HeapAllocator : public Allocator {
     if (!unaligned) {
       return nullptr;
     }
-    char* aligned = ozz::math::Align(unaligned + sizeof(Header), _alignment);
+    char* aligned = ozz::Align(unaligned + sizeof(Header), _alignment);
     assert(aligned + _size <= unaligned + to_allocate);  // Don't overrun.
     // Set the header
     Header* header = reinterpret_cast<Header*>(aligned - sizeof(Header));

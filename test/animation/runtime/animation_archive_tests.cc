@@ -119,8 +119,7 @@ TEST(Filled, AnimationSerialize) {
     ozz::math::SoaTransform output[1];
     job.animation = o_animation.get();
     job.cache = &cache;
-    job.output.begin = output;
-    job.output.end = output + 1;
+    job.output = output;
 
     // Samples and compares the two animations
     {  // Samples at t = 0

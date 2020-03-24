@@ -128,7 +128,7 @@ class MillipedeSampleApplication : public ozz::sample::Application {
     sampling_job.animation = animation_.get();
     sampling_job.cache = &cache_;
     sampling_job.ratio = controller_.time_ratio();
-    sampling_job.output = make_range(locals_);
+    sampling_job.output = make_span(locals_);
     if (!sampling_job.Run()) {
       return false;
     }
@@ -136,14 +136,14 @@ class MillipedeSampleApplication : public ozz::sample::Application {
     // Converts from local space to model space matrices.
     ozz::animation::LocalToModelJob ltm_job;
     ltm_job.skeleton = skeleton_.get();
-    ltm_job.input = make_range(locals_);
-    ltm_job.output = make_range(models_);
+    ltm_job.input = make_span(locals_);
+    ltm_job.output = make_span(models_);
     return ltm_job.Run();
   }
 
   virtual bool OnDisplay(ozz::sample::Renderer* _renderer) {
     // Renders the animated posture.
-    return _renderer->DrawPosture(*skeleton_, make_range(models_),
+    return _renderer->DrawPosture(*skeleton_, make_span(models_),
                                   ozz::math::Float4x4::identity());
   }
 
@@ -406,7 +406,7 @@ class MillipedeSampleApplication : public ozz::sample::Application {
   }
 
   virtual void GetSceneBounds(ozz::math::Box* _bound) const {
-    ozz::sample::ComputePostureBounds(make_range(models_), _bound);
+    ozz::sample::ComputePostureBounds(make_span(models_), _bound);
   }
 
  private:

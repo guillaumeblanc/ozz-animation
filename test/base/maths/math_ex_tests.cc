@@ -96,26 +96,3 @@ TEST(Select, ozz_math_ex) {
     EXPECT_EQ(ozz::math::Select(false, pa, cpb), cpb);
   }
 }
-
-TEST(IntegerAlignment, Memory) {
-  {
-    short s = 0x1234;
-    int aligned_s = ozz::math::Align(s, 128);
-    EXPECT_TRUE(aligned_s == 0x1280);
-    EXPECT_TRUE(ozz::math::IsAligned(aligned_s, 128));
-  }
-
-  {
-    int i = 0x00a01234;
-    int aligned_i = ozz::math::Align(i, 1024);
-    EXPECT_TRUE(aligned_i == 0x00a01400);
-    EXPECT_TRUE(ozz::math::IsAligned(aligned_i, 1024));
-  }
-}
-
-TEST(PointerAlignment, Memory) {
-  void* p = reinterpret_cast<void*>(0x00a01234);
-  void* aligned_p = ozz::math::Align(p, 1024);
-  EXPECT_TRUE(aligned_p == reinterpret_cast<void*>(0x00a01400));
-  EXPECT_TRUE(ozz::math::IsAligned(aligned_p, 1024));
-}

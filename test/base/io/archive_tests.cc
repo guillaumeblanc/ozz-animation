@@ -149,7 +149,7 @@ TEST(PrimitiveArrays, Archive) {
     o << ozz::io::MakeArray(fo);
     const uint32_t* po_null = nullptr;
     o << ozz::io::MakeArray(po_null, 0);
-    const ozz::Range<const float> rfo(fo);
+    const ozz::span<const float> rfo(fo);
     o << ozz::io::MakeArray(rfo);
 
     // Read primitive types.
@@ -188,9 +188,9 @@ TEST(PrimitiveArrays, Archive) {
     uint32_t* pi_null = nullptr;
     i >> ozz::io::MakeArray(pi_null, 0);
     float fi2[OZZ_ARRAY_SIZE(fo)];
-    ozz::Range<float> rfi(fi2);
+    ozz::span<float> rfi(fi2);
     i >> ozz::io::MakeArray(rfi);
-    EXPECT_EQ(std::memcmp(rfi.begin, fo, sizeof(fo)), 0);
+    EXPECT_EQ(std::memcmp(rfi.data(), fo, sizeof(fo)), 0);
   }
 }
 

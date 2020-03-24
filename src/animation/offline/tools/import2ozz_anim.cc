@@ -256,7 +256,7 @@ bool Export(OzzImporter& _importer, const RawAnimation& _input_animation,
     if (enum_found && reference == AdditiveReferenceEnum::kSkeleton) {
       const vector<math::Transform> transforms =
           SkeletonBindPoseSoAToAoS(_skeleton);
-      succeeded = additive_builder(raw_animation, make_range(transforms),
+      succeeded = additive_builder(raw_animation, make_span(transforms),
                                    &raw_additive);
     } else {
       succeeded = additive_builder(raw_animation, &raw_additive);
