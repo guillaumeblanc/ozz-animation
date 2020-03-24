@@ -25,31 +25,25 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/animation/offline/tools/import2ozz.h"
+#include "animation/offline/tools/import2ozz_track.h"
+
+#include <json/json.h>
 
 #include <cstdlib>
 #include <cstring>
 
 #include "animation/offline/tools/import2ozz_config.h"
-#include "animation/offline/tools/import2ozz_track.h"
-
 #include "ozz/animation/offline/raw_track.h"
+#include "ozz/animation/offline/tools/import2ozz.h"
 #include "ozz/animation/offline/track_builder.h"
 #include "ozz/animation/offline/track_optimizer.h"
-
 #include "ozz/animation/runtime/skeleton.h"
 #include "ozz/animation/runtime/track.h"
-
 #include "ozz/base/io/archive.h"
 #include "ozz/base/io/stream.h"
-
 #include "ozz/base/log.h"
-
 #include "ozz/base/memory/unique_ptr.h"
-
 #include "ozz/options/options.h"
-
-#include <json/json.h>
 
 namespace ozz {
 namespace animation {
@@ -188,6 +182,10 @@ bool ProcessImportTrackType(
     const OzzImporter::NodeProperty::Type _expected_type,
     const Json::Value& _import_config, const ozz::Endianness _endianness) {
   bool success = true;
+
+  ozz::log::Log() << "Extracting animation track \"" << _joint_name << ":"
+                  << _property.name.c_str() << "\" from animation \""
+                  << _animation_name << "\"." << std::endl;
 
   _TrackType track;
   success &=

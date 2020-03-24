@@ -25,37 +25,30 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/animation/offline/tools/import2ozz.h"
+#include "animation/offline/tools/import2ozz_anim.h"
+
+#include <json/json.h>
 
 #include <cstdlib>
 #include <cstring>
 
-#include "animation/offline/tools/import2ozz_anim.h"
 #include "animation/offline/tools/import2ozz_config.h"
 #include "animation/offline/tools/import2ozz_track.h"
-
 #include "ozz/animation/offline/additive_animation_builder.h"
 #include "ozz/animation/offline/animation_builder.h"
 #include "ozz/animation/offline/animation_optimizer.h"
 #include "ozz/animation/offline/raw_animation.h"
 #include "ozz/animation/offline/raw_skeleton.h"
 #include "ozz/animation/offline/skeleton_builder.h"
-
+#include "ozz/animation/offline/tools/import2ozz.h"
 #include "ozz/animation/runtime/animation.h"
 #include "ozz/animation/runtime/skeleton.h"
-
 #include "ozz/base/io/archive.h"
 #include "ozz/base/io/stream.h"
-
-#include "ozz/base/maths/soa_transform.h"
-
 #include "ozz/base/log.h"
-
+#include "ozz/base/maths/soa_transform.h"
 #include "ozz/base/memory/unique_ptr.h"
-
 #include "ozz/options/options.h"
-
-#include <json/json.h>
 
 namespace ozz {
 namespace animation {
@@ -256,8 +249,8 @@ bool Export(OzzImporter& _importer, const RawAnimation& _input_animation,
     if (enum_found && reference == AdditiveReferenceEnum::kSkeleton) {
       const vector<math::Transform> transforms =
           SkeletonBindPoseSoAToAoS(_skeleton);
-      succeeded = additive_builder(raw_animation, make_span(transforms),
-                                   &raw_additive);
+      succeeded =
+          additive_builder(raw_animation, make_span(transforms), &raw_additive);
     } else {
       succeeded = additive_builder(raw_animation, &raw_additive);
     }
@@ -324,6 +317,10 @@ bool ProcessAnimation(OzzImporter& _importer, const char* _animation_name,
                       const Skeleton& _skeleton, const Json::Value& _config,
                       const ozz::Endianness _endianness) {
   RawAnimation animation;
+
+  ozz::log::Log() << "Extracting animation \"" << _animation_name << "\""
+                  << std::endl;
+
   if (!_importer.Import(_animation_name, _skeleton,
                         _config["sampling_rate"].asFloat(), &animation)) {
     ozz::log::Err() << "Failed to import animation \"" << _animation_name
