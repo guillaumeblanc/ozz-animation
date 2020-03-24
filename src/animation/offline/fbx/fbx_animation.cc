@@ -564,7 +564,7 @@ bool ExtractProperty(FbxSceneLoader& _scene_loader, const SamplingInfo& _info,
                           _track);
     }
     default: {
-      log::Err() << "Float6 track can't be imported from a track of type: "
+      log::Err() << "Float3 track can't be imported from a track of type: "
                  << FbxTypeToString(fbx_type) << "\"" << std::endl;
       return false;
     }
@@ -611,9 +611,6 @@ bool ExtractTrackImpl(const char* _animation_name, const char* _node_name,
   const SamplingInfo& info =
       ExtractSamplingInfo(scene, anim_stack, _sampling_rate);
 
-  ozz::log::Log() << "Extracting animation track \"" << _node_name << ":"
-                  << _track_name << "\"" << std::endl;
-
   FbxNode* node = scene->FindNodeByName(_node_name);
   if (!node) {
     ozz::log::Err() << "Invalid node name \"" << _node_name << "\""
@@ -659,9 +656,6 @@ bool ExtractAnimation(const char* _animation_name,
     // Extract sampling info relative to the stack.
     const SamplingInfo& info =
         ExtractSamplingInfo(scene, anim_stack, _sampling_rate);
-
-    ozz::log::Log() << "Extracting animation \"" << anim_stack->GetName()
-                    << "\"" << std::endl;
 
     // Setup Fbx animation evaluator.
     scene->SetCurrentAnimationStack(anim_stack);
