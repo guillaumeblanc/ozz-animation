@@ -5,6 +5,7 @@ add_library(ozz_base STATIC
   ${PROJECT_SOURCE_DIR}/include/ozz/base/memory/unique_ptr.h
   memory/allocator.cc
   ${PROJECT_SOURCE_DIR}/include/ozz/base/platform.h
+  ${PROJECT_SOURCE_DIR}/include/ozz/base/span.h
   platform.cc
   ${PROJECT_SOURCE_DIR}/include/ozz/base/log.h
   log.cc

@@ -120,7 +120,7 @@ class MultithreadSampleApplication : public ozz::sample::Application {
     sampling_job.animation = &_animation;
     sampling_job.cache = &_character->cache;
     sampling_job.ratio = _character->controller.time_ratio();
-    sampling_job.output = make_range(_character->locals);
+    sampling_job.output = make_span(_character->locals);
 
     // Samples animation.
     if (!sampling_job.Run()) {
@@ -130,8 +130,8 @@ class MultithreadSampleApplication : public ozz::sample::Application {
     // Converts from local space to model space matrices.
     ozz::animation::LocalToModelJob ltm_job;
     ltm_job.skeleton = &_skeleton;
-    ltm_job.input = make_range(_character->locals);
-    ltm_job.output = make_range(_character->models);
+    ltm_job.input = make_span(_character->locals);
+    ltm_job.output = make_span(_character->models);
     if (!ltm_job.Run()) {
       return false;
     }
@@ -222,7 +222,7 @@ class MultithreadSampleApplication : public ozz::sample::Application {
       const ozz::math::Float4x4 transform = ozz::math::Float4x4::Translation(
           ozz::math::simd_float4::LoadPtrU(&position.x));
       success &= _renderer->DrawPosture(
-          skeleton_, make_range(characters_[c].models), transform, false);
+          skeleton_, make_span(characters_[c].models), transform, false);
     }
 
     return true;

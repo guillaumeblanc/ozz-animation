@@ -10,11 +10,18 @@ Next release
   - [base] Removes ScopedPtr in favor of an alias to standard unique_ptr that remaps to ozz deallocator. Implements make_unique using ozz allocator.
   - [base] Uses template aliasing (using keyword) to redirect ozz to std containers. This allows to get rid of ::Std when using ozz containers.
   - [base] Renames all aliased ozz containers to there orignal std name: vector, map etc... 
+  - [base] Renames ozz::Range to ozz::span, ozz::make_range to ozz::make_span to comply with std containers. Range count() and size() methods are renamed to size() and size_bytes() respectively, so this needs special attention to avoid mistakes.
   - [base] Replaces OZZ_ALIGN_OF and OZZ_ALIGN by standard alignof and alignas keywords.
   - [base] Replaces OZZ_STATIC_ASSERT by standard static_assert keyword.
 
 * Tools
   - [gltf2ozz] Support for importing animations and skeletons from gltf files, using gltf2ozz command line executable. gltf2ozz can be configured via command line options and [json configuration files](src/animation/offline/tools/reference.json), in the exact same way as fbx2ozz.
+
+Release version 0.12.1
+----------------------
+
+* Library
+  - [base] Fixes memory overwrite when reallocating a buffer of smaller size using ozz default memory allocator.
 
 Release version 0.12.0
 ----------------------

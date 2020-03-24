@@ -34,17 +34,22 @@
 TEST(Allocate, Memory) {
   void* p = ozz::memory::default_allocator()->Allocate(12, 1024);
   EXPECT_TRUE(p != nullptr);
-  EXPECT_TRUE(ozz::math::IsAligned(p, 1024));
+  EXPECT_TRUE(ozz::IsAligned(p, 1024));
 
   // Fills allocated memory.
   memset(p, 0, 12);
 
-  p = ozz::memory::default_allocator()->Reallocate(p, 46, 4096);
+  // Bigger
+  p = ozz::memory::default_allocator()->Reallocate(p, 460, 4096);
   EXPECT_TRUE(p != nullptr);
-  EXPECT_TRUE(ozz::math::IsAligned(p, 4096));
+  EXPECT_TRUE(ozz::IsAligned(p, 4096));
+  memset(p, 0, 460);
 
-  // Fills allocated memory.
-  memset(p, 0, 46);
+  // Smaller
+  p = ozz::memory::default_allocator()->Reallocate(p, 4, 4);
+  EXPECT_TRUE(p != NULL);
+  EXPECT_TRUE(ozz::IsAligned(p, 4));
+  memset(p, 0, 4);
 
   ozz::memory::default_allocator()->Deallocate(p);
 }

@@ -128,16 +128,16 @@ bool SampleTrack(const RawAnimation::JointTrack& _track, float _time,
 }
 
 bool SampleAnimation(const RawAnimation& _animation, float _time,
-                     const Range<ozz::math::Transform>& _transforms) {
+                     const span<ozz::math::Transform>& _transforms) {
   if (!_animation.Validate()) {
     return false;
   }
-  if (_animation.tracks.size() > _transforms.count()) {
+  if (_animation.tracks.size() > _transforms.size()) {
     return false;
   }
 
   for (size_t i = 0; i < _animation.tracks.size(); ++i) {
-    SampleTrack_NoValidate(_animation.tracks[i], _time, _transforms.begin + i);
+    SampleTrack_NoValidate(_animation.tracks[i], _time, _transforms.begin() + i);
   }
   return true;
 }

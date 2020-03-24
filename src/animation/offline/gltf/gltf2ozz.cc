@@ -30,20 +30,16 @@
 // https://github.com/guillaumeblanc/ozz-animation/pull/70                    //
 //----------------------------------------------------------------------------//
 
-#include "ozz/animation/offline/tools/import2ozz.h"
-
-#include "ozz/animation/offline/raw_animation_utils.h"
-
-#include "ozz/animation/runtime/skeleton.h"
-
-#include "ozz/base/containers/map.h"
-#include "ozz/base/containers/set.h"
-
-#include "ozz/base/log.h"
-#include "ozz/base/maths/math_ex.h"
-
 #include <cassert>
 #include <cstring>
+
+#include "ozz/animation/offline/raw_animation_utils.h"
+#include "ozz/animation/offline/tools/import2ozz.h"
+#include "ozz/animation/runtime/skeleton.h"
+#include "ozz/base/containers/map.h"
+#include "ozz/base/containers/set.h"
+#include "ozz/base/log.h"
+#include "ozz/base/maths/math_ex.h"
 
 #define TINYGLTF_IMPLEMENTATION
 
@@ -111,8 +107,8 @@ bool FixupNames(_VectorType& _data, const char* _pretty_name,
 // Returns the address of a gltf buffer given an accessor.
 // Performs basic checks to ensure the data is in the correct format
 template <typename T>
-ozz::Range<const T> BufferView(const tinygltf::Model& _model,
-                               const tinygltf::Accessor& _accessor) {
+ozz::span<const T> BufferView(const tinygltf::Model& _model,
+                              const tinygltf::Accessor& _accessor) {
   const int32_t component_size =
       tinygltf::GetComponentSizeInBytes(_accessor.componentType);
   const int32_t element_size =
@@ -121,7 +117,7 @@ ozz::Range<const T> BufferView(const tinygltf::Model& _model,
     ozz::log::Err() << "Invalid buffer view access. Expected element size '"
                     << sizeof(T) << " got " << element_size << " instead."
                     << std::endl;
-    return ozz::Range<const T>();
+    return ozz::span<const T>();
   }
 
   const tinygltf::BufferView& bufferView =
@@ -129,7 +125,7 @@ ozz::Range<const T> BufferView(const tinygltf::Model& _model,
   const tinygltf::Buffer& buffer = _model.buffers[bufferView.buffer];
   const T* begin = reinterpret_cast<const T*>(
       buffer.data.data() + bufferView.byteOffset + _accessor.byteOffset);
-  return ozz::Range<const T>(begin, _accessor.count);
+  return ozz::span<const T>(begin, _accessor.count);
 }
 
 // Samples a linear animation channel
@@ -138,7 +134,7 @@ ozz::Range<const T> BufferView(const tinygltf::Model& _model,
 template <typename _KeyframesType>
 bool SampleLinearChannel(const tinygltf::Model& _model,
                          const tinygltf::Accessor& _output,
-                         const ozz::Range<const float>& _timestamps,
+                         const ozz::span<const float>& _timestamps,
                          _KeyframesType* _keyframes) {
   const size_t gltf_keys_count = _output.count;
 
@@ -148,10 +144,10 @@ bool SampleLinearChannel(const tinygltf::Model& _model,
   }
 
   typedef typename _KeyframesType::value_type::Value ValueType;
-  const ozz::Range<const ValueType> values =
+  const ozz::span<const ValueType> values =
       BufferView<ValueType>(_model, _output);
-  if (values.size() / sizeof(ValueType) != gltf_keys_count ||
-      _timestamps.count() != gltf_keys_count) {
+  if (values.size_bytes() / sizeof(ValueType) != gltf_keys_count ||
+      _timestamps.size() != gltf_keys_count) {
     ozz::log::Err() << "gltf format error, inconsistent number of keys."
                     << std::endl;
     return false;
@@ -172,7 +168,7 @@ bool SampleLinearChannel(const tinygltf::Model& _model,
 template <typename _KeyframesType>
 bool SampleStepChannel(const tinygltf::Model& _model,
                        const tinygltf::Accessor& _output,
-                       const ozz::Range<const float>& _timestamps,
+                       const ozz::span<const float>& _timestamps,
                        _KeyframesType* _keyframes) {
   const size_t gltf_keys_count = _output.count;
 
@@ -182,10 +178,10 @@ bool SampleStepChannel(const tinygltf::Model& _model,
   }
 
   typedef typename _KeyframesType::value_type::Value ValueType;
-  const ozz::Range<const ValueType> values =
+  const ozz::span<const ValueType> values =
       BufferView<ValueType>(_model, _output);
-  if (values.size() / sizeof(ValueType) != gltf_keys_count ||
-      _timestamps.count() != gltf_keys_count) {
+  if (values.size_bytes() / sizeof(ValueType) != gltf_keys_count ||
+      _timestamps.size() != gltf_keys_count) {
     ozz::log::Err() << "gltf format error, inconsistent number of keys."
                     << std::endl;
     return false;
@@ -246,7 +242,7 @@ T SampleHermiteSpline(float _alpha, const T& p0, const T& m0, const T& p1,
 template <typename _KeyframesType>
 bool SampleCubicSplineChannel(const tinygltf::Model& _model,
                               const tinygltf::Accessor& _output,
-                              const ozz::Range<const float>& _timestamps,
+                              const ozz::span<const float>& _timestamps,
                               float _sampling_rate, float _duration,
                               _KeyframesType* _keyframes) {
   (void)_duration;
@@ -260,10 +256,10 @@ bool SampleCubicSplineChannel(const tinygltf::Model& _model,
   }
 
   typedef typename _KeyframesType::value_type::Value ValueType;
-  const ozz::Range<const ValueType> values =
+  const ozz::span<const ValueType> values =
       BufferView<ValueType>(_model, _output);
-  if (values.size() / (sizeof(ValueType) * 3) != gltf_keys_count ||
-      _timestamps.count() != gltf_keys_count) {
+  if (values.size_bytes() / (sizeof(ValueType) * 3) != gltf_keys_count ||
+      _timestamps.size() != gltf_keys_count) {
     ozz::log::Err() << "gltf format error, inconsistent number of keys."
                     << std::endl;
     return false;
@@ -356,7 +352,7 @@ ozz::animation::offline::RawAnimation::ScaleKey CreateScaleBindPoseKey(
 // Creates the default transform for a gltf node
 bool CreateNodeTransform(const tinygltf::Node& _node,
                          ozz::math::Transform* _transform) {
-  if (_node.matrix.size() != 0) {
+  if (!_node.matrix.empty()) {
     // For animated nodes matrix should never be set
     // From the spec: "When a node is targeted for animation (referenced by an
     // animation.channel.target), only TRS properties may be present; matrix
@@ -648,7 +644,7 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
 
     // For each joint get all its associated channels, sample them and record
     // the samples in the joint track
-    const ozz::Range<const char* const> joint_names = skeleton.joint_names();
+    const ozz::span<const char* const> joint_names = skeleton.joint_names();
     for (int i = 0; i < num_joints; i++) {
       auto& channels = channels_per_joint[joint_names[i]];
       auto& track = _animation->tracks[i];
@@ -716,8 +712,8 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
     assert(_output.type == TINYGLTF_TYPE_VEC3 ||
            _output.type == TINYGLTF_TYPE_VEC4);
 
-    const ozz::Range<const float> timestamps = BufferView<float>(_model, input);
-    if (timestamps.size() == 0) {
+    const ozz::span<const float> timestamps = BufferView<float>(_model, input);
+    if (timestamps.empty()) {
       return false;
     }
 

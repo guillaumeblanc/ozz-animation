@@ -88,7 +88,7 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
       sampling_job.animation = &sampler.animation;
       sampling_job.cache = &sampler.cache;
       sampling_job.ratio = sampler.controller.time_ratio();
-      sampling_job.output = make_range(sampler.locals);
+      sampling_job.output = make_span(sampler.locals);
 
       // Samples animation.
       if (!sampling_job.Run()) {
@@ -104,11 +104,11 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
     // Prepares blending layers.
     ozz::animation::BlendingJob::Layer layers[kNumLayers];
     for (int i = 0; i < kNumLayers; ++i) {
-      layers[i].transform = make_range(samplers_[i].locals);
+      layers[i].transform = make_span(samplers_[i].locals);
       layers[i].weight = samplers_[i].weight_setting;
 
       // Set per-joint weights for the partially blended layer.
-      layers[i].joint_weights = make_range(samplers_[i].joint_weights);
+      layers[i].joint_weights = make_span(samplers_[i].joint_weights);
     }
 
     // Setups blending job.
@@ -116,7 +116,7 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
     blend_job.threshold = threshold_;
     blend_job.layers = layers;
     blend_job.bind_pose = skeleton_.joint_bind_poses();
-    blend_job.output = make_range(blended_locals_);
+    blend_job.output = make_span(blended_locals_);
 
     // Blends.
     if (!blend_job.Run()) {
@@ -129,8 +129,8 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
     // Setup local-to-model conversion job.
     ozz::animation::LocalToModelJob ltm_job;
     ltm_job.skeleton = &skeleton_;
-    ltm_job.input = make_range(blended_locals_);
-    ltm_job.output = make_range(models_);
+    ltm_job.input = make_span(blended_locals_);
+    ltm_job.output = make_span(models_);
 
     // Run ltm job.
     if (!ltm_job.Run()) {
@@ -142,7 +142,7 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
 
   // Samples animation, transforms to model space and renders.
   virtual bool OnDisplay(ozz::sample::Renderer* _renderer) {
-    return _renderer->DrawPosture(skeleton_, make_range(models_),
+    return _renderer->DrawPosture(skeleton_, make_span(models_),
                                   ozz::math::Float4x4::identity());
   }
 
@@ -338,7 +338,7 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
   }
 
   virtual void GetSceneBounds(ozz::math::Box* _bound) const {
-    ozz::sample::ComputePostureBounds(make_range(models_), _bound);
+    ozz::sample::ComputePostureBounds(make_span(models_), _bound);
   }
 
  private:

@@ -94,7 +94,7 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
       sampling_job.animation = &sampler.animation;
       sampling_job.cache = &sampler.cache;
       sampling_job.ratio = sampler.controller.time_ratio();
-      sampling_job.output = make_range(sampler.locals);
+      sampling_job.output = make_span(sampler.locals);
 
       // Samples animation.
       if (!sampling_job.Run()) {
@@ -109,18 +109,18 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
 
     // Prepares standard blending layers.
     ozz::animation::BlendingJob::Layer layers[1];
-    layers[0].transform = make_range(samplers_[kMainAnimation].locals);
+    layers[0].transform = make_span(samplers_[kMainAnimation].locals);
     layers[0].weight = samplers_[kMainAnimation].weight_setting;
 
     // Prepares additive blending layers.
     ozz::animation::BlendingJob::Layer additive_layers[1];
     additive_layers[0].transform =
-        make_range(samplers_[kAdditiveAnimation].locals);
+        make_span(samplers_[kAdditiveAnimation].locals);
     additive_layers[0].weight = samplers_[kAdditiveAnimation].weight_setting;
 
     // Set per-joint weights for the additive blended layer.
     if (upper_body_mask_enable_) {
-      additive_layers[0].joint_weights = make_range(upper_body_joint_weights_);
+      additive_layers[0].joint_weights = make_span(upper_body_joint_weights_);
     }
 
     // Setups blending job.
@@ -129,7 +129,7 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
     blend_job.layers = layers;
     blend_job.additive_layers = additive_layers;
     blend_job.bind_pose = skeleton_.joint_bind_poses();
-    blend_job.output = make_range(blended_locals_);
+    blend_job.output = make_span(blended_locals_);
 
     // Blends.
     if (!blend_job.Run()) {
@@ -141,8 +141,8 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
     // Setup local-to-model conversion job.
     ozz::animation::LocalToModelJob ltm_job;
     ltm_job.skeleton = &skeleton_;
-    ltm_job.input = make_range(blended_locals_);
-    ltm_job.output = make_range(models_);
+    ltm_job.input = make_span(blended_locals_);
+    ltm_job.output = make_span(models_);
 
     // Run ltm job.
     if (!ltm_job.Run()) {
@@ -164,7 +164,7 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
     }
 
     // Renders skin.
-    return _renderer->DrawSkinnedMesh(mesh_, make_range(skinning_matrices_),
+    return _renderer->DrawSkinnedMesh(mesh_, make_span(skinning_matrices_),
                                       ozz::math::Float4x4::identity(),
                                       render_options_);
   }
@@ -360,7 +360,7 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
   }
 
   virtual void GetSceneBounds(ozz::math::Box* _bound) const {
-    ozz::sample::ComputePostureBounds(make_range(models_), _bound);
+    ozz::sample::ComputePostureBounds(make_span(models_), _bound);
   }
 
  private:

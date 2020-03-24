@@ -33,14 +33,11 @@
 #include <cstring>
 #include <limits>
 
-#include "ozz/base/containers/vector.h"
-#include "ozz/base/memory/allocator.h"
-
-#include "ozz/base/maths/simd_math.h"
-
 #include "ozz/animation/offline/raw_animation.h"
-
 #include "ozz/animation/runtime/animation.h"
+#include "ozz/base/containers/vector.h"
+#include "ozz/base/maths/simd_math.h"
+#include "ozz/base/memory/allocator.h"
 
 // Internal include file
 #define OZZ_INCLUDE_PRIVATE_HEADER  // Allows to include private headers.
@@ -129,7 +126,7 @@ void CopyRaw(const _SrcTrack& _src, uint16_t _track, float _duration,
 }
 
 void CopyToAnimation(ozz::vector<SortingTranslationKey>* _src,
-                     ozz::Range<TranslationKey>* _dest, float _inv_duration) {
+                     ozz::span<TranslationKey>* _dest, float _inv_duration) {
   const size_t src_count = _src->size();
   if (!src_count) {
     return;
@@ -142,7 +139,7 @@ void CopyToAnimation(ozz::vector<SortingTranslationKey>* _src,
   // Fills output.
   const SortingTranslationKey* src = &_src->front();
   for (size_t i = 0; i < src_count; ++i) {
-    TranslationKey& key = _dest->begin[i];
+    TranslationKey& key = (*_dest)[i];
     key.ratio = src[i].key.time * _inv_duration;
     key.track = src[i].track;
     key.value[0] = ozz::math::FloatToHalf(src[i].key.value.x);
@@ -152,7 +149,7 @@ void CopyToAnimation(ozz::vector<SortingTranslationKey>* _src,
 }
 
 void CopyToAnimation(ozz::vector<SortingScaleKey>* _src,
-                     ozz::Range<ScaleKey>* _dest, float _inv_duration) {
+                     ozz::span<ScaleKey>* _dest, float _inv_duration) {
   const size_t src_count = _src->size();
   if (!src_count) {
     return;
@@ -165,7 +162,7 @@ void CopyToAnimation(ozz::vector<SortingScaleKey>* _src,
   // Fills output.
   const SortingScaleKey* src = &_src->front();
   for (size_t i = 0; i < src_count; ++i) {
-    ScaleKey& key = _dest->begin[i];
+    ScaleKey& key = (*_dest)[i];
     key.ratio = src[i].key.time * _inv_duration;
     key.track = src[i].track;
     key.value[0] = ozz::math::FloatToHalf(src[i].key.value.x);
@@ -212,7 +209,7 @@ void CompressQuat(const ozz::math::Quaternion& _src,
 // Consecutive opposite quaternions are also fixed up in order to avoid checking
 // for the smallest path during the NLerp runtime algorithm.
 void CopyToAnimation(ozz::vector<SortingRotationKey>* _src,
-                     ozz::Range<RotationKey>* _dest, float _inv_duration) {
+                     ozz::span<RotationKey>* _dest, float _inv_duration) {
   const size_t src_count = _src->size();
   if (!src_count) {
     return;
@@ -253,7 +250,7 @@ void CopyToAnimation(ozz::vector<SortingRotationKey>* _src,
   // Fills rotation keys output.
   for (size_t i = 0; i < src_count; ++i) {
     const SortingRotationKey& skey = src[i];
-    RotationKey& dkey = _dest->begin[i];
+    RotationKey& dkey = (*_dest)[i];
     dkey.ratio = skey.key.time * _inv_duration;
     dkey.track = skey.track;
 
@@ -291,7 +288,7 @@ unique_ptr<Animation> AnimationBuilder::operator()(
   // already been validated.
   const uint16_t num_tracks = static_cast<uint16_t>(_input.num_tracks());
   animation->num_tracks_ = num_tracks;
-  const uint16_t num_soa_tracks = math::Align(num_tracks, 4);
+  const uint16_t num_soa_tracks = Align(num_tracks, 4);
 
   // Declares and preallocates tracks to sort.
   size_t translations = 0, rotations = 0, scales = 0;
@@ -333,7 +330,7 @@ unique_ptr<Animation> AnimationBuilder::operator()(
   }
 
   // Allocate animation members.
-  animation->Allocate(_input.name.length() + 1, sorting_translations.size(),
+  animation->Allocate(_input.name.length(), sorting_translations.size(),
                       sorting_rotations.size(), sorting_scales.size());
 
   // Copy sorted keys to final animation.
@@ -343,9 +340,12 @@ unique_ptr<Animation> AnimationBuilder::operator()(
   CopyToAnimation(&sorting_scales, &animation->scales_, inv_duration);
 
   // Copy animation's name.
-  strcpy(animation->name_, _input.name.c_str());
+  if (animation->name_) {
+    strcpy(animation->name_, _input.name.c_str());
+  }
 
   return animation;  // Success.
+
 }
 }  // namespace offline
 }  // namespace animation

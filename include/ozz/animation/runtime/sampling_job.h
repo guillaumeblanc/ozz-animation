@@ -29,6 +29,7 @@
 #define OZZ_OZZ_ANIMATION_RUNTIME_SAMPLING_JOB_H_
 
 #include "ozz/base/platform.h"
+#include "ozz/base/span.h"
 
 namespace ozz {
 
@@ -88,7 +89,7 @@ struct SamplingJob {
   // then remaining SoaTransform are left unchanged.
   // If there are more joints in the animation, then the last joints are not
   // sampled.
-  Range<ozz::math::SoaTransform> output;
+  span<ozz::math::SoaTransform> output;
 };
 
 namespace internal {
