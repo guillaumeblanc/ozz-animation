@@ -92,15 +92,15 @@ class OzzPassthrough : public Generator {
   }
 
   virtual bool Sample(float _time, bool) {
-    return SampleAnimation(animation_, _time, make_range(samples_));
+    return SampleAnimation(animation_, _time, make_span(samples_));
   }
 
   virtual bool ReadBack(
-      const ozz::Range<ozz::math::Transform>& _transforms) const {
-    if (_transforms.count() < samples_.size()) {
+      const ozz::span<ozz::math::Transform>& _transforms) const {
+    if (_transforms.size() < samples_.size()) {
       return false;
     }
-    for (size_t i = 0; i < _transforms.count(); ++i) {
+    for (size_t i = 0; i < _transforms.size(); ++i) {
       _transforms[i] = samples_[i];
     }
     return true;
@@ -272,13 +272,13 @@ class OzzRuntime : public Generator {
     job.animation = animation_.get();
     job.cache = &cache;
     job.ratio = _time / animation_->duration();
-    job.output = make_range(samples_);
+    job.output = make_span(samples_);
     return job.Run();
   }
 
   virtual bool ReadBack(
-      const ozz::Range<ozz::math::Transform>& _transforms) const {
-    if (_transforms.count() < static_cast<size_t>(animation_->num_tracks())) {
+      const ozz::span<ozz::math::Transform>& _transforms) const {
+    if (_transforms.size() < static_cast<size_t>(animation_->num_tracks())) {
       return false;
     }
 

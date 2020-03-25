@@ -39,10 +39,10 @@ namespace {
 // See AnimationBuilder::Create for more details.
 template <typename _Key>
 static bool _ValidateTrackComponent(
-    const typename ozz::Range<const _Key>& _track, float _duration) {
+    const typename ozz::span<const _Key>& _track, float _duration) {
   float previous_time = -1.f;
-  for (size_t k = 0; k < _track.count(); ++k) {
-    const float frame_time = _track[k].time;
+  for (const _Key& key : _track) {
+    const float frame_time = key.time;
     // Tests frame's time is in range [0:duration].
     if (frame_time < 0.f || frame_time > _duration) {
       return false;
@@ -60,21 +60,21 @@ static bool _ValidateTrackComponent(
 bool ValidateTrackComponent(
     const RawAnimation::JointTrack::Translations& _translations,
     float _duration) {
-  return _ValidateTrackComponent(make_range(_translations), _duration);
+  return _ValidateTrackComponent(make_span(_translations), _duration);
 }
 bool ValidateTrackComponent(
     const RawAnimation::JointTrack::Rotations& _rotations, float _duration) {
-  return _ValidateTrackComponent(make_range(_rotations), _duration);
+  return _ValidateTrackComponent(make_span(_rotations), _duration);
 }
 bool ValidateTrackComponent(const RawAnimation::JointTrack::Scales& _scales,
                             float _duration) {
-  return _ValidateTrackComponent(make_range(_scales), _duration);
+  return _ValidateTrackComponent(make_span(_scales), _duration);
 }
 
 bool ValidateTrack(const RawAnimation::JointTrack& _track, float _duration) {
-  return _ValidateTrackComponent(make_range(_track.translations), _duration) &&
-         _ValidateTrackComponent(make_range(_track.rotations), _duration) &&
-         _ValidateTrackComponent(make_range(_track.scales), _duration);
+  return _ValidateTrackComponent(make_span(_track.translations), _duration) &&
+         _ValidateTrackComponent(make_span(_track.rotations), _duration) &&
+         _ValidateTrackComponent(make_span(_track.scales), _duration);
 }
 
 // Translation interpolation method.
@@ -206,17 +206,18 @@ bool SampleTrack(const RawAnimation::JointTrack& _track, float _time,
 }
 
 bool SampleAnimation(const RawAnimation& _animation, float _time,
-                     const Range<ozz::math::Transform>& _transforms,
+                     const span<ozz::math::Transform>& _transforms,
                      bool _validate) {
   if (_validate && !_animation.Validate()) {
     return false;
   }
-  if (_animation.tracks.size() > _transforms.count()) {
+  if (_animation.tracks.size() > _transforms.size()) {
     return false;
   }
 
   for (size_t i = 0; i < _animation.tracks.size(); ++i) {
-    SampleTrack_NoValidate(_animation.tracks[i], _time, _transforms.begin + i);
+    SampleTrack_NoValidate(_animation.tracks[i], _time,
+                           _transforms.begin() + i);
   }
   return true;
 }

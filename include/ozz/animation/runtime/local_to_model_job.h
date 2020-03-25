@@ -29,6 +29,7 @@
 #define OZZ_OZZ_ANIMATION_RUNTIME_LOCAL_TO_MODEL_JOB_H_
 
 #include "ozz/base/platform.h"
+#include "ozz/base/span.h"
 
 namespace ozz {
 
@@ -107,12 +108,12 @@ struct LocalToModelJob {
   bool from_excluded;
 
   // The input range that store local transforms.
-  Range<const ozz::math::SoaTransform> input;
+  span<const ozz::math::SoaTransform> input;
 
   // Job output.
 
   // The output range to be filled with model-space matrices.
-  Range<ozz::math::Float4x4> output;
+  span<ozz::math::Float4x4> output;
 };
 }  // namespace animation
 }  // namespace ozz

@@ -25,20 +25,17 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/animation/runtime/local_to_model_job.h"
-
 #include "gtest/gtest.h"
-
+#include "ozz/animation/offline/raw_skeleton.h"
+#include "ozz/animation/offline/skeleton_builder.h"
+#include "ozz/animation/runtime/local_to_model_job.h"
+#include "ozz/animation/runtime/skeleton.h"
 #include "ozz/base/maths/gtest_math_helper.h"
 #include "ozz/base/maths/soa_transform.h"
 #include "ozz/base/memory/unique_ptr.h"
 
-#include "ozz/animation/offline/raw_skeleton.h"
-#include "ozz/animation/offline/skeleton_builder.h"
-#include "ozz/animation/runtime/skeleton.h"
-
-using ozz::animation::Skeleton;
 using ozz::animation::LocalToModelJob;
+using ozz::animation::Skeleton;
 using ozz::animation::offline::RawSkeleton;
 using ozz::animation::offline::SkeletonBuilder;
 
@@ -74,8 +71,7 @@ TEST(JobValidity, LocalToModel) {
   {
     LocalToModelJob job;
     job.skeleton = skeleton.get();
-    job.input.begin = input;
-    job.input.end = input + 1;
+    job.input = {input, input + 1};
     EXPECT_FALSE(job.Validate());
     EXPECT_FALSE(job.Run());
   }
@@ -83,18 +79,15 @@ TEST(JobValidity, LocalToModel) {
   {
     LocalToModelJob job;
     job.skeleton = skeleton.get();
-    job.output.begin = output;
-    job.output.end = output + 2;
+    job.output = {output, output + 2};
     EXPECT_FALSE(job.Validate());
     EXPECT_FALSE(job.Run());
   }
   // Null skeleton.
   {
     LocalToModelJob job;
-    job.input.begin = input;
-    job.input.end = input + 1;
-    job.output.begin = output;
-    job.output.end = output + 4;
+    job.input = {input, input + 1};
+    job.output = {output, output + 4};
     EXPECT_FALSE(job.Validate());
     EXPECT_FALSE(job.Run());
   }
@@ -102,10 +95,8 @@ TEST(JobValidity, LocalToModel) {
   {
     LocalToModelJob job;
     job.skeleton = skeleton.get();
-    job.input.begin = input;
-    job.input.end = input + 1;
-    job.output.begin = output + 1;
-    job.output.end = output;
+    job.input = {input, input + 1};
+    job.output = {output, output + 1};
     EXPECT_FALSE(job.Validate());
     EXPECT_FALSE(job.Run());
   }
@@ -113,21 +104,8 @@ TEST(JobValidity, LocalToModel) {
   {
     LocalToModelJob job;
     job.skeleton = skeleton.get();
-    job.input.begin = input;
-    job.input.end = input + 1;
-    job.output.begin = output;
-    job.output.end = output + 1;
-    EXPECT_FALSE(job.Validate());
-    EXPECT_FALSE(job.Run());
-  }
-  // Invalid input range: end < begin.
-  {
-    LocalToModelJob job;
-    job.skeleton = skeleton.get();
-    job.input.begin = input + 1;
-    job.input.end = input;
-    job.output.begin = output;
-    job.output.end = output + 4;
+    job.input = {input, input + 1};
+    job.output = {output, output + 1};
     EXPECT_FALSE(job.Validate());
     EXPECT_FALSE(job.Run());
   }
@@ -135,8 +113,7 @@ TEST(JobValidity, LocalToModel) {
   {
     LocalToModelJob job;
     job.skeleton = skeleton.get();
-    job.input.begin = input;
-    job.input.end = input;
+    job.input = {input, input + 0};
     job.output = output;
     EXPECT_FALSE(job.Validate());
     EXPECT_FALSE(job.Run());
@@ -146,8 +123,7 @@ TEST(JobValidity, LocalToModel) {
     LocalToModelJob job;
     job.skeleton = skeleton.get();
     job.input = input;
-    job.output.begin = output;
-    job.output.end = output + 2;
+    job.output = {output, output + 2};
     EXPECT_TRUE(job.Validate());
     EXPECT_TRUE(job.Run());
   }
@@ -160,8 +136,7 @@ TEST(JobValidity, LocalToModel) {
     job.skeleton = skeleton.get();
     job.root = &world;
     job.input = input;
-    job.output.begin = output;
-    job.output.end = output + 2;
+    job.output = {output, output + 2};
     EXPECT_TRUE(job.Validate());
     EXPECT_TRUE(job.Run());
   }
@@ -171,8 +146,7 @@ TEST(JobValidity, LocalToModel) {
     job.skeleton = skeleton.get();
     job.from = 93;
     job.input = input;
-    job.output.begin = output;
-    job.output.end = output + 2;
+    job.output = {output, output + 2};
     EXPECT_TRUE(job.Validate());
     EXPECT_TRUE(job.Run());
   }
@@ -182,8 +156,7 @@ TEST(JobValidity, LocalToModel) {
     job.skeleton = skeleton.get();
     job.from = -93;
     job.input = input;
-    job.output.begin = output;
-    job.output.end = output + 2;
+    job.output = {output, output + 2};
     EXPECT_TRUE(job.Validate());
     EXPECT_TRUE(job.Run());
   }
@@ -193,8 +166,7 @@ TEST(JobValidity, LocalToModel) {
     job.skeleton = skeleton.get();
     job.from = 93;
     job.input = input;
-    job.output.begin = output;
-    job.output.end = output + 2;
+    job.output = {output, output + 2};
     EXPECT_TRUE(job.Validate());
     EXPECT_TRUE(job.Run());
   }
@@ -204,8 +176,7 @@ TEST(JobValidity, LocalToModel) {
     job.skeleton = skeleton.get();
     job.from = -93;
     job.input = input;
-    job.output.begin = output;
-    job.output.end = output + 2;
+    job.output = {output, output + 2};
     EXPECT_TRUE(job.Validate());
     EXPECT_TRUE(job.Run());
   }
@@ -213,10 +184,8 @@ TEST(JobValidity, LocalToModel) {
   {
     LocalToModelJob job;
     job.skeleton = empty_skeleton.get();
-    job.input.begin = input;
-    job.input.end = input + 0;
-    job.output.begin = output;
-    job.output.end = output + 0;
+    job.input = {input, input + 0};
+    job.output = {output, output + 0};
     EXPECT_TRUE(job.Validate());
     EXPECT_TRUE(job.Run());
   }
@@ -293,10 +262,8 @@ TEST(Transformation, LocalToModel) {
     ozz::math::Float4x4 output[6];
     LocalToModelJob job;
     job.skeleton = skeleton.get();
-    job.input.begin = input;
-    job.input.end = input + 2;
-    job.output.begin = output;
-    job.output.end = output + 6;
+    job.input = input;
+    job.output = output;
     EXPECT_TRUE(job.Validate());
     EXPECT_TRUE(job.Run());
     EXPECT_FLOAT4x4_EQ(output[0], 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f,
@@ -322,10 +289,8 @@ TEST(Transformation, LocalToModel) {
     LocalToModelJob job;
     job.skeleton = skeleton.get();
     job.root = &world;
-    job.input.begin = input;
-    job.input.end = input + 2;
-    job.output.begin = output;
-    job.output.end = output + 6;
+    job.input = input;
+    job.output = output;
     EXPECT_TRUE(job.Validate());
     EXPECT_TRUE(job.Run());
     EXPECT_FLOAT4x4_EQ(output[0], 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f,
@@ -416,10 +381,8 @@ TEST(TransformationFromTo, LocalToModel) {
   {  // Intialize whole hierarchy output
     job_full.skeleton = skeleton.get();
     job_full.from = ozz::animation::Skeleton::kNoParent;
-    job_full.input.begin = input;
-    job_full.input.end = input + 2;
-    job_full.output.begin = output;
-    job_full.output.end = output + 8;
+    job_full.input = input;
+    job_full.output = output;
     EXPECT_TRUE(job_full.Validate());
     EXPECT_TRUE(job_full.Run());
     EXPECT_FLOAT4x4_EQ(output[0], 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f,
@@ -447,10 +410,8 @@ TEST(TransformationFromTo, LocalToModel) {
     LocalToModelJob job;
     job.skeleton = skeleton.get();
     job.from = 0;
-    job.input.begin = input;
-    job.input.end = input + 2;
-    job.output.begin = output;
-    job.output.end = output + 8;
+    job.input = input;
+    job.output = output;
     EXPECT_TRUE(job.Validate());
     EXPECT_TRUE(job.Run());
 
@@ -479,10 +440,8 @@ TEST(TransformationFromTo, LocalToModel) {
     LocalToModelJob job;
     job.skeleton = skeleton.get();
     job.from = 7;
-    job.input.begin = input;
-    job.input.end = input + 2;
-    job.output.begin = output;
-    job.output.end = output + 8;
+    job.input = input;
+    job.output = output;
     EXPECT_TRUE(job.Validate());
     EXPECT_TRUE(job.Run());
 
@@ -512,10 +471,8 @@ TEST(TransformationFromTo, LocalToModel) {
     LocalToModelJob job;
     job.skeleton = skeleton.get();
     job.from = 1;
-    job.input.begin = input;
-    job.input.end = input + 2;
-    job.output.begin = output;
-    job.output.end = output + 8;
+    job.input = input;
+    job.output = output;
     EXPECT_TRUE(job.Validate());
     EXPECT_TRUE(job.Run());
 
@@ -545,10 +502,8 @@ TEST(TransformationFromTo, LocalToModel) {
     LocalToModelJob job;
     job.skeleton = skeleton.get();
     job.from = 3;
-    job.input.begin = input;
-    job.input.end = input + 2;
-    job.output.begin = output;
-    job.output.end = output + 8;
+    job.input = input;
+    job.output = output;
     EXPECT_TRUE(job.Validate());
     EXPECT_TRUE(job.Run());
 
@@ -578,10 +533,8 @@ TEST(TransformationFromTo, LocalToModel) {
     LocalToModelJob job;
     job.skeleton = skeleton.get();
     job.from = 5;
-    job.input.begin = input;
-    job.input.end = input + 2;
-    job.output.begin = output;
-    job.output.end = output + 8;
+    job.input = input;
+    job.output = output;
     EXPECT_TRUE(job.Validate());
     EXPECT_TRUE(job.Run());
 
@@ -611,10 +564,8 @@ TEST(TransformationFromTo, LocalToModel) {
     LocalToModelJob job;
     job.skeleton = skeleton.get();
     job.from = 6;
-    job.input.begin = input;
-    job.input.end = input + 2;
-    job.output.begin = output;
-    job.output.end = output + 8;
+    job.input = input;
+    job.output = output;
     EXPECT_TRUE(job.Validate());
     EXPECT_TRUE(job.Run());
 
@@ -644,10 +595,8 @@ TEST(TransformationFromTo, LocalToModel) {
     job.skeleton = skeleton.get();
     job.from = 0;
     job.to = 2;
-    job.input.begin = input;
-    job.input.end = input + 2;
-    job.output.begin = output;
-    job.output.end = output + 8;
+    job.input = input;
+    job.output = output;
     EXPECT_TRUE(job.Validate());
     EXPECT_TRUE(job.Run());
 
@@ -677,10 +626,8 @@ TEST(TransformationFromTo, LocalToModel) {
     job.skeleton = skeleton.get();
     job.from = 0;
     job.to = 6;
-    job.input.begin = input;
-    job.input.end = input + 2;
-    job.output.begin = output;
-    job.output.end = output + 8;
+    job.input = input;
+    job.output = output;
     EXPECT_TRUE(job.Validate());
     EXPECT_TRUE(job.Run());
 
@@ -710,10 +657,8 @@ TEST(TransformationFromTo, LocalToModel) {
     job.skeleton = skeleton.get();
     job.from = 0;
     job.to = 46;
-    job.input.begin = input;
-    job.input.end = input + 2;
-    job.output.begin = output;
-    job.output.end = output + 8;
+    job.input = input;
+    job.output = output;
     EXPECT_TRUE(job.Validate());
     EXPECT_TRUE(job.Run());
 
@@ -743,10 +688,8 @@ TEST(TransformationFromTo, LocalToModel) {
     job.skeleton = skeleton.get();
     job.from = 0;
     job.to = -99;
-    job.input.begin = input;
-    job.input.end = input + 2;
-    job.output.begin = output;
-    job.output.end = output + 8;
+    job.input = input;
+    job.output = output;
     EXPECT_TRUE(job.Validate());
     EXPECT_TRUE(job.Run());
 
@@ -776,10 +719,8 @@ TEST(TransformationFromTo, LocalToModel) {
     LocalToModelJob job;
     job.skeleton = skeleton.get();
     job.from = 93;
-    job.input.begin = input;
-    job.input.end = input + 2;
-    job.output.begin = output;
-    job.output.end = output + 8;
+    job.input = input;
+    job.output = output;
     EXPECT_TRUE(job.Validate());
     EXPECT_TRUE(job.Run());
 
@@ -876,10 +817,8 @@ TEST(TransformationFromToExclude, LocalToModel) {
     job_full.skeleton = skeleton.get();
     job_full.from = ozz::animation::Skeleton::kNoParent;
     job_full.from_excluded = true;
-    job_full.input.begin = input;
-    job_full.input.end = input + 2;
-    job_full.output.begin = output;
-    job_full.output.end = output + 8;
+    job_full.input = input;
+    job_full.output = output;
     EXPECT_TRUE(job_full.Validate());
     EXPECT_TRUE(job_full.Run());
     EXPECT_FLOAT4x4_EQ(output[0], 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f,
@@ -910,10 +849,8 @@ TEST(TransformationFromToExclude, LocalToModel) {
     job.skeleton = skeleton.get();
     job.from = 0;
     job.from_excluded = true;
-    job.input.begin = input;
-    job.input.end = input + 2;
-    job.output.begin = output;
-    job.output.end = output + 8;
+    job.input = input;
+    job.output = output;
     EXPECT_TRUE(job.Validate());
     EXPECT_TRUE(job.Run());
 
@@ -946,10 +883,8 @@ TEST(TransformationFromToExclude, LocalToModel) {
     job.skeleton = skeleton.get();
     job.from = 1;
     job.from_excluded = true;
-    job.input.begin = input;
-    job.input.end = input + 2;
-    job.output.begin = output;
-    job.output.end = output + 8;
+    job.input = input;
+    job.output = output;
     EXPECT_TRUE(job.Validate());
     EXPECT_TRUE(job.Run());
 
@@ -982,10 +917,8 @@ TEST(TransformationFromToExclude, LocalToModel) {
     job.skeleton = skeleton.get();
     job.from = 2;
     job.from_excluded = true;
-    job.input.begin = input;
-    job.input.end = input + 2;
-    job.output.begin = output;
-    job.output.end = output + 8;
+    job.input = input;
+    job.output = output;
     EXPECT_TRUE(job.Validate());
     EXPECT_TRUE(job.Run());
 
@@ -1017,10 +950,8 @@ TEST(TransformationFromToExclude, LocalToModel) {
     job.skeleton = skeleton.get();
     job.from = 7;
     job.from_excluded = true;
-    job.input.begin = input;
-    job.input.end = input + 2;
-    job.output.begin = output;
-    job.output.end = output + 8;
+    job.input = input;
+    job.output = output;
     EXPECT_TRUE(job.Validate());
     EXPECT_TRUE(job.Run());
 
@@ -1053,10 +984,8 @@ TEST(TransformationFromToExclude, LocalToModel) {
     job.skeleton = skeleton.get();
     job.from = 6;
     job.from_excluded = true;
-    job.input.begin = input;
-    job.input.end = input + 2;
-    job.output.begin = output;
-    job.output.end = output + 8;
+    job.input = input;
+    job.output = output;
     EXPECT_TRUE(job.Validate());
     EXPECT_TRUE(job.Run());
 

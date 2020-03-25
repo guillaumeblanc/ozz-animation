@@ -32,6 +32,7 @@
 #include "ozz/base/containers/string.h"
 #include "ozz/base/io/stream.h"
 #include "ozz/base/platform.h"
+#include "ozz/base/span.h"
 
 namespace ozz {
 namespace animation {
@@ -73,7 +74,7 @@ class Generator {
 
   // Copy local samples data back to _transforms output.
   virtual bool ReadBack(
-      const ozz::Range<ozz::math::Transform>& _transforms) const = 0;
+      const ozz::span<ozz::math::Transform>& _transforms) const = 0;
 };
 
 class Ozz2Csv {

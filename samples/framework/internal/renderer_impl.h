@@ -115,7 +115,7 @@ class RendererImpl : public Renderer {
                             bool _draw_joints);
 
   virtual bool DrawPosture(const animation::Skeleton& _skeleton,
-                           ozz::Range<const ozz::math::Float4x4> _matrices,
+                           ozz::span<const ozz::math::Float4x4> _matrices,
                            const ozz::math::Float4x4& _transform,
                            bool _draw_joints);
 
@@ -124,7 +124,7 @@ class RendererImpl : public Renderer {
                          const Color _colors[2]);
 
   virtual bool DrawBoxShaded(const ozz::math::Box& _box,
-                             ozz::Range<const ozz::math::Float4x4> _transforms,
+                             ozz::span<const ozz::math::Float4x4> _transforms,
                              Color _color);
 
   virtual bool DrawSphereIm(float _radius,
@@ -132,11 +132,11 @@ class RendererImpl : public Renderer {
                             const Color _color);
 
   virtual bool DrawSphereShaded(
-      float _radius, ozz::Range<const ozz::math::Float4x4> _transforms,
+      float _radius, ozz::span<const ozz::math::Float4x4> _transforms,
       Color _color);
 
   virtual bool DrawSkinnedMesh(const Mesh& _mesh,
-                               const Range<math::Float4x4> _skinning_matrices,
+                               const span<math::Float4x4> _skinning_matrices,
                                const ozz::math::Float4x4& _transform,
                                const Options& _options = Options());
 
@@ -147,18 +147,18 @@ class RendererImpl : public Renderer {
   virtual bool DrawSegment(const math::Float3& _begin, const math::Float3& _end,
                            Color _color, const ozz::math::Float4x4& _transform);
 
-  virtual bool DrawVectors(ozz::Range<const float> _positions,
+  virtual bool DrawVectors(ozz::span<const float> _positions,
                            size_t _positions_stride,
-                           ozz::Range<const float> _directions,
+                           ozz::span<const float> _directions,
                            size_t _directions_stride, int _num_vectors,
                            float _vector_length, Color _color,
                            const ozz::math::Float4x4& _transform);
 
   virtual bool DrawBinormals(
-      ozz::Range<const float> _positions, size_t _positions_stride,
-      ozz::Range<const float> _normals, size_t _normals_stride,
-      ozz::Range<const float> _tangents, size_t _tangents_stride,
-      ozz::Range<const float> _handenesses, size_t _handenesses_stride,
+      ozz::span<const float> _positions, size_t _positions_stride,
+      ozz::span<const float> _normals, size_t _normals_stride,
+      ozz::span<const float> _tangents, size_t _tangents_stride,
+      ozz::span<const float> _handenesses, size_t _handenesses_stride,
       int _num_vectors, float _vector_length, Color _color,
       const ozz::math::Float4x4& _transform);
 

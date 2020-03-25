@@ -47,8 +47,8 @@ OZZ_OPTIONS_DECLARE_FLOAT(rate, "Sampling rate", 30, false)
 namespace {
 
 struct LTMIterator {
-  LTMIterator(const ozz::Range<const ozz::math::Transform>& _locals,
-              const ozz::Range<ozz::math::Transform>& _models)
+  LTMIterator(const ozz::span<const ozz::math::Transform>& _locals,
+              const ozz::span<ozz::math::Transform>& _models)
       : locals_(_locals), models_(_models) {}
 
   LTMIterator(const LTMIterator& _it)
@@ -69,8 +69,8 @@ struct LTMIterator {
       model.scale = parent.scale * local.scale;
     }
   }
-  const ozz::Range<const ozz::math::Transform>& locals_;
-  const ozz::Range<ozz::math::Transform>& models_;
+  const ozz::span<const ozz::math::Transform>& locals_;
+  const ozz::span<ozz::math::Transform>& models_;
 
  private:
   void operator=(const LTMIterator&);
@@ -79,10 +79,10 @@ struct LTMIterator {
 // Reimplement local to model-space because ozz runtime version isn't based on
 // ozz::math::Transform
 bool LocalToModel(const ozz::animation::Skeleton& _skeleton,
-                  const ozz::Range<const ozz::math::Transform>& _locals,
-                  const ozz::Range<ozz::math::Transform>& _models) {
-  assert(static_cast<size_t>(_skeleton.num_joints()) == _locals.count() &&
-         _locals.count() == _models.count());
+                  const ozz::span<const ozz::math::Transform>& _locals,
+                  const ozz::span<ozz::math::Transform>& _models) {
+  assert(static_cast<size_t>(_skeleton.num_joints()) == _locals.size() &&
+         _locals.size() == _models.size());
 
   ozz::animation::IterateJointsDF(_skeleton, LTMIterator(_locals, _models));
 
@@ -191,8 +191,8 @@ bool TransformsExperience(CsvFile* _csv,
     // Generatorized animation sampling
     // --------------------------------------------
     success &= _generator->Sample(t);
-    success &= _generator->ReadBack(make_range(locals));
-    success &= LocalToModel(_skeleton, make_range(locals), make_range(models));
+    success &= _generator->ReadBack(make_span(locals));
+    success &= LocalToModel(_skeleton, make_span(locals), make_span(models));
 
     // Push output values to csv
     // -------------------------

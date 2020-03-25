@@ -31,6 +31,7 @@
 #include "ozz/animation/offline/raw_animation.h"
 
 #include "ozz/base/maths/transform.h"
+#include "ozz/base/span.h"
 
 namespace ozz {
 namespace animation {
@@ -96,7 +97,7 @@ bool SampleTrack(const RawAnimation::JointTrack& _track, float _time,
 // Behavior is undetermined if track is invalid but _validate is set to false.
 // Returns false output range is too small or animation is invalid.
 bool SampleAnimation(const RawAnimation& _animation, float _time,
-                     const Range<ozz::math::Transform>& _transforms,
+                     const span<ozz::math::Transform>& _transforms,
                      bool _validate = true);
 
 // Implement fixed rate keyframe time iteration. This utility purpose is to

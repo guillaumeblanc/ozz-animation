@@ -265,18 +265,18 @@ class ScaleAdapter {
 };
 
 struct LTMIterator {
-  LTMIterator(const ozz::Range<const ozz::math::Transform>& _locals,
-              const ozz::Range<ozz::math::Transform>& _models)
+  LTMIterator(const ozz::span<const ozz::math::Transform>& _locals,
+              const ozz::span<ozz::math::Transform>& _models)
       : locals_(_locals),
         models_(_models),
         models_out_(_models),
         local_overload_(),
         joint_overload_(-1) {}
 
-  LTMIterator(const ozz::Range<const ozz::math::Transform>& _locals,
+  LTMIterator(const ozz::span<const ozz::math::Transform>& _locals,
               const ozz::math::Transform& _local_overload, int _joint_overload,
-              const ozz::Range<const ozz::math::Transform>& _models,
-              const ozz::Range<ozz::math::Transform>& _models_out)
+              const ozz::span<const ozz::math::Transform>& _models,
+              const ozz::span<ozz::math::Transform>& _models_out)
       : locals_(_locals),
         models_(_models),
         models_out_(_models_out),
@@ -309,9 +309,9 @@ struct LTMIterator {
  private:
   void operator=(const LTMIterator&);
 
-  ozz::Range<const ozz::math::Transform> locals_;
-  ozz::Range<const ozz::math::Transform> models_;
-  ozz::Range<ozz::math::Transform> models_out_;
+  ozz::span<const ozz::math::Transform> locals_;
+  ozz::span<const ozz::math::Transform> models_;
+  ozz::span<ozz::math::Transform> models_out_;
   const ozz::math::Transform local_overload_;
   int joint_overload_;
 };
@@ -374,17 +374,17 @@ inline float Compare(const ozz::math::Transform& _reference,
 class CompareIterator {
  public:
   CompareIterator(
-      const ozz::Range<const ozz::math::Transform>& _reference_models,
-      const ozz::Range<ozz::math::Transform>& _models,
-      const ozz::Range<const AnimationOptimizer::Setting>& _settings,
-      const ozz::Range<float>& _errors)
+      const ozz::span<const ozz::math::Transform>& _reference_models,
+      const ozz::span<ozz::math::Transform>& _models,
+      const ozz::span<const AnimationOptimizer::Setting>& _settings,
+      const ozz::span<float>& _errors)
       : reference_models_(_reference_models),
         models_(_models),
         settings_(_settings),
         errors_(_errors) {
-    assert(reference_models_.count() == models_.count() &&
-           reference_models_.count() == settings_.count() &&
-           reference_models_.count() == errors_.count());
+    assert(reference_models_.size() == models_.size() &&
+           reference_models_.size() == settings_.size() &&
+           reference_models_.size() == errors_.size());
   }
 
   void operator()(int _joint, int /*_parent*/) {
@@ -397,21 +397,21 @@ class CompareIterator {
  private:
   void operator=(const CompareIterator&);
 
-  const ozz::Range<const ozz::math::Transform> reference_models_;
-  const ozz::Range<const ozz::math::Transform> models_;
-  const ozz::Range<const AnimationOptimizer::Setting> settings_;
+  const ozz::span<const ozz::math::Transform> reference_models_;
+  const ozz::span<const ozz::math::Transform> models_;
+  const ozz::span<const AnimationOptimizer::Setting> settings_;
 
-  const ozz::Range<float> errors_;
+  const ozz::span<float> errors_;
 };
 
 class RatioIterator {
  public:
-  RatioIterator(const ozz::Range<const AnimationOptimizer::Setting>& _settings,
-                const ozz::Range<const float>& _errors)
+  RatioIterator(const ozz::span<const AnimationOptimizer::Setting>& _settings,
+                const ozz::span<const float>& _errors)
       : settings_(_settings),
         errors_(_errors),
         ratio_(-std::numeric_limits<float>::max()) {
-    assert(settings_.count() == errors_.count());
+    assert(settings_.size() == errors_.size());
   }
 
   void operator()(int _joint, int /*_parent*/) {
@@ -430,8 +430,8 @@ class RatioIterator {
  private:
   void operator=(const RatioIterator&);
 
-  const ozz::Range<const AnimationOptimizer::Setting> settings_;
-  const ozz::Range<const float> errors_;
+  const ozz::span<const AnimationOptimizer::Setting> settings_;
+  const ozz::span<const float> errors_;
 
   float ratio_;
 };
@@ -543,7 +543,7 @@ class Comparer {
  public:
   Comparer(const RawAnimation& _original, const RawAnimation& _solution,
            const Skeleton& _skeleton,
-           const ozz::Range<const AnimationOptimizer::Setting>& _settings)
+           const ozz::span<const AnimationOptimizer::Setting>& _settings)
       : solution_(_solution), skeleton_(_skeleton), settings_(_settings) {
     // Comparison only needs to happen at each of the keyframe times.
     // So we get the union of all possible keyframe times
@@ -557,12 +557,12 @@ class Comparer {
     // Populates test local & model space transforms.
     for (size_t i = 0; i < key_times_.size(); ++i) {
       ozz::animation::offline::SampleAnimation(
-          _original, key_times_[i], ozz::make_range(solution_locals_[i]),
+          _original, key_times_[i], ozz::make_span(solution_locals_[i]),
           false);
 
       ozz::animation::IterateJointsDF(
-          _skeleton, LTMIterator(ozz::make_range(solution_locals_[i]),
-                                 ozz::make_range(solution_models_[i])));
+          _skeleton, LTMIterator(ozz::make_span(solution_locals_[i]),
+                                 ozz::make_span(solution_models_[i])));
     }
 
     // All tracks have 0 error.
@@ -597,16 +597,16 @@ class Comparer {
         // Updates model space
         ozz::animation::IterateJointsDF(
             skeleton_,
-            LTMIterator(ozz::make_range(solution_locals_[i]),
-                        ozz::make_range(solution_models_[i])),
+            LTMIterator(ozz::make_span(solution_locals_[i]),
+                        ozz::make_span(solution_models_[i])),
             _joint);
 
         // Compare
         IterateJointsDF(
             skeleton_,
-            CompareIterator(make_range(reference_models_[i]),
-                            make_range(solution_models_[i]), settings_,
-                            make_range(cached_errors_[i])),
+            CompareIterator(make_span(reference_models_[i]),
+                            make_span(solution_models_[i]), settings_,
+                            make_span(cached_errors_[i])),
             _joint);
       }
 
@@ -642,7 +642,7 @@ class Comparer {
         const float ratio =
             IterateJointsDF(
                 skeleton_,
-                RatioIterator(settings_, make_range(cached_errors_[i])), _joint)
+                RatioIterator(settings_, make_span(cached_errors_[i])), _joint)
                 .ratio();
 
         worst_ratio = ozz::math::Max(worst_ratio, ratio);
@@ -658,23 +658,23 @@ class Comparer {
         // Updates LTM, only the relevant ones for _joint hierarchy are written.
         ozz::animation::IterateJointsDF(
             skeleton_,
-            LTMIterator(ozz::make_range(solution_locals_[i]), local, _joint,
-                        ozz::make_range(solution_models_[i]),
-                        ozz::make_range(models)),
+            LTMIterator(ozz::make_span(solution_locals_[i]), local, _joint,
+                        ozz::make_span(solution_models_[i]),
+                        ozz::make_span(models)),
             _joint);
 
         // Compare, only the relevant ones for _joint hierarchy are written.
         IterateJointsDF(
             skeleton_,
-            CompareIterator(make_range(reference_models_[i]),
-                            make_range(models), settings_, make_range(errors)),
+            CompareIterator(make_span(reference_models_[i]),
+                            make_span(models), settings_, make_span(errors)),
             _joint);
 
         // Gets joint error ratio, which is the worst ratio of _joint's
         // hierarchy.
         const float ratio =
             IterateJointsDF(
-                skeleton_, RatioIterator(settings_, make_range(errors)), _joint)
+                skeleton_, RatioIterator(settings_, make_span(errors)), _joint)
                 .ratio();
 
         // Stores worst ratio of whole time range.
@@ -696,7 +696,7 @@ class Comparer {
 
   const RawAnimation& solution_;
   const Skeleton& skeleton_;
-  const ozz::Range<const AnimationOptimizer::Setting> settings_;
+  const ozz::span<const AnimationOptimizer::Setting> settings_;
 
   typedef ozz::vector<ozz::math::Transform> SkeletonTransforms;
   typedef ozz::vector<SkeletonTransforms> SkeletonTransformKeys;
@@ -956,7 +956,7 @@ class HillClimber {
 
     // Setup comparer
     comparer_ = ozz::make_unique<Comparer>(_original, *_output, _skeleton,
-                                           ozz::make_range(settings_));
+                                           ozz::make_span(settings_));
   }
 
   void operator()() {
