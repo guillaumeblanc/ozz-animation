@@ -103,22 +103,21 @@ TEST(TypeSize, Platform) {
 
   // Checks signs. Right shift maintains sign bit for signed types, and fills
   // with 0 for unsigned types.
-  static_assert((int8_t(-1) >> 1) == -1, "Unexpected type size");
-  static_assert((int16_t(-1) >> 1) == -1, "Unexpected type size");
-  static_assert((int32_t(-1) >> 1) == -1, "Unexpected type size");
-  static_assert((int64_t(-1) >> 1) == -1, "Unexpected type size");
-  static_assert((uint8_t(-1) >> 1) == 0x7f, "Unexpected type size");
-  static_assert((uint16_t(-1) >> 1) == 0x7fff, "Unexpected type size");
-  static_assert((uint32_t(-1) >> 1) == 0x7fffffff, "Unexpected type size");
+  static_assert((int8_t(-1) >> 1) == -1, "Unexpected type sign");
+  static_assert((int16_t(-1) >> 1) == -1, "Unexpected type sign");
+  static_assert((int32_t(-1) >> 1) == -1, "Unexpected type sign");
+  static_assert((int64_t(-1) >> 1) == -1, "Unexpected type sign");
+  static_assert((uint8_t(-1) >> 1) == 0x7f, "Unexpected type sign");
+  static_assert((uint16_t(-1) >> 1) == 0x7fff, "Unexpected type sign");
+  static_assert((uint32_t(-1) >> 1) == 0x7fffffff, "Unexpected type sign");
   static_assert((uint64_t(-1) >> 1) == 0x7fffffffffffffffLL,
-                "Unexpected type size");
+                "Unexpected type sign");
 
   // Assumes that an "int" is at least 32 bits.
   static_assert(sizeof(int) >= 4, "Unexpected type size");
 
-  // "char" type is used to manipulate signed bytes.
+  // "char" type is used to manipulate bytes. Can be signed or unsigned.
   static_assert(sizeof(char) == 1, "Unexpected type size");
-  static_assert((char(-1) >> 1) == -1, "Unexpected type size");
 }
 
 TEST(DebudNDebug, Platform) {
