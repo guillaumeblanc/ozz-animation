@@ -23,6 +23,7 @@ matrix:
     compiler: clang
     env:
     - env_cmake_configuration=Release
+
   # Xcode mac os clang build
   - os: osx
     compiler: clang
@@ -33,6 +34,22 @@ matrix:
     env :
     - env_cmake_generator=Xcode
     - env_cmake_configuration=Release
+
+  # Linux ARM
+  - os: linux
+    compiler: clang
+    env:
+    - env_build_fbx=0 
+    - env_cmake_configuration=Debug
+    arch:
+    - arm64
+  - os: linux
+    compiler: clang
+    env:
+    - env_build_fbx=0 
+    - env_cmake_configuration=Release
+    arch:
+    - arm64
 
   # Linux
   # Default linux clang debug
