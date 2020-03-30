@@ -13,7 +13,7 @@ ozz-animation comes with the toolchain to convert from major Digital Content Cre
 Documentation
 -------------
 
-Documentation and samples are available from [ozz-animation website](http://guillaumeblanc.github.io/ozz-animation/).
+Documentation and samples are available from [ozz-animation website](http://guillaumeblanc.github.io/ozz-animation/). Join [Gitter](https://gitter.im/ozz-animation/community) for further discussions.
 
 Supported platforms
 -------------------

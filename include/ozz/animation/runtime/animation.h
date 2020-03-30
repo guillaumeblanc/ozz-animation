@@ -45,9 +45,8 @@ class AnimationBuilder;
 }
 
 // Forward declaration of key frame's type.
-struct TranslationKey;
-struct RotationKey;
-struct ScaleKey;
+struct Float3Key;
+struct QuaternionKey;
 
 // Defines a runtime skeletal animation clip.
 // The runtime animation data structure stores animation keyframes, for all the
@@ -81,15 +80,15 @@ class Animation {
   const char* name() const { return name_ ? name_ : ""; }
 
   // Gets the buffer of translations keys.
-  ozz::span<const TranslationKey> translations() const {
+  span<const Float3Key> translations() const {
     return translations_;
   }
 
   // Gets the buffer of rotation keys.
-  span<const RotationKey> rotations() const { return rotations_; }
+  span<const QuaternionKey> rotations() const { return rotations_; }
 
   // Gets the buffer of scale keys.
-  span<const ScaleKey> scales() const { return scales_; }
+  span<const Float3Key> scales() const { return scales_; }
 
   // Get the estimated animation's size in bytes.
   size_t size() const;
@@ -124,9 +123,9 @@ class Animation {
   char* name_;
 
   // Stores all translation/rotation/scale keys begin and end of buffers.
-  span<TranslationKey> translations_;
-  span<RotationKey> rotations_;
-  span<ScaleKey> scales_;
+  span<Float3Key> translations_;
+  span<QuaternionKey> rotations_;
+  span<Float3Key> scales_;
 };
 }  // namespace animation
 

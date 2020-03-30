@@ -1376,8 +1376,6 @@ bool RendererImpl::DrawSkinnedMesh(
 
     // Setup output positions, coming from the rendering output mesh buffers.
     // We need to offset the buffer every loop.
-
-    // Setup normals if input are provided.
     float* out_positions_begin = reinterpret_cast<float*>(ozz::PointerStride(
         vbo_map, positions_offset + processed_vertex_count * positions_stride));
     float* out_positions_end = ozz::PointerStride(
