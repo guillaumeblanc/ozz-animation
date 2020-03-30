@@ -1,9 +1,8 @@
 language: cpp
 
-dist: trusty
-sudo: required
+dist: xenial
 
-matrix:
+jobs:
   include:
 
   # Emscripten cross compiling
@@ -23,6 +22,7 @@ matrix:
     compiler: clang
     env:
     - env_cmake_configuration=Release
+
   # Xcode mac os clang build
   - os: osx
     compiler: clang
@@ -33,6 +33,22 @@ matrix:
     env :
     - env_cmake_generator=Xcode
     - env_cmake_configuration=Release
+
+  # Linux ARM
+  - os: linux
+    compiler: clang
+    env:
+    - env_build_fbx=0 
+    - env_cmake_configuration=Debug
+    arch:
+    - arm64
+  - os: linux
+    compiler: clang
+    env:
+    - env_build_fbx=0 
+    - env_cmake_configuration=Release
+    arch:
+    - arm64
 
   # Linux
   # Default linux clang debug
@@ -178,6 +194,18 @@ matrix:
 
   # Newer clang
   - os: linux
+    compiler: clang-3.5
+    env:
+    - env_cmake_cxx_compiler=clang++-3.5
+    - env_cmake_c_compiler=clang-3.5
+    addons:
+      apt:
+        sources:
+        - ubuntu-toolchain-r-test
+        - llvm-toolchain-xenial-3.5
+        packages:
+        - clang-3.5
+  - os: linux
     compiler: clang-3.9
     env:
     - env_cmake_cxx_compiler=clang++-3.9
@@ -186,7 +214,7 @@ matrix:
       apt:
         sources:
         - ubuntu-toolchain-r-test
-        - llvm-toolchain-precise-3.9
+        - llvm-toolchain-xenial-3.9
         packages:
         - clang-3.9
   - os: linux
@@ -198,7 +226,7 @@ matrix:
       apt:
         sources:
         - ubuntu-toolchain-r-test
-        - llvm-toolchain-trusty-4.0
+        - llvm-toolchain-xenial-4.0
         packages:
         - clang-4.0
   - os: linux
@@ -210,7 +238,7 @@ matrix:
       apt:
         sources:
         - ubuntu-toolchain-r-test
-        - llvm-toolchain-trusty-5.0
+        - llvm-toolchain-xenial-5.0
         packages:
         - clang-5.0
   - os: linux
@@ -222,7 +250,7 @@ matrix:
       apt:
         sources:
         - ubuntu-toolchain-r-test
-        - llvm-toolchain-trusty-6.0
+        - llvm-toolchain-xenial-6.0
         packages:
         - clang-6.0
   - os: linux
@@ -234,9 +262,21 @@ matrix:
       apt:
         sources:
         - ubuntu-toolchain-r-test
-        - llvm-toolchain-trusty-7
+        - llvm-toolchain-xenial-7
         packages:
         - clang-7
+  - os: linux
+    compiler: clang-8
+    env:
+    - env_cmake_cxx_compiler=clang++-8
+    - env_cmake_c_compiler=clang-8
+    addons:
+      apt:
+        sources:
+        - ubuntu-toolchain-r-test
+        - llvm-toolchain-xenial-8
+        packages:
+        - clang-8
         
   # older fbx sdk
   - os: linux

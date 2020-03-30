@@ -1,10 +1,3 @@
-# Sample requires C++11 threading
-
-if (NOT ozz_build_cpp11 OR NOT "cxx_thread_local" IN_LIST CMAKE_CXX_COMPILE_FEATURES)
-  message("Multithread sample discarded because compiler doesn't support C++11.")
-  return()
-endif()
-
 # Sample requires thread libraries
 find_package(Threads)
 if (NOT Threads_FOUND)
