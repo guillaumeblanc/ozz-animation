@@ -83,7 +83,6 @@ message("-- - ozz_build_samples: " ${ozz_build_samples})
 message("-- - ozz_build_howtos: " ${ozz_build_howtos})
 message("-- - ozz_build_tests: " ${ozz_build_tests})
 message("-- - ozz_build_simd_ref: " ${ozz_build_simd_ref})
-message("-- - ozz_build_cpp11: " ${ozz_build_cpp11})
 message("-- - ozz_build_msvc_rt_dll: " ${ozz_build_msvc_rt_dll})
 message("-- - ozz_build_postfix: " ${ozz_build_postfix})
 
