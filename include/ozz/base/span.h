@@ -52,7 +52,7 @@ struct span {
   span() : data_(nullptr), size_(0) {}
 
   // Constructs a range from its extreme values.
-  span(_Ty* _begin, _Ty* _end) : data_(_begin), size_(_end - _begin) {
+  span(_Ty* _begin, _Ty* _end) : data_(_begin), size_(static_cast<size_t>(_end - _begin)) {
     assert(_begin <= _end && "Invalid range.");
   }
 

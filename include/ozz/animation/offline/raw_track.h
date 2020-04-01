@@ -89,12 +89,6 @@ struct RawTrack {
   typedef _ValueType ValueType;
   typedef RawTrackKeyframe<ValueType> Keyframe;
 
-  // Constructs a valid RawFloatTrack.
-  RawTrack();
-
-  // Deallocates track.
-  ~RawTrack();
-
   // Validates that all the following rules are respected:
   //  1. Keyframes' ratios are sorted in a strict ascending order.
   //  2. Keyframes' ratios are all within [0,1] range.
