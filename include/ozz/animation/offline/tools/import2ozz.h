@@ -53,6 +53,8 @@ namespace offline {
 // done by the tool.
 class OzzImporter {
  public:
+  virtual ~OzzImporter() {}
+
   // Function operator that must be called with main() arguments to start import
   // process.
   int operator()(int _argc, const char** _argv);

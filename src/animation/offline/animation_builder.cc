@@ -69,9 +69,8 @@ struct SortingScaleKey {
 // Keyframe sorting. Stores first by time and then track number.
 template <typename _Key>
 bool SortingKeyLess(const _Key& _left, const _Key& _right) {
-  return _left.prev_key_time < _right.prev_key_time ||
-         (_left.prev_key_time == _right.prev_key_time &&
-          _left.track < _right.track);
+  const float time_diff = _left.prev_key_time - _right.prev_key_time;
+  return time_diff < 0.f || (time_diff == 0.f && _left.track < _right.track);
 }
 
 template <typename _SrcKey, typename _DestTrack>
@@ -117,12 +116,13 @@ void CopyRaw(const _SrcTrack& _src, uint16_t _track, float _duration,
       _dest->push_back(key);
       prev_time = raw_key.time;
     }
-    if (_src.back().time != _duration) {  // Needs a key at t = _duration.
+    if (_src.back().time - _duration != 0.f) {  // Needs a key at t = _duration.
       const DestKey last = {_track, prev_time, {_duration, _src.back().value}};
       _dest->push_back(last);
     }
   }
-  assert(_dest->front().key.time == 0.f && _dest->back().key.time == _duration);
+  assert(_dest->front().key.time == 0.f &&
+         _dest->back().key.time - _duration == 0.f);
 }
 
 template <typename _SortingKey>
