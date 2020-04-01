@@ -36,27 +36,26 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Simd math force ref
 if(ozz_build_simd_ref)
-  set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS OZZ_BUILD_SIMD_REF)
+  add_compile_definitions(OZZ_BUILD_SIMD_REF)
 endif()
+
+ # Disables crt secure warnings
+ add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
 
 #--------------------------------------
 # Modify default MSVC compilation flags
-if(MSVC)
-
+if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
   #---------------------------
   # For the common build flags
 
-  # Disables crt secure warnings
-  set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS _CRT_SECURE_NO_WARNINGS)
-
   # Adds support for multiple processes builds
-  set_property(DIRECTORY APPEND PROPERTY COMPILE_OPTIONS "/MP")
+  add_compile_options(/MP)
 
   # Set the warning level to W4
-  set_property(DIRECTORY APPEND PROPERTY COMPILE_OPTIONS "/W4")
+  add_compile_options(/W4)
 
   # Set warning as error
-  set_property(DIRECTORY APPEND PROPERTY COMPILE_OPTIONS "/WX")
+  add_compile_options(/WX)
 
   # Select whether to use the DLL version or the static library version of the Visual C++ runtime library.
   foreach(flag ${cxx_all_flags})
@@ -68,26 +67,30 @@ if(MSVC)
   endforeach()
 
 #--------------------------------------
-# else consider the compiler as GCC compatible
-# Modify default GCC compilation flags
+# else consider the compiler as GCC compatible (inc clang)
 else()
 
   # Set the warning level to Wall
-  set_property(DIRECTORY APPEND PROPERTY COMPILE_OPTIONS "-Wall")
+  add_compile_options(-Wall)
 
   # Enable extra level of warning
-  #set_property(DIRECTORY APPEND PROPERTY COMPILE_OPTIONS "-Wextra")
+  #add_compile_options(-Wextra)
 
   # Set warning as error
-  set_property(DIRECTORY APPEND PROPERTY COMPILE_OPTIONS "-Werror")
+  add_compile_options(-Werror)
 
-  # GCC ignored-attributes reports issue when using _m128 as template argument
-  if(CMAKE_COMPILER_IS_GNUCXX)
-    check_cxx_compiler_flag("-Wignored-attributes" W_IGNORED_ATTRIBUTES)
-    if(W_IGNORED_ATTRIBUTES)
-      set_property(DIRECTORY APPEND PROPERTY COMPILE_OPTIONS "-Wno-ignored-attributes")
-    endif()
+  # ignored-attributes reports issue when using _m128 as template argument
+  check_cxx_compiler_flag("-Wignored-attributes" W_IGNORED_ATTRIBUTES)
+  if(W_IGNORED_ATTRIBUTES)
+    add_compile_options(-Wno-ignored-attributes)
   endif()
+  
+  # Disables c98 retrocompatibility warnings
+  check_cxx_compiler_flag("-Wc++98-compat-pedantic" W_98_COMPAT_PEDANTIC)
+  if(W_98_COMPAT_PEDANTIC)
+    add_compile_options(-Wno-c++98-compat-pedantic)
+  endif()
+
 
   # Check some options availibity for the targetted compiler
   check_cxx_compiler_flag("-Wnull-dereference" W_NULL_DEREFERENCE)
@@ -95,7 +98,7 @@ else()
 
   # Enables debug glibcxx if NDebug isn't defined, not supported by APPLE
   if(NOT APPLE)
-    set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS "$<$<CONFIG:Debug>:_GLIBCXX_DEBUG>")
+    add_compile_definitions($<$<CONFIG:Debug>:_GLIBCXX_DEBUG>)
   endif()
 
   #----------------------

@@ -29,11 +29,10 @@
 #define OZZ_OZZ_ANIMATION_RUNTIME_TRACK_H_
 
 #include "ozz/base/io/archive_traits.h"
-#include "ozz/base/platform.h"
-#include "ozz/base/span.h"
-
 #include "ozz/base/maths/quaternion.h"
 #include "ozz/base/maths/vec_float.h"
+#include "ozz/base/platform.h"
+#include "ozz/base/span.h"
 
 namespace ozz {
 namespace animation {
@@ -143,6 +142,14 @@ template <>
 inline math::Quaternion TrackPolicy<math::Quaternion>::identity() {
   return math::Quaternion::identity();
 }
+
+// Explicit template instanciation declaration, so that the compiler knows that
+// instanciation exists if used in another compilation unit.
+extern template class Track<float>;
+extern template class Track<math::Float2>;
+extern template class Track<math::Float3>;
+extern template class Track<math::Float4>;
+extern template class Track<math::Quaternion>;
 }  // namespace internal
 
 // Runtime track data structure instantiation.

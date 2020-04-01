@@ -147,7 +147,6 @@ template class Track<math::Float2>;
 template class Track<math::Float3>;
 template class Track<math::Float4>;
 template class Track<math::Quaternion>;
-
 }  // namespace internal
 }  // namespace animation
 }  // namespace ozz

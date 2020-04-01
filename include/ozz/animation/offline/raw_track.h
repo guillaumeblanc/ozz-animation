@@ -106,6 +106,13 @@ struct RawTrack {
   // Name of the track.
   string name;
 };
+
+// Explicit template instanciation declaration.
+extern template struct RawTrack<float>;
+extern template struct RawTrack<math::Float2>;
+extern template struct RawTrack<math::Float3>;
+extern template struct RawTrack<math::Float4>;
+extern template struct RawTrack<math::Quaternion>;
 }  // namespace internal
 
 // Offline user-channel animation track type instantiation.

@@ -122,7 +122,7 @@ bool ImportSkeleton(const Json::Value& _config, OzzImporter* _importer,
 
   // Setup node types import properties.
   const Json::Value& types_config = import_config["types"];
-  OzzImporter::NodeType types = {0};
+  OzzImporter::NodeType types = {};
   types.skeleton = types_config["skeleton"].asBool();
   types.marker = types_config["marker"].asBool();
   types.camera = types_config["camera"].asBool();
