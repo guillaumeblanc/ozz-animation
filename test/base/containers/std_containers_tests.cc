@@ -171,7 +171,7 @@ TEST(Set, Containers) {
     EXPECT_FALSE(container.insert('b').second);
     EXPECT_TRUE(container.find('a') == container.begin());
     EXPECT_TRUE(container.find('c') == --container.end());
-    EXPECT_EQ(container.erase('c'), 1);
+    EXPECT_EQ(container.erase('c'), 1u);
 
     EXPECT_TRUE(container.find('b') == --container.end());
     container.clear();
@@ -188,9 +188,9 @@ TEST(Set, Containers) {
     EXPECT_TRUE(container.find('a') == container.begin() ||
                 container.find('a') == ++container.begin());
     EXPECT_TRUE(container.find('c') == --container.end());
-    EXPECT_EQ(container.erase('c'), 1);
+    EXPECT_EQ(container.erase('c'), 1u);
     EXPECT_TRUE(container.find('c') == container.end());
-    EXPECT_EQ(container.erase('a'), 2);
+    EXPECT_EQ(container.erase('a'), 2u);
     EXPECT_TRUE(container.find('a') == container.end());
     container.clear();
   }
@@ -206,7 +206,7 @@ TEST(UnorderedSet, Containers) {
     EXPECT_FALSE(container.insert('a').second);
     EXPECT_TRUE(container.find('a') != container.end());
     EXPECT_TRUE(container.find('c') != container.end());
-    EXPECT_EQ(container.erase('c'), 1);
+    EXPECT_EQ(container.erase('c'), 1u);
     EXPECT_TRUE(container.find('c') == container.end());
     container.clear();
   }
@@ -219,9 +219,9 @@ TEST(UnorderedSet, Containers) {
     container.insert('a');
     EXPECT_TRUE(container.find('a') != container.end());
     EXPECT_TRUE(container.find('c') != container.end());
-    EXPECT_EQ(container.erase('c'), 1);
+    EXPECT_EQ(container.erase('c'), 1u);
     EXPECT_TRUE(container.find('c') == container.end());
-    EXPECT_EQ(container.erase('a'), 2);
+    EXPECT_EQ(container.erase('a'), 2u);
     EXPECT_TRUE(container.find('a') == container.end());
     container.clear();
   }
@@ -239,7 +239,7 @@ TEST(Map, Containers) {
     EXPECT_EQ(container['b'], -2);
     EXPECT_EQ(container['c'], -1);
     EXPECT_EQ(container['d'], 1);
-    EXPECT_EQ(container.erase('d'), 1);
+    EXPECT_EQ(container.erase('d'), 1u);
     EXPECT_TRUE(container.find('d') == container.end());
     container.clear();
 
@@ -258,7 +258,7 @@ TEST(Map, Containers) {
     EXPECT_EQ(container.find('c')->second, -1);
     EXPECT_TRUE(container.find('d')->second == 1 ||
                 container.find('d')->second == 2);
-    EXPECT_EQ(container.erase('d'), 2);
+    EXPECT_EQ(container.erase('d'), 2u);
     EXPECT_TRUE(container.find('d') == container.end());
     container.clear();
   }
@@ -276,7 +276,7 @@ TEST(UnorderedMap, Containers) {
     EXPECT_EQ(container['b'], -2);
     EXPECT_EQ(container['c'], -1);
     EXPECT_EQ(container['d'], 1);
-    EXPECT_EQ(container.erase('d'), 1);
+    EXPECT_EQ(container.erase('d'), 1u);
     EXPECT_TRUE(container.find('d') == container.end());
     container.clear();
   }
@@ -293,7 +293,7 @@ TEST(UnorderedMap, Containers) {
     EXPECT_EQ(container.find('c')->second, -1);
     EXPECT_TRUE(container.find('d')->second == 1 ||
                 container.find('d')->second == 2);
-    EXPECT_EQ(container.erase('d'), 2);
+    EXPECT_EQ(container.erase('d'), 2u);
     EXPECT_TRUE(container.find('d') == container.end());
     container.clear();
   }
