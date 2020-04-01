@@ -1,11 +1,3 @@
-# Sample requires C++11 threading
-
-list (FIND CMAKE_CXX_COMPILE_FEATURES "cxx_thread_local" found_index)
-if (${found_index} EQUAL -1)
-  message("Multithread sample discarded because compiler doesn't support C++11.")
-  return()
-endif()
-
 # Sample requires thread libraries
 find_package(Threads)
 if (NOT Threads_FOUND)
