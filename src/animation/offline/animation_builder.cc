@@ -198,9 +198,10 @@ void CopyToAnimation(const ozz::vector<_SortingKey>& _src, size_t _num_tracks,
     const _SortingKey& src = _src[i];
     _OutputKey& key = (*_dest)[i];
     key.ratio = src.key.time * _inv_duration;
-    key.previous = previouses[src.track]
-                       ? static_cast<size_t>(&key - previouses[src.track])
-                       : 0;
+    const ptrdiff_t diff =
+        previouses[src.track] ? &key - previouses[src.track] : 0;
+    assert(diff < 8191);  // TODO real number.
+    key.previous = static_cast<uint16_t>(diff);
     _compressor(src.key.value, &key);
 
     // Stores track position

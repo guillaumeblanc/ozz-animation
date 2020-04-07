@@ -82,7 +82,7 @@ int TrackForward(int* _cache, const ozz::span<const _Key>& _keys,
     return 0;
   }
   int* curr = ++_cache;
-  for (int target = _key - _keys.data() - _key->previous; *curr != target;
+  for (ptrdiff_t target = _key - _keys.data() - _key->previous; *curr != target;
        curr += 2) {
   }
   return static_cast<int>(curr - _cache) / 2;
@@ -93,7 +93,7 @@ int TrackBackward(int* _cache, const ozz::span<const _Key>& _keys,
                   const _Key* _key) {
   assert(_key < _keys.end());
   int* curr = ++_cache;
-  for (int target = _key - _keys.data(); *curr != target; curr += 2) {
+  for (ptrdiff_t target = _key - _keys.data(); *curr != target; curr += 2) {
   }
   return static_cast<int>(curr - _cache) / 2;
 }
