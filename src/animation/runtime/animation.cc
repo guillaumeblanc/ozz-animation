@@ -116,24 +116,24 @@ void Animation::Save(ozz::io::OArchive& _archive) const {
 
   for (const Float3Key& key : translations_) {
     _archive << key.ratio;
-    _archive << key.track;
+    _archive << key.previous;
     _archive << ozz::io::MakeArray(key.value);
   }
 
   for (const QuaternionKey& key : rotations_) {
     _archive << key.ratio;
-    uint16_t track = key.track;
-    _archive << track;
-    uint8_t largest = key.largest;
+    const uint16_t previous = key.previous;
+    _archive << previous;
+    const uint8_t largest = key.largest;
     _archive << largest;
-    bool sign = key.sign;
+    const bool sign = key.sign;
     _archive << sign;
     _archive << ozz::io::MakeArray(key.value);
   }
 
   for (const Float3Key& key : scales_) {
     _archive << key.ratio;
-    _archive << key.track;
+    _archive << key.previous;
     _archive << ozz::io::MakeArray(key.value);
   }
 }
@@ -145,7 +145,7 @@ void Animation::Load(ozz::io::IArchive& _archive, uint32_t _version) {
   num_tracks_ = 0;
 
   // No retro-compatibility with anterior versions.
-  if (_version != 6) {
+  if (_version != 7) {
     log::Err() << "Unsupported Animation version " << _version << "."
                << std::endl;
     return;
@@ -175,15 +175,15 @@ void Animation::Load(ozz::io::IArchive& _archive, uint32_t _version) {
 
   for (Float3Key& key : translations_) {
     _archive >> key.ratio;
-    _archive >> key.track;
+    _archive >> key.previous;
     _archive >> ozz::io::MakeArray(key.value);
   }
 
   for (QuaternionKey& key : rotations_) {
     _archive >> key.ratio;
-    uint16_t track;
-    _archive >> track;
-    key.track = track;
+    uint16_t previous;
+    _archive >> previous;
+    key.previous = previous;
     uint8_t largest;
     _archive >> largest;
     key.largest = largest & 3;
@@ -195,7 +195,7 @@ void Animation::Load(ozz::io::IArchive& _archive, uint32_t _version) {
 
   for (Float3Key& key : scales_) {
     _archive >> key.ratio;
-    _archive >> key.track;
+    _archive >> key.previous;
     _archive >> ozz::io::MakeArray(key.value);
   }
 }

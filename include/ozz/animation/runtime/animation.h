@@ -80,9 +80,7 @@ class Animation {
   const char* name() const { return name_ ? name_ : ""; }
 
   // Gets the buffer of translations keys.
-  span<const Float3Key> translations() const {
-    return translations_;
-  }
+  span<const Float3Key> translations() const { return translations_; }
 
   // Gets the buffer of rotation keys.
   span<const QuaternionKey> rotations() const { return rotations_; }
@@ -130,7 +128,7 @@ class Animation {
 }  // namespace animation
 
 namespace io {
-OZZ_IO_TYPE_VERSION(6, animation::Animation)
+OZZ_IO_TYPE_VERSION(7, animation::Animation)
 OZZ_IO_TYPE_TAG("ozz-animation", animation::Animation)
 }  // namespace io
 }  // namespace ozz

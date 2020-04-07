@@ -75,6 +75,29 @@ bool SamplingJob::Validate() const {
 }
 
 namespace {
+template <typename _Key>
+int TrackForward(int* _cache, const ozz::span<const _Key>& _keys,
+                 const _Key* _key) {
+  if (_key == _keys.end()) {
+    return 0;
+  }
+  int* curr = ++_cache;
+  for (int target = _key - _keys.data() - _key->previous; *curr != target;
+       curr += 2) {
+  }
+  return static_cast<int>(curr - _cache) / 2;
+}
+
+template <typename _Key>
+int TrackBackward(int* _cache, const ozz::span<const _Key>& _keys,
+                  const _Key* _key) {
+  assert(_key < _keys.end());
+  int* curr = ++_cache;
+  for (int target = _key - _keys.data(); *curr != target; curr += 2) {
+  }
+  return static_cast<int>(curr - _cache) / 2;
+}
+
 // Loops through the sorted key frames and update cache structure.
 template <typename _Key>
 void UpdateCacheCursor(float _ratio, int _num_soa_tracks,
@@ -114,27 +137,44 @@ void UpdateCacheCursor(float _ratio, int _num_soa_tracks,
         0xff >> (num_outdated_flags * 8 - _num_soa_tracks);
   } else {
     cursor = _keys.begin() + *_cursor;  // Might be == end()
-    assert(cursor >= _keys.begin() + num_tracks * 2 && cursor <= _keys.end());
   }
+  assert(cursor >= _keys.begin() + num_tracks * 2 && cursor <= _keys.end());
 
-  // Search for the keys that matches _ratio.
+  // Reading forward.
   // Iterates while the cache is not updated with left and right keys required
   // for interpolation at time ratio _ratio, for all tracks. Thanks to the
   // keyframe sorting, the loop can end as soon as it finds a key greater that
   // _ratio. It will mean that all the keys lower than _ratio have been
   // processed, meaning all cache entries are up to date.
-  while (cursor < _keys.end() &&
-         _keys[_cache[cursor->track * 2 + 1]].ratio <= _ratio) {
+  for (int track = TrackForward(_cache, _keys, cursor);
+       cursor < _keys.end() && _keys[_cache[track * 2 + 1]].ratio <= _ratio;
+       ++cursor, track = TrackForward(_cache, _keys, cursor)) {
     // Flag this soa entry as outdated.
-    _outdated[cursor->track / 32] |= (1 << ((cursor->track & 0x1f) / 4));
+    _outdated[track / 32] |= 1 << ((track & 0x1f) / 4);
     // Updates cache.
-    const int base = cursor->track * 2;
+    const int base = track * 2;
     _cache[base] = _cache[base + 1];
     _cache[base + 1] = static_cast<int>(cursor - _keys.begin());
-    // Process next key.
-    ++cursor;
   }
-  assert(cursor <= _keys.end());
+  assert(cursor >= _keys.begin() + num_tracks * 2 && cursor <= _keys.end());
+
+  // Rewind
+  // Check if the last changed key (cursor[-1]) in the cache is still smaller
+  // that _ratio (must check the 1st/left lerp argument). Otherwise rewind a
+  // step.
+  for (int track = TrackBackward(_cache, _keys, cursor - 1);
+       _keys[_cache[track * 2]].ratio > _ratio && --cursor;
+       track = TrackBackward(_cache, _keys, cursor - 1)) {
+    // Flag this soa entry as outdated.
+    _outdated[track / 32] |= 1 << ((track & 0x1f) / 4);
+
+    const int base = track * 2;
+    _cache[base + 1] = _cache[base];
+    const int previous = _keys[_cache[base]].previous;
+    assert(_cache[base] >= previous);
+    _cache[base] -= previous;
+  }
+  assert(cursor >= _keys.begin() + num_tracks * 2 && cursor <= _keys.end());
 
   // Updates cursor output.
   *_cursor = static_cast<int>(cursor - _keys.begin());
@@ -431,8 +471,17 @@ void SamplingCache::Resize(int _max_tracks) {
 }
 
 void SamplingCache::Step(const Animation& _animation, float _ratio) {
-  // The cache is invalidated if animation has changed or if it is being rewind.
-  if (animation_ != &_animation || _ratio < ratio_) {
+  // The cache is invalidated if animation has changed...
+  const bool changed = animation_ != &_animation;
+
+  // ... or if it is rewinding.
+  // Note that if current state is below kRestartOverhead treshold, then better
+  // rewind than restart as it won't trash the cached keyframes.
+  const float kRestartOverhead =
+      .05f;  // Restart is worth 5% of seek time (just a guess).
+  const bool restart = ratio_ > kRestartOverhead && ratio_ - _ratio > _ratio;
+
+  if (changed || restart) {
     animation_ = &_animation;
     translation_cursor_ = 0;
     rotation_cursor_ = 0;
