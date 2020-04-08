@@ -148,7 +148,7 @@ void Sort(ozz::vector<_SortingKey>& _src, size_t _num_tracks,
 
       // Inject key if distance from previous one is too big to be stored in
       // runtime data structure.
-      if (previous.first != -1 && i - previous.first > 191) {  // TODO
+      if (previous.first != -1 && i - previous.first > kMaxPreviousOffset) {
         assert(previous.second != -1 &&
                "Not possible not to have a valid penultimate key.");
         // Copy as originals are going to be (re)moved.
