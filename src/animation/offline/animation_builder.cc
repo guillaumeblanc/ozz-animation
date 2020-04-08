@@ -126,14 +126,17 @@ void CopyRaw(const _SrcTrack& _src, uint16_t _track, float _duration,
   assert(_dest->front().key.time == 0.f && _dest->back().key.time == _duration);
 }
 
+
+#if 0
+
 template <typename _SortingKey>
-_SortingKey* Previous(ozz::vector<_SortingKey>& _src, _SortingKey* _key) {
-  for (int track = (_key--)->track; _key >= _src.data(); --_key) {
-    if (_key->track == track) {
-      return _key;
+int Previous(ozz::vector<_SortingKey>& _src, int _at) {
+  for (int track = _src[_at--].track; _at; --_at) {
+    if (_src[_at].track == track) {
+      return _at;
     }
   }
-  return nullptr;
+  return 0;
 }
 
 template <typename _SortingKey, class _Lerp, class _Compare>
@@ -188,6 +191,62 @@ void Sort(ozz::vector<_SortingKey>& _src, size_t _num_tracks,
     }
   }
 }
+
+#else
+template <typename _SortingKey, class _Lerp, class _Compare>
+void Sort(ozz::vector<_SortingKey>& _src, size_t _num_tracks,
+          const _Lerp& _lerp, const _Compare& _comp) {
+  // Sorts whole vector
+  std::sort(_src.begin(), _src.end(), _comp);
+
+  for (bool loop = true; loop;) {
+    loop = false;  // Will be set to true again if vector was changed.
+
+    ozz::vector<std::pair<int, int>> previouses(_num_tracks);
+    for (int i = 0; i < _src.size(); ++i) {
+      const _SortingKey& src = _src[i];
+      int previous = previouses[src.track].first;
+
+      // Inject key if distance from previous one is too big to be stored in
+      // runtime data structure.
+      if (previous && i - previous > 191) {  // TODO correct number
+        // Copy as original is going to be removed.
+        _SortingKey right = _src[previous];
+        int left_i = previouses[src.track].second;
+        const _SortingKey& left = _src[left_i];
+
+        // Prepares new key to insert.
+        const _SortingKey new_key = {
+            src.track,
+            left.key.time,
+            {(left.key.time + right.key.time) * .5f,
+             _lerp(left.key.value, right.key.value, .5f)}};
+
+        // Removes right key that is changing and needs to be resorted.
+        _src.erase(_src.begin() + previous);
+
+        // Pushes the new key....
+        _src.push_back(new_key);
+
+        // ... and the modified one.
+        right.prev_key_time = new_key.key.time;
+        _src.push_back(right);
+
+        // Re-sorts vector in place. Avoids resorting whole vector.
+        // Nothing has changed before left_i.
+        std::inplace_merge(_src.begin() + left_i, _src.end() - 2, _src.end(),
+                           _comp);
+
+        // Restart as it things might have changed behind insertion point.
+        loop = true;
+        break;
+      }
+      previouses[src.track].second = previouses[src.track].first;
+      previouses[src.track].first = i;
+    }
+  }
+}
+#endif
 
 template <typename _SortingKey, typename _OutputKey, typename _Compressor>
 void CopyToAnimation(const ozz::vector<_SortingKey>& _src, size_t _num_tracks,
