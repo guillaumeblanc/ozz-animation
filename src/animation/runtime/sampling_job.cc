@@ -77,25 +77,47 @@ bool SamplingJob::Validate() const {
 namespace {
 template <typename _Key>
 int TrackForward(int* _cache, const ozz::span<const _Key>& _keys,
-                 const _Key* _key) {
+                 const _Key* _key, int _last_track, int _num_tracks) {
   if (_key == _keys.end()) {
     return 0;
   }
-  int* curr = ++_cache;
-  for (ptrdiff_t target = _key - _keys.data() - _key->previous; *curr != target;
-       curr += 2) {
+
+  int target = _key - _keys.data() - _key->previous;
+  for (int entry = _last_track * 2 + 1; entry < _num_tracks * 2; entry += 2) {
+    if (_cache[entry] == target) {
+      return entry / 2;
+    }
   }
-  return static_cast<int>(curr - _cache) / 2;
+  for (int entry = 1;; entry += 2) {
+    if (_cache[entry] == target) {
+      return entry / 2;
+    }
+    assert(entry < _last_track * 2 && "Previous track should be in cache");
+  }
 }
 
 template <typename _Key>
 int TrackBackward(int* _cache, const ozz::span<const _Key>& _keys,
-                  const _Key* _key) {
+                  const _Key* _key, int _last_track, int _num_tracks) {
   assert(_key < _keys.end());
+  /*
   int* curr = ++_cache;
   for (ptrdiff_t target = _key - _keys.data(); *curr != target; curr += 2) {
   }
-  return static_cast<int>(curr - _cache) / 2;
+  return static_cast<int>(curr - _cache) / 2;*/
+
+  int target = _key - _keys.data();
+  for (int entry = _last_track * 2 + 1; entry >= 1; entry -= 2) {
+    if (_cache[entry] == target) {
+      return entry / 2;
+    }
+  }
+  for (int entry = _num_tracks * 2 + 1;; entry -= 2) {
+    if (_cache[entry] == target) {
+      return entry / 2;
+    }
+    assert(entry > _last_track * 2 + 1 && "Previous track should be in cache");
+  }
 }
 
 // Loops through the sorted key frames and update cache structure.
@@ -146,9 +168,12 @@ void UpdateCacheCursor(float _ratio, int _num_soa_tracks,
   // keyframe sorting, the loop can end as soon as it finds a key greater that
   // _ratio. It will mean that all the keys lower than _ratio have been
   // processed, meaning all cache entries are up to date.
-  for (int track = TrackForward(_cache, _keys, cursor);
+  for (int last_track = 0,
+           track = TrackForward(_cache, _keys, cursor, last_track, num_tracks);
        cursor < _keys.end() && _keys[_cache[track * 2 + 1]].ratio <= _ratio;
-       ++cursor, track = TrackForward(_cache, _keys, cursor)) {
+       ++cursor, last_track = track,
+           track =
+               TrackForward(_cache, _keys, cursor, last_track, num_tracks)) {
     // Flag this soa entry as outdated.
     _outdated[track / 32] |= 1 << ((track & 0x1f) / 4);
     // Updates cache.
@@ -162,9 +187,11 @@ void UpdateCacheCursor(float _ratio, int _num_soa_tracks,
   // Check if the last changed key (cursor[-1]) in the cache is still smaller
   // that _ratio (must check the 1st/left lerp argument). Otherwise rewind a
   // step.
-  for (int track = TrackBackward(_cache, _keys, cursor - 1);
+  for (int last_track = 0, track = TrackBackward(_cache, _keys, cursor - 1,
+                                                 last_track, num_tracks);
        _keys[_cache[track * 2]].ratio > _ratio && --cursor;
-       track = TrackBackward(_cache, _keys, cursor - 1)) {
+       last_track = track, track = TrackBackward(_cache, _keys, cursor - 1,
+                                                 last_track, num_tracks)) {
     // Flag this soa entry as outdated.
     _outdated[track / 32] |= 1 << ((track & 0x1f) / 4);
 
