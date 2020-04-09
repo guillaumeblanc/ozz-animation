@@ -100,11 +100,6 @@ template <typename _Key>
 int TrackBackward(int* _cache, const ozz::span<const _Key>& _keys,
                   const _Key* _key, int _last_track, int _num_tracks) {
   assert(_key < _keys.end());
-  /*
-  int* curr = ++_cache;
-  for (ptrdiff_t target = _key - _keys.data(); *curr != target; curr += 2) {
-  }
-  return static_cast<int>(curr - _cache) / 2;*/
 
   int target = _key - _keys.data();
   for (int entry = _last_track * 2 + 1; entry >= 1; entry -= 2) {
@@ -168,38 +163,34 @@ void UpdateCacheCursor(float _ratio, int _num_soa_tracks,
   // keyframe sorting, the loop can end as soon as it finds a key greater that
   // _ratio. It will mean that all the keys lower than _ratio have been
   // processed, meaning all cache entries are up to date.
-  for (int last_track = 0,
-           track = TrackForward(_cache, _keys, cursor, last_track, num_tracks);
-       cursor < _keys.end() && _keys[_cache[track * 2 + 1]].ratio <= _ratio;
-       ++cursor, last_track = track,
-           track =
-               TrackForward(_cache, _keys, cursor, last_track, num_tracks)) {
+  int track = TrackForward(_cache, _keys, cursor, 0, num_tracks);
+  for (; cursor < _keys.end() && _keys[_cache[track * 2 + 1]].ratio <= _ratio;
+       ++cursor,
+       track = TrackForward(_cache, _keys, cursor, track, num_tracks)) {
     // Flag this soa entry as outdated.
     _outdated[track / 32] |= 1 << ((track & 0x1f) / 4);
     // Updates cache.
-    const int base = track * 2;
-    _cache[base] = _cache[base + 1];
-    _cache[base + 1] = static_cast<int>(cursor - _keys.begin());
+    const int entry = track * 2;
+    _cache[entry] = _cache[entry + 1];
+    _cache[entry + 1] = static_cast<int>(cursor - _keys.begin());
   }
   assert(cursor >= _keys.begin() + num_tracks * 2 && cursor <= _keys.end());
 
-  // Rewind
-  // Check if the last changed key (cursor[-1]) in the cache is still smaller
-  // that _ratio (must check the 1st/left lerp argument). Otherwise rewind a
-  // step.
-  for (int last_track = 0, track = TrackBackward(_cache, _keys, cursor - 1,
-                                                 last_track, num_tracks);
+  // Rewinds.
+  // Check if the last changed key (cursor[-1]) in the cache is still
+  // smaller that _ratio (must check the 1st/left lerp argument). Otherwise
+  // rewind a step.
+  for (track = TrackBackward(_cache, _keys, cursor - 1, track, num_tracks);
        _keys[_cache[track * 2]].ratio > _ratio && --cursor;
-       last_track = track, track = TrackBackward(_cache, _keys, cursor - 1,
-                                                 last_track, num_tracks)) {
+       track = TrackBackward(_cache, _keys, cursor - 1, track, num_tracks)) {
     // Flag this soa entry as outdated.
     _outdated[track / 32] |= 1 << ((track & 0x1f) / 4);
 
-    const int base = track * 2;
-    _cache[base + 1] = _cache[base];
-    const int previous = _keys[_cache[base]].previous;
-    assert(_cache[base] >= previous);
-    _cache[base] -= previous;
+    const int entry = track * 2;
+    _cache[entry + 1] = _cache[entry];
+    const int previous = _keys[_cache[entry]].previous;
+    assert(_cache[entry] >= previous);
+    _cache[entry] -= previous;
   }
   assert(cursor >= _keys.begin() + num_tracks * 2 && cursor <= _keys.end());
 

@@ -75,7 +75,7 @@ struct QuaternionKey {
   int16_t value[3];      // The quantized value of the 3 smallest components.
 };
 
-const size_t kMaxPreviousOffset = (1 << 13) - 1;
+enum Constants { kMaxPreviousOffset = (1 << 13) - 1 };
 
 }  // namespace animation
 }  // namespace ozz
