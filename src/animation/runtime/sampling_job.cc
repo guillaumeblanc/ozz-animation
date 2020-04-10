@@ -76,13 +76,13 @@ bool SamplingJob::Validate() const {
 
 namespace {
 template <typename _Key>
-int TrackForward(int* _cache, const ozz::span<const _Key>& _keys,
-                 const _Key* _key, int _last_track, int _num_tracks) {
-  if (_key == _keys.end()) {
+int TrackForward(int* _cache, const ozz::span<const _Key>& _keys, int _key,
+                 int _last_track, int _num_tracks) {
+  if (_key == _keys.size()) {
     return 0;
   }
 
-  int target = _key - _keys.data() - _key->previous;
+  int target = _key - _keys[_key].previous;
   for (int entry = _last_track * 2 + 1; entry < _num_tracks * 2; entry += 2) {
     if (_cache[entry] == target) {
       return entry / 2;
@@ -97,18 +97,17 @@ int TrackForward(int* _cache, const ozz::span<const _Key>& _keys,
 }
 
 template <typename _Key>
-int TrackBackward(int* _cache, const ozz::span<const _Key>& _keys,
-                  const _Key* _key, int _last_track, int _num_tracks) {
-  assert(_key < _keys.end());
+int TrackBackward(int* _cache, const ozz::span<const _Key>& _keys, int _target,
+                  int _last_track, int _num_tracks) {
+  assert(_target < _keys.size());
 
-  int target = _key - _keys.data();
   for (int entry = _last_track * 2 + 1; entry >= 1; entry -= 2) {
-    if (_cache[entry] == target) {
+    if (_cache[entry] == _target) {
       return entry / 2;
     }
   }
   for (int entry = _num_tracks * 2 + 1;; entry -= 2) {
-    if (_cache[entry] == target) {
+    if (_cache[entry] == _target) {
       return entry / 2;
     }
     assert(entry > _last_track * 2 + 1 && "Previous track should be in cache");
@@ -124,8 +123,8 @@ void UpdateCacheCursor(float _ratio, int _num_soa_tracks,
   const int num_tracks = _num_soa_tracks * 4;
   assert(_keys.begin() + num_tracks * 2 <= _keys.end());
 
-  const _Key* cursor = nullptr;
-  if (!*_cursor) {
+  int cursor = *_cursor;
+  if (!cursor) {
     // Initializes interpolated entries with the first 2 sets of key frames.
     // The sorting algorithm ensures that the first 2 key frames of a track
     // are consecutive.
@@ -142,7 +141,7 @@ void UpdateCacheCursor(float _ratio, int _num_soa_tracks,
       _cache[out_index + 6] = in_index0 + 3;
       _cache[out_index + 7] = in_index1 + 3;
     }
-    cursor = _keys.begin() + num_tracks * 2;  // New cursor position.
+    cursor = num_tracks * 2;  // New cursor position.
 
     // All entries are outdated. It cares to only flag valid soa entries as
     // this is the exit condition of other algorithms.
@@ -152,10 +151,8 @@ void UpdateCacheCursor(float _ratio, int _num_soa_tracks,
     }
     _outdated[num_outdated_flags - 1] =
         0xff >> (num_outdated_flags * 8 - _num_soa_tracks);
-  } else {
-    cursor = _keys.begin() + *_cursor;  // Might be == end()
   }
-  assert(cursor >= _keys.begin() + num_tracks * 2 && cursor <= _keys.end());
+  assert(cursor >= num_tracks * 2 && cursor <= _keys.size());
 
   // Reading forward.
   // Iterates while the cache is not updated with left and right keys required
@@ -164,7 +161,7 @@ void UpdateCacheCursor(float _ratio, int _num_soa_tracks,
   // _ratio. It will mean that all the keys lower than _ratio have been
   // processed, meaning all cache entries are up to date.
   int track = TrackForward(_cache, _keys, cursor, 0, num_tracks);
-  for (; cursor < _keys.end() && _keys[_cache[track * 2 + 1]].ratio <= _ratio;
+  for (; cursor < _keys.size() && _keys[_cache[track * 2 + 1]].ratio <= _ratio;
        ++cursor,
        track = TrackForward(_cache, _keys, cursor, track, num_tracks)) {
     // Flag this soa entry as outdated.
@@ -172,9 +169,9 @@ void UpdateCacheCursor(float _ratio, int _num_soa_tracks,
     // Updates cache.
     const int entry = track * 2;
     _cache[entry] = _cache[entry + 1];
-    _cache[entry + 1] = static_cast<int>(cursor - _keys.begin());
+    _cache[entry + 1] = cursor;
   }
-  assert(cursor >= _keys.begin() + num_tracks * 2 && cursor <= _keys.end());
+  assert(cursor >= num_tracks * 2 && cursor <= _keys.size());
 
   // Rewinds.
   // Check if the last changed key (cursor[-1]) in the cache is still
@@ -192,10 +189,10 @@ void UpdateCacheCursor(float _ratio, int _num_soa_tracks,
     assert(_cache[entry] >= previous);
     _cache[entry] -= previous;
   }
-  assert(cursor >= _keys.begin() + num_tracks * 2 && cursor <= _keys.end());
+  assert(cursor >= num_tracks * 2 && cursor <= _keys.size());
 
   // Updates cursor output.
-  *_cursor = static_cast<int>(cursor - _keys.begin());
+  *_cursor = cursor;
 }
 
 template <typename _Key, typename _InterpKey, typename _Decompress>
