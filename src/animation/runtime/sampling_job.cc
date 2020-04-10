@@ -78,11 +78,7 @@ namespace {
 template <typename _Key>
 int TrackForward(int* _cache, const ozz::span<const _Key>& _keys, int _key,
                  int _last_track, int _num_tracks) {
-  if (_key == _keys.size()) {
-    return 0;
-  }
-
-  int target = _key - _keys[_key].previous;
+  const int target = _key - _keys[_key].previous;
   for (int entry = _last_track * 2 + 1; entry < _num_tracks * 2; entry += 2) {
     if (_cache[entry] == target) {
       return entry / 2;
@@ -155,15 +151,18 @@ void UpdateCacheCursor(float _ratio, int _num_soa_tracks,
   assert(cursor >= num_tracks * 2 && cursor <= _keys.size());
 
   // Reading forward.
-  // Iterates while the cache is not updated with left and right keys required
-  // for interpolation at time ratio _ratio, for all tracks. Thanks to the
-  // keyframe sorting, the loop can end as soon as it finds a key greater that
-  // _ratio. It will mean that all the keys lower than _ratio have been
-  // processed, meaning all cache entries are up to date.
-  int track = TrackForward(_cache, _keys, cursor, 0, num_tracks);
-  for (; cursor < _keys.size() && _keys[_cache[track * 2 + 1]].ratio <= _ratio;
-       ++cursor,
-       track = TrackForward(_cache, _keys, cursor, track, num_tracks)) {
+  // Iterates while the cache is not updated with previous and penultimate keys
+  // required for interpolation at time ratio _ratio. Thanks to the keyframe
+  // sorting, the loop can end as soon as it finds a key greater that _ratio. It
+  // will mean that all the keys lower than _ratio have been processed, meaning
+  // all cache entries are up to date.
+  int track = 0;
+  for (; cursor < _keys.size() &&
+         _keys[cursor - _keys[cursor].previous].ratio <= _ratio;
+       ++cursor) {
+    // Finds track index.
+    track = TrackForward(_cache, _keys, cursor, track, num_tracks);
+
     // Flag this soa entry as outdated.
     _outdated[track / 32] |= 1 << ((track & 0x1f) / 4);
     // Updates cache.
@@ -171,15 +170,18 @@ void UpdateCacheCursor(float _ratio, int _num_soa_tracks,
     _cache[entry] = _cache[entry + 1];
     _cache[entry + 1] = cursor;
   }
-  assert(cursor >= num_tracks * 2 && cursor <= _keys.size());
 
   // Rewinds.
-  // Check if the last changed key (cursor[-1]) in the cache is still
-  // smaller that _ratio (must check the 1st/left lerp argument). Otherwise
-  // rewind a step.
-  for (track = TrackBackward(_cache, _keys, cursor - 1, track, num_tracks);
-       _keys[_cache[track * 2]].ratio > _ratio && --cursor;
-       track = TrackBackward(_cache, _keys, cursor - 1, track, num_tracks)) {
+  // Checks if the previous keyframe is still valid if time is going backward,
+  // aka the time of the penultimate key smaller than _ratio. Otherwise rewind a
+  // step.
+  for (; _keys[(cursor - 1) - _keys[cursor - 1].previous].ratio > _ratio;
+       --cursor) {
+    assert(cursor >= num_tracks * 2);
+
+    // Finds track index.
+    track = TrackBackward(_cache, _keys, cursor - 1, track, num_tracks);
+
     // Flag this soa entry as outdated.
     _outdated[track / 32] |= 1 << ((track & 0x1f) / 4);
 
@@ -189,9 +191,9 @@ void UpdateCacheCursor(float _ratio, int _num_soa_tracks,
     assert(_cache[entry] >= previous);
     _cache[entry] -= previous;
   }
-  assert(cursor >= num_tracks * 2 && cursor <= _keys.size());
 
   // Updates cursor output.
+  assert(cursor >= num_tracks * 2 && cursor <= _keys.size());
   *_cursor = cursor;
 }
 
