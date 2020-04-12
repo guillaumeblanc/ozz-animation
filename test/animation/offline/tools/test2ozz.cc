@@ -28,9 +28,7 @@
 #include <string.h>
 
 #include "ozz/animation/offline/tools/import2ozz.h"
-
 #include "ozz/animation/runtime/skeleton.h"
-
 #include "ozz/base/io/stream.h"
 #include "ozz/base/memory/unique_ptr.h"
 
@@ -62,45 +60,67 @@ class TestConverter : public ozz::animation::offline::OzzImporter {
     if (file_ && file_->opened()) {
       char buffer[256];
 
-      file_->Seek(0, ozz::io::File::kSet);
-      const char good_content[] = "good content 1";
-      if (file_->Read(buffer, sizeof(buffer)) >= sizeof(good_content) - 1 &&
-          memcmp(buffer, good_content, sizeof(good_content) - 1) == 0) {
-        _skeleton->roots.resize(1);
-        ozz::animation::offline::RawSkeleton::Joint& root = _skeleton->roots[0];
-        root.name = "root";
+      {
+        file_->Seek(0, ozz::io::File::kSet);
+        const char content[] = "good content 1";
+        if (file_->Read(buffer, sizeof(buffer)) >= sizeof(content) - 1 &&
+            memcmp(buffer, content, sizeof(content) - 1) == 0) {
+          _skeleton->roots.resize(1);
+          ozz::animation::offline::RawSkeleton::Joint& root =
+              _skeleton->roots[0];
+          root.name = "root";
 
-        root.children.resize(3);
-        ozz::animation::offline::RawSkeleton::Joint& joint0 = root.children[0];
-        joint0.name = "joint0";
-        ozz::animation::offline::RawSkeleton::Joint& joint1 = root.children[1];
-        joint1.name = "joint1";
-        ozz::animation::offline::RawSkeleton::Joint& joint2 = root.children[2];
-        joint2.name = "joint2";
+          root.children.resize(3);
+          ozz::animation::offline::RawSkeleton::Joint& joint0 =
+              root.children[0];
+          joint0.name = "joint0";
+          ozz::animation::offline::RawSkeleton::Joint& joint1 =
+              root.children[1];
+          joint1.name = "joint1";
+          ozz::animation::offline::RawSkeleton::Joint& joint2 =
+              root.children[2];
+          joint2.name = "joint2";
 
-        return true;
+          return true;
+        }
       }
+      {
+        file_->Seek(0, ozz::io::File::kSet);
+        const char content[] = "good content renamed";
+        if (file_->Read(buffer, sizeof(buffer)) >= sizeof(content) - 1 &&
+            memcmp(buffer, content, sizeof(content) - 1) == 0) {
+          _skeleton->roots.resize(1);
+          ozz::animation::offline::RawSkeleton::Joint& root =
+              _skeleton->roots[0];
+          root.name = "root";
 
-      file_->Seek(0, ozz::io::File::kSet);
-      const char good_content_not_unique[] =
-          "good content but not unique joint names";
-      if (file_->Read(buffer, sizeof(buffer)) >=
-              sizeof(good_content_not_unique) - 1 &&
-          memcmp(buffer, good_content_not_unique,
-                 sizeof(good_content_not_unique) - 1) == 0) {
-        _skeleton->roots.resize(1);
-        ozz::animation::offline::RawSkeleton::Joint& root = _skeleton->roots[0];
-        root.name = "jointx";
+          return true;
+        }
+      }
+      {
+        file_->Seek(0, ozz::io::File::kSet);
+        const char content[] =
+            "good content but not unique joint names";
+        if (file_->Read(buffer, sizeof(buffer)) >= sizeof(content) - 1 &&
+            memcmp(buffer, content, sizeof(content) - 1) == 0) {
+          _skeleton->roots.resize(1);
+          ozz::animation::offline::RawSkeleton::Joint& root =
+              _skeleton->roots[0];
+          root.name = "jointx";
 
-        root.children.resize(3);
-        ozz::animation::offline::RawSkeleton::Joint& joint0 = root.children[0];
-        joint0.name = "joint0";
-        ozz::animation::offline::RawSkeleton::Joint& joint1 = root.children[1];
-        joint1.name = "joint1";
-        ozz::animation::offline::RawSkeleton::Joint& joint2 = root.children[2];
-        joint2.name = "jointx";
+          root.children.resize(3);
+          ozz::animation::offline::RawSkeleton::Joint& joint0 =
+              root.children[0];
+          joint0.name = "joint0";
+          ozz::animation::offline::RawSkeleton::Joint& joint1 =
+              root.children[1];
+          joint1.name = "joint1";
+          ozz::animation::offline::RawSkeleton::Joint& joint2 =
+              root.children[2];
+          joint2.name = "jointx";
 
-        return true;
+          return true;
+        }
       }
     }
     return false;
@@ -112,29 +132,45 @@ class TestConverter : public ozz::animation::offline::OzzImporter {
     if (file_ && file_->opened()) {
       char buffer[256];
 
-      file_->Seek(0, ozz::io::File::kSet);
-      const char good_content0[] = "good content 0";
-      if (file_->Read(buffer, sizeof(buffer)) >= sizeof(good_content0) - 1 &&
-          memcmp(buffer, good_content0, sizeof(good_content0) - 1) == 0) {
-        return names;  // No animations
+      {
+        file_->Seek(0, ozz::io::File::kSet);
+        const char content[] = "good content 0";
+        if (file_->Read(buffer, sizeof(buffer)) >= sizeof(content) - 1 &&
+            memcmp(buffer, content, sizeof(content) - 1) == 0) {
+          return names;  // No animations
+        }
       }
 
-      file_->Seek(0, ozz::io::File::kSet);
-      const char good_content1[] = "good content 1";
-      if (file_->Read(buffer, sizeof(buffer)) >= sizeof(good_content1) - 1 &&
-          memcmp(buffer, good_content1, sizeof(good_content1) - 1) == 0) {
-        names.push_back("one");
-        return names;
+      {
+        file_->Seek(0, ozz::io::File::kSet);
+        const char content[] = "good content 1";
+        if (file_->Read(buffer, sizeof(buffer)) >= sizeof(content) - 1 &&
+            memcmp(buffer, content, sizeof(content) - 1) == 0) {
+          names.push_back("one");
+          return names;
+        }
+      }
+
+      {
+        file_->Seek(0, ozz::io::File::kSet);
+        const char content[] = "good content renamed";
+        if (file_->Read(buffer, sizeof(buffer)) >= sizeof(content) - 1 &&
+            memcmp(buffer, content, sizeof(content) - 1) == 0) {
+          names.push_back("renamed?");
+          return names;
+        }
       }
 
       // Handles more than one animation per file.
-      file_->Seek(0, ozz::io::File::kSet);
-      const char good_content2[] = "good content 2";
-      if (file_->Read(buffer, sizeof(buffer)) >= sizeof(good_content2) - 1 &&
-          memcmp(buffer, good_content2, sizeof(good_content2) - 1) == 0) {
-        names.push_back("one");
-        names.push_back("TWO");
-        return names;
+      {
+        file_->Seek(0, ozz::io::File::kSet);
+        const char content[] = "good content 2";
+        if (file_->Read(buffer, sizeof(buffer)) >= sizeof(content) - 1 &&
+            memcmp(buffer, content, sizeof(content) - 1) == 0) {
+          names.push_back("one");
+          names.push_back("TWO");
+          return names;
+        }
       }
     }
 
@@ -150,28 +186,42 @@ class TestConverter : public ozz::animation::offline::OzzImporter {
 
     if (file_ && file_->opened()) {
       char buffer[256];
-      // Handles a single animation per file.
-      file_->Seek(0, ozz::io::File::kSet);
-      const char good_content1[] = "good content 1";
-      if (file_->Read(buffer, sizeof(buffer)) >= sizeof(good_content1) - 1 &&
-          memcmp(buffer, good_content1, sizeof(good_content1) - 1) == 0) {
-        if (strcmp(_animation_name, "one") != 0) {
-          return false;
+      {  // Handles a single animation per file.
+        file_->Seek(0, ozz::io::File::kSet);
+        const char content[] = "good content 1";
+        if (file_->Read(buffer, sizeof(buffer)) >= sizeof(content) - 1 &&
+            memcmp(buffer, content, sizeof(content) - 1) == 0) {
+          if (strcmp(_animation_name, "one") != 0) {
+            return false;
+          }
+          _animation->tracks.resize(_skeleton.num_joints());
+          return true;
         }
-        _animation->tracks.resize(_skeleton.num_joints());
-        return true;
       }
-      // Handles more than one animation per file.
-      file_->Seek(0, ozz::io::File::kSet);
-      const char good_content2[] = "good content 2";
-      if (file_->Read(buffer, sizeof(buffer)) >= sizeof(good_content2) - 1 &&
-          memcmp(buffer, good_content2, sizeof(good_content2) - 1) == 0) {
-        if (strcmp(_animation_name, "one") != 0 &&
-            strcmp(_animation_name, "TWO") != 0) {
-          return false;
+      {  // Handles a single animation per file that needs renaming.
+        file_->Seek(0, ozz::io::File::kSet);
+        const char content[] = "good content renamed";
+        if (file_->Read(buffer, sizeof(buffer)) >= sizeof(content) - 1 &&
+            memcmp(buffer, content, sizeof(content) - 1) == 0) {
+          if (strcmp(_animation_name, "renamed?") != 0) {
+            return false;
+          }
+          _animation->tracks.resize(_skeleton.num_joints());
+          return true;
         }
-        _animation->tracks.resize(_skeleton.num_joints());
-        return true;
+      }
+      {  // Handles more than one animation per file.
+        file_->Seek(0, ozz::io::File::kSet);
+        const char content[] = "good content 2";
+        if (file_->Read(buffer, sizeof(buffer)) >= sizeof(content) - 1 &&
+            memcmp(buffer, content, sizeof(content) - 1) == 0) {
+          if (strcmp(_animation_name, "one") != 0 &&
+              strcmp(_animation_name, "TWO") != 0) {
+            return false;
+          }
+          _animation->tracks.resize(_skeleton.num_joints());
+          return true;
+        }
       }
     }
     return false;

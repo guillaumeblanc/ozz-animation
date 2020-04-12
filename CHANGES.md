@@ -14,6 +14,9 @@ Next release
   - [base] Replaces OZZ_ALIGN_OF and OZZ_ALIGN by standard alignof and alignas keywords.
   - [base] Replaces OZZ_STATIC_ASSERT by standard static_assert keyword.
 
+* Tools
+  - #91 Fixup animation name when used as an output filename (via json configuration wildcard option), so they comply with most os filename restrictions.
+
 Release version 0.12.1
 ----------------------
 

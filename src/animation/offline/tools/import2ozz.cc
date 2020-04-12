@@ -27,20 +27,18 @@
 
 #include "ozz/animation/offline/tools/import2ozz.h"
 
+#include <json/json.h>
+
+#include <algorithm>
 #include <cstdlib>
 #include <cstring>
 
 #include "animation/offline/tools/import2ozz_anim.h"
 #include "animation/offline/tools/import2ozz_config.h"
 #include "animation/offline/tools/import2ozz_skel.h"
-
-#include "ozz/base/log.h"
-
 #include "ozz/base/io/stream.h"
-
+#include "ozz/base/log.h"
 #include "ozz/options/options.h"
-
-#include <json/json.h>
 
 // Declares command line options.
 OZZ_OPTIONS_DECLARE_STRING(file, "Specifies input file", "", true)
@@ -165,11 +163,26 @@ int OzzImporter::operator()(int _argc, const char** _argv) {
 
 ozz::string OzzImporter::BuildFilename(const char* _filename,
                                        const char* _data_name) const {
-  ozz::string output(_filename);
+  // Fixup invalid characters for a path.
+  ozz::string data_name(_data_name);
+  for (const char c : {'<', '>', ':', '/', '\\', '|', '?', '*'}) {
+    std::replace(data_name.begin(), data_name.end(), c, '_');
+  }
 
+  // Replaces asterisk with data_name
+  bool used = false;
+  ozz::string output(_filename);
   for (size_t asterisk = output.find('*'); asterisk != std::string::npos;
-       asterisk = output.find('*')) {
-    output.replace(asterisk, 1, _data_name);
+       used = true, asterisk = output.find('*')) {
+    output.replace(asterisk, 1, data_name);
+  }
+
+  // Displays a log only if data name was renamed and used as a filename.
+  if (used && data_name != _data_name) {
+    ozz::log::Log() << "Resource name \"" << _data_name
+                    << "\" was changed to \"" << data_name
+                    << "\" in order to be used as a valid filename."
+                    << std::endl;
   }
   return output;
 }
