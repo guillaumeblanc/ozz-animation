@@ -78,17 +78,22 @@ namespace {
 template <typename _Key>
 int TrackForward(int* _cache, const ozz::span<const _Key>& _keys, int _key,
                  int _last_track, int _num_tracks) {
+  assert(_key < _keys.size());
+  assert(_last_track >= 0 && _last_track < _num_tracks);
+
   const int target = _key - _keys[_key].previous;
-  for (int entry = _last_track * 2 + 1; entry < _num_tracks * 2; entry += 2) {
+  for (int entry = _last_track + _num_tracks; entry < _num_tracks * 2;
+       ++entry) {
     if (_cache[entry] == target) {
-      return entry / 2;
+      return entry - _num_tracks;
     }
   }
-  for (int entry = 1;; entry += 2) {
+  for (int entry = _num_tracks;; ++entry) {
     if (_cache[entry] == target) {
-      return entry / 2;
+      return entry - _num_tracks;
     }
-    assert(entry < _last_track * 2 && "Previous track should be in cache");
+    assert(entry < _last_track * _num_tracks &&
+           "Previous track should be in cache");
   }
 }
 
@@ -96,17 +101,19 @@ template <typename _Key>
 int TrackBackward(int* _cache, const ozz::span<const _Key>& _keys, int _target,
                   int _last_track, int _num_tracks) {
   assert(_target < _keys.size());
+  assert(_last_track >= 0 && _last_track < _num_tracks);
 
-  for (int entry = _last_track * 2 + 1; entry >= 1; entry -= 2) {
+  for (int entry = _last_track + _num_tracks; entry >= _num_tracks; --entry) {
     if (_cache[entry] == _target) {
-      return entry / 2;
+      return entry - _num_tracks;
     }
   }
-  for (int entry = _num_tracks * 2 + 1;; entry -= 2) {
+  for (int entry = _num_tracks * 2 - 1;; --entry) {
     if (_cache[entry] == _target) {
-      return entry / 2;
+      return entry - _num_tracks;
     }
-    assert(entry > _last_track * 2 + 1 && "Previous track should be in cache");
+    assert(entry > _last_track + _num_tracks &&
+           "Previous track should be in cache");
   }
 }
 
@@ -121,23 +128,12 @@ void UpdateCacheCursor(float _ratio, int _num_soa_tracks,
 
   int cursor = *_cursor;
   if (!cursor) {
-    // Initializes interpolated entries with the first 2 sets of key frames.
+    // Initializes cache entries with the first 2 sets of key frames.
     // The sorting algorithm ensures that the first 2 key frames of a track
     // are consecutive.
-    for (int i = 0; i < _num_soa_tracks; ++i) {
-      const int in_index0 = i * 4;                   // * soa size
-      const int in_index1 = in_index0 + num_tracks;  // 2nd row.
-      const int out_index = i * 4 * 2;
-      _cache[out_index + 0] = in_index0 + 0;
-      _cache[out_index + 1] = in_index1 + 0;
-      _cache[out_index + 2] = in_index0 + 1;
-      _cache[out_index + 3] = in_index1 + 1;
-      _cache[out_index + 4] = in_index0 + 2;
-      _cache[out_index + 5] = in_index1 + 2;
-      _cache[out_index + 6] = in_index0 + 3;
-      _cache[out_index + 7] = in_index1 + 3;
+    for (; cursor < num_tracks * 2; ++cursor) {
+      _cache[cursor] = cursor;
     }
-    cursor = num_tracks * 2;  // New cursor position.
 
     // All entries are outdated. It cares to only flag valid soa entries as
     // this is the exit condition of other algorithms.
@@ -166,18 +162,20 @@ void UpdateCacheCursor(float _ratio, int _num_soa_tracks,
     // Flag this soa entry as outdated.
     _outdated[track / 32] |= 1 << ((track & 0x1f) / 4);
     // Updates cache.
-    const int entry = track * 2;
-    _cache[entry] = _cache[entry + 1];
-    _cache[entry + 1] = cursor;
+    const int penultimate = track;
+    const int last = track + num_tracks;
+    assert(_cache[last] == cursor - _keys[cursor].previous &&
+           "Wrong cache entry.");
+    _cache[penultimate] = _cache[last];
+    _cache[last] = cursor;
   }
 
   // Rewinds.
-  // Checks if the previous keyframe is still valid if time is going backward,
-  // aka the time of the penultimate key smaller than _ratio. Otherwise rewind a
-  // step.
+  // Checks if the time of the penultimate key is greaer than _ratio, in which
+  // case we need to rewdind.
   for (; _keys[(cursor - 1) - _keys[cursor - 1].previous].ratio > _ratio;
        --cursor) {
-    assert(cursor >= num_tracks * 2);
+    assert(cursor - 1 >= num_tracks * 2);
 
     // Finds track index.
     track = TrackBackward(_cache, _keys, cursor - 1, track, num_tracks);
@@ -185,11 +183,14 @@ void UpdateCacheCursor(float _ratio, int _num_soa_tracks,
     // Flag this soa entry as outdated.
     _outdated[track / 32] |= 1 << ((track & 0x1f) / 4);
 
-    const int entry = track * 2;
-    _cache[entry + 1] = _cache[entry];
-    const int previous = _keys[_cache[entry]].previous;
-    assert(_cache[entry] >= previous);
-    _cache[entry] -= previous;
+    // Updates cache.
+    const int penultimate = track;
+    const int last = track + num_tracks;
+    assert(_cache[last] == cursor - 1 && "Wrong cache entry.");
+    _cache[last] = _cache[penultimate];
+    const int previous = _keys[_cache[penultimate]].previous;
+    assert(_cache[penultimate] >= previous);
+    _cache[penultimate] -= previous;
   }
 
   // Updates cursor output.
@@ -200,7 +201,7 @@ void UpdateCacheCursor(float _ratio, int _num_soa_tracks,
 template <typename _Key, typename _InterpKey, typename _Decompress>
 void UpdateInterpKeyframes(int _num_soa_tracks,
                            const ozz::span<const _Key>& _keys,
-                           const int* _interp, uint8_t* _outdated,
+                           const int* _cache, uint8_t* _outdated,
                            _InterpKey* _interp_keys,
                            const _Decompress& _decompress) {
   const int num_outdated_flags = (_num_soa_tracks + 7) / 8;
@@ -211,22 +212,23 @@ void UpdateInterpKeyframes(int _num_soa_tracks,
       if (!(outdated & 1)) {
         continue;
       }
-      const int base = i * 4 * 2;  // * soa size * 2 keys
 
+      const int penultimates = i * 4;  // * soa size
       // Decompress left side keyframes and store them in soa structures.
-      const _Key& k00 = _keys[_interp[base + 0]];
-      const _Key& k10 = _keys[_interp[base + 2]];
-      const _Key& k20 = _keys[_interp[base + 4]];
-      const _Key& k30 = _keys[_interp[base + 6]];
+      const _Key& k00 = _keys[_cache[penultimates + 0]];
+      const _Key& k10 = _keys[_cache[penultimates + 1]];
+      const _Key& k20 = _keys[_cache[penultimates + 2]];
+      const _Key& k30 = _keys[_cache[penultimates + 3]];
       _interp_keys[i].ratio[0] =
           math::simd_float4::Load(k00.ratio, k10.ratio, k20.ratio, k30.ratio);
       _decompress(k00, k10, k20, k30, &_interp_keys[i].value[0]);
 
       // Decompress right side keyframes and store them in soa structures.
-      const _Key& k01 = _keys[_interp[base + 1]];
-      const _Key& k11 = _keys[_interp[base + 3]];
-      const _Key& k21 = _keys[_interp[base + 5]];
-      const _Key& k31 = _keys[_interp[base + 7]];
+      const int lasts = (i + _num_soa_tracks) * 4;  // * soa size
+      const _Key& k01 = _keys[_cache[lasts + 0]];
+      const _Key& k11 = _keys[_cache[lasts + 1]];
+      const _Key& k21 = _keys[_cache[lasts + 2]];
+      const _Key& k31 = _keys[_cache[lasts + 3]];
       _interp_keys[i].ratio[1] =
           math::simd_float4::Load(k01.ratio, k11.ratio, k21.ratio, k31.ratio);
       _decompress(k01, k11, k21, k31, &_interp_keys[i].value[1]);
@@ -372,25 +374,26 @@ bool SamplingJob::Run() const {
   // Fetch key frames from the animation to the cache a r = anim_ratio.
   // Then updates outdated soa hot values.
   UpdateCacheCursor(anim_ratio, num_soa_tracks, animation->translations(),
-                    &cache->translation_cursor_, cache->translation_keys_,
+                    &cache->translation_cursor_, cache->translation_cache_,
                     cache->outdated_translations_);
   UpdateInterpKeyframes(num_soa_tracks, animation->translations(),
-                        cache->translation_keys_, cache->outdated_translations_,
-                        cache->soa_translations_, &DecompressFloat3);
+                        cache->translation_cache_,
+                        cache->outdated_translations_, cache->soa_translations_,
+                        &DecompressFloat3);
 
   UpdateCacheCursor(anim_ratio, num_soa_tracks, animation->rotations(),
-                    &cache->rotation_cursor_, cache->rotation_keys_,
+                    &cache->rotation_cursor_, cache->rotation_cache_,
                     cache->outdated_rotations_);
   UpdateInterpKeyframes(num_soa_tracks, animation->rotations(),
-                        cache->rotation_keys_, cache->outdated_rotations_,
+                        cache->rotation_cache_, cache->outdated_rotations_,
                         cache->soa_rotations_, &DecompressQuaternion);
 
   UpdateCacheCursor(anim_ratio, num_soa_tracks, animation->scales(),
-                    &cache->scale_cursor_, cache->scale_keys_,
+                    &cache->scale_cursor_, cache->scale_cache_,
                     cache->outdated_scales_);
-  UpdateInterpKeyframes(num_soa_tracks, animation->scales(), cache->scale_keys_,
-                        cache->outdated_scales_, cache->soa_scales_,
-                        &DecompressFloat3);
+  UpdateInterpKeyframes(num_soa_tracks, animation->scales(),
+                        cache->scale_cache_, cache->outdated_scales_,
+                        cache->soa_scales_, &DecompressFloat3);
 
   // Interpolates soa hot data.
   Interpolates(anim_ratio, num_soa_tracks, cache->soa_translations_,
@@ -468,12 +471,12 @@ void SamplingCache::Resize(int _max_tracks) {
   assert(IsAligned(soa_scales_, alignof(InterpSoaFloat3)));
   alloc_cursor += sizeof(InterpSoaFloat3) * max_soa_tracks_;
 
-  translation_keys_ = reinterpret_cast<int*>(alloc_cursor);
-  assert(IsAligned(translation_keys_, alignof(int)));
+  translation_cache_ = reinterpret_cast<int*>(alloc_cursor);
+  assert(IsAligned(translation_cache_, alignof(int)));
   alloc_cursor += sizeof(int) * max_tracks * 2;
-  rotation_keys_ = reinterpret_cast<int*>(alloc_cursor);
+  rotation_cache_ = reinterpret_cast<int*>(alloc_cursor);
   alloc_cursor += sizeof(int) * max_tracks * 2;
-  scale_keys_ = reinterpret_cast<int*>(alloc_cursor);
+  scale_cache_ = reinterpret_cast<int*>(alloc_cursor);
   alloc_cursor += sizeof(int) * max_tracks * 2;
 
   outdated_translations_ = reinterpret_cast<uint8_t*>(alloc_cursor);
