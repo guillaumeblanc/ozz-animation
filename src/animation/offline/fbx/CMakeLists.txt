@@ -59,8 +59,8 @@ set(build_configurations
   "/fbx/alain/skeleton.fbx\;{\"skeleton\":{\"filename\":\"versioning/skeleton_v2_be.ozz\",\"import\":{\"enable\":true}},\"animations\":[]}\;output:versioning/skeleton_v2_be.ozz\;option:--endian=big"
   "/fbx/alain/run.fbx\;{\"skeleton\":{\"filename\":\"alain_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"versioning/raw_animation_v3_le.ozz\",\"raw\":true}]}\;output:versioning/raw_animation_v3_le.ozz\;option:--endian=little\;depend:alain_skeleton.ozz"
   "/fbx/alain/run.fbx\;{\"skeleton\":{\"filename\":\"alain_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"versioning/raw_animation_v3_be.ozz\",\"raw\":true}]}\;output:versioning/raw_animation_v3_be.ozz\;option:--endian=big\;depend:alain_skeleton.ozz"
-  "/fbx/alain/run.fbx\;{\"skeleton\":{\"filename\":\"alain_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"versioning/animation_v6_le.ozz\"}]}\;output:versioning/animation_v6_le.ozz\;option:--endian=little\;depend:alain_skeleton.ozz"
-  "/fbx/alain/run.fbx\;{\"skeleton\":{\"filename\":\"alain_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"versioning/animation_v6_be.ozz\"}]}\;output:versioning/animation_v6_be.ozz\;option:--endian=big\;depend:alain_skeleton.ozz"
+  "/fbx/alain/run.fbx\;{\"skeleton\":{\"filename\":\"alain_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"versioning/animation_v7_le.ozz\"}]}\;output:versioning/animation_v7_le.ozz\;option:--endian=little\;depend:alain_skeleton.ozz"
+  "/fbx/alain/run.fbx\;{\"skeleton\":{\"filename\":\"alain_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"versioning/animation_v7_be.ozz\"}]}\;output:versioning/animation_v7_be.ozz\;option:--endian=big\;depend:alain_skeleton.ozz"
 
   # Collada
   "/collada/astro_max.dae\;{\"skeleton\":{\"filename\":\"astro_max_skeleton.ozz\",\"import\":{\"enable\":true}},\"animations\":[{\"filename\":\"astro_max_animation.ozz\"}]}\;output:astro_max_animation.ozz\;output:astro_max_skeleton.ozz"
