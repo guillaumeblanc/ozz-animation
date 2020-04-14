@@ -710,7 +710,7 @@ static int createContext( const _GLFWwndconfig *wndconfig, GLXFBConfigID fbconfi
             // HACK: This is a fallback for the broken Mesa implementation of
             // GLX_ARB_create_context_profile, which fails default 1.0 context
             // creation with a GLXBadProfileARB error in violation of the spec
-            if( _glfwErrorCode == _glfwLibrary.GLX.errorBase + GLXBadProfileARB &&
+            if( (int)_glfwErrorCode == _glfwLibrary.GLX.errorBase + GLXBadProfileARB &&
                 wndconfig->glProfile == 0 &&
                 wndconfig->glForward == GL_FALSE )
             {
