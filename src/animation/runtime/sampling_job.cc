@@ -76,8 +76,8 @@ bool SamplingJob::Validate() const {
 
 namespace {
 template <typename _Key>
-int TrackForward(int* _cache, const ozz::span<const _Key>& _keys, int _key,
-                 int _last_track, int _num_tracks) {
+inline int TrackForward(int* _cache, const ozz::span<const _Key>& _keys,
+                        int _key, int _last_track, int _num_tracks) {
   assert(_key < static_cast<int>(_keys.size()));
   assert(_last_track >= 0 && _last_track < _num_tracks);
 
@@ -97,10 +97,8 @@ int TrackForward(int* _cache, const ozz::span<const _Key>& _keys, int _key,
   }
 }
 
-template <typename _Key>
-int TrackBackward(int* _cache, const ozz::span<const _Key>& _keys, int _target,
-                  int _last_track, int _num_tracks) {
-  assert(_target < static_cast<int>(_keys.size()));
+inline int TrackBackward(int* _cache, int _target, int _last_track,
+                         int _num_tracks) {
   assert(_last_track >= 0 && _last_track < _num_tracks);
 
   for (int entry = _last_track + _num_tracks; entry >= _num_tracks; --entry) {
@@ -119,9 +117,9 @@ int TrackBackward(int* _cache, const ozz::span<const _Key>& _keys, int _target,
 
 // Loops through the sorted key frames and update cache structure.
 template <typename _Key>
-void UpdateCacheCursor(float _ratio, int _num_soa_tracks,
-                       const ozz::span<const _Key>& _keys, int* _cursor,
-                       int* _cache, unsigned char* _outdated) {
+inline void UpdateCacheCursor(float _ratio, int _num_soa_tracks,
+                              const ozz::span<const _Key>& _keys, int* _cursor,
+                              int* _cache, unsigned char* _outdated) {
   assert(_num_soa_tracks >= 1);
   const int num_tracks = _num_soa_tracks * 4;
   const int num_keys = static_cast<int>(_keys.size());
@@ -172,14 +170,14 @@ void UpdateCacheCursor(float _ratio, int _num_soa_tracks,
   }
 
   // Rewinds.
-  // Checks if the time of the penultimate key is greaer than _ratio, in which
-  // case we need to rewdind.
+  // Checks if the time of the penultimate key is greater than _ratio, in which
+  // case we need to rewind.
   for (; _keys[(cursor - 1) - _keys[cursor - 1].previous].ratio > _ratio;
        --cursor) {
     assert(cursor - 1 >= num_tracks * 2);
 
     // Finds track index.
-    track = TrackBackward(_cache, _keys, cursor - 1, track, num_tracks);
+    track = TrackBackward(_cache, cursor - 1, track, num_tracks);
 
     // Flag this soa entry as outdated.
     _outdated[track / 32] |= 1 << ((track & 0x1f) / 4);
@@ -200,11 +198,11 @@ void UpdateCacheCursor(float _ratio, int _num_soa_tracks,
 }
 
 template <typename _Key, typename _InterpKey, typename _Decompress>
-void UpdateInterpKeyframes(int _num_soa_tracks,
-                           const ozz::span<const _Key>& _keys,
-                           const int* _cache, uint8_t* _outdated,
-                           _InterpKey* _interp_keys,
-                           const _Decompress& _decompress) {
+inline void UpdateInterpKeyframes(int _num_soa_tracks,
+                                  const ozz::span<const _Key>& _keys,
+                                  const int* _cache, uint8_t* _outdated,
+                                  _InterpKey* _interp_keys,
+                                  const _Decompress& _decompress) {
   const int num_outdated_flags = (_num_soa_tracks + 7) / 8;
   for (int j = 0; j < num_outdated_flags; ++j) {
     uint8_t outdated = _outdated[j];
@@ -250,12 +248,14 @@ inline void DecompressFloat3(const Float3Key& _k0, const Float3Key& _k1,
 
 // Defines a mapping table that defines components assignation in the output
 // quaternion.
-constexpr int kCpntMapping[4][4] = {
+static constexpr int kCpntMapping[4][4] = {
     {0, 0, 1, 2}, {0, 0, 1, 2}, {0, 1, 0, 2}, {0, 1, 2, 0}};
 
-void DecompressQuaternion(const QuaternionKey& _k0, const QuaternionKey& _k1,
-                          const QuaternionKey& _k2, const QuaternionKey& _k3,
-                          math::SoaQuaternion* _quaternion) {
+inline void DecompressQuaternion(const QuaternionKey& _k0,
+                                 const QuaternionKey& _k1,
+                                 const QuaternionKey& _k2,
+                                 const QuaternionKey& _k3,
+                                 math::SoaQuaternion* _quaternion) {
   // Selects proper mapping for each key.
   const int* m0 = kCpntMapping[_k0.largest];
   const int* m1 = kCpntMapping[_k1.largest];
