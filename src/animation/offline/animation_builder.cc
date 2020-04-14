@@ -133,15 +133,15 @@ void Sort(ozz::vector<_SortingKey>& _src, size_t _num_tracks,
   std::sort(_src.begin(), _src.end(), _comp);
 
   // Will store last 2 keys (last and penultimate) for a track.
-  ozz::vector<std::pair<size_t, size_t> > previouses(_num_tracks);
+  ozz::vector<std::pair<int, int>> previouses(_num_tracks);
   for (bool loop = true; loop;) {
     loop = false;  // Will be set to true again if vector was changed.
 
     // Reset all previouses to default.
-    const std::pair<size_t, size_t> default_previous{-1, -1};
+    const std::pair<int, int> default_previous{-1, -1};
     std::fill(previouses.begin(), previouses.end(), default_previous);
 
-    // Loop thourgh all keys
+    // Loop through all keys.
     for (size_t i = 0; i < _src.size(); ++i) {
       const uint16_t track = _src[i].track;
       auto& previous = previouses[track];

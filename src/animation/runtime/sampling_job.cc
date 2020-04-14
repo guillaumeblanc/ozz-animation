@@ -78,7 +78,7 @@ namespace {
 template <typename _Key>
 int TrackForward(int* _cache, const ozz::span<const _Key>& _keys, int _key,
                  int _last_track, int _num_tracks) {
-  assert(_key < _keys.size());
+  assert(_key < static_cast<int>(_keys.size()));
   assert(_last_track >= 0 && _last_track < _num_tracks);
 
   const int target = _key - _keys[_key].previous;
@@ -100,7 +100,7 @@ int TrackForward(int* _cache, const ozz::span<const _Key>& _keys, int _key,
 template <typename _Key>
 int TrackBackward(int* _cache, const ozz::span<const _Key>& _keys, int _target,
                   int _last_track, int _num_tracks) {
-  assert(_target < _keys.size());
+  assert(_target < static_cast<int>(_keys.size()));
   assert(_last_track >= 0 && _last_track < _num_tracks);
 
   for (int entry = _last_track + _num_tracks; entry >= _num_tracks; --entry) {
@@ -124,6 +124,7 @@ void UpdateCacheCursor(float _ratio, int _num_soa_tracks,
                        int* _cache, unsigned char* _outdated) {
   assert(_num_soa_tracks >= 1);
   const int num_tracks = _num_soa_tracks * 4;
+  const int num_keys = static_cast<int>(_keys.size());
   assert(_keys.begin() + num_tracks * 2 <= _keys.end());
 
   int cursor = *_cursor;
@@ -144,7 +145,7 @@ void UpdateCacheCursor(float _ratio, int _num_soa_tracks,
     _outdated[num_outdated_flags - 1] =
         0xff >> (num_outdated_flags * 8 - _num_soa_tracks);
   }
-  assert(cursor >= num_tracks * 2 && cursor <= _keys.size());
+  assert(cursor >= num_tracks * 2 && cursor <= num_keys);
 
   // Reading forward.
   // Iterates while the cache is not updated with previous and penultimate keys
@@ -153,7 +154,7 @@ void UpdateCacheCursor(float _ratio, int _num_soa_tracks,
   // will mean that all the keys lower than _ratio have been processed, meaning
   // all cache entries are up to date.
   int track = 0;
-  for (; cursor < _keys.size() &&
+  for (; cursor < num_keys &&
          _keys[cursor - _keys[cursor].previous].ratio <= _ratio;
        ++cursor) {
     // Finds track index.
@@ -194,7 +195,7 @@ void UpdateCacheCursor(float _ratio, int _num_soa_tracks,
   }
 
   // Updates cursor output.
-  assert(cursor >= num_tracks * 2 && cursor <= _keys.size());
+  assert(cursor >= num_tracks * 2 && cursor <= num_keys);
   *_cursor = cursor;
 }
 
