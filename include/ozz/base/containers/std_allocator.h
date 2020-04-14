@@ -61,7 +61,7 @@ class StdAllocator {
 
   template <class _Other, class... _Args>
   void construct(_Other* _ptr, _Args&&... _args) {
-    ::new ((void*)_ptr) _Other(std::forward<_Args>(_args)...);
+    ::new (static_cast<void*>(_ptr)) _Other(std::forward<_Args>(_args)...);
   }
 
   template <class _Other>

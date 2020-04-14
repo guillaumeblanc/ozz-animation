@@ -81,15 +81,19 @@ else()
   # Set warning as error
   set_property(DIRECTORY APPEND PROPERTY COMPILE_OPTIONS "-Werror")
 
-  # GCC ignored-attributes reports issue when using _m128 as template argument
-  if(CMAKE_COMPILER_IS_GNUCXX)
-    check_cxx_compiler_flag("-Wignored-attributes" W_IGNORED_ATTRIBUTES)
-    if(W_IGNORED_ATTRIBUTES)
-      set_property(DIRECTORY APPEND PROPERTY COMPILE_OPTIONS "-Wno-ignored-attributes")
-    endif()
+  # Disables warning: ignored-attributes reports issue when using _m128 as template argument
+  check_cxx_compiler_flag("-Wignored-attributes" W_IGNORED_ATTRIBUTES)
+  if(W_IGNORED_ATTRIBUTES)
+    set_property(DIRECTORY APPEND PROPERTY COMPILE_OPTIONS "-Wno-ignored-attributes")
   endif()
 
-  # Check some options availibity for the targetted compiler
+  # Enables warning: sign comparison warnings
+  check_cxx_compiler_flag("-Wsign-compare" W_SIGN_COMPARE)
+  if(W_SIGN_COMPARE)
+    set_property(DIRECTORY APPEND PROPERTY COMPILE_OPTIONS "-Wsign-compare")
+  endif()
+
+  # Check some more options availability for the targeted compiler
   check_cxx_compiler_flag("-Wnull-dereference" W_NULL_DEREFERENCE)
   check_cxx_compiler_flag("-Wpragma-pack" W_PRAGMA_PACK)
 

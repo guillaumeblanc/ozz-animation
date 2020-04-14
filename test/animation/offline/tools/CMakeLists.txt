@@ -16,6 +16,7 @@ file(WRITE "${ozz_temp_directory}/bad.content" "bad content")
 file(WRITE "${ozz_temp_directory}/good.content0" "good content 0")
 file(WRITE "${ozz_temp_directory}/good.content1" "good content 1")
 file(WRITE "${ozz_temp_directory}/good.content2" "good content 2")
+file(WRITE "${ozz_temp_directory}/good.content_renamed" "good content renamed")
 file(WRITE "${ozz_temp_directory}/non_unique_names.content" "good content but not unique joint names")
 
 # Creates config test files.
@@ -216,6 +217,9 @@ add_test(NAME test2ozz_anim_simple COMMAND test2ozz "--file=${ozz_temp_directory
 set_tests_properties(test2ozz_anim_simple PROPERTIES DEPENDS test2ozz_skel_simple)
 add_test(NAME test2ozz_anim_simple_output COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/animation_simple.ozz" "${ozz_temp_directory}/animation_simple_should_exist.ozz")
 set_tests_properties(test2ozz_anim_simple_output PROPERTIES DEPENDS test2ozz_anim_simple)
+
+add_test(NAME test2ozz_anim_simple_renamed COMMAND test2ozz "--file=${ozz_temp_directory}/good.content_renamed" "--config={\"skeleton\":{\"filename\":\"${ozz_temp_directory}/skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"${ozz_temp_directory}/*.ozz\"}]}")
+set_tests_properties(test2ozz_anim_simple_renamed PROPERTIES PASS_REGULAR_EXPRESSION "in order to be used as a valid filename" DEPENDS test2ozz_skel_simple)
 
 file(MAKE_DIRECTORY ${ozz_temp_directory}/anim_simple_relative)
 add_test(NAME test2ozz_anim_simple_relative COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"skeleton\":{\"filename\":\"${ozz_temp_directory}/skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"animation.ozz\"}]}" WORKING_DIRECTORY "${ozz_temp_directory}/anim_simple_relative")

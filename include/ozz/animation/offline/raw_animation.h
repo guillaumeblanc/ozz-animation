@@ -59,9 +59,6 @@ struct RawAnimation {
   // Constructs a valid RawAnimation with a 1s default duration.
   RawAnimation();
 
-  // Deallocates raw animation.
-  ~RawAnimation();
-
   // Tests for *this validity.
   // Returns true if animation data (duration, tracks) is valid:
   //  1. Animation duration is greater than 0.
