@@ -117,7 +117,6 @@ class Camera {
   math::Float2 angles_;
 
   // The center of the rotation.
-  friend class Application;
   math::Float3 center_;
 
   // The view distance, from the center of rotation.

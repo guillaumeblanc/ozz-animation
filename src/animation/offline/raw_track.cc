@@ -79,12 +79,6 @@ namespace offline {
 namespace internal {
 
 template <typename _ValueType>
-RawTrack<_ValueType>::RawTrack() {}
-
-template <typename _ValueType>
-RawTrack<_ValueType>::~RawTrack() {}
-
-template <typename _ValueType>
 bool RawTrack<_ValueType>::Validate() const {
   float previous_ratio = -1.f;
   for (size_t k = 0; k < keyframes.size(); ++k) {

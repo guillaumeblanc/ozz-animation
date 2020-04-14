@@ -34,8 +34,6 @@ namespace offline {
 
 RawAnimation::RawAnimation() : duration(1.f) {}
 
-RawAnimation::~RawAnimation() {}
-
 namespace {
 
 // Implements key frames' time range and ordering checks.
