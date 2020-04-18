@@ -41,6 +41,7 @@
 #include "ozz/base/containers/vector.h"
 #include "ozz/base/log.h"
 #include "ozz/base/maths/math_ex.h"
+#include "ozz/base/maths/simd_math.h"
 
 #define TINYGLTF_IMPLEMENTATION
 
@@ -406,20 +407,38 @@ ozz::animation::offline::RawAnimation::ScaleKey CreateScaleBindPoseKey(
 // Creates the default transform for a gltf node
 bool CreateNodeTransform(const tinygltf::Node& _node,
                          ozz::math::Transform* _transform) {
+  *_transform = ozz::math::Transform::identity();
+
   if (!_node.matrix.empty()) {
-    // For animated nodes matrix should never be set
-    // From the spec: "When a node is targeted for animation (referenced by an
-    // animation.channel.target), only TRS properties may be present; matrix
-    // will not be present."
-    ozz::log::Err() << "Node \"" << _node.name
-                    << "\" transformation matrix is not empty. This is "
-                       "disallowed by the glTF spec as this node is an "
-                       "animation target."
-                    << std::endl;
+    const ozz::math::Float4x4 matrix = {
+        {ozz::math::simd_float4::Load(static_cast<float>(_node.matrix[0]),
+                                      static_cast<float>(_node.matrix[1]),
+                                      static_cast<float>(_node.matrix[2]),
+                                      static_cast<float>(_node.matrix[3])),
+         ozz::math::simd_float4::Load(static_cast<float>(_node.matrix[4]),
+                                      static_cast<float>(_node.matrix[5]),
+                                      static_cast<float>(_node.matrix[6]),
+                                      static_cast<float>(_node.matrix[7])),
+         ozz::math::simd_float4::Load(static_cast<float>(_node.matrix[8]),
+                                      static_cast<float>(_node.matrix[9]),
+                                      static_cast<float>(_node.matrix[10]),
+                                      static_cast<float>(_node.matrix[11])),
+         ozz::math::simd_float4::Load(static_cast<float>(_node.matrix[12]),
+                                      static_cast<float>(_node.matrix[13]),
+                                      static_cast<float>(_node.matrix[14]),
+                                      static_cast<float>(_node.matrix[15]))}};
+    ozz::math::SimdFloat4 translation, rotation, scale;
+    if (ToAffine(matrix, &translation, &rotation, &scale)) {
+      ozz::math::Store3PtrU(translation, &_transform->translation.x);
+      ozz::math::StorePtrU(translation, &_transform->rotation.x);
+      ozz::math::Store3PtrU(translation, &_transform->scale.x);
+      return true;
+    }
+
+    ozz::log::Err() << "Failed to extract transformation from node \""
+                    << _node.name << "\"." << std::endl;
     return false;
   }
-
-  *_transform = ozz::math::Transform::identity();
 
   if (!_node.translation.empty()) {
     _transform->translation =
@@ -555,22 +574,21 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
     }
 
     // Get all the skins belonging to this scene
-    // TODO other than a set !!
-    ozz::set<int> roots;
+    ozz::vector<int> roots;
     ozz::vector<tinygltf::Skin> skins = GetSkinsForScene(scene);
     if (skins.empty()) {
-      ozz::log::LogV() << "No skin exists in the scene, the whole scene graph "
-                          "will be considered as a skeleton."
-                       << std::endl;
+      ozz::log::Log() << "No skin exists in the scene, the whole scene graph "
+                         "will be considered as a skeleton."
+                      << std::endl;
       // Uses all scene nodes.
       for (auto& node : scene.nodes) {
-        roots.insert(node);
+        roots.push_back(node);
       }
     } else {
       if (skins.size() > 1) {
-        ozz::log::LogV() << "Multiple skins exist in the scene, they will all "
-                            "be exported to a single skeleton."
-                         << std::endl;
+        ozz::log::Log() << "Multiple skins exist in the scene, they will all "
+                           "be exported to a single skeleton."
+                        << std::endl;
       }
 
       // Uses all skins root
@@ -579,18 +597,20 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
         if (root == -1) {
           continue;
         }
-        roots.insert(root);
+        roots.push_back(root);
       }
     }
 
+    // Remove nodes listed multiple times.
+    std::sort(roots.begin(), roots.end());
+    roots.erase(std::unique(roots.begin(), roots.end()), roots.end());
+
     // Traverses the scene graph and record all joints starting from the roots.
     _skeleton->roots.resize(roots.size());
-    int i = 0;  // TODO, better loop without a set
-    for (int root : roots) {
-      const tinygltf::Node& root_node = m_model.nodes[root];
+    for (size_t i = 0; i < roots.size(); ++i) {
+      const tinygltf::Node& root_node = m_model.nodes[roots[i]];
       ozz::animation::offline::RawSkeleton::Joint& root_joint =
-          _skeleton->roots[i++];
-
+          _skeleton->roots[i];
       if (!ImportNode(root_node, &root_joint)) {
         return false;
       }
