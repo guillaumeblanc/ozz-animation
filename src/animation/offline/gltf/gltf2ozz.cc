@@ -38,6 +38,7 @@
 #include "ozz/animation/runtime/skeleton.h"
 #include "ozz/base/containers/map.h"
 #include "ozz/base/containers/set.h"
+#include "ozz/base/containers/vector.h"
 #include "ozz/base/log.h"
 #include "ozz/base/maths/math_ex.h"
 
@@ -153,11 +154,10 @@ bool SampleLinearChannel(const tinygltf::Model& _model,
     return false;
   }
 
-  _keyframes->resize(_output.count);
+  _keyframes->reserve(_output.count);
   for (size_t i = 0; i < _output.count; ++i) {
-    typename _KeyframesType::reference key = _keyframes->at(i);
-    key.time = _timestamps[i];
-    key.value = values[i];
+    const typename _KeyframesType::value_type key{_timestamps[i], values[i]};
+    _keyframes->push_back(key);
   }
 
   return true;
@@ -300,6 +300,60 @@ bool SampleCubicSplineChannel(const tinygltf::Model& _model,
   }
 
   return true;
+}
+
+template <typename _KeyframesType>
+bool SampleChannel(const tinygltf::Model& _model,
+                   const std::string& _interpolation,
+                   const tinygltf::Accessor& _output,
+                   const ozz::span<const float>& _timestamps,
+                   float _sampling_rate, float _duration,
+                   _KeyframesType* _keyframes) {
+  bool valid = false;
+  if (_interpolation == "LINEAR") {
+    valid = SampleLinearChannel(_model, _output, _timestamps, _keyframes);
+  } else if (_interpolation == "STEP") {
+    valid = SampleStepChannel(_model, _output, _timestamps, _keyframes);
+  } else if (_interpolation == "CUBICSPLINE") {
+    valid = SampleCubicSplineChannel(_model, _output, _timestamps,
+                                     _sampling_rate, _duration, _keyframes);
+  } else {
+    ozz::log::Err() << "Invalid or unknown interpolation type '"
+                    << _interpolation << "'." << std::endl;
+    valid = false;
+  }
+
+  // Check if sorted (increasing time, might not be stricly increasing).
+  if (valid) {
+    valid = std::is_sorted(_keyframes->begin(), _keyframes->end(),
+                           [](typename _KeyframesType::const_reference _a,
+                              typename _KeyframesType::const_reference _b) {
+                             return _a.time < _b.time;
+                           });
+    if (!valid) {
+      ozz::log::Log()
+          << "gltf format error, keyframes are not sorted in increasing order."
+          << std::endl;
+    }
+  }
+
+  // Remove keyframes with strictly equal times, keeping the first one.
+  if (valid) {
+    auto new_end = std::unique(_keyframes->begin(), _keyframes->end(),
+                               [](typename _KeyframesType::const_reference _a,
+                                  typename _KeyframesType::const_reference _b) {
+                                 return _a.time == _b.time;
+                               });
+    if (new_end != _keyframes->end()) {
+      _keyframes->erase(new_end, _keyframes->end());
+
+      ozz::log::Log() << "gltf format error, keyframe times are not unique. "
+                         "Imported data were modified to remove keyframes at "
+                         "consecutive equivalent times."
+                      << std::endl;
+    }
+  }
+  return valid;
 }
 
 ozz::animation::offline::RawAnimation::TranslationKey
@@ -692,6 +746,12 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
       const tinygltf::Model& _model, const tinygltf::AnimationSampler& _sampler,
       const std::string& _target_path, float _sampling_rate, float* _duration,
       ozz::animation::offline::RawAnimation::JointTrack* _track) {
+    // Validate interpolation type.
+    if (_sampler.interpolation.empty()) {
+      ozz::log::Err() << "Invalid sampler interpolation." << std::endl;
+      return false;
+    }
+
     auto& input = m_model.accessors[_sampler.input];
     assert(input.maxValues.size() == 1);
 
@@ -714,76 +774,34 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
 
     const ozz::span<const float> timestamps = BufferView<float>(_model, input);
     if (timestamps.empty()) {
-      return false;
+      return true;
     }
 
-    if (_sampler.interpolation.empty()) {
-      ozz::log::Err() << "Invalid sampler interpolation." << std::endl;
-      return false;
-    } else if (_sampler.interpolation == "LINEAR") {
-      assert(input.count == _output.count);
-
-      if (_target_path == "translation") {
-        return SampleLinearChannel(m_model, _output, timestamps,
-                                   &_track->translations);
-      } else if (_target_path == "rotation") {
-        return SampleLinearChannel(m_model, _output, timestamps,
-                                   &_track->rotations);
-      } else if (_target_path == "scale") {
-        return SampleLinearChannel(m_model, _output, timestamps,
-                                   &_track->scales);
-      }
-      ozz::log::Err() << "Invalid or unknown channel target path '"
-                      << _target_path << "'." << std::endl;
-      return false;
-    } else if (_sampler.interpolation == "STEP") {
-      assert(input.count == _output.count);
-
-      if (_target_path == "translation") {
-        return SampleStepChannel(m_model, _output, timestamps,
-                                 &_track->translations);
-      } else if (_target_path == "rotation") {
-        return SampleStepChannel(m_model, _output, timestamps,
-                                 &_track->rotations);
-      } else if (_target_path == "scale") {
-        return SampleStepChannel(m_model, _output, timestamps, &_track->scales);
-      }
-      ozz::log::Err() << "Invalid or unknown channel target path '"
-                      << _target_path << "'." << std::endl;
-      return false;
-    } else if (_sampler.interpolation == "CUBICSPLINE") {
-      assert(input.count * 3 == _output.count);
-
-      if (_target_path == "translation") {
-        return SampleCubicSplineChannel(m_model, _output, timestamps,
-                                        _sampling_rate, duration,
-                                        &_track->translations);
-      } else if (_target_path == "rotation") {
-        if (!SampleCubicSplineChannel(m_model, _output, timestamps,
-                                      _sampling_rate, duration,
-                                      &_track->rotations)) {
-          return false;
-        }
-
-        // normalize all resulting quaternions per spec
+    // Builds keyframes.
+    bool valid = false;
+    if (_target_path == "translation") {
+      valid =
+          SampleChannel(m_model, _sampler.interpolation, _output, timestamps,
+                        _sampling_rate, duration, &_track->translations);
+    } else if (_target_path == "rotation") {
+      valid =
+          SampleChannel(m_model, _sampler.interpolation, _output, timestamps,
+                        _sampling_rate, duration, &_track->rotations);
+      if (valid) {
+        // Normalize quaternions.
         for (auto& key : _track->rotations) {
           key.value = ozz::math::Normalize(key.value);
         }
-
-        return true;
-      } else if (_target_path == "scale") {
-        return SampleCubicSplineChannel(m_model, _output, timestamps,
-                                        _sampling_rate, duration,
-                                        &_track->scales);
       }
-      ozz::log::Err() << "Invalid or unknown channel target path '"
-                      << _target_path << "'." << std::endl;
-      return false;
+    } else if (_target_path == "scale") {
+      valid =
+          SampleChannel(m_model, _sampler.interpolation, _output, timestamps,
+                        _sampling_rate, duration, &_track->scales);
+    } else {
+      assert(false && "Invalid target path");
     }
 
-    ozz::log::Err() << "Invalid or unknown interpolation type '"
-                    << _sampler.interpolation << "'." << std::endl;
-    return false;
+    return valid;
   }
 
   // Returns all skins belonging to a given gltf scene
