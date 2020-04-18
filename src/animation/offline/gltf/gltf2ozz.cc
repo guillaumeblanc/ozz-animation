@@ -688,7 +688,17 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
         channels_per_joint;
 
     for (const tinygltf::AnimationChannel& channel : gltf_animation->channels) {
+      // Reject if no node is targetted.
       if (channel.target_node == -1) {
+        continue;
+      }
+
+      // Reject if path isn't about skeleton animation.
+      bool valid_target = false;
+      for (const char* path : {"translation", "rotation", "scale"}) {
+        valid_target |= channel.target_path == path;
+      }
+      if (!valid_target) {
         continue;
       }
 
