@@ -25,30 +25,25 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/animation/runtime/animation.h"
-#include "ozz/animation/runtime/blending_job.h"
-#include "ozz/animation/runtime/local_to_model_job.h"
-#include "ozz/animation/runtime/sampling_job.h"
-#include "ozz/animation/runtime/skeleton.h"
-#include "ozz/animation/runtime/skeleton_utils.h"
-
-#include "ozz/base/log.h"
-
-#include "ozz/base/containers/vector.h"
-
-#include "ozz/base/maths/simd_math.h"
-#include "ozz/base/maths/soa_transform.h"
-#include "ozz/base/maths/vec_float.h"
-
-#include "ozz/options/options.h"
+#include <cstring>
 
 #include "framework/application.h"
 #include "framework/imgui.h"
 #include "framework/mesh.h"
 #include "framework/renderer.h"
 #include "framework/utils.h"
-
-#include <cstring>
+#include "ozz/animation/runtime/animation.h"
+#include "ozz/animation/runtime/blending_job.h"
+#include "ozz/animation/runtime/local_to_model_job.h"
+#include "ozz/animation/runtime/sampling_job.h"
+#include "ozz/animation/runtime/skeleton.h"
+#include "ozz/animation/runtime/skeleton_utils.h"
+#include "ozz/base/containers/vector.h"
+#include "ozz/base/log.h"
+#include "ozz/base/maths/simd_math.h"
+#include "ozz/base/maths/soa_transform.h"
+#include "ozz/base/maths/vec_float.h"
+#include "ozz/options/options.h"
 
 // Skeleton archive can be specified as an option.
 OZZ_OPTIONS_DECLARE_STRING(skeleton,
@@ -158,15 +153,19 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
     // The mesh might not use (aka be skinned by) all skeleton joints. We use
     // the joint remapping table (available from the mesh object) to reorder
     // model-space matrices and build skinning ones.
-    for (size_t i = 0; i < mesh_.joint_remaps.size(); ++i) {
-      skinning_matrices_[i] =
-          models_[mesh_.joint_remaps[i]] * mesh_.inverse_bind_poses[i];
-    }
+    bool success = true;
+    for (const ozz::sample::Mesh& mesh : meshes_) {
+      for (size_t i = 0; i < mesh.joint_remaps.size(); ++i) {
+        skinning_matrices_[i] =
+            models_[mesh.joint_remaps[i]] * mesh.inverse_bind_poses[i];
+      }
 
-    // Renders skin.
-    return _renderer->DrawSkinnedMesh(mesh_, make_span(skinning_matrices_),
-                                      ozz::math::Float4x4::identity(),
-                                      render_options_);
+      // Renders skin.
+      success &= _renderer->DrawSkinnedMesh(mesh, make_span(skinning_matrices_),
+                                            ozz::math::Float4x4::identity(),
+                                            render_options_);
+    }
+    return success;
   }
 
   virtual bool OnInitialize() {
@@ -177,17 +176,19 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
     const int num_soa_joints = skeleton_.num_soa_joints();
     const int num_joints = skeleton_.num_joints();
 
-    // Reading skinned mesh.
-    if (!ozz::sample::LoadMesh(OPTIONS_mesh, &mesh_)) {
+    // Reading skinned meshes.
+    if (!ozz::sample::LoadMeshes(OPTIONS_mesh, &meshes_)) {
       return false;
     }
 
     // The number of joints of the mesh needs to match skeleton.
-    if (num_joints < mesh_.highest_joint_index()) {
-      ozz::log::Err() << "The provided mesh doesn't match skeleton "
-                         "(joint count mismatch)."
-                      << std::endl;
-      return false;
+    for (const ozz::sample::Mesh& mesh : meshes_) {
+      if (num_joints < mesh.highest_joint_index()) {
+        ozz::log::Err() << "The provided mesh doesn't match skeleton "
+                           "(joint count mismatch)."
+                        << std::endl;
+        return false;
+      }
     }
 
     // Reading animations.
@@ -429,7 +430,7 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
   ozz::vector<ozz::math::Float4x4> skinning_matrices_;
 
   // The mesh used by the sample.
-  ozz::sample::Mesh mesh_;
+  ozz::vector<ozz::sample::Mesh> meshes_;
 
   // Mesh rendering options.
   ozz::sample::Renderer::Options render_options_;
