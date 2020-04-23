@@ -87,18 +87,19 @@ int File::Seek(int _offset, Origin _origin) {
 
 int File::Tell() const {
   std::FILE* file = reinterpret_cast<std::FILE*>(file_);
-  return std::ftell(file);
+  const long current = std::ftell(file);
+  return static_cast<int>(current);
 }
 
 size_t File::Size() const {
   std::FILE* file = reinterpret_cast<std::FILE*>(file_);
 
-  const int current = std::ftell(file);
+  const long current = std::ftell(file);
   assert(current >= 0);
   int seek = std::fseek(file, 0, SEEK_END);
   assert(seek == 0);
   (void)seek;
-  const int end = std::ftell(file);
+  const long end = std::ftell(file);
   assert(end >= 0);
   seek = std::fseek(file, current, SEEK_SET);
   assert(seek == 0);
