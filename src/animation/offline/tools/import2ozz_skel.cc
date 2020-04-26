@@ -104,7 +104,7 @@ void LogHierarchy(const RawSkeleton::Joint::Children& _children,
     // Recurse
     LogHierarchy(joint.children, _depth + 1);
   }
-  ozz::log::LogV() << std::setprecision(pres);
+  ozz::log::LogV() << std::setprecision(static_cast<int>(pres));
 }
 }  // namespace
 
