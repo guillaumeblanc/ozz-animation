@@ -19,12 +19,15 @@ if(ozz_build_fbx)
             $<$<AND:$<BOOL:${ozz_build_data}>,$<BOOL:${ozz_build_fbx}>>:sample_fbx2mesh>
             "${ozz_media_directory}/bin/alain_skeleton.ozz"
             "${ozz_media_directory}/fbx/alain/arnaud.fbx"
+            "${ozz_media_directory}/fbx/sketchfab/ruby.fbx"
             "${ozz_media_directory}/collada/floor.dae"
     OUTPUT "${ozz_media_directory}/bin/arnaud_mesh.ozz"
            "${ozz_media_directory}/bin/arnaud_mesh_4.ozz"
+    OUTPUT "${ozz_media_directory}/bin/ruby_mesh.ozz"
            "${ozz_media_directory}/bin/floor.ozz"
     COMMAND sample_fbx2mesh "--file=${ozz_media_directory}/fbx/alain/arnaud.fbx" "--skeleton=${ozz_media_directory}/bin/alain_skeleton.ozz" "--mesh=${ozz_media_directory}/bin/arnaud_mesh.ozz"
     COMMAND sample_fbx2mesh "--file=${ozz_media_directory}/fbx/alain/arnaud.fbx" "--skeleton=${ozz_media_directory}/bin/alain_skeleton.ozz" "--mesh=${ozz_media_directory}/bin/arnaud_mesh_4.ozz" --nosplit --max_influences=4
+    COMMAND sample_fbx2mesh "--file=${ozz_media_directory}/fbx/sketchfab/ruby.fbx" "--skeleton=${ozz_media_directory}/bin/ruby_skeleton.ozz" "--mesh=${ozz_media_directory}/bin/ruby_mesh.ozz" --max_influences=4
     COMMAND sample_fbx2mesh "--file=${ozz_media_directory}/collada/floor.dae" "--mesh=${ozz_media_directory}/bin/floor.ozz" "--skeleton=${ozz_media_directory}/bin/alain_skeleton.ozz" 
     VERBATIM)
 
@@ -32,6 +35,7 @@ if(ozz_build_fbx)
   add_custom_target(BUILD_DATA_SAMPLE ALL DEPENDS
     "${ozz_media_directory}/bin/arnaud_mesh.ozz"
     "${ozz_media_directory}/bin/arnaud_mesh_4.ozz"
+    "${ozz_media_directory}/bin/ruby_mesh.ozz"
     "${ozz_media_directory}/bin/floor.ozz"
     VERBATIM)
 
