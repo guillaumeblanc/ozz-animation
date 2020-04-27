@@ -36,12 +36,6 @@
 #include "ozz/base/maths/simd_math_archive.h"
 
 namespace ozz {
-namespace sample {
-Mesh::Mesh() {}
-
-Mesh::~Mesh() {}
-}  // namespace sample
-
 namespace io {
 
 void Extern<sample::Mesh::Part>::Save(OArchive& _archive,
