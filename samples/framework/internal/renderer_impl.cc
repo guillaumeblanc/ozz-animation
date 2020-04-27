@@ -1103,6 +1103,11 @@ const float kDefaultUVsArray[][2] = {
 bool RendererImpl::DrawMesh(const Mesh& _mesh,
                             const ozz::math::Float4x4& _transform,
                             const Options& _options) {
+
+  if (_options.wireframe) {
+    GL(PolygonMode(GL_FRONT_AND_BACK, GL_LINE));
+  }
+
   const int vertex_count = _mesh.vertex_count();
   const GLsizei positions_offset = 0;
   const GLsizei positions_stride =
@@ -1249,6 +1254,10 @@ bool RendererImpl::DrawMesh(const Mesh& _mesh,
   GL(BindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
   shader->Unbind();
 
+  if (_options.wireframe) {
+    GL(PolygonMode(GL_FRONT_AND_BACK, GL_FILL));
+  }
+
   // Renders debug normals.
   if (_options.normals) {
     for (size_t i = 0; i < _mesh.parts.size(); ++i) {
@@ -1300,10 +1309,16 @@ bool RendererImpl::DrawMesh(const Mesh& _mesh,
 bool RendererImpl::DrawSkinnedMesh(
     const Mesh& _mesh, const span<math::Float4x4> _skinning_matrices,
     const ozz::math::Float4x4& _transform, const Options& _options) {
+
   // Forward to DrawMesh function is skinning is disabled.
   if (_options.skip_skinning) {
     return DrawMesh(_mesh, _transform, _options);
   }
+
+  if (_options.wireframe) {
+    GL(PolygonMode(GL_FRONT_AND_BACK, GL_LINE));
+  }
+
   const int vertex_count = _mesh.vertex_count();
 
   // Positions and normals are interleaved to improve caching while executing
@@ -1564,6 +1579,10 @@ bool RendererImpl::DrawSkinnedMesh(
   GL(BindTexture(GL_TEXTURE_2D, 0));
   GL(BindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
   shader->Unbind();
+
+  if (_options.wireframe) {
+    GL(PolygonMode(GL_FRONT_AND_BACK, GL_FILL));
+  }
 
   return true;
 }
