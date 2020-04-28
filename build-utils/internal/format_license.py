@@ -4,7 +4,7 @@
 # ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  #
 # and distributed under the MIT License (MIT).                               #
 #                                                                            #
-# Copyright (c) 2019 Guillaume Blanc                                         #
+# Copyright (c) Guillaume Blanc                                              #
 #                                                                            #
 # Permission is hereby granted, free of charge, to any person obtaining a    #
 # copy of this software and associated documentation files (the "Software"), #
@@ -50,7 +50,7 @@ license_text = "\
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //\n\
 // and distributed under the MIT License (MIT).                               //\n\
 //                                                                            //\n\
-// Copyright (c) 2019 Guillaume Blanc                                         //\n\
+// Copyright (c) Guillaume Blanc                                              //\n\
 //                                                                            //\n\
 // Permission is hereby granted, free of charge, to any person obtaining a    //\n\
 // copy of this software and associated documentation files (the \"Software\"), //\n\
