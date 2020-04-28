@@ -1,5 +1,5 @@
-Next release
-------------
+Release version 0.13.0
+----------------------
 
 * Tools
   - [gltf2ozz] Command line tool utility to import animations and skeletons from gltf files. gltf2ozz can be configured via command line options and [json configuration files](src/animation/offline/tools/reference.json), in the exact same way as fbx2ozz.
