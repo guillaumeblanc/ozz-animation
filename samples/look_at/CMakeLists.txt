@@ -3,8 +3,8 @@ add_custom_command(
   DEPENDS $<$<BOOL:${ozz_build_fbx}>:BUILD_DATA>
           $<$<BOOL:${ozz_build_fbx}>:BUILD_DATA_SAMPLE>
           "${CMAKE_CURRENT_LIST_DIR}/README.md"
-          "${ozz_media_directory}/bin/alain_skeleton.ozz"
-          "${ozz_media_directory}/bin/alain_crossarms.ozz"
+          "${ozz_media_directory}/bin/pab_skeleton.ozz"
+          "${ozz_media_directory}/bin/pab_crossarms.ozz"
           "${ozz_media_directory}/bin/arnaud_mesh.ozz"
   OUTPUT  "${CMAKE_CURRENT_BINARY_DIR}/README.md"
           "${CMAKE_CURRENT_BINARY_DIR}/media/skeleton.ozz"
@@ -12,8 +12,8 @@ add_custom_command(
           "${CMAKE_CURRENT_BINARY_DIR}/media/mesh.ozz"
   COMMAND ${CMAKE_COMMAND} -E make_directory media
   COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_LIST_DIR}/README.md" .
-  COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/alain_skeleton.ozz" "./media/skeleton.ozz"
-  COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/alain_crossarms.ozz" "./media/animation.ozz"
+  COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/pab_skeleton.ozz" "./media/skeleton.ozz"
+  COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/pab_crossarms.ozz" "./media/animation.ozz"
   COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/arnaud_mesh.ozz" "./media/mesh.ozz"
   VERBATIM)
 
