@@ -25,7 +25,7 @@
 [link_howto_custom_animation_importer]: {{site.baseurl}}/documentation/howtos/#how-to-write-a-custom-animation-importer
 
 [link_toolset]: {{site.baseurl}}/documentation/toolset/
-[link_toolset_fbx2ozz]: {{site.baseurl}}/documentation/toolset/#fbx2ozz
+[link_toolset_tools]: {{site.baseurl}}/documentation/toolset/#commandlinetools
 
 [link_offline]: {{site.baseurl}}/documentation/animation_offline/
 [link_offline_utilities]: {{site.baseurl}}/documentation/animation_offline/#ozz-animationofflineutilities

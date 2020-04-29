@@ -60,6 +60,7 @@ This will output ozz libraries:
 - Offline libraries:
 
   - `ozz_animation_offline`: Integrates ozz offline libraries, animation builder, optimizer...
+  - `ozz_animation_offline_tools`: Integrates ozz command line tools. This is the base interface to implement ozz importers.
   - `ozz_animation_offline_fbx`: Integrates ozz fbx import libraries. Note that integrating Fbx related libraries will require to also link with Fbx sdk.
 
 - Other libraries:

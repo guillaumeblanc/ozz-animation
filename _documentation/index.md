@@ -10,7 +10,7 @@ permalink: /:collection/index.html
 What ozz-animation is
 =====================
 
-ozz-animation is an open source *c++ 3d skeletal animation engine*. It provides runtime *character animation playback* fonctionnalities (loading, sampling, blending...), with full support for *Fbx*, *Collada* and other major 3D formats. It proposes a low-level *renderer agnostic* and *game-engine agnostic* implementation, focusing on performance and memory constraints with a data-oriented design.
+ozz-animation is an open source *c++ 3d skeletal animation engine*. It provides runtime *character animation playback* fonctionnalities (loading, sampling, blending...), with full support for *glTF*, *Fbx*, *Collada* and other major 3D formats. It proposes a low-level *renderer agnostic* and *game-engine agnostic* implementation, focusing on performance and memory constraints with a data-oriented design.
 
 ozz-animation comes with a toolchain to convert from major Digital Content Creation formats to ozz optimized runtime structures. Offline libraries are also provided to implement the conversion from any other animation and skeleton formats.
 

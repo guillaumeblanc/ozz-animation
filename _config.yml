@@ -2,7 +2,7 @@ gems:
   - jekyll-sitemap
 encoding: utf-8
 google-tracking-id: UA-35633955-2
-keywords: skeletal,animation,library,engine,game,3d,c++,cpp,cplusplus,open,source,mit,skeleton,bone,joint,character,blending,skinning,ik,load,import,fbx,collada,dae,obj,directx,opengl
+keywords: skeletal,animation,library,engine,game,3d,c++,cpp,cplusplus,open,source,mit,skeleton,bone,joint,character,blending,skinning,ik,load,import,fbx,gltf,collada,dae,obj,directx,opengl
 collections:
   samples:
     display_name: Samples

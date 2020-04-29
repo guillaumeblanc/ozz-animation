@@ -1,7 +1,7 @@
 ---
 title: Toolset
 layout: full
-keywords: toolset,pipeline,dae,obj,dcc,fbx,3ds,max,maya,blender,offline,load,import,build,convert,optimize,export,import
+keywords: toolset,pipeline,dae,obj,dcc,gltf,fbx,3ds,max,maya,blender,offline,load,import,build,convert,optimize,export,import
 order: 40
 ---
 
@@ -10,7 +10,7 @@ order: 40
 Pipeline description
 ====================
 
-ozz-animation provides full support for major Digital Content Creation formats, including Fbx, Collada... Those formats are heavily used by the animation industry and supported by all major DCC tools (Maya, Max, MotionBuilder, Blender...). ozz-animation offline pipeline aims to convert from these DCC offline formats (or any proprietary format) to ozz internal runtime optimized format, as illustrated below:
+ozz-animation provides full support for major Digital Content Creation formats, including glTF, Fbx, Collada... Those formats are heavily used by the animation industry and supported by all major DCC tools (Maya, Max, MotionBuilder, Blender...). ozz-animation offline pipeline aims to convert from these DCC offline formats (or any proprietary format) to ozz internal runtime optimized format, as illustrated below:
 
 <img src="{{site.baseurl}}/images/documentation/pipeline.svg" alt="ozz-animation offline pipeline" class="w3-image">
 
@@ -18,10 +18,14 @@ In a way or an other, the aim of the pipeline and importer tools is to end up wi
 
 ozz-animation provides a standard pipeline to import skeletons and animations from Fbx files, and all the other formats [supported by the fxsdk][link_fbxsdk_formats]. This pipeline is based on fbx2ozz command-line tool to import (aka convert) from DCC to ozz format.
 
-fbx2ozz
--------
+Command line tools
+------------------
 
-fbx2ozz command line tool can be used to import data from DCC file (fbx, dae or other supported file formats) into ozz runtime format. The DCC file is specified using \-\-file argument.
+fbx2ozz and gltf2ozz command line tools can be used to import data from DCC file (fbx, dae or other supported file formats supported by fbxsdk for fbx2ozz, and glTF for gltf2ozz) into ozz runtime format.
+
+The following examples will use fbx2ozz, but gltf2ozz and other command line tools build on top of ozz_animation_tools works the same way.
+
+The DCC file is specified using \-\-file argument.
 
 {% highlight bash %}
 fbx2ozz --file="path_to_source_skeleton.fbx" 
@@ -140,7 +144,7 @@ The file [reference.json][link_src_reference_json] (automatically generated duri
 }
 {% endhighlight %}
 
-Some other command line options are available on fbx2ozz. One can use fbx2ozz \-\-help option to get all the details on all available options.
+Some other command line options are available. One can use \-\-help option to get all the details on all available options.
 
 > Fbx importer c++ sources and libraries (ozz_animation_fbx) are also provided to integrate their features to any application.
 
