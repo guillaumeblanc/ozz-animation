@@ -6,7 +6,7 @@ Next release
   - #91 Fixup animation name when used as an output filename (via json configuration wildcard option), so they comply with most os filename restrictions.
 
 * Samples
-  - [playback_skin] Adds a new sample to explain skinning matrices setup.
+  - [skinning] Adds a new sample to explain skinning matrices setup.
 
 * Build pipeline
   - Enables c++11 feature by default for all targets.
