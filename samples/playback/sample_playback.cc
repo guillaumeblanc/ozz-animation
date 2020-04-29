@@ -49,9 +49,9 @@ OZZ_OPTIONS_DECLARE_STRING(animation,
                            "Path to the animation (ozz archive format).",
                            "media/animation.ozz", false)
 
-class LoadSampleApplication : public ozz::sample::Application {
+class PlaybackSampleApplication : public ozz::sample::Application {
  public:
-  LoadSampleApplication() {}
+  PlaybackSampleApplication() {}
 
  protected:
   // Updates current animation time and skeleton pose.
@@ -155,6 +155,7 @@ class LoadSampleApplication : public ozz::sample::Application {
 };
 
 int main(int _argc, const char** _argv) {
-  const char* title = "Ozz-animation sample: Binary animation/skeleton loading";
-  return LoadSampleApplication().Run(_argc, _argv, "1.0", title);
+  const char* title =
+      "Ozz-animation sample: Binary animation/skeleton playback";
+  return PlaybackSampleApplication().Run(_argc, _argv, "1.0", title);
 }
