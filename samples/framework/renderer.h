@@ -121,6 +121,7 @@ class Renderer {
     bool tangents;   // Show tangents.
     bool binormals;  // Show binormals, computed from the normal and tangent.
     bool colors;     // Show vertex colors.
+    bool wireframe;     // Show vertex colors.
     bool skip_skinning;  // Show texture (default checkered texture).
 
     Options()
@@ -129,15 +130,17 @@ class Renderer {
           tangents(false),
           binormals(false),
           colors(false),
+          wireframe(false),
           skip_skinning(false) {}
 
     Options(bool _texture, bool _normals, bool _tangents, bool _binormals,
-            bool _colors, bool _skip_skinning)
+            bool _colors, bool _wireframe, bool _skip_skinning)
         : texture(_texture),
           normals(_normals),
           tangents(_tangents),
           binormals(_binormals),
           colors(_colors),
+          wireframe(_wireframe),
           skip_skinning(_skip_skinning) {}
   };
 

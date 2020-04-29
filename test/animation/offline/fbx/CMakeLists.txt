@@ -133,7 +133,7 @@ if(TARGET sample_playback)
       "--config={\"skeleton\":{\"filename\": \"${ozz_temp_directory}/alain_skeleton_dae_zup.ozz\"},\"animations\": [{\"filename\":\"${ozz_temp_directory}/alain_walk_dae.ozz\"}]}"
     VERBATIM)
       
-  add_custom_target(BUILD_DATA_TEST ALL DEPENDS
+  add_custom_target(BUILD_DATA_FBX_TEST ALL DEPENDS
     "${ozz_temp_directory}/alain_skeleton_dae.ozz"
     "${ozz_temp_directory}/alain_skeleton_dae_zup.ozz"
     "${ozz_temp_directory}/alain_walk_dae.ozz"

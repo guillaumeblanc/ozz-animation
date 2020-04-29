@@ -56,4 +56,23 @@ set_tests_properties(gltf2ozz_box_animation PROPERTIES DEPENDS gltf2ozz_skel_box
 add_test(NAME gltf2ozz_cesium_animation COMMAND gltf2ozz "--file=${ozz_media_directory}/gltf/khronos/cesium_man.gltf" "--config={\"skeleton\":{\"filename\":\"${ozz_temp_directory}/gltf_cesium_man_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"${ozz_temp_directory}/gltf_cesium_man_animation.ozz\"}]}")
 set_tests_properties(gltf2ozz_cesium_animation PROPERTIES DEPENDS gltf2ozz_skel_cesium)
 
+# Uses the sample playback to test other file format and special cases.
+if(TARGET sample_playback)
 
+  add_custom_command(
+    DEPENDS $<$<AND:$<BOOL:${ozz_build_data}>,$<BOOL:${ozz_build_gltf}>>:gltf2ozz>
+            "${ozz_media_directory}/gltf/sketchfab/ruby/scene.gltf"
+    OUTPUT  "${ozz_temp_directory}/gltf_ruby_skeleton.ozz"
+            "${ozz_temp_directory}/gltf_ruby_animation.ozz"
+    COMMAND gltf2ozz
+      "--file=${ozz_media_directory}/gltf/sketchfab/ruby/scene.gltf"
+      "--config={\"skeleton\":{\"filename\": \"${ozz_temp_directory}/gltf_ruby_skeleton.ozz\",\"import\":{\"enable\":true}},\"animations\":[{\"filename\":\"${ozz_temp_directory}/gltf_ruby_animation.ozz\"}]}"
+    VERBATIM)
+      
+  add_custom_target(BUILD_DATA_GLTF_TEST ALL DEPENDS
+    "${ozz_temp_directory}/gltf_ruby_skeleton.ozz"
+    "${ozz_temp_directory}/gltf_ruby_animation.ozz"
+    VERBATIM)
+
+  add_test(NAME sample_playback_gltf_ruby COMMAND sample_playback "--skeleton=${ozz_temp_directory}/gltf_ruby_skeleton.ozz" "--animation=${ozz_temp_directory}/gltf_ruby_animation.ozz" "--max_idle_loops=${ozz_sample_testing_loops}" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)
+endif()
