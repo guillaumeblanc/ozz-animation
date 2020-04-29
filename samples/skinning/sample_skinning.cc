@@ -58,7 +58,7 @@ OZZ_OPTIONS_DECLARE_STRING(mesh,
                            "Path to the skinned mesh (ozz archive format).",
                            "media/mesh.ozz", false)
 
-class PlaybackSkinSampleApplication : public ozz::sample::Application {
+class SkinningSampleApplication : public ozz::sample::Application {
  protected:
   // Updates current animation time and skeleton pose.
   virtual bool OnUpdate(float _dt, float) {
@@ -283,6 +283,6 @@ class PlaybackSkinSampleApplication : public ozz::sample::Application {
 
 int main(int _argc, const char** _argv) {
   const char* title =
-      "Ozz-animation sample: Binary animation/skeleton/skin playback";
-  return PlaybackSkinSampleApplication().Run(_argc, _argv, "1.0", title);
+      "Ozz-animation sample: Skinning";
+  return SkinningSampleApplication().Run(_argc, _argv, "1.0", title);
 }

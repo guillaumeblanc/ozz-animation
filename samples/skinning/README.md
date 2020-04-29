@@ -1,4 +1,4 @@
-# Ozz-animation sample: Animation playback with skinning
+# Ozz-animation sample: Skinning
 
 ## Description
 
