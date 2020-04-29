@@ -25,30 +25,24 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
+#include <cstring>
+
+#include "framework/application.h"
+#include "framework/imgui.h"
+#include "framework/renderer.h"
+#include "framework/utils.h"
 #include "ozz/animation/runtime/animation.h"
 #include "ozz/animation/runtime/blending_job.h"
 #include "ozz/animation/runtime/local_to_model_job.h"
 #include "ozz/animation/runtime/sampling_job.h"
 #include "ozz/animation/runtime/skeleton.h"
 #include "ozz/animation/runtime/skeleton_utils.h"
-
-#include "ozz/base/log.h"
-
 #include "ozz/base/containers/vector.h"
-
+#include "ozz/base/log.h"
 #include "ozz/base/maths/simd_math.h"
 #include "ozz/base/maths/soa_transform.h"
 #include "ozz/base/maths/vec_float.h"
-
 #include "ozz/options/options.h"
-
-#include "framework/application.h"
-#include "framework/imgui.h"
-#include "framework/mesh.h"
-#include "framework/renderer.h"
-#include "framework/utils.h"
-
-#include <cstring>
 
 // Skeleton archive can be specified as an option.
 OZZ_OPTIONS_DECLARE_STRING(skeleton,
@@ -64,11 +58,6 @@ OZZ_OPTIONS_DECLARE_STRING(animation,
 OZZ_OPTIONS_DECLARE_STRING(
     additive_animation, "Path to the additive animation (ozz archive format).",
     "media/animation_additive.ozz", false)
-
-// Mesh archive can be specified as an option.
-OZZ_OPTIONS_DECLARE_STRING(mesh,
-                           "Path to the skinned mesh (ozz archive format).",
-                           "media/mesh.ozz", false)
 
 class AdditiveBlendSampleApplication : public ozz::sample::Application {
  public:
@@ -154,19 +143,8 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
 
   // Samples animation, transforms to model space and renders.
   virtual bool OnDisplay(ozz::sample::Renderer* _renderer) {
-    // Builds skinning matrices, based on the output of the animation stage.
-    // The mesh might not use (aka be skinned by) all skeleton joints. We use
-    // the joint remapping table (available from the mesh object) to reorder
-    // model-space matrices and build skinning ones.
-    for (size_t i = 0; i < mesh_.joint_remaps.size(); ++i) {
-      skinning_matrices_[i] =
-          models_[mesh_.joint_remaps[i]] * mesh_.inverse_bind_poses[i];
-    }
-
-    // Renders skin.
-    return _renderer->DrawSkinnedMesh(mesh_, make_span(skinning_matrices_),
-                                      ozz::math::Float4x4::identity(),
-                                      render_options_);
+    return _renderer->DrawPosture(skeleton_, make_span(models_),
+                                  ozz::math::Float4x4::identity());
   }
 
   virtual bool OnInitialize() {
@@ -176,19 +154,6 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
     }
     const int num_soa_joints = skeleton_.num_soa_joints();
     const int num_joints = skeleton_.num_joints();
-
-    // Reading skinned mesh.
-    if (!ozz::sample::LoadMesh(OPTIONS_mesh, &mesh_)) {
-      return false;
-    }
-
-    // The number of joints of the mesh needs to match skeleton.
-    if (num_joints < mesh_.highest_joint_index()) {
-      ozz::log::Err() << "The provided mesh doesn't match skeleton "
-                         "(joint count mismatch)."
-                      << std::endl;
-      return false;
-    }
 
     // Reading animations.
     const char* filenames[] = {OPTIONS_animation, OPTIONS_additive_animation};
@@ -217,7 +182,6 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
 
     // Allocates model space runtime buffers of blended data.
     models_.resize(num_joints);
-    skinning_matrices_.resize(num_joints);
 
     // Allocates per-joint weights used for the partial additive animation.
     // Note that this is a Soa structure.
@@ -342,19 +306,6 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
         }
       }
     }
-    // Expose mesh rendering options
-    {
-      static bool oc_open = false;
-      ozz::sample::ImGui::OpenClose oc(_im_gui, "Rendering options", &oc_open);
-      if (oc_open) {
-        _im_gui->DoCheckBox("Show texture", &render_options_.texture);
-        _im_gui->DoCheckBox("Show normals", &render_options_.normals);
-        _im_gui->DoCheckBox("Show tangents", &render_options_.tangents);
-        _im_gui->DoCheckBox("Show binormals", &render_options_.binormals);
-        _im_gui->DoCheckBox("Show colors", &render_options_.colors);
-        _im_gui->DoCheckBox("Skip skinning", &render_options_.skip_skinning);
-      }
-    }
 
     return true;
   }
@@ -423,17 +374,7 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
   // Buffer of model space matrices. These are computed by the local-to-model
   // job after the blending stage.
   ozz::vector<ozz::math::Float4x4> models_;
-
-  // Buffer of skinning matrices, result of the joint multiplication of the
-  // inverse bind pose with the model space matrix.
-  ozz::vector<ozz::math::Float4x4> skinning_matrices_;
-
-  // The mesh used by the sample.
-  ozz::sample::Mesh mesh_;
-
-  // Mesh rendering options.
-  ozz::sample::Renderer::Options render_options_;
-};
+ };
 
 int main(int _argc, const char** _argv) {
   const char* title = "Ozz-animation sample: Additive animations blending";
