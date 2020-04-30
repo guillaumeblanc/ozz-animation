@@ -203,10 +203,13 @@ bool MemoryStream::Resize(size_t _size) {
     static_assert(
         (MemoryStream::kBufferSizeIncrement & (kBufferSizeIncrement - 1)) == 0,
         "kBufferSizeIncrement must be a power of 2");
-
-    alloc_size_ = ozz::Align(_size, kBufferSizeIncrement);
-    buffer_ = reinterpret_cast<char*>(
-        ozz::memory::default_allocator()->Reallocate(buffer_, alloc_size_, 4));
+    const size_t new_size = ozz::Align(_size, kBufferSizeIncrement);
+    char* new_buffer = reinterpret_cast<char*>(
+        ozz::memory::default_allocator()->Allocate(new_size, 16));
+    std::memcpy(new_buffer, buffer_, alloc_size_);
+    ozz::memory::default_allocator()->Deallocate(buffer_);
+    buffer_ = new_buffer;
+    alloc_size_ = new_size;
   }
   return _size == 0 || buffer_ != nullptr;
 }

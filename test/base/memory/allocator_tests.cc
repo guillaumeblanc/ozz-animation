@@ -25,11 +25,9 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/base/memory/allocator.h"
-
 #include "gtest/gtest.h"
-
 #include "ozz/base/maths/math_ex.h"
+#include "ozz/base/memory/allocator.h"
 
 TEST(Allocate, Memory) {
   void* p = ozz::memory::default_allocator()->Allocate(12, 1024);
@@ -38,18 +36,6 @@ TEST(Allocate, Memory) {
 
   // Fills allocated memory.
   memset(p, 0, 12);
-
-  // Bigger
-  p = ozz::memory::default_allocator()->Reallocate(p, 460, 4096);
-  EXPECT_TRUE(p != nullptr);
-  EXPECT_TRUE(ozz::IsAligned(p, 4096));
-  memset(p, 0, 460);
-
-  // Smaller
-  p = ozz::memory::default_allocator()->Reallocate(p, 4, 4);
-  EXPECT_TRUE(p != NULL);
-  EXPECT_TRUE(ozz::IsAligned(p, 4));
-  memset(p, 0, 4);
 
   ozz::memory::default_allocator()->Deallocate(p);
 }
@@ -63,16 +49,6 @@ TEST(MallocCompliance, Memory) {
 
   {  // Freeing of a nullptr pointer is valid.
     ozz::memory::default_allocator()->Deallocate(nullptr);
-  }
-
-  {  // Reallocating nullptr pointer is valid
-    void* p = ozz::memory::default_allocator()->Reallocate(nullptr, 12, 1024);
-    EXPECT_TRUE(p != nullptr);
-
-    // Fills allocated memory.
-    memset(p, 0, 12);
-
-    ozz::memory::default_allocator()->Deallocate(p);
   }
 }
 
@@ -160,12 +136,6 @@ class TestAllocator : public ozz::memory::Allocator {
     return hard_coded_address_;
   }
   virtual void Deallocate(void* _block) { (void)_block; }
-  virtual void* Reallocate(void* _block, size_t _size, size_t _alignment) {
-    (void)_block;
-    (void)_size;
-    (void)_alignment;
-    return nullptr;
-  }
 
   void* hard_coded_address_;
 };

@@ -32,14 +32,14 @@
 #error "This header is private, it cannot be included from public headers."
 #endif  // OZZ_INCLUDE_PRIVATE_HEADER
 
-#include "renderer_impl.h"
+#include <cstring>
 
-#include "ozz/base/platform.h"
-
+#include "ozz/base/containers/vector.h"
 #include "ozz/base/maths/math_ex.h"
 #include "ozz/base/maths/simd_math.h"
-
 #include "ozz/base/memory/unique_ptr.h"
+#include "ozz/base/platform.h"
+#include "renderer_impl.h"
 
 namespace ozz {
 namespace sample {
@@ -105,24 +105,20 @@ class GlImmediateRenderer {
   OZZ_INLINE void PushVertex(const _Ty& _vertex) {
     // Resize buffer if needed.
     const size_t new_size = size_ + sizeof(_Ty);
-    if (new_size > max_size_) {
-      ResizeVbo(new_size);
+    if (new_size > buffer_.size()) {
+      buffer_.resize(new_size);
     }
+
     // Copy this last vertex.
-    *reinterpret_cast<_Ty*>(&buffer_[size_]) = _vertex;
+    std::memcpy(buffer_.data() + size_, &_vertex, sizeof(_Ty));
     size_ = new_size;
   }
-
-  // Resize vertex buffer to at least _new_size. This function can only grow
-  // vbo size.
-  void ResizeVbo(size_t _new_size);
 
   // The vertex object used by the renderer.
   GLuint vbo_;
 
   // Buffer of vertices.
-  char* buffer_;
-  size_t max_size_;
+  ozz::vector<char> buffer_;
 
   // Number of vertices.
   size_t size_;
