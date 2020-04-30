@@ -154,10 +154,10 @@ bool Shooter::Process() {
     }
 
     // Processes this shot.
-    GL(BindBuffer(GL_PIXEL_PACK_BUFFER, shot.pbo));
 #ifdef EMSCRIPTEN
     (void)shot_number_;
 #else   // EMSCRIPTEN
+    GL(BindBuffer(GL_PIXEL_PACK_BUFFER, shot.pbo));
     const void* pixels = glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
     if (pixels) {
       char name[16];
