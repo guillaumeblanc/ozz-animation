@@ -243,7 +243,7 @@ class SkinningSampleApplication : public ozz::sample::Application {
   }
 
   virtual void GetSceneBounds(ozz::math::Box* _bound) const {
-    ozz::sample::ComputePostureBounds(make_span(models_), _bound);
+    ozz::sample::ComputeSkeletonBounds(skeleton_, _bound);
   }
 
  private:
@@ -282,7 +282,6 @@ class SkinningSampleApplication : public ozz::sample::Application {
 };
 
 int main(int _argc, const char** _argv) {
-  const char* title =
-      "Ozz-animation sample: Skinning";
+  const char* title = "Ozz-animation sample: Skinning";
   return SkinningSampleApplication().Run(_argc, _argv, "1.0", title);
 }
