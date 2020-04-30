@@ -2,8 +2,8 @@
 title: Two bone IK
 layout: full
 keywords: sample,inverse,kinematic,skeleton,hierarchy,robot,joint,ik,two,bone,chain,fast,maya,mobu,motion,builder,rotate,plane,soa,local,model,space
-order: 65
-level: 2
+order: 70
+level: 3
 ---
 
 {% include links.jekyll %}

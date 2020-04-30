@@ -2,7 +2,7 @@
 title: Joint attachment
 layout: full
 keywords: sample,tutorial,attach,offset,local,model,space,transformation,matrix,concatenate
-order: 25
+order: 15
 level: 1
 ---
 
