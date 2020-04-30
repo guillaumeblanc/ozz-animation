@@ -1103,9 +1103,10 @@ const float kDefaultUVsArray[][2] = {
 bool RendererImpl::DrawMesh(const Mesh& _mesh,
                             const ozz::math::Float4x4& _transform,
                             const Options& _options) {
-
   if (_options.wireframe) {
+#ifndef EMSCRIPTEN
     GL(PolygonMode(GL_FRONT_AND_BACK, GL_LINE));
+#endif  // EMSCRIPTEN
   }
 
   const int vertex_count = _mesh.vertex_count();
@@ -1255,7 +1256,9 @@ bool RendererImpl::DrawMesh(const Mesh& _mesh,
   shader->Unbind();
 
   if (_options.wireframe) {
+#ifndef EMSCRIPTEN
     GL(PolygonMode(GL_FRONT_AND_BACK, GL_FILL));
+#endif  // EMSCRIPTEN
   }
 
   // Renders debug normals.
@@ -1309,14 +1312,15 @@ bool RendererImpl::DrawMesh(const Mesh& _mesh,
 bool RendererImpl::DrawSkinnedMesh(
     const Mesh& _mesh, const span<math::Float4x4> _skinning_matrices,
     const ozz::math::Float4x4& _transform, const Options& _options) {
-
   // Forward to DrawMesh function is skinning is disabled.
   if (_options.skip_skinning) {
     return DrawMesh(_mesh, _transform, _options);
   }
 
   if (_options.wireframe) {
+#ifndef EMSCRIPTEN
     GL(PolygonMode(GL_FRONT_AND_BACK, GL_LINE));
+#endif  // EMSCRIPTEN
   }
 
   const int vertex_count = _mesh.vertex_count();
@@ -1581,7 +1585,9 @@ bool RendererImpl::DrawSkinnedMesh(
   shader->Unbind();
 
   if (_options.wireframe) {
+#ifndef EMSCRIPTEN
     GL(PolygonMode(GL_FRONT_AND_BACK, GL_FILL));
+#endif  // EMSCRIPTEN
   }
 
   return true;

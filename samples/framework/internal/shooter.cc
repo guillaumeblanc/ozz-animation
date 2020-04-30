@@ -117,6 +117,7 @@ void Shooter::Resize(int _width, int _height) {
   ProcessAll();
 
   // Resizes all pbos.
+#ifndef EMSCRIPTEN
   for (int i = 0; i < kNumShots; ++i) {
     Shot& shot = shots_[i];
     GL(BindBuffer(GL_PIXEL_PACK_BUFFER, shot.pbo));
@@ -127,6 +128,7 @@ void Shooter::Resize(int _width, int _height) {
     assert(shot.cooldown == 0);  // Must have been processed.
   }
   GL(BindBuffer(GL_PIXEL_PACK_BUFFER, 0));
+#endif  // EMSCRIPTEN
 }
 
 bool Shooter::Update() { return Process(); }

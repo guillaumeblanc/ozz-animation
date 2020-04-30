@@ -1,3 +1,7 @@
+if(EMSCRIPTEN)
+  return()
+endif()
+
 # Sample requires thread libraries
 find_package(Threads)
 if (NOT Threads_FOUND)
