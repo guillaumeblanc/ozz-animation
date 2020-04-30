@@ -17,13 +17,15 @@
           <div class="w3-dropdown-content w3-bar-block w3-theme-l4 w3-card-2">
             {% assign pages = site[{{collection_id}}] | sort:"order" %}
             {% for cpage in pages %}
-              <a class="a_reject w3-medium w3-wide {% if page.url == cpage.url %} w3-orange {% endif %}" href="{{site.baseurl}}{{cpage.url}}">{{cpage.title}}</a>
+              <a class="a_reject w3-medium{% if page.url == cpage.url %} w3-orange {% endif %}" href="{{site.baseurl}}{{cpage.url}}">{{cpage.title}}</a>
             {% endfor %}
           </div>
         </div>
       {% endfor %}
 
       <a class="a_reject w3-bar-item w3-button w3-large w3-wide w3-hide-small" href="https://github.com/guillaumeblanc/ozz-animation/"><i class="fab fa-github" aria-hidden="true"></i> Github</a>
+
+      <a class="a_reject w3-bar-item w3-button w3-large w3-wide w3-hide-small" href="https://gitter.im/ozz-animation/"><i class="fab fa-gitter" aria-hidden="true"></i> Gitter</a>
 
       {% if {{page.layout}} != "home" %}
         <div class="w3-right w3-padding-8 w3-margin-right">
@@ -57,6 +59,8 @@
     {% endfor %}
 
     <a class="a_reject w3-bar-item w3-button w3-medium" href="https://github.com/guillaumeblanc/ozz-animation/"><i class="fab fa-github" aria-hidden="true"></i>Github</a>
+
+    <a class="a_reject w3-bar-item w3-button w3-medium" href="https://gitter.im/ozz-animation/"><i class="fab fa-gitter" aria-hidden="true"></i>Gitter</a>
   <br />
   <br />
 </div>
