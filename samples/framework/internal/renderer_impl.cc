@@ -1727,7 +1727,8 @@ RendererImpl::ScratchBuffer::~ScratchBuffer() {
 void* RendererImpl::ScratchBuffer::Resize(size_t _size) {
   if (_size > size_) {
     size_ = _size;
-    buffer_ = memory::default_allocator()->Reallocate(buffer_, _size, 16);
+    memory::default_allocator()->Deallocate(buffer_);
+    buffer_ = memory::default_allocator()->Allocate(_size, 16);
   }
   return buffer_;
 }

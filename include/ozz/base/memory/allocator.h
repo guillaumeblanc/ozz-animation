@@ -68,11 +68,6 @@ class Allocator {
   // Argument _block can be nullptr.
   // Deallocate function conforms with standard free function specifications.
   virtual void Deallocate(void* _block) = 0;
-
-  // Changes the size of a block that was allocated with Allocate.
-  // Argument _block can be nullptr.
-  // Reallocate function conforms with standard realloc function specifications.
-  virtual void* Reallocate(void* _block, size_t _size, size_t _alignment) = 0;
 };
 }  // namespace memory
 
