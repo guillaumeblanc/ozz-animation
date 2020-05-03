@@ -7,7 +7,7 @@
 
       {% assign collections = site.collections | sort:"order" %}
       {% for collection in collections %}
-        {% if collection.label == 'posts' or collection.output == false %}
+        {% if collection.label == 'posts' or collection.output == false or collection.order < 0 %}
           {% continue %}
         {% endif %}
         {% assign collection_id = collection.label %}
@@ -45,7 +45,7 @@
   <a class="a_reject w3-bar-item w3-button {% if {{page.layout}} == "home" %}w3-orange{% endif %}" href="{{site.baseurl}}/">Home</a>
     {% assign collections = site.collections | sort:"order" %}
     {% for collection in collections %}
-      {% if collection.label == 'posts' or collection.output == false %}
+      {% if collection.label == 'posts' or collection.output == false or collection.order < 0 %}
         {% continue %}
       {% endif %}
       <a class="a_reject w3-bar-item w3-button w3-medium" href="{{site.baseurl}}/{{collection.label}}/">{{collection.display_name}}</a>
