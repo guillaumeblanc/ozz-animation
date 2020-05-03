@@ -13,3 +13,9 @@ collections:
     output: true
     order: 1
     permalink: /:collection/:path/
+  proto:
+    display_name: Proto
+    output: true
+    order: -1
+    permalink: /:collection/:path
+  
