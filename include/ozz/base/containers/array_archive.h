@@ -25,48 +25,39 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#ifndef OZZ_OZZ_BASE_CONTAINERS_VECTOR_ARCHIVE_H_
-#define OZZ_OZZ_BASE_CONTAINERS_VECTOR_ARCHIVE_H_
+#ifndef OZZ_OZZ_BASE_CONTAINERS_ARRAY_ARCHIVE_H_
+#define OZZ_OZZ_BASE_CONTAINERS_ARRAY_ARCHIVE_H_
 
-#include "ozz/base/containers/vector.h"
+#include "ozz/base/containers/array.h"
 #include "ozz/base/io/archive.h"
-#include "ozz/base/platform.h"
 
 namespace ozz {
 namespace io {
 
-OZZ_IO_TYPE_NOT_VERSIONABLE_T2(class _Ty, class _Allocator,
-                               std::vector<_Ty, _Allocator>)
+OZZ_IO_TYPE_NOT_VERSIONABLE_T2(class _Ty, size_t _N, std::array<_Ty, _N>)
 
-template <class _Ty, class _Allocator>
-struct Extern<std::vector<_Ty, _Allocator>> {
+template <class _Ty, size_t _N>
+struct Extern<std::array<_Ty, _N>> {
   inline static void Save(OArchive& _archive,
-                          const std::vector<_Ty, _Allocator>* _values,
-                          size_t _count) {
-    for (size_t i = 0; i < _count; i++) {
-      const std::vector<_Ty, _Allocator>& vector = _values[i];
-      const uint32_t size = static_cast<uint32_t>(vector.size());
-      _archive << size;
-      if (size > 0) {
-        _archive << ozz::io::MakeArray(vector.data(), size);
+                          const std::array<_Ty, _N>* _values, size_t _count) {
+    if (void(0), _N != 0) {
+      for (size_t i = 0; i < _count; i++) {
+        const std::array<_Ty, _N>& array = _values[i];
+        _archive << ozz::io::MakeArray(array.data(), _N);
       }
     }
   }
-  inline static void Load(IArchive& _archive,
-                          std::vector<_Ty, _Allocator>* _values, size_t _count,
-                          uint32_t _version) {
+  inline static void Load(IArchive& _archive, std::array<_Ty, _N>* _values,
+                          size_t _count, uint32_t _version) {
     (void)_version;
-    for (size_t i = 0; i < _count; i++) {
-      std::vector<_Ty, _Allocator>& vector = _values[i];
-      uint32_t size;
-      _archive >> size;
-      vector.resize(size);
-      if (size > 0) {
-        _archive >> ozz::io::MakeArray(vector.data(), size);
+    if (void(0), _N != 0) {
+      for (size_t i = 0; i < _count; i++) {
+        std::array<_Ty, _N>& array = _values[i];
+        _archive >> ozz::io::MakeArray(array.data(), _N);
       }
     }
   }
 };
 }  // namespace io
 }  // namespace ozz
-#endif  // OZZ_OZZ_BASE_CONTAINERS_VECTOR_ARCHIVE_H_
+#endif  // OZZ_OZZ_BASE_CONTAINERS_ARRAY_ARCHIVE_H_

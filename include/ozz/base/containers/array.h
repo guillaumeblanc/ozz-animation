@@ -25,48 +25,47 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#ifndef OZZ_OZZ_BASE_CONTAINERS_VECTOR_ARCHIVE_H_
-#define OZZ_OZZ_BASE_CONTAINERS_VECTOR_ARCHIVE_H_
+#ifndef OZZ_OZZ_BASE_CONTAINERS_ARRAY_H_
+#define OZZ_OZZ_BASE_CONTAINERS_ARRAY_H_
 
-#include "ozz/base/containers/vector.h"
-#include "ozz/base/io/archive.h"
-#include "ozz/base/platform.h"
+#include <array>
 
 namespace ozz {
-namespace io {
+// Redirects std::array to ozz::array .
+template <class _Ty, size_t _N>
+using array = std::array<_Ty, _N>;
 
-OZZ_IO_TYPE_NOT_VERSIONABLE_T2(class _Ty, class _Allocator,
-                               std::vector<_Ty, _Allocator>)
+// Extends std::array with two functions that gives access to the begin and the
+// end of its array of elements.
 
-template <class _Ty, class _Allocator>
-struct Extern<std::vector<_Ty, _Allocator>> {
-  inline static void Save(OArchive& _archive,
-                          const std::vector<_Ty, _Allocator>* _values,
-                          size_t _count) {
-    for (size_t i = 0; i < _count; i++) {
-      const std::vector<_Ty, _Allocator>& vector = _values[i];
-      const uint32_t size = static_cast<uint32_t>(vector.size());
-      _archive << size;
-      if (size > 0) {
-        _archive << ozz::io::MakeArray(vector.data(), size);
-      }
-    }
-  }
-  inline static void Load(IArchive& _archive,
-                          std::vector<_Ty, _Allocator>* _values, size_t _count,
-                          uint32_t _version) {
-    (void)_version;
-    for (size_t i = 0; i < _count; i++) {
-      std::vector<_Ty, _Allocator>& vector = _values[i];
-      uint32_t size;
-      _archive >> size;
-      vector.resize(size);
-      if (size > 0) {
-        _archive >> ozz::io::MakeArray(vector.data(), size);
-      }
-    }
-  }
-};
-}  // namespace io
+// Returns the mutable begin of the array of elements, or nullptr if
+// array's empty.
+template <class _Ty, size_t _N>
+inline _Ty* array_begin(std::array<_Ty, _N>& _array) {
+  return _array.data();
+}
+
+// Returns the non-mutable begin of the array of elements, or nullptr if
+// array's empty.
+template <class _Ty, size_t _N>
+inline const _Ty* array_begin(const std::array<_Ty, _N>& _array) {
+  return _array.data();
+}
+
+// Returns the mutable end of the array of elements, or nullptr if
+// array's empty. Array end is one element past the last element of the
+// array, it cannot be dereferenced.
+template <class _Ty, size_t _N>
+inline _Ty* array_end(std::array<_Ty, _N>& _array) {
+  return _array.data() + _N;
+}
+
+// Returns the non-mutable end of the array of elements, or nullptr if
+// array's empty. Array end is one element past the last element of the
+// array, it cannot be dereferenced.
+template <class _Ty, size_t _N>
+inline const _Ty* array_end(const std::array<_Ty, _N>& _array) {
+  return _array.data() + _N;
+}
 }  // namespace ozz
-#endif  // OZZ_OZZ_BASE_CONTAINERS_VECTOR_ARCHIVE_H_
+#endif  // OZZ_OZZ_BASE_CONTAINERS_ARRAY_H_
