@@ -36,10 +36,8 @@
 // See imgui.h for details about function specifications.
 
 #include "framework/imgui.h"
-
 #include "ozz/base/containers/vector.h"
 #include "ozz/base/maths/rect.h"
-
 #include "renderer_impl.h"
 
 namespace ozz {
@@ -89,6 +87,10 @@ class ImGuiImpl : public ImGui {
 
   virtual bool DoSlider(const char* _label, float _min, float _max,
                         float* _value, float _pow, bool _enabled);
+
+  virtual bool DoSlider2D(const char* _label, ozz::array<float, 2> _min,
+                          ozz::array<float, 2> _max,
+                          ozz::array<float, 2>* _value, bool _enabled);
 
   virtual bool DoSlider(const char* _label, int _min, int _max, int* _value,
                         float _pow, bool _enabled);
