@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -583,7 +583,7 @@ TEST(OptimizeOverride, AnimationOptimizer) {
     RawAnimation output;
     optimizer.setting = loose_setting;
     const AnimationOptimizer::Setting joint_override(1e-3f,  // 1mm
-                                                     .01f);  // 10m
+                                                     1e-2f);  // 1cm
     optimizer.joints_setting_override[1] = joint_override;
     ASSERT_TRUE(optimizer(input, *skeleton, &output));
     EXPECT_EQ(output.num_tracks(), 5);
@@ -604,7 +604,7 @@ TEST(OptimizeOverride, AnimationOptimizer) {
     RawAnimation output;
     optimizer.setting = loose_setting;
     const AnimationOptimizer::Setting joint_override(1e-3f,  // 1mm
-                                                     1.f);   // 1m
+                                                     10.f);   // 10m
     optimizer.joints_setting_override[2] = joint_override;
     ASSERT_TRUE(optimizer(input, *skeleton, &output));
     EXPECT_EQ(output.num_tracks(), 5);
@@ -628,7 +628,7 @@ TEST(OptimizeOverride, AnimationOptimizer) {
     RawAnimation output;
     optimizer.setting = loose_setting;
     const AnimationOptimizer::Setting joint_override(1.e-3f,  // > 1mm
-                                                     .5f);    // .5m
+                                                     1.f);    // 1m
     optimizer.joints_setting_override[1] = joint_override;
     optimizer.joints_setting_override[2] = joint_override;
     ASSERT_TRUE(optimizer(input, *skeleton, &output));

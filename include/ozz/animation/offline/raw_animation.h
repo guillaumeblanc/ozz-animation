@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -58,9 +58,6 @@ namespace offline {
 struct RawAnimation {
   // Constructs a valid RawAnimation with a 1s default duration.
   RawAnimation();
-
-  // Deallocates raw animation.
-  ~RawAnimation();
 
   // Tests for *this validity.
   // Returns true if animation data (duration, tracks) is valid:

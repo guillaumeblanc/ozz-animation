@@ -1,3 +1,7 @@
+if(NOT ozz_build_tools)
+  return()
+endif()
+
 add_subdirectory(${PROJECT_SOURCE_DIR}/extern/jsoncpp json)
 
 add_library(ozz_animation_tools STATIC

@@ -125,4 +125,5 @@ set_target_properties(test_fuse_animation_offline PROPERTIES FOLDER "ozz/tests/a
 
 add_subdirectory(csv)
 add_subdirectory(fbx)
+add_subdirectory(gltf)
 add_subdirectory(tools)

@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -1182,7 +1182,6 @@ OZZ_INLINE ozz::math::Float4x4 operator-(const ozz::math::Float4x4& _a,
 }  // namespace math
 }  // namespace ozz
 
-#if !defined(__GNUC__) || defined(OZZ_SIMD_REF)
 #if !defined(OZZ_DISABLE_SSE_NATIVE_OPERATORS)
 // Returns per element addition of _a and _b.
 OZZ_INLINE ozz::math::SimdFloat4 operator+(ozz::math::_SimdFloat4 _a,
@@ -1203,7 +1202,6 @@ OZZ_INLINE ozz::math::SimdFloat4 operator*(ozz::math::_SimdFloat4 _a,
 OZZ_INLINE ozz::math::SimdFloat4 operator/(ozz::math::_SimdFloat4 _a,
                                            ozz::math::_SimdFloat4 _b);
 #endif  // !defined(OZZ_DISABLE_SSE_NATIVE_OPERATORS)
-#endif  // !defined(__GNUC__) || defined(OZZ_SIMD_REF)
 
 // Implement format conversions.
 namespace ozz {

@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -26,6 +26,7 @@
 //----------------------------------------------------------------------------//
 
 #include "ozz/animation/offline/raw_animation.h"
+
 #include "ozz/animation/offline/raw_animation_utils.h"
 #include "ozz/animation/runtime/skeleton.h"
 
@@ -34,8 +35,6 @@ namespace animation {
 namespace offline {
 
 RawAnimation::RawAnimation() : duration(1.f) {}
-
-RawAnimation::~RawAnimation() {}
 
 bool RawAnimation::Validate() const {
   if (duration <= 0.f) {  // Tests duration is valid.

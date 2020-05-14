@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -36,9 +36,6 @@
 #include "ozz/animation/offline/raw_animation.h"
 
 using ozz::animation::Animation;
-using ozz::animation::TranslationKey;
-using ozz::animation::RotationKey;
-using ozz::animation::ScaleKey;
 using ozz::animation::offline::RawAnimation;
 using ozz::animation::offline::AnimationBuilder;
 

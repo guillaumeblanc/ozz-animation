@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -52,7 +52,7 @@ struct span {
   span() : data_(nullptr), size_(0) {}
 
   // Constructs a range from its extreme values.
-  span(_Ty* _begin, _Ty* _end) : data_(_begin), size_(_end - _begin) {
+  span(_Ty* _begin, _Ty* _end) : data_(_begin), size_(static_cast<size_t>(_end - _begin)) {
     assert(_begin <= _end && "Invalid range.");
   }
 

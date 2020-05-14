@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -126,25 +126,25 @@ class OArchive {
   }
 
 // Primitive type saving.
-#define _OZZ_IO_PRIMITIVE_TYPE(_type)                             \
+#define OZZ_IO_PRIMITIVE_TYPE(_type)                             \
   void operator<<(_type _v) {                                     \
     _type v = endian_swap_ ? EndianSwapper<_type>::Swap(_v) : _v; \
     OZZ_IF_DEBUG(size_t size =) stream_->Write(&v, sizeof(v));    \
     assert(size == sizeof(v));                                    \
   }
 
-  _OZZ_IO_PRIMITIVE_TYPE(char)
-  _OZZ_IO_PRIMITIVE_TYPE(int8_t)
-  _OZZ_IO_PRIMITIVE_TYPE(uint8_t)
-  _OZZ_IO_PRIMITIVE_TYPE(int16_t)
-  _OZZ_IO_PRIMITIVE_TYPE(uint16_t)
-  _OZZ_IO_PRIMITIVE_TYPE(int32_t)
-  _OZZ_IO_PRIMITIVE_TYPE(uint32_t)
-  _OZZ_IO_PRIMITIVE_TYPE(int64_t)
-  _OZZ_IO_PRIMITIVE_TYPE(uint64_t)
-  _OZZ_IO_PRIMITIVE_TYPE(bool)
-  _OZZ_IO_PRIMITIVE_TYPE(float)
-#undef _OZZ_IO_PRIMITIVE_TYPE
+  OZZ_IO_PRIMITIVE_TYPE(char)
+  OZZ_IO_PRIMITIVE_TYPE(int8_t)
+  OZZ_IO_PRIMITIVE_TYPE(uint8_t)
+  OZZ_IO_PRIMITIVE_TYPE(int16_t)
+  OZZ_IO_PRIMITIVE_TYPE(uint16_t)
+  OZZ_IO_PRIMITIVE_TYPE(int32_t)
+  OZZ_IO_PRIMITIVE_TYPE(uint32_t)
+  OZZ_IO_PRIMITIVE_TYPE(int64_t)
+  OZZ_IO_PRIMITIVE_TYPE(uint64_t)
+  OZZ_IO_PRIMITIVE_TYPE(bool)
+  OZZ_IO_PRIMITIVE_TYPE(float)
+#undef OZZ_IO_PRIMITIVE_TYPE
 
   // Returns output stream.
   Stream* stream() const { return stream_; }
@@ -199,7 +199,7 @@ class IArchive {
   }
 
 // Primitive type loading.
-#define _OZZ_IO_PRIMITIVE_TYPE(_type)                         \
+#define OZZ_IO_PRIMITIVE_TYPE(_type)                         \
   void operator>>(_type& _v) {                                \
     _type v;                                                  \
     OZZ_IF_DEBUG(size_t size =) stream_->Read(&v, sizeof(v)); \
@@ -207,18 +207,18 @@ class IArchive {
     _v = endian_swap_ ? EndianSwapper<_type>::Swap(v) : v;    \
   }
 
-  _OZZ_IO_PRIMITIVE_TYPE(char)
-  _OZZ_IO_PRIMITIVE_TYPE(int8_t)
-  _OZZ_IO_PRIMITIVE_TYPE(uint8_t)
-  _OZZ_IO_PRIMITIVE_TYPE(int16_t)
-  _OZZ_IO_PRIMITIVE_TYPE(uint16_t)
-  _OZZ_IO_PRIMITIVE_TYPE(int32_t)
-  _OZZ_IO_PRIMITIVE_TYPE(uint32_t)
-  _OZZ_IO_PRIMITIVE_TYPE(int64_t)
-  _OZZ_IO_PRIMITIVE_TYPE(uint64_t)
-  _OZZ_IO_PRIMITIVE_TYPE(bool)
-  _OZZ_IO_PRIMITIVE_TYPE(float)
-#undef _OZZ_IO_PRIMITIVE_TYPE
+  OZZ_IO_PRIMITIVE_TYPE(char)
+  OZZ_IO_PRIMITIVE_TYPE(int8_t)
+  OZZ_IO_PRIMITIVE_TYPE(uint8_t)
+  OZZ_IO_PRIMITIVE_TYPE(int16_t)
+  OZZ_IO_PRIMITIVE_TYPE(uint16_t)
+  OZZ_IO_PRIMITIVE_TYPE(int32_t)
+  OZZ_IO_PRIMITIVE_TYPE(uint32_t)
+  OZZ_IO_PRIMITIVE_TYPE(int64_t)
+  OZZ_IO_PRIMITIVE_TYPE(uint64_t)
+  OZZ_IO_PRIMITIVE_TYPE(bool)
+  OZZ_IO_PRIMITIVE_TYPE(float)
+#undef OZZ_IO_PRIMITIVE_TYPE
 
   template <typename _Ty>
   bool TestTag() {
@@ -314,7 +314,7 @@ struct Version<const Array<_Ty>> {
 };
 
 // Specializes Array Save/Load for primitive types.
-#define _OZZ_IO_PRIMITIVE_TYPE(_type)                                       \
+#define OZZ_IO_PRIMITIVE_TYPE(_type)                                       \
   template <>                                                               \
   inline void Array<const _type>::Save(OArchive& _archive) const {          \
     if (_archive.endian_swap()) {                                           \
@@ -356,18 +356,18 @@ struct Version<const Array<_Ty>> {
     }                                                                       \
   }
 
-_OZZ_IO_PRIMITIVE_TYPE(char)
-_OZZ_IO_PRIMITIVE_TYPE(int8_t)
-_OZZ_IO_PRIMITIVE_TYPE(uint8_t)
-_OZZ_IO_PRIMITIVE_TYPE(int16_t)
-_OZZ_IO_PRIMITIVE_TYPE(uint16_t)
-_OZZ_IO_PRIMITIVE_TYPE(int32_t)
-_OZZ_IO_PRIMITIVE_TYPE(uint32_t)
-_OZZ_IO_PRIMITIVE_TYPE(int64_t)
-_OZZ_IO_PRIMITIVE_TYPE(uint64_t)
-_OZZ_IO_PRIMITIVE_TYPE(bool)
-_OZZ_IO_PRIMITIVE_TYPE(float)
-#undef _OZZ_IO_PRIMITIVE_TYPE
+OZZ_IO_PRIMITIVE_TYPE(char)
+OZZ_IO_PRIMITIVE_TYPE(int8_t)
+OZZ_IO_PRIMITIVE_TYPE(uint8_t)
+OZZ_IO_PRIMITIVE_TYPE(int16_t)
+OZZ_IO_PRIMITIVE_TYPE(uint16_t)
+OZZ_IO_PRIMITIVE_TYPE(int32_t)
+OZZ_IO_PRIMITIVE_TYPE(uint32_t)
+OZZ_IO_PRIMITIVE_TYPE(int64_t)
+OZZ_IO_PRIMITIVE_TYPE(uint64_t)
+OZZ_IO_PRIMITIVE_TYPE(bool)
+OZZ_IO_PRIMITIVE_TYPE(float)
+#undef OZZ_IO_PRIMITIVE_TYPE
 }  // namespace internal
 
 // Utility function that instantiates Array wrapper.

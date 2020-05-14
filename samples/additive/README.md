@@ -30,4 +30,4 @@ Both main and additive animation playback parameters are exposed.
 2. Samples each animation to get local-space transformations. Sampling an additive animation is not different from a standard one.
 3. Setups ozz::animation::BlendingJob object. BlendingJob object takes as input two arrays of BlendingJob::Layer, one for standard blending, the other for additive blending. Each layer is setup with its weights and the local-space transforms outputted from the sampling stage.
 4. Convert local-space transformations to model-space matrices using ozz::animation::LocalToModelJob. It takes as input the skeleton (to know about joint's hierarchy) and local-space transforms outputted from the blending pass. Output is model-space matrices array.
-5. Model-space matrices array is then used for rendering the skinned mesh.
+5. Model-space matrices array is then used for rendering skeleton posture.

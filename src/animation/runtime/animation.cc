@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -52,9 +52,9 @@ void Animation::Allocate(size_t _name_len, size_t _translation_count,
                          size_t _rotation_count, size_t _scale_count) {
   // Distributes buffer memory while ensuring proper alignment (serves larger
   // alignment values first).
-  static_assert(alignof(TranslationKey) >= alignof(RotationKey) &&
-                    alignof(RotationKey) >= alignof(ScaleKey) &&
-                    alignof(ScaleKey) >= alignof(char),
+  static_assert(alignof(Float3Key) >= alignof(QuaternionKey) &&
+                    alignof(QuaternionKey) >= alignof(Float3Key) &&
+                    alignof(Float3Key) >= alignof(char),
                 "Must serve larger alignment values first)");
 
   assert(name_ == nullptr && translations_.size() == 0 &&
@@ -62,21 +62,22 @@ void Animation::Allocate(size_t _name_len, size_t _translation_count,
 
   // Compute overall size and allocate a single buffer for all the data.
   const size_t buffer_size = (_name_len > 0 ? _name_len + 1 : 0) +
-                             _translation_count * sizeof(TranslationKey) +
-                             _rotation_count * sizeof(RotationKey) +
-                             _scale_count * sizeof(ScaleKey);
+                             _translation_count * sizeof(Float3Key) +
+                             _rotation_count * sizeof(QuaternionKey) +
+                             _scale_count * sizeof(Float3Key);
   span<char> buffer = {static_cast<char*>(memory::default_allocator()->Allocate(
-                           buffer_size, alignof(TranslationKey))),
+                           buffer_size, alignof(Float3Key))),
                        buffer_size};
 
   // Fix up pointers. Serves larger alignment values first.
-  translations_ = fill_span<TranslationKey>(buffer, _translation_count);
-  rotations_ = fill_span<RotationKey>(buffer, _rotation_count);
-  scales_ = fill_span<ScaleKey>(buffer, _scale_count);
+  translations_ = fill_span<Float3Key>(buffer, _translation_count);
+  rotations_ = fill_span<QuaternionKey>(buffer, _rotation_count);
+  scales_ = fill_span<Float3Key>(buffer, _scale_count);
 
   // Let name be nullptr if animation has no name. Allows to avoid allocating
   // this buffer in the constructor of empty animations.
-  name_ = _name_len > 0 ? fill_span<char>(buffer, _name_len+1).data() : nullptr;
+  name_ =
+      _name_len > 0 ? fill_span<char>(buffer, _name_len + 1).data() : nullptr;
 
   assert(buffer.empty() && "Whole buffer should be consumned");
 }
@@ -86,9 +87,9 @@ void Animation::Deallocate() {
       as_writable_bytes(translations_).data());
 
   name_ = nullptr;
-  translations_ = ozz::span<TranslationKey>();
-  rotations_ = ozz::span<RotationKey>();
-  scales_ = ozz::span<ScaleKey>();
+  translations_ = {};
+  rotations_ = {};
+  scales_ = {};
 }
 
 size_t Animation::size() const {
@@ -113,13 +114,13 @@ void Animation::Save(ozz::io::OArchive& _archive) const {
 
   _archive << ozz::io::MakeArray(name_, name_len);
 
-  for (const TranslationKey& key : translations_) {
+  for (const Float3Key& key : translations_) {
     _archive << key.ratio;
     _archive << key.track;
     _archive << ozz::io::MakeArray(key.value);
   }
 
-  for (const RotationKey& key : rotations_) {
+  for (const QuaternionKey& key : rotations_) {
     _archive << key.ratio;
     uint16_t track = key.track;
     _archive << track;
@@ -130,7 +131,7 @@ void Animation::Save(ozz::io::OArchive& _archive) const {
     _archive << ozz::io::MakeArray(key.value);
   }
 
-  for (const ScaleKey& key : scales_) {
+  for (const Float3Key& key : scales_) {
     _archive << key.ratio;
     _archive << key.track;
     _archive << ozz::io::MakeArray(key.value);
@@ -172,13 +173,13 @@ void Animation::Load(ozz::io::IArchive& _archive, uint32_t _version) {
     name_[name_len] = 0;
   }
 
-  for (TranslationKey& key : translations_) {
+  for (Float3Key& key : translations_) {
     _archive >> key.ratio;
     _archive >> key.track;
     _archive >> ozz::io::MakeArray(key.value);
   }
 
-  for (RotationKey& key : rotations_) {
+  for (QuaternionKey& key : rotations_) {
     _archive >> key.ratio;
     uint16_t track;
     _archive >> track;
@@ -192,7 +193,7 @@ void Animation::Load(ozz::io::IArchive& _archive, uint32_t _version) {
     _archive >> ozz::io::MakeArray(key.value);
   }
 
-  for (ScaleKey& key : scales_) {
+  for (Float3Key& key : scales_) {
     _archive >> key.ratio;
     _archive >> key.track;
     _archive >> ozz::io::MakeArray(key.value);

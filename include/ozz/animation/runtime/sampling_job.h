@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -94,9 +94,8 @@ struct SamplingJob {
 
 namespace internal {
 // Soa hot data to interpolate.
-struct InterpSoaTranslation;
-struct InterpSoaRotation;
-struct InterpSoaScale;
+struct InterpSoaFloat3;
+struct InterpSoaQuaternion;
 }  // namespace internal
 
 // Declares the cache object used by the workload to take advantage of the
@@ -157,9 +156,9 @@ class SamplingCache {
   int max_soa_tracks_;
 
   // Soa hot data to interpolate.
-  internal::InterpSoaTranslation* soa_translations_;
-  internal::InterpSoaRotation* soa_rotations_;
-  internal::InterpSoaScale* soa_scales_;
+  internal::InterpSoaFloat3* soa_translations_;
+  internal::InterpSoaQuaternion* soa_rotations_;
+  internal::InterpSoaFloat3* soa_scales_;
 
   // Points to the keys in the animation that are valid for the current time
   // ratio.
