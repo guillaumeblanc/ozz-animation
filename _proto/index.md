@@ -1,7 +1,7 @@
 ---
-title: Contro Rig
+title: Fingers control
 layout: full
-keywords: blend,additive,partial,blending,sample,tutorial
+keywords: blend,additive,partial,blending,sample,tutorial,control,rig
 ---
 
 {% include links.jekyll %}
