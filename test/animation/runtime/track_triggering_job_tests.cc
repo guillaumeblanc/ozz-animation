@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -25,17 +25,14 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/animation/runtime/track_triggering_job.h"
-
 #include "gtest/gtest.h"
-#include "ozz/base/gtest_helper.h"
-#include "ozz/base/maths/gtest_math_helper.h"
-#include "ozz/base/memory/scoped_ptr.h"
-
 #include "ozz/animation/offline/raw_track.h"
 #include "ozz/animation/offline/track_builder.h"
-
 #include "ozz/animation/runtime/track.h"
+#include "ozz/animation/runtime/track_triggering_job.h"
+#include "ozz/base/gtest_helper.h"
+#include "ozz/base/maths/gtest_math_helper.h"
+#include "ozz/base/memory/unique_ptr.h"
 
 using ozz::animation::FloatTrack;
 using ozz::animation::TrackTriggeringJob;
@@ -47,7 +44,7 @@ TEST(JobValidity, TrackTriggeringJob) {
   // Builds track
   ozz::animation::offline::RawFloatTrack raw_track;
   TrackBuilder builder;
-  ozz::ScopedPtr<FloatTrack> track(builder(raw_track));
+  ozz::unique_ptr<FloatTrack> track(builder(raw_track));
   ASSERT_TRUE(track);
 
   {  // Default is invalid
@@ -66,14 +63,14 @@ TEST(JobValidity, TrackTriggeringJob) {
 
   {  // No output
     TrackTriggeringJob job;
-    job.track = track;
+    job.track = track.get();
     EXPECT_FALSE(job.Validate());
     EXPECT_FALSE(job.Run());
   }
 
   {  // Valid
     TrackTriggeringJob job;
-    job.track = track;
+    job.track = track.get();
     TrackTriggeringJob::Iterator iterator;
     job.iterator = &iterator;
     EXPECT_TRUE(job.Validate());
@@ -84,7 +81,7 @@ TEST(JobValidity, TrackTriggeringJob) {
     TrackTriggeringJob job;
     job.from = 0.f;
     job.to = 1.f;
-    job.track = track;
+    job.track = track.get();
     TrackTriggeringJob::Iterator iterator;
     job.iterator = &iterator;
     EXPECT_TRUE(job.Validate());
@@ -93,7 +90,7 @@ TEST(JobValidity, TrackTriggeringJob) {
 
   {  // Empty output is valid
     TrackTriggeringJob job;
-    job.track = track;
+    job.track = track.get();
     TrackTriggeringJob::Iterator iterator;
     job.iterator = &iterator;
     EXPECT_TRUE(job.Validate());
@@ -116,11 +113,11 @@ TEST(Empty, TrackEdgeTriggerJob) {
 
   // Builds track
   ozz::animation::offline::RawFloatTrack raw_track;
-  ozz::ScopedPtr<FloatTrack> track(builder(raw_track));
+  ozz::unique_ptr<FloatTrack> track(builder(raw_track));
   ASSERT_TRUE(track);
 
   TrackTriggeringJob job;
-  job.track = track;
+  job.track = track.get();
   job.threshold = 1.f;
   job.from = 0.f;
   job.to = 1.f;
@@ -148,11 +145,11 @@ TEST(Iterator, TrackEdgeTriggerJob) {
   raw_track.keyframes.push_back(key2);
 
   // Builds track
-  ozz::ScopedPtr<FloatTrack> track(builder(raw_track));
+  ozz::unique_ptr<FloatTrack> track(builder(raw_track));
   ASSERT_TRUE(track);
 
   TrackTriggeringJob job;
-  job.track = track;
+  job.track = track.get();
   job.threshold = 1.f;
 
   job.from = 0.f;
@@ -182,7 +179,7 @@ TEST(Iterator, TrackEdgeTriggerJob) {
 
   {  // Other jobs
     TrackTriggeringJob job2;
-    job2.track = track;
+    job2.track = track.get();
     job2.threshold = 1.f;
 
     job2.from = 0.f;
@@ -287,11 +284,11 @@ TEST(NoRange, TrackEdgeTriggerJob) {
   raw_track.keyframes.push_back(key2);
 
   // Builds track
-  ozz::ScopedPtr<FloatTrack> track(builder(raw_track));
+  ozz::unique_ptr<FloatTrack> track(builder(raw_track));
   ASSERT_TRUE(track);
 
   TrackTriggeringJob job;
-  job.track = track;
+  job.track = track.get();
   job.threshold = 1.f;
 
   {  // Forward [0., 0.[
@@ -356,7 +353,7 @@ size_t CountEdges(TrackTriggeringJob::Iterator _begin,
 void TestEdgesExpectationBackward(TrackTriggeringJob::Iterator _fw_iterator,
                                   const TrackTriggeringJob& _fw_job) {
   // Compute forward edges;
-  ozz::Vector<TrackTriggeringJob::Edge>::Std fw_edges;
+  ozz::vector<TrackTriggeringJob::Edge> fw_edges;
   for (; _fw_iterator != _fw_job.end(); ++_fw_iterator) {
     fw_edges.push_back(*_fw_iterator);
   }
@@ -370,8 +367,8 @@ void TestEdgesExpectationBackward(TrackTriggeringJob::Iterator _fw_iterator,
 
   // Compare forward and backward iterations.
   ASSERT_EQ(fw_edges.size(), CountEdges(bw_iterator, bw_job.end()));
-  for (ozz::Vector<TrackTriggeringJob::Edge>::Std::const_reverse_iterator
-           fw_rit = fw_edges.rbegin();
+  for (ozz::vector<TrackTriggeringJob::Edge>::const_reverse_iterator fw_rit =
+           fw_edges.rbegin();
        fw_rit != fw_edges.rend(); ++fw_rit, ++bw_iterator) {
     EXPECT_FLOAT_EQ(fw_rit->ratio, bw_iterator->ratio);
     EXPECT_EQ(fw_rit->rising, !bw_iterator->rising);
@@ -384,11 +381,11 @@ void TestEdgesExpectation(
   assert(_size >= 2);
 
   // Builds track
-  ozz::ScopedPtr<FloatTrack> track(TrackBuilder()(_raw_track));
+  ozz::unique_ptr<FloatTrack> track(TrackBuilder()(_raw_track));
   ASSERT_TRUE(track);
 
   TrackTriggeringJob job;
-  job.track = track;
+  job.track = track.get();
   job.threshold = _threshold;
 
   {  // Forward [0, 1]
@@ -852,7 +849,7 @@ void TestEdgesExpectation(
 
   {  // Randomized tests forward/backward coherency
     const float kMaxRange = 10.f;
-    const size_t kMaxIterations = 10000;
+    const size_t kMaxIterations = 1000;
     for (size_t i = 0; i < kMaxIterations; ++i) {
       job.from =
           kMaxRange * (1.f - 2.f * static_cast<float>(rand()) / RAND_MAX);
@@ -865,7 +862,7 @@ void TestEdgesExpectation(
   }
   {  // Randomized tests rising/falling coherency
     const float kMaxRange = 2.f;
-    const size_t kMaxIterations = 100000;
+    const size_t kMaxIterations = 1000;
     float ratio = 0.f;
     bool rising = false;
     bool init = false;
@@ -931,7 +928,7 @@ template <size_t _size>
 inline void TestEdgesExpectation(
     const ozz::animation::offline::RawFloatTrack& _raw_track, float _threshold,
     const TrackTriggeringJob::Edge (&_expected)[_size]) {
-  OZZ_STATIC_ASSERT(_size >= 2);
+  static_assert(_size >= 2, "Minimum 2 edges.");
   TestEdgesExpectation(_raw_track, _threshold, _expected, _size);
 }
 
@@ -1160,11 +1157,11 @@ TEST(StepThreshold, TrackEdgeTriggerJob) {
   raw_track.keyframes.push_back(key2);
 
   // Builds track
-  ozz::ScopedPtr<FloatTrack> track(builder(raw_track));
+  ozz::unique_ptr<FloatTrack> track(builder(raw_track));
   ASSERT_TRUE(track);
 
   TrackTriggeringJob job;
-  job.track = track;
+  job.track = track.get();
   job.from = 0.f;
   job.to = 1.f;
 
@@ -1257,11 +1254,11 @@ TEST(StepThresholdBool, TrackEdgeTriggerJob) {
   raw_track.keyframes.push_back(key2);
 
   // Builds track
-  ozz::ScopedPtr<FloatTrack> track(builder(raw_track));
+  ozz::unique_ptr<FloatTrack> track(builder(raw_track));
   ASSERT_TRUE(track);
 
   TrackTriggeringJob job;
-  job.track = track;
+  job.track = track.get();
   job.from = 0.f;
   job.to = 1.f;
 
@@ -1326,11 +1323,11 @@ TEST(LinearThreshold, TrackEdgeTriggerJob) {
   raw_track.keyframes.push_back(key2);
 
   // Builds track
-  ozz::ScopedPtr<FloatTrack> track(builder(raw_track));
+  ozz::unique_ptr<FloatTrack> track(builder(raw_track));
   ASSERT_TRUE(track);
 
   TrackTriggeringJob job;
-  job.track = track;
+  job.track = track.get();
   job.from = 0.f;
   job.to = 1.f;
 

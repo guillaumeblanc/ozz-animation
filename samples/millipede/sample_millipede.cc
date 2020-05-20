@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -116,8 +116,7 @@ const int kPrecomputedKeyCount = OZZ_ARRAY_SIZE(kPrecomputedKeys);
 
 class MillipedeSampleApplication : public ozz::sample::Application {
  public:
-  MillipedeSampleApplication()
-      : slice_count_(26), skeleton_(NULL), animation_(NULL) {}
+  MillipedeSampleApplication() : slice_count_(26) {}
 
  protected:
   virtual bool OnUpdate(float _dt, float) {
@@ -126,31 +125,31 @@ class MillipedeSampleApplication : public ozz::sample::Application {
 
     // Samples animation at t = animation_time_.
     ozz::animation::SamplingJob sampling_job;
-    sampling_job.animation = animation_;
+    sampling_job.animation = animation_.get();
     sampling_job.cache = &cache_;
     sampling_job.ratio = controller_.time_ratio();
-    sampling_job.output = make_range(locals_);
+    sampling_job.output = make_span(locals_);
     if (!sampling_job.Run()) {
       return false;
     }
 
     // Converts from local space to model space matrices.
     ozz::animation::LocalToModelJob ltm_job;
-    ltm_job.skeleton = skeleton_;
-    ltm_job.input = make_range(locals_);
-    ltm_job.output = make_range(models_);
+    ltm_job.skeleton = skeleton_.get();
+    ltm_job.input = make_span(locals_);
+    ltm_job.output = make_span(models_);
     return ltm_job.Run();
   }
 
   virtual bool OnDisplay(ozz::sample::Renderer* _renderer) {
     // Renders the animated posture.
-    return _renderer->DrawPosture(*skeleton_, make_range(models_),
+    return _renderer->DrawPosture(*skeleton_, make_span(models_),
                                   ozz::math::Float4x4::identity());
   }
 
   virtual bool OnInitialize() { return Build(); }
 
-  virtual void OnDestroy() { Destroy(); }
+  virtual void OnDestroy() {}
 
   virtual bool OnGui(ozz::sample::ImGui* _im_gui) {
     // Rebuilds all if the number of joints has changed.
@@ -166,7 +165,6 @@ class MillipedeSampleApplication : public ozz::sample::Application {
       // Slider use floats, we need to check if it has really changed.
       if (new_slice_count != slice_count_) {
         slice_count_ = new_slice_count;
-        Destroy();
         if (!Build()) {
           return false;
         }
@@ -214,12 +212,6 @@ class MillipedeSampleApplication : public ozz::sample::Application {
     cache_.Resize(num_joints);
 
     return true;
-  }
-
-  void Destroy() {
-    ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
-    OZZ_DELETE(allocator, skeleton_);
-    OZZ_DELETE(allocator, animation_);
   }
 
   void CreateSkeleton(ozz::animation::offline::RawSkeleton* _skeleton) {
@@ -385,8 +377,9 @@ class MillipedeSampleApplication : public ozz::sample::Application {
             0.f, Float3(0.f, 1.f, -slice_count_ * kSpinLength)};
         track.translations.push_back(tkey0);
         const RawAnimation::TranslationKey tkey1 = {
-            kDuration, Float3(0.f, 1.f, kWalkCycleCount * kWalkCycleLength +
-                                            tkey0.value.z)};
+            kDuration,
+            Float3(0.f, 1.f,
+                   kWalkCycleCount * kWalkCycleLength + tkey0.value.z)};
         track.translations.push_back(tkey1);
       }
 
@@ -413,7 +406,7 @@ class MillipedeSampleApplication : public ozz::sample::Application {
   }
 
   virtual void GetSceneBounds(ozz::math::Box* _bound) const {
-    ozz::sample::ComputePostureBounds(make_range(models_), _bound);
+    ozz::sample::ComputePostureBounds(make_span(models_), _bound);
   }
 
  private:
@@ -425,20 +418,20 @@ class MillipedeSampleApplication : public ozz::sample::Application {
   int slice_count_;
 
   // The millipede skeleton.
-  ozz::animation::Skeleton* skeleton_;
+  ozz::unique_ptr<ozz::animation::Skeleton> skeleton_;
 
   // The millipede procedural walk animation.
-  ozz::animation::Animation* animation_;
+  ozz::unique_ptr<ozz::animation::Animation> animation_;
 
   // Sampling cache, as used by SamplingJob.
   ozz::animation::SamplingCache cache_;
 
   // Buffer of local transforms as sampled from animation_.
   // These are shared between sampling output and local-to-model input.
-  ozz::Vector<ozz::math::SoaTransform>::Std locals_;
+  ozz::vector<ozz::math::SoaTransform> locals_;
 
   // Buffer of model matrices (local-to-model output).
-  ozz::Vector<ozz::math::Float4x4>::Std models_;
+  ozz::vector<ozz::math::Float4x4> models_;
 };
 
 int main(int _argc, const char** _argv) {

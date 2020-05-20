@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -29,6 +29,7 @@
 #define OZZ_OZZ_ANIMATION_RUNTIME_BLENDING_JOB_H_
 
 #include "ozz/base/maths/simd_math.h"
+#include "ozz/base/span.h"
 
 namespace ozz {
 
@@ -88,23 +89,21 @@ struct BlendingJob {
     // This range must be at least as big as the bind pose buffer, even though
     // only the number of transforms defined by the bind pose buffer will be
     // processed.
-    Range<const math::SoaTransform> transform;
+    span<const math::SoaTransform> transform;
 
     // Optional range [begin,end[ of blending weight for each joint in this
     // layer.
-    // If both pointers are NULL (default case) then per joint weight blending
-    // is disabled.
-    // A valid range is defined as being at least as big as the bind pose
-    // buffer, even though only the number of transforms defined by the
-    // bind pose buffer will be processed.
-    // When a layer doesn't specifies per joint weights, then it is implicitly
-    // considered as being 1.f. This default value is a reference value for
-    // the normalization process, which implies that the range of values for
-    // joint weights should be [0,1].
-    // Negative weight values are considered as 0, but positive ones aren't
-    // clamped because they could exceed 1.f if all layers contains valid joint
-    // weights.
-    Range<const math::SimdFloat4> joint_weights;
+    // If both pointers are nullptr (default case) then per joint weight
+    // blending is disabled. A valid range is defined as being at least as big
+    // as the bind pose buffer, even though only the number of transforms
+    // defined by the bind pose buffer will be processed. When a layer doesn't
+    // specifies per joint weights, then it is implicitly considered as
+    // being 1.f. This default value is a reference value for the normalization
+    // process, which implies that the range of values for joint weights should
+    // be [0,1]. Negative weight values are considered as 0, but positive ones
+    // aren't clamped because they could exceed 1.f if all layers contains valid
+    // joint weights.
+    span<const math::SimdFloat4> joint_weights;
   };
 
   // The job blends the bind pose to the output when the accumulated weight of
@@ -112,27 +111,27 @@ struct BlendingJob {
   // Must be greater than 0.f.
   float threshold;
 
-  // Job input layers, can be empty or NULL.
+  // Job input layers, can be empty or nullptr.
   // The range of layers that must be blended.
-  Range<const Layer> layers;
+  span<const Layer> layers;
 
-  // Job input additive layers, can be empty or NULL.
+  // Job input additive layers, can be empty or nullptr.
   // The range of layers that must be added to the output.
-  Range<const Layer> additive_layers;
+  span<const Layer> additive_layers;
 
   // The skeleton bind pose. The size of this buffer defines the number of
   // transforms to blend. This is the reference because this buffer is defined
   // by the skeleton that all the animations belongs to.
   // It is used when the accumulated weight for a bone on all layers is
   // less than the threshold value, in order to fall back on valid transforms.
-  Range<const ozz::math::SoaTransform> bind_pose;
+  span<const ozz::math::SoaTransform> bind_pose;
 
   // Job output.
   // The range of output transforms to be filled with blended layer
   // transforms during job execution.
   // Must be at least as big as the bind pose buffer, but only the number of
   // transforms defined by the bind pose buffer size will be processed.
-  Range<ozz::math::SoaTransform> output;
+  span<ozz::math::SoaTransform> output;
 };
 }  // namespace animation
 }  // namespace ozz

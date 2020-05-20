@@ -1,59 +1,60 @@
 version: '{build}'
-image: Visual Studio 2017
+image: Visual Studio 2019
 environment:
   matrix:
   # Comilers matrix
-  - env_cmake_generator: "Visual Studio 12 2013"
-    env_cmake_configuration: Debug
-    env_fbxsdk_path: "http://www.autodesk.com/content/dam/autodesk/www/adn/fbx/20192/fbx20192_fbxsdk_vs2013_win.exe"
   - env_cmake_generator: "Visual Studio 14 2015"
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
     env_cmake_configuration: Debug
-    env_fbxsdk_path: "http://www.autodesk.com/content/dam/autodesk/www/adn/fbx/20192/fbx20192_fbxsdk_vs2015_win.exe"
-  - env_cmake_generator: "Visual Studio 14 2015"
-    env_cmake_configuration: Release
-    env_fbxsdk_path: "http://www.autodesk.com/content/dam/autodesk/www/adn/fbx/20192/fbx20192_fbxsdk_vs2015_win.exe"
+    env_fbxsdk_path: "http://www.autodesk.com/content/dam/autodesk/www/adn/fbx/20195/fbx20195_fbxsdk_vs2015_win.exe"
   - env_cmake_generator: "Visual Studio 14 2015 Win64"
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
     env_cmake_configuration: Debug
-    env_fbxsdk_path: "http://www.autodesk.com/content/dam/autodesk/www/adn/fbx/20192/fbx20192_fbxsdk_vs2015_win.exe"
-  - env_cmake_generator: "Visual Studio 14 2015 Win64"
-    env_cmake_configuration: Release
-    env_fbxsdk_path: "http://www.autodesk.com/content/dam/autodesk/www/adn/fbx/20192/fbx20192_fbxsdk_vs2015_win.exe"
+    env_fbxsdk_path: "http://www.autodesk.com/content/dam/autodesk/www/adn/fbx/20195/fbx20195_fbxsdk_vs2015_win.exe"
   - env_cmake_generator: "Visual Studio 15 2017"
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
     env_cmake_configuration: Debug
-    env_fbxsdk_path: "http://www.autodesk.com/content/dam/autodesk/www/adn/fbx/20192/fbx20192_fbxsdk_vs2017_win.exe"
+    env_fbxsdk_path: "http://www.autodesk.com/content/dam/autodesk/www/adn/fbx/20195/fbx20195_fbxsdk_vs2017_win.exe"
   - env_cmake_generator: "Visual Studio 15 2017 Win64"
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
     env_cmake_configuration: Debug
-    env_fbxsdk_path: "http://www.autodesk.com/content/dam/autodesk/www/adn/fbx/20192/fbx20192_fbxsdk_vs2017_win.exe"
+    env_fbxsdk_path: "http://www.autodesk.com/content/dam/autodesk/www/adn/fbx/20195/fbx20195_fbxsdk_vs2017_win.exe"
   - env_cmake_generator: "Visual Studio 15 2017"
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
     env_cmake_configuration: Release
-    env_fbxsdk_path: "http://www.autodesk.com/content/dam/autodesk/www/adn/fbx/20192/fbx20192_fbxsdk_vs2017_win.exe"
+    env_fbxsdk_path: "http://www.autodesk.com/content/dam/autodesk/www/adn/fbx/20195/fbx20195_fbxsdk_vs2017_win.exe"
   - env_cmake_generator: "Visual Studio 15 2017 Win64"
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
     env_cmake_configuration: Release
-    env_fbxsdk_path: "http://www.autodesk.com/content/dam/autodesk/www/adn/fbx/20192/fbx20192_fbxsdk_vs2017_win.exe"
+    env_fbxsdk_path: "http://www.autodesk.com/content/dam/autodesk/www/adn/fbx/20195/fbx20195_fbxsdk_vs2017_win.exe"
+  - env_cmake_generator: "Visual Studio 16 2019"
+    env_cmake_configuration: Debug
+    env_fbxsdk_path: "http://www.autodesk.com/content/dam/autodesk/www/adn/fbx/20195/fbx20195_fbxsdk_vs2017_win.exe"
+  - env_cmake_generator: "Visual Studio 16 2019"
+    env_cmake_configuration: Release
+    env_fbxsdk_path: "http://www.autodesk.com/content/dam/autodesk/www/adn/fbx/20195/fbx20195_fbxsdk_vs2017_win.exe"
+  - env_cmake_generator: "Visual Studio 16 2019"
+    env_cmake_configuration: Release
+    env_fbxsdk_path: "http://www.autodesk.com/content/dam/autodesk/www/adn/fbx/20195/fbx20195_fbxsdk_vs2017_win.exe"
     env_build_msvc_rt_dll: "1"
-  - env_cmake_generator: "Visual Studio 15 2017 Win64"
+  - env_cmake_generator: "Visual Studio 16 2019"
     env_cmake_configuration: Release
-    env_fbxsdk_path: "http://www.autodesk.com/content/dam/autodesk/www/adn/fbx/20192/fbx20192_fbxsdk_vs2017_win.exe"
+    env_fbxsdk_path: "http://www.autodesk.com/content/dam/autodesk/www/adn/fbx/20195/fbx20195_fbxsdk_vs2017_win.exe"
     env_build_msvc_rt_dll: "0"
 
   # No fbx sdk
-  - env_cmake_generator: "Visual Studio 15 2017"
+  - env_cmake_generator: "Visual Studio 16 2019"
     env_cmake_configuration: Release
-
-  # Older fbx sdk
-  - env_cmake_generator: "Visual Studio 14 2015 Win64"
-    env_cmake_configuration: Release
-    env_fbxsdk_path: "http://download.autodesk.com/us/fbx/2017/2017.1/fbx20171_fbxsdk_vs2015_win.exe"
 
   # Use ozz as a sub project (should set msvc rt dll for ozz as this is the default in cmake)
-  - env_cmake_generator: "Visual Studio 15 2017 Win64"
+  - env_cmake_generator: "Visual Studio 16 2019"
     env_cmake_configuration: Release
     env_src_root: "../test/sub/"
-    env_fbxsdk_path: "http://www.autodesk.com/content/dam/autodesk/www/adn/fbx/20192/fbx20192_fbxsdk_vs2017_win.exe"
-  - env_cmake_generator: "Visual Studio 15 2017 Win64"
+    env_fbxsdk_path: "http://www.autodesk.com/content/dam/autodesk/www/adn/fbx/20195/fbx20195_fbxsdk_vs2017_win.exe"
+  - env_cmake_generator: "Visual Studio 16 2019"
     env_cmake_configuration: Debug
     env_src_root: "../test/sub/"
-    env_fbxsdk_path: "http://www.autodesk.com/content/dam/autodesk/www/adn/fbx/20192/fbx20192_fbxsdk_vs2017_win.exe"
+    env_fbxsdk_path: "http://www.autodesk.com/content/dam/autodesk/www/adn/fbx/20195/fbx20195_fbxsdk_vs2017_win.exe"
 
 install:
 # Setup Fbx sdk

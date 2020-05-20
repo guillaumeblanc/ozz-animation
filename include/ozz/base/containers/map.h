@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -43,13 +43,11 @@
 #include "ozz/base/containers/std_allocator.h"
 
 namespace ozz {
-// Redirects std::map to ozz::Map in order to replace std default allocator by
+// Redirects std::map to ozz::map in order to replace std default allocator by
 // ozz::StdAllocator.
 template <class _Key, class _Ty, class _Pred = std::less<_Key>,
-          class _Allocator = ozz::StdAllocator<std::pair<const _Key, _Ty> > >
-struct Map {
-  typedef std::map<_Key, _Ty, _Pred, _Allocator> Std;
-};
+          class _Allocator = ozz::StdAllocator<std::pair<const _Key, _Ty>>>
+using map = std::map<_Key, _Ty, _Pred, _Allocator>;
 
 // Implements a string comparator that can be used by std algorithm like maps.
 struct str_less {
@@ -60,17 +58,13 @@ struct str_less {
 
 // Specializes std::map to use c-string as a key.
 template <class _Ty, class _Allocator =
-                         ozz::StdAllocator<std::pair<const char* const, _Ty> > >
-struct CStringMap {
-  typedef std::map<const char*, _Ty, str_less, _Allocator> Std;
-};
+                         ozz::StdAllocator<std::pair<const char* const, _Ty>>>
+using cstring_map = std::map<const char*, _Ty, str_less, _Allocator>;
 
 // Redirects std::multimap to ozz::MultiMap in order to replace std default
 // allocator by ozz::StdAllocator.
 template <class _Key, class _Ty, class _Pred = std::less<_Key>,
-          class _Allocator = ozz::StdAllocator<std::pair<const _Key, _Ty> > >
-struct MultiMap {
-  typedef std::multimap<_Key, _Ty, _Pred, _Allocator> Std;
-};
+          class _Allocator = ozz::StdAllocator<std::pair<const _Key, _Ty>>>
+using multimap = std::multimap<_Key, _Ty, _Pred, _Allocator>;
 }  // namespace ozz
 #endif  // OZZ_OZZ_BASE_CONTAINERS_MAP_H_

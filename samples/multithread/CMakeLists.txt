@@ -1,8 +1,4 @@
-# Sample requires C++11 threading
-
-list (FIND CMAKE_CXX_COMPILE_FEATURES "cxx_thread_local" found_index)
-if (${found_index} EQUAL -1)
-  message("Multithread sample discarded because compiler doesn't support C++11.")
+if(EMSCRIPTEN)
   return()
 endif()
 
@@ -16,15 +12,15 @@ endif()
 add_custom_command(
   DEPENDS $<$<BOOL:${ozz_build_fbx}>:BUILD_DATA>
           "${CMAKE_CURRENT_LIST_DIR}/README.md"
-          "${ozz_media_directory}/bin/alain_skeleton.ozz"
-          "${ozz_media_directory}/bin/alain_walk.ozz"
+          "${ozz_media_directory}/bin/pab_skeleton.ozz"
+          "${ozz_media_directory}/bin/pab_walk.ozz"
   OUTPUT  "${CMAKE_CURRENT_BINARY_DIR}/README.md"
           "${CMAKE_CURRENT_BINARY_DIR}/media/skeleton.ozz"
           "${CMAKE_CURRENT_BINARY_DIR}/media/animation.ozz"
   COMMAND ${CMAKE_COMMAND} -E make_directory media
   COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_LIST_DIR}/README.md" .
-  COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/alain_skeleton.ozz" "./media/skeleton.ozz"
-  COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/alain_walk.ozz" "./media/animation.ozz"
+  COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/pab_skeleton.ozz" "./media/skeleton.ozz"
+  COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/pab_walk.ozz" "./media/animation.ozz"
   VERBATIM)
 
 add_executable(sample_multithread
@@ -36,10 +32,6 @@ add_executable(sample_multithread
 target_link_libraries(sample_multithread
   sample_framework
   ${CMAKE_THREAD_LIBS_INIT})
-
-# c++11 is required
-set_property(TARGET sample_multithread PROPERTY CXX_STANDARD 11)
-set_property(TARGET sample_multithread PROPERTY CXX_STANDARD_REQUIRED ON)
 
 set_target_properties(sample_multithread
   PROPERTIES FOLDER "samples")

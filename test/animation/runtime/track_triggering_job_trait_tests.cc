@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -30,7 +30,7 @@
 #include "gtest/gtest.h"
 #include "ozz/base/gtest_helper.h"
 #include "ozz/base/maths/gtest_math_helper.h"
-#include "ozz/base/memory/scoped_ptr.h"
+#include "ozz/base/memory/unique_ptr.h"
 
 #include "ozz/animation/offline/raw_track.h"
 #include "ozz/animation/offline/track_builder.h"
@@ -66,11 +66,11 @@ TEST(Algorithm, TrackEdgeTriggerJob) {
   raw_track.keyframes.push_back(key2);
 
   // Builds track
-  ozz::ScopedPtr<FloatTrack> track(builder(raw_track));
+  ozz::unique_ptr<FloatTrack> track(builder(raw_track));
   ASSERT_TRUE(track);
 
   TrackTriggeringJob job;
-  job.track = track;
+  job.track = track.get();
   job.threshold = 1.f;
 
   job.from = 0.f;
@@ -80,13 +80,13 @@ TEST(Algorithm, TrackEdgeTriggerJob) {
   ASSERT_TRUE(job.Run());
 
   {  // copy
-    ozz::Vector<TrackTriggeringJob::Edge>::Std edges;
+    ozz::vector<TrackTriggeringJob::Edge> edges;
     std::copy(iterator, job.end(), std::back_inserter(edges));
     EXPECT_EQ(edges.size(), 4u);
   }
 
   {  // count
-    ozz::Vector<TrackTriggeringJob::Edge>::Std edges;
+    ozz::vector<TrackTriggeringJob::Edge> edges;
     std::iterator_traits<TrackTriggeringJob::Iterator>::difference_type count =
         std::count_if(iterator, job.end(), IsRising);
     EXPECT_EQ(count, 2);
@@ -97,12 +97,12 @@ TEST(Algorithm, TrackEdgeTriggerJob) {
   }
 
   {  // for_each
-    ozz::Vector<TrackTriggeringJob::Edge>::Std edges;
+    ozz::vector<TrackTriggeringJob::Edge> edges;
     std::for_each(iterator, job.end(), IsRising);
   }
 
   {  // find_if
-    ozz::Vector<TrackTriggeringJob::Edge>::Std edges;
+    ozz::vector<TrackTriggeringJob::Edge> edges;
     TrackTriggeringJob::Iterator it_if =
         std::find_if(iterator, job.end(), IsRising);
     EXPECT_TRUE(it_if->rising);

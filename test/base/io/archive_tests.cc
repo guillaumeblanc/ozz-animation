@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -37,16 +37,18 @@
 #include "archive_tests_objects.h"
 
 TEST(Error, Archive) {
-  {  // Invalid NULL stream.
-    EXPECT_ASSERTION(ozz::io::OArchive o(NULL, ozz::GetNativeEndianness()),
-                     "valid opened stream");
-    EXPECT_ASSERTION(ozz::io::IArchive i(NULL), "valid opened stream");
+  {  // Invalid nullptr stream.
+    EXPECT_ASSERTION(
+        void(ozz::io::OArchive(nullptr, ozz::GetNativeEndianness())),
+        "valid opened stream");
+    EXPECT_ASSERTION(void(ozz::io::IArchive(nullptr)), "valid opened stream");
   }
   {  // Invalid not opened streams.
     ozz::io::File stream("root_that_does_not_exist:/file.ozz", "r");
-    EXPECT_ASSERTION(ozz::io::OArchive o(&stream, ozz::GetNativeEndianness()),
-                     "valid opened stream");
-    EXPECT_ASSERTION(ozz::io::IArchive i(&stream), "valid opened stream");
+    EXPECT_ASSERTION(
+        void(ozz::io::OArchive(&stream, ozz::GetNativeEndianness())),
+        "valid opened stream");
+    EXPECT_ASSERTION(void(ozz::io::IArchive(&stream)), "valid opened stream");
   }
 }
 
@@ -145,9 +147,9 @@ TEST(PrimitiveArrays, Archive) {
     o << ozz::io::MakeArray(bo);
     const float fo[] = {46.f, 26.f, 14.f, 58.f, 99.f, 27.f};
     o << ozz::io::MakeArray(fo);
-    const uint32_t* po_null = NULL;
+    const uint32_t* po_null = nullptr;
     o << ozz::io::MakeArray(po_null, 0);
-    const ozz::Range<const float> rfo(fo);
+    const ozz::span<const float> rfo(fo);
     o << ozz::io::MakeArray(rfo);
 
     // Read primitive types.
@@ -183,12 +185,12 @@ TEST(PrimitiveArrays, Archive) {
     float fi[OZZ_ARRAY_SIZE(fo)];
     i >> ozz::io::MakeArray(fi);
     EXPECT_EQ(std::memcmp(fi, fo, sizeof(fo)), 0);
-    uint32_t* pi_null = NULL;
+    uint32_t* pi_null = nullptr;
     i >> ozz::io::MakeArray(pi_null, 0);
     float fi2[OZZ_ARRAY_SIZE(fo)];
-    ozz::Range<float> rfi(fi2);
+    ozz::span<float> rfi(fi2);
     i >> ozz::io::MakeArray(rfi);
-    EXPECT_EQ(std::memcmp(rfi.begin, fo, sizeof(fo)), 0);
+    EXPECT_EQ(std::memcmp(rfi.data(), fo, sizeof(fo)), 0);
   }
 }
 

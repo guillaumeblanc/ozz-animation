@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -31,7 +31,6 @@
 #include <cstddef>
 
 #include "ozz/animation/runtime/skeleton.h"
-
 #include "ozz/base/maths/math_ex.h"
 #include "ozz/base/maths/soa_transform.h"
 
@@ -43,21 +42,17 @@ BlendingJob::Layer::Layer() : weight(0.f) {}
 BlendingJob::BlendingJob() : threshold(.1f) {}
 
 namespace {
-bool ValidateLayer(const BlendingJob::Layer& _layer, ptrdiff_t _min_range) {
+bool ValidateLayer(const BlendingJob::Layer& _layer, size_t _min_range) {
   bool valid = true;
 
   // Tests transforms validity.
-  valid &= _layer.transform.begin != NULL;
-  valid &= _layer.transform.end >= _layer.transform.begin;
-  valid &= _layer.transform.end - _layer.transform.begin >= _min_range;
+  valid &= _layer.transform.size() >= _min_range;
 
   // Joint weights are optional.
-  if (_layer.joint_weights.begin != NULL) {
-    valid &= _layer.joint_weights.end >= _layer.joint_weights.begin;
-    valid &=
-        _layer.joint_weights.end - _layer.joint_weights.begin >= _min_range;
+  if (!_layer.joint_weights.empty()) {
+    valid &= _layer.joint_weights.size() >= _min_range;
   } else {
-    valid &= _layer.joint_weights.end == NULL;
+    valid &= _layer.joint_weights.empty();
   }
   return valid;
 }
@@ -72,46 +67,24 @@ bool BlendingJob::Validate() const {
   // Test for valid threshold).
   valid &= threshold > 0.f;
 
-  // Test for NULL begin pointers.
+  // Test for nullptr begin pointers.
   // Blending layers are mandatory, additive aren't.
-  valid &= bind_pose.begin != NULL;
-  valid &= output.begin != NULL;
-
-  // Test ranges are valid (implicitly test for NULL end pointers).
-  valid &= bind_pose.end >= bind_pose.begin;
-  valid &= output.end >= output.begin;
+  valid &= !bind_pose.empty();
+  valid &= !output.empty();
 
   // The bind pose size defines the ranges of transforms to blend, so all
   // other buffers should be bigger.
-  const ptrdiff_t min_range = bind_pose.end - bind_pose.begin;
-  valid &= output.end - output.begin >= min_range;
-
-  // Blend layers are optional.
-  if (layers.begin != NULL) {
-    valid &= layers.end >= layers.begin;
-  } else {
-    valid &= layers.end == NULL;
-  }
+  const size_t min_range = bind_pose.size();
+  valid &= output.size() >= min_range;
 
   // Validates layers.
-  for (const Layer* layer = layers.begin; layers.begin && layer < layers.end;
-       ++layer) {
-    valid &= ValidateLayer(*layer, min_range);
-  }
-
-  // Additive layers are optional.
-  if (additive_layers.begin != NULL) {
-    valid &= additive_layers.end >= additive_layers.begin;
-  } else {
-    valid &= additive_layers.end == NULL;
+  for (const Layer& layer : layers) {
+    valid &= ValidateLayer(layer, min_range);
   }
 
   // Validates additive layers.
-  for (const Layer* layer = additive_layers.begin;
-       additive_layers.begin &&
-       layer < additive_layers.end;  // Handles NULL pointers.
-       ++layer) {
-    valid &= ValidateLayer(*layer, min_range);
+  for (const Layer& layer : additive_layers) {
+    valid &= ValidateLayer(layer, min_range);
   }
 
   return valid;
@@ -187,12 +160,12 @@ namespace {
 struct ProcessArgs {
   ProcessArgs(const BlendingJob& _job)
       : job(_job),
-        num_soa_joints(_job.bind_pose.end - _job.bind_pose.begin),
+        num_soa_joints(_job.bind_pose.size()),
         num_passes(0),
         num_partial_passes(0),
         accumulated_weight(0.f) {
     // The range of all buffers has already been validated.
-    assert(job.output.end >= job.output.begin + num_soa_joints);
+    assert(job.output.size() >= num_soa_joints);
     assert(OZZ_ARRAY_SIZE(accumulated_weights) >= num_soa_joints);
   }
 
@@ -234,44 +207,41 @@ void BlendLayers(ProcessArgs* _args) {
   assert(_args);
 
   // Iterates through all layers and blend them to the output.
-  for (const BlendingJob::Layer* layer = _args->job.layers.begin;
-       layer < _args->job.layers.end; ++layer) {
+  for (const BlendingJob::Layer& layer : _args->job.layers) {
     // Asserts buffer sizes, which must never fail as it has been validated.
-    assert(layer->transform.end >=
-           layer->transform.begin + _args->num_soa_joints);
-    assert(!layer->joint_weights.begin ||
-           (layer->joint_weights.end >=
-            layer->joint_weights.begin + _args->num_soa_joints));
+    assert(layer.transform.size() >= _args->num_soa_joints);
+    assert(layer.joint_weights.empty() ||
+           (layer.joint_weights.size() >= _args->num_soa_joints));
 
     // Skip irrelevant layers.
-    if (layer->weight <= 0.f) {
+    if (layer.weight <= 0.f) {
       continue;
     }
 
     // Accumulates global weights.
-    _args->accumulated_weight += layer->weight;
+    _args->accumulated_weight += layer.weight;
     const math::SimdFloat4 layer_weight =
-        math::simd_float4::Load1(layer->weight);
+        math::simd_float4::Load1(layer.weight);
 
-    if (layer->joint_weights.begin) {
+    if (!layer.joint_weights.empty()) {
       // This layer has per-joint weights.
       ++_args->num_partial_passes;
 
       if (_args->num_passes == 0) {
         for (size_t i = 0; i < _args->num_soa_joints; ++i) {
-          const math::SoaTransform& src = layer->transform.begin[i];
-          math::SoaTransform* dest = _args->job.output.begin + i;
+          const math::SoaTransform& src = layer.transform[i];
+          math::SoaTransform* dest = _args->job.output.begin() + i;
           const math::SimdFloat4 weight =
-              layer_weight * math::Max0(layer->joint_weights.begin[i]);
+              layer_weight * math::Max0(layer.joint_weights[i]);
           _args->accumulated_weights[i] = weight;
           OZZ_BLEND_1ST_PASS(src, weight, dest);
         }
       } else {
         for (size_t i = 0; i < _args->num_soa_joints; ++i) {
-          const math::SoaTransform& src = layer->transform.begin[i];
-          math::SoaTransform* dest = _args->job.output.begin + i;
+          const math::SoaTransform& src = layer.transform[i];
+          math::SoaTransform* dest = _args->job.output.begin() + i;
           const math::SimdFloat4 weight =
-              layer_weight * math::Max0(layer->joint_weights.begin[i]);
+              layer_weight * math::Max0(layer.joint_weights[i]);
           _args->accumulated_weights[i] =
               _args->accumulated_weights[i] + weight;
           OZZ_BLEND_N_PASS(src, weight, dest);
@@ -281,15 +251,15 @@ void BlendLayers(ProcessArgs* _args) {
       // This is a full layer.
       if (_args->num_passes == 0) {
         for (size_t i = 0; i < _args->num_soa_joints; ++i) {
-          const math::SoaTransform& src = layer->transform.begin[i];
-          math::SoaTransform* dest = _args->job.output.begin + i;
+          const math::SoaTransform& src = layer.transform[i];
+          math::SoaTransform* dest = _args->job.output.begin() + i;
           _args->accumulated_weights[i] = layer_weight;
           OZZ_BLEND_1ST_PASS(src, layer_weight, dest);
         }
       } else {
         for (size_t i = 0; i < _args->num_soa_joints; ++i) {
-          const math::SoaTransform& src = layer->transform.begin[i];
-          math::SoaTransform* dest = _args->job.output.begin + i;
+          const math::SoaTransform& src = layer.transform[i];
+          math::SoaTransform* dest = _args->job.output.begin() + i;
           _args->accumulated_weights[i] =
               _args->accumulated_weights[i] + layer_weight;
           OZZ_BLEND_N_PASS(src, layer_weight, dest);
@@ -307,8 +277,7 @@ void BlendBindPose(ProcessArgs* _args) {
   assert(_args);
 
   // Asserts buffer sizes, which must never fail as it has been validated.
-  assert(_args->job.bind_pose.end >=
-         _args->job.bind_pose.begin + _args->num_soa_joints);
+  assert(_args->job.bind_pose.size() >= _args->num_soa_joints);
 
   if (_args->num_partial_passes == 0) {
     // No partial blending pass detected, threshold can be tested globally.
@@ -319,7 +288,7 @@ void BlendBindPose(ProcessArgs* _args) {
         // Strictly copying bind-pose.
         _args->accumulated_weight = 1.f;
         for (size_t i = 0; i < _args->num_soa_joints; ++i) {
-          _args->job.output.begin[i] = _args->job.bind_pose.begin[i];
+          _args->job.output[i] = _args->job.bind_pose[i];
         }
       } else {
         // Updates global accumulated weight, but not per-joint weight any more
@@ -330,8 +299,8 @@ void BlendBindPose(ProcessArgs* _args) {
             math::simd_float4::Load1(bp_weight);
 
         for (size_t i = 0; i < _args->num_soa_joints; ++i) {
-          const math::SoaTransform& src = _args->job.bind_pose.begin[i];
-          math::SoaTransform* dest = _args->job.output.begin + i;
+          const math::SoaTransform& src = _args->job.bind_pose[i];
+          math::SoaTransform* dest = _args->job.output.begin() + i;
           OZZ_BLEND_N_PASS(src, simd_bp_weight, dest);
         }
       }
@@ -346,8 +315,8 @@ void BlendBindPose(ProcessArgs* _args) {
     assert(_args->num_passes != 0);
 
     for (size_t i = 0; i < _args->num_soa_joints; ++i) {
-      const math::SoaTransform& src = _args->job.bind_pose.begin[i];
-      math::SoaTransform* dest = _args->job.output.begin + i;
+      const math::SoaTransform& src = _args->job.bind_pose[i];
+      math::SoaTransform* dest = _args->job.output.begin() + i;
       const math::SimdFloat4 bp_weight =
           math::Max0(threshold - _args->accumulated_weights[i]);
       _args->accumulated_weights[i] =
@@ -370,7 +339,7 @@ void Normalize(ProcessArgs* _args) {
     const math::SimdFloat4 ratio =
         math::simd_float4::Load1(1.f / _args->accumulated_weight);
     for (size_t i = 0; i < _args->num_soa_joints; ++i) {
-      math::SoaTransform& dest = _args->job.output.begin[i];
+      math::SoaTransform& dest = _args->job.output[i];
       dest.rotation = NormalizeEst(dest.rotation);
       dest.translation = dest.translation * ratio;
       dest.scale = dest.scale * ratio;
@@ -380,7 +349,7 @@ void Normalize(ProcessArgs* _args) {
     const math::SimdFloat4 one = math::simd_float4::one();
     for (size_t i = 0; i < _args->num_soa_joints; ++i) {
       const math::SimdFloat4 ratio = one / _args->accumulated_weights[i];
-      math::SoaTransform& dest = _args->job.output.begin[i];
+      math::SoaTransform& dest = _args->job.output[i];
       dest.rotation = NormalizeEst(dest.rotation);
       dest.translation = dest.translation * ratio;
       dest.scale = dest.scale * ratio;
@@ -393,30 +362,27 @@ void AddLayers(ProcessArgs* _args) {
   assert(_args);
 
   // Iterates through all layers and blend them to the output.
-  for (const BlendingJob::Layer* layer = _args->job.additive_layers.begin;
-       layer < _args->job.additive_layers.end; ++layer) {
+  for (const BlendingJob::Layer& layer : _args->job.additive_layers) {
     // Asserts buffer sizes, which must never fail as it has been validated.
-    assert(layer->transform.end >=
-           layer->transform.begin + _args->num_soa_joints);
-    assert(!layer->joint_weights.begin ||
-           (layer->joint_weights.end >=
-            layer->joint_weights.begin + _args->num_soa_joints));
+    assert(layer.transform.size() >= _args->num_soa_joints);
+    assert(layer.joint_weights.empty() ||
+           (layer.joint_weights.size() >= _args->num_soa_joints));
 
     // Prepares constants.
     const math::SimdFloat4 one = math::simd_float4::one();
 
-    if (layer->weight > 0.f) {
+    if (layer.weight > 0.f) {
       // Weight is positive, need to perform additive blending.
       const math::SimdFloat4 layer_weight =
-          math::simd_float4::Load1(layer->weight);
+          math::simd_float4::Load1(layer.weight);
 
-      if (layer->joint_weights.begin) {
+      if (!layer.joint_weights.empty()) {
         // This layer has per-joint weights.
         for (size_t i = 0; i < _args->num_soa_joints; ++i) {
-          const math::SoaTransform& src = layer->transform.begin[i];
-          math::SoaTransform& dest = _args->job.output.begin[i];
+          const math::SoaTransform& src = layer.transform[i];
+          math::SoaTransform& dest = _args->job.output[i];
           const math::SimdFloat4 weight =
-              layer_weight * math::Max0(layer->joint_weights.begin[i]);
+              layer_weight * math::Max0(layer.joint_weights[i]);
           const math::SimdFloat4 one_minus_weight = one - weight;
           const math::SoaFloat3 one_minus_weight_f3 = {
               one_minus_weight, one_minus_weight, one_minus_weight};
@@ -429,23 +395,23 @@ void AddLayers(ProcessArgs* _args) {
             one_minus_weight, one_minus_weight, one_minus_weight};
 
         for (size_t i = 0; i < _args->num_soa_joints; ++i) {
-          const math::SoaTransform& src = layer->transform.begin[i];
-          math::SoaTransform& dest = _args->job.output.begin[i];
+          const math::SoaTransform& src = layer.transform[i];
+          math::SoaTransform& dest = _args->job.output[i];
           OZZ_ADD_PASS(src, layer_weight, dest);
         }
       }
-    } else if (layer->weight < 0.f) {
+    } else if (layer.weight < 0.f) {
       // Weight is negative, need to perform subtractive blending.
       const math::SimdFloat4 layer_weight =
-          math::simd_float4::Load1(-layer->weight);
+          math::simd_float4::Load1(-layer.weight);
 
-      if (layer->joint_weights.begin) {
+      if (!layer.joint_weights.empty()) {
         // This layer has per-joint weights.
         for (size_t i = 0; i < _args->num_soa_joints; ++i) {
-          const math::SoaTransform& src = layer->transform.begin[i];
-          math::SoaTransform& dest = _args->job.output.begin[i];
+          const math::SoaTransform& src = layer.transform[i];
+          math::SoaTransform& dest = _args->job.output[i];
           const math::SimdFloat4 weight =
-              layer_weight * math::Max0(layer->joint_weights.begin[i]);
+              layer_weight * math::Max0(layer.joint_weights[i]);
           const math::SimdFloat4 one_minus_weight = one - weight;
           OZZ_SUB_PASS(src, weight, dest);
         }
@@ -453,8 +419,8 @@ void AddLayers(ProcessArgs* _args) {
         // This is a full layer.
         const math::SimdFloat4 one_minus_weight = one - layer_weight;
         for (size_t i = 0; i < _args->num_soa_joints; ++i) {
-          const math::SoaTransform& src = layer->transform.begin[i];
-          math::SoaTransform& dest = _args->job.output.begin[i];
+          const math::SoaTransform& src = layer.transform[i];
+          math::SoaTransform& dest = _args->job.output[i];
           OZZ_SUB_PASS(src, layer_weight, dest);
         }
       }

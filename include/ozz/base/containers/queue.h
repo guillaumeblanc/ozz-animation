@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -33,19 +33,15 @@
 #include "deque.h"
 
 namespace ozz {
-// Redirects std::queue to ozz::Queue in order to replace std default allocator
+// Redirects std::queue to ozz::queue in order to replace std default allocator
 // by ozz::StdAllocator.
-template <class _Ty, class _Container = typename ozz::Deque<_Ty>::Std>
-struct Queue {
-  typedef std::queue<_Ty, _Container> Std;
-};
+template <class _Ty, class _Container = deque<_Ty>>
+using queue = std::queue<_Ty, _Container>;
 
-// Redirects std::priority_queue to ozz::PriorityQueue in order to replace std
+// Redirects std::priority_queue to ozz::priority_queue in order to replace std
 // default allocator by ozz::StdAllocator.
-template <class _Ty, class _Container = typename ozz::Deque<_Ty>::Std,
-          class _Pred = std::less<typename _Container::value_type> >
-struct PriorityQueue {
-  typedef std::priority_queue<_Ty, _Container, _Pred> Std;
-};
+template <class _Ty, class _Container = deque<_Ty>,
+          class _Pred = std::less<typename _Container::value_type>>
+using priority_queue = std::priority_queue<_Ty, _Container, _Pred>;
 }  // namespace ozz
 #endif  // OZZ_OZZ_BASE_CONTAINERS_QUEUE_H_

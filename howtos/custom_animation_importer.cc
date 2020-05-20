@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -54,7 +54,7 @@ int main(int argc, char const* argv[]) {
   // this animation targets.
   raw_animation.tracks.resize(3);
 
-  // Fills each track with keyframes.
+  // Fills each track with keyframes, in joint local-space.
   // Tracks should be ordered in the same order as joints in the
   // ozz::animation::Skeleton. Joint's names can be used to find joint's
   // index in the skeleton.
@@ -108,13 +108,11 @@ int main(int argc, char const* argv[]) {
 
   // Executes the builder on the previously prepared RawAnimation, which returns
   // a new runtime animation instance.
-  // This operation will fail and return NULL if the RawAnimation isn't valid.
-  ozz::animation::Animation* animation = builder(raw_animation);
+  // This operation will fail and return an empty unique_ptr if the RawAnimation
+  // isn't valid.
+  ozz::unique_ptr<ozz::animation::Animation> animation = builder(raw_animation);
 
   // ...use the animation as you want...
-
-  // In the end the animation needs to be deleted.
-  OZZ_DELETE(ozz::memory::default_allocator(), animation);
 
   return EXIT_SUCCESS;
 }

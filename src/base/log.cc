@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -57,13 +57,11 @@ Out::Out() : Logger(std::cout, kStandard) {}
 Err::Err() : Logger(std::cerr, kStandard) {}
 
 Logger::Logger(std::ostream& _stream, Level _level)
-    : stream_(_level <= GetLevel() ? _stream
-                                   : *OZZ_NEW(ozz::memory::default_allocator(),
-                                              std::ostringstream)()),
+    : stream_(_level <= GetLevel() ? _stream : *ozz::New<std::ostringstream>()),
       local_stream_(&stream_ != &_stream) {}
 Logger::~Logger() {
   if (local_stream_) {
-    OZZ_DELETE(ozz::memory::default_allocator(), &stream_);
+      ozz::Delete(&stream_);
   }
 }
 

@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -122,7 +122,7 @@ bool AdditiveAnimationBuilder::operator()(const RawAnimation& _input,
 
 bool AdditiveAnimationBuilder::operator()(
     const RawAnimation& _input,
-    const Range<const math::Transform>& _reference_pose,
+    const span<const math::Transform>& _reference_pose,
     RawAnimation* _output) const {
   if (!_output) {
     return false;
@@ -138,7 +138,7 @@ bool AdditiveAnimationBuilder::operator()(
 
   // The reference pose must have at least the same number of
   // tracks as the raw animation.
-  if (_input.num_tracks() > static_cast<int>(_reference_pose.count())) {
+  if (_input.num_tracks() > static_cast<int>(_reference_pose.size())) {
     return false;
   }
 

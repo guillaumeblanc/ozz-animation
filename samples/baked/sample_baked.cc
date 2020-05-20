@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -69,7 +69,7 @@ class BakedSampleApplication : public ozz::sample::Application {
     sampling_job.animation = &animation_;
     sampling_job.cache = &cache_;
     sampling_job.ratio = controller_.time_ratio();
-    sampling_job.output = make_range(locals_);
+    sampling_job.output = make_span(locals_);
     if (!sampling_job.Run()) {
       return false;
     }
@@ -77,8 +77,8 @@ class BakedSampleApplication : public ozz::sample::Application {
     // Converts from local space to model space matrices.
     ozz::animation::LocalToModelJob ltm_job;
     ltm_job.skeleton = &skeleton_;
-    ltm_job.input = make_range(locals_);
-    ltm_job.output = make_range(models_);
+    ltm_job.input = make_span(locals_);
+    ltm_job.output = make_span(models_);
     if (!ltm_job.Run()) {
       return false;
     }
@@ -125,7 +125,7 @@ class BakedSampleApplication : public ozz::sample::Application {
     // the animation.
     const float size = .5f;
     const ozz::math::Box box(ozz::math::Float3(-size), ozz::math::Float3(size));
-    return _renderer->DrawBoxShaded(box, make_range(models_),
+    return _renderer->DrawBoxShaded(box, make_span(models_),
                                     ozz::sample::kWhite);
   }
 
@@ -153,7 +153,7 @@ class BakedSampleApplication : public ozz::sample::Application {
   }
 
   virtual void GetSceneBounds(ozz::math::Box* _bound) const {
-    ozz::sample::ComputePostureBounds(make_range(models_), _bound);
+    ozz::sample::ComputePostureBounds(make_span(models_), _bound);
   }
 
  private:
@@ -171,10 +171,10 @@ class BakedSampleApplication : public ozz::sample::Application {
   ozz::animation::SamplingCache cache_;
 
   // Buffer of local transforms as sampled from animation_.
-  ozz::Vector<ozz::math::SoaTransform>::Std locals_;
+  ozz::vector<ozz::math::SoaTransform> locals_;
 
   // Buffer of model space matrices.
-  ozz::Vector<ozz::math::Float4x4>::Std models_;
+  ozz::vector<ozz::math::Float4x4> models_;
 
   // Camera joint index. -1 if not found.
   int camera_index_;

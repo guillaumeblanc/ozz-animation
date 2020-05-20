@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -295,7 +295,8 @@ OZZ_INLINE SimdFloat4 SplatW(_SimdFloat4 _v) {
 
 template <size_t _X, size_t _Y, size_t _Z, size_t _W>
 OZZ_INLINE SimdFloat4 Swizzle(_SimdFloat4 _v) {
-  OZZ_STATIC_ASSERT(_X <= 3 && _Y <= 3 && _Z <= 3 && _W <= 3);
+  static_assert(_X <= 3 && _Y <= 3 && _Z <= 3 && _W <= 3,
+                "Indices must be between 0 and 3");
   const float* pf = &_v.x;
   const SimdFloat4 ret = {pf[_X], pf[_Y], pf[_Z], pf[_W]};
   return ret;
@@ -1325,7 +1326,8 @@ OZZ_INLINE SimdInt4 SplatW(_SimdInt4 _a) {
 
 template <size_t _X, size_t _Y, size_t _Z, size_t _W>
 OZZ_INLINE SimdInt4 Swizzle(_SimdInt4 _v) {
-  OZZ_STATIC_ASSERT(_X <= 3 && _Y <= 3 && _Z <= 3 && _W <= 3);
+  static_assert(_X <= 3 && _Y <= 3 && _Z <= 3 && _W <= 3,
+                "Indices must be between 0 and 3");
   const int* pi = &_v.x;
   const SimdInt4 ret = {pi[_X], pi[_Y], pi[_Z], pi[_W]};
   return ret;
@@ -1613,7 +1615,7 @@ OZZ_INLINE Float4x4 Invert(const Float4x4& _m, SimdInt4* _invertible) {
       cols[0].x * b0x + cols[0].y * b1x + cols[0].z * b2x + cols[0].w * b3x;
   const bool invertible = det != 0.f;
   assert((_invertible || invertible) && "Matrix is not invertible");
-  if (_invertible != NULL) {
+  if (_invertible != nullptr) {
     *_invertible = simd_int4::LoadX(invertible);
   }
   const float inv_det = invertible ? 1.f / det : 0.f;

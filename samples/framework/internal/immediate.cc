@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -31,9 +31,8 @@
 
 #include <cassert>
 
-#include "ozz/base/memory/allocator.h"
-
 #include "camera.h"
+#include "ozz/base/memory/allocator.h"
 #include "renderer_impl.h"
 #include "shader.h"
 
@@ -42,7 +41,7 @@ namespace sample {
 namespace internal {
 
 GlImmediateRenderer::GlImmediateRenderer(RendererImpl* _renderer)
-    : vbo_(0), buffer_(NULL), max_size_(0), size_(0), renderer_(_renderer) {}
+    : vbo_(0), size_(0), renderer_(_renderer) {}
 
 GlImmediateRenderer::~GlImmediateRenderer() {
   assert(size_ == 0 && "Immediate rendering still in use.");
@@ -51,14 +50,10 @@ GlImmediateRenderer::~GlImmediateRenderer() {
     GL(DeleteBuffers(1, &vbo_));
     vbo_ = 0;
   }
-  ozz::memory::default_allocator()->Deallocate(buffer_);
-  buffer_ = NULL;
 }
 
 bool GlImmediateRenderer::Initialize() {
   GL(GenBuffers(1, &vbo_));
-  const size_t kDefaultVboSize = 2 << 10;
-  ResizeVbo(kDefaultVboSize);
 
   immediate_pc_shader = ImmediatePCShader::Build();
   if (!immediate_pc_shader) {
@@ -80,7 +75,7 @@ template <>
 void GlImmediateRenderer::End<VertexPC>(GLenum _mode,
                                         const ozz::math::Float4x4& _transform) {
   GL(BindBuffer(GL_ARRAY_BUFFER, vbo_));
-  GL(BufferSubData(GL_ARRAY_BUFFER, 0, size_, buffer_));
+  GL(BufferData(GL_ARRAY_BUFFER, size_, buffer_.data(), GL_STREAM_DRAW));
 
   immediate_pc_shader->Bind(_transform, renderer_->camera()->view_proj(),
                             sizeof(VertexPC), 0, sizeof(VertexPC), 12);
@@ -100,7 +95,7 @@ template <>
 void GlImmediateRenderer::End<VertexPTC>(
     GLenum _mode, const ozz::math::Float4x4& _transform) {
   GL(BindBuffer(GL_ARRAY_BUFFER, vbo_));
-  GL(BufferSubData(GL_ARRAY_BUFFER, 0, size_, buffer_));
+  GL(BufferData(GL_ARRAY_BUFFER, size_, buffer_.data(), GL_STREAM_DRAW));
 
   immediate_ptc_shader->Bind(_transform, renderer_->camera()->view_proj(),
                              sizeof(VertexPTC), 0, sizeof(VertexPTC), 12,
@@ -115,18 +110,6 @@ void GlImmediateRenderer::End<VertexPTC>(
 
   // Reset vertex count for the next call
   size_ = 0;
-}
-
-void GlImmediateRenderer::ResizeVbo(size_t _new_size) {
-  if (_new_size > max_size_) {
-    max_size_ = ozz::math::Max(max_size_ * 2, _new_size);
-    buffer_ = reinterpret_cast<char*>(
-        ozz::memory::default_allocator()->Reallocate(buffer_, max_size_, 16));
-
-    GL(BindBuffer(GL_ARRAY_BUFFER, vbo_));
-    GL(BufferData(GL_ARRAY_BUFFER, max_size_, NULL, GL_STREAM_DRAW));
-    GL(BindBuffer(GL_ARRAY_BUFFER, 0));
-  }
 }
 }  // namespace internal
 }  // namespace sample

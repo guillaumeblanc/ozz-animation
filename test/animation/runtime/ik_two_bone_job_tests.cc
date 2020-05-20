@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -72,7 +72,7 @@ void _ExpectReached(const ozz::animation::IKTwoBoneJob& _job, bool _reachable) {
       ozz::math::Length3(end_corrected.cols[3] - _job.target);
   EXPECT_EQ(ozz::math::GetX(diff) < 1e-2f, _reachable);
 
-  EXPECT_TRUE(_job.reached == NULL || *_job.reached == _reachable);
+  EXPECT_TRUE(_job.reached == nullptr || *_job.reached == _reachable);
 }
 
 TEST(JobValidity, IKTwoBoneJob) {

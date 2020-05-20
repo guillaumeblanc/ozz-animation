@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -35,7 +35,7 @@
 #include "ozz/animation/runtime/skeleton.h"
 #include "ozz/base/maths/simd_math.h"
 #include "ozz/base/maths/soa_transform.h"
-#include "ozz/base/memory/scoped_ptr.h"
+#include "ozz/base/memory/unique_ptr.h"
 
 #include "ozz/base/maths/gtest_math_helper.h"
 
@@ -53,7 +53,7 @@ TEST(Error, SkeletonBuilder) {
     EXPECT_TRUE(raw_skeleton.Validate());
     EXPECT_EQ(raw_skeleton.num_joints(), 0);
 
-    ozz::ScopedPtr<Skeleton> skeleton(builder(raw_skeleton));
+    ozz::unique_ptr<Skeleton> skeleton(builder(raw_skeleton));
     ASSERT_TRUE(skeleton);
     EXPECT_EQ(skeleton->num_joints(), 0);
   }
@@ -68,7 +68,7 @@ class RawSkeletonIterateDFTester {
                   const RawSkeleton::Joint* _parent) {
     switch (num_joint_) {
       case 0: {
-        EXPECT_TRUE(_current.name == "root" && _parent == NULL);
+        EXPECT_TRUE(_current.name == "root" && _parent == nullptr);
         break;
       }
       case 1: {
@@ -111,7 +111,7 @@ class RawSkeletonIterateBFTester {
                   const RawSkeleton::Joint* _parent) {
     switch (num_joint_) {
       case 0: {
-        EXPECT_TRUE(_current.name == "root" && _parent == NULL);
+        EXPECT_TRUE(_current.name == "root" && _parent == nullptr);
         break;
       }
       case 1: {
@@ -194,7 +194,7 @@ TEST(Build, SkeletonBuilder) {
     EXPECT_TRUE(raw_skeleton.Validate());
     EXPECT_EQ(raw_skeleton.num_joints(), 1);
 
-    ozz::ScopedPtr<Skeleton> skeleton(builder(raw_skeleton));
+    ozz::unique_ptr<Skeleton> skeleton(builder(raw_skeleton));
     ASSERT_TRUE(skeleton);
     EXPECT_EQ(skeleton->num_joints(), 1);
     EXPECT_EQ(skeleton->joint_parents()[0], Skeleton::kNoParent);
@@ -221,7 +221,7 @@ TEST(Build, SkeletonBuilder) {
     EXPECT_TRUE(raw_skeleton.Validate());
     EXPECT_EQ(raw_skeleton.num_joints(), 2);
 
-    ozz::ScopedPtr<Skeleton> skeleton(builder(raw_skeleton));
+    ozz::unique_ptr<Skeleton> skeleton(builder(raw_skeleton));
     ASSERT_TRUE(skeleton);
     EXPECT_EQ(skeleton->num_joints(), 2);
     for (int i = 0; i < skeleton->num_joints(); ++i) {
@@ -259,7 +259,7 @@ TEST(Build, SkeletonBuilder) {
     EXPECT_TRUE(raw_skeleton.Validate());
     EXPECT_EQ(raw_skeleton.num_joints(), 3);
 
-    ozz::ScopedPtr<Skeleton> skeleton(builder(raw_skeleton));
+    ozz::unique_ptr<Skeleton> skeleton(builder(raw_skeleton));
     ASSERT_TRUE(skeleton);
     EXPECT_EQ(skeleton->num_joints(), 3);
     for (int i = 0; i < skeleton->num_joints(); ++i) {
@@ -303,7 +303,7 @@ TEST(Build, SkeletonBuilder) {
     EXPECT_TRUE(raw_skeleton.Validate());
     EXPECT_EQ(raw_skeleton.num_joints(), 4);
 
-    ozz::ScopedPtr<Skeleton> skeleton(builder(raw_skeleton));
+    ozz::unique_ptr<Skeleton> skeleton(builder(raw_skeleton));
     ASSERT_TRUE(skeleton);
     EXPECT_EQ(skeleton->num_joints(), 4);
     for (int i = 0; i < skeleton->num_joints(); ++i) {
@@ -349,7 +349,7 @@ TEST(Build, SkeletonBuilder) {
     EXPECT_TRUE(raw_skeleton.Validate());
     EXPECT_EQ(raw_skeleton.num_joints(), 4);
 
-    ozz::ScopedPtr<Skeleton> skeleton(builder(raw_skeleton));
+    ozz::unique_ptr<Skeleton> skeleton(builder(raw_skeleton));
     ASSERT_TRUE(skeleton);
     EXPECT_EQ(skeleton->num_joints(), 4);
     for (int i = 0; i < skeleton->num_joints(); ++i) {
@@ -396,7 +396,7 @@ TEST(Build, SkeletonBuilder) {
     EXPECT_TRUE(raw_skeleton.Validate());
     EXPECT_EQ(raw_skeleton.num_joints(), 5);
 
-    ozz::ScopedPtr<Skeleton> skeleton(builder(raw_skeleton));
+    ozz::unique_ptr<Skeleton> skeleton(builder(raw_skeleton));
     ASSERT_TRUE(skeleton);
     EXPECT_EQ(skeleton->num_joints(), 5);
     for (int i = 0; i < skeleton->num_joints(); ++i) {
@@ -448,7 +448,7 @@ TEST(Build, SkeletonBuilder) {
     EXPECT_TRUE(raw_skeleton.Validate());
     EXPECT_EQ(raw_skeleton.num_joints(), 6);
 
-    ozz::ScopedPtr<Skeleton> skeleton(builder(raw_skeleton));
+    ozz::unique_ptr<Skeleton> skeleton(builder(raw_skeleton));
     ASSERT_TRUE(skeleton);
     EXPECT_EQ(skeleton->num_joints(), 6);
     for (int i = 0; i < skeleton->num_joints(); ++i) {
@@ -527,7 +527,7 @@ TEST(JointOrder, SkeletonBuilder) {
   EXPECT_TRUE(raw_skeleton.Validate());
   EXPECT_EQ(raw_skeleton.num_joints(), 8);
 
-  ozz::ScopedPtr<Skeleton> skeleton(builder(raw_skeleton));
+  ozz::unique_ptr<Skeleton> skeleton(builder(raw_skeleton));
   ASSERT_TRUE(skeleton);
   EXPECT_EQ(skeleton->num_joints(), 8);
 
@@ -583,7 +583,7 @@ TEST(MultiRoots, SkeletonBuilder) {
   EXPECT_TRUE(raw_skeleton.Validate());
   EXPECT_EQ(raw_skeleton.num_joints(), 6);
 
-  ozz::ScopedPtr<Skeleton> skeleton(builder(raw_skeleton));
+  ozz::unique_ptr<Skeleton> skeleton(builder(raw_skeleton));
   ASSERT_TRUE(skeleton);
   EXPECT_EQ(skeleton->num_joints(), 6);
   for (int i = 0; i < skeleton->num_joints(); i++) {
@@ -646,7 +646,7 @@ TEST(BindPose, SkeletonBuilder) {
   EXPECT_TRUE(raw_skeleton.Validate());
   EXPECT_EQ(raw_skeleton.num_joints(), 3);
 
-  ozz::ScopedPtr<Skeleton> skeleton(builder(raw_skeleton));
+  ozz::unique_ptr<Skeleton> skeleton(builder(raw_skeleton));
   ASSERT_TRUE(skeleton);
 
   // Convert bind pose back to aos.
@@ -693,7 +693,7 @@ TEST(MaxJoints, SkeletonBuilder) {
     EXPECT_TRUE(raw_skeleton.Validate());
     EXPECT_EQ(raw_skeleton.num_joints(), Skeleton::kMaxJoints);
 
-    ozz::ScopedPtr<Skeleton> skeleton(builder(raw_skeleton));
+    ozz::unique_ptr<Skeleton> skeleton(builder(raw_skeleton));
     EXPECT_TRUE(skeleton);
   }
 

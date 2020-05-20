@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -29,22 +29,19 @@
 
 #include <cassert>
 #include <cstddef>
+#include <functional>
 
 // Internal include file
 #define OZZ_INCLUDE_PRIVATE_HEADER  // Allows to include private headers.
 #include "animation/offline/decimate.h"
-
-#include "ozz/base/containers/stack.h"
-#include "ozz/base/containers/vector.h"
-
-#include "ozz/base/maths/math_constant.h"
-#include "ozz/base/maths/math_ex.h"
-
 #include "ozz/animation/offline/raw_animation.h"
 #include "ozz/animation/offline/raw_animation_utils.h"
-
 #include "ozz/animation/runtime/skeleton.h"
 #include "ozz/animation/runtime/skeleton_utils.h"
+#include "ozz/base/containers/stack.h"
+#include "ozz/base/containers/vector.h"
+#include "ozz/base/maths/math_constant.h"
+#include "ozz/base/maths/math_ex.h"
 
 namespace ozz {
 namespace animation {
@@ -76,16 +73,14 @@ struct HierarchyBuilder {
 
     // Computes hierarchical scale, iterating skeleton forward (root to
     // leaf).
-    IterateJointsDF(
-        *_skeleton,
-        IterateMemFun<HierarchyBuilder, &HierarchyBuilder::ComputeScaleForward>(
-            *this));
+    IterateJointsDF(*_skeleton,
+                    std::bind(&HierarchyBuilder::ComputeScaleForward, this,
+                              std::placeholders::_1, std::placeholders::_2));
 
     // Computes hierarchical length, iterating skeleton backward (leaf to root).
     IterateJointsDFReverse(
-        *_skeleton,
-        IterateMemFun<HierarchyBuilder,
-                      &HierarchyBuilder::ComputeLengthBackward>(*this));
+        *_skeleton, std::bind(&HierarchyBuilder::ComputeLengthBackward, this,
+                              std::placeholders::_1, std::placeholders::_2));
   }
 
   struct Spec {
@@ -95,7 +90,7 @@ struct HierarchyBuilder {
   };
 
   // Defines the length of a joint hierarchy (of all child).
-  ozz::Vector<Spec>::Std specs;
+  ozz::vector<Spec> specs;
 
  private:
   // Extracts maximum translations and scales for each track/joint.

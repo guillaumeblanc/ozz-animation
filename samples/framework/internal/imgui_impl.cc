@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -118,7 +118,7 @@ ImGuiImpl::ImGuiImpl()
       active_item_(0),
       auto_gen_id_(0),
       glyph_texture_(0),
-      renderer_(NULL) {
+      renderer_(nullptr) {
   InitializeCircle();
   InitalizeFont();
 }
@@ -200,7 +200,7 @@ void ImGuiImpl::EndFrame() {
   GL(Disable(GL_BLEND));
 
   // Release renderer.
-  renderer_ = NULL;
+  renderer_ = nullptr;
 }
 
 bool ImGuiImpl::AddWidget(float _height, math::RectFloat* _rect) {
@@ -323,8 +323,8 @@ void ImGuiImpl::BeginContainer(const char* _title, const math::RectFloat* _rect,
                                    container.rect.bottom + container.offset_y,
                                    container.rect.width, header_height);
 
-  // Don't display any arrow if _open is NULL.
-  const float arrow_size = _open != NULL ? kWidgetHeight : 0;
+  // Don't display any arrow if _open is nullptr.
+  const float arrow_size = _open != nullptr ? kWidgetHeight : 0;
   const math::RectFloat open_close_rect(title_rect.left, title_rect.bottom,
                                         arrow_size, kWidgetHeight);
 
@@ -1282,7 +1282,7 @@ float ImGuiImpl::Print(const char* _text, const math::RectFloat& _rect,
 
   const int chars_per_line = static_cast<int>(_rect.width) / font_.glyph_width;
   {
-    const char* last_div = NULL;
+    const char* last_div = nullptr;
     LineSpec spec = {_text, _text};
     while (*spec.end) {
       if (IsDivisible(*spec.end)) {  // Found a divisible character.
@@ -1291,10 +1291,10 @@ float ImGuiImpl::Print(const char* _text, const math::RectFloat& _rect,
 
       // Is this the last character of the line.
       if (*spec.end == '\n' || spec.end + 1 > spec.begin + chars_per_line) {
-        if (*spec.end != '\n' && last_div != NULL) {
+        if (*spec.end != '\n' && last_div != nullptr) {
           // Breaks the line after the last divisible character.
           spec.end = last_div;
-          last_div = NULL;
+          last_div = nullptr;
         }
 
         // Trims ' ' left if it is the end of the new line.

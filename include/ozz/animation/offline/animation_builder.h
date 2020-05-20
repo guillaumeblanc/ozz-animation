@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -28,6 +28,8 @@
 #ifndef OZZ_OZZ_ANIMATION_OFFLINE_ANIMATION_BUILDER_H_
 #define OZZ_OZZ_ANIMATION_OFFLINE_ANIMATION_BUILDER_H_
 
+#include "ozz/base/memory/unique_ptr.h"
+
 namespace ozz {
 namespace animation {
 
@@ -45,11 +47,11 @@ struct RawAnimation;
 class AnimationBuilder {
  public:
   // Creates an Animation based on _raw_animation and *this builder parameters.
-  // Returns a valid Animation on success
-  // The returned animation will then need to be deleted using the default
-  // allocator Delete() function.
+  // Returns a valid Animation on success.
   // See RawAnimation::Validate() for more details about failure reasons.
-  Animation* operator()(const RawAnimation& _raw_animation) const;
+  // The animation is returned as an unique_ptr as ownership is given back to
+  // the caller.
+  unique_ptr<Animation> operator()(const RawAnimation& _raw_animation) const;
 };
 }  // namespace offline
 }  // namespace animation

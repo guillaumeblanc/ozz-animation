@@ -8,3 +8,4 @@ The following authors have all licensed their contributions to ozz-animation und
 - Cloud Wu <cloudwu@gmail.com>
 - Kyle Rocha <kyle@luminawesome.com>
 - Andreas Streichardt <andreas.streichardt@gmail.com>
+- Chen Junjie <kitchen.gz.020@gmail.com>

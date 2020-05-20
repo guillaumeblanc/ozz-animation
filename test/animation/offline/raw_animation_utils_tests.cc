@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -28,6 +28,7 @@
 #include "ozz/animation/offline/raw_animation_utils.h"
 
 #include "gtest/gtest.h"
+#include "ozz/base/gtest_helper.h"
 
 #include "ozz/base/maths/gtest_math_helper.h"
 
@@ -222,4 +223,52 @@ TEST(SamplingAnimation, Utils) {
       ozz::animation::offline::SampleAnimation(raw_animation, 3.f, output));
   EXPECT_FLOAT3_EQ(output[0].translation, -1.f, 0.f, 0.f);
   EXPECT_FLOAT3_EQ(output[1].translation, 8.f, 0.f, 0.f);
+}
+
+TEST(FixedRateSamplingTime, Utils) {
+  {  // From 0
+    ozz::animation::offline::FixedRateSamplingTime it(1.f, 30.f);
+    EXPECT_EQ(it.num_keys(), 31u);
+
+    EXPECT_EQ(it.time(0), 0.f);
+    EXPECT_FLOAT_EQ(it.time(1), 1.f / 30.f);
+    EXPECT_FLOAT_EQ(it.time(2), 2.f / 30.f);
+    EXPECT_FLOAT_EQ(it.time(29), 29.f / 30.f);
+    EXPECT_EQ(it.time(30), 1.f);
+    EXPECT_ASSERTION(it.time(31), "_key < num_keys");
+  }
+
+  {  // Offset
+    ozz::animation::offline::FixedRateSamplingTime it(3.f, 100.f);
+    EXPECT_EQ(it.num_keys(), 301u);
+
+    EXPECT_EQ(it.time(0), 0.f);
+    EXPECT_FLOAT_EQ(it.time(1), 1.f / 100.f);
+    EXPECT_FLOAT_EQ(it.time(2), 2.f / 100.f);
+    EXPECT_FLOAT_EQ(it.time(299), 299.f / 100.f);
+    EXPECT_EQ(it.time(300), 3.f);
+  }
+
+  {  // Ceil
+    ozz::animation::offline::FixedRateSamplingTime it(1.001f, 30.f);
+    EXPECT_EQ(it.num_keys(), 32u);
+
+    EXPECT_EQ(it.time(0), 0.f);
+    EXPECT_FLOAT_EQ(it.time(1), 1.f / 30.f);
+    EXPECT_FLOAT_EQ(it.time(2), 2.f / 30.f);
+    EXPECT_FLOAT_EQ(it.time(29), 29.f / 30.f);
+    EXPECT_FLOAT_EQ(it.time(30), 1.f);
+    EXPECT_EQ(it.time(31), 1.001f);
+  }
+
+  {  // Long
+    ozz::animation::offline::FixedRateSamplingTime it(1000.f, 30.f);
+    EXPECT_EQ(it.num_keys(), 30001u);
+
+    EXPECT_EQ(it.time(0), 0.f);
+    EXPECT_FLOAT_EQ(it.time(1), 1.f / 30.f);
+    EXPECT_FLOAT_EQ(it.time(2), 2.f / 30.f);
+    EXPECT_FLOAT_EQ(it.time(29999), 29999.f / 30.f);
+    EXPECT_EQ(it.time(30000), 1000.f);
+  }
 }

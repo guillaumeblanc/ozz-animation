@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -35,14 +35,14 @@ namespace ozz {
 namespace animation {
 
 template <typename _Key>
-inline int CountKeyframesImpl(const Range<const _Key>& _keys, int _track) {
+inline int CountKeyframesImpl(const span<const _Key>& _keys, int _track) {
   if (_track < 0) {
-    return static_cast<int>(_keys.count());
+    return static_cast<int>(_keys.size());
   }
 
   int count = 0;
-  for (const _Key* key = _keys.begin; key < _keys.end; ++key) {
-    if (key->track == _track) {
+  for (const _Key& key : _keys) {
+    if (key.track == _track) {
       ++count;
     }
   }

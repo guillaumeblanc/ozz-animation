@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -120,35 +120,6 @@ OZZ_INLINE const _Ty* Select(bool _b, const _Ty* _true, const _Ty* _false) {
   return r.p;
 }
 
-// Tests whether _block is aligned to _alignment boundary.
-template <typename _Ty>
-OZZ_INLINE bool IsAligned(_Ty _value, size_t _alignment) {
-  return (_value & (_alignment - 1)) == 0;
-}
-template <typename _Ty>
-OZZ_INLINE bool IsAligned(_Ty* _address, size_t _alignment) {
-  return (reinterpret_cast<uintptr_t>(_address) & (_alignment - 1)) == 0;
-}
-
-// Aligns _block address to the first greater address that is aligned to
-// _alignment boundaries.
-template <typename _Ty>
-OZZ_INLINE _Ty Align(_Ty _value, size_t _alignment) {
-  return static_cast<_Ty>(_value + (_alignment - 1)) & (0 - _alignment);
-}
-template <typename _Ty>
-OZZ_INLINE _Ty* Align(_Ty* _address, size_t _alignment) {
-  return reinterpret_cast<_Ty*>(
-      (reinterpret_cast<uintptr_t>(_address) + (_alignment - 1)) &
-      (0 - _alignment));
-}
-
-// Strides a pointer of _stride bytes.
-template <typename _Ty>
-OZZ_INLINE _Ty* Stride(_Ty* _value, intptr_t _stride) {
-  return reinterpret_cast<const _Ty*>(reinterpret_cast<uintptr_t>(_value) +
-                                      _stride);
-}
 }  // namespace math
 }  // namespace ozz
 #endif  // OZZ_OZZ_BASE_MATHS_MATH_EX_H_

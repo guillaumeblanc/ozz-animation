@@ -34,8 +34,8 @@ set_tests_properties(fbx2ozz_skel_output PROPERTIES
 # Run fbx2ozz skeleton passing tests
 #----------------------------
 
-add_test(NAME fbx2ozz_skel_simple COMMAND fbx2ozz "--file=${ozz_media_directory}/fbx/alain/skeleton.fbx" "--config={\"skeleton\":{\"filename\":\"${ozz_temp_directory}/fbx_skeleton.ozz\",\"import\":{\"enable\":true}},\"animations\":[]}}")
-add_test(NAME fbx2ozz_skel_simple_raw COMMAND fbx2ozz "--file=${ozz_media_directory}/fbx/alain/skeleton.fbx" "--config={\"skeleton\":{\"filename\":\"${ozz_temp_directory}/fbx_raw_skeleton.ozz\",\"import\":{\"enable\":true,\"raw\":true}},\"animations\":[]}}")
+add_test(NAME fbx2ozz_skel_simple COMMAND fbx2ozz "--file=${ozz_media_directory}/fbx/pab/skeleton.fbx" "--config={\"skeleton\":{\"filename\":\"${ozz_temp_directory}/fbx_skeleton.ozz\",\"import\":{\"enable\":true}},\"animations\":[]}}")
+add_test(NAME fbx2ozz_skel_simple_raw COMMAND fbx2ozz "--file=${ozz_media_directory}/fbx/pab/skeleton.fbx" "--config={\"skeleton\":{\"filename\":\"${ozz_temp_directory}/fbx_raw_skeleton.ozz\",\"import\":{\"enable\":true,\"raw\":true}},\"animations\":[]}}")
 
 # Run fbx2ozz collada skeleton passing tests
 #----------------------------
@@ -54,13 +54,13 @@ set_tests_properties(fbx2ozz_anim_badcontent PROPERTIES PASS_REGULAR_EXPRESSION 
 # Run fbx2ozz animation passing tests
 #----------------------------
 
-add_test(NAME fbx2ozz_anim_simple COMMAND fbx2ozz "--file=${ozz_media_directory}/fbx/alain/run.fbx" "--config={\"skeleton\":{\"filename\":\"${ozz_temp_directory}/fbx_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"${ozz_temp_directory}/fbx_animation_${CMAKE_CURRENT_LIST_LINE}.ozz\"}]}")
+add_test(NAME fbx2ozz_anim_simple COMMAND fbx2ozz "--file=${ozz_media_directory}/fbx/pab/run.fbx" "--config={\"skeleton\":{\"filename\":\"${ozz_temp_directory}/fbx_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"${ozz_temp_directory}/fbx_animation_${CMAKE_CURRENT_LIST_LINE}.ozz\"}]}")
 set_tests_properties(fbx2ozz_anim_simple PROPERTIES DEPENDS fbx2ozz_skel_simple)
-add_test(NAME fbx2ozz_anim_simple_raw COMMAND fbx2ozz "--file=${ozz_media_directory}/fbx/alain/run.fbx" "--config={\"skeleton\":{\"filename\":\"${ozz_temp_directory}/fbx_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"${ozz_temp_directory}/fbx_animation_${CMAKE_CURRENT_LIST_LINE}.ozz\",\"raw\":true}]}")
+add_test(NAME fbx2ozz_anim_simple_raw COMMAND fbx2ozz "--file=${ozz_media_directory}/fbx/pab/run.fbx" "--config={\"skeleton\":{\"filename\":\"${ozz_temp_directory}/fbx_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"${ozz_temp_directory}/fbx_animation_${CMAKE_CURRENT_LIST_LINE}.ozz\",\"raw\":true}]}")
 set_tests_properties(fbx2ozz_anim_simple_raw PROPERTIES DEPENDS fbx2ozz_skel_simple)
-add_test(NAME fbx2ozz_anim_simple_from_raw COMMAND fbx2ozz "--file=${ozz_media_directory}/fbx/alain/run.fbx" "--config={\"skeleton\":{\"filename\":\"${ozz_temp_directory}/fbx_raw_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"${ozz_temp_directory}/fbx_animation_${CMAKE_CURRENT_LIST_LINE}.ozz\"}]}")
+add_test(NAME fbx2ozz_anim_simple_from_raw COMMAND fbx2ozz "--file=${ozz_media_directory}/fbx/pab/run.fbx" "--config={\"skeleton\":{\"filename\":\"${ozz_temp_directory}/fbx_raw_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"${ozz_temp_directory}/fbx_animation_${CMAKE_CURRENT_LIST_LINE}.ozz\"}]}")
 set_tests_properties(fbx2ozz_anim_simple_from_raw PROPERTIES DEPENDS fbx2ozz_skel_simple_raw)
-add_test(NAME fbx2ozz_anim_simple_raw_from_raw COMMAND fbx2ozz "--file=${ozz_media_directory}/fbx/alain/run.fbx" "--config={\"skeleton\":{\"filename\":\"${ozz_temp_directory}/fbx_raw_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"${ozz_temp_directory}/fbx_animation_${CMAKE_CURRENT_LIST_LINE}.ozz\",\"raw\":true}]}")
+add_test(NAME fbx2ozz_anim_simple_raw_from_raw COMMAND fbx2ozz "--file=${ozz_media_directory}/fbx/pab/run.fbx" "--config={\"skeleton\":{\"filename\":\"${ozz_temp_directory}/fbx_raw_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"${ozz_temp_directory}/fbx_animation_${CMAKE_CURRENT_LIST_LINE}.ozz\",\"raw\":true}]}")
 set_tests_properties(fbx2ozz_anim_simple_raw_from_raw PROPERTIES DEPENDS fbx2ozz_skel_simple_raw)
 
 # Run fbx2ozz track passing tests
@@ -116,37 +116,37 @@ if(TARGET sample_playback)
 
   add_custom_command(
     DEPENDS $<$<AND:$<BOOL:${ozz_build_data}>,$<BOOL:${ozz_build_fbx}>>:fbx2ozz>
-            "${ozz_media_directory}/collada/alain/skeleton.dae"
-            "${ozz_media_directory}/collada/alain/skeleton_zup.dae"
-            "${ozz_media_directory}/collada/alain/walk.dae"
-    OUTPUT  "${ozz_temp_directory}/alain_skeleton_dae.ozz"
-            "${ozz_temp_directory}/alain_skeleton_dae_zup.ozz"
-            "${ozz_temp_directory}/alain_walk_dae.ozz"
+            "${ozz_media_directory}/collada/pab/skeleton.dae"
+            "${ozz_media_directory}/collada/pab/skeleton_zup.dae"
+            "${ozz_media_directory}/collada/pab/walk.dae"
+    OUTPUT  "${ozz_temp_directory}/pab_skeleton_dae.ozz"
+            "${ozz_temp_directory}/pab_skeleton_dae_zup.ozz"
+            "${ozz_temp_directory}/pab_walk_dae.ozz"
     COMMAND fbx2ozz
-      "--file=${ozz_media_directory}/collada/alain/skeleton.dae"
-      "--config={\"skeleton\":{\"filename\": \"${ozz_temp_directory}/alain_skeleton_dae.ozz\",\"import\":{\"enable\":true}},\"animations\":[]}}"
+      "--file=${ozz_media_directory}/collada/pab/skeleton.dae"
+      "--config={\"skeleton\":{\"filename\": \"${ozz_temp_directory}/pab_skeleton_dae.ozz\",\"import\":{\"enable\":true}},\"animations\":[]}}"
     COMMAND fbx2ozz
-      "--file=${ozz_media_directory}/collada/alain/skeleton_zup.dae"
-      "--config={\"skeleton\":{\"filename\": \"${ozz_temp_directory}/alain_skeleton_dae_zup.ozz\",\"import\":{\"enable\":true}},\"animations\":[]}}"
+      "--file=${ozz_media_directory}/collada/pab/skeleton_zup.dae"
+      "--config={\"skeleton\":{\"filename\": \"${ozz_temp_directory}/pab_skeleton_dae_zup.ozz\",\"import\":{\"enable\":true}},\"animations\":[]}}"
     COMMAND fbx2ozz
-      "--file=${ozz_media_directory}/collada/alain/walk.dae"
-      "--config={\"skeleton\":{\"filename\": \"${ozz_temp_directory}/alain_skeleton_dae_zup.ozz\"},\"animations\": [{\"filename\":\"${ozz_temp_directory}/alain_walk_dae.ozz\"}]}"
+      "--file=${ozz_media_directory}/collada/pab/walk.dae"
+      "--config={\"skeleton\":{\"filename\": \"${ozz_temp_directory}/pab_skeleton_dae_zup.ozz\"},\"animations\": [{\"filename\":\"${ozz_temp_directory}/pab_walk_dae.ozz\"}]}"
     VERBATIM)
       
-  add_custom_target(BUILD_DATA_TEST ALL DEPENDS
-    "${ozz_temp_directory}/alain_skeleton_dae.ozz"
-    "${ozz_temp_directory}/alain_skeleton_dae_zup.ozz"
-    "${ozz_temp_directory}/alain_walk_dae.ozz"
+  add_custom_target(BUILD_DATA_FBX_TEST ALL DEPENDS
+    "${ozz_temp_directory}/pab_skeleton_dae.ozz"
+    "${ozz_temp_directory}/pab_skeleton_dae_zup.ozz"
+    "${ozz_temp_directory}/pab_walk_dae.ozz"
     VERBATIM)
 
-  add_test(NAME sample_playback_dae_zup COMMAND sample_playback "--skeleton=${ozz_temp_directory}/alain_skeleton_dae_zup.ozz" "--animation=${ozz_temp_directory}/alain_walk_dae.ozz" "--max_idle_loops=${ozz_sample_testing_loops}" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)
+  add_test(NAME sample_playback_dae_zup COMMAND sample_playback "--skeleton=${ozz_temp_directory}/pab_skeleton_dae_zup.ozz" "--animation=${ozz_temp_directory}/pab_walk_dae.ozz" "--max_idle_loops=${ozz_sample_testing_loops}" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)
 
   add_test(NAME sample_playback_dae_seymour COMMAND sample_playback "--skeleton=${ozz_media_directory}/bin/seymour_skeleton.ozz" "--animation=${ozz_media_directory}/bin/seymour_animation.ozz" "--max_idle_loops=${ozz_sample_testing_loops}" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)
   add_test(NAME sample_playback_dae_astro_max COMMAND sample_playback "--skeleton=${ozz_media_directory}/bin/astro_max_skeleton.ozz" "--animation=${ozz_media_directory}/bin/astro_max_animation.ozz" "--max_idle_loops=${ozz_sample_testing_loops}" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)
   add_test(NAME sample_playback_dae_astro_maya COMMAND sample_playback "--skeleton=${ozz_media_directory}/bin/astro_maya_skeleton.ozz" "--animation=${ozz_media_directory}/bin/astro_maya_animation.ozz" "--max_idle_loops=${ozz_sample_testing_loops}" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)
   
-  add_test(NAME sample_playback_mixed_df COMMAND sample_playback "--skeleton=${ozz_temp_directory}/alain_skeleton_dae.ozz" "--animation=${ozz_media_directory}/bin/alain_walk.ozz" "--max_idle_loops=${ozz_sample_testing_loops}" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)
-  add_test(NAME sample_playback_mixed_fd COMMAND sample_playback "--skeleton=${ozz_media_directory}/bin/alain_skeleton.ozz" "--animation=${ozz_temp_directory}/alain_walk_dae.ozz" "--max_idle_loops=${ozz_sample_testing_loops}" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)
+  add_test(NAME sample_playback_mixed_df COMMAND sample_playback "--skeleton=${ozz_temp_directory}/pab_skeleton_dae.ozz" "--animation=${ozz_media_directory}/bin/pab_walk.ozz" "--max_idle_loops=${ozz_sample_testing_loops}" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)
+  add_test(NAME sample_playback_mixed_fd COMMAND sample_playback "--skeleton=${ozz_media_directory}/bin/pab_skeleton.ozz" "--animation=${ozz_temp_directory}/pab_walk_dae.ozz" "--max_idle_loops=${ozz_sample_testing_loops}" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)
 endif()
 
 # ozz_animation_fbx fuse tests
@@ -160,7 +160,6 @@ target_include_directories(test_fuse_ozz_animation_fbx
 target_compile_options(test_fuse_ozz_animation_fbx
   PUBLIC $<$<BOOL:${W_NULL_DEREFERENCE}>:-Wno-null-dereference>
   PUBLIC $<$<BOOL:${W_PRAGMA_PACK}>:-Wno-pragma-pack>)
-target_compile_features(test_fuse_ozz_animation_fbx PRIVATE cxx_std_11)
 target_link_libraries(test_fuse_ozz_animation_fbx
   debug ${FBX_LIBRARIES_DEBUG}
   optimized ${FBX_LIBRARIES}

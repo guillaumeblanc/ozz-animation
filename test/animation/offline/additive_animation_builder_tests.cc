@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -41,12 +41,12 @@ using ozz::animation::offline::RawAnimation;
 TEST(Error, AdditiveAnimationBuilder) {
   AdditiveAnimationBuilder builder;
 
-  {  // NULL output.
+  {  // nullptr output.
     RawAnimation input;
     EXPECT_TRUE(input.Validate());
 
     // Builds animation
-    EXPECT_FALSE(builder(input, NULL));
+    EXPECT_FALSE(builder(input, nullptr));
   }
 
   {  // Invalid input animation.
@@ -73,7 +73,7 @@ TEST(Error, AdditiveAnimationBuilder) {
     output.duration = -1.f;
     output.tracks.resize(1);
 
-    ozz::Range<ozz::math::Transform> empty_ref_pose_range;
+    ozz::span<ozz::math::Transform> empty_ref_pose_range;
 
     EXPECT_FALSE(builder(input, empty_ref_pose_range, &output));
     EXPECT_FLOAT_EQ(output.duration, RawAnimation().duration);
@@ -262,7 +262,7 @@ TEST(BuildRefPose, AdditiveAnimationBuilder) {
 
     RawAnimation output;
     ASSERT_TRUE(
-        builder(input, ozz::Range<ozz::math::Transform>(ref_pose), &output));
+        builder(input, ozz::span<ozz::math::Transform>(ref_pose), &output));
     EXPECT_EQ(output.num_tracks(), 3);
 
     // 1st track.

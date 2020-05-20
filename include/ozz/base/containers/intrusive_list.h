@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -87,7 +87,7 @@ struct Option {
 // O(1) capabilities of the intrusive list. The size() function is NOT constant
 // time though, but linear O(n). If you wish to test whether a list is empty,
 // you should use empty() rather than size() == 0.
-template <typename _Ty, typename _Option = Option<> >
+template <typename _Ty, typename _Option = Option<>>
 class IntrusiveList;
 
 // Enters the internal namespace that encloses private implementation details.
@@ -124,7 +124,7 @@ class Node {
   // Constructs an unlinked node.
   Node()
 #ifndef NDEBUG
-      : list_(NULL)
+      : list_(nullptr)
 #endif  // NDEBUG
   {
     prev_ = this;
@@ -348,8 +348,8 @@ class IntrusiveListIterator {
   typedef typename _Config::ListNode ListNode;
 
   // Constructs an iterator pointing _node.
-  // _node can be NULL which creates a default un-dereferencable iterator.
-  explicit IntrusiveListIterator(ListNode* _node = NULL) : node_(_node) {
+  // _node can be nullptr which creates a default un-dereferencable iterator.
+  explicit IntrusiveListIterator(ListNode* _node = nullptr) : node_(_node) {
     assert((!_node || _node->list_) &&
            "Cannot build an iterator from a node that's unlinked");
   }
@@ -449,7 +449,7 @@ class IntrusiveListIterator {
   friend class IntrusiveListIterator;
 
   // The list Node designated by *this iterator, which can be the end Node of a
-  // list. A default iterator has a NULL designated Node.
+  // list. A default iterator has a nullptr designated Node.
   ListNode* node_;
 };
 }  // namespace internal
@@ -497,22 +497,22 @@ class IntrusiveList : public internal::IntrusiveNodeList {
 
   // Iterator used to iterate through a list;
   typedef internal::IntrusiveListIterator<IntrusiveList,
-                                          internal::MutableCfg<IntrusiveList> >
+                                          internal::MutableCfg<IntrusiveList>>
       iterator;
 
   // Const iterator used to iterate through a list.
   typedef internal::IntrusiveListIterator<IntrusiveList,
-                                          internal::ConstCfg<IntrusiveList> >
+                                          internal::ConstCfg<IntrusiveList>>
       const_iterator;
 
   // Iterator used to iterate backwards through a list.
   typedef internal::IntrusiveListIterator<
-      IntrusiveList, internal::MutableReverseCfg<IntrusiveList> >
+      IntrusiveList, internal::MutableReverseCfg<IntrusiveList>>
       reverse_iterator;
 
   // Const iterator used to iterate backwards through a list.
   typedef internal::IntrusiveListIterator<
-      IntrusiveList, internal::ConstReverseCfg<IntrusiveList> >
+      IntrusiveList, internal::ConstReverseCfg<IntrusiveList>>
       const_reverse_iterator;
 
   // Constructs an empty list.
@@ -844,7 +844,7 @@ inline void Node::unlink() {
   next_ = this;
 
 #ifndef NDEBUG
-  list_ = NULL;
+  list_ = nullptr;
 #endif  // NDEBUG
 }
 

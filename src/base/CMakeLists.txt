@@ -2,9 +2,10 @@ add_library(ozz_base STATIC
   ${PROJECT_SOURCE_DIR}/include/ozz/base/endianness.h
   ${PROJECT_SOURCE_DIR}/include/ozz/base/gtest_helper.h
   ${PROJECT_SOURCE_DIR}/include/ozz/base/memory/allocator.h
-  ${PROJECT_SOURCE_DIR}/include/ozz/base/memory/scoped_ptr.h
+  ${PROJECT_SOURCE_DIR}/include/ozz/base/memory/unique_ptr.h
   memory/allocator.cc
   ${PROJECT_SOURCE_DIR}/include/ozz/base/platform.h
+  ${PROJECT_SOURCE_DIR}/include/ozz/base/span.h
   platform.cc
   ${PROJECT_SOURCE_DIR}/include/ozz/base/log.h
   log.cc
@@ -17,6 +18,8 @@ add_library(ozz_base STATIC
   ${PROJECT_SOURCE_DIR}/include/ozz/base/containers/stack.h
   ${PROJECT_SOURCE_DIR}/include/ozz/base/containers/string.h
   ${PROJECT_SOURCE_DIR}/include/ozz/base/containers/string_archive.h
+  ${PROJECT_SOURCE_DIR}/include/ozz/base/containers/unordered_map.h
+  ${PROJECT_SOURCE_DIR}/include/ozz/base/containers/unordered_set.h
   containers/string_archive.cc
   ${PROJECT_SOURCE_DIR}/include/ozz/base/containers/vector.h
   ${PROJECT_SOURCE_DIR}/include/ozz/base/containers/vector_archive.h

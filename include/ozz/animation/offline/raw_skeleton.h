@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -57,13 +57,13 @@ struct RawSkeleton {
   // Offline skeleton joint type.
   struct Joint {
     // Type of the list of children joints.
-    typedef ozz::Vector<Joint>::Std Children;
+    typedef ozz::vector<Joint> Children;
 
     // Children joints.
     Children children;
 
     // The name of the joint.
-    ozz::String::Std name;
+    ozz::string name;
 
     // Joint bind pose transformation in local space.
     math::Transform transform;
@@ -118,7 +118,7 @@ inline void _IterHierarchyRecurseBF(
 // _current joint is the root.
 template <typename _Fct>
 inline _Fct IterateJointsDF(const RawSkeleton& _skeleton, _Fct _fct) {
-  _IterHierarchyRecurseDF(_skeleton.roots, NULL, _fct);
+  _IterHierarchyRecurseDF(_skeleton.roots, nullptr, _fct);
   return _fct;
 }
 
@@ -128,7 +128,7 @@ inline _Fct IterateJointsDF(const RawSkeleton& _skeleton, _Fct _fct) {
 // _current joint is the root.
 template <typename _Fct>
 inline _Fct IterateJointsBF(const RawSkeleton& _skeleton, _Fct _fct) {
-  _IterHierarchyRecurseBF(_skeleton.roots, NULL, _fct);
+  _IterHierarchyRecurseBF(_skeleton.roots, nullptr, _fct);
   return _fct;
 }
 }  // namespace offline

@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -29,6 +29,7 @@
 #define OZZ_OZZ_ANIMATION_RUNTIME_LOCAL_TO_MODEL_JOB_H_
 
 #include "ozz/base/platform.h"
+#include "ozz/base/span.h"
 
 namespace ozz {
 
@@ -59,7 +60,7 @@ struct LocalToModelJob {
   LocalToModelJob();
 
   // Validates job parameters. Returns true for a valid job, or false otherwise:
-  // -if any input pointer, including ranges, is NULL.
+  // -if any input pointer, including ranges, is nullptr.
   // -if the size of the input is smaller than the skeleton's number of joints.
   // Note that this input has a SoA format.
   // -if the size of of the output is smaller than the skeleton's number of
@@ -78,7 +79,7 @@ struct LocalToModelJob {
   // model space conversion.
   const Skeleton* skeleton;
 
-  // The root matrix will multiply to every model space matrices, default NULL
+  // The root matrix will multiply to every model space matrices, default nullptr
   // means an identity matrix. This can be used to directly compute world-space
   // transforms for example.
   const ozz::math::Float4x4* root;
@@ -107,12 +108,12 @@ struct LocalToModelJob {
   bool from_excluded;
 
   // The input range that store local transforms.
-  Range<const ozz::math::SoaTransform> input;
+  span<const ozz::math::SoaTransform> input;
 
   // Job output.
 
   // The output range to be filled with model-space matrices.
-  Range<ozz::math::Float4x4> output;
+  span<ozz::math::Float4x4> output;
 };
 }  // namespace animation
 }  // namespace ozz

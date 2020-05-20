@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -29,6 +29,7 @@
 #define OZZ_OZZ_ANIMATION_OFFLINE_SKELETON_BUILDER_H_
 
 #include "ozz/base/maths/transform.h"
+#include "ozz/base/memory/unique_ptr.h"
 
 namespace ozz {
 namespace animation {
@@ -45,11 +46,12 @@ struct RawSkeleton;
 class SkeletonBuilder {
  public:
   // Creates a Skeleton based on _raw_skeleton and *this builder parameters.
-  // Returns a Skeleton instance on success which will then be deleted using
-  // the default allocator Delete() function.
-  // Returns NULL on failure. See RawSkeleton::Validate() for more details about
-  // failure reasons.
-  Skeleton* operator()(const RawSkeleton& _raw_skeleton) const;
+  // Returns a Skeleton instance on success, an empty unique_ptr on failure. See
+  // RawSkeleton::Validate() for more details about failure reasons.
+  // The skeleton is returned as an unique_ptr as ownership is given back to the
+  // caller.
+  ozz::unique_ptr<ozz::animation::Skeleton> operator()(
+      const RawSkeleton& _raw_skeleton) const;
 };
 }  // namespace offline
 }  // namespace animation

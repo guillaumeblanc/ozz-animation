@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -75,7 +75,8 @@ const ozz::math::SimdFloat4 kHeadForward = ozz::math::simd_float4::y_axis();
 const ozz::math::SimdFloat4 kJointUpVectors[] = {
     ozz::math::simd_float4::x_axis(), ozz::math::simd_float4::x_axis(),
     ozz::math::simd_float4::x_axis(), ozz::math::simd_float4::x_axis()};
-OZZ_STATIC_ASSERT(OZZ_ARRAY_SIZE(kJointUpVectors) == kMaxChainLength);
+static_assert(OZZ_ARRAY_SIZE(kJointUpVectors) == kMaxChainLength,
+              "Array size mismatch.");
 
 class LookAtSampleApplication : public ozz::sample::Application {
  public:
@@ -107,7 +108,7 @@ class LookAtSampleApplication : public ozz::sample::Application {
     sampling_job.animation = &animation_;
     sampling_job.cache = &cache_;
     sampling_job.ratio = controller_.time_ratio();
-    sampling_job.output = make_range(locals_);
+    sampling_job.output = make_span(locals_);
     if (!sampling_job.Run()) {
       return false;
     }
@@ -115,8 +116,8 @@ class LookAtSampleApplication : public ozz::sample::Application {
     // Converts from local-space to model-space matrices.
     ozz::animation::LocalToModelJob ltm_job;
     ltm_job.skeleton = &skeleton_;
-    ltm_job.input = make_range(locals_);
-    ltm_job.output = make_range(models_);
+    ltm_job.input = make_span(locals_);
+    ltm_job.output = make_span(models_);
     if (!ltm_job.Run()) {
       return false;
     }
@@ -198,7 +199,7 @@ class LookAtSampleApplication : public ozz::sample::Application {
 
       // Apply IK quaternion to its respective local-space transforms.
       ozz::sample::MultiplySoATransformQuaternion(joint, correction,
-                                                  make_range(locals_));
+                                                  make_span(locals_));
     }
 
     // Skeleton model-space matrices need to be updated again. This re-uses the
@@ -243,12 +244,12 @@ class LookAtSampleApplication : public ozz::sample::Application {
         }
 
         success &= _renderer->DrawSkinnedMesh(
-            mesh, make_range(skinning_matrices_), identity);
+            mesh, make_span(skinning_matrices_), identity);
       }
     } else {
       // Renders skeleton only.
       success &=
-          _renderer->DrawPosture(skeleton_, make_range(models_), identity);
+          _renderer->DrawPosture(skeleton_, make_span(models_), identity);
     }
 
     // Showing joints
@@ -369,8 +370,8 @@ class LookAtSampleApplication : public ozz::sample::Application {
   // Traverses the hierarchy from the first joint to the root, to check if
   // joints are all ancestors (same branch), and ordered.
   bool ValidateJointsOrder(const ozz::animation::Skeleton& _skeleton,
-                           ozz::Range<const int> _joints) {
-    const size_t count = _joints.count();
+                           ozz::span<const int> _joints) {
+    const size_t count = _joints.size();
     if (count == 0) {
       return true;
     }
@@ -475,17 +476,17 @@ class LookAtSampleApplication : public ozz::sample::Application {
   ozz::animation::SamplingCache cache_;
 
   // Buffer of local transforms as sampled from animation_.
-  ozz::Vector<ozz::math::SoaTransform>::Std locals_;
+  ozz::vector<ozz::math::SoaTransform> locals_;
 
   // Buffer of model-space matrices.
-  ozz::Vector<ozz::math::Float4x4>::Std models_;
+  ozz::vector<ozz::math::Float4x4> models_;
 
   // Buffer of skinning matrices, result of the joint multiplication of the
   // inverse bind pose with the model-space matrix.
-  ozz::Vector<ozz::math::Float4x4>::Std skinning_matrices_;
+  ozz::vector<ozz::math::Float4x4> skinning_matrices_;
 
   // The mesh used by the sample.
-  ozz::Vector<ozz::sample::Mesh>::Std meshes_;
+  ozz::vector<ozz::sample::Mesh> meshes_;
 
   // Indices of the joints that are IKed for look-at purpose.
   // Joints must be from the same hierarchy (all ancestors of the first joint

@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -174,7 +174,7 @@ class FootIKSampleApplication : public ozz::sample::Application {
     // position.
     ozz::sample::RayIntersectsMeshes(
         root_translation_ + kCharacterRayHeightOffset, kDown,
-        make_range(floors_), &root_translation_, NULL);
+        make_span(floors_), &root_translation_, nullptr);
 
     return true;
   }
@@ -188,7 +188,7 @@ class FootIKSampleApplication : public ozz::sample::Application {
     sampling_job.animation = &animation_;
     sampling_job.cache = &cache_;
     sampling_job.ratio = controller_.time_ratio();
-    sampling_job.output = make_range(locals_);
+    sampling_job.output = make_span(locals_);
     if (!sampling_job.Run()) {
       return false;
     }
@@ -196,8 +196,8 @@ class FootIKSampleApplication : public ozz::sample::Application {
     // Converts from local space to model space matrices.
     ozz::animation::LocalToModelJob ltm_job;
     ltm_job.skeleton = &skeleton_;
-    ltm_job.input = make_range(locals_);
-    ltm_job.output = make_range(models_);
+    ltm_job.input = make_span(locals_);
+    ltm_job.output = make_span(models_);
     if (!ltm_job.Run()) {
       return false;
     }
@@ -222,7 +222,7 @@ class FootIKSampleApplication : public ozz::sample::Application {
       ray.start = ankles_initial_ws_[l] + kFootRayHeightOffset;
       ray.dir = kDown;
       ray.hit = ozz::sample::RayIntersectsMeshes(
-          ray.start, ray.dir, make_range(floors_), &ray.hit_point,
+          ray.start, ray.dir, make_span(floors_), &ray.hit_point,
           &ray.hit_normal);
     }
 
@@ -321,8 +321,8 @@ class FootIKSampleApplication : public ozz::sample::Application {
 
     ozz::animation::LocalToModelJob ltm_job;
     ltm_job.skeleton = &skeleton_;
-    ltm_job.input = make_range(locals_);
-    ltm_job.output = make_range(models_);
+    ltm_job.input = make_span(locals_);
+    ltm_job.output = make_span(models_);
 
     // Perform IK
     for (size_t l = 0; l < kLegsCount; ++l) {
@@ -400,9 +400,9 @@ class FootIKSampleApplication : public ozz::sample::Application {
     // Model-space transformations needs to be updated after a call to this
     // function.
     ozz::sample::MultiplySoATransformQuaternion(_leg.hip, start_correction,
-                                                make_range(locals_));
+                                                make_span(locals_));
     ozz::sample::MultiplySoATransformQuaternion(_leg.knee, mid_correction,
-                                                make_range(locals_));
+                                                make_span(locals_));
 
     return true;
   }
@@ -444,7 +444,7 @@ class FootIKSampleApplication : public ozz::sample::Application {
     // Model-space transformations needs to be updated after a call to this
     // function.
     ozz::sample::MultiplySoATransformQuaternion(_leg.ankle, correction,
-                                                make_range(locals_));
+                                                make_span(locals_));
 
     return true;
   }
@@ -477,11 +477,11 @@ class FootIKSampleApplication : public ozz::sample::Application {
         }
 
         success &= _renderer->DrawSkinnedMesh(
-            mesh, make_range(skinning_matrices_), offsetted_root);
+            mesh, make_span(skinning_matrices_), offsetted_root);
       }
     } else {
       // Renders skeleton only.
-      success &= _renderer->DrawPosture(skeleton_, make_range(models_),
+      success &= _renderer->DrawPosture(skeleton_, make_span(models_),
                                         offsetted_root);
     }
 
@@ -746,17 +746,17 @@ class FootIKSampleApplication : public ozz::sample::Application {
   ozz::animation::SamplingCache cache_;
 
   // Buffer of local transforms as sampled from animation_.
-  ozz::Vector<ozz::math::SoaTransform>::Std locals_;
+  ozz::vector<ozz::math::SoaTransform> locals_;
 
   // Buffer of model space matrices.
-  ozz::Vector<ozz::math::Float4x4>::Std models_;
+  ozz::vector<ozz::math::Float4x4> models_;
 
   // Buffer of skinning matrices, result of the joint multiplication of the
   // inverse bind pose with the model space matrix.
-  ozz::Vector<ozz::math::Float4x4>::Std skinning_matrices_;
+  ozz::vector<ozz::math::Float4x4> skinning_matrices_;
 
   // The mesh used by the sample.
-  ozz::Vector<ozz::sample::Mesh>::Std meshes_;
+  ozz::vector<ozz::sample::Mesh> meshes_;
 
   enum { kLeft, kRight };
   enum { kLegsCount = 2 };
@@ -771,7 +771,7 @@ class FootIKSampleApplication : public ozz::sample::Application {
   ozz::math::Float3 pelvis_offset_;
 
   // The floor meshes used by the sample (collision and rendering).
-  ozz::Vector<ozz::sample::Mesh>::Std floors_;
+  ozz::vector<ozz::sample::Mesh> floors_;
 
   // Root transformation.
   ozz::math::Float3 root_translation_;

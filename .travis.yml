@@ -1,9 +1,8 @@
 language: cpp
 
-dist: trusty
-sudo: required
+dist: xenial
 
-matrix:
+jobs:
   include:
 
   # Emscripten cross compiling
@@ -23,6 +22,7 @@ matrix:
     compiler: clang
     env:
     - env_cmake_configuration=Release
+
   # Xcode mac os clang build
   - os: osx
     compiler: clang
@@ -33,6 +33,22 @@ matrix:
     env :
     - env_cmake_generator=Xcode
     - env_cmake_configuration=Release
+
+  # Linux ARM
+  - os: linux
+    compiler: clang
+    env:
+    - env_build_fbx=0 
+    - env_cmake_configuration=Debug
+    arch:
+    - arm64
+  - os: linux
+    compiler: clang
+    env:
+    - env_build_fbx=0 
+    - env_cmake_configuration=Release
+    arch:
+    - arm64
 
   # Linux
   # Default linux clang debug
@@ -50,11 +66,11 @@ matrix:
   - os: linux
     compiler: clang
     env:
-    - env_build_cpp11=1
+    - env_build_fbx=0
   - os: linux
     compiler: clang
     env:
-    - env_build_fbx=0 
+    - env_build_gltf=0
   - os: linux
     compiler: clang
     env:
@@ -83,17 +99,20 @@ matrix:
     compiler: clang
     env:
     - env_build_fbx=0
+    - env_build_gltf=0
     - env_build_samples=0
   - os: linux
     compiler: clang
     env:
     - env_build_fbx=0
+    - env_build_gltf=0
     - env_build_tests=0
   - os: linux
     compiler: clang
     env:
     - env_build_data=0
     - env_build_fbx=0
+    - env_build_gltf=0
     - env_build_samples=0
     - env_build_tests=0
   - os: linux
@@ -175,18 +194,6 @@ matrix:
 
   # Newer clang
   - os: linux
-    compiler: clang-3.5
-    env:
-    - env_cmake_cxx_compiler=clang++-3.5
-    - env_cmake_c_compiler=clang-3.5
-    addons:
-      apt:
-        sources:
-        - ubuntu-toolchain-r-test
-        - llvm-toolchain-precise-3.5
-        packages:
-        - clang-3.5
-  - os: linux
     compiler: clang-3.9
     env:
     - env_cmake_cxx_compiler=clang++-3.9
@@ -195,7 +202,7 @@ matrix:
       apt:
         sources:
         - ubuntu-toolchain-r-test
-        - llvm-toolchain-precise-3.9
+        - llvm-toolchain-xenial-3.9
         packages:
         - clang-3.9
   - os: linux
@@ -207,7 +214,7 @@ matrix:
       apt:
         sources:
         - ubuntu-toolchain-r-test
-        - llvm-toolchain-trusty-4.0
+        - llvm-toolchain-xenial-4.0
         packages:
         - clang-4.0
   - os: linux
@@ -219,7 +226,7 @@ matrix:
       apt:
         sources:
         - ubuntu-toolchain-r-test
-        - llvm-toolchain-trusty-5.0
+        - llvm-toolchain-xenial-5.0
         packages:
         - clang-5.0
   - os: linux
@@ -231,7 +238,7 @@ matrix:
       apt:
         sources:
         - ubuntu-toolchain-r-test
-        - llvm-toolchain-trusty-6.0
+        - llvm-toolchain-xenial-6.0
         packages:
         - clang-6.0
   - os: linux
@@ -243,9 +250,21 @@ matrix:
       apt:
         sources:
         - ubuntu-toolchain-r-test
-        - llvm-toolchain-trusty-7
+        - llvm-toolchain-xenial-7
         packages:
         - clang-7
+  - os: linux
+    compiler: clang-8
+    env:
+    - env_cmake_cxx_compiler=clang++-8
+    - env_cmake_c_compiler=clang-8
+    addons:
+      apt:
+        sources:
+        - ubuntu-toolchain-r-test
+        - llvm-toolchain-xenial-8
+        packages:
+        - clang-8
         
   # older fbx sdk
   - os: linux
@@ -317,8 +336,8 @@ before_script:
 
 # Setup default environment variables
 - if [[ -z $env_src_root ]]; then export env_src_root=".."; fi
-- if [[ -z $env_build_cpp11 ]]; then export env_build_cpp11=0; fi
 - if [[ -z $env_build_fbx ]]; then export env_build_fbx=1; fi
+- if [[ -z $env_build_gltf ]]; then export env_build_gltf=1; fi
 - if [[ -z $env_build_data ]]; then export env_build_data=1; fi
 - if [[ -z $env_build_howtos ]]; then export env_build_howtos=1; fi
 - if [[ -z $env_build_tools ]]; then export env_build_tools=1; fi
@@ -343,7 +362,7 @@ script:
 - mkdir build
 - cd build
 - echo $env_cmake_toolchain
-- cmake -G "$env_cmake_generator" $env_cmake_toolchain -DCMAKE_CXX_COMPILER=$env_cmake_cxx_compiler -DCMAKE_C_COMPILER=$env_cmake_c_compiler -DCMAKE_BUILD_TYPE=$env_cmake_configuration -Dozz_build_cpp11=$env_build_cpp11 -Dozz_build_fbx=$env_build_fbx -Dozz_build_data=$env_build_data -Dozz_build_howtos=$env_build_howtos -Dozz_build_samples=$env_build_samples -Dozz_build_postfix=$env_build_postfix -Dozz_build_tools=$env_build_tools -Dozz_build_simd_ref=$env_build_simd_ref -Dozz_build_tests=$env_build_tests $env_src_root
+- cmake -G "$env_cmake_generator" $env_cmake_toolchain -DCMAKE_CXX_COMPILER=$env_cmake_cxx_compiler -DCMAKE_C_COMPILER=$env_cmake_c_compiler -DCMAKE_BUILD_TYPE=$env_cmake_configuration -Dozz_build_fbx=$env_build_fbx -Dozz_build_data=$env_build_data -Dozz_build_howtos=$env_build_howtos -Dozz_build_samples=$env_build_samples -Dozz_build_postfix=$env_build_postfix -Dozz_build_tools=$env_build_tools -Dozz_build_simd_ref=$env_build_simd_ref -Dozz_build_tests=$env_build_tests $env_src_root
 # Build
 - cmake --build ./ --config $env_cmake_configuration --use-stderr -- $env_cmake_generator_specific
 # Test

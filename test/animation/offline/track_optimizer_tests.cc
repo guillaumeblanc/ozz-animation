@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -44,12 +44,12 @@ using ozz::animation::offline::TrackOptimizer;
 TEST(Error, TrackOptimizer) {
   TrackOptimizer optimizer;
 
-  {  // NULL output.
+  {  // nullptr output.
     RawFloatTrack input;
     EXPECT_TRUE(input.Validate());
 
     // Builds animation
-    EXPECT_FALSE(optimizer(input, NULL));
+    EXPECT_FALSE(optimizer(input, nullptr));
   }
 
   {  // Invalid input animation.

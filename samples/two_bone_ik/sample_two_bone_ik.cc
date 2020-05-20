@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -119,16 +119,16 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
 
     // Apply IK quaternions to their respective local-space transforms.
     ozz::sample::MultiplySoATransformQuaternion(start_joint_, start_correction,
-                                                make_range(locals_));
+                                                make_span(locals_));
     ozz::sample::MultiplySoATransformQuaternion(mid_joint_, mid_correction,
-                                                make_range(locals_));
+                                                make_span(locals_));
 
     // Updates model-space matrices now IK has been applied to local transforms.
     // All the ancestors of the start of the IK chain must be computed.
     ozz::animation::LocalToModelJob ltm_job;
     ltm_job.skeleton = &skeleton_;
-    ltm_job.input = make_range(locals_);
-    ltm_job.output = make_range(models_);
+    ltm_job.input = make_span(locals_);
+    ltm_job.output = make_span(models_);
     ltm_job.from =
         start_joint_;  // Local transforms haven't changed before start_joint_.
     ltm_job.to = ozz::animation::Skeleton::kMaxJoints;
@@ -160,8 +160,8 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
     // after that will need to be recomputed after IK indeed.
     ozz::animation::LocalToModelJob ltm_job;
     ltm_job.skeleton = &skeleton_;
-    ltm_job.input = make_range(locals_);
-    ltm_job.output = make_range(models_);
+    ltm_job.input = make_span(locals_);
+    ltm_job.output = make_span(models_);
     if (!ltm_job.Run()) {
       return false;
     }
@@ -222,7 +222,7 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
     }
 
     // Draws the animated skeleton posture.
-    success &= _renderer->DrawPosture(skeleton_, make_range(models_), root);
+    success &= _renderer->DrawPosture(skeleton_, make_span(models_), root);
 
     return success;
   }
@@ -391,10 +391,10 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
   ozz::animation::Skeleton skeleton_;
 
   // Buffer of local transforms as sampled from animation_.
-  ozz::Vector<ozz::math::SoaTransform>::Std locals_;
+  ozz::vector<ozz::math::SoaTransform> locals_;
 
   // Buffer of model space matrices.
-  ozz::Vector<ozz::math::Float4x4>::Std models_;
+  ozz::vector<ozz::math::Float4x4> models_;
 
   // Two bone IK setup. Indices of the relevant joints in the chain.
   int start_joint_;

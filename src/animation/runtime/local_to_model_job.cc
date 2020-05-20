@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -40,8 +40,8 @@ namespace ozz {
 namespace animation {
 
 LocalToModelJob::LocalToModelJob()
-    : skeleton(NULL),
-      root(NULL),
+    : skeleton(nullptr),
+      root(nullptr),
       from(Skeleton::kNoParent),
       to(Skeleton::kMaxJoints),
       from_excluded(false) {}
@@ -52,17 +52,17 @@ bool LocalToModelJob::Validate() const {
   // Tests are written in multiple lines in order to avoid branches.
   bool valid = true;
 
-  // Test for NULL begin pointers.
+  // Test for nullptr begin pointers.
   if (!skeleton) {
     return false;
   }
 
-  const int num_joints = skeleton->num_joints();
-  const int num_soa_joints = (num_joints + 3) / 4;
+  const size_t num_joints = static_cast<size_t>(skeleton->num_joints());
+  const size_t num_soa_joints = (num_joints + 3) / 4;
 
-  // Test input and output ranges, implicitly tests for NULL end pointers.
-  valid &= input.end - input.begin >= num_soa_joints;
-  valid &= output.end - output.begin >= num_joints;
+  // Test input and output ranges, implicitly tests for nullptr end pointers.
+  valid &= input.size() >= num_soa_joints;
+  valid &= output.size() >= num_joints;
 
   return valid;
 }
@@ -72,12 +72,12 @@ bool LocalToModelJob::Run() const {
     return false;
   }
 
-  const Range<const int16_t>& parents = skeleton->joint_parents();
+  const span<const int16_t>& parents = skeleton->joint_parents();
 
   // Initializes an identity matrix that will be used to compute roots model
   // matrices without requiring a branch.
   const math::Float4x4 identity = math::Float4x4::identity();
-  const math::Float4x4* root_matrix = (root == NULL) ? &identity : root;
+  const math::Float4x4* root_matrix = (root == nullptr) ? &identity : root;
 
   // Applies hierarchical transformation.
   // Loop ends after "to".
@@ -89,7 +89,7 @@ bool LocalToModelJob::Run() const {
            process = i < end && (!from_excluded || parents[i] >= from);
        process;) {
     // Builds soa matrices from soa transforms.
-    const math::SoaTransform& transform = input.begin[i / 4];
+    const math::SoaTransform& transform = input[i / 4];
     const math::SoaFloat4x4 local_soa_matrices = math::SoaFloat4x4::FromAffine(
         transform.translation, transform.rotation, transform.scale);
 

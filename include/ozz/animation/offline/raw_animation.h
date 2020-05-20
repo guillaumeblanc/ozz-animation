@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -59,9 +59,6 @@ struct RawAnimation {
   // Constructs a valid RawAnimation with a 1s default duration.
   RawAnimation();
 
-  // Deallocates raw animation.
-  ~RawAnimation();
-
   // Tests for *this validity.
   // Returns true if animation data (duration, tracks) is valid:
   //  1. Animation duration is greater than 0.
@@ -114,11 +111,11 @@ struct RawAnimation {
   // Defines a track of key frames for a bone, including translation, rotation
   // and scale.
   struct JointTrack {
-    typedef ozz::Vector<TranslationKey>::Std Translations;
+    typedef ozz::vector<TranslationKey> Translations;
     Translations translations;
-    typedef ozz::Vector<RotationKey>::Std Rotations;
+    typedef ozz::vector<RotationKey> Rotations;
     Rotations rotations;
-    typedef ozz::Vector<ScaleKey>::Std Scales;
+    typedef ozz::vector<ScaleKey> Scales;
     Scales scales;
 
     // Validates track. See RawAnimation::Validate for more details.
@@ -132,14 +129,14 @@ struct RawAnimation {
 
   // Stores per joint JointTrack, ie: per joint animation key-frames.
   // tracks_.size() gives the number of animated joints.
-  ozz::Vector<JointTrack>::Std tracks;
+  ozz::vector<JointTrack> tracks;
 
   // The duration of the animation. All the keys of a valid RawAnimation are in
   // the range [0,duration].
   float duration;
 
   // Name of the animation.
-  ozz::String::Std name;
+  ozz::string name;
 };
 }  // namespace offline
 }  // namespace animation

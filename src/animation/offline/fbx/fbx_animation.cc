@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -30,6 +30,7 @@
 #include "ozz/animation/offline/fbx/fbx.h"
 
 #include "ozz/animation/offline/raw_animation.h"
+#include "ozz/animation/offline/raw_animation_utils.h"
 #include "ozz/animation/offline/raw_track.h"
 #include "ozz/animation/runtime/skeleton.h"
 #include "ozz/animation/runtime/skeleton_utils.h"
@@ -50,7 +51,6 @@ struct SamplingInfo {
   float end;
   float duration;
   float frequency;
-  float period;
 };
 
 SamplingInfo ExtractSamplingInfo(FbxScene* _scene, FbxAnimStack* _anim_stack,
@@ -86,7 +86,6 @@ SamplingInfo ExtractSamplingInfo(FbxScene* _scene, FbxAnimStack* _anim_stack,
                 << std::endl;
   }
   info.frequency = sampling_rate;
-  info.period = 1.f / sampling_rate;
 
   // Get scene start and end.
   info.start = static_cast<float>(time_spawn.GetStart().GetSecondDouble());
@@ -111,32 +110,30 @@ bool ExtractAnimation(FbxSceneLoader& _scene_loader, const SamplingInfo& _info,
   // Set animation data.
   _animation->duration = _info.duration;
 
-  // Locates all skeleton nodes in the fbx scene. Some might be NULL.
-  ozz::Vector<FbxNode*>::Std nodes;
+  // Locates all skeleton nodes in the fbx scene. Some might be nullptr.
+  ozz::vector<FbxNode*> nodes;
   for (int i = 0; i < _skeleton.num_joints(); i++) {
     const char* joint_name = _skeleton.joint_names()[i];
     nodes.push_back(scene->FindNodeByName(joint_name));
   }
 
   // Preallocates and initializes world matrices.
-  // +1 for converting number of intervals to number of points.
-  const size_t num_keys =
-      static_cast<size_t>(std::ceil(1.f + _info.duration * _info.frequency));
-  ozz::Vector<float>::Std times;
-  times.resize(num_keys);
-  ozz::Vector<ozz::Vector<ozz::math::Float4x4>::Std>::Std world_matrices;
+  const FixedRateSamplingTime fixed_it(_info.duration, _info.frequency);
+
+  ozz::vector<float> times;
+  times.resize(fixed_it.num_keys());
+  ozz::vector<ozz::vector<ozz::math::Float4x4>> world_matrices;
   world_matrices.resize(_skeleton.num_joints());
   for (int i = 0; i < _skeleton.num_joints(); i++) {
-    world_matrices[i].resize(num_keys);
+    world_matrices[i].resize(fixed_it.num_keys());
   }
 
   // Goes through the whole timeline to compute animated word matrices.
   // Fbx sdk seems to compute nodes transformation for the whole scene, so it's
   // much faster to query all nodes at once for the same time t.
   FbxAnimEvaluator* evaluator = scene->GetAnimationEvaluator();
-  for (size_t k = 0; k < num_keys; ++k) {
-    // It's important to have exact [0, duration] range.
-    const float t = ozz::math::Min(k * _info.period, _info.duration);
+  for (size_t k = 0; k < fixed_it.num_keys(); ++k) {
+    const float t = fixed_it.time(k);
     times[k] = t;
 
     // Goes through all nodes.
@@ -157,7 +154,7 @@ bool ExtractAnimation(FbxSceneLoader& _scene_loader, const SamplingInfo& _info,
   for (int i = 0; i < _skeleton.num_joints(); i++) {
     // Initializes non-animated joints.
     FbxNode* node = nodes[i];
-    if (node == NULL) {
+    if (node == nullptr) {
       ozz::log::LogV() << "No animation track found for joint \""
                        << _skeleton.joint_names()[i]
                        << "\". Using skeleton bind pose instead." << std::endl;
@@ -172,17 +169,17 @@ bool ExtractAnimation(FbxSceneLoader& _scene_loader, const SamplingInfo& _info,
           math::simd_float4::Load3PtrU(&bind_pose.scale.x);
       const math::Float4x4 local_matrix = math::Float4x4::FromAffine(t, q, s);
 
-      ozz::Vector<math::Float4x4>::Std& node_matrices = world_matrices[i];
+      ozz::vector<math::Float4x4>& node_matrices = world_matrices[i];
       const int16_t parent = _skeleton.joint_parents()[i];
       if (parent != Skeleton::kNoParent) {
-        ozz::Vector<math::Float4x4>::Std& parent_matrices =
+        const ozz::vector<math::Float4x4>& parent_matrices =
             world_matrices[parent];
-        assert(num_keys == parent_matrices.size());
-        for (size_t k = 0; k < num_keys; ++k) {
+        assert(fixed_it.num_keys() == parent_matrices.size());
+        for (size_t k = 0; k < fixed_it.num_keys(); ++k) {
           node_matrices[k] = parent_matrices[k] * local_matrix;
         }
       } else {
-        for (size_t k = 0; k < num_keys; ++k) {
+        for (size_t k = 0; k < fixed_it.num_keys(); ++k) {
           node_matrices[k] = local_matrix;
         }
       }
@@ -190,15 +187,15 @@ bool ExtractAnimation(FbxSceneLoader& _scene_loader, const SamplingInfo& _info,
   }
 
   // Builds world inverse matrices.
-  ozz::Vector<ozz::Vector<ozz::math::Float4x4>::Std>::Std world_inv_matrices;
+  ozz::vector<ozz::vector<ozz::math::Float4x4>> world_inv_matrices;
   world_inv_matrices.resize(_skeleton.num_joints());
   for (int i = 0; i < _skeleton.num_joints(); i++) {
-    ozz::Vector<math::Float4x4>::Std& node_world_matrices = world_matrices[i];
-    ozz::Vector<math::Float4x4>::Std& node_world_inv_matrices =
+    const ozz::vector<math::Float4x4>& node_world_matrices = world_matrices[i];
+    ozz::vector<math::Float4x4>& node_world_inv_matrices =
         world_inv_matrices[i];
-    node_world_inv_matrices.reserve(num_keys);
-    for (size_t p = 0; p < num_keys; ++p) {
-      node_world_inv_matrices.push_back(Invert(node_world_matrices[p]));
+    node_world_inv_matrices.resize(fixed_it.num_keys());
+    for (size_t p = 0; p < fixed_it.num_keys(); ++p) {
+      node_world_inv_matrices[p] = Invert(node_world_matrices[p]);
     }
   }
 
@@ -209,16 +206,16 @@ bool ExtractAnimation(FbxSceneLoader& _scene_loader, const SamplingInfo& _info,
   _animation->tracks.resize(_skeleton.num_joints());
   for (int i = 0; i < _skeleton.num_joints(); i++) {
     RawAnimation::JointTrack& track = _animation->tracks[i];
-    track.rotations.reserve(num_keys);
-    track.translations.reserve(num_keys);
-    track.scales.reserve(num_keys);
+    track.rotations.resize(fixed_it.num_keys());
+    track.translations.resize(fixed_it.num_keys());
+    track.scales.resize(fixed_it.num_keys());
 
     const int16_t parent = _skeleton.joint_parents()[i];
-    ozz::Vector<math::Float4x4>::Std& node_world_matrices = world_matrices[i];
-    ozz::Vector<math::Float4x4>::Std& node_world_inv_matrices =
+    ozz::vector<math::Float4x4>& node_world_matrices = world_matrices[i];
+    ozz::vector<math::Float4x4>& node_world_inv_matrices =
         world_inv_matrices[parent != Skeleton::kNoParent ? parent : 0];
 
-    for (size_t n = 0; n < num_keys; ++n) {
+    for (size_t n = 0; n < fixed_it.num_keys(); ++n) {
       // Builds local matrix;
       math::Float4x4 local_matrix;
       if (parent != Skeleton::kNoParent) {
@@ -244,11 +241,11 @@ bool ExtractAnimation(FbxSceneLoader& _scene_loader, const SamplingInfo& _info,
       // Fills corresponding track.
       const float time = times[n];
       const RawAnimation::TranslationKey tkey = {time, transform.translation};
-      track.translations.push_back(tkey);
+      track.translations[n] = tkey;
       const RawAnimation::RotationKey rkey = {time, transform.rotation};
-      track.rotations.push_back(rkey);
+      track.rotations[n] = rkey;
       const RawAnimation::ScaleKey skey = {time, transform.scale};
-      track.scales.push_back(skey);
+      track.scales[n] = skey;
     }
   }
   return _animation->Validate();
@@ -427,14 +424,12 @@ bool ExtractCurve(FbxSceneLoader& _scene_loader, FbxProperty& _property,
                                            value};
     _track->keyframes.push_back(key);
   } else {
-    const size_t num_keys =
-        static_cast<size_t>(std::ceil(1.f + _info.duration * _info.frequency));
-    _track->keyframes.resize(num_keys);
+    const FixedRateSamplingTime fixed_it(_info.duration, _info.frequency);
+    _track->keyframes.resize(fixed_it.num_keys());
 
     // Evaluate values at the specified time.
-    for (size_t k = 0; k < num_keys; ++k) {
-      // It's important to have exact [0, duration] range.
-      const float t = ozz::math::Min(k * _info.period, _info.duration);
+    for (size_t k = 0; k < fixed_it.num_keys(); ++k) {
+      const float t = fixed_it.time(k);
 
       FbxPropertyValue& property_value = evaluator->GetPropertyValue(
           _property, FbxTimeSeconds(t + _info.start));
@@ -496,7 +491,7 @@ const char* FbxTypeToString(EFbxType _type) {
     case eFbxEnumM:
       return "eFbxEnumM - Enumeration allowing duplicated items";
     case eFbxString:
-      return "eFbxString - String";
+      return "eFbxString - string";
     case eFbxTime:
       return "eFbxTime - Time value";
     case eFbxReference:
@@ -569,7 +564,7 @@ bool ExtractProperty(FbxSceneLoader& _scene_loader, const SamplingInfo& _info,
                           _track);
     }
     default: {
-      log::Err() << "Float6 track can't be imported from a track of type: "
+      log::Err() << "Float3 track can't be imported from a track of type: "
                  << FbxTypeToString(fbx_type) << "\"" << std::endl;
       return false;
     }
@@ -616,9 +611,6 @@ bool ExtractTrackImpl(const char* _animation_name, const char* _node_name,
   const SamplingInfo& info =
       ExtractSamplingInfo(scene, anim_stack, _sampling_rate);
 
-  ozz::log::Log() << "Extracting animation track \"" << _node_name << ":"
-                  << _track_name << "\"" << std::endl;
-
   FbxNode* node = scene->FindNodeByName(_node_name);
   if (!node) {
     ozz::log::Err() << "Invalid node name \"" << _node_name << "\""
@@ -643,7 +635,7 @@ OzzImporter::AnimationNames GetAnimationNames(FbxSceneLoader& _scene_loader) {
   const FbxScene* scene = _scene_loader.scene();
   for (int i = 0; i < scene->GetSrcObjectCount<FbxAnimStack>(); ++i) {
     FbxAnimStack* anim_stack = scene->GetSrcObject<FbxAnimStack>(i);
-    names.push_back(ozz::String::Std(anim_stack->GetName()));
+    names.push_back(ozz::string(anim_stack->GetName()));
   }
 
   return names;
@@ -664,9 +656,6 @@ bool ExtractAnimation(const char* _animation_name,
     // Extract sampling info relative to the stack.
     const SamplingInfo& info =
         ExtractSamplingInfo(scene, anim_stack, _sampling_rate);
-
-    ozz::log::Log() << "Extracting animation \"" << anim_stack->GetName()
-                    << "\"" << std::endl;
 
     // Setup Fbx animation evaluator.
     scene->SetCurrentAnimationStack(anim_stack);

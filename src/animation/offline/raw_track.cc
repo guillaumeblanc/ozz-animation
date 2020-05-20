@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -43,7 +43,7 @@ OZZ_IO_TYPE_VERSION_T1(1, typename _ValueType,
                        animation::offline::RawTrackKeyframe<_ValueType>)
 
 template <typename _ValueType>
-struct Extern<animation::offline::RawTrackKeyframe<_ValueType> > {
+struct Extern<animation::offline::RawTrackKeyframe<_ValueType>> {
   static void Save(
       OArchive& _archive,
       const animation::offline::RawTrackKeyframe<_ValueType>* _keyframes,
@@ -77,12 +77,6 @@ struct Extern<animation::offline::RawTrackKeyframe<_ValueType> > {
 namespace animation {
 namespace offline {
 namespace internal {
-
-template <typename _ValueType>
-RawTrack<_ValueType>::RawTrack() {}
-
-template <typename _ValueType>
-RawTrack<_ValueType>::~RawTrack() {}
 
 template <typename _ValueType>
 bool RawTrack<_ValueType>::Validate() const {

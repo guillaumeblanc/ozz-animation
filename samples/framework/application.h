@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -30,7 +30,7 @@
 
 #include <cstddef>
 #include "ozz/base/containers/string.h"
-#include "ozz/base/memory/scoped_ptr.h"
+#include "ozz/base/memory/unique_ptr.h"
 
 namespace ozz {
 namespace math {
@@ -46,6 +46,7 @@ class Renderer;
 class Record;
 
 namespace internal {
+class ImGuiImpl;
 class RendererImpl;
 class Camera;
 class Shooter;
@@ -195,10 +196,10 @@ class Application {
   double last_idle_time_;
 
   // The camera object used by the application.
-  internal::Camera* camera_;
+  unique_ptr<internal::Camera> camera_;
 
   // The screen shooter object used by the application.
-  internal::Shooter* shooter_;
+  unique_ptr<internal::Shooter> shooter_;
 
   // Set to true to display help.
   bool show_help_;
@@ -212,21 +213,21 @@ class Application {
   bool capture_screenshot_;
 
   // The renderer utility object used by the application.
-  internal::RendererImpl* renderer_;
+  unique_ptr<internal::RendererImpl> renderer_;
 
   // Immediate mode gui interface.
-  ImGui* im_gui_;
+  unique_ptr<internal::ImGuiImpl> im_gui_;
 
   // Timing records.
-  ozz::ScopedPtr<Record> fps_;
-  ozz::ScopedPtr<Record> update_time_;
-  ozz::ScopedPtr<Record> render_time_;
+  unique_ptr<Record> fps_;
+  unique_ptr<Record> update_time_;
+  unique_ptr<Record> render_time_;
 
   // Current screen resolution.
   Resolution resolution_;
 
   // Help message.
-  ozz::String::Std help_;
+  ozz::string help_;
 };
 }  // namespace sample
 }  // namespace ozz

@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -128,19 +128,25 @@ bool SampleTrack(const RawAnimation::JointTrack& _track, float _time,
 }
 
 bool SampleAnimation(const RawAnimation& _animation, float _time,
-                     const Range<ozz::math::Transform>& _transforms) {
+                     const span<ozz::math::Transform>& _transforms) {
   if (!_animation.Validate()) {
     return false;
   }
-  if (_animation.tracks.size() > _transforms.count()) {
+  if (_animation.tracks.size() > _transforms.size()) {
     return false;
   }
 
   for (size_t i = 0; i < _animation.tracks.size(); ++i) {
-    SampleTrack_NoValidate(_animation.tracks[i], _time, _transforms.begin + i);
+    SampleTrack_NoValidate(_animation.tracks[i], _time, _transforms.begin() + i);
   }
   return true;
 }
+
+FixedRateSamplingTime::FixedRateSamplingTime(float _duration, float _frequency)
+    : duration_(_duration),
+      period_(1.f / _frequency),
+      num_keys_(static_cast<size_t>(std::ceil(1.f + _duration * _frequency))) {}
+
 }  // namespace offline
 }  // namespace animation
 }  // namespace ozz

@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -146,10 +146,10 @@ class FbxSceneLoader {
 
   ~FbxSceneLoader();
 
-  // Returns a valid scene if fbx import was successful, NULL otherwise.
+  // Returns a valid scene if fbx import was successful, nullptr otherwise.
   FbxScene* scene() const { return scene_; }
 
-  // Returns a valid converter if fbx import was successful, NULL otherwise.
+  // Returns a valid converter if fbx import was successful, nullptr otherwise.
   FbxSystemConverter* converter() { return converter_; }
 
  private:

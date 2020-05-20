@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -46,7 +46,7 @@ ozz::math::Transform GetJointLocalBindPose(const Skeleton& _skeleton,
 inline bool IsLeaf(const Skeleton& _skeleton, int _joint) {
   const int num_joints = _skeleton.num_joints();
   assert(_joint >= 0 && _joint < num_joints && "_joint index out of range");
-  const Range<const int16_t>& parents = _skeleton.joint_parents();
+  const span<const int16_t>& parents = _skeleton.joint_parents();
   const int next = _joint + 1;
   return next == num_joints || parents[next] != _joint;
 }
@@ -60,11 +60,12 @@ inline bool IsLeaf(const Skeleton& _skeleton, int _joint) {
 template <typename _Fct>
 inline _Fct IterateJointsDF(const Skeleton& _skeleton, _Fct _fct,
                             int _from = Skeleton::kNoParent) {
-  const Range<const int16_t>& parents = _skeleton.joint_parents();
+  const span<const int16_t>& parents = _skeleton.joint_parents();
   const int num_joints = _skeleton.num_joints();
   //
   // parents[i] >= _from is true as long as "i" is a child of "_from".
-  OZZ_STATIC_ASSERT(Skeleton::kNoParent < 0);
+  static_assert(Skeleton::kNoParent < 0,
+                "Algorithm relies on kNoParent being negative");
   for (int i = _from < 0 ? 0 : _from, process = i < num_joints; process;
        ++i, process = i < num_joints && parents[i] >= _from) {
     _fct(i, parents[i]);
@@ -78,21 +79,12 @@ inline _Fct IterateJointsDF(const Skeleton& _skeleton, _Fct _fct,
 // the _current joint is a root.
 template <typename _Fct>
 inline _Fct IterateJointsDFReverse(const Skeleton& _skeleton, _Fct _fct) {
-  const Range<const int16_t>& parents = _skeleton.joint_parents();
+  const span<const int16_t>& parents = _skeleton.joint_parents();
   for (int i = _skeleton.num_joints() - 1; i >= 0; --i) {
     _fct(i, parents[i]);
   }
   return _fct;
 }
-
-// Helper struct to bind a member function as a functor for skeleton iteration
-// functions.
-template <typename _T, void (_T::*p)(int, int)>
-struct IterateMemFun {
-  IterateMemFun(_T& _t) : t_(&_t) {}
-  void operator()(int _a, int _b) const { (t_->*p)(_a, _b); }
-  _T* t_;
-};
 }  // namespace animation
 }  // namespace ozz
 #endif  // OZZ_OZZ_ANIMATION_RUNTIME_SKELETON_UTILS_H_

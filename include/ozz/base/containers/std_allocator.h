@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -45,79 +45,60 @@ class StdAllocator {
   typedef size_t size_type;                   // Quantities of elements.
   typedef ptrdiff_t difference_type;  // Difference between two pointers.
 
-  // Converts an StdAllocator<_Ty> to an StdAllocator<_Other>.
+  StdAllocator() noexcept {}
+  StdAllocator(const StdAllocator&) noexcept {}
+
+  template <class _Other>
+  StdAllocator<value_type>(const StdAllocator<_Other>&) noexcept {}
+
   template <class _Other>
   struct rebind {
     typedef StdAllocator<_Other> other;
   };
 
-  // Returns address of mutable _val.
-  pointer address(reference _val) const { return &_val; }
+  pointer address(reference _ref) const noexcept { return &_ref; }
+  const_pointer address(const_reference _ref) const noexcept { return &_ref; }
 
-  // Returns address of non-mutable _val.
-  const_pointer address(const_reference _val) const { return &_val; }
+  template <class _Other, class... _Args>
+  void construct(_Other* _ptr, _Args&&... _args) {
+    ::new (static_cast<void*>(_ptr)) _Other(std::forward<_Args>(_args)...);
+  }
 
-  // Constructs default allocator (does nothing).
-  StdAllocator() {}
-
-  // Constructs by copying (does nothing).
-  StdAllocator(const StdAllocator<_Ty>&) {}
-
-  // Constructs from a related allocator (does nothing).
   template <class _Other>
-  StdAllocator(const StdAllocator<_Other>&) {}
-
-  // Assigns from a related allocator (does nothing).
-  template <class _Other>
-  StdAllocator<_Ty>& operator=(const StdAllocator<_Other>&) {
-    return (*this);
+  void destroy(_Other* _ptr) {
+    (void)_ptr;
+    _ptr->~_Other();
   }
 
   // Allocates array of _Count elements.
-  pointer allocate(size_type _count) {
+  pointer allocate(size_t _count) noexcept {
     // Makes sure to a use c like allocator, to avoid duplicated constructor
     // calls.
     return reinterpret_cast<pointer>(memory::default_allocator()->Allocate(
-        sizeof(_Ty) * _count, OZZ_ALIGN_OF(_Ty)));
+        sizeof(value_type) * _count, alignof(value_type)));
   }
 
-  // Allocates array of _Count elements, ignores hint.
-  pointer allocate(size_type _count, const void*) { return allocate(_count); }
-
   // Deallocates object at _Ptr, ignores size.
-  void deallocate(pointer _ptr, size_type) {
+  void deallocate(pointer _ptr, size_type) noexcept {
     memory::default_allocator()->Deallocate(_ptr);
   }
 
-  // Constructs object at _Ptr with value _val.
-  void construct(pointer _ptr, const _Ty& _val) {
-    void* vptr = _ptr;
-    ::new (vptr) _Ty(_val);
-  }
-
-  // Destroys object at _Ptr.
-  void destroy(pointer _ptr) {
-    if (_ptr) {
-      _ptr->~_Ty();
-    }
-  }
-
-  // Estimates maximum array size.
-  size_t max_size() const {
-    size_t count = static_cast<size_t>(-1) / sizeof(_Ty);
-    return (count > 0 ? count : 1);
+  size_type max_size() const noexcept {
+    return (~size_type(0)) / sizeof(value_type);
   }
 };
 
 // Tests for allocator equality (always true).
 template <class _Ty, class _Other>
-inline bool operator==(const StdAllocator<_Ty>&, const StdAllocator<_Other>&) {
+inline bool operator==(const StdAllocator<_Ty>&,
+                       const StdAllocator<_Other>&) noexcept {
   return true;
 }
 
 // Tests for allocator inequality (always false).
 template <class _Ty, class _Other>
-inline bool operator!=(const StdAllocator<_Ty>&, const StdAllocator<_Other>&) {
+inline bool operator!=(const StdAllocator<_Ty>&,
+                       const StdAllocator<_Other>&) noexcept {
   return false;
 }
 }  // namespace ozz

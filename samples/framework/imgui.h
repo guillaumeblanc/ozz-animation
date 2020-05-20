@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -54,8 +54,8 @@ class ImGui {
   // A form is a root in the frame's container stack.
   // The _rect argument is relative to the parent's rect and is automatically
   // shrunk to fit inside parent's rect and to the size of its widgets.
-  // Providing a non NULL _title argument displays a title on top of the form.
-  // Providing a non NULL _open argument enables the open/close mechanism.
+  // Providing a non nullptr _title argument displays a title on top of the form.
+  // Providing a non nullptr _open argument enables the open/close mechanism.
   class Form {
    public:
     Form(ImGui* _im_gui, const char* _title, const math::RectFloat& _rect,
@@ -74,14 +74,14 @@ class ImGui {
   // Begins a new open-close widget in the parent's rect, ie: a form or an other
   // open-close.
   // This object uses the RAII mechanism to ensure open/close symmetry.
-  // Providing a non NULL _title argument displays a title on top of the
+  // Providing a non nullptr _title argument displays a title on top of the
   // open-close.
-  // Providing a non NULL _open argument enables the open/close mechanism.
+  // Providing a non nullptr _open argument enables the open/close mechanism.
   class OpenClose {
    public:
     OpenClose(ImGui* _im_gui, const char* _title, bool* _open)
         : im_gui_(_im_gui) {
-      im_gui_->BeginContainer(_title, NULL, _open, true);
+      im_gui_->BeginContainer(_title, nullptr, _open, true);
     }
     ~OpenClose() { im_gui_->EndContainer(); }
 
@@ -94,13 +94,13 @@ class ImGui {
   // Adds a button to the current context and returns true if it was clicked.
   // If _enabled is false then interactions with the button are disabled, and
   // rendering is grayed out.
-  // If _state is not NULL, then it is used as an in-out parameter to set and
+  // If _state is not nullptr, then it is used as an in-out parameter to set and
   // store button's state. The button can then behave like a check box, with
   // a button rendering style.
   // It allows for example to
   // Returns true is button was clicked.
   virtual bool DoButton(const char* _label, bool _enabled = true,
-                        bool* _state = NULL) = 0;
+                        bool* _state = nullptr) = 0;
 
   // Adds a float slider to the current context and returns true if _value was
   // modified.
@@ -160,7 +160,7 @@ class ImGui {
   // set _value_cursor of a circular buffer such that range [_value_cursor,
   // _value_end[ and [_value_begin,_value_cursor[ are used.
   // All values outside of _min and _max range are clamped.
-  // If _label is not NULL then a text is displayed on top of the graph.
+  // If _label is not nullptr then a text is displayed on top of the graph.
   virtual void DoGraph(const char* _label, float _min, float _max, float _mean,
                        const float* _value_cursor, const float* _value_begin,
                        const float* _value_end) = 0;
@@ -170,11 +170,11 @@ class ImGui {
   // Widgets (buttons, sliders...) can only be displayed in a container.
   // The rectangles height is the maximum height that the container can use. The
   // container automatically shrinks to fit the size of the widgets it contains.
-  // Providing a non NULL _title argument displays a title on top of the
+  // Providing a non nullptr _title argument displays a title on top of the
   // container.
-  // Providing a NULL _rect argument means that the container will use all its
+  // Providing a nullptr _rect argument means that the container will use all its
   // parent size.
-  // Providing a non NULL _open argument enables the open/close mechanism.
+  // Providing a non nullptr _open argument enables the open/close mechanism.
   virtual void BeginContainer(const char* _title, const math::RectFloat* _rect,
                               bool* _open, bool _constrain) = 0;
 

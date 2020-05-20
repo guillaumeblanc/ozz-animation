@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -31,6 +31,7 @@
 #include "ozz/animation/offline/raw_animation.h"
 
 #include "ozz/base/maths/transform.h"
+#include "ozz/base/span.h"
 
 namespace ozz {
 namespace animation {
@@ -61,7 +62,29 @@ bool SampleTrack(const RawAnimation::JointTrack& _track, float _time,
 // _animation must be valid.
 // Returns false output range is too small or animation is invalid.
 bool SampleAnimation(const RawAnimation& _animation, float _time,
-                     const Range<ozz::math::Transform>& _transforms);
+                     const span<ozz::math::Transform>& _transforms);
+
+// Implement fixed rate keyframe time iteration. This utility purpose is to
+// ensure that sampling goes strictly from 0 to duration, and that period
+// between consecutive time samples have a fixed period.
+// This sounds trivial, but floating point error could occur if keyframe time
+// was accumulated for a long duration.
+class FixedRateSamplingTime {
+ public:
+  FixedRateSamplingTime(float _duration, float _frequency);
+
+  float time(size_t _key) const {
+    assert(_key < num_keys_);
+    return ozz::math::Min(_key * period_, duration_);
+  }
+
+  size_t num_keys() const { return num_keys_; }
+
+ private:
+  float duration_;
+  float period_;
+  size_t num_keys_;
+};
 }  // namespace offline
 }  // namespace animation
 }  // namespace ozz

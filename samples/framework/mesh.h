@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -30,10 +30,9 @@
 
 #include "ozz/base/containers/vector.h"
 #include "ozz/base/io/archive_traits.h"
-#include "ozz/base/platform.h"
-
 #include "ozz/base/maths/simd_math.h"
 #include "ozz/base/maths/vec_float.h"
+#include "ozz/base/platform.h"
 
 namespace ozz {
 namespace sample {
@@ -42,9 +41,6 @@ namespace sample {
 // The mesh is subdivided into parts that group vertices according to their
 // number of influencing joints. Triangle indices are shared across mesh parts.
 struct Mesh {
-  Mesh();
-  ~Mesh();
-
   // Number of triangle indices for the mesh.
   int triangle_index_count() const {
     return static_cast<int>(triangle_indices.size());
@@ -103,47 +99,47 @@ struct Mesh {
       return static_cast<int>(joint_indices.size()) / _vertex_count;
     }
 
-    typedef ozz::Vector<float>::Std Positions;
+    typedef ozz::vector<float> Positions;
     Positions positions;
     enum { kPositionsCpnts = 3 };  // x, y, z components
 
-    typedef ozz::Vector<float>::Std Normals;
+    typedef ozz::vector<float> Normals;
     Normals normals;
     enum { kNormalsCpnts = 3 };  // x, y, z components
 
-    typedef ozz::Vector<float>::Std Tangents;
+    typedef ozz::vector<float> Tangents;
     Tangents tangents;
     enum { kTangentsCpnts = 4 };  // x, y, z, right or left handed.
 
-    typedef ozz::Vector<float>::Std UVs;
+    typedef ozz::vector<float> UVs;
     UVs uvs;  // u, v components
     enum { kUVsCpnts = 2 };
 
-    typedef ozz::Vector<uint8_t>::Std Colors;
+    typedef ozz::vector<uint8_t> Colors;
     Colors colors;
     enum { kColorsCpnts = 4 };  // r, g, b, a components
 
-    typedef ozz::Vector<uint16_t>::Std JointIndices;
+    typedef ozz::vector<uint16_t> JointIndices;
     JointIndices joint_indices;  // Stride equals influences_count
 
-    typedef ozz::Vector<float>::Std JointWeights;
+    typedef ozz::vector<float> JointWeights;
     JointWeights joint_weights;  // Stride equals influences_count - 1
   };
-  typedef ozz::Vector<Part>::Std Parts;
+  typedef ozz::vector<Part> Parts;
   Parts parts;
 
   // Triangles indices. Indices are shared across all parts.
-  typedef ozz::Vector<uint16_t>::Std TriangleIndices;
+  typedef ozz::vector<uint16_t> TriangleIndices;
   TriangleIndices triangle_indices;
 
   // Joints remapping indices. As a skin might be influenced by a part of the
   // skeleton only, joint indices and inverse bind pose matrices are reordered
   // to contain only used ones. Note that this array is sorted.
-  typedef ozz::Vector<uint16_t>::Std JointRemaps;
+  typedef ozz::vector<uint16_t> JointRemaps;
   JointRemaps joint_remaps;
 
   // Inverse bind-pose matrices. These are only available for skinned meshes.
-  typedef ozz::Vector<ozz::math::Float4x4>::Std InversBindPoses;
+  typedef ozz::vector<ozz::math::Float4x4> InversBindPoses;
   InversBindPoses inverse_bind_poses;
 };
 }  // namespace sample

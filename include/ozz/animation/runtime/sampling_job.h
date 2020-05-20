@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -29,6 +29,7 @@
 #define OZZ_OZZ_ANIMATION_RUNTIME_SAMPLING_JOB_H_
 
 #include "ozz/base/platform.h"
+#include "ozz/base/span.h"
 
 namespace ozz {
 
@@ -59,7 +60,7 @@ struct SamplingJob {
   SamplingJob();
 
   // Validates job parameters. Returns true for a valid job, or false otherwise:
-  // -if any input pointer is NULL
+  // -if any input pointer is nullptr
   // -if output range is invalid.
   bool Validate() const;
 
@@ -88,14 +89,13 @@ struct SamplingJob {
   // then remaining SoaTransform are left unchanged.
   // If there are more joints in the animation, then the last joints are not
   // sampled.
-  Range<ozz::math::SoaTransform> output;
+  span<ozz::math::SoaTransform> output;
 };
 
 namespace internal {
 // Soa hot data to interpolate.
-struct InterpSoaTranslation;
-struct InterpSoaRotation;
-struct InterpSoaScale;
+struct InterpSoaFloat3;
+struct InterpSoaQuaternion;
 }  // namespace internal
 
 // Declares the cache object used by the workload to take advantage of the
@@ -146,7 +146,7 @@ class SamplingCache {
   // cache is invalidated and reseted for the new _animation and _ratio.
   void Step(const Animation& _animation, float _ratio);
 
-  // The animation this cache refers to. NULL means that the cache is invalid.
+  // The animation this cache refers to. nullptr means that the cache is invalid.
   const Animation* animation_;
 
   // The current time ratio in the animation.
@@ -156,9 +156,9 @@ class SamplingCache {
   int max_soa_tracks_;
 
   // Soa hot data to interpolate.
-  internal::InterpSoaTranslation* soa_translations_;
-  internal::InterpSoaRotation* soa_rotations_;
-  internal::InterpSoaScale* soa_scales_;
+  internal::InterpSoaFloat3* soa_translations_;
+  internal::InterpSoaQuaternion* soa_rotations_;
+  internal::InterpSoaFloat3* soa_scales_;
 
   // Points to the keys in the animation that are valid for the current time
   // ratio.

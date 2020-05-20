@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -25,31 +25,17 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/base/memory/allocator.h"
-
 #include "gtest/gtest.h"
-
 #include "ozz/base/maths/math_ex.h"
+#include "ozz/base/memory/allocator.h"
 
 TEST(Allocate, Memory) {
   void* p = ozz::memory::default_allocator()->Allocate(12, 1024);
-  EXPECT_TRUE(p != NULL);
-  EXPECT_TRUE(ozz::math::IsAligned(p, 1024));
+  EXPECT_TRUE(p != nullptr);
+  EXPECT_TRUE(ozz::IsAligned(p, 1024));
 
   // Fills allocated memory.
   memset(p, 0, 12);
-
-  // Bigger
-  p = ozz::memory::default_allocator()->Reallocate(p, 460, 4096);
-  EXPECT_TRUE(p != NULL);
-  EXPECT_TRUE(ozz::math::IsAligned(p, 4096));
-  memset(p, 0, 460);
-
-  // Smaller
-  p = ozz::memory::default_allocator()->Reallocate(p, 4, 4);
-  EXPECT_TRUE(p != NULL);
-  EXPECT_TRUE(ozz::math::IsAligned(p, 4));
-  memset(p, 0, 4);
 
   ozz::memory::default_allocator()->Deallocate(p);
 }
@@ -57,22 +43,12 @@ TEST(Allocate, Memory) {
 TEST(MallocCompliance, Memory) {
   {  // Allocating 0 byte gives a valid pointer.
     void* p = ozz::memory::default_allocator()->Allocate(0, 1024);
-    EXPECT_TRUE(p != NULL);
+    EXPECT_TRUE(p != nullptr);
     ozz::memory::default_allocator()->Deallocate(p);
   }
 
-  {  // Freeing of a NULL pointer is valid.
-    ozz::memory::default_allocator()->Deallocate(NULL);
-  }
-
-  {  // Reallocating NULL pointer is valid
-    void* p = ozz::memory::default_allocator()->Reallocate(NULL, 12, 1024);
-    EXPECT_TRUE(p != NULL);
-
-    // Fills allocated memory.
-    memset(p, 0, 12);
-
-    ozz::memory::default_allocator()->Deallocate(p);
+  {  // Freeing of a nullptr pointer is valid.
+    ozz::memory::default_allocator()->Deallocate(nullptr);
   }
 }
 
@@ -108,45 +84,43 @@ struct AlignedInts {
   }
 
   static const int array_size = 517;
-  OZZ_ALIGN(64) int array[array_size];
+  alignas(64) int array[array_size];
 };
 
 TEST(NewDelete, Memory) {
-  ozz::memory::Allocator* allocator = ozz::memory::default_allocator();
-
-  AlignedInts* ai0 = OZZ_NEW(allocator, AlignedInts);
-  ASSERT_TRUE(ai0 != NULL);
+  AlignedInts* ai0 = ozz::New<AlignedInts>();
+  ASSERT_TRUE(ai0 != nullptr);
   for (int i = 0; i < ai0->array_size; ++i) {
     EXPECT_EQ(ai0->array[i], i);
   }
-  OZZ_DELETE(allocator, ai0);
+  ozz::Delete(ai0);
 
-  AlignedInts* ai1 = OZZ_NEW(allocator, AlignedInts)(46);
-  ASSERT_TRUE(ai1 != NULL);
+  AlignedInts* ai1 = ozz::New<AlignedInts>(46);
+  ASSERT_TRUE(ai1 != nullptr);
   EXPECT_EQ(ai1->array[0], 46);
   for (int i = 1; i < ai1->array_size; ++i) {
     EXPECT_EQ(ai1->array[i], i);
   }
-  OZZ_DELETE(allocator, ai1);
+  ozz::Delete(ai1);
 
-  AlignedInts* ai2 = OZZ_NEW(allocator, AlignedInts)(46, 69);
-  ASSERT_TRUE(ai2 != NULL);
+  AlignedInts* ai2 = ozz::New<AlignedInts>(46, 69);
+  ASSERT_TRUE(ai2 != nullptr);
   EXPECT_EQ(ai2->array[0], 46);
   EXPECT_EQ(ai2->array[1], 69);
   for (int i = 2; i < ai2->array_size; ++i) {
     EXPECT_EQ(ai2->array[i], i);
   }
-  OZZ_DELETE(allocator, ai2);
+  ozz::Delete(ai2);
 
-  AlignedInts* ai3 = OZZ_NEW(allocator, AlignedInts)(46, 69, 58);
-  ASSERT_TRUE(ai3 != NULL);
+  AlignedInts* ai3 = ozz::New<AlignedInts>(46, 69, 58);
+  ASSERT_TRUE(ai3 != nullptr);
   EXPECT_EQ(ai3->array[0], 46);
   EXPECT_EQ(ai3->array[1], 69);
   EXPECT_EQ(ai3->array[2], 58);
   for (int i = 3; i < ai3->array_size; ++i) {
     EXPECT_EQ(ai3->array[i], i);
   }
-  OZZ_DELETE(allocator, ai3);
+  ozz::Delete(ai3);
 }
 
 class TestAllocator : public ozz::memory::Allocator {
@@ -162,12 +136,6 @@ class TestAllocator : public ozz::memory::Allocator {
     return hard_coded_address_;
   }
   virtual void Deallocate(void* _block) { (void)_block; }
-  virtual void* Reallocate(void* _block, size_t _size, size_t _alignment) {
-    (void)_block;
-    (void)_size;
-    (void)_alignment;
-    return NULL;
-  }
 
   void* hard_coded_address_;
 };

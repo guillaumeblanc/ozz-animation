@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -30,7 +30,7 @@
 #include "gtest/gtest.h"
 #include "ozz/base/maths/gtest_math_helper.h"
 
-#include "ozz/base/memory/scoped_ptr.h"
+#include "ozz/base/memory/unique_ptr.h"
 
 #include "ozz/animation/offline/raw_track.h"
 #include "ozz/animation/runtime/track.h"
@@ -57,7 +57,7 @@ TEST(Default, TrackBuilder) {
     EXPECT_TRUE(raw_float_track.Validate());
 
     // Builds track
-    ozz::ScopedPtr<FloatTrack> track(builder(raw_float_track));
+    ozz::unique_ptr<FloatTrack> track(builder(raw_float_track));
     EXPECT_TRUE(track);
   }
 }
@@ -119,7 +119,7 @@ TEST(Build, TrackBuilder) {
     EXPECT_TRUE(raw_float_track.Validate());
 
     // Builds track
-    ozz::ScopedPtr<FloatTrack> track(builder(raw_float_track));
+    ozz::unique_ptr<FloatTrack> track(builder(raw_float_track));
     EXPECT_TRUE(track);
   }
 }
@@ -131,7 +131,7 @@ TEST(Name, TrackBuilder) {
   {  // No name
     RawFloatTrack raw_float_track;
 
-    ozz::ScopedPtr<FloatTrack> track(builder(raw_float_track));
+    ozz::unique_ptr<FloatTrack> track(builder(raw_float_track));
     EXPECT_TRUE(track);
 
     EXPECT_STREQ(track->name(), "");
@@ -141,7 +141,7 @@ TEST(Name, TrackBuilder) {
     RawFloatTrack raw_float_track;
     raw_float_track.name = "test name";
 
-    ozz::ScopedPtr<FloatTrack> track(builder(raw_float_track));
+    ozz::unique_ptr<FloatTrack> track(builder(raw_float_track));
     EXPECT_TRUE(track);
 
     EXPECT_STREQ(track->name(), raw_float_track.name.c_str());
@@ -155,12 +155,12 @@ TEST(Build0Keys, TrackBuilder) {
   RawFloatTrack raw_float_track;
 
   // Builds track
-  ozz::ScopedPtr<FloatTrack> track(builder(raw_float_track));
+  ozz::unique_ptr<FloatTrack> track(builder(raw_float_track));
   EXPECT_TRUE(track);
 
   // Samples to verify build output.
   FloatTrackSamplingJob sampling;
-  sampling.track = track;
+  sampling.track = track.get();
   float result;
   sampling.result = &result;
   sampling.ratio = 0.f;
@@ -181,12 +181,12 @@ TEST(BuildLinear, TrackBuilder) {
     raw_float_track.keyframes.push_back(first_key);
 
     // Builds track
-    ozz::ScopedPtr<FloatTrack> track(builder(raw_float_track));
+    ozz::unique_ptr<FloatTrack> track(builder(raw_float_track));
     EXPECT_TRUE(track);
 
     // Samples to verify build output.
     FloatTrackSamplingJob sampling;
-    sampling.track = track;
+    sampling.track = track.get();
     sampling.result = &result;
 
     sampling.ratio = 0.f;
@@ -210,12 +210,12 @@ TEST(BuildLinear, TrackBuilder) {
     raw_float_track.keyframes.push_back(first_key);
 
     // Builds track
-    ozz::ScopedPtr<FloatTrack> track(builder(raw_float_track));
+    ozz::unique_ptr<FloatTrack> track(builder(raw_float_track));
     EXPECT_TRUE(track);
 
     // Samples to verify build output.
     FloatTrackSamplingJob sampling;
-    sampling.track = track;
+    sampling.track = track.get();
     sampling.result = &result;
 
     sampling.ratio = 0.f;
@@ -239,12 +239,12 @@ TEST(BuildLinear, TrackBuilder) {
     raw_float_track.keyframes.push_back(first_key);
 
     // Builds track
-    ozz::ScopedPtr<FloatTrack> track(builder(raw_float_track));
+    ozz::unique_ptr<FloatTrack> track(builder(raw_float_track));
     EXPECT_TRUE(track);
 
     // Samples to verify build output.
     FloatTrackSamplingJob sampling;
-    sampling.track = track;
+    sampling.track = track.get();
     sampling.result = &result;
 
     sampling.ratio = 0.f;
@@ -271,12 +271,12 @@ TEST(BuildLinear, TrackBuilder) {
     raw_float_track.keyframes.push_back(second_key);
 
     // Builds track
-    ozz::ScopedPtr<FloatTrack> track(builder(raw_float_track));
+    ozz::unique_ptr<FloatTrack> track(builder(raw_float_track));
     EXPECT_TRUE(track);
 
     // Samples to verify build output.
     FloatTrackSamplingJob sampling;
-    sampling.track = track;
+    sampling.track = track.get();
     sampling.result = &result;
 
     sampling.ratio = 0.f;
@@ -314,12 +314,12 @@ TEST(BuildLinear, TrackBuilder) {
     raw_float_track.keyframes.push_back(key3);
 
     // Builds track
-    ozz::ScopedPtr<FloatTrack> track(builder(raw_float_track));
+    ozz::unique_ptr<FloatTrack> track(builder(raw_float_track));
     EXPECT_TRUE(track);
 
     // Samples to verify build output.
     FloatTrackSamplingJob sampling;
-    sampling.track = track;
+    sampling.track = track.get();
     sampling.result = &result;
 
     sampling.ratio = 0.f;
@@ -361,12 +361,12 @@ TEST(BuildStep, TrackBuilder) {
     raw_float_track.keyframes.push_back(first_key);
 
     // Builds track
-    ozz::ScopedPtr<FloatTrack> track(builder(raw_float_track));
+    ozz::unique_ptr<FloatTrack> track(builder(raw_float_track));
     EXPECT_TRUE(track);
 
     // Samples to verify build output.
     FloatTrackSamplingJob sampling;
-    sampling.track = track;
+    sampling.track = track.get();
     sampling.result = &result;
 
     sampling.ratio = 0.f;
@@ -390,12 +390,12 @@ TEST(BuildStep, TrackBuilder) {
     raw_float_track.keyframes.push_back(first_key);
 
     // Builds track
-    ozz::ScopedPtr<FloatTrack> track(builder(raw_float_track));
+    ozz::unique_ptr<FloatTrack> track(builder(raw_float_track));
     EXPECT_TRUE(track);
 
     // Samples to verify build output.
     FloatTrackSamplingJob sampling;
-    sampling.track = track;
+    sampling.track = track.get();
     sampling.result = &result;
 
     sampling.ratio = 0.f;
@@ -419,12 +419,12 @@ TEST(BuildStep, TrackBuilder) {
     raw_float_track.keyframes.push_back(first_key);
 
     // Builds track
-    ozz::ScopedPtr<FloatTrack> track(builder(raw_float_track));
+    ozz::unique_ptr<FloatTrack> track(builder(raw_float_track));
     EXPECT_TRUE(track);
 
     // Samples to verify build output.
     FloatTrackSamplingJob sampling;
-    sampling.track = track;
+    sampling.track = track.get();
     sampling.result = &result;
 
     sampling.ratio = 0.f;
@@ -448,12 +448,12 @@ TEST(BuildStep, TrackBuilder) {
     raw_float_track.keyframes.push_back(first_key);
 
     // Builds track
-    ozz::ScopedPtr<FloatTrack> track(builder(raw_float_track));
+    ozz::unique_ptr<FloatTrack> track(builder(raw_float_track));
     EXPECT_TRUE(track);
 
     // Samples to verify build output.
     FloatTrackSamplingJob sampling;
-    sampling.track = track;
+    sampling.track = track.get();
     sampling.result = &result;
 
     sampling.ratio = 0.f;
@@ -480,12 +480,12 @@ TEST(BuildStep, TrackBuilder) {
     raw_float_track.keyframes.push_back(second_key);
 
     // Builds track
-    ozz::ScopedPtr<FloatTrack> track(builder(raw_float_track));
+    ozz::unique_ptr<FloatTrack> track(builder(raw_float_track));
     EXPECT_TRUE(track);
 
     // Samples to verify build output.
     FloatTrackSamplingJob sampling;
-    sampling.track = track;
+    sampling.track = track.get();
     sampling.result = &result;
 
     sampling.ratio = 0.f;
@@ -531,12 +531,12 @@ TEST(BuildStep, TrackBuilder) {
     raw_float_track.keyframes.push_back(third_key);
 
     // Builds track
-    ozz::ScopedPtr<FloatTrack> track(builder(raw_float_track));
+    ozz::unique_ptr<FloatTrack> track(builder(raw_float_track));
     EXPECT_TRUE(track);
 
     // Samples to verify build output.
     FloatTrackSamplingJob sampling;
-    sampling.track = track;
+    sampling.track = track.get();
     sampling.result = &result;
 
     sampling.ratio = 0.f;
@@ -584,12 +584,12 @@ TEST(BuildStep, TrackBuilder) {
     raw_float_track.keyframes.push_back(second_key);
 
     // Builds track
-    ozz::ScopedPtr<FloatTrack> track(builder(raw_float_track));
+    ozz::unique_ptr<FloatTrack> track(builder(raw_float_track));
     EXPECT_TRUE(track);
 
     // Samples to verify build output.
     FloatTrackSamplingJob sampling;
-    sampling.track = track;
+    sampling.track = track.get();
     sampling.result = &result;
 
     sampling.ratio = 0.f;
@@ -627,12 +627,12 @@ TEST(BuildStep, TrackBuilder) {
     raw_float_track.keyframes.push_back(third_key);
 
     // Builds track
-    ozz::ScopedPtr<FloatTrack> track(builder(raw_float_track));
+    ozz::unique_ptr<FloatTrack> track(builder(raw_float_track));
     EXPECT_TRUE(track);
 
     // Samples to verify build output.
     FloatTrackSamplingJob sampling;
-    sampling.track = track;
+    sampling.track = track.get();
     sampling.result = &result;
 
     sampling.ratio = 0.f;
@@ -691,12 +691,12 @@ TEST(BuildMixed, TrackBuilder) {
   raw_float_track.keyframes.push_back(key2);
 
   // Builds track
-  ozz::ScopedPtr<FloatTrack> track(builder(raw_float_track));
+  ozz::unique_ptr<FloatTrack> track(builder(raw_float_track));
   EXPECT_TRUE(track);
 
   // Samples to verify build output.
   FloatTrackSamplingJob sampling;
-  sampling.track = track;
+  sampling.track = track.get();
   sampling.result = &result;
 
   sampling.ratio = 0.f;
@@ -738,13 +738,13 @@ TEST(Float, TrackBuilder) {
 
   {
     // Default value for quaternion is identity.
-    ozz::ScopedPtr<FloatTrack> track(builder(raw_track));
+    ozz::unique_ptr<FloatTrack> track(builder(raw_track));
     EXPECT_TRUE(track);
 
     // Samples to verify build output.
     float result;
     ozz::animation::FloatTrackSamplingJob sampling;
-    sampling.track = track;
+    sampling.track = track.get();
     sampling.result = &result;
 
     sampling.ratio = .5f;
@@ -761,13 +761,13 @@ TEST(Float, TrackBuilder) {
     raw_track.keyframes.push_back(second_key);
 
     // Builds track
-    ozz::ScopedPtr<FloatTrack> track(builder(raw_track));
+    ozz::unique_ptr<FloatTrack> track(builder(raw_track));
     ASSERT_TRUE(track);
 
     // Samples to verify build output.
     float result;
     ozz::animation::FloatTrackSamplingJob sampling;
-    sampling.track = track;
+    sampling.track = track.get();
     sampling.result = &result;
 
     sampling.ratio = 0.f;
@@ -798,13 +798,13 @@ TEST(Float2, TrackBuilder) {
 
   {
     // Default value for quaternion is identity.
-    ozz::ScopedPtr<Float2Track> track(builder(raw_track));
+    ozz::unique_ptr<Float2Track> track(builder(raw_track));
     EXPECT_TRUE(track);
 
     // Samples to verify build output.
     ozz::math::Float2 result;
     ozz::animation::Float2TrackSamplingJob sampling;
-    sampling.track = track;
+    sampling.track = track.get();
     sampling.result = &result;
 
     sampling.ratio = .5f;
@@ -821,13 +821,13 @@ TEST(Float2, TrackBuilder) {
     raw_track.keyframes.push_back(second_key);
 
     // Builds track
-    ozz::ScopedPtr<Float2Track> track(builder(raw_track));
+    ozz::unique_ptr<Float2Track> track(builder(raw_track));
     ASSERT_TRUE(track);
 
     // Samples to verify build output.
     ozz::math::Float2 result;
     ozz::animation::Float2TrackSamplingJob sampling;
-    sampling.track = track;
+    sampling.track = track.get();
     sampling.result = &result;
 
     sampling.ratio = 0.f;
@@ -858,13 +858,13 @@ TEST(Float3, TrackBuilder) {
 
   {
     // Default value for quaternion is identity.
-    ozz::ScopedPtr<Float3Track> track(builder(raw_track));
+    ozz::unique_ptr<Float3Track> track(builder(raw_track));
     EXPECT_TRUE(track);
 
     // Samples to verify build output.
     ozz::math::Float3 result;
     ozz::animation::Float3TrackSamplingJob sampling;
-    sampling.track = track;
+    sampling.track = track.get();
     sampling.result = &result;
 
     sampling.ratio = .5f;
@@ -883,13 +883,13 @@ TEST(Float3, TrackBuilder) {
     raw_track.keyframes.push_back(second_key);
 
     // Builds track
-    ozz::ScopedPtr<Float3Track> track(builder(raw_track));
+    ozz::unique_ptr<Float3Track> track(builder(raw_track));
     EXPECT_TRUE(track);
 
     // Samples to verify build output.
     ozz::math::Float3 result;
     ozz::animation::Float3TrackSamplingJob sampling;
-    sampling.track = track;
+    sampling.track = track.get();
     sampling.result = &result;
 
     sampling.ratio = 0.f;
@@ -920,13 +920,13 @@ TEST(Float4, TrackBuilder) {
 
   {
     // Default value for quaternion is identity.
-    ozz::ScopedPtr<Float4Track> track(builder(raw_track));
+    ozz::unique_ptr<Float4Track> track(builder(raw_track));
     EXPECT_TRUE(track);
 
     // Samples to verify build output.
     ozz::math::Float4 result;
     ozz::animation::Float4TrackSamplingJob sampling;
-    sampling.track = track;
+    sampling.track = track.get();
     sampling.result = &result;
 
     sampling.ratio = .5f;
@@ -945,13 +945,13 @@ TEST(Float4, TrackBuilder) {
     raw_track.keyframes.push_back(second_key);
 
     // Builds track
-    ozz::ScopedPtr<Float4Track> track(builder(raw_track));
+    ozz::unique_ptr<Float4Track> track(builder(raw_track));
     EXPECT_TRUE(track);
 
     // Samples to verify build output.
     ozz::math::Float4 result;
     ozz::animation::Float4TrackSamplingJob sampling;
-    sampling.track = track;
+    sampling.track = track.get();
     sampling.result = &result;
 
     sampling.ratio = 0.f;
@@ -982,13 +982,13 @@ TEST(Quaternion, TrackBuilder) {
 
   {
     // Default value for quaternion is identity.
-    ozz::ScopedPtr<QuaternionTrack> track(builder(raw_track));
+    ozz::unique_ptr<QuaternionTrack> track(builder(raw_track));
     EXPECT_TRUE(track);
 
     // Samples to verify build output.
     ozz::math::Quaternion result;
     ozz::animation::QuaternionTrackSamplingJob sampling;
-    sampling.track = track;
+    sampling.track = track.get();
     sampling.result = &result;
 
     sampling.ratio = .5f;
@@ -1013,13 +1013,13 @@ TEST(Quaternion, TrackBuilder) {
     raw_track.keyframes.push_back(key2);
 
     // Builds track
-    ozz::ScopedPtr<QuaternionTrack> track(builder(raw_track));
+    ozz::unique_ptr<QuaternionTrack> track(builder(raw_track));
     EXPECT_TRUE(track);
 
     // Samples to verify build output.
     ozz::math::Quaternion result;
     ozz::animation::QuaternionTrackSamplingJob sampling;
-    sampling.track = track;
+    sampling.track = track.get();
     sampling.result = &result;
 
     sampling.ratio = 0.f;

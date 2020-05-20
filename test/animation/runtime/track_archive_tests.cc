@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -32,7 +32,7 @@
 
 #include "ozz/base/io/archive.h"
 #include "ozz/base/io/stream.h"
-#include "ozz/base/memory/scoped_ptr.h"
+#include "ozz/base/memory/unique_ptr.h"
 
 #include "ozz/animation/runtime/track_sampling_job.h"
 
@@ -85,7 +85,7 @@ TEST(Name, TrackSerialize) {
   {  // No name
     RawFloatTrack raw_float_track;
 
-    ozz::ScopedPtr<FloatTrack> o_track(builder(raw_float_track));
+    ozz::unique_ptr<FloatTrack> o_track(builder(raw_float_track));
     ASSERT_TRUE(o_track);
 
     // Streams out.
@@ -109,7 +109,7 @@ TEST(Name, TrackSerialize) {
     RawFloatTrack raw_float_track;
     raw_float_track.name = "test name";
 
-    ozz::ScopedPtr<FloatTrack> o_track(builder(raw_float_track));
+    ozz::unique_ptr<FloatTrack> o_track(builder(raw_float_track));
     ASSERT_TRUE(o_track);
 
     // Streams out.
@@ -132,7 +132,7 @@ TEST(Name, TrackSerialize) {
 
 TEST(FilledFloat, TrackSerialize) {
   // Builds a valid animation.
-  ozz::ScopedPtr<FloatTrack> o_track;
+  ozz::unique_ptr<FloatTrack> o_track;
   {
     TrackBuilder builder;
     RawFloatTrack raw_float_track;
@@ -204,7 +204,7 @@ TEST(FilledFloat2, TrackSerialize) {
   raw_float2_track.keyframes.push_back(key2);
 
   // Builds track
-  ozz::ScopedPtr<Float2Track> o_track(builder(raw_float2_track));
+  ozz::unique_ptr<Float2Track> o_track(builder(raw_float2_track));
   ASSERT_TRUE(o_track);
 
   ozz::io::MemoryStream stream;
@@ -256,7 +256,7 @@ TEST(FilledFloat3, TrackSerialize) {
   raw_float3_track.keyframes.push_back(key2);
 
   // Builds track
-  ozz::ScopedPtr<Float3Track> o_track(builder(raw_float3_track));
+  ozz::unique_ptr<Float3Track> o_track(builder(raw_float3_track));
   ASSERT_TRUE(o_track);
 
   ozz::io::MemoryStream stream;
@@ -310,7 +310,7 @@ TEST(FilledFloat4, TrackSerialize) {
   raw_float4_track.keyframes.push_back(key2);
 
   // Builds track
-  ozz::ScopedPtr<Float4Track> o_track(builder(raw_float4_track));
+  ozz::unique_ptr<Float4Track> o_track(builder(raw_float4_track));
   ASSERT_TRUE(o_track);
 
   ozz::io::MemoryStream stream;
@@ -365,7 +365,7 @@ TEST(FilledQuaternion, TrackSerialize) {
   raw_quat_track.keyframes.push_back(key2);
 
   // Builds track
-  ozz::ScopedPtr<QuaternionTrack> o_track(builder(raw_quat_track));
+  ozz::unique_ptr<QuaternionTrack> o_track(builder(raw_quat_track));
   ASSERT_TRUE(o_track);
 
   ozz::io::MemoryStream stream;
@@ -422,7 +422,7 @@ TEST(AlreadyInitialized, TrackSerialize) {
     raw_float_track.keyframes.push_back(key2);
 
     // Builds track
-    ozz::ScopedPtr<FloatTrack> o_track(builder(raw_float_track));
+    ozz::unique_ptr<FloatTrack> o_track(builder(raw_float_track));
     ASSERT_TRUE(o_track);
 
     o << *o_track;

@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -59,38 +59,38 @@ struct Extern;
 // Declares the current (compile time) version of _type.
 // This macro must be used inside namespace ozz::io.
 // Syntax is: OZZ_IO_TYPE_VERSION(46, Foo).
-#define OZZ_IO_TYPE_VERSION(_version, _type) \
-  OZZ_STATIC_ASSERT(_version > 0);           \
-  namespace internal {                       \
-  template <>                                \
-  struct Version<const _type> {              \
-    enum { kValue = _version };              \
-  };                                         \
+#define OZZ_IO_TYPE_VERSION(_version, _type)                 \
+  static_assert(_version > 0, "Version number must be > 0"); \
+  namespace internal {                                       \
+  template <>                                                \
+  struct Version<const _type> {                              \
+    enum { kValue = _version };                              \
+  };                                                         \
   }  // internal
 
 // Declares the current (compile time) version of a template _type.
 // This macro must be used inside namespace ozz::io.
 // OZZ_IO_TYPE_VERSION_T1(46, typename _T1, Foo<_T1>).
-#define OZZ_IO_TYPE_VERSION_T1(_version, _arg0, ...) \
-  OZZ_STATIC_ASSERT(_version > 0);                   \
-  namespace internal {                               \
-  template <_arg0>                                   \
-  struct Version<const __VA_ARGS__> {                \
-    enum { kValue = _version };                      \
-  };                                                 \
+#define OZZ_IO_TYPE_VERSION_T1(_version, _arg0, ...)         \
+  static_assert(_version > 0, "Version number must be > 0"); \
+  namespace internal {                                       \
+  template <_arg0>                                           \
+  struct Version<const __VA_ARGS__> {                        \
+    enum { kValue = _version };                              \
+  };                                                         \
   }  // internal
 
 // Declares the current (compile time) version of a template _type.
 // This macro must be used inside namespace ozz::io.
 // OZZ_IO_TYPE_VERSION_T2(46, typename _T1, typename _T2, Foo<_T1, _T2>).
-#define OZZ_IO_TYPE_VERSION_T2(_version, _arg0, _arg1, ...) \
-  OZZ_STATIC_ASSERT(_version > 0);                          \
-  namespace internal {                                      \
-  template <_arg0, _arg1>                                   \
-  struct Version<const __VA_ARGS__> {                       \
-    enum { kValue = _version };                             \
-  };                                                        \
-                                                            \
+#define OZZ_IO_TYPE_VERSION_T2(_version, _arg0, _arg1, ...)  \
+  static_assert(_version > 0, "Version number must be > 0"); \
+  namespace internal {                                       \
+  template <_arg0, _arg1>                                    \
+  struct Version<const __VA_ARGS__> {                        \
+    enum { kValue = _version };                              \
+  };                                                         \
+                                                             \
   }  // internal
 
 // Declares the current (compile time) version of a template _type.
@@ -98,7 +98,7 @@ struct Extern;
 // OZZ_IO_TYPE_VERSION_T3(
 //   46, typename _T1, typename _T2, typename _T3, Foo<_T1, _T2, _T3>).
 #define OZZ_IO_TYPE_VERSION_T3(_version, _arg0, _arg1, _arg2, ...) \
-  OZZ_STATIC_ASSERT(_version > 0);                                 \
+  static_assert(_version > 0, "Version number must be > 0");       \
   namespace internal {                                             \
   template <_arg0, _arg1, _arg2>                                   \
   struct Version<const __VA_ARGS__> {                              \
@@ -113,7 +113,7 @@ struct Extern;
 //   46, typename _T1, typename _T2, typename _T3, typename _T4,
 //   Foo<_T1, _T2, _T3, _T4>).
 #define OZZ_IO_TYPE_VERSION_T4(_version, _arg0, _arg1, _arg2, _arg3, ...) \
-  OZZ_STATIC_ASSERT(_version > 0);                                        \
+  static_assert(_version > 0, "Version number must be > 0");              \
   namespace internal {                                                    \
   template <_arg0, _arg1, _arg2, _arg3>                                   \
   struct Version<const __VA_ARGS__> {                                     \

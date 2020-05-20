@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -33,12 +33,9 @@
 #include "ozz/base/containers/std_allocator.h"
 
 namespace ozz {
-// Redirects std::string to ozz::String::Std in order to replace std default
+// Redirects std::basic_string to ozz::string in order to replace std default
 // allocator by ozz::StdAllocator.
-struct String {
-  typedef std::basic_string<char, std::char_traits<char>,
-                            ozz::StdAllocator<char> >
-      Std;
-};
+using string =
+    std::basic_string<char, std::char_traits<char>, ozz::StdAllocator<char>>;
 }  // namespace ozz
 #endif  // OZZ_OZZ_BASE_CONTAINERS_STRING_H_

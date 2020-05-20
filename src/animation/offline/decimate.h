@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -61,10 +61,10 @@ void Decimate(const _Track& _src, const _Adapter& _adapter, float _tolerance,
 
   // Stack of segments to process.
   typedef std::pair<size_t, size_t> Segment;
-  ozz::Stack<Segment>::Std segments;
+  ozz::stack<Segment> segments;
 
   // Bit vector of all points to included.
-  ozz::Vector<bool>::Std included(_src.size(), false);
+  ozz::vector<bool> included(_src.size(), false);
 
   // Pushes segment made from first and last points.
   segments.push(Segment(0, _src.size() - 1));

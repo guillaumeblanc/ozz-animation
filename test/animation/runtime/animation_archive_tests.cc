@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -32,7 +32,7 @@
 
 #include "ozz/base/io/archive.h"
 #include "ozz/base/io/stream.h"
-#include "ozz/base/memory/scoped_ptr.h"
+#include "ozz/base/memory/unique_ptr.h"
 
 #include "ozz/base/maths/soa_transform.h"
 
@@ -42,9 +42,6 @@
 #include "ozz/animation/offline/raw_animation.h"
 
 using ozz::animation::Animation;
-using ozz::animation::TranslationKey;
-using ozz::animation::RotationKey;
-using ozz::animation::ScaleKey;
 using ozz::animation::offline::RawAnimation;
 using ozz::animation::offline::AnimationBuilder;
 
@@ -69,7 +66,7 @@ TEST(Empty, AnimationSerialize) {
 
 TEST(Filled, AnimationSerialize) {
   // Builds a valid animation.
-  ozz::ScopedPtr<Animation> o_animation;
+  ozz::unique_ptr<Animation> o_animation;
   {
     RawAnimation raw_animation;
     raw_animation.duration = 1.f;
@@ -117,10 +114,9 @@ TEST(Filled, AnimationSerialize) {
     ozz::animation::SamplingJob job;
     ozz::animation::SamplingCache cache(1);
     ozz::math::SoaTransform output[1];
-    job.animation = o_animation;
+    job.animation = o_animation.get();
     job.cache = &cache;
-    job.output.begin = output;
-    job.output.end = output + 1;
+    job.output = output;
 
     // Samples and compares the two animations
     {  // Samples at t = 0
@@ -159,7 +155,7 @@ TEST(AlreadyInitialized, AnimationSerialize) {
     raw_animation.tracks.resize(1);
 
     AnimationBuilder builder;
-    ozz::ScopedPtr<Animation> o_animation(builder(raw_animation));
+    ozz::unique_ptr<Animation> o_animation(builder(raw_animation));
     ASSERT_TRUE(o_animation);
     o << *o_animation;
 

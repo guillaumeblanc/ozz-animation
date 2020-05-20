@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -37,7 +37,7 @@
 
 #include "ozz/base/maths/soa_transform.h"
 
-#include "ozz/base/memory/scoped_ptr.h"
+#include "ozz/base/memory/unique_ptr.h"
 
 using ozz::animation::Skeleton;
 using ozz::animation::offline::RawSkeleton;
@@ -63,7 +63,7 @@ TEST(Empty, SkeletonSerialize) {
 }
 
 TEST(Filled, SkeletonSerialize) {
-  ozz::ScopedPtr<Skeleton> o_skeleton;
+  ozz::unique_ptr<Skeleton> o_skeleton;
   /* Builds output skeleton.
    3 joints
 
@@ -109,26 +109,26 @@ TEST(Filled, SkeletonSerialize) {
     // Compares skeletons.
     EXPECT_EQ(o_skeleton->num_joints(), i_skeleton.num_joints());
     for (int i = 0; i < i_skeleton.num_joints(); ++i) {
-      EXPECT_EQ(i_skeleton.joint_parents().begin[i],
-                o_skeleton->joint_parents().begin[i]);
+      EXPECT_EQ(i_skeleton.joint_parents()[i],
+                o_skeleton->joint_parents()[i]);
       EXPECT_STREQ(i_skeleton.joint_names()[i], o_skeleton->joint_names()[i]);
     }
     for (int i = 0; i < (i_skeleton.num_joints() + 3) / 4; ++i) {
       EXPECT_TRUE(ozz::math::AreAllTrue(
-          i_skeleton.joint_bind_poses().begin[i].translation ==
-          o_skeleton->joint_bind_poses().begin[i].translation));
+          i_skeleton.joint_bind_poses()[i].translation ==
+          o_skeleton->joint_bind_poses()[i].translation));
       EXPECT_TRUE(ozz::math::AreAllTrue(
-          i_skeleton.joint_bind_poses().begin[i].rotation ==
-          o_skeleton->joint_bind_poses().begin[i].rotation));
+          i_skeleton.joint_bind_poses()[i].rotation ==
+          o_skeleton->joint_bind_poses()[i].rotation));
       EXPECT_TRUE(
-          ozz::math::AreAllTrue(i_skeleton.joint_bind_poses().begin[i].scale ==
-                                o_skeleton->joint_bind_poses().begin[i].scale));
+          ozz::math::AreAllTrue(i_skeleton.joint_bind_poses()[i].scale ==
+                                o_skeleton->joint_bind_poses()[i].scale));
     }
   }
 }
 
 TEST(AlreadyInitialized, SkeletonSerialize) {
-  ozz::ScopedPtr<Skeleton> o_skeleton[2];
+  ozz::unique_ptr<Skeleton> o_skeleton[2];
   /* Builds output skeleton.
    3 joints
 

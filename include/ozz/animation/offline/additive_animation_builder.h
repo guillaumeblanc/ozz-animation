@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -29,6 +29,7 @@
 #define OZZ_OZZ_ANIMATION_OFFLINE_ADDITIVE_ANIMATION_BUILDER_H_
 
 #include "ozz/base/platform.h"
+#include "ozz/base/span.h"
 
 namespace ozz {
 
@@ -66,7 +67,7 @@ class AdditiveAnimationBuilder {
   // *_reference_pose used as the base pose to calculate deltas from
   // Returns false on failure and resets _output to an empty animation.
   bool operator()(const RawAnimation& _input,
-                  const Range<const math::Transform>& _reference_pose,
+                  const span<const math::Transform>& _reference_pose,
                   RawAnimation* _output) const;
 };
 }  // namespace offline

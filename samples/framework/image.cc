@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -95,7 +95,7 @@ bool WriteTGA(const char* _filename, int _width, int _height,
       static_cast<uint8_t>((_height >> 8) & 0xff),
       static_cast<uint8_t>(_write_alpha ? 32 : 24),  // Pixel depth
       0};                                            // Image descriptor
-  OZZ_STATIC_ASSERT(sizeof(header) == 18);
+  static_assert(sizeof(header) == 18, "Expects 18 bytes structure.");
   file.Write(header, sizeof(header));
 
   // Early out if no pixel to write.

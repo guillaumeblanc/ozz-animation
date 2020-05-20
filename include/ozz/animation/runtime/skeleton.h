@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -30,6 +30,7 @@
 
 #include "ozz/base/io/archive_traits.h"
 #include "ozz/base/platform.h"
+#include "ozz/base/span.h"
 
 namespace ozz {
 namespace io {
@@ -84,23 +85,23 @@ class Skeleton {
   ~Skeleton();
 
   // Returns the number of joints of *this skeleton.
-  int num_joints() const { return static_cast<int>(joint_parents_.count()); }
+  int num_joints() const { return static_cast<int>(joint_parents_.size()); }
 
   // Returns the number of soa elements matching the number of joints of *this
   // skeleton. This value is useful to allocate SoA runtime data structures.
   int num_soa_joints() const { return (num_joints() + 3) / 4; }
 
   // Returns joint's bind poses. Bind poses are stored in soa format.
-  Range<const math::SoaTransform> joint_bind_poses() const {
+  span<const math::SoaTransform> joint_bind_poses() const {
     return joint_bind_poses_;
   }
 
   // Returns joint's parent indices range.
-  Range<const int16_t> joint_parents() const { return joint_parents_; }
+  span<const int16_t> joint_parents() const { return joint_parents_; }
 
   // Returns joint's name collection.
-  Range<const char* const> joint_names() const {
-    return Range<const char* const>(joint_names_.begin, joint_names_.end);
+  span<const char* const> joint_names() const {
+    return span<const char* const>(joint_names_.begin(), joint_names_.end());
   }
 
   // Serialization functions.
@@ -125,13 +126,13 @@ class Skeleton {
   // size is equal to the number of joints of the skeleton.
 
   // Bind pose of every joint in local space.
-  Range<math::SoaTransform> joint_bind_poses_;
+  span<math::SoaTransform> joint_bind_poses_;
 
   // Array of joint parent indexes.
-  Range<int16_t> joint_parents_;
+  span<int16_t> joint_parents_;
 
   // Stores the name of every joint in an array of c-strings.
-  Range<char*> joint_names_;
+  span<char*> joint_names_;
 };
 }  // namespace animation
 

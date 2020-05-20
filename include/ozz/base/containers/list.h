@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -43,11 +43,9 @@
 #include "ozz/base/containers/std_allocator.h"
 
 namespace ozz {
-// Redirects std::list to ozz::List in order to replace std default allocator by
+// Redirects std::list to ozz::list in order to replace std default allocator by
 // ozz::StdAllocator.
-template <class _Ty, class _Allocator = ozz::StdAllocator<_Ty> >
-struct List {
-  typedef std::list<_Ty, _Allocator> Std;
-};
+template <class _Ty, class _Allocator = ozz::StdAllocator<_Ty>>
+using list = std::list<_Ty, _Allocator>;
 }  // namespace ozz
 #endif  // OZZ_OZZ_BASE_CONTAINERS_LIST_H_

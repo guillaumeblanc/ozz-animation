@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -60,11 +60,11 @@ void File::Close() {
   if (file_) {
     std::FILE* file = reinterpret_cast<std::FILE*>(file_);
     std::fclose(file);
-    file_ = NULL;
+    file_ = nullptr;
   }
 }
 
-bool File::opened() const { return file_ != NULL; }
+bool File::opened() const { return file_ != nullptr; }
 
 size_t File::Read(void* _buffer, size_t _size) {
   std::FILE* file = reinterpret_cast<std::FILE*>(file_);
@@ -87,18 +87,19 @@ int File::Seek(int _offset, Origin _origin) {
 
 int File::Tell() const {
   std::FILE* file = reinterpret_cast<std::FILE*>(file_);
-  return std::ftell(file);
+  const long current = std::ftell(file);
+  return static_cast<int>(current);
 }
 
 size_t File::Size() const {
   std::FILE* file = reinterpret_cast<std::FILE*>(file_);
 
-  const int current = std::ftell(file);
+  const long current = std::ftell(file);
   assert(current >= 0);
   int seek = std::fseek(file, 0, SEEK_END);
   assert(seek == 0);
   (void)seek;
-  const int end = std::ftell(file);
+  const long end = std::ftell(file);
   assert(end >= 0);
   seek = std::fseek(file, current, SEEK_SET);
   assert(seek == 0);
@@ -111,11 +112,11 @@ const size_t MemoryStream::kBufferSizeIncrement = 16 << 10;
 const size_t MemoryStream::kMaxSize = std::numeric_limits<int>::max();
 
 MemoryStream::MemoryStream()
-    : buffer_(NULL), alloc_size_(0), end_(0), tell_(0) {}
+    : buffer_(nullptr), alloc_size_(0), end_(0), tell_(0) {}
 
 MemoryStream::~MemoryStream() {
   ozz::memory::default_allocator()->Deallocate(buffer_);
-  buffer_ = NULL;
+  buffer_ = nullptr;
 }
 
 bool MemoryStream::opened() const { return true; }
@@ -199,14 +200,18 @@ bool MemoryStream::Resize(size_t _size) {
   if (_size > alloc_size_) {
     // Resize to the next multiple of kBufferSizeIncrement, requires
     // kBufferSizeIncrement to be a power of 2.
-    OZZ_STATIC_ASSERT(
-        (MemoryStream::kBufferSizeIncrement & (kBufferSizeIncrement - 1)) == 0);
-
-    alloc_size_ = ozz::math::Align(_size, kBufferSizeIncrement);
-    buffer_ = reinterpret_cast<char*>(
-        ozz::memory::default_allocator()->Reallocate(buffer_, alloc_size_, 4));
+    static_assert(
+        (MemoryStream::kBufferSizeIncrement & (kBufferSizeIncrement - 1)) == 0,
+        "kBufferSizeIncrement must be a power of 2");
+    const size_t new_size = ozz::Align(_size, kBufferSizeIncrement);
+    char* new_buffer = reinterpret_cast<char*>(
+        ozz::memory::default_allocator()->Allocate(new_size, 16));
+    std::memcpy(new_buffer, buffer_, alloc_size_);
+    ozz::memory::default_allocator()->Deallocate(buffer_);
+    buffer_ = new_buffer;
+    alloc_size_ = new_size;
   }
-  return _size == 0 || buffer_ != NULL;
+  return _size == 0 || buffer_ != nullptr;
 }
 }  // namespace io
 }  // namespace ozz

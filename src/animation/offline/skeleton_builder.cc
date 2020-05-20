@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -66,7 +66,7 @@ struct JointLister {
     int16_t parent;
   };
   // Array of joints in the traversed DAG order.
-  ozz::Vector<Joint>::Std linear_joints;
+  ozz::vector<Joint> linear_joints;
 };
 }  // namespace
 
@@ -74,15 +74,16 @@ struct JointLister {
 // Uses RawSkeleton::IterateJointsDF to traverse in DAG depth-first order.
 // Building skeleton hierarchy in depth first order make it easier to iterate a
 // skeleton sub-hierarchy.
-Skeleton* SkeletonBuilder::operator()(const RawSkeleton& _raw_skeleton) const {
+unique_ptr<ozz::animation::Skeleton> SkeletonBuilder::operator()(
+    const RawSkeleton& _raw_skeleton) const {
   // Tests _raw_skeleton validity.
   if (!_raw_skeleton.Validate()) {
-    return NULL;
+    return nullptr;
   }
 
   // Everything is fine, allocates and fills the skeleton.
   // Will not fail.
-  Skeleton* skeleton = OZZ_NEW(memory::default_allocator(), Skeleton);
+  unique_ptr<ozz::animation::Skeleton> skeleton = make_unique<Skeleton>();
   const int num_joints = _raw_skeleton.num_joints();
 
   // Iterates through all the joint of the raw skeleton and fills a sorted joint

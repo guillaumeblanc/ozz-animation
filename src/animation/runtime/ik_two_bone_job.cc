@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -44,12 +44,12 @@ IKTwoBoneJob::IKTwoBoneJob()
       twist_angle(0.f),
       soften(1.f),
       weight(1.f),
-      start_joint(NULL),
-      mid_joint(NULL),
-      end_joint(NULL),
-      start_joint_correction(NULL),
-      mid_joint_correction(NULL),
-      reached(NULL) {}
+      start_joint(nullptr),
+      mid_joint(nullptr),
+      end_joint(nullptr),
+      start_joint_correction(nullptr),
+      mid_joint_correction(nullptr),
+      reached(nullptr) {}
 
 bool IKTwoBoneJob::Validate() const {
   bool valid = true;

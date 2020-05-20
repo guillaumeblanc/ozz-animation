@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -33,20 +33,16 @@
 #include "ozz/base/containers/std_allocator.h"
 
 namespace ozz {
-// Redirects std::set to ozz::Set in order to replace std default allocator by
+// Redirects std::set to ozz::set in order to replace std default allocator by
 // ozz::StdAllocator.
 template <class _Key, class _Pred = std::less<_Key>,
-          class _Allocator = ozz::StdAllocator<_Key> >
-struct Set {
-  typedef std::set<_Key, _Pred, _Allocator> Std;
-};
+          class _Allocator = ozz::StdAllocator<_Key>>
+using set = std::set<_Key, _Pred, _Allocator>;
 
-// Redirects std::multiset to ozz::MultiSet in order to replace std default
+// Redirects std::multiset to ozz::multiset in order to replace std default
 // allocator by ozz::StdAllocator.
 template <class _Key, class _Pred = std::less<_Key>,
-          class _Allocator = ozz::StdAllocator<_Key> >
-struct MultiSet {
-  typedef std::multiset<_Key, _Pred, _Allocator> Std;
-};
+          class _Allocator = ozz::StdAllocator<_Key>>
+using multiset = std::multiset<_Key, _Pred, _Allocator>;
 }  // namespace ozz
 #endif  // OZZ_OZZ_BASE_CONTAINERS_SET_H_

@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -25,31 +25,25 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/animation/offline/tools/import2ozz.h"
+#include "animation/offline/tools/import2ozz_track.h"
+
+#include <json/json.h>
 
 #include <cstdlib>
 #include <cstring>
 
 #include "animation/offline/tools/import2ozz_config.h"
-#include "animation/offline/tools/import2ozz_track.h"
-
 #include "ozz/animation/offline/raw_track.h"
+#include "ozz/animation/offline/tools/import2ozz.h"
 #include "ozz/animation/offline/track_builder.h"
 #include "ozz/animation/offline/track_optimizer.h"
-
 #include "ozz/animation/runtime/skeleton.h"
 #include "ozz/animation/runtime/track.h"
-
 #include "ozz/base/io/archive.h"
 #include "ozz/base/io/stream.h"
-
 #include "ozz/base/log.h"
-
-#include "ozz/base/memory/scoped_ptr.h"
-
+#include "ozz/base/memory/unique_ptr.h"
 #include "ozz/options/options.h"
-
-#include <json/json.h>
 
 namespace ozz {
 namespace animation {
@@ -135,7 +129,7 @@ bool Export(OzzImporter& _importer, const _RawTrack& _raw_track,
   }
 
   // Builds runtime track.
-  ozz::ScopedPtr<typename RawTrackToTrack<_RawTrack>::Track> track;
+  unique_ptr<typename RawTrackToTrack<_RawTrack>::Track> track;
   if (!_config["raw"].asBool()) {
     ozz::log::LogV() << "Builds runtime track." << std::endl;
     TrackBuilder builder;
@@ -151,7 +145,7 @@ bool Export(OzzImporter& _importer, const _RawTrack& _raw_track,
     // it would leave an invalid file on the disk.
 
     // Builds output filename.
-    const ozz::String::Std filename = _importer.BuildFilename(
+    const ozz::string filename = _importer.BuildFilename(
         _config["filename"].asCString(), _raw_track.name.c_str());
 
     ozz::log::LogV() << "Opens output file: " << filename << std::endl;
@@ -188,6 +182,10 @@ bool ProcessImportTrackType(
     const OzzImporter::NodeProperty::Type _expected_type,
     const Json::Value& _import_config, const ozz::Endianness _endianness) {
   bool success = true;
+
+  ozz::log::Log() << "Extracting animation track \"" << _joint_name << ":"
+                  << _property.name.c_str() << "\" from animation \""
+                  << _animation_name << "\"." << std::endl;
 
   _TrackType track;
   success &=

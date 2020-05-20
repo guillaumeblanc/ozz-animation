@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -53,6 +53,8 @@ namespace offline {
 // done by the tool.
 class OzzImporter {
  public:
+  virtual ~OzzImporter() {}
+
   // Function operator that must be called with main() arguments to start import
   // process.
   int operator()(int _argc, const char** _argv);
@@ -83,7 +85,7 @@ class OzzImporter {
 
   // Gets the name of all the animations/clips/takes available from the source
   // data file.
-  typedef ozz::Vector<ozz::String::Std>::Std AnimationNames;
+  typedef ozz::vector<ozz::string> AnimationNames;
   virtual AnimationNames GetAnimationNames() = 0;
 
   // Import animation "_animation_name" from the source data file.
@@ -99,14 +101,14 @@ class OzzImporter {
   // Defines properties, aka user-channel data: animations that aren't only
   // joint transforms.
   struct NodeProperty {
-    ozz::String::Std name;
+    ozz::string name;
 
     enum Type { kFloat1, kFloat2, kFloat3, kFloat4, kPoint, kVector };
     Type type;
   };
 
   // Get all properties available for a node.
-  typedef ozz::Vector<NodeProperty>::Std NodeProperties;
+  typedef ozz::vector<NodeProperty> NodeProperties;
   virtual NodeProperties GetNodeProperties(const char* _node_name) = 0;
 
   // Imports a track of type 1, 2, 3 or 4 floats, for the triplet
@@ -126,8 +128,8 @@ class OzzImporter {
                       float _sampling_rate, RawFloat4Track* _track) = 0;
 
   // Build a filename from a wildcard string.
-  ozz::String::Std BuildFilename(const char* _filename,
-                                 const char* _data_name) const;
+  ozz::string BuildFilename(const char* _filename,
+                            const char* _data_name) const;
 };
 }  // namespace offline
 }  // namespace animation

@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -120,7 +120,7 @@ class MultithreadSampleApplication : public ozz::sample::Application {
     sampling_job.animation = &_animation;
     sampling_job.cache = &_character->cache;
     sampling_job.ratio = _character->controller.time_ratio();
-    sampling_job.output = make_range(_character->locals);
+    sampling_job.output = make_span(_character->locals);
 
     // Samples animation.
     if (!sampling_job.Run()) {
@@ -130,8 +130,8 @@ class MultithreadSampleApplication : public ozz::sample::Application {
     // Converts from local space to model space matrices.
     ozz::animation::LocalToModelJob ltm_job;
     ltm_job.skeleton = &_skeleton;
-    ltm_job.input = make_range(_character->locals);
-    ltm_job.output = make_range(_character->models);
+    ltm_job.input = make_span(_character->locals);
+    ltm_job.output = make_span(_character->models);
     if (!ltm_job.Run()) {
       return false;
     }
@@ -161,7 +161,7 @@ class MultithreadSampleApplication : public ozz::sample::Application {
       thread_ids_.resize(max_tasks);
       num_async_tasks.store(0);
     }
-    ozz::Vector<std::thread::id>::Std thread_ids_;
+    ozz::vector<std::thread::id> thread_ids_;
     std::atomic_uint num_async_tasks;
   };
 
@@ -222,7 +222,7 @@ class MultithreadSampleApplication : public ozz::sample::Application {
       const ozz::math::Float4x4 transform = ozz::math::Float4x4::Translation(
           ozz::math::simd_float4::LoadPtrU(&position.x));
       success &= _renderer->DrawPosture(
-          skeleton_, make_range(characters_[c].models), transform, false);
+          skeleton_, make_span(characters_[c].models), transform, false);
     }
 
     return true;
@@ -338,15 +338,15 @@ class MultithreadSampleApplication : public ozz::sample::Application {
     ozz::animation::SamplingCache cache;
 
     // Buffer of local transforms which stores the blending result.
-    ozz::Vector<ozz::math::SoaTransform>::Std locals;
+    ozz::vector<ozz::math::SoaTransform> locals;
 
     // Buffer of model space matrices. These are computed by the local-to-model
     // job after the blending stage.
-    ozz::Vector<ozz::math::Float4x4>::Std models;
+    ozz::vector<ozz::math::Float4x4> models;
   };
 
   // Array of characters of the sample.
-  ozz::Vector<Character>::Std characters_;
+  ozz::vector<Character> characters_;
 
   // Number of used characters.
   int num_characters_;

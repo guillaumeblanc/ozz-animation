@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -33,12 +33,9 @@
 #include "ozz/base/containers/std_allocator.h"
 
 namespace ozz {
-// Redirects std::deque to ozz::Deque in order to replace std default allocator
-// by
-// ozz::StdAllocator.
-template <class _Ty, class _Allocator = ozz::StdAllocator<_Ty> >
-struct Deque {
-  typedef std::deque<_Ty, _Allocator> Std;
-};
+// Redirects std::deque to ozz::deque in order to replace std default allocator
+// by ozz::StdAllocator.
+template <class _Ty, class _Allocator = ozz::StdAllocator<_Ty>>
+using deque = std::deque<_Ty, _Allocator>;
 }  // namespace ozz
 #endif  // OZZ_OZZ_BASE_CONTAINERS_DEQUE_H_
