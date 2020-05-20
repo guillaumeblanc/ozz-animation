@@ -1,8 +1,8 @@
-Next release
-------------
+Release version 0.13.0
+----------------------
 
 * Tools
-  - [gltf2ozz] Command line tool utility to import animations and skeletons from gltf files. gltf2ozz can be configured via command line options and [json configuration files](src/animation/offline/tools/reference.json), in the exact same way as fbx2ozz.
+  - [gltf2ozz] Command line tool utility to import animations and skeletons from glTF files. gltf2ozz can be configured via command line options and [json configuration files](src/animation/offline/tools/reference.json), in the exact same way as fbx2ozz.
   - #91 Fixup animation name when used as an output filename (via json configuration wildcard option), so they comply with most os filename restrictions.
 
 * Samples
@@ -17,7 +17,7 @@ Next release
   - [base] Replaces OZZ_NEW and OZZ_DELETE macros with template functions ozz::New and ozz::Delete.
   - [base] Removes ScopedPtr in favor of an alias to standard unique_ptr that remaps to ozz deallocator. Implements make_unique using ozz allocator.
   - [base] Uses template aliasing (using keyword) to redirect ozz to std containers. This allows to get rid of ::Std when using ozz containers.
-  - [base] Renames all aliased ozz containers to their orignal std name: vector, map etc... 
+  - [base] Renames all aliased ozz containers to their original std name: vector, map etc... 
   - [base] Renames ozz::Range to ozz::span, ozz::make_range to ozz::make_span to comply with std containers. Range count() and size() methods are renamed to size() and size_bytes() respectively, so this needs special attention to avoid mistakes.
   - [base] Replaces OZZ_ALIGN_OF and OZZ_ALIGN by standard alignof and alignas keywords.
   - [base] Replaces OZZ_STATIC_ASSERT by standard static_assert keyword.
