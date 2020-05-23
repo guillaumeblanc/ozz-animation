@@ -26,6 +26,7 @@
 //----------------------------------------------------------------------------//
 
 #include "gtest/gtest.h"
+#include "ozz/base/containers/array.h"
 #include "ozz/base/containers/deque.h"
 #include "ozz/base/containers/list.h"
 #include "ozz/base/containers/map.h"
@@ -52,6 +53,18 @@ TEST(Vector, Containers) {
   EXPECT_EQ(container[3], 3);
 
   Container container2 = std::move(container);
+}
+
+TEST(Array, Containers) {
+  typedef ozz::array<int, 4> Container;
+  Container container{{0, 1, 2, 3}};
+  EXPECT_EQ(container[0], 0);
+  EXPECT_EQ(container[1], 1);
+  EXPECT_EQ(container[2], 2);
+  EXPECT_EQ(container[3], 3);
+
+  Container container2 = std::move(container);
+  (void)container2;
 }
 
 TEST(VectorExtensions, Containers) {

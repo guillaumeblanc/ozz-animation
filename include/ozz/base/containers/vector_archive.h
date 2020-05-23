@@ -48,7 +48,7 @@ struct Extern<std::vector<_Ty, _Allocator>> {
       const uint32_t size = static_cast<uint32_t>(vector.size());
       _archive << size;
       if (size > 0) {
-        _archive << ozz::io::MakeArray(&vector[0], size);
+        _archive << ozz::io::MakeArray(vector.data(), size);
       }
     }
   }
@@ -62,7 +62,7 @@ struct Extern<std::vector<_Ty, _Allocator>> {
       _archive >> size;
       vector.resize(size);
       if (size > 0) {
-        _archive >> ozz::io::MakeArray(&vector[0], size);
+        _archive >> ozz::io::MakeArray(vector.data(), size);
       }
     }
   }

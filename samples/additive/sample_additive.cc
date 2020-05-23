@@ -39,6 +39,7 @@
 #include "ozz/animation/runtime/skeleton_utils.h"
 #include "ozz/base/containers/vector.h"
 #include "ozz/base/log.h"
+#include "ozz/base/maths/box.h"
 #include "ozz/base/maths/simd_math.h"
 #include "ozz/base/maths/soa_transform.h"
 #include "ozz/base/maths/vec_float.h"
@@ -56,65 +57,62 @@ OZZ_OPTIONS_DECLARE_STRING(animation,
 
 // Additive animation archive can be specified as an option.
 OZZ_OPTIONS_DECLARE_STRING(
-    additive_animation, "Path to the additive animation (ozz archive format).",
-    "media/animation_additive.ozz", false)
+    splay_animation,
+    "Path to the additive splay animation (ozz archive format).",
+    "media/animation_splay_additive.ozz", false)
+OZZ_OPTIONS_DECLARE_STRING(
+    curl_animation, "Path to the additive curl animation (ozz archive format).",
+    "media/animation_curl_additive.ozz", false)
 
 class AdditiveBlendSampleApplication : public ozz::sample::Application {
  public:
   AdditiveBlendSampleApplication()
-      : upper_body_root_(0),
-        upper_body_mask_enable_(true),
-        upper_body_joint_weight_setting_(1.f),
-        threshold_(ozz::animation::BlendingJob().threshold) {}
+      : base_weight_(0.f),
+        additive_weigths_{.3f, .9f},
+        auto_animate_weights_(true) {}
 
  protected:
   // Updates current animation time and skeleton pose.
   virtual bool OnUpdate(float _dt, float) {
-    // Updates and samples both animations to their respective local space
-    // transform buffers.
-    for (int i = 0; i < kNumLayers; ++i) {
-      Sampler& sampler = samplers_[i];
-
-      // Updates animations time.
-      sampler.controller.Update(sampler.animation, _dt);
-
-      // Setup sampling job.
-      ozz::animation::SamplingJob sampling_job;
-      sampling_job.animation = &sampler.animation;
-      sampling_job.cache = &sampler.cache;
-      sampling_job.ratio = sampler.controller.time_ratio();
-      sampling_job.output = make_span(sampler.locals);
-
-      // Samples animation.
-      if (!sampling_job.Run()) {
-        return false;
-      }
+    // For the sample purpose, animates additive weights automatically so the
+    // hand moves.
+    if (auto_animate_weights_) {
+      AnimateWeights(_dt);
     }
 
-    // Blends animations.
-    // Blends the local spaces transforms computed by sampling all animations
-    // (1st stage just above), and outputs the result to the local space
-    // transform buffer blended_locals_
+    // Updates base animation time for main animation.
+    controller_.Update(base_animation_, _dt);
 
-    // Prepares standard blending layers.
+    // Setup sampling job.
+    ozz::animation::SamplingJob sampling_job;
+    sampling_job.animation = &base_animation_;
+    sampling_job.cache = &cache_;
+    sampling_job.ratio = controller_.time_ratio();
+    sampling_job.output = make_span(locals_);
+
+    // Samples animation.
+    if (!sampling_job.Run()) {
+      return false;
+    }
+
+    // Setups blending job layers.
+
+    // Main animation is used as-is.
     ozz::animation::BlendingJob::Layer layers[1];
-    layers[0].transform = make_span(samplers_[kMainAnimation].locals);
-    layers[0].weight = samplers_[kMainAnimation].weight_setting;
+    layers[0].transform = make_span(locals_);
+    layers[0].weight = base_weight_;
+    layers[0].joint_weights = make_span(base_joint_weights_);
 
-    // Prepares additive blending layers.
-    ozz::animation::BlendingJob::Layer additive_layers[1];
-    additive_layers[0].transform =
-        make_span(samplers_[kAdditiveAnimation].locals);
-    additive_layers[0].weight = samplers_[kAdditiveAnimation].weight_setting;
-
-    // Set per-joint weights for the additive blended layer.
-    if (upper_body_mask_enable_) {
-      additive_layers[0].joint_weights = make_span(upper_body_joint_weights_);
+    // The two additive layers (curl and splay) are blended on top of the main
+    // layer.
+    ozz::animation::BlendingJob::Layer additive_layers[kNumLayers];
+    for (size_t i = 0; i < kNumLayers; ++i) {
+      additive_layers[i].transform = make_span(additive_locals_[i]);
+      additive_layers[i].weight = additive_weigths_[i];
     }
 
     // Setups blending job.
     ozz::animation::BlendingJob blend_job;
-    blend_job.threshold = threshold_;
     blend_job.layers = layers;
     blend_job.additive_layers = additive_layers;
     blend_job.bind_pose = skeleton_.joint_bind_poses();
@@ -141,10 +139,32 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
     return true;
   }
 
+  void AnimateWeights(float _dt) {
+    static float t = 0.f;
+    t += _dt;
+    additive_weigths_[0] = .5f + std::cos(t * 1.7f) * .5f;
+    additive_weigths_[1] = .5f + std::cos(t * 2.5f) * .5f;
+  }
+
   // Samples animation, transforms to model space and renders.
   virtual bool OnDisplay(ozz::sample::Renderer* _renderer) {
     return _renderer->DrawPosture(skeleton_, make_span(models_),
                                   ozz::math::Float4x4::identity());
+  }
+
+  bool SetJointWeights(const char* _name, float _weight) {
+    const auto set_joint = [this, _weight](int _joint, int) {
+      ozz::math::SimdFloat4& soa_weight = base_joint_weights_[_joint / 4];
+      soa_weight = ozz::math::SetI(
+          soa_weight, ozz::math::simd_float4::Load1(_weight), _joint % 4);
+    };
+
+    const int joint = FindJoint(skeleton_, _name);
+    if (joint >= 0) {
+      ozz::animation::IterateJointsDF(skeleton_, set_joint, joint);
+      return true;
+    }
+    return false;
   }
 
   virtual bool OnInitialize() {
@@ -155,79 +175,68 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
     const int num_soa_joints = skeleton_.num_soa_joints();
     const int num_joints = skeleton_.num_joints();
 
-    // Reading animations.
-    const char* filenames[] = {OPTIONS_animation, OPTIONS_additive_animation};
-    for (int i = 0; i < kNumLayers; ++i) {
-      Sampler& sampler = samplers_[i];
-
-      if (!ozz::sample::LoadAnimation(filenames[i], &sampler.animation)) {
-        return false;
-      }
-
-      // Allocates sampler runtime buffers.
-      sampler.locals.resize(num_soa_joints);
-
-      // Allocates a cache that matches animation requirements.
-      sampler.cache.Resize(num_joints);
+    // Reads base animation.
+    if (!ozz::sample::LoadAnimation(OPTIONS_animation, &base_animation_)) {
+      return false;
     }
 
-    // Default weight settings.
-    samplers_[kMainAnimation].weight_setting = 1.f;
+    if (num_joints != base_animation_.num_tracks()) {
+      return false;
+    }
 
-    upper_body_joint_weight_setting_ = 1.f;
-    samplers_[kAdditiveAnimation].weight_setting = 1.f;
+    // Allocates sampling cache.
+    cache_.Resize(num_joints);
 
-    // Allocates local space runtime buffers of blended data.
-    blended_locals_.resize(num_soa_joints);
+    // Allocates local space runtime buffers for base animation.
+    locals_.resize(num_soa_joints);
 
     // Allocates model space runtime buffers of blended data.
     models_.resize(num_joints);
 
-    // Allocates per-joint weights used for the partial additive animation.
-    // Note that this is a Soa structure.
-    upper_body_joint_weights_.resize(num_soa_joints);
+    // Storage for blending stage output.
+    blended_locals_.resize(num_soa_joints);
 
-    // Finds the "Spine1" joint in the joint hierarchy.
-    for (int i = 0; i < num_joints; ++i) {
-      if (std::strstr(skeleton_.joint_names()[i], "Spine1")) {
-        upper_body_root_ = i;
-        break;
+    // Allocates and sets base animation mask weights to one.
+    base_joint_weights_.resize(num_soa_joints, ozz::math::simd_float4::one());
+    SetJointWeights("Lefthand", 0.f);
+    SetJointWeights("RightHand", 0.f);
+
+    // Reads and extract additive animations pose.
+    const char* filenames[] = {OPTIONS_splay_animation, OPTIONS_curl_animation};
+    for (int i = 0; i < kNumLayers; ++i) {
+      // Reads animation on the stack as it won't need to be maintained in
+      // memory. Only the pose is needed.
+      ozz::animation::Animation animation;
+      if (!ozz::sample::LoadAnimation(filenames[i], &animation)) {
+        return false;
       }
+
+      if (num_joints != animation.num_tracks()) {
+        return false;
+      }
+
+      // Allocates additive poses, aka buffers of Soa tranforms.
+      additive_locals_[i].resize(num_soa_joints);
+
+      // Samples the first frame pose.
+      ozz::animation::SamplingJob sampling_job;
+      sampling_job.animation = &animation;
+      sampling_job.cache = &cache_;
+      sampling_job.ratio = 0.f;  // Only needs the first frame pose
+      sampling_job.output = make_span(additive_locals_[i]);
+
+      // Samples animation.
+      if (!sampling_job.Run()) {
+        return false;
+      }
+
+      // Invalidates cache which will be re-used for another animation.
+      // This is usually not needed, animation address on the stack is the same
+      // each loop, hence creating an issue as animation content is changing.
+      cache_.Invalidate();
     }
-    SetupPerJointWeights();
 
     return true;
-  }
-
-  // Helper functor used to set weights while traversing joints hierarchy.
-  struct WeightSetupIterator {
-    WeightSetupIterator(ozz::vector<ozz::math::SimdFloat4>* _weights,
-                        float _weight_setting)
-        : weights(_weights), weight_setting(_weight_setting) {}
-    void operator()(int _joint, int) {
-      ozz::math::SimdFloat4& soa_weight = weights->at(_joint / 4);
-      soa_weight = ozz::math::SetI(
-          soa_weight, ozz::math::simd_float4::Load1(weight_setting),
-          _joint % 4);
-    }
-    ozz::vector<ozz::math::SimdFloat4>* weights;
-    float weight_setting;
-  };
-
-  void SetupPerJointWeights() {
-    // Setup partial animation mask. This mask is defined by a weight_setting
-    // assigned to each joint of the hierarchy. Joint to disable are set to a
-    // weight_setting of 0.f, and enabled joints are set to 1.f.
-
-    // Disables all joints: set all weights to 0.
-    for (int i = 0; i < skeleton_.num_soa_joints(); ++i) {
-      upper_body_joint_weights_[i] = ozz::math::simd_float4::zero();
-    }
-
-    // Extracts the list of children of the shoulder
-    WeightSetupIterator it(&upper_body_joint_weights_,
-                           upper_body_joint_weight_setting_);
-    IterateJointsDF(skeleton_, it, upper_body_root_);
   }
 
   virtual void OnDestroy() {}
@@ -241,69 +250,31 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
       ozz::sample::ImGui::OpenClose oc(_im_gui, "Blending parameters", &open);
       if (open) {
         _im_gui->DoLabel("Main layer:");
-        std::sprintf(label, "Layer weight: %.2f",
-                     samplers_[kMainAnimation].weight_setting);
-        _im_gui->DoSlider(label, 0.f, 1.f,
-                          &samplers_[kMainAnimation].weight_setting, 1.f);
+        std::sprintf(label, "Layer weight: %.2f", base_weight_);
+        _im_gui->DoSlider(label, 0.f, 1.f, &base_weight_, 1.f);
+
         _im_gui->DoLabel("Additive layer:");
-        std::sprintf(label, "Layer weight: %.2f",
-                     samplers_[kAdditiveAnimation].weight_setting);
-        _im_gui->DoSlider(label, -1.f, 1.f,
-                          &samplers_[kAdditiveAnimation].weight_setting, 1.f);
-        _im_gui->DoLabel("Global settings:");
-        std::sprintf(label, "Threshold: %.2f", threshold_);
-        _im_gui->DoSlider(label, .01f, 1.f, &threshold_);
-      }
-    }
-    // Exposes selection of the root of the partial blending hierarchy.
-    {
-      static bool open = true;
-      ozz::sample::ImGui::OpenClose oc(_im_gui, "Upper body masking", &open);
+        _im_gui->DoCheckBox("Animates weights", &auto_animate_weights_);
+        ozz::array<float, 2> weights;
+        std::copy(std::begin(additive_weigths_), std::end(additive_weigths_),
+                  std::begin(weights));
 
-      if (open) {
-        bool rebuild_joint_weights = false;
-        rebuild_joint_weights |=
-            _im_gui->DoCheckBox("Enable mask", &upper_body_mask_enable_);
-
-        std::sprintf(label, "Joints weight: %.2f",
-                     upper_body_joint_weight_setting_);
-        rebuild_joint_weights |= _im_gui->DoSlider(
-            label, 0.f, 1.f, &upper_body_joint_weight_setting_, 1.f,
-            upper_body_mask_enable_);
-
-        if (skeleton_.num_joints() != 0) {
-          _im_gui->DoLabel("Root of the upper body hierarchy:",
-                           ozz::sample::ImGui::kLeft, false);
-          std::sprintf(label, "%s (%d)",
-                       skeleton_.joint_names()[upper_body_root_],
-                       upper_body_root_);
-
-          rebuild_joint_weights |= _im_gui->DoSlider(
-              label, 0, skeleton_.num_joints() - 1, &upper_body_root_, 1.f,
-              upper_body_mask_enable_);
-        }
-
-        // Rebuilds per-joint weights if something has changed.
-        if (rebuild_joint_weights) {
-          SetupPerJointWeights();
+        std::sprintf(label, "Weights\nCurl: %.2f\nSplay: %.2f",
+                     additive_weigths_[kCurl], additive_weigths_[kSplay]);
+        if (_im_gui->DoSlider2D(label, {{0.f, 0.f}}, {{1.f, 1.f}}, &weights)) {
+          auto_animate_weights_ = false;  // User interacted.
+          std::copy(std::begin(weights), std::end(weights),
+                    std::begin(additive_weigths_));
         }
       }
     }
-    // Exposes animations runtime playback controls.
+
+    // Exposes base animation runtime playback controls.
     {
       static bool oc_open = true;
       ozz::sample::ImGui::OpenClose oc(_im_gui, "Animation control", &oc_open);
       if (oc_open) {
-        static bool open[kNumLayers] = {true, true};
-        const char* oc_names[kNumLayers] = {"Main animation",
-                                            "Additive animation"};
-        for (int i = 0; i < kNumLayers; ++i) {
-          Sampler& sampler = samplers_[i];
-          ozz::sample::ImGui::OpenClose loc(_im_gui, oc_names[i], nullptr);
-          if (open[i]) {
-            sampler.controller.OnGui(sampler.animation, _im_gui);
-          }
-        }
+        controller_.OnGui(base_animation_, _im_gui);
       }
     }
 
@@ -311,62 +282,55 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
   }
 
   virtual void GetSceneBounds(ozz::math::Box* _bound) const {
-    ozz::sample::ComputePostureBounds(make_span(models_), _bound);
+    // Finds the "hand" joint in the joint hierarchy.
+    const int hand = FindJoint(skeleton_, "Lefthand");
+
+    // Creates a bounding volume around the hand.
+    if (hand != -1) {
+      const ozz::math::Float4x4& hand_matrix = models_[hand];
+      ozz::math::Float3 hand_position;
+      ozz::math::Store3PtrU(hand_matrix.cols[3], &hand_position.x);
+      const ozz::math::Float3 extent(.15f);
+      _bound->min = hand_position - extent;
+      _bound->max = hand_position + extent;
+    } else {
+      ozz::sample::ComputePostureBounds(make_span(models_), _bound);
+    }
   }
 
  private:
   // Runtime skeleton.
   ozz::animation::Skeleton skeleton_;
 
-  // The number of layers to blend.
-  enum {
-    kMainAnimation = 0,
-    kAdditiveAnimation = 1,
-    kNumLayers = 2,
-  };
+  // The number of additive layers to blend.
+  enum { kSplay, kCurl, kNumLayers };
 
-  // Sampler structure contains all the data required to sample a single
-  // animation.
-  struct Sampler {
-    // Constructor, default initialization.
-    Sampler() : weight_setting(1.f) {}
+  // Runtime animation.
+  ozz::animation::Animation base_animation_;
 
-    // Playback animation controller. This is a utility class that helps with
-    // controlling animation playback time.
-    ozz::sample::PlaybackController controller;
+  // Per-joint weights used to define the base animation mask. Allows to remove
+  // hands from base animations.
+  ozz::vector<ozz::math::SimdFloat4> base_joint_weights_;
 
-    // Blending weight_setting for the layer.
-    float weight_setting;
+  // Main animation controller. This is a utility class that helps with
+  // controlling animation playback time.
+  ozz::sample::PlaybackController controller_;
 
-    // Runtime animation.
-    ozz::animation::Animation animation;
+  // Sampling cache.
+  ozz::animation::SamplingCache cache_;
 
-    // Sampling cache.
-    ozz::animation::SamplingCache cache;
+  // Buffer of local transforms as sampled from main animation_.
+  ozz::vector<ozz::math::SoaTransform> locals_;
 
-    // Buffer of local transforms as sampled from animation_.
-    ozz::vector<ozz::math::SoaTransform> locals;
+  // Blending weight of the base animation layer.
+  float base_weight_;
 
-  } samplers_[kNumLayers];  // kNumLayers animations to blend.
+  // Poses of local transforms as sampled from curl and splay animations.
+  // They are sampled during initialization, as a single pose is used.
+  ozz::vector<ozz::math::SoaTransform> additive_locals_[kNumLayers];
 
-  // Index of the joint at the base of the upper body hierarchy.
-  int upper_body_root_;
-
-  // Enables upper boddy per-joint weights.
-  bool upper_body_mask_enable_;
-
-  // Blending weight_setting setting of the joints of this layer that are
-  // affected
-  // by the masking.
-  float upper_body_joint_weight_setting_;
-
-  // Per-joint weights used to define the partial animation mask. Allows to
-  // select which joints are considered during blending, and their individual
-  // weight_setting.
-  ozz::vector<ozz::math::SimdFloat4> upper_body_joint_weights_;
-
-  // Blending job bind pose threshold.
-  float threshold_;
+  // Blending weight of the additive animation layer.
+  float additive_weigths_[kNumLayers];
 
   // Buffer of local transforms which stores the blending result.
   ozz::vector<ozz::math::SoaTransform> blended_locals_;
@@ -374,7 +338,10 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
   // Buffer of model space matrices. These are computed by the local-to-model
   // job after the blending stage.
   ozz::vector<ozz::math::Float4x4> models_;
- };
+
+  // Automatically animates additive weights.
+  bool auto_animate_weights_;
+};
 
 int main(int _argc, const char** _argv) {
   const char* title = "Ozz-animation sample: Additive animations blending";
