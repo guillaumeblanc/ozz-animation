@@ -25,18 +25,16 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/animation/offline/raw_skeleton.h"
-#include "ozz/animation/offline/skeleton_builder.h"
-
 #include <algorithm>
 #include <cstring>
 
 #include "gtest/gtest.h"
-#include "ozz/base/gtest_helper.h"
-#include "ozz/base/maths/gtest_math_helper.h"
-
+#include "ozz/animation/offline/raw_skeleton.h"
+#include "ozz/animation/offline/skeleton_builder.h"
 #include "ozz/animation/runtime/skeleton.h"
 #include "ozz/animation/runtime/skeleton_utils.h"
+#include "ozz/base/gtest_helper.h"
+#include "ozz/base/maths/gtest_math_helper.h"
 #include "ozz/base/memory/unique_ptr.h"
 
 using ozz::animation::Skeleton;
@@ -414,4 +412,27 @@ TEST(IsLeaf, SkeletonUtils) {
   EXPECT_TRUE(IsLeaf(*skeleton, 7));
   EXPECT_FALSE(IsLeaf(*skeleton, 8));
   EXPECT_TRUE(IsLeaf(*skeleton, 9));
+}
+
+TEST(Name, SkeletonUtils) {
+  // Instantiates a builder objects with default parameters.
+  SkeletonBuilder builder;
+
+  RawSkeleton raw_skeleton;
+  raw_skeleton.roots.resize(4);
+  raw_skeleton.roots[0].name = "j0";
+  raw_skeleton.roots[1].name = "j10";
+  raw_skeleton.roots[2].name = "j1";
+  raw_skeleton.roots[3].name = "J0";
+
+  ozz::unique_ptr<Skeleton> skeleton(builder(raw_skeleton));
+  ASSERT_TRUE(skeleton);
+
+  EXPECT_EQ(FindJoint(*skeleton, "j0"), 0);
+  EXPECT_EQ(FindJoint(*skeleton, "j10"), 1);
+  EXPECT_EQ(FindJoint(*skeleton, "j1"), 2);
+  EXPECT_EQ(FindJoint(*skeleton, "J0"), 3);
+
+  EXPECT_TRUE(FindJoint(*skeleton, "aj0") < 0);
+  EXPECT_TRUE(FindJoint(*skeleton, "j0a") < 0);
 }

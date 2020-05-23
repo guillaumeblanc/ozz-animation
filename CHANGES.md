@@ -9,11 +9,11 @@ Next version
 * Tools
   - Strips constant animation tracks even when optimization is turned off. This allows to reduce animations size without affecting accuracy.
 
-Pre Release version 0.13.0
---------------------------
+Release version 0.13.0
+----------------------
 
 * Tools
-  - [gltf2ozz] Command line tool utility to import animations and skeletons from gltf files. gltf2ozz can be configured via command line options and [json configuration files](src/animation/offline/tools/reference.json), in the exact same way as fbx2ozz.
+  - [gltf2ozz] Command line tool utility to import animations and skeletons from glTF files. gltf2ozz can be configured via command line options and [json configuration files](src/animation/offline/tools/reference.json), in the exact same way as fbx2ozz.
   - #91 Fixup animation name when used as an output filename (via json configuration wildcard option), so they comply with most os filename restrictions.
 
 * Samples

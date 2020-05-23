@@ -77,15 +77,15 @@
 // integrity, like data corruption or file truncation, must also be validated on
 // the user side.
 
+#include <stdint.h>
+
+#include <cassert>
+
 #include "ozz/base/endianness.h"
+#include "ozz/base/io/archive_traits.h"
 #include "ozz/base/io/stream.h"
 #include "ozz/base/platform.h"
 #include "ozz/base/span.h"
-
-#include <stdint.h>
-#include <cassert>
-
-#include "ozz/base/io/archive_traits.h"
 
 namespace ozz {
 namespace io {
@@ -126,7 +126,7 @@ class OArchive {
   }
 
 // Primitive type saving.
-#define OZZ_IO_PRIMITIVE_TYPE(_type)                             \
+#define OZZ_IO_PRIMITIVE_TYPE(_type)                              \
   void operator<<(_type _v) {                                     \
     _type v = endian_swap_ ? EndianSwapper<_type>::Swap(_v) : _v; \
     OZZ_IF_DEBUG(size_t size =) stream_->Write(&v, sizeof(v));    \
@@ -199,7 +199,7 @@ class IArchive {
   }
 
 // Primitive type loading.
-#define OZZ_IO_PRIMITIVE_TYPE(_type)                         \
+#define OZZ_IO_PRIMITIVE_TYPE(_type)                          \
   void operator>>(_type& _v) {                                \
     _type v;                                                  \
     OZZ_IF_DEBUG(size_t size =) stream_->Read(&v, sizeof(v)); \
@@ -314,7 +314,7 @@ struct Version<const Array<_Ty>> {
 };
 
 // Specializes Array Save/Load for primitive types.
-#define OZZ_IO_PRIMITIVE_TYPE(_type)                                       \
+#define OZZ_IO_PRIMITIVE_TYPE(_type)                                        \
   template <>                                                               \
   inline void Array<const _type>::Save(OArchive& _archive) const {          \
     if (_archive.endian_swap()) {                                           \

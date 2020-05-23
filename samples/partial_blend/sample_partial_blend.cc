@@ -25,29 +25,24 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
+#include <cstring>
+
+#include "framework/application.h"
+#include "framework/imgui.h"
+#include "framework/renderer.h"
+#include "framework/utils.h"
 #include "ozz/animation/runtime/animation.h"
 #include "ozz/animation/runtime/blending_job.h"
 #include "ozz/animation/runtime/local_to_model_job.h"
 #include "ozz/animation/runtime/sampling_job.h"
 #include "ozz/animation/runtime/skeleton.h"
 #include "ozz/animation/runtime/skeleton_utils.h"
-
-#include "ozz/base/log.h"
-
 #include "ozz/base/containers/vector.h"
-
+#include "ozz/base/log.h"
 #include "ozz/base/maths/simd_math.h"
 #include "ozz/base/maths/soa_transform.h"
 #include "ozz/base/maths/vec_float.h"
-
 #include "ozz/options/options.h"
-
-#include "framework/application.h"
-#include "framework/imgui.h"
-#include "framework/renderer.h"
-#include "framework/utils.h"
-
-#include <cstring>
 
 // Skeleton archive can be specified as an option.
 OZZ_OPTIONS_DECLARE_STRING(skeleton,
@@ -191,11 +186,9 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
     models_.resize(num_joints);
 
     // Finds the "Spine1" joint in the joint hierarchy.
-    for (int i = 0; i < num_joints; ++i) {
-      if (std::strstr(skeleton_.joint_names()[i], "Spine1")) {
-        upper_body_root_ = i;
-        break;
-      }
+    upper_body_root_ = FindJoint(skeleton_, "Spine1");
+    if (upper_body_root_ < 0) {
+      return false;
     }
     SetupPerJointWeights();
 

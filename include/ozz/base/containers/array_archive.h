@@ -25,52 +25,39 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/animation/runtime/skeleton_utils.h"
+#ifndef OZZ_OZZ_BASE_CONTAINERS_ARRAY_ARCHIVE_H_
+#define OZZ_OZZ_BASE_CONTAINERS_ARRAY_ARCHIVE_H_
 
-#include <assert.h>
-
-#include <cstring>
-
-#include "ozz/base/maths/soa_transform.h"
+#include "ozz/base/containers/array.h"
+#include "ozz/base/io/archive.h"
 
 namespace ozz {
-namespace animation {
+namespace io {
 
-int FindJoint(const Skeleton& _skeleton, const char* _name) {
-  const auto& names = _skeleton.joint_names();
-  for (size_t i = 0; i < names.size(); ++i) {
-    if (std::strcmp(names[i], _name) == 0) {
-      return static_cast<int>(i);
+OZZ_IO_TYPE_NOT_VERSIONABLE_T2(class _Ty, size_t _N, std::array<_Ty, _N>)
+
+template <class _Ty, size_t _N>
+struct Extern<std::array<_Ty, _N>> {
+  inline static void Save(OArchive& _archive,
+                          const std::array<_Ty, _N>* _values, size_t _count) {
+    if (void(0), _N != 0) {
+      for (size_t i = 0; i < _count; i++) {
+        const std::array<_Ty, _N>& array = _values[i];
+        _archive << ozz::io::MakeArray(array.data(), _N);
+      }
     }
   }
-  return -1;
-}
-
-// Unpacks skeleton bind pose stored in soa format by the skeleton.
-ozz::math::Transform GetJointLocalBindPose(const Skeleton& _skeleton,
-                                           int _joint) {
-  assert(_joint >= 0 && _joint < _skeleton.num_joints() &&
-         "Joint index out of range.");
-
-  const ozz::math::SoaTransform& soa_transform =
-      _skeleton.joint_bind_poses()[_joint / 4];
-
-  // Transpose SoA data to AoS.
-  ozz::math::SimdFloat4 translations[4];
-  ozz::math::Transpose3x4(&soa_transform.translation.x, translations);
-  ozz::math::SimdFloat4 rotations[4];
-  ozz::math::Transpose4x4(&soa_transform.rotation.x, rotations);
-  ozz::math::SimdFloat4 scales[4];
-  ozz::math::Transpose3x4(&soa_transform.scale.x, scales);
-
-  // Stores to the Transform object.
-  math::Transform bind_pose;
-  const int offset = _joint % 4;
-  ozz::math::Store3PtrU(translations[offset], &bind_pose.translation.x);
-  ozz::math::StorePtrU(rotations[offset], &bind_pose.rotation.x);
-  ozz::math::Store3PtrU(scales[offset], &bind_pose.scale.x);
-
-  return bind_pose;
-}
-}  // namespace animation
+  inline static void Load(IArchive& _archive, std::array<_Ty, _N>* _values,
+                          size_t _count, uint32_t _version) {
+    (void)_version;
+    if (void(0), _N != 0) {
+      for (size_t i = 0; i < _count; i++) {
+        std::array<_Ty, _N>& array = _values[i];
+        _archive >> ozz::io::MakeArray(array.data(), _N);
+      }
+    }
+  }
+};
+}  // namespace io
 }  // namespace ozz
+#endif  // OZZ_OZZ_BASE_CONTAINERS_ARRAY_ARCHIVE_H_

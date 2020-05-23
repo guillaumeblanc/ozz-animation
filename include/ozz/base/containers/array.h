@@ -25,52 +25,47 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/animation/runtime/skeleton_utils.h"
+#ifndef OZZ_OZZ_BASE_CONTAINERS_ARRAY_H_
+#define OZZ_OZZ_BASE_CONTAINERS_ARRAY_H_
 
-#include <assert.h>
-
-#include <cstring>
-
-#include "ozz/base/maths/soa_transform.h"
+#include <array>
 
 namespace ozz {
-namespace animation {
+// Redirects std::array to ozz::array .
+template <class _Ty, size_t _N>
+using array = std::array<_Ty, _N>;
 
-int FindJoint(const Skeleton& _skeleton, const char* _name) {
-  const auto& names = _skeleton.joint_names();
-  for (size_t i = 0; i < names.size(); ++i) {
-    if (std::strcmp(names[i], _name) == 0) {
-      return static_cast<int>(i);
-    }
-  }
-  return -1;
+// Extends std::array with two functions that gives access to the begin and the
+// end of its array of elements.
+
+// Returns the mutable begin of the array of elements, or nullptr if
+// array's empty.
+template <class _Ty, size_t _N>
+inline _Ty* array_begin(std::array<_Ty, _N>& _array) {
+  return _array.data();
 }
 
-// Unpacks skeleton bind pose stored in soa format by the skeleton.
-ozz::math::Transform GetJointLocalBindPose(const Skeleton& _skeleton,
-                                           int _joint) {
-  assert(_joint >= 0 && _joint < _skeleton.num_joints() &&
-         "Joint index out of range.");
-
-  const ozz::math::SoaTransform& soa_transform =
-      _skeleton.joint_bind_poses()[_joint / 4];
-
-  // Transpose SoA data to AoS.
-  ozz::math::SimdFloat4 translations[4];
-  ozz::math::Transpose3x4(&soa_transform.translation.x, translations);
-  ozz::math::SimdFloat4 rotations[4];
-  ozz::math::Transpose4x4(&soa_transform.rotation.x, rotations);
-  ozz::math::SimdFloat4 scales[4];
-  ozz::math::Transpose3x4(&soa_transform.scale.x, scales);
-
-  // Stores to the Transform object.
-  math::Transform bind_pose;
-  const int offset = _joint % 4;
-  ozz::math::Store3PtrU(translations[offset], &bind_pose.translation.x);
-  ozz::math::StorePtrU(rotations[offset], &bind_pose.rotation.x);
-  ozz::math::Store3PtrU(scales[offset], &bind_pose.scale.x);
-
-  return bind_pose;
+// Returns the non-mutable begin of the array of elements, or nullptr if
+// array's empty.
+template <class _Ty, size_t _N>
+inline const _Ty* array_begin(const std::array<_Ty, _N>& _array) {
+  return _array.data();
 }
-}  // namespace animation
+
+// Returns the mutable end of the array of elements, or nullptr if
+// array's empty. Array end is one element past the last element of the
+// array, it cannot be dereferenced.
+template <class _Ty, size_t _N>
+inline _Ty* array_end(std::array<_Ty, _N>& _array) {
+  return _array.data() + _N;
+}
+
+// Returns the non-mutable end of the array of elements, or nullptr if
+// array's empty. Array end is one element past the last element of the
+// array, it cannot be dereferenced.
+template <class _Ty, size_t _N>
+inline const _Ty* array_end(const std::array<_Ty, _N>& _array) {
+  return _array.data() + _N;
+}
 }  // namespace ozz
+#endif  // OZZ_OZZ_BASE_CONTAINERS_ARRAY_H_

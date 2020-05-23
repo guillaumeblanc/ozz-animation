@@ -34,11 +34,11 @@
 #include <cstdio>
 #include <cstring>
 
+#include "immediate.h"
 #include "ozz/base/maths/math_constant.h"
 #include "ozz/base/maths/math_ex.h"
+#include "ozz/base/maths/vec_float.h"
 #include "ozz/base/memory/allocator.h"
-
-#include "immediate.h"
 #include "renderer_impl.h"
 
 namespace ozz {
@@ -210,6 +210,11 @@ bool ImGuiImpl::AddWidget(float _height, math::RectFloat* _rect) {
 
   // Get current container.
   Container& container = containers_.back();
+
+  // Make it a square if height is negative.
+  if (_height < 0) {
+    _height = container.rect.width - kWidgetMarginX * 2.f;
+  }
 
   // Early out if outside of the container.
   // But don't modify current container's state.
@@ -740,6 +745,33 @@ void ImGuiImpl::DoGraph(const char* _label, float _min, float _max, float _mean,
   }
 }
 
+namespace {
+
+float SliderControl(float _value, float _min, float _max, float _pow,
+                    int _mouse, int _mouse_max, bool _enabled, bool _active,
+                    float* _cursor) {
+  const float pow_min = powf(_min, _pow);
+  const float pow_max = powf(_max, _pow);
+  const float clamped_value = ozz::math::Clamp(_min, _value, _max);
+  float pow_value = powf(clamped_value, _pow);
+
+  // Finds cursor position and rect.
+  *_cursor = floorf((_mouse_max * (pow_value - pow_min)) / (pow_max - pow_min));
+
+  if (_enabled) {
+    if (_active) {
+      _mouse = ozz::math::Clamp(0, _mouse, _mouse_max);
+      pow_value = (_mouse * (pow_max - pow_min)) / _mouse_max + pow_min;
+      return ozz::math::Clamp(_min, powf(pow_value, 1.f / _pow), _max);
+    } else {
+      // Clamping is only applied if the widget is enabled.
+      return clamped_value;
+    }
+  }
+  return _value;
+}
+}  // namespace
+
 bool ImGuiImpl::DoSlider(const char* _label, float _min, float _max,
                          float* _value, float _pow, bool _enabled) {
   math::RectFloat rect;
@@ -751,7 +783,6 @@ bool ImGuiImpl::DoSlider(const char* _label, float _min, float _max,
 
   // Calculate mouse cursor's relative y offset.
   const float initial_value = *_value;
-  const float clamped_value = ozz::math::Clamp(_min, initial_value, _max);
 
   // Check for hotness.
   bool hot = false, active = false;
@@ -795,24 +826,100 @@ bool ImGuiImpl::DoSlider(const char* _label, float _min, float _max,
   }
 
   // Update widget value.
-  const float pow_min = powf(_min, _pow);
-  const float pow_max = powf(_max, _pow);
-  float pow_value = powf(clamped_value, _pow);
+  float cursor;
+  *_value =
+      SliderControl(initial_value, _min, _max, _pow,
+                    inputs_.mouse_x - static_cast<int>(rect.left),
+                    static_cast<int>(rect.width), _enabled, active, &cursor);
+
+  // Renders slider's rail.
+  const math::RectFloat rail_rect(rect.left, rect.bottom, rect.width,
+                                  rect.height);
+  FillRect(rail_rect, kSliderRoundRectRadius, background_color);
+  StrokeRect(rail_rect, kSliderRoundRectRadius, border_color);
+
+  const math::RectFloat cursor_rect(
+      rect.left + cursor - kWidgetCursorWidth / 2.f, rect.bottom - 1.f,
+      kWidgetCursorWidth, rect.height + 2.f);
+  FillRect(cursor_rect, kSliderRoundRectRadius, slider_color);
+  StrokeRect(cursor_rect, kSliderRoundRectRadius, slider_border_color);
+
+  const math::RectFloat text_rect(
+      rail_rect.left + kSliderRoundRectRadius, rail_rect.bottom,
+      rail_rect.width - kSliderRoundRectRadius * 2.f, rail_rect.height);
+  Print(_label, text_rect, kMiddle, text_color);
+
+  // Returns true if the value has changed or if it was clamped in _min / _max
+  // bounds.
+  return initial_value != *_value;
+}
+
+bool ImGuiImpl::DoSlider2D(const char* _label, ozz::array<float, 2> _min,
+                           ozz::array<float, 2> _max,
+                           ozz::array<float, 2>* _value, bool _enabled) {
+  math::RectFloat rect;
+  if (!AddWidget(-1.f, &rect)) {
+    return false;
+  }
+
+  auto_gen_id_++;
+
+  // Calculate mouse cursor's relative y offset.
+  const ozz::array<float, 2> initial_value = *_value;
+
+  // Check for hotness.
+  bool hot = false, active = false;
   if (_enabled) {
+    // Includes the cursor size in the pick region.
+    math::RectFloat pick_rect = rect;
+    pick_rect.left -= kWidgetHeight / 2.f;
+    pick_rect.width += kWidgetHeight;
+    pick_rect.bottom -= kWidgetHeight / 2.f;
+    pick_rect.height += kWidgetHeight;
+    ButtonLogic(pick_rect, auto_gen_id_, &hot, &active);
+
+    // A slider is active on lmb pressed, not released. It's different to the
+    // usual button behavior.
+    active &= inputs_.lmb_pressed;
+  }
+
+  // Render the scrollbar
+  const GLubyte* background_color = kSliderBackgroundColor;
+  const GLubyte* border_color = kWidgetBorderColor;
+  const GLubyte* slider_color = kSliderCursorColor;
+  const GLubyte* slider_border_color = kWidgetBorderColor;
+  const GLubyte* text_color = kWidgetTextColor;
+
+  if (!_enabled) {
+    background_color = kWidgetDisabledBackgroundColor;
+    border_color = kWidgetDisabledBorderColor;
+    slider_color = kSliderDisabledCursorColor;
+    slider_border_color = kWidgetDisabledBorderColor;
+    text_color = kWidgetDisabledTextColor;
+  } else if (hot) {
     if (active) {
-      int mousepos = inputs_.mouse_x - static_cast<int>(rect.left);
-      if (mousepos < 0) {
-        mousepos = 0;
-      }
-      if (mousepos > rect.width) {
-        mousepos = static_cast<int>(rect.width);
-      }
-      pow_value = (mousepos * (pow_max - pow_min)) / rect.width + pow_min;
-      *_value = ozz::math::Clamp(_min, powf(pow_value, 1.f / _pow), _max);
+      // Button is both 'hot' and 'active'.
+      slider_color = kWidgetActiveBackgroundColor;
+      slider_border_color = kWidgetActiveBorderColor;
     } else {
-      // Clamping is only applied if the widget is enabled.
-      *_value = clamped_value;
+      // Button is merely 'hot'.
+      slider_color = kSliderCursorHotColor;
+      slider_border_color = kWidgetHotBorderColor;
     }
+  } else {
+    // button is not hot, but it may be active. Use default colors.
+  }
+
+  // Update widget value.
+  ozz::array<float, 2> cursor;
+  const int mouse[2] = {inputs_.mouse_x - static_cast<int>(rect.left),
+                        inputs_.mouse_y - static_cast<int>(rect.bottom)};
+  const int mouse_max[2] = {static_cast<int>(rect.width),
+                            static_cast<int>(rect.height)};
+  for (size_t i = 0; i < 2; ++i) {
+    _value->at(i) =
+        SliderControl(initial_value[i], _min[i], _max[i], 1.f, mouse[i],
+                      mouse_max[i], _enabled, active, &cursor[i]);
   }
 
   // Renders slider's rail.
@@ -822,14 +929,24 @@ bool ImGuiImpl::DoSlider(const char* _label, float _min, float _max,
   StrokeRect(rail_rect, kSliderRoundRectRadius, border_color);
 
   // Finds cursor position and rect.
-  const float cursor =
-      floorf((rect.width * (pow_value - pow_min)) / (pow_max - pow_min));
   const math::RectFloat cursor_rect(
-      rect.left + cursor - kWidgetCursorWidth / 2.f, rect.bottom - 1.f,
-      kWidgetCursorWidth, rect.height + 2.f);
+      rect.left + cursor[0] - kWidgetHeight / 2.f,
+      rect.bottom + cursor[1] - kWidgetHeight / 2.f, kWidgetHeight,
+      kWidgetHeight);
+
+  // Cursor cross
+  const math::RectFloat cross_hrect(rect.left, rect.bottom + cursor[1],
+                                    rect.width, 1);
+  StrokeRect(cross_hrect, 0.f, slider_color);
+  const math::RectFloat cross_vrect(rect.left + cursor[0], rect.bottom, 1,
+                                    rect.height);
+  StrokeRect(cross_vrect, 0.f, slider_color);
+
+  // Draw slider
   FillRect(cursor_rect, kSliderRoundRectRadius, slider_color);
   StrokeRect(cursor_rect, kSliderRoundRectRadius, slider_border_color);
 
+  // Text
   const math::RectFloat text_rect(
       rail_rect.left + kSliderRoundRectRadius, rail_rect.bottom,
       rail_rect.width - kSliderRoundRectRadius * 2.f, rail_rect.height);
@@ -1361,7 +1478,9 @@ float ImGuiImpl::Print(const char* _text, const math::RectFloat& _rect,
       ly = _rect.bottom + (line_count - 1) * (font_.glyph_height + interlign);
       break;
     }
-    default: { break; }
+    default: {
+      break;
+    }
   }
 
   GL(BindTexture(GL_TEXTURE_2D, glyph_texture_));
@@ -1385,7 +1504,9 @@ float ImGuiImpl::Print(const char* _text, const math::RectFloat& _rect,
         lx = _rect.right() - (line_char_count * font_.glyph_width);
         break;
       }
-      default: { break; }
+      default: {
+        break;
+      }
     }
 
     // Loops through all characters of the current line, and renders them using
