@@ -48,12 +48,6 @@ namespace offline {
 // the only restriction that the total number of joints does not exceed
 // Skeleton::kMaxJoints.
 struct RawSkeleton {
-  // Construct an empty skeleton.
-  RawSkeleton();
-
-  // The destructor is responsible for deleting the roots and their hierarchy.
-  ~RawSkeleton();
-
   // Offline skeleton joint type.
   struct Joint {
     // Type of the list of children joints.

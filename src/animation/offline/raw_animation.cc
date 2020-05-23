@@ -34,8 +34,6 @@ namespace ozz {
 namespace animation {
 namespace offline {
 
-RawAnimation::RawAnimation() : duration(1.f) {}
-
 bool RawAnimation::Validate() const {
   if (duration <= 0.f) {  // Tests duration is valid.
     return false;

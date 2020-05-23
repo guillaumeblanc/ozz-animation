@@ -33,10 +33,6 @@ namespace ozz {
 namespace animation {
 namespace offline {
 
-RawSkeleton::RawSkeleton() {}
-
-RawSkeleton::~RawSkeleton() {}
-
 bool RawSkeleton::Validate() const {
   if (num_joints() > Skeleton::kMaxJoints) {
     return false;

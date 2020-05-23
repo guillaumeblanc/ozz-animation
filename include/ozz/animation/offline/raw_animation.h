@@ -56,9 +56,6 @@ namespace offline {
 // Animations that would fail this validation will fail to be converted by the
 // AnimationBuilder.
 struct RawAnimation {
-  // Constructs a valid RawAnimation with a 1s default duration.
-  RawAnimation();
-
   // Tests for *this validity.
   // Returns true if animation data (duration, tracks) is valid:
   //  1. Animation duration is greater than 0.
@@ -128,7 +125,7 @@ struct RawAnimation {
 
   // The duration of the animation. All the keys of a valid RawAnimation are in
   // the range [0,duration].
-  float duration;
+  float duration = 1.f;
 
   // Name of the animation.
   ozz::string name;
