@@ -1,3 +1,7 @@
+if(NOT ozz_build_tools)
+  return()
+endif()
+
 add_executable(ozz2csv
   ozz2csv.h
   ozz2csv.cc
