@@ -255,16 +255,16 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
 
         _im_gui->DoLabel("Additive layer:");
         _im_gui->DoCheckBox("Animates weights", &auto_animate_weights_);
-        ozz::array<float, 2> weights;
-        std::copy(std::begin(additive_weigths_), std::end(additive_weigths_),
-                  std::begin(weights));
+        ozz::array<float, OZZ_ARRAY_SIZE(additive_weigths_)> weights;
+        std::memcpy(weights.data(), additive_weigths_,
+                    sizeof(additive_weigths_));
 
         std::sprintf(label, "Weights\nCurl: %.2f\nSplay: %.2f",
                      additive_weigths_[kCurl], additive_weigths_[kSplay]);
         if (_im_gui->DoSlider2D(label, {{0.f, 0.f}}, {{1.f, 1.f}}, &weights)) {
           auto_animate_weights_ = false;  // User interacted.
-          std::copy(std::begin(weights), std::end(weights),
-                    std::begin(additive_weigths_));
+          std::memcpy(additive_weigths_, weights.data(),
+                      sizeof(additive_weigths_));
         }
       }
     }
