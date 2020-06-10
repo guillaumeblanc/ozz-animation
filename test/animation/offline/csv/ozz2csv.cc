@@ -29,8 +29,11 @@
 
 #include <json/json.h>
 
+#include <mutex>
+
 #include "ozz/animation/offline/raw_animation.h"
 #include "ozz/animation/runtime/skeleton.h"
+#include "ozz/base/containers/unordered_set.h"
 #include "ozz/base/io/archive.h"
 #include "ozz/base/io/stream.h"
 #include "ozz/base/log.h"
@@ -86,9 +89,52 @@ ozz::string CsvFileName(const char* _name) {
   filename += ".csv";
   return filename;
 }
+
+class TrackedAllocator : public ozz::memory::Allocator {
+ public:
+  TrackedAllocator() : default_allocator_(ozz::memory::default_allocator()) {}
+  ~TrackedAllocator() {  // assert(allocations_.size() == 0);
+  }
+
+ private:
+  virtual void* Allocate(size_t _size, size_t _alignment) {
+    void* alloc = default_allocator_->Allocate(_size, _alignment);
+    if (alloc) {
+      std::lock_guard<std::mutex> guard(mutex_);
+      allocations_.insert(alloc);
+    }
+    return alloc;
+  }
+  virtual void Deallocate(void* _block) {
+    if (_block) {
+      std::lock_guard<std::mutex> guard(mutex_);
+      allocations_.erase(_block);
+    }
+
+    default_allocator_->Deallocate(_block);
+  }
+
+  std::mutex mutex_;
+  // Use another allocator to solve re-entrant allocations.
+  std::unordered_set<void*> allocations_;
+  ozz::memory::Allocator* default_allocator_;
+};
+
+class AllocatorSetter {
+ public:
+  AllocatorSetter(ozz::memory::Allocator* _allocator)
+      : previous_(ozz::memory::SetDefaulAllocator(_allocator)) {}
+  ~AllocatorSetter() { ozz::memory::SetDefaulAllocator(previous_); }
+
+ private:
+  ozz::memory::Allocator* previous_;
+};
 }  // namespace
 
 int Ozz2Csv::Run(int _argc, char const* _argv[]) {
+  TrackedAllocator tracked_allocator;
+  AllocatorSetter allocator_setter(&tracked_allocator);
+
   // Parses arguments.
   ozz::options::ParseResult parse_result =
       ozz::options::ParseCommandLine(_argc, _argv, "1.0", "TODO");
@@ -180,7 +226,7 @@ bool Ozz2Csv::Generate(Generator* _generator,
   success &= csv.Push("size,time");
   success &= csv.LineEnd();
   success &= csv.Push(static_cast<int>(_generator->Size()));
-  success &= csv.Push(elapsed * 1e-6f); // to seconds
+  success &= csv.Push(elapsed * 1e-6f);  // to seconds
   success &= csv.LineEnd();
   return success;
 }
