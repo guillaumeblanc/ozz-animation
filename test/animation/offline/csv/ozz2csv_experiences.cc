@@ -27,7 +27,6 @@
 
 #include "ozz2csv_experiences.h"
 
-#include <chrono>
 #include <random>
 
 #include "ozz/animation/offline/raw_animation.h"
@@ -40,6 +39,7 @@
 #include "ozz/base/maths/transform.h"
 #include "ozz/options/options.h"
 #include "ozz2csv.h"
+#include "ozz2csv_chrono.h"
 #include "ozz2csv_csv.h"
 
 OZZ_OPTIONS_DECLARE_FLOAT(rate, "Sampling rate", 30, false)
@@ -87,34 +87,6 @@ bool LocalToModel(const ozz::animation::Skeleton& _skeleton,
   ozz::animation::IterateJointsDF(_skeleton, LTMIterator(_locals, _models));
 
   return true;
-}
-
-class Timer {
- public:
-  Timer() { Reset(); }
-  void Reset() { start_ = std::chrono::high_resolution_clock::now(); }
-  float Elapsed() {
-    const time_point end = std::chrono::high_resolution_clock::now();
-    const float duration =
-        std::chrono::duration<float, std::micro>(end - start_).count();
-    start_ = end;
-    return duration;
-  }
-
- private:
-  typedef std::chrono::high_resolution_clock::time_point time_point;
-  time_point start_;
-};
-
-bool MemoryExperience(CsvFile* _csv,
-                      const ozz::animation::offline::RawAnimation&,
-                      const ozz::animation::Skeleton&, Generator* _generator) {
-  bool success = true;
-  success &= _csv->Push("size");
-  success &= _csv->LineEnd();
-  success &= _csv->Push(static_cast<int>(_generator->Size()));
-  success &= _csv->LineEnd();
-  return success;
 }
 
 bool TracksExperience(CsvFile* _csv,
@@ -212,13 +184,13 @@ bool Profile(const char* _mode, Generator* _generator, float _time,
   bool success = true;
 
   float execution;
-  Timer timer;
+  Chrono chrono;
   {
-    timer.Reset();
+    chrono.Reset();
 
     success &= _generator->Sample(_time, _reset);
 
-    execution = timer.Elapsed();
+    execution = chrono.Elapsed();
   }
 
   success &= _csv->Push(_mode);
@@ -300,7 +272,6 @@ bool PerformanceExperience(
 
 bool RegisterDefaultExperiences(Ozz2Csv* _ozz2csv) {
   bool success = true;
-  success &= _ozz2csv->RegisterExperience(&MemoryExperience, "memory");
   success &= _ozz2csv->RegisterExperience(&TracksExperience, "tracks");
   success &= _ozz2csv->RegisterExperience(&TransformsExperience, "transforms");
   success &= _ozz2csv->RegisterExperience(&SkeletonExperience, "skeleton");

@@ -5,6 +5,7 @@ endif()
 add_executable(ozz2csv
   ozz2csv.h
   ozz2csv.cc
+  ozz2csv_chrono.h
   ozz2csv_csv.h
   ozz2csv_csv.cc
   ozz2csv_experiences.h

@@ -28,6 +28,8 @@
 #ifndef OZZ_ANIMATION_OFFLINE_CVS_OZZ2CSV_H_
 #define OZZ_ANIMATION_OFFLINE_CVS_OZZ2CSV_H_
 
+#include <chrono>
+
 #include "ozz/base/containers/map.h"
 #include "ozz/base/containers/string.h"
 #include "ozz/base/io/stream.h"
@@ -97,6 +99,11 @@ class Ozz2Csv {
   bool RunExperiences(const ozz::animation::offline::RawAnimation& _animation,
                       const ozz::animation::Skeleton& _skeleton,
                       Generator* _generator);
+
+  bool Generate(Generator* _generator,
+                const ozz::animation::offline::RawAnimation& _animation,
+                const ozz::animation::Skeleton& _skeleton,
+                const Json::Value& _config);
 
   Generator* FindGenerator(const char* _name) const;
 

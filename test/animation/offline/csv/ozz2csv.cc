@@ -35,6 +35,7 @@
 #include "ozz/base/io/stream.h"
 #include "ozz/base/log.h"
 #include "ozz/options/options.h"
+#include "ozz2csv_chrono.h"
 #include "ozz2csv_csv.h"
 
 // Concept is to read a non optimized animation, build and sample it, compute
@@ -140,11 +141,8 @@ int Ozz2Csv::Run(int _argc, char const* _argv[]) {
                     << OPTIONS_generator.value() << "\"." << std::endl;
     return EXIT_FAILURE;
   }
-  ozz::log::Log() << "Initializing \"" << OPTIONS_generator.value()
-                  << "\" generator." << std::endl;
-  if (!generator->Build(animation, skeleton, config)) {
-    ozz::log::Err() << "Failed to initialize generator \""
-                    << OPTIONS_generator.value() << "\"." << std::endl;
+
+  if (!Generate(generator, animation, skeleton, config)) {
     return EXIT_FAILURE;
   }
 
@@ -155,6 +153,36 @@ int Ozz2Csv::Run(int _argc, char const* _argv[]) {
   }
 
   return EXIT_SUCCESS;
+}
+
+bool Ozz2Csv::Generate(Generator* _generator,
+                       const ozz::animation::offline::RawAnimation& _animation,
+                       const ozz::animation::Skeleton& _skeleton,
+                       const Json::Value& _config) {
+  ozz::log::Log() << "Initializing \"" << OPTIONS_generator.value()
+                  << "\" generator." << std::endl;
+
+  Chrono chrono;
+  if (!_generator->Build(_animation, _skeleton, _config)) {
+    ozz::log::Err() << "Failed to initialize generator \""
+                    << OPTIONS_generator.value() << "\"." << std::endl;
+    return false;
+  }
+  const float elapsed = chrono.Elapsed();
+
+  const ozz::string filename = CsvFileName("compression");
+  CsvFile csv(filename.c_str());
+  if (!csv.opened()) {
+    return false;
+  }
+
+  bool success = true;
+  success &= csv.Push("size,time");
+  success &= csv.LineEnd();
+  success &= csv.Push(static_cast<int>(_generator->Size()));
+  success &= csv.Push(elapsed * 1e-6f); // to seconds
+  success &= csv.LineEnd();
+  return success;
 }
 
 bool Ozz2Csv::RunExperiences(
@@ -170,7 +198,7 @@ bool Ozz2Csv::RunExperiences(
     }
     // Run experience.
     if (!(*it->second)(&csv, _animation, _skeleton, _generator)) {
-      ozz::log::Err() << "Operation failed while running experienc \""
+      ozz::log::Err() << "Operation failed while running experience \""
                       << it->first << "\"." << std::endl;
       return false;
     }
