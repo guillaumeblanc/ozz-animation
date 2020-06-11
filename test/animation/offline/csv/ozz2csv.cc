@@ -33,7 +33,7 @@
 
 #include "ozz/animation/offline/raw_animation.h"
 #include "ozz/animation/runtime/skeleton.h"
-#include "ozz/base/containers/unordered_set.h"
+#include "ozz/base/containers/unordered_map.h"
 #include "ozz/base/io/archive.h"
 #include "ozz/base/io/stream.h"
 #include "ozz/base/log.h"
@@ -96,12 +96,20 @@ class TrackedAllocator : public ozz::memory::Allocator {
   ~TrackedAllocator() {  // assert(allocations_.size() == 0);
   }
 
+  template <typename _Functor>
+  void Iterate(_Functor _functor) const {
+    std::lock_guard<std::mutex> guard(mutex_);
+    for (const auto& entry : allocations_) {
+      _functor(entry.first, entry.second);
+    }
+  }
+
  private:
   virtual void* Allocate(size_t _size, size_t _alignment) {
     void* alloc = default_allocator_->Allocate(_size, _alignment);
     if (alloc) {
       std::lock_guard<std::mutex> guard(mutex_);
-      allocations_.insert(alloc);
+      allocations_.insert({alloc, _size});
     }
     return alloc;
   }
@@ -114,11 +122,19 @@ class TrackedAllocator : public ozz::memory::Allocator {
     default_allocator_->Deallocate(_block);
   }
 
-  std::mutex mutex_;
+  mutable std::mutex mutex_;
   // Use another allocator to solve re-entrant allocations.
-  std::unordered_set<void*> allocations_;
+  std::unordered_map<void*, size_t> allocations_;
   ozz::memory::Allocator* default_allocator_;
 };
+
+void InvalidateCache(const TrackedAllocator& _allocator) {
+  auto invalidate = [](void* , size_t ) {
+      //const size_t kCacheLineSize = 16;
+      //for (size_t i=0; i < )
+  };
+  _allocator.Iterate(invalidate);
+}
 
 class AllocatorSetter {
  public:
