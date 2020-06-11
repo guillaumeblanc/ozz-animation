@@ -37,6 +37,7 @@
 #include "ozz/base/io/archive.h"
 #include "ozz/base/io/stream.h"
 #include "ozz/base/log.h"
+#include "ozz/base/maths/simd_math.h"
 #include "ozz/options/options.h"
 #include "ozz2csv_chrono.h"
 #include "ozz2csv_csv.h"
@@ -129,11 +130,17 @@ class TrackedAllocator : public ozz::memory::Allocator {
 };
 
 void InvalidateCache(const TrackedAllocator& _allocator) {
-  auto invalidate = [](void* , size_t ) {
-      //const size_t kCacheLineSize = 16;
-      //for (size_t i=0; i < )
+  (void)_allocator;
+#if defined(OZZ_SIMD_SSE2)
+  auto invalidate = [](void* _alloc, size_t _size) {
+    const size_t kCacheLineSize = 64;
+    for (size_t i = 0; i < _size; i += kCacheLineSize) {
+      _mm_clflush(ozz::PointerStride(_alloc, i * _size));
+    }
   };
   _allocator.Iterate(invalidate);
+  _mm_sfence();
+#endif  // OZZ_SIMD_SSE2
 }
 
 class AllocatorSetter {
@@ -150,6 +157,8 @@ class AllocatorSetter {
 int Ozz2Csv::Run(int _argc, char const* _argv[]) {
   TrackedAllocator tracked_allocator;
   AllocatorSetter allocator_setter(&tracked_allocator);
+
+  InvalidateCache(tracked_allocator);
 
   // Parses arguments.
   ozz::options::ParseResult parse_result =
