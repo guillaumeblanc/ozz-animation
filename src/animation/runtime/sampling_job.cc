@@ -27,6 +27,7 @@
 
 #include "ozz/animation/runtime/sampling_job.h"
 
+#include <algorithm>
 #include <cassert>
 
 #include "ozz/animation/runtime/animation.h"
@@ -118,6 +119,7 @@ inline int TrackBackward(int* _cache, int _target, int _last_track,
 // Loops through the sorted key frames and update cache structure.
 template <typename _Key>
 inline void UpdateCacheCursor(float _ratio, int _num_soa_tracks,
+                              const ozz::span<const float>& _timepoints,
                               const ozz::span<const _Key>& _keys, int* _cursor,
                               int* _cache, unsigned char* _outdated) {
   assert(_num_soa_tracks >= 1);
@@ -153,7 +155,7 @@ inline void UpdateCacheCursor(float _ratio, int _num_soa_tracks,
   // all cache entries are up to date.
   int track = 0;
   for (; cursor < num_keys &&
-         _keys[cursor - _keys[cursor].previous].ratio <= _ratio;
+         _timepoints[_keys[cursor - _keys[cursor].previous].ratio] <= _ratio;
        ++cursor) {
     // Finds track index.
     track = TrackForward(_cache, _keys, cursor, track, num_tracks);
@@ -172,7 +174,8 @@ inline void UpdateCacheCursor(float _ratio, int _num_soa_tracks,
   // Rewinds.
   // Checks if the time of the penultimate key is greater than _ratio, in which
   // case we need to rewind.
-  for (; _keys[(cursor - 1) - _keys[cursor - 1].previous].ratio > _ratio;
+  for (; _timepoints[_keys[(cursor - 1) - _keys[cursor - 1].previous].ratio] >
+         _ratio;
        --cursor) {
     assert(cursor - 1 >= num_tracks * 2);
 
@@ -199,6 +202,7 @@ inline void UpdateCacheCursor(float _ratio, int _num_soa_tracks,
 
 template <typename _Key, typename _InterpKey, typename _Decompress>
 inline void UpdateInterpKeyframes(int _num_soa_tracks,
+                                  const ozz::span<const float>& _timepoints,
                                   const ozz::span<const _Key>& _keys,
                                   const int* _cache, uint8_t* _outdated,
                                   _InterpKey* _interp_keys,
@@ -218,8 +222,9 @@ inline void UpdateInterpKeyframes(int _num_soa_tracks,
       const _Key& k10 = _keys[_cache[penultimates + 1]];
       const _Key& k20 = _keys[_cache[penultimates + 2]];
       const _Key& k30 = _keys[_cache[penultimates + 3]];
-      _interp_keys[i].ratio[0] =
-          math::simd_float4::Load(k00.ratio, k10.ratio, k20.ratio, k30.ratio);
+      _interp_keys[i].ratio[0] = math::simd_float4::Load(
+          _timepoints[k00.ratio], _timepoints[k10.ratio],
+          _timepoints[k20.ratio], _timepoints[k30.ratio]);
       _decompress(k00, k10, k20, k30, &_interp_keys[i].value[0]);
 
       // Decompress right side keyframes and store them in soa structures.
@@ -228,8 +233,9 @@ inline void UpdateInterpKeyframes(int _num_soa_tracks,
       const _Key& k11 = _keys[_cache[lasts + 1]];
       const _Key& k21 = _keys[_cache[lasts + 2]];
       const _Key& k31 = _keys[_cache[lasts + 3]];
-      _interp_keys[i].ratio[1] =
-          math::simd_float4::Load(k01.ratio, k11.ratio, k21.ratio, k31.ratio);
+      _interp_keys[i].ratio[1] = math::simd_float4::Load(
+          _timepoints[k01.ratio], _timepoints[k11.ratio],
+          _timepoints[k21.ratio], _timepoints[k31.ratio]);
       _decompress(k01, k11, k21, k31, &_interp_keys[i].value[1]);
     }
   }
@@ -374,27 +380,29 @@ bool SamplingJob::Run() const {
 
   // Fetch key frames from the animation to the cache a r = anim_ratio.
   // Then updates outdated soa hot values.
-  UpdateCacheCursor(anim_ratio, num_soa_tracks, animation->translations(),
-                    &cache->translation_cursor_, cache->translation_cache_,
-                    cache->outdated_translations_);
-  UpdateInterpKeyframes(num_soa_tracks, animation->translations(),
-                        cache->translation_cache_,
+  UpdateCacheCursor(anim_ratio, num_soa_tracks, animation->timepoints(),
+                    animation->translations(), &cache->translation_cursor_,
+                    cache->translation_cache_, cache->outdated_translations_);
+  UpdateInterpKeyframes(num_soa_tracks, animation->timepoints(),
+                        animation->translations(), cache->translation_cache_,
                         cache->outdated_translations_, cache->soa_translations_,
                         &DecompressFloat3);
 
-  UpdateCacheCursor(anim_ratio, num_soa_tracks, animation->rotations(),
-                    &cache->rotation_cursor_, cache->rotation_cache_,
-                    cache->outdated_rotations_);
-  UpdateInterpKeyframes(num_soa_tracks, animation->rotations(),
-                        cache->rotation_cache_, cache->outdated_rotations_,
-                        cache->soa_rotations_, &DecompressQuaternion);
+  UpdateCacheCursor(anim_ratio, num_soa_tracks, animation->timepoints(),
+                    animation->rotations(), &cache->rotation_cursor_,
+                    cache->rotation_cache_, cache->outdated_rotations_);
+  UpdateInterpKeyframes(num_soa_tracks, animation->timepoints(),
+                        animation->rotations(), cache->rotation_cache_,
+                        cache->outdated_rotations_, cache->soa_rotations_,
+                        &DecompressQuaternion);
 
-  UpdateCacheCursor(anim_ratio, num_soa_tracks, animation->scales(),
-                    &cache->scale_cursor_, cache->scale_cache_,
-                    cache->outdated_scales_);
-  UpdateInterpKeyframes(num_soa_tracks, animation->scales(),
-                        cache->scale_cache_, cache->outdated_scales_,
-                        cache->soa_scales_, &DecompressFloat3);
+  UpdateCacheCursor(anim_ratio, num_soa_tracks, animation->timepoints(),
+                    animation->scales(), &cache->scale_cursor_,
+                    cache->scale_cache_, cache->outdated_scales_);
+  UpdateInterpKeyframes(num_soa_tracks, animation->timepoints(),
+                        animation->scales(), cache->scale_cache_,
+                        cache->outdated_scales_, cache->soa_scales_,
+                        &DecompressFloat3);
 
   // Interpolates soa hot data.
   Interpolates(anim_ratio, num_soa_tracks, cache->soa_translations_,

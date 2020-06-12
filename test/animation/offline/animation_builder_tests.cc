@@ -343,7 +343,7 @@ TEST(Sort, AnimationBuilder) {
 }
 
 TEST(ManyKeys, SamplingJob) {
-  const size_t kMaxKey = 300000;
+  const size_t kMaxKey = 65500;
 
   RawAnimation raw_animation;
   raw_animation.duration = 1.f;
