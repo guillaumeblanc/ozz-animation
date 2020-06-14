@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -28,12 +28,14 @@
 #ifndef OZZ_SAMPLES_FRAMEWORK_IMGUI_H_
 #define OZZ_SAMPLES_FRAMEWORK_IMGUI_H_
 
+#include <ozz/base/containers/array.h>
+
 #include <cstdio>
 
 namespace ozz {
 namespace math {
 struct RectFloat;
-}
+}  // namespace math
 namespace sample {
 
 // Interface for immediate mode graphical user interface rendering.
@@ -54,8 +56,9 @@ class ImGui {
   // A form is a root in the frame's container stack.
   // The _rect argument is relative to the parent's rect and is automatically
   // shrunk to fit inside parent's rect and to the size of its widgets.
-  // Providing a non nullptr _title argument displays a title on top of the form.
-  // Providing a non nullptr _open argument enables the open/close mechanism.
+  // Providing a non nullptr _title argument displays a title on top of the
+  // form. Providing a non nullptr _open argument enables the open/close
+  // mechanism.
   class Form {
    public:
     Form(ImGui* _im_gui, const char* _title, const math::RectFloat& _rect,
@@ -115,6 +118,11 @@ class ImGui {
                         float* _value, float _pow = 1.f,
                         bool _enabled = true) = 0;
 
+  virtual bool DoSlider2D(const char* _label, ozz::array<float, 2> _min,
+                          ozz::array<float, 2> _max,
+                          ozz::array<float, 2>* _value,
+                          bool _enabled = true) = 0;
+
   // Adds an integer slider to the current context and returns true if _value
   //  was modified.
   // _value is the in-out parameter that stores slider value. It's clamped
@@ -172,9 +180,9 @@ class ImGui {
   // container automatically shrinks to fit the size of the widgets it contains.
   // Providing a non nullptr _title argument displays a title on top of the
   // container.
-  // Providing a nullptr _rect argument means that the container will use all its
-  // parent size.
-  // Providing a non nullptr _open argument enables the open/close mechanism.
+  // Providing a nullptr _rect argument means that the container will use all
+  // its parent size. Providing a non nullptr _open argument enables the
+  // open/close mechanism.
   virtual void BeginContainer(const char* _title, const math::RectFloat* _rect,
                               bool* _open, bool _constrain) = 0;
 

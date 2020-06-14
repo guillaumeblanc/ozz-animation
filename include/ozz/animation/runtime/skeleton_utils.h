@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -28,10 +28,10 @@
 #ifndef OZZ_OZZ_ANIMATION_RUNTIME_SKELETON_UTILS_H_
 #define OZZ_OZZ_ANIMATION_RUNTIME_SKELETON_UTILS_H_
 
+#include <cassert>
+
 #include "ozz/animation/runtime/skeleton.h"
 #include "ozz/base/maths/transform.h"
-
-#include <cassert>
 
 namespace ozz {
 namespace animation {
@@ -51,12 +51,15 @@ inline bool IsLeaf(const Skeleton& _skeleton, int _joint) {
   return next == num_joints || parents[next] != _joint;
 }
 
+// Finds joint index by name. Uses a case sensitive comparison.
+int FindJoint(const Skeleton& _skeleton, const char* _name);
+
 // Applies a specified functor to each joint in a depth-first order.
-// _Fct is of type void(int _current, int _parent) where the first argument is
-// the child of the second argument. _parent is kNoParent if the
-// _current joint is a root. _from indicates the joint from which the joint
-// hierarchy traversal begins. Use Skeleton::kNoParent to traverse the
-// whole hierarchy, in case there are multiple roots.
+// _Fct is of type void(int _current, int _parent) where the first argument
+// is the child of the second argument. _parent is kNoParent if the _current
+// joint is a root. _from indicates the joint from which the joint hierarchy
+// traversal begins. Use Skeleton::kNoParent to traverse the whole
+// hierarchy, in case there are multiple roots.
 template <typename _Fct>
 inline _Fct IterateJointsDF(const Skeleton& _skeleton, _Fct _fct,
                             int _from = Skeleton::kNoParent) {

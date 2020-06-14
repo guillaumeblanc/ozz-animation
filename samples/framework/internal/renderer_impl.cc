@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -1103,6 +1103,12 @@ const float kDefaultUVsArray[][2] = {
 bool RendererImpl::DrawMesh(const Mesh& _mesh,
                             const ozz::math::Float4x4& _transform,
                             const Options& _options) {
+  if (_options.wireframe) {
+#ifndef EMSCRIPTEN
+    GL(PolygonMode(GL_FRONT_AND_BACK, GL_LINE));
+#endif  // EMSCRIPTEN
+  }
+
   const int vertex_count = _mesh.vertex_count();
   const GLsizei positions_offset = 0;
   const GLsizei positions_stride =
@@ -1249,6 +1255,12 @@ bool RendererImpl::DrawMesh(const Mesh& _mesh,
   GL(BindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
   shader->Unbind();
 
+  if (_options.wireframe) {
+#ifndef EMSCRIPTEN
+    GL(PolygonMode(GL_FRONT_AND_BACK, GL_FILL));
+#endif  // EMSCRIPTEN
+  }
+
   // Renders debug normals.
   if (_options.normals) {
     for (size_t i = 0; i < _mesh.parts.size(); ++i) {
@@ -1304,6 +1316,13 @@ bool RendererImpl::DrawSkinnedMesh(
   if (_options.skip_skinning) {
     return DrawMesh(_mesh, _transform, _options);
   }
+
+  if (_options.wireframe) {
+#ifndef EMSCRIPTEN
+    GL(PolygonMode(GL_FRONT_AND_BACK, GL_LINE));
+#endif  // EMSCRIPTEN
+  }
+
   const int vertex_count = _mesh.vertex_count();
 
   // Positions and normals are interleaved to improve caching while executing
@@ -1565,6 +1584,12 @@ bool RendererImpl::DrawSkinnedMesh(
   GL(BindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
   shader->Unbind();
 
+  if (_options.wireframe) {
+#ifndef EMSCRIPTEN
+    GL(PolygonMode(GL_FRONT_AND_BACK, GL_FILL));
+#endif  // EMSCRIPTEN
+  }
+
   return true;
 }
 
@@ -1702,7 +1727,8 @@ RendererImpl::ScratchBuffer::~ScratchBuffer() {
 void* RendererImpl::ScratchBuffer::Resize(size_t _size) {
   if (_size > size_) {
     size_ = _size;
-    buffer_ = memory::default_allocator()->Reallocate(buffer_, _size, 16);
+    memory::default_allocator()->Deallocate(buffer_);
+    buffer_ = memory::default_allocator()->Allocate(_size, 16);
   }
   return buffer_;
 }

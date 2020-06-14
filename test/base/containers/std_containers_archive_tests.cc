@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -25,13 +25,12 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/base/containers/string_archive.h"
-#include "ozz/base/containers/vector_archive.h"
-
 #include <algorithm>
 
 #include "gtest/gtest.h"
-
+#include "ozz/base/containers/array_archive.h"
+#include "ozz/base/containers/string_archive.h"
+#include "ozz/base/containers/vector_archive.h"
 #include "ozz/base/io/archive.h"
 
 TEST(string, Archive) {
@@ -123,7 +122,7 @@ TEST(Vector, Archive) {
     ozz::vector<int> small_i;
     i >> small_i;
     EXPECT_EQ(small_o.size(), small_i.size());
-    for (size_t j = 0; j < empty_i.size(); ++j) {
+    for (size_t j = 0; j < small_i.size(); ++j) {
       EXPECT_EQ(small_o[j], small_i[j]);
     }
 
@@ -140,6 +139,48 @@ TEST(Vector, Archive) {
     EXPECT_EQ(reuse_o.size(), reuse_i.size());
     for (size_t j = 0; j < reuse_i.size(); ++j) {
       EXPECT_EQ(reuse_o[j], reuse_i[j]);
+    }
+  }
+}
+
+TEST(Array, Archive) {
+  for (int e = 0; e < 2; ++e) {
+    ozz::Endianness endianess = e == 0 ? ozz::kBigEndian : ozz::kLittleEndian;
+
+    ozz::io::MemoryStream stream;
+    ASSERT_TRUE(stream.opened());
+
+    // Writes.
+    ozz::io::OArchive o(&stream, endianess);
+    ozz::array<int, 0> empty_o;
+    o << empty_o;
+
+    ozz::array<int, 5> array_o{{0, 1, 2, 3, 4}};
+    o << array_o;
+
+    // Rewrite for the Vector reuse test.
+    ozz::array<int, 5> reuse_o{{5, 6, 7, 8, 9}};
+    o << reuse_o;
+
+    // Reads.
+    stream.Seek(0, ozz::io::Stream::kSet);
+    ozz::io::IArchive i(&stream);
+
+    ozz::array<int, 0> empty_i;
+    i >> empty_i;
+    EXPECT_EQ(empty_i.size(), 0u);
+
+    ozz::array<int, 5> array_i;
+    i >> array_i;
+    EXPECT_EQ(array_o.size(), array_i.size());
+    for (size_t j = 0; j < array_i.size(); ++j) {
+      EXPECT_EQ(array_o[j], array_i[j]);
+    }
+
+    i >> array_i;
+    EXPECT_EQ(reuse_o.size(), array_i.size());
+    for (size_t j = 0; j < array_i.size(); ++j) {
+      EXPECT_EQ(reuse_o[j], array_i[j]);
     }
   }
 }
