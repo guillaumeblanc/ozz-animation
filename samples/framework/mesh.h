@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -30,10 +30,9 @@
 
 #include "ozz/base/containers/vector.h"
 #include "ozz/base/io/archive_traits.h"
-#include "ozz/base/platform.h"
-
 #include "ozz/base/maths/simd_math.h"
 #include "ozz/base/maths/vec_float.h"
+#include "ozz/base/platform.h"
 
 namespace ozz {
 namespace sample {
@@ -42,9 +41,6 @@ namespace sample {
 // The mesh is subdivided into parts that group vertices according to their
 // number of influencing joints. Triangle indices are shared across mesh parts.
 struct Mesh {
-  Mesh();
-  ~Mesh();
-
   // Number of triangle indices for the mesh.
   int triangle_index_count() const {
     return static_cast<int>(triangle_indices.size());

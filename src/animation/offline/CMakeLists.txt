@@ -32,5 +32,6 @@ install(TARGETS ozz_animation_offline DESTINATION lib)
 fuse_target("ozz_animation_offline")
 
 add_subdirectory(fbx)
+add_subdirectory(gltf)
 add_subdirectory(tools)
 

@@ -66,7 +66,11 @@ jobs:
   - os: linux
     compiler: clang
     env:
-    - env_build_fbx=0 
+    - env_build_fbx=0
+  - os: linux
+    compiler: clang
+    env:
+    - env_build_gltf=0
   - os: linux
     compiler: clang
     env:
@@ -95,17 +99,20 @@ jobs:
     compiler: clang
     env:
     - env_build_fbx=0
+    - env_build_gltf=0
     - env_build_samples=0
   - os: linux
     compiler: clang
     env:
     - env_build_fbx=0
+    - env_build_gltf=0
     - env_build_tests=0
   - os: linux
     compiler: clang
     env:
     - env_build_data=0
     - env_build_fbx=0
+    - env_build_gltf=0
     - env_build_samples=0
     - env_build_tests=0
   - os: linux
@@ -186,18 +193,6 @@ jobs:
         - g++-8
 
   # Newer clang
-  - os: linux
-    compiler: clang-3.5
-    env:
-    - env_cmake_cxx_compiler=clang++-3.5
-    - env_cmake_c_compiler=clang-3.5
-    addons:
-      apt:
-        sources:
-        - ubuntu-toolchain-r-test
-        - llvm-toolchain-xenial-3.5
-        packages:
-        - clang-3.5
   - os: linux
     compiler: clang-3.9
     env:
@@ -342,6 +337,7 @@ before_script:
 # Setup default environment variables
 - if [[ -z $env_src_root ]]; then export env_src_root=".."; fi
 - if [[ -z $env_build_fbx ]]; then export env_build_fbx=1; fi
+- if [[ -z $env_build_gltf ]]; then export env_build_gltf=1; fi
 - if [[ -z $env_build_data ]]; then export env_build_data=1; fi
 - if [[ -z $env_build_howtos ]]; then export env_build_howtos=1; fi
 - if [[ -z $env_build_tools ]]; then export env_build_tools=1; fi

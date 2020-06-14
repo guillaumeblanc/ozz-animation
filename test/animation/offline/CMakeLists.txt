@@ -123,4 +123,5 @@ add_test(NAME test_fuse_animation_offline COMMAND test_fuse_animation_offline)
 set_target_properties(test_fuse_animation_offline PROPERTIES FOLDER "ozz/tests/animation_offline")
 
 add_subdirectory(fbx)
+add_subdirectory(gltf)
 add_subdirectory(tools)

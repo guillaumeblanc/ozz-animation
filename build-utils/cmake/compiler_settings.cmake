@@ -106,6 +106,7 @@ else()
   # Sets emscripten output
   if(EMSCRIPTEN)
     SET(CMAKE_EXECUTABLE_SUFFIX ".html")
+    add_link_options(-s DISABLE_DEPRECATED_FIND_EVENT_TARGET_BEHAVIOR=0)
 
     #if(NOT ozz_build_simd_ref)
     #  set_property(DIRECTORY APPEND PROPERTY COMPILE_OPTIONS "-msse2")

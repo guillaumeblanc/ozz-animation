@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -268,7 +268,8 @@ ozz::unique_ptr<ImmediatePTCShader> ImmediatePTCShader::Build() {
   const char* vs[] = {kPlatformSpecivicVSHeader, kSimplePCVS};
   const char* fs[] = {kPlatformSpecivicFSHeader, kSimplePCPS};
 
-  ozz::unique_ptr<ImmediatePTCShader> shader = make_unique<ImmediatePTCShader>();
+  ozz::unique_ptr<ImmediatePTCShader> shader =
+      make_unique<ImmediatePTCShader>();
   success &=
       shader->BuildFromSource(OZZ_ARRAY_SIZE(vs), vs, OZZ_ARRAY_SIZE(fs), fs);
 
@@ -360,11 +361,10 @@ const char* kShaderAmbientFct =
     "vec4 GetAmbient(vec3 _world_normal) {\n"
     "  vec3 normal = normalize(_world_normal);\n"
     "  vec3 alpha = (normal + 1.) * .5;\n"
-    "  vec4 bt = mix(\n"
-    "    vec4(.3, .3, .7, .7), vec4(.4, .4, .8, .8), alpha.xzxz);\n"
-    "  vec4 ambient = vec4(\n"
-    "     mix(vec3(bt.x, .3, bt.y), vec3(bt.z, .8, bt.w), alpha.y), 1.);\n"
-    "  return ambient;\n"
+    "  vec2 bt = mix(vec2(.3, .7), vec2(.4, .8), alpha.xz);\n"
+    "  vec3 ambient = mix(vec3(bt.x, .3, bt.x), vec3(bt.y, .8, bt.y), "
+    "alpha.y);\n"
+    "  return vec4(ambient, 1.);\n"
     "}\n";
 const char* kShaderAmbientFS =
     "varying vec3 v_world_normal;\n"
@@ -761,6 +761,6 @@ void AmbientTexturedShader::Bind(const math::Float4x4& _model,
   GL(VertexAttribPointer(uv_attrib, 2, GL_FLOAT, GL_FALSE, _uv_stride,
                          GL_PTR_OFFSET(_uv_offset)));
 }
-}  // internal
+}  // namespace internal
 }  // namespace sample
 }  // namespace ozz

@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -28,6 +28,7 @@
 #include "ozz/base/memory/allocator.h"
 
 #include <memory.h>
+
 #include <atomic>
 #include <cassert>
 #include <cstdlib>
@@ -71,23 +72,6 @@ class HeapAllocator : public Allocator {
     // Allocation's succeeded.
     ++allocation_count_;
     return aligned;
-  }
-
-  void* Reallocate(void* _block, size_t _size, size_t _alignment) {
-    void* new_block = Allocate(_size, _alignment);
-    // Copies and deallocate the old memory block.
-    if (_block) {
-      Header* old_header = reinterpret_cast<Header*>(
-          reinterpret_cast<char*>(_block) - sizeof(Header));
-
-      // Copy previous content, which might not fit in the new one.
-      memcpy(new_block, _block, math::Min(_size, old_header->size));
-
-      // Deallocation completed.
-      free(old_header->unaligned);
-      --allocation_count_;
-    }
-    return new_block;
   }
 
   void Deallocate(void* _block) {
