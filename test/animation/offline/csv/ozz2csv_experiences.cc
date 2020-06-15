@@ -92,7 +92,7 @@ bool LocalToModel(const ozz::animation::Skeleton& _skeleton,
 bool TracksExperience(CsvFile* _csv,
                       const ozz::animation::offline::RawAnimation&,
                       const ozz::animation::Skeleton& _skeleton,
-                      Generator* _generator) {
+                      Generator* _generator, const Ozz2Csv::CacheInvalidator&) {
   bool success = true;
   success &= _csv->Push("joint,translations,rotations,scales");
   success &= _csv->LineEnd();
@@ -112,7 +112,8 @@ bool TracksExperience(CsvFile* _csv,
 
 bool SkeletonExperience(CsvFile* _csv,
                         const ozz::animation::offline::RawAnimation&,
-                        const ozz::animation::Skeleton& _skeleton, Generator*) {
+                        const ozz::animation::Skeleton& _skeleton, Generator*,
+                        const Ozz2Csv::CacheInvalidator&) {
   bool success = true;
   success &= _csv->Push("joint,name,parent,depth");
   success &= _csv->LineEnd();
@@ -138,7 +139,8 @@ bool SkeletonExperience(CsvFile* _csv,
 bool TransformsExperience(CsvFile* _csv,
                           const ozz::animation::offline::RawAnimation&,
                           const ozz::animation::Skeleton& _skeleton,
-                          Generator* _generator) {
+                          Generator* _generator,
+                          const Ozz2Csv::CacheInvalidator&) {
   bool success = true;
   success &= _csv->Push(
       "joint,time,lt.x,lt.y,lt.z,lr.x,lr.y,lr.z,lr.w,ls.x,ls.y,ls.z,"
@@ -179,8 +181,8 @@ bool TransformsExperience(CsvFile* _csv,
   return success;
 }
 
-bool Profile(const char* _mode, Generator* _generator, float _time,
-             float _delta, bool _reset, CsvFile* _csv) {
+bool Profile(const char* _mode, const std::function<bool()>& _function,
+             float _time, float _delta, CsvFile* _csv) {
   bool success = true;
 
   float execution;
@@ -188,7 +190,7 @@ bool Profile(const char* _mode, Generator* _generator, float _time,
   {
     chrono.Reset();
 
-    success &= _generator->Sample(_time, _reset);
+    success &= _function();
 
     execution = chrono.Elapsed();
   }
@@ -204,7 +206,8 @@ bool Profile(const char* _mode, Generator* _generator, float _time,
 
 bool PerformanceExperience(
     CsvFile* _csv, const ozz::animation::offline::RawAnimation& _animation,
-    const ozz::animation::Skeleton&, Generator* _generator) {
+    const ozz::animation::Skeleton&, Generator* _generator,
+    const Ozz2Csv::CacheInvalidator& _cache_invalidator) {
   bool success = true;
   success &= _csv->Push("mode,time,delta,execution");
   success &= _csv->LineEnd();
@@ -212,7 +215,8 @@ bool PerformanceExperience(
   const float duration = _animation.duration;
 
   // Samples forward
-  {
+  for (size_t i = 0; i < 2; ++i) {
+    _generator->Reset();
     const float step = 1.f / OPTIONS_rate.value();
     bool end = false;
     for (float t = 0.f; success && !end; t += step) {
@@ -221,12 +225,18 @@ bool PerformanceExperience(
         t = duration;
         end = true;
       }
-      success &= Profile("forward", _generator, t, step, t == 0.f, _csv);
+      if (i == 1) {
+        _cache_invalidator();
+      }
+      success &=
+          Profile(i == 0 ? "forward" : "forward-cache",
+                  std::bind(&Generator::Sample, _generator, t), t, step, _csv);
     }
   }
 
   // Samples backward
-  {
+  for (size_t i = 0; i < 2; ++i) {
+    _generator->Reset();
     const float step = 1.f / OPTIONS_rate.value();
     bool end = false;
     for (float t = duration; success && !end; t -= step) {
@@ -236,20 +246,39 @@ bool PerformanceExperience(
         end = true;
       }
 
-      success &= Profile("backward", _generator, t, -step, t == duration, _csv);
+      if (i == 1) {
+        _cache_invalidator();
+      }
+      success &=
+          Profile(i == 0 ? "backward" : "backward-cache",
+                  std::bind(&Generator::Sample, _generator, t), t, -step, _csv);
     }
   }
 
   // Samples random
-  {
+  for (size_t i = 0; i < 2; ++i) {
+    _generator->Reset();
     std::mt19937 gen(0);
     std::uniform_real_distribution<float> dist(0.f, duration);
 
     float prev = 0.f;
-    for (size_t i = 0; success && i < 200; ++i) {
+    for (size_t t = 0; success && t < 200; ++t) {
       const float time = dist(gen);
-      success &= Profile("random", _generator, time, time - prev, false, _csv);
+      if (i == 1) {
+        _cache_invalidator();
+      }
+      success &= Profile(i == 0 ? "random" : "random-cache",
+                         std::bind(&Generator::Sample, _generator, time), time,
+                         time - prev, _csv);
       prev = time;
+    }
+  }
+
+  // Samples context
+  {
+    for (size_t i = 0; success && i < 200; ++i) {
+      success &= Profile("context", std::bind(&Generator::Reset, _generator), 0.f,
+                         0.f, _csv);
     }
   }
 
@@ -261,7 +290,10 @@ bool PerformanceExperience(
     float prev = 0.f;
     for (size_t i = 0; success && i < 200; ++i) {
       const float time = dist(gen);
-      success &= Profile("reset", _generator, time, time - prev, true, _csv);
+      _generator->Reset();
+      success &=
+          Profile("reset", std::bind(&Generator::Sample, _generator, time),
+                  time, time - prev, _csv);
       prev = time;
     }
   }
@@ -272,11 +304,10 @@ bool PerformanceExperience(
 
 bool RegisterDefaultExperiences(Ozz2Csv* _ozz2csv) {
   bool success = true;
-  success &= _ozz2csv->RegisterExperience(&TracksExperience, "tracks");
-  success &= _ozz2csv->RegisterExperience(&TransformsExperience, "transforms");
-  success &= _ozz2csv->RegisterExperience(&SkeletonExperience, "skeleton");
-  success &=
-      _ozz2csv->RegisterExperience(&PerformanceExperience, "performance");
+  success &= _ozz2csv->RegisterExperience(TracksExperience, "tracks");
+  success &= _ozz2csv->RegisterExperience(TransformsExperience, "transforms");
+  success &= _ozz2csv->RegisterExperience(SkeletonExperience, "skeleton");
+  success &= _ozz2csv->RegisterExperience(PerformanceExperience, "performance");
 
   return success;
 }

@@ -91,7 +91,9 @@ class OzzPassthrough : public Generator {
     return 0;
   }
 
-  virtual bool Sample(float _time, bool) {
+  virtual bool Reset() { return true; }
+
+  virtual bool Sample(float _time) {
     return SampleAnimation(animation_, _time, make_span(samples_));
   }
 
@@ -263,10 +265,12 @@ class OzzRuntime : public Generator {
     return 0;
   }
 
-  virtual bool Sample(float _time, bool _reset) {
-    if (_reset) {
-      cache.Invalidate();
-    }
+  virtual bool Reset() {
+    cache.Invalidate();
+    return true;
+  }
+
+  virtual bool Sample(float _time) {
 
     ozz::animation::SamplingJob job;
     job.animation = animation_.get();

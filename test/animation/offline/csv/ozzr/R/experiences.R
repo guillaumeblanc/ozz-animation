@@ -10,10 +10,10 @@ LoadExperience <- function(experience, path) {
   filename <- file.path(path, paste(experience, "_skeleton.csv", sep=""))
   dfs <- read.csv(filename)
 
-  # Memory info
-  filename <- file.path(path, paste(experience, "_memory.csv", sep=""))
-  dfm <- read.csv(filename)
-  dfm$experience <- as.factor(experience)
+  # compression info
+  filename <- file.path(path, paste(experience, "_compression.csv", sep=""))
+  dfc <- read.csv(filename)
+  dfc$experience <- as.factor(experience)
 
   # Tracks info
   filename <- file.path(path, paste(experience, "_tracks.csv", sep=""))
@@ -25,14 +25,14 @@ LoadExperience <- function(experience, path) {
   dfp <- read.csv(filename)
   dfp$experience <- as.factor(experience)
 
-  return (list(skeleton=dfs, transforms=dft, memory=dfm, tracks=dftr, performance=dfp))
+  return (list(skeleton=dfs, transforms=dft, compression=dfc, tracks=dftr, performance=dfp))
 }
 
 LoadExperiences <- function(path, reference) {
 
   # Finds and load all relevant experiences in path
   #------------------------------------------------
-  experiences <- strsplit(list.files(path = path, pattern = "_memory.csv$"), "_memory.csv")
+  experiences <- strsplit(list.files(path = path, pattern = "_compression.csv$"), "_compression.csv")
   # Moves reference first
   experiences <- c(reference, experiences[experiences != reference])
   ldf <- lapply(experiences, LoadExperience, path)
@@ -88,9 +88,9 @@ LoadExperiences <- function(path, reference) {
   locals$s.e <- ozzr::ComputeScaleError(locals, locals_ref)
   models$s.e <- ozzr::ComputeScaleError(models, models_ref)
 
-  # Memory size dataframe
+  # compression size dataframe
   #----------------------
-  memory <- do.call(rbind, lapply(ldf, function(i) i$memory))
+  compression <- do.call(rbind, lapply(ldf, function(i) i$compression))
 
   # Tracks dataframe
   #-----------------
@@ -99,9 +99,10 @@ LoadExperiences <- function(path, reference) {
   # Performance dataframe
   #----------------------
   performance <- do.call(rbind, lapply(ldf, function(i) i$performance))
+  performance$mode <- factor(performance$mode, levels = c("forward", "forward-cache", "backward", "backward-cache", "random", "random-cache", "reset", "context"))
 
   # Returns
-  return (list(experiences=experiences, locals=locals, models=models, memory=memory, tracks=tracks, performance=performance))
+  return (list(experiences=experiences, locals=locals, models=models, compression=compression, tracks=tracks, performance=performance))
 }
 
 ComputeSkinningError <- function(df, df_ref, distance) {

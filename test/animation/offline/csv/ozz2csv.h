@@ -29,6 +29,7 @@
 #define OZZ_ANIMATION_OFFLINE_CVS_OZZ2CSV_H_
 
 #include <chrono>
+#include <functional>
 
 #include "ozz/base/containers/map.h"
 #include "ozz/base/containers/string.h"
@@ -71,8 +72,11 @@ class Generator {
   enum Transformation { kTranslation, kRotation, kScale };
   virtual int GetKeyframesCount(Transformation _transformation, int joint) = 0;
 
+  // Reset context.
+  virtual bool Reset() = 0;
+
   // Sample animation to local samples data.
-  virtual bool Sample(float _time, bool _reset = false) = 0;
+  virtual bool Sample(float _time) = 0;
 
   // Copy local samples data back to _transforms output.
   virtual bool ReadBack(
@@ -90,15 +94,18 @@ class Ozz2Csv {
   bool RegisterGenerator(Generator* _generator, const char* _name);
 
   // Pushes experiences
-  typedef bool (*ExperienceFct)(CsvFile* _csv,
-                                const ozz::animation::offline::RawAnimation&,
-                                const ozz::animation::Skeleton&, Generator*);
+  typedef std::function<void()> CacheInvalidator;
+  typedef std::function<bool(
+      CsvFile* _csv, const ozz::animation::offline::RawAnimation&,
+      const ozz::animation::Skeleton&, Generator*, const CacheInvalidator&)>
+      ExperienceFct;
   bool RegisterExperience(ExperienceFct _experience, const char* _name);
 
  private:
   bool RunExperiences(const ozz::animation::offline::RawAnimation& _animation,
                       const ozz::animation::Skeleton& _skeleton,
-                      Generator* _generator);
+                      Generator* _generator,
+                      const Ozz2Csv::CacheInvalidator& _cache_invalidator);
 
   bool Generate(Generator* _generator,
                 const ozz::animation::offline::RawAnimation& _animation,

@@ -7,7 +7,7 @@ output:
     keep_md: yes
     self_contained: yes
 params:
-  path: "E:/Perso/Dev/ozz-animation/build/temp/atlas_analysis"
+  path: "D:/guillaume/dev/ozz-animation/build/temp/atlas_analysis"
   reference: "reference"
   vertex_distance: .1
   subset_data: FALSE
@@ -25,7 +25,7 @@ ldf <- ozzr::LoadExperiences(params$path, params$reference)
 experiences <- ldf$experiences
 models <- ldf$models
 locals <- ldf$locals
-memory <- ldf$memory
+compression <- ldf$compression
 performance <- ldf$performance
 
 # Rebuilds refs
@@ -59,7 +59,7 @@ ozzr::plot_animations(models, !params$fast)
 Displays animation size (in byte) for each experience.
 
 ```{r memory}
-bp <- memory %>%
+bp <- compression %>%
   ggplot2::ggplot(ggplot2::aes(x=experience, y=size / 1024, color=experience, fill=experience)) +
     ggplot2::geom_bar(stat="identity", alpha = 0.1) +
     ggplot2::labs(color = "Experience name", fill = "Experience name") +
@@ -74,7 +74,7 @@ plot(bp)
 
 Displays performance indicator for each experience.
 
-```{r performance, fig.asp = ozzr::plot_aspect_graphs(nlevels(performance$mode) / 2)}
+```{r performance, fig.asp = ozzr::plot_aspect(2)}
 bp <- performance %>%
   #dplyr::filter(experience!=params$reference) %>%
   ggplot2::ggplot(ggplot2::aes(x=time, y=execution, color=experience)) +
@@ -84,7 +84,37 @@ bp <- performance %>%
     ggplot2::xlab("Time") +
     ggplot2::ylab("Execution time (µs)") +
     ggplot2::scale_colour_manual(values = palette_experiences) +
-    ggplot2::facet_wrap(ggplot2::vars(mode), ncol=2)
+    ggplot2::facet_wrap(ggplot2::vars(mode), ncol=2, scales = "free")
+plot(bp)
+```
+
+```{r performance_boxes, fig.asp = ozzr::plot_aspect(2)}
+bp <- performance %>%
+  dplyr::filter(experience!=params$reference) %>%
+  ggplot2::ggplot() +
+    ggplot2::geom_boxplot(ggplot2::aes(x=experience, y=execution, color=experience), alpha = .8) +
+    ggplot2::labs(color = "Experience name") +
+    ggplot2::xlab("Experience name") +
+    ggplot2::scale_colour_manual(values = palette_experiences) +
+    ggplot2::ylab("Execution time (µs)") +
+    ggplot2::facet_wrap(ggplot2::vars(mode), ncol=2, scales = "free") +
+    ggplot2::coord_flip()
+plot(bp)
+```
+
+### Compression time
+
+Compression time in seconds.
+
+```{r compression}
+bp <- compression %>%
+  ggplot2::ggplot(ggplot2::aes(x=experience, y=time, color=experience, fill=experience)) +
+    ggplot2::geom_bar(stat="identity", alpha = 0.1) +
+    ggplot2::labs(color = "Experience name", fill = "Experience name") +
+    ggplot2::xlab("Experience name") +
+    ggplot2::ylab("Compression time (s)") +
+    ggplot2::scale_colour_manual(values = palette_experiences) +
+    ggplot2::scale_fill_manual(values = palette_experiences)
 plot(bp)
 ```
 

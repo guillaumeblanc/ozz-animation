@@ -135,7 +135,7 @@ void InvalidateCache(const TrackedAllocator& _allocator) {
   auto invalidate = [](void* _alloc, size_t _size) {
     const size_t kCacheLineSize = 64;
     for (size_t i = 0; i < _size; i += kCacheLineSize) {
-      _mm_clflush(ozz::PointerStride(_alloc, i * _size));
+      _mm_clflush(ozz::PointerStride(_alloc, i));
     }
   };
   _allocator.Iterate(invalidate);
@@ -157,8 +157,6 @@ class AllocatorSetter {
 int Ozz2Csv::Run(int _argc, char const* _argv[]) {
   TrackedAllocator tracked_allocator;
   AllocatorSetter allocator_setter(&tracked_allocator);
-
-  InvalidateCache(tracked_allocator);
 
   // Parses arguments.
   ozz::options::ParseResult parse_result =
@@ -219,7 +217,9 @@ int Ozz2Csv::Run(int _argc, char const* _argv[]) {
 
   // Runs all experiences
   ozz::log::Log() << "Running experiences." << std::endl;
-  if (!RunExperiences(animation, skeleton, generator)) {
+  const auto& cache_invalidator =
+      std::bind(InvalidateCache, std::cref(tracked_allocator));
+  if (!RunExperiences(animation, skeleton, generator, cache_invalidator)) {
     return EXIT_FAILURE;
   }
 
@@ -258,7 +258,8 @@ bool Ozz2Csv::Generate(Generator* _generator,
 
 bool Ozz2Csv::RunExperiences(
     const ozz::animation::offline::RawAnimation& _animation,
-    const ozz::animation::Skeleton& _skeleton, Generator* _generator) {
+    const ozz::animation::Skeleton& _skeleton, Generator* _generator,
+    const Ozz2Csv::CacheInvalidator& _cache_invalidator) {
   for (Experiences::const_iterator it = experiences_.begin();
        it != experiences_.end(); ++it) {
     // Opens csv file.
@@ -268,7 +269,8 @@ bool Ozz2Csv::RunExperiences(
       return false;
     }
     // Run experience.
-    if (!(*it->second)(&csv, _animation, _skeleton, _generator)) {
+    if (!(it->second)(&csv, _animation, _skeleton, _generator,
+                      _cache_invalidator)) {
       ozz::log::Err() << "Operation failed while running experience \""
                       << it->first << "\"." << std::endl;
       return false;
