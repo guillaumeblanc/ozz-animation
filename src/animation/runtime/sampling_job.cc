@@ -27,6 +27,7 @@
 
 #include "ozz/animation/runtime/sampling_job.h"
 
+#include <algorithm>
 #include <cassert>
 
 #include "ozz/animation/runtime/animation.h"
@@ -75,34 +76,65 @@ bool SamplingJob::Validate() const {
 }
 
 namespace {
+template <typename _Key>
+inline int TrackForward(int* _cache, const ozz::span<const _Key>& _keys,
+                        int _key, int _last_track, int _num_tracks) {
+  assert(_key < static_cast<int>(_keys.size()));
+  assert(_last_track >= 0 && _last_track < _num_tracks);
+
+  const int target = _key - _keys[_key].previous;
+  for (int entry = _last_track + _num_tracks; entry < _num_tracks * 2;
+       ++entry) {
+    if (_cache[entry] == target) {
+      return entry - _num_tracks;
+    }
+  }
+  for (int entry = _num_tracks;; ++entry) {
+    if (_cache[entry] == target) {
+      return entry - _num_tracks;
+    }
+    assert(entry < _last_track * _num_tracks &&
+           "Previous track should be in cache");
+  }
+}
+
+inline int TrackBackward(int* _cache, int _target, int _last_track,
+                         int _num_tracks) {
+  assert(_last_track >= 0 && _last_track < _num_tracks);
+
+  for (int entry = _last_track + _num_tracks; entry >= _num_tracks; --entry) {
+    if (_cache[entry] == _target) {
+      return entry - _num_tracks;
+    }
+  }
+  for (int entry = _num_tracks * 2 - 1;; --entry) {
+    if (_cache[entry] == _target) {
+      return entry - _num_tracks;
+    }
+    assert(entry > _last_track + _num_tracks &&
+           "Previous track should be in cache");
+  }
+}
+
 // Loops through the sorted key frames and update cache structure.
 template <typename _Key>
-void UpdateCacheCursor(float _ratio, int _num_soa_tracks,
-                       const ozz::span<const _Key>& _keys, int* _cursor,
-                       int* _cache, unsigned char* _outdated) {
+inline void UpdateCacheCursor(float _ratio, int _num_soa_tracks,
+                              const ozz::span<const float>& _timepoints,
+                              const ozz::span<const _Key>& _keys, int* _cursor,
+                              int* _cache, unsigned char* _outdated) {
   assert(_num_soa_tracks >= 1);
   const int num_tracks = _num_soa_tracks * 4;
+  const int num_keys = static_cast<int>(_keys.size());
   assert(_keys.begin() + num_tracks * 2 <= _keys.end());
 
-  const _Key* cursor = nullptr;
-  if (!*_cursor) {
-    // Initializes interpolated entries with the first 2 sets of key frames.
+  int cursor = *_cursor;
+  if (!cursor) {
+    // Initializes cache entries with the first 2 sets of key frames.
     // The sorting algorithm ensures that the first 2 key frames of a track
     // are consecutive.
-    for (int i = 0; i < _num_soa_tracks; ++i) {
-      const int in_index0 = i * 4;                   // * soa size
-      const int in_index1 = in_index0 + num_tracks;  // 2nd row.
-      const int out_index = i * 4 * 2;
-      _cache[out_index + 0] = in_index0 + 0;
-      _cache[out_index + 1] = in_index1 + 0;
-      _cache[out_index + 2] = in_index0 + 1;
-      _cache[out_index + 3] = in_index1 + 1;
-      _cache[out_index + 4] = in_index0 + 2;
-      _cache[out_index + 5] = in_index1 + 2;
-      _cache[out_index + 6] = in_index0 + 3;
-      _cache[out_index + 7] = in_index1 + 3;
+    for (; cursor < num_tracks * 2; ++cursor) {
+      _cache[cursor] = cursor;
     }
-    cursor = _keys.begin() + num_tracks * 2;  // New cursor position.
 
     // All entries are outdated. It cares to only flag valid soa entries as
     // this is the exit condition of other algorithms.
@@ -112,40 +144,69 @@ void UpdateCacheCursor(float _ratio, int _num_soa_tracks,
     }
     _outdated[num_outdated_flags - 1] =
         0xff >> (num_outdated_flags * 8 - _num_soa_tracks);
-  } else {
-    cursor = _keys.begin() + *_cursor;  // Might be == end()
-    assert(cursor >= _keys.begin() + num_tracks * 2 && cursor <= _keys.end());
+  }
+  assert(cursor >= num_tracks * 2 && cursor <= num_keys);
+
+  // Reading forward.
+  // Iterates while the cache is not updated with previous and penultimate keys
+  // required for interpolation at time ratio _ratio. Thanks to the keyframe
+  // sorting, the loop can end as soon as it finds a key greater that _ratio. It
+  // will mean that all the keys lower than _ratio have been processed, meaning
+  // all cache entries are up to date.
+  int track = 0;
+  for (; cursor < num_keys &&
+         _timepoints[_keys[cursor - _keys[cursor].previous].ratio] <= _ratio;
+       ++cursor) {
+    // Finds track index.
+    track = TrackForward(_cache, _keys, cursor, track, num_tracks);
+
+    // Flag this soa entry as outdated.
+    _outdated[track / 32] |= 1 << ((track & 0x1f) / 4);
+    // Updates cache.
+    const int penultimate = track;
+    const int last = track + num_tracks;
+    assert(_cache[last] == cursor - _keys[cursor].previous &&
+           "Wrong cache entry.");
+    _cache[penultimate] = _cache[last];
+    _cache[last] = cursor;
   }
 
-  // Search for the keys that matches _ratio.
-  // Iterates while the cache is not updated with left and right keys required
-  // for interpolation at time ratio _ratio, for all tracks. Thanks to the
-  // keyframe sorting, the loop can end as soon as it finds a key greater that
-  // _ratio. It will mean that all the keys lower than _ratio have been
-  // processed, meaning all cache entries are up to date.
-  while (cursor < _keys.end() &&
-         _keys[_cache[cursor->track * 2 + 1]].ratio <= _ratio) {
+  // Rewinds.
+  // Checks if the time of the penultimate key is greater than _ratio, in which
+  // case we need to rewind.
+  for (; _timepoints[_keys[(cursor - 1) - _keys[cursor - 1].previous].ratio] >
+         _ratio;
+       --cursor) {
+    assert(cursor - 1 >= num_tracks * 2);
+
+    // Finds track index.
+    track = TrackBackward(_cache, cursor - 1, track, num_tracks);
+
     // Flag this soa entry as outdated.
-    _outdated[cursor->track / 32] |= (1 << ((cursor->track & 0x1f) / 4));
+    _outdated[track / 32] |= 1 << ((track & 0x1f) / 4);
+
     // Updates cache.
-    const int base = cursor->track * 2;
-    _cache[base] = _cache[base + 1];
-    _cache[base + 1] = static_cast<int>(cursor - _keys.begin());
-    // Process next key.
-    ++cursor;
+    const int penultimate = track;
+    const int last = track + num_tracks;
+    assert(_cache[last] == cursor - 1 && "Wrong cache entry.");
+    _cache[last] = _cache[penultimate];
+    const int previous = _keys[_cache[penultimate]].previous;
+    assert(_cache[penultimate] >= previous);
+    _cache[penultimate] -= previous;
   }
-  assert(cursor <= _keys.end());
 
   // Updates cursor output.
-  *_cursor = static_cast<int>(cursor - _keys.begin());
+  assert(cursor >= num_tracks * 2 && cursor <= num_keys);
+  *_cursor = cursor;
 }
 
 template <typename _Key, typename _InterpKey, typename _Decompress>
-void UpdateInterpKeyframes(int _num_soa_tracks,
-                           const ozz::span<const _Key>& _keys,
-                           const int* _interp, uint8_t* _outdated,
-                           _InterpKey* _interp_keys,
-                           const _Decompress& _decompress) {
+inline void UpdateInterpKeyframes(int _num_soa_tracks,
+                                  const ozz::span<const float>& _timepoints,
+                                  const ozz::span<const _Key>& _keys,
+                                  const int* _cache, uint8_t* _outdated,
+                                  _InterpKey* _interp_keys,
+                                  const _Decompress& _decompress) {
   const int num_outdated_flags = (_num_soa_tracks + 7) / 8;
   for (int j = 0; j < num_outdated_flags; ++j) {
     uint8_t outdated = _outdated[j];
@@ -154,24 +215,27 @@ void UpdateInterpKeyframes(int _num_soa_tracks,
       if (!(outdated & 1)) {
         continue;
       }
-      const int base = i * 4 * 2;  // * soa size * 2 keys
 
+      const int penultimates = i * 4;  // * soa size
       // Decompress left side keyframes and store them in soa structures.
-      const _Key& k00 = _keys[_interp[base + 0]];
-      const _Key& k10 = _keys[_interp[base + 2]];
-      const _Key& k20 = _keys[_interp[base + 4]];
-      const _Key& k30 = _keys[_interp[base + 6]];
-      _interp_keys[i].ratio[0] =
-          math::simd_float4::Load(k00.ratio, k10.ratio, k20.ratio, k30.ratio);
+      const _Key& k00 = _keys[_cache[penultimates + 0]];
+      const _Key& k10 = _keys[_cache[penultimates + 1]];
+      const _Key& k20 = _keys[_cache[penultimates + 2]];
+      const _Key& k30 = _keys[_cache[penultimates + 3]];
+      _interp_keys[i].ratio[0] = math::simd_float4::Load(
+          _timepoints[k00.ratio], _timepoints[k10.ratio],
+          _timepoints[k20.ratio], _timepoints[k30.ratio]);
       _decompress(k00, k10, k20, k30, &_interp_keys[i].value[0]);
 
       // Decompress right side keyframes and store them in soa structures.
-      const _Key& k01 = _keys[_interp[base + 1]];
-      const _Key& k11 = _keys[_interp[base + 3]];
-      const _Key& k21 = _keys[_interp[base + 5]];
-      const _Key& k31 = _keys[_interp[base + 7]];
-      _interp_keys[i].ratio[1] =
-          math::simd_float4::Load(k01.ratio, k11.ratio, k21.ratio, k31.ratio);
+      const int lasts = (i + _num_soa_tracks) * 4;  // * soa size
+      const _Key& k01 = _keys[_cache[lasts + 0]];
+      const _Key& k11 = _keys[_cache[lasts + 1]];
+      const _Key& k21 = _keys[_cache[lasts + 2]];
+      const _Key& k31 = _keys[_cache[lasts + 3]];
+      _interp_keys[i].ratio[1] = math::simd_float4::Load(
+          _timepoints[k01.ratio], _timepoints[k11.ratio],
+          _timepoints[k21.ratio], _timepoints[k31.ratio]);
       _decompress(k01, k11, k21, k31, &_interp_keys[i].value[1]);
     }
   }
@@ -190,12 +254,14 @@ inline void DecompressFloat3(const Float3Key& _k0, const Float3Key& _k1,
 
 // Defines a mapping table that defines components assignation in the output
 // quaternion.
-constexpr int kCpntMapping[4][4] = {
+static constexpr int kCpntMapping[4][4] = {
     {0, 0, 1, 2}, {0, 0, 1, 2}, {0, 1, 0, 2}, {0, 1, 2, 0}};
 
-void DecompressQuaternion(const QuaternionKey& _k0, const QuaternionKey& _k1,
-                          const QuaternionKey& _k2, const QuaternionKey& _k3,
-                          math::SoaQuaternion* _quaternion) {
+inline void DecompressQuaternion(const QuaternionKey& _k0,
+                                 const QuaternionKey& _k1,
+                                 const QuaternionKey& _k2,
+                                 const QuaternionKey& _k3,
+                                 math::SoaQuaternion* _quaternion) {
   // Selects proper mapping for each key.
   const int* m0 = kCpntMapping[_k0.largest];
   const int* m1 = kCpntMapping[_k1.largest];
@@ -314,24 +380,27 @@ bool SamplingJob::Run() const {
 
   // Fetch key frames from the animation to the cache a r = anim_ratio.
   // Then updates outdated soa hot values.
-  UpdateCacheCursor(anim_ratio, num_soa_tracks, animation->translations(),
-                    &cache->translation_cursor_, cache->translation_keys_,
-                    cache->outdated_translations_);
-  UpdateInterpKeyframes(num_soa_tracks, animation->translations(),
-                        cache->translation_keys_, cache->outdated_translations_,
-                        cache->soa_translations_, &DecompressFloat3);
+  UpdateCacheCursor(anim_ratio, num_soa_tracks, animation->timepoints(),
+                    animation->translations(), &cache->translation_cursor_,
+                    cache->translation_cache_, cache->outdated_translations_);
+  UpdateInterpKeyframes(num_soa_tracks, animation->timepoints(),
+                        animation->translations(), cache->translation_cache_,
+                        cache->outdated_translations_, cache->soa_translations_,
+                        &DecompressFloat3);
 
-  UpdateCacheCursor(anim_ratio, num_soa_tracks, animation->rotations(),
-                    &cache->rotation_cursor_, cache->rotation_keys_,
-                    cache->outdated_rotations_);
-  UpdateInterpKeyframes(num_soa_tracks, animation->rotations(),
-                        cache->rotation_keys_, cache->outdated_rotations_,
-                        cache->soa_rotations_, &DecompressQuaternion);
+  UpdateCacheCursor(anim_ratio, num_soa_tracks, animation->timepoints(),
+                    animation->rotations(), &cache->rotation_cursor_,
+                    cache->rotation_cache_, cache->outdated_rotations_);
+  UpdateInterpKeyframes(num_soa_tracks, animation->timepoints(),
+                        animation->rotations(), cache->rotation_cache_,
+                        cache->outdated_rotations_, cache->soa_rotations_,
+                        &DecompressQuaternion);
 
-  UpdateCacheCursor(anim_ratio, num_soa_tracks, animation->scales(),
-                    &cache->scale_cursor_, cache->scale_keys_,
-                    cache->outdated_scales_);
-  UpdateInterpKeyframes(num_soa_tracks, animation->scales(), cache->scale_keys_,
+  UpdateCacheCursor(anim_ratio, num_soa_tracks, animation->timepoints(),
+                    animation->scales(), &cache->scale_cursor_,
+                    cache->scale_cache_, cache->outdated_scales_);
+  UpdateInterpKeyframes(num_soa_tracks, animation->timepoints(),
+                        animation->scales(), cache->scale_cache_,
                         cache->outdated_scales_, cache->soa_scales_,
                         &DecompressFloat3);
 
@@ -411,12 +480,12 @@ void SamplingCache::Resize(int _max_tracks) {
   assert(IsAligned(soa_scales_, alignof(InterpSoaFloat3)));
   alloc_cursor += sizeof(InterpSoaFloat3) * max_soa_tracks_;
 
-  translation_keys_ = reinterpret_cast<int*>(alloc_cursor);
-  assert(IsAligned(translation_keys_, alignof(int)));
+  translation_cache_ = reinterpret_cast<int*>(alloc_cursor);
+  assert(IsAligned(translation_cache_, alignof(int)));
   alloc_cursor += sizeof(int) * max_tracks * 2;
-  rotation_keys_ = reinterpret_cast<int*>(alloc_cursor);
+  rotation_cache_ = reinterpret_cast<int*>(alloc_cursor);
   alloc_cursor += sizeof(int) * max_tracks * 2;
-  scale_keys_ = reinterpret_cast<int*>(alloc_cursor);
+  scale_cache_ = reinterpret_cast<int*>(alloc_cursor);
   alloc_cursor += sizeof(int) * max_tracks * 2;
 
   outdated_translations_ = reinterpret_cast<uint8_t*>(alloc_cursor);
@@ -431,8 +500,17 @@ void SamplingCache::Resize(int _max_tracks) {
 }
 
 void SamplingCache::Step(const Animation& _animation, float _ratio) {
-  // The cache is invalidated if animation has changed or if it is being rewind.
-  if (animation_ != &_animation || _ratio < ratio_) {
+  // The cache is invalidated if animation has changed...
+  const bool changed = animation_ != &_animation;
+
+  // ... or if it is rewinding.
+  // Note that if current state is below kRestartOverhead treshold, then better
+  // rewind than restart as it won't trash the cached keyframes.
+  const float kRestartOverhead =
+      .05f;  // Restart is worth 5% of seek time (just a guess).
+  const bool restart = ratio_ > kRestartOverhead && ratio_ - _ratio > _ratio;
+
+  if (changed || restart) {
     animation_ = &_animation;
     translation_cursor_ = 0;
     rotation_cursor_ = 0;

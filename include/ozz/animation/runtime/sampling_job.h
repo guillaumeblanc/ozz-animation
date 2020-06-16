@@ -146,7 +146,8 @@ class SamplingCache {
   // cache is invalidated and reseted for the new _animation and _ratio.
   void Step(const Animation& _animation, float _ratio);
 
-  // The animation this cache refers to. nullptr means that the cache is invalid.
+  // The animation this cache refers to. nullptr means that the cache is
+  // invalid.
   const Animation* animation_;
 
   // The current time ratio in the animation.
@@ -162,9 +163,9 @@ class SamplingCache {
 
   // Points to the keys in the animation that are valid for the current time
   // ratio.
-  int* translation_keys_;
-  int* rotation_keys_;
-  int* scale_keys_;
+  int* translation_cache_;
+  int* rotation_cache_;
+  int* scale_cache_;
 
   // Current cursors in the animation. 0 means that the cache is invalid.
   int translation_cursor_;

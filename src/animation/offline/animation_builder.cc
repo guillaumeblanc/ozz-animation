@@ -34,6 +34,7 @@
 #include <limits>
 
 #include "ozz/animation/offline/raw_animation.h"
+#include "ozz/animation/offline/raw_animation_utils.h"
 #include "ozz/animation/runtime/animation.h"
 #include "ozz/base/containers/vector.h"
 #include "ozz/base/maths/simd_math.h"
@@ -125,27 +126,114 @@ void CopyRaw(const _SrcTrack& _src, uint16_t _track, float _duration,
          _dest->back().key.time - _duration == 0.f);
 }
 
-template <typename _SortingKey>
-void CopyToAnimation(ozz::vector<_SortingKey>* _src,
-                     ozz::span<Float3Key>* _dest, float _inv_duration) {
-  const size_t src_count = _src->size();
-  if (!src_count) {
-    return;
-  }
+template <typename _SortingKey, class _Lerp, class _Compare>
+void Sort(ozz::vector<_SortingKey>& _src, size_t _num_tracks,
+          const _Lerp& _lerp, const _Compare& _comp) {
+  // Sorts whole vector
+  std::sort(_src.begin(), _src.end(), _comp);
 
-  // Sort animation keys to favor cache coherency.
-  std::sort(&_src->front(), (&_src->back()) + 1, &SortingKeyLess<_SortingKey>);
+  // Will store last 2 keys (last and penultimate) for a track.
+  ozz::vector<std::pair<int, int>> previouses(_num_tracks);
+  for (bool loop = true; loop;) {
+    loop = false;  // Will be set to true again if vector was changed.
 
-  // Fills output.
-  const _SortingKey* src = &_src->front();
-  for (size_t i = 0; i < src_count; ++i) {
-    Float3Key& key = (*_dest)[i];
-    key.ratio = src[i].key.time * _inv_duration;
-    key.track = src[i].track;
-    key.value[0] = ozz::math::FloatToHalf(src[i].key.value.x);
-    key.value[1] = ozz::math::FloatToHalf(src[i].key.value.y);
-    key.value[2] = ozz::math::FloatToHalf(src[i].key.value.z);
+    // Reset all previouses to default.
+    const std::pair<int, int> default_previous{-1, -1};
+    std::fill(previouses.begin(), previouses.end(), default_previous);
+
+    // Loop through all keys.
+    for (size_t i = 0; i < _src.size(); ++i) {
+      const uint16_t track = _src[i].track;
+      auto& previous = previouses[track];
+
+      // Inject key if distance from previous one is too big to be stored in
+      // runtime data structure.
+      if (previous.first != -1 && i - previous.first > kMaxPreviousOffset) {
+        assert(previous.second != -1 &&
+               "Not possible not to have a valid penultimate key.");
+        // Copy as originals are going to be (re)moved.
+        _SortingKey last = _src[previous.first];
+        const _SortingKey penultimate = _src[previous.second];
+
+        // Prepares new key to insert.
+        const _SortingKey insert = {
+            track,
+            penultimate.key.time,
+            {(penultimate.key.time + last.key.time) * .5f,
+             _lerp(penultimate.key.value, last.key.value, .5f)}};
+
+        // Removes previous.first key that is changing and needs to be resorted.
+        _src.erase(_src.begin() + previous.first);
+
+        // Pushes the new key....
+        _src.push_back(insert);
+
+        // ... and the modified one, in the correct order (for the merge).
+        last.prev_key_time = insert.key.time;
+        _src.push_back(last);
+
+        // Re-sorts vector in place. Last 2 keys where added. Nothing has
+        // changed before previous.second.
+        std::inplace_merge(_src.begin() + previous.second, _src.end() - 2,
+                           _src.end(), _comp);
+
+        // Restart as things have changed behind insertion point and previouses
+        // need to be rebuilt.
+        loop = true;
+        break;
+      }
+
+      // Updates previouses
+      previous.second = previous.first;
+      previous.first = static_cast<int>(i);
+    }
   }
+}
+
+void CopyTimePoints(const span<const float>& _times, float _inv_duration,
+                    const span<float>& _ratios) {
+  assert(_times.size() == _ratios.size());
+  for (size_t i = 0; i < _times.size(); ++i) {
+    _ratios[i] = _times[i] * _inv_duration;
+  }
+}
+
+uint16_t TimePointToIndex(const span<const float>& _timepoints, float _time) {
+  const float* found = std::find(_timepoints.begin(), _timepoints.end(), _time);
+  if (found == _timepoints.end()) {
+    assert(found != _timepoints.end());
+  }
+  const ptrdiff_t distance = found - _timepoints.begin();
+  assert(distance >= 0 && distance < std::numeric_limits<uint16_t>::max());
+  return static_cast<uint16_t>(distance);
+}
+
+template <typename _SortingKey, typename _OutputKey, typename _Compressor>
+void CopyToAnimation(const span<const float>& _timepoints,
+                     const ozz::vector<_SortingKey>& _src, size_t _num_tracks,
+                     ozz::span<_OutputKey>* _dest,
+                     const _Compressor& _compressor) {
+  ozz::vector<_OutputKey*> previouses(_num_tracks);
+  for (size_t i = 0; i < _src.size(); ++i) {
+    const _SortingKey& src = _src[i];
+    _OutputKey& key = (*_dest)[i];
+    key.ratio = TimePointToIndex(_timepoints, src.key.time);
+    const ptrdiff_t diff =
+        previouses[src.track] ? &key - previouses[src.track] : 0;
+    assert(diff < 8191);  // TODO real number.
+    key.previous = static_cast<uint16_t>(diff);
+    _compressor(src.key.value, &key);
+
+    // Stores track position
+    previouses[src.track] = &key;
+  }
+}
+
+void CompressFloat3(const ozz::math::Float3& _src,
+                    ozz::animation::Float3Key* _dest) {
+  _dest->value[0] = ozz::math::FloatToHalf(_src.x);
+  _dest->value[1] = ozz::math::FloatToHalf(_src.y);
+  _dest->value[2] = ozz::math::FloatToHalf(_src.z);
 }
 
 // Compares float absolute values.
@@ -155,12 +243,13 @@ bool LessAbs(float _left, float _right) {
 
 // Compresses quaternion to ozz::animation::RotationKey format.
 // The 3 smallest components of the quaternion are quantized to 16 bits
-// integers, while the largest is recomputed thanks to quaternion normalization
-// property (x^2+y^2+z^2+w^2 = 1). Because the 3 components are the 3 smallest,
-// their value cannot be greater than sqrt(2)/2. Thus quantization quality is
-// improved by pre-multiplying each componenent by sqrt(2).
-void CompressQuat(const ozz::math::Quaternion& _src,
-                  ozz::animation::QuaternionKey* _dest) {
+// integers, while the largest is recomputed thanks to quaternion
+// normalization property (x^2+y^2+z^2+w^2 = 1). Because the 3 components are
+// the 3 smallest, their value cannot be greater than sqrt(2)/2. Thus
+// quantization quality is improved by pre-multiplying each componenent by
+// sqrt(2).
+void CompressQuaternion(const ozz::math::Quaternion& _src,
+                        ozz::animation::QuaternionKey* _dest) {
   // Finds the largest quaternion component.
   const float quat[4] = {_src.x, _src.y, _src.z, _src.w};
   const size_t largest = std::max_element(quat, quat + 4, LessAbs) - quat;
@@ -182,33 +271,24 @@ void CompressQuat(const ozz::math::Quaternion& _src,
   _dest->value[2] = math::Clamp(-32767, c, 32767) & 0xffff;
 }
 
-// Specialize for rotations in order to normalize quaternions.
-// Consecutive opposite quaternions are also fixed up in order to avoid checking
-// for the smallest path during the NLerp runtime algorithm.
-void CopyToAnimation(ozz::vector<SortingRotationKey>* _src,
-                     ozz::span<QuaternionKey>* _dest, float _inv_duration) {
-  const size_t src_count = _src->size();
-  if (!src_count) {
-    return;
-  }
-
-  // Normalize quaternions.
-  // Also fixes-up successive opposite quaternions that would fail to take the
-  // shortest path during the normalized-lerp.
-  // Note that keys are still sorted per-track at that point, which allows this
-  // algorithm to process all consecutive keys.
+// Normalize quaternions. Fixes-up successive opposite quaternions that would
+// fail to take the shortest path during the normalized-lerp. Note that keys
+// are still sorted per-track at that point, which allows this algorithm to
+// process all consecutive keys.
+void FixupQuaternions(ozz::vector<SortingRotationKey>* _src) {
   size_t track = std::numeric_limits<size_t>::max();
   const math::Quaternion identity = math::Quaternion::identity();
-  SortingRotationKey* src = &_src->front();
-  for (size_t i = 0; i < src_count; ++i) {
-    math::Quaternion normalized = NormalizeSafe(src[i].key.value, identity);
-    if (track != src[i].track) {   // First key of the track.
+  for (size_t i = 0; i < _src->size(); ++i) {
+    SortingRotationKey& src = _src->at(i);
+    math::Quaternion normalized = NormalizeSafe(src.key.value, identity);
+    if (track != _src->at(i).track) {  // First key of the track.
       if (normalized.w < 0.f) {    // .w eq to a dot with identity quaternion.
         normalized = -normalized;  // Q an -Q are the same rotation.
       }
     } else {  // Still on the same track: so fixes-up quaternion.
-      const math::Float4 prev(src[i - 1].key.value.x, src[i - 1].key.value.y,
-                              src[i - 1].key.value.z, src[i - 1].key.value.w);
+      const SortingRotationKey& prev_src = _src->at(i - 1);
+      const math::Float4 prev(prev_src.key.value.x, prev_src.key.value.y,
+                              prev_src.key.value.z, prev_src.key.value.w);
       const math::Float4 curr(normalized.x, normalized.y, normalized.z,
                               normalized.w);
       if (Dot(prev, curr) < 0.f) {
@@ -216,25 +296,34 @@ void CopyToAnimation(ozz::vector<SortingRotationKey>* _src,
       }
     }
     // Stores fixed-up quaternion.
-    src[i].key.value = normalized;
-    track = src[i].track;
-  }
-
-  // Sort.
-  std::sort(array_begin(*_src), array_end(*_src),
-            &SortingKeyLess<SortingRotationKey>);
-
-  // Fills rotation keys output.
-  for (size_t i = 0; i < src_count; ++i) {
-    const SortingRotationKey& skey = src[i];
-    QuaternionKey& dkey = (*_dest)[i];
-    dkey.ratio = skey.key.time * _inv_duration;
-    dkey.track = skey.track;
-
-    // Compress quaternion to destination container.
-    CompressQuat(skey.key.value, &dkey);
+    src.key.value = normalized;
+    track = src.track;
   }
 }
+
+ozz::vector<float> BuildTimePoints(
+    ozz::vector<SortingTranslationKey>& _translations,
+    ozz::vector<SortingRotationKey>& _rotations,
+    ozz::vector<SortingScaleKey>& _scales) {
+  ozz::vector<float> timepoints;
+
+  for (const auto& _key : _translations) {
+    timepoints.push_back(_key.key.time);
+  }
+  for (const auto& _key : _rotations) {
+    timepoints.push_back(_key.key.time);
+  }
+  for (const auto& _key : _scales) {
+    timepoints.push_back(_key.key.time);
+  }
+
+  std::sort(timepoints.begin(), timepoints.end());
+  timepoints.erase(std::unique(timepoints.begin(), timepoints.end()),
+                   timepoints.end());
+
+  return timepoints;
+}
+
 }  // namespace
 
 // Ensures _input's validity and allocates _animation.
@@ -254,12 +343,12 @@ unique_ptr<Animation> AnimationBuilder::operator()(
 
   // Sets duration.
   const float duration = _input.duration;
-  const float inv_duration = 1.f / _input.duration;
-  animation->duration_ = duration;
   // A _duration == 0 would create some division by 0 during sampling.
   // Also we need at least to keys with different times, which cannot be done
   // if duration is 0.
   assert(duration > 0.f);  // This case is handled by Validate().
+  const float inv_duration = 1.f / _input.duration;
+  animation->duration_ = duration;
 
   // Sets tracks count. Can be safely casted to uint16_t as number of tracks as
   // already been validated.
@@ -306,15 +395,43 @@ unique_ptr<Animation> AnimationBuilder::operator()(
     PushBackIdentityKey<SrcSKey>(i, duration, &sorting_scales);
   }
 
+  FixupQuaternions(&sorting_rotations);
+
+  // Sort animation keys to favor cache coherency.
+  Sort(sorting_translations, num_soa_tracks, &LerpTranslation,
+       &SortingKeyLess<SortingTranslationKey>);
+  Sort(sorting_rotations, num_soa_tracks, &LerpRotation,
+       &SortingKeyLess<SortingRotationKey>);
+  Sort(sorting_scales, num_soa_tracks, &LerpScale,
+       &SortingKeyLess<SortingScaleKey>);
+
+  // Get all timepoints. Shall be done on sorting keys as time points might have
+  // been added during the process.
+  const ozz::vector<float>& time_points =
+      BuildTimePoints(sorting_translations, sorting_rotations, sorting_scales);
+
+  // Maximum time points reached.
+  if (time_points.size() >= std::numeric_limits<uint16_t>::max()) {
+    return nullptr;
+  }
+
   // Allocate animation members.
-  animation->Allocate(_input.name.length(), sorting_translations.size(),
-                      sorting_rotations.size(), sorting_scales.size());
+  const Animation::AllocateParams params{
+      _input.name.length(), time_points.size(), sorting_translations.size(),
+      sorting_rotations.size(), sorting_scales.size()};
+  animation->Allocate(params);
 
   // Copy sorted keys to final animation.
-  CopyToAnimation(&sorting_translations, &animation->translations_,
-                  inv_duration);
-  CopyToAnimation(&sorting_rotations, &animation->rotations_, inv_duration);
-  CopyToAnimation(&sorting_scales, &animation->scales_, inv_duration);
+  CopyToAnimation(make_span(time_points), sorting_translations, num_soa_tracks,
+                  &animation->translations_, &CompressFloat3);
+  CopyToAnimation(make_span(time_points), sorting_rotations, num_soa_tracks,
+                  &animation->rotations_, &CompressQuaternion);
+  CopyToAnimation(make_span(time_points), sorting_scales, num_soa_tracks,
+                  &animation->scales_, &CompressFloat3);
+
+  // Converts timepoints to ratio and copy to animation. Must be done once
+  // indices have been set.
+  CopyTimePoints(make_span(time_points), inv_duration, animation->timepoints_);
 
   // Copy animation's name.
   if (animation->name_) {
