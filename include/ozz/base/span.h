@@ -52,7 +52,8 @@ struct span {
   span() : data_(nullptr), size_(0) {}
 
   // Constructs a range from its extreme values.
-  span(_Ty* _begin, _Ty* _end) : data_(_begin), size_(static_cast<size_t>(_end - _begin)) {
+  span(_Ty* _begin, _Ty* _end)
+      : data_(_begin), size_(static_cast<size_t>(_end - _begin)) {
     assert(_begin <= _end && "Invalid range.");
   }
 
@@ -82,7 +83,7 @@ struct span {
   }
 
   // Implement cast operator to allow conversions to span<const _Ty>.
-  operator span<const _Ty>() const { return span<const _Ty>(data_, size_); }
+  operator span<const _Ty>() const { return {data_, size_}; }
 
   // Returns a const reference to element _i of range [begin,end[.
   _Ty& operator[](size_t _i) const {
@@ -117,7 +118,7 @@ struct span {
 // Returns a span from an array.
 template <typename _Ty, size_t _Size>
 inline span<_Ty> make_span(_Ty (&_arr)[_Size]) {
-  return {_arr};
+  return {_arr, _Size};
 }
 
 // Returns a mutable span from a container.
@@ -165,6 +166,17 @@ inline span<_Ty> fill_span(span<char>& _src, size_t _count) {
   // Validity assertion is done by span constructor.
   _src = {reinterpret_cast<char*>(ret.end()), _src.end()};
   return ret;
+}
+
+// Fills a typed span from a byte source span. Source byte span is modified to
+// reflect remain size.
+template <typename _Ret, typename _Ty>
+inline span<_Ret> reinterpret_span(const span<_Ty>& _src) {
+  assert(ozz::IsAligned(_src.data(), alignof(_Ret)) && "Invalid alignment.");
+  assert((_src.size_bytes() % sizeof(_Ret)) == 0 && "Invalid size.");
+
+  return {reinterpret_cast<_Ret*>(_src.begin()),
+          reinterpret_cast<_Ret*>(_src.end())};
 }
 
 }  // namespace ozz
