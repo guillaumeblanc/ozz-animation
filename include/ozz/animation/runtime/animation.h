@@ -82,14 +82,32 @@ class Animation {
   // Gets the buffer of time points.
   span<const float> timepoints() const { return timepoints_; }
 
+  template <typename _Type>
+  struct Component {
+    typedef _Type value_type;
+
+    size_t size_bytes() const {
+      return ratios.size_bytes() + values.size_bytes();
+    }
+    // Indices to timepoints. uint8_t or uint16_t depending on timepoints size.
+    span<char> ratios;
+    // Keyframe values
+    span<_Type> values;
+  };
+
   // Gets the buffer of translations keys.
-  span<const Float3Key> translations() const { return translations_; }
+  typedef Component<const Float3Key> Translations;
+  Translations translations() const {
+    return {translations_.ratios, translations_.values};
+  }
 
   // Gets the buffer of rotation keys.
-  span<const QuaternionKey> rotations() const { return rotations_; }
+  typedef Component<const QuaternionKey> Rotations;
+  Rotations rotations() const { return {rotations_.ratios, rotations_.values}; }
 
   // Gets the buffer of scale keys.
-  span<const Float3Key> scales() const { return scales_; }
+  typedef Component<const Float3Key> Scales;
+  Scales scales() const { return {scales_.ratios, scales_.values}; }
 
   // Get the estimated animation's size in bytes.
   size_t size() const;
@@ -112,9 +130,9 @@ class Animation {
   struct AllocateParams {
     size_t name_len;
     size_t timepoints;
-    size_t translation;
-    size_t rotation;
-    size_t scale;
+    size_t translations;
+    size_t rotations;
+    size_t scales;
   };
   void Allocate(const AllocateParams& _params);
   void Deallocate();
@@ -131,9 +149,10 @@ class Animation {
 
   // Stores all translation/rotation/scale keys begin and end of buffers.
   span<float> timepoints_;
-  span<Float3Key> translations_;
-  span<QuaternionKey> rotations_;
-  span<Float3Key> scales_;
+
+  Component<Float3Key> translations_;
+  Component<QuaternionKey> rotations_;
+  Component<Float3Key> scales_;
 };
 }  // namespace animation
 

@@ -208,20 +208,31 @@ uint16_t TimePointToIndex(const span<const float>& _timepoints, float _time) {
   return static_cast<uint16_t>(distance);
 }
 
-template <typename _SortingKey, typename _OutputKey, typename _Compressor>
+template <typename _SortingKey, typename _Component, typename _Compressor>
 void CopyToAnimation(const span<const float>& _timepoints,
                      const ozz::vector<_SortingKey>& _src, size_t _num_tracks,
-                     ozz::span<_OutputKey>* _dest,
-                     const _Compressor& _compressor) {
-  ozz::vector<_OutputKey*> previouses(_num_tracks);
+                     _Component* _dest, const _Compressor& _compressor) {
+  ozz::vector<typename _Component::value_type*> previouses(_num_tracks);
   for (size_t i = 0; i < _src.size(); ++i) {
     const _SortingKey& src = _src[i];
-    _OutputKey& key = (*_dest)[i];
-    key.ratio = TimePointToIndex(_timepoints, src.key.time);
+    typename _Component::value_type& key = _dest->values[i];
+
+    // Ratio
+    const uint16_t ratio = TimePointToIndex(_timepoints, src.key.time);
+    if (_timepoints.size() <= std::numeric_limits<uint8_t>::max()) {
+      assert(ratio <= std::numeric_limits<uint8_t>::max());
+      reinterpret_span<uint8_t>(_dest->ratios)[i] = static_cast<uint8_t>(ratio);
+    } else {
+      reinterpret_span<uint16_t>(_dest->ratios)[i] = ratio;
+    }
+
+    // Previous
     const ptrdiff_t diff =
         previouses[src.track] ? &key - previouses[src.track] : 0;
-    assert(diff < 8191);  // TODO real number.
+    assert(diff < kMaxPreviousOffset);
     key.previous = static_cast<uint16_t>(diff);
+
+    // Value
     _compressor(src.key.value, &key);
 
     // Stores track position
