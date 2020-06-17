@@ -40,14 +40,14 @@ inline int CountKeyframesImpl(const span<const _Key>& _keys, int _track) {
     return static_cast<int>(_keys.size());
   }
 
-  // TODO implement and test
-  assert(false);
-  int count = 0;
-  // for (const _Key& key : _keys) {
-  // if (key.track == _track) {
-  ++count;
-  //}
-  //}
+  int count = 1;
+  size_t previous = static_cast<size_t>(_track);
+  for (size_t i = previous + 1; i < _keys.size(); ++i) {
+    if (i - _keys[i].previous == previous) {
+      ++count;
+      previous = i;
+    }
+  }
   return count;
 }
 
