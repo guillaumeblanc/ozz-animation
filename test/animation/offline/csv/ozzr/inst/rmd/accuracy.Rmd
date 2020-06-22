@@ -41,7 +41,7 @@ palette_experiences <- ozzr::plot_palette(experiences)
 # Plotting helper
 plot_details <- function(df, cols, err, ylabel1, ylabel2) {
     
-  for (n in levels(df$name)) {
+  for (n in levels(droplevels(df$name))) {
     
     cat('\n\n')
     cat("##### ", n, '\n')
