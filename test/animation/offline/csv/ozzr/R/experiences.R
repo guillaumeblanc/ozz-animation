@@ -37,6 +37,14 @@ LoadExperiences <- function(path, reference) {
   experiences <- c(reference, experiences[experiences != reference])
   ldf <- lapply(experiences, LoadExperience, path)
 
+  # Check if some joints shall be rejected
+  reject_filename <- file.path(params$path, "reject.csv")
+  if (file.exists(reject_filename)) {
+    reject <- read.csv(reject_filename)
+  } else {
+    reject <- data.frame(name="unknown")
+  }
+
   # Prepare skeleton dataframe
   #---------------------------
   # Ensure all skeleton experiences are the same
@@ -65,6 +73,9 @@ LoadExperiences <- function(path, reference) {
 
   transforms$depth <- as.factor(transforms$depth)
   transforms$depth <- reorder(transforms$depth, -as.integer(transforms$depth))
+
+  # Rejects unwanted joints
+  transforms <- transforms[!transforms$name %in% reject$name,]
 
   locals <- transforms %>%
     dplyr::select(joint, depth, name, time, experience, t.x=lt.x, t.y=lt.y, t.z=lt.z, r.x=lr.x, r.y=lr.y, r.z=lr.z, r.w=lr.w, s.x=ls.x, s.y=ls.y, s.z=ls.z)
@@ -95,6 +106,7 @@ LoadExperiences <- function(path, reference) {
   # Tracks dataframe
   #-----------------
   tracks <- dplyr::left_join(do.call(rbind, lapply(ldf, function(i) i$tracks)), dplyr::select(skeleton, c("joint", "name")), by="joint")
+  tracks <- tracks[!tracks$name %in% reject$name,]
 
   # Performance dataframe
   #----------------------

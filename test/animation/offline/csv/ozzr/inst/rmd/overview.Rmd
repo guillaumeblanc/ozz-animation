@@ -62,6 +62,7 @@ Displays animation size (in byte) for each experience.
 bp <- compression %>%
   ggplot2::ggplot(ggplot2::aes(x=experience, y=size / 1024, color=experience, fill=experience)) +
     ggplot2::geom_bar(stat="identity", alpha = 0.1) +
+    ggplot2::geom_text(ggplot2::aes(label = formatC(size / 1024, digits = 1, format = "f"), vjust=-0.25, show.legend = FALSE)) +
     ggplot2::labs(color = "Experience name", fill = "Experience name") +
     ggplot2::xlab("Experience name") +
     ggplot2::ylab("Animation size (KB)") +
@@ -74,9 +75,9 @@ plot(bp)
 
 Displays performance indicator for each experience.
 
-```{r performance, fig.asp = ozzr::plot_aspect(2)}
+```{r performance, fig.asp = ozzr::plot_aspect(3)}
 bp <- performance %>%
-  #dplyr::filter(experience!=params$reference) %>%
+  dplyr::filter(experience!=params$reference) %>%
   ggplot2::ggplot(ggplot2::aes(x=time, y=execution, color=experience)) +
     ggplot2::geom_point(size = .5, alpha = .2) +
     ggplot2::geom_smooth(method="lm", se=TRUE, level=.95) +
@@ -88,7 +89,7 @@ bp <- performance %>%
 plot(bp)
 ```
 
-```{r performance_boxes, fig.asp = ozzr::plot_aspect(2)}
+```{r performance_boxes, fig.asp = ozzr::plot_aspect(3)}
 bp <- performance %>%
   dplyr::filter(experience!=params$reference) %>%
   ggplot2::ggplot() +
