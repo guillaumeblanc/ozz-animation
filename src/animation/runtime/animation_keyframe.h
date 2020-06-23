@@ -47,7 +47,6 @@ namespace animation {
 // Translation values are stored as half precision floats with 16 bits per
 // component.
 struct Float3Key {
-  uint16_t previous;
   uint16_t value[3];
 };
 
@@ -64,13 +63,13 @@ struct Float3Key {
 // by sqrt(2) to gain some precision indeed.
 //
 struct QuaternionKey {
-  uint16_t previous : 13;
+  uint16_t empty : 13;
   uint16_t largest : 2;  // The largest component of the quaternion.
   uint16_t sign : 1;     // The sign of the largest component. 1 for negative.
   int16_t value[3];      // The quantized value of the 3 smallest components.
 };
 
-enum Constants { kMaxPreviousOffset = (1 << 13) - 1 };
+enum Constants { kMaxPreviousOffset = (1 << 16) - 1 };
 
 }  // namespace animation
 }  // namespace ozz

@@ -82,32 +82,41 @@ class Animation {
   // Gets the buffer of time points.
   span<const float> timepoints() const { return timepoints_; }
 
-  template <typename _Type>
+  template <typename _Ty>
   struct Component {
-    typedef _Type value_type;
+    typedef _Ty value_type;
+
+    // Implicit conversion to const _Ty.
+    operator Component<const _Ty>() const {
+      return {ratios, previouses, values};
+    }
 
     size_t size_bytes() const {
-      return ratios.size_bytes() + values.size_bytes();
+      return ratios.size_bytes() + previouses.size_bytes() +
+             values.size_bytes();
     }
+
     // Indices to timepoints. uint8_t or uint16_t depending on timepoints size.
     span<char> ratios;
+
+    // Offsets from the previous keyframe of the same track.
+    span<uint16_t> previouses;
+
     // Keyframe values
-    span<_Type> values;
+    span<_Ty> values;
   };
 
   // Gets the buffer of translations keys.
   typedef Component<const Float3Key> Translations;
-  Translations translations() const {
-    return {translations_.ratios, translations_.values};
-  }
+  Translations translations() const { return translations_; }
 
   // Gets the buffer of rotation keys.
   typedef Component<const QuaternionKey> Rotations;
-  Rotations rotations() const { return {rotations_.ratios, rotations_.values}; }
+  Rotations rotations() const { return rotations_; }
 
   // Gets the buffer of scale keys.
   typedef Component<const Float3Key> Scales;
-  Scales scales() const { return {scales_.ratios, scales_.values}; }
+  Scales scales() const { return scales_; }
 
   // Get the estimated animation's size in bytes.
   size_t size() const;

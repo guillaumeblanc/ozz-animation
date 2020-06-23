@@ -43,7 +43,7 @@ inline int CountKeyframesImpl(const _Key& _keys, int _track) {
   int count = 1;
   size_t previous = static_cast<size_t>(_track);
   for (size_t i = previous + 1; i < _keys.values.size(); ++i) {
-    if (i - _keys.values[i].previous == previous) {
+    if (i - _keys.previouses[i] == previous) {
       ++count;
       previous = i;
     }

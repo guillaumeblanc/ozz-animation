@@ -230,7 +230,7 @@ void CopyToAnimation(const span<const float>& _timepoints,
     const ptrdiff_t diff =
         previouses[src.track] ? &key - previouses[src.track] : 0;
     assert(diff < kMaxPreviousOffset);
-    key.previous = static_cast<uint16_t>(diff);
+    _dest->previouses[i] = static_cast<uint16_t>(diff);
 
     // Value
     _compressor(src.key.value, &key);
