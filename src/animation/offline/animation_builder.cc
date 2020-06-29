@@ -235,9 +235,9 @@ void CopyToAnimation(const span<const float>& _timepoints,
 
 void CompressFloat3(const ozz::math::Float3& _src,
                     ozz::animation::Float3Key* _dest) {
-  _dest->value[0] = ozz::math::FloatToHalf(_src.x);
-  _dest->value[1] = ozz::math::FloatToHalf(_src.y);
-  _dest->value[2] = ozz::math::FloatToHalf(_src.z);
+  _dest->values[0] = ozz::math::FloatToHalf(_src.x);
+  _dest->values[1] = ozz::math::FloatToHalf(_src.y);
+  _dest->values[2] = ozz::math::FloatToHalf(_src.z);
 }
 
 // Compares float absolute values.
@@ -246,7 +246,7 @@ bool LessAbs(float _left, float _right) {
 }
 
 // Compresses quaternion to ozz::animation::RotationKey format.
-// The 3 smallest components of the quaternion are quantized to 16 bits
+// The 3 smallest components of the quaternion are quantized to x bits
 // integers, while the largest is recomputed thanks to quaternion
 // normalization property (x^2+y^2+z^2+w^2 = 1). Because the 3 components are
 // the 3 smallest, their value cannot be greater than sqrt(2)/2. Thus
@@ -258,22 +258,22 @@ void CompressQuaternion(const ozz::math::Quaternion& _src,
   const float quat[4] = {_src.x, _src.y, _src.z, _src.w};
   const size_t largest = std::max_element(quat, quat + 4, LessAbs) - quat;
   assert(largest <= 3);
-  _dest->largest = largest & 0x3;
 
-  // Stores the sign of the largest component.
-  _dest->sign = quat[largest] < 0.f;
-
-  // Quantize the 3 smallest components on 16 bits signed integers.
-  const float kFloat2Int = 32767.f * math::kSqrt2;
+  // Quantize the 3 smallest components on x bits signed integers.
+  const float kScale = QuaternionKey::kfScale / math::kSqrt2;
+  const float kOffset = -math::kSqrt2_2;
   const int kMapping[4][3] = {{1, 2, 3}, {0, 2, 3}, {0, 1, 3}, {0, 1, 2}};
   const int* map = kMapping[largest];
-  const int a = static_cast<int>(floor(quat[map[0]] * kFloat2Int + .5f));
-  const int b = static_cast<int>(floor(quat[map[1]] * kFloat2Int + .5f));
-  const int c = static_cast<int>(floor(quat[map[2]] * kFloat2Int + .5f));
-  _dest->value[0] = math::Clamp(-32767, a, 32767) & 0xffff;
-  _dest->value[1] = math::Clamp(-32767, b, 32767) & 0xffff;
-  _dest->value[2] = math::Clamp(-32767, c, 32767) & 0xffff;
-}
+  const int cpnt[3] = {
+      math::Min(static_cast<int>((quat[map[0]] - kOffset) * kScale + .5f),
+                QuaternionKey::kiScale),
+      math::Min(static_cast<int>((quat[map[1]] - kOffset) * kScale + .5f),
+                QuaternionKey::kiScale),
+      math::Min(static_cast<int>((quat[map[2]] - kOffset) * kScale + .5f),
+                QuaternionKey::kiScale)};
+
+  pack(static_cast<int>(largest), quat[largest] < 0.f, cpnt, _dest);
+}  // namespace
 
 // Normalize quaternions. Fixes-up successive opposite quaternions that would
 // fail to take the shortest path during the normalized-lerp. Note that keys

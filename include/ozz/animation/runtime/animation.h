@@ -106,7 +106,7 @@ class OZZ_ANIMATION_DLL Animation {
     }
 
     // Indices to timepoints. uint8_t or uint16_t depending on timepoints size.
-    span<char> ratios;
+    span<byte> ratios;
 
     // Offsets from the previous keyframe of the same track.
     span<uint16_t> previouses;

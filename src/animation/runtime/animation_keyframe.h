@@ -38,6 +38,9 @@
 namespace ozz {
 namespace animation {
 
+// Offset to previous keyframes are stored on uint16_t.
+enum Constants { kMaxPreviousOffset = (1 << 16) - 1 };
+
 // Define animation key frame types (translation, rotation, scale). Every type
 // as the same base made of the key time ratio and it's track index. This is
 // required as key frames are not sorted per track, but sorted by ratio to favor
@@ -49,7 +52,7 @@ namespace animation {
 // Translation values are stored as half precision floats with 16 bits per
 // component.
 struct OZZ_ANIMATION_DLL Float3Key {
-  uint16_t value[3];
+  uint16_t values[3];
 };
 
 // Defines the rotation key frame type.
@@ -63,15 +66,45 @@ struct OZZ_ANIMATION_DLL Float3Key {
 // In more details, compression algorithm stores the 3 smallest components of
 // the quaternion and restores the largest. The 3 smallest can be pre-multiplied
 // by sqrt(2) to gain some precision indeed.
-//
-struct OZZ_ANIMATION_DLL QuaternionKey {
-  uint16_t empty : 13;
-  uint16_t largest : 2;  // The largest component of the quaternion.
-  uint16_t sign : 1;     // The sign of the largest component. 1 for negative.
-  int16_t value[3];      // The quantized value of the 3 smallest components.
+struct QuaternionKey {
+  // 2b for the largest component index of the quaternion.
+  // 1b for the sign of the largest component. 1 for negative.
+  // 15b for each component
+  // 1b wasted
+  uint8_t values[6];
+
+  // Quantization scale, depends on number of bits.
+  static constexpr int kBits = 15;
+  static constexpr int kiScale = (1 << kBits) - 1;
+  static constexpr float kfScale = 1.f * kiScale;
 };
 
-enum Constants { kMaxPreviousOffset = (1 << 16) - 1 };
+// Endianness independent load and store
+inline void pack(int _largest, int _sign, const int _cpnt[3],
+                 QuaternionKey* _key) {
+  const uint64_t packed =
+      (_largest & 0x3) | ((_sign & 0x1) << 2) | (_cpnt[0] & 0x7fff) << 3 |
+      uint64_t(_cpnt[1] & 0x7fff) << 18 | (uint64_t(_cpnt[2]) & 0x7fff) << 33;
+  _key->values[0] = packed & 0xff;
+  _key->values[1] = (packed >> 8) & 0xff;
+  _key->values[2] = (packed >> 16) & 0xff;
+  _key->values[3] = (packed >> 24) & 0xff;
+  _key->values[4] = (packed >> 32) & 0xff;
+  _key->values[5] = (packed >> 40) & 0xff;
+}
+
+inline void unpack(const QuaternionKey& _key, int& _biggest, int& _sign,
+                   int _cpnt[3]) {
+  const uint64_t packed =
+      uint64_t(_key.values[0]) | uint64_t(_key.values[1]) << 8 |
+      uint64_t(_key.values[2]) << 16 | uint64_t(_key.values[3]) << 24 |
+      uint64_t(_key.values[4]) << 32 | uint64_t(_key.values[5]) << 40;
+  _biggest = packed & 0x3;
+  _sign = (packed >> 2) & 0x1;
+  _cpnt[0] = (packed >> 3) & 0x7fff;
+  _cpnt[1] = (packed >> 18) & 0x7fff;
+  _cpnt[2] = (packed >> 33) & 0x7fff;
+}
 
 }  // namespace animation
 }  // namespace ozz
