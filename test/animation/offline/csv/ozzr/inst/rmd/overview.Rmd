@@ -11,7 +11,7 @@ params:
   reference: "reference"
   vertex_distance: .1
   subset_data: FALSE
-  fast: TRUE
+  fast: FALSE
 ---
 
 ```{r setup, include=FALSE, echo = FALSE}
@@ -50,8 +50,16 @@ It compares per joint precision of `r nlevels(models$experience)` experiences:
 
 The following graphs shows model-space xy translation values for each experience.
 
-```{r xy animation}
-ozzr::plot_animations(models, !params$fast)
+```{r xy animation skin}
+ozzr::plot_animations(models, models$skinning_error, "Estimated skinning error (mm)", !params$fast)
+```
+
+```{r xy animation t}
+ozzr::plot_animations(models, models$t.e, "Model space translation error (mm)", !params$fast)
+```
+
+```{r xy animation r}
+ozzr::plot_animations(models, models$r.e, "Estimated rotation error (mm)", !params$fast)
 ```
 
 ### Memory footprint

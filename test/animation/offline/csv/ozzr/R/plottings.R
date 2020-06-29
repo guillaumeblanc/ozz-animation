@@ -2,14 +2,14 @@
 
 `%>%` <- magrittr::`%>%`
 
-plot_animations <- function(models, animate) {
+plot_animations <- function(models, error, error_label, animate) {
   p_xy <- models %>%
     ggplot2::ggplot() +
-    ggplot2::geom_point(ggplot2::aes(x = t.x, y = t.y, color=skinning_error)) +
+    ggplot2::geom_point(ggplot2::aes(x = t.x, y = t.y, color=error)) +
     ggplot2::scale_colour_gradient(low = "green", high = "red") +
     ggplot2::facet_wrap(ggplot2::vars(experience), nrow=1) +
     ggplot2::ggtitle("Model-space xy translations for each experience") +
-    ggplot2::labs(title = "Time {frame_time}", color="Estimated skinning error (mm)") +
+    ggplot2::labs(title = "Time {frame_time}", color=error_label) +
     ggplot2::xlab("Model-space x") +
     ggplot2::ylab("Model-space y") +
     gganimate::transition_time(time) +
