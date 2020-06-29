@@ -253,7 +253,7 @@ bool LessAbs(float _left, float _right) {
 }
 
 // Compresses quaternion to ozz::animation::RotationKey format.
-// The 3 smallest components of the quaternion are quantized to 16 bits
+// The 3 smallest components of the quaternion are quantized to x bits
 // integers, while the largest is recomputed thanks to quaternion
 // normalization property (x^2+y^2+z^2+w^2 = 1). Because the 3 components are
 // the 3 smallest, their value cannot be greater than sqrt(2)/2. Thus
@@ -265,21 +265,18 @@ void CompressQuaternion(const ozz::math::Quaternion& _src,
   const float quat[4] = {_src.x, _src.y, _src.z, _src.w};
   const size_t largest = std::max_element(quat, quat + 4, LessAbs) - quat;
   assert(largest <= 3);
-  _dest->largest = largest & 0x3;
 
-  // Stores the sign of the largest component.
-  _dest->sign = quat[largest] < 0.f;
-
-  // Quantize the 3 smallest components on 16 bits signed integers.
-  const float kFloat2Int = 32767.f * math::kSqrt2;
+  // Quantize the 3 smallest components on x bits signed integers.
+  const float kScale = 4096.f / math::kSqrt2;
+  const float kOffset = -math::kSqrt2_2;
   const int kMapping[4][3] = {{1, 2, 3}, {0, 2, 3}, {0, 1, 3}, {0, 1, 2}};
   const int* map = kMapping[largest];
-  const int a = static_cast<int>(floor(quat[map[0]] * kFloat2Int + .5f));
-  const int b = static_cast<int>(floor(quat[map[1]] * kFloat2Int + .5f));
-  const int c = static_cast<int>(floor(quat[map[2]] * kFloat2Int + .5f));
-  _dest->value[0] = math::Clamp(-32767, a, 32767) & 0xffff;
-  _dest->value[1] = math::Clamp(-32767, b, 32767) & 0xffff;
-  _dest->value[2] = math::Clamp(-32767, c, 32767) & 0xffff;
+  const int a = static_cast<int>((quat[map[0]] - kOffset) * kScale + .5f);
+  const int b = static_cast<int>((quat[map[1]] - kOffset) * kScale + .5f);
+  const int c = static_cast<int>((quat[map[2]] - kOffset) * kScale + .5f);
+
+  pack(largest, quat[largest] < 0.f, math::Clamp(0, a, 4095),
+       math::Clamp(0, b, 4095), math::Clamp(0, c, 4095), _dest);
 }
 
 // Normalize quaternions. Fixes-up successive opposite quaternions that would

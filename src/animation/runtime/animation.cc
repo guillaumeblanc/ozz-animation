@@ -54,8 +54,7 @@ void Animation::Allocate(const AllocateParams& _params) {
   static_assert(alignof(float) >= alignof(uint16_t) &&
                     alignof(uint16_t) >= alignof(Float3Key) &&
                     alignof(Float3Key) >= alignof(QuaternionKey) &&
-                    alignof(QuaternionKey) >= alignof(Float3Key) &&
-                    alignof(Float3Key) >= alignof(char),
+                    alignof(QuaternionKey) >= alignof(char),
                 "Must serve larger alignment values first)");
 
   assert(timepoints_.empty() && "Animation must be unallocated");
@@ -85,8 +84,8 @@ void Animation::Allocate(const AllocateParams& _params) {
   rotations_.previouses = fill_span<uint16_t>(buffer, _params.rotations);
   scales_.previouses = fill_span<uint16_t>(buffer, _params.scales);
   translations_.values = fill_span<Float3Key>(buffer, _params.translations);
-  rotations_.values = fill_span<QuaternionKey>(buffer, _params.rotations);
   scales_.values = fill_span<Float3Key>(buffer, _params.scales);
+  rotations_.values = fill_span<QuaternionKey>(buffer, _params.rotations);
   translations_.ratios =
       fill_span<char>(buffer, _params.translations * sizeof_ratio);
   rotations_.ratios = fill_span<char>(buffer, _params.rotations * sizeof_ratio);
@@ -148,10 +147,6 @@ void Animation::Save(ozz::io::OArchive& _archive) const {
   _archive << ozz::io::MakeArray(rotations_.ratios);
   _archive << ozz::io::MakeArray(rotations_.previouses);
   for (const QuaternionKey& key : rotations_.values) {
-    const uint8_t largest = key.largest;
-    _archive << largest;
-    const bool sign = key.sign;
-    _archive << sign;
     _archive << ozz::io::MakeArray(key.value);
   }
 
@@ -211,13 +206,9 @@ void Animation::Load(ozz::io::IArchive& _archive, uint32_t _version) {
 
   _archive >> ozz::io::MakeArray(rotations_.ratios);
   _archive >> ozz::io::MakeArray(rotations_.previouses);
+
+  // Todo plain uint8_t buffer
   for (QuaternionKey& key : rotations_.values) {
-    uint8_t largest;
-    _archive >> largest;
-    key.largest = largest & 3;
-    bool sign;
-    _archive >> sign;
-    key.sign = sign & 1;
     _archive >> ozz::io::MakeArray(key.value);
   }
 

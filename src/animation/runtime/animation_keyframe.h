@@ -36,6 +36,9 @@
 namespace ozz {
 namespace animation {
 
+// Offset to previous keyframes are stored on uint16_t.
+enum Constants { kMaxPreviousOffset = (1 << 16) - 1 };
+
 // Define animation key frame types (translation, rotation, scale). Every type
 // as the same base made of the key time ratio and it's track index. This is
 // required as key frames are not sorted per track, but sorted by ratio to favor
@@ -63,13 +66,37 @@ struct Float3Key {
 // by sqrt(2) to gain some precision indeed.
 //
 struct QuaternionKey {
-  uint16_t empty : 13;
-  uint16_t largest : 2;  // The largest component of the quaternion.
-  uint16_t sign : 1;     // The sign of the largest component. 1 for negative.
-  int16_t value[3];      // The quantized value of the 3 smallest components.
+  // 2b for the largest component index of the quaternion.
+  // 1b for the sign of the largest component. 1 for negative.
+  // 12b for each component
+  // 1b wasted
+  uint8_t value[5];
 };
 
-enum Constants { kMaxPreviousOffset = (1 << 16) - 1 };
+inline void pack(int _largest, int _sign, uint64_t _a, uint64_t _b, uint64_t _c,
+                 QuaternionKey* _key) {
+  const uint64_t packed = (_largest & 0x3) | ((_sign & 0x1) << 2) |
+                          (_a & 0xfff) << 3 | (_b & 0xfff) << 15 |
+                          (_c & 0xfff) << 27;
+  _key->value[0] = packed & 0xff;
+  _key->value[1] = (packed >> 8) & 0xff;
+  _key->value[2] = (packed >> 16) & 0xff;
+  _key->value[3] = (packed >> 24) & 0xff;
+  _key->value[4] = (packed >> 32) & 0xff;
+}
+
+inline void unpack(const QuaternionKey& _key, int& _biggest, int& _sign,
+                   int _components[3]) {
+  const uint64_t packed =
+      uint64_t(_key.value[0]) | uint64_t(_key.value[1]) << 8 |
+      uint64_t(_key.value[2]) << 16 | uint64_t(_key.value[3]) << 24 |
+      uint64_t(_key.value[4]) << 32;
+  _biggest = packed & 3;
+  _sign = (packed >> 2) & 1;
+  _components[0] = (packed >> 3) & 0xfff;
+  _components[1] = (packed >> 15) & 0xfff;
+  _components[2] = (packed >> 27) & 0xfff;
+}
 
 }  // namespace animation
 }  // namespace ozz

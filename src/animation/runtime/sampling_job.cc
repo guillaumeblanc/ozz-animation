@@ -275,41 +275,51 @@ inline void DecompressQuaternion(const QuaternionKey& _k0,
                                  const QuaternionKey& _k2,
                                  const QuaternionKey& _k3,
                                  math::SoaQuaternion* _quaternion) {
+  int largests[4], signs[4], values[4][3];
+  unpack(_k0, largests[0], signs[0], values[0]);
+  unpack(_k1, largests[1], signs[1], values[1]);
+  unpack(_k2, largests[2], signs[2], values[2]);
+  unpack(_k3, largests[3], signs[3], values[3]);
+
   // Selects proper mapping for each key.
-  const int* m0 = kCpntMapping[_k0.largest];
-  const int* m1 = kCpntMapping[_k1.largest];
-  const int* m2 = kCpntMapping[_k2.largest];
-  const int* m3 = kCpntMapping[_k3.largest];
+  const int* m0 = kCpntMapping[largests[0]];
+  const int* m1 = kCpntMapping[largests[1]];
+  const int* m2 = kCpntMapping[largests[2]];
+  const int* m3 = kCpntMapping[largests[3]];
 
   // Prepares an array of input values, according to the mapping required to
   // restore quaternion largest component.
   alignas(16) int cmp_keys[4][4] = {
-      {_k0.value[m0[0]], _k1.value[m1[0]], _k2.value[m2[0]], _k3.value[m3[0]]},
-      {_k0.value[m0[1]], _k1.value[m1[1]], _k2.value[m2[1]], _k3.value[m3[1]]},
-      {_k0.value[m0[2]], _k1.value[m1[2]], _k2.value[m2[2]], _k3.value[m3[2]]},
-      {_k0.value[m0[3]], _k1.value[m1[3]], _k2.value[m2[3]], _k3.value[m3[3]]},
+      {values[0][m0[0]], values[1][m1[0]], values[2][m2[0]], values[3][m3[0]]},
+      {values[0][m0[1]], values[1][m1[1]], values[2][m2[1]], values[3][m3[1]]},
+      {values[0][m0[2]], values[1][m1[2]], values[2][m2[2]], values[3][m3[2]]},
+      {values[0][m0[3]], values[1][m1[3]], values[2][m2[3]], values[3][m3[3]]},
   };
 
   // Resets largest component to 0. Overwritting here avoids 16 branchings
   // above.
-  cmp_keys[_k0.largest][0] = 0;
-  cmp_keys[_k1.largest][1] = 0;
-  cmp_keys[_k2.largest][2] = 0;
-  cmp_keys[_k3.largest][3] = 0;
+  cmp_keys[largests[0]][0] = 2048;
+  cmp_keys[largests[1]][1] = 2048;
+  cmp_keys[largests[2]][2] = 2048;
+  cmp_keys[largests[3]][3] = 2048;
 
   // Rebuilds quaternion from quantized values.
-  const math::SimdFloat4 kInt2Float =
-      math::simd_float4::Load1(1.f / (32767.f * math::kSqrt2));
+  const math::SimdFloat4 kScale =
+      math::simd_float4::Load1(math::kSqrt2 / 4096.f);
+  const math::SimdFloat4 kOffset = math::simd_float4::Load1(-math::kSqrt2_2);
   math::SimdFloat4 cpnt[4] = {
-      kInt2Float *
-          math::simd_float4::FromInt(math::simd_int4::LoadPtr(cmp_keys[0])),
-      kInt2Float *
-          math::simd_float4::FromInt(math::simd_int4::LoadPtr(cmp_keys[1])),
-      kInt2Float *
-          math::simd_float4::FromInt(math::simd_int4::LoadPtr(cmp_keys[2])),
-      kInt2Float *
-          math::simd_float4::FromInt(math::simd_int4::LoadPtr(cmp_keys[3])),
-  };
+      kScale * math::simd_float4::FromInt(
+                   math::simd_int4::LoadPtr(cmp_keys[0])) +
+          kOffset,
+      kScale * math::simd_float4::FromInt(
+                   math::simd_int4::LoadPtr(cmp_keys[1])) +
+          kOffset,
+      kScale * math::simd_float4::FromInt(
+                   math::simd_int4::LoadPtr(cmp_keys[2])) +
+          kOffset,
+      kScale * math::simd_float4::FromInt(
+                   math::simd_int4::LoadPtr(cmp_keys[3])) +
+          kOffset};
 
   // Get back length of 4th component. Favors performance over accuracy by using
   // x * RSqrtEst(x) instead of Sqrt(x).
@@ -321,18 +331,18 @@ inline void DecompressQuaternion(const QuaternionKey& _k0,
   const math::SimdFloat4 w0 = ww0 * math::RSqrtEst(ww0);
   // Re-applies 4th component' s sign.
   const math::SimdInt4 sign = math::ShiftL(
-      math::simd_int4::Load(_k0.sign, _k1.sign, _k2.sign, _k3.sign), 31);
+      math::simd_int4::Load(signs[0], signs[1], signs[2], signs[3]), 31);
   const math::SimdFloat4 restored = math::Or(w0, sign);
 
   // Re-injects the largest component inside the SoA structure.
-  cpnt[_k0.largest] = math::Or(
-      cpnt[_k0.largest], math::And(restored, math::simd_int4::mask_f000()));
-  cpnt[_k1.largest] = math::Or(
-      cpnt[_k1.largest], math::And(restored, math::simd_int4::mask_0f00()));
-  cpnt[_k2.largest] = math::Or(
-      cpnt[_k2.largest], math::And(restored, math::simd_int4::mask_00f0()));
-  cpnt[_k3.largest] = math::Or(
-      cpnt[_k3.largest], math::And(restored, math::simd_int4::mask_000f()));
+  cpnt[largests[0]] = math::Or(
+      cpnt[largests[0]], math::And(restored, math::simd_int4::mask_f000()));
+  cpnt[largests[1]] = math::Or(
+      cpnt[largests[1]], math::And(restored, math::simd_int4::mask_0f00()));
+  cpnt[largests[2]] = math::Or(
+      cpnt[largests[2]], math::And(restored, math::simd_int4::mask_00f0()));
+  cpnt[largests[3]] = math::Or(
+      cpnt[largests[3]], math::And(restored, math::simd_int4::mask_000f()));
 
   // Stores result.
   _quaternion->x = cpnt[0];
