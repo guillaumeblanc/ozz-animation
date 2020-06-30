@@ -76,6 +76,7 @@ LoadExperiences <- function(path, reference) {
 
   # Rejects unwanted joints
   transforms <- transforms[!transforms$name %in% reject$name,]
+  transforms <- transforms[with(transforms, order(experience, joint, time)),]
 
   locals <- transforms %>%
     dplyr::select(joint, depth, name, time, experience, t.x=lt.x, t.y=lt.y, t.z=lt.z, r.x=lr.x, r.y=lr.y, r.z=lr.z, r.w=lr.w, s.x=ls.x, s.y=ls.y, s.z=ls.z)
@@ -107,6 +108,7 @@ LoadExperiences <- function(path, reference) {
   #-----------------
   tracks <- dplyr::left_join(do.call(rbind, lapply(ldf, function(i) i$tracks)), dplyr::select(skeleton, c("joint", "name")), by="joint")
   tracks <- tracks[!tracks$name %in% reject$name,]
+  tracks <- tracks[with(tracks, order(joint)),]
 
   # Performance dataframe
   #----------------------
