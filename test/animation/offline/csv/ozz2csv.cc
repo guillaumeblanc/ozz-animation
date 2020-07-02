@@ -30,7 +30,10 @@
 #include <json/json.h>
 
 #include <algorithm>
+#include <cstring>
+#include <fstream>
 #include <mutex>
+#include <sstream>
 
 #include "ozz/animation/offline/raw_animation.h"
 #include "ozz/animation/offline/raw_skeleton.h"
@@ -59,7 +62,26 @@ OZZ_OPTIONS_DECLARE_STRING(
     "Selects generator. Can be \"passtrhough\", \"optimize\" or \"runtime\"...",
     "passthrough", false)
 
-OZZ_OPTIONS_DECLARE_STRING(config, "Generator specific config", "", false)
+bool ValidateExclusiveConfigOption(const ozz::options::Option& _option,
+                                   int _argc);
+OZZ_OPTIONS_DECLARE_STRING_FN(config, "Generator specific config", "", false,
+                              &ValidateExclusiveConfigOption)
+OZZ_OPTIONS_DECLARE_STRING_FN(config_file, "Generator specific config file", "",
+                              false, &ValidateExclusiveConfigOption)
+
+// Validate exclusive config options.
+bool ValidateExclusiveConfigOption(const ozz::options::Option& _option,
+                                   int _argc) {
+  (void)_option;
+  (void)_argc;
+  bool not_exclusive =
+      OPTIONS_config_file.value()[0] != 0 && OPTIONS_config.value()[0] != 0;
+  if (not_exclusive) {
+    ozz::log::Err() << "--config and --config_file are exclusive options."
+                    << std::endl;
+  }
+  return !not_exclusive;
+}
 
 namespace {
 template <typename _Type>
@@ -156,6 +178,38 @@ class AllocatorSetter {
   ozz::memory::Allocator* previous_;
 };
 
+bool LoadConfig(Json::Value& _config) {
+  // Use {} as a default config, otherwise take the one specified as argument.
+  std::string config_string = "{}";
+  // Takes config from program options.
+  if (OPTIONS_config.value()[0] != 0) {
+    config_string = OPTIONS_config.value();
+  } else if (OPTIONS_config_file.value()[0] != 0) {
+    ozz::log::LogV() << "Opens config file: \"" << OPTIONS_config_file << "\"."
+                     << std::endl;
+
+    std::ifstream file(OPTIONS_config_file.value());
+    if (!file.is_open()) {
+      ozz::log::Err() << "Failed to open config file: \"" << OPTIONS_config_file
+                      << "\"." << std::endl;
+      return false;
+    }
+    config_string.assign(std::istreambuf_iterator<char>(file),
+                         std::istreambuf_iterator<char>());
+  } else {
+    ozz::log::Log() << "No configuration provided, using default configuration."
+                    << std::endl;
+  }
+
+  Json::Reader json_builder;
+  if (!json_builder.parse(config_string, _config, true)) {
+    ozz::log::Err() << "Error while parsing configuration string: "
+                    << json_builder.getFormattedErrorMessages() << std::endl;
+    return false;
+  }
+  return true;
+}
+
 bool FilterJoints(ozz::animation::offline::RawSkeleton& _skeleton,
                   ozz::animation::offline::RawAnimation& _animation,
                   const Json::Value& _config) {
@@ -177,8 +231,8 @@ bool FilterJoints(ozz::animation::offline::RawSkeleton& _skeleton,
 
               bool found = false;
               for (const auto joint_name : joint_names) {
-                found |= std::strstr(current.name.c_str(),
-                                     joint_name.asCString()) != nullptr;
+                found |= std::strcmp(current.name.c_str(),
+                                     joint_name.asCString()) == 0;
               }
 
               if (!found) {
@@ -219,19 +273,8 @@ int Ozz2Csv::Run(int _argc, char const* _argv[]) {
   }
 
   // Load config
-  // Use {} as a default config, otherwise take the one specified as argument.
-  std::string config_string = "{}";
-  // Takes config from program options.
-  if (OPTIONS_config.value()[0] != 0) {
-    config_string = OPTIONS_config.value();
-    ozz::log::Log() << "Using configuration string: " << config_string
-                    << std::endl;
-  }
   Json::Value config;
-  Json::Reader json_builder;
-  if (!json_builder.parse(config_string, config, true)) {
-    ozz::log::Err() << "Error while parsing configuration string: "
-                    << json_builder.getFormattedErrorMessages() << std::endl;
+  if (!LoadConfig(config)) {
     return EXIT_FAILURE;
   }
 
