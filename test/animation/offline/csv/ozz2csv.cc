@@ -29,9 +29,12 @@
 
 #include <json/json.h>
 
+#include <algorithm>
 #include <mutex>
 
 #include "ozz/animation/offline/raw_animation.h"
+#include "ozz/animation/offline/raw_skeleton.h"
+#include "ozz/animation/offline/skeleton_builder.h"
 #include "ozz/animation/runtime/skeleton.h"
 #include "ozz/base/containers/unordered_map.h"
 #include "ozz/base/io/archive.h"
@@ -152,6 +155,55 @@ class AllocatorSetter {
  private:
   ozz::memory::Allocator* previous_;
 };
+
+bool FilterJoints(ozz::animation::offline::RawSkeleton& _skeleton,
+                  ozz::animation::offline::RawAnimation& _animation,
+                  const Json::Value& _config) {
+  const Json::Value& joint_names = _config["joints"];
+  if (joint_names.empty()) {
+    return true;
+  }
+
+  std::function<bool(
+      ozz::animation::offline::RawSkeleton::Joint::Children & _children,
+      ozz::animation::offline::RawAnimation & _animation)>
+      IterateRemove =
+          [&IterateRemove, &joint_names](
+              ozz::animation::offline::RawSkeleton::Joint::Children& _children,
+              ozz::animation::offline::RawAnimation& _animation) {
+            for (size_t i = 0; i < _children.size(); ++i) {
+              ozz::animation::offline::RawSkeleton::Joint& current =
+                  _children[i];
+
+              bool found = false;
+              for (const auto joint_name : joint_names) {
+                found |= std::strstr(current.name.c_str(),
+                                     joint_name.asCString()) != nullptr;
+              }
+
+              if (!found) {
+                if (current.children.empty()) {
+                  _children.erase(_children.begin() + i);
+                  _animation.tracks.erase(_animation.tracks.begin() + i);
+                  return true;
+                } else {
+                  ozz::log::Log()
+                      << "Cannot filtering out joint \"" << current.name
+                      << "\" that has children." << std::endl;
+                }
+              }
+
+              // Recurse
+              if (IterateRemove(current.children, _animation)) {
+                return true;
+              }
+            };
+            return false;
+          };
+  for (; IterateRemove(_skeleton.roots, _animation);) {
+  }
+  return true;
+}
 }  // namespace
 
 int Ozz2Csv::Run(int _argc, char const* _argv[]) {
@@ -164,26 +216,6 @@ int Ozz2Csv::Run(int _argc, char const* _argv[]) {
   if (parse_result != ozz::options::kSuccess) {
     return parse_result == ozz::options::kExitSuccess ? EXIT_SUCCESS
                                                       : EXIT_FAILURE;
-  }
-
-  // Load data
-  ozz::animation::Skeleton skeleton;
-  if (!Load(OPTIONS_skeleton, &skeleton)) {
-    return EXIT_FAILURE;
-  }
-  ozz::animation::offline::RawAnimation animation;
-  if (!Load(OPTIONS_animation, &animation)) {
-    return EXIT_FAILURE;
-  }
-  if (!animation.Validate()) {
-    ozz::log::Err() << "Loaded animation is invalid." << std::endl;
-    return EXIT_FAILURE;
-  }
-  const int num_joints = skeleton.num_joints();
-  if (animation.num_tracks() != num_joints) {
-    ozz::log::Err() << "Animation doesn't match skeleton number of joints."
-                    << std::endl;
-    return EXIT_FAILURE;
   }
 
   // Load config
@@ -203,6 +235,36 @@ int Ozz2Csv::Run(int _argc, char const* _argv[]) {
     return EXIT_FAILURE;
   }
 
+  // Load data
+  ozz::animation::offline::RawSkeleton raw_skeleton;
+  if (!Load(OPTIONS_skeleton, &raw_skeleton)) {
+    return EXIT_FAILURE;
+  }
+  ozz::animation::offline::RawAnimation raw_animation;
+  if (!Load(OPTIONS_animation, &raw_animation)) {
+    return EXIT_FAILURE;
+  }
+
+  // Filters out unneeded joints.
+  if (!FilterJoints(raw_skeleton, raw_animation, config)) {
+    return EXIT_FAILURE;
+  }
+
+  // Builds runtime skeleton
+  ozz::animation::offline::SkeletonBuilder builder;
+  const auto skeleton = builder(raw_skeleton);
+
+  if (!raw_animation.Validate()) {
+    ozz::log::Err() << "Loaded animation is invalid." << std::endl;
+    return EXIT_FAILURE;
+  }
+  const int num_joints = skeleton->num_joints();
+  if (raw_animation.num_tracks() != num_joints) {
+    ozz::log::Err() << "Animation doesn't match skeleton number of joints."
+                    << std::endl;
+    return EXIT_FAILURE;
+  }
+
   // Selects and initialize generator.
   Generator* generator = FindGenerator(OPTIONS_generator);
   if (!generator) {
@@ -211,7 +273,7 @@ int Ozz2Csv::Run(int _argc, char const* _argv[]) {
     return EXIT_FAILURE;
   }
 
-  if (!Generate(generator, animation, skeleton, config)) {
+  if (!Generate(generator, raw_animation, *skeleton, config)) {
     return EXIT_FAILURE;
   }
 
@@ -219,7 +281,7 @@ int Ozz2Csv::Run(int _argc, char const* _argv[]) {
   ozz::log::Log() << "Running experiences." << std::endl;
   const auto& cache_invalidator =
       std::bind(InvalidateCache, std::cref(tracked_allocator));
-  if (!RunExperiences(animation, skeleton, generator, cache_invalidator)) {
+  if (!RunExperiences(raw_animation, *skeleton, generator, cache_invalidator)) {
     return EXIT_FAILURE;
   }
 
