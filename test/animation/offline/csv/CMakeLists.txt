@@ -30,12 +30,12 @@ file(MAKE_DIRECTORY ${ozz_temp_directory}/walk_analysis)
 add_custom_command(
     DEPENDS $<$<BOOL:${ozz_build_fbx}>:BUILD_DATA>
             "${ozz_media_directory}/bin/pab_walk_raw.ozz"
-            "${ozz_media_directory}/bin/pab_skeleton.ozz"
+            "${ozz_media_directory}/bin/pab_skeleton_raw.ozz"
             $<$<BOOL:${ozz_build_data}>:ozz2csv>
     OUTPUT  "${ozz_temp_directory}/walk_analysis/reference_transforms.csv"
-    COMMAND ozz2csv "--experience=reference" "--generator=passthrough" "--skeleton=${ozz_media_directory}/bin/pab_skeleton.ozz" "--animation=${ozz_media_directory}/bin/pab_walk_raw.ozz"
-    COMMAND ozz2csv "--experience=decimate" "--generator=optimize" "--skeleton=${ozz_media_directory}/bin/pab_skeleton.ozz" "--animation=${ozz_media_directory}/bin/pab_walk_raw.ozz"
-    COMMAND ozz2csv "--experience=hill" "--generator=optimize" "--skeleton=${ozz_media_directory}/bin/pab_skeleton.ozz" "--animation=${ozz_media_directory}/bin/pab_walk_raw.ozz" "--config={\"fast\":false}"
+    COMMAND ozz2csv "--experience=reference" "--generator=passthrough" "--skeleton=${ozz_media_directory}/bin/pab_skeleton_raw.ozz" "--animation=${ozz_media_directory}/bin/pab_walk_raw.ozz"
+    COMMAND ozz2csv "--experience=decimate" "--generator=optimize" "--skeleton=${ozz_media_directory}/bin/pab_skeleton_raw.ozz" "--animation=${ozz_media_directory}/bin/pab_walk_raw.ozz"
+    COMMAND ozz2csv "--experience=hill" "--generator=optimize" "--skeleton=${ozz_media_directory}/bin/pab_skeleton_raw.ozz" "--animation=${ozz_media_directory}/bin/pab_walk_raw.ozz" "--config={\"fast\":false}"
     WORKING_DIRECTORY "${ozz_temp_directory}/walk_analysis"
     VERBATIM)
 
@@ -44,12 +44,12 @@ file(MAKE_DIRECTORY ${ozz_temp_directory}/atlas_analysis)
 add_custom_command(
     DEPENDS $<$<BOOL:${ozz_build_fbx}>:BUILD_DATA>
             "${ozz_media_directory}/bin/pab_atlas_raw.ozz"
-            "${ozz_media_directory}/bin/pab_skeleton.ozz"
+            "${ozz_media_directory}/bin/pab_skeleton_raw.ozz"
             $<$<BOOL:${ozz_build_data}>:ozz2csv>
     OUTPUT  "${ozz_temp_directory}/atlas_analysis/reference_transforms.csv"
-    COMMAND ozz2csv "--experience=reference" "--generator=passthrough" "--skeleton=${ozz_media_directory}/bin/pab_skeleton.ozz" "--animation=${ozz_media_directory}/bin/pab_atlas_raw.ozz"
-    COMMAND ozz2csv "--experience=decimate" "--generator=optimize" "--skeleton=${ozz_media_directory}/bin/pab_skeleton.ozz" "--animation=${ozz_media_directory}/bin/pab_atlas_raw.ozz"
-    COMMAND ozz2csv "--experience=hill" "--generator=optimize" "--skeleton=${ozz_media_directory}/bin/pab_skeleton.ozz" "--animation=${ozz_media_directory}/bin/pab_atlas_raw.ozz" "--config={\"fast\":false}"
+    COMMAND ozz2csv "--experience=reference" "--generator=passthrough" "--skeleton=${ozz_media_directory}/bin/pab_skeleton_raw.ozz" "--animation=${ozz_media_directory}/bin/pab_atlas_raw.ozz"
+    COMMAND ozz2csv "--experience=decimate" "--generator=optimize" "--skeleton=${ozz_media_directory}/bin/pab_skeleton_raw.ozz" "--animation=${ozz_media_directory}/bin/pab_atlas_raw.ozz"
+    COMMAND ozz2csv "--experience=hill" "--generator=optimize" "--skeleton=${ozz_media_directory}/bin/pab_skeleton_raw.ozz" "--animation=${ozz_media_directory}/bin/pab_atlas_raw.ozz" "--config={\"fast\":false}"
     WORKING_DIRECTORY "${ozz_temp_directory}/atlas_analysis"
     VERBATIM)
 
