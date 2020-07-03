@@ -267,7 +267,7 @@ inline void DecompressFloat3(const Float3Key& _k0, const Float3Key& _k1,
 
 // Defines a mapping table that defines components assignation in the output
 // quaternion.
-static constexpr int kCpntMapping[4][4] = {
+static constexpr uint8_t kCpntMapping[4][4] = {
     {0, 0, 1, 2}, {0, 0, 1, 2}, {0, 1, 0, 2}, {0, 1, 2, 0}};
 
 inline void DecompressQuaternion(const QuaternionKey& _k0,
@@ -282,10 +282,10 @@ inline void DecompressQuaternion(const QuaternionKey& _k0,
   unpack(_k3, largests[3], signs[3], values[3]);
 
   // Selects proper mapping for each key.
-  const int* m0 = kCpntMapping[largests[0]];
-  const int* m1 = kCpntMapping[largests[1]];
-  const int* m2 = kCpntMapping[largests[2]];
-  const int* m3 = kCpntMapping[largests[3]];
+  const uint8_t* m0 = kCpntMapping[largests[0]];
+  const uint8_t* m1 = kCpntMapping[largests[1]];
+  const uint8_t* m2 = kCpntMapping[largests[2]];
+  const uint8_t* m3 = kCpntMapping[largests[3]];
 
   // Prepares an array of input values, according to the mapping required to
   // restore quaternion largest component.
@@ -296,16 +296,9 @@ inline void DecompressQuaternion(const QuaternionKey& _k0,
       {values[0][m0[3]], values[1][m1[3]], values[2][m2[3]], values[3][m3[3]]},
   };
 
-  // Resets largest component to 0. Overwritting here avoids 16 branchings
-  // above.
-  cmp_keys[largests[0]][0] = 2048;
-  cmp_keys[largests[1]][1] = 2048;
-  cmp_keys[largests[2]][2] = 2048;
-  cmp_keys[largests[3]][3] = 2048;
-
   // Rebuilds quaternion from quantized values.
   const math::SimdFloat4 kScale =
-      math::simd_float4::Load1(math::kSqrt2 / 4096.f);
+      math::simd_float4::Load1(math::kSqrt2 / 4095.f);
   const math::SimdFloat4 kOffset = math::simd_float4::Load1(-math::kSqrt2_2);
   math::SimdFloat4 cpnt[4] = {
       kScale * math::simd_float4::FromInt(
@@ -321,28 +314,40 @@ inline void DecompressQuaternion(const QuaternionKey& _k0,
                    math::simd_int4::LoadPtr(cmp_keys[3])) +
           kOffset};
 
+  // Zeroed largest components so they're not par of the dot.
+  const math::SimdInt4 mask_f000 = math::simd_int4::mask_f000();
+  const math::SimdInt4 mask_0f00 = math::simd_int4::mask_0f00();
+  const math::SimdInt4 mask_00f0 = math::simd_int4::mask_00f0();
+  const math::SimdInt4 mask_000f = math::simd_int4::mask_000f();
+  cpnt[largests[0]] = math::AndNot(cpnt[largests[0]], mask_f000);
+  cpnt[largests[1]] = math::AndNot(cpnt[largests[1]], mask_0f00);
+  cpnt[largests[2]] = math::AndNot(cpnt[largests[2]], mask_00f0);
+  cpnt[largests[3]] = math::AndNot(cpnt[largests[3]], mask_000f);
+
   // Get back length of 4th component. Favors performance over accuracy by using
   // x * RSqrtEst(x) instead of Sqrt(x).
   // ww0 cannot be 0 because we 're recomputing the largest component.
   const math::SimdFloat4 dot = cpnt[0] * cpnt[0] + cpnt[1] * cpnt[1] +
                                cpnt[2] * cpnt[2] + cpnt[3] * cpnt[3];
-  const math::SimdFloat4 ww0 = math::Max(math::simd_float4::Load1(1e-16f),
-                                         math::simd_float4::one() - dot);
+  // dot cannot be >= 1, because it does not include the largest component.
+  const math::SimdFloat4 ww0 = math::simd_float4::one() - dot;
   const math::SimdFloat4 w0 = ww0 * math::RSqrtEst(ww0);
-  // Re-applies 4th component' s sign.
+
+  // Re-applies 4th component's sign.
   const math::SimdInt4 sign = math::ShiftL(
       math::simd_int4::Load(signs[0], signs[1], signs[2], signs[3]), 31);
   const math::SimdFloat4 restored = math::Or(w0, sign);
 
   // Re-injects the largest component inside the SoA structure.
-  cpnt[largests[0]] = math::Or(
-      cpnt[largests[0]], math::And(restored, math::simd_int4::mask_f000()));
-  cpnt[largests[1]] = math::Or(
-      cpnt[largests[1]], math::And(restored, math::simd_int4::mask_0f00()));
-  cpnt[largests[2]] = math::Or(
-      cpnt[largests[2]], math::And(restored, math::simd_int4::mask_00f0()));
-  cpnt[largests[3]] = math::Or(
-      cpnt[largests[3]], math::And(restored, math::simd_int4::mask_000f()));
+  // Note that largest component is already 0.
+  cpnt[largests[0]] =
+      math::Or(cpnt[largests[0]], math::And(restored, mask_f000));
+  cpnt[largests[1]] =
+      math::Or(cpnt[largests[1]], math::And(restored, mask_0f00));
+  cpnt[largests[2]] =
+      math::Or(cpnt[largests[2]], math::And(restored, mask_00f0));
+  cpnt[largests[3]] =
+      math::Or(cpnt[largests[3]], math::And(restored, mask_000f));
 
   // Stores result.
   _quaternion->x = cpnt[0];

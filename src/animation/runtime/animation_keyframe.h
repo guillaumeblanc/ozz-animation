@@ -73,11 +73,12 @@ struct QuaternionKey {
   uint8_t value[5];
 };
 
-inline void pack(int _largest, int _sign, uint64_t _a, uint64_t _b, uint64_t _c,
+// Endianness independent load and store
+inline void pack(int _largest, int _sign, const int _cpnt[3],
                  QuaternionKey* _key) {
   const uint64_t packed = (_largest & 0x3) | ((_sign & 0x1) << 2) |
-                          (_a & 0xfff) << 3 | (_b & 0xfff) << 15 |
-                          (_c & 0xfff) << 27;
+                          (_cpnt[0] & 0xfff) << 3 | (_cpnt[1] & 0xfff) << 15 |
+                          (uint64_t(_cpnt[2]) & 0xfff) << 27;
   _key->value[0] = packed & 0xff;
   _key->value[1] = (packed >> 8) & 0xff;
   _key->value[2] = (packed >> 16) & 0xff;
@@ -86,16 +87,16 @@ inline void pack(int _largest, int _sign, uint64_t _a, uint64_t _b, uint64_t _c,
 }
 
 inline void unpack(const QuaternionKey& _key, int& _biggest, int& _sign,
-                   int _components[3]) {
+                   int _cpnt[3]) {
   const uint64_t packed =
       uint64_t(_key.value[0]) | uint64_t(_key.value[1]) << 8 |
       uint64_t(_key.value[2]) << 16 | uint64_t(_key.value[3]) << 24 |
       uint64_t(_key.value[4]) << 32;
   _biggest = packed & 3;
   _sign = (packed >> 2) & 1;
-  _components[0] = (packed >> 3) & 0xfff;
-  _components[1] = (packed >> 15) & 0xfff;
-  _components[2] = (packed >> 27) & 0xfff;
+  _cpnt[0] = (packed >> 3) & 0xfff;
+  _cpnt[1] = (packed >> 15) & 0xfff;
+  _cpnt[2] = (packed >> 27) & 0xfff;
 }
 
 }  // namespace animation

@@ -267,17 +267,20 @@ void CompressQuaternion(const ozz::math::Quaternion& _src,
   assert(largest <= 3);
 
   // Quantize the 3 smallest components on x bits signed integers.
-  const float kScale = 4096.f / math::kSqrt2;
+  const float kScale = 4095.f / math::kSqrt2;
   const float kOffset = -math::kSqrt2_2;
   const int kMapping[4][3] = {{1, 2, 3}, {0, 2, 3}, {0, 1, 3}, {0, 1, 2}};
   const int* map = kMapping[largest];
-  const int a = static_cast<int>((quat[map[0]] - kOffset) * kScale + .5f);
-  const int b = static_cast<int>((quat[map[1]] - kOffset) * kScale + .5f);
-  const int c = static_cast<int>((quat[map[2]] - kOffset) * kScale + .5f);
+  const int cpnt[3] = {
+      math::Min(static_cast<int>((quat[map[0]] - kOffset) * kScale + .5f),
+                4095),
+      math::Min(static_cast<int>((quat[map[1]] - kOffset) * kScale + .5f),
+                4095),
+      math::Min(static_cast<int>((quat[map[2]] - kOffset) * kScale + .5f),
+                4095)};
 
-  pack(largest, quat[largest] < 0.f, math::Clamp(0, a, 4095),
-       math::Clamp(0, b, 4095), math::Clamp(0, c, 4095), _dest);
-}
+  pack(largest, quat[largest] < 0.f, cpnt, _dest);
+}  // namespace
 
 // Normalize quaternions. Fixes-up successive opposite quaternions that would
 // fail to take the shortest path during the normalized-lerp. Note that keys
