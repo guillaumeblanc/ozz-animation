@@ -252,6 +252,11 @@ bool LessAbs(float _left, float _right) {
   return std::abs(_left) < std::abs(_right);
 }
 
+inline int quantize(float _value, float _scale, float _offset, int _max) {
+  return math::Clamp(
+      0, static_cast<int>(std::floor((_value - _offset) * _scale + .5f)), _max);
+}
+
 // Compresses quaternion to ozz::animation::RotationKey format.
 // The 3 smallest components of the quaternion are quantized to x bits
 // integers, while the largest is recomputed thanks to quaternion
@@ -263,7 +268,8 @@ void CompressQuaternion(const ozz::math::Quaternion& _src,
                         ozz::animation::QuaternionKey* _dest) {
   // Finds the largest quaternion component.
   const float quat[4] = {_src.x, _src.y, _src.z, _src.w};
-  const size_t largest = std::max_element(quat, quat + 4, LessAbs) - quat;
+  const int largest =
+      static_cast<int>(std::max_element(quat, quat + 4, LessAbs) - quat);
   assert(largest <= 3);
 
   // Quantize the 3 smallest components on x bits signed integers.
@@ -271,13 +277,9 @@ void CompressQuaternion(const ozz::math::Quaternion& _src,
   const float kOffset = -math::kSqrt2_2;
   const int kMapping[4][3] = {{1, 2, 3}, {0, 2, 3}, {0, 1, 3}, {0, 1, 2}};
   const int* map = kMapping[largest];
-  const int cpnt[3] = {
-      math::Min(static_cast<int>((quat[map[0]] - kOffset) * kScale + .5f),
-                4095),
-      math::Min(static_cast<int>((quat[map[1]] - kOffset) * kScale + .5f),
-                4095),
-      math::Min(static_cast<int>((quat[map[2]] - kOffset) * kScale + .5f),
-                4095)};
+  const int cpnt[3] = {quantize(quat[map[0]], kScale, kOffset, 4095),
+                       quantize(quat[map[1]], kScale, kOffset, 4095),
+                       quantize(quat[map[2]], kScale, kOffset, 4095)};
 
   pack(largest, quat[largest] < 0.f, cpnt, _dest);
 }  // namespace
