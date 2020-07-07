@@ -236,7 +236,9 @@ inline void UpdateInterpKeyframes(int _num_soa_tracks,
           TimePoint(_timepoints, _keys.ratios, _cache[penultimates + 1]),
           TimePoint(_timepoints, _keys.ratios, _cache[penultimates + 2]),
           TimePoint(_timepoints, _keys.ratios, _cache[penultimates + 3]));
-      _decompress(k00, k10, k20, k30, &_interp_keys[i].value[0]);
+      _decompress(k00, k10, k20, k30,
+                  ozz::make_span(_keys.ranges.data() + penultimates, 4),
+                  &_interp_keys[i].value[0]);
 
       // Decompress right side keyframes and store them in soa structures.
       const int lasts = (i + _num_soa_tracks) * 4;  // * soa size
@@ -249,13 +251,16 @@ inline void UpdateInterpKeyframes(int _num_soa_tracks,
           TimePoint(_timepoints, _keys.ratios, _cache[lasts + 1]),
           TimePoint(_timepoints, _keys.ratios, _cache[lasts + 2]),
           TimePoint(_timepoints, _keys.ratios, _cache[lasts + 3]));
-      _decompress(k01, k11, k21, k31, &_interp_keys[i].value[1]);
+      _decompress(k01, k11, k21, k31,
+                  ozz::make_span(_keys.ranges.data() + penultimates, 4),
+                  &_interp_keys[i].value[1]);
     }
   }
 }
 
 inline void DecompressFloat3(const Float3Key& _k0, const Float3Key& _k1,
                              const Float3Key& _k2, const Float3Key& _k3,
+                             const span<const Animation::Range>& /*_ranges*/,
                              math::SoaFloat3* _soa_float3) {
   _soa_float3->x = math::HalfToFloat(math::simd_int4::Load(
       _k0.value[0], _k1.value[0], _k2.value[0], _k3.value[0]));
@@ -274,6 +279,7 @@ inline void DecompressQuaternion(const QuaternionKey& _k0,
                                  const QuaternionKey& _k1,
                                  const QuaternionKey& _k2,
                                  const QuaternionKey& _k3,
+                                 const span<const Animation::Range>& _ranges,
                                  math::SoaQuaternion* _quaternion) {
   int largests[4], signs[4], values[4][3];
   unpack(_k0, largests[0], signs[0], values[0]);
@@ -297,22 +303,35 @@ inline void DecompressQuaternion(const QuaternionKey& _k0,
   };
 
   // Rebuilds quaternion from quantized values.
-  const math::SimdFloat4 kScale =
-      math::simd_float4::Load1(math::kSqrt2 / 4095.f);
-  const math::SimdFloat4 kOffset = math::simd_float4::Load1(-math::kSqrt2_2);
+  const math::SimdFloat4 kQuant = math::simd_float4::Load1(1.f / 4095.f);
+  const math::SimdFloat4 tscales[4] = {
+      math::simd_float4::LoadPtrU(_ranges[0].scale) * kQuant,
+      math::simd_float4::LoadPtrU(_ranges[1].scale) * kQuant,
+      math::simd_float4::LoadPtrU(_ranges[2].scale) * kQuant,
+      math::simd_float4::LoadPtrU(_ranges[3].scale) * kQuant};
+  math::SimdFloat4 scales[4];
+  math::Transpose4x4(tscales, scales);
+  const math::SimdFloat4 toffsets[4] = {
+      math::simd_float4::LoadPtrU(_ranges[0].offset),
+      math::simd_float4::LoadPtrU(_ranges[1].offset),
+      math::simd_float4::LoadPtrU(_ranges[2].offset),
+      math::simd_float4::LoadPtrU(_ranges[3].offset)};
+  math::SimdFloat4 offsets[4];
+  math::Transpose4x4(toffsets, offsets);
+
   math::SimdFloat4 cpnt[4] = {
-      kScale * math::simd_float4::FromInt(
-                   math::simd_int4::LoadPtr(cmp_keys[0])) +
-          kOffset,
-      kScale * math::simd_float4::FromInt(
-                   math::simd_int4::LoadPtr(cmp_keys[1])) +
-          kOffset,
-      kScale * math::simd_float4::FromInt(
-                   math::simd_int4::LoadPtr(cmp_keys[2])) +
-          kOffset,
-      kScale * math::simd_float4::FromInt(
-                   math::simd_int4::LoadPtr(cmp_keys[3])) +
-          kOffset};
+      scales[0] * math::simd_float4::FromInt(
+                      math::simd_int4::LoadPtr(cmp_keys[0])) +
+          offsets[0],
+      scales[1] * math::simd_float4::FromInt(
+                      math::simd_int4::LoadPtr(cmp_keys[1])) +
+          offsets[1],
+      scales[2] * math::simd_float4::FromInt(
+                      math::simd_int4::LoadPtr(cmp_keys[2])) +
+          offsets[2],
+      scales[3] * math::simd_float4::FromInt(
+                      math::simd_int4::LoadPtr(cmp_keys[3])) +
+          offsets[3]};
 
   // Zeroed largest components so they're not par of the dot.
   const math::SimdInt4 mask_f000 = math::simd_int4::mask_f000();
@@ -324,9 +343,9 @@ inline void DecompressQuaternion(const QuaternionKey& _k0,
   cpnt[largests[2]] = math::AndNot(cpnt[largests[2]], mask_00f0);
   cpnt[largests[3]] = math::AndNot(cpnt[largests[3]], mask_000f);
 
-  // Get back length of 4th component. Favors performance over accuracy by using
-  // x * RSqrtEst(x) instead of Sqrt(x).
-  // ww0 cannot be 0 because we 're recomputing the largest component.
+  // Get back length of 4th component. Favors performance over accuracy by
+  // using x * RSqrtEst(x) instead of Sqrt(x). ww0 cannot be 0 because we
+  // 're recomputing the largest component.
   const math::SimdFloat4 dot = cpnt[0] * cpnt[0] + cpnt[1] * cpnt[1] +
                                cpnt[2] * cpnt[2] + cpnt[3] * cpnt[3];
   // dot cannot be >= 1, because it does not include the largest component.

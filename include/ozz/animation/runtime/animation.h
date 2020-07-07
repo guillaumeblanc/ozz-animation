@@ -82,18 +82,24 @@ class Animation {
   // Gets the buffer of time points.
   span<const float> timepoints() const { return timepoints_; }
 
+  // Quantization range.
+  struct Range {
+    float offset[4];
+    float scale[4];
+  };
+
   template <typename _Ty>
   struct Component {
     typedef _Ty value_type;
 
     // Implicit conversion to const _Ty.
     operator Component<const _Ty>() const {
-      return {ratios, previouses, values};
+      return {ratios, previouses, values, ranges};
     }
 
     size_t size_bytes() const {
       return ratios.size_bytes() + previouses.size_bytes() +
-             values.size_bytes();
+             ranges.size_bytes() + values.size_bytes();
     }
 
     // Indices to timepoints. uint8_t or uint16_t depending on timepoints size.
@@ -104,6 +110,8 @@ class Animation {
 
     // Keyframe values
     span<_Ty> values;
+
+    span<Range> ranges;
   };
 
   // Gets the buffer of translations keys.
@@ -138,6 +146,7 @@ class Animation {
   // Internal destruction function.
   struct AllocateParams {
     size_t name_len;
+    size_t num_soa_tracks;
     size_t timepoints;
     size_t translations;
     size_t rotations;

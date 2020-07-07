@@ -121,6 +121,11 @@ inline span<_Ty> make_span(_Ty (&_arr)[_Size]) {
   return {_arr, _Size};
 }
 
+template <typename _Ty>
+inline span<_Ty> make_span(_Ty* _arr, size_t _size) {
+  return {_arr, _size};
+}
+
 // Returns a mutable span from a container.
 template <typename _Container>
 inline span<typename _Container::value_type> make_span(_Container& _container) {
