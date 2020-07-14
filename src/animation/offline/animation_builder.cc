@@ -49,23 +49,16 @@ namespace animation {
 namespace offline {
 namespace {
 
-struct SortingTranslationKey {
+template <typename _Key>
+struct SortingKey {
   uint16_t track;
   float prev_key_time;
-  RawAnimation::TranslationKey key;
+  _Key key;
 };
 
-struct SortingRotationKey {
-  uint16_t track;
-  float prev_key_time;
-  RawAnimation::RotationKey key;
-};
-
-struct SortingScaleKey {
-  uint16_t track;
-  float prev_key_time;
-  RawAnimation::ScaleKey key;
-};
+typedef SortingKey<RawAnimation::TranslationKey> SortingFloat3Key;
+typedef SortingKey<RawAnimation::RotationKey> SortingQuaternionKey;
+typedef SortingKey<RawAnimation::ScaleKey> SortingScaleKey;
 
 // Keyframe sorting. Stores first by time and then track number.
 template <typename _Key>
@@ -256,18 +249,18 @@ void CompressQuaternion(const ozz::math::Quaternion& _src,
 // fail to take the shortest path during the normalized-lerp. Note that keys
 // are still sorted per-track at that point, which allows this algorithm to
 // process all consecutive keys.
-void FixupQuaternions(ozz::vector<SortingRotationKey>* _src) {
+void FixupQuaternions(ozz::vector<SortingQuaternionKey>* _src) {
   size_t track = std::numeric_limits<size_t>::max();
   const math::Quaternion identity = math::Quaternion::identity();
   for (size_t i = 0; i < _src->size(); ++i) {
-    SortingRotationKey& src = _src->at(i);
+    SortingQuaternionKey& src = _src->at(i);
     math::Quaternion normalized = NormalizeSafe(src.key.value, identity);
     if (track != _src->at(i).track) {  // First key of the track.
       if (normalized.w < 0.f) {    // .w eq to a dot with identity quaternion.
         normalized = -normalized;  // Q an -Q are the same rotation.
       }
     } else {  // Still on the same track: so fixes-up quaternion.
-      const SortingRotationKey& prev_src = _src->at(i - 1);
+      const SortingQuaternionKey& prev_src = _src->at(i - 1);
       const math::Float4 prev(prev_src.key.value.x, prev_src.key.value.y,
                               prev_src.key.value.z, prev_src.key.value.w);
       const math::Float4 curr(normalized.x, normalized.y, normalized.z,
@@ -321,11 +314,11 @@ unique_ptr<Animation> AnimationBuilder::operator()(
     rotations += raw_track.rotations.size() + 2;        // needs to add the
     scales += raw_track.scales.size() + 2;              // first and last keys.
   }
-  ozz::vector<SortingTranslationKey> sorting_translations;
+  ozz::vector<SortingFloat3Key> sorting_translations;
   sorting_translations.reserve(translations);
-  ozz::vector<SortingRotationKey> sorting_rotations;
+  ozz::vector<SortingQuaternionKey> sorting_rotations;
   sorting_rotations.reserve(rotations);
-  ozz::vector<SortingScaleKey> sorting_scales;
+  ozz::vector<SortingFloat3Key> sorting_scales;
   sorting_scales.reserve(scales);
 
   // Filters RawAnimation keys and copies them to the output sorting structure.
@@ -356,11 +349,11 @@ unique_ptr<Animation> AnimationBuilder::operator()(
 
   // Sort animation keys to favor cache coherency.
   Sort(sorting_translations, num_soa_tracks, &LerpTranslation,
-       &SortingKeyLess<SortingTranslationKey>);
+       &SortingKeyLess<SortingFloat3Key>);
   Sort(sorting_rotations, num_soa_tracks, &LerpRotation,
-       &SortingKeyLess<SortingRotationKey>);
+       &SortingKeyLess<SortingQuaternionKey>);
   Sort(sorting_scales, num_soa_tracks, &LerpScale,
-       &SortingKeyLess<SortingScaleKey>);
+       &SortingKeyLess<SortingFloat3Key>);
 
   // Allocate animation members.
   animation->Allocate(_input.name.length(), sorting_translations.size(),
