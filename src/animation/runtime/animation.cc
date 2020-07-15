@@ -29,6 +29,7 @@
 
 #include <cassert>
 #include <cstring>
+#include <limits>
 
 #include "ozz/base/io/archive.h"
 #include "ozz/base/log.h"

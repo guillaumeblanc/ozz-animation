@@ -118,11 +118,33 @@ inline int TrackBackward(int* _cache, int _target, int _last_track,
 
 inline float TimePoint(const ozz::span<const float>& _timepoints,
                        const ozz::span<const char>& _ratios, size_t _at) {
-  if (_timepoints.size() < std::numeric_limits<uint8_t>::max()) {
+  if (_timepoints.size() <= std::numeric_limits<uint8_t>::max()) {
     return _timepoints[reinterpret_span<const uint8_t>(_ratios)[_at]];
   } else {
     return _timepoints[reinterpret_span<const uint16_t>(_ratios)[_at]];
   }
+}
+
+inline ozz::math::SimdFloat4 TimePoints(
+    const ozz::span<const float>& _timepoints,
+    const ozz::span<const char>& _ratios, const int* _ats) {
+  uint16_t index[4];
+  if (_timepoints.size() <= std::numeric_limits<uint8_t>::max()) {
+    const auto& ratios = reinterpret_span<const uint8_t>(_ratios);
+    index[0] = ratios[_ats[0]];
+    index[1] = ratios[_ats[1]];
+    index[2] = ratios[_ats[2]];
+    index[3] = ratios[_ats[3]];
+  } else {
+    const auto& ratios = reinterpret_span<const uint16_t>(_ratios);
+    index[0] = ratios[_ats[0]];
+    index[1] = ratios[_ats[1]];
+    index[2] = ratios[_ats[2]];
+    index[3] = ratios[_ats[3]];
+  }
+  return ozz::math::simd_float4::Load(
+      _timepoints[index[0]], _timepoints[index[1]], _timepoints[index[2]],
+      _timepoints[index[3]]);
 }
 
 // Loops through the sorted key frames and update cache structure.
@@ -226,29 +248,25 @@ inline void UpdateInterpKeyframes(int _num_soa_tracks,
       }
 
       const int penultimates = i * 4;  // * soa size
+      const int* cached_p = _cache + penultimates;
       // Decompress left side keyframes and store them in soa structures.
-      const _Key& k00 = _keys.values[_cache[penultimates + 0]];
-      const _Key& k10 = _keys.values[_cache[penultimates + 1]];
-      const _Key& k20 = _keys.values[_cache[penultimates + 2]];
-      const _Key& k30 = _keys.values[_cache[penultimates + 3]];
-      _interp_keys[i].ratio[0] = math::simd_float4::Load(
-          TimePoint(_timepoints, _keys.ratios, _cache[penultimates + 0]),
-          TimePoint(_timepoints, _keys.ratios, _cache[penultimates + 1]),
-          TimePoint(_timepoints, _keys.ratios, _cache[penultimates + 2]),
-          TimePoint(_timepoints, _keys.ratios, _cache[penultimates + 3]));
+      const _Key& k00 = _keys.values[cached_p[0]];
+      const _Key& k10 = _keys.values[cached_p[1]];
+      const _Key& k20 = _keys.values[cached_p[2]];
+      const _Key& k30 = _keys.values[cached_p[3]];
+      _interp_keys[i].ratio[0] =
+          TimePoints(_timepoints, _keys.ratios, cached_p);
       _decompress(k00, k10, k20, k30, &_interp_keys[i].value[0]);
 
       // Decompress right side keyframes and store them in soa structures.
       const int lasts = (i + _num_soa_tracks) * 4;  // * soa size
-      const _Key& k01 = _keys.values[_cache[lasts + 0]];
-      const _Key& k11 = _keys.values[_cache[lasts + 1]];
-      const _Key& k21 = _keys.values[_cache[lasts + 2]];
-      const _Key& k31 = _keys.values[_cache[lasts + 3]];
-      _interp_keys[i].ratio[1] = math::simd_float4::Load(
-          TimePoint(_timepoints, _keys.ratios, _cache[lasts + 0]),
-          TimePoint(_timepoints, _keys.ratios, _cache[lasts + 1]),
-          TimePoint(_timepoints, _keys.ratios, _cache[lasts + 2]),
-          TimePoint(_timepoints, _keys.ratios, _cache[lasts + 3]));
+      const int* cached_l = _cache + lasts;
+      const _Key& k01 = _keys.values[cached_l[0]];
+      const _Key& k11 = _keys.values[cached_l[1]];
+      const _Key& k21 = _keys.values[cached_l[2]];
+      const _Key& k31 = _keys.values[cached_l[3]];
+      _interp_keys[i].ratio[1] =
+          TimePoints(_timepoints, _keys.ratios, cached_l);
       _decompress(k01, k11, k21, k31, &_interp_keys[i].value[1]);
     }
   }
