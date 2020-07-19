@@ -49,16 +49,17 @@ namespace animation {
 namespace offline {
 namespace {
 
-template <typename _Key>
+template <typename _Key, size_t _Components>
 struct SortingKey {
+  enum { kComponents = _Components };
   uint16_t track;
   float prev_key_time;
   _Key key;
 };
 
-typedef SortingKey<RawAnimation::TranslationKey> SortingFloat3Key;
-typedef SortingKey<RawAnimation::RotationKey> SortingQuaternionKey;
-typedef SortingKey<RawAnimation::ScaleKey> SortingScaleKey;
+typedef SortingKey<RawAnimation::TranslationKey, 3> SortingTranslationKey;
+typedef SortingKey<RawAnimation::RotationKey, 4> SortingQuaternionKey;
+typedef SortingKey<RawAnimation::ScaleKey, 3> SortingScaleKey;
 
 // Keyframe sorting. Stores first by time and then track number.
 template <typename _Key>
@@ -203,8 +204,10 @@ uint16_t TimePointToIndex(const span<const float>& _timepoints, float _time) {
 
 template <typename _SortingKey, typename _Component, typename _Compressor>
 void CopyToAnimation(const span<const float>& _timepoints,
-                     const ozz::vector<_SortingKey>& _src, size_t _num_tracks,
+                     const ozz::span<_SortingKey>& _src, size_t _num_tracks,
                      _Component* _dest, const _Compressor& _compressor) {
+  FindRanges(_src, ozz::make_span(_dest->ranges));
+
   ozz::vector<typename _Component::value_type*> previouses(_num_tracks);
   for (size_t i = 0; i < _src.size(); ++i) {
     const _SortingKey& src = _src[i];
@@ -233,68 +236,28 @@ void CopyToAnimation(const span<const float>& _timepoints,
   }
 }
 
-void CompressFloat3(const ozz::math::Float3& _src, const Animation::Range&,
-                    ozz::animation::Float3Key* _dest) {
-  _dest->value[0] = ozz::math::FloatToHalf(_src.x);
-  _dest->value[1] = ozz::math::FloatToHalf(_src.y);
-  _dest->value[2] = ozz::math::FloatToHalf(_src.z);
-}
-
-// Compares float absolute values.
-bool LessAbs(float _left, float _right) {
-  return std::abs(_left) < std::abs(_right);
-}
-/*
-void FindRange(const span<const SortingRotationKey>& _quaternions,
-               const span<ozz::math::Float4> _offsets,
-               const span<ozz::math::Float4> _scales) {
-  assert(_offsets.size() == _scales.size());
-
-  for (size_t i = 0; i < _scales.size(); ++i) {
-    _offsets[i] = ozz::math::Float4(std::numeric_limits<float>::max());
-    _scales[i] = ozz::math::Float4(std::numeric_limits<float>::lowest());
-  }
-
-  // Uses _scales to temporarily store maxs.
-  for (const SortingRotationKey& quat : _quaternions) {
-    const ozz::math::Float4 v(quat.key.value.x, quat.key.value.y,
-                              quat.key.value.z, quat.key.value.w);
-    _offsets[quat.track] = Min(_offsets[quat.track], v);
-    _scales[quat.track] = Max(_scales[quat.track], v);
-  }
-
-  for (size_t i = 0; i < _scales.size(); ++i) {
-    _scales[i] = _scales[i] - _offsets[i];
-    if (_scales[i].x > 1.f || _scales[i].y > 1.f || _scales[i].z > 1.f ||
-        _scales[i].w > 1.f) {
-      _scales[i].w = 0.f;
-    }
-  }
-}*/
-
-void FindRanges(const span<const SortingRotationKey>& _quaternions,
-                const span<Animation::Range> _ranges) {
+template <typename _Key>
+void FindRanges(const span<_Key>& _keys, const span<Animation::Range> _ranges) {
   for (size_t i = 0; i < _ranges.size(); ++i) {
-    for (size_t j = 0; j < 4; ++j) {
+    for (size_t j = 0; j < _Key::kComponents; ++j) {
       _ranges[i].offset[j] = std::numeric_limits<float>::max();
       _ranges[i].scale[j] = std::numeric_limits<float>::lowest();
     }
   }
 
   // Uses _scales to temporarily store maxs.
-  for (const SortingRotationKey& quat : _quaternions) {
-    const float v[4] = {quat.key.value.x, quat.key.value.y, quat.key.value.z,
-                        quat.key.value.w};
-    for (size_t j = 0; j < 4; ++j) {
-      _ranges[quat.track].offset[j] =
-          ozz::math::Min(_ranges[quat.track].offset[j], v[j]);
-      _ranges[quat.track].scale[j] =
-          ozz::math::Max(_ranges[quat.track].scale[j], v[j]);
+  for (const _Key& key : _keys) {
+    const float* v = &key.key.value.x;
+    for (size_t j = 0; j < _Key::kComponents; ++j) {
+      _ranges[key.track].offset[j] =
+          ozz::math::Min(_ranges[key.track].offset[j], v[j]);
+      _ranges[key.track].scale[j] =
+          ozz::math::Max(_ranges[key.track].scale[j], v[j]);
     }
   }
 
   for (size_t i = 0; i < _ranges.size(); ++i) {
-    for (size_t j = 0; j < 4; ++j) {
+    for (size_t j = 0; j < _Key::kComponents; ++j) {
       _ranges[i].scale[j] = _ranges[i].scale[j] - _ranges[i].offset[j];
     }
   }
@@ -304,6 +267,25 @@ inline int quantize(float _value, float _scale, float _offset, int _max) {
   const float quant =
       std::floor((_value - _offset) * static_cast<float>(_max) / _scale + .5f);
   return math::Clamp(0, static_cast<int>(quant), _max);
+}
+
+/*
+void CompressFloat3(const ozz::math::Float3& _src, const Animation::Range&,
+                    ozz::animation::Float3Key* _dest) {
+  _dest->value[0] = ozz::math::FloatToHalf(_src.x);
+  _dest->value[1] = ozz::math::FloatToHalf(_src.y);
+  _dest->value[2] = ozz::math::FloatToHalf(_src.z);
+}*/
+
+void CompressFloat3(const ozz::math::Float3& _src,
+                    const Animation::Range& _range,
+                    ozz::animation::Float3Key* _dest) {
+  _dest->value[0] = static_cast<uint16_t>(
+      quantize(_src.x, _range.scale[0], _range.offset[0], (1 << 12) - 1));
+  _dest->value[1] = static_cast<uint16_t>(
+      quantize(_src.y, _range.scale[1], _range.offset[1], (1 << 12) - 1));
+  _dest->value[2] = static_cast<uint16_t>(
+      quantize(_src.z, _range.scale[2], _range.offset[2], (1 << 12) - 1));
 }
 
 // Compresses quaternion to ozz::animation::RotationKey format.
@@ -318,8 +300,12 @@ void CompressQuaternion(const ozz::math::Quaternion& _src,
                         ozz::animation::QuaternionKey* _dest) {
   // Finds the largest quaternion component.
   const float quat[4] = {_src.x, _src.y, _src.z, _src.w};
-  const int largest =
-      static_cast<int>(std::max_element(quat, quat + 4, LessAbs) - quat);
+  const int largest = static_cast<int>(
+      std::max_element(quat, quat + 4,
+                       [](float _left, float _right) {
+                         return std::abs(_left) < std::abs(_right);
+                       }) -
+      quat);
   assert(largest >= 0 && largest <= 3);
 
   // Quantize the 3 smallest components on x bits unsigned integers.
@@ -366,7 +352,7 @@ void FixupQuaternions(ozz::vector<SortingQuaternionKey>* _src) {
 
 ozz::vector<float> BuildTimePoints(
     ozz::vector<SortingTranslationKey>& _translations,
-    ozz::vector<SortingRotationKey>& _rotations,
+    ozz::vector<SortingQuaternionKey>& _rotations,
     ozz::vector<SortingScaleKey>& _scales) {
   ozz::vector<float> timepoints;
 
@@ -427,11 +413,11 @@ unique_ptr<Animation> AnimationBuilder::operator()(
     rotations += raw_track.rotations.size() + 2;        // needs to add the
     scales += raw_track.scales.size() + 2;              // first and last keys.
   }
-  ozz::vector<SortingFloat3Key> sorting_translations;
+  ozz::vector<SortingTranslationKey> sorting_translations;
   sorting_translations.reserve(translations);
   ozz::vector<SortingQuaternionKey> sorting_rotations;
   sorting_rotations.reserve(rotations);
-  ozz::vector<SortingFloat3Key> sorting_scales;
+  ozz::vector<SortingScaleKey> sorting_scales;
   sorting_scales.reserve(scales);
 
   // Filters RawAnimation keys and copies them to the output sorting structure.
@@ -462,11 +448,11 @@ unique_ptr<Animation> AnimationBuilder::operator()(
 
   // Sort animation keys to favor cache coherency.
   Sort(sorting_translations, num_soa_tracks, &LerpTranslation,
-       &SortingKeyLess<SortingFloat3Key>);
+       &SortingKeyLess<SortingTranslationKey>);
   Sort(sorting_rotations, num_soa_tracks, &LerpRotation,
        &SortingKeyLess<SortingQuaternionKey>);
   Sort(sorting_scales, num_soa_tracks, &LerpScale,
-       &SortingKeyLess<SortingFloat3Key>);
+       &SortingKeyLess<SortingScaleKey>);
 
   // Get all timepoints. Shall be done on sorting keys as time points might have
   // been added during the process.
@@ -486,14 +472,12 @@ unique_ptr<Animation> AnimationBuilder::operator()(
   animation->Allocate(params);
 
   // Copy sorted keys to final animation.
-  CopyToAnimation(make_span(time_points), sorting_translations, num_soa_tracks,
-                  &animation->translations_, &CompressFloat3);
-  FindRanges(ozz::make_span(sorting_rotations),
-             ozz::make_span(animation->rotations_.ranges));
-  CopyToAnimation(make_span(time_points), sorting_rotations, num_soa_tracks,
-                  &animation->rotations_, &CompressQuaternion);
-  CopyToAnimation(make_span(time_points), sorting_scales, num_soa_tracks,
-                  &animation->scales_, &CompressFloat3);
+  CopyToAnimation(make_span(time_points), make_span(sorting_translations),
+                  num_soa_tracks, &animation->translations_, &CompressFloat3);
+  CopyToAnimation(make_span(time_points), make_span(sorting_rotations),
+                  num_soa_tracks, &animation->rotations_, &CompressQuaternion);
+  CopyToAnimation(make_span(time_points), make_span(sorting_scales),
+                  num_soa_tracks, &animation->scales_, &CompressFloat3);
 
   // Converts timepoints to ratio and copy to animation. Must be done once
   // indices have been set.

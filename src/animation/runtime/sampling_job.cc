@@ -231,13 +231,13 @@ void UpdateCacheCursor(float _ratio, int _num_soa_tracks,
   *_cursor = cursor;
 }
 
-template <typename _Key, typename _InterpKey, typename _Decompress>
-inline void UpdateInterpKeyframes(int _num_soa_tracks,
-                                  const ozz::span<const float>& _timepoints,
-                                  const Animation::Component<const _Key>& _keys,
-                                  const int* _cache, uint8_t* _outdated,
-                                  _InterpKey* _interp_keys,
-                                  const _Decompress& _decompress) {
+template <typename _Key, size_t _Components, typename _InterpKey,
+          typename _Decompress>
+inline void UpdateInterpKeyframes(
+    int _num_soa_tracks, const ozz::span<const float>& _timepoints,
+    const Animation::Component<const _Key, _Components>& _keys,
+    const int* _cache, uint8_t* _outdated, _InterpKey* _interp_keys,
+    const _Decompress& _decompress) {
   const int num_outdated_flags = (_num_soa_tracks + 7) / 8;
   for (int j = 0; j < num_outdated_flags; ++j) {
     uint8_t outdated = _outdated[j];
@@ -278,7 +278,42 @@ inline void UpdateInterpKeyframes(int _num_soa_tracks,
 
 inline void DecompressFloat3(const Float3Key& _k0, const Float3Key& _k1,
                              const Float3Key& _k2, const Float3Key& _k3,
-                             const span<const Animation::Range>& /*_ranges*/,
+                             const span<const Animation::Range>& _ranges,
+                             math::SoaFloat3* _soa_float3) {
+  // Rebuilds quaternion from quantized values.
+  const math::SimdFloat4 kQuant =
+      math::simd_float4::Load1(1.f / ((1 << 12) - 1));
+  const math::SimdFloat4 scales[4] = {
+      math::simd_float4::LoadPtrU(_ranges[0].scale) * kQuant,
+      math::simd_float4::LoadPtrU(_ranges[1].scale) * kQuant,
+      math::simd_float4::LoadPtrU(_ranges[2].scale) * kQuant,
+      math::simd_float4::LoadPtrU(_ranges[3].scale) * kQuant};
+  const math::SimdFloat4 offsets[4] = {
+      math::simd_float4::LoadPtrU(_ranges[0].offset),
+      math::simd_float4::LoadPtrU(_ranges[1].offset),
+      math::simd_float4::LoadPtrU(_ranges[2].offset),
+      math::simd_float4::LoadPtrU(_ranges[3].offset)};
+  const math::SimdFloat4 out[4] = {
+      scales[0] * math::simd_float4::FromInt(math::simd_int4::Load(
+                      _k0.value[0], _k0.value[1], _k0.value[2], 0)) +
+          offsets[0],
+      scales[1] * math::simd_float4::FromInt(math::simd_int4::Load(
+                      _k1.value[0], _k1.value[1], _k1.value[2], 0)) +
+          offsets[1],
+      scales[2] * math::simd_float4::FromInt(math::simd_int4::Load(
+                      _k2.value[0], _k2.value[1], _k2.value[2], 0)) +
+          offsets[2],
+      scales[3] * math::simd_float4::FromInt(math::simd_int4::Load(
+                      _k3.value[0], _k3.value[1], _k3.value[2], 0)) +
+          offsets[3]};
+
+  math::Transpose4x3(out, &_soa_float3->x);
+}  // namespace
+
+/*
+inline void DecompressFloat3(const Float3Key& _k0, const Float3Key& _k1,
+                             const Float3Key& _k2, const Float3Key& _k3,
+                             const span<const Animation::Range>&,
                              math::SoaFloat3* _soa_float3) {
   _soa_float3->x = math::HalfToFloat(math::simd_int4::Load(
       _k0.value[0], _k1.value[0], _k2.value[0], _k3.value[0]));
@@ -286,7 +321,7 @@ inline void DecompressFloat3(const Float3Key& _k0, const Float3Key& _k1,
       _k0.value[1], _k1.value[1], _k2.value[1], _k3.value[1]));
   _soa_float3->z = math::HalfToFloat(math::simd_int4::Load(
       _k0.value[2], _k1.value[2], _k2.value[2], _k3.value[2]));
-}
+}*/
 
 // Defines a mapping table that defines components assignation in the output
 // quaternion.

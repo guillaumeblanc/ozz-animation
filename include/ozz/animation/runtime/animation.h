@@ -88,12 +88,13 @@ class Animation {
     float scale[4];
   };
 
-  template <typename _Ty>
+  template <typename _Ty, size_t _Components>
   struct Component {
     typedef _Ty value_type;
+    enum { kComponents = _Components };
 
     // Implicit conversion to const _Ty.
-    operator Component<const _Ty>() const {
+    operator Component<const _Ty, _Components>() const {
       return {ratios, previouses, values, ranges};
     }
 
@@ -115,15 +116,15 @@ class Animation {
   };
 
   // Gets the buffer of translations keys.
-  typedef Component<const Float3Key> Translations;
+  typedef Component<const Float3Key, 3> Translations;
   Translations translations() const { return translations_; }
 
   // Gets the buffer of rotation keys.
-  typedef Component<const QuaternionKey> Rotations;
+  typedef Component<const QuaternionKey, 4> Rotations;
   Rotations rotations() const { return rotations_; }
 
   // Gets the buffer of scale keys.
-  typedef Component<const Float3Key> Scales;
+  typedef Component<const Float3Key, 3> Scales;
   Scales scales() const { return scales_; }
 
   // Get the estimated animation's size in bytes.
@@ -165,12 +166,12 @@ class Animation {
   // Animation name.
   char* name_;
 
-  // Stores all translation/rotation/scale keys begin and end of buffers.
+  // Stores all translation/rotation/scale keyframe times.
   span<float> timepoints_;
 
-  Component<Float3Key> translations_;
-  Component<QuaternionKey> rotations_;
-  Component<Float3Key> scales_;
+  Component<Float3Key, 3> translations_;
+  Component<QuaternionKey, 4> rotations_;
+  Component<Float3Key, 3> scales_;
 };
 }  // namespace animation
 
