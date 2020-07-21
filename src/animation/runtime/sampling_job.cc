@@ -349,30 +349,26 @@ inline void DecompressQuaternion(const QuaternionKey& _k0,
   // Prepares an array of input values, according to the mapping required to
   // restore quaternion largest component.
   alignas(16) int cmp_keys[4][4] = {
-      {values[0][m0[0]], values[1][m1[0]], values[2][m2[0]], values[3][m3[0]]},
-      {values[0][m0[1]], values[1][m1[1]], values[2][m2[1]], values[3][m3[1]]},
-      {values[0][m0[2]], values[1][m1[2]], values[2][m2[2]], values[3][m3[2]]},
-      {values[0][m0[3]], values[1][m1[3]], values[2][m2[3]], values[3][m3[3]]},
+      {values[0][m0[0]], values[0][m0[1]], values[0][m0[2]], values[0][m0[3]]},
+      {values[1][m1[0]], values[1][m1[1]], values[1][m1[2]], values[1][m1[3]]},
+      {values[2][m2[0]], values[2][m2[1]], values[2][m2[2]], values[2][m2[3]]},
+      {values[3][m3[0]], values[3][m3[1]], values[3][m3[2]], values[3][m3[3]]},
   };
 
   // Rebuilds quaternion from quantized values.
   const math::SimdFloat4 kQuant = math::simd_float4::Load1(1.f / 4095.f);
-  const math::SimdFloat4 tscales[4] = {
+  const math::SimdFloat4 scales[4] = {
       math::simd_float4::LoadPtrU(_ranges[0].scale) * kQuant,
       math::simd_float4::LoadPtrU(_ranges[1].scale) * kQuant,
       math::simd_float4::LoadPtrU(_ranges[2].scale) * kQuant,
       math::simd_float4::LoadPtrU(_ranges[3].scale) * kQuant};
-  math::SimdFloat4 scales[4];
-  math::Transpose4x4(tscales, scales);
-  const math::SimdFloat4 toffsets[4] = {
+  const math::SimdFloat4 offsets[4] = {
       math::simd_float4::LoadPtrU(_ranges[0].offset),
       math::simd_float4::LoadPtrU(_ranges[1].offset),
       math::simd_float4::LoadPtrU(_ranges[2].offset),
       math::simd_float4::LoadPtrU(_ranges[3].offset)};
-  math::SimdFloat4 offsets[4];
-  math::Transpose4x4(toffsets, offsets);
 
-  math::SimdFloat4 cpnt[4] = {
+  math::SimdFloat4 tcpnt[4] = {
       scales[0] * math::simd_float4::FromInt(
                       math::simd_int4::LoadPtr(cmp_keys[0])) +
           offsets[0],
@@ -385,6 +381,8 @@ inline void DecompressQuaternion(const QuaternionKey& _k0,
       scales[3] * math::simd_float4::FromInt(
                       math::simd_int4::LoadPtr(cmp_keys[3])) +
           offsets[3]};
+  math::SimdFloat4 cpnt[4];
+  math::Transpose4x4(tcpnt, cpnt);
 
   // Zeroed largest components so they're not par of the dot.
   const math::SimdInt4 mask_f000 = math::simd_int4::mask_f000();
