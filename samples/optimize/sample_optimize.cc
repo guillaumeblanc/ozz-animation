@@ -25,36 +25,30 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/animation/runtime/animation.h"
-#include "ozz/animation/runtime/local_to_model_job.h"
-#include "ozz/animation/runtime/sampling_job.h"
-#include "ozz/animation/runtime/skeleton.h"
-
-#include "ozz/animation/offline/animation_builder.h"
-#include "ozz/animation/offline/animation_optimizer.h"
-#include "ozz/animation/offline/raw_animation.h"
-#include "ozz/animation/offline/raw_animation_utils.h"
-
-#include "ozz/base/memory/unique_ptr.h"
-
-#include "ozz/base/io/archive.h"
-#include "ozz/base/io/stream.h"
-#include "ozz/base/log.h"
-
-#include "ozz/base/maths/math_ex.h"
-#include "ozz/base/maths/simd_math.h"
-#include "ozz/base/maths/soa_transform.h"
-#include "ozz/base/maths/vec_float.h"
-
-#include "ozz/options/options.h"
+#include <algorithm>
 
 #include "framework/application.h"
 #include "framework/imgui.h"
 #include "framework/profile.h"
 #include "framework/renderer.h"
 #include "framework/utils.h"
-
-#include <algorithm>
+#include "ozz/animation/offline/animation_builder.h"
+#include "ozz/animation/offline/animation_optimizer.h"
+#include "ozz/animation/offline/raw_animation.h"
+#include "ozz/animation/offline/raw_animation_utils.h"
+#include "ozz/animation/runtime/animation.h"
+#include "ozz/animation/runtime/local_to_model_job.h"
+#include "ozz/animation/runtime/sampling_job.h"
+#include "ozz/animation/runtime/skeleton.h"
+#include "ozz/base/io/archive.h"
+#include "ozz/base/io/stream.h"
+#include "ozz/base/log.h"
+#include "ozz/base/maths/math_ex.h"
+#include "ozz/base/maths/simd_math.h"
+#include "ozz/base/maths/soa_transform.h"
+#include "ozz/base/maths/vec_float.h"
+#include "ozz/base/memory/unique_ptr.h"
+#include "ozz/options/options.h"
 
 // Skeleton and animation file can be specified as an option.
 OZZ_OPTIONS_DECLARE_STRING(skeleton, "Path to the runtime skeleton file.",
@@ -357,8 +351,8 @@ class OptimizeSampleApplication : public ozz::sample::Application {
         rebuild |= _im_gui->DoCheckBox("Fast mode", &fast_);
 
         std::sprintf(label, "Tolerance: %0.2f mm", setting_.tolerance * 1000);
-        rebuild |= _im_gui->DoSlider(label, 0.f, .1f, &setting_.tolerance, .5f,
-                                     optimize_);
+        rebuild |= _im_gui->DoSlider(label, 1e-16f, .1f, &setting_.tolerance,
+                                     .5f, optimize_);
 
         std::sprintf(label, "Distance: %0.2f mm", setting_.distance * 1000);
         rebuild |= _im_gui->DoSlider(label, 0.f, 1.f, &setting_.distance, .5f,
@@ -376,7 +370,7 @@ class OptimizeSampleApplication : public ozz::sample::Application {
 
         std::sprintf(label, "Tolerance: %0.2f mm",
                      overridden_joint_setting_.tolerance * 1000);
-        rebuild |= _im_gui->DoSlider(label, 0.f, .1f,
+        rebuild |= _im_gui->DoSlider(label, 1e-16f, .1f,
                                      &overridden_joint_setting_.tolerance, .5f,
                                      override_joint_ && optimize_);
 

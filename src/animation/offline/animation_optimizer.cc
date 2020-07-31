@@ -40,6 +40,7 @@
 #include "ozz/base/containers/stack.h"
 #include "ozz/base/containers/vector.h"
 #include "ozz/base/io/stream.h"
+#include "ozz/base/log.h"
 #include "ozz/base/maths/math_constant.h"
 #include "ozz/base/maths/math_ex.h"
 #include "ozz/base/memory/unique_ptr.h"
@@ -557,8 +558,7 @@ class Comparer {
     // Populates test local & model space transforms.
     for (size_t i = 0; i < key_times_.size(); ++i) {
       ozz::animation::offline::SampleAnimation(
-          _original, key_times_[i], ozz::make_span(solution_locals_[i]),
-          false);
+          _original, key_times_[i], ozz::make_span(solution_locals_[i]), false);
 
       ozz::animation::IterateJointsDF(
           _skeleton, LTMIterator(ozz::make_span(solution_locals_[i]),
@@ -632,9 +632,8 @@ class Comparer {
     float worst_ratio = -std::numeric_limits<float>::max();
     // Checking worst_ratio < 0.f is an early out optimization. It prevents from
     // knowing the real error ratio though.
-    // TODO be careful if real error ratio is needed.
-    // TODO Loops though all time range, but exits as soon as worst_ratio is
-    // past the limit.
+    // Note: Loops though all time range, but exits as soon as worst_ratio is
+    // past the limit. This means the real worst ratio is not computed.
     for (size_t i = 0; i < key_times_.size() && worst_ratio < 0.f; ++i) {
       const float key_time = key_times_[i];
       if (!spanner.Update(key_time)) {
@@ -666,15 +665,15 @@ class Comparer {
         // Compare, only the relevant ones for _joint hierarchy are written.
         IterateJointsDF(
             skeleton_,
-            CompareIterator(make_span(reference_models_[i]),
-                            make_span(models), settings_, make_span(errors)),
+            CompareIterator(make_span(reference_models_[i]), make_span(models),
+                            settings_, make_span(errors)),
             _joint);
 
         // Gets joint error ratio, which is the worst ratio of _joint's
         // hierarchy.
         const float ratio =
-            IterateJointsDF(
-                skeleton_, RatioIterator(settings_, make_span(errors)), _joint)
+            IterateJointsDF(skeleton_,
+                            RatioIterator(settings_, make_span(errors)), _joint)
                 .ratio();
 
         // Stores worst ratio of whole time range.
@@ -734,28 +733,35 @@ class VTrack {
 
   // Computes transition to next solution.
   void Transition() {
-    const size_t validated_size = ValidatedSize();
-
-    // TODO, there's no guarantee this loop exits.
-    for (size_t candidate_size = CandidateSize();
-         candidate_size > 1 && candidate_size == validated_size;
-         candidate_size = CandidateSize()) {
+    size_t loops = 0;
+    const size_t kMaxLoops = 1000;
+    for (size_t candidate_size = CandidateSize(),
+                validated_size = ValidatedSize();
+         loops < kMaxLoops && candidate_size > 1 &&
+         candidate_size == validated_size;
+         ++loops, candidate_size = CandidateSize()) {
       // Decimates validated track in order to find next candidate track.
       Decimate(tolerance_);
 
       // Computes next tolerance to use for decimation.
-      // tolerance_ *= 1.2f;
       assert(hierarchy_error_ratio_ < 0.f);
-      const float mul = 1.2f + -hierarchy_error_ratio_ * .3f;  // * f * 1.f;
+
+      // TODO: this equation shall be exposed to advanced settings.
+      const float mul = 1.2f + -hierarchy_error_ratio_ * .3f;
       tolerance_ *= mul;
+    }
+
+    if (loops == kMaxLoops) {
+      log::LogV() << "Track could not be decimated with the maximum number of "
+                     "tries allowed. Tolerance setting is probably too small."
+                  << std::endl;
     }
   }
 
   // Updates error ratio of the candidate track compared to original.
   void UpdateDelta(const Comparer& _comparer) {
-    // TODO find a way to do it (flag/reject track) at initialization time.
-    // TODO wouldn't work with quantization taken into account.
-    // TODO check if part of remaining tracks.
+    // TODO: find a way to do it (flag/reject track) at initialization time.
+    // TODO: wouldn't work with quantization taken into account.
 
     // (original_size > 1) is an optimization that prevents rebuilding error for
     // constant tracks. They haven't been decimated, so they don't own any
@@ -811,7 +817,6 @@ class VTrack {
   // Error tolerance of candidate track.
   float tolerance_;
 
-  // TODO removes
   // Error value for candidate track.
   // Takes into account its whole hierarchy.
   float hierarchy_error_ratio_;
@@ -848,7 +853,6 @@ class TTrack : public VTrack {
 
     *validated_ = candidate_;
 
-    // TODO
     // included_ keyframes vector is now outdated.
     // Outdated is reset to true (all keyframe maintained), as decimate might
     // not be call (if keyframe number is too small for instance).
@@ -857,7 +861,6 @@ class TTrack : public VTrack {
   }
 
   virtual void Decimate(float _tolerance) {
-    // TODO Need to prove decimate doesn't need original track
     ozz::animation::offline::Decimate(*validated_, adapter_, _tolerance,
                                       &candidate_, &included_);
   }
@@ -1058,6 +1061,28 @@ class HillClimber {
 
   AnimationOptimizer::Observer* observer_;
 };
+
+bool ValidateSettings(const AnimationOptimizer& _optimizer) {
+  const auto& InvalideSetting =
+      [](const AnimationOptimizer::Setting& _setting) {
+        return _setting.tolerance <= 0.f;
+      };
+
+  if (InvalideSetting(_optimizer.setting)) {
+    return false;
+  }
+
+  const auto& overrides = _optimizer.joints_setting_override;
+  if (std::find_if(
+          overrides.cbegin(), overrides.cend(),
+          [&](const AnimationOptimizer::JointsSetting::value_type& _entry) {
+            return InvalideSetting(_entry.second);
+          }) != overrides.cend()) {
+    return false;
+  }
+
+  return true;
+}
 }  // namespace
 
 bool AnimationOptimizer::operator()(const RawAnimation& _input,
@@ -1069,6 +1094,11 @@ bool AnimationOptimizer::operator()(const RawAnimation& _input,
 
   // Reset output animation to default.
   *_output = RawAnimation();
+
+  // Validates setting.
+  if (!ValidateSettings(*this)) {
+    return false;
+  }
 
   // Validates the skeleton matches the animation.
   const int num_tracks = _input.num_tracks();

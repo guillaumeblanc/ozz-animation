@@ -47,23 +47,23 @@ using ozz::animation::offline::RawSkeleton;
 using ozz::animation::offline::SkeletonBuilder;
 
 TEST(Error, AnimationOptimizer) {
-  AnimationOptimizer optimizer;
+  RawSkeleton raw_skeleton;
+  raw_skeleton.roots.resize(1);
+  SkeletonBuilder skeleton_builder;
+  ozz::unique_ptr<Skeleton> skeleton(skeleton_builder(raw_skeleton));
+  ASSERT_TRUE(skeleton);
 
   {  // nullptr output.
     RawAnimation input;
-    Skeleton skeleton;
+    Skeleton empty_skeleton;
     EXPECT_TRUE(input.Validate());
 
     // Builds animation
-    EXPECT_FALSE(optimizer(input, skeleton, nullptr));
+    AnimationOptimizer optimizer;
+    EXPECT_FALSE(optimizer(input, empty_skeleton, nullptr));
   }
 
   {  // Invalid input animation.
-    RawSkeleton raw_skeleton;
-    raw_skeleton.roots.resize(1);
-    SkeletonBuilder skeleton_builder;
-    ozz::unique_ptr<Skeleton> skeleton(skeleton_builder(raw_skeleton));
-    ASSERT_TRUE(skeleton);
 
     RawAnimation input;
     input.duration = -1.f;
@@ -74,6 +74,7 @@ TEST(Error, AnimationOptimizer) {
     output.duration = -1.f;
     output.name = "invalid";
     output.tracks.resize(1);
+    AnimationOptimizer optimizer;
     EXPECT_FALSE(optimizer(input, *skeleton, &output));
     EXPECT_FLOAT_EQ(output.duration, 1.f);
     EXPECT_TRUE(output.name.empty());
@@ -81,7 +82,7 @@ TEST(Error, AnimationOptimizer) {
   }
 
   {  // Invalid skeleton.
-    Skeleton skeleton;
+    Skeleton empty_skeleton;
 
     RawAnimation input;
     input.tracks.resize(1);
@@ -89,9 +90,67 @@ TEST(Error, AnimationOptimizer) {
 
     // Builds animation
     RawAnimation output;
-    EXPECT_FALSE(optimizer(input, skeleton, &output));
+    AnimationOptimizer optimizer;
+    EXPECT_FALSE(optimizer(input, empty_skeleton, &output));
     EXPECT_FLOAT_EQ(output.duration, RawAnimation().duration);
     EXPECT_EQ(output.num_tracks(), 0);
+  }
+
+  {  // Invalid setting.
+    RawAnimation input;
+    input.name = "valid";
+    input.duration = 2.f;
+    input.tracks.resize(1);
+    ASSERT_TRUE(input.Validate());
+
+    // Builds animation
+    RawAnimation output;
+    output.duration = -1.f;
+    output.name = "invalid";
+    output.tracks.resize(1);
+    AnimationOptimizer optimizer;
+    optimizer.setting.tolerance = 0.f;
+    EXPECT_FALSE(optimizer(input, *skeleton, &output));
+    EXPECT_FLOAT_EQ(output.duration, RawAnimation().duration);
+    EXPECT_EQ(output.num_tracks(), 0);
+  }
+
+  {  // Invalid setting override.
+    RawAnimation input;
+    input.name = "valid";
+    input.duration = 2.f;
+    input.tracks.resize(1);
+    ASSERT_TRUE(input.Validate());
+
+    // Builds animation
+    RawAnimation output;
+    output.duration = -1.f;
+    output.name = "invalid";
+    output.tracks.resize(1);
+    AnimationOptimizer optimizer;
+    optimizer.joints_setting_override[0].tolerance = 0.f;
+    EXPECT_FALSE(optimizer(input, *skeleton, &output));
+    EXPECT_FLOAT_EQ(output.duration, RawAnimation().duration);
+    EXPECT_EQ(output.num_tracks(), 0);
+  }
+
+  {  // Valid.
+    RawAnimation input;
+    input.name = "valid";
+    input.duration = 2.f;
+    input.tracks.resize(1);
+    ASSERT_TRUE(input.Validate());
+
+    // Builds animation
+    RawAnimation output;
+    output.duration = -1.f;
+    output.name = "invalid";
+    output.tracks.resize(1);
+    AnimationOptimizer optimizer;
+    EXPECT_TRUE(optimizer(input, *skeleton, &output));
+    EXPECT_FLOAT_EQ(output.duration, input.duration);
+    EXPECT_EQ(output.num_tracks(), input.num_tracks());
+    EXPECT_STRCASEEQ(output.name.c_str(), input.name.c_str());
   }
 }
 
