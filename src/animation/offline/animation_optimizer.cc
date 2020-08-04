@@ -53,7 +53,7 @@ namespace animation {
 namespace offline {
 
 // Setup default values (favoring quality).
-AnimationOptimizer::AnimationOptimizer() : fast(true), observer(NULL) {}
+AnimationOptimizer::AnimationOptimizer() : fast(false), observer(NULL) {}
 
 namespace {
 
@@ -348,7 +348,10 @@ inline float Compare(const ozz::math::Transform& _reference,
   // skinning (or any user defined requirement). Its impact on children will be
   // measured as a translation error indeed.
 
+  // Finds quaternion difference.
   const math::Quaternion diff = _reference.rotation * Conjugate(_test.rotation);
+
+  // Finds rotation axis and normal to rotation axis.
   const math::Float3 axis = (diff.x == 0.f && diff.y == 0.f && diff.z == 0.f)
                                 ? math::Float3::x_axis()
                                 : math::Float3(diff.x, diff.y, diff.z);
@@ -356,19 +359,28 @@ inline float Compare(const ozz::math::Transform& _reference,
   const size_t smallest =
       abs.x < abs.y ? (abs.x < abs.z ? 0 : 2) : (abs.y < abs.z ? 1 : 2);
   const math::Float3 binormal(smallest == 0, smallest == 1, smallest == 2);
-  const math::Float3 normal =
-      NormalizeSafe(Cross(binormal, axis), binormal) * _reference.scale;
+  const math::Float3 normal = NormalizeSafe(Cross(binormal, axis), binormal);
 
-  const float rotation_error =
-      Length(TransformVector(diff, normal) - normal) * _distance;
+  // Find scale maximum component.
+  const math::Float3 sabs(std::abs(_reference.scale.x),
+                          std::abs(_reference.scale.y),
+                          std::abs(_reference.scale.z));
+  const size_t biggest =
+      sabs.x > sabs.y ? (sabs.x > sabs.z ? 0 : 2) : (sabs.y > sabs.z ? 1 : 2);
 
+  // Compute rotation error on normal vector, at scaled distance.
+  const float rotation_error = Length(TransformVector(diff, normal) - normal) *
+                               _distance * (&sabs.x)[biggest];
+
+  // Model space translation error is measured at joint position.
   const float translation_error =
       Length(_reference.translation - _test.translation);
 
-  // const float scale_error = _distance * Length(_reference.scale -
-  // _test.scale);
+  // Scale is affecting vertex distance.
+  const float scale_error = _distance * Length(_reference.scale - _test.scale);
 
-  const float error = translation_error + rotation_error /*+ scale_error*/;
+  // Errors are accumulated
+  const float error = translation_error + rotation_error + scale_error;
   return error;
 }
 
@@ -760,9 +772,6 @@ class VTrack {
 
   // Updates error ratio of the candidate track compared to original.
   void UpdateDelta(const Comparer& _comparer) {
-    // TODO: find a way to do it (flag/reject track) at initialization time.
-    // TODO: wouldn't work with quantization taken into account.
-
     // (original_size > 1) is an optimization that prevents rebuilding error for
     // constant tracks. They haven't been decimated, so they don't own any
     // error.
@@ -836,7 +845,6 @@ class TTrack : public VTrack {
         validated_(_solution),
         candidate_(_original) {
     // Initialize validated track with a copy of original.
-    // TODO check were it's better to initialize
     *validated_ = _original;
   }
 
@@ -1038,9 +1046,6 @@ class HillClimber {
   }
 
   void UpdateDelta(int _joint, int) {
-    // TODO check if all types of tracks really need to be updated
-    // for the first joint, or if for example translations don't need when
-    // optimized/modified track is a rotation.
     translations_[_joint]->UpdateDelta(*comparer_);
     rotations_[_joint]->UpdateDelta(*comparer_);
     scales_[_joint]->UpdateDelta(*comparer_);

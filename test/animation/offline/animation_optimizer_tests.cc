@@ -25,20 +25,15 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/animation/offline/animation_optimizer.h"
-
 #include "gtest/gtest.h"
-
-#include "ozz/base/maths/math_constant.h"
-
-#include "ozz/base/memory/unique_ptr.h"
-
 #include "ozz/animation/offline/animation_builder.h"
+#include "ozz/animation/offline/animation_optimizer.h"
 #include "ozz/animation/offline/raw_animation.h"
-
 #include "ozz/animation/offline/raw_skeleton.h"
 #include "ozz/animation/offline/skeleton_builder.h"
 #include "ozz/animation/runtime/skeleton.h"
+#include "ozz/base/maths/math_constant.h"
+#include "ozz/base/memory/unique_ptr.h"
 
 using ozz::animation::Skeleton;
 using ozz::animation::offline::AnimationOptimizer;
@@ -189,7 +184,7 @@ TEST(Optimize, AnimationOptimizer) {
   AnimationOptimizer optimizer;
 
   // Disables vertex distance.
-  optimizer.setting.distance = 0.f;
+  // optimizer.setting.distance = 0.f;
 
   RawAnimation input;
   input.duration = 1.f;
@@ -257,7 +252,7 @@ TEST(Optimize, AnimationOptimizer) {
   // High translation tolerance -> all key interpolated
   {
     RawAnimation output;
-    optimizer.setting.tolerance = .1f;
+    optimizer.setting.tolerance = .2f;
     ASSERT_TRUE(optimizer(input, *skeleton, &output));
     EXPECT_EQ(output.num_tracks(), 5);
 
@@ -291,7 +286,7 @@ TEST(Optimize, AnimationOptimizer) {
   // Very high tolerance
   {
     RawAnimation output;
-    optimizer.setting.tolerance = 1.f;
+    optimizer.setting.tolerance = 2.f;
     ASSERT_TRUE(optimizer(input, *skeleton, &output));
     EXPECT_EQ(output.num_tracks(), 5);
 
@@ -302,7 +297,7 @@ TEST(Optimize, AnimationOptimizer) {
 
   // Introduces a -10x scaling upstream that amplifies error
   // Scaling on track 0
-  { input.tracks[0].scales[0].value = ozz::math::Float3(0.f, -10.f, 0.f); }
+  { input.tracks[0].scales[0].value = ozz::math::Float3(-10.f, 1.f, 1.f); }
 
   // High translation tolerance -> keys aren't interpolated because of scale
   // effect.
@@ -324,7 +319,7 @@ TEST(Optimize, AnimationOptimizer) {
   // Very high tolerance
   {
     RawAnimation output;
-    optimizer.setting.tolerance = 1.f;
+    optimizer.setting.tolerance = 2.f;
     ASSERT_TRUE(optimizer(input, *skeleton, &output));
     EXPECT_EQ(output.num_tracks(), 5);
 
@@ -359,7 +354,7 @@ TEST(Optimize, AnimationOptimizer) {
 
   // Introduces a .1x scaling upstream that amplifies error
   // Scaling on track 0
-  { input.tracks[0].scales[0].value = ozz::math::Float3(0.f, 0.f, .1f); }
+  { input.tracks[0].scales[0].value = ozz::math::Float3(.1f, 1.f, 1.f); }
 
   // High translation tolerance -> keys aren't interpolated because of scale
   // effect.
@@ -381,7 +376,7 @@ TEST(Optimize, AnimationOptimizer) {
   // Very high translation tolerance
   {
     RawAnimation output;
-    optimizer.setting.tolerance = .01f;
+    optimizer.setting.tolerance = .1f;
     ASSERT_TRUE(optimizer(input, *skeleton, &output));
     EXPECT_EQ(output.num_tracks(), 5);
 
@@ -470,7 +465,7 @@ TEST(Optimize, AnimationOptimizer) {
   // Introduces a .1x scaling upstream that lowers error
   // Scaling on track 0
   {
-    RawAnimation::ScaleKey key = {0.f, ozz::math::Float3(0.f, .1f, 0.f)};
+    RawAnimation::ScaleKey key = {0.f, ozz::math::Float3(.1f, 1.f, 1.f)};
     input.tracks[1].scales.push_back(key);
   }
 
@@ -527,7 +522,7 @@ TEST(OptimizeOverride, AnimationOptimizer) {
   const AnimationOptimizer::Setting loose_setting(1e-2f,   // 1cm
                                                   1e-3f);  // 1mm
   // Disables vertex distance.
-  optimizer.setting.distance = 0.f;
+  // optimizer.setting.distance = 0.f;
 
   RawAnimation input;
   input.duration = 1.f;
@@ -641,7 +636,7 @@ TEST(OptimizeOverride, AnimationOptimizer) {
   {
     RawAnimation output;
     optimizer.setting = loose_setting;
-    const AnimationOptimizer::Setting joint_override(1e-3f,  // 1mm
+    const AnimationOptimizer::Setting joint_override(1e-3f,   // 1mm
                                                      1e-2f);  // 1cm
     optimizer.joints_setting_override[1] = joint_override;
     ASSERT_TRUE(optimizer(input, *skeleton, &output));
@@ -663,7 +658,7 @@ TEST(OptimizeOverride, AnimationOptimizer) {
     RawAnimation output;
     optimizer.setting = loose_setting;
     const AnimationOptimizer::Setting joint_override(1e-3f,  // 1mm
-                                                     10.f);   // 10m
+                                                     10.f);  // 10m
     optimizer.joints_setting_override[2] = joint_override;
     ASSERT_TRUE(optimizer(input, *skeleton, &output));
     EXPECT_EQ(output.num_tracks(), 5);
@@ -681,7 +676,7 @@ TEST(OptimizeOverride, AnimationOptimizer) {
 
   // Scale at root affects rotation and translation.
   {
-    RawAnimation::ScaleKey key = {0.f, ozz::math::Float3(.1f, 2.f, .1f)};
+    RawAnimation::ScaleKey key = {0.f, ozz::math::Float3(4.f, 1.f, 1.f)};
     input.tracks[0].scales.push_back(key);
 
     RawAnimation output;
