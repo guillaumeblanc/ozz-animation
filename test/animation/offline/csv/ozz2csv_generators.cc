@@ -25,29 +25,23 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz2csv.h"
+#include <json/json.h>
 
 #include "ozz/animation/offline/animation_builder.h"
 #include "ozz/animation/offline/animation_optimizer.h"
 #include "ozz/animation/offline/raw_animation.h"
 #include "ozz/animation/offline/raw_animation_utils.h"
-
 #include "ozz/animation/runtime/animation.h"
 #include "ozz/animation/runtime/animation_utils.h"
 #include "ozz/animation/runtime/sampling_job.h"
 #include "ozz/animation/runtime/skeleton.h"
-
 #include "ozz/base/containers/vector.h"
-#include "ozz/base/memory/unique_ptr.h"
-
+#include "ozz/base/io/stream.h"
+#include "ozz/base/log.h"
 #include "ozz/base/maths/soa_transform.h"
 #include "ozz/base/maths/transform.h"
-
-#include "ozz/base/io/stream.h"
-
-#include "ozz/base/log.h"
-
-#include <json/json.h>
+#include "ozz/base/memory/unique_ptr.h"
+#include "ozz2csv.h"
 
 class OzzPassthrough : public Generator {
  protected:
@@ -176,7 +170,6 @@ bool BuildOzzOptimized(const ozz::animation::offline::RawAnimation& _animation,
       _config.get("tolerance", optimizer.setting.tolerance).asFloat();
   optimizer.setting.distance =
       _config.get("distance", optimizer.setting.distance).asFloat();
-  optimizer.fast = _config.get("fast", optimizer.fast).asBool();
 
   // Tries to open an observer csv file.
   const Json::Value observer_filename = _config.get("observer", "");
@@ -271,7 +264,6 @@ class OzzRuntime : public Generator {
   }
 
   virtual bool Sample(float _time) {
-
     ozz::animation::SamplingJob job;
     job.animation = animation_.get();
     job.cache = &cache;

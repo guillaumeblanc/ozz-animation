@@ -91,7 +91,6 @@ class OptimizeSampleApplication : public ozz::sample::Application {
   OptimizeSampleApplication()
       : selected_display_(eRuntimeAnimation),
         optimize_(true),
-        fast_(true),
         override_joint_(true),
         overridden_joint_(0),
         error_record_med_(64),
@@ -348,8 +347,6 @@ class OptimizeSampleApplication : public ozz::sample::Application {
 
         rebuild |= _im_gui->DoCheckBox("Enable optimizations", &optimize_);
 
-        rebuild |= _im_gui->DoCheckBox("Fast mode", &fast_);
-
         std::sprintf(label, "Tolerance: %0.2f mm", setting_.tolerance * 1000);
         rebuild |= _im_gui->DoSlider(label, 1e-16f, .1f, &setting_.tolerance,
                                      .5f, optimize_);
@@ -481,9 +478,6 @@ class OptimizeSampleApplication : public ozz::sample::Application {
     if (optimize_) {
       ozz::animation::offline::AnimationOptimizer optimizer;
 
-      // TODO
-      optimizer.fast = fast_;
-
       // Setup global optimization settings.
       optimizer.setting = setting_;
 
@@ -529,8 +523,6 @@ class OptimizeSampleApplication : public ozz::sample::Application {
 
   // Select whether optimization should be performed.
   bool optimize_;
-
-  bool fast_;
 
   // Imported non-optimized animation.
   ozz::animation::offline::RawAnimation raw_animation_;

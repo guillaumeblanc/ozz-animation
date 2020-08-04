@@ -89,9 +89,7 @@ class AnimationOptimizer {
     float distance;
   };
 
-  bool fast;
-
-  // Golbal optimization settings. These settings apply to all joints of the
+  // Global optimization settings. These settings apply to all joints of the
   // hierarchy, unless overriden by joint specific settings.
   Setting setting;
 
@@ -99,7 +97,7 @@ class AnimationOptimizer {
   typedef ozz::map<int, Setting> JointsSetting;
   JointsSetting joints_setting_override;
 
-  // Optionnal observer class, used to report optimization algorithm steps and
+  // Optional observer class, used to report optimization algorithm steps and
   // progress.
   class Observer;
   Observer* observer;

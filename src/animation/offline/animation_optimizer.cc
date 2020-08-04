@@ -53,7 +53,7 @@ namespace animation {
 namespace offline {
 
 // Setup default values (favoring quality).
-AnimationOptimizer::AnimationOptimizer() : fast(false), observer(NULL) {}
+AnimationOptimizer::AnimationOptimizer() : observer(NULL) {}
 
 namespace {
 
@@ -1125,40 +1125,8 @@ bool AnimationOptimizer::operator()(const RawAnimation& _input,
   _output->duration = no_constant.duration;
   _output->tracks.resize(num_tracks);
 
-  if (fast) {
-    // Temporary vector used to store included keyframes during decimation.
-    ozz::vector<bool> included;
-
-    // First computes bone lengths, that will be used when filtering.
-    const HierarchyBuilder hierarchy(no_constant, _skeleton, *this);
-
-    for (int i = 0; i < num_tracks; ++i) {
-      const RawAnimation::JointTrack& input = no_constant.tracks[i];
-      RawAnimation::JointTrack& output = _output->tracks[i];
-
-      // Gets joint specs back.
-      const float joint_length = hierarchy.specs[i].length;
-      const int parent = _skeleton.joint_parents()[i];
-      const float parent_scale =
-          (parent != Skeleton::kNoParent) ? hierarchy.specs[parent].scale : 1.f;
-      const float tolerance = hierarchy.specs[i].tolerance;
-
-      // Filters independently T, R and S tracks.
-      // This joint translation is affected by parent scale.
-      const PositionAdapter tadap(parent_scale);
-      Decimate(input.translations, tadap, tolerance, &output.translations,
-               &included);
-      // This joint rotation affects children translations/length.
-      const RotationAdapter radap(joint_length);
-      Decimate(input.rotations, radap, tolerance, &output.rotations, &included);
-      // This joint scale affects children translations/length.
-      const ScaleAdapter sadap(joint_length);
-      Decimate(input.scales, sadap, tolerance, &output.scales, &included);
-    }
-  } else {
-    // CsvTracking tracking("hill_climbing.cvs");
-    HillClimber(*this, no_constant, _skeleton, _output)();
-  }
+  // CsvTracking tracking("hill_climbing.cvs");
+  HillClimber(*this, no_constant, _skeleton, _output)();
 
   // Output animation is always valid though.
   return _output->Validate();
