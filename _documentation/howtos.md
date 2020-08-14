@@ -234,16 +234,12 @@ ozz::animation::offline::AnimationBuilder builder;
 {% highlight cpp %}
 // Executes the builder on the previously prepared RawAnimation, which returns
 // a new runtime animation instance.
-// This operation will fail and return NULL if the RawAnimation isn't valid.
-ozz::animation::Animation* animation = builder(raw_animation);
+// This operation will fail and return an empty unique_ptr if the RawAnimation
+// isn't valid.
+ozz::unique_ptr<ozz::animation::Animation> animation = builder(raw_animation);
 {% endhighlight %}
 
 ... Now use the animation as you want...
-
-{% highlight cpp %}
-// In the end the animation needs to be deleted.
-ozz::memory::default_allocator()->Delete(animation);
-{% endhighlight %}
 
 If your custom importer is a command line tool like fbx2ozz or gltf2ozz are, you can re-use [`ozz::animation::offline::OzzImporter`][link_src_ozz_importer]. By overriding `OzzImporter::Import(*)` function, you'll benefit from ozz command line tools implementation, keyframe optimisation, animation serialization and so on...
 
