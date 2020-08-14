@@ -139,16 +139,12 @@ ozz::animation::offline::SkeletonBuilder builder;
 {% highlight cpp %}
 // Executes the builder on the previously prepared RawSkeleton, which returns
 // a new runtime skeleton instance.
-// This operation will fail and return NULL if the RawSkeleton isn't valid.
-ozz::animation::Skeleton* skeleton = builder(raw_skeleton);
+// This operation will fail and return an empty unique_ptr if the RawSkeleton
+// isn't valid.
+ozz::unique_ptr<ozz::animation::Skeleton> skeleton = builder(raw_skeleton);
 {% endhighlight %}
 
-Now use the skeleton as you want, but don't forget to delete it in the end.
-
-{% highlight cpp %}
-// In the end the skeleton needs to be deleted.
-ozz::memory::default_allocator()->Delete(skeleton);
-{% endhighlight %}
+Now use the skeleton as you want, std::unique_ptr will handle its destruction.
 
 If your custom importer is a command line tool like fbx2ozz or gltf2ozz are, you can re-use [`ozz::animation::offline::OzzImporter`][link_src_ozz_importer]. By overriding `OzzImporter::Import(*)` function, you'll benefit from ozz command line tools implementation, skeleton serialization and so on...
 
