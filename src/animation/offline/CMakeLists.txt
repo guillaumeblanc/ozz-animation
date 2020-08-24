@@ -1,4 +1,4 @@
-add_library(ozz_animation_offline STATIC
+set(LIB_SOURCES
   decimate.h
   ${PROJECT_SOURCE_DIR}/include/ozz/animation/offline/raw_animation.h
   raw_animation.cc
@@ -22,6 +22,14 @@ add_library(ozz_animation_offline STATIC
   track_builder.cc
   ${PROJECT_SOURCE_DIR}/include/ozz/animation/offline/track_optimizer.h
   track_optimizer.cc)
+
+if(ozz_build_dll)
+  add_library(ozz_animation_offline SHARED ${LIB_SOURCES})
+  target_compile_definitions(ozz_animation_offline PRIVATE OZZ_BUILD_ANIMOFFLINE_LIB)
+else()
+  add_library(ozz_animation_offline STATIC ${LIB_SOURCES})
+endif()
+
 target_link_libraries(ozz_animation_offline
   ozz_animation)
 

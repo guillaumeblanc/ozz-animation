@@ -41,6 +41,58 @@
 #include <cassert>
 #include <cstddef>
 
+#ifdef OZZ_USE_DYNAMIC_LINKING
+    #ifdef OZZ_BUILD_BASE_LIB
+        // export for dynamic linking while building ozz
+        #define OZZ_BASE_DLL __declspec(dllexport)
+    #else
+        // import for dynamic linking when just using ozz
+        #define OZZ_BASE_DLL __declspec(dllimport)
+    #endif()
+#else
+    // static linking
+    #define OZZ_BASE_DLL
+#endif
+
+#ifdef OZZ_USE_DYNAMIC_LINKING
+    #ifdef OZZ_BUILD_ANIMATION_LIB
+        // export for dynamic linking while building ozz
+        #define OZZ_ANIMATION_DLL __declspec(dllexport)
+    #else
+        // import for dynamic linking when just using ozz
+        #define OZZ_ANIMATION_DLL __declspec(dllimport)
+    #endif()
+#else
+    // static linking
+    #define OZZ_ANIMATION_DLL
+#endif
+
+#ifdef OZZ_USE_DYNAMIC_LINKING
+    #ifdef OZZ_BUILD_ANIMOFFLINE_LIB
+        // export for dynamic linking while building ozz
+        #define OZZ_ANIMOFFLINE_DLL __declspec(dllexport)
+    #else
+        // import for dynamic linking when just using ozz
+        #define OZZ_ANIMOFFLINE_DLL __declspec(dllimport)
+    #endif()
+#else
+    // static linking
+    #define OZZ_ANIMOFFLINE_DLL
+#endif
+
+#ifdef OZZ_USE_DYNAMIC_LINKING
+    #ifdef OZZ_BUILD_ANIMATIONTOOLS_LIB
+        // export for dynamic linking while building ozz
+        #define OZZ_ANIMTOOLS_DLL __declspec(dllexport)
+    #else
+        // import for dynamic linking when just using ozz
+        #define OZZ_ANIMTOOLS_DLL __declspec(dllimport)
+    #endif()
+#else
+    // static linking
+    #define OZZ_ANIMTOOLS_DLL
+#endif
+
 namespace ozz {
 
 // Finds the number of elements of a statically allocated array.
@@ -80,7 +132,7 @@ namespace ozz {
 // Case sensitive wildcard string matching:
 // - a ? sign matches any character, except an empty string.
 // - a * sign matches any string, including an empty string.
-bool strmatch(const char* _str, const char* _pattern);
+OZZ_BASE_DLL bool strmatch(const char* _str, const char* _pattern);
 
 // Tests whether _block is aligned to _alignment boundary.
 template <typename _Ty>

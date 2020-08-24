@@ -33,6 +33,19 @@
 #include "ozz/base/maths/simd_math.h"
 #include "ozz/base/maths/transform.h"
 
+#ifdef OZZ_USE_DYNAMIC_LINKING
+    #ifdef OZZ_BUILD_ANIMATIONFBX_LIB
+        // export for dynamic linking while building ozz
+        #define OZZ_ANIMFBX_DLL __declspec(dllexport)
+    #else
+        // import for dynamic linking when just using ozz
+        #define OZZ_ANIMFBX_DLL __declspec(dllimport)
+    #endif()
+#else
+    // static linking
+    #define OZZ_ANIMFBX_DLL
+#endif
+
 namespace ozz {
 namespace math {
 struct Transform;
@@ -42,7 +55,7 @@ namespace offline {
 namespace fbx {
 
 // Manages FbxManager instance.
-class FbxManagerInstance {
+class OZZ_ANIMFBX_DLL FbxManagerInstance {
  public:
   // Instantiates FbxManager.
   FbxManagerInstance();
@@ -58,7 +71,7 @@ class FbxManagerInstance {
 };
 
 // Default io settings used to import a scene.
-class FbxDefaultIOSettings {
+class OZZ_ANIMFBX_DLL FbxDefaultIOSettings {
  public:
   // Instantiates default settings.
   explicit FbxDefaultIOSettings(const FbxManagerInstance& _manager);
@@ -77,13 +90,13 @@ class FbxDefaultIOSettings {
 };
 
 // Io settings used to import an animation from a scene.
-class FbxAnimationIOSettings : public FbxDefaultIOSettings {
+class OZZ_ANIMFBX_DLL FbxAnimationIOSettings : public FbxDefaultIOSettings {
  public:
   FbxAnimationIOSettings(const FbxManagerInstance& _manager);
 };
 
 // Io settings used to import a skeleton from a scene.
-class FbxSkeletonIOSettings : public FbxDefaultIOSettings {
+class OZZ_ANIMFBX_DLL FbxSkeletonIOSettings : public FbxDefaultIOSettings {
  public:
   FbxSkeletonIOSettings(const FbxManagerInstance& _manager);
 };
@@ -94,7 +107,7 @@ class FbxSkeletonIOSettings : public FbxDefaultIOSettings {
 // While Fbx sdk FbxAxisSystem::ConvertScene and FbxSystem::ConvertScene only
 // affect scene root, this class functions can be used to bake nodes, vertices,
 // animations transformations...
-class FbxSystemConverter {
+class OZZ_ANIMFBX_DLL FbxSystemConverter {
  public:
   // Initialize converter with fbx scene systems.
   FbxSystemConverter(const FbxAxisSystem& _from_axis,
@@ -133,7 +146,7 @@ class FbxSystemConverter {
 };
 
 // Loads a scene from a Fbx file.
-class FbxSceneLoader {
+class OZZ_ANIMFBX_DLL FbxSceneLoader {
  public:
   // Loads the scene that can then be obtained with scene() function.
   FbxSceneLoader(const char* _filename, const char* _password,

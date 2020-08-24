@@ -83,6 +83,19 @@
 #include <cstddef>
 #include <string>
 
+#ifdef OZZ_USE_DYNAMIC_LINKING
+    #ifdef OZZ_BUILD_OPTIONS_LIB
+        // export for dynamic linking while building ozz
+        #define OZZ_OPTIONS_DLL __declspec(dllexport)
+    #else
+        // import for dynamic linking when just using ozz
+        #define OZZ_OPTIONS_DLL __declspec(dllimport)
+    #endif()
+#else
+    // static linking
+    #define OZZ_OPTIONS_DLL
+#endif
+
 namespace ozz {
 namespace options {
 
@@ -108,26 +121,26 @@ enum ParseResult {
 // _version and _usage are not copied, ParseCommandLine caller is in charge of
 // maintaining their allocation during application lifetime.
 // See ParseResult for more details about returned values.
-ParseResult ParseCommandLine(int _argc, const char* const* _argv,
+OZZ_OPTIONS_DLL ParseResult ParseCommandLine(int _argc, const char* const* _argv,
                              const char* _version, const char* _usage);
 
 // Get the executable path that was extracted from the last call to
 // ParseCommandLine.
 // If ParseCommandLine has never been called, then ParsedExecutablePath
 // returns a default empty string.
-std::string ParsedExecutablePath();
+OZZ_OPTIONS_DLL std::string ParsedExecutablePath();
 
 // Get the executable name that was extracted from the last call to
 // ParseCommandLine.
 // If ParseCommandLine has never been called, then ParsedExecutableName
 // returns a default empty string.
-const char* ParsedExecutableName();
+OZZ_OPTIONS_DLL const char* ParsedExecutableName();
 
 // Get the executable usage that was extracted from the last call to
 // ParseCommandLine.
 // If ParseCommandLine has never been called, then ParsedExecutableUsage
 // returns a default empty string.
-const char* ParsedExecutableUsage();
+OZZ_OPTIONS_DLL const char* ParsedExecutableUsage();
 
 #define OZZ_OPTIONS_DECLARE_BOOL(_name, _help, _default, _required)    \
   OZZ_OPTIONS_DECLARE_VARIABLE(ozz::options::BoolOption, _name, _help, \
@@ -168,7 +181,7 @@ const char* ParsedExecutableUsage();
       #_name, _help, _default, _required, _fn);
 
 // Defines option interface.
-class Option {
+class OZZ_OPTIONS_DLL Option {
  public:
   // Returns option's name.
   const char* name() const { return name_; }
@@ -298,7 +311,7 @@ typedef TypedOption<const char*> StringOption;
 // Declares the option parser class.
 // Option are registered by the parser and updated when command line arguments
 // are parsed.
-class Parser {
+class OZZ_OPTIONS_DLL Parser {
  public:
   // Construct a parser with only built-in options.
   Parser();

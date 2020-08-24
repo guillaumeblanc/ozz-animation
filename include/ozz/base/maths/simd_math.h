@@ -35,7 +35,7 @@ namespace ozz {
 namespace math {
 
 // Returns SIMDimplementation name has decided at library build time.
-const char* SimdImplementationName();
+OZZ_BASE_DLL const char* SimdImplementationName();
 
 namespace simd_float4 {
 // Returns a SimdFloat4 vector with all components set to 0.

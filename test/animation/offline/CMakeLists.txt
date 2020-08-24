@@ -121,6 +121,7 @@ target_link_libraries(test_fuse_animation_offline
   gtest)
 add_test(NAME test_fuse_animation_offline COMMAND test_fuse_animation_offline)
 set_target_properties(test_fuse_animation_offline PROPERTIES FOLDER "ozz/tests/animation_offline")
+target_compile_definitions(test_fuse_animation_offline PRIVATE OZZ_BUILD_ANIMOFFLINE_LIB)
 
 add_subdirectory(fbx)
 add_subdirectory(gltf)

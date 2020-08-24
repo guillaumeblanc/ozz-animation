@@ -58,7 +58,7 @@ struct QuaternionKey;
 // joints order of the runtime skeleton structure. In order to optimize cache
 // coherency when sampling the animation, Keyframes in this array are sorted by
 // time, then by track number.
-class Animation {
+class OZZ_ANIMATION_DLL Animation {
  public:
   // Builds a default animation.
   Animation();

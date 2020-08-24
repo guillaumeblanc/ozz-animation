@@ -43,14 +43,15 @@ namespace animation {
 namespace offline {
 
 class OzzImporter;
-bool ImportAnimations(const Json::Value& _config, OzzImporter* _importer,
+OZZ_ANIMTOOLS_DLL bool ImportAnimations(const Json::Value& _config,
+                                        OzzImporter* _importer,
                       const ozz::Endianness _endianness);
 
 // Additive reference enum to config string conversions.
 struct AdditiveReferenceEnum {
   enum Value { kAnimation, kSkeleton };
 };
-struct AdditiveReference
+struct OZZ_ANIMTOOLS_DLL AdditiveReference
     : JsonEnum<AdditiveReference, AdditiveReferenceEnum::Value> {
   static EnumNames GetNames();
 };

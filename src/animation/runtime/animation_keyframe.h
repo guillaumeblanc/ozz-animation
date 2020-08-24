@@ -46,7 +46,7 @@ namespace animation {
 // Defines the float3 key frame type, used for translations and scales.
 // Translation values are stored as half precision floats with 16 bits per
 // component.
-struct Float3Key {
+struct OZZ_ANIMATION_DLL Float3Key {
   float ratio;
   uint16_t track;
   uint16_t value[3];
@@ -67,7 +67,7 @@ struct Float3Key {
 // Quantization could be reduced to 11-11-10 bits as often used for animation
 // key frames, but in this case RotationKey structure would induce 16 bits of
 // padding.
-struct QuaternionKey {
+struct OZZ_ANIMATION_DLL QuaternionKey {
   float ratio;
   uint16_t track : 13;   // The track this key frame belongs to.
   uint16_t largest : 2;  // The largest component of the quaternion.

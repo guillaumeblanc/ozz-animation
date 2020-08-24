@@ -55,7 +55,7 @@ namespace offline {
 //  3. Keyframes' time are all within [0,animation duration] range.
 // Animations that would fail this validation will fail to be converted by the
 // AnimationBuilder.
-struct RawAnimation {
+struct OZZ_ANIMOFFLINE_DLL RawAnimation {
   // Constructs a valid RawAnimation with a 1s default duration.
   RawAnimation();
 
@@ -146,7 +146,7 @@ OZZ_IO_TYPE_TAG("ozz-raw_animation", animation::offline::RawAnimation)
 
 // Should not be called directly but through io::Archive << and >> operators.
 template <>
-struct Extern<animation::offline::RawAnimation> {
+struct OZZ_ANIMOFFLINE_DLL Extern<animation::offline::RawAnimation> {
   static void Save(OArchive& _archive,
                    const animation::offline::RawAnimation* _animations,
                    size_t _count);

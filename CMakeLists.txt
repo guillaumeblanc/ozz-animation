@@ -20,6 +20,7 @@ option(ozz_build_tests "Build unit tests" ON)
 option(ozz_build_simd_ref "Force SIMD math reference implementation" OFF)
 option(ozz_build_msvc_rt_dll "Select msvc DLL runtime library" ON)
 option(ozz_build_postfix "Use per config postfix name" ON)
+option(ozz_build_dll "Build ozz runtime libraries as DLLs" OFF)
 
 # Include ozz cmake parameters and scripts
 include(CheckCXXCompilerFlag)

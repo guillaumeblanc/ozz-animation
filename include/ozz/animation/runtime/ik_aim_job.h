@@ -50,7 +50,7 @@ namespace animation {
 // vector should aim the target.
 // Result is unstable if joint-to-target direction is parallel to pole vector,
 // or if target is too close to joint position.
-struct IKAimJob {
+struct OZZ_ANIMATION_DLL IKAimJob {
   // Default constructor, initializes default values.
   IKAimJob();
 

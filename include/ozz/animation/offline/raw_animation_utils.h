@@ -38,22 +38,25 @@ namespace animation {
 namespace offline {
 
 // Translation interpolation method.
-math::Float3 LerpTranslation(const math::Float3& _a, const math::Float3& _b,
+OZZ_ANIMOFFLINE_DLL math::Float3 LerpTranslation(const math::Float3& _a,
+                                                 const math::Float3& _b,
                              float _alpha);
 
 // Rotation interpolation method.
-math::Quaternion LerpRotation(const math::Quaternion& _a,
+OZZ_ANIMOFFLINE_DLL math::Quaternion LerpRotation(const math::Quaternion& _a,
                               const math::Quaternion& _b, float _alpha);
 
 // Scale interpolation method.
-math::Float3 LerpScale(const math::Float3& _a, const math::Float3& _b,
+OZZ_ANIMOFFLINE_DLL math::Float3 LerpScale(const math::Float3& _a,
+                                           const math::Float3& _b,
                        float _alpha);
 
 // Samples a RawAnimation track. This function shall be used for offline
 // purpose. Use ozz::animation::Animation and ozz::animation::SamplingJob for
 // runtime purpose.
 // Returns false if track is invalid.
-bool SampleTrack(const RawAnimation::JointTrack& _track, float _time,
+OZZ_ANIMOFFLINE_DLL bool SampleTrack(const RawAnimation::JointTrack& _track,
+                                     float _time,
                  ozz::math::Transform* _transform);
 
 // Samples a RawAnimation. This function shall be used for offline
@@ -61,7 +64,8 @@ bool SampleTrack(const RawAnimation::JointTrack& _track, float _time,
 // runtime purpose.
 // _animation must be valid.
 // Returns false output range is too small or animation is invalid.
-bool SampleAnimation(const RawAnimation& _animation, float _time,
+OZZ_ANIMOFFLINE_DLL bool SampleAnimation(
+    const RawAnimation& _animation, float _time,
                      const span<ozz::math::Transform>& _transforms);
 
 // Implement fixed rate keyframe time iteration. This utility purpose is to
@@ -69,7 +73,7 @@ bool SampleAnimation(const RawAnimation& _animation, float _time,
 // between consecutive time samples have a fixed period.
 // This sounds trivial, but floating point error could occur if keyframe time
 // was accumulated for a long duration.
-class FixedRateSamplingTime {
+class OZZ_ANIMOFFLINE_DLL FixedRateSamplingTime {
  public:
   FixedRateSamplingTime(float _duration, float _frequency);
 
