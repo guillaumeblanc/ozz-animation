@@ -148,6 +148,7 @@ add_executable(test_fuse_animation
   sampling_job_tests.cc
   ${PROJECT_BINARY_DIR}/src_fused/ozz_animation.cc)
 add_dependencies(test_fuse_animation BUILD_FUSE_ozz_animation)
+target_compile_definitions(test_fuse_animation PRIVATE OZZ_BUILD_ANIMATION_LIB)
 target_link_libraries(test_fuse_animation
   ozz_animation_offline
   gtest)

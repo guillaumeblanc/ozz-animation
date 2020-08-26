@@ -165,5 +165,6 @@ target_link_libraries(test_fuse_ozz_animation_fbx
   optimized ${FBX_LIBRARIES}
   ozz_animation_offline)
 set_target_properties(test_fuse_ozz_animation_fbx PROPERTIES FOLDER "ozz/tests/animation_offline")
+target_compile_definitions(test_fuse_ozz_animation_fbx PRIVATE OZZ_BUILD_ANIMATIONFBX_LIB)
 
 add_test(NAME test_fuse_ozz_animation_fbx COMMAND test_fuse_ozz_animation_fbx)

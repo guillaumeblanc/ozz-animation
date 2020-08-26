@@ -51,7 +51,7 @@ namespace animation {
 // ancestors (joints in-between will simply remain fixed).
 // Implementation is inspired by Autodesk Maya 2 bone IK, improved stability
 // wise and extended with Soften IK.
-struct IKTwoBoneJob {
+struct OZZ_ANIMATION_DLL IKTwoBoneJob {
   // Constructor, initializes default values.
   IKTwoBoneJob();
 

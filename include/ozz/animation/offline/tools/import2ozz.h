@@ -35,6 +35,8 @@
 #include "ozz/animation/offline/raw_skeleton.h"
 #include "ozz/animation/offline/raw_track.h"
 
+#include "ozz/base/platform.h"
+
 namespace ozz {
 namespace animation {
 
@@ -51,7 +53,7 @@ namespace offline {
 // To import a new source data format, one will implement the pure virtual
 // functions of this interface. All the conversions end error processing are
 // done by the tool.
-class OzzImporter {
+class OZZ_ANIMTOOLS_DLL OzzImporter {
  public:
   virtual ~OzzImporter() {}
 

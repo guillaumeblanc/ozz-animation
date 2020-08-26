@@ -102,7 +102,7 @@ struct Tagger;
 // The output endianness mode is set at construction time. It is written to the
 // stream to allow the IArchive to perform the required conversion to the native
 // endianness mode while reading.
-class OArchive {
+class OZZ_BASE_DLL OArchive {
  public:
   // Constructs an output archive from the Stream _stream that must be valid
   // and opened for writing.
@@ -171,7 +171,7 @@ class OArchive {
 // Implements input archive concept used to load/de-serialize data to a Stream.
 // Endianness conversions are automatically performed according to the Archive
 // and the native formats.
-class IArchive {
+class OZZ_BASE_DLL IArchive {
  public:
   // Constructs an input archive from the Stream _stream that must be opened for
   // reading, at the same tell (position in the stream) as when it was passed to

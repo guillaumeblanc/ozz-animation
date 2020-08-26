@@ -4,7 +4,7 @@ endif()
 
 add_subdirectory(${PROJECT_SOURCE_DIR}/extern/jsoncpp json)
 
-add_library(ozz_animation_tools STATIC
+set(LIB_SOURCES
   ${PROJECT_SOURCE_DIR}/include/ozz/animation/offline/tools/import2ozz.h
   import2ozz.cc
   import2ozz_anim.h
@@ -15,10 +15,19 @@ add_library(ozz_animation_tools STATIC
   import2ozz_skel.cc
   import2ozz_track.h
   import2ozz_track.cc)
+
+if(ozz_build_dll)
+  add_library(ozz_animation_tools SHARED ${LIB_SOURCES})
+  target_compile_definitions(ozz_animation_tools PRIVATE OZZ_BUILD_ANIMATIONTOOLS_LIB)
+else()
+  add_library(ozz_animation_tools STATIC ${LIB_SOURCES})
+endif()
+
 target_link_libraries(ozz_animation_tools
   ozz_animation_offline
   ozz_options
   json)
+
 set_target_properties(ozz_animation_tools
   PROPERTIES FOLDER "ozz/tools")
 

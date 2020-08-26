@@ -47,7 +47,7 @@ namespace offline {
 // The public API exposed through std:vector's of joints can be used freely with
 // the only restriction that the total number of joints does not exceed
 // Skeleton::kMaxJoints.
-struct RawSkeleton {
+struct OZZ_ANIMOFFLINE_DLL RawSkeleton {
   // Construct an empty skeleton.
   RawSkeleton();
 
@@ -139,7 +139,7 @@ OZZ_IO_TYPE_TAG("ozz-raw_skeleton", animation::offline::RawSkeleton)
 
 // Should not be called directly but through io::Archive << and >> operators.
 template <>
-struct Extern<animation::offline::RawSkeleton> {
+struct OZZ_ANIMOFFLINE_DLL Extern<animation::offline::RawSkeleton> {
   static void Save(OArchive& _archive,
                    const animation::offline::RawSkeleton* _skeletons,
                    size_t _count);

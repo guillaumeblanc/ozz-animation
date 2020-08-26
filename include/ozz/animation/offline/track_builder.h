@@ -53,7 +53,7 @@ struct RawQuaternionTrack;
 // offline tracks.The input raw track is first validated. Runtime conversion of
 // a validated raw track cannot fail. Note that no optimization is performed on
 // the data at all.
-class TrackBuilder {
+class OZZ_ANIMOFFLINE_DLL TrackBuilder {
  public:
   // Creates a Track based on _raw_track and *this builder parameters.
   // Returns a track instance on success, an empty unique_ptr on failure. See

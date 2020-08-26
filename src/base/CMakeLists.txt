@@ -1,4 +1,4 @@
-add_library(ozz_base STATIC
+set (LIB_SOURCES
   ${PROJECT_SOURCE_DIR}/include/ozz/base/endianness.h
   ${PROJECT_SOURCE_DIR}/include/ozz/base/gtest_helper.h
   ${PROJECT_SOURCE_DIR}/include/ozz/base/memory/allocator.h
@@ -54,11 +54,22 @@ add_library(ozz_base STATIC
   maths/soa_math_archive.cc
   ${PROJECT_SOURCE_DIR}/include/ozz/base/maths/simd_math_archive.h
   maths/simd_math_archive.cc)
+
+if(ozz_build_dll)
+  add_library(ozz_base SHARED ${LIB_SOURCES})
+  target_compile_definitions(ozz_base PUBLIC OZZ_USE_DYNAMIC_LINKING)
+  target_compile_definitions(ozz_base PRIVATE OZZ_BUILD_BASE_LIB)
+else()
+  add_library(ozz_base STATIC ${LIB_SOURCES})
+endif()
+
 target_include_directories(ozz_base PUBLIC
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:$<INSTALL_PREFIX>/include>)
+
 set_target_properties(ozz_base PROPERTIES FOLDER "ozz")
 
 install(TARGETS ozz_base DESTINATION lib)
 
 fuse_target("ozz_base")
+

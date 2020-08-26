@@ -39,7 +39,7 @@ struct RawSkeleton;
 
 namespace fbx {
 
-bool ExtractSkeleton(FbxSceneLoader& _loader,
+OZZ_ANIMFBX_DLL bool ExtractSkeleton(FbxSceneLoader& _loader,
                      const OzzImporter::NodeType& _types,
                      RawSkeleton* _skeleton);
 

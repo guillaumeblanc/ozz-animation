@@ -57,7 +57,7 @@ class SkeletonBuilder;
 // order. This is enough to traverse the whole joint hierarchy. See
 // IterateJointsDF() from skeleton_utils.h that implements a depth-first
 // traversal utility.
-class Skeleton {
+class OZZ_ANIMATION_DLL Skeleton {
  public:
   // Defines Skeleton constant values.
   enum Constants {

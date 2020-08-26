@@ -109,11 +109,11 @@ struct RawTrack {
 }  // namespace internal
 
 // Offline user-channel animation track type instantiation.
-struct RawFloatTrack : public internal::RawTrack<float> {};
-struct RawFloat2Track : public internal::RawTrack<math::Float2> {};
-struct RawFloat3Track : public internal::RawTrack<math::Float3> {};
-struct RawFloat4Track : public internal::RawTrack<math::Float4> {};
-struct RawQuaternionTrack : public internal::RawTrack<math::Quaternion> {};
+struct OZZ_ANIMOFFLINE_DLL RawFloatTrack : public internal::RawTrack<float> {};
+struct OZZ_ANIMOFFLINE_DLL RawFloat2Track : public internal::RawTrack<math::Float2> {};
+struct OZZ_ANIMOFFLINE_DLL RawFloat3Track : public internal::RawTrack<math::Float3> {};
+struct OZZ_ANIMOFFLINE_DLL RawFloat4Track : public internal::RawTrack<math::Float4> {};
+struct OZZ_ANIMOFFLINE_DLL RawQuaternionTrack : public internal::RawTrack<math::Quaternion> {};
 }  // namespace offline
 }  // namespace animation
 

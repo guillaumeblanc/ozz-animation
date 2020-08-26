@@ -44,12 +44,14 @@ class Skeleton;
 namespace offline {
 
 class OzzImporter;
-bool ProcessTracks(OzzImporter& _importer, const char* _animation_name,
-                   const Skeleton& _skeleton, const Json::Value& _config,
-                   const ozz::Endianness _endianness);
+OZZ_ANIMTOOLS_DLL bool ProcessTracks(OzzImporter& _importer,
+                                     const char* _animation_name,
+                                     const Skeleton& _skeleton,
+                                     const Json::Value& _config,
+                                     const ozz::Endianness _endianness);
 
 // Property type enum to config string conversions.
-struct PropertyTypeConfig
+struct OZZ_ANIMTOOLS_DLL PropertyTypeConfig
     : JsonEnum<PropertyTypeConfig, OzzImporter::NodeProperty::Type> {
   static EnumNames GetNames();
 };

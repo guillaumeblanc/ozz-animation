@@ -41,8 +41,9 @@ namespace offline {
 
 class OzzImporter;
 
-bool ImportSkeleton(const Json::Value& _config, OzzImporter* _importer,
-                    const ozz::Endianness _endianness);
+OZZ_ANIMTOOLS_DLL bool ImportSkeleton(const Json::Value& _config,
+                                      OzzImporter* _importer,
+                                      const ozz::Endianness _endianness);
 
 }  // namespace offline
 }  // namespace animation

@@ -51,34 +51,40 @@ struct RawquaternionTrack;
 
 namespace fbx {
 
-OzzImporter::AnimationNames GetAnimationNames(FbxSceneLoader& _scene_loader);
+OZZ_ANIMFBX_DLL OzzImporter::AnimationNames GetAnimationNames(
+    FbxSceneLoader& _scene_loader);
 
-bool ExtractAnimation(const char* _animation_name,
+OZZ_ANIMFBX_DLL bool ExtractAnimation(const char* _animation_name,
                       FbxSceneLoader& _scene_loader, const Skeleton& _skeleton,
                       float _sampling_rate, RawAnimation* _animation);
 
-OzzImporter::NodeProperties GetNodeProperties(FbxSceneLoader& _scene_loader,
+OZZ_ANIMFBX_DLL OzzImporter::NodeProperties GetNodeProperties(
+    FbxSceneLoader& _scene_loader,
                                               const char* _node_name);
 
-bool ExtractTrack(const char* _animation_name, const char* _node_name,
+OZZ_ANIMFBX_DLL bool ExtractTrack(const char* _animation_name,
+                                  const char* _node_name,
                   const char* _track_name,
                   OzzImporter::NodeProperty::Type _type,
                   FbxSceneLoader& _scene_loader, float _sampling_rate,
                   RawFloatTrack* _track);
 
-bool ExtractTrack(const char* _animation_name, const char* _node_name,
+OZZ_ANIMFBX_DLL bool ExtractTrack(const char* _animation_name,
+                                  const char* _node_name,
                   const char* _track_name,
                   OzzImporter::NodeProperty::Type _type,
                   FbxSceneLoader& _scene_loader, float _sampling_rate,
                   RawFloat2Track* _track);
 
-bool ExtractTrack(const char* _animation_name, const char* _node_name,
+OZZ_ANIMFBX_DLL bool ExtractTrack(const char* _animation_name,
+                                  const char* _node_name,
                   const char* _track_name,
                   OzzImporter::NodeProperty::Type _type,
                   FbxSceneLoader& _scene_loader, float _sampling_rate,
                   RawFloat3Track* _track);
 
-bool ExtractTrack(const char* _animation_name, const char* _node_name,
+OZZ_ANIMFBX_DLL bool ExtractTrack(const char* _animation_name,
+                                  const char* _node_name,
                   const char* _track_name,
                   OzzImporter::NodeProperty::Type _type,
                   FbxSceneLoader& _scene_loader, float _sampling_rate,

@@ -39,7 +39,7 @@ namespace math {
 struct Float4x4;
 
 // Defines an axis aligned box.
-struct Box {
+struct OZZ_BASE_DLL Box {
   // Constructs an invalid box.
   Box();
 
@@ -78,7 +78,7 @@ OZZ_INLINE Box Merge(const Box& _a, const Box& _b) {
 }
 
 // Compute box transformation by a matrix.
-Box TransformBox(const Float4x4& _matrix, const Box& _box);
+OZZ_BASE_DLL Box TransformBox(const Float4x4& _matrix, const Box& _box);
 }  // namespace math
 }  // namespace ozz
 #endif  // OZZ_OZZ_BASE_MATHS_BOX_H_

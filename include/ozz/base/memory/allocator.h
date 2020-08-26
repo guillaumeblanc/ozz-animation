@@ -41,18 +41,18 @@ namespace memory {
 class Allocator;
 
 // Defines the default allocator accessor.
-Allocator* default_allocator();
+OZZ_BASE_DLL Allocator* default_allocator();
 
 // Set the default allocator, used for all dynamic allocation inside ozz.
 // Returns current memory allocator, such that in can be restored if needed.
-Allocator* SetDefaulAllocator(Allocator* _allocator);
+OZZ_BASE_DLL Allocator* SetDefaulAllocator(Allocator* _allocator);
 
 // Defines an abstract allocator class.
 // Implements helper methods to allocate/deallocate POD typed objects instead of
 // raw memory.
 // Implements New and Delete function to allocate C++ objects, as a replacement
 // of new and delete operators.
-class Allocator {
+class OZZ_BASE_DLL Allocator {
  public:
   // Default virtual destructor.
   virtual ~Allocator() {}

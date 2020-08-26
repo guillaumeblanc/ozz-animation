@@ -19,3 +19,5 @@ target_link_libraries(test_fuse_geometry
   gtest)
 add_test(NAME test_fuse_geometry COMMAND test_fuse_geometry)
 set_target_properties(test_fuse_geometry PROPERTIES FOLDER "ozz/tests/geometry")
+target_compile_options(test_fuse_geometry PUBLIC /wd4251)
+target_compile_definitions(test_fuse_geometry PRIVATE OZZ_BUILD_GEOMETRY_LIB)

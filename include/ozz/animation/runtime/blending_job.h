@@ -52,7 +52,7 @@ namespace animation {
 // blend operations in a single pass.
 // The job does not owned any buffers (input/output) and will thus not delete
 // them during job's destruction.
-struct BlendingJob {
+struct OZZ_ANIMATION_DLL BlendingJob {
   // Default constructor, initializes default values.
   BlendingJob();
 
@@ -75,7 +75,7 @@ struct BlendingJob {
 
   // Defines a layer of blending input data (local space transforms) and
   // parameters (weights).
-  struct Layer {
+  struct OZZ_ANIMATION_DLL Layer {
     // Default constructor, initializes default values.
     Layer();
 

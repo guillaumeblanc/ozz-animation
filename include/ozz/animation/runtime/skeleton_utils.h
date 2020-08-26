@@ -37,8 +37,8 @@ namespace ozz {
 namespace animation {
 
 // Get bind-pose of a skeleton joint.
-ozz::math::Transform GetJointLocalBindPose(const Skeleton& _skeleton,
-                                           int _joint);
+OZZ_ANIMATION_DLL ozz::math::Transform GetJointLocalBindPose(
+    const Skeleton& _skeleton, int _joint);
 
 // Test if a joint is a leaf. _joint number must be in range [0, num joints].
 // "_joint" is a leaf if it's the last joint, or next joint's parent isn't
@@ -52,7 +52,7 @@ inline bool IsLeaf(const Skeleton& _skeleton, int _joint) {
 }
 
 // Finds joint index by name. Uses a case sensitive comparison.
-int FindJoint(const Skeleton& _skeleton, const char* _name);
+OZZ_ANIMATION_DLL int FindJoint(const Skeleton& _skeleton, const char* _name);
 
 // Applies a specified functor to each joint in a depth-first order.
 // _Fct is of type void(int _current, int _parent) where the first argument

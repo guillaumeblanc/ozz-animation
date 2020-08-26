@@ -31,6 +31,19 @@
 #include "ozz/base/platform.h"
 #include "ozz/base/span.h"
 
+#ifdef OZZ_USE_DYNAMIC_LINKING
+    #ifdef OZZ_BUILD_GEOMETRY_LIB
+        // export for dynamic linking while building ozz
+        #define OZZ_GEOMETRY_DLL __declspec(dllexport)
+    #else
+        // import for dynamic linking when just using ozz
+        #define OZZ_GEOMETRY_DLL __declspec(dllimport)
+    #endif()
+#else
+    // static linking
+    #define OZZ_GEOMETRY_DLL
+#endif
+
 namespace ozz {
 namespace math {
 struct Float4x4;
@@ -73,7 +86,7 @@ namespace geometry {
 // should only be used when input matrices have non uniform scaling or shearing.
 // The job does not owned the buffers (in/output) and will thus not delete them
 // during job's destruction.
-struct SkinningJob {
+struct OZZ_GEOMETRY_DLL SkinningJob {
   // Default constructor, initializes default values.
   SkinningJob();
 

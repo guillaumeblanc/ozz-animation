@@ -65,14 +65,15 @@ struct TrackSamplingJob {
 // Track sampling job implementation. Track sampling allows to query a track
 // value for a specified ratio. This is a ratio rather than a time because
 // tracks have no duration.
-struct FloatTrackSamplingJob : public internal::TrackSamplingJob<FloatTrack> {};
-struct Float2TrackSamplingJob : public internal::TrackSamplingJob<Float2Track> {
-};
-struct Float3TrackSamplingJob : public internal::TrackSamplingJob<Float3Track> {
-};
-struct Float4TrackSamplingJob : public internal::TrackSamplingJob<Float4Track> {
-};
-struct QuaternionTrackSamplingJob
+struct OZZ_ANIMATION_DLL FloatTrackSamplingJob
+    : public internal::TrackSamplingJob<FloatTrack> {};
+struct OZZ_ANIMATION_DLL Float2TrackSamplingJob
+    : public internal::TrackSamplingJob<Float2Track> {};
+struct OZZ_ANIMATION_DLL Float3TrackSamplingJob
+    : public internal::TrackSamplingJob<Float3Track> {};
+struct OZZ_ANIMATION_DLL Float4TrackSamplingJob
+    : public internal::TrackSamplingJob<Float4Track> {};
+struct OZZ_ANIMATION_DLL QuaternionTrackSamplingJob
     : public internal::TrackSamplingJob<QuaternionTrack> {};
 
 }  // namespace animation
