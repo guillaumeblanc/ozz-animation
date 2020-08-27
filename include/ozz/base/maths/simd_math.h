@@ -241,10 +241,6 @@ OZZ_INLINE void Transpose4x1(const SimdFloat4 _in[4], SimdFloat4 _out[1]);
 // Remaining y, z and w are set to 0.
 OZZ_INLINE void Transpose1x4(const SimdFloat4 _in[1], SimdFloat4 _out[4]);
 
-// Transposes the 1 SimdFloat4 of _in into the x components of the 4
-// SimdFloat4 of _out. Remaining y, z and w are set to 0.
-OZZ_INLINE void Transpose2x4(const SimdFloat4 _in[2], SimdFloat4 _out[4]);
-
 // Transposes the x and y components of the 4 SimdFloat4 of _in into the 2
 // SimdFloat4 of _out.
 OZZ_INLINE void Transpose4x2(const SimdFloat4 _in[4], SimdFloat4 _out[2]);
