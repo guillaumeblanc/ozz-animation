@@ -9,3 +9,4 @@ The following authors have all licensed their contributions to ozz-animation und
 - Kyle Rocha <kyle@luminawesome.com>
 - Andreas Streichardt <andreas.streichardt@gmail.com>
 - Chen Junjie <kitchen.gz.020@gmail.com>
+- James W. Walker <jw@jwwalker.com>
