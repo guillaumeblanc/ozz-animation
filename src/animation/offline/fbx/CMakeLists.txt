@@ -2,7 +2,6 @@ if(NOT ozz_build_fbx)
   return()
 endif()
 
-
 set(LIB_SOURCES
   ${PROJECT_SOURCE_DIR}/include/ozz/animation/offline/fbx/fbx.h
   fbx.cc
@@ -41,6 +40,7 @@ add_executable(fbx2ozz
 target_link_libraries(fbx2ozz
   ozz_animation_tools
   ozz_animation_fbx)
+target_copy_shared_libraries(fbx2ozz)
 set_target_properties(fbx2ozz
   PROPERTIES FOLDER "ozz/tools")
 

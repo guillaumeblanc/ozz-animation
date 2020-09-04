@@ -4,6 +4,7 @@ add_executable(test_sampling_job
 target_link_libraries(test_sampling_job
   ozz_animation_offline
   gtest)
+target_copy_shared_libraries(test_sampling_job)
 set_target_properties(test_sampling_job PROPERTIES FOLDER "ozz/tests/animation")
 add_test(NAME test_sampling_job COMMAND test_sampling_job)
 
@@ -13,6 +14,7 @@ add_executable(test_blending_job
 target_link_libraries(test_blending_job
   ozz_animation_offline
   gtest)
+target_copy_shared_libraries(test_blending_job)
 set_target_properties(test_blending_job PROPERTIES FOLDER "ozz/tests/animation")
 add_test(NAME test_blending_job COMMAND test_blending_job)
 
@@ -22,6 +24,7 @@ add_executable(test_local_to_model_job
 target_link_libraries(test_local_to_model_job
   ozz_animation_offline
   gtest)
+target_copy_shared_libraries(test_local_to_model_job)
 set_target_properties(test_local_to_model_job PROPERTIES FOLDER "ozz/tests/animation")
 add_test(NAME test_local_to_model_job COMMAND test_local_to_model_job)
 
@@ -30,6 +33,7 @@ add_executable(test_animation_archive
 target_link_libraries(test_animation_archive
   ozz_animation_offline
   gtest)
+target_copy_shared_libraries(test_animation_archive)
 set_target_properties(test_animation_archive PROPERTIES FOLDER "ozz/tests/animation")
 add_test(NAME test_animation_archive COMMAND test_animation_archive)
 
@@ -39,6 +43,7 @@ target_link_libraries(test_animation_archive_versioning
   ozz_animation
   ozz_options
   gtest)
+target_copy_shared_libraries(test_animation_archive_versioning)
 set_target_properties(test_animation_archive_versioning PROPERTIES FOLDER "ozz/tests/animation")
 add_test(NAME test_animation_archive_versioning_le COMMAND test_animation_archive_versioning "--file=${ozz_media_directory}/bin/versioning/animation_v6_le.ozz" "--tracks=67" "--duration=.66666667" "--name=run")
 add_test(NAME test_animation_archive_versioning_be COMMAND test_animation_archive_versioning "--file=${ozz_media_directory}/bin/versioning/animation_v6_be.ozz" "--tracks=67" "--duration=.66666667" "--name=run")
@@ -60,6 +65,7 @@ add_executable(test_skeleton_archive
 target_link_libraries(test_skeleton_archive
   ozz_animation_offline
   gtest)
+target_copy_shared_libraries(test_skeleton_archive)
 set_target_properties(test_skeleton_archive PROPERTIES FOLDER "ozz/tests/animation")
 add_test(NAME test_skeleton_archive COMMAND test_skeleton_archive)
 
@@ -69,6 +75,7 @@ target_link_libraries(test_skeleton_archive_versioning
   ozz_animation
   ozz_options
   gtest)
+target_copy_shared_libraries(test_skeleton_archive_versioning)
 set_target_properties(test_skeleton_archive_versioning PROPERTIES FOLDER "ozz/tests/animation")
 
 # Previous skeleton versions.
@@ -84,6 +91,7 @@ add_executable(test_skeleton_utils
 target_link_libraries(test_skeleton_utils
   ozz_animation_offline
   gtest)
+target_copy_shared_libraries(test_skeleton_utils)
 set_target_properties(test_skeleton_utils PROPERTIES FOLDER "ozz/tests/animation")
 add_test(NAME test_skeleton_utils COMMAND test_skeleton_utils)
 
@@ -92,6 +100,7 @@ add_executable(test_animation_utils
 target_link_libraries(test_animation_utils
   ozz_animation_offline
   gtest)
+target_copy_shared_libraries(test_animation_utils)
 set_target_properties(test_animation_utils PROPERTIES FOLDER "ozz/tests/animation")
 add_test(NAME test_animation_utils COMMAND test_skeleton_utils)
 
@@ -103,6 +112,7 @@ target_link_libraries(test_track_sampling_job
   ozz_animation
   ozz_base
   gtest)
+target_copy_shared_libraries(test_track_sampling_job)
 set_target_properties(test_track_sampling_job PROPERTIES FOLDER "ozz/tests/animation")
 add_test(NAME test_track_sampling_job COMMAND test_track_sampling_job)
 
@@ -115,6 +125,7 @@ target_link_libraries(test_track_triggering_job
   ozz_animation
   ozz_base
   gtest)
+target_copy_shared_libraries(test_track_triggering_job)
 set_target_properties(test_track_triggering_job PROPERTIES FOLDER "ozz/tests/animation")
 add_test(NAME test_track_triggering_job COMMAND test_track_triggering_job)
 
@@ -123,6 +134,7 @@ add_executable(test_track_archive
 target_link_libraries(test_track_archive
   ozz_animation_offline
   gtest)
+target_copy_shared_libraries(test_track_archive)
 set_target_properties(test_track_archive PROPERTIES FOLDER "ozz/tests/animation")
 add_test(NAME test_track_archive COMMAND test_track_archive)
 
@@ -131,6 +143,7 @@ add_executable(test_ik_aim_job
 target_link_libraries(test_ik_aim_job
   ozz_animation
   gtest)
+target_copy_shared_libraries(test_ik_aim_job)
 set_target_properties(test_ik_aim_job PROPERTIES FOLDER "ozz/tests/animation")
 add_test(NAME test_ik_aim_job COMMAND test_ik_aim_job)
 
@@ -139,6 +152,7 @@ add_executable(test_ik_two_bone_job
 target_link_libraries(test_ik_two_bone_job
   ozz_animation
   gtest)
+target_copy_shared_libraries(test_ik_two_bone_job)
 set_target_properties(test_ik_two_bone_job PROPERTIES FOLDER "ozz/tests/animation")
 add_test(NAME test_ik_two_bone_job COMMAND test_ik_two_bone_job)
 
@@ -152,5 +166,6 @@ target_compile_definitions(test_fuse_animation PRIVATE OZZ_BUILD_ANIMATION_LIB)
 target_link_libraries(test_fuse_animation
   ozz_animation_offline
   gtest)
+#target_copy_shared_libraries(test_fuse_animation)
 add_test(NAME test_fuse_animation COMMAND test_fuse_animation)
 set_target_properties(test_fuse_animation PROPERTIES FOLDER "ozz/tests/animation")

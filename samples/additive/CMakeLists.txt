@@ -29,7 +29,7 @@ add_executable(sample_additive
   "${CMAKE_CURRENT_BINARY_DIR}/media/animation_splay_additive.ozz")
 target_link_libraries(sample_additive
   sample_framework)
-
+target_copy_shared_libraries(sample_additive)
 set_target_properties(sample_additive
   PROPERTIES FOLDER "samples")
 

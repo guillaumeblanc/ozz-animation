@@ -83,18 +83,18 @@
 #include <cstddef>
 #include <string>
 
-#ifdef OZZ_USE_DYNAMIC_LINKING
-    #ifdef OZZ_BUILD_OPTIONS_LIB
-        // export for dynamic linking while building ozz
-        #define OZZ_OPTIONS_DLL __declspec(dllexport)
-    #else
-        // import for dynamic linking when just using ozz
-        #define OZZ_OPTIONS_DLL __declspec(dllimport)
-    #endif()
+#if defined(_MSC_VER) && defined(OZZ_USE_DYNAMIC_LINKING)
+#ifdef OZZ_BUILD_OPTIONS_LIB
+// export for dynamic linking while building ozz
+#define OZZ_OPTIONS_DLL __declspec(dllexport)
 #else
-    // static linking
-    #define OZZ_OPTIONS_DLL
+// import for dynamic linking when just using ozz
+#define OZZ_OPTIONS_DLL __declspec(dllimport)
 #endif
+#else
+// static linking
+#define OZZ_OPTIONS_DLL
+#endif  // defined(_MSC_VER) && defined(OZZ_USE_DYNAMIC_LINKING)
 
 namespace ozz {
 namespace options {
@@ -121,8 +121,10 @@ enum ParseResult {
 // _version and _usage are not copied, ParseCommandLine caller is in charge of
 // maintaining their allocation during application lifetime.
 // See ParseResult for more details about returned values.
-OZZ_OPTIONS_DLL ParseResult ParseCommandLine(int _argc, const char* const* _argv,
-                             const char* _version, const char* _usage);
+OZZ_OPTIONS_DLL ParseResult ParseCommandLine(int _argc,
+                                             const char* const* _argv,
+                                             const char* _version,
+                                             const char* _usage);
 
 // Get the executable path that was extracted from the last call to
 // ParseCommandLine.

@@ -41,57 +41,49 @@
 #include <cassert>
 #include <cstddef>
 
-#ifdef OZZ_USE_DYNAMIC_LINKING
-    #ifdef OZZ_BUILD_BASE_LIB
-        // export for dynamic linking while building ozz
-        #define OZZ_BASE_DLL __declspec(dllexport)
-    #else
-        // import for dynamic linking when just using ozz
-        #define OZZ_BASE_DLL __declspec(dllimport)
-    #endif()
+#if defined(_MSC_VER) && defined(OZZ_USE_DYNAMIC_LINKING)
+
+#ifdef OZZ_BUILD_BASE_LIB
+// export for dynamic linking while building ozz
+#define OZZ_BASE_DLL __declspec(dllexport)
 #else
-    // static linking
-    #define OZZ_BASE_DLL
+// import for dynamic linking when just using ozz
+#define OZZ_BASE_DLL __declspec(dllimport)
 #endif
 
-#ifdef OZZ_USE_DYNAMIC_LINKING
-    #ifdef OZZ_BUILD_ANIMATION_LIB
-        // export for dynamic linking while building ozz
-        #define OZZ_ANIMATION_DLL __declspec(dllexport)
-    #else
-        // import for dynamic linking when just using ozz
-        #define OZZ_ANIMATION_DLL __declspec(dllimport)
-    #endif()
+#ifdef OZZ_BUILD_ANIMATION_LIB
+// export for dynamic linking while building ozz
+#define OZZ_ANIMATION_DLL __declspec(dllexport)
 #else
-    // static linking
-    #define OZZ_ANIMATION_DLL
+// import for dynamic linking when just using ozz
+#define OZZ_ANIMATION_DLL __declspec(dllimport)
 #endif
 
-#ifdef OZZ_USE_DYNAMIC_LINKING
-    #ifdef OZZ_BUILD_ANIMOFFLINE_LIB
-        // export for dynamic linking while building ozz
-        #define OZZ_ANIMOFFLINE_DLL __declspec(dllexport)
-    #else
-        // import for dynamic linking when just using ozz
-        #define OZZ_ANIMOFFLINE_DLL __declspec(dllimport)
-    #endif()
+#ifdef OZZ_BUILD_ANIMOFFLINE_LIB
+// export for dynamic linking while building ozz
+#define OZZ_ANIMOFFLINE_DLL __declspec(dllexport)
 #else
-    // static linking
-    #define OZZ_ANIMOFFLINE_DLL
+// import for dynamic linking when just using ozz
+#define OZZ_ANIMOFFLINE_DLL __declspec(dllimport)
 #endif
 
-#ifdef OZZ_USE_DYNAMIC_LINKING
-    #ifdef OZZ_BUILD_ANIMATIONTOOLS_LIB
-        // export for dynamic linking while building ozz
-        #define OZZ_ANIMTOOLS_DLL __declspec(dllexport)
-    #else
-        // import for dynamic linking when just using ozz
-        #define OZZ_ANIMTOOLS_DLL __declspec(dllimport)
-    #endif()
+#ifdef OZZ_BUILD_ANIMATIONTOOLS_LIB
+// export for dynamic linking while building ozz
+#define OZZ_ANIMTOOLS_DLL __declspec(dllexport)
 #else
-    // static linking
-    #define OZZ_ANIMTOOLS_DLL
+// import for dynamic linking when just using ozz
+#define OZZ_ANIMTOOLS_DLL __declspec(dllimport)
 #endif
+
+#else  // defined(_MSC_VER) && defined(OZZ_USE_DYNAMIC_LINKING)
+
+// static linking
+#define OZZ_BASE_DLL
+#define OZZ_ANIMATION_DLL
+#define OZZ_ANIMOFFLINE_DLL
+#define OZZ_ANIMTOOLS_DLL
+
+#endif  // defined(_MSC_VER) && defined(OZZ_USE_DYNAMIC_LINKING)
 
 namespace ozz {
 

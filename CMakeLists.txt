@@ -11,16 +11,22 @@ set(OZZ_VERSION ${OZZ_VERSION_MAJOR}.${OZZ_VERSION_MINOR}.${OZZ_VERSION_PATCH})
 
 # Add project build options
 option(ozz_build_tools "Build tools" ON)
-option(ozz_build_fbx "Build Fbx pipeline (Requires Fbx SDK)" ON)
+option(ozz_build_fbx "Build Fbx pipeline (Requires Fbx SDK)" OFF)
 option(ozz_build_gltf "Build glTF importer (Requires c++11)" ON)
 option(ozz_build_data "Build data on code change" OFF)
 option(ozz_build_samples "Build samples" ON)
 option(ozz_build_howtos "Build howtos" ON)
 option(ozz_build_tests "Build unit tests" ON)
 option(ozz_build_simd_ref "Force SIMD math reference implementation" OFF)
-option(ozz_build_msvc_rt_dll "Select msvc DLL runtime library" ON)
 option(ozz_build_postfix "Use per config postfix name" ON)
-option(ozz_build_dll "Build ozz runtime libraries as DLLs" OFF)
+option(ozz_build_dll "Build ozz as shared libraries" OFF)
+option(ozz_build_msvc_rt_dll "Select msvc DLL runtime library" OFF)
+
+# Checks DLL flags
+if(ozz_build_dll AND NOT ozz_build_msvc_rt_dll)
+  message("Forcing ozz_build_msvc_rt_dll to ON as ozz is being built as dll (ozz_build_dll is ON).")
+  set(ozz_build_msvc_rt_dll ON)
+endif()
 
 # Include ozz cmake parameters and scripts
 include(CheckCXXCompilerFlag)
@@ -28,6 +34,7 @@ include(${PROJECT_SOURCE_DIR}/build-utils/cmake/compiler_settings.cmake)
 include(${PROJECT_SOURCE_DIR}/build-utils/cmake/package_settings.cmake)
 include(${PROJECT_SOURCE_DIR}/build-utils/cmake/fuse_target.cmake)
 include(${PROJECT_SOURCE_DIR}/build-utils/cmake/clang_format.cmake)
+include(${PROJECT_SOURCE_DIR}/build-utils/cmake/shared_library.cmake)
 
 # Add project execution options
 option(ozz_run_tests_headless "Run samples without rendering (used for unit tests)" ON)
@@ -84,6 +91,7 @@ message("-- - ozz_build_samples: " ${ozz_build_samples})
 message("-- - ozz_build_howtos: " ${ozz_build_howtos})
 message("-- - ozz_build_tests: " ${ozz_build_tests})
 message("-- - ozz_build_simd_ref: " ${ozz_build_simd_ref})
+message("-- - ozz_build_dll: " ${ozz_build_dll})
 message("-- - ozz_build_msvc_rt_dll: " ${ozz_build_msvc_rt_dll})
 message("-- - ozz_build_postfix: " ${ozz_build_postfix})
 

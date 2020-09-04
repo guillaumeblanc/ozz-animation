@@ -29,8 +29,6 @@ set (LIB_SOURCES
 if(ozz_build_dll)
   add_library(ozz_animation SHARED ${LIB_SOURCES})
   target_compile_definitions(ozz_animation PRIVATE OZZ_BUILD_ANIMATION_LIB)
-  target_compile_options(ozz_animation PUBLIC /wd4251)
-  target_compile_options(ozz_animation PUBLIC /wd4661)
 else()
   add_library(ozz_animation STATIC ${LIB_SOURCES})
 endif()

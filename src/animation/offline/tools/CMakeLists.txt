@@ -41,6 +41,7 @@ if(NOT EMSCRIPTEN)
   target_link_libraries(dump2ozz
     ozz_animation_tools
     ozz_options)
+  target_copy_shared_libraries(dump2ozz)
 
   # Uses a fake import file to dump reference and default configurations.
   add_custom_command(TARGET dump2ozz POST_BUILD
@@ -48,4 +49,5 @@ if(NOT EMSCRIPTEN)
 
   set_target_properties(dump2ozz
     PROPERTIES FOLDER "ozz/tools")
+    
 endif()
