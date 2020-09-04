@@ -46,6 +46,11 @@ environment:
   - env_cmake_generator: "Visual Studio 16 2019"
     env_cmake_configuration: Release
 
+  # Dll (no fbx support yet)
+  - env_cmake_generator: "Visual Studio 16 2019"
+    env_cmake_configuration: Release
+    env_build_dll: "1"
+
   # Use ozz as a sub project (should set msvc rt dll for ozz as this is the default in cmake)
   - env_cmake_generator: "Visual Studio 16 2019"
     env_cmake_configuration: Release
@@ -66,11 +71,19 @@ install:
       Start-Process -FilePath "fbxsdk.exe" /S -Wait
       cd ..
     }
+
 # Fixes up env_src_root if it isn't defined
 - ps: >-
     if (!$Env:env_src_root) {
       $Env:env_src_root=".."
     }
+
+# Fixes up env_build_dll if it isn't defined
+- ps: >-
+    if (!$Env:env_build_dll) {
+      $Env:env_build_dll="0"
+    }
+
 # Fixes up env_build_msvc_rt_dll if it isn't defined
 - ps: >-
     if (!$Env:env_build_msvc_rt_dll) {
@@ -81,7 +94,7 @@ build_script:
 - cmake --version
 - mkdir build
 - cd build
-- cmake -G "%env_cmake_generator%" -Dozz_build_tests=1 -Dozz_build_data=1 -Dozz_build_msvc_rt_dll=%env_build_msvc_rt_dll% -DCMAKE_BUILD_TYPE=%env_cmake_configuration% %env_src_root%
+- cmake -G "%env_cmake_generator%" -Dozz_build_tests=1 -Dozz_build_data=1 -Dozz_build_dll=%env_build_dll% -Dozz_build_msvc_rt_dll=%env_build_msvc_rt_dll% -DCMAKE_BUILD_TYPE=%env_cmake_configuration% %env_src_root%
 - cmake --build ./ --config %env_cmake_configuration%
 
 test_script:
