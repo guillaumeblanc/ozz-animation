@@ -85,7 +85,7 @@ namespace internal {
 // RawTrack that would fail this validation will fail to be converted by
 // the RawTrackBuilder.
 template <typename _ValueType>
-struct RawTrack {
+struct OZZ_ANIMOFFLINE_DLL RawTrack {
   typedef _ValueType ValueType;
   typedef RawTrackKeyframe<ValueType> Keyframe;
 

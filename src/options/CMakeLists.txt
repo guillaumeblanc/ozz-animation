@@ -9,7 +9,7 @@ if(ozz_build_dll)
 else()
   add_library(ozz_options STATIC ${LIB_SOURCES})
 endif()
-target_compile_options(ozz_options PUBLIC $<$<CXX_COMPILER_ID:MSVC>:/wd4251 /wd4661>)
+target_compile_options(ozz_options PUBLIC $<$<CXX_COMPILER_ID:MSVC>:/wd4251>)
 target_include_directories(ozz_options PUBLIC
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:$<INSTALL_PREFIX>/include>)

@@ -261,7 +261,7 @@ class OZZ_OPTIONS_DLL Option {
 
 // Defines a strongly typed option class
 template <typename _Type>
-class TypedOption : public Option {
+class OZZ_OPTIONS_DLL TypedOption : public Option {
  public:
   // Lets the type be known.
   typedef _Type Type;

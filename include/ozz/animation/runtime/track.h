@@ -54,7 +54,7 @@ namespace internal {
 // coherently. Ratios are usually accessed/read alone from the jobs that all
 // start by looking up the keyframes to interpolate indeed.
 template <typename _ValueType>
-class Track {
+class OZZ_ANIMATION_DLL Track {
  public:
   typedef _ValueType ValueType;
 
