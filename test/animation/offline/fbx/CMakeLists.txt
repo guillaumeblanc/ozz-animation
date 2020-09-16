@@ -155,16 +155,10 @@ add_executable(test_fuse_ozz_animation_fbx
   fuse_ozz_animation_fbx_tests
   ${PROJECT_BINARY_DIR}/src_fused/ozz_animation_fbx.cc)
 add_dependencies(test_fuse_ozz_animation_fbx BUILD_FUSE_ozz_animation_fbx)
-target_include_directories(test_fuse_ozz_animation_fbx
-  PUBLIC ${FBX_INCLUDE_DIRS})
-target_compile_options(test_fuse_ozz_animation_fbx
-  PUBLIC $<$<BOOL:${W_NULL_DEREFERENCE}>:-Wno-null-dereference>
-  PUBLIC $<$<BOOL:${W_PRAGMA_PACK}>:-Wno-pragma-pack>)
 target_link_libraries(test_fuse_ozz_animation_fbx
-  debug ${FBX_LIBRARIES_DEBUG}
-  optimized ${FBX_LIBRARIES}
-  ozz_animation_offline)
-#target_copy_shared_libraries(test_fuse_ozz_animation_fbx)
+  ozz_animation_offline
+  fbx::sdk)
+target_copy_shared_libraries(test_fuse_ozz_animation_fbx)
 set_target_properties(test_fuse_ozz_animation_fbx PROPERTIES FOLDER "ozz/tests/animation_offline")
 target_compile_definitions(test_fuse_ozz_animation_fbx PRIVATE OZZ_BUILD_ANIMATIONFBX_LIB)
 

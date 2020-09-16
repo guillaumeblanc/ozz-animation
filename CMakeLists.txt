@@ -11,7 +11,7 @@ set(OZZ_VERSION ${OZZ_VERSION_MAJOR}.${OZZ_VERSION_MINOR}.${OZZ_VERSION_PATCH})
 
 # Add project build options
 option(ozz_build_tools "Build tools" ON)
-option(ozz_build_fbx "Build Fbx pipeline (Requires Fbx SDK)" OFF)
+option(ozz_build_fbx "Build Fbx pipeline (Requires Fbx SDK)" ON)
 option(ozz_build_gltf "Build glTF importer (Requires c++11)" ON)
 option(ozz_build_data "Build data on code change" OFF)
 option(ozz_build_samples "Build samples" ON)
@@ -47,6 +47,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/build-utils/cm
 if(ozz_build_tools AND ozz_build_fbx)
 
   # Select a msvc runtime compatible with ozz_build_msvc_rt_dll
+  set(FBX_SHARED ${ozz_build_dll})
   set(FBX_MSVC_RT_DLL ${ozz_build_msvc_rt_dll})
 
   # Search for FBX sdk package
@@ -57,6 +58,7 @@ if(ozz_build_tools AND ozz_build_fbx)
     message("Fbx SDK not found, FBX tools libraries and samples will be skipped.")
     set(ozz_build_fbx OFF)
   endif()
+
 else()
   # Disables fbx if tools are disabled
   set(ozz_build_fbx OFF)
