@@ -1,4 +1,4 @@
-add_library(json
+add_library(json STATIC
   dist/jsoncpp.cpp
   dist/json/json.h
   dist/json/json-forwards.h)

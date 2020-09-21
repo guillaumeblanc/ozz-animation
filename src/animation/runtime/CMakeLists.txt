@@ -1,4 +1,5 @@
-set (LIB_SOURCES
+
+add_library(ozz_animation
   ${PROJECT_SOURCE_DIR}/include/ozz/animation/runtime/animation.h
   animation.cc
   animation_keyframe.h
@@ -25,13 +26,8 @@ set (LIB_SOURCES
   ${PROJECT_SOURCE_DIR}/include/ozz/animation/runtime/track_triggering_job.h
   ${PROJECT_SOURCE_DIR}/include/ozz/animation/runtime/track_triggering_job_trait.h
   track_triggering_job.cc)
-
-if(ozz_build_dll)
-  add_library(ozz_animation SHARED ${LIB_SOURCES})
-  target_compile_definitions(ozz_animation PRIVATE OZZ_BUILD_ANIMATION_LIB)
-else()
-  add_library(ozz_animation STATIC ${LIB_SOURCES})
-endif()
+  
+target_compile_definitions(ozz_animation PRIVATE $<$<BOOL:${BUILD_SHARED_LIBS}>:OZZ_BUILD_ANIMATION_LIB>)
 
 target_link_libraries(ozz_animation
   PUBLIC

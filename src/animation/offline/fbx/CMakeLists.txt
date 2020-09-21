@@ -2,20 +2,15 @@ if(NOT ozz_build_fbx)
   return()
 endif()
 
-set(LIB_SOURCES
+add_library(ozz_animation_fbx
   ${PROJECT_SOURCE_DIR}/include/ozz/animation/offline/fbx/fbx.h
   fbx.cc
   ${PROJECT_SOURCE_DIR}/include/ozz/animation/offline/fbx/fbx_animation.h
   fbx_animation.cc
   ${PROJECT_SOURCE_DIR}/include/ozz/animation/offline/fbx/fbx_skeleton.h
   fbx_skeleton.cc)
-
-if(ozz_build_dll)
-  add_library(ozz_animation_fbx SHARED ${LIB_SOURCES})
-  target_compile_definitions(ozz_animation_fbx PRIVATE OZZ_BUILD_ANIMATIONFBX_LIB)
-else()
-  add_library(ozz_animation_fbx STATIC ${LIB_SOURCES})
-endif()
+  
+target_compile_definitions(ozz_animation_fbx PRIVATE  $<$<BOOL:${BUILD_SHARED_LIBS}>:OZZ_BUILD_ANIMATIONFBX_LIB>)
 
 target_link_libraries(ozz_animation_fbx
   ozz_animation_offline

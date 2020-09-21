@@ -1,14 +1,11 @@
-set(LIB_SOURCES
+add_library(ozz_options
   ../../include/ozz/options/options.h
   options.cc)
 
-if(ozz_build_dll)
-  add_library(ozz_options SHARED ${LIB_SOURCES})
-  target_compile_definitions(ozz_options PUBLIC OZZ_USE_DYNAMIC_LINKING)
-  target_compile_definitions(ozz_options PRIVATE OZZ_BUILD_OPTIONS_LIB)
-else()
-  add_library(ozz_options STATIC ${LIB_SOURCES})
-endif()
+target_compile_definitions(ozz_options
+  PUBLIC $<$<BOOL:${BUILD_SHARED_LIBS}>:OZZ_USE_DYNAMIC_LINKING>
+  PRIVATE $<$<BOOL:${BUILD_SHARED_LIBS}>:OZZ_BUILD_OPTIONS_LIB>)
+
 target_compile_options(ozz_options PUBLIC $<$<CXX_COMPILER_ID:MSVC>:/wd4251>)
 target_include_directories(ozz_options PUBLIC
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>

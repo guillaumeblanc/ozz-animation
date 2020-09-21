@@ -162,85 +162,83 @@ function(FindFbxLibrariesGeneric _FBX_ROOT_DIR _OUT_FBX_LIBRARIES _OUT_FBX_LIBRA
     FindFbxVersion(${FBX_ROOT_DIR} PATH_VERSION)
 
     # 2019+ non-DLL SDK needs to link against bundled libxml and zlib
-    if(NOT FBX_SHARED)
-      if(PATH_VERSION GREATER_EQUAL "2019.1")
-        if("x${CMAKE_CXX_COMPILER_ID}" STREQUAL "xMSVC")
-          set(ADDITIONAL_LIB_SEARCH_PATH_RELEASE "${FBX_SEARCH_LIB_PATH}/release/")
-          set(ADDITIONAL_LIB_SEARCH_PATH_DEBUG "${FBX_SEARCH_LIB_PATH}/debug/")
-          if (NOT DEFINED FBX_MSVC_RT_DLL OR FBX_MSVC_RT_DLL)
-            set(XML_SEARCH_LIB_NAMES libxml2-md.lib)
-            set(Z_SEARCH_LIB_NAMES zlib-md.lib)
-          else()
-            set(XML_SEARCH_LIB_NAMES libxml2-mt.lib)
-            set(Z_SEARCH_LIB_NAMES zlib-mt.lib)
-          endif()
+    if(PATH_VERSION GREATER_EQUAL "2019.1")
+      if("x${CMAKE_CXX_COMPILER_ID}" STREQUAL "xMSVC")
+        set(ADDITIONAL_LIB_SEARCH_PATH_RELEASE "${FBX_SEARCH_LIB_PATH}/release/")
+        set(ADDITIONAL_LIB_SEARCH_PATH_DEBUG "${FBX_SEARCH_LIB_PATH}/debug/")
+        if (NOT DEFINED FBX_MSVC_RT_DLL OR FBX_MSVC_RT_DLL)
+          set(XML_SEARCH_LIB_NAMES libxml2-md.lib)
+          set(Z_SEARCH_LIB_NAMES zlib-md.lib)
         else()
-          set(ADDITIONAL_LIB_SEARCH_PATH_RELEASE "")
-          set(ADDITIONAL_LIB_SEARCH_PATH_DEBUG "")
-          set(XML_SEARCH_LIB_NAMES "xml2")
-          set(Z_SEARCH_LIB_NAMES "z")
+          set(XML_SEARCH_LIB_NAMES libxml2-mt.lib)
+          set(Z_SEARCH_LIB_NAMES zlib-mt.lib)
         endif()
-
-        find_library(XML_LIB
-          ${XML_SEARCH_LIB_NAMES}
-          HINTS ${ADDITIONAL_LIB_SEARCH_PATH_RELEASE})
-        find_library(XML_LIB_DEBUG
-          ${XML_SEARCH_LIB_NAMES}
-          HINTS ${ADDITIONAL_LIB_SEARCH_PATH_DEBUG})
-
-        if(XML_LIB AND XML_LIB_DEBUG)
-          target_link_libraries(fbx::sdk INTERFACE optimized ${XML_LIB})
-          target_link_libraries(fbx::sdk INTERFACE debug ${XML_LIB_DEBUG})
-        else()
-          message(WARNING "FBX found but required libxml2 was not found!")
-        endif()
-
-        find_library(Z_LIB
-          ${Z_SEARCH_LIB_NAMES}
-          HINTS ${ADDITIONAL_LIB_SEARCH_PATH_RELEASE})          
-        find_library(Z_LIB_DEBUG
-          ${Z_SEARCH_LIB_NAMES} 
-          HINTS ${ADDITIONAL_LIB_SEARCH_PATH_DEBUG})
-
-        if(Z_LIB AND Z_LIB_DEBUG)
-          target_link_libraries(fbx::sdk INTERFACE optimized ${Z_LIB})
-          target_link_libraries(fbx::sdk INTERFACE debug ${Z_LIB_DEBUG})
-        else()
-          message(WARNING "FBX found but required zlib was not found!")
-        endif()
-
-        list(APPEND FBX_LIB ${XML_LIB} ${Z_LIB})
-        list(APPEND FBX_LIB_DEBUG ${XML_LIB_DEBUG} ${Z_LIB_DEBUG})
+      else()
+        set(ADDITIONAL_LIB_SEARCH_PATH_RELEASE "")
+        set(ADDITIONAL_LIB_SEARCH_PATH_DEBUG "")
+        set(XML_SEARCH_LIB_NAMES "xml2")
+        set(Z_SEARCH_LIB_NAMES "z")
       endif()
 
-      # Other dependencies.
-      if(APPLE)
-        find_library(ICONV_LIB iconv)
+      find_library(XML_LIB
+        ${XML_SEARCH_LIB_NAMES}
+        HINTS ${ADDITIONAL_LIB_SEARCH_PATH_RELEASE})
+      find_library(XML_LIB_DEBUG
+        ${XML_SEARCH_LIB_NAMES}
+        HINTS ${ADDITIONAL_LIB_SEARCH_PATH_DEBUG})
 
-        if(ICONV_LIB)
-          target_link_libraries(fbx::sdk INTERFACE ${ICONV_LIB})
-          list(APPEND FBX_LIB ${ICONV_LIB})
-          list(APPEND FBX_LIB_DEBUG ${ICONV_LIB})
-        else()
-          message(WARNING "FBX found but required iconv was not found!")
-        endif()
-
-        find_library(CARBON_FRAMEWORK Carbon)
-        if(CARBON_FRAMEWORK)
-          target_link_libraries(fbx::sdk INTERFACE ${CARBON_FRAMEWORK})
-          list(APPEND FBX_LIB ${CARBON_FRAMEWORK})
-          list(APPEND FBX_LIB_DEBUG ${CARBON_FRAMEWORK})
-        else()
-          message(WARNING "FBX found but required Carbon was not found!")
-        endif()
+      if(XML_LIB AND XML_LIB_DEBUG)
+        target_link_libraries(fbx::sdk INTERFACE optimized ${XML_LIB})
+        target_link_libraries(fbx::sdk INTERFACE debug ${XML_LIB_DEBUG})
+      else()
+        message(WARNING "FBX found but required libxml2 was not found!")
       endif()
 
-      if(UNIX)
-        find_package(Threads)
-        target_link_libraries(fbx::sdk INTERFACE ${CMAKE_THREAD_LIBS_INIT} dl)
-        list(APPEND FBX_LIB ${CMAKE_THREAD_LIBS_INIT} dl)
-        list(APPEND FBX_LIB_DEBUG ${CMAKE_THREAD_LIBS_INIT} dl)
+      find_library(Z_LIB
+        ${Z_SEARCH_LIB_NAMES}
+        HINTS ${ADDITIONAL_LIB_SEARCH_PATH_RELEASE})          
+      find_library(Z_LIB_DEBUG
+        ${Z_SEARCH_LIB_NAMES} 
+        HINTS ${ADDITIONAL_LIB_SEARCH_PATH_DEBUG})
+
+      if(Z_LIB AND Z_LIB_DEBUG)
+        target_link_libraries(fbx::sdk INTERFACE optimized ${Z_LIB})
+        target_link_libraries(fbx::sdk INTERFACE debug ${Z_LIB_DEBUG})
+      else()
+        message(WARNING "FBX found but required zlib was not found!")
       endif()
+
+      list(APPEND FBX_LIB ${XML_LIB} ${Z_LIB})
+      list(APPEND FBX_LIB_DEBUG ${XML_LIB_DEBUG} ${Z_LIB_DEBUG})
+    endif()
+
+    # Other dependencies.
+    if(APPLE)
+      find_library(ICONV_LIB iconv)
+
+      if(ICONV_LIB)
+        target_link_libraries(fbx::sdk INTERFACE ${ICONV_LIB})
+        list(APPEND FBX_LIB ${ICONV_LIB})
+        list(APPEND FBX_LIB_DEBUG ${ICONV_LIB})
+      else()
+        message(WARNING "FBX found but required iconv was not found!")
+      endif()
+
+      find_library(CARBON_FRAMEWORK Carbon)
+      if(CARBON_FRAMEWORK)
+        target_link_libraries(fbx::sdk INTERFACE ${CARBON_FRAMEWORK})
+        list(APPEND FBX_LIB ${CARBON_FRAMEWORK})
+        list(APPEND FBX_LIB_DEBUG ${CARBON_FRAMEWORK})
+      else()
+        message(WARNING "FBX found but required Carbon was not found!")
+      endif()
+    endif()
+
+    if(UNIX)
+      find_package(Threads)
+      target_link_libraries(fbx::sdk INTERFACE ${CMAKE_THREAD_LIBS_INIT} dl)
+      list(APPEND FBX_LIB ${CMAKE_THREAD_LIBS_INIT} dl)
+      list(APPEND FBX_LIB_DEBUG ${CMAKE_THREAD_LIBS_INIT} dl)
     endif()
 
     set(${_OUT_FBX_LIBRARIES} ${FBX_LIB} PARENT_SCOPE)

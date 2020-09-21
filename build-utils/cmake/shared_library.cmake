@@ -25,27 +25,24 @@ endfunction()
 
 # Copy dependent shared libraries next to executable target
 function(target_copy_shared_libraries _TARGET)
-  # Copy only applies to win32 for the moment
-  if(WIN32)
-    get_link_libraries(LINKED_TARGETS ${_TARGET})
+  get_link_libraries(LINKED_TARGETS ${_TARGET})
 
-    foreach(LINKED_TARGET ${LINKED_TARGETS})
-      get_target_property(TARGET_TYPE ${LINKED_TARGET} TYPE)
-      if(TARGET_TYPE STREQUAL "SHARED_LIBRARY")
-        list(APPEND DLL_TARGETS "$<TARGET_FILE:${LINKED_TARGET}>")
-      endif()
-    endforeach()
-
-    if(DLL_TARGETS)
-      add_custom_command(
-        OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${_TARGET}_dll_copy"
-        DEPENDS ${DLL_TARGETS}
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${DLL_TARGETS} "./"
-        COMMAND ${CMAKE_COMMAND} -E touch "${CMAKE_CURRENT_BINARY_DIR}/${_TARGET}_dll_copy"
-        VERBATIM)
-
-        # This allows to create a dependency with the command above, so command is executed again when target is built AND a DLL changed
-      target_sources(${_TARGET} PUBLIC "${CMAKE_CURRENT_BINARY_DIR}/${_TARGET}_dll_copy")
+  foreach(LINKED_TARGET ${LINKED_TARGETS})
+    get_target_property(TARGET_TYPE ${LINKED_TARGET} TYPE)
+    if(TARGET_TYPE STREQUAL "SHARED_LIBRARY")
+      list(APPEND DLL_TARGETS "$<TARGET_FILE:${LINKED_TARGET}>")
     endif()
+  endforeach()
+
+  if(DLL_TARGETS)
+    add_custom_command(
+      OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${_TARGET}_dll_copy"
+      DEPENDS ${DLL_TARGETS}
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different ${DLL_TARGETS} "./"
+      COMMAND ${CMAKE_COMMAND} -E touch "${CMAKE_CURRENT_BINARY_DIR}/${_TARGET}_dll_copy"
+      VERBATIM)
+
+      # This allows to create a dependency with the command above, so command is executed again when target is built AND a DLL changed
+    target_sources(${_TARGET} PUBLIC "${CMAKE_CURRENT_BINARY_DIR}/${_TARGET}_dll_copy")
   endif()
 endfunction()
