@@ -28,6 +28,8 @@
 #ifndef OZZ_OZZ_ANIMATION_RUNTIME_TRACK_H_
 #define OZZ_OZZ_ANIMATION_RUNTIME_TRACK_H_
 
+#include "ozz/animation/runtime/export.h"
+
 #include "ozz/base/io/archive_traits.h"
 #include "ozz/base/platform.h"
 #include "ozz/base/span.h"

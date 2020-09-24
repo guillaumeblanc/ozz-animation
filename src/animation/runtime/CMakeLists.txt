@@ -1,5 +1,6 @@
 
 add_library(ozz_animation
+  ${PROJECT_SOURCE_DIR}/include/ozz/animation/runtime/export.h
   ${PROJECT_SOURCE_DIR}/include/ozz/animation/runtime/animation.h
   animation.cc
   animation_keyframe.h

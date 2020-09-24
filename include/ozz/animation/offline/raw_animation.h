@@ -28,6 +28,7 @@
 #ifndef OZZ_OZZ_ANIMATION_OFFLINE_RAW_ANIMATION_H_
 #define OZZ_OZZ_ANIMATION_OFFLINE_RAW_ANIMATION_H_
 
+#include "ozz/animation/offline/export.h"
 #include "ozz/base/containers/string.h"
 #include "ozz/base/containers/vector.h"
 #include "ozz/base/io/archive_traits.h"

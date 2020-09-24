@@ -28,6 +28,8 @@
 #ifndef OZZ_OZZ_ANIMATION_RUNTIME_TRACK_TRIGGERING_JOB_TRAIT_H_
 #define OZZ_OZZ_ANIMATION_RUNTIME_TRACK_TRIGGERING_JOB_TRAIT_H_
 
+#include "ozz/animation/runtime/export.h"
+
 // Defines iterator traits required to use TrackTriggeringJob::Iterator
 // with stl algorithms.
 // This is a separate file from "track_triggering_job.h" to prevent everyone

@@ -28,6 +28,7 @@
 #ifndef OZZ_OZZ_ANIMATION_OFFLINE_ANIMATION_OPTIMIZER_H_
 #define OZZ_OZZ_ANIMATION_OFFLINE_ANIMATION_OPTIMIZER_H_
 
+#include "ozz/animation/offline/export.h"
 #include "ozz/base/containers/map.h"
 
 namespace ozz {

@@ -5,6 +5,7 @@ endif()
 add_subdirectory(${PROJECT_SOURCE_DIR}/extern/jsoncpp json)
 
 add_library(ozz_animation_tools
+  ${PROJECT_SOURCE_DIR}/include/ozz/animation/offline/tools/export.h
   ${PROJECT_SOURCE_DIR}/include/ozz/animation/offline/tools/import2ozz.h
   import2ozz.cc
   import2ozz_anim.h

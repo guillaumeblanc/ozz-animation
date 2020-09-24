@@ -28,6 +28,7 @@
 #ifndef OZZ_ANIMATION_OFFLINE_TOOLS_IMPORT2OZZ_ANIM_H_
 #define OZZ_ANIMATION_OFFLINE_TOOLS_IMPORT2OZZ_ANIM_H_
 
+#include "ozz/animation/offline/tools/export.h"
 #include "ozz/base/endianness.h"
 #include "ozz/base/platform.h"
 

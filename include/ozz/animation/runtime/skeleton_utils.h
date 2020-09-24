@@ -30,6 +30,7 @@
 
 #include <cassert>
 
+#include "ozz/animation/runtime/export.h"
 #include "ozz/animation/runtime/skeleton.h"
 #include "ozz/base/maths/transform.h"
 

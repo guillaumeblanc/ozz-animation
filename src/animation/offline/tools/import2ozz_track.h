@@ -28,11 +28,11 @@
 #ifndef OZZ_ANIMATION_OFFLINE_TOOLS_IMPORT2OZZ_TRACK_H_
 #define OZZ_ANIMATION_OFFLINE_TOOLS_IMPORT2OZZ_TRACK_H_
 
+#include "animation/offline/tools/import2ozz_config.h"
+#include "ozz/animation/offline/tools/export.h"
+#include "ozz/animation/offline/tools/import2ozz.h"
 #include "ozz/base/endianness.h"
 #include "ozz/base/platform.h"
-
-#include "animation/offline/tools/import2ozz_config.h"
-#include "ozz/animation/offline/tools/import2ozz.h"
 
 namespace Json {
 class Value;

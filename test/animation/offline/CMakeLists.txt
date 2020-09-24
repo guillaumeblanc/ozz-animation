@@ -133,7 +133,7 @@ target_link_libraries(test_fuse_animation_offline
 #target_copy_shared_libraries(test_fuse_animation_offline)
 add_test(NAME test_fuse_animation_offline COMMAND test_fuse_animation_offline)
 set_target_properties(test_fuse_animation_offline PROPERTIES FOLDER "ozz/tests/animation_offline")
-target_compile_definitions(test_fuse_animation_offline PRIVATE OZZ_BUILD_ANIMOFFLINE_LIB)
+target_compile_definitions(test_fuse_animation_offline PRIVATE $<$<BOOL:${BUILD_SHARED_LIBS}>:OZZ_BUILD_ANIMOFFLINE_LIB>)
 
 add_subdirectory(fbx)
 add_subdirectory(gltf)

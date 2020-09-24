@@ -28,7 +28,8 @@
 #ifndef OZZ_OZZ_ANIMATION_OFFLINE_TRACK_OPTIMIZER_H_
 #define OZZ_OZZ_ANIMATION_OFFLINE_TRACK_OPTIMIZER_H_
 
-#include <ozz/base/platform.h>
+#include "ozz/animation/offline/export.h"
+#include "ozz/base/platform.h"
 
 namespace ozz {
 namespace animation {

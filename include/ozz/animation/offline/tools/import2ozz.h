@@ -28,6 +28,8 @@
 #ifndef OZZ_OZZ_ANIMATION_OFFLINE_TOOLS_IMPORT2OZZ_H_
 #define OZZ_OZZ_ANIMATION_OFFLINE_TOOLS_IMPORT2OZZ_H_
 
+#include "ozz/animation/offline/tools/export.h"
+
 #include "ozz/base/containers/string.h"
 #include "ozz/base/containers/vector.h"
 

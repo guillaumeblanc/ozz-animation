@@ -30,19 +30,7 @@
 
 #include "ozz/base/platform.h"
 #include "ozz/base/span.h"
-
-#if defined(_MSC_VER) && defined(OZZ_USE_DYNAMIC_LINKING)
-#ifdef OZZ_BUILD_GEOMETRY_LIB
-// export for dynamic linking while building ozz
-#define OZZ_GEOMETRY_DLL __declspec(dllexport)
-#else
-// import for dynamic linking when just using ozz
-#define OZZ_GEOMETRY_DLL __declspec(dllimport)
-#endif
-#else
-// static linking
-#define OZZ_GEOMETRY_DLL
-#endif  // defined(_MSC_VER) && defined(OZZ_USE_DYNAMIC_LINKING)
+#include "ozz/geometry/runtime/export.h"
 
 namespace ozz {
 namespace math {

@@ -28,6 +28,7 @@
 #ifndef OZZ_OZZ_ANIMATION_RUNTIME_IK_TWO_BONE_JOB_H_
 #define OZZ_OZZ_ANIMATION_RUNTIME_IK_TWO_BONE_JOB_H_
 
+#include "ozz/animation/runtime/export.h"
 #include "ozz/base/platform.h"
 
 #include "ozz/base/maths/simd_math.h"

@@ -30,21 +30,9 @@
 
 #include <fbxsdk.h>
 
+#include "ozz/animation/offline/fbx/export.h"
 #include "ozz/base/maths/simd_math.h"
 #include "ozz/base/maths/transform.h"
-
-#if defined(_MSC_VER) && defined(OZZ_USE_DYNAMIC_LINKING)
-#ifdef OZZ_BUILD_ANIMATIONFBX_LIB
-// export for dynamic linking while building ozz
-#define OZZ_ANIMFBX_DLL __declspec(dllexport)
-#else  // OZZ_BUILD_ANIMATIONFBX_LIB
-// import for dynamic linking when just using ozz
-#define OZZ_ANIMFBX_DLL __declspec(dllimport)
-#endif
-#else  // OZZ_BUILD_ANIMATIONFBX_LIB
-// static linking
-#define OZZ_ANIMFBX_DLL
-#endif  // defined(_MSC_VER) && defined(OZZ_USE_DYNAMIC_LINKING)
 
 namespace ozz {
 namespace math {

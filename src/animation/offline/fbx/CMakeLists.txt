@@ -3,6 +3,7 @@ if(NOT ozz_build_fbx)
 endif()
 
 add_library(ozz_animation_fbx
+  ${PROJECT_SOURCE_DIR}/include/ozz/animation/offline/fbx/export.h
   ${PROJECT_SOURCE_DIR}/include/ozz/animation/offline/fbx/fbx.h
   fbx.cc
   ${PROJECT_SOURCE_DIR}/include/ozz/animation/offline/fbx/fbx_animation.h

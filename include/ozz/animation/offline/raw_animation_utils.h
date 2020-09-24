@@ -28,6 +28,7 @@
 #ifndef OZZ_OZZ_ANIMATION_OFFLINE_RAW_ANIMATION_UTILS_H_
 #define OZZ_OZZ_ANIMATION_OFFLINE_RAW_ANIMATION_UTILS_H_
 
+#include "ozz/animation/offline/export.h"
 #include "ozz/animation/offline/raw_animation.h"
 
 #include "ozz/base/maths/transform.h"

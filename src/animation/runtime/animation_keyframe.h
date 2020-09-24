@@ -28,7 +28,9 @@
 #ifndef OZZ_ANIMATION_RUNTIME_ANIMATION_KEYFRAME_H_
 #define OZZ_ANIMATION_RUNTIME_ANIMATION_KEYFRAME_H_
 
+#include "ozz/animation/runtime/export.h"
 #include "ozz/base/platform.h"
+
 #ifndef OZZ_INCLUDE_PRIVATE_HEADER
 #error "This header is private, it cannot be included from public headers."
 #endif  // OZZ_INCLUDE_PRIVATE_HEADER

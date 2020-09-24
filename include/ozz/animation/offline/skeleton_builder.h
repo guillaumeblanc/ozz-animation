@@ -28,6 +28,7 @@
 #ifndef OZZ_OZZ_ANIMATION_OFFLINE_SKELETON_BUILDER_H_
 #define OZZ_OZZ_ANIMATION_OFFLINE_SKELETON_BUILDER_H_
 
+#include "ozz/animation/offline/export.h"
 #include "ozz/base/maths/transform.h"
 #include "ozz/base/memory/unique_ptr.h"
 

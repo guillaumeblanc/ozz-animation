@@ -28,6 +28,7 @@
 #ifndef OZZ_OZZ_ANIMATION_OFFLINE_ADDITIVE_ANIMATION_BUILDER_H_
 #define OZZ_OZZ_ANIMATION_OFFLINE_ADDITIVE_ANIMATION_BUILDER_H_
 
+#include "ozz/animation/offline/export.h"
 #include "ozz/base/platform.h"
 #include "ozz/base/span.h"
 

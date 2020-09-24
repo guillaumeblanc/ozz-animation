@@ -1,5 +1,6 @@
 
 add_library(ozz_animation_offline
+  ${PROJECT_SOURCE_DIR}/include/ozz/animation/offline/export.h
   decimate.h
   ${PROJECT_SOURCE_DIR}/include/ozz/animation/offline/raw_animation.h
   raw_animation.cc
