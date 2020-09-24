@@ -416,7 +416,7 @@ public:
   virtual ~Exception() throw();
   virtual char const* what() const throw();
 protected:
-  void operator = (const Exception&);
+  void operator = (const Exception&) = delete;
   std::string const msg_;
 };
 
