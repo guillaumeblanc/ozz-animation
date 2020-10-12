@@ -36,6 +36,10 @@ jobs:
     env :
     - env_build_fbx=0
     - env_BUILD_SHARED_LIBS=1
+  - os: osx
+    compiler: clang
+    env :
+    - env_BUILD_SHARED_LIBS=1
 
   # Linux ARM
   - os: linux
@@ -70,6 +74,10 @@ jobs:
     compiler: clang
     env:
     - env_build_fbx=0
+    - env_BUILD_SHARED_LIBS=1
+  - os: linux
+    compiler: clang
+    env:
     - env_BUILD_SHARED_LIBS=1
 
   # Specific configurations
