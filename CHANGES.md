@@ -1,3 +1,9 @@
+Next release
+----------------------
+
+* Build pipeline
+  - #59 Adds support for shared libraries on Windows, Linux and MacOS platforms.
+
 Release version 0.13.0
 ----------------------
 
