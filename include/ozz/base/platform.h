@@ -41,6 +41,8 @@
 #include <cassert>
 #include <cstddef>
 
+#include "ozz/base/export.h"
+
 namespace ozz {
 
 // Finds the number of elements of a statically allocated array.
@@ -80,7 +82,7 @@ namespace ozz {
 // Case sensitive wildcard string matching:
 // - a ? sign matches any character, except an empty string.
 // - a * sign matches any string, including an empty string.
-bool strmatch(const char* _str, const char* _pattern);
+OZZ_BASE_DLL bool strmatch(const char* _str, const char* _pattern);
 
 // Tests whether _block is aligned to _alignment boundary.
 template <typename _Ty>

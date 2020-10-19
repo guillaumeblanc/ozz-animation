@@ -28,6 +28,7 @@
 #ifndef OZZ_OZZ_ANIMATION_RUNTIME_ANIMATION_H_
 #define OZZ_OZZ_ANIMATION_RUNTIME_ANIMATION_H_
 
+#include "ozz/animation/runtime/export.h"
 #include "ozz/base/io/archive_traits.h"
 #include "ozz/base/platform.h"
 #include "ozz/base/span.h"
@@ -58,7 +59,7 @@ struct QuaternionKey;
 // joints order of the runtime skeleton structure. In order to optimize cache
 // coherency when sampling the animation, Keyframes in this array are sorted by
 // time, then by track number.
-class Animation {
+class OZZ_ANIMATION_DLL Animation {
  public:
   // Builds a default animation.
   Animation();

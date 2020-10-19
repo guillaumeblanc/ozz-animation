@@ -38,7 +38,7 @@ namespace io {
 OZZ_IO_TYPE_NOT_VERSIONABLE(ozz::string)
 
 template <>
-struct Extern<ozz::string> {
+struct OZZ_BASE_DLL Extern<ozz::string> {
   static void Save(OArchive& _archive, const ozz::string* _values,
                    size_t _count);
   static void Load(IArchive& _archive, ozz::string* _values, size_t _count,

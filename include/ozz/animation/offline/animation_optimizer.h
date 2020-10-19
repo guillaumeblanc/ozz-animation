@@ -28,6 +28,7 @@
 #ifndef OZZ_OZZ_ANIMATION_OFFLINE_ANIMATION_OPTIMIZER_H_
 #define OZZ_OZZ_ANIMATION_OFFLINE_ANIMATION_OPTIMIZER_H_
 
+#include "ozz/animation/offline/export.h"
 #include "ozz/base/containers/map.h"
 
 namespace ozz {
@@ -54,7 +55,7 @@ struct RawAnimation;
 // that leads to the hand if user wants it to be precise. Default optimization
 // tolerances are set in order to favor quality over runtime performances and
 // memory footprint.
-class AnimationOptimizer {
+class OZZ_ANIMOFFLINE_DLL AnimationOptimizer {
  public:
   // Initializes the optimizer with default tolerances (favoring quality).
   AnimationOptimizer();

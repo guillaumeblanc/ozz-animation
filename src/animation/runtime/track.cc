@@ -142,11 +142,11 @@ void Track<_ValueType>::Load(ozz::io::IArchive& _archive, uint32_t _version) {
 }
 
 // Explicitly instantiate supported tracks.
-template class Track<float>;
-template class Track<math::Float2>;
-template class Track<math::Float3>;
-template class Track<math::Float4>;
-template class Track<math::Quaternion>;
+template class OZZ_ANIMATION_DLL Track<float>;
+template class OZZ_ANIMATION_DLL Track<math::Float2>;
+template class OZZ_ANIMATION_DLL Track<math::Float3>;
+template class OZZ_ANIMATION_DLL Track<math::Float4>;
+template class OZZ_ANIMATION_DLL Track<math::Quaternion>;
 
 }  // namespace internal
 }  // namespace animation

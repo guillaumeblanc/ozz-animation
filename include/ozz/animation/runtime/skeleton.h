@@ -28,6 +28,7 @@
 #ifndef OZZ_OZZ_ANIMATION_RUNTIME_SKELETON_H_
 #define OZZ_OZZ_ANIMATION_RUNTIME_SKELETON_H_
 
+#include "ozz/animation/runtime/export.h"
 #include "ozz/base/io/archive_traits.h"
 #include "ozz/base/platform.h"
 #include "ozz/base/span.h"
@@ -57,7 +58,7 @@ class SkeletonBuilder;
 // order. This is enough to traverse the whole joint hierarchy. See
 // IterateJointsDF() from skeleton_utils.h that implements a depth-first
 // traversal utility.
-class Skeleton {
+class OZZ_ANIMATION_DLL Skeleton {
  public:
   // Defines Skeleton constant values.
   enum Constants {

@@ -28,6 +28,7 @@
 #ifndef OZZ_OZZ_ANIMATION_RUNTIME_LOCAL_TO_MODEL_JOB_H_
 #define OZZ_OZZ_ANIMATION_RUNTIME_LOCAL_TO_MODEL_JOB_H_
 
+#include "ozz/animation/runtime/export.h"
 #include "ozz/base/platform.h"
 #include "ozz/base/span.h"
 
@@ -55,7 +56,7 @@ class Skeleton;
 // ordered like skeleton's joints. Output are matrices, because the combination
 // of affine transformations can contain shearing or complex transformation
 // that cannot be represented as Transform object.
-struct LocalToModelJob {
+struct OZZ_ANIMATION_DLL LocalToModelJob {
   // Default constructor, initializes default values.
   LocalToModelJob();
 

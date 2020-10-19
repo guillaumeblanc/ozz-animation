@@ -7,6 +7,7 @@ add_executable(test2ozz
 target_link_libraries(test2ozz
   ozz_animation_tools
   ozz_options)
+target_copy_shared_libraries(test2ozz)
 
 set_target_properties(test2ozz
   PROPERTIES FOLDER "ozz/tests/animation_offline")
@@ -391,8 +392,10 @@ target_link_libraries(test_fuse_ozz_animation_tools
   ozz_options
   json
   gtest)
+#target_copy_shared_libraries(test_fuse_ozz_animation_tools)
 
 set_target_properties(test_fuse_ozz_animation_tools PROPERTIES FOLDER "ozz/tests/animation_offline")
+target_compile_definitions(test_fuse_ozz_animation_tools PRIVATE $<$<BOOL:${BUILD_SHARED_LIBS}>:OZZ_BUILD_ANIMATIONTOOLS_LIB>)
 
 add_test(NAME test_fuse_ozz_animation_tools_no_arg COMMAND test_fuse_ozz_animation_tools)
 set_tests_properties(test_fuse_ozz_animation_tools_no_arg PROPERTIES PASS_REGULAR_EXPRESSION "Required option \"file\" is not specified.")

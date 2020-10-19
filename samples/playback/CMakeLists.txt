@@ -20,6 +20,7 @@ add_executable(sample_playback
   "${CMAKE_CURRENT_BINARY_DIR}/media/animation.ozz")
 target_link_libraries(sample_playback
   sample_framework)
+target_copy_shared_libraries(sample_playback)
 
 set_target_properties(sample_playback
   PROPERTIES FOLDER "samples")

@@ -30,6 +30,7 @@
 
 #include "ozz/base/platform.h"
 #include "ozz/base/span.h"
+#include "ozz/geometry/runtime/export.h"
 
 namespace ozz {
 namespace math {
@@ -73,7 +74,7 @@ namespace geometry {
 // should only be used when input matrices have non uniform scaling or shearing.
 // The job does not owned the buffers (in/output) and will thus not delete them
 // during job's destruction.
-struct SkinningJob {
+struct OZZ_GEOMETRY_DLL SkinningJob {
   // Default constructor, initializes default values.
   SkinningJob();
 
