@@ -82,6 +82,14 @@ class OZZ_ANIMATION_DLL Skeleton {
   // Builds a default skeleton.
   Skeleton();
 
+  // Allow move.
+  Skeleton(Skeleton&&);
+  Skeleton& operator=(Skeleton&&);
+
+  // Disables copy and assignation.
+  Skeleton(Skeleton const&) = delete;
+  Skeleton& operator=(Skeleton const&) = delete;
+
   // Declares the public non-virtual destructor.
   ~Skeleton();
 
@@ -111,10 +119,6 @@ class OZZ_ANIMATION_DLL Skeleton {
   void Load(ozz::io::IArchive& _archive, uint32_t _version);
 
  private:
-  // Disables copy and assignation.
-  Skeleton(Skeleton const&);
-  void operator=(Skeleton const&);
-
   // Internal allocation/deallocation function.
   // Allocate returns the beginning of the contiguous buffer of names.
   char* Allocate(size_t _char_count, size_t _num_joints);
