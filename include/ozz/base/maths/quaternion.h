@@ -38,7 +38,7 @@
 namespace ozz {
 namespace math {
 
-struct Quaternion {
+struct OZZ_BASE_DLL Quaternion {
   float x, y, z, w;
 
   // Constructs an uninitialized quaternion.

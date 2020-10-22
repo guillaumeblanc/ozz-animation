@@ -1,3 +1,12 @@
+Next release
+----------------------
+
+* Library
+  - [animation] #103 Allows move constructor and assignment for ozz::animation::Skeleton and ozz::animation::Animation.
+
+* Build pipeline
+  - #59 Adds support for shared libraries on Windows, Linux and MacOS platforms.
+
 Release version 0.13.0
 ----------------------
 

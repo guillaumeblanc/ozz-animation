@@ -25,6 +25,7 @@ add_executable(sample_skinning
   "${CMAKE_CURRENT_BINARY_DIR}/media/animation.ozz")
 target_link_libraries(sample_skinning
   sample_framework)
+target_copy_shared_libraries(sample_skinning)
 
 set_target_properties(sample_skinning
   PROPERTIES FOLDER "samples")

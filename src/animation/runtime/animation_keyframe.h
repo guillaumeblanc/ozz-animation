@@ -28,7 +28,9 @@
 #ifndef OZZ_ANIMATION_RUNTIME_ANIMATION_KEYFRAME_H_
 #define OZZ_ANIMATION_RUNTIME_ANIMATION_KEYFRAME_H_
 
+#include "ozz/animation/runtime/export.h"
 #include "ozz/base/platform.h"
+
 #ifndef OZZ_INCLUDE_PRIVATE_HEADER
 #error "This header is private, it cannot be included from public headers."
 #endif  // OZZ_INCLUDE_PRIVATE_HEADER
@@ -46,7 +48,7 @@ namespace animation {
 // Defines the float3 key frame type, used for translations and scales.
 // Translation values are stored as half precision floats with 16 bits per
 // component.
-struct Float3Key {
+struct OZZ_ANIMATION_DLL Float3Key {
   float ratio;
   uint16_t track;
   uint16_t value[3];
@@ -67,7 +69,7 @@ struct Float3Key {
 // Quantization could be reduced to 11-11-10 bits as often used for animation
 // key frames, but in this case RotationKey structure would induce 16 bits of
 // padding.
-struct QuaternionKey {
+struct OZZ_ANIMATION_DLL QuaternionKey {
   float ratio;
   uint16_t track : 13;   // The track this key frame belongs to.
   uint16_t largest : 2;  // The largest component of the quaternion.

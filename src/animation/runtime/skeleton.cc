@@ -41,6 +41,16 @@ namespace animation {
 
 Skeleton::Skeleton() {}
 
+Skeleton::Skeleton(Skeleton&& _other) { *this = std::move(_other); }
+
+Skeleton& Skeleton::operator=(Skeleton&& _other) {
+  std::swap(joint_bind_poses_, _other.joint_bind_poses_);
+  std::swap(joint_parents_, _other.joint_parents_);
+  std::swap(joint_names_, _other.joint_names_);
+
+  return *this;
+}
+
 Skeleton::~Skeleton() { Deallocate(); }
 
 char* Skeleton::Allocate(size_t _chars_size, size_t _num_joints) {

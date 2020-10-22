@@ -66,20 +66,17 @@ template <typename _Ty, size_t _size = sizeof(_Ty)>
 struct EndianSwapper;
 
 // Internal macro used to swap two bytes.
-#define OZZ_BYTE_SWAP(_a, _b) \
-  do {                        \
-    const char temp = _a;     \
-    _a = _b;                  \
-    _b = temp;                \
+#define OZZ_BYTE_SWAP(_a, _b)    \
+  do {                           \
+    const ozz::byte temp = (_a); \
+    (_a) = (_b);                 \
+    (_b) = temp;                 \
   } while (0)
 
 // EndianSwapper specialization for 1 byte types.
 template <typename _Ty>
 struct EndianSwapper<_Ty, 1> {
-  OZZ_INLINE static void Swap(_Ty* _ty, size_t _count) {
-    (void)_ty;
-    (void)_count;
-  }
+  OZZ_INLINE static void Swap(_Ty*, size_t) {}
   OZZ_INLINE static _Ty Swap(_Ty _ty) { return _ty; }
 };
 

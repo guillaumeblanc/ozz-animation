@@ -1,4 +1,4 @@
-add_library(gtest
+add_library(gtest STATIC
   fused-src/gtest/gtest_main.cc
   fused-src/gtest/gtest-all.cc
   fused-src/gtest/gtest.h)
@@ -12,4 +12,3 @@ target_link_libraries(gtest
 
 target_include_directories(gtest PUBLIC
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/extern/gtest/fused-src>)
-

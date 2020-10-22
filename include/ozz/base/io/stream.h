@@ -40,7 +40,7 @@ namespace io {
 
 // Declares a stream access interface that conforms with CRT FILE API.
 // This interface should be used to remap io operations.
-class Stream {
+class OZZ_BASE_DLL Stream {
  public:
   // Tests whether a file is opened.
   virtual bool opened() const = 0;
@@ -86,7 +86,7 @@ class Stream {
 };
 
 // Implements Stream of type File.
-class File : public Stream {
+class OZZ_BASE_DLL File : public Stream {
  public:
   // Test if a file at path _filename exists.
   // Note that this function is costly. If you aim to open the file right after,
@@ -133,7 +133,7 @@ class File : public Stream {
 
 // Implements an in-memory Stream. Allows to use a memory buffer as a Stream.
 // The opening mode is equivalent to fopen w+b (binary read/write).
-class MemoryStream : public Stream {
+class OZZ_BASE_DLL MemoryStream : public Stream {
  public:
   // Construct an empty memory stream opened in w+b mode.
   MemoryStream();

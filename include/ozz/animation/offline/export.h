@@ -25,58 +25,20 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#ifndef OZZ_OZZ_ANIMATION_RUNTIME_TRACK_SAMPLING_JOB_H_
-#define OZZ_OZZ_ANIMATION_RUNTIME_TRACK_SAMPLING_JOB_H_
+#ifndef OZZ_OZZ_ANIMATION_OFFLINE_EXPORT_H_
+#define OZZ_OZZ_ANIMATION_OFFLINE_EXPORT_H_
 
-#include "ozz/animation/runtime/export.h"
-#include "ozz/animation/runtime/track.h"
+#if defined(_MSC_VER) && defined(OZZ_USE_DYNAMIC_LINKING)
 
-namespace ozz {
-namespace animation {
+#ifdef OZZ_BUILD_ANIMOFFLINE_LIB
+// Import/Export for dynamic linking while building ozz
+#define OZZ_ANIMOFFLINE_DLL __declspec(dllexport)
+#else
+#define OZZ_ANIMOFFLINE_DLL __declspec(dllimport)
+#endif
+#else  // defined(_MSC_VER) && defined(OZZ_USE_DYNAMIC_LINKING)
+// Static or non msvc linking
+#define OZZ_ANIMOFFLINE_DLL
+#endif  // defined(_MSC_VER) && defined(OZZ_USE_DYNAMIC_LINKING)
 
-namespace internal {
-
-// TrackSamplingJob internal implementation. See *TrackSamplingJob for more
-// details.
-template <typename _Track>
-struct TrackSamplingJob {
-  typedef typename _Track::ValueType ValueType;
-
-  TrackSamplingJob();
-
-  // Validates all parameters.
-  bool Validate() const;
-
-  // Validates and executes sampling.
-  bool Run() const;
-
-  // Ratio used to sample track, clamped in range [0,1] before job execution. 0
-  // is the beginning of the track, 1 is the end. This is a ratio rather than a
-  // ratio because tracks have no duration.
-  float ratio;
-
-  // Track to sample.
-  const _Track* track;
-
-  // Job output.
-  typename _Track::ValueType* result;
-};
-}  // namespace internal
-
-// Track sampling job implementation. Track sampling allows to query a track
-// value for a specified ratio. This is a ratio rather than a time because
-// tracks have no duration.
-struct OZZ_ANIMATION_DLL FloatTrackSamplingJob
-    : public internal::TrackSamplingJob<FloatTrack> {};
-struct OZZ_ANIMATION_DLL Float2TrackSamplingJob
-    : public internal::TrackSamplingJob<Float2Track> {};
-struct OZZ_ANIMATION_DLL Float3TrackSamplingJob
-    : public internal::TrackSamplingJob<Float3Track> {};
-struct OZZ_ANIMATION_DLL Float4TrackSamplingJob
-    : public internal::TrackSamplingJob<Float4Track> {};
-struct OZZ_ANIMATION_DLL QuaternionTrackSamplingJob
-    : public internal::TrackSamplingJob<QuaternionTrack> {};
-
-}  // namespace animation
-}  // namespace ozz
-#endif  // OZZ_OZZ_ANIMATION_RUNTIME_TRACK_SAMPLING_JOB_H_
+#endif  // OZZ_OZZ_ANIMATION_OFFLINE_EXPORT_H_

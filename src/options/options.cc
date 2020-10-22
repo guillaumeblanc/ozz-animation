@@ -107,10 +107,10 @@ Registrer<_Option>::~Registrer() {
 }
 
 // Explicit instantiation of all supported types of Registrer.
-template class Registrer<TypedOption<bool>>;
-template class Registrer<TypedOption<int>>;
-template class Registrer<TypedOption<float>>;
-template class Registrer<TypedOption<const char*>>;
+template class OZZ_OPTIONS_DLL Registrer<TypedOption<bool>>;
+template class OZZ_OPTIONS_DLL Registrer<TypedOption<int>>;
+template class OZZ_OPTIONS_DLL Registrer<TypedOption<float>>;
+template class OZZ_OPTIONS_DLL Registrer<TypedOption<const char*>>;
 }  // namespace internal
 
 // Construct the parser if no option is registered.
@@ -130,10 +130,10 @@ ParseResult ParseCommandLine(int _argc, const char* const* _argv,
 
 // A nullptr parser means that no option is registered and that ParseCommandLine
 // has not been called.
-std::string ParsedExecutablePath() {
+ozz::string ParsedExecutablePath() {
   Parser* parser = internal::g_global_registrer.parser();
   if (!parser) {
-    return std::string();
+    return {};
   }
   return parser->executable_path();
 }
@@ -368,10 +368,10 @@ bool TypedOption<_Type>::ParseImpl(const char* _argv) {
 }
 
 template <typename _Type>
-std::string TypedOption<_Type>::FormatDefault() const {
+ozz::string TypedOption<_Type>::FormatDefault() const {
   std::stringstream str;
   str << "\"" << std::boolalpha << default_ << "\"";
-  return str.str();
+  return str.str().c_str();
 }
 
 template <typename _Type>
@@ -648,8 +648,8 @@ const char* Parser::usage() const { return usage_; }
 
 const char* Parser::version() const { return version_; }
 
-std::string Parser::executable_path() const {
-  return std::string(executable_path_begin_, executable_path_end_);
+ozz::string Parser::executable_path() const {
+  return ozz::string(executable_path_begin_, executable_path_end_);
 }
 
 const char* Parser::executable_name() const { return executable_name_; }

@@ -25,19 +25,15 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/animation/offline/animation_builder.h"
-
 #include "gtest/gtest.h"
-#include "ozz/base/maths/gtest_math_helper.h"
-
-#include "ozz/base/maths/soa_transform.h"
-#include "ozz/base/memory/unique_ptr.h"
-
+#include "ozz/animation/offline/animation_builder.h"
 #include "ozz/animation/offline/raw_animation.h"
-
 #include "ozz/animation/runtime/animation.h"
 #include "ozz/animation/runtime/sampling_job.h"
 #include "ozz/animation/runtime/skeleton.h"
+#include "ozz/base/maths/gtest_math_helper.h"
+#include "ozz/base/maths/soa_transform.h"
+#include "ozz/base/memory/unique_ptr.h"
 
 using ozz::animation::Animation;
 using ozz::animation::offline::AnimationBuilder;
@@ -217,6 +213,42 @@ TEST(Name, AnimationBuilder) {
 
     // Should
     EXPECT_STREQ(anim->name(), "46");
+  }
+}
+
+TEST(Move, AnimationBuilder) {
+  AnimationBuilder builder;
+  RawAnimation raw_animation;
+
+  {  // Move constructor
+    raw_animation.name = "anim1";
+    raw_animation.duration = 46.f;
+    raw_animation.tracks.resize(46);
+    ozz::unique_ptr<Animation> anim1(builder(raw_animation));
+    const Animation canim(std::move(*anim1));
+    EXPECT_FLOAT_EQ(canim.duration(), 46.f);
+    EXPECT_STREQ(canim.name(), "anim1");
+  }
+
+  {  // Move assignment
+    raw_animation.name = "anim1";
+    raw_animation.duration = 46.f;
+    raw_animation.tracks.resize(46);
+    ozz::unique_ptr<Animation> anim1(builder(raw_animation));
+    EXPECT_STREQ(anim1->name(), "anim1");
+    EXPECT_EQ(anim1->num_tracks(), 46);
+
+    raw_animation.name = "anim2";
+    raw_animation.duration = 93.f;
+    raw_animation.tracks.resize(93);
+    ozz::unique_ptr<Animation> anim2(builder(raw_animation));
+    EXPECT_STREQ(anim2->name(), "anim2");
+    EXPECT_EQ(anim2->num_tracks(), 93);
+
+    *anim2 = std::move(*anim1);
+    EXPECT_FLOAT_EQ(anim2->duration(), 46.f);
+    EXPECT_EQ(anim2->num_tracks(), 46);
+    EXPECT_STREQ(anim2->name(), "anim1");
   }
 }
 

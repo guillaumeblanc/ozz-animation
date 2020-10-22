@@ -1,4 +1,6 @@
-add_library(ozz_animation STATIC
+
+add_library(ozz_animation
+  ${PROJECT_SOURCE_DIR}/include/ozz/animation/runtime/export.h
   ${PROJECT_SOURCE_DIR}/include/ozz/animation/runtime/animation.h
   animation.cc
   animation_keyframe.h
@@ -25,7 +27,11 @@ add_library(ozz_animation STATIC
   ${PROJECT_SOURCE_DIR}/include/ozz/animation/runtime/track_triggering_job.h
   ${PROJECT_SOURCE_DIR}/include/ozz/animation/runtime/track_triggering_job_trait.h
   track_triggering_job.cc)
+  
+target_compile_definitions(ozz_animation PRIVATE $<$<BOOL:${BUILD_SHARED_LIBS}>:OZZ_BUILD_ANIMATION_LIB>)
+
 target_link_libraries(ozz_animation
+  PUBLIC
   ozz_base)
 
 set_target_properties(ozz_animation

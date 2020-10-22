@@ -21,7 +21,7 @@ add_executable(sample_attach
 
 target_link_libraries(sample_attach
   sample_framework)
-
+target_copy_shared_libraries(sample_attach)
 set_target_properties(sample_attach
   PROPERTIES FOLDER "samples")
 

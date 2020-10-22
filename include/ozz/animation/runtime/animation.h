@@ -28,6 +28,7 @@
 #ifndef OZZ_OZZ_ANIMATION_RUNTIME_ANIMATION_H_
 #define OZZ_OZZ_ANIMATION_RUNTIME_ANIMATION_H_
 
+#include "ozz/animation/runtime/export.h"
 #include "ozz/base/io/archive_traits.h"
 #include "ozz/base/platform.h"
 #include "ozz/base/span.h"
@@ -58,10 +59,18 @@ struct QuaternionKey;
 // joints order of the runtime skeleton structure. In order to optimize cache
 // coherency when sampling the animation, Keyframes in this array are sorted by
 // time, then by track number.
-class Animation {
+class OZZ_ANIMATION_DLL Animation {
  public:
   // Builds a default animation.
   Animation();
+
+  // Allow moves.
+  Animation(Animation&&);
+  Animation& operator=(Animation&&);
+
+  // Delete copies.
+  Animation(Animation const&) = delete;
+  Animation& operator=(Animation const&) = delete;
 
   // Declares the public non-virtual destructor.
   ~Animation();
@@ -80,9 +89,7 @@ class Animation {
   const char* name() const { return name_ ? name_ : ""; }
 
   // Gets the buffer of translations keys.
-  span<const Float3Key> translations() const {
-    return translations_;
-  }
+  span<const Float3Key> translations() const { return translations_; }
 
   // Gets the buffer of rotation keys.
   span<const QuaternionKey> rotations() const { return rotations_; }
@@ -98,12 +105,7 @@ class Animation {
   void Save(ozz::io::OArchive& _archive) const;
   void Load(ozz::io::IArchive& _archive, uint32_t _version);
 
- protected:
  private:
-  // Disables copy and assignation.
-  Animation(Animation const&);
-  void operator=(Animation const&);
-
   // AnimationBuilder class is allowed to instantiate an Animation.
   friend class offline::AnimationBuilder;
 

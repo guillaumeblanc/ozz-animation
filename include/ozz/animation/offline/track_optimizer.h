@@ -28,6 +28,9 @@
 #ifndef OZZ_OZZ_ANIMATION_OFFLINE_TRACK_OPTIMIZER_H_
 #define OZZ_OZZ_ANIMATION_OFFLINE_TRACK_OPTIMIZER_H_
 
+#include "ozz/animation/offline/export.h"
+#include "ozz/base/platform.h"
+
 namespace ozz {
 namespace animation {
 namespace offline {
@@ -44,7 +47,7 @@ struct RawQuaternionTrack;
 // keyframes (within a tolerance value) are removed from the track. Default
 // optimization tolerances are set in order to favor quality over runtime
 // performances and memory footprint.
-class TrackOptimizer {
+class OZZ_ANIMOFFLINE_DLL TrackOptimizer {
  public:
   // Initializes the optimizer with default tolerances (favoring quality).
   TrackOptimizer();
