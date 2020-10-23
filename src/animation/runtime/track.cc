@@ -44,6 +44,20 @@ template <typename _ValueType>
 Track<_ValueType>::Track() : name_(nullptr) {}
 
 template <typename _ValueType>
+Track<_ValueType>::Track(Track<_ValueType>&& _other) {
+  *this = std::move(_other);
+}
+
+template <typename _ValueType>
+Track<_ValueType>& Track<_ValueType>::operator=(Track<_ValueType>&& _other) {
+  std::swap(ratios_, _other.ratios_);
+  std::swap(values_, _other.values_);
+  std::swap(steps_, _other.steps_);
+  std::swap(name_, _other.name_);
+  return *this;
+}
+
+template <typename _ValueType>
 Track<_ValueType>::~Track() {
   Deallocate();
 }

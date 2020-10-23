@@ -29,13 +29,11 @@
 #define OZZ_OZZ_ANIMATION_RUNTIME_TRACK_H_
 
 #include "ozz/animation/runtime/export.h"
-
 #include "ozz/base/io/archive_traits.h"
-#include "ozz/base/platform.h"
-#include "ozz/base/span.h"
-
 #include "ozz/base/maths/quaternion.h"
 #include "ozz/base/maths/vec_float.h"
+#include "ozz/base/platform.h"
+#include "ozz/base/span.h"
 
 namespace ozz {
 namespace animation {
@@ -61,6 +59,15 @@ class OZZ_ANIMATION_DLL Track {
   typedef _ValueType ValueType;
 
   Track();
+
+  // Allow move.
+  Track(Track&& _other);
+  Track& operator=(Track&& _other);
+
+  // Disables copy and assignation.
+  Track(Track const&) = delete;
+  void operator=(Track const&) = delete;
+
   ~Track();
 
   // Keyframe accessors.
@@ -80,10 +87,6 @@ class OZZ_ANIMATION_DLL Track {
   void Load(ozz::io::IArchive& _archive, uint32_t _version);
 
  private:
-  // Disables copy and assignation.
-  Track(Track const&);
-  void operator=(Track const&);
-
   // TrackBuilder class is allowed to allocate a Track.
   friend class offline::TrackBuilder;
 
@@ -152,7 +155,8 @@ class OZZ_ANIMATION_DLL FloatTrack : public internal::Track<float> {};
 class OZZ_ANIMATION_DLL Float2Track : public internal::Track<math::Float2> {};
 class OZZ_ANIMATION_DLL Float3Track : public internal::Track<math::Float3> {};
 class OZZ_ANIMATION_DLL Float4Track : public internal::Track<math::Float4> {};
-class OZZ_ANIMATION_DLL QuaternionTrack : public internal::Track<math::Quaternion> {};
+class OZZ_ANIMATION_DLL QuaternionTrack
+    : public internal::Track<math::Quaternion> {};
 
 }  // namespace animation
 namespace io {
