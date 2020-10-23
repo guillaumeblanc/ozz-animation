@@ -45,6 +45,9 @@
 
 namespace ozz {
 
+// Defines a byte type, unsigned so right shift  doesn't propagate sign bit.
+typedef uint8_t byte;
+
 // Finds the number of elements of a statically allocated array.
 #define OZZ_ARRAY_SIZE(_array) (sizeof(_array) / sizeof(_array[0]))
 

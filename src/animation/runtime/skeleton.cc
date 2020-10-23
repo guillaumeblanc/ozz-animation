@@ -79,7 +79,7 @@ char* Skeleton::Allocate(size_t _chars_size, size_t _num_joints) {
       names_size + _chars_size + joint_parents_size + joint_bind_poses_size;
 
   // Allocates whole buffer.
-  span<char> buffer = {static_cast<char*>(memory::default_allocator()->Allocate(
+  span<byte> buffer = {static_cast<byte*>(memory::default_allocator()->Allocate(
                            buffer_size, alignof(math::SoaTransform))),
                        buffer_size};
 
@@ -96,7 +96,7 @@ char* Skeleton::Allocate(size_t _chars_size, size_t _num_joints) {
   // Remaning buffer will be used to store joint names.
   assert(buffer.size_bytes() == _chars_size &&
          "Whole buffer should be consumned");
-  return buffer.data();
+  return reinterpret_cast<char*>(buffer.data());
 }
 
 void Skeleton::Deallocate() {

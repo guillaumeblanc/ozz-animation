@@ -31,9 +31,9 @@
 // Provides Stream interface used to read/write a memory buffer or a file with
 // Crt fread/fwrite/fseek/ftell like functions.
 
-#include "ozz/base/platform.h"
-
 #include <cstddef>
+
+#include "ozz/base/platform.h"
 
 namespace ozz {
 namespace io {
@@ -172,7 +172,7 @@ class OZZ_BASE_DLL MemoryStream : public Stream {
   static const size_t kMaxSize;
 
   // Buffer of data.
-  char* buffer_;
+  byte* buffer_;
 
   // The size of the buffer, which is greater or equal to the size of the data
   // it contains (end_).

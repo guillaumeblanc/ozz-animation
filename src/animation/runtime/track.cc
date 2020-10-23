@@ -77,7 +77,7 @@ void Track<_ValueType>::Allocate(size_t _keys_count, size_t _name_len) {
                              _keys_count * sizeof(float) +       // ratios
                              (_keys_count + 7) * sizeof(uint8_t) / 8 +  // steps
                              (_name_len > 0 ? _name_len + 1 : 0);
-  span<char> buffer = {static_cast<char*>(memory::default_allocator()->Allocate(
+  span<byte> buffer = {static_cast<byte*>(memory::default_allocator()->Allocate(
                            buffer_size, alignof(_ValueType))),
                        buffer_size};
 

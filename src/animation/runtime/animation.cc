@@ -78,7 +78,7 @@ void Animation::Allocate(size_t _name_len, size_t _translation_count,
                              _translation_count * sizeof(Float3Key) +
                              _rotation_count * sizeof(QuaternionKey) +
                              _scale_count * sizeof(Float3Key);
-  span<char> buffer = {static_cast<char*>(memory::default_allocator()->Allocate(
+  span<byte> buffer = {static_cast<byte*>(memory::default_allocator()->Allocate(
                            buffer_size, alignof(Float3Key))),
                        buffer_size};
 
