@@ -90,7 +90,7 @@ class OZZ_ANIMOFFLINE_DLL AnimationOptimizer {
     float distance;
   };
 
-  // Golbal optimization settings. These settings apply to all joints of the
+  // Global optimization settings. These settings apply to all joints of the
   // hierarchy, unless overriden by joint specific settings.
   Setting setting;
 
