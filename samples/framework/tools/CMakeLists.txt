@@ -1,7 +1,7 @@
 # Adds fbx2mesh utility target.
 if(ozz_build_fbx)
 
-  # share meshes with thte sample framework
+  # share meshes with the sample framework
   add_executable(sample_fbx2mesh
     fbx2mesh.cc
     ${PROJECT_SOURCE_DIR}/samples/framework/mesh.cc
@@ -9,6 +9,7 @@ if(ozz_build_fbx)
   target_link_libraries(sample_fbx2mesh
     ozz_animation_fbx
     ozz_options)
+  target_copy_shared_libraries(sample_fbx2mesh)
   set_target_properties(sample_fbx2mesh
     PROPERTIES FOLDER "samples/tools")
 

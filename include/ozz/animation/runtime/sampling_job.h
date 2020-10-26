@@ -28,6 +28,7 @@
 #ifndef OZZ_OZZ_ANIMATION_RUNTIME_SAMPLING_JOB_H_
 #define OZZ_OZZ_ANIMATION_RUNTIME_SAMPLING_JOB_H_
 
+#include "ozz/animation/runtime/export.h"
 #include "ozz/base/platform.h"
 #include "ozz/base/span.h"
 
@@ -55,7 +56,7 @@ class SamplingCache;
 // the animation forward. Backward sampling works, but isn't optimized through
 // the cache. The job does not owned the buffers (in/output) and will thus not
 // delete them during job's destruction.
-struct SamplingJob {
+struct OZZ_ANIMATION_DLL SamplingJob {
   // Default constructor, initializes default values.
   SamplingJob();
 
@@ -100,7 +101,7 @@ struct InterpSoaQuaternion;
 
 // Declares the cache object used by the workload to take advantage of the
 // frame coherency of animation sampling.
-class SamplingCache {
+class OZZ_ANIMATION_DLL SamplingCache {
  public:
   // Constructs an empty cache. The cache needs to be resized with the
   // appropriate number of tracks before it can be used with a SamplingJob.

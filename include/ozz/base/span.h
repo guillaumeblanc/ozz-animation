@@ -52,7 +52,8 @@ struct span {
   span() : data_(nullptr), size_(0) {}
 
   // Constructs a range from its extreme values.
-  span(_Ty* _begin, _Ty* _end) : data_(_begin), size_(static_cast<size_t>(_end - _begin)) {
+  span(_Ty* _begin, _Ty* _end)
+      : data_(_begin), size_(static_cast<size_t>(_end - _begin)) {
     assert(_begin <= _end && "Invalid range.");
   }
 
@@ -135,35 +136,25 @@ inline span<const typename _Container::value_type> make_span(
 
 // As bytes
 template <typename _Ty>
-inline span<const char> as_bytes(const span<_Ty>& _span) {
-  return {reinterpret_cast<const char*>(_span.data()), _span.size_bytes()};
+inline span<const byte> as_bytes(const span<_Ty>& _span) {
+  return {reinterpret_cast<const byte*>(_span.data()), _span.size_bytes()};
 }
 
 template <typename _Ty>
-inline span<char> as_writable_bytes(const span<_Ty>& _span) {
+inline span<byte> as_writable_bytes(const span<_Ty>& _span) {
   // Compilation will fail here if _Ty is const. This prevents from writing to
   // const data.
-  return {reinterpret_cast<char*>(_span.data()), _span.size_bytes()};
-}
-
-template <>
-inline span<const char> as_bytes(const span<char>& _span) {
-  return _span;
-}
-
-template <>
-inline span<char> as_writable_bytes(const span<char>& _span) {
-  return _span;
+  return {reinterpret_cast<byte*>(_span.data()), _span.size_bytes()};
 }
 
 // Fills a typed span from a byte source span. Source byte span is modified to
 // reflect remain size.
 template <typename _Ty>
-inline span<_Ty> fill_span(span<char>& _src, size_t _count) {
+inline span<_Ty> fill_span(span<byte>& _src, size_t _count) {
   assert(ozz::IsAligned(_src.data(), alignof(_Ty)) && "Invalid alignment.");
   const span<_Ty> ret = {reinterpret_cast<_Ty*>(_src.data()), _count};
   // Validity assertion is done by span constructor.
-  _src = {reinterpret_cast<char*>(ret.end()), _src.end()};
+  _src = {reinterpret_cast<byte*>(ret.end()), _src.end()};
   return ret;
 }
 

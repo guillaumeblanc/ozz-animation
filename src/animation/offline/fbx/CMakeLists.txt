@@ -2,22 +2,20 @@ if(NOT ozz_build_fbx)
   return()
 endif()
 
-add_library(ozz_animation_fbx STATIC
+add_library(ozz_animation_fbx
+  ${PROJECT_SOURCE_DIR}/include/ozz/animation/offline/fbx/export.h
   ${PROJECT_SOURCE_DIR}/include/ozz/animation/offline/fbx/fbx.h
   fbx.cc
   ${PROJECT_SOURCE_DIR}/include/ozz/animation/offline/fbx/fbx_animation.h
   fbx_animation.cc
   ${PROJECT_SOURCE_DIR}/include/ozz/animation/offline/fbx/fbx_skeleton.h
   fbx_skeleton.cc)
-target_include_directories(ozz_animation_fbx
-  PUBLIC $<BUILD_INTERFACE:${FBX_INCLUDE_DIRS}>)
+  
+target_compile_definitions(ozz_animation_fbx PRIVATE  $<$<BOOL:${BUILD_SHARED_LIBS}>:OZZ_BUILD_ANIMATIONFBX_LIB>)
+
 target_link_libraries(ozz_animation_fbx
   ozz_animation_offline
-  debug ${FBX_LIBRARIES_DEBUG}
-  optimized ${FBX_LIBRARIES})
-target_compile_options(ozz_animation_fbx
-  PUBLIC $<$<BOOL:${W_NULL_DEREFERENCE}>:-Wno-null-dereference>
-  PUBLIC $<$<BOOL:${W_PRAGMA_PACK}>:-Wno-pragma-pack>)
+  fbx::sdk)
 set_target_properties(ozz_animation_fbx PROPERTIES FOLDER "ozz/tools")
 
 install(TARGETS ozz_animation_fbx DESTINATION lib)
@@ -32,6 +30,7 @@ add_executable(fbx2ozz
 target_link_libraries(fbx2ozz
   ozz_animation_tools
   ozz_animation_fbx)
+target_copy_shared_libraries(fbx2ozz)
 set_target_properties(fbx2ozz
   PROPERTIES FOLDER "ozz/tools")
 

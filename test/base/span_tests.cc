@@ -104,10 +104,10 @@ TEST(SpanAsBytes, Platform) {
     ozz::span<int> si(ai);
     EXPECT_EQ(si.size(), kSize);
 
-    ozz::span<const char> ab = as_bytes(si);
+    ozz::span<const ozz::byte> ab = as_bytes(si);
     EXPECT_EQ(ab.size(), kSize * sizeof(int));
 
-    ozz::span<char> awb = as_writable_bytes(si);
+    ozz::span<ozz::byte> awb = as_writable_bytes(si);
     EXPECT_EQ(awb.size(), kSize * sizeof(int));
   }
 
@@ -116,17 +116,17 @@ TEST(SpanAsBytes, Platform) {
     ozz::span<char> sc(ac);
     EXPECT_EQ(sc.size(), kSize);
 
-    ozz::span<const char> ab = as_bytes(sc);
+    ozz::span<const ozz::byte> ab = as_bytes(sc);
     EXPECT_EQ(ab.size(), sc.size());
 
-    ozz::span<char> awbc = as_writable_bytes(sc);
+    ozz::span<ozz::byte> awbc = as_writable_bytes(sc);
     EXPECT_EQ(awbc.size(), sc.size());
   }
   {  // const
     ozz::span<const int> si(ai);
     EXPECT_EQ(si.size(), kSize);
 
-    ozz::span<const char> ab = as_bytes(si);
+    ozz::span<const ozz::byte> ab = as_bytes(si);
     EXPECT_EQ(ab.size(), kSize * sizeof(int));
   }
 
@@ -136,14 +136,14 @@ TEST(SpanAsBytes, Platform) {
     ozz::span<const char> sc(ac);
     EXPECT_EQ(sc.size(), kSize);
 
-    ozz::span<const char> ab = as_bytes(sc);
+    ozz::span<const ozz::byte> ab = as_bytes(sc);
     EXPECT_EQ(ab.size(), sc.size());
   }
 }
 
 TEST(SpanFill, Platform) {
-  alignas(alignof(int)) char abuffer[16];
-  ozz::span<char> src(abuffer);
+  alignas(alignof(int)) ozz::byte abuffer[16];
+  ozz::span<ozz::byte> src(abuffer);
 
   ozz::span<int> ispan1 = ozz::fill_span<int>(src, 3);
   EXPECT_EQ(ispan1.size(), 3u);
@@ -152,7 +152,7 @@ TEST(SpanFill, Platform) {
   EXPECT_TRUE(src.empty());
   EXPECT_ASSERTION(ozz::fill_span<int>(src, 1), "Invalid range.");
 
-  // Bad aligment
+  // Bad alignment
   src = ozz::make_span(abuffer);
 
   ozz::span<char> cspan = ozz::fill_span<char>(src, 1);

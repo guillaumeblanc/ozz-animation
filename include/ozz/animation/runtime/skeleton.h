@@ -28,6 +28,7 @@
 #ifndef OZZ_OZZ_ANIMATION_RUNTIME_SKELETON_H_
 #define OZZ_OZZ_ANIMATION_RUNTIME_SKELETON_H_
 
+#include "ozz/animation/runtime/export.h"
 #include "ozz/base/io/archive_traits.h"
 #include "ozz/base/platform.h"
 #include "ozz/base/span.h"
@@ -57,7 +58,7 @@ class SkeletonBuilder;
 // order. This is enough to traverse the whole joint hierarchy. See
 // IterateJointsDF() from skeleton_utils.h that implements a depth-first
 // traversal utility.
-class Skeleton {
+class OZZ_ANIMATION_DLL Skeleton {
  public:
   // Defines Skeleton constant values.
   enum Constants {
@@ -80,6 +81,14 @@ class Skeleton {
 
   // Builds a default skeleton.
   Skeleton();
+
+  // Allow move.
+  Skeleton(Skeleton&&);
+  Skeleton& operator=(Skeleton&&);
+
+  // Disables copy and assignation.
+  Skeleton(Skeleton const&) = delete;
+  Skeleton& operator=(Skeleton const&) = delete;
 
   // Declares the public non-virtual destructor.
   ~Skeleton();
@@ -110,10 +119,6 @@ class Skeleton {
   void Load(ozz::io::IArchive& _archive, uint32_t _version);
 
  private:
-  // Disables copy and assignation.
-  Skeleton(Skeleton const&);
-  void operator=(Skeleton const&);
-
   // Internal allocation/deallocation function.
   // Allocate returns the beginning of the contiguous buffer of names.
   char* Allocate(size_t _char_count, size_t _num_joints);

@@ -28,6 +28,7 @@
 #ifndef OZZ_OZZ_ANIMATION_OFFLINE_ANIMATION_BUILDER_H_
 #define OZZ_OZZ_ANIMATION_OFFLINE_ANIMATION_BUILDER_H_
 
+#include "ozz/animation/offline/export.h"
 #include "ozz/base/memory/unique_ptr.h"
 
 namespace ozz {
@@ -44,7 +45,7 @@ struct RawAnimation;
 // Defines the class responsible of building runtime animation instances from
 // offline raw animations.
 // No optimization at all is performed on the raw animation.
-class AnimationBuilder {
+class OZZ_ANIMOFFLINE_DLL AnimationBuilder {
  public:
   // Creates an Animation based on _raw_animation and *this builder parameters.
   // Returns a valid Animation on success.

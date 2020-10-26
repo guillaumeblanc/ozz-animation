@@ -45,7 +45,7 @@ struct RectInt;
 namespace io {
 OZZ_IO_TYPE_NOT_VERSIONABLE(math::Float2)
 template <>
-struct Extern<math::Float2> {
+struct OZZ_BASE_DLL Extern<math::Float2> {
   static void Save(OArchive& _archive, const math::Float2* _values,
                    size_t _count);
   static void Load(IArchive& _archive, math::Float2* _values, size_t _count,
@@ -54,7 +54,7 @@ struct Extern<math::Float2> {
 
 OZZ_IO_TYPE_NOT_VERSIONABLE(math::Float3)
 template <>
-struct Extern<math::Float3> {
+struct OZZ_BASE_DLL Extern<math::Float3> {
   static void Save(OArchive& _archive, const math::Float3* _values,
                    size_t _count);
   static void Load(IArchive& _archive, math::Float3* _values, size_t _count,
@@ -63,7 +63,7 @@ struct Extern<math::Float3> {
 
 OZZ_IO_TYPE_NOT_VERSIONABLE(math::Float4)
 template <>
-struct Extern<math::Float4> {
+struct OZZ_BASE_DLL Extern<math::Float4> {
   static void Save(OArchive& _archive, const math::Float4* _values,
                    size_t _count);
   static void Load(IArchive& _archive, math::Float4* _values, size_t _count,
@@ -72,7 +72,7 @@ struct Extern<math::Float4> {
 
 OZZ_IO_TYPE_NOT_VERSIONABLE(math::Quaternion)
 template <>
-struct Extern<math::Quaternion> {
+struct OZZ_BASE_DLL Extern<math::Quaternion> {
   static void Save(OArchive& _archive, const math::Quaternion* _values,
                    size_t _count);
   static void Load(IArchive& _archive, math::Quaternion* _values, size_t _count,
@@ -81,7 +81,7 @@ struct Extern<math::Quaternion> {
 
 OZZ_IO_TYPE_NOT_VERSIONABLE(math::Transform)
 template <>
-struct Extern<math::Transform> {
+struct OZZ_BASE_DLL Extern<math::Transform> {
   static void Save(OArchive& _archive, const math::Transform* _values,
                    size_t _count);
   static void Load(IArchive& _archive, math::Transform* _values, size_t _count,
@@ -90,7 +90,7 @@ struct Extern<math::Transform> {
 
 OZZ_IO_TYPE_NOT_VERSIONABLE(math::Box)
 template <>
-struct Extern<math::Box> {
+struct OZZ_BASE_DLL Extern<math::Box> {
   static void Save(OArchive& _archive, const math::Box* _values, size_t _count);
   static void Load(IArchive& _archive, math::Box* _values, size_t _count,
                    uint32_t _version);
@@ -98,7 +98,7 @@ struct Extern<math::Box> {
 
 OZZ_IO_TYPE_NOT_VERSIONABLE(math::RectFloat)
 template <>
-struct Extern<math::RectFloat> {
+struct OZZ_BASE_DLL Extern<math::RectFloat> {
   static void Save(OArchive& _archive, const math::RectFloat* _values,
                    size_t _count);
   static void Load(IArchive& _archive, math::RectFloat* _values, size_t _count,
@@ -107,7 +107,7 @@ struct Extern<math::RectFloat> {
 
 OZZ_IO_TYPE_NOT_VERSIONABLE(math::RectInt)
 template <>
-struct Extern<math::RectInt> {
+struct OZZ_BASE_DLL Extern<math::RectInt> {
   static void Save(OArchive& _archive, const math::RectInt* _values,
                    size_t _count);
   static void Load(IArchive& _archive, math::RectInt* _values, size_t _count,

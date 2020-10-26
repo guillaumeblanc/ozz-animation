@@ -216,6 +216,42 @@ TEST(Name, AnimationBuilder) {
   }
 }
 
+TEST(Move, AnimationBuilder) {
+  AnimationBuilder builder;
+  RawAnimation raw_animation;
+
+  {  // Move constructor
+    raw_animation.name = "anim1";
+    raw_animation.duration = 46.f;
+    raw_animation.tracks.resize(46);
+    ozz::unique_ptr<Animation> anim1(builder(raw_animation));
+    const Animation canim(std::move(*anim1));
+    EXPECT_FLOAT_EQ(canim.duration(), 46.f);
+    EXPECT_STREQ(canim.name(), "anim1");
+  }
+
+  {  // Move assignment
+    raw_animation.name = "anim1";
+    raw_animation.duration = 46.f;
+    raw_animation.tracks.resize(46);
+    ozz::unique_ptr<Animation> anim1(builder(raw_animation));
+    EXPECT_STREQ(anim1->name(), "anim1");
+    EXPECT_EQ(anim1->num_tracks(), 46);
+
+    raw_animation.name = "anim2";
+    raw_animation.duration = 93.f;
+    raw_animation.tracks.resize(93);
+    ozz::unique_ptr<Animation> anim2(builder(raw_animation));
+    EXPECT_STREQ(anim2->name(), "anim2");
+    EXPECT_EQ(anim2->num_tracks(), 93);
+
+    *anim2 = std::move(*anim1);
+    EXPECT_FLOAT_EQ(anim2->duration(), 46.f);
+    EXPECT_EQ(anim2->num_tracks(), 46);
+    EXPECT_STREQ(anim2->name(), "anim1");
+  }
+}
+
 TEST(Sort, AnimationBuilder) {
   // Instantiates a builder objects with default parameters.
   AnimationBuilder builder;
