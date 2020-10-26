@@ -113,6 +113,10 @@ class OZZ_ANIMATION_DLL SamplingCache {
   // value than _max_tracks.
   explicit SamplingCache(int _max_tracks);
 
+  // Disables copy and assignation.
+  SamplingCache(SamplingCache const&) = delete;
+  SamplingCache& operator=(SamplingCache const&) = delete;
+  
   // Deallocates cache.
   ~SamplingCache();
 
@@ -135,16 +139,13 @@ class OZZ_ANIMATION_DLL SamplingCache {
   int max_soa_tracks() const { return max_soa_tracks_; }
 
  private:
-  // Disables copy and assignation.
-  SamplingCache(SamplingCache const&);
-  void operator=(SamplingCache const&);
 
   friend struct SamplingJob;
 
   // Steps the cache in order to use it for a potentially new animation and
   // ratio. If the _animation is different from the animation currently cached,
   // or if the _ratio shows that the animation is played backward, then the
-  // cache is invalidated and reseted for the new _animation and _ratio.
+  // cache is invalidated and reset for the new _animation and _ratio.
   void Step(const Animation& _animation, float _ratio);
 
   // The animation this cache refers to. nullptr means that the cache is invalid.
