@@ -25,36 +25,30 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/animation/runtime/animation.h"
-#include "ozz/animation/runtime/local_to_model_job.h"
-#include "ozz/animation/runtime/sampling_job.h"
-#include "ozz/animation/runtime/skeleton.h"
-
-#include "ozz/animation/offline/animation_builder.h"
-#include "ozz/animation/offline/animation_optimizer.h"
-#include "ozz/animation/offline/raw_animation.h"
-#include "ozz/animation/offline/raw_animation_utils.h"
-
-#include "ozz/base/memory/unique_ptr.h"
-
-#include "ozz/base/io/archive.h"
-#include "ozz/base/io/stream.h"
-#include "ozz/base/log.h"
-
-#include "ozz/base/maths/math_ex.h"
-#include "ozz/base/maths/simd_math.h"
-#include "ozz/base/maths/soa_transform.h"
-#include "ozz/base/maths/vec_float.h"
-
-#include "ozz/options/options.h"
+#include <algorithm>
 
 #include "framework/application.h"
 #include "framework/imgui.h"
 #include "framework/profile.h"
 #include "framework/renderer.h"
 #include "framework/utils.h"
-
-#include <algorithm>
+#include "ozz/animation/offline/animation_builder.h"
+#include "ozz/animation/offline/animation_optimizer.h"
+#include "ozz/animation/offline/raw_animation.h"
+#include "ozz/animation/offline/raw_animation_utils.h"
+#include "ozz/animation/runtime/animation.h"
+#include "ozz/animation/runtime/local_to_model_job.h"
+#include "ozz/animation/runtime/sampling_job.h"
+#include "ozz/animation/runtime/skeleton.h"
+#include "ozz/base/io/archive.h"
+#include "ozz/base/io/stream.h"
+#include "ozz/base/log.h"
+#include "ozz/base/maths/math_ex.h"
+#include "ozz/base/maths/simd_math.h"
+#include "ozz/base/maths/soa_transform.h"
+#include "ozz/base/maths/vec_float.h"
+#include "ozz/base/memory/unique_ptr.h"
+#include "ozz/options/options.h"
 
 // Skeleton and animation file can be specified as an option.
 OZZ_OPTIONS_DECLARE_STRING(skeleton, "Path to the runtime skeleton file.",
@@ -111,7 +105,7 @@ class OptimizeSampleApplication : public ozz::sample::Application {
 
     // Prepares sampling job.
     ozz::animation::SamplingJob sampling_job;
-    sampling_job.cache = &cache_;
+    sampling_job.context = &context_;
     sampling_job.ratio = controller_.time_ratio();
 
     // Samples optimized animation (_according to the display mode).
@@ -320,8 +314,8 @@ class OptimizeSampleApplication : public ozz::sample::Application {
     locals_diff_.resize(num_soa_joints);
     models_diff_.resize(num_joints);
 
-    // Allocates a cache that matches animation requirements.
-    cache_.Resize(num_joints);
+    // Allocates a context that matches animation requirements.
+    context_.Resize(num_joints);
 
     return true;
   }
@@ -374,11 +368,11 @@ class OptimizeSampleApplication : public ozz::sample::Application {
                                      .5f, joint_setting_enable_ && optimize_);
 
         if (rebuild) {
-          // Invalidates the cache in case the new animation has the same
+          // Invalidates the context in case the new animation has the same
           // address as the previous one. Other cases (like changing animation)
-          // are automatic handled by the cache. See SamplingCache::Invalidate
-          // for more details.
-          cache_.Invalidate();
+          // are automatic handled by the context. See
+          // SamplingJob::Context::Invalidate for more details.
+          context_.Invalidate();
 
           // Rebuilds a new runtime animation.
           if (!BuildAnimations()) {
@@ -540,9 +534,9 @@ class OptimizeSampleApplication : public ozz::sample::Application {
   // Runtime skeleton.
   ozz::animation::Skeleton skeleton_;
 
-  // Sampling cache, shared across optimized and non-optimized animations. This
-  // is not optimal, but it's not an issue either.
-  ozz::animation::SamplingCache cache_;
+  // Sampling context, shared across optimized and non-optimized animations.
+  // This is not optimal, but it's not an issue either.
+  ozz::animation::SamplingJob::Context context_;
 
   // Runtime optimized animation.
   ozz::unique_ptr<ozz::animation::Animation> animation_rt_;

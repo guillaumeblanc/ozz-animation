@@ -81,7 +81,7 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
       // Setup sampling job.
       ozz::animation::SamplingJob sampling_job;
       sampling_job.animation = &sampler.animation;
-      sampling_job.cache = &sampler.cache;
+      sampling_job.context = &sampler.context;
       sampling_job.ratio = sampler.controller.time_ratio();
       sampling_job.output = make_span(sampler.locals);
 
@@ -166,8 +166,8 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
       // this is a Soa structure.
       sampler.joint_weights.resize(num_soa_joints);
 
-      // Allocates a cache that matches animation requirements.
-      sampler.cache.Resize(num_joints);
+      // Allocates a context that matches animation requirements.
+      sampler.context.Resize(num_joints);
     }
 
     // Default weight settings.
@@ -366,8 +366,8 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
     // Runtime animation.
     ozz::animation::Animation animation;
 
-    // Sampling cache.
-    ozz::animation::SamplingCache cache;
+    // Sampling context.
+    ozz::animation::SamplingJob::Context context;
 
     // Buffer of local transforms as sampled from animation_.
     ozz::vector<ozz::math::SoaTransform> locals;

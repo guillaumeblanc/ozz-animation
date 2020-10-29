@@ -3,6 +3,7 @@ Next release
 
 * Library
   - [animation] #103 Allows move constructor and assignment for ozz::animation::Skeleton, ozz::animation::Animation and ozz::animation::Track.
+  - [animation] Renames SamplingCache to SamplingJob::Context.
 
 * Build pipeline
   - #59 Adds support for shared libraries on Windows (dll), Linux and MacOS platforms.
@@ -61,7 +62,7 @@ Release version 0.11.0
 
 * Library
   - [animation] Adds two-bone and aim inverse kinematic solvers. They can be used at runtime to procedurally affect joint local-space transforms.
-  - [animation] Allows resizing SamplingCache, meaning the can be allocated without knowing the number of joints the cache needs to support.
+  - [animation] Allows resizing SamplingJob::Context, meaning the can be allocated without knowing the number of joints the cache needs to support.
   - [animation] Allow ozz::animation::LocalToModelJob to partially update a hierarchy, aka all children of a joint. This is useful when changes to a local-space pose has been limited to part of the joint hierarchy, like when applying IK or modifying model-space matrices independently from local-space transform.
   - [animation] Changes ozz::animation::Skeleton joints from breadth-first to depth-first. This change breaks compatibility of previous ozz::animation::offline::RawAnimation, ozz::animation::Animation and ozz::animation::Skeleton archives.
   - [animation] Renames track_triggering_job_stl.h to track_triggering_job_trait.h.

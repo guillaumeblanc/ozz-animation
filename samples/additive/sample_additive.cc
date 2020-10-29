@@ -86,7 +86,7 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
     // Setup sampling job.
     ozz::animation::SamplingJob sampling_job;
     sampling_job.animation = &base_animation_;
-    sampling_job.cache = &cache_;
+    sampling_job.context = &context_;
     sampling_job.ratio = controller_.time_ratio();
     sampling_job.output = make_span(locals_);
 
@@ -184,8 +184,8 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
       return false;
     }
 
-    // Allocates sampling cache.
-    cache_.Resize(num_joints);
+    // Allocates sampling context.
+    context_.Resize(num_joints);
 
     // Allocates local space runtime buffers for base animation.
     locals_.resize(num_soa_joints);
@@ -221,7 +221,7 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
       // Samples the first frame pose.
       ozz::animation::SamplingJob sampling_job;
       sampling_job.animation = &animation;
-      sampling_job.cache = &cache_;
+      sampling_job.context = &context_;
       sampling_job.ratio = 0.f;  // Only needs the first frame pose
       sampling_job.output = make_span(additive_locals_[i]);
 
@@ -230,10 +230,10 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
         return false;
       }
 
-      // Invalidates cache which will be re-used for another animation.
+      // Invalidates context which will be re-used for another animation.
       // This is usually not needed, animation address on the stack is the same
       // each loop, hence creating an issue as animation content is changing.
-      cache_.Invalidate();
+      context_.Invalidate();
     }
 
     return true;
@@ -316,8 +316,8 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
   // controlling animation playback time.
   ozz::sample::PlaybackController controller_;
 
-  // Sampling cache.
-  ozz::animation::SamplingCache cache_;
+  // Sampling context.
+  ozz::animation::SamplingJob::Context context_;
 
   // Buffer of local transforms as sampled from main animation_.
   ozz::vector<ozz::math::SoaTransform> locals_;

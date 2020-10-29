@@ -332,10 +332,10 @@ TEST(Sort, AnimationBuilder) {
 
     // Needs to sample to test the animation.
     ozz::animation::SamplingJob job;
-    ozz::animation::SamplingCache cache(1);
+    ozz::animation::SamplingJob::Context context(1);
     ozz::math::SoaTransform output[1];
     job.animation = animation.get();
-    job.cache = &cache;
+    job.context = &context;
     job.output = output;
 
     // Samples and compares the two animations
