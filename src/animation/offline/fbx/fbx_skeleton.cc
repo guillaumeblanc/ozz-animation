@@ -28,7 +28,6 @@
 #include "ozz/animation/offline/fbx/fbx_skeleton.h"
 
 #include "ozz/animation/offline/raw_skeleton.h"
-
 #include "ozz/base/log.h"
 
 namespace ozz {
@@ -116,7 +115,7 @@ RecurseReturn RecurseNode(FbxNode* _node, FbxSystemConverter* _converter,
     this_joint = &sibling->back();  // Will not be resized inside recursion.
     this_joint->name = _node->GetName();
 
-    // Extract bind pose.
+    // Extract rest pose.
     const FbxAMatrix node_global = _node->EvaluateGlobalTransform();
     const FbxAMatrix node_local = _parent_global_inv * node_global;
 

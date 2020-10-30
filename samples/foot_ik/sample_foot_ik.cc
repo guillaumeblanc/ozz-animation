@@ -746,7 +746,7 @@ class FootIKSampleApplication : public ozz::sample::Application {
   ozz::vector<ozz::math::Float4x4> models_;
 
   // Buffer of skinning matrices, result of the joint multiplication of the
-  // inverse bind pose with the model space matrix.
+  // inverse rest pose with the model space matrix.
   ozz::vector<ozz::math::Float4x4> skinning_matrices_;
 
   // The mesh used by the sample.

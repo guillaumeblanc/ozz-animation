@@ -144,9 +144,9 @@ unique_ptr<ozz::animation::Skeleton> SkeletonBuilder::operator()(
     }
     // Fills the SoaTransform structure.
     math::Transpose4x3(translations,
-                       &skeleton->joint_bind_poses_[i].translation.x);
-    math::Transpose4x4(rotations, &skeleton->joint_bind_poses_[i].rotation.x);
-    math::Transpose4x3(scales, &skeleton->joint_bind_poses_[i].scale.x);
+                       &skeleton->joint_rest_poses_[i].translation.x);
+    math::Transpose4x4(rotations, &skeleton->joint_rest_poses_[i].rotation.x);
+    math::Transpose4x3(scales, &skeleton->joint_rest_poses_[i].scale.x);
   }
 
   return skeleton;  // Success.

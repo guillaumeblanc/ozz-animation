@@ -27,23 +27,20 @@
 
 #include "animation/offline/tools/import2ozz_config.h"
 
+#include <json/json.h>
+
 #include <cstring>
 #include <fstream>
 #include <sstream>
 
 #include "animation/offline/tools/import2ozz_anim.h"
 #include "animation/offline/tools/import2ozz_track.h"
-#include "ozz/animation/offline/tools/import2ozz.h"
-
 #include "ozz/animation/offline/animation_optimizer.h"
+#include "ozz/animation/offline/tools/import2ozz.h"
 #include "ozz/animation/offline/track_optimizer.h"
-
 #include "ozz/base/containers/string.h"
 #include "ozz/base/log.h"
-
 #include "ozz/options/options.h"
-
-#include <json/json.h>
 
 bool ValidateExclusiveConfigOption(const ozz::options::Option& _option,
                                    int _argc);
@@ -365,14 +362,14 @@ bool SanitizeAnimation(Json::Value& _root, bool _all_options) {
   MakeDefault(_root, "additive_reference", "animation",
               "Select reference pose to use to build additive/delta animation. "
               "Can be \"animation\" to use the 1st animation keyframe as "
-              "reference, or \"skeleton\" to use skeleton bind pose.");
+              "reference, or \"skeleton\" to use skeleton rest pose.");
 
   if (!AdditiveReference::IsValidEnumName(
           _root["additive_reference"].asCString())) {
     ozz::log::Err() << "Invalid additive reference pose \""
                     << _root["additive_reference"].asCString() << "\". \""
                     << "Can be \"animation\" to use the 1st animation keyframe "
-                       "as reference, or \"skeleton\" to use skeleton bind "
+                       "as reference, or \"skeleton\" to use skeleton rest "
                        "pose."
                     << std::endl;
     return false;

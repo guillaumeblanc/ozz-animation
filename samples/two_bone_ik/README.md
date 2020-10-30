@@ -18,7 +18,7 @@ The sample exposes IKTwoBoneJob parameters:
 - Weight given to the IK correction. This allows to blend / interpolate from zero to full IK.
   float weight;
 
-Target position is animated by the sample, but can also be tweaked manually, as well as skeleton root transformation. Fix initial transform option select whether ik job is run from the skeleton bind pose or the last frame transforms. This allows to use IK job's weighting parameter, as well as stressing it with a wide range of input.
+Target position is animated by the sample, but can also be tweaked manually, as well as skeleton root transformation. Fix initial transform option select whether ik job is run from the skeleton rest pose or the last frame transforms. This allows to use IK job's weighting parameter, as well as stressing it with a wide range of input.
 
 ## Implementation
 

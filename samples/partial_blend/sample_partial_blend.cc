@@ -110,7 +110,7 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
     ozz::animation::BlendingJob blend_job;
     blend_job.threshold = threshold_;
     blend_job.layers = layers;
-    blend_job.bind_pose = skeleton_.joint_bind_poses();
+    blend_job.rest_pose = skeleton_.joint_rest_poses();
     blend_job.output = make_span(blended_locals_);
 
     // Blends.
@@ -381,7 +381,7 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
   // Index of the joint at the base of the upper body hierarchy.
   int upper_body_root_;
 
-  // Blending job bind pose threshold.
+  // Blending job rest pose threshold.
   float threshold_;
 
   // Buffer of local transforms which stores the blending result.

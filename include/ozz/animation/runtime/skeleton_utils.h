@@ -37,8 +37,8 @@
 namespace ozz {
 namespace animation {
 
-// Get bind-pose of a skeleton joint.
-OZZ_ANIMATION_DLL ozz::math::Transform GetJointLocalBindPose(
+// Get rest-pose of a skeleton joint.
+OZZ_ANIMATION_DLL ozz::math::Transform GetJointLocalRestPose(
     const Skeleton& _skeleton, int _joint);
 
 // Test if a joint is a leaf. _joint number must be in range [0, num joints].

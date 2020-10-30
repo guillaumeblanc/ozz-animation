@@ -49,9 +49,9 @@ class SkeletonBuilder;
 }
 
 // This runtime skeleton data structure provides a const-only access to joint
-// hierarchy, joint names and bind-pose. This structure is filled by the
+// hierarchy, joint names and rest-pose. This structure is filled by the
 // SkeletonBuilder and can be serialize/deserialized.
-// Joint names, bind-poses and hierarchy information are all stored in separate
+// Joint names, rest-poses and hierarchy information are all stored in separate
 // arrays of data (as opposed to joint structures for the RawSkeleton), in order
 // to closely match with the way runtime algorithms use them. Joint hierarchy is
 // packed as an array of parent jont indices (16 bits), stored in depth-first
@@ -100,9 +100,9 @@ class OZZ_ANIMATION_DLL Skeleton {
   // skeleton. This value is useful to allocate SoA runtime data structures.
   int num_soa_joints() const { return (num_joints() + 3) / 4; }
 
-  // Returns joint's bind poses. Bind poses are stored in soa format.
-  span<const math::SoaTransform> joint_bind_poses() const {
-    return joint_bind_poses_;
+  // Returns joint's rest poses. Rest poses are stored in soa format.
+  span<const math::SoaTransform> joint_rest_poses() const {
+    return joint_rest_poses_;
   }
 
   // Returns joint's parent indices range.
@@ -130,8 +130,8 @@ class OZZ_ANIMATION_DLL Skeleton {
   // Buffers below store joint informations in joing depth first order. Their
   // size is equal to the number of joints of the skeleton.
 
-  // Bind pose of every joint in local space.
-  span<math::SoaTransform> joint_bind_poses_;
+  // Rest pose of every joint in local space.
+  span<math::SoaTransform> joint_rest_poses_;
 
   // Array of joint parent indexes.
   span<int16_t> joint_parents_;

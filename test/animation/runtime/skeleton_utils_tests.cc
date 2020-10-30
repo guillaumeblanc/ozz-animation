@@ -41,7 +41,7 @@ using ozz::animation::Skeleton;
 using ozz::animation::offline::RawSkeleton;
 using ozz::animation::offline::SkeletonBuilder;
 
-TEST(JointBindPose, SkeletonUtils) {
+TEST(JointRestPose, SkeletonUtils) {
   // Instantiates a builder objects with default parameters.
   SkeletonBuilder builder;
 
@@ -74,23 +74,23 @@ TEST(JointBindPose, SkeletonUtils) {
   EXPECT_EQ(skeleton->num_joints(), 3);
 
   // Out of range.
-  EXPECT_ASSERTION(GetJointLocalBindPose(*skeleton, 3),
+  EXPECT_ASSERTION(GetJointLocalRestPose(*skeleton, 3),
                    "Joint index out of range.");
 
-  const ozz::math::Transform bind_pose0 = GetJointLocalBindPose(*skeleton, 0);
-  EXPECT_FLOAT3_EQ(bind_pose0.translation, 1.f, 0.f, 0.f);
-  EXPECT_QUATERNION_EQ(bind_pose0.rotation, 0.f, 0.f, 0.f, 1.f);
-  EXPECT_FLOAT3_EQ(bind_pose0.scale, 0.f, 0.f, 0.f);
+  const ozz::math::Transform rest_pose0 = GetJointLocalRestPose(*skeleton, 0);
+  EXPECT_FLOAT3_EQ(rest_pose0.translation, 1.f, 0.f, 0.f);
+  EXPECT_QUATERNION_EQ(rest_pose0.rotation, 0.f, 0.f, 0.f, 1.f);
+  EXPECT_FLOAT3_EQ(rest_pose0.scale, 0.f, 0.f, 0.f);
 
-  const ozz::math::Transform bind_pose1 = GetJointLocalBindPose(*skeleton, 1);
-  EXPECT_FLOAT3_EQ(bind_pose1.translation, 0.f, 1.f, 0.f);
-  EXPECT_QUATERNION_EQ(bind_pose1.rotation, 0.f, 0.f, 0.f, -1.f);
-  EXPECT_FLOAT3_EQ(bind_pose1.scale, -1.f, -1.f, -1.f);
+  const ozz::math::Transform rest_pose1 = GetJointLocalRestPose(*skeleton, 1);
+  EXPECT_FLOAT3_EQ(rest_pose1.translation, 0.f, 1.f, 0.f);
+  EXPECT_QUATERNION_EQ(rest_pose1.rotation, 0.f, 0.f, 0.f, -1.f);
+  EXPECT_FLOAT3_EQ(rest_pose1.scale, -1.f, -1.f, -1.f);
 
-  const ozz::math::Transform bind_pose2 = GetJointLocalBindPose(*skeleton, 2);
-  EXPECT_FLOAT3_EQ(bind_pose2.translation, 0.f, 0.f, 1.f);
-  EXPECT_QUATERNION_EQ(bind_pose2.rotation, -0.f, -0.f, -0.f, 1.f);
-  EXPECT_FLOAT3_EQ(bind_pose2.scale, 1.f, 1.f, 1.f);
+  const ozz::math::Transform rest_pose2 = GetJointLocalRestPose(*skeleton, 2);
+  EXPECT_FLOAT3_EQ(rest_pose2.translation, 0.f, 0.f, 1.f);
+  EXPECT_QUATERNION_EQ(rest_pose2.rotation, -0.f, -0.f, -0.f, 1.f);
+  EXPECT_FLOAT3_EQ(rest_pose2.scale, 1.f, 1.f, 1.f);
 }
 
 /* Definition of the skeleton used by the tests.

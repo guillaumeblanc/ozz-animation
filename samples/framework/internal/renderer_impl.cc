@@ -239,7 +239,7 @@ bool RendererImpl::DrawGrid(int _cell_count, float _cell_size) {
   return true;
 }
 
-// Computes the model space bind pose and renders it.
+// Computes the model space rest pose and renders it.
 bool RendererImpl::DrawSkeleton(const ozz::animation::Skeleton& _skeleton,
                                 const ozz::math::Float4x4& _transform,
                                 bool _draw_joints) {
@@ -253,9 +253,9 @@ bool RendererImpl::DrawSkeleton(const ozz::animation::Skeleton& _skeleton,
   // Reallocate matrix array if necessary.
   prealloc_models_.resize(num_joints);
 
-  // Compute model space bind pose.
+  // Compute model space rest pose.
   ozz::animation::LocalToModelJob job;
-  job.input = _skeleton.joint_bind_poses();
+  job.input = _skeleton.joint_rest_poses();
   job.output = make_span(prealloc_models_);
   job.skeleton = &_skeleton;
   if (!job.Run()) {

@@ -358,7 +358,7 @@ bool SampleChannel(const tinygltf::Model& _model,
 }
 
 ozz::animation::offline::RawAnimation::TranslationKey
-CreateTranslationBindPoseKey(const tinygltf::Node& _node) {
+CreateTranslationRestPoseKey(const tinygltf::Node& _node) {
   ozz::animation::offline::RawAnimation::TranslationKey key;
   key.time = 0.0f;
 
@@ -373,7 +373,7 @@ CreateTranslationBindPoseKey(const tinygltf::Node& _node) {
   return key;
 }
 
-ozz::animation::offline::RawAnimation::RotationKey CreateRotationBindPoseKey(
+ozz::animation::offline::RawAnimation::RotationKey CreateRotationRestPoseKey(
     const tinygltf::Node& _node) {
   ozz::animation::offline::RawAnimation::RotationKey key;
   key.time = 0.0f;
@@ -389,7 +389,7 @@ ozz::animation::offline::RawAnimation::RotationKey CreateRotationBindPoseKey(
   return key;
 }
 
-ozz::animation::offline::RawAnimation::ScaleKey CreateScaleBindPoseKey(
+ozz::animation::offline::RawAnimation::ScaleKey CreateScaleRestPoseKey(
     const tinygltf::Node& _node) {
   ozz::animation::offline::RawAnimation::ScaleKey key;
   key.time = 0.0f;
@@ -745,16 +745,16 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
       const tinygltf::Node* node = FindNodeByName(joint_names[i]);
       assert(node != nullptr);
 
-      // Pads the bind pose transform for any joints which do not have an
+      // Pads the rest pose transform for any joints which do not have an
       // associated channel for this animation
       if (track.translations.empty()) {
-        track.translations.push_back(CreateTranslationBindPoseKey(*node));
+        track.translations.push_back(CreateTranslationRestPoseKey(*node));
       }
       if (track.rotations.empty()) {
-        track.rotations.push_back(CreateRotationBindPoseKey(*node));
+        track.rotations.push_back(CreateRotationRestPoseKey(*node));
       }
       if (track.scales.empty()) {
-        track.scales.push_back(CreateScaleBindPoseKey(*node));
+        track.scales.push_back(CreateScaleRestPoseKey(*node));
       }
     }
 

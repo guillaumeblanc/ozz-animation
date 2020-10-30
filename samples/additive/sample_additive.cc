@@ -115,7 +115,7 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
     ozz::animation::BlendingJob blend_job;
     blend_job.layers = layers;
     blend_job.additive_layers = additive_layers;
-    blend_job.bind_pose = skeleton_.joint_bind_poses();
+    blend_job.rest_pose = skeleton_.joint_rest_poses();
     blend_job.output = make_span(blended_locals_);
 
     // Blends.

@@ -123,20 +123,20 @@ class OptimizeSampleApplication : public ozz::sample::Application {
     }
 
     // Computes difference between the optimized and non-optimized animations
-    // in local space, and rebinds it to the bind pose.
+    // in local space, and rebinds it to the rest pose.
     {
-      const ozz::span<const ozz::math::SoaTransform>& bind_poses =
-          skeleton_.joint_bind_poses();
-      const ozz::math::SoaTransform* bind_pose = bind_poses.begin();
+      const ozz::span<const ozz::math::SoaTransform>& rest_poses =
+          skeleton_.joint_rest_poses();
+      const ozz::math::SoaTransform* rest_pose = rest_poses.begin();
       const ozz::math::SoaTransform* locals_raw = locals_raw_.data();
       const ozz::math::SoaTransform* locals_rt = locals_rt_.data();
       ozz::math::SoaTransform* locals_diff = locals_diff_.data();
-      for (; bind_pose < bind_poses.end();
-           ++locals_raw, ++locals_rt, ++locals_diff, ++bind_pose) {
+      for (; rest_pose < rest_poses.end();
+           ++locals_raw, ++locals_rt, ++locals_diff, ++rest_pose) {
         assert(locals_raw < array_end(locals_raw_) &&
                locals_rt < array_end(locals_rt_) &&
                locals_diff < array_end(locals_diff_) &&
-               bind_pose < bind_poses.end());
+               rest_pose < rest_poses.end());
 
         // Computes difference.
         const ozz::math::SoaTransform diff = {
@@ -144,10 +144,10 @@ class OptimizeSampleApplication : public ozz::sample::Application {
             locals_rt->rotation * Conjugate(locals_raw->rotation),
             locals_rt->scale / locals_raw->scale};
 
-        // Rebinds to the bind pose in the diff buffer.
-        locals_diff->translation = bind_pose->translation + diff.translation;
-        locals_diff->rotation = bind_pose->rotation * diff.rotation;
-        locals_diff->scale = bind_pose->scale * diff.scale;
+        // Rebinds to the rest pose in the diff buffer.
+        locals_diff->translation = rest_pose->translation + diff.translation;
+        locals_diff->rotation = rest_pose->rotation * diff.rotation;
+        locals_diff->scale = rest_pose->scale * diff.scale;
       }
     }
 
