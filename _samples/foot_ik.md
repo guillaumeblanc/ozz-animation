@@ -47,7 +47,7 @@ Implementation
    3. For each leg, raycasts a vector going down from the ankle position. This allows to find the intersection point (I) with the floor.
    4. Comptutes ankle target position (C), so that the foot is in contact with the floor. Because of floor slope (defined by raycast intersection normal), ankle position cannot be simply be offseted by foot offset. See diagram below.
 
-![ankle correction]({{site.baseurl}}/images/samples/foot_ik_ankle.svg)
+<img src="{{site.baseurl}}/images/samples/foot_ik_ankle.svg" alt="ankle correction" class="w3-image">
 
    6. Offsets the character down, so that the lowest ankle (lowest from its original position) reaches its targetted position. The other leg(s) will be ik-ed.
    7. Applies two bone IK to each leg, so the ankles reache their targetted position. This in computed in character model-space. Pole vector is given by original knee forward vector, such that the result remains close to original animation.
