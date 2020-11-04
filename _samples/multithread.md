@@ -15,7 +15,7 @@ Description
 The sample takes advantage of ozz jobs thread-safety to distribute sampling and local-to-model jobs across multiple threads. It uses c++11 std::async API to implement a parallel-for loop over all computation tasks. 
 User can tweak the number of characters and the maximum number of characters per task. Animation control is automatically handled by the sample for all characters.
 
-![multithread sample screenshot]({{site.baseurl}}/images/samples/multithread.jpg)
+<img src="{{site.baseurl}}/images/samples/multithread.jpg" alt="multithread sample screenshot" class="w3-image">
 
 Concept
 =======
