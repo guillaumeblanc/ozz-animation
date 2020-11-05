@@ -25,27 +25,22 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/animation/runtime/ik_two_bone_job.h"
-#include "ozz/animation/runtime/local_to_model_job.h"
-#include "ozz/animation/runtime/skeleton.h"
-
-#include "ozz/base/log.h"
-
-#include "ozz/base/maths/box.h"
-#include "ozz/base/maths/simd_math.h"
-#include "ozz/base/maths/simd_quaternion.h"
-#include "ozz/base/maths/soa_transform.h"
-
-#include "ozz/base/memory/allocator.h"
-
-#include "ozz/options/options.h"
+#include <algorithm>
 
 #include "framework/application.h"
 #include "framework/imgui.h"
 #include "framework/renderer.h"
 #include "framework/utils.h"
-
-#include <algorithm>
+#include "ozz/animation/runtime/ik_two_bone_job.h"
+#include "ozz/animation/runtime/local_to_model_job.h"
+#include "ozz/animation/runtime/skeleton.h"
+#include "ozz/base/log.h"
+#include "ozz/base/maths/box.h"
+#include "ozz/base/maths/simd_math.h"
+#include "ozz/base/maths/simd_quaternion.h"
+#include "ozz/base/maths/soa_transform.h"
+#include "ozz/base/memory/allocator.h"
+#include "ozz/options/options.h"
 
 // Skeleton archive can be specified as an option.
 OZZ_OPTIONS_DECLARE_STRING(skeleton,
@@ -146,12 +141,12 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
       return false;
     }
 
-    // Reset locals to skeleton bind pose if option is true.
+    // Reset locals to skeleton rest pose if option is true.
     // This allows to always start IK from a fix position (required to test
     // weighting), or do IK from the latest computed pose
     if (fix_initial_transform_) {
       for (size_t i = 0; i < locals_.size(); ++i) {
-        locals_[i] = skeleton_.joint_bind_poses()[i];
+        locals_[i] = skeleton_.joint_rest_poses()[i];
       }
     }
 
@@ -258,9 +253,9 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
       return false;
     }
 
-    // Initialize locals from skeleton bind pose
+    // Initialize locals from skeleton rest pose
     for (size_t i = 0; i < locals_.size(); ++i) {
-      locals_[i] = skeleton_.joint_bind_poses()[i];
+      locals_[i] = skeleton_.joint_rest_poses()[i];
     }
 
     return true;

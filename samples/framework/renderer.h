@@ -79,7 +79,7 @@ class Renderer {
   // has a size of _cell_size.
   virtual bool DrawGrid(int _cell_count, float _cell_size) = 0;
 
-  // Renders a skeleton in its bind pose posture.
+  // Renders a skeleton in its rest pose posture.
   virtual bool DrawSkeleton(const animation::Skeleton& _skeleton,
                             const ozz::math::Float4x4& _transform,
                             bool _draw_joints = true) = 0;
@@ -121,7 +121,7 @@ class Renderer {
     bool tangents;   // Show tangents.
     bool binormals;  // Show binormals, computed from the normal and tangent.
     bool colors;     // Show vertex colors.
-    bool wireframe;     // Show vertex colors.
+    bool wireframe;  // Show vertex colors.
     bool skip_skinning;  // Show texture (default checkered texture).
 
     Options()

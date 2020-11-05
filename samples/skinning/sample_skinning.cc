@@ -68,7 +68,7 @@ class SkinningSampleApplication : public ozz::sample::Application {
     // Samples optimized animation at t = animation_time_.
     ozz::animation::SamplingJob sampling_job;
     sampling_job.animation = &animation_;
-    sampling_job.cache = &cache_;
+    sampling_job.context = &context_;
     sampling_job.ratio = controller_.time_ratio();
     sampling_job.output = make_span(locals_);
     if (!sampling_job.Run()) {
@@ -141,8 +141,8 @@ class SkinningSampleApplication : public ozz::sample::Application {
     const int num_joints = skeleton_.num_joints();
     models_.resize(num_joints);
 
-    // Allocates a cache that matches animation requirements.
-    cache_.Resize(num_joints);
+    // Allocates a context that matches animation requirements.
+    context_.Resize(num_joints);
 
     // Reading skinned meshes.
     if (!ozz::sample::LoadMeshes(OPTIONS_mesh, &meshes_)) {
@@ -257,8 +257,8 @@ class SkinningSampleApplication : public ozz::sample::Application {
   // Runtime animation.
   ozz::animation::Animation animation_;
 
-  // Sampling cache.
-  ozz::animation::SamplingCache cache_;
+  // Sampling context.
+  ozz::animation::SamplingJob::Context context_;
 
   // Buffer of local transforms as sampled from animation_.
   ozz::vector<ozz::math::SoaTransform> locals_;

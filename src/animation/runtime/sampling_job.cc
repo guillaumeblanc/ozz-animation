@@ -60,7 +60,7 @@ bool SamplingJob::Validate() const {
   bool valid = true;
 
   // Test for nullptr pointers.
-  if (!animation || !cache) {
+  if (!animation || !context) {
     return false;
   }
   valid &= !output.empty();
@@ -68,8 +68,8 @@ bool SamplingJob::Validate() const {
   const int num_soa_tracks = animation->num_soa_tracks();
   valid &= output.size() >= static_cast<size_t>(num_soa_tracks);
 
-  // Tests cache size.
-  valid &= cache->max_soa_tracks() >= num_soa_tracks;
+  // Tests context size.
+  valid &= context->max_soa_tracks() >= num_soa_tracks;
 
   return valid;
 }
@@ -353,7 +353,7 @@ void Interpolates(float _anim_ratio, int _num_soa_tracks,
 }
 }  // namespace
 
-SamplingJob::SamplingJob() : ratio(0.f), animation(nullptr), cache(nullptr) {}
+SamplingJob::SamplingJob() : ratio(0.f), animation(nullptr), context(nullptr) {}
 
 bool SamplingJob::Run() const {
   if (!Validate()) {
@@ -368,61 +368,61 @@ bool SamplingJob::Run() const {
   // Clamps ratio in range [0,duration].
   const float anim_ratio = math::Clamp(0.f, ratio, 1.f);
 
-  // Step the cache to this potentially new animation and ratio.
-  assert(cache->max_soa_tracks() >= num_soa_tracks);
-  cache->Step(*animation, anim_ratio);
+  // Step the context to this potentially new animation and ratio.
+  assert(context->max_soa_tracks() >= num_soa_tracks);
+  context->Step(*animation, anim_ratio);
 
-  // Fetch key frames from the animation to the cache a r = anim_ratio.
+  // Fetch key frames from the animation to the context a r = anim_ratio.
   // Then updates outdated soa hot values.
   UpdateCacheCursor(anim_ratio, num_soa_tracks, animation->translations(),
-                    &cache->translation_cursor_, cache->translation_cache_,
-                    cache->outdated_translations_);
+                    &context->translation_cursor_, context->translation_cache_,
+                    context->outdated_translations_);
   UpdateInterpKeyframes(num_soa_tracks, animation->translations(),
-                        cache->translation_cache_,
-                        cache->outdated_translations_, cache->soa_translations_,
+                        context->translation_cache_,
+                        context->outdated_translations_, context->soa_translations_,
                         &DecompressFloat3);
 
   UpdateCacheCursor(anim_ratio, num_soa_tracks, animation->rotations(),
-                    &cache->rotation_cursor_, cache->rotation_cache_,
-                    cache->outdated_rotations_);
+                    &context->rotation_cursor_, context->rotation_cache_,
+                    context->outdated_rotations_);
   UpdateInterpKeyframes(num_soa_tracks, animation->rotations(),
-                        cache->rotation_cache_, cache->outdated_rotations_,
-                        cache->soa_rotations_, &DecompressQuaternion);
+                        context->rotation_cache_, context->outdated_rotations_,
+                        context->soa_rotations_, &DecompressQuaternion);
 
   UpdateCacheCursor(anim_ratio, num_soa_tracks, animation->scales(),
-                    &cache->scale_cursor_, cache->scale_cache_,
-                    cache->outdated_scales_);
+                    &context->scale_cursor_, context->scale_cache_,
+                    context->outdated_scales_);
   UpdateInterpKeyframes(num_soa_tracks, animation->scales(),
-                        cache->scale_cache_, cache->outdated_scales_,
-                        cache->soa_scales_, &DecompressFloat3);
+                        context->scale_cache_, context->outdated_scales_,
+                        context->soa_scales_, &DecompressFloat3);
 
   // Interpolates soa hot data.
-  Interpolates(anim_ratio, num_soa_tracks, cache->soa_translations_,
-               cache->soa_rotations_, cache->soa_scales_, output.begin());
+  Interpolates(anim_ratio, num_soa_tracks, context->soa_translations_,
+               context->soa_rotations_, context->soa_scales_, output.begin());
 
   return true;
 }
 
-SamplingCache::SamplingCache()
+SamplingJob::Context::Context()
     : max_soa_tracks_(0),
       soa_translations_(
           nullptr) {  // soa_translations_ is the allocation pointer.
   Invalidate();
 }
 
-SamplingCache::SamplingCache(int _max_tracks)
+SamplingJob::Context::Context(int _max_tracks)
     : max_soa_tracks_(0),
       soa_translations_(
           nullptr) {  // soa_translations_ is the allocation pointer.
   Resize(_max_tracks);
 }
 
-SamplingCache::~SamplingCache() {
+SamplingJob::Context::~Context() {
   // Deallocates everything at once.
   memory::default_allocator()->Deallocate(soa_translations_);
 }
 
-void SamplingCache::Resize(int _max_tracks) {
+void SamplingJob::Context::Resize(int _max_tracks) {
   using internal::InterpSoaFloat3;
   using internal::InterpSoaQuaternion;
 
@@ -433,7 +433,7 @@ void SamplingCache::Resize(int _max_tracks) {
   // Updates maximum supported soa tracks.
   max_soa_tracks_ = (_max_tracks + 3) / 4;
 
-  // Allocate all cache data at once in a single allocation.
+  // Allocate all context data at once in a single allocation.
   // Alignment is guaranteed because memory is dispatch from the highest
   // alignment requirement (Soa data: SimdFloat4) to the lowest (outdated
   // flag: unsigned char).
@@ -491,7 +491,7 @@ void SamplingCache::Resize(int _max_tracks) {
   assert(alloc_cursor == alloc_begin + size);
 }
 
-void SamplingCache::Step(const Animation& _animation, float _ratio) {
+void SamplingJob::Context::Step(const Animation& _animation, float _ratio) {
   // The cache is invalidated if animation has changed...
   const bool changed = animation_ != &_animation;
 
@@ -511,7 +511,7 @@ void SamplingCache::Step(const Animation& _animation, float _ratio) {
   ratio_ = _ratio;
 }
 
-void SamplingCache::Invalidate() {
+void SamplingJob::Context::Invalidate() {
   animation_ = nullptr;
   ratio_ = 0.f;
   translation_cursor_ = 0;

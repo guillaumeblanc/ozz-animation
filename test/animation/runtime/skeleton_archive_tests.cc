@@ -25,18 +25,13 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/animation/runtime/skeleton.h"
-
 #include "gtest/gtest.h"
-
 #include "ozz/animation/offline/raw_skeleton.h"
 #include "ozz/animation/offline/skeleton_builder.h"
-
+#include "ozz/animation/runtime/skeleton.h"
 #include "ozz/base/io/archive.h"
 #include "ozz/base/io/stream.h"
-
 #include "ozz/base/maths/soa_transform.h"
-
 #include "ozz/base/memory/unique_ptr.h"
 
 using ozz::animation::Skeleton;
@@ -109,20 +104,19 @@ TEST(Filled, SkeletonSerialize) {
     // Compares skeletons.
     EXPECT_EQ(o_skeleton->num_joints(), i_skeleton.num_joints());
     for (int i = 0; i < i_skeleton.num_joints(); ++i) {
-      EXPECT_EQ(i_skeleton.joint_parents()[i],
-                o_skeleton->joint_parents()[i]);
+      EXPECT_EQ(i_skeleton.joint_parents()[i], o_skeleton->joint_parents()[i]);
       EXPECT_STREQ(i_skeleton.joint_names()[i], o_skeleton->joint_names()[i]);
     }
     for (int i = 0; i < (i_skeleton.num_joints() + 3) / 4; ++i) {
-      EXPECT_TRUE(ozz::math::AreAllTrue(
-          i_skeleton.joint_bind_poses()[i].translation ==
-          o_skeleton->joint_bind_poses()[i].translation));
-      EXPECT_TRUE(ozz::math::AreAllTrue(
-          i_skeleton.joint_bind_poses()[i].rotation ==
-          o_skeleton->joint_bind_poses()[i].rotation));
       EXPECT_TRUE(
-          ozz::math::AreAllTrue(i_skeleton.joint_bind_poses()[i].scale ==
-                                o_skeleton->joint_bind_poses()[i].scale));
+          ozz::math::AreAllTrue(i_skeleton.joint_rest_poses()[i].translation ==
+                                o_skeleton->joint_rest_poses()[i].translation));
+      EXPECT_TRUE(
+          ozz::math::AreAllTrue(i_skeleton.joint_rest_poses()[i].rotation ==
+                                o_skeleton->joint_rest_poses()[i].rotation));
+      EXPECT_TRUE(
+          ozz::math::AreAllTrue(i_skeleton.joint_rest_poses()[i].scale ==
+                                o_skeleton->joint_rest_poses()[i].scale));
     }
   }
 }

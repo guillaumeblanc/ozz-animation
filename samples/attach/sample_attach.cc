@@ -64,7 +64,7 @@ class AttachSampleApplication : public ozz::sample::Application {
     // Samples optimized animation at t = animation_time_.
     ozz::animation::SamplingJob sampling_job;
     sampling_job.animation = &animation_;
-    sampling_job.cache = &cache_;
+    sampling_job.context = &context_;
     sampling_job.ratio = controller_.time_ratio();
     sampling_job.output = make_span(locals_);
     if (!sampling_job.Run()) {
@@ -130,8 +130,8 @@ class AttachSampleApplication : public ozz::sample::Application {
     locals_.resize(num_soa_joints);
     models_.resize(num_joints);
 
-    // Allocates a cache that matches animation requirements.
-    cache_.Resize(num_joints);
+    // Allocates a context that matches animation requirements.
+    context_.Resize(num_joints);
 
     // Finds the joint where the object should be attached.
     attachment_ = FindJoint(skeleton_, "LeftHandMiddle1");
@@ -193,8 +193,8 @@ class AttachSampleApplication : public ozz::sample::Application {
   // Runtime animation.
   ozz::animation::Animation animation_;
 
-  // Sampling cache.
-  ozz::animation::SamplingCache cache_;
+  // Sampling context.
+  ozz::animation::SamplingJob::Context context_;
 
   // Buffer of local transforms as sampled from animation_.
   ozz::vector<ozz::math::SoaTransform> locals_;

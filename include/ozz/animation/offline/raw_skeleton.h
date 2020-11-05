@@ -42,12 +42,12 @@ namespace offline {
 // This skeleton type is not intended to be used in run time. It is used to
 // define the offline skeleton object that can be converted to the runtime
 // skeleton using the SkeletonBuilder. This skeleton structure exposes joints'
-// hierarchy. A joint is defined with a name, a transformation (its bind pose),
-// and its children. Children are exposed as a public std::vector of joints.
-// This same type is used for skeleton roots, also exposed from the public API.
-// The public API exposed through std:vector's of joints can be used freely with
-// the only restriction that the total number of joints does not exceed
-// Skeleton::kMaxJoints.
+// hierarchy. A joint is defined with a name, a transformation (its rest_pose
+// pose), and its children. Children are exposed as a public std::vector of
+// joints. This same type is used for skeleton roots, also exposed from the
+// public API. The public API exposed through std:vector's of joints can be used
+// freely with the only restriction that the total number of joints does not
+// exceed Skeleton::kMaxJoints.
 struct OZZ_ANIMOFFLINE_DLL RawSkeleton {
   // Construct an empty skeleton.
   RawSkeleton();
@@ -66,7 +66,7 @@ struct OZZ_ANIMOFFLINE_DLL RawSkeleton {
     // The name of the joint.
     ozz::string name;
 
-    // Joint bind pose transformation in local space.
+    // Joint rest pose transformation in local space.
     math::Transform transform;
   };
 

@@ -25,12 +25,11 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
+#include <cstdlib>
+
 #include "ozz/animation/offline/raw_skeleton.h"
 #include "ozz/animation/offline/skeleton_builder.h"
-
 #include "ozz/animation/runtime/skeleton.h"
-
-#include <cstdlib>
 
 // Code for ozz-animation HowTo: "How to write a custon skeleton importer?"
 
@@ -52,7 +51,7 @@ int main(int argc, char const* argv[]) {
   // Setup root joints name.
   root.name = "root";
 
-  // Setup root joints bind-pose/rest transformation, in joint local-space.
+  // Setup root joints rest pose transformation, in joint local-space.
   // This is the default skeleton posture (most of the time a T-pose). It's
   // used as a fallback when there's no animation for a joint.
   root.transform.translation = ozz::math::Float3(0.f, 1.f, 0.f);

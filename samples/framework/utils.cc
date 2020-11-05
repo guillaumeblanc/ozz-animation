@@ -30,28 +30,22 @@
 #include <cassert>
 #include <limits>
 
-#include "ozz/base/maths/box.h"
-#include "ozz/base/maths/simd_math.h"
-#include "ozz/base/maths/simd_quaternion.h"
-#include "ozz/base/maths/soa_transform.h"
-
-#include "ozz/base/memory/allocator.h"
-
+#include "framework/imgui.h"
+#include "framework/mesh.h"
+#include "ozz/animation/offline/raw_skeleton.h"
 #include "ozz/animation/runtime/animation.h"
 #include "ozz/animation/runtime/local_to_model_job.h"
 #include "ozz/animation/runtime/skeleton.h"
 #include "ozz/animation/runtime/track.h"
-
-#include "ozz/animation/offline/raw_skeleton.h"
-
-#include "ozz/geometry/runtime/skinning_job.h"
-
 #include "ozz/base/io/archive.h"
 #include "ozz/base/io/stream.h"
 #include "ozz/base/log.h"
-
-#include "framework/imgui.h"
-#include "framework/mesh.h"
+#include "ozz/base/maths/box.h"
+#include "ozz/base/maths/simd_math.h"
+#include "ozz/base/maths/simd_quaternion.h"
+#include "ozz/base/maths/soa_transform.h"
+#include "ozz/base/memory/allocator.h"
+#include "ozz/geometry/runtime/skinning_job.h"
 
 namespace ozz {
 namespace sample {
@@ -224,9 +218,9 @@ void ComputeSkeletonBounds(const animation::Skeleton& _skeleton,
   // Allocate matrix array, out of memory is handled by the LocalToModelJob.
   ozz::vector<ozz::math::Float4x4> models(num_joints);
 
-  // Compute model space bind pose.
+  // Compute model space rest pose.
   ozz::animation::LocalToModelJob job;
-  job.input = _skeleton.joint_bind_poses();
+  job.input = _skeleton.joint_rest_poses();
   job.output = make_span(models);
   job.skeleton = &_skeleton;
   if (job.Run()) {

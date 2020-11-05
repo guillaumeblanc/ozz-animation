@@ -29,7 +29,7 @@
       "filename" : "*.ozz", //  Specifies animation output filename. Use a '*' character to specify part(s) of the filename that should be replaced by the clip name.
       "raw" : false, //  Outputs raw animation.
       "additive" : false, //  Creates a delta animation that can be used for additive blending.
-      "additive_reference" : "animation", //  Select reference pose to use to build additive/delta animation. Can be "animation" to use the 1st animation keyframe as reference, or "skeleton" to use skeleton bind pose.
+      "additive_reference" : "animation", //  Select reference pose to use to build additive/delta animation. Can be "animation" to use the 1st animation keyframe as reference, or "skeleton" to use skeleton rest pose.
       "sampling_rate" : 0, //  Selects animation sampling rate in hertz. Set a value <= 0 to use imported scene default frame rate.
       "optimize" : true, //  Activates keyframes reduction optimization.
       "optimization_settings" : 

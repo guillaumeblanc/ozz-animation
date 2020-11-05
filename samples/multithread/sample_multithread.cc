@@ -30,27 +30,22 @@
 #include <cstdlib>
 #include <future>
 
+#include "framework/application.h"
+#include "framework/imgui.h"
+#include "framework/renderer.h"
+#include "framework/utils.h"
 #include "ozz/animation/runtime/animation.h"
 #include "ozz/animation/runtime/local_to_model_job.h"
 #include "ozz/animation/runtime/sampling_job.h"
 #include "ozz/animation/runtime/skeleton.h"
-
-#include "ozz/base/log.h"
-
 #include "ozz/base/containers/vector.h"
-
+#include "ozz/base/log.h"
 #include "ozz/base/maths/box.h"
 #include "ozz/base/maths/math_ex.h"
 #include "ozz/base/maths/simd_math.h"
 #include "ozz/base/maths/soa_transform.h"
 #include "ozz/base/maths/vec_float.h"
-
 #include "ozz/options/options.h"
-
-#include "framework/application.h"
-#include "framework/imgui.h"
-#include "framework/renderer.h"
-#include "framework/utils.h"
 
 #if EMSCRIPTEN
 #include <emscripten.h>
@@ -118,7 +113,7 @@ class MultithreadSampleApplication : public ozz::sample::Application {
     // Setup sampling job.
     ozz::animation::SamplingJob sampling_job;
     sampling_job.animation = &_animation;
-    sampling_job.cache = &_character->cache;
+    sampling_job.context = &_character->context;
     sampling_job.ratio = _character->controller.time_ratio();
     sampling_job.output = make_span(_character->locals);
 
@@ -256,7 +251,7 @@ class MultithreadSampleApplication : public ozz::sample::Application {
 
       character.locals.resize(skeleton_.num_soa_joints());
       character.models.resize(skeleton_.num_joints());
-      character.cache.Resize(animation_.num_tracks());
+      character.context.Resize(animation_.num_tracks());
     }
 
     return true;
@@ -334,8 +329,8 @@ class MultithreadSampleApplication : public ozz::sample::Application {
     // controlling animation playback time.
     ozz::sample::PlaybackController controller;
 
-    // Sampling cache.
-    ozz::animation::SamplingCache cache;
+    // Sampling context.
+    ozz::animation::SamplingJob::Context context;
 
     // Buffer of local transforms which stores the blending result.
     ozz::vector<ozz::math::SoaTransform> locals;

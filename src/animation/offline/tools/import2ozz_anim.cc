@@ -137,11 +137,11 @@ unique_ptr<ozz::animation::Skeleton> LoadSkeleton(const char* _path) {
   return skeleton;
 }
 
-vector<math::Transform> SkeletonBindPoseSoAToAoS(const Skeleton& _skeleton) {
-  // Copy skeleton bind pose to AoS form.
+vector<math::Transform> SkeletonRestPoseSoAToAoS(const Skeleton& _skeleton) {
+  // Copy skeleton rest pose to AoS form.
   vector<math::Transform> transforms(_skeleton.num_joints());
   for (int i = 0; i < _skeleton.num_soa_joints(); ++i) {
-    const math::SoaTransform& soa_transform = _skeleton.joint_bind_poses()[i];
+    const math::SoaTransform& soa_transform = _skeleton.joint_rest_poses()[i];
     math::SimdFloat4 translation[4];
     math::SimdFloat4 rotation[4];
     math::SimdFloat4 scale[4];
@@ -248,7 +248,7 @@ bool Export(OzzImporter& _importer, const RawAnimation& _input_animation,
     bool succeeded = false;
     if (enum_found && reference == AdditiveReferenceEnum::kSkeleton) {
       const vector<math::Transform> transforms =
-          SkeletonBindPoseSoAToAoS(_skeleton);
+          SkeletonRestPoseSoAToAoS(_skeleton);
       succeeded =
           additive_builder(raw_animation, make_span(transforms), &raw_additive);
     } else {

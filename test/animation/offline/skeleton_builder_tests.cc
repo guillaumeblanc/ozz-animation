@@ -603,7 +603,7 @@ TEST(MultiRoots, SkeletonBuilder) {
   }
 }
 
-TEST(BindPose, SkeletonBuilder) {
+TEST(RestPose, SkeletonBuilder) {
   using ozz::math::Float3;
   using ozz::math::Float4;
   using ozz::math::Quaternion;
@@ -646,14 +646,14 @@ TEST(BindPose, SkeletonBuilder) {
   ozz::unique_ptr<Skeleton> skeleton(builder(raw_skeleton));
   ASSERT_TRUE(skeleton);
 
-  // Convert bind pose back to aos.
+  // Convert rest pose back to aos.
   ozz::math::SimdFloat4 translations[4];
   ozz::math::SimdFloat4 scales[4];
   ozz::math::SimdFloat4 rotations[4];
-  const ozz::math::SoaTransform& bind_pose = skeleton->joint_bind_poses()[0];
-  ozz::math::Transpose3x4(&bind_pose.translation.x, translations);
-  ozz::math::Transpose4x4(&bind_pose.rotation.x, rotations);
-  ozz::math::Transpose3x4(&bind_pose.scale.x, scales);
+  const ozz::math::SoaTransform& rest_pose = skeleton->joint_rest_poses()[0];
+  ozz::math::Transpose3x4(&rest_pose.translation.x, translations);
+  ozz::math::Transpose4x4(&rest_pose.rotation.x, rotations);
+  ozz::math::Transpose3x4(&rest_pose.scale.x, scales);
 
   for (int i = 0; i < skeleton->num_joints(); ++i) {
     if (std::strcmp(skeleton->joint_names()[i], "j0") == 0) {
