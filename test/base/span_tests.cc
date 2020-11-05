@@ -181,3 +181,47 @@ TEST(SpanRangeLoop, Platform) {
     i++;
   }
 }
+
+TEST(SpanSubSpan, Platform) {
+  const size_t kSize = 46;
+  size_t ai[kSize];
+  for (size_t i = 0; i < kSize; ++i) {
+    ai[i] = i;
+  }
+
+  {  // empty
+    ozz::span<size_t> eai;
+    ozz::span<size_t> seai = eai.subspan(0, 0);
+    EXPECT_EQ(seai.size(), 0u);
+  }
+
+  {  // subspan
+    ozz::span<size_t> ncai(ai);
+
+    EXPECT_ASSERTION(ncai.subspan(kSize, 1), " count out of range");
+    EXPECT_ASSERTION(ncai.subspan(1, kSize), " count out of range");
+    EXPECT_ASSERTION(ncai.subspan(kSize + 1, 0), "Offset out of range");
+    EXPECT_ASSERTION(ncai.subspan(0, kSize + 1), "Count out of range");
+
+    EXPECT_EQ(ncai.subspan(0, 0).size(), 0u);
+    EXPECT_EQ(ncai.subspan(0, kSize).size(), kSize);
+    EXPECT_EQ(ncai.subspan(0, kSize - 10)[0], 0u);
+    EXPECT_EQ(ncai.subspan(10, kSize - 10).size(), kSize - 10);
+    EXPECT_EQ(ncai.subspan(10, kSize - 10)[0], 10u);
+    EXPECT_EQ(ncai.subspan(0, kSize - 10).size(), kSize - 10);
+  }
+
+  {  // first - last
+    ozz::span<size_t> ncai(ai);
+
+    EXPECT_ASSERTION(ncai.first(kSize + 1), "Count out of range");
+    EXPECT_EQ(ncai.first(0).size(), 0u);
+    EXPECT_EQ(ncai.first(10).size(), 10u);
+    EXPECT_EQ(ncai.first(10)[0], 0u);
+
+    EXPECT_ASSERTION(ncai.last(kSize + 1), "Count out of range");
+    EXPECT_EQ(ncai.last(0).size(), 0u);
+    EXPECT_EQ(ncai.last(10).size(), 10u);
+    EXPECT_EQ(ncai.last(10)[0], kSize - 10);
+  }
+}

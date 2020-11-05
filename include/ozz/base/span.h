@@ -85,6 +85,25 @@ struct span {
   // Implement cast operator to allow conversions to span<const _Ty>.
   operator span<const _Ty>() const { return span<const _Ty>(data_, size_); }
 
+  // Subspan
+
+  span<element_type> first(index_type _count) const {
+    assert(_count <= size_ && "Count out of range");
+    return {data(), _count};
+  }
+
+  span<element_type> last(index_type _count) const {
+    assert(_count <= size_ && "Count out of range");
+    return {data() + size_ - _count, _count};
+  }
+
+  span<element_type> subspan(index_type _offset, index_type _count) const {
+    assert(_offset <= size_ && "Offset out of range");
+    assert(_count <= size_ && "Count out of range");
+    assert(_offset <= size_ - _count && "Offset + count out of range");
+    return {data_ + _offset, _count};
+  }
+
   // Returns a const reference to element _i of range [begin,end[.
   _Ty& operator[](size_t _i) const {
     assert(_i < size_ && "Index out of range.");
