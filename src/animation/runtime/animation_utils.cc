@@ -35,15 +35,15 @@ namespace ozz {
 namespace animation {
 
 template <typename _Key>
-inline int CountKeyframesImpl(const span<const _Key>& _keys, int _track) {
+inline int CountKeyframesImpl(const _Key& _keys, int _track) {
   if (_track < 0) {
-    return static_cast<int>(_keys.size());
+    return static_cast<int>(_keys.values.size());
   }
 
   int count = 1;
   size_t previous = static_cast<size_t>(_track);
-  for (size_t i = previous + 1; i < _keys.size(); ++i) {
-    if (i - _keys[i].previous == previous) {
+  for (size_t i = previous + 1; i < _keys.values.size(); ++i) {
+    if (i - _keys.previouses[i] == previous) {
       ++count;
       previous = i;
     }

@@ -31,6 +31,7 @@
 #include "ozz/animation/offline/export.h"
 #include "ozz/animation/offline/raw_animation.h"
 
+#include "ozz/base/containers/vector.h"
 #include "ozz/base/maths/transform.h"
 #include "ozz/base/span.h"
 
@@ -69,7 +70,10 @@ OZZ_ANIMOFFLINE_DLL bool SampleAnimation(
     const RawAnimation& _animation, float _time,
                      const span<ozz::math::Transform>& _transforms);
 
-// Implement fixed rate keyframe time iteration. This utility purpose is to
+// Get the union of all keyframe times from a valid RawAnimation.
+ozz::vector<float> ExtractTimePoints(const RawAnimation& _animation);
+
+  // Implement fixed rate keyframe time iteration. This utility purpose is to
 // ensure that sampling goes strictly from 0 to duration, and that period
 // between consecutive time samples have a fixed period.
 // This sounds trivial, but floating point error could occur if keyframe time

@@ -272,3 +272,39 @@ TEST(FixedRateSamplingTime, Utils) {
     EXPECT_EQ(it.time(30000), 1000.f);
   }
 }
+
+TEST(TimePoints, Utils) {
+  // Building an Animation with unsorted keys fails.
+  RawAnimation raw_animation;
+  raw_animation.tracks.resize(2);
+
+  raw_animation.tracks[0].translations.push_back({0.f, {}});
+  raw_animation.tracks[0].translations.push_back({.2f, {}});
+  raw_animation.tracks[0].translations.push_back({.4f, {}});
+  raw_animation.tracks[0].translations.push_back({2.f, {}});
+  raw_animation.tracks[0].rotations.push_back({0.f, {}});
+  raw_animation.tracks[0].rotations.push_back({.1f, {}});
+  raw_animation.tracks[0].rotations.push_back({.3f, {}});
+  raw_animation.tracks[0].scales.push_back({0.f, {}});
+  raw_animation.tracks[0].scales.push_back({.1f, {}});
+  raw_animation.tracks[0].scales.push_back({.3f, {}});
+
+  raw_animation.tracks[1].translations.push_back({0.f, {}});
+  raw_animation.tracks[1].translations.push_back({.1f, {}});
+  raw_animation.tracks[1].translations.push_back({.4f, {}});
+  raw_animation.tracks[1].scales.push_back({1.f, {}});
+
+  raw_animation.duration = 1.f;
+  EXPECT_TRUE(ExtractTimePoints(raw_animation).empty());
+
+  raw_animation.duration = 2.f;
+  const ozz::vector<float>& time_points = ExtractTimePoints(raw_animation);
+  ASSERT_EQ(time_points.size(), 7u);
+  EXPECT_FLOAT_EQ(time_points[0], 0.f);
+  EXPECT_FLOAT_EQ(time_points[1], .1f);
+  EXPECT_FLOAT_EQ(time_points[2], .2f);
+  EXPECT_FLOAT_EQ(time_points[3], .3f);
+  EXPECT_FLOAT_EQ(time_points[4], .4f);
+  EXPECT_FLOAT_EQ(time_points[5], 1.f);
+  EXPECT_FLOAT_EQ(time_points[6], 2.f);
+}

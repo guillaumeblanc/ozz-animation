@@ -49,8 +49,6 @@ namespace animation {
 // Translation values are stored as half precision floats with 16 bits per
 // component.
 struct OZZ_ANIMATION_DLL Float3Key {
-  float ratio;
-  uint16_t previous;
   uint16_t value[3];
 };
 
@@ -66,18 +64,14 @@ struct OZZ_ANIMATION_DLL Float3Key {
 // the quaternion and restores the largest. The 3 smallest can be pre-multiplied
 // by sqrt(2) to gain some precision indeed.
 //
-// Quantization could be reduced to 11-11-10 bits as often used for animation
-// key frames, but in this case RotationKey structure would induce 16 bits of
-// padding.
 struct OZZ_ANIMATION_DLL QuaternionKey {
-  float ratio;
-  uint16_t previous : 13;
+  uint16_t empty : 13;
   uint16_t largest : 2;  // The largest component of the quaternion.
   uint16_t sign : 1;     // The sign of the largest component. 1 for negative.
   int16_t value[3];      // The quantized value of the 3 smallest components.
 };
 
-enum Constants { kMaxPreviousOffset = (1 << 13) - 1 };
+enum Constants { kMaxPreviousOffset = (1 << 16) - 1 };
 
 }  // namespace animation
 }  // namespace ozz

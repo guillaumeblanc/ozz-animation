@@ -88,14 +88,44 @@ class OZZ_ANIMATION_DLL Animation {
   // Gets animation name.
   const char* name() const { return name_ ? name_ : ""; }
 
+  // Gets the buffer of time points.
+  span<const float> timepoints() const { return timepoints_; }
+
+  template <typename _Ty>
+  struct Component {
+    typedef _Ty value_type;
+
+    // Implicit conversion to const _Ty.
+    operator Component<const _Ty>() const {
+      return {ratios, previouses, values};
+    }
+
+    size_t size_bytes() const {
+      return ratios.size_bytes() + previouses.size_bytes() +
+             values.size_bytes();
+    }
+
+    // Indices to timepoints. uint8_t or uint16_t depending on timepoints size.
+    span<char> ratios;
+
+    // Offsets from the previous keyframe of the same track.
+    span<uint16_t> previouses;
+
+    // Keyframe values
+    span<_Ty> values;
+  };
+
   // Gets the buffer of translations keys.
-  span<const Float3Key> translations() const { return translations_; }
+  typedef Component<const Float3Key> Translations;
+  Translations translations() const { return translations_; }
 
   // Gets the buffer of rotation keys.
-  span<const QuaternionKey> rotations() const { return rotations_; }
+  typedef Component<const QuaternionKey> Rotations;
+  Rotations rotations() const { return rotations_; }
 
   // Gets the buffer of scale keys.
-  span<const Float3Key> scales() const { return scales_; }
+  typedef Component<const Float3Key> Scales;
+  Scales scales() const { return scales_; }
 
   // Get the estimated animation's size in bytes.
   size_t size() const;
@@ -110,8 +140,14 @@ class OZZ_ANIMATION_DLL Animation {
   friend class offline::AnimationBuilder;
 
   // Internal destruction function.
-  void Allocate(size_t _name_len, size_t _translation_count,
-                size_t _rotation_count, size_t _scale_count);
+  struct AllocateParams {
+    size_t name_len;
+    size_t timepoints;
+    size_t translations;
+    size_t rotations;
+    size_t scales;
+  };
+  void Allocate(const AllocateParams& _params);
   void Deallocate();
 
   // Duration of the animation clip.
@@ -125,14 +161,16 @@ class OZZ_ANIMATION_DLL Animation {
   char* name_;
 
   // Stores all translation/rotation/scale keys begin and end of buffers.
-  span<Float3Key> translations_;
-  span<QuaternionKey> rotations_;
-  span<Float3Key> scales_;
+  span<float> timepoints_;
+
+  Component<Float3Key> translations_;
+  Component<QuaternionKey> rotations_;
+  Component<Float3Key> scales_;
 };
 }  // namespace animation
 
 namespace io {
-OZZ_IO_TYPE_VERSION(7, animation::Animation)
+OZZ_IO_TYPE_VERSION(8, animation::Animation)
 OZZ_IO_TYPE_TAG("ozz-animation", animation::Animation)
 }  // namespace io
 }  // namespace ozz
