@@ -415,7 +415,7 @@ unique_ptr<Animation> AnimationBuilder::operator()(
       BuildTimePoints(sorting_translations, sorting_rotations, sorting_scales);
 
   // Maximum time points reached.
-  if (time_points.size() >= std::numeric_limits<uint16_t>::max()) {
+  if (time_points.size() > std::numeric_limits<uint16_t>::max()) {
     return nullptr;
   }
 
