@@ -157,26 +157,25 @@ class OZZ_ANIMATION_DLL SamplingJob::Context {
   // The number of soa tracks that can store this context.
   int max_soa_tracks_;
 
-  // Soa hot data to interpolate.
-  internal::InterpSoaFloat3* soa_translations_;
-  internal::InterpSoaQuaternion* soa_rotations_;
-  internal::InterpSoaFloat3* soa_scales_;
+  template <typename _Ty>
+  struct Component {
+    // SoA hot decompressed data to interpolate.
+    span<_Ty> interp;
 
-  // Points to the keys in the animation that are valid for the current time
-  // ratio.
-  int* translation_cache_;
-  int* rotation_cache_;
-  int* scale_cache_;
+    // Points to the keys in the animation that are valid for the current time
+    // ratio.
+    span<uint32_t> cache;
 
-  // Current cursors in the animation. 0 means that the context is invalid.
-  int translation_cursor_;
-  int rotation_cursor_;
-  int scale_cursor_;
+    // Outdated soa entries. One bit per soa entry (32 joints per byte).
+    span<byte> outdated;
 
-  // Outdated soa entries. One bit per soa entry (32 joints per byte).
-  uint8_t* outdated_translations_;
-  uint8_t* outdated_rotations_;
-  uint8_t* outdated_scales_;
+    // Next key to process in the animation.
+    uint32_t next;
+  };
+
+  Component<internal::InterpSoaFloat3> translations_;
+  Component<internal::InterpSoaQuaternion> rotations_;
+  Component<internal::InterpSoaFloat3> scales_;
 };
 }  // namespace animation
 }  // namespace ozz
