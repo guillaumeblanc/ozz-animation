@@ -126,6 +126,29 @@ class ImmediatePTCShader : public Shader {
             GLsizei _tex_offset, GLsizei _color_stride, GLsizei _color_offset);
 };
 
+class PointsShader : public Shader {
+ public:
+  PointsShader() {}
+  virtual ~PointsShader() {}
+
+  // Constructs the shader.
+  // Returns nullptr if shader compilation failed or a valid Shader pointer on
+  // success. The shader must then be deleted using default allocator Delete
+  // function.
+  static ozz::unique_ptr<PointsShader> Build();
+
+  // Binds the shader.
+  struct GenericAttrib {
+    GLint color;
+    GLint size;
+  };
+  GenericAttrib Bind(const math::Float4x4& _model,
+                     const math::Float4x4& _view_proj, GLsizei _pos_stride,
+                     GLsizei _pos_offset, GLsizei _color_stride,
+                     GLsizei _color_offset, GLsizei _size_stride,
+                     GLsizei _size_offset, bool _screen_space);
+};
+
 class SkeletonShader : public Shader {
  public:
   SkeletonShader() {}
