@@ -1395,7 +1395,7 @@ bool RendererImpl::DrawSkinnedMesh(
     const Mesh& _mesh, const span<math::Float4x4> _skinning_matrices,
     const ozz::math::Float4x4& _transform, const Options& _options) {
   // Forward to DrawMesh function is skinning is disabled.
-  if (_options.skip_skinning) {
+  if (_options.skip_skinning || !_mesh.skinned()) {
     return DrawMesh(_mesh, _transform, _options);
   }
 
