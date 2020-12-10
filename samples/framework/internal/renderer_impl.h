@@ -59,7 +59,6 @@
 
 // Include features as extentions
 #include "GL/glext.h"
-
 #include "framework/renderer.h"
 #include "ozz/base/containers/vector.h"
 #include "ozz/base/memory/unique_ptr.h"
@@ -91,6 +90,7 @@ namespace sample {
 namespace internal {
 class Camera;
 class Shader;
+class PointsShader;
 class SkeletonShader;
 class AmbientShader;
 class AmbientTexturedShader;
@@ -118,6 +118,12 @@ class RendererImpl : public Renderer {
                            ozz::span<const ozz::math::Float4x4> _matrices,
                            const ozz::math::Float4x4& _transform,
                            bool _draw_joints);
+
+  virtual bool DrawPointsIm(
+      const ozz::span<const ozz::math::Float3>& _positions,
+      const ozz::span<const float>& _sizes,
+      const ozz::span<const Color>& _colors,
+      const ozz::math::Float4x4& _transform, bool _round, bool _screen_space);
 
   virtual bool DrawBoxIm(const ozz::math::Box& _box,
                          const ozz::math::Float4x4& _transform,
@@ -241,6 +247,7 @@ class RendererImpl : public Renderer {
   ozz::unique_ptr<AmbientShader> ambient_shader;
   ozz::unique_ptr<AmbientTexturedShader> ambient_textured_shader;
   ozz::unique_ptr<AmbientShaderInstanced> ambient_shader_instanced;
+  ozz::unique_ptr<PointsShader> points_shader;
 
   // Checkered texture
   unsigned int checkered_texture_;

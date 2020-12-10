@@ -132,6 +132,12 @@ bool RendererImpl::Initialize() {
     }
   }
 
+  // Instantiate instanced ambient rendering shader.
+  points_shader = PointsShader::Build();
+  if (!points_shader) {
+    return false;
+  }
+
   return true;
 }
 
@@ -617,6 +623,82 @@ bool RendererImpl::DrawPosture(const ozz::animation::Skeleton& _skeleton,
   } else {
     DrawPosture_Impl(_transform, uniforms, instance_count, _draw_joints);
   }
+
+  return true;
+}
+
+bool RendererImpl::DrawPointsIm(
+    const ozz::span<const ozz::math::Float3>& _positions,
+    const ozz::span<const float>& _sizes, const ozz::span<const Color>& _colors,
+    const ozz::math::Float4x4& _transform, bool _round, bool _screen_space) {
+  // Early out if no instance to render.
+  if (_positions.size() == 0) {
+    return true;
+  }
+
+  // Sizes and colors must be of size 1 or equal to _positions' size.
+  if (_sizes.size() != 1 && _sizes.size() != _sizes.size()) {
+    return false;
+  }
+  if (_colors.size() != 1 && _colors.size() != _positions.size()) {
+    return false;
+  }
+
+  const GLsizei positions_size = static_cast<GLsizei>(_positions.size_bytes());
+  const GLsizei colors_size = static_cast<GLsizei>(
+      _colors.size_bytes() == 1 ? 0 : _colors.size_bytes());
+  const GLsizei sizes_size =
+      static_cast<GLsizei>(_sizes.size() == 1 ? 0 : _sizes.size_bytes());
+  const GLsizei buffer_size = positions_size + colors_size + sizes_size;
+  const GLsizei positions_offset = 0;
+  const GLsizei colors_offset = positions_offset + positions_size;
+  const GLsizei sizes_offset = colors_offset + colors_size;
+
+  // Reallocate vertex buffer.
+  GL(BindBuffer(GL_ARRAY_BUFFER, dynamic_array_bo_));
+  GL(BufferData(GL_ARRAY_BUFFER, buffer_size, nullptr, GL_STREAM_DRAW));
+
+  GL(BufferSubData(GL_ARRAY_BUFFER, positions_offset, positions_size,
+                   _positions.data()));
+  GL(BufferSubData(GL_ARRAY_BUFFER, colors_offset, colors_size,
+                   _colors.data()));
+  GL(BufferSubData(GL_ARRAY_BUFFER, sizes_offset, sizes_size, _sizes.data()));
+
+  // Square or round sprites. Beware msaa makes sprites round if GL_POINT_SPRITE
+  // isn't enabled
+  if (_round) {
+    GL(Enable(GL_POINT_SMOOTH));
+    GL(Disable(GL_POINT_SPRITE));
+  } else {
+    GL(Disable(GL_POINT_SMOOTH));
+    GL(Enable(GL_POINT_SPRITE));
+  }
+
+  // Size is managed in vertex shader side.
+  GL(Enable(GL_PROGRAM_POINT_SIZE));
+
+  const PointsShader::GenericAttrib attrib = points_shader->Bind(
+      _transform, camera()->view_proj(), 12, positions_offset, colors_size ? 4 : 0, colors_offset,
+                          sizes_size ? 4 : 0, sizes_offset, _screen_space);
+
+  GL(BindBuffer(GL_ARRAY_BUFFER, 0));
+
+  // Apply remaining general attributes
+  if (_colors.size() <= 1) {
+    const Color color = _colors.empty() ? kWhite : _colors[0];
+    GL(VertexAttrib4f(attrib.color, color.r / 255.f, color.g / 255.f,
+                      color.b / 255.f, color.a / 255.f));
+  }
+  if (_sizes.size() <= 1) {
+    const float size = _sizes.empty() ? 1.f : _sizes[0];
+    GL(VertexAttrib1f(attrib.size, size));
+  }
+
+  // Draws the mesh.
+  GL(DrawArrays(GL_POINTS, 0, static_cast<GLsizei>(_positions.size())));
+
+  // Unbinds.
+  points_shader->Unbind();
 
   return true;
 }
@@ -1313,7 +1395,7 @@ bool RendererImpl::DrawSkinnedMesh(
     const Mesh& _mesh, const span<math::Float4x4> _skinning_matrices,
     const ozz::math::Float4x4& _transform, const Options& _options) {
   // Forward to DrawMesh function is skinning is disabled.
-  if (_options.skip_skinning) {
+  if (_options.skip_skinning || !_mesh.skinned()) {
     return DrawMesh(_mesh, _transform, _options);
   }
 

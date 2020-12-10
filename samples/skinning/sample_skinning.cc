@@ -90,10 +90,11 @@ class SkinningSampleApplication : public ozz::sample::Application {
   // Samples animation, transforms to model space and renders.
   virtual bool OnDisplay(ozz::sample::Renderer* _renderer) {
     bool success = true;
+    const ozz::math::Float4x4 transform = ozz::math::Float4x4::identity();
 
     if (draw_skeleton_) {
-      success &= _renderer->DrawPosture(skeleton_, make_span(models_),
-                                        ozz::math::Float4x4::identity());
+      success &=
+          _renderer->DrawPosture(skeleton_, make_span(models_), transform);
     }
 
     if (draw_mesh_) {
@@ -109,8 +110,7 @@ class SkinningSampleApplication : public ozz::sample::Application {
 
         // Renders skin.
         success &= _renderer->DrawSkinnedMesh(
-            mesh, make_span(skinning_matrices_),
-            ozz::math::Float4x4::identity(), render_options_);
+            mesh, make_span(skinning_matrices_), transform, render_options_);
       }
     }
     return success;

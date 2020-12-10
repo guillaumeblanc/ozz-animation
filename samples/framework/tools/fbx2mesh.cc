@@ -25,12 +25,12 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
+#include <algorithm>
+#include <limits>
+
 #include "framework/mesh.h"
-
 #include "ozz/animation/offline/fbx/fbx.h"
-
 #include "ozz/animation/runtime/skeleton.h"
-
 #include "ozz/base/containers/map.h"
 #include "ozz/base/containers/vector.h"
 #include "ozz/base/io/archive.h"
@@ -39,13 +39,7 @@
 #include "ozz/base/maths/math_ex.h"
 #include "ozz/base/maths/simd_math.h"
 #include "ozz/base/memory/allocator.h"
-
 #include "ozz/options/options.h"
-
-#include <algorithm>
-#include <limits>
-
-#include "fbxsdk/utils/fbxgeometryconverter.h"
 
 // Declares command line options.
 OZZ_OPTIONS_DECLARE_STRING(file, "Specifies input file.", "", true)
@@ -504,19 +498,18 @@ bool BuildSkin(FbxMesh* _fbx_mesh,
     const int* ctrl_point_indices = cluster->GetControlPointIndices();
     const double* ctrl_point_weights = cluster->GetControlPointWeights();
     for (int cpi = 0; cpi < ctrl_point_index_count; ++cpi) {
-      const SkinMapping mapping = {joint,
-                                   static_cast<float>(ctrl_point_weights[cpi])};
-      if (mapping.weight <= 0.f) {
-        continue;
-      }
-
-      const int ctrl_point = ctrl_point_indices[cpi];
-      assert(ctrl_point < static_cast<int>(_remap.size()));
+      // It happens that weight is 0. In this case give the vertex a very small
+      // weight so normalization succeeds.
+      const float ctrl_point_weight =
+          static_cast<float>(ctrl_point_weights[cpi]);
+      const SkinMapping mapping = {
+          joint, ctrl_point_weight == 0.f ? 1e-9f : ctrl_point_weight};
 
       // remap.size() can be 0, skinned control point might not be used by any
       // polygon of the mesh. Sometimes, the mesh can have less points than at
       // the time of the skinning because a smooth operator was active when
       // skinning but has been deactivated during export.
+      const int ctrl_point = ctrl_point_indices[cpi];
       const ControlPointRemap& remap = _remap[ctrl_point];
       for (size_t v = 0; v < remap.size(); ++v) {
         vertex_skin_mappings[remap[v]].push_back(mapping);

@@ -1,6 +1,9 @@
 Next release
 ----------------------
 
+* Samples
+  - [sample_fbx2mesh] Supports vertices part of a skinned mesh but with a weight of 0.
+
 * Library
   - [animation] #103 Allows move constructor and assignment for ozz::animation::Skeleton, ozz::animation::Animation and ozz::animation::Track.
   - [animation] Renames SamplingCache to SamplingJob::Context.
