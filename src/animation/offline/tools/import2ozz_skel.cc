@@ -128,6 +128,7 @@ bool ImportSkeleton(const Json::Value& _config, OzzImporter* _importer,
   types.camera = types_config["camera"].asBool();
   types.geometry = types_config["geometry"].asBool();
   types.light = types_config["light"].asBool();
+  types.null = types_config["null"].asBool();
   types.any = types_config["any"].asBool();
 
   RawSkeleton raw_skeleton;
