@@ -99,9 +99,9 @@ class SkinningSampleApplication : public ozz::sample::Application {
 
     if (draw_mesh_) {
       // Builds skinning matrices, based on the output of the animation stage.
-      // The mesh might not use (aka be skinned by) all skeleton joints. We use
-      // the joint remapping table (available from the mesh object) to reorder
-      // model-space matrices and build skinning ones.
+      // The mesh might not use (aka be skinned by) all skeleton joints. We
+      // use the joint remapping table (available from the mesh object) to
+      // reorder model-space matrices and build skinning ones.
       for (const ozz::sample::Mesh& mesh : meshes_) {
         for (size_t i = 0; i < mesh.joint_remaps.size(); ++i) {
           skinning_matrices_[i] =
@@ -152,8 +152,8 @@ class SkinningSampleApplication : public ozz::sample::Application {
     // Computes the number of skinning matrices required to skin all meshes.
     // A mesh is skinned by only a subset of joints, so the number of skinning
     // matrices might be less that the number of skeleton joints.
-    // Mesh::joint_remaps is used to know how to order skinning matrices. So the
-    // number of matrices required is the size of joint_remaps.
+    // Mesh::joint_remaps is used to know how to order skinning matrices. So
+    // the number of matrices required is the size of joint_remaps.
     size_t num_skinning_matrices = 0;
     for (const ozz::sample::Mesh& mesh : meshes_) {
       num_skinning_matrices =
@@ -224,19 +224,26 @@ class SkinningSampleApplication : public ozz::sample::Application {
     // Expose mesh rendering options
     {
       // Rendering options.
-      static bool oc_open = false;
-      ozz::sample::ImGui::OpenClose oc(_im_gui, "Rendering options", &oc_open);
-      if (oc_open) {
+      static bool ocd_open = true;
+      ozz::sample::ImGui::OpenClose ocd(_im_gui, "Display options", &ocd_open);
+      if (ocd_open) {
         _im_gui->DoCheckBox("Draw skeleton", &draw_skeleton_);
         _im_gui->DoCheckBox("Draw mesh", &draw_mesh_);
 
-        _im_gui->DoCheckBox("Show texture", &render_options_.texture);
-        _im_gui->DoCheckBox("Show normals", &render_options_.normals);
-        _im_gui->DoCheckBox("Show tangents", &render_options_.tangents);
-        _im_gui->DoCheckBox("Show binormals", &render_options_.binormals);
-        _im_gui->DoCheckBox("Show colors", &render_options_.colors);
-        _im_gui->DoCheckBox("Wireframe", &render_options_.wireframe);
-        _im_gui->DoCheckBox("Skip skinning", &render_options_.skip_skinning);
+        static bool ocr_open = false;
+        ozz::sample::ImGui::OpenClose ocr(_im_gui, "Rendering options",
+                                         &ocr_open);
+        if (ocr_open) {
+          _im_gui->DoCheckBox("Show triangles", &render_options_.triangles);
+          _im_gui->DoCheckBox("Show texture", &render_options_.texture);
+          _im_gui->DoCheckBox("Show vertices", &render_options_.vertices);
+          _im_gui->DoCheckBox("Show normals", &render_options_.normals);
+          _im_gui->DoCheckBox("Show tangents", &render_options_.tangents);
+          _im_gui->DoCheckBox("Show binormals", &render_options_.binormals);
+          _im_gui->DoCheckBox("Show colors", &render_options_.colors);
+          _im_gui->DoCheckBox("Wireframe", &render_options_.wireframe);
+          _im_gui->DoCheckBox("Skip skinning", &render_options_.skip_skinning);
+        }
       }
     }
     return true;

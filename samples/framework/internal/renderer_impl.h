@@ -119,8 +119,8 @@ class RendererImpl : public Renderer {
                            const ozz::math::Float4x4& _transform,
                            bool _draw_joints);
 
-  virtual bool DrawPointsIm(
-      const ozz::span<const ozz::math::Float3>& _positions,
+  virtual bool DrawPoints(
+      const ozz::span<const float>& _positions,
       const ozz::span<const float>& _sizes,
       const ozz::span<const Color>& _colors,
       const ozz::math::Float4x4& _transform, bool _round, bool _screen_space);
