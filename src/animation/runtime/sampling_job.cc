@@ -66,7 +66,6 @@ bool SamplingJob::Validate() const {
   valid &= !output.empty();
 
   const int num_soa_tracks = animation->num_soa_tracks();
-  valid &= output.size() >= static_cast<size_t>(num_soa_tracks);
 
   // Tests cache size.
   valid &= cache->max_soa_tracks() >= num_soa_tracks;
@@ -312,7 +311,7 @@ bool SamplingJob::Run() const {
   assert(cache->max_soa_tracks() >= num_soa_tracks);
   cache->Step(*animation, anim_ratio);
 
-  // Fetch key frames from the animation to the cache a r = anim_ratio.
+  // Fetch key frames from the animation to the cache at r = anim_ratio.
   // Then updates outdated soa hot values.
   UpdateCacheCursor(anim_ratio, num_soa_tracks, animation->translations(),
                     &cache->translation_cursor_, cache->translation_keys_,
@@ -335,8 +334,11 @@ bool SamplingJob::Run() const {
                         cache->outdated_scales_, cache->soa_scales_,
                         &DecompressFloat3);
 
+  // only interp as much as we have output for.
+  const int num_soa_interp_tracks = math::Min(static_cast< int >(output.size()), num_soa_tracks);
+
   // Interpolates soa hot data.
-  Interpolates(anim_ratio, num_soa_tracks, cache->soa_translations_,
+  Interpolates(anim_ratio, num_soa_interp_tracks, cache->soa_translations_,
                cache->soa_rotations_, cache->soa_scales_, output.begin());
 
   return true;
