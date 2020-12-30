@@ -97,7 +97,7 @@ TEST(JobValidity, SamplingJob) {
     EXPECT_FALSE(job.Run());
   }
 
-  {  // Invalid job with smaller output.
+  {  // Invalid job with empty output.
     ozz::math::SoaTransform* output = nullptr;
     SamplingJob job;
     job.ratio =
@@ -107,6 +107,24 @@ TEST(JobValidity, SamplingJob) {
     job.output = ozz::span<ozz::math::SoaTransform>(output, size_t(0));
     EXPECT_FALSE(job.Validate());
     EXPECT_FALSE(job.Run());
+  }
+
+  { // valid job with output smaller than animation, but not empty.
+    RawAnimation big_raw_animation;
+    big_raw_animation.duration = 1.f;
+    big_raw_animation.tracks.resize(2);
+    ozz::unique_ptr<Animation> big_animation(builder(big_raw_animation));
+    ASSERT_TRUE(big_animation);
+
+    ozz::math::SoaTransform output[1];
+    SamplingJob job;
+    job.ratio =
+        2155.f;  // Any time ratio can be set, it's clamped in unit interval.
+    job.animation = big_animation.get();
+    job.context = &context;
+    job.output = output;
+    EXPECT_TRUE(job.Validate());
+    EXPECT_TRUE(job.Run());
   }
 
   {  // Valid job.
