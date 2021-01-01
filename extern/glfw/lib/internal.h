@@ -89,8 +89,13 @@ typedef struct {
 // glfw.h)
 //------------------------------------------------------------------------
 
-#include "platform.h"
-
+#if __APPLE__
+	#include "cocoa/platform.h"
+#elif WIN32
+	#include "win32/platform.h"
+#else
+	#include "x11/platform.h"
+#endif
 
 //------------------------------------------------------------------------
 // Parameters relating to the creation of the context and window but not
