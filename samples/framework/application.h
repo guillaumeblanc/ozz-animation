@@ -29,6 +29,7 @@
 #define OZZ_SAMPLES_FRAMEWORK_APPLICATION_H_
 
 #include <cstddef>
+
 #include "ozz/base/containers/string.h"
 #include "ozz/base/memory/unique_ptr.h"
 
@@ -78,36 +79,47 @@ class Application {
   int Run(int _argc, const char** _argv, const char* _version,
           const char* _title);
 
+ protected:
+  // Allows application to convert from world space to screen coordinates.
+  math::Float2 WorldToScreen(const math::Float3& _world) const;
+
  private:
   // Provides initialization event to the inheriting application. Called while
   // the help screen is being displayed.
   // OnInitialize can return false which will in turn skip the display loop and
   // exit the application with EXIT_FAILURE. Note that OnDestroy is called in
   // any case.
-  virtual bool OnInitialize() = 0;
+  virtual bool OnInitialize();
 
   // Provides de-initialization event to the inheriting application.
   // OnDestroy is called even if OnInitialize failed and returned an error.
-  virtual void OnDestroy() = 0;
+  virtual void OnDestroy();
 
   // Provides update event to the inheriting application.
   // _dt is the elapsed time (in seconds) since the last update.
   // _time is application time including scaling (aka accumulated _dt).
   // OnUpdate can return false which will in turn stop the loop and exit the
   // application with EXIT_FAILURE. Note that OnDestroy is called in any case.
-  virtual bool OnUpdate(float _dt, float _time) = 0;
+  virtual bool OnUpdate(float _dt, float _time);
 
   // Provides immediate mode gui display event to the inheriting application.
   // This function is called in between the OnDisplay and swap functions.
   // OnGui can return false which will in turn stop the loop and exit the
   // application with EXIT_FAILURE. Note that OnDestroy is called in any case.
-  virtual bool OnGui(ImGui* _im_gui) = 0;
+  virtual bool OnGui(ImGui* _im_gui);
+
+  // Provides immediate mode floating gui display event to the inheriting
+  // application. Floating gui allows to render a Gui anywere one screen. User
+  // must provide the form. OnFloatingGui can return false which will in turn
+  // stop the loop and exit the application with EXIT_FAILURE. Note that
+  // OnDestroy is called in any case.
+  virtual bool OnFloatingGui(ImGui* _im_gui);
 
   // Provides display event to the inheriting application.
   // This function is called in between the clear and swap functions.
   // OnDisplay can return false which will in turn stop the loop and exit the
   // application with EXIT_FAILURE. Note that OnDestroy is called in any case.
-  virtual bool OnDisplay(Renderer* _renderer) = 0;
+  virtual bool OnDisplay(Renderer* _renderer);
 
   // Initial camera values. These will only be considered if function returns
   // true;
@@ -125,7 +137,7 @@ class Application {
   // the camera to frame all the scene.
   // This function is never called before a first OnUpdate.
   // If _bound is set to "invalid", then camera won't be updated.
-  virtual void GetSceneBounds(math::Box* _bound) const = 0;
+  virtual void GetSceneBounds(math::Box* _bound) const;
 
   // Implements framework internal loop function.
   bool Loop();
