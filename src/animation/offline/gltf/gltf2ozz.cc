@@ -430,8 +430,8 @@ bool CreateNodeTransform(const tinygltf::Node& _node,
     ozz::math::SimdFloat4 translation, rotation, scale;
     if (ToAffine(matrix, &translation, &rotation, &scale)) {
       ozz::math::Store3PtrU(translation, &_transform->translation.x);
-      ozz::math::StorePtrU(translation, &_transform->rotation.x);
-      ozz::math::Store3PtrU(translation, &_transform->scale.x);
+      ozz::math::StorePtrU(rotation, &_transform->rotation.x);
+      ozz::math::Store3PtrU(scale, &_transform->scale.x);
       return true;
     }
 
