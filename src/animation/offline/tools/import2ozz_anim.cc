@@ -373,7 +373,7 @@ bool ImportAnimations(const Json::Value& _config, OzzImporter* _importer,
 
   // Loop though all existing animations, and export those who match
   // configuration.
-  for (Json::ArrayIndex i = 0; success && i < animations_config.size(); ++i) {
+  for (Json::ArrayIndex i = 0; i < animations_config.size(); ++i) {
     const Json::Value& animation_config = animations_config[i];
     const char* clip_match = animation_config["clip"].asCString();
 
@@ -385,19 +385,19 @@ bool ImportAnimations(const Json::Value& _config, OzzImporter* _importer,
     }
 
     bool matched = false;
-    for (size_t j = 0; success && j < import_animation_names.size(); ++j) {
+    for (size_t j = 0; j < import_animation_names.size(); ++j) {
       const char* animation_name = import_animation_names[j].c_str();
       if (!strmatch(animation_name, clip_match)) {
         continue;
       }
 
       matched = true;
-      success = ProcessAnimation(*_importer, animation_name, *skeleton,
+      bool anisuccess = ProcessAnimation(*_importer, animation_name, *skeleton,
                                  animation_config, _endianness);
 
       const Json::Value& tracks_config = animation_config["tracks"];
-      for (Json::ArrayIndex t = 0; success && t < tracks_config.size(); ++t) {
-        success = ProcessTracks(*_importer, animation_name, *skeleton,
+      for (Json::ArrayIndex t = 0; anisuccess && t < tracks_config.size(); ++t) {
+        anisuccess = ProcessTracks(*_importer, animation_name, *skeleton,
                                 tracks_config[t], _endianness);
       }
     }
