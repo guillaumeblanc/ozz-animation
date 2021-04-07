@@ -371,6 +371,9 @@ bool ImportAnimations(const Json::Value& _config, OzzImporter* _importer,
       LoadSkeleton(skeleton_config["filename"].asCString()));
   success &= skeleton.get() != nullptr;
 
+  if (!success)
+    return false;
+
   // Loop though all existing animations, and export those who match
   // configuration.
   for (Json::ArrayIndex i = 0; i < animations_config.size(); ++i) {
