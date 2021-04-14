@@ -387,38 +387,44 @@ bool ImportAnimations(const Json::Value& _config, OzzImporter* _importer,
       continue;
     }
 
-    size_t num_valid_animation = 0;
-    bool matched = false;
+    size_t num_not_clip_animation = 0, num_valid_animation = 0;
     for (size_t j = 0; j < import_animation_names.size(); ++j) {
       const char* animation_name = import_animation_names[j].c_str();
       if (!strmatch(animation_name, clip_match)) {
         continue;
       }
-
-      matched = true;
-      bool anisuccess = ProcessAnimation(*_importer, animation_name, *skeleton,
-                                 animation_config, _endianness);
-
-      const Json::Value& tracks_config = animation_config["tracks"];
-      for (Json::ArrayIndex t = 0; anisuccess && t < tracks_config.size(); ++t) {
-        anisuccess = ProcessTracks(*_importer, animation_name, *skeleton,
-                                tracks_config[t], _endianness);
-      }
-
-      if (anisuccess){
+      ++num_not_clip_animation;
+      const bool anisuccess = ProcessAnimation(*_importer, animation_name, *skeleton,
+                                animation_config, _endianness);
+      if(anisuccess){
         ++num_valid_animation;
       }
 
-      success &= anisuccess;
+      size_t num_valid_track = 0;
+      const Json::Value& tracks_config = animation_config["tracks"];
+      for (Json::ArrayIndex t = 0; t < tracks_config.size(); ++t) {
+        if (ProcessTracks(*_importer, animation_name, *skeleton,
+                                tracks_config[t], _endianness)){
+          ++num_valid_track;
+        }
+      }
+
+      if (num_valid_track != tracks_config.size()){
+        ozz::log::Log() << "One of track failed when import: \"" << animation_name
+                        << "\"" << std::endl;
+        success = false;
+      }
     }
     // Don't display any message if no animation is supposed to be imported.
-    if (!matched && *clip_match != 0) {
+    if (0 == num_not_clip_animation && *clip_match != 0) {
       ozz::log::Log() << "No matching animation found for \"" << clip_match
                       << "\"." << std::endl;
     }
 
-    if (num_valid_animation != import_animation_names.size()){
-      ozz::log::Log() << "One of animation is bad." << std::endl;
+    if (num_valid_animation != num_not_clip_animation){
+      ozz::log::Log() << "One of animation failed when import, animation index: \"" << i
+                      << "\"" << std::endl;
+      success = false;
     }
   }
 
