@@ -403,6 +403,8 @@ bool ImportAnimations(const Json::Value& _config, OzzImporter* _importer,
         anisuccess = ProcessTracks(*_importer, animation_name, *skeleton,
                                 tracks_config[t], _endianness);
       }
+
+      success &= anisuccess;
     }
     // Don't display any message if no animation is supposed to be imported.
     if (!matched && *clip_match != 0) {
