@@ -19,6 +19,7 @@ file(WRITE "${ozz_temp_directory}/good.content1" "good content 1")
 file(WRITE "${ozz_temp_directory}/good.content2" "good content 2")
 file(WRITE "${ozz_temp_directory}/good.content_renamed" "good content renamed")
 file(WRITE "${ozz_temp_directory}/non_unique_names.content" "good content but not unique joint names")
+file(WRITE "${ozz_temp_directory}/partial.good.content0" "partial good content")
 
 # Creates config test files.
 file(WRITE "${ozz_temp_directory}/valid_config.json" "{\"skeleton\":{\"filename\":\"${ozz_temp_directory}/skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"${ozz_temp_directory}/animation_valid_config.ozz\"}]}")
@@ -179,6 +180,9 @@ set_tests_properties(test2ozz_anim_no_match PROPERTIES PASS_REGULAR_EXPRESSION "
 
 add_test(NAME test2ozz_anim_additive_wrong_ref COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"skeleton\":{\"filename\":\"${ozz_temp_directory}/skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"${ozz_temp_directory}/animation_${CMAKE_CURRENT_LIST_LINE}.ozz\",\"additive\":true,\"additive_reference\":\"anim\"}]}")
 set_tests_properties(test2ozz_anim_additive_wrong_ref PROPERTIES PASS_REGULAR_EXPRESSION "Invalid additive reference pose \"anim\"." DEPENDS test2ozz_skel_simple)
+
+add_test(NAME test2ozz_anim_partial_good_content COMMAND test2ozz "--file=${ozz_temp_directory}/partial.good.content0" "--config={\"skeleton\":{\"filename\":\"${ozz_temp_directory}/skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"${ozz_temp_directory}/anim_good_part_content.ozz\"}]}")
+set_tests_properties(test2ozz_anim_partial_good_content PROPERTIES PASS_REGULAR_EXPRESSION "One of animation is bad." DEPENDS test2ozz_skel_simple)
 
 # Run test2ozz track import failing tests
 #----------------------------

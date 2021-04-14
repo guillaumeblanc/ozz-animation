@@ -387,6 +387,7 @@ bool ImportAnimations(const Json::Value& _config, OzzImporter* _importer,
       continue;
     }
 
+    size_t num_valid_animation = 0;
     bool matched = false;
     for (size_t j = 0; j < import_animation_names.size(); ++j) {
       const char* animation_name = import_animation_names[j].c_str();
@@ -404,12 +405,20 @@ bool ImportAnimations(const Json::Value& _config, OzzImporter* _importer,
                                 tracks_config[t], _endianness);
       }
 
+      if (anisuccess){
+        ++num_valid_animation;
+      }
+
       success &= anisuccess;
     }
     // Don't display any message if no animation is supposed to be imported.
     if (!matched && *clip_match != 0) {
       ozz::log::Log() << "No matching animation found for \"" << clip_match
                       << "\"." << std::endl;
+    }
+
+    if (num_valid_animation != import_animation_names.size()){
+      ozz::log::Log() << "One of animation is bad." << std::endl;
     }
   }
 
