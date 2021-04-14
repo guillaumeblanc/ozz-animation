@@ -290,6 +290,21 @@ class TestConverter : public ozz::animation::offline::OzzImporter {
     (void)_sampling_rate;
     (void)_track;
 
+    {
+      char buffer[256];
+      const char content[] = "partial good content";
+      if (strcmp(_animation_name, "good") == 0 ||
+          strcmp(_animation_name, "bad") == 0) {
+          file_->Seek(0, ozz::io::File::kSet);
+          bool valid = file_->Read(buffer, sizeof(buffer)) >= sizeof(content) - 1;
+          valid &= memcmp(buffer, content, sizeof(content) - 1) == 0;
+          if (valid){
+            return !((strcmp(_node_name, "joint0") == 0) &&
+                     (strcmp(_track_name, "property0") == 0));
+          }
+      }
+    }
+
     // joint2 doesn't have the property
     bool found = (strcmp(_node_name, "joint0") == 0 ||
                   strcmp(_node_name, "joint1") == 0) &&

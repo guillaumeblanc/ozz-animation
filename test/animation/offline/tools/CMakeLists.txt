@@ -182,7 +182,7 @@ add_test(NAME test2ozz_anim_additive_wrong_ref COMMAND test2ozz "--file=${ozz_te
 set_tests_properties(test2ozz_anim_additive_wrong_ref PROPERTIES PASS_REGULAR_EXPRESSION "Invalid additive reference pose \"anim\"." DEPENDS test2ozz_skel_simple)
 
 add_test(NAME test2ozz_anim_partial_good_content COMMAND test2ozz "--file=${ozz_temp_directory}/partial.good.content0" "--config={\"skeleton\":{\"filename\":\"${ozz_temp_directory}/skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"${ozz_temp_directory}/anim_good_part_content.ozz\"}]}")
-set_tests_properties(test2ozz_anim_partial_good_content PROPERTIES PASS_REGULAR_EXPRESSION "One of animation is bad." DEPENDS test2ozz_skel_simple)
+set_tests_properties(test2ozz_anim_partial_good_content PROPERTIES PASS_REGULAR_EXPRESSION "One of animation failed when import" DEPENDS test2ozz_skel_simple)
 
 # Run test2ozz track import failing tests
 #----------------------------
@@ -199,6 +199,9 @@ set_tests_properties(test2ozz_anim_track_bad_type PROPERTIES PASS_REGULAR_EXPRES
 add_test(NAME test2ozz_anim_track_invalid_type COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"skeleton\":{\"filename\":\"${ozz_temp_directory}/skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"${ozz_temp_directory}/animation_${CMAKE_CURRENT_LIST_LINE}.ozz\",\"tracks\":[{\"properties\":[{\"joint_name\":\"joint1\",\"property_name\":\"property2\",\"type\":\"1\",\"filename\":\"${ozz_temp_directory}/anim_should_not_exist.ozz\"}]}]}]}")
 set_tests_properties(test2ozz_anim_track_invalid_type PROPERTIES PASS_REGULAR_EXPRESSION "Invalid value \"1\" for import track type property." DEPENDS test2ozz_skel_simple)
 
+add_test(NAME test2ozz_anim_track_import_failed COMMAND test2ozz "--file=${ozz_temp_directory}/partial.good.content0" "--config={\"skeleton\":{\"filename\":\"${ozz_temp_directory}/skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"${ozz_temp_directory}/anim_good_part_content.ozz\",\"tracks\":[{\"properties\":[{\"joint_name\":\"joint0\",\"property_name\":\"property0\",\"type\":\"float1\",\"filename\":\"${ozz_temp_directory}/anim_should_not_exist.ozz\"}]}]}]}")
+set_tests_properties(test2ozz_anim_track_import_failed PROPERTIES PASS_REGULAR_EXPRESSION "One of track failed when import" DEPENDS test2ozz_skel_simple)
+
 # Ensures nothing was outputted.
 add_test(NAME test2ozz_anim_output COMMAND ${CMAKE_COMMAND} -E copy "${ozz_temp_directory}/anim_should_not_exist.ozz" "${ozz_temp_directory}/anim_should_not_exist_too.ozz")
 set_tests_properties(test2ozz_anim_output PROPERTIES WILL_FAIL true)
@@ -213,7 +216,8 @@ set_tests_properties(test2ozz_anim_output PROPERTIES
            test2ozz_anim_track_bad_joint_name
            test2ozz_anim_track_bad_ppt_name
            test2ozz_anim_track_bad_type
-           test2ozz_anim_track_invalid_type")
+           test2ozz_anim_track_invalid_type
+           test2ozz_anim_track_import_failed")
 
 # Run test2ozz animation import passing tests
 #----------------------------
