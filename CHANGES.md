@@ -12,6 +12,7 @@ Next release
 * Build pipeline
   - #59 Adds support for shared libraries on Windows (dll), Linux and MacOS platforms.
   - #111 Removes _GLIBCXX_DEBUG from default build settings as it can create incompatibilities when using prebuilt packages.
+  - #122 Adds support for gcc 11 compiler.
 
 Release version 0.13.0
 ----------------------
