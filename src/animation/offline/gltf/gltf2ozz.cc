@@ -521,30 +521,38 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
     return success;
   }
 
-  // Given a skin find which of its joints is the skeleton root and return it
-  // returns -1 if the skin has no associated joints
-  int FindSkinRootJointIndex(const tinygltf::Skin& skin) {
-    if (skin.joints.empty()) {
-      return -1;
-    }
-
-    if (skin.skeleton != -1) {
-      return skin.skeleton;
-    }
-
-    ozz::map<int, int> parents;
-    for (int node : skin.joints) {
+  // Find all unique root joints of skeletons used by given skins and add them
+  // to `roots`
+  void FindSkinRootJointIndices(const ozz::vector<tinygltf::Skin>& skins,
+                                ozz::vector<int>& roots) {
+    static constexpr int no_parent = -1;
+    static constexpr int visited = -2;
+    ozz::vector<int> parents(m_model.nodes.size(), no_parent);
+    for (int node = 0; node < static_cast<int>(m_model.nodes.size()); node++) {
       for (int child : m_model.nodes[node].children) {
         parents[child] = node;
       }
     }
 
-    int root = skin.joints[0];
-    while (parents.find(root) != parents.end()) {
-      root = parents[root];
-    }
+    for (const tinygltf::Skin& skin : skins) {
+      if (skin.joints.empty()) {
+        continue;
+      }
 
-    return root;
+      if (skin.skeleton != -1) {
+        parents[skin.skeleton] = visited;
+        roots.push_back(skin.skeleton);
+        continue;
+      }
+
+      int root = skin.joints[0];
+      while (root != visited && parents[root] != no_parent) {
+        root = parents[root];
+      }
+      if (root != visited) {
+        roots.push_back(root);
+      }
+    }
   }
 
   bool Import(ozz::animation::offline::RawSkeleton* _skeleton,
@@ -591,14 +599,8 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
                         << std::endl;
       }
 
-      // Uses all skins root
-      for (auto& skin : skins) {
-        const int root = FindSkinRootJointIndex(skin);
-        if (root == -1) {
-          continue;
-        }
-        roots.push_back(root);
-      }
+      // Uses all skins roots.
+      FindSkinRootJointIndices(skins, roots);
     }
 
     // Remove nodes listed multiple times.
