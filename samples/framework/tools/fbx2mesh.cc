@@ -553,6 +553,11 @@ bool BuildSkin(FbxMesh* _fbx_mesh,
 
     // Stores joint's indices and weights.
     size_t influence_count = inv.size();
+    if (influence_count == 0) {
+      vertex_skin_mappings[i].push_back({0,1.f});
+      influence_count = 1;
+    }
+
     if (influence_count > 0) {
       size_t j = 0;
       for (; j < influence_count; ++j) {
@@ -572,11 +577,12 @@ bool BuildSkin(FbxMesh* _fbx_mesh,
   }
 
   if (vertex_isnt_influenced) {
-    ozz::log::Err() << "At least one vertex isn't influenced by any joints."
-                    << std::endl;
+    ozz::log::LogV() << "At least one vertex isn't influenced by any joints. "
+                        "It's been reassigned to root joint."
+                     << std::endl;
   }
 
-  return !vertex_isnt_influenced;
+  return true;
 }
 
 // Limits the number of joints influencing a vertex.
