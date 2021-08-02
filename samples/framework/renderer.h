@@ -93,6 +93,17 @@ class Renderer {
                            const ozz::math::Float4x4& _transform,
                            bool _draw_joints = true) = 0;
 
+  // Renders points.
+  // _sizes and _colors must be either of ize 1 or equal to _positions' size.
+  // If _screen_space is true, then points size is fixed in screen-space,
+  // otherwise it changes with screen depth.
+  virtual bool DrawPoints(
+      const ozz::span<const float>& _positions,
+      const ozz::span<const float>& _sizes,
+      const ozz::span<const Color>& _colors,
+      const ozz::math::Float4x4& _transform, bool _round = true,
+      bool _screen_space = false) = 0;
+
   // Renders a box at a specified location.
   // The 2 slots of _colors array respectively defines color of the filled
   // faces and color of the box outlines.
@@ -116,7 +127,9 @@ class Renderer {
       Color _color) = 0;
 
   struct Options {
+    bool triangles;  // Show triangles mesh.
     bool texture;    // Show texture (default checkered texture).
+    bool vertices;   // Show vertices as points.
     bool normals;    // Show normals.
     bool tangents;   // Show tangents.
     bool binormals;  // Show binormals, computed from the normal and tangent.
@@ -125,7 +138,9 @@ class Renderer {
     bool skip_skinning;  // Show texture (default checkered texture).
 
     Options()
-        : texture(false),
+        : triangles(true),
+          texture(false),
+          vertices(false),
           normals(false),
           tangents(false),
           binormals(false),
@@ -133,9 +148,12 @@ class Renderer {
           wireframe(false),
           skip_skinning(false) {}
 
-    Options(bool _texture, bool _normals, bool _tangents, bool _binormals,
-            bool _colors, bool _wireframe, bool _skip_skinning)
-        : texture(_texture),
+    Options(bool _triangles, bool _texture, bool _vertices, bool _normals,
+            bool _tangents, bool _binormals, bool _colors, bool _wireframe,
+            bool _skip_skinning)
+        : triangles(_triangles),
+          texture(_texture),
+          vertices(_vertices),
           normals(_normals),
           tangents(_tangents),
           binormals(_binormals),

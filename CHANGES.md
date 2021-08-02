@@ -1,6 +1,9 @@
 Next release
 ----------------------
 
+* Samples
+  - [sample_fbx2mesh] Supports vertices part of a skinned mesh but with a weight of 0.
+
 * Library
   - [animation] #103 Allows move constructor and assignment for ozz::animation::Skeleton, ozz::animation::Animation and ozz::animation::Track.
   - [animation] Renames SamplingCache to SamplingJob::Context.
@@ -9,6 +12,8 @@ Next release
 
 * Build pipeline
   - #59 Adds support for shared libraries on Windows (dll), Linux and MacOS platforms.
+  - #111 Removes _GLIBCXX_DEBUG from default build settings as it can create incompatibilities when using prebuilt packages.
+  - #122 Adds support for gcc 11 compiler.
 
 Release version 0.13.0
 ----------------------

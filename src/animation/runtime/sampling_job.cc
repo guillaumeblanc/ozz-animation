@@ -67,7 +67,6 @@ bool SamplingJob::Validate() const {
   valid &= !output.empty();
 
   const int num_soa_tracks = animation->num_soa_tracks();
-  valid &= output.size() >= static_cast<size_t>(num_soa_tracks);
 
   // Tests context size.
   valid &= context->max_soa_tracks() >= num_soa_tracks;
@@ -382,10 +381,10 @@ inline void DecompressQuaternion(const QuaternionKey& _k0,
 }
 
 void Interpolates(float _anim_ratio, size_t _num_soa_tracks,
-                  const span<const internal::InterpSoaFloat3> _translations,
-                  const span<const internal::InterpSoaQuaternion> _rotations,
-                  const span<const internal::InterpSoaFloat3> _scales,
-                  const span<math::SoaTransform> _output) {
+                  const span<const internal::InterpSoaFloat3>& _translations,
+                  const span<const internal::InterpSoaQuaternion>& _rotations,
+                  const span<const internal::InterpSoaFloat3>& _scales,
+                  const span<math::SoaTransform>& _output) {
   const math::SimdFloat4 anim_ratio = math::simd_float4::Load1(_anim_ratio);
   for (size_t i = 0; i < _num_soa_tracks; ++i) {
     // Prepares interpolation coefficients.
@@ -431,7 +430,7 @@ bool SamplingJob::Run() const {
   // Step the context to this potentially new animation and ratio.
   context->Step(*animation, anim_ratio);
 
-  // Fetch key frames from the animation to the context a r = anim_ratio.
+  // Fetch key frames from the animation to the context at r = anim_ratio.
   // Then updates outdated soa hot values.
   const size_t num_soa_tracks =
       static_cast<size_t>(animation->num_soa_tracks());
@@ -460,9 +459,13 @@ bool SamplingJob::Run() const {
              context->scales_.cache, context->scales_.outdated,
              context->scales_.interp, &DecompressFloat3);
 
+  // Only interp as much as we have output for.
+  const size_t num_soa_interp_tracks = math::Min(output.size(), num_soa_tracks);
+
   // Interpolates soa hot data.
-  Interpolates(anim_ratio, num_soa_tracks, context->translations_.interp,
-               context->rotations_.interp, context->scales_.interp, output);
+  Interpolates(anim_ratio, num_soa_interp_tracks, context->translations_.interp,
+               context->rotations_.interp, context->scales_.interp,
+               output);
 
   return true;
 }

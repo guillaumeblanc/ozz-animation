@@ -326,6 +326,91 @@ void ImmediatePTCShader::Bind(const math::Float4x4& _model,
   GL(Uniform1i(texture, 0));
 }
 
+ozz::unique_ptr<PointsShader> PointsShader::Build() {
+  bool success = true;
+
+  const char* kSimplePointsVS =
+      "uniform mat4 u_mvp;\n"
+      "attribute vec3 a_position;\n"
+      "attribute vec4 a_color;\n"
+      "attribute float a_size;\n"
+      "attribute float a_screen_space;\n"
+      "varying vec4 v_vertex_color;\n"
+      "void main() {\n"
+      "  vec4 vertex = vec4(a_position.xyz, 1.);\n"
+      "  gl_Position = u_mvp * vertex;\n"
+      "  gl_PointSize = a_screen_space == 0. ? a_size / gl_Position.w : a_size;\n"
+      "  v_vertex_color = a_color;\n"
+      "}\n";
+  const char* kSimplePointsPS =
+      "varying vec4 v_vertex_color;\n"
+      "void main() {\n"
+      "  gl_FragColor = v_vertex_color;\n"
+      "}\n";
+
+  const char* vs[] = {kPlatformSpecivicVSHeader, kSimplePointsVS};
+  const char* fs[] = {kPlatformSpecivicFSHeader, kSimplePointsPS};
+
+  ozz::unique_ptr<PointsShader> shader = make_unique<PointsShader>();
+  success &=
+      shader->BuildFromSource(OZZ_ARRAY_SIZE(vs), vs, OZZ_ARRAY_SIZE(fs), fs);
+
+  // Binds default attributes
+  success &= shader->FindAttrib("a_position");
+  success &= shader->FindAttrib("a_color");
+  success &= shader->FindAttrib("a_size");
+  success &= shader->FindAttrib("a_screen_space");
+
+  // Binds default uniforms
+  success &= shader->BindUniform("u_mvp");
+
+  if (!success) {
+    shader.reset();
+  }
+
+  return shader;
+}
+
+PointsShader::GenericAttrib PointsShader::Bind(
+    const math::Float4x4& _model, const math::Float4x4& _view_proj,
+    GLsizei _pos_stride, GLsizei _pos_offset, GLsizei _color_stride,
+    GLsizei _color_offset, GLsizei _size_stride, GLsizei _size_offset,
+    bool _screen_space) {
+  GL(UseProgram(program()));
+
+  const GLint position_attrib = attrib(0);
+  GL(EnableVertexAttribArray(position_attrib));
+  GL(VertexAttribPointer(position_attrib, 3, GL_FLOAT, GL_FALSE, _pos_stride,
+                         GL_PTR_OFFSET(_pos_offset)));
+
+  const GLint color_attrib = attrib(1);
+  if (_color_stride) {
+    GL(EnableVertexAttribArray(color_attrib));
+    GL(VertexAttribPointer(color_attrib, 4, GL_UNSIGNED_BYTE, GL_TRUE,
+                           _color_stride, GL_PTR_OFFSET(_color_offset)));
+  }
+  const GLint size_attrib = attrib(2);
+  if (_size_stride) {
+    GL(EnableVertexAttribArray(size_attrib));
+    GL(VertexAttribPointer(size_attrib, 1, GL_FLOAT, GL_TRUE, _size_stride,
+                           GL_PTR_OFFSET(_size_offset)));
+  }
+  const GLint screen_space_attrib = attrib(3);
+  GL(VertexAttrib1f(screen_space_attrib, 1.f * _screen_space));
+
+  // Binds mvp uniform
+  const GLint mvp_uniform = uniform(0);
+  const ozz::math::Float4x4 mvp = _view_proj * _model;
+  float values[16];
+  math::StorePtrU(mvp.cols[0], values + 0);
+  math::StorePtrU(mvp.cols[1], values + 4);
+  math::StorePtrU(mvp.cols[2], values + 8);
+  math::StorePtrU(mvp.cols[3], values + 12);
+  GL(UniformMatrix4fv(mvp_uniform, 1, false, values));
+
+  return {_color_stride ? -1 : color_attrib, _size_stride ? -1 : size_attrib};
+}
+
 namespace {
 const char* kPassUv =
     "attribute vec2 a_uv;\n"

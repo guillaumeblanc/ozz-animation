@@ -77,9 +77,12 @@ bool IsTypeSelected(const OzzImporter::NodeType& _types,
     case FbxNodeAttribute::eLight:
       return _types.light;
 
+    // Null
+    case FbxNodeAttribute::eNull:
+      return _types.null;
+
     // Others
     case FbxNodeAttribute::eUnknown:
-    case FbxNodeAttribute::eNull:
     case FbxNodeAttribute::eCameraSwitcher:
     case FbxNodeAttribute::eOpticalReference:
     case FbxNodeAttribute::eOpticalMarker:
