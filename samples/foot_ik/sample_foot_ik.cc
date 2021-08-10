@@ -591,7 +591,7 @@ class FootIKSampleApplication : public ozz::sample::Application {
   bool SetupLeg(const ozz::animation::Skeleton& _skeleton,
                 const char* _joint_names[3], LegSetup* _leg) {
     int found = 0;
-    int joints[3];
+    int joints[3] = {0};
     for (int i = 0; i < _skeleton.num_joints() && found != 3; i++) {
       const char* joint_name = _skeleton.joint_names()[i];
       if (std::strcmp(joint_name, _joint_names[found]) == 0) {
