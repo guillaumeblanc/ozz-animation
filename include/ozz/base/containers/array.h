@@ -30,6 +30,8 @@
 
 #include <array>
 
+#include "ozz/base/platform.h"
+
 namespace ozz {
 // Redirects std::array to ozz::array .
 template <class _Ty, size_t _N>
