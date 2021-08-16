@@ -1,3 +1,4 @@
+set(OpenGL_GL_PREFERENCE LEGACY)
 find_package(OpenGL REQUIRED)
 
 # Buils Win32 specific files and options
