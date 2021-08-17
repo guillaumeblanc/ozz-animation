@@ -8,8 +8,7 @@ jobs:
         build_type: [Debug]
         option: [default, ref, shared, no_sample, no_data, no_fbx, no_gltf, no_tests]
         include:
-          - os: macos-latest
-            build_type: Release
+          - build_type: Release
             option: default
     steps:
     - uses: actions/checkout@v2
@@ -32,10 +31,10 @@ jobs:
 
     - name: Build
       # Build your program with the given configuration
-      run: cmake --build ${{github.workspace}}/build --config ${{matrix.build_type}} --use-stderr
+      run: cmake --build ${{github.workspace}}/build --config ${{matrix.build_type}} --use-stderr -- -j4
 
     - name: Test
       working-directory: ${{github.workspace}}/build
       # Execute tests defined by the CMake configuration.
-      run: ctest -C ${{matrix.build_type}} --output-on-failure
+      run: ctest -C ${{matrix.build_type}} --output-on-failure -- -j2
       
