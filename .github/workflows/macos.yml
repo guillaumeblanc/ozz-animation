@@ -1,4 +1,4 @@
-name: build_and_test
+name: Macos
 on: [push, pull_request]
 jobs:
   build:
