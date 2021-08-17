@@ -1,4 +1,4 @@
-name: build_and_test
+name: Linux
 on: [push, pull_request]
 jobs:
   build:
