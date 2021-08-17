@@ -8,8 +8,7 @@ jobs:
         build_type: [Debug]
         option: [default, ref, shared, no_sample, no_data, no_fbx, no_gltf, no_tests]
         include:
-          - os: windows-latest
-            build_type: Release
+          - build_type: Release
             option: default
     steps:
     - uses: actions/checkout@v2
