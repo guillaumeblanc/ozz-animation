@@ -1,71 +1,53 @@
-name: build_and_test
+name: Linux
 on: [push, pull_request]
 jobs:
   build:
-    runs-on: ${{matrix.os}}  
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        os: [macos-latest, windows-latest, ubuntu-latest]
         build_type: [Debug]
         option: [default, ref, shared, no_sample, no_data, no_fbx, no_gltf, no_tests]
         include:
-          - os: macos-latest
-            build_type: Release
+          - build_type: Release
             option: default
-          - os: windows-latest
-            build_type: Release
-            option: default
-          - os: ubuntu-latest
-            build_type: Release
-            option: default
-          - os: ubuntu-latest
-            build_type: Debug
+          - build_type: Debug
             option: gcc7
             compiler_c: gcc-7
             compiler_cxx: g++-7
-          - os: ubuntu-latest
-            build_type: Debug
+          - build_type: Debug
             option: gcc8
             compiler_c: gcc-8
             compiler_cxx: g++-8
-          - os: ubuntu-latest
-            build_type: Debug
-            option: default
+          - build_type: Debug
+            option: gcc9
             compiler_c: gcc-9
             compiler_cxx: g++-9
-          - os: ubuntu-latest
-            build_type: Debug
-            option: default
+          - build_type: Debug
+            option: gcc10
             compiler_c: gcc-10
             compiler_cxx: g++-10
-          - os: ubuntu-latest
-            build_type: Debug
-            option: default
+          - build_type: Debug
+            option: gcc11
             compiler_c: gcc-11
             compiler_cxx: g++-11
-          - os: ubuntu-latest
-            build_type: Debug
-            option: default
+          - build_type: Debug
+            option: clang7
             compiler_c: clang-7
             compiler_cxx: clang++-7
-          - os: ubuntu-latest
-            build_type: Debug
+          - build_type: Debug
             option: clang8
             compiler_c: clang-8
             compiler_cxx: clang++-8
-          - os: ubuntu-latest
-            build_type: Debug
-            option: default
+          - build_type: Debug
+            option: clang9
             compiler_c: clang-9
             compiler_cxx: clang++-9
-          - os: ubuntu-latest
-            build_type: Debug
-            option: default
+          - build_type: Debug
+            option: clang10
             compiler_c: clang-10
             compiler_cxx: clang++-10
-          - os: ubuntu-latest
-            build_type: Debug
-            option: default
+          - build_type: Debug
+            option: clang11
             compiler_c: clang-11
             compiler_cxx: clang++-11
   
@@ -73,23 +55,22 @@ jobs:
     - uses: actions/checkout@v2
     
     - name: Install OpenGL dependency
-      if: matrix.os == 'ubuntu-latest'
       run: |
         sudo apt-get update
         sudo apt-get install libgl1-mesa-dev libglu1-mesa-dev
 
     - name: Install c compiler
-      if: matrix.os == 'ubuntu-latest' && matrix.compiler_c
+      if: matrix.compiler_c
       run: |
         sudo apt-get install ${{matrix.compiler_c}}
         
     - name: Install cxx compiler
-      if: matrix.os == 'ubuntu-latest' && matrix.compiler_cxx
+      if: matrix.compiler_cxx
       run: |
         sudo apt-get install ${{matrix.compiler_cxx}}
 
-    - name: Install linux fbx sdk
-      if: matrix.option != 'no_fbx' && matrix.os == 'ubuntu-latest'
+    - name: Install fbx sdk
+      if: matrix.option != 'no_fbx'
       run: |
         mkdir fbx
         cd fbx
@@ -98,25 +79,6 @@ jobs:
         (yes yes | sudo ./*_fbxsdk_linux /usr/local) || true
         sudo chmod -R 755 /usr/local/lib
         sudo chmod -R 755 /usr/local/include
-        cd ..
-    
-    - name: Install windows fbx sdk
-      if: matrix.option != 'no_fbx' && matrix.os == 'windows-latest'
-      run: |
-        md fbx
-        cd fbx
-        Start-BitsTransfer -Source 'https://www.autodesk.com/content/dam/autodesk/www/adn/fbx/2020-2/fbx20202_fbxsdk_vs2019_win.exe' -Destination 'fbxsdk.exe'
-        Start-Process -FilePath 'fbxsdk.exe' /S -Wait
-        cd ..
-        
-    - name: Install macos fbx sdk
-      if: matrix.option != 'no_fbx' && matrix.os == 'macos-latest'
-      run: |
-        mkdir fbx
-        cd fbx
-        sudo wget 'https://www.autodesk.com/content/dam/autodesk/www/adn/fbx/2020-2/fbx20202_fbxsdk_clang_mac.pkg.tgz' -O 'fbx.tgz'
-        sudo tar -xf 'fbx.tgz'
-        sudo installer -pkg *_fbxsdk_clang_macos.pkg -target /
         cd ..
     
     - name: Configure
@@ -131,10 +93,10 @@ jobs:
 
     - name: Build
       # Build your program with the given configuration
-      run: cmake --build ${{github.workspace}}/build --config ${{matrix.build_type}} --use-stderr
+      run: cmake --build ${{github.workspace}}/build --config ${{matrix.build_type}} --use-stderr -- -j4
 
     - name: Test
       working-directory: ${{github.workspace}}/build
       # Execute tests defined by the CMake configuration.
-      run: ctest -C ${{matrix.build_type}} --output-on-failure
+      run: ctest -C ${{matrix.build_type}} --output-on-failure -- -j2
       
