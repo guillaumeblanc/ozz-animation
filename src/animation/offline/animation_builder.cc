@@ -144,7 +144,7 @@ void Sort(ozz::vector<_SortingKey>& _src, size_t _num_tracks,
       // Inject key if distance from previous one is too big to be stored in
       // runtime data structure.
       if (previous.first != -1 &&
-          i - previous.first > internal::kMaxPreviousOffset) {
+          i - previous.first > ozz::animation::internal::kMaxPreviousOffset) {
         assert(previous.second != -1 &&
                "Not possible not to have a valid penultimate key.");
         // Copy as originals are going to be (re)moved.
@@ -226,7 +226,7 @@ void Compress(const span<const float>& _timepoints,
     // Previous
     const ptrdiff_t diff =
         previouses[src.track] ? &dest_key - previouses[src.track] : 0;
-    assert(diff < internal::kMaxPreviousOffset);
+    assert(diff < ozz::animation::internal::kMaxPreviousOffset);
     _base.previouses[i] = static_cast<uint16_t>(diff);
 
     // Value

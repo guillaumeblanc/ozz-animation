@@ -199,9 +199,9 @@ inline uint32_t InitializeCache(const Animation::KeyframesCtrlConst& _ctrl,
     // Initializes cache entries with the first 2nd sets of key frames. The
     // sorting algorithm ensures that the first 2 key frames of a track are
     // consecutive.
-    const size_t num_tracks = _entries.size();
-    for (size_t i = 0; i < num_tracks; ++i) {
-      _entries[i] = static_cast<uint32_t>(i + num_tracks);
+    const uint32_t num_tracks = static_cast<uint32_t>(_entries.size());
+    for (uint32_t i = 0; i < num_tracks; ++i) {
+      _entries[i] = i + num_tracks;
     }
 
     // Next is set to the next unprocessed keyframe
