@@ -46,8 +46,10 @@ class AnimationBuilder;
 }
 
 // Forward declaration of key frame's type.
+namespace internal {
 struct Float3Key;
 struct QuaternionKey;
+}  // namespace internal
 
 // Defines a runtime skeletal animation clip.
 // The runtime animation data structure stores animation keyframes, for all the
@@ -91,41 +93,63 @@ class OZZ_ANIMATION_DLL Animation {
   // Gets the buffer of time points.
   span<const float> timepoints() const { return timepoints_; }
 
-  template <typename _Ty>
-  struct Component {
-    typedef _Ty value_type;
-
-    // Implicit conversion to const _Ty.
-    operator Component<const _Ty>() const {
-      return {ratios, previouses, values};
-    }
-
+  template <bool _Const>
+  struct TKeyframesCtrl {
     size_t size_bytes() const {
       return ratios.size_bytes() + previouses.size_bytes() +
-             values.size_bytes();
+             slice_entries.size_bytes() + slice_desc.size_bytes();
     }
 
+    // Implicit conversion to const.
+    operator TKeyframesCtrl<true>() const {
+      return {ratios, previouses, slice_entries, slice_desc};
+    }
+
+    template <typename _Ty, bool>
+    struct ConstQualifier {
+      typedef const _Ty type;
+    };
+
+    template <typename _Ty>
+    struct ConstQualifier<_Ty, false> {
+      typedef _Ty type;
+    };
+
     // Indices to timepoints. uint8_t or uint16_t depending on timepoints size.
-    span<byte> ratios;
+    span<typename ConstQualifier<byte, _Const>::type> ratios;
 
     // Offsets from the previous keyframe of the same track.
-    span<uint16_t> previouses;
+    span<typename ConstQualifier<uint16_t, _Const>::type> previouses;
 
-    // Keyframe values
-    span<_Ty> values;
+    // Cached slice entries packed with GV4 encoding.
+    span<typename ConstQualifier<byte, _Const>::type> slice_entries;
+
+    // 2 intergers per slice:
+    // 1. Offset in compressed entries
+    // 2. Maximum key index (latest updated key).
+    span<typename ConstQualifier<uint32_t, _Const>::type> slice_desc;
   };
 
+  typedef TKeyframesCtrl<true> KeyframesCtrlConst;
+  typedef TKeyframesCtrl<false> KeyframesCtrl;
+
   // Gets the buffer of translations keys.
-  typedef Component<const Float3Key> Translations;
-  Translations translations() const { return translations_; }
+  KeyframesCtrlConst translations_ctrl() const { return translations_ctrl_; }
+  span<const internal::Float3Key> translations_values() const {
+    return translations_values_;
+  }
 
   // Gets the buffer of rotation keys.
-  typedef Component<const QuaternionKey> Rotations;
-  Rotations rotations() const { return rotations_; }
+  KeyframesCtrlConst rotations_ctrl() const { return rotations_ctrl_; }
+  span<const internal::QuaternionKey> rotations_values() const {
+    return rotations_values_;
+  }
 
   // Gets the buffer of scale keys.
-  typedef Component<const Float3Key> Scales;
-  Scales scales() const { return scales_; }
+  KeyframesCtrlConst scales_ctrl() const { return scales_ctrl_; }
+  span<const internal::Float3Key> scales_values() const {
+    return scales_values_;
+  }
 
   // Get the estimated animation's size in bytes.
   size_t size() const;
@@ -143,9 +167,19 @@ class OZZ_ANIMATION_DLL Animation {
   struct AllocateParams {
     size_t name_len;
     size_t timepoints;
+
     size_t translations;
     size_t rotations;
     size_t scales;
+
+    struct Slices {
+      size_t entries;
+      size_t offsets;
+    };
+
+    Slices translation_slices;
+    Slices rotation_slices;
+    Slices scale_slices;
   };
   void Allocate(const AllocateParams& _params);
   void Deallocate();
@@ -163,14 +197,20 @@ class OZZ_ANIMATION_DLL Animation {
   // Stores all translation/rotation/scale keys begin and end of buffers.
   span<float> timepoints_;
 
-  Component<Float3Key> translations_;
-  Component<QuaternionKey> rotations_;
-  Component<Float3Key> scales_;
+  // Keyframes series controlers.
+  KeyframesCtrl translations_ctrl_;
+  KeyframesCtrl rotations_ctrl_;
+  KeyframesCtrl scales_ctrl_;
+
+  // Keyframes series values.
+  span<internal::Float3Key> translations_values_;
+  span<internal::QuaternionKey> rotations_values_;
+  span<internal::Float3Key> scales_values_;
 };
 }  // namespace animation
 
 namespace io {
-OZZ_IO_TYPE_VERSION(8, animation::Animation)
+OZZ_IO_TYPE_VERSION(7, animation::Animation)
 OZZ_IO_TYPE_TAG("ozz-animation", animation::Animation)
 }  // namespace io
 }  // namespace ozz

@@ -29,8 +29,10 @@
 
 #include <algorithm>
 #include <cassert>
+#include <limits>
 
 #include "ozz/animation/runtime/animation.h"
+#include "ozz/base/encode/group_varint.h"
 #include "ozz/base/maths/math_constant.h"
 #include "ozz/base/maths/math_ex.h"
 #include "ozz/base/maths/soa_transform.h"
@@ -117,8 +119,8 @@ inline uint32_t TrackBackward(const ozz::span<const uint32_t> _cache,
   }
 }
 
-inline float TimePoint(const ozz::span<const float>& _timepoints,
-                       const ozz::span<const byte>& _ratios, size_t _at) {
+inline float KeyRatio(const ozz::span<const float>& _timepoints,
+                      const ozz::span<const byte>& _ratios, size_t _at) {
   if (_timepoints.size() <= std::numeric_limits<uint8_t>::max()) {
     return _timepoints[reinterpret_span<const uint8_t>(_ratios)[_at]];
   } else {
@@ -126,7 +128,7 @@ inline float TimePoint(const ozz::span<const float>& _timepoints,
   }
 }
 
-inline ozz::math::SimdFloat4 TimePoints(
+inline ozz::math::SimdFloat4 KeysRatio(
     const ozz::span<const float>& _timepoints,
     const ozz::span<const byte>& _ratios,
     const ozz::span<const uint32_t> _ats) {
@@ -149,137 +151,203 @@ inline ozz::math::SimdFloat4 TimePoints(
       _timepoints[index[3]]);
 }
 
-// Loops through the sorted key frames and update cache structure.
-void UpdateCache(float _ratio, size_t _num_soa_tracks,
-                 const ozz::span<const float>& _timepoints,
-                 const ozz::span<const byte>& _ratios,
-                 const ozz::span<const uint16_t>& _previouses, uint32_t* _next,
-                 const ozz::span<uint32_t>& _cache,
-                 const ozz::span<byte>& _outdated) {
-  assert(_num_soa_tracks >= 1);
-  const uint32_t num_tracks = static_cast<uint32_t>(_num_soa_tracks * 4);
-  assert(_previouses.size() < std::numeric_limits<uint32_t>::max());
-  const uint32_t num_keys = static_cast<uint32_t>(_previouses.size());
-  assert(_previouses.begin() + num_tracks * 2 <= _previouses.end());
+struct Closest {
+  size_t slice;
+  float dist;
+};
+inline Closest FindClosest(float _target_ratio,
+                           const ozz::span<const float>& _timepoints,
+                           const Animation::KeyframesCtrlConst& _ctrl) {
+  // Animation begin is a valid slice (returns 0)
+  Closest closest = {0, _target_ratio};  // Distance since begining
 
-  uint32_t next = *_next;
-  if (!next) {
-    // Initializes cache entries with the first 2nd sets of key frames.
-    // The sorting algorithm ensures that the first 2 key frames of a track
-    // are consecutive.
-    for (uint32_t i = 0; i < num_tracks; ++i) {
-      _cache[i] = i + num_tracks;
+  // Iterate slices and gets the closest one to _target_ratio;
+  for (size_t i = 0; i < _ctrl.slice_desc.size() / 2; ++i) {
+    // "last" key time corresponds to the right hand side of the lerp. Hence it
+    // can be very far in time.
+    const size_t last = _ctrl.slice_desc[i * 2 + 1];
+    // "penultimate" (left side of the lerp) is the one that has just been
+    // replace in cache, because its time has been exceeded. So this is the
+    // closest to the _target_ratio.
+    const size_t penultimate = last - _ctrl.previouses[last];
+    const float ratio = KeyRatio(_timepoints, _ctrl.ratios, penultimate);
+    const float dist = std::abs(ratio - _target_ratio);
+    if (closest.dist > dist) {
+      closest = {i + 1, dist};
+    } else {
+      break;  // Distance is growing again.
     }
+  }
+
+  return closest;
+}
+
+inline uint32_t InitializeCache(const Animation::KeyframesCtrlConst& _ctrl,
+                                size_t _slice,
+                                const ozz::span<uint32_t>& _entries) {
+  if (_slice > 0) {
+    // Initializes cache entries from a compressed cache slice.
+    size_t slice = (_slice - 1) * 2;
+    const size_t offset = _ctrl.slice_desc[slice];
+    ozz::DecodeGV4Stream(_ctrl.slice_entries.subspan(
+                             offset, _ctrl.slice_entries.size() - offset),
+                         _entries);
+
+    // Find "next" keyframe, aka the one after the last cached one.
+    return _ctrl.slice_desc[slice + 1] + 1;
+  } else {
+    // Initializes cache entries with the first 2nd sets of key frames. The
+    // sorting algorithm ensures that the first 2 key frames of a track are
+    // consecutive.
+    const size_t num_tracks = _entries.size();
+    for (size_t i = 0; i < num_tracks; ++i) {
+      _entries[i] = static_cast<uint32_t>(i + num_tracks);
+    }
+
     // Next is set to the next unprocessed keyframe
-    next = num_tracks * 2;
+    return num_tracks * 2;
+  }
+}
 
-    // All entries are outdated. It cares to only flag valid soa entries as
-    // this is the exit condition of other algorithms.
-    const size_t num_outdated_flags = (_num_soa_tracks + 7) / 8;
-    for (size_t i = 0; i < num_outdated_flags - 1; ++i) {
-      _outdated[i] = 0xff;
-    }
-    _outdated[num_outdated_flags - 1] =
-        0xff >> (num_outdated_flags * 8 - _num_soa_tracks);
+// Outdates all entries. It's important to only flag valid soa entries as this
+// is the exit condition of other algorithms.
+inline void OutdateCache(const ozz::span<byte>& _outdated,
+                         size_t _num_soa_tracks) {
+  const size_t num_outdated_flags = (_num_soa_tracks + 7) / 8;
+  size_t i = 0;
+  for (; i < num_outdated_flags - 1; ++i) {
+    _outdated[i] = 0xff;
+  }
+  _outdated[i] = 0xff >> (num_outdated_flags * 8 - _num_soa_tracks);
+}
+
+// Loops through the sorted key frames and update cache structure.
+void UpdateCache(float _ratio, float _previous_ratio, size_t _num_soa_tracks,
+                 const ozz::span<const float>& _timepoints,
+                 const Animation::KeyframesCtrlConst& _ctrl,
+                 SamplingJob::Context::Cache& _cache) {
+  assert(_num_soa_tracks > 0);
+  const uint32_t num_tracks = static_cast<uint32_t>(_num_soa_tracks * 4);
+  assert(_ctrl.previouses.begin() + num_tracks * 2 <= _ctrl.previouses.end());
+  const uint32_t num_keys = static_cast<uint32_t>(_ctrl.previouses.size());
+
+  uint32_t next = _cache.next;
+  assert(next == 0 || (next >= num_tracks * 2 && next <= num_keys));
+
+  // Will seek to a slice if it's the shortest path to the target ratio.
+  const Closest& closest = FindClosest(_ratio, _timepoints, _ctrl);
+  const bool seek = std::abs(_ratio - _previous_ratio) > closest.dist;
+
+  // Initialize cache if need, aka first time or fast seeking into animation.
+  if (next == 0 || seek) {
+    next =
+        InitializeCache(_ctrl, closest.slice, _cache.entries.first(num_tracks));
+
+    // Cache was overwritten, all entries must be flagged as outdated.
+    OutdateCache(_cache.outdated, _num_soa_tracks);
   }
   assert(next >= num_tracks * 2 && next <= num_keys);
 
   // Reading forward.
-  // Iterates while the cache is not updated with previous and penultimate keys
-  // required for interpolation at time ratio _ratio. Thanks to the keyframe
-  // sorting, the loop can end as soon as it finds a key greater that _ratio. It
-  // will mean that all the keys lower than _ratio have been processed, meaning
-  // all cache entries are up to date.
+  // Iterates while the cache is not updated with previous key required for
+  // interpolation at _ratio. Thanks to the keyframe sorting, the loop can end
+  // as soon as it finds a key greater that _ratio. It will mean that all the
+  // keys lower than _ratio have been processed, meaning all cache entries are
+  // up to date.
   uint32_t track = 0;
-  for (; next < num_keys &&
-         TimePoint(_timepoints, _ratios, next - _previouses[next]) <= _ratio;
+  for (; next < num_keys && KeyRatio(_timepoints, _ctrl.ratios,
+                                     next - _ctrl.previouses[next]) <= _ratio;
        ++next) {
     // Finds track index.
-    track = TrackForward(_cache, _previouses, next, track, num_tracks);
-    assert(_cache[track] == next - _previouses[next] && "Wrong cache entry.");
+    track =
+        TrackForward(_cache.entries, _ctrl.previouses, next, track, num_tracks);
+    assert(_cache.entries[track] == next - _ctrl.previouses[next] &&
+           "Wrong cache entry.");
 
     // Flag this soa entry as outdated.
-    _outdated[track / 32] |= 1 << ((track & 0x1f) / 4);
+    _cache.outdated[track / 32] |= 1 << ((track & 0x1f) / 4);
 
     // Updates cache.
-    _cache[track] = next;
+    _cache.entries[track] = next;
   }
 
   // Rewinds.
   // Checks if the time of the penultimate key is greater than _ratio, in which
   // case we need to rewind.
-  for (; TimePoint(_timepoints, _ratios, (next - 1) - _previouses[next - 1]) >
-         _ratio;
+  for (; KeyRatio(_timepoints, _ctrl.ratios,
+                  (next - 1) - _ctrl.previouses[next - 1]) > _ratio;
        --next) {
     assert(next - 1 >= num_tracks * 2);
 
     // Finds track index.
-    track = TrackBackward(_cache, next - 1, track, num_tracks);
+    track = TrackBackward(_cache.entries, next - 1, track, num_tracks);
 
     // Flag this soa entry as outdated.
-    _outdated[track / 32] |= 1 << ((track & 0x1f) / 4);
+    _cache.outdated[track / 32] |= 1 << ((track & 0x1f) / 4);
 
     // Updates cache.
-    assert(_cache[track] == next - 1 && "Wrong cache entry.");
-    const uint32_t previous = _previouses[_cache[track]];
-    assert(_cache[track] >= previous + num_tracks);
-    _cache[track] -= previous;
+    assert(_cache.entries[track] == next - 1);
+    const uint32_t previous = _ctrl.previouses[_cache.entries[track]];
+    assert(_cache.entries[track] >= previous + num_tracks);
+    _cache.entries[track] -= previous;
   }
 
   // Updates next output.
-  assert(next >= num_tracks && next <= num_keys);
-  *_next = next;
+  assert(next >= num_tracks * 2 && next <= num_keys);
+  _cache.next = next;
 }
 
 template <typename _CompressedKey, typename _DecompressedKey,
           typename _Decompress>
 inline void Decompress(size_t _num_soa_tracks,
                        const ozz::span<const float>& _timepoints,
-                       const Animation::Component<const _CompressedKey>& _keys,
-                       const ozz::span<const uint32_t>& _cache,
-                       const ozz::span<uint8_t>& _outdated,
-                       const ozz::span<_DecompressedKey>& _interp_keys,
+                       const Animation::KeyframesCtrlConst& _ctrl,
+                       const ozz::span<const _CompressedKey>& _compressed,
+                       const SamplingJob::Context::Cache& _cache,
+                       const ozz::span<_DecompressedKey>& _decompressed,
                        const _Decompress& _decompress) {
   const size_t num_outdated_flags = (_num_soa_tracks + 7) / 8;
   for (size_t j = 0; j < num_outdated_flags; ++j) {
-    byte outdated = _outdated[j];  // Copy outdated flag
-    _outdated[j] = 0;  // Reset outdated entries as all will be processed.
+    byte outdated = _cache.outdated[j];  // Copy outdated flag
+    _cache.outdated[j] = 0;  // Reset outdated entries as all will be processed.
     for (size_t i = j * 8; outdated != 0; ++i, outdated >>= 1) {
       if (!(outdated & 1)) {
         continue;
       }
 
       // Get cache sub part matching this outdated soa entry.
-      auto rights = _cache.subspan(i * 4, 4);
+      const auto& rights = _cache.entries.subspan(i * 4, 4);
 
       // Left side keys can be found from right ones as we know the offset from
       // right to left (_previouses).
-      const uint32_t lefts[4] = {rights[0] - _keys.previouses[rights[0]],
-                                 rights[1] - _keys.previouses[rights[1]],
-                                 rights[2] - _keys.previouses[rights[2]],
-                                 rights[3] - _keys.previouses[rights[3]]};
+      const uint32_t lefts[4] = {rights[0] - _ctrl.previouses[rights[0]],
+                                 rights[1] - _ctrl.previouses[rights[1]],
+                                 rights[2] - _ctrl.previouses[rights[2]],
+                                 rights[3] - _ctrl.previouses[rights[3]]};
 
       // Decompress left side keyframes and store them in soa structures.
-      const _CompressedKey& k00 = _keys.values[lefts[0]];
-      const _CompressedKey& k10 = _keys.values[lefts[1]];
-      const _CompressedKey& k20 = _keys.values[lefts[2]];
-      const _CompressedKey& k30 = _keys.values[lefts[3]];
-      _interp_keys[i].ratio[0] = TimePoints(_timepoints, _keys.ratios, lefts);
-      _decompress(k00, k10, k20, k30, &_interp_keys[i].value[0]);
+      const _CompressedKey& k00 = _compressed[lefts[0]];
+      const _CompressedKey& k10 = _compressed[lefts[1]];
+      const _CompressedKey& k20 = _compressed[lefts[2]];
+      const _CompressedKey& k30 = _compressed[lefts[3]];
+      _decompressed[i].ratio[0] = KeysRatio(_timepoints, _ctrl.ratios, lefts);
+      _decompress(k00, k10, k20, k30, &_decompressed[i].value[0]);
 
       // Decompress right side keyframes and store them in soa structures.
-      const _CompressedKey& k01 = _keys.values[rights[0]];
-      const _CompressedKey& k11 = _keys.values[rights[1]];
-      const _CompressedKey& k21 = _keys.values[rights[2]];
-      const _CompressedKey& k31 = _keys.values[rights[3]];
-      _interp_keys[i].ratio[1] = TimePoints(_timepoints, _keys.ratios, rights);
-      _decompress(k01, k11, k21, k31, &_interp_keys[i].value[1]);
+      const _CompressedKey& k01 = _compressed[rights[0]];
+      const _CompressedKey& k11 = _compressed[rights[1]];
+      const _CompressedKey& k21 = _compressed[rights[2]];
+      const _CompressedKey& k31 = _compressed[rights[3]];
+      _decompressed[i].ratio[1] = KeysRatio(_timepoints, _ctrl.ratios, rights);
+      _decompress(k01, k11, k21, k31, &_decompressed[i].value[1]);
     }
   }
 }
 
-inline void DecompressFloat3(const Float3Key& _k0, const Float3Key& _k1,
-                             const Float3Key& _k2, const Float3Key& _k3,
+inline void DecompressFloat3(const internal::Float3Key& _k0,
+                             const internal::Float3Key& _k1,
+                             const internal::Float3Key& _k2,
+                             const internal::Float3Key& _k3,
                              math::SoaFloat3* _soa_float3) {
   _soa_float3->x = math::HalfToFloat(math::simd_int4::Load(
       _k0.values[0], _k1.values[0], _k2.values[0], _k3.values[0]));
@@ -294,16 +362,16 @@ inline void DecompressFloat3(const Float3Key& _k0, const Float3Key& _k1,
 static constexpr uint8_t kCpntMapping[4][4] = {
     {0, 0, 1, 2}, {0, 0, 1, 2}, {0, 1, 0, 2}, {0, 1, 2, 0}};
 
-inline void DecompressQuaternion(const QuaternionKey& _k0,
-                                 const QuaternionKey& _k1,
-                                 const QuaternionKey& _k2,
-                                 const QuaternionKey& _k3,
+inline void DecompressQuaternion(const internal::QuaternionKey& _k0,
+                                 const internal::QuaternionKey& _k1,
+                                 const internal::QuaternionKey& _k2,
+                                 const internal::QuaternionKey& _k3,
                                  math::SoaQuaternion* _quaternion) {
   int largests[4], signs[4], values[4][3];
-  unpack(_k0, largests[0], signs[0], values[0]);
-  unpack(_k1, largests[1], signs[1], values[1]);
-  unpack(_k2, largests[2], signs[2], values[2]);
-  unpack(_k3, largests[3], signs[3], values[3]);
+  internal::unpack(_k0, largests[0], signs[0], values[0]);
+  internal::unpack(_k1, largests[1], signs[1], values[1]);
+  internal::unpack(_k2, largests[2], signs[2], values[2]);
+  internal::unpack(_k3, largests[3], signs[3], values[3]);
 
   // Selects proper mapping for each key.
   const uint8_t* m0 = kCpntMapping[largests[0]];
@@ -322,7 +390,7 @@ inline void DecompressQuaternion(const QuaternionKey& _k0,
 
   // Rebuilds quaternion from quantized values.
   const math::SimdFloat4 kScale =
-      math::simd_float4::Load1(math::kSqrt2 / QuaternionKey::kfScale);
+      math::simd_float4::Load1(math::kSqrt2 / internal::QuaternionKey::kfScale);
   const math::SimdFloat4 kOffset = math::simd_float4::Load1(-math::kSqrt2_2);
   math::SimdFloat4 cpnt[4] = {
       kScale * math::simd_float4::FromInt(
@@ -420,52 +488,55 @@ bool SamplingJob::Run() const {
   assert(context->max_soa_tracks() >= animation->num_soa_tracks());
 
   // Early out if animation contains no joint.
-  if (animation->num_soa_tracks() <= 0) {
+  const size_t num_soa_tracks =
+      static_cast<size_t>(animation->num_soa_tracks());
+  if (num_soa_tracks <= 0) {
     return true;
   }
 
   // Clamps ratio in range [0,duration].
-  const float anim_ratio = math::Clamp(0.f, ratio, 1.f);
+  const float clamped_ratio = math::Clamp(0.f, ratio, 1.f);
 
   // Step the context to this potentially new animation and ratio.
-  context->Step(*animation, anim_ratio);
+  const float previous_ratio = context->Step(*animation, clamped_ratio);
 
-  // Fetch key frames from the animation to the context at r = anim_ratio.
-  // Then updates outdated soa hot values.
-  const size_t num_soa_tracks =
-      static_cast<size_t>(animation->num_soa_tracks());
-  const Animation::Translations& translations = animation->translations();
-  UpdateCache(anim_ratio, num_soa_tracks, animation->timepoints(),
-              translations.ratios, translations.previouses,
-              &context->translations_.next, context->translations_.cache,
-              context->translations_.outdated);
-  Decompress(num_soa_tracks, animation->timepoints(), translations,
-             context->translations_.cache, context->translations_.outdated,
-             context->translations_.interp, &DecompressFloat3);
+  // Update cache with animation keyframe indexes for t = ratio.
+  // Decompresses outdated soa hot values.
 
-  const Animation::Rotations& rotations = animation->rotations();
-  UpdateCache(anim_ratio, num_soa_tracks, animation->timepoints(),
-              rotations.ratios, rotations.previouses, &context->rotations_.next,
-              context->rotations_.cache, context->rotations_.outdated);
-  Decompress(num_soa_tracks, animation->timepoints(), rotations,
-             context->rotations_.cache, context->rotations_.outdated,
-             context->rotations_.interp, &DecompressQuaternion);
+  // Translations
+  const Animation::KeyframesCtrlConst& translations_ctrl =
+      animation->translations_ctrl();
+  UpdateCache(clamped_ratio, previous_ratio, num_soa_tracks,
+              animation->timepoints(), translations_ctrl,
+              context->translations_cache_);
+  Decompress(num_soa_tracks, animation->timepoints(), translations_ctrl,
+             animation->translations_values(), context->translations_cache_,
+             context->translations_, &DecompressFloat3);
 
-  const Animation::Scales& scales = animation->scales();
-  UpdateCache(anim_ratio, num_soa_tracks, animation->timepoints(),
-              scales.ratios, scales.previouses, &context->scales_.next,
-              context->scales_.cache, context->scales_.outdated);
-  Decompress(num_soa_tracks, animation->timepoints(), scales,
-             context->scales_.cache, context->scales_.outdated,
-             context->scales_.interp, &DecompressFloat3);
+  // Rotations
+  const Animation::KeyframesCtrlConst& rotations_ctrl =
+      animation->rotations_ctrl();
+  UpdateCache(clamped_ratio, previous_ratio, num_soa_tracks,
+              animation->timepoints(), rotations_ctrl,
+              context->rotations_cache_);
+  Decompress(num_soa_tracks, animation->timepoints(), rotations_ctrl,
+             animation->rotations_values(), context->rotations_cache_,
+             context->rotations_, &DecompressQuaternion);
+
+  // Scales
+  const Animation::KeyframesCtrlConst& scales_ctrl = animation->scales_ctrl();
+  UpdateCache(clamped_ratio, previous_ratio, num_soa_tracks,
+              animation->timepoints(), scales_ctrl, context->scales_cache_);
+  Decompress(num_soa_tracks, animation->timepoints(), scales_ctrl,
+             animation->scales_values(), context->scales_cache_,
+             context->scales_, &DecompressFloat3);
 
   // Only interp as much as we have output for.
   const size_t num_soa_interp_tracks = math::Min(output.size(), num_soa_tracks);
 
   // Interpolates soa hot data.
-  Interpolates(anim_ratio, num_soa_interp_tracks, context->translations_.interp,
-               context->rotations_.interp, context->scales_.interp,
-               output);
+  Interpolates(clamped_ratio, num_soa_interp_tracks, context->translations_,
+               context->rotations_, context->scales_, output);
 
   return true;
 }
@@ -479,7 +550,7 @@ SamplingJob::Context::Context(int _max_tracks) : max_soa_tracks_(0) {
 SamplingJob::Context::~Context() {
   // translations interp is the allocation pointer, so this deallocates
   // everything at once.
-  memory::default_allocator()->Deallocate(translations_.interp.data());
+  memory::default_allocator()->Deallocate(translations_.data());
 }
 
 void SamplingJob::Context::Resize(int _max_tracks) {
@@ -488,7 +559,7 @@ void SamplingJob::Context::Resize(int _max_tracks) {
 
   // Reset existing data.
   Invalidate();
-  memory::default_allocator()->Deallocate(translations_.interp.data());
+  memory::default_allocator()->Deallocate(translations_.data());
 
   // Updates maximum supported soa tracks.
   max_soa_tracks_ = (math::Max(0, _max_tracks) + 3) / 4;
@@ -523,49 +594,38 @@ void SamplingJob::Context::Resize(int _max_tracks) {
                     alignof(uint32_t) >= alignof(byte),
                 "Must serve larger alignment values first)");
 
-  translations_.interp = fill_span<InterpSoaFloat3>(buffer, max_soa_tracks);
-  rotations_.interp = fill_span<InterpSoaQuaternion>(buffer, max_soa_tracks);
-  scales_.interp = fill_span<InterpSoaFloat3>(buffer, max_soa_tracks);
+  translations_ = fill_span<InterpSoaFloat3>(buffer, max_soa_tracks);
+  rotations_ = fill_span<InterpSoaQuaternion>(buffer, max_soa_tracks);
+  scales_ = fill_span<InterpSoaFloat3>(buffer, max_soa_tracks);
 
-  translations_.cache = fill_span<uint32_t>(buffer, max_tracks);
-  rotations_.cache = fill_span<uint32_t>(buffer, max_tracks);
-  scales_.cache = fill_span<uint32_t>(buffer, max_tracks);
+  translations_cache_.entries = fill_span<uint32_t>(buffer, max_tracks);
+  rotations_cache_.entries = fill_span<uint32_t>(buffer, max_tracks);
+  scales_cache_.entries = fill_span<uint32_t>(buffer, max_tracks);
 
-  translations_.outdated = fill_span<byte>(buffer, num_outdated);
-  rotations_.outdated = fill_span<byte>(buffer, num_outdated);
-  scales_.outdated = fill_span<byte>(buffer, num_outdated);
+  translations_cache_.outdated = fill_span<byte>(buffer, num_outdated);
+  rotations_cache_.outdated = fill_span<byte>(buffer, num_outdated);
+  scales_cache_.outdated = fill_span<byte>(buffer, num_outdated);
 
   assert(buffer.empty());
 }
 
-void SamplingJob::Context::Step(const Animation& _animation, float _ratio) {
-  assert(_ratio >= 0.f && _ratio <= 1.f);
-
+float SamplingJob::Context::Step(const Animation& _animation, float _ratio) {
   // The cache is invalidated if animation has changed...
-  const bool changed = animation_ != &_animation;
-
-  // ... or if it is rewinding.
-  // Note that if current state is below kRestartOverhead treshold, then better
-  // rewind than restart as it won't trash the cached keyframes.
-  const float kRestartOverhead =
-      .05f;  // Restart is worth 5% of seek time (just a guess).
-  const bool restart = ratio_ > kRestartOverhead && ratio_ - _ratio > _ratio;
-
-  if (changed || restart) {
+  if (animation_ != &_animation) {
+    Invalidate();
     animation_ = &_animation;
-    translations_.next = 0;
-    rotations_.next = 0;
-    scales_.next = 0;
   }
+  const float previous_ratio = ratio_;
   ratio_ = _ratio;
+  return previous_ratio;
 }
 
 void SamplingJob::Context::Invalidate() {
   animation_ = nullptr;
   ratio_ = 0.f;
-  translations_.next = 0;
-  rotations_.next = 0;
-  scales_.next = 0;
+  translations_cache_.next = 0;
+  rotations_cache_.next = 0;
+  scales_cache_.next = 0;
 }
 }  // namespace animation
 }  // namespace ozz

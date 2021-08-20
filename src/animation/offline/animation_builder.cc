@@ -32,11 +32,13 @@
 #include <cstddef>
 #include <cstring>
 #include <limits>
+#include <numeric>
 
 #include "ozz/animation/offline/raw_animation.h"
 #include "ozz/animation/offline/raw_animation_utils.h"
 #include "ozz/animation/runtime/animation.h"
 #include "ozz/base/containers/vector.h"
+#include "ozz/base/encode/group_varint.h"
 #include "ozz/base/maths/simd_math.h"
 #include "ozz/base/memory/allocator.h"
 
@@ -141,7 +143,8 @@ void Sort(ozz::vector<_SortingKey>& _src, size_t _num_tracks,
 
       // Inject key if distance from previous one is too big to be stored in
       // runtime data structure.
-      if (previous.first != -1 && i - previous.first > kMaxPreviousOffset) {
+      if (previous.first != -1 &&
+          i - previous.first > internal::kMaxPreviousOffset) {
         assert(previous.second != -1 &&
                "Not possible not to have a valid penultimate key.");
         // Copy as originals are going to be (re)moved.
@@ -201,40 +204,41 @@ uint16_t TimePointToIndex(const span<const float>& _timepoints, float _time) {
   return static_cast<uint16_t>(distance);
 }
 
-template <typename _SortingKey, typename _Component, typename _Compressor>
-void CopyToAnimation(const span<const float>& _timepoints,
-                     const ozz::vector<_SortingKey>& _src, size_t _num_tracks,
-                     _Component* _dest, const _Compressor& _compressor) {
-  ozz::vector<typename _Component::value_type*> previouses(_num_tracks);
+template <typename _SortingKey, typename _DestKey, typename _Compressor>
+void Compress(const span<const float>& _timepoints,
+              const span<_SortingKey>& _src, size_t _num_tracks,
+              const span<_DestKey> _dest, const Animation::KeyframesCtrl& _base,
+              const _Compressor& _compressor) {
+  ozz::vector<_DestKey*> previouses(_num_tracks);
   for (size_t i = 0; i < _src.size(); ++i) {
     const _SortingKey& src = _src[i];
-    typename _Component::value_type& key = _dest->values[i];
+    _DestKey& dest_key = _dest[i];
 
     // Ratio
     const uint16_t ratio = TimePointToIndex(_timepoints, src.key.time);
     if (_timepoints.size() <= std::numeric_limits<uint8_t>::max()) {
       assert(ratio <= std::numeric_limits<uint8_t>::max());
-      reinterpret_span<uint8_t>(_dest->ratios)[i] = static_cast<uint8_t>(ratio);
+      reinterpret_span<uint8_t>(_base.ratios)[i] = static_cast<uint8_t>(ratio);
     } else {
-      reinterpret_span<uint16_t>(_dest->ratios)[i] = ratio;
+      reinterpret_span<uint16_t>(_base.ratios)[i] = ratio;
     }
 
     // Previous
     const ptrdiff_t diff =
-        previouses[src.track] ? &key - previouses[src.track] : 0;
-    assert(diff < kMaxPreviousOffset);
-    _dest->previouses[i] = static_cast<uint16_t>(diff);
+        previouses[src.track] ? &dest_key - previouses[src.track] : 0;
+    assert(diff < internal::kMaxPreviousOffset);
+    _base.previouses[i] = static_cast<uint16_t>(diff);
 
     // Value
-    _compressor(src.key.value, &key);
+    _compressor(src.key.value, &dest_key);
 
     // Stores track position
-    previouses[src.track] = &key;
+    previouses[src.track] = &dest_key;
   }
 }
 
 void CompressFloat3(const ozz::math::Float3& _src,
-                    ozz::animation::Float3Key* _dest) {
+                    ozz::animation::internal::Float3Key* _dest) {
   _dest->values[0] = ozz::math::FloatToHalf(_src.x);
   _dest->values[1] = ozz::math::FloatToHalf(_src.y);
   _dest->values[2] = ozz::math::FloatToHalf(_src.z);
@@ -253,24 +257,24 @@ bool LessAbs(float _left, float _right) {
 // quantization quality is improved by pre-multiplying each componenent by
 // sqrt(2).
 void CompressQuaternion(const ozz::math::Quaternion& _src,
-                        ozz::animation::QuaternionKey* _dest) {
+                        ozz::animation::internal::QuaternionKey* _dest) {
   // Finds the largest quaternion component.
   const float quat[4] = {_src.x, _src.y, _src.z, _src.w};
   const size_t largest = std::max_element(quat, quat + 4, LessAbs) - quat;
   assert(largest <= 3);
 
   // Quantize the 3 smallest components on x bits signed integers.
-  const float kScale = QuaternionKey::kfScale / math::kSqrt2;
+  const float kScale = internal::QuaternionKey::kfScale / math::kSqrt2;
   const float kOffset = -math::kSqrt2_2;
   const int kMapping[4][3] = {{1, 2, 3}, {0, 2, 3}, {0, 1, 3}, {0, 1, 2}};
   const int* map = kMapping[largest];
   const int cpnt[3] = {
       math::Min(static_cast<int>((quat[map[0]] - kOffset) * kScale + .5f),
-                QuaternionKey::kiScale),
+                internal::QuaternionKey::kiScale),
       math::Min(static_cast<int>((quat[map[1]] - kOffset) * kScale + .5f),
-                QuaternionKey::kiScale),
+                internal::QuaternionKey::kiScale),
       math::Min(static_cast<int>((quat[map[2]] - kOffset) * kScale + .5f),
-                QuaternionKey::kiScale)};
+                internal::QuaternionKey::kiScale)};
 
   pack(static_cast<int>(largest), quat[largest] < 0.f, cpnt, _dest);
 }  // namespace
@@ -328,6 +332,86 @@ ozz::vector<float> BuildTimePoints(
   return timepoints;
 }
 
+struct BuilderSlice {
+  ozz::vector<byte> entries;
+  size_t last;
+};
+
+template <typename _SortingKey>
+BuilderSlice BuildSlice(const ozz::span<_SortingKey>& _src, float _time,
+                        size_t _num_soa_tracks) {
+  BuilderSlice slice;
+
+  // Initialize vector with initial cached keys at t=0. Due to sorting, they
+  // are the 2nd set keyframes, hence starting from _num_soa_tracks.
+  const uint32_t num_entries = static_cast<uint32_t>(_num_soa_tracks);
+  ozz::vector<uint32_t> entries(num_entries);
+
+  // The loop can end as soon as it finds a key greater that _time. It
+  // will mean that all the keys lower than _time have been processed, meaning
+  // all cache entries are up to date.
+  for (size_t i = 0, end = _src.size();
+       i < end && _src[i].prev_key_time <= _time; ++i) {
+    // Stores the last key found for this track.
+    entries[_src[i].track] = static_cast<uint32_t>(i);
+    slice.last = i;
+  }
+  assert(slice.last >= _num_soa_tracks * 2 - 1);
+
+  // Compress buffer.
+  const size_t worst_size = ozz::ComputeGV4WorstBufferSize(make_span(entries));
+  slice.entries.resize(worst_size);
+  auto remain =
+      ozz::EncodeGV4Stream(make_span(entries), make_span(slice.entries));
+  slice.entries.resize(slice.entries.size() - remain.size_bytes());
+
+  return slice;
+}
+
+struct BuilderSlices {
+  ozz::vector<byte> entries;
+  ozz::vector<uint32_t> desc;
+};
+
+// Splits src into parts of similar sizes. The "time" of each part doesn't
+// really matter, it's the number of keys that impact performance.
+template <typename _SortingKey>
+BuilderSlices BuildSlices(const ozz::span<_SortingKey>& _src,
+                          size_t _num_soa_tracks, float _interval,
+                          float _duration) {
+  BuilderSlices slices;
+  if (_num_soa_tracks == 0 || _interval <= 0.f) {
+    return slices;
+  }
+
+  const size_t slices_divs =
+      static_cast<size_t>(math::Max(1.f, _duration / _interval));
+  if (slices_divs == 0) {
+    return slices;
+  }
+
+  for (size_t i = 0; i < slices_divs; ++i) {
+    const float time = _duration * (i + 1) / slices_divs;
+    const auto& slice = BuildSlice(_src, time, _num_soa_tracks);
+
+    // Pushes offset.
+    slices.desc.push_back(static_cast<uint32_t>(slices.entries.size()));
+    slices.desc.push_back(static_cast<uint32_t>(slice.last));
+
+    // Pushes compressed data.
+    slices.entries.insert(slices.entries.end(), slice.entries.begin(),
+                          slice.entries.end());
+  }
+  return slices;
+}
+
+void CopySlices(const BuilderSlices& _src, Animation::KeyframesCtrl& _dest) {
+  assert(_dest.slice_entries.size() == _src.entries.size());
+  std::copy(_src.entries.begin(), _src.entries.end(),
+            _dest.slice_entries.begin());
+  assert(_dest.slice_desc.size() == _src.desc.size());
+  std::copy(_src.desc.begin(), _src.desc.end(), _dest.slice_desc.begin());
+}
 }  // namespace
 
 // Ensures _input's validity and allocates _animation.
@@ -419,19 +503,47 @@ unique_ptr<Animation> AnimationBuilder::operator()(
     return nullptr;
   }
 
+  // Maximum number of keys reached.
+  if (sorting_translations.size() > std::numeric_limits<uint32_t>::max() &&
+      sorting_rotations.size() > std::numeric_limits<uint32_t>::max() &&
+      sorting_scales.size() > std::numeric_limits<uint32_t>::max()) {
+    return nullptr;
+  }
+
+  // Build cache snaphots/slices.
+  const auto& translation_ss = BuildSlices(make_span(sorting_translations),
+                                           num_soa_tracks, interval, duration);
+  const auto& rotation_ss = BuildSlices(make_span(sorting_rotations),
+                                        num_soa_tracks, interval, duration);
+  const auto& scale_ss = BuildSlices(make_span(sorting_scales), num_soa_tracks,
+                                     interval, duration);
+
   // Allocate animation members.
   const Animation::AllocateParams params{
-      _input.name.length(), time_points.size(), sorting_translations.size(),
-      sorting_rotations.size(), sorting_scales.size()};
+      _input.name.length(),
+      time_points.size(),
+      sorting_translations.size(),
+      sorting_rotations.size(),
+      sorting_scales.size(),
+      {translation_ss.entries.size(), translation_ss.desc.size()},
+      {rotation_ss.entries.size(), rotation_ss.desc.size()},
+      {scale_ss.entries.size(), scale_ss.desc.size()}};
   animation->Allocate(params);
 
+  CopySlices(translation_ss, animation->translations_ctrl_);
+  CopySlices(rotation_ss, animation->rotations_ctrl_);
+  CopySlices(scale_ss, animation->scales_ctrl_);
+
   // Copy sorted keys to final animation.
-  CopyToAnimation(make_span(time_points), sorting_translations, num_soa_tracks,
-                  &animation->translations_, &CompressFloat3);
-  CopyToAnimation(make_span(time_points), sorting_rotations, num_soa_tracks,
-                  &animation->rotations_, &CompressQuaternion);
-  CopyToAnimation(make_span(time_points), sorting_scales, num_soa_tracks,
-                  &animation->scales_, &CompressFloat3);
+  Compress(make_span(time_points), make_span(sorting_translations),
+           num_soa_tracks, make_span(animation->translations_values_),
+           animation->translations_ctrl_, &CompressFloat3);
+  Compress(make_span(time_points), make_span(sorting_rotations), num_soa_tracks,
+           make_span(animation->rotations_values_), animation->rotations_ctrl_,
+           &CompressQuaternion);
+  Compress(make_span(time_points), make_span(sorting_scales), num_soa_tracks,
+           make_span(animation->scales_values_), animation->scales_ctrl_,
+           &CompressFloat3);
 
   // Converts timepoints to ratio and copy to animation. Must be done once
   // indices have been set.

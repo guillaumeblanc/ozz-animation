@@ -50,7 +50,7 @@ namespace ozz {
 namespace internal {
 
 // Find the number of bytes (-1) required to store the integer value
-inline int tag(uint32_t _v) {
+inline uint8_t tag(uint32_t _v) {
   return (_v >= (1 << 24)) + (_v >= (1 << 16)) + (_v >= (1 << 8));
 }
 

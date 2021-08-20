@@ -53,6 +53,23 @@ class OZZ_ANIMOFFLINE_DLL AnimationBuilder {
   // The animation is returned as an unique_ptr as ownership is given back to
   // the caller.
   unique_ptr<Animation> operator()(const RawAnimation& _raw_animation) const;
+
+  // Defines i-frame.
+  // Slices, or i-frame in video encoding domain, allow the sampler to instantly
+  // seek to point in time in the animation. If no slice is available, the
+  // sampler needs to read sequentially forward or backward to reach a point. So
+  // that's useful for long animations, if they are accessed randomly, or if
+  // sampling starts from the end.
+  // 0 or less means no slice is generated. Any positive number means at least a
+  // slice at the end of the animation is generated.
+  // int slice_rate = 0;
+
+  // O->no slice
+  // x->slice every x if duration > x, guaranted slice at the end. Just a hint
+  // about how many slices are expected to be generated, but actual slice
+  // placement depends on keyframes distribution along the animation, in
+  // order to maximize seek efficiency.
+  float interval = 300.f;
 };
 }  // namespace offline
 }  // namespace animation

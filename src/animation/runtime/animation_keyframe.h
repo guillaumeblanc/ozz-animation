@@ -37,6 +37,7 @@
 
 namespace ozz {
 namespace animation {
+namespace internal {
 
 // Offset to previous keyframes are stored on uint16_t.
 enum Constants { kMaxPreviousOffset = (1 << 16) - 1 };
@@ -70,7 +71,6 @@ struct QuaternionKey {
   // 2b for the largest component index of the quaternion.
   // 1b for the sign of the largest component. 1 for negative.
   // 15b for each component
-  // 1b wasted
   uint8_t values[6];
 
   // Quantization scale, depends on number of bits.
@@ -106,6 +106,7 @@ inline void unpack(const QuaternionKey& _key, int& _biggest, int& _sign,
   _cpnt[2] = (packed >> 33) & 0x7fff;
 }
 
+}  // namespace internal
 }  // namespace animation
 }  // namespace ozz
 #endif  // OZZ_ANIMATION_RUNTIME_ANIMATION_KEYFRAME_H_
