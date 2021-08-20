@@ -466,10 +466,7 @@ int DrawPosture_FillUniforms(const ozz::animation::Skeleton& _skeleton,
     // Copy parent joint's raw matrix, to render a bone between the parent
     // and current matrix.
     float* uniform = _uniforms + instances * 16;
-    math::StorePtr(parent.cols[0], uniform + 0);
-    math::StorePtr(parent.cols[1], uniform + 4);
-    math::StorePtr(parent.cols[2], uniform + 8);
-    math::StorePtr(parent.cols[3], uniform + 12);
+    std::memcpy(uniform, parent.cols, 16 * sizeof(float));
 
     // Set bone direction (bone_dir). The shader expects to find it at index
     // [3,7,11] of the matrix.
@@ -489,11 +486,7 @@ int DrawPosture_FillUniforms(const ozz::animation::Skeleton& _skeleton,
     // Only the joint is rendered for leaves, the bone model isn't.
     if (IsLeaf(_skeleton, i)) {
       // Copy current joint's raw matrix.
-      uniform = _uniforms + instances * 16;
-      math::StorePtr(current.cols[0], uniform + 0);
-      math::StorePtr(current.cols[1], uniform + 4);
-      math::StorePtr(current.cols[2], uniform + 8);
-      math::StorePtr(current.cols[3], uniform + 12);
+      std::memcpy(uniform, current.cols, 16 * sizeof(float));
 
       // Re-use bone_dir to fix the size of the leaf (same as previous bone).
       // The shader expects to find it at index [3,7,11] of the matrix.
