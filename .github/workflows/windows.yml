@@ -13,6 +13,9 @@ jobs:
             platform: Win32
             option: default
           - build_type: Release
+            platform: Win32
+            option: default
+          - build_type: Release
             platform: x64
             option: default
     steps:
