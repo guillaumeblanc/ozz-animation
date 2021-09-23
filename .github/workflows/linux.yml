@@ -93,10 +93,10 @@ jobs:
 
     - name: Build
       # Build your program with the given configuration
-      run: cmake --build ${{github.workspace}}/build --config ${{matrix.build_type}} --use-stderr -- -j4
+      run: cmake --build ${{github.workspace}}/build --config ${{matrix.build_type}} --use-stderr -j
 
     - name: Test
       working-directory: ${{github.workspace}}/build
       # Execute tests defined by the CMake configuration.
-      run: ctest -C ${{matrix.build_type}} --output-on-failure -- -j2
+      run: ctest -C ${{matrix.build_type}} --output-on-failure -j2
       
