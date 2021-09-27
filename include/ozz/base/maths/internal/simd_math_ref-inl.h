@@ -31,6 +31,7 @@
 // SIMD refence implementation, based on scalar floats.
 
 #include <stdint.h>
+
 #include <cassert>
 #include <cmath>
 #include <cstddef>
@@ -1820,22 +1821,9 @@ OZZ_INLINE bool ToAffine(const Float4x4& _m, SimdFloat4* _translation,
 }
 
 OZZ_INLINE Float4x4 Float4x4::FromEuler(_SimdFloat4 _v) {
-  const float ch = std::cos(_v.x);
-  const float sh = std::sin(_v.x);
-  const float ca = std::cos(_v.y);
-  const float sa = std::sin(_v.y);
-  const float cb = std::cos(_v.z);
-  const float sb = std::sin(_v.z);
-
-  const float sa_cb = sa * cb;
-  const float sa_sb = sa * sb;
-
-  const Float4x4 ret = {
-      {{ch * ca, sh * sb - ch * sa_cb, ch * sa_sb + sh * cb, 0.f},
-       {sa, ca * cb, -ca * sb, 0.f},
-       {-sh * ca, sh * sa_cb + ch * sb, -sh * sa_sb + ch * cb, 0.f},
-       {0.f, 0.f, 0.f, 1.f}}};
-  return ret;
+  return Float4x4::FromAxisAngle(simd_float4::y_axis(), SplatX(_v)) *
+         Float4x4::FromAxisAngle(simd_float4::x_axis(), SplatY(_v)) *
+         Float4x4::FromAxisAngle(simd_float4::z_axis(), SplatZ(_v));
 }
 
 OZZ_INLINE Float4x4 Float4x4::FromAxisAngle(_SimdFloat4 _axis,

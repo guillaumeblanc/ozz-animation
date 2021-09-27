@@ -25,14 +25,12 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/base/maths/simd_math.h"
-
 #include "gtest/gtest.h"
-
 #include "ozz/base/gtest_helper.h"
 #include "ozz/base/maths/gtest_math_helper.h"
 #include "ozz/base/maths/math_constant.h"
 #include "ozz/base/maths/math_ex.h"
+#include "ozz/base/maths/simd_math.h"
 
 using ozz::math::Float4x4;
 using ozz::math::SimdFloat4;
@@ -236,12 +234,26 @@ TEST(Float4x4Rotate, ozz_simd_math) {
   EXPECT_FLOAT4x4_EQ(euler_identity, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f,
                      0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f);
 
-  const Float4x4 euler = Float4x4::FromEuler(
+  const Float4x4 euler_yaw = Float4x4::FromEuler(
       ozz::math::simd_float4::Load(ozz::math::kPi_2, 0.f, 0.f, 0.f));
-  EXPECT_FLOAT4x4_EQ(euler, 0.f, 0.f, 1.f, 0.f, 0.f, 1.f, 0.f, 0.f, -1.f, 0.f,
-                     0.f, 0.f, 0.f, 0.f, 0.f, 1.f);
-  EXPECT_TRUE(ozz::math::AreAllTrue3(IsNormalized(euler)));
-  EXPECT_TRUE(ozz::math::AreAllTrue1(IsOrthogonal(euler)));
+  EXPECT_FLOAT4x4_EQ(euler_yaw, 0.f, 0.f, -1.f, 0.f, 0.f, 1.f, 0.f, 0.f, 1.f,
+                     0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 1.f);
+  EXPECT_TRUE(ozz::math::AreAllTrue3(IsNormalized(euler_yaw)));
+  EXPECT_TRUE(ozz::math::AreAllTrue1(IsOrthogonal(euler_yaw)));
+
+  const Float4x4 euler_pitch = Float4x4::FromEuler(
+      ozz::math::simd_float4::Load(0.f, ozz::math::kPi_2, 0.f, 0.f));
+  EXPECT_FLOAT4x4_EQ(euler_pitch, 1.f, 0.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f,
+                     -1.f, 0.f, 0.f, 0.f, 0.f, 0.f, 1.f);
+  EXPECT_TRUE(ozz::math::AreAllTrue3(IsNormalized(euler_pitch)));
+  EXPECT_TRUE(ozz::math::AreAllTrue1(IsOrthogonal(euler_pitch)));
+
+  const Float4x4 euler_roll = Float4x4::FromEuler(
+      ozz::math::simd_float4::Load(0.f, 0.f, ozz::math::kPi_2, 0.f));
+  EXPECT_FLOAT4x4_EQ(euler_roll, 0.f, 1.f, 0.f, 0.f, -1.f, 0.f, 00.f, 0.f, 0.f,
+                     0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f);
+  EXPECT_TRUE(ozz::math::AreAllTrue3(IsNormalized(euler_roll)));
+  EXPECT_TRUE(ozz::math::AreAllTrue1(IsOrthogonal(euler_roll)));
 
   EXPECT_ASSERTION(Float4x4::FromQuaternion(
                        ozz::math::simd_float4::Load(1.f, 0.f, 0.f, 1.f)),

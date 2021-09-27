@@ -9,6 +9,7 @@ Next release
   - [animation] #103 Allows move constructor and assignment for ozz::animation::Skeleton, ozz::animation::Animation and ozz::animation::Track.
   - [animation] Renames SamplingCache to SamplingJob::Context.
   - [animation] #110 Renames skeleton bind pose to rest pose, to avoid confusion with skinning bind pose.
+  - [base] Fixes Float4x4::FromEuler which was swapping pitch and roll.
 
 * Build pipeline
   - #59 Adds support for shared libraries on Windows (dll), Linux and MacOS platforms.
