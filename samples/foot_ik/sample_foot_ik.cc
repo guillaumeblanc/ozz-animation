@@ -101,7 +101,7 @@ class FootIKSampleApplication : public ozz::sample::Application {
   FootIKSampleApplication()
       : pelvis_offset_(0.f, 0.f, 0.f),
         root_translation_(2.17f, 2.f, -2.06f),
-        root_yaw_(2.f),
+        root_yaw_(-2.f),
         foot_heigh_(.12f),
         weight_(1.f),
         soften_(1.f),

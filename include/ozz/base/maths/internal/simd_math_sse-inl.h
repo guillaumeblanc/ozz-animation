@@ -31,6 +31,7 @@
 // SIMD SSE2+ implementation, based on scalar floats.
 
 #include <stdint.h>
+
 #include <cassert>
 
 // Temporarly needed while trigonometric functions aren't implemented.
@@ -1294,7 +1295,7 @@ OZZ_INLINE SimdInt4 Sign(_SimdInt4 _v) {
 OZZ_INLINE SimdInt4 Min(_SimdInt4 _a, _SimdInt4 _b) {
 #ifdef OZZ_SIMD_SSE4_1
   return _mm_min_epi32(_a, _b);
-#else  // OZZ_SIMD_SSE4_1
+#else   // OZZ_SIMD_SSE4_1
   return OZZ_SSE_SELECT_I(_mm_cmplt_epi32(_a, _b), _a, _b);
 #endif  // OZZ_SIMD_SSE4_1
 }
@@ -1302,7 +1303,7 @@ OZZ_INLINE SimdInt4 Min(_SimdInt4 _a, _SimdInt4 _b) {
 OZZ_INLINE SimdInt4 Max(_SimdInt4 _a, _SimdInt4 _b) {
 #ifdef OZZ_SIMD_SSE4_1
   return _mm_max_epi32(_a, _b);
-#else  // OZZ_SIMD_SSE4_1
+#else   // OZZ_SIMD_SSE4_1
   return OZZ_SSE_SELECT_I(_mm_cmpgt_epi32(_a, _b), _a, _b);
 #endif  // OZZ_SIMD_SSE4_1
 }
@@ -1775,26 +1776,9 @@ inline bool ToAffine(const Float4x4& _m, SimdFloat4* _translation,
 }
 
 inline Float4x4 Float4x4::FromEuler(_SimdFloat4 _v) {
-  const __m128 cos = Cos(_v);
-  const __m128 sin = Sin(_v);
-
-  const float cx = GetX(cos);
-  const float sx = GetX(sin);
-  const float cy = GetY(cos);
-  const float sy = GetY(sin);
-  const float cz = GetZ(cos);
-  const float sz = GetZ(sin);
-
-  const float sycz = sy * cz;
-  const float sysz = sy * sz;
-
-  const Float4x4 ret = {{simd_float4::Load(cx * cy, sx * sz - cx * sycz,
-                                           cx * sysz + sx * cz, 0.f),
-                         simd_float4::Load(sy, cy * cz, -cy * sz, 0.f),
-                         simd_float4::Load(-sx * cy, sx * sycz + cx * sz,
-                                           -sx * sysz + cx * cz, 0.f),
-                         simd_float4::w_axis()}};
-  return ret;
+  return Float4x4::FromAxisAngle(simd_float4::y_axis(), SplatX(_v)) *
+         Float4x4::FromAxisAngle(simd_float4::x_axis(), SplatY(_v)) *
+         Float4x4::FromAxisAngle(simd_float4::z_axis(), SplatZ(_v));
 }
 
 inline Float4x4 Float4x4::FromAxisAngle(_SimdFloat4 _axis, _SimdFloat4 _angle) {
