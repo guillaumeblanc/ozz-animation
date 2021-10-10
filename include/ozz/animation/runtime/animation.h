@@ -37,6 +37,9 @@ namespace io {
 class IArchive;
 class OArchive;
 }  // namespace io
+namespace memory {
+    class Allocator;
+}  // namespace memory
 namespace animation {
 
 // Forward declares the AnimationBuilder, used to instantiate an Animation.
@@ -62,6 +65,9 @@ class Animation {
  public:
   // Builds a default animation.
   Animation();
+
+  // Builds an animation with a custom allocator
+  Animation(ozz::memory::Allocator* _customalloc);
 
   // Declares the public non-virtual destructor.
   ~Animation();
@@ -111,6 +117,8 @@ class Animation {
   void Allocate(size_t _name_len, size_t _translation_count,
                 size_t _rotation_count, size_t _scale_count);
   void Deallocate();
+
+  ozz::memory::Allocator* allocator_;
 
   // Duration of the animation clip.
   float duration_;

@@ -44,7 +44,9 @@ namespace ozz {
 
 namespace animation {
 
-Animation::Animation() : duration_(0.f), num_tracks_(0), name_(nullptr) {}
+Animation::Animation() : allocator_(memory::default_allocator()), duration_(0.f), num_tracks_(0), name_(nullptr) {}
+
+Animation::Animation(ozz::memory::Allocator* _customalloc) : allocator_(_customalloc), duration_(0.f), num_tracks_(0), name_(nullptr) {}
 
 Animation::~Animation() { Deallocate(); }
 
@@ -65,7 +67,7 @@ void Animation::Allocate(size_t _name_len, size_t _translation_count,
                              _translation_count * sizeof(Float3Key) +
                              _rotation_count * sizeof(QuaternionKey) +
                              _scale_count * sizeof(Float3Key);
-  span<char> buffer = {static_cast<char*>(memory::default_allocator()->Allocate(
+  span<char> buffer = {static_cast<char*>(allocator_->Allocate(
                            buffer_size, alignof(Float3Key))),
                        buffer_size};
 
@@ -83,7 +85,7 @@ void Animation::Allocate(size_t _name_len, size_t _translation_count,
 }
 
 void Animation::Deallocate() {
-  memory::default_allocator()->Deallocate(
+  allocator_->Deallocate(
       as_writable_bytes(translations_).data());
 
   name_ = nullptr;
