@@ -366,7 +366,7 @@ CreateTranslationRestPoseKey(const tinygltf::Node& _node) {
     key.value = ozz::math::Float3(static_cast<float>(_node.translation[0]),
                                   static_cast<float>(_node.translation[1]),
                                   static_cast<float>(_node.translation[2]));
-  } else if (_node.matrix.empty()) {
+  } else if (!_node.matrix.empty()) {
     // Extract translation from the matrix
     const ozz::math::Float4x4 matrix = {
         {ozz::math::simd_float4::Load(static_cast<float>(_node.matrix[0]),
@@ -406,7 +406,7 @@ ozz::animation::offline::RawAnimation::RotationKey CreateRotationRestPoseKey(
                                       static_cast<float>(_node.rotation[1]),
                                       static_cast<float>(_node.rotation[2]),
                                       static_cast<float>(_node.rotation[3]));
-  } else if (_node.matrix.empty()) {
+  } else if (!_node.matrix.empty()) {
     // Extract rotation from the matrix
     const ozz::math::Float4x4 matrix = {
         {ozz::math::simd_float4::Load(static_cast<float>(_node.matrix[0]),
@@ -444,7 +444,7 @@ ozz::animation::offline::RawAnimation::ScaleKey CreateScaleRestPoseKey(
     key.value = ozz::math::Float3(static_cast<float>(_node.scale[0]),
                                   static_cast<float>(_node.scale[1]),
                                   static_cast<float>(_node.scale[2]));
-  } else if (_node.matrix.empty()) {
+  } else if (!_node.matrix.empty()) {
     // Extract scale from the matrix
     const ozz::math::Float4x4 matrix = {
         {ozz::math::simd_float4::Load(static_cast<float>(_node.matrix[0]),
