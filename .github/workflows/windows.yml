@@ -38,7 +38,7 @@ jobs:
 
     - name: Build
       # Build your program with the given configuration
-      run: cmake --build ${{github.workspace}}/build --config ${{matrix.build_type}} --use-stderr
+      run: cmake --build ${{github.workspace}}/build --config ${{matrix.build_type}} --use-stderr -j
 
     - name: Test
       working-directory: ${{github.workspace}}/build

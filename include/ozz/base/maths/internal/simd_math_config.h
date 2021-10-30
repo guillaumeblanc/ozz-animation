@@ -152,7 +152,8 @@ typedef const SimdInt4& _SimdInt4;
 }  // namespace ozz
 #endif  // OZZ_SIMD_x
 
-// Native SIMD operator already exist on some compilers, so they have to be disable from ozz implementation
+// Native SIMD operator already exist on some compilers, so they have to be
+// disable from ozz implementation
 #if !defined(OZZ_SIMD_REF) && (defined(__GNUC__) || defined(__llvm__))
 #define OZZ_DISABLE_SSE_NATIVE_OPERATORS
 #endif
