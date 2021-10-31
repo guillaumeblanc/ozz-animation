@@ -58,7 +58,7 @@ struct OZZ_ANIMATION_DLL Float3Key {
 
 // Defines the rotation key frame type.
 // Rotation value is a quaternion. Quaternion are normalized, which means each
-// component is in range [0:1]. This property allows to quantize the 3
+// component is in range [-1:1]. This property allows to quantize the 3
 // components to 3 signed integer 16 bits values. The 4th component is restored
 // at runtime, using the knowledge that |w| = sqrt(1 - (a^2 + b^2 + c^2)).
 // The sign of this 4th component is stored using 1 bit taken from the track
@@ -71,7 +71,7 @@ struct QuaternionKey {
   // 2b for the largest component index of the quaternion.
   // 1b for the sign of the largest component. 1 for negative.
   // 15b for each component
-  uint8_t values[6];
+  uint16_t values[3];
 
   // Quantization scale, depends on number of bits.
   static constexpr int kBits = 15;
@@ -85,20 +85,16 @@ inline void pack(int _largest, int _sign, const int _cpnt[3],
   const uint64_t packed =
       (_largest & 0x3) | ((_sign & 0x1) << 2) | (_cpnt[0] & 0x7fff) << 3 |
       uint64_t(_cpnt[1] & 0x7fff) << 18 | (uint64_t(_cpnt[2]) & 0x7fff) << 33;
-  _key->values[0] = packed & 0xff;
-  _key->values[1] = (packed >> 8) & 0xff;
-  _key->values[2] = (packed >> 16) & 0xff;
-  _key->values[3] = (packed >> 24) & 0xff;
-  _key->values[4] = (packed >> 32) & 0xff;
-  _key->values[5] = (packed >> 40) & 0xff;
+  _key->values[0] = packed & 0xffff;
+  _key->values[1] = (packed >> 16) & 0xffff;
+  _key->values[2] = (packed >> 32) & 0xffff;
 }
 
 inline void unpack(const QuaternionKey& _key, int& _biggest, int& _sign,
                    int _cpnt[3]) {
-  const uint64_t packed =
-      uint64_t(_key.values[0]) | uint64_t(_key.values[1]) << 8 |
-      uint64_t(_key.values[2]) << 16 | uint64_t(_key.values[3]) << 24 |
-      uint64_t(_key.values[4]) << 32 | uint64_t(_key.values[5]) << 40;
+  const uint64_t packed = uint64_t(_key.values[0]) |
+                          (uint64_t(_key.values[1]) << 16) |
+                          (uint64_t(_key.values[2]) << 32);
   _biggest = packed & 0x3;
   _sign = (packed >> 2) & 0x1;
   _cpnt[0] = (packed >> 3) & 0x7fff;

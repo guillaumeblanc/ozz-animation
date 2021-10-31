@@ -121,6 +121,8 @@ void Animation::Allocate(const AllocateParams& _params) {
   scales_ctrl_.previouses = fill_span<uint16_t>(buffer, _params.scales);
   translations_values_ =
       fill_span<internal::Float3Key>(buffer, _params.translations);
+  rotations_values_ =
+      fill_span<internal::QuaternionKey>(buffer, _params.rotations);
   scales_values_ = fill_span<internal::Float3Key>(buffer, _params.scales);
 
   // 16b / 8b alignment
@@ -140,9 +142,6 @@ void Animation::Allocate(const AllocateParams& _params) {
       fill_span<byte>(buffer, _params.rotation_slices.entries);
   scales_ctrl_.slice_entries =
       fill_span<byte>(buffer, _params.scale_slices.entries);
-
-  rotations_values_ =
-      fill_span<internal::QuaternionKey>(buffer, _params.rotations);
 
   // Let name be nullptr if animation has no name. Allows to avoid allocating
   // this buffer in the constructor of empty animations.
