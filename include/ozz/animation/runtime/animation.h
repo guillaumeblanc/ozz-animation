@@ -97,12 +97,12 @@ class OZZ_ANIMATION_DLL Animation {
   struct TKeyframesCtrl {
     size_t size_bytes() const {
       return ratios.size_bytes() + previouses.size_bytes() +
-             slice_entries.size_bytes() + slice_desc.size_bytes();
+             iframe_entries.size_bytes() + iframe_desc.size_bytes();
     }
 
     // Implicit conversion to const.
     operator TKeyframesCtrl<true>() const {
-      return {ratios, previouses, slice_entries, slice_desc};
+      return {ratios, previouses, iframe_entries, iframe_desc, iframe_interval};
     }
 
     template <typename _Ty, bool>
@@ -121,13 +121,15 @@ class OZZ_ANIMATION_DLL Animation {
     // Offsets from the previous keyframe of the same track.
     span<typename ConstQualifier<uint16_t, _Const>::type> previouses;
 
-    // Cached slice entries packed with GV4 encoding.
-    span<typename ConstQualifier<byte, _Const>::type> slice_entries;
+    // Cached iframe entries packed with GV4 encoding.
+    span<typename ConstQualifier<byte, _Const>::type> iframe_entries;
 
-    // 2 intergers per slice:
+    // 2 intergers per iframe:
     // 1. Offset in compressed entries
     // 2. Maximum key index (latest updated key).
-    span<typename ConstQualifier<uint32_t, _Const>::type> slice_desc;
+    span<typename ConstQualifier<uint32_t, _Const>::type> iframe_desc;
+
+    float iframe_interval;
   };
 
   typedef TKeyframesCtrl<true> KeyframesCtrlConst;
@@ -172,14 +174,14 @@ class OZZ_ANIMATION_DLL Animation {
     size_t rotations;
     size_t scales;
 
-    struct Slices {
+    struct IFrames {
       size_t entries;
       size_t offsets;
     };
 
-    Slices translation_slices;
-    Slices rotation_slices;
-    Slices scale_slices;
+    IFrames translation_iframes;
+    IFrames rotation_iframes;
+    IFrames scale_iframes;
   };
   void Allocate(const AllocateParams& _params);
   void Deallocate();

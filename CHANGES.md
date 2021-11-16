@@ -6,11 +6,14 @@ Next release
   - [sample_fbx2mesh] Assigns non-influenced vertices to root joint.
 
 * Library
+  - [animation] Adds iframe support, allowing fast seeks into the animation thanks to precomputed (and compressed) cache states. The sampling job decides automatically when an iframe is used, based on seek offset.
+  - [animation] Restructures compressed keyframes to allow sequential backward reading. Keyframe times are now indexed. Per keyframe track index has been removed, replaced with an offset to the previous keyframe (for the same track) which is used for fast backward sequential reading.
   - [animation] #103 Allows move constructor and assignment for ozz::animation::Skeleton, ozz::animation::Animation and ozz::animation::Track.
   - [animation] Renames SamplingCache to SamplingJob::Context.
   - [animation] #110 Renames skeleton bind pose to rest pose, to avoid confusion with skinning bind pose.
+  - [offline] Extends configuration to allow setting up iframe time interval.  
   - [base] Fixes Float4x4::FromEuler which was swapping pitch and roll.
-  - [base] Implements group varint encoding utility. 
+  - [base] Implements group varint encoding utility. It's used to compress iframes.
 
 * Build pipeline
   - #59 Adds support for shared libraries on Windows (dll), Linux and MacOS platforms.

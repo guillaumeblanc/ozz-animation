@@ -93,12 +93,12 @@ void Animation::Allocate(const AllocateParams& _params) {
           (sizeof(internal::QuaternionKey) + sizeof_ratio + sizeof_previous) +
       _params.scales *
           (sizeof(internal::Float3Key) + sizeof_ratio + sizeof_previous) +
-      _params.translation_slices.entries * sizeof(byte) +
-      _params.translation_slices.offsets * sizeof(uint32_t) +
-      _params.rotation_slices.entries * sizeof(byte) +
-      _params.rotation_slices.offsets * sizeof(uint32_t) +
-      _params.scale_slices.entries * sizeof(byte) +
-      _params.scale_slices.offsets * sizeof(uint32_t);
+      _params.translation_iframes.entries * sizeof(byte) +
+      _params.translation_iframes.offsets * sizeof(uint32_t) +
+      _params.rotation_iframes.entries * sizeof(byte) +
+      _params.rotation_iframes.offsets * sizeof(uint32_t) +
+      _params.scale_iframes.entries * sizeof(byte) +
+      _params.scale_iframes.offsets * sizeof(uint32_t);
   span<byte> buffer = {static_cast<byte*>(memory::default_allocator()->Allocate(
                            buffer_size, alignof(float))),
                        buffer_size};
@@ -107,12 +107,12 @@ void Animation::Allocate(const AllocateParams& _params) {
 
   // 32b alignment
   timepoints_ = fill_span<float>(buffer, _params.timepoints);
-  translations_ctrl_.slice_desc =
-      fill_span<uint32_t>(buffer, _params.translation_slices.offsets);
-  rotations_ctrl_.slice_desc =
-      fill_span<uint32_t>(buffer, _params.rotation_slices.offsets);
-  scales_ctrl_.slice_desc =
-      fill_span<uint32_t>(buffer, _params.scale_slices.offsets);
+  translations_ctrl_.iframe_desc =
+      fill_span<uint32_t>(buffer, _params.translation_iframes.offsets);
+  rotations_ctrl_.iframe_desc =
+      fill_span<uint32_t>(buffer, _params.rotation_iframes.offsets);
+  scales_ctrl_.iframe_desc =
+      fill_span<uint32_t>(buffer, _params.scale_iframes.offsets);
 
   // 16b alignment
   translations_ctrl_.previouses =
@@ -134,14 +134,14 @@ void Animation::Allocate(const AllocateParams& _params) {
 
   // 8b alignment
 
-  // slice_entries are compressed with gv4, they must not be at the end of the
+  // iframe_entries are compressed with gv4, they must not be at the end of the
   // buffer, as gv4 will access 3 bytes further than compressed entries.
-  translations_ctrl_.slice_entries =
-      fill_span<byte>(buffer, _params.translation_slices.entries);
-  rotations_ctrl_.slice_entries =
-      fill_span<byte>(buffer, _params.rotation_slices.entries);
-  scales_ctrl_.slice_entries =
-      fill_span<byte>(buffer, _params.scale_slices.entries);
+  translations_ctrl_.iframe_entries =
+      fill_span<byte>(buffer, _params.translation_iframes.entries);
+  rotations_ctrl_.iframe_entries =
+      fill_span<byte>(buffer, _params.rotation_iframes.entries);
+  scales_ctrl_.iframe_entries =
+      fill_span<byte>(buffer, _params.scale_iframes.entries);
 
   // Let name be nullptr if animation has no name. Allows to avoid allocating
   // this buffer in the constructor of empty animations.
@@ -187,8 +187,9 @@ struct Extern<animation::Animation::KeyframesCtrl> {
       const animation::Animation::KeyframesCtrl& component = _components[i];
       _archive << ozz::io::MakeArray(component.ratios);
       _archive << ozz::io::MakeArray(component.previouses);
-      _archive << ozz::io::MakeArray(component.slice_entries);
-      _archive << ozz::io::MakeArray(component.slice_desc);
+      _archive << ozz::io::MakeArray(component.iframe_entries);
+      _archive << ozz::io::MakeArray(component.iframe_desc);
+      _archive << component.iframe_interval;
     }
   }
   static void Load(IArchive& _archive,
@@ -199,8 +200,9 @@ struct Extern<animation::Animation::KeyframesCtrl> {
       animation::Animation::KeyframesCtrl& component = _components[i];
       _archive >> ozz::io::MakeArray(component.ratios);
       _archive >> ozz::io::MakeArray(component.previouses);
-      _archive >> ozz::io::MakeArray(component.slice_entries);
-      _archive >> ozz::io::MakeArray(component.slice_desc);
+      _archive >> ozz::io::MakeArray(component.iframe_entries);
+      _archive >> ozz::io::MakeArray(component.iframe_desc);
+      _archive >> component.iframe_interval;
     }
   }
 };
@@ -254,18 +256,19 @@ void Animation::Save(ozz::io::OArchive& _archive) const {
   _archive << static_cast<uint32_t>(rotation_count);
   const size_t scale_count = scales_values_.size();
   _archive << static_cast<uint32_t>(scale_count);
-  const size_t t_slice_entries_count = translations_ctrl_.slice_entries.size();
-  _archive << static_cast<uint32_t>(t_slice_entries_count);
-  const size_t t_slice_desc_count = translations_ctrl_.slice_desc.size();
-  _archive << static_cast<uint32_t>(t_slice_desc_count);
-  const size_t r_slice_entries_count = rotations_ctrl_.slice_entries.size();
-  _archive << static_cast<uint32_t>(r_slice_entries_count);
-  const size_t r_slice_desc_count = rotations_ctrl_.slice_desc.size();
-  _archive << static_cast<uint32_t>(r_slice_desc_count);
-  const size_t s_slice_entries_count = scales_ctrl_.slice_entries.size();
-  _archive << static_cast<uint32_t>(s_slice_entries_count);
-  const size_t s_slice_desc_count = scales_ctrl_.slice_desc.size();
-  _archive << static_cast<uint32_t>(s_slice_desc_count);
+  const size_t t_iframe_entries_count =
+      translations_ctrl_.iframe_entries.size();
+  _archive << static_cast<uint32_t>(t_iframe_entries_count);
+  const size_t t_iframe_desc_count = translations_ctrl_.iframe_desc.size();
+  _archive << static_cast<uint32_t>(t_iframe_desc_count);
+  const size_t r_iframe_entries_count = rotations_ctrl_.iframe_entries.size();
+  _archive << static_cast<uint32_t>(r_iframe_entries_count);
+  const size_t r_iframe_desc_count = rotations_ctrl_.iframe_desc.size();
+  _archive << static_cast<uint32_t>(r_iframe_desc_count);
+  const size_t s_iframe_entries_count = scales_ctrl_.iframe_entries.size();
+  _archive << static_cast<uint32_t>(s_iframe_entries_count);
+  const size_t s_iframe_desc_count = scales_ctrl_.iframe_desc.size();
+  _archive << static_cast<uint32_t>(s_iframe_desc_count);
 
   _archive << ozz::io::MakeArray(name_, name_len);
   _archive << ozz::io::MakeArray(timepoints_);
@@ -307,27 +310,27 @@ void Animation::Load(ozz::io::IArchive& _archive, uint32_t _version) {
   _archive >> rotation_count;
   uint32_t scale_count;
   _archive >> scale_count;
-  uint32_t t_slice_entries_count;
-  _archive >> t_slice_entries_count;
-  uint32_t t_slice_desc_count;
-  _archive >> t_slice_desc_count;
-  uint32_t r_slice_entries_count;
-  _archive >> r_slice_entries_count;
-  uint32_t r_slice_desc_count;
-  _archive >> r_slice_desc_count;
-  uint32_t s_slice_entries_count;
-  _archive >> s_slice_entries_count;
-  uint32_t s_slice_desc_count;
-  _archive >> s_slice_desc_count;
+  uint32_t t_iframe_entries_count;
+  _archive >> t_iframe_entries_count;
+  uint32_t t_iframe_desc_count;
+  _archive >> t_iframe_desc_count;
+  uint32_t r_iframe_entries_count;
+  _archive >> r_iframe_entries_count;
+  uint32_t r_iframe_desc_count;
+  _archive >> r_iframe_desc_count;
+  uint32_t s_iframe_entries_count;
+  _archive >> s_iframe_entries_count;
+  uint32_t s_iframe_desc_count;
+  _archive >> s_iframe_desc_count;
 
   const AllocateParams params{name_len,
                               timepoints_count,
                               translation_count,
                               rotation_count,
                               scale_count,
-                              {t_slice_entries_count, t_slice_desc_count},
-                              {r_slice_entries_count, r_slice_desc_count},
-                              {s_slice_entries_count, s_slice_desc_count}};
+                              {t_iframe_entries_count, t_iframe_desc_count},
+                              {r_iframe_entries_count, r_iframe_desc_count},
+                              {s_iframe_entries_count, s_iframe_desc_count}};
   Allocate(params);
 
   if (name_) {  // nullptr name_ is supported.

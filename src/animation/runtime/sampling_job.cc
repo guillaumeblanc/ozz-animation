@@ -151,50 +151,19 @@ inline ozz::math::SimdFloat4 KeysRatio(
       _timepoints[index[3]]);
 }
 
-struct Closest {
-  size_t slice;
-  float dist;
-};
-inline Closest FindClosest(float _target_ratio,
-                           const ozz::span<const float>& _timepoints,
-                           const Animation::KeyframesCtrlConst& _ctrl) {
-  // Animation begin is a valid slice (returns 0)
-  Closest closest = {0, _target_ratio};  // Distance since begining
-
-  // Iterate slices and gets the closest one to _target_ratio;
-  for (size_t i = 0; i < _ctrl.slice_desc.size() / 2; ++i) {
-    // "last" key time corresponds to the right hand side of the lerp. Hence it
-    // can be very far in time.
-    const size_t last = _ctrl.slice_desc[i * 2 + 1];
-    // "penultimate" (left side of the lerp) is the one that has just been
-    // replace in cache, because its time has been exceeded. So this is the
-    // closest to the _target_ratio.
-    const size_t penultimate = last - _ctrl.previouses[last];
-    const float ratio = KeyRatio(_timepoints, _ctrl.ratios, penultimate);
-    const float dist = std::abs(ratio - _target_ratio);
-    if (closest.dist > dist) {
-      closest = {i + 1, dist};
-    } else {
-      break;  // Distance is growing again.
-    }
-  }
-
-  return closest;
-}
-
 inline uint32_t InitializeCache(const Animation::KeyframesCtrlConst& _ctrl,
-                                size_t _slice,
+                                size_t _iframe,
                                 const ozz::span<uint32_t>& _entries) {
-  if (_slice > 0) {
-    // Initializes cache entries from a compressed cache slice.
-    size_t slice = (_slice - 1) * 2;
-    const size_t offset = _ctrl.slice_desc[slice];
-    ozz::DecodeGV4Stream(_ctrl.slice_entries.subspan(
-                             offset, _ctrl.slice_entries.size() - offset),
+  if (_iframe > 0) {
+    // Initializes cache entries from a compressed cache iframe.
+    size_t iframe = (_iframe - 1) * 2;
+    const size_t offset = _ctrl.iframe_desc[iframe];
+    ozz::DecodeGV4Stream(_ctrl.iframe_entries.subspan(
+                             offset, _ctrl.iframe_entries.size() - offset),
                          _entries);
 
     // Find "next" keyframe, aka the one after the last cached one.
-    return _ctrl.slice_desc[slice + 1] + 1;
+    return _ctrl.iframe_desc[iframe + 1] + 1;
   } else {
     // Initializes cache entries with the first 2nd sets of key frames. The
     // sorting algorithm ensures that the first 2 key frames of a track are
@@ -234,19 +203,32 @@ void UpdateCache(float _ratio, float _previous_ratio, size_t _num_soa_tracks,
   uint32_t next = _cache.next;
   assert(next == 0 || (next >= num_tracks * 2 && next <= num_keys));
 
-  // Will seek to a slice if it's the shortest path to the target ratio.
-  const Closest& closest = FindClosest(_ratio, _timepoints, _ctrl);
-  const bool seek = std::abs(_ratio - _previous_ratio) > closest.dist;
+  // Initialize cache if needed.
+  if (next == 0 ||
+      std::abs(_ratio - _previous_ratio) > _ctrl.iframe_interval / 2.f) {
+    int iframe = -1;
+    if (!_ctrl.iframe_desc.empty()) {
+      // First time, or fast seeking into animation.
+      // Finds the closest iframe to the expected _ratio.
+      iframe = static_cast<int>(.5f + _ratio / _ctrl.iframe_interval);
+    } else if (next == 0 || _previous_ratio > _ratio) {
+      // This handles the cases:
+      // - First time, and no iframe
+      // - time is going backward, seeking toward 0, and no iframe is defined.
+      // In this case it can still be valuable to reset cache to animation
+      // begining.
+      iframe = 0;
+    }
 
-  // Initialize cache if need, aka first time or fast seeking into animation.
-  if (next == 0 || seek) {
-    next =
-        InitializeCache(_ctrl, closest.slice, _cache.entries.first(num_tracks));
+    // Seek to defined keyframe
+    if (iframe >= 0) {
+      next = InitializeCache(_ctrl, iframe, _cache.entries.first(num_tracks));
+      assert(next >= num_tracks * 2 && next <= num_keys);
 
-    // Cache was overwritten, all entries must be flagged as outdated.
-    OutdateCache(_cache.outdated, _num_soa_tracks);
+      // Cache was overwritten, all entries must be flagged as outdated.
+      OutdateCache(_cache.outdated, _num_soa_tracks);
+    }
   }
-  assert(next >= num_tracks * 2 && next <= num_keys);
 
   // Reading forward.
   // Iterates while the cache is not updated with previous key required for

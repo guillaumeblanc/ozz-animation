@@ -324,56 +324,60 @@ TEST(Sort, AnimationBuilder) {
     raw_animation.tracks[3].translations.push_back(n);
 
     // Builds animation
-    ozz::unique_ptr<Animation> animation(builder(raw_animation));
-    ASSERT_TRUE(animation);
+    const float intervals[] = {0.f, .001f, .1f, .5f, .9f, 1.f, 2.f, 1000.f};
+    for (float interval : intervals) {
+      builder.iframe_interval = interval;
+      ozz::unique_ptr<Animation> animation(builder(raw_animation));
+      ASSERT_TRUE(animation);
 
-    // Duration must be maintained.
-    EXPECT_EQ(animation->duration(), raw_animation.duration);
+      // Duration must be maintained.
+      EXPECT_EQ(animation->duration(), raw_animation.duration);
 
-    // Needs to sample to test the animation.
-    ozz::animation::SamplingJob job;
-    ozz::animation::SamplingJob::Context context(1);
-    ozz::math::SoaTransform output[1];
-    job.animation = animation.get();
-    job.context = &context;
-    job.output = output;
+      // Needs to sample to test the animation.
+      ozz::animation::SamplingJob job;
+      ozz::animation::SamplingJob::Context context(1);
+      ozz::math::SoaTransform output[1];
+      job.animation = animation.get();
+      job.context = &context;
+      job.output = output;
 
-    // Samples and compares the two animations
-    {  // Samples at t = 0
-      job.ratio = 0.f;
-      job.Run();
-      EXPECT_SOAFLOAT3_EQ_EST(output[0].translation, 1.f, 2.f, 12.f, 1.f, 0.f,
-                              0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
-    }
-    {  // Samples at t = .2
-      job.ratio = .2f;
-      job.Run();
-      EXPECT_SOAFLOAT3_EQ_EST(output[0].translation, 2.f, 6.f, 11.f, 2.f, 0.f,
-                              0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
-    }
-    {  // Samples at t = .4
-      job.ratio = .4f;
-      job.Run();
-      EXPECT_SOAFLOAT3_EQ_EST(output[0].translation, 3.f, 8.f, 10.f, 3.f, 0.f,
-                              0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
-    }
-    {  // Samples at t = .6
-      job.ratio = .6f;
-      job.Run();
-      EXPECT_SOAFLOAT3_EQ_EST(output[0].translation, 3.f, 8.f, 9.f, 4.f, 0.f,
-                              0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
-    }
-    {  // Samples at t = .8
-      job.ratio = .8f;
-      job.Run();
-      EXPECT_SOAFLOAT3_EQ_EST(output[0].translation, 3.f, 8.f, 7.f, 4.f, 0.f,
-                              0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
-    }
-    {  // Samples at t = 1
-      job.ratio = 1.f;
-      job.Run();
-      EXPECT_SOAFLOAT3_EQ_EST(output[0].translation, 3.f, 8.f, 5.f, 4.f, 0.f,
-                              0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
+      // Samples and compares the two animations
+      {  // Samples at t = 0
+        job.ratio = 0.f;
+        job.Run();
+        EXPECT_SOAFLOAT3_EQ_EST(output[0].translation, 1.f, 2.f, 12.f, 1.f, 0.f,
+                                0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
+      }
+      {  // Samples at t = .2
+        job.ratio = .2f;
+        job.Run();
+        EXPECT_SOAFLOAT3_EQ_EST(output[0].translation, 2.f, 6.f, 11.f, 2.f, 0.f,
+                                0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
+      }
+      {  // Samples at t = .4
+        job.ratio = .4f;
+        job.Run();
+        EXPECT_SOAFLOAT3_EQ_EST(output[0].translation, 3.f, 8.f, 10.f, 3.f, 0.f,
+                                0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
+      }
+      {  // Samples at t = .6
+        job.ratio = .6f;
+        job.Run();
+        EXPECT_SOAFLOAT3_EQ_EST(output[0].translation, 3.f, 8.f, 9.f, 4.f, 0.f,
+                                0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
+      }
+      {  // Samples at t = .8
+        job.ratio = .8f;
+        job.Run();
+        EXPECT_SOAFLOAT3_EQ_EST(output[0].translation, 3.f, 8.f, 7.f, 4.f, 0.f,
+                                0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
+      }
+      {  // Samples at t = 1
+        job.ratio = 1.f;
+        job.Run();
+        EXPECT_SOAFLOAT3_EQ_EST(output[0].translation, 3.f, 8.f, 5.f, 4.f, 0.f,
+                                0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
+      }
     }
   }
 }
@@ -439,12 +443,11 @@ TEST(ManyKeys, SamplingJob) {
 
   EXPECT_TRUE(job.Validate());
   EXPECT_TRUE(job.Run());
-  /*
-  EXPECT_SOAFLOAT3_EQ_EST(output[0].translation, 1.f, 0.f, 0.f, 0.f, -1.f, 0.f,
-                          0.f, 0.f, 5.f, 0.f, 0.f, 0.f);
+
+  EXPECT_SOAFLOAT3_EQ_EST(output[0].translation, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f,
+                          1.f, 0.f, 0.f, 0.f, 1.f, 0.f);
   EXPECT_SOAQUATERNION_EQ_EST(output[0].rotation, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f,
                               0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 1.f, 1.f, 1.f, 1.f);
   EXPECT_SOAFLOAT3_EQ_EST(output[0].scale, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f,
                           1.f, 1.f, 1.f, 1.f, 1.f);
-                          */
 }

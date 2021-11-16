@@ -93,6 +93,8 @@ class OptimizeSampleApplication : public ozz::sample::Application {
         optimize_(true),
         joint_setting_enable_(true),
         joint_(0),
+        enable_iframes_(true),
+        iframe_interval_(10.f),
         error_record_med_(64),
         error_record_max_(64),
         joint_error_record_(64) {}
@@ -332,13 +334,12 @@ class OptimizeSampleApplication : public ozz::sample::Application {
     }
 
     // Exposes optimizer's tolerances.
+    bool rebuild = false;
     {
       static bool open = true;
       ozz::sample::ImGui::OpenClose ocb(_im_gui, "Optimization tolerances",
                                         &open);
       if (open) {
-        bool rebuild = false;
-
         rebuild |= _im_gui->DoCheckBox("Enable optimizations", &optimize_);
 
         std::sprintf(label, "Tolerance: %0.2f mm", setting_.tolerance * 1000);
@@ -366,19 +367,29 @@ class OptimizeSampleApplication : public ozz::sample::Application {
                      joint_setting_.distance * 1000);
         rebuild |= _im_gui->DoSlider(label, 0.f, 1.f, &joint_setting_.distance,
                                      .5f, joint_setting_enable_ && optimize_);
+      }
+    }
+    {
+      static bool open = true;
+      ozz::sample::ImGui::OpenClose ocb(_im_gui, "Builder settings", &open);
+      if (open) {
+        rebuild |= _im_gui->DoCheckBox("Enable iframes", &enable_iframes_);
 
-        if (rebuild) {
-          // Invalidates the context in case the new animation has the same
-          // address as the previous one. Other cases (like changing animation)
-          // are automatic handled by the context. See
-          // SamplingJob::Context::Invalidate for more details.
-          context_.Invalidate();
+        std::sprintf(label, "Iframe interval: %0.2f s", iframe_interval_);
+        rebuild |= _im_gui->DoSlider(label, .1f, 20.f, &iframe_interval_, .5f,
+                                     enable_iframes_);
+      }
+    }
+    if (rebuild) {
+      // Invalidates the context in case the new animation has the same
+      // address as the previous one. Other cases (like changing animation)
+      // are automatic handled by the context. See
+      // SamplingJob::Context::Invalidate for more details.
+      context_.Invalidate();
 
-          // Rebuilds a new runtime animation.
-          if (!BuildAnimations()) {
-            return false;
-          }
-        }
+      // Rebuilds a new runtime animation.
+      if (!BuildAnimations()) {
+        return false;
       }
     }
     {
@@ -487,6 +498,7 @@ class OptimizeSampleApplication : public ozz::sample::Application {
     }
 
     // Builds runtime animation from the optimized one.
+    animation_builder.iframe_interval = enable_iframes_ ? iframe_interval_ : 0;
     animation_rt_ = animation_builder(raw_optimized_animation_);
 
     // Check if building runtime animation was successful.
@@ -526,6 +538,10 @@ class OptimizeSampleApplication : public ozz::sample::Application {
   bool joint_setting_enable_;
   int joint_;
   ozz::animation::offline::AnimationOptimizer::Setting joint_setting_;
+
+  // Builder iframe interval
+  bool enable_iframes_;
+  float iframe_interval_;
 
   // Playback animation controller. This is a utility class that helps with
   // controlling animation playback time.

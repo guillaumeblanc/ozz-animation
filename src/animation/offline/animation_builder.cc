@@ -332,15 +332,15 @@ ozz::vector<float> BuildTimePoints(
   return timepoints;
 }
 
-struct BuilderSlice {
+struct BuilderIFrame {
   ozz::vector<byte> entries;
   size_t last;
 };
 
 template <typename _SortingKey>
-BuilderSlice BuildSlice(const ozz::span<_SortingKey>& _src, float _time,
-                        size_t _num_soa_tracks) {
-  BuilderSlice slice;
+BuilderIFrame BuildIFrame(const ozz::span<_SortingKey>& _src, float _time,
+                          size_t _num_soa_tracks) {
+  BuilderIFrame iframe;
 
   // Initialize vector with initial cached keys at t=0. Due to sorting, they
   // are the 2nd set keyframes, hence starting from _num_soa_tracks.
@@ -354,63 +354,75 @@ BuilderSlice BuildSlice(const ozz::span<_SortingKey>& _src, float _time,
        i < end && _src[i].prev_key_time <= _time; ++i) {
     // Stores the last key found for this track.
     entries[_src[i].track] = static_cast<uint32_t>(i);
-    slice.last = i;
+    iframe.last = i;
   }
-  assert(slice.last >= _num_soa_tracks * 2 - 1);
+  assert(iframe.last >= _num_soa_tracks * 2 - 1);
 
   // Compress buffer.
   const size_t worst_size = ozz::ComputeGV4WorstBufferSize(make_span(entries));
-  slice.entries.resize(worst_size);
+  iframe.entries.resize(worst_size);
   auto remain =
-      ozz::EncodeGV4Stream(make_span(entries), make_span(slice.entries));
-  slice.entries.resize(slice.entries.size() - remain.size_bytes());
+      ozz::EncodeGV4Stream(make_span(entries), make_span(iframe.entries));
+  iframe.entries.resize(iframe.entries.size() - remain.size_bytes());
 
-  return slice;
+  return iframe;
 }
 
-struct BuilderSlices {
+struct BuilderIFrames {
   ozz::vector<byte> entries;
   ozz::vector<uint32_t> desc;
+  float interval = 1.f;
 };
 
 // Splits src into parts of similar sizes. The "time" of each part doesn't
 // really matter, it's the number of keys that impact performance.
 template <typename _SortingKey>
-BuilderSlices BuildSlices(const ozz::span<_SortingKey>& _src,
-                          size_t _num_soa_tracks, float _interval,
-                          float _duration) {
-  BuilderSlices slices;
+BuilderIFrames BuildIFrames(const ozz::span<_SortingKey>& _src,
+                            size_t _num_soa_tracks, float _interval,
+                            float _duration) {
+  BuilderIFrames iframes;
   if (_num_soa_tracks == 0 || _interval <= 0.f) {
-    return slices;
+    return iframes;
   }
 
-  const size_t slices_divs =
-      static_cast<size_t>(math::Max(1.f, _duration / _interval));
-  if (slices_divs == 0) {
-    return slices;
-  }
+  const size_t iframes_divs = static_cast<size_t>(_duration / _interval);
+  for (size_t i = 0; i < iframes_divs; ++i) {
+    const float time = _duration * (i + 1) / iframes_divs;
+    const auto& iframe = BuildIFrame(_src, time, _num_soa_tracks);
 
-  for (size_t i = 0; i < slices_divs; ++i) {
-    const float time = _duration * (i + 1) / slices_divs;
-    const auto& slice = BuildSlice(_src, time, _num_soa_tracks);
+    // Don't need to add an iframe for the first set of keyframes.
+    if (iframe.last <= _num_soa_tracks * 2 - 1) {
+      continue;
+    }
+
+    // Don't need to append an iframe if there's not enough keyframes between
+    // two iframes.
+    if (!iframes.desc.empty() && iframe.last <= iframes.desc.back()) {
+      continue;
+    }
 
     // Pushes offset.
-    slices.desc.push_back(static_cast<uint32_t>(slices.entries.size()));
-    slices.desc.push_back(static_cast<uint32_t>(slice.last));
+    iframes.desc.push_back(static_cast<uint32_t>(iframes.entries.size()));
+    iframes.desc.push_back(static_cast<uint32_t>(iframe.last));
 
     // Pushes compressed data.
-    slices.entries.insert(slices.entries.end(), slice.entries.begin(),
-                          slice.entries.end());
+    iframes.entries.insert(iframes.entries.end(), iframe.entries.begin(),
+                           iframe.entries.end());
   }
-  return slices;
+
+  // Computes actual interval (duration ratio) between iframes.
+  const size_t actual_intervals = iframes.desc.size() / 2;
+  iframes.interval = iframes.entries.empty() ? 1.f : 1.f / actual_intervals;
+  return iframes;
 }
 
-void CopySlices(const BuilderSlices& _src, Animation::KeyframesCtrl& _dest) {
-  assert(_dest.slice_entries.size() == _src.entries.size());
+void CopyIFrames(const BuilderIFrames& _src, Animation::KeyframesCtrl& _dest) {
+  assert(_dest.iframe_entries.size() == _src.entries.size());
   std::copy(_src.entries.begin(), _src.entries.end(),
-            _dest.slice_entries.begin());
-  assert(_dest.slice_desc.size() == _src.desc.size());
-  std::copy(_src.desc.begin(), _src.desc.end(), _dest.slice_desc.begin());
+            _dest.iframe_entries.begin());
+  assert(_dest.iframe_desc.size() == _src.desc.size());
+  std::copy(_src.desc.begin(), _src.desc.end(), _dest.iframe_desc.begin());
+  _dest.iframe_interval = _src.interval;
 }
 }  // namespace
 
@@ -510,13 +522,14 @@ unique_ptr<Animation> AnimationBuilder::operator()(
     return nullptr;
   }
 
-  // Build cache snaphots/slices.
-  const auto& translation_ss = BuildSlices(make_span(sorting_translations),
-                                           num_soa_tracks, interval, duration);
-  const auto& rotation_ss = BuildSlices(make_span(sorting_rotations),
-                                        num_soa_tracks, interval, duration);
-  const auto& scale_ss = BuildSlices(make_span(sorting_scales), num_soa_tracks,
-                                     interval, duration);
+  // Build cache snaphots/iframes.
+  const auto& translation_ss =
+      BuildIFrames(make_span(sorting_translations), num_soa_tracks,
+                   iframe_interval, duration);
+  const auto& rotation_ss = BuildIFrames(
+      make_span(sorting_rotations), num_soa_tracks, iframe_interval, duration);
+  const auto& scale_ss = BuildIFrames(make_span(sorting_scales), num_soa_tracks,
+                                      iframe_interval, duration);
 
   // Allocate animation members.
   const Animation::AllocateParams params{
@@ -530,9 +543,9 @@ unique_ptr<Animation> AnimationBuilder::operator()(
       {scale_ss.entries.size(), scale_ss.desc.size()}};
   animation->Allocate(params);
 
-  CopySlices(translation_ss, animation->translations_ctrl_);
-  CopySlices(rotation_ss, animation->rotations_ctrl_);
-  CopySlices(scale_ss, animation->scales_ctrl_);
+  CopyIFrames(translation_ss, animation->translations_ctrl_);
+  CopyIFrames(rotation_ss, animation->rotations_ctrl_);
+  CopyIFrames(scale_ss, animation->scales_ctrl_);
 
   // Copy sorted keys to final animation.
   Compress(make_span(time_points), make_span(sorting_translations),
