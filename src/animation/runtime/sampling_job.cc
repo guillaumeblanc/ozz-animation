@@ -204,17 +204,17 @@ void UpdateCache(float _ratio, float _previous_ratio, size_t _num_soa_tracks,
   assert(next == 0 || (next >= num_tracks * 2 && next <= num_keys));
 
   // Initialize cache if needed.
-  if (next == 0 ||
-      std::abs(_ratio - _previous_ratio) > _ctrl.iframe_interval / 2.f) {
+  const float delta = _ratio - _previous_ratio;
+  if (next == 0 || std::abs(delta) > _ctrl.iframe_interval / 2.f) {
     int iframe = -1;
     if (!_ctrl.iframe_desc.empty()) {
       // First time, or fast seeking into animation.
       // Finds the closest iframe to the expected _ratio.
       iframe = static_cast<int>(.5f + _ratio / _ctrl.iframe_interval);
-    } else if (next == 0 || _previous_ratio > _ratio) {
+    } else if (next == 0 || delta < 0.f) {
       // This handles the cases:
       // - First time, and no iframe
-      // - time is going backward, seeking toward 0, and no iframe is defined.
+      // - Time is going backward, seeking toward 0, and no iframe is defined.
       // In this case it can still be valuable to reset cache to animation
       // begining.
       iframe = 0;
