@@ -305,6 +305,15 @@ set_tests_properties(test2ozz_anim_sampling_rate_0 PROPERTIES DEPENDS test2ozz_s
 add_test(NAME test2ozz_anim_sampling_rate_neg COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"skeleton\":{\"filename\":\"${ozz_temp_directory}/skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"${ozz_temp_directory}/animation_${CMAKE_CURRENT_LIST_LINE}.ozz\",\"sampling_rate\":-1}]}")
 set_tests_properties(test2ozz_anim_sampling_rate_neg PROPERTIES DEPENDS test2ozz_skel_simple)
 
+add_test(NAME test2ozz_anim_sampling_interval_0 COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"skeleton\":{\"filename\":\"${ozz_temp_directory}/skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"${ozz_temp_directory}/animation_${CMAKE_CURRENT_LIST_LINE}.ozz\",\"iframe_interval\":0}]}")
+set_tests_properties(test2ozz_anim_sampling_interval_0 PROPERTIES DEPENDS test2ozz_skel_simple)
+
+add_test(NAME test2ozz_anim_sampling_interval_small COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"skeleton\":{\"filename\":\"${ozz_temp_directory}/skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"${ozz_temp_directory}/animation_${CMAKE_CURRENT_LIST_LINE}.ozz\",\"iframe_interval\":0.0001}]}")
+set_tests_properties(test2ozz_anim_sampling_interval_small PROPERTIES DEPENDS test2ozz_skel_simple)
+
+add_test(NAME test2ozz_anim_sampling_interval_big COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"skeleton\":{\"filename\":\"${ozz_temp_directory}/skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"${ozz_temp_directory}/animation_${CMAKE_CURRENT_LIST_LINE}.ozz\",\"iframe_interval\":1000}]}")
+set_tests_properties(test2ozz_anim_sampling_interval_big PROPERTIES DEPENDS test2ozz_skel_simple)
+
 add_test(NAME test2ozz_anim_log_verbose COMMAND test2ozz "--file=${ozz_temp_directory}/good.content1" "--config={\"skeleton\":{\"filename\":\"${ozz_temp_directory}/skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"${ozz_temp_directory}/animation_${CMAKE_CURRENT_LIST_LINE}.ozz\"}]}" "--log_level=verbose")
 set_tests_properties(test2ozz_anim_log_verbose PROPERTIES DEPENDS test2ozz_skel_simple)
 

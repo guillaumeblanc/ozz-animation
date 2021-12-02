@@ -9,13 +9,17 @@ Next release
   - [sample_fbx2mesh] Assigns non-influenced vertices to root joint.
 
 * Library
+  - [animation] Adds iframe support, allowing fast seeks into the animation thanks to precomputed (and compressed) cache states. The sampling job decides automatically when an iframe is used, based on seek offset.
+  - [animation] Restructures compressed keyframes to allow sequential backward reading. Keyframe times are now indexed. Per keyframe track index has been removed, replaced with an offset to the previous keyframe (for the same track) which is used for fast backward sequential reading.
   - [animation] #103 Allows move constructor and assignment for ozz::animation::Skeleton, ozz::animation::Animation and ozz::animation::Track.
   - [animation] Renames SamplingCache to SamplingJob::Context.
   - [animation] #110 Renames skeleton bind pose to rest pose, to avoid confusion with skinning bind pose.
+  - [offline] Extends configuration to allow setting up iframe time interval.  
   - [offline] Moved RawAnimation::JointTrack::Validate() to raw_animation_utils.h ValidateTrack().
   - [offline] Added an option to skip validation when sampling RawAnimation through raw_animation_utils.h functions. This can be used to prevent redundant validations. Note that RawAnimation sampling behavior is undefined if using an invalid RawAnimation with validate parameter set to false.
   - [offline] Added a constant track optimizer (ozz::animation::offline::AnimationConstantOptimizer), useful to strip constant tracks (only) without impacting overall animation accuracy.
   - [base] Fixes Float4x4::FromEuler which was swapping pitch and roll.
+  - [base] Implements group varint encoding utility. It's used to compress iframes.
 
 * Build pipeline
   - #59 Adds support for shared libraries on Windows (dll), Linux and MacOS platforms.

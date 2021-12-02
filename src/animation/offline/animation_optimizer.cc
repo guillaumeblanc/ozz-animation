@@ -317,27 +317,6 @@ struct LTMIterator {
   int joint_overload_;
 };
 
-template <typename _Track, typename _Times>
-inline void CopyKeyTimes(const _Track& _track, _Times* _key_times) {
-  for (size_t i = 0; i < _track.size(); ++i) {
-    _key_times->push_back(_track[i].time);
-  }
-}
-
-template <typename _Times>
-inline void SetupKeyTimes(const RawAnimation& _animation, _Times* _key_times) {
-  // Gets union of all possible keyframe times.
-  for (int i = 0; i < _animation.num_tracks(); ++i) {
-    const RawAnimation::JointTrack& track = _animation.tracks[i];
-    CopyKeyTimes(track.translations, _key_times);
-    CopyKeyTimes(track.rotations, _key_times);
-    CopyKeyTimes(track.scales, _key_times);
-  }
-  std::sort(_key_times->begin(), _key_times->end());
-  _key_times->erase(std::unique(_key_times->begin(), _key_times->end()),
-                    _key_times->end());
-}
-
 inline float Compare(const ozz::math::Transform& _reference,
                      const ozz::math::Transform& _test, float _distance) {
   // return Length(_reference.translation - _test.translation);
@@ -560,7 +539,7 @@ class Comparer {
       : solution_(_solution), skeleton_(_skeleton), settings_(_settings) {
     // Comparison only needs to happen at each of the keyframe times.
     // So we get the union of all possible keyframe times
-    SetupKeyTimes(_original, &key_times_);
+    key_times_ = ExtractTimePoints(_original);
 
     const size_t key_times_count = key_times_.size();
     const int joints_count = _skeleton.num_joints();
