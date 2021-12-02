@@ -37,7 +37,7 @@ namespace math {
 
 // Stores an affine transformation with separate translation, rotation and scale
 // attributes.
-struct Transform {
+struct OZZ_BASE_DLL Transform {
   // Translation affine transformation component.
   Float3 translation;
 

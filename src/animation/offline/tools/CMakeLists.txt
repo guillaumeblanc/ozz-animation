@@ -4,7 +4,8 @@ endif()
 
 add_subdirectory(${PROJECT_SOURCE_DIR}/extern/jsoncpp json)
 
-add_library(ozz_animation_tools STATIC
+add_library(ozz_animation_tools
+  ${PROJECT_SOURCE_DIR}/include/ozz/animation/offline/tools/export.h
   ${PROJECT_SOURCE_DIR}/include/ozz/animation/offline/tools/import2ozz.h
   import2ozz.cc
   import2ozz_anim.h
@@ -15,10 +16,14 @@ add_library(ozz_animation_tools STATIC
   import2ozz_skel.cc
   import2ozz_track.h
   import2ozz_track.cc)
+
+target_compile_definitions(ozz_animation_tools PRIVATE $<$<BOOL:${BUILD_SHARED_LIBS}>:OZZ_BUILD_ANIMATIONTOOLS_LIB>)
+
 target_link_libraries(ozz_animation_tools
   ozz_animation_offline
   ozz_options
   json)
+
 set_target_properties(ozz_animation_tools
   PROPERTIES FOLDER "ozz/tools")
 
@@ -32,6 +37,7 @@ if(NOT EMSCRIPTEN)
   target_link_libraries(dump2ozz
     ozz_animation_tools
     ozz_options)
+  target_copy_shared_libraries(dump2ozz)
 
   # Uses a fake import file to dump reference and default configurations.
   add_custom_command(TARGET dump2ozz POST_BUILD
@@ -39,4 +45,5 @@ if(NOT EMSCRIPTEN)
 
   set_target_properties(dump2ozz
     PROPERTIES FOLDER "ozz/tools")
+    
 endif()

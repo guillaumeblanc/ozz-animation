@@ -476,6 +476,12 @@ bool Application::Gui() {
 
   // Downcast to public imgui.
   ImGui* im_gui = im_gui_.get();
+
+  // Do floating gui.
+  if (!show_help_) {
+    success = OnFloatingGui(im_gui);
+  }
+
   // Help gui.
   {
     math::RectFloat rect(kGuiMargin, kGuiMargin,
@@ -658,6 +664,31 @@ bool Application::FrameworkGui() {
   return true;
 }
 
+bool Application::OnInitialize() { return true; }
+
+void Application::OnDestroy() {}
+
+bool Application::OnUpdate(float _dt, float _time) {
+  (void)_dt;
+  (void)_time;
+  return true;
+}
+
+bool Application::OnGui(ImGui* _im_gui) {
+  (void)_im_gui;
+  return true;
+}
+
+bool Application::OnFloatingGui(ImGui* _im_gui) {
+  (void)_im_gui;
+  return true;
+}
+
+bool Application::OnDisplay(Renderer* _renderer) {
+  (void)_renderer;
+  return true;
+}
+
 bool Application::GetCameraInitialSetup(math::Float3* _center,
                                         math::Float2* _angles,
                                         float* _distance) const {
@@ -672,6 +703,23 @@ bool Application::GetCameraOverride(math::Float4x4* _transform) const {
   (void)_transform;
   assert(_transform);
   return false;
+}
+
+void Application::GetSceneBounds(math::Box* _bound) const { (void)_bound; }
+
+math::Float2 Application::WorldToScreen(const math::Float3& _world) const {
+  const math::SimdFloat4 ndc =
+      (camera_->projection() * camera_->view()) *
+      math::simd_float4::Load(_world.x, _world.y, _world.z, 1.f);
+
+  const math::SimdFloat4 resolution = math::simd_float4::FromInt(
+      math::simd_int4::Load(resolution_.width, resolution_.height, 0, 0));
+  const ozz::math::SimdFloat4 screen =
+      resolution * ((ndc / math::SplatW(ndc)) + math::simd_float4::one()) /
+      math::simd_float4::Load1(2.f);
+  math::Float2 ret;
+  math::Store2PtrU(screen, &ret.x);
+  return ret;
 }
 
 void Application::ResizeCbk(int _width, int _height) {

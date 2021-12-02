@@ -25,25 +25,22 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/animation/offline/track_builder.h"
-
-#include "gtest/gtest.h"
-#include "ozz/base/maths/gtest_math_helper.h"
-
-#include "ozz/base/memory/unique_ptr.h"
-
-#include "ozz/animation/offline/raw_track.h"
-#include "ozz/animation/runtime/track.h"
-#include "ozz/animation/runtime/track_sampling_job.h"
-
 #include <limits>
 
-using ozz::animation::FloatTrack;
+#include "gtest/gtest.h"
+#include "ozz/animation/offline/raw_track.h"
+#include "ozz/animation/offline/track_builder.h"
+#include "ozz/animation/runtime/track.h"
+#include "ozz/animation/runtime/track_sampling_job.h"
+#include "ozz/base/maths/gtest_math_helper.h"
+#include "ozz/base/memory/unique_ptr.h"
+
 using ozz::animation::Float2Track;
 using ozz::animation::Float3Track;
 using ozz::animation::Float4Track;
-using ozz::animation::QuaternionTrack;
+using ozz::animation::FloatTrack;
 using ozz::animation::FloatTrackSamplingJob;
+using ozz::animation::QuaternionTrack;
 using ozz::animation::offline::RawFloatTrack;
 using ozz::animation::offline::RawTrackInterpolation;
 using ozz::animation::offline::TrackBuilder;
@@ -730,6 +727,40 @@ TEST(BuildMixed, TrackBuilder) {
   sampling.ratio = 1.f;
   ASSERT_TRUE(sampling.Run());
   EXPECT_FLOAT_EQ(result, 0.f);
+}
+TEST(Move, TrackBuilder) {
+  TrackBuilder builder;
+  RawFloatTrack raw_float_track;
+
+  const RawFloatTrack::Keyframe key0 = {RawTrackInterpolation::kLinear, 0.f,
+                                        0.f};
+  raw_float_track.keyframes.push_back(key0);
+  const RawFloatTrack::Keyframe key1 = {RawTrackInterpolation::kStep, .5f,
+                                        46.f};
+  raw_float_track.keyframes.push_back(key1);
+  const RawFloatTrack::Keyframe key2 = {RawTrackInterpolation::kLinear, .7f,
+                                        0.f};
+  raw_float_track.keyframes.push_back(key2);
+
+  {  // Move constructor
+    raw_float_track.name = "track1";
+    ozz::unique_ptr<FloatTrack> track(builder(raw_float_track));
+    const FloatTrack ctrack(std::move(*track));
+    EXPECT_STREQ(ctrack.name(), "track1");
+  }
+
+  {  // Move assignment
+    raw_float_track.name = "track1";
+    ozz::unique_ptr<FloatTrack> track1(builder(raw_float_track));
+    EXPECT_STREQ(track1->name(), "track1");
+
+    raw_float_track.name = "track2";
+    ozz::unique_ptr<FloatTrack> track2(builder(raw_float_track));
+    EXPECT_STREQ(track2->name(), "track2");
+
+    *track2 = std::move(*track1);
+    EXPECT_STREQ(track2->name(), "track1");
+  }
 }
 
 TEST(Float, TrackBuilder) {

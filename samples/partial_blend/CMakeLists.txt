@@ -23,6 +23,7 @@ add_executable(sample_partial_blend
   "${CMAKE_CURRENT_BINARY_DIR}/media/animation_partial.ozz")
 target_link_libraries(sample_partial_blend
   sample_framework)
+target_copy_shared_libraries(sample_partial_blend)
 
 set_target_properties(sample_partial_blend
   PROPERTIES FOLDER "samples")

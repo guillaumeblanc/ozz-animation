@@ -34,6 +34,8 @@
 // So it is included here to ensure a portable behavior.
 #include <cstring>
 
+#include "platform.h"
+
 // Proposes a logging interface that redirects logs to std::cout, clog and cerr
 // output streams. This interface adds a logging level functionality (kSilent,
 // kStandard, kVerbose) to the std API, which can be set using
@@ -50,17 +52,17 @@ enum Level {
 };
 
 // Sets the global logging level.
-Level SetLevel(Level _level);
+OZZ_BASE_DLL Level SetLevel(Level _level);
 
 // Gets the global logging level.
-Level GetLevel();
+OZZ_BASE_DLL Level GetLevel();
 
 // Implements logging base class.
 // This class is not intended to be used publicly, it is derived by user
 // classes LogV, Log, Out, Err...
 // Forwards ostream::operator << to a standard ostream or a silent
 // ostringstream according to the logging level at construction time.
-class Logger {
+class OZZ_BASE_DLL Logger {
  public:
   // Forwards ostream::operator << for any type.
   template <typename _T>
@@ -101,28 +103,28 @@ class Logger {
 
 // Logs verbose output to the standard error stream (std::clog).
 // Enabled if logging level is Verbose.
-class LogV : public Logger {
+class OZZ_BASE_DLL LogV : public Logger {
  public:
   LogV();
 };
 
 // Logs output to the standard error stream (std::clog).
 // Enabled if logging level is not Silent.
-class Log : public Logger {
+class OZZ_BASE_DLL Log : public Logger {
  public:
   Log();
 };
 
 // Logs output to the standard output (std::cout).
 // Enabled if logging level is not Silent.
-class Out : public Logger {
+class OZZ_BASE_DLL Out : public Logger {
  public:
   Out();
 };
 
 // Logs error to the standard error stream (std::cerr).
 // Enabled if logging level is not Silent.
-class Err : public Logger {
+class OZZ_BASE_DLL Err : public Logger {
  public:
   Err();
 };
@@ -131,7 +133,7 @@ class Err : public Logger {
 // settings when exiting scope.
 // User is reponsible for making sure stream still exist upon RAII destruction.
 // See std::setprecision() for more details.
-class FloatPrecision {
+class OZZ_BASE_DLL FloatPrecision {
  public:
   FloatPrecision(const Logger& _logger, int _precision);
   ~FloatPrecision();

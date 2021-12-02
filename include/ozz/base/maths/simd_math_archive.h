@@ -36,7 +36,7 @@ namespace ozz {
 namespace io {
 OZZ_IO_TYPE_NOT_VERSIONABLE(math::SimdFloat4)
 template <>
-struct Extern<math::SimdFloat4> {
+struct OZZ_BASE_DLL Extern<math::SimdFloat4> {
   static void Save(OArchive& _archive, const math::SimdFloat4* _values,
                    size_t _count);
   static void Load(IArchive& _archive, math::SimdFloat4* _values, size_t _count,
@@ -45,7 +45,7 @@ struct Extern<math::SimdFloat4> {
 
 OZZ_IO_TYPE_NOT_VERSIONABLE(math::SimdInt4)
 template <>
-struct Extern<math::SimdInt4> {
+struct OZZ_BASE_DLL Extern<math::SimdInt4> {
   static void Save(OArchive& _archive, const math::SimdInt4* _values,
                    size_t _count);
   static void Load(IArchive& _archive, math::SimdInt4* _values, size_t _count,
@@ -54,7 +54,7 @@ struct Extern<math::SimdInt4> {
 
 OZZ_IO_TYPE_NOT_VERSIONABLE(math::Float4x4)
 template <>
-struct Extern<math::Float4x4> {
+struct OZZ_BASE_DLL Extern<math::Float4x4> {
   static void Save(OArchive& _archive, const math::Float4x4* _values,
                    size_t _count);
   static void Load(IArchive& _archive, math::Float4x4* _values, size_t _count,

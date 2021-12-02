@@ -4,6 +4,7 @@ add_executable(load_from_file
   load_from_file.cc)
 target_link_libraries(load_from_file
   ozz_animation)
+target_copy_shared_libraries(load_from_file)
 set_target_properties(load_from_file
   PROPERTIES FOLDER "howtos")
 add_test(NAME load_from_file COMMAND load_from_file "${ozz_media_directory}/bin/pab_skeleton.ozz")
@@ -18,6 +19,7 @@ add_executable(custom_skeleton_importer
   custom_skeleton_importer.cc)
 target_link_libraries(custom_skeleton_importer
   ozz_animation_offline)
+target_copy_shared_libraries(custom_skeleton_importer)
 set_target_properties(custom_skeleton_importer
   PROPERTIES FOLDER "howtos")
 add_test(NAME custom_skeleton_importer COMMAND custom_skeleton_importer)
@@ -28,6 +30,7 @@ add_executable(custom_animation_importer
   custom_animation_importer.cc)
 target_link_libraries(custom_animation_importer
   ozz_animation_offline)
+target_copy_shared_libraries(custom_animation_importer)
 set_target_properties(custom_animation_importer
   PROPERTIES FOLDER "howtos")
 add_test(NAME custom_animation_importer COMMAND custom_animation_importer)

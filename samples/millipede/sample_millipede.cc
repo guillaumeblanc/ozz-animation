@@ -30,25 +30,22 @@
 #include <cstdlib>
 #include <cstring>
 
-#include "ozz/animation/runtime/animation.h"
-#include "ozz/animation/runtime/local_to_model_job.h"
-#include "ozz/animation/runtime/sampling_job.h"
-#include "ozz/animation/runtime/skeleton.h"
-
-#include "ozz/animation/offline/animation_builder.h"
-#include "ozz/animation/offline/raw_animation.h"
-#include "ozz/animation/offline/raw_skeleton.h"
-#include "ozz/animation/offline/skeleton_builder.h"
-
-#include "ozz/base/maths/quaternion.h"
-#include "ozz/base/maths/simd_math.h"
-#include "ozz/base/maths/soa_transform.h"
-#include "ozz/base/maths/vec_float.h"
-
 #include "framework/application.h"
 #include "framework/imgui.h"
 #include "framework/renderer.h"
 #include "framework/utils.h"
+#include "ozz/animation/offline/animation_builder.h"
+#include "ozz/animation/offline/raw_animation.h"
+#include "ozz/animation/offline/raw_skeleton.h"
+#include "ozz/animation/offline/skeleton_builder.h"
+#include "ozz/animation/runtime/animation.h"
+#include "ozz/animation/runtime/local_to_model_job.h"
+#include "ozz/animation/runtime/sampling_job.h"
+#include "ozz/animation/runtime/skeleton.h"
+#include "ozz/base/maths/quaternion.h"
+#include "ozz/base/maths/simd_math.h"
+#include "ozz/base/maths/soa_transform.h"
+#include "ozz/base/maths/vec_float.h"
 
 using ozz::animation::offline::RawAnimation;
 using ozz::animation::offline::RawSkeleton;
@@ -126,7 +123,7 @@ class MillipedeSampleApplication : public ozz::sample::Application {
     // Samples animation at t = animation_time_.
     ozz::animation::SamplingJob sampling_job;
     sampling_job.animation = animation_.get();
-    sampling_job.cache = &cache_;
+    sampling_job.context = &context_;
     sampling_job.ratio = controller_.time_ratio();
     sampling_job.output = make_span(locals_);
     if (!sampling_job.Run()) {
@@ -208,8 +205,8 @@ class MillipedeSampleApplication : public ozz::sample::Application {
     locals_.resize(num_soa_joints);
     models_.resize(num_joints);
 
-    // Allocates a cache that matches new animation requirements.
-    cache_.Resize(num_joints);
+    // Allocates a context that matches new animation requirements.
+    context_.Resize(num_joints);
 
     return true;
   }
@@ -423,8 +420,8 @@ class MillipedeSampleApplication : public ozz::sample::Application {
   // The millipede procedural walk animation.
   ozz::unique_ptr<ozz::animation::Animation> animation_;
 
-  // Sampling cache, as used by SamplingJob.
-  ozz::animation::SamplingCache cache_;
+  // Sampling context, as used by SamplingJob.
+  ozz::animation::SamplingJob::Context context_;
 
   // Buffer of local transforms as sampled from animation_.
   // These are shared between sampling output and local-to-model input.

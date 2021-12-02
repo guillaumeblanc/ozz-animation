@@ -29,6 +29,7 @@ add_executable(sample_foot_ik
   "${CMAKE_CURRENT_BINARY_DIR}/media/floor.ozz")
 target_link_libraries(sample_foot_ik
   sample_framework)
+target_copy_shared_libraries(sample_foot_ik)
 
 set_target_properties(sample_foot_ik
   PROPERTIES FOLDER "samples")

@@ -28,6 +28,7 @@
 #ifndef OZZ_OZZ_ANIMATION_RUNTIME_BLENDING_JOB_H_
 #define OZZ_OZZ_ANIMATION_RUNTIME_BLENDING_JOB_H_
 
+#include "ozz/animation/runtime/export.h"
 #include "ozz/base/maths/simd_math.h"
 #include "ozz/base/span.h"
 
@@ -44,15 +45,15 @@ namespace animation {
 // (the result of a sampled animation) according to their respective weight,
 // into one output pose.
 // The number of transforms/joints blended by the job is defined by the number
-// of transforms of the bind pose (note that this is a SoA format). This means
-// that all buffers must be at least as big as the bind pose buffer.
+// of transforms of the rest pose (note that this is a SoA format). This means
+// that all buffers must be at least as big as the rest pose buffer.
 // Partial animation blending is supported through optional joint weights that
 // can be specified with layers joint_weights buffer. Unspecified joint weights
 // are considered as a unit weight of 1.f, allowing to mix full and partial
 // blend operations in a single pass.
 // The job does not owned any buffers (input/output) and will thus not delete
 // them during job's destruction.
-struct BlendingJob {
+struct OZZ_ANIMATION_DLL BlendingJob {
   // Default constructor, initializes default values.
   BlendingJob();
 
@@ -63,7 +64,7 @@ struct BlendingJob {
   // -if any layer is not valid.
   // -if output range is not valid.
   // -if any buffer (including layers' content : transform, joint weights...) is
-  // smaller than the bind pose buffer.
+  // smaller than the rest pose buffer.
   // -if the threshold value is less than or equal to 0.f.
   bool Validate() const;
 
@@ -75,7 +76,7 @@ struct BlendingJob {
 
   // Defines a layer of blending input data (local space transforms) and
   // parameters (weights).
-  struct Layer {
+  struct OZZ_ANIMATION_DLL Layer {
     // Default constructor, initializes default values.
     Layer();
 
@@ -86,8 +87,8 @@ struct BlendingJob {
 
     // The range [begin,end[ of input layer posture. This buffer expect to store
     // local space transforms, that are usually outputted from a sampling job.
-    // This range must be at least as big as the bind pose buffer, even though
-    // only the number of transforms defined by the bind pose buffer will be
+    // This range must be at least as big as the rest pose buffer, even though
+    // only the number of transforms defined by the rest pose buffer will be
     // processed.
     span<const math::SoaTransform> transform;
 
@@ -95,8 +96,8 @@ struct BlendingJob {
     // layer.
     // If both pointers are nullptr (default case) then per joint weight
     // blending is disabled. A valid range is defined as being at least as big
-    // as the bind pose buffer, even though only the number of transforms
-    // defined by the bind pose buffer will be processed. When a layer doesn't
+    // as the rest pose buffer, even though only the number of transforms
+    // defined by the rest pose buffer will be processed. When a layer doesn't
     // specifies per joint weights, then it is implicitly considered as
     // being 1.f. This default value is a reference value for the normalization
     // process, which implies that the range of values for joint weights should
@@ -106,7 +107,7 @@ struct BlendingJob {
     span<const math::SimdFloat4> joint_weights;
   };
 
-  // The job blends the bind pose to the output when the accumulated weight of
+  // The job blends the rest pose to the output when the accumulated weight of
   // all layers is less than this threshold value.
   // Must be greater than 0.f.
   float threshold;
@@ -119,18 +120,18 @@ struct BlendingJob {
   // The range of layers that must be added to the output.
   span<const Layer> additive_layers;
 
-  // The skeleton bind pose. The size of this buffer defines the number of
+  // The skeleton rest pose. The size of this buffer defines the number of
   // transforms to blend. This is the reference because this buffer is defined
   // by the skeleton that all the animations belongs to.
   // It is used when the accumulated weight for a bone on all layers is
   // less than the threshold value, in order to fall back on valid transforms.
-  span<const ozz::math::SoaTransform> bind_pose;
+  span<const ozz::math::SoaTransform> rest_pose;
 
   // Job output.
   // The range of output transforms to be filled with blended layer
   // transforms during job execution.
-  // Must be at least as big as the bind pose buffer, but only the number of
-  // transforms defined by the bind pose buffer size will be processed.
+  // Must be at least as big as the rest pose buffer, but only the number of
+  // transforms defined by the rest pose buffer size will be processed.
   span<ozz::math::SoaTransform> output;
 };
 }  // namespace animation

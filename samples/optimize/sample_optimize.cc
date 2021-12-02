@@ -105,7 +105,7 @@ class OptimizeSampleApplication : public ozz::sample::Application {
 
     // Prepares sampling job.
     ozz::animation::SamplingJob sampling_job;
-    sampling_job.cache = &cache_;
+    sampling_job.context = &context_;
     sampling_job.ratio = controller_.time_ratio();
 
     // Samples optimized animation (_according to the display mode).
@@ -123,20 +123,20 @@ class OptimizeSampleApplication : public ozz::sample::Application {
     }
 
     // Computes difference between the optimized and non-optimized animations
-    // in local space, and rebinds it to the bind pose.
+    // in local space, and rebinds it to the rest pose.
     {
-      const ozz::span<const ozz::math::SoaTransform>& bind_poses =
-          skeleton_.joint_bind_poses();
-      const ozz::math::SoaTransform* bind_pose = bind_poses.begin();
+      const ozz::span<const ozz::math::SoaTransform>& rest_poses =
+          skeleton_.joint_rest_poses();
+      const ozz::math::SoaTransform* rest_pose = rest_poses.begin();
       const ozz::math::SoaTransform* locals_raw = locals_raw_.data();
       const ozz::math::SoaTransform* locals_rt = locals_rt_.data();
       ozz::math::SoaTransform* locals_diff = locals_diff_.data();
-      for (; bind_pose < bind_poses.end();
-           ++locals_raw, ++locals_rt, ++locals_diff, ++bind_pose) {
+      for (; rest_pose < rest_poses.end();
+           ++locals_raw, ++locals_rt, ++locals_diff, ++rest_pose) {
         assert(locals_raw < array_end(locals_raw_) &&
                locals_rt < array_end(locals_rt_) &&
                locals_diff < array_end(locals_diff_) &&
-               bind_pose < bind_poses.end());
+               rest_pose < rest_poses.end());
 
         // Computes difference.
         const ozz::math::SoaTransform diff = {
@@ -144,10 +144,10 @@ class OptimizeSampleApplication : public ozz::sample::Application {
             locals_rt->rotation * Conjugate(locals_raw->rotation),
             locals_rt->scale / locals_raw->scale};
 
-        // Rebinds to the bind pose in the diff buffer.
-        locals_diff->translation = bind_pose->translation + diff.translation;
-        locals_diff->rotation = bind_pose->rotation * diff.rotation;
-        locals_diff->scale = bind_pose->scale * diff.scale;
+        // Rebinds to the rest pose in the diff buffer.
+        locals_diff->translation = rest_pose->translation + diff.translation;
+        locals_diff->rotation = rest_pose->rotation * diff.rotation;
+        locals_diff->scale = rest_pose->scale * diff.scale;
       }
     }
 
@@ -320,8 +320,8 @@ class OptimizeSampleApplication : public ozz::sample::Application {
     locals_diff_.resize(num_soa_joints);
     models_diff_.resize(num_joints);
 
-    // Allocates a cache that matches animation requirements.
-    cache_.Resize(num_joints);
+    // Allocates a context that matches animation requirements.
+    context_.Resize(num_joints);
 
     return true;
   }
@@ -378,11 +378,11 @@ class OptimizeSampleApplication : public ozz::sample::Application {
                                      override_joint_ && optimize_);
 
         if (rebuild) {
-          // Invalidates the cache in case the new animation has the same
+          // Invalidates the context in case the new animation has the same
           // address as the previous one. Other cases (like changing animation)
-          // are automatic handled by the cache. See SamplingCache::Invalidate
-          // for more details.
-          cache_.Invalidate();
+          // are automatic handled by the context. See
+          // SamplingJob::Context::Invalidate for more details.
+          context_.Invalidate();
 
           // Rebuilds a new runtime animation.
           if (!BuildAnimations()) {
@@ -546,9 +546,9 @@ class OptimizeSampleApplication : public ozz::sample::Application {
   // Runtime skeleton.
   ozz::animation::Skeleton skeleton_;
 
-  // Sampling cache, shared across optimized and non-optimized animations. This
-  // is not optimal, but it's not an issue either.
-  ozz::animation::SamplingCache cache_;
+  // Sampling context, shared across optimized and non-optimized animations.
+  // This is not optimal, but it's not an issue either.
+  ozz::animation::SamplingJob::Context context_;
 
   // Runtime optimized animation.
   ozz::unique_ptr<ozz::animation::Animation> animation_rt_;

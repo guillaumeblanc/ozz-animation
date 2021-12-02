@@ -28,6 +28,7 @@
 #ifndef OZZ_OZZ_ANIMATION_OFFLINE_RAW_ANIMATION_UTILS_H_
 #define OZZ_OZZ_ANIMATION_OFFLINE_RAW_ANIMATION_UTILS_H_
 
+#include "ozz/animation/offline/export.h"
 #include "ozz/animation/offline/raw_animation.h"
 
 #include "ozz/base/maths/transform.h"
@@ -56,15 +57,17 @@ bool ValidateTrackComponent(const RawAnimation::JointTrack::Scales& _scales,
                             float _duration);
 
 // Translation interpolation method.
-math::Float3 LerpTranslation(const math::Float3& _a, const math::Float3& _b,
+OZZ_ANIMOFFLINE_DLL math::Float3 LerpTranslation(const math::Float3& _a,
+                                                 const math::Float3& _b,
                              float _alpha);
 
 // Rotation interpolation method.
-math::Quaternion LerpRotation(const math::Quaternion& _a,
+OZZ_ANIMOFFLINE_DLL math::Quaternion LerpRotation(const math::Quaternion& _a,
                               const math::Quaternion& _b, float _alpha);
 
 // Scale interpolation method.
-math::Float3 LerpScale(const math::Float3& _a, const math::Float3& _b,
+OZZ_ANIMOFFLINE_DLL math::Float3 LerpScale(const math::Float3& _a,
+                                           const math::Float3& _b,
                        float _alpha);
 
 // Samples a RawAnimation track component. This function shall be used for
@@ -87,7 +90,8 @@ bool SampleTrackComponent(const RawAnimation::JointTrack::Scales& _scales,
 // runtime purpose.
 // Behavior is undetermined if track is invalid but _validate is set to false.
 // Returns false if track is invalid.
-bool SampleTrack(const RawAnimation::JointTrack& _track, float _time,
+OZZ_ANIMOFFLINE_DLL bool SampleTrack(const RawAnimation::JointTrack& _track,
+                                     float _time,
                  ozz::math::Transform* _transform, bool _validate = true);
 
 // Samples a RawAnimation. This function shall be used for offline
@@ -96,16 +100,18 @@ bool SampleTrack(const RawAnimation::JointTrack& _track, float _time,
 // _animation must be valid.
 // Behavior is undetermined if track is invalid but _validate is set to false.
 // Returns false output range is too small or animation is invalid.
-bool SampleAnimation(const RawAnimation& _animation, float _time,
+OZZ_ANIMOFFLINE_DLL bool SampleAnimation(
+    const RawAnimation& _animation, float _time,
                      const span<ozz::math::Transform>& _transforms,
                      bool _validate = true);
+
 
 // Implement fixed rate keyframe time iteration. This utility purpose is to
 // ensure that sampling goes strictly from 0 to duration, and that period
 // between consecutive time samples have a fixed period.
 // This sounds trivial, but floating point error could occur if keyframe time
 // was accumulated for a long duration.
-class FixedRateSamplingTime {
+class OZZ_ANIMOFFLINE_DLL FixedRateSamplingTime {
  public:
   FixedRateSamplingTime(float _duration, float _frequency);
 

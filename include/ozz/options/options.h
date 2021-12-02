@@ -80,8 +80,8 @@
 // registered options.
 // --version displays executable's version.
 
-#include <cstddef>
-#include <string>
+#include "ozz/options/export.h"
+#include "ozz/base/containers/string.h"
 
 namespace ozz {
 namespace options {
@@ -108,26 +108,28 @@ enum ParseResult {
 // _version and _usage are not copied, ParseCommandLine caller is in charge of
 // maintaining their allocation during application lifetime.
 // See ParseResult for more details about returned values.
-ParseResult ParseCommandLine(int _argc, const char* const* _argv,
-                             const char* _version, const char* _usage);
+OZZ_OPTIONS_DLL ParseResult ParseCommandLine(int _argc,
+                                             const char* const* _argv,
+                                             const char* _version,
+                                             const char* _usage);
 
 // Get the executable path that was extracted from the last call to
 // ParseCommandLine.
 // If ParseCommandLine has never been called, then ParsedExecutablePath
 // returns a default empty string.
-std::string ParsedExecutablePath();
+OZZ_OPTIONS_DLL ozz::string ParsedExecutablePath();
 
 // Get the executable name that was extracted from the last call to
 // ParseCommandLine.
 // If ParseCommandLine has never been called, then ParsedExecutableName
 // returns a default empty string.
-const char* ParsedExecutableName();
+OZZ_OPTIONS_DLL const char* ParsedExecutableName();
 
 // Get the executable usage that was extracted from the last call to
 // ParseCommandLine.
 // If ParseCommandLine has never been called, then ParsedExecutableUsage
 // returns a default empty string.
-const char* ParsedExecutableUsage();
+OZZ_OPTIONS_DLL const char* ParsedExecutableUsage();
 
 #define OZZ_OPTIONS_DECLARE_BOOL(_name, _help, _default, _required)    \
   OZZ_OPTIONS_DECLARE_VARIABLE(ozz::options::BoolOption, _name, _help, \
@@ -168,7 +170,7 @@ const char* ParsedExecutableUsage();
       #_name, _help, _default, _required, _fn);
 
 // Defines option interface.
-class Option {
+class OZZ_OPTIONS_DLL Option {
  public:
   // Returns option's name.
   const char* name() const { return name_; }
@@ -196,7 +198,7 @@ class Option {
   void RestoreDefault();
 
   // Outputs default value as a string.
-  virtual std::string FormatDefault() const = 0;
+  virtual ozz::string FormatDefault() const = 0;
 
   // Outputs type of value as a c string.
   virtual const char* FormatType() const = 0;
@@ -246,7 +248,7 @@ class Option {
 
 // Defines a strongly typed option class
 template <typename _Type>
-class TypedOption : public Option {
+class OZZ_OPTIONS_DLL TypedOption : public Option {
  public:
   // Lets the type be known.
   typedef _Type Type;
@@ -277,7 +279,7 @@ class TypedOption : public Option {
   virtual void RestoreDefaultImpl() { value_ = default_; }
 
   // Outputs default value as a string.
-  virtual std::string FormatDefault() const;
+  virtual ozz::string FormatDefault() const;
 
   // Outputs type of value as a string.
   virtual const char* FormatType() const;
@@ -298,7 +300,7 @@ typedef TypedOption<const char*> StringOption;
 // Declares the option parser class.
 // Option are registered by the parser and updated when command line arguments
 // are parsed.
-class Parser {
+class OZZ_OPTIONS_DLL Parser {
  public:
   // Construct a parser with only built-in options.
   Parser();
@@ -354,7 +356,7 @@ class Parser {
   const char* version() const;
 
   // Returns the path of the executable that was extracted from argument 0.
-  std::string executable_path() const;
+  ozz::string executable_path() const;
 
   // Returns the name of the executable that was extracted from argument 0.
   const char* executable_name() const;

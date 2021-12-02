@@ -358,7 +358,7 @@ bool SampleChannel(const tinygltf::Model& _model,
 }
 
 ozz::animation::offline::RawAnimation::TranslationKey
-CreateTranslationBindPoseKey(const tinygltf::Node& _node) {
+CreateTranslationRestPoseKey(const tinygltf::Node& _node) {
   ozz::animation::offline::RawAnimation::TranslationKey key;
   key.time = 0.0f;
 
@@ -373,7 +373,7 @@ CreateTranslationBindPoseKey(const tinygltf::Node& _node) {
   return key;
 }
 
-ozz::animation::offline::RawAnimation::RotationKey CreateRotationBindPoseKey(
+ozz::animation::offline::RawAnimation::RotationKey CreateRotationRestPoseKey(
     const tinygltf::Node& _node) {
   ozz::animation::offline::RawAnimation::RotationKey key;
   key.time = 0.0f;
@@ -389,7 +389,7 @@ ozz::animation::offline::RawAnimation::RotationKey CreateRotationBindPoseKey(
   return key;
 }
 
-ozz::animation::offline::RawAnimation::ScaleKey CreateScaleBindPoseKey(
+ozz::animation::offline::RawAnimation::ScaleKey CreateScaleRestPoseKey(
     const tinygltf::Node& _node) {
   ozz::animation::offline::RawAnimation::ScaleKey key;
   key.time = 0.0f;
@@ -430,8 +430,8 @@ bool CreateNodeTransform(const tinygltf::Node& _node,
     ozz::math::SimdFloat4 translation, rotation, scale;
     if (ToAffine(matrix, &translation, &rotation, &scale)) {
       ozz::math::Store3PtrU(translation, &_transform->translation.x);
-      ozz::math::StorePtrU(translation, &_transform->rotation.x);
-      ozz::math::Store3PtrU(translation, &_transform->scale.x);
+      ozz::math::StorePtrU(rotation, &_transform->rotation.x);
+      ozz::math::Store3PtrU(scale, &_transform->scale.x);
       return true;
     }
 
@@ -521,30 +521,38 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
     return success;
   }
 
-  // Given a skin find which of its joints is the skeleton root and return it
-  // returns -1 if the skin has no associated joints
-  int FindSkinRootJointIndex(const tinygltf::Skin& skin) {
-    if (skin.joints.empty()) {
-      return -1;
-    }
-
-    if (skin.skeleton != -1) {
-      return skin.skeleton;
-    }
-
-    ozz::map<int, int> parents;
-    for (int node : skin.joints) {
+  // Find all unique root joints of skeletons used by given skins and add them
+  // to `roots`
+  void FindSkinRootJointIndices(const ozz::vector<tinygltf::Skin>& skins,
+                                ozz::vector<int>& roots) {
+    static constexpr int no_parent = -1;
+    static constexpr int visited = -2;
+    ozz::vector<int> parents(m_model.nodes.size(), no_parent);
+    for (int node = 0; node < static_cast<int>(m_model.nodes.size()); node++) {
       for (int child : m_model.nodes[node].children) {
         parents[child] = node;
       }
     }
 
-    int root = skin.joints[0];
-    while (parents.find(root) != parents.end()) {
-      root = parents[root];
-    }
+    for (const tinygltf::Skin& skin : skins) {
+      if (skin.joints.empty()) {
+        continue;
+      }
 
-    return root;
+      if (skin.skeleton != -1) {
+        parents[skin.skeleton] = visited;
+        roots.push_back(skin.skeleton);
+        continue;
+      }
+
+      int root = skin.joints[0];
+      while (root != visited && parents[root] != no_parent) {
+        root = parents[root];
+      }
+      if (root != visited) {
+        roots.push_back(root);
+      }
+    }
   }
 
   bool Import(ozz::animation::offline::RawSkeleton* _skeleton,
@@ -591,14 +599,8 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
                         << std::endl;
       }
 
-      // Uses all skins root
-      for (auto& skin : skins) {
-        const int root = FindSkinRootJointIndex(skin);
-        if (root == -1) {
-          continue;
-        }
-        roots.push_back(root);
-      }
+      // Uses all skins roots.
+      FindSkinRootJointIndices(skins, roots);
     }
 
     // Remove nodes listed multiple times.
@@ -745,16 +747,16 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
       const tinygltf::Node* node = FindNodeByName(joint_names[i]);
       assert(node != nullptr);
 
-      // Pads the bind pose transform for any joints which do not have an
+      // Pads the rest pose transform for any joints which do not have an
       // associated channel for this animation
       if (track.translations.empty()) {
-        track.translations.push_back(CreateTranslationBindPoseKey(*node));
+        track.translations.push_back(CreateTranslationRestPoseKey(*node));
       }
       if (track.rotations.empty()) {
-        track.rotations.push_back(CreateRotationBindPoseKey(*node));
+        track.rotations.push_back(CreateRotationRestPoseKey(*node));
       }
       if (track.scales.empty()) {
-        track.scales.push_back(CreateScaleBindPoseKey(*node));
+        track.scales.push_back(CreateScaleRestPoseKey(*node));
       }
     }
 

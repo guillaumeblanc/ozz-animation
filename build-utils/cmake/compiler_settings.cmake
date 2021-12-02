@@ -97,11 +97,6 @@ else()
   check_cxx_compiler_flag("-Wnull-dereference" W_NULL_DEREFERENCE)
   check_cxx_compiler_flag("-Wpragma-pack" W_PRAGMA_PACK)
 
-  # Enables debug glibcxx if NDebug isn't defined, not supported by APPLE
-  if(NOT APPLE)
-    set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS "$<$<CONFIG:Debug>:_GLIBCXX_DEBUG>")
-  endif()
-
   #----------------------
   # Sets emscripten output
   if(EMSCRIPTEN)

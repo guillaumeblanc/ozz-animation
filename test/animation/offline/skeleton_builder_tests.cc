@@ -25,19 +25,16 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/animation/offline/raw_skeleton.h"
-#include "ozz/animation/offline/skeleton_builder.h"
-
 #include <cstring>
 
 #include "gtest/gtest.h"
-
+#include "ozz/animation/offline/raw_skeleton.h"
+#include "ozz/animation/offline/skeleton_builder.h"
 #include "ozz/animation/runtime/skeleton.h"
+#include "ozz/base/maths/gtest_math_helper.h"
 #include "ozz/base/maths/simd_math.h"
 #include "ozz/base/maths/soa_transform.h"
 #include "ozz/base/memory/unique_ptr.h"
-
-#include "ozz/base/maths/gtest_math_helper.h"
 
 using ozz::animation::Skeleton;
 using ozz::animation::offline::RawSkeleton;
@@ -606,7 +603,7 @@ TEST(MultiRoots, SkeletonBuilder) {
   }
 }
 
-TEST(BindPose, SkeletonBuilder) {
+TEST(RestPose, SkeletonBuilder) {
   using ozz::math::Float3;
   using ozz::math::Float4;
   using ozz::math::Quaternion;
@@ -649,14 +646,14 @@ TEST(BindPose, SkeletonBuilder) {
   ozz::unique_ptr<Skeleton> skeleton(builder(raw_skeleton));
   ASSERT_TRUE(skeleton);
 
-  // Convert bind pose back to aos.
+  // Convert rest pose back to aos.
   ozz::math::SimdFloat4 translations[4];
   ozz::math::SimdFloat4 scales[4];
   ozz::math::SimdFloat4 rotations[4];
-  const ozz::math::SoaTransform& bind_pose = skeleton->joint_bind_poses()[0];
-  ozz::math::Transpose3x4(&bind_pose.translation.x, translations);
-  ozz::math::Transpose4x4(&bind_pose.rotation.x, rotations);
-  ozz::math::Transpose3x4(&bind_pose.scale.x, scales);
+  const ozz::math::SoaTransform& rest_pose = skeleton->joint_rest_poses()[0];
+  ozz::math::Transpose3x4(&rest_pose.translation.x, translations);
+  ozz::math::Transpose4x4(&rest_pose.rotation.x, rotations);
+  ozz::math::Transpose3x4(&rest_pose.scale.x, scales);
 
   for (int i = 0; i < skeleton->num_joints(); ++i) {
     if (std::strcmp(skeleton->joint_names()[i], "j0") == 0) {
@@ -705,5 +702,45 @@ TEST(MaxJoints, SkeletonBuilder) {
     EXPECT_EQ(raw_skeleton.num_joints(), Skeleton::kMaxJoints + 1);
 
     EXPECT_TRUE(!builder(raw_skeleton));
+  }
+}
+
+TEST(Move, SkeletonBuilder) {
+  SkeletonBuilder builder;
+  RawSkeleton raw_skeleton;
+
+  raw_skeleton.roots.resize(1);
+  RawSkeleton::Joint& root = raw_skeleton.roots[0];
+  root.name = "j0";
+
+  root.children.resize(2);
+  root.children[0].name = "j1";
+  root.children[1].name = "j2";
+
+  ozz::unique_ptr<Skeleton> skeleton(builder(raw_skeleton));
+
+  {  // Move constructor
+    root.name = "root1";
+    ozz::unique_ptr<Skeleton> skeleton1(builder(raw_skeleton));
+    const Skeleton cskeleton(std::move(*skeleton1));
+    EXPECT_STREQ(cskeleton.joint_names()[0], "root1");
+  }
+
+  {  // Move assignment
+    root.name = "root1";
+    root.children.resize(45);
+    ozz::unique_ptr<Skeleton> skeleton1(builder(raw_skeleton));
+    EXPECT_STREQ(skeleton1->joint_names()[0], "root1");
+    EXPECT_EQ(skeleton1->num_joints(), 46);
+
+    root.name = "root2";
+    root.children.resize(92);
+    ozz::unique_ptr<Skeleton> skeleton2(builder(raw_skeleton));
+    EXPECT_STREQ(skeleton2->joint_names()[0], "root2");
+    EXPECT_EQ(skeleton2->num_joints(), 93);
+
+    *skeleton2 = std::move(*skeleton1);
+    EXPECT_STREQ(skeleton2->joint_names()[0], "root1");
+    EXPECT_EQ(skeleton2->num_joints(), 46);
   }
 }

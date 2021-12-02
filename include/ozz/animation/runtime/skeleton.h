@@ -28,6 +28,7 @@
 #ifndef OZZ_OZZ_ANIMATION_RUNTIME_SKELETON_H_
 #define OZZ_OZZ_ANIMATION_RUNTIME_SKELETON_H_
 
+#include "ozz/animation/runtime/export.h"
 #include "ozz/base/io/archive_traits.h"
 #include "ozz/base/platform.h"
 #include "ozz/base/span.h"
@@ -48,16 +49,16 @@ class SkeletonBuilder;
 }
 
 // This runtime skeleton data structure provides a const-only access to joint
-// hierarchy, joint names and bind-pose. This structure is filled by the
+// hierarchy, joint names and rest-pose. This structure is filled by the
 // SkeletonBuilder and can be serialize/deserialized.
-// Joint names, bind-poses and hierarchy information are all stored in separate
+// Joint names, rest-poses and hierarchy information are all stored in separate
 // arrays of data (as opposed to joint structures for the RawSkeleton), in order
 // to closely match with the way runtime algorithms use them. Joint hierarchy is
 // packed as an array of parent jont indices (16 bits), stored in depth-first
 // order. This is enough to traverse the whole joint hierarchy. See
 // IterateJointsDF() from skeleton_utils.h that implements a depth-first
 // traversal utility.
-class Skeleton {
+class OZZ_ANIMATION_DLL Skeleton {
  public:
   // Defines Skeleton constant values.
   enum Constants {
@@ -81,6 +82,14 @@ class Skeleton {
   // Builds a default skeleton.
   Skeleton();
 
+  // Allow move.
+  Skeleton(Skeleton&&);
+  Skeleton& operator=(Skeleton&&);
+
+  // Disables copy and assignation.
+  Skeleton(Skeleton const&) = delete;
+  Skeleton& operator=(Skeleton const&) = delete;
+
   // Declares the public non-virtual destructor.
   ~Skeleton();
 
@@ -91,9 +100,9 @@ class Skeleton {
   // skeleton. This value is useful to allocate SoA runtime data structures.
   int num_soa_joints() const { return (num_joints() + 3) / 4; }
 
-  // Returns joint's bind poses. Bind poses are stored in soa format.
-  span<const math::SoaTransform> joint_bind_poses() const {
-    return joint_bind_poses_;
+  // Returns joint's rest poses. Rest poses are stored in soa format.
+  span<const math::SoaTransform> joint_rest_poses() const {
+    return joint_rest_poses_;
   }
 
   // Returns joint's parent indices range.
@@ -110,10 +119,6 @@ class Skeleton {
   void Load(ozz::io::IArchive& _archive, uint32_t _version);
 
  private:
-  // Disables copy and assignation.
-  Skeleton(Skeleton const&);
-  void operator=(Skeleton const&);
-
   // Internal allocation/deallocation function.
   // Allocate returns the beginning of the contiguous buffer of names.
   char* Allocate(size_t _char_count, size_t _num_joints);
@@ -125,8 +130,8 @@ class Skeleton {
   // Buffers below store joint informations in joing depth first order. Their
   // size is equal to the number of joints of the skeleton.
 
-  // Bind pose of every joint in local space.
-  span<math::SoaTransform> joint_bind_poses_;
+  // Rest pose of every joint in local space.
+  span<math::SoaTransform> joint_rest_poses_;
 
   // Array of joint parent indexes.
   span<int16_t> joint_parents_;

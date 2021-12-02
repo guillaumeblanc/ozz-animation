@@ -17,6 +17,7 @@ target_link_libraries(sample_two_bone_ik
   sample_framework
   ozz_animation_offline
   ozz_animation)
+target_copy_shared_libraries(sample_two_bone_ik)
 
 set_target_properties(sample_two_bone_ik
   PROPERTIES FOLDER "samples")

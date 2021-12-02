@@ -45,12 +45,22 @@ class TestConverter : public ozz::animation::offline::OzzImporter {
       return false;
     }
 
-    const char good_content[] = "good content";
+    
     char buffer[256];
-    bool valid =
-        file_->Read(buffer, sizeof(buffer)) >= sizeof(good_content) - 1 &&
-        memcmp(buffer, good_content, sizeof(good_content) - 1) == 0;
-    file_->Seek(0, ozz::io::File::kSet);
+    bool valid = true;
+    {
+      const char good_content[] = "good content";
+      valid = file_->Read(buffer, sizeof(buffer)) >= sizeof(good_content) - 1 &&
+              memcmp(buffer, good_content, sizeof(good_content) - 1) == 0;
+      file_->Seek(0, ozz::io::File::kSet);
+    }
+
+    if (!valid) {
+      const char partial_good_content[] = "partial good content";
+      valid = file_->Read(buffer, sizeof(buffer)) >= sizeof(partial_good_content) - 1 &&
+              memcmp(buffer, partial_good_content, sizeof(partial_good_content) - 1) == 0;
+      file_->Seek(0, ozz::io::File::kSet);
+    }
     return valid;
   }
 
@@ -172,6 +182,18 @@ class TestConverter : public ozz::animation::offline::OzzImporter {
           return names;
         }
       }
+
+      // Handles one of animation is good
+      {
+        file_->Seek(0, ozz::io::File::kSet);
+        const char content[] = "partial good content";
+        if (file_->Read(buffer, sizeof(buffer)) >= sizeof(content) - 1 &&
+            memcmp(buffer, content, sizeof(content) - 1) == 0) {
+          names.push_back("bad");
+          names.push_back("good");
+          return names;
+        }
+      }
     }
 
     return names;
@@ -223,6 +245,20 @@ class TestConverter : public ozz::animation::offline::OzzImporter {
           return true;
         }
       }
+      {  // Handles one of animation is good
+        file_->Seek(0, ozz::io::File::kSet);
+        const char content[] = "partial good content";
+        if (file_->Read(buffer, sizeof(buffer)) >= sizeof(content) - 1 &&
+            memcmp(buffer, content, sizeof(content) - 1) == 0){
+        
+          if (strcmp(_animation_name, "good") == 0){
+            _animation->tracks.resize(_skeleton.num_joints());
+            return true;
+          }
+
+          return false;
+        }
+      }
     }
     return false;
   }
@@ -253,6 +289,21 @@ class TestConverter : public ozz::animation::offline::OzzImporter {
     (void)_track_type;
     (void)_sampling_rate;
     (void)_track;
+
+    {
+      char buffer[256];
+      const char content[] = "partial good content";
+      if (strcmp(_animation_name, "good") == 0 ||
+          strcmp(_animation_name, "bad") == 0) {
+          file_->Seek(0, ozz::io::File::kSet);
+          bool valid = file_->Read(buffer, sizeof(buffer)) >= sizeof(content) - 1;
+          valid &= memcmp(buffer, content, sizeof(content) - 1) == 0;
+          if (valid){
+            return !((strcmp(_node_name, "joint0") == 0) &&
+                     (strcmp(_track_name, "property0") == 0));
+          }
+      }
+    }
 
     // joint2 doesn't have the property
     bool found = (strcmp(_node_name, "joint0") == 0 ||

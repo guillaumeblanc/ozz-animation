@@ -44,6 +44,20 @@ template <typename _ValueType>
 Track<_ValueType>::Track() : name_(nullptr) {}
 
 template <typename _ValueType>
+Track<_ValueType>::Track(Track<_ValueType>&& _other) {
+  *this = std::move(_other);
+}
+
+template <typename _ValueType>
+Track<_ValueType>& Track<_ValueType>::operator=(Track<_ValueType>&& _other) {
+  std::swap(ratios_, _other.ratios_);
+  std::swap(values_, _other.values_);
+  std::swap(steps_, _other.steps_);
+  std::swap(name_, _other.name_);
+  return *this;
+}
+
+template <typename _ValueType>
 Track<_ValueType>::~Track() {
   Deallocate();
 }
@@ -63,7 +77,7 @@ void Track<_ValueType>::Allocate(size_t _keys_count, size_t _name_len) {
                              _keys_count * sizeof(float) +       // ratios
                              (_keys_count + 7) * sizeof(uint8_t) / 8 +  // steps
                              (_name_len > 0 ? _name_len + 1 : 0);
-  span<char> buffer = {static_cast<char*>(memory::default_allocator()->Allocate(
+  span<byte> buffer = {static_cast<byte*>(memory::default_allocator()->Allocate(
                            buffer_size, alignof(_ValueType))),
                        buffer_size};
 
@@ -142,11 +156,11 @@ void Track<_ValueType>::Load(ozz::io::IArchive& _archive, uint32_t _version) {
 }
 
 // Explicitly instantiate supported tracks.
-template class Track<float>;
-template class Track<math::Float2>;
-template class Track<math::Float3>;
-template class Track<math::Float4>;
-template class Track<math::Quaternion>;
+template class OZZ_ANIMATION_DLL Track<float>;
+template class OZZ_ANIMATION_DLL Track<math::Float2>;
+template class OZZ_ANIMATION_DLL Track<math::Float3>;
+template class OZZ_ANIMATION_DLL Track<math::Float4>;
+template class OZZ_ANIMATION_DLL Track<math::Quaternion>;
 
 }  // namespace internal
 }  // namespace animation

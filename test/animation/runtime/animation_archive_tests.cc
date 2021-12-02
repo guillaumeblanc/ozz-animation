@@ -25,25 +25,20 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/animation/runtime/animation.h"
-
 #include "gtest/gtest.h"
-#include "ozz/base/maths/gtest_math_helper.h"
-
-#include "ozz/base/io/archive.h"
-#include "ozz/base/io/stream.h"
-#include "ozz/base/memory/unique_ptr.h"
-
-#include "ozz/base/maths/soa_transform.h"
-
-#include "ozz/animation/runtime/sampling_job.h"
-
 #include "ozz/animation/offline/animation_builder.h"
 #include "ozz/animation/offline/raw_animation.h"
+#include "ozz/animation/runtime/animation.h"
+#include "ozz/animation/runtime/sampling_job.h"
+#include "ozz/base/io/archive.h"
+#include "ozz/base/io/stream.h"
+#include "ozz/base/maths/gtest_math_helper.h"
+#include "ozz/base/maths/soa_transform.h"
+#include "ozz/base/memory/unique_ptr.h"
 
 using ozz::animation::Animation;
-using ozz::animation::offline::RawAnimation;
 using ozz::animation::offline::AnimationBuilder;
+using ozz::animation::offline::RawAnimation;
 
 TEST(Empty, AnimationSerialize) {
   ozz::io::MemoryStream stream;
@@ -112,10 +107,10 @@ TEST(Filled, AnimationSerialize) {
 
     // Needs to sample to test the animation.
     ozz::animation::SamplingJob job;
-    ozz::animation::SamplingCache cache(1);
+    ozz::animation::SamplingJob::Context context(1);
     ozz::math::SoaTransform output[1];
     job.animation = o_animation.get();
-    job.cache = &cache;
+    job.context = &context;
     job.output = output;
 
     // Samples and compares the two animations

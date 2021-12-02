@@ -9,9 +9,15 @@
 #  FBX_INCLUDE_DIRS - The Fbx SDK include directories
 #  FBX_LIBRARIES - The libraries needed to use Fbx SDK
 #  FBX_LIBRARIES_DEBUG - The libraries needed to use debug Fbx SDK
+#  FBX_SHARED_LIBRARIES - The shared library file (dll, so) to use Fbx 
+#  FBX_SHARED_LIBRARIES_DEBUG - The shared library file (dll, so) to use debug
+#                               Fbx SDK
+#
+# A cmake target named fbx::sdk is also created. Adding this target to your
+# project via target_link_libraries will setup everything automatically.
 #
 # It accepts the following variables as input:
-#
+#  FBX_SHARED - Optional. Select whether to use the shared version fbx sdk.
 #  FBX_MSVC_RT_DLL - Optional. Select whether to use the DLL version or the
 #                    static library version of the Visual C++ runtime library.
 #                    Default is ON (aka, DLL version: /MD).
@@ -52,7 +58,7 @@
 ###############################################################################
 # Generic library search function definition
 ###############################################################################
-function(FindFbxLibrariesGeneric _FBX_ROOT_DIR _OUT_FBX_LIBRARIES _OUT_FBX_LIBRARIES_DEBUG)
+function(FindFbxLibrariesGeneric _FBX_ROOT_DIR _OUT_FBX_LIBRARIES _OUT_FBX_LIBRARIES_DEBUG _OUT_FBX_SHARED_LIBRARIES _OUT_FBX_SHARED_LIBRARIES_DEBUG)
   # Directory structure depends on the platform:
   # - Windows: \lib\<compiler_version>\<processor_type>\<build_mode>
   # - Mac OSX: \lib\<compiler_version>\ub\<processor_type>\<build_mode>
@@ -61,7 +67,9 @@ function(FindFbxLibrariesGeneric _FBX_ROOT_DIR _OUT_FBX_LIBRARIES _OUT_FBX_LIBRA
   # Figures out matching compiler/os directory.
   
   if("x${CMAKE_CXX_COMPILER_ID}" STREQUAL "xMSVC")
-    if(NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS 19.10)
+    if(NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS 19.20)
+      set(FBX_CP_PATH "vs2019")
+    elseif(NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS 19.10)
       set(FBX_CP_PATH "vs2017")
     elseif(NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS 19)
       set(FBX_CP_PATH "vs2015")
@@ -90,19 +98,25 @@ function(FindFbxLibrariesGeneric _FBX_ROOT_DIR _OUT_FBX_LIBRARIES _OUT_FBX_LIBRA
     endif()
   endif()
 
-  # Set libraries names to search, sorted by preference.
-  set(FBX_SEARCH_LIB_NAMES fbxsdk-static.a libfbxsdk.a fbxsdk.a)
-
-  # Select whether to use the DLL version or the static library version of the Visual C++ runtime library.
-  # Default is "md", aka use the multithread DLL version of the run-time library.
-  if (NOT DEFINED FBX_MSVC_RT_DLL OR FBX_MSVC_RT_DLL)
-    set(FBX_SEARCH_LIB_NAMES ${FBX_SEARCH_LIB_NAMES} libfbxsdk-md.lib)
+  # Select whether to use the DLL version or the static library version of fbx sdk.
+  if (FBX_SHARED)
+    # Dynamic libraries
+    set(FBX_SEARCH_LIB_NAMES ${FBX_SEARCH_LIB_NAMES} libfbxsdk.lib libfbxsdk.dylib libfbxsdk.so)
   else()
-    set(FBX_SEARCH_LIB_NAMES ${FBX_SEARCH_LIB_NAMES} libfbxsdk-mt.lib)
-  endif()   
+    # static library names
+    set(FBX_SEARCH_LIB_NAMES ${FBX_SEARCH_LIB_NAMES} libfbxsdk.a libfbxsdk-static.a)
+
+    # Select whether to use the DLL version or the static library version of the Visual C++ runtime library.
+    # Default is "md", aka use the multithread DLL version of the run-time library.
+    if (NOT DEFINED FBX_MSVC_RT_DLL OR FBX_MSVC_RT_DLL)
+      set(FBX_SEARCH_LIB_NAMES ${FBX_SEARCH_LIB_NAMES} libfbxsdk-md.lib)
+    else()
+      set(FBX_SEARCH_LIB_NAMES ${FBX_SEARCH_LIB_NAMES} libfbxsdk-mt.lib)
+    endif()
+  endif()
 
   # Set search path.
-  set(FBX_SEARCH_LIB_PATH "${_FBX_ROOT_DIR}/lib/${FBX_CP_PATH}/${FBX_PROCESSOR_PATH}")
+  set(FBX_SEARCH_LIB_PATH "${_FBX_ROOT_DIR}lib/${FBX_CP_PATH}/${FBX_PROCESSOR_PATH}")
 
   find_library(FBX_LIB
     ${FBX_SEARCH_LIB_NAMES}
@@ -114,21 +128,42 @@ function(FindFbxLibrariesGeneric _FBX_ROOT_DIR _OUT_FBX_LIBRARIES _OUT_FBX_LIBRA
       ${FBX_SEARCH_LIB_NAMES}
       HINTS "${FBX_SEARCH_LIB_PATH}/debug/")
 
-    if(UNIX)
-      if(APPLE) # APPLE requires to link with Carbon framework
-        find_library(CARBON_FRAMEWORK Carbon)
-        list(APPEND FBX_LIB ${CARBON_FRAMEWORK})
-        list(APPEND FBX_LIB_DEBUG ${CARBON_FRAMEWORK})
-      else()
-        find_package(Threads)
-        list(APPEND FBX_LIB ${CMAKE_THREAD_LIBS_INIT} dl)
-        list(APPEND FBX_LIB_DEBUG ${CMAKE_THREAD_LIBS_INIT} dl)
-      endif()
+    # Looks for shared libraries
+    if (FBX_SHARED)
+      set(FBX_SEARCH_SHARED_LIB_NAMES libfbxsdk.dll libfbxsdk.so libfbxsdk.dylib)
+
+      find_file(FBX_SHARED_LIB
+        ${FBX_SEARCH_SHARED_LIB_NAMES}
+        HINTS "${FBX_SEARCH_LIB_PATH}/release/")
+      find_file(FBX_SHARED_LIB_DEBUG
+        ${FBX_SEARCH_SHARED_LIB_NAMES}
+        HINTS "${FBX_SEARCH_LIB_PATH}/debug/")
+
+      set(${_OUT_FBX_SHARED_LIBRARIES} ${FBX_SHARED_LIB} PARENT_SCOPE)
+      set(${_OUT_FBX_SHARED_LIBRARIES_DEBUG} ${FBX_SHARED_LIB_DEBUG} PARENT_SCOPE)
     endif()
+
+    # Create a target for a convenient use of the sdk with cmake
+    if(FBX_SHARED)
+      add_library(fbx::sdk SHARED IMPORTED GLOBAL)
+      set_property(TARGET fbx::sdk PROPERTY IMPORTED_LOCATION ${FBX_SHARED_LIB})
+      set_property(TARGET fbx::sdk PROPERTY IMPORTED_LOCATION_DEBUG ${FBX_SHARED_LIB_DEBUG})
+      set_property(TARGET fbx::sdk PROPERTY IMPORTED_IMPLIB ${FBX_LIB})
+      set_property(TARGET fbx::sdk PROPERTY IMPORTED_IMPLIB_DEBUG ${FBX_LIB_DEBUG})
+      target_compile_definitions(fbx::sdk INTERFACE FBXSDK_SHARED)
+    else()
+      add_library(fbx::sdk STATIC IMPORTED GLOBAL)
+      set_property(TARGET fbx::sdk PROPERTY IMPORTED_LOCATION ${FBX_LIB})
+      set_property(TARGET fbx::sdk PROPERTY IMPORTED_LOCATION_DEBUG ${FBX_LIB_DEBUG})
+    endif()
+    target_include_directories(fbx::sdk INTERFACE "${_FBX_ROOT_DIR}include/")
+    target_compile_options(fbx::sdk
+      INTERFACE $<$<BOOL:${W_NULL_DEREFERENCE}>:-Wno-null-dereference>
+      INTERFACE $<$<BOOL:${W_PRAGMA_PACK}>:-Wno-pragma-pack>)
 
     FindFbxVersion(${FBX_ROOT_DIR} PATH_VERSION)
 
-    # 2019 SDK needs to link against bundled libxml and zlib
+    # 2019+ non-DLL SDK needs to link against bundled libxml and zlib
     if(PATH_VERSION GREATER_EQUAL "2019.1")
       if("x${CMAKE_CXX_COMPILER_ID}" STREQUAL "xMSVC")
         set(ADDITIONAL_LIB_SEARCH_PATH_RELEASE "${FBX_SEARCH_LIB_PATH}/release/")
@@ -150,48 +185,71 @@ function(FindFbxLibrariesGeneric _FBX_ROOT_DIR _OUT_FBX_LIBRARIES _OUT_FBX_LIBRA
       find_library(XML_LIB
         ${XML_SEARCH_LIB_NAMES}
         HINTS ${ADDITIONAL_LIB_SEARCH_PATH_RELEASE})
-      find_library(Z_LIB
-        ${Z_SEARCH_LIB_NAMES}
-        HINTS ${ADDITIONAL_LIB_SEARCH_PATH_RELEASE})
-
-      # Searches debug version also
       find_library(XML_LIB_DEBUG
         ${XML_SEARCH_LIB_NAMES}
         HINTS ${ADDITIONAL_LIB_SEARCH_PATH_DEBUG})
-      find_library(Z_LIB_DEBUG
-        ${Z_SEARCH_LIB_NAMES}
-        HINTS ${ADDITIONAL_LIB_SEARCH_PATH_DEBUG})
 
-      # for whatever reason on apple it will need iconv as well?!
-      if(APPLE)
-        find_library(ICONV_LIB
-          iconv)
-
-        # no special debug search here as mac only anyway
-
-        if(NOT ICONV_LIB)
-          message(WARNING "FBX found but required iconv was not found!")
-        endif()
-        list(APPEND FBX_LIB ${ICONV_LIB})
-        list(APPEND FBX_LIB_DEBUG ${ICONV_LIB})
-      endif()
-
-      if(NOT XML_LIB)
+      if(XML_LIB AND XML_LIB_DEBUG)
+        target_link_libraries(fbx::sdk INTERFACE optimized ${XML_LIB})
+        target_link_libraries(fbx::sdk INTERFACE debug ${XML_LIB_DEBUG})
+      else()
         message(WARNING "FBX found but required libxml2 was not found!")
       endif()
-      if(NOT Z_LIB)
+
+      find_library(Z_LIB
+        ${Z_SEARCH_LIB_NAMES}
+        HINTS ${ADDITIONAL_LIB_SEARCH_PATH_RELEASE})          
+      find_library(Z_LIB_DEBUG
+        ${Z_SEARCH_LIB_NAMES} 
+        HINTS ${ADDITIONAL_LIB_SEARCH_PATH_DEBUG})
+
+      if(Z_LIB AND Z_LIB_DEBUG)
+        target_link_libraries(fbx::sdk INTERFACE optimized ${Z_LIB})
+        target_link_libraries(fbx::sdk INTERFACE debug ${Z_LIB_DEBUG})
+      else()
         message(WARNING "FBX found but required zlib was not found!")
       endif()
 
       list(APPEND FBX_LIB ${XML_LIB} ${Z_LIB})
       list(APPEND FBX_LIB_DEBUG ${XML_LIB_DEBUG} ${Z_LIB_DEBUG})
     endif()
+
+    # Other dependencies.
+    if(APPLE)
+      find_library(ICONV_LIB iconv)
+
+      if(ICONV_LIB)
+        target_link_libraries(fbx::sdk INTERFACE ${ICONV_LIB})
+        list(APPEND FBX_LIB ${ICONV_LIB})
+        list(APPEND FBX_LIB_DEBUG ${ICONV_LIB})
+      else()
+        message(WARNING "FBX found but required iconv was not found!")
+      endif()
+
+      find_library(CARBON_FRAMEWORK Carbon)
+      if(CARBON_FRAMEWORK)
+        target_link_libraries(fbx::sdk INTERFACE ${CARBON_FRAMEWORK})
+        list(APPEND FBX_LIB ${CARBON_FRAMEWORK})
+        list(APPEND FBX_LIB_DEBUG ${CARBON_FRAMEWORK})
+      else()
+        message(WARNING "FBX found but required Carbon was not found!")
+      endif()
+    endif()
+
+    if(UNIX)
+      find_package(Threads)
+      target_link_libraries(fbx::sdk INTERFACE ${CMAKE_THREAD_LIBS_INIT} dl)
+      list(APPEND FBX_LIB ${CMAKE_THREAD_LIBS_INIT} dl)
+      list(APPEND FBX_LIB_DEBUG ${CMAKE_THREAD_LIBS_INIT} dl)
+    endif()
+
     set(${_OUT_FBX_LIBRARIES} ${FBX_LIB} PARENT_SCOPE)
     set(${_OUT_FBX_LIBRARIES_DEBUG} ${FBX_LIB_DEBUG} PARENT_SCOPE)
+
   else()
-    message ("A Fbx SDK was found, but doesn't match your compiler settings.")
+    message("A Fbx installation was found, but couldn't be matched with current compiler settings.")
   endif()
-  # Deduce fbx sdk version
+
 endfunction()
 
 ###############################################################################
@@ -257,7 +315,7 @@ if(FBX_INCLUDE_DIR)
   set(FBX_INCLUDE_DIRS "${FBX_INCLUDE_DIR}/include")
 
   # Searches libraries according to the current compiler
-  FindFbxLibrariesGeneric(${FBX_ROOT_DIR} FBX_LIBRARIES FBX_LIBRARIES_DEBUG)
+  FindFbxLibrariesGeneric(${FBX_ROOT_DIR} FBX_LIBRARIES FBX_LIBRARIES_DEBUG FBX_SHARED_LIBRARIES FBX_SHARED_LIBRARIES_DEBUG)
 endif()
 
 # Handles find_package arguments and set FBX_FOUND to TRUE if all listed variables and version are valid.

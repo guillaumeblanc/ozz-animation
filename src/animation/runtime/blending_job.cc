@@ -69,12 +69,12 @@ bool BlendingJob::Validate() const {
 
   // Test for nullptr begin pointers.
   // Blending layers are mandatory, additive aren't.
-  valid &= !bind_pose.empty();
+  valid &= !rest_pose.empty();
   valid &= !output.empty();
 
-  // The bind pose size defines the ranges of transforms to blend, so all
+  // The rest pose size defines the ranges of transforms to blend, so all
   // other buffers should be bigger.
-  const size_t min_range = bind_pose.size();
+  const size_t min_range = rest_pose.size();
   valid &= output.size() >= min_range;
 
   // Validates layers.
@@ -160,7 +160,7 @@ namespace {
 struct ProcessArgs {
   ProcessArgs(const BlendingJob& _job)
       : job(_job),
-        num_soa_joints(_job.bind_pose.size()),
+        num_soa_joints(_job.rest_pose.size()),
         num_passes(0),
         num_partial_passes(0),
         accumulated_weight(0.f) {
@@ -182,7 +182,7 @@ struct ProcessArgs {
   // The job to process.
   const BlendingJob& job;
 
-  // The number of transforms to process as defined by the size of the bind
+  // The number of transforms to process as defined by the size of the rest
   // pose.
   size_t num_soa_joints;
 
@@ -271,24 +271,24 @@ void BlendLayers(ProcessArgs* _args) {
   }
 }
 
-// Blends bind pose to the output if accumulated weight is less than the
+// Blends rest pose to the output if accumulated weight is less than the
 // threshold value.
-void BlendBindPose(ProcessArgs* _args) {
+void BlendRestPose(ProcessArgs* _args) {
   assert(_args);
 
   // Asserts buffer sizes, which must never fail as it has been validated.
-  assert(_args->job.bind_pose.size() >= _args->num_soa_joints);
+  assert(_args->job.rest_pose.size() >= _args->num_soa_joints);
 
   if (_args->num_partial_passes == 0) {
     // No partial blending pass detected, threshold can be tested globally.
     const float bp_weight = _args->job.threshold - _args->accumulated_weight;
 
-    if (bp_weight > 0.f) {  // The bind-pose is needed if it has a weight.
+    if (bp_weight > 0.f) {  // The rest-pose is needed if it has a weight.
       if (_args->num_passes == 0) {
-        // Strictly copying bind-pose.
+        // Strictly copying rest-pose.
         _args->accumulated_weight = 1.f;
         for (size_t i = 0; i < _args->num_soa_joints; ++i) {
-          _args->job.output[i] = _args->job.bind_pose[i];
+          _args->job.output[i] = _args->job.rest_pose[i];
         }
       } else {
         // Updates global accumulated weight, but not per-joint weight any more
@@ -299,7 +299,7 @@ void BlendBindPose(ProcessArgs* _args) {
             math::simd_float4::Load1(bp_weight);
 
         for (size_t i = 0; i < _args->num_soa_joints; ++i) {
-          const math::SoaTransform& src = _args->job.bind_pose[i];
+          const math::SoaTransform& src = _args->job.rest_pose[i];
           math::SoaTransform* dest = _args->job.output.begin() + i;
           OZZ_BLEND_N_PASS(src, simd_bp_weight, dest);
         }
@@ -315,7 +315,7 @@ void BlendBindPose(ProcessArgs* _args) {
     assert(_args->num_passes != 0);
 
     for (size_t i = 0; i < _args->num_soa_joints; ++i) {
-      const math::SoaTransform& src = _args->job.bind_pose[i];
+      const math::SoaTransform& src = _args->job.rest_pose[i];
       math::SoaTransform* dest = _args->job.output.begin() + i;
       const math::SimdFloat4 bp_weight =
           math::Max0(threshold - _args->accumulated_weights[i]);
@@ -442,8 +442,8 @@ bool BlendingJob::Run() const {
   // Blends all layers to the job output buffers.
   BlendLayers(&process_args);
 
-  // Applies bind pose.
-  BlendBindPose(&process_args);
+  // Applies rest pose.
+  BlendRestPose(&process_args);
 
   // Normalizes output.
   Normalize(&process_args);

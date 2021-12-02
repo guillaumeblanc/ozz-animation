@@ -68,7 +68,7 @@ class SkinningSampleApplication : public ozz::sample::Application {
     // Samples optimized animation at t = animation_time_.
     ozz::animation::SamplingJob sampling_job;
     sampling_job.animation = &animation_;
-    sampling_job.cache = &cache_;
+    sampling_job.context = &context_;
     sampling_job.ratio = controller_.time_ratio();
     sampling_job.output = make_span(locals_);
     if (!sampling_job.Run()) {
@@ -90,17 +90,18 @@ class SkinningSampleApplication : public ozz::sample::Application {
   // Samples animation, transforms to model space and renders.
   virtual bool OnDisplay(ozz::sample::Renderer* _renderer) {
     bool success = true;
+    const ozz::math::Float4x4 transform = ozz::math::Float4x4::identity();
 
     if (draw_skeleton_) {
-      success &= _renderer->DrawPosture(skeleton_, make_span(models_),
-                                        ozz::math::Float4x4::identity());
+      success &=
+          _renderer->DrawPosture(skeleton_, make_span(models_), transform);
     }
 
     if (draw_mesh_) {
       // Builds skinning matrices, based on the output of the animation stage.
-      // The mesh might not use (aka be skinned by) all skeleton joints. We use
-      // the joint remapping table (available from the mesh object) to reorder
-      // model-space matrices and build skinning ones.
+      // The mesh might not use (aka be skinned by) all skeleton joints. We
+      // use the joint remapping table (available from the mesh object) to
+      // reorder model-space matrices and build skinning ones.
       for (const ozz::sample::Mesh& mesh : meshes_) {
         for (size_t i = 0; i < mesh.joint_remaps.size(); ++i) {
           skinning_matrices_[i] =
@@ -109,8 +110,7 @@ class SkinningSampleApplication : public ozz::sample::Application {
 
         // Renders skin.
         success &= _renderer->DrawSkinnedMesh(
-            mesh, make_span(skinning_matrices_),
-            ozz::math::Float4x4::identity(), render_options_);
+            mesh, make_span(skinning_matrices_), transform, render_options_);
       }
     }
     return success;
@@ -141,8 +141,8 @@ class SkinningSampleApplication : public ozz::sample::Application {
     const int num_joints = skeleton_.num_joints();
     models_.resize(num_joints);
 
-    // Allocates a cache that matches animation requirements.
-    cache_.Resize(num_joints);
+    // Allocates a context that matches animation requirements.
+    context_.Resize(num_joints);
 
     // Reading skinned meshes.
     if (!ozz::sample::LoadMeshes(OPTIONS_mesh, &meshes_)) {
@@ -152,8 +152,8 @@ class SkinningSampleApplication : public ozz::sample::Application {
     // Computes the number of skinning matrices required to skin all meshes.
     // A mesh is skinned by only a subset of joints, so the number of skinning
     // matrices might be less that the number of skeleton joints.
-    // Mesh::joint_remaps is used to know how to order skinning matrices. So the
-    // number of matrices required is the size of joint_remaps.
+    // Mesh::joint_remaps is used to know how to order skinning matrices. So
+    // the number of matrices required is the size of joint_remaps.
     size_t num_skinning_matrices = 0;
     for (const ozz::sample::Mesh& mesh : meshes_) {
       num_skinning_matrices =
@@ -224,19 +224,26 @@ class SkinningSampleApplication : public ozz::sample::Application {
     // Expose mesh rendering options
     {
       // Rendering options.
-      static bool oc_open = false;
-      ozz::sample::ImGui::OpenClose oc(_im_gui, "Rendering options", &oc_open);
-      if (oc_open) {
+      static bool ocd_open = true;
+      ozz::sample::ImGui::OpenClose ocd(_im_gui, "Display options", &ocd_open);
+      if (ocd_open) {
         _im_gui->DoCheckBox("Draw skeleton", &draw_skeleton_);
         _im_gui->DoCheckBox("Draw mesh", &draw_mesh_);
 
-        _im_gui->DoCheckBox("Show texture", &render_options_.texture);
-        _im_gui->DoCheckBox("Show normals", &render_options_.normals);
-        _im_gui->DoCheckBox("Show tangents", &render_options_.tangents);
-        _im_gui->DoCheckBox("Show binormals", &render_options_.binormals);
-        _im_gui->DoCheckBox("Show colors", &render_options_.colors);
-        _im_gui->DoCheckBox("Wireframe", &render_options_.wireframe);
-        _im_gui->DoCheckBox("Skip skinning", &render_options_.skip_skinning);
+        static bool ocr_open = false;
+        ozz::sample::ImGui::OpenClose ocr(_im_gui, "Rendering options",
+                                         &ocr_open);
+        if (ocr_open) {
+          _im_gui->DoCheckBox("Show triangles", &render_options_.triangles);
+          _im_gui->DoCheckBox("Show texture", &render_options_.texture);
+          _im_gui->DoCheckBox("Show vertices", &render_options_.vertices);
+          _im_gui->DoCheckBox("Show normals", &render_options_.normals);
+          _im_gui->DoCheckBox("Show tangents", &render_options_.tangents);
+          _im_gui->DoCheckBox("Show binormals", &render_options_.binormals);
+          _im_gui->DoCheckBox("Show colors", &render_options_.colors);
+          _im_gui->DoCheckBox("Wireframe", &render_options_.wireframe);
+          _im_gui->DoCheckBox("Skip skinning", &render_options_.skip_skinning);
+        }
       }
     }
     return true;
@@ -257,8 +264,8 @@ class SkinningSampleApplication : public ozz::sample::Application {
   // Runtime animation.
   ozz::animation::Animation animation_;
 
-  // Sampling cache.
-  ozz::animation::SamplingCache cache_;
+  // Sampling context.
+  ozz::animation::SamplingJob::Context context_;
 
   // Buffer of local transforms as sampled from animation_.
   ozz::vector<ozz::math::SoaTransform> locals_;

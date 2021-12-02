@@ -31,6 +31,7 @@ add_executable(sample_blend
   
 target_link_libraries(sample_blend
   sample_framework)
+target_copy_shared_libraries(sample_blend)
 
 set_target_properties(sample_blend
   PROPERTIES FOLDER "samples")

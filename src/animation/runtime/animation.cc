@@ -46,6 +46,19 @@ namespace animation {
 
 Animation::Animation() : duration_(0.f), num_tracks_(0), name_(nullptr) {}
 
+Animation::Animation(Animation&& _other) { *this = std::move(_other); }
+
+Animation& Animation::operator=(Animation&& _other) {
+  std::swap(duration_, _other.duration_);
+  std::swap(num_tracks_, _other.num_tracks_);
+  std::swap(name_, _other.name_);
+  std::swap(translations_, _other.translations_);
+  std::swap(rotations_, _other.rotations_);
+  std::swap(scales_, _other.scales_);
+
+  return *this;
+}
+
 Animation::~Animation() { Deallocate(); }
 
 void Animation::Allocate(size_t _name_len, size_t _translation_count,
@@ -65,7 +78,7 @@ void Animation::Allocate(size_t _name_len, size_t _translation_count,
                              _translation_count * sizeof(Float3Key) +
                              _rotation_count * sizeof(QuaternionKey) +
                              _scale_count * sizeof(Float3Key);
-  span<char> buffer = {static_cast<char*>(memory::default_allocator()->Allocate(
+  span<byte> buffer = {static_cast<byte*>(memory::default_allocator()->Allocate(
                            buffer_size, alignof(Float3Key))),
                        buffer_size};
 

@@ -225,7 +225,7 @@ class OzzRuntime : public Generator {
       return false;
     }
 
-    cache.Resize(animation_->num_tracks());
+    context.Resize(animation_->num_tracks());
     samples_.resize(animation_->num_soa_tracks());
 
     return true;
@@ -259,14 +259,14 @@ class OzzRuntime : public Generator {
   }
 
   virtual bool Reset() {
-    cache.Invalidate();
+    context.Invalidate();
     return true;
   }
 
   virtual bool Sample(float _time) {
     ozz::animation::SamplingJob job;
     job.animation = animation_.get();
-    job.cache = &cache;
+    job.context = &context;
     job.ratio = _time / animation_->duration();
     job.output = make_span(samples_);
     return job.Run();
@@ -300,7 +300,7 @@ class OzzRuntime : public Generator {
 
   ozz::vector<ozz::math::SoaTransform> samples_;
   ozz::unique_ptr<ozz::animation::Animation> animation_;
-  ozz::animation::SamplingCache cache;
+  ozz::animation::SamplingJob::Context context;
 };
 
 bool RegisterDefaultGenerators(Ozz2Csv* _ozz2csv) {

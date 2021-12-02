@@ -35,7 +35,6 @@
 #include "ozz/base/memory/unique_ptr.h"
 
 using ozz::animation::Animation;
-using ozz::animation::SamplingCache;
 using ozz::animation::SamplingJob;
 using ozz::animation::offline::AnimationBuilder;
 using ozz::animation::offline::RawAnimation;
@@ -49,8 +48,8 @@ TEST(JobValidity, SamplingJob) {
   ozz::unique_ptr<Animation> animation(builder(raw_animation));
   ASSERT_TRUE(animation);
 
-  // Allocates cache.
-  SamplingCache cache(1);
+  // Allocates context.
+  SamplingJob::Context context(1);
 
   {  // Empty/default job
     SamplingJob job;
@@ -61,7 +60,7 @@ TEST(JobValidity, SamplingJob) {
   {  // Invalid output
     SamplingJob job;
     job.animation = animation.get();
-    job.cache = &cache;
+    job.context = &context;
     EXPECT_FALSE(job.Validate());
     EXPECT_FALSE(job.Run());
   }
@@ -70,13 +69,13 @@ TEST(JobValidity, SamplingJob) {
     ozz::math::SoaTransform output[1];
 
     SamplingJob job;
-    job.cache = &cache;
+    job.context = &context;
     job.output = output;
     EXPECT_FALSE(job.Validate());
     EXPECT_FALSE(job.Run());
   }
 
-  {  // Invalid cache.
+  {  // Invalid context.
     ozz::math::SoaTransform output[1];
 
     SamplingJob job;
@@ -86,28 +85,46 @@ TEST(JobValidity, SamplingJob) {
     EXPECT_FALSE(job.Run());
   }
 
-  {  // Invalid cache size.
-    SamplingCache zero_cache(0);
+  {  // Invalid context size.
+    SamplingJob::Context zero_cache(0);
     ozz::math::SoaTransform output[1];
 
     SamplingJob job;
     job.animation = animation.get();
-    job.cache = &zero_cache;
+    job.context = &zero_cache;
     job.output = output;
     EXPECT_FALSE(job.Validate());
     EXPECT_FALSE(job.Run());
   }
 
-  {  // Invalid job with smaller output.
+  {  // Invalid job with empty output.
     ozz::math::SoaTransform* output = nullptr;
     SamplingJob job;
     job.ratio =
         2155.f;  // Any time ratio can be set, it's clamped in unit interval.
     job.animation = animation.get();
-    job.cache = &cache;
+    job.context = &context;
     job.output = ozz::span<ozz::math::SoaTransform>(output, size_t(0));
     EXPECT_FALSE(job.Validate());
     EXPECT_FALSE(job.Run());
+  }
+
+  { // valid job with output smaller than animation, but not empty.
+    RawAnimation big_raw_animation;
+    big_raw_animation.duration = 1.f;
+    big_raw_animation.tracks.resize(2);
+    ozz::unique_ptr<Animation> big_animation(builder(big_raw_animation));
+    ASSERT_TRUE(big_animation);
+
+    ozz::math::SoaTransform output[1];
+    SamplingJob job;
+    job.ratio =
+        2155.f;  // Any time ratio can be set, it's clamped in unit interval.
+    job.animation = big_animation.get();
+    job.context = &context;
+    job.output = output;
+    EXPECT_TRUE(job.Validate());
+    EXPECT_TRUE(job.Run());
   }
 
   {  // Valid job.
@@ -115,19 +132,19 @@ TEST(JobValidity, SamplingJob) {
     SamplingJob job;
     job.ratio = 2155.f;  // Any time can be set.
     job.animation = animation.get();
-    job.cache = &cache;
+    job.context = &context;
     job.output = output;
     EXPECT_TRUE(job.Validate());
     EXPECT_TRUE(job.Run());
   }
 
-  {  // Valid job with bigger cache.
-    SamplingCache big_cache(2);
+  {  // Valid job with bigger context.
+    SamplingJob::Context big_cache(2);
     ozz::math::SoaTransform output[1];
     SamplingJob job;
     job.ratio = 2155.f;  // Any time can be set.
     job.animation = animation.get();
-    job.cache = &big_cache;
+    job.context = &big_cache;
     job.output = output;
     EXPECT_TRUE(job.Validate());
     EXPECT_TRUE(job.Run());
@@ -138,7 +155,7 @@ TEST(JobValidity, SamplingJob) {
     SamplingJob job;
     job.ratio = 2155.f;  // Any time can be set.
     job.animation = animation.get();
-    job.cache = &cache;
+    job.context = &context;
     job.output = output;
     EXPECT_TRUE(job.Validate());
     EXPECT_TRUE(job.Run());
@@ -149,7 +166,7 @@ TEST(JobValidity, SamplingJob) {
     Animation default_animation;
     SamplingJob job;
     job.animation = &default_animation;
-    job.cache = &cache;
+    job.context = &context;
     job.output = output;
     EXPECT_TRUE(job.Validate());
     EXPECT_TRUE(job.Run());
@@ -165,7 +182,7 @@ TEST(Sampling, SamplingJob) {
   raw_animation.duration = 1.f;
   raw_animation.tracks.resize(4);
 
-  SamplingCache cache(4);
+  SamplingJob::Context context(4);
 
   // Raw animation inputs.
   //     0                 1
@@ -239,7 +256,7 @@ TEST(Sampling, SamplingJob) {
 
   SamplingJob job;
   job.animation = animation.get();
-  job.cache = &cache;
+  job.context = &context;
   job.output = output;
 
   for (size_t i = 0; i < OZZ_ARRAY_SIZE(result); ++i) {
@@ -266,7 +283,7 @@ TEST(SamplingNoTrack, SamplingJob) {
   RawAnimation raw_animation;
   raw_animation.duration = 46.f;
 
-  SamplingCache cache(1);
+  SamplingJob::Context context(1);
 
   AnimationBuilder builder;
   ozz::unique_ptr<Animation> animation(builder(raw_animation));
@@ -280,7 +297,7 @@ TEST(SamplingNoTrack, SamplingJob) {
   SamplingJob job;
   job.ratio = 0.f;
   job.animation = animation.get();
-  job.cache = &cache;
+  job.context = &context;
   job.output = output;
   EXPECT_TRUE(job.Validate());
   EXPECT_TRUE(job.Run());
@@ -294,7 +311,7 @@ TEST(Sampling1Track0Key, SamplingJob) {
   raw_animation.duration = 46.f;
   raw_animation.tracks.resize(1);  // Adds a joint.
 
-  SamplingCache cache(1);
+  SamplingJob::Context context(1);
 
   AnimationBuilder builder;
   ozz::unique_ptr<Animation> animation(builder(raw_animation));
@@ -304,7 +321,7 @@ TEST(Sampling1Track0Key, SamplingJob) {
 
   SamplingJob job;
   job.animation = animation.get();
-  job.cache = &cache;
+  job.context = &context;
   job.output = output;
 
   for (float t = -.2f; t < 1.2f; t += .1f) {
@@ -327,7 +344,7 @@ TEST(Sampling1Track1Key, SamplingJob) {
   raw_animation.duration = 46.f;
   raw_animation.tracks.resize(1);  // Adds a joint.
 
-  SamplingCache cache(1);
+  SamplingJob::Context context(1);
 
   const RawAnimation::TranslationKey tkey = {.3f,
                                              ozz::math::Float3(1.f, -1.f, 5.f)};
@@ -341,7 +358,7 @@ TEST(Sampling1Track1Key, SamplingJob) {
 
   SamplingJob job;
   job.animation = animation.get();
-  job.cache = &cache;
+  job.context = &context;
   job.output = output;
 
   for (float t = -.2f; t < 1.2f; t += .1f) {
@@ -364,7 +381,7 @@ TEST(Sampling1Track2Keys, SamplingJob) {
   raw_animation.duration = 46.f;
   raw_animation.tracks.resize(1);  // Adds a joint.
 
-  SamplingCache cache(1);
+  SamplingJob::Context context(1);
 
   const RawAnimation::TranslationKey tkey0 = {.5f,
                                               ozz::math::Float3(1.f, 2.f, 4.f)};
@@ -382,7 +399,7 @@ TEST(Sampling1Track2Keys, SamplingJob) {
 
   SamplingJob job;
   job.animation = animation.get();
-  job.cache = &cache;
+  job.context = &context;
   job.output = output;
 
   // Samples at t = 0.
@@ -448,7 +465,7 @@ TEST(Sampling4Track2Keys, SamplingJob) {
   raw_animation.duration = 1.f;
   raw_animation.tracks.resize(4);  // Adds a joint.
 
-  SamplingCache cache(1);
+  SamplingJob::Context context(1);
 
   const RawAnimation::TranslationKey tkey00 = {
       .5f, ozz::math::Float3(1.f, 2.f, 4.f)};
@@ -488,7 +505,7 @@ TEST(Sampling4Track2Keys, SamplingJob) {
 
   SamplingJob job;
   job.animation = animation.get();
-  job.cache = &cache;
+  job.context = &context;
   job.output = output;
 
   // Samples at t = 0.
@@ -534,7 +551,7 @@ TEST(Cache, SamplingJob) {
       0.f, RawAnimation::TranslationKey::identity()};
   raw_animation.tracks[0].translations.push_back(empty_key);
 
-  SamplingCache cache(1);
+  SamplingJob::Context context(1);
   ozz::unique_ptr<Animation> animations[2];
 
   {
@@ -560,7 +577,7 @@ TEST(Cache, SamplingJob) {
 
   SamplingJob job;
   job.animation = animations[0].get();
-  job.cache = &cache;
+  job.context = &context;
   job.ratio = 0.f;
   job.output = output;
 
@@ -573,14 +590,14 @@ TEST(Cache, SamplingJob) {
   EXPECT_SOAFLOAT3_EQ_EST(output[0].scale, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f,
                           1.f, 1.f, 1.f, 1.f, 1.f);
 
-  // Re-uses cache.
+  // Re-uses context.
   EXPECT_TRUE(job.Validate());
   EXPECT_TRUE(job.Run());
   EXPECT_SOAFLOAT3_EQ_EST(output[0].translation, 1.f, 0.f, 0.f, 0.f, -1.f, 0.f,
                           0.f, 0.f, 5.f, 0.f, 0.f, 0.f);
 
-  // Invalidates cache.
-  cache.Invalidate();
+  // Invalidates context.
+  context.Invalidate();
 
   EXPECT_TRUE(job.Validate());
   EXPECT_TRUE(job.Run());
@@ -615,14 +632,14 @@ TEST(CacheResize, SamplingJob) {
   ozz::unique_ptr<Animation> animation(builder(raw_animation));
   ASSERT_TRUE(animation);
 
-  // Empty cache by default
-  SamplingCache cache;
+  // Empty context by default
+  SamplingJob::Context context;
 
   ozz::math::SoaTransform output[7];
 
   SamplingJob job;
   job.animation = animation.get();
-  job.cache = &cache;
+  job.context = &context;
   job.ratio = 0.f;
   job.output = output;
 
@@ -630,11 +647,11 @@ TEST(CacheResize, SamplingJob) {
   EXPECT_FALSE(job.Validate());
 
   // Cache is ok.
-  cache.Resize(7);
+  context.Resize(7);
   EXPECT_TRUE(job.Validate());
   EXPECT_TRUE(job.Run());
 
   // Cache is too small
-  cache.Resize(1);
+  context.Resize(1);
   EXPECT_FALSE(job.Validate());
 }

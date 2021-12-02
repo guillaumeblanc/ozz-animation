@@ -28,6 +28,7 @@
 #ifndef OZZ_OZZ_ANIMATION_RUNTIME_IK_AIM_JOB_H_
 #define OZZ_OZZ_ANIMATION_RUNTIME_IK_AIM_JOB_H_
 
+#include "ozz/animation/runtime/export.h"
 #include "ozz/base/platform.h"
 
 #include "ozz/base/maths/simd_math.h"
@@ -50,7 +51,7 @@ namespace animation {
 // vector should aim the target.
 // Result is unstable if joint-to-target direction is parallel to pole vector,
 // or if target is too close to joint position.
-struct IKAimJob {
+struct OZZ_ANIMATION_DLL IKAimJob {
   // Default constructor, initializes default values.
   IKAimJob();
 
