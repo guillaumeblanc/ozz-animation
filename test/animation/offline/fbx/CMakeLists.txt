@@ -152,7 +152,7 @@ endif()
 # ozz_animation_fbx fuse tests
 set_source_files_properties(${PROJECT_BINARY_DIR}/src_fused/ozz_animation_fbx.cc PROPERTIES GENERATED 1)
 add_executable(test_fuse_ozz_animation_fbx
-  fuse_ozz_animation_fbx_tests
+  fuse_ozz_animation_fbx_tests.cc
   ${PROJECT_BINARY_DIR}/src_fused/ozz_animation_fbx.cc)
 add_dependencies(test_fuse_ozz_animation_fbx BUILD_FUSE_ozz_animation_fbx)
 target_link_libraries(test_fuse_ozz_animation_fbx
