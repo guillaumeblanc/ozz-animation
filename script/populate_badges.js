@@ -4,9 +4,9 @@ var myTableBadges = (function () {
     var row = "";
     row += '<tr>';
     row += '<th>' + branch.name + '</th>';
-    row += '<th><a href="http://travis-ci.org/guillaumeblanc/ozz-animation/branches"><img src="https://travis-ci.org/guillaumeblanc/ozz-animation.svg?branch=' + branch.name + '" alt="' + branch.name + '"></a></th>';
-    row += '<th><a href="http://travis-ci.org/guillaumeblanc/ozz-animation/branches"><img src="https://travis-ci.org/guillaumeblanc/ozz-animation.svg?branch=' + branch.name + '" alt="' + branch.name + '"></a></th>';
-    row += '<th><a href="http://ci.appveyor.com/project/guillaumeblanc/ozz-animation"><img src="https://ci.appveyor.com/api/projects/status/github/guillaumeblanc/ozz-animation?branch=' + branch.name + '&svg=true"></a></th>';
+    row += '<th><a href="https://github.com/guillaumeblanc/ozz-animation/actions/workflows/linux.yml"><img src="https://github.com/guillaumeblanc/ozz-animation/actions/workflows/linux.yml/badge.svg?branch=' + branch.name + '"></a></th>';
+    row += '<th><a href="https://github.com/guillaumeblanc/ozz-animation/actions/workflows/macos.yml"><img src="https://github.com/guillaumeblanc/ozz-animation/actions/workflows/macos.yml/badge.svg?branch=' + branch.name + '"></a></th>';
+    row += '<th><a href="https://github.com/guillaumeblanc/ozz-animation/actions/workflows/windows.yml"><img src="https://github.com/guillaumeblanc/ozz-animation/actions/workflows/windows.yml/badge.svg?branch=' + branch.name + '"></a></th>';
     row += '</tr>';
     return row;
   }
