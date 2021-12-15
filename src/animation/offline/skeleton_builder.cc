@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -144,9 +144,9 @@ unique_ptr<ozz::animation::Skeleton> SkeletonBuilder::operator()(
     }
     // Fills the SoaTransform structure.
     math::Transpose4x3(translations,
-                       &skeleton->joint_bind_poses_[i].translation.x);
-    math::Transpose4x4(rotations, &skeleton->joint_bind_poses_[i].rotation.x);
-    math::Transpose4x3(scales, &skeleton->joint_bind_poses_[i].scale.x);
+                       &skeleton->joint_rest_poses_[i].translation.x);
+    math::Transpose4x4(rotations, &skeleton->joint_rest_poses_[i].rotation.x);
+    math::Transpose4x3(scales, &skeleton->joint_rest_poses_[i].scale.x);
   }
 
   return skeleton;  // Success.

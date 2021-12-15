@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -28,6 +28,7 @@
 #ifndef OZZ_OZZ_ANIMATION_OFFLINE_FBX_FBX_SKELETON_H_
 #define OZZ_OZZ_ANIMATION_OFFLINE_FBX_FBX_SKELETON_H_
 
+#include "ozz/animation/offline/fbx/export.h"
 #include "ozz/animation/offline/fbx/fbx.h"
 #include "ozz/animation/offline/tools/import2ozz.h"
 
@@ -39,7 +40,7 @@ struct RawSkeleton;
 
 namespace fbx {
 
-bool ExtractSkeleton(FbxSceneLoader& _loader,
+OZZ_ANIMFBX_DLL bool ExtractSkeleton(FbxSceneLoader& _loader,
                      const OzzImporter::NodeType& _types,
                      RawSkeleton* _skeleton);
 

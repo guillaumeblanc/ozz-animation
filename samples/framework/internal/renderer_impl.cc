@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -132,6 +132,12 @@ bool RendererImpl::Initialize() {
     }
   }
 
+  // Instantiate instanced ambient rendering shader.
+  points_shader = PointsShader::Build();
+  if (!points_shader) {
+    return false;
+  }
+
   return true;
 }
 
@@ -239,7 +245,7 @@ bool RendererImpl::DrawGrid(int _cell_count, float _cell_size) {
   return true;
 }
 
-// Computes the model space bind pose and renders it.
+// Computes the model space rest pose and renders it.
 bool RendererImpl::DrawSkeleton(const ozz::animation::Skeleton& _skeleton,
                                 const ozz::math::Float4x4& _transform,
                                 bool _draw_joints) {
@@ -253,9 +259,9 @@ bool RendererImpl::DrawSkeleton(const ozz::animation::Skeleton& _skeleton,
   // Reallocate matrix array if necessary.
   prealloc_models_.resize(num_joints);
 
-  // Compute model space bind pose.
+  // Compute model space rest pose.
   ozz::animation::LocalToModelJob job;
-  job.input = _skeleton.joint_bind_poses();
+  job.input = _skeleton.joint_rest_poses();
   job.output = make_span(prealloc_models_);
   job.skeleton = &_skeleton;
   if (!job.Run()) {
@@ -460,10 +466,7 @@ int DrawPosture_FillUniforms(const ozz::animation::Skeleton& _skeleton,
     // Copy parent joint's raw matrix, to render a bone between the parent
     // and current matrix.
     float* uniform = _uniforms + instances * 16;
-    math::StorePtr(parent.cols[0], uniform + 0);
-    math::StorePtr(parent.cols[1], uniform + 4);
-    math::StorePtr(parent.cols[2], uniform + 8);
-    math::StorePtr(parent.cols[3], uniform + 12);
+    std::memcpy(uniform, parent.cols, 16 * sizeof(float));
 
     // Set bone direction (bone_dir). The shader expects to find it at index
     // [3,7,11] of the matrix.
@@ -483,11 +486,7 @@ int DrawPosture_FillUniforms(const ozz::animation::Skeleton& _skeleton,
     // Only the joint is rendered for leaves, the bone model isn't.
     if (IsLeaf(_skeleton, i)) {
       // Copy current joint's raw matrix.
-      uniform = _uniforms + instances * 16;
-      math::StorePtr(current.cols[0], uniform + 0);
-      math::StorePtr(current.cols[1], uniform + 4);
-      math::StorePtr(current.cols[2], uniform + 8);
-      math::StorePtr(current.cols[3], uniform + 12);
+      std::memcpy(uniform, current.cols, 16 * sizeof(float));
 
       // Re-use bone_dir to fix the size of the leaf (same as previous bone).
       // The shader expects to find it at index [3,7,11] of the matrix.
@@ -617,6 +616,84 @@ bool RendererImpl::DrawPosture(const ozz::animation::Skeleton& _skeleton,
   } else {
     DrawPosture_Impl(_transform, uniforms, instance_count, _draw_joints);
   }
+
+  return true;
+}
+
+bool RendererImpl::DrawPoints(const ozz::span<const float>& _positions,
+                              const ozz::span<const float>& _sizes,
+                              const ozz::span<const Color>& _colors,
+                              const ozz::math::Float4x4& _transform,
+                              bool _round, bool _screen_space) {
+  // Early out if no instance to render.
+  if (_positions.size() == 0) {
+    return true;
+  }
+
+  // Sizes and colors must be of size 1 or equal to _positions' size.
+  if (_sizes.size() != 1 && _sizes.size() != _positions.size() / 3) {
+    return false;
+  }
+  if (_colors.size() != 1 && _colors.size() != _positions.size() / 3) {
+    return false;
+  }
+
+  const GLsizei positions_size = static_cast<GLsizei>(_positions.size_bytes());
+  const GLsizei colors_size =
+      static_cast<GLsizei>(_colors.size() == 1 ? 0 : _colors.size_bytes());
+  const GLsizei sizes_size =
+      static_cast<GLsizei>(_sizes.size() == 1 ? 0 : _sizes.size_bytes());
+  const GLsizei buffer_size = positions_size + colors_size + sizes_size;
+  const GLsizei positions_offset = 0;
+  const GLsizei colors_offset = positions_offset + positions_size;
+  const GLsizei sizes_offset = colors_offset + colors_size;
+
+  // Reallocate vertex buffer.
+  GL(BindBuffer(GL_ARRAY_BUFFER, dynamic_array_bo_));
+  GL(BufferData(GL_ARRAY_BUFFER, buffer_size, nullptr, GL_STREAM_DRAW));
+
+  GL(BufferSubData(GL_ARRAY_BUFFER, positions_offset, positions_size,
+                   _positions.data()));
+  GL(BufferSubData(GL_ARRAY_BUFFER, colors_offset, colors_size,
+                   _colors.data()));
+  GL(BufferSubData(GL_ARRAY_BUFFER, sizes_offset, sizes_size, _sizes.data()));
+
+  // Square or round sprites. Beware msaa makes sprites round if GL_POINT_SPRITE
+  // isn't enabled
+  if (_round) {
+    GL(Enable(GL_POINT_SMOOTH));
+    GL(Disable(GL_POINT_SPRITE));
+  } else {
+    GL(Disable(GL_POINT_SMOOTH));
+    GL(Enable(GL_POINT_SPRITE));
+  }
+
+  // Size is managed in vertex shader side.
+  GL(Enable(GL_PROGRAM_POINT_SIZE));
+
+  const PointsShader::GenericAttrib attrib =
+      points_shader->Bind(_transform, camera()->view_proj(), 12,
+                          positions_offset, colors_size ? 4 : 0, colors_offset,
+                          sizes_size ? 4 : 0, sizes_offset, _screen_space);
+
+  GL(BindBuffer(GL_ARRAY_BUFFER, 0));
+
+  // Apply remaining general attributes
+  if (_colors.size() <= 1) {
+    const Color color = _colors.empty() ? kWhite : _colors[0];
+    GL(VertexAttrib4f(attrib.color, color.r / 255.f, color.g / 255.f,
+                      color.b / 255.f, color.a / 255.f));
+  }
+  if (_sizes.size() <= 1) {
+    const float size = _sizes.empty() ? 1.f : _sizes[0];
+    GL(VertexAttrib1f(attrib.size, size));
+  }
+
+  // Draws the mesh.
+  GL(DrawArrays(GL_POINTS, 0, static_cast<GLsizei>(_positions.size() / 3)));
+
+  // Unbinds.
+  points_shader->Unbind();
 
   return true;
 }
@@ -1103,6 +1180,12 @@ const float kDefaultUVsArray[][2] = {
 bool RendererImpl::DrawMesh(const Mesh& _mesh,
                             const ozz::math::Float4x4& _transform,
                             const Options& _options) {
+  if (_options.wireframe) {
+#ifndef EMSCRIPTEN
+    GL(PolygonMode(GL_FRONT_AND_BACK, GL_LINE));
+#endif  // EMSCRIPTEN
+  }
+
   const int vertex_count = _mesh.vertex_count();
   const GLsizei positions_offset = 0;
   const GLsizei positions_stride =
@@ -1212,42 +1295,69 @@ bool RendererImpl::DrawMesh(const Mesh& _mesh,
     vertex_offset += part_vertex_count;
   }
 
-  // Binds shader with this array buffer, depending on rendering options.
-  Shader* shader = nullptr;
-  if (_options.texture) {
-    ambient_textured_shader->Bind(_transform, camera()->view_proj(),
-                                  positions_stride, positions_offset,
-                                  normals_stride, normals_offset, colors_stride,
-                                  colors_offset, uvs_stride, uvs_offset);
-    shader = ambient_textured_shader.get();
+  if (_options.triangles) {
+    // Binds shader with this array buffer, depending on rendering options.
+    Shader* shader = nullptr;
+    if (_options.texture) {
+      ambient_textured_shader->Bind(
+          _transform, camera()->view_proj(), positions_stride, positions_offset,
+          normals_stride, normals_offset, colors_stride, colors_offset,
+          uvs_stride, uvs_offset);
+      shader = ambient_textured_shader.get();
 
-    // Binds default texture
-    GL(BindTexture(GL_TEXTURE_2D, checkered_texture_));
-  } else {
-    ambient_shader->Bind(_transform, camera()->view_proj(), positions_stride,
-                         positions_offset, normals_stride, normals_offset,
-                         colors_stride, colors_offset);
-    shader = ambient_shader.get();
+      // Binds default texture
+      GL(BindTexture(GL_TEXTURE_2D, checkered_texture_));
+    } else {
+      ambient_shader->Bind(_transform, camera()->view_proj(), positions_stride,
+                           positions_offset, normals_stride, normals_offset,
+                           colors_stride, colors_offset);
+      shader = ambient_shader.get();
+    }
+
+    // Maps the index dynamic buffer and update it.
+    GL(BindBuffer(GL_ELEMENT_ARRAY_BUFFER, dynamic_index_bo_));
+    const Mesh::TriangleIndices& indices = _mesh.triangle_indices;
+    GL(BufferData(GL_ELEMENT_ARRAY_BUFFER,
+                  indices.size() * sizeof(Mesh::TriangleIndices::value_type),
+                  array_begin(indices), GL_STREAM_DRAW));
+
+    // Draws the mesh.
+    static_assert(sizeof(Mesh::TriangleIndices::value_type) == 2,
+                  "Expects 2 bytes indices.");
+    GL(DrawElements(GL_TRIANGLES, static_cast<GLsizei>(indices.size()),
+                    GL_UNSIGNED_SHORT, 0));
+
+    // Unbinds.
+    GL(BindBuffer(GL_ARRAY_BUFFER, 0));
+    GL(BindTexture(GL_TEXTURE_2D, 0));
+    GL(BindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+    shader->Unbind();
   }
 
-  // Maps the index dynamic buffer and update it.
-  GL(BindBuffer(GL_ELEMENT_ARRAY_BUFFER, dynamic_index_bo_));
-  const Mesh::TriangleIndices& indices = _mesh.triangle_indices;
-  GL(BufferData(GL_ELEMENT_ARRAY_BUFFER,
-                indices.size() * sizeof(Mesh::TriangleIndices::value_type),
-                array_begin(indices), GL_STREAM_DRAW));
+  if (_options.wireframe) {
+#ifndef EMSCRIPTEN
+    GL(PolygonMode(GL_FRONT_AND_BACK, GL_FILL));
+#endif  // EMSCRIPTEN
+  }
 
-  // Draws the mesh.
-  static_assert(sizeof(Mesh::TriangleIndices::value_type) == 2,
-                "Expects 2 bytes indices.");
-  GL(DrawElements(GL_TRIANGLES, static_cast<GLsizei>(indices.size()),
-                  GL_UNSIGNED_SHORT, 0));
-
-  // Unbinds.
-  GL(BindBuffer(GL_ARRAY_BUFFER, 0));
-  GL(BindTexture(GL_TEXTURE_2D, 0));
-  GL(BindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
-  shader->Unbind();
+  // Renders debug vertices.
+  if (_options.vertices) {
+    for (size_t i = 0; i < _mesh.parts.size(); ++i) {
+      const Mesh::Part& part = _mesh.parts[i];
+      ozz::sample::Color color = ozz::sample::kWhite;
+      span<const ozz::sample::Color> colors;
+      if (_options.colors && part.colors.size() == part.positions.size() / 3) {
+        colors = {
+            reinterpret_cast<const ozz::sample::Color*>(part.colors.data()),
+            part.positions.size() / 3};
+      } else {
+        colors = {&color, 1};
+      }
+      const float size = 2.f;
+      DrawPoints({part.positions.data(), part.positions.size()}, {&size, 1},
+                 {&color, 1}, _transform, true, true);
+    }
+  }
 
   // Renders debug normals.
   if (_options.normals) {
@@ -1301,20 +1411,30 @@ bool RendererImpl::DrawSkinnedMesh(
     const Mesh& _mesh, const span<math::Float4x4> _skinning_matrices,
     const ozz::math::Float4x4& _transform, const Options& _options) {
   // Forward to DrawMesh function is skinning is disabled.
-  if (_options.skip_skinning) {
+  if (_options.skip_skinning || !_mesh.skinned()) {
     return DrawMesh(_mesh, _transform, _options);
   }
+
+  if (_options.wireframe) {
+#ifndef EMSCRIPTEN
+    GL(PolygonMode(GL_FRONT_AND_BACK, GL_LINE));
+#endif  // EMSCRIPTEN
+  }
+
   const int vertex_count = _mesh.vertex_count();
 
   // Positions and normals are interleaved to improve caching while executing
   // skinning job.
+
   const GLsizei positions_offset = 0;
-  const GLsizei normals_offset = sizeof(float) * 3;
-  const GLsizei tangents_offset = sizeof(float) * 6;
-  const GLsizei positions_stride = sizeof(float) * 9;
-  const GLsizei normals_stride = positions_stride;
-  const GLsizei tangents_stride = positions_stride;
-  const GLsizei skinned_data_size = vertex_count * positions_stride;
+  const GLsizei positions_stride = sizeof(float) * 3;
+  const GLsizei normals_offset = vertex_count * positions_stride;
+  const GLsizei normals_stride = sizeof(float) * 3;
+  const GLsizei tangents_offset =
+      normals_offset + vertex_count * normals_stride;
+  const GLsizei tangents_stride = sizeof(float) * 3;
+  const GLsizei skinned_data_size =
+      tangents_offset + vertex_count * tangents_stride;
 
   // Colors and uvs are contiguous. They aren't transformed, so they can be
   // directly copied from source mesh which is non-interleaved as-well.
@@ -1523,47 +1643,75 @@ bool RendererImpl::DrawSkinnedMesh(
     processed_vertex_count += part_vertex_count;
   }
 
-  // Updates dynamic vertex buffer with skinned data.
-  GL(BindBuffer(GL_ARRAY_BUFFER, dynamic_array_bo_));
-  GL(BufferData(GL_ARRAY_BUFFER, vbo_size, nullptr, GL_STREAM_DRAW));
-  GL(BufferSubData(GL_ARRAY_BUFFER, 0, vbo_size, vbo_map));
+  if (_options.triangles) {
+    // Updates dynamic vertex buffer with skinned data.
+    GL(BindBuffer(GL_ARRAY_BUFFER, dynamic_array_bo_));
+    GL(BufferData(GL_ARRAY_BUFFER, vbo_size, nullptr, GL_STREAM_DRAW));
+    GL(BufferSubData(GL_ARRAY_BUFFER, 0, vbo_size, vbo_map));
 
-  // Binds shader with this array buffer, depending on rendering options.
-  Shader* shader = nullptr;
-  if (_options.texture) {
-    ambient_textured_shader->Bind(_transform, camera()->view_proj(),
-                                  positions_stride, positions_offset,
-                                  normals_stride, normals_offset, colors_stride,
-                                  colors_offset, uvs_stride, uvs_offset);
-    shader = ambient_textured_shader.get();
+    // Binds shader with this array buffer, depending on rendering options.
+    Shader* shader = nullptr;
+    if (_options.texture) {
+      ambient_textured_shader->Bind(
+          _transform, camera()->view_proj(), positions_stride, positions_offset,
+          normals_stride, normals_offset, colors_stride, colors_offset,
+          uvs_stride, uvs_offset);
+      shader = ambient_textured_shader.get();
 
-    // Binds default texture
-    GL(BindTexture(GL_TEXTURE_2D, checkered_texture_));
-  } else {
-    ambient_shader->Bind(_transform, camera()->view_proj(), positions_stride,
-                         positions_offset, normals_stride, normals_offset,
-                         colors_stride, colors_offset);
-    shader = ambient_shader.get();
+      // Binds default texture
+      GL(BindTexture(GL_TEXTURE_2D, checkered_texture_));
+    } else {
+      ambient_shader->Bind(_transform, camera()->view_proj(), positions_stride,
+                           positions_offset, normals_stride, normals_offset,
+                           colors_stride, colors_offset);
+      shader = ambient_shader.get();
+    }
+
+    // Maps the index dynamic buffer and update it.
+    GL(BindBuffer(GL_ELEMENT_ARRAY_BUFFER, dynamic_index_bo_));
+    const Mesh::TriangleIndices& indices = _mesh.triangle_indices;
+    GL(BufferData(GL_ELEMENT_ARRAY_BUFFER,
+                  indices.size() * sizeof(Mesh::TriangleIndices::value_type),
+                  array_begin(indices), GL_STREAM_DRAW));
+
+    // Draws the mesh.
+    static_assert(sizeof(Mesh::TriangleIndices::value_type) == 2,
+                  "Expects 2 bytes indices.");
+    GL(DrawElements(GL_TRIANGLES, static_cast<GLsizei>(indices.size()),
+                    GL_UNSIGNED_SHORT, 0));
+
+    // Unbinds.
+    GL(BindBuffer(GL_ARRAY_BUFFER, 0));
+    GL(BindTexture(GL_TEXTURE_2D, 0));
+    GL(BindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+    shader->Unbind();
   }
 
-  // Maps the index dynamic buffer and update it.
-  GL(BindBuffer(GL_ELEMENT_ARRAY_BUFFER, dynamic_index_bo_));
-  const Mesh::TriangleIndices& indices = _mesh.triangle_indices;
-  GL(BufferData(GL_ELEMENT_ARRAY_BUFFER,
-                indices.size() * sizeof(Mesh::TriangleIndices::value_type),
-                array_begin(indices), GL_STREAM_DRAW));
+  if (_options.wireframe) {
+#ifndef EMSCRIPTEN
+    GL(PolygonMode(GL_FRONT_AND_BACK, GL_FILL));
+#endif  // EMSCRIPTEN
+  }
 
-  // Draws the mesh.
-  static_assert(sizeof(Mesh::TriangleIndices::value_type) == 2,
-                "Expects 2 bytes indices.");
-  GL(DrawElements(GL_TRIANGLES, static_cast<GLsizei>(indices.size()),
-                  GL_UNSIGNED_SHORT, 0));
+  // Renders debug vertices.
+  if (_options.vertices) {
+    ozz::sample::Color color = ozz::sample::kWhite;
+    span<const ozz::sample::Color> colors;
+    if (_options.colors) {
+      colors = {reinterpret_cast<const ozz::sample::Color*>(
+                    ozz::PointerStride(vbo_map, colors_offset)),
+                static_cast<size_t>(vertex_count)};
+    } else {
+      colors = {&color, 1};
+    }
 
-  // Unbinds.
-  GL(BindBuffer(GL_ARRAY_BUFFER, 0));
-  GL(BindTexture(GL_TEXTURE_2D, 0));
-  GL(BindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
-  shader->Unbind();
+    const span<const float> vertices{
+        reinterpret_cast<const float*>(
+            ozz::PointerStride(vbo_map, positions_offset)),
+        static_cast<size_t>(vertex_count * 3)};
+    const float size = 2.f;
+    DrawPoints(vertices, {&size, 1}, colors, _transform, true, true);
+  }
 
   return true;
 }
@@ -1702,7 +1850,8 @@ RendererImpl::ScratchBuffer::~ScratchBuffer() {
 void* RendererImpl::ScratchBuffer::Resize(size_t _size) {
   if (_size > size_) {
     size_ = _size;
-    buffer_ = memory::default_allocator()->Reallocate(buffer_, _size, 16);
+    memory::default_allocator()->Deallocate(buffer_);
+    buffer_ = memory::default_allocator()->Allocate(_size, 16);
   }
   return buffer_;
 }

@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -25,29 +25,24 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
+#include <cstring>
+
+#include "framework/application.h"
+#include "framework/imgui.h"
+#include "framework/renderer.h"
+#include "framework/utils.h"
 #include "ozz/animation/runtime/animation.h"
 #include "ozz/animation/runtime/blending_job.h"
 #include "ozz/animation/runtime/local_to_model_job.h"
 #include "ozz/animation/runtime/sampling_job.h"
 #include "ozz/animation/runtime/skeleton.h"
 #include "ozz/animation/runtime/skeleton_utils.h"
-
-#include "ozz/base/log.h"
-
 #include "ozz/base/containers/vector.h"
-
+#include "ozz/base/log.h"
 #include "ozz/base/maths/simd_math.h"
 #include "ozz/base/maths/soa_transform.h"
 #include "ozz/base/maths/vec_float.h"
-
 #include "ozz/options/options.h"
-
-#include "framework/application.h"
-#include "framework/imgui.h"
-#include "framework/renderer.h"
-#include "framework/utils.h"
-
-#include <cstring>
 
 // Skeleton archive can be specified as an option.
 OZZ_OPTIONS_DECLARE_STRING(skeleton,
@@ -86,7 +81,7 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
       // Setup sampling job.
       ozz::animation::SamplingJob sampling_job;
       sampling_job.animation = &sampler.animation;
-      sampling_job.cache = &sampler.cache;
+      sampling_job.context = &sampler.context;
       sampling_job.ratio = sampler.controller.time_ratio();
       sampling_job.output = make_span(sampler.locals);
 
@@ -115,7 +110,7 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
     ozz::animation::BlendingJob blend_job;
     blend_job.threshold = threshold_;
     blend_job.layers = layers;
-    blend_job.bind_pose = skeleton_.joint_bind_poses();
+    blend_job.rest_pose = skeleton_.joint_rest_poses();
     blend_job.output = make_span(blended_locals_);
 
     // Blends.
@@ -171,8 +166,8 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
       // this is a Soa structure.
       sampler.joint_weights.resize(num_soa_joints);
 
-      // Allocates a cache that matches animation requirements.
-      sampler.cache.Resize(num_joints);
+      // Allocates a context that matches animation requirements.
+      sampler.context.Resize(num_joints);
     }
 
     // Default weight settings.
@@ -191,11 +186,9 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
     models_.resize(num_joints);
 
     // Finds the "Spine1" joint in the joint hierarchy.
-    for (int i = 0; i < num_joints; ++i) {
-      if (std::strstr(skeleton_.joint_names()[i], "Spine1")) {
-        upper_body_root_ = i;
-        break;
-      }
+    upper_body_root_ = FindJoint(skeleton_, "Spine1");
+    if (upper_body_root_ < 0) {
+      return false;
     }
     SetupPerJointWeights();
 
@@ -373,8 +366,8 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
     // Runtime animation.
     ozz::animation::Animation animation;
 
-    // Sampling cache.
-    ozz::animation::SamplingCache cache;
+    // Sampling context.
+    ozz::animation::SamplingJob::Context context;
 
     // Buffer of local transforms as sampled from animation_.
     ozz::vector<ozz::math::SoaTransform> locals;
@@ -388,7 +381,7 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
   // Index of the joint at the base of the upper body hierarchy.
   int upper_body_root_;
 
-  // Blending job bind pose threshold.
+  // Blending job rest pose threshold.
   float threshold_;
 
   // Buffer of local transforms which stores the blending result.

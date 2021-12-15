@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -28,6 +28,7 @@
 #ifndef OZZ_OZZ_ANIMATION_OFFLINE_TRACK_BUILDER_H_
 #define OZZ_OZZ_ANIMATION_OFFLINE_TRACK_BUILDER_H_
 
+#include "ozz/animation/offline/export.h"
 #include "ozz/base/memory/unique_ptr.h"
 
 namespace ozz {
@@ -53,7 +54,7 @@ struct RawQuaternionTrack;
 // offline tracks.The input raw track is first validated. Runtime conversion of
 // a validated raw track cannot fail. Note that no optimization is performed on
 // the data at all.
-class TrackBuilder {
+class OZZ_ANIMOFFLINE_DLL TrackBuilder {
  public:
   // Creates a Track based on _raw_track and *this builder parameters.
   // Returns a track instance on success, an empty unique_ptr on failure. See

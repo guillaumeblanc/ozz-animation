@@ -1,15 +1,41 @@
 Next release
-------------
+----------------------
+
+* Samples
+  - [sample_fbx2mesh] Supports vertices part of a skinned mesh but with a weight of 0.
+  - [sample_fbx2mesh] Assigns non-influenced vertices to root joint.
+
+* Library
+  - [animation] #103 Allows move constructor and assignment for ozz::animation::Skeleton, ozz::animation::Animation and ozz::animation::Track.
+  - [animation] Renames SamplingCache to SamplingJob::Context.
+  - [animation] #110 Renames skeleton bind pose to rest pose, to avoid confusion with skinning bind pose.
+  - [base] Fixes Float4x4::FromEuler which was swapping pitch and roll.
+
+* Build pipeline
+  - #59 Adds support for shared libraries on Windows (dll), Linux and MacOS platforms.
+  - #111 Removes _GLIBCXX_DEBUG from default build settings as it can create incompatibilities when using prebuilt packages.
+  - #122 Adds support for gcc 11 compiler.
+
+Release version 0.13.0
+----------------------
+
+* Tools
+  - [gltf2ozz] Command line tool utility to import animations and skeletons from glTF files. gltf2ozz can be configured via command line options and [json configuration files](src/animation/offline/tools/reference.json), in the exact same way as fbx2ozz.
+  - #91 Fixup animation name when used as an output filename (via json configuration wildcard option), so they comply with most os filename restrictions.
+
+* Samples
+  - [skinning] Adds a new sample to explain skinning matrices setup.
 
 * Build pipeline
   - Enables c++11 feature by default for all targets.
 
 * Library
   - [animation] Removes skeleton_utils.h IterateMemFun helper that can be replaced by std::bind.
+  - [base] Removes ozz::memory::Allocator::Reallocate() function as it's rarely used and complex to overload.
   - [base] Replaces OZZ_NEW and OZZ_DELETE macros with template functions ozz::New and ozz::Delete.
   - [base] Removes ScopedPtr in favor of an alias to standard unique_ptr that remaps to ozz deallocator. Implements make_unique using ozz allocator.
   - [base] Uses template aliasing (using keyword) to redirect ozz to std containers. This allows to get rid of ::Std when using ozz containers.
-  - [base] Renames all aliased ozz containers to there orignal std name: vector, map etc... 
+  - [base] Renames all aliased ozz containers to their original std name: vector, map etc... 
   - [base] Renames ozz::Range to ozz::span, ozz::make_range to ozz::make_span to comply with std containers. Range count() and size() methods are renamed to size() and size_bytes() respectively, so this needs special attention to avoid mistakes.
   - [base] Replaces OZZ_ALIGN_OF and OZZ_ALIGN by standard alignof and alignas keywords.
   - [base] Replaces OZZ_STATIC_ASSERT by standard static_assert keyword.
@@ -44,7 +70,7 @@ Release version 0.11.0
 
 * Library
   - [animation] Adds two-bone and aim inverse kinematic solvers. They can be used at runtime to procedurally affect joint local-space transforms.
-  - [animation] Allows resizing SamplingCache, meaning the can be allocated without knowing the number of joints the cache needs to support.
+  - [animation] Allows resizing SamplingJob::Context, meaning the can be allocated without knowing the number of joints the cache needs to support.
   - [animation] Allow ozz::animation::LocalToModelJob to partially update a hierarchy, aka all children of a joint. This is useful when changes to a local-space pose has been limited to part of the joint hierarchy, like when applying IK or modifying model-space matrices independently from local-space transform.
   - [animation] Changes ozz::animation::Skeleton joints from breadth-first to depth-first. This change breaks compatibility of previous ozz::animation::offline::RawAnimation, ozz::animation::Animation and ozz::animation::Skeleton archives.
   - [animation] Renames track_triggering_job_stl.h to track_triggering_job_trait.h.

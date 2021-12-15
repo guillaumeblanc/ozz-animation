@@ -24,6 +24,7 @@ add_executable(sample_user_channel
   "${CMAKE_CURRENT_BINARY_DIR}/media/track.ozz")
 target_link_libraries(sample_user_channel
   sample_framework)
+target_copy_shared_libraries(sample_user_channel)
 
 set_target_properties(sample_user_channel
   PROPERTIES FOLDER "samples")

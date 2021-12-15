@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -28,6 +28,9 @@
 #ifndef OZZ_OZZ_ANIMATION_OFFLINE_TRACK_OPTIMIZER_H_
 #define OZZ_OZZ_ANIMATION_OFFLINE_TRACK_OPTIMIZER_H_
 
+#include "ozz/animation/offline/export.h"
+#include "ozz/base/platform.h"
+
 namespace ozz {
 namespace animation {
 namespace offline {
@@ -44,7 +47,7 @@ struct RawQuaternionTrack;
 // keyframes (within a tolerance value) are removed from the track. Default
 // optimization tolerances are set in order to favor quality over runtime
 // performances and memory footprint.
-class TrackOptimizer {
+class OZZ_ANIMOFFLINE_DLL TrackOptimizer {
  public:
   // Initializes the optimizer with default tolerances (favoring quality).
   TrackOptimizer();

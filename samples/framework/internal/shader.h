@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -124,6 +124,29 @@ class ImmediatePTCShader : public Shader {
   void Bind(const math::Float4x4& _model, const math::Float4x4& _view_proj,
             GLsizei _pos_stride, GLsizei _pos_offset, GLsizei _tex_stride,
             GLsizei _tex_offset, GLsizei _color_stride, GLsizei _color_offset);
+};
+
+class PointsShader : public Shader {
+ public:
+  PointsShader() {}
+  virtual ~PointsShader() {}
+
+  // Constructs the shader.
+  // Returns nullptr if shader compilation failed or a valid Shader pointer on
+  // success. The shader must then be deleted using default allocator Delete
+  // function.
+  static ozz::unique_ptr<PointsShader> Build();
+
+  // Binds the shader.
+  struct GenericAttrib {
+    GLint color;
+    GLint size;
+  };
+  GenericAttrib Bind(const math::Float4x4& _model,
+                     const math::Float4x4& _view_proj, GLsizei _pos_stride,
+                     GLsizei _pos_offset, GLsizei _color_stride,
+                     GLsizei _color_offset, GLsizei _size_stride,
+                     GLsizei _size_offset, bool _screen_space);
 };
 
 class SkeletonShader : public Shader {

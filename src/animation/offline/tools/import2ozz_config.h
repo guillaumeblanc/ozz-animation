@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -28,6 +28,7 @@
 #ifndef OZZ_ANIMATION_OFFLINE_TOOLS_IMPORT2OZZ_CONFIG_H_
 #define OZZ_ANIMATION_OFFLINE_TOOLS_IMPORT2OZZ_CONFIG_H_
 
+#include "ozz/animation/offline/tools/export.h"
 #include "ozz/base/platform.h"
 
 #include <json/json-forwards.h>
@@ -37,10 +38,10 @@ namespace animation {
 namespace offline {
 
 // Get the sanitized (all members are set, with the right types) configuration.
-bool ProcessConfiguration(Json::Value* _config);
+OZZ_ANIMTOOLS_DLL bool ProcessConfiguration(Json::Value* _config);
 
 // Internal function used to compare enum names.
-bool CompareName(const char* _a, const char* _b);
+OZZ_ANIMTOOLS_DLL bool CompareName(const char* _a, const char* _b);
 
 // Struct allowing inheriting class to provide enum names.
 template <typename _Type, typename _Enum>

@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -36,12 +36,6 @@
 #include "ozz/base/maths/simd_math_archive.h"
 
 namespace ozz {
-namespace sample {
-Mesh::Mesh() {}
-
-Mesh::~Mesh() {}
-}  // namespace sample
-
 namespace io {
 
 void Extern<sample::Mesh::Part>::Save(OArchive& _archive,

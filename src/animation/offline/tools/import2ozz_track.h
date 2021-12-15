@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -28,11 +28,11 @@
 #ifndef OZZ_ANIMATION_OFFLINE_TOOLS_IMPORT2OZZ_TRACK_H_
 #define OZZ_ANIMATION_OFFLINE_TOOLS_IMPORT2OZZ_TRACK_H_
 
+#include "animation/offline/tools/import2ozz_config.h"
+#include "ozz/animation/offline/tools/export.h"
+#include "ozz/animation/offline/tools/import2ozz.h"
 #include "ozz/base/endianness.h"
 #include "ozz/base/platform.h"
-
-#include "animation/offline/tools/import2ozz_config.h"
-#include "ozz/animation/offline/tools/import2ozz.h"
 
 namespace Json {
 class Value;
@@ -44,12 +44,14 @@ class Skeleton;
 namespace offline {
 
 class OzzImporter;
-bool ProcessTracks(OzzImporter& _importer, const char* _animation_name,
-                   const Skeleton& _skeleton, const Json::Value& _config,
-                   const ozz::Endianness _endianness);
+OZZ_ANIMTOOLS_DLL bool ProcessTracks(OzzImporter& _importer,
+                                     const char* _animation_name,
+                                     const Skeleton& _skeleton,
+                                     const Json::Value& _config,
+                                     const ozz::Endianness _endianness);
 
 // Property type enum to config string conversions.
-struct PropertyTypeConfig
+struct OZZ_ANIMTOOLS_DLL PropertyTypeConfig
     : JsonEnum<PropertyTypeConfig, OzzImporter::NodeProperty::Type> {
   static EnumNames GetNames();
 };

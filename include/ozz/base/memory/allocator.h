@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -41,18 +41,18 @@ namespace memory {
 class Allocator;
 
 // Defines the default allocator accessor.
-Allocator* default_allocator();
+OZZ_BASE_DLL Allocator* default_allocator();
 
 // Set the default allocator, used for all dynamic allocation inside ozz.
 // Returns current memory allocator, such that in can be restored if needed.
-Allocator* SetDefaulAllocator(Allocator* _allocator);
+OZZ_BASE_DLL Allocator* SetDefaulAllocator(Allocator* _allocator);
 
 // Defines an abstract allocator class.
 // Implements helper methods to allocate/deallocate POD typed objects instead of
 // raw memory.
 // Implements New and Delete function to allocate C++ objects, as a replacement
 // of new and delete operators.
-class Allocator {
+class OZZ_BASE_DLL Allocator {
  public:
   // Default virtual destructor.
   virtual ~Allocator() {}
@@ -68,11 +68,6 @@ class Allocator {
   // Argument _block can be nullptr.
   // Deallocate function conforms with standard free function specifications.
   virtual void Deallocate(void* _block) = 0;
-
-  // Changes the size of a block that was allocated with Allocate.
-  // Argument _block can be nullptr.
-  // Reallocate function conforms with standard realloc function specifications.
-  virtual void* Reallocate(void* _block, size_t _size, size_t _alignment) = 0;
 };
 }  // namespace memory
 

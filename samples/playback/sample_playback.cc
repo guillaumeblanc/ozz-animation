@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -25,23 +25,19 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/animation/runtime/animation.h"
-#include "ozz/animation/runtime/local_to_model_job.h"
-#include "ozz/animation/runtime/sampling_job.h"
-#include "ozz/animation/runtime/skeleton.h"
-
-#include "ozz/base/log.h"
-
-#include "ozz/base/maths/simd_math.h"
-#include "ozz/base/maths/soa_transform.h"
-#include "ozz/base/maths/vec_float.h"
-
-#include "ozz/options/options.h"
-
 #include "framework/application.h"
 #include "framework/imgui.h"
 #include "framework/renderer.h"
 #include "framework/utils.h"
+#include "ozz/animation/runtime/animation.h"
+#include "ozz/animation/runtime/local_to_model_job.h"
+#include "ozz/animation/runtime/sampling_job.h"
+#include "ozz/animation/runtime/skeleton.h"
+#include "ozz/base/log.h"
+#include "ozz/base/maths/simd_math.h"
+#include "ozz/base/maths/soa_transform.h"
+#include "ozz/base/maths/vec_float.h"
+#include "ozz/options/options.h"
 
 // Skeleton archive can be specified as an option.
 OZZ_OPTIONS_DECLARE_STRING(skeleton,
@@ -53,9 +49,9 @@ OZZ_OPTIONS_DECLARE_STRING(animation,
                            "Path to the animation (ozz archive format).",
                            "media/animation.ozz", false)
 
-class LoadSampleApplication : public ozz::sample::Application {
+class PlaybackSampleApplication : public ozz::sample::Application {
  public:
-  LoadSampleApplication() {}
+  PlaybackSampleApplication() {}
 
  protected:
   // Updates current animation time and skeleton pose.
@@ -66,7 +62,7 @@ class LoadSampleApplication : public ozz::sample::Application {
     // Samples optimized animation at t = animation_time_.
     ozz::animation::SamplingJob sampling_job;
     sampling_job.animation = &animation_;
-    sampling_job.cache = &cache_;
+    sampling_job.context = &context_;
     sampling_job.ratio = controller_.time_ratio();
     sampling_job.output = make_span(locals_);
     if (!sampling_job.Run()) {
@@ -102,14 +98,19 @@ class LoadSampleApplication : public ozz::sample::Application {
       return false;
     }
 
+    // Skeleton and animation needs to match.
+    if (skeleton_.num_joints() != animation_.num_tracks()) {
+      return false;
+    }
+
     // Allocates runtime buffers.
     const int num_soa_joints = skeleton_.num_soa_joints();
     locals_.resize(num_soa_joints);
     const int num_joints = skeleton_.num_joints();
     models_.resize(num_joints);
 
-    // Allocates a cache that matches animation requirements.
-    cache_.Resize(num_joints);
+    // Allocates a context that matches animation requirements.
+    context_.Resize(num_joints);
 
     return true;
   }
@@ -143,8 +144,8 @@ class LoadSampleApplication : public ozz::sample::Application {
   // Runtime animation.
   ozz::animation::Animation animation_;
 
-  // Sampling cache.
-  ozz::animation::SamplingCache cache_;
+  // Sampling context.
+  ozz::animation::SamplingJob::Context context_;
 
   // Buffer of local transforms as sampled from animation_.
   ozz::vector<ozz::math::SoaTransform> locals_;
@@ -154,6 +155,7 @@ class LoadSampleApplication : public ozz::sample::Application {
 };
 
 int main(int _argc, const char** _argv) {
-  const char* title = "Ozz-animation sample: Binary animation/skeleton loading";
-  return LoadSampleApplication().Run(_argc, _argv, "1.0", title);
+  const char* title =
+      "Ozz-animation sample: Binary animation/skeleton playback";
+  return PlaybackSampleApplication().Run(_argc, _argv, "1.0", title);
 }

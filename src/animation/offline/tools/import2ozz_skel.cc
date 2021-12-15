@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -104,7 +104,7 @@ void LogHierarchy(const RawSkeleton::Joint::Children& _children,
     // Recurse
     LogHierarchy(joint.children, _depth + 1);
   }
-  ozz::log::LogV() << std::setprecision(pres);
+  ozz::log::LogV() << std::setprecision(static_cast<int>(pres));
 }
 }  // namespace
 
@@ -128,6 +128,7 @@ bool ImportSkeleton(const Json::Value& _config, OzzImporter* _importer,
   types.camera = types_config["camera"].asBool();
   types.geometry = types_config["geometry"].asBool();
   types.light = types_config["light"].asBool();
+  types.null = types_config["null"].asBool();
   types.any = types_config["any"].asBool();
 
   RawSkeleton raw_skeleton;

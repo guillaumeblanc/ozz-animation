@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -27,6 +27,8 @@
 
 #ifndef OZZ_OZZ_ANIMATION_OFFLINE_RAW_TRACK_H_
 #define OZZ_OZZ_ANIMATION_OFFLINE_RAW_TRACK_H_
+
+#include "ozz/animation/offline/export.h"
 
 #include "ozz/base/containers/string.h"
 #include "ozz/base/containers/vector.h"
@@ -85,7 +87,7 @@ namespace internal {
 // RawTrack that would fail this validation will fail to be converted by
 // the RawTrackBuilder.
 template <typename _ValueType>
-struct RawTrack {
+struct OZZ_ANIMOFFLINE_DLL RawTrack {
   typedef _ValueType ValueType;
   typedef RawTrackKeyframe<ValueType> Keyframe;
 
@@ -116,11 +118,11 @@ extern template struct RawTrack<math::Quaternion>;
 }  // namespace internal
 
 // Offline user-channel animation track type instantiation.
-struct RawFloatTrack : public internal::RawTrack<float> {};
-struct RawFloat2Track : public internal::RawTrack<math::Float2> {};
-struct RawFloat3Track : public internal::RawTrack<math::Float3> {};
-struct RawFloat4Track : public internal::RawTrack<math::Float4> {};
-struct RawQuaternionTrack : public internal::RawTrack<math::Quaternion> {};
+struct OZZ_ANIMOFFLINE_DLL RawFloatTrack : public internal::RawTrack<float> {};
+struct OZZ_ANIMOFFLINE_DLL RawFloat2Track : public internal::RawTrack<math::Float2> {};
+struct OZZ_ANIMOFFLINE_DLL RawFloat3Track : public internal::RawTrack<math::Float3> {};
+struct OZZ_ANIMOFFLINE_DLL RawFloat4Track : public internal::RawTrack<math::Float4> {};
+struct OZZ_ANIMOFFLINE_DLL RawQuaternionTrack : public internal::RawTrack<math::Quaternion> {};
 }  // namespace offline
 }  // namespace animation
 

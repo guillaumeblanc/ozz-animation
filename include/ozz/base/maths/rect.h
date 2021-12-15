@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -28,12 +28,14 @@
 #ifndef OZZ_OZZ_BASE_MATHS_RECT_H_
 #define OZZ_OZZ_BASE_MATHS_RECT_H_
 
+#include "../platform.h"
+
 namespace ozz {
 namespace math {
 
 // Defines a rectangle by the integer coordinates of its lower-left and
 // width-height.
-struct RectInt {
+struct OZZ_BASE_DLL RectInt {
   // Constructs a uninitialized rectangle.
   RectInt() {}
 
@@ -65,7 +67,7 @@ struct RectInt {
 
 // Defines a rectangle by the floating point coordinates of its lower-left
 // and width-height.
-struct RectFloat {
+struct OZZ_BASE_DLL RectFloat {
   // Constructs a uninitialized rectangle.
   RectFloat() {}
 

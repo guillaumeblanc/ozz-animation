@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -28,6 +28,7 @@
 #ifndef OZZ_ANIMATION_OFFLINE_TOOLS_IMPORT2OZZ_SKEL_H_
 #define OZZ_ANIMATION_OFFLINE_TOOLS_IMPORT2OZZ_SKEL_H_
 
+#include "ozz/animation/offline/tools/export.h"
 #include "ozz/base/endianness.h"
 #include "ozz/base/platform.h"
 
@@ -41,8 +42,9 @@ namespace offline {
 
 class OzzImporter;
 
-bool ImportSkeleton(const Json::Value& _config, OzzImporter* _importer,
-                    const ozz::Endianness _endianness);
+OZZ_ANIMTOOLS_DLL bool ImportSkeleton(const Json::Value& _config,
+                                      OzzImporter* _importer,
+                                      const ozz::Endianness _endianness);
 
 }  // namespace offline
 }  // namespace animation

@@ -96,15 +96,11 @@ else()
   check_cxx_compiler_flag("-Wnull-dereference" W_NULL_DEREFERENCE)
   check_cxx_compiler_flag("-Wpragma-pack" W_PRAGMA_PACK)
 
-  # Enables debug glibcxx if NDebug isn't defined, not supported by APPLE
-  if(NOT APPLE)
-    add_compile_definitions($<$<CONFIG:Debug>:_GLIBCXX_DEBUG>)
-  endif()
-
   #----------------------
   # Sets emscripten output
   if(EMSCRIPTEN)
     SET(CMAKE_EXECUTABLE_SUFFIX ".html")
+    add_link_options(-s DISABLE_DEPRECATED_FIND_EVENT_TARGET_BEHAVIOR=0)
 
     #if(NOT ozz_build_simd_ref)
     #  set_property(DIRECTORY APPEND PROPERTY COMPILE_OPTIONS "-msse2")

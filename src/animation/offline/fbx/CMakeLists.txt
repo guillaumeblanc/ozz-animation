@@ -2,22 +2,20 @@ if(NOT ozz_build_fbx)
   return()
 endif()
 
-add_library(ozz_animation_fbx STATIC
+add_library(ozz_animation_fbx
+  ${PROJECT_SOURCE_DIR}/include/ozz/animation/offline/fbx/export.h
   ${PROJECT_SOURCE_DIR}/include/ozz/animation/offline/fbx/fbx.h
   fbx.cc
   ${PROJECT_SOURCE_DIR}/include/ozz/animation/offline/fbx/fbx_animation.h
   fbx_animation.cc
   ${PROJECT_SOURCE_DIR}/include/ozz/animation/offline/fbx/fbx_skeleton.h
   fbx_skeleton.cc)
-target_include_directories(ozz_animation_fbx
-  PUBLIC $<BUILD_INTERFACE:${FBX_INCLUDE_DIRS}>)
+  
+target_compile_definitions(ozz_animation_fbx PRIVATE  $<$<BOOL:${BUILD_SHARED_LIBS}>:OZZ_BUILD_ANIMATIONFBX_LIB>)
+
 target_link_libraries(ozz_animation_fbx
   ozz_animation_offline
-  debug ${FBX_LIBRARIES_DEBUG}
-  optimized ${FBX_LIBRARIES})
-target_compile_options(ozz_animation_fbx
-  PUBLIC $<$<BOOL:${W_NULL_DEREFERENCE}>:-Wno-null-dereference>
-  PUBLIC $<$<BOOL:${W_PRAGMA_PACK}>:-Wno-pragma-pack>)
+  fbx::sdk)
 set_target_properties(ozz_animation_fbx PROPERTIES FOLDER "ozz/tools")
 
 install(TARGETS ozz_animation_fbx DESTINATION lib)
@@ -32,6 +30,7 @@ add_executable(fbx2ozz
 target_link_libraries(fbx2ozz
   ozz_animation_tools
   ozz_animation_fbx)
+target_copy_shared_libraries(fbx2ozz)
 set_target_properties(fbx2ozz
   PROPERTIES FOLDER "ozz/tools")
 
@@ -40,27 +39,31 @@ install(TARGETS fbx2ozz DESTINATION bin/tools)
 # Gerenate binary data to a specific folder (${ozz_media_directory}/bin)
 set(build_configurations
   # Library data
-  "/fbx/alain/skeleton.fbx\;{\"skeleton\":{\"filename\":\"alain_skeleton.ozz\",\"import\":{\"enable\":true}},\"animations\":[]}\;output:alain_skeleton.ozz"
-  "/fbx/alain/atlas.fbx\;{\"skeleton\":{\"filename\":\"alain_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"alain_atlas_raw.ozz\",\"raw\":true,\"optimize\":false}]}\;output:alain_atlas_raw.ozz\;depend:alain_skeleton.ozz"
-  "/fbx/alain/locomotions.fbx\;{\"skeleton\":{\"filename\":\"alain_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"alain_*.ozz\"}]}\;output:alain_walk.ozz\;output:alain_jog.ozz\;output:alain_run.ozz\;depend:alain_skeleton.ozz"
-  "/fbx/alain/crossarms.fbx\;{\"skeleton\":{\"filename\":\"alain_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"alain_crossarms.ozz\"}]}\;output:alain_crossarms.ozz\;depend:alain_skeleton.ozz"
-  "/fbx/alain/crackhead.fbx\;{\"skeleton\":{\"filename\":\"alain_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"alain_crackhead.ozz\"},{\"filename\":\"alain_crackhead_additive.ozz\",\"additive\":true}]}\;output:alain_crackhead_additive.ozz\;output:alain_crackhead.ozz\;depend:alain_skeleton.ozz"
+  "/fbx/pab/skeleton.fbx\;{\"skeleton\":{\"filename\":\"pab_skeleton.ozz\",\"import\":{\"enable\":true}},\"animations\":[]}\;output:pab_skeleton.ozz"
+  "/fbx/pab/atlas.fbx\;{\"skeleton\":{\"filename\":\"pab_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"pab_atlas_raw.ozz\",\"raw\":true,\"optimize\":false}]}\;output:pab_atlas_raw.ozz\;depend:pab_skeleton.ozz"
+  "/fbx/pab/locomotions.fbx\;{\"skeleton\":{\"filename\":\"pab_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"pab_*.ozz\"}]}\;output:pab_walk.ozz\;output:pab_jog.ozz\;output:pab_run.ozz\;depend:pab_skeleton.ozz"
+  "/fbx/pab/crossarms.fbx\;{\"skeleton\":{\"filename\":\"pab_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"pab_crossarms.ozz\"}]}\;output:pab_crossarms.ozz\;depend:pab_skeleton.ozz"
+  "/fbx/pab/crackhead.fbx\;{\"skeleton\":{\"filename\":\"pab_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"pab_crackhead.ozz\"},{\"filename\":\"pab_crackhead_additive.ozz\",\"additive\":true}]}\;output:pab_crackhead_additive.ozz\;output:pab_crackhead.ozz\;depend:pab_skeleton.ozz"
+  "/fbx/pab/hand.fbx\;{\"skeleton\":{\"filename\":\"pab_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"clip\":\"curl\",\"filename\":\"pab_curl_additive.ozz\",\"additive\":true,\"additive_reference\":\"skeleton\"},{\"clip\":\"splay\",\"filename\":\"pab_splay_additive.ozz\",\"additive\":true,\"additive_reference\":\"skeleton\"}]}\;output:pab_curl_additive.ozz\;output:pab_splay_additive.ozz\;depend:pab_skeleton.ozz"
   
   # Robot user channels
   "/fbx/robot.fbx\;\;config_file:${PROJECT_SOURCE_DIR}/samples/user_channel/config.json\;output:robot_skeleton.ozz\;output:robot_animation.ozz\;output:robot_track_grasp.ozz"
 
   # Baked animation
   "/fbx/baked.fbx\;\;config_file:${PROJECT_SOURCE_DIR}/samples/baked/config.json\;output:baked_skeleton.ozz\;output:baked_animation.ozz"
+  
+  # Ruby
+  "/fbx/sketchfab/ruby.fbx\;{\"skeleton\":{\"filename\":\"ruby_skeleton.ozz\",\"import\":{\"enable\":true}},\"animations\":[{\"filename\":\"ruby_animation.ozz\"}]}\;output:ruby_skeleton.ozz\;output:ruby_animation.ozz"
 
   # Versioning
-  "/fbx/alain/skeleton.fbx\;{\"skeleton\":{\"filename\":\"versioning/raw_skeleton_v1_le.ozz\",\"import\":{\"enable\":true,\"raw\":true}},\"animations\":[]}\;output:versioning/raw_skeleton_v1_le.ozz\;option:--endian=little"
-  "/fbx/alain/skeleton.fbx\;{\"skeleton\":{\"filename\":\"versioning/raw_skeleton_v1_be.ozz\",\"import\":{\"enable\":true,\"raw\":true}},\"animations\":[]}\;output:versioning/raw_skeleton_v1_be.ozz\;option:--endian=big"
-  "/fbx/alain/skeleton.fbx\;{\"skeleton\":{\"filename\":\"versioning/skeleton_v2_le.ozz\",\"import\":{\"enable\":true}},\"animations\":[]}\;output:versioning/skeleton_v2_le.ozz\;option:--endian=little"
-  "/fbx/alain/skeleton.fbx\;{\"skeleton\":{\"filename\":\"versioning/skeleton_v2_be.ozz\",\"import\":{\"enable\":true}},\"animations\":[]}\;output:versioning/skeleton_v2_be.ozz\;option:--endian=big"
-  "/fbx/alain/run.fbx\;{\"skeleton\":{\"filename\":\"alain_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"versioning/raw_animation_v3_le.ozz\",\"raw\":true}]}\;output:versioning/raw_animation_v3_le.ozz\;option:--endian=little\;depend:alain_skeleton.ozz"
-  "/fbx/alain/run.fbx\;{\"skeleton\":{\"filename\":\"alain_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"versioning/raw_animation_v3_be.ozz\",\"raw\":true}]}\;output:versioning/raw_animation_v3_be.ozz\;option:--endian=big\;depend:alain_skeleton.ozz"
-  "/fbx/alain/run.fbx\;{\"skeleton\":{\"filename\":\"alain_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"versioning/animation_v6_le.ozz\"}]}\;output:versioning/animation_v6_le.ozz\;option:--endian=little\;depend:alain_skeleton.ozz"
-  "/fbx/alain/run.fbx\;{\"skeleton\":{\"filename\":\"alain_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"versioning/animation_v6_be.ozz\"}]}\;output:versioning/animation_v6_be.ozz\;option:--endian=big\;depend:alain_skeleton.ozz"
+  "/fbx/pab/skeleton.fbx\;{\"skeleton\":{\"filename\":\"versioning/raw_skeleton_v1_le.ozz\",\"import\":{\"enable\":true,\"raw\":true}},\"animations\":[]}\;output:versioning/raw_skeleton_v1_le.ozz\;option:--endian=little"
+  "/fbx/pab/skeleton.fbx\;{\"skeleton\":{\"filename\":\"versioning/raw_skeleton_v1_be.ozz\",\"import\":{\"enable\":true,\"raw\":true}},\"animations\":[]}\;output:versioning/raw_skeleton_v1_be.ozz\;option:--endian=big"
+  "/fbx/pab/skeleton.fbx\;{\"skeleton\":{\"filename\":\"versioning/skeleton_v2_le.ozz\",\"import\":{\"enable\":true}},\"animations\":[]}\;output:versioning/skeleton_v2_le.ozz\;option:--endian=little"
+  "/fbx/pab/skeleton.fbx\;{\"skeleton\":{\"filename\":\"versioning/skeleton_v2_be.ozz\",\"import\":{\"enable\":true}},\"animations\":[]}\;output:versioning/skeleton_v2_be.ozz\;option:--endian=big"
+  "/fbx/pab/run.fbx\;{\"skeleton\":{\"filename\":\"pab_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"versioning/raw_animation_v3_le.ozz\",\"raw\":true}]}\;output:versioning/raw_animation_v3_le.ozz\;option:--endian=little\;depend:pab_skeleton.ozz"
+  "/fbx/pab/run.fbx\;{\"skeleton\":{\"filename\":\"pab_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"versioning/raw_animation_v3_be.ozz\",\"raw\":true}]}\;output:versioning/raw_animation_v3_be.ozz\;option:--endian=big\;depend:pab_skeleton.ozz"
+  "/fbx/pab/run.fbx\;{\"skeleton\":{\"filename\":\"pab_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"versioning/animation_v6_le.ozz\"}]}\;output:versioning/animation_v6_le.ozz\;option:--endian=little\;depend:pab_skeleton.ozz"
+  "/fbx/pab/run.fbx\;{\"skeleton\":{\"filename\":\"pab_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"versioning/animation_v6_be.ozz\"}]}\;output:versioning/animation_v6_be.ozz\;option:--endian=big\;depend:pab_skeleton.ozz"
 
   # Collada
   "/collada/astro_max.dae\;{\"skeleton\":{\"filename\":\"astro_max_skeleton.ozz\",\"import\":{\"enable\":true}},\"animations\":[{\"filename\":\"astro_max_animation.ozz\"}]}\;output:astro_max_animation.ozz\;output:astro_max_skeleton.ozz"

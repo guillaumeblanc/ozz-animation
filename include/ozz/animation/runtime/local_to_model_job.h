@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -28,6 +28,7 @@
 #ifndef OZZ_OZZ_ANIMATION_RUNTIME_LOCAL_TO_MODEL_JOB_H_
 #define OZZ_OZZ_ANIMATION_RUNTIME_LOCAL_TO_MODEL_JOB_H_
 
+#include "ozz/animation/runtime/export.h"
 #include "ozz/base/platform.h"
 #include "ozz/base/span.h"
 
@@ -55,7 +56,7 @@ class Skeleton;
 // ordered like skeleton's joints. Output are matrices, because the combination
 // of affine transformations can contain shearing or complex transformation
 // that cannot be represented as Transform object.
-struct LocalToModelJob {
+struct OZZ_ANIMATION_DLL LocalToModelJob {
   // Default constructor, initializes default values.
   LocalToModelJob();
 

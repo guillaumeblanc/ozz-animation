@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -28,6 +28,7 @@
 #ifndef OZZ_OZZ_ANIMATION_OFFLINE_ADDITIVE_ANIMATION_BUILDER_H_
 #define OZZ_OZZ_ANIMATION_OFFLINE_ADDITIVE_ANIMATION_BUILDER_H_
 
+#include "ozz/animation/offline/export.h"
 #include "ozz/base/platform.h"
 #include "ozz/base/span.h"
 
@@ -46,7 +47,7 @@ struct RawAnimation;
 // Defines the class responsible for building a delta animation from an offline
 // raw animation. This is used to create animations compatible with additive
 // blending.
-class AdditiveAnimationBuilder {
+class OZZ_ANIMOFFLINE_DLL AdditiveAnimationBuilder {
  public:
   // Initializes the builder.
   AdditiveAnimationBuilder();

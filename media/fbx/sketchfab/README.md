@@ -1,0 +1,1 @@
+Ruby rose model in this repository was downloaded from [Sketchfab](https://skfb.ly/6QSUK). The creator, [Christoph Schoch](http://christophschoch.com/), chose [CC BY 4.0](http://creativecommons.org/licenses/by/4.0/) license, which allows copy and redistribution.

@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2019 Guillaume Blanc                                         //
+// Copyright (c) Guillaume Blanc                                              //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -25,17 +25,14 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/animation/runtime/track_triggering_job.h"
-
 #include "gtest/gtest.h"
+#include "ozz/animation/offline/raw_track.h"
+#include "ozz/animation/offline/track_builder.h"
+#include "ozz/animation/runtime/track.h"
+#include "ozz/animation/runtime/track_triggering_job.h"
 #include "ozz/base/gtest_helper.h"
 #include "ozz/base/maths/gtest_math_helper.h"
 #include "ozz/base/memory/unique_ptr.h"
-
-#include "ozz/animation/offline/raw_track.h"
-#include "ozz/animation/offline/track_builder.h"
-
-#include "ozz/animation/runtime/track.h"
 
 using ozz::animation::FloatTrack;
 using ozz::animation::TrackTriggeringJob;
@@ -370,8 +367,8 @@ void TestEdgesExpectationBackward(TrackTriggeringJob::Iterator _fw_iterator,
 
   // Compare forward and backward iterations.
   ASSERT_EQ(fw_edges.size(), CountEdges(bw_iterator, bw_job.end()));
-  for (ozz::vector<TrackTriggeringJob::Edge>::const_reverse_iterator
-           fw_rit = fw_edges.rbegin();
+  for (ozz::vector<TrackTriggeringJob::Edge>::const_reverse_iterator fw_rit =
+           fw_edges.rbegin();
        fw_rit != fw_edges.rend(); ++fw_rit, ++bw_iterator) {
     EXPECT_FLOAT_EQ(fw_rit->ratio, bw_iterator->ratio);
     EXPECT_EQ(fw_rit->rising, !bw_iterator->rising);
@@ -852,11 +849,13 @@ void TestEdgesExpectation(
 
   {  // Randomized tests forward/backward coherency
     const float kMaxRange = 10.f;
-    const size_t kMaxIterations = 10000;
+    const size_t kMaxIterations = 1000;
     for (size_t i = 0; i < kMaxIterations; ++i) {
       job.from =
-          kMaxRange * (1.f - 2.f * static_cast<float>(rand()) / RAND_MAX);
-      job.to = kMaxRange * (1.f - 2.f * static_cast<float>(rand()) / RAND_MAX);
+          kMaxRange * (1.f - 2.f * static_cast<float>(rand()) /
+                       static_cast<float>(RAND_MAX));
+      job.to = kMaxRange * (1.f - 2.f * static_cast<float>(rand()) /
+                            static_cast<float>(RAND_MAX));
       TrackTriggeringJob::Iterator iterator;
       job.iterator = &iterator;
       ASSERT_TRUE(job.Run());
@@ -865,7 +864,7 @@ void TestEdgesExpectation(
   }
   {  // Randomized tests rising/falling coherency
     const float kMaxRange = 2.f;
-    const size_t kMaxIterations = 100000;
+    const size_t kMaxIterations = 1000;
     float ratio = 0.f;
     bool rising = false;
     bool init = false;
@@ -873,7 +872,8 @@ void TestEdgesExpectation(
       // Finds new evaluation range
       float new_time =
           ratio +
-          kMaxRange * (1.f - 2.f * static_cast<float>(rand()) / RAND_MAX);
+          kMaxRange * (1.f - 2.f * static_cast<float>(rand()) /
+                       static_cast<float>(RAND_MAX));
 
       switch (rand() % 20) {
         case 0: {
