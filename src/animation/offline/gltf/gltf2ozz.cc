@@ -357,6 +357,26 @@ bool SampleChannel(const tinygltf::Model& _model,
   return valid;
 }
 
+// Converts a glTF matrix to an ozz::math::Float4x4 matrix.
+ozz::math::Float4x4 ToMatrix(const std::vector<double> gltfMatrix) {
+  return {{ozz::math::simd_float4::Load(static_cast<float>(gltfMatrix[0]),
+                                        static_cast<float>(gltfMatrix[1]),
+                                        static_cast<float>(gltfMatrix[2]),
+                                        static_cast<float>(gltfMatrix[3])),
+           ozz::math::simd_float4::Load(static_cast<float>(gltfMatrix[4]),
+                                        static_cast<float>(gltfMatrix[5]),
+                                        static_cast<float>(gltfMatrix[6]),
+                                        static_cast<float>(gltfMatrix[7])),
+           ozz::math::simd_float4::Load(static_cast<float>(gltfMatrix[8]),
+                                        static_cast<float>(gltfMatrix[9]),
+                                        static_cast<float>(gltfMatrix[10]),
+                                        static_cast<float>(gltfMatrix[11])),
+           ozz::math::simd_float4::Load(static_cast<float>(gltfMatrix[12]),
+                                        static_cast<float>(gltfMatrix[13]),
+                                        static_cast<float>(gltfMatrix[14]),
+                                        static_cast<float>(gltfMatrix[15]))}};
+}
+
 ozz::animation::offline::RawAnimation::TranslationKey
 CreateTranslationRestPoseKey(const tinygltf::Node& _node) {
   ozz::animation::offline::RawAnimation::TranslationKey key;
@@ -368,23 +388,8 @@ CreateTranslationRestPoseKey(const tinygltf::Node& _node) {
                                   static_cast<float>(_node.translation[2]));
   } else if (!_node.matrix.empty()) {
     // Extract translation from the matrix
-    const ozz::math::Float4x4 matrix = {
-        {ozz::math::simd_float4::Load(static_cast<float>(_node.matrix[0]),
-                                      static_cast<float>(_node.matrix[1]),
-                                      static_cast<float>(_node.matrix[2]),
-                                      static_cast<float>(_node.matrix[3])),
-         ozz::math::simd_float4::Load(static_cast<float>(_node.matrix[4]),
-                                      static_cast<float>(_node.matrix[5]),
-                                      static_cast<float>(_node.matrix[6]),
-                                      static_cast<float>(_node.matrix[7])),
-         ozz::math::simd_float4::Load(static_cast<float>(_node.matrix[8]),
-                                      static_cast<float>(_node.matrix[9]),
-                                      static_cast<float>(_node.matrix[10]),
-                                      static_cast<float>(_node.matrix[11])),
-         ozz::math::simd_float4::Load(static_cast<float>(_node.matrix[12]),
-                                      static_cast<float>(_node.matrix[13]),
-                                      static_cast<float>(_node.matrix[14]),
-                                      static_cast<float>(_node.matrix[15]))}};
+    const ozz::math::Float4x4 matrix = ToMatrix(_node.matrix);
+    
     ozz::math::SimdFloat4 translation, rotation, scale;
     if (ToAffine(matrix, &translation, &rotation, &scale)) {
       ozz::math::Store3PtrU(translation, &key.value.x);
@@ -408,23 +413,8 @@ ozz::animation::offline::RawAnimation::RotationKey CreateRotationRestPoseKey(
                                       static_cast<float>(_node.rotation[3]));
   } else if (!_node.matrix.empty()) {
     // Extract rotation from the matrix
-    const ozz::math::Float4x4 matrix = {
-        {ozz::math::simd_float4::Load(static_cast<float>(_node.matrix[0]),
-                                      static_cast<float>(_node.matrix[1]),
-                                      static_cast<float>(_node.matrix[2]),
-                                      static_cast<float>(_node.matrix[3])),
-         ozz::math::simd_float4::Load(static_cast<float>(_node.matrix[4]),
-                                      static_cast<float>(_node.matrix[5]),
-                                      static_cast<float>(_node.matrix[6]),
-                                      static_cast<float>(_node.matrix[7])),
-         ozz::math::simd_float4::Load(static_cast<float>(_node.matrix[8]),
-                                      static_cast<float>(_node.matrix[9]),
-                                      static_cast<float>(_node.matrix[10]),
-                                      static_cast<float>(_node.matrix[11])),
-         ozz::math::simd_float4::Load(static_cast<float>(_node.matrix[12]),
-                                      static_cast<float>(_node.matrix[13]),
-                                      static_cast<float>(_node.matrix[14]),
-                                      static_cast<float>(_node.matrix[15]))}};
+    const ozz::math::Float4x4 matrix = ToMatrix(_node.matrix);
+    
     ozz::math::SimdFloat4 translation, rotation, scale;
     if (ToAffine(matrix, &translation, &rotation, &scale)) {
       ozz::math::StorePtrU(rotation, &key.value.x);
@@ -446,23 +436,8 @@ ozz::animation::offline::RawAnimation::ScaleKey CreateScaleRestPoseKey(
                                   static_cast<float>(_node.scale[2]));
   } else if (!_node.matrix.empty()) {
     // Extract scale from the matrix
-    const ozz::math::Float4x4 matrix = {
-        {ozz::math::simd_float4::Load(static_cast<float>(_node.matrix[0]),
-                                      static_cast<float>(_node.matrix[1]),
-                                      static_cast<float>(_node.matrix[2]),
-                                      static_cast<float>(_node.matrix[3])),
-         ozz::math::simd_float4::Load(static_cast<float>(_node.matrix[4]),
-                                      static_cast<float>(_node.matrix[5]),
-                                      static_cast<float>(_node.matrix[6]),
-                                      static_cast<float>(_node.matrix[7])),
-         ozz::math::simd_float4::Load(static_cast<float>(_node.matrix[8]),
-                                      static_cast<float>(_node.matrix[9]),
-                                      static_cast<float>(_node.matrix[10]),
-                                      static_cast<float>(_node.matrix[11])),
-         ozz::math::simd_float4::Load(static_cast<float>(_node.matrix[12]),
-                                      static_cast<float>(_node.matrix[13]),
-                                      static_cast<float>(_node.matrix[14]),
-                                      static_cast<float>(_node.matrix[15]))}};
+    const ozz::math::Float4x4 matrix = ToMatrix(_node.matrix);
+    
     ozz::math::SimdFloat4 translation, rotation, scale;
     if (ToAffine(matrix, &translation, &rotation, &scale)) {
       ozz::math::Store3PtrU(scale, &key.value.x);
@@ -479,23 +454,8 @@ bool CreateNodeTransform(const tinygltf::Node& _node,
   *_transform = ozz::math::Transform::identity();
 
   if (!_node.matrix.empty()) {
-    const ozz::math::Float4x4 matrix = {
-        {ozz::math::simd_float4::Load(static_cast<float>(_node.matrix[0]),
-                                      static_cast<float>(_node.matrix[1]),
-                                      static_cast<float>(_node.matrix[2]),
-                                      static_cast<float>(_node.matrix[3])),
-         ozz::math::simd_float4::Load(static_cast<float>(_node.matrix[4]),
-                                      static_cast<float>(_node.matrix[5]),
-                                      static_cast<float>(_node.matrix[6]),
-                                      static_cast<float>(_node.matrix[7])),
-         ozz::math::simd_float4::Load(static_cast<float>(_node.matrix[8]),
-                                      static_cast<float>(_node.matrix[9]),
-                                      static_cast<float>(_node.matrix[10]),
-                                      static_cast<float>(_node.matrix[11])),
-         ozz::math::simd_float4::Load(static_cast<float>(_node.matrix[12]),
-                                      static_cast<float>(_node.matrix[13]),
-                                      static_cast<float>(_node.matrix[14]),
-                                      static_cast<float>(_node.matrix[15]))}};
+    const ozz::math::Float4x4 matrix = ToMatrix(_node.matrix);
+    
     ozz::math::SimdFloat4 translation, rotation, scale;
     if (ToAffine(matrix, &translation, &rotation, &scale)) {
       ozz::math::Store3PtrU(translation, &_transform->translation.x);
