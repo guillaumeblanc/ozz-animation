@@ -358,23 +358,23 @@ bool SampleChannel(const tinygltf::Model& _model,
 }
 
 // Converts a glTF matrix to an ozz::math::Float4x4 matrix.
-ozz::math::Float4x4 ToMatrix(const std::vector<double> gltfMatrix) {
-  return {{ozz::math::simd_float4::Load(static_cast<float>(gltfMatrix[0]),
-                                        static_cast<float>(gltfMatrix[1]),
-                                        static_cast<float>(gltfMatrix[2]),
-                                        static_cast<float>(gltfMatrix[3])),
-           ozz::math::simd_float4::Load(static_cast<float>(gltfMatrix[4]),
-                                        static_cast<float>(gltfMatrix[5]),
-                                        static_cast<float>(gltfMatrix[6]),
-                                        static_cast<float>(gltfMatrix[7])),
-           ozz::math::simd_float4::Load(static_cast<float>(gltfMatrix[8]),
-                                        static_cast<float>(gltfMatrix[9]),
-                                        static_cast<float>(gltfMatrix[10]),
-                                        static_cast<float>(gltfMatrix[11])),
-           ozz::math::simd_float4::Load(static_cast<float>(gltfMatrix[12]),
-                                        static_cast<float>(gltfMatrix[13]),
-                                        static_cast<float>(gltfMatrix[14]),
-                                        static_cast<float>(gltfMatrix[15]))}};
+ozz::math::Float4x4 ToMatrix(const std::vector<double>& _gltf_matrix) {
+  return {{ozz::math::simd_float4::Load(static_cast<float>(_gltf_matrix[0]),
+                                        static_cast<float>(_gltf_matrix[1]),
+                                        static_cast<float>(_gltf_matrix[2]),
+                                        static_cast<float>(_gltf_matrix[3])),
+           ozz::math::simd_float4::Load(static_cast<float>(_gltf_matrix[4]),
+                                        static_cast<float>(_gltf_matrix[5]),
+                                        static_cast<float>(_gltf_matrix[6]),
+                                        static_cast<float>(_gltf_matrix[7])),
+           ozz::math::simd_float4::Load(static_cast<float>(_gltf_matrix[8]),
+                                        static_cast<float>(_gltf_matrix[9]),
+                                        static_cast<float>(_gltf_matrix[10]),
+                                        static_cast<float>(_gltf_matrix[11])),
+           ozz::math::simd_float4::Load(static_cast<float>(_gltf_matrix[12]),
+                                        static_cast<float>(_gltf_matrix[13]),
+                                        static_cast<float>(_gltf_matrix[14]),
+                                        static_cast<float>(_gltf_matrix[15]))}};
 }
 
 ozz::animation::offline::RawAnimation::TranslationKey
