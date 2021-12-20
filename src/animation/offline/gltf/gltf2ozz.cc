@@ -377,75 +377,85 @@ ozz::math::Float4x4 ToMatrix(const std::vector<double>& _gltf_matrix) {
                                         static_cast<float>(_gltf_matrix[15]))}};
 }
 
-ozz::animation::offline::RawAnimation::TranslationKey
-CreateTranslationRestPoseKey(const tinygltf::Node& _node) {
-  ozz::animation::offline::RawAnimation::TranslationKey key;
-  key.time = 0.0f;
+bool FromNodeMatrix(const tinygltf::Node& _node,
+                    ozz::math::Float3* _translation,
+                    ozz::math::Quaternion* _rotation,
+                    ozz::math::Float3* _scale) {
+  const ozz::math::Float4x4 matrix = ToMatrix(_node.matrix);
+  ozz::math::SimdFloat4 translation, rotation, scale;
+  if (ToAffine(matrix, &translation, &rotation, &scale)) {
+    ozz::log::Err() << "Failed to extract transformation from node \""
+                    << _node.name << "\"." << std::endl;
+    return false;
+  }
 
+  if (_translation) {
+    ozz::math::Store3PtrU(translation, &_translation->x);
+  }
+  if (_rotation) {
+    ozz::math::StorePtrU(rotation, &_rotation->x);
+  }
+  if (_scale) {
+    ozz::math::Store3PtrU(scale, &_scale->x);
+  }
+
+  return true;
+}
+
+bool CreateTranslationRestPoseKey(
+    const tinygltf::Node& _node,
+    ozz::animation::offline::RawAnimation::TranslationKey* _key) {
+  _key->time = 0.0f;
   if (!_node.translation.empty()) {
-    key.value = ozz::math::Float3(static_cast<float>(_node.translation[0]),
-                                  static_cast<float>(_node.translation[1]),
-                                  static_cast<float>(_node.translation[2]));
+    _key->value = ozz::math::Float3(static_cast<float>(_node.translation[0]),
+                                    static_cast<float>(_node.translation[1]),
+                                    static_cast<float>(_node.translation[2]));
   } else if (!_node.matrix.empty()) {
-    // Extract translation from the matrix
-    const ozz::math::Float4x4 matrix = ToMatrix(_node.matrix);
-    
-    ozz::math::SimdFloat4 translation, rotation, scale;
-    if (ToAffine(matrix, &translation, &rotation, &scale)) {
-      ozz::math::Store3PtrU(translation, &key.value.x);
+    if (!FromNodeMatrix(_node, &_key->value, nullptr, nullptr)) {
+      return false;
     }
   } else {
-    key.value = ozz::math::Float3::zero();
+    _key->value = ozz::math::Float3::zero();
   }
 
-  return key;
+  return true;
 }
 
-ozz::animation::offline::RawAnimation::RotationKey CreateRotationRestPoseKey(
-    const tinygltf::Node& _node) {
-  ozz::animation::offline::RawAnimation::RotationKey key;
-  key.time = 0.0f;
-
+bool CreateRotationRestPoseKey(
+    const tinygltf::Node& _node,
+    ozz::animation::offline::RawAnimation::RotationKey* _key) {
+  _key->time = 0.0f;
   if (!_node.rotation.empty()) {
-    key.value = ozz::math::Quaternion(static_cast<float>(_node.rotation[0]),
-                                      static_cast<float>(_node.rotation[1]),
-                                      static_cast<float>(_node.rotation[2]),
-                                      static_cast<float>(_node.rotation[3]));
+    _key->value = ozz::math::Quaternion(static_cast<float>(_node.rotation[0]),
+                                        static_cast<float>(_node.rotation[1]),
+                                        static_cast<float>(_node.rotation[2]),
+                                        static_cast<float>(_node.rotation[3]));
   } else if (!_node.matrix.empty()) {
-    // Extract rotation from the matrix
-    const ozz::math::Float4x4 matrix = ToMatrix(_node.matrix);
-    
-    ozz::math::SimdFloat4 translation, rotation, scale;
-    if (ToAffine(matrix, &translation, &rotation, &scale)) {
-      ozz::math::StorePtrU(rotation, &key.value.x);
+    if (!FromNodeMatrix(_node, nullptr, &_key->value, nullptr)) {
+      return false;
     }
   } else {
-    key.value = ozz::math::Quaternion::identity();
+    _key->value = ozz::math::Quaternion::identity();
   }
-  return key;
+  return true;
 }
 
-ozz::animation::offline::RawAnimation::ScaleKey CreateScaleRestPoseKey(
-    const tinygltf::Node& _node) {
-  ozz::animation::offline::RawAnimation::ScaleKey key;
-  key.time = 0.0f;
-
+bool CreateScaleRestPoseKey(
+    const tinygltf::Node& _node,
+    ozz::animation::offline::RawAnimation::ScaleKey* _key) {
+  _key->time = 0.0f;
   if (!_node.scale.empty()) {
-    key.value = ozz::math::Float3(static_cast<float>(_node.scale[0]),
-                                  static_cast<float>(_node.scale[1]),
-                                  static_cast<float>(_node.scale[2]));
+    _key->value = ozz::math::Float3(static_cast<float>(_node.scale[0]),
+                                    static_cast<float>(_node.scale[1]),
+                                    static_cast<float>(_node.scale[2]));
   } else if (!_node.matrix.empty()) {
-    // Extract scale from the matrix
-    const ozz::math::Float4x4 matrix = ToMatrix(_node.matrix);
-    
-    ozz::math::SimdFloat4 translation, rotation, scale;
-    if (ToAffine(matrix, &translation, &rotation, &scale)) {
-      ozz::math::Store3PtrU(scale, &key.value.x);
+    if (!FromNodeMatrix(_node, nullptr, nullptr, &_key->value)) {
+      return false;
     }
   } else {
-    key.value = ozz::math::Float3::one();
+    _key->value = ozz::math::Float3::one();
   }
-  return key;
+  return true;
 }
 
 // Creates the default transform for a gltf node
@@ -454,21 +464,11 @@ bool CreateNodeTransform(const tinygltf::Node& _node,
   *_transform = ozz::math::Transform::identity();
 
   if (!_node.matrix.empty()) {
-    const ozz::math::Float4x4 matrix = ToMatrix(_node.matrix);
-    
-    ozz::math::SimdFloat4 translation, rotation, scale;
-    if (ToAffine(matrix, &translation, &rotation, &scale)) {
-      ozz::math::Store3PtrU(translation, &_transform->translation.x);
-      ozz::math::StorePtrU(rotation, &_transform->rotation.x);
-      ozz::math::Store3PtrU(scale, &_transform->scale.x);
-      return true;
+    if (!FromNodeMatrix(_node, &_transform->translation, &_transform->rotation,
+                        &_transform->scale)) {
+      return false;
     }
-
-    ozz::log::Err() << "Failed to extract transformation from node \""
-                    << _node.name << "\"." << std::endl;
-    return false;
   }
-
   if (!_node.translation.empty()) {
     _transform->translation =
         ozz::math::Float3(static_cast<float>(_node.translation[0]),
@@ -759,8 +759,9 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
 
     // For each joint get all its associated channels, sample them and record
     // the samples in the joint track
+    bool success = true;
     const ozz::span<const char* const> joint_names = skeleton.joint_names();
-    for (int i = 0; i < num_joints; i++) {
+    for (int i = 0; success && i < num_joints; i++) {
       auto& channels = channels_per_joint[joint_names[i]];
       auto& track = _animation->tracks[i];
 
@@ -769,7 +770,8 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
         if (!SampleAnimationChannel(m_model, sampler, channel->target_path,
                                     _sampling_rate, &_animation->duration,
                                     &track)) {
-          return false;
+          success = false;
+          break;
         }
       }
 
@@ -779,26 +781,47 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
       // Pads the rest pose transform for any joints which do not have an
       // associated channel for this animation
       if (track.translations.empty()) {
-        track.translations.push_back(CreateTranslationRestPoseKey(*node));
+        ozz::animation::offline::RawAnimation::TranslationKey key;
+        if (!CreateTranslationRestPoseKey(*node, &key)) {
+          success = false;
+          break;
+        }
+        track.translations.push_back(key);
       }
       if (track.rotations.empty()) {
-        track.rotations.push_back(CreateRotationRestPoseKey(*node));
+        ozz::animation::offline::RawAnimation::RotationKey key;
+        if (!CreateRotationRestPoseKey(*node, &key)) {
+          success = false;
+          break;
+        }
+        track.rotations.push_back(key);
       }
       if (track.scales.empty()) {
-        track.scales.push_back(CreateScaleRestPoseKey(*node));
+        ozz::animation::offline::RawAnimation::ScaleKey key;
+        if (!CreateScaleRestPoseKey(*node, &key)) {
+          success = false;
+          break;
+        }
+        track.scales.push_back(key);
       }
     }
 
-    ozz::log::LogV() << "Processed animation '" << _animation->name
-                     << "' (tracks: " << _animation->tracks.size()
-                     << ", duration: " << _animation->duration << "s)."
-                     << std::endl;
+    if (!success) {
+      ozz::log::Err() << "Sampling '" << _animation->name << "' failed."
+                      << std::endl;
+      return false;
+    }
 
     if (!_animation->Validate()) {
       ozz::log::Err() << "Animation '" << _animation->name
                       << "' failed validation." << std::endl;
       return false;
     }
+
+    ozz::log::LogV() << "Processed animation '" << _animation->name
+                     << "' (tracks: " << _animation->tracks.size()
+                     << ", duration: " << _animation->duration << "s)."
+                     << std::endl;
 
     return true;
   }
