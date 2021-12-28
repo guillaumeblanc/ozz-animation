@@ -383,7 +383,7 @@ bool FromNodeMatrix(const tinygltf::Node& _node,
                     ozz::math::Float3* _scale) {
   const ozz::math::Float4x4 matrix = ToMatrix(_node.matrix);
   ozz::math::SimdFloat4 translation, rotation, scale;
-  if (ToAffine(matrix, &translation, &rotation, &scale)) {
+  if (!ToAffine(matrix, &translation, &rotation, &scale)) {
     ozz::log::Err() << "Failed to extract transformation from node \""
                     << _node.name << "\"." << std::endl;
     return false;
