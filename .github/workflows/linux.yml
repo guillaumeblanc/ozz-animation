@@ -114,7 +114,7 @@ jobs:
 
     - name: Build
       # Build your program with the given configuration
-      run: cmake --build ${{github.workspace}}/build --config ${{matrix.build_type}} --use-stderr -j
+      run: cmake --build ${{github.workspace}}/build --config ${{matrix.build_type}} --use-stderr
 
     - name: Test
       working-directory: ${{github.workspace}}/build
