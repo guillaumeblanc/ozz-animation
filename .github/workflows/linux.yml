@@ -7,6 +7,7 @@ jobs:
       matrix:
         build_type: [Debug]
         option: [default, ref, shared, no_sample, no_data, no_fbx, no_gltf, no_tests]
+        cxx_standard: ['11']
         include:
           - build_type: Release
             option: default
@@ -14,6 +15,11 @@ jobs:
             option: gcc7
             compiler_c: gcc-7
             compiler_cxx: g++-7
+          - build_type: Debug
+            option: gcc7
+            compiler_c: gcc-7
+            compiler_cxx: g++-7
+            cxx_standard: '17'
           - build_type: Debug
             option: gcc8
             compiler_c: gcc-8
@@ -31,9 +37,19 @@ jobs:
             compiler_c: gcc-11
             compiler_cxx: g++-11
           - build_type: Debug
+            option: gcc11
+            compiler_c: gcc-11
+            compiler_cxx: g++-11
+            cxx_standard: '20'
+          - build_type: Debug
             option: clang7
             compiler_c: clang-7
             compiler_cxx: clang++-7
+          - build_type: Debug
+            option: clang7
+            compiler_c: clang-7
+            compiler_cxx: clang++-7
+            cxx_standard: '17'
           - build_type: Debug
             option: clang8
             compiler_c: clang-8
@@ -50,6 +66,11 @@ jobs:
             option: clang11
             compiler_c: clang-11
             compiler_cxx: clang++-11
+          - build_type: Debug
+            option: clang11
+            compiler_c: clang-11
+            compiler_cxx: clang++-11
+            cxx_standard: '20'
   
     steps:
     - uses: actions/checkout@v2
@@ -85,7 +106,7 @@ jobs:
       # Configure CMake in a 'build' subdirectory.
       run: |
         cmake --version
-        cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DBUILD_SHARED_LIBS=${{matrix.option == 'shared'}} -Dozz_build_tests=${{matrix.option != 'no_tests'}} -Dozz_build_simd_ref=${{matrix.option == 'ref'}} -Dozz_build_samples=${{matrix.option != 'no_sample'}} -Dozz_build_data=${{matrix.option != 'no_data'}} -Dozz_build_gltf=${{matrix.option != 'no_gltf'}}
+        cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DBUILD_SHARED_LIBS=${{matrix.option == 'shared'}} -DCMAKE_CXX_STANDARD=${{matrix.cxx_standard}} -Dozz_build_tests=${{matrix.option != 'no_tests'}} -Dozz_build_simd_ref=${{matrix.option == 'ref'}} -Dozz_build_samples=${{matrix.option != 'no_sample'}} -Dozz_build_data=${{matrix.option != 'no_data'}} -Dozz_build_gltf=${{matrix.option != 'no_gltf'}} 
       env:
         # Sets compiler if available
         CC: ${{matrix.compiler_c}}
@@ -93,7 +114,7 @@ jobs:
 
     - name: Build
       # Build your program with the given configuration
-      run: cmake --build ${{github.workspace}}/build --config ${{matrix.build_type}} --use-stderr -j
+      run: cmake --build ${{github.workspace}}/build --config ${{matrix.build_type}} --use-stderr
 
     - name: Test
       working-directory: ${{github.workspace}}/build

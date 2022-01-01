@@ -49,7 +49,7 @@ class StdAllocator {
   StdAllocator(const StdAllocator&) noexcept {}
 
   template <class _Other>
-  StdAllocator<value_type>(const StdAllocator<_Other>&) noexcept {}
+  StdAllocator(const StdAllocator<_Other>&) noexcept {}
 
   template <class _Other>
   struct rebind {
