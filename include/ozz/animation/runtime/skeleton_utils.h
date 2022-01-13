@@ -28,17 +28,18 @@
 #ifndef OZZ_OZZ_ANIMATION_RUNTIME_SKELETON_UTILS_H_
 #define OZZ_OZZ_ANIMATION_RUNTIME_SKELETON_UTILS_H_
 
+#include <cassert>
+
+#include "ozz/animation/runtime/export.h"
 #include "ozz/animation/runtime/skeleton.h"
 #include "ozz/base/maths/transform.h"
-
-#include <cassert>
 
 namespace ozz {
 namespace animation {
 
-// Get bind-pose of a skeleton joint.
-ozz::math::Transform GetJointLocalBindPose(const Skeleton& _skeleton,
-                                           int _joint);
+// Get rest-pose of a skeleton joint.
+OZZ_ANIMATION_DLL ozz::math::Transform GetJointLocalRestPose(
+    const Skeleton& _skeleton, int _joint);
 
 // Test if a joint is a leaf. _joint number must be in range [0, num joints].
 // "_joint" is a leaf if it's the last joint, or next joint's parent isn't
@@ -51,12 +52,15 @@ inline bool IsLeaf(const Skeleton& _skeleton, int _joint) {
   return next == num_joints || parents[next] != _joint;
 }
 
+// Finds joint index by name. Uses a case sensitive comparison.
+OZZ_ANIMATION_DLL int FindJoint(const Skeleton& _skeleton, const char* _name);
+
 // Applies a specified functor to each joint in a depth-first order.
-// _Fct is of type void(int _current, int _parent) where the first argument is
-// the child of the second argument. _parent is kNoParent if the
-// _current joint is a root. _from indicates the joint from which the joint
-// hierarchy traversal begins. Use Skeleton::kNoParent to traverse the
-// whole hierarchy, in case there are multiple roots.
+// _Fct is of type void(int _current, int _parent) where the first argument
+// is the child of the second argument. _parent is kNoParent if the _current
+// joint is a root. _from indicates the joint from which the joint hierarchy
+// traversal begins. Use Skeleton::kNoParent to traverse the whole
+// hierarchy, in case there are multiple roots.
 template <typename _Fct>
 inline _Fct IterateJointsDF(const Skeleton& _skeleton, _Fct _fct,
                             int _from = Skeleton::kNoParent) {

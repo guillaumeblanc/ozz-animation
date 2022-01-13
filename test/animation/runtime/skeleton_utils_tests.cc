@@ -25,25 +25,23 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/animation/offline/raw_skeleton.h"
-#include "ozz/animation/offline/skeleton_builder.h"
-
 #include <algorithm>
 #include <cstring>
 
 #include "gtest/gtest.h"
-#include "ozz/base/gtest_helper.h"
-#include "ozz/base/maths/gtest_math_helper.h"
-
+#include "ozz/animation/offline/raw_skeleton.h"
+#include "ozz/animation/offline/skeleton_builder.h"
 #include "ozz/animation/runtime/skeleton.h"
 #include "ozz/animation/runtime/skeleton_utils.h"
+#include "ozz/base/gtest_helper.h"
+#include "ozz/base/maths/gtest_math_helper.h"
 #include "ozz/base/memory/unique_ptr.h"
 
 using ozz::animation::Skeleton;
 using ozz::animation::offline::RawSkeleton;
 using ozz::animation::offline::SkeletonBuilder;
 
-TEST(JointBindPose, SkeletonUtils) {
+TEST(JointRestPose, SkeletonUtils) {
   // Instantiates a builder objects with default parameters.
   SkeletonBuilder builder;
 
@@ -76,23 +74,23 @@ TEST(JointBindPose, SkeletonUtils) {
   EXPECT_EQ(skeleton->num_joints(), 3);
 
   // Out of range.
-  EXPECT_ASSERTION(GetJointLocalBindPose(*skeleton, 3),
+  EXPECT_ASSERTION(GetJointLocalRestPose(*skeleton, 3),
                    "Joint index out of range.");
 
-  const ozz::math::Transform bind_pose0 = GetJointLocalBindPose(*skeleton, 0);
-  EXPECT_FLOAT3_EQ(bind_pose0.translation, 1.f, 0.f, 0.f);
-  EXPECT_QUATERNION_EQ(bind_pose0.rotation, 0.f, 0.f, 0.f, 1.f);
-  EXPECT_FLOAT3_EQ(bind_pose0.scale, 0.f, 0.f, 0.f);
+  const ozz::math::Transform rest_pose0 = GetJointLocalRestPose(*skeleton, 0);
+  EXPECT_FLOAT3_EQ(rest_pose0.translation, 1.f, 0.f, 0.f);
+  EXPECT_QUATERNION_EQ(rest_pose0.rotation, 0.f, 0.f, 0.f, 1.f);
+  EXPECT_FLOAT3_EQ(rest_pose0.scale, 0.f, 0.f, 0.f);
 
-  const ozz::math::Transform bind_pose1 = GetJointLocalBindPose(*skeleton, 1);
-  EXPECT_FLOAT3_EQ(bind_pose1.translation, 0.f, 1.f, 0.f);
-  EXPECT_QUATERNION_EQ(bind_pose1.rotation, 0.f, 0.f, 0.f, -1.f);
-  EXPECT_FLOAT3_EQ(bind_pose1.scale, -1.f, -1.f, -1.f);
+  const ozz::math::Transform rest_pose1 = GetJointLocalRestPose(*skeleton, 1);
+  EXPECT_FLOAT3_EQ(rest_pose1.translation, 0.f, 1.f, 0.f);
+  EXPECT_QUATERNION_EQ(rest_pose1.rotation, 0.f, 0.f, 0.f, -1.f);
+  EXPECT_FLOAT3_EQ(rest_pose1.scale, -1.f, -1.f, -1.f);
 
-  const ozz::math::Transform bind_pose2 = GetJointLocalBindPose(*skeleton, 2);
-  EXPECT_FLOAT3_EQ(bind_pose2.translation, 0.f, 0.f, 1.f);
-  EXPECT_QUATERNION_EQ(bind_pose2.rotation, -0.f, -0.f, -0.f, 1.f);
-  EXPECT_FLOAT3_EQ(bind_pose2.scale, 1.f, 1.f, 1.f);
+  const ozz::math::Transform rest_pose2 = GetJointLocalRestPose(*skeleton, 2);
+  EXPECT_FLOAT3_EQ(rest_pose2.translation, 0.f, 0.f, 1.f);
+  EXPECT_QUATERNION_EQ(rest_pose2.rotation, -0.f, -0.f, -0.f, 1.f);
+  EXPECT_FLOAT3_EQ(rest_pose2.scale, 1.f, 1.f, 1.f);
 }
 
 /* Definition of the skeleton used by the tests.
@@ -414,4 +412,27 @@ TEST(IsLeaf, SkeletonUtils) {
   EXPECT_TRUE(IsLeaf(*skeleton, 7));
   EXPECT_FALSE(IsLeaf(*skeleton, 8));
   EXPECT_TRUE(IsLeaf(*skeleton, 9));
+}
+
+TEST(Name, SkeletonUtils) {
+  // Instantiates a builder objects with default parameters.
+  SkeletonBuilder builder;
+
+  RawSkeleton raw_skeleton;
+  raw_skeleton.roots.resize(4);
+  raw_skeleton.roots[0].name = "j0";
+  raw_skeleton.roots[1].name = "j10";
+  raw_skeleton.roots[2].name = "j1";
+  raw_skeleton.roots[3].name = "J0";
+
+  ozz::unique_ptr<Skeleton> skeleton(builder(raw_skeleton));
+  ASSERT_TRUE(skeleton);
+
+  EXPECT_EQ(FindJoint(*skeleton, "j0"), 0);
+  EXPECT_EQ(FindJoint(*skeleton, "j10"), 1);
+  EXPECT_EQ(FindJoint(*skeleton, "j1"), 2);
+  EXPECT_EQ(FindJoint(*skeleton, "J0"), 3);
+
+  EXPECT_TRUE(FindJoint(*skeleton, "aj0") < 0);
+  EXPECT_TRUE(FindJoint(*skeleton, "j0a") < 0);
 }

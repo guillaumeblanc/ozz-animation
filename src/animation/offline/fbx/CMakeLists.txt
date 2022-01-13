@@ -2,22 +2,20 @@ if(NOT ozz_build_fbx)
   return()
 endif()
 
-add_library(ozz_animation_fbx STATIC
+add_library(ozz_animation_fbx
+  ${PROJECT_SOURCE_DIR}/include/ozz/animation/offline/fbx/export.h
   ${PROJECT_SOURCE_DIR}/include/ozz/animation/offline/fbx/fbx.h
   fbx.cc
   ${PROJECT_SOURCE_DIR}/include/ozz/animation/offline/fbx/fbx_animation.h
   fbx_animation.cc
   ${PROJECT_SOURCE_DIR}/include/ozz/animation/offline/fbx/fbx_skeleton.h
   fbx_skeleton.cc)
-target_include_directories(ozz_animation_fbx
-  PUBLIC $<BUILD_INTERFACE:${FBX_INCLUDE_DIRS}>)
+  
+target_compile_definitions(ozz_animation_fbx PRIVATE  $<$<BOOL:${BUILD_SHARED_LIBS}>:OZZ_BUILD_ANIMATIONFBX_LIB>)
+
 target_link_libraries(ozz_animation_fbx
   ozz_animation_offline
-  debug ${FBX_LIBRARIES_DEBUG}
-  optimized ${FBX_LIBRARIES})
-target_compile_options(ozz_animation_fbx
-  PUBLIC $<$<BOOL:${W_NULL_DEREFERENCE}>:-Wno-null-dereference>
-  PUBLIC $<$<BOOL:${W_PRAGMA_PACK}>:-Wno-pragma-pack>)
+  fbx::sdk)
 set_target_properties(ozz_animation_fbx PROPERTIES FOLDER "ozz/tools")
 
 install(TARGETS ozz_animation_fbx DESTINATION lib)
@@ -32,6 +30,7 @@ add_executable(fbx2ozz
 target_link_libraries(fbx2ozz
   ozz_animation_tools
   ozz_animation_fbx)
+target_copy_shared_libraries(fbx2ozz)
 set_target_properties(fbx2ozz
   PROPERTIES FOLDER "ozz/tools")
 
@@ -45,6 +44,7 @@ set(build_configurations
   "/fbx/pab/locomotions.fbx\;{\"skeleton\":{\"filename\":\"pab_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"pab_*.ozz\"}]}\;output:pab_walk.ozz\;output:pab_jog.ozz\;output:pab_run.ozz\;depend:pab_skeleton.ozz"
   "/fbx/pab/crossarms.fbx\;{\"skeleton\":{\"filename\":\"pab_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"pab_crossarms.ozz\"}]}\;output:pab_crossarms.ozz\;depend:pab_skeleton.ozz"
   "/fbx/pab/crackhead.fbx\;{\"skeleton\":{\"filename\":\"pab_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"pab_crackhead.ozz\"},{\"filename\":\"pab_crackhead_additive.ozz\",\"additive\":true}]}\;output:pab_crackhead_additive.ozz\;output:pab_crackhead.ozz\;depend:pab_skeleton.ozz"
+  "/fbx/pab/hand.fbx\;{\"skeleton\":{\"filename\":\"pab_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"clip\":\"curl\",\"filename\":\"pab_curl_additive.ozz\",\"additive\":true,\"additive_reference\":\"skeleton\"},{\"clip\":\"splay\",\"filename\":\"pab_splay_additive.ozz\",\"additive\":true,\"additive_reference\":\"skeleton\"}]}\;output:pab_curl_additive.ozz\;output:pab_splay_additive.ozz\;depend:pab_skeleton.ozz"
   
   # Robot user channels
   "/fbx/robot.fbx\;\;config_file:${PROJECT_SOURCE_DIR}/samples/user_channel/config.json\;output:robot_skeleton.ozz\;output:robot_animation.ozz\;output:robot_track_grasp.ozz"

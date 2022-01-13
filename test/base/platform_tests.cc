@@ -89,6 +89,7 @@ TEST(PointerAlignment, Platform) {
 TEST(TypeSize, Platform) {
   // Checks sizes.
   static_assert(CHAR_BIT == 8, "Unexpected type size");
+  static_assert(sizeof(ozz::byte) == 1, "Unexpected type size");
   static_assert(sizeof(int8_t) == 1, "Unexpected type size");
   static_assert(sizeof(uint8_t) == 1, "Unexpected type size");
   static_assert(sizeof(int16_t) == 2, "Unexpected type size");
@@ -107,6 +108,7 @@ TEST(TypeSize, Platform) {
   static_assert((int16_t(-1) >> 1) == -1, "Unexpected type sign");
   static_assert((int32_t(-1) >> 1) == -1, "Unexpected type sign");
   static_assert((int64_t(-1) >> 1) == -1, "Unexpected type sign");
+  static_assert((ozz::byte(-1) >> 1) == 0x7f, "Unexpected type sign");
   static_assert((uint8_t(-1) >> 1) == 0x7f, "Unexpected type sign");
   static_assert((uint16_t(-1) >> 1) == 0x7fff, "Unexpected type sign");
   static_assert((uint32_t(-1) >> 1) == 0x7fffffff, "Unexpected type sign");

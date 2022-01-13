@@ -23,6 +23,7 @@ add_executable(sample_baked
 
 target_link_libraries(sample_baked
   sample_framework)
+target_copy_shared_libraries(sample_baked)
 
 set_target_properties(sample_baked
   PROPERTIES FOLDER "samples")

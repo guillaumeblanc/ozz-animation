@@ -104,10 +104,10 @@ TEST(SpanAsBytes, Platform) {
     ozz::span<int> si(ai);
     EXPECT_EQ(si.size(), kSize);
 
-    ozz::span<const char> ab = as_bytes(si);
+    ozz::span<const ozz::byte> ab = as_bytes(si);
     EXPECT_EQ(ab.size(), kSize * sizeof(int));
 
-    ozz::span<char> awb = as_writable_bytes(si);
+    ozz::span<ozz::byte> awb = as_writable_bytes(si);
     EXPECT_EQ(awb.size(), kSize * sizeof(int));
   }
 
@@ -116,17 +116,17 @@ TEST(SpanAsBytes, Platform) {
     ozz::span<char> sc(ac);
     EXPECT_EQ(sc.size(), kSize);
 
-    ozz::span<const char> ab = as_bytes(sc);
+    ozz::span<const ozz::byte> ab = as_bytes(sc);
     EXPECT_EQ(ab.size(), sc.size());
 
-    ozz::span<char> awbc = as_writable_bytes(sc);
+    ozz::span<ozz::byte> awbc = as_writable_bytes(sc);
     EXPECT_EQ(awbc.size(), sc.size());
   }
   {  // const
     ozz::span<const int> si(ai);
     EXPECT_EQ(si.size(), kSize);
 
-    ozz::span<const char> ab = as_bytes(si);
+    ozz::span<const ozz::byte> ab = as_bytes(si);
     EXPECT_EQ(ab.size(), kSize * sizeof(int));
   }
 
@@ -136,14 +136,14 @@ TEST(SpanAsBytes, Platform) {
     ozz::span<const char> sc(ac);
     EXPECT_EQ(sc.size(), kSize);
 
-    ozz::span<const char> ab = as_bytes(sc);
+    ozz::span<const ozz::byte> ab = as_bytes(sc);
     EXPECT_EQ(ab.size(), sc.size());
   }
 }
 
 TEST(SpanFill, Platform) {
-  alignas(alignof(int)) char abuffer[16];
-  ozz::span<char> src(abuffer);
+  alignas(alignof(int)) ozz::byte abuffer[16];
+  ozz::span<ozz::byte> src(abuffer);
 
   ozz::span<int> ispan1 = ozz::fill_span<int>(src, 3);
   EXPECT_EQ(ispan1.size(), 3u);
@@ -152,7 +152,7 @@ TEST(SpanFill, Platform) {
   EXPECT_TRUE(src.empty());
   EXPECT_ASSERTION(ozz::fill_span<int>(src, 1), "Invalid range.");
 
-  // Bad aligment
+  // Bad alignment
   src = ozz::make_span(abuffer);
 
   ozz::span<char> cspan = ozz::fill_span<char>(src, 1);
@@ -179,5 +179,49 @@ TEST(SpanRangeLoop, Platform) {
   for (const size_t& li : sci) {
     EXPECT_EQ(i, li);
     i++;
+  }
+}
+
+TEST(SpanSubSpan, Platform) {
+  const size_t kSize = 46;
+  size_t ai[kSize];
+  for (size_t i = 0; i < kSize; ++i) {
+    ai[i] = i;
+  }
+
+  {  // empty
+    ozz::span<size_t> eai;
+    ozz::span<size_t> seai = eai.subspan(0, 0);
+    EXPECT_EQ(seai.size(), 0u);
+  }
+
+  {  // subspan
+    ozz::span<size_t> ncai(ai);
+
+    EXPECT_ASSERTION(ncai.subspan(kSize, 1), " count out of range");
+    EXPECT_ASSERTION(ncai.subspan(1, kSize), " count out of range");
+    EXPECT_ASSERTION(ncai.subspan(kSize + 1, 0), "Offset out of range");
+    EXPECT_ASSERTION(ncai.subspan(0, kSize + 1), "Count out of range");
+
+    EXPECT_EQ(ncai.subspan(0, 0).size(), 0u);
+    EXPECT_EQ(ncai.subspan(0, kSize).size(), kSize);
+    EXPECT_EQ(ncai.subspan(0, kSize - 10)[0], 0u);
+    EXPECT_EQ(ncai.subspan(10, kSize - 10).size(), kSize - 10);
+    EXPECT_EQ(ncai.subspan(10, kSize - 10)[0], 10u);
+    EXPECT_EQ(ncai.subspan(0, kSize - 10).size(), kSize - 10);
+  }
+
+  {  // first - last
+    ozz::span<size_t> ncai(ai);
+
+    EXPECT_ASSERTION(ncai.first(kSize + 1), "Count out of range");
+    EXPECT_EQ(ncai.first(0).size(), 0u);
+    EXPECT_EQ(ncai.first(10).size(), 10u);
+    EXPECT_EQ(ncai.first(10)[0], 0u);
+
+    EXPECT_ASSERTION(ncai.last(kSize + 1), "Count out of range");
+    EXPECT_EQ(ncai.last(0).size(), 0u);
+    EXPECT_EQ(ncai.last(10).size(), 10u);
+    EXPECT_EQ(ncai.last(10)[0], kSize - 10);
   }
 }

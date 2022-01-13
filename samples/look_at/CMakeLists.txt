@@ -25,6 +25,7 @@ add_executable(sample_look_at
   "${CMAKE_CURRENT_BINARY_DIR}/media/mesh.ozz")
 target_link_libraries(sample_look_at
   sample_framework)
+  target_copy_shared_libraries(sample_look_at)
 
 set_target_properties(sample_look_at
   PROPERTIES FOLDER "samples")

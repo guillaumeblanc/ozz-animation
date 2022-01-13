@@ -1,4 +1,6 @@
-add_library(ozz_animation_offline STATIC
+
+add_library(ozz_animation_offline
+  ${PROJECT_SOURCE_DIR}/include/ozz/animation/offline/export.h
   decimate.h
   ${PROJECT_SOURCE_DIR}/include/ozz/animation/offline/raw_animation.h
   raw_animation.cc
@@ -22,8 +24,10 @@ add_library(ozz_animation_offline STATIC
   track_builder.cc
   ${PROJECT_SOURCE_DIR}/include/ozz/animation/offline/track_optimizer.h
   track_optimizer.cc)
-target_link_libraries(ozz_animation_offline
-  ozz_animation)
+
+target_compile_definitions(ozz_animation_offline PRIVATE $<$<BOOL:${BUILD_SHARED_LIBS}>:OZZ_BUILD_ANIMOFFLINE_LIB>)
+
+target_link_libraries(ozz_animation_offline ozz_animation)
 
 set_target_properties(ozz_animation_offline PROPERTIES FOLDER "ozz")
 
@@ -31,7 +35,7 @@ install(TARGETS ozz_animation_offline DESTINATION lib)
 
 fuse_target("ozz_animation_offline")
 
+add_subdirectory(tools) # tools target need to be defined before other targets that uses them
 add_subdirectory(fbx)
 add_subdirectory(gltf)
-add_subdirectory(tools)
 

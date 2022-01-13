@@ -28,15 +28,12 @@
 #include "ozz/animation/offline/fbx/fbx_animation.h"
 
 #include "ozz/animation/offline/fbx/fbx.h"
-
 #include "ozz/animation/offline/raw_animation.h"
 #include "ozz/animation/offline/raw_animation_utils.h"
 #include "ozz/animation/offline/raw_track.h"
 #include "ozz/animation/runtime/skeleton.h"
 #include "ozz/animation/runtime/skeleton_utils.h"
-
 #include "ozz/base/log.h"
-
 #include "ozz/base/maths/math_ex.h"
 #include "ozz/base/maths/transform.h"
 
@@ -157,16 +154,16 @@ bool ExtractAnimation(FbxSceneLoader& _scene_loader, const SamplingInfo& _info,
     if (node == nullptr) {
       ozz::log::LogV() << "No animation track found for joint \""
                        << _skeleton.joint_names()[i]
-                       << "\". Using skeleton bind pose instead." << std::endl;
+                       << "\". Using skeleton rest pose instead." << std::endl;
 
-      const math::Transform& bind_pose =
-          ozz::animation::GetJointLocalBindPose(_skeleton, i);
+      const math::Transform& rest_pose =
+          ozz::animation::GetJointLocalRestPose(_skeleton, i);
       const math::SimdFloat4 t =
-          math::simd_float4::Load3PtrU(&bind_pose.translation.x);
+          math::simd_float4::Load3PtrU(&rest_pose.translation.x);
       const math::SimdFloat4 q =
-          math::simd_float4::LoadPtrU(&bind_pose.rotation.x);
+          math::simd_float4::LoadPtrU(&rest_pose.rotation.x);
       const math::SimdFloat4 s =
-          math::simd_float4::Load3PtrU(&bind_pose.scale.x);
+          math::simd_float4::Load3PtrU(&rest_pose.scale.x);
       const math::Float4x4 local_matrix = math::Float4x4::FromAffine(t, q, s);
 
       ozz::vector<math::Float4x4>& node_matrices = world_matrices[i];
@@ -201,7 +198,7 @@ bool ExtractAnimation(FbxSceneLoader& _scene_loader, const SamplingInfo& _info,
 
   // Builds local space animation tracks.
   // Allocates all tracks with the same number of joints as the skeleton.
-  // Tracks that would not be found will be set to skeleton bind-pose
+  // Tracks that would not be found will be set to skeleton rest-pose
   // transformation.
   _animation->tracks.resize(_skeleton.num_joints());
   for (int i = 0; i < _skeleton.num_joints(); i++) {

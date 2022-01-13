@@ -20,5 +20,5 @@ The number of characters can also be set from the GUI.
 ## Implementation
 
 1. This sample extends "playback" sample, and uses the same procedure to load skeleton and animation objects.
-2. For each character, allocates runtime buffers (local-space transforms of type ozz::math::SoaTransform, model-space matrices of type ozz::math::Float4x4) with the number of elements required for the skeleton, and a sampling cache (ozz::animation::SamplingCache). Only the skeleton and the animation are shared amongst all characters, as they are read only objects, not modified during jobs execution.
+2. For each character, allocates runtime buffers (local-space transforms of type ozz::math::SoaTransform, model-space matrices of type ozz::math::Float4x4) with the number of elements required for the skeleton, and a sampling context (ozz::animation::SamplingJob::Context). Only the skeleton and the animation are shared amongst all characters, as they are read only objects, not modified during jobs execution.
 3. Update function uses a parallel-for loop to split up characters' update loop amongst std::async tasks (sampling and local-to-model jobs execution), allowing all characters' update to be executed in concurrent batches.

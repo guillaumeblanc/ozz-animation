@@ -77,15 +77,15 @@
 // integrity, like data corruption or file truncation, must also be validated on
 // the user side.
 
+#include <stdint.h>
+
+#include <cassert>
+
 #include "ozz/base/endianness.h"
+#include "ozz/base/io/archive_traits.h"
 #include "ozz/base/io/stream.h"
 #include "ozz/base/platform.h"
 #include "ozz/base/span.h"
-
-#include <stdint.h>
-#include <cassert>
-
-#include "ozz/base/io/archive_traits.h"
 
 namespace ozz {
 namespace io {
@@ -102,7 +102,7 @@ struct Tagger;
 // The output endianness mode is set at construction time. It is written to the
 // stream to allow the IArchive to perform the required conversion to the native
 // endianness mode while reading.
-class OArchive {
+class OZZ_BASE_DLL OArchive {
  public:
   // Constructs an output archive from the Stream _stream that must be valid
   // and opened for writing.
@@ -126,7 +126,7 @@ class OArchive {
   }
 
 // Primitive type saving.
-#define OZZ_IO_PRIMITIVE_TYPE(_type)                             \
+#define OZZ_IO_PRIMITIVE_TYPE(_type)                              \
   void operator<<(_type _v) {                                     \
     _type v = endian_swap_ ? EndianSwapper<_type>::Swap(_v) : _v; \
     OZZ_IF_DEBUG(size_t size =) stream_->Write(&v, sizeof(v));    \
@@ -171,7 +171,7 @@ class OArchive {
 // Implements input archive concept used to load/de-serialize data to a Stream.
 // Endianness conversions are automatically performed according to the Archive
 // and the native formats.
-class IArchive {
+class OZZ_BASE_DLL IArchive {
  public:
   // Constructs an input archive from the Stream _stream that must be opened for
   // reading, at the same tell (position in the stream) as when it was passed to
@@ -199,7 +199,7 @@ class IArchive {
   }
 
 // Primitive type loading.
-#define OZZ_IO_PRIMITIVE_TYPE(_type)                         \
+#define OZZ_IO_PRIMITIVE_TYPE(_type)                          \
   void operator>>(_type& _v) {                                \
     _type v;                                                  \
     OZZ_IF_DEBUG(size_t size =) stream_->Read(&v, sizeof(v)); \
@@ -314,7 +314,7 @@ struct Version<const Array<_Ty>> {
 };
 
 // Specializes Array Save/Load for primitive types.
-#define OZZ_IO_PRIMITIVE_TYPE(_type)                                       \
+#define OZZ_IO_PRIMITIVE_TYPE(_type)                                        \
   template <>                                                               \
   inline void Array<const _type>::Save(OArchive& _archive) const {          \
     if (_archive.endian_swap()) {                                           \

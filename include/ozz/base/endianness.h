@@ -66,20 +66,17 @@ template <typename _Ty, size_t _size = sizeof(_Ty)>
 struct EndianSwapper;
 
 // Internal macro used to swap two bytes.
-#define OZZ_BYTE_SWAP(_a, _b) \
-  do {                        \
-    const char temp = _a;     \
-    _a = _b;                  \
-    _b = temp;                \
+#define OZZ_BYTE_SWAP(_a, _b)    \
+  do {                           \
+    const ozz::byte temp = (_a); \
+    (_a) = (_b);                 \
+    (_b) = temp;                 \
   } while (0)
 
 // EndianSwapper specialization for 1 byte types.
 template <typename _Ty>
 struct EndianSwapper<_Ty, 1> {
-  OZZ_INLINE static void Swap(_Ty* _ty, size_t _count) {
-    (void)_ty;
-    (void)_count;
-  }
+  OZZ_INLINE static void Swap(_Ty*, size_t) {}
   OZZ_INLINE static _Ty Swap(_Ty _ty) { return _ty; }
 };
 
@@ -87,13 +84,13 @@ struct EndianSwapper<_Ty, 1> {
 template <typename _Ty>
 struct EndianSwapper<_Ty, 2> {
   OZZ_INLINE static void Swap(_Ty* _ty, size_t _count) {
-    char* alias = reinterpret_cast<char*>(_ty);
+    byte* alias = reinterpret_cast<byte*>(_ty);
     for (size_t i = 0; i < _count * 2; i += 2) {
       OZZ_BYTE_SWAP(alias[i + 0], alias[i + 1]);
     }
   }
   OZZ_INLINE static _Ty Swap(_Ty _ty) {  // Pass by copy to swap _ty in-place.
-    char* alias = reinterpret_cast<char*>(&_ty);
+    byte* alias = reinterpret_cast<byte*>(&_ty);
     OZZ_BYTE_SWAP(alias[0], alias[1]);
     return _ty;
   }
@@ -103,14 +100,14 @@ struct EndianSwapper<_Ty, 2> {
 template <typename _Ty>
 struct EndianSwapper<_Ty, 4> {
   OZZ_INLINE static void Swap(_Ty* _ty, size_t _count) {
-    char* alias = reinterpret_cast<char*>(_ty);
+    byte* alias = reinterpret_cast<byte*>(_ty);
     for (size_t i = 0; i < _count * 4; i += 4) {
       OZZ_BYTE_SWAP(alias[i + 0], alias[i + 3]);
       OZZ_BYTE_SWAP(alias[i + 1], alias[i + 2]);
     }
   }
   OZZ_INLINE static _Ty Swap(_Ty _ty) {  // Pass by copy to swap _ty in-place.
-    char* alias = reinterpret_cast<char*>(&_ty);
+    byte* alias = reinterpret_cast<byte*>(&_ty);
     OZZ_BYTE_SWAP(alias[0], alias[3]);
     OZZ_BYTE_SWAP(alias[1], alias[2]);
     return _ty;
@@ -121,7 +118,7 @@ struct EndianSwapper<_Ty, 4> {
 template <typename _Ty>
 struct EndianSwapper<_Ty, 8> {
   OZZ_INLINE static void Swap(_Ty* _ty, size_t _count) {
-    char* alias = reinterpret_cast<char*>(_ty);
+    byte* alias = reinterpret_cast<byte*>(_ty);
     for (size_t i = 0; i < _count * 8; i += 8) {
       OZZ_BYTE_SWAP(alias[i + 0], alias[i + 7]);
       OZZ_BYTE_SWAP(alias[i + 1], alias[i + 6]);
@@ -130,7 +127,7 @@ struct EndianSwapper<_Ty, 8> {
     }
   }
   OZZ_INLINE static _Ty Swap(_Ty _ty) {  // Pass by copy to swap _ty in-place.
-    char* alias = reinterpret_cast<char*>(&_ty);
+    byte* alias = reinterpret_cast<byte*>(&_ty);
     OZZ_BYTE_SWAP(alias[0], alias[7]);
     OZZ_BYTE_SWAP(alias[1], alias[6]);
     OZZ_BYTE_SWAP(alias[2], alias[5]);

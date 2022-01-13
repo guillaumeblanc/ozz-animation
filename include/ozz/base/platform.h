@@ -41,7 +41,12 @@
 #include <cassert>
 #include <cstddef>
 
+#include "ozz/base/export.h"
+
 namespace ozz {
+
+// Defines a byte type, unsigned so right shift  doesn't propagate sign bit.
+typedef uint8_t byte;
 
 // Finds the number of elements of a statically allocated array.
 #define OZZ_ARRAY_SIZE(_array) (sizeof(_array) / sizeof(_array[0]))
@@ -80,7 +85,7 @@ namespace ozz {
 // Case sensitive wildcard string matching:
 // - a ? sign matches any character, except an empty string.
 // - a * sign matches any string, including an empty string.
-bool strmatch(const char* _str, const char* _pattern);
+OZZ_BASE_DLL bool strmatch(const char* _str, const char* _pattern);
 
 // Tests whether _block is aligned to _alignment boundary.
 template <typename _Ty>

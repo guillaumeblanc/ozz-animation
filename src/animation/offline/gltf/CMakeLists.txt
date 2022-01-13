@@ -7,6 +7,7 @@ add_executable(gltf2ozz
 
 target_link_libraries(gltf2ozz PRIVATE
   ozz_animation_tools)
+target_copy_shared_libraries(gltf2ozz)
 set_target_properties(gltf2ozz
   PROPERTIES FOLDER "ozz/tools")
 

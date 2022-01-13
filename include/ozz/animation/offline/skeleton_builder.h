@@ -28,6 +28,7 @@
 #ifndef OZZ_OZZ_ANIMATION_OFFLINE_SKELETON_BUILDER_H_
 #define OZZ_OZZ_ANIMATION_OFFLINE_SKELETON_BUILDER_H_
 
+#include "ozz/animation/offline/export.h"
 #include "ozz/base/maths/transform.h"
 #include "ozz/base/memory/unique_ptr.h"
 
@@ -43,7 +44,7 @@ namespace offline {
 struct RawSkeleton;
 
 // Defines the class responsible of building Skeleton instances.
-class SkeletonBuilder {
+class OZZ_ANIMOFFLINE_DLL SkeletonBuilder {
  public:
   // Creates a Skeleton based on _raw_skeleton and *this builder parameters.
   // Returns a Skeleton instance on success, an empty unique_ptr on failure. See

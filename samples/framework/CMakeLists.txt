@@ -29,9 +29,7 @@ add_library(sample_framework STATIC
 # Samples requires OpenGL package.
 if(NOT EMSCRIPTEN)
   add_subdirectory(${PROJECT_SOURCE_DIR}/extern/glfw glfw)
-
-  target_link_libraries(sample_framework
-    glfw)
+  target_link_libraries(sample_framework glfw)
 endif()
 
 target_link_libraries(sample_framework
@@ -43,7 +41,6 @@ if(TARGET BUILD_DATA_SAMPLE)
   add_dependencies(sample_framework BUILD_DATA_SAMPLE)
 endif()
 
-set_target_properties(sample_framework
-  PROPERTIES FOLDER "samples")
+set_target_properties(sample_framework PROPERTIES FOLDER "samples")
 
 add_subdirectory(tools)

@@ -26,6 +26,7 @@
 //----------------------------------------------------------------------------//
 
 #include "gtest/gtest.h"
+#include "ozz/base/containers/array.h"
 #include "ozz/base/containers/deque.h"
 #include "ozz/base/containers/list.h"
 #include "ozz/base/containers/map.h"
@@ -38,6 +39,35 @@
 #include "ozz/base/containers/vector.h"
 #include "ozz/base/gtest_helper.h"
 #include "ozz/base/span.h"
+
+TEST(Allocator, Containers) {
+  ozz::StdAllocator<int> int_allocator;
+  int_allocator.deallocate(int_allocator.allocate(46), 46);
+  ozz::StdAllocator<float> other_allocator(int_allocator);
+
+  class Object {
+   public:
+    Object(int& _counter) : counter_(_counter) { ++counter_; }
+    ~Object() { --counter_; }
+
+   private:
+    int& counter_;
+  };
+
+  int counter = 0;
+  ozz::StdAllocator<Object> ObjectAllocator;
+  Object* pointer = ObjectAllocator.allocate(1);
+  int_allocator.construct(pointer, counter);
+  EXPECT_EQ(counter, 1);
+
+  int_allocator.destroy(pointer);
+  EXPECT_EQ(counter, 0);
+
+  ObjectAllocator.deallocate(pointer, 1);
+
+  EXPECT_TRUE(int_allocator == other_allocator);
+  EXPECT_FALSE(int_allocator != other_allocator);
+}
 
 TEST(Vector, Containers) {
   typedef ozz::vector<int> Container;
@@ -52,6 +82,18 @@ TEST(Vector, Containers) {
   EXPECT_EQ(container[3], 3);
 
   Container container2 = std::move(container);
+}
+
+TEST(Array, Containers) {
+  typedef ozz::array<int, 4> Container;
+  Container container{{0, 1, 2, 3}};
+  EXPECT_EQ(container[0], 0);
+  EXPECT_EQ(container[1], 1);
+  EXPECT_EQ(container[2], 2);
+  EXPECT_EQ(container[3], 3);
+
+  Container container2 = std::move(container);
+  (void)container2;
 }
 
 TEST(VectorExtensions, Containers) {

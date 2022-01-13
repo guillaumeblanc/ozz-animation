@@ -89,6 +89,7 @@ bool AdditiveAnimationBuilder::operator()(const RawAnimation& _input,
   }
 
   // Rebuilds output animation.
+  _output->name = _input.name;
   _output->duration = _input.duration;
   _output->tracks.resize(_input.tracks.size());
 
@@ -143,6 +144,7 @@ bool AdditiveAnimationBuilder::operator()(
   }
 
   // Rebuilds output animation.
+  _output->name = _input.name;
   _output->duration = _input.duration;
   _output->tracks.resize(_input.tracks.size());
 

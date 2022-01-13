@@ -28,6 +28,7 @@
 #ifndef OZZ_OZZ_ANIMATION_RUNTIME_ANIMATION_UTILS_H_
 #define OZZ_OZZ_ANIMATION_RUNTIME_ANIMATION_UTILS_H_
 
+#include "ozz/animation/runtime/export.h"
 #include "ozz/animation/runtime/animation.h"
 
 namespace ozz {
@@ -35,9 +36,12 @@ namespace animation {
 
 // Count translation, rotation or scale keyframes for a given track number. Use
 // a negative _track value to count all tracks.
-int CountTranslationKeyframes(const Animation& _animation, int _track = -1);
-int CountRotationKeyframes(const Animation& _animation, int _track = -1);
-int CountScaleKeyframes(const Animation& _animation, int _track = -1);
+OZZ_ANIMATION_DLL int CountTranslationKeyframes(const Animation& _animation,
+                                                int _track = -1);
+OZZ_ANIMATION_DLL int CountRotationKeyframes(const Animation& _animation,
+                                             int _track = -1);
+OZZ_ANIMATION_DLL int CountScaleKeyframes(const Animation& _animation,
+                                          int _track = -1);
 }  // namespace animation
 }  // namespace ozz
 #endif  // OZZ_OZZ_ANIMATION_RUNTIME_ANIMATION_UTILS_H_

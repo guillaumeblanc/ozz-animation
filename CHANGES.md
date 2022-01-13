@@ -1,3 +1,24 @@
+Release version 0.14.0
+----------------------
+
+* Samples
+  - [sample_fbx2mesh] Supports vertices part of a skinned mesh but with a weight of 0.
+  - [sample_fbx2mesh] Assigns non-influenced vertices to root joint.
+
+* Library
+  - [offline] #124 Fixes incorrect root joint detection bug in glTF importer.
+  - [offline] #129 #130 Copy animation name to output in ozz::animation::offline::AdditiveAnimationBuilder.
+  - [animation] #103 Allows move constructor and assignment for ozz::animation::Skeleton, ozz::animation::Animation and ozz::animation::Track.
+  - [animation] Renames SamplingCache to SamplingJob::Context.
+  - [animation] #110 Renames skeleton bind pose to rest pose, to avoid confusion with skinning bind pose.
+  - [base] Fixes Float4x4::FromEuler which was swapping pitch and roll.
+
+* Build pipeline
+  - Moves CI to github actions.
+  - #59 Adds support for shared libraries on Windows (dll), Linux and MacOS platforms.
+  - #111 Removes _GLIBCXX_DEBUG from default build settings as it can create incompatibilities when using prebuilt packages.
+  - #122 #137 Adds support for gcc 11 compiler.
+
 Release version 0.13.0
 ----------------------
 
@@ -52,7 +73,7 @@ Release version 0.11.0
 
 * Library
   - [animation] Adds two-bone and aim inverse kinematic solvers. They can be used at runtime to procedurally affect joint local-space transforms.
-  - [animation] Allows resizing SamplingCache, meaning the can be allocated without knowing the number of joints the cache needs to support.
+  - [animation] Allows resizing SamplingJob::Context, meaning the can be allocated without knowing the number of joints the cache needs to support.
   - [animation] Allow ozz::animation::LocalToModelJob to partially update a hierarchy, aka all children of a joint. This is useful when changes to a local-space pose has been limited to part of the joint hierarchy, like when applying IK or modifying model-space matrices independently from local-space transform.
   - [animation] Changes ozz::animation::Skeleton joints from breadth-first to depth-first. This change breaks compatibility of previous ozz::animation::offline::RawAnimation, ozz::animation::Animation and ozz::animation::Skeleton archives.
   - [animation] Renames track_triggering_job_stl.h to track_triggering_job_trait.h.

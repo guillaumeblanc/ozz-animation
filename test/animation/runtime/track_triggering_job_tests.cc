@@ -852,8 +852,10 @@ void TestEdgesExpectation(
     const size_t kMaxIterations = 1000;
     for (size_t i = 0; i < kMaxIterations; ++i) {
       job.from =
-          kMaxRange * (1.f - 2.f * static_cast<float>(rand()) / RAND_MAX);
-      job.to = kMaxRange * (1.f - 2.f * static_cast<float>(rand()) / RAND_MAX);
+          kMaxRange * (1.f - 2.f * static_cast<float>(rand()) /
+                       static_cast<float>(RAND_MAX));
+      job.to = kMaxRange * (1.f - 2.f * static_cast<float>(rand()) /
+                            static_cast<float>(RAND_MAX));
       TrackTriggeringJob::Iterator iterator;
       job.iterator = &iterator;
       ASSERT_TRUE(job.Run());
@@ -870,7 +872,8 @@ void TestEdgesExpectation(
       // Finds new evaluation range
       float new_time =
           ratio +
-          kMaxRange * (1.f - 2.f * static_cast<float>(rand()) / RAND_MAX);
+          kMaxRange * (1.f - 2.f * static_cast<float>(rand()) /
+                       static_cast<float>(RAND_MAX));
 
       switch (rand() % 20) {
         case 0: {

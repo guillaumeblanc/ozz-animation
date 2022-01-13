@@ -1,0 +1,40 @@
+name: macOS
+on: [push, pull_request]
+jobs:
+  build:
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        build_type: [Debug]
+        option: [default, ref, shared, no_fbx]
+        include:
+          - build_type: Release
+            option: default
+    steps:
+    - uses: actions/checkout@v2
+        
+    - name: Install fbx sdk
+      if: matrix.option != 'no_fbx'
+      run: |
+        mkdir fbx
+        cd fbx
+        sudo wget --user-agent='Mozilla/5.0' 'https://www.autodesk.com/content/dam/autodesk/www/adn/fbx/2020-0-1/fbx202001_fbxsdk_clang_mac.pkg.tgz' -O 'fbx.tgz'
+        sudo tar -xf 'fbx.tgz'
+        sudo installer -pkg *_fbxsdk_clang_macos.pkg -target /
+        cd ..
+    
+    - name: Configure
+      # Configure CMake in a 'build' subdirectory.
+      run: |
+        cmake --version
+        cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DBUILD_SHARED_LIBS=${{matrix.option == 'shared'}} -Dozz_build_tests=${{matrix.option != 'no_tests'}} -Dozz_build_simd_ref=${{matrix.option == 'ref'}} -Dozz_build_samples=${{matrix.option != 'no_sample'}} -Dozz_build_data=${{matrix.option != 'no_data'}} -Dozz_build_gltf=${{matrix.option != 'no_gltf'}}
+
+    - name: Build
+      # Build your program with the given configuration
+      run: cmake --build ${{github.workspace}}/build --config ${{matrix.build_type}} --use-stderr -j
+
+    - name: Test
+      working-directory: ${{github.workspace}}/build
+      # Execute tests defined by the CMake configuration.
+      run: ctest -C ${{matrix.build_type}} --output-on-failure -j2
+      

@@ -28,6 +28,7 @@
 #ifndef OZZ_OZZ_ANIMATION_RUNTIME_IK_TWO_BONE_JOB_H_
 #define OZZ_OZZ_ANIMATION_RUNTIME_IK_TWO_BONE_JOB_H_
 
+#include "ozz/animation/runtime/export.h"
 #include "ozz/base/platform.h"
 
 #include "ozz/base/maths/simd_math.h"
@@ -51,7 +52,7 @@ namespace animation {
 // ancestors (joints in-between will simply remain fixed).
 // Implementation is inspired by Autodesk Maya 2 bone IK, improved stability
 // wise and extended with Soften IK.
-struct IKTwoBoneJob {
+struct OZZ_ANIMATION_DLL IKTwoBoneJob {
   // Constructor, initializes default values.
   IKTwoBoneJob();
 

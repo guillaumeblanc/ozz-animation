@@ -1,0 +1,123 @@
+name: Linux
+on: [push, pull_request]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        build_type: [Debug]
+        option: [default, ref, shared, no_sample, no_data, no_fbx, no_gltf, no_tests]
+        cxx_standard: ['11']
+        include:
+          - build_type: Release
+            option: default
+          - build_type: Debug
+            option: gcc7
+            compiler_c: gcc-7
+            compiler_cxx: g++-7
+          - build_type: Debug
+            option: gcc7
+            compiler_c: gcc-7
+            compiler_cxx: g++-7
+            cxx_standard: '17'
+          - build_type: Debug
+            option: gcc8
+            compiler_c: gcc-8
+            compiler_cxx: g++-8
+          - build_type: Debug
+            option: gcc9
+            compiler_c: gcc-9
+            compiler_cxx: g++-9
+          - build_type: Debug
+            option: gcc10
+            compiler_c: gcc-10
+            compiler_cxx: g++-10
+          - build_type: Debug
+            option: gcc11
+            compiler_c: gcc-11
+            compiler_cxx: g++-11
+          - build_type: Debug
+            option: gcc11
+            compiler_c: gcc-11
+            compiler_cxx: g++-11
+            cxx_standard: '20'
+          - build_type: Debug
+            option: clang7
+            compiler_c: clang-7
+            compiler_cxx: clang++-7
+          - build_type: Debug
+            option: clang7
+            compiler_c: clang-7
+            compiler_cxx: clang++-7
+            cxx_standard: '17'
+          - build_type: Debug
+            option: clang8
+            compiler_c: clang-8
+            compiler_cxx: clang++-8
+          - build_type: Debug
+            option: clang9
+            compiler_c: clang-9
+            compiler_cxx: clang++-9
+          - build_type: Debug
+            option: clang10
+            compiler_c: clang-10
+            compiler_cxx: clang++-10
+          - build_type: Debug
+            option: clang11
+            compiler_c: clang-11
+            compiler_cxx: clang++-11
+          - build_type: Debug
+            option: clang11
+            compiler_c: clang-11
+            compiler_cxx: clang++-11
+            cxx_standard: '20'
+  
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Install OpenGL dependency
+      run: |
+        sudo apt-get update
+        sudo apt-get install libgl1-mesa-dev libglu1-mesa-dev
+
+    - name: Install c compiler
+      if: matrix.compiler_c
+      run: |
+        sudo apt-get install ${{matrix.compiler_c}}
+        
+    - name: Install cxx compiler
+      if: matrix.compiler_cxx
+      run: |
+        sudo apt-get install ${{matrix.compiler_cxx}}
+
+    - name: Install fbx sdk
+      if: matrix.option != 'no_fbx'
+      run: |
+        mkdir fbx
+        cd fbx
+        sudo wget --user-agent='Mozilla/5.0' 'https://www.autodesk.com/content/dam/autodesk/www/adn/fbx/2020-2/fbx20202_fbxsdk_linux.tar.gz' -O 'fbx.tar.gz'
+        sudo tar -xf 'fbx.tar.gz'
+        (yes yes | sudo ./*_fbxsdk_linux /usr/local) || true
+        sudo chmod -R 755 /usr/local/lib
+        sudo chmod -R 755 /usr/local/include
+        cd ..
+    
+    - name: Configure
+      # Configure CMake in a 'build' subdirectory.
+      run: |
+        cmake --version
+        cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DBUILD_SHARED_LIBS=${{matrix.option == 'shared'}} -DCMAKE_CXX_STANDARD=${{matrix.cxx_standard}} -Dozz_build_tests=${{matrix.option != 'no_tests'}} -Dozz_build_simd_ref=${{matrix.option == 'ref'}} -Dozz_build_samples=${{matrix.option != 'no_sample'}} -Dozz_build_data=${{matrix.option != 'no_data'}} -Dozz_build_gltf=${{matrix.option != 'no_gltf'}} 
+      env:
+        # Sets compiler if available
+        CC: ${{matrix.compiler_c}}
+        CXX: ${{matrix.compiler_cxx}}
+
+    - name: Build
+      # Build your program with the given configuration
+      run: cmake --build ${{github.workspace}}/build --config ${{matrix.build_type}} --use-stderr
+
+    - name: Test
+      working-directory: ${{github.workspace}}/build
+      # Execute tests defined by the CMake configuration.
+      run: ctest -C ${{matrix.build_type}} --output-on-failure -j2
+      

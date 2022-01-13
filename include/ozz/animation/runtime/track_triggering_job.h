@@ -28,6 +28,7 @@
 #ifndef OZZ_OZZ_ANIMATION_RUNTIME_TRACK_TRIGGERING_JOB_H_
 #define OZZ_OZZ_ANIMATION_RUNTIME_TRACK_TRIGGERING_JOB_H_
 
+#include "ozz/animation/runtime/export.h"
 #include "ozz/base/platform.h"
 
 namespace ozz {
@@ -46,7 +47,7 @@ class FloatTrack;
 // track types isn't possible.
 // The job execution actually performs a lazy evaluation of edges. It builds an
 // iterator that will process the next edge on each call to ++ operator.
-struct TrackTriggeringJob {
+struct OZZ_ANIMATION_DLL TrackTriggeringJob {
   TrackTriggeringJob();
 
   // Validates job parameters.
@@ -95,7 +96,7 @@ struct TrackTriggeringJob {
 // Iterator implementation. Calls to ++ operator will compute the next edge. It
 // should be compared (using operator !=) to job's end iterator to test if the
 // last edge has been reached.
-class TrackTriggeringJob::Iterator {
+class OZZ_ANIMATION_DLL TrackTriggeringJob::Iterator {
  public:
   Iterator() : job_(nullptr), outer_(0.f), inner_(0) {}
 
