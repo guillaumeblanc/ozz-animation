@@ -411,7 +411,7 @@ bool LoadMeshes(const char* _filename,
 }
 
 namespace {
-// Moller–Trumbore intersection algorithm
+// Moller-Trumbore intersection algorithm
 // https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm
 bool RayIntersectsTriangle(const ozz::math::Float3& _ray_origin,
                            const ozz::math::Float3& _ray_direction,
