@@ -781,6 +781,59 @@ TEST(AdditiveWeight, BlendingJob) {
   }
 }
 
+TEST(AdditiveRotationFromNonIdentity, BlendingJob) {
+  using ozz::math::GetW;
+  using ozz::math::GetX;
+  using ozz::math::GetY;
+  using ozz::math::GetZ;
+
+  const ozz::math::SoaTransform identity = ozz::math::SoaTransform::identity();
+
+  // Initialize rest pose.
+  ozz::math::SoaTransform rest_poses[1] = {identity};
+  rest_poses[0].rotation = ozz::math::SoaQuaternion::Load(
+      ozz::math::simd_float4::Load(0.f, .70710677f, .382683432f, 0.f),
+      ozz::math::simd_float4::Load(0.f, 0.f, 0.f, .70710677f),
+      ozz::math::simd_float4::Load(0.f, 0.f, 0.f, 0.f),
+      ozz::math::simd_float4::Load(1.f, .70710677f, .9238795f, -.70710677f));
+
+  // Initialize inputs.
+  ozz::math::SoaQuaternion input_half_rotation = ozz::math::SoaQuaternion::Load(
+      ozz::math::simd_float4::Load(.70710677f, 0.f, 0.f, .382683432f),
+      ozz::math::simd_float4::Load(0.f, 0.f, .70710677f, 0.f),
+      ozz::math::simd_float4::Load(0.f, 0.f, 0.f, 0.f),
+      ozz::math::simd_float4::Load(.70710677f, 1.f, -.70710677f, .9238795f));
+  ozz::math::SoaTransform input_transforms[1] = {identity};
+  input_transforms[0].rotation = input_half_rotation * input_half_rotation;
+
+  ozz::math::SoaQuaternion expected_rotation =
+      rest_poses[0].rotation *
+      Conjugate(input_half_rotation * input_half_rotation);
+  constexpr float weights[]{-1.0f, -0.5f, 0.0f, 0.5f, 1.0f};
+  for (float weight : weights) {
+    BlendingJob::Layer layers[1];
+    layers[0].transform = input_transforms;
+
+    ozz::math::SoaTransform output_transforms[1];
+
+    BlendingJob job;
+    job.additive_layers = layers;
+    job.rest_pose = rest_poses;
+    job.output = output_transforms;
+
+    layers[0].weight = weight;
+    EXPECT_TRUE(job.Run());
+
+    ozz::math::SimdFloat4 dot =
+        ozz::math::Dot(expected_rotation, output_transforms[0].rotation);
+    ozz::math::SimdFloat4 distance =
+        ozz::math::simd_float4::one() - (dot * dot);
+    EXPECT_SIMDFLOAT_EQ_EST(distance, 0.0f, 0.0f, 0.0f, 0.0f);
+
+    expected_rotation = expected_rotation * input_half_rotation;
+  }
+}
+
 TEST(AdditiveJointWeight, BlendingJob) {
   const ozz::math::SoaTransform identity = ozz::math::SoaTransform::identity();
 
