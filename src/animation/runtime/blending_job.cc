@@ -129,7 +129,7 @@ namespace {
     const math::SoaQuaternion interp_quat = {                                \
         rotation.x * _simd_weight, rotation.y * _simd_weight,                \
         rotation.z * _simd_weight, (rotation.w - one) * _simd_weight + one}; \
-    _out.rotation = NormalizeEst(interp_quat) * _out.rotation;               \
+    _out.rotation = _out.rotation * NormalizeEst(interp_quat);               \
     _out.scale =                                                             \
         _out.scale * (one_minus_weight_f3 + (_in.scale * _simd_weight));     \
   } while (void(0), 0)
@@ -147,7 +147,7 @@ namespace {
     const math::SoaQuaternion interp_quat = {                                  \
         rotation.x * _simd_weight, rotation.y * _simd_weight,                  \
         rotation.z * _simd_weight, (rotation.w - one) * _simd_weight + one};   \
-    _out.rotation = Conjugate(NormalizeEst(interp_quat)) * _out.rotation;      \
+    _out.rotation = _out.rotation * Conjugate(NormalizeEst(interp_quat));      \
     const math::SoaFloat3 rcp_scale = {                                        \
         math::RcpEst(math::MAdd(_in.scale.x, _simd_weight, one_minus_weight)), \
         math::RcpEst(math::MAdd(_in.scale.y, _simd_weight, one_minus_weight)), \
