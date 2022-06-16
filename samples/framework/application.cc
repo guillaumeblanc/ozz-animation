@@ -98,6 +98,8 @@ Application::Application()
       time_(0.f),
       last_idle_time_(0.),
       show_help_(false),
+      vertical_sync_(true),
+      swap_interval_(1),
       show_grid_(true),
       show_axes_(true),
       capture_video_(false),
@@ -209,7 +211,7 @@ int Application::Run(int _argc, const char** _argv, const char* _version,
 #endif  // EMSCRIPTEN
 
         // Setup the window and installs callbacks.
-        glfwSwapInterval(1);  // Enables vertical sync by default.
+        glfwSwapInterval(vertical_sync_ ? swap_interval_ : 0);
         glfwSetWindowSizeCallback(&ResizeCbk);
         glfwSetWindowCloseCallback(&CloseCbk);
 
@@ -611,10 +613,14 @@ bool Application::FrameworkGui() {
           GL(Disable(GL_MULTISAMPLE));
         }
       }
-      // Vertical sync
-      static bool vertical_sync_ = true;  // On by default.
-      if (im_gui->DoCheckBox("Vertical sync", &vertical_sync_, true)) {
-        glfwSwapInterval(vertical_sync_ ? 1 : 0);
+      // Vertical sync & swap interval
+      bool changed = im_gui->DoCheckBox("Vertical sync", &vertical_sync_);
+      char szLabel[64];
+      std::sprintf(szLabel, "Swap interval: %d", swap_interval_);
+      changed |=
+          im_gui->DoSlider(szLabel, 1, 4, &swap_interval_, 1.f, vertical_sync_);
+      if (changed) {
+        glfwSwapInterval(vertical_sync_ ? swap_interval_ : 0);
       }
 
       im_gui->DoCheckBox("Show grid", &show_grid_, true);
