@@ -14,3 +14,4 @@ The following authors have all licensed their contributions to ozz-animation und
 - Kota Iguchi <developer@infosia.co.jp>
 - Mikołaj Siedlarek <mikolaj@siedlarek.net>
 - Paul Gruenbacher <pgruenbacher@gmail.com>
+- Christophe Meyer <christophe.meyer.pro@gmail.com>
