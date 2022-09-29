@@ -3,10 +3,13 @@ cmake_minimum_required (VERSION 3.3)
 # Defines the project's name
 project(ozz)
 
+# Check if project is top level or a sub project
+get_directory_property(is_sub_project PARENT_DIRECTORY)
+
 # Current version
 set(OZZ_VERSION_MAJOR 0)
 set(OZZ_VERSION_MINOR 14)
-set(OZZ_VERSION_PATCH 0)
+set(OZZ_VERSION_PATCH 1)
 set(OZZ_VERSION ${OZZ_VERSION_MAJOR}.${OZZ_VERSION_MINOR}.${OZZ_VERSION_PATCH})
 
 # Add project build options
@@ -26,6 +29,9 @@ option(ozz_build_msvc_rt_dll "Select msvc DLL runtime library" OFF)
 if(WIN32 AND BUILD_SHARED_LIBS AND NOT ozz_build_msvc_rt_dll)
   message("Forcing ozz_build_msvc_rt_dll to ON as ozz is being built as dll (BUILD_SHARED_LIBS is ON).")
   set(ozz_build_msvc_rt_dll ON)
+endif()
+if(is_sub_project)
+  set(ozz_build_msvc_rt_dll ${ozz_build_msvc_rt_dll} PARENT_SCOPE)
 endif()
 
 # Include ozz cmake parameters and scripts
@@ -63,11 +69,17 @@ else()
   # Disables fbx if tools are disabled
   set(ozz_build_fbx OFF)
 endif()
+if(is_sub_project)
+  set(ozz_build_fbx ${ozz_build_fbx} PARENT_SCOPE)
+endif()
 
 # gltf 
 if(ozz_build_tools AND ozz_build_gltf)
 else()
   set(ozz_build_gltf OFF)
+endif()
+if(is_sub_project)
+  set(ozz_build_gltf ${ozz_build_gltf} PARENT_SCOPE)
 endif()
 
 # Enables unit tests.
@@ -114,7 +126,6 @@ endif()
 if(ozz_build_tests AND NOT EMSCRIPTEN)
   add_subdirectory(test)
 endif()
-
 
 install(FILES
   ${PROJECT_SOURCE_DIR}/CHANGES.md

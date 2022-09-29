@@ -184,7 +184,7 @@ bool SoftenTarget(const IKTwoBoneJob& _job, const IKConstantSetup& _setup,
 
   // The maximum distance we can reach is the soften bone chain length: da
   // (stored in !x). The minimum distance we can reach is the absolute value of
-  // the difference of the 2 bone lengths, |d1−d2| (stored in z). x is 0 and z
+  // the difference of the 2 bone lengths, |d1-d2| (stored in z). x is 0 and z
   // is 1, yw are untested.
   return (comp_mask & 0x5) == 0x4;
 }

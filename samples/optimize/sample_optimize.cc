@@ -57,35 +57,6 @@ OZZ_OPTIONS_DECLARE_STRING(skeleton, "Path to the runtime skeleton file.",
 OZZ_OPTIONS_DECLARE_STRING(animation, "Path to the raw animation file.",
                            "media/animation_raw.ozz", false)
 
-namespace {
-
-// Loads a raw animation from a file.
-bool LoadAnimation(const char* _filename,
-                   ozz::animation::offline::RawAnimation* _animation) {
-  assert(_filename && _animation);
-  ozz::log::Out() << "Loading raw animation archive: " << _filename << "."
-                  << std::endl;
-  ozz::io::File file(_filename, "rb");
-  if (!file.opened()) {
-    ozz::log::Err() << "Failed to open animation file " << _filename << "."
-                    << std::endl;
-    return false;
-  }
-  ozz::io::IArchive archive(&file);
-  if (!archive.TestTag<ozz::animation::offline::RawAnimation>()) {
-    ozz::log::Err() << "Failed to load raw animation instance from file "
-                    << _filename << "." << std::endl;
-    return false;
-  }
-
-  // Once the tag is validated, reading cannot fail.
-  archive >> *_animation;
-
-  // Ensure animation is valid.
-  return _animation->Validate();
-}
-}  // namespace
-
 class OptimizeSampleApplication : public ozz::sample::Application {
  public:
   OptimizeSampleApplication()
@@ -285,7 +256,7 @@ class OptimizeSampleApplication : public ozz::sample::Application {
 
     // Imports offline animation from a binary file.
     // Invalid animations are rejected by the load function.
-    if (!LoadAnimation(OPTIONS_animation, &raw_animation_)) {
+    if (!ozz::sample::LoadRawAnimation(OPTIONS_animation, &raw_animation_)) {
       return false;
     }
 

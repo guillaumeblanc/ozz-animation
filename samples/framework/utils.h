@@ -167,6 +167,14 @@ bool LoadSkeleton(const char* _filename, ozz::animation::Skeleton* _skeleton);
 bool LoadAnimation(const char* _filename,
                    ozz::animation::Animation* _animation);
 
+// Loads a raw animation from an ozz archive file named _filename.
+// This function will fail and return false if the file cannot be opened or if
+// it is not a valid ozz animation archive. A valid animation archive can be
+// produced with ozz tools (fbx2ozz) or using ozz animation serialization API.
+// _filename and _animation must be non-nullptr.
+bool LoadRawAnimation(const char* _filename,
+                      ozz::animation::offline::RawAnimation* _animation);
+
 // Loads a float track from an ozz archive file named _filename.
 // This function will fail and return false if the file cannot be opened or if
 // it is not a valid ozz float track archive. A valid float track archive can be

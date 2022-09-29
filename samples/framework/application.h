@@ -216,6 +216,9 @@ class Application {
   // Set to true to display help.
   bool show_help_;
 
+  bool vertical_sync_;  // On by default.
+  int swap_interval_;
+
   // Grid display settings.
   bool show_grid_;
   bool show_axes_;

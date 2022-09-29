@@ -32,6 +32,7 @@
 
 #include "framework/imgui.h"
 #include "framework/mesh.h"
+#include "ozz/animation/offline/raw_animation.h"
 #include "ozz/animation/offline/raw_skeleton.h"
 #include "ozz/animation/runtime/animation.h"
 #include "ozz/animation/runtime/local_to_model_job.h"
@@ -326,6 +327,30 @@ bool LoadAnimation(const char* _filename,
   return true;
 }
 
+bool LoadRawAnimation(const char* _filename,
+                   ozz::animation::offline::RawAnimation* _animation) {
+  assert(_filename && _animation);
+  ozz::log::Out() << "Loading raw animation archive: " << _filename << "."
+                  << std::endl;
+  ozz::io::File file(_filename, "rb");
+  if (!file.opened()) {
+    ozz::log::Err() << "Failed to open raw animation file " << _filename << "."
+                    << std::endl;
+    return false;
+  }
+  ozz::io::IArchive archive(&file);
+  if (!archive.TestTag<ozz::animation::offline::RawAnimation>()) {
+    ozz::log::Err() << "Failed to load raw animation instance from file "
+                    << _filename << "." << std::endl;
+    return false;
+  }
+
+  // Once the tag is validated, reading cannot fail.
+  archive >> *_animation;
+
+  return true;
+}
+
 namespace {
 template <typename _Track>
 bool LoadTrackImpl(const char* _filename, _Track* _track) {
@@ -411,7 +436,7 @@ bool LoadMeshes(const char* _filename,
 }
 
 namespace {
-// Moller–Trumbore intersection algorithm
+// Moller-Trumbore intersection algorithm
 // https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm
 bool RayIntersectsTriangle(const ozz::math::Float3& _ray_origin,
                            const ozz::math::Float3& _ray_direction,

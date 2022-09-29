@@ -645,10 +645,9 @@ class is_to_be_removed {
  public:
   explicit is_to_be_removed(int _which) : which_(_which) {}
   bool operator()(typename _List::const_reference) { return which_-- == 0; }
+  void operator=(const is_to_be_removed&) = delete;
 
  private:
-  void operator=(const is_to_be_removed&);
-
   int which_;
 };
 
