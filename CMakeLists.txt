@@ -115,9 +115,8 @@ if(ozz_build_tests AND NOT EMSCRIPTEN)
   add_subdirectory(test)
 endif()
 
-
 install(FILES
   ${PROJECT_SOURCE_DIR}/CHANGES.md
   ${PROJECT_SOURCE_DIR}/LICENSE.md
   ${PROJECT_SOURCE_DIR}/README.md
-  DESTINATION ./)
+  DESTINATION "share/doc/ozz-animation/")
