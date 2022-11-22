@@ -1,3 +1,17 @@
+Release version 0.14.1
+----------------------
+
+* Samples
+  - Allows reusing sample framework outside of sample directory.
+  - #154 Exposes swap interval
+
+* Library
+  - #153 Fixes deprecated implicit copy warning.
+  - #141 Removes non-ASCII characters in source codes.
+
+* Build pipeline
+  - Exposes ozz cmake configuration variables to PARENT_SCOPE, so it can be used/changed by an external project.
+
 Release version 0.14.0
 ----------------------
 
