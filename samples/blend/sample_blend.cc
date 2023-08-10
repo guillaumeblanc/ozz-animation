@@ -58,7 +58,7 @@ OZZ_OPTIONS_DECLARE_STRING(animation2,
 
 // Third animation archive can be specified as an option.
 OZZ_OPTIONS_DECLARE_STRING(animation3,
-                           "Path to the second animation (ozz archive format).",
+                           "Path to the third animation (ozz archive format).",
                            "media/animation3.ozz", false)
 
 class BlendSampleApplication : public ozz::sample::Application {
