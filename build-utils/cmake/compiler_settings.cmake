@@ -95,6 +95,7 @@ else()
 
 
   # Check some options availibity for the targetted compiler
+  check_cxx_compiler_flag("-Wunused-result" W_UNUSED_RESULT)
   check_cxx_compiler_flag("-Wnull-dereference" W_NULL_DEREFERENCE)
   check_cxx_compiler_flag("-Wpragma-pack" W_PRAGMA_PACK)
 
