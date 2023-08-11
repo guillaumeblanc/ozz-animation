@@ -387,15 +387,15 @@ class LookAtSampleApplication : public ozz::sample::Application {
   virtual void OnDestroy() {}
 
   virtual bool OnGui(ozz::sample::ImGui* _im_gui) {
-    char txt[64];
+    char label[64];
 
     _im_gui->DoCheckBox("Enable ik", &enable_ik_);
-    sprintf(txt, "IK chain length: %d", chain_length_);
-    _im_gui->DoSlider(txt, 0, kMaxChainLength, &chain_length_);
-    sprintf(txt, "Joint weight %.2g", joint_weight_);
-    _im_gui->DoSlider(txt, 0.f, 1.f, &joint_weight_);
-    sprintf(txt, "Chain weight %.2g", chain_weight_);
-    _im_gui->DoSlider(txt, 0.f, 1.f, &chain_weight_);
+    snprintf(label, sizeof(label), "IK chain length: %d", chain_length_);
+    _im_gui->DoSlider(label, 0, kMaxChainLength, &chain_length_);
+    snprintf(label, sizeof(label), "Joint weight %.2g", joint_weight_);
+    _im_gui->DoSlider(label, 0.f, 1.f, &joint_weight_);
+    snprintf(label, sizeof(label), "Chain weight %.2g", chain_weight_);
+    _im_gui->DoSlider(label, 0.f, 1.f, &chain_weight_);
 
     // Exposes animation runtime playback controls.
     {
@@ -413,15 +413,15 @@ class LookAtSampleApplication : public ozz::sample::Application {
         const float kTargetRange = 3.f;
 
         _im_gui->DoLabel("Animated extent");
-        sprintf(txt, "%.2g", target_extent_);
-        _im_gui->DoSlider(txt, 0.f, kTargetRange, &target_extent_);
+        snprintf(label, sizeof(label), "%.2g", target_extent_);
+        _im_gui->DoSlider(label, 0.f, kTargetRange, &target_extent_);
 
-        sprintf(txt, "x %.2g", target_offset_.x);
-        _im_gui->DoSlider(txt, -kTargetRange, kTargetRange, &target_offset_.x);
-        sprintf(txt, "y %.2g", target_offset_.y);
-        _im_gui->DoSlider(txt, -kTargetRange, kTargetRange, &target_offset_.y);
-        sprintf(txt, "z %.2g", target_offset_.z);
-        _im_gui->DoSlider(txt, -kTargetRange, kTargetRange, &target_offset_.z);
+        snprintf(label, sizeof(label), "x %.2g", target_offset_.x);
+        _im_gui->DoSlider(label, -kTargetRange, kTargetRange, &target_offset_.x);
+        snprintf(label, sizeof(label), "y %.2g", target_offset_.y);
+        _im_gui->DoSlider(label, -kTargetRange, kTargetRange, &target_offset_.y);
+        snprintf(label, sizeof(label), "z %.2g", target_offset_.z);
+        _im_gui->DoSlider(label, -kTargetRange, kTargetRange, &target_offset_.z);
       }
     }
 
@@ -430,12 +430,12 @@ class LookAtSampleApplication : public ozz::sample::Application {
       ozz::sample::ImGui::OpenClose oc(_im_gui, "Eyes offset", &opened);
       if (opened) {
         const float kOffsetRange = .5f;
-        sprintf(txt, "x %.2g", eyes_offset_.x);
-        _im_gui->DoSlider(txt, -kOffsetRange, kOffsetRange, &eyes_offset_.x);
-        sprintf(txt, "y %.2g", eyes_offset_.y);
-        _im_gui->DoSlider(txt, -kOffsetRange, kOffsetRange, &eyes_offset_.y);
-        sprintf(txt, "z %.2g", eyes_offset_.z);
-        _im_gui->DoSlider(txt, -kOffsetRange, kOffsetRange, &eyes_offset_.z);
+        snprintf(label, sizeof(label), "x %.2g", eyes_offset_.x);
+        _im_gui->DoSlider(label, -kOffsetRange, kOffsetRange, &eyes_offset_.x);
+        snprintf(label, sizeof(label), "y %.2g", eyes_offset_.y);
+        _im_gui->DoSlider(label, -kOffsetRange, kOffsetRange, &eyes_offset_.y);
+        snprintf(label, sizeof(label), "z %.2g", eyes_offset_.z);
+        _im_gui->DoSlider(label, -kOffsetRange, kOffsetRange, &eyes_offset_.z);
       }
     }
 

@@ -160,12 +160,12 @@ bool Shooter::Process() {
     GL(BindBuffer(GL_PIXEL_PACK_BUFFER, shot.pbo));
     const void* pixels = glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
     if (pixels) {
-      char name[16];
-      sprintf(name, "%06d.tga", shot_number_++);
+      char filename[16];
+      std::snprintf(filename, sizeof(filename), "%06d.tga", shot_number_++);
 
-      ozz::sample::image::WriteTGA(name, shot.width, shot.height, image_format_,
-                                   reinterpret_cast<const uint8_t*>(pixels),
-                                   false);
+      ozz::sample::image::WriteTGA(
+          filename, shot.width, shot.height, image_format_,
+          reinterpret_cast<const uint8_t*>(pixels), false);
       GL(UnmapBuffer(GL_PIXEL_PACK_BUFFER));
     }
     GL(BindBuffer(GL_PIXEL_PACK_BUFFER, 0));

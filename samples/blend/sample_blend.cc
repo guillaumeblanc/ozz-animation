@@ -242,16 +242,16 @@ class BlendSampleApplication : public ozz::sample::Application {
         }
 
         char label[64];
-        std::sprintf(label, "Blend ratio: %.2f", blend_ratio_);
+        std::snprintf(label, sizeof(label), "Blend ratio: %.2f", blend_ratio_);
         _im_gui->DoSlider(label, 0.f, 1.f, &blend_ratio_, 1.f, !manual_);
 
         for (int i = 0; i < kNumLayers; ++i) {
           Sampler& sampler = samplers_[i];
-          std::sprintf(label, "Weight %d: %.2f", i, sampler.weight);
+          std::snprintf(label, sizeof(label), "Weight %d: %.2f", i, sampler.weight);
           _im_gui->DoSlider(label, 0.f, 1.f, &sampler.weight, 1.f, manual_);
         }
 
-        std::sprintf(label, "Threshold: %.2f", threshold_);
+        std::snprintf(label, sizeof(label), "Threshold: %.2f", threshold_);
         _im_gui->DoSlider(label, .01f, 1.f, &threshold_);
       }
     }
