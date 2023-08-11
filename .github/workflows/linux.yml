@@ -4,6 +4,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         build_type: [Debug]
         option: [default, ref, shared, no_sample, no_data, no_fbx, no_gltf, no_tests]
@@ -11,23 +12,6 @@ jobs:
         include:
           - build_type: Release
             option: default
-          - build_type: Debug
-            option: gcc7
-            compiler_c: gcc-7
-            compiler_cxx: g++-7
-          - build_type: Debug
-            option: gcc7
-            compiler_c: gcc-7
-            compiler_cxx: g++-7
-            cxx_standard: '17'
-          - build_type: Debug
-            option: gcc8
-            compiler_c: gcc-8
-            compiler_cxx: g++-8
-          - build_type: Debug
-            option: gcc9
-            compiler_c: gcc-9
-            compiler_cxx: g++-9
           - build_type: Debug
             option: gcc10
             compiler_c: gcc-10
@@ -37,43 +21,44 @@ jobs:
             compiler_c: gcc-11
             compiler_cxx: g++-11
           - build_type: Debug
-            option: gcc11
-            compiler_c: gcc-11
-            compiler_cxx: g++-11
-            cxx_standard: '20'
+            option: gcc12
+            compiler_c: gcc-12
+            compiler_cxx: g++-12
           - build_type: Debug
-            option: clang7
-            compiler_c: clang-7
-            compiler_cxx: clang++-7
-          - build_type: Debug
-            option: clang7
-            compiler_c: clang-7
-            compiler_cxx: clang++-7
-            cxx_standard: '17'
-          - build_type: Debug
-            option: clang8
-            compiler_c: clang-8
-            compiler_cxx: clang++-8
-          - build_type: Debug
-            option: clang9
-            compiler_c: clang-9
-            compiler_cxx: clang++-9
-          - build_type: Debug
-            option: clang10
-            compiler_c: clang-10
-            compiler_cxx: clang++-10
+            option: gcc13
+            compiler_c: gcc-13
+            compiler_cxx: g++-13
+          - build_type: Release
+            option: gcc13
+            compiler_c: gcc-13
+            compiler_cxx: g++-13
           - build_type: Debug
             option: clang11
             compiler_c: clang-11
             compiler_cxx: clang++-11
           - build_type: Debug
-            option: clang11
-            compiler_c: clang-11
-            compiler_cxx: clang++-11
-            cxx_standard: '20'
+            option: clang12
+            compiler_c: clang-12
+            compiler_cxx: clang++-12
+          - build_type: Debug
+            option: clang13
+            compiler_c: clang-13
+            compiler_cxx: clang++-13
+          - build_type: Debug
+            option: clang14
+            compiler_c: clang-14
+            compiler_cxx: clang++-14
+          - build_type: Debug
+            option: clang15
+            compiler_c: clang-15
+            compiler_cxx: clang++-15
+          - build_type: Release
+            option: clang15
+            compiler_c: clang-15
+            compiler_cxx: clang++-15
   
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     
     - name: Install OpenGL dependency
       run: |
