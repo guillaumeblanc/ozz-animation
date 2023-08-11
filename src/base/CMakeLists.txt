@@ -62,6 +62,7 @@ target_compile_definitions(ozz_base
   PRIVATE $<$<BOOL:${BUILD_SHARED_LIBS}>:OZZ_BUILD_BASE_LIB>)
 
 target_compile_options(ozz_base PUBLIC $<$<CXX_COMPILER_ID:MSVC>:/wd4251>)
+
 target_include_directories(ozz_base PUBLIC
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:$<INSTALL_PREFIX>/include>)

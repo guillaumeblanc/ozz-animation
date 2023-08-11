@@ -3,6 +3,7 @@ Release version next
 
 * Library
   - Transitions away from sprintf to the more secure snprintf.
+  - #147 Works around gcc 11 error stringop-overflow which emits false positives for ozz math serialisation.
 
 Release version 0.14.1
 ----------------------
