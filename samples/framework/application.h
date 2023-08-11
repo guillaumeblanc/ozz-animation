@@ -149,7 +149,7 @@ class Application {
   enum LoopStatus {
     kContinue,      // Can continue with next loop.
     kBreak,         // Should stop looping (ex: exit).
-    kBreakFailure,  // // Should stop looping beacause something went wrong.
+    kBreakFailure,  // Should stop looping because something went wrong.
   };
   LoopStatus OneLoop(int _loops);
 

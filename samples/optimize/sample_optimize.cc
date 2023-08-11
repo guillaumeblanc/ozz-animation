@@ -312,29 +312,32 @@ class OptimizeSampleApplication : public ozz::sample::Application {
 
         rebuild |= _im_gui->DoCheckBox("Enable optimizations", &optimize_);
 
-        std::sprintf(label, "Tolerance: %0.2f mm", setting_.tolerance * 1000);
+        std::snprintf(label, sizeof(label), "Tolerance: %0.2f mm",
+                      setting_.tolerance * 1000);
         rebuild |= _im_gui->DoSlider(label, 0.f, .1f, &setting_.tolerance, .5f,
                                      optimize_);
 
-        std::sprintf(label, "Distance: %0.2f mm", setting_.distance * 1000);
+        std::snprintf(label, sizeof(label), "Distance: %0.2f mm",
+                      setting_.distance * 1000);
         rebuild |= _im_gui->DoSlider(label, 0.f, 1.f, &setting_.distance, .5f,
                                      optimize_);
 
         rebuild |= _im_gui->DoCheckBox("Enable joint setting",
                                        &joint_setting_enable_, optimize_);
 
-        std::sprintf(label, "%s (%d)", skeleton_.joint_names()[joint_], joint_);
+        std::snprintf(label, sizeof(label), "%s (%d)",
+                      skeleton_.joint_names()[joint_], joint_);
         rebuild |=
             _im_gui->DoSlider(label, 0, skeleton_.num_joints() - 1, &joint_,
                               1.f, joint_setting_enable_ && optimize_);
 
-        std::sprintf(label, "Tolerance: %0.2f mm",
-                     joint_setting_.tolerance * 1000);
+        std::snprintf(label, sizeof(label), "Tolerance: %0.2f mm",
+                      joint_setting_.tolerance * 1000);
         rebuild |= _im_gui->DoSlider(label, 0.f, .1f, &joint_setting_.tolerance,
                                      .5f, joint_setting_enable_ && optimize_);
 
-        std::sprintf(label, "Distance: %0.2f mm",
-                     joint_setting_.distance * 1000);
+        std::snprintf(label, sizeof(label), "Distance: %0.2f mm",
+                      joint_setting_.distance * 1000);
         rebuild |= _im_gui->DoSlider(label, 0.f, 1.f, &joint_setting_.distance,
                                      .5f, joint_setting_enable_ && optimize_);
 
@@ -356,18 +359,18 @@ class OptimizeSampleApplication : public ozz::sample::Application {
       static bool open = true;
       ozz::sample::ImGui::OpenClose ocb(_im_gui, "Memory size", &open);
       if (open) {
-        std::sprintf(label, "Original: %dKB",
-                     static_cast<int>(raw_animation_.size() >> 10));
+        std::snprintf(label, sizeof(label), "Original: %dKB",
+                      static_cast<int>(raw_animation_.size() >> 10));
         _im_gui->DoLabel(label);
 
-        std::sprintf(label, "Optimized: %dKB (%.1f:1)",
-                     static_cast<int>(raw_optimized_animation_.size() >> 10),
-                     static_cast<float>(raw_animation_.size()) /
-                         raw_optimized_animation_.size());
+        std::snprintf(label, sizeof(label), "Optimized: %dKB (%.1f:1)",
+                      static_cast<int>(raw_optimized_animation_.size() >> 10),
+                      static_cast<float>(raw_animation_.size()) /
+                          raw_optimized_animation_.size());
         _im_gui->DoLabel(label);
 
-        std::sprintf(
-            label, "Compressed: %dKB (%.1f:1)",
+        std::snprintf(
+            label, sizeof(label), "Compressed: %dKB (%.1f:1)",
             static_cast<int>(animation_rt_->size() >> 10),
             static_cast<float>(raw_animation_.size()) / animation_rt_->size());
         _im_gui->DoLabel(label);
@@ -388,37 +391,36 @@ class OptimizeSampleApplication : public ozz::sample::Application {
 
     // Show absolute error.
     {
-      char szLabel[64];
       static bool error_open = true;
       ozz::sample::ImGui::OpenClose oc_stats(_im_gui, "Absolute error",
                                              &error_open);
       if (error_open) {
         {
-          std::sprintf(szLabel, "Median error: %.2fmm",
-                       *error_record_med_.cursor());
+          std::snprintf(label, sizeof(label), "Median error: %.2fmm",
+                        *error_record_med_.cursor());
           const ozz::sample::Record::Statistics error_stats =
               error_record_med_.GetStatistics();
-          _im_gui->DoGraph(szLabel, 0.f, error_stats.max, error_stats.latest,
+          _im_gui->DoGraph(label, 0.f, error_stats.max, error_stats.latest,
                            error_record_med_.cursor(),
                            error_record_med_.record_begin(),
                            error_record_med_.record_end());
         }
         {
-          std::sprintf(szLabel, "Maximum error: %.2fmm",
-                       *error_record_max_.cursor());
+          std::snprintf(label, sizeof(label), "Maximum error: %.2fmm",
+                        *error_record_max_.cursor());
           const ozz::sample::Record::Statistics error_stats =
               error_record_max_.GetStatistics();
-          _im_gui->DoGraph(szLabel, 0.f, error_stats.max, error_stats.latest,
+          _im_gui->DoGraph(label, 0.f, error_stats.max, error_stats.latest,
                            error_record_max_.cursor(),
                            error_record_max_.record_begin(),
                            error_record_max_.record_end());
         }
         {
-          std::sprintf(szLabel, "Joint %d error: %.2fmm", joint_,
-                       *joint_error_record_.cursor());
+          std::snprintf(label, sizeof(label), "Joint %d error: %.2fmm", joint_,
+                        *joint_error_record_.cursor());
           const ozz::sample::Record::Statistics error_stats =
               joint_error_record_.GetStatistics();
-          _im_gui->DoGraph(szLabel, 0.f, error_stats.max, error_stats.latest,
+          _im_gui->DoGraph(label, 0.f, error_stats.max, error_stats.latest,
                            joint_error_record_.cursor(),
                            joint_error_record_.record_begin(),
                            joint_error_record_.record_end());

@@ -1,3 +1,9 @@
+Release version next
+--------------------
+
+* Library
+  - Transitions away from sprintf to the more secure snprintf.
+
 Release version 0.14.1
 ----------------------
 

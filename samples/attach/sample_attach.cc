@@ -161,16 +161,16 @@ class AttachSampleApplication : public ozz::sample::Application {
       if (open && skeleton_.num_joints() != 0) {
         _im_gui->DoLabel("Select joint:");
         char label[64];
-        std::sprintf(label, "%s (%d)", skeleton_.joint_names()[attachment_],
-                     attachment_);
+        std::snprintf(label, sizeof(label), "%s (%d)",
+                      skeleton_.joint_names()[attachment_], attachment_);
         _im_gui->DoSlider(label, 0, skeleton_.num_joints() - 1, &attachment_);
 
         _im_gui->DoLabel("Attachment offset:");
-        sprintf(label, "x: %02f", offset_.x);
+        std::snprintf(label, sizeof(label), "x: %02f", offset_.x);
         _im_gui->DoSlider(label, -1.f, 1.f, &offset_.x);
-        sprintf(label, "y: %02f", offset_.y);
+        std::snprintf(label, sizeof(label), "y: %02f", offset_.y);
         _im_gui->DoSlider(label, -1.f, 1.f, &offset_.y);
-        sprintf(label, "z: %02f", offset_.z);
+        std::snprintf(label, sizeof(label), "z: %02f", offset_.z);
         _im_gui->DoSlider(label, -1.f, 1.f, &offset_.z);
       }
     }
