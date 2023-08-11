@@ -41,7 +41,7 @@ namespace ozz {
 namespace animation {
 namespace offline {
 
-// Decimation algorithm based on Ramer–Douglas–Peucker.
+// Decimation algorithm based on Ramer-Douglas-Peucker.
 // https://en.wikipedia.org/wiki/Ramer%E2%80%93Douglas%E2%80%93Peucker_algorithm
 // _Track must have std::vector interface.
 // Adapter must have the following interface:

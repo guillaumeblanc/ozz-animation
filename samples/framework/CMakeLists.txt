@@ -36,6 +36,10 @@ target_link_libraries(sample_framework
   ozz_geometry
   ozz_animation_offline
   ozz_options)
+  
+target_include_directories(sample_framework PUBLIC
+  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/samples>
+  $<INSTALL_INTERFACE:$<INSTALL_PREFIX>/samples>)
 
 if(TARGET BUILD_DATA_SAMPLE)
   add_dependencies(sample_framework BUILD_DATA_SAMPLE)

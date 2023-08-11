@@ -1,12 +1,15 @@
-cmake_minimum_required (VERSION 3.3)
+cmake_minimum_required(VERSION 3.24)
 
 # Defines the project's name
 project(ozz)
 
+# Check if project is top level or a sub project
+get_directory_property(is_sub_project PARENT_DIRECTORY)
+
 # Current version
 set(OZZ_VERSION_MAJOR 0)
 set(OZZ_VERSION_MINOR 14)
-set(OZZ_VERSION_PATCH 0)
+set(OZZ_VERSION_PATCH 2)
 set(OZZ_VERSION ${OZZ_VERSION_MAJOR}.${OZZ_VERSION_MINOR}.${OZZ_VERSION_PATCH})
 
 # Add project build options
@@ -28,6 +31,10 @@ if(WIN32 AND BUILD_SHARED_LIBS AND NOT ozz_build_msvc_rt_dll)
   set(ozz_build_msvc_rt_dll ON)
 endif()
 
+if(is_sub_project)
+  set(ozz_build_msvc_rt_dll ${ozz_build_msvc_rt_dll} PARENT_SCOPE)
+endif()
+
 # Include ozz cmake parameters and scripts
 include(CheckCXXCompilerFlag)
 include(${PROJECT_SOURCE_DIR}/build-utils/cmake/compiler_settings.cmake)
@@ -45,7 +52,6 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/build-utils/cm
 
 # Detects Fbx SDK, required to build Fbx pipeline.
 if(ozz_build_tools AND ozz_build_fbx)
-
   # Select a msvc runtime compatible with ozz_build_msvc_rt_dll
   set(FBX_SHARED ${BUILD_SHARED_LIBS})
   set(FBX_MSVC_RT_DLL ${ozz_build_msvc_rt_dll})
@@ -64,10 +70,18 @@ else()
   set(ozz_build_fbx OFF)
 endif()
 
-# gltf 
+if(is_sub_project)
+  set(ozz_build_fbx ${ozz_build_fbx} PARENT_SCOPE)
+endif()
+
+# gltf
 if(ozz_build_tools AND ozz_build_gltf)
 else()
   set(ozz_build_gltf OFF)
+endif()
+
+if(is_sub_project)
+  set(ozz_build_gltf ${ozz_build_gltf} PARENT_SCOPE)
 endif()
 
 # Enables unit tests.
@@ -115,9 +129,8 @@ if(ozz_build_tests AND NOT EMSCRIPTEN)
   add_subdirectory(test)
 endif()
 
-
 install(FILES
   ${PROJECT_SOURCE_DIR}/CHANGES.md
   ${PROJECT_SOURCE_DIR}/LICENSE.md
   ${PROJECT_SOURCE_DIR}/README.md
-  DESTINATION ./)
+  DESTINATION "share/doc/ozz-animation/")
