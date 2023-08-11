@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.3)
+cmake_minimum_required(VERSION 3.24)
 
 # Defines the project's name
 project(ozz)
@@ -30,6 +30,7 @@ if(WIN32 AND BUILD_SHARED_LIBS AND NOT ozz_build_msvc_rt_dll)
   message("Forcing ozz_build_msvc_rt_dll to ON as ozz is being built as dll (BUILD_SHARED_LIBS is ON).")
   set(ozz_build_msvc_rt_dll ON)
 endif()
+
 if(is_sub_project)
   set(ozz_build_msvc_rt_dll ${ozz_build_msvc_rt_dll} PARENT_SCOPE)
 endif()
@@ -51,7 +52,6 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/build-utils/cm
 
 # Detects Fbx SDK, required to build Fbx pipeline.
 if(ozz_build_tools AND ozz_build_fbx)
-
   # Select a msvc runtime compatible with ozz_build_msvc_rt_dll
   set(FBX_SHARED ${BUILD_SHARED_LIBS})
   set(FBX_MSVC_RT_DLL ${ozz_build_msvc_rt_dll})
@@ -69,15 +69,17 @@ else()
   # Disables fbx if tools are disabled
   set(ozz_build_fbx OFF)
 endif()
+
 if(is_sub_project)
   set(ozz_build_fbx ${ozz_build_fbx} PARENT_SCOPE)
 endif()
 
-# gltf 
+# gltf
 if(ozz_build_tools AND ozz_build_gltf)
 else()
   set(ozz_build_gltf OFF)
 endif()
+
 if(is_sub_project)
   set(ozz_build_gltf ${ozz_build_gltf} PARENT_SCOPE)
 endif()
