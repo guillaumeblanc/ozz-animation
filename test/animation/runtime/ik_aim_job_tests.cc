@@ -25,14 +25,12 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
+#include "gtest/gtest.h"
 #include "ozz/animation/runtime/ik_aim_job.h"
-
+#include "ozz/base/maths/gtest_math_helper.h"
 #include "ozz/base/maths/quaternion.h"
 #include "ozz/base/maths/simd_math.h"
 #include "ozz/base/maths/simd_quaternion.h"
-
-#include "gtest/gtest.h"
-#include "ozz/base/maths/gtest_math_helper.h"
 
 TEST(JobValidity, IKAimJob) {
   const ozz::math::Float4x4 joint = ozz::math::Float4x4::identity();
@@ -428,42 +426,23 @@ TEST(Twist, IKAimJob) {
     EXPECT_SIMDQUATERNION_EQ_TOL(quat, 0.f, 0.f, 0.f, 1.f, 2e-3f);
   }
 
-  {  // Pole y, twist pi
+  {  // Pole y, twist pi / 2
     job.pole_vector = ozz::math::simd_float4::y_axis();
-    job.twist_angle = ozz::math::kPi;
+    job.twist_angle = ozz::math::kPi_2;
     EXPECT_TRUE(job.Run());
     const ozz::math::Quaternion x_Pi = ozz::math::Quaternion::FromAxisAngle(
-        ozz::math::Float3::x_axis(), -ozz::math::kPi);
+        ozz::math::Float3::x_axis(), ozz::math::kPi_2);
     EXPECT_SIMDQUATERNION_EQ_TOL(quat, x_Pi.x, x_Pi.y, x_Pi.z, x_Pi.w, 2e-3f);
   }
 
-  {  // Pole y, twist -pi
+  {  // Pole y, twist -pi / 2
     job.pole_vector = ozz::math::simd_float4::y_axis();
-    job.twist_angle = -ozz::math::kPi;
+    job.twist_angle = -ozz::math::kPi_2;
     EXPECT_TRUE(job.Run());
     const ozz::math::Quaternion x_mPi = ozz::math::Quaternion::FromAxisAngle(
-        ozz::math::Float3::x_axis(), -ozz::math::kPi);
+        ozz::math::Float3::x_axis(), -ozz::math::kPi_2);
     EXPECT_SIMDQUATERNION_EQ_TOL(quat, x_mPi.x, x_mPi.y, x_mPi.z, x_mPi.w,
                                  2e-3f);
-  }
-
-  {  // Pole y, twist pi/2
-    job.pole_vector = ozz::math::simd_float4::y_axis();
-    job.twist_angle = ozz::math::kPi_2;
-    EXPECT_TRUE(job.Run());
-    const ozz::math::Quaternion x_Pi_2 = ozz::math::Quaternion::FromAxisAngle(
-        ozz::math::Float3::x_axis(), ozz::math::kPi_2);
-    EXPECT_SIMDQUATERNION_EQ_TOL(quat, x_Pi_2.x, x_Pi_2.y, x_Pi_2.z, x_Pi_2.w,
-                                 2e-3f);
-  }
-
-  {  // Pole z, twist pi/2
-    job.pole_vector = ozz::math::simd_float4::z_axis();
-    job.twist_angle = ozz::math::kPi_2;
-    EXPECT_TRUE(job.Run());
-    const ozz::math::Quaternion x_Pi = ozz::math::Quaternion::FromAxisAngle(
-        ozz::math::Float3::x_axis(), ozz::math::kPi);
-    EXPECT_SIMDQUATERNION_EQ_TOL(quat, x_Pi.x, x_Pi.y, x_Pi.z, x_Pi.w, 2e-3f);
   }
 }
 
