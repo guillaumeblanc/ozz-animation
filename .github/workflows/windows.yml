@@ -19,7 +19,7 @@ jobs:
       run: |
         md fbx
         cd fbx
-        Start-BitsTransfer -Source 'https://damassets.autodesk.net/content/dam/autodesk/www/adn/fbx/2020-3-4/fbx202034_fbxsdk_vs2019_win.exe' -Destination 'fbxsdk.exe'
+        Start-BitsTransfer -Source 'https://damassets.autodesk.net/content/dam/autodesk/www/adn/fbx/2020-3-4/fbx202034_fbxsdk_vs2022_win.exe' -Destination 'fbxsdk.exe'
         Start-Process -FilePath 'fbxsdk.exe' /S -Wait
         cd ..
     
