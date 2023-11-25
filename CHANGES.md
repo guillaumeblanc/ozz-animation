@@ -1,9 +1,15 @@
+Release version 0.14.3
+----------------------
+
+* Build pipeline
+  - Adds vs2022 compiler support for fbxsdk (#170)
+
 Release version 0.14.2
 ----------------------
 
 * Library
   - Transitions away from sprintf to the more secure snprintf.
-  - #147 Works around gcc 11 error stringop-overflow which emits false positives for ozz math serialisation.
+  - #147 Works around gcc 11 error stringop-overflow which emits false positives for ozz math serialization.
 
 * Build pipeline
   - Updates CI compiler versions.
