@@ -42,11 +42,11 @@ namespace internal {
 
 #ifdef EMSCRIPTEN
 // WebGL requires to specify floating point precision
-static const char* kPlatformSpecivicVSHeader = "precision mediump float;\n";
-static const char* kPlatformSpecivicFSHeader = "precision mediump float;\n";
+static const char* kPlatformSpecivicVSHeader = "#version 300 es\n  precision mediump float;\n"
+static const char* kPlatformSpecivicFSHeader = "#version 300 es\n  precision mediump float;\n"
 #else   // EMSCRIPTEN
-static const char* kPlatformSpecivicVSHeader = "";
-static const char* kPlatformSpecivicFSHeader = "";
+static const char* kPlatformSpecivicVSHeader = "#version 330\n";
+static const char* kPlatformSpecivicFSHeader = "#version 330\n";
 #endif  // EMSCRIPTEN
 
 Shader::Shader() : program_(0), vertex_(0), fragment_(0) {}

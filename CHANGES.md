@@ -1,4 +1,43 @@
 Next release
+------------
+
+* Library
+  - [animation] Adds iframe support, allowing fast seeks into the animation thanks to precomputed (and compressed) cache states. The sampling job decides automatically when an iframe is used, based on seek offset.
+  - [animation] Restructures compressed keyframes to allow sequential backward reading. Keyframe times are now indexed. Per keyframe track index has been removed, replaced with an offset to the previous keyframe (for the same track) which is used for fast backward sequential reading.
+  - [offline] Extends configuration to allow setting up iframe time interval.
+  - [base] Implements group varint encoding utility. It's used to compress iframes.
+
+Release version 0.14.3
+----------------------
+
+* Build pipeline
+  - Adds vs2022 compiler support for fbxsdk (#170)
+
+Release version 0.14.2
+----------------------
+
+* Library
+  - Transitions away from sprintf to the more secure snprintf.
+  - #147 Works around gcc 11 error stringop-overflow which emits false positives for ozz math serialization.
+
+* Build pipeline
+  - Updates CI compiler versions.
+
+Release version 0.14.1
+----------------------
+
+* Samples
+  - Allows reusing sample framework outside of sample directory.
+  - #154 Exposes swap interval
+
+* Library
+  - #153 Fixes deprecated implicit copy warning.
+  - #141 Removes non-ASCII characters in source codes.
+
+* Build pipeline
+  - Exposes ozz cmake configuration variables to PARENT_SCOPE, so it can be used/changed by an external project.
+
+Release version 0.14.0
 ----------------------
 
 * Samples
@@ -6,8 +45,8 @@ Next release
   - [sample_fbx2mesh] Assigns non-influenced vertices to root joint.
 
 * Library
-  - [animation] Adds iframe support, allowing fast seeks into the animation thanks to precomputed (and compressed) cache states. The sampling job decides automatically when an iframe is used, based on seek offset.
-  - [animation] Restructures compressed keyframes to allow sequential backward reading. Keyframe times are now indexed. Per keyframe track index has been removed, replaced with an offset to the previous keyframe (for the same track) which is used for fast backward sequential reading.
+  - [offline] #124 Fixes incorrect root joint detection bug in glTF importer.
+  - [offline] #129 #130 Copy animation name to output in ozz::animation::offline::AdditiveAnimationBuilder.
   - [animation] #103 Allows move constructor and assignment for ozz::animation::Skeleton, ozz::animation::Animation and ozz::animation::Track.
   - [animation] Renames SamplingCache to SamplingJob::Context.
   - [animation] #110 Renames skeleton bind pose to rest pose, to avoid confusion with skinning bind pose.
@@ -16,9 +55,10 @@ Next release
   - [base] Implements group varint encoding utility. It's used to compress iframes.
 
 * Build pipeline
+  - Moves CI to github actions.
   - #59 Adds support for shared libraries on Windows (dll), Linux and MacOS platforms.
   - #111 Removes _GLIBCXX_DEBUG from default build settings as it can create incompatibilities when using prebuilt packages.
-  - #122 Adds support for gcc 11 compiler.
+  - #122 #137 Adds support for gcc 11 compiler.
 
 Release version 0.13.0
 ----------------------

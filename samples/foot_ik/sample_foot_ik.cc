@@ -608,7 +608,7 @@ class FootIKSampleApplication : public ozz::sample::Application {
   virtual void OnDestroy() {}
 
   virtual bool OnGui(ozz::sample::ImGui* _im_gui) {
-    char txt[32];
+    char label[32];
 
     // Main options
     {
@@ -636,12 +636,12 @@ class FootIKSampleApplication : public ozz::sample::Application {
       static bool opened = true;
       ozz::sample::ImGui::OpenClose oc(_im_gui, "IK settings", &opened);
       if (opened) {
-        sprintf(txt, "Foot height %.2g", foot_heigh_);
-        _im_gui->DoSlider(txt, 0.f, .3f, &foot_heigh_);
-        sprintf(txt, "Weight %.2g", weight_);
-        _im_gui->DoSlider(txt, 0.f, 1.f, &weight_);
-        sprintf(txt, "Soften %.2g", soften_);
-        _im_gui->DoSlider(txt, 0.f, 1.f, &soften_, 1.f, two_bone_ik_);
+        snprintf(label, sizeof(label), "Foot height %.2g", foot_heigh_);
+        _im_gui->DoSlider(label, 0.f, .3f, &foot_heigh_);
+        snprintf(label, sizeof(label), "Weight %.2g", weight_);
+        _im_gui->DoSlider(label, 0.f, 1.f, &weight_);
+        snprintf(label, sizeof(label), "Soften %.2g", soften_);
+        _im_gui->DoSlider(label, 0.f, 1.f, &soften_, 1.f, two_bone_ik_);
       }
     }
 
@@ -652,19 +652,19 @@ class FootIKSampleApplication : public ozz::sample::Application {
         bool moved = false;
         // Translation
         _im_gui->DoLabel("Translation");
-        sprintf(txt, "x %.2g", root_translation_.x);
-        moved |= _im_gui->DoSlider(txt, -10.f, 10.f, &root_translation_.x);
-        sprintf(txt, "y %.2g", root_translation_.y);
-        moved |= _im_gui->DoSlider(txt, 0.f, 5.f, &root_translation_.y, 1.f,
+        snprintf(label, sizeof(label), "x %.2g", root_translation_.x);
+        moved |= _im_gui->DoSlider(label, -10.f, 10.f, &root_translation_.x);
+        snprintf(label, sizeof(label), "y %.2g", root_translation_.y);
+        moved |= _im_gui->DoSlider(label, 0.f, 5.f, &root_translation_.y, 1.f,
                                    !auto_character_height_);
-        sprintf(txt, "z %.2g", root_translation_.z);
-        moved |= _im_gui->DoSlider(txt, -10.f, 10.f, &root_translation_.z);
+        snprintf(label, sizeof(label), "z %.2g", root_translation_.z);
+        moved |= _im_gui->DoSlider(label, -10.f, 10.f, &root_translation_.z);
 
         // Rotation (in euler form)
         _im_gui->DoLabel("Rotation");
-        sprintf(txt, "yaw %.3g", root_yaw_ * ozz::math::kRadianToDegree);
+        snprintf(label, sizeof(label), "yaw %.3g", root_yaw_ * ozz::math::kRadianToDegree);
         moved |=
-            _im_gui->DoSlider(txt, -ozz::math::kPi, ozz::math::kPi, &root_yaw_);
+            _im_gui->DoSlider(label, -ozz::math::kPi, ozz::math::kPi, &root_yaw_);
 
         // Character position shouldn't be changed after the update. In this
         // case, because UI is updated after "game" update, we need to recompute

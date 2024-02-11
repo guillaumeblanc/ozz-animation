@@ -98,6 +98,8 @@ Application::Application()
       time_(0.f),
       last_idle_time_(0.),
       show_help_(false),
+      vertical_sync_(true),
+      swap_interval_(1),
       show_grid_(true),
       show_axes_(true),
       capture_video_(false),
@@ -209,7 +211,7 @@ int Application::Run(int _argc, const char** _argv, const char* _version,
 #endif  // EMSCRIPTEN
 
         // Setup the window and installs callbacks.
-        glfwSwapInterval(1);  // Enables vertical sync by default.
+        glfwSwapInterval(vertical_sync_ ? swap_interval_ : 0);
         glfwSetWindowSizeCallback(&ResizeCbk);
         glfwSetWindowCloseCallback(&CloseCbk);
 
@@ -526,31 +528,32 @@ bool Application::Gui() {
 }
 
 bool Application::FrameworkGui() {
+  char label[64];
   // Downcast to public imgui.
   ImGui* im_gui = im_gui_.get();
   {  // Render statistics
     static bool open = true;
     ImGui::OpenClose stat_oc(im_gui, "Statistics", &open);
     if (open) {
-      char szLabel[64];
       {  // FPS
         Record::Statistics statistics = fps_->GetStatistics();
-        std::sprintf(szLabel, "FPS: %.0f",
-                     statistics.mean == 0.f ? 0.f : 1000.f / statistics.mean);
+        std::snprintf(label, sizeof(label), "FPS: %.0f",
+                      statistics.mean == 0.f ? 0.f : 1000.f / statistics.mean);
         static bool fps_open = false;
-        ImGui::OpenClose stats(im_gui, szLabel, &fps_open);
+        ImGui::OpenClose stats(im_gui, label, &fps_open);
         if (fps_open) {
-          std::sprintf(szLabel, "Frame: %.2f ms", statistics.mean);
-          im_gui->DoGraph(szLabel, 0.f, statistics.max, statistics.latest,
+          std::snprintf(label, sizeof(label), "Frame: %.2f ms",
+                        statistics.mean);
+          im_gui->DoGraph(label, 0.f, statistics.max, statistics.latest,
                           fps_->cursor(), fps_->record_begin(),
                           fps_->record_end());
         }
       }
       {  // Update time
         Record::Statistics statistics = update_time_->GetStatistics();
-        std::sprintf(szLabel, "Update: %.2f ms", statistics.mean);
+        std::snprintf(label, sizeof(label), "Update: %.2f ms", statistics.mean);
         static bool update_open = true;  // This is the most relevant for ozz.
-        ImGui::OpenClose stats(im_gui, szLabel, &update_open);
+        ImGui::OpenClose stats(im_gui, label, &update_open);
         if (update_open) {
           im_gui->DoGraph(nullptr, 0.f, statistics.max, statistics.latest,
                           update_time_->cursor(), update_time_->record_begin(),
@@ -559,9 +562,9 @@ bool Application::FrameworkGui() {
       }
       {  // Render time
         Record::Statistics statistics = render_time_->GetStatistics();
-        std::sprintf(szLabel, "Render: %.2f ms", statistics.mean);
+        std::snprintf(label, sizeof(label), "Render: %.2f ms", statistics.mean);
         static bool render_open = false;
-        ImGui::OpenClose stats(im_gui, szLabel, &render_open);
+        ImGui::OpenClose stats(im_gui, label, &render_open);
         if (render_open) {
           im_gui->DoGraph(nullptr, 0.f, statistics.max, statistics.latest,
                           render_time_->cursor(), render_time_->record_begin(),
@@ -578,18 +581,15 @@ bool Application::FrameworkGui() {
       im_gui->DoButton("Freeze", true, &freeze_);
       im_gui->DoCheckBox("Fix update rate", &fix_update_rate, true);
       if (!fix_update_rate) {
-        char sz_factor[64];
-        std::sprintf(sz_factor, "Time factor: %.2f", time_factor_);
-        im_gui->DoSlider(sz_factor, -5.f, 5.f, &time_factor_);
+        std::snprintf(label, sizeof(label), "Time factor: %.2f", time_factor_);
+        im_gui->DoSlider(label, -5.f, 5.f, &time_factor_);
         if (im_gui->DoButton("Reset time factor", time_factor_ != 1.f)) {
           time_factor_ = 1.f;
         }
       } else {
-        char sz_fixed_update_rate[64];
-        std::sprintf(sz_fixed_update_rate, "Update rate: %.0f fps",
-                     fixed_update_rate);
-        im_gui->DoSlider(sz_fixed_update_rate, 1.f, 200.f, &fixed_update_rate,
-                         .5f, true);
+        std::snprintf(label, sizeof(label), "Update rate: %.0f fps",
+                      fixed_update_rate);
+        im_gui->DoSlider(label, 1.f, 200.f, &fixed_update_rate, .5f, true);
         if (im_gui->DoButton("Reset update rate", fixed_update_rate != 60.f)) {
           fixed_update_rate = 60.f;
         }
@@ -611,10 +611,13 @@ bool Application::FrameworkGui() {
           GL(Disable(GL_MULTISAMPLE));
         }
       }
-      // Vertical sync
-      static bool vertical_sync_ = true;  // On by default.
-      if (im_gui->DoCheckBox("Vertical sync", &vertical_sync_, true)) {
-        glfwSwapInterval(vertical_sync_ ? 1 : 0);
+      // Vertical sync & swap interval
+      bool changed = im_gui->DoCheckBox("Vertical sync", &vertical_sync_);
+      std::snprintf(label, sizeof(label), "Swap interval: %d", swap_interval_);
+      changed |=
+          im_gui->DoSlider(label, 1, 4, &swap_interval_, 1.f, vertical_sync_);
+      if (changed) {
+        glfwSwapInterval(vertical_sync_ ? swap_interval_ : 0);
       }
 
       im_gui->DoCheckBox("Show grid", &show_grid_, true);
@@ -634,10 +637,9 @@ bool Application::FrameworkGui() {
       }
     }
 
-    char szResolution[64];
-    std::sprintf(szResolution, "Resolution: %dx%d", resolution_.width,
-                 resolution_.height);
-    if (im_gui->DoSlider(szResolution, 0, kNumPresets - 1, &preset_lookup)) {
+    std::snprintf(label, sizeof(label), "Resolution: %dx%d", resolution_.width,
+                  resolution_.height);
+    if (im_gui->DoSlider(label, 0, kNumPresets - 1, &preset_lookup)) {
       // Resolution changed.
       resolution_ = resolution_presets[preset_lookup];
       glfwSetWindowSize(resolution_.width, resolution_.height);

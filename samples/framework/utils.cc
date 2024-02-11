@@ -32,6 +32,7 @@
 
 #include "framework/imgui.h"
 #include "framework/mesh.h"
+#include "ozz/animation/offline/raw_animation.h"
 #include "ozz/animation/offline/raw_skeleton.h"
 #include "ozz/animation/runtime/animation.h"
 #include "ozz/animation/runtime/local_to_model_job.h"
@@ -109,21 +110,22 @@ bool PlaybackController::OnGui(const animation::Animation& _animation,
 
   _im_gui->DoCheckBox("Loop", &loop_, _enabled);
 
-  char szLabel[64];
+  char label[64];
 
   // Uses a local copy of time_ so that set_time is used to actually apply
   // changes. Otherwise previous time would be incorrect.
   float ratio = time_ratio();
-  std::sprintf(szLabel, "Animation time: %.2f", ratio * _animation.duration());
-  if (_im_gui->DoSlider(szLabel, 0.f, 1.f, &ratio, 1.f,
+  std::snprintf(label, sizeof(label), "Animation time: %.2f",
+                ratio * _animation.duration());
+  if (_im_gui->DoSlider(label, 0.f, 1.f, &ratio, 1.f,
                         _enabled && _allow_set_time)) {
     set_time_ratio(ratio);
     // Pause the time if slider as moved.
     play_ = false;
     time_changed = true;
   }
-  std::sprintf(szLabel, "Playback speed: %.2f", playback_speed_);
-  _im_gui->DoSlider(szLabel, -5.f, 5.f, &playback_speed_, 1.f, _enabled);
+  std::snprintf(label, sizeof(label), "Playback speed: %.2f", playback_speed_);
+  _im_gui->DoSlider(label, -5.f, 5.f, &playback_speed_, 1.f, _enabled);
 
   // Allow to reset speed if it is not the default value.
   if (_im_gui->DoButton("Reset playback speed",
@@ -138,7 +140,7 @@ bool OnRawSkeletonJointGui(
     ozz::sample::ImGui* _im_gui,
     ozz::animation::offline::RawSkeleton::Joint::Children* _children,
     ozz::vector<bool>::iterator* _oc_state) {
-  char txt[255];
+  char label[255];
 
   bool modified = false;
   for (size_t i = 0; i < _children->size(); ++i) {
@@ -151,23 +153,23 @@ bool OnRawSkeletonJointGui(
       // Translation
       ozz::math::Float3& translation = joint.transform.translation;
       _im_gui->DoLabel("Translation");
-      sprintf(txt, "x %.2g", translation.x);
-      modified |= _im_gui->DoSlider(txt, -1.f, 1.f, &translation.x);
-      sprintf(txt, "y %.2g", translation.y);
-      modified |= _im_gui->DoSlider(txt, -1.f, 1.f, &translation.y);
-      sprintf(txt, "z %.2g", translation.z);
-      modified |= _im_gui->DoSlider(txt, -1.f, 1.f, &translation.z);
+      snprintf(label, sizeof(label), "x %.2g", translation.x);
+      modified |= _im_gui->DoSlider(label, -1.f, 1.f, &translation.x);
+      snprintf(label, sizeof(label), "y %.2g", translation.y);
+      modified |= _im_gui->DoSlider(label, -1.f, 1.f, &translation.y);
+      snprintf(label, sizeof(label), "z %.2g", translation.z);
+      modified |= _im_gui->DoSlider(label, -1.f, 1.f, &translation.z);
 
       // Rotation (in euler form)
       ozz::math::Quaternion& rotation = joint.transform.rotation;
       _im_gui->DoLabel("Rotation");
       ozz::math::Float3 euler = ToEuler(rotation) * ozz::math::kRadianToDegree;
-      sprintf(txt, "x %.3g", euler.x);
-      bool euler_modified = _im_gui->DoSlider(txt, -180.f, 180.f, &euler.x);
-      sprintf(txt, "y %.3g", euler.y);
-      euler_modified |= _im_gui->DoSlider(txt, -180.f, 180.f, &euler.y);
-      sprintf(txt, "z %.3g", euler.z);
-      euler_modified |= _im_gui->DoSlider(txt, -180.f, 180.f, &euler.z);
+      snprintf(label, sizeof(label), "x %.3g", euler.x);
+      bool euler_modified = _im_gui->DoSlider(label, -180.f, 180.f, &euler.x);
+      snprintf(label, sizeof(label), "y %.3g", euler.y);
+      euler_modified |= _im_gui->DoSlider(label, -180.f, 180.f, &euler.y);
+      snprintf(label, sizeof(label), "z %.3g", euler.z);
+      euler_modified |= _im_gui->DoSlider(label, -180.f, 180.f, &euler.z);
       if (euler_modified) {
         modified = true;
         ozz::math::Float3 euler_rad = euler * ozz::math::kDegreeToRadian;
@@ -178,8 +180,8 @@ bool OnRawSkeletonJointGui(
       // Scale (must be uniform and not 0)
       _im_gui->DoLabel("Scale");
       ozz::math::Float3& scale = joint.transform.scale;
-      sprintf(txt, "%.2g", scale.x);
-      if (_im_gui->DoSlider(txt, -1.f, 1.f, &scale.x)) {
+      snprintf(label, sizeof(label), "%.2g", scale.x);
+      if (_im_gui->DoSlider(label, -1.f, 1.f, &scale.x)) {
         modified = true;
         scale.y = scale.z = scale.x = scale.x != 0.f ? scale.x : .01f;
       }
@@ -326,6 +328,30 @@ bool LoadAnimation(const char* _filename,
   return true;
 }
 
+bool LoadRawAnimation(const char* _filename,
+                      ozz::animation::offline::RawAnimation* _animation) {
+  assert(_filename && _animation);
+  ozz::log::Out() << "Loading raw animation archive: " << _filename << "."
+                  << std::endl;
+  ozz::io::File file(_filename, "rb");
+  if (!file.opened()) {
+    ozz::log::Err() << "Failed to open raw animation file " << _filename << "."
+                    << std::endl;
+    return false;
+  }
+  ozz::io::IArchive archive(&file);
+  if (!archive.TestTag<ozz::animation::offline::RawAnimation>()) {
+    ozz::log::Err() << "Failed to load raw animation instance from file "
+                    << _filename << "." << std::endl;
+    return false;
+  }
+
+  // Once the tag is validated, reading cannot fail.
+  archive >> *_animation;
+
+  return true;
+}
+
 namespace {
 template <typename _Track>
 bool LoadTrackImpl(const char* _filename, _Track* _track) {
@@ -411,7 +437,7 @@ bool LoadMeshes(const char* _filename,
 }
 
 namespace {
-// Moller–Trumbore intersection algorithm
+// Moller-Trumbore intersection algorithm
 // https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm
 bool RayIntersectsTriangle(const ozz::math::Float3& _ray_origin,
                            const ozz::math::Float3& _ray_direction,

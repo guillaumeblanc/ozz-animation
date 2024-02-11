@@ -4,6 +4,7 @@ jobs:
   build:
     runs-on: macos-latest
     strategy:
+      fail-fast: false
       matrix:
         build_type: [Debug]
         option: [default, ref, shared, no_fbx]
@@ -11,14 +12,14 @@ jobs:
           - build_type: Release
             option: default
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
         
     - name: Install fbx sdk
       if: matrix.option != 'no_fbx'
       run: |
         mkdir fbx
         cd fbx
-        sudo wget --user-agent='Mozilla/5.0' 'https://www.autodesk.com/content/dam/autodesk/www/adn/fbx/2020-0-1/fbx202001_fbxsdk_clang_mac.pkg.tgz' -O 'fbx.tgz'
+        sudo wget --user-agent='Mozilla/5.0' 'https://damassets.autodesk.net/content/dam/autodesk/www/adn/fbx/2020-0-1/fbx202001_fbxsdk_clang_mac.pkg.tgz' -O 'fbx.tgz'
         sudo tar -xf 'fbx.tgz'
         sudo installer -pkg *_fbxsdk_clang_macos.pkg -target /
         cd ..
