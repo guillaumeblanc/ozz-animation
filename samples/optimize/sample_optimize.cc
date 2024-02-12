@@ -349,7 +349,7 @@ class OptimizeSampleApplication : public ozz::sample::Application {
       if (open) {
         rebuild |= _im_gui->DoCheckBox("Enable iframes", &enable_iframes_);
 
-        std::sprintf(label, "Iframe interval: %0.2f s", iframe_interval_);
+        std::snprintf(label, sizeof(label), "Iframe interval: %0.2f s", iframe_interval_);
         rebuild |= _im_gui->DoSlider(label, .1f, 20.f, &iframe_interval_, .5f,
                                      enable_iframes_);
       }
