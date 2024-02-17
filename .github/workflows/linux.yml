@@ -58,7 +58,7 @@ jobs:
             compiler_cxx: clang++-15
   
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - name: Install OpenGL dependency
       run: |
