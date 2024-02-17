@@ -7,6 +7,9 @@ Next release
   - [offline] Extends configuration to allow setting up iframe time interval.
   - [base] Implements group varint encoding utility. It's used to compress iframes.
 
+* Build pipeline
+  - Adds CI for WebAssembly.
+
 Release version 0.14.3
 ----------------------
 

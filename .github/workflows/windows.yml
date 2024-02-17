@@ -20,7 +20,7 @@ jobs:
             platform: x64
             option: default
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - name: Install fbx sdk
       if: matrix.option != 'no_fbx'
