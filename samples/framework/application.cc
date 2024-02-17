@@ -278,7 +278,7 @@ Application::LoopStatus Application::OneLoop(int _loops) {
   }
 #else
   int width, height;
-  if (emscripten_get_canvas_element_size(nullptr, &width, &height) !=
+  if (emscripten_get_canvas_element_size("#canvas", &width, &height) !=
       EMSCRIPTEN_RESULT_SUCCESS) {
     return kBreakFailure;
   }

@@ -1,3 +1,9 @@
+Next release
+----------------------
+
+* Build pipeline
+  - Adds CI for WebAssembly.
+
 Release version 0.14.3
 ----------------------
 
