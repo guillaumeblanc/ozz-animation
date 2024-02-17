@@ -25,7 +25,7 @@
 
       <a class="a_reject w3-bar-item w3-button w3-large w3-wide w3-hide-small" href="https://github.com/guillaumeblanc/ozz-animation/"><i class="fab fa-github" aria-hidden="true"></i> Github</a>
 
-      <a class="a_reject w3-bar-item w3-button w3-large w3-wide w3-hide-small" href="https://gitter.im/ozz-animation/"><i class="fab fa-gitter" aria-hidden="true"></i> Gitter</a>
+      <a class="a_reject w3-bar-item w3-button w3-large w3-wide w3-hide-small" href="https://gitter.im/ozz-animation/community"><i class="fab fa-gitter" aria-hidden="true"></i> Gitter</a>
 
       {% if {{page.layout}} != "home" %}
         <div class="w3-right w3-padding-8 w3-margin-right">
@@ -60,7 +60,7 @@
 
     <a class="a_reject w3-bar-item w3-button w3-medium" href="https://github.com/guillaumeblanc/ozz-animation/"><i class="fab fa-github" aria-hidden="true"></i>Github</a>
 
-    <a class="a_reject w3-bar-item w3-button w3-medium" href="https://gitter.im/ozz-animation/"><i class="fab fa-gitter" aria-hidden="true"></i>Gitter</a>
+    <a class="a_reject w3-bar-item w3-button w3-medium" href="https://gitter.im/ozz-animation/community"><i class="fab fa-gitter" aria-hidden="true"></i>Gitter</a>
   <br />
   <br />
 </div>
