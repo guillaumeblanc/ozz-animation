@@ -2,3 +2,4 @@
   col1: "Linux"
   col2: "Mac OS"
   col3: "Windows"
+  col4: "WebAssembly"
