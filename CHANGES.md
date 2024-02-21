@@ -7,6 +7,9 @@ Next release
   - [offline] Extends configuration to allow setting up iframe time interval.
   - [base] Implements group varint encoding utility. It's used to compress iframes.
 
+* Library
+  - [offline/animation] #152 Fixes additive animation blending issues due to wrong quaternion multiplication order in additive animation builder and blending job. Note that animations needs rebuild to benefit from the fix.
+
 * Build pipeline
   - Adds CI for WebAssembly.
 
