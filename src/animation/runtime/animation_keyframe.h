@@ -92,14 +92,14 @@ inline void pack(int _largest, int _sign, const int _cpnt[3],
 
 inline void unpack(const QuaternionKey& _key, int& _biggest, int& _sign,
                    int _cpnt[3]) {
-  const uint64_t packed = uint64_t(_key.values[0]) |
-                          (uint64_t(_key.values[1]) << 16) |
-                          (uint64_t(_key.values[2]) << 32);
-  _biggest = packed & 0x3;
-  _sign = (packed >> 2) & 0x1;
-  _cpnt[0] = (packed >> 3) & 0x7fff;
-  _cpnt[1] = (packed >> 18) & 0x7fff;
-  _cpnt[2] = (packed >> 33) & 0x7fff;
+  const uint32_t packed = uint32_t(_key.values[0]) >> 3 |
+                          uint32_t(_key.values[1]) << 13 |
+                          uint32_t(_key.values[2]) << 29;
+  _biggest = _key.values[0] & 0x3;
+  _sign = (_key.values[0] >> 2) & 0x1;
+  _cpnt[0] = packed & 0x7fff;
+  _cpnt[1] = (packed >> 15) & 0x7fff;
+  _cpnt[2] = _key.values[2] >> 1;
 }
 
 }  // namespace internal
