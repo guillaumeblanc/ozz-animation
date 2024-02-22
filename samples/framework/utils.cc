@@ -68,7 +68,7 @@ void PlaybackController::Update(const animation::Animation& _animation,
 
   // Must be called even if time doesn't change, in order to update previous
   // frame time ratio. Uses set_time_ratio function in order to update
-  // previous_time_ an wrap time value in the unit interval (depending on loop
+  // previous_time_ and wrap time value in the unit interval (depending on loop
   // mode).
   set_time_ratio(new_time);
 }
