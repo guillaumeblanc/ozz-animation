@@ -15,3 +15,4 @@ The following authors have all licensed their contributions to ozz-animation und
 - Mikołaj Siedlarek <mikolaj@siedlarek.net>
 - Paul Gruenbacher <pgruenbacher@gmail.com>
 - Christophe Meyer <christophe.meyer.pro@gmail.com>
+- Lukas Friembichler <lukas.friembichler@gmail.com>
