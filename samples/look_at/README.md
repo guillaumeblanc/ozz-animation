@@ -6,7 +6,7 @@ Procedural look-at objective is to orientate character head in a direction (at a
 
 ## Concept
 
-The sample relies on ozz::animation::IKAimJob which allows a single joint to aim at a targeted position. It extends the basic IKAimJob usage, by iteratively applying IK to head's ancestor joints, allowing to spread the rotation over more joints for a more realistic result. ozz::animation::IKAimJob::offset member (offset position from the joint in local-space) is a key component to achieve this result. It's used at first to tune eyes position compared to the head joint. During later iterations (for head ancestors), offset becomes even more relevant as the distance to the joint increases.
+The sample relies on `ozz::animation::IKAimJob` which allows a single joint to aim at a targeted position. It extends the basic IKAimJob usage, by iteratively applying IK to head's ancestor joints, allowing to spread the rotation over more joints for a more realistic result. `ozz::animation::IKAimJob::offset` member (offset position from the joint in local-space) is a key component to achieve this result. It's used at first to tune eyes position compared to the head joint. During later iterations (for head ancestors), offset becomes even more relevant as the distance to the joint increases.
 
 This same concept can be applied to aim a weapon at a precise target.
 
