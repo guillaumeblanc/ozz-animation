@@ -1,3 +1,12 @@
+Next release
+----------------------
+
+* Library
+  - [offline/animation] #152 Fixes additive animation blending issues due to wrong quaternion multiplication order in additive animation builder and blending job. Note that animations needs rebuild to benefit from the fix.
+
+* Build pipeline
+  - Adds CI for WebAssembly.
+
 Release version 0.14.3
 ----------------------
 

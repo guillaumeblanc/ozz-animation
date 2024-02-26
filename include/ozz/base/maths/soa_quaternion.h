@@ -72,6 +72,16 @@ OZZ_INLINE SimdFloat4 Dot(const SoaQuaternion& _a, const SoaQuaternion& _b) {
   return _a.x * _b.x + _a.y * _b.y + _a.z * _b.z + _a.w * _b.w;
 }
 
+// Returns true if the angle between _a and _b is less than _tolerance.
+OZZ_INLINE SimdInt4 Compare(const math::SoaQuaternion& _a,
+                            const math::SoaQuaternion& _b,
+                            const math::SimdFloat4 _cos_half_tolerance) {
+  // Computes w component of a-1 * b.
+  const SimdFloat4 cos_half_angle =
+      _a.x * _b.x + _a.y * _b.y + _a.z * _b.z + _a.w * _b.w;
+  return math::CmpGe(math::Abs(cos_half_angle), _cos_half_tolerance);
+}
+
 // Returns the normalized SoaQuaternion _q.
 OZZ_INLINE SoaQuaternion Normalize(const SoaQuaternion& _q) {
   const SimdFloat4 len2 = _q.x * _q.x + _q.y * _q.y + _q.z * _q.z + _q.w * _q.w;

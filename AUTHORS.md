@@ -16,3 +16,5 @@ The following authors have all licensed their contributions to ozz-animation und
 - Paul Gruenbacher <pgruenbacher@gmail.com>
 - Christophe Meyer <christophe.meyer.pro@gmail.com>
 - Lukas Friembichler <lukas.friembichler@gmail.com>
+- Blaž Tomažič <blaz.tomazic@gmail.com>
+- Jan Krassnigg <jan@krassnigg.de>

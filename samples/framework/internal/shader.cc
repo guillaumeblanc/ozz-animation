@@ -45,8 +45,8 @@ namespace internal {
 static const char* kPlatformSpecivicVSHeader = "precision mediump float;\n";
 static const char* kPlatformSpecivicFSHeader = "precision mediump float;\n";
 #else   // EMSCRIPTEN
-static const char* kPlatformSpecivicVSHeader = "";
-static const char* kPlatformSpecivicFSHeader = "";
+static const char* kPlatformSpecivicVSHeader = "#version 330\n";
+static const char* kPlatformSpecivicFSHeader = "#version 330\n";
 #endif  // EMSCRIPTEN
 
 Shader::Shader() : program_(0), vertex_(0), fragment_(0) {}
@@ -339,7 +339,8 @@ ozz::unique_ptr<PointsShader> PointsShader::Build() {
       "void main() {\n"
       "  vec4 vertex = vec4(a_position.xyz, 1.);\n"
       "  gl_Position = u_mvp * vertex;\n"
-      "  gl_PointSize = a_screen_space == 0. ? a_size / gl_Position.w : a_size;\n"
+      "  gl_PointSize = a_screen_space == 0. ? a_size / gl_Position.w : "
+      "a_size;\n"
       "  v_vertex_color = a_color;\n"
       "}\n";
   const char* kSimplePointsPS =
