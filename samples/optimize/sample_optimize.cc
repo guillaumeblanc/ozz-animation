@@ -333,20 +333,23 @@ class OptimizeSampleApplication : public ozz::sample::Application {
                                        optimize_);
 
         std::snprintf(label, sizeof(label), "%s (%d)",
-                      skeleton_.joint_names()[joint_], joint_);
-        rebuild |=
-            _im_gui->DoSlider(label, 0, skeleton_.num_joints() - 1, &joint_,
-                              1.f, joint_setting_enable_ && optimize_);
+                      skeleton_.joint_names()[overridden_joint_],
+                      overridden_joint_);
+        rebuild |= _im_gui->DoSlider(label, 0, skeleton_.num_joints() - 1,
+                                     &overridden_joint_, 1.f,
+                                     override_joint_ && optimize_);
 
         std::snprintf(label, sizeof(label), "Tolerance: %0.2f mm",
-                      joint_setting_.tolerance * 1000);
-        rebuild |= _im_gui->DoSlider(label, 0.f, .1f, &joint_setting_.tolerance,
-                                     .5f, joint_setting_enable_ && optimize_);
+                      overridden_joint_setting_.tolerance * 1000);
+        rebuild |= _im_gui->DoSlider(label, 0.f, .1f,
+                                     &overridden_joint_setting_.tolerance, .5f,
+                                     override_joint_ && optimize_);
 
         std::snprintf(label, sizeof(label), "Distance: %0.2f mm",
-                      joint_setting_.distance * 1000);
-        rebuild |= _im_gui->DoSlider(label, 0.f, 1.f, &joint_setting_.distance,
-                                     .5f, joint_setting_enable_ && optimize_);
+                      overridden_joint_setting_.distance * 1000);
+        rebuild |= _im_gui->DoSlider(label, 0.f, 1.f,
+                                     &overridden_joint_setting_.distance, .5f,
+                                     override_joint_ && optimize_);
       }
     }
     {
@@ -355,7 +358,8 @@ class OptimizeSampleApplication : public ozz::sample::Application {
       if (open) {
         rebuild |= _im_gui->DoCheckBox("Enable iframes", &enable_iframes_);
 
-        std::snprintf(label, sizeof(label), "Iframe interval: %0.2f s", iframe_interval_);
+        std::snprintf(label, sizeof(label), "Iframe interval: %0.2f s",
+                      iframe_interval_);
         rebuild |= _im_gui->DoSlider(label, .1f, 20.f, &iframe_interval_, .5f,
                                      enable_iframes_);
       }
@@ -433,14 +437,15 @@ class OptimizeSampleApplication : public ozz::sample::Application {
                            error_record_max_.record_end());
         }
         {
-          std::snprintf(label, sizeof(label), "Joint %d error: %.2fmm", joint_,
-                        *joint_error_record_.cursor());
+          std::snprintf(label, sizeof(label), "Joint %d error: %.2fmm",
+                        overridden_joint_,
+                        *overridden_joint_error_record_.cursor());
           const ozz::sample::Record::Statistics error_stats =
-              joint_error_record_.GetStatistics();
+              overridden_joint_error_record_.GetStatistics();
           _im_gui->DoGraph(label, 0.f, error_stats.max, error_stats.latest,
-                           joint_error_record_.cursor(),
-                           joint_error_record_.record_begin(),
-                           joint_error_record_.record_end());
+                           overridden_joint_error_record_.cursor(),
+                           overridden_joint_error_record_.record_begin(),
+                           overridden_joint_error_record_.record_end());
         }
       }
     }
