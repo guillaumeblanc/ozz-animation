@@ -408,7 +408,8 @@ TEST(ManyKeys, SamplingJob) {
   {
     for (size_t i = 0; i < kMaxKey; ++i) {
       const RawAnimation::TranslationKey key = {
-          i * 1.f / kMaxKey, ozz::math::Float3(std::cos(.5f * i))};
+          i * 1.f / kMaxKey,
+          ozz::math::Float3(std::cos(ozz::math::kPi * i / kMaxKey))};
       raw_animation.tracks[2].translations.push_back(key);
     }
   }
@@ -429,25 +430,52 @@ TEST(ManyKeys, SamplingJob) {
     raw_animation.tracks[3].translations.push_back(key3);
   }
 
-  AnimationBuilder builder;
-  ozz::unique_ptr<Animation> animation = builder(raw_animation);
-  ASSERT_TRUE(animation);
+  for (auto interval : {-1.f, 0.f, .0005f, .4f, 1.f, 200.f}) {
+    AnimationBuilder builder;
+    builder.iframe_interval = interval;
 
-  ozz::animation::SamplingJob job;
-  job.animation = animation.get();
-  ozz::animation::SamplingJob::Context context(4);
-  job.context = &context;
-  job.ratio = 0.f;
-  ozz::math::SoaTransform output[1];
-  job.output = output;
+    ozz::unique_ptr<Animation> animation = builder(raw_animation);
+    ASSERT_TRUE(animation);
 
-  EXPECT_TRUE(job.Validate());
-  EXPECT_TRUE(job.Run());
+    ozz::animation::SamplingJob job;
+    job.animation = animation.get();
+    ozz::animation::SamplingJob::Context context(4);
+    job.context = &context;
+    ozz::math::SoaTransform output[1];
+    job.output = output;
 
-  EXPECT_SOAFLOAT3_EQ_EST(output[0].translation, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f,
-                          1.f, 0.f, 0.f, 0.f, 1.f, 0.f);
-  EXPECT_SOAQUATERNION_EQ_EST(output[0].rotation, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f,
-                              0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 1.f, 1.f, 1.f, 1.f);
-  EXPECT_SOAFLOAT3_EQ_EST(output[0].scale, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f,
-                          1.f, 1.f, 1.f, 1.f, 1.f);
+    job.ratio = 0.f;
+    EXPECT_TRUE(job.Validate());
+    EXPECT_TRUE(job.Run());
+
+    EXPECT_SOAFLOAT3_EQ_EST(output[0].translation, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f,
+                            1.f, 0.f, 0.f, 0.f, 1.f, 0.f);
+    EXPECT_SOAQUATERNION_EQ_EST(output[0].rotation, 0.f, 0.f, 0.f, 0.f, 0.f,
+                                0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 1.f, 1.f,
+                                1.f, 1.f);
+    EXPECT_SOAFLOAT3_EQ_EST(output[0].scale, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f,
+                            1.f, 1.f, 1.f, 1.f, 1.f);
+
+    job.ratio = .99f;
+    EXPECT_TRUE(job.Validate());
+    EXPECT_TRUE(job.Run());
+
+    EXPECT_SOAFLOAT3_EQ_EST(output[0].translation, 20.f, 0.f, -1.f, 3.f, 20.f,
+                            0.f, -1.f, 3.f, 20.f, 0.f, -1.f, 3.f);
+
+    job.ratio = .5f;
+    EXPECT_TRUE(job.Validate());
+    EXPECT_TRUE(job.Run());
+
+    EXPECT_SOAFLOAT3_EQ_EST(output[0].translation, 15.097f, 0.f, 0.f, 1.555f,
+                            15.097f, 0.f, 0.f, 1.555f, 15.097f, 0.f, 0.f,
+                            1.555f);
+
+    job.ratio = 1.f;
+    EXPECT_TRUE(job.Validate());
+    EXPECT_TRUE(job.Run());
+
+    EXPECT_SOAFLOAT3_EQ_EST(output[0].translation, 20.f, 0.f, -1.f, 3.f, 20.f,
+                            0.f, -1.f, 3.f, 20.f, 0.f, -1.f, 3.f);
+  }
 }
