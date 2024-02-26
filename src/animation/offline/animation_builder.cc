@@ -142,7 +142,8 @@ void Sort(ozz::vector<_SortingKey>& _src, size_t _num_tracks,
       auto& previous = previouses[track];
 
       // Inject key if distance from previous one is too big to be stored in
-      // runtime data structure.
+      // runtime data structure (aka index to previous frame bigger than
+      // kMaxPreviousOffset)
       if (previous.first != -1 &&
           i - previous.first > ozz::animation::internal::kMaxPreviousOffset) {
         assert(previous.second != -1 &&
