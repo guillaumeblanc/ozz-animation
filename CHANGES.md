@@ -1,5 +1,5 @@
-Next release
-------------
+Release version 0.15.0
+----------------------
 
 This version brings breaking changes that require rebuilding runtime animations.
 
