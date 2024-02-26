@@ -129,6 +129,7 @@ class OZZ_ANIMATION_DLL Animation {
     // 2. Maximum key index (latest updated key).
     span<typename ConstQualifier<uint32_t, _Const>::type> iframe_desc;
 
+    // Interval, used at runtime to index iframe_desc.
     float iframe_interval;
   };
 
@@ -165,7 +166,7 @@ class OZZ_ANIMATION_DLL Animation {
   // AnimationBuilder class is allowed to instantiate an Animation.
   friend class offline::AnimationBuilder;
 
-  // Internal destruction function.
+  // Internal memory management functions.
   struct AllocateParams {
     size_t name_len;
     size_t timepoints;
@@ -196,10 +197,10 @@ class OZZ_ANIMATION_DLL Animation {
   // Animation name.
   char* name_;
 
-  // Stores all translation/rotation/scale keys begin and end of buffers.
+  // Stores all translation/rotation/scale keys.
   span<float> timepoints_;
 
-  // Keyframes series controlers.
+  // Keyframes series controllers.
   KeyframesCtrl translations_ctrl_;
   KeyframesCtrl rotations_ctrl_;
   KeyframesCtrl scales_ctrl_;

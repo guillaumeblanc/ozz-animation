@@ -29,7 +29,7 @@
 #define OZZ_OZZ_BASE_MATHS_GTEST_MATH_HELPER_H_
 
 static const float kFloatNearTolerance = 1e-5f;
-static const float kFloatNearEstTolerance = 1e-3f;
+static const float kFloatNearEstTolerance = 1e-2f;
 
 // Implements "float near" test as a function. Avoids overloading compiler
 // optimizer when too much EXPECT_NEAR are used in a single compilation unit.

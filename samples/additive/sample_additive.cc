@@ -250,7 +250,7 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
       ozz::sample::ImGui::OpenClose oc(_im_gui, "Blending parameters", &open);
       if (open) {
         _im_gui->DoLabel("Main layer:");
-        std::sprintf(label, "Layer weight: %.2f", base_weight_);
+        std::snprintf(label, sizeof(label), "Layer weight: %.2f", base_weight_);
         _im_gui->DoSlider(label, 0.f, 1.f, &base_weight_, 1.f);
 
         _im_gui->DoLabel("Additive layer:");
@@ -259,8 +259,8 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
         std::memcpy(weights.data(), additive_weigths_,
                     sizeof(additive_weigths_));
 
-        std::sprintf(label, "Weights\nCurl: %.2f\nSplay: %.2f",
-                     additive_weigths_[kCurl], additive_weigths_[kSplay]);
+        std::snprintf(label, sizeof(label), "Weights\nCurl: %.2f\nSplay: %.2f",
+                      additive_weigths_[kCurl], additive_weigths_[kSplay]);
         if (_im_gui->DoSlider2D(label, {{0.f, 0.f}}, {{1.f, 1.f}}, &weights)) {
           auto_animate_weights_ = false;  // User interacted.
           std::memcpy(additive_weigths_, weights.data(),

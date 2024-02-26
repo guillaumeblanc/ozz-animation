@@ -287,10 +287,10 @@ class MultithreadSampleApplication : public ozz::sample::Application {
       ozz::sample::ImGui::OpenClose oc(_im_gui, "Sample control", &oc_open);
       if (oc_open) {
         char label[64];
-        std::sprintf(label, "Number of entities: %d", num_characters_);
+        std::snprintf(label, sizeof(label), "Number of entities: %d", num_characters_);
         _im_gui->DoSlider(label, 1, kMaxCharacters, &num_characters_, .7f);
         const int num_joints = num_characters_ * skeleton_.num_joints();
-        std::sprintf(label, "Number of joints: %d", num_joints);
+        std::snprintf(label, sizeof(label), "Number of joints: %d", num_joints);
         _im_gui->DoLabel(label);
       }
     }
@@ -303,11 +303,11 @@ class MultithreadSampleApplication : public ozz::sample::Application {
                             has_threading_support_);
         if (enable_theading_) {
           char label[64];
-          std::sprintf(label, "Grain size: %d", grain_size_);
+          std::snprintf(label, sizeof(label), "Grain size: %d", grain_size_);
           _im_gui->DoSlider(label, kMinGrainSize, kMaxCharacters, &grain_size_,
                             .2f);
           const int num_threads = monitor_.ThreadCount();
-          std::sprintf(label, "Thread/task count: %d/%d", num_threads,
+          std::snprintf(label, sizeof(label), "Thread/task count: %d/%d", num_threads,
                        monitor_.TaskCount());
           _im_gui->DoLabel(label);
         }

@@ -30,12 +30,18 @@ add_library(sample_framework STATIC
 if(NOT EMSCRIPTEN)
   add_subdirectory(${PROJECT_SOURCE_DIR}/extern/glfw glfw)
   target_link_libraries(sample_framework glfw)
+else()
+  target_link_options(sample_framework PUBLIC -sUSE_GLFW=2)
 endif()
 
 target_link_libraries(sample_framework
   ozz_geometry
   ozz_animation_offline
   ozz_options)
+  
+target_include_directories(sample_framework PUBLIC
+  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/samples>
+  $<INSTALL_INTERFACE:$<INSTALL_PREFIX>/samples>)
 
 if(TARGET BUILD_DATA_SAMPLE)
   add_dependencies(sample_framework BUILD_DATA_SAMPLE)

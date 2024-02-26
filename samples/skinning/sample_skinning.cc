@@ -186,28 +186,28 @@ class SkinningSampleApplication : public ozz::sample::Application {
       ozz::sample::ImGui::OpenClose oc(_im_gui, "Model statisitics", &open);
       if (open) {
         char label[255];
-        sprintf(label, "%d animated joints", skeleton_.num_joints());
+        std::snprintf(label, sizeof(label), "%d animated joints", skeleton_.num_joints());
         _im_gui->DoLabel(label);
 
         int influences = 0;
         for (const auto& mesh : meshes_) {
           influences = ozz::math::Max(influences, mesh.max_influences_count());
         }
-        sprintf(label, "%d influences (max)", influences);
+        std::snprintf(label, sizeof(label), "%d influences (max)", influences);
         _im_gui->DoLabel(label);
 
         int vertices = 0;
         for (const auto& mesh : meshes_) {
           vertices += mesh.vertex_count();
         }
-        sprintf(label, "%.1fK vertices", vertices / 1000.f);
+        std::snprintf(label, sizeof(label), "%.1fK vertices", vertices / 1000.f);
         _im_gui->DoLabel(label);
 
         int indices = 0;
         for (const auto& mesh : meshes_) {
           indices += mesh.triangle_index_count();
         }
-        sprintf(label, "%.1fK triangles", indices / 3000.f);
+        std::snprintf(label, sizeof(label), "%.1fK triangles", indices / 3000.f);
         _im_gui->DoLabel(label);
       }
     }

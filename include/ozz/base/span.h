@@ -61,6 +61,9 @@ struct span {
   // elements.
   span(_Ty* _begin, size_t _size) : data_(_begin), size_(_size) {}
 
+  // Copy constructor.
+  span(const span& _other) = default;
+
   // Copy operator.
   void operator=(const span& _other) {
     data_ = _other.data_;

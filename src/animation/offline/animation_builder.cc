@@ -142,7 +142,8 @@ void Sort(ozz::vector<_SortingKey>& _src, size_t _num_tracks,
       auto& previous = previouses[track];
 
       // Inject key if distance from previous one is too big to be stored in
-      // runtime data structure.
+      // runtime data structure (aka index to previous frame bigger than
+      // kMaxPreviousOffset)
       if (previous.first != -1 &&
           i - previous.first > ozz::animation::internal::kMaxPreviousOffset) {
         assert(previous.second != -1 &&
@@ -260,7 +261,7 @@ void CompressQuaternion(const ozz::math::Quaternion& _src,
                         ozz::animation::internal::QuaternionKey* _dest) {
   // Finds the largest quaternion component.
   const float quat[4] = {_src.x, _src.y, _src.z, _src.w};
-  const size_t largest = std::max_element(quat, quat + 4, LessAbs) - quat;
+  const ptrdiff_t largest = std::max_element(quat, quat + 4, LessAbs) - quat;
   assert(largest <= 3);
 
   // Quantize the 3 smallest components on x bits signed integers.
@@ -458,7 +459,7 @@ unique_ptr<Animation> AnimationBuilder::operator()(
 
   // Declares and preallocates tracks to sort.
   size_t translations = 0, rotations = 0, scales = 0;
-  for (int i = 0; i < num_tracks; ++i) {
+  for (uint16_t i = 0; i < num_tracks; ++i) {
     const RawAnimation::JointTrack& raw_track = _input.tracks[i];
     translations += raw_track.translations.size() + 2;  // +2 because worst case
     rotations += raw_track.rotations.size() + 2;        // needs to add the

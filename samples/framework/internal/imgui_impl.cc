@@ -100,7 +100,7 @@ bool FormatFloat(float _value, char* _string, const char* _string_end) {
   if (!_string || _string_end - _string < 8 + precision + 1) {
     return false;
   }
-  std::sprintf(_string, "%.2g\n", _value);
+  std::snprintf(_string, _string_end - _string, "%.2g\n", _value);
 
   // Removes unnecessary '0' digits in the exponent.
   char* exponent = strchr(_string, 'e');

@@ -25,16 +25,15 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/base/maths/soa_quaternion.h"
-
 #include "gtest/gtest.h"
-
 #include "ozz/base/gtest_helper.h"
 #include "ozz/base/maths/gtest_math_helper.h"
+#include "ozz/base/maths/soa_quaternion.h"
 
-using ozz::math::SoaQuaternion;
-using ozz::math::SoaFloat4;
+using ozz::math::SimdInt4;
 using ozz::math::SoaFloat3;
+using ozz::math::SoaFloat4;
+using ozz::math::SoaQuaternion;
 
 TEST(SoaQuaternionConstant, ozz_soa_math) {
   EXPECT_SOAQUATERNION_EQ(SoaQuaternion::identity(), 0.f, 0.f, 0.f, 0.f, 0.f,
@@ -166,4 +165,18 @@ TEST(SoaQuaternionArithmetic, ozz_soa_math) {
                               0.f, 0.f, .70710677f, .70710677f, .70710677f,
                               .97047764f);
   EXPECT_TRUE(ozz::math::AreAllTrue(IsNormalizedEst(nlerp_est_m)));
+
+  const SimdInt4 same_aa = Compare(a, a, ozz::math::simd_float4::Load1(.99f));
+  EXPECT_TRUE(ozz::math::AreAllTrue(same_aa));
+
+  const SimdInt4 same_ana =
+      Compare(a, Normalize(a), ozz::math::simd_float4::Load1(.99f));
+  EXPECT_TRUE(ozz::math::AreAllTrue(same_ana));
+
+  const SimdInt4 same_anega =
+      Compare(a, -a, ozz::math::simd_float4::Load1(.99f));
+  EXPECT_TRUE(ozz::math::AreAllTrue(same_anega));
+
+  const SimdInt4 same_ab = Compare(a, b, ozz::math::simd_float4::Load1(.99f));
+  EXPECT_SIMDINT_EQ(same_ab, 0, 0, 0xffffffff, 0);
 }

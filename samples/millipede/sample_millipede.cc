@@ -152,7 +152,7 @@ class MillipedeSampleApplication : public ozz::sample::Application {
     // Rebuilds all if the number of joints has changed.
     int joints = skeleton_->num_joints();
     char label[64];
-    std::sprintf(label, "Joints count: %d", joints);
+    std::snprintf(label, sizeof(label), "Joints count: %d", joints);
 
     // Uses an exponential scale in the slider to maintain enough precision in
     // the lowest values.
@@ -219,17 +219,17 @@ class MillipedeSampleApplication : public ozz::sample::Application {
     root->transform.rotation = Quaternion::identity();
     root->transform.scale = Float3::one();
 
-    char buf[16];
+    char number[16];
     for (int i = 0; i < slice_count_; ++i) {
       // Format joint number.
-      std::sprintf(buf, "%d", i);
+      std::snprintf(number, sizeof(number), "%d", i);
 
       root->children.resize(3);
 
       // Left leg.
       RawSkeleton::Joint& lu = root->children[0];
       lu.name = "lu";
-      lu.name += buf;
+      lu.name += number;
       lu.transform.translation = kTransUp;
       lu.transform.rotation = kRotLeftUp;
       lu.transform.scale = Float3::one();
@@ -237,7 +237,7 @@ class MillipedeSampleApplication : public ozz::sample::Application {
       lu.children.resize(1);
       RawSkeleton::Joint& ld = lu.children[0];
       ld.name = "ld";
-      ld.name += buf;
+      ld.name += number;
       ld.transform.translation = kTransDown;
       ld.transform.rotation = kRotLeftDown;
       ld.transform.scale = Float3::one();
@@ -245,7 +245,7 @@ class MillipedeSampleApplication : public ozz::sample::Application {
       ld.children.resize(1);
       RawSkeleton::Joint& lf = ld.children[0];
       lf.name = "lf";
-      lf.name += buf;
+      lf.name += number;
       lf.transform.translation = Float3::x_axis();
       lf.transform.rotation = Quaternion::identity();
       lf.transform.scale = Float3::one();
@@ -253,7 +253,7 @@ class MillipedeSampleApplication : public ozz::sample::Application {
       // Right leg.
       RawSkeleton::Joint& ru = root->children[1];
       ru.name = "ru";
-      ru.name += buf;
+      ru.name += number;
       ru.transform.translation = kTransUp;
       ru.transform.rotation = kRotRightUp;
       ru.transform.scale = Float3::one();
@@ -261,7 +261,7 @@ class MillipedeSampleApplication : public ozz::sample::Application {
       ru.children.resize(1);
       RawSkeleton::Joint& rd = ru.children[0];
       rd.name = "rd";
-      rd.name += buf;
+      rd.name += number;
       rd.transform.translation = kTransDown;
       rd.transform.rotation = kRotRightDown;
       rd.transform.scale = Float3::one();
@@ -269,7 +269,7 @@ class MillipedeSampleApplication : public ozz::sample::Application {
       rd.children.resize(1);
       RawSkeleton::Joint& rf = rd.children[0];
       rf.name = "rf";
-      rf.name += buf;
+      rf.name += number;
       rf.transform.translation = Float3::x_axis();
       rf.transform.rotation = Quaternion::identity();
       rf.transform.scale = Float3::one();
@@ -277,7 +277,7 @@ class MillipedeSampleApplication : public ozz::sample::Application {
       // Spine.
       RawSkeleton::Joint& sp = root->children[2];
       sp.name = "sp";
-      sp.name += buf;
+      sp.name += number;
       sp.transform.translation = Float3(0.f, 0.f, kSpinLength);
       sp.transform.rotation = Quaternion::identity();
       sp.transform.scale = Float3::one();

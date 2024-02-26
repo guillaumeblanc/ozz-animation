@@ -149,7 +149,7 @@ class Application {
   enum LoopStatus {
     kContinue,      // Can continue with next loop.
     kBreak,         // Should stop looping (ex: exit).
-    kBreakFailure,  // // Should stop looping beacause something went wrong.
+    kBreakFailure,  // Should stop looping because something went wrong.
   };
   LoopStatus OneLoop(int _loops);
 
@@ -215,6 +215,9 @@ class Application {
 
   // Set to true to display help.
   bool show_help_;
+
+  bool vertical_sync_;  // On by default.
+  int swap_interval_;
 
   // Grid display settings.
   bool show_grid_;
