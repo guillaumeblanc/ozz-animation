@@ -5,8 +5,8 @@ This version brings breaking changes that require rebuilding runtime animations.
 
 * Library
   - [offline/animation] #152 Fixes additive animation blending issues due to wrong quaternion multiplication order in additive animation builder and blending job. Note that additive animation needs to be rebuilt to benefit from the fix.
-  - [animation] Restructures compressed keyframes to allow sequential backward reading. Per keyframe track index has been removed, replaced with an offset to the previous keyframe (for the same track) which is used for fast backward sequential reading.
-  - [animation] Keyframe times are now indexed. This removes 24b to 16b from every keyframe, aka 25% to 17% of the keyframe size. The overhead of storing timepoints is shared for translations, rotations and scales.
+  - [animation] Restructures compressed keyframes to allow fast sequential backward reading. Per keyframe track index has been removed, replaced with an offset to the previous keyframe (for the same track) which is used for fast backward sequential reading.
+  - [animation] Keyframe times are now indexed. This removes 16b to 24b from every keyframe (depending on animation duration), aka 17% to 25% of the keyframe size. The overhead of storing timepoints is shared for translations, rotations and scales.
   - [animation] Adds iframe support (aka keyframe snapshots), allowing fast seeks into the animation thanks to precomputed (and compressed) cache states. The sampling job decides automatically when an iframe is used, based on seek offset.
   - [offline] Extends animation importer configuration to allow setting up iframe_interval. An interval of 0 (or less) means no iframe is generated. If interval is positive, then at least an iframe is generated at animation end.
   - [base] Implements group varint encoding utility. It's used to compress iframes.
