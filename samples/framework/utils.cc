@@ -320,7 +320,7 @@ bool LoadSkeleton(const char* _filename, ozz::animation::Skeleton* _skeleton) {
 
   // Once the tag is validated, reading cannot fail.
   {
-    ProfileFctLog profile{"Skeleton loading time:"};
+    ProfileFctLog profile{"Skeleton loading time"};
     archive >> *_skeleton;
   }
   return true;
