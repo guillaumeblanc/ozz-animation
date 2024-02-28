@@ -381,9 +381,10 @@ bool SanitizeAnimation(Json::Value& _root, bool _all_options) {
 
   MakeDefault(
       _root, "iframe_interval", 10.f,
-      "Select interval in seconds between iframes, used to optimize seek time. "
-      "An interval of 0 (or less) means no iframe is generated. If interval is "
-      "positive, then at least an iframe is generated at animation end.");
+      "Selects interval in seconds between iframes, used to optimize seek "
+      "time. An interval of 0 (or less) means no iframe is generated. If "
+      "interval is positive, then at least an iframe is generated at animation "
+      "end.");
 
   MakeDefault(_root, "optimize", true,
               "Activates keyframes reduction optimization.");

@@ -31,7 +31,7 @@
       "additive" : false, //  Creates a delta animation that can be used for additive blending.
       "additive_reference" : "animation", //  Select reference pose to use to build additive/delta animation. Can be "animation" to use the 1st animation keyframe as reference, or "skeleton" to use skeleton rest pose.
       "sampling_rate" : 0, //  Selects animation sampling rate in hertz. Set a value <= 0 to use imported scene default frame rate.
-      "iframe_interval" : 10, //  Select interval in seconds between iframes, used to optimize seek time. An interval of 0 (or less) means no iframe is generated. If interval is positive, then at least an iframe is generated at animation end.
+      "iframe_interval" : 10, //  Selects interval in seconds between iframes, used to optimize seek time. An interval of 0 (or less) means no iframe is generated. If interval is positive, then at least an iframe is generated at animation end.
       "optimize" : true, //  Activates keyframes reduction optimization.
       "optimization_settings" : 
       {
