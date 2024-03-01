@@ -20,7 +20,7 @@ Supported platforms
 
 ozz-animation is tested on WebAssembly, Linux, macOS and Windows, for x86, x86-64 and ARM architectures. The run-time code (ozz_base, ozz_animation, ozz_geometry) depends only on c++11, on the C and the C++ standard libraries, and has no OS specific code. Portability to any other platform shouldn't be an issue.
 
-Samples, tools and tests depend on external libraries (glfw, tinygltf, Fbx SDK, jsoncpp, gtest, ...), which could limit portability.
+Samples, tools and tests depend on external libraries (glfw, tinygltf, Fbx SDK, jsoncpp, gtest, ...), which aren't need to ship with ozz-animation runtime.
 
 Build status
 ------------
