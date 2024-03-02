@@ -10,6 +10,8 @@ ozz-animation provides runtime character animation playback functionalities (loa
 
 ozz-animation comes with the toolchain to convert from major Digital Content Creation formats (gltf, Fbx, Collada, Obj, 3ds, dxf) to ozz optimized runtime structures. Offline libraries are also provided to implement the conversion from any other animation and skeleton format.
 
+Follow [this link](https://github.com/guillaumeblanc/ozz-animation/issues/175) for a list of projects using ozz-animation.
+
 Documentation
 -------------
 
