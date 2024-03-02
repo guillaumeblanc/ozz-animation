@@ -31,7 +31,7 @@ set_target_properties(sample_partial_blend
 if(EMSCRIPTEN)
   # Resource files are embedded to the output file with emscripten
   set_target_properties(sample_partial_blend
-    PROPERTIES LINK_FLAGS "--embed-file media --embed-file README.md --memory-init-file 0")
+    PROPERTIES LINK_FLAGS "--embed-file media --embed-file README.md")
 
   install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/sample_partial_blend.html
