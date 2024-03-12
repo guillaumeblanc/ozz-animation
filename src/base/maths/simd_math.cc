@@ -47,6 +47,8 @@ namespace math {
 #define _OZZ_SIMD_IMPLEMENTATION "SSE3"
 #elif defined(OZZ_SIMD_SSEx)
 #define _OZZ_SIMD_IMPLEMENTATION "SSE2"
+#elif defined(OZZ_SIMD_ARM_NEON)
+#define _OZZ_SIMD_IMPLEMENTATION "ARM NEON"
 #elif defined(OZZ_SIMD_REF)
 #define _OZZ_SIMD_IMPLEMENTATION "Reference"
 #else
