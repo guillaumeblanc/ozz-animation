@@ -19,7 +19,7 @@ jobs:
       run: |
         mkdir fbx
         cd fbx
-        sudo wget --user-agent='Mozilla/5.0' 'https://damassets.autodesk.net/content/dam/autodesk/www/adn/fbx/2020-0-1/fbx202001_fbxsdk_clang_mac.pkg.tgz' -O 'fbx.tgz'
+        sudo wget --user-agent='Mozilla/5.0' 'https://damassets.autodesk.net/content/dam/autodesk/www/adn/fbx/2020-3-4/fbx202034_fbxsdk_clang_mac.pkg.tgz' -O 'fbx.tgz'
         sudo tar -xf 'fbx.tgz'
         sudo installer -pkg *_fbxsdk_clang_macos.pkg -target /
         cd ..
