@@ -2,15 +2,13 @@ name: macOS
 on: [push, pull_request]
 jobs:
   build:
-    runs-on: macos-14
     strategy:
       fail-fast: false
       matrix:
-        build_type: [Debug]
+        os: [macos-latest, macos-14]
+        build_type: [Debug, Release]
         option: [default, ref, shared, no_fbx]
-        include:
-          - build_type: Release
-            option: default
+    runs-on: ${{matrix.os}}
     steps:
     - uses: actions/checkout@v4
         
