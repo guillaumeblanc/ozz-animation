@@ -64,17 +64,22 @@
 #include "GL/glext.h"
 #include "framework/renderer.h"
 #include "ozz/base/containers/vector.h"
+#include "ozz/base/log.h"
 #include "ozz/base/memory/unique_ptr.h"
 
 // Provides helper macro to test for glGetError on a gl call.
 #ifndef NDEBUG
-#define GL(_f)                    \
-  do {                            \
-    gl##_f;                       \
-    GLenum error = glGetError();  \
-    assert(error == GL_NO_ERROR); \
-                                  \
+#define GL(_f)                                                     \
+  do {                                                             \
+    gl##_f;                                                        \
+    GLenum gl_err = glGetError();                                  \
+    if (gl_err != 0) {                                             \
+      ozz::log::Err() << "GL error 0x" << std::hex << gl_err       \
+                      << " returned from 'gl" << #_f << std::endl; \
+    }                                                              \
+    assert(gl_err == GL_NO_ERROR);                                 \
   } while (void(0), 0)
+
 #else  // NDEBUG
 #define GL(_f) gl##_f
 #endif  // NDEBUG
@@ -220,6 +225,9 @@ class RendererImpl : public Renderer {
 
   // Bone and joint model objects.
   Model models_[2];
+
+  // Vertex array
+  GLuint vertex_array_o_;
 
   // Dynamic vbo used for arrays.
   GLuint dynamic_array_bo_;

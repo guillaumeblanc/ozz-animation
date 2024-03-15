@@ -36,7 +36,6 @@
 #include "ozz/animation/runtime/local_to_model_job.h"
 #include "ozz/animation/runtime/skeleton.h"
 #include "ozz/animation/runtime/skeleton_utils.h"
-#include "ozz/base/log.h"
 #include "ozz/base/maths/box.h"
 #include "ozz/base/maths/math_ex.h"
 #include "ozz/base/maths/simd_math.h"
@@ -70,11 +69,19 @@ RendererImpl::Model::~Model() {
 
 RendererImpl::RendererImpl(Camera* _camera)
     : camera_(_camera),
+      vertex_array_o_(0),
       dynamic_array_bo_(0),
       dynamic_index_bo_(0),
       checkered_texture_(0) {}
 
 RendererImpl::~RendererImpl() {
+  if (vertex_array_o_) {
+#ifndef EMSCRIPTEN
+    GL(DeleteVertexArrays(1, &vertex_array_o_));
+#endif // EMSCRIPTEN
+    vertex_array_o_ = 0;
+  }
+
   if (dynamic_array_bo_) {
     GL(DeleteBuffers(1, &dynamic_array_bo_));
     dynamic_array_bo_ = 0;
@@ -95,12 +102,19 @@ bool RendererImpl::Initialize() {
   if (!InitOpenGLExtensions()) {
     return false;
   }
+
   if (!InitPostureRendering()) {
     return false;
   }
   if (!InitCheckeredTexture()) {
     return false;
   }
+
+  // Build and bind vertex array once for all
+#ifndef EMSCRIPTEN
+   GL(GenVertexArrays(1, &vertex_array_o_));
+  GL(BindVertexArray(vertex_array_o_));
+#endif // EMSCRIPTE?
 
   // Builds the dynamic vbo
   GL(GenBuffers(1, &dynamic_array_bo_));
