@@ -1806,6 +1806,14 @@ bool RendererImpl::InitOpenGLExtensions() {
   OZZ_INIT_GL_EXT(glVertexAttrib4fv, PFNGLVERTEXATTRIB4FVPROC, success);
   OZZ_INIT_GL_EXT(glVertexAttribPointer, PFNGLVERTEXATTRIBPOINTERPROC, success);
 #endif  // OZZ_GL_VERSION_2_0_EXT
+
+#ifdef OZZ_GL_VERSION_3_0_EXT
+  OZZ_INIT_GL_EXT(glBindVertexArray, PFNGLBINDVERTEXARRAYPROC, success);
+  OZZ_INIT_GL_EXT(glDeleteVertexArrays, PFNGLDELETEVERTEXARRAYSPROC, success);
+  OZZ_INIT_GL_EXT(glGenVertexArrays, PFNGLGENVERTEXARRAYSPROC, success);
+  OZZ_INIT_GL_EXT(glIsVertexArray, PFNGLISVERTEXARRAYPROC, success);
+#endif  // OZZ_GL_VERSION_3_0_EXT
+
   if (!success) {
     log::Err() << "Failed to initialize all mandatory GL extensions."
                << std::endl;
@@ -1934,6 +1942,13 @@ OZZ_DECL_GL_EXT(glVertexAttrib4f, PFNGLVERTEXATTRIB4FPROC);
 OZZ_DECL_GL_EXT(glVertexAttrib4fv, PFNGLVERTEXATTRIB4FVPROC);
 OZZ_DECL_GL_EXT(glVertexAttribPointer, PFNGLVERTEXATTRIBPOINTERPROC);
 #endif  // OZZ_GL_VERSION_2_0_EXT
+
+#ifdef OZZ_GL_VERSION_3_0_EXT
+OZZ_DECL_GL_EXT(glBindVertexArray, PFNGLBINDVERTEXARRAYPROC);
+OZZ_DECL_GL_EXT(glDeleteVertexArrays, PFNGLDELETEVERTEXARRAYSPROC);
+OZZ_DECL_GL_EXT(glGenVertexArrays, PFNGLGENVERTEXARRAYSPROC);
+OZZ_DECL_GL_EXT(glIsVertexArray, PFNGLISVERTEXARRAYPROC);
+#endif  // OZZ_GL_VERSION_3_0_EXT
 
 bool GL_ARB_instanced_arrays_supported = false;
 OZZ_DECL_GL_EXT(glVertexAttribDivisor_, PFNGLVERTEXATTRIBDIVISORARBPROC);
