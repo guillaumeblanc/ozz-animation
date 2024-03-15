@@ -54,6 +54,9 @@
 #ifndef GL_VERSION_2_0
 #define OZZ_GL_VERSION_2_0_EXT
 #endif  // GL_VERSION_2_0
+#ifndef GL_VERSION_3_0
+#define OZZ_GL_VERSION_3_0_EXT
+#endif  // GL_VERSION_3_0
 
 #endif  // EMSCRIPTEN
 
@@ -119,11 +122,11 @@ class RendererImpl : public Renderer {
                            const ozz::math::Float4x4& _transform,
                            bool _draw_joints);
 
-  virtual bool DrawPoints(
-      const ozz::span<const float>& _positions,
-      const ozz::span<const float>& _sizes,
-      const ozz::span<const Color>& _colors,
-      const ozz::math::Float4x4& _transform, bool _round, bool _screen_space);
+  virtual bool DrawPoints(const ozz::span<const float>& _positions,
+                          const ozz::span<const float>& _sizes,
+                          const ozz::span<const Color>& _colors,
+                          const ozz::math::Float4x4& _transform, bool _round,
+                          bool _screen_space);
 
   virtual bool DrawBoxIm(const ozz::math::Box& _box,
                          const ozz::math::Float4x4& _transform,
@@ -331,9 +334,18 @@ extern PFNGLVERTEXATTRIB4FVPROC glVertexAttrib4fv;
 extern PFNGLVERTEXATTRIBPOINTERPROC glVertexAttribPointer;
 #endif  // OZZ_GL_VERSION_2_0_EXT
 
+// OpenGL 3.0 vertex array
+#ifdef OZZ_GL_VERSION_3_0_EXT
+extern PFNGLBINDVERTEXARRAYPROC glBindVertexArray;
+extern PFNGLDELETEVERTEXARRAYSPROC glDeleteVertexArrays;
+extern PFNGLGENVERTEXARRAYSPROC glGenVertexArrays;
+extern PFNGLISVERTEXARRAYPROC glIsVertexArray;
+#endif  // OZZ_GL_VERSION_3_0_EXT
+
 // OpenGL ARB_instanced_arrays extension, optional.
 extern bool GL_ARB_instanced_arrays_supported;
 extern PFNGLVERTEXATTRIBDIVISORARBPROC glVertexAttribDivisor_;
 extern PFNGLDRAWARRAYSINSTANCEDARBPROC glDrawArraysInstanced_;
 extern PFNGLDRAWELEMENTSINSTANCEDARBPROC glDrawElementsInstanced_;
+
 #endif  // OZZ_SAMPLES_FRAMEWORK_INTERNAL_RENDERER_IMPL_H_
