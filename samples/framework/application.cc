@@ -170,7 +170,7 @@ int Application::Run(int _argc, const char** _argv, const char* _version,
     }
 
     // Setup GL context.
-    const int gl_version_major = 2, gl_version_minor = 0;
+    const int gl_version_major = 3, gl_version_minor = 2;
     glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR, gl_version_major);
     glfwOpenWindowHint(GLFW_OPENGL_VERSION_MINOR, gl_version_minor);
     glfwOpenWindowHint(GLFW_FSAA_SAMPLES, 4);
