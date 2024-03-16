@@ -87,8 +87,8 @@
 
 // Try to match a Arm NEON
 #if defined(__ARM_NEON) || defined(OZZ_SIMD_ARM_NEON)
-#include <arm_neon.h>
-#define OZZ_SIMD_ARM_NEON
+// #include <arm_neon.h>
+// #define OZZ_SIMD_ARM_NEON
 #endif
 
 // End of SIMD instruction detection
