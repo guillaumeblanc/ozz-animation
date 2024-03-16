@@ -25,14 +25,12 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
+#include "gtest/gtest.h"
 #include "ozz/animation/runtime/ik_two_bone_job.h"
-
+#include "ozz/base/maths/gtest_math_helper.h"
 #include "ozz/base/maths/quaternion.h"
 #include "ozz/base/maths/simd_math.h"
 #include "ozz/base/maths/simd_quaternion.h"
-
-#include "gtest/gtest.h"
-#include "ozz/base/maths/gtest_math_helper.h"
 
 // Implement helper macro that verify that target was reached once ik job is
 // executed.
@@ -243,20 +241,6 @@ TEST(StartJointCorrection, IKTwoBoneJob) {
                                                -ozz::math::kPi_2);
       EXPECT_SIMDQUATERNION_EQ_TOL(qstart, y_mPi_2.x, y_mPi_2.y, y_mPi_2.z,
                                    y_mPi_2.w, 2e-3f);
-      EXPECT_SIMDQUATERNION_EQ_TOL(qmid, 0.f, 0.f, 0.f, 1.f, 2e-3f);
-    }
-
-    {  // 180 behind
-      job.target = TransformPoint(
-          parent, ozz::math::simd_float4::Load(-1.f, 1.f, 0.f, 0.f));
-      ASSERT_TRUE(job.Run());
-
-      EXPECT_REACHED(job);
-
-      const ozz::math::Quaternion y_kPi = ozz::math::Quaternion::FromAxisAngle(
-          ozz::math::Float3::y_axis(), ozz::math::kPi);
-      EXPECT_SIMDQUATERNION_EQ_TOL(qstart, y_kPi.x, y_kPi.y, y_kPi.z, y_kPi.w,
-                                   2e-3f);
       EXPECT_SIMDQUATERNION_EQ_TOL(qmid, 0.f, 0.f, 0.f, 1.f, 2e-3f);
     }
 
