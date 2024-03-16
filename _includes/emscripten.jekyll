@@ -28,21 +28,12 @@
     sample_canvas.height = sample_canvas.clientWidth * 9 / 16;
   }
   function CheckWebGLSupport(canvas) {
-    if (!window.WebGLRenderingContext) {
-      // The browser doesn't even know what WebGL is.
-      return [false, 'Your browser doesn\'t support WebGL. Visit <a href="http://get.webgl.org" target="_blank">http://get.webgl.org</a> for more information.'];
+    const gl = document.createElement('canvas').getContext('webgl2');
+    if (!gl) {
+      return [false, 'your browser/OS/drivers do not support WebGL2'];
     } else {
-      //  If the browser supports WebGL and canvas.getContext("webgl") returns null then WebGL failed for some reason other than user's browser (no GPU, out of memory, etc...)
-      var gl_context = canvas.getContext("webgl");
-      if (!gl_context) {
-        gl_context = canvas.getContext("experimental-webgl");      
-      }
-      if (!gl_context) {
-        return [false, 'Your browser supports WebGL but could not properly initialize it. Visit <a href="http://get.webgl.org/troubleshooting" target="_blank">http://get.webgl.org/troubleshooting</a> for more information.'];
-      }
+      return [true, 'WebGL is supported by your browser.'];
     }
-    // Success.
-    return [true, 'WebGL is supported by your browser.'];
   }
   function OnSampleSuccess() {
     full_screen.style.display = "inline";
@@ -80,7 +71,16 @@
         text = Array.prototype.slice.call(arguments).join(' ');
         console.error(text);
       },
-      canvas: sample_canvas,
+      canvas: (() => {
+        var canvas = document.getElementById("sample_canvas");
+
+        // As a default initial behavior, pop up an alert when webgl context is lost. To make your
+        // application robust, you may want to override this behavior before shipping!
+        // See http://www.khronos.org/registry/webgl/specs/latest/1.0/#5.15.2
+        canvas.addEventListener("webglcontextlost", (e) => { alert('WebGL context lost. You will need to reload the page.'); e.preventDefault(); }, false);
+
+        return canvas;
+      })(),
       setStatus: function(text) {
         if(text == '') {
           // This signals sample initialization success.
