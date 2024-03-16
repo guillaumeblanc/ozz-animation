@@ -14,6 +14,7 @@ This version brings breaking changes that require rebuilding runtime animations.
 
 * Build pipeline
   - Adds CI for WebAssembly.
+  - Adds support for macOS ARM.
 
 Release version 0.14.3
 ----------------------
