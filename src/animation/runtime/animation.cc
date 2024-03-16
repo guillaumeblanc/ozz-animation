@@ -52,6 +52,7 @@ Animation& Animation::operator=(Animation&& _other) {
   std::swap(duration_, _other.duration_);
   std::swap(num_tracks_, _other.num_tracks_);
   std::swap(name_, _other.name_);
+  std::swap(timepoints_,_other.timepoints_);
   std::swap(translations_ctrl_, _other.translations_ctrl_);
   std::swap(rotations_ctrl_, _other.rotations_ctrl_);
   std::swap(scales_ctrl_, _other.scales_ctrl_);
