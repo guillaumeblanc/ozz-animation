@@ -130,7 +130,7 @@ class RendererImpl : public Renderer {
   virtual bool DrawPoints(const ozz::span<const float>& _positions,
                           const ozz::span<const float>& _sizes,
                           const ozz::span<const Color>& _colors,
-                          const ozz::math::Float4x4& _transform, bool _round,
+                          const ozz::math::Float4x4& _transform,
                           bool _screen_space);
 
   virtual bool DrawBoxIm(const ozz::math::Box& _box,

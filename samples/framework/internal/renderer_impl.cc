@@ -638,7 +638,7 @@ bool RendererImpl::DrawPoints(const ozz::span<const float>& _positions,
                               const ozz::span<const float>& _sizes,
                               const ozz::span<const Color>& _colors,
                               const ozz::math::Float4x4& _transform,
-                              bool _round, bool _screen_space) {
+                              bool _screen_space) {
   // Early out if no instance to render.
   if (_positions.size() == 0) {
     return true;
@@ -671,16 +671,6 @@ bool RendererImpl::DrawPoints(const ozz::span<const float>& _positions,
   GL(BufferSubData(GL_ARRAY_BUFFER, colors_offset, colors_size,
                    _colors.data()));
   GL(BufferSubData(GL_ARRAY_BUFFER, sizes_offset, sizes_size, _sizes.data()));
-
-  // Square or round sprites. Beware msaa makes sprites round if GL_POINT_SPRITE
-  // isn't enabled
-  if (_round) {
-    GL(Enable(GL_POINT_SMOOTH));
-    GL(Disable(GL_POINT_SPRITE));
-  } else {
-    GL(Disable(GL_POINT_SMOOTH));
-    GL(Enable(GL_POINT_SPRITE));
-  }
 
   // Size is managed in vertex shader side.
   GL(Enable(GL_PROGRAM_POINT_SIZE));
@@ -1369,7 +1359,7 @@ bool RendererImpl::DrawMesh(const Mesh& _mesh,
       }
       const float size = 2.f;
       DrawPoints({part.positions.data(), part.positions.size()}, {&size, 1},
-                 {&color, 1}, _transform, true, true);
+                 {&color, 1}, _transform, true);
     }
   }
 
@@ -1724,7 +1714,7 @@ bool RendererImpl::DrawSkinnedMesh(
             ozz::PointerStride(vbo_map, positions_offset)),
         static_cast<size_t>(vertex_count * 3)};
     const float size = 2.f;
-    DrawPoints(vertices, {&size, 1}, colors, _transform, true, true);
+    DrawPoints(vertices, {&size, 1}, colors, _transform, true);
   }
 
   return true;
