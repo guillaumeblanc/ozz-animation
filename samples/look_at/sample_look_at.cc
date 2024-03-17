@@ -280,13 +280,10 @@ class LookAtSampleApplication : public ozz::sample::Application {
         success &= _renderer->DrawAxes(offset * kAxesScale);
       }
       if (show_forward_) {
-        ozz::math::Float3 begin;
-        ozz::math::Store3PtrU(offset.cols[3], &begin.x);
         ozz::math::Float3 forward;
         ozz::math::Store3PtrU(kHeadForward, &forward.x);
-        ozz::sample::Color color = {0xff, 0xff, 0xff, 0xff};
-        success &= _renderer->DrawSegment(ozz::math::Float3::zero(),
-                                          forward * 10.f, color, offset);
+        ozz::math::Float3 line[2] = {{0, 0, 0}, forward * 10};
+        success &= _renderer->DrawLines(line, ozz::sample::kWhite, offset);
       }
     }
     return success;
@@ -417,11 +414,14 @@ class LookAtSampleApplication : public ozz::sample::Application {
         _im_gui->DoSlider(label, 0.f, kTargetRange, &target_extent_);
 
         snprintf(label, sizeof(label), "x %.2g", target_offset_.x);
-        _im_gui->DoSlider(label, -kTargetRange, kTargetRange, &target_offset_.x);
+        _im_gui->DoSlider(label, -kTargetRange, kTargetRange,
+                          &target_offset_.x);
         snprintf(label, sizeof(label), "y %.2g", target_offset_.y);
-        _im_gui->DoSlider(label, -kTargetRange, kTargetRange, &target_offset_.y);
+        _im_gui->DoSlider(label, -kTargetRange, kTargetRange,
+                          &target_offset_.y);
         snprintf(label, sizeof(label), "z %.2g", target_offset_.z);
-        _im_gui->DoSlider(label, -kTargetRange, kTargetRange, &target_offset_.z);
+        _im_gui->DoSlider(label, -kTargetRange, kTargetRange,
+                          &target_offset_.z);
       }
     }
 

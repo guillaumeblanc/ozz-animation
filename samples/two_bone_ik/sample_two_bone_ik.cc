@@ -196,9 +196,9 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
       ozz::math::Float3 begin;
       ozz::math::Store3PtrU(TransformPoint(root, models_[mid_joint_].cols[3]),
                             &begin.x);
-      success &= _renderer->DrawSegment(begin, begin + pole_vector,
-                                        ozz::sample::kWhite,
-                                        ozz::math::Float4x4::identity());
+      ozz::math::Float3 line[] = {begin, begin + pole_vector};
+      success &= _renderer->DrawLines(line, ozz::sample::kWhite,
+                                      ozz::math::Float4x4::identity());
     }
 
     // Showing joints
@@ -276,8 +276,9 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
         snprintf(label, sizeof(label), "Soften: %.2g", soften_);
         _im_gui->DoSlider(label, 0.f, 1.f, &soften_, 2.f);
         snprintf(label, sizeof(label), "Twist angle: %.0f",
-                twist_angle_ * ozz::math::kRadianToDegree);
-        _im_gui->DoSlider(label, -ozz::math::kPi, ozz::math::kPi, &twist_angle_);
+                 twist_angle_ * ozz::math::kRadianToDegree);
+        _im_gui->DoSlider(label, -ozz::math::kPi, ozz::math::kPi,
+                          &twist_angle_);
         snprintf(label, sizeof(label), "Weight: %.2g", weight_);
         _im_gui->DoSlider(label, 0.f, 1.f, &weight_);
         {
@@ -307,11 +308,14 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
         _im_gui->DoLabel("Target Offset");
         const float kOffsetRange = 1.f;
         snprintf(label, sizeof(label), "x %.2g", target_offset_.x);
-        _im_gui->DoSlider(label, -kOffsetRange, kOffsetRange, &target_offset_.x);
+        _im_gui->DoSlider(label, -kOffsetRange, kOffsetRange,
+                          &target_offset_.x);
         snprintf(label, sizeof(label), "y %.2g", target_offset_.y);
-        _im_gui->DoSlider(label, -kOffsetRange, kOffsetRange, &target_offset_.y);
+        _im_gui->DoSlider(label, -kOffsetRange, kOffsetRange,
+                          &target_offset_.y);
         snprintf(label, sizeof(label), "z %.2g", target_offset_.z);
-        _im_gui->DoSlider(label, -kOffsetRange, kOffsetRange, &target_offset_.z);
+        _im_gui->DoSlider(label, -kOffsetRange, kOffsetRange,
+                          &target_offset_.z);
       }
     }
     {  // Root

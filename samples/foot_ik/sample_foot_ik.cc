@@ -497,15 +497,19 @@ class FootIKSampleApplication : public ozz::sample::Application {
       for (size_t l = 0; l < kLegsCount; ++l) {
         const LegRayInfo& ray = rays_info_[l];
         if (ray.hit) {
-          success &= _renderer->DrawSegment(ray.start, ray.hit_point,
-                                            ozz::sample::kGreen, identity);
-          success &= _renderer->DrawSegment(
-              ray.hit_point, ray.hit_point + ray.hit_normal * .5f,
-              ozz::sample::kRed, identity);
-        } else {
+          const ozz::math::Float3 ray_hit[] = {ray.start, ray.hit_point};
           success &=
-              _renderer->DrawSegment(ray.start, ray.start + ray.dir * 10.f,
-                                     ozz::sample::kWhite, identity);
+              _renderer->DrawLines(ray_hit, ozz::sample::kGreen, identity);
+
+          const ozz::math::Float3 ray_normal[] = {
+              ray.hit_point, ray.hit_point + ray.hit_normal * .5f};
+          success &=
+              _renderer->DrawLines(ray_normal, ozz::sample::kRed, identity);
+        } else {
+          const ozz::math::Float3 ray_infinite[] = {ray.start,
+                                                    ray.start + ray.dir * 10.f};
+          success &=
+              _renderer->DrawLines(ray_infinite, ozz::sample::kWhite, identity);
         }
       }
     }
@@ -662,9 +666,10 @@ class FootIKSampleApplication : public ozz::sample::Application {
 
         // Rotation (in euler form)
         _im_gui->DoLabel("Rotation");
-        snprintf(label, sizeof(label), "yaw %.3g", root_yaw_ * ozz::math::kRadianToDegree);
-        moved |=
-            _im_gui->DoSlider(label, -ozz::math::kPi, ozz::math::kPi, &root_yaw_);
+        snprintf(label, sizeof(label), "yaw %.3g",
+                 root_yaw_ * ozz::math::kRadianToDegree);
+        moved |= _im_gui->DoSlider(label, -ozz::math::kPi, ozz::math::kPi,
+                                   &root_yaw_);
 
         // Character position shouldn't be changed after the update. In this
         // case, because UI is updated after "game" update, we need to recompute

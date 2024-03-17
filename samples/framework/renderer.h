@@ -97,12 +97,11 @@ class Renderer {
   // _sizes and _colors must be either of ize 1 or equal to _positions' size.
   // If _screen_space is true, then points size is fixed in screen-space,
   // otherwise it changes with screen depth.
-  virtual bool DrawPoints(
-      const ozz::span<const float>& _positions,
-      const ozz::span<const float>& _sizes,
-      const ozz::span<const Color>& _colors,
-      const ozz::math::Float4x4& _transform, bool _round = true,
-      bool _screen_space = false) = 0;
+  virtual bool DrawPoints(const ozz::span<const float>& _positions,
+                          const ozz::span<const float>& _sizes,
+                          const ozz::span<const Color>& _colors,
+                          const ozz::math::Float4x4& _transform,
+                          bool _round = true, bool _screen_space = false) = 0;
 
   // Renders a box at a specified location.
   // The 2 slots of _colors array respectively defines color of the filled
@@ -173,10 +172,18 @@ class Renderer {
                         const ozz::math::Float4x4& _transform,
                         const Options& _options = Options()) = 0;
 
-  // Renders a segment from begin to end.
-  virtual bool DrawSegment(const math::Float3& _begin, const math::Float3& _end,
-                           Color _color,
-                           const ozz::math::Float4x4& _transform) = 0;
+  // Renders a lines. Vertices 0 and 1 are considered a line. Vertices 2 and 3
+  // are considered a line. And so on. If the user specifies a non-even number
+  // of vertices, then the extra vertex is ignored.
+  virtual bool DrawLines(ozz::span<const math::Float3> _vertices, Color _color,
+                         const ozz::math::Float4x4& _transform) = 0;
+
+  // Renders a line strip. Adjacent vertices are considered lines. Thus, if you
+  // pass n vertices, you will get n-1 lines. If the user only specifies 1
+  // vertex, the drawing command is ignored (still valid).
+  virtual bool DrawLineStrip(ozz::span<const math::Float3> _vertices,
+                             Color _color,
+                             const ozz::math::Float4x4& _transform) = 0;
 
   // Renders vectors, defined by their starting point and a direction.
   virtual bool DrawVectors(ozz::span<const float> _positions,

@@ -158,8 +158,12 @@ class RendererImpl : public Renderer {
                         const ozz::math::Float4x4& _transform,
                         const Options& _options = Options());
 
-  virtual bool DrawSegment(const math::Float3& _begin, const math::Float3& _end,
-                           Color _color, const ozz::math::Float4x4& _transform);
+  virtual bool DrawLines(ozz::span<const math::Float3> _vertices, Color _color,
+                         const ozz::math::Float4x4& _transform);
+
+  virtual bool DrawLineStrip(ozz::span<const math::Float3> _vertices,
+                             Color _color,
+                             const ozz::math::Float4x4& _transform);
 
   virtual bool DrawVectors(ozz::span<const float> _positions,
                            size_t _positions_stride,
@@ -226,14 +230,16 @@ class RendererImpl : public Renderer {
   // Bone and joint model objects.
   Model models_[2];
 
+#ifndef EMSCRIPTEN
   // Vertex array
-  GLuint vertex_array_o_;
+  GLuint vertex_array_o_ = 0;
+#endif  // EMSCRIPTEN
 
   // Dynamic vbo used for arrays.
-  GLuint dynamic_array_bo_;
+  GLuint dynamic_array_bo_ = 0;
 
   // Dynamic vbo used for indices.
-  GLuint dynamic_index_bo_;
+  GLuint dynamic_index_bo_ = 0;
 
   // Volatile memory buffer that can be used within function scope.
   // Minimum alignment is 16 bytes.
@@ -261,7 +267,7 @@ class RendererImpl : public Renderer {
   ozz::unique_ptr<PointsShader> points_shader;
 
   // Checkered texture
-  unsigned int checkered_texture_;
+  GLuint checkered_texture_ = 0;
 };
 }  // namespace internal
 }  // namespace sample

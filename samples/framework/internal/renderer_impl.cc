@@ -67,20 +67,15 @@ RendererImpl::Model::~Model() {
   }
 }
 
-RendererImpl::RendererImpl(Camera* _camera)
-    : camera_(_camera),
-      vertex_array_o_(0),
-      dynamic_array_bo_(0),
-      dynamic_index_bo_(0),
-      checkered_texture_(0) {}
+RendererImpl::RendererImpl(Camera* _camera) : camera_(_camera) {}
 
 RendererImpl::~RendererImpl() {
-  if (vertex_array_o_) {
 #ifndef EMSCRIPTEN
+  if (vertex_array_o_) {
     GL(DeleteVertexArrays(1, &vertex_array_o_));
-#endif // EMSCRIPTEN
     vertex_array_o_ = 0;
   }
+#endif  // EMSCRIPTEN
 
   if (dynamic_array_bo_) {
     GL(DeleteBuffers(1, &dynamic_array_bo_));
@@ -112,9 +107,9 @@ bool RendererImpl::Initialize() {
 
   // Build and bind vertex array once for all
 #ifndef EMSCRIPTEN
-   GL(GenVertexArrays(1, &vertex_array_o_));
+  GL(GenVertexArrays(1, &vertex_array_o_));
   GL(BindVertexArray(vertex_array_o_));
-#endif // EMSCRIPTE?
+#endif  // EMSCRIPTE?
 
   // Builds the dynamic vbo
   GL(GenBuffers(1, &dynamic_array_bo_));
@@ -1036,13 +1031,42 @@ bool RendererImpl::DrawSphereShaded(
   return true;
 }
 
-bool RendererImpl::DrawSegment(const math::Float3& _begin,
-                               const math::Float3& _end, Color _color,
-                               const ozz::math::Float4x4& _transform) {
-  const math::Float3 dir(_end - _begin);
-  return DrawVectors(ozz::span<const float>(&_begin.x, 3), 12,
-                     ozz::span<const float>(&dir.x, 3), 12, 1, 1.f, _color,
-                     _transform);
+bool RendererImpl::DrawLines(ozz::span<const math::Float3> _vertices,
+                             Color _color,
+                             const ozz::math::Float4x4& _transform) {
+  if (_vertices.size() < 2) {
+    return true;
+  }
+
+  GlImmediatePC im(immediate_renderer(), GL_LINES, _transform);
+  GlImmediatePC::Vertex imv = {{}, {_color.r, _color.g, _color.b, _color.a}};
+
+  for (const auto& v : _vertices) {
+    imv.pos[0] = v.x;
+    imv.pos[1] = v.y;
+    imv.pos[2] = v.z;
+    im.PushVertex(imv);
+  }
+  return true;
+}
+
+bool RendererImpl::DrawLineStrip(ozz::span<const math::Float3> _vertices,
+                                 Color _color,
+                                 const ozz::math::Float4x4& _transform) {
+  if (_vertices.size() < 2) {
+    return true;
+  }
+
+  GlImmediatePC im(immediate_renderer(), GL_LINE_STRIP, _transform);
+  GlImmediatePC::Vertex imv = {{}, {_color.r, _color.g, _color.b, _color.a}};
+
+  for (const auto& v : _vertices) {
+    imv.pos[0] = v.x;
+    imv.pos[1] = v.y;
+    imv.pos[2] = v.z;
+    im.PushVertex(imv);
+  }
+  return true;
 }
 
 bool RendererImpl::DrawVectors(ozz::span<const float> _positions,
