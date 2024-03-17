@@ -101,7 +101,7 @@ class Renderer {
                           const ozz::span<const float>& _sizes,
                           const ozz::span<const Color>& _colors,
                           const ozz::math::Float4x4& _transform,
-                          bool _round = true, bool _screen_space = false) = 0;
+                          bool _screen_space = false) = 0;
 
   // Renders a box at a specified location.
   // The 2 slots of _colors array respectively defines color of the filled
