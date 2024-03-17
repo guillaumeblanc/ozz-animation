@@ -247,7 +247,8 @@ class BlendSampleApplication : public ozz::sample::Application {
 
         for (int i = 0; i < kNumLayers; ++i) {
           Sampler& sampler = samplers_[i];
-          std::snprintf(label, sizeof(label), "Weight %d: %.2f", i, sampler.weight);
+          std::snprintf(label, sizeof(label), "Weight %d: %.2f", i,
+                        sampler.weight);
           _im_gui->DoSlider(label, 0.f, 1.f, &sampler.weight, 1.f, manual_);
         }
 
@@ -279,7 +280,8 @@ class BlendSampleApplication : public ozz::sample::Application {
   }
 
   virtual void GetSceneBounds(ozz::math::Box* _bound) const {
-    ozz::sample::ComputePostureBounds(make_span(models_), _bound);
+    ozz::sample::ComputePostureBounds(make_span(models_),
+                                      ozz::math::Float4x4::identity(), _bound);
   }
 
  private:

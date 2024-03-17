@@ -349,7 +349,8 @@ class OptimizeSampleApplication : public ozz::sample::Application {
       if (open) {
         rebuild |= _im_gui->DoCheckBox("Enable iframes", &enable_iframes_);
 
-        std::snprintf(label, sizeof(label), "Iframe interval: %0.2f s", iframe_interval_);
+        std::snprintf(label, sizeof(label), "Iframe interval: %0.2f s",
+                      iframe_interval_);
         rebuild |= _im_gui->DoSlider(label, .1f, 20.f, &iframe_interval_, .5f,
                                      enable_iframes_);
       }
@@ -483,7 +484,8 @@ class OptimizeSampleApplication : public ozz::sample::Application {
   }
 
   virtual void GetSceneBounds(ozz::math::Box* _bound) const {
-    ozz::sample::ComputePostureBounds(models(), _bound);
+    ozz::sample::ComputePostureBounds(models(), ozz::math::Float4x4::identity(),
+                                      _bound);
   }
 
  private:

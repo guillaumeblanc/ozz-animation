@@ -205,6 +205,7 @@ bool RawSkeletonEditor::OnGui(animation::offline::RawSkeleton* _skeleton,
 // Uses LocalToModelJob to compute skeleton model space posture, then forwards
 // to ComputePostureBounds
 void ComputeSkeletonBounds(const animation::Skeleton& _skeleton,
+                           const ozz::math::Float4x4& _transform,
                            math::Box* _bound) {
   using ozz::math::Float4x4;
 
@@ -228,33 +229,32 @@ void ComputeSkeletonBounds(const animation::Skeleton& _skeleton,
   job.skeleton = &_skeleton;
   if (job.Run()) {
     // Forwards to posture function.
-    ComputePostureBounds(job.output, _bound);
+    ComputePostureBounds(job.output, _transform, _bound);
   }
 }
 
 // Loop through matrices and collect min and max bounds.
-void ComputePostureBounds(ozz::span<const ozz::math::Float4x4> _matrices,
+void ComputePostureBounds(ozz::span<const ozz::math::Float4x4> _models,
+                          const ozz::math::Float4x4& _transform,
                           math::Box* _bound) {
   assert(_bound);
 
   // Set a default box.
   *_bound = ozz::math::Box();
 
-  if (_matrices.empty()) {
+  if (_models.empty()) {
     return;
   }
 
   // Loops through matrices and stores min/max.
-  // Matrices array cannot be empty, it was checked at the beginning of the
-  // function.
-  const ozz::math::Float4x4* current = _matrices.begin();
-  math::SimdFloat4 min = current->cols[3];
-  math::SimdFloat4 max = current->cols[3];
-  ++current;
-  while (current < _matrices.end()) {
-    min = math::Min(min, current->cols[3]);
-    max = math::Max(max, current->cols[3]);
-    ++current;
+  math::SimdFloat4 min =
+      math::simd_float4::Load1(std::numeric_limits<float>::max());
+  math::SimdFloat4 max = -min;
+
+  for (const auto& current : _models) {
+    const auto transform = _transform * current;
+    min = math::Min(min, transform.cols[3]);
+    max = math::Max(max, transform.cols[3]);
   }
 
   // Stores in math::Box structure.

@@ -127,11 +127,13 @@ class PlaybackController {
 // skeleton's joints in model space.
 // _bound must be a valid math::Box instance.
 void ComputeSkeletonBounds(const animation::Skeleton& _skeleton,
+                           const ozz::math::Float4x4& _transform,
                            math::Box* _bound);
 
 // Computes the bounding box of posture defines be _matrices range.
 // _bound must be a valid math::Box instance.
-void ComputePostureBounds(ozz::span<const ozz::math::Float4x4> _matrices,
+void ComputePostureBounds(ozz::span<const ozz::math::Float4x4> _models,
+                          const ozz::math::Float4x4& _transform,
                           math::Box* _bound);
 
 // Allows to edit translation/rotation/scale of a skeleton pose.

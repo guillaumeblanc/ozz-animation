@@ -268,21 +268,21 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
         _im_gui->DoLabel("Manual settings:");
         _im_gui->DoLabel("Lower body layer:");
         std::snprintf(label, sizeof(label), "Layer weight: %.2f",
-                     lower_body_sampler.weight_setting);
+                      lower_body_sampler.weight_setting);
         _im_gui->DoSlider(label, 0.f, 1.f, &lower_body_sampler.weight_setting,
                           1.f, !automatic);
         std::snprintf(label, sizeof(label), "Joints weight: %.2f",
-                     lower_body_sampler.joint_weight_setting);
+                      lower_body_sampler.joint_weight_setting);
         _im_gui->DoSlider(label, 0.f, 1.f,
                           &lower_body_sampler.joint_weight_setting, 1.f,
                           !automatic);
         _im_gui->DoLabel("Upper body layer:");
         std::snprintf(label, sizeof(label), "Layer weight: %.2f",
-                     upper_body_sampler.weight_setting);
+                      upper_body_sampler.weight_setting);
         _im_gui->DoSlider(label, 0.f, 1.f, &upper_body_sampler.weight_setting,
                           1.f, !automatic);
         std::snprintf(label, sizeof(label), "Joints weight: %.2f",
-                     upper_body_sampler.joint_weight_setting);
+                      upper_body_sampler.joint_weight_setting);
         _im_gui->DoSlider(label, 0.f, 1.f,
                           &upper_body_sampler.joint_weight_setting, 1.f,
                           !automatic);
@@ -302,8 +302,8 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
                          ozz::sample::ImGui::kLeft, false);
         char label[64];
         std::snprintf(label, sizeof(label), "%s (%d)",
-                     skeleton_.joint_names()[upper_body_root_],
-                     upper_body_root_);
+                      skeleton_.joint_names()[upper_body_root_],
+                      upper_body_root_);
         if (_im_gui->DoSlider(label, 0, skeleton_.num_joints() - 1,
                               &upper_body_root_)) {
           SetupPerJointWeights();
@@ -331,7 +331,8 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
   }
 
   virtual void GetSceneBounds(ozz::math::Box* _bound) const {
-    ozz::sample::ComputePostureBounds(make_span(models_), _bound);
+    ozz::sample::ComputePostureBounds(make_span(models_),
+                                      ozz::math::Float4x4::identity(), _bound);
   }
 
  private:

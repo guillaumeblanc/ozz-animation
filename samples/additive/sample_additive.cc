@@ -294,7 +294,8 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
       _bound->min = hand_position - extent;
       _bound->max = hand_position + extent;
     } else {
-      ozz::sample::ComputePostureBounds(make_span(models_), _bound);
+      ozz::sample::ComputePostureBounds(
+          make_span(models_), ozz::math::Float4x4::identity(), _bound);
     }
   }
 
