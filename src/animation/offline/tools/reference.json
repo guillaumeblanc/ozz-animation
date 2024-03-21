@@ -63,7 +63,19 @@
               "optimize" : true, //  Activates keyframes optimization.
               "optimization_tolerance" : 0.001 //  Optimization tolerance
             }
-          ]
+          ],
+          //  Root motion track extraction.
+          "motion" : 
+          {
+            "position_filename" : "*_motion_position.ozz", //  Specifies position motion track output filename(s). Use a '*' character to specify part(s) of the filename that should be replaced by the animation name.
+            "rotation_filename" : "*_motion_rotation.ozz", //  Specifies rotation motion track output filename(s). Use a '*' character to specify part(s) of the filename that should be replaced by the animation name.
+            "reference" : "skeleton", //  Root motion extraction reference pose, can be identity, skeleton or first_frame.
+            "postion_components" : "xyz", //  Position components to import, can be any composition of x, y and z.
+            "raw" : false, //  Outputs raw track.
+            "optimize" : true, //  Activates keyframes optimization.
+            "position_optimization_tolerance" : 0.001, //  Optimization tolerance for position track
+            "rotation_optimization_tolerance" : 0.001 //  Optimization tolerance for rotation track
+          }
         }
       ]
     }
