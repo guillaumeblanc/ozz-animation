@@ -164,7 +164,7 @@ class SkeletonShader : public Shader {
   GLint joint_instanced_attrib() const { return attrib(3); }
 
   // Get an uniform location for the join, in cased of non-instanced rendering.
-  GLint joint_uniform() const { return uniform(1); }
+  GLint joint_uniform() const { return uniform(2); }
 };
 
 class JointShader : public SkeletonShader {

@@ -42,12 +42,23 @@ namespace internal {
 
 #ifdef EMSCRIPTEN
 // WebGL requires to specify floating point precision
-static const char* kPlatformSpecivicVSHeader = "#version 300 es\n precision mediump float;\n";
-static const char* kPlatformSpecivicFSHeader = "#version 300 es\n precision mediump float;\n";
+static const char* kPlatformSpecivicVSHeader =
+    "#version 300 es\n precision mediump float;\n";
+static const char* kPlatformSpecivicFSHeader =
+    "#version 300 es\n precision mediump float;\n";
 #else   // EMSCRIPTEN
 static const char* kPlatformSpecivicVSHeader = "#version 330\n";
 static const char* kPlatformSpecivicFSHeader = "#version 330\n";
 #endif  // EMSCRIPTEN
+
+void glUniformMat4(ozz::math::Float4x4 _mat4, GLint _uniform) {
+  float values[16];
+  math::StorePtrU(_mat4.cols[0], values + 0);
+  math::StorePtrU(_mat4.cols[1], values + 4);
+  math::StorePtrU(_mat4.cols[2], values + 8);
+  math::StorePtrU(_mat4.cols[3], values + 12);
+  GL(UniformMatrix4fv(_uniform, 1, false, values));
+}
 
 Shader::Shader() : program_(0), vertex_(0), fragment_(0) {}
 
@@ -230,14 +241,7 @@ void ImmediatePCShader::Bind(const math::Float4x4& _model,
                          _color_stride, GL_PTR_OFFSET(_color_offset)));
 
   // Binds mvp uniform
-  const GLint mvp_uniform = uniform(0);
-  const ozz::math::Float4x4 mvp = _view_proj * _model;
-  float values[16];
-  math::StorePtrU(mvp.cols[0], values + 0);
-  math::StorePtrU(mvp.cols[1], values + 4);
-  math::StorePtrU(mvp.cols[2], values + 8);
-  math::StorePtrU(mvp.cols[3], values + 12);
-  GL(UniformMatrix4fv(mvp_uniform, 1, false, values));
+  glUniformMat4(_view_proj * _model, uniform(0));
 }
 
 ozz::unique_ptr<ImmediatePTCShader> ImmediatePTCShader::Build() {
@@ -314,14 +318,7 @@ void ImmediatePTCShader::Bind(const math::Float4x4& _model,
                          _color_stride, GL_PTR_OFFSET(_color_offset)));
 
   // Binds mvp uniform
-  const GLint mvp_uniform = uniform(0);
-  const ozz::math::Float4x4 mvp = _view_proj * _model;
-  float values[16];
-  math::StorePtrU(mvp.cols[0], values + 0);
-  math::StorePtrU(mvp.cols[1], values + 4);
-  math::StorePtrU(mvp.cols[2], values + 8);
-  math::StorePtrU(mvp.cols[3], values + 12);
-  GL(UniformMatrix4fv(mvp_uniform, 1, false, values));
+  glUniformMat4(_view_proj * _model, uniform(0));
 
   // Binds texture
   const GLint texture = uniform(1);
@@ -403,14 +400,7 @@ PointsShader::GenericAttrib PointsShader::Bind(
   GL(VertexAttrib1f(screen_space_attrib, 1.f * _screen_space));
 
   // Binds mvp uniform
-  const GLint mvp_uniform = uniform(0);
-  const ozz::math::Float4x4 mvp = _view_proj * _model;
-  float values[16];
-  math::StorePtrU(mvp.cols[0], values + 0);
-  math::StorePtrU(mvp.cols[1], values + 4);
-  math::StorePtrU(mvp.cols[2], values + 8);
-  math::StorePtrU(mvp.cols[3], values + 12);
-  GL(UniformMatrix4fv(mvp_uniform, 1, false, values));
+  glUniformMat4(_view_proj * _model, uniform(0));
 
   return {_color_stride ? -1 : color_attrib, _size_stride ? -1 : size_attrib};
 }
@@ -426,7 +416,7 @@ const char* kPassNoUv =
     "void PassUv() {\n"
     "}\n";
 const char* kShaderUberVS =
-    "uniform mat4 u_mvp;\n"
+    "uniform mat4 u_viewproj;\n"
     "in vec3 a_position;\n"
     "in vec3 a_normal;\n"
     "in vec4 a_color;\n"
@@ -435,7 +425,7 @@ const char* kShaderUberVS =
     "void main() {\n"
     "  mat4 world_matrix = GetWorldMatrix();\n"
     "  vec4 vertex = vec4(a_position.xyz, 1.);\n"
-    "  gl_Position = u_mvp * world_matrix * vertex;\n"
+    "  gl_Position = u_viewproj * world_matrix * vertex;\n"
     "  mat3 cross_matrix = mat3(\n"
     "    cross(world_matrix[1].xyz, world_matrix[2].xyz),\n"
     "    cross(world_matrix[2].xyz, world_matrix[0].xyz),\n"
@@ -500,21 +490,18 @@ void SkeletonShader::Bind(const math::Float4x4& _model,
   GL(VertexAttribPointer(color_attrib, 4, GL_UNSIGNED_BYTE, GL_TRUE,
                          _color_stride, GL_PTR_OFFSET(_color_offset)));
 
-  // Binds mvp uniform
-  const GLint mvp_uniform = uniform(0);
-  const ozz::math::Float4x4 mvp = _view_proj * _model;
-  float values[16];
-  math::StorePtrU(mvp.cols[0], values + 0);
-  math::StorePtrU(mvp.cols[1], values + 4);
-  math::StorePtrU(mvp.cols[2], values + 8);
-  math::StorePtrU(mvp.cols[3], values + 12);
-  GL(UniformMatrix4fv(mvp_uniform, 1, false, values));
+  // Binds vp uniform
+  glUniformMat4(_model, uniform(0));
+
+  // Binds vp uniform
+  glUniformMat4(_view_proj, uniform(1));
 }
 
 ozz::unique_ptr<JointShader> JointShader::Build() {
   bool success = true;
 
   const char* vs_joint_to_world_matrix =
+      "uniform mat4 u_model;\n"
       "mat4 GetWorldMatrix() {\n"
       "  // Rebuilds joint matrix.\n"
       "  mat4 joint_matrix;\n"
@@ -533,7 +520,7 @@ ozz::unique_ptr<JointShader> JointShader::Build() {
       "  world_matrix[1] = joint_matrix[1] * bone_len;\n"
       "  world_matrix[2] = joint_matrix[2] * bone_len;\n"
       "  world_matrix[3] = joint_matrix[3];\n"
-      "  return world_matrix;\n"
+      "  return u_model * world_matrix;\n"
       "}\n";
   const char* vs[] = {kPlatformSpecivicVSHeader, kPassNoUv,
                       GL_ARB_instanced_arrays_supported
@@ -553,7 +540,8 @@ ozz::unique_ptr<JointShader> JointShader::Build() {
   success &= shader->FindAttrib("a_color");
 
   // Binds default uniforms
-  success &= shader->BindUniform("u_mvp");
+  success &= shader->BindUniform("u_model");
+  success &= shader->BindUniform("u_viewproj");
 
   if (GL_ARB_instanced_arrays_supported) {
     success &= shader->FindAttrib("joint");
@@ -575,6 +563,7 @@ BoneShader::Build() {  // Builds a world matrix from joint uniforms,
 
   // parent and child joints.
   const char* vs_joint_to_world_matrix =
+      "uniform mat4 u_model;\n"
       "mat4 GetWorldMatrix() {\n"
       "  // Rebuilds bone properties.\n"
       "  // Bone length is set to zero to disable leaf rendering.\n"
@@ -595,7 +584,7 @@ BoneShader::Build() {  // Builds a world matrix from joint uniforms,
       "    vec4(bone_len * normalize(cross(bone_dir, world_matrix[1].xyz)), "
       "0.);\n"
       "  world_matrix[3] = vec4(joint[3].xyz, 1.);\n"
-      "  return world_matrix;\n"
+      "  return u_model * world_matrix;\n"
       "}\n";
   const char* vs[] = {kPlatformSpecivicVSHeader, kPassNoUv,
                       GL_ARB_instanced_arrays_supported
@@ -615,7 +604,8 @@ BoneShader::Build() {  // Builds a world matrix from joint uniforms,
   success &= shader->FindAttrib("a_color");
 
   // Binds default uniforms
-  success &= shader->BindUniform("u_mvp");
+  success &= shader->BindUniform("u_model");
+  success &= shader->BindUniform("u_viewproj");
 
   if (GL_ARB_instanced_arrays_supported) {
     success &= shader->FindAttrib("joint");
@@ -631,10 +621,10 @@ BoneShader::Build() {  // Builds a world matrix from joint uniforms,
 }
 
 ozz::unique_ptr<AmbientShader> AmbientShader::Build() {
-  const char* vs[] = {
-      kPlatformSpecivicVSHeader, kPassNoUv,
-      "uniform mat4 u_mw;\n mat4 GetWorldMatrix() {return u_mw;}\n",
-      kShaderUberVS};
+  const char* vs[] = {kPlatformSpecivicVSHeader, kPassNoUv,
+                      "uniform mat4 u_model;\n"
+                      "mat4 GetWorldMatrix() {return u_model;}\n",
+                      kShaderUberVS};
   const char* fs[] = {kPlatformSpecivicFSHeader, kShaderAmbientFct,
                       kShaderAmbientFS};
 
@@ -662,8 +652,8 @@ bool AmbientShader::InternalBuild(int _vertex_count, const char** _vertex,
   success &= FindAttrib("a_color");
 
   // Binds default uniforms
-  success &= BindUniform("u_mw");
-  success &= BindUniform("u_mvp");
+  success &= BindUniform("u_model");
+  success &= BindUniform("u_viewproj");
 
   return success;
 }
@@ -691,28 +681,17 @@ void AmbientShader::Bind(const math::Float4x4& _model,
                          _color_stride, GL_PTR_OFFSET(_color_offset)));
 
   // Binds mw uniform
-  float values[16];
-  const GLint mw_uniform = uniform(0);
-  math::StorePtrU(_model.cols[0], values + 0);
-  math::StorePtrU(_model.cols[1], values + 4);
-  math::StorePtrU(_model.cols[2], values + 8);
-  math::StorePtrU(_model.cols[3], values + 12);
-  GL(UniformMatrix4fv(mw_uniform, 1, false, values));
+  glUniformMat4(_model, uniform(0));
 
   // Binds mvp uniform
-  const GLint mvp_uniform = uniform(1);
-  math::StorePtrU(_view_proj.cols[0], values + 0);
-  math::StorePtrU(_view_proj.cols[1], values + 4);
-  math::StorePtrU(_view_proj.cols[2], values + 8);
-  math::StorePtrU(_view_proj.cols[3], values + 12);
-  GL(UniformMatrix4fv(mvp_uniform, 1, false, values));
+  glUniformMat4(_view_proj, uniform(1));
 }
 
 ozz::unique_ptr<AmbientShaderInstanced> AmbientShaderInstanced::Build() {
   bool success = true;
 
   const char* vs[] = {kPlatformSpecivicVSHeader, kPassNoUv,
-                      "in mat4 a_mw;\n mat4 GetWorldMatrix() {return a_mw;}\n",
+                      "in mat4 a_m;\n mat4 GetWorldMatrix() {return a_m;}\n",
                       kShaderUberVS};
   const char* fs[] = {kPlatformSpecivicFSHeader, kShaderAmbientFct,
                       kShaderAmbientFS};
@@ -726,10 +705,10 @@ ozz::unique_ptr<AmbientShaderInstanced> AmbientShaderInstanced::Build() {
   success &= shader->FindAttrib("a_position");
   success &= shader->FindAttrib("a_normal");
   success &= shader->FindAttrib("a_color");
-  success &= shader->FindAttrib("a_mw");
+  success &= shader->FindAttrib("a_m");
 
   // Binds default uniforms
-  success &= shader->BindUniform("u_mvp");
+  success &= shader->BindUniform("u_viewproj");
 
   if (!success) {
     shader.reset();
@@ -789,13 +768,7 @@ void AmbientShaderInstanced::Bind(GLsizei _models_offset,
                          GL_PTR_OFFSET(48 + _models_offset)));
 
   // Binds mvp uniform
-  const GLint mvp_uniform = uniform(0);
-  float values[16];
-  math::StorePtrU(_view_proj.cols[0], values + 0);
-  math::StorePtrU(_view_proj.cols[1], values + 4);
-  math::StorePtrU(_view_proj.cols[2], values + 8);
-  math::StorePtrU(_view_proj.cols[3], values + 12);
-  GL(UniformMatrix4fv(mvp_uniform, 1, false, values));
+  glUniformMat4(_view_proj, uniform(0));
 }
 
 void AmbientShaderInstanced::Unbind() {
@@ -817,7 +790,7 @@ void AmbientShaderInstanced::Unbind() {
 ozz::unique_ptr<AmbientTexturedShader> AmbientTexturedShader::Build() {
   const char* vs[] = {
       kPlatformSpecivicVSHeader, kPassUv,
-      "uniform mat4 u_mw;\n mat4 GetWorldMatrix() {return u_mw;}\n",
+      "uniform mat4 u_model;\n mat4 GetWorldMatrix() {return u_model;}\n",
       kShaderUberVS};
   const char* fs[] = {kPlatformSpecivicFSHeader, kShaderAmbientFct,
                       kShaderAmbientTexturedFS};
