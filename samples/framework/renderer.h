@@ -103,6 +103,11 @@ class Renderer {
                           const ozz::math::Float4x4& _transform,
                           bool _screen_space = false) = 0;
 
+  // Renders a wired box at a specified location.
+  virtual bool DrawBoxIm(const ozz::math::Box& _box,
+                         const ozz::math::Float4x4& _transform,
+                         const Color _color) = 0;
+
   // Renders a box at a specified location.
   // The 2 slots of _colors array respectively defines color of the filled
   // faces and color of the box outlines.

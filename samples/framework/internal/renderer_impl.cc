@@ -699,6 +699,63 @@ bool RendererImpl::DrawPoints(const ozz::span<const float>& _positions,
 
 bool RendererImpl::DrawBoxIm(const ozz::math::Box& _box,
                              const ozz::math::Float4x4& _transform,
+                             const Color _color) {
+  {  // Wireframe boxed
+    GlImmediatePC im(immediate_renderer(), GL_LINES, _transform);
+    GlImmediatePC::Vertex v = {{0, 0, 0},
+                               {_color.r, _color.g, _color.b, _color.a}};
+    // First face.
+    v.pos[0] = _box.min.x;
+    v.pos[1] = _box.min.y;
+    v.pos[2] = _box.min.z;
+    im.PushVertex(v);
+    v.pos[1] = _box.max.y;
+    im.PushVertex(v);
+    im.PushVertex(v);
+    v.pos[0] = _box.max.x;
+    im.PushVertex(v);
+    im.PushVertex(v);
+    v.pos[1] = _box.min.y;
+    im.PushVertex(v);
+    im.PushVertex(v);
+    v.pos[0] = _box.min.x;
+    im.PushVertex(v);
+    // Second face.
+    v.pos[2] = _box.max.z;
+    im.PushVertex(v);
+    v.pos[1] = _box.max.y;
+    im.PushVertex(v);
+    im.PushVertex(v);
+    v.pos[0] = _box.max.x;
+    im.PushVertex(v);
+    im.PushVertex(v);
+    v.pos[1] = _box.min.y;
+    im.PushVertex(v);
+    im.PushVertex(v);
+    v.pos[0] = _box.min.x;
+    im.PushVertex(v);
+    // Link faces.
+    im.PushVertex(v);
+    v.pos[2] = _box.min.z;
+    im.PushVertex(v);
+    v.pos[1] = _box.max.y;
+    im.PushVertex(v);
+    v.pos[2] = _box.max.z;
+    im.PushVertex(v);
+    v.pos[0] = _box.max.x;
+    im.PushVertex(v);
+    v.pos[2] = _box.min.z;
+    im.PushVertex(v);
+    v.pos[1] = _box.min.y;
+    im.PushVertex(v);
+    v.pos[2] = _box.max.z;
+    im.PushVertex(v);
+  }
+  return true;
+}
+
+bool RendererImpl::DrawBoxIm(const ozz::math::Box& _box,
+                             const ozz::math::Float4x4& _transform,
                              const Color _colors[2]) {
   {  // Filled boxed
     GlImmediatePC im(immediate_renderer(), GL_TRIANGLE_STRIP, _transform);
@@ -752,59 +809,7 @@ bool RendererImpl::DrawBoxIm(const ozz::math::Box& _box,
     im.PushVertex(v);
   }
 
-  {  // Wireframe boxed
-    GlImmediatePC im(immediate_renderer(), GL_LINES, _transform);
-    GlImmediatePC::Vertex v = {
-        {0, 0, 0}, {_colors[1].r, _colors[1].g, _colors[1].b, _colors[1].a}};
-    // First face.
-    v.pos[0] = _box.min.x;
-    v.pos[1] = _box.min.y;
-    v.pos[2] = _box.min.z;
-    im.PushVertex(v);
-    v.pos[1] = _box.max.y;
-    im.PushVertex(v);
-    im.PushVertex(v);
-    v.pos[0] = _box.max.x;
-    im.PushVertex(v);
-    im.PushVertex(v);
-    v.pos[1] = _box.min.y;
-    im.PushVertex(v);
-    im.PushVertex(v);
-    v.pos[0] = _box.min.x;
-    im.PushVertex(v);
-    // Second face.
-    v.pos[2] = _box.max.z;
-    im.PushVertex(v);
-    v.pos[1] = _box.max.y;
-    im.PushVertex(v);
-    im.PushVertex(v);
-    v.pos[0] = _box.max.x;
-    im.PushVertex(v);
-    im.PushVertex(v);
-    v.pos[1] = _box.min.y;
-    im.PushVertex(v);
-    im.PushVertex(v);
-    v.pos[0] = _box.min.x;
-    im.PushVertex(v);
-    // Link faces.
-    im.PushVertex(v);
-    v.pos[2] = _box.min.z;
-    im.PushVertex(v);
-    v.pos[1] = _box.max.y;
-    im.PushVertex(v);
-    v.pos[2] = _box.max.z;
-    im.PushVertex(v);
-    v.pos[0] = _box.max.x;
-    im.PushVertex(v);
-    v.pos[2] = _box.min.z;
-    im.PushVertex(v);
-    v.pos[1] = _box.min.y;
-    im.PushVertex(v);
-    v.pos[2] = _box.max.z;
-    im.PushVertex(v);
-  }
-
-  return true;
+  return DrawBoxIm(_box, _transform, _colors[1]);
 }
 
 bool RendererImpl::DrawBoxShaded(
@@ -1260,7 +1265,8 @@ bool RendererImpl::DrawMesh(const Mesh& _mesh,
           GL_ARRAY_BUFFER, normals_offset + vertex_offset * normals_stride,
           part_normal_count * normals_stride, array_begin(part.normals)));
     } else {
-      // Un-optimal path used when the right number of normals is not provided.
+      // Un-optimal path used when the right number of normals is not
+      // provided.
       static_assert(sizeof(kDefaultNormalsArray[0]) == normals_stride,
                     "Stride mismatch");
       for (size_t j = 0; j < part_vertex_count;
@@ -1501,8 +1507,8 @@ bool RendererImpl::DrawSkinnedMesh(
     // Clamps joints influence count according to the option.
     skinning_job.influences_count = part_influences_count;
 
-    // Setup skinning matrices, that came from the animation stage before being
-    // multiplied by inverse model-space bind-pose.
+    // Setup skinning matrices, that came from the animation stage before
+    // being multiplied by inverse model-space bind-pose.
     skinning_job.joint_matrices = _skinning_matrices;
 
     // Setup joint's indices.

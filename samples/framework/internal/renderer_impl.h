@@ -135,6 +135,10 @@ class RendererImpl : public Renderer {
 
   virtual bool DrawBoxIm(const ozz::math::Box& _box,
                          const ozz::math::Float4x4& _transform,
+                         const Color _color);
+
+  virtual bool DrawBoxIm(const ozz::math::Box& _box,
+                         const ozz::math::Float4x4& _transform,
                          const Color _colors[2]);
 
   virtual bool DrawBoxShaded(const ozz::math::Box& _box,
