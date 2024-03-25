@@ -25,13 +25,11 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/animation/offline/track_optimizer.h"
-
 #include "gtest/gtest.h"
-#include "ozz/base/maths/gtest_math_helper.h"
-
 #include "ozz/animation/offline/raw_track.h"
 #include "ozz/animation/offline/track_builder.h"
+#include "ozz/animation/offline/track_optimizer.h"
+#include "ozz/base/maths/gtest_math_helper.h"
 
 using ozz::animation::offline::RawFloat2Track;
 using ozz::animation::offline::RawFloat3Track;
@@ -50,6 +48,14 @@ TEST(Error, TrackOptimizer) {
 
     // Builds animation
     EXPECT_FALSE(optimizer(input, nullptr));
+  }
+
+  {  // same input and output.
+    RawFloatTrack input;
+    EXPECT_TRUE(input.Validate());
+
+    // Builds animation
+    EXPECT_FALSE(optimizer(input, &input));
   }
 
   {  // Invalid input animation.
