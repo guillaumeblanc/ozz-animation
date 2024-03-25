@@ -234,26 +234,40 @@ TEST(Float4x4Rotate, ozz_simd_math) {
   EXPECT_FLOAT4x4_EQ(euler_identity, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f,
                      0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f);
 
-  const Float4x4 euler_yaw = Float4x4::FromEuler(
+  const Float4x4 yaw = Float4x4::FromEuler(
       ozz::math::simd_float4::Load(ozz::math::kPi_2, 0.f, 0.f, 0.f));
-  EXPECT_FLOAT4x4_EQ(euler_yaw, 0.f, 0.f, -1.f, 0.f, 0.f, 1.f, 0.f, 0.f, 1.f,
-                     0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 1.f);
-  EXPECT_TRUE(ozz::math::AreAllTrue3(IsNormalized(euler_yaw)));
-  EXPECT_TRUE(ozz::math::AreAllTrue1(IsOrthogonal(euler_yaw)));
+  EXPECT_FLOAT4x4_EQ(yaw, 0.f, 0.f, -1.f, 0.f, 0.f, 1.f, 0.f, 0.f, 1.f, 0.f,
+                     0.f, 0.f, 0.f, 0.f, 0.f, 1.f);
+  EXPECT_TRUE(ozz::math::AreAllTrue3(IsNormalized(yaw)));
+  EXPECT_TRUE(ozz::math::AreAllTrue1(IsOrthogonal(yaw)));
 
-  const Float4x4 euler_pitch = Float4x4::FromEuler(
+  const Float4x4 pitch = Float4x4::FromEuler(
       ozz::math::simd_float4::Load(0.f, ozz::math::kPi_2, 0.f, 0.f));
-  EXPECT_FLOAT4x4_EQ(euler_pitch, 1.f, 0.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f,
-                     -1.f, 0.f, 0.f, 0.f, 0.f, 0.f, 1.f);
-  EXPECT_TRUE(ozz::math::AreAllTrue3(IsNormalized(euler_pitch)));
-  EXPECT_TRUE(ozz::math::AreAllTrue1(IsOrthogonal(euler_pitch)));
+  EXPECT_FLOAT4x4_EQ(pitch, 1.f, 0.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, -1.f,
+                     0.f, 0.f, 0.f, 0.f, 0.f, 1.f);
+  EXPECT_TRUE(ozz::math::AreAllTrue3(IsNormalized(pitch)));
+  EXPECT_TRUE(ozz::math::AreAllTrue1(IsOrthogonal(pitch)));
 
-  const Float4x4 euler_roll = Float4x4::FromEuler(
+  const Float4x4 roll = Float4x4::FromEuler(
       ozz::math::simd_float4::Load(0.f, 0.f, ozz::math::kPi_2, 0.f));
-  EXPECT_FLOAT4x4_EQ(euler_roll, 0.f, 1.f, 0.f, 0.f, -1.f, 0.f, 00.f, 0.f, 0.f,
-                     0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f);
-  EXPECT_TRUE(ozz::math::AreAllTrue3(IsNormalized(euler_roll)));
-  EXPECT_TRUE(ozz::math::AreAllTrue1(IsOrthogonal(euler_roll)));
+  EXPECT_FLOAT4x4_EQ(roll, 0.f, 1.f, 0.f, 0.f, -1.f, 0.f, 00.f, 0.f, 0.f, 0.f,
+                     1.f, 0.f, 0.f, 0.f, 0.f, 1.f);
+  EXPECT_TRUE(ozz::math::AreAllTrue3(IsNormalized(roll)));
+  EXPECT_TRUE(ozz::math::AreAllTrue1(IsOrthogonal(roll)));
+
+  const Float4x4 all = yaw * pitch * roll;
+  float cpnt[16];
+  ozz::math::StorePtrU(all.cols[0], cpnt + 0);
+  ozz::math::StorePtrU(all.cols[1], cpnt + 4);
+  ozz::math::StorePtrU(all.cols[2], cpnt + 8);
+  ozz::math::StorePtrU(all.cols[3], cpnt + 12);
+
+  EXPECT_FLOAT4x4_EQ(
+      Float4x4::FromEuler(ozz::math::simd_float4::Load(
+          ozz::math::kPi_2, ozz::math::kPi_2, ozz::math::kPi_2, 0.f)),
+      cpnt[0], cpnt[1], cpnt[2], cpnt[3], cpnt[4], cpnt[5], cpnt[6], cpnt[7],
+      cpnt[8], cpnt[9], cpnt[10], cpnt[11], cpnt[12], cpnt[13], cpnt[14],
+      cpnt[15]);
 
   EXPECT_ASSERTION(Float4x4::FromQuaternion(
                        ozz::math::simd_float4::Load(1.f, 0.f, 0.f, 1.f)),
