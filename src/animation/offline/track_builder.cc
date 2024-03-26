@@ -32,11 +32,9 @@
 #include <cstring>
 #include <limits>
 
-#include "ozz/base/memory/allocator.h"
-
 #include "ozz/animation/offline/raw_track.h"
-
 #include "ozz/animation/runtime/track.h"
+#include "ozz/base/memory/allocator.h"
 
 namespace ozz {
 namespace animation {
@@ -185,7 +183,7 @@ void Fixup<RawQuaternionTrack::Keyframes>(
     // Ensures quaternions are all on the same hemisphere.
     if (i == 0) {
       if (src_key.w < 0.f) {
-        src_key = -src_key;  // Q an -Q are the same rotation.
+        src_key = -src_key;  // Q and -Q are the same rotation.
       }
     } else {
       RawQuaternionTrack::ValueType& prev_key = _keyframes->at(i - 1).value;

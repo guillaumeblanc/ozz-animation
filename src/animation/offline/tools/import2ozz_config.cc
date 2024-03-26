@@ -36,6 +36,7 @@
 #include "animation/offline/tools/import2ozz_anim.h"
 #include "animation/offline/tools/import2ozz_track.h"
 #include "ozz/animation/offline/animation_optimizer.h"
+#include "ozz/animation/offline/motion_extractor.h"
 #include "ozz/animation/offline/tools/import2ozz.h"
 #include "ozz/animation/offline/track_optimizer.h"
 #include "ozz/base/containers/string.h"
@@ -313,16 +314,10 @@ bool SanitizeTrackImport(Json::Value& _root, bool _all_options) {
   return SanitizeTrackBuildSettings(_root, _all_options);
 }
 
-// Defines teh reference transform to use while extracting root motion.
-enum RootMotionReference {
-  kIdentity,    // Identity / global reference
-  kSkeleton,    // Use skeleton rest pose root bone transform
-  kFirstFrame,  // Uses root transform of the animation's first frame
-};
-
 // Root motion reference enum to config string conversions.
 struct RootMotionReferenceConfig
-    : JsonEnum<RootMotionReferenceConfig, RootMotionReference> {
+    : JsonEnum<RootMotionReferenceConfig,
+               ozz::animation::offline::MotionExtractor::Reference> {
   static EnumNames GetNames() {
     static const char* kNames[] = {"identity", "skeleton", "first_frame"};
     const EnumNames enum_names = {OZZ_ARRAY_SIZE(kNames), kNames};

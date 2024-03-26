@@ -43,7 +43,7 @@ namespace offline {
 struct RawTrackInterpolation {
   enum Value {
     kStep,    // All values following this key, up to the next key, are equal.
-    kLinear,  // All value between this key and the next are linearly
+    kLinear,  // All values between this key and the next are linearly
               // interpolated.
   };
 };

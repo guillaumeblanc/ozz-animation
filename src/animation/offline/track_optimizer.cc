@@ -54,8 +54,6 @@ struct Adapter {
   typedef typename _KeyFrame::ValueType ValueType;
   typedef typename animation::internal::TrackPolicy<ValueType> Policy;
 
-  Adapter() {}
-
   bool Decimable(const _KeyFrame& _key) const {
     // RawTrackInterpolation::kStep keyframes aren't optimized, as steps can't
     // be interpolated.
