@@ -59,31 +59,37 @@ PlaybackController::PlaybackController()
       play_(true),
       loop_(true) {}
 
-void PlaybackController::Update(const animation::Animation& _animation,
-                                float _dt) {
-  float new_time = time_ratio_;
+int PlaybackController::Update(const animation::Animation& _animation,
+                               float _dt) {
+  float new_ratio = time_ratio_;
 
   if (play_) {
-    new_time = time_ratio_ + _dt * playback_speed_ / _animation.duration();
+    new_ratio = time_ratio_ + _dt * playback_speed_ / _animation.duration();
   }
 
   // Must be called even if time doesn't change, in order to update previous
   // frame time ratio. Uses set_time_ratio function in order to update
   // previous_time_ and wrap time value in the unit interval (depending on loop
   // mode).
-  set_time_ratio(new_time);
+  return set_time_ratio(new_ratio);
 }
 
-void PlaybackController::set_time_ratio(float _ratio) {
+int PlaybackController::set_time_ratio(float _ratio) {
+  //  Number of loops completed within _ratio, possibly negative if going
+  //  backward.
+  const float loops = floorf(_ratio);
+
   previous_time_ratio_ = time_ratio_;
   if (loop_) {
-    // Wraps in the unit interval [0:1], even for negative values (the reason
-    // for using floorf).
-    time_ratio_ = _ratio - floorf(_ratio);
+    // Wraps in the unit interval [0:1]
+    time_ratio_ = _ratio - loops;
   } else {
     // Clamps in the unit interval [0:1].
     time_ratio_ = math::Clamp(0.f, _ratio, 1.f);
   }
+
+  // Returns the number of loops that have been completed.
+  return static_cast<int>(loops);
 }
 
 // Gets animation current time.

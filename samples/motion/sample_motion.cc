@@ -60,17 +60,62 @@ OZZ_OPTIONS_DECLARE_STRING(animation,
                            "Path to the animation (ozz archive format).",
                            "media/raw_animation.ozz", false)
 
-struct MotionCache {
-  void Update(ozz::math::Transform _current) {
-    delta.translation = _current.translation - last.translation;
-    delta.rotation = Conjugate(last.rotation) * _current.rotation;
-    delta.scale = _current.scale / last.scale;
-    last = _current;
+struct MotionAccumulator {
+  void Update(const ozz::math::Transform& _new) {
+    delta.translation = _new.translation - last.translation;
+    delta.rotation = Conjugate(last.rotation) * _new.rotation;
+    delta.scale = _new.scale / last.scale;
+    current.translation = current.translation + delta.translation;
+    current.rotation =
+        Normalize(current.rotation *  // Avoid accumulating error that leads to
+                  delta.rotation);    // non-normalized quaternions.
+
+    current.scale = current.scale * delta.scale;
+
+    last = _new;
   }
 
+  void Reset(const ozz::math::Transform& _new) {
+    origin = current;
+    delta = ozz::math::Transform::identity();
+    last = _new;
+  }
+
+  ozz::math::Transform origin = ozz::math::Transform::identity();
   ozz::math::Transform last = ozz::math::Transform::identity();
+  ozz::math::Transform current = ozz::math::Transform::identity();
   ozz::math::Transform delta = ozz::math::Transform::identity();
 };
+
+struct MotionTracks {
+  ozz::animation::Float3Track position;
+  ozz::animation::QuaternionTrack rotation;
+};
+
+bool SampleMotion(const MotionTracks& _tracks, float _ratio,
+                  ozz::math::Transform* _transform) {
+  // Get position from motion track
+  ozz::animation::Float3TrackSamplingJob position_sampler;
+  position_sampler.track = &_tracks.position;
+  position_sampler.result = &_transform->translation;
+  position_sampler.ratio = _ratio;
+  if (!position_sampler.Run()) {
+    return false;
+  }
+
+  // Get rotation from motion track
+  ozz::animation::QuaternionTrackSamplingJob rotation_sampler;
+  rotation_sampler.track = &_tracks.rotation;
+  rotation_sampler.result = &_transform->rotation;
+  rotation_sampler.ratio = _ratio;
+  if (!rotation_sampler.Run()) {
+    return false;
+  }
+
+  _transform->scale = ozz::math::Float3::one();
+
+  return true;
+}
 
 class MotionSampleApplication : public ozz::sample::Application {
  public:
@@ -80,41 +125,44 @@ class MotionSampleApplication : public ozz::sample::Application {
   // Updates current animation time and skeleton pose.
   virtual bool OnUpdate(float _dt, float) {
     // Updates current animation time.
-    controller_.Update(animation_, _dt);
+    int loops = controller_.Update(animation_, _dt);
 
-    // Get position from motion track
-    ozz::math::Float3 position;
-    ozz::animation::Float3TrackSamplingJob position_sampler;
-    position_sampler.track = &motion_position_;
-    position_sampler.result = &position;
-    position_sampler.ratio = controller_.time_ratio();
-    if (!position_sampler.Run()) {
+    ozz::math::Transform motion_transform;
+    for (; loops; loops > 0 ? --loops : ++loops) {
+      if (!SampleMotion(motion_tracks_, loops > 0 ? 1.f : 0.f,
+                        &motion_transform)) {
+        return false;
+      }
+      motion_accumulator_.Update(motion_transform);
+
+      if (!SampleMotion(motion_tracks_, loops > 0 ? 0.f : 1.f,
+                        &motion_transform)) {
+        return false;
+      }
+      motion_accumulator_.Reset(motion_transform);
+    }
+
+    if (!SampleMotion(motion_tracks_, controller_.time_ratio(),
+                      &motion_transform)) {
       return false;
     }
+    motion_accumulator_.Update(motion_transform);
 
-    // Get rotation from motion track
-    ozz::math::Quaternion rotation;
-    ozz::animation::QuaternionTrackSamplingJob rotation_sampler;
-    rotation_sampler.track = &motion_rotation_;
-    rotation_sampler.result = &rotation;
-    rotation_sampler.ratio = controller_.time_ratio();
-    if (!rotation_sampler.Run()) {
-      return false;
+    if (!apply_motion_position_) {
     }
 
-    // Build character transform
-    transform_ = ozz::math::Float4x4::identity();
+    if (!apply_motion_rotation_) {
+    }
 
-    if (apply_motion_position_) {
-      transform_ =
-          transform_ * ozz::math::Float4x4::Translation(
-                           ozz::math::simd_float4::Load3PtrU(&position.x));
-    }
-    if (apply_motion_rotation_) {
-      transform_ =
-          transform_ * ozz::math::Float4x4::FromQuaternion(
-                           ozz::math::simd_float4::LoadPtrU(&rotation.x));
-    }
+    motion_accumulator_.Update(motion_transform);
+
+    transform_ = ozz::math::Float4x4::FromAffine(
+        ozz::math::simd_float4::Load3PtrU(
+            &motion_accumulator_.current.translation.x),
+        ozz::math::simd_float4::LoadPtrU(
+            &motion_accumulator_.current.rotation.x),
+        ozz::math::simd_float4::Load3PtrU(
+            &motion_accumulator_.current.scale.x));
 
     // Samples optimized animation at t = animation_time_.
     ozz::animation::SamplingJob sampling_job;
@@ -149,12 +197,18 @@ class MotionSampleApplication : public ozz::sample::Application {
                                             ozz::math::Float3(.3f, 1.8f, .2f)),
                              transform_, ozz::sample::kWhite);
 
+    const auto origin = ozz::math::Float4x4::FromAffine(
+        ozz::math::simd_float4::Load3PtrU(
+            &motion_accumulator_.origin.translation.x),
+        ozz::math::simd_float4::LoadPtrU(
+            &motion_accumulator_.origin.rotation.x),
+        ozz::math::simd_float4::Load3PtrU(&motion_accumulator_.origin.scale.x));
     const float at = controller_.time_ratio();
     const float step = 1.f / (animation_.duration() * 30.f);
-    success &= DrawMotion(_renderer, motion_position_, 0.f, at, step,
-                          ozz::sample::kGreen);
-    success &= DrawMotion(_renderer, motion_position_, at, 1.f, step,
-                          ozz::sample::kRed);
+    success &= DrawMotion(_renderer, motion_tracks_.position, 0.f, at, step,
+                          ozz::sample::kGreen, origin);
+    success &= DrawMotion(_renderer, motion_tracks_.position, at, 1.f, step,
+                          ozz::sample::kRed, origin);
     return success;
   }
 
@@ -195,8 +249,8 @@ class MotionSampleApplication : public ozz::sample::Application {
       if (!motion_p || !motion_r) {
         return false;
       }
-      motion_position_ = std::move(*motion_p);
-      motion_rotation_ = std::move(*motion_r);
+      motion_tracks_.position = std::move(*motion_p);
+      motion_tracks_.rotation = std::move(*motion_r);
     }
 
     // Track optimization and runtime bulding
@@ -223,7 +277,8 @@ class MotionSampleApplication : public ozz::sample::Application {
 
   bool DrawMotion(ozz::sample::Renderer* _renderer,
                   const ozz::animation::Float3Track& _track, float _from,
-                  float _to, float _step, ozz::sample::Color _color) {
+                  float _to, float _step, ozz::sample::Color _color,
+                  const ozz::math::Float4x4& _transform) {
     if (_from > _to || _step <= 0.f) {
       return false;
     }
@@ -242,8 +297,7 @@ class MotionSampleApplication : public ozz::sample::Application {
       points.push_back(value);
     }
 
-    return _renderer->DrawLineStrip(make_span(points), _color,
-                                    ozz::math::Float4x4::identity());
+    return _renderer->DrawLineStrip(make_span(points), _color, _transform);
   }
 
   virtual bool OnInitialize() {
@@ -382,11 +436,13 @@ class MotionSampleApplication : public ozz::sample::Application {
   ozz::animation::Animation animation_;
 
   // Runtime motion track
-  ozz::animation::Float3Track motion_position_;
-  ozz::animation::QuaternionTrack motion_rotation_;
+  MotionTracks motion_tracks_;
 
   // Sampling context.
   ozz::animation::SamplingJob::Context context_;
+
+  // Character motion accumulator.
+  MotionAccumulator motion_accumulator_;
 
   // Character transform.
   ozz::math::Float4x4 transform_;

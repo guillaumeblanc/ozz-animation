@@ -71,7 +71,9 @@ class PlaybackController {
   PlaybackController();
 
   // Sets animation current time.
-  void set_time_ratio(float _time);
+  // Returns the number of loops that happened during update. A positive numbre
+  // means looping going foward, a negative number means looping going backward.
+  int set_time_ratio(float _time);
 
   // Gets animation current time.
   float time_ratio() const;
@@ -94,8 +96,9 @@ class PlaybackController {
 
   // Updates animation time if in "play" state, according to playback speed and
   // given frame time _dt.
-  // Returns true if animation has looped during update
-  void Update(const animation::Animation& _animation, float _dt);
+  // Returns the number of loops that happened during update. A positive numbre
+  // means looping going foward, a negative number means looping going backward.
+  int Update(const animation::Animation& _animation, float _dt);
 
   // Resets all parameters to their default value.
   void Reset();
