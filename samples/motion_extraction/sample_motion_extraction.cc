@@ -60,63 +60,6 @@ OZZ_OPTIONS_DECLARE_STRING(animation,
                            "Path to the animation (ozz archive format).",
                            "media/raw_animation.ozz", false)
 
-struct MotionAccumulator {
-  void Update(const ozz::math::Transform& _new) {
-    delta.translation = _new.translation - last.translation;
-    delta.rotation = Conjugate(last.rotation) * _new.rotation;
-    delta.scale = _new.scale / last.scale;
-    current.translation = current.translation + delta.translation;
-    current.rotation =
-        Normalize(current.rotation *  // Avoid accumulating error that leads to
-                  delta.rotation);    // non-normalized quaternions.
-
-    current.scale = current.scale * delta.scale;
-
-    last = _new;
-  }
-
-  void Reset(const ozz::math::Transform& _new) {
-    origin = current;
-    delta = ozz::math::Transform::identity();
-    last = _new;
-  }
-
-  ozz::math::Transform origin = ozz::math::Transform::identity();
-  ozz::math::Transform last = ozz::math::Transform::identity();
-  ozz::math::Transform current = ozz::math::Transform::identity();
-  ozz::math::Transform delta = ozz::math::Transform::identity();
-};
-
-struct MotionTracks {
-  ozz::animation::Float3Track position;
-  ozz::animation::QuaternionTrack rotation;
-};
-
-bool SampleMotion(const MotionTracks& _tracks, float _ratio,
-                  ozz::math::Transform* _transform) {
-  // Get position from motion track
-  ozz::animation::Float3TrackSamplingJob position_sampler;
-  position_sampler.track = &_tracks.position;
-  position_sampler.result = &_transform->translation;
-  position_sampler.ratio = _ratio;
-  if (!position_sampler.Run()) {
-    return false;
-  }
-
-  // Get rotation from motion track
-  ozz::animation::QuaternionTrackSamplingJob rotation_sampler;
-  rotation_sampler.track = &_tracks.rotation;
-  rotation_sampler.result = &_transform->rotation;
-  rotation_sampler.ratio = _ratio;
-  if (!rotation_sampler.Run()) {
-    return false;
-  }
-
-  _transform->scale = ozz::math::Float3::one();
-
-  return true;
-}
-
 class MotionSampleApplication : public ozz::sample::Application {
  public:
   MotionSampleApplication() {}
@@ -125,44 +68,42 @@ class MotionSampleApplication : public ozz::sample::Application {
   // Updates current animation time and skeleton pose.
   virtual bool OnUpdate(float _dt, float) {
     // Updates current animation time.
-    int loops = controller_.Update(animation_, _dt);
+    controller_.Update(animation_, _dt);
 
-    ozz::math::Transform motion_transform;
-    for (; loops; loops > 0 ? --loops : ++loops) {
-      if (!SampleMotion(motion_tracks_, loops > 0 ? 1.f : 0.f,
-                        &motion_transform)) {
+    // Reset character transform
+    transform_ = ozz::math::Float4x4::identity();
+
+    // Get position from motion track
+    if (apply_motion_position_) {
+      ozz::math::Float3 position;
+      ozz::animation::Float3TrackSamplingJob position_sampler;
+      position_sampler.track = &position_track_;
+      position_sampler.result = &position;
+      position_sampler.ratio = controller_.time_ratio();
+      if (!position_sampler.Run()) {
         return false;
       }
-      motion_accumulator_.Update(motion_transform);
 
-      if (!SampleMotion(motion_tracks_, loops > 0 ? 0.f : 1.f,
-                        &motion_transform)) {
+      transform_ =  // Apply motion position to character transform
+          transform_ * ozz::math::Float4x4::Translation(
+                           ozz::math::simd_float4::Load3PtrU(&position.x));
+    }
+
+    // Get rotation from motion track
+    if (apply_motion_rotation_) {
+      ozz::math::Quaternion rotation;
+      ozz::animation::QuaternionTrackSamplingJob rotation_sampler;
+      rotation_sampler.track = &rotation_track_;
+      rotation_sampler.result = &rotation;
+      rotation_sampler.ratio = controller_.time_ratio();
+      if (!rotation_sampler.Run()) {
         return false;
       }
-      motion_accumulator_.Reset(motion_transform);
+
+      transform_ =  // Apply motion rotation to character transform
+          transform_ * ozz::math::Float4x4::FromQuaternion(
+                           ozz::math::simd_float4::LoadPtrU(&rotation.x));
     }
-
-    if (!SampleMotion(motion_tracks_, controller_.time_ratio(),
-                      &motion_transform)) {
-      return false;
-    }
-    motion_accumulator_.Update(motion_transform);
-
-    if (!apply_motion_position_) {
-    }
-
-    if (!apply_motion_rotation_) {
-    }
-
-    motion_accumulator_.Update(motion_transform);
-
-    transform_ = ozz::math::Float4x4::FromAffine(
-        ozz::math::simd_float4::Load3PtrU(
-            &motion_accumulator_.current.translation.x),
-        ozz::math::simd_float4::LoadPtrU(
-            &motion_accumulator_.current.rotation.x),
-        ozz::math::simd_float4::Load3PtrU(
-            &motion_accumulator_.current.scale.x));
 
     // Samples optimized animation at t = animation_time_.
     ozz::animation::SamplingJob sampling_job;
@@ -197,64 +138,49 @@ class MotionSampleApplication : public ozz::sample::Application {
                                             ozz::math::Float3(.3f, 1.8f, .2f)),
                              transform_, ozz::sample::kWhite);
 
-    const auto origin = ozz::math::Float4x4::FromAffine(
-        ozz::math::simd_float4::Load3PtrU(
-            &motion_accumulator_.origin.translation.x),
-        ozz::math::simd_float4::LoadPtrU(
-            &motion_accumulator_.origin.rotation.x),
-        ozz::math::simd_float4::Load3PtrU(&motion_accumulator_.origin.scale.x));
     const float at = controller_.time_ratio();
     const float step = 1.f / (animation_.duration() * 30.f);
-    success &= DrawMotion(_renderer, motion_tracks_.position, 0.f, at, step,
-                          ozz::sample::kGreen, origin);
-    success &= DrawMotion(_renderer, motion_tracks_.position, at, 1.f, step,
-                          ozz::sample::kRed, origin);
+    success &= DrawMotion(_renderer, position_track_, 0.f, at, step,
+                          ozz::sample::kGreen, ozz::math::Float4x4::identity());
+    success &= DrawMotion(_renderer, position_track_, at, 1.f, step,
+                          ozz::sample::kRed, ozz::math::Float4x4::identity());
     return success;
   }
 
   bool ExtractMotion() {
-    // Position
+    // Raw motion tracks extraction
     ozz::animation::offline::RawFloat3Track raw_motion_position;
-    raw_motion_position.name = "motion_position";
-
-    // Rotation
     ozz::animation::offline::RawQuaternionTrack raw_motion_rotation;
-    raw_motion_rotation.name = "motion_rotation";
-
     ozz::animation::offline::RawAnimation baked_animation;
     if (!motion_extractor_(raw_animation_, skeleton_, &raw_motion_position,
                            &raw_motion_rotation, &baked_animation)) {
       return false;
     }
 
-    // Track optimization and runtime bulding
-    {
+    {  // Track optimization and runtime building
       ozz::animation::offline::TrackOptimizer optimizer;
       ozz::animation::offline::RawFloat3Track raw_track_position_opt;
       if (!optimizer(raw_motion_position, &raw_track_position_opt)) {
         return false;
       }
-      raw_motion_position = raw_track_position_opt;
 
       ozz::animation::offline::RawQuaternionTrack raw_track_rotation_opt;
       if (!optimizer(raw_motion_rotation, &raw_track_rotation_opt)) {
         return false;
       }
-      raw_motion_rotation = raw_track_rotation_opt;
 
       // Build runtime tracks
       ozz::animation::offline::TrackBuilder track_builder;
-      auto motion_p = track_builder(raw_motion_position);
-      auto motion_r = track_builder(raw_motion_rotation);
-      if (!motion_p || !motion_r) {
+      auto position_track = track_builder(raw_track_position_opt);
+      auto rotation_track = track_builder(raw_track_rotation_opt);
+      if (!position_track || !rotation_track) {
         return false;
       }
-      motion_tracks_.position = std::move(*motion_p);
-      motion_tracks_.rotation = std::move(*motion_r);
+      position_track_ = std::move(*position_track);
+      rotation_track_ = std::move(*rotation_track);
     }
 
-    // Track optimization and runtime bulding
-    {
+    {  // Track optimization and runtime building
       ozz::animation::offline::RawAnimation baked_animation_opt;
       ozz::animation::offline::AnimationOptimizer optimizer;
       if (!optimizer(baked_animation, skeleton_, &baked_animation_opt)) {
@@ -423,7 +349,6 @@ class MotionSampleApplication : public ozz::sample::Application {
   ozz::sample::PlaybackController controller_;
 
   // Store extractor to expose parameters to GUI.
-  // In a real use case, no need to store it.
   ozz::animation::offline::MotionExtractor motion_extractor_;
 
   // Runtime skeleton.
@@ -435,14 +360,12 @@ class MotionSampleApplication : public ozz::sample::Application {
   // Runtime animation.
   ozz::animation::Animation animation_;
 
-  // Runtime motion track
-  MotionTracks motion_tracks_;
+  // Runtime motion tracks.
+  ozz::animation::Float3Track position_track_;
+  ozz::animation::QuaternionTrack rotation_track_;
 
   // Sampling context.
   ozz::animation::SamplingJob::Context context_;
-
-  // Character motion accumulator.
-  MotionAccumulator motion_accumulator_;
 
   // Character transform.
   ozz::math::Float4x4 transform_;
@@ -453,6 +376,7 @@ class MotionSampleApplication : public ozz::sample::Application {
   // Buffer of model space matrices.
   ozz::vector<ozz::math::Float4x4> models_;
 
+  // GUI options to apply root motion.
   bool apply_motion_position_ = true;
   bool apply_motion_rotation_ = true;
 };
