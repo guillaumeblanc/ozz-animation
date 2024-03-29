@@ -459,8 +459,6 @@ void Interpolates(float _anim_ratio, size_t _num_soa_tracks,
 }
 }  // namespace
 
-SamplingJob::SamplingJob() : ratio(0.f), animation(nullptr), context(nullptr) {}
-
 bool SamplingJob::Run() const {
   if (!Validate()) {
     return false;

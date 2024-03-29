@@ -48,8 +48,6 @@ class FloatTrack;
 // The job execution actually performs a lazy evaluation of edges. It builds an
 // iterator that will process the next edge on each call to ++ operator.
 struct OZZ_ANIMATION_DLL TrackTriggeringJob {
-  TrackTriggeringJob();
-
   // Validates job parameters.
   bool Validate() const;
 
@@ -64,22 +62,22 @@ struct OZZ_ANIMATION_DLL TrackTriggeringJob {
   // loop multiple times on the track.
   // - if from is greater than to, then the track is processed backward (rising
   // edges in forward become falling ones).
-  float from;
-  float to;
+  float from = 0.f;
+  float to = 0.f;
 
   // Edge detection threshold value.
   // A rising edge is detected as soon as the track value becomes greater than
   // the threshold.
   // A falling edge is detected as soon as the track value becomes smaller or
   // equal than the threshold.
-  float threshold;
+  float threshold = 0.f;
 
   // Track to sample.
-  const FloatTrack* track;
+  const FloatTrack* track = nullptr;
 
   // Job output iterator.
   class Iterator;
-  Iterator* iterator;
+  Iterator* iterator = nullptr;
 
   // Returns an iterator referring to the past-the-end element. It should only
   // be used to test if iterator loop reached the end (using operator !=), and
@@ -98,7 +96,7 @@ struct OZZ_ANIMATION_DLL TrackTriggeringJob {
 // last edge has been reached.
 class OZZ_ANIMATION_DLL TrackTriggeringJob::Iterator {
  public:
-  Iterator() : job_(nullptr), outer_(0.f), inner_(0) {}
+  Iterator() = default;
 
   // Evaluate next edge.
   // Calling this function on an end iterator results in an assertion in debug,
@@ -141,13 +139,13 @@ class OZZ_ANIMATION_DLL TrackTriggeringJob::Iterator {
   }
 
   // Job this iterator works on.
-  const TrackTriggeringJob* job_;
+  const TrackTriggeringJob* job_ = nullptr;
 
   // Current value of the outer loop, aka a ratio cursor between from and to.
-  float outer_;
+  float outer_ = 0.f;
 
   // Current value of the inner loop, aka a key frame index.
-  ptrdiff_t inner_;
+  ptrdiff_t inner_ = 0;
 
   // Latest evaluated edge.
   Edge edge_;

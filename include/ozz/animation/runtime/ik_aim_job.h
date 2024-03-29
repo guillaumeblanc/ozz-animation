@@ -29,9 +29,8 @@
 #define OZZ_OZZ_ANIMATION_RUNTIME_IK_AIM_JOB_H_
 
 #include "ozz/animation/runtime/export.h"
-#include "ozz/base/platform.h"
-
 #include "ozz/base/maths/simd_math.h"
+#include "ozz/base/platform.h"
 
 namespace ozz {
 // Forward declaration of math structures.
@@ -52,9 +51,6 @@ namespace animation {
 // Result is unstable if joint-to-target direction is parallel to pole vector,
 // or if target is too close to joint position.
 struct OZZ_ANIMATION_DLL IKAimJob {
-  // Default constructor, initializes default values.
-  IKAimJob();
-
   // Validates job parameters. Returns true for a valid job, or false otherwise:
   // -if output quaternion pointer is nullptr
   bool Validate() const;
@@ -68,47 +64,47 @@ struct OZZ_ANIMATION_DLL IKAimJob {
   // Job input.
 
   // Target position to aim at, in model-space
-  math::SimdFloat4 target;
+  math::SimdFloat4 target = math::simd_float4::zero();
 
   // Joint forward axis, in joint local-space, to be aimed at target position.
   // This vector shall be normalized, otherwise validation will fail.
   // Default is x axis.
-  math::SimdFloat4 forward;
+  math::SimdFloat4 forward = math::simd_float4::x_axis();
 
   // Offset position from the joint in local-space, that will aim at target.
-  math::SimdFloat4 offset;
+  math::SimdFloat4 offset = math::simd_float4::zero();
 
   // Joint up axis, in joint local-space, used to keep the joint oriented in the
   // same direction as the pole vector. Default is y axis.
-  math::SimdFloat4 up;
+  math::SimdFloat4 up = math::simd_float4::y_axis();
 
   // Pole vector, in model-space. The pole vector defines the direction
   // the up should point to.  Note that IK chain orientation will flip when
   // target vector and the pole vector are aligned/crossing each other. It's
   // caller responsibility to ensure that this doesn't happen.
-  math::SimdFloat4 pole_vector;
+  math::SimdFloat4 pole_vector = math::simd_float4::y_axis();
 
   // Twist_angle rotates joint around the target vector.
   // Default is 0.
-  float twist_angle;
+  float twist_angle = 0.f;
 
   // Weight given to the IK correction clamped in range [0,1]. This allows to
   // blend / interpolate from no IK applied (0 weight) to full IK (1).
-  float weight;
+  float weight = 1.f;
 
   // Joint model-space matrix.
-  const math::Float4x4* joint;
+  const math::Float4x4* joint = nullptr;
 
   // Job output.
 
   // Output local-space joint correction quaternion. It needs to be multiplied
   // with joint local-space quaternion.
-  math::SimdQuaternion* joint_correction;
+  math::SimdQuaternion* joint_correction = nullptr;
 
   // Optional boolean output value, set to true if target can be reached with IK
   // computations. Target is considered not reachable when target is between
   // joint and offset position.
-  bool* reached;
+  bool* reached = nullptr;
 };
 }  // namespace animation
 }  // namespace ozz

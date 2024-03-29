@@ -54,9 +54,6 @@ class Animation;
 // optimized through the context. The job does not owned the buffers (in/output)
 // and will thus not delete them during job's destruction.
 struct OZZ_ANIMATION_DLL SamplingJob {
-  // Default constructor, initializes default values.
-  SamplingJob();
-
   // Validates job parameters. Returns true for a valid job, or false otherwise:
   // -if any input pointer is nullptr
   // -if output range is invalid.
@@ -73,16 +70,16 @@ struct OZZ_ANIMATION_DLL SamplingJob {
   // current time in the animation , divided by animation duration.
   // This ratio is clamped before job execution in order to resolves any
   // approximation issue on range bounds.
-  float ratio;
+  float ratio = 0.f;
 
   // The animation to sample.
-  const Animation* animation;
+  const Animation* animation = nullptr;
 
   // Forward declares the context object used by the SamplingJob.
   class Context;
 
   // A context object that must be big enough to sample *this animation.
-  Context* context;
+  Context* context = nullptr;
 
   // Job output.
   // The output range to be filled with sampled joints during job execution.

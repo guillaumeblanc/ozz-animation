@@ -43,10 +43,6 @@ namespace ozz {
 namespace animation {
 namespace offline {
 
-// Setup default values (favoring quality).
-TrackOptimizer::TrackOptimizer() : tolerance(1e-3f) {  // 1 mm.
-}
-
 namespace {
 
 template <typename _KeyFrame>

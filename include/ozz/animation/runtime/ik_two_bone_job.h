@@ -29,9 +29,8 @@
 #define OZZ_OZZ_ANIMATION_RUNTIME_IK_TWO_BONE_JOB_H_
 
 #include "ozz/animation/runtime/export.h"
-#include "ozz/base/platform.h"
-
 #include "ozz/base/maths/simd_math.h"
+#include "ozz/base/platform.h"
 
 namespace ozz {
 // Forward declaration of math structures.
@@ -53,9 +52,6 @@ namespace animation {
 // Implementation is inspired by Autodesk Maya 2 bone IK, improved stability
 // wise and extended with Soften IK.
 struct OZZ_ANIMATION_DLL IKTwoBoneJob {
-  // Constructor, initializes default values.
-  IKTwoBoneJob();
-
   // Validates job parameters. Returns true for a valid job, or false otherwise:
   // -if any input pointer is nullptr
   // -if mid_axis isn't normalized.
@@ -71,44 +67,44 @@ struct OZZ_ANIMATION_DLL IKTwoBoneJob {
 
   // Target IK position, in model-space. This is the position the end of the
   // joint chain will try to reach.
-  math::SimdFloat4 target;
+  math::SimdFloat4 target = math::simd_float4::zero();
 
-  // Normalized middle joint rotation axis, in middle joint local-space. Default
-  // value is z axis. This axis is usually fixed for a given skeleton (as it's
-  // in middle joint space). Its direction is defined like this: a positive
-  // rotation around this axis will open the angle between the two bones. This
-  // in turn also to define which side the two joints must bend. Job validation
-  // will fail if mid_axis isn't normalized.
-  math::SimdFloat4 mid_axis;
+  // Normalized middle joint rotation axis, in middle joint local-space.
+  // Default value is z axis. This axis is usually fixed for a given
+  // skeleton (as it's in middle joint space). Its direction is defined like
+  // this: a positive rotation around this axis will open the angle between
+  // the two bones. This in turn also to define which side the two joints
+  // must bend. Job validation will fail if mid_axis isn't normalized.
+  math::SimdFloat4 mid_axis = math::simd_float4::z_axis();
 
   // Pole vector, in model-space. The pole vector defines the direction the
   // middle joint should point to, allowing to control IK chain orientation.
-  // Note that IK chain orientation will flip when target vector and the pole
-  // vector are aligned/crossing each other. It's caller responsibility to
-  // ensure that this doesn't happen.
-  math::SimdFloat4 pole_vector;
+  // Note that IK chain orientation will flip when target vector and the
+  // pole vector are aligned/crossing each other. It's caller responsibility
+  // to ensure that this doesn't happen.
+  math::SimdFloat4 pole_vector = math::simd_float4::y_axis();
 
   // Twist_angle rotates IK chain around the vector define by start-to-target
   // vector. Default is 0.
-  float twist_angle;
+  float twist_angle = 0.f;
 
   // Soften ratio allows the chain to gradually fall behind the target
   // position. This prevents the joint chain from snapping into the final
   // position, softening the final degrees before the joint chain becomes flat.
   // This ratio represents the distance to the end, from which softening is
   // starting.
-  float soften;
+  float soften = 1.f;
 
   // Weight given to the IK correction clamped in range [0,1]. This allows to
   // blend / interpolate from no IK applied (0 weight) to full IK (1).
-  float weight;
+  float weight = 1.f;
 
   // Model-space matrices of the start, middle and end joints of the chain.
   // The 3 joints should be ancestors. They don't need to be direct
   // ancestors though.
-  const math::Float4x4* start_joint;
-  const math::Float4x4* mid_joint;
-  const math::Float4x4* end_joint;
+  const math::Float4x4* start_joint = nullptr;
+  const math::Float4x4* mid_joint = nullptr;
+  const math::Float4x4* end_joint = nullptr;
 
   // Job output.
 
@@ -116,13 +112,13 @@ struct OZZ_ANIMATION_DLL IKTwoBoneJob {
   // end joint to reach target position.
   // These quaternions must be multiplied to the local-space quaternion of their
   // respective joints.
-  math::SimdQuaternion* start_joint_correction;
-  math::SimdQuaternion* mid_joint_correction;
+  math::SimdQuaternion* start_joint_correction = nullptr;
+  math::SimdQuaternion* mid_joint_correction = nullptr;
 
   // Optional boolean output value, set to true if target can be reached with IK
   // computations. Reachability is driven by bone chain length, soften ratio and
   // target distance. Target is considered unreached if weight is less than 1.
-  bool* reached;
+  bool* reached = nullptr;
 };
 }  // namespace animation
 }  // namespace ozz

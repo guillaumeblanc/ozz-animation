@@ -26,16 +26,14 @@
 //----------------------------------------------------------------------------//
 
 #include "ozz/animation/runtime/track_triggering_job.h"
-#include "ozz/animation/runtime/track.h"
 
 #include <algorithm>
 #include <cassert>
 
+#include "ozz/animation/runtime/track.h"
+
 namespace ozz {
 namespace animation {
-
-TrackTriggeringJob::TrackTriggeringJob()
-    : from(0.f), to(0.f), threshold(0.f), track(nullptr), iterator(nullptr) {}
 
 bool TrackTriggeringJob::Validate() const {
   bool valid = true;

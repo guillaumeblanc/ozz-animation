@@ -26,19 +26,16 @@
 //----------------------------------------------------------------------------//
 
 #include "ozz/animation/runtime/track_sampling_job.h"
-#include "ozz/animation/runtime/track.h"
-#include "ozz/base/maths/math_ex.h"
 
 #include <algorithm>
 #include <cassert>
 
+#include "ozz/animation/runtime/track.h"
+#include "ozz/base/maths/math_ex.h"
+
 namespace ozz {
 namespace animation {
 namespace internal {
-
-template <typename _Track>
-TrackSamplingJob<_Track>::TrackSamplingJob()
-    : ratio(0.f), track(nullptr), result(nullptr) {}
 
 template <typename _Track>
 bool TrackSamplingJob<_Track>::Validate() const {
@@ -71,7 +68,8 @@ bool TrackSamplingJob<_Track>::Run() const {
 
   // Search for the first key frame with a ratio value greater than input ratio.
   // Our ratio is between this one and the previous one.
-  const float* ptk1 = std::upper_bound(ratios.begin(), ratios.end(), clamped_ratio);
+  const float* ptk1 =
+      std::upper_bound(ratios.begin(), ratios.end(), clamped_ratio);
 
   // Deduce keys indices.
   const size_t id1 = ptk1 - ratios.begin();

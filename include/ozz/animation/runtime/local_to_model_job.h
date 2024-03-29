@@ -29,6 +29,7 @@
 #define OZZ_OZZ_ANIMATION_RUNTIME_LOCAL_TO_MODEL_JOB_H_
 
 #include "ozz/animation/runtime/export.h"
+#include "ozz/animation/runtime/skeleton.h"
 #include "ozz/base/platform.h"
 #include "ozz/base/span.h"
 
@@ -57,9 +58,6 @@ class Skeleton;
 // of affine transformations can contain shearing or complex transformation
 // that cannot be represented as Transform object.
 struct OZZ_ANIMATION_DLL LocalToModelJob {
-  // Default constructor, initializes default values.
-  LocalToModelJob();
-
   // Validates job parameters. Returns true for a valid job, or false otherwise:
   // -if any input pointer, including ranges, is nullptr.
   // -if the size of the input is smaller than the skeleton's number of joints.
@@ -78,12 +76,12 @@ struct OZZ_ANIMATION_DLL LocalToModelJob {
 
   // The Skeleton object describing the joint hierarchy used for local to
   // model space conversion.
-  const Skeleton* skeleton;
+  const Skeleton* skeleton = nullptr;
 
-  // The root matrix will multiply to every model space matrices, default nullptr
-  // means an identity matrix. This can be used to directly compute world-space
-  // transforms for example.
-  const ozz::math::Float4x4* root;
+  // The root matrix will multiply to every model space matrices, default
+  // nullptr means an identity matrix. This can be used to directly compute
+  // world-space transforms for example.
+  const ozz::math::Float4x4* root = nullptr;
 
   // Defines "from" which joint the local-to-model conversion should start.
   // Default value is ozz::Skeleton::kNoParent, meaning the whole hierarchy is
@@ -91,14 +89,14 @@ struct OZZ_ANIMATION_DLL LocalToModelJob {
   // conversion to part of the joint hierarchy. Note that "from" parent should
   // be a valid matrix, as it is going to be used as part of "from" joint
   // hierarchy update.
-  int from;
+  int from = Skeleton::kNoParent;
 
   // Defines "to" which joint the local-to-model conversion should go, "to"
   // included. Update will end before "to" joint is reached if "to" is not part
   // of the hierarchy starting from "from". Default value is
   // ozz::animation::Skeleton::kMaxJoints, meaning the hierarchy (starting from
   // "from") is updated to the last joint.
-  int to;
+  int to = Skeleton::kMaxJoints;
 
   // If true, "from" joint is not updated during job execution. Update starts
   // with all children of "from". This can be used to update a model-space
@@ -106,7 +104,7 @@ struct OZZ_ANIMATION_DLL LocalToModelJob {
   // joint model-space transform matrix, and run this Job with "from_excluded"
   // to update all "from" children.
   // Default value is false.
-  bool from_excluded;
+  bool from_excluded = false;
 
   // The input range that store local transforms.
   span<const ozz::math::SoaTransform> input;

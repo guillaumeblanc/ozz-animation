@@ -64,7 +64,7 @@ struct QuaternionKey;
 class OZZ_ANIMATION_DLL Animation {
  public:
   // Builds a default animation.
-  Animation();
+  Animation() = default;
 
   // Allow moves.
   Animation(Animation&&);
@@ -188,14 +188,14 @@ class OZZ_ANIMATION_DLL Animation {
   void Deallocate();
 
   // Duration of the animation clip.
-  float duration_;
+  float duration_ = 0.f;
 
   // The number of joint tracks. Can differ from the data stored in translation/
   // rotation/scale buffers because of SoA requirements.
-  int num_tracks_;
+  int num_tracks_ = 0;
 
   // Animation name.
-  char* name_;
+  char* name_ = nullptr;
 
   // Stores all translation/rotation/scale keys.
   span<float> timepoints_;

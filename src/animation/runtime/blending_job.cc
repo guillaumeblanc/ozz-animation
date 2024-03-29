@@ -37,10 +37,6 @@
 namespace ozz {
 namespace animation {
 
-BlendingJob::Layer::Layer() : weight(0.f) {}
-
-BlendingJob::BlendingJob() : threshold(.1f) {}
-
 namespace {
 bool ValidateLayer(const BlendingJob::Layer& _layer, size_t _min_range) {
   bool valid = true;

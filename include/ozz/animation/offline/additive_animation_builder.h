@@ -49,9 +49,6 @@ struct RawAnimation;
 // blending.
 class OZZ_ANIMOFFLINE_DLL AdditiveAnimationBuilder {
  public:
-  // Initializes the builder.
-  AdditiveAnimationBuilder();
-
   // Builds delta animation from _input..
   // Returns true on success and fills _output_animation with the delta
   // version of _input animation.

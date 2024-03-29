@@ -39,8 +39,6 @@
 namespace ozz {
 namespace animation {
 
-Skeleton::Skeleton() {}
-
 Skeleton::Skeleton(Skeleton&& _other) { *this = std::move(_other); }
 
 Skeleton& Skeleton::operator=(Skeleton&& _other) {

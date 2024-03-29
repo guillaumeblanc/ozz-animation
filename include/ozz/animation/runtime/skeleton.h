@@ -80,7 +80,7 @@ class OZZ_ANIMATION_DLL Skeleton {
   };
 
   // Builds a default skeleton.
-  Skeleton();
+  Skeleton() = default;
 
   // Allow move.
   Skeleton(Skeleton&&);
