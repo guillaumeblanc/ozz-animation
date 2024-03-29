@@ -119,17 +119,21 @@ bool SampleTrack(const _RawTrack& _track, float _ratio,
   return true;
 }
 
-// Explicitly instantiate supported raw tracks.
-template bool SampleTrack(const RawFloatTrack& _track, float _ratio,
-                          float* _value);
-template bool SampleTrack(const RawFloat2Track& _track, float _ratio,
-                          math::Float2* _value);
-template bool SampleTrack(const RawFloat3Track& _track, float _ratio,
-                          math::Float3* _value);
-template bool SampleTrack(const RawFloat4Track& _track, float _ratio,
-                          math::Float4* _value);
-template bool SampleTrack(const RawQuaternionTrack& _track, float _ratio,
-                          math::Quaternion* _value);
+// Explicitly instantiate supported raw tracks sampling functions.
+template OZZ_ANIMOFFLINE_DLL bool SampleTrack(const RawFloatTrack& _track,
+                                              float _ratio, float* _value);
+template OZZ_ANIMOFFLINE_DLL bool SampleTrack(const RawFloat2Track& _track,
+                                              float _ratio,
+                                              math::Float2* _value);
+template OZZ_ANIMOFFLINE_DLL bool SampleTrack(const RawFloat3Track& _track,
+                                              float _ratio,
+                                              math::Float3* _value);
+template OZZ_ANIMOFFLINE_DLL bool SampleTrack(const RawFloat4Track& _track,
+                                              float _ratio,
+                                              math::Float4* _value);
+template OZZ_ANIMOFFLINE_DLL bool SampleTrack(const RawQuaternionTrack& _track,
+                                              float _ratio,
+                                              math::Quaternion* _value);
 
 }  // namespace offline
 }  // namespace animation
