@@ -138,11 +138,11 @@ bool MotionExtractor::operator()(const RawAnimation& _input,
     _motion_rotation->keyframes.clear();
     for (const auto& joint_key : input_track.rotations) {
       // Decompose rotation to take expected components only.
-      const auto decomp = ToEuler(joint_key.value * Conjugate(ref.rotation));
-      const auto motion_q =
-          math::Quaternion::FromEuler(rotation_settings.y ? decomp.x : 0,
-                                      rotation_settings.x ? decomp.y : 0,
-                                      rotation_settings.z ? decomp.z : 0);
+      const math::Float3 mask{1.f * rotation_settings.y,   // Yaw
+                              1.f * rotation_settings.x,   // Pitch
+                              1.f * rotation_settings.z};  // Roll
+      const auto euler = ToEuler(joint_key.value * Conjugate(ref.rotation));
+      const auto motion_q = math::Quaternion::FromEuler(euler * mask);
       _motion_rotation->keyframes.push_back(
           {ozz::animation::offline::RawTrackInterpolation::kLinear,
            joint_key.time / _input.duration, motion_q});

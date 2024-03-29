@@ -340,19 +340,19 @@ TEST(Optimize, AnimationOptimizer) {
   // Rotations on track 0.
   {
     RawAnimation::RotationKey key = {
-        0.f, ozz::math::Quaternion::FromEuler(0.f, 0.f, 0.f)};
+        0.f, ozz::math::Quaternion::FromEuler({0.f, 0.f, 0.f})};
     input.tracks[0].rotations.push_back(key);
   }
   {                                     // Include error
     const float angle_error = 2.5e-3f;  // creates an arc of .1m at 40m.
     RawAnimation::RotationKey key = {
-        .1f, ozz::math::Quaternion::FromEuler(ozz::math::kPi_4 + angle_error,
-                                              0.f, 0.f)};
+        .1f, ozz::math::Quaternion::FromEuler(
+                 {ozz::math::kPi_4 + angle_error, 0.f, 0.f})};
     input.tracks[0].rotations.push_back(key);
   }
   {
     RawAnimation::RotationKey key = {
-        .2f, ozz::math::Quaternion::FromEuler(ozz::math::kPi_2, 0.f, 0.f)};
+        .2f, ozz::math::Quaternion::FromEuler({ozz::math::kPi_2, 0.f, 0.f})};
     input.tracks[0].rotations.push_back(key);
   }
 
@@ -484,19 +484,19 @@ TEST(OptimizeOverride, AnimationOptimizer) {
   // Rotations on track 0.
   {
     RawAnimation::RotationKey key = {
-        0.f, ozz::math::Quaternion::FromEuler(0.f, 0.f, 0.f)};
+        0.f, ozz::math::Quaternion::FromEuler({0.f, 0.f, 0.f})};
     input.tracks[1].rotations.push_back(key);
   }
   {                                   // Includes an error that
     const float angle_error = 1e-3f;  // creates an arc of 1mm at 1m.
     RawAnimation::RotationKey key = {
-        .1f, ozz::math::Quaternion::FromEuler(ozz::math::kPi_4 + angle_error,
-                                              0.f, 0.f)};
+        .1f, ozz::math::Quaternion::FromEuler(
+                 {ozz::math::kPi_4 + angle_error, 0.f, 0.f})};
     input.tracks[1].rotations.push_back(key);
   }
   {
     RawAnimation::RotationKey key = {
-        .2f, ozz::math::Quaternion::FromEuler(ozz::math::kPi_2, 0.f, 0.f)};
+        .2f, ozz::math::Quaternion::FromEuler({ozz::math::kPi_2, 0.f, 0.f})};
     input.tracks[1].rotations.push_back(key);
   }
 

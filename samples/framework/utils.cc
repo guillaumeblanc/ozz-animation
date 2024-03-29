@@ -180,8 +180,7 @@ bool OnRawSkeletonJointGui(
       if (euler_modified) {
         modified = true;
         ozz::math::Float3 euler_rad = euler * ozz::math::kDegreeToRadian;
-        rotation = ozz::math::Quaternion::FromEuler(euler_rad.x, euler_rad.y,
-                                                    euler_rad.z);
+        rotation = ozz::math::Quaternion::FromEuler(euler_rad);
       }
 
       // Scale (must be uniform and not 0)
