@@ -35,6 +35,9 @@
 
 namespace ozz {
 namespace animation {
+
+using internal::TrackPolicy;
+
 namespace offline {
 
 namespace {
@@ -52,8 +55,8 @@ typename _Key::ValueType TrackLerp(const _Key& _left, const _Key& _right,
   if (_left.interpolation == RawTrackInterpolation::kStep && _alpha < 1.f) {
     return _left.value;
   }
-  return animation::internal::TrackPolicy<typename _Key::ValueType>::Lerp(
-      _left.value, _right.value, _alpha);
+  return TrackPolicy<typename _Key::ValueType>::Lerp(_left.value, _right.value,
+                                                     _alpha);
 }
 
 template <>
@@ -70,8 +73,7 @@ math::Quaternion TrackLerp(const RawQuaternionTrack::Keyframe& _left,
   if (dot < 0.f) {
     rq = -rq;
   }
-  return animation::internal::TrackPolicy<math::Quaternion>::Lerp(lq, rq,
-                                                                  _alpha);
+  return TrackPolicy<math::Quaternion>::Lerp(lq, rq, _alpha);
 }
 
 template <typename _Keyframes>
@@ -80,8 +82,7 @@ typename _Keyframes::value_type::ValueType _SampleTrack(
   using Keyframe = typename _Keyframes::value_type;
   if (_keyframes.size() == 0) {
     // Return identity if there's no key for this track.
-    return animation::internal::TrackPolicy<
-        typename Keyframe::ValueType>::identity();
+    return TrackPolicy<typename Keyframe::ValueType>::identity();
   } else if (_ratio <= _keyframes.front().ratio) {
     // Returns the first keyframe if _time is before the first keyframe.
     return _keyframes.front().value;
