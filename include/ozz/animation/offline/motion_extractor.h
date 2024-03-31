@@ -47,7 +47,7 @@ class OZZ_ANIMOFFLINE_DLL MotionExtractor {
                   RawQuaternionTrack* _motion_rotation,
                   RawAnimation* _output) const;
 
-  // Index of the joint that will be used as root joint to extract root motion.
+  // Index of the joint that will be used as root to extract motion.
   int root_joint = 0;
 
   // Defines the reference transform to use while extracting root motion.
@@ -58,15 +58,17 @@ class OZZ_ANIMOFFLINE_DLL MotionExtractor {
   };
 
   struct Settings {
-    bool x, y, z;
-    Reference reference;
-    bool bake;
+    bool x, y, z;         // Extract X, Y, Z components
+    Reference reference;  // Extracting reference
+    bool bake;            // Bake extracted data to output animation
   };
 
-  Settings position_settings = {true, false, true, Reference::kSkeleton,
-                                true};  // X and Z projection
-  Settings rotation_settings = {false, true, false, Reference::kSkeleton,
-                                true};  // Y / Yaw only
+  Settings position_settings = {true, false, true,       // X and Z projection
+                                Reference::kFirstFrame,  // Reference
+                                true};               // Bake extracted position
+  Settings rotation_settings = {false, true, false,  // Y / Yaw only
+                                Reference::kFirstFrame,  // Reference
+                                true};  // Bake extracted rotation
 };
 }  // namespace offline
 }  // namespace animation

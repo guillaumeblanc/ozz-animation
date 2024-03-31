@@ -1,3 +1,16 @@
+Next release
+----------------------
+
+* Library
+  - [offline] Implements root motion extraction through`ozz::animation::offline::MotionExtraction` utility. Root motion defines how a character moves during an animation. The utility extracts the motion (position and rotation) from a root joint of the animation into separate tracks, and removes (bake) that motion from the original animation. User code is expected to reapply motion at runtime by moving the character transform, hence reconstructing the original animation.
+
+* Tools
+  - Adds motion track extraction to \*2ozz. Configuration (json) is extended with a animations.tracks.motion object that exposes root motion extraction settings. See [src/animation/offline/tools/reference.json#L67]().
+  - Breaking \*2ozz json configuration change. \*2ozz json configuration animations.tracks is no longer an array, but an array. See [src/animation/offline/tools/reference.json#L51]().
+
+* Samples
+  - Adds motion extraction sample, showcasing root motion extraction parameters.
+
 Release version 0.15.0
 ----------------------
 

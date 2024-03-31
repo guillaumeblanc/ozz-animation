@@ -314,29 +314,20 @@ bool SanitizeTrackImport(Json::Value& _root, bool _all_options) {
   return SanitizeTrackBuildSettings(_root, _all_options);
 }
 
-// Root motion reference enum to config string conversions.
-struct RootMotionReferenceConfig
-    : JsonEnum<RootMotionReferenceConfig,
-               ozz::animation::offline::MotionExtractor::Reference> {
-  static EnumNames GetNames() {
-    static const char* kNames[] = {"identity", "skeleton", "first_frame"};
-    const EnumNames enum_names = {OZZ_ARRAY_SIZE(kNames), kNames};
-    return enum_names;
+bool SanitizeTrackMotionComponent(Json::Value& _root, bool) {
+  MakeDefault(_root, "components", "xyz",
+              "Components to import, can be any composition of x, y and z.");
+  if (_root["components"].asString().find_first_not_of("xyz") !=
+      std::string::npos) {
+    ozz::log::Err() << "Invalid value \"" << _root["components"].asString()
+                    << "\" for motion components. Components can be any "
+                       "composition of x, y and z."
+                    << std::endl;
+    return false;
   }
-};
-
-bool SanitizeTrackMotion(Json::Value& _root, bool) {
-  MakeDefault(_root, "position_filename", "*_motion_position.ozz",
-              "Specifies position motion track output filename(s). Use a \'*\' "
-              "character to specify part(s) of the filename that should be "
-              "replaced by the animation name.");
-  MakeDefault(_root, "rotation_filename", "*_motion_rotation.ozz",
-              "Specifies rotation motion track output filename(s). Use a \'*\' "
-              "character to specify part(s) of the filename that should be "
-              "replaced by the animation name.");
 
   MakeDefault(
-      _root, "reference", "skeleton",
+      _root, "reference", "first_frame",
       "Root motion extraction reference pose, can be identity, skeleton or "
       "first_frame.");
   const char* reference_name = _root["reference"].asCString();
@@ -348,32 +339,42 @@ bool SanitizeTrackMotion(Json::Value& _root, bool) {
     return false;
   }
 
-  MakeDefault(
-      _root, "postion_components", "xyz",
-      "Position components to import, can be any composition of x, y and z.");
-  if (_root["postion_components"].asString().find_first_not_of("xyz") !=
-      std::string::npos) {
-    ozz::log::Err()
-        << "Invalid value \"" << _root["postion_components"].asString()
-        << "\" for motion position components. Components can be any "
-           "composition of x, y and z."
-        << std::endl;
-    return false;
-  }
+  MakeDefault(_root, "bake", true, "Bake extracted motion into animation.");
 
   MakeDefault(_root, "raw", false, "Outputs raw track.");
   MakeDefault(_root, "optimize", true, "Activates keyframes optimization.");
-  MakeDefault(_root, "position_optimization_tolerance",
-              TrackOptimizer().tolerance,
-              "Optimization tolerance for position track");
-  MakeDefault(_root, "rotation_optimization_tolerance",
-              TrackOptimizer().tolerance,
-              "Optimization tolerance for rotation track");
+  MakeDefault(_root, "optimization_tolerance", TrackOptimizer().tolerance,
+              "Optimization tolerance for the optimized track");
+  return true;
+}
+
+bool SanitizeTrackMotion(Json::Value& _root, bool _all_options) {
+  MakeDefault(_root, "enable", false,
+              "Extracts root motion from the animation "
+              "and writes tracks (position, rotation) to a file.");
+  MakeDefault(_root, "filename", "*_motion_track.ozz",
+              "Specifies motion tracks output filename(s). Use a \'*\' "
+              "character to specify part(s) of the filename that should be "
+              "replaced by the clip name.");
+
+  MakeDefault(_root, "joint_name", "",
+              "Name of the joint containing the motion to extract. Leave empty "
+              "to select joint 0 (aka the first root).");
+
+  MakeDefaultObject(_root, "position", "Root motion position settings.");
+  if (!SanitizeTrackMotionComponent(_root["position"], _all_options)) {
+    return false;
+  }
+
+  MakeDefaultObject(_root, "rotation", "Root motion rotation settings.");
+  if (!SanitizeTrackMotionComponent(_root["rotation"], _all_options)) {
+    return false;
+  }
 
   return true;
 }
 
-bool SanitizeTrack(Json::Value& _root, bool _all_options) {
+bool SanitizeTracks(Json::Value& _root, bool _all_options) {
   // Properties
   MakeDefaultArray(_root, "properties", "Properties to import.", !_all_options);
   Json::Value& imports = _root["properties"];
@@ -440,12 +441,9 @@ bool SanitizeAnimation(Json::Value& _root, bool _all_options) {
 
   SanitizeOptimizationSettings(_root["optimization_settings"], _all_options);
 
-  MakeDefaultArray(_root, "tracks", "Tracks to build.", !_all_options);
-  Json::Value& tracks = _root["tracks"];
-  for (Json::ArrayIndex i = 0; i < tracks.size(); ++i) {
-    if (!SanitizeTrack(tracks[i], _all_options)) {
-      return false;
-    }
+  MakeDefaultObject(_root, "tracks", "Tracks to build.");
+  if (!SanitizeTracks(_root["tracks"], _all_options)) {
+    return false;
   }
 
   return true;

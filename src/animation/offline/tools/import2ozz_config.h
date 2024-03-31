@@ -28,10 +28,10 @@
 #ifndef OZZ_ANIMATION_OFFLINE_TOOLS_IMPORT2OZZ_CONFIG_H_
 #define OZZ_ANIMATION_OFFLINE_TOOLS_IMPORT2OZZ_CONFIG_H_
 
+#include <json/json-forwards.h>
+
 #include "ozz/animation/offline/tools/export.h"
 #include "ozz/base/platform.h"
-
-#include <json/json-forwards.h>
 
 namespace ozz {
 namespace animation {
@@ -66,7 +66,7 @@ struct JsonEnum {
   static const char* GetEnumName(_Enum _enum) {
     const EnumNames enums = _Type::GetNames();
     assert(static_cast<size_t>(_enum) < enums.count);
-    return enums.names[_enum];
+    return enums.names[static_cast<size_t>(_enum)];
   }
 
   static bool IsValidEnumName(const char* _name) {

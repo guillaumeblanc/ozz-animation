@@ -49,35 +49,48 @@
       },
       //  Tracks to build.
       "tracks" : 
-      [
-        {
-          //  Properties to import.
-          "properties" : 
-          [
-            {
-              "filename" : "*.ozz", //  Specifies track output filename(s). Use a '*' character to specify part(s) of the filename that should be replaced by the track (aka "joint_name-property_name") name.
-              "joint_name" : "*", //  Name of the joint that contains the property to import. Wildcard characters '*' and '?' are supported.
-              "property_name" : "*", //  Name of the property to import. Wildcard characters '*' and '?' are supported.
-              "type" : "float1", //  Type of the property, can be float1 to float4, point and vector (aka float3 with scene unit and axis conversion).
-              "raw" : false, //  Outputs raw track.
-              "optimize" : true, //  Activates keyframes optimization.
-              "optimization_tolerance" : 0.001 //  Optimization tolerance
-            }
-          ],
-          //  Root motion track extraction.
-          "motion" : 
+      {
+        //  Properties to import.
+        "properties" : 
+        [
           {
-            "position_filename" : "*_motion_position.ozz", //  Specifies position motion track output filename(s). Use a '*' character to specify part(s) of the filename that should be replaced by the animation name.
-            "rotation_filename" : "*_motion_rotation.ozz", //  Specifies rotation motion track output filename(s). Use a '*' character to specify part(s) of the filename that should be replaced by the animation name.
-            "reference" : "skeleton", //  Root motion extraction reference pose, can be identity, skeleton or first_frame.
-            "postion_components" : "xyz", //  Position components to import, can be any composition of x, y and z.
+            "filename" : "*.ozz", //  Specifies track output filename(s). Use a '*' character to specify part(s) of the filename that should be replaced by the track (aka "joint_name-property_name") name.
+            "joint_name" : "*", //  Name of the joint that contains the property to import. Wildcard characters '*' and '?' are supported.
+            "property_name" : "*", //  Name of the property to import. Wildcard characters '*' and '?' are supported.
+            "type" : "float1", //  Type of the property, can be float1 to float4, point and vector (aka float3 with scene unit and axis conversion).
             "raw" : false, //  Outputs raw track.
             "optimize" : true, //  Activates keyframes optimization.
-            "position_optimization_tolerance" : 0.001, //  Optimization tolerance for position track
-            "rotation_optimization_tolerance" : 0.001 //  Optimization tolerance for rotation track
+            "optimization_tolerance" : 0.001 //  Optimization tolerance
+          }
+        ],
+        //  Root motion track extraction.
+        "motion" : 
+        {
+          "enable" : false, //  Extracts root motion from the animation and writes tracks (position, rotation) to a file.
+          "filename" : "*_motion_track.ozz", //  Specifies motion tracks output filename(s). Use a '*' character to specify part(s) of the filename that should be replaced by the clip name.
+          "joint_name" : "", //  Name of the joint containing the motion to extract. Leave empty to select joint 0 (aka the first root).
+          //  Root motion position settings.
+          "position" : 
+          {
+            "components" : "xyz", //  Components to import, can be any composition of x, y and z.
+            "reference" : "first_frame", //  Root motion extraction reference pose, can be identity, skeleton or first_frame.
+            "bake" : true, //  Bake extracted motion into animation.
+            "raw" : false, //  Outputs raw track.
+            "optimize" : true, //  Activates keyframes optimization.
+            "optimization_tolerance" : 0.001 //  Optimization tolerance for the optimized track
+          },
+          //  Root motion rotation settings.
+          "rotation" : 
+          {
+            "components" : "xyz", //  Components to import, can be any composition of x, y and z.
+            "reference" : "first_frame", //  Root motion extraction reference pose, can be identity, skeleton or first_frame.
+            "bake" : true, //  Bake extracted motion into animation.
+            "raw" : false, //  Outputs raw track.
+            "optimize" : true, //  Activates keyframes optimization.
+            "optimization_tolerance" : 0.001 //  Optimization tolerance for the optimized track
           }
         }
-      ]
+      }
     }
   ]
 }

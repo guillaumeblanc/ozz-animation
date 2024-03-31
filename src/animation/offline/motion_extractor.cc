@@ -89,6 +89,11 @@ bool MotionExtractor::operator()(const RawAnimation& _input,
     return false;
   }
 
+  // All outputs are expected to be valid.
+  if (!_output || !_motion_position || !_motion_rotation) {
+    return false;
+  }
+
   // Animation must match skeleton.
   if (_input.num_tracks() != _skeleton.num_joints()) {
     return false;
@@ -105,9 +110,7 @@ bool MotionExtractor::operator()(const RawAnimation& _input,
   }
 
   // Copy output animation
-  if (_output) {
-    *_output = _input;
-  }
+  *_output = _input;
 
   // Track to extract motion from
   const auto& input_track = _input.tracks[root_joint];
@@ -119,34 +122,30 @@ bool MotionExtractor::operator()(const RawAnimation& _input,
                      GetJointLocalRestPose(_skeleton, root_joint), input_track);
 
   // Copies root position
-  if (_motion_position) {
-    _motion_position->keyframes.clear();
-    for (const auto& joint_key : input_track.translations) {
-      // Takes expected components only.
-      const math::Float3 mask{1.f * position_settings.x,
-                              1.f * position_settings.y,
-                              1.f * position_settings.z};
-      const math::Float3 motion_p = (joint_key.value - ref.translation) * mask;
-      _motion_position->keyframes.push_back(
-          {ozz::animation::offline::RawTrackInterpolation::kLinear,
-           joint_key.time / _input.duration, motion_p});
-    }
+  _motion_position->keyframes.clear();
+  for (const auto& joint_key : input_track.translations) {
+    // Takes expected components only.
+    const math::Float3 mask{1.f * position_settings.x,
+                            1.f * position_settings.y,
+                            1.f * position_settings.z};
+    const math::Float3 motion_p = (joint_key.value - ref.translation) * mask;
+    _motion_position->keyframes.push_back(
+        {ozz::animation::offline::RawTrackInterpolation::kLinear,
+         joint_key.time / _input.duration, motion_p});
   }
 
   // Copies root rotation
-  if (_motion_rotation) {
-    _motion_rotation->keyframes.clear();
-    for (const auto& joint_key : input_track.rotations) {
-      // Decompose rotation to take expected components only.
-      const math::Float3 mask{1.f * rotation_settings.y,   // Yaw
-                              1.f * rotation_settings.x,   // Pitch
-                              1.f * rotation_settings.z};  // Roll
-      const auto euler = ToEuler(joint_key.value * Conjugate(ref.rotation));
-      const auto motion_q = math::Quaternion::FromEuler(euler * mask);
-      _motion_rotation->keyframes.push_back(
-          {ozz::animation::offline::RawTrackInterpolation::kLinear,
-           joint_key.time / _input.duration, motion_q});
-    }
+  _motion_rotation->keyframes.clear();
+  for (const auto& joint_key : input_track.rotations) {
+    // Decompose rotation to take expected components only.
+    const math::Float3 mask{1.f * rotation_settings.y,   // Yaw
+                            1.f * rotation_settings.x,   // Pitch
+                            1.f * rotation_settings.z};  // Roll
+    const auto euler = ToEuler(joint_key.value * Conjugate(ref.rotation));
+    const auto motion_q = math::Quaternion::FromEuler(euler * mask);
+    _motion_rotation->keyframes.push_back(
+        {ozz::animation::offline::RawTrackInterpolation::kLinear,
+         joint_key.time / _input.duration, motion_q});
   }
 
   // Extract root motion rotation from the animation, aka bake it.
@@ -193,9 +192,9 @@ bool MotionExtractor::operator()(const RawAnimation& _input,
 
   // Validate outputs
   bool success = true;
-  if (_motion_position) success &= _motion_position->Validate();
-  if (_motion_rotation) success &= _motion_rotation->Validate();
-  if (_output) success &= _output->Validate();
+  success &= _motion_position->Validate();
+  success &= _motion_rotation->Validate();
+  success &= _output->Validate();
 
   return success;
 }

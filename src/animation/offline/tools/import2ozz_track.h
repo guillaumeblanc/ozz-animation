@@ -29,6 +29,7 @@
 #define OZZ_ANIMATION_OFFLINE_TOOLS_IMPORT2OZZ_TRACK_H_
 
 #include "animation/offline/tools/import2ozz_config.h"
+#include "ozz/animation/offline/motion_extractor.h"
 #include "ozz/animation/offline/tools/export.h"
 #include "ozz/animation/offline/tools/import2ozz.h"
 #include "ozz/base/endianness.h"
@@ -44,15 +45,31 @@ class Skeleton;
 namespace offline {
 
 class OzzImporter;
-OZZ_ANIMTOOLS_DLL bool ProcessTracks(OzzImporter& _importer,
-                                     const char* _animation_name,
-                                     const Skeleton& _skeleton,
-                                     const Json::Value& _config,
-                                     const ozz::Endianness _endianness);
+
+OZZ_ANIMTOOLS_DLL bool ProcessImportTrack(OzzImporter& _importer,
+                                          const char* _clip_name,
+                                          const Skeleton& _skeleton,
+                                          const Json::Value& _config,
+                                          const ozz::Endianness _endianness);
+
+OZZ_ANIMTOOLS_DLL bool ProcessMotionTrack(OzzImporter& _importer,
+                                          const char* _clip_name,
+                                          const RawAnimation& _animation,
+                                          const Skeleton& _skeleton,
+                                          const Json::Value& _config,
+                                          const ozz::Endianness _endianness,
+                                          RawAnimation* _baked_animation);
 
 // Property type enum to config string conversions.
 struct OZZ_ANIMTOOLS_DLL PropertyTypeConfig
     : JsonEnum<PropertyTypeConfig, OzzImporter::NodeProperty::Type> {
+  static EnumNames GetNames();
+};
+
+// Root motion reference enum to config string conversions.
+struct OZZ_ANIMTOOLS_DLL RootMotionReferenceConfig
+    : JsonEnum<RootMotionReferenceConfig,
+               ozz::animation::offline::MotionExtractor::Reference> {
   static EnumNames GetNames();
 };
 }  // namespace offline
