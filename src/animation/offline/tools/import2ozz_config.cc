@@ -314,8 +314,9 @@ bool SanitizeTrackImport(Json::Value& _root, bool _all_options) {
   return SanitizeTrackBuildSettings(_root, _all_options);
 }
 
-bool SanitizeTrackMotionComponent(Json::Value& _root, bool) {
-  MakeDefault(_root, "components", "xyz",
+bool SanitizeTrackMotionComponent(Json::Value& _root,
+                                  const char* default_components, bool) {
+  MakeDefault(_root, "components", default_components,
               "Components to import, can be any composition of x, y and z.");
   if (_root["components"].asString().find_first_not_of("xyz") !=
       std::string::npos) {
@@ -327,14 +328,14 @@ bool SanitizeTrackMotionComponent(Json::Value& _root, bool) {
   }
 
   MakeDefault(
-      _root, "reference", "first_frame",
+      _root, "reference", "animation",
       "Root motion extraction reference pose, can be identity, skeleton or "
-      "first_frame.");
+      "animation.");
   const char* reference_name = _root["reference"].asCString();
   if (!RootMotionReferenceConfig::IsValidEnumName(reference_name)) {
     ozz::log::Err() << "Invalid value \"" << reference_name
                     << "\" for root motion reference. Can be identity, "
-                       "skeleton or first_frame."
+                       "skeleton or animation."
                     << std::endl;
     return false;
   }
@@ -362,12 +363,12 @@ bool SanitizeTrackMotion(Json::Value& _root, bool _all_options) {
               "to select joint 0 (aka the first root).");
 
   MakeDefaultObject(_root, "position", "Root motion position settings.");
-  if (!SanitizeTrackMotionComponent(_root["position"], _all_options)) {
+  if (!SanitizeTrackMotionComponent(_root["position"], "xz", _all_options)) {
     return false;
   }
 
   MakeDefaultObject(_root, "rotation", "Root motion rotation settings.");
-  if (!SanitizeTrackMotionComponent(_root["rotation"], _all_options)) {
+  if (!SanitizeTrackMotionComponent(_root["rotation"], "y", _all_options)) {
     return false;
   }
 

@@ -53,7 +53,7 @@ ozz::math::Transform BuildReference(
     case MotionExtractor::Reference::kSkeleton: {
       ref.translation = _skeleton_ref.translation;
     } break;
-    case MotionExtractor::Reference::kFirstFrame: {
+    case MotionExtractor::Reference::kAnimation: {
       if (!_track.translations.empty()) {
         ref.translation = _track.translations[0].value;
       }
@@ -67,7 +67,7 @@ ozz::math::Transform BuildReference(
     case MotionExtractor::Reference::kSkeleton: {
       ref.rotation = _skeleton_ref.rotation;
     } break;
-    case MotionExtractor::Reference::kFirstFrame: {
+    case MotionExtractor::Reference::kAnimation: {
       if (!_track.rotations.empty()) {
         ref.rotation = _track.rotations[0].value;
       }

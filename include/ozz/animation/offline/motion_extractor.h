@@ -52,9 +52,9 @@ class OZZ_ANIMOFFLINE_DLL MotionExtractor {
 
   // Defines the reference transform to use while extracting root motion.
   enum class Reference {
-    kIdentity,    // Identity / global reference
-    kSkeleton,    // Use skeleton rest pose root bone transform
-    kFirstFrame,  // Uses root transform of the animation's first frame
+    kIdentity,   // Identity / global reference
+    kSkeleton,   // Use skeleton rest pose root bone transform
+    kAnimation,  // Uses root transform of the animation's first frame
   };
 
   struct Settings {
@@ -63,11 +63,11 @@ class OZZ_ANIMOFFLINE_DLL MotionExtractor {
     bool bake;            // Bake extracted data to output animation
   };
 
-  Settings position_settings = {true, false, true,       // X and Z projection
-                                Reference::kFirstFrame,  // Reference
+  Settings position_settings = {true, false, true,      // X and Z projection
+                                Reference::kAnimation,  // Reference
                                 true};               // Bake extracted position
   Settings rotation_settings = {false, true, false,  // Y / Yaw only
-                                Reference::kFirstFrame,  // Reference
+                                Reference::kAnimation,  // Reference
                                 true};  // Bake extracted rotation
 };
 }  // namespace offline
