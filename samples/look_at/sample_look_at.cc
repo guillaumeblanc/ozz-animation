@@ -75,21 +75,6 @@ static_assert(OZZ_ARRAY_SIZE(kJointUpVectors) == kMaxChainLength,
               "Array size mismatch.");
 
 class LookAtSampleApplication : public ozz::sample::Application {
- public:
-  LookAtSampleApplication()
-      : target_offset_(.2f, 1.5f, -.3f),
-        target_extent_(1.f),
-        eyes_offset_(.07f, .1f, 0.f),
-        enable_ik_(true),
-        chain_length_(kMaxChainLength),
-        joint_weight_(.5f),
-        chain_weight_(1.f),
-        show_skin_(true),
-        show_joints_(false),
-        show_target_(true),
-        show_eyes_offset_(false),
-        show_forward_(false) {}
-
  protected:
   // Updates current animation time and skeleton pose.
   virtual bool OnUpdate(float _dt, float _time) {
@@ -492,35 +477,35 @@ class LookAtSampleApplication : public ozz::sample::Application {
   // Sample settings
 
   // Target position management.
-  ozz::math::Float3 target_offset_;
-  float target_extent_;
+  ozz::math::Float3 target_offset_ = {.2f, 1.5f, -.3f};
+  float target_extent_ = 1.f;
   ozz::math::Float3 target_;
 
   // Offset of the look at position in (head) joint local-space.
-  ozz::math::Float3 eyes_offset_;
+  ozz::math::Float3 eyes_offset_ = {.07f, .1f, 0.f};
 
   // IK settings
 
   // Enable IK look at.
-  bool enable_ik_;
+  bool enable_ik_ = true;
 
   // Set length of the chain that is IKed, between 0 and kMaxChainLength.
-  int chain_length_;
+  int chain_length_ = kMaxChainLength;
 
   // Weight given to every joint of the chain. If any joint has a weight of 1,
   // no other following joint will contribute (as the target will be reached).
-  float joint_weight_;
+  float joint_weight_ = .5f;
 
   // Overall weight given to the IK on the full chain. This allows blending in
   // and out of IK.
-  float chain_weight_;
+  float chain_weight_ = 1.f;
 
   // Options
-  bool show_skin_;
-  bool show_joints_;
-  bool show_target_;
-  bool show_eyes_offset_;
-  bool show_forward_;
+  bool show_skin_ = true;
+  bool show_joints_ = false;
+  bool show_target_ = true;
+  bool show_eyes_offset_ = false;
+  bool show_forward_ = false;
 };
 
 int main(int _argc, const char** _argv) {

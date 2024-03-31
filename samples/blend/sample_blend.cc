@@ -62,12 +62,6 @@ OZZ_OPTIONS_DECLARE_STRING(animation3,
                            "media/animation3.ozz", false)
 
 class BlendSampleApplication : public ozz::sample::Application {
- public:
-  BlendSampleApplication()
-      : blend_ratio_(.3f),
-        manual_(false),
-        threshold_(ozz::animation::BlendingJob().threshold) {}
-
  protected:
   // Updates current animation time and skeleton pose.
   virtual bool OnUpdate(float _dt, float) {
@@ -291,10 +285,10 @@ class BlendSampleApplication : public ozz::sample::Application {
   // Global blend ratio in range [0,1] that controls all blend parameters and
   // synchronizes playback speeds. A value of 0 gives full weight to the first
   // animation, and 1 to the last.
-  float blend_ratio_;
+  float blend_ratio_ = .3f;
 
   // Switch to manual control of animations and blending parameters.
-  bool manual_;
+  bool manual_ = false;
 
   // The number of layers to blend.
   enum {
@@ -325,7 +319,7 @@ class BlendSampleApplication : public ozz::sample::Application {
   } samplers_[kNumLayers];  // kNumLayers animations to blend.
 
   // Blending job rest pose threshold.
-  float threshold_;
+  float threshold_ = ozz::animation::BlendingJob().threshold;
 
   // Buffer of local transforms which stores the blending result.
   ozz::vector<ozz::math::SoaTransform> blended_locals_;

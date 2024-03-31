@@ -97,25 +97,6 @@ static const ozz::math::Float3 kCharacterRayHeightOffset(0.f, 10.f, 0.f);
 static const ozz::math::Float3 kFootRayHeightOffset(0.f, .5f, 0.f);
 
 class FootIKSampleApplication : public ozz::sample::Application {
- public:
-  FootIKSampleApplication()
-      : pelvis_offset_(0.f, 0.f, 0.f),
-        root_translation_(2.17f, 2.f, -2.06f),
-        root_yaw_(-2.f),
-        foot_heigh_(.12f),
-        weight_(1.f),
-        soften_(1.f),
-        auto_character_height_(true),
-        pelvis_correction_(true),
-        two_bone_ik_(true),
-        aim_ik_(true),
-        show_skin_(true),
-        show_joints_(false),
-        show_raycast_(false),
-        show_ankle_target_(false),
-        show_root_(false),
-        show_offsetted_root_(false) {}
-
  protected:
   // Updates current animation time and foot ik.
   virtual bool OnUpdate(float _dt, float) {
@@ -767,32 +748,32 @@ class FootIKSampleApplication : public ozz::sample::Application {
 
   LegRayInfo capsule;
 
-  ozz::math::Float3 pelvis_offset_;
+  ozz::math::Float3 pelvis_offset_ = {0.f, 0.f, 0.f};
 
   // The floor meshes used by the sample (collision and rendering).
   ozz::vector<ozz::sample::Mesh> floors_;
 
   // Root transformation.
-  ozz::math::Float3 root_translation_;
-  float root_yaw_;
+  ozz::math::Float3 root_translation_ = {2.17f, 2.f, -2.06f};
+  float root_yaw_ = -2.f;
 
   // Foot height setting
-  float foot_heigh_;
+  float foot_heigh_ = .12f;
 
-  float weight_;
-  float soften_;
+  float weight_ = 1.f;
+  float soften_ = 1.f;
 
-  bool auto_character_height_;
-  bool pelvis_correction_;
-  bool two_bone_ik_;
-  bool aim_ik_;
+  bool auto_character_height_ = true;
+  bool pelvis_correction_ = true;
+  bool two_bone_ik_ = true;
+  bool aim_ik_ = true;
 
-  bool show_skin_;
-  bool show_joints_;
-  bool show_raycast_;
-  bool show_ankle_target_;
-  bool show_root_;
-  bool show_offsetted_root_;
+  bool show_skin_ = true;
+  bool show_joints_ = false;
+  bool show_raycast_ = false;
+  bool show_ankle_target_ = false;
+  bool show_root_ = false;
+  bool show_offsetted_root_ = false;
 };
 
 int main(int _argc, const char** _argv) {

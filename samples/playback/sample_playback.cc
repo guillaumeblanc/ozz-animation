@@ -50,9 +50,6 @@ OZZ_OPTIONS_DECLARE_STRING(animation,
                            "media/animation.ozz", false)
 
 class PlaybackSampleApplication : public ozz::sample::Application {
- public:
-  PlaybackSampleApplication() {}
-
  protected:
   // Updates current animation time and skeleton pose.
   virtual bool OnUpdate(float _dt, float) {

@@ -86,12 +86,7 @@ bool HasThreadingSupport() {
 
 class MultithreadSampleApplication : public ozz::sample::Application {
  public:
-  MultithreadSampleApplication()
-      : characters_(kMaxCharacters),
-        num_characters_(kMaxCharacters / 4),
-        has_threading_support_(HasThreadingSupport()),
-        enable_theading_(has_threading_support_),
-        grain_size_(128) {
+  MultithreadSampleApplication() : characters_(kMaxCharacters) {
     if (has_threading_support_) {
       ozz::log::Out() << "Platform has threading support." << std::endl;
     } else {
@@ -287,7 +282,8 @@ class MultithreadSampleApplication : public ozz::sample::Application {
       ozz::sample::ImGui::OpenClose oc(_im_gui, "Sample control", &oc_open);
       if (oc_open) {
         char label[64];
-        std::snprintf(label, sizeof(label), "Number of entities: %d", num_characters_);
+        std::snprintf(label, sizeof(label), "Number of entities: %d",
+                      num_characters_);
         _im_gui->DoSlider(label, 1, kMaxCharacters, &num_characters_, .7f);
         const int num_joints = num_characters_ * skeleton_.num_joints();
         std::snprintf(label, sizeof(label), "Number of joints: %d", num_joints);
@@ -307,8 +303,8 @@ class MultithreadSampleApplication : public ozz::sample::Application {
           _im_gui->DoSlider(label, kMinGrainSize, kMaxCharacters, &grain_size_,
                             .2f);
           const int num_threads = monitor_.ThreadCount();
-          std::snprintf(label, sizeof(label), "Thread/task count: %d/%d", num_threads,
-                       monitor_.TaskCount());
+          std::snprintf(label, sizeof(label), "Thread/task count: %d/%d",
+                        num_threads, monitor_.TaskCount());
           _im_gui->DoLabel(label);
         }
       }
@@ -356,16 +352,16 @@ class MultithreadSampleApplication : public ozz::sample::Application {
   ozz::vector<Character> characters_;
 
   // Number of used characters.
-  int num_characters_;
+  int num_characters_ = kMaxCharacters / 4;
 
   // Does the current plateform actually has threading support.
-  bool has_threading_support_;
+  bool has_threading_support_ = HasThreadingSupport();
 
   // Enable or disable threading.
-  bool enable_theading_;
+  bool enable_theading_ = has_threading_support_;
 
   // Define the number of characters that a task can handle.
-  int grain_size_;
+  int grain_size_ = 128;
 
   // Data used to monitor and analyze threading.
   ParallelMonitor monitor_;

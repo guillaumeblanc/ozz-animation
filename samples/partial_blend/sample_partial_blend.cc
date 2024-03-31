@@ -62,11 +62,6 @@ OZZ_OPTIONS_DECLARE_STRING(
     "media/animation_partial.ozz", false)
 
 class PartialBlendSampleApplication : public ozz::sample::Application {
- public:
-  PartialBlendSampleApplication()
-      : upper_body_root_(0),
-        threshold_(ozz::animation::BlendingJob().threshold) {}
-
  protected:
   // Updates current animation time and skeleton pose.
   virtual bool OnUpdate(float _dt, float) {
@@ -380,10 +375,10 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
   } samplers_[kNumLayers];  // kNumLayers animations to blend.
 
   // Index of the joint at the base of the upper body hierarchy.
-  int upper_body_root_;
+  int upper_body_root_ = 0;
 
   // Blending job rest pose threshold.
-  float threshold_;
+  float threshold_ = ozz::animation::BlendingJob().threshold;
 
   // Buffer of local transforms which stores the blending result.
   ozz::vector<ozz::math::SoaTransform> blended_locals_;

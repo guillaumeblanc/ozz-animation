@@ -65,12 +65,6 @@ OZZ_OPTIONS_DECLARE_STRING(
     "media/animation_curl_additive.ozz", false)
 
 class AdditiveBlendSampleApplication : public ozz::sample::Application {
- public:
-  AdditiveBlendSampleApplication()
-      : base_weight_(0.f),
-        additive_weigths_{.3f, .9f},
-        auto_animate_weights_(true) {}
-
  protected:
   // Updates current animation time and skeleton pose.
   virtual bool OnUpdate(float _dt, float) {
@@ -324,14 +318,14 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
   ozz::vector<ozz::math::SoaTransform> locals_;
 
   // Blending weight of the base animation layer.
-  float base_weight_;
+  float base_weight_ = 0.f;
 
   // Poses of local transforms as sampled from curl and splay animations.
   // They are sampled during initialization, as a single pose is used.
   ozz::vector<ozz::math::SoaTransform> additive_locals_[kNumLayers];
 
   // Blending weight of the additive animation layer.
-  float additive_weigths_[kNumLayers];
+  float additive_weigths_[kNumLayers] = {.3f, .9f};
 
   // Buffer of local transforms which stores the blending result.
   ozz::vector<ozz::math::SoaTransform> blended_locals_;
@@ -341,7 +335,7 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
   ozz::vector<ozz::math::Float4x4> models_;
 
   // Automatically animates additive weights.
-  bool auto_animate_weights_;
+  bool auto_animate_weights_ = true;
 };
 
 int main(int _argc, const char** _argv) {

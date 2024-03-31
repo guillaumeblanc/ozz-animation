@@ -51,9 +51,6 @@ OZZ_OPTIONS_DECLARE_STRING(animation,
                            "media/animation.ozz", false)
 
 class BakedSampleApplication : public ozz::sample::Application {
- public:
-  BakedSampleApplication() : camera_index_(-1) {}
-
  protected:
   // Updates current animation time and skeleton pose.
   virtual bool OnUpdate(float _dt, float) {
@@ -174,7 +171,7 @@ class BakedSampleApplication : public ozz::sample::Application {
   ozz::vector<ozz::math::Float4x4> models_;
 
   // Camera joint index. -1 if not found.
-  int camera_index_;
+  int camera_index_ = -1;
 };
 
 int main(int _argc, const char** _argv) {

@@ -66,12 +66,7 @@ OZZ_OPTIONS_DECLARE_STRING(track, "Path to the track (ozz archive format).",
 
 class UserChannelSampleApplication : public ozz::sample::Application {
  public:
-  UserChannelSampleApplication()
-      : method_(kTriggering),  // Triggering is the most robust method.
-        attached_(false),
-        attach_joint_(0) {
-    ResetState();
-  }
+  UserChannelSampleApplication() { ResetState(); }
 
  protected:
   // Resets everything to it's initial state.
@@ -357,14 +352,14 @@ class UserChannelSampleApplication : public ozz::sample::Application {
   enum Method {
     kSampling,   // Will use TrackSamplingJob
     kTriggering  // Will use TrackTriggeringJob
-  } method_;
+  } method_ = kTriggering;
 
   // Stores whether the box is currently attached. This flag is computed
   // during update. This is only used for debug display purpose.
-  bool attached_;
+  bool attached_ = false;
 
   // Index of the joint where the box must be attached.
-  int attach_joint_;
+  int attach_joint_ = 0;
 
   // Box current transformation.
   ozz::math::Float4x4 box_world_transform_;

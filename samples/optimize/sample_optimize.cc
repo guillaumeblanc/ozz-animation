@@ -60,15 +60,7 @@ OZZ_OPTIONS_DECLARE_STRING(animation, "Path to the raw animation file.",
 class OptimizeSampleApplication : public ozz::sample::Application {
  public:
   OptimizeSampleApplication()
-      : selected_display_(eRuntimeAnimation),
-        optimize_(true),
-        joint_setting_enable_(true),
-        joint_(0),
-        enable_iframes_(true),
-        iframe_interval_(10.f),
-        error_record_med_(64),
-        error_record_max_(64),
-        joint_error_record_(64) {}
+      : error_record_med_(64), error_record_max_(64), joint_error_record_(64) {}
 
  protected:
   // Updates current animation time and skeleton pose.
@@ -495,10 +487,10 @@ class OptimizeSampleApplication : public ozz::sample::Application {
     eRawAnimation,
     eAbsoluteError,
   };
-  int selected_display_;
+  int selected_display_ = eRuntimeAnimation;
 
   // Select whether optimization should be performed.
-  bool optimize_;
+  bool optimize_ = true;
 
   // Imported non-optimized animation.
   ozz::animation::offline::RawAnimation raw_animation_;
@@ -510,13 +502,13 @@ class OptimizeSampleApplication : public ozz::sample::Application {
   ozz::animation::offline::AnimationOptimizer::Setting setting_;
 
   // Optimizer joint specific settings.
-  bool joint_setting_enable_;
-  int joint_;
+  bool joint_setting_enable_ = true;
+  int joint_ = 0;
   ozz::animation::offline::AnimationOptimizer::Setting joint_setting_;
 
   // Builder iframe interval
-  bool enable_iframes_;
-  float iframe_interval_;
+  bool enable_iframes_ = true;
+  float iframe_interval_ = 10.f;
 
   // Playback animation controller. This is a utility class that helps with
   // controlling animation playback time.

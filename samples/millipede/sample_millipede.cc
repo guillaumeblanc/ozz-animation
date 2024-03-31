@@ -112,9 +112,6 @@ const RawAnimation::TranslationKey kPrecomputedKeys[] = {
 const int kPrecomputedKeyCount = OZZ_ARRAY_SIZE(kPrecomputedKeys);
 
 class MillipedeSampleApplication : public ozz::sample::Application {
- public:
-  MillipedeSampleApplication() : slice_count_(26) {}
-
  protected:
   virtual bool OnUpdate(float _dt, float) {
     // Updates current animation time
@@ -413,7 +410,7 @@ class MillipedeSampleApplication : public ozz::sample::Application {
   ozz::sample::PlaybackController controller_;
 
   // Millipede skeleton number of slices. 7 joints per slice.
-  int slice_count_;
+  int slice_count_ = 26;
 
   // The millipede skeleton.
   ozz::unique_ptr<ozz::animation::Skeleton> skeleton_;

@@ -52,9 +52,6 @@ OZZ_OPTIONS_DECLARE_STRING(animation,
                            "media/animation.ozz", false)
 
 class AttachSampleApplication : public ozz::sample::Application {
- public:
-  AttachSampleApplication() : attachment_(0), offset_(-.02f, .03f, .05f) {}
-
  protected:
   // Updates current animation time and skeleton pose.
   virtual bool OnUpdate(float _dt, float) {
@@ -204,10 +201,10 @@ class AttachSampleApplication : public ozz::sample::Application {
   ozz::vector<ozz::math::Float4x4> models_;
 
   // Joint where the object is attached.
-  int attachment_;
+  int attachment_ = 0;
 
   // Offset, translation of the attached object from the joint.
-  ozz::math::Float3 offset_;
+  ozz::math::Float3 offset_ = {-.02f, .03f, .05f};
 };
 
 int main(int _argc, const char** _argv) {

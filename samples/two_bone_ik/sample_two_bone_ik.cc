@@ -48,28 +48,6 @@ OZZ_OPTIONS_DECLARE_STRING(skeleton,
                            "media/skeleton.ozz", false)
 
 class TwoBoneIKSampleApplication : public ozz::sample::Application {
- public:
-  TwoBoneIKSampleApplication()
-      : start_joint_(-1),
-        mid_joint_(-1),
-        end_joint_(-1),
-        pole_vector(0.f, 1.f, 0.f),
-        weight_(1.f),
-        soften_(.97f),
-        twist_angle_(0.f),
-        reached_(false),
-        fix_initial_transform_(true),
-        two_bone_ik_(true),
-        show_target_(true),
-        show_joints_(false),
-        show_pole_vector_(false),
-        root_translation_(0.f, 0.f, 0.f),
-        root_euler_(0.f, 0.f, 0.f),
-        root_scale_(1.f),
-        target_extent_(.5f),
-        target_offset_(0.f, .2f, .1f),
-        target_(0.f, 0.f, 0.f) {}
-
  protected:
   bool ApplyTwoBoneIK() {
     // Target and pole should be in model-space, so they must be converted from
@@ -396,37 +374,37 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
   ozz::vector<ozz::math::Float4x4> models_;
 
   // Two bone IK setup. Indices of the relevant joints in the chain.
-  int start_joint_;
-  int mid_joint_;
-  int end_joint_;
+  int start_joint_ = -1;
+  int mid_joint_ = -1;
+  int end_joint_ = -1;
 
   // Two bone IK parameters.
-  ozz::math::Float3 pole_vector;
-  float weight_;
-  float soften_;
-  float twist_angle_;
+  ozz::math::Float3 pole_vector = {0.f, 1.f, 0.f};
+  float weight_ = 1.f;
+  float soften_ = .97f;
+  float twist_angle_ = 0.f;
 
   // Two bone IK job "reched" output value.
-  bool reached_;
+  bool reached_ = false;
 
   // Sample options
-  bool fix_initial_transform_;
-  bool two_bone_ik_;
+  bool fix_initial_transform_ = true;
+  bool two_bone_ik_ = true;
 
   // Sample display options
-  bool show_target_;
-  bool show_joints_;
-  bool show_pole_vector_;
+  bool show_target_ = true;
+  bool show_joints_ = false;
+  bool show_pole_vector_ = false;
 
   // Root transformation.
-  ozz::math::Float3 root_translation_;
-  ozz::math::Float3 root_euler_;
-  float root_scale_;
+  ozz::math::Float3 root_translation_ = {0.f, 0.f, 0.f};
+  ozz::math::Float3 root_euler_ = {0.f, 0.f, 0.f};
+  float root_scale_ = 1.f;
 
   // Target positioning and animation.
-  float target_extent_;
-  ozz::math::Float3 target_offset_;
-  ozz::math::Float3 target_;
+  float target_extent_ = .5f;
+  ozz::math::Float3 target_offset_ = {0.f, .2f, .1f};
+  ozz::math::Float3 target_ = {0.f, 0.f, 0.f};
 };
 
 int main(int _argc, const char** _argv) {
