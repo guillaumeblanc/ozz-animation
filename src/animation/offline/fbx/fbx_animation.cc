@@ -158,13 +158,10 @@ bool ExtractAnimation(FbxSceneLoader& _scene_loader, const SamplingInfo& _info,
 
       const math::Transform& rest_pose =
           ozz::animation::GetJointLocalRestPose(_skeleton, i);
-      const math::SimdFloat4 t =
-          math::simd_float4::Load3PtrU(&rest_pose.translation.x);
-      const math::SimdFloat4 q =
-          math::simd_float4::LoadPtrU(&rest_pose.rotation.x);
-      const math::SimdFloat4 s =
-          math::simd_float4::Load3PtrU(&rest_pose.scale.x);
-      const math::Float4x4 local_matrix = math::Float4x4::FromAffine(t, q, s);
+      const math::Float4x4 local_matrix = math::Float4x4::FromAffine(
+          ozz::math::simd_float4::Load3PtrU(&rest_pose.translation.x),
+          ozz::math::simd_float4::LoadPtrU(&rest_pose.rotation.x),
+          ozz::math::simd_float4::Load3PtrU(&rest_pose.scale.x));
 
       ozz::vector<math::Float4x4>& node_matrices = world_matrices[i];
       const int16_t parent = _skeleton.joint_parents()[i];
