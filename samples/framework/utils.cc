@@ -385,6 +385,44 @@ bool LoadRawAnimation(const char* _filename,
   return true;
 }
 
+bool LoadMotionTrack(const char* _filename,
+                     ozz::animation::Float3Track* _postition_track,
+                     ozz::animation::QuaternionTrack* _rotation_track) {
+  assert(_filename && _postition_track && _rotation_track);
+  ozz::log::Out() << "Loading motion tracks archive: " << _filename << "."
+                  << std::endl;
+  ozz::io::File file(_filename, "rb");
+  if (!file.opened()) {
+    ozz::log::Err() << "Failed to open motion tracks file " << _filename << "."
+                    << std::endl;
+    return false;
+  }
+  ozz::io::IArchive archive(&file);
+
+  // Once the tag is validated, reading cannot fail.
+  {
+    ProfileFctLog profile{"Motion tracks loading time"};
+
+    if (!archive.TestTag<ozz::animation::Float3Track>()) {
+      ozz::log::Err()
+          << "Failed to load position motion track instance from file "
+          << _filename << "." << std::endl;
+      return false;
+    }
+    archive >> *_postition_track;
+
+    if (!archive.TestTag<ozz::animation::QuaternionTrack>()) {
+      ozz::log::Err()
+          << "Failed to load rotation motion track instance from file "
+          << _filename << "." << std::endl;
+      return false;
+    }
+    archive >> *_rotation_track;
+  }
+
+  return true;
+}
+
 namespace {
 template <typename _Track>
 bool LoadTrackImpl(const char* _filename, _Track* _track) {
