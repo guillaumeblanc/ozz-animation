@@ -402,9 +402,17 @@ TEST(ManyKeys, SamplingJob) {
     raw_animation.tracks[0].translations.push_back(key2);
   }
 
-  // Track 1 has no key
+  // Track 1 has lots of keys
+  {
+    for (size_t i = 0; i < kMaxKey; ++i) {
+      const RawAnimation::TranslationKey key = {i * 1.f / kMaxKey,
+                                                ozz::math::Float3(0, 0, 0)};
+      raw_animation.tracks[1].translations.push_back(key);
+    }
+  }
 
-  // Track 2 has lots of keys
+  // Track 2 has lots of keys (same timepoints as track 1 as number of
+  // trackpoints is limited)
   {
     for (size_t i = 0; i < kMaxKey; ++i) {
       const RawAnimation::TranslationKey key = {
