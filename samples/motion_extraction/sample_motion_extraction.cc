@@ -246,18 +246,16 @@ class MotionSampleApplication : public ozz::sample::Application {
     }
 
     // Setup default extraction for the sample.
-    motion_extractor_.position_settings.x = true;
-    motion_extractor_.position_settings.y = true;
-    motion_extractor_.position_settings.z = true;
-    motion_extractor_.position_settings.bake = true;
-    motion_extractor_.position_settings.reference =
-        ozz::animation::offline::MotionExtractor::Reference::kIdentity;
-    motion_extractor_.rotation_settings.x = false;
-    motion_extractor_.rotation_settings.y = true;
-    motion_extractor_.rotation_settings.z = false;
-    motion_extractor_.rotation_settings.bake = true;
-    motion_extractor_.rotation_settings.reference =
-        ozz::animation::offline::MotionExtractor::Reference::kIdentity;
+    motion_extractor_.position_settings = {
+        true, true, true,  // Components
+        ozz::animation::offline::MotionExtractor::Reference::kIdentity,
+        true  // Bake
+    };
+    motion_extractor_.rotation_settings = {
+        false, true, false,  // Components
+        ozz::animation::offline::MotionExtractor::Reference::kIdentity,
+        true  // Bake
+    };
 
     if (!ExtractMotion()) {
       return false;
