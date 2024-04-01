@@ -160,6 +160,9 @@ class MotionPlaybackSampleApplication : public ozz::sample::Application {
     // Updates current animation time.
     int loops = controller_.Update(animation_, _dt);
 
+    // Updates motion.
+    //-------------------------------------------------------------------------
+
     // Updates motion accumulator.
     if (!motion_accumulator_.Update(motion_track_, controller_.time_ratio(),
                                     loops)) {
@@ -168,10 +171,21 @@ class MotionPlaybackSampleApplication : public ozz::sample::Application {
 
     // Updates the character transform matrix.
     const auto& transform = motion_accumulator_.current;
-    transform_ = ozz::math::Float4x4::FromAffine(
-        ozz::math::simd_float4::Load3PtrU(&transform.translation.x),
-        ozz::math::simd_float4::LoadPtrU(&transform.rotation.x),
-        ozz::math::simd_float4::Load3PtrU(&transform.scale.x));
+    transform_ = ozz::math::Float4x4::identity();
+    if (apply_motion_position_) {
+      transform_ =
+          transform_ *
+          ozz::math::Float4x4::Translation(
+              ozz::math::simd_float4::Load3PtrU(&transform.translation.x));
+    }
+    if (apply_motion_rotation_) {
+      transform_ = transform_ *
+                   ozz::math::Float4x4::FromQuaternion(
+                       ozz::math::simd_float4::LoadPtrU(&transform.rotation.x));
+    }
+
+    // Updates animation.
+    //-------------------------------------------------------------------------
 
     // Samples optimized animation at t = animation_time_.
     ozz::animation::SamplingJob sampling_job;
@@ -195,7 +209,6 @@ class MotionPlaybackSampleApplication : public ozz::sample::Application {
     return true;
   }
 
-  // Samples animation, transforms to model space and renders.
   virtual bool OnDisplay(ozz::sample::Renderer* _renderer) {
     bool success = true;
     success &=
@@ -258,11 +271,15 @@ class MotionPlaybackSampleApplication : public ozz::sample::Application {
 
     {
       static bool open = true;
-      ozz::sample::ImGui::OpenClose oc(_im_gui, "Sample controls", &open);
-      _im_gui->DoCheckBox("Show box", &show_box_);
+      ozz::sample::ImGui::OpenClose oc(_im_gui, "Motion control", &open);
+      if (open) {
+        _im_gui->DoCheckBox("Use motion position", &apply_motion_position_);
+        _im_gui->DoCheckBox("Use motion rotation", &apply_motion_rotation_);
+        _im_gui->DoCheckBox("Show box", &show_box_);
 
-      if (_im_gui->DoButton("Reset accumulator")) {
-        motion_accumulator_.Teleport(ozz::math::Transform::identity());
+        if (_im_gui->DoButton("Reset accumulator")) {
+          motion_accumulator_.Teleport(ozz::math::Transform::identity());
+        }
       }
     }
     return true;
@@ -303,6 +320,10 @@ class MotionPlaybackSampleApplication : public ozz::sample::Application {
 
   // Show box at root transform
   bool show_box_ = true;
+
+  // GUI options to apply root motion.
+  bool apply_motion_position_ = true;
+  bool apply_motion_rotation_ = true;
 };
 
 int main(int _argc, const char** _argv) {
