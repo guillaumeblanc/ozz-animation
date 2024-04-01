@@ -222,7 +222,6 @@ class OptimizeSampleApplication : public ozz::sample::Application {
     }
   }
 
-  // Samples animation, transforms to model space and renders.
   virtual bool OnDisplay(ozz::sample::Renderer* _renderer) {
     bool success = true;
 

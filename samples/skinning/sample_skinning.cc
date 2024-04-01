@@ -87,7 +87,6 @@ class SkinningSampleApplication : public ozz::sample::Application {
     return true;
   }
 
-  // Samples animation, transforms to model space and renders.
   virtual bool OnDisplay(ozz::sample::Renderer* _renderer) {
     bool success = true;
     const ozz::math::Float4x4 transform = ozz::math::Float4x4::identity();

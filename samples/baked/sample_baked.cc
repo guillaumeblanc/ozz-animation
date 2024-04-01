@@ -112,7 +112,6 @@ class BakedSampleApplication : public ozz::sample::Application {
 
   virtual void OnDestroy() {}
 
-  // Samples animation, transforms to model space and renders.
   virtual bool OnDisplay(ozz::sample::Renderer* _renderer) {
     // Render a 1m size boxes for every joint. The scale of each box come from
     // the animation.
