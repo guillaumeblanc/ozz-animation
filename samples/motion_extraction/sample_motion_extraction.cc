@@ -70,6 +70,9 @@ class MotionSampleApplication : public ozz::sample::Application {
     // Updates current animation time.
     controller_.Update(animation_, _dt);
 
+    // Updates motion.
+    //-------------------------------------------------------------------------
+
     // Reset character transform
     transform_ = ozz::math::Float4x4::identity();
 
@@ -105,6 +108,9 @@ class MotionSampleApplication : public ozz::sample::Application {
                            ozz::math::simd_float4::LoadPtrU(&rotation.x));
     }
 
+    // Updates animation.
+    //-------------------------------------------------------------------------
+
     // Samples optimized animation at t = animation_time_.
     ozz::animation::SamplingJob sampling_job;
     sampling_job.animation = &animation_;
@@ -127,17 +133,19 @@ class MotionSampleApplication : public ozz::sample::Application {
     return true;
   }
 
-  // Samples animation, transforms to model space and renders.
   virtual bool OnDisplay(ozz::sample::Renderer* _renderer) {
     bool success = true;
     success &=
         _renderer->DrawPosture(skeleton_, make_span(models_), transform_);
 
-    success &=
-        _renderer->DrawBoxIm(ozz::math::Box(ozz::math::Float3(-.3f, 0, -.2f),
-                                            ozz::math::Float3(.3f, 1.8f, .2f)),
-                             transform_, ozz::sample::kWhite);
+    // Draw a box at character's root.
+    const ozz::math::Float3 offset(
+        0, motion_extractor_.position_settings.y ? -1.f : 0, 0);
+    const ozz::math::Box box(ozz::math::Float3(-.25f, 0, -.25f) + offset,
+                             ozz::math::Float3(.25f, 1.8f, .25f) + offset);
+    success &= _renderer->DrawBoxIm(box, transform_, ozz::sample::kWhite);
 
+    // Draw motion tracks.
     const float at = controller_.time_ratio();
     const float step = 1.f / (animation_.duration() * 30.f);
     success &= DrawMotion(_renderer, position_track_, 0.f, at, step,
@@ -180,7 +188,7 @@ class MotionSampleApplication : public ozz::sample::Application {
       rotation_track_ = std::move(*rotation_track);
     }
 
-    {  // Track optimization and runtime building
+    {  // Optimizes and builds runtime animation
       ozz::animation::offline::RawAnimation baked_animation_opt;
       ozz::animation::offline::AnimationOptimizer optimizer;
       if (!optimizer(baked_animation, skeleton_, &baked_animation_opt)) {
@@ -236,6 +244,20 @@ class MotionSampleApplication : public ozz::sample::Application {
     if (!ozz::sample::LoadRawAnimation(OPTIONS_animation, &raw_animation_)) {
       return false;
     }
+
+    // Setup default extraction for the sample.
+    motion_extractor_.position_settings.x = true;
+    motion_extractor_.position_settings.y = true;
+    motion_extractor_.position_settings.z = true;
+    motion_extractor_.position_settings.bake = true;
+    motion_extractor_.position_settings.reference =
+        ozz::animation::offline::MotionExtractor::Reference::kIdentity;
+    motion_extractor_.rotation_settings.x = false;
+    motion_extractor_.rotation_settings.y = true;
+    motion_extractor_.rotation_settings.z = false;
+    motion_extractor_.rotation_settings.bake = true;
+    motion_extractor_.rotation_settings.reference =
+        ozz::animation::offline::MotionExtractor::Reference::kIdentity;
 
     if (!ExtractMotion()) {
       return false;
