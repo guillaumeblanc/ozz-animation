@@ -245,8 +245,7 @@ class LookAtSampleApplication : public ozz::sample::Application {
 
     // Showing target, as a box or axes depending on show_forward_ option.
     if (show_target_) {
-      const ozz::math::Float4x4 target = ozz::math::Float4x4::Translation(
-          ozz::math::simd_float4::Load3PtrU(&target_.x));
+      const auto target = ozz::math::Float4x4::Translation(target_);
       if (show_forward_) {
         success &= _renderer->DrawAxes(target * kAxesScale);
       } else {
@@ -257,9 +256,7 @@ class LookAtSampleApplication : public ozz::sample::Application {
     if (show_eyes_offset_ || show_forward_) {
       const int head = joints_chain_[0];
       const ozz::math::Float4x4 offset =
-          models_[head] *
-          ozz::math::Float4x4::Translation(
-              ozz::math::simd_float4::Load3PtrU(&eyes_offset_.x));
+          models_[head] * ozz::math::Float4x4::Translation(eyes_offset_);
       if (show_eyes_offset_) {
         success &= _renderer->DrawAxes(offset * kAxesScale);
       }

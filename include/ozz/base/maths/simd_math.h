@@ -29,6 +29,9 @@
 #define OZZ_OZZ_BASE_MATHS_SIMD_MATH_H_
 
 #include "ozz/base/maths/internal/simd_math_config.h"
+#include "ozz/base/maths/quaternion.h"
+#include "ozz/base/maths/transform.h"
+#include "ozz/base/maths/vec_float.h"
 #include "ozz/base/platform.h"
 
 namespace ozz {
@@ -131,6 +134,11 @@ OZZ_INLINE SimdFloat4 Load2PtrU(const float* _f);
 // r.z = _f[2]
 // r.w = 0
 OZZ_INLINE SimdFloat4 Load3PtrU(const float* _f);
+
+// Loads Float2, 3, 4 to SimdFloat4. The remaining components are set to 0.
+OZZ_INLINE SimdFloat4 Load(const Float2& _v) { return Load2PtrU(&_v.x); }
+OZZ_INLINE SimdFloat4 Load(const Float3& _v) { return Load3PtrU(&_v.x); }
+OZZ_INLINE SimdFloat4 Load(const Float4& _v) { return LoadPtrU(&_v.x); }
 
 // Convert from integer to float.
 OZZ_INLINE SimdFloat4 FromInt(_SimdInt4 _i);
@@ -1074,38 +1082,79 @@ struct Float4x4 {
   // _v.w is ignored.
   static OZZ_INLINE Float4x4 Translation(_SimdFloat4 _v);
 
+  // Returns a translation matrix.
+  static OZZ_INLINE Float4x4 Translation(const Float3& _v) {
+    return Translation(simd_float4::Load(_v));
+  }
+
   // Returns a scaling matrix that scales along _v.
   // _v.w is ignored.
   static OZZ_INLINE Float4x4 Scaling(_SimdFloat4 _v);
+
+  // Returns a scaling matrix that scales along _v.
+  static OZZ_INLINE Float4x4 Scaling(const Float3& _v) {
+    return Scaling(simd_float4::Load3PtrU(&_v.x));
+  }
 
   // Returns the rotation matrix built from Euler angles defined by x, y and z
   // components of _v. Euler angles are ordered Heading, Elevation and Bank, or
   // Yaw, Pitch and Roll. _v.w is ignored.
   static OZZ_INLINE Float4x4 FromEuler(_SimdFloat4 _v);
 
+  // Returns the rotation matrix built from Euler angles defined by x, y and z
+  // components of _v. Euler angles are ordered Heading, Elevation and Bank, or
+  // Yaw, Pitch and Roll.
+  static OZZ_INLINE Float4x4 FromEuler(const Float3& _v) {
+    return FromEuler(simd_float4::Load3PtrU(&_v.x));
+  }
+
   // Returns the rotation matrix built from axis defined by _axis.xyz and
   // _angle.x
   static OZZ_INLINE Float4x4 FromAxisAngle(_SimdFloat4 _axis,
                                            _SimdFloat4 _angle);
 
+  // Returns the rotation matrix built from axis defined by _axis.xyz and
+  // _angle
+  static OZZ_INLINE Float4x4 FromAxisAngle(const Float3& _axis, float _angle) {
+    return FromAxisAngle(simd_float4::Load3PtrU(&_axis.x),
+                         simd_float4::Load1(_angle));
+  }
+
   // Returns the rotation matrix built from quaternion defined by x, y, z and w
   // components of _v.
   static OZZ_INLINE Float4x4 FromQuaternion(_SimdFloat4 _v);
+
+  // Returns the rotation matrix built from quaternion _q.
+  static OZZ_INLINE Float4x4 FromQuaternion(const Quaternion& _q) {
+    return FromQuaternion(simd_float4::LoadPtrU(&_q.x));
+  }
 
   // Returns the affine transformation matrix built from split translation,
   // rotation (quaternion) and scale.
   static OZZ_INLINE Float4x4 FromAffine(_SimdFloat4 _translation,
                                         _SimdFloat4 _quaternion,
                                         _SimdFloat4 _scale);
+  static OZZ_INLINE Float4x4 FromAffine(const Float3 _translation,
+                                        const Quaternion& _quaternion,
+                                        const Float3 _scale) {
+    return FromAffine(simd_float4::Load3PtrU(&_translation.x),
+                      simd_float4::LoadPtrU(&_quaternion.x),
+                      simd_float4::Load3PtrU(&_scale.x));
+  }
+  static OZZ_INLINE Float4x4 FromAffine(const Transform& _transform) {
+    return FromAffine(simd_float4::Load3PtrU(&_transform.translation.x),
+                      simd_float4::LoadPtrU(&_transform.rotation.x),
+                      simd_float4::Load3PtrU(&_transform.scale.x));
+  }
 };
 
 // Returns the transpose of matrix _m.
 OZZ_INLINE Float4x4 Transpose(const Float4x4& _m);
 
 // Returns the inverse of matrix _m.
-// If _invertible is not nullptr, its x component will be set to true if matrix is
-// invertible. If _invertible is nullptr, then an assert is triggered in case the
-// matrix isn't invertible.
+// If _invertible is not nullptr, its x component will be set to true if matrix
+// is invertible. If _invertible is nullptr, then an assert is triggered in case
+// the matrix isn't invertible.
 OZZ_INLINE Float4x4 Invert(const Float4x4& _m, SimdInt4* _invertible = nullptr);
 
 // Translates matrix _m along the axis defined by _v components.
@@ -1147,6 +1196,27 @@ OZZ_INLINE SimdFloat4 ToQuaternion(const Float4x4& _m);
 // because more than 1 of the 3 first column of _m are scaled to 0.
 OZZ_INLINE bool ToAffine(const Float4x4& _m, SimdFloat4* _translation,
                          SimdFloat4* _quaternion, SimdFloat4* _scale);
+OZZ_INLINE bool ToAffine(const Float4x4& _m, Float3* _translation,
+                         Quaternion* _quaternion, Float3* _scale) {
+  SimdFloat4 translation, quaternion, scale;
+  if (ToAffine(_m, &translation, &quaternion, &scale)) {
+    Store3PtrU(translation, &_translation->x);
+    StorePtrU(quaternion, &_quaternion->x);
+    Store3PtrU(scale, &_scale->x);
+    return true;
+  }
+  return false;
+}
+OZZ_INLINE bool ToAffine(const Float4x4& _m, Transform* _transform) {
+  SimdFloat4 translation, quaternion, scale;
+  if (ToAffine(_m, &translation, &quaternion, &scale)) {
+    Store3PtrU(translation, &_transform->translation.x);
+    StorePtrU(quaternion, &_transform->rotation.x);
+    Store3PtrU(scale, &_transform->scale.x);
+    return true;
+  }
+  return false;
+}
 
 // Computes the transformation of a Float4x4 matrix and a point _p.
 // This is equivalent to multiplying a matrix by a SimdFloat4 with a w component

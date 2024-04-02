@@ -501,8 +501,7 @@ class FootIKSampleApplication : public ozz::sample::Application {
         const LegRayInfo& ray = rays_info_[l];
         if (ray.hit) {
           const ozz::math::Float4x4& transform =
-              ozz::math::Float4x4::Translation(
-                  ozz::math::simd_float4::Load3PtrU(&ankles_target_ws_[l].x));
+              ozz::math::Float4x4::Translation(ankles_target_ws_[l]);
           success &= _renderer->DrawAxes(transform * kAxesScale);
         }
       }
@@ -691,10 +690,8 @@ class FootIKSampleApplication : public ozz::sample::Application {
   }
 
   ozz::math::Float4x4 GetRootTransform() const {
-    return ozz::math::Float4x4::Translation(
-               ozz::math::simd_float4::Load3PtrU(&root_translation_.x)) *
-           ozz::math::Float4x4::FromEuler(
-               ozz::math::simd_float4::LoadX(root_yaw_));
+    return ozz::math::Float4x4::Translation(root_translation_) *
+           ozz::math::Float4x4::FromEuler(ozz::math::Float3(root_yaw_, 0, 0));
   }
 
   ozz::math::Float4x4 GetOffsettedRootTransform() const {
@@ -705,10 +702,8 @@ class FootIKSampleApplication : public ozz::sample::Application {
     const ozz::math::Float3 offsetted_translation =
         pelvis_offset_ + root_translation_;
 
-    return ozz::math::Float4x4::Translation(
-               ozz::math::simd_float4::Load3PtrU(&offsetted_translation.x)) *
-           ozz::math::Float4x4::FromEuler(
-               ozz::math::simd_float4::LoadX(root_yaw_));
+    return ozz::math::Float4x4::Translation(offsetted_translation) *
+           ozz::math::Float4x4::FromEuler(ozz::math::Float3(root_yaw_, 0, 0));
   }
 
  private:

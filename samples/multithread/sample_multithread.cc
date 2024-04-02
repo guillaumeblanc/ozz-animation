@@ -226,12 +226,11 @@ class MultithreadSampleApplication : public ozz::sample::Application {
   virtual bool OnDisplay(ozz::sample::Renderer* _renderer) {
     bool success = true;
     for (int c = 0; success && c < num_characters_; ++c) {
-      const ozz::math::Float4 position(
+      const ozz::math::Float3 position(
           ((c % kWidth) - kWidth / 2) * kInterval,
           ((c / kWidth) / kDepth) * kInterval,
-          (((c / kWidth) % kDepth) - kDepth / 2) * kInterval, 1.f);
-      const ozz::math::Float4x4 transform = ozz::math::Float4x4::Translation(
-          ozz::math::simd_float4::LoadPtrU(&position.x));
+          (((c / kWidth) % kDepth) - kDepth / 2) * kInterval);
+      const auto transform = ozz::math::Float4x4::Translation(position);
       success &= _renderer->DrawPosture(
           skeleton_, make_span(characters_[c].models), transform, false);
     }

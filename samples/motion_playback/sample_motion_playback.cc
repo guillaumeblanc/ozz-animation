@@ -106,6 +106,9 @@ struct MotionAccumulator {
   bool Update(const MotionTrack& _motion, float _ratio, int _loops) {
     ozz::math::Transform motion_transform;
     for (; _loops; _loops > 0 ? --_loops : ++_loops) {
+      // When animation is looping, it's important to take into account the
+      // motion done during the loop.
+
       // Samples motion at the loop end (begin or end of animation depending on
       // playback/loop direction).
       if (!SampleMotion(_motion, _loops > 0 ? 1.f : 0.f, &motion_transform)) {
@@ -121,7 +124,7 @@ struct MotionAccumulator {
       ResetOrigin(motion_transform);
     }
 
-    // Samples motion at the current ratio (from last known origin, or the
+    // Samples motion at the current ratio (from last known position, or the
     // reset one).
     if (!SampleMotion(_motion, _ratio, &motion_transform)) {
       return false;
@@ -162,23 +165,17 @@ class MotionPlaybackSampleApplication : public ozz::sample::Application {
 
     // Updates the character transform matrix.
     const auto& transform = motion_accumulator_.current;
-    transform_ = ozz::math::Float4x4::identity();
-    if (apply_motion_position_) {
-      transform_ =
-          transform_ *
-          ozz::math::Float4x4::Translation(
-              ozz::math::simd_float4::Load3PtrU(&transform.translation.x));
-    }
-    if (apply_motion_rotation_) {
-      transform_ = transform_ *
-                   ozz::math::Float4x4::FromQuaternion(
-                       ozz::math::simd_float4::LoadPtrU(&transform.rotation.x));
-    }
+    transform_ = ozz::math::Float4x4::FromAffine(
+        apply_motion_position_ ? transform.translation
+                               : ozz::math::Float3::zero(),
+        apply_motion_rotation_ ? transform.rotation
+                               : ozz::math::Quaternion::identity(),
+        transform.scale);
 
     // Updates animation.
     //-------------------------------------------------------------------------
 
-    // Samples optimized animation at t = animation_time_.
+    // Samples optimized animation.
     ozz::animation::SamplingJob sampling_job;
     sampling_job.animation = &animation_;
     sampling_job.context = &context_;

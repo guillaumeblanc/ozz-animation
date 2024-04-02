@@ -163,10 +163,7 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
       const ozz::math::Box box(ozz::math::Float3(-kBoxHalfSize),
                                ozz::math::Float3(kBoxHalfSize));
       success &= _renderer->DrawBoxIm(
-          box,
-          ozz::math::Float4x4::Translation(
-              ozz::math::simd_float4::Load3PtrU(&target_.x)),
-          colors[reached_]);
+          box, ozz::math::Float4x4::Translation(target_), colors[reached_]);
     }
 
     // Displays pole vector
@@ -356,12 +353,9 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
   }
 
   ozz::math::Float4x4 GetRootTransform() const {
-    return ozz::math::Float4x4::Translation(
-               ozz::math::simd_float4::Load3PtrU(&root_translation_.x)) *
-           ozz::math::Float4x4::FromEuler(
-               ozz::math::simd_float4::Load3PtrU(&root_euler_.x)) *
-           ozz::math::Float4x4::Scaling(
-               ozz::math::simd_float4::Load1(root_scale_));
+    return ozz::math::Float4x4::Translation(root_translation_) *
+           ozz::math::Float4x4::FromEuler(root_euler_) *
+           ozz::math::Float4x4::Scaling(ozz::math::Float3(root_scale_));
   }
 
   // Runtime skeleton.

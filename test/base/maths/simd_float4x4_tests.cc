@@ -186,6 +186,11 @@ TEST(Float4x4Translate, ozz_simd_math) {
   EXPECT_FLOAT4x4_EQ(translation, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f,
                      0.f, 1.f, 0.f, -1.f, 1.f, 2.f, 1.f);
 
+  const Float4x4 translation_vec =
+      Float4x4::Translation(ozz::math::Float3{-1.f, 1.f, 2.f});
+  EXPECT_FLOAT4x4_EQ(translation_vec, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f,
+                     0.f, 0.f, 1.f, 0.f, -1.f, 1.f, 2.f, 1.f);
+
   const Float4x4 translate_mul = m0 * translation;
   EXPECT_FLOAT4x4_EQ(translate_mul, 0.f, 1.f, 2.f, 3.f, 4.f, 5.f, 6.f, 7.f, 8.f,
                      9.f, 10.f, 11.f, 32.f, 35.f, 38.f, 41.f);
@@ -205,6 +210,11 @@ TEST(Float4x4Scale, ozz_simd_math) {
   const Float4x4 scaling = Float4x4::Scaling(v);
   EXPECT_FLOAT4x4_EQ(scaling, -1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f,
                      2.f, 0.f, 0.f, 0.f, 0.f, 1.f);
+
+  const Float4x4 scaling_vec =
+      Float4x4::Scaling(ozz::math::Float3{-1.f, 1.f, 2.f});
+  EXPECT_FLOAT4x4_EQ(scaling_vec, -1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f,
+                     0.f, 2.f, 0.f, 0.f, 0.f, 0.f, 1.f);
 
   const Float4x4 scale_mul = m0 * scaling;
   EXPECT_FLOAT4x4_EQ(scale_mul, 0.f, -1.f, -2.f, -3.f, 4.f, 5.f, 6.f, 7.f, 16.f,
@@ -269,6 +279,13 @@ TEST(Float4x4Rotate, ozz_simd_math) {
       cpnt[8], cpnt[9], cpnt[10], cpnt[11], cpnt[12], cpnt[13], cpnt[14],
       cpnt[15]);
 
+  EXPECT_FLOAT4x4_EQ(
+      Float4x4::FromEuler(ozz::math::simd_float4::Load(ozz::math::Float3{
+          ozz::math::kPi_2, ozz::math::kPi_2, ozz::math::kPi_2})),
+      cpnt[0], cpnt[1], cpnt[2], cpnt[3], cpnt[4], cpnt[5], cpnt[6], cpnt[7],
+      cpnt[8], cpnt[9], cpnt[10], cpnt[11], cpnt[12], cpnt[13], cpnt[14],
+      cpnt[15]);
+
   EXPECT_ASSERTION(Float4x4::FromQuaternion(
                        ozz::math::simd_float4::Load(1.f, 0.f, 0.f, 1.f)),
                    "IsNormalized");
@@ -283,6 +300,11 @@ TEST(Float4x4Rotate, ozz_simd_math) {
       ozz::math::simd_float4::Load(0.f, .70710677f, 0.f, .70710677f));
   EXPECT_FLOAT4x4_EQ(quaternion, 0.f, 0.f, -1.f, 0.f, 0.f, 1.f, 0.f, 0.f, 1.f,
                      0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 1.f);
+
+  const Float4x4 quaternion_vec = Float4x4::FromQuaternion(
+      ozz::math::Quaternion(0.f, .70710677f, 0.f, .70710677f));
+  EXPECT_FLOAT4x4_EQ(quaternion_vec, 0.f, 0.f, -1.f, 0.f, 0.f, 1.f, 0.f, 0.f,
+                     1.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 1.f);
 
   EXPECT_ASSERTION(
       Float4x4::FromAxisAngle(ozz::math::simd_float4::Load(1.f, 1.f, 0.f, 0.f),
@@ -324,6 +346,24 @@ TEST(Float4x4Affine, ozz_simd_math) {
                      0.f, 0.f, -12.f, 46.f, 12.f, 1.f);
   EXPECT_FALSE(ozz::math::AreAllTrue3(IsNormalized(affine)));
   EXPECT_TRUE(ozz::math::AreAllTrue1(IsOrthogonal(affine)));
+
+  const Float4x4 affine_vec = Float4x4::FromAffine(
+      ozz::math::Float3{-12.f, 46.f, 12.f},
+      ozz::math::Quaternion{0.f, .70710677f, 0.f, .70710677f},
+      ozz::math::Float3{2.f, 46.f, 3.f});
+  EXPECT_FLOAT4x4_EQ(affine_vec, 0.f, 0.f, -2.f, 0.f, 0.f, 46.f, 0.f, 0.f, 3.f,
+                     0.f, 0.f, 0.f, -12.f, 46.f, 12.f, 1.f);
+  EXPECT_FALSE(ozz::math::AreAllTrue3(IsNormalized(affine_vec)));
+  EXPECT_TRUE(ozz::math::AreAllTrue1(IsOrthogonal(affine_vec)));
+
+  const Float4x4 affine_transform = Float4x4::FromAffine(ozz::math::Transform{
+      ozz::math::Float3{-12.f, 46.f, 12.f},
+      ozz::math::Quaternion{0.f, .70710677f, 0.f, .70710677f},
+      ozz::math::Float3{2.f, 46.f, 3.f}});
+  EXPECT_FLOAT4x4_EQ(affine_transform, 0.f, 0.f, -2.f, 0.f, 0.f, 46.f, 0.f, 0.f,
+                     3.f, 0.f, 0.f, 0.f, -12.f, 46.f, 12.f, 1.f);
+  EXPECT_FALSE(ozz::math::AreAllTrue3(IsNormalized(affine_vec)));
+  EXPECT_TRUE(ozz::math::AreAllTrue1(IsOrthogonal(affine_vec)));
 
   const Float4x4 affine_reflexion = Float4x4::FromAffine(
       ozz::math::simd_float4::Load(-12.f, 46.f, 12.f, 9.f),
@@ -489,6 +529,31 @@ TEST(Float4x4ToAffine, ozz_simd_math) {
   EXPECT_SIMDFLOAT_EQ(translate, 46.f, -69.f, -58.f, 1.f);
   EXPECT_SIMDFLOAT_EQ(rotate, .70710677f, 0.f, 0.f, .70710677f);
   EXPECT_SIMDFLOAT_EQ(scale, 2.f, -3.f, 4.f, 1.f);
+
+  ozz::math::Float3 translate_vec{0, 0, 0}, scale_vec{0, 0, 0};
+  ozz::math::Quaternion rotation_vec{0, 0, 0, 1};
+  EXPECT_TRUE(ToAffine(
+      Float4x4::Translation(
+          ozz::math::simd_float4::Load(46.f, -69.f, -58.f, 1.f)) *
+          Float4x4::FromQuaternion(
+              ozz::math::simd_float4::Load(.70710677f, 0.f, 0.f, .70710677f)) *
+          Float4x4::Scaling(ozz::math::simd_float4::Load(2.f, -3.f, 4.f, 0.f)),
+      &translate_vec, &rotation_vec, &scale_vec));
+  EXPECT_FLOAT3_EQ(translate_vec, 46.f, -69.f, -58.f);
+  EXPECT_QUATERNION_EQ(rotation_vec, .70710677f, 0.f, 0.f, .70710677f);
+  EXPECT_FLOAT3_EQ(scale_vec, 2.f, -3.f, 4.f);
+
+  ozz::math::Transform transform = ozz::math::Transform::identity();
+  EXPECT_TRUE(ToAffine(
+      Float4x4::Translation(
+          ozz::math::simd_float4::Load(46.f, -69.f, -58.f, 1.f)) *
+          Float4x4::FromQuaternion(
+              ozz::math::simd_float4::Load(.70710677f, 0.f, 0.f, .70710677f)) *
+          Float4x4::Scaling(ozz::math::simd_float4::Load(2.f, -3.f, 4.f, 0.f)),
+      &transform));
+  EXPECT_FLOAT3_EQ(transform.translation, 46.f, -69.f, -58.f);
+  EXPECT_QUATERNION_EQ(transform.rotation, .70710677f, 0.f, 0.f, .70710677f);
+  EXPECT_FLOAT3_EQ(transform.scale, 2.f, -3.f, 4.f);
 
   const Float4x4 trace = {
       {ozz::math::simd_float4::Load(-.916972f, 0.f, -.398952f, 0.f),

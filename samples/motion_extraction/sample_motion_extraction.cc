@@ -88,8 +88,7 @@ class MotionSampleApplication : public ozz::sample::Application {
       }
 
       transform_ =  // Apply motion position to character transform
-          transform_ * ozz::math::Float4x4::Translation(
-                           ozz::math::simd_float4::Load3PtrU(&position.x));
+          transform_ * ozz::math::Float4x4::Translation(position);
     }
 
     // Get rotation from motion track

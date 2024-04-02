@@ -90,13 +90,9 @@ class AttachSampleApplication : public ozz::sample::Application {
     // Gets model space transformation of the joint.
     const ozz::math::Float4x4& joint = models_[attachment_];
 
-    // Builds offset transformation matrix.
-    const ozz::math::SimdFloat4 translation =
-        ozz::math::simd_float4::Load3PtrU(&offset_.x);
-
     // Concatenates joint and offset transformations.
     const ozz::math::Float4x4 transform =
-        joint * ozz::math::Float4x4::Translation(translation);
+        joint * ozz::math::Float4x4::Translation(offset_);
 
     // Prepare rendering.
     const float thickness = .01f;
