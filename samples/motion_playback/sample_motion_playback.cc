@@ -91,16 +91,14 @@ bool SampleMotion(const MotionTrack& _tracks, float _ratio,
 struct MotionAccumulator {
   // Accumulates motion deltas (new transform - last).
   void Update(const ozz::math::Transform& _new) {
-    delta.translation = _new.translation - last.translation;
-    delta.rotation = Conjugate(last.rotation) * _new.rotation;
-    delta.scale = _new.scale / last.scale;
-    current.translation = current.translation + delta.translation;
-    current.rotation =
-        Normalize(current.rotation *  // Avoid accumulating error that leads to
-                  delta.rotation);    // non-normalized quaternions.
+    const ozz::math::Float3 delta_p = _new.translation - last.translation;
+    current.translation = current.translation + delta_p;
 
-    current.scale = current.scale * delta.scale;
-
+    const ozz::math::Quaternion delta_r =
+        Conjugate(last.rotation) * _new.rotation;
+    current.rotation = Normalize(
+        current.rotation * delta_r);  // Avoid accumulating error that leads to
+                                      // non-normalized quaternions.
     last = _new;
   }
 
@@ -123,8 +121,8 @@ struct MotionAccumulator {
       ResetOrigin(motion_transform);
     }
 
-    // Samples motion at the current ratio (from last knwon origin, or the
-    // reseted one).
+    // Samples motion at the current ratio (from last known origin, or the
+    // reset one).
     if (!SampleMotion(_motion, _ratio, &motion_transform)) {
       return false;
     }
@@ -136,21 +134,14 @@ struct MotionAccumulator {
   // Tells the accumulator that the _new transform is the new origin.
   // This is useful when animation loops, so next delta is computed from the new
   // origin.
-  void ResetOrigin(const ozz::math::Transform& _new) {
-    last = _new;
-    delta = ozz::math::Transform::identity();
-  }
+  void ResetOrigin(const ozz::math::Transform& _new) { last = _new; }
 
-  // Teleports accumulator to a new transfrom. This also resets the origin, so
+  // Teleports accumulator to a new transform. This also resets the origin, so
   // next delta is computed from the new origin.
-  void Teleport(const ozz::math::Transform& _new) {
-    current = last = _new;
-    delta = ozz::math::Transform::identity();
-  }
+  void Teleport(const ozz::math::Transform& _new) { current = last = _new; }
 
   ozz::math::Transform last = ozz::math::Transform::identity();
   ozz::math::Transform current = ozz::math::Transform::identity();
-  ozz::math::Transform delta = ozz::math::Transform::identity();
 };
 
 class MotionPlaybackSampleApplication : public ozz::sample::Application {
