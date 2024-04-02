@@ -368,39 +368,44 @@ bool ProcessMotionTrack(OzzImporter& _importer, const char* _clip_name,
   ozz::log::Log() << "Extracting motion track from animation \""
                   << _animation.name << "\"." << std::endl;
 
+  if (_skeleton.num_joints() == 0) {
+    ozz::log::Err() << "No joints found in skeleton." << std::endl;
+    return false;
+  }
+
   // Configures motion extractor
   ozz::animation::offline::MotionExtractor extractor;
   extractor.position_settings = ProcessMotionTrackSettings(_config["position"]);
   extractor.rotation_settings = ProcessMotionTrackSettings(_config["rotation"]);
 
   // Find root joint
-  if (_skeleton.num_joints() == 0) {
-    ozz::log::Err() << "No joints found in skeleton." << std::endl;
-    return false;
-  }
-  const char* joint_name = _config["joint_name"].asCString();
-  if (*joint_name != 0) {
+  const char* joint_config = _config["joint_name"].asCString();
+  if (*joint_config != 0) {
     bool found = false;
     for (int i = 0; i < _skeleton.num_joints(); ++i) {
-      if (strmatch(_skeleton.joint_names()[i], joint_name)) {
+      if (strmatch(_skeleton.joint_names()[i], joint_config)) {
         found = true;
         extractor.root_joint = i;
-
         ozz::log::LogV() << "Found motion extraction root joint \""
-                         << joint_name << "\"" << std::endl;
+                         << joint_config << "\"" << std::endl;
         break;
       }
     }
     if (!found) {
-      ozz::log::Err() << "Root joint \"" << joint_name
+      ozz::log::Err() << "Root joint \"" << joint_config
                       << "\" not found in skeleton." << std::endl;
       return false;
     }
   }
 
-  // Runs the extraction
+  // Prepare raw tracks
+  const ozz::string joint_name = _skeleton.joint_names()[extractor.root_joint];
   ozz::animation::offline::RawFloat3Track raw_position;
+  raw_position.name = joint_name + "-position";
   ozz::animation::offline::RawQuaternionTrack raw_rotation;
+  raw_rotation.name = joint_name + "-rotation";
+
+  // Runs the extraction
   if (!extractor(_animation, _skeleton, &raw_position, &raw_rotation,
                  _baked_animation)) {
     ozz::log::Err() << "Failed to extract motion track." << std::endl;
