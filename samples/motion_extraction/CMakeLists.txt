@@ -42,3 +42,9 @@ else()
 endif(EMSCRIPTEN)
 
 add_test(NAME sample_motion_extraction COMMAND sample_motion_extraction "--max_idle_loops=${ozz_sample_testing_loops}" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)
+add_test(NAME sample_motion_extraction_path COMMAND sample_motion_extraction "--skeleton=media/skeleton.ozz" "--animation=media/raw_animation.ozz" "--max_idle_loops=${ozz_sample_testing_loops}" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)
+add_test(NAME sample_motion_extraction_invalid_skeleton_path COMMAND sample_motion_extraction "--skeleton=media/bad_skeleton.ozz" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)
+set_tests_properties(sample_motion_extraction_invalid_skeleton_path PROPERTIES WILL_FAIL true)
+add_test(NAME sample_motion_extraction_invalid_animation_path COMMAND sample_motion_extraction "--animation=media/bad_animation.ozz" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)
+set_tests_properties(sample_motion_extraction_invalid_animation_path PROPERTIES WILL_FAIL true)
+

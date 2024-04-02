@@ -46,7 +46,7 @@ else()
 endif(EMSCRIPTEN)
 
 add_test(NAME sample_motion_playback COMMAND sample_motion_playback "--max_idle_loops=${ozz_sample_testing_loops}" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)
-add_test(NAME sample_motion_playback_path1 COMMAND sample_motion_playback "--skeleton=media/skeleton.ozz" "--animation=media/animation.ozz" "--max_idle_loops=${ozz_sample_testing_loops}" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)
+add_test(NAME sample_motion_playback_path COMMAND sample_motion_playback "--skeleton=media/skeleton.ozz" "--animation=media/animation.ozz" "--motion=media/motion.ozz" "--max_idle_loops=${ozz_sample_testing_loops}" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)
 add_test(NAME sample_motion_playback_invalid_skeleton_path COMMAND sample_motion_playback "--skeleton=media/bad_skeleton.ozz" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)
 set_tests_properties(sample_motion_playback_invalid_skeleton_path PROPERTIES WILL_FAIL true)
 add_test(NAME sample_motion_playback_invalid_animation_path COMMAND sample_motion_playback "--animation=media/bad_animation.ozz" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)
