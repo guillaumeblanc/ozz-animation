@@ -328,7 +328,7 @@ bool SanitizeTrackMotionComponent(Json::Value& _root,
   }
 
   MakeDefault(
-      _root, "reference", "animation",
+      _root, "reference", "skeleton",
       "Root motion extraction reference pose, can be identity, skeleton or "
       "animation.");
   const char* reference_name = _root["reference"].asCString();

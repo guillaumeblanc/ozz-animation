@@ -40,8 +40,20 @@ struct RawAnimation;
 struct RawFloat3Track;
 struct RawQuaternionTrack;
 
+// Defines the class responsible of extracting root motion from a raw animation
+// object. Root motion defines how a character moves during an animation. The
+// utility extracts the motion (position and rotation) from a root joint of the
+// animation into separate tracks, and removes (bake) that motion from the
+// original animation. User code is expected to reapply motion at runtime by
+// moving the character transform, hence reconstructing the original animation.
+// Position and rotation components of the extracted motion can be selected.
+// This allows for example to project motion position on the XZ plane, or
+// isolate rotation around y axis.
+// Motion is computed as the difference from a reference, which can be the
+// identity/global, the skeleton rest pose, or the animation's first frame.
 class OZZ_ANIMOFFLINE_DLL MotionExtractor {
  public:
+  // Executes extraction based on provided settings.
   bool operator()(const RawAnimation& _input, const Skeleton& _skeleton,
                   RawFloat3Track* _motion_position,
                   RawQuaternionTrack* _motion_rotation,
@@ -63,11 +75,11 @@ class OZZ_ANIMOFFLINE_DLL MotionExtractor {
     bool bake;            // Bake extracted data to output animation
   };
 
-  Settings position_settings = {true, false, true,      // X and Z projection
-                                Reference::kAnimation,  // Reference
+  Settings position_settings = {true, false, true,     // X and Z projection
+                                Reference::kSkeleton,  // Reference
                                 true};               // Bake extracted position
   Settings rotation_settings = {false, true, false,  // Y / Yaw only
-                                Reference::kAnimation,  // Reference
+                                Reference::kSkeleton,  // Reference
                                 true};  // Bake extracted rotation
 };
 }  // namespace offline
