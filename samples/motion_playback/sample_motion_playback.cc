@@ -27,6 +27,7 @@
 
 #include "framework/application.h"
 #include "framework/imgui.h"
+#include "framework/motion_utils.h"
 #include "framework/renderer.h"
 #include "framework/utils.h"
 #include "ozz/animation/runtime/animation.h"
@@ -57,96 +58,6 @@ OZZ_OPTIONS_DECLARE_STRING(motion,
                            "Path to the motion tracks (ozz archive format).",
                            "media/motion.ozz", false)
 
-// Position and rotation motion tracks
-struct MotionTrack {
-  ozz::animation::Float3Track position;
-  ozz::animation::QuaternionTrack rotation;
-};
-
-bool SampleMotion(const MotionTrack& _tracks, float _ratio,
-                  ozz::math::Transform* _transform) {
-  // Get position from motion track
-  ozz::animation::Float3TrackSamplingJob position_sampler;
-  position_sampler.track = &_tracks.position;
-  position_sampler.result = &_transform->translation;
-  position_sampler.ratio = _ratio;
-  if (!position_sampler.Run()) {
-    return false;
-  }
-
-  // Get rotation from motion track
-  ozz::animation::QuaternionTrackSamplingJob rotation_sampler;
-  rotation_sampler.track = &_tracks.rotation;
-  rotation_sampler.result = &_transform->rotation;
-  rotation_sampler.ratio = _ratio;
-  if (!rotation_sampler.Run()) {
-    return false;
-  }
-
-  _transform->scale = ozz::math::Float3::one();
-
-  return true;
-}
-
-struct MotionAccumulator {
-  // Accumulates motion deltas (new transform - last).
-  void Update(const ozz::math::Transform& _new) {
-    const ozz::math::Float3 delta_p = _new.translation - last.translation;
-    current.translation = current.translation + delta_p;
-
-    const ozz::math::Quaternion delta_r =
-        Conjugate(last.rotation) * _new.rotation;
-    current.rotation = Normalize(
-        current.rotation * delta_r);  // Avoid accumulating error that leads to
-                                      // non-normalized quaternions.
-    last = _new;
-  }
-
-  // Updates the accumulator with a new motion sample.
-  bool Update(const MotionTrack& _motion, float _ratio, int _loops) {
-    ozz::math::Transform motion_transform;
-    for (; _loops; _loops > 0 ? --_loops : ++_loops) {
-      // When animation is looping, it's important to take into account the
-      // motion done during the loop.
-
-      // Samples motion at the loop end (begin or end of animation depending on
-      // playback/loop direction).
-      if (!SampleMotion(_motion, _loops > 0 ? 1.f : 0.f, &motion_transform)) {
-        return false;
-      }
-      Update(motion_transform);
-
-      // Samples motion at the new origin (begin or end of animation depending
-      // on playback/loop direction).
-      if (!SampleMotion(_motion, _loops > 0 ? 0.f : 1.f, &motion_transform)) {
-        return false;
-      }
-      ResetOrigin(motion_transform);
-    }
-
-    // Samples motion at the current ratio (from last known position, or the
-    // reset one).
-    if (!SampleMotion(_motion, _ratio, &motion_transform)) {
-      return false;
-    }
-    Update(motion_transform);
-
-    return true;
-  }
-
-  // Tells the accumulator that the _new transform is the new origin.
-  // This is useful when animation loops, so next delta is computed from the new
-  // origin.
-  void ResetOrigin(const ozz::math::Transform& _new) { last = _new; }
-
-  // Teleports accumulator to a new transform. This also resets the origin, so
-  // next delta is computed from the new origin.
-  void Teleport(const ozz::math::Transform& _new) { current = last = _new; }
-
-  ozz::math::Transform last = ozz::math::Transform::identity();
-  ozz::math::Transform current = ozz::math::Transform::identity();
-};
-
 class MotionPlaybackSampleApplication : public ozz::sample::Application {
  protected:
   // Updates current animation time and skeleton pose.
@@ -164,7 +75,7 @@ class MotionPlaybackSampleApplication : public ozz::sample::Application {
     }
 
     // Updates the character transform matrix.
-    const auto& transform = motion_accumulator_.current;
+    const auto& transform = motion_accumulator_.transform();
     transform_ = ozz::math::Float4x4::FromAffine(
         apply_motion_position_ ? transform.translation
                                : ozz::math::Float3::zero(),
@@ -206,6 +117,12 @@ class MotionPlaybackSampleApplication : public ozz::sample::Application {
       const ozz::math::Box bound(ozz::math::Float3(-.3f, 0, -.2f),
                                  ozz::math::Float3(.3f, 1.8f, .2f));
       success &= _renderer->DrawBoxIm(bound, transform_, ozz::sample::kWhite);
+    }
+
+    if (show_motion_) {
+      success &= ozz::sample::DrawMotion(_renderer, motion_track_,
+                                         controller_.time_ratio(),
+                                         animation_.duration(), transform_);
     }
 
     return success;
@@ -264,6 +181,7 @@ class MotionPlaybackSampleApplication : public ozz::sample::Application {
         _im_gui->DoCheckBox("Use motion position", &apply_motion_position_);
         _im_gui->DoCheckBox("Use motion rotation", &apply_motion_rotation_);
         _im_gui->DoCheckBox("Show box", &show_box_);
+        _im_gui->DoCheckBox("Show motion", &show_motion_);
 
         if (_im_gui->DoButton("Reset accumulator")) {
           motion_accumulator_.Teleport(ozz::math::Transform::identity());
@@ -289,10 +207,10 @@ class MotionPlaybackSampleApplication : public ozz::sample::Application {
   ozz::animation::Animation animation_;
 
   // Position and rotation motion tracks
-  MotionTrack motion_track_;
+  ozz::sample::MotionTrack motion_track_;
 
   // Motion accumulator helper
-  MotionAccumulator motion_accumulator_;
+  ozz::sample::MotionAccumulator motion_accumulator_;
 
   // Character transform
   ozz::math::Float4x4 transform_;
@@ -308,6 +226,7 @@ class MotionPlaybackSampleApplication : public ozz::sample::Application {
 
   // Show box at root transform
   bool show_box_ = true;
+  bool show_motion_ = true;
 
   // GUI options to apply root motion.
   bool apply_motion_position_ = true;

@@ -27,6 +27,7 @@
 
 #include "framework/application.h"
 #include "framework/imgui.h"
+#include "framework/motion_utils.h"
 #include "framework/renderer.h"
 #include "framework/utils.h"
 #include "ozz/animation/offline/animation_builder.h"
@@ -80,7 +81,7 @@ class MotionSampleApplication : public ozz::sample::Application {
     if (apply_motion_position_) {
       ozz::math::Float3 position;
       ozz::animation::Float3TrackSamplingJob position_sampler;
-      position_sampler.track = &position_track_;
+      position_sampler.track = &motion_track_.position;
       position_sampler.result = &position;
       position_sampler.ratio = controller_.time_ratio();
       if (!position_sampler.Run()) {
@@ -95,7 +96,7 @@ class MotionSampleApplication : public ozz::sample::Application {
     if (apply_motion_rotation_) {
       ozz::math::Quaternion rotation;
       ozz::animation::QuaternionTrackSamplingJob rotation_sampler;
-      rotation_sampler.track = &rotation_track_;
+      rotation_sampler.track = &motion_track_.rotation;
       rotation_sampler.result = &rotation;
       rotation_sampler.ratio = controller_.time_ratio();
       if (!rotation_sampler.Run()) {
@@ -146,11 +147,8 @@ class MotionSampleApplication : public ozz::sample::Application {
 
     // Draw motion tracks.
     const float at = controller_.time_ratio();
-    const float step = 1.f / (animation_.duration() * 30.f);
-    success &= DrawMotion(_renderer, position_track_, 0.f, at, step,
-                          ozz::sample::kGreen, ozz::math::Float4x4::identity());
-    success &= DrawMotion(_renderer, position_track_, at, 1.f, step,
-                          ozz::sample::kRed, ozz::math::Float4x4::identity());
+    success &= ozz::sample::DrawMotion(_renderer, motion_track_, at,
+                                       animation_.duration(), transform_);
     return success;
   }
 
@@ -183,8 +181,8 @@ class MotionSampleApplication : public ozz::sample::Application {
       if (!position_track || !rotation_track) {
         return false;
       }
-      position_track_ = std::move(*position_track);
-      rotation_track_ = std::move(*rotation_track);
+      motion_track_.position = std::move(*position_track);
+      motion_track_.rotation = std::move(*rotation_track);
     }
 
     {  // Optimizes and builds runtime animation
@@ -206,31 +204,6 @@ class MotionSampleApplication : public ozz::sample::Application {
     }
 
     return true;
-  }
-
-  bool DrawMotion(ozz::sample::Renderer* _renderer,
-                  const ozz::animation::Float3Track& _track, float _from,
-                  float _to, float _step, ozz::sample::Color _color,
-                  const ozz::math::Float4x4& _transform) {
-    if (_from > _to || _step <= 0.f) {
-      return false;
-    }
-
-    ozz::math::Float3 value;
-    ozz::animation::Float3TrackSamplingJob motion_sampler;
-    motion_sampler.track = &_track;
-    motion_sampler.result = &value;
-
-    ozz::vector<ozz::math::Float3> points;
-    for (float t = _from; t <= _to + _step; t += _step) {
-      motion_sampler.ratio = ozz::math::Min(t, _to);
-      if (!motion_sampler.Run()) {
-        return false;
-      }
-      points.push_back(value);
-    }
-
-    return _renderer->DrawLineStrip(make_span(points), _color, _transform);
   }
 
   virtual bool OnInitialize() {
@@ -380,8 +353,7 @@ class MotionSampleApplication : public ozz::sample::Application {
   ozz::animation::Animation animation_;
 
   // Runtime motion tracks.
-  ozz::animation::Float3Track position_track_;
-  ozz::animation::QuaternionTrack rotation_track_;
+  ozz::sample::MotionTrack motion_track_;
 
   // Sampling context.
   ozz::animation::SamplingJob::Context context_;

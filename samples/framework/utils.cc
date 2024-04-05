@@ -77,19 +77,17 @@ int PlaybackController::Update(const animation::Animation& _animation,
 int PlaybackController::set_time_ratio(float _ratio) {
   //  Number of loops completed within _ratio, possibly negative if going
   //  backward.
-  const float loops = floorf(_ratio);
-
   previous_time_ratio_ = time_ratio_;
   if (loop_) {
     // Wraps in the unit interval [0:1]
+    const float loops = floorf(_ratio);
     time_ratio_ = _ratio - loops;
+    return static_cast<int>(loops);
   } else {
     // Clamps in the unit interval [0:1].
     time_ratio_ = math::Clamp(0.f, _ratio, 1.f);
+    return 0;
   }
-
-  // Returns the number of loops that have been completed.
-  return static_cast<int>(loops);
 }
 
 // Gets animation current time.

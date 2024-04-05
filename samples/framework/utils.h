@@ -96,7 +96,7 @@ class PlaybackController {
 
   // Updates animation time if in "play" state, according to playback speed and
   // given frame time _dt.
-  // Returns the number of loops that happened during update. A positive numbre
+  // Returns the number of loops that happened during update. A positive number
   // means looping going foward, a negative number means looping going backward.
   int Update(const animation::Animation& _animation, float _dt);
 
