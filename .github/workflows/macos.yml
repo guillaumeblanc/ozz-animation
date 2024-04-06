@@ -9,6 +9,7 @@ jobs:
         build_type: [Debug, Release]
         option: [default, ref, shared, no_fbx]
     runs-on: ${{matrix.os}}
+    timeout-minutes: 10
     steps:
     - uses: actions/checkout@v4
         
