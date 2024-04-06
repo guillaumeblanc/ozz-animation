@@ -28,7 +28,6 @@
 #include "framework/utils.h"
 
 #include <cassert>
-#include <chrono>
 #include <limits>
 
 #include "framework/imgui.h"
@@ -130,7 +129,7 @@ bool PlaybackController::OnGui(const animation::Animation& _animation,
     time_changed = true;
   }
   std::snprintf(label, sizeof(label), "Playback speed: %.2f", playback_speed_);
-  _im_gui->DoSlider(label, -5.f, 5.f, &playback_speed_, 1.f, _enabled);
+  _im_gui->DoSlider(label, -3.f, 3.f, &playback_speed_, 1.f, _enabled);
 
   // Allow to reset speed if it is not the default value.
   if (_im_gui->DoButton("Reset playback speed",
@@ -285,25 +284,6 @@ void MultiplySoATransformQuaternion(
   ozz::math::Transpose4x4(&aos_quats->xyzw, &soa_transform_ref.rotation.x);
 }
 
-namespace {
-
-class ProfileFctLog {
-  using clock = std::chrono::high_resolution_clock;
-
- public:
-  ProfileFctLog(const char* _name) : name_{_name}, begin_{clock::now()} {}
-  ~ProfileFctLog() {
-    std::chrono::duration<float, std::milli> duration = clock::now() - begin_;
-    ozz::log::Out() << name_ << ": " << duration.count() << "ms" << std::endl;
-  }
-
- private:
-  const char* name_;
-  clock::time_point begin_;
-};
-
-}  // namespace
-
 bool LoadSkeleton(const char* _filename, ozz::animation::Skeleton* _skeleton) {
   assert(_filename && _skeleton);
   ozz::log::Out() << "Loading skeleton archive " << _filename << "."
@@ -378,44 +358,6 @@ bool LoadRawAnimation(const char* _filename,
   {
     ProfileFctLog profile{"RawAnimation loading time"};
     archive >> *_animation;
-  }
-
-  return true;
-}
-
-bool LoadMotionTrack(const char* _filename,
-                     ozz::animation::Float3Track* _postition_track,
-                     ozz::animation::QuaternionTrack* _rotation_track) {
-  assert(_filename && _postition_track && _rotation_track);
-  ozz::log::Out() << "Loading motion tracks archive: " << _filename << "."
-                  << std::endl;
-  ozz::io::File file(_filename, "rb");
-  if (!file.opened()) {
-    ozz::log::Err() << "Failed to open motion tracks file " << _filename << "."
-                    << std::endl;
-    return false;
-  }
-  ozz::io::IArchive archive(&file);
-
-  // Once the tag is validated, reading cannot fail.
-  {
-    ProfileFctLog profile{"Motion tracks loading time"};
-
-    if (!archive.TestTag<ozz::animation::Float3Track>()) {
-      ozz::log::Err()
-          << "Failed to load position motion track instance from file "
-          << _filename << "." << std::endl;
-      return false;
-    }
-    archive >> *_postition_track;
-
-    if (!archive.TestTag<ozz::animation::QuaternionTrack>()) {
-      ozz::log::Err()
-          << "Failed to load rotation motion track instance from file "
-          << _filename << "." << std::endl;
-      return false;
-    }
-    archive >> *_rotation_track;
   }
 
   return true;
@@ -638,5 +580,14 @@ bool RayIntersectsMeshes(const ozz::math::Float3& _ray_origin,
   }
   return intersected;
 }
+
+ProfileFctLog::ProfileFctLog(const char* _name)
+    : name_{_name}, begin_{clock::now()} {}
+
+ProfileFctLog::~ProfileFctLog() {
+  std::chrono::duration<float, std::milli> duration = clock::now() - begin_;
+  ozz::log::Out() << name_ << ": " << duration.count() << "ms" << std::endl;
+}
+
 }  // namespace sample
 }  // namespace ozz

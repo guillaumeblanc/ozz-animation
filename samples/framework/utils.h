@@ -28,6 +28,8 @@
 #ifndef OZZ_SAMPLES_FRAMEWORK_UTILS_H_
 #define OZZ_SAMPLES_FRAMEWORK_UTILS_H_
 
+#include <chrono>
+
 #include "ozz/base/containers/vector.h"
 #include "ozz/base/platform.h"
 #include "ozz/base/span.h"
@@ -180,15 +182,6 @@ bool LoadAnimation(const char* _filename,
 bool LoadRawAnimation(const char* _filename,
                       ozz::animation::offline::RawAnimation* _animation);
 
-// Loads motion tracks (position and rotation) from an ozz archive file named
-// _filename. This function will fail and return false if the file cannot be
-// opened or if it is not a valid ozz track archive. A valid track archive can
-// be produced with ozz tools (*2ozz) or using ozz serialization API. _filename
-// and _track must be non-nullptr.
-bool LoadMotionTrack(const char* _filename,
-                     ozz::animation::Float3Track* _postition_track,
-                     ozz::animation::QuaternionTrack* _rotation_track);
-
 // Loads a float track from an ozz archive file named _filename.
 // This function will fail and return false if the file cannot be opened or if
 // it is not a valid ozz float track archive. A valid float track archive can be
@@ -231,6 +224,19 @@ bool RayIntersectsMeshes(const ozz::math::Float3& _ray_origin,
                          const ozz::span<const ozz::sample::Mesh>& _meshes,
                          ozz::math::Float3* _intersect,
                          ozz::math::Float3* _normal);
+
+// RAII performance profiler.
+class ProfileFctLog {
+  using clock = std::chrono::high_resolution_clock;
+
+ public:
+  ProfileFctLog(const char* _name);
+  ~ProfileFctLog();
+
+ private:
+  const char* name_;
+  clock::time_point begin_;
+};
 }  // namespace sample
 }  // namespace ozz
 #endif  // OZZ_SAMPLES_FRAMEWORK_UTILS_H_

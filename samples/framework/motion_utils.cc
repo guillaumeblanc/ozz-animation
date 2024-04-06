@@ -30,6 +30,7 @@
 #include <cassert>
 
 #include "framework/renderer.h"
+#include "framework/utils.h"
 #include "ozz/animation/runtime/track_sampling_job.h"
 #include "ozz/base/containers/vector.h"
 #include "ozz/base/io/archive.h"
@@ -40,6 +41,42 @@
 
 namespace ozz {
 namespace sample {
+
+bool LoadMotionTrack(const char* _filename, MotionTrack* _track) {
+  assert(_filename && _track);
+  ozz::log::Out() << "Loading motion tracks archive: " << _filename << "."
+                  << std::endl;
+  ozz::io::File file(_filename, "rb");
+  if (!file.opened()) {
+    ozz::log::Err() << "Failed to open motion tracks file " << _filename << "."
+                    << std::endl;
+    return false;
+  }
+  ozz::io::IArchive archive(&file);
+
+  // Once the tag is validated, reading cannot fail.
+  {
+    ProfileFctLog profile{"Motion tracks loading time"};
+
+    if (!archive.TestTag<ozz::animation::Float3Track>()) {
+      ozz::log::Err()
+          << "Failed to load position motion track instance from file "
+          << _filename << "." << std::endl;
+      return false;
+    }
+    archive >> _track->position;
+
+    if (!archive.TestTag<ozz::animation::QuaternionTrack>()) {
+      ozz::log::Err()
+          << "Failed to load rotation motion track instance from file "
+          << _filename << "." << std::endl;
+      return false;
+    }
+    archive >> _track->rotation;
+  }
+
+  return true;
+}
 
 bool SampleMotion(const MotionTrack& _tracks, float _ratio,
                   ozz::math::Transform* _transform) {

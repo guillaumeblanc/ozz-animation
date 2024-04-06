@@ -140,8 +140,7 @@ class MotionPlaybackSampleApplication : public ozz::sample::Application {
     }
 
     // Reading motion tracks.
-    if (!ozz::sample::LoadMotionTrack(OPTIONS_motion, &motion_track_.position,
-                                      &motion_track_.rotation)) {
+    if (!ozz::sample::LoadMotionTrack(OPTIONS_motion, &motion_track_)) {
       return false;
     }
 

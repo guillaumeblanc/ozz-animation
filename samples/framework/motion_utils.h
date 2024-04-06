@@ -45,6 +45,13 @@ struct MotionTrack {
   ozz::animation::QuaternionTrack rotation;
 };
 
+// Loads motion tracks (position and rotation) from an ozz archive file named
+// _filename. This function will fail and return false if the file cannot be
+// opened or if it is not a valid ozz track archive. A valid track archive can
+// be produced with ozz tools (*2ozz) or using ozz serialization API. _filename
+// and _track must be non-nullptr.
+bool LoadMotionTrack(const char* _filename, MotionTrack* _track);
+
 // Helper object that manages motion accumulation to compute character's
 // transform.
 class MotionAccumulator {
