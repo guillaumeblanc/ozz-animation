@@ -5,7 +5,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest, macos-14]
+        os: [macos-13, macos-14]
         build_type: [Debug, Release]
         option: [default, ref, shared, no_fbx]
     runs-on: ${{matrix.os}}
