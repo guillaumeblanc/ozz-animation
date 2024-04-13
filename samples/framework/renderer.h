@@ -97,12 +97,11 @@ class Renderer {
   // _sizes and _colors must be either of ize 1 or equal to _positions' size.
   // If _screen_space is true, then points size is fixed in screen-space,
   // otherwise it changes with screen depth.
-  virtual bool DrawPoints(
-      const ozz::span<const float>& _positions,
-      const ozz::span<const float>& _sizes,
-      const ozz::span<const Color>& _colors,
-      const ozz::math::Float4x4& _transform, bool _round = true,
-      bool _screen_space = false) = 0;
+  virtual bool DrawPoints(const ozz::span<const float>& _positions,
+                          const ozz::span<const float>& _sizes,
+                          const ozz::span<const Color>& _colors,
+                          const ozz::math::Float4x4& _transform,
+                          bool _screen_space = false) = 0;
 
   // Renders a box at a specified location.
   // The 2 slots of _colors array respectively defines color of the filled

@@ -78,7 +78,7 @@ typedef GlImmediate<VertexPC> GlImmediatePC;
 typedef GlImmediate<VertexPN> GlImmediatePN;
 typedef GlImmediate<VertexPTC> GlImmediatePTC;
 
-// GL immedialte mode renderer.
+// GL immediate mode renderer.
 // Should be used with a GlImmediate object to push vertices to the renderer.
 class GlImmediateRenderer {
  public:

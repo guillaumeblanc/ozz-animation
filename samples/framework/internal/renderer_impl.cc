@@ -36,7 +36,6 @@
 #include "ozz/animation/runtime/local_to_model_job.h"
 #include "ozz/animation/runtime/skeleton.h"
 #include "ozz/animation/runtime/skeleton_utils.h"
-#include "ozz/base/log.h"
 #include "ozz/base/maths/box.h"
 #include "ozz/base/maths/math_ex.h"
 #include "ozz/base/maths/simd_math.h"
@@ -70,11 +69,19 @@ RendererImpl::Model::~Model() {
 
 RendererImpl::RendererImpl(Camera* _camera)
     : camera_(_camera),
+      vertex_array_o_(0),
       dynamic_array_bo_(0),
       dynamic_index_bo_(0),
       checkered_texture_(0) {}
 
 RendererImpl::~RendererImpl() {
+  if (vertex_array_o_) {
+#ifndef EMSCRIPTEN
+    GL(DeleteVertexArrays(1, &vertex_array_o_));
+#endif // EMSCRIPTEN
+    vertex_array_o_ = 0;
+  }
+
   if (dynamic_array_bo_) {
     GL(DeleteBuffers(1, &dynamic_array_bo_));
     dynamic_array_bo_ = 0;
@@ -95,12 +102,19 @@ bool RendererImpl::Initialize() {
   if (!InitOpenGLExtensions()) {
     return false;
   }
+
   if (!InitPostureRendering()) {
     return false;
   }
   if (!InitCheckeredTexture()) {
     return false;
   }
+
+  // Build and bind vertex array once for all
+#ifndef EMSCRIPTEN
+   GL(GenVertexArrays(1, &vertex_array_o_));
+  GL(BindVertexArray(vertex_array_o_));
+#endif // EMSCRIPTE?
 
   // Builds the dynamic vbo
   GL(GenBuffers(1, &dynamic_array_bo_));
@@ -624,7 +638,7 @@ bool RendererImpl::DrawPoints(const ozz::span<const float>& _positions,
                               const ozz::span<const float>& _sizes,
                               const ozz::span<const Color>& _colors,
                               const ozz::math::Float4x4& _transform,
-                              bool _round, bool _screen_space) {
+                              bool _screen_space) {
   // Early out if no instance to render.
   if (_positions.size() == 0) {
     return true;
@@ -657,16 +671,6 @@ bool RendererImpl::DrawPoints(const ozz::span<const float>& _positions,
   GL(BufferSubData(GL_ARRAY_BUFFER, colors_offset, colors_size,
                    _colors.data()));
   GL(BufferSubData(GL_ARRAY_BUFFER, sizes_offset, sizes_size, _sizes.data()));
-
-  // Square or round sprites. Beware msaa makes sprites round if GL_POINT_SPRITE
-  // isn't enabled
-  if (_round) {
-    GL(Enable(GL_POINT_SMOOTH));
-    GL(Disable(GL_POINT_SPRITE));
-  } else {
-    GL(Disable(GL_POINT_SMOOTH));
-    GL(Enable(GL_POINT_SPRITE));
-  }
 
   // Size is managed in vertex shader side.
   GL(Enable(GL_PROGRAM_POINT_SIZE));
@@ -1355,7 +1359,7 @@ bool RendererImpl::DrawMesh(const Mesh& _mesh,
       }
       const float size = 2.f;
       DrawPoints({part.positions.data(), part.positions.size()}, {&size, 1},
-                 {&color, 1}, _transform, true, true);
+                 {&color, 1}, _transform, true);
     }
   }
 
@@ -1710,7 +1714,7 @@ bool RendererImpl::DrawSkinnedMesh(
             ozz::PointerStride(vbo_map, positions_offset)),
         static_cast<size_t>(vertex_count * 3)};
     const float size = 2.f;
-    DrawPoints(vertices, {&size, 1}, colors, _transform, true, true);
+    DrawPoints(vertices, {&size, 1}, colors, _transform, true);
   }
 
   return true;
@@ -1806,6 +1810,14 @@ bool RendererImpl::InitOpenGLExtensions() {
   OZZ_INIT_GL_EXT(glVertexAttrib4fv, PFNGLVERTEXATTRIB4FVPROC, success);
   OZZ_INIT_GL_EXT(glVertexAttribPointer, PFNGLVERTEXATTRIBPOINTERPROC, success);
 #endif  // OZZ_GL_VERSION_2_0_EXT
+
+#ifdef OZZ_GL_VERSION_3_0_EXT
+  OZZ_INIT_GL_EXT(glBindVertexArray, PFNGLBINDVERTEXARRAYPROC, success);
+  OZZ_INIT_GL_EXT(glDeleteVertexArrays, PFNGLDELETEVERTEXARRAYSPROC, success);
+  OZZ_INIT_GL_EXT(glGenVertexArrays, PFNGLGENVERTEXARRAYSPROC, success);
+  OZZ_INIT_GL_EXT(glIsVertexArray, PFNGLISVERTEXARRAYPROC, success);
+#endif  // OZZ_GL_VERSION_3_0_EXT
+
   if (!success) {
     log::Err() << "Failed to initialize all mandatory GL extensions."
                << std::endl;
@@ -1934,6 +1946,13 @@ OZZ_DECL_GL_EXT(glVertexAttrib4f, PFNGLVERTEXATTRIB4FPROC);
 OZZ_DECL_GL_EXT(glVertexAttrib4fv, PFNGLVERTEXATTRIB4FVPROC);
 OZZ_DECL_GL_EXT(glVertexAttribPointer, PFNGLVERTEXATTRIBPOINTERPROC);
 #endif  // OZZ_GL_VERSION_2_0_EXT
+
+#ifdef OZZ_GL_VERSION_3_0_EXT
+OZZ_DECL_GL_EXT(glBindVertexArray, PFNGLBINDVERTEXARRAYPROC);
+OZZ_DECL_GL_EXT(glDeleteVertexArrays, PFNGLDELETEVERTEXARRAYSPROC);
+OZZ_DECL_GL_EXT(glGenVertexArrays, PFNGLGENVERTEXARRAYSPROC);
+OZZ_DECL_GL_EXT(glIsVertexArray, PFNGLISVERTEXARRAYPROC);
+#endif  // OZZ_GL_VERSION_3_0_EXT
 
 bool GL_ARB_instanced_arrays_supported = false;
 OZZ_DECL_GL_EXT(glVertexAttribDivisor_, PFNGLVERTEXATTRIBDIVISORARBPROC);

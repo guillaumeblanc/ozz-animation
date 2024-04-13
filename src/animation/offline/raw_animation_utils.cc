@@ -137,9 +137,40 @@ bool SampleAnimation(const RawAnimation& _animation, float _time,
   }
 
   for (size_t i = 0; i < _animation.tracks.size(); ++i) {
-    SampleTrack_NoValidate(_animation.tracks[i], _time, _transforms.begin() + i);
+    SampleTrack_NoValidate(_animation.tracks[i], _time,
+                           _transforms.begin() + i);
   }
   return true;
+}
+
+namespace {
+template <typename _Track, typename _Times>
+inline void CopyKeyTimes(const _Track& _track, _Times* _key_times) {
+  for (size_t i = 0; i < _track.size(); ++i) {
+    _key_times->push_back(_track[i].time);
+  }
+}
+}  // namespace
+
+ozz::vector<float> ExtractTimePoints(const RawAnimation& _animation) {
+  ozz::vector<float> times;
+
+  if (!_animation.Validate()) {
+    return times;
+  }
+
+  // Gets union of all possible keyframe times.
+  for (int i = 0; i < _animation.num_tracks(); ++i) {
+    const RawAnimation::JointTrack& track = _animation.tracks[i];
+    CopyKeyTimes(track.translations, &times);
+    CopyKeyTimes(track.rotations, &times);
+    CopyKeyTimes(track.scales, &times);
+
+    std::sort(times.begin(), times.end());
+    times.erase(std::unique(times.begin(), times.end()), times.end());
+  }
+
+  return times;
 }
 
 FixedRateSamplingTime::FixedRateSamplingTime(float _duration, float _frequency)

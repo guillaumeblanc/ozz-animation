@@ -269,6 +269,7 @@ bool Export(OzzImporter& _importer, const RawAnimation& _input_animation,
   if (!_config["raw"].asBool()) {
     ozz::log::Log() << "Builds runtime animation." << std::endl;
     AnimationBuilder builder;
+    builder.iframe_interval = _config["iframe_interval"].asFloat();
     animation = builder(raw_animation);
     if (!animation) {
       ozz::log::Err() << "Failed to build runtime animation." << std::endl;
@@ -326,12 +327,11 @@ bool ProcessAnimation(OzzImporter& _importer, const char* _animation_name,
     ozz::log::Err() << "Failed to import animation \"" << _animation_name
                     << "\"" << std::endl;
     return false;
-  } else {
-    // Give animation a name
-    animation.name = _animation_name;
-
-    return Export(_importer, animation, _skeleton, _config, _endianness);
   }
+
+  // Give animation a name
+  animation.name = _animation_name;
+  return Export(_importer, animation, _skeleton, _config, _endianness);
 }
 }  // namespace
 
@@ -371,8 +371,9 @@ bool ImportAnimations(const Json::Value& _config, OzzImporter* _importer,
       LoadSkeleton(skeleton_config["filename"].asCString()));
   success &= skeleton.get() != nullptr;
 
-  if (!success)
+  if (!success) {
     return false;
+  }
 
   // Loop though all existing animations, and export those who match
   // configuration.
@@ -394,9 +395,8 @@ bool ImportAnimations(const Json::Value& _config, OzzImporter* _importer,
         continue;
       }
       ++num_not_clip_animation;
-      const bool anisuccess = ProcessAnimation(*_importer, animation_name, *skeleton,
-                                animation_config, _endianness);
-      if(anisuccess){
+      if (ProcessAnimation(*_importer, animation_name, *skeleton,
+                           animation_config, _endianness)) {
         ++num_valid_animation;
       }
 
@@ -404,14 +404,14 @@ bool ImportAnimations(const Json::Value& _config, OzzImporter* _importer,
       const Json::Value& tracks_config = animation_config["tracks"];
       for (Json::ArrayIndex t = 0; t < tracks_config.size(); ++t) {
         if (ProcessTracks(*_importer, animation_name, *skeleton,
-                                tracks_config[t], _endianness)){
+                          tracks_config[t], _endianness)) {
           ++num_valid_track;
         }
       }
 
-      if (num_valid_track != tracks_config.size()){
-        ozz::log::Log() << "One of track failed when import: \"" << animation_name
-                        << "\"" << std::endl;
+      if (num_valid_track != tracks_config.size()) {
+        ozz::log::Log() << "One of track failed when import: \""
+                        << animation_name << "\"" << std::endl;
         success = false;
       }
     }
@@ -421,9 +421,10 @@ bool ImportAnimations(const Json::Value& _config, OzzImporter* _importer,
                       << "\"." << std::endl;
     }
 
-    if (num_valid_animation != num_not_clip_animation){
-      ozz::log::Log() << "One of animation failed when import, animation index: \"" << i
-                      << "\"" << std::endl;
+    if (num_valid_animation != num_not_clip_animation) {
+      ozz::log::Log()
+          << "One of animation failed when import, animation index: \"" << i
+          << "\"" << std::endl;
       success = false;
     }
   }

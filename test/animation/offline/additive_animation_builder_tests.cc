@@ -88,7 +88,7 @@ TEST(Build, AdditiveAnimationBuilder) {
 
   // First track is empty
   {
-      // input.tracks[0]
+    // input.tracks[0]
   }
 
   // 2nd track
@@ -202,7 +202,7 @@ TEST(BuildRefPose, AdditiveAnimationBuilder) {
 
   // First track is empty
   {
-      // input.tracks[0]
+    // input.tracks[0]
   }
 
   // 2nd track
@@ -284,7 +284,7 @@ TEST(BuildRefPose, AdditiveAnimationBuilder) {
           output.tracks[1].rotations;
       EXPECT_EQ(rotations.size(), 1u);
       EXPECT_FLOAT_EQ(rotations[0].time, 0.f);
-      EXPECT_QUATERNION_EQ(rotations[0].value, .5f, .5f, -.5f, .5f);
+      EXPECT_QUATERNION_EQ(rotations[0].value, .5f, -.5f, -.5f, .5f);
       const RawAnimation::JointTrack::Scales& scales = output.tracks[1].scales;
       EXPECT_EQ(scales.size(), 1u);
       EXPECT_FLOAT_EQ(scales[0].time, 0.f);

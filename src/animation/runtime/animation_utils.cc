@@ -34,29 +34,31 @@
 namespace ozz {
 namespace animation {
 
-template <typename _Key>
-inline int CountKeyframesImpl(const span<const _Key>& _keys, int _track) {
+inline int CountKeyframesImpl(const Animation::KeyframesCtrlConst& _ctrl,
+                              int _track) {
   if (_track < 0) {
-    return static_cast<int>(_keys.size());
+    return static_cast<int>(_ctrl.previouses.size());
   }
 
-  int count = 0;
-  for (const _Key& key : _keys) {
-    if (key.track == _track) {
+  int count = 1;
+  size_t previous = static_cast<size_t>(_track);
+  for (size_t i = previous + 1; i < _ctrl.previouses.size(); ++i) {
+    if (i - _ctrl.previouses[i] == previous) {
       ++count;
+      previous = i;
     }
   }
   return count;
 }
 
 int CountTranslationKeyframes(const Animation& _animation, int _track) {
-  return CountKeyframesImpl(_animation.translations(), _track);
+  return CountKeyframesImpl(_animation.translations_ctrl(), _track);
 }
 int CountRotationKeyframes(const Animation& _animation, int _track) {
-  return CountKeyframesImpl(_animation.rotations(), _track);
+  return CountKeyframesImpl(_animation.rotations_ctrl(), _track);
 }
 int CountScaleKeyframes(const Animation& _animation, int _track) {
-  return CountKeyframesImpl(_animation.scales(), _track);
+  return CountKeyframesImpl(_animation.scales_ctrl(), _track);
 }
 }  // namespace animation
 }  // namespace ozz

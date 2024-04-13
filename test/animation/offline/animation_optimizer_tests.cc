@@ -434,7 +434,7 @@ TEST(Optimize, AnimationOptimizer) {
   {
     RawAnimation output;
     optimizer.setting.tolerance = .01f;
-    optimizer.setting.distance = 1.f;
+    optimizer.setting.distance = 2.f;
     ASSERT_TRUE(optimizer(input, *skeleton, &output));
     EXPECT_EQ(output.num_tracks(), 5);
 

@@ -1,0 +1,26 @@
+name: wasm
+on: [push, pull_request]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        build_type: [Debug, Release]
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/checkout@v4
+      with:
+        repository: emscripten-core/emsdk
+        path: extern/emsdk
+    - name: Build
+      run: |
+        ./build-utils/em-build.sh ${{matrix.build_type}}
+    - name: Uploads artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: samples${{matrix.build_type}}
+        path: |
+          build-wasm/samples/**/*.html
+          build-wasm/samples/**/*.js
+          build-wasm/samples/**/*.wasm

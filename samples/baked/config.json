@@ -1,30 +1,26 @@
 {
-  "skeleton":
-  {
-    "filename":"baked_skeleton.ozz",
-    "import":
-    {
-      "enable":true,  // Skeleton needs to be imported/created from the source file.
-      "types":
-      {
-        "geometry":true  // Geometry nodes will be considered as joints for the skeleton we're creating.
+  "skeleton": {
+    "filename": "baked_skeleton.ozz",
+    "import": {
+      "enable": true, // Skeleton needs to be imported/created from the source file.
+      "types": {
+        "geometry": true // Geometry nodes will be considered as joints for the skeleton we're creating.
       }
     }
   },
-  "animations":
-  [
+  "animations": [
     {
-      "filename":"baked_animation.ozz",
-      "optimization_settings":  // Camera is very sensitive to optimizations.
+      "filename": "baked_animation.ozz",
+      "iframe_interval": 10,
+      "optimization_settings": // Camera is very sensitive to optimizations.
       {
-        "tolerance" : 0.002, // Global setting, for all boxes.
-        "distance" : 0.707,  // Every box is 1m wide, so a corner is at .707m from center.
-        "override" : 
-        [
+        "tolerance": 0.002, // Global setting, for all boxes.
+        "distance": 0.707, // Every box is 1m wide, so a corner is at .707m from center.
+        "override": [
           {
-            "name" : "camera", // Specific setting for the camera.
-            "tolerance" : 0.001,
-            "distance" : 20.  // 2m, x10 as camera is scaled to .1
+            "name": "camera", // Specific setting for the camera.
+            "tolerance": 0.001,
+            "distance": 20. // 2m, x10 as camera is scaled to .1
           }
         ]
       }

@@ -28,6 +28,7 @@
 #include "framework/utils.h"
 
 #include <cassert>
+#include <chrono>
 #include <limits>
 
 #include "framework/imgui.h"
@@ -68,7 +69,7 @@ void PlaybackController::Update(const animation::Animation& _animation,
 
   // Must be called even if time doesn't change, in order to update previous
   // frame time ratio. Uses set_time_ratio function in order to update
-  // previous_time_ an wrap time value in the unit interval (depending on loop
+  // previous_time_ and wrap time value in the unit interval (depending on loop
   // mode).
   set_time_ratio(new_time);
 }
@@ -281,6 +282,25 @@ void MultiplySoATransformQuaternion(
   ozz::math::Transpose4x4(&aos_quats->xyzw, &soa_transform_ref.rotation.x);
 }
 
+namespace {
+
+class ProfileFctLog {
+  using clock = std::chrono::high_resolution_clock;
+
+ public:
+  ProfileFctLog(const char* _name) : name_{_name}, begin_{clock::now()} {}
+  ~ProfileFctLog() {
+    std::chrono::duration<float, std::milli> duration = clock::now() - begin_;
+    ozz::log::Out() << name_ << ": " << duration.count() << "ms" << std::endl;
+  }
+
+ private:
+  const char* name_;
+  clock::time_point begin_;
+};
+
+}  // namespace
+
 bool LoadSkeleton(const char* _filename, ozz::animation::Skeleton* _skeleton) {
   assert(_filename && _skeleton);
   ozz::log::Out() << "Loading skeleton archive " << _filename << "."
@@ -299,8 +319,10 @@ bool LoadSkeleton(const char* _filename, ozz::animation::Skeleton* _skeleton) {
   }
 
   // Once the tag is validated, reading cannot fail.
-  archive >> *_skeleton;
-
+  {
+    ProfileFctLog profile{"Skeleton loading time"};
+    archive >> *_skeleton;
+  }
   return true;
 }
 
@@ -323,7 +345,10 @@ bool LoadAnimation(const char* _filename,
   }
 
   // Once the tag is validated, reading cannot fail.
-  archive >> *_animation;
+  {
+    ProfileFctLog profile{"Animation loading time"};
+    archive >> *_animation;
+  }
 
   return true;
 }
@@ -347,7 +372,10 @@ bool LoadRawAnimation(const char* _filename,
   }
 
   // Once the tag is validated, reading cannot fail.
-  archive >> *_animation;
+  {
+    ProfileFctLog profile{"RawAnimation loading time"};
+    archive >> *_animation;
+  }
 
   return true;
 }
@@ -371,7 +399,10 @@ bool LoadTrackImpl(const char* _filename, _Track* _track) {
   }
 
   // Once the tag is validated, reading cannot fail.
-  archive >> *_track;
+  {
+    ProfileFctLog profile{"Track loading time"};
+    archive >> *_track;
+  }
 
   return true;
 }
@@ -410,7 +441,10 @@ bool LoadMesh(const char* _filename, ozz::sample::Mesh* _mesh) {
   }
 
   // Once the tag is validated, reading cannot fail.
-  archive >> *_mesh;
+  {
+    ProfileFctLog profile{"Mesh loading time"};
+    archive >> *_mesh;
+  }
 
   return true;
 }
@@ -428,9 +462,12 @@ bool LoadMeshes(const char* _filename,
   }
   ozz::io::IArchive archive(&file);
 
-  while (archive.TestTag<ozz::sample::Mesh>()) {
-    _meshes->resize(_meshes->size() + 1);
-    archive >> _meshes->back();
+  {
+    ProfileFctLog profile{"Meshes loading time"};
+    while (archive.TestTag<ozz::sample::Mesh>()) {
+      _meshes->resize(_meshes->size() + 1);
+      archive >> _meshes->back();
+    }
   }
 
   return true;

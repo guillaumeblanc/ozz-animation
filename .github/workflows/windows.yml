@@ -7,12 +7,20 @@ jobs:
       fail-fast: false
       matrix:
         build_type: [Debug]
+        platform: [x64]
         option: [default, ref, shared, no_fbx]
         include:
+          - build_type: Debug
+            platform: Win32
+            option: default
           - build_type: Release
+            platform: Win32
+            option: default
+          - build_type: Release
+            platform: x64
             option: default
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - name: Install fbx sdk
       if: matrix.option != 'no_fbx'
@@ -27,7 +35,7 @@ jobs:
       # Configure CMake in a 'build' subdirectory.
       run: |
         cmake --version
-        cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DBUILD_SHARED_LIBS=${{matrix.option == 'shared'}} -Dozz_build_tests=${{matrix.option != 'no_tests'}} -Dozz_build_simd_ref=${{matrix.option == 'ref'}} -Dozz_build_samples=${{matrix.option != 'no_sample'}} -Dozz_build_data=${{matrix.option != 'no_data'}} -Dozz_build_gltf=${{matrix.option != 'no_gltf'}}
+        cmake -A ${{matrix.platform}} -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DBUILD_SHARED_LIBS=${{matrix.option == 'shared'}} -Dozz_build_tests=${{matrix.option != 'no_tests'}} -Dozz_build_simd_ref=${{matrix.option == 'ref'}} -Dozz_build_samples=${{matrix.option != 'no_sample'}} -Dozz_build_data=${{matrix.option != 'no_data'}} -Dozz_build_gltf=${{matrix.option != 'no_gltf'}}
 
     - name: Build
       # Build your program with the given configuration

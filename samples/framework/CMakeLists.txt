@@ -30,6 +30,8 @@ add_library(sample_framework STATIC
 if(NOT EMSCRIPTEN)
   add_subdirectory(${PROJECT_SOURCE_DIR}/extern/glfw glfw)
   target_link_libraries(sample_framework glfw)
+else()
+  target_link_options(sample_framework PUBLIC -sUSE_GLFW=2 -sMIN_WEBGL_VERSION=2 -sMAX_WEBGL_VERSION=2)
 endif()
 
 target_link_libraries(sample_framework

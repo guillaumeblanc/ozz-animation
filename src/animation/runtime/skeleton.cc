@@ -156,14 +156,10 @@ void Skeleton::Load(ozz::io::IArchive& _archive, uint32_t _version) {
   // Reads name's buffer, they are all contiguous in the same buffer.
   _archive >> ozz::io::MakeArray(cursor, chars_count);
 
-  // Fixes up array of pointers. Stops at num_joints - 1, so that it doesn't
-  // read memory past the end of the buffer.
-  for (int i = 0; i < num_joints - 1; ++i) {
-    joint_names_[i] = cursor;
-    cursor += std::strlen(joint_names_[i]) + 1;
+  // Fixes up array of pointers.
+  for (int i = 0; i < num_joints;
+       joint_names_[i] = cursor, cursor += std::strlen(cursor) + 1, ++i) {
   }
-  // num_joints is > 0, as this was tested at the beginning of the function.
-  joint_names_[num_joints - 1] = cursor;
 
   _archive >> ozz::io::MakeArray(joint_parents_);
   _archive >> ozz::io::MakeArray(joint_rest_poses_);
