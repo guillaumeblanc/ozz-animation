@@ -196,10 +196,9 @@ void CopyTimePoints(const span<const float>& _times, float _inv_duration,
 }
 
 uint16_t TimePointToIndex(const span<const float>& _timepoints, float _time) {
-  const float* found = std::find(_timepoints.begin(), _timepoints.end(), _time);
-  if (found == _timepoints.end()) {
-    assert(found != _timepoints.end());
-  }
+  const float* found =
+      std::lower_bound(_timepoints.begin(), _timepoints.end(), _time);
+  assert(found != _timepoints.end() && *found == _time);
   const ptrdiff_t distance = found - _timepoints.begin();
   assert(distance >= 0 && distance < std::numeric_limits<uint16_t>::max());
   return static_cast<uint16_t>(distance);
