@@ -116,37 +116,51 @@ bool MotionExtractor::operator()(const RawAnimation& _input,
   const auto& input_track = _input.tracks[root_joint];
   auto& output_track = _output->tracks[root_joint];
 
-  // Baking reference
+  // Compute extraction reference
   auto ref =
       BuildReference(position_settings.reference, rotation_settings.reference,
                      GetJointLocalRestPose(_skeleton, root_joint), input_track);
 
-  // Copies root position
-  _motion_position->keyframes.clear();
-  for (const auto& joint_key : input_track.translations) {
-    // Takes expected components only.
-    const math::Float3 mask{1.f * position_settings.x,
-                            1.f * position_settings.y,
-                            1.f * position_settings.z};
-    const math::Float3 motion_p = (joint_key.value - ref.translation) * mask;
-    _motion_position->keyframes.push_back(
-        {ozz::animation::offline::RawTrackInterpolation::kLinear,
-         joint_key.time / _input.duration, motion_p});
-  }
+  // Extract root motion
+  // -----------------------------------------------------------------------------
 
-  // Copies root rotation
-  _motion_rotation->keyframes.clear();
-  for (const auto& joint_key : input_track.rotations) {
-    // Decompose rotation to take expected components only.
-    const math::Float3 mask{1.f * rotation_settings.y,   // Yaw
-                            1.f * rotation_settings.x,   // Pitch
-                            1.f * rotation_settings.z};  // Roll
-    const auto euler = ToEuler(joint_key.value * Conjugate(ref.rotation));
-    const auto motion_q = math::Quaternion::FromEuler(euler * mask);
-    _motion_rotation->keyframes.push_back(
-        {ozz::animation::offline::RawTrackInterpolation::kLinear,
-         joint_key.time / _input.duration, motion_q});
-  }
+  // Copy function, used to copy aniamtion keyframes to motion keyframes.
+  auto extract = [duration = _input.duration](const auto& _keframes,
+                                              auto _extract, auto& output) {
+    output.clear();
+    for (const auto& joint_key : _keframes) {
+      const auto& motion = _extract(joint_key.value);
+      output.push_back({ozz::animation::offline::RawTrackInterpolation::kLinear,
+                        joint_key.time / duration, motion});
+    }
+  };
+
+  // Copies root position, selecting only expecting components.
+  const math::Float3 position_mask{1.f * position_settings.x,
+                                   1.f * position_settings.y,
+                                   1.f * position_settings.z};
+  extract(
+      input_track.translations,
+      [&mask = position_mask, &ref = ref.translation](const auto& _joint) {
+        return (_joint - ref) * mask;
+      },
+      _motion_position->keyframes);
+
+  // Copies root rotation, selecting only expecting decomposed rotation
+  // components.
+  const math::Float3 rotation_mask{1.f * rotation_settings.y,   // Yaw
+                                   1.f * rotation_settings.x,   // Pitch
+                                   1.f * rotation_settings.z};  // Roll
+  extract(
+      input_track.rotations,
+      [&mask = rotation_mask, &ref = ref.rotation](const auto& _joint) {
+        const auto euler = ToEuler(_joint * Conjugate(ref));
+        return math::Quaternion::FromEuler(euler * mask);
+      },
+      _motion_rotation->keyframes);
+
+  // Bake
+  // -----------------------------------------------------------------------------
 
   // Extract root motion rotation from the animation, aka bake it.
   if (rotation_settings.bake) {
@@ -169,7 +183,44 @@ bool MotionExtractor::operator()(const RawAnimation& _input,
     }
   }
 
+  // Loopify
+  // -----------------------------------------------------------------------------
+  // Distributes the difference between the first and last keyframes all along
+  // animation duration, so tha animation can loop.
+  auto loopify = [](auto& _keyframes, auto _diff, auto _lerp) {
+    if (_keyframes.size() < 2) {
+      return;
+    }
+    const auto delta = _diff(_keyframes.front().value, _keyframes.back().value);
+    for (size_t i = 0; i < _keyframes.size(); i++) {
+      const float alpha = i / (_keyframes.size() - 1.f);
+      auto& value = _keyframes[i].value;
+      value = _lerp(value, delta, alpha);
+    }
+  };
+
+  // Loopify translations
+  if (rotation_settings.loop) {
+    loopify(
+        _motion_rotation->keyframes,
+        [](auto _front, auto _back) { return _front * Conjugate(_back); },
+        [](auto _value, auto _delta, float _alpha) {
+          return NLerp(math::Quaternion::identity(), _delta, _alpha) * _value;
+        });
+  }
+
+  // Loopify rotations
+  if (position_settings.loop) {
+    loopify(
+        _motion_position->keyframes,
+        [](auto _front, auto _back) { return _front - _back; },
+        [](auto _value, auto _delta, float _alpha) {
+          return _delta * _alpha + _value;
+        });
+  }
+
   // Fixup animation translations.
+  // -----------------------------------------------------------------------------
   // When root motion is applied, then root rotation is applied before joint
   // translation. Hence joint's translation should be corrected to support this
   // new composition order.

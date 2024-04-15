@@ -351,6 +351,7 @@ ozz::animation::offline::MotionExtractor::Settings ProcessMotionTrackSettings(
          "Reference should have been checked during config validation");
 
   settings.bake = _config["bake"].asBool();
+  settings.loop = _config["loop"].asBool();
 
   return settings;
 }

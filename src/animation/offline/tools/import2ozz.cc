@@ -161,7 +161,7 @@ int OzzImporter::operator()(int _argc, const char** _argv) {
                     << std::endl;
     return EXIT_FAILURE;
   }
-  ozz::log::Log() << "Existing importer successfully." << std::endl;
+  ozz::log::Log() << "Exiting importer successfully." << std::endl;
   return EXIT_SUCCESS;
 }
 

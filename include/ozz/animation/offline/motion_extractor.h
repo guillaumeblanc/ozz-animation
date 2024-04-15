@@ -64,23 +64,32 @@ class OZZ_ANIMOFFLINE_DLL MotionExtractor {
 
   // Defines the reference transform to use while extracting root motion.
   enum class Reference {
-    kIdentity,   // Identity / global reference
-    kSkeleton,   // Use skeleton rest pose root bone transform
-    kAnimation,  // Uses root transform of the animation's first frame
+    kIdentity,   // Identity / global reference.
+    kSkeleton,   // Use skeleton rest pose root bone transform.
+    kAnimation,  // Uses root transform of the animation's first frame.
   };
 
   struct Settings {
-    bool x, y, z;         // Extract X, Y, Z components
-    Reference reference;  // Extracting reference
-    bool bake;            // Bake extracted data to output animation
+    bool x, y, z;         // Extract X, Y, Z components.
+    Reference reference;  // Extracting reference.
+    bool bake;            // Bake extracted data to output animation.
+    bool loop;  // Makes end transformation equal to begin to make animation
+                // loopable. Difference between end and begin is distributed all
+                // along animation duration.
   };
 
-  Settings position_settings = {true, false, true,     // X and Z projection
+  Settings position_settings = {true,
+                                false,
+                                true,                  // X and Z projection
                                 Reference::kSkeleton,  // Reference
-                                true};               // Bake extracted position
-  Settings rotation_settings = {false, true, false,  // Y / Yaw only
+                                true,    // Bake extracted position
+                                false};  // Don't loop position
+  Settings rotation_settings = {false,
+                                true,
+                                false,                 // Y / Yaw only
                                 Reference::kSkeleton,  // Reference
-                                true};  // Bake extracted rotation
+                                true,    // Bake extracted rotation
+                                false};  // Don't loop rotation
 };
 }  // namespace offline
 }  // namespace animation

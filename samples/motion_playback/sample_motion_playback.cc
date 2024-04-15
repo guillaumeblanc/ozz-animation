@@ -63,25 +63,35 @@ class MotionPlaybackSampleApplication : public ozz::sample::Application {
   // Updates current animation time and skeleton pose.
   virtual bool OnUpdate(float _dt, float) {
     // Updates current animation time.
+    //-------------------------------------------------------------------------
     int loops = controller_.Update(animation_, _dt);
 
     // Updates motion.
     //-------------------------------------------------------------------------
 
     // Updates motion accumulator.
-    if (!motion_accumulator_.Update(motion_track_, controller_.time_ratio(),
-                                    loops)) {
+    const auto rot =
+        Rot(_dt * controller_.playback_speed() * controller_.playing());
+    if (!motion_sampler_.Update(motion_track_, controller_.time_ratio(), loops,
+                                rot)) {
       return false;
     }
 
     // Updates the character transform matrix.
-    const auto& transform = motion_accumulator_.transform();
+    const auto& transform = motion_sampler_.current;
     transform_ = ozz::math::Float4x4::FromAffine(
         apply_motion_position_ ? transform.translation
                                : ozz::math::Float3::zero(),
         apply_motion_rotation_ ? transform.rotation
                                : ozz::math::Quaternion::identity(),
         transform.scale);
+
+    if (controller_.playing()) {
+      trace_.push_back(transform.translation);
+      if (static_cast<int>(trace_.size()) > trace_size_) {
+        trace_.erase(trace_.begin(), trace_.end() - trace_size_);
+      }
+    }
 
     // Updates animation.
     //-------------------------------------------------------------------------
@@ -114,18 +124,33 @@ class MotionPlaybackSampleApplication : public ozz::sample::Application {
         _renderer->DrawPosture(skeleton_, make_span(models_), transform_);
 
     if (show_box_) {
-      const ozz::math::Box bound(ozz::math::Float3(-.3f, 0, -.2f),
+      const ozz::math::Box bound(ozz::math::Float3(-.3f, 0.f, -.2f),
                                  ozz::math::Float3(.3f, 1.8f, .2f));
       success &= _renderer->DrawBoxIm(bound, transform_, ozz::sample::kWhite);
     }
 
+    if (show_trace_) {
+      success &= _renderer->DrawLineStrip(make_span(trace_), ozz::sample::kRed,
+                                          ozz::math::Float4x4::identity());
+    }
+
     if (show_motion_) {
-      success &= ozz::sample::DrawMotion(_renderer, motion_track_,
-                                         controller_.time_ratio(),
-                                         animation_.duration(), transform_);
+      const float step = 1.f / (animation_.duration() * 60.f);
+      const float at = controller_.time_ratio();
+      const float from = floating_display_ ? at - floating_before_ : 0.f;
+      const float to = floating_display_ ? at + floating_after_ : 1.f;
+      success &= ozz::sample::DrawMotion(_renderer, motion_track_, from, at, to,
+                                         step, transform_,
+                                         Rot(step * animation_.duration()));
     }
 
     return success;
+  }
+
+  // Compute rotation to apply for the given _duration
+  ozz::math::Quaternion Rot(float _duration) const {
+    const float angle = angular_velocity_ * _duration;
+    return ozz::math::Quaternion::FromEuler({angle, 0, 0});
   }
 
   virtual bool OnInitialize() {
@@ -179,12 +204,38 @@ class MotionPlaybackSampleApplication : public ozz::sample::Application {
       if (open) {
         _im_gui->DoCheckBox("Use motion position", &apply_motion_position_);
         _im_gui->DoCheckBox("Use motion rotation", &apply_motion_rotation_);
-        _im_gui->DoCheckBox("Show box", &show_box_);
-        _im_gui->DoCheckBox("Show motion", &show_motion_);
-
         if (_im_gui->DoButton("Reset accumulator")) {
-          motion_accumulator_.Teleport(ozz::math::Transform::identity());
+          motion_sampler_.Teleport(ozz::math::Transform::identity());
         }
+      }
+    }
+    {
+      static bool open = true;
+      ozz::sample::ImGui::OpenClose oc(_im_gui, "Motion display", &open);
+      if (open) {
+        char label[64];
+        _im_gui->DoCheckBox("Show box", &show_box_);
+
+        _im_gui->DoCheckBox("Show trace", &show_trace_);
+        std::snprintf(label, sizeof(label), "Trace size: %d", trace_size_);
+        _im_gui->DoSlider(label, 100, 2000, &trace_size_);
+
+        _im_gui->DoCheckBox("Show motion", &show_motion_);
+        _im_gui->DoCheckBox("Floating display", &floating_display_);
+
+        std::snprintf(label, sizeof(label), "Motion before: %.0f%%",
+                      floating_before_ * 100.f);
+        _im_gui->DoSlider(label, 0.f, 3.f, &floating_before_, 1.f,
+                          floating_display_);
+        std::snprintf(label, sizeof(label), "Motion after: %.0f%%",
+                      floating_after_ * 100.f);
+        _im_gui->DoSlider(label, 0.f, 3.f, &floating_after_, 1.f,
+                          floating_display_);
+
+        std::snprintf(label, sizeof(label), "Angular vel: %.0f deg/s",
+                      angular_velocity_ * 180.f / ozz::math::kPi);
+        _im_gui->DoSlider(label, -ozz::math::kPi_2, ozz::math::kPi_2,
+                          &angular_velocity_);
       }
     }
     return true;
@@ -209,7 +260,7 @@ class MotionPlaybackSampleApplication : public ozz::sample::Application {
   ozz::sample::MotionTrack motion_track_;
 
   // Motion accumulator helper
-  ozz::sample::MotionAccumulator motion_accumulator_;
+  ozz::sample::MotionSampler motion_sampler_;
 
   // Character transform
   ozz::math::Float4x4 transform_;
@@ -223,13 +274,30 @@ class MotionPlaybackSampleApplication : public ozz::sample::Application {
   // Buffer of model space matrices.
   ozz::vector<ozz::math::Float4x4> models_;
 
-  // Show box at root transform
-  bool show_box_ = true;
-  bool show_motion_ = true;
-
   // GUI options to apply root motion.
   bool apply_motion_position_ = true;
   bool apply_motion_rotation_ = true;
+
+  float angular_velocity_ = 0;  // ozz::math::kPi_4;
+
+  // Debug display UI options
+
+  // Show box at root transform
+  bool show_box_ = true;
+
+  // Trace of last positions
+  bool show_trace_ = true;
+  int trace_size_ = 500;
+  ozz::vector<ozz::math::Float3> trace_;
+
+  // Motion display options
+  bool show_motion_ = true;
+
+  // Floatting display means that the motion is displayed around the current
+  // time, instead of from begin to end.
+  bool floating_display_ = true;
+  float floating_before_ = .2f;
+  float floating_after_ = 1.f;
 };
 
 int main(int _argc, const char** _argv) {
