@@ -29,15 +29,13 @@
 
 #include "camera.h"
 
+#include "framework/application.h"
+#include "framework/imgui.h"
 #include "ozz/base/log.h"
 #include "ozz/base/maths/box.h"
 #include "ozz/base/maths/math_constant.h"
 #include "ozz/base/maths/math_ex.h"
 #include "ozz/base/platform.h"
-
-#include "framework/application.h"
-#include "framework/imgui.h"
-
 #include "renderer_impl.h"
 
 using ozz::math::Float2;
@@ -96,8 +94,7 @@ void Camera::Update(const math::Box& _box, float _delta_time,
   const Controls controls = UpdateControls(_delta_time);
 
   // Disable autoframing according to inputs.
-  auto_framing_ &=
-      !controls.panning && !controls.zooming && !controls.zooming_wheel;
+  auto_framing_ &= !controls.panning;
 }
 
 void Camera::Update(const math::Float4x4& _transform, const math::Box& _box,
@@ -127,8 +124,7 @@ void Camera::Update(const math::Float4x4& _transform, const math::Box& _box,
   const Controls controls = UpdateControls(_delta_time);
 
   // Disable autoframing according to inputs.
-  auto_framing_ &= !controls.panning && !controls.rotating &&
-                   !controls.zooming && !controls.zooming_wheel;
+  auto_framing_ &= !controls.panning;
 
   if (auto_framing_) {
     view_ = Invert(_transform);
