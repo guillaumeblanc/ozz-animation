@@ -54,39 +54,42 @@ bool LoadMotionTrack(const char* _filename, MotionTrack* _track);
 
 // Helper object that manages motion accumulation to compute character's
 // transform.
-class MotionAccumulator {
- public:
-  const ozz::math::Transform& transform() const { return current; }
-
-  // Updates the accumulator with a new motion sample.
-  bool Update(const MotionTrack& _motion, float _ratio, int _loops);
+struct MotionAccumulator {
+  //  Accumulates motion delta (new - last) and updates current transform.
+  void Update(const ozz::math::Transform& _new,
+              const ozz::math::Quaternion& _rot);
 
   // Tells the accumulator that the _new transform is the new origin.
   // This is useful when animation loops, so next delta is computed from the new
   // origin.
-  void ResetOrigin(const ozz::math::Transform& _new) { last = _new; }
+  void ResetOrigin(const ozz::math::Transform& _origin);
 
   // Teleports accumulator to a new transform. This also resets the origin, so
   // next delta is computed from the new origin.
-  void Teleport(const ozz::math::Transform& _new) { current = last = _new; }
-
- private:
-  // Accumulates motion delta (new - last) and updates current transform.
-  void Update(const ozz::math::Transform& _new);
+  void Teleport(const ozz::math::Transform& _origin);
 
   // Last value sample from the motion track, used to compute delta.
   ozz::math::Transform last = ozz::math::Transform::identity();
 
   // Character's current transform.
   ozz::math::Transform current = ozz::math::Transform::identity();
+
+  ozz::math::Quaternion accum_rotation = ozz::math::Quaternion::identity();
+};
+
+struct MotionSampler : public MotionAccumulator {
+  // Updates the accumulator with a new motion sample.
+  bool Update(const MotionTrack& _motion, float _ratio, int _loops,
+              const ozz::math::Quaternion& _angular_velocity);
 };
 
 bool SampleMotion(const MotionTrack& _tracks, float _ratio,
                   ozz::math::Transform* _transform);
 
 bool DrawMotion(ozz::sample::Renderer* _renderer,
-                const MotionTrack& _motion_track, float _at, float _step,
-                const ozz::math::Float4x4& _transform);
+                const MotionTrack& _motion_track, float _from, float _at,
+                float _to, float _step, const ozz::math::Float4x4& _transform,
+                const ozz::math::Quaternion& _rot);
 
 }  // namespace sample
 }  // namespace ozz

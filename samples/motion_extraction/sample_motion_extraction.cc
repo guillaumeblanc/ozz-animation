@@ -147,8 +147,9 @@ class MotionSampleApplication : public ozz::sample::Application {
 
     // Draw motion tracks.
     const float at = controller_.time_ratio();
-    success &= ozz::sample::DrawMotion(_renderer, motion_track_, at,
-                                       animation_.duration(), transform_);
+    success &= ozz::sample::DrawMotion(_renderer, motion_track_, 0.f, at, 1.f,
+                                       animation_.duration(), transform_,
+                                       ozz::math::Quaternion::identity());
     return success;
   }
 

@@ -104,54 +104,148 @@ bool SampleMotion(const MotionTrack& _tracks, float _ratio,
 }
 
 // Accumulates motion deltas (new transform - last).
-void MotionAccumulator::Update(const ozz::math::Transform& _new) {
-  const ozz::math::Float3 delta_p = _new.translation - last.translation;
-  current.translation = current.translation + delta_p;
+void MotionAccumulator::Update(const ozz::math::Transform& _new,
+                               const ozz::math::Quaternion& _rot) {
+  // Accumulates rotation.
+  // Normalizes to avoid accumulating error.
+  accum_rotation = Normalize(accum_rotation * _rot);
 
+  // Computes delta translation.
+  const ozz::math::Float3 delta_p = _new.translation - last.translation;
+  current.translation =
+      current.translation + TransformVector(accum_rotation, delta_p);
+
+  // Computes delta rotation.
   const ozz::math::Quaternion delta_r =
       Conjugate(last.rotation) * _new.rotation;
-  current.rotation = Normalize(current.rotation *
-                               delta_r);  // Avoid accumulating error that leads
-                                          // to non-normalized quaternions.
+  current.rotation =
+      Normalize(current.rotation * delta_r *
+                _rot);  // Normalizes to avoid accumulating error.
+
+  // Next time, delta will be computed from the _new transform.
   last = _new;
 }
 
+void MotionAccumulator::ResetOrigin(const ozz::math::Transform& _origin) {
+  last = _origin;
+}
+
+void MotionAccumulator::Teleport(const ozz::math::Transform& _origin) {
+  // Resets current transform to new _origin
+  current = last = _origin;
+
+  accum_rotation = ozz::math::Quaternion::identity();
+}
+
 // Updates the accumulator with a new motion sample.
-bool MotionAccumulator::Update(const MotionTrack& _motion, float _ratio,
-                               int _loops) {
-  ozz::math::Transform motion_transform;
-  for (; _loops; _loops > 0 ? --_loops : ++_loops) {
+bool MotionSampler::Update(const MotionTrack& _motion, float _ratio, int _loops,
+                           const ozz::math::Quaternion& _rot) {
+  ozz::math::Transform sample;
+
+  if (_loops != 0) {
     // When animation is looping, it's important to take into account the
-    // motion done during the loop.
+    // motion done during the loop(s).
 
-    // Samples motion at the loop end (begin or end of animation depending on
-    // playback/loop direction).
-    if (!SampleMotion(_motion, _loops > 0 ? 1.f : 0.f, &motion_transform)) {
+    // Uses a local accumulator to accumulate motion during loops.
+    MotionAccumulator local_accumulator{last, last};
+
+    for (; _loops; _loops > 0 ? --_loops : ++_loops) {
+      // Samples motion at loop end (or begin depending on playback direction).
+      if (!SampleMotion(_motion, _loops > 0 ? 1.f : 0.f, &sample)) {
+        return false;
+      }
+      local_accumulator.Update(sample, ozz::math::Quaternion::identity());
+
+      // Samples motion at the new origin.
+      if (!SampleMotion(_motion, _loops > 0 ? 0.f : 1.f, &sample)) {
+        return false;
+      }
+      local_accumulator.ResetOrigin(sample);
+    }
+
+    // Samples motion at the current ratio (from last known position, or the
+    // reset one).
+    if (!SampleMotion(_motion, _ratio, &sample)) {
       return false;
     }
-    Update(motion_transform);
+    local_accumulator.Update(sample, ozz::math::Quaternion::identity());
 
-    // Samples motion at the new origin (begin or end of animation depending
-    // on playback/loop direction).
-    if (!SampleMotion(_motion, _loops > 0 ? 0.f : 1.f, &motion_transform)) {
+    // Update "this" accumulator with the one accumulated during the loop(s).
+    // This way, _rot is applied to the whole motion, including what happened
+    // during the loop(s).
+    MotionAccumulator::Update(local_accumulator.current, _rot);
+
+    // Next time, delta will be computed from the new origin, aka after the
+    // loop.
+    ResetOrigin(sample);
+  } else {
+    // Samples motion at the current ratio (from last known position, or the
+    // reset one).
+    if (!SampleMotion(_motion, _ratio, &sample)) {
       return false;
     }
-    ResetOrigin(motion_transform);
+    // Apply motion
+    MotionAccumulator::Update(sample, _rot);
   }
-
-  // Samples motion at the current ratio (from last known position, or the
-  // reset one).
-  if (!SampleMotion(_motion, _ratio, &motion_transform)) {
-    return false;
-  }
-  Update(motion_transform);
 
   return true;
 }
 
 bool DrawMotion(ozz::sample::Renderer* _renderer,
-                const MotionTrack& _motion_track, float _at, float _duration,
-                const ozz::math::Float4x4& _transform) {
+                const MotionTrack& _motion_track, float _from, float _at,
+                float _to, float _step, const ozz::math::Float4x4& _transform,
+                const ozz::math::Quaternion& _rot) {
+  if (_step <= 0.f || _to <= _from) {
+    return false;
+  }
+
+  bool success = true;
+
+  // Find track current transform in order to correctly place the motion at
+  // character transform.
+  ozz::math::Transform at_transform;
+  SampleMotion(_motion_track, _at, &at_transform);
+  const auto transform =
+      _transform * Invert(ozz::math::Float4x4::FromAffine(at_transform));
+
+  // const float step = 1.f / (_loop_duration * 100.f);  // xHz sampling
+  // auto rot = SLerp(ozz::math::Quaternion::identity(), _rot, _step);
+  // auto rot = _rot;
+
+  MotionSampler sampler;
+  ozz::vector<ozz::math::Float3> points;
+  auto sample = [&sampler, &_motion_track, &points](
+                    float _t, float _prev, const ozz::math::Quaternion& _rot) {
+    int loop = std::floor(_t) - std::floor(_prev);
+    bool success =
+        sampler.Update(_motion_track, _t - std::floor(_t), loop, _rot);
+    points.push_back(sampler.current.translation);
+    return success;
+  };
+
+  // Present to past
+  sampler.Teleport(at_transform);
+  for (float t = _at, prev = t; t > _from - _step; prev = t, t -= _step) {
+    success &= sample(ozz::math::Max(t, _from), prev, Conjugate(_rot));
+  }
+  success &= _renderer->DrawLineStrip(make_span(points), ozz::sample::kGreen,
+                                      transform);
+
+  // Present to future
+  points.clear();
+  sampler.Teleport(at_transform);
+  for (float t = _at, prev = t; t < _to + _step; prev = t, t += _step) {
+    success &= sample(ozz::math::Min(t, _to), prev, _rot);
+  }
+  success &= _renderer->DrawLineStrip(make_span(points), ozz::sample::kWhite,
+                                      transform);
+
+  return success;
+}
+
+bool DrawMotion2(ozz::sample::Renderer* _renderer,
+                 const MotionTrack& _motion_track, float _at, float _duration,
+                 const ozz::math::Float4x4& _transform) {
   if (_duration <= 0.f) {
     return false;
   }

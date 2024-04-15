@@ -96,6 +96,9 @@ class PlaybackController {
   // Gets loop mode.
   bool loop() const { return loop_; }
 
+  // Get if animation is playing, otherwise it is paused.
+  bool playing() const { return play_; }
+
   // Updates animation time if in "play" state, according to playback speed and
   // given frame time _dt.
   // Returns the number of loops that happened during update. A positive number
