@@ -75,6 +75,7 @@
             "components" : "xz", //  Components to import, can be any composition of x, y and z.
             "reference" : "skeleton", //  Root motion extraction reference pose, can be identity, skeleton or animation.
             "bake" : true, //  Bake extracted motion into animation.
+            "loop" : false, //  Distributes begin - end difference to make animation loopable.
             "raw" : false, //  Outputs raw track.
             "optimize" : true, //  Activates keyframes optimization.
             "optimization_tolerance" : 0.001 //  Optimization tolerance for the optimized track
@@ -85,6 +86,7 @@
             "components" : "y", //  Components to import, can be any composition of x, y and z.
             "reference" : "skeleton", //  Root motion extraction reference pose, can be identity, skeleton or animation.
             "bake" : true, //  Bake extracted motion into animation.
+            "loop" : false, //  Distributes begin - end difference to make animation loopable.
             "raw" : false, //  Outputs raw track.
             "optimize" : true, //  Activates keyframes optimization.
             "optimization_tolerance" : 0.001 //  Optimization tolerance for the optimized track

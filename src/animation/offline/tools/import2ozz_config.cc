@@ -341,6 +341,8 @@ bool SanitizeTrackMotionComponent(Json::Value& _root,
   }
 
   MakeDefault(_root, "bake", true, "Bake extracted motion into animation.");
+  MakeDefault(_root, "loop", false,
+              "Distributes begin - end difference to make animation loopable.");
 
   MakeDefault(_root, "raw", false, "Outputs raw track.");
   MakeDefault(_root, "optimize", true, "Activates keyframes optimization.");

@@ -3,8 +3,8 @@ add_custom_command(
   DEPENDS $<$<BOOL:${ozz_build_fbx}>:BUILD_DATA>
           "${CMAKE_CURRENT_LIST_DIR}/README.md"
           "${ozz_media_directory}/bin/pab_skeleton.ozz"
-          "${ozz_media_directory}/bin/pab_atlas_no_motion.ozz"
-          "${ozz_media_directory}/bin/pab_atlas_motion_track.ozz"
+          "${ozz_media_directory}/bin/pab_jog_no_motion.ozz"
+          "${ozz_media_directory}/bin/pab_jog_motion_track.ozz"
   OUTPUT  "${CMAKE_CURRENT_BINARY_DIR}/README.md"
           "${CMAKE_CURRENT_BINARY_DIR}/media/skeleton.ozz"
           "${CMAKE_CURRENT_BINARY_DIR}/media/animation.ozz"
@@ -12,8 +12,8 @@ add_custom_command(
   COMMAND ${CMAKE_COMMAND} -E make_directory media
   COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_LIST_DIR}/README.md" .
   COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/pab_skeleton.ozz" "./media/skeleton.ozz"
-  COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/pab_atlas_no_motion.ozz" "./media/animation.ozz"
-  COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/pab_atlas_motion_track.ozz" "./media/motion.ozz"
+  COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/pab_jog_no_motion.ozz" "./media/animation.ozz"
+  COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/pab_jog_motion_track.ozz" "./media/motion.ozz"
   VERBATIM)
 
 add_executable(sample_motion_playback

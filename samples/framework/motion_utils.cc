@@ -216,7 +216,7 @@ bool DrawMotion(ozz::sample::Renderer* _renderer,
   ozz::vector<ozz::math::Float3> points;
   auto sample = [&sampler, &_motion_track, &points](
                     float _t, float _prev, const ozz::math::Quaternion& _rot) {
-    int loop = std::floor(_t) - std::floor(_prev);
+    int loop = static_cast<int>(std::floor(_t) - std::floor(_prev));
     bool success =
         sampler.Update(_motion_track, _t - std::floor(_t), loop, _rot);
     points.push_back(sampler.current.translation);

@@ -88,7 +88,7 @@ class MotionPlaybackSampleApplication : public ozz::sample::Application {
 
     if (controller_.playing()) {
       trace_.push_back(transform.translation);
-      if (trace_.size() > trace_size_) {
+      if (static_cast<int>(trace_.size()) > trace_size_) {
         trace_.erase(trace_.begin(), trace_.end() - trace_size_);
       }
     }

@@ -147,9 +147,10 @@ class MotionSampleApplication : public ozz::sample::Application {
 
     // Draw motion tracks.
     const float at = controller_.time_ratio();
-    success &= ozz::sample::DrawMotion(_renderer, motion_track_, 0.f, at, 1.f,
-                                       animation_.duration(), transform_,
-                                       ozz::math::Quaternion::identity());
+    const float step = 1.f / (animation_.duration() * 60.f);
+    success &=
+        ozz::sample::DrawMotion(_renderer, motion_track_, 0.f, at, 1.f, step,
+                                transform_, ozz::math::Quaternion::identity());
     return success;
   }
 
@@ -268,51 +269,64 @@ class MotionSampleApplication : public ozz::sample::Application {
       static bool open = true;
       ozz::sample::ImGui::OpenClose oc(_im_gui, "Motion extraction", &open);
       {
-        ozz::sample::ImGui::OpenClose ocp(_im_gui, "Position", nullptr);
-        _im_gui->DoLabel("Components");
-        rebuild |=
-            _im_gui->DoCheckBox("x", &motion_extractor_.position_settings.x);
-        rebuild |=
-            _im_gui->DoCheckBox("y", &motion_extractor_.position_settings.y);
-        rebuild |=
-            _im_gui->DoCheckBox("z", &motion_extractor_.position_settings.z);
+        static bool position = true;
+        ozz::sample::ImGui::OpenClose ocp(_im_gui, "Position", &position);
+        {
+          ozz::sample::ImGui::OpenClose occ(_im_gui, "Components", nullptr);
+          rebuild |=
+              _im_gui->DoCheckBox("x", &motion_extractor_.position_settings.x);
+          rebuild |=
+              _im_gui->DoCheckBox("y", &motion_extractor_.position_settings.y);
+          rebuild |=
+              _im_gui->DoCheckBox("z", &motion_extractor_.position_settings.z);
+        }
 
-        _im_gui->DoLabel("Reference");
-        int ref =
-            static_cast<int>(motion_extractor_.position_settings.reference);
-        rebuild |= _im_gui->DoRadioButton(0, "Identity", &ref);
-        rebuild |= _im_gui->DoRadioButton(1, "Skeleton", &ref);
-        rebuild |= _im_gui->DoRadioButton(2, "First frame", &ref);
-        motion_extractor_.position_settings.reference =
-            static_cast<ozz::animation::offline::MotionExtractor::Reference>(
-                ref);
+        {
+          ozz::sample::ImGui::OpenClose ocr(_im_gui, "Reference", nullptr);
+          int ref =
+              static_cast<int>(motion_extractor_.position_settings.reference);
+          rebuild |= _im_gui->DoRadioButton(0, "Identity", &ref);
+          rebuild |= _im_gui->DoRadioButton(1, "Skeleton", &ref);
+          rebuild |= _im_gui->DoRadioButton(2, "Animation", &ref);
+          motion_extractor_.position_settings.reference =
+              static_cast<ozz::animation::offline::MotionExtractor::Reference>(
+                  ref);
+        }
+        rebuild |= _im_gui->DoCheckBox(
+            "Bake", &motion_extractor_.position_settings.bake);
+        rebuild |= _im_gui->DoCheckBox(
+            "Loop", &motion_extractor_.position_settings.loop);
       }
 
       {
-        ozz::sample::ImGui::OpenClose ocp(_im_gui, "Rotation", nullptr);
-        _im_gui->DoLabel("Components");
-        rebuild |= _im_gui->DoCheckBox("x / pitch",
-                                       &motion_extractor_.rotation_settings.x);
-        rebuild |= _im_gui->DoCheckBox("y / yaw",
-                                       &motion_extractor_.rotation_settings.y);
-        rebuild |= _im_gui->DoCheckBox("z / roll",
-                                       &motion_extractor_.rotation_settings.z);
+        static bool rotation = true;
+        ozz::sample::ImGui::OpenClose ocp(_im_gui, "Rotation", &rotation);
+        {
+          ozz::sample::ImGui::OpenClose occ(_im_gui, "Components", nullptr);
+          rebuild |= _im_gui->DoCheckBox(
+              "x / pitch", &motion_extractor_.rotation_settings.x);
+          rebuild |= _im_gui->DoCheckBox(
+              "y / yaw", &motion_extractor_.rotation_settings.y);
+          rebuild |= _im_gui->DoCheckBox(
+              "z / roll", &motion_extractor_.rotation_settings.z);
+        }
 
-        _im_gui->DoLabel("Reference");
-        int ref =
-            static_cast<int>(motion_extractor_.rotation_settings.reference);
-        rebuild |= _im_gui->DoRadioButton(0, "Identity", &ref);
-        rebuild |= _im_gui->DoRadioButton(1, "Skeleton", &ref);
-        rebuild |= _im_gui->DoRadioButton(2, "First frame", &ref);
-        motion_extractor_.rotation_settings.reference =
-            static_cast<ozz::animation::offline::MotionExtractor::Reference>(
-                ref);
+        {
+          ozz::sample::ImGui::OpenClose ocr(_im_gui, "Reference", nullptr);
+          int ref =
+              static_cast<int>(motion_extractor_.rotation_settings.reference);
+          rebuild |= _im_gui->DoRadioButton(0, "Identity", &ref);
+          rebuild |= _im_gui->DoRadioButton(1, "Skeleton", &ref);
+          rebuild |= _im_gui->DoRadioButton(2, "Animation", &ref);
+          motion_extractor_.rotation_settings.reference =
+              static_cast<ozz::animation::offline::MotionExtractor::Reference>(
+                  ref);
+        }
+        rebuild |= _im_gui->DoCheckBox(
+            "Bake", &motion_extractor_.rotation_settings.bake);
+        rebuild |= _im_gui->DoCheckBox(
+            "Loop", &motion_extractor_.rotation_settings.loop);
       }
-
-      rebuild |= _im_gui->DoCheckBox("Bake position",
-                                     &motion_extractor_.position_settings.bake);
-      rebuild |= _im_gui->DoCheckBox("Bake rotation",
-                                     &motion_extractor_.rotation_settings.bake);
 
       if (rebuild) {
         if (!ExtractMotion()) {
