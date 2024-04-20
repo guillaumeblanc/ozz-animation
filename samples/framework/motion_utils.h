@@ -56,8 +56,14 @@ bool LoadMotionTrack(const char* _filename, MotionTrack* _track);
 // transform.
 struct MotionAccumulator {
   //  Accumulates motion delta (new - last) and updates current transform.
+  void Update(const ozz::math::Transform& _new);
+
+  //  Accumulates motion delta (new - last) and updates current transform.
+  // _delta_rotation is the rotation to pply to deform the path since last
+  // update. Hence, user is responsible for taking care of applying delta time
+  // if he wants to achieve a specific angular speed.
   void Update(const ozz::math::Transform& _new,
-              const ozz::math::Quaternion& _rot);
+              const ozz::math::Quaternion& _delta_rotation);
 
   // Tells the accumulator that the _new transform is the new origin.
   // This is useful when animation loops, so next delta is computed from the new
@@ -74,22 +80,39 @@ struct MotionAccumulator {
   // Character's current transform.
   ozz::math::Transform current = ozz::math::Transform::identity();
 
-  ozz::math::Quaternion accum_rotation = ozz::math::Quaternion::identity();
+  // Accumulated rotation (since last teleport).
+  ozz::math::Quaternion rotation_accum_ = ozz::math::Quaternion::identity();
 };
 
+// Helper object samples a motion track to update a MotionAccumulator.
 struct MotionSampler : public MotionAccumulator {
   // Updates the accumulator with a new motion sample.
+  bool Update(const MotionTrack& _motion, float _ratio, int _loops);
+
+  // Updates the accumulator with a new motion sample.
+  // _delta_rotation is the rotation to pply to deform the path since last
+  // update. Hence, user is responsible for taking care of applying delta time
+  // if he wants to achieve a specific angular speed.
   bool Update(const MotionTrack& _motion, float _ratio, int _loops,
-              const ozz::math::Quaternion& _angular_velocity);
+              const ozz::math::Quaternion& _delta_rotation);
 };
 
+// Samples a motion track at a given ratio.
 bool SampleMotion(const MotionTrack& _tracks, float _ratio,
                   ozz::math::Transform* _transform);
 
+// Draws a motion track around ratio _at, in range [_from, _to].
+// _step is the delta ratio between each sample / point.
+bool DrawMotion(ozz::sample::Renderer* _renderer,
+                const MotionTrack& _motion_track, float _from, float _at,
+                float _to, float _step, const ozz::math::Float4x4& _transform);
+
+// See DrawMotion above. This version allows to apply a delta rotation to the
+// path, where _delta_rotation is the rotation to apply each step.
 bool DrawMotion(ozz::sample::Renderer* _renderer,
                 const MotionTrack& _motion_track, float _from, float _at,
                 float _to, float _step, const ozz::math::Float4x4& _transform,
-                const ozz::math::Quaternion& _rot);
+                const ozz::math::Quaternion& _delta_rotation);
 
 }  // namespace sample
 }  // namespace ozz
