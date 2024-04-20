@@ -74,8 +74,8 @@ collection: home
         <div class="w3-center w3-xxlarge w3-wide">Samples</div>
         <p>Try the samples to evaluate ozz-animation runtime features.</p>
       </a>
-      The sample below uses aim ik to procedurally orientate character head in a direction (at a target position), without using any animation data. This comes as a correction on (some) joint(s) rotation, on top of current animation.
-      {% include emscripten.jekyll emscripten_path="samples/emscripten/sample_look_at.js" %}
+      This sample shows a physic simulation baked into an animation using more than 1000 joints. Baking complex scenes offline into animations in a common technique to render cpu intensive simulations.
+      {% include emscripten.jekyll emscripten_path="samples/emscripten/sample_baked.js" %}
     </div>
   </div>
 </div>
