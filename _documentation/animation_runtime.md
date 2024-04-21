@@ -43,11 +43,13 @@ This table shows the data layout of an animation of 1 second duration, 4 tracks 
 
 <img src="{{site.baseurl}}/images/documentation/animation-tracks.png" class="w3-image">
 
-Note that keyframes are mandatory at t=0 and t=duration, for all tracks, in order to optimize sampling algorithm. This constrain is automatically handled by the `AnimationBuilder` utility though.
+Note that keyframes are mandatory at t=0 and t=duration, for all tracks, in order to optimize sampling algorithm. This constrain is automatically handled by the `AnimationBuilder` utility though, it does not apply to raw animations.
 
 The color of each cell (as well as key numbers) refers to its index in the array, and thus its location in memory. This sorting strategy has 2 goals:
 - This is a cache-friendly strategy that groups keyframes (for all tracks/joints) such that all keyframes needed at a time t (during sampling) are close one to each other in memory.
 - Moving forward in the animation time only requires to move the time-cursor further, without traversing all tracks.
+
+### Sampling the animation forward 
 
 The following diagrams show "hot" keys, the one that are accessed during sampling. These keys are decompressed and stored in the `ozz::animation::SamplingCache` in a SoA format suited for interpolation computations. The cache stores 2 keyframes per track, as they are required for interpolation when sampling-time is between 2 keyframes.
  
@@ -73,13 +75,32 @@ The following diagrams show "hot" keys, the one that are accessed during samplin
 
 The sampling algorithm needs to access very few keyframes when moving forward in the timeline, thanks to the way keyframes are stored.
 
-However this strategy doesn't apply to move the time cursor backward. The current implementation restarts sampling from the beginning when the animation is played backward (similar behavior to reseting the cache).
+### Sampling animation backward
+
+The drawback of this strategy is that animation can only be read forward, from the start. Reading an animation backward (negative delta time) requires to restart sampling from the beginning. This can have an significant performance impact to seek into the long animations.
+
+Version 0.15 introduces changes that solve this problem. Up to this version, each keyframe would store its track index (remember keyframes of all tracks are mixed in the same array, and sorted) needed to populate the cache.
+
+Since 0.15, each keyframe store the offset to the previous keyframe (for the same track/joint), instead of the track index directly. That offset is used navigate the keyframes array when reading backward, which otherwise is not possible the way keyframes are sorted.
+Deducing keyframe's track index is done by searching for the keyframe in the cache. This search requires to iterate the cache which is an overhead. The algorithm remembers the last updated keyframe index and leverages the fact that keyframes are sorted to shorten the loop.
+
+> Offsets are stored as 16b integers. `AnimationBuilder` is responsible for injecting a new keyframe if an offset overflows (more than 2^16 keys between 2 consecutive keyframes of a same track). This is rare, yet handled.
+
+### Seeking into the animation
+
+Version 0.15 also introduces iframes inspired from video encoding, aka intermediate seek points in the animation. Iframes are implemented as snapshots of the sampling cache, aka a array of integers (index of keyframes). They are compressed using group varint encoding, as described by [Google](https://static.googleusercontent.com/media/research.google.com/en//people/jeff/WSDM09-keynote.pdf) and used in Protocol Buffers.
+
+Iframes are created by `AnimationBuilder` utility. The user can decide interval in seconds between iframes, depending on how the animation is intended to be used.
+
+`ozz::animation::TrackSamplingJob` is responsible for deciding when an iframe shall be used at runtime (rather than sequentially reading forward or backward). The strategy is to seek to an iframe if seek (delta time) is bigger than half the interval between iframes.
+
+> Default interval is 10s by importer tools. Long animations will have an iframe every 10s. Smaller ones (than 10s) will only have a iframe at the end, allowing to efficiently start an animation from the end, which is useful when reading backward.
 
 `ozz::animation::*Track`
 ---------------------------
 
 The runtime track data structure exists for 1 to 4 float types (`ozz::animation::FloatTrack`, ..., `ozz::animation::Float4Track`) and quaterions (`ozz::animation::QuaternionTrack`). See [`offline track`][link_raw_track] for more details on track content.
-The runtime track data structure is optimized for the processing of ozz::animation::TrackSamplingJob and ozz::animation::TrackTriggeringJob. Keyframe ratios, values and interpolation mode are all store as separate buffers in order to access the cache coherently. Ratios are usually accessed/read alone from the jobs that all start by looking up the keyframes to interpolate indeed.
+The runtime track data structure is optimized for the processing of `ozz::animation::TrackSamplingJob` and `ozz::animation::TrackTriggeringJob`. Keyframe ratios, values and interpolation mode are all store as separate buffers in order to access the cache coherently. Ratios are usually accessed/read alone from the jobs that all start by looking up the keyframes to interpolate indeed.
 
 The following sample shows a use case of user channel track to drive attachment state of a box manipulated by a robot's arm. The track was edited in a DCC tool as a custom property, and imported along side the animation using fbx2ozz.
 
