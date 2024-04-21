@@ -21,17 +21,17 @@ Concept
 =======
 
 The samples relies `ozz::animation::offline::MotionExtractor` utility to run motion extraction and exposes all its parameters.
-The utility capture root motion from a raw animation into tracks (translation and rotation) that are use at runtime to sample character location using [`ozz::animation::offline::TrackSamplingJob`][link_track].
+The utility capture root motion from a raw animation into tracks (translation and rotation) that are use at runtime to sample character location using [`ozz::animation::offline::TrackSamplingJob`][link_track_sampling_job].
 
 Sample usage
 ============
 
 This samples allows to tweak motion extraction using all utility parameters:
   - For position and rotation, multiple settings:
-   - X, Y, Z: Select which component is captured  (pitch/yaw/roll for rotations).
-   - Reference: Choose extraction reference, within global, skeleton or animation option.
-   - Bake: Choose to bake extracted data to output animation.
-   - Loop: Makes end transformation equal to begin to make animation loop-able. Difference between end and begin is distributed all along animation duration.
+    - X, Y, Z: Select which component is captured  (pitch/yaw/roll for rotations).
+    - Reference: Choose extraction reference, within global, skeleton or animation option.
+    - Bake: Choose to bake extracted data to output animation.
+    - Loop: Makes end transformation equal to begin to make animation loop-able. Difference between end and begin is distributed all along animation duration.
   - Apply position and rotation motion at runtime.
 
 Implementation
