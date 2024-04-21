@@ -6,7 +6,7 @@ Next release
 
 * Tools
   - Adds motion track extraction to \*2ozz. Configuration (json) is extended with a animations.tracks.motion object that exposes root motion extraction settings. See [src/animation/offline/tools/reference.json#L67]().
-  - Breaking \*2ozz json configuration change. \*2ozz json configuration animations.tracks is no longer an array, but an array. See [src/animation/offline/tools/reference.json#L51]().
+  - Breaking \*2ozz json configuration change. \*2ozz json configuration animations.tracks is no longer an array, but now an object. See [src/animation/offline/tools/reference.json#L51]().
 
 * Samples
   - Adds motion extraction sample, showcasing root motion extraction parameters.
@@ -74,7 +74,6 @@ Release version 0.14.0
   - [animation] #110 Renames skeleton bind pose to rest pose, to avoid confusion with skinning bind pose.
   - [offline] Extends configuration to allow setting up iframe time interval.  
   - [base] Fixes Float4x4::FromEuler which was swapping pitch and roll.
-  - [base] Implements group varint encoding utility. It's used to compress iframes.
 
 * Build pipeline
   - Moves CI to github actions.
