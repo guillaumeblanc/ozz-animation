@@ -42,5 +42,5 @@ Implementation
 3. Optimizes the raw animation and the 2 raw tracks using [`ozz::animation::offline::AnimationOptimizer`][link_animation_optimizer] and [`ozz::animation::offline::TrackOptimizer`][link_track_optimizer].
 3. Builds runtime animation and the 2 runtime tracks using [`ozz::animation::offline::AnimationBuilder`][link_animation_builder] and [`ozz::animation::offline::TrackBuilder`][link_track_builder].
 4. At runtime, sample animation and convert it to model space as usual. See "playback" sample for more details.
-5. Samples the 2 position and rotation tracks, using [`ozz::animation::offline::TrackSamplingJob`][link_track_sampling_job]. See "user_channel" samples for more details. 
+5. Samples the 2 position and rotation tracks, using [`ozz::animation::offline::TrackSamplingJob`][link_track_sampling_job].
 6. Renders character at the position and rotation sampled from the tracks.
