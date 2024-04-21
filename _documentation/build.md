@@ -76,18 +76,6 @@ All build options are listed in the project root [CMakeLists.txt file][link_src_
 cmake -Dozz_build_tests=1 ..
 {% endhighlight %}
 
-Using build help script
------------------------
-
-An optional python script `build-helper.py` is available in the root directory to help performing all operations:
-
-- Configure CMake, generate vcproj, makefiles...
-- Build from sources.
-- Enable and run un unit-tests.
-- Package sources and binaries.
-- Clean build directory.
-- ...
-
 Building Fbx tools
 ------------------
 
@@ -171,7 +159,7 @@ This latest solution is interesting for ozz runtime features as it ensures compi
 
 Ozz also allows to use fused / amalgamated sources. These amalgamated sources are single .cc files (one per ozz library) that can be added to your project sources. This aims to simplify project maintenance and further updates of ozz libraries. Again ozz include path remains the same and must be set.
 
-Fused sources are generated during build, in a "src_fused" folder in the binrary ouput folder ("build/src_fused/"" folder by default). To generate them without building the whole library, one can use the following commands from ozz sources directory:
+Fused sources are generated during build, in a "src_fused" folder in the binary output folder ("build/src_fused/"" folder by default). To generate them without building the whole library, one can use the following commands from ozz sources directory:
 
 {% highlight bash %}
 mkdir build
