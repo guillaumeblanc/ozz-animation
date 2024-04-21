@@ -25,7 +25,7 @@
   document.getElementsByTagName("body")[0].onresize = CanvasResize;
   function CanvasResize() {
     sample_canvas.width = sample_canvas.clientWidth;
-    sample_canvas.height = sample_canvas.clientWidth * 9 / 16;
+    sample_canvas.height = sample_canvas.clientWidth * 3 / 4;
   }
   function CheckWebGLSupport(canvas) {
     const gl = document.createElement('canvas').getContext('webgl2');
@@ -53,7 +53,7 @@
     OnSampleFailure(webgl_support[1]);
   } else {
     var Module = {
-      arguments: ['--resolution=7'],
+      arguments: ['--resolution=8'],
       preRun: [],
       postRun: [],
       print: (function() {
