@@ -73,7 +73,7 @@
           "position" : 
           {
             "components" : "xz", //  Components to import, can be any composition of x, y and z.
-            "reference" : "skeleton", //  Root motion extraction reference pose, can be identity, skeleton or animation.
+            "reference" : "skeleton", //  Root motion extraction reference pose, can be absolute, skeleton or animation.
             "bake" : true, //  Bake extracted motion into animation.
             "loop" : false, //  Distributes begin - end difference to make animation loopable.
             "raw" : false, //  Outputs raw track.
@@ -84,7 +84,7 @@
           "rotation" : 
           {
             "components" : "y", //  Components to import, can be any composition of x, y and z.
-            "reference" : "skeleton", //  Root motion extraction reference pose, can be identity, skeleton or animation.
+            "reference" : "skeleton", //  Root motion extraction reference pose, can be absolute, skeleton or animation.
             "bake" : true, //  Bake extracted motion into animation.
             "loop" : false, //  Distributes begin - end difference to make animation loopable.
             "raw" : false, //  Outputs raw track.

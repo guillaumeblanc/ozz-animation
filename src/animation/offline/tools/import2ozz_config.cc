@@ -329,12 +329,12 @@ bool SanitizeTrackMotionComponent(Json::Value& _root,
 
   MakeDefault(
       _root, "reference", "skeleton",
-      "Root motion extraction reference pose, can be identity, skeleton or "
+      "Root motion extraction reference pose, can be absolute, skeleton or "
       "animation.");
   const char* reference_name = _root["reference"].asCString();
   if (!RootMotionReferenceConfig::IsValidEnumName(reference_name)) {
     ozz::log::Err() << "Invalid value \"" << reference_name
-                    << "\" for root motion reference. Can be identity, "
+                    << "\" for root motion reference. Can be absolute, "
                        "skeleton or animation."
                     << std::endl;
     return false;

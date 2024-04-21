@@ -64,7 +64,7 @@ class OZZ_ANIMOFFLINE_DLL MotionExtractor {
 
   // Defines the reference transform to use while extracting root motion.
   enum class Reference {
-    kIdentity,   // Identity / global reference.
+    kAbsolute,   // Global / absolute reference.
     kSkeleton,   // Use skeleton rest pose root bone transform.
     kAnimation,  // Uses root transform of the animation's first frame.
   };
