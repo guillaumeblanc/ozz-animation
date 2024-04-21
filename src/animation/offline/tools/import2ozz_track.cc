@@ -475,7 +475,7 @@ PropertyTypeConfig::EnumNames PropertyTypeConfig::GetNames() {
 }
 
 RootMotionReferenceConfig::EnumNames RootMotionReferenceConfig::GetNames() {
-  static const char* kNames[] = {"identity", "skeleton", "animation"};
+  static const char* kNames[] = {"absolute", "skeleton", "animation"};
   const EnumNames enum_names = {OZZ_ARRAY_SIZE(kNames), kNames};
   return enum_names;
 }

@@ -177,8 +177,8 @@ TEST(Extract, MotionExtractor) {
   {  // No extraction
     const MotionExtractor extractor{
         0,  // Joint
-        {false, false, false, MotionExtractor::Reference::kIdentity, true},
-        {false, false, false, MotionExtractor::Reference::kIdentity, true}};
+        {false, false, false, MotionExtractor::Reference::kAbsolute, true},
+        {false, false, false, MotionExtractor::Reference::kAbsolute, true}};
     EXPECT_TRUE(extractor(input, *skeleton, &motion_position, &motion_rotation,
                           &baked));
 
@@ -210,8 +210,8 @@ TEST(Extract, MotionExtractor) {
   {  // No baking
     const MotionExtractor extractor{
         0,  // Joint
-        {true, true, true, MotionExtractor::Reference::kIdentity, false},
-        {true, true, true, MotionExtractor::Reference::kIdentity, false}};
+        {true, true, true, MotionExtractor::Reference::kAbsolute, false},
+        {true, true, true, MotionExtractor::Reference::kAbsolute, false}};
     EXPECT_TRUE(extractor(input, *skeleton, &motion_position, &motion_rotation,
                           &baked));
 
@@ -249,8 +249,8 @@ TEST(Extract, MotionExtractor) {
   {  // Extract all
     const MotionExtractor extractor{
         0,  // Joint
-        {true, true, true, MotionExtractor::Reference::kIdentity, true},
-        {true, true, true, MotionExtractor::Reference::kIdentity, true}};
+        {true, true, true, MotionExtractor::Reference::kAbsolute, true},
+        {true, true, true, MotionExtractor::Reference::kAbsolute, true}};
     EXPECT_TRUE(extractor(input, *skeleton, &motion_position, &motion_rotation,
                           &baked));
 
@@ -297,8 +297,8 @@ TEST(Extract, MotionExtractor) {
   {  // Extract only y position
     const MotionExtractor extractor{
         0,  // Joint
-        {false, true, false, MotionExtractor::Reference::kIdentity, true},
-        {false, false, false, MotionExtractor::Reference::kIdentity, true}};
+        {false, true, false, MotionExtractor::Reference::kAbsolute, true},
+        {false, false, false, MotionExtractor::Reference::kAbsolute, true}};
     EXPECT_TRUE(extractor(input, *skeleton, &motion_position, &motion_rotation,
                           &baked));
 
@@ -336,8 +336,8 @@ TEST(Extract, MotionExtractor) {
   {  // Extract only x position and y/yaw rotation
     const MotionExtractor extractor{
         0,  // Joint
-        {true, false, false, MotionExtractor::Reference::kIdentity, true},
-        {false, true, false, MotionExtractor::Reference::kIdentity, true}};
+        {true, false, false, MotionExtractor::Reference::kAbsolute, true},
+        {false, true, false, MotionExtractor::Reference::kAbsolute, true}};
     EXPECT_TRUE(extractor(input, *skeleton, &motion_position, &motion_rotation,
                           &baked));
 
@@ -387,8 +387,8 @@ TEST(Extract, MotionExtractor) {
   {  // Extract all joint 1
     const MotionExtractor extractor{
         1,  // Joint
-        {true, true, true, MotionExtractor::Reference::kIdentity, true},
-        {true, true, true, MotionExtractor::Reference::kIdentity, true}};
+        {true, true, true, MotionExtractor::Reference::kAbsolute, true},
+        {true, true, true, MotionExtractor::Reference::kAbsolute, true}};
     EXPECT_TRUE(extractor(input, *skeleton, &motion_position, &motion_rotation,
                           &baked));
 
