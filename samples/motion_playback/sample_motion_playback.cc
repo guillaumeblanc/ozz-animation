@@ -70,8 +70,8 @@ class MotionPlaybackSampleApplication : public ozz::sample::Application {
     //-------------------------------------------------------------------------
 
     // Updates motion accumulator.
-    const auto rot =
-        Rot(_dt * controller_.playback_speed() * controller_.playing());
+    const auto rot = FrameRotation(_dt * controller_.playback_speed() *
+                                   controller_.playing());
     if (!motion_sampler_.Update(motion_track_, controller_.time_ratio(), loops,
                                 rot)) {
       return false;
@@ -139,16 +139,16 @@ class MotionPlaybackSampleApplication : public ozz::sample::Application {
       const float at = controller_.time_ratio();
       const float from = floating_display_ ? at - floating_before_ : 0.f;
       const float to = floating_display_ ? at + floating_after_ : 1.f;
-      success &= ozz::sample::DrawMotion(_renderer, motion_track_, from, at, to,
-                                         step, transform_,
-                                         Rot(step * animation_.duration()));
+      success &= ozz::sample::DrawMotion(
+          _renderer, motion_track_, from, at, to, step, transform_,
+          FrameRotation(step * animation_.duration()));
     }
 
     return success;
   }
 
   // Compute rotation to apply for the given _duration
-  ozz::math::Quaternion Rot(float _duration) const {
+  ozz::math::Quaternion FrameRotation(float _duration) const {
     const float angle = angular_velocity_ * _duration;
     return ozz::math::Quaternion::FromEuler({angle, 0, 0});
   }
@@ -296,7 +296,7 @@ class MotionPlaybackSampleApplication : public ozz::sample::Application {
   // Floatting display means that the motion is displayed around the current
   // time, instead of from begin to end.
   bool floating_display_ = true;
-  float floating_before_ = .2f;
+  float floating_before_ = .3f;
   float floating_after_ = 1.f;
 };
 
