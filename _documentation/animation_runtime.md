@@ -92,9 +92,9 @@ Version 0.15 also introduces iframes inspired from video encoding, aka intermedi
 
 Iframes are created by `AnimationBuilder` utility. The user can decide interval in seconds between iframes, depending on how the animation is intended to be used.
 
-`ozz::animation::TrackSamplingJob` is responsible for deciding when an iframe shall be used at runtime (rather than sequentially reading forward or backward). The strategy is to seek to an iframe if seek (delta time) is bigger than half the interval between iframes.
+`ozz::animation::SamplingJob` is responsible for deciding when an iframe shall be used at runtime (rather than sequentially reading forward or backward). The strategy is to seek to an iframe if delta time is bigger than half the interval between iframes.
 
-> Default interval is 10s by importer tools. Long animations will have an iframe every 10s. Smaller ones (than 10s) will only have a iframe at the end, allowing to efficiently start an animation from the end, which is useful when reading backward.
+> Default interval is set to 10s for importer tools. Long animations will have an iframe every 10s. Smaller ones (less than 10s) will only have a iframe at the end, allowing to efficiently start playing an animation from the end, which is useful when reading backward.
 
 `ozz::animation::*Track`
 ---------------------------
@@ -102,7 +102,25 @@ Iframes are created by `AnimationBuilder` utility. The user can decide interval 
 The runtime track data structure exists for 1 to 4 float types (`ozz::animation::FloatTrack`, ..., `ozz::animation::Float4Track`) and quaterions (`ozz::animation::QuaternionTrack`). See [`offline track`][link_raw_track] for more details on track content.
 The runtime track data structure is optimized for the processing of `ozz::animation::TrackSamplingJob` and `ozz::animation::TrackTriggeringJob`. Keyframe ratios, values and interpolation mode are all store as separate buffers in order to access the cache coherently. Ratios are usually accessed/read alone from the jobs that all start by looking up the keyframes to interpolate indeed.
 
-The following sample shows a use case of user channel track to drive attachment state of a box manipulated by a robot's arm. The track was edited in a DCC tool as a custom property, and imported along side the animation using fbx2ozz.
+### `ozz::animation::TrackSamplingJob`
+
+`ozz::animation::TrackSamplingJob` allows to sample a track at any point/time along the track.
+
+### `ozz::animation::TrackTriggeringJob`
+
+`ozz::animation::TrackTriggeringJob` detects when track curve crosses a threshold value, triggering dated events that can be processed as state changes, aka edges. To do so, `ozz::animation::TrackTriggeringJob` consider what happens between 2 samples, not only the sampled point.
+
+> Edge triggering wording refers to signal processing, where a signal edge is a transition from low to high or from high to low. It is called an "edge" because of the square wave which represents a signal has edges at those points. A rising edge is the transition from low to high, a falling edge is from high to low.
+
+The job execution performs a lazy evaluation of edges. It builds an iterator that will process the next edge on each call to ++ operator.
+
+Using dated edges allows to implement frame rate independent algorithms. Sampling a track indeed, doesn't tell what happen between the two samples, which the triggering job solves.
+
+### Track sample
+
+The following sample shows a use case of user channel track to drive attachment state of a box manipulated by a robot's arm. The track was edited in a DCC tool as a custom property, and imported alongside the animation using fbx2ozz.
+
+You can experiment that using the `ozz::animation::TrackTriggeringJob`, the box remains perfectly at the correct position even if time is speed up. With the `ozz::animation::TrackSamplingJob`, a small error accumulates each loop. 
 
 {% include emscripten.jekyll emscripten_path="samples/emscripten/sample_user_channel.js" %}
 
