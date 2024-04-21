@@ -61,9 +61,9 @@ OZZ_OPTIONS_DECLARE_STRING(animation,
                            "Path to the animation (ozz archive format).",
                            "media/raw_animation.ozz", false)
 
-class MotionSampleApplication : public ozz::sample::Application {
+class MotionExtractionSampleApplication : public ozz::sample::Application {
  public:
-  MotionSampleApplication() {}
+  MotionExtractionSampleApplication() {}
 
  protected:
   // Updates current animation time and skeleton pose.
@@ -389,5 +389,5 @@ class MotionSampleApplication : public ozz::sample::Application {
 
 int main(int _argc, const char** _argv) {
   const char* title = "Ozz-animation sample: Root motion extraction";
-  return MotionSampleApplication().Run(_argc, _argv, "1.0", title);
+  return MotionExtractionSampleApplication().Run(_argc, _argv, "1.0", title);
 }
