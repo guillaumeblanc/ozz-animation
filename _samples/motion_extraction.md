@@ -2,8 +2,8 @@
 title: Motion extraction
 layout: full
 keywords: root,motion,position,rotation,bake,loop,capsule,character,track,animation,sample,
-order: 65
-level: 3
+order: 47
+level: 2
 ---
 
 {% include links.jekyll %}

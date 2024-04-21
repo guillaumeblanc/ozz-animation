@@ -2,7 +2,7 @@
 title: User channels
 layout: full
 keywords: track,animation,sample,float,custom,property,sample,edge,triggering,frame,rate,dependant
-order: 50
+order: 45
 level: 2
 ---
 

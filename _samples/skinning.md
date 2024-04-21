@@ -2,8 +2,8 @@
 title: Skinning
 layout: full
 keywords: sample,tutorial,skinning,joint,influence
-order: 50
-level: 2
+order: 85
+level: 3
 ---
 
 {% include links.jekyll %}
