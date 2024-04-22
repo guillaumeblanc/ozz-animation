@@ -70,10 +70,10 @@ class MotionPlaybackSampleApplication : public ozz::sample::Application {
     //-------------------------------------------------------------------------
 
     // Updates motion accumulator.
-    const auto rot = FrameRotation(_dt * controller_.playback_speed() *
-                                   controller_.playing());
+    const auto rotation = FrameRotation(_dt * controller_.playback_speed() *
+                                        controller_.playing());
     if (!motion_sampler_.Update(motion_track_, controller_.time_ratio(), loops,
-                                rot)) {
+                                rotation)) {
       return false;
     }
 
@@ -164,13 +164,13 @@ class MotionPlaybackSampleApplication : public ozz::sample::Application {
       return false;
     }
 
-    // Reading motion tracks.
-    if (!ozz::sample::LoadMotionTrack(OPTIONS_motion, &motion_track_)) {
+    // Skeleton and animation needs to match.
+    if (skeleton_.num_joints() != animation_.num_tracks()) {
       return false;
     }
 
-    // Skeleton and animation needs to match.
-    if (skeleton_.num_joints() != animation_.num_tracks()) {
+    // Reading motion tracks.
+    if (!ozz::sample::LoadMotionTrack(OPTIONS_motion, &motion_track_)) {
       return false;
     }
 
@@ -189,6 +189,7 @@ class MotionPlaybackSampleApplication : public ozz::sample::Application {
   virtual void OnDestroy() {}
 
   virtual bool OnGui(ozz::sample::ImGui* _im_gui) {
+    char label[64];
     // Exposes animation runtime playback controls.
     {
       static bool open = true;
@@ -204,7 +205,11 @@ class MotionPlaybackSampleApplication : public ozz::sample::Application {
       if (open) {
         _im_gui->DoCheckBox("Use motion position", &apply_motion_position_);
         _im_gui->DoCheckBox("Use motion rotation", &apply_motion_rotation_);
-        if (_im_gui->DoButton("Reset accumulator")) {
+        std::snprintf(label, sizeof(label), "Angular vel: %.0f deg/s",
+                      angular_velocity_ * 180.f / ozz::math::kPi);
+        _im_gui->DoSlider(label, -ozz::math::kPi_2, ozz::math::kPi_2,
+                          &angular_velocity_);
+        if (_im_gui->DoButton("Teleport")) {
           motion_sampler_.Teleport(ozz::math::Transform::identity());
         }
       }
@@ -213,36 +218,31 @@ class MotionPlaybackSampleApplication : public ozz::sample::Application {
       static bool open = true;
       ozz::sample::ImGui::OpenClose oc(_im_gui, "Motion display", &open);
       if (open) {
-        char label[64];
         _im_gui->DoCheckBox("Show box", &show_box_);
 
         _im_gui->DoCheckBox("Show trace", &show_trace_);
         std::snprintf(label, sizeof(label), "Trace size: %d", trace_size_);
-        _im_gui->DoSlider(label, 100, 2000, &trace_size_);
+        _im_gui->DoSlider(label, 100, 2000, &trace_size_, 2.f);
 
         _im_gui->DoCheckBox("Show motion", &show_motion_);
-        _im_gui->DoCheckBox("Floating display", &floating_display_);
+        _im_gui->DoCheckBox("Floating display", &floating_display_,
+                            show_motion_);
 
         std::snprintf(label, sizeof(label), "Motion before: %.0f%%",
                       floating_before_ * 100.f);
         _im_gui->DoSlider(label, 0.f, 3.f, &floating_before_, 1.f,
-                          floating_display_);
+                          floating_display_ && show_motion_);
         std::snprintf(label, sizeof(label), "Motion after: %.0f%%",
                       floating_after_ * 100.f);
         _im_gui->DoSlider(label, 0.f, 3.f, &floating_after_, 1.f,
-                          floating_display_);
-
-        std::snprintf(label, sizeof(label), "Angular vel: %.0f deg/s",
-                      angular_velocity_ * 180.f / ozz::math::kPi);
-        _im_gui->DoSlider(label, -ozz::math::kPi_2, ozz::math::kPi_2,
-                          &angular_velocity_);
+                          floating_display_ && show_motion_);
       }
     }
     return true;
   }
 
   virtual void GetSceneBounds(ozz::math::Box* _bound) const {
-    ozz::sample::ComputePostureBounds(make_span(models_), transform_, _bound);
+    *_bound = TransformBox(transform_, bounding_);
   }
 
  private:
@@ -273,6 +273,9 @@ class MotionPlaybackSampleApplication : public ozz::sample::Application {
 
   // Buffer of model space matrices.
   ozz::vector<ozz::math::Float4x4> models_;
+
+  // Character bounding box.
+  const ozz::math::Box bounding_{{-.3f, 0.f, -.2f}, {.3f, 1.8f, .2f}};
 
   // GUI options to apply root motion.
   bool apply_motion_position_ = true;
