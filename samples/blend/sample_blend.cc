@@ -73,14 +73,12 @@ class BlendSampleApplication : public ozz::sample::Application {
 
     // Updates and samples all animations to their respective local space
     // transform buffers.
-    for (int i = 0; i < kNumLayers; ++i) {
-      Sampler& sampler = samplers_[i];
-
+    for (auto& sampler : samplers_) {
       // Updates animations time.
       sampler.controller.Update(sampler.animation, _dt);
 
       // Early out if this sampler weight makes it irrelevant during blending.
-      if (samplers_[i].weight <= 0.f) {
+      if (sampler.weight <= 0.f) {
         continue;
       }
 
@@ -170,8 +168,7 @@ class BlendSampleApplication : public ozz::sample::Application {
 
     // Finally finds the speed coefficient for all samplers.
     const float inv_loop_duration = 1.f / loop_duration;
-    for (int i = 0; i < kNumLayers; ++i) {
-      Sampler& sampler = samplers_[i];
+    for (auto& sampler : samplers_) {
       const float speed = sampler.animation.duration() * inv_loop_duration;
       sampler.controller.set_playback_speed(speed);
     }
@@ -194,7 +191,7 @@ class BlendSampleApplication : public ozz::sample::Application {
     // Reading animations.
     const char* filenames[] = {OPTIONS_animation1, OPTIONS_animation2,
                                OPTIONS_animation3};
-    static_assert(OZZ_ARRAY_SIZE(filenames) == kNumLayers, "Arrays mistmatch.");
+    static_assert(OZZ_ARRAY_SIZE(filenames) == kNumLayers, "Arrays mismatch.");
     for (int i = 0; i < kNumLayers; ++i) {
       Sampler& sampler = samplers_[i];
 
@@ -228,8 +225,7 @@ class BlendSampleApplication : public ozz::sample::Application {
       if (open) {
         if (_im_gui->DoCheckBox("Manual settings", &manual_) && !manual_) {
           // Check-box state was changed, reset parameters.
-          for (int i = 0; i < kNumLayers; ++i) {
-            Sampler& sampler = samplers_[i];
+          for (auto& sampler : samplers_) {
             sampler.controller.Reset();
           }
         }
