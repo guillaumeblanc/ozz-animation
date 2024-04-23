@@ -52,18 +52,42 @@ struct MotionTrack {
 // and _track must be non-nullptr.
 bool LoadMotionTrack(const char* _filename, MotionTrack* _track);
 
+// Helper object that manages motion accumulation of delta motions/moves to
+// compute character's transform.
+struct MotionDeltaAccumulator {
+  //  Accumulates motion delta to updates current transform.
+  void Update(const ozz::math::Transform& _delta);
+
+  //  Accumulates motion delta to updates current transform.
+  // _delta_rotation is the rotation to apply to deform the path since last
+  // update. Hence, user is responsible for taking care of applying delta time
+  // if he wants to achieve a specific angular speed.
+  void Update(const ozz::math::Transform& _delta,
+              const ozz::math::Quaternion& _rotation);
+
+  // Teleports accumulator to a new origin.
+  void Teleport(const ozz::math::Transform& _origin);
+
+  // Character's current transform.
+  ozz::math::Transform current = ozz::math::Transform::identity();
+
+  // Accumulated rotation (since last teleport).
+  ozz::math::Quaternion rotation_accum_ = ozz::math::Quaternion::identity();
+};
+
 // Helper object that manages motion accumulation to compute character's
-// transform.
-struct MotionAccumulator {
-  //  Accumulates motion delta (new - last) and updates current transform.
+// transform. Delta motion is automatically computed from the difference between
+// the last and the new transform.
+struct MotionAccumulator : public MotionDeltaAccumulator {
+  //  Computes motion delta (new - last) and updates current transform.
   void Update(const ozz::math::Transform& _new);
 
   //  Accumulates motion delta (new - last) and updates current transform.
-  // _delta_rotation is the rotation to pply to deform the path since last
+  // _delta_rotation is the rotation to apply to deform the path since last
   // update. Hence, user is responsible for taking care of applying delta time
   // if he wants to achieve a specific angular speed.
   void Update(const ozz::math::Transform& _new,
-              const ozz::math::Quaternion& _delta_rotation);
+              const ozz::math::Quaternion& _rotation);
 
   // Tells the accumulator that the _new transform is the new origin.
   // This is useful when animation loops, so next delta is computed from the new
@@ -77,11 +101,8 @@ struct MotionAccumulator {
   // Last value sample from the motion track, used to compute delta.
   ozz::math::Transform last = ozz::math::Transform::identity();
 
-  // Character's current transform.
-  ozz::math::Transform current = ozz::math::Transform::identity();
-
-  // Accumulated rotation (since last teleport).
-  ozz::math::Quaternion rotation_accum_ = ozz::math::Quaternion::identity();
+  // Delta transformation between last and current frame.
+  ozz::math::Transform delta = ozz::math::Transform::identity();
 };
 
 // Helper object samples a motion track to update a MotionAccumulator.
@@ -90,7 +111,7 @@ struct MotionSampler : public MotionAccumulator {
   bool Update(const MotionTrack& _motion, float _ratio, int _loops);
 
   // Updates the accumulator with a new motion sample.
-  // _delta_rotation is the rotation to pply to deform the path since last
+  // _delta_rotation is the rotation to apply to deform the path since last
   // update. Hence, user is responsible for taking care of applying delta time
   // if he wants to achieve a specific angular speed.
   bool Update(const MotionTrack& _motion, float _ratio, int _loops,
