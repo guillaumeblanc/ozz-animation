@@ -103,6 +103,28 @@ bool SampleMotion(const MotionTrack& _tracks, float _ratio,
   return true;
 }
 
+void MotionDeltaAccumulator::Update(const ozz::math::Transform& _delta) {
+  Update(_delta, ozz::math::Quaternion::identity());
+}
+
+void MotionDeltaAccumulator::Update(const ozz::math::Transform& _delta,
+                                    const ozz::math::Quaternion& _rotation) {
+  // Accumulates rotation.
+  rotation_accum_ = Normalize(rotation_accum_ * _rotation);
+
+  // Updates current transform.
+  current.translation = current.translation +
+                        TransformVector(rotation_accum_, _delta.translation);
+  current.rotation = Normalize(current.rotation * _delta.rotation * _rotation);
+}
+
+void MotionDeltaAccumulator::Teleport(const ozz::math::Transform& _origin) {
+  current = _origin;
+
+  // Resets rotation accumulator.
+  rotation_accum_ = ozz::math::Quaternion::identity();
+}
+
 void MotionAccumulator::Update(const ozz::math::Transform& _new) {
   return Update(_new, ozz::math::Quaternion::identity());
 }
@@ -110,19 +132,12 @@ void MotionAccumulator::Update(const ozz::math::Transform& _new) {
 // Accumulates motion deltas (new transform - last).
 void MotionAccumulator::Update(const ozz::math::Transform& _new,
                                const ozz::math::Quaternion& _delta_rotation) {
-  // Accumulates rotation.
-  // Normalizes to avoid accumulating error.
-  rotation_accum_ = Normalize(rotation_accum_ * _delta_rotation);
+  // Computes delta.
+  delta.translation = _new.translation - last.translation;
+  delta.rotation = Conjugate(last.rotation) * _new.rotation;
 
-  // Computes delta translation.
-  const auto delta_p = _new.translation - last.translation;
-  current.translation =
-      current.translation + TransformVector(rotation_accum_, delta_p);
-
-  // Computes delta rotation.
-  // Normalizes to avoid accumulating a denormalization error.
-  const auto delta_r = Conjugate(last.rotation) * _new.rotation;
-  current.rotation = Normalize(current.rotation * delta_r * _delta_rotation);
+  // Updates current transform based on computed delta.
+  MotionDeltaAccumulator::Update(delta, _delta_rotation);
 
   // Next time, delta will be computed from the _new transform.
   last = _new;
@@ -133,11 +148,13 @@ void MotionAccumulator::ResetOrigin(const ozz::math::Transform& _origin) {
 }
 
 void MotionAccumulator::Teleport(const ozz::math::Transform& _origin) {
-  // Resets current transform to new _origin
-  current = last = _origin;
+  MotionDeltaAccumulator::Teleport(_origin);
 
-  // Resets rotation accumulator.
-  rotation_accum_ = ozz::math::Quaternion::identity();
+  // Resets current transform to new _origin
+  last = current;
+
+  // No delta between last and current
+  delta = ozz::math::Transform::identity();
 }
 
 bool MotionSampler::Update(const MotionTrack& _motion, float _ratio,
@@ -154,10 +171,12 @@ bool MotionSampler::Update(const MotionTrack& _motion, float _ratio, int _loops,
     // motion done during the loop(s).
 
     // Uses a local accumulator to accumulate motion during loops.
-    MotionAccumulator local_accumulator{last, last};
+    MotionAccumulator local_accumulator;
+    local_accumulator.Teleport(last);
 
     for (; _loops; _loops > 0 ? --_loops : ++_loops) {
-      // Samples motion at loop end (or begin depending on playback direction).
+      // Samples motion at loop end (or begin depending on playback
+      // direction).
       if (!SampleMotion(_motion, _loops > 0 ? 1.f : 0.f, &sample)) {
         return false;
       }
