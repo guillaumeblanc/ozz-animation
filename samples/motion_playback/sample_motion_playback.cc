@@ -281,7 +281,8 @@ class MotionPlaybackSampleApplication : public ozz::sample::Application {
   bool apply_motion_position_ = true;
   bool apply_motion_rotation_ = true;
 
-  float angular_velocity_ = 0;  // ozz::math::kPi_4;
+  // Rotation deformation, rad/s
+  float angular_velocity_ = ozz::math::kPi_4;
 
   // Debug display UI options
 
