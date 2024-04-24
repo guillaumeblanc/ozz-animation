@@ -81,13 +81,13 @@ The drawback of this strategy is that animation data layout is optimized for for
 
 Version 0.15 introduces changes that solve this problem. Up to this version, each keyframe would store its track index, which is needed to populate the cache (remember keyframes of all tracks are interleaved in the same array, and sorted).
 
-Since 0.15, each keyframe stores the offset to the previous keyframe (for the same track/joint), instead of the track index directly. While it has the same memory footprint, that offset allows to find the previous frame with a O(1) complexity, which otherwise requires a O(n/2) search through all the keyframes up to animation begin.
+Since 0.15, each keyframe stores the offset to the previous keyframe (for the same track/joint), instead of the track index directly. While it has the same memory footprint, that offset allows to find the previous frame with a O(1) complexity, which otherwise requires to search through all the keyframes up to animation begin.
 
-> Keyframes of a track are sparse, due to the decimation of interpolable keyframes. In the worst case there's only a keyframe at animation begin and end. So the previous keyframe (on a same track) could be very far ahead in memory the way they are sorted.
+> Keyframes for a track are sparse indeed, due to the decimation of interpolable keyframes. In the worst case there's only 2 keyframes, one at animation begin and one at the end. So the way keyframes are sorted, the n-1 keyframe (for a same track) can be very far ahead in memory from keyframe n.
 
 Deducing keyframe's track index is done by searching for the keyframe in the cache instead. This search requires to iterate the cache which has an overhead. The algorithm remembers the last updated track index to shorten the loop.
 
-> Offsets are stored as 16b integers. `AnimationBuilder` is responsible for injecting a new keyframe if an offset overflows (more than 2^16 keys between 2 consecutive keyframes of a same track). This is rare, yet handled and tested.
+Offsets are stored as 16b integers. `AnimationBuilder` is responsible for injecting a new keyframe if an offset overflows (more than 2^16 keys between 2 consecutive keyframes of a same track). This is rare, yet handled and tested.
 
 ### Seeking into the animation
 
