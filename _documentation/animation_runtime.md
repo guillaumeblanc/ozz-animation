@@ -51,9 +51,9 @@ The color of each cell (as well as key numbers) refers to its index in the array
 
 ### Sampling the animation forward 
 
-The following diagrams show "hot" keys, the one that are accessed during sampling. These keys are decompressed and stored in the `ozz::animation::SamplingCache` in a SoA format suited for interpolation computations. The cache stores 2 keyframes per track, as they are required for interpolation when sampling-time is between 2 keyframes.
+The following diagrams show "hot" keys, the one that are accessed during sampling. These keys are decompressed and stored in the `ozz::animation::SamplingJob::Context` in a SoA format suited for interpolation computations. The cache stores the current keyframe index per track.
  
-- To sample at time = 0, the sampling algorithm goes through the 8 first keys and finds all the keys needed. The `SamplingCache` also stores the sampling-cursor (the red arrow) at key 8, to be able to start again from there if sampling-time is moved further.
+- To sample at time = 0, the sampling algorithm goes through the 8 first keys and finds all the keys needed. The `SamplingJob::Context` also stores the sampling-cursor (the red arrow) at key 8, to be able to start again from there if sampling-time is moved further.
 
 <img src="{{site.baseurl}}/images/documentation/animation-tracks-t0.png" class="w3-image">
 
@@ -77,14 +77,17 @@ The sampling algorithm needs to access very few keyframes when moving forward in
 
 ### Sampling animation backward
 
-The drawback of this strategy is that animation can only be read forward, from the start. Reading an animation backward (negative delta time) requires to restart sampling from the beginning. This can have an significant performance impact to seek into the long animations.
+The drawback of this strategy is that animation data layout is optimized for forward sequential reading. Reading an animation backward (negative delta time) requires to restart sampling from the beginning. Seeking to animation end requires to traverse the whole animation up to the end. This can have an significant performance impact to seek into the long animations.
 
-Version 0.15 introduces changes that solve this problem. Up to this version, each keyframe would store its track index (remember keyframes of all tracks are mixed in the same array, and sorted) needed to populate the cache.
+Version 0.15 introduces changes that solve this problem. Up to this version, each keyframe would store its track index, which is needed to populate the cache (remember keyframes of all tracks are interleaved in the same array, and sorted).
 
-Since 0.15, each keyframe store the offset to the previous keyframe (for the same track/joint), instead of the track index directly. That offset is used navigate the keyframes array when reading backward, which otherwise is not possible the way keyframes are sorted.
-Deducing keyframe's track index is done by searching for the keyframe in the cache. This search requires to iterate the cache which is an overhead. The algorithm remembers the last updated keyframe index and leverages the fact that keyframes are sorted to shorten the loop.
+Since 0.15, each keyframe stores the offset to the previous keyframe (for the same track/joint), instead of the track index directly. While it has the same memory footprint, that offset allows to find the previous frame with a O(1) complexity, which otherwise requires a O(n/2) search through all the keyframes up to animation begin.
 
-> Offsets are stored as 16b integers. `AnimationBuilder` is responsible for injecting a new keyframe if an offset overflows (more than 2^16 keys between 2 consecutive keyframes of a same track). This is rare, yet handled.
+> Keyframes of a track are sparse, due to the decimation of interpolable keyframes. In the worst case there's only a keyframe at animation begin and end. So the previous keyframe (on a same track) could be very far ahead in memory the way they are sorted.
+
+Deducing keyframe's track index is done by searching for the keyframe in the cache instead. This search requires to iterate the cache which has an overhead. The algorithm remembers the last updated track index to shorten the loop.
+
+> Offsets are stored as 16b integers. `AnimationBuilder` is responsible for injecting a new keyframe if an offset overflows (more than 2^16 keys between 2 consecutive keyframes of a same track). This is rare, yet handled and tested.
 
 ### Seeking into the animation
 
@@ -94,7 +97,7 @@ Iframes are created by `AnimationBuilder` utility. The user can decide interval 
 
 `ozz::animation::SamplingJob` is responsible for deciding when an iframe shall be used at runtime (rather than sequentially reading forward or backward). The strategy is to seek to an iframe if delta time is bigger than half the interval between iframes.
 
-> Default interval is set to 10s for importer tools. Long animations will have an iframe every 10s. Smaller ones (less than 10s) will only have a iframe at the end, allowing to efficiently start playing an animation from the end, which is useful when reading backward.
+> Default interval is set to 10s for importer tools, so long animations have an iframe every 10s. Smaller ones (less than 10s) will only have an iframe at the end, allowing to efficiently start playing an animation from the end, which is useful when reading backward.
 
 `ozz::animation::*Track`
 ---------------------------
@@ -152,7 +155,7 @@ All jobs follow the same principals: They process inputs (read-only or read-writ
 -----------------------------
 
 The `ozz::animation::SamplingJob` is in charge of computing the local-space transformations (for all tracks) at a given time of an animation. The output could be considered as a pose, a snapshot of all the tracks of an animation at a specific time.
-The SamplingJob uses a cache (aka `ozz::animation::SamplingCache`) to store intermediate values (decompressed animation keyframes...) while sampling, which are likely to be used for the subsequent frames thanks to interpolation. This cache also stores pre-computed values that allows drastic optimization while playing/sampling the animation forward. Backward sampling works of course but isn't optimized through the cache though, favoring memory footprint over performance in this case.
+The SamplingJob uses a cache (aka `ozz::animation::SamplingJob::Context`) to store intermediate values (decompressed animation keyframes...) while sampling, which are likely to be used for the subsequent frames thanks to interpolation. This cache also stores pre-computed values that allows drastic optimization while playing/sampling the animation forward. Backward sampling works of course but isn't optimized through the cache though, favoring memory footprint over performance in this case.
 
 Relying on the fact that the same set of keyframes can be relevant from an update to the next (because keyframes are interpolated), the _sampling_cache_ stores data as decompressed SoA structures. This factorizes decompression and SoA conversion cost. Furthermore, interpolating SoA structures is optimal.
 
