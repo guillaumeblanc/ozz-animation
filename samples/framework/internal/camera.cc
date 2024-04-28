@@ -99,11 +99,11 @@ void Camera::Update(const math::Box& _box, float _delta_time,
 
 void Camera::Update(const math::Float4x4& _transform, const math::Box& _box,
                     float _delta_time, bool _first_frame) {
-  // Extract distance and angles such that theu are coherent when switching out
+  // Extract distance and angles such that they are coherent when switching out
   // of auto_framing_.
   if (_box.is_valid()) {
     if (auto_framing_ || _first_frame) {
-      // Extract components from the view martrix.
+      // Extract components from the view matrix.
       ozz::math::Float3 camera_dir;
       ozz::math::Store3PtrU(-ozz::math::Normalize3(_transform.cols[2]),
                             &camera_dir.x);
