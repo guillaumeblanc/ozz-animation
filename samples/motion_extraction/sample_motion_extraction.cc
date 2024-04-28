@@ -148,9 +148,8 @@ class MotionExtractionSampleApplication : public ozz::sample::Application {
     // Draw motion tracks.
     const float at = controller_.time_ratio();
     const float step = 1.f / (animation_.duration() * 60.f);
-    success &=
-        ozz::sample::DrawMotion(_renderer, motion_track_, 0.f, at, 1.f, step,
-                                transform_, ozz::math::Quaternion::identity());
+    success &= ozz::sample::DrawMotion(_renderer, motion_track_, 0.f, at, 1.f,
+                                       step, transform_);
     return success;
   }
 

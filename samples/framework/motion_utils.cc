@@ -215,6 +215,13 @@ bool MotionSampler::Update(const MotionTrack& _motion, float _ratio, int _loops,
   return true;
 }
 
+bool DrawMotion(ozz::sample::Renderer* _renderer,
+                const MotionTrack& _motion_track, float _from, float _at,
+                float _to, float _step, const ozz::math::Float4x4& _transform) {
+  return DrawMotion(_renderer, _motion_track, _from, _at, _to, _step,
+                    _transform, ozz::math::Quaternion::identity());
+}
+
 // Uses a MotionSampler to estimate past and future positions arount _at.
 // This is a great test for the MotionSampler and MotionAccumulator.
 bool DrawMotion(ozz::sample::Renderer* _renderer,
