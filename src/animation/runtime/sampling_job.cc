@@ -527,10 +527,11 @@ SamplingJob::Context::Context(int _max_tracks) : max_soa_tracks_(0) {
   Resize(_max_tracks);
 }
 
-SamplingJob::Context::~Context() {
-  // translations interp is the allocation pointer, so this deallocates
-  // everything at once.
-  memory::default_allocator()->Deallocate(translations_.data());
+SamplingJob::Context::~Context() { Deallocate(); }
+
+void SamplingJob::Context::Deallocate() {
+  memory::default_allocator()->Deallocate(allocation_);
+  allocation_ = nullptr;
 }
 
 void SamplingJob::Context::Resize(int _max_tracks) {
@@ -539,7 +540,7 @@ void SamplingJob::Context::Resize(int _max_tracks) {
 
   // Reset existing data.
   Invalidate();
-  memory::default_allocator()->Deallocate(translations_.data());
+  Deallocate();
 
   // Updates maximum supported soa tracks.
   max_soa_tracks_ = (math::Max(0, _max_tracks) + 3) / 4;
@@ -561,10 +562,9 @@ void SamplingJob::Context::Resize(int _max_tracks) {
       sizeof(uint8_t) * 3 * num_outdated;
 
   // Allocates all at once.
-  memory::Allocator* allocator = memory::default_allocator();
-  span<byte> buffer = {
-      static_cast<byte*>(allocator->Allocate(size, alignof(InterpSoaFloat3))),
-      size};
+  auto* allocator = memory::default_allocator();
+  allocation_ = allocator->Allocate(size, alignof(InterpSoaFloat3));
+  span<byte> buffer = {static_cast<byte*>(allocation_), size};
 
   // Distributes buffer memory while ensuring proper alignment (serves larger
   // alignment values first).

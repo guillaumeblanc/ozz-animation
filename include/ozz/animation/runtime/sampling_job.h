@@ -156,6 +156,8 @@ class OZZ_ANIMATION_DLL SamplingJob::Context {
   // Return previous ratio.
   float Step(const Animation& _animation, float _ratio);
 
+  void Deallocate();
+
   // The animation this context refers to. nullptr means that the context is
   // invalid.
   const Animation* animation_;
@@ -165,6 +167,9 @@ class OZZ_ANIMATION_DLL SamplingJob::Context {
 
   // The number of soa tracks that can store this context.
   int max_soa_tracks_;
+
+  // Single allocation for the whole context.
+  void* allocation_ = nullptr;
 
   // Context cache instances per component.
   Cache translations_cache_;

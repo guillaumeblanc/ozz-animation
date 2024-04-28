@@ -50,6 +50,7 @@ Track<_ValueType>::Track(Track<_ValueType>&& _other) {
 
 template <typename _ValueType>
 Track<_ValueType>& Track<_ValueType>::operator=(Track<_ValueType>&& _other) {
+  std::swap(allocation_, _other.allocation_);
   std::swap(ratios_, _other.ratios_);
   std::swap(values_, _other.values_);
   std::swap(steps_, _other.steps_);
@@ -64,7 +65,7 @@ Track<_ValueType>::~Track() {
 
 template <typename _ValueType>
 void Track<_ValueType>::Allocate(size_t _keys_count, size_t _name_len) {
-  assert(ratios_.size() == 0 && values_.size() == 0);
+  assert(allocation_ == nullptr && "Already allocated");
 
   // Distributes buffer memory while ensuring proper alignment (serves larger
   // alignment values first).
@@ -77,9 +78,10 @@ void Track<_ValueType>::Allocate(size_t _keys_count, size_t _name_len) {
                              _keys_count * sizeof(float) +       // ratios
                              (_keys_count + 7) * sizeof(uint8_t) / 8 +  // steps
                              (_name_len > 0 ? _name_len + 1 : 0);
-  span<byte> buffer = {static_cast<byte*>(memory::default_allocator()->Allocate(
-                           buffer_size, alignof(_ValueType))),
-                       buffer_size};
+
+  auto* allocator = memory::default_allocator();
+  allocation_ = allocator->Allocate(buffer_size, alignof(_ValueType));
+  span<byte> buffer = {static_cast<byte*>(allocation_), buffer_size};
 
   // Fix up pointers. Serves larger alignment values first.
   values_ = fill_span<_ValueType>(buffer, _keys_count);
@@ -91,18 +93,14 @@ void Track<_ValueType>::Allocate(size_t _keys_count, size_t _name_len) {
   name_ =
       _name_len > 0 ? fill_span<char>(buffer, _name_len + 1).data() : nullptr;
 
-  assert(buffer.empty() && "Whole buffer should be consumned");
+  assert(buffer.empty() && "Whole buffer should be consumed");
 }
 
 template <typename _ValueType>
 void Track<_ValueType>::Deallocate() {
   // Deallocate everything at once.
-  memory::default_allocator()->Deallocate(as_writable_bytes(values_).data());
-
-  values_ = {};
-  ratios_ = {};
-  steps_ = {};
-  name_ = nullptr;
+  memory::default_allocator()->Deallocate(allocation_);
+  allocation_ = nullptr;
 }
 
 template <typename _ValueType>

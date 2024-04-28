@@ -47,6 +47,7 @@ namespace animation {
 Animation::Animation(Animation&& _other) { *this = std::move(_other); }
 
 Animation& Animation::operator=(Animation&& _other) {
+  std::swap(allocation_, _other.allocation_);
   std::swap(duration_, _other.duration_);
   std::swap(num_tracks_, _other.num_tracks_);
   std::swap(name_, _other.name_);
@@ -74,7 +75,7 @@ void Animation::Allocate(const AllocateParams& _params) {
           alignof(internal::QuaternionKey) >= alignof(char),
       "Must serve larger alignment values first)");
 
-  assert(timepoints_.empty() && "Animation must be unallocated");
+  assert(allocation_ == nullptr && "Already allocated");
 
   // Compute overall size and allocate a single buffer for all the data.
   assert(_params.timepoints <= std::numeric_limits<uint16_t>::max());
@@ -98,9 +99,11 @@ void Animation::Allocate(const AllocateParams& _params) {
       _params.rotation_iframes.offsets * sizeof(uint32_t) +
       _params.scale_iframes.entries * sizeof(byte) +
       _params.scale_iframes.offsets * sizeof(uint32_t);
-  span<byte> buffer = {static_cast<byte*>(memory::default_allocator()->Allocate(
-                           buffer_size, alignof(float))),
-                       buffer_size};
+
+  // Allocate whole buffer
+  auto* allocator = memory::default_allocator();
+  allocation_ = allocator->Allocate(buffer_size, alignof(float));
+  span<byte> buffer = {static_cast<byte*>(allocation_), buffer_size};
 
   // Fix up pointers. Serves larger alignment values first.
 
@@ -148,21 +151,12 @@ void Animation::Allocate(const AllocateParams& _params) {
               ? fill_span<char>(buffer, _params.name_len + 1).data()
               : nullptr;
 
-  assert(buffer.empty() && "Whole buffer should be consumned");
+  assert(buffer.empty() && "Whole buffer should be consumed");
 }
 
 void Animation::Deallocate() {
-  memory::default_allocator()->Deallocate(
-      as_writable_bytes(timepoints_).data());
-
-  name_ = nullptr;
-  timepoints_ = {};
-  translations_ctrl_ = {};
-  rotations_ctrl_ = {};
-  scales_ctrl_ = {};
-  translations_values_ = {};
-  rotations_values_ = {};
-  scales_values_ = {};
+  memory::default_allocator()->Deallocate(allocation_);
+  allocation_ = nullptr;
 }
 
 size_t Animation::size() const {

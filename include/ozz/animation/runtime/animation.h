@@ -194,6 +194,9 @@ class OZZ_ANIMATION_DLL Animation {
   // rotation/scale buffers because of SoA requirements.
   int num_tracks_ = 0;
 
+  // Allocated buffer for the whole animation.
+  void* allocation_ = nullptr;
+
   // Animation name.
   char* name_ = nullptr;
 

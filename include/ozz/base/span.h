@@ -174,6 +174,9 @@ inline span<byte> as_writable_bytes(const span<_Ty>& _span) {
 template <typename _Ty>
 inline span<_Ty> fill_span(span<byte>& _src, size_t _count) {
   assert(ozz::IsAligned(_src.data(), alignof(_Ty)) && "Invalid alignment.");
+  if (!_count) {
+    return {};
+  }
   const span<_Ty> ret = {reinterpret_cast<_Ty*>(_src.data()), _count};
   // Validity assertion is done by span constructor.
   _src = {reinterpret_cast<byte*>(ret.end()), _src.end()};
