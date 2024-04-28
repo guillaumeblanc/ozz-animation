@@ -59,8 +59,8 @@ class OZZ_ANIMOFFLINE_DLL AnimationBuilder {
   // sequentially forward or backward to reach a point. So that's useful for
   // long animations, if they are accessed randomly, or if sampling starts from
   // the end. A 0 interval means no iframe is generated. Any positive number is
-  // the interval between iframes, with a guaranted one at the end of the
-  // animation if interval is bigger than animation duration.
+  // the interval between iframes, with a guaranteed one at the end of the
+  // animation (even if interval is smaller than animation duration).
   float iframe_interval = 0.f;
 };
 }  // namespace offline
