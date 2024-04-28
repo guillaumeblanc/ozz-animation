@@ -324,7 +324,8 @@ TEST(Sort, AnimationBuilder) {
     raw_animation.tracks[3].translations.push_back(n);
 
     // Builds animation
-    const float intervals[] = {0.f, .001f, .1f, .5f, .9f, 1.f, 2.f, 1000.f};
+    const float intervals[] = {-1.f, 0.f, .001f, .1f,   .5f,
+                               .9f,  1.f, 2.f,   1000.f};
     for (float interval : intervals) {
       builder.iframe_interval = interval;
       ozz::unique_ptr<Animation> animation(builder(raw_animation));
