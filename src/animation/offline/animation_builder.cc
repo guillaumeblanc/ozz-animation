@@ -360,6 +360,7 @@ BuilderIFrame BuildIFrame(const ozz::span<_SortingKey>& _src, float _time,
   assert(iframe.last >= _num_soa_tracks * 2 - 1);
 
   // Compress buffer.
+  // Entries is a multiple of 4 (number os soa tracks).
   const size_t worst_size = ozz::ComputeGV4WorstBufferSize(make_span(entries));
   iframe.entries.resize(worst_size);
   auto remain =

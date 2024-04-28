@@ -26,6 +26,8 @@ add_library(ozz_base
   ${PROJECT_SOURCE_DIR}/include/ozz/base/containers/vector.h
   ${PROJECT_SOURCE_DIR}/include/ozz/base/containers/vector_archive.h
   ${PROJECT_SOURCE_DIR}/include/ozz/base/containers/std_allocator.h
+  ${PROJECT_SOURCE_DIR}/include/ozz/base/encode/group_varint.h
+  encode/group_varint.cc
   ${PROJECT_SOURCE_DIR}/include/ozz/base/io/archive.h
   io/archive.cc
   ${PROJECT_SOURCE_DIR}/include/ozz/base/io/archive_traits.h
