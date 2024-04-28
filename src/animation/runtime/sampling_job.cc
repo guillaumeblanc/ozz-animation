@@ -131,24 +131,18 @@ inline float KeyRatio(const ozz::span<const float>& _timepoints,
 inline ozz::math::SimdFloat4 KeysRatio(
     const ozz::span<const float>& _timepoints,
     const ozz::span<const byte>& _ratios,
-    const ozz::span<const uint32_t> _ats) {
-  uint16_t index[4];
+    const ozz::span<const uint32_t>& _ats) {
   if (_timepoints.size() <= std::numeric_limits<uint8_t>::max()) {
     const auto& ratios = reinterpret_span<const uint8_t>(_ratios);
-    index[0] = ratios[_ats[0]];
-    index[1] = ratios[_ats[1]];
-    index[2] = ratios[_ats[2]];
-    index[3] = ratios[_ats[3]];
+    return ozz::math::simd_float4::Load(
+        _timepoints[ratios[_ats[0]]], _timepoints[ratios[_ats[1]]],
+        _timepoints[ratios[_ats[2]]], _timepoints[ratios[_ats[3]]]);
   } else {
     const auto& ratios = reinterpret_span<const uint16_t>(_ratios);
-    index[0] = ratios[_ats[0]];
-    index[1] = ratios[_ats[1]];
-    index[2] = ratios[_ats[2]];
-    index[3] = ratios[_ats[3]];
+    return ozz::math::simd_float4::Load(
+        _timepoints[ratios[_ats[0]]], _timepoints[ratios[_ats[1]]],
+        _timepoints[ratios[_ats[2]]], _timepoints[ratios[_ats[3]]]);
   }
-  return ozz::math::simd_float4::Load(
-      _timepoints[index[0]], _timepoints[index[1]], _timepoints[index[2]],
-      _timepoints[index[3]]);
 }
 
 inline uint32_t InitializeCache(const Animation::KeyframesCtrlConst& _ctrl,
