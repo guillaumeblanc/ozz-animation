@@ -33,6 +33,7 @@
 #include "ozz/animation/runtime/animation.h"
 #include "ozz/animation/runtime/blending_job.h"
 #include "ozz/animation/runtime/local_to_model_job.h"
+#include "ozz/animation/runtime/motion_blending_job.h"
 #include "ozz/animation/runtime/sampling_job.h"
 #include "ozz/animation/runtime/skeleton.h"
 #include "ozz/base/log.h"
@@ -129,19 +130,26 @@ class MotionBlendSampleApplication : public ozz::sample::Application {
 
     // Blends motion.
     //-------------------------------------------------------------------------
+    {
+      ozz::animation::MotionBlendingJob::Layer layers[kNumLayers];
+      for (int i = 0; i < kNumLayers; ++i) {
+        const auto& sampler = samplers_[i];
+        layers[i].transform = &sampler.motion_sampler.delta;
+        layers[i].weight = sampler.weight;
+      }
 
-    ozz::math::Transform delta = ozz::math::Transform::identity();
-    delta.rotation = {0, 0, 0, 0};
-    for (const auto& sampler : samplers_) {
-      delta.translation =
-          delta.translation +
-          sampler.motion_sampler.delta.translation * sampler.weight;
-      delta.rotation = delta.rotation +
-                       sampler.motion_sampler.delta.rotation * sampler.weight;
+      ozz::math::Transform delta;
+      ozz::animation::MotionBlendingJob motion_blend_job;
+      motion_blend_job.layers = layers;
+      motion_blend_job.output = &delta;
+
+      // Blends.
+      if (!motion_blend_job.Run()) {
+        return false;
+      }
+
+      accumulator_.Update(delta, FrameRotation(_dt));
     }
-    delta.rotation =
-        NormalizeSafe(delta.rotation, ozz::math::Quaternion::identity());
-    accumulator_.Update(delta, FrameRotation(_dt));
 
     // Updates the character transform matrix.
     const auto& transform = accumulator_.current;
@@ -154,24 +162,25 @@ class MotionBlendSampleApplication : public ozz::sample::Application {
     // (1st stage just above), and outputs the result to the local space
     // transform buffer blended_locals_
 
-    // Prepares blending layers.
-    ozz::animation::BlendingJob::Layer layers[kNumLayers];
-    for (int i = 0; i < kNumLayers; ++i) {
-      layers[i].transform = make_span(samplers_[i].locals);
-      layers[i].weight = samplers_[i].weight;
+    {
+      // Prepares blending layers.
+      ozz::animation::BlendingJob::Layer layers[kNumLayers];
+      for (int i = 0; i < kNumLayers; ++i) {
+        layers[i].transform = make_span(samplers_[i].locals);
+        layers[i].weight = samplers_[i].weight;
+      }
+
+      // Setups blending job.
+      ozz::animation::BlendingJob blend_job;
+      blend_job.layers = layers;
+      blend_job.rest_pose = skeleton_.joint_rest_poses();
+      blend_job.output = make_span(blended_locals_);
+
+      // Blends.
+      if (!blend_job.Run()) {
+        return false;
+      }
     }
-
-    // Setups blending job.
-    ozz::animation::BlendingJob blend_job;
-    blend_job.layers = layers;
-    blend_job.rest_pose = skeleton_.joint_rest_poses();
-    blend_job.output = make_span(blended_locals_);
-
-    // Blends.
-    if (!blend_job.Run()) {
-      return false;
-    }
-
     // Converts from local space to model space matrices.
     // Gets the output of the blending stage, and converts it to model space.
 
@@ -195,8 +204,8 @@ class MotionBlendSampleApplication : public ozz::sample::Application {
     return ozz::math::Quaternion::FromEuler({angle, 0, 0});
   }
 
-  // Computes blending weight and synchronizes playback speed when the "manual"
-  // option is off.
+  // Computes blending weight and synchronizes playback speed when the
+  // "manual" option is off.
   void UpdateRuntimeParameters() {
     // Computes weight parameters for all samplers.
     const float kNumIntervals = kNumLayers - 1;
@@ -335,8 +344,9 @@ class MotionBlendSampleApplication : public ozz::sample::Application {
       static bool open = true;
       ozz::sample::ImGui::OpenClose oc(_im_gui, "Motion control", &open);
       if (open) {
-        // _im_gui->DoCheckBox("Use motion position", &apply_motion_position_);
-        // _im_gui->DoCheckBox("Use motion rotation", &apply_motion_rotation_);
+        // _im_gui->DoCheckBox("Use motion position",
+        // &apply_motion_position_); _im_gui->DoCheckBox("Use motion
+        // rotation", &apply_motion_rotation_);
         std::snprintf(label, sizeof(label), "Angular vel: %.0f deg/s",
                       angular_velocity_ * 180.f / ozz::math::kPi);
         _im_gui->DoSlider(label, -ozz::math::kPi_2, ozz::math::kPi_2,

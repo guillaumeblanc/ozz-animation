@@ -14,6 +14,8 @@ add_library(ozz_animation
   ik_two_bone_job.cc
   ${PROJECT_SOURCE_DIR}/include/ozz/animation/runtime/local_to_model_job.h
   local_to_model_job.cc
+  ${PROJECT_SOURCE_DIR}/include/ozz/animation/runtime/motion_blending_job.h
+  motion_blending_job.cc
   ${PROJECT_SOURCE_DIR}/include/ozz/animation/runtime/sampling_job.h
   sampling_job.cc
   ${PROJECT_SOURCE_DIR}/include/ozz/animation/runtime/skeleton.h
