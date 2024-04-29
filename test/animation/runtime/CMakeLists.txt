@@ -18,6 +18,16 @@ target_copy_shared_libraries(test_blending_job)
 set_target_properties(test_blending_job PROPERTIES FOLDER "ozz/tests/animation")
 add_test(NAME test_blending_job COMMAND test_blending_job)
 
+# motion_blending_job_tests
+add_executable(test_motion_blending_job
+motion_blending_job_tests.cc)
+target_link_libraries(test_motion_blending_job
+  ozz_animation
+  gtest)
+target_copy_shared_libraries(test_motion_blending_job)
+set_target_properties(test_motion_blending_job PROPERTIES FOLDER "ozz/tests/animation")
+add_test(NAME test_motion_blending_job COMMAND test_motion_blending_job)
+
 # local_to_model_job_tests
 add_executable(test_local_to_model_job
   local_to_model_job_tests.cc)
