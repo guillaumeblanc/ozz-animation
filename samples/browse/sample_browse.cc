@@ -100,7 +100,8 @@ class BrowseSampleApplication : public ozz::sample::Application {
     // Randomly selects an animation.
     std::random_device rd;
     std::mt19937 gen(rd());
-    current_ = std::uniform_int_distribution<>(0, animations_.size() - 1)(gen);
+    current_ = std::uniform_int_distribution<>(
+        0, static_cast<int>(animations_.size() - 1))(gen);
 
     // Reading current animation.
     if (!LoadAnimation()) {
@@ -184,7 +185,7 @@ class BrowseSampleApplication : public ozz::sample::Application {
       ozz::sample::ImGui::OpenClose oc(_im_gui, "Select animation", &open);
       if (open) {
         bool changed = false;
-        for (int i = 0; i < animations_.size(); ++i) {
+        for (int i = 0; i < static_cast<int>(animations_.size()); ++i) {
           auto name =
               animations_[i].substr(0, animations_[i].find_last_of("."));
           changed |= _im_gui->DoRadioButton(i, name.c_str(), &current_);
