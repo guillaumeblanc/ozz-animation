@@ -35,6 +35,7 @@ using ozz::animation::MotionBlendingJob;
 TEST(Validate, MotionBlendingJob) {
   MotionBlendingJob job;
   EXPECT_FALSE(job.Validate());
+  EXPECT_FALSE(job.Run());
 
   ozz::math::Transform output;
   job.output = &output;
@@ -91,6 +92,18 @@ TEST(Run, MotionBlendingJob) {
 
   // One non 0 weights
   layers[0].weight = .8f;
+  layers[1].weight = 0.f;
+
+  EXPECT_TRUE(job.Run());
+
+  // Renormalization means that the output will not be the same as the input
+  EXPECT_FLOAT3_EQ(output.translation, 2.f, 0.f, 0.f);
+  EXPECT_QUATERNION_EQ(output.rotation, .70710677f, 0.f, 0.f, .70710677f);
+  EXPECT_FLOAT3_EQ(output.scale, 1.f, 1.f, 1.f);
+
+  // one negative weights
+  layers[0].weight = .8f;
+  layers[1].weight = -1.f;
 
   EXPECT_TRUE(job.Run());
 
