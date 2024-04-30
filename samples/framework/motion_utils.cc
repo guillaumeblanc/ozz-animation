@@ -110,11 +110,11 @@ void MotionDeltaAccumulator::Update(const ozz::math::Transform& _delta) {
 void MotionDeltaAccumulator::Update(const ozz::math::Transform& _delta,
                                     const ozz::math::Quaternion& _rotation) {
   // Accumulates rotation.
-  rotation_accum_ = Normalize(rotation_accum_ * _rotation);
+  rotation_accum = Normalize(rotation_accum * _rotation);
 
   // Updates current transform.
-  current.translation = current.translation +
-                        TransformVector(rotation_accum_, _delta.translation);
+  current.translation =
+      current.translation + TransformVector(rotation_accum, _delta.translation);
   current.rotation = Normalize(current.rotation * _delta.rotation * _rotation);
 }
 
@@ -122,7 +122,7 @@ void MotionDeltaAccumulator::Teleport(const ozz::math::Transform& _origin) {
   current = _origin;
 
   // Resets rotation accumulator.
-  rotation_accum_ = ozz::math::Quaternion::identity();
+  rotation_accum = ozz::math::Quaternion::identity();
 }
 
 void MotionAccumulator::Update(const ozz::math::Transform& _new) {
