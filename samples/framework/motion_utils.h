@@ -72,7 +72,7 @@ struct MotionDeltaAccumulator {
   ozz::math::Transform current = ozz::math::Transform::identity();
 
   // Accumulated rotation (since last teleport).
-  ozz::math::Quaternion rotation_accum_ = ozz::math::Quaternion::identity();
+  ozz::math::Quaternion rotation_accum = ozz::math::Quaternion::identity();
 };
 
 // Helper object that manages motion accumulation to compute character's
