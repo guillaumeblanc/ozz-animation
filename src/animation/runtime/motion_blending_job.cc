@@ -64,26 +64,24 @@ bool MotionBlendingJob::Run() const {
     acc_weight += weight;
 
     // Decomposes translation into a normalized vector and a length, to limit
-    // lerp error on interpolated vector length.
-    const float len2 = LengthSqr(layer.transform->translation);
-    if (len2 > 0.f) {
-      const float len = std::sqrt(len2);
-      dl = dl + len * weight;
-      dt = dt + layer.transform->translation * (weight / len);
-    }
+    // lerp error while interpolated vector length.
+    const float len = Length(layer.transform->translation);
+    dl = dl + len * weight;
+    const float denom = (len == 0.f) ? 0.f : weight / len;
+    dt = dt + layer.transform->translation * denom;
 
     // Accumulates weighted rotation (NLerp). Makes sure quaternions are on the
-    // same hemisphere to lerp the shortest arc (using -Q if needed)
+    // same hemisphere to lerp the shortest arc (using -Q otherwise).
     const float signed_weight =
         std::copysign(weight, Dot(dr, layer.transform->rotation));
     dr = dr + layer.transform->rotation * signed_weight;
   }
 
-  // Copy to output
+  // Normalizes (weights) and fills output.
 
-  // Normalizes translation.
-  // Uses square of acc_weight as weight was multiplied twice (to dt and dl).
-  const float norm = acc_weight == 0.f ? 0.f : dl / (acc_weight * acc_weight);
+  // Normalizes translation and re-applies interpolated length.
+  const float denom = Length(dt) * acc_weight;
+  const float norm = (denom == 0.f) ? 0.f : dl / denom;
   output->translation = dt * norm;
 
   // Normalizes rotation, doesn't need acc_weight.
