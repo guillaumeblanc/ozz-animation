@@ -1,4 +1,4 @@
-# Ozz-animation sample: Animation blending
+# Ozz-animation sample: Motion blending
 
 ## Description
 
@@ -7,3 +7,4 @@
 ## Sample usage
 
 ## Implementation
+

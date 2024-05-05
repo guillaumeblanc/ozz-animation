@@ -109,6 +109,9 @@ void MotionDeltaAccumulator::Update(const ozz::math::Transform& _delta) {
 
 void MotionDeltaAccumulator::Update(const ozz::math::Transform& _delta,
                                     const ozz::math::Quaternion& _rotation) {
+  // Remembers previous transform to be able to compute delta
+  const auto previous = current;
+
   // Accumulates rotation.
   rotation_accum = Normalize(rotation_accum * _rotation);
 
@@ -116,10 +119,17 @@ void MotionDeltaAccumulator::Update(const ozz::math::Transform& _delta,
   current.translation =
       current.translation + TransformVector(rotation_accum, _delta.translation);
   current.rotation = Normalize(current.rotation * _delta.rotation * _rotation);
+
+  // Computes motion delta.
+  delta.translation = current.translation - previous.translation;
+  delta.rotation = Conjugate(previous.rotation) * current.rotation;
 }
 
 void MotionDeltaAccumulator::Teleport(const ozz::math::Transform& _origin) {
   current = _origin;
+
+  // No delta between last and current
+  delta = ozz::math::Transform::identity();
 
   // Resets rotation accumulator.
   rotation_accum = ozz::math::Quaternion::identity();
@@ -132,12 +142,13 @@ void MotionAccumulator::Update(const ozz::math::Transform& _new) {
 // Accumulates motion deltas (new transform - last).
 void MotionAccumulator::Update(const ozz::math::Transform& _new,
                                const ozz::math::Quaternion& _delta_rotation) {
-  // Computes delta.
-  delta.translation = _new.translation - last.translation;
-  delta.rotation = Conjugate(last.rotation) * _new.rotation;
+  // Computes animated delta.
+  const ozz::math::Transform animated_delta = {
+      _new.translation - last.translation,
+      Conjugate(last.rotation) * _new.rotation};
 
   // Updates current transform based on computed delta.
-  MotionDeltaAccumulator::Update(delta, _delta_rotation);
+  MotionDeltaAccumulator::Update(animated_delta, _delta_rotation);
 
   // Next time, delta will be computed from the _new transform.
   last = _new;
@@ -152,9 +163,6 @@ void MotionAccumulator::Teleport(const ozz::math::Transform& _origin) {
 
   // Resets current transform to new _origin
   last = current;
-
-  // No delta between last and current
-  delta = ozz::math::Transform::identity();
 }
 
 bool MotionSampler::Update(const MotionTrack& _motion, float _ratio,
@@ -189,7 +197,7 @@ bool MotionSampler::Update(const MotionTrack& _motion, float _ratio, int _loops,
       local_accumulator.ResetOrigin(sample);
     }
 
-    // Samples track at _ratio and compute motion since from the loop end.
+    // Samples track at _ratio and compute motion since the loop end.
     if (!SampleMotion(_motion, _ratio, &sample)) {
       return false;
     }
@@ -222,7 +230,7 @@ bool DrawMotion(ozz::sample::Renderer* _renderer,
                     _transform, ozz::math::Quaternion::identity());
 }
 
-// Uses a MotionSampler to estimate past and future positions arount _at.
+// Uses a MotionSampler to estimate past and future positions around _at.
 // This is a great test for the MotionSampler and MotionAccumulator.
 bool DrawMotion(ozz::sample::Renderer* _renderer,
                 const MotionTrack& _motion_track, float _from, float _at,
@@ -255,8 +263,9 @@ bool DrawMotion(ozz::sample::Renderer* _renderer,
 
   // Present to past, -_step by -_step
   sampler.Teleport(at_transform);
+  const auto inv_rot = Conjugate(_rot);
   for (float t = _at, prev = t; t > _from - _step; prev = t, t -= _step) {
-    success &= sample(ozz::math::Max(t, _from), prev, Conjugate(_rot));
+    success &= sample(ozz::math::Max(t, _from), prev, inv_rot);
   }
   success &= _renderer->DrawLineStrip(make_span(points), ozz::sample::kGreen,
                                       transform);
