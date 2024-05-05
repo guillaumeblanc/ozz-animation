@@ -42,13 +42,13 @@ namespace internal {
 
 #ifdef EMSCRIPTEN
 // WebGL requires to specify floating point precision
-static const char* kPlatformSpecivicVSHeader =
+static const char* kPlatformSpecificVSHeader =
     "#version 300 es\n precision mediump float;\n";
-static const char* kPlatformSpecivicFSHeader =
+static const char* kPlatformSpecificFSHeader =
     "#version 300 es\n precision mediump float;\n";
 #else   // EMSCRIPTEN
-static const char* kPlatformSpecivicVSHeader = "#version 330\n";
-static const char* kPlatformSpecivicFSHeader = "#version 330\n";
+static const char* kPlatformSpecificVSHeader = "#version 330\n";
+static const char* kPlatformSpecificFSHeader = "#version 330\n";
 #endif  // EMSCRIPTEN
 
 void glUniformMat4(ozz::math::Float4x4 _mat4, GLint _uniform) {
@@ -203,8 +203,8 @@ ozz::unique_ptr<ImmediatePCShader> ImmediatePCShader::Build() {
       "  o_color = v_vertex_color;\n"
       "}\n";
 
-  const char* vs[] = {kPlatformSpecivicVSHeader, kSimplePCVS};
-  const char* fs[] = {kPlatformSpecivicFSHeader, kSimplePCPS};
+  const char* vs[] = {kPlatformSpecificVSHeader, kSimplePCVS};
+  const char* fs[] = {kPlatformSpecificFSHeader, kSimplePCPS};
 
   ozz::unique_ptr<ImmediatePCShader> shader = make_unique<ImmediatePCShader>();
   success &=
@@ -271,8 +271,8 @@ ozz::unique_ptr<ImmediatePTCShader> ImmediatePTCShader::Build() {
       "  if(o_color.a < .01) discard;\n"  // Implements alpha testing.
       "}\n";
 
-  const char* vs[] = {kPlatformSpecivicVSHeader, kSimplePCVS};
-  const char* fs[] = {kPlatformSpecivicFSHeader, kSimplePCPS};
+  const char* vs[] = {kPlatformSpecificVSHeader, kSimplePCVS};
+  const char* fs[] = {kPlatformSpecificFSHeader, kSimplePCPS};
 
   ozz::unique_ptr<ImmediatePTCShader> shader =
       make_unique<ImmediatePTCShader>();
@@ -349,8 +349,8 @@ ozz::unique_ptr<PointsShader> PointsShader::Build() {
       "  o_color = v_vertex_color;\n"
       "}\n";
 
-  const char* vs[] = {kPlatformSpecivicVSHeader, kSimplePointsVS};
-  const char* fs[] = {kPlatformSpecivicFSHeader, kSimplePointsPS};
+  const char* vs[] = {kPlatformSpecificVSHeader, kSimplePointsVS};
+  const char* fs[] = {kPlatformSpecificFSHeader, kSimplePointsPS};
 
   ozz::unique_ptr<PointsShader> shader = make_unique<PointsShader>();
   success &=
@@ -522,12 +522,12 @@ ozz::unique_ptr<JointShader> JointShader::Build() {
       "  world_matrix[3] = joint_matrix[3];\n"
       "  return u_model * world_matrix;\n"
       "}\n";
-  const char* vs[] = {kPlatformSpecivicVSHeader, kPassNoUv,
+  const char* vs[] = {kPlatformSpecificVSHeader, kPassNoUv,
                       GL_ARB_instanced_arrays_supported
                           ? "in mat4 joint;\n"
                           : "uniform mat4 joint;\n",
                       vs_joint_to_world_matrix, kShaderUberVS};
-  const char* fs[] = {kPlatformSpecivicFSHeader, kShaderAmbientFct,
+  const char* fs[] = {kPlatformSpecificFSHeader, kShaderAmbientFct,
                       kShaderAmbientFS};
 
   ozz::unique_ptr<JointShader> shader = make_unique<JointShader>();
@@ -586,12 +586,12 @@ BoneShader::Build() {  // Builds a world matrix from joint uniforms,
       "  world_matrix[3] = vec4(joint[3].xyz, 1.);\n"
       "  return u_model * world_matrix;\n"
       "}\n";
-  const char* vs[] = {kPlatformSpecivicVSHeader, kPassNoUv,
+  const char* vs[] = {kPlatformSpecificVSHeader, kPassNoUv,
                       GL_ARB_instanced_arrays_supported
                           ? "in mat4 joint;\n"
                           : "uniform mat4 joint;\n",
                       vs_joint_to_world_matrix, kShaderUberVS};
-  const char* fs[] = {kPlatformSpecivicFSHeader, kShaderAmbientFct,
+  const char* fs[] = {kPlatformSpecificFSHeader, kShaderAmbientFct,
                       kShaderAmbientFS};
 
   ozz::unique_ptr<BoneShader> shader = make_unique<BoneShader>();
@@ -621,11 +621,11 @@ BoneShader::Build() {  // Builds a world matrix from joint uniforms,
 }
 
 ozz::unique_ptr<AmbientShader> AmbientShader::Build() {
-  const char* vs[] = {kPlatformSpecivicVSHeader, kPassNoUv,
+  const char* vs[] = {kPlatformSpecificVSHeader, kPassNoUv,
                       "uniform mat4 u_model;\n"
                       "mat4 GetWorldMatrix() {return u_model;}\n",
                       kShaderUberVS};
-  const char* fs[] = {kPlatformSpecivicFSHeader, kShaderAmbientFct,
+  const char* fs[] = {kPlatformSpecificFSHeader, kShaderAmbientFct,
                       kShaderAmbientFS};
 
   ozz::unique_ptr<AmbientShader> shader = make_unique<AmbientShader>();
@@ -690,10 +690,10 @@ void AmbientShader::Bind(const math::Float4x4& _model,
 ozz::unique_ptr<AmbientShaderInstanced> AmbientShaderInstanced::Build() {
   bool success = true;
 
-  const char* vs[] = {kPlatformSpecivicVSHeader, kPassNoUv,
+  const char* vs[] = {kPlatformSpecificVSHeader, kPassNoUv,
                       "in mat4 a_m;\n mat4 GetWorldMatrix() {return a_m;}\n",
                       kShaderUberVS};
-  const char* fs[] = {kPlatformSpecivicFSHeader, kShaderAmbientFct,
+  const char* fs[] = {kPlatformSpecificFSHeader, kShaderAmbientFct,
                       kShaderAmbientFS};
 
   ozz::unique_ptr<AmbientShaderInstanced> shader =
@@ -789,10 +789,10 @@ void AmbientShaderInstanced::Unbind() {
 
 ozz::unique_ptr<AmbientTexturedShader> AmbientTexturedShader::Build() {
   const char* vs[] = {
-      kPlatformSpecivicVSHeader, kPassUv,
+      kPlatformSpecificVSHeader, kPassUv,
       "uniform mat4 u_model;\n mat4 GetWorldMatrix() {return u_model;}\n",
       kShaderUberVS};
-  const char* fs[] = {kPlatformSpecivicFSHeader, kShaderAmbientFct,
+  const char* fs[] = {kPlatformSpecificFSHeader, kShaderAmbientFct,
                       kShaderAmbientTexturedFS};
 
   ozz::unique_ptr<AmbientTexturedShader> shader =
