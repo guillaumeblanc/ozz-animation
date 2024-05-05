@@ -64,7 +64,7 @@ bool MotionBlendingJob::Run() const {
     acc_weight += weight;
 
     // Decomposes translation into a normalized vector and a length, to limit
-    // lerp error while interpolated vector length.
+    // lerp error while interpolating vector length.
     const float len = Length(layer.transform->translation);
     dl = dl + len * weight;
     const float denom = (len == 0.f) ? 0.f : weight / len;
@@ -84,7 +84,7 @@ bool MotionBlendingJob::Run() const {
   const float norm = (denom == 0.f) ? 0.f : dl / denom;
   output->translation = dt * norm;
 
-  // Normalizes rotation, doesn't need acc_weight.
+  // Normalizes rotation (doesn't need acc_weight).
   output->rotation = NormalizeSafe(dr, ozz::math::Quaternion::identity());
 
   // No scale.

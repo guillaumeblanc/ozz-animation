@@ -71,6 +71,9 @@ struct MotionDeltaAccumulator {
   // Character's current transform.
   ozz::math::Transform current = ozz::math::Transform::identity();
 
+  // Delta transformation between last and current frame.
+  ozz::math::Transform delta = ozz::math::Transform::identity();
+
   // Accumulated rotation (since last teleport).
   ozz::math::Quaternion rotation_accum = ozz::math::Quaternion::identity();
 };
@@ -100,9 +103,6 @@ struct MotionAccumulator : public MotionDeltaAccumulator {
 
   // Last value sample from the motion track, used to compute delta.
   ozz::math::Transform last = ozz::math::Transform::identity();
-
-  // Delta transformation between last and current frame.
-  ozz::math::Transform delta = ozz::math::Transform::identity();
 };
 
 // Helper object samples a motion track to update a MotionAccumulator.

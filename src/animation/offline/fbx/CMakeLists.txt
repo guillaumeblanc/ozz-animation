@@ -50,7 +50,7 @@ set(build_configurations
   
   # Library data with root motion
   "/fbx/pab/atlas.fbx\;{\"skeleton\":{\"filename\":\"pab_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"pab_atlas_no_motion.ozz\",\"tracks\":{\"motion\":{\"enable\":true,\"rotation\":{\"loop\":true},\"filename\":\"pab_atlas_motion_track.ozz\"}}}]}\;output:pab_atlas_no_motion.ozz\;output:pab_atlas_motion_track.ozz\;depend:pab_skeleton.ozz"
-  "/fbx/pab/locomotions.fbx\;{\"skeleton\":{\"filename\":\"pab_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"pab_*_no_motion.ozz\",\"tracks\":{\"motion\":{\"enable\":true,\"rotation\":{\"loop\":true},\"filename\":\"pab_*_motion_track.ozz\"}}}]}\;output:pab_walk_no_motion.ozz\;output:pab_jog_no_motion.ozz\;output:pab_run_no_motion.ozz\;output:pab_walk_motion_track.ozz\;output:pab_jog_motion_track.ozz\;output:pab_run_motion_track.ozz\;depend:pab_skeleton.ozz"
+  "/fbx/pab/locomotions.fbx\;{\"skeleton\":{\"filename\":\"pab_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"pab_*_no_motion.ozz\",\"tracks\":{\"motion\":{\"enable\":true,\"rotation\":{\"components\":\"\"},\"filename\":\"pab_*_motion_track.ozz\"}}}]}\;output:pab_walk_no_motion.ozz\;output:pab_jog_no_motion.ozz\;output:pab_run_no_motion.ozz\;output:pab_walk_motion_track.ozz\;output:pab_jog_motion_track.ozz\;output:pab_run_motion_track.ozz\;depend:pab_skeleton.ozz"
   
   # Robot user channels
   "/fbx/robot.fbx\;\;config_file:${PROJECT_SOURCE_DIR}/samples/user_channel/config.json\;output:robot_skeleton.ozz\;output:robot_animation.ozz\;output:robot_track_grasp.ozz"
