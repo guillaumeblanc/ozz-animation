@@ -47,19 +47,19 @@ struct Mesh;
 
 // Defines render Color structure.
 struct Color {
-  unsigned char r, g, b, a;
+  float r, g, b, a;
 };
 
 // Color constants.
-static const Color kRed = {0xff, 0, 0, 0xff};
-static const Color kGreen = {0, 0xff, 0, 0xff};
-static const Color kBlue = {0, 0, 0xff, 0xff};
-static const Color kWhite = {0xff, 0xff, 0xff, 0xff};
-static const Color kYellow = {0xff, 0xff, 0, 0xff};
-static const Color kMagenta = {0xff, 0, 0xff, 0xff};
-static const Color kCyan = {0, 0xff, 0xff, 0xff};
-static const Color kGrey = {0x80, 0x80, 0x80, 0xff};
-static const Color kBlack = {0x80, 0x80, 0x80, 0xff};
+static const Color kRed = {1, 0, 0, 1};
+static const Color kGreen = {0, 1, 0, 1};
+static const Color kBlue = {0, 0, 1, 1};
+static const Color kWhite = {1, 1, 1, 1};
+static const Color kYellow = {1, 1, 0, 1};
+static const Color kMagenta = {1, 0, 1, 1};
+static const Color kCyan = {0, 1, 1, 1};
+static const Color kGrey = {.5f, .5f, .5f, 1};
+static const Color kBlack = {.5f, .5f, .5f, 1};
 
 // Defines renderer abstract interface.
 class Renderer {
@@ -106,7 +106,7 @@ class Renderer {
   // Renders a wired box at a specified location.
   virtual bool DrawBoxIm(const ozz::math::Box& _box,
                          const ozz::math::Float4x4& _transform,
-                         const Color _color) = 0;
+                         const Color& _color) = 0;
 
   // Renders a box at a specified location.
   // The 2 slots of _colors array respectively defines color of the filled
@@ -118,17 +118,17 @@ class Renderer {
   // Renders shaded boxes at specified locations.
   virtual bool DrawBoxShaded(const ozz::math::Box& _box,
                              ozz::span<const ozz::math::Float4x4> _transforms,
-                             Color _color) = 0;
+                             const Color& _color) = 0;
 
   // Renders a sphere at a specified location.
   virtual bool DrawSphereIm(float _radius,
                             const ozz::math::Float4x4& _transform,
-                            const Color _color) = 0;
+                            const Color& _color) = 0;
 
   // Renders shaded spheres at specified locations.
   virtual bool DrawSphereShaded(
       float _radius, ozz::span<const ozz::math::Float4x4> _transforms,
-      Color _color) = 0;
+      const Color& _color) = 0;
 
   struct Options {
     bool triangles;  // Show triangles mesh.
@@ -180,14 +180,15 @@ class Renderer {
   // Renders a lines. Vertices 0 and 1 are considered a line. Vertices 2 and 3
   // are considered a line. And so on. If the user specifies a non-even number
   // of vertices, then the extra vertex is ignored.
-  virtual bool DrawLines(ozz::span<const math::Float3> _vertices, Color _color,
+  virtual bool DrawLines(ozz::span<const math::Float3> _vertices,
+                         const Color& _color,
                          const ozz::math::Float4x4& _transform) = 0;
 
   // Renders a line strip. Adjacent vertices are considered lines. Thus, if you
   // pass n vertices, you will get n-1 lines. If the user only specifies 1
   // vertex, the drawing command is ignored (still valid).
   virtual bool DrawLineStrip(ozz::span<const math::Float3> _vertices,
-                             Color _color,
+                             const Color& _color,
                              const ozz::math::Float4x4& _transform) = 0;
 
   // Renders vectors, defined by their starting point and a direction.
@@ -195,7 +196,7 @@ class Renderer {
                            size_t _positions_stride,
                            ozz::span<const float> _directions,
                            size_t _directions_stride, int _num_vectors,
-                           float _vector_length, Color _color,
+                           float _vector_length, const Color& _color,
                            const ozz::math::Float4x4& _transform) = 0;
 
   // Compute binormals from normals and tangents, before displaying them.
@@ -204,7 +205,7 @@ class Renderer {
       ozz::span<const float> _normals, size_t _normals_stride,
       ozz::span<const float> _tangents, size_t _tangents_stride,
       ozz::span<const float> _handenesses, size_t _handenesses_stride,
-      int _num_vectors, float _vector_length, Color _color,
+      int _num_vectors, float _vector_length, const Color& _color,
       const ozz::math::Float4x4& _transform) = 0;
 };
 }  // namespace sample

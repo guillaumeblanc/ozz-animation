@@ -45,35 +45,35 @@ namespace ozz {
 namespace sample {
 namespace internal {
 
-const GLubyte kPanelBackgroundColor[4] = {0x30, 0x30, 0x30, 0x80};
-const GLubyte kPanelBorderColor[4] = {0x20, 0x20, 0x20, 0xff};
-const GLubyte kPanelTitleColor[4] = {0x20, 0x20, 0x20, 0xf0};
-const GLubyte kPanelTitleTextColor[4] = {0xa0, 0xa0, 0xa0, 0xff};
+const Color kPanelBackgroundColor = {.19f, .19f, .19f, .5f};
+const Color kPanelBorderColor = {.12f, .12f, .12f, 1.f};
+const Color kPanelTitleColor = {.12f, .12f, .12f, .94f};
+const Color kPanelTitleTextColor = {.8f, .8f, .8f, 1.f};
 
-const GLubyte kWidgetBackgroundColor[4] = {0x20, 0x20, 0x20, 0xff};
-const GLubyte kWidgetBorderColor[4] = {0x70, 0x70, 0x70, 0xff};
+const Color kWidgetBackgroundColor = {.12f, .12f, .12f, 1.f};
+const Color kWidgetBorderColor = {.44f, .44f, .44f, 1.f};
 
-const GLubyte kWidgetDisabledBackgroundColor[4] = {0x30, 0x30, 0x30, 0xff};
-const GLubyte kWidgetDisabledBorderColor[4] = {0x50, 0x50, 0x50, 0xff};
+const Color kWidgetDisabledBackgroundColor = {.19f, .19f, .19f, 1.f};
+const Color kWidgetDisabledBorderColor = {.31f, .31f, .31f, 1.f};
 
-const GLubyte kWidgetHotBackgroundColor[4] = {0x40, 0x40, 0x40, 0xff};
-const GLubyte kWidgetHotBorderColor[4] = {0xc7, 0x9a, 0x40, 0xff};
+const Color kWidgetHotBackgroundColor = {.26f, .26f, .26f, 1.f};
+const Color kWidgetHotBorderColor = {.78f, .6f, .26f, 1.f};
 
-const GLubyte kWidgetActiveBackgroundColor[4] = {0xc7, 0x9a, 0x40, 0xff};
-const GLubyte kWidgetActiveBorderColor[4] = {0x30, 0x30, 0x30, 0xff};
+const Color kWidgetActiveBackgroundColor = {.78f, .6f, .26f, 1.f};
+const Color kWidgetActiveBorderColor = {.19f, .19f, .19f, 1.f};
 
-const GLubyte kWidgetTextColor[4] = {0xa0, 0xa0, 0xa0, 0xff};
-const GLubyte kWidgetDisabledTextColor[4] = {0x60, 0x60, 0x60, 0xff};
+const Color kWidgetTextColor = {.8f, .8f, .8f, 1.f};
+const Color kWidgetDisabledTextColor = {.45f, .45f, .45f, 1.f};
 
-const GLubyte kGraphBackgroundColor[4] = {0x20, 0x20, 0x20, 0xff};
-const GLubyte kGraphPlotColor[4] = {0xc7, 0x9a, 0x40, 0xff};
+const Color kGraphBackgroundColor = {.12f, .12f, .12f, 1.f};
+const Color kGraphPlotColor = {.78f, .6f, .26f, 1.f};
 
-const GLubyte kSliderBackgroundColor[4] = {0x20, 0x20, 0x20, 0xff};
-const GLubyte kSliderCursorColor[4] = {0x70, 0x70, 0x70, 0xff};
-const GLubyte kSliderCursorHotColor[4] = {0x80, 0x80, 0x80, 0xff};
-const GLubyte kSliderDisabledCursorColor[4] = {0x70, 0x70, 0x70, 0xff};
+const Color kSliderBackgroundColor = {.12f, .12f, .12f, 1.f};
+const Color kSliderCursorColor = {.44f, .44f, .44f, 1.f};
+const Color kSliderCursorHotColor = {.5f, .5f, .5f, 1.f};
+const Color kSliderDisabledCursorColor = {.44f, .44f, .44f, 1.f};
 
-const GLubyte kCursorColor[4] = {0xf0, 0xf0, 0xf0, 0xff};
+const Color kCursorColor = {.94f, .94f, .94f, 1.f};
 const float kCursorSize = 16.f;
 
 const float kGraphHeightFactor = 3.f;
@@ -180,7 +180,7 @@ void ImGuiImpl::EndFrame() {
                      ozz::math::Float4x4::identity());
     GlImmediatePC::Vertex v = {
         {0.f, 0.f, 0.f},
-        {kCursorColor[0], kCursorColor[1], kCursorColor[2], kCursorColor[3]}};
+        {kCursorColor.r, kCursorColor.g, kCursorColor.b, kCursorColor.a}};
 
     v.pos[0] = static_cast<float>(inputs_.mouse_x);
     v.pos[1] = static_cast<float>(inputs_.mouse_y);
@@ -362,8 +362,8 @@ void ImGuiImpl::BeginContainer(const char* _title, const math::RectFloat* _rect,
                        ozz::math::Float4x4::identity());
       GlImmediatePC::Vertex v = {
           {0.f, 0.f, 0.f},
-          {kPanelTitleTextColor[0], kPanelTitleTextColor[1],
-           kPanelTitleTextColor[2], kPanelTitleTextColor[3]}};
+          {kPanelTitleTextColor.r, kPanelTitleTextColor.g,
+           kPanelTitleTextColor.b, kPanelTitleTextColor.a}};
 
       if (*_open) {
         v.pos[0] = open_close_rect.left + 3.f;
@@ -442,35 +442,35 @@ bool ImGuiImpl::DoButton(const char* _label, bool _enabled, bool* _state) {
   }
 
   // Renders the button.
-  const GLubyte* background_color = kWidgetBackgroundColor;
-  const GLubyte* border_color = kWidgetBorderColor;
-  const GLubyte* text_color = kWidgetTextColor;
+  const Color* background_color = &kWidgetBackgroundColor;
+  const Color* border_color = &kWidgetBorderColor;
+  const Color* text_color = &kWidgetTextColor;
 
   float active_offset = 0.f;
   if (!_enabled) {
-    background_color = kWidgetDisabledBackgroundColor;
-    border_color = kWidgetDisabledBorderColor;
-    text_color = kWidgetDisabledTextColor;
+    background_color = &kWidgetDisabledBackgroundColor;
+    border_color = &kWidgetDisabledBorderColor;
+    text_color = &kWidgetDisabledTextColor;
   } else if (active) {  // Button is 'active'.
-    background_color = kWidgetActiveBackgroundColor;
-    border_color = kWidgetActiveBorderColor;
+    background_color = &kWidgetActiveBackgroundColor;
+    border_color = &kWidgetActiveBorderColor;
     active_offset = 1.f;
   } else if (hot) {  // Hot but not 'active'.
     // Button is merely 'hot'.
-    background_color = kWidgetHotBackgroundColor;
-    border_color = kWidgetHotBorderColor;
+    background_color = &kWidgetHotBackgroundColor;
+    border_color = &kWidgetHotBorderColor;
   } else {
     // button is not hot, but it may be active. Use default colors.
   }
 
-  FillRect(rect, kButtonRoundRectRadius, background_color);
-  StrokeRect(rect, kButtonRoundRectRadius, border_color);
+  FillRect(rect, kButtonRoundRectRadius, *background_color);
+  StrokeRect(rect, kButtonRoundRectRadius, *border_color);
 
   // Renders button label.
   const math::RectFloat text_rect(
       rect.left + kButtonRoundRectRadius, rect.bottom - active_offset,
       rect.width - kButtonRoundRectRadius * 2.f, rect.height - active_offset);
-  Print(_label, text_rect, kMiddle, text_color);
+  Print(_label, text_rect, kMiddle, *text_color);
 
   return clicked;
 }
@@ -499,34 +499,34 @@ bool ImGuiImpl::DoCheckBox(const char* _label, bool* _state, bool _enabled) {
   }
 
   // Renders the check box.
-  const GLubyte* background_color = kWidgetBackgroundColor;
-  const GLubyte* border_color = kWidgetBorderColor;
-  const GLubyte* check_color = kWidgetTextColor;
-  const GLubyte* text_color = kWidgetTextColor;
+  const Color* background_color = &kWidgetBackgroundColor;
+  const Color* border_color = &kWidgetBorderColor;
+  const Color* check_color = &kWidgetTextColor;
+  const Color* text_color = &kWidgetTextColor;
 
   if (!_enabled) {
-    background_color = kWidgetDisabledBackgroundColor;
-    border_color = kWidgetDisabledBorderColor;
-    check_color = kWidgetDisabledBorderColor;
-    text_color = kWidgetDisabledTextColor;
+    background_color = &kWidgetDisabledBackgroundColor;
+    border_color = &kWidgetDisabledBorderColor;
+    check_color = &kWidgetDisabledBorderColor;
+    text_color = &kWidgetDisabledTextColor;
   } else if (hot) {
     if (active) {
       // Button is both 'hot' and 'active'.
-      background_color = kWidgetActiveBackgroundColor;
-      border_color = kWidgetActiveBorderColor;
-      check_color = kWidgetActiveBorderColor;
+      background_color = &kWidgetActiveBackgroundColor;
+      border_color = &kWidgetActiveBorderColor;
+      check_color = &kWidgetActiveBorderColor;
     } else {
       // Button is merely 'hot'.
-      background_color = kWidgetHotBackgroundColor;
-      border_color = kWidgetHotBorderColor;
-      check_color = kWidgetHotBorderColor;
+      background_color = &kWidgetHotBackgroundColor;
+      border_color = &kWidgetHotBorderColor;
+      check_color = &kWidgetHotBorderColor;
     }
   } else {
     // button is not hot, but it may be active. Use default colors.
   }
 
-  FillRect(check_rect, 0, background_color);
-  StrokeRect(check_rect, 0, border_color);
+  FillRect(check_rect, 0, *background_color);
+  StrokeRect(check_rect, 0, *border_color);
 
   // Renders the "check" mark.
   if (*_state) {
@@ -534,7 +534,7 @@ bool ImGuiImpl::DoCheckBox(const char* _label, bool* _state, bool _enabled) {
                      ozz::math::Float4x4::identity());
     GlImmediatePC::Vertex v = {
         {0.f, 0.f, 0.f},
-        {check_color[0], check_color[1], check_color[2], check_color[3]}};
+        {check_color->r, check_color->g, check_color->b, check_color->a}};
     v.pos[0] = check_rect.left + check_rect.width / 8.f;
     v.pos[1] = check_rect.bottom + check_rect.height / 2.f;
     im.PushVertex(v);
@@ -560,7 +560,7 @@ bool ImGuiImpl::DoCheckBox(const char* _label, bool* _state, bool _enabled) {
   const math::RectFloat text_rect(
       check_rect.right() + kTextMarginX, widget_rect.bottom,
       widget_rect.width - check_rect.width - kTextMarginX, widget_rect.height);
-  Print(_label, text_rect, kWest, text_color);
+  Print(_label, text_rect, kWest, *text_color);
 
   return clicked;
 }
@@ -590,48 +590,48 @@ bool ImGuiImpl::DoRadioButton(int _ref, const char* _label, int* _value,
   }
 
   // Renders the check box.
-  const GLubyte* background_color = kWidgetBackgroundColor;
-  const GLubyte* border_color = kWidgetBorderColor;
-  const GLubyte* check_color = kWidgetBorderColor;
-  const GLubyte* text_color = kWidgetTextColor;
+  const Color* background_color = &kWidgetBackgroundColor;
+  const Color* border_color = &kWidgetBorderColor;
+  const Color* check_color = &kWidgetBorderColor;
+  const Color* text_color = &kWidgetTextColor;
 
   if (!_enabled) {
-    background_color = kWidgetDisabledBackgroundColor;
-    border_color = kWidgetDisabledBorderColor;
-    check_color = kWidgetDisabledBorderColor;
-    text_color = kWidgetDisabledBackgroundColor;
+    background_color = &kWidgetDisabledBackgroundColor;
+    border_color = &kWidgetDisabledBorderColor;
+    check_color = &kWidgetDisabledBorderColor;
+    text_color = &kWidgetDisabledTextColor;
   } else if (hot) {
     if (active) {
       // Button is both 'hot' and 'active'.
-      background_color = kWidgetActiveBackgroundColor;
-      border_color = kWidgetActiveBorderColor;
-      check_color = kWidgetActiveBorderColor;
+      background_color = &kWidgetActiveBackgroundColor;
+      border_color = &kWidgetActiveBorderColor;
+      check_color = &kWidgetActiveBorderColor;
     } else {
       // Button is merely 'hot'.
-      background_color = kWidgetHotBackgroundColor;
-      border_color = kWidgetHotBorderColor;
-      check_color = kWidgetHotBorderColor;
+      background_color = &kWidgetHotBackgroundColor;
+      border_color = &kWidgetHotBorderColor;
+      check_color = &kWidgetHotBorderColor;
     }
   } else {
     // button is not hot, but it may be active. Use default colors.
   }
 
-  FillRect(radio_rect, kWidgetRoundRectRadius, background_color);
-  StrokeRect(radio_rect, kWidgetRoundRectRadius, border_color);
+  FillRect(radio_rect, kWidgetRoundRectRadius, *background_color);
+  StrokeRect(radio_rect, kWidgetRoundRectRadius, *border_color);
 
   // Renders the "checked" button.
   if (*_value == _ref) {
     const math::RectFloat checked_rect(
         radio_rect.left + 1.f, radio_rect.bottom + 1.f, radio_rect.width - 3.f,
         radio_rect.height - 3.f);
-    FillRect(checked_rect, kWidgetRoundRectRadius, check_color);
+    FillRect(checked_rect, kWidgetRoundRectRadius, *check_color);
   }
 
   // Renders button label.
   const math::RectFloat text_rect(
       radio_rect.right() + kTextMarginX, widget_rect.bottom,
       widget_rect.width - radio_rect.width - kTextMarginX, widget_rect.height);
-  Print(_label, text_rect, kWest, text_color);
+  Print(_label, text_rect, kWest, *text_color);
 
   return clicked;
 }
@@ -720,8 +720,8 @@ void ImGuiImpl::DoGraph(const char* _label, float _min, float _max, float _mean,
     GlImmediatePC im(renderer_->immediate_renderer(), GL_LINE_STRIP,
                      ozz::math::Float4x4::identity());
     GlImmediatePC::Vertex v = {{0.f, 0.f, 0.f},
-                               {kGraphPlotColor[0], kGraphPlotColor[1],
-                                kGraphPlotColor[2], kGraphPlotColor[3]}};
+                               {kGraphPlotColor.r, kGraphPlotColor.g,
+                                kGraphPlotColor.b, kGraphPlotColor.a}};
 
     const float* current = _value_cursor;
     const float* end = _value_end;
@@ -799,27 +799,27 @@ bool ImGuiImpl::DoSlider(const char* _label, float _min, float _max,
   }
 
   // Render the scrollbar
-  const GLubyte* background_color = kSliderBackgroundColor;
-  const GLubyte* border_color = kWidgetBorderColor;
-  const GLubyte* slider_color = kSliderCursorColor;
-  const GLubyte* slider_border_color = kWidgetBorderColor;
-  const GLubyte* text_color = kWidgetTextColor;
+  const Color* background_color = &kSliderBackgroundColor;
+  const Color* border_color = &kWidgetBorderColor;
+  const Color* slider_color = &kSliderCursorColor;
+  const Color* slider_border_color = &kWidgetBorderColor;
+  const Color* text_color = &kWidgetTextColor;
 
   if (!_enabled) {
-    background_color = kWidgetDisabledBackgroundColor;
-    border_color = kWidgetDisabledBorderColor;
-    slider_color = kSliderDisabledCursorColor;
-    slider_border_color = kWidgetDisabledBorderColor;
-    text_color = kWidgetDisabledTextColor;
+    background_color = &kWidgetDisabledBackgroundColor;
+    border_color = &kWidgetDisabledBorderColor;
+    slider_color = &kSliderDisabledCursorColor;
+    slider_border_color = &kWidgetDisabledBorderColor;
+    text_color = &kWidgetDisabledTextColor;
   } else if (hot) {
     if (active) {
       // Button is both 'hot' and 'active'.
-      slider_color = kWidgetActiveBackgroundColor;
-      slider_border_color = kWidgetActiveBorderColor;
+      slider_color = &kWidgetActiveBackgroundColor;
+      slider_border_color = &kWidgetActiveBorderColor;
     } else {
       // Button is merely 'hot'.
-      slider_color = kSliderCursorHotColor;
-      slider_border_color = kWidgetHotBorderColor;
+      slider_color = &kSliderCursorHotColor;
+      slider_border_color = &kWidgetHotBorderColor;
     }
   } else {
     // button is not hot, but it may be active. Use default colors.
@@ -835,19 +835,19 @@ bool ImGuiImpl::DoSlider(const char* _label, float _min, float _max,
   // Renders slider's rail.
   const math::RectFloat rail_rect(rect.left, rect.bottom, rect.width,
                                   rect.height);
-  FillRect(rail_rect, kSliderRoundRectRadius, background_color);
-  StrokeRect(rail_rect, kSliderRoundRectRadius, border_color);
+  FillRect(rail_rect, kSliderRoundRectRadius, *background_color);
+  StrokeRect(rail_rect, kSliderRoundRectRadius, *border_color);
 
   const math::RectFloat cursor_rect(
       rect.left + cursor - kWidgetCursorWidth / 2.f, rect.bottom - 1.f,
       kWidgetCursorWidth, rect.height + 2.f);
-  FillRect(cursor_rect, kSliderRoundRectRadius, slider_color);
-  StrokeRect(cursor_rect, kSliderRoundRectRadius, slider_border_color);
+  FillRect(cursor_rect, kSliderRoundRectRadius, *slider_color);
+  StrokeRect(cursor_rect, kSliderRoundRectRadius, *slider_border_color);
 
   const math::RectFloat text_rect(
       rail_rect.left + kSliderRoundRectRadius, rail_rect.bottom,
       rail_rect.width - kSliderRoundRectRadius * 2.f, rail_rect.height);
-  Print(_label, text_rect, kMiddle, text_color);
+  Print(_label, text_rect, kMiddle, *text_color);
 
   // Returns true if the value has changed or if it was clamped in _min / _max
   // bounds.
@@ -884,27 +884,27 @@ bool ImGuiImpl::DoSlider2D(const char* _label, ozz::array<float, 2> _min,
   }
 
   // Render the scrollbar
-  const GLubyte* background_color = kSliderBackgroundColor;
-  const GLubyte* border_color = kWidgetBorderColor;
-  const GLubyte* slider_color = kSliderCursorColor;
-  const GLubyte* slider_border_color = kWidgetBorderColor;
-  const GLubyte* text_color = kWidgetTextColor;
+  const Color* background_color = &kSliderBackgroundColor;
+  const Color* border_color = &kWidgetBorderColor;
+  const Color* slider_color = &kSliderCursorColor;
+  const Color* slider_border_color = &kWidgetBorderColor;
+  const Color* text_color = &kWidgetTextColor;
 
   if (!_enabled) {
-    background_color = kWidgetDisabledBackgroundColor;
-    border_color = kWidgetDisabledBorderColor;
-    slider_color = kSliderDisabledCursorColor;
-    slider_border_color = kWidgetDisabledBorderColor;
-    text_color = kWidgetDisabledTextColor;
+    background_color = &kWidgetDisabledBackgroundColor;
+    border_color = &kWidgetDisabledBorderColor;
+    slider_color = &kSliderDisabledCursorColor;
+    slider_border_color = &kWidgetDisabledBorderColor;
+    text_color = &kWidgetDisabledTextColor;
   } else if (hot) {
     if (active) {
       // Button is both 'hot' and 'active'.
-      slider_color = kWidgetActiveBackgroundColor;
-      slider_border_color = kWidgetActiveBorderColor;
+      slider_color = &kWidgetActiveBackgroundColor;
+      slider_border_color = &kWidgetActiveBorderColor;
     } else {
       // Button is merely 'hot'.
-      slider_color = kSliderCursorHotColor;
-      slider_border_color = kWidgetHotBorderColor;
+      slider_color = &kSliderCursorHotColor;
+      slider_border_color = &kWidgetHotBorderColor;
     }
   } else {
     // button is not hot, but it may be active. Use default colors.
@@ -925,8 +925,8 @@ bool ImGuiImpl::DoSlider2D(const char* _label, ozz::array<float, 2> _min,
   // Renders slider's rail.
   const math::RectFloat rail_rect(rect.left, rect.bottom, rect.width,
                                   rect.height);
-  FillRect(rail_rect, kSliderRoundRectRadius, background_color);
-  StrokeRect(rail_rect, kSliderRoundRectRadius, border_color);
+  FillRect(rail_rect, kSliderRoundRectRadius, *background_color);
+  StrokeRect(rail_rect, kSliderRoundRectRadius, *border_color);
 
   // Finds cursor position and rect.
   const math::RectFloat cursor_rect(
@@ -937,20 +937,20 @@ bool ImGuiImpl::DoSlider2D(const char* _label, ozz::array<float, 2> _min,
   // Cursor cross
   const math::RectFloat cross_hrect(rect.left, rect.bottom + cursor[1],
                                     rect.width, 1);
-  StrokeRect(cross_hrect, 0.f, slider_color);
+  StrokeRect(cross_hrect, 0.f, *slider_color);
   const math::RectFloat cross_vrect(rect.left + cursor[0], rect.bottom, 1,
                                     rect.height);
-  StrokeRect(cross_vrect, 0.f, slider_color);
+  StrokeRect(cross_vrect, 0.f, *slider_color);
 
   // Draw slider
-  FillRect(cursor_rect, kSliderRoundRectRadius, slider_color);
-  StrokeRect(cursor_rect, kSliderRoundRectRadius, slider_border_color);
+  FillRect(cursor_rect, kSliderRoundRectRadius, *slider_color);
+  StrokeRect(cursor_rect, kSliderRoundRectRadius, *slider_border_color);
 
   // Text
   const math::RectFloat text_rect(
       rail_rect.left + kSliderRoundRectRadius, rail_rect.bottom,
       rail_rect.width - kSliderRoundRectRadius * 2.f, rail_rect.height);
-  Print(_label, text_rect, kMiddle, text_color);
+  Print(_label, text_rect, kMiddle, *text_color);
 
   // Returns true if the value has changed or if it was clamped in _min / _max
   // bounds.
@@ -994,18 +994,18 @@ void ImGuiImpl::DoLabel(const char* _label, Justification _justification,
 }
 
 void ImGuiImpl::FillRect(const math::RectFloat& _rect, float _radius,
-                         const GLubyte _rgba[4]) const {
-  FillRect(_rect, _radius, _rgba, ozz::math::Float4x4::identity());
+                         const Color& _color) const {
+  FillRect(_rect, _radius, _color, ozz::math::Float4x4::identity());
 }
 
 void ImGuiImpl::FillRect(const math::RectFloat& _rect, float _radius,
-                         const GLubyte _rgba[4],
+                         const Color& _color,
                          const ozz::math::Float4x4& _transform) const {
   if (_radius <= 0.f) {
     GlImmediatePC im(renderer_->immediate_renderer(), GL_TRIANGLE_STRIP,
                      _transform);
     GlImmediatePC::Vertex v = {{0.f, 0.f, 0.f},
-                               {_rgba[0], _rgba[1], _rgba[2], _rgba[3]}};
+                               {_color.r, _color.g, _color.b, _color.a}};
     v.pos[0] = _rect.left;
     v.pos[1] = _rect.top();
     im.PushVertex(v);
@@ -1025,7 +1025,7 @@ void ImGuiImpl::FillRect(const math::RectFloat& _rect, float _radius,
 
     GlImmediatePC im(renderer_->immediate_renderer(), GL_TRIANGLES, _transform);
     GlImmediatePC::Vertex v = {{0.f, 0.f, 0.f},
-                               {_rgba[0], _rgba[1], _rgba[2], _rgba[3]}};
+                               {_color.r, _color.g, _color.b, _color.a}};
     for (int i = 1, j = i - 1; i <= kCircleSegments / 4; j = i++) {
       v.pos[0] = x + w;
       v.pos[1] = y + h;
@@ -1138,12 +1138,12 @@ void ImGuiImpl::FillRect(const math::RectFloat& _rect, float _radius,
 }
 
 void ImGuiImpl::StrokeRect(const math::RectFloat& _rect, float _radius,
-                           const GLubyte _rgba[4]) const {
-  StrokeRect(_rect, _radius, _rgba, ozz::math::Float4x4::identity());
+                           const Color& _color) const {
+  StrokeRect(_rect, _radius, _color, ozz::math::Float4x4::identity());
 }
 
 void ImGuiImpl::StrokeRect(const math::RectFloat& _rect, float _radius,
-                           const GLubyte _rgba[4],
+                           const Color& _color,
                            const ozz::math::Float4x4& _transform) const {
   // Lines rendering requires to coordinate to be in the pixel center.
   const ozz::math::SimdFloat4 translation =
@@ -1153,7 +1153,7 @@ void ImGuiImpl::StrokeRect(const math::RectFloat& _rect, float _radius,
   if (_radius <= 0.f) {
     GlImmediatePC im(renderer_->immediate_renderer(), GL_LINE_LOOP, transform);
     GlImmediatePC::Vertex v = {{0.f, 0.f, 0.f},
-                               {_rgba[0], _rgba[1], _rgba[2], _rgba[3]}};
+                               {_color.r, _color.g, _color.b, _color.a}};
     v.pos[0] = _rect.left;
     v.pos[1] = _rect.bottom;
     im.PushVertex(v);
@@ -1172,7 +1172,7 @@ void ImGuiImpl::StrokeRect(const math::RectFloat& _rect, float _radius,
 
     GlImmediatePC im(renderer_->immediate_renderer(), GL_LINE_LOOP, transform);
     GlImmediatePC::Vertex v = {{0.f, 0.f, 0.f},
-                               {_rgba[0], _rgba[1], _rgba[2], _rgba[3]}};
+                               {_color.r, _color.g, _color.b, _color.a}};
     for (int i = 0; i <= kCircleSegments / 4; ++i) {
       v.pos[0] = x + w + circle_[i][0] * radius;
       v.pos[1] = y + h + circle_[i][1] * radius;
@@ -1383,7 +1383,7 @@ struct LineSpec {
 }  // namespace
 
 float ImGuiImpl::Print(const char* _text, const math::RectFloat& _rect,
-                       PrintLayout _layout, const GLubyte _rgba[4]) const {
+                       PrintLayout _layout, const Color& _color) const {
   LineSpec line_specs[64];
   int interlign = font_.glyph_height / 4;
   int max_lines = (static_cast<int>(_rect.height) + interlign) /
@@ -1516,7 +1516,7 @@ float ImGuiImpl::Print(const char* _text, const math::RectFloat& _rect,
                         ozz::math::Float4x4::identity());
       GlImmediatePTC::Vertex v = {{0.f, 0.f, 0.f},
                                   {0.f, 0.f},
-                                  {_rgba[0], _rgba[1], _rgba[2], _rgba[3]}};
+                                  {_color.r, _color.g, _color.b, _color.a}};
 
       float offset = 0.f;
       for (int i = 0; i < line_char_count; i++, offset += font_.glyph_width) {
