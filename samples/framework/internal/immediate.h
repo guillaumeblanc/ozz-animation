@@ -54,7 +54,7 @@ class ImmediatePTCShader;
 // Position + Color.
 struct VertexPC {
   float pos[3];
-  GLubyte rgba[4];
+  float rgba[4];
 };
 
 // Declares supported vertex formats.
@@ -68,7 +68,7 @@ struct VertexPN {
 struct VertexPTC {
   float pos[3];
   float uv[2];
-  GLubyte rgba[4];
+  float rgba[4];
 };
 
 // Declares Immediate mode types.

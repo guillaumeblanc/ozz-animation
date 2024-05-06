@@ -31,7 +31,6 @@
 
 #include <cassert>
 #include <cstdio>
-#include <limits>
 
 #include "ozz/base/log.h"
 #include "ozz/base/maths/simd_math.h"
@@ -237,8 +236,8 @@ void ImmediatePCShader::Bind(const math::Float4x4& _model,
 
   const GLint color_attrib = attrib(1);
   GL(EnableVertexAttribArray(color_attrib));
-  GL(VertexAttribPointer(color_attrib, 4, GL_UNSIGNED_BYTE, GL_TRUE,
-                         _color_stride, GL_PTR_OFFSET(_color_offset)));
+  GL(VertexAttribPointer(color_attrib, 4, GL_FLOAT, GL_FALSE, _color_stride,
+                         GL_PTR_OFFSET(_color_offset)));
 
   // Binds mvp uniform
   glUniformMat4(_view_proj * _model, uniform(0));
@@ -314,8 +313,8 @@ void ImmediatePTCShader::Bind(const math::Float4x4& _model,
 
   const GLint color_attrib = attrib(2);
   GL(EnableVertexAttribArray(color_attrib));
-  GL(VertexAttribPointer(color_attrib, 4, GL_UNSIGNED_BYTE, GL_TRUE,
-                         _color_stride, GL_PTR_OFFSET(_color_offset)));
+  GL(VertexAttribPointer(color_attrib, 4, GL_FLOAT, GL_FALSE, _color_stride,
+                         GL_PTR_OFFSET(_color_offset)));
 
   // Binds mvp uniform
   glUniformMat4(_view_proj * _model, uniform(0));
@@ -387,8 +386,8 @@ PointsShader::GenericAttrib PointsShader::Bind(
   const GLint color_attrib = attrib(1);
   if (_color_stride) {
     GL(EnableVertexAttribArray(color_attrib));
-    GL(VertexAttribPointer(color_attrib, 4, GL_UNSIGNED_BYTE, GL_TRUE,
-                           _color_stride, GL_PTR_OFFSET(_color_offset)));
+    GL(VertexAttribPointer(color_attrib, 4, GL_FLOAT, GL_FALSE, _color_stride,
+                           GL_PTR_OFFSET(_color_offset)));
   }
   const GLint size_attrib = attrib(2);
   if (_size_stride) {
@@ -487,8 +486,8 @@ void SkeletonShader::Bind(const math::Float4x4& _model,
 
   const GLint color_attrib = attrib(2);
   GL(EnableVertexAttribArray(color_attrib));
-  GL(VertexAttribPointer(color_attrib, 4, GL_UNSIGNED_BYTE, GL_TRUE,
-                         _color_stride, GL_PTR_OFFSET(_color_offset)));
+  GL(VertexAttribPointer(color_attrib, 4, GL_FLOAT, GL_FALSE, _color_stride,
+                         GL_PTR_OFFSET(_color_offset)));
 
   // Binds vp uniform
   glUniformMat4(_model, uniform(0));
@@ -522,6 +521,7 @@ ozz::unique_ptr<JointShader> JointShader::Build() {
       "  world_matrix[3] = joint_matrix[3];\n"
       "  return u_model * world_matrix;\n"
       "}\n";
+
   const char* vs[] = {kPlatformSpecificVSHeader, kPassNoUv,
                       GL_ARB_instanced_arrays_supported
                           ? "in mat4 joint;\n"
@@ -662,7 +662,7 @@ void AmbientShader::Bind(const math::Float4x4& _model,
                          const math::Float4x4& _view_proj, GLsizei _pos_stride,
                          GLsizei _pos_offset, GLsizei _normal_stride,
                          GLsizei _normal_offset, GLsizei _color_stride,
-                         GLsizei _color_offset) {
+                         GLsizei _color_offset, bool _color_float) {
   GL(UseProgram(program()));
 
   const GLint position_attrib = attrib(0);
@@ -672,13 +672,14 @@ void AmbientShader::Bind(const math::Float4x4& _model,
 
   const GLint normal_attrib = attrib(1);
   GL(EnableVertexAttribArray(normal_attrib));
-  GL(VertexAttribPointer(normal_attrib, 3, GL_FLOAT, GL_TRUE, _normal_stride,
+  GL(VertexAttribPointer(normal_attrib, 3, GL_FLOAT, GL_FALSE, _normal_stride,
                          GL_PTR_OFFSET(_normal_offset)));
 
   const GLint color_attrib = attrib(2);
   GL(EnableVertexAttribArray(color_attrib));
-  GL(VertexAttribPointer(color_attrib, 4, GL_UNSIGNED_BYTE, GL_TRUE,
-                         _color_stride, GL_PTR_OFFSET(_color_offset)));
+  GL(VertexAttribPointer(
+      color_attrib, 4, _color_float ? GL_FLOAT : GL_UNSIGNED_BYTE,
+      !_color_float, _color_stride, GL_PTR_OFFSET(_color_offset)));
 
   // Binds mw uniform
   glUniformMat4(_model, uniform(0));
@@ -722,7 +723,7 @@ void AmbientShaderInstanced::Bind(GLsizei _models_offset,
                                   GLsizei _pos_stride, GLsizei _pos_offset,
                                   GLsizei _normal_stride,
                                   GLsizei _normal_offset, GLsizei _color_stride,
-                                  GLsizei _color_offset) {
+                                  GLsizei _color_offset, bool _color_float) {
   GL(UseProgram(program()));
 
   const GLint position_attrib = attrib(0);
@@ -732,16 +733,16 @@ void AmbientShaderInstanced::Bind(GLsizei _models_offset,
 
   const GLint normal_attrib = attrib(1);
   GL(EnableVertexAttribArray(normal_attrib));
-  GL(VertexAttribPointer(normal_attrib, 3, GL_FLOAT, GL_TRUE, _normal_stride,
+  GL(VertexAttribPointer(normal_attrib, 3, GL_FLOAT, GL_FALSE, _normal_stride,
                          GL_PTR_OFFSET(_normal_offset)));
 
   const GLint color_attrib = attrib(2);
   GL(EnableVertexAttribArray(color_attrib));
-  GL(VertexAttribPointer(color_attrib, 4, GL_UNSIGNED_BYTE, GL_TRUE,
-                         _color_stride, GL_PTR_OFFSET(_color_offset)));
+  GL(VertexAttribPointer(
+      color_attrib, 4, _color_float ? GL_FLOAT : GL_UNSIGNED_BYTE,
+      !_color_float, _color_stride, GL_PTR_OFFSET(_color_offset)));
   if (_color_stride == 0) {
-    GL(VertexAttribDivisor_(color_attrib,
-                            std::numeric_limits<unsigned int>::max()));
+    GL(VertexAttribDivisor_(color_attrib, 0xffffffff));
   }
 
   // Binds mw uniform
@@ -814,10 +815,11 @@ void AmbientTexturedShader::Bind(const math::Float4x4& _model,
                                  GLsizei _pos_stride, GLsizei _pos_offset,
                                  GLsizei _normal_stride, GLsizei _normal_offset,
                                  GLsizei _color_stride, GLsizei _color_offset,
-                                 GLsizei _uv_stride, GLsizei _uv_offset) {
+                                 bool _color_float, GLsizei _uv_stride,
+                                 GLsizei _uv_offset) {
   AmbientShader::Bind(_model, _view_proj, _pos_stride, _pos_offset,
                       _normal_stride, _normal_offset, _color_stride,
-                      _color_offset);
+                      _color_offset, _color_float);
 
   const GLint uv_attrib = attrib(3);
   GL(EnableVertexAttribArray(uv_attrib));
