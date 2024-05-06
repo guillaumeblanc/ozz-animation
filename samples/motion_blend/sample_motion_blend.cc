@@ -219,15 +219,11 @@ class MotionBlendSampleApplication : public ozz::sample::Application {
     }
 
     // Synchronizes animations.
-    // First computes loop cycle duration. Selects the 2 samplers that define
-    // interval that contains blend_ratio_.
-    // Uses a maximum value smaller that 1.f (-epsilon) to ensure that
-    // (relevant_sampler + 1) is always valid.
-    const size_t relevant_sampler =
-        static_cast<size_t>((blend_ratio_ - 1e-3f) * (kNumLayers - 1));
-    assert(relevant_sampler + 1 < kNumLayers);
-    Sampler& sampler_l = samplers_[relevant_sampler];
-    Sampler& sampler_r = samplers_[relevant_sampler + 1];
+    // Selects the 2 samplers that define interval that contains blend_ratio_.
+    const float clamped_ratio = ozz::math::Clamp(0.f, blend_ratio_, .999f);
+    const size_t lower = static_cast<size_t>(clamped_ratio * (kNumLayers - 1));
+    const Sampler& sampler_l = samplers_[lower];
+    const Sampler& sampler_r = samplers_[lower + 1];
 
     // Interpolates animation durations using their respective weights, to
     // find the loop cycle duration that matches blend_ratio_.
