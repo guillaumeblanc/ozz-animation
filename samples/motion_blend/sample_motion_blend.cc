@@ -370,6 +370,7 @@ class MotionBlendSampleApplication : public ozz::sample::Application {
                           &angular_velocity_);
         if (_im_gui->DoButton("Teleport")) {
           for (auto& sampler : samplers_) {
+            sampler.controller.set_time_ratio(0.f);
             sampler.motion_sampler.Teleport(ozz::math::Transform::identity());
           }
           accumulator_.Teleport(ozz::math::Transform::identity());
