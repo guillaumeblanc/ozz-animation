@@ -126,14 +126,16 @@ bool SampleMotion(const MotionTrack& _tracks, float _ratio,
 // _step is the delta ratio between each sample / point.
 bool DrawMotion(ozz::sample::Renderer* _renderer,
                 const MotionTrack& _motion_track, float _from, float _at,
-                float _to, float _step, const ozz::math::Float4x4& _transform);
+                float _to, float _step, const ozz::math::Float4x4& _transform,
+                float _alpha = 1.f);
 
 // See DrawMotion above. This version allows to apply a delta rotation to the
 // path, where _delta_rotation is the rotation to apply each step.
 bool DrawMotion(ozz::sample::Renderer* _renderer,
                 const MotionTrack& _motion_track, float _from, float _at,
                 float _to, float _step, const ozz::math::Float4x4& _transform,
-                const ozz::math::Quaternion& _delta_rotation);
+                const ozz::math::Quaternion& _delta_rotation,
+                float _alpha = 1.f);
 
 }  // namespace sample
 }  // namespace ozz

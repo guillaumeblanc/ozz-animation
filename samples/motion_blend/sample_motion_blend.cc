@@ -223,8 +223,8 @@ class MotionBlendSampleApplication : public ozz::sample::Application {
     // interval that contains blend_ratio_.
     // Uses a maximum value smaller that 1.f (-epsilon) to ensure that
     // (relevant_sampler + 1) is always valid.
-    const int relevant_sampler =
-        static_cast<int>((blend_ratio_ - 1e-3f) * (kNumLayers - 1));
+    const size_t relevant_sampler =
+        static_cast<size_t>((blend_ratio_ - 1e-3f) * (kNumLayers - 1));
     assert(relevant_sampler + 1 < kNumLayers);
     Sampler& sampler_l = samplers_[relevant_sampler];
     Sampler& sampler_r = samplers_[relevant_sampler + 1];
@@ -258,18 +258,17 @@ class MotionBlendSampleApplication : public ozz::sample::Application {
 
     // Renders motion tracks at transform_ location.
     if (show_motion_) {
-      // const float kStep = 1.f / 60.f;
+      const float kStep = 1.f / 60.f;
       for (const auto& sampler : samplers_) {
         if (sampler.weight <= 0.f) {
           continue;
         }
-        const float step = 1.f / 60.f;
         const auto rotation =
-            FrameRotation(step * sampler.animation.duration());
+            FrameRotation(kStep * sampler.animation.duration());
         const float at = sampler.controller.time_ratio();
-        success |=
-            ozz::sample::DrawMotion(_renderer, sampler.motion_track, at - 1.f,
-                                    at, at + 1.f, step, transform_, rotation);
+        success |= ozz::sample::DrawMotion(
+            _renderer, sampler.motion_track, at - 1.f, at, at + 1.f, kStep,
+            transform_, rotation, sampler.weight);
       }
     }
     return success;

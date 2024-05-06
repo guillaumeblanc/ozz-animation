@@ -225,9 +225,10 @@ bool MotionSampler::Update(const MotionTrack& _motion, float _ratio, int _loops,
 
 bool DrawMotion(ozz::sample::Renderer* _renderer,
                 const MotionTrack& _motion_track, float _from, float _at,
-                float _to, float _step, const ozz::math::Float4x4& _transform) {
+                float _to, float _step, const ozz::math::Float4x4& _transform,
+                float _alpha) {
   return DrawMotion(_renderer, _motion_track, _from, _at, _to, _step,
-                    _transform, ozz::math::Quaternion::identity());
+                    _transform, ozz::math::Quaternion::identity(), _alpha);
 }
 
 // Uses a MotionSampler to estimate past and future positions around _at.
@@ -235,10 +236,13 @@ bool DrawMotion(ozz::sample::Renderer* _renderer,
 bool DrawMotion(ozz::sample::Renderer* _renderer,
                 const MotionTrack& _motion_track, float _from, float _at,
                 float _to, float _step, const ozz::math::Float4x4& _transform,
-                const ozz::math::Quaternion& _rot) {
+                const ozz::math::Quaternion& _delta_rotation, float _alpha) {
   if (_step <= 0.f || _to <= _from) {
     return false;
   }
+
+  // Changes alpha curve to be more visible
+  _alpha = std::sqrt(ozz::math::Clamp(0.f, _alpha, 1.f));
 
   bool success = true;
 
@@ -263,21 +267,21 @@ bool DrawMotion(ozz::sample::Renderer* _renderer,
 
   // Present to past, -_step by -_step
   sampler.Teleport(at_transform);
-  const auto inv_rot = Conjugate(_rot);
+  const auto inv_delta_rotation = Conjugate(_delta_rotation);
   for (float t = _at, prev = t; t > _from - _step; prev = t, t -= _step) {
-    success &= sample(ozz::math::Max(t, _from), prev, inv_rot);
+    success &= sample(ozz::math::Max(t, _from), prev, inv_delta_rotation);
   }
-  success &= _renderer->DrawLineStrip(make_span(points), ozz::sample::kGreen,
-                                      transform);
+  success &= _renderer->DrawLineStrip(
+      make_span(points), ozz::sample::Color{0, 1, 0, _alpha}, transform);
 
   // Present to future, _step by _step
   points.clear();
   sampler.Teleport(at_transform);
   for (float t = _at, prev = t; t < _to + _step; prev = t, t += _step) {
-    success &= sample(ozz::math::Min(t, _to), prev, _rot);
+    success &= sample(ozz::math::Min(t, _to), prev, _delta_rotation);
   }
-  success &= _renderer->DrawLineStrip(make_span(points), ozz::sample::kWhite,
-                                      transform);
+  success &= _renderer->DrawLineStrip(
+      make_span(points), ozz::sample::Color{1, 1, 1, _alpha}, transform);
 
   return success;
 }

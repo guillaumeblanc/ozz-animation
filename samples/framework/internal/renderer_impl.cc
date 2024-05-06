@@ -1029,15 +1029,24 @@ bool RendererImpl::DrawLines(ozz::span<const math::Float3> _vertices,
     return true;
   }
 
-  GlImmediatePC im(immediate_renderer(), GL_LINES, _transform);
-  GlImmediatePC::Vertex imv = {{}, {_color.r, _color.g, _color.b, _color.a}};
-
-  for (const auto& v : _vertices) {
-    imv.pos[0] = v.x;
-    imv.pos[1] = v.y;
-    imv.pos[2] = v.z;
-    im.PushVertex(imv);
+  if (_color.a < 1.f) {
+    GL(Enable(GL_BLEND));
+    GL(BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
   }
+
+  {  // Inside blending scope
+
+    GlImmediatePC im(immediate_renderer(), GL_LINES, _transform);
+    GlImmediatePC::Vertex imv = {{}, {_color.r, _color.g, _color.b, _color.a}};
+    for (const auto& v : _vertices) {
+      imv.pos[0] = v.x;
+      imv.pos[1] = v.y;
+      imv.pos[2] = v.z;
+      im.PushVertex(imv);
+    }
+  }
+
+  GL(Disable(GL_BLEND));
   return true;
 }
 
@@ -1048,15 +1057,23 @@ bool RendererImpl::DrawLineStrip(ozz::span<const math::Float3> _vertices,
     return true;
   }
 
-  GlImmediatePC im(immediate_renderer(), GL_LINE_STRIP, _transform);
-  GlImmediatePC::Vertex imv = {{}, {_color.r, _color.g, _color.b, _color.a}};
-
-  for (const auto& v : _vertices) {
-    imv.pos[0] = v.x;
-    imv.pos[1] = v.y;
-    imv.pos[2] = v.z;
-    im.PushVertex(imv);
+  if (_color.a < 1.f) {
+    GL(Enable(GL_BLEND));
+    GL(BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
   }
+
+  {  // Inside blending scope
+    GlImmediatePC im(immediate_renderer(), GL_LINE_STRIP, _transform);
+    GlImmediatePC::Vertex imv = {{}, {_color.r, _color.g, _color.b, _color.a}};
+    for (const auto& v : _vertices) {
+      imv.pos[0] = v.x;
+      imv.pos[1] = v.y;
+      imv.pos[2] = v.z;
+      im.PushVertex(imv);
+    }
+  }
+
+  GL(Disable(GL_BLEND));
   return true;
 }
 
