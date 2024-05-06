@@ -237,14 +237,20 @@ bool DrawMotion(ozz::sample::Renderer* _renderer,
                 const MotionTrack& _motion_track, float _from, float _at,
                 float _to, float _step, const ozz::math::Float4x4& _transform,
                 const ozz::math::Quaternion& _delta_rotation, float _alpha) {
+  // Wrong input
   if (_step <= 0.f || _to <= _from) {
     return false;
   }
 
-  // Changes alpha curve to be more visible
-  _alpha = std::sqrt(ozz::math::Clamp(0.f, _alpha, 1.f));
+  // Early out if invisible
+  if (_alpha <= 0.f) {
+    return true;
+  }
 
   bool success = true;
+
+  // Changes alpha curve to be more visible.
+  const float alpha = std::sqrt(_alpha);
 
   // Find track current transform in order to correctly place the motion at
   // character transform.
@@ -272,7 +278,7 @@ bool DrawMotion(ozz::sample::Renderer* _renderer,
     success &= sample(ozz::math::Max(t, _from), prev, inv_delta_rotation);
   }
   success &= _renderer->DrawLineStrip(
-      make_span(points), ozz::sample::Color{0, 1, 0, _alpha}, transform);
+      make_span(points), ozz::sample::Color{0, 1, 0, alpha}, transform);
 
   // Present to future, _step by _step
   points.clear();
@@ -281,7 +287,7 @@ bool DrawMotion(ozz::sample::Renderer* _renderer,
     success &= sample(ozz::math::Min(t, _to), prev, _delta_rotation);
   }
   success &= _renderer->DrawLineStrip(
-      make_span(points), ozz::sample::Color{1, 1, 1, _alpha}, transform);
+      make_span(points), ozz::sample::Color{1, 1, 1, alpha}, transform);
 
   return success;
 }

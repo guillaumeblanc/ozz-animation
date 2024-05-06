@@ -256,9 +256,6 @@ class MotionBlendSampleApplication : public ozz::sample::Application {
     if (show_motion_) {
       const float kStep = 1.f / 60.f;
       for (const auto& sampler : samplers_) {
-        if (sampler.weight <= 0.f) {
-          continue;
-        }
         const auto rotation =
             FrameRotation(kStep * sampler.animation.duration());
         const float at = sampler.controller.time_ratio();
