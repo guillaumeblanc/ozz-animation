@@ -338,8 +338,8 @@ class MotionExtractionSampleApplication : public ozz::sample::Application {
       static bool open = true;
       ozz::sample::ImGui::OpenClose oc(_im_gui, "Motion control", &open);
       if (open) {
-        _im_gui->DoCheckBox("Use motion position", &apply_motion_position_);
-        _im_gui->DoCheckBox("Use motion rotation", &apply_motion_rotation_);
+        _im_gui->DoCheckBox("Apply motion position", &apply_motion_position_);
+        _im_gui->DoCheckBox("Apply motion rotation", &apply_motion_rotation_);
       }
     }
     return true;

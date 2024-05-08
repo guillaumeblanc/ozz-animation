@@ -203,8 +203,8 @@ class MotionPlaybackSampleApplication : public ozz::sample::Application {
       static bool open = true;
       ozz::sample::ImGui::OpenClose oc(_im_gui, "Motion control", &open);
       if (open) {
-        _im_gui->DoCheckBox("Use motion position", &apply_motion_position_);
-        _im_gui->DoCheckBox("Use motion rotation", &apply_motion_rotation_);
+        _im_gui->DoCheckBox("Apply motion position", &apply_motion_position_);
+        _im_gui->DoCheckBox("Apply motion rotation", &apply_motion_rotation_);
         std::snprintf(label, sizeof(label), "Angular vel: %.0f deg/s",
                       angular_velocity_ * 180.f / ozz::math::kPi);
         _im_gui->DoSlider(label, -ozz::math::kPi_2, ozz::math::kPi_2,
