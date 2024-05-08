@@ -284,7 +284,7 @@ class MotionExtractionSampleApplication : public ozz::sample::Application {
           ozz::sample::ImGui::OpenClose ocr(_im_gui, "Reference", nullptr);
           int ref =
               static_cast<int>(motion_extractor_.position_settings.reference);
-          rebuild |= _im_gui->DoRadioButton(0, "Identity", &ref);
+          rebuild |= _im_gui->DoRadioButton(0, "Absolute", &ref);
           rebuild |= _im_gui->DoRadioButton(1, "Skeleton", &ref);
           rebuild |= _im_gui->DoRadioButton(2, "Animation", &ref);
           motion_extractor_.position_settings.reference =
@@ -314,7 +314,7 @@ class MotionExtractionSampleApplication : public ozz::sample::Application {
           ozz::sample::ImGui::OpenClose ocr(_im_gui, "Reference", nullptr);
           int ref =
               static_cast<int>(motion_extractor_.rotation_settings.reference);
-          rebuild |= _im_gui->DoRadioButton(0, "Identity", &ref);
+          rebuild |= _im_gui->DoRadioButton(0, "Absolute", &ref);
           rebuild |= _im_gui->DoRadioButton(1, "Skeleton", &ref);
           rebuild |= _im_gui->DoRadioButton(2, "Animation", &ref);
           motion_extractor_.rotation_settings.reference =
