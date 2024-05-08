@@ -120,11 +120,11 @@ void Shooter::Resize(int _width, int _height) {
 #ifndef EMSCRIPTEN
   for (int i = 0; i < kNumShots; ++i) {
     Shot& shot = shots_[i];
-    GL(BindBuffer(GL_PIXEL_PACK_BUFFER, shot.pbo));
-    GL(BufferData(GL_PIXEL_PACK_BUFFER, _width * _height * 4, 0,
-                  GL_STREAM_READ));
     shot.width = _width;
     shot.height = _height;
+    GL(BindBuffer(GL_PIXEL_PACK_BUFFER, shot.pbo));
+    GL(BufferData(GL_PIXEL_PACK_BUFFER, shot.width * shot.height * 4, 0,
+                  GL_STREAM_READ));
     assert(shot.cooldown == 0);  // Must have been processed.
   }
   GL(BindBuffer(GL_PIXEL_PACK_BUFFER, 0));
