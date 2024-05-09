@@ -129,6 +129,16 @@ struct span {
   iterator begin() const { return data_; }
   iterator end() const { return data_ + size_; }
 
+  // Front and back accessors
+  reference front() const {
+    assert(size_ > 0 && "Empty span.");
+    return *data_;
+  }
+  reference back() const {
+    assert(size_ > 0 && "Empty span.");
+    return *(data_ + size_ - 1);
+  }
+
  private:
   // span begin pointer.
   _Ty* data_;

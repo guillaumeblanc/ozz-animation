@@ -32,35 +32,44 @@
 #include "ozz/base/span.h"
 
 TEST(Span, Platform) {
-  const size_t kSize = 46;
   int i = 20;
-  int ai[kSize];
-  const size_t array_size = OZZ_ARRAY_SIZE(ai);
+  int ai[] = {46, 26, 63, 20, 14, 93};
+  const size_t kSize = OZZ_ARRAY_SIZE(ai);
 
   ozz::span<int> empty;
   EXPECT_TRUE(empty.begin() == nullptr);
+  EXPECT_TRUE(empty.end() == nullptr);
   EXPECT_EQ(empty.size(), 0u);
   EXPECT_EQ(empty.size_bytes(), 0u);
+  EXPECT_ASSERTION(empty.front(), "Empty span.");
+  EXPECT_ASSERTION(empty.back(), "Empty span.");
 
   EXPECT_ASSERTION(empty[46], "Index out of range.");
 
   ozz::span<int> single(i);
   EXPECT_TRUE(single.begin() == &i);
+  EXPECT_TRUE(single.end() == &i + 1);
   EXPECT_EQ(single.size(), 1u);
   EXPECT_EQ(single.size_bytes(), sizeof(i));
 
   EXPECT_ASSERTION(single[46], "Index out of range.");
 
-  ozz::span<int> cs1(ai, ai + array_size);
+  ozz::span<int> cs1(ai, ai + kSize);
   EXPECT_EQ(cs1.begin(), ai);
-  EXPECT_EQ(cs1.size(), array_size);
+  EXPECT_TRUE(cs1.end() == ai + kSize);
+  EXPECT_EQ(cs1.size(), kSize);
   EXPECT_EQ(cs1.size_bytes(), sizeof(ai));
+
+  // Front and back
+  EXPECT_EQ(cs1.front(), 46);
+  EXPECT_EQ(cs1.back(), 93);
 
   // Re-inint
   ozz::span<int> reinit;
   reinit = ai;
   EXPECT_EQ(reinit.begin(), ai);
-  EXPECT_EQ(reinit.size(), array_size);
+  EXPECT_TRUE(cs1.end() == ai + kSize);
+  EXPECT_EQ(reinit.size(), kSize);
   EXPECT_EQ(reinit.size_bytes(), sizeof(ai));
 
   // Clear
@@ -68,18 +77,18 @@ TEST(Span, Platform) {
   EXPECT_EQ(reinit.size(), 0u);
   EXPECT_EQ(reinit.size_bytes(), 0u);
 
-  cs1[12] = 46;
-  EXPECT_EQ(cs1[12], 46);
+  cs1[3] = 46;
+  EXPECT_EQ(cs1[3], 46);
   EXPECT_ASSERTION(cs1[46], "Index out of range.");
 
-  ozz::span<int> cs2(ai, array_size);
+  ozz::span<int> cs2(ai, kSize);
   EXPECT_EQ(cs2.begin(), ai);
-  EXPECT_EQ(cs2.size(), array_size);
+  EXPECT_EQ(cs2.size(), kSize);
   EXPECT_EQ(cs2.size_bytes(), sizeof(ai));
 
   ozz::span<int> carray(ai);
   EXPECT_EQ(carray.begin(), ai);
-  EXPECT_EQ(carray.size(), array_size);
+  EXPECT_EQ(carray.size(), kSize);
   EXPECT_EQ(carray.size_bytes(), sizeof(ai));
 
   ozz::span<int> copy(cs2);
@@ -90,11 +99,11 @@ TEST(Span, Platform) {
   EXPECT_EQ(cs2.begin(), const_copy.begin());
   EXPECT_EQ(cs2.size_bytes(), const_copy.size_bytes());
 
-  EXPECT_EQ(cs2[12], 46);
+  EXPECT_EQ(cs2[3], 46);
   EXPECT_ASSERTION(cs2[46], "Index out of range.");
 
   // Invalid range
-  EXPECT_ASSERTION(ozz::span<int>(ai, ai - array_size), "Invalid range.");
+  EXPECT_ASSERTION(ozz::span<int>(ai, ai - kSize), "Invalid range.");
 }
 
 TEST(SpanAsBytes, Platform) {
