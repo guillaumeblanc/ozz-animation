@@ -65,9 +65,9 @@ bool TrackSamplingJob<_Track>::Run() const {
 
   // Handles cases that do not require a search.
   if (ratio <= 0.f) {
-    *result = values.data()[0];
+    *result = values.front();
   } else if (ratio >= 1.f) {
-    *result = values.data()[values.size() - 1];
+    *result = values.back();
   } else {
     // Search for the first key frame with a ratio value greater than input
     // ratio. Our ratio is between this one and the previous one.
