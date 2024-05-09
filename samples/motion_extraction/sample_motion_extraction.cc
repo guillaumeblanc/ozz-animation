@@ -78,7 +78,7 @@ class MotionExtractionSampleApplication : public ozz::sample::Application {
     transform_ = ozz::math::Float4x4::identity();
 
     // Get position from motion track
-    if (apply_motion_position_) {
+    if (enable_ && apply_motion_position_) {
       ozz::math::Float3 position;
       ozz::animation::Float3TrackSamplingJob position_sampler;
       position_sampler.track = &motion_track_.position;
@@ -93,7 +93,7 @@ class MotionExtractionSampleApplication : public ozz::sample::Application {
     }
 
     // Get rotation from motion track
-    if (apply_motion_rotation_) {
+    if (enable_ && apply_motion_rotation_) {
       ozz::math::Quaternion rotation;
       ozz::animation::QuaternionTrackSamplingJob rotation_sampler;
       rotation_sampler.track = &motion_track_.rotation;
@@ -139,66 +139,81 @@ class MotionExtractionSampleApplication : public ozz::sample::Application {
         _renderer->DrawPosture(skeleton_, make_span(models_), transform_);
 
     // Draw a box at character's root.
-    const ozz::math::Float3 offset(
-        0, motion_extractor_.position_settings.y ? -1.f : 0, 0);
-    const ozz::math::Box box(ozz::math::Float3(-.25f, 0, -.25f) + offset,
-                             ozz::math::Float3(.25f, 1.8f, .25f) + offset);
-    success &= _renderer->DrawBoxIm(box, transform_, ozz::sample::kWhite);
+    if (show_box_) {
+      const ozz::math::Float3 offset(
+          0, (enable_ && motion_extractor_.position_settings.y) ? -1.f : 0, 0);
+      const ozz::math::Box box(ozz::math::Float3(-.25f, 0, -.25f) + offset,
+                               ozz::math::Float3(.25f, 1.8f, .25f) + offset);
+      success &= _renderer->DrawBoxIm(box, transform_, ozz::sample::kWhite);
+    }
 
     // Draw motion tracks.
-    const float at = controller_.time_ratio();
-    const float step = 1.f / (animation_.duration() * 60.f);
-    success &= ozz::sample::DrawMotion(_renderer, motion_track_, 0.f, at, 1.f,
-                                       step, transform_);
+    if (show_tracks_) {
+      if (enable_) {
+        const float at = controller_.time_ratio();
+        const float step = 1.f / (animation_.duration() * 60.f);
+        success &= ozz::sample::DrawMotion(_renderer, motion_track_, 0.f, at,
+                                           1.f, step, transform_);
+      }
+    }
     return success;
   }
 
   bool ExtractMotion() {
-    // Raw motion tracks extraction
-    ozz::animation::offline::RawFloat3Track raw_motion_position;
-    ozz::animation::offline::RawQuaternionTrack raw_motion_rotation;
-    ozz::animation::offline::RawAnimation baked_animation;
-    if (!motion_extractor_(raw_animation_, skeleton_, &raw_motion_position,
-                           &raw_motion_rotation, &baked_animation)) {
-      return false;
-    }
+    ozz::animation::offline::RawAnimation animation;
 
-    {  // Track optimization and runtime building
-      ozz::animation::offline::TrackOptimizer optimizer;
-      ozz::animation::offline::RawFloat3Track raw_track_position_opt;
-      if (!optimizer(raw_motion_position, &raw_track_position_opt)) {
+    if (enable_) {
+      // Raw motion tracks extraction
+      ozz::animation::offline::RawFloat3Track raw_motion_position;
+      ozz::animation::offline::RawQuaternionTrack raw_motion_rotation;
+      if (!motion_extractor_(raw_animation_, skeleton_, &raw_motion_position,
+                             &raw_motion_rotation, &animation)) {
         return false;
       }
 
-      ozz::animation::offline::RawQuaternionTrack raw_track_rotation_opt;
-      if (!optimizer(raw_motion_rotation, &raw_track_rotation_opt)) {
-        return false;
-      }
+      {  // Track optimization and runtime building
+        ozz::animation::offline::TrackOptimizer optimizer;
+        ozz::animation::offline::RawFloat3Track raw_track_position_opt;
+        if (!optimizer(raw_motion_position, &raw_track_position_opt)) {
+          return false;
+        }
 
-      // Build runtime tracks
-      ozz::animation::offline::TrackBuilder track_builder;
-      auto position_track = track_builder(raw_track_position_opt);
-      auto rotation_track = track_builder(raw_track_rotation_opt);
-      if (!position_track || !rotation_track) {
-        return false;
+        ozz::animation::offline::RawQuaternionTrack raw_track_rotation_opt;
+        if (!optimizer(raw_motion_rotation, &raw_track_rotation_opt)) {
+          return false;
+        }
+
+        // Build runtime tracks
+        ozz::animation::offline::TrackBuilder track_builder;
+        auto position_track = track_builder(raw_track_position_opt);
+        auto rotation_track = track_builder(raw_track_rotation_opt);
+        if (!position_track || !rotation_track) {
+          return false;
+        }
+        motion_track_.position = std::move(*position_track);
+        motion_track_.rotation = std::move(*rotation_track);
       }
-      motion_track_.position = std::move(*position_track);
-      motion_track_.rotation = std::move(*rotation_track);
+    } else {
+      // No motion extraction, reset motion track
+      motion_track_ = ozz::sample::MotionTrack();
+
+      // Uses original animation
+      animation = raw_animation_;
     }
 
     {  // Optimizes and builds runtime animation
-      ozz::animation::offline::RawAnimation baked_animation_opt;
+      ozz::animation::offline::RawAnimation animation_opt;
       ozz::animation::offline::AnimationOptimizer optimizer;
-      if (!optimizer(baked_animation, skeleton_, &baked_animation_opt)) {
+      if (!optimizer(animation, skeleton_, &animation_opt)) {
         return false;
       }
 
       ozz::animation::offline::AnimationBuilder builder;
-      auto animation = builder(baked_animation_opt);
-      if (!animation) {
+      auto rt_animation = builder(animation_opt);
+      if (!rt_animation) {
         return false;
       }
-      animation_ = std::move(*animation);
+      animation_ = std::move(*rt_animation);
 
       // Animation was changed, context needs to know.
       context_.Invalidate();
@@ -268,65 +283,53 @@ class MotionExtractionSampleApplication : public ozz::sample::Application {
       static bool open = true;
       ozz::sample::ImGui::OpenClose oc(_im_gui, "Motion extraction", &open);
       {
-        static bool position = true;
-        ozz::sample::ImGui::OpenClose ocp(_im_gui, "Position", &position);
-        {
-          ozz::sample::ImGui::OpenClose occ(_im_gui, "Components", nullptr);
-          rebuild |=
-              _im_gui->DoCheckBox("x", &motion_extractor_.position_settings.x);
-          rebuild |=
-              _im_gui->DoCheckBox("y", &motion_extractor_.position_settings.y);
-          rebuild |=
-              _im_gui->DoCheckBox("z", &motion_extractor_.position_settings.z);
-        }
+        rebuild |= _im_gui->DoCheckBox("Root motion extraction", &enable_);
+
+        _im_gui->DoCheckBox("Apply motion position", &apply_motion_position_,
+                            enable_);
+        _im_gui->DoCheckBox("Apply motion rotation", &apply_motion_rotation_,
+                            enable_);
+
+        auto settings_gui = [_im_gui](auto& _settings, const char* _cpnt[3],
+                                      bool _enable) {
+          bool rebuild = false;
+          {
+            ozz::sample::ImGui::OpenClose occ(_im_gui, "Components", nullptr);
+            rebuild |= _im_gui->DoCheckBox(_cpnt[0], &_settings.x, _enable);
+            rebuild |= _im_gui->DoCheckBox(_cpnt[1], &_settings.y, _enable);
+            rebuild |= _im_gui->DoCheckBox(_cpnt[2], &_settings.z, _enable);
+          }
+
+          {
+            ozz::sample::ImGui::OpenClose ocr(_im_gui, "Reference", nullptr);
+            int ref = static_cast<int>(_settings.reference);
+            rebuild |= _im_gui->DoRadioButton(0, "Absolute", &ref, _enable);
+            rebuild |= _im_gui->DoRadioButton(1, "Skeleton", &ref, _enable);
+            rebuild |= _im_gui->DoRadioButton(2, "Animation", &ref, _enable);
+            _settings.reference = static_cast<
+                ozz::animation::offline::MotionExtractor::Reference>(ref);
+          }
+          rebuild |= _im_gui->DoCheckBox("Bake", &_settings.bake, _enable);
+          rebuild |= _im_gui->DoCheckBox("Loop", &_settings.loop, _enable);
+
+          return rebuild;
+        };
 
         {
-          ozz::sample::ImGui::OpenClose ocr(_im_gui, "Reference", nullptr);
-          int ref =
-              static_cast<int>(motion_extractor_.position_settings.reference);
-          rebuild |= _im_gui->DoRadioButton(0, "Absolute", &ref);
-          rebuild |= _im_gui->DoRadioButton(1, "Skeleton", &ref);
-          rebuild |= _im_gui->DoRadioButton(2, "Animation", &ref);
-          motion_extractor_.position_settings.reference =
-              static_cast<ozz::animation::offline::MotionExtractor::Reference>(
-                  ref);
+          static bool position = true;
+          const char* cpnt[3] = {"x", "y", "z"};
+          ozz::sample::ImGui::OpenClose ocp(_im_gui, "Position", &position);
+          rebuild |=
+              settings_gui(motion_extractor_.position_settings, cpnt, enable_);
         }
-        rebuild |= _im_gui->DoCheckBox(
-            "Bake", &motion_extractor_.position_settings.bake);
-        rebuild |= _im_gui->DoCheckBox(
-            "Loop", &motion_extractor_.position_settings.loop);
+        {
+          static bool rotation = true;
+          const char* cpnt[3] = {"x / pitch", "y / yaw", "z / roll"};
+          ozz::sample::ImGui::OpenClose ocp(_im_gui, "Rotation", &rotation);
+          rebuild |=
+              settings_gui(motion_extractor_.rotation_settings, cpnt, enable_);
+        }
       }
-
-      {
-        static bool rotation = true;
-        ozz::sample::ImGui::OpenClose ocp(_im_gui, "Rotation", &rotation);
-        {
-          ozz::sample::ImGui::OpenClose occ(_im_gui, "Components", nullptr);
-          rebuild |= _im_gui->DoCheckBox(
-              "x / pitch", &motion_extractor_.rotation_settings.x);
-          rebuild |= _im_gui->DoCheckBox(
-              "y / yaw", &motion_extractor_.rotation_settings.y);
-          rebuild |= _im_gui->DoCheckBox(
-              "z / roll", &motion_extractor_.rotation_settings.z);
-        }
-
-        {
-          ozz::sample::ImGui::OpenClose ocr(_im_gui, "Reference", nullptr);
-          int ref =
-              static_cast<int>(motion_extractor_.rotation_settings.reference);
-          rebuild |= _im_gui->DoRadioButton(0, "Absolute", &ref);
-          rebuild |= _im_gui->DoRadioButton(1, "Skeleton", &ref);
-          rebuild |= _im_gui->DoRadioButton(2, "Animation", &ref);
-          motion_extractor_.rotation_settings.reference =
-              static_cast<ozz::animation::offline::MotionExtractor::Reference>(
-                  ref);
-        }
-        rebuild |= _im_gui->DoCheckBox(
-            "Bake", &motion_extractor_.rotation_settings.bake);
-        rebuild |= _im_gui->DoCheckBox(
-            "Loop", &motion_extractor_.rotation_settings.loop);
-      }
-
       if (rebuild) {
         if (!ExtractMotion()) {
           return false;
@@ -335,11 +338,11 @@ class MotionExtractionSampleApplication : public ozz::sample::Application {
     }
 
     {
-      static bool open = true;
-      ozz::sample::ImGui::OpenClose oc(_im_gui, "Motion control", &open);
+      static bool open = false;
+      ozz::sample::ImGui::OpenClose oc(_im_gui, "Debug display", &open);
       if (open) {
-        _im_gui->DoCheckBox("Apply motion position", &apply_motion_position_);
-        _im_gui->DoCheckBox("Apply motion rotation", &apply_motion_rotation_);
+        _im_gui->DoCheckBox("Show bounding box", &show_box_);
+        _im_gui->DoCheckBox("Show motion tracks", &show_tracks_, enable_);
       }
     }
     return true;
@@ -381,7 +384,16 @@ class MotionExtractionSampleApplication : public ozz::sample::Application {
   // Buffer of model space matrices.
   ozz::vector<ozz::math::Float4x4> models_;
 
-  // GUI options to apply root motion.
+  // GUI options
+
+  // Enable/disable motion extraction.
+  bool enable_ = true;
+
+  // Show debug options
+  bool show_box_ = true;
+  bool show_tracks_ = true;
+
+  // Options to apply root motion.
   bool apply_motion_position_ = true;
   bool apply_motion_rotation_ = true;
 };
