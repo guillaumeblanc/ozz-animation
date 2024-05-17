@@ -69,23 +69,26 @@ class RawSkeletonIterateDFTester {
         break;
       }
       case 1: {
-        EXPECT_TRUE(_current.name == "j0" && _parent->name == "root");
+        EXPECT_TRUE(_current.name == "j0" && _parent &&
+                    _parent->name == "root");
         break;
       }
       case 2: {
-        EXPECT_TRUE(_current.name == "j1" && _parent->name == "root");
+        EXPECT_TRUE(_current.name == "j1" && _parent &&
+                    _parent->name == "root");
         break;
       }
       case 3: {
-        EXPECT_TRUE(_current.name == "j2" && _parent->name == "j1");
+        EXPECT_TRUE(_current.name == "j2" && _parent && _parent->name == "j1");
         break;
       }
       case 4: {
-        EXPECT_TRUE(_current.name == "j3" && _parent->name == "j1");
+        EXPECT_TRUE(_current.name == "j3" && _parent && _parent->name == "j1");
         break;
       }
       case 5: {
-        EXPECT_TRUE(_current.name == "j4" && _parent->name == "root");
+        EXPECT_TRUE(_current.name == "j4" && _parent &&
+                    _parent->name == "root");
         break;
       }
       default: {
@@ -112,23 +115,26 @@ class RawSkeletonIterateBFTester {
         break;
       }
       case 1: {
-        EXPECT_TRUE(_current.name == "j0" && _parent->name == "root");
+        EXPECT_TRUE(_current.name == "j0" && _parent &&
+                    _parent->name == "root");
         break;
       }
       case 2: {
-        EXPECT_TRUE(_current.name == "j1" && _parent->name == "root");
+        EXPECT_TRUE(_current.name == "j1" && _parent &&
+                    _parent->name == "root");
         break;
       }
       case 3: {
-        EXPECT_TRUE(_current.name == "j4" && _parent->name == "root");
+        EXPECT_TRUE(_current.name == "j4" && _parent &&
+                    _parent->name == "root");
         break;
       }
       case 4: {
-        EXPECT_TRUE(_current.name == "j2" && _parent->name == "j1");
+        EXPECT_TRUE(_current.name == "j2" && _parent && _parent->name == "j1");
         break;
       }
       case 5: {
-        EXPECT_TRUE(_current.name == "j3" && _parent->name == "j1");
+        EXPECT_TRUE(_current.name == "j3" && _parent && _parent->name == "j1");
         break;
       }
       default: {
