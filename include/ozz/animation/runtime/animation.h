@@ -130,7 +130,7 @@ class OZZ_ANIMATION_DLL Animation {
     span<typename ConstQualifier<uint32_t, _Const>::type> iframe_desc;
 
     // Interval, used at runtime to index iframe_desc.
-    float iframe_interval;
+    float iframe_interval = 0.f;
   };
 
   typedef TKeyframesCtrl<true> KeyframesCtrlConst;
