@@ -134,7 +134,7 @@ class MotionBlendSampleApplication : public ozz::sample::Application {
       ozz::animation::MotionBlendingJob::Layer layers[kNumLayers];
       for (size_t i = 0; i < kNumLayers; ++i) {
         const auto& sampler = samplers_[i];
-        layers[i].transform = &sampler.motion_sampler.delta;
+        layers[i].delta = &sampler.motion_sampler.delta;
         layers[i].weight = sampler.weight;
       }
 
