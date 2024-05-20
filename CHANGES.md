@@ -1,20 +1,25 @@
 Next release
 ----------------------
 
+> This version brings breaking changes to \*2ozz json configuration.
+
 * Library
-  - [offline] Implements root motion extraction through`ozz::animation::offline::MotionExtraction` utility. Root motion defines how a character moves during an animation. The utility extracts the motion (position and rotation) from a root joint of the animation into separate tracks, and removes (bake) that motion from the original animation. User code is expected to reapply motion at runtime by moving the character transform, hence reconstructing the original animation.
+  - [offline] Implements root motion extraction through `ozz::animation::offline::MotionExtraction` utility. Root motion defines how a character moves during an animation. The utility extracts the motion (position and rotation) from a root joint of the animation into separate tracks, and removes (bakes) that motion from the original animation. User code is expected to reapply motion at runtime by moving the character transform, hence reconstructing the original animation.
+  - [animation] Implements root motion blending through `ozz::animation::MotionBlendingJob`. With a similar interface to `ozz::animation::BlendingJob`, the job blends (interpolate) the delta of motion from multiple players according to weight coefficients.
 
 * Tools
   - Adds motion track extraction to \*2ozz. Configuration (json) is extended with a animations.tracks.motion object that exposes root motion extraction settings. See [src/animation/offline/tools/reference.json#L67]().
   - Breaking \*2ozz json configuration change. \*2ozz json configuration animations.tracks is no longer an array, but now an object. See [src/animation/offline/tools/reference.json#L51]().
 
 * Samples
-  - Adds motion extraction sample, showcasing root motion extraction parameters.
+  - Adds [motion extraction sample](https://guillaumeblanc.github.io/ozz-animation/samples/motion_extraction/), showcasing root motion extraction parameters.
+  - Adds [motion playback sample](https://guillaumeblanc.github.io/ozz-animation/samples/motion_playback/), demonstrating motion accumulation during playback.
+  - Adds [motion blending sample](https://guillaumeblanc.github.io/ozz-animation/samples/motion_blend/), leveraging `ozz::animation::MotionBlendingJob` to blend the motion of three animations.
 
 Release version 0.15.0
 ----------------------
 
-This version brings breaking changes that require rebuilding runtime animations.
+> This version brings breaking changes that require rebuilding runtime animations.
 
 * Library
   - [offline/animation] #152 Fixes additive animation blending issues due to wrong quaternion multiplication order in additive animation builder and blending job. Note that additive animation needs to be rebuilt to benefit from the fix.
