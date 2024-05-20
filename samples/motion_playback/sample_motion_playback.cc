@@ -184,8 +184,6 @@ class MotionPlaybackSampleApplication : public ozz::sample::Application {
     return true;
   }
 
-  virtual void OnDestroy() {}
-
   virtual bool OnGui(ozz::sample::ImGui* _im_gui) {
     char label[64];
     // Exposes animation runtime playback controls.

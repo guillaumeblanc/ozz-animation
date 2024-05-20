@@ -231,8 +231,6 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
     ozz::animation::IterateJointsDF(skeleton_, upper_it, upper_body_root_);
   }
 
-  virtual void OnDestroy() {}
-
   virtual bool OnGui(ozz::sample::ImGui* _im_gui) {
     // Exposes blending parameters.
     {

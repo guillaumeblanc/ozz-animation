@@ -143,8 +143,6 @@ class MillipedeSampleApplication : public ozz::sample::Application {
 
   virtual bool OnInitialize() { return Build(); }
 
-  virtual void OnDestroy() {}
-
   virtual bool OnGui(ozz::sample::ImGui* _im_gui) {
     // Rebuilds all if the number of joints has changed.
     int joints = skeleton_->num_joints();

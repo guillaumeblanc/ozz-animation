@@ -362,8 +362,6 @@ class LookAtSampleApplication : public ozz::sample::Application {
     return count == i;
   }
 
-  virtual void OnDestroy() {}
-
   virtual bool OnGui(ozz::sample::ImGui* _im_gui) {
     char label[64];
 
