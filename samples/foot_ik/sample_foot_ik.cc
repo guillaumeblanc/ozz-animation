@@ -589,8 +589,6 @@ class FootIKSampleApplication : public ozz::sample::Application {
     return found == 3;
   }
 
-  virtual void OnDestroy() {}
-
   virtual bool OnGui(ozz::sample::ImGui* _im_gui) {
     char label[32];
 

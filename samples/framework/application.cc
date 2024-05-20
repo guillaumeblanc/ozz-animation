@@ -670,44 +670,23 @@ bool Application::OnInitialize() { return true; }
 
 void Application::OnDestroy() {}
 
-bool Application::OnUpdate(float _dt, float _time) {
-  (void)_dt;
-  (void)_time;
-  return true;
-}
+bool Application::OnUpdate(float, float) { return true; }
 
-bool Application::OnGui(ImGui* _im_gui) {
-  (void)_im_gui;
-  return true;
-}
+bool Application::OnGui(ImGui*) { return true; }
 
-bool Application::OnFloatingGui(ImGui* _im_gui) {
-  (void)_im_gui;
-  return true;
-}
+bool Application::OnFloatingGui(ImGui*) { return true; }
 
-bool Application::OnDisplay(Renderer* _renderer) {
-  (void)_renderer;
-  return true;
-}
+bool Application::OnDisplay(Renderer*) { return true; }
 
-bool Application::GetCameraInitialSetup(math::Float3* _center,
-                                        math::Float2* _angles,
-                                        float* _distance) const {
-  (void)_center;
-  (void)_angles;
-  (void)_distance;
+bool Application::GetCameraInitialSetup(math::Float3*, math::Float2*,
+                                        float*) const {
   return false;
 }
 
 // Default implementation doesn't override camera location.
-bool Application::GetCameraOverride(math::Float4x4* _transform) const {
-  (void)_transform;
-  assert(_transform);
-  return false;
-}
+bool Application::GetCameraOverride(math::Float4x4*) const { return false; }
 
-void Application::GetSceneBounds(math::Box* _bound) const { (void)_bound; }
+void Application::GetSceneBounds(math::Box*) const {}
 
 math::Float2 Application::WorldToScreen(const math::Float3& _world) const {
   const math::SimdFloat4 ndc =

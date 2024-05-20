@@ -34,8 +34,6 @@
 #include "ozz/animation/runtime/local_to_model_job.h"
 #include "ozz/animation/runtime/sampling_job.h"
 #include "ozz/animation/runtime/skeleton.h"
-#include "ozz/animation/runtime/track.h"
-#include "ozz/animation/runtime/track_sampling_job.h"
 #include "ozz/base/log.h"
 #include "ozz/base/maths/box.h"
 #include "ozz/base/maths/simd_math.h"
@@ -186,8 +184,6 @@ class MotionPlaybackSampleApplication : public ozz::sample::Application {
     return true;
   }
 
-  virtual void OnDestroy() {}
-
   virtual bool OnGui(ozz::sample::ImGui* _im_gui) {
     char label[64];
     // Exposes animation runtime playback controls.
@@ -211,6 +207,7 @@ class MotionPlaybackSampleApplication : public ozz::sample::Application {
                           &angular_velocity_);
         if (_im_gui->DoButton("Teleport")) {
           motion_sampler_.Teleport(ozz::math::Transform::identity());
+          trace_.clear();
         }
       }
     }
