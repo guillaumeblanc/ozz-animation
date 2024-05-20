@@ -39,7 +39,7 @@ bool MotionBlendingJob::Validate() const {
 
   // Validates layers.
   for (const Layer& layer : layers) {
-    valid &= layer.transform != nullptr;
+    valid &= layer.delta != nullptr;
   }
 
   return valid;
@@ -65,16 +65,16 @@ bool MotionBlendingJob::Run() const {
 
     // Decomposes translation into a normalized vector and a length, to limit
     // lerp error while interpolating vector length.
-    const float len = Length(layer.transform->translation);
+    const float len = Length(layer.delta->translation);
     dl = dl + len * weight;
     const float denom = (len == 0.f) ? 0.f : weight / len;
-    dt = dt + layer.transform->translation * denom;
+    dt = dt + layer.delta->translation * denom;
 
     // Accumulates weighted rotation (NLerp). Makes sure quaternions are on the
     // same hemisphere to lerp the shortest arc (using -Q otherwise).
     const float signed_weight =
-        std::copysign(weight, Dot(dr, layer.transform->rotation));
-    dr = dr + layer.transform->rotation * signed_weight;
+        std::copysign(weight, Dot(dr, layer.delta->rotation));
+    dr = dr + layer.delta->rotation * signed_weight;
   }
 
   // Normalizes (weights) and fills output.

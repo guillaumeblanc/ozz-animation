@@ -131,23 +131,28 @@ class MotionBlendSampleApplication : public ozz::sample::Application {
     // Blends motion.
     //-------------------------------------------------------------------------
     {
+      // Fills job layers with delta transforms and weights.
       ozz::animation::MotionBlendingJob::Layer layers[kNumLayers];
       for (size_t i = 0; i < kNumLayers; ++i) {
         const auto& sampler = samplers_[i];
-        layers[i].transform = &sampler.motion_sampler.delta;
-        layers[i].weight = sampler.weight;
+        layers[i].delta =
+            &sampler.motion_sampler.delta;  // Uses delta transform from motion
+                                            // sampler accumulator.
+        layers[i].weight = sampler.weight;  // Reuses animation weight.
       }
 
+      // Setup blending job.
       ozz::math::Transform delta;
       ozz::animation::MotionBlendingJob motion_blend_job;
       motion_blend_job.layers = layers;
       motion_blend_job.output = &delta;
 
-      // Blends.
+      // Executes blending job.
       if (!motion_blend_job.Run()) {
         return false;
       }
 
+      // Applies blended delta to the character accumulator.
       const auto rotation = FrameRotation(_dt);
       accumulator_.Update(delta, rotation);
     }

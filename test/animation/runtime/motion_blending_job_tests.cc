@@ -46,10 +46,10 @@ TEST(Validate, MotionBlendingJob) {
   EXPECT_FALSE(job.Validate());
 
   ozz::math::Transform transforms[2];
-  layers[0].transform = &transforms[0];
+  layers[0].delta = &transforms[0];
   EXPECT_FALSE(job.Validate());
 
-  layers[1].transform = &transforms[1];
+  layers[1].delta = &transforms[1];
   EXPECT_TRUE(job.Validate());
 }
 
@@ -86,8 +86,8 @@ TEST(Run, MotionBlendingJob) {
   transforms[1].rotation = {-0.f, -.70710677f, -0.f, -.70710677f};
 
   MotionBlendingJob::Layer layers[2];
-  layers[0].transform = &transforms[0];
-  layers[1].transform = &transforms[1];
+  layers[0].delta = &transforms[0];
+  layers[1].delta = &transforms[1];
   job.layers = layers;
 
   // 0 weights

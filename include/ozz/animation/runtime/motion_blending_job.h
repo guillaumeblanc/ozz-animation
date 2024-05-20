@@ -65,7 +65,7 @@ struct OZZ_ANIMATION_DLL MotionBlendingJob {
     float weight = 0.f;
 
     // The motion delta transform to be blended.
-    const math::Transform* transform = nullptr;
+    const math::Transform* delta = nullptr;
   };
 
   // Job input layers, can be empty or nullptr.
