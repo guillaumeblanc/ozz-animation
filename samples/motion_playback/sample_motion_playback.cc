@@ -207,6 +207,7 @@ class MotionPlaybackSampleApplication : public ozz::sample::Application {
                           &angular_velocity_);
         if (_im_gui->DoButton("Teleport")) {
           motion_sampler_.Teleport(ozz::math::Transform::identity());
+          trace_.clear();
         }
       }
     }
