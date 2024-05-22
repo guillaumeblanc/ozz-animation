@@ -175,9 +175,12 @@ class PositionAdapter {
         _ref.time, LerpTranslation(_left.value, _right.value, alpha)};
     return key;
   }
-  float Distance(const RawAnimation::TranslationKey& _a,
-                 const RawAnimation::TranslationKey& _b) const {
-    return Length(_a.value - _b.value) * scale_;
+  float Distance(const RawAnimation::TranslationKey::Value& _a,
+                 const RawAnimation::TranslationKey::Value& _b) const {
+    return Length(_a - _b) * scale_;
+  }
+  inline static RawAnimation::TranslationKey::Value identity() {
+    return RawAnimation::TranslationKey::identity();
   }
 
  private:
@@ -197,11 +200,11 @@ class RotationAdapter {
         _ref.time, LerpRotation(_left.value, _right.value, alpha)};
     return key;
   }
-  float Distance(const RawAnimation::RotationKey& _left,
-                 const RawAnimation::RotationKey& _right) const {
+  float Distance(const RawAnimation::RotationKey::Value& _left,
+                 const RawAnimation::RotationKey::Value& _right) const {
     // Compute the shortest unsigned angle between the 2 quaternions.
     // cos_half_angle is w component of a-1 * b.
-    const float cos_half_angle = Dot(_left.value, _right.value);
+    const float cos_half_angle = Dot(_left, _right);
     const float sine_half_angle =
         std::sqrt(1.f - math::Min(1.f, cos_half_angle * cos_half_angle));
     // Deduces distance between 2 points on a circle with radius and a given
@@ -209,6 +212,9 @@ class RotationAdapter {
     // triangle.
     const float distance = 2.f * sine_half_angle * radius_;
     return distance;
+  }
+  inline static RawAnimation::RotationKey::Value identity() {
+    return RawAnimation::RotationKey::identity();
   }
 
  private:
@@ -228,9 +234,12 @@ class ScaleAdapter {
         _ref.time, LerpScale(_left.value, _right.value, alpha)};
     return key;
   }
-  float Distance(const RawAnimation::ScaleKey& _left,
-                 const RawAnimation::ScaleKey& _right) const {
-    return Length(_left.value - _right.value) * length_;
+  float Distance(const RawAnimation::ScaleKey::Value& _left,
+                 const RawAnimation::ScaleKey::Value& _right) const {
+    return Length(_left - _right) * length_;
+  }
+  inline static RawAnimation::ScaleKey::Value identity() {
+    return RawAnimation::ScaleKey::identity();
   }
 
  private:

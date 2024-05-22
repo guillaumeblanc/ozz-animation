@@ -67,9 +67,11 @@ struct Adapter {
     return key;
   }
 
-  float Distance(const _KeyFrame& _a, const _KeyFrame& _b) const {
-    return Policy::Distance(_a.value, _b.value);
+  float Distance(const ValueType& _a, const ValueType& _b) const {
+    return Policy::Distance(_a, _b);
   }
+
+  inline static ValueType identity() { return Policy::identity(); }
 };
 
 template <typename _Track>

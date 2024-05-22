@@ -128,6 +128,32 @@ TEST(Empty, TrackEdgeTriggerJob) {
   EXPECT_EQ(iterator, job.end());
 }
 
+TEST(Constant, TrackSamplingJob) {
+  TrackBuilder builder;
+
+  RawFloatTrack raw_float_track;
+
+  const RawFloatTrack::Keyframe key0 = {RawTrackInterpolation::kLinear, .5f,
+                                        46.f};
+  raw_float_track.keyframes.push_back(key0);
+
+  // Builds track
+  ozz::unique_ptr<FloatTrack> track(builder(raw_float_track));
+  ASSERT_TRUE(track);
+
+  TrackTriggeringJob job;
+  job.track = track.get();
+
+  {  // Forward [0, 1]
+    job.from = 0.f;
+    job.to = 1.f;
+    TrackTriggeringJob::Iterator iterator;
+    job.iterator = &iterator;
+    ASSERT_TRUE(job.Run());
+    EXPECT_EQ(iterator, job.end());
+  }
+}
+
 TEST(Iterator, TrackEdgeTriggerJob) {
   TrackBuilder builder;
 
@@ -851,11 +877,10 @@ void TestEdgesExpectation(
     const float kMaxRange = 10.f;
     const size_t kMaxIterations = 1000;
     for (size_t i = 0; i < kMaxIterations; ++i) {
-      job.from =
-          kMaxRange * (1.f - 2.f * static_cast<float>(rand()) /
-                       static_cast<float>(RAND_MAX));
+      job.from = kMaxRange * (1.f - 2.f * static_cast<float>(rand()) /
+                                        static_cast<float>(RAND_MAX));
       job.to = kMaxRange * (1.f - 2.f * static_cast<float>(rand()) /
-                            static_cast<float>(RAND_MAX));
+                                      static_cast<float>(RAND_MAX));
       TrackTriggeringJob::Iterator iterator;
       job.iterator = &iterator;
       ASSERT_TRUE(job.Run());
@@ -871,9 +896,8 @@ void TestEdgesExpectation(
     for (size_t i = 0; i < kMaxIterations; ++i) {
       // Finds new evaluation range
       float new_time =
-          ratio +
-          kMaxRange * (1.f - 2.f * static_cast<float>(rand()) /
-                       static_cast<float>(RAND_MAX));
+          ratio + kMaxRange * (1.f - 2.f * static_cast<float>(rand()) /
+                                         static_cast<float>(RAND_MAX));
 
       switch (rand() % 20) {
         case 0: {
