@@ -67,9 +67,11 @@ struct Adapter {
     return key;
   }
 
-  float Distance(const _KeyFrame& _a, const _KeyFrame& _b) const {
-    return Policy::Distance(_a.value, _b.value);
+  float Distance(const ValueType& _a, const ValueType& _b) const {
+    return Policy::Distance(_a, _b);
   }
+
+  inline static ValueType identity() { return Policy::identity(); }
 };
 
 template <typename _Track>
@@ -95,7 +97,7 @@ inline bool Optimize(float _tolerance, const _Track& _input, _Track* _output) {
 
   // Optimizes.
   const Adapter<typename _Track::Keyframe> adapter;
-  Decimate(_input.keyframes, adapter, _tolerance, &_output->keyframes);
+  _output->keyframes = Decimate(_input.keyframes, adapter, _tolerance);
 
   // Output animation is always valid though.
   return _output->Validate();

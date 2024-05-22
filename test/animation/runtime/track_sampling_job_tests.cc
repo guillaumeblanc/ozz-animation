@@ -25,27 +25,23 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/animation/runtime/track_sampling_job.h"
-
 #include "gtest/gtest.h"
-
+#include "ozz/animation/offline/raw_track.h"
+#include "ozz/animation/offline/track_builder.h"
+#include "ozz/animation/runtime/track.h"
+#include "ozz/animation/runtime/track_sampling_job.h"
 #include "ozz/base/maths/gtest_math_helper.h"
 #include "ozz/base/memory/unique_ptr.h"
 
-#include "ozz/animation/offline/raw_track.h"
-#include "ozz/animation/offline/track_builder.h"
-
-#include "ozz/animation/runtime/track.h"
-
-using ozz::animation::FloatTrack;
 using ozz::animation::Float2Track;
 using ozz::animation::Float3Track;
 using ozz::animation::Float4Track;
-using ozz::animation::QuaternionTrack;
+using ozz::animation::FloatTrack;
 using ozz::animation::FloatTrackSamplingJob;
+using ozz::animation::QuaternionTrack;
 using ozz::animation::offline::RawFloatTrack;
-using ozz::animation::offline::TrackBuilder;
 using ozz::animation::offline::RawTrackInterpolation;
+using ozz::animation::offline::TrackBuilder;
 
 TEST(JobValidity, TrackSamplingJob) {
   // Instantiates a builder objects with default parameters.
@@ -99,6 +95,29 @@ TEST(Default, TrackSamplingJob) {
   EXPECT_TRUE(job.Validate());
   EXPECT_TRUE(job.Run());
   EXPECT_FLOAT_EQ(result, 0.f);
+}
+
+TEST(Constant, TrackSamplingJob) {
+  TrackBuilder builder;
+  float result;
+
+  RawFloatTrack raw_float_track;
+
+  const RawFloatTrack::Keyframe key0 = {RawTrackInterpolation::kLinear, 0.f,
+                                        46.f};
+  raw_float_track.keyframes.push_back(key0);
+
+  // Builds track
+  ozz::unique_ptr<FloatTrack> track(builder(raw_float_track));
+  ASSERT_TRUE(track);
+
+  FloatTrackSamplingJob sampling;
+  sampling.track = track.get();
+  sampling.result = &result;
+
+  sampling.ratio = .5f;
+  ASSERT_TRUE(sampling.Run());
+  EXPECT_FLOAT_EQ(result, 46.f);
 }
 
 TEST(Bounds, TrackSamplingJob) {

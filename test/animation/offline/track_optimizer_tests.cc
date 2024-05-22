@@ -85,6 +85,66 @@ TEST(Name, FloatTrackOptimizer) {
   EXPECT_STREQ(raw_float_track.name.c_str(), output.name.c_str());
 }
 
+TEST(Identity, TrackOptimizer) {
+  TrackOptimizer optimizer;
+
+  RawFloatTrack raw_float_track;
+  const RawFloatTrack::Keyframe key0 = {RawTrackInterpolation::kLinear, .5f,
+                                        0.f};
+  raw_float_track.keyframes.push_back(key0);
+  const RawFloatTrack::Keyframe key1 = {RawTrackInterpolation::kLinear, .7f,
+                                        0.f};
+  raw_float_track.keyframes.push_back(key1);
+  const RawFloatTrack::Keyframe key2 = {RawTrackInterpolation::kLinear, .8f,
+                                        0.f};
+  raw_float_track.keyframes.push_back(key2);
+
+  RawFloatTrack output;
+  ASSERT_TRUE(optimizer(raw_float_track, &output));
+  EXPECT_TRUE(output.keyframes.empty());
+
+  // Step keys aren't optimized.
+  raw_float_track.keyframes[1].interpolation = RawTrackInterpolation::kStep;
+  ASSERT_TRUE(optimizer(raw_float_track, &output));
+  EXPECT_EQ(output.keyframes.size(), 2u);
+}
+
+TEST(Constant, TrackOptimizer) {
+  TrackOptimizer optimizer;
+
+  RawFloatTrack raw_float_track;
+  const RawFloatTrack::Keyframe key0 = {RawTrackInterpolation::kLinear, .5f,
+                                        46.f};
+  raw_float_track.keyframes.push_back(key0);
+  const RawFloatTrack::Keyframe key1 = {RawTrackInterpolation::kLinear, .7f,
+                                        46.f};
+  raw_float_track.keyframes.push_back(key1);
+  const RawFloatTrack::Keyframe key2 = {RawTrackInterpolation::kLinear, .8f,
+                                        46.f};
+  raw_float_track.keyframes.push_back(key2);
+
+  RawFloatTrack output;
+  ASSERT_TRUE(optimizer(raw_float_track, &output));
+  EXPECT_EQ(output.keyframes.size(), 1u);
+
+  EXPECT_EQ(output.keyframes[0].interpolation, key0.interpolation);
+  EXPECT_FLOAT_EQ(output.keyframes[0].ratio, key0.ratio);
+  EXPECT_FLOAT_EQ(output.keyframes[0].value, key0.value);
+
+  // Step keys aren't optimized.
+  raw_float_track.keyframes[2].interpolation = RawTrackInterpolation::kStep;
+  ASSERT_TRUE(optimizer(raw_float_track, &output));
+  EXPECT_EQ(output.keyframes.size(), 2u);
+
+  EXPECT_EQ(output.keyframes[0].interpolation, key0.interpolation);
+  EXPECT_FLOAT_EQ(output.keyframes[0].ratio, key0.ratio);
+  EXPECT_FLOAT_EQ(output.keyframes[0].value, key0.value);
+
+  EXPECT_EQ(output.keyframes[1].interpolation, RawTrackInterpolation::kStep);
+  EXPECT_FLOAT_EQ(output.keyframes[1].ratio, key2.ratio);
+  EXPECT_FLOAT_EQ(output.keyframes[1].value, key2.value);
+}
+
 TEST(OptimizeSteps, TrackOptimizer) {
   // Step keys aren't optimized.
   TrackOptimizer optimizer;
