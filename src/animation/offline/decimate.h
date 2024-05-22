@@ -51,10 +51,11 @@ namespace offline {
 //  float Distance(const Value& _a, const Value& _b) const;
 // };
 template <typename _Track, typename _Adapter>
-void Decimate(const _Track& _src, const _Adapter& _adapter, float _tolerance,
-              _Track* _dest) {
+_Track Decimate(const _Track& _src, const _Adapter& _adapter,
+                float _tolerance) {
+  _Track output;
   if (_src.size() < 2) {  // Nothing to decimate.
-    *_dest = _src;
+    output = _src;
   } else {
     // Stack of segments to process.
     typedef std::pair<size_t, size_t> Segment;
@@ -110,33 +111,32 @@ void Decimate(const _Track& _src, const _Adapter& _adapter, float _tolerance,
     }
 
     // Copy all included points.
-    _dest->clear();
     for (size_t i = 0; i < _src.size(); ++i) {
       if (included[i]) {
-        _dest->push_back(_src[i]);
+        output.push_back(_src[i]);
       }
     }
   }
 
-  // Removes last key if constant.
-  if (_dest->size() > 1) {
-    typename _Track::const_iterator end = _dest->end();
-    typename _Track::const_reference last = *(--end);
-    typename _Track::const_reference penultimate = *(--end);
-    const float distance = _adapter.Distance(penultimate.value, last.value);
-    if (_adapter.Decimable(last) && distance <= _tolerance) {
-      _dest->pop_back();
+  // RDP algo ends with a minimum of 2 points (first and last).
+  // Removes last keys if track is constant or identity.
+  while (!output.empty()) {
+    const bool last_key = output.size() == 1;
+    typename _Track::const_reference back = output.back();
+    if (!last_key && !_adapter.Decimable(back)) {
+      break;  // Not allowed, only meaningful if not last key
     }
+    const auto& penultimate =
+        last_key ? _Adapter::identity() : output[output.size() - 2].value;
+    const float distance = _adapter.Distance(penultimate, back.value);
+    if (distance > _tolerance) {
+      break;  // Too far, not decimable
+    }
+    // Decimation is possible, remove last key.
+    output.pop_back();
   }
 
-  // Completely removes the key if constant and identity
-  if (_dest->size() == 1) {
-    const float distance =
-        _adapter.Distance(_dest->front().value, _Adapter::identity());
-    if (distance <= _tolerance) {
-      _dest->clear();
-    }
-  }
+  return output;
 }
 }  // namespace offline
 }  // namespace animation

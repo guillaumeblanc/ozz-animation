@@ -97,7 +97,7 @@ inline bool Optimize(float _tolerance, const _Track& _input, _Track* _output) {
 
   // Optimizes.
   const Adapter<typename _Track::Keyframe> adapter;
-  Decimate(_input.keyframes, adapter, _tolerance, &_output->keyframes);
+  _output->keyframes = Decimate(_input.keyframes, adapter, _tolerance);
 
   // Output animation is always valid though.
   return _output->Validate();

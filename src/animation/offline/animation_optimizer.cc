@@ -295,13 +295,13 @@ bool AnimationOptimizer::operator()(const RawAnimation& _input,
     // Filters independently T, R and S tracks.
     // This joint translation is affected by parent scale.
     const PositionAdapter tadap(parent_scale);
-    Decimate(input.translations, tadap, tolerance, &output.translations);
+    output.translations = Decimate(input.translations, tadap, tolerance);
     // This joint rotation affects children translations/length.
     const RotationAdapter radap(joint_length);
-    Decimate(input.rotations, radap, tolerance, &output.rotations);
+    output.rotations = Decimate(input.rotations, radap, tolerance);
     // This joint scale affects children translations/length.
     const ScaleAdapter sadap(joint_length);
-    Decimate(input.scales, sadap, tolerance, &output.scales);
+    output.scales = Decimate(input.scales, sadap, tolerance);
   }
 
   // Output animation is always valid though.
