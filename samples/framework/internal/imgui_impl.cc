@@ -95,22 +95,12 @@ const float kPanelTitleMarginY = 1.f;
 const float kCircleRadius = 32.f;
 
 bool FormatFloat(float _value, char* _string, const char* _string_end) {
-  // Requires 8 fixed characters count + digits of precision + \0.
-  static const int precision = 2;
-  if (!_string || _string_end - _string < 8 + precision + 1) {
-    return false;
-  }
-  std::snprintf(_string, _string_end - _string, "%.2g\n", _value);
-
-  // Removes unnecessary '0' digits in the exponent.
-  char* exponent = strchr(_string, 'e');
-  char* last_zero = strrchr(_string, '0');
-  if (exponent && last_zero > exponent) {
-    memmove(exponent + 2,   // After exponent and exponent's sign.
-            last_zero + 1,  // From the first character after the exponent.
-            strlen(last_zero + 1) + 1);  // The remaining characters count.
-  }
-  return true;
+  char buffer[16];
+  std::snprintf(buffer, sizeof(buffer), "%.03f", _value);
+  buffer[5] = '\0';  // Ensures as maximum of n characters.
+  const intptr_t buff_size = _string_end - _string;
+  const int ret = std::snprintf(_string, buff_size, "%s\n", buffer);
+  return ret > 0 && ret < buff_size;
 }
 
 ImGuiImpl::ImGuiImpl()
