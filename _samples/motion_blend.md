@@ -7,7 +7,8 @@ level: 2
 ---
 
 {% include links.jekyll %}
-{% include link_sample_code.jekyll sample="motion_blend" %}
+
+<i class="fas fa-file-alt" aria-hidden="true"></i> View motion blending sample [source code](https://github.com/guillaumeblanc/ozz-animation/blob/feature/motion/samples/motion_blend/sample_motion_blend.cc#L131).
 
 Description
 ===========
