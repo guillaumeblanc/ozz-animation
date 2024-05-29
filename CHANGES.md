@@ -5,7 +5,7 @@ Next release
 
 * Library
   - [offline] Implements root motion extraction through `ozz::animation::offline::MotionExtraction` utility. Root motion defines how a character moves during an animation. The utility extracts the motion (position and rotation) from a root joint of the animation into separate tracks, and removes (bakes) that motion from the original animation. User code is expected to reapply motion at runtime by moving the character transform, hence reconstructing the original animation.
-  - [animation] Implements root motion blending through `ozz::animation::MotionBlendingJob`. With a similar interface to `ozz::animation::BlendingJob`, the job blends (interpolate) the delta of motion from multiple players according to weight coefficients.
+  - [animation] Implements root motion blending through `ozz::animation::MotionBlendingJob`. With a similar interface to `ozz::animation::BlendingJob`, the job blends (interpolate) the delta of motion from multiple animations according to weight coefficients.
 
 * Tools
   - Adds motion track extraction to \*2ozz. Configuration (json) is extended with a animations.tracks.motion object that exposes root motion extraction settings. See [src/animation/offline/tools/reference.json#L67]().
@@ -14,7 +14,7 @@ Next release
 * Samples
   - Adds [motion extraction sample](https://guillaumeblanc.github.io/ozz-animation/samples/motion_extraction/), showcasing root motion extraction parameters.
   - Adds [motion playback sample](https://guillaumeblanc.github.io/ozz-animation/samples/motion_playback/), demonstrating motion accumulation during playback.
-  - Adds [motion blending sample](https://guillaumeblanc.github.io/ozz-animation/samples/motion_blend/), leveraging `ozz::animation::MotionBlendingJob` to blend the motion of three animations.
+  - Adds [motion blending sample](https://guillaumeblanc.github.io/ozz-animation/samples/motion_blend/), leveraging `ozz::animation::MotionBlendingJob` to blend root motion of three animations.
 
 Release version 0.15.0
 ----------------------
