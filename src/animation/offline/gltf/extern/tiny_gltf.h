@@ -3783,7 +3783,7 @@ bool TinyGLTF::LoadFromString(Model *model, std::string *err, std::string *warn,
 
 #if (defined(__cpp_exceptions) || defined(__EXCEPTIONS) || \
      defined(_CPPUNWIND)) &&                               \
-    not defined(TINYGLTF_NOEXCEPTION)
+    !defined(TINYGLTF_NOEXCEPTION)
   try {
     v = json::parse(str, str + length);
 
