@@ -2219,6 +2219,7 @@ static bool ParseJsonAsValue(Value *ret, const json &o) {
       val = Value(o.get<double>());
       break;
     case json::value_t::null:
+    case json::value_t::binary:
     case json::value_t::discarded:
       // default:
       break;
