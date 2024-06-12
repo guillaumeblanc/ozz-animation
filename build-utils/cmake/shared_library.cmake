@@ -43,6 +43,6 @@ function(target_copy_shared_libraries _TARGET)
       VERBATIM)
 
       # This allows to create a dependency with the command above, so command is executed again when target is built AND a DLL changed
-    target_sources(${_TARGET} PUBLIC "${CMAKE_CURRENT_BINARY_DIR}/${_TARGET}_dll_copy")
+    target_sources(${_TARGET} PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/${_TARGET}_dll_copy")
   endif()
 endfunction()
