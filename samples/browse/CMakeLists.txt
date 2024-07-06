@@ -1,11 +1,36 @@
-# List all expected animations
-set(animations
-  "pab_atlas.ozz"
-  "pab_crossarms.ozz"
-  "pab_crackhead.ozz"
-  "pab_walk.ozz"
-  "pab_jog.ozz"
-  "pab_run.ozz")
+set(SRC_PATH "${ozz_media_directory}/fbx/pab/crouch")
+set(BIN_PATH "${SRC_PATH}/bin")
+
+file(GLOB SRCS RELATIVE "${SRC_PATH}" "${SRC_PATH}/*.fbx")
+
+make_directory("${SRC_PATH}/bin")
+
+foreach(SRC ${SRCS})
+  set(CONFIG "{\"skeleton\":{\"filename\":\"${ozz_media_directory}/bin/pab_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"${SRC}.ozz\"}]}")
+  file(WRITE "${SRC_PATH}/${SRC}.json" ${CONFIG})
+  
+  set(OUTPUT "${BIN_PATH}/${SRC}.ozz")
+
+  list(APPEND all_outputs "${OUTPUT}")
+  list(APPEND animations "${SRC}.ozz")
+  
+  # Create build command
+  add_custom_command(
+    DEPENDS "${SRC_PATH}/${SRC}"
+            $<$<AND:$<BOOL:${ozz_build_data}>,$<BOOL:${ozz_build_fbx}>>:fbx2ozz>
+    OUTPUT  ${OUTPUT}
+    COMMAND fbx2ozz
+            "--file=${SRC_PATH}/${SRC}"
+            "--config_file=${SRC_PATH}/${SRC}.json"
+    WORKING_DIRECTORY "${BIN_PATH}"
+    VERBATIM)
+endforeach()
+
+# Creates a target to build data
+add_custom_target(BUILD_BROWSE_DATA ALL
+  DEPENDS ${all_outputs}
+  VERBATIM)
+
 # List them in a file for the sample to read
 file(GENERATE OUTPUT "./media/animations.txt" CONTENT "$<JOIN:${animations},\n>")
 
@@ -14,9 +39,9 @@ set(outputs "")
 foreach(animation ${animations})
   add_custom_command(
     DEPENDS $<$<BOOL:${ozz_build_fbx}>:BUILD_DATA>
-            "${ozz_media_directory}/bin/${animation}"
+            "${BIN_PATH}/${animation}"
     OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/media/${animation}"
-    COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/${animation}" "./media"
+    COMMAND ${CMAKE_COMMAND} -E copy "${BIN_PATH}/${animation}" "./media"
     VERBATIM)
     list(APPEND outputs "./media/${animation}")
 endforeach()
