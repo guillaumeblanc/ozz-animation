@@ -561,6 +561,9 @@ bool ProcessConfiguration(Json::Value* _config) {
                     << std::endl;
   }
 
+  ozz::log::LogV() << "Configuration string:" << std::endl
+                   << config_string << std::endl;
+
   Json::Reader json_builder;
   if (!json_builder.parse(config_string, *_config, true)) {
     ozz::log::Err() << "Error while parsing configuration string: "
