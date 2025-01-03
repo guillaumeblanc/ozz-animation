@@ -74,11 +74,11 @@ class OZZ_BASE_DLL Stream {
   // Returns the current size of the stream.
   virtual size_t Size() const = 0;
 
- protected:
-  Stream() {}
-
   // Required virtual destructor.
   virtual ~Stream() {}
+
+ protected:
+  Stream() {}
 
  private:
   Stream(const Stream&);
