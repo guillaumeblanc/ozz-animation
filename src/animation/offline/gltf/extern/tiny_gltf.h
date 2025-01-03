@@ -2219,6 +2219,7 @@ static bool ParseJsonAsValue(Value *ret, const json &o) {
       val = Value(o.get<double>());
       break;
     case json::value_t::null:
+    case json::value_t::binary:
     case json::value_t::discarded:
       // default:
       break;
@@ -3782,7 +3783,7 @@ bool TinyGLTF::LoadFromString(Model *model, std::string *err, std::string *warn,
 
 #if (defined(__cpp_exceptions) || defined(__EXCEPTIONS) || \
      defined(_CPPUNWIND)) &&                               \
-    not defined(TINYGLTF_NOEXCEPTION)
+    !defined(TINYGLTF_NOEXCEPTION)
   try {
     v = json::parse(str, str + length);
 
