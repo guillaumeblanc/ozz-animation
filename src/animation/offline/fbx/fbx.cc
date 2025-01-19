@@ -305,13 +305,7 @@ bool FbxSystemConverter::ConvertTransform(const FbxAMatrix& _m,
   assert(_transform);
 
   const math::Float4x4 matrix = ConvertMatrix(_m);
-
-  math::SimdFloat4 translation, rotation, scale;
-  if (ToAffine(matrix, &translation, &rotation, &scale)) {
-    ozz::math::Transform transform;
-    math::Store3PtrU(translation, &_transform->translation.x);
-    math::StorePtrU(math::Normalize4(rotation), &_transform->rotation.x);
-    math::Store3PtrU(scale, &_transform->scale.x);
+  if (ToAffine(matrix, _transform)) {
     return true;
   }
 

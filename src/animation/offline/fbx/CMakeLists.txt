@@ -41,10 +41,16 @@ set(build_configurations
   # Library data
   "/fbx/pab/skeleton.fbx\;{\"skeleton\":{\"filename\":\"pab_skeleton.ozz\",\"import\":{\"enable\":true}},\"animations\":[]}\;output:pab_skeleton.ozz"
   "/fbx/pab/atlas.fbx\;{\"skeleton\":{\"filename\":\"pab_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"pab_atlas_raw.ozz\",\"raw\":true,\"optimize\":false}]}\;output:pab_atlas_raw.ozz\;depend:pab_skeleton.ozz"
+  "/fbx/pab/atlas.fbx\;{\"skeleton\":{\"filename\":\"pab_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"pab_atlas.ozz\"}]}\;output:pab_atlas.ozz\;depend:pab_skeleton.ozz"
   "/fbx/pab/locomotions.fbx\;{\"skeleton\":{\"filename\":\"pab_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"pab_*.ozz\"}]}\;output:pab_walk.ozz\;output:pab_jog.ozz\;output:pab_run.ozz\;depend:pab_skeleton.ozz"
+  "/fbx/pab/locomotions.fbx\;{\"skeleton\":{\"filename\":\"pab_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"pab_*_raw.ozz\",\"raw\":true,\"optimize\":false}]}\;output:pab_walk_raw.ozz\;output:pab_jog_raw.ozz\;output:pab_run_raw.ozz\;depend:pab_skeleton.ozz"
   "/fbx/pab/crossarms.fbx\;{\"skeleton\":{\"filename\":\"pab_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"pab_crossarms.ozz\"}]}\;output:pab_crossarms.ozz\;depend:pab_skeleton.ozz"
   "/fbx/pab/crackhead.fbx\;{\"skeleton\":{\"filename\":\"pab_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"pab_crackhead.ozz\"},{\"filename\":\"pab_crackhead_additive.ozz\",\"additive\":true}]}\;output:pab_crackhead_additive.ozz\;output:pab_crackhead.ozz\;depend:pab_skeleton.ozz"
   "/fbx/pab/hand.fbx\;{\"skeleton\":{\"filename\":\"pab_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"clip\":\"curl\",\"filename\":\"pab_curl_additive.ozz\",\"additive\":true,\"additive_reference\":\"skeleton\"},{\"clip\":\"splay\",\"filename\":\"pab_splay_additive.ozz\",\"additive\":true,\"additive_reference\":\"skeleton\"}]}\;output:pab_curl_additive.ozz\;output:pab_splay_additive.ozz\;depend:pab_skeleton.ozz"
+  
+  # Library data with root motion
+  "/fbx/pab/atlas.fbx\;{\"skeleton\":{\"filename\":\"pab_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"pab_atlas_no_motion.ozz\",\"tracks\":{\"motion\":{\"enable\":true,\"rotation\":{\"loop\":true},\"filename\":\"pab_atlas_motion_track.ozz\"}}}]}\;output:pab_atlas_no_motion.ozz\;output:pab_atlas_motion_track.ozz\;depend:pab_skeleton.ozz"
+  "/fbx/pab/locomotions.fbx\;{\"skeleton\":{\"filename\":\"pab_skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"pab_*_no_motion.ozz\",\"tracks\":{\"motion\":{\"enable\":true,\"rotation\":{\"components\":\"\"},\"filename\":\"pab_*_motion_track.ozz\"}}}]}\;output:pab_walk_no_motion.ozz\;output:pab_jog_no_motion.ozz\;output:pab_run_no_motion.ozz\;output:pab_walk_motion_track.ozz\;output:pab_jog_motion_track.ozz\;output:pab_run_motion_track.ozz\;depend:pab_skeleton.ozz"
   
   # Robot user channels
   "/fbx/robot.fbx\;\;config_file:${PROJECT_SOURCE_DIR}/samples/user_channel/config.json\;output:robot_skeleton.ozz\;output:robot_animation.ozz\;output:robot_track_grasp.ozz"

@@ -32,11 +32,9 @@
 #include <cstring>
 #include <limits>
 
-#include "ozz/base/memory/allocator.h"
-
 #include "ozz/animation/offline/raw_track.h"
-
 #include "ozz/animation/runtime/track.h"
+#include "ozz/base/memory/allocator.h"
 
 namespace ozz {
 namespace animation {
@@ -48,24 +46,12 @@ template <typename _RawTrack>
 void PatchBeginEndKeys(const _RawTrack& _input,
                        typename _RawTrack::Keyframes* keyframes) {
   if (_input.keyframes.empty()) {
-    const typename _RawTrack::ValueType default_value =
-        animation::internal::TrackPolicy<
-            typename _RawTrack::ValueType>::identity();
-
-    const typename _RawTrack::Keyframe begin = {RawTrackInterpolation::kLinear,
-                                                0.f, default_value};
-    keyframes->push_back(begin);
-    const typename _RawTrack::Keyframe end = {RawTrackInterpolation::kLinear,
-                                              1.f, default_value};
-    keyframes->push_back(end);
-  } else if (_input.keyframes.size() == 1) {
+    // Empty (identity) is supported during sampling.
+  } else if (_input.keyframes.size() < 2) {  // Constant
     const typename _RawTrack::Keyframe& src_key = _input.keyframes.front();
     const typename _RawTrack::Keyframe begin = {RawTrackInterpolation::kLinear,
                                                 0.f, src_key.value};
     keyframes->push_back(begin);
-    const typename _RawTrack::Keyframe end = {RawTrackInterpolation::kLinear,
-                                              1.f, src_key.value};
-    keyframes->push_back(end);
   } else {
     // Copy all source data.
     // Push an initial and last keys if they don't exist.
@@ -173,8 +159,6 @@ namespace {
 template <>
 void Fixup<RawQuaternionTrack::Keyframes>(
     RawQuaternionTrack::Keyframes* _keyframes) {
-  assert(_keyframes->size() >= 2);
-
   const math::Quaternion identity = math::Quaternion::identity();
   for (size_t i = 0; i < _keyframes->size(); ++i) {
     RawQuaternionTrack::ValueType& src_key = _keyframes->at(i).value;
@@ -185,7 +169,7 @@ void Fixup<RawQuaternionTrack::Keyframes>(
     // Ensures quaternions are all on the same hemisphere.
     if (i == 0) {
       if (src_key.w < 0.f) {
-        src_key = -src_key;  // Q an -Q are the same rotation.
+        src_key = -src_key;  // Q and -Q are the same rotation.
       }
     } else {
       RawQuaternionTrack::ValueType& prev_key = _keyframes->at(i - 1).value;

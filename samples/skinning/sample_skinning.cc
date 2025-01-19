@@ -87,7 +87,6 @@ class SkinningSampleApplication : public ozz::sample::Application {
     return true;
   }
 
-  // Samples animation, transforms to model space and renders.
   virtual bool OnDisplay(ozz::sample::Renderer* _renderer) {
     bool success = true;
     const ozz::math::Float4x4 transform = ozz::math::Float4x4::identity();
@@ -177,8 +176,6 @@ class SkinningSampleApplication : public ozz::sample::Application {
     return true;
   }
 
-  virtual void OnDestroy() {}
-
   virtual bool OnGui(ozz::sample::ImGui* _im_gui) {
     // Exposes model informations.
     {
@@ -186,7 +183,8 @@ class SkinningSampleApplication : public ozz::sample::Application {
       ozz::sample::ImGui::OpenClose oc(_im_gui, "Model statisitics", &open);
       if (open) {
         char label[255];
-        std::snprintf(label, sizeof(label), "%d animated joints", skeleton_.num_joints());
+        std::snprintf(label, sizeof(label), "%d animated joints",
+                      skeleton_.num_joints());
         _im_gui->DoLabel(label);
 
         int influences = 0;
@@ -200,14 +198,16 @@ class SkinningSampleApplication : public ozz::sample::Application {
         for (const auto& mesh : meshes_) {
           vertices += mesh.vertex_count();
         }
-        std::snprintf(label, sizeof(label), "%.1fK vertices", vertices / 1000.f);
+        std::snprintf(label, sizeof(label), "%.1fK vertices",
+                      vertices / 1000.f);
         _im_gui->DoLabel(label);
 
         int indices = 0;
         for (const auto& mesh : meshes_) {
           indices += mesh.triangle_index_count();
         }
-        std::snprintf(label, sizeof(label), "%.1fK triangles", indices / 3000.f);
+        std::snprintf(label, sizeof(label), "%.1fK triangles",
+                      indices / 3000.f);
         _im_gui->DoLabel(label);
       }
     }
@@ -232,7 +232,7 @@ class SkinningSampleApplication : public ozz::sample::Application {
 
         static bool ocr_open = false;
         ozz::sample::ImGui::OpenClose ocr(_im_gui, "Rendering options",
-                                         &ocr_open);
+                                          &ocr_open);
         if (ocr_open) {
           _im_gui->DoCheckBox("Show triangles", &render_options_.triangles);
           _im_gui->DoCheckBox("Show texture", &render_options_.texture);
@@ -250,7 +250,8 @@ class SkinningSampleApplication : public ozz::sample::Application {
   }
 
   virtual void GetSceneBounds(ozz::math::Box* _bound) const {
-    ozz::sample::ComputeSkeletonBounds(skeleton_, _bound);
+    ozz::sample::ComputeSkeletonBounds(skeleton_,
+                                       ozz::math::Float4x4::identity(), _bound);
   }
 
  private:

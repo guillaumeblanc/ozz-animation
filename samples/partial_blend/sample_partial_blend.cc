@@ -62,17 +62,12 @@ OZZ_OPTIONS_DECLARE_STRING(
     "media/animation_partial.ozz", false)
 
 class PartialBlendSampleApplication : public ozz::sample::Application {
- public:
-  PartialBlendSampleApplication()
-      : upper_body_root_(0),
-        threshold_(ozz::animation::BlendingJob().threshold) {}
-
  protected:
   // Updates current animation time and skeleton pose.
   virtual bool OnUpdate(float _dt, float) {
     // Updates and samples both animations to their respective local space
     // transform buffers.
-    for (int i = 0; i < kNumLayers; ++i) {
+    for (size_t i = 0; i < kNumLayers; ++i) {
       Sampler& sampler = samplers_[i];
 
       // Updates animations time.
@@ -94,11 +89,11 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
     // Blends animations.
     // Blends the local spaces transforms computed by sampling all animations
     // (1st stage just above), and outputs the result to the local space
-    // transform buffer blended_locals_
+    // transform buffer locals_
 
     // Prepares blending layers.
     ozz::animation::BlendingJob::Layer layers[kNumLayers];
-    for (int i = 0; i < kNumLayers; ++i) {
+    for (size_t i = 0; i < kNumLayers; ++i) {
       layers[i].transform = make_span(samplers_[i].locals);
       layers[i].weight = samplers_[i].weight_setting;
 
@@ -111,7 +106,7 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
     blend_job.threshold = threshold_;
     blend_job.layers = layers;
     blend_job.rest_pose = skeleton_.joint_rest_poses();
-    blend_job.output = make_span(blended_locals_);
+    blend_job.output = make_span(locals_);
 
     // Blends.
     if (!blend_job.Run()) {
@@ -124,7 +119,7 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
     // Setup local-to-model conversion job.
     ozz::animation::LocalToModelJob ltm_job;
     ltm_job.skeleton = &skeleton_;
-    ltm_job.input = make_span(blended_locals_);
+    ltm_job.input = make_span(locals_);
     ltm_job.output = make_span(models_);
 
     // Run ltm job.
@@ -135,7 +130,6 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
     return true;
   }
 
-  // Samples animation, transforms to model space and renders.
   virtual bool OnDisplay(ozz::sample::Renderer* _renderer) {
     return _renderer->DrawPosture(skeleton_, make_span(models_),
                                   ozz::math::Float4x4::identity());
@@ -152,7 +146,7 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
     // Reading animations.
     const char* filenames[] = {OPTIONS_lower_body_animation,
                                OPTIONS_upper_body_animation};
-    for (int i = 0; i < kNumLayers; ++i) {
+    for (size_t i = 0; i < kNumLayers; ++i) {
       Sampler& sampler = samplers_[i];
 
       if (!ozz::sample::LoadAnimation(filenames[i], &sampler.animation)) {
@@ -180,7 +174,7 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
     upper_body_sampler.joint_weight_setting = 1.f;
 
     // Allocates local space runtime buffers of blended data.
-    blended_locals_.resize(num_soa_joints);
+    locals_.resize(num_soa_joints);
 
     // Allocates model space runtime buffers of blended data.
     models_.resize(num_joints);
@@ -237,8 +231,6 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
     ozz::animation::IterateJointsDF(skeleton_, upper_it, upper_body_root_);
   }
 
-  virtual void OnDestroy() {}
-
   virtual bool OnGui(ozz::sample::ImGui* _im_gui) {
     // Exposes blending parameters.
     {
@@ -268,21 +260,21 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
         _im_gui->DoLabel("Manual settings:");
         _im_gui->DoLabel("Lower body layer:");
         std::snprintf(label, sizeof(label), "Layer weight: %.2f",
-                     lower_body_sampler.weight_setting);
+                      lower_body_sampler.weight_setting);
         _im_gui->DoSlider(label, 0.f, 1.f, &lower_body_sampler.weight_setting,
                           1.f, !automatic);
         std::snprintf(label, sizeof(label), "Joints weight: %.2f",
-                     lower_body_sampler.joint_weight_setting);
+                      lower_body_sampler.joint_weight_setting);
         _im_gui->DoSlider(label, 0.f, 1.f,
                           &lower_body_sampler.joint_weight_setting, 1.f,
                           !automatic);
         _im_gui->DoLabel("Upper body layer:");
         std::snprintf(label, sizeof(label), "Layer weight: %.2f",
-                     upper_body_sampler.weight_setting);
+                      upper_body_sampler.weight_setting);
         _im_gui->DoSlider(label, 0.f, 1.f, &upper_body_sampler.weight_setting,
                           1.f, !automatic);
         std::snprintf(label, sizeof(label), "Joints weight: %.2f",
-                     upper_body_sampler.joint_weight_setting);
+                      upper_body_sampler.joint_weight_setting);
         _im_gui->DoSlider(label, 0.f, 1.f,
                           &upper_body_sampler.joint_weight_setting, 1.f,
                           !automatic);
@@ -302,8 +294,8 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
                          ozz::sample::ImGui::kLeft, false);
         char label[64];
         std::snprintf(label, sizeof(label), "%s (%d)",
-                     skeleton_.joint_names()[upper_body_root_],
-                     upper_body_root_);
+                      skeleton_.joint_names()[upper_body_root_],
+                      upper_body_root_);
         if (_im_gui->DoSlider(label, 0, skeleton_.num_joints() - 1,
                               &upper_body_root_)) {
           SetupPerJointWeights();
@@ -318,7 +310,7 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
         static bool open[kNumLayers] = {true, true};
         const char* oc_names[kNumLayers] = {"Lower body animation",
                                             "Upper body animation"};
-        for (int i = 0; i < kNumLayers; ++i) {
+        for (size_t i = 0; i < kNumLayers; ++i) {
           Sampler& sampler = samplers_[i];
           ozz::sample::ImGui::OpenClose loc(_im_gui, oc_names[i], nullptr);
           if (open[i]) {
@@ -331,7 +323,8 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
   }
 
   virtual void GetSceneBounds(ozz::math::Box* _bound) const {
-    ozz::sample::ComputePostureBounds(make_span(models_), _bound);
+    ozz::sample::ComputePostureBounds(make_span(models_),
+                                      ozz::math::Float4x4::identity(), _bound);
   }
 
  private:
@@ -339,11 +332,9 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
   ozz::animation::Skeleton skeleton_;
 
   // The number of layers to blend.
-  enum {
-    kLowerBody = 0,
-    kUpperBody = 1,
-    kNumLayers = 2,
-  };
+  static constexpr size_t kLowerBody = 0;
+  static constexpr size_t kUpperBody = 1;
+  static constexpr size_t kNumLayers = 2;
 
   // Sampler structure contains all the data required to sample a single
   // animation.
@@ -379,13 +370,13 @@ class PartialBlendSampleApplication : public ozz::sample::Application {
   } samplers_[kNumLayers];  // kNumLayers animations to blend.
 
   // Index of the joint at the base of the upper body hierarchy.
-  int upper_body_root_;
+  int upper_body_root_ = 0;
 
   // Blending job rest pose threshold.
-  float threshold_;
+  float threshold_ = ozz::animation::BlendingJob().threshold;
 
   // Buffer of local transforms which stores the blending result.
-  ozz::vector<ozz::math::SoaTransform> blended_locals_;
+  ozz::vector<ozz::math::SoaTransform> locals_;
 
   // Buffer of model space matrices. These are computed by the local-to-model
   // job after the blending stage.

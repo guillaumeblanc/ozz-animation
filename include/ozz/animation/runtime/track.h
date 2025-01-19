@@ -94,6 +94,9 @@ class OZZ_ANIMATION_DLL Track {
   void Allocate(size_t _keys_count, size_t _name_len);
   void Deallocate();
 
+  // Allocation for the whole track.
+  void* allocation_ = nullptr;
+
   // Keyframe ratios (0 is the beginning of the track, 1 is the end).
   span<float> ratios_;
 

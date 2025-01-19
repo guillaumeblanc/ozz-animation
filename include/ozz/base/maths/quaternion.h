@@ -64,8 +64,7 @@ struct OZZ_BASE_DLL Quaternion {
   // Returns a normalized quaternion initialized from an Euler representation.
   // Euler angles are ordered Heading, Elevation and Bank, or Yaw, Pitch and
   // Roll.
-  static OZZ_INLINE Quaternion FromEuler(float _yaw, float _pitch,
-                                         float _roll);
+  static OZZ_INLINE Quaternion FromEuler(const Float3& _ypr);
 
   // Returns the quaternion that will rotate vector _from into vector _to,
   // around their plan perpendicular axis.The input vectors don't need to be
@@ -202,15 +201,14 @@ OZZ_INLINE Float4 ToAxisAngle(const Quaternion& _q) {
   }
 }
 
-OZZ_INLINE Quaternion Quaternion::FromEuler(float _yaw, float _pitch,
-                                            float _roll) {
-  const float half_yaw = _yaw * .5f;
+OZZ_INLINE Quaternion Quaternion::FromEuler(const Float3& ypr) {
+  const float half_yaw = ypr.x * .5f;
   const float c1 = std::cos(half_yaw);
   const float s1 = std::sin(half_yaw);
-  const float half_pitch = _pitch * .5f;
+  const float half_pitch = ypr.y * .5f;
   const float c2 = std::cos(half_pitch);
   const float s2 = std::sin(half_pitch);
-  const float half_roll = _roll * .5f;
+  const float half_roll = ypr.z * .5f;
   const float c3 = std::cos(half_roll);
   const float s3 = std::sin(half_roll);
   const float c1c2 = c1 * c2;

@@ -100,44 +100,59 @@ template <>
 struct RawTrackToTrack<RawFloat4Track> {
   typedef Float4Track Track;
 };
+template <>
+struct RawTrackToTrack<RawQuaternionTrack> {
+  typedef QuaternionTrack Track;
+};
 
 template <typename _RawTrack>
-bool Export(OzzImporter& _importer, const _RawTrack& _raw_track,
-            const Json::Value& _config, const ozz::Endianness _endianness) {
-  // Raw track to build and output.
-  _RawTrack raw_track;
-
+bool BuildTrack(const _RawTrack& _src_track, _RawTrack* _raw_track,
+                typename RawTrackToTrack<_RawTrack>::Track* _track,
+                const Json::Value& _config) {
   // Optimizes track if option is enabled.
   if (_config["optimize"].asBool()) {
     ozz::log::LogV() << "Optimizing track." << std::endl;
     TrackOptimizer optimizer;
     optimizer.tolerance = _config["optimization_tolerance"].asFloat();
     _RawTrack raw_optimized_track;
-    if (!optimizer(_raw_track, &raw_optimized_track)) {
+    if (!optimizer(_src_track, &raw_optimized_track)) {
       ozz::log::Err() << "Failed to optimize track." << std::endl;
       return false;
     }
 
     // Displays optimization statistics.
-    DisplaysOptimizationstatistics(_raw_track, raw_optimized_track);
+    DisplaysOptimizationstatistics(_src_track, raw_optimized_track);
 
     // Brings data back to the raw track.
-    raw_track = raw_optimized_track;
+    *_raw_track = std::move(raw_optimized_track);
   } else {
-    ozz::log::LogV() << "Optimization for track \"" << _raw_track.name
+    ozz::log::LogV() << "Optimization for track \"" << _src_track.name
                      << "\" is disabled." << std::endl;
+    *_raw_track = _src_track;
   }
 
   // Builds runtime track.
-  unique_ptr<typename RawTrackToTrack<_RawTrack>::Track> track;
   if (!_config["raw"].asBool()) {
     ozz::log::LogV() << "Builds runtime track." << std::endl;
     TrackBuilder builder;
-    track = builder(raw_track);
+    auto track = builder(*_raw_track);
     if (!track) {
       ozz::log::Err() << "Failed to build runtime track." << std::endl;
       return false;
     }
+    *_track = std::move(*track);
+  }
+  return true;
+}
+
+template <typename _RawTrack>
+bool Export(OzzImporter& _importer, const _RawTrack& _src_track,
+            const Json::Value& _config, const ozz::Endianness _endianness) {
+  // Optimizes track if option is enabled.
+  _RawTrack raw_track;
+  typename RawTrackToTrack<_RawTrack>::Track track;
+  if (!BuildTrack(_src_track, &raw_track, &track, _config)) {
+    return false;
   }
 
   {
@@ -146,7 +161,7 @@ bool Export(OzzImporter& _importer, const _RawTrack& _raw_track,
 
     // Builds output filename.
     const ozz::string filename = _importer.BuildFilename(
-        _config["filename"].asCString(), _raw_track.name.c_str());
+        _config["filename"].asCString(), _src_track.name.c_str());
 
     ozz::log::LogV() << "Opens output file: " << filename << std::endl;
     ozz::io::File file(filename.c_str(), "wb");
@@ -165,7 +180,7 @@ bool Export(OzzImporter& _importer, const _RawTrack& _raw_track,
       archive << raw_track;
     } else {
       ozz::log::LogV() << "Outputs Track to binary archive." << std::endl;
-      archive << *track;
+      archive << track;
     }
   }
 
@@ -177,20 +192,19 @@ bool Export(OzzImporter& _importer, const _RawTrack& _raw_track,
 
 template <typename _TrackType>
 bool ProcessImportTrackType(
-    OzzImporter& _importer, const char* _animation_name,
-    const char* _joint_name, const OzzImporter::NodeProperty& _property,
+    OzzImporter& _importer, const char* _clip_name, const char* _joint_name,
+    const OzzImporter::NodeProperty& _property,
     const OzzImporter::NodeProperty::Type _expected_type,
     const Json::Value& _import_config, const ozz::Endianness _endianness) {
   bool success = true;
 
   ozz::log::Log() << "Extracting animation track \"" << _joint_name << ":"
                   << _property.name.c_str() << "\" from animation \""
-                  << _animation_name << "\"." << std::endl;
+                  << _clip_name << "\"." << std::endl;
 
   _TrackType track;
-  success &=
-      _importer.Import(_animation_name, _joint_name, _property.name.c_str(),
-                       _expected_type, 0, &track);
+  success &= _importer.Import(_clip_name, _joint_name, _property.name.c_str(),
+                              _expected_type, 0, &track);
 
   if (success) {
     // Give the track a name
@@ -206,8 +220,9 @@ bool ProcessImportTrackType(
 
   return success;
 }
+}  // namespace
 
-bool ProcessImportTrack(OzzImporter& _importer, const char* _animation_name,
+bool ProcessImportTrack(OzzImporter& _importer, const char* _clip_name,
                         const Skeleton& _skeleton,
                         const Json::Value& _import_config,
                         const ozz::Endianness _endianness) {
@@ -271,13 +286,13 @@ bool ProcessImportTrack(OzzImporter& _importer, const char* _animation_name,
       switch (property.type) {
         case OzzImporter::NodeProperty::kFloat1: {
           success &= ProcessImportTrackType<RawFloatTrack>(
-              _importer, _animation_name, joint_name, property, expected_type,
+              _importer, _clip_name, joint_name, property, expected_type,
               _import_config, _endianness);
           break;
         }
         case OzzImporter::NodeProperty::kFloat2: {
           success &= ProcessImportTrackType<RawFloat2Track>(
-              _importer, _animation_name, joint_name, property, expected_type,
+              _importer, _clip_name, joint_name, property, expected_type,
               _import_config, _endianness);
           break;
         }
@@ -285,13 +300,13 @@ bool ProcessImportTrack(OzzImporter& _importer, const char* _animation_name,
         case OzzImporter::NodeProperty::kPoint:
         case OzzImporter::NodeProperty::kVector: {
           success &= ProcessImportTrackType<RawFloat3Track>(
-              _importer, _animation_name, joint_name, property, expected_type,
+              _importer, _clip_name, joint_name, property, expected_type,
               _import_config, _endianness);
           break;
         }
         case OzzImporter::NodeProperty::kFloat4: {
           success &= ProcessImportTrackType<RawFloat4Track>(
-              _importer, _animation_name, joint_name, property, expected_type,
+              _importer, _clip_name, joint_name, property, expected_type,
               _import_config, _endianness);
           break;
         }
@@ -318,33 +333,138 @@ bool ProcessImportTrack(OzzImporter& _importer, const char* _animation_name,
   return success;
 }
 
-/*
-bool ProcessMotionTrack(OzzImporter& _importer,
-                        const char* _animation_name, const Skeleton&
-_skeleton, const Json::Value& _motion) { return true;
-}*/
+namespace {
+ozz::animation::offline::MotionExtractor::Settings ProcessMotionTrackSettings(
+    const Json::Value& _config) {
+  ozz::animation::offline::MotionExtractor::Settings settings;
+
+  const auto& components = _config["components"].asString();
+  settings.x = components.find('x') != ozz::string::npos;
+  settings.y = components.find('y') != ozz::string::npos;
+  settings.z = components.find('z') != ozz::string::npos;
+
+  const char* reference = _config["reference"].asCString();
+  bool valid_ref = RootMotionReferenceConfig::GetEnumFromName(
+      reference, &settings.reference);
+  (void)valid_ref;
+  assert(valid_ref &&
+         "Reference should have been checked during config validation");
+
+  settings.bake = _config["bake"].asBool();
+  settings.loop = _config["loop"].asBool();
+
+  return settings;
+}
 }  // namespace
 
-bool ProcessTracks(OzzImporter& _importer, const char* _animation_name,
-                   const Skeleton& _skeleton, const Json::Value& _config,
-                   const ozz::Endianness _endianness) {
-  bool success = true;
-
-  const Json::Value& imports = _config["properties"];
-  for (Json::ArrayIndex i = 0; success && i < imports.size(); ++i) {
-    success &= ProcessImportTrack(_importer, _animation_name, _skeleton,
-                                  imports[i], _endianness);
+bool ProcessMotionTrack(OzzImporter& _importer, const char* _clip_name,
+                        const RawAnimation& _animation,
+                        const Skeleton& _skeleton, const Json::Value& _config,
+                        const ozz::Endianness _endianness,
+                        RawAnimation* _baked_animation) {
+  if (!_config["enable"].asBool()) {
+    return true;
   }
 
-  /*
-    const Json::Value& motions = _config["motions"];
-    for (Json::ArrayIndex i = 0; success && i < motions.size(); ++i) {
-      success &=
-          ProcessMotionTrack(_importer, _animation_name, _skeleton,
-    motions[i]);
-    }*/
+  ozz::log::Log() << "Extracting motion track from animation \""
+                  << _animation.name << "\"." << std::endl;
 
-  return success;
+  if (_skeleton.num_joints() == 0) {
+    ozz::log::Err() << "No joints found in skeleton." << std::endl;
+    return false;
+  }
+
+  // Configures motion extractor
+  ozz::animation::offline::MotionExtractor extractor;
+  extractor.position_settings = ProcessMotionTrackSettings(_config["position"]);
+  extractor.rotation_settings = ProcessMotionTrackSettings(_config["rotation"]);
+
+  // Find root joint
+  const char* joint_config = _config["joint_name"].asCString();
+  if (*joint_config != 0) {
+    bool found = false;
+    for (int i = 0; i < _skeleton.num_joints(); ++i) {
+      if (strmatch(_skeleton.joint_names()[i], joint_config)) {
+        found = true;
+        extractor.root_joint = i;
+        ozz::log::LogV() << "Found motion extraction root joint \""
+                         << joint_config << "\"" << std::endl;
+        break;
+      }
+    }
+    if (!found) {
+      ozz::log::Err() << "Root joint \"" << joint_config
+                      << "\" not found in skeleton." << std::endl;
+      return false;
+    }
+  }
+
+  // Prepare raw tracks
+  const ozz::string joint_name = _skeleton.joint_names()[extractor.root_joint];
+  ozz::animation::offline::RawFloat3Track raw_position;
+  raw_position.name = joint_name + "-position";
+  ozz::animation::offline::RawQuaternionTrack raw_rotation;
+  raw_rotation.name = joint_name + "-rotation";
+
+  // Runs the extraction
+  if (!extractor(_animation, _skeleton, &raw_position, &raw_rotation,
+                 _baked_animation)) {
+    ozz::log::Err() << "Failed to extract motion track." << std::endl;
+    return false;
+  }
+
+  // Raw track to build and output.
+  ozz::animation::offline::RawFloat3Track raw_position_out;
+  ozz::animation::Float3Track position_out;
+  if (!BuildTrack(raw_position, &raw_position_out, &position_out,
+                  _config["position"])) {
+    return false;
+  }
+
+  ozz::animation::offline::RawQuaternionTrack raw_rotation_out;
+  ozz::animation::QuaternionTrack rotation_out;
+  if (!BuildTrack(raw_rotation, &raw_rotation_out, &rotation_out,
+                  _config["rotation"])) {
+    return false;
+  }
+
+  {
+    // Prepares output stream. Once the file is opened, nothing should fail as
+    // it would leave an invalid file on the disk.
+
+    // Builds output filename.
+    const ozz::string filename =
+        _importer.BuildFilename(_config["filename"].asCString(), _clip_name);
+
+    ozz::log::LogV() << "Opens output file: " << filename << std::endl;
+    ozz::io::File file(filename.c_str(), "wb");
+    if (!file.opened()) {
+      ozz::log::Err() << "Failed to open output file: " << filename
+                      << std::endl;
+      return false;
+    }
+
+    // Initializes output archive.
+    ozz::io::OArchive archive(&file, _endianness);
+
+    // Fills output archive with the track.
+    if (_config["raw"].asBool()) {
+      ozz::log::LogV() << "Outputs motion RawTrack to binary archive."
+                       << std::endl;
+      archive << raw_position_out;
+      archive << raw_rotation_out;
+    } else {
+      ozz::log::LogV() << "Outputs motion Track to binary archive."
+                       << std::endl;
+      archive << position_out;
+      archive << rotation_out;
+    }
+  }
+
+  ozz::log::LogV() << "motion tracks binary archive successfully outputted."
+                   << std::endl;
+
+  return true;
 }
 
 PropertyTypeConfig::EnumNames PropertyTypeConfig::GetNames() {
@@ -353,6 +473,13 @@ PropertyTypeConfig::EnumNames PropertyTypeConfig::GetNames() {
   const EnumNames enum_names = {OZZ_ARRAY_SIZE(kNames), kNames};
   return enum_names;
 }
+
+RootMotionReferenceConfig::EnumNames RootMotionReferenceConfig::GetNames() {
+  static const char* kNames[] = {"absolute", "skeleton", "animation"};
+  const EnumNames enum_names = {OZZ_ARRAY_SIZE(kNames), kNames};
+  return enum_names;
+}
+
 }  // namespace offline
 }  // namespace animation
 }  // namespace ozz

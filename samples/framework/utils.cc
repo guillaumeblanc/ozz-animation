@@ -28,7 +28,6 @@
 #include "framework/utils.h"
 
 #include <cassert>
-#include <chrono>
 #include <limits>
 
 #include "framework/imgui.h"
@@ -59,30 +58,34 @@ PlaybackController::PlaybackController()
       play_(true),
       loop_(true) {}
 
-void PlaybackController::Update(const animation::Animation& _animation,
-                                float _dt) {
-  float new_time = time_ratio_;
+int PlaybackController::Update(const animation::Animation& _animation,
+                               float _dt) {
+  float new_ratio = time_ratio_;
 
   if (play_) {
-    new_time = time_ratio_ + _dt * playback_speed_ / _animation.duration();
+    new_ratio = time_ratio_ + _dt * playback_speed_ / _animation.duration();
   }
 
   // Must be called even if time doesn't change, in order to update previous
   // frame time ratio. Uses set_time_ratio function in order to update
   // previous_time_ and wrap time value in the unit interval (depending on loop
   // mode).
-  set_time_ratio(new_time);
+  return set_time_ratio(new_ratio);
 }
 
-void PlaybackController::set_time_ratio(float _ratio) {
+int PlaybackController::set_time_ratio(float _ratio) {
+  //  Number of loops completed within _ratio, possibly negative if going
+  //  backward.
   previous_time_ratio_ = time_ratio_;
   if (loop_) {
-    // Wraps in the unit interval [0:1], even for negative values (the reason
-    // for using floorf).
-    time_ratio_ = _ratio - floorf(_ratio);
+    // Wraps in the unit interval [0:1]
+    const float loops = floorf(_ratio);
+    time_ratio_ = _ratio - loops;
+    return static_cast<int>(loops);
   } else {
     // Clamps in the unit interval [0:1].
     time_ratio_ = math::Clamp(0.f, _ratio, 1.f);
+    return 0;
   }
 }
 
@@ -126,7 +129,7 @@ bool PlaybackController::OnGui(const animation::Animation& _animation,
     time_changed = true;
   }
   std::snprintf(label, sizeof(label), "Playback speed: %.2f", playback_speed_);
-  _im_gui->DoSlider(label, -5.f, 5.f, &playback_speed_, 1.f, _enabled);
+  _im_gui->DoSlider(label, -3.f, 3.f, &playback_speed_, 1.f, _enabled);
 
   // Allow to reset speed if it is not the default value.
   if (_im_gui->DoButton("Reset playback speed",
@@ -174,8 +177,7 @@ bool OnRawSkeletonJointGui(
       if (euler_modified) {
         modified = true;
         ozz::math::Float3 euler_rad = euler * ozz::math::kDegreeToRadian;
-        rotation = ozz::math::Quaternion::FromEuler(euler_rad.x, euler_rad.y,
-                                                    euler_rad.z);
+        rotation = ozz::math::Quaternion::FromEuler(euler_rad);
       }
 
       // Scale (must be uniform and not 0)
@@ -205,6 +207,7 @@ bool RawSkeletonEditor::OnGui(animation::offline::RawSkeleton* _skeleton,
 // Uses LocalToModelJob to compute skeleton model space posture, then forwards
 // to ComputePostureBounds
 void ComputeSkeletonBounds(const animation::Skeleton& _skeleton,
+                           const ozz::math::Float4x4& _transform,
                            math::Box* _bound) {
   using ozz::math::Float4x4;
 
@@ -228,33 +231,32 @@ void ComputeSkeletonBounds(const animation::Skeleton& _skeleton,
   job.skeleton = &_skeleton;
   if (job.Run()) {
     // Forwards to posture function.
-    ComputePostureBounds(job.output, _bound);
+    ComputePostureBounds(job.output, _transform, _bound);
   }
 }
 
 // Loop through matrices and collect min and max bounds.
-void ComputePostureBounds(ozz::span<const ozz::math::Float4x4> _matrices,
+void ComputePostureBounds(ozz::span<const ozz::math::Float4x4> _models,
+                          const ozz::math::Float4x4& _transform,
                           math::Box* _bound) {
   assert(_bound);
 
   // Set a default box.
   *_bound = ozz::math::Box();
 
-  if (_matrices.empty()) {
+  if (_models.empty()) {
     return;
   }
 
   // Loops through matrices and stores min/max.
-  // Matrices array cannot be empty, it was checked at the beginning of the
-  // function.
-  const ozz::math::Float4x4* current = _matrices.begin();
-  math::SimdFloat4 min = current->cols[3];
-  math::SimdFloat4 max = current->cols[3];
-  ++current;
-  while (current < _matrices.end()) {
-    min = math::Min(min, current->cols[3]);
-    max = math::Max(max, current->cols[3]);
-    ++current;
+  math::SimdFloat4 min =
+      math::simd_float4::Load1(std::numeric_limits<float>::max());
+  math::SimdFloat4 max = -min;
+
+  for (const auto& current : _models) {
+    const auto transform = _transform * current;
+    min = math::Min(min, transform.cols[3]);
+    max = math::Max(max, transform.cols[3]);
   }
 
   // Stores in math::Box structure.
@@ -281,25 +283,6 @@ void MultiplySoATransformQuaternion(
 
   ozz::math::Transpose4x4(&aos_quats->xyzw, &soa_transform_ref.rotation.x);
 }
-
-namespace {
-
-class ProfileFctLog {
-  using clock = std::chrono::high_resolution_clock;
-
- public:
-  ProfileFctLog(const char* _name) : name_{_name}, begin_{clock::now()} {}
-  ~ProfileFctLog() {
-    std::chrono::duration<float, std::milli> duration = clock::now() - begin_;
-    ozz::log::Out() << name_ << ": " << duration.count() << "ms" << std::endl;
-  }
-
- private:
-  const char* name_;
-  clock::time_point begin_;
-};
-
-}  // namespace
 
 bool LoadSkeleton(const char* _filename, ozz::animation::Skeleton* _skeleton) {
   assert(_filename && _skeleton);
@@ -597,5 +580,14 @@ bool RayIntersectsMeshes(const ozz::math::Float3& _ray_origin,
   }
   return intersected;
 }
+
+ProfileFctLog::ProfileFctLog(const char* _name)
+    : name_{_name}, begin_{clock::now()} {}
+
+ProfileFctLog::~ProfileFctLog() {
+  std::chrono::duration<float, std::milli> duration = clock::now() - begin_;
+  ozz::log::Out() << name_ << ": " << duration.count() << "ms" << std::endl;
+}
+
 }  // namespace sample
 }  // namespace ozz

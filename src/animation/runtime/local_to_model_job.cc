@@ -34,17 +34,8 @@
 #include "ozz/base/maths/soa_float4x4.h"
 #include "ozz/base/maths/soa_transform.h"
 
-#include "ozz/animation/runtime/skeleton.h"
-
 namespace ozz {
 namespace animation {
-
-LocalToModelJob::LocalToModelJob()
-    : skeleton(nullptr),
-      root(nullptr),
-      from(Skeleton::kNoParent),
-      to(Skeleton::kMaxJoints),
-      from_excluded(false) {}
 
 bool LocalToModelJob::Validate() const {
   // Don't need any early out, as jobs are valid in most of the performance

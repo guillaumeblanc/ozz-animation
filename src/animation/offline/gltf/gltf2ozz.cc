@@ -408,7 +408,6 @@ ozz::animation::offline::RawAnimation::ScaleKey CreateScaleRestPoseKey(
 bool CreateNodeTransform(const tinygltf::Node& _node,
                          ozz::math::Transform* _transform) {
   *_transform = ozz::math::Transform::identity();
-
   if (!_node.matrix.empty()) {
     const ozz::math::Float4x4 matrix = {
         {ozz::math::simd_float4::Load(static_cast<float>(_node.matrix[0]),
@@ -427,17 +426,13 @@ bool CreateNodeTransform(const tinygltf::Node& _node,
                                       static_cast<float>(_node.matrix[13]),
                                       static_cast<float>(_node.matrix[14]),
                                       static_cast<float>(_node.matrix[15]))}};
-    ozz::math::SimdFloat4 translation, rotation, scale;
-    if (ToAffine(matrix, &translation, &rotation, &scale)) {
-      ozz::math::Store3PtrU(translation, &_transform->translation.x);
-      ozz::math::StorePtrU(rotation, &_transform->rotation.x);
-      ozz::math::Store3PtrU(scale, &_transform->scale.x);
-      return true;
-    }
 
-    ozz::log::Err() << "Failed to extract transformation from node \""
-                    << _node.name << "\"." << std::endl;
-    return false;
+    if (!ToAffine(matrix, _transform)) {
+      ozz::log::Err() << "Failed to extract transformation from node \""
+                      << _node.name << "\"." << std::endl;
+      return false;
+    }
+    return true;
   }
 
   if (!_node.translation.empty()) {
@@ -730,7 +725,7 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
 
     // For each joint get all its associated channels, sample them and record
     // the samples in the joint track
-    const ozz::span<const char* const> joint_names = skeleton.joint_names();
+    const auto& joint_names = skeleton.joint_names();
     for (int i = 0; i < num_joints; i++) {
       auto& channels = channels_per_joint[joint_names[i]];
       auto& track = _animation->tracks[i];

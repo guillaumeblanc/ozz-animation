@@ -39,6 +39,7 @@
 #include "ozz/animation/runtime/animation.h"
 #include "ozz/base/containers/vector.h"
 #include "ozz/base/encode/group_varint.h"
+#include "ozz/base/maths/math_ex.h"
 #include "ozz/base/maths/simd_math.h"
 #include "ozz/base/memory/allocator.h"
 
@@ -359,6 +360,7 @@ BuilderIFrame BuildIFrame(const ozz::span<_SortingKey>& _src, float _time,
   assert(iframe.last >= _num_soa_tracks * 2 - 1);
 
   // Compress buffer.
+  // Entries is a multiple of 4 (number os soa tracks).
   const size_t worst_size = ozz::ComputeGV4WorstBufferSize(make_span(entries));
   iframe.entries.resize(worst_size);
   auto remain =
@@ -385,7 +387,8 @@ BuilderIFrames BuildIFrames(const ozz::span<_SortingKey>& _src,
     return iframes;
   }
 
-  const size_t iframes_divs = static_cast<size_t>(_duration / _interval);
+  const size_t iframes_divs =
+      static_cast<size_t>(math::Max(1.f, _duration / _interval));
   for (size_t i = 0; i < iframes_divs; ++i) {
     const float time = _duration * (i + 1) / iframes_divs;
     const auto& iframe = BuildIFrame(_src, time, _num_soa_tracks);

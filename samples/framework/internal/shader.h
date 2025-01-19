@@ -164,7 +164,7 @@ class SkeletonShader : public Shader {
   GLint joint_instanced_attrib() const { return attrib(3); }
 
   // Get an uniform location for the join, in cased of non-instanced rendering.
-  GLint joint_uniform() const { return uniform(1); }
+  GLint joint_uniform() const { return uniform(2); }
 };
 
 class JointShader : public SkeletonShader {
@@ -206,7 +206,7 @@ class AmbientShader : public Shader {
   void Bind(const math::Float4x4& _model, const math::Float4x4& _view_proj,
             GLsizei _pos_stride, GLsizei _pos_offset, GLsizei _normal_stride,
             GLsizei _normal_offset, GLsizei _color_stride,
-            GLsizei _color_offset);
+            GLsizei _color_offset, bool _color_float);
 
  protected:
   bool InternalBuild(int _vertex_count, const char** _vertex,
@@ -228,7 +228,7 @@ class AmbientShaderInstanced : public Shader {
   void Bind(GLsizei _models_offset, const math::Float4x4& _view_proj,
             GLsizei _pos_stride, GLsizei _pos_offset, GLsizei _normal_stride,
             GLsizei _normal_offset, GLsizei _color_stride,
-            GLsizei _color_offset);
+            GLsizei _color_offset, bool _color_float);
 
   virtual void Unbind();
 };
@@ -245,7 +245,8 @@ class AmbientTexturedShader : public AmbientShader {
   void Bind(const math::Float4x4& _model, const math::Float4x4& _view_proj,
             GLsizei _pos_stride, GLsizei _pos_offset, GLsizei _normal_stride,
             GLsizei _normal_offset, GLsizei _color_stride,
-            GLsizei _color_offset, GLsizei _uv_stride, GLsizei _uv_offset);
+            GLsizei _color_offset, bool _color_float, GLsizei _uv_stride,
+            GLsizei _uv_offset);
 };
 /*
 class AmbientTexturedShaderInstanced : public AmbientShaderInstanced {

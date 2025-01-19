@@ -25,18 +25,17 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/base/maths/simd_math.h"
-
 #include <stdint.h>
+
 #include <cmath>
 #include <limits>
 
 #include "gtest/gtest.h"
-
 #include "ozz/base/gtest_helper.h"
 #include "ozz/base/maths/gtest_math_helper.h"
 #include "ozz/base/maths/math_constant.h"
 #include "ozz/base/maths/math_ex.h"
+#include "ozz/base/maths/simd_math.h"
 
 using ozz::math::SimdFloat4;
 using ozz::math::SimdInt4;
@@ -110,6 +109,17 @@ TEST(LoadFloatPtr, ozz_simd_math) {
   EXPECT_ASSERTION(ozz::math::simd_float4::Load3PtrU(
                        reinterpret_cast<const float*>(d_in.c + 1)),
                    "alignment");
+}
+
+TEST(LoadVecFloat, ozz_simd_math) {
+  EXPECT_SIMDFLOAT_EQ(ozz::math::simd_float4::Load(ozz::math::Float2{1.f, 2.f}),
+                      1.f, 2.f, 0.f, 0.f);
+  EXPECT_SIMDFLOAT_EQ(
+      ozz::math::simd_float4::Load(ozz::math::Float3{1.f, 2.f, 3.f}), 1.f, 2.f,
+      3.f, 0.f);
+  EXPECT_SIMDFLOAT_EQ(
+      ozz::math::simd_float4::Load(ozz::math::Float4{1.f, 2.f, 3.f, 4.f}), 1.f,
+      2.f, 3.f, 4.f);
 }
 
 TEST(GetFloat, ozz_simd_math) {

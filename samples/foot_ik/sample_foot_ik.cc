@@ -97,25 +97,6 @@ static const ozz::math::Float3 kCharacterRayHeightOffset(0.f, 10.f, 0.f);
 static const ozz::math::Float3 kFootRayHeightOffset(0.f, .5f, 0.f);
 
 class FootIKSampleApplication : public ozz::sample::Application {
- public:
-  FootIKSampleApplication()
-      : pelvis_offset_(0.f, 0.f, 0.f),
-        root_translation_(2.17f, 2.f, -2.06f),
-        root_yaw_(-2.f),
-        foot_heigh_(.12f),
-        weight_(1.f),
-        soften_(1.f),
-        auto_character_height_(true),
-        pelvis_correction_(true),
-        two_bone_ik_(true),
-        aim_ik_(true),
-        show_skin_(true),
-        show_joints_(false),
-        show_raycast_(false),
-        show_ankle_target_(false),
-        show_root_(false),
-        show_offsetted_root_(false) {}
-
  protected:
   // Updates current animation time and foot ik.
   virtual bool OnUpdate(float _dt, float) {
@@ -497,15 +478,19 @@ class FootIKSampleApplication : public ozz::sample::Application {
       for (size_t l = 0; l < kLegsCount; ++l) {
         const LegRayInfo& ray = rays_info_[l];
         if (ray.hit) {
-          success &= _renderer->DrawSegment(ray.start, ray.hit_point,
-                                            ozz::sample::kGreen, identity);
-          success &= _renderer->DrawSegment(
-              ray.hit_point, ray.hit_point + ray.hit_normal * .5f,
-              ozz::sample::kRed, identity);
-        } else {
+          const ozz::math::Float3 ray_hit[] = {ray.start, ray.hit_point};
           success &=
-              _renderer->DrawSegment(ray.start, ray.start + ray.dir * 10.f,
-                                     ozz::sample::kWhite, identity);
+              _renderer->DrawLines(ray_hit, ozz::sample::kGreen, identity);
+
+          const ozz::math::Float3 ray_normal[] = {
+              ray.hit_point, ray.hit_point + ray.hit_normal * .5f};
+          success &=
+              _renderer->DrawLines(ray_normal, ozz::sample::kRed, identity);
+        } else {
+          const ozz::math::Float3 ray_infinite[] = {ray.start,
+                                                    ray.start + ray.dir * 10.f};
+          success &=
+              _renderer->DrawLines(ray_infinite, ozz::sample::kWhite, identity);
         }
       }
     }
@@ -516,8 +501,7 @@ class FootIKSampleApplication : public ozz::sample::Application {
         const LegRayInfo& ray = rays_info_[l];
         if (ray.hit) {
           const ozz::math::Float4x4& transform =
-              ozz::math::Float4x4::Translation(
-                  ozz::math::simd_float4::Load3PtrU(&ankles_target_ws_[l].x));
+              ozz::math::Float4x4::Translation(ankles_target_ws_[l]);
           success &= _renderer->DrawAxes(transform * kAxesScale);
         }
       }
@@ -605,8 +589,6 @@ class FootIKSampleApplication : public ozz::sample::Application {
     return found == 3;
   }
 
-  virtual void OnDestroy() {}
-
   virtual bool OnGui(ozz::sample::ImGui* _im_gui) {
     char label[32];
 
@@ -662,9 +644,10 @@ class FootIKSampleApplication : public ozz::sample::Application {
 
         // Rotation (in euler form)
         _im_gui->DoLabel("Rotation");
-        snprintf(label, sizeof(label), "yaw %.3g", root_yaw_ * ozz::math::kRadianToDegree);
-        moved |=
-            _im_gui->DoSlider(label, -ozz::math::kPi, ozz::math::kPi, &root_yaw_);
+        snprintf(label, sizeof(label), "yaw %.3g",
+                 root_yaw_ * ozz::math::kRadianToDegree);
+        moved |= _im_gui->DoSlider(label, -ozz::math::kPi, ozz::math::kPi,
+                                   &root_yaw_);
 
         // Character position shouldn't be changed after the update. In this
         // case, because UI is updated after "game" update, we need to recompute
@@ -705,10 +688,8 @@ class FootIKSampleApplication : public ozz::sample::Application {
   }
 
   ozz::math::Float4x4 GetRootTransform() const {
-    return ozz::math::Float4x4::Translation(
-               ozz::math::simd_float4::Load3PtrU(&root_translation_.x)) *
-           ozz::math::Float4x4::FromEuler(
-               ozz::math::simd_float4::LoadX(root_yaw_));
+    return ozz::math::Float4x4::Translation(root_translation_) *
+           ozz::math::Float4x4::FromEuler(ozz::math::Float3(root_yaw_, 0, 0));
   }
 
   ozz::math::Float4x4 GetOffsettedRootTransform() const {
@@ -719,10 +700,8 @@ class FootIKSampleApplication : public ozz::sample::Application {
     const ozz::math::Float3 offsetted_translation =
         pelvis_offset_ + root_translation_;
 
-    return ozz::math::Float4x4::Translation(
-               ozz::math::simd_float4::Load3PtrU(&offsetted_translation.x)) *
-           ozz::math::Float4x4::FromEuler(
-               ozz::math::simd_float4::LoadX(root_yaw_));
+    return ozz::math::Float4x4::Translation(offsetted_translation) *
+           ozz::math::Float4x4::FromEuler(ozz::math::Float3(root_yaw_, 0, 0));
   }
 
  private:
@@ -762,32 +741,32 @@ class FootIKSampleApplication : public ozz::sample::Application {
 
   LegRayInfo capsule;
 
-  ozz::math::Float3 pelvis_offset_;
+  ozz::math::Float3 pelvis_offset_ = {0.f, 0.f, 0.f};
 
   // The floor meshes used by the sample (collision and rendering).
   ozz::vector<ozz::sample::Mesh> floors_;
 
   // Root transformation.
-  ozz::math::Float3 root_translation_;
-  float root_yaw_;
+  ozz::math::Float3 root_translation_ = {2.17f, 2.f, -2.06f};
+  float root_yaw_ = -2.f;
 
   // Foot height setting
-  float foot_heigh_;
+  float foot_heigh_ = .12f;
 
-  float weight_;
-  float soften_;
+  float weight_ = 1.f;
+  float soften_ = 1.f;
 
-  bool auto_character_height_;
-  bool pelvis_correction_;
-  bool two_bone_ik_;
-  bool aim_ik_;
+  bool auto_character_height_ = true;
+  bool pelvis_correction_ = true;
+  bool two_bone_ik_ = true;
+  bool aim_ik_ = true;
 
-  bool show_skin_;
-  bool show_joints_;
-  bool show_raycast_;
-  bool show_ankle_target_;
-  bool show_root_;
-  bool show_offsetted_root_;
+  bool show_skin_ = true;
+  bool show_joints_ = false;
+  bool show_raycast_ = false;
+  bool show_ankle_target_ = false;
+  bool show_root_ = false;
+  bool show_offsetted_root_ = false;
 };
 
 int main(int _argc, const char** _argv) {

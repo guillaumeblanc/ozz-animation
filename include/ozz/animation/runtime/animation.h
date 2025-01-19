@@ -64,7 +64,7 @@ struct QuaternionKey;
 class OZZ_ANIMATION_DLL Animation {
  public:
   // Builds a default animation.
-  Animation();
+  Animation() = default;
 
   // Allow moves.
   Animation(Animation&&);
@@ -130,7 +130,7 @@ class OZZ_ANIMATION_DLL Animation {
     span<typename ConstQualifier<uint32_t, _Const>::type> iframe_desc;
 
     // Interval, used at runtime to index iframe_desc.
-    float iframe_interval;
+    float iframe_interval = 0.f;
   };
 
   typedef TKeyframesCtrl<true> KeyframesCtrlConst;
@@ -188,14 +188,17 @@ class OZZ_ANIMATION_DLL Animation {
   void Deallocate();
 
   // Duration of the animation clip.
-  float duration_;
+  float duration_ = 0.f;
 
   // The number of joint tracks. Can differ from the data stored in translation/
   // rotation/scale buffers because of SoA requirements.
-  int num_tracks_;
+  int num_tracks_ = 0;
+
+  // Allocated buffer for the whole animation.
+  void* allocation_ = nullptr;
 
   // Animation name.
-  char* name_;
+  char* name_ = nullptr;
 
   // Stores all translation/rotation/scale keys.
   span<float> timepoints_;

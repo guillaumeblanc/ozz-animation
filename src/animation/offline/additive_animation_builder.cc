@@ -72,9 +72,6 @@ math::Float3 MakeDeltaScale(const math::Float3& _reference,
 }
 }  // namespace
 
-// Setup default values (favoring quality).
-AdditiveAnimationBuilder::AdditiveAnimationBuilder() {}
-
 bool AdditiveAnimationBuilder::operator()(const RawAnimation& _input,
                                           RawAnimation* _output) const {
   if (!_output) {

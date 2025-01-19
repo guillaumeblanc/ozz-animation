@@ -16,6 +16,15 @@ target_copy_shared_libraries(test_animation_optimizer)
 set_target_properties(test_animation_optimizer PROPERTIES FOLDER "ozz/tests/animation_offline")
 add_test(NAME test_animation_optimizer COMMAND test_animation_optimizer)
 
+add_executable(test_motion_extractor
+  motion_extractor_tests.cc)
+target_link_libraries(test_motion_extractor
+  ozz_animation_offline
+  gtest)
+target_copy_shared_libraries(test_motion_extractor)
+set_target_properties(test_motion_extractor PROPERTIES FOLDER "ozz/tests/animation_offline")
+add_test(NAME test_motion_extractor COMMAND test_motion_extractor)
+
 add_executable(test_raw_animation_utils
   raw_animation_utils_tests.cc)
 target_link_libraries(test_raw_animation_utils
@@ -121,10 +130,19 @@ target_copy_shared_libraries(test_raw_track_archive)
 set_target_properties(test_raw_track_archive PROPERTIES FOLDER "ozz/tests/animation_offline")
 add_test(NAME test_raw_track_archive COMMAND test_raw_track_archive)
 
+add_executable(test_raw_track_utils
+  raw_track_utils_tests.cc)
+target_link_libraries(test_raw_track_utils
+  ozz_animation_offline
+  gtest)
+target_copy_shared_libraries(test_raw_track_utils)
+set_target_properties(test_raw_track_utils PROPERTIES FOLDER "ozz/tests/animation_offline")
+add_test(NAME test_raw_track_utils COMMAND test_raw_track_utils)
+
 # ozz_animation_offline fuse tests
 set_source_files_properties(${PROJECT_BINARY_DIR}/src_fused/ozz_animation_offline.cc PROPERTIES GENERATED 1)
 add_executable(test_fuse_animation_offline
-  animation_builder_tests.cc
+  animation_optimizer_tests.cc
   ${PROJECT_BINARY_DIR}/src_fused/ozz_animation_offline.cc)
 add_dependencies(test_fuse_animation_offline BUILD_FUSE_ozz_animation_offline)
 target_link_libraries(test_fuse_animation_offline

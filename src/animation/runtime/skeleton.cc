@@ -39,11 +39,10 @@
 namespace ozz {
 namespace animation {
 
-Skeleton::Skeleton() {}
-
 Skeleton::Skeleton(Skeleton&& _other) { *this = std::move(_other); }
 
 Skeleton& Skeleton::operator=(Skeleton&& _other) {
+  std::swap(allocation_, _other.allocation_);
   std::swap(joint_rest_poses_, _other.joint_rest_poses_);
   std::swap(joint_parents_, _other.joint_parents_);
   std::swap(joint_names_, _other.joint_names_);
@@ -61,8 +60,7 @@ char* Skeleton::Allocate(size_t _chars_size, size_t _num_joints) {
                     alignof(int16_t) >= alignof(char),
                 "Must serve larger alignment values first)");
 
-  assert(joint_rest_poses_.size() == 0 && joint_names_.size() == 0 &&
-         joint_parents_.size() == 0);
+  assert(allocation_ == nullptr && "Already allocated");
 
   // Early out if no joint.
   if (_num_joints == 0) {
@@ -79,9 +77,9 @@ char* Skeleton::Allocate(size_t _chars_size, size_t _num_joints) {
       names_size + _chars_size + joint_parents_size + joint_rest_poses_size;
 
   // Allocates whole buffer.
-  span<byte> buffer = {static_cast<byte*>(memory::default_allocator()->Allocate(
-                           buffer_size, alignof(math::SoaTransform))),
-                       buffer_size};
+  auto* allocator = memory::default_allocator();
+  allocation_ = allocator->Allocate(buffer_size, alignof(math::SoaTransform));
+  span<byte> buffer = {static_cast<byte*>(allocation_), buffer_size};
 
   // Serves larger alignment values first.
   // Rest pose first, biggest alignment.
@@ -93,18 +91,15 @@ char* Skeleton::Allocate(size_t _chars_size, size_t _num_joints) {
   // Parents, third biggest alignment.
   joint_parents_ = fill_span<int16_t>(buffer, _num_joints);
 
-  // Remaning buffer will be used to store joint names.
+  // Remaining buffer will be used to store joint names.
   assert(buffer.size_bytes() == _chars_size &&
-         "Whole buffer should be consumned");
+         "Whole buffer should be consumed");
   return reinterpret_cast<char*>(buffer.data());
 }
 
 void Skeleton::Deallocate() {
-  memory::default_allocator()->Deallocate(
-      as_writable_bytes(joint_rest_poses_).data());
-  joint_rest_poses_ = {};
-  joint_names_ = {};
-  joint_parents_ = {};
+  memory::default_allocator()->Deallocate(allocation_);
+  allocation_ = nullptr;
 }
 
 void Skeleton::Save(ozz::io::OArchive& _archive) const {

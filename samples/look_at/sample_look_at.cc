@@ -75,21 +75,6 @@ static_assert(OZZ_ARRAY_SIZE(kJointUpVectors) == kMaxChainLength,
               "Array size mismatch.");
 
 class LookAtSampleApplication : public ozz::sample::Application {
- public:
-  LookAtSampleApplication()
-      : target_offset_(.2f, 1.5f, -.3f),
-        target_extent_(1.f),
-        eyes_offset_(.07f, .1f, 0.f),
-        enable_ik_(true),
-        chain_length_(kMaxChainLength),
-        joint_weight_(.5f),
-        chain_weight_(1.f),
-        show_skin_(true),
-        show_joints_(false),
-        show_target_(true),
-        show_eyes_offset_(false),
-        show_forward_(false) {}
-
  protected:
   // Updates current animation time and skeleton pose.
   virtual bool OnUpdate(float _dt, float _time) {
@@ -218,7 +203,6 @@ class LookAtSampleApplication : public ozz::sample::Application {
     return true;
   }
 
-  // Samples animation, transforms to model space and renders.
   virtual bool OnDisplay(ozz::sample::Renderer* _renderer) {
     bool success = true;
     const ozz::math::Float4x4 identity = ozz::math::Float4x4::identity();
@@ -261,8 +245,7 @@ class LookAtSampleApplication : public ozz::sample::Application {
 
     // Showing target, as a box or axes depending on show_forward_ option.
     if (show_target_) {
-      const ozz::math::Float4x4 target = ozz::math::Float4x4::Translation(
-          ozz::math::simd_float4::Load3PtrU(&target_.x));
+      const auto target = ozz::math::Float4x4::Translation(target_);
       if (show_forward_) {
         success &= _renderer->DrawAxes(target * kAxesScale);
       } else {
@@ -273,20 +256,15 @@ class LookAtSampleApplication : public ozz::sample::Application {
     if (show_eyes_offset_ || show_forward_) {
       const int head = joints_chain_[0];
       const ozz::math::Float4x4 offset =
-          models_[head] *
-          ozz::math::Float4x4::Translation(
-              ozz::math::simd_float4::Load3PtrU(&eyes_offset_.x));
+          models_[head] * ozz::math::Float4x4::Translation(eyes_offset_);
       if (show_eyes_offset_) {
         success &= _renderer->DrawAxes(offset * kAxesScale);
       }
       if (show_forward_) {
-        ozz::math::Float3 begin;
-        ozz::math::Store3PtrU(offset.cols[3], &begin.x);
         ozz::math::Float3 forward;
         ozz::math::Store3PtrU(kHeadForward, &forward.x);
-        ozz::sample::Color color = {0xff, 0xff, 0xff, 0xff};
-        success &= _renderer->DrawSegment(ozz::math::Float3::zero(),
-                                          forward * 10.f, color, offset);
+        ozz::math::Float3 line[2] = {{0, 0, 0}, forward * 10};
+        success &= _renderer->DrawLines(line, ozz::sample::kWhite, offset);
       }
     }
     return success;
@@ -384,8 +362,6 @@ class LookAtSampleApplication : public ozz::sample::Application {
     return count == i;
   }
 
-  virtual void OnDestroy() {}
-
   virtual bool OnGui(ozz::sample::ImGui* _im_gui) {
     char label[64];
 
@@ -417,11 +393,14 @@ class LookAtSampleApplication : public ozz::sample::Application {
         _im_gui->DoSlider(label, 0.f, kTargetRange, &target_extent_);
 
         snprintf(label, sizeof(label), "x %.2g", target_offset_.x);
-        _im_gui->DoSlider(label, -kTargetRange, kTargetRange, &target_offset_.x);
+        _im_gui->DoSlider(label, -kTargetRange, kTargetRange,
+                          &target_offset_.x);
         snprintf(label, sizeof(label), "y %.2g", target_offset_.y);
-        _im_gui->DoSlider(label, -kTargetRange, kTargetRange, &target_offset_.y);
+        _im_gui->DoSlider(label, -kTargetRange, kTargetRange,
+                          &target_offset_.y);
         snprintf(label, sizeof(label), "z %.2g", target_offset_.z);
-        _im_gui->DoSlider(label, -kTargetRange, kTargetRange, &target_offset_.z);
+        _im_gui->DoSlider(label, -kTargetRange, kTargetRange,
+                          &target_offset_.z);
       }
     }
 
@@ -492,35 +471,35 @@ class LookAtSampleApplication : public ozz::sample::Application {
   // Sample settings
 
   // Target position management.
-  ozz::math::Float3 target_offset_;
-  float target_extent_;
+  ozz::math::Float3 target_offset_ = {.2f, 1.5f, -.3f};
+  float target_extent_ = 1.f;
   ozz::math::Float3 target_;
 
   // Offset of the look at position in (head) joint local-space.
-  ozz::math::Float3 eyes_offset_;
+  ozz::math::Float3 eyes_offset_ = {.07f, .1f, 0.f};
 
   // IK settings
 
   // Enable IK look at.
-  bool enable_ik_;
+  bool enable_ik_ = true;
 
   // Set length of the chain that is IKed, between 0 and kMaxChainLength.
-  int chain_length_;
+  int chain_length_ = kMaxChainLength;
 
   // Weight given to every joint of the chain. If any joint has a weight of 1,
   // no other following joint will contribute (as the target will be reached).
-  float joint_weight_;
+  float joint_weight_ = .5f;
 
   // Overall weight given to the IK on the full chain. This allows blending in
   // and out of IK.
-  float chain_weight_;
+  float chain_weight_ = 1.f;
 
   // Options
-  bool show_skin_;
-  bool show_joints_;
-  bool show_target_;
-  bool show_eyes_offset_;
-  bool show_forward_;
+  bool show_skin_ = true;
+  bool show_joints_ = false;
+  bool show_target_ = true;
+  bool show_eyes_offset_ = false;
+  bool show_forward_ = false;
 };
 
 int main(int _argc, const char** _argv) {

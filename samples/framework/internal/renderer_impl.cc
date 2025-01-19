@@ -67,20 +67,15 @@ RendererImpl::Model::~Model() {
   }
 }
 
-RendererImpl::RendererImpl(Camera* _camera)
-    : camera_(_camera),
-      vertex_array_o_(0),
-      dynamic_array_bo_(0),
-      dynamic_index_bo_(0),
-      checkered_texture_(0) {}
+RendererImpl::RendererImpl(Camera* _camera) : camera_(_camera) {}
 
 RendererImpl::~RendererImpl() {
-  if (vertex_array_o_) {
 #ifndef EMSCRIPTEN
+  if (vertex_array_o_) {
     GL(DeleteVertexArrays(1, &vertex_array_o_));
-#endif // EMSCRIPTEN
     vertex_array_o_ = 0;
   }
+#endif  // EMSCRIPTEN
 
   if (dynamic_array_bo_) {
     GL(DeleteBuffers(1, &dynamic_array_bo_));
@@ -112,9 +107,9 @@ bool RendererImpl::Initialize() {
 
   // Build and bind vertex array once for all
 #ifndef EMSCRIPTEN
-   GL(GenVertexArrays(1, &vertex_array_o_));
+  GL(GenVertexArrays(1, &vertex_array_o_));
   GL(BindVertexArray(vertex_array_o_));
-#endif // EMSCRIPTE?
+#endif  // EMSCRIPTEN
 
   // Builds the dynamic vbo
   GL(GenBuffers(1, &dynamic_array_bo_));
@@ -157,13 +152,13 @@ bool RendererImpl::Initialize() {
 
 bool RendererImpl::DrawAxes(const ozz::math::Float4x4& _transform) {
   GlImmediatePC im(immediate_renderer(), GL_LINES, _transform);
-  GlImmediatePC::Vertex v = {{0.f, 0.f, 0.f}, {0, 0, 0, 0xff}};
+  GlImmediatePC::Vertex v = {{0.f, 0.f, 0.f}, {0.f, 0.f, 0.f, 1.f}};
 
   // X axis (green).
   v.pos[0] = 0.f;
   v.pos[1] = 0.f;
   v.pos[2] = 0.f;
-  v.rgba[0] = 0xff;
+  v.rgba[0] = 1.f;
   v.rgba[1] = 0;
   v.rgba[2] = 0;
   im.PushVertex(v);
@@ -175,7 +170,7 @@ bool RendererImpl::DrawAxes(const ozz::math::Float4x4& _transform) {
   v.pos[1] = 0.f;
   v.pos[2] = 0.f;
   v.rgba[0] = 0;
-  v.rgba[1] = 0xff;
+  v.rgba[1] = 1.f;
   v.rgba[2] = 0;
   im.PushVertex(v);
   v.pos[1] = 1.f;
@@ -187,7 +182,7 @@ bool RendererImpl::DrawAxes(const ozz::math::Float4x4& _transform) {
   v.pos[2] = 0.f;
   v.rgba[0] = 0;
   v.rgba[1] = 0;
-  v.rgba[2] = 0xff;
+  v.rgba[2] = 1.f;
   im.PushVertex(v);
   v.pos[2] = 1.f;
   im.PushVertex(v);
@@ -207,7 +202,7 @@ bool RendererImpl::DrawGrid(int _cell_count, float _cell_size) {
   {
     GlImmediatePC im(immediate_renderer(), GL_TRIANGLE_STRIP,
                      ozz::math::Float4x4::identity());
-    GlImmediatePC::Vertex v = {{0.f, 0.f, 0.f}, {0x80, 0xc0, 0xd0, 0xb0}};
+    GlImmediatePC::Vertex v = {{0.f, 0.f, 0.f}, {.5f, .75f, .8f, .7f}};
 
     v.pos[0] = corner.x;
     v.pos[1] = corner.y;
@@ -231,7 +226,7 @@ bool RendererImpl::DrawGrid(int _cell_count, float _cell_size) {
 
     // Renders lines along X axis.
     GlImmediatePC::Vertex begin = {{corner.x, corner.y, corner.z},
-                                   {0x54, 0x55, 0x50, 0xff}};
+                                   {.32f, .33f, .3f, 1.f}};
     GlImmediatePC::Vertex end = begin;
     end.pos[0] += extent;
     for (int i = 0; i < _cell_count + 1; ++i) {
@@ -302,20 +297,20 @@ bool RendererImpl::InitPostureRendering() {
         Normalize(Cross(pos[3] - pos[4], pos[3] - pos[5])),
         Normalize(Cross(pos[1] - pos[4], pos[1] - pos[0])),
         Normalize(Cross(pos[4] - pos[1], pos[4] - pos[5]))};
-    const Color white = {0xff, 0xff, 0xff, 0xff};
+    const Color color = kWhite;
     const VertexPNC bones[24] = {
-        {pos[0], normals[0], white}, {pos[2], normals[0], white},
-        {pos[1], normals[0], white}, {pos[5], normals[1], white},
-        {pos[1], normals[1], white}, {pos[2], normals[1], white},
-        {pos[0], normals[2], white}, {pos[3], normals[2], white},
-        {pos[2], normals[2], white}, {pos[5], normals[3], white},
-        {pos[2], normals[3], white}, {pos[3], normals[3], white},
-        {pos[0], normals[4], white}, {pos[4], normals[4], white},
-        {pos[3], normals[4], white}, {pos[5], normals[5], white},
-        {pos[3], normals[5], white}, {pos[4], normals[5], white},
-        {pos[0], normals[6], white}, {pos[1], normals[6], white},
-        {pos[4], normals[6], white}, {pos[5], normals[7], white},
-        {pos[4], normals[7], white}, {pos[1], normals[7], white}};
+        {pos[0], normals[0], color}, {pos[2], normals[0], color},
+        {pos[1], normals[0], color}, {pos[5], normals[1], color},
+        {pos[1], normals[1], color}, {pos[2], normals[1], color},
+        {pos[0], normals[2], color}, {pos[3], normals[2], color},
+        {pos[2], normals[2], color}, {pos[5], normals[3], color},
+        {pos[2], normals[3], color}, {pos[3], normals[3], color},
+        {pos[0], normals[4], color}, {pos[4], normals[4], color},
+        {pos[3], normals[4], color}, {pos[5], normals[5], color},
+        {pos[3], normals[5], color}, {pos[4], normals[5], color},
+        {pos[0], normals[6], color}, {pos[1], normals[6], color},
+        {pos[4], normals[6], color}, {pos[5], normals[7], color},
+        {pos[4], normals[7], color}, {pos[1], normals[7], color}};
 
     // Builds and fills the vbo.
     Model& bone = models_[0];
@@ -341,9 +336,6 @@ bool RendererImpl::InitPostureRendering() {
     const int kNumPointsXZ = kNumPointsPerCircle;
     const int kNumPoints = kNumPointsXY + kNumPointsXZ + kNumPointsYZ;
     const float kRadius = kInter;  // Radius multiplier.
-    const Color red = {0xff, 0xc0, 0xc0, 0xff};
-    const Color green = {0xc0, 0xff, 0xc0, 0xff};
-    const Color blue = {0xc0, 0xc0, 0xff, 0xff};
     VertexPNC joints[kNumPoints];
 
     // Fills vertices.
@@ -354,7 +346,7 @@ bool RendererImpl::InitPostureRendering() {
       VertexPNC& vertex = joints[index++];
       vertex.pos = math::Float3(0.f, c * kRadius, s * kRadius);
       vertex.normal = math::Float3(0.f, c, s);
-      vertex.color = red;
+      vertex.color = {1.f, .3f, .3f, 1.f};
     }
     for (int j = 0; j < kNumPointsXY; ++j) {  // XY plan.
       float angle = j * math::k2Pi / kNumSlices;
@@ -362,7 +354,7 @@ bool RendererImpl::InitPostureRendering() {
       VertexPNC& vertex = joints[index++];
       vertex.pos = math::Float3(s * kRadius, c * kRadius, 0.f);
       vertex.normal = math::Float3(s, c, 0.f);
-      vertex.color = blue;
+      vertex.color = {.3f, .3f, 1.f, 1.f};
     }
     for (int j = 0; j < kNumPointsXZ; ++j) {  // XZ plan.
       float angle = j * math::k2Pi / kNumSlices;
@@ -370,7 +362,7 @@ bool RendererImpl::InitPostureRendering() {
       VertexPNC& vertex = joints[index++];
       vertex.pos = math::Float3(c * kRadius, 0.f, -s * kRadius);
       vertex.normal = math::Float3(c, 0.f, -s);
-      vertex.color = green;
+      vertex.color = {.3f, 1.f, .3f, 1.f};
     }
     assert(index == kNumPoints);
 
@@ -685,8 +677,7 @@ bool RendererImpl::DrawPoints(const ozz::span<const float>& _positions,
   // Apply remaining general attributes
   if (_colors.size() <= 1) {
     const Color color = _colors.empty() ? kWhite : _colors[0];
-    GL(VertexAttrib4f(attrib.color, color.r / 255.f, color.g / 255.f,
-                      color.b / 255.f, color.a / 255.f));
+    GL(VertexAttrib4f(attrib.color, color.r, color.g, color.b, color.a));
   }
   if (_sizes.size() <= 1) {
     const float size = _sizes.empty() ? 1.f : _sizes[0];
@@ -699,6 +690,63 @@ bool RendererImpl::DrawPoints(const ozz::span<const float>& _positions,
   // Unbinds.
   points_shader->Unbind();
 
+  return true;
+}
+
+bool RendererImpl::DrawBoxIm(const ozz::math::Box& _box,
+                             const ozz::math::Float4x4& _transform,
+                             const Color& _color) {
+  {  // Wireframe boxed
+    GlImmediatePC im(immediate_renderer(), GL_LINES, _transform);
+    GlImmediatePC::Vertex v = {{0, 0, 0},
+                               {_color.r, _color.g, _color.b, _color.a}};
+    // First face.
+    v.pos[0] = _box.min.x;
+    v.pos[1] = _box.min.y;
+    v.pos[2] = _box.min.z;
+    im.PushVertex(v);
+    v.pos[1] = _box.max.y;
+    im.PushVertex(v);
+    im.PushVertex(v);
+    v.pos[0] = _box.max.x;
+    im.PushVertex(v);
+    im.PushVertex(v);
+    v.pos[1] = _box.min.y;
+    im.PushVertex(v);
+    im.PushVertex(v);
+    v.pos[0] = _box.min.x;
+    im.PushVertex(v);
+    // Second face.
+    v.pos[2] = _box.max.z;
+    im.PushVertex(v);
+    v.pos[1] = _box.max.y;
+    im.PushVertex(v);
+    im.PushVertex(v);
+    v.pos[0] = _box.max.x;
+    im.PushVertex(v);
+    im.PushVertex(v);
+    v.pos[1] = _box.min.y;
+    im.PushVertex(v);
+    im.PushVertex(v);
+    v.pos[0] = _box.min.x;
+    im.PushVertex(v);
+    // Link faces.
+    im.PushVertex(v);
+    v.pos[2] = _box.min.z;
+    im.PushVertex(v);
+    v.pos[1] = _box.max.y;
+    im.PushVertex(v);
+    v.pos[2] = _box.max.z;
+    im.PushVertex(v);
+    v.pos[0] = _box.max.x;
+    im.PushVertex(v);
+    v.pos[2] = _box.min.z;
+    im.PushVertex(v);
+    v.pos[1] = _box.min.y;
+    im.PushVertex(v);
+    v.pos[2] = _box.max.z;
+    im.PushVertex(v);
+  }
   return true;
 }
 
@@ -757,64 +805,12 @@ bool RendererImpl::DrawBoxIm(const ozz::math::Box& _box,
     im.PushVertex(v);
   }
 
-  {  // Wireframe boxed
-    GlImmediatePC im(immediate_renderer(), GL_LINES, _transform);
-    GlImmediatePC::Vertex v = {
-        {0, 0, 0}, {_colors[1].r, _colors[1].g, _colors[1].b, _colors[1].a}};
-    // First face.
-    v.pos[0] = _box.min.x;
-    v.pos[1] = _box.min.y;
-    v.pos[2] = _box.min.z;
-    im.PushVertex(v);
-    v.pos[1] = _box.max.y;
-    im.PushVertex(v);
-    im.PushVertex(v);
-    v.pos[0] = _box.max.x;
-    im.PushVertex(v);
-    im.PushVertex(v);
-    v.pos[1] = _box.min.y;
-    im.PushVertex(v);
-    im.PushVertex(v);
-    v.pos[0] = _box.min.x;
-    im.PushVertex(v);
-    // Second face.
-    v.pos[2] = _box.max.z;
-    im.PushVertex(v);
-    v.pos[1] = _box.max.y;
-    im.PushVertex(v);
-    im.PushVertex(v);
-    v.pos[0] = _box.max.x;
-    im.PushVertex(v);
-    im.PushVertex(v);
-    v.pos[1] = _box.min.y;
-    im.PushVertex(v);
-    im.PushVertex(v);
-    v.pos[0] = _box.min.x;
-    im.PushVertex(v);
-    // Link faces.
-    im.PushVertex(v);
-    v.pos[2] = _box.min.z;
-    im.PushVertex(v);
-    v.pos[1] = _box.max.y;
-    im.PushVertex(v);
-    v.pos[2] = _box.max.z;
-    im.PushVertex(v);
-    v.pos[0] = _box.max.x;
-    im.PushVertex(v);
-    v.pos[2] = _box.min.z;
-    im.PushVertex(v);
-    v.pos[1] = _box.min.y;
-    im.PushVertex(v);
-    v.pos[2] = _box.max.z;
-    im.PushVertex(v);
-  }
-
-  return true;
+  return DrawBoxIm(_box, _transform, _colors[1]);
 }
 
 bool RendererImpl::DrawBoxShaded(
     const ozz::math::Box& _box,
-    ozz::span<const ozz::math::Float4x4> _transforms, Color _color) {
+    ozz::span<const ozz::math::Float4x4> _transforms, const Color& _color) {
   // Early out if no instance to render.
   if (_transforms.size() == 0) {
     return true;
@@ -872,7 +868,7 @@ bool RendererImpl::DrawBoxShaded(
 
     ambient_shader_instanced->Bind(models_offset, camera()->view_proj(), stride,
                                    positions_offset, stride, normals_offset,
-                                   stride, colors_offset);
+                                   stride, colors_offset, true);
     GL(BindBuffer(GL_ARRAY_BUFFER, 0));
 
     GL(DrawArraysInstanced_(GL_TRIANGLES, 0, OZZ_ARRAY_SIZE(vertices),
@@ -890,7 +886,7 @@ bool RendererImpl::DrawBoxShaded(
 
       ambient_shader->Bind(transform, camera()->view_proj(), stride,
                            positions_offset, stride, normals_offset, stride,
-                           colors_offset);
+                           colors_offset, true);
 
       // Draws the mesh.
       GL(DrawArrays(GL_TRIANGLES, 0, OZZ_ARRAY_SIZE(vertices)));
@@ -907,7 +903,7 @@ bool RendererImpl::DrawBoxShaded(
 // Renders a sphere at a specified location.
 bool RendererImpl::DrawSphereIm(float _radius,
                                 const ozz::math::Float4x4& _transform,
-                                const Color _color) {
+                                const Color& _color) {
   {  // Filled boxed
     const ozz::math::Float4x4& transform =
         Scale(_transform,
@@ -930,7 +926,7 @@ bool RendererImpl::DrawSphereIm(float _radius,
 // Renders shaded spheres at specified locations.
 bool RendererImpl::DrawSphereShaded(
     float _radius, ozz::span<const ozz::math::Float4x4> _transforms,
-    Color _color) {
+    const Color& _color) {
   // Early out if no instance to render.
   if (_transforms.size() == 0) {
     return true;
@@ -954,7 +950,7 @@ bool RendererImpl::DrawSphereShaded(
 
   if (GL_ARB_instanced_arrays_supported) {
     const GLsizei colors_stride = 0;
-    const GLsizei colors_size = sizeof(uint8_t) * 4;
+    const GLsizei colors_size = sizeof(float) * 4;
     const GLsizei models_offset = sizeof(icosphere::kVertices) + colors_size;
     const GLsizei bo_size =
         models_offset + static_cast<GLsizei>(_transforms.size_bytes());
@@ -976,7 +972,7 @@ bool RendererImpl::DrawSphereShaded(
     ambient_shader_instanced->Bind(models_offset, camera()->view_proj(),
                                    positions_stride, positions_offset,
                                    normals_stride, normals_offset,
-                                   colors_stride, colors_offset);
+                                   colors_stride, colors_offset, true);
 
     static_assert(sizeof(icosphere::kIndices[0]) == 2,
                   "Indices must be 2 bytes");
@@ -989,7 +985,7 @@ bool RendererImpl::DrawSphereShaded(
   } else {
     // OpenGL doesn't support 0 stride (without glVertexAttribDivisor
     // extension), so we must copy a color for each vertex.
-    const GLsizei colors_stride = sizeof(uint8_t) * 4;
+    const GLsizei colors_stride = sizeof(float) * 4;
     const GLsizei colors_size = colors_stride * icosphere::kNumVertices;
     const GLsizei bo_size = sizeof(icosphere::kVertices) + colors_size;
 
@@ -1009,7 +1005,7 @@ bool RendererImpl::DrawSphereShaded(
 
       ambient_shader->Bind(transform, camera()->view_proj(), positions_stride,
                            positions_offset, normals_stride, normals_offset,
-                           colors_stride, colors_offset);
+                           colors_stride, colors_offset, true);
 
       static_assert(sizeof(icosphere::kIndices[0]) == 2,
                     "Indices must be 2 bytes");
@@ -1026,20 +1022,66 @@ bool RendererImpl::DrawSphereShaded(
   return true;
 }
 
-bool RendererImpl::DrawSegment(const math::Float3& _begin,
-                               const math::Float3& _end, Color _color,
-                               const ozz::math::Float4x4& _transform) {
-  const math::Float3 dir(_end - _begin);
-  return DrawVectors(ozz::span<const float>(&_begin.x, 3), 12,
-                     ozz::span<const float>(&dir.x, 3), 12, 1, 1.f, _color,
-                     _transform);
+bool RendererImpl::DrawLines(ozz::span<const math::Float3> _vertices,
+                             const Color& _color,
+                             const ozz::math::Float4x4& _transform) {
+  if (_vertices.size() < 2) {
+    return true;
+  }
+
+  if (_color.a < 1.f) {
+    GL(Enable(GL_BLEND));
+    GL(BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+  }
+
+  {  // Inside blending scope
+
+    GlImmediatePC im(immediate_renderer(), GL_LINES, _transform);
+    GlImmediatePC::Vertex imv = {{}, {_color.r, _color.g, _color.b, _color.a}};
+    for (const auto& v : _vertices) {
+      imv.pos[0] = v.x;
+      imv.pos[1] = v.y;
+      imv.pos[2] = v.z;
+      im.PushVertex(imv);
+    }
+  }
+
+  GL(Disable(GL_BLEND));
+  return true;
+}
+
+bool RendererImpl::DrawLineStrip(ozz::span<const math::Float3> _vertices,
+                                 const Color& _color,
+                                 const ozz::math::Float4x4& _transform) {
+  if (_vertices.size() < 2) {
+    return true;
+  }
+
+  if (_color.a < 1.f) {
+    GL(Enable(GL_BLEND));
+    GL(BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+  }
+
+  {  // Inside blending scope
+    GlImmediatePC im(immediate_renderer(), GL_LINE_STRIP, _transform);
+    GlImmediatePC::Vertex imv = {{}, {_color.r, _color.g, _color.b, _color.a}};
+    for (const auto& v : _vertices) {
+      imv.pos[0] = v.x;
+      imv.pos[1] = v.y;
+      imv.pos[2] = v.z;
+      im.PushVertex(imv);
+    }
+  }
+
+  GL(Disable(GL_BLEND));
+  return true;
 }
 
 bool RendererImpl::DrawVectors(ozz::span<const float> _positions,
                                size_t _positions_stride,
                                ozz::span<const float> _directions,
                                size_t _directions_stride, int _num_vectors,
-                               float _vector_length, Color _color,
+                               float _vector_length, const Color& _color,
                                const ozz::math::Float4x4& _transform) {
   // Invalid range length.
   if (PointerStride(_positions.begin(), _positions_stride * _num_vectors) >
@@ -1077,7 +1119,7 @@ bool RendererImpl::DrawBinormals(
     ozz::span<const float> _normals, size_t _normals_stride,
     ozz::span<const float> _tangents, size_t _tangents_stride,
     ozz::span<const float> _handenesses, size_t _handenesses_stride,
-    int _num_vectors, float _vector_length, Color _color,
+    int _num_vectors, float _vector_length, const Color& _color,
     const ozz::math::Float4x4& _transform) {
   // Invalid range length.
   if (PointerStride(_positions.begin(), _positions_stride * _num_vectors) >
@@ -1236,7 +1278,8 @@ bool RendererImpl::DrawMesh(const Mesh& _mesh,
           GL_ARRAY_BUFFER, normals_offset + vertex_offset * normals_stride,
           part_normal_count * normals_stride, array_begin(part.normals)));
     } else {
-      // Un-optimal path used when the right number of normals is not provided.
+      // Un-optimal path used when the right number of normals is not
+      // provided.
       static_assert(sizeof(kDefaultNormalsArray[0]) == normals_stride,
                     "Stride mismatch");
       for (size_t j = 0; j < part_vertex_count;
@@ -1305,7 +1348,7 @@ bool RendererImpl::DrawMesh(const Mesh& _mesh,
     if (_options.texture) {
       ambient_textured_shader->Bind(
           _transform, camera()->view_proj(), positions_stride, positions_offset,
-          normals_stride, normals_offset, colors_stride, colors_offset,
+          normals_stride, normals_offset, colors_stride, colors_offset, false,
           uvs_stride, uvs_offset);
       shader = ambient_textured_shader.get();
 
@@ -1314,7 +1357,7 @@ bool RendererImpl::DrawMesh(const Mesh& _mesh,
     } else {
       ambient_shader->Bind(_transform, camera()->view_proj(), positions_stride,
                            positions_offset, normals_stride, normals_offset,
-                           colors_stride, colors_offset);
+                           colors_stride, colors_offset, false);
       shader = ambient_shader.get();
     }
 
@@ -1349,14 +1392,6 @@ bool RendererImpl::DrawMesh(const Mesh& _mesh,
     for (size_t i = 0; i < _mesh.parts.size(); ++i) {
       const Mesh::Part& part = _mesh.parts[i];
       ozz::sample::Color color = ozz::sample::kWhite;
-      span<const ozz::sample::Color> colors;
-      if (_options.colors && part.colors.size() == part.positions.size() / 3) {
-        colors = {
-            reinterpret_cast<const ozz::sample::Color*>(part.colors.data()),
-            part.positions.size() / 3};
-      } else {
-        colors = {&color, 1};
-      }
       const float size = 2.f;
       DrawPoints({part.positions.data(), part.positions.size()}, {&size, 1},
                  {&color, 1}, _transform, true);
@@ -1477,8 +1512,8 @@ bool RendererImpl::DrawSkinnedMesh(
     // Clamps joints influence count according to the option.
     skinning_job.influences_count = part_influences_count;
 
-    // Setup skinning matrices, that came from the animation stage before being
-    // multiplied by inverse model-space bind-pose.
+    // Setup skinning matrices, that came from the animation stage before
+    // being multiplied by inverse model-space bind-pose.
     skinning_job.joint_matrices = _skinning_matrices;
 
     // Setup joint's indices.
@@ -1658,7 +1693,7 @@ bool RendererImpl::DrawSkinnedMesh(
     if (_options.texture) {
       ambient_textured_shader->Bind(
           _transform, camera()->view_proj(), positions_stride, positions_offset,
-          normals_stride, normals_offset, colors_stride, colors_offset,
+          normals_stride, normals_offset, colors_stride, colors_offset, false,
           uvs_stride, uvs_offset);
       shader = ambient_textured_shader.get();
 
@@ -1667,7 +1702,7 @@ bool RendererImpl::DrawSkinnedMesh(
     } else {
       ambient_shader->Bind(_transform, camera()->view_proj(), positions_stride,
                            positions_offset, normals_stride, normals_offset,
-                           colors_stride, colors_offset);
+                           colors_stride, colors_offset, false);
       shader = ambient_shader.get();
     }
 
@@ -1700,21 +1735,12 @@ bool RendererImpl::DrawSkinnedMesh(
   // Renders debug vertices.
   if (_options.vertices) {
     ozz::sample::Color color = ozz::sample::kWhite;
-    span<const ozz::sample::Color> colors;
-    if (_options.colors) {
-      colors = {reinterpret_cast<const ozz::sample::Color*>(
-                    ozz::PointerStride(vbo_map, colors_offset)),
-                static_cast<size_t>(vertex_count)};
-    } else {
-      colors = {&color, 1};
-    }
-
     const span<const float> vertices{
         reinterpret_cast<const float*>(
             ozz::PointerStride(vbo_map, positions_offset)),
         static_cast<size_t>(vertex_count * 3)};
     const float size = 2.f;
-    DrawPoints(vertices, {&size, 1}, colors, _transform, true);
+    DrawPoints(vertices, {&size, 1}, {&color, 1}, _transform, true);
   }
 
   return true;

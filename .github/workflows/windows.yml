@@ -2,7 +2,8 @@ name: Windows
 on: [push, pull_request]
 jobs:
   build:
-    runs-on: windows-latest 
+    runs-on: windows-latest
+    timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:

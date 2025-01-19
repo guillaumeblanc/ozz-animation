@@ -129,6 +129,16 @@ struct span {
   iterator begin() const { return data_; }
   iterator end() const { return data_ + size_; }
 
+  // Front and back accessors
+  reference front() const {
+    assert(size_ > 0 && "Empty span.");
+    return *data_;
+  }
+  reference back() const {
+    assert(size_ > 0 && "Empty span.");
+    return *(data_ + size_ - 1);
+  }
+
  private:
   // span begin pointer.
   _Ty* data_;
@@ -174,6 +184,9 @@ inline span<byte> as_writable_bytes(const span<_Ty>& _span) {
 template <typename _Ty>
 inline span<_Ty> fill_span(span<byte>& _src, size_t _count) {
   assert(ozz::IsAligned(_src.data(), alignof(_Ty)) && "Invalid alignment.");
+  if (!_count) {
+    return {};
+  }
   const span<_Ty> ret = {reinterpret_cast<_Ty*>(_src.data()), _count};
   // Validity assertion is done by span constructor.
   _src = {reinterpret_cast<byte*>(ret.end()), _src.end()};

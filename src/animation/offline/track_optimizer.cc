@@ -33,10 +33,8 @@
 // Internal include file
 #define OZZ_INCLUDE_PRIVATE_HEADER  // Allows to include private headers.
 #include "animation/offline/decimate.h"
-
-#include "ozz/base/maths/math_ex.h"
-
 #include "ozz/animation/offline/raw_track.h"
+#include "ozz/base/maths/math_ex.h"
 
 // Needs runtime track to access TrackPolicy.
 #include "ozz/animation/runtime/track.h"
@@ -45,18 +43,12 @@ namespace ozz {
 namespace animation {
 namespace offline {
 
-// Setup default values (favoring quality).
-TrackOptimizer::TrackOptimizer() : tolerance(1e-3f) {  // 1 mm.
-}
-
 namespace {
 
 template <typename _KeyFrame>
 struct Adapter {
   typedef typename _KeyFrame::ValueType ValueType;
   typedef typename animation::internal::TrackPolicy<ValueType> Policy;
-
-  Adapter() {}
 
   bool Decimable(const _KeyFrame& _key) const {
     // RawTrackInterpolation::kStep keyframes aren't optimized, as steps can't
@@ -75,9 +67,11 @@ struct Adapter {
     return key;
   }
 
-  float Distance(const _KeyFrame& _a, const _KeyFrame& _b) const {
-    return Policy::Distance(_a.value, _b.value);
+  float Distance(const ValueType& _a, const ValueType& _b) const {
+    return Policy::Distance(_a, _b);
   }
+
+  inline static ValueType identity() { return Policy::identity(); }
 };
 
 template <typename _Track>
@@ -85,6 +79,11 @@ inline bool Optimize(float _tolerance, const _Track& _input, _Track* _output) {
   if (!_output) {
     return false;
   }
+
+  if (&_input == _output) {
+    return false;
+  }
+
   // Reset output animation to default.
   *_output = _Track();
 
@@ -98,7 +97,7 @@ inline bool Optimize(float _tolerance, const _Track& _input, _Track* _output) {
 
   // Optimizes.
   const Adapter<typename _Track::Keyframe> adapter;
-  Decimate(_input.keyframes, adapter, _tolerance, &_output->keyframes);
+  _output->keyframes = Decimate(_input.keyframes, adapter, _tolerance);
 
   // Output animation is always valid though.
   return _output->Validate();

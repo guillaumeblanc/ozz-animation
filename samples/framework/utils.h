@@ -28,6 +28,8 @@
 #ifndef OZZ_SAMPLES_FRAMEWORK_UTILS_H_
 #define OZZ_SAMPLES_FRAMEWORK_UTILS_H_
 
+#include <chrono>
+
 #include "ozz/base/containers/vector.h"
 #include "ozz/base/platform.h"
 #include "ozz/base/span.h"
@@ -71,7 +73,9 @@ class PlaybackController {
   PlaybackController();
 
   // Sets animation current time.
-  void set_time_ratio(float _time);
+  // Returns the number of loops that happened during update. A positive numbre
+  // means looping going foward, a negative number means looping going backward.
+  int set_time_ratio(float _time);
 
   // Gets animation current time.
   float time_ratio() const;
@@ -92,10 +96,14 @@ class PlaybackController {
   // Gets loop mode.
   bool loop() const { return loop_; }
 
+  // Get if animation is playing, otherwise it is paused.
+  bool playing() const { return play_; }
+
   // Updates animation time if in "play" state, according to playback speed and
   // given frame time _dt.
-  // Returns true if animation has looped during update
-  void Update(const animation::Animation& _animation, float _dt);
+  // Returns the number of loops that happened during update. A positive number
+  // means looping going foward, a negative number means looping going backward.
+  int Update(const animation::Animation& _animation, float _dt);
 
   // Resets all parameters to their default value.
   void Reset();
@@ -127,11 +135,13 @@ class PlaybackController {
 // skeleton's joints in model space.
 // _bound must be a valid math::Box instance.
 void ComputeSkeletonBounds(const animation::Skeleton& _skeleton,
+                           const ozz::math::Float4x4& _transform,
                            math::Box* _bound);
 
 // Computes the bounding box of posture defines be _matrices range.
 // _bound must be a valid math::Box instance.
-void ComputePostureBounds(ozz::span<const ozz::math::Float4x4> _matrices,
+void ComputePostureBounds(ozz::span<const ozz::math::Float4x4> _models,
+                          const ozz::math::Float4x4& _transform,
                           math::Box* _bound);
 
 // Allows to edit translation/rotation/scale of a skeleton pose.
@@ -155,14 +165,14 @@ void MultiplySoATransformQuaternion(
 // Loads a skeleton from an ozz archive file named _filename.
 // This function will fail and return false if the file cannot be opened or if
 // it is not a valid ozz skeleton archive. A valid skeleton archive can be
-// produced with ozz tools (fbx2ozz) or using ozz skeleton serialization API.
+// produced with ozz tools (*2ozz) or using ozz skeleton serialization API.
 // _filename and _skeleton must be non-nullptr.
 bool LoadSkeleton(const char* _filename, ozz::animation::Skeleton* _skeleton);
 
 // Loads an animation from an ozz archive file named _filename.
 // This function will fail and return false if the file cannot be opened or if
 // it is not a valid ozz animation archive. A valid animation archive can be
-// produced with ozz tools (fbx2ozz) or using ozz animation serialization API.
+// produced with ozz tools (*2ozz) or using ozz animation serialization API.
 // _filename and _animation must be non-nullptr.
 bool LoadAnimation(const char* _filename,
                    ozz::animation::Animation* _animation);
@@ -170,7 +180,7 @@ bool LoadAnimation(const char* _filename,
 // Loads a raw animation from an ozz archive file named _filename.
 // This function will fail and return false if the file cannot be opened or if
 // it is not a valid ozz animation archive. A valid animation archive can be
-// produced with ozz tools (fbx2ozz) or using ozz animation serialization API.
+// produced with ozz tools (*2ozz) or using ozz animation serialization API.
 // _filename and _animation must be non-nullptr.
 bool LoadRawAnimation(const char* _filename,
                       ozz::animation::offline::RawAnimation* _animation);
@@ -178,7 +188,7 @@ bool LoadRawAnimation(const char* _filename,
 // Loads a float track from an ozz archive file named _filename.
 // This function will fail and return false if the file cannot be opened or if
 // it is not a valid ozz float track archive. A valid float track archive can be
-// produced with ozz tools (fbx2ozz) or using ozz serialization API.
+// produced with ozz tools (*2ozz) or using ozz serialization API.
 // _filename and _track must be non-nullptr.
 bool LoadTrack(const char* _filename, ozz::animation::FloatTrack* _track);
 bool LoadTrack(const char* _filename, ozz::animation::Float2Track* _track);
@@ -217,6 +227,19 @@ bool RayIntersectsMeshes(const ozz::math::Float3& _ray_origin,
                          const ozz::span<const ozz::sample::Mesh>& _meshes,
                          ozz::math::Float3* _intersect,
                          ozz::math::Float3* _normal);
+
+// RAII performance profiler.
+class ProfileFctLog {
+  using clock = std::chrono::high_resolution_clock;
+
+ public:
+  ProfileFctLog(const char* _name);
+  ~ProfileFctLog();
+
+ private:
+  const char* name_;
+  clock::time_point begin_;
+};
 }  // namespace sample
 }  // namespace ozz
 #endif  // OZZ_SAMPLES_FRAMEWORK_UTILS_H_

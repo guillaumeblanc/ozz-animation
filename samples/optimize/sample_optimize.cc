@@ -60,15 +60,7 @@ OZZ_OPTIONS_DECLARE_STRING(animation, "Path to the raw animation file.",
 class OptimizeSampleApplication : public ozz::sample::Application {
  public:
   OptimizeSampleApplication()
-      : selected_display_(eRuntimeAnimation),
-        optimize_(true),
-        joint_setting_enable_(true),
-        joint_(0),
-        enable_iframes_(true),
-        iframe_interval_(10.f),
-        error_record_med_(64),
-        error_record_max_(64),
-        joint_error_record_(64) {}
+      : error_record_med_(64), error_record_max_(64), joint_error_record_(64) {}
 
  protected:
   // Updates current animation time and skeleton pose.
@@ -230,7 +222,6 @@ class OptimizeSampleApplication : public ozz::sample::Application {
     }
   }
 
-  // Samples animation, transforms to model space and renders.
   virtual bool OnDisplay(ozz::sample::Renderer* _renderer) {
     bool success = true;
 
@@ -349,7 +340,8 @@ class OptimizeSampleApplication : public ozz::sample::Application {
       if (open) {
         rebuild |= _im_gui->DoCheckBox("Enable iframes", &enable_iframes_);
 
-        std::snprintf(label, sizeof(label), "Iframe interval: %0.2f s", iframe_interval_);
+        std::snprintf(label, sizeof(label), "Iframe interval: %0.2f s",
+                      iframe_interval_);
         rebuild |= _im_gui->DoSlider(label, .1f, 20.f, &iframe_interval_, .5f,
                                      enable_iframes_);
       }
@@ -442,8 +434,6 @@ class OptimizeSampleApplication : public ozz::sample::Application {
     return true;
   }
 
-  virtual void OnDestroy() {}
-
   bool BuildAnimations() {
     // Instantiate an animation builder.
     ozz::animation::offline::AnimationBuilder animation_builder;
@@ -483,7 +473,8 @@ class OptimizeSampleApplication : public ozz::sample::Application {
   }
 
   virtual void GetSceneBounds(ozz::math::Box* _bound) const {
-    ozz::sample::ComputePostureBounds(models(), _bound);
+    ozz::sample::ComputePostureBounds(models(), ozz::math::Float4x4::identity(),
+                                      _bound);
   }
 
  private:
@@ -493,10 +484,10 @@ class OptimizeSampleApplication : public ozz::sample::Application {
     eRawAnimation,
     eAbsoluteError,
   };
-  int selected_display_;
+  int selected_display_ = eRuntimeAnimation;
 
   // Select whether optimization should be performed.
-  bool optimize_;
+  bool optimize_ = true;
 
   // Imported non-optimized animation.
   ozz::animation::offline::RawAnimation raw_animation_;
@@ -508,13 +499,13 @@ class OptimizeSampleApplication : public ozz::sample::Application {
   ozz::animation::offline::AnimationOptimizer::Setting setting_;
 
   // Optimizer joint specific settings.
-  bool joint_setting_enable_;
-  int joint_;
+  bool joint_setting_enable_ = true;
+  int joint_ = 0;
   ozz::animation::offline::AnimationOptimizer::Setting joint_setting_;
 
   // Builder iframe interval
-  bool enable_iframes_;
-  float iframe_interval_;
+  bool enable_iframes_ = true;
+  float iframe_interval_ = 10.f;
 
   // Playback animation controller. This is a utility class that helps with
   // controlling animation playback time.

@@ -122,17 +122,17 @@ class ImGuiImpl : public ImGui {
   // If _texture id is not 0, then texture with id _texture is mapped using a
   // planar projection to the rect.
   void FillRect(const math::RectFloat& _rect, float _radius,
-                const GLubyte _rgba[4]) const;
+                const Color& _color) const;
   void FillRect(const math::RectFloat& _rect, float _radius,
-                const GLubyte _rgba[4],
+                const Color& _color,
                 const ozz::math::Float4x4& _transform) const;
 
   // Strokes a rectangle with _rect coordinates. Draws rounded angles if _radius
   // is greater than 0.
   void StrokeRect(const math::RectFloat& _rect, float _radius,
-                  const GLubyte _rgba[4]) const;
+                  const Color& _color) const;
   void StrokeRect(const math::RectFloat& _rect, float _radius,
-                  const GLubyte _rgba[4],
+                  const Color& _color,
                   const ozz::math::Float4x4& _transform) const;
 
   enum PrintLayout {
@@ -149,7 +149,7 @@ class ImGuiImpl : public ImGui {
 
   // Print _text in _rect.
   float Print(const char* _text, const math::RectFloat& _rect,
-              PrintLayout _layout, const GLubyte _rgba[4]) const;
+              PrintLayout _layout, const Color& _color) const;
 
   // Initialize circle vertices.
   void InitializeCircle();

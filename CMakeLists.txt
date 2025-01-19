@@ -8,7 +8,7 @@ get_directory_property(is_sub_project PARENT_DIRECTORY)
 
 # Current version
 set(OZZ_VERSION_MAJOR 0)
-set(OZZ_VERSION_MINOR 15)
+set(OZZ_VERSION_MINOR 16)
 set(OZZ_VERSION_PATCH 0)
 set(OZZ_VERSION ${OZZ_VERSION_MAJOR}.${OZZ_VERSION_MINOR}.${OZZ_VERSION_PATCH})
 

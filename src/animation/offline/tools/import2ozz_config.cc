@@ -36,6 +36,7 @@
 #include "animation/offline/tools/import2ozz_anim.h"
 #include "animation/offline/tools/import2ozz_track.h"
 #include "ozz/animation/offline/animation_optimizer.h"
+#include "ozz/animation/offline/motion_extractor.h"
 #include "ozz/animation/offline/tools/import2ozz.h"
 #include "ozz/animation/offline/track_optimizer.h"
 #include "ozz/base/containers/string.h"
@@ -278,7 +279,15 @@ bool SanitizeOptimizationSettings(Json::Value& _root, bool _all_options) {
   return true;
 }
 
-bool SanitizeTrackImport(Json::Value& _root) {
+bool SanitizeTrackBuildSettings(Json::Value& _root, bool) {
+  MakeDefault(_root, "raw", false, "Outputs raw track.");
+  MakeDefault(_root, "optimize", true, "Activates keyframes optimization.");
+  MakeDefault(_root, "optimization_tolerance", TrackOptimizer().tolerance,
+              "Optimization tolerance");
+  return true;
+}
+
+bool SanitizeTrackImport(Json::Value& _root, bool _all_options) {
   MakeDefault(_root, "filename", "*.ozz",
               "Specifies track output filename(s). Use a \'*\' character "
               "to specify part(s) of the filename that should be replaced by "
@@ -302,45 +311,88 @@ bool SanitizeTrackImport(Json::Value& _root) {
     return false;
   }
 
+  return SanitizeTrackBuildSettings(_root, _all_options);
+}
+
+bool SanitizeTrackMotionComponent(Json::Value& _root,
+                                  const char* default_components, bool) {
+  MakeDefault(_root, "components", default_components,
+              "Components to import, can be any composition of x, y and z.");
+  if (_root["components"].asString().find_first_not_of("xyz") !=
+      std::string::npos) {
+    ozz::log::Err() << "Invalid value \"" << _root["components"].asString()
+                    << "\" for motion components. Components can be any "
+                       "composition of x, y and z."
+                    << std::endl;
+    return false;
+  }
+
+  MakeDefault(
+      _root, "reference", "skeleton",
+      "Root motion extraction reference pose, can be absolute, skeleton or "
+      "animation.");
+  const char* reference_name = _root["reference"].asCString();
+  if (!RootMotionReferenceConfig::IsValidEnumName(reference_name)) {
+    ozz::log::Err() << "Invalid value \"" << reference_name
+                    << "\" for root motion reference. Can be absolute, "
+                       "skeleton or animation."
+                    << std::endl;
+    return false;
+  }
+
+  MakeDefault(_root, "bake", true, "Bake extracted motion into animation.");
+  MakeDefault(_root, "loop", false,
+              "Distributes begin - end difference to make animation loopable.");
+
   MakeDefault(_root, "raw", false, "Outputs raw track.");
   MakeDefault(_root, "optimize", true, "Activates keyframes optimization.");
   MakeDefault(_root, "optimization_tolerance", TrackOptimizer().tolerance,
-              "Optimization tolerance");
+              "Optimization tolerance for the optimized track");
+  return true;
+}
+
+bool SanitizeTrackMotion(Json::Value& _root, bool _all_options) {
+  MakeDefault(_root, "enable", false,
+              "Extracts root motion from the animation "
+              "and writes tracks (position, rotation) to a file.");
+  MakeDefault(_root, "filename", "*_motion_track.ozz",
+              "Specifies motion tracks output filename(s). Use a \'*\' "
+              "character to specify part(s) of the filename that should be "
+              "replaced by the clip name.");
+
+  MakeDefault(_root, "joint_name", "",
+              "Name of the joint containing the motion to extract. Leave empty "
+              "to select joint 0 (aka the first root).");
+
+  MakeDefaultObject(_root, "position", "Root motion position settings.");
+  if (!SanitizeTrackMotionComponent(_root["position"], "xz", _all_options)) {
+    return false;
+  }
+
+  MakeDefaultObject(_root, "rotation", "Root motion rotation settings.");
+  if (!SanitizeTrackMotionComponent(_root["rotation"], "y", _all_options)) {
+    return false;
+  }
 
   return true;
 }
-/*
-bool SanitizeTrackMotion(Json::Value& _root) {
-  MakeDefault(_root, "joint_name", "",
-              "Name of the joint that contains the property to import. "
-              "Wildcard characters '*' and '?' are supported.");
-  MakeDefault(_root, "output", "*.ozz",
-              "Specifies track output file(s). Use a \'*\' character to "
-              "specify part(s) of the filename that should be replaced by the "
-              "joint_name.");
-  MakeDefault(_root, "optimization_tolerance",
-              TrackOptimizer().tolerance,
-              "Optimization tolerance");
-  return true;
-}*/
 
-bool SanitizeTrack(Json::Value& _root, bool _all_options) {
+bool SanitizeTracks(Json::Value& _root, bool _all_options) {
+  // Properties
   MakeDefaultArray(_root, "properties", "Properties to import.", !_all_options);
   Json::Value& imports = _root["properties"];
   for (Json::ArrayIndex i = 0; i < imports.size(); ++i) {
-    if (!SanitizeTrackImport(imports[i])) {
+    if (!SanitizeTrackImport(imports[i], _all_options)) {
       return false;
     }
   }
-  /*
-    MakeDefaultArray(_root, "motions", "Motions tracks to generate.",
-                     !_all_options);
-    Json::Value& motions = _root["motions"];
-    for (Json::ArrayIndex i = 0; i < motions.size(); ++i) {
-      if (!SanitizeTrackMotion(motions[i])) {
-        return false;
-      }
-    }*/
+
+  // Root motion extraction
+  MakeDefaultObject(_root, "motion", "Root motion track extraction.");
+  if (!SanitizeTrackMotion(_root["motion"], _all_options)) {
+    return false;
+  }
+
   return true;
 }
 
@@ -381,22 +433,18 @@ bool SanitizeAnimation(Json::Value& _root, bool _all_options) {
 
   MakeDefault(
       _root, "iframe_interval", 10.f,
-      "Selects interval in seconds between iframes, used to optimize seek "
-      "time. An interval of 0 (or less) means no iframe is generated. If "
-      "interval is positive, then at least an iframe is generated at animation "
-      "end.");
+      "A 0 interval means no iframe is generated. Any positive number is the "
+      "interval between iframes, with a guaranteed one at the end of the "
+      "animation (even if interval is smaller than animation duration)");
 
   MakeDefault(_root, "optimize", true,
               "Activates keyframes reduction optimization.");
 
   SanitizeOptimizationSettings(_root["optimization_settings"], _all_options);
 
-  MakeDefaultArray(_root, "tracks", "Tracks to build.", !_all_options);
-  Json::Value& tracks = _root["tracks"];
-  for (Json::ArrayIndex i = 0; i < tracks.size(); ++i) {
-    if (!SanitizeTrack(tracks[i], _all_options)) {
-      return false;
-    }
+  MakeDefaultObject(_root, "tracks", "Tracks to build.");
+  if (!SanitizeTracks(_root["tracks"], _all_options)) {
+    return false;
   }
 
   return true;
@@ -512,6 +560,9 @@ bool ProcessConfiguration(Json::Value* _config) {
     ozz::log::Log() << "No configuration provided, using default configuration."
                     << std::endl;
   }
+
+  ozz::log::LogV() << "Configuration string:" << std::endl
+                   << config_string << std::endl;
 
   Json::Reader json_builder;
   if (!json_builder.parse(config_string, *_config, true)) {

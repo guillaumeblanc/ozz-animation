@@ -13,6 +13,8 @@ add_library(ozz_animation_offline
   animation_optimizer.cc
   ${PROJECT_SOURCE_DIR}/include/ozz/animation/offline/additive_animation_builder.h
   additive_animation_builder.cc
+  ${PROJECT_SOURCE_DIR}/include/ozz/animation/offline/motion_extractor.h
+  motion_extractor.cc
   ${PROJECT_SOURCE_DIR}/include/ozz/animation/offline/raw_skeleton.h
   raw_skeleton.cc
   raw_skeleton_archive.cc
@@ -20,6 +22,8 @@ add_library(ozz_animation_offline
   skeleton_builder.cc
   ${PROJECT_SOURCE_DIR}/include/ozz/animation/offline/raw_track.h
   raw_track.cc
+  ${PROJECT_SOURCE_DIR}/include/ozz/animation/offline/raw_track_utils.h
+  raw_track_utils.cc
   ${PROJECT_SOURCE_DIR}/include/ozz/animation/offline/track_builder.h
   track_builder.cc
   ${PROJECT_SOURCE_DIR}/include/ozz/animation/offline/track_optimizer.h

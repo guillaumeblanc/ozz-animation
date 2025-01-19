@@ -52,9 +52,6 @@ OZZ_OPTIONS_DECLARE_STRING(animation,
                            "media/animation.ozz", false)
 
 class AttachSampleApplication : public ozz::sample::Application {
- public:
-  AttachSampleApplication() : attachment_(0), offset_(-.02f, .03f, .05f) {}
-
  protected:
   // Updates current animation time and skeleton pose.
   virtual bool OnUpdate(float _dt, float) {
@@ -83,7 +80,6 @@ class AttachSampleApplication : public ozz::sample::Application {
     return true;
   }
 
-  // Samples animation, transforms to model space and renders.
   virtual bool OnDisplay(ozz::sample::Renderer* _renderer) {
     if (!_renderer->DrawPosture(skeleton_, make_span(models_),
                                 ozz::math::Float4x4::identity())) {
@@ -94,13 +90,9 @@ class AttachSampleApplication : public ozz::sample::Application {
     // Gets model space transformation of the joint.
     const ozz::math::Float4x4& joint = models_[attachment_];
 
-    // Builds offset transformation matrix.
-    const ozz::math::SimdFloat4 translation =
-        ozz::math::simd_float4::Load3PtrU(&offset_.x);
-
     // Concatenates joint and offset transformations.
     const ozz::math::Float4x4 transform =
-        joint * ozz::math::Float4x4::Translation(translation);
+        joint * ozz::math::Float4x4::Translation(offset_);
 
     // Prepare rendering.
     const float thickness = .01f;
@@ -142,8 +134,6 @@ class AttachSampleApplication : public ozz::sample::Application {
     return true;
   }
 
-  virtual void OnDestroy() {}
-
   virtual bool OnGui(ozz::sample::ImGui* _im_gui) {
     // Exposes animation runtime playback controls.
     {
@@ -179,7 +169,8 @@ class AttachSampleApplication : public ozz::sample::Application {
   }
 
   virtual void GetSceneBounds(ozz::math::Box* _bound) const {
-    ozz::sample::ComputePostureBounds(make_span(models_), _bound);
+    ozz::sample::ComputePostureBounds(make_span(models_),
+                                      ozz::math::Float4x4::identity(), _bound);
   }
 
  private:
@@ -203,10 +194,10 @@ class AttachSampleApplication : public ozz::sample::Application {
   ozz::vector<ozz::math::Float4x4> models_;
 
   // Joint where the object is attached.
-  int attachment_;
+  int attachment_ = 0;
 
   // Offset, translation of the attached object from the joint.
-  ozz::math::Float3 offset_;
+  ozz::math::Float3 offset_ = {-.02f, .03f, .05f};
 };
 
 int main(int _argc, const char** _argv) {

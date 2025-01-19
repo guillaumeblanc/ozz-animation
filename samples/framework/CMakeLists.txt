@@ -5,13 +5,15 @@ add_library(sample_framework STATIC
   imgui.h
   image.h
   image.cc
+  mesh.h
+  mesh.cc
+  motion_utils.h
+  motion_utils.cc
   profile.h
   profile.cc
   renderer.h
   utils.h
   utils.cc
-  mesh.h
-  mesh.cc
   internal/camera.h
   internal/camera.cc
   internal/icosphere.h

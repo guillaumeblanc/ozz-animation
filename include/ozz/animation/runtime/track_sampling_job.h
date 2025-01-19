@@ -42,8 +42,6 @@ template <typename _Track>
 struct TrackSamplingJob {
   typedef typename _Track::ValueType ValueType;
 
-  TrackSamplingJob();
-
   // Validates all parameters.
   bool Validate() const;
 
@@ -53,13 +51,13 @@ struct TrackSamplingJob {
   // Ratio used to sample track, clamped in range [0,1] before job execution. 0
   // is the beginning of the track, 1 is the end. This is a ratio rather than a
   // ratio because tracks have no duration.
-  float ratio;
+  float ratio = 0.f;
 
   // Track to sample.
-  const _Track* track;
+  const _Track* track = nullptr;
 
   // Job output.
-  typename _Track::ValueType* result;
+  typename _Track::ValueType* result = nullptr;
 };
 }  // namespace internal
 

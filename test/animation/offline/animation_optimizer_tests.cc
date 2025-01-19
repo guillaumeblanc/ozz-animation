@@ -25,20 +25,13 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/animation/offline/animation_optimizer.h"
-
 #include "gtest/gtest.h"
-
-#include "ozz/base/maths/math_constant.h"
-
-#include "ozz/base/memory/unique_ptr.h"
-
-#include "ozz/animation/offline/animation_builder.h"
+#include "ozz/animation/offline/animation_optimizer.h"
 #include "ozz/animation/offline/raw_animation.h"
-
 #include "ozz/animation/offline/raw_skeleton.h"
 #include "ozz/animation/offline/skeleton_builder.h"
 #include "ozz/animation/runtime/skeleton.h"
+#include "ozz/base/maths/math_constant.h"
 
 using ozz::animation::Skeleton;
 using ozz::animation::offline::AnimationOptimizer;
@@ -56,6 +49,15 @@ TEST(Error, AnimationOptimizer) {
 
     // Builds animation
     EXPECT_FALSE(optimizer(input, skeleton, nullptr));
+  }
+
+  {  // same input and output.
+    RawAnimation input;
+    Skeleton skeleton;
+    EXPECT_TRUE(input.Validate());
+
+    // Builds animation
+    EXPECT_FALSE(optimizer(input, skeleton, &input));
   }
 
   {  // Invalid input animation.
@@ -338,19 +340,19 @@ TEST(Optimize, AnimationOptimizer) {
   // Rotations on track 0.
   {
     RawAnimation::RotationKey key = {
-        0.f, ozz::math::Quaternion::FromEuler(0.f, 0.f, 0.f)};
+        0.f, ozz::math::Quaternion::FromEuler({0.f, 0.f, 0.f})};
     input.tracks[0].rotations.push_back(key);
   }
   {                                     // Include error
     const float angle_error = 2.5e-3f;  // creates an arc of .1m at 40m.
     RawAnimation::RotationKey key = {
-        .1f, ozz::math::Quaternion::FromEuler(ozz::math::kPi_4 + angle_error,
-                                              0.f, 0.f)};
+        .1f, ozz::math::Quaternion::FromEuler(
+                 {ozz::math::kPi_4 + angle_error, 0.f, 0.f})};
     input.tracks[0].rotations.push_back(key);
   }
   {
     RawAnimation::RotationKey key = {
-        .2f, ozz::math::Quaternion::FromEuler(ozz::math::kPi_2, 0.f, 0.f)};
+        .2f, ozz::math::Quaternion::FromEuler({ozz::math::kPi_2, 0.f, 0.f})};
     input.tracks[0].rotations.push_back(key);
   }
 
@@ -482,19 +484,19 @@ TEST(OptimizeOverride, AnimationOptimizer) {
   // Rotations on track 0.
   {
     RawAnimation::RotationKey key = {
-        0.f, ozz::math::Quaternion::FromEuler(0.f, 0.f, 0.f)};
+        0.f, ozz::math::Quaternion::FromEuler({0.f, 0.f, 0.f})};
     input.tracks[1].rotations.push_back(key);
   }
   {                                   // Includes an error that
     const float angle_error = 1e-3f;  // creates an arc of 1mm at 1m.
     RawAnimation::RotationKey key = {
-        .1f, ozz::math::Quaternion::FromEuler(ozz::math::kPi_4 + angle_error,
-                                              0.f, 0.f)};
+        .1f, ozz::math::Quaternion::FromEuler(
+                 {ozz::math::kPi_4 + angle_error, 0.f, 0.f})};
     input.tracks[1].rotations.push_back(key);
   }
   {
     RawAnimation::RotationKey key = {
-        .2f, ozz::math::Quaternion::FromEuler(ozz::math::kPi_2, 0.f, 0.f)};
+        .2f, ozz::math::Quaternion::FromEuler({ozz::math::kPi_2, 0.f, 0.f})};
     input.tracks[1].rotations.push_back(key);
   }
 
@@ -581,7 +583,7 @@ TEST(OptimizeOverride, AnimationOptimizer) {
   {
     RawAnimation output;
     optimizer.setting = loose_setting;
-    const AnimationOptimizer::Setting joint_override(1e-3f,  // 1mm
+    const AnimationOptimizer::Setting joint_override(1e-3f,   // 1mm
                                                      1e-2f);  // 1cm
     optimizer.joints_setting_override[1] = joint_override;
     ASSERT_TRUE(optimizer(input, *skeleton, &output));
@@ -603,7 +605,7 @@ TEST(OptimizeOverride, AnimationOptimizer) {
     RawAnimation output;
     optimizer.setting = loose_setting;
     const AnimationOptimizer::Setting joint_override(1e-3f,  // 1mm
-                                                     10.f);   // 10m
+                                                     10.f);  // 10m
     optimizer.joints_setting_override[2] = joint_override;
     ASSERT_TRUE(optimizer(input, *skeleton, &output));
     EXPECT_EQ(output.num_tracks(), 5);

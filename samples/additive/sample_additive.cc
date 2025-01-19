@@ -65,12 +65,6 @@ OZZ_OPTIONS_DECLARE_STRING(
     "media/animation_curl_additive.ozz", false)
 
 class AdditiveBlendSampleApplication : public ozz::sample::Application {
- public:
-  AdditiveBlendSampleApplication()
-      : base_weight_(0.f),
-        additive_weigths_{.3f, .9f},
-        auto_animate_weights_(true) {}
-
  protected:
   // Updates current animation time and skeleton pose.
   virtual bool OnUpdate(float _dt, float) {
@@ -88,7 +82,7 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
     sampling_job.animation = &base_animation_;
     sampling_job.context = &context_;
     sampling_job.ratio = controller_.time_ratio();
-    sampling_job.output = make_span(locals_);
+    sampling_job.output = make_span(main_locals_);
 
     // Samples animation.
     if (!sampling_job.Run()) {
@@ -99,7 +93,7 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
 
     // Main animation is used as-is.
     ozz::animation::BlendingJob::Layer layers[1];
-    layers[0].transform = make_span(locals_);
+    layers[0].transform = make_span(main_locals_);
     layers[0].weight = base_weight_;
     layers[0].joint_weights = make_span(base_joint_weights_);
 
@@ -116,7 +110,7 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
     blend_job.layers = layers;
     blend_job.additive_layers = additive_layers;
     blend_job.rest_pose = skeleton_.joint_rest_poses();
-    blend_job.output = make_span(blended_locals_);
+    blend_job.output = make_span(locals_);
 
     // Blends.
     if (!blend_job.Run()) {
@@ -128,7 +122,7 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
     // Setup local-to-model conversion job.
     ozz::animation::LocalToModelJob ltm_job;
     ltm_job.skeleton = &skeleton_;
-    ltm_job.input = make_span(blended_locals_);
+    ltm_job.input = make_span(locals_);
     ltm_job.output = make_span(models_);
 
     // Run ltm job.
@@ -146,7 +140,6 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
     additive_weigths_[1] = .5f + std::cos(t * 2.5f) * .5f;
   }
 
-  // Samples animation, transforms to model space and renders.
   virtual bool OnDisplay(ozz::sample::Renderer* _renderer) {
     return _renderer->DrawPosture(skeleton_, make_span(models_),
                                   ozz::math::Float4x4::identity());
@@ -188,13 +181,13 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
     context_.Resize(num_joints);
 
     // Allocates local space runtime buffers for base animation.
-    locals_.resize(num_soa_joints);
+    main_locals_.resize(num_soa_joints);
 
     // Allocates model space runtime buffers of blended data.
     models_.resize(num_joints);
 
     // Storage for blending stage output.
-    blended_locals_.resize(num_soa_joints);
+    locals_.resize(num_soa_joints);
 
     // Allocates and sets base animation mask weights to one.
     base_joint_weights_.resize(num_soa_joints, ozz::math::simd_float4::one());
@@ -203,7 +196,7 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
 
     // Reads and extract additive animations pose.
     const char* filenames[] = {OPTIONS_splay_animation, OPTIONS_curl_animation};
-    for (int i = 0; i < kNumLayers; ++i) {
+    for (size_t i = 0; i < kNumLayers; ++i) {
       // Reads animation on the stack as it won't need to be maintained in
       // memory. Only the pose is needed.
       ozz::animation::Animation animation;
@@ -238,8 +231,6 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
 
     return true;
   }
-
-  virtual void OnDestroy() {}
 
   virtual bool OnGui(ozz::sample::ImGui* _im_gui) {
     char label[64];
@@ -294,7 +285,8 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
       _bound->min = hand_position - extent;
       _bound->max = hand_position + extent;
     } else {
-      ozz::sample::ComputePostureBounds(make_span(models_), _bound);
+      ozz::sample::ComputePostureBounds(
+          make_span(models_), ozz::math::Float4x4::identity(), _bound);
     }
   }
 
@@ -320,27 +312,27 @@ class AdditiveBlendSampleApplication : public ozz::sample::Application {
   ozz::animation::SamplingJob::Context context_;
 
   // Buffer of local transforms as sampled from main animation_.
-  ozz::vector<ozz::math::SoaTransform> locals_;
+  ozz::vector<ozz::math::SoaTransform> main_locals_;
 
   // Blending weight of the base animation layer.
-  float base_weight_;
+  float base_weight_ = 0.f;
 
   // Poses of local transforms as sampled from curl and splay animations.
   // They are sampled during initialization, as a single pose is used.
   ozz::vector<ozz::math::SoaTransform> additive_locals_[kNumLayers];
 
   // Blending weight of the additive animation layer.
-  float additive_weigths_[kNumLayers];
+  float additive_weigths_[kNumLayers] = {.3f, .9f};
 
   // Buffer of local transforms which stores the blending result.
-  ozz::vector<ozz::math::SoaTransform> blended_locals_;
+  ozz::vector<ozz::math::SoaTransform> locals_;
 
   // Buffer of model space matrices. These are computed by the local-to-model
   // job after the blending stage.
   ozz::vector<ozz::math::Float4x4> models_;
 
   // Automatically animates additive weights.
-  bool auto_animate_weights_;
+  bool auto_animate_weights_ = true;
 };
 
 int main(int _argc, const char** _argv) {

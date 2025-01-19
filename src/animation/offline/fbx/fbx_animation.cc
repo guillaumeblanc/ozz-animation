@@ -158,13 +158,7 @@ bool ExtractAnimation(FbxSceneLoader& _scene_loader, const SamplingInfo& _info,
 
       const math::Transform& rest_pose =
           ozz::animation::GetJointLocalRestPose(_skeleton, i);
-      const math::SimdFloat4 t =
-          math::simd_float4::Load3PtrU(&rest_pose.translation.x);
-      const math::SimdFloat4 q =
-          math::simd_float4::LoadPtrU(&rest_pose.rotation.x);
-      const math::SimdFloat4 s =
-          math::simd_float4::Load3PtrU(&rest_pose.scale.x);
-      const math::Float4x4 local_matrix = math::Float4x4::FromAffine(t, q, s);
+      const math::Float4x4 local_matrix = math::Float4x4::FromAffine(rest_pose);
 
       ozz::vector<math::Float4x4>& node_matrices = world_matrices[i];
       const int16_t parent = _skeleton.joint_parents()[i];
@@ -222,18 +216,13 @@ bool ExtractAnimation(FbxSceneLoader& _scene_loader, const SamplingInfo& _info,
       }
 
       // Convert to transform structure.
-      math::SimdFloat4 t, q, s;
-      if (!ToAffine(local_matrix, &t, &q, &s)) {
+      ozz::math::Transform transform;
+      if (!ToAffine(local_matrix, &transform)) {
         ozz::log::Err() << "Failed to extract animation transform for joint\""
                         << _skeleton.joint_names()[i]
                         << "\" at t = " << times[n] << "s." << std::endl;
         return false;
       }
-
-      ozz::math::Transform transform;
-      math::Store3PtrU(t, &transform.translation.x);
-      math::StorePtrU(math::Normalize4(q), &transform.rotation.x);
-      math::Store3PtrU(s, &transform.scale.x);
 
       // Fills corresponding track.
       const float time = times[n];

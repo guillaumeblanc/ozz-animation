@@ -131,24 +131,18 @@ inline float KeyRatio(const ozz::span<const float>& _timepoints,
 inline ozz::math::SimdFloat4 KeysRatio(
     const ozz::span<const float>& _timepoints,
     const ozz::span<const byte>& _ratios,
-    const ozz::span<const uint32_t> _ats) {
-  uint16_t index[4];
+    const ozz::span<const uint32_t>& _ats) {
   if (_timepoints.size() <= std::numeric_limits<uint8_t>::max()) {
     const auto& ratios = reinterpret_span<const uint8_t>(_ratios);
-    index[0] = ratios[_ats[0]];
-    index[1] = ratios[_ats[1]];
-    index[2] = ratios[_ats[2]];
-    index[3] = ratios[_ats[3]];
+    return ozz::math::simd_float4::Load(
+        _timepoints[ratios[_ats[0]]], _timepoints[ratios[_ats[1]]],
+        _timepoints[ratios[_ats[2]]], _timepoints[ratios[_ats[3]]]);
   } else {
     const auto& ratios = reinterpret_span<const uint16_t>(_ratios);
-    index[0] = ratios[_ats[0]];
-    index[1] = ratios[_ats[1]];
-    index[2] = ratios[_ats[2]];
-    index[3] = ratios[_ats[3]];
+    return ozz::math::simd_float4::Load(
+        _timepoints[ratios[_ats[0]]], _timepoints[ratios[_ats[1]]],
+        _timepoints[ratios[_ats[2]]], _timepoints[ratios[_ats[3]]]);
   }
-  return ozz::math::simd_float4::Load(
-      _timepoints[index[0]], _timepoints[index[1]], _timepoints[index[2]],
-      _timepoints[index[3]]);
 }
 
 inline uint32_t InitializeCache(const Animation::KeyframesCtrlConst& _ctrl,
@@ -459,8 +453,6 @@ void Interpolates(float _anim_ratio, size_t _num_soa_tracks,
 }
 }  // namespace
 
-SamplingJob::SamplingJob() : ratio(0.f), animation(nullptr), context(nullptr) {}
-
 bool SamplingJob::Run() const {
   if (!Validate()) {
     return false;
@@ -529,10 +521,11 @@ SamplingJob::Context::Context(int _max_tracks) : max_soa_tracks_(0) {
   Resize(_max_tracks);
 }
 
-SamplingJob::Context::~Context() {
-  // translations interp is the allocation pointer, so this deallocates
-  // everything at once.
-  memory::default_allocator()->Deallocate(translations_.data());
+SamplingJob::Context::~Context() { Deallocate(); }
+
+void SamplingJob::Context::Deallocate() {
+  memory::default_allocator()->Deallocate(allocation_);
+  allocation_ = nullptr;
 }
 
 void SamplingJob::Context::Resize(int _max_tracks) {
@@ -541,7 +534,7 @@ void SamplingJob::Context::Resize(int _max_tracks) {
 
   // Reset existing data.
   Invalidate();
-  memory::default_allocator()->Deallocate(translations_.data());
+  Deallocate();
 
   // Updates maximum supported soa tracks.
   max_soa_tracks_ = (math::Max(0, _max_tracks) + 3) / 4;
@@ -563,10 +556,9 @@ void SamplingJob::Context::Resize(int _max_tracks) {
       sizeof(uint8_t) * 3 * num_outdated;
 
   // Allocates all at once.
-  memory::Allocator* allocator = memory::default_allocator();
-  span<byte> buffer = {
-      static_cast<byte*>(allocator->Allocate(size, alignof(InterpSoaFloat3))),
-      size};
+  auto* allocator = memory::default_allocator();
+  allocation_ = allocator->Allocate(size, alignof(InterpSoaFloat3));
+  span<byte> buffer = {static_cast<byte*>(allocation_), size};
 
   // Distributes buffer memory while ensuring proper alignment (serves larger
   // alignment values first).

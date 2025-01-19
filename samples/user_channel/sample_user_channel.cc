@@ -66,12 +66,7 @@ OZZ_OPTIONS_DECLARE_STRING(track, "Path to the track (ozz archive format).",
 
 class UserChannelSampleApplication : public ozz::sample::Application {
  public:
-  UserChannelSampleApplication()
-      : method_(kTriggering),  // Triggering is the most robust method.
-        attached_(false),
-        attach_joint_(0) {
-    ResetState();
-  }
+  UserChannelSampleApplication() { ResetState(); }
 
  protected:
   // Resets everything to it's initial state.
@@ -231,7 +226,6 @@ class UserChannelSampleApplication : public ozz::sample::Application {
     return true;
   }
 
-  // Samples animation, transforms to model space and renders.
   virtual bool OnDisplay(ozz::sample::Renderer* _renderer) {
     bool success = true;
 
@@ -241,8 +235,8 @@ class UserChannelSampleApplication : public ozz::sample::Application {
         ozz::sample::kGrey);
 
     // Draws a sphere at hand position, which shows "attached" flag status.
-    const ozz::sample::Color colors[] = {{0, 0xff, 0, 0xff},
-                                         {0xff, 0, 0, 0xff}};
+    const ozz::sample::Color colors[] = {ozz::sample::kGreen,
+                                         ozz::sample::kWhite};
     _renderer->DrawSphereIm(.01f, models_[attach_joint_], colors[attached_]);
 
     // Draws the animated skeleton.
@@ -288,8 +282,6 @@ class UserChannelSampleApplication : public ozz::sample::Application {
     return true;
   }
 
-  virtual void OnDestroy() {}
-
   virtual bool OnGui(ozz::sample::ImGui* _im_gui) {
     // Exposes sample specific parameters.
     {
@@ -325,7 +317,8 @@ class UserChannelSampleApplication : public ozz::sample::Application {
   }
 
   virtual void GetSceneBounds(ozz::math::Box* _bound) const {
-    ozz::sample::ComputePostureBounds(make_span(models_), _bound);
+    ozz::sample::ComputePostureBounds(make_span(models_),
+                                      ozz::math::Float4x4::identity(), _bound);
   }
 
  private:
@@ -356,14 +349,14 @@ class UserChannelSampleApplication : public ozz::sample::Application {
   enum Method {
     kSampling,   // Will use TrackSamplingJob
     kTriggering  // Will use TrackTriggeringJob
-  } method_;
+  } method_ = kTriggering;
 
   // Stores whether the box is currently attached. This flag is computed
   // during update. This is only used for debug display purpose.
-  bool attached_;
+  bool attached_ = false;
 
   // Index of the joint where the box must be attached.
-  int attach_joint_;
+  int attach_joint_ = 0;
 
   // Box current transformation.
   ozz::math::Float4x4 box_world_transform_;

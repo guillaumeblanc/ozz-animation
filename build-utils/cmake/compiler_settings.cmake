@@ -29,9 +29,9 @@ set(cxx_all_flags
 # --------------------------------------
 # Cross compiler compilation flags
 
-# Requires C++11
+# Requires C++17
 if(NOT CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 11)
+  set(CMAKE_CXX_STANDARD 17)
 endif()
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)

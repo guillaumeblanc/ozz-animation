@@ -25,12 +25,10 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/base/maths/quaternion.h"
-
 #include "gtest/gtest.h"
-
 #include "ozz/base/gtest_helper.h"
 #include "ozz/base/maths/gtest_math_helper.h"
+#include "ozz/base/maths/quaternion.h"
 
 using ozz::math::Float3;
 using ozz::math::Float4;
@@ -74,9 +72,9 @@ TEST(QuaternionAxisAngle, ozz_math) {
       ToAxisAngle(Quaternion(0.f, 0.923879504f, 0.f, 0.382683426f)), 0.f, 1.f,
       0.f, 3.f * ozz::math::kPi_4);
 
-  EXPECT_QUATERNION_EQ(
-      Quaternion::FromAxisAngle(Float3(.8198645f, .03303398f, -.5716037f), 1.123f),
-      .4365425f, .017589169f, -.30435428f, .84645736f);
+  EXPECT_QUATERNION_EQ(Quaternion::FromAxisAngle(
+                           Float3(.8198645f, .03303398f, -.5716037f), 1.123f),
+                       .4365425f, .017589169f, -.30435428f, .84645736f);
   EXPECT_FLOAT4_EQ(
       ToAxisAngle(Quaternion(.4365425f, .017589169f, -.30435428f, .84645736f)),
       .8198645f, .03303398f, -.5716037f, 1.123f);
@@ -115,32 +113,39 @@ TEST(QuaternionAxisCosAngle, ozz_math) {
 
 TEST(QuaternionQuaternionEuler, ozz_math) {
   // Identity
-  EXPECT_QUATERNION_EQ(Quaternion::FromEuler(0.f, 0.f, 0.f), 0.f, 0.f, 0.f,
+  EXPECT_QUATERNION_EQ(Quaternion::FromEuler({0.f, 0.f, 0.f}), 0.f, 0.f, 0.f,
                        1.f);
   EXPECT_FLOAT3_EQ(ToEuler(Quaternion::identity()), 0.f, 0.f, 0.f);
 
-  // Heading
-  EXPECT_QUATERNION_EQ(Quaternion::FromEuler(ozz::math::kPi_2, 0.f, 0.f), 0.f,
-                       .70710677f, 0.f, .70710677f);
+  // Yaw
+  const Quaternion yaw = Quaternion::FromEuler({ozz::math::kPi_2, 0.f, 0.f});
+  EXPECT_QUATERNION_EQ(yaw, 0.f, .70710677f, 0.f, .70710677f);
   EXPECT_FLOAT3_EQ(ToEuler(Quaternion(0.f, .70710677f, 0.f, .70710677f)),
                    ozz::math::kPi_2, 0.f, 0.f);
 
-  // Elevation
-  EXPECT_QUATERNION_EQ(Quaternion::FromEuler(0.f, ozz::math::kPi_2, 0.f), 0.f,
-                       0.f, .70710677f, .70710677f);
+  // Pitch
+  const Quaternion pitch = Quaternion::FromEuler({0.f, ozz::math::kPi_2, 0.f});
+  EXPECT_QUATERNION_EQ(pitch, 0.f, 0.f, .70710677f, .70710677f);
   EXPECT_FLOAT3_EQ(ToEuler(Quaternion(0.f, 0.f, .70710677f, .70710677f)), 0.f,
                    ozz::math::kPi_2, 0.f);
 
-  // Bank
-  EXPECT_QUATERNION_EQ(Quaternion::FromEuler(0.f, 0.f, ozz::math::kPi_2),
-                       .70710677f, 0.f, 0.f, .70710677f);
+  // Roll
+  const Quaternion roll = Quaternion::FromEuler({0.f, 0.f, ozz::math::kPi_2});
+  EXPECT_QUATERNION_EQ(roll, .70710677f, 0.f, 0.f, .70710677f);
   EXPECT_FLOAT3_EQ(ToEuler(Quaternion(.70710677f, 0.f, 0.f, .70710677f)), 0.f,
                    0.f, ozz::math::kPi_2);
 
+  // All
+  const Quaternion all = yaw * pitch * roll;
+  EXPECT_QUATERNION_EQ(
+      Quaternion::FromEuler(
+          {ozz::math::kPi_2, ozz::math::kPi_2, ozz::math::kPi_2}),
+      all.x, all.y, all.z, all.w);
+
   // Any rotation
   EXPECT_QUATERNION_EQ(
-      Quaternion::FromEuler(ozz::math::kPi / 4.f, -ozz::math::kPi / 6.f,
-                            ozz::math::kPi_2),
+      Quaternion::FromEuler(
+          {ozz::math::kPi / 4.f, -ozz::math::kPi / 6.f, ozz::math::kPi_2}),
       .56098551f, .092295974f, -0.43045932f, .70105737f);
   EXPECT_FLOAT3_EQ(
       ToEuler(Quaternion(.56098551f, .092295974f, -0.43045932f, .70105737f)),
@@ -312,16 +317,19 @@ TEST(QuaternionFromUnitVectors, ozz_math) {
 TEST(QuaternionCompare, ozz_math) {
   EXPECT_TRUE(Quaternion::identity() == Quaternion(0.f, 0.f, 0.f, 1.f));
   EXPECT_TRUE(Quaternion::identity() != Quaternion(1.f, 0.f, 0.f, 0.f));
-  EXPECT_TRUE(Compare(Quaternion::identity(), Quaternion::identity(), std::cos(.5f * 0.f)));
+  EXPECT_TRUE(Compare(Quaternion::identity(), Quaternion::identity(),
+                      std::cos(.5f * 0.f)));
   EXPECT_TRUE(Compare(Quaternion::identity(),
-                      Quaternion::FromEuler(0.f, 0.f, ozz::math::kPi / 100.f),
+                      Quaternion::FromEuler({0.f, 0.f, ozz::math::kPi / 100.f}),
                       std::cos(.5f * ozz::math::kPi / 50.f)));
-  EXPECT_TRUE(Compare(Quaternion::identity(),
-                      -Quaternion::FromEuler(0.f, 0.f, ozz::math::kPi / 100.f),
-                      std::cos(.5f * ozz::math::kPi / 50.f)));
-  EXPECT_FALSE(Compare(Quaternion::identity(),
-                       Quaternion::FromEuler(0.f, 0.f, ozz::math::kPi / 100.f),
-                       std::cos(.5f * ozz::math::kPi / 200.f)));
+  EXPECT_TRUE(
+      Compare(Quaternion::identity(),
+              -Quaternion::FromEuler({0.f, 0.f, ozz::math::kPi / 100.f}),
+              std::cos(.5f * ozz::math::kPi / 50.f)));
+  EXPECT_FALSE(
+      Compare(Quaternion::identity(),
+              Quaternion::FromEuler({0.f, 0.f, ozz::math::kPi / 100.f}),
+              std::cos(.5f * ozz::math::kPi / 200.f)));
 }
 
 TEST(QuaternionArithmetic, ozz_math) {

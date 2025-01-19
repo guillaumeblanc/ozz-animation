@@ -31,7 +31,7 @@
       "additive" : false, //  Creates a delta animation that can be used for additive blending.
       "additive_reference" : "animation", //  Select reference pose to use to build additive/delta animation. Can be "animation" to use the 1st animation keyframe as reference, or "skeleton" to use skeleton rest pose.
       "sampling_rate" : 0, //  Selects animation sampling rate in hertz. Set a value <= 0 to use imported scene default frame rate.
-      "iframe_interval" : 10, //  Selects interval in seconds between iframes, used to optimize seek time. An interval of 0 (or less) means no iframe is generated. If interval is positive, then at least an iframe is generated at animation end.
+      "iframe_interval" : 10, //  A 0 interval means no iframe is generated. Any positive number is the interval between iframes, with a guaranteed one at the end of the animation (even if interval is smaller than animation duration)
       "optimize" : true, //  Activates keyframes reduction optimization.
       "optimization_settings" : 
       {
@@ -49,23 +49,50 @@
       },
       //  Tracks to build.
       "tracks" : 
-      [
+      {
+        //  Properties to import.
+        "properties" : 
+        [
+          {
+            "filename" : "*.ozz", //  Specifies track output filename(s). Use a '*' character to specify part(s) of the filename that should be replaced by the track (aka "joint_name-property_name") name.
+            "joint_name" : "*", //  Name of the joint that contains the property to import. Wildcard characters '*' and '?' are supported.
+            "property_name" : "*", //  Name of the property to import. Wildcard characters '*' and '?' are supported.
+            "type" : "float1", //  Type of the property, can be float1 to float4, point and vector (aka float3 with scene unit and axis conversion).
+            "raw" : false, //  Outputs raw track.
+            "optimize" : true, //  Activates keyframes optimization.
+            "optimization_tolerance" : 0.001 //  Optimization tolerance
+          }
+        ],
+        //  Root motion track extraction.
+        "motion" : 
         {
-          //  Properties to import.
-          "properties" : 
-          [
-            {
-              "filename" : "*.ozz", //  Specifies track output filename(s). Use a '*' character to specify part(s) of the filename that should be replaced by the track (aka "joint_name-property_name") name.
-              "joint_name" : "*", //  Name of the joint that contains the property to import. Wildcard characters '*' and '?' are supported.
-              "property_name" : "*", //  Name of the property to import. Wildcard characters '*' and '?' are supported.
-              "type" : "float1", //  Type of the property, can be float1 to float4, point and vector (aka float3 with scene unit and axis conversion).
-              "raw" : false, //  Outputs raw track.
-              "optimize" : true, //  Activates keyframes optimization.
-              "optimization_tolerance" : 0.001 //  Optimization tolerance
-            }
-          ]
+          "enable" : false, //  Extracts root motion from the animation and writes tracks (position, rotation) to a file.
+          "filename" : "*_motion_track.ozz", //  Specifies motion tracks output filename(s). Use a '*' character to specify part(s) of the filename that should be replaced by the clip name.
+          "joint_name" : "", //  Name of the joint containing the motion to extract. Leave empty to select joint 0 (aka the first root).
+          //  Root motion position settings.
+          "position" : 
+          {
+            "components" : "xz", //  Components to import, can be any composition of x, y and z.
+            "reference" : "skeleton", //  Root motion extraction reference pose, can be absolute, skeleton or animation.
+            "bake" : true, //  Bake extracted motion into animation.
+            "loop" : false, //  Distributes begin - end difference to make animation loopable.
+            "raw" : false, //  Outputs raw track.
+            "optimize" : true, //  Activates keyframes optimization.
+            "optimization_tolerance" : 0.001 //  Optimization tolerance for the optimized track
+          },
+          //  Root motion rotation settings.
+          "rotation" : 
+          {
+            "components" : "y", //  Components to import, can be any composition of x, y and z.
+            "reference" : "skeleton", //  Root motion extraction reference pose, can be absolute, skeleton or animation.
+            "bake" : true, //  Bake extracted motion into animation.
+            "loop" : false, //  Distributes begin - end difference to make animation loopable.
+            "raw" : false, //  Outputs raw track.
+            "optimize" : true, //  Activates keyframes optimization.
+            "optimization_tolerance" : 0.001 //  Optimization tolerance for the optimized track
+          }
         }
-      ]
+      }
     }
   ]
 }

@@ -54,9 +54,6 @@ namespace animation {
 // The job does not owned any buffers (input/output) and will thus not delete
 // them during job's destruction.
 struct OZZ_ANIMATION_DLL BlendingJob {
-  // Default constructor, initializes default values.
-  BlendingJob();
-
   // Validates job parameters.
   // Returns true for a valid job, false otherwise:
   // -if layer range is not valid (can be empty though).
@@ -77,13 +74,10 @@ struct OZZ_ANIMATION_DLL BlendingJob {
   // Defines a layer of blending input data (local space transforms) and
   // parameters (weights).
   struct OZZ_ANIMATION_DLL Layer {
-    // Default constructor, initializes default values.
-    Layer();
-
     // Blending weight of this layer. Negative values are considered as 0.
     // Normalization is performed during the blending stage so weight can be in
     // any range, even though range [0:1] is optimal.
-    float weight;
+    float weight = 0.f;
 
     // The range [begin,end[ of input layer posture. This buffer expect to store
     // local space transforms, that are usually outputted from a sampling job.
@@ -110,7 +104,7 @@ struct OZZ_ANIMATION_DLL BlendingJob {
   // The job blends the rest pose to the output when the accumulated weight of
   // all layers is less than this threshold value.
   // Must be greater than 0.f.
-  float threshold;
+  float threshold = .1f;
 
   // Job input layers, can be empty or nullptr.
   // The range of layers that must be blended.

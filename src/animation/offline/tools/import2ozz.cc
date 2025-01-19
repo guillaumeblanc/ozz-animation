@@ -150,14 +150,18 @@ int OzzImporter::operator()(int _argc, const char** _argv) {
 
   // Handles skeleton import processing
   if (!ImportSkeleton(config, this, endianness)) {
+    ozz::log::Err() << "Importing skeleton failed, exiting with failure code."
+                    << std::endl;
     return EXIT_FAILURE;
   }
 
   // Handles animations import processing
   if (!ImportAnimations(config, this, endianness)) {
+    ozz::log::Err() << "Importing animations failed, exiting with failure code."
+                    << std::endl;
     return EXIT_FAILURE;
   }
-
+  ozz::log::Log() << "Exiting importer successfully." << std::endl;
   return EXIT_SUCCESS;
 }
 

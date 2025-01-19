@@ -48,28 +48,6 @@ OZZ_OPTIONS_DECLARE_STRING(skeleton,
                            "media/skeleton.ozz", false)
 
 class TwoBoneIKSampleApplication : public ozz::sample::Application {
- public:
-  TwoBoneIKSampleApplication()
-      : start_joint_(-1),
-        mid_joint_(-1),
-        end_joint_(-1),
-        pole_vector(0.f, 1.f, 0.f),
-        weight_(1.f),
-        soften_(.97f),
-        twist_angle_(0.f),
-        reached_(false),
-        fix_initial_transform_(true),
-        two_bone_ik_(true),
-        show_target_(true),
-        show_joints_(false),
-        show_pole_vector_(false),
-        root_translation_(0.f, 0.f, 0.f),
-        root_euler_(0.f, 0.f, 0.f),
-        root_scale_(1.f),
-        target_extent_(.5f),
-        target_offset_(0.f, .2f, .1f),
-        target_(0.f, 0.f, 0.f) {}
-
  protected:
   bool ApplyTwoBoneIK() {
     // Target and pole should be in model-space, so they must be converted from
@@ -185,10 +163,7 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
       const ozz::math::Box box(ozz::math::Float3(-kBoxHalfSize),
                                ozz::math::Float3(kBoxHalfSize));
       success &= _renderer->DrawBoxIm(
-          box,
-          ozz::math::Float4x4::Translation(
-              ozz::math::simd_float4::Load3PtrU(&target_.x)),
-          colors[reached_]);
+          box, ozz::math::Float4x4::Translation(target_), colors[reached_]);
     }
 
     // Displays pole vector
@@ -196,9 +171,9 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
       ozz::math::Float3 begin;
       ozz::math::Store3PtrU(TransformPoint(root, models_[mid_joint_].cols[3]),
                             &begin.x);
-      success &= _renderer->DrawSegment(begin, begin + pole_vector,
-                                        ozz::sample::kWhite,
-                                        ozz::math::Float4x4::identity());
+      ozz::math::Float3 line[] = {begin, begin + pole_vector};
+      success &= _renderer->DrawLines(line, ozz::sample::kWhite,
+                                      ozz::math::Float4x4::identity());
     }
 
     // Showing joints
@@ -261,8 +236,6 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
     return true;
   }
 
-  virtual void OnDestroy() {}
-
   virtual bool OnGui(ozz::sample::ImGui* _im_gui) {
     char label[32];
 
@@ -276,8 +249,9 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
         snprintf(label, sizeof(label), "Soften: %.2g", soften_);
         _im_gui->DoSlider(label, 0.f, 1.f, &soften_, 2.f);
         snprintf(label, sizeof(label), "Twist angle: %.0f",
-                twist_angle_ * ozz::math::kRadianToDegree);
-        _im_gui->DoSlider(label, -ozz::math::kPi, ozz::math::kPi, &twist_angle_);
+                 twist_angle_ * ozz::math::kRadianToDegree);
+        _im_gui->DoSlider(label, -ozz::math::kPi, ozz::math::kPi,
+                          &twist_angle_);
         snprintf(label, sizeof(label), "Weight: %.2g", weight_);
         _im_gui->DoSlider(label, 0.f, 1.f, &weight_);
         {
@@ -307,11 +281,14 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
         _im_gui->DoLabel("Target Offset");
         const float kOffsetRange = 1.f;
         snprintf(label, sizeof(label), "x %.2g", target_offset_.x);
-        _im_gui->DoSlider(label, -kOffsetRange, kOffsetRange, &target_offset_.x);
+        _im_gui->DoSlider(label, -kOffsetRange, kOffsetRange,
+                          &target_offset_.x);
         snprintf(label, sizeof(label), "y %.2g", target_offset_.y);
-        _im_gui->DoSlider(label, -kOffsetRange, kOffsetRange, &target_offset_.y);
+        _im_gui->DoSlider(label, -kOffsetRange, kOffsetRange,
+                          &target_offset_.y);
         snprintf(label, sizeof(label), "z %.2g", target_offset_.z);
-        _im_gui->DoSlider(label, -kOffsetRange, kOffsetRange, &target_offset_.z);
+        _im_gui->DoSlider(label, -kOffsetRange, kOffsetRange,
+                          &target_offset_.z);
       }
     }
     {  // Root
@@ -374,12 +351,9 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
   }
 
   ozz::math::Float4x4 GetRootTransform() const {
-    return ozz::math::Float4x4::Translation(
-               ozz::math::simd_float4::Load3PtrU(&root_translation_.x)) *
-           ozz::math::Float4x4::FromEuler(
-               ozz::math::simd_float4::Load3PtrU(&root_euler_.x)) *
-           ozz::math::Float4x4::Scaling(
-               ozz::math::simd_float4::Load1(root_scale_));
+    return ozz::math::Float4x4::Translation(root_translation_) *
+           ozz::math::Float4x4::FromEuler(root_euler_) *
+           ozz::math::Float4x4::Scaling(ozz::math::Float3(root_scale_));
   }
 
   // Runtime skeleton.
@@ -392,37 +366,37 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
   ozz::vector<ozz::math::Float4x4> models_;
 
   // Two bone IK setup. Indices of the relevant joints in the chain.
-  int start_joint_;
-  int mid_joint_;
-  int end_joint_;
+  int start_joint_ = -1;
+  int mid_joint_ = -1;
+  int end_joint_ = -1;
 
   // Two bone IK parameters.
-  ozz::math::Float3 pole_vector;
-  float weight_;
-  float soften_;
-  float twist_angle_;
+  ozz::math::Float3 pole_vector = {0.f, 1.f, 0.f};
+  float weight_ = 1.f;
+  float soften_ = .97f;
+  float twist_angle_ = 0.f;
 
   // Two bone IK job "reched" output value.
-  bool reached_;
+  bool reached_ = false;
 
   // Sample options
-  bool fix_initial_transform_;
-  bool two_bone_ik_;
+  bool fix_initial_transform_ = true;
+  bool two_bone_ik_ = true;
 
   // Sample display options
-  bool show_target_;
-  bool show_joints_;
-  bool show_pole_vector_;
+  bool show_target_ = true;
+  bool show_joints_ = false;
+  bool show_pole_vector_ = false;
 
   // Root transformation.
-  ozz::math::Float3 root_translation_;
-  ozz::math::Float3 root_euler_;
-  float root_scale_;
+  ozz::math::Float3 root_translation_ = {0.f, 0.f, 0.f};
+  ozz::math::Float3 root_euler_ = {0.f, 0.f, 0.f};
+  float root_scale_ = 1.f;
 
   // Target positioning and animation.
-  float target_extent_;
-  ozz::math::Float3 target_offset_;
-  ozz::math::Float3 target_;
+  float target_extent_ = .5f;
+  ozz::math::Float3 target_offset_ = {0.f, .2f, .1f};
+  ozz::math::Float3 target_ = {0.f, 0.f, 0.f};
 };
 
 int main(int _argc, const char** _argv) {

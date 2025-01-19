@@ -32,10 +32,10 @@
 #error "This header is private, it cannot be included from public headers."
 #endif  // OZZ_INCLUDE_PRIVATE_HEADER
 
+#include <cassert>
+
 #include "ozz/base/containers/stack.h"
 #include "ozz/base/containers/vector.h"
-
-#include <cassert>
 
 namespace ozz {
 namespace animation {
@@ -48,87 +48,95 @@ namespace offline {
 // struct Adapter {
 //  bool Decimable(const Key&) const;
 //  Key Lerp(const Key& _left, const Key& _right, const Key& _ref) const;
-//  float Distance(const Key& _a, const Key& _b) const;
+//  float Distance(const Value& _a, const Value& _b) const;
 // };
 template <typename _Track, typename _Adapter>
-void Decimate(const _Track& _src, const _Adapter& _adapter, float _tolerance,
-              _Track* _dest) {
-  // Early out if not enough data.
-  if (_src.size() < 2) {
-    *_dest = _src;
-    return;
-  }
+_Track Decimate(const _Track& _src, const _Adapter& _adapter,
+                float _tolerance) {
+  _Track output;
+  if (_src.size() < 2) {  // Nothing to decimate.
+    output = _src;
+  } else {
+    // Stack of segments to process.
+    typedef std::pair<size_t, size_t> Segment;
+    ozz::stack<Segment> segments;
 
-  // Stack of segments to process.
-  typedef std::pair<size_t, size_t> Segment;
-  ozz::stack<Segment> segments;
+    // Bit vector of all points to included.
+    ozz::vector<bool> included(_src.size(), false);
 
-  // Bit vector of all points to included.
-  ozz::vector<bool> included(_src.size(), false);
+    // Pushes segment made from first and last points.
+    segments.push(Segment(0, _src.size() - 1));
+    included[0] = true;
+    included[_src.size() - 1] = true;
 
-  // Pushes segment made from first and last points.
-  segments.push(Segment(0, _src.size() - 1));
-  included[0] = true;
-  included[_src.size() - 1] = true;
+    // Empties segments stack.
+    while (!segments.empty()) {
+      // Pops next segment to process.
+      const Segment segment = segments.top();
+      segments.pop();
 
-  // Empties segments stack.
-  while (!segments.empty()) {
-    // Pops next segment to process.
-    const Segment segment = segments.top();
-    segments.pop();
-
-    // Looks for the furthest point from the segment.
-    float max = -1.f;
-    size_t candidate = segment.first;
-    typename _Track::const_reference left = _src[segment.first];
-    typename _Track::const_reference right = _src[segment.second];
-    for (size_t i = segment.first + 1; i < segment.second; ++i) {
-      assert(!included[i] && "Included points should be processed once only.");
-      typename _Track::const_reference test = _src[i];
-      if (!_adapter.Decimable(test)) {
-        candidate = i;
-        break;
-      } else {
-        const float distance =
-            _adapter.Distance(_adapter.Lerp(left, right, test), test);
-        if (distance > _tolerance && distance > max) {
-          max = distance;
+      // Looks for the furthest point from the segment.
+      float max = -1.f;
+      size_t candidate = segment.first;
+      typename _Track::const_reference left = _src[segment.first];
+      typename _Track::const_reference right = _src[segment.second];
+      for (size_t i = segment.first + 1; i < segment.second; ++i) {
+        assert(!included[i] &&
+               "Included points should be processed once only.");
+        typename _Track::const_reference test = _src[i];
+        if (!_adapter.Decimable(test)) {
           candidate = i;
+          break;
+        } else {
+          const float distance = _adapter.Distance(
+              _adapter.Lerp(left, right, test).value, test.value);
+          if (distance > _tolerance && distance > max) {
+            max = distance;
+            candidate = i;
+          }
+        }
+      }
+
+      // If found, include the point and pushes the 2 new segments (before and
+      // after the new point).
+      if (candidate != segment.first) {
+        included[candidate] = true;
+        if (candidate - segment.first > 1) {
+          segments.push(Segment(segment.first, candidate));
+        }
+        if (segment.second - candidate > 1) {
+          segments.push(Segment(candidate, segment.second));
         }
       }
     }
 
-    // If found, include the point and pushes the 2 new segments (before and
-    // after the new point).
-    if (candidate != segment.first) {
-      included[candidate] = true;
-      if (candidate - segment.first > 1) {
-        segments.push(Segment(segment.first, candidate));
-      }
-      if (segment.second - candidate > 1) {
-        segments.push(Segment(candidate, segment.second));
+    // Copy all included points.
+    for (size_t i = 0; i < _src.size(); ++i) {
+      if (included[i]) {
+        output.push_back(_src[i]);
       }
     }
   }
 
-  // Copy all included points.
-  _dest->clear();
-  for (size_t i = 0; i < _src.size(); ++i) {
-    if (included[i]) {
-      _dest->push_back(_src[i]);
+  // RDP algo ends with a minimum of 2 points (first and last).
+  // Removes last keys if track is constant or identity.
+  while (!output.empty()) {
+    const bool last_key = output.size() == 1;
+    typename _Track::const_reference back = output.back();
+    if (!last_key && !_adapter.Decimable(back)) {
+      break;  // Not allowed, only meaningful if not last key
     }
+    const auto& penultimate =
+        last_key ? _Adapter::identity() : output[output.size() - 2].value;
+    const float distance = _adapter.Distance(penultimate, back.value);
+    if (distance > _tolerance) {
+      break;  // Too far, not decimable
+    }
+    // Decimation is possible, remove last key.
+    output.pop_back();
   }
 
-  // Removes last key if constant.
-  if (_dest->size() > 1) {
-    typename _Track::const_iterator end = _dest->end();
-    typename _Track::const_reference last = *(--end);
-    typename _Track::const_reference penultimate = *(--end);
-    const float distance = _adapter.Distance(penultimate, last);
-    if (_adapter.Decimable(last) && distance <= _tolerance) {
-      _dest->pop_back();
-    }
-  }
+  return output;
 }
 }  // namespace offline
 }  // namespace animation

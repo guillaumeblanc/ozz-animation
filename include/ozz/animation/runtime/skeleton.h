@@ -80,7 +80,7 @@ class OZZ_ANIMATION_DLL Skeleton {
   };
 
   // Builds a default skeleton.
-  Skeleton();
+  Skeleton() = default;
 
   // Allow move.
   Skeleton(Skeleton&&);
@@ -126,6 +126,9 @@ class OZZ_ANIMATION_DLL Skeleton {
 
   // SkeletonBuilder class is allowed to instantiate an Skeleton.
   friend class offline::SkeletonBuilder;
+
+  // Allocation for the whole skeleton.
+  void* allocation_ = nullptr;
 
   // Buffers below store joint informations in joing depth first order. Their
   // size is equal to the number of joints of the skeleton.

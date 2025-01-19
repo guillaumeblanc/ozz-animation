@@ -50,9 +50,6 @@ OZZ_OPTIONS_DECLARE_STRING(animation,
                            "media/animation.ozz", false)
 
 class PlaybackSampleApplication : public ozz::sample::Application {
- public:
-  PlaybackSampleApplication() {}
-
  protected:
   // Updates current animation time and skeleton pose.
   virtual bool OnUpdate(float _dt, float) {
@@ -81,7 +78,6 @@ class PlaybackSampleApplication : public ozz::sample::Application {
     return true;
   }
 
-  // Samples animation, transforms to model space and renders.
   virtual bool OnDisplay(ozz::sample::Renderer* _renderer) {
     return _renderer->DrawPosture(skeleton_, make_span(models_),
                                   ozz::math::Float4x4::identity());
@@ -115,8 +111,6 @@ class PlaybackSampleApplication : public ozz::sample::Application {
     return true;
   }
 
-  virtual void OnDestroy() {}
-
   virtual bool OnGui(ozz::sample::ImGui* _im_gui) {
     // Exposes animation runtime playback controls.
     {
@@ -130,7 +124,8 @@ class PlaybackSampleApplication : public ozz::sample::Application {
   }
 
   virtual void GetSceneBounds(ozz::math::Box* _bound) const {
-    ozz::sample::ComputePostureBounds(make_span(models_), _bound);
+    ozz::sample::ComputePostureBounds(make_span(models_),
+                                      ozz::math::Float4x4::identity(), _bound);
   }
 
  private:

@@ -54,9 +54,6 @@ class Animation;
 // optimized through the context. The job does not owned the buffers (in/output)
 // and will thus not delete them during job's destruction.
 struct OZZ_ANIMATION_DLL SamplingJob {
-  // Default constructor, initializes default values.
-  SamplingJob();
-
   // Validates job parameters. Returns true for a valid job, or false otherwise:
   // -if any input pointer is nullptr
   // -if output range is invalid.
@@ -73,16 +70,16 @@ struct OZZ_ANIMATION_DLL SamplingJob {
   // current time in the animation , divided by animation duration.
   // This ratio is clamped before job execution in order to resolves any
   // approximation issue on range bounds.
-  float ratio;
+  float ratio = 0.f;
 
   // The animation to sample.
-  const Animation* animation;
+  const Animation* animation = nullptr;
 
   // Forward declares the context object used by the SamplingJob.
   class Context;
 
   // A context object that must be big enough to sample *this animation.
-  Context* context;
+  Context* context = nullptr;
 
   // Job output.
   // The output range to be filled with sampled joints during job execution.
@@ -114,8 +111,10 @@ class OZZ_ANIMATION_DLL SamplingJob::Context {
   explicit Context(int _max_tracks);
 
   // Disables copy and assignation.
-  Context(Context const&) = delete;
-  Context& operator=(Context const&) = delete;
+  Context(const Context&) = delete;
+  Context& operator=(const Context&) = delete;
+  Context(Context&&) = delete;
+  Context& operator=(Context&&) = delete;
 
   // Deallocates context.
   ~Context();
@@ -159,6 +158,8 @@ class OZZ_ANIMATION_DLL SamplingJob::Context {
   // Return previous ratio.
   float Step(const Animation& _animation, float _ratio);
 
+  void Deallocate();
+
   // The animation this context refers to. nullptr means that the context is
   // invalid.
   const Animation* animation_;
@@ -168,6 +169,9 @@ class OZZ_ANIMATION_DLL SamplingJob::Context {
 
   // The number of soa tracks that can store this context.
   int max_soa_tracks_;
+
+  // Single allocation for the whole context.
+  void* allocation_ = nullptr;
 
   // Context cache instances per component.
   Cache translations_cache_;

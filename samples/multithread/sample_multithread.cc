@@ -86,12 +86,7 @@ bool HasThreadingSupport() {
 
 class MultithreadSampleApplication : public ozz::sample::Application {
  public:
-  MultithreadSampleApplication()
-      : characters_(kMaxCharacters),
-        num_characters_(kMaxCharacters / 4),
-        has_threading_support_(HasThreadingSupport()),
-        enable_theading_(has_threading_support_),
-        grain_size_(128) {
+  MultithreadSampleApplication() : characters_(kMaxCharacters) {
     if (has_threading_support_) {
       ozz::log::Out() << "Platform has threading support." << std::endl;
     } else {
@@ -231,12 +226,11 @@ class MultithreadSampleApplication : public ozz::sample::Application {
   virtual bool OnDisplay(ozz::sample::Renderer* _renderer) {
     bool success = true;
     for (int c = 0; success && c < num_characters_; ++c) {
-      const ozz::math::Float4 position(
+      const ozz::math::Float3 position(
           ((c % kWidth) - kWidth / 2) * kInterval,
           ((c / kWidth) / kDepth) * kInterval,
-          (((c / kWidth) % kDepth) - kDepth / 2) * kInterval, 1.f);
-      const ozz::math::Float4x4 transform = ozz::math::Float4x4::Translation(
-          ozz::math::simd_float4::LoadPtrU(&position.x));
+          (((c / kWidth) % kDepth) - kDepth / 2) * kInterval);
+      const auto transform = ozz::math::Float4x4::Translation(position);
       success &= _renderer->DrawPosture(
           skeleton_, make_span(characters_[c].models), transform, false);
     }
@@ -278,8 +272,6 @@ class MultithreadSampleApplication : public ozz::sample::Application {
     return true;
   }
 
-  virtual void OnDestroy() {}
-
   virtual bool OnGui(ozz::sample::ImGui* _im_gui) {
     // Exposes number of characters.
     {
@@ -287,7 +279,8 @@ class MultithreadSampleApplication : public ozz::sample::Application {
       ozz::sample::ImGui::OpenClose oc(_im_gui, "Sample control", &oc_open);
       if (oc_open) {
         char label[64];
-        std::snprintf(label, sizeof(label), "Number of entities: %d", num_characters_);
+        std::snprintf(label, sizeof(label), "Number of entities: %d",
+                      num_characters_);
         _im_gui->DoSlider(label, 1, kMaxCharacters, &num_characters_, .7f);
         const int num_joints = num_characters_ * skeleton_.num_joints();
         std::snprintf(label, sizeof(label), "Number of joints: %d", num_joints);
@@ -307,8 +300,8 @@ class MultithreadSampleApplication : public ozz::sample::Application {
           _im_gui->DoSlider(label, kMinGrainSize, kMaxCharacters, &grain_size_,
                             .2f);
           const int num_threads = monitor_.ThreadCount();
-          std::snprintf(label, sizeof(label), "Thread/task count: %d/%d", num_threads,
-                       monitor_.TaskCount());
+          std::snprintf(label, sizeof(label), "Thread/task count: %d/%d",
+                        num_threads, monitor_.TaskCount());
           _im_gui->DoLabel(label);
         }
       }
@@ -356,16 +349,16 @@ class MultithreadSampleApplication : public ozz::sample::Application {
   ozz::vector<Character> characters_;
 
   // Number of used characters.
-  int num_characters_;
+  int num_characters_ = kMaxCharacters / 4;
 
   // Does the current plateform actually has threading support.
-  bool has_threading_support_;
+  bool has_threading_support_ = HasThreadingSupport();
 
   // Enable or disable threading.
-  bool enable_theading_;
+  bool enable_theading_ = has_threading_support_;
 
   // Define the number of characters that a task can handle.
-  int grain_size_;
+  int grain_size_ = 128;
 
   // Data used to monitor and analyze threading.
   ParallelMonitor monitor_;
