@@ -1,4 +1,5 @@
 add_subdirectory(containers)
+add_subdirectory(encode)
 add_subdirectory(io)
 add_subdirectory(maths)
 add_subdirectory(memory)

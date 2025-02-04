@@ -25,18 +25,20 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
+#include <cstring>
+
 #include "ozz/base/containers/array.h"
 #include "ozz/base/encode/group_varint.h"
 #include "ozz/base/gtest_helper.h"
 
 TEST(Validity, GroupVarint4) {
-  ozz::byte buffer[17];
-  const uint32_t iarray[4] = {0, 0, 0, 0};
+  OZZ_IF_DEBUG(ozz::byte buffer[17];)
+  OZZ_IF_DEBUG(const uint32_t iarray[4] = {0, 0, 0, 0};)
   EXPECT_ASSERTION(ozz::EncodeGV4(iarray, {}), "Output buffer is too small.");
   EXPECT_ASSERTION(ozz::EncodeGV4(iarray, ozz::span<ozz::byte>(buffer, 16)),
                    "Output buffer is too small.");
 
-  uint32_t oarray[4];
+  OZZ_IF_DEBUG(uint32_t oarray[4];)
   EXPECT_ASSERTION(ozz::DecodeGV4({}, oarray), "Input buffer is too small.");
   EXPECT_ASSERTION(ozz::DecodeGV4(ozz::span<ozz::byte>(buffer, 4), oarray),
                    "Input buffer is too small.");
@@ -83,6 +85,7 @@ void EncodeDecode(uint32_t _a, uint32_t _b, uint32_t _c, uint32_t _d) {
 }
 
 TEST(Value, GroupVarint4) {
+  EncodeDecode(25, 545, 164245, 454545634);
   EncodeDecode(0, 0, 0, 0);
   EncodeDecode(0, 1, 2, 3);
   EncodeDecode(255, 255, 255, 255);
@@ -98,9 +101,9 @@ TEST(Value, GroupVarint4) {
 }
 
 TEST(Validity, GroupVarint4Stream) {
-  ozz::byte buffer[1 << 10];
-  uint32_t stream[] = {0, 0,   0,     0,        1,          2,
-                       3, 255, 65535, 16777215, 4294967295, 46};
+  OZZ_IF_DEBUG(ozz::byte buffer[1 << 10]);
+  OZZ_IF_DEBUG(uint32_t stream[] = {0, 0, 0, 0, 1, 2, 3, 255, 65535, 16777215,
+                                    4294967295, 46});
 
   // Encode
   // Output buffer too small
@@ -147,7 +150,7 @@ TEST(Value, GroupVarint4Stream) {
 
   EXPECT_EQ(ozz::EncodeGV4Stream({in_stream, 4}, buffer).size_bytes(), 46u);
   EXPECT_EQ(ozz::DecodeGV4Stream({buffer, 5}, {out_stream, 4}).size_bytes(),
-            1u);
+            0u);
   EXPECT_EQ(std::memcmp(in_stream, out_stream, 4 * sizeof(uint32_t)), 0);
 
   EXPECT_EQ(ozz::EncodeGV4Stream(in_stream, buffer).size_bytes(), 30u);

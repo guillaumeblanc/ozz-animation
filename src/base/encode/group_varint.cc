@@ -58,8 +58,8 @@ OZZ_INLINE uint32_t load(const ozz::byte* _in) {
 }
 }  // namespace internal
 
-inline ozz::span<ozz::byte> EncodeGV4(const ozz::span<const uint32_t>& _input,
-                                      const ozz::span<ozz::byte>& _buffer) {
+ozz::span<ozz::byte> EncodeGV4(const ozz::span<const uint32_t>& _input,
+                               const ozz::span<ozz::byte>& _buffer) {
   assert(_input.size() == 4 && "Input size must be 4");
   assert(_buffer.size_bytes() >= 4 * sizeof(uint32_t) + 1 &&
          "Output buffer is too small.");
@@ -84,9 +84,8 @@ inline ozz::span<ozz::byte> EncodeGV4(const ozz::span<const uint32_t>& _input,
   return {out, _buffer.end()};
 }
 
-inline ozz::span<const ozz::byte> DecodeGV4(
-    const ozz::span<const ozz::byte>& _buffer,
-    const ozz::span<uint32_t>& _output) {
+ozz::span<const ozz::byte> DecodeGV4(const ozz::span<const ozz::byte>& _buffer,
+                                     const ozz::span<uint32_t>& _output) {
   assert(_buffer.size_bytes() >= 5 && "Input buffer is too small.");
   assert(_output.size() == 4 && "Output size must be 4");
 
