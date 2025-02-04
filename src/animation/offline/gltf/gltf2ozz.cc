@@ -516,6 +516,17 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
     return success;
   }
 
+  static bool IsSkinJoint(const tinygltf::Skin& skin, int node) {
+    static constexpr int invalid_node = -1;
+    static constexpr int visited = -2;
+    if (node == invalid_node || node == visited) return false;
+
+    return std::any_of(
+        skin.joints.begin(), skin.joints.end(),
+        [&node](const int& joint) { return joint == node; }
+    );
+  }
+
   // Find all unique root joints of skeletons used by given skins and add them
   // to `roots`
   void FindSkinRootJointIndices(const ozz::vector<tinygltf::Skin>& skins,
@@ -541,7 +552,7 @@ class GltfImporter : public ozz::animation::offline::OzzImporter {
       }
 
       int root = skin.joints[0];
-      while (root != visited && parents[root] != no_parent) {
+      while (IsSkinJoint(skin, parents[root])) {
         root = parents[root];
       }
       if (root != visited) {
