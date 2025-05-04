@@ -1,0 +1,49 @@
+
+add_custom_command(
+  DEPENDS $<$<BOOL:${ozz_build_fbx}>:BUILD_DATA>
+          "${CMAKE_CURRENT_LIST_DIR}/README.md"
+          "${ozz_media_directory}/bin/pab_skeleton.ozz"
+          "${ozz_media_directory}/bin/pab_crossarms.ozz"
+  OUTPUT  "${CMAKE_CURRENT_BINARY_DIR}/README.md"
+          "${CMAKE_CURRENT_BINARY_DIR}/media/skeleton.ozz"
+          "${CMAKE_CURRENT_BINARY_DIR}/media/animation.ozz"
+  COMMAND ${CMAKE_COMMAND} -E make_directory media
+  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_LIST_DIR}/README.md" .
+  COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/pab_skeleton.ozz" "./media/skeleton.ozz"
+  COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/pab_crossarms.ozz" "./media/animation.ozz"
+  VERBATIM)
+
+add_executable(sample_two_bone_ik_dbg
+  sample_two_bone_ik.cc
+  "${CMAKE_CURRENT_BINARY_DIR}/README.md"
+  "${CMAKE_CURRENT_BINARY_DIR}/media/skeleton.ozz"
+  "${CMAKE_CURRENT_BINARY_DIR}/media/animation.ozz")
+target_link_libraries(sample_two_bone_ik_dbg
+  sample_framework
+  ozz_animation_offline
+  ozz_animation)
+target_copy_shared_libraries(sample_two_bone_ik_dbg)
+
+set_target_properties(sample_two_bone_ik_dbg
+  PROPERTIES FOLDER "samples")
+
+if(EMSCRIPTEN)
+  # Resource files are embedded to the output file with emscripten
+  set_target_properties(sample_two_bone_ik_dbg
+    PROPERTIES LINK_FLAGS "--embed-file media --embed-file README.md")
+
+  install(FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/sample_two_bone_ik_dbg.html
+    ${CMAKE_CURRENT_BINARY_DIR}/sample_two_bone_ik_dbg.js
+    ${CMAKE_CURRENT_BINARY_DIR}/sample_two_bone_ik_dbg.wasm
+    DESTINATION bin/samples/two_bone_ik_dbg)
+else()
+  install(TARGETS sample_two_bone_ik_dbg DESTINATION bin/samples/two_bone_ik_dbg)
+  install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/media DESTINATION bin/samples/two_bone_ik_dbg)
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/README.md DESTINATION bin/samples/two_bone_ik_dbg)
+endif(EMSCRIPTEN)
+
+add_test(NAME sample_two_bone_ik_dbg COMMAND sample_two_bone_ik_dbg "--max_idle_loops=${ozz_sample_testing_loops}" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)
+add_test(NAME sample_two_bone_ik_dbg_path COMMAND sample_two_bone_ik_dbg "--skeleton=media/skeleton.ozz" "--max_idle_loops=${ozz_sample_testing_loops}" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)
+add_test(NAME ssample_two_bone_ik_dbg_invalid_skeleton_path COMMAND sample_two_bone_ik_dbg "--skeleton=media/bad_skeleton.ozz" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)
+set_tests_properties(ssample_two_bone_ik_dbg_invalid_skeleton_path PROPERTIES WILL_FAIL true)
