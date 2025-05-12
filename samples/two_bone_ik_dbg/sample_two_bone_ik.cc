@@ -73,10 +73,10 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
     ozz::animation::IKTwoBoneJob ik_job;
     ik_job.target = target_ms;
     ik_job.pole_vector = pole_vector_ms;
-    ik_job.mid_axis = ozz::math::simd_float4::z_axis();  // Middle joint
-                                                         // rotation axis is
-                                                         // fixed, and depends
-                                                         // on skeleton rig.
+    ik_job.mid_axis = -ozz::math::simd_float4::x_axis();  // Middle joint
+                                                          // rotation axis is
+                                                          // fixed, and depends
+                                                          // on skeleton rig.
     ik_job.weight = weight_;
     ik_job.soften = soften_;
     ik_job.twist_angle = twist_angle_;
