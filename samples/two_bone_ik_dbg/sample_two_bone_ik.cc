@@ -120,7 +120,7 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
     return true;
   }
 
-  virtual bool OnUpdate(float _dt, float _time) {
+  virtual bool OnUpdate(float _dt, float /*_time*/) {
     // Updates current animation time.
     controller_.Update(animation_, _dt);
 
@@ -246,11 +246,11 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
     start_joint_ = mid_joint_ = end_joint_ = -1;
     for (int i = 0; i < skeleton_.num_joints(); i++) {
       const char* joint_name = skeleton_.joint_names()[i];
-      if (std::strcmp(joint_name, "LeftArm") == 0) {
+      if (std::strcmp(joint_name, "DEF-upper_arm.L") == 0) {
         start_joint_ = i;
-      } else if (std::strcmp(joint_name, "LeftForeArm") == 0) {
+      } else if (std::strcmp(joint_name, "DEF-forearm.L") == 0) {
         mid_joint_ = i;
-      } else if (std::strcmp(joint_name, "Lefthand") == 0) {
+      } else if (std::strcmp(joint_name, "DEF-hand.L") == 0) {
         end_joint_ = i;
       }
     }
