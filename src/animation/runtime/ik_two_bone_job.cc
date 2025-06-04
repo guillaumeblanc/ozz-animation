@@ -121,7 +121,8 @@ bool SoftenTarget(const IKTwoBoneJob& _job, const IKConstantSetup& _setup,
   const SimdFloat4 lengths =
       Sqrt(SetZ(SetY(_setup.start_mid_ss_len2, _setup.mid_end_ss_len2),
                 start_target_original_ss_len2));
-  const SimdFloat4 start_mid_ss_len = lengths;
+  const SimdFloat4 start_mid_ss_len =
+      SplatX(lengths);  // Makes sure no NAN in .yzw
   const SimdFloat4 mid_end_ss_len = SplatY(lengths);
   const SimdFloat4 start_target_original_ss_len = SplatZ(lengths);
   const SimdFloat4 bone_len_diff_abs =
@@ -149,6 +150,7 @@ bool SoftenTarget(const IKTwoBoneJob& _job, const IKConstantSetup& _setup,
   if ((comp_mask & 0xb) == 0xb) {
     // Finds interpolation ratio (aka alpha).
     const SimdFloat4 alpha = (start_target_original_ss_len - da) * RcpEstX(ds);
+
     // Approximate an exponential function with : 1-(3^4)/(alpha+3)^4
     // The derivative must be 1 for x = 0, and y must never exceeds 1.
     // Negative x aren't used.
@@ -171,8 +173,8 @@ bool SoftenTarget(const IKTwoBoneJob& _job, const IKConstantSetup& _setup,
 
   // The maximum distance we can reach is the soften bone chain length: da
   // (stored in !x). The minimum distance we can reach is the absolute value of
-  // the difference of the 2 bone lengths, |d1-d2| (stored in z). x is 0 and z
-  // is 1, yw are untested.
+  // the difference of the 2 bone lengths, |d1-d2| (stored in z).
+  // Hence: x is 0 and z is 1, yw are untested.
   return (comp_mask & 0x5) == 0x4;
 }
 

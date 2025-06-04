@@ -1,3 +1,10 @@
+
+Release version next
+----------------------
+
+* Library
+  - [animation] Prevents introducing a NAN in two bone IK computation, which was causing instability when softening target position. 
+
 Release version 0.16.0
 ----------------------
 
