@@ -111,7 +111,7 @@ The runtime track data structure is optimized for the processing of `ozz::animat
 
 ### `ozz::animation::TrackTriggeringJob`
 
-`ozz::animation::TrackTriggeringJob` detects when track curve crosses a threshold value, aka an edge, triggering dated events that can be processed as state changes. To do so, `ozz::animation::TrackTriggeringJob` considers what happens between 2 samples, not only the sampled point.
+`ozz::animation::TrackTriggeringJob` detects when track curve crosses a threshold value, aka an edge, triggering dated events. This is useful to implement time based events/notifications or states in sync with an animation. To do so, `ozz::animation::TrackTriggeringJob` considers what happens between 2 samples, not only the sampled point.
 
 > Edge triggering wording refers to signal processing, where a signal edge is a transition from low to high or from high to low. It is called an "edge" because of the square wave which represents a signal has edges at those points. A rising edge is the transition from low to high, a falling edge is from high to low.
 
