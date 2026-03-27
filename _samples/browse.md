@@ -1,7 +1,7 @@
 ---
 title: Animations set browsing
 layout: full
-keywords: browse,load,playback,skeleton,skinning
+keywords: browse,load,playback,skeleton,skinning,animation,library
 order: 86
 level: 3
 ---
@@ -12,37 +12,39 @@ level: 3
 Description
 ===========
 
-This sample lists all animations from set and allows to select which animation to playback.
-It loads a skeleton, an animation and skinned meshes from ozz binary archives. It playbacks animation every frame and uses model-space matrices to build skinning matrices and render a skinned mesh.
+List animations and lets user browsing through and preview all animations.
 
 {% include emscripten.jekyll emscripten_path="samples/emscripten/sample_browse.js" %}
 
 Concept
 =======
-
-This sample is based on skinning sample for the most part, reading and sampling an animation, loading an ozz binary mesh file which was generated with sample_fbx2mesh tool.
-Every time a new animation from the set is selected through UI, the previous one is unloaded and the new one loaded. 
+This sample lists all animations from set and allows to select which animation to playback.
+It is based on skinning sample for the most part.
+It loads a skeleton, an animation and skinned meshes from ozz binary archives. It playbacks animation every frame and uses model-space matrices to build skinning matrices and render a skinned mesh.
 
 Sample usage
 ============
 
-Animation selection.
+The sample UI exposes:
 
-Animation playback parameters can be tuned from sample UI:
-- Play/pause animation.
-- Fix animation time.
-- Set playback speed, which can be negative to go backward.
+- A list of animations grouped by name prefix, with buttons to select the next animation or pick any animation from a group.
+- Playback controls (play/pause, scrub time, speed) via the built-in playback controller.
+- Rendering toggles:
+  - Draw skeleton.
+  - Draw mesh.
+  - Show triangles, texture, vertices, normals, tangents, binormals, colors.
+  - Wireframe.
+  - Skip skinning.
 
-Rendering options are also exposed:
-- Enabling skeleton display.
-- Enabling mesh display.
-- Enabling skinning stage.
-- Display normals, tangent and binormals.
+Implementation
+==============
 
-## Implementation
-
-1. Load animation and skeleton, sample animation to get local-space transformations, and finally convert local-space transformations to model-space matrices. See Playback sample for more details about these steps.
-2. Load meshes from ozz archive. There can be multiple meshes as import utility (aka fbx2mesh) maintains dcc file meshes split.
-3. Computes and allocates skinning matrices. Number of skinning matrices might be less from the number of joints, as a mesh might be skinned by a subset of all skeleton joints only. Mesh::joint_remaps is used to know how to order skinning matrices, hence is size defines their number.   
-4. Skinning matrices array is updated before rendering each mesh. A skinning matrix is the multiplication of the model-space and the mesh inverse bind pose matrix for a joint. Mesh::joint_remaps is used to index skeleton joints, so they match with the mesh.
-5. Skinning is performed by ozz::geometry::SkinningJob. Please check sample framework DrawSkinnedMesh function for more details about how to setup that job.
+1. Load the skeleton archive.
+2. Read the animations list file and build a sorted list of animation archive filenames.
+3. Randomly pick an animation at startup and load it from `media/<animation_name>`.
+4. Allocate runtime buffers.
+5. Every frame:
+   1. Update animation time using the playback controller.
+   2. Sample the current animation with `ozz::animation::SamplingJob`.
+   3. Convert local-space transforms to model-space using `ozz::animation::LocalToModelJob`.
+   4. Update skinning matrices and render the skeleton/mesh.
