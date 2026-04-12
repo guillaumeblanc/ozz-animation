@@ -38,6 +38,7 @@
 #include "ozz/animation/runtime/local_to_model_job.h"
 #include "ozz/animation/runtime/sampling_job.h"
 #include "ozz/animation/runtime/skeleton.h"
+#include "ozz/animation/runtime/skeleton_utils.h"
 #include "ozz/base/log.h"
 #include "ozz/base/maths/box.h"
 #include "ozz/base/maths/math_ex.h"
@@ -67,10 +68,13 @@ OZZ_OPTIONS_DECLARE_STRING(floor,
                            "Path to the floor mesh (ozz archive format).",
                            "media/floor.ozz", false)
 
-const char* kLeftJointNames[] = {"LeftUpLeg", "LeftLeg", "LeftFoot"};
-const char* kRightJointNames[] = {"RightUpLeg", "RightLeg", "RightFoot"};
+const char* kLeftJointNames[] = {"DEF-thigh.L", "DEF-shin.L", "DEF-foot.L"};
+const char* kRightJointNames[] = {"DEF-thigh.R", "DEF-shin.R", "DEF-foot.R"};
+const auto kPoleFromKee = [](const ozz::math::Float4x4& _matrix) {
+  return -_matrix.cols[1];
+};
 
-const ozz::math::SimdFloat4 kKneeAxis = ozz::math::simd_float4::z_axis();
+const ozz::math::SimdFloat4 kKneeAxis = -ozz::math::simd_float4::x_axis();
 
 const ozz::math::SimdFloat4 kAnkleForward = -ozz::math::simd_float4::x_axis();
 const ozz::math::SimdFloat4 kAnkleUp = ozz::math::simd_float4::y_axis();
@@ -350,7 +354,8 @@ class FootIKSampleApplication : public ozz::sample::Application {
     // Target position and pole vectors must be in model space.
     const ozz::math::SimdFloat4 target_ms = TransformPoint(
         _inv_root, ozz::math::simd_float4::Load3PtrU(&_target_ws.x));
-    const ozz::math::SimdFloat4 pole_vector_ms = models_[_leg.knee].cols[1];
+    const ozz::math::SimdFloat4 pole_vector_ms =
+        -ozz::math::simd_float4::y_axis();  // models_[_leg.knee].cols[1];
 
     // Builds two bone IK job.
     ozz::animation::IKTwoBoneJob ik_job;
@@ -359,6 +364,7 @@ class FootIKSampleApplication : public ozz::sample::Application {
     // Mid axis (knee) is constant (usualy), and arbitratry defined by
     // skeleton/rig setup.
     ik_job.mid_axis = kKneeAxis;
+    // ik_job.twist_angle = ozz::math::kPi;
     ik_job.weight = weight_;
     ik_job.soften = soften_;
     ik_job.start_joint = &models_[_leg.hip];
@@ -473,6 +479,16 @@ class FootIKSampleApplication : public ozz::sample::Application {
       }
     }
 
+    ozz::math::Float3 begin;
+    ozz::math::Store3PtrU(models_[legs_setup_->knee].cols[3], &begin.x);
+
+    ozz::math::Float3 pole;
+    ozz::math::Store3PtrU(kPoleFromKee(models_[legs_setup_->knee]), &pole.x);
+    ozz::math::Float3 line[] = {begin, begin + pole};
+    success &= _renderer->DrawLines(line, ozz::sample::kWhite, offsetted_root);
+
+    //_renderer->DrawAxes(offsetted_root * models_[legs_setup_->knee]);
+
     // Shows raycast results
     if (show_raycast_) {
       for (size_t l = 0; l < kLegsCount; ++l) {
@@ -574,19 +590,11 @@ class FootIKSampleApplication : public ozz::sample::Application {
 
   bool SetupLeg(const ozz::animation::Skeleton& _skeleton,
                 const char* _joint_names[3], LegSetup* _leg) {
-    int found = 0;
-    int joints[3] = {0};
-    for (int i = 0; i < _skeleton.num_joints() && found != 3; i++) {
-      const char* joint_name = _skeleton.joint_names()[i];
-      if (std::strcmp(joint_name, _joint_names[found]) == 0) {
-        joints[found] = i;
-        ++found;
-      }
-    }
-    _leg->hip = joints[0];
-    _leg->knee = joints[1];
-    _leg->ankle = joints[2];
-    return found == 3;
+    _leg->hip = ozz::animation::FindJoint(_skeleton, _joint_names[0]);
+    _leg->knee = ozz::animation::FindJoint(_skeleton, _joint_names[1]);
+    _leg->ankle = ozz::animation::FindJoint(_skeleton, _joint_names[2]);
+
+    return _leg->hip >= 0 && _leg->knee >= 0 && _leg->ankle >= 0;
   }
 
   virtual bool OnGui(ozz::sample::ImGui* _im_gui) {
@@ -743,8 +751,8 @@ class FootIKSampleApplication : public ozz::sample::Application {
   ozz::vector<ozz::sample::Mesh> floors_;
 
   // Root transformation.
-  ozz::math::Float3 root_translation_ = {2.17f, 2.f, -2.06f};
-  float root_yaw_ = -2.f;
+  ozz::math::Float3 root_translation_ = {-1.f, 0.1f, -3.f};
+  float root_yaw_ = 0.f;
 
   // Foot height setting
   float foot_heigh_ = .12f;

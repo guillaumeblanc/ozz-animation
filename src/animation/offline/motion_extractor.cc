@@ -30,6 +30,7 @@
 #include <cassert>
 
 #include "ozz/animation/offline/raw_animation.h"
+#include "ozz/animation/offline/raw_animation_utils.h"
 #include "ozz/animation/offline/raw_track.h"
 #include "ozz/animation/offline/raw_track_utils.h"
 #include "ozz/animation/runtime/skeleton.h"
@@ -41,17 +42,26 @@ namespace animation {
 namespace offline {
 
 namespace {
-ozz::math::Transform BuildReference(
+std::pair<bool, ozz::math::Transform> BuildReference(
     MotionExtractor::Reference _position_reference,
     MotionExtractor::Reference _rotation_reference,
-    const ozz::math::Transform& _skeleton_ref,
+    const ozz::animation::Skeleton& _skeleton, int _joint,
     const RawAnimation::JointTrack& _track) {
+  assert(_joint >= 0 && _joint < _skeleton.num_joints());
+
+  // Builds skeleton reference transform.
+  const auto rest_pose_ms = GetRestPoseModelSpace(_skeleton)[_joint];
+  math::Transform skeleton_ref;
+  if (!ToAffine(rest_pose_ms, &skeleton_ref)) {
+    return {false, {}};
+  }
+
   auto ref = ozz::math::Transform::identity();
 
   // Position reference
   switch (_position_reference) {
     case MotionExtractor::Reference::kSkeleton: {
-      ref.translation = _skeleton_ref.translation;
+      ref.translation = skeleton_ref.translation;
     } break;
     case MotionExtractor::Reference::kAnimation: {
       if (!_track.translations.empty()) {
@@ -65,7 +75,7 @@ ozz::math::Transform BuildReference(
   // Rotation reference
   switch (_rotation_reference) {
     case MotionExtractor::Reference::kSkeleton: {
-      ref.rotation = _skeleton_ref.rotation;
+      ref.rotation = skeleton_ref.rotation;
     } break;
     case MotionExtractor::Reference::kAnimation: {
       if (!_track.rotations.empty()) {
@@ -75,7 +85,33 @@ ozz::math::Transform BuildReference(
     default:
       break;
   }
-  return ref;
+  return {true, ref};
+}
+
+std::pair<bool, RawAnimation::JointTrack> BuildTrackModelSpace(
+    const RawAnimation& _input, const Skeleton& _skeleton, int joint) {
+  const auto [sampled, input_ms] =
+      SampleTrackModelSpace(_input, _skeleton, joint);
+  if (!sampled) {
+    return {false, {}};
+  }
+
+  // Builds a temporary track for model-space joint.
+  bool success = true;
+  RawAnimation::JointTrack track;
+  std::for_each(
+      input_ms.begin(), input_ms.end(), [&track, &success](const auto& _key) {
+        math::Transform transform;
+        if (!ToAffine(_key.second, &transform)) {
+          success = false;
+          return;  // Stop if not decompasable.
+        }
+        track.translations.push_back({_key.first, transform.translation});
+        track.rotations.push_back({_key.first, transform.rotation});
+        track.scales.push_back({_key.first, transform.scale});
+      });
+
+  return {success, track};
 }
 }  // namespace
 
@@ -83,7 +119,8 @@ bool MotionExtractor::operator()(const RawAnimation& _input,
                                  const Skeleton& _skeleton,
                                  RawFloat3Track* _motion_position,
                                  RawQuaternionTrack* _motion_rotation,
-                                 RawAnimation* _output) const {
+                                 RawAnimation* _output,
+                                 math::Transform* _reference) const {
   // Cannot read/write from/to the same animation.
   if (&_input == _output) {
     return false;
@@ -100,7 +137,7 @@ bool MotionExtractor::operator()(const RawAnimation& _input,
   }
 
   // Root index must be within skeleton range.
-  if (root_joint < 0 || root_joint >= _skeleton.num_joints()) {
+  if (joint < 0 || joint >= _skeleton.num_joints()) {
     return false;
   }
 
@@ -109,22 +146,27 @@ bool MotionExtractor::operator()(const RawAnimation& _input,
     return false;
   }
 
-  // Copy output animation
-  *_output = _input;
-
-  // Track to extract motion from
-  const auto& input_track = _input.tracks[root_joint];
-  auto& output_track = _output->tracks[root_joint];
+  // Builds a temporary track for model-space joint.
+  const auto [valid_track, input_track_ms] =
+      BuildTrackModelSpace(_input, _skeleton, joint);
+  if (!valid_track) {
+    return false;
+  }
 
   // Compute extraction reference
-  auto ref = BuildReference(
-      position_settings.reference, rotation_settings.reference,
-      GetJointRestPoseLocalSpace(_skeleton, root_joint), input_track);
+  const auto [valid_ref, ref] =
+      BuildReference(position_settings.reference, rotation_settings.reference,
+                     _skeleton, joint, input_track_ms);
+  if (!valid_ref) {
+    return false;
+  }
+
+  if (_reference) *_reference = ref;
 
   // Extract root motion
   // -----------------------------------------------------------------------------
 
-  // Copy function, used to copy aniamtion keyframes to motion keyframes.
+  // Copy function, used to copy animation keyframes to motion keyframes.
   auto extract = [duration = _input.duration](const auto& _keframes,
                                               auto _extract, auto& output) {
     output.clear();
@@ -140,7 +182,7 @@ bool MotionExtractor::operator()(const RawAnimation& _input,
                                    1.f * position_settings.y,
                                    1.f * position_settings.z};
   extract(
-      input_track.translations,
+      input_track_ms.translations,
       [&mask = position_mask, &ref = ref.translation](const auto& _joint) {
         return (_joint - ref) * mask;
       },
@@ -152,7 +194,7 @@ bool MotionExtractor::operator()(const RawAnimation& _input,
                                    1.f * rotation_settings.x,   // Pitch
                                    1.f * rotation_settings.z};  // Roll
   extract(
-      input_track.rotations,
+      input_track_ms.rotations,
       [&mask = rotation_mask, &ref = ref.rotation](const auto& _joint) {
         const auto euler = ToEuler(_joint * Conjugate(ref));
         return math::Quaternion::FromEuler(euler * mask);
@@ -162,15 +204,27 @@ bool MotionExtractor::operator()(const RawAnimation& _input,
   // Bake
   // -----------------------------------------------------------------------------
 
-  // Extract root motion rotation from the animation, aka bake it.
-  if (rotation_settings.bake) {
-    assert(output_track.rotations.size() == _motion_rotation->keyframes.size());
-    for (size_t i = 0; i < output_track.rotations.size(); i++) {
-      const auto& motion_q = _motion_rotation->keyframes[i].value;
-      auto& joint_q = output_track.rotations[i].value;
-      joint_q = Conjugate(motion_q) * joint_q;
-    }
-  }
+  // Find root joint to bake motion into
+  int root_joint = joint;
+  for (; _skeleton.joint_parents()[root_joint] !=
+         ozz::animation::Skeleton::kNoParent;
+       root_joint = _skeleton.joint_parents()[root_joint]);
+
+  // Creates a root track sampled with motion track time points.
+  const RawAnimation::JointTrack& root_track = _input.tracks[root_joint];
+  RawAnimation::JointTrack output_track;
+  std::for_each(
+      _motion_rotation->keyframes.begin(), _motion_rotation->keyframes.end(),
+      [&root_track, &output_track,
+       duration = _input.duration](const auto& _key) {
+        float time = _key.ratio * duration;
+        math::Transform transform;
+        [[maybe_unused]] bool valid = SampleTrack(root_track, time, &transform);
+        assert(valid);
+        output_track.translations.push_back({time, transform.translation});
+        output_track.rotations.push_back({time, transform.rotation});
+        output_track.scales.push_back({time, transform.scale});
+      });
 
   // Extract root motion position from the animation, aka bake it.
   if (position_settings.bake) {
@@ -179,7 +233,17 @@ bool MotionExtractor::operator()(const RawAnimation& _input,
     for (size_t i = 0; i < output_track.translations.size(); i++) {
       const auto& motion_p = _motion_position->keyframes[i].value;
       auto& joint_p = output_track.translations[i].value;
-      joint_p = joint_p - motion_p;
+      joint_p = joint_p - motion_p - ref.translation;
+    }
+  }
+
+  // Extract root motion rotation from the animation, aka bake it.
+  if (rotation_settings.bake) {
+    assert(output_track.rotations.size() == _motion_rotation->keyframes.size());
+    for (size_t i = 0; i < output_track.rotations.size(); i++) {
+      const auto& motion_q = _motion_rotation->keyframes[i].value;
+      auto& joint_q = output_track.rotations[i].value;
+      joint_q = Conjugate(ref.rotation) * Conjugate(motion_q) * joint_q;
     }
   }
 
@@ -221,27 +285,28 @@ bool MotionExtractor::operator()(const RawAnimation& _input,
 
   // Fixup animation translations.
   // -----------------------------------------------------------------------------
-  // When root motion is applied, then root rotation is applied before joint
-  // translation. Hence joint's translation should be corrected to support this
-  // new composition order.
+  // When root motion is applied at runtime, then root rotation is applied
+  // before joint translation. Hence joint's translation should be corrected to
+  // support this new composition order.
   if (rotation_settings.bake) {  // Considers that if rotation is baked, then
-                                 // motion rotation will be applied
+    // motion rotation will be applied
+    assert(output_track.translations.size() ==
+           _motion_position->keyframes.size());
     for (size_t i = 0; i < output_track.translations.size(); i++) {
-      const auto& motion_p_key = _motion_position->keyframes[i];
       auto& joint_p = output_track.translations[i].value;
-
-      // Sample motion rotation (as it might not have the same number of
-      // keyframes as translations)
-      math::Quaternion motion_q;
-      if (!SampleTrack(*_motion_rotation, motion_p_key.ratio, &motion_q)) {
-        return false;
-      }
-
-      joint_p = TransformVector(Conjugate(motion_q), joint_p);
+      joint_p = TransformVector(
+          Conjugate(ref.rotation * _motion_rotation->keyframes[i].value),
+          joint_p);
     }
   }
 
+  // Build output animation
+  // -----------------------------------------------------------------------------
+  *_output = _input;
+  _output->tracks[root_joint] = output_track;
+
   // Validate outputs
+  // -----------------------------------------------------------------------------
   bool success = true;
   success &= _motion_position->Validate();
   success &= _motion_rotation->Validate();

@@ -2,15 +2,15 @@
 add_custom_command(
   DEPENDS $<$<BOOL:${ozz_build_fbx}>:BUILD_DATA>
   "${CMAKE_CURRENT_LIST_DIR}/README.md"
-  "${ozz_media_directory}/bin/pab/skeleton.ozz"
-  "${ozz_media_directory}/bin/pab/atlas_raw.ozz"
+  "${ozz_media_directory}/bin/quaternius/skeleton.ozz"
+  "${ozz_media_directory}/bin/quaternius/Rig_Roll_RM_raw.ozz"
   OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/README.md"
   "${CMAKE_CURRENT_BINARY_DIR}/media/skeleton.ozz"
   "${CMAKE_CURRENT_BINARY_DIR}/media/raw_animation.ozz"
   COMMAND ${CMAKE_COMMAND} -E make_directory media
   COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_LIST_DIR}/README.md" .
-  COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/pab/skeleton.ozz" "./media/skeleton.ozz"
-  COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/pab/atlas_raw.ozz" "./media/raw_animation.ozz"
+  COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/quaternius/skeleton.ozz" "./media/skeleton.ozz"
+  COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/quaternius/Rig_Roll_RM_raw.ozz" "./media/raw_animation.ozz"
   VERBATIM)
 
 add_executable(sample_motion_extraction

@@ -28,6 +28,7 @@
 #include "gtest/gtest.h"
 #include "ozz/animation/offline/motion_extractor.h"
 #include "ozz/animation/offline/raw_animation.h"
+#include "ozz/animation/offline/raw_animation_utils.h"
 #include "ozz/animation/offline/raw_skeleton.h"
 #include "ozz/animation/offline/raw_track.h"
 #include "ozz/animation/offline/skeleton_builder.h"
@@ -52,6 +53,7 @@ TEST(Error, MotionExtractor) {
 
   RawSkeleton raw_skeleton;
   raw_skeleton.roots.resize(1);
+  raw_skeleton.roots[0].transform = ozz::math::Transform::identity();
   ASSERT_TRUE(raw_skeleton.Validate());
   const auto skeleton = SkeletonBuilder()(raw_skeleton);
   ASSERT_TRUE(skeleton);
@@ -102,7 +104,7 @@ TEST(Error, MotionExtractor) {
 
   {  // Invalid root
     MotionExtractor extractor;
-    extractor.root_joint = 93;
+    extractor.joint = 93;
     EXPECT_FALSE(extractor(input, *skeleton, &motion_position, &motion_rotation,
                            &output));
   }
@@ -116,37 +118,30 @@ TEST(Error, MotionExtractor) {
 
 TEST(Extract, MotionExtractor) {
   RawAnimation input;
-  input.duration = 46.f;
+  input.duration = 2.f;
   input.name = "test";
   input.tracks.resize(2);
 
-  input.tracks[0].translations.push_back({.5f, {1.f, 2.f, 3.f}});
-  input.tracks[0].translations.push_back({5.f, {4.f, 5.f, 6.f}});
+  input.tracks[0].translations.push_back({.2f, {1.f, 3.f, 0.f}});
+  input.tracks[0].translations.push_back({.4f, {2.f, 0.f, 0.f}});
   input.tracks[0].rotations.push_back(
-      {1.f, ozz::math::Quaternion::FromEuler({ozz::math::kPi / 2.f,
-                                              ozz::math::kPi / 3.f,
-                                              ozz::math::kPi / 4.f})});
+      {.4f, ozz::math::Quaternion::FromAxisAngle(ozz::math::Float3::y_axis(),
+                                                 ozz::math::kPi_2)});
   input.tracks[0].rotations.push_back(
-      {12.f, ozz::math::Quaternion::FromEuler({ozz::math::kPi / 2.f,
-                                               1.1f * ozz::math::kPi / 3.f,
-                                               ozz::math::kPi / 4.f})});
-  input.tracks[0].rotations.push_back(
-      {46.f, ozz::math::Quaternion::FromEuler({ozz::math::kPi / 2.f,
-                                               1.2f * ozz::math::kPi / 3.f,
-                                               ozz::math::kPi / 4.f})});
+      {2.f, ozz::math::Quaternion::FromAxisAngle(ozz::math::Float3::y_axis(),
+                                                 -ozz::math::kPi_2)});
 
-  input.tracks[1].translations.push_back({2.f, {7.f, 8.f, 9.f}});
-  input.tracks[1].translations.push_back({10.f, {10.f, 11.f, 12.f}});
-  input.tracks[1].rotations.push_back(
-      {23.f, ozz::math::Quaternion::FromEuler({-ozz::math::kPi / 5.f,
-                                               ozz::math::kPi / 7.f,
-                                               ozz::math::kPi / 2.f})});
+  input.tracks[1].translations.push_back({.3f, {0.f, 0.f, 1.f}});
+  input.tracks[1].translations.push_back({2.f, {0.f, 0.f, 18.f}});
 
   ASSERT_TRUE(input.Validate());
 
   RawSkeleton raw_skeleton;
   raw_skeleton.roots.resize(1);
+  raw_skeleton.roots[0].transform = ozz::math::Transform::identity();
   raw_skeleton.roots[0].children.resize(1);
+  raw_skeleton.roots[0].children[0].transform =
+      ozz::math::Transform::identity();
   ASSERT_TRUE(raw_skeleton.Validate());
   const auto skeleton = SkeletonBuilder()(raw_skeleton);
 
@@ -154,21 +149,21 @@ TEST(Extract, MotionExtractor) {
   RawQuaternionTrack motion_rotation;
   RawAnimation baked;
 
-  const auto anim_cmpnt_eq = [](const auto& _a, const auto& _b) {
-    if (_a.size() != _b.size()) {
-      return false;
-    }
-    for (size_t i = 0; i < _a.size(); ++i) {
-      if (_a[i].time != _b[i].time) {
+  const auto anim_track_eq = [](const auto& _a, const auto& _b) {
+    const auto anim_cmpnt_eq = [](const auto& _a, const auto& _b) {
+      if (_a.size() != _b.size()) {
         return false;
       }
-      if (_a[i].value != _b[i].value) {
-        return false;
+      for (size_t i = 0; i < _a.size(); ++i) {
+        if (_a[i].time != _b[i].time) {
+          return false;
+        }
+        if (_a[i].value != _b[i].value) {
+          return false;
+        }
       }
-    }
-    return true;
-  };
-  const auto anim_track_eq = [&anim_cmpnt_eq](const auto& _a, const auto& _b) {
+      return true;
+    };
     return anim_cmpnt_eq(_a.translations, _b.translations) &&
            anim_cmpnt_eq(_a.rotations, _b.rotations) &&
            anim_cmpnt_eq(_a.scales, _b.scales);
@@ -186,28 +181,39 @@ TEST(Extract, MotionExtractor) {
     EXPECT_EQ(input.name, baked.name);
     EXPECT_FLOAT_EQ(input.duration, baked.duration);
     EXPECT_EQ(input.num_tracks(), baked.num_tracks());
-    EXPECT_TRUE(anim_track_eq(input.tracks[0], baked.tracks[0]));
+
+    const auto& track0 = baked.tracks[0];
+    ASSERT_EQ(track0.translations.size(), 3u);
+    EXPECT_FLOAT_EQ(track0.translations[0].time, .2f);
+    EXPECT_FLOAT3_EQ(track0.translations[0].value, 1.f, 3.f, 0.f);
+    EXPECT_FLOAT_EQ(track0.translations[1].time, .4f);
+    EXPECT_FLOAT3_EQ(track0.translations[1].value, 2.f, 0.f, 0.f);
+    EXPECT_FLOAT_EQ(track0.translations[2].time, 2.f);
+    EXPECT_FLOAT3_EQ(track0.translations[2].value, 2.f, 0.f, 0.f);
+
+    ASSERT_EQ(track0.rotations.size(), 3u);
+    EXPECT_FLOAT_EQ(track0.rotations[0].time, .2f);
+    EXPECT_QUATERNION_EQ(track0.rotations[0].value, 0.f, .7071067f, 0.f,
+                         .7071067f);
+    EXPECT_FLOAT_EQ(track0.rotations[1].time, .4f);
+    EXPECT_QUATERNION_EQ(track0.rotations[1].value, 0.f, .7071067f, 0.f,
+                         .7071067f);
+    EXPECT_FLOAT_EQ(track0.rotations[2].time, 2.f);
+    EXPECT_QUATERNION_EQ(track0.rotations[2].value, 0.f, -.7071067f, 0,
+                         .7071067f);
+
     EXPECT_TRUE(anim_track_eq(input.tracks[1], baked.tracks[1]));
 
     // Motion
-    const auto& positions = motion_position.keyframes;
-    ASSERT_EQ(positions.size(), 2u);
-    EXPECT_FLOAT_EQ(positions[0].ratio, .5f / 46.f);
-    EXPECT_FLOAT3_EQ(positions[0].value, 0.f, 0.f, 0.f);
-    EXPECT_FLOAT_EQ(positions[1].ratio, 5.f / 46.f);
-    EXPECT_FLOAT3_EQ(positions[1].value, 0.f, 0.f, 0.f);
-
-    const auto& rotations = motion_rotation.keyframes;
-    ASSERT_EQ(rotations.size(), 3u);
-    EXPECT_FLOAT_EQ(rotations[0].ratio, 1.f / 46.f);
-    EXPECT_QUATERNION_EQ(rotations[0].value, 0.f, 0.f, 0.f, 1.f);
-    EXPECT_FLOAT_EQ(rotations[1].ratio, 12.f / 46.f);
-    EXPECT_QUATERNION_EQ(rotations[1].value, 0.f, 0.f, 0.f, 1.f);
-    EXPECT_FLOAT_EQ(rotations[2].ratio, 46.f / 46.f);
-    EXPECT_QUATERNION_EQ(rotations[2].value, 0.f, 0.f, 0.f, 1.f);
+    for (const auto& key : motion_position.keyframes) {
+      EXPECT_FLOAT3_EQ(key.value, 0.f, 0.f, 0.f);
+    }
+    for (const auto& key : motion_rotation.keyframes) {
+      EXPECT_QUATERNION_EQ(key.value, 0.f, 0.f, 0.f, 1.f);
+    }
   }
 
-  {  // No baking
+  {  // Extract all, no baking
     const MotionExtractor extractor{
         0,  // Joint
         {true, true, true, MotionExtractor::Reference::kAbsolute, false},
@@ -218,35 +224,51 @@ TEST(Extract, MotionExtractor) {
     // Animation
     EXPECT_EQ(input.name, baked.name);
     EXPECT_FLOAT_EQ(input.duration, baked.duration);
-    EXPECT_EQ(input.num_tracks(), baked.num_tracks());
-    EXPECT_TRUE(anim_track_eq(input.tracks[0], baked.tracks[0]));
+    EXPECT_EQ(baked.num_tracks(), input.num_tracks());
+
+    const auto& track0 = baked.tracks[0];
+    ASSERT_EQ(track0.translations.size(), 3u);
+    EXPECT_FLOAT_EQ(track0.translations[0].time, .2f);
+    EXPECT_FLOAT3_EQ(track0.translations[0].value, 1.f, 3.f, 0.f);
+    EXPECT_FLOAT_EQ(track0.translations[1].time, .4f);
+    EXPECT_FLOAT3_EQ(track0.translations[1].value, 2.f, 0.f, 0.f);
+    EXPECT_FLOAT_EQ(track0.translations[2].time, 2.f);
+    EXPECT_FLOAT3_EQ(track0.translations[2].value, 2.f, 0.f, 0.f);
+
+    ASSERT_EQ(track0.rotations.size(), 3u);
+    EXPECT_FLOAT_EQ(track0.rotations[0].time, .2f);
+    EXPECT_QUATERNION_EQ(track0.rotations[0].value, 0.f, .7071067f, 0.f,
+                         .7071067f);
+    EXPECT_FLOAT_EQ(track0.rotations[1].time, .4f);
+    EXPECT_QUATERNION_EQ(track0.rotations[1].value, 0.f, .7071067f, 0.f,
+                         .7071067f);
+    EXPECT_FLOAT_EQ(track0.rotations[2].time, 2.f);
+    EXPECT_QUATERNION_EQ(track0.rotations[2].value, 0.f, -.7071067f, 0.f,
+                         .7071067f);
+
     EXPECT_TRUE(anim_track_eq(input.tracks[1], baked.tracks[1]));
 
     // Track
     const auto& positions = motion_position.keyframes;
-    ASSERT_EQ(positions.size(), 2u);
-    EXPECT_FLOAT_EQ(positions[0].ratio, .5f / 46.f);
-    EXPECT_FLOAT3_EQ(positions[0].value, 1.f, 2.f, 3.f);
-    EXPECT_FLOAT_EQ(positions[1].ratio, 5.f / 46.f);
-    EXPECT_FLOAT3_EQ(positions[1].value, 4.f, 5.f, 6.f);
+    ASSERT_EQ(positions.size(), 3u);
+    EXPECT_FLOAT_EQ(positions[0].ratio, .1f);
+    EXPECT_FLOAT3_EQ(positions[0].value, 1.f, 3.f, 0.f);
+    EXPECT_FLOAT_EQ(positions[1].ratio, .2f);
+    EXPECT_FLOAT3_EQ(positions[1].value, 2.f, 0.f, 0.f);
+    EXPECT_FLOAT_EQ(positions[2].ratio, 1.f);
+    EXPECT_FLOAT3_EQ(positions[2].value, 2.f, 0.f, 0.f);
 
     const auto& rotations = motion_rotation.keyframes;
     ASSERT_EQ(rotations.size(), 3u);
-    EXPECT_FLOAT_EQ(rotations[0].ratio, 1.f / 46.f);
-    auto r1 = ozz::math::Quaternion::FromEuler(ozz::math::Float3(
-        ozz::math::kPi / 2.f, ozz::math::kPi / 3.f, ozz::math::kPi / 4.f));
-    EXPECT_QUATERNION_EQ(rotations[0].value, r1.x, r1.y, r1.z, r1.w);
-    auto r2 = ozz::math::Quaternion::FromEuler(
-        ozz::math::Float3(ozz::math::kPi / 2.f, 1.1f * ozz::math::kPi / 3.f,
-                          ozz::math::kPi / 4.f));
-    EXPECT_QUATERNION_EQ(rotations[1].value, r2.x, r2.y, r2.z, r2.w);
-    auto r3 = ozz::math::Quaternion::FromEuler(
-        ozz::math::Float3(ozz::math::kPi / 2.f, 1.2f * ozz::math::kPi / 3.f,
-                          ozz::math::kPi / 4.f));
-    EXPECT_QUATERNION_EQ(rotations[2].value, r3.x, r3.y, r3.z, r3.w);
+    EXPECT_FLOAT_EQ(rotations[0].ratio, .1f);
+    EXPECT_QUATERNION_EQ(rotations[0].value, 0.f, .7071067f, 0.f, .7071067f);
+    EXPECT_FLOAT_EQ(rotations[1].ratio, .2f);
+    EXPECT_QUATERNION_EQ(rotations[1].value, 0.f, .7071067f, 0.f, .7071067f);
+    EXPECT_FLOAT_EQ(rotations[2].ratio, 1.f);
+    EXPECT_QUATERNION_EQ(rotations[2].value, 0.f, -.7071067f, 0.f, .7071067f);
   }
 
-  {  // Extract all
+  {  // Extract all, bake
     const MotionExtractor extractor{
         0,  // Joint
         {true, true, true, MotionExtractor::Reference::kAbsolute, true},
@@ -260,41 +282,38 @@ TEST(Extract, MotionExtractor) {
     EXPECT_EQ(input.num_tracks(), baked.num_tracks());
 
     const auto& track0 = baked.tracks[0];
-    ASSERT_EQ(track0.translations.size(), 2u);
-    EXPECT_FLOAT3_EQ(track0.translations[0].value, 0.f, 0.f, 0.f);
-    EXPECT_FLOAT3_EQ(track0.translations[1].value, 0.f, 0.f, 0.f);
+    ASSERT_EQ(track0.translations.size(), 3u);
+    for (const auto& key : track0.translations) {
+      EXPECT_FLOAT3_EQ(key.value, 0.f, 0.f, 0.f);
+    }
     ASSERT_EQ(track0.rotations.size(), 3u);
-    EXPECT_QUATERNION_EQ(track0.rotations[0].value, 0.f, 0.f, 0.f, 1.f);
-    EXPECT_QUATERNION_EQ(track0.rotations[1].value, 0.f, 0.f, 0.f, 1.f);
-    EXPECT_QUATERNION_EQ(track0.rotations[2].value, 0.f, 0.f, 0.f, 1.f);
+    for (const auto& key : track0.rotations) {
+      EXPECT_QUATERNION_EQ(key.value, 0.f, 0.f, 0.f, 1.f);
+    }
 
     EXPECT_TRUE(anim_track_eq(input.tracks[1], baked.tracks[1]));
 
     // Track
     const auto& positions = motion_position.keyframes;
-    ASSERT_EQ(positions.size(), 2u);
-    EXPECT_FLOAT_EQ(positions[0].ratio, .5f / 46.f);
-    EXPECT_FLOAT3_EQ(positions[0].value, 1.f, 2.f, 3.f);
-    EXPECT_FLOAT_EQ(positions[1].ratio, 5.f / 46.f);
-    EXPECT_FLOAT3_EQ(positions[1].value, 4.f, 5.f, 6.f);
+    ASSERT_EQ(positions.size(), 3u);
+    EXPECT_FLOAT_EQ(positions[0].ratio, .1f);
+    EXPECT_FLOAT3_EQ(positions[0].value, 1.f, 3.f, 0.f);
+    EXPECT_FLOAT_EQ(positions[1].ratio, .2f);
+    EXPECT_FLOAT3_EQ(positions[1].value, 2.f, 0.f, 0.f);
+    EXPECT_FLOAT_EQ(positions[2].ratio, 1.f);
+    EXPECT_FLOAT3_EQ(positions[2].value, 2.f, 0.f, 0.f);
 
     const auto& rotations = motion_rotation.keyframes;
     ASSERT_EQ(rotations.size(), 3u);
-    EXPECT_FLOAT_EQ(rotations[0].ratio, 1.f / 46.f);
-    auto mr1 = ozz::math::Quaternion::FromEuler(
-        {ozz::math::kPi / 2.f, ozz::math::kPi / 3.f, ozz::math::kPi / 4.f});
-    EXPECT_QUATERNION_EQ(rotations[0].value, mr1.x, mr1.y, mr1.z, mr1.w);
-    auto mr2 = ozz::math::Quaternion::FromEuler({ozz::math::kPi / 2.f,
-                                                 1.1f * ozz::math::kPi / 3.f,
-                                                 ozz::math::kPi / 4.f});
-    EXPECT_QUATERNION_EQ(rotations[1].value, mr2.x, mr2.y, mr2.z, mr2.w);
-    auto mr3 = ozz::math::Quaternion::FromEuler({ozz::math::kPi / 2.f,
-                                                 1.2f * ozz::math::kPi / 3.f,
-                                                 ozz::math::kPi / 4.f});
-    EXPECT_QUATERNION_EQ(rotations[2].value, mr3.x, mr3.y, mr3.z, mr3.w);
+    EXPECT_FLOAT_EQ(rotations[0].ratio, .1f);
+    EXPECT_QUATERNION_EQ(rotations[0].value, 0.f, .7071067f, 0.f, .7071067f);
+    EXPECT_FLOAT_EQ(rotations[1].ratio, .2f);
+    EXPECT_QUATERNION_EQ(rotations[1].value, 0.f, .7071067f, 0.f, .7071067f);
+    EXPECT_FLOAT_EQ(rotations[2].ratio, 1.f);
+    EXPECT_QUATERNION_EQ(rotations[2].value, 0.f, -.7071067f, 0.f, .7071067f);
   }
 
-  {  // Extract only y position
+  {  // Extract only y position, bake
     const MotionExtractor extractor{
         0,  // Joint
         {false, true, false, MotionExtractor::Reference::kAbsolute, true},
@@ -308,28 +327,44 @@ TEST(Extract, MotionExtractor) {
     EXPECT_EQ(input.num_tracks(), baked.num_tracks());
 
     const auto& track0 = baked.tracks[0];
-    ASSERT_EQ(track0.translations.size(), 2u);
-    EXPECT_FLOAT3_EQ(track0.translations[0].value, 1.f, 0.f, 3.f);
-    EXPECT_FLOAT3_EQ(track0.translations[1].value, 4.f, 0.f, 6.f);
+    ASSERT_EQ(track0.translations.size(), 3u);
+    EXPECT_FLOAT_EQ(track0.translations[0].time, .2f);
+    EXPECT_FLOAT3_EQ(track0.translations[0].value, 1.f, 0.f, 0.f);
+    EXPECT_FLOAT_EQ(track0.translations[1].time, .4f);
+    EXPECT_FLOAT3_EQ(track0.translations[1].value, 2.f, 0.f, 0.f);
+    EXPECT_FLOAT_EQ(track0.translations[2].time, 2.f);
+    EXPECT_FLOAT3_EQ(track0.translations[2].value, 2.f, 0.f, 0.f);
 
-    EXPECT_TRUE(anim_cmpnt_eq(track0.rotations, track0.rotations));
+    ASSERT_EQ(track0.rotations.size(), 3u);
+    EXPECT_FLOAT_EQ(track0.rotations[0].time, .2f);
+    EXPECT_QUATERNION_EQ(track0.rotations[0].value, 0.f, .7071067f, 0.f,
+                         .7071067f);
+    EXPECT_FLOAT_EQ(track0.rotations[1].time, .4f);
+    EXPECT_QUATERNION_EQ(track0.rotations[1].value, 0.f, .7071067f, 0.f,
+                         .7071067f);
+    EXPECT_FLOAT_EQ(track0.rotations[2].time, 2.f);
+    EXPECT_QUATERNION_EQ(track0.rotations[2].value, 0.f, -.7071067f, 0.f,
+                         .7071067f);
+
     EXPECT_TRUE(anim_track_eq(input.tracks[1], baked.tracks[1]));
 
-    // Motion
+    // Track
     const auto& positions = motion_position.keyframes;
-    ASSERT_EQ(positions.size(), 2u);
-    EXPECT_FLOAT_EQ(positions[0].ratio, .5f / 46.f);
-    EXPECT_FLOAT3_EQ(positions[0].value, 0.f, 2.f, 0.f);
-    EXPECT_FLOAT_EQ(positions[1].ratio, 5.f / 46.f);
-    EXPECT_FLOAT3_EQ(positions[1].value, 0.f, 5.f, 0.f);
+    ASSERT_EQ(positions.size(), 3u);
+    EXPECT_FLOAT_EQ(positions[0].ratio, .1f);
+    EXPECT_FLOAT3_EQ(positions[0].value, 0.f, 3.f, 0.f);
+    EXPECT_FLOAT_EQ(positions[1].ratio, .2f);
+    EXPECT_FLOAT3_EQ(positions[1].value, 0.f, 0.f, 0.f);
+    EXPECT_FLOAT_EQ(positions[2].ratio, 1.f);
+    EXPECT_FLOAT3_EQ(positions[2].value, 0.f, 0.f, 0.f);
 
     const auto& rotations = motion_rotation.keyframes;
     ASSERT_EQ(rotations.size(), 3u);
-    EXPECT_FLOAT_EQ(rotations[0].ratio, 1.f / 46.f);
+    EXPECT_FLOAT_EQ(rotations[0].ratio, .1f);
     EXPECT_QUATERNION_EQ(rotations[0].value, 0.f, 0.f, 0.f, 1.f);
-    EXPECT_FLOAT_EQ(rotations[1].ratio, 12.f / 46.f);
+    EXPECT_FLOAT_EQ(rotations[1].ratio, .2f);
     EXPECT_QUATERNION_EQ(rotations[1].value, 0.f, 0.f, 0.f, 1.f);
-    EXPECT_FLOAT_EQ(rotations[2].ratio, 46.f / 46.f);
+    EXPECT_FLOAT_EQ(rotations[2].ratio, 1.f);
     EXPECT_QUATERNION_EQ(rotations[2].value, 0.f, 0.f, 0.f, 1.f);
   }
 
@@ -345,46 +380,51 @@ TEST(Extract, MotionExtractor) {
     EXPECT_FLOAT_EQ(input.duration, baked.duration);
     EXPECT_EQ(input.num_tracks(), baked.num_tracks());
 
-    const auto& track0 = baked.tracks[0];
-    ASSERT_EQ(track0.translations.size(), 2u);
-    // Inverse of extracted y/yaw applied to translation
-    EXPECT_FLOAT3_EQ(track0.translations[0].value, -3.f, 2.f, 0.f);
-    EXPECT_FLOAT3_EQ(track0.translations[1].value, -6.f, 5.f, 0.f);
+    // Animation
+    EXPECT_EQ(input.name, baked.name);
+    EXPECT_FLOAT_EQ(input.duration, baked.duration);
+    EXPECT_EQ(input.num_tracks(), baked.num_tracks());
 
-    // Y/yaw extracted
+    const auto& track0 = baked.tracks[0];
+    ASSERT_EQ(track0.translations.size(), 3u);
+    EXPECT_FLOAT_EQ(track0.translations[0].time, .2f);
+    EXPECT_FLOAT3_EQ(track0.translations[0].value, 0.f, 3.f, 0.f);
+    EXPECT_FLOAT_EQ(track0.translations[1].time, .4f);
+    EXPECT_FLOAT3_EQ(track0.translations[1].value, 0.f, 0.f, 0.f);
+    EXPECT_FLOAT_EQ(track0.translations[2].time, 2.f);
+    EXPECT_FLOAT3_EQ(track0.translations[2].value, 0.f, 0.f, 0.f);
+
     ASSERT_EQ(track0.rotations.size(), 3u);
-    auto r1 = ozz::math::Quaternion::FromEuler(
-        {0, ozz::math::kPi / 3.f, ozz::math::kPi / 4.f});
-    EXPECT_QUATERNION_EQ(track0.rotations[0].value, r1.x, r1.y, r1.z, r1.w);
-    auto r2 = ozz::math::Quaternion::FromEuler(
-        {0, 1.1f * ozz::math::kPi / 3.f, ozz::math::kPi / 4.f});
-    EXPECT_QUATERNION_EQ(track0.rotations[1].value, r2.x, r2.y, r2.z, r2.w);
-    auto r3 = ozz::math::Quaternion::FromEuler(
-        {0, 1.2f * ozz::math::kPi / 3.f, ozz::math::kPi / 4.f});
-    EXPECT_QUATERNION_EQ(track0.rotations[2].value, r3.x, r3.y, r3.z, r3.w);
+    EXPECT_FLOAT_EQ(track0.rotations[0].time, .2f);
+    EXPECT_QUATERNION_EQ(track0.rotations[0].value, 0.f, 0.f, 0.f, 1.f);
+    EXPECT_FLOAT_EQ(track0.rotations[1].time, .4f);
+    EXPECT_QUATERNION_EQ(track0.rotations[1].value, 0.f, 0.f, 0.f, 1.f);
+    EXPECT_FLOAT_EQ(track0.rotations[2].time, 2.f);
+    EXPECT_QUATERNION_EQ(track0.rotations[2].value, 0.f, 0.f, 0.f, 1.f);
 
     EXPECT_TRUE(anim_track_eq(input.tracks[1], baked.tracks[1]));
 
-    // Motion
+    // Track
     const auto& positions = motion_position.keyframes;
-    ASSERT_EQ(positions.size(), 2u);
-    EXPECT_FLOAT_EQ(positions[0].ratio, .5f / 46.f);
+    ASSERT_EQ(positions.size(), 3u);
+    EXPECT_FLOAT_EQ(positions[0].ratio, .1f);
     EXPECT_FLOAT3_EQ(positions[0].value, 1.f, 0.f, 0.f);
-    EXPECT_FLOAT_EQ(positions[1].ratio, 5.f / 46.f);
-    EXPECT_FLOAT3_EQ(positions[1].value, 4.f, 0.f, 0.f);
+    EXPECT_FLOAT_EQ(positions[1].ratio, .2f);
+    EXPECT_FLOAT3_EQ(positions[1].value, 2.f, 0.f, 0.f);
+    EXPECT_FLOAT_EQ(positions[2].ratio, 1.f);
+    EXPECT_FLOAT3_EQ(positions[2].value, 2.f, 0.f, 0.f);
 
     const auto& rotations = motion_rotation.keyframes;
     ASSERT_EQ(rotations.size(), 3u);
-    EXPECT_FLOAT_EQ(rotations[0].ratio, 1.f / 46.f);
-    auto mr1 = ozz::math::Quaternion::FromEuler({ozz::math::kPi / 2.f, 0, 0});
-    EXPECT_QUATERNION_EQ(rotations[0].value, mr1.x, mr1.y, mr1.z, mr1.w);
-    auto mr2 = ozz::math::Quaternion::FromEuler({ozz::math::kPi / 2.f, 0, 0});
-    EXPECT_QUATERNION_EQ(rotations[1].value, mr2.x, mr2.y, mr2.z, mr2.w);
-    auto mr3 = ozz::math::Quaternion::FromEuler({ozz::math::kPi / 2.f, 0, 0});
-    EXPECT_QUATERNION_EQ(rotations[2].value, mr3.x, mr3.y, mr3.z, mr3.w);
+    EXPECT_FLOAT_EQ(rotations[0].ratio, .1f);
+    EXPECT_QUATERNION_EQ(rotations[0].value, 0.f, .7071067f, 0.f, .7071067f);
+    EXPECT_FLOAT_EQ(rotations[1].ratio, .2f);
+    EXPECT_QUATERNION_EQ(rotations[1].value, 0.f, .7071067f, 0.f, .7071067f);
+    EXPECT_FLOAT_EQ(rotations[2].ratio, 1.f);
+    EXPECT_QUATERNION_EQ(rotations[2].value, 0.f, -.7071067f, 0.f, .7071067f);
   }
 
-  {  // Extract all joint 1
+  {  // Extract joint 1, hence model-space
     const MotionExtractor extractor{
         1,  // Joint
         {true, true, true, MotionExtractor::Reference::kAbsolute, true},
@@ -397,28 +437,51 @@ TEST(Extract, MotionExtractor) {
     EXPECT_FLOAT_EQ(input.duration, baked.duration);
     EXPECT_EQ(input.num_tracks(), baked.num_tracks());
 
-    EXPECT_TRUE(anim_track_eq(input.tracks[0], baked.tracks[0]));
+    // Baking is done on the root
+    const auto& track0 = baked.tracks[0];
+    ASSERT_EQ(track0.translations.size(), 4u);
+    EXPECT_FLOAT_EQ(track0.translations[0].time, .2f);
+    EXPECT_FLOAT3_EQ(track0.translations[0].value, 0.f, 0.f, -1.f);
+    EXPECT_FLOAT_EQ(track0.translations[1].time, .3f);
+    EXPECT_FLOAT3_EQ(track0.translations[1].value, 0.f, 0.f, -1.f);
+    EXPECT_FLOAT_EQ(track0.translations[2].time, .4f);
+    EXPECT_FLOAT3_EQ(track0.translations[2].value, 0.f, 0.f, -2.f);
+    EXPECT_FLOAT_EQ(track0.translations[3].time, 2.f);
+    EXPECT_FLOAT3_EQ(track0.translations[3].value, 0.f, 0.f, -18.f);
 
-    const auto& track1 = baked.tracks[1];
-    ASSERT_EQ(track1.translations.size(), 2u);
-    EXPECT_FLOAT3_EQ(track1.translations[0].value, 0.f, 0.f, 0.f);
-    EXPECT_FLOAT3_EQ(track1.translations[1].value, 0.f, 0.f, 0.f);
-    ASSERT_EQ(track1.rotations.size(), 1u);
-    EXPECT_QUATERNION_EQ(track1.rotations[0].value, 0.f, 0.f, 0.f, 1.f);
+    ASSERT_EQ(track0.rotations.size(), 4u);
+    EXPECT_FLOAT_EQ(track0.rotations[0].time, .2f);
+    EXPECT_QUATERNION_EQ(track0.rotations[0].value, 0.f, 0.f, 0.f, 1.f);
+    EXPECT_FLOAT_EQ(track0.rotations[1].time, .3f);
+    EXPECT_QUATERNION_EQ(track0.rotations[1].value, 0.f, 0.f, 0.f, 1.f);
+    EXPECT_FLOAT_EQ(track0.rotations[2].time, .4f);
+    EXPECT_QUATERNION_EQ(track0.rotations[2].value, 0.f, 0.f, 0.f, 1.f);
+    EXPECT_FLOAT_EQ(track0.rotations[3].time, 2.f);
+    EXPECT_QUATERNION_EQ(track0.rotations[3].value, 0.f, 0.f, 0.f, 1.f);
+
+    EXPECT_TRUE(anim_track_eq(input.tracks[1], baked.tracks[1]));
 
     // Track
     const auto& positions = motion_position.keyframes;
-    ASSERT_EQ(positions.size(), 2u);
-    EXPECT_FLOAT_EQ(positions[0].ratio, 2.f / 46.f);
-    EXPECT_FLOAT3_EQ(positions[0].value, 7.f, 8.f, 9.f);
-    EXPECT_FLOAT_EQ(positions[1].ratio, 10.f / 46.f);
-    EXPECT_FLOAT3_EQ(positions[1].value, 10.f, 11.f, 12.f);
+    ASSERT_EQ(positions.size(), 4u);
+    EXPECT_FLOAT_EQ(positions[0].ratio, .1f);
+    EXPECT_FLOAT3_EQ(positions[0].value, 2.f, 3.f, 0.f);
+    EXPECT_FLOAT_EQ(positions[1].ratio, .15f);
+    EXPECT_FLOAT3_EQ(positions[1].value, 2.5f, 1.5f, 0.f);
+    EXPECT_FLOAT_EQ(positions[2].ratio, .2f);
+    EXPECT_FLOAT3_EQ(positions[2].value, 4.f, 0.f, 0.f);
+    EXPECT_FLOAT_EQ(positions[3].ratio, 1.f);
+    EXPECT_FLOAT3_EQ(positions[3].value, -16.f, 0.f, 0.f);
 
     const auto& rotations = motion_rotation.keyframes;
-    ASSERT_EQ(rotations.size(), 1u);
-    EXPECT_FLOAT_EQ(rotations[0].ratio, 23.f / 46.f);
-    auto mr1 = ozz::math::Quaternion::FromEuler(
-        {-ozz::math::kPi / 5.f, ozz::math::kPi / 7.f, ozz::math::kPi / 2.f});
-    EXPECT_QUATERNION_EQ(rotations[0].value, mr1.x, mr1.y, mr1.z, mr1.w);
+    ASSERT_EQ(rotations.size(), 4u);
+    EXPECT_FLOAT_EQ(rotations[0].ratio, .1f);
+    EXPECT_QUATERNION_EQ(rotations[0].value, 0.f, .7071067f, 0.f, .7071067f);
+    EXPECT_FLOAT_EQ(rotations[1].ratio, .15f);
+    EXPECT_QUATERNION_EQ(rotations[2].value, 0.f, .7071067f, 0.f, .7071067f);
+    EXPECT_FLOAT_EQ(rotations[2].ratio, .2f);
+    EXPECT_QUATERNION_EQ(rotations[2].value, 0.f, .7071067f, 0.f, .7071067f);
+    EXPECT_FLOAT_EQ(rotations[3].ratio, 1.f);
+    EXPECT_QUATERNION_EQ(rotations[3].value, 0.f, -.7071067f, 0.f, .7071067f);
   }
 }

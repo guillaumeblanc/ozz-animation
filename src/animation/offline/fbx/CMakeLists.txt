@@ -62,9 +62,9 @@ set(build_configurations
   # Quaternius
   # Note that we don't list all animations here, so it might create issues if dependencies are needed
   "/fbx/quaternius/ual.fbx\;{\"skeleton\":{\"filename\":\"quaternius/skeleton.ozz\",\"import\":{\"enable\":true}},\"animations\":[{\"filename\":\"quaternius/*.ozz\"}]}\;output:quaternius/skeleton.ozz\;output:quaternius/Rig_A_TPose.ozz"
+  "/fbx/quaternius/ual.fbx\;{\"skeleton\":{\"filename\":\"quaternius/skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"clip\":\"*_RM\",\"raw\":true,\"filename\":\"quaternius/*_raw.ozz\"}]}\;output:quaternius/Rig_Roll_RM_raw.ozz\;depend:quaternius/skeleton.ozz"
 
   # Library data with root motion
-  "/fbx/pab/atlas.fbx\;{\"skeleton\":{\"filename\":\"pab/skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"pab/atlas_no_motion.ozz\",\"tracks\":{\"motion\":{\"enable\":true,\"rotation\":{\"loop\":true},\"filename\":\"pab/atlas_motion_track.ozz\"}}}]}\;output:pab/atlas_no_motion.ozz\;output:pab/atlas_motion_track.ozz\;depend:pab/skeleton.ozz"
   "/fbx/pab/locomotions.fbx\;{\"skeleton\":{\"filename\":\"pab/skeleton.ozz\",\"import\":{\"enable\":false}},\"animations\":[{\"filename\":\"pab/*_no_motion.ozz\",\"tracks\":{\"motion\":{\"enable\":true,\"rotation\":{\"loop\":true},\"filename\":\"pab/*_motion_track.ozz\"}}}]}\;output:pab/walk_no_motion.ozz\;output:pab/jog_no_motion.ozz\;output:pab/run_no_motion.ozz\;output:pab/walk_motion_track.ozz\;output:pab/jog_motion_track.ozz\;output:pab/run_motion_track.ozz\;depend:pab/skeleton.ozz"
 
   # Robot user channels

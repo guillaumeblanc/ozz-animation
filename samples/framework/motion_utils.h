@@ -41,8 +41,12 @@ class Renderer;
 
 // A motion track object, composed of a position and a rotation track.
 struct MotionTrack {
+  // Position and rotation tracks.
   ozz::animation::Float3Track position;
   ozz::animation::QuaternionTrack rotation;
+
+  // Reference transform
+  ozz::math::Transform reference = ozz::math::Transform::identity();
 };
 
 // Loads motion tracks (position and rotation) from an ozz archive file named

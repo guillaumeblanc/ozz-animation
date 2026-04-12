@@ -56,10 +56,9 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
     ozz::math::SimdInt4 invertible;
     const ozz::math::Float4x4 invert_root =
         Invert(GetRootTransform(), &invertible);
-
     const ozz::math::SimdFloat4 target_ms = TransformPoint(
         invert_root, ozz::math::simd_float4::Load3PtrU(&target_.x));
-    const ozz::math::SimdFloat4 pole_vector_ms = TransformVector(
+    const ozz::math::SimdFloat4 pole_vector_ms = TransformPoint(
         invert_root, ozz::math::simd_float4::Load3PtrU(&pole_vector.x));
 
     // Setup IK job.
@@ -174,6 +173,18 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
       ozz::math::Float3 line[] = {begin, begin + pole_vector};
       success &= _renderer->DrawLines(line, ozz::sample::kWhite,
                                       ozz::math::Float4x4::identity());
+
+      success &= _renderer->DrawSphereIm(
+          .02f, ozz::math::Float4x4::Translation(pole_vector),
+          ozz::sample::kWhite);
+
+      /*
+
+ozz::math::Float3 begin;
+ozz::math::Store3PtrU(models_[mid_joint_].cols[3], &begin.x);
+
+ozz::math::Float3 line[] = {begin, begin + pole_vector};
+success &= _renderer->DrawLines(line, ozz::sample::kWhite, root);*/
     }
 
     // Showing joints

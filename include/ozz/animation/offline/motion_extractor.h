@@ -31,6 +31,9 @@
 #include "ozz/animation/offline/export.h"
 
 namespace ozz {
+namespace math {
+struct Transform;
+}
 namespace animation {
 class Skeleton;
 namespace offline {
@@ -56,11 +59,11 @@ class OZZ_ANIMOFFLINE_DLL MotionExtractor {
   // Executes extraction based on provided settings.
   bool operator()(const RawAnimation& _input, const Skeleton& _skeleton,
                   RawFloat3Track* _motion_position,
-                  RawQuaternionTrack* _motion_rotation,
-                  RawAnimation* _output) const;
+                  RawQuaternionTrack* _motion_rotation, RawAnimation* _output,
+                  math::Transform* _reference = nullptr) const;
 
-  // Index of the joint that will be used as root to extract motion.
-  int root_joint = 0;
+  // Index of the joint from which motion is going to be extracted.
+  int joint = 0;
 
   // Defines the reference transform to use while extracting root motion.
   enum class Reference {

@@ -3,9 +3,9 @@ add_custom_command(
   DEPENDS $<$<BOOL:${ozz_build_fbx}>:BUILD_DATA>
           $<$<BOOL:${ozz_build_fbx}>:BUILD_DATA_SAMPLE>
           "${CMAKE_CURRENT_LIST_DIR}/README.md"
-          "${ozz_media_directory}/bin/pab/skeleton.ozz"
-          "${ozz_media_directory}/bin/pab/crossarms.ozz"
-          "${ozz_media_directory}/bin/arnaud_mesh.ozz"
+          "${ozz_media_directory}/bin/quaternius/skeleton.ozz"
+          "${ozz_media_directory}/bin/quaternius/Rig_Idle_Loop.ozz"
+          "${ozz_media_directory}/bin/quaternius/mesh.ozz"
           "${ozz_media_directory}/bin/floor.ozz"
   OUTPUT  "${CMAKE_CURRENT_BINARY_DIR}/README.md"
           "${CMAKE_CURRENT_BINARY_DIR}/media/skeleton.ozz"
@@ -14,9 +14,9 @@ add_custom_command(
           "${CMAKE_CURRENT_BINARY_DIR}/media/floor.ozz"
   COMMAND ${CMAKE_COMMAND} -E make_directory media
   COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_LIST_DIR}/README.md" .
-  COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/pab/skeleton.ozz" "./media/skeleton.ozz"
-  COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/pab/crossarms.ozz" "./media/animation.ozz"
-  COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/arnaud_mesh.ozz" "./media/mesh.ozz"
+  COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/quaternius/skeleton.ozz" "./media/skeleton.ozz"
+  COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/quaternius/Rig_Idle_Loop.ozz" "./media/animation.ozz"
+  COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/quaternius/mesh.ozz" "./media/mesh.ozz"
   COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/floor.ozz" "./media/floor.ozz"
   VERBATIM)
 

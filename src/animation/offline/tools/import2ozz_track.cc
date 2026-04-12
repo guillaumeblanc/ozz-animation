@@ -344,9 +344,8 @@ ozz::animation::offline::MotionExtractor::Settings ProcessMotionTrackSettings(
   settings.z = components.find('z') != ozz::string::npos;
 
   const char* reference = _config["reference"].asCString();
-  bool valid_ref = RootMotionReferenceConfig::GetEnumFromName(
+  [[maybe_unused]] bool valid_ref = RootMotionReferenceConfig::GetEnumFromName(
       reference, &settings.reference);
-  (void)valid_ref;
   assert(valid_ref &&
          "Reference should have been checked during config validation");
 
@@ -379,14 +378,14 @@ bool ProcessMotionTrack(OzzImporter& _importer, const char* _clip_name,
   extractor.position_settings = ProcessMotionTrackSettings(_config["position"]);
   extractor.rotation_settings = ProcessMotionTrackSettings(_config["rotation"]);
 
-  // Find root joint
+  // Find joint to extract motion from
   const char* joint_config = _config["joint_name"].asCString();
   if (*joint_config != 0) {
     bool found = false;
     for (int i = 0; i < _skeleton.num_joints(); ++i) {
       if (strmatch(_skeleton.joint_names()[i], joint_config)) {
         found = true;
-        extractor.root_joint = i;
+        extractor.joint = i;
         ozz::log::LogV() << "Found motion extraction root joint \""
                          << joint_config << "\"" << std::endl;
         break;
@@ -400,7 +399,7 @@ bool ProcessMotionTrack(OzzImporter& _importer, const char* _clip_name,
   }
 
   // Prepare raw tracks
-  const ozz::string joint_name = _skeleton.joint_names()[extractor.root_joint];
+  const ozz::string joint_name = _skeleton.joint_names()[extractor.joint];
   ozz::animation::offline::RawFloat3Track raw_position;
   raw_position.name = joint_name + "-position";
   ozz::animation::offline::RawQuaternionTrack raw_rotation;

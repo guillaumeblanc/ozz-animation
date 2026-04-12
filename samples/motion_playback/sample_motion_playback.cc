@@ -135,8 +135,8 @@ class MotionPlaybackSampleApplication : public ozz::sample::Application {
     if (show_motion_) {
       const float step = 1.f / (animation_.duration() * 60.f);
       const float at = controller_.time_ratio();
-      const float from = floating_display_ ? at - floating_before_ : 0.f;
-      const float to = floating_display_ ? at + floating_after_ : 1.f;
+      const float from = floating_display_ ? at - floating_past_ : 0.f;
+      const float to = floating_display_ ? at + floating_future_ : 1.f;
       success &= ozz::sample::DrawMotion(
           _renderer, motion_track_, from, at, to, step, transform_,
           FrameRotation(step * animation_.duration()));
@@ -225,13 +225,13 @@ class MotionPlaybackSampleApplication : public ozz::sample::Application {
         _im_gui->DoCheckBox("Floating display", &floating_display_,
                             show_motion_);
 
-        std::snprintf(label, sizeof(label), "Motion before: %.0f%%",
-                      floating_before_ * 100.f);
-        _im_gui->DoSlider(label, 0.f, 3.f, &floating_before_, 1.f,
+        std::snprintf(label, sizeof(label), "Motion past: %.0f%%",
+                      floating_past_ * 100.f);
+        _im_gui->DoSlider(label, 0.f, 3.f, &floating_past_, 1.f,
                           floating_display_ && show_motion_);
-        std::snprintf(label, sizeof(label), "Motion after: %.0f%%",
-                      floating_after_ * 100.f);
-        _im_gui->DoSlider(label, 0.f, 3.f, &floating_after_, 1.f,
+        std::snprintf(label, sizeof(label), "Motion future: %.0f%%",
+                      floating_future_ * 100.f);
+        _im_gui->DoSlider(label, 0.f, 3.f, &floating_future_, 1.f,
                           floating_display_ && show_motion_);
       }
     }
@@ -297,8 +297,8 @@ class MotionPlaybackSampleApplication : public ozz::sample::Application {
   // Floatting display means that the motion is displayed around the current
   // time, instead of from begin to end.
   bool floating_display_ = true;
-  float floating_before_ = .3f;
-  float floating_after_ = 1.f;
+  float floating_past_ = .3f;
+  float floating_future_ = 1.f;
 };
 
 int main(int _argc, const char** _argv) {

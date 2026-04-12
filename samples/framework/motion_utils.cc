@@ -257,7 +257,7 @@ bool DrawMotion(ozz::sample::Renderer* _renderer,
   ozz::math::Transform at_transform;
   SampleMotion(_motion_track, _at, &at_transform);
   const auto transform =
-      _transform * Invert(ozz::math::Float4x4::FromAffine(at_transform));
+      _transform;  // * Invert(ozz::math::Float4x4::FromAffine(at_transform));
 
   // Setup motion sampler
   MotionSampler sampler;
