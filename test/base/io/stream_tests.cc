@@ -25,13 +25,12 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/base/io/stream.h"
-
 #include <stdint.h>
+
 #include <limits>
 
 #include "gtest/gtest.h"
-
+#include "ozz/base/io/stream.h"
 #include "ozz/base/platform.h"
 
 void TestStream(ozz::io::Stream* _stream) {
@@ -151,7 +150,7 @@ void TestTooBigStream(ozz::io::Stream* _stream) {
   // Writes/Reads outside of Stream valid range.
   EXPECT_EQ(_stream->Seek(1, ozz::io::Stream::kSet), 0);
   EXPECT_EQ(_stream->Tell(), 1);
-  char c;
+  char c = 0;
   EXPECT_EQ(_stream->Write(&c, max_size), 0u);
   EXPECT_EQ(_stream->Read(&c, max_size), 0u);
   EXPECT_EQ(_stream->Size(), 0u);
