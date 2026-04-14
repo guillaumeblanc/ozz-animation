@@ -1,9 +1,11 @@
 # Gather data from animations_bin_path folder
 set(animations_bin_path "${ozz_media_directory}/bin/quaternius")
 
-# List animations in a file for the sample to read
-file(GLOB animations_list RELATIVE ${animations_bin_path} "${animations_bin_path}/Rig_*.ozz")
-file(GLOB animations_path_list "${animations_bin_path}/Rig_*.ozz")
+# List animations in a file for the sample to read, exclude raw animations that are not supported by the sample.
+file(GLOB animations_list LIST_DIRECTORIES false RELATIVE ${animations_bin_path} "${animations_bin_path}/Rig_*.ozz")
+list(FILTER animations_list EXCLUDE REGEX "_raw")
+file(GLOB animations_path_list LIST_DIRECTORIES false "${animations_bin_path}/Rig_*.ozz")
+list(FILTER animations_path_list EXCLUDE REGEX "_raw")
 file(GENERATE OUTPUT "./media/animations.txt" CONTENT "$<JOIN:${animations_list},\n>")
 
 set(animations_sample_path_list ${animations_path_list})
