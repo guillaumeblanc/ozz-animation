@@ -28,6 +28,7 @@
 #include "ozz/animation/offline/motion_extractor.h"
 
 #include <cassert>
+#include <algorithm>
 
 #include "ozz/animation/offline/raw_animation.h"
 #include "ozz/animation/offline/raw_animation_utils.h"
