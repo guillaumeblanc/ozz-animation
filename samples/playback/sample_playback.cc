@@ -151,7 +151,6 @@ class PlaybackSampleApplication : public ozz::sample::Application {
 };
 
 int main(int _argc, const char** _argv) {
-  const char* title =
-      "Ozz-animation sample: Binary animation/skeleton playback";
+  const char* title = "Ozz-animation sample: Animation playback";
   return PlaybackSampleApplication().Run(_argc, _argv, "1.0", title);
 }
