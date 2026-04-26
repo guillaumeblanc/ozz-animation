@@ -14,7 +14,7 @@ Description
 Loads a skeleton and an animation from ozz binary archives. This animation is then played-back and applied to the skeleton.
 Animation time and playback speed can be tweaked.
 
-{% include emscripten.jekyll emscripten_path="samples/emscripten/sample_playback.js" %}
+{% include emscripten.jekyll emscripten_path="samples/emscripten/playback/sample_playback.js" %}
 
 Concept
 =======

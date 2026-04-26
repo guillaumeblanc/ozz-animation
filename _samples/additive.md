@@ -13,7 +13,7 @@ Description
 ===========
 Additive blending is a key concept in run-time animation. Superimposing a movement on top of a playing animation allows to add variety while lessening animation count and management complexity. In this sample, 2 *splay* and *curl* hand animations are a added to a *walk* cycle. A weight is associated to each additive layers independently, allowing to control fingers.
 
-{% include emscripten.jekyll emscripten_path="samples/emscripten/sample_additive.js" %}
+{% include emscripten.jekyll emscripten_path="samples/emscripten/additive/sample_additive.js" %}
 
 Concept
 =======

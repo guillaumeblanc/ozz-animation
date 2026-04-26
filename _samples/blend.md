@@ -18,7 +18,7 @@ Blending is the key concept in run-time animation:
 
 This sample demonstrates the composition blending case (2). It blends three animations (walk, jog and run) according to a single "speed" coefficient: The closer the speed is from 0, the closer the result is to the walk animation. The closer the speed is from 1, the closer the result is to the run animation.
 
-{% include emscripten.jekyll emscripten_path="samples/emscripten/sample_blend.js" %}
+{% include emscripten.jekyll emscripten_path="samples/emscripten/blend/sample_blend.js" %}
 
 Concept
 =======

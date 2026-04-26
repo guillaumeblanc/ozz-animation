@@ -14,7 +14,7 @@ Description
 
 Performs two bone IK on robot arm skeleton.
 
-{% include emscripten.jekyll emscripten_path="samples/emscripten/sample_two_bone_ik.js" %}
+{% include emscripten.jekyll emscripten_path="samples/emscripten/two_bone_ik/sample_two_bone_ik.js" %}
 
 Concept
 =======

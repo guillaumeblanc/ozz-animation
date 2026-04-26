@@ -14,7 +14,7 @@ Description
 
 The samples uses a user channel track to drive attachment state of a box manipulated by a robot's arm. The track was edited in a DCC tool as a custom property, and imported along side the animation using fbx2ozz.
 
-{% include emscripten.jekyll emscripten_path="samples/emscripten/sample_user_channel.js" %}
+{% include emscripten.jekyll emscripten_path="samples/emscripten/user_channel/sample_user_channel.js" %}
 
 Concept
 =======

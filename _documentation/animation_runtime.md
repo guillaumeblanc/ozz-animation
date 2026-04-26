@@ -125,7 +125,7 @@ The following sample shows a use case of user channel track to drive attachment 
 
 You can experiment that using the `ozz::animation::TrackTriggeringJob`, the box remains perfectly at the correct position even if time is speed up. With the `ozz::animation::TrackSamplingJob`, a small error accumulates each loop. 
 
-{% include emscripten.jekyll emscripten_path="samples/emscripten/sample_user_channel.js" %}
+{% include emscripten.jekyll emscripten_path="samples/emscripten/user_channel/sample_user_channel.js" %}
 
 Mathematical structures
 -----------------------

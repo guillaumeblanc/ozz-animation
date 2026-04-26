@@ -14,7 +14,7 @@ Description
 
 This sample adds skinning to the playback sample. It loads a skeleton, an animation and skinned meshes from ozz binary archives. It playbacks animation every frame and uses model-space matrices to build skinning matrices and render a skinned mesh.
 
-{% include emscripten.jekyll emscripten_path="samples/emscripten/sample_skinning.js" %}
+{% include emscripten.jekyll emscripten_path="samples/emscripten/skinning/sample_skinning.js" %}
 
 Concept
 =======

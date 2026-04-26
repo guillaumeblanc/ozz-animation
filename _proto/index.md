@@ -8,7 +8,7 @@ keywords: blend,additive,partial,blending,sample,tutorial,control,rig
 
 Trying to see how [UE4 Control Rig fingers demo](https://twitter.com/AlanNoon/status/1256225763679965184?s=20) could work under the hood.
 
-{% include emscripten.jekyll emscripten_path="proto/emscripten/sample_additive.js" %}
+{% include emscripten.jekyll emscripten_path="proto/emscripten/additive/sample_additive.js" %}
 
 ## Description
 

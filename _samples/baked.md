@@ -13,7 +13,7 @@ Description
 ===========
 This samples shows a physic simulation baked into an animation. This scene contains more than 1000 cuboids. Baking complex scenes offline into animations in a common technique to render cpu intensive simulations.
 
-{% include emscripten.jekyll emscripten_path="samples/emscripten/sample_baked.js" %}
+{% include emscripten.jekyll emscripten_path="samples/emscripten/baked/sample_baked.js" %}
 
 Concept
 =======

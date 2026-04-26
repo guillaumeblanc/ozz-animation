@@ -14,7 +14,7 @@ Description
 
 Uses partial animation blending technique to animate the lower and upper part of the skeleton with different animations.
 
-{% include emscripten.jekyll emscripten_path="samples/emscripten/sample_partial_blend.js" %}
+{% include emscripten.jekyll emscripten_path="samples/emscripten/partial_blend/sample_partial_blend.js" %}
 
 Concept
 =======

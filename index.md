@@ -75,7 +75,7 @@ collection: home
         <p>Try the samples to evaluate ozz-animation runtime features.</p>
       </a>
       This sample shows a physic simulation baked into an animation using more than 1000 joints. Baking complex scenes offline into animations in a common technique to render cpu intensive simulations.
-      {% include emscripten.jekyll emscripten_path="samples/emscripten/sample_baked.js" %}
+      {% include emscripten.jekyll emscripten_path="samples/emscripten/baked/sample_baked.js" %}
     </div>
   </div>
 </div>

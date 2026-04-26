@@ -15,7 +15,7 @@ Description
 Extracting root motion is the process of capturing character motion (translation and rotation) from an animation. This motion is re-applied at runtime to drive the character and its collision capsule.
 This sample allows to tweak motion extraction settings by exposing all the parameters available to the motion extraction utility.
 
-{% include emscripten.jekyll emscripten_path="samples/emscripten/sample_motion_extraction.js" %}
+{% include emscripten.jekyll emscripten_path="samples/emscripten/motion_extraction/sample_motion_extraction.js" %}
 
 Concept
 =======

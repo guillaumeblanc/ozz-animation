@@ -13,7 +13,7 @@ Description
 ===========
 Demonstrates how to attach an object to an animated skeleton's joint. This feature allows for example to render a sword in the hand of a character. This could also be used to attach an animated skeleton to an joint of an other animated one.
 
-{% include emscripten.jekyll emscripten_path="samples/emscripten/sample_attach.js" %}
+{% include emscripten.jekyll emscripten_path="samples/emscripten/attach/sample_attach.js" %}
 
 Concept
 =======

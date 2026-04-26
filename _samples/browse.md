@@ -14,7 +14,7 @@ Description
 
 List animations and lets user browsing through and preview all animations.
 
-{% include emscripten.jekyll emscripten_path="samples/emscripten/sample_browse.js" %}
+{% include emscripten.jekyll emscripten_path="samples/emscripten/browse/sample_browse.js" %}
 
 Concept
 =======

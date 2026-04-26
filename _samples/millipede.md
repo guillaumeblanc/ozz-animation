@@ -14,7 +14,7 @@ Description
 
 Demonstrates usage of ozz offline data structures and utilities.
 
-{% include emscripten.jekyll emscripten_path="samples/emscripten/sample_millipede.js" %}
+{% include emscripten.jekyll emscripten_path="samples/emscripten/millipede/sample_millipede.js" %}
 
 Concept
 =======

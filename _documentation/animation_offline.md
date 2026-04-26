@@ -88,7 +88,7 @@ Default optimization tolerances are set in order to favor quality over runtime p
 
 The following sample allows to experiment with optimizer parameters.
 
-{% include emscripten.jekyll emscripten_path="samples/emscripten/sample_optimize.js" %}
+{% include emscripten.jekyll emscripten_path="samples/emscripten/optimize/sample_optimize.js" %}
 
 `ozz::animation::offline::TrackBuilder`
 ---------------------------------------

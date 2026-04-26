@@ -15,7 +15,7 @@ Description
 
 Motion blending extends the concept of animation blending to root motion. It blends the motion resulting from the motion extraction process, which is needed to get the correct motion when animations are blent.
 
-{% include emscripten.jekyll emscripten_path="samples/emscripten/sample_motion_blend.js" %}
+{% include emscripten.jekyll emscripten_path="samples/emscripten/motion_blend/sample_motion_blend.js" %}
 
 Concept
 =======

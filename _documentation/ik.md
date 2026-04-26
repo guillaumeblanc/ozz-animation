@@ -41,7 +41,7 @@ Middle joint rotation axis is user defined (in local-space). This axis is usuall
 
 The plane (defined by the three joints) can be rotated using the pole vector and twist angle. The pole vector defines a direction in which the middle joint will be pulled. Twist angles defines a rotation around start joint to end joint vector.
 
-{% include emscripten.jekyll emscripten_path="samples/emscripten/sample_two_bone_ik.js" %}
+{% include emscripten.jekyll emscripten_path="samples/emscripten/two_bone_ik/sample_two_bone_ik.js" %}
 
 Softening paramter reduces the snapping effect when the chain is getting aligned / flat (it can be experimented in the sample above). Softening ratio is defined as the distance to the chain end, from which softening is starting. Note that target is considered as not reached as soon as softening starts.
 
