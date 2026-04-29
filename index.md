@@ -74,8 +74,8 @@ collection: home
         <div class="w3-center w3-xxlarge w3-wide">Samples</div>
         <p>Try the samples to evaluate ozz-animation runtime features.</p>
       </a>
-      This sample shows a physic simulation baked into an animation using more than 1000 joints. Baking complex scenes offline into animations in a common technique to render cpu intensive simulations.
-      {% include emscripten.jekyll emscripten_path="samples/emscripten/baked/sample_baked.js" %}
+      This sample implements procedural look-at to orientate character's head in a direction (at a target position), without using any animation data. This comes as a correction on (some) joint(s) rotation, on top of current animation. The character could still use animation as a base look-at depending on target position, and use the procedural correction for the final/precise adjustments.
+      {% include emscripten.jekyll emscripten_path="samples/emscripten/look_at/sample_look_at.js" %}
     </div>
   </div>
 </div>

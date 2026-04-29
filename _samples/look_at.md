@@ -11,7 +11,7 @@ level: 3
 
 Description
 ===========
-Procedural look-at objective is to orientate character head in a direction (at a target position), without using any animation data. This comes as a correction on (some) joint(s) rotation, on top of current animation. The character could still use animation as a base look-at depending on target position, and use the procedural correction for the final/precise adjustment.
+Procedural look-at objective is to orientate character's head in a direction (at a target position), without using any animation data. This comes as a correction on (some) joint(s) rotation, on top of current animation. The character could still use animation as a base look-at depending on target position, and use the procedural correction for the final/precise adjustment.
 
 {% include emscripten.jekyll emscripten_path="samples/emscripten/look_at/sample_look_at.js" %}
 
