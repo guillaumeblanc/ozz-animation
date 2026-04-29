@@ -26,8 +26,6 @@
   }
   function OnSampleSuccess() {
     sample_status.innerHTML = "&nbsp;";
-    // Initialize canvas size
-    CanvasResize();
   }
   function OnSampleFailure(text) {
     sample_status.innerHTML = text;
