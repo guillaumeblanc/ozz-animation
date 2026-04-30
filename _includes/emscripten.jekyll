@@ -4,7 +4,7 @@
 <div id="sample_border">
   <div class="w3-display-container">
     <div id="sample_container" style="font-size:0; line-height:0;">
-      <canvas id="sample_canvas2" class="w3-round w3-black w3-card-2" oncontextmenu="event.preventDefault()"></canvas>
+      <canvas id="sample_canvas" class="w3-round w3-black w3-card-2" oncontextmenu="event.preventDefault()" tabindex="-1"></canvas>
     </div>
   </div>
   <div>
@@ -13,9 +13,15 @@
 </div>
 <script>
   var sample_border = document.getElementById("sample_border");
-  var sample_canvas = document.getElementById("sample_canvas2");
+  var sample_canvas = document.getElementById("sample_canvas");
   var sample_status = document.getElementById("sample_status");
   var sample_output = document.getElementById("sample_output");
+  
+  // Prevent emscripten from forcing scrolling on windw creation
+  setTimeout(() => {
+    sample_canvas.focus({ preventScroll: true });
+  }, 0);
+
   function CheckWebGLSupport(canvas) {
     const gl = document.createElement('canvas').getContext('webgl2');
     if (!gl) {
@@ -58,10 +64,7 @@
         console.error(text);
       },
       canvas: (() => {
-        var canvas = document.getElementById("sample_canvas2");
-
-        // Prevent emscripten from forcing scrolling on windw creation
-        canvas.focus({ preventScroll: true });
+        var canvas = document.getElementById("sample_canvas");
 
         // As a default initial behavior, pop up an alert when webgl context is lost. To make your
         // application robust, you may want to override this behavior before shipping!
