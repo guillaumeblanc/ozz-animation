@@ -67,7 +67,7 @@ collection: home
 
 <div class="w3-row w3-center">
   <div class="w3-card-2 w3-margin">
-    {% include emscripten.jekyll emscripten_path="samples/emscripten/look_at/sample_look_at.js" %}
+    {% include emscripten.jekyll emscripten_path="samples/emscripten/look_at/sample_look_at.js" resolution="6" %}
   </div>
 </div>
 
