@@ -5,9 +5,11 @@
       <canvas id="sample_canvas" class="w3-round w3-black w3-card-2" oncontextmenu="event.preventDefault()" tabindex="-1"></canvas>
     </div>
   </div>
-  <div>
-    <textarea id="sample_output" class="w3-light-grey w3-round w3-tiny w3-card-2" rows="6" style="width:100%;resize:none;"></textarea>
-  </div>
+  {% unless include.disable_output %}
+    <div>
+      <textarea id="sample_output" class="w3-light-grey w3-round w3-tiny w3-card-2" rows="8" style="width:100%;resize:none;"></textarea>
+    </div>
+  {% endunless %}
 </div>
 <script>
   var sample_canvas = document.getElementById("sample_canvas");
