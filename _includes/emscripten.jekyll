@@ -1,6 +1,4 @@
-<div class="w3-center">
-    <p class="w3-tiny" id="sample_status">Initializing WebGL</p>
-</div>
+
 <div id="sample_border">
   <div class="w3-display-container">
     <div id="sample_container" style="font-size:0; line-height:0;">
@@ -12,9 +10,7 @@
   </div>
 </div>
 <script>
-  var sample_border = document.getElementById("sample_border");
   var sample_canvas = document.getElementById("sample_canvas");
-  var sample_status = document.getElementById("sample_status");
   var sample_output = document.getElementById("sample_output");
   
   // Prevent emscripten from forcing scrolling on windw creation
@@ -29,15 +25,6 @@
     } else {
       return [true, 'WebGL is supported by your browser.'];
     }
-  }
-  function OnSampleSuccess() {
-    sample_status.innerHTML = "&nbsp;";
-  }
-  function OnSampleFailure(text) {
-    sample_status.innerHTML = text;
-  }
-  function OnSampleProgress(text) {
-    sample_status.innerHTML = text;
   }
   
   var webgl_support = CheckWebGLSupport(sample_canvas);
@@ -73,16 +60,7 @@
 
         return canvas;
       })(),
-      setStatus: function(text) {
-        if(text == '') {
-          // This signals sample initialization success.
-          OnSampleSuccess();
-        } else {
-          OnSampleProgress(text);
-        }
-      }
     };
-    Module.setStatus('Downloading...');
   }
 </script>
 <script async type="text/javascript" src="{{site.baseurl}}/{{include.emscripten_path}}"></script>
