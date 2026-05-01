@@ -8,7 +8,7 @@ collection: home
 {% include links.jekyll %}
 
 <div class="w3-container w3-margin">
-  ozz-animation is an open source c++ 3d skeletal animation library. It provides runtime character animation functionalities (sampling, blending...), with the toolset to import major DCC formats (Collada, Fbx, glTF...). It proposes a low-level renderer and game-engine agnostic implementation, focusing on performance and memory constraints with a data-oriented design.
+  ozz-animation is an open source c++ 3d skeletal animation library. It provides runtime character animation functionalities (sampling, blending...), with the toolset to import major DCC formats (Collada, Fbx, glTF...). It proposes a game-engine agnostic implementation, focusing on performance and memory constraints with a data-oriented design.
 </div>
 
 <div class="w3-row w3-center">
@@ -57,7 +57,7 @@ collection: home
           <div class="w3-text-theme">
             <i class="fas fa-wrench w3-padding-8" style="font-size:128px"></i>
           </div>
-          <p>Fbx, Collada, glTF, Obj, 3ds, dxf...</p>
+          <p>Fbx, Collada, glTF, 3ds...</p>
           <p>Compression</p>
           <p>Keyframe reduction</p>
           <p>Command line tools</p>
