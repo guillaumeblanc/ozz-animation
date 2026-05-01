@@ -14,7 +14,7 @@ collection: home
 <div class="w3-row-padding w3-center">
   <div class="w3-third">
     <a class="a_reject" href="{{site.baseurl}}/documentation/features/">
-      <div class="w3-card-2" style="min-height:460px">
+      <div class="w3-card-2">
         <div class="w3-container w3-margin">
           <div class="w3-xxlarge w3-wide">Features</div>
           <div class="w3-text-theme">
@@ -31,7 +31,7 @@ collection: home
   </div>
   <div class="w3-third">
     <a class="a_reject" href="{{site.baseurl}}/documentation/toolset/">
-      <div class="w3-card-2" style="min-height:460px">
+      <div class="w3-card-2">
         <div class="w3-container w3-margin">
           <div class="w3-xxlarge w3-wide">Toolset</div>
           <div class="w3-text-theme">
@@ -48,7 +48,7 @@ collection: home
   </div>
   <div class="w3-third">
     <a class="a_reject" href="{{site.baseurl}}/documentation/animation_runtime/">
-      <div class="w3-card-2" style="min-height:460px">
+      <div class="w3-card-2">
         <div class="w3-container w3-margin">
           <div class="w3-xxlarge w3-wide">Code</div>
           <div class="w3-text-theme">
