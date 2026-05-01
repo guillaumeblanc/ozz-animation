@@ -11,26 +11,6 @@ collection: home
   ozz-animation is an open source c++ 3d skeletal animation library. It provides runtime character animation functionalities (sampling, blending...), with the toolset to import major DCC formats (Collada, Fbx, glTF...). It proposes a game-engine agnostic implementation, focusing on performance and memory constraints with a data-oriented design.
 </div>
 
-<div class="w3-row w3-center">
-  <div class="w3-card-2 w3-margin">
-    <div class="w3-margin">
-      <p>This sample demonstrates a procedural look-at animation using ozz IK feature.</p>
-      {% include emscripten.jekyll emscripten_path="samples/emscripten/look_at/sample_look_at.js" %}
-    </div>
-  </div>
-</div>
-
-<div class="w3-row w3-center">
-  <div class="w3-card-2 w3-margin">
-    <div class="w3-margin">
-      <a class="a_reject" href="{{site.baseurl}}/samples/">
-        <div class="w3-center w3-xxlarge w3-wide">Samples</div>
-        <p>Try more samples to discover and test ozz-animation runtime features.</p>
-      </a>
-    </div>
-  </div>
-</div>
-
 <div class="w3-row-padding w3-center">
   <div class="w3-third">
     <a class="a_reject" href="{{site.baseurl}}/documentation/features/">
@@ -82,6 +62,19 @@ collection: home
         </div>
       </div>
     </a>
+  </div>
+</div>
+
+<div class="w3-row w3-center">
+  <div class="w3-card-2 w3-margin">
+    <div class="w3-margin">
+      <p>This sample demonstrates a procedural look-at animation using ozz IK feature.</p>
+      {% include emscripten.jekyll emscripten_path="samples/emscripten/look_at/sample_look_at.js" %}
+
+      <a class="a_reject" href="{{site.baseurl}}/samples/">
+        <p>Try more samples to discover and test ozz-animation runtime features.</p>
+      </a>
+    </div>
   </div>
 </div>
 
