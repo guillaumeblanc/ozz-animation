@@ -67,9 +67,6 @@ collection: home
 
 <div class="w3-row w3-center">
   <div class="w3-card-2 w3-margin">
-    <div class="w3-margin w3-text-theme">
-      <p>This sample implements procedural look-at on an animated character, using ozz IK feature.</p>
-    </div>
     {% include emscripten.jekyll emscripten_path="samples/emscripten/look_at/sample_look_at.js" %}
   </div>
 </div>
