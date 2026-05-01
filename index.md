@@ -71,22 +71,19 @@ collection: home
   </div>
 </div>
 
-<div class="w3-row w3-center">
-  <a class="a_reject" href="{{site.baseurl}}/samples/">
-    <div class="w3-card-2 w3-margin">
+<div class="w3-row-padding w3-center">
+  <a class="a_reject w3-third" href="{{site.baseurl}}/samples/">
+    <div class="w3-card-2" style="min-height:260px">
       <div class="w3-container w3-margin">
         <div class="w3-xxlarge w3-wide">Samples</div>
         <div class="w3-text-theme">
           <i class="fas fa-eye w3-padding-8" style="font-size:128px"></i>
         </div>
-      </div>
+      </div>  
     </div>
   </a>
-</div>
-
-<div class="w3-row-padding w3-center">
-  <a class="a_reject w3-half" href="{{site.baseurl}}/documentation/">
-    <div class="w3-card-2">
+  <a class="a_reject w3-third" href="{{site.baseurl}}/documentation/">
+    <div class="w3-card-2" style="min-height:260px">
       <div class="w3-container w3-margin">
         <div class="w3-xxlarge w3-wide">Getting started</div>
         <div class="w3-text-theme">
@@ -95,8 +92,8 @@ collection: home
       </div>  
     </div>
   </a>
-  <a class="a_reject w3-half" href="https://github.com/guillaumeblanc/ozz-animation/">
-    <div class="w3-card-2">
+  <a class="a_reject w3-third" href="https://github.com/guillaumeblanc/ozz-animation/">
+    <div class="w3-card-2" style="min-height:260px">
       <div class="w3-container w3-margin">
         <div class="w3-xxlarge w3-wide">View on Github</div>
         <div class="w3-text-theme">
