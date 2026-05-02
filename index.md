@@ -75,7 +75,7 @@ collection: home
   <a class="a_reject w3-third" href="{{site.baseurl}}/samples/">
     <div class="w3-card-2" style="min-height:260px">
       <div class="w3-container w3-margin">
-        <div class="w3-xxlarge w3-wide">Samples</div>
+        <div class="w3-xxlarge w3-wide">Try samples</div>
         <div class="w3-text-theme">
           <i class="fas fa-eye w3-padding-8" style="font-size:128px"></i>
         </div>

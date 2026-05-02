@@ -57,8 +57,8 @@
     {% endfor %}
 
     <a class="a_reject w3-bar-item w3-button w3-medium" href="https://github.com/guillaumeblanc/ozz-animation/"><i class="fab fa-github" aria-hidden="true"></i>Github</a>
-  <br />
-  <br />
+  <br>
+  <br>
 </div>
 
 <!-- Overlay effect when opening sidenav on small screens -->
