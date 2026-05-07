@@ -16,10 +16,8 @@ collection: home
     <a class="a_reject" href="{{site.baseurl}}/documentation/features/">
       <div class="w3-card-2">
         <div class="w3-container w3-margin">
-          <div class="w3-xxlarge w3-wide">Features</div>
-          <div class="w3-text-theme">
-            <i class="fab fa-superpowers w3-padding-8" style="font-size:128px"></i>
-          </div>
+          <div class="w3-xlarge w3-wide">Features</div>
+          <div class="w3-text-theme"><i class="fab fa-superpowers w3-padding-8" style="font-size:96px"></i></div>
           <p>Sampling</p>
           <p>Blending</p>
           <p>Motion extraction</p>
@@ -33,10 +31,8 @@ collection: home
     <a class="a_reject" href="{{site.baseurl}}/documentation/toolset/">
       <div class="w3-card-2">
         <div class="w3-container w3-margin">
-          <div class="w3-xxlarge w3-wide">Toolset</div>
-          <div class="w3-text-theme">
-            <i class="fas fa-wrench w3-padding-8" style="font-size:128px"></i>
-          </div>
+          <div class="w3-xlarge w3-wide">Toolset</div>
+          <div class="w3-text-theme"><i class="fas fa-wrench w3-padding-8" style="font-size:96px"></i></div>
           <p>Fbx, Collada, glTF, 3ds...</p>
           <p>Compression</p>
           <p>Keyframe reduction</p>
@@ -50,10 +46,8 @@ collection: home
     <a class="a_reject" href="{{site.baseurl}}/documentation/animation_runtime/">
       <div class="w3-card-2">
         <div class="w3-container w3-margin">
-          <div class="w3-xxlarge w3-wide">Code</div>
-          <div class="w3-text-theme">
-            <i class="fas fa-pencil-alt w3-padding-8" style="font-size:128px"></i>
-          </div>
+          <div class="w3-xlarge w3-wide">Code</div>
+          <div class="w3-text-theme"><i class="fas fa-pencil-alt w3-padding-8" style="font-size:96px"></i></div>
           <p>C++</p>
           <p>Engine agnostic</p>
           <p>Cache friendly</p>
@@ -73,32 +67,26 @@ collection: home
 
 <div class="w3-row-padding w3-center">
   <a class="a_reject w3-third" href="{{site.baseurl}}/samples/">
-    <div class="w3-card-2" style="min-height:260px">
+    <div class="w3-card-2">
       <div class="w3-container w3-margin">
-        <div class="w3-xxlarge w3-wide">Try samples</div>
-        <div class="w3-text-theme">
-          <i class="fas fa-eye w3-padding-8" style="font-size:128px"></i>
-        </div>
+        <div class="w3-text-theme"><i class="fas fa-eye w3-padding-8" style="font-size:96px"></i></div>
+        <div class="w3-xlarge w3-wide">Samples</div>
       </div>  
     </div>
   </a>
   <a class="a_reject w3-third" href="{{site.baseurl}}/documentation/">
-    <div class="w3-card-2" style="min-height:260px">
+    <div class="w3-card-2">
       <div class="w3-container w3-margin">
-        <div class="w3-xxlarge w3-wide">Getting started</div>
-        <div class="w3-text-theme">
-          <i class="fas fa-forward w3-padding-8" style="font-size:128px"></i>
-        </div>
+        <div class="w3-text-theme"><i class="fas fa-forward w3-padding-8" style="font-size:96px"></i></div>
+        <div class="w3-xlarge w3-wide">Get started</div>
       </div>  
     </div>
   </a>
   <a class="a_reject w3-third" href="https://github.com/guillaumeblanc/ozz-animation/">
-    <div class="w3-card-2" style="min-height:260px">
+    <div class="w3-card-2">
       <div class="w3-container w3-margin">
-        <div class="w3-xxlarge w3-wide">View on Github</div>
-        <div class="w3-text-theme">
-          <i class="fab fa-github w3-padding-8" style="font-size:128px"></i>
-        </div>
+        <div class="w3-text-theme"><i class="fab fa-github w3-padding-8" style="font-size:96px"></i></div>
+        <div class="w3-xlarge w3-wide">Github</div>
       </div>
     </div>
   </a>
