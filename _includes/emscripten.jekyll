@@ -12,6 +12,7 @@
   {% endunless %}
 </div>
 <script>
+
   var sample_canvas = document.getElementById("sample_canvas");
   var sample_output = document.getElementById("sample_output");
   
@@ -35,7 +36,21 @@
   } else {
     var Module = {
       arguments: ['--resolution={{ include.resolution | default: 9 }}'],
-      preRun: [],
+      preRun: [
+        // Prevent the page title from being changed by the sample
+        function () {
+          try {
+            const locked = document.title;
+            Object.defineProperty(document, "title", {
+              configurable: false,
+              get() { return locked; },
+              set(_) { /* ignore */ }
+            });
+          } catch (e) {
+            console.warn('Failed to lock document title, sample may change it:', e);
+          }
+        }
+      ],
       postRun: [],
       print: (function() {
         if (sample_output) sample_output.value = ''; // Clears browser cache
@@ -65,4 +80,5 @@
     };
   }
 </script>
+
 <script async type="text/javascript" src="{{site.baseurl}}/{{include.emscripten_path}}"></script>
