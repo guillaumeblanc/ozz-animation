@@ -2,17 +2,12 @@
 
 ## Description
 
-Loads a skeleton, a list of animations and a skinned mesh and lets you browse through and preview all animations.
+List animations and lets user browsing through and preview all animations.
 
 ## Concept
 
-This sample reads a list of animation archive files from a text file (one animation per line) and groups them by name prefix. It then allows selecting any animation, plays it back using the built-in playback controller and displays the result by rendering a skeleton and/or a skinned mesh.
-
-The animation sampling pipeline is:
-
-1. Sample the animation using `ozz::animation::SamplingJob`.
-2. Convert sampled local-space joint transforms to model-space matrices using `ozz::animation::LocalToModelJob`.
-3. Optionally skin meshes using the computed model-space matrices.
+This sample lists all animations from set and allows to select which animation to playback.
+It is based on skinning sample for the most part. It loads a skeleton, an animation and skinned meshes from ozz binary archives. It playbacks animation every frame and uses model-space matrices to build skinning matrices and render a skinned mesh.
 
 ## Sample usage
 
@@ -38,12 +33,9 @@ Command line options (with defaults):
 1. Load the skeleton archive.
 2. Read the animations list file and build a sorted list of animation archive filenames.
 3. Randomly pick an animation at startup and load it from `media/<animation_name>`.
-4. Allocate runtime buffers:
-   - Local-space transforms (`ozz::math::SoaTransform`) for sampling.
-   - Model-space matrices (`ozz::math::Float4x4`) for rendering.
-   - Skinning matrices computed from model matrices and the mesh inverse bind poses.
+4. Allocate runtime buffers.
 5. Every frame:
    1. Update animation time using the playback controller.
    2. Sample the current animation with `ozz::animation::SamplingJob`.
    3. Convert local-space transforms to model-space using `ozz::animation::LocalToModelJob`.
-   4. Update skinning matrices (if rendering a mesh) and render the skeleton/mesh.
+   4. Update skinning matrices and render the skeleton/mesh.

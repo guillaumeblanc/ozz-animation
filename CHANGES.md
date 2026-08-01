@@ -1,10 +1,9 @@
-
-Release version next
+Release version 0.17.0
 ----------------------
 
 * Library
   - [animation] Prevents introducing NaNs in two-bone IK computation, which was causing instability when softening target position.
-  - [animation] Implements skeleton model-space rest pose utility..
+  - [animation] Implements skeleton model-space rest pose computation utility.
   - [offline] Implements model-space raw track sampling utility.
   - [base] Makes sure cross product last component is always 0, otherwise risquing to propagate NaNs.
   - [base] Adds math transform multiplication operator.
@@ -16,7 +15,7 @@ Release version next
 * Samples
   - Integrates [Quaternius Universal Animation Library](https://quaternius.com/packs/universalanimationlibrary.html) data set.
   - Updates samples to quaternius animation data set.
-  - Adds animations browsing sample, allowing to browse and visualize all Quaternius animations.
+  - Adds animations browsing sample, allowing to visualize all Quaternius animations.
   - Handle exact 0 and 1 ratio for PlaybackController without looping.
 
 Release version 0.16.0
